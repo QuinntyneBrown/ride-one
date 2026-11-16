@@ -1,0 +1,8 @@
+dist
+node_modules
+.angular
+coverage
+test-results
+playwright-report
+public/fonts
+package-lock.json
