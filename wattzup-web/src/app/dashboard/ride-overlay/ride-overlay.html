@@ -1,0 +1,44 @@
+@let o = overlay();
+<div class="overlay-panel">
+  <div class="overlay-panel__card" [attr.role]="o.role">
+    @if (o.icon; as icon) {
+      <span class="overlay-panel__icon" [class.overlay-panel__icon--ok]="o.kind === 'bike-shut-off'"
+        ><wz-icon [name]="icon" size="xl"
+      /></span>
+    } @else {
+      <span class="spinner spinner--lg" aria-hidden="true"></span>
+    }
+    <h2>{{ o.title }}</h2>
+    @for (line of o.lines; track $index) {
+      <p>{{ line }}</p>
+    }
+    @switch (o.kind) {
+      @case ('adapter-off') {
+        <div class="cluster">
+          <button class="btn" type="button" (click)="diagnostics.emit()">Open diagnostics</button>
+        </div>
+      }
+      @case ('bike-lost') {
+        <div class="cluster">
+          <button
+            class="btn btn--volt"
+            type="button"
+            [attr.aria-busy]="reconnecting() ? 'true' : null"
+            [disabled]="reconnecting()"
+            (click)="reconnect.emit()"
+          >
+            <span class="btn__label">Reconnect</span>
+          </button>
+        </div>
+      }
+      @case ('bike-shut-off') {
+        <div class="cluster">
+          <a class="btn btn--volt" routerLink="/setup">Set up a new ride</a>
+        </div>
+      }
+    }
+    @if (o.note; as note) {
+      <p>{{ note }}</p>
+    }
+  </div>
+</div>

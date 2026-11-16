@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { CommandFeedbackService } from '../../core/command-feedback.service';
+import { DialogLauncher } from '../../core/dialog-launcher';
+import { RideActions } from '../../core/ride-actions';
+import { rideOverlayText } from '../../core/ride-overlay-text';
 import { CountdownService } from '../../core/countdown.service';
 import { LiveStateService } from '../../core/live-state.service';
 import { formatLive } from '../../core/metric-format';
@@ -14,6 +17,9 @@ import { LevelControl } from '../level-control/level-control';
 import { LevelPicker } from '../level-picker/level-picker';
 import { PlanNote } from '../plan-note/plan-note';
 import { AppBar } from '../app-bar/app-bar';
+import { ConnectionBanner } from '../connection-banner/connection-banner';
+import { LoadError } from '../load-error/load-error';
+import { RideOverlay } from '../ride-overlay/ride-overlay';
 import { Interval } from '../interval/interval';
 import { MetricsStrip } from '../metrics-strip/metrics-strip';
 import { Readout } from '../readout/readout';
@@ -21,7 +27,19 @@ import { Readout } from '../readout/readout';
 /** Route `/`: the ride dashboard. */
 @Component({
   selector: 'wz-ride-page',
-  imports: [AppBar, CmdLog, Interval, LevelControl, LevelPicker, MetricsStrip, PlanNote, Readout],
+  imports: [
+    AppBar,
+    CmdLog,
+    ConnectionBanner,
+    LoadError,
+    RideOverlay,
+    Interval,
+    LevelControl,
+    LevelPicker,
+    MetricsStrip,
+    PlanNote,
+    Readout,
+  ],
   providers: [CountdownService],
   templateUrl: './ride-page.html',
   styleUrl: './ride-page.scss',
@@ -60,15 +78,20 @@ export class RidePage {
   });
 
   protected readonly commands = inject(ResistanceCommandService);
+  protected readonly actions = inject(RideActions);
+  protected readonly dialogs = inject(DialogLauncher);
+  protected readonly overlay = computed(() => {
+    const kind = this.view().overlay;
+    const s = this.state();
+    return kind && s ? rideOverlayText(kind, s) : null;
+  });
   protected readonly resistance = computed(() => resistanceView(this.state()));
   protected readonly resistanceControls = computed(() =>
     controlsState(this.state(), this.view().commandsEnabled),
   );
   protected readonly planNote = computed(() => {
     const note = this.view().controlsNote;
-    return note && this.view().view === 'ride'
-      ? { text: note, backToPlan: false }
-      : planNote(this.state());
+    return note ? { text: note, backToPlan: false } : planNote(this.state());
   });
 
   protected stepResistance(delta: 1 | -1): void {

@@ -36,6 +36,15 @@ export class RidePage {
   readonly intervalNext: Locator;
   readonly intervalSetup: Locator;
 
+  readonly banners: Locator;
+  readonly overlay: Locator;
+  readonly overlayTitle: Locator;
+  readonly overlayText: Locator;
+  readonly loadError: Locator;
+  readonly loadErrorTitle: Locator;
+  readonly loadErrorText: Locator;
+  readonly tryAgainButton: Locator;
+
   readonly aside: Locator;
   readonly levelValue: Locator;
   readonly levelOf: Locator;
@@ -91,6 +100,15 @@ export class RidePage {
     this.intervalNext = this.interval.locator('.interval__next');
     this.intervalSetup = this.interval.getByRole('link', { name: 'Set up a ride' });
 
+    this.banners = page.locator('.banner');
+    this.overlay = page.locator('.overlay-panel__card');
+    this.overlayTitle = this.overlay.locator('h2');
+    this.overlayText = this.overlay.locator('p');
+    this.loadError = this.main.locator('.empty--error');
+    this.loadErrorTitle = this.loadError.locator('.empty__title');
+    this.loadErrorText = this.loadError.locator('.empty__text');
+    this.tryAgainButton = this.loadError.getByRole('button', { name: 'Try again' });
+
     this.aside = page.getByRole('complementary', { name: 'Bike control' });
     this.levelValue = this.aside.locator('.level-readout .numeral');
     this.levelOf = this.aside.locator('.level-readout small');
@@ -117,6 +135,22 @@ export class RidePage {
 
   push(message: Json): Promise<void> {
     return this.events.push(message);
+  }
+
+  banner(title: string): Locator {
+    return this.banners.filter({ has: this.page.locator('.alert__title', { hasText: title }) });
+  }
+
+  bannerText(banner: Locator): Locator {
+    return banner.locator('.alert__text');
+  }
+
+  button(scope: Locator, name: string): Locator {
+    return scope.getByRole('button', { name, exact: true });
+  }
+
+  link(scope: Locator, name: string): Locator {
+    return scope.getByRole('link', { name, exact: true });
   }
 
   level(n: number): Locator {

@@ -21,7 +21,8 @@ export type IconName =
   | 'warning'
   | 'refresh'
   | 'copy'
-  | 'key';
+  | 'key'
+  | 'flag';
 
 /** The mocks' stroke icons, always decorative (`aria-hidden`). */
 @Component({
