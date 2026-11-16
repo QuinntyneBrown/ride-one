@@ -155,7 +155,7 @@ public sealed class EventStreamReader : IAsyncDisposable
         {
             await _pump;
         }
-        catch (Exception e) when (e is OperationCanceledException or IOException or ObjectDisposedException or HttpRequestException)
+        catch (Exception e) when (e is OperationCanceledException or IOException or ObjectDisposedException or HttpRequestException or InvalidOperationException)
         {
         }
 
