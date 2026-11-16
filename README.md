@@ -110,6 +110,24 @@ The rewrite needs the current [.NET LTS SDK](https://dotnet.microsoft.com/downlo
 synthetic bike so the dashboard works with no hardware, and `ng serve` will forward `/api` to the
 backend on `127.0.0.1:8787`. This section gains the exact steps in the change that adds them.
 
+Run the backend from the repository root:
+
+```shell
+dotnet run --project src/Wattzup.Api
+```
+
+It listens on `http://127.0.0.1:8787`. `GET /api/status` returns the live state,
+`GET /health` reports that the host is up, and `GET /openapi/v1.json` describes the API.
+
+### Settings
+
+Settings come from `src/Wattzup.Api/appsettings.json`, then `WATTZUP__*` environment variables,
+then the command line (`--Wattzup:Urls=...`).
+
+| Setting | Environment variable | Default | Meaning |
+|---|---|---|---|
+| `Wattzup:Urls` | `WATTZUP__URLS` | `http://127.0.0.1:8787` | Where the backend listens. Loopback only by default. |
+
 ## Building and testing
 
 The prototype has no automated tests. For the rewrite, the designs call for:
@@ -123,7 +141,13 @@ The prototype has no automated tests. For the rewrite, the designs call for:
 - **Hardware smoke tests** per platform (scan, connect, receive cadence, set resistance), run by
   hand with a real bike.
 
-The commands are added here in the change that adds each suite.
+Run the backend tests from the repository root:
+
+```shell
+dotnet test Wattzup.sln
+```
+
+The commands for the other suites are added here in the change that adds each suite.
 
 ## Repository structure
 
