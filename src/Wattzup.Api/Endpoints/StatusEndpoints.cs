@@ -11,7 +11,7 @@ public static class StatusEndpoints
             .WithName("GetStatus")
             .WithSummary("The full live state.");
 
-        app.MapGet("/health", (BikeStateStore store) => TypedResults.Ok(new HealthReport(store.Current.Ble)))
+        app.MapGet("/health", (BikeStateStore store) => TypedResults.Ok(new HealthReport("ok", store.Current.Ble)))
             .WithName("GetHealth")
             .WithSummary("200 while the HTTP host is up, with the current ble state.");
 
@@ -20,4 +20,4 @@ public static class StatusEndpoints
 }
 
 /// <summary>The body of <c>GET /health</c>.</summary>
-public sealed record HealthReport(BleState Ble);
+public sealed record HealthReport(string Status, BleState Ble);

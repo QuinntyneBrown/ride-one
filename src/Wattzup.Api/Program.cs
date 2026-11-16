@@ -48,6 +48,15 @@ builder.Services.AddSingleton(sp =>
 });
 builder.Services.AddSingleton<StateBroadcaster>();
 builder.Services.AddSingleton<ActiveConnectionRegistry>();
+builder.Services.Configure<RawPacketLogOptions>(builder.Configuration.GetSection(RawPacketLogOptions.SectionName));
+builder.Services.Configure<StatusSnapshotOptions>(builder.Configuration.GetSection(StatusSnapshotOptions.SectionName));
+builder.Services.AddSingleton<RecentPacketBuffer>();
+builder.Services.AddSingleton<RawPacketLogger>();
+builder.Services.AddSingleton<IRawPacketSink>(sp => sp.GetRequiredService<RecentPacketBuffer>());
+builder.Services.AddSingleton<IRawPacketSink>(sp => sp.GetRequiredService<RawPacketLogger>());
+builder.Services.AddHostedService<RawPacketLogWriter>();
+builder.Services.AddHostedService<StatusSnapshotWriter>();
+builder.Services.AddHostedService<StateChangeLogger>();
 builder.Services.AddSingleton<TelemetryIngestor>();
 builder.Services.AddSingleton<IResistanceCommander, ResistanceCommander>();
 builder.Services.AddSingleton<PowerTraceHistory>();
@@ -67,6 +76,7 @@ api.MapEventsEndpoints();
 api.MapBikeEndpoints();
 api.MapResistanceEndpoints();
 api.MapWorkoutEndpoints();
+api.MapDiagnosticsEndpoints();
 
 app.Run();
 

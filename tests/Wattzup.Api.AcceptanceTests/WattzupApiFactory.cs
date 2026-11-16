@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Wattzup.Ble.Simulated;
 
@@ -18,6 +19,9 @@ public sealed class WattzupApiFactory(IDictionary<string, string?>? settings = n
     /// <summary>The simulated bike; set its knobs before the first request to shape start-up.</summary>
     public SimulationControl Simulation { get; } = new();
 
+    /// <summary>Every log entry the host wrote.</summary>
+    public CapturingLoggerProvider Logs { get; } = new();
+
     /// <summary>When true, the Bluetooth loop does not run, so the state stays as it was at start-up.</summary>
     public bool WithoutBluetooth { get; init; }
 
@@ -33,6 +37,7 @@ public sealed class WattzupApiFactory(IDictionary<string, string?>? settings = n
             builder.UseSetting(key, value);
         }
 
+        builder.ConfigureLogging(logging => logging.AddProvider(Logs));
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<TimeProvider>();
