@@ -3,6 +3,7 @@ import { CommandFeedbackService } from '../../core/command-feedback.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
 import { rideOverlayText } from '../../core/ride-overlay-text';
+import { CueDirector } from '../../core/cue-director';
 import { CountdownService } from '../../core/countdown.service';
 import { LiveStateService } from '../../core/live-state.service';
 import { formatLive } from '../../core/metric-format';
@@ -23,6 +24,7 @@ import { RideOverlay } from '../ride-overlay/ride-overlay';
 import { RideTrace } from '../ride-trace/ride-trace';
 import { Interval } from '../interval/interval';
 import { MetricsStrip } from '../metrics-strip/metrics-strip';
+import { PhaseBanner } from '../phase-banner/phase-banner';
 import { Readout } from '../readout/readout';
 
 /** Route `/`: the ride dashboard. */
@@ -39,10 +41,11 @@ import { Readout } from '../readout/readout';
     LevelControl,
     LevelPicker,
     MetricsStrip,
+    PhaseBanner,
     PlanNote,
     Readout,
   ],
-  providers: [CountdownService],
+  providers: [CountdownService, CueDirector],
   templateUrl: './ride-page.html',
   styleUrl: './ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

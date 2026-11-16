@@ -15,6 +15,7 @@
       </span>
       <span
         class="numeral interval__left"
+        [class.is-pulse]="cues.pulse()"
         role="timer"
         aria-live="off"
         [attr.aria-label]="countdown.remainingText() + ' left in this interval'"

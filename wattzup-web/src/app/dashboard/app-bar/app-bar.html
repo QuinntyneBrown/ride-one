@@ -58,6 +58,15 @@
     <button
       class="btn btn--quiet btn--icon"
       type="button"
+      [attr.aria-pressed]="cues.beeps()"
+      [attr.aria-label]="cues.beeps() ? 'Countdown beeps on' : 'Countdown beeps off'"
+      (click)="cues.toggle()"
+    >
+      <wz-icon [name]="cues.beeps() ? 'bell' : 'bell-off'" />
+    </button>
+    <button
+      class="btn btn--quiet btn--icon"
+      type="button"
       aria-label="Diagnostics"
       (click)="dialogs.openDiagnostics()"
     >

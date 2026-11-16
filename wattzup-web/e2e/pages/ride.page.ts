@@ -16,6 +16,11 @@ export class RidePage {
   readonly resumeButton: Locator;
   readonly endButton: Locator;
   readonly diagnosticsButton: Locator;
+  readonly beepsButton: Locator;
+  readonly phaseBanner: Locator;
+  readonly phaseHeadline: Locator;
+  readonly phaseDetail: Locator;
+  readonly cueAnnouncement: Locator;
 
   readonly main: Locator;
   readonly readouts: Locator;
@@ -88,6 +93,11 @@ export class RidePage {
     this.resumeButton = bar.getByRole('button', { name: 'Resume', exact: true });
     this.endButton = bar.getByRole('button', { name: 'End', exact: true });
     this.diagnosticsButton = bar.getByRole('button', { name: 'Diagnostics', exact: true });
+    this.beepsButton = bar.getByRole('button', { name: /^Countdown beeps (on|off)$/ });
+    this.phaseBanner = page.locator('.phase-banner');
+    this.phaseHeadline = this.phaseBanner.locator('.phase-banner__headline');
+    this.phaseDetail = this.phaseBanner.locator('small');
+    this.cueAnnouncement = page.locator('.phase-announcer');
 
     this.main = page.locator('#main');
     this.readouts = page.locator('.readouts');

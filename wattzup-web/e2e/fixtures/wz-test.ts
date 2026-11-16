@@ -180,7 +180,95 @@ export class EventStreamStub {
   }
 }
 
-export const test = base.extend<{ api: ApiStub; events: EventStreamStub }>({
+export interface Tone {
+  frequency: number;
+  duration: number;
+}
+
+/** Replaces AudioContext with a recorder of the tones played (L2-027). */
+function installFakeAudio(): void {
+  const tones: { frequency: number; duration: number }[] = [];
+  (window as unknown as { __wzTones: typeof tones }).__wzTones = tones;
+  class FakeParam {
+    value = 0;
+    setValueAtTime(v: number): this {
+      this.value = v;
+      return this;
+    }
+    linearRampToValueAtTime(): this {
+      return this;
+    }
+    exponentialRampToValueAtTime(): this {
+      return this;
+    }
+    cancelScheduledValues(): this {
+      return this;
+    }
+  }
+  class FakeNode {
+    connect<T>(n: T): T {
+      return n;
+    }
+    disconnect(): void {
+      /* nothing */
+    }
+  }
+  class FakeOscillator extends FakeNode {
+    readonly frequency = new FakeParam();
+    type = 'sine';
+    private startAt = 0;
+    onended: (() => void) | null = null;
+    start(at = 0): void {
+      this.startAt = at;
+    }
+    stop(at = 0): void {
+      tones.push({
+        frequency: this.frequency.value,
+        duration: Math.round((at - this.startAt) * 1000) / 1000,
+      });
+    }
+  }
+  class FakeGain extends FakeNode {
+    readonly gain = new FakeParam();
+  }
+  class FakeAudioContext {
+    currentTime = 0;
+    state = 'running';
+    readonly destination = new FakeNode();
+    createOscillator(): FakeOscillator {
+      return new FakeOscillator();
+    }
+    createGain(): FakeGain {
+      return new FakeGain();
+    }
+    resume(): Promise<void> {
+      return Promise.resolve();
+    }
+    close(): Promise<void> {
+      return Promise.resolve();
+    }
+  }
+  (window as unknown as { AudioContext: unknown }).AudioContext = FakeAudioContext;
+}
+
+export class AudioRecorder {
+  constructor(private readonly page: Page) {}
+
+  async install(): Promise<void> {
+    await this.page.addInitScript(installFakeAudio);
+  }
+
+  tones(): Promise<Tone[]> {
+    return this.page.evaluate(() => (window as unknown as { __wzTones: Tone[] }).__wzTones.slice());
+  }
+}
+
+export const test = base.extend<{ api: ApiStub; events: EventStreamStub; audio: AudioRecorder }>({
+  audio: async ({ page }, use) => {
+    const audio = new AudioRecorder(page);
+    await audio.install();
+    await use(audio);
+  },
   api: async ({ page }, use) => {
     const api = new ApiStub(page);
     await api.install();

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { RouterLink } from '@angular/router';
 import type { WorkoutSnapshot } from '../../core/api-types';
 import { CountdownService } from '../../core/countdown.service';
+import { CueDirector } from '../../core/cue-director';
 import { kindLabel, nextLabel, roundLabel, toneOf } from '../../core/segment-labels';
 
 /** The interval card: segment kind and round, time left, progress and next (L2-024, L2-025). */
@@ -16,6 +17,7 @@ export class Interval {
   readonly workout = input<WorkoutSnapshot | null>(null);
   readonly loading = input(false);
   protected readonly countdown = inject(CountdownService);
+  protected readonly cues = inject(CueDirector);
 
   protected readonly segment = computed(() => {
     const w = this.workout();
