@@ -373,7 +373,11 @@ public sealed class WorkoutEngine(
         run.Elapsed++;
         run.Remaining--;
         run.Totals = run.Totals.Tick(state.Power, state.SpeedKmh);
-        trace.Append(run.Elapsed, state.Power ?? 0);
+        if (!OnTreadmill)
+        {
+            // The treadmill reports no power; its trace stays empty (L2-064).
+            trace.Append(run.Elapsed, state.Power ?? 0);
+        }
         if (run.Remaining <= 0)
         {
             if (run.IsLastSegment || run.Elapsed >= run.TotalSeconds)

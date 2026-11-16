@@ -9,9 +9,11 @@
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4.svg)
 ![Angular 22](https://img.shields.io/badge/Angular-22-DD0031.svg)
 
-Wattzup turns an Echelon bike into a live training display. It connects to the bike over
-Bluetooth Low Energy, shows cadence, speed and resistance in real time, and runs interval workouts
-that set the resistance for the rider, with a countdown clock and cues at every step.
+Wattzup turns an Echelon bike or treadmill into a live training display. It connects to the machine
+over Bluetooth Low Energy, shows its metrics in real time (cadence, speed and resistance on the bike;
+speed, incline and distance on the treadmill), and runs interval workouts that set the bike's
+resistance or the treadmill's speed and incline for the rider, with a countdown clock and cues at
+every step.
 
 Wattzup runs as a single process on the computer next to the bike: an ASP.NET Core backend that
 talks to the bike and serves an Angular dashboard from the same origin.
@@ -43,7 +45,12 @@ talks to the bike and serves an Angular dashboard from the same origin.
   a countdown and audio cues.
 - **Connection status.** Scanning, connecting and reconnecting are shown as they happen, with
   automatic retry after a Bluetooth error.
-- **Simulated bike.** Run every feature end to end without hardware (`--simulate`).
+- **Treadmill.** Choose the Echelon treadmill instead of the bike on the setup screen. Set speed
+  and incline from the dashboard; treadmill workouts set them for each segment. Wattzup starts the
+  belt only after a 3-second countdown, stops it when a ride is paused, stopped or ends, and pauses
+  the ride when the belt is stopped from the console
+  ([ADR 0009](docs/adr/0009-treadmill-as-a-second-machine.md)).
+- **Simulated bike and treadmill.** Run every feature end to end without hardware (`--simulate`).
 - **Diagnostics.** A rolling raw packet log and a `status.json` snapshot of the live state.
 - **Secure by default.** Listens on loopback only; sharing on a network requires an API key.
 
@@ -56,6 +63,11 @@ Bluetooth transports exist for macOS (CoreBluetooth), Linux (BlueZ) and Windows 
 is not listed as supported until its hardware smoke test (scan, connect, receive cadence, set
 resistance; L2-043) has been run by hand with a real bike. CoreBluetooth is the first transport to
 be verified ([ADR 0007](docs/adr/0007-corebluetooth-first.md)).
+
+Treadmill support runs end to end against the simulated treadmill. Its Bluetooth frames come from a
+third-party reference, not from Echelon; the steps a person must confirm on a real treadmill are
+listed under "Needs hardware confirmation" in
+[`docs/protocol/echelon-treadmill-frames.md`](docs/protocol/echelon-treadmill-frames.md).
 
 The original Python prototype (`echelon_server.py` and `index.html`) is kept outside this
 repository, in `../wattzup-prototype/`, as the reference for behaviour.
@@ -106,7 +118,8 @@ Bluetooth abstractions, and `Wattzup.Api` composes everything. The full rules ar
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org) 24 or later, with npm
-- To use a real bike: an Echelon bike and a computer with Bluetooth Low Energy
+- To use real hardware: an Echelon bike or Echelon Stride treadmill and a computer with Bluetooth
+  Low Energy
   - **macOS:** Bluetooth permission for the app running the server (System Settings → Privacy &
     Security → Bluetooth).
   - **Linux:** BlueZ 5.50 or later, with your user allowed to use it over D-Bus.
@@ -129,14 +142,27 @@ Open `http://127.0.0.1:8787`. The simulated bike, `ECHSIM-0001`, connects immedi
 synthetic cadence and confirms every resistance change. The dashboard shows a **Simulated bike**
 banner.
 
-### Run with a bike
+### Run with the simulated treadmill
 
 ```shell
-dotnet run --project backend/src/Wattzup.Api
+dotnet run --project backend/src/Wattzup.Api -- --simulate --machine treadmill
 ```
 
-The backend selects the transport for your operating system, scans for the bike and connects. Pedal
-to wake the bike; the status line shows **Connected** and the bike's name.
+The simulated treadmill, `STRIDE-SIM-0001`, connects immediately, starts its belt when Wattzup asks
+and reports every speed and incline it is set to. You can also switch machines on the setup screen
+while no ride is active.
+
+### Run with a bike or treadmill
+
+```shell
+dotnet run --project backend/src/Wattzup.Api                       # the bike
+dotnet run --project backend/src/Wattzup.Api -- --machine treadmill  # the treadmill
+```
+
+The backend selects the transport for your operating system, scans for the chosen machine and
+connects. Pedal to wake the bike, or switch the treadmill on; the status line shows **Connected** and
+the machine's name. Stand on the treadmill's side rails when a ride starts: the belt starts when the
+countdown reaches zero.
 
 ### Build the macOS app
 

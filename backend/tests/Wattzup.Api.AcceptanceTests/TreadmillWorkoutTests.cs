@@ -111,6 +111,8 @@ public sealed class TreadmillWorkoutTests
         Assert.Equal(JsonValueKind.Null, state.GetProperty("power").ValueKind);
         Assert.Equal(JsonValueKind.Null, state.GetProperty("avg_power").ValueKind);
         Assert.Equal(JsonValueKind.Null, state.GetProperty("kcal").ValueKind);
+        using var trace = await treadmill.Client.GetAsync(new Uri("/api/workout/trace", UriKind.Relative));
+        Assert.Equal(0, (await Bike.JsonAsync(trace)).GetProperty("samples").GetArrayLength());
     }
 
     [Fact]
