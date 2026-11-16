@@ -15,6 +15,7 @@ export class RidePage {
   readonly pauseButton: Locator;
   readonly resumeButton: Locator;
   readonly endButton: Locator;
+  readonly diagnosticsButton: Locator;
 
   readonly main: Locator;
   readonly readouts: Locator;
@@ -78,6 +79,7 @@ export class RidePage {
     this.pauseButton = bar.getByRole('button', { name: 'Pause', exact: true });
     this.resumeButton = bar.getByRole('button', { name: 'Resume', exact: true });
     this.endButton = bar.getByRole('button', { name: 'End', exact: true });
+    this.diagnosticsButton = bar.getByRole('button', { name: 'Diagnostics', exact: true });
 
     this.main = page.locator('#main');
     this.readouts = page.locator('.readouts');

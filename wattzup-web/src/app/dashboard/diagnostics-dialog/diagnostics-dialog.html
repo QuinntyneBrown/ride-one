@@ -1,0 +1,24 @@
+<wz-dialog-shell
+  dialogId="diagnostics"
+  heading="Diagnostics"
+  description="What Wattzup sees right now. Copy this when reporting a problem."
+  icon="activity"
+>
+  <dl class="diag">
+    @for (row of rows(); track row.label) {
+      <dt>{{ row.label }}</dt>
+      <dd>{{ row.value }}</dd>
+    }
+  </dl>
+  <h3 class="label diag__heading">Latest packets (raw_packets.log)</h3>
+  <pre class="diag-log" tabindex="0" role="region" aria-label="Latest raw packets">{{
+    packetText()
+  }}</pre>
+  <div dialog-footer class="diag__actions">
+    <span class="visually-hidden" role="status">{{ copied() ? 'Details copied' : '' }}</span>
+    <button class="btn" type="button" (click)="copy()">
+      <wz-icon name="copy" size="sm" />Copy details
+    </button>
+    <button class="btn btn--volt" type="button" (click)="ref.close()">Done</button>
+  </div>
+</wz-dialog-shell>

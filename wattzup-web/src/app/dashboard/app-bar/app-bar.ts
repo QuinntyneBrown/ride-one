@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import type { WorkoutSnapshot } from '../../core/api-types';
 import type { RideViewState } from '../../core/ride-view-state';
 import { statusBadge } from '../../core/segment-labels';
+import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
 import { Icon } from '../icon/icon';
 import { RideClock } from '../ride-clock/ride-clock';
@@ -20,6 +21,7 @@ export class AppBar {
   readonly workout = input<WorkoutSnapshot | null>(null);
   readonly view = input.required<RideViewState>();
   protected readonly actions = inject(RideActions);
+  protected readonly dialogs = inject(DialogLauncher);
 
   protected readonly badge = computed(() => {
     const w = this.workout();

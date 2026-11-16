@@ -51,9 +51,17 @@
       class="btn btn--quiet btn--end"
       type="button"
       [disabled]="!view().endEnabled"
-      (click)="actions.end($event)"
+      (click)="actions.end()"
     >
       <wz-icon name="stop" size="sm" /><span class="btn__label">End</span>
+    </button>
+    <button
+      class="btn btn--quiet btn--icon"
+      type="button"
+      aria-label="Diagnostics"
+      (click)="dialogs.openDiagnostics()"
+    >
+      <wz-icon name="activity" />
     </button>
   </div>
 </header>

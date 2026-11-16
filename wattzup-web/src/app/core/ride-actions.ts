@@ -2,6 +2,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { BIKE_API } from './bike-api';
+import { DialogLauncher } from './dialog-launcher';
 import { ToastService } from './toast.service';
 import { WORKOUT_API } from './workout-api';
 
@@ -10,6 +11,7 @@ export class RideActions {
   private readonly workouts = inject(WORKOUT_API);
   private readonly toasts = inject(ToastService);
   private readonly bike = inject(BIKE_API);
+  private readonly dialogs = inject(DialogLauncher);
   private readonly _reconnecting = signal(false);
   readonly reconnecting = this._reconnecting.asReadonly();
 
@@ -40,8 +42,8 @@ export class RideActions {
     }
   }
 
-  end(event: Event): void {
-    void event;
+  end(): void {
+    void this.dialogs.openEndRide();
   }
 
   private async run(request: () => Promise<void>, title: string): Promise<void> {
