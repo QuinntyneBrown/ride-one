@@ -6,7 +6,9 @@ namespace Wattzup.Ble.Simulated;
 /// The simulated treadmill's open link (ADR 0009). Like the real treadmill it notifies only on change: after the
 /// last init request it reports speed 0 and incline 0; the start-belt command makes the belt run at 1.0 km/h, a
 /// set-speed command while it runs and a set-incline command are reported back, and the stop-belt command or
-/// <see cref="SimulationControl.StopBeltFromConsole"/> report speed 0. The frame bytes are those of
+/// <see cref="SimulationControl.StopBeltFromConsole"/> report speed 0. A cut link stops the belt, as the real
+/// treadmill is assumed to (L2-043 criterion 5): the belt lives with the link, so the next connection starts with it
+/// stopped and reports speed 0. The frame bytes are those of
 /// docs/protocol/echelon-treadmill-frames.md; this transport does not reference Wattzup.Protocol.
 /// </summary>
 internal sealed class SimulatedTreadmillConnection : IBikeConnection

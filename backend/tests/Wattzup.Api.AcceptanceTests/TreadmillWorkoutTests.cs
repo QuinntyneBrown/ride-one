@@ -286,6 +286,10 @@ public sealed class TreadmillWorkoutTests
         Assert.Equal(2, Ride.Elapsed(state));
         Assert.Equal("paused", Ride.Status(treadmill.Stream.Last!.Value));
         Assert.Equal(starts, Writes(treadmill).Count(w => w == StartBelt));
+
+        // The simulated treadmill stops its belt when the link is cut (the hardware check is L2-043 criterion 5).
+        Assert.Equal(0.0, treadmill.Stream.Last!.Value.GetProperty("speed_kmh").GetDouble());
+        Assert.Equal("stopped", treadmill.Stream.Last!.Value.GetProperty("belt").GetString());
     }
 
     [Fact]
