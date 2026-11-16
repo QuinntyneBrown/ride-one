@@ -65,7 +65,9 @@ builder.Services.AddCors(cors => cors.AddDefaultPolicy(policy =>
     policy.WithOrigins([.. origins]).WithHeaders("Content-Type", ApiKeyAuthenticationHandler.Header).WithMethods("GET", "POST")));
 
 var transportName = TransportSelector.Resolve(builder.Configuration[$"{ConnectivityOptions.SectionName}:Transport"]);
-var displayName = builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"];
+var displayNames = new DisplayNames(
+    builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"],
+    builder.Configuration[$"{TreadmillOptions.SectionName}:DisplayName"] ?? TreadmillOptions.DefaultDisplayName);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.Configure<HostOptions>(host => host.ShutdownTimeout = TimeSpan.FromSeconds(5));
 builder.Services.AddBikeTransport(transportName);
@@ -82,7 +84,7 @@ builder.Services.AddSingleton(sp =>
             Machine = options.ParsedMachine,
         },
         sp.GetRequiredService<TimeProvider>(),
-        displayName);
+        displayNames);
 });
 builder.Services.AddSingleton<StateBroadcaster>();
 builder.Services.AddSingleton<Wattzup.Core.Machines.MachineSelector>();

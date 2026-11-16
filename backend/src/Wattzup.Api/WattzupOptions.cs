@@ -41,3 +41,14 @@ public sealed class BikeOptions
     /// <summary>Shown as <c>device_label</c> once a device is selected; empty uses the advertised name.</summary>
     public string? DisplayName { get; set; }
 }
+
+/// <summary><c>Wattzup:Treadmill</c>.</summary>
+public sealed class TreadmillOptions
+{
+    public const string SectionName = "Wattzup:Treadmill";
+
+    public const string DefaultDisplayName = "Echelon Stride";
+
+    /// <summary>Shown as <c>device_label</c> once the treadmill is selected; empty uses the advertised name.</summary>
+    public string? DisplayName { get; set; } = DefaultDisplayName;
+}

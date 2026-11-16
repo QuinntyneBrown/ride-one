@@ -5,9 +5,10 @@ public static class StateDerivations
 {
     public const double LiveDataWindowSeconds = 5;
 
-    public static BikeState Apply(BikeState next, double now, string? displayName)
+    public static BikeState Apply(BikeState next, double now, DisplayNames? names)
     {
         ArgumentNullException.ThrowIfNull(next);
+        var displayName = names?.For(next.Machine);
         var label = next.Device is null ? null : string.IsNullOrWhiteSpace(displayName) ? next.Device : displayName;
 
         var live = next.UiClients > 0 && next.LastDataAt is { } last && now - last <= LiveDataWindowSeconds;

@@ -1,7 +1,7 @@
 {
   "ble": "connected",
   "device": "STRIDE-SIM-0001",
-  "device_label": "STRIDE-SIM-0001",
+  "device_label": "Echelon Stride",
   "error": null,
   "resistance": null,
   "target_resistance": null,
@@ -394,8 +394,8 @@
       }
     ],
     "segment": 0,
-    "remaining": 180,
-    "elapsed_seconds": 0,
+    "remaining": 178,
+    "elapsed_seconds": 2,
     "total_seconds": 1360,
     "mode": "plan",
     "plan_level": null,
@@ -406,8 +406,8 @@
   "speed_kmh": 8,
   "speed_mph": 5,
   "packets": 13,
-  "first_data_at": 1794870362.671,
-  "last_data_at": 1794870374.731,
+  "first_data_at": 1794870521.494,
+  "last_data_at": 1794870531.676,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -425,7 +425,7 @@
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794870374.731,
+      "at": 1794870531.676,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -435,7 +435,7 @@
       "value": 0
     },
     {
-      "at": 1794870374.731,
+      "at": 1794870531.676,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -445,7 +445,7 @@
       "value": 8
     },
     {
-      "at": 1794870367.73,
+      "at": 1794870526.55,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -455,7 +455,7 @@
       "value": 2
     },
     {
-      "at": 1794870367.724,
+      "at": 1794870526.544,
       "ride_seconds": null,
       "level": null,
       "source": "manual",

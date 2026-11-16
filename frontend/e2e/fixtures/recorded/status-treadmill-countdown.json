@@ -1,7 +1,7 @@
 {
   "ble": "connected",
   "device": "STRIDE-SIM-0001",
-  "device_label": "STRIDE-SIM-0001",
+  "device_label": "Echelon Stride",
   "error": null,
   "resistance": null,
   "target_resistance": null,
@@ -406,8 +406,8 @@
   "speed_kmh": 0,
   "speed_mph": 0,
   "packets": 10,
-  "first_data_at": 1794870362.671,
-  "last_data_at": 1794870367.73,
+  "first_data_at": 1794870521.494,
+  "last_data_at": 1794870526.55,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -425,7 +425,7 @@
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794870367.73,
+      "at": 1794870526.55,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -435,7 +435,7 @@
       "value": 2
     },
     {
-      "at": 1794870367.724,
+      "at": 1794870526.544,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -450,6 +450,6 @@
   "incline": 2,
   "target_incline": 2,
   "belt": "starting",
-  "belt_countdown": 3,
+  "belt_countdown": 2,
   "climb_m": 0
 }
