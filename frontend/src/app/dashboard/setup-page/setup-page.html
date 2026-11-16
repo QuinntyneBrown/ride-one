@@ -14,7 +14,7 @@
     <main id="main" class="setup-main" tabindex="-1" [attr.aria-busy]="loading() ? 'true' : null">
       <div class="setup-main__inner">
         <h1>Set up your ride</h1>
-        <p class="lead">Wattzup drives the bike's resistance for you. Pick how.</p>
+        <p class="lead">{{ lead() }}</p>
         @if (loading()) {
           <div class="setup-skeleton" aria-hidden="true">
             <span class="skeleton skeleton--rect skeleton--cards"></span>
@@ -28,6 +28,21 @@
           @let err = errorFor();
           @if (links().length) {
             <wz-form-summary [links]="links()" />
+          }
+          <wz-machine-choice
+            [machine]="machine()"
+            [disabled]="busy()"
+            [help]="machineHelp()"
+            (choose)="chooseMachine($event)"
+          />
+          @if (machineFailed()) {
+            <wz-alert
+              class="setup-machine-error"
+              tone="danger"
+              icon="alert-circle"
+              heading="Couldn't switch the machine"
+              text="The Wattzup server didn't answer. Try again."
+            />
           }
           <wz-mode-cards [mode]="d.mode" (modeChange)="setMode($event)" [disabled]="busy()" />
           @if (d.mode === 'hiit') {

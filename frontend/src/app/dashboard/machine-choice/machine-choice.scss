@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+.machine-choice {
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.machine-choice__legend {
+  padding: 0;
+  font: var(--text-body-sm);
+  color: var(--color-fg-muted);
+  margin-bottom: var(--space-2);
+}
+.machine-choice__options {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-subtle);
+}
+.machine-choice__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-comfortable);
+  padding: 0 var(--space-4);
+  border: var(--border-width-hairline) solid transparent;
+  border-radius: var(--radius-md);
+  font: var(--text-label);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+.machine-choice__option:hover {
+  color: var(--color-fg-default);
+  background: var(--color-bg-subtle-hover);
+}
+.machine-choice__option:has(input:checked) {
+  color: var(--color-fg-default);
+  background: var(--color-selected-bg);
+  border-color: var(--color-selected-border);
+}
+.machine-choice__option:has(input:focus-visible) {
+  box-shadow: var(--shadow-focus);
+  outline: none;
+}
+.machine-choice__option:has(input:disabled) {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+.machine-choice__option:has(input:disabled):hover {
+  background: none;
+}
+.machine-choice__option input {
+  appearance: none;
+  margin: 0;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  border-radius: var(--radius-full);
+  border: var(--border-width-hairline) solid var(--color-border-strong);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.machine-choice__option input:checked {
+  border-color: var(--color-fg-accent);
+}
+.machine-choice__option input:checked::before {
+  content: '';
+  width: 50%;
+  height: 50%;
+  border-radius: var(--radius-full);
+  background: var(--color-fg-accent);
+}
+.machine-choice__option input:focus-visible {
+  outline: none;
+}
+.machine-choice__help {
+  margin-top: var(--space-2);
+  font: var(--text-body-sm);
+  color: var(--color-fg-muted);
+}
+@media (forced-colors: active) {
+  .machine-choice__option {
+    forced-color-adjust: none;
+    border: var(--border-width-hairline) solid CanvasText;
+  }
+}

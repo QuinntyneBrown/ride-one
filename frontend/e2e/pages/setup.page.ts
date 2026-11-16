@@ -26,6 +26,12 @@ export class SetupPage {
   readonly startButton: Locator;
   readonly startHint: Locator;
   readonly skeletons: Locator;
+  readonly lead: Locator;
+  readonly machineChoice: Locator;
+  readonly machineHelp: Locator;
+  readonly bikeOption: Locator;
+  readonly treadmillOption: Locator;
+  readonly machineError: Locator;
 
   constructor(
     readonly page: Page,
@@ -54,6 +60,14 @@ export class SetupPage {
     this.startButton = this.preview.locator('.setup-aside__foot .btn--volt');
     this.startHint = this.preview.locator('#start-hint');
     this.skeletons = page.locator('.skeleton');
+    this.lead = page.locator('.setup-main .lead');
+    this.machineChoice = page.getByRole('group', { name: 'Machine' });
+    this.machineHelp = page.locator('#machine-help');
+    this.bikeOption = this.machineChoice.getByRole('radio', { name: 'Bike' });
+    this.treadmillOption = this.machineChoice.getByRole('radio', { name: 'Treadmill' });
+    this.machineError = page.locator('.setup-main .alert', {
+      hasText: "Couldn't switch the machine",
+    });
   }
 
   /** Loads `/setup` with `initial` as the live state. */

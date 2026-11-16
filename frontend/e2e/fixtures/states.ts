@@ -247,3 +247,35 @@ export function startingState(change: Json = {}): Json {
     ...change,
   });
 }
+
+/** The bike-only fields, null on the treadmill (L2-070). */
+const BIKE_FIELDS_NULL = {
+  resistance: null,
+  target_resistance: null,
+  cadence: null,
+  power: null,
+  target_power: null,
+  avg_power: null,
+  kcal: null,
+};
+
+/** The treadmill connected and idle, belt stopped, no workout (L2-062, L2-070). */
+export function treadmillIdle(change: Json = {}): Json {
+  return state({
+    ...BIKE_FIELDS_NULL,
+    machine: 'treadmill',
+    device: 'STRIDE-8s22-000766',
+    device_label: 'STRIDE-8s22-000766',
+    workout: null,
+    speed_kmh: 0,
+    speed_mph: 0,
+    distance_km: 0,
+    target_speed: null,
+    incline: 0,
+    target_incline: null,
+    belt: 'stopped',
+    belt_countdown: null,
+    commands: [],
+    ...change,
+  });
+}

@@ -5,7 +5,11 @@ import { TimeoutError, catchError, firstValueFrom, throwError, timeout } from 'r
 import { SKIP_UNLOCK_REDIRECT } from './api-key.interceptor';
 import type {
   BikeState,
+  ChooseMachineRequest,
   EventToken,
+  Machine,
+  SetInclineRequest,
+  SetSpeedRequest,
   RecentPackets,
   PowerTrace,
   WorkoutStarted,
@@ -13,7 +17,22 @@ import type {
   WorkoutSnapshot,
 } from './api-types';
 import { type BikeApi, COMMAND_TIMEOUT_MS, type KeyCheck, RequestTimeoutError } from './bike-api';
+import type { MachineApi } from './machine-api';
 import type { WorkoutApi } from './workout-api';
+
+/** Posts a command and turns a 5 s silence into RequestTimeoutError. */
+async function postCommand(http: HttpClient, url: string, body: unknown): Promise<void> {
+  await firstValueFrom(
+    http.post(url, body).pipe(
+      timeout(COMMAND_TIMEOUT_MS),
+      catchError((e: unknown) =>
+        throwError(() =>
+          e instanceof TimeoutError ? new RequestTimeoutError(COMMAND_TIMEOUT_MS) : e,
+        ),
+      ),
+    ),
+  );
+}
 
 @Injectable()
 export class HttpBikeApi implements BikeApi {
@@ -28,17 +47,8 @@ export class HttpBikeApi implements BikeApi {
     return res.token;
   }
 
-  async setResistance(level: number): Promise<void> {
-    await firstValueFrom(
-      this.http.post('/api/resistance', { level }).pipe(
-        timeout(COMMAND_TIMEOUT_MS),
-        catchError((e: unknown) =>
-          throwError(() =>
-            e instanceof TimeoutError ? new RequestTimeoutError(COMMAND_TIMEOUT_MS) : e,
-          ),
-        ),
-      ),
-    );
+  setResistance(level: number): Promise<void> {
+    return postCommand(this.http, '/api/resistance', { level });
   }
 
   async diagnosticsPackets(): Promise<string[]> {
@@ -92,5 +102,25 @@ export class HttpWorkoutApi implements WorkoutApi {
 
   trace(): Promise<PowerTrace> {
     return firstValueFrom(this.http.get<PowerTrace>('/api/workout/trace'));
+  }
+}
+
+@Injectable()
+export class HttpMachineApi implements MachineApi {
+  private readonly http = inject(HttpClient);
+
+  async choose(machine: Machine): Promise<void> {
+    const body: ChooseMachineRequest = { machine };
+    await firstValueFrom(this.http.post('/api/machine', body));
+  }
+
+  setSpeed(speed: number): Promise<void> {
+    const body: SetSpeedRequest = { speed };
+    return postCommand(this.http, '/api/speed', body);
+  }
+
+  setIncline(incline: number): Promise<void> {
+    const body: SetInclineRequest = { incline };
+    return postCommand(this.http, '/api/incline', body);
   }
 }

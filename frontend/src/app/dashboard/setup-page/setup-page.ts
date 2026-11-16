@@ -11,7 +11,10 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { formatDuration } from '../../core/format-duration';
+import type { Machine } from '../../core/api-types';
 import { LiveStateService } from '../../core/live-state.service';
+import { MACHINE_API } from '../../core/machine-api';
+import { setupLead } from '../../core/machine-words';
 import { planSummary } from '../../core/plan-expansion';
 import { PlanDraftStore } from '../../core/plan-draft.store';
 import {
@@ -31,6 +34,7 @@ import { Alert } from '../alert/alert';
 import { FormSummary } from '../form-summary/form-summary';
 import { Icon } from '../icon/icon';
 import { LevelSlider } from '../level-slider/level-slider';
+import { MachineChoice } from '../machine-choice/machine-choice';
 import { ModeCards } from '../mode-cards/mode-cards';
 import { NumStepper } from '../num-stepper/num-stepper';
 import { Presets } from '../presets/presets';
@@ -59,6 +63,7 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
     FormSummary,
     Icon,
     LevelSlider,
+    MachineChoice,
     ModeCards,
     NumStepper,
     Presets,
@@ -74,6 +79,7 @@ export class SetupPage {
   private readonly live = inject(LiveStateService);
   private readonly store = inject(PlanDraftStore);
   private readonly workouts = inject(WORKOUT_API);
+  private readonly machines = inject(MACHINE_API);
   private readonly dialogs = inject(DialogLauncher);
   private readonly router = inject(Router);
   private readonly summary = viewChild(FormSummary);
@@ -103,12 +109,34 @@ export class SetupPage {
     computation: (next, previous) => next ?? previous?.value ?? null,
   });
 
+  /** The machine the state reports; changes only when the value does. */
+  private readonly stateMachine = computed<Machine>(() => this.live.state()?.machine ?? 'bike');
+  /** The checked machine: the rider's choice while it is sent, then the state's (L2-072 AC2). */
+  protected readonly machine = linkedSignal(() => this.stateMachine());
+  protected readonly machineFailed = signal(false);
+  protected readonly machineHelp = computed(() =>
+    isActive(this.live.state()?.workout) ? 'End the ride in progress to change the machine.' : null,
+  );
+  protected readonly lead = computed(() => setupLead(this.machine()));
+
   protected readonly loading = computed(() => !this.live.state() && !this.live.loadFailed());
   protected readonly busy = signal(false);
   protected readonly startError = signal<StartError | null>(null);
 
   constructor() {
     this.live.ensureStarted();
+  }
+
+  protected async chooseMachine(machine: Machine): Promise<void> {
+    this.machineFailed.set(false);
+    this.machine.set(machine);
+    try {
+      await this.machines.choose(machine);
+    } catch (e) {
+      this.machine.set(this.stateMachine());
+      if (e instanceof HttpErrorResponse && e.status === 401) return;
+      this.machineFailed.set(true);
+    }
   }
 
   protected setMode(mode: 'hiit' | 'flat'): void {
@@ -134,6 +162,7 @@ export class SetupPage {
   protected async start(): Promise<void> {
     const plan = this.plan();
     if (!plan || this.busy()) return;
+    this.machineFailed.set(false);
     this.store.save(this.draft());
     const workout = this.live.state()?.workout ?? null;
     if (isActive(workout) && workout) {
