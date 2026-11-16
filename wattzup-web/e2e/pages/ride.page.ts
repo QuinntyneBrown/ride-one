@@ -46,6 +46,14 @@ export class RidePage {
   readonly loadErrorText: Locator;
   readonly tryAgainButton: Locator;
 
+  readonly trace: Locator;
+  readonly traceCanvas: Locator;
+  readonly traceLegend: Locator;
+  readonly traceMax: Locator;
+  readonly traceTicks: Locator;
+  readonly traceSummary: Locator;
+  readonly traceEmpty: Locator;
+
   readonly aside: Locator;
   readonly levelValue: Locator;
   readonly levelOf: Locator;
@@ -110,6 +118,14 @@ export class RidePage {
     this.loadErrorTitle = this.loadError.locator('.empty__title');
     this.loadErrorText = this.loadError.locator('.empty__text');
     this.tryAgainButton = this.loadError.getByRole('button', { name: 'Try again' });
+
+    this.trace = page.locator('figure.trace');
+    this.traceCanvas = this.trace.locator('canvas');
+    this.traceLegend = this.trace.locator('.trace__legend li');
+    this.traceMax = this.trace.locator('.trace__max');
+    this.traceTicks = this.trace.locator('.trace__axis span');
+    this.traceSummary = this.trace.locator('.trace__summary');
+    this.traceEmpty = this.trace.locator('.empty');
 
     this.aside = page.getByRole('complementary', { name: 'Bike control' });
     this.levelValue = this.aside.locator('.level-readout .numeral');

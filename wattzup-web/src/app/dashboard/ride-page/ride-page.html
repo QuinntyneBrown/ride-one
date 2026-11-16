@@ -65,6 +65,7 @@
           }}</wz-readout>
           <wz-interval [workout]="workout()" />
         </div>
+        <wz-ride-trace [state]="state()" [dimmed]="view().dimmed" />
         <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
         @if (overlay(); as o) {
           <wz-ride-overlay

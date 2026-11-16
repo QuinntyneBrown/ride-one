@@ -20,6 +20,7 @@ import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
 import { LoadError } from '../load-error/load-error';
 import { RideOverlay } from '../ride-overlay/ride-overlay';
+import { RideTrace } from '../ride-trace/ride-trace';
 import { Interval } from '../interval/interval';
 import { MetricsStrip } from '../metrics-strip/metrics-strip';
 import { Readout } from '../readout/readout';
@@ -33,6 +34,7 @@ import { Readout } from '../readout/readout';
     ConnectionBanner,
     LoadError,
     RideOverlay,
+    RideTrace,
     Interval,
     LevelControl,
     LevelPicker,
