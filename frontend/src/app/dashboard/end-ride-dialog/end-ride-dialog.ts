@@ -7,7 +7,7 @@ import { WORKOUT_API } from '../../core/workout-api';
 import { Alert } from '../alert/alert';
 import { DialogShell } from '../dialog-shell/dialog-shell';
 
-/** End this ride? (L2-051) */
+/** End this ride? (L2-051, L2-071 criterion 12) */
 @Component({
   selector: 'wz-end-ride-dialog',
   imports: [Alert, DialogShell],
@@ -30,6 +30,8 @@ export class EndRideDialog {
     const w = s?.workout;
     const elapsed = formatDuration(w?.elapsed_seconds ?? 0);
     const total = formatDuration(w?.total_seconds ?? 0);
+    if (s?.machine === 'treadmill')
+      return `You're ${elapsed} into ${total}. Wattzup stops the belt.`;
     const level = s?.resistance ?? s?.target_resistance ?? '--';
     return `You're ${elapsed} into ${total}. Wattzup stops changing the resistance and leaves the bike at level ${level}.`;
   });

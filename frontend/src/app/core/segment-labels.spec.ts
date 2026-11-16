@@ -29,7 +29,12 @@ describe('segment-labels (L2-025)', () => {
 
   it('names the next segment, or null on the last', () => {
     const w = testWorkout();
-    expect(nextLabel(w.segments, 9)).toEqual({ kind: 'Recover', duration: '0:20', level: 6 });
+    expect(nextLabel(w.segments, 9)).toEqual({
+      kind: 'Recover',
+      duration: '0:20',
+      level: 6,
+      speed: null,
+    });
     expect(nextLabel(w.segments, 16)).toBeNull();
   });
 

@@ -1,4 +1,4 @@
-import { commandTime, statusText } from './command-log-view';
+import { commandLabel, commandTime, statusText } from './command-log-view';
 
 describe('command-log-view (L2-048)', () => {
   const at = (o: object) =>
@@ -26,5 +26,14 @@ describe('command-log-view (L2-048)', () => {
     [{ status: 'failed', ack_ms: null }, 'failed'],
   ])('status %o', (o, text) => {
     expect(statusText(at(o))).toBe(text);
+  });
+
+  it.each([
+    [{ command: 'resistance', level: 18, value: 18 }, 'RES 18'],
+    [{ command: 'speed', level: null, value: 9 }, 'SPD 9.0'],
+    [{ command: 'speed', level: null, value: 8.5 }, 'SPD 8.5'],
+    [{ command: 'incline', level: null, value: 2 }, 'INC 2'],
+  ])('labels %j as %s', (o, label) => {
+    expect(commandLabel(at(o))).toBe(label);
   });
 });

@@ -134,6 +134,7 @@
         <wz-cmd-log
           [commands]="state()?.commands ?? []"
           [connectionId]="state()?.connection_id ?? null"
+          machine="treadmill"
         />
       </aside>
     } @else {

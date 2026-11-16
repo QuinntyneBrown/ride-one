@@ -35,12 +35,19 @@ export interface NextLabel {
   kind: string;
   duration: string;
   level: number | null;
+  /** The treadmill segment's speed; null on the bike. */
+  speed: string | null;
 }
 
 export function nextLabel(segments: readonly Segment[], index: number): NextLabel | null {
   const next = segments[index + 1];
   if (!next) return null;
-  return { kind: kindLabel(next.kind), duration: formatDuration(next.duration), level: next.level };
+  return {
+    kind: kindLabel(next.kind),
+    duration: formatDuration(next.duration),
+    level: next.level,
+    speed: next.speed === null ? null : next.speed.toFixed(1),
+  };
 }
 
 const BADGES: Record<WorkoutStatus, string | null> = {

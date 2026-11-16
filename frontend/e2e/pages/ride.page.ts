@@ -100,6 +100,7 @@ export class RidePage {
   readonly lowerInclineButton: Locator;
   readonly raiseInclineButton: Locator;
   readonly treadmillPlanNote: Locator;
+  readonly treadmillCommandEntries: Locator;
 
   constructor(
     readonly page: Page,
@@ -203,6 +204,9 @@ export class RidePage {
     this.lowerInclineButton = this.treadmillAside.getByRole('button', { name: 'Lower incline' });
     this.raiseInclineButton = this.treadmillAside.getByRole('button', { name: 'Raise incline' });
     this.treadmillPlanNote = this.treadmillAside.locator('.plan-note');
+    this.treadmillCommandEntries = this.treadmillAside
+      .getByRole('region', { name: 'Sent to treadmill' })
+      .locator('li');
   }
 
   /** Loads `/` with GET /api/status answering `initial`, then streams it as the first message. */

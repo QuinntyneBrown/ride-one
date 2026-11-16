@@ -1,6 +1,9 @@
 import { expect, test } from './fixtures/wz-test';
 import { RidePage } from './pages/ride.page';
 import { ToastRegion } from './pages/toast-region';
+import { EndRideDialog } from './pages/end-ride.dialog';
+import { ReplaceRideDialog } from './pages/replace-ride.dialog';
+import { SetupPage } from './pages/setup.page';
 import { treadmillIdle, treadmillState, treadmillWorkout } from './fixtures/states';
 import treadmillPaused from './fixtures/recorded/treadmill-workout-paused.json';
 import speedSent from './fixtures/recorded/speed-sent.json';
@@ -268,5 +271,66 @@ test.describe('Treadmill dashboard: belt and connection (L2-066, L2-071)', () =>
     await expect(ride.bannerText(banner)).toHaveText(
       'No hardware connected — Wattzup started with --simulate and is generating speed and incline.',
     );
+  });
+});
+
+test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
+  test('words the end-ride and replace-ride dialogs for the belt', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    const end = new EndRideDialog(page);
+    await ride.open(treadmillState());
+    await ride.endButton.click();
+    await expect(end.description).toHaveText("You're 7:07 into 22:40. Wattzup stops the belt.");
+    await end.keepRidingButton.click();
+
+    const setup = new SetupPage(page, api, events);
+    const replace = new ReplaceRideDialog(page);
+    await setup.open(treadmillState());
+    await setup.flatSpeedCard.check();
+    await setup.startButton.click();
+    await expect(replace.description).toHaveText(
+      "You're 7:07 into HIIT · 18 × 40s / 20s. Starting Flat · 7.0 km/h · 30 min ends it and begins the new ride at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.",
+    );
+  });
+
+  test('shows the next segment and the segment-change banner in km/h', async ({
+    page,
+    api,
+    events,
+    audio,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState({ workout: treadmillWorkout({ segment: 10, remaining: 1 }) }));
+    await expect(ride.intervalNext).toHaveText('Next: Work 0:40 at 9.0 km/h');
+    await ride.beepsButton.click();
+    await ride.push(treadmillState({ workout: treadmillWorkout({ segment: 11, remaining: 40 }) }));
+    await expect(ride.phaseHeadline).toHaveText('WORK · 9.0 KM/H · GO!');
+    await expect(ride.phaseDetail).toHaveText('Round 6 of 18 · 0:40');
+    await expect(ride.cueAnnouncement).toHaveText('Work, 9.0 km/h, incline 0 %, 40 seconds');
+    await expect(ride.intervalNext).toHaveText('Next: Recover 0:20 at 7.0 km/h');
+    await ride.push(treadmillState({ workout: treadmillWorkout({ segment: 12, remaining: 20 }) }));
+    await expect(ride.phaseHeadline).toHaveText('RECOVER · 7.0 KM/H');
+    await expect(ride.phaseDetail).toHaveText('0:20 · next: Work at 9.0 km/h');
+    expect((await audio.tones()).length).toBeGreaterThan(0);
+  });
+
+  test('titles the log Sent to treadmill and reads SPD and INC entries', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState());
+    await expect(ride.treadmillCommandEntries).toHaveText([
+      '7:00INC 0 · planack 46ms',
+      '7:00SPD 9.0 · planack 612ms',
+      '6:40INC 0 · planack 44ms',
+      '6:40SPD 7.0 · planack 588ms',
+      '6:00INC 0 · planack 47ms',
+    ]);
   });
 });
