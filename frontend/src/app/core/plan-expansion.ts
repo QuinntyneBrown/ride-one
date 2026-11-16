@@ -5,6 +5,8 @@ import { formatDuration } from './format-duration';
 
 export const WARMUP_SECONDS = 180;
 export const COOLDOWN_SECONDS = 120;
+/** The Echelon Stride's top speed (L2-065, ADR 0010). */
+export const MAX_TREADMILL_SPEED = 19.3;
 
 /** A treadmill plan carries speeds in place of levels (L2-067). */
 export function isTreadmillPlan(plan: WorkoutPlan): boolean {
@@ -31,7 +33,14 @@ function expandTreadmillPlan(plan: WorkoutPlan): Segment[] {
     push('steady', plan.minutes * 60, plan.speed, plan.incline ?? 0, null);
     return segments;
   }
-  if (plan.warmup) push('warmup', WARMUP_SECONDS, plan.rest_speed, 0, null);
+  // The warm-up is a brisk walk: 1 km/h above the recover speed, at the recover incline (L2-068).
+  if (plan.warmup) {
+    const warmupSpeed = Math.min(
+      Math.round(((plan.rest_speed ?? 0) + 1) * 10) / 10,
+      MAX_TREADMILL_SPEED,
+    );
+    push('warmup', WARMUP_SECONDS, warmupSpeed, plan.rest_incline ?? 0, null);
+  }
   for (let round = 1; round <= plan.rounds; round++) {
     push('work', plan.work_seconds, plan.work_speed, plan.work_incline ?? 0, round);
     if (!(plan.cooldown && round === plan.rounds)) {
@@ -104,7 +113,8 @@ export function totalSeconds(segments: readonly Segment[]): number {
 
 export function planSummary(plan: WorkoutPlan): string {
   if (plan.kind === 'flat') {
-    if (plan.speed !== null) return `Flat · ${plan.speed.toFixed(1)} km/h · ${plan.minutes} min`;
+    if (plan.speed !== null)
+      return `Steady · ${plan.speed.toFixed(1)} km/h at ${plan.incline ?? 0}% · ${plan.minutes} min`;
     return `Flat · Level ${plan.level} · ${plan.minutes} min`;
   }
   if (plan.work_seconds < 60) {

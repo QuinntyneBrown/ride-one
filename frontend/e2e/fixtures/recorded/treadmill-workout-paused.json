@@ -23,7 +23,7 @@
         "level": null,
         "cadence": null,
         "round": null,
-        "speed": 7,
+        "speed": 8,
         "incline": 0
       },
       {
@@ -388,8 +388,8 @@
       }
     ],
     "segment": 0,
-    "remaining": 179,
-    "elapsed_seconds": 1,
+    "remaining": 180,
+    "elapsed_seconds": 0,
     "total_seconds": 1360,
     "mode": "plan",
     "plan_level": null,

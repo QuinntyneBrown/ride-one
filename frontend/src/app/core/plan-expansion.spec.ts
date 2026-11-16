@@ -210,9 +210,9 @@ describe('expandPlan for the treadmill (L2-068)', () => {
     incline,
   });
 
-  it('warms up at rest speed and incline 0, cools down at rest speed and incline 0 (AC1)', () => {
+  it('warms up 1 km/h above rest speed at rest incline, cools down at rest speed and 0 % (AC1)', () => {
     expect(expandPlan(treadmill)).toEqual([
-      seg('warmup', 0, 180, 7, 0, null),
+      seg('warmup', 0, 180, 8, 1, null),
       seg('work', 180, 40, 9, 2, 1),
       seg('rest', 220, 20, 7, 1, 1),
       seg('work', 240, 40, 9, 2, 2),
@@ -225,6 +225,12 @@ describe('expandPlan for the treadmill (L2-068)', () => {
     expect(segments).toEqual([seg('work', 0, 40, 9, 2, 1), seg('rest', 40, 20, 7, 1, 1)]);
   });
 
+  it('caps the warm-up at 19.3 km/h (AC1)', () => {
+    expect(expandPlan({ ...treadmill, rest_speed: 18.8 })[0]).toEqual(
+      seg('warmup', 0, 180, 19.3, 1, null),
+    );
+  });
+
   it('expands a flat plan into one steady segment at speed and incline (AC2)', () => {
     const flat = {
       kind: 'flat',
@@ -235,7 +241,7 @@ describe('expandPlan for the treadmill (L2-068)', () => {
       incline: 2,
     } as const;
     expect(expandPlan(flat)).toEqual([seg('steady', 0, 1800, 7, 2, null)]);
-    expect(planSummary(flat)).toBe('Flat · 7.0 km/h · 30 min');
+    expect(planSummary(flat)).toBe('Steady · 7.0 km/h at 2% · 30 min');
     expect(expectedDistanceKm(expandPlan(flat))).toBe(3.5);
   });
 });

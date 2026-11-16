@@ -293,7 +293,7 @@ test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
     await setup.flatSpeedCard.check();
     await setup.startButton.click();
     await expect(replace.description).toHaveText(
-      "You're 7:07 into HIIT · 18 × 40s / 20s. Starting Flat · 7.0 km/h · 30 min ends it and begins the new ride at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.",
+      "You're 7:07 into HIIT · 18 × 40s / 20s. Starting Steady · 7.0 km/h at 0% · 30 min ends it and begins the new ride at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.",
     );
   });
 

@@ -88,19 +88,19 @@ describe('treadmillPreviewOf (L2-072 AC8)', () => {
     const p = treadmillPreviewOf(hiit);
     expect(p.total).toBe('22:40');
     expect(p.topSpeed).toBe(9);
-    expect(p.distanceKm).toBeCloseTo(3.044, 3);
+    expect(p.distanceKm).toBeCloseTo(3.094, 3);
     expect(p.profileLabel).toBe('Speed profile: 18 × 0:40 / 0:20');
     expect(p.rows).toEqual([
       { term: 'Structure', value: '18 × 0:40 / 0:20' },
       { term: 'Time under load', value: '12:00' },
       { term: 'Top speed', value: '9.0 km/h' },
-      { term: 'Expected distance', value: '~3.0 km' },
+      { term: 'Expected distance', value: '~3.1 km' },
     ]);
   });
 
   it('draws each bar two units per km/h', () => {
     const [warmup, work] = treadmillPreviewOf(hiit).profile;
-    expect(warmup).toMatchObject({ y: 18, height: 14, tone: 'is-easy' });
+    expect(warmup).toMatchObject({ y: 16, height: 16, tone: 'is-easy' });
     expect(work).toMatchObject({ y: 14, height: 18, tone: 'is-work' });
   });
 

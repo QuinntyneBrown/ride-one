@@ -29,7 +29,7 @@
         "level": null,
         "cadence": null,
         "round": null,
-        "speed": 7,
+        "speed": 8,
         "incline": 0
       },
       {
@@ -405,9 +405,9 @@
   "cadence": null,
   "speed_kmh": 0,
   "speed_mph": 0,
-  "packets": 29,
-  "first_data_at": 1794827506.701,
-  "last_data_at": 1794827540.268,
+  "packets": 10,
+  "first_data_at": 1794870150.397,
+  "last_data_at": 1794870155.453,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -415,7 +415,7 @@
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8798",
+  "bind_address": "127.0.0.1:8797",
   "connection_id": "0bf669f1",
   "power": null,
   "target_power": null,
@@ -425,17 +425,17 @@
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794827540.268,
+      "at": 1794870155.452,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
       "status": "ack",
-      "ack_ms": 0,
+      "ack_ms": 1,
       "command": "incline",
       "value": 2
     },
     {
-      "at": 1794827540.262,
+      "at": 1794870155.446,
       "ride_seconds": null,
       "level": null,
       "source": "manual",

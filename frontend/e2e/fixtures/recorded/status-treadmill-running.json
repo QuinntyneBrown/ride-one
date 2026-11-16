@@ -29,7 +29,7 @@
         "level": null,
         "cadence": null,
         "round": null,
-        "speed": 7,
+        "speed": 8,
         "incline": 0
       },
       {
@@ -394,8 +394,8 @@
       }
     ],
     "segment": 0,
-    "remaining": 179,
-    "elapsed_seconds": 1,
+    "remaining": 180,
+    "elapsed_seconds": 0,
     "total_seconds": 1360,
     "mode": "plan",
     "plan_level": null,
@@ -403,11 +403,11 @@
     "ended_reason": null
   },
   "cadence": null,
-  "speed_kmh": 7,
-  "speed_mph": 4.3,
-  "packets": 32,
-  "first_data_at": 1794827506.701,
-  "last_data_at": 1794827545.697,
+  "speed_kmh": 8,
+  "speed_mph": 5,
+  "packets": 13,
+  "first_data_at": 1794870150.397,
+  "last_data_at": 1794870161.747,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -415,7 +415,7 @@
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8798",
+  "bind_address": "127.0.0.1:8797",
   "connection_id": "0bf669f1",
   "power": null,
   "target_power": null,
@@ -425,7 +425,7 @@
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794827545.697,
+      "at": 1794870161.747,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -435,27 +435,27 @@
       "value": 0
     },
     {
-      "at": 1794827545.697,
+      "at": 1794870161.747,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
       "status": "ack",
       "ack_ms": 0,
       "command": "speed",
-      "value": 7
+      "value": 8
     },
     {
-      "at": 1794827540.268,
+      "at": 1794870155.452,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
       "status": "ack",
-      "ack_ms": 0,
+      "ack_ms": 1,
       "command": "incline",
       "value": 2
     },
     {
-      "at": 1794827540.262,
+      "at": 1794870155.446,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -466,7 +466,7 @@
     }
   ],
   "machine": "treadmill",
-  "target_speed": 7,
+  "target_speed": 8,
   "incline": 0,
   "target_incline": 0,
   "belt": "running",

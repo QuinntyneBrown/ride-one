@@ -113,7 +113,7 @@ public sealed class TreadmillPlanTests
     {
         Assert.Equal(
             [
-                new Segment(SegmentKind.Warmup, 0, 180, null, null, null, 7.0, 0),
+                new Segment(SegmentKind.Warmup, 0, 180, null, null, null, 8.0, 1),
                 new Segment(SegmentKind.Work, 180, 40, null, null, 1, 9.0, 2),
                 new Segment(SegmentKind.Rest, 220, 20, null, null, 1, 7.0, 1),
                 new Segment(SegmentKind.Work, 240, 40, null, null, 2, 9.0, 2),
@@ -139,11 +139,19 @@ public sealed class TreadmillPlanTests
     }
 
     [Theory]
-    [InlineData(7.0, 30, "Flat · 7.0 km/h · 30 min")]
-    [InlineData(10.5, 45, "Flat · 10.5 km/h · 45 min")]
-    public void The_treadmill_flat_summary_names_the_speed(double speed, int minutes, string expected)
+    [InlineData(6.5, 8, 30, "Steady · 6.5 km/h at 8% · 30 min")]
+    [InlineData(10.0, 0, 45, "Steady · 10.0 km/h at 0% · 45 min")]
+    public void The_treadmill_flat_summary_reads_Steady_with_speed_and_incline(double speed, int incline, int minutes, string expected)
     {
-        Assert.Equal(expected, WorkoutSummary.For(new FlatPlan(null, minutes, null, speed, 0)));
+        Assert.Equal(expected, WorkoutSummary.For(new FlatPlan(null, minutes, null, speed, incline)));
+    }
+
+    [Fact]
+    public void The_treadmill_warmup_is_capped_at_19_3()
+    {
+        var segments = PlanExpander.Expand(Default with { RestSpeed = 18.8 });
+
+        Assert.Equal(new Segment(SegmentKind.Warmup, 0, 180, null, null, null, 19.3, 1), segments[0]);
     }
 
     [Fact]

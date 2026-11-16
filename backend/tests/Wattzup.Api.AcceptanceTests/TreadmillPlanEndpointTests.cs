@@ -12,8 +12,8 @@ public sealed class TreadmillPlanEndpointTests
 {
     public static readonly object DefaultHiit = new
     {
-        kind = "hiit", rounds = 18, work_seconds = 40, rest_seconds = 20, work_speed = 9.0, rest_speed = 7.0,
-        work_incline = 0, rest_incline = 0, warmup = true, cooldown = true,
+        kind = "hiit", rounds = 6, work_seconds = 60, rest_seconds = 60, work_speed = 13.0, rest_speed = 6.0,
+        work_incline = 2, rest_incline = 1, warmup = true, cooldown = true,
     };
 
     [Fact]
@@ -25,27 +25,27 @@ public sealed class TreadmillPlanEndpointTests
 
         var plan = started.GetProperty("plan");
         Assert.Equal("hiit", plan.GetProperty("kind").GetString());
-        Assert.Equal(9.0, plan.GetProperty("work_speed").GetDouble());
-        Assert.Equal(7.0, plan.GetProperty("rest_speed").GetDouble());
+        Assert.Equal(13.0, plan.GetProperty("work_speed").GetDouble());
+        Assert.Equal(6.0, plan.GetProperty("rest_speed").GetDouble());
         Assert.Equal(JsonValueKind.Null, plan.GetProperty("work_level").ValueKind);
         var warmup = started.GetProperty("segments")[0];
         Assert.Equal("warmup", warmup.GetProperty("kind").GetString());
         Assert.Equal(7.0, warmup.GetProperty("speed").GetDouble());
-        Assert.Equal(0, warmup.GetProperty("incline").GetInt32());
+        Assert.Equal(1, warmup.GetProperty("incline").GetInt32());
         Assert.Equal(JsonValueKind.Null, warmup.GetProperty("level").ValueKind);
         Assert.Equal(JsonValueKind.Null, started.GetProperty("plan_level").ValueKind);
-        Assert.Equal("HIIT · 18 × 40s / 20s", started.GetProperty("summary").GetString());
+        Assert.Equal("HIIT · 6 × 1:00 / 1:00", started.GetProperty("summary").GetString());
     }
 
     [Fact]
-    public async Task Given_the_treadmill_when_a_flat_plan_is_posted_then_its_summary_names_the_speed()
+    public async Task Given_the_treadmill_when_a_flat_plan_is_posted_then_its_summary_reads_Steady_with_speed_and_incline()
     {
         await using var treadmill = await Bike.StartAsync(TreadmillConnectionTests.TreadmillFactory(), connected: false);
 
-        var started = await Ride.StartAsync(treadmill, new { kind = "flat", speed = 7.0, incline = 2, minutes = 30 });
+        var started = await Ride.StartAsync(treadmill, new { kind = "flat", speed = 6.5, incline = 8, minutes = 30 });
 
-        Assert.Equal("Flat · 7.0 km/h · 30 min", started.GetProperty("summary").GetString());
-        Assert.Equal(2, started.GetProperty("segments")[0].GetProperty("incline").GetInt32());
+        Assert.Equal("Steady · 6.5 km/h at 8% · 30 min", started.GetProperty("summary").GetString());
+        Assert.Equal(8, started.GetProperty("segments")[0].GetProperty("incline").GetInt32());
     }
 
     [Fact]

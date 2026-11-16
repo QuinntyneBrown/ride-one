@@ -9,7 +9,7 @@ public static class WorkoutSummary
     {
         HiitPlan { WorkSeconds: < 60 } h => string.Create(CultureInfo.InvariantCulture, $"HIIT · {h.Rounds} × {h.WorkSeconds}s / {h.RestSeconds}s"),
         HiitPlan h => string.Create(CultureInfo.InvariantCulture, $"HIIT · {h.Rounds} × {Clock(h.WorkSeconds)} / {Clock(h.RestSeconds)}"),
-        FlatPlan { Speed: { } speed } f => string.Create(CultureInfo.InvariantCulture, $"Flat · {speed:0.0} km/h · {f.Minutes} min"),
+        FlatPlan { Speed: { } speed } f => string.Create(CultureInfo.InvariantCulture, $"Steady · {speed:0.0} km/h at {f.Incline ?? 0}% · {f.Minutes} min"),
         FlatPlan f => string.Create(CultureInfo.InvariantCulture, $"Flat · Level {f.Level} · {f.Minutes} min"),
         _ => throw new ArgumentException($"Unknown plan type {plan?.GetType().Name}.", nameof(plan)),
     };

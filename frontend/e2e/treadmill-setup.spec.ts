@@ -168,7 +168,7 @@ test.describe('Treadmill plan on setup (L2-072, L2-067)', () => {
     await expect(setup.total).toHaveText('22:40');
     await expect(setup.profile).toHaveAttribute('aria-label', 'Speed profile: 18 × 0:40 / 0:20');
     await expect(setup.profileBars).toHaveCount(37);
-    await expect(setup.profileBars.nth(0)).toHaveAttribute('height', '14');
+    await expect(setup.profileBars.nth(0)).toHaveAttribute('height', '16');
     await expect(setup.profileBars.nth(1)).toHaveAttribute('height', '18');
     await expect(setup.summaryTerms()).toHaveText([
       'Structure',
@@ -179,7 +179,7 @@ test.describe('Treadmill plan on setup (L2-072, L2-067)', () => {
     await expect(setup.summaryValue('Structure')).toHaveText('18 × 0:40 / 0:20');
     await expect(setup.summaryValue('Time under load')).toHaveText('12:00');
     await expect(setup.summaryValue('Top speed')).toHaveText('9.0 km/h');
-    await expect(setup.summaryValue('Expected distance')).toHaveText('~3.0 km');
+    await expect(setup.summaryValue('Expected distance')).toHaveText('~3.1 km');
 
     await setup.flatSpeedCard.check();
     await expect(setup.total).toHaveText('30:00');

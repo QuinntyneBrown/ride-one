@@ -1,3 +1,5 @@
+using Wattzup.Protocol;
+
 namespace Wattzup.Core.Workouts;
 
 /// <summary>Expands a plan into its ordered segments (L2-045, L2-068).</summary>
@@ -30,7 +32,8 @@ public static class PlanExpander
             case HiitPlan { WorkSpeed: { } workSpeed, RestSpeed: { } restSpeed } hiit:
                 if (hiit.Warmup)
                 {
-                    Add(SegmentKind.Warmup, WarmupSeconds, null, null, null, restSpeed, 0);
+                    // The warm-up is a brisk walk: 1 km/h above the recover speed, at the recover incline (L2-068).
+                    Add(SegmentKind.Warmup, WarmupSeconds, null, null, null, Math.Min(Math.Round(restSpeed + 1.0, 1), EchelonTreadmillCommands.MaxSpeedKmh), hiit.RestIncline ?? 0);
                 }
 
                 for (var round = 1; round <= hiit.Rounds; round++)
