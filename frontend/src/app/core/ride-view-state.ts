@@ -60,6 +60,10 @@ export function rideViewState(
     commandsEnabled: !offline && connected,
     pauseEnabled: !offline && active,
     endEnabled: active,
-    controlsNote: connected ? null : 'Resistance controls wake up once the bike connects.',
+    controlsNote: connected
+      ? null
+      : state.machine === 'treadmill'
+        ? 'Speed and incline controls wake up once the treadmill connects.'
+        : 'Resistance controls wake up once the bike connects.',
   };
 }

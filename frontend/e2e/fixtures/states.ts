@@ -4,6 +4,7 @@
 // backend does not send fails the test, so the stubs cannot drift from the contract.
 import recordedRunning from './recorded/status-running.json';
 import recordedStarted from './recorded/workout-started.json';
+import recordedTreadmillRunning from './recorded/status-treadmill-running.json';
 
 export type Json = Record<string, unknown>;
 
@@ -276,6 +277,116 @@ export function treadmillIdle(change: Json = {}): Json {
     belt: 'stopped',
     belt_countdown: null,
     commands: [],
+    ...change,
+  });
+}
+
+/** The treadmill setup default: 18 × 0:40 / 0:20 at 9.0 / 7.0 km/h, incline 0 (L2-072 AC4). */
+export const TREADMILL_PLAN = {
+  kind: 'hiit',
+  rounds: 18,
+  work_seconds: 40,
+  rest_seconds: 20,
+  work_level: null,
+  rest_level: null,
+  warmup: true,
+  cooldown: true,
+  work_speed: 9,
+  rest_speed: 7,
+  work_incline: 0,
+  rest_incline: 0,
+} as const;
+
+function treadmillSegments(): Json[] {
+  const segments: Json[] = [];
+  let start = 0;
+  const push = (kind: string, duration: number, speed: number, round: number | null) => {
+    segments.push({ kind, start, duration, level: null, cadence: null, round, speed, incline: 0 });
+    start += duration;
+  };
+  push('warmup', 180, 7, null);
+  for (let round = 1; round <= 18; round++) {
+    push('work', 40, 9, round);
+    if (round < 18) push('rest', 20, 7, round);
+  }
+  push('cooldown', 120, 7, null);
+  return sameShape(RECORDED_SEGMENT, segments, 'treadmill segment');
+}
+
+/** The treadmill plan, work round 5 of 18, 0:33 left, 7:07 of 22:40. */
+export function treadmillWorkout(change: Json = {}): Json {
+  return workout({
+    plan: TREADMILL_PLAN,
+    summary: 'HIIT · 18 × 40s / 20s',
+    segments: treadmillSegments(),
+    segment: 9,
+    remaining: 33,
+    elapsed_seconds: 427,
+    total_seconds: 1360,
+    plan_level: null,
+    ...change,
+  });
+}
+
+const RECORDED_TREADMILL_COMMAND = recordedTreadmillRunning.commands[0] as unknown as Json;
+
+/** A treadmill command entry: `SPD 9.0` or `INC 0` (L2-065). */
+export function treadmillCommand(change: Json): Json {
+  return fromRecording(
+    RECORDED_TREADMILL_COMMAND,
+    { level: null, source: 'plan', status: 'ack', ...change },
+    'treadmill command',
+  );
+}
+
+/** The treadmill mid-ride at 9.0 km/h, incline 0, as the treadmill mocks show (L2-071). */
+export function treadmillState(change: Json = {}): Json {
+  return treadmillIdle({
+    workout: treadmillWorkout(),
+    speed_kmh: 9,
+    speed_mph: 5.6,
+    target_speed: 9,
+    incline: 0,
+    target_incline: 0,
+    distance_km: 0.92,
+    belt: 'running',
+    commands: [
+      treadmillCommand({
+        at: NOW_S - 7,
+        ride_seconds: 420,
+        command: 'incline',
+        value: 0,
+        ack_ms: 46,
+      }),
+      treadmillCommand({
+        at: NOW_S - 7,
+        ride_seconds: 420,
+        command: 'speed',
+        value: 9,
+        ack_ms: 612,
+      }),
+      treadmillCommand({
+        at: NOW_S - 27,
+        ride_seconds: 400,
+        command: 'incline',
+        value: 0,
+        ack_ms: 44,
+      }),
+      treadmillCommand({
+        at: NOW_S - 27,
+        ride_seconds: 400,
+        command: 'speed',
+        value: 7,
+        ack_ms: 588,
+      }),
+      treadmillCommand({
+        at: NOW_S - 67,
+        ride_seconds: 360,
+        command: 'incline',
+        value: 0,
+        ack_ms: 47,
+      }),
+    ],
     ...change,
   });
 }

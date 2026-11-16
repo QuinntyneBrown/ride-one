@@ -79,6 +79,26 @@ export class RidePage {
   readonly commandLogConnection: Locator;
   readonly commandEntries: Locator;
 
+  readonly speed: Locator;
+  readonly speedValue: Locator;
+  readonly speedUnit: Locator;
+  readonly speedSub: Locator;
+  readonly incline: Locator;
+  readonly inclineValue: Locator;
+  readonly inclineUnit: Locator;
+  readonly inclineSub: Locator;
+  readonly treadmillAside: Locator;
+  readonly treadmillAsideTitle: Locator;
+  readonly speedControl: Locator;
+  readonly speedControlValue: Locator;
+  readonly inclineControl: Locator;
+  readonly inclineControlValue: Locator;
+  readonly lowerSpeedButton: Locator;
+  readonly raiseSpeedButton: Locator;
+  readonly lowerInclineButton: Locator;
+  readonly raiseInclineButton: Locator;
+  readonly treadmillPlanNote: Locator;
+
   constructor(
     readonly page: Page,
     private readonly api: ApiStub,
@@ -159,6 +179,26 @@ export class RidePage {
     this.commandLog = this.aside.getByRole('region', { name: 'Sent to bike' });
     this.commandLogConnection = this.commandLog.locator('.cmd-log__head code');
     this.commandEntries = this.commandLog.locator('li');
+
+    this.speed = page.locator('.readout--speed');
+    this.speedValue = this.speed.locator('.numeral');
+    this.speedUnit = this.speed.locator('.readout__unit');
+    this.speedSub = this.speed.locator('.readout__sub span');
+    this.incline = page.locator('.readout--incline');
+    this.inclineValue = this.incline.locator('.numeral');
+    this.inclineUnit = this.incline.locator('.readout__unit');
+    this.inclineSub = this.incline.locator('.readout__sub span');
+    this.treadmillAside = page.getByRole('complementary', { name: 'Treadmill control' });
+    this.treadmillAsideTitle = this.treadmillAside.locator('h2');
+    this.speedControl = this.treadmillAside.getByRole('group', { name: 'Speed' });
+    this.speedControlValue = this.speedControl.locator('.numeral');
+    this.inclineControl = this.treadmillAside.getByRole('group', { name: 'Incline' });
+    this.inclineControlValue = this.inclineControl.locator('.numeral');
+    this.lowerSpeedButton = this.treadmillAside.getByRole('button', { name: 'Lower speed' });
+    this.raiseSpeedButton = this.treadmillAside.getByRole('button', { name: 'Raise speed' });
+    this.lowerInclineButton = this.treadmillAside.getByRole('button', { name: 'Lower incline' });
+    this.raiseInclineButton = this.treadmillAside.getByRole('button', { name: 'Raise incline' });
+    this.treadmillPlanNote = this.treadmillAside.locator('.plan-note');
   }
 
   /** Loads `/` with GET /api/status answering `initial`, then streams it as the first message. */

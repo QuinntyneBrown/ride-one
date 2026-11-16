@@ -34,6 +34,36 @@
           <span class="skeleton skeleton--rect skeleton--trace"></span>
         </div>
         <wz-metrics-strip />
+      } @else if (treadmill()) {
+        <div class="readouts" [class.readouts--dimmed]="view().dimmed">
+          @let sp = speed();
+          <wz-readout kind="speed" label="Speed" [value]="sp.valueText" unit="km/h">
+            @if (sp.settingText; as setting) {
+              <span class="delta delta--low">{{ setting }}</span>
+            } @else if (sp.targetText; as target) {
+              <span>{{ target }}</span>
+            }
+            <span>{{ sp.mphText }}</span>
+          </wz-readout>
+          @let inc = incline();
+          <wz-readout kind="incline" label="Incline" [value]="inc.valueText" unit="%">
+            @if (inc.settingText; as setting) {
+              <span class="delta delta--low">{{ setting }}</span>
+            } @else if (inc.targetText; as target) {
+              <span>{{ target }}</span>
+            }
+          </wz-readout>
+          <wz-interval [workout]="workout()" />
+        </div>
+        <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
+        @if (overlay(); as o) {
+          <wz-ride-overlay
+            [overlay]="o"
+            [reconnecting]="actions.reconnecting()"
+            (reconnect)="actions.reconnect()"
+            (diagnostics)="dialogs.openDiagnostics()"
+          />
+        }
       } @else {
         <div class="readouts" [class.readouts--dimmed]="view().dimmed">
           @let p = power();
@@ -77,31 +107,61 @@
         }
       }
     </main>
-    <aside class="ride-aside" aria-label="Bike control">
-      <h2 class="label">Resistance</h2>
-      @let controls = resistanceControls();
-      <wz-level-control
-        [view]="resistance()"
-        [controls]="controls"
-        (step)="stepResistance($event)"
-      />
-      <wz-level-picker
-        [view]="resistance()"
-        [disabled]="controls.pickerDisabled"
-        (pick)="commands.set($event)"
-      />
-      @let note = planNote();
-      <wz-plan-note
-        [text]="note.text"
-        [backToPlan]="note.backToPlan"
-        [disabled]="!view().commandsEnabled"
-        (back)="commands.backToPlan()"
-      />
-      <wz-cmd-log
-        [commands]="state()?.commands ?? []"
-        [connectionId]="state()?.connection_id ?? null"
-      />
-    </aside>
+    @if (treadmill()) {
+      <aside class="ride-aside" aria-label="Treadmill control">
+        <h2 class="label">Speed and incline</h2>
+        @let tc = treadmillControls();
+        <wz-speed-control
+          [valueText]="speed().valueText"
+          [lowerDisabled]="tc.lowerSpeedDisabled"
+          [raiseDisabled]="tc.raiseSpeedDisabled"
+          (step)="stepSpeed($event)"
+        />
+        <wz-incline-control
+          [valueText]="incline().valueText"
+          [lowerDisabled]="tc.lowerInclineDisabled"
+          [raiseDisabled]="tc.raiseInclineDisabled"
+          (step)="stepIncline($event)"
+        />
+        @let tnote = treadmillNote();
+        <wz-plan-note
+          [text]="tnote.text"
+          [backToPlan]="tnote.backToPlan"
+          [disabled]="!view().commandsEnabled"
+          (back)="commands.backToPlan()"
+        />
+        <wz-cmd-log
+          [commands]="state()?.commands ?? []"
+          [connectionId]="state()?.connection_id ?? null"
+        />
+      </aside>
+    } @else {
+      <aside class="ride-aside" aria-label="Bike control">
+        <h2 class="label">Resistance</h2>
+        @let controls = resistanceControls();
+        <wz-level-control
+          [view]="resistance()"
+          [controls]="controls"
+          (step)="stepResistance($event)"
+        />
+        <wz-level-picker
+          [view]="resistance()"
+          [disabled]="controls.pickerDisabled"
+          (pick)="commands.set($event)"
+        />
+        @let note = planNote();
+        <wz-plan-note
+          [text]="note.text"
+          [backToPlan]="note.backToPlan"
+          [disabled]="!view().commandsEnabled"
+          (back)="commands.backToPlan()"
+        />
+        <wz-cmd-log
+          [commands]="state()?.commands ?? []"
+          [connectionId]="state()?.connection_id ?? null"
+        />
+      </aside>
+    }
   </div>
 </div>
 <wz-phase-banner />
