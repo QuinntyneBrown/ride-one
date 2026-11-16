@@ -45,7 +45,8 @@ talks to the bike and serves an Angular dashboard from the same origin.
   a countdown and audio cues.
 - **Connection status.** Scanning, connecting and reconnecting are shown as they happen, with
   automatic retry after a Bluetooth error.
-- **Treadmill.** Choose the Echelon treadmill instead of the bike on the setup screen. Set speed
+- **Treadmill.** Pick the Echelon Stride or the bike on the machine page (`/machine`), which
+  lists the machines nearby with their signal. Set speed
   and incline from the dashboard; treadmill workouts set them for each segment. Wattzup starts the
   belt only after a 3-second countdown, stops it when a ride is paused, stopped or ends, and pauses
   the ride when the belt is stopped from the console

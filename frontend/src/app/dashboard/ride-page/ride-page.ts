@@ -23,6 +23,7 @@ import {
 import { inclineView, speedView } from '../../core/treadmill-view';
 import { InclineControl } from '../incline-control/incline-control';
 import { SpeedControl } from '../speed-control/speed-control';
+import { Icon } from '../icon/icon';
 import { CmdLog } from '../cmd-log/cmd-log';
 import { LevelControl } from '../level-control/level-control';
 import { LevelPicker } from '../level-picker/level-picker';
@@ -44,6 +45,7 @@ import { Readout } from '../readout/readout';
     AppBar,
     CmdLog,
     ConnectionBanner,
+    Icon,
     InclineControl,
     SpeedControl,
     LoadError,
@@ -96,6 +98,12 @@ export class RidePage {
 
   protected readonly commands = inject(ResistanceCommandService);
   protected readonly actions = inject(RideActions);
+  /** `End and switch to bike` on the treadmill, `… to treadmill` on the bike (L2-071 AC12). */
+  protected readonly switchLabel = computed(() =>
+    this.state()?.machine === 'treadmill'
+      ? 'End and switch to bike'
+      : 'End and switch to treadmill',
+  );
   protected readonly dialogs = inject(DialogLauncher);
   protected readonly overlay = computed(() => {
     const kind = this.view().overlay;
@@ -138,5 +146,10 @@ export class RidePage {
   constructor() {
     inject(CommandFeedbackService).start();
     this.live.ensureStarted();
+  }
+
+  protected switchMachine(event: Event): void {
+    event.preventDefault();
+    this.actions.switchMachine();
   }
 }

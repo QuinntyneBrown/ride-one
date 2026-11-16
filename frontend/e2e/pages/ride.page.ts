@@ -16,6 +16,7 @@ export class RidePage {
   readonly pauseButton: Locator;
   readonly resumeButton: Locator;
   readonly endButton: Locator;
+  readonly switchLink: Locator;
   readonly diagnosticsButton: Locator;
   readonly beepsButton: Locator;
   readonly themeButton: Locator;
@@ -120,6 +121,9 @@ export class RidePage {
     this.pauseButton = bar.getByRole('button', { name: 'Pause', exact: true });
     this.resumeButton = bar.getByRole('button', { name: 'Resume', exact: true });
     this.endButton = bar.getByRole('button', { name: 'End', exact: true });
+    this.switchLink = page
+      .locator('.ride-aside__foot')
+      .getByRole('link', { name: /^End and switch to / });
     this.diagnosticsButton = bar.getByRole('button', { name: 'Diagnostics', exact: true });
     this.beepsButton = bar.getByRole('button', { name: /^Countdown beeps (on|off)$/ });
     this.themeButton = bar.getByRole('button', { name: 'Light theme', exact: true });

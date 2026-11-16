@@ -10,10 +10,10 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DialogLauncher } from '../../core/dialog-launcher';
+import { RideActions } from '../../core/ride-actions';
 import { formatDuration } from '../../core/format-duration';
 import type { Machine } from '../../core/api-types';
 import { LiveStateService } from '../../core/live-state.service';
-import { MACHINE_API } from '../../core/machine-api';
 import { setupLead } from '../../core/machine-words';
 import { planSummary } from '../../core/plan-expansion';
 import { PlanDraftStore } from '../../core/plan-draft.store';
@@ -47,11 +47,11 @@ import { Alert } from '../alert/alert';
 import { FormSummary } from '../form-summary/form-summary';
 import { Icon } from '../icon/icon';
 import { LevelSlider } from '../level-slider/level-slider';
-import { MachineChoice } from '../machine-choice/machine-choice';
 import { ModeCards } from '../mode-cards/mode-cards';
 import { NumStepper } from '../num-stepper/num-stepper';
 import { Presets } from '../presets/presets';
 import { RidePreview } from '../ride-preview/ride-preview';
+import { StatusLine } from '../status-line/status-line';
 import { Toggles } from '../toggles/toggles';
 
 /** The input id of each draft field; the form summary links to them. */
@@ -90,12 +90,12 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
     FormSummary,
     Icon,
     LevelSlider,
-    MachineChoice,
     ModeCards,
     NumStepper,
     Presets,
     RidePreview,
     RouterLink,
+    StatusLine,
     Toggles,
   ],
   templateUrl: './setup-page.html',
@@ -106,15 +106,17 @@ export class SetupPage {
   private readonly live = inject(LiveStateService);
   private readonly store = inject(PlanDraftStore);
   private readonly workouts = inject(WORKOUT_API);
-  private readonly machines = inject(MACHINE_API);
   private readonly dialogs = inject(DialogLauncher);
+  private readonly actions = inject(RideActions);
   private readonly router = inject(Router);
   private readonly summary = viewChild(FormSummary);
 
   /** The machine the state reports; changes only when the value does. */
-  private readonly stateMachine = computed<Machine>(() => this.live.state()?.machine ?? 'bike');
-  /** The checked machine: the rider's choice while it is sent, then the state's (L2-072 AC2). */
-  protected readonly machine = linkedSignal(() => this.stateMachine());
+  protected readonly machine = computed<Machine>(() => this.live.state()?.machine ?? 'bike');
+  /** `Switch to bike` on the treadmill, `Switch to treadmill` on the bike (L2-072 AC1). */
+  protected readonly switchLabel = computed(() =>
+    this.machine() === 'treadmill' ? 'Switch to bike' : 'Switch to treadmill',
+  );
   protected readonly treadmill = computed(() => this.machine() === 'treadmill');
 
   protected readonly ids = FIELD_IDS;
@@ -157,10 +159,6 @@ export class SetupPage {
       (previous && previous.source.machine === next.machine ? previous.value : null),
   });
 
-  protected readonly machineFailed = signal(false);
-  protected readonly machineHelp = computed(() =>
-    isActive(this.live.state()?.workout) ? 'End the ride in progress to change the machine.' : null,
-  );
   protected readonly lead = computed(() => setupLead(this.machine()));
 
   protected readonly loading = computed(() => !this.live.state() && !this.live.loadFailed());
@@ -171,16 +169,10 @@ export class SetupPage {
     this.live.ensureStarted();
   }
 
-  protected async chooseMachine(machine: Machine): Promise<void> {
-    this.machineFailed.set(false);
-    this.machine.set(machine);
-    try {
-      await this.machines.choose(machine);
-    } catch (e) {
-      this.machine.set(this.stateMachine());
-      if (e instanceof HttpErrorResponse && e.status === 401) return;
-      this.machineFailed.set(true);
-    }
+  /** `Switch to …`: the end dialog first during a ride, then the machine page (L2-073 AC9). */
+  protected switchMachine(event: Event): void {
+    event.preventDefault();
+    this.actions.switchMachine();
   }
 
   protected setMode(mode: 'hiit' | 'flat'): void {
@@ -216,7 +208,6 @@ export class SetupPage {
   protected async start(): Promise<void> {
     const plan = this.plan();
     if (!plan || this.busy()) return;
-    this.machineFailed.set(false);
     if (this.treadmill()) this.store.saveTreadmill(this.tdraft());
     else this.store.save(this.draft());
     const workout = this.live.state()?.workout ?? null;

@@ -2,8 +2,18 @@
 import machineTreadmill from './fixtures/recorded/machine-treadmill.json';
 import workoutActive from './fixtures/recorded/problem-machine-workout-active.json';
 import { expect, test } from './fixtures/wz-test';
-import { machinePageState, nearbyEntry, treadmillIdle } from './fixtures/states';
+import {
+  freeRide,
+  machinePageState,
+  nearbyEntry,
+  state,
+  treadmillIdle,
+  treadmillState,
+} from './fixtures/states';
+import workoutStopped from './fixtures/recorded/workout-stopped.json';
+import { EndRideDialog } from './pages/end-ride.dialog';
 import { MachinePage, session } from './pages/machine.page';
+import { RidePage } from './pages/ride.page';
 
 const NOT_FOUND = 'No Echelon treadmill found yet — switch it on to wake it up';
 
@@ -187,6 +197,37 @@ test.describe('Machine page (L2-073)', () => {
     api.on('POST', '/api/machine', { status: 409, json: workoutActive });
     await machine.treadmill.root.click();
     await expect(machine.alert).toContainText('End the run in progress to change the machine.');
+  });
+
+  test('ends the workout through the end dialog before opening the machine page', async ({
+    page,
+    api,
+    events,
+  }) => {
+    api.on('POST', '/api/workout/stop', { json: workoutStopped });
+    const ride = new RidePage(page, api, events);
+    const end = new EndRideDialog(page);
+    await ride.open(state());
+    await expect(ride.switchLink).toHaveText('End and switch to treadmill');
+    await ride.switchLink.click();
+    await expect(end.dialog).toBeVisible();
+    await end.endRideButton.click();
+    await api.waitForCall('POST', '/api/workout/stop');
+    await expect(page).toHaveURL(/\/machine$/);
+  });
+
+  test('opens the machine page at once from a dashboard with no workout', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState());
+    await expect(ride.switchLink).toHaveText('End and switch to bike');
+    await ride.open(freeRide());
+    await ride.switchLink.click();
+    await expect(page).toHaveURL(/\/machine$/);
+    expect(api.calls('POST', '/api/workout/stop')).toHaveLength(0);
   });
 
   test('stacks the cards under 768 px', async ({ page, api, events }) => {

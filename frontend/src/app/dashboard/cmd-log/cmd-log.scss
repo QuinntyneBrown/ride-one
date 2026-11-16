@@ -2,14 +2,8 @@
   display: contents;
 }
 .cmd-log {
-  margin-top: var(--space-6);
   padding-top: var(--space-5);
   border-top: 1px solid var(--color-border-default);
-}
-@media (min-width: 64rem) {
-  .cmd-log {
-    margin-top: auto;
-  }
 }
 .cmd-log__head {
   display: flex;

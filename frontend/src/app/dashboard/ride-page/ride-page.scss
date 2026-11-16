@@ -1,6 +1,7 @@
 @use 'design-system/skeleton';
 @use 'design-system/app-bar';
 @use 'design-system/label';
+@use 'design-system/btn';
 
 :host {
   display: block;
@@ -100,4 +101,20 @@
 .skeleton--trace {
   flex: 1;
   min-height: 12rem;
+}
+
+.ride-aside__foot {
+  margin-top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 64rem) {
+  .ride-aside__foot {
+    margin-top: auto;
+  }
+}
+.ride-aside__foot > .btn {
+  align-self: flex-start;
+  margin-top: var(--space-5);
+  margin-left: calc(-1 * var(--space-2));
 }

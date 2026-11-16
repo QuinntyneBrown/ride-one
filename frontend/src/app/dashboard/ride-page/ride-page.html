@@ -131,11 +131,16 @@
           [disabled]="!view().commandsEnabled"
           (back)="commands.backToPlan()"
         />
-        <wz-cmd-log
-          [commands]="state()?.commands ?? []"
-          [connectionId]="state()?.connection_id ?? null"
-          machine="treadmill"
-        />
+        <div class="ride-aside__foot">
+          <wz-cmd-log
+            [commands]="state()?.commands ?? []"
+            [connectionId]="state()?.connection_id ?? null"
+            machine="treadmill"
+          />
+          <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
+            ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
+          >
+        </div>
       </aside>
     } @else {
       <aside class="ride-aside" aria-label="Bike control">
@@ -158,10 +163,15 @@
           [disabled]="!view().commandsEnabled"
           (back)="commands.backToPlan()"
         />
-        <wz-cmd-log
-          [commands]="state()?.commands ?? []"
-          [connectionId]="state()?.connection_id ?? null"
-        />
+        <div class="ride-aside__foot">
+          <wz-cmd-log
+            [commands]="state()?.commands ?? []"
+            [connectionId]="state()?.connection_id ?? null"
+          />
+          <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
+            ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
+          >
+        </div>
       </aside>
     }
   </div>

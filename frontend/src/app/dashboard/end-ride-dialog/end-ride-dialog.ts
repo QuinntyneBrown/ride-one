@@ -1,6 +1,7 @@
-import { DialogRef } from '@angular/cdk/dialog';
+import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import type { EndRideData } from '../../core/dialog-launcher';
 import { formatDuration } from '../../core/format-duration';
 import { LiveStateService } from '../../core/live-state.service';
 import { WORKOUT_API } from '../../core/workout-api';
@@ -20,6 +21,7 @@ export class EndRideDialog {
   private readonly live = inject(LiveStateService);
   private readonly workouts = inject(WORKOUT_API);
   private readonly router = inject(Router);
+  private readonly data = inject<EndRideData | null>(DIALOG_DATA, { optional: true });
 
   protected readonly busy = signal(false);
   protected readonly failed = signal(false);
@@ -43,7 +45,7 @@ export class EndRideDialog {
     try {
       await this.workouts.stop();
       this.ref.close();
-      await this.router.navigateByUrl('/setup');
+      await this.router.navigateByUrl(this.data?.next ?? '/setup');
     } catch {
       this.failed.set(true);
     } finally {

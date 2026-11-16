@@ -1,6 +1,6 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app app--fixed">
-  <header class="app-bar setup-bar">
+  <header class="app-bar">
     <a class="lockup" routerLink="/" aria-label="Wattzup dashboard">
       <svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true">
         <rect width="48" height="48" rx="12" />
@@ -8,7 +8,14 @@
       </svg>
       <span class="lockup__word">wattzup</span>
     </a>
-    <a class="btn btn--quiet btn--sm" routerLink="/"><wz-icon name="close" size="sm" />Close</a>
+    <span class="app-bar__divider" aria-hidden="true"></span>
+    <wz-status-line />
+    <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
+      ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
+    >
+    <a class="btn btn--quiet btn--sm app-bar__close" routerLink="/"
+      ><wz-icon name="close" size="sm" />Close</a
+    >
   </header>
   <div class="setup-layout">
     <main id="main" class="setup-main" tabindex="-1" [attr.aria-busy]="loading() ? 'true' : null">
@@ -28,21 +35,6 @@
           @let err = errorFor();
           @if (links().length) {
             <wz-form-summary [links]="links()" />
-          }
-          <wz-machine-choice
-            [machine]="machine()"
-            [disabled]="busy()"
-            [help]="machineHelp()"
-            (choose)="chooseMachine($event)"
-          />
-          @if (machineFailed()) {
-            <wz-alert
-              class="setup-machine-error"
-              tone="danger"
-              icon="alert-circle"
-              heading="Couldn't switch the machine"
-              text="The Wattzup server didn't answer. Try again."
-            />
           }
           @if (treadmill()) {
             @let t = tdraft();
