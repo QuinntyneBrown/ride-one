@@ -117,4 +117,7 @@ public sealed record BikeState
 
     /// <summary>Treadmill only: 3, 2 or 1 during the countdown before the belt starts (L2-066).</summary>
     public int? BeltCountdown { get; init; }
+
+    /// <summary>Treadmill only: the workout's climb in whole metres (L2-064 criterion 10).</summary>
+    public int? ClimbM { get; init; }
 }

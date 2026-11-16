@@ -337,6 +337,8 @@ export interface components {
             belt: null | components["schemas"]["BeltState"];
             /** Format: int32 */
             belt_countdown: null | number;
+            /** Format: int32 */
+            climb_m: null | number;
         };
         /** @enum {unknown} */
         BleState: "starting" | "scanning" | "connecting" | "connected" | "disconnected" | "error";

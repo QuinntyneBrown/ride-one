@@ -10,8 +10,8 @@
   "speed_kmh": 0,
   "speed_mph": 0,
   "packets": 9,
-  "first_data_at": 1794870150.397,
-  "last_data_at": 1794870154.532,
+  "first_data_at": 1794870362.671,
+  "last_data_at": 1794870366.815,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -33,5 +33,6 @@
   "incline": 0,
   "target_incline": null,
   "belt": "stopped",
-  "belt_countdown": null
+  "belt_countdown": null,
+  "climb_m": null
 }

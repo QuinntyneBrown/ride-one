@@ -372,7 +372,7 @@ public sealed class WorkoutEngine(
         run.HasStarted = true;
         run.Elapsed++;
         run.Remaining--;
-        run.Totals = run.Totals.Tick(state.Power, state.SpeedKmh);
+        run.Totals = OnTreadmill ? run.Totals.TickTreadmill(state.SpeedKmh, state.Incline) : run.Totals.Tick(state.Power, state.SpeedKmh);
         if (!OnTreadmill)
         {
             // The treadmill reports no power; its trace stays empty (L2-064).
@@ -557,7 +557,8 @@ public sealed class WorkoutEngine(
                 TargetPower = null,
                 AvgPower = null,
                 DistanceKm = run.Totals.DistanceKmRounded,
-                Kcal = null,
+                ClimbM = run.Totals.ClimbMRounded,
+                Kcal = run.Totals.TreadmillKcal,
                 BeltCountdown = run.Status == WorkoutStatus.StartingBelt ? run.BeltCountdown : null,
             }
             : s with

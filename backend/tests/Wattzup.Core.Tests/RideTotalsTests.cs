@@ -48,4 +48,29 @@ public sealed class RideTotalsTests
 
         Assert.Equal(3.0, totals.DistanceKmRounded);
     }
+
+    [Fact]
+    public void Sixty_treadmill_ticks_at_13_km_h_and_2_percent_climb_4_33_m_and_spend_19_kcal()
+    {
+        var totals = RideTotals.Empty;
+        for (var i = 0; i < 60; i++)
+        {
+            totals = totals.TickTreadmill(13.0, 2);
+        }
+
+        Assert.Equal(4.33, totals.ClimbM, 2);
+        Assert.Equal(4, totals.ClimbMRounded);
+        Assert.Equal(19.025, totals.EnergyKcal, 3);
+        Assert.Equal(19, totals.TreadmillKcal);
+        Assert.Equal(0.22, totals.DistanceKmRounded);
+    }
+
+    [Fact]
+    public void A_missing_treadmill_speed_or_incline_counts_as_zero()
+    {
+        var totals = RideTotals.Empty.TickTreadmill(null, 5).TickTreadmill(10.0, null);
+
+        Assert.Equal(0, totals.ClimbM);
+        Assert.Equal(2, totals.RunningSeconds);
+    }
 }

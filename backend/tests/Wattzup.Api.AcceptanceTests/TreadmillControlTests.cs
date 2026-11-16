@@ -184,7 +184,7 @@ public sealed class TreadmillControlTests
 
         var state = await bike.Stream.WaitForAsync(s => s.GetProperty("machine").GetString() == "treadmill", "the treadmill chosen");
         Assert.Equal("scanning", state.GetProperty("ble").GetString());
-        foreach (var field in new[] { "device", "cadence", "speed_kmh", "power", "distance_km", "workout" })
+        foreach (var field in new[] { "device", "device_label", "cadence", "speed_kmh", "power", "distance_km", "kcal", "climb_m", "workout" })
         {
             Assert.Equal(JsonValueKind.Null, state.GetProperty(field).ValueKind);
         }

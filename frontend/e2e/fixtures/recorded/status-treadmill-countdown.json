@@ -406,8 +406,8 @@
   "speed_kmh": 0,
   "speed_mph": 0,
   "packets": 10,
-  "first_data_at": 1794870150.397,
-  "last_data_at": 1794870155.453,
+  "first_data_at": 1794870362.671,
+  "last_data_at": 1794870367.73,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -421,21 +421,21 @@
   "target_power": null,
   "avg_power": null,
   "distance_km": 0,
-  "kcal": null,
+  "kcal": 0,
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794870155.452,
+      "at": 1794870367.73,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
       "status": "ack",
-      "ack_ms": 1,
+      "ack_ms": 0,
       "command": "incline",
       "value": 2
     },
     {
-      "at": 1794870155.446,
+      "at": 1794870367.724,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -450,5 +450,6 @@
   "incline": 2,
   "target_incline": 2,
   "belt": "starting",
-  "belt_countdown": 3
+  "belt_countdown": 3,
+  "climb_m": 0
 }

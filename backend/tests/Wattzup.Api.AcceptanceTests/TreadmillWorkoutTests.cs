@@ -24,6 +24,42 @@ public sealed class TreadmillWorkoutTests
 
     private static readonly object OneMinuteFlat = new { kind = "flat", speed = 9.0, incline = 0, minutes = 1 };
 
+    private static readonly object TwoMinuteClimb = new { kind = "flat", speed = 13.0, incline = 2, minutes = 2 };
+
+    [Fact]
+    public async Task Sixty_ticks_at_13_km_h_and_2_percent_climb_4_metres_and_spend_19_kcal()
+    {
+        await using var treadmill = await TreadmillAsync();
+        await StartRunningAsync(treadmill, TwoMinuteClimb);
+
+        var state = await Ride.RunToAsync(treadmill, 60);
+
+        Assert.Equal(13.0, state.GetProperty("speed_kmh").GetDouble());
+        Assert.Equal(2, state.GetProperty("incline").GetInt32());
+        Assert.Equal(4, state.GetProperty("climb_m").GetInt32());
+        Assert.Equal(19, state.GetProperty("kcal").GetInt32());
+    }
+
+    [Fact]
+    public async Task A_new_treadmill_workout_resets_distance_climb_and_kcal_and_a_stopped_one_keeps_them()
+    {
+        await using var treadmill = await TreadmillAsync();
+        await StartRunningAsync(treadmill, TwoMinuteClimb);
+        await Ride.RunToAsync(treadmill, 30);
+
+        using var stop = await treadmill.PostAsync("/api/workout/stop", new { });
+        var ended = await treadmill.Stream.WaitForAsync(s => Ride.Status(s) == "stopped", "the workout stopped");
+        Assert.True(ended.GetProperty("climb_m").GetInt32() > 0);
+        Assert.True(ended.GetProperty("kcal").GetInt32() > 0);
+
+        await Ride.StartAsync(treadmill, TwoMinuteClimb);
+        var fresh = await treadmill.Stream.WaitForAsync(s => Ride.Status(s) == "starting belt", "the new workout");
+        Assert.Equal(0, fresh.GetProperty("climb_m").GetInt32());
+        Assert.Equal(0, fresh.GetProperty("kcal").GetInt32());
+        Assert.Equal(0, fresh.GetProperty("distance_km").GetDouble());
+    }
+
+
     private static async Task<Bike> TreadmillAsync(bool connected = true)
     {
         var treadmill = await Bike.StartAsync(TreadmillConnectionTests.TreadmillFactory(), connected);
@@ -110,7 +146,7 @@ public sealed class TreadmillWorkoutTests
         Assert.True(state.GetProperty("distance_km").GetDouble() > 0);
         Assert.Equal(JsonValueKind.Null, state.GetProperty("power").ValueKind);
         Assert.Equal(JsonValueKind.Null, state.GetProperty("avg_power").ValueKind);
-        Assert.Equal(JsonValueKind.Null, state.GetProperty("kcal").ValueKind);
+        Assert.Equal(JsonValueKind.Number, state.GetProperty("kcal").ValueKind);
         using var trace = await treadmill.Client.GetAsync(new Uri("/api/workout/trace", UriKind.Relative));
         Assert.Equal(0, (await Bike.JsonAsync(trace)).GetProperty("samples").GetArrayLength());
     }

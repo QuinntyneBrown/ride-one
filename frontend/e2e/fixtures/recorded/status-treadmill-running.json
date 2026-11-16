@@ -406,8 +406,8 @@
   "speed_kmh": 8,
   "speed_mph": 5,
   "packets": 13,
-  "first_data_at": 1794870150.397,
-  "last_data_at": 1794870161.747,
+  "first_data_at": 1794870362.671,
+  "last_data_at": 1794870374.731,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -421,11 +421,11 @@
   "target_power": null,
   "avg_power": null,
   "distance_km": 0,
-  "kcal": null,
+  "kcal": 0,
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794870161.747,
+      "at": 1794870374.731,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -435,7 +435,7 @@
       "value": 0
     },
     {
-      "at": 1794870161.747,
+      "at": 1794870374.731,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -445,17 +445,17 @@
       "value": 8
     },
     {
-      "at": 1794870155.452,
+      "at": 1794870367.73,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
       "status": "ack",
-      "ack_ms": 1,
+      "ack_ms": 0,
       "command": "incline",
       "value": 2
     },
     {
-      "at": 1794870155.446,
+      "at": 1794870367.724,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -470,5 +470,6 @@
   "incline": 0,
   "target_incline": 0,
   "belt": "running",
-  "belt_countdown": null
+  "belt_countdown": null,
+  "climb_m": 0
 }
