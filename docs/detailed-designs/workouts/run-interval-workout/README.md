@@ -35,7 +35,7 @@ All types live in `Wattzup.Core`. The endpoints that call them are in `start-and
   - A `hiit` plan with `warmup` starts with a `warmup` segment of 180 s at level `max(1, rest_level + 2)` with cadence aim 80.
   - Each round r from 1 to `rounds` adds a `work` segment (`work_seconds`, `work_level`, cadence aim 98, round r), then a `rest` segment (`rest_seconds`, `rest_level`, cadence aim 72, round r).
   - With `cooldown`, the last round has no `rest` segment, and a `cooldown` segment of 120 s at level `max(1, rest_level)` with cadence aim 70 ends the plan.
-  - Each `start` is the running sum of the durations before it. The default plan (8 × 40 s / 20 s, work 18, recover 6, warm-up and cool-down) yields 17 segments and 760 s.
+  - Each `start` is the running sum of the durations before it. The plan 8 × 40 s / 20 s, work 18, recover 6, warm-up and cool-down yields 17 segments and 760 s.
 - **`WorkoutSummary.For(plan)`** — pure static function (L2-060). A `hiit` plan with `work_seconds` under 60 reads `HIIT · <rounds> × <work>s / <rest>s`. With 60 s or more it reads `HIIT · <rounds> × <m:ss> / <m:ss>`. A `flat` plan reads `Flat · Level <level> · <minutes> min`.
 - **`WorkoutStatus`** — string constants `waiting for bike`, `running`, `paused`, `paused: bike disconnected`, `ended`, `ended: bike shut off` and `stopped`. The UI displays these values, so they are part of the state contract (L2-014). `ended`, `ended: bike shut off` and `stopped` are terminal; a workout in any other status is *active*.
 - **`WorkoutRun`** — mutable run state, touched only by the engine loop:
@@ -91,7 +91,7 @@ Each test runs `Wattzup.Api.AcceptanceTests` through `WebApplicationFactory` wit
 
 `Wattzup.Core.Tests` holds the tables, one case per row:
 
-- `PlanExpanderTests` — one case per L2-045 criterion (flat; warm-up; rounds; cool-down drops the last rest; default plan 17 segments and 760 s; starts are running sums), plus a `hiit` plan with neither warm-up nor cool-down. The same rows are repeated in the frontend helper's tests (`set-up-ride`).
+- `PlanExpanderTests` — one case per L2-045 criterion (flat; warm-up; rounds; cool-down drops the last rest; the 8 × 40 s / 20 s plan: 17 segments and 760 s; starts are running sums), plus a `hiit` plan with neither warm-up nor cool-down. The same rows are repeated in the frontend helper's tests (`set-up-ride`).
 - `WorkoutSummaryTests` — one case per L2-060 criterion, plus the 59 s and 60 s boundary.
 
 ## Requirements

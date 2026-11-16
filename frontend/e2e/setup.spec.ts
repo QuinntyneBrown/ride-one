@@ -1,24 +1,25 @@
 import { expect, test } from './fixtures/wz-test';
 import { SetupPage } from './pages/setup.page';
-import { DEFAULT_PLAN, FLAT_PLAN, freeRide, workout } from './fixtures/states';
+import { FLAT_PLAN, SETUP_DEFAULT_PLAN, freeRide, workout } from './fixtures/states';
 import invalidWorkout from './fixtures/recorded/problem-invalid-workout.json';
 
 const started = { json: { started: workout() } };
 
 test.describe('Ride setup screen (L2-029)', () => {
-  test('shows the default plan with the 40 / 20 preset pressed', async ({ page, api, events }) => {
+  test('shows the default plan with no preset pressed', async ({ page, api, events }) => {
     const setup = new SetupPage(page, api, events);
     await setup.open();
     await expect(setup.heading).toHaveText('Set up your ride');
     await expect(setup.hiitCard).toBeChecked();
-    await expect(setup.preset('40 / 20')).toHaveAttribute('aria-pressed', 'true');
-    await expect(setup.preset('Tabata')).toHaveAttribute('aria-pressed', 'false');
-    await expect(setup.field('Rounds')).toHaveValue('8');
+    for (const label of ['Tabata', '40 / 20', 'Minute on', 'Long climbs']) {
+      await expect(setup.preset(label)).toHaveAttribute('aria-pressed', 'false');
+    }
+    await expect(setup.field('Rounds')).toHaveValue('18');
     await expect(setup.field('Work')).toHaveValue('0:40');
     await expect(setup.field('Recover')).toHaveValue('0:20');
-    await expect(setup.slider('Work resistance')).toHaveValue('18');
-    await expect(setup.sliderOutput('Work resistance')).toHaveText('18 / 32');
-    await expect(setup.slider('Recover resistance')).toHaveValue('6');
+    await expect(setup.slider('Work resistance')).toHaveValue('26');
+    await expect(setup.sliderOutput('Work resistance')).toHaveText('26 / 32');
+    await expect(setup.slider('Recover resistance')).toHaveValue('18');
     await expect(setup.warmup).toBeChecked();
     await expect(setup.cooldown).toBeChecked();
   });
@@ -57,7 +58,7 @@ test.describe('Ride setup screen (L2-029)', () => {
     await expect(setup.field('Recover')).toHaveValue('0:15');
     await setup.slider('Work resistance').focus();
     await page.keyboard.press('ArrowRight');
-    await expect(setup.sliderOutput('Work resistance')).toHaveText('19 / 32');
+    await expect(setup.sliderOutput('Work resistance')).toHaveText('27 / 32');
     await setup.flatCard.check();
     await setup.more('duration').click();
     await expect(setup.field('Duration')).toHaveValue('35 min');
@@ -122,7 +123,7 @@ test.describe('Ride setup screen (L2-029)', () => {
     release();
     await expect(page).toHaveURL(/\/$/);
     const [call] = api.calls('POST', '/api/workout');
-    expect(call.body).toEqual(DEFAULT_PLAN);
+    expect(call.body).toEqual(SETUP_DEFAULT_PLAN);
   });
 
   test('posts a flat plan', async ({ page, api, events }) => {
@@ -195,19 +196,19 @@ test.describe('Ride preview (L2-059)', () => {
   test('previews the default plan', async ({ page, api, events }) => {
     const setup = new SetupPage(page, api, events);
     await setup.open();
-    await expect(setup.total).toHaveText('12:40');
-    await expect(setup.total).toHaveAttribute('aria-label', 'Total ride time 12:40');
+    await expect(setup.total).toHaveText('22:40');
+    await expect(setup.total).toHaveAttribute('aria-label', 'Total ride time 22:40');
     await expect(setup.profile).toHaveAttribute(
       'aria-label',
-      'Resistance profile: 8 × 0:40 / 0:20',
+      'Resistance profile: 18 × 0:40 / 0:20',
     );
-    await expect(setup.profileBars).toHaveCount(17);
-    await expect(setup.profileAxis).toHaveText(['0:00', '12:40']);
-    await expect(setup.summaryValue('Structure')).toHaveText('8 × 0:40 / 0:20');
-    await expect(setup.summaryValue('Time under load')).toHaveText('5:20');
-    await expect(setup.summaryValue('Peak resistance')).toHaveText('Level 18');
-    await expect(setup.summaryValue('Expected avg power')).toHaveText('~208 W');
-    await expect(setup.summaryValue('Expected energy')).toHaveText('~157 kcal');
+    await expect(setup.profileBars).toHaveCount(37);
+    await expect(setup.profileAxis).toHaveText(['0:00', '22:40']);
+    await expect(setup.summaryValue('Structure')).toHaveText('18 × 0:40 / 0:20');
+    await expect(setup.summaryValue('Time under load')).toHaveText('12:00');
+    await expect(setup.summaryValue('Peak resistance')).toHaveText('Level 26');
+    await expect(setup.summaryValue('Expected avg power')).toHaveText('~357 W');
+    await expect(setup.summaryValue('Expected energy')).toHaveText('~484 kcal');
     await expect(setup.legend).toHaveText(['Work', 'Recover']);
   });
 

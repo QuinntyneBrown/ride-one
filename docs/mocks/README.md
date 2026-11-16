@@ -25,8 +25,9 @@ Every mock uses this cast.
 - **Bike:** *Echelon EX-5s*. Its BLE name is `ECHEX-3-141844` and the connection id is `0bf669f1`.
   The edge state uses *Echelon Connect Sport EX-8s Pro (Basement)*.
 - **Today:** 2026-11-15, about 7:10 PM.
-- **Default ride:** HIIT 8 × 0:40 / 0:20, work level 18, recover level 6, 3 min warm-up, 2 min
-  cool-down, 12:40 in total.
+- **Sample ride** (the ride the mid-ride mocks show): HIIT 8 × 0:40 / 0:20, work level 18, recover
+  level 6, 3 min warm-up, 2 min cool-down, 12:40 in total. The setup form's default plan is
+  different: 18 × 0:40 / 0:20, work level 26, recover level 18, 22:40 in total (L2-029).
   - The default mid-ride moment is 7:07, *Work, round 5 of 8*, with 0:33 left.
   - Readouts: 317 W against a 327 W target, 95 rpm (aim 98), heart rate 156 bpm, avg power 208 W,
     25.1 km/h, 2.53 km, 89 kcal.

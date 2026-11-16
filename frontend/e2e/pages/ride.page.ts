@@ -18,6 +18,9 @@ export class RidePage {
   readonly endButton: Locator;
   readonly diagnosticsButton: Locator;
   readonly beepsButton: Locator;
+  readonly themeButton: Locator;
+  /** The document root, which carries the theme. */
+  readonly root: Locator;
   readonly phaseBanner: Locator;
   readonly phaseHeadline: Locator;
   readonly phaseDetail: Locator;
@@ -96,6 +99,8 @@ export class RidePage {
     this.endButton = bar.getByRole('button', { name: 'End', exact: true });
     this.diagnosticsButton = bar.getByRole('button', { name: 'Diagnostics', exact: true });
     this.beepsButton = bar.getByRole('button', { name: /^Countdown beeps (on|off)$/ });
+    this.themeButton = bar.getByRole('button', { name: 'Light theme', exact: true });
+    this.root = page.locator('html');
     this.phaseBanner = page.locator('.phase-banner');
     this.phaseHeadline = this.phaseBanner.locator('.phase-banner__headline');
     this.phaseDetail = this.phaseBanner.locator('small');

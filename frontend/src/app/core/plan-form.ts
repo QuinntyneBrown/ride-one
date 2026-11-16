@@ -44,12 +44,12 @@ export const PRESETS: readonly Preset[] = [
 
 export const DEFAULT_DRAFT: PlanDraft = {
   mode: 'hiit',
-  preset: '40-20',
-  rounds: '8',
+  preset: null,
+  rounds: '18',
   work: '0:40',
   rest: '0:20',
-  workLevel: 18,
-  restLevel: 6,
+  workLevel: 26,
+  restLevel: 18,
   warmup: true,
   cooldown: true,
   flatLevel: 12,

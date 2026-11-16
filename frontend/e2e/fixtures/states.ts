@@ -39,6 +39,14 @@ export const DEFAULT_PLAN = {
   cooldown: true,
 } as const;
 
+/** The plan the setup form starts with on first use (L2-029 AC1). */
+export const SETUP_DEFAULT_PLAN = {
+  ...DEFAULT_PLAN,
+  rounds: 18,
+  work_level: 26,
+  rest_level: 18,
+} as const;
+
 export const FLAT_PLAN = { kind: 'flat', level: 12, minutes: 30, cadence: 85 } as const;
 
 export const DEFAULT_SEGMENTS = sameShape(
