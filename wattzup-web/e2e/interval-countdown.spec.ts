@@ -36,8 +36,8 @@ test.describe('Interval countdown (L2-024)', () => {
     await page.clock.install({ time: NOW });
     const ride = new RidePage(page, api, events);
     await ride.open(state());
-    await page.clock.pauseAt(NOW + 60_000);
     await ride.push(state({ workout: workout({ remaining: 10, status: 'paused' }) }));
+    await expect(ride.badge).toHaveText('Paused');
     await page.clock.runFor(3000);
     await expect(ride.timeLeft).toHaveText('0:10');
     await expect(ride.rideClock).toHaveText('7:07 / 12:40');
