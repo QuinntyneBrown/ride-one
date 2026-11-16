@@ -2,6 +2,16 @@
 import { InjectionToken } from '@angular/core';
 import type { BikeState } from './api-types';
 
+/** A request that got no answer in time. */
+export class RequestTimeoutError extends Error {
+  constructor(readonly afterMs: number) {
+    super(`No answer after ${afterMs} ms`);
+    this.name = 'RequestTimeoutError';
+  }
+}
+
+export const COMMAND_TIMEOUT_MS = 5000;
+
 export type KeyCheck = 'ok' | 'rejected' | 'unreachable';
 
 export interface BikeApi {
@@ -9,7 +19,7 @@ export interface BikeApi {
   status(): Promise<BikeState>;
   /** POST /api/events/token: a single-use token for the event stream. */
   eventToken(): Promise<string>;
-  /** POST /api/resistance {level} */
+  /** POST /api/resistance {level}; rejects with RequestTimeoutError after 5 s. */
   setResistance(level: number): Promise<void>;
   /** GET /api/diagnostics/packets */
   diagnosticsPackets(): Promise<string[]>;

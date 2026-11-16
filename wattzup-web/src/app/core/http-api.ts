@@ -1,7 +1,7 @@
 // HTTP implementations of the API contracts, bound in app.config.ts.
 import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom, timeout } from 'rxjs';
+import { TimeoutError, catchError, firstValueFrom, throwError, timeout } from 'rxjs';
 import { SKIP_UNLOCK_REDIRECT } from './api-key.interceptor';
 import type {
   BikeState,
@@ -12,7 +12,7 @@ import type {
   WorkoutPlan,
   WorkoutSnapshot,
 } from './api-types';
-import type { BikeApi, KeyCheck } from './bike-api';
+import { type BikeApi, COMMAND_TIMEOUT_MS, type KeyCheck, RequestTimeoutError } from './bike-api';
 import type { WorkoutApi } from './workout-api';
 
 @Injectable()
@@ -29,7 +29,16 @@ export class HttpBikeApi implements BikeApi {
   }
 
   async setResistance(level: number): Promise<void> {
-    await firstValueFrom(this.http.post('/api/resistance', { level }));
+    await firstValueFrom(
+      this.http.post('/api/resistance', { level }).pipe(
+        timeout(COMMAND_TIMEOUT_MS),
+        catchError((e: unknown) =>
+          throwError(() =>
+            e instanceof TimeoutError ? new RequestTimeoutError(COMMAND_TIMEOUT_MS) : e,
+          ),
+        ),
+      ),
+    );
   }
 
   async diagnosticsPackets(): Promise<string[]> {

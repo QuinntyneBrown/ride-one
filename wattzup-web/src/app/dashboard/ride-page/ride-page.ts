@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { CommandFeedbackService } from '../../core/command-feedback.service';
 import { CountdownService } from '../../core/countdown.service';
 import { LiveStateService } from '../../core/live-state.service';
 import { formatLive } from '../../core/metric-format';
@@ -75,6 +76,7 @@ export class RidePage {
   }
 
   constructor() {
+    inject(CommandFeedbackService).start();
     this.live.ensureStarted();
   }
 }
