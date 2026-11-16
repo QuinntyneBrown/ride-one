@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feedback and loading — Wattzup design system</title>
+<meta name="description" content="How Wattzup shows that it is working, done or stuck.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+  <nav class="ds-nav" aria-label="Design system">
+    <div class="ds-nav__brand"><a href="../index.html">Wattzup DS</a><button class="ds-theme-toggle" type="button" aria-pressed="true">☀ Light</button></div>
+    <details open><summary>Foundations</summary><ul>
+      <li><a href="../foundations/color.html">Color</a></li>
+      <li><a href="../foundations/typography.html">Typography</a></li>
+      <li><a href="../foundations/spacing.html">Spacing</a></li>
+      <li><a href="../foundations/layout.html">Layout</a></li>
+      <li><a href="../foundations/elevation.html">Elevation</a></li>
+      <li><a href="../foundations/shape.html">Shape</a></li>
+      <li><a href="../foundations/motion.html">Motion</a></li>
+      <li><a href="../foundations/iconography.html">Iconography</a></li>
+      <li><a href="../foundations/theming.html">Theming</a></li>
+      <li><a href="../foundations/responsive.html">Responsive</a></li>
+      <li><a href="../foundations/accessibility.html">Accessibility</a></li>
+      <li><a href="../foundations/content.html">Content</a></li>
+    </ul></details>
+    <details open><summary>Components</summary><ul>
+      <li><a href="../components/button.html">Button</a></li>
+      <li><a href="../components/link.html">Link</a></li>
+      <li><a href="../components/chip.html">Chip</a></li>
+      <li><a href="../components/text-field.html">Text field</a></li>
+      <li><a href="../components/form-field.html">Form field</a></li>
+      <li><a href="../components/form-layout.html">Form layout</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
+      <li><a href="../components/switch.html">Switch</a></li>
+      <li><a href="../components/slider.html">Slider</a></li>
+      <li><a href="../components/number-stepper.html">Number stepper</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
+      <li><a href="../components/level-picker.html">Level picker</a></li>
+      <li><a href="../components/app-bar.html">App bar</a></li>
+      <li><a href="../components/lockup.html">Lockup</a></li>
+      <li><a href="../components/status-line.html">Status line</a></li>
+      <li><a href="../components/ride-clock.html">Ride clock</a></li>
+      <li><a href="../components/skip-link.html">Skip link</a></li>
+      <li><a href="../components/page-layout.html">Page layout</a></li>
+      <li><a href="../components/dialog.html">Dialog</a></li>
+      <li><a href="../components/overlay-panel.html">Overlay panel</a></li>
+      <li><a href="../components/tooltip.html">Tooltip</a></li>
+      <li><a href="../components/divider.html">Divider</a></li>
+      <li><a href="../components/readout.html">Readout</a></li>
+      <li><a href="../components/interval.html">Interval</a></li>
+      <li><a href="../components/power-trace.html">Power trace</a></li>
+      <li><a href="../components/metric-list.html">Metric list</a></li>
+      <li><a href="../components/ride-profile.html">Ride profile</a></li>
+      <li><a href="../components/command-log.html">Command log</a></li>
+      <li><a href="../components/description-list.html">Description list</a></li>
+      <li><a href="../components/code-block.html">Code block</a></li>
+      <li><a href="../components/badge.html">Badge</a></li>
+      <li><a href="../components/toast.html">Toast</a></li>
+      <li><a href="../components/alert.html">Alert and banner</a></li>
+      <li><a href="../components/phase-banner.html">Step-change banner</a></li>
+      <li><a href="../components/inline-message.html">Inline message</a></li>
+      <li><a href="../components/progress-bar.html">Progress bar</a></li>
+      <li><a href="../components/spinner.html">Spinner</a></li>
+      <li><a href="../components/skeleton.html">Skeleton</a></li>
+      <li><a href="../components/empty-state.html">Empty state</a></li>
+      <li><a href="../components/error-page.html">Error page</a></li>
+    </ul></details>
+    <details open><summary>Patterns</summary><ul>
+      <li><a href="../patterns/forms.html">Forms</a></li>
+      <li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li>
+      <li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li>
+      <li><a href="../patterns/page-structure.html">Page structure</a></li>
+      <li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li>
+      <li><a href="../patterns/live-data.html">Live data</a></li>
+      <li><a href="../patterns/notifications.html">Notifications</a></li>
+      <li><a href="../patterns/content-and-tone.html">Content and tone</a></li>
+    </ul></details>
+  </nav>
+  <main id="main" class="ds-main">
+    <header class="ds-header">
+      <p class="ds-kicker">Pattern</p>
+      <h1>Feedback and loading</h1>
+      <p class="ds-lead">Every action gets an answer: a busy button, a confirmed level, a toast, or a skeleton while the first status arrives.</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span></div>
+      <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#when">When to use</a></li><li><a href="#structure">Structure</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#sources">Sources</a></li></ul>
+    </header>
+    <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>Pick the lightest feedback that fits: the control itself (busy button, Setting 22…), then inline text, then a toast, then an alert. Skeletons for known layouts, the spinner only when the layout is unknown (scanning).</p>
+    </section>
+    <section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
+<ul><li>Busy buttons for requests the rider started (Start, End, Unlock).</li><li>Pending target resistance under the level until the bike confirms.</li><li>Toasts for results that happen away from the control (slow to confirm, couldn't set).</li><li>Skeletons on first load of ride and setup.</li></ul>
+    </section>
+    <section class="ds-section" id="structure"><h2><a href="#structure">Structure</a></h2>
+<div class="ds-example"><div class="ds-example__canvas "><button class="btn btn--primary" type="button" aria-busy="true" disabled>Starting…</button><span class="inline-status inline-status--warning"><span class="dot" aria-hidden="true"></span>Setting 22…</span><span class="spinner" aria-hidden="true"></span><span class="skeleton skeleton--text" style="width: 8rem;" aria-hidden="true"></span></div><div class="ds-example__caption"><span>Busy, pending, spinner, skeleton.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;button class="btn btn--primary" type="button" aria-busy="true" disabled&gt;Starting…&lt;/button&gt;
+&lt;span class="inline-status inline-status--warning"&gt;
+&lt;span class="dot" aria-hidden="true"&gt;
+&lt;/span&gt;Setting 22…&lt;/span&gt;
+&lt;span class="spinner" aria-hidden="true"&gt;
+&lt;/span&gt;
+&lt;span class="skeleton skeleton--text" style="width: 8rem;" aria-hidden="true"&gt;
+&lt;/span&gt;</code></pre></details></div>
+    </section>
+    <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
+<ul><li><b>Waiting</b> under 1 s: nothing extra.</li><li><b>Waiting</b> 1–5 s: busy state on the control.</li><li><b>Slow</b> over 5 s: warning toast saying what Wattzup is doing (resending every 5 s).</li><li><b>Failed</b>: danger toast or alert with Retry.</li></ul>
+    </section>
+    <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive</a></h2>
+<ul><li>Skeletons match the layout at each breakpoint so nothing shifts on load.</li><li>Toasts move to full width at the bottom below 640px.</li></ul>
+    </section>
+    <section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<ul><li>Busy controls set <code>aria-busy</code> and stay in place.</li><li>Toasts announce through a polite live region; failures use <code>role="alert"</code>.</li><li>Skeleton regions are <code>aria-busy="true"</code> with the skeleton hidden.</li><li>Spinners keep turning under reduced motion; shimmer stops.</li></ul>
+    </section>
+    <section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>Busy labels end in an ellipsis.</li><li>Results name the value: "Resistance set to 20".</li></ul>
+    </section>
+    <section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><button class="btn btn--primary" type="button" aria-busy="true" disabled>Starting…</button></div><figcaption>Busy in place.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><span class="spinner spinner--lg" aria-hidden="true"></span></div><figcaption>Full-screen spinner for a short request.</figcaption></figure></div>
+    </section>
+    <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Extracted from:</p><ul><li><a href="../../mocks/pages/ride/loading.html">pages/ride/loading</a></li><li><a href="../../mocks/pages/setup/submitting.html">pages/setup/submitting</a></li><li><a href="../../mocks/notifications/ride-toast/warning.html">notifications/ride-toast/warning</a></li><li><a href="../../mocks/pages/ride/manual.html">pages/ride/manual</a></li></ul>
+    </section>
+
+    <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>
+  </main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>

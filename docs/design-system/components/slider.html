@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slider — Wattzup design system</title>
+<meta name="description" content="Level slider for work, recover and flat resistance.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+  <nav class="ds-nav" aria-label="Design system">
+    <div class="ds-nav__brand"><a href="../index.html">Wattzup DS</a><button class="ds-theme-toggle" type="button" aria-pressed="true">☀ Light</button></div>
+    <details open><summary>Foundations</summary><ul>
+      <li><a href="../foundations/color.html">Color</a></li>
+      <li><a href="../foundations/typography.html">Typography</a></li>
+      <li><a href="../foundations/spacing.html">Spacing</a></li>
+      <li><a href="../foundations/layout.html">Layout</a></li>
+      <li><a href="../foundations/elevation.html">Elevation</a></li>
+      <li><a href="../foundations/shape.html">Shape</a></li>
+      <li><a href="../foundations/motion.html">Motion</a></li>
+      <li><a href="../foundations/iconography.html">Iconography</a></li>
+      <li><a href="../foundations/theming.html">Theming</a></li>
+      <li><a href="../foundations/responsive.html">Responsive</a></li>
+      <li><a href="../foundations/accessibility.html">Accessibility</a></li>
+      <li><a href="../foundations/content.html">Content</a></li>
+    </ul></details>
+    <details open><summary>Components</summary><ul>
+      <li><a href="../components/button.html">Button</a></li>
+      <li><a href="../components/link.html">Link</a></li>
+      <li><a href="../components/chip.html">Chip</a></li>
+      <li><a href="../components/text-field.html">Text field</a></li>
+      <li><a href="../components/form-field.html">Form field</a></li>
+      <li><a href="../components/form-layout.html">Form layout</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
+      <li><a href="../components/switch.html">Switch</a></li>
+      <li><a href="../components/slider.html">Slider</a></li>
+      <li><a href="../components/number-stepper.html">Number stepper</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
+      <li><a href="../components/level-picker.html">Level picker</a></li>
+      <li><a href="../components/app-bar.html">App bar</a></li>
+      <li><a href="../components/lockup.html">Lockup</a></li>
+      <li><a href="../components/status-line.html">Status line</a></li>
+      <li><a href="../components/ride-clock.html">Ride clock</a></li>
+      <li><a href="../components/skip-link.html">Skip link</a></li>
+      <li><a href="../components/page-layout.html">Page layout</a></li>
+      <li><a href="../components/dialog.html">Dialog</a></li>
+      <li><a href="../components/overlay-panel.html">Overlay panel</a></li>
+      <li><a href="../components/tooltip.html">Tooltip</a></li>
+      <li><a href="../components/divider.html">Divider</a></li>
+      <li><a href="../components/readout.html">Readout</a></li>
+      <li><a href="../components/interval.html">Interval</a></li>
+      <li><a href="../components/power-trace.html">Power trace</a></li>
+      <li><a href="../components/metric-list.html">Metric list</a></li>
+      <li><a href="../components/ride-profile.html">Ride profile</a></li>
+      <li><a href="../components/command-log.html">Command log</a></li>
+      <li><a href="../components/description-list.html">Description list</a></li>
+      <li><a href="../components/code-block.html">Code block</a></li>
+      <li><a href="../components/badge.html">Badge</a></li>
+      <li><a href="../components/toast.html">Toast</a></li>
+      <li><a href="../components/alert.html">Alert and banner</a></li>
+      <li><a href="../components/phase-banner.html">Step-change banner</a></li>
+      <li><a href="../components/inline-message.html">Inline message</a></li>
+      <li><a href="../components/progress-bar.html">Progress bar</a></li>
+      <li><a href="../components/spinner.html">Spinner</a></li>
+      <li><a href="../components/skeleton.html">Skeleton</a></li>
+      <li><a href="../components/empty-state.html">Empty state</a></li>
+      <li><a href="../components/error-page.html">Error page</a></li>
+    </ul></details>
+    <details open><summary>Patterns</summary><ul>
+      <li><a href="../patterns/forms.html">Forms</a></li>
+      <li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li>
+      <li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li>
+      <li><a href="../patterns/page-structure.html">Page structure</a></li>
+      <li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li>
+      <li><a href="../patterns/live-data.html">Live data</a></li>
+      <li><a href="../patterns/notifications.html">Notifications</a></li>
+      <li><a href="../patterns/content-and-tone.html">Content and tone</a></li>
+    </ul></details>
+  </nav>
+  <main id="main" class="ds-main">
+    <header class="ds-header">
+      <p class="ds-kicker">Component · Inputs</p>
+      <h1>Slider</h1>
+      <p class="ds-lead">The level slider picks a resistance from 1 to 32 with the value shown large beside its label.</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span></div>
+      <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
+    </header>
+    <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>Native <code>&lt;input type="range"&gt;</code> tinted with <code>accent-color</code>: volt for work, rest blue for recover. Flat mode uses the large variant. Arrow keys give a single-pointer alternative to dragging.</p>
+    </section>
+    <section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
+<div class="ds-anatomy"><figure class="ds-anatomy__figure"><div class="level-slider "><div class="level-slider__head"><label for="an">Work resistance</label><output class="numeral" for="an">18<small> / 32</small></output></div><input id="an" type="range" min="1" max="32" value="18"><div class="level-slider__scale" aria-hidden="true"><span>Light</span><span>Max</span></div></div><span class="ds-callout" style="left: 2%; top: 10%;" aria-hidden="true">1</span><span class="ds-callout" style="left: 85%; top: 10%;" aria-hidden="true">2</span><span class="ds-callout" style="left: 50%; top: 55%;" aria-hidden="true">3</span><span class="ds-callout" style="left: 2%; top: 85%;" aria-hidden="true">4</span></figure><ol class="ds-anatomy__list"><li><div><b>Label</b><small>Body-sm, muted.</small></div></li><li><div><b>Value</b><small>Numeral md (xl when large) with "/ 32".</small></div></li><li><div><b>Track</b><small>Native range, tinted.</small></div></li><li><div><b>Scale</b><small>Light … Max.</small></div></li></ol></div>
+    </section>
+    <section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
+<div class="ds-example"><div class="ds-example__canvas "><div class="level-slider "><div class="level-slider__head"><label for="v1">Work resistance</label><output class="numeral" for="v1">18<small> / 32</small></output></div><input id="v1" type="range" min="1" max="32" value="18"><div class="level-slider__scale" aria-hidden="true"><span>Light</span><span>Max</span></div></div><div class="level-slider level-slider--rest"><div class="level-slider__head"><label for="v2">Recover resistance</label><output class="numeral" for="v2">6<small> / 32</small></output></div><input id="v2" type="range" min="1" max="32" value="6"><div class="level-slider__scale" aria-hidden="true"><span>Light</span><span>Max</span></div></div></div><div class="ds-example__caption"><span>Work and recover.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="level-slider "&gt;
+&lt;div class="level-slider__head"&gt;
+&lt;label for="v1"&gt;Work resistance&lt;/label&gt;
+&lt;output class="numeral" for="v1"&gt;18&lt;small&gt; / 32&lt;/small&gt;
+&lt;/output&gt;
+&lt;/div&gt;
+&lt;input id="v1" type="range" min="1" max="32" value="18"&gt;
+&lt;div class="level-slider__scale" aria-hidden="true"&gt;
+&lt;span&gt;Light&lt;/span&gt;
+&lt;span&gt;Max&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="level-slider level-slider--rest"&gt;
+&lt;div class="level-slider__head"&gt;
+&lt;label for="v2"&gt;Recover resistance&lt;/label&gt;
+&lt;output class="numeral" for="v2"&gt;6&lt;small&gt; / 32&lt;/small&gt;
+&lt;/output&gt;
+&lt;/div&gt;
+&lt;input id="v2" type="range" min="1" max="32" value="6"&gt;
+&lt;div class="level-slider__scale" aria-hidden="true"&gt;
+&lt;span&gt;Light&lt;/span&gt;
+&lt;span&gt;Max&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;</code></pre></details></div><h3>Large</h3><div class="ds-example"><div class="ds-example__canvas "><div class="level-slider level-slider--large"><div class="level-slider__head"><label for="v3">Resistance level</label><output class="numeral" for="v3">12<small> / 32</small></output></div><input id="v3" type="range" min="1" max="32" value="12"><div class="level-slider__scale" aria-hidden="true"><span>Light</span><span>Max</span></div></div></div><div class="ds-example__caption"><span>Flat mode.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="level-slider level-slider--large"&gt;
+&lt;div class="level-slider__head"&gt;
+&lt;label for="v3"&gt;Resistance level&lt;/label&gt;
+&lt;output class="numeral" for="v3"&gt;12&lt;small&gt; / 32&lt;/small&gt;
+&lt;/output&gt;
+&lt;/div&gt;
+&lt;input id="v3" type="range" min="1" max="32" value="12"&gt;
+&lt;div class="level-slider__scale" aria-hidden="true"&gt;
+&lt;span&gt;Light&lt;/span&gt;
+&lt;span&gt;Max&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;</code></pre></details></div>
+    </section>
+    <section class="ds-section" id="sizes"><h2><a href="#sizes">Sizes</a></h2>
+<p>Default value numeral 30px; large 60px. Track height follows the 44px touch target.</p>
+    </section>
+    <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
+<div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Default</th><th scope="col">Focus</th><th scope="col">Disabled</th></tr></thead><tbody><tr><th scope="row">Work</th><td><input type="range" min="1" max="32" value="18" aria-label="Work resistance" class="level-slider"></td><td><input type="range" min="1" max="32" value="18" aria-label="Work resistance" class="level-slider" data-state="focus"></td><td><input type="range" min="1" max="32" value="18" aria-label="Work resistance" class="level-slider" disabled></td></tr></tbody></table></div><h3>Both themes</h3><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas"><div class="level-slider "><div class="level-slider__head"><label for="t2">Work resistance</label><output class="numeral" for="t2">18<small> / 32</small></output></div><input id="t2" type="range" min="1" max="32" value="18"><div class="level-slider__scale" aria-hidden="true"><span>Light</span><span>Max</span></div></div></div></div><div data-theme="dark"><div class="ds-example__canvas"><div class="level-slider "><div class="level-slider__head"><label for="t2">Work resistance</label><output class="numeral" for="t2">18<small> / 32</small></output></div><input id="t2" type="range" min="1" max="32" value="18"><div class="level-slider__scale" aria-hidden="true"><span>Light</span><span>Max</span></div></div></div></div></div>
+    </section>
+    <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
+<ul><li>Full width of the form column.</li></ul>
+    </section>
+    <section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
+<p><code>--slider</code> aliases <code>--color-series-work</code> or <code>--color-series-rest</code>.</p>
+    </section>
+    <section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<h3>Role and pattern</h3><p>Native range (APG Slider semantics built in); <code>&lt;output for&gt;</code> shows the value.</p><h3>Keyboard</h3><div class="ds-table-wrap"><table class="ds-table ds-keys"><thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead><tbody><tr><td><kbd>←</kbd> <kbd>↓</kbd> / <kbd>→</kbd> <kbd>↑</kbd></td><td>−1 / +1 level.</td></tr><tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>Level 1 / 32.</td></tr><tr><td><kbd>Page Up</kbd> / <kbd>Page Down</kbd></td><td>±10% of range.</td></tr></tbody></table></div><h3>Focus</h3><p>Ring on the range.</p><h3>Labelling</h3><p><code>&lt;label for&gt;</code>: "Work resistance".</p><h3>Contrast</h3><div class="ds-example__canvas ds-example__canvas--stack"><div class="ds-pair"><span>Label</span><span class="ds-pair__ratio" data-contrast="--color-fg-muted|--color-bg-canvas" data-min="4.5"></span></div><div class="ds-pair"><span>Scale</span><span class="ds-pair__ratio" data-contrast="--color-fg-subtle|--color-bg-canvas" data-min="4.5"></span></div></div><h3>Motion</h3><p>None.</p><h3>Touch</h3><p>44px tall hit area; drag or tap a point.</p>
+    </section>
+    <section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>Label names which resistance; the scale words are Light and Max.</li></ul>
+    </section>
+    <section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><div class="level-slider "><div class="level-slider__head"><label for="d1">Work resistance</label><output class="numeral" for="d1">18<small> / 32</small></output></div><input id="d1" type="range" min="1" max="32" value="18"><div class="level-slider__scale" aria-hidden="true"><span>Light</span><span>Max</span></div></div></div><figcaption>Value is visible next to the label.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><input type="range" aria-label="Level" min="1" max="32" value="18"></div><figcaption>Bare slider: the rider cannot read the level.</figcaption></figure></div>
+    </section>
+    <section class="ds-section" id="tokens"><h2><a href="#tokens">Tokens</a></h2>
+<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Part</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead><tbody><tr><td>Work tint</td><td><code>--color-series-work</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-series-work" data-swatch></i><span data-token="--color-series-work"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-series-work" data-swatch></i><span data-token="--color-series-work"></span></span></td></tr><tr><td>Recover tint</td><td><code>--color-series-rest</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-series-rest" data-swatch></i><span data-token="--color-series-rest"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-series-rest" data-swatch></i><span data-token="--color-series-rest"></span></span></td></tr><tr><td>Value size</td><td><code>--font-size-numeral-md</code> <code>--font-size-numeral-xl</code></td><td colspan="2"><span data-token="--font-size-numeral-md"></span> / <span data-token="--font-size-numeral-xl"></span></td></tr></tbody></table></div>
+    </section>
+    <section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
+<pre><code>&lt;div class="level-slider level-slider--rest"&gt;…&lt;input id="rest-level" type="range" min="1" max="32" value="6"&gt;…&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.level-slider</code></td><td>Slider with head and scale.</td></tr><tr><td><code>.level-slider--rest</code></td><td>Recover tint.</td></tr><tr><td><code>.level-slider--large</code></td><td>Large value.</td></tr></tbody></table></div>
+    </section>
+    <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/setup/default.html">pages/setup/default</a> (work and recover)</li><li><a href="../../mocks/pages/setup/flat.html">pages/setup/flat</a> (large)</li></ul><p>Drift fixed during extraction: none.</p>
+    </section>
+
+    <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>
+  </main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>

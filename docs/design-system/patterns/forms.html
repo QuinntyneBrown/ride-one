@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forms — Wattzup design system</title>
+<meta name="description" content="How setup and unlock collect, validate and submit values.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+  <nav class="ds-nav" aria-label="Design system">
+    <div class="ds-nav__brand"><a href="../index.html">Wattzup DS</a><button class="ds-theme-toggle" type="button" aria-pressed="true">☀ Light</button></div>
+    <details open><summary>Foundations</summary><ul>
+      <li><a href="../foundations/color.html">Color</a></li>
+      <li><a href="../foundations/typography.html">Typography</a></li>
+      <li><a href="../foundations/spacing.html">Spacing</a></li>
+      <li><a href="../foundations/layout.html">Layout</a></li>
+      <li><a href="../foundations/elevation.html">Elevation</a></li>
+      <li><a href="../foundations/shape.html">Shape</a></li>
+      <li><a href="../foundations/motion.html">Motion</a></li>
+      <li><a href="../foundations/iconography.html">Iconography</a></li>
+      <li><a href="../foundations/theming.html">Theming</a></li>
+      <li><a href="../foundations/responsive.html">Responsive</a></li>
+      <li><a href="../foundations/accessibility.html">Accessibility</a></li>
+      <li><a href="../foundations/content.html">Content</a></li>
+    </ul></details>
+    <details open><summary>Components</summary><ul>
+      <li><a href="../components/button.html">Button</a></li>
+      <li><a href="../components/link.html">Link</a></li>
+      <li><a href="../components/chip.html">Chip</a></li>
+      <li><a href="../components/text-field.html">Text field</a></li>
+      <li><a href="../components/form-field.html">Form field</a></li>
+      <li><a href="../components/form-layout.html">Form layout</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
+      <li><a href="../components/switch.html">Switch</a></li>
+      <li><a href="../components/slider.html">Slider</a></li>
+      <li><a href="../components/number-stepper.html">Number stepper</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
+      <li><a href="../components/level-picker.html">Level picker</a></li>
+      <li><a href="../components/app-bar.html">App bar</a></li>
+      <li><a href="../components/lockup.html">Lockup</a></li>
+      <li><a href="../components/status-line.html">Status line</a></li>
+      <li><a href="../components/ride-clock.html">Ride clock</a></li>
+      <li><a href="../components/skip-link.html">Skip link</a></li>
+      <li><a href="../components/page-layout.html">Page layout</a></li>
+      <li><a href="../components/dialog.html">Dialog</a></li>
+      <li><a href="../components/overlay-panel.html">Overlay panel</a></li>
+      <li><a href="../components/tooltip.html">Tooltip</a></li>
+      <li><a href="../components/divider.html">Divider</a></li>
+      <li><a href="../components/readout.html">Readout</a></li>
+      <li><a href="../components/interval.html">Interval</a></li>
+      <li><a href="../components/power-trace.html">Power trace</a></li>
+      <li><a href="../components/metric-list.html">Metric list</a></li>
+      <li><a href="../components/ride-profile.html">Ride profile</a></li>
+      <li><a href="../components/command-log.html">Command log</a></li>
+      <li><a href="../components/description-list.html">Description list</a></li>
+      <li><a href="../components/code-block.html">Code block</a></li>
+      <li><a href="../components/badge.html">Badge</a></li>
+      <li><a href="../components/toast.html">Toast</a></li>
+      <li><a href="../components/alert.html">Alert and banner</a></li>
+      <li><a href="../components/phase-banner.html">Step-change banner</a></li>
+      <li><a href="../components/inline-message.html">Inline message</a></li>
+      <li><a href="../components/progress-bar.html">Progress bar</a></li>
+      <li><a href="../components/spinner.html">Spinner</a></li>
+      <li><a href="../components/skeleton.html">Skeleton</a></li>
+      <li><a href="../components/empty-state.html">Empty state</a></li>
+      <li><a href="../components/error-page.html">Error page</a></li>
+    </ul></details>
+    <details open><summary>Patterns</summary><ul>
+      <li><a href="../patterns/forms.html">Forms</a></li>
+      <li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li>
+      <li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li>
+      <li><a href="../patterns/page-structure.html">Page structure</a></li>
+      <li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li>
+      <li><a href="../patterns/live-data.html">Live data</a></li>
+      <li><a href="../patterns/notifications.html">Notifications</a></li>
+      <li><a href="../patterns/content-and-tone.html">Content and tone</a></li>
+    </ul></details>
+  </nav>
+  <main id="main" class="ds-main">
+    <header class="ds-header">
+      <p class="ds-kicker">Pattern</p>
+      <h1>Forms</h1>
+      <p class="ds-lead">Wattzup has two forms: ride setup and unlock. Both validate on submit, keep what the rider typed, and explain every error next to its field and in a summary.</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span></div>
+      <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#when">When to use</a></li><li><a href="#structure">Structure</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#sources">Sources</a></li></ul>
+    </header>
+    <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>Forms use <a href="../components/form-field.html">form fields</a>, <a href="../components/number-stepper.html">number steppers</a>, <a href="../components/slider.html">sliders</a>, <a href="../components/switch.html">switches</a> and <a href="../components/radio-group.html">mode cards</a>, arranged by <a href="../components/form-layout.html">form layout</a>. Button-triggered editing never happens inline: setup is its own screen (AGENTS.md).</p>
+    </section>
+    <section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
+<ul><li>Changing the plan before a ride: setup (<code>/setup</code>).</li><li>Entering the API key when the server requires one: unlock.</li><li>Never for a single value the rider nudges mid-ride — that is the level control.</li></ul>
+    </section>
+    <section class="ds-section" id="structure"><h2><a href="#structure">Structure</a></h2>
+<ol><li>Heading and one-line intro.</li><li>Error summary (only after a failed submit).</li><li>Fields in reading order: mode, presets, values, toggles.</li><li>Preview (setup) and the single submit action, with its disabled reason underneath.</li></ol><div class="ds-example"><div class="ds-example__canvas ds-example__canvas--stack"><div class="alert alert--danger form-summary" role="alert" tabindex="-1"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">2 things to fix before you start</span><ul><li><a href="#structure">Rounds — enter 1 to 30</a></li><li><a href="#structure">Recover — at least 0:05</a></li></ul></div></div><div class="field-grid"><div class="num-stepper"><label class="num-stepper__label" for="pf-r">Rounds</label><div class="num-stepper__row"><input class="num-stepper__input" id="pf-r" value="0" aria-invalid="true" aria-describedby="pf-re"></div><p class="field__error" id="pf-re">Enter 1 to 30 rounds.</p></div></div><button class="btn btn--primary" type="button" disabled aria-describedby="pf-h">Start ride</button><p class="text-muted text-sm" id="pf-h">Fix the 2 fields marked in red to start.</p></div><div class="ds-example__caption"><span>Invalid setup, composed.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="alert alert--danger form-summary" role="alert" tabindex="-1"&gt;
+&lt;svg class="icon" aria-hidden="true" viewBox="0 0 24 24"&gt;
+&lt;circle cx="12" cy="12" r="9"/&gt;
+&lt;path d="M12 8v4M12 16h.01"/&gt;
+&lt;/svg&gt;
+&lt;div class="alert__body"&gt;
+&lt;span class="alert__title"&gt;2 things to fix before you start&lt;/span&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;a href="#structure"&gt;Rounds — enter 1 to 30&lt;/a&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;a href="#structure"&gt;Recover — at least 0:05&lt;/a&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="field-grid"&gt;
+&lt;div class="num-stepper"&gt;
+&lt;label class="num-stepper__label" for="pf-r"&gt;Rounds&lt;/label&gt;
+&lt;div class="num-stepper__row"&gt;
+&lt;input class="num-stepper__input" id="pf-r" value="0" aria-invalid="true" aria-describedby="pf-re"&gt;
+&lt;/div&gt;
+&lt;p class="field__error" id="pf-re"&gt;Enter 1 to 30 rounds.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;button class="btn btn--primary" type="button" disabled aria-describedby="pf-h"&gt;Start ride&lt;/button&gt;
+&lt;p class="text-muted text-sm" id="pf-h"&gt;Fix the 2 fields marked in red to start.&lt;/p&gt;</code></pre></details></div>
+    </section>
+    <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
+<ul><li><b>Default</b> — defaults or the saved draft; Start enabled.</li><li><b>Invalid</b> — inline errors, summary focused, Start disabled with the reason.</li><li><b>Submitting</b> — inputs read-only, button busy (Starting…).</li><li><b>Server error</b> — danger alert beside the button; values kept.</li><li><b>Loading</b> — skeleton of the same layout.</li></ul>
+    </section>
+    <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive</a></h2>
+<ul><li>Fields stack in one column below 640px; steppers sit in three columns from 640px.</li><li>From 1024px the setup preview is a side panel; below that it follows the form.</li></ul>
+    </section>
+    <section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<ul><li>Every control has a visible label; errors are in <code>aria-describedby</code> and set <code>aria-invalid</code>.</li><li>On a failed submit focus moves to the summary; each summary link focuses its field.</li><li>Nothing validates while typing, so the rider is never told off mid-entry (WCAG 3.3.1, 3.3.3).</li><li>Unlock uses <code>autocomplete="current-password"</code> (WCAG 3.3.7, 3.3.8).</li></ul>
+    </section>
+    <section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>Errors give the rule and the fix: "Enter 1 to 30 rounds."</li><li>Summary title counts: "2 things to fix before you start".</li></ul>
+    </section>
+    <section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><p class="field__error">Recover must be at least 0:05.</p></div><figcaption>Say how to fix it.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><p class="field__error">Invalid input.</p></div><figcaption>A generic error.</figcaption></figure><figure class="ds-do"><div class="ds-example__canvas"><button class="btn btn--primary" type="button" disabled>Start ride</button><p class="text-muted text-sm">Fix the 2 fields marked in red to start.</p></div><figcaption>Disabled with a reason.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><button class="btn btn--primary" type="button" disabled>Start ride</button></div><figcaption>Disabled silently.</figcaption></figure></div>
+    </section>
+    <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Extracted from:</p><ul><li><a href="../../mocks/pages/setup/default.html">pages/setup/default</a></li><li><a href="../../mocks/pages/setup/invalid.html">pages/setup/invalid</a></li><li><a href="../../mocks/pages/setup/submitting.html">pages/setup/submitting</a></li><li><a href="../../mocks/pages/setup/error.html">pages/setup/error</a></li><li><a href="../../mocks/pages/unlock/invalid.html">pages/unlock/invalid</a></li></ul>
+    </section>
+
+    <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>
+  </main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>
