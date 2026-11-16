@@ -14,6 +14,7 @@ public enum BeltReason
     Stop,
     Replace,
     End,
+    Timeout,
 }
 
 /// <summary>Writes the treadmill's speed, incline and belt commands (L2-065, L2-066).</summary>

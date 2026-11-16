@@ -19,7 +19,8 @@ public sealed record WorkoutSnapshot
 
     public ResistanceMode Mode { get; init; } = ResistanceMode.Plan;
 
-    public int PlanLevel { get; init; }
+    /// <summary>The plan's level for the segment; null on the treadmill (L2-070).</summary>
+    public int? PlanLevel { get; init; }
 
     /// <summary>One of <see cref="WorkoutStatus"/>.</summary>
     public required string Status { get; init; }

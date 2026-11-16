@@ -13,6 +13,15 @@ internal sealed class WorkoutRun
         PlanLevel = Segments[0].Level;
     }
 
+    /// <summary>Treadmill: the belt countdown shown (3, 2, 1), null when none is running (L2-066).</summary>
+    public int? BeltCountdown { get; set; }
+
+    /// <summary>Treadmill: when the current countdown number was first shown.</summary>
+    public DateTimeOffset? CountdownShownAt { get; set; }
+
+    /// <summary>Treadmill: when start-belt was written; null until the countdown reaches zero.</summary>
+    public DateTimeOffset? BeltStartWrittenAt { get; set; }
+
     public WorkoutPlan Plan { get; }
 
     public IReadOnlyList<Segment> Segments { get; }
@@ -33,7 +42,7 @@ internal sealed class WorkoutRun
 
     public ResistanceMode Mode { get; set; } = ResistanceMode.Plan;
 
-    public int PlanLevel { get; set; }
+    public int? PlanLevel { get; set; }
 
     public bool HasStarted { get; set; }
 
