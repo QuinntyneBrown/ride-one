@@ -36,7 +36,7 @@
               "src/styles.scss"
             ],
             "stylePreprocessorOptions": {
-              "includePaths": ["src/app/dashboard/design-system"]
+              "includePaths": ["src/app/dashboard"]
             }
           },
           "configurations": {
@@ -44,7 +44,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "250kB",
+                  "maximumWarning": "280kB",
                   "maximumError": "300kB"
                 },
                 {

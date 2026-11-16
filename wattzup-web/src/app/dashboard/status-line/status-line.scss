@@ -1,0 +1,31 @@
+:host {
+  display: contents;
+}
+.statusline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-body-sm);
+  min-width: 0;
+  color: var(--color-fg-accent);
+}
+.statusline__name {
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 16rem;
+  color: var(--color-fg-default);
+}
+.statusline__state {
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+}
+.statusline--bad,
+.statusline--bad .statusline__state {
+  color: var(--color-fg-heart);
+}
+.statusline--wait,
+.statusline--wait .statusline__state {
+  color: var(--color-fg-warn);
+}

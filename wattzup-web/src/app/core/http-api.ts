@@ -1,0 +1,88 @@
+// HTTP implementations of the API contracts, bound in app.config.ts.
+import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { firstValueFrom, timeout } from 'rxjs';
+import { SKIP_UNLOCK_REDIRECT } from './api-key.interceptor';
+import type {
+  BikeState,
+  EventToken,
+  PacketLines,
+  PowerTrace,
+  StartWorkoutResponse,
+  WorkoutPlan,
+  WorkoutSnapshot,
+} from './api-types';
+import type { BikeApi, KeyCheck } from './bike-api';
+import type { WorkoutApi } from './workout-api';
+
+@Injectable()
+export class HttpBikeApi implements BikeApi {
+  private readonly http = inject(HttpClient);
+
+  status(): Promise<BikeState> {
+    return firstValueFrom(this.http.get<BikeState>('/api/status'));
+  }
+
+  async eventToken(): Promise<string> {
+    const res = await firstValueFrom(this.http.post<EventToken>('/api/events/token', null));
+    return res.token;
+  }
+
+  async setResistance(level: number): Promise<void> {
+    await firstValueFrom(this.http.post('/api/resistance', { level }));
+  }
+
+  async diagnosticsPackets(): Promise<string[]> {
+    return (await firstValueFrom(this.http.get<PacketLines>('/api/diagnostics/packets'))).lines;
+  }
+
+  async reconnect(): Promise<void> {
+    await firstValueFrom(this.http.post('/api/bike/reconnect', null));
+  }
+
+  async verifyKey(key: string): Promise<KeyCheck> {
+    try {
+      await firstValueFrom(
+        this.http
+          .get('/api/status', {
+            headers: new HttpHeaders({ 'X-Api-Key': key }),
+            context: new HttpContext().set(SKIP_UNLOCK_REDIRECT, true),
+          })
+          .pipe(timeout(5000)),
+      );
+      return 'ok';
+    } catch (e) {
+      return e instanceof HttpErrorResponse && e.status === 401 ? 'rejected' : 'unreachable';
+    }
+  }
+}
+
+@Injectable()
+export class HttpWorkoutApi implements WorkoutApi {
+  private readonly http = inject(HttpClient);
+
+  async start(plan: WorkoutPlan): Promise<WorkoutSnapshot> {
+    return (await firstValueFrom(this.http.post<StartWorkoutResponse>('/api/workout', plan)))
+      .started;
+  }
+
+  async stop(): Promise<void> {
+    await firstValueFrom(this.http.post('/api/workout/stop', null));
+  }
+
+  async pause(): Promise<void> {
+    await firstValueFrom(this.http.post('/api/workout/pause', null));
+  }
+
+  async resume(): Promise<void> {
+    await firstValueFrom(this.http.post('/api/workout/resume', null));
+  }
+
+  async backToPlan(): Promise<void> {
+    await firstValueFrom(this.http.post('/api/workout/back-to-plan', null));
+  }
+
+  trace(): Promise<PowerTrace> {
+    return firstValueFrom(this.http.get<PowerTrace>('/api/workout/trace'));
+  }
+}

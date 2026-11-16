@@ -1,0 +1,161 @@
+// Stub states in the L2-014 contract. Shaped like the backend's --simulate output, with the
+// mocks' cast: Echelon EX-5s mid-ride on the default 8 × 40s / 20s plan at 7:07.
+// Re-record against `dotnet run -- --simulate` when the contract changes.
+
+export type Json = Record<string, unknown>;
+
+export const DEFAULT_PLAN = {
+  kind: 'hiit',
+  rounds: 8,
+  work_seconds: 40,
+  rest_seconds: 20,
+  work_level: 18,
+  rest_level: 6,
+  warmup: true,
+  cooldown: true,
+} as const;
+
+export const FLAT_PLAN = { kind: 'flat', level: 12, minutes: 30, cadence: 85 } as const;
+
+export const DEFAULT_SEGMENTS = [
+  { kind: 'warmup', start: 0, duration: 180, level: 8, cadence: 80, round: null },
+  { kind: 'work', start: 180, duration: 40, level: 18, cadence: 98, round: 1 },
+  { kind: 'rest', start: 220, duration: 20, level: 6, cadence: 72, round: 1 },
+  { kind: 'work', start: 240, duration: 40, level: 18, cadence: 98, round: 2 },
+  { kind: 'rest', start: 280, duration: 20, level: 6, cadence: 72, round: 2 },
+  { kind: 'work', start: 300, duration: 40, level: 18, cadence: 98, round: 3 },
+  { kind: 'rest', start: 340, duration: 20, level: 6, cadence: 72, round: 3 },
+  { kind: 'work', start: 360, duration: 40, level: 18, cadence: 98, round: 4 },
+  { kind: 'rest', start: 400, duration: 20, level: 6, cadence: 72, round: 4 },
+  { kind: 'work', start: 420, duration: 40, level: 18, cadence: 98, round: 5 },
+  { kind: 'rest', start: 460, duration: 20, level: 6, cadence: 72, round: 5 },
+  { kind: 'work', start: 480, duration: 40, level: 18, cadence: 98, round: 6 },
+  { kind: 'rest', start: 520, duration: 20, level: 6, cadence: 72, round: 6 },
+  { kind: 'work', start: 540, duration: 40, level: 18, cadence: 98, round: 7 },
+  { kind: 'rest', start: 580, duration: 20, level: 6, cadence: 72, round: 7 },
+  { kind: 'work', start: 600, duration: 40, level: 18, cadence: 98, round: 8 },
+  { kind: 'cooldown', start: 640, duration: 120, level: 6, cadence: 70, round: null },
+];
+
+/** Default plan, work round 5 of 8, 0:33 left, 7:07 of 12:40. */
+export function workout(change: Json = {}): Json {
+  return {
+    plan: DEFAULT_PLAN,
+    summary: 'HIIT · 8 × 40s / 20s',
+    segments: DEFAULT_SEGMENTS,
+    segment: 9,
+    remaining: 33,
+    elapsed_seconds: 427,
+    total_seconds: 760,
+    mode: 'plan',
+    plan_level: 18,
+    status: 'running',
+    ended_reason: null,
+    ...change,
+  };
+}
+
+export function flatWorkout(change: Json = {}): Json {
+  return workout({
+    plan: FLAT_PLAN,
+    summary: 'Flat · Level 12 · 30 min',
+    segments: [{ kind: 'steady', start: 0, duration: 1800, level: 12, cadence: 85, round: null }],
+    segment: 0,
+    remaining: 938,
+    elapsed_seconds: 862,
+    total_seconds: 1800,
+    plan_level: 12,
+    ...change,
+  });
+}
+
+/** Today in the mocks is 2026-11-15, about 7:10 PM (UTC in the tests). */
+export const NOW = Date.UTC(2026, 10, 15, 19, 10, 12);
+export const NOW_S = NOW / 1000;
+
+export function state(change: Json = {}): Json {
+  return {
+    ble: 'connected',
+    device: 'ECHEX-3-141844',
+    device_label: 'Echelon EX-5s',
+    error: null,
+    resistance: 18,
+    target_resistance: 18,
+    workout: workout(),
+    cadence: 95,
+    speed_kmh: 25.1,
+    speed_mph: 15.6,
+    packets: 2517,
+    first_data_at: NOW_S - 2700,
+    last_data_at: NOW_S,
+    ui_clients: 2,
+    displayed_since: NOW_S - 2490,
+    displayed_seconds: 2490,
+    adapter: 'on',
+    transport: 'Simulated',
+    simulated: false,
+    exposed: false,
+    bind_address: '127.0.0.1:8787',
+    connection_id: '0bf669f1',
+    power: 317,
+    target_power: 327,
+    avg_power: 208,
+    distance_km: 2.53,
+    kcal: 89,
+    heart_rate: null,
+    commands: [
+      { at: NOW_S - 6, ride_seconds: 421, level: 18, source: 'plan', status: 'ack', ack_ms: 40 },
+      { at: NOW_S - 27, ride_seconds: 400, level: 6, source: 'plan', status: 'ack', ack_ms: 34 },
+      { at: NOW_S - 67, ride_seconds: 360, level: 18, source: 'plan', status: 'ack', ack_ms: 41 },
+    ],
+    ...change,
+  };
+}
+
+/** Connected with no workout: a free ride. */
+export function freeRide(change: Json = {}): Json {
+  return state({
+    workout: null,
+    resistance: 8,
+    target_resistance: 8,
+    cadence: 72,
+    power: 96,
+    target_power: null,
+    avg_power: 0,
+    distance_km: 0,
+    kcal: 0,
+    speed_kmh: 0,
+    speed_mph: 0,
+    commands: [],
+    ...change,
+  });
+}
+
+/** The backend's initial state (L2-014 AC1). */
+export function startingState(change: Json = {}): Json {
+  return state({
+    ble: 'starting',
+    device: null,
+    device_label: null,
+    resistance: null,
+    target_resistance: null,
+    workout: null,
+    cadence: null,
+    speed_kmh: null,
+    speed_mph: null,
+    packets: 0,
+    first_data_at: null,
+    last_data_at: null,
+    ui_clients: 0,
+    displayed_since: null,
+    displayed_seconds: 0,
+    adapter: 'unknown',
+    power: null,
+    target_power: null,
+    avg_power: null,
+    distance_km: null,
+    kcal: null,
+    commands: [],
+    ...change,
+  });
+}
