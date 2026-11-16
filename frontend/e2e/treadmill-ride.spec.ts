@@ -1,7 +1,8 @@
 import { expect, test } from './fixtures/wz-test';
 import { RidePage } from './pages/ride.page';
 import { ToastRegion } from './pages/toast-region';
-import { treadmillIdle, treadmillState } from './fixtures/states';
+import { treadmillIdle, treadmillState, treadmillWorkout } from './fixtures/states';
+import treadmillPaused from './fixtures/recorded/treadmill-workout-paused.json';
 import speedSent from './fixtures/recorded/speed-sent.json';
 import inclineSent from './fixtures/recorded/incline-sent.json';
 
@@ -136,6 +137,136 @@ test.describe('Treadmill dashboard: readouts and controls (L2-071)', () => {
     await ride.raiseInclineButton.click();
     await expect(toasts.text(toasts.toast("Couldn't set incline"))).toHaveText(
       "The treadmill isn't connected. Switch it on, then try again.",
+    );
+  });
+});
+
+test.describe('Treadmill dashboard: belt and connection (L2-066, L2-071)', () => {
+  const countdown = (n: number | null) =>
+    treadmillState({
+      speed_kmh: 0,
+      speed_mph: 0,
+      belt: 'starting',
+      belt_countdown: n,
+      workout: treadmillWorkout({
+        status: 'starting belt',
+        segment: 0,
+        remaining: 180,
+        elapsed_seconds: 0,
+      }),
+    });
+
+  test('counts down the belt start and announces each number once', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(countdown(3));
+    await expect(ride.overlayCount).toHaveText('3');
+    await expect(ride.overlayCount).toHaveAttribute('aria-hidden', 'true');
+    await expect(ride.overlayTitle).toHaveText('Belt starting in 3');
+    await expect(ride.overlayTitle).toHaveAttribute('aria-live', 'polite');
+    await expect(ride.overlayText).toHaveText(
+      'Stand on the side rails. The belt starts when the count reaches zero.',
+    );
+    await expect(ride.badge).toHaveText('Starting belt');
+    await expect(ride.badge).toHaveClass(/badge--info/);
+    await ride.push(countdown(2));
+    await expect(ride.overlayTitle).toHaveText('Belt starting in 2');
+    await ride.push(countdown(1));
+    await expect(ride.overlayTitle).toHaveText('Belt starting in 1');
+    await ride.push(countdown(null));
+    await expect(ride.overlayTitle).toHaveText('Starting the belt…');
+    await expect(ride.overlayCount).toHaveCount(0);
+    await ride.push(treadmillState());
+    await expect(ride.overlay).toHaveCount(0);
+  });
+
+  test('shows Belt stopped with Resume enabled', async ({ page, api, events }) => {
+    api.on('POST', '/api/workout/resume', { json: treadmillPaused });
+    const ride = new RidePage(page, api, events);
+    await ride.open(
+      treadmillState({
+        speed_kmh: 0,
+        speed_mph: 0,
+        belt: 'stopped',
+        workout: treadmillWorkout({ status: 'paused: belt stopped' }),
+      }),
+    );
+    await expect(ride.overlayTitle).toHaveText('Belt stopped');
+    await expect(ride.overlayText).toHaveText(
+      "The treadmill's belt stopped, so Wattzup paused the ride at 7:07. Press Resume to start the belt again after a 3-second countdown.",
+    );
+    await expect(ride.overlay).toHaveAttribute('role', 'alert');
+    await expect(ride.badge).toHaveText('Belt stopped');
+    await expect(ride.resumeButton).toBeEnabled();
+    await ride.overlayResumeButton.click();
+    await api.waitForCall('POST', '/api/workout/resume');
+  });
+
+  test('shows the safety-key sentence when the treadmill is lost', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(
+      treadmillState({
+        ble: 'disconnected',
+        belt: null,
+        workout: treadmillWorkout({ status: 'paused: bike disconnected' }),
+      }),
+    );
+    await expect(ride.overlayTitle).toHaveText('Lost the treadmill');
+    await expect(ride.overlayText.first()).toHaveText(
+      "STRIDE-8s22-000766 stopped answering. Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
+    );
+    await expect(ride.overlayText.last()).toHaveText(
+      'The plan is paused. If the treadmill stays off for 90 seconds, Wattzup ends the ride.',
+    );
+    const banner = ride.banner('Lost the treadmill');
+    await expect(ride.bannerText(banner)).toHaveText(
+      "Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
+    );
+    await expect(banner).toHaveClass(/alert--danger/);
+    await expect(ride.badge).toHaveText('Treadmill disconnected');
+    await expect(ride.badge).toHaveClass(/badge--danger/);
+  });
+
+  test('words the status line, scanning overlay, badges and simulated banner for the treadmill', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(
+      treadmillIdle({
+        ble: 'scanning',
+        device: null,
+        device_label: null,
+        belt: null,
+        workout: treadmillWorkout({ status: 'waiting for bike', segment: 0, elapsed_seconds: 0 }),
+      }),
+    );
+    await expect(ride.statusName).toHaveText('Echelon treadmill');
+    await expect(ride.statusState).toHaveText('Scanning…');
+    await expect(ride.overlayTitle).toHaveText('Looking for your treadmill');
+    await expect(ride.overlayText).toHaveText([
+      'No Echelon treadmill found yet — switch it on. Wattzup scans again every 20 seconds.',
+      'Your ride starts as soon as the treadmill connects: HIIT · 18 × 40s / 20s.',
+    ]);
+    await expect(ride.badge).toHaveText('Waiting for treadmill');
+
+    await ride.push(
+      treadmillState({ workout: treadmillWorkout({ status: 'ended: bike shut off' }) }),
+    );
+    await expect(ride.badge).toHaveText('Treadmill shut off');
+
+    await ride.push(treadmillState({ simulated: true }));
+    const banner = ride.banner('Simulated treadmill');
+    await expect(ride.bannerText(banner)).toHaveText(
+      'No hardware connected — Wattzup started with --simulate and is generating speed and incline.',
     );
   });
 });

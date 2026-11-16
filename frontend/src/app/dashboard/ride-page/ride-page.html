@@ -1,6 +1,6 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app app--fixed">
-  <wz-app-bar [workout]="workout()" [view]="view()" />
+  <wz-app-bar [workout]="workout()" [machine]="state()?.machine ?? 'bike'" [view]="view()" />
   <wz-connection-banner />
   <div class="ride-layout">
     <main
@@ -62,6 +62,7 @@
             [reconnecting]="actions.reconnecting()"
             (reconnect)="actions.reconnect()"
             (diagnostics)="dialogs.openDiagnostics()"
+            (resumeRide)="actions.resume()"
           />
         }
       } @else {

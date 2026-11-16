@@ -50,6 +50,8 @@ export class RidePage {
   readonly overlay: Locator;
   readonly overlayTitle: Locator;
   readonly overlayText: Locator;
+  readonly overlayCount: Locator;
+  readonly overlayResumeButton: Locator;
   readonly loadError: Locator;
   readonly loadErrorTitle: Locator;
   readonly loadErrorText: Locator;
@@ -151,6 +153,8 @@ export class RidePage {
     this.overlay = page.locator('.overlay-panel__card');
     this.overlayTitle = this.overlay.locator('h2');
     this.overlayText = this.overlay.locator('p');
+    this.overlayCount = this.overlay.locator('.overlay-panel__count');
+    this.overlayResumeButton = this.overlay.getByRole('button', { name: 'Resume' });
     this.loadError = this.main.locator('.empty--error');
     this.loadErrorTitle = this.loadError.locator('.empty__title');
     this.loadErrorText = this.loadError.locator('.empty__text');

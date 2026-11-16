@@ -83,3 +83,36 @@ describe('rideViewState (L2-058)', () => {
     ).toBe(enabled);
   });
 });
+
+describe('rideViewState on the treadmill (L2-071)', () => {
+  const treadmill = (status: Parameters<typeof testWorkout>[0], change = {}) =>
+    testState({ machine: 'treadmill', workout: testWorkout(status), ...change });
+
+  it('shows the belt countdown while belt_countdown is set', () => {
+    const v = rideViewState(
+      treadmill({ status: 'starting belt' }, { belt: 'starting', belt_countdown: 2 }),
+      'open',
+      false,
+    );
+    expect(v.overlay).toBe('belt-countdown');
+  });
+
+  it('shows Starting the belt after the countdown', () => {
+    expect(
+      rideViewState(treadmill({ status: 'starting belt' }, { belt: 'starting' }), 'open', false)
+        .overlay,
+    ).toBe('belt-starting');
+  });
+
+  it('shows Belt stopped with Pause and Resume enabled', () => {
+    const v = rideViewState(treadmill({ status: 'paused: belt stopped' }), 'open', false);
+    expect(v).toMatchObject({ overlay: 'belt-stopped', pauseEnabled: true });
+  });
+
+  it('words the controls note for the treadmill', () => {
+    expect(
+      rideViewState(testState({ machine: 'treadmill', ble: 'scanning' }), 'open', false)
+        .controlsNote,
+    ).toBe('Speed and incline controls wake up once the treadmill connects.');
+  });
+});

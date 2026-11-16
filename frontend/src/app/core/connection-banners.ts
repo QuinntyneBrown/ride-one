@@ -4,7 +4,8 @@ import { formatDuration } from './format-duration';
 import type { StreamConnection } from './stream-connection';
 import { isActive } from './workout-status';
 
-export type BannerId = 'offline' | 'adapter-off' | 'reconnected' | 'exposed' | 'simulated';
+export type BannerId =
+  'offline' | 'adapter-off' | 'treadmill-lost' | 'reconnected' | 'exposed' | 'simulated';
 export type BannerTone = 'info' | 'success' | 'warning' | 'danger';
 export type BannerAction = 'retry' | 'diagnostics';
 
@@ -52,6 +53,18 @@ export function banners(input: BannerInput): Banner[] {
       dismissable: false,
     });
   }
+  const treadmill = state.machine === 'treadmill';
+  if (treadmill && state.workout?.status === 'paused: bike disconnected') {
+    list.push({
+      id: 'treadmill-lost',
+      tone: 'danger',
+      icon: 'bluetooth-off',
+      title: 'Lost the treadmill',
+      text: "Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
+      action: null,
+      dismissable: false,
+    });
+  }
   const back = input.reconnected;
   if (back && !dismissed.has('reconnected')) {
     list.push({
@@ -59,7 +72,9 @@ export function banners(input: BannerInput): Banner[] {
       tone: 'success',
       icon: 'check-circle',
       title: 'Reconnected',
-      text: `${back.label} is back. The plan picked up at ${formatDuration(back.elapsed)} and resistance is set to ${back.level ?? '--'}.`,
+      text: treadmill
+        ? `${back.label} is back. The ride is paused at ${formatDuration(back.elapsed)} — press Resume to start the belt again.`
+        : `${back.label} is back. The plan picked up at ${formatDuration(back.elapsed)} and resistance is set to ${back.level ?? '--'}.`,
       action: null,
       dismissable: true,
     });
@@ -80,8 +95,10 @@ export function banners(input: BannerInput): Banner[] {
       id: 'simulated',
       tone: 'info',
       icon: 'info',
-      title: 'Simulated bike',
-      text: 'No hardware connected — Wattzup started with --simulate and is generating cadence and resistance.',
+      title: treadmill ? 'Simulated treadmill' : 'Simulated bike',
+      text: treadmill
+        ? 'No hardware connected — Wattzup started with --simulate and is generating speed and incline.'
+        : 'No hardware connected — Wattzup started with --simulate and is generating cadence and resistance.',
       action: null,
       dismissable: true,
     });

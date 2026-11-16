@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { WorkoutSnapshot } from '../../core/api-types';
+import type { Machine, WorkoutSnapshot } from '../../core/api-types';
 import type { RideViewState } from '../../core/ride-view-state';
-import { statusBadge } from '../../core/segment-labels';
+import { badgeTone, statusBadge } from '../../core/segment-labels';
 import { CueService } from '../../core/cue.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
@@ -21,6 +21,7 @@ import { StatusLine } from '../status-line/status-line';
 })
 export class AppBar {
   readonly workout = input<WorkoutSnapshot | null>(null);
+  readonly machine = input<Machine>('bike');
   readonly view = input.required<RideViewState>();
   protected readonly actions = inject(RideActions);
   protected readonly dialogs = inject(DialogLauncher);
@@ -29,7 +30,12 @@ export class AppBar {
 
   protected readonly badge = computed(() => {
     const w = this.workout();
-    return w ? statusBadge(w.status) : null;
+    const text = w ? statusBadge(w.status, this.machine()) : null;
+    return w && text ? { text, tone: badgeTone(w.status, this.machine()) } : null;
   });
-  protected readonly paused = computed(() => this.workout()?.status === 'paused');
+  /** Resume shows for a pause the rider can lift: paused, or the belt stopped (L2-071 AC9). */
+  protected readonly paused = computed(() => {
+    const status = this.workout()?.status;
+    return status === 'paused' || status === 'paused: belt stopped';
+  });
 }
