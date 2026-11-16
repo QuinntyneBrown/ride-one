@@ -27,7 +27,7 @@ public static class CommandLog
 
     /// <summary>Sets that entry's status to <c>failed</c>.</summary>
     public static ImmutableArray<CommandEntry> Fail(IReadOnlyList<CommandEntry> log, CommandEntry entry) =>
-        log.Select(e => ReferenceEquals(e, entry) ? e with { Status = CommandStatus.Failed } : e).ToImmutableArray();
+        log.Select(e => e.WrittenUnixMs == entry.WrittenUnixMs && e.Level == entry.Level && e.Source == entry.Source ? e with { Status = CommandStatus.Failed } : e).ToImmutableArray();
 
     /// <summary>
     /// Acknowledges <c>sending</c> entries of the reported level, walking from the newest and stopping at

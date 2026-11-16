@@ -4,7 +4,9 @@ using Wattzup.Api.Endpoints;
 using Wattzup.Api.Security;
 using Wattzup.Core.Bluetooth;
 using Wattzup.Core.State;
+using Wattzup.Core.Resistance;
 using Wattzup.Core.Telemetry;
+using Wattzup.Core.Workouts;
 
 // --simulate selects the simulated bike (L2-043); it is not a key=value setting, so it is taken out of args.
 var simulate = args.Contains("--simulate", StringComparer.OrdinalIgnoreCase);
@@ -47,6 +49,10 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<StateBroadcaster>();
 builder.Services.AddSingleton<ActiveConnectionRegistry>();
 builder.Services.AddSingleton<TelemetryIngestor>();
+builder.Services.AddSingleton<IResistanceCommander, ResistanceCommander>();
+builder.Services.AddSingleton<WorkoutEngine>();
+builder.Services.AddSingleton<IResistanceControl>(sp => sp.GetRequiredService<WorkoutEngine>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddSingleton<BikeConnectionService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<BikeConnectionService>());
 
@@ -58,6 +64,7 @@ app.MapStatusEndpoints();
 var api = app.MapGroup("/api");
 api.MapEventsEndpoints();
 api.MapBikeEndpoints();
+api.MapResistanceEndpoints();
 
 app.Run();
 
