@@ -1,4 +1,4 @@
-// The frontend's single implementation of the plan rules (L2-045, L2-060, L2-049),
+// The frontend's single implementation of the plan rules (L2-045, L2-060, L2-049, L2-068),
 // mirroring PlanExpander, WorkoutSummary and PowerEstimator in Wattzup.Core.
 import type { Segment, WorkoutPlan } from './api-types';
 import { formatDuration } from './format-duration';
@@ -6,7 +6,44 @@ import { formatDuration } from './format-duration';
 export const WARMUP_SECONDS = 180;
 export const COOLDOWN_SECONDS = 120;
 
+/** A treadmill plan carries speeds in place of levels (L2-067). */
+export function isTreadmillPlan(plan: WorkoutPlan): boolean {
+  return plan.kind === 'flat'
+    ? plan.speed !== null
+    : plan.work_speed !== null && plan.rest_speed !== null;
+}
+
+/** Expands a treadmill plan (L2-068 criteria 1 and 2). */
+function expandTreadmillPlan(plan: WorkoutPlan): Segment[] {
+  const segments: Segment[] = [];
+  let start = 0;
+  const push = (
+    kind: Segment['kind'],
+    duration: number,
+    speed: number | null,
+    incline: number | null,
+    round: number | null,
+  ): void => {
+    segments.push({ kind, start, duration, level: null, cadence: null, round, speed, incline });
+    start += duration;
+  };
+  if (plan.kind === 'flat') {
+    push('steady', plan.minutes * 60, plan.speed, plan.incline ?? 0, null);
+    return segments;
+  }
+  if (plan.warmup) push('warmup', WARMUP_SECONDS, plan.rest_speed, 0, null);
+  for (let round = 1; round <= plan.rounds; round++) {
+    push('work', plan.work_seconds, plan.work_speed, plan.work_incline ?? 0, round);
+    if (!(plan.cooldown && round === plan.rounds)) {
+      push('rest', plan.rest_seconds, plan.rest_speed, plan.rest_incline ?? 0, round);
+    }
+  }
+  if (plan.cooldown) push('cooldown', COOLDOWN_SECONDS, plan.rest_speed, 0, null);
+  return segments;
+}
+
 export function expandPlan(plan: WorkoutPlan): Segment[] {
+  if (isTreadmillPlan(plan)) return expandTreadmillPlan(plan);
   if (plan.kind === 'flat') {
     return [
       {
@@ -67,6 +104,7 @@ export function totalSeconds(segments: readonly Segment[]): number {
 
 export function planSummary(plan: WorkoutPlan): string {
   if (plan.kind === 'flat') {
+    if (plan.speed !== null) return `Flat · ${plan.speed.toFixed(1)} km/h · ${plan.minutes} min`;
     return `Flat · Level ${plan.level} · ${plan.minutes} min`;
   }
   if (plan.work_seconds < 60) {
@@ -88,6 +126,11 @@ export function averageTargetPower(segments: readonly Segment[]): number {
   if (total === 0) return 0;
   const sum = segments.reduce((acc, s) => acc + estimateWatts(s.cadence, s.level) * s.duration, 0);
   return Math.round(sum / total);
+}
+
+/** The sum of each segment's speed × duration ÷ 3600, in km (L2-072 criterion 8). */
+export function expectedDistanceKm(segments: readonly Segment[]): number {
+  return segments.reduce((sum, s) => sum + ((s.speed ?? 0) * s.duration) / 3600, 0);
 }
 
 /** kcal = round(avg power × seconds ÷ 1000 ÷ 0.24 ÷ 4.184) (L2-049). */

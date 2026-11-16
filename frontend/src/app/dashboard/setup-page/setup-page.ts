@@ -27,7 +27,20 @@ import {
   toPlan,
   validateDraft,
 } from '../../core/plan-form';
-import { previewOf } from '../../core/ride-preview';
+import {
+  type RidePreview as Preview,
+  previewOf,
+  treadmillPreviewOf,
+} from '../../core/ride-preview';
+import {
+  type TreadmillField,
+  type TreadmillPlanDraft,
+  applyTreadmillPreset,
+  editTreadmillDraft,
+  stepTreadmillDraft,
+  toTreadmillPlan,
+  validateTreadmillDraft,
+} from '../../core/treadmill-plan-form';
 import { isActive } from '../../core/workout-status';
 import { WORKOUT_API } from '../../core/workout-api';
 import { Alert } from '../alert/alert';
@@ -53,9 +66,23 @@ export const FIELD_IDS: Record<DraftField, string> = {
   cadence: 'cadence',
 };
 
+/** The input id of each treadmill draft field (L2-072 AC7). */
+export const TREADMILL_FIELD_IDS: Record<TreadmillField, string> = {
+  rounds: 'rounds',
+  work: 'work',
+  rest: 'rest',
+  workSpeed: 'work-speed',
+  restSpeed: 'rest-speed',
+  workIncline: 'work-incline',
+  restIncline: 'rest-incline',
+  speed: 'speed',
+  incline: 'incline',
+  minutes: 'duration',
+};
+
 type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
 
-/** Route `/setup`: build a plan and start it (L2-029, L2-052, L2-059). */
+/** Route `/setup`: choose the machine, build a plan and start it (L2-029, L2-052, L2-059, L2-072). */
 @Component({
   selector: 'wz-setup-page',
   imports: [
@@ -84,35 +111,52 @@ export class SetupPage {
   private readonly router = inject(Router);
   private readonly summary = viewChild(FormSummary);
 
+  /** The machine the state reports; changes only when the value does. */
+  private readonly stateMachine = computed<Machine>(() => this.live.state()?.machine ?? 'bike');
+  /** The checked machine: the rider's choice while it is sent, then the state's (L2-072 AC2). */
+  protected readonly machine = linkedSignal(() => this.stateMachine());
+  protected readonly treadmill = computed(() => this.machine() === 'treadmill');
+
   protected readonly ids = FIELD_IDS;
+  protected readonly tids = TREADMILL_FIELD_IDS;
   protected readonly draft = signal<PlanDraft>(this.store.load());
+  protected readonly tdraft = signal<TreadmillPlanDraft>(this.store.loadTreadmill());
   protected readonly errors = computed(() => validateDraft(this.draft()));
+  protected readonly terrors = computed(() => validateTreadmillDraft(this.tdraft()));
   protected readonly errorFor = computed(() => {
     const map: Partial<Record<DraftField, string>> = {};
     for (const e of this.errors()) map[e.field] = e.message;
     return map;
   });
+  protected readonly terrorFor = computed(() => {
+    const map: Partial<Record<TreadmillField, string>> = {};
+    for (const e of this.terrors()) map[e.field] = e.message;
+    return map;
+  });
   protected readonly links = computed(() =>
-    this.errors().map((e) => ({ fieldId: FIELD_IDS[e.field], text: e.link })),
+    this.treadmill()
+      ? this.terrors().map((e) => ({ fieldId: TREADMILL_FIELD_IDS[e.field], text: e.link }))
+      : this.errors().map((e) => ({ fieldId: FIELD_IDS[e.field], text: e.link })),
   );
-  private readonly plan = computed(() => toPlan(this.draft()));
-  /** The preview of the last valid plan, kept while the form is invalid. */
+  private readonly plan = computed(() =>
+    this.treadmill() ? toTreadmillPlan(this.tdraft()) : toPlan(this.draft()),
+  );
+  /** The preview of the last valid plan for this machine, kept while the form is invalid. */
   private readonly preview = computed(() => {
     const plan = this.plan();
-    return plan ? previewOf(plan) : null;
+    const preview = plan ? (this.treadmill() ? treadmillPreviewOf(plan) : previewOf(plan)) : null;
+    return { machine: this.machine(), preview };
   });
   protected readonly shownPreview = linkedSignal<
-    ReturnType<typeof previewOf> | null,
-    ReturnType<typeof previewOf> | null
+    { machine: Machine; preview: Preview | null },
+    Preview | null
   >({
     source: this.preview,
-    computation: (next, previous) => next ?? previous?.value ?? null,
+    computation: (next, previous) =>
+      next.preview ??
+      (previous && previous.source.machine === next.machine ? previous.value : null),
   });
 
-  /** The machine the state reports; changes only when the value does. */
-  private readonly stateMachine = computed<Machine>(() => this.live.state()?.machine ?? 'bike');
-  /** The checked machine: the rider's choice while it is sent, then the state's (L2-072 AC2). */
-  protected readonly machine = linkedSignal(() => this.stateMachine());
   protected readonly machineFailed = signal(false);
   protected readonly machineHelp = computed(() =>
     isActive(this.live.state()?.workout) ? 'End the ride in progress to change the machine.' : null,
@@ -140,7 +184,16 @@ export class SetupPage {
   }
 
   protected setMode(mode: 'hiit' | 'flat'): void {
-    this.draft.update((d) => editDraft(d, { mode }));
+    if (this.treadmill()) this.tdraft.update((d) => editTreadmillDraft(d, { mode }));
+    else this.draft.update((d) => editDraft(d, { mode }));
+  }
+
+  protected tedit(change: Partial<TreadmillPlanDraft>): void {
+    this.tdraft.update((d) => editTreadmillDraft(d, change));
+  }
+
+  protected tstep(field: TreadmillField, dir: 1 | -1): void {
+    this.tdraft.update((d) => stepTreadmillDraft(d, field, dir));
   }
 
   protected edit(change: Partial<PlanDraft>): void {
@@ -148,7 +201,8 @@ export class SetupPage {
   }
 
   protected preset(id: PresetId): void {
-    this.draft.update((d) => applyPreset(d, id));
+    if (this.treadmill()) this.tdraft.update((d) => applyTreadmillPreset(d, id));
+    else this.draft.update((d) => applyPreset(d, id));
   }
 
   protected step(field: DraftField, dir: 1 | -1): void {
@@ -163,7 +217,8 @@ export class SetupPage {
     const plan = this.plan();
     if (!plan || this.busy()) return;
     this.machineFailed.set(false);
-    this.store.save(this.draft());
+    if (this.treadmill()) this.store.saveTreadmill(this.tdraft());
+    else this.store.save(this.draft());
     const workout = this.live.state()?.workout ?? null;
     if (isActive(workout) && workout) {
       const started = await this.dialogs.openReplaceRide({

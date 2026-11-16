@@ -9,6 +9,7 @@ export class SetupPage {
   readonly closeLink: Locator;
   readonly hiitCard: Locator;
   readonly flatCard: Locator;
+  readonly flatSpeedCard: Locator;
   readonly presets: Locator;
   readonly formSummary: Locator;
   readonly formSummaryTitle: Locator;
@@ -43,6 +44,7 @@ export class SetupPage {
     this.closeLink = page.getByRole('link', { name: 'Close' });
     this.hiitCard = page.getByRole('radio', { name: 'HIIT intervals' });
     this.flatCard = page.getByRole('radio', { name: 'Flat resistance' });
+    this.flatSpeedCard = page.getByRole('radio', { name: 'Flat speed' });
     this.presets = page.getByRole('group', { name: 'Presets' });
     this.formSummary = page.locator('.form-summary');
     this.formSummaryTitle = this.formSummary.locator('.alert__title');

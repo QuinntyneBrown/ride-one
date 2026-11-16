@@ -4,7 +4,7 @@
     <button
       class="btn btn--icon num-stepper__btn"
       type="button"
-      [attr.aria-label]="'Less ' + label().toLowerCase()"
+      [attr.aria-label]="'Less ' + (stepName() ?? label().toLowerCase())"
       [disabled]="readonly()"
       (click)="step.emit(-1)"
     >
@@ -13,7 +13,7 @@
     <input
       class="numeral num-stepper__input"
       type="text"
-      inputmode="numeric"
+      [attr.inputmode]="inputMode()"
       autocomplete="off"
       size="5"
       [id]="fieldId()"
@@ -27,7 +27,7 @@
     <button
       class="btn btn--icon num-stepper__btn"
       type="button"
-      [attr.aria-label]="'More ' + label().toLowerCase()"
+      [attr.aria-label]="'More ' + (stepName() ?? label().toLowerCase())"
       [disabled]="readonly()"
       (click)="step.emit(1)"
     >

@@ -1,9 +1,41 @@
-// The last submitted plan draft, kept in localStorage (L2-029 AC7).
+// The last submitted plan draft per machine, kept in localStorage (L2-029 AC7, L2-072 AC9).
 import { Injectable } from '@angular/core';
 import { DEFAULT_DRAFT, type PlanDraft, PRESETS } from './plan-form';
 import { SafeStorage } from './safe-storage';
+import { DEFAULT_TREADMILL_DRAFT, type TreadmillPlanDraft } from './treadmill-plan-form';
 
 export const PLAN_DRAFT_KEY = 'wattzup.planDraft';
+export const TREADMILL_PLAN_DRAFT_KEY = 'wattzup.treadmillPlanDraft';
+
+const TREADMILL_STRINGS = [
+  'rounds',
+  'work',
+  'rest',
+  'workSpeed',
+  'restSpeed',
+  'workIncline',
+  'restIncline',
+  'speed',
+  'incline',
+  'minutes',
+] as const;
+
+/** Accepts a stored treadmill draft only when every field has the right shape. */
+export function readTreadmillDraft(raw: string | null): TreadmillPlanDraft {
+  if (!raw) return DEFAULT_TREADMILL_DRAFT;
+  try {
+    const d = JSON.parse(raw) as Partial<TreadmillPlanDraft>;
+    const ok =
+      (d.mode === 'hiit' || d.mode === 'flat') &&
+      (d.preset === null || PRESETS.some((p) => p.id === d.preset)) &&
+      TREADMILL_STRINGS.every((k) => typeof d[k] === 'string') &&
+      typeof d.warmup === 'boolean' &&
+      typeof d.cooldown === 'boolean';
+    return ok ? (d as TreadmillPlanDraft) : DEFAULT_TREADMILL_DRAFT;
+  } catch {
+    return DEFAULT_TREADMILL_DRAFT;
+  }
+}
 
 const STRINGS = ['rounds', 'work', 'rest', 'minutes', 'cadence'] as const;
 const LEVELS = ['workLevel', 'restLevel', 'flatLevel'] as const;
@@ -38,5 +70,13 @@ export class PlanDraftStore {
 
   save(draft: PlanDraft): void {
     this.storage.set(PLAN_DRAFT_KEY, JSON.stringify(draft));
+  }
+
+  loadTreadmill(): TreadmillPlanDraft {
+    return readTreadmillDraft(this.storage.get(TREADMILL_PLAN_DRAFT_KEY));
+  }
+
+  saveTreadmill(draft: TreadmillPlanDraft): void {
+    this.storage.set(TREADMILL_PLAN_DRAFT_KEY, JSON.stringify(draft));
   }
 }

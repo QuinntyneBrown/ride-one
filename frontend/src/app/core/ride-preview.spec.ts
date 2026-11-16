@@ -1,4 +1,4 @@
-import { previewOf } from './ride-preview';
+import { previewOf, treadmillPreviewOf } from './ride-preview';
 
 describe('previewOf (L2-059)', () => {
   it('previews the default plan', () => {
@@ -65,5 +65,59 @@ describe('previewOf (L2-059)', () => {
     expect(work).toEqual({ x: 181.52, width: 36.96, y: 14, height: 18, tone: 'is-work' });
     expect(rest).toEqual({ x: 221.52, width: 16.96, y: 26, height: 6, tone: 'is-rest' });
     expect(p.profile.at(-1)?.tone).toBe('is-easy');
+  });
+});
+
+describe('treadmillPreviewOf (L2-072 AC8)', () => {
+  const hiit = {
+    kind: 'hiit',
+    rounds: 18,
+    work_seconds: 40,
+    rest_seconds: 20,
+    work_level: null,
+    rest_level: null,
+    warmup: true,
+    cooldown: true,
+    work_speed: 9,
+    rest_speed: 7,
+    work_incline: 0,
+    rest_incline: 0,
+  } as const;
+
+  it('previews the treadmill HIIT default with top speed and expected distance', () => {
+    const p = treadmillPreviewOf(hiit);
+    expect(p.total).toBe('22:40');
+    expect(p.topSpeed).toBe(9);
+    expect(p.distanceKm).toBeCloseTo(3.044, 3);
+    expect(p.profileLabel).toBe('Speed profile: 18 × 0:40 / 0:20');
+    expect(p.rows).toEqual([
+      { term: 'Structure', value: '18 × 0:40 / 0:20' },
+      { term: 'Time under load', value: '12:00' },
+      { term: 'Top speed', value: '9.0 km/h' },
+      { term: 'Expected distance', value: '~3.0 km' },
+    ]);
+  });
+
+  it('draws each bar two units per km/h', () => {
+    const [warmup, work] = treadmillPreviewOf(hiit).profile;
+    expect(warmup).toMatchObject({ y: 18, height: 14, tone: 'is-easy' });
+    expect(work).toMatchObject({ y: 14, height: 18, tone: 'is-work' });
+  });
+
+  it('previews a treadmill flat plan', () => {
+    const p = treadmillPreviewOf({
+      kind: 'flat',
+      level: null,
+      minutes: 30,
+      cadence: null,
+      speed: 7,
+      incline: 0,
+    });
+    expect(p.rows).toEqual([
+      { term: 'Structure', value: '7.0 km/h throughout' },
+      { term: 'Top speed', value: '7.0 km/h' },
+      { term: 'Expected distance', value: '~3.5 km' },
+    ]);
+    expect(p.legend).toEqual(['steady']);
   });
 });

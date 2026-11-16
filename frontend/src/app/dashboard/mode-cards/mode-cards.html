@@ -11,7 +11,13 @@
         (change)="mode.set('hiit')"
       />HIIT intervals</span
     >
-    <p>Hard and easy efforts on repeat. Resistance switches at every interval.</p>
+    <p>
+      @if (machine() === 'treadmill') {
+        Hard and easy efforts on repeat. Speed and incline switch at every interval.
+      } @else {
+        Hard and easy efforts on repeat. Resistance switches at every interval.
+      }
+    </p>
   </label>
   <label class="mode-card">
     <span class="mode-card__title"
@@ -22,8 +28,14 @@
         [checked]="mode() === 'flat'"
         [disabled]="disabled()"
         (change)="mode.set('flat')"
-      />Flat resistance</span
+      />{{ machine() === 'treadmill' ? 'Flat speed' : 'Flat resistance' }}</span
     >
-    <p>One level, held the whole ride. You set the pace with your legs.</p>
+    <p>
+      @if (machine() === 'treadmill') {
+        One speed and incline, held the whole ride.
+      } @else {
+        One level, held the whole ride. You set the pace with your legs.
+      }
+    </p>
   </label>
 </fieldset>

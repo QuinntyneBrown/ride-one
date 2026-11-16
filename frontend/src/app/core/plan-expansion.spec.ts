@@ -1,4 +1,10 @@
-import { estimateWatts, expandPlan, planSummary, totalSeconds } from './plan-expansion';
+import {
+  estimateWatts,
+  expandPlan,
+  expectedDistanceKm,
+  planSummary,
+  totalSeconds,
+} from './plan-expansion';
 import type { HiitPlan } from './api-types';
 
 // The same rows as PlanExpanderTests and WorkoutSummaryTests in Wattzup.Core.Tests (L2-059 AC4).
@@ -167,5 +173,69 @@ describe('estimateWatts (L2-049)', () => {
     [70, 6, 104],
   ])('estimates cadence %i at level %i as %i W', (cadence, level, watts) => {
     expect(estimateWatts(cadence, level)).toBe(watts);
+  });
+});
+
+// The same rows as the backend's treadmill PlanExpanderTests (L2-068).
+describe('expandPlan for the treadmill (L2-068)', () => {
+  const treadmill = {
+    kind: 'hiit',
+    rounds: 2,
+    work_seconds: 40,
+    rest_seconds: 20,
+    work_level: null,
+    rest_level: null,
+    warmup: true,
+    cooldown: true,
+    work_speed: 9,
+    rest_speed: 7,
+    work_incline: 2,
+    rest_incline: 1,
+  } as const;
+  const seg = (
+    kind: string,
+    start: number,
+    duration: number,
+    speed: number,
+    incline: number,
+    round: number | null,
+  ) => ({
+    kind,
+    start,
+    duration,
+    level: null,
+    cadence: null,
+    round,
+    speed,
+    incline,
+  });
+
+  it('warms up at rest speed and incline 0, cools down at rest speed and incline 0 (AC1)', () => {
+    expect(expandPlan(treadmill)).toEqual([
+      seg('warmup', 0, 180, 7, 0, null),
+      seg('work', 180, 40, 9, 2, 1),
+      seg('rest', 220, 20, 7, 1, 1),
+      seg('work', 240, 40, 9, 2, 2),
+      seg('cooldown', 280, 120, 7, 0, null),
+    ]);
+  });
+
+  it('keeps the last rest without a cool-down', () => {
+    const segments = expandPlan({ ...treadmill, warmup: false, cooldown: false, rounds: 1 });
+    expect(segments).toEqual([seg('work', 0, 40, 9, 2, 1), seg('rest', 40, 20, 7, 1, 1)]);
+  });
+
+  it('expands a flat plan into one steady segment at speed and incline (AC2)', () => {
+    const flat = {
+      kind: 'flat',
+      level: null,
+      minutes: 30,
+      cadence: null,
+      speed: 7,
+      incline: 2,
+    } as const;
+    expect(expandPlan(flat)).toEqual([seg('steady', 0, 1800, 7, 2, null)]);
+    expect(planSummary(flat)).toBe('Flat · 7.0 km/h · 30 min');
+    expect(expectedDistanceKm(expandPlan(flat))).toBe(3.5);
   });
 });
