@@ -1,3 +1,4 @@
+@use 'design-system/skeleton';
 @use 'design-system/app-bar';
 @use 'design-system/label';
 
@@ -46,4 +47,57 @@
     padding-inline: var(--space-6);
     overflow-y: auto;
   }
+}
+
+.readouts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-6) var(--space-12);
+}
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .readouts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+}
+.readouts--dimmed {
+  opacity: 0.45;
+}
+.delta {
+  font-weight: var(--font-weight-medium);
+}
+.delta--on {
+  color: var(--color-fg-accent);
+}
+.delta--low {
+  color: var(--color-fg-warn);
+}
+.delta--high {
+  color: var(--color-fg-default);
+}
+.skeleton--power {
+  width: 13rem;
+  height: 7rem;
+}
+.skeleton--cadence {
+  width: 7rem;
+  height: 3.5rem;
+}
+.skeleton--sub {
+  width: 9rem;
+  height: 1rem;
+  margin-top: var(--space-2);
+}
+.trace-skeleton {
+  margin-top: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: var(--layout-trace-min);
+}
+.skeleton--trace {
+  flex: 1;
+  min-height: 12rem;
 }

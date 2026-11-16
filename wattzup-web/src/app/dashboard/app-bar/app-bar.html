@@ -7,6 +7,53 @@
     <span class="lockup__word">wattzup</span>
   </a>
   <span class="app-bar__divider" aria-hidden="true"></span>
-  <wz-status-line />
-  <div class="app-bar__end"></div>
+  @if (view().view === 'loading') {
+    <span class="skeleton skeleton--status" aria-hidden="true"></span>
+  } @else {
+    <wz-status-line />
+  }
+  @if (workout(); as w) {
+    <a
+      class="btn btn--quiet btn--sm app-bar__workout"
+      routerLink="/setup"
+      [attr.aria-label]="'Edit workout: ' + w.summary"
+      ><wz-icon name="sliders" size="sm" />{{ w.summary }}</a
+    >
+  } @else {
+    <a class="btn btn--quiet btn--sm app-bar__workout" routerLink="/setup"
+      ><wz-icon name="sliders" size="sm" />Set up a ride</a
+    >
+  }
+  <div class="app-bar__end">
+    @if (badge(); as b) {
+      <span class="badge badge--warning">{{ b }}</span>
+    }
+    @if (view().view === 'loading') {
+      <span class="skeleton skeleton--clock" aria-hidden="true"></span>
+    } @else {
+      <wz-ride-clock [workout]="workout()" />
+    }
+    @if (paused()) {
+      <button
+        class="btn"
+        type="button"
+        [disabled]="!view().pauseEnabled"
+        (click)="actions.resume()"
+      >
+        <wz-icon name="play" size="sm" /><span class="btn__label">Resume</span>
+      </button>
+    } @else {
+      <button class="btn" type="button" [disabled]="!view().pauseEnabled" (click)="actions.pause()">
+        <wz-icon name="pause" size="sm" /><span class="btn__label">Pause</span>
+      </button>
+    }
+    <button
+      class="btn btn--quiet btn--end"
+      type="button"
+      [disabled]="!view().endEnabled"
+      (click)="actions.end($event)"
+    >
+      <wz-icon name="stop" size="sm" /><span class="btn__label">End</span>
+    </button>
+  </div>
 </header>

@@ -1,9 +1,65 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app app--fixed">
-  <wz-app-bar />
+  <wz-app-bar [workout]="workout()" [view]="view()" />
   <div class="ride-layout">
-    <main id="main" class="ride-main" tabindex="-1">
+    <main
+      id="main"
+      class="ride-main"
+      tabindex="-1"
+      [attr.aria-busy]="view().view === 'loading' ? 'true' : null"
+    >
       <h1 class="visually-hidden">Ride dashboard</h1>
+      @if (view().view === 'loading') {
+        <div class="readouts" aria-hidden="true">
+          <div>
+            <span class="label">Power</span>
+            <span class="skeleton skeleton--rect skeleton--power"></span>
+            <span class="skeleton skeleton--rect skeleton--sub"></span>
+          </div>
+          <div>
+            <span class="label">Cadence</span>
+            <span class="skeleton skeleton--rect skeleton--cadence"></span>
+            <span class="skeleton skeleton--rect skeleton--sub"></span>
+          </div>
+          <wz-interval [loading]="true" />
+        </div>
+        <div class="trace-skeleton" aria-hidden="true">
+          <span class="skeleton skeleton--rect skeleton--trace"></span>
+        </div>
+        <wz-metrics-strip />
+      } @else {
+        <div class="readouts" [class.readouts--dimmed]="view().dimmed">
+          @let p = power();
+          <wz-readout
+            kind="power"
+            label="Power"
+            [value]="p.value"
+            unit="W"
+            estimate="Estimated from cadence and resistance"
+          >
+            @if (p.target !== null) {
+              <span>Target {{ p.target }} W</span>
+              @if (p.delta; as d) {
+                <span
+                  class="delta"
+                  [class.delta--on]="d.tone === 'on'"
+                  [class.delta--high]="d.tone === 'high'"
+                  [class.delta--low]="d.tone === 'low'"
+                  >{{ d.text }}</span
+                >
+              }
+            } @else {
+              <span>Free ride — no target</span>
+            }
+          </wz-readout>
+          @let c = cadence();
+          <wz-readout kind="cadence" label="Cadence" [value]="c.value" unit="rpm">{{
+            c.sub
+          }}</wz-readout>
+          <wz-interval [workout]="workout()" />
+        </div>
+        <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
+      }
     </main>
     <aside class="ride-aside" aria-label="Bike control"></aside>
   </div>
