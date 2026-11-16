@@ -1,0 +1,50 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Host composition
+
+class Program <<static>> {
+  +Main(args: string[]): Task
+}
+class WattzupOptions {
+  +string Urls = "http://127.0.0.1:8787"
+  +SecurityOptions Security
+  +BleOptions Ble
+  +RawPacketLogOptions RawPacketLog
+  +StatusSnapshotOptions StatusSnapshot
+}
+abstract class BackgroundService {
+  #ExecuteAsync(ct): Task
+}
+class BikeConnectionService
+class WorkoutEngineHost
+class RawPacketLogWriter
+class StatusSnapshotWriter
+class StateChangeLogger
+class BikeStateStore <<singleton>>
+class StateBroadcaster <<singleton>>
+class ActiveConnectionRegistry <<singleton>>
+class EndpointGroups <<static>> {
+  +MapStatus / MapEvents / MapResistance / MapWorkout / MapHealth
+}
+
+BackgroundService <|-- BikeConnectionService
+BackgroundService <|-- WorkoutEngineHost
+BackgroundService <|-- RawPacketLogWriter
+BackgroundService <|-- StatusSnapshotWriter
+BackgroundService <|-- StateChangeLogger
+Program ..> WattzupOptions : binds
+Program ..> BackgroundService : registers
+Program ..> BikeStateStore : registers
+Program ..> StateBroadcaster : registers
+Program ..> ActiveConnectionRegistry : registers
+Program ..> EndpointGroups : maps
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Observability and resource use
+
+Person_Ext(dev, "Developer / operator", "Reads logs, checks health")
+Container_Boundary(api, "Wattzup API") {
+  Component(store, "BikeStateStore", "Wattzup.Core", "StateChanged")
+  Component(scl, "StateChangeLogger", "Wattzup.Api", "Logs ble and workout transitions")
+  Component(log, "Log (LoggerMessage)", "Source generated", "Structured events")
+  Component(health, "HealthEndpoints", "Minimal API", "GET /health")
+}
+Container_Boundary(web, "Wattzup Web") {
+  Component(vis, "VisibilityPause", "Angular service", "Stops rAF when hidden")
+  Component(anim, "HeroClock / RingCanvas", "Angular components", "Animation loops")
+}
+
+Rel(store, scl, "StateChanged")
+Rel(scl, log, "BleStateChanged / WorkoutStatusChanged")
+Rel(health, store, "Reads ble")
+Rel(dev, health, "GET", "HTTP")
+Rel(dev, log, "Reads", "stdout JSON")
+Rel(anim, vis, "Subscribes")
+@enduml

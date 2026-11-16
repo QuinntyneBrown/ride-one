@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Observability and resource use
+
+Person(rider, "Rider", "Rides the bike and watches the dashboard")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular SPA", "Dashboard, countdown and controls in the browser")
+  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
+  ContainerDb(files, "Local files", "File system", "raw_packets.log, status.json")
+}
+
+Rel(rider, web, "Uses", "HTTPS / localhost")
+Rel(web, api, "Calls REST and subscribes to SSE", "JSON/HTTP")
+Rel(api, files, "Appends and writes")
+@enduml

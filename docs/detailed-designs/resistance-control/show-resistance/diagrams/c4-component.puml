@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Show resistance
+
+Person(rider, "Rider", "Watches the dashboard")
+Container_Boundary(web, "Wattzup Web") {
+  Component(live, "LiveStateService", "Angular service", "state signal from SSE")
+  Component(card, "ResistanceCard", "Angular component", "valueText, barPercent, targetLabel, markerPercent")
+  Component(bar, "ResistanceBar", "Angular component", "Meter with target marker")
+}
+Container(api, "Wattzup API", "ASP.NET Core", "Publishes BikeState over SSE")
+
+Rel(api, live, "data: BikeState", "SSE")
+Rel(card, live, "Reads state()")
+Rel(card, bar, "percent, markerPercent")
+Rel(rider, card, "Reads")
+@enduml

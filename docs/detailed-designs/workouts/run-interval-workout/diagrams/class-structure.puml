@@ -1,0 +1,70 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Run an interval workout
+
+class WorkoutEngine {
+  -WorkoutRun? current
+  -CancellationTokenSource? cts
+  -ActiveConnectionRegistry registry
+  -IResistanceCommander commander
+  -BikeStateStore store
+  -TimeProvider time
+  +TimeSpan ShutdownGrace = 90 s
+  +Start(def: WorkoutDefinition): void
+  +Stop(): void
+  -RunAsync(run: WorkoutRun, ct): Task
+  -TickAsync(run: WorkoutRun): Task<bool>
+}
+
+class WorkoutRun {
+  +WorkoutDefinition Definition
+  +int Step
+  +int Cycle
+  +int Remaining
+  +string Status
+  +(int, int)? SentFor
+  +double? GoneSince
+  +Advance(): void
+  +ToSnapshot(): WorkoutSnapshot
+}
+
+class WorkoutSnapshot <<record>> {
+  +int[][] Steps
+  +int Step
+  +int Cycle
+  +int Remaining
+  +string Status
+}
+
+class WorkoutStatus <<static>> {
+  +WaitingForBike = "waiting for bike"
+  +Running = "running"
+  +Paused = "paused: bike disconnected"
+  +Ended = "ended: bike shut off"
+  +Stopped = "stopped"
+}
+
+class WorkoutDefinition <<record>>
+interface IResistanceCommander {
+  +TrySendAsync(level: int, ct): Task<bool>
+}
+class ActiveConnectionRegistry {
+  +bool IsConnected
+}
+
+WorkoutEngine *-- "0..1" WorkoutRun
+WorkoutRun --> WorkoutDefinition
+WorkoutRun ..> WorkoutSnapshot : projects
+WorkoutRun ..> WorkoutStatus
+WorkoutEngine --> IResistanceCommander
+WorkoutEngine --> ActiveConnectionRegistry
+@enduml

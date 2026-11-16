@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Record and rotate raw packets
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "TelemetryIngestor" as ing
+  participant "RawPacketLogger" as logger
+  participant "RawPacketLogWriter" as writer
+  participant "RawPacketFormatter" as fmt
+end box
+box "Backend — Wattzup Infrastructure (BLE, files)" #FFF4E5
+  participant "RollingFile" as roll
+  database "raw_packets.log" as file
+end box
+
+ing -> logger : Enqueue(1794784639.0213, F0 D2 01 0C CF)
+logger --> ing : returns immediately (no I/O) [L2-030]
+loop while items available
+  writer -> logger : ReadAllAsync
+  logger --> writer : RawPacket
+  writer -> fmt : Format(packet)
+  fmt --> writer : "1794784639.021 f0 d2 01 0c cf"
+  writer -> roll : AppendAsync(line)
+  alt file length >= 10 MB
+    roll -> file : close; shift .N to .N+1; rename active to .1
+    roll -> file : delete archives beyond 5 [L2-030]
+    roll -> file : reopen raw_packets.log
+  end
+  roll -> file : append line
+end
+writer -> roll : FlushAsync (per batch or 1 s)
+@enduml

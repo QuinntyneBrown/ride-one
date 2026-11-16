@@ -1,0 +1,72 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Stream live state
+
+class BikeState <<record>> {
+  +string Ble
+  +string? Device
+  +string? Error
+  +int? Resistance
+  +int? TargetResistance
+  +WorkoutSnapshot? Workout
+  +int? Cadence
+  +double? SpeedKmh
+  +double? SpeedMph
+  +long Packets
+  +double? FirstDataAt
+  +double? LastDataAt
+  +int UiClients
+  +double? DisplayedSince
+  +double DisplayedSeconds
+}
+class BikeStateStore {
+  +BikeState Current
+  +event StateChanged
+  +Update(change): void
+  +Touch(): void
+}
+class DisplayTimeTracker <<static>> {
+  +FreshnessWindow = 5 s
+  +Apply(state: BikeState, now: double): BikeState
+}
+class StateBroadcaster {
+  -ConcurrentDictionary<Guid, SseClient> clients
+  +Register(): SseClient
+  +Unregister(id: Guid): void
+  -OnStateChanged(): void
+}
+class SseClient {
+  +Guid Id
+  +Channel<ReadOnlyMemory<byte>> Channel
+  +long Dropped
+}
+class EventsEndpoints <<static>> {
+  +HeartbeatInterval = 15 s
+  +MapEvents(app): void
+}
+class StatusEndpoints <<static>> {
+  +MapStatus(app): void
+}
+class LiveStateService <<Angular service>> {
+  +Signal<BikeState | null> state
+  +Signal<'connecting' | 'open' | 'offline'> connection
+  -connect(): void
+}
+
+BikeStateStore *-- BikeState
+StateBroadcaster --> BikeStateStore : subscribes
+StateBroadcaster ..> DisplayTimeTracker
+StateBroadcaster "1" *-- "0..*" SseClient
+EventsEndpoints --> StateBroadcaster
+StatusEndpoints --> BikeStateStore
+LiveStateService ..> EventsEndpoints : EventSource
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Viewport change and step announcement
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "Browser layout (CSS)" as css
+  participant "DashboardPage" as page
+  participant "RingCanvas" as ring
+  participant "TransitionBanner" as banner
+  participant "MotionPreference" as motion
+  participant "LiveAnnouncer" as ann
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "EventsEndpoints" as ep
+end box
+
+rider -> css : Rotate phone 375 px to 812 px
+css -> page : grid 1 column -> 2 columns (>= 768 px) [L2-040]
+css -> ring : ResizeObserver callback
+ring -> ring : canvas = clientSize x min(dpr, 2); redraw [L2-040]
+ep -> banner : workout step changes (via TransitionDetector)
+banner -> motion : reduced()
+alt reduced motion
+  banner -> banner : no animation [L2-041]
+else
+  banner -> banner : play 1.8 s banner animation
+end
+banner -> ann : announce("Effort, resistance 24, 30 seconds", polite) [L2-041]
+ann --> rider : screen reader reads phase once
+note over page : clock has aria-live="off"; seconds are not announced
+@enduml

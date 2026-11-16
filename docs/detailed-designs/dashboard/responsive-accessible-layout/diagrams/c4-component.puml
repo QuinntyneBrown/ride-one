@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Responsive and accessible layout
+
+Person(rider, "Rider", "Phone, tablet, desktop; keyboard or screen reader")
+Container_Boundary(web, "Wattzup Web") {
+  Component(page, "DashboardPage", "Angular component", "Responsive grid and DOM order")
+  Component(widgets, "Dashboard components", "Angular components", "HeroClock, cards, timeline, panel, footer")
+  Component(motion, "MotionPreference", "Angular service", "prefers-reduced-motion signal")
+  Component(announcer, "LiveAnnouncer", "Angular CDK", "Polite announcements")
+  Component(resize, "ResizeObserver", "Browser API", "Canvas re-sizing")
+}
+
+Rel(rider, page, "Uses with touch, mouse or keyboard")
+Rel(page, widgets, "Lays out")
+Rel(widgets, motion, "Reads reduced")
+Rel(widgets, announcer, "announce(phase)")
+Rel(widgets, resize, "Observes canvas size")
+@enduml

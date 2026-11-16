@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Start and stop a workout
+
+Person(rider, "Rider", "Plans intervals")
+Container_Boundary(web, "Wattzup Web") {
+  Component(panel, "WorkoutPanel", "Angular component", "Step list form, Start and Stop")
+  Component(draft, "WorkoutDraftStore", "Angular service", "localStorage draft")
+  Component(api, "BikeApi", "Angular service", "Typed HTTP client")
+}
+Container_Boundary(be, "Wattzup API") {
+  Component(ep, "WorkoutEndpoints", "Minimal API", "POST /api/workout, POST /api/workout/stop")
+  Component(val, "WorkoutValidator", "Wattzup.Core", "Builds WorkoutDefinition or rejects")
+  Component(engine, "WorkoutEngine", "BackgroundService", "Runs one workout at a time")
+}
+
+Rel(rider, panel, "Edits steps, presses Start or Stop")
+Rel(panel, draft, "Load / Save")
+Rel(panel, api, "startWorkout / stopWorkout")
+Rel(api, ep, "POST", "JSON/HTTP")
+Rel(ep, val, "Validate(steps)")
+Rel(ep, engine, "Start(definition) / Stop()")
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Secure the API
+
+class SecurityOptions {
+  +string? ApiKey
+  +string[] CorsOrigins
+  +int ControlPermitsPerSecond = 20
+  +long MaxRequestBodyBytes = 16384
+  +TimeSpan EventTokenLifetime = 60 s
+}
+class BindAddressGuard <<IHostedLifecycleService>> {
+  +StartingAsync(ct): Task
+  -IsLoopback(url: string): bool
+}
+class ApiKeyAuthenticationHandler {
+  +HeaderName = "X-Api-Key"
+  #HandleAuthenticateAsync(): Task<AuthenticateResult>
+}
+class EventTokenService {
+  -IMemoryCache cache
+  +Issue(): string
+  +TryConsume(token: string): bool
+}
+class SecurityHeadersMiddleware {
+  +InvokeAsync(ctx: HttpContext, next): Task
+}
+class SecurityRegistration <<static>> {
+  +AddWattzupSecurity(services, config): IServiceCollection
+  +UseWattzupSecurity(app): WebApplication
+}
+
+BindAddressGuard --> SecurityOptions
+ApiKeyAuthenticationHandler --> SecurityOptions
+EventTokenService --> SecurityOptions
+SecurityRegistration ..> BindAddressGuard : registers
+SecurityRegistration ..> ApiKeyAuthenticationHandler : registers
+SecurityRegistration ..> EventTokenService : registers
+SecurityRegistration ..> SecurityHeadersMiddleware : uses
+@enduml

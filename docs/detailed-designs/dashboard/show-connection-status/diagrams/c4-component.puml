@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Show connection status
+
+Person(rider, "Rider", "Glances at the header and footer")
+Container_Boundary(web, "Wattzup Web") {
+  Component(live, "LiveStateService", "Angular service", "state + connection signals, 2 s reconnect")
+  Component(pill, "ConnectionPill", "Angular component", "Dot + ble · device")
+  Component(footer, "DiagnosticsFooter", "Angular component", "error, packets, live, updated")
+  Component(errs, "UiErrorStore", "Angular service", "Latest client-side error")
+}
+Container(api, "Wattzup API", "ASP.NET Core", "SSE /api/events")
+
+Rel(api, live, "data: BikeState", "SSE")
+Rel(pill, live, "Reads")
+Rel(footer, live, "Reads")
+Rel(footer, errs, "Reads")
+Rel(rider, pill, "Reads")
+@enduml

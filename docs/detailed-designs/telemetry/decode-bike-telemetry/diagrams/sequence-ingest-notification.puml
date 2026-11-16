@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Ingest one notification
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+participant "Echelon bike" as bike
+box "Backend — Wattzup Infrastructure (BLE, files)" #FFF4E5
+  participant "IBikeConnection" as conn
+  participant "RawPacketLogger" as log
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "TelemetryIngestor" as ing
+  participant "PacketDecoder" as dec
+  participant "SpeedCalculator" as speed
+  participant "BikeStateStore" as store
+end box
+
+bike -> conn : notification (frame bytes)
+conn -> ing : OnNotify(frame)
+ing -> store : Update(packets += 1) [L2-005]
+ing -> log : Enqueue(now, frame)
+ing -> dec : Decode(frame)
+alt length < 4, byte0 != F0, unknown type, or D1 shorter than 13 bytes
+  dec --> ing : null [L2-005]
+else type D2
+  dec --> ing : ResistanceUpdate(frame[3]) [L2-006]
+  ing -> store : Update(resistance, last_data_at = now, first_data_at ??= now)
+else type D1, length >= 13
+  dec -> dec : rpm = (frame[9] << 8) | frame[10]
+  dec -> speed : ToKmh(rpm), ToMph(rpm)
+  speed --> dec : round(rpm x 0.37497622, 1), round(rpm x 0.37497622 / 1.609344, 1)
+  dec --> ing : CadenceUpdate(rpm, kmh, mph) [L2-007]
+  ing -> store : Update(cadence, speed_kmh, speed_mph, last_data_at = now, first_data_at ??= now)
+end
+store -> store : Raise StateChanged (broadcast)
+@enduml

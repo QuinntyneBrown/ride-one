@@ -1,0 +1,46 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Responsive and accessible layout
+
+class DashboardPage <<component>>
+class ConnectionPill <<component>>
+class SoundToggle <<component>>
+class HeroClock <<component>>
+class RingCanvas <<component>>
+class StepTimeline <<component>>
+class ResistanceCard <<component>>
+class SpeedCard <<component>>
+class WorkoutPanel <<component>>
+class DiagnosticsFooter <<component>>
+class TransitionBanner <<component>>
+class MotionPreference <<service>> {
+  +Signal<boolean> reduced
+}
+class LiveAnnouncer <<CDK service>> {
+  +announce(msg: string, politeness): Promise<void>
+}
+
+DashboardPage *-- ConnectionPill
+DashboardPage *-- SoundToggle
+DashboardPage *-- HeroClock
+DashboardPage *-- RingCanvas
+DashboardPage *-- StepTimeline
+DashboardPage *-- ResistanceCard
+DashboardPage *-- SpeedCard
+DashboardPage *-- WorkoutPanel
+DashboardPage *-- DiagnosticsFooter
+DashboardPage *-- TransitionBanner
+HeroClock ..> MotionPreference
+RingCanvas ..> MotionPreference
+TransitionBanner ..> MotionPreference
+TransitionBanner ..> LiveAnnouncer
+@enduml

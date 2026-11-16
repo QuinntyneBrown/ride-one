@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Discover and connect the bike
+
+Container_Boundary(api, "Wattzup API") {
+  Component(svc, "BikeConnectionService", "BackgroundService", "Runs scan, connect and initialise loop")
+  Component(filter, "EchelonDeviceFilter", "Wattzup.Protocol", "Matches ECH* names or the Echelon service UUID")
+  Component(cmds, "EchelonCommands", "Wattzup.Protocol", "Builds the init command sequence")
+  Component(store, "BikeStateStore", "Wattzup.Core", "Owns BikeState and raises StateChanged")
+  Component(transport, "IBikeTransport", "Wattzup.Ble.Abstractions", "Platform-neutral scan and connect")
+}
+System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
+
+Rel(svc, filter, "Passes as scan predicate")
+Rel(svc, cmds, "Reads InitSequence")
+Rel(svc, transport, "ScanAsync / ConnectAsync")
+Rel(svc, store, "Sets ble, device, error")
+Rel(transport, os, "Calls native APIs")
+@enduml

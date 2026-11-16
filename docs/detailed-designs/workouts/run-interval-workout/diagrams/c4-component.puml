@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Run an interval workout
+
+Container_Boundary(api, "Wattzup API") {
+  Component(engine, "WorkoutEngine", "Wattzup.Core", "1 s tick loop over WorkoutRun")
+  Component(reg, "ActiveConnectionRegistry", "Singleton", "Is the bike connected?")
+  Component(cmdr, "IResistanceCommander", "Wattzup.Core", "Sends set-resistance commands")
+  Component(store, "BikeStateStore", "Wattzup.Core", "workout, resistance, error")
+  Component(clock, "IClock / TimeProvider", ".NET", "Real or virtual time")
+}
+System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+
+Rel(engine, reg, "IsConnected")
+Rel(engine, cmdr, "TrySendAsync(level)")
+Rel(engine, store, "Reads resistance; Update(workout)")
+Rel(engine, clock, "Ticks and timestamps")
+Rel(cmdr, bike, "Write with response", "BLE GATT")
+@enduml

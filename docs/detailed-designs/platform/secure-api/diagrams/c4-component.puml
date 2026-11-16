@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Secure the API
+
+Container_Boundary(web, "Wattzup Web") {
+  Component(interceptor, "ApiKeyInterceptor", "Angular HttpInterceptor", "Adds X-Api-Key")
+  Component(live, "LiveStateService", "Angular service", "Requests event token, opens EventSource")
+}
+Container_Boundary(api, "Wattzup API") {
+  Component(guard, "BindAddressGuard", "Startup check", "Non-loopback requires API key")
+  Component(headers, "SecurityHeadersMiddleware", "Middleware", "nosniff, Referrer-Policy, CSP")
+  Component(cors, "CORS policy", "ASP.NET Core", "Configured origins only")
+  Component(auth, "ApiKeyAuthenticationHandler", "AuthenticationHandler", "Constant-time key check")
+  Component(rate, "Rate limiter 'control'", "ASP.NET Core", "20 req/s per client")
+  Component(tokens, "EventTokenService", "Wattzup.Api", "60 s single-use SSE tokens")
+  Component(endpoints, "Endpoints", "Minimal API", "/api/*")
+}
+
+Rel(interceptor, headers, "HTTP with X-Api-Key", "JSON/HTTP")
+Rel(live, tokens, "POST /api/events/token, GET /api/events?token=")
+Rel(headers, cors, "Next")
+Rel(cors, auth, "Next")
+Rel(auth, rate, "Next")
+Rel(rate, endpoints, "Next")
+Rel(endpoints, tokens, "TryConsume(token)")
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Observability and resource use
+
+class Log <<static partial>> {
+  +BleStateChanged(logger, ble, device, error): void
+  +WorkoutStatusChanged(logger, status, step, cycle): void
+  +ApiRequestFailed(logger, path, statusCode, error): void
+  +PacketReceived(logger, length, type): void
+}
+class StateChangeLogger {
+  -string? lastBle
+  -string? lastWorkoutStatus
+  -OnStateChanged(): void
+}
+class HealthEndpoints <<static>> {
+  +MapHealth(app): void
+}
+class SoakTests <<xUnit, Soak>> {
+  +BackendMemoryAndCpuStayWithinBudget(): Task
+}
+class VisibilityPause <<Angular service>> {
+  +Signal<boolean> hidden
+}
+class BikeStateStore {
+  +event StateChanged
+}
+
+StateChangeLogger --> BikeStateStore
+StateChangeLogger ..> Log
+HealthEndpoints ..> BikeStateStore
+@enduml

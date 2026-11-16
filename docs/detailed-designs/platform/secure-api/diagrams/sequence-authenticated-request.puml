@@ -1,0 +1,47 @@
+@startuml
+title UML sequence behaviour — Authenticated control request and event stream
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "BikeApi + ApiKeyInterceptor" as api
+  participant "LiveStateService" as live
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "SecurityHeadersMiddleware" as hdr
+  participant "ApiKeyAuthenticationHandler" as auth
+  participant "Rate limiter" as rate
+  participant "EventTokenService" as tokens
+  participant "Endpoint" as ep
+end box
+
+rider -> api : Set resistance 18
+api -> hdr : POST /api/resistance, X-Api-Key, body <= 16 KB
+hdr -> auth : authenticate
+alt key missing or wrong (FixedTimeEquals false)
+  auth --> api : 401 (nothing reaches the bike) [L2-035]
+else key valid
+  auth -> rate : acquire 'control'
+  alt > 20 requests in 1 s from client
+    rate --> api : 429 [L2-036]
+  else permitted
+    rate -> ep : handle
+    ep --> hdr : 200 {"sent":18}
+    hdr --> api : + nosniff, no-referrer, CSP [L2-036]
+  end
+end
+live -> tokens : POST /api/events/token (X-Api-Key)
+tokens --> live : {token} (60 s, single use) [L2-035]
+live -> ep : GET /api/events?token=...
+ep -> tokens : TryConsume(token)
+alt valid and unused
+  tokens --> ep : true
+  ep --> live : SSE stream
+else expired or reused
+  tokens --> ep : false
+  ep --> live : 401
+end
+@enduml

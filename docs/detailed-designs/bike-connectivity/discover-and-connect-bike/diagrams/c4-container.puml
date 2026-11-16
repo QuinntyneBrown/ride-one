@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Discover and connect the bike
+
+System_Boundary(wattzup, "Wattzup") {
+  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
+}
+System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
+System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+
+Rel(api, os, "Scans, connects, subscribes and writes", "IBikeTransport")
+Rel(os, bike, "Notifications and commands", "BLE GATT")
+@enduml

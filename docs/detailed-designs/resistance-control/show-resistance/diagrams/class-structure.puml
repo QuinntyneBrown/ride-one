@@ -1,0 +1,35 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Show resistance
+
+class LiveStateService <<service>> {
+  +Signal<BikeState | null> state
+}
+class ResistanceCard <<component>> {
+  +Signal<string> valueText
+  +Signal<number> barPercent
+  +Signal<string> targetLabel
+  +Signal<number | null> markerPercent
+}
+class ResistanceBar <<component>> {
+  +InputSignal<number> percent
+  +InputSignal<number | null> markerPercent
+}
+interface BikeState {
+  +resistance: number | null
+  +target_resistance: number | null
+}
+
+ResistanceCard --> LiveStateService : reads
+ResistanceCard *-- ResistanceBar
+LiveStateService ..> BikeState : emits
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Show live metrics
+
+Person(rider, "Rider", "Rides the bike and watches the dashboard")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular SPA", "Dashboard, countdown and controls in the browser")
+  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
+}
+System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
+System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+
+Rel(rider, web, "Uses", "HTTPS / localhost")
+Rel(web, api, "Calls REST and subscribes to SSE", "JSON/HTTP")
+Rel(api, os, "Scans, connects, subscribes and writes", "IBikeTransport")
+Rel(os, bike, "Notifications and commands", "BLE GATT")
+@enduml

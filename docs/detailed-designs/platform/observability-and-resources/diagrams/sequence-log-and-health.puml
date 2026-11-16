@@ -1,0 +1,31 @@
+@startuml
+title UML sequence behaviour — State transition logging and health
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Operator" as op
+box "Backend — Wattzup API application" #D1FADF
+  participant "BikeConnectionService" as svc
+  participant "StateChangeLogger" as scl
+  participant "HealthEndpoints" as health
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "BikeStateStore" as store
+end box
+box "Backend — Wattzup Infrastructure" #FFF4E5
+  participant "Console (JSON)" as out
+end box
+
+svc -> store : Update(ble = connected, device = "ECHEX-3-141844")
+store -> scl : StateChanged
+scl -> scl : ble changed?
+scl -> out : Information BleStateChanged {Ble:"connected", Device:"ECHEX-3-141844"} [L2-033]
+svc -> store : Touch() (keepalive)
+store -> scl : StateChanged
+scl -> scl : no ble/status change: nothing logged
+op -> health : GET /health
+health -> store : Current.ble
+health --> op : 200 {"status":"ok","ble":"connected"} [L2-033]
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Countdown and step-transition cues
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "SoundToggle" as toggle
+  participant "CueService" as cue
+  participant "HeroClock" as clock
+  participant "CountdownCues" as cd
+  participant "TransitionDetector" as det
+  participant "TransitionBanner" as banner
+  participant "LiveStateService" as live
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "EventsEndpoints" as sse
+end box
+
+rider -> toggle : Press "🔇 Beeps off"
+toggle -> cue : toggle()
+cue -> cue : new AudioContext; enabled = true; beep(880, 0.08) [L2-027]
+toggle --> rider : "🔔 Beeps on"
+loop whole second changes while running
+  clock -> cd : onWholeSecond(n)
+  opt n in 5..1
+    cd -> clock : pulse digits (skipped with reduced motion)
+  end
+  opt n in 3..1
+    cd -> cue : beep(660, 0.09) [L2-027]
+  end
+end
+sse -> live : data: workout {cycle:3, step:1, steps:[[12,120],[24,30]]}
+live -> det : observe(workout)
+alt first state or same key
+  det --> live : null (no cue) [L2-027]
+else key changed to "3:1"
+  det --> banner : Transition(effort, 24, 30)
+  banner --> rider : "EFFORT · 24 · GO!" for 1.8 s; ring flash
+  banner -> cue : beep(990, 0.35) (520 Hz for recovery) [L2-027]
+  banner --> rider : live region "Effort, resistance 24, 30 seconds"
+end
+@enduml

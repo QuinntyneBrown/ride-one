@@ -1,0 +1,24 @@
+# Generated caches
+.cache/
+
+# Python caches (skill scripts)
+__pycache__/
+
+# Runtime output of the backend
+raw_packets.log
+raw_packets.log.*
+status.json
+server.log
+
+# .NET build output
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store

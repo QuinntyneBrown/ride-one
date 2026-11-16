@@ -1,0 +1,28 @@
+@startuml
+title UML sequence behaviour — Keepalive while connected
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup API application" #D1FADF
+  participant "BikeConnectionService" as svc
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "BikeStateStore" as store
+  participant "StateBroadcaster" as bc
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeConnection" as conn
+end box
+participant "Echelon bike" as bike
+
+loop every 1 s while conn.IsConnected [L2-003]
+  svc -> conn : WriteAsync(WriteCharacteristic, F0 A0 01 01 92, withResponse: true)
+  conn -> bike : write request
+  bike --> conn : write response
+  svc -> store : Touch()
+  store -> bc : StateChanged
+  bc -> bc : Recompute displayed_seconds and fan out
+end
+@enduml

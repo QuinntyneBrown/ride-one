@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Solution projects
+
+Container_Boundary(proc, "Wattzup process") {
+  Component(api, "Wattzup.Api", "ASP.NET Core", "Program, hosted services, endpoints, security, wwwroot")
+  Component(core, "Wattzup.Core", "Class library", "State, broadcaster, workout engine, writers")
+  Component(proto, "Wattzup.Protocol", "Class library", "Commands, decoder, filters; no dependencies")
+  Component(abs, "Wattzup.Ble.Abstractions", "Class library", "IBikeTransport, IBikeConnection")
+  Component(plat, "Wattzup.Ble.*", "Class libraries", "Windows, BlueZ, CoreBluetooth, Simulated")
+  Component(spa, "wattzup-web (wwwroot)", "Angular build", "Static SPA assets")
+  Component(mac, "Wattzup.Mac", "net-macos app", "Bundle host on macOS")
+}
+
+Rel(api, core, "References")
+Rel(api, plat, "References (via TransportSelector)")
+Rel(api, spa, "Serves")
+Rel(core, proto, "References")
+Rel(core, abs, "References")
+Rel(plat, abs, "Implements")
+Rel(mac, api, "Hosts")
+@enduml

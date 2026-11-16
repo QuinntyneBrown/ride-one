@@ -1,0 +1,33 @@
+@startuml
+title UML sequence behaviour — Stop a workout
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "WorkoutPanel" as panel
+  participant "BikeApi" as api
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "WorkoutEndpoints" as ep
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "WorkoutEngine" as engine
+  participant "BikeStateStore" as store
+end box
+
+rider -> panel : Press Stop
+panel -> api : stopWorkout()
+api -> ep : POST /api/workout/stop
+ep -> engine : Stop()
+alt a workout exists
+  engine -> engine : cancel tick loop
+  engine -> store : Update(workout.status = "stopped")
+else no workout
+  engine -> engine : no-op; workout stays null
+end
+ep --> api : 200 {"stopped":true} [L2-017]
+api --> panel : ok
+@enduml

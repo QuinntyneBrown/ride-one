@@ -1,0 +1,44 @@
+@startuml
+title UML sequence behaviour — Start a workout
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "WorkoutPanel" as panel
+  participant "WorkoutDraftStore" as draft
+  participant "BikeApi" as api
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "WorkoutEndpoints" as ep
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "WorkoutValidator" as val
+  participant "WorkoutEngine" as engine
+end box
+
+panel -> draft : load()
+draft --> panel : last steps or [[12,120],[24,30]] [L2-029]
+rider -> panel : Edit steps: 12 for 120 s, 24 for 30 s
+alt any field invalid
+  panel --> rider : inline range error; Start disabled [L2-029]
+else form valid
+  rider -> panel : Press Start
+  panel -> api : startWorkout([[12,120],[24,30]])
+  api -> ep : POST /api/workout {"steps":[[12,120],[24,30]]}
+  ep -> val : TryCreate(steps) [L2-010]
+  alt invalid (empty, > 100 steps, level not 1..32, seconds not 1..3600, non-integer)
+    val --> ep : false
+    ep --> api : 400 {"error":"steps must be [[level 1-32, seconds>0], ...]"} [L2-017]
+    api --> panel : show error beside panel
+  else valid
+    val --> ep : WorkoutDefinition
+    ep -> engine : Start(definition) (cancels any running workout)
+    ep --> api : 200 {"started":[[12,120],[24,30]]} [L2-017]
+    api --> panel : ok
+    panel -> draft : save(steps)
+  end
+end
+@enduml

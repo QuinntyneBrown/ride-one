@@ -1,0 +1,31 @@
+@startuml
+title UML sequence behaviour — Ring renderer selection
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "RingCanvas" as ring
+  participant "WebGpuRingRenderer" as gpu
+  participant "WebGl2RingRenderer" as gl
+  participant "Canvas2dRingRenderer" as c2d
+end box
+
+ring -> gpu : create(canvas)
+alt navigator.gpu present, adapter found, WGSL compiles
+  gpu --> ring : renderer "WebGPU" [L2-028]
+else unavailable or shader error
+  gpu --> ring : null
+  ring -> gl : create(canvas)
+  alt webgl2 context and GLSL compile ok
+    gl --> ring : renderer "WebGL2" [L2-028]
+  else failure
+    gl --> ring : null
+    ring -> c2d : create(canvas)
+    c2d --> ring : renderer "Canvas 2D" [L2-028]
+  end
+end
+ring -> ring : rendererName.set(renderer.name)
+ring -> ring : size canvas at min(devicePixelRatio, 2)
+@enduml

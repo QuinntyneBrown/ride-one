@@ -1,0 +1,63 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Set resistance
+
+package "wattzup-web" {
+  class ResistanceCard <<component>> {
+    +Signal<BikeState> state
+    +WritableSignal<number> level = 12
+    +Signal<boolean> controlsDisabled
+    +adjust(delta: -1 | 1): void
+    +submit(): void
+    -clamp(n: number): number
+  }
+  class BikeApi <<service>> {
+    +setResistance(level: number): Promise<SetResistanceResult>
+  }
+}
+
+package "Wattzup.Api" {
+  class ResistanceEndpoints <<static>> {
+    +MapResistance(app: IEndpointRouteBuilder): void
+    -Handle(req: SetResistanceRequest, cmdr: IResistanceCommander): Task<IResult>
+  }
+  class SetResistanceRequest <<record>> {
+    +int? Level
+  }
+}
+
+package "Wattzup.Core" {
+  interface IResistanceCommander {
+    +TrySendAsync(level: int, ct): Task<bool>
+  }
+  class ResistanceCommander {
+    -ActiveConnectionRegistry registry
+    -BikeStateStore store
+    -SemaphoreSlim gate
+    +TrySendAsync(level: int, ct): Task<bool>
+  }
+}
+
+package "Wattzup.Protocol" {
+  class EchelonCommands <<static>> {
+    +SetResistance(level: int): byte[]
+    +Checksum(bytes: ReadOnlySpan<byte>): byte
+  }
+}
+
+ResistanceCard --> BikeApi
+BikeApi ..> ResistanceEndpoints : HTTP
+ResistanceEndpoints ..> SetResistanceRequest
+ResistanceEndpoints --> IResistanceCommander
+IResistanceCommander <|.. ResistanceCommander
+ResistanceCommander ..> EchelonCommands
+@enduml

@@ -1,0 +1,55 @@
+@startuml
+title UML sequence behaviour — Set resistance from the dashboard
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "ResistanceCard" as card
+  participant "BikeApi" as api
+  participant "DiagnosticsFooter" as footer
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "ResistanceEndpoints" as ep
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "ResistanceCommander" as cmdr
+  participant "EchelonCommands" as cmds
+  participant "BikeStateStore" as store
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeConnection" as conn
+end box
+participant "Echelon bike" as bike
+
+rider -> card : Press + (bike reports 10)
+card -> card : base = state.resistance ?? input; clamp(base + 1) to 1..32 = 11 [L2-020]
+card -> api : setResistance(11)
+api -> ep : POST /api/resistance {"level":11}
+alt level missing, non-integer, < 1 or > 32
+  ep --> api : 400 {"error":"level must be 1-32"} [L2-016]
+else valid
+  ep -> cmdr : TrySendAsync(11)
+  alt no active connection
+    cmdr --> ep : false (nothing written) [L2-008]
+    ep --> api : 503 {"error":"bike not connected"} [L2-016]
+  else connected
+    cmdr -> cmds : SetResistance(11)
+    cmds --> cmdr : F0 B1 01 0B AD [L2-008]
+    cmdr -> conn : WriteAsync(WriteCharacteristic, bytes, withResponse: true)
+    conn -> bike : write request
+    bike --> conn : write response
+    cmdr -> store : Update(target_resistance = 11) [L2-009]
+    cmdr --> ep : true
+    ep --> api : 200 {"sent":11}
+  end
+end
+alt non-2xx
+  api --> footer : error = response.error
+else network failure
+  api --> footer : error = "server offline" [L2-020]
+end
+bike -> conn : notify F0 D2 01 0B CE (actual level, see decode-bike-telemetry)
+@enduml

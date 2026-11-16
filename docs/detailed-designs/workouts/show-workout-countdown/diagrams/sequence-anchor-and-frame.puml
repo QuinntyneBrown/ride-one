@@ -1,0 +1,36 @@
+@startuml
+title UML sequence behaviour — Anchor and interpolate the countdown
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "LiveStateService" as live
+  participant "HeroClock" as clock
+  participant "CountdownModel" as model
+  participant "StepTimeline" as tl
+  participant "RingCanvas" as ring
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "EventsEndpoints" as sse
+end box
+
+sse -> live : data: workout {step:0, remaining:10, status:"running", steps:[[12,120],[24,30]]}
+live -> clock : state() changes
+clock -> clock : phaseText = "Recovery · Resistance 12"; nextText = "Next 30 s at 24" [L2-025]
+clock -> model : anchor(10, running, 120, now) [L2-024]
+loop every animation frame
+  clock -> model : shown(now)
+  model --> clock : max(0, 10 - min(1.25, elapsed))
+  clock -> clock : digits = formatClock(shown) e.g. "0:10"
+  clock -> tl : fill current = 1 - shown / 120 [L2-026]
+  clock -> ring : vis.frac = shown / 120; pulse over final 10 s [L2-028]
+end
+opt status != "running"
+  clock -> model : anchor(remaining, false, ...)
+  model --> clock : time held still [L2-024]
+  clock --> rider : status chip e.g. "paused: bike disconnected" [L2-025]
+end
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+title UML sequence behaviour — One workout tick
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "WorkoutEngine" as engine
+  participant "WorkoutRun" as run
+  participant "BikeStateStore" as store
+  participant "IResistanceCommander" as cmdr
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "ActiveConnectionRegistry" as reg
+end box
+
+engine -> reg : IsConnected
+alt not connected
+  engine -> run : GoneSince ??= now; SentFor = null
+  alt first_data_at set and now - GoneSince > 90 s
+    engine -> run : Status = "ended: bike shut off" [L2-013]
+    engine -> store : Update(workout)
+    engine -> engine : exit loop
+  else
+    engine -> run : Status = first_data_at ? "paused: bike disconnected" : "waiting for bike" [L2-013]
+    engine -> store : Update(workout) (Remaining unchanged)
+  end
+else connected
+  engine -> run : GoneSince = null
+  engine -> store : Current.resistance
+  opt SentFor != (Cycle, Step) or (resistance != level and Remaining % 5 == 0) [L2-012]
+    engine -> cmdr : TrySendAsync(level)
+    alt send throws
+      engine -> store : Update(error = "set resistance failed: <message>") [L2-012]
+    else ok
+      engine -> run : SentFor = (Cycle, Step)
+    end
+  end
+  engine -> run : Status = "running"
+  engine -> store : Update(workout) [L2-011]
+  engine -> run : Remaining -= 1
+  opt Remaining <= 0
+    run -> run : Step = (Step + 1) % count; if Step == 0 then Cycle += 1 [L2-011]
+    run -> run : Remaining = Steps[Step].Seconds
+  end
+end
+@enduml

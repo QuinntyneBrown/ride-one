@@ -1,0 +1,41 @@
+@startuml
+title UML sequence behaviour — Transport selection and simulated ride
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Developer" as dev
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "DashboardPage" as page
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "Program" as program
+  participant "TransportSelector" as sel
+  participant "BikeConnectionService" as svc
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "SimulatedBikeTransport" as sim
+  participant "SimulatedBikeConnection" as conn
+end box
+
+dev -> program : dotnet run -- --simulate
+program -> sel : AddBikeTransport(services, config, args)
+alt --simulate or Transport = Simulated
+  sel -> sel : Register SimulatedBikeTransport [L2-043]
+else Windows / Linux / macOS
+  sel -> sel : Register WinRt / BlueZ / CoreBluetooth transport
+end
+program -> svc : StartAsync
+svc -> sim : ScanAsync(IsEchelon, 20 s)
+sim --> svc : BikeAdvertisement("ECHSIM-0001")
+svc -> sim : ConnectAsync
+sim --> svc : SimulatedBikeConnection
+svc -> conn : SubscribeAsync(notify, onNotify)
+loop every 1 s
+  conn --> svc : onNotify(F0 D1 ... cadence ...)
+end
+page -> svc : set resistance 18 (via POST /api/resistance, see set-resistance)
+svc -> conn : WriteAsync(F0 B1 01 12 B4)
+conn --> svc : onNotify(F0 D2 01 12 D5)
+@enduml

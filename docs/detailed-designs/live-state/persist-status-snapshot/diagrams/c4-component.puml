@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Persist the status snapshot
+
+Container_Boundary(api, "Wattzup API") {
+  Component(store, "BikeStateStore", "Wattzup.Core", "Raises StateChanged")
+  Component(writer, "StatusSnapshotWriter", "BackgroundService", "Coalesces and throttles to 500 ms")
+  Component(atomic, "AtomicFile", "Helper", "Temp file then rename")
+}
+ContainerDb(files, "Local files", "File system", "status.json")
+
+Rel(store, writer, "StateChanged")
+Rel(writer, store, "Reads Current")
+Rel(writer, atomic, "WriteAllTextAsync")
+Rel(atomic, files, "Write tmp, rename over status.json")
+@enduml

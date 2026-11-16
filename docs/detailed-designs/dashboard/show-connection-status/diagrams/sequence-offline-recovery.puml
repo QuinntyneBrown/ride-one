@@ -1,0 +1,32 @@
+@startuml
+title UML sequence behaviour — Server offline and recovery
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "ConnectionPill" as pill
+  participant "DiagnosticsFooter" as footer
+  participant "LiveStateService" as live
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "EventsEndpoints" as ep
+end box
+
+ep -> live : data: {ble:"connected", device:"ECHEX-3-141844", packets:2517, ...}
+live -> pill : text "connected · ECHEX-3-141844", dot green [L2-018]
+live -> footer : "packets 2517 · live 2490s · updated 19:10:12" [L2-023]
+ep -[#red]x live : stream drops (server stopped)
+live -> live : onerror: close; connection = offline
+live -> pill : "server offline · retrying", dot red [L2-018]
+loop every 2 s until a message arrives
+  live -> ep : new EventSource('/api/events')
+  ep --[#red]x live : connection refused
+end
+live -> ep : new EventSource('/api/events')
+ep --> live : first data: current state
+live -> pill : connection = open; real ble state restored
+pill --> rider : status visible again
+@enduml

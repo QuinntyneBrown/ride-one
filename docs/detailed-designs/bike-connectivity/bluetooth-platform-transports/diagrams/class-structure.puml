@@ -1,0 +1,80 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Bluetooth platform transports
+
+interface IBikeTransport {
+  +ScanAsync(filter, timeout, ct): Task<BikeAdvertisement?>
+  +ConnectAsync(ad, ct): Task<IBikeConnection>
+}
+interface IBikeConnection {
+  +bool IsConnected
+  +event Disconnected
+  +SubscribeAsync(characteristic, onNotify, ct): Task
+  +WriteAsync(characteristic, data, withResponse, ct): Task
+}
+
+class WinRtBikeTransport {
+  -BluetoothLEAdvertisementWatcher watcher
+}
+class WinRtBikeConnection {
+  -BluetoothLEDevice device
+  -GattCharacteristic write
+  -GattCharacteristic notify
+}
+class BlueZBikeTransport {
+  -IAdapter1 adapter
+}
+class BlueZBikeConnection {
+  -IDevice1 device
+  -IGattCharacteristic1 write
+  -IGattCharacteristic1 notify
+}
+class CoreBluetoothBikeTransport {
+  -CBCentralManager central
+  -CentralDelegate delegate
+}
+class CoreBluetoothBikeConnection {
+  -CBPeripheral peripheral
+}
+class SimulatedBikeTransport {
+  +SimulationControl Control
+}
+class SimulatedBikeConnection {
+  -PeriodicTimer telemetry
+  -int resistance
+}
+class SimulationControl {
+  +bool PoweredOn
+  +DropLink(): void
+  +ThrowOnNextWrite(ex: Exception): void
+}
+class TransportSelector <<static>> {
+  +AddBikeTransport(services, config, args): IServiceCollection
+}
+class BluetoothUnavailableException
+
+IBikeTransport <|.. WinRtBikeTransport
+IBikeTransport <|.. BlueZBikeTransport
+IBikeTransport <|.. CoreBluetoothBikeTransport
+IBikeTransport <|.. SimulatedBikeTransport
+IBikeConnection <|.. WinRtBikeConnection
+IBikeConnection <|.. BlueZBikeConnection
+IBikeConnection <|.. CoreBluetoothBikeConnection
+IBikeConnection <|.. SimulatedBikeConnection
+WinRtBikeTransport ..> WinRtBikeConnection : creates
+BlueZBikeTransport ..> BlueZBikeConnection : creates
+CoreBluetoothBikeTransport ..> CoreBluetoothBikeConnection : creates
+SimulatedBikeTransport ..> SimulatedBikeConnection : creates
+SimulatedBikeTransport *-- SimulationControl
+TransportSelector ..> IBikeTransport : registers
+IBikeTransport ..> BluetoothUnavailableException : throws
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Workout status — state machine
+[*] --> WaitingForBike : Start (no data yet)
+[*] --> Running : Start (bike connected)
+WaitingForBike : "waiting for bike"
+Running : "running"
+Paused : "paused: bike disconnected"
+Ended : "ended: bike shut off"
+Stopped : "stopped"
+WaitingForBike --> Running : bike connected
+Running --> Paused : bike disconnects
+Paused --> Running : reconnect within 90 s
+Paused --> Ended : disconnected > 90 s
+Running --> Stopped : Stop
+Paused --> Stopped : Stop
+WaitingForBike --> Stopped : Stop
+Ended --> [*]
+Stopped --> [*]
+@enduml

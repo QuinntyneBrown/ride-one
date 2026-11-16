@@ -1,0 +1,45 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Play workout cues
+
+class CueService <<service>> {
+  -ctx: AudioContext | null
+  +Signal<boolean> enabled
+  +toggle(): void
+  +beep(freq: number, seconds: number): void
+}
+class TransitionDetector {
+  -lastKey: string | null
+  +observe(w: WorkoutSnapshot | null): Transition | null
+}
+class Transition <<interface>> {
+  +phase: 'effort' | 'recovery'
+  +level: number
+  +seconds: number
+}
+class CountdownCues {
+  +onWholeSecond(whole: number, running: boolean): void
+}
+class TransitionBanner <<component>> {
+  +Signal<string> text
+  +show(t: Transition): void
+}
+class SoundToggle <<component>> {
+  +label: Signal<string>
+}
+
+TransitionDetector ..> Transition : emits
+TransitionBanner ..> Transition
+TransitionBanner --> CueService
+CountdownCues --> CueService
+SoundToggle --> CueService
+@enduml

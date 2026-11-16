@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Decode bike telemetry
+
+Container_Boundary(api, "Wattzup API") {
+  Component(conn, "IBikeConnection", "Wattzup.Ble.Abstractions", "Delivers notify payloads")
+  Component(ing, "TelemetryIngestor", "Wattzup.Core", "Counts, logs, decodes and applies frames")
+  Component(dec, "PacketDecoder", "Wattzup.Protocol", "Frame bytes to TelemetryUpdate")
+  Component(speed, "SpeedCalculator", "Wattzup.Protocol", "Cadence to km/h and mph")
+  Component(log, "RawPacketLogger", "Wattzup.Core", "Buffered raw frame log")
+  Component(store, "BikeStateStore", "Wattzup.Core", "Owns BikeState")
+}
+System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+
+Rel(bike, conn, "Notifications", "BLE GATT")
+Rel(conn, ing, "onNotify(bytes)")
+Rel(ing, log, "Enqueue(frame)")
+Rel(ing, dec, "Decode(frame)")
+Rel(dec, speed, "ToKmh / ToMph")
+Rel(ing, store, "Update(packets, metrics, timestamps)")
+@enduml

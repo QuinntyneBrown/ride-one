@@ -1,0 +1,70 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Start and stop a workout
+
+package "wattzup-web" {
+  class WorkoutPanel <<component>> {
+    +FormArray<StepForm> steps
+    +Signal<boolean> canStop
+    +Signal<string | null> apiError
+    +addStep(): void
+    +removeStep(i: number): void
+    +start(): Promise<void>
+    +stop(): Promise<void>
+  }
+  class WorkoutDraftStore <<service>> {
+    +load(): [number, number][]
+    +save(steps: [number, number][]): void
+  }
+  class BikeApi <<service>> {
+    +startWorkout(steps): Promise<StartWorkoutResult>
+    +stopWorkout(): Promise<void>
+  }
+}
+
+package "Wattzup.Api" {
+  class WorkoutEndpoints <<static>> {
+    +MapWorkout(app): void
+  }
+  class StartWorkoutRequest <<record>> {
+    +int[][]? Steps
+  }
+}
+
+package "Wattzup.Core" {
+  class WorkoutValidator <<static>> {
+    +const int MaxSteps = 100
+    +const int MaxStepSeconds = 3600
+    +TryCreate(steps: int[][]?, out def: WorkoutDefinition): bool
+  }
+  class WorkoutDefinition <<record>> {
+    +IReadOnlyList<WorkoutStep> Steps
+  }
+  class WorkoutStep <<record>> {
+    +int Level
+    +int Seconds
+  }
+  class WorkoutEngine {
+    +Start(def: WorkoutDefinition): void
+    +Stop(): void
+  }
+}
+
+WorkoutPanel --> WorkoutDraftStore
+WorkoutPanel --> BikeApi
+BikeApi ..> WorkoutEndpoints : HTTP
+WorkoutEndpoints ..> StartWorkoutRequest
+WorkoutEndpoints ..> WorkoutValidator
+WorkoutEndpoints --> WorkoutEngine
+WorkoutValidator ..> WorkoutDefinition : creates
+WorkoutDefinition "1" *-- "1..100" WorkoutStep
+@enduml

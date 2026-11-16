@@ -1,0 +1,66 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Decode bike telemetry
+
+class PacketDecoder <<static>> {
+  +const byte Marker = 0xF0
+  +const byte ResistanceType = 0xD2
+  +const byte WorkoutType = 0xD1
+  +Decode(frame: ReadOnlySpan<byte>): TelemetryUpdate?
+}
+
+abstract class TelemetryUpdate <<record>>
+class ResistanceUpdate <<record>> {
+  +int Level
+}
+class CadenceUpdate <<record>> {
+  +int Rpm
+  +double SpeedKmh
+  +double SpeedMph
+}
+
+class SpeedCalculator <<static>> {
+  +const double KmhPerRpm = 0.37497622
+  +const double KmPerMile = 1.609344
+  +ToKmh(rpm: int): double
+  +ToMph(rpm: int): double
+}
+
+class TelemetryIngestor {
+  -BikeStateStore store
+  -RawPacketLogger rawLog
+  -IClock clock
+  +OnNotify(frame: ReadOnlyMemory<byte>): void
+}
+
+interface IClock {
+  +double NowEpochSeconds
+}
+
+class BikeState <<record>> {
+  +int? Resistance
+  +int? Cadence
+  +double? SpeedKmh
+  +double? SpeedMph
+  +long Packets
+  +double? FirstDataAt
+  +double? LastDataAt
+}
+
+TelemetryUpdate <|-- ResistanceUpdate
+TelemetryUpdate <|-- CadenceUpdate
+PacketDecoder ..> TelemetryUpdate : returns
+PacketDecoder ..> SpeedCalculator : uses
+TelemetryIngestor ..> PacketDecoder : uses
+TelemetryIngestor --> IClock
+TelemetryIngestor ..> BikeState : updates via BikeStateStore
+@enduml

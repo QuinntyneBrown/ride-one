@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Start-up without a Bluetooth adapter
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "LiveStateService" as live
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "Kestrel host" as host
+  participant "BikeConnectionService" as svc
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "BikeStateStore" as store
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeTransport" as transport
+end box
+
+host -> host : Start HTTP listener on 127.0.0.1:8787
+host -> svc : StartAsync (non-blocking)
+loop until the adapter is available
+  svc -> transport : ScanAsync(...)
+  transport --> svc : throws BluetoothUnavailableException
+  svc -> store : Update(ble = error, error = "BluetoothUnavailableException: <message>") [L2-039]
+  svc -> svc : wait 3 s
+end
+rider -> live : Open dashboard
+live -> host : GET /api/events
+host --> live : first event: ble = error, readable message
+live --> rider : Show red status and the adapter message
+@enduml

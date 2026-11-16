@@ -1,0 +1,39 @@
+@startuml
+title UML sequence behaviour — Host start-up, serving and graceful shutdown
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "Browser (wattzup-web)" as web
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "Program / Host" as host
+  participant "Static files + fallback" as files
+  participant "Hosted services" as hs
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "WorkoutEngine" as engine
+  participant "StatusSnapshotWriter" as snap
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeConnection" as conn
+end box
+
+host -> host : bind WattzupOptions (json, env, args) [L2-042]
+host -> hs : StartAsync (non-blocking background loops)
+host -> host : listen on 127.0.0.1:8787
+rider -> web : open http://127.0.0.1:8787
+web -> files : GET /
+files --> web : index.html + bundles (same origin) [L2-044]
+web -> files : GET /workouts (client route)
+files --> web : index.html (fallback, /api excluded) [L2-044]
+== stop signal (Ctrl+C / SIGTERM) ==
+host -> engine : cancel run
+host -> conn : DisposeAsync (disconnect bike)
+host -> hs : ApplicationStopping ends SSE loops
+host -> snap : final write
+host -> host : exit within 5 s (ShutdownTimeout)
+@enduml

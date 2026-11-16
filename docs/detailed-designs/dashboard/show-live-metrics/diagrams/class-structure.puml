@@ -1,0 +1,42 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Show live metrics
+
+class SpeedCard <<component>> {
+  +Signal<string> mph
+  +Signal<string> kmh
+  +Signal<string> rpm
+}
+class MetricHistory <<service>> {
+  +CAPACITY = 150
+  +RingBuffer<number> resistance
+  +RingBuffer<number> speedMph
+  +Signal<number> version
+  -sample(): void
+}
+class "RingBuffer<T>" as RingBuffer {
+  -items: T[]
+  +capacity: number
+  +push(v: T): void
+  +toArray(): T[]
+}
+class Sparkline <<component>> {
+  +InputSignal<number[]> data
+  +InputSignal<number> floorMax
+  +InputSignal<string> color
+  -draw(): void
+}
+
+SpeedCard *-- Sparkline : speed (floorMax 25)
+MetricHistory *-- "2" RingBuffer
+Sparkline ..> MetricHistory : data
+@enduml

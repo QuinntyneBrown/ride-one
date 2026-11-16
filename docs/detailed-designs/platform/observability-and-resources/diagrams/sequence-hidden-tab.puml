@@ -1,0 +1,27 @@
+@startuml
+title UML sequence behaviour — Hidden tab pauses animation
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "VisibilityPause" as vis
+  participant "RingCanvas" as ring
+  participant "HeroClock" as clock
+  participant "MetricHistory" as hist
+end box
+
+rider -> vis : switch to another tab (visibilitychange)
+vis -> ring : hidden = true
+ring -> ring : cancelAnimationFrame [L2-038]
+vis -> clock : hidden = true
+clock -> clock : cancelAnimationFrame [L2-038]
+hist -> hist : keeps 1 s sampling
+rider -> vis : return to tab
+vis -> ring : hidden = false
+ring -> ring : requestAnimationFrame
+vis -> clock : hidden = false
+clock -> clock : re-derive digits from CountdownModel anchor
+@enduml

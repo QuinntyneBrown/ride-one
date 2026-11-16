@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Show live metrics
+
+Person(rider, "Rider", "Reads speed and trends")
+Container_Boundary(web, "Wattzup Web") {
+  Component(live, "LiveStateService", "Angular service", "state signal")
+  Component(speed, "SpeedCard", "Angular component", "mph, km/h, rpm")
+  Component(hist, "MetricHistory", "Angular service", "150-sample buffers at 1 Hz")
+  Component(spark, "Sparkline", "Angular component", "Canvas line chart")
+}
+Container(api, "Wattzup API", "ASP.NET Core", "Streams BikeState")
+
+Rel(api, live, "data: BikeState", "SSE")
+Rel(speed, live, "Reads")
+Rel(hist, live, "Samples every 1 s")
+Rel(speed, spark, "speed history")
+Rel(spark, hist, "Reads buffers")
+Rel(rider, speed, "Reads")
+@enduml

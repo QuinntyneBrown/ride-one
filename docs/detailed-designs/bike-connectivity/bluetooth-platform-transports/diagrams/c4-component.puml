@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Bluetooth platform transports
+
+Container_Boundary(api, "Wattzup API") {
+  Component(sel, "TransportSelector", "DI registration", "Chooses one transport at start-up")
+  Component(abs, "IBikeTransport / IBikeConnection", "Wattzup.Ble.Abstractions", "Platform-neutral contract")
+  Component(win, "WinRtBikeTransport", "Wattzup.Ble.Windows", "Windows.Devices.Bluetooth")
+  Component(bluez, "BlueZBikeTransport", "Wattzup.Ble.BlueZ", "BlueZ over D-Bus")
+  Component(mac, "CoreBluetoothBikeTransport", "Wattzup.Ble.CoreBluetooth", "CBCentralManager in Wattzup.app")
+  Component(sim, "SimulatedBikeTransport", "Wattzup.Ble.Simulated", "Synthetic bike for tests and demos")
+  Component(svc, "BikeConnectionService", "BackgroundService", "Sole consumer of the transport")
+}
+System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
+
+Rel(sel, abs, "Registers implementation of")
+Rel(svc, abs, "Depends on")
+Rel(win, abs, "Implements")
+Rel(bluez, abs, "Implements")
+Rel(mac, abs, "Implements")
+Rel(sim, abs, "Implements")
+Rel(win, os, "WinRT APIs")
+Rel(bluez, os, "D-Bus")
+Rel(mac, os, "CoreBluetooth")
+@enduml

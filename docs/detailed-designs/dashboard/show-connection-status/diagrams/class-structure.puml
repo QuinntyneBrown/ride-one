@@ -1,0 +1,39 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Show connection status
+
+class LiveStateService <<service>> {
+  +Signal<BikeState | null> state
+  +Signal<'connecting' | 'open' | 'offline'> connection
+  +RECONNECT_DELAY_MS = 2000
+  -connect(): void
+}
+class ConnectionPill <<component>> {
+  +Signal<string> text
+  +Signal<'ok' | 'err' | 'warn'> dot
+}
+class DiagnosticsFooter <<component>> {
+  +Signal<string> errorText
+  +Signal<number> packets
+  +Signal<number> liveSeconds
+  +Signal<string> updated
+}
+class UiErrorStore <<service>> {
+  +Signal<string | null> latest
+  +set(msg: string): void
+  +clear(): void
+}
+
+ConnectionPill --> LiveStateService
+DiagnosticsFooter --> LiveStateService
+DiagnosticsFooter --> UiErrorStore
+@enduml

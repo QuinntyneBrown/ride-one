@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — SSE client lifecycle
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "LiveStateService" as live
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "EventsEndpoints" as ep
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "StateBroadcaster" as bc
+  participant "BikeStateStore" as store
+end box
+
+rider -> live : Open dashboard
+live -> ep : GET /api/events (EventSource)
+ep -> ep : text/event-stream; Cache-Control: no-cache; no buffering
+ep -> bc : Register()
+bc -> store : Update(ui_clients = n) [L2-015]
+ep -> store : Current
+ep --> live : data: {...state, ts} (first message, immediate) [L2-015]
+loop until RequestAborted
+  alt message within 15 s
+    bc --> ep : channel item
+    ep --> live : data: <json>
+  else 15 s idle
+    ep --> live : : ping [L2-015]
+  end
+end
+rider -> live : Close tab
+ep -> bc : Unregister(id) (finally)
+bc -> store : Update(ui_clients = n - 1) [L2-015]
+@enduml

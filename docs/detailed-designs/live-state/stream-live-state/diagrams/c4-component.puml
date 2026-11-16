@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Stream live state
+
+Container_Boundary(be, "Wattzup API") {
+  Component(store, "BikeStateStore", "Wattzup.Core", "Authoritative BikeState")
+  Component(track, "DisplayTimeTracker", "Wattzup.Core", "displayed_since / displayed_seconds")
+  Component(bc, "StateBroadcaster", "Wattzup.Core", "Serialise once, fan out")
+  Component(clients, "SseClient channels", "Channel, bounded 50", "One per open stream")
+  Component(events, "EventsEndpoints", "Minimal API", "GET /api/events (SSE)")
+  Component(status, "StatusEndpoints", "Minimal API", "GET /api/status")
+}
+Container_Boundary(web, "Wattzup Web") {
+  Component(live, "LiveStateService", "Angular service", "EventSource to state signal")
+}
+
+Rel(store, bc, "StateChanged")
+Rel(bc, track, "Apply(state, now)")
+Rel(bc, clients, "TryWrite(json)")
+Rel(events, clients, "Registers and drains")
+Rel(status, store, "Reads Current")
+Rel(events, live, "data: / : ping", "SSE")
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Set resistance
+
+Person(rider, "Rider", "Adjusts resistance")
+Container_Boundary(web, "Wattzup Web") {
+  Component(card, "ResistanceCard", "Angular component", "−, level input, Set, +")
+  Component(api, "BikeApi", "Angular service", "Typed HTTP client")
+}
+Container_Boundary(be, "Wattzup API") {
+  Component(ep, "ResistanceEndpoints", "Minimal API", "POST /api/resistance")
+  Component(cmdr, "ResistanceCommander", "Wattzup.Core", "Serialised resistance writes")
+  Component(cmds, "EchelonCommands", "Wattzup.Protocol", "SetResistance + Checksum")
+  Component(reg, "ActiveConnectionRegistry", "Singleton", "Current IBikeConnection")
+  Component(store, "BikeStateStore", "Wattzup.Core", "target_resistance")
+}
+System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+
+Rel(rider, card, "Presses −, + or Set")
+Rel(card, api, "setResistance(level)")
+Rel(api, ep, "POST {level}", "JSON/HTTP")
+Rel(ep, cmdr, "TrySendAsync(level)")
+Rel(cmdr, cmds, "SetResistance(level)")
+Rel(cmdr, reg, "Reads current connection")
+Rel(cmdr, store, "Update(target_resistance)")
+Rel(cmdr, bike, "Write with response", "BLE GATT")
+@enduml
