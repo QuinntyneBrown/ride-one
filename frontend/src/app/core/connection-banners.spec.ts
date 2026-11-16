@@ -67,3 +67,28 @@ describe('isReconnect', () => {
     expect(isReconnect(testState(), testState())).toBe(false);
   });
 });
+
+describe('banners on the treadmill (L2-071 AC10, AC11)', () => {
+  it('carries the safety-key sentence when the treadmill is lost mid-ride', () => {
+    const [b] = banners({
+      ...base,
+      state: testState({
+        machine: 'treadmill',
+        ble: 'disconnected',
+        workout: testWorkout({ status: 'paused: bike disconnected' }),
+      }),
+    });
+    expect(b).toMatchObject({ id: 'treadmill-lost', tone: 'danger', title: 'Lost the treadmill' });
+    expect(b.text).toBe(
+      "Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
+    );
+  });
+
+  it('words the simulated treadmill', () => {
+    const [b] = banners({ ...base, state: testState({ machine: 'treadmill', simulated: true }) });
+    expect(b.title).toBe('Simulated treadmill');
+    expect(b.text).toBe(
+      'No hardware connected — Wattzup started with --simulate and is generating speed and incline.',
+    );
+  });
+});

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { PLAN_DRAFT_KEY, PlanDraftStore, readDraft } from './plan-draft.store';
+import { PLAN_DRAFT_KEY, PlanDraftStore, readDraft, readTreadmillDraft } from './plan-draft.store';
+import { DEFAULT_TREADMILL_DRAFT } from './treadmill-plan-form';
 import { DEFAULT_DRAFT, applyPreset } from './plan-form';
 
 describe('readDraft', () => {
@@ -40,5 +41,22 @@ describe('PlanDraftStore', () => {
       throw new Error('blocked');
     });
     expect(TestBed.inject(PlanDraftStore).load()).toEqual(DEFAULT_DRAFT);
+  });
+});
+
+describe('readTreadmillDraft (L2-072 AC9)', () => {
+  it('restores a stored treadmill draft', () => {
+    const stored = { ...DEFAULT_TREADMILL_DRAFT, workSpeed: '9.5' };
+    expect(readTreadmillDraft(JSON.stringify(stored))).toEqual(stored);
+  });
+
+  it.each([
+    null,
+    '',
+    '{',
+    '{"mode":"run"}',
+    JSON.stringify({ ...DEFAULT_TREADMILL_DRAFT, speed: 7 }),
+  ])('falls back to the defaults for %j', (raw) => {
+    expect(readTreadmillDraft(raw)).toEqual(DEFAULT_TREADMILL_DRAFT);
   });
 });

@@ -26,9 +26,9 @@ internal sealed class SimulatedBikeConnection : IBikeConnection
 
     public event Action? Disconnected;
 
-    public Task SubscribeAsync(Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken)
+    public Task SubscribeAsync(IReadOnlyList<string> notifyCharacteristicUuids, Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken)
     {
-        _control.Record("subscribe");
+        _control.Record("subscribe", notifyCharacteristicUuids);
         _onNotify = onNotify;
         _stream = _time.CreateTimer(_ => SendWorkoutFrame(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
         return Task.CompletedTask;

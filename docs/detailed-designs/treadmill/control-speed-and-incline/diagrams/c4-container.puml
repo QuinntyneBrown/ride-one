@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Control speed and incline
+
+Person(rider, "Rider", "Uses the speed and incline controls")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular", "Speed and incline panel, command log, toasts")
+  Container(api, "Wattzup API", "ASP.NET Core (.NET)", "POST /api/speed, POST /api/incline, commander, state")
+}
+System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
+System_Ext(tm, "Echelon treadmill", "Proprietary BLE GATT service")
+
+Rel(rider, web, "Presses Raise speed, Lower incline", "HTTPS")
+Rel(web, api, "POST /api/speed, /api/incline", "JSON")
+Rel(api, web, "target_speed, target_incline, commands", "SSE")
+Rel(api, os, "Writes F0 B2 / F0 B1 with response", "IBikeConnection")
+Rel(os, tm, "Commands and D3 / D2 reports", "BLE GATT")
+@enduml

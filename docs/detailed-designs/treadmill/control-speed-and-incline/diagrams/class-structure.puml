@@ -1,0 +1,109 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Control speed and incline
+
+enum CommandKind {
+  Resistance
+  Speed
+  Incline
+}
+
+enum CommandSource {
+  Plan
+  Manual
+}
+
+enum CommandStatus {
+  Sending
+  Ack
+  Failed
+}
+
+class CommandEntry <<record>> {
+  +double At
+  +int? RideSeconds
+  +int? Level
+  +CommandSource Source
+  +CommandStatus Status
+  +int? AckMs
+  +CommandKind Command
+  +double Value
+  ~long WrittenUnixMs
+}
+
+class CommandLog <<static>> {
+  +Add(log, entry): ImmutableArray<CommandEntry>
+  +Fail(log, entry): ImmutableArray<CommandEntry>
+  +Acknowledge(log, kind: CommandKind, value: double, nowMs: long): ImmutableArray<CommandEntry>
+}
+
+interface ITreadmillCommander {
+  +SendSpeedAsync(kmh: double, source, rideSeconds: int?, ct): Task<SendResult>
+  +SendInclineAsync(percent: int, source, rideSeconds: int?, ct): Task<SendResult>
+  +StartBeltAsync(ct): Task<SendResult>
+  +StopBeltAsync(reason: string, ct): Task<SendResult>
+}
+
+class TreadmillCommander {
+  -BikeStateStore store
+  -ActiveConnectionRegistry registry
+  -ILogger logger
+  -SemaphoreSlim gate
+}
+
+interface ITreadmillControl {
+  +SetManualSpeedAsync(kmh: double, ct): Task<SendResult>
+  +SetManualInclineAsync(percent: int, ct): Task<SendResult>
+}
+
+class WorkoutEngine
+
+abstract class SendResult <<record>> {
+  +{static} Sent
+  +{static} NotConnected
+  +{static} Failed(message): SendResult
+}
+
+class EchelonTreadmillCommands <<static>> {
+  +double MinSpeedKmh = 1.0
+  +double MaxSpeedKmh = 16.0
+  +int MinIncline = 0
+  +int MaxIncline = 15
+  +SetSpeed(kmh: double): byte[]
+  +SetIncline(percent: int): byte[]
+}
+
+class TreadmillEndpoints <<static>> {
+  +MapTreadmillEndpoints(api): RouteGroupBuilder
+}
+
+class SetSpeedRequest <<record>> {
+  +double Speed
+}
+class SetInclineRequest <<record>> {
+  +int Incline
+}
+
+TreadmillCommander ..|> ITreadmillCommander
+WorkoutEngine ..|> ITreadmillControl
+TreadmillEndpoints ..> ITreadmillControl : calls
+TreadmillEndpoints ..> SetSpeedRequest
+TreadmillEndpoints ..> SetInclineRequest
+WorkoutEngine --> ITreadmillCommander : sends
+TreadmillCommander ..> EchelonTreadmillCommands : builds frames
+TreadmillCommander ..> CommandLog : logs
+TreadmillCommander ..> SendResult : returns
+CommandLog ..> CommandEntry
+CommandEntry --> CommandKind
+CommandEntry --> CommandSource
+CommandEntry --> CommandStatus
+@enduml

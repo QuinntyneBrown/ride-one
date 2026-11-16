@@ -13,6 +13,16 @@ import { ResistanceCommandService } from '../../core/resistance-command.service'
 import { controlsState, planNote, stepLevel } from '../../core/resistance-controls';
 import { resistanceView } from '../../core/resistance-view';
 import { rideViewState } from '../../core/ride-view-state';
+import { TreadmillCommandService } from '../../core/treadmill-command.service';
+import {
+  stepIncline,
+  stepSpeed,
+  treadmillControlsState,
+  treadmillPlanNote,
+} from '../../core/treadmill-controls';
+import { inclineView, speedView } from '../../core/treadmill-view';
+import { InclineControl } from '../incline-control/incline-control';
+import { SpeedControl } from '../speed-control/speed-control';
 import { CmdLog } from '../cmd-log/cmd-log';
 import { LevelControl } from '../level-control/level-control';
 import { LevelPicker } from '../level-picker/level-picker';
@@ -34,6 +44,8 @@ import { Readout } from '../readout/readout';
     AppBar,
     CmdLog,
     ConnectionBanner,
+    InclineControl,
+    SpeedControl,
     LoadError,
     RideOverlay,
     RideTrace,
@@ -98,6 +110,26 @@ export class RidePage {
     const note = this.view().controlsNote;
     return note ? { text: note, backToPlan: false } : planNote(this.state());
   });
+
+  protected readonly treadmill = computed(() => this.state()?.machine === 'treadmill');
+  protected readonly speed = computed(() => speedView(this.state()));
+  protected readonly incline = computed(() => inclineView(this.state()));
+  protected readonly treadmillControls = computed(() =>
+    treadmillControlsState(this.state(), this.view().commandsEnabled),
+  );
+  protected readonly treadmillNote = computed(() => {
+    const note = this.view().controlsNote;
+    return note ? { text: note, backToPlan: false } : treadmillPlanNote(this.state());
+  });
+  protected readonly treadmillCommands = inject(TreadmillCommandService);
+
+  protected stepSpeed(dir: 1 | -1): void {
+    void this.treadmillCommands.setSpeed(stepSpeed(this.state(), dir));
+  }
+
+  protected stepIncline(dir: 1 | -1): void {
+    void this.treadmillCommands.setIncline(stepIncline(this.state(), dir));
+  }
 
   protected stepResistance(delta: 1 | -1): void {
     void this.commands.set(stepLevel(this.state(), delta));

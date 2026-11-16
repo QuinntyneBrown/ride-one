@@ -196,6 +196,22 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
 .mode-card input:checked::before { content: ""; width: 50%; height: 50%; border-radius: var(--radius-full); background: var(--color-fg-accent); }
 .mode-card input:focus-visible { outline: none; }
 
+/* ---------- Radio group: machine choice (segmented) ------------------------- */
+.machine-choice__legend { font: var(--text-body-sm); color: var(--color-fg-muted); margin-bottom: var(--space-2); }
+.machine-choice__options { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-lg); background: var(--color-bg-subtle); }
+.machine-choice__option { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--target-comfortable); padding: 0 var(--space-4); border: var(--border-width-hairline) solid transparent; border-radius: var(--radius-md); font: var(--text-label); color: var(--color-fg-muted); cursor: pointer; transition: background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
+.machine-choice__option:hover, .machine-choice__option[data-state="hover"] { color: var(--color-fg-default); background: var(--color-bg-subtle-hover); }
+.machine-choice__option:has(input:checked) { color: var(--color-fg-default); background: var(--color-selected-bg); border-color: var(--color-selected-border); }
+.machine-choice__option:has(input:focus-visible), .machine-choice__option[data-state="focus"] { box-shadow: var(--shadow-focus); outline: none; }
+.machine-choice__option:has(input:disabled) { opacity: var(--opacity-disabled); cursor: not-allowed; }
+.machine-choice__option:has(input:disabled):hover { background: none; }
+.machine-choice__option input { appearance: none; margin: 0; width: var(--icon-size-sm); height: var(--icon-size-sm); border-radius: var(--radius-full); border: var(--border-width-hairline) solid var(--color-border-strong); display: grid; place-items: center; flex: none; }
+.machine-choice__option input:checked { border-color: var(--color-fg-accent); }
+.machine-choice__option input:checked::before { content: ""; width: 50%; height: 50%; border-radius: var(--radius-full); background: var(--color-fg-accent); }
+.machine-choice__option input:focus-visible { outline: none; }
+.machine-choice__help { margin-top: var(--space-2); font: var(--text-body-sm); color: var(--color-fg-muted); }
+.setup-main__inner > .machine-choice + .alert { margin-top: var(--space-3); }
+
 /* ---------- Switch ----------------------------------------------------------- */
 .switch { --switch-w: 2.75rem; --switch-h: var(--icon-size-lg); --switch-knob: var(--icon-size-md);
   display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; min-height: var(--target-min); }
@@ -243,6 +259,14 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
 .level-readout small { font: var(--text-caption); color: var(--color-fg-subtle); }
 .level-readout__target { display: block; margin-top: var(--space-1); font: var(--text-caption); color: var(--color-fg-warn); }
 .level-readout__target--ok { color: var(--color-fg-accent); }
+/* ---------- Speed control and incline control (treadmill: − value +) ------------ */
+.speed-control, .incline-control { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.speed-control__readout, .incline-control__readout { text-align: center; }
+.speed-control__label, .incline-control__label { display: block; font: var(--text-caption); color: var(--color-fg-muted); }
+.speed-control__readout .numeral, .incline-control__readout .numeral { display: block; font-size: var(--font-size-numeral-xl); line-height: var(--line-height-none); }
+.speed-control__readout small, .incline-control__readout small { font: var(--text-caption); color: var(--color-fg-subtle); }
+.ride-aside > .speed-control { margin-top: var(--space-3); }
+.ride-aside > .incline-control { margin-top: var(--space-5); }
 .plan-note { margin-top: var(--space-4); min-height: var(--target-comfortable); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); font: var(--text-body-sm); color: var(--color-fg-muted); }
 
 /* ---------- Level picker ------------------------------------------------------ */
@@ -285,11 +309,12 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
 .readout__value { display: flex; align-items: baseline; gap: var(--space-2); }
 .readout__unit { font-family: var(--font-family-numeral); font-stretch: condensed; font-weight: var(--font-weight-semibold); color: var(--color-fg-muted); }
 .readout__sub { margin-top: var(--space-2); display: flex; flex-wrap: wrap; gap: var(--space-2); font: var(--text-body-sm); color: var(--color-fg-muted); }
-.readout--power .numeral { font-size: var(--font-size-numeral-hero); }
-.readout--power .readout__unit { font-size: var(--font-size-3xl); }
-.readout--cadence .numeral { font-size: var(--font-size-numeral-xl); }
-.readout--cadence .readout__unit { font-size: var(--font-size-xl); }
-@media (min-width: 40rem) { .readout--power .numeral { font-size: var(--font-size-numeral-hero-lg); } }
+/* Hero readout: power on the bike, speed on the treadmill. Secondary readout: cadence or incline. */
+.readout--power .numeral, .readout--speed .numeral { font-size: var(--font-size-numeral-hero); }
+.readout--power .readout__unit, .readout--speed .readout__unit { font-size: var(--font-size-3xl); }
+.readout--cadence .numeral, .readout--incline .numeral { font-size: var(--font-size-numeral-xl); }
+.readout--cadence .readout__unit, .readout--incline .readout__unit { font-size: var(--font-size-xl); }
+@media (min-width: 40rem) { .readout--power .numeral, .readout--speed .numeral { font-size: var(--font-size-numeral-hero-lg); } }
 .delta { font-weight: var(--font-weight-medium); }
 .delta--on { color: var(--color-fg-accent); } .delta--low { color: var(--color-fg-warn); } .delta--high { color: var(--color-fg-default); }
 
@@ -357,6 +382,7 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
 /* ---------- Metric list ---------------------------------------------------------- */
 .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin: 0; padding-top: var(--space-4); border-top: var(--border-width-hairline) solid var(--color-border-default); }
 @media (min-width: 40rem) { .metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.metrics--treadmill { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .metrics dt { font: var(--text-caption); color: var(--color-fg-muted); }
 .metrics dd { margin: var(--space-0-5) 0 0; display: flex; align-items: baseline; gap: var(--space-1); }
 .metrics .numeral { font-size: var(--font-size-numeral-sm); font-weight: var(--font-weight-semibold); }
@@ -434,6 +460,8 @@ pre, .code-block { background: var(--color-bg-surface-sunken); padding: var(--sp
 .overlay-panel__icon--warn { color: var(--color-fg-warn); } .overlay-panel__icon--ok { color: var(--color-fg-accent); }
 .overlay-panel__card h2 { font: var(--text-h4); }
 .overlay-panel__card p { font: var(--text-body-sm); color: var(--color-fg-muted); }
+.overlay-panel__count { font-size: var(--font-size-numeral-hero); line-height: var(--line-height-none); color: var(--color-fg-accent); }
+.overlay-panel--belt .overlay-panel__card h2 { font: var(--text-h3); }
 .overlay-panel__actions { margin-top: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; }
 
 /* ---------- Step-change banner --------------------------------------------------------- */
@@ -512,7 +540,7 @@ pre, .code-block { background: var(--color-bg-surface-sunken); padding: var(--sp
   .interval__left.is-pulse { scale: 1; }
 }
 @media (forced-colors: active) {
-  .btn, .input, .chip, .badge, .mode-card, .step-btn { forced-color-adjust: none; border: var(--border-width-hairline) solid CanvasText; }
+  .btn, .input, .chip, .badge, .mode-card, .machine-choice__option, .step-btn { forced-color-adjust: none; border: var(--border-width-hairline) solid CanvasText; }
   .btn--primary { background: Highlight; color: HighlightText; }
   .level-picker__bar.is-lit, .level-picker__bar.is-set { background: Highlight; }
 }

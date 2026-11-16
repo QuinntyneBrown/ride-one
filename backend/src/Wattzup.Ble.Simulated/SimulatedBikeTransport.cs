@@ -3,15 +3,19 @@ using Wattzup.Ble.Abstractions;
 namespace Wattzup.Ble.Simulated;
 
 /// <summary>
-/// A synthetic Echelon bike for tests and demos (<c>--simulate</c>, L2-043). It advertises <c>ECHSIM-0001</c>,
-/// sends a 0xD1 workout frame every second and echoes each set-resistance write with a 0xD2 frame. All timing
-/// comes from the injected <see cref="TimeProvider"/>.
+/// A synthetic Echelon bike and treadmill for tests and demos (<c>--simulate</c>, L2-043, ADR 0009). It advertises
+/// the bike <c>ECHSIM-0001</c>, which sends a 0xD1 workout frame every second and echoes each set-resistance write with
+/// a 0xD2 frame, and the treadmill <c>STRIDE-SIM-0001</c> (<see cref="SimulatedTreadmillConnection"/>); the scan's
+/// filter picks one. All timing comes from the injected <see cref="TimeProvider"/>.
 /// </summary>
 public sealed class SimulatedBikeTransport : IBikeTransport
 {
     public const string DeviceName = "ECHSIM-0001";
     public const string DeviceAddress = "00:00:5E:00:53:01";
+    public const string TreadmillName = "STRIDE-SIM-0001";
+    public const string TreadmillAddress = "00:00:5E:00:53:02";
     private const string EchelonService = "0bf669f1-45f2-11e7-9598-0800200c9a66";
+    private const string TreadmillAdvertisedService = "0bf669f0-45f2-11e7-9598-0800200c9a66";
 
     private readonly SimulationControl _control;
     private readonly TimeProvider _time;
@@ -35,13 +39,17 @@ public sealed class SimulatedBikeTransport : IBikeTransport
     public async Task<BikeAdvertisement?> ScanAsync(Func<BikeAdvertisement, bool> filter, TimeSpan timeout, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(filter);
-        var advertisement = new BikeAdvertisement(DeviceName, DeviceAddress, [EchelonService]);
+        BikeAdvertisement[] advertisements =
+        [
+            new(DeviceName, DeviceAddress, [EchelonService]),
+            new(TreadmillName, TreadmillAddress, [TreadmillAdvertisedService]),
+        ];
         using var deadline = new CancellationTokenSource(timeout, _time);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
         while (true)
         {
             ThrowIfAdapterOff();
-            if (_control.PoweredOn && filter(advertisement))
+            if (_control.PoweredOn && advertisements.FirstOrDefault(filter) is { } advertisement)
             {
                 return advertisement;
             }
@@ -51,7 +59,7 @@ public sealed class SimulatedBikeTransport : IBikeTransport
             _control.Changed += Signal;
             try
             {
-                if (_control.PoweredOn || !_control.AdapterOn)
+                if ((_control.PoweredOn && advertisements.Any(filter)) || !_control.AdapterOn)
                 {
                     continue;
                 }
@@ -77,8 +85,11 @@ public sealed class SimulatedBikeTransport : IBikeTransport
             throw new TimeoutException("The simulated bike did not answer.");
         }
 
+        ArgumentNullException.ThrowIfNull(advertisement);
         _control.Record("connect");
-        return Task.FromResult<IBikeConnection>(new SimulatedBikeConnection(_control, _time));
+        return Task.FromResult<IBikeConnection>(advertisement.Address == TreadmillAddress
+            ? new SimulatedTreadmillConnection(_control, _time)
+            : new SimulatedBikeConnection(_control, _time));
     }
 
     private void ThrowIfAdapterOff()

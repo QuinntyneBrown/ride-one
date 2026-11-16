@@ -1,0 +1,7 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+  "title": "The treadmill is not the chosen machine.",
+  "status": 409,
+  "code": "wrong_machine",
+  "trace_id": "00-ddad249dd1220e827eeff63c9d7fed7c-b297fc0ed663f6d9-00"
+}

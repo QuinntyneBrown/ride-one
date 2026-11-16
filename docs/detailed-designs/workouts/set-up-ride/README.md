@@ -130,6 +130,15 @@ Unit tests in `src/app/core/`:
 - `plan-form.spec.ts` — one case per L2-010 range row, each preset, preset clearing, and clock and unit parsing.
 - `plan-draft.store.spec.ts` — restore, missing key, storage that throws, and invalid stored data.
 
+### Treadmill
+
+The setup screen also chooses the machine and builds treadmill plans (L2-072). Its design is `treadmill/treadmill-dashboard-and-setup`. In short:
+
+- `MachineChoice` (`wz-machine-choice`), a `Machine` radio group with `Bike` and `Treadmill`, comes first. Choosing the other machine sends `POST /api/machine` through `MACHINE_API`; it is disabled while a workout is active.
+- With `machine` `bike`, everything above is unchanged, including the `localStorage` key `wattzup.planDraft`.
+- With `machine` `treadmill`, the form shows speed and incline fields from `treadmill-plan-form.ts`, the draft is kept under `wattzup.treadmillPlanDraft`, and the *Your ride* panel shows a speed profile, Top speed and Expected distance from `treadmillPreviewOf` instead of resistance, power and energy.
+- The start flow and the replace-ride dialog are shared. On the treadmill the dialog adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 12).
+
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

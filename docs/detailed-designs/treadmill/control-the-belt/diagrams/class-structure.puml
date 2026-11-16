@@ -1,0 +1,99 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Control the belt
+
+enum Machine {
+  Bike
+  Treadmill
+}
+
+enum BeltState {
+  Stopped
+  Starting
+  Running
+}
+
+class BikeState <<record>> {
+  +Machine Machine
+  +double? SpeedKmh
+  +BeltState? Belt
+  +int? BeltCountdown
+  +string? Error
+  +WorkoutSnapshot? Workout
+}
+
+class WorkoutStatus <<static>> {
+  +string StartingBelt = "starting belt"
+  +string PausedBeltStopped = "paused: belt stopped"
+  +IsActive(status: string): bool
+}
+
+class WorkoutRun {
+  +string Status
+  +bool PausedByRider
+  +int? BeltCountdown
+  +DateTimeOffset? CountdownShownAt
+  +DateTimeOffset? BeltStartWrittenAt
+  +int? SentForSegment
+  +ToSnapshot(): WorkoutSnapshot
+}
+
+class WorkoutEngine {
+  +TimeSpan BeltStartTimeout = 10 s
+  +TimeSpan BeltCountdownStep = 1 s
+  +StartAsync(plan, ct): Task<WorkoutSnapshot>
+  +PauseAsync(ct): Task<WorkoutSnapshot?>
+  +ResumeAsync(ct): Task<WorkoutSnapshot?>
+  +StopWorkoutAsync(ct): Task<WorkoutSnapshot?>
+  -TickAsync(ct): Task
+  -RunOrCountDownAsync(run, ct): Task
+  -CountDownAsync(run, now, ct): Task
+}
+
+interface ITreadmillCommander {
+  +SendSpeedAsync(kmh: double, source: CommandSource, rideSeconds: int?, ct): Task<SendResult>
+  +SendInclineAsync(percent: int, source: CommandSource, rideSeconds: int?, ct): Task<SendResult>
+  +StartBeltAsync(reason: BeltReason, ct): Task<SendResult>
+  +StopBeltAsync(reason: BeltReason, ct): Task<SendResult>
+}
+
+class TreadmillCommander {
+  -BikeStateStore store
+  -ActiveConnectionRegistry registry
+  -ILogger logger
+}
+
+class EchelonTreadmillCommands <<static>> {
+  +ReadOnlyMemory<byte> StartBelt
+  +ReadOnlyMemory<byte> StopBelt
+}
+
+class TelemetryIngestor {
+  +OnNotify(frame: ReadOnlyMemory<byte>): void
+}
+
+class BikeStateStore {
+  +BikeState Current
+  +Update(change: Func<BikeState,BikeState>): void
+}
+
+ITreadmillCommander <|.. TreadmillCommander
+WorkoutEngine "1" *-- "0..1" WorkoutRun : owns
+WorkoutEngine --> ITreadmillCommander : belt commands
+WorkoutEngine --> BikeStateStore : reads belt, publishes
+WorkoutEngine ..> WorkoutStatus
+TreadmillCommander ..> EchelonTreadmillCommands : frames
+TelemetryIngestor --> BikeStateStore : sets belt from speed
+BikeStateStore --> BikeState
+BikeState --> BeltState
+BikeState --> Machine
+@enduml

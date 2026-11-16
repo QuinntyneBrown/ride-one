@@ -7,6 +7,13 @@ public sealed class WattzupOptions
 
     /// <summary>Where Kestrel listens. Loopback only by default (L2-034).</summary>
     public string Urls { get; set; } = "http://127.0.0.1:8787";
+
+    /// <summary><c>bike</c> or <c>treadmill</c>: the machine to connect to at start-up (L2-062). Default <c>bike</c>.</summary>
+    public string? Machine { get; set; }
+
+    /// <summary><see cref="Machine"/> as the state's machine; anything but <c>treadmill</c> is the bike.</summary>
+    public Wattzup.Core.State.Machine ParsedMachine =>
+        string.Equals(Machine?.Trim(), "treadmill", StringComparison.OrdinalIgnoreCase) ? Wattzup.Core.State.Machine.Treadmill : Wattzup.Core.State.Machine.Bike;
 }
 
 /// <summary><c>Wattzup:Ble</c> (L2-001 to L2-004).</summary>

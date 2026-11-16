@@ -7,7 +7,7 @@
       [attr.viewBox]="'0 0 ' + p.totalSeconds + ' 32'"
       preserveAspectRatio="none"
       role="img"
-      [attr.aria-label]="'Resistance profile: ' + p.structure"
+      [attr.aria-label]="p.profileLabel"
     >
       @for (bar of p.profile; track $index) {
         <rect
@@ -23,28 +23,12 @@
       <span>0:00</span><span>{{ p.total }}</span>
     </div>
     <dl class="summary">
-      <div>
-        <dt>Structure</dt>
-        <dd>{{ p.structure }}</dd>
-      </div>
-      @if (p.timeUnderLoad; as load) {
+      @for (row of p.rows; track row.term) {
         <div>
-          <dt>Time under load</dt>
-          <dd>{{ load }}</dd>
+          <dt>{{ row.term }}</dt>
+          <dd>{{ row.value }}</dd>
         </div>
       }
-      <div>
-        <dt>Peak resistance</dt>
-        <dd>Level {{ p.peakLevel }}</dd>
-      </div>
-      <div>
-        <dt>Expected avg power</dt>
-        <dd>~{{ p.avgPower }} W</dd>
-      </div>
-      <div>
-        <dt>Expected energy</dt>
-        <dd>~{{ p.kcal }} kcal</dd>
-      </div>
     </dl>
   }
   <div class="setup-aside__foot">

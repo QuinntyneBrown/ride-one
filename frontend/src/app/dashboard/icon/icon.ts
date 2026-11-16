@@ -24,7 +24,9 @@ export type IconName =
   | 'refresh'
   | 'copy'
   | 'key'
-  | 'flag';
+  | 'flag'
+  | 'bike'
+  | 'treadmill';
 
 /** The mocks' stroke icons, always decorative (`aria-hidden`). */
 @Component({

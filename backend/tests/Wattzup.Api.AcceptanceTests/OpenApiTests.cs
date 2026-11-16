@@ -94,7 +94,7 @@ public sealed class OpenApiTests
         var status = Schema(doc, "WorkoutSnapshot").GetProperty("properties").GetProperty("status");
 
         Assert.Equal(
-            ["waiting for bike", "running", "paused", "paused: bike disconnected", "ended", "ended: bike shut off", "stopped"],
+            ["waiting for bike", "starting belt", "running", "paused", "paused: bike disconnected", "paused: belt stopped", "ended", "ended: bike shut off", "stopped"],
             status.GetProperty("enum").EnumerateArray().Select(v => v.GetString()).ToList());
     }
 

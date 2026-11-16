@@ -49,10 +49,12 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Form field](components/form-field.html) | Label, control, help and error stacked as one unit. |
 | [Form layout](components/form-layout.html) | How setup and unlock arrange fields, the error summary and the submit action. |
 | [Radio group (mode cards)](components/radio-group.html) | Card-style radio group that picks the training mode. |
+| [Machine choice](components/machine-choice.html) | Segmented radio group that picks the bike or the treadmill (L2-072). |
 | [Switch](components/switch.html) | On/off setting: warm-up and cool-down. |
 | [Slider](components/slider.html) | Level slider for work, recover and flat resistance. |
 | [Number stepper](components/number-stepper.html) | − value + control for rounds, work, recover, duration and cadence. |
 | [Level control](components/level-control.html) | − level + for the bike's resistance, with the requested level shown until the bike confirms it. |
+| [Speed and incline control](components/speed-control.html) | − value + for the treadmill's speed and incline (L2-071). |
 | [Level picker](components/level-picker.html) | 32 bars, one slider, that jump straight to a resistance level. |
 
 ### Shell
@@ -123,6 +125,10 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 - The *data tables* pattern is replaced by *live data*: Wattzup shows no tables.
 - Tooltip is added (core component); the mocks' icon-only buttons had none.
 
+## Changelog
+
+- **2026-11-16, treadmill (L2-062…L2-072).** New components: machine choice (`.machine-choice`), speed and incline control (`.speed-control`, `.incline-control`). New variants: `.readout--speed`, `.readout--incline`, `.metrics--treadmill`, `.overlay-panel--belt` with `.overlay-panel__count`. Three contrast pairs added for the machine choice. No token was added or changed.
+
 ## Drift log
 
 | Mock | Issue | Resolution |
@@ -163,7 +169,7 @@ Run on 2026-11-15:
 | `check_design_system.py` | 61 pages (12 foundations, 40 components, 8 patterns, index), 0 errors, 0 warnings |
 | `check_contrast.py` | 144 passed, 0 failed, 0 unresolved (73 pairs × 2 themes, less theme-specific pairs) |
 | `tokens_to_json.py` | `tokens.json` written, 334 tokens |
-| `check_mocks.py docs/mocks --write` with the mocks reading this system | 10 screens, 46 mocks, 0 errors, 0 warnings |
+| `check_mocks.py docs/mocks --write` with the mocks reading this system | 10 screens, 62 mocks, 0 errors, 0 warnings (2026-11-16) |
 | Horizontal overflow at 360px, all 46 mocks and 61 pages, both themes | none |
 | Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280 |
 

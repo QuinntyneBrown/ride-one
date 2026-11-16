@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replace ride in progress · treadmill — Wattzup mocks</title>
+<meta name="mock:kind" content="dialog">
+<meta name="mock:screen" content="replace-ride">
+<meta name="mock:state" content="treadmill">
+<meta name="mock:requirements" content="L2-013 L2-017 L2-066 L2-071 L2-072">
+<meta name="description" content="Replacing a treadmill ride: Wattzup stops the belt first, then counts down 3 seconds before starting it again; Keep current ride is the safe default (L2-071).">
+<link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
+<link rel="stylesheet" href="../../../design-system/assets/components.css">
+<link rel="stylesheet" href="../../assets/mock.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div inert aria-hidden="true">
+<div class="app app--fixed">
+<header class="app-bar" style="justify-content: space-between;">
+  <a class="lockup " href="../../pages/ride/default.html" aria-label="Wattzup dashboard"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></a>
+  <a class="btn btn--quiet btn--sm" href="../../pages/ride/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Close</a>
+</header>
+<div class="setup-layout">
+  <main id="main" class="setup-main">
+    <div class="setup-main__inner">
+    <h1>Set up your ride</h1>
+    <p class="lead">Wattzup drives the treadmill's speed and incline for you. Pick how.</p>
+    <fieldset class="machine-choice" disabled aria-describedby="machine-help">
+      <legend class="machine-choice__legend">Machine</legend>
+      <div class="machine-choice__options">
+        <label class="machine-choice__option"><input type="radio" name="machine" value="bike"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M5.5 17 9 9h6l3.5 8M9 9l3 8M15 9l-1-3h-2"/></svg>Bike</label>
+        <label class="machine-choice__option"><input type="radio" name="machine" value="treadmill" checked><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 18h14l4-4M6 18v3M15 18v3M17 14l2-9h2"/><circle cx="10" cy="4.5" r="1.5"/><path d="M10 7l-1 4 3 2v3M10 7l3 2 2-1M9 11l-2 3"/></svg>Treadmill</label>
+      </div>
+      <p class="machine-choice__help" id="machine-help">End the ride in progress to change the machine.</p>
+    </fieldset>
+    <fieldset class="mode-cards">
+      <legend class="visually-hidden">Training mode</legend>
+      <label class="mode-card"><span class="mode-card__title"><input type="radio" name="mode" value="hiit">HIIT intervals</span><p class="mode-card__text">Hard and easy efforts on repeat. Speed and incline switch at every interval.</p></label>
+      <label class="mode-card"><span class="mode-card__title"><input type="radio" name="mode" value="flat" checked>Flat speed</span><p class="mode-card__text">One speed and incline, held the whole ride.</p></label>
+    </fieldset>
+    <div class="field-grid">
+      <div class="num-stepper">
+  <label class="num-stepper__label" for="speed">Speed (km/h)</label>
+  <div class="num-stepper__row">
+    <button class="btn btn--subtle btn--icon" type="button" aria-label="Less speed"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <input class="num-stepper__input" id="speed" type="text" inputmode="decimal" value="7.0" size="5">
+    <button class="btn btn--subtle btn--icon" type="button" aria-label="More speed"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+  
+</div>
+      <div class="num-stepper">
+  <label class="num-stepper__label" for="incline">Incline (%)</label>
+  <div class="num-stepper__row">
+    <button class="btn btn--subtle btn--icon" type="button" aria-label="Less incline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <input class="num-stepper__input" id="incline" type="text" inputmode="numeric" value="0" size="5">
+    <button class="btn btn--subtle btn--icon" type="button" aria-label="More incline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+  
+</div>
+      <div class="num-stepper">
+  <label class="num-stepper__label" for="duration">Duration</label>
+  <div class="num-stepper__row">
+    <button class="btn btn--subtle btn--icon" type="button" aria-label="Less duration"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <input class="num-stepper__input" id="duration" type="text" inputmode="numeric" value="30 min" size="5">
+    <button class="btn btn--subtle btn--icon" type="button" aria-label="More duration"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+  
+</div>
+    </div>
+    </div>
+  </main>
+  <aside class="setup-aside" aria-label="Ride preview">
+    <h2>Your ride</h2>
+    <p class="numeral ride-total" aria-label="Total ride time 30:00">30:00</p>
+    <svg class="profile" viewBox="0 0 1800 32" preserveAspectRatio="none" role="img" aria-label="Speed profile: 7.0 km/h throughout"><rect class="is-work" x="3.6" width="1792.8" y="18" height="14"/></svg>
+    <div class="profile-axis" aria-hidden="true"><span>0:00</span><span>30:00</span></div>
+    <dl class="dl dl--split">
+      <div><dt>Structure</dt><dd>7.0 km/h throughout</dd></div>
+      <div><dt>Top speed</dt><dd>7.0 km/h</dd></div>
+      <div><dt>Expected distance</dt><dd>~3.5 km</dd></div>
+    </dl>
+    <div class="setup-aside__foot">
+      <ul class="legend"><li><span class="swatch swatch--steady" aria-hidden="true"></span>Steady</li></ul>
+      <button class="btn btn--primary btn--xl btn--block" type="button">Start ride</button>
+    </div>
+  </aside>
+</div>
+</div>
+
+</div>
+<div class="backdrop"></div>
+<div class="dialog" role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-desc" data-dismiss-on-escape>
+  <div class="dialog__panel dialog__panel--sm">
+    <div class="dialog__header">
+      <div class="dialog__icon dialog__icon--info" aria-hidden="true"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg></div>
+      <div class="dialog__heading">
+        <h2 class="dialog__title" id="dlg-title">Replace the ride in progress?</h2>
+        <p id="dlg-desc" class="dialog__desc">You're 7:07 into HIIT · 18 × 40s / 20s. Starting Flat · 7.0 km/h · 30 min ends it and begins the new ride at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.</p>
+      </div>
+      <button class="btn btn--ghost btn--icon" type="button" aria-label="Close"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="dialog__body stack"></div>
+    <div class="dialog__footer">
+      <button class="btn" type="button" autofocus>Keep current ride</button>
+      <button class="btn btn--primary" type="button">Replace ride</button>
+    </div>
+  </div>
+</div>
+
+<nav class="mock-bar" aria-label="Mock navigation">
+  <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
+  <span class="mock-bar__screen">Replace ride in progress</span>
+  <ul class="mock-bar__states">
+    <li><a href="default.html">default</a></li>
+    <li><a href="busy.html">busy</a></li>
+    <li><a href="failed.html">failed</a></li>
+    <li><a href="treadmill.html" aria-current="page">treadmill</a></li>
+  </ul>
+  <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
+  <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
+</nav>
+<script src="../../assets/mock.js"></script>
+</body>
+</html>

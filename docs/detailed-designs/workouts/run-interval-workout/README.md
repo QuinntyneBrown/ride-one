@@ -70,6 +70,19 @@ All types live in `Wattzup.Core`. The endpoints that call them are in `start-and
 
 On host shutdown the loop observes the stopping token and exits within the 5 s timeout; the run is not persisted (ADR 0004).
 
+### Treadmill
+
+`WorkoutEngine` stays the single workout loop for both machines (ADR 0009). The rules above describe the bike; the treadmill differs as follows.
+
+- **The run carries its machine.** `WorkoutRun.Machine` is copied from `BikeStateStore.Current.Machine` when the run starts. A machine change is refused while a run is active (L2-062), so the machine never changes under a run.
+- **Nullable bike fields.** `Segment` becomes `(Kind, Start, Duration, int? Level, int? Cadence, int? Round, double? Speed, int? Incline)`, and `PlanLevel` becomes `int?`. On the bike `Speed` and `Incline` are `null`; on the treadmill `Level`, `Cadence` and `plan_level` are `null` (L2-070). `HiitPlan` and `FlatPlan` gain the treadmill's speed and incline fields (L2-067).
+- **Drive dispatches.** `DriveAsync` sends the level through `IResistanceCommander` on the bike, and the segment's speed and incline through `ITreadmillCommander` on the treadmill, with the same send-once-per-segment and resend-on-multiples-of-5 rule (L2-068). `WorkoutRun` gains `LastSentSpeed` and `LastSentIncline` beside `LastSentLevel`.
+- **Two more statuses.** `WorkoutStatus` gains `starting belt` and `paused: belt stopped`; both are active. The status strings `waiting for bike`, `paused: bike disconnected` and `ended: bike shut off` stay as identifiers on both machines, and the UI words them for the treadmill (L2-014, L2-071).
+- **Belt.** On the treadmill, a start or resume runs the 3-second belt countdown before the ride clock moves, and pause, stop, replace and the plan's end write the stop-belt command. A reconnect within 90 s lands in `paused` rather than `running` (L2-066 criterion 8), so the belt starts only after the rider resumes.
+- **Totals.** On the treadmill, each running tick adds distance only; the power and energy fields stay `null` (L2-064 criterion 9).
+
+The treadmill rules are designed in `treadmill/run-treadmill-workout` (plan, expansion, drive, manual override) and `treadmill/control-the-belt` (countdown, start timeout, belt stop, console stop).
+
 ### Acceptance tests
 
 Each test runs `Wattzup.Api.AcceptanceTests` through `WebApplicationFactory` with `SimulatedBikeTransport` and `FakeTimeProvider`. It starts a ride with `POST /api/workout`, advances the clock, and awaits the expected SSE message from `/api/events` with a timeout that fails naming the last message received. Bluetooth faults (dropped connection, a bike that ignores a level) are injected through the simulated transport.

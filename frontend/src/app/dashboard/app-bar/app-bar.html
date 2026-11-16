@@ -26,7 +26,13 @@
   }
   <div class="app-bar__end">
     @if (badge(); as b) {
-      <span class="badge badge--warning">{{ b }}</span>
+      <span
+        class="badge"
+        [class.badge--info]="b.tone === 'info'"
+        [class.badge--warning]="b.tone === 'warning'"
+        [class.badge--danger]="b.tone === 'danger'"
+        >{{ b.text }}</span
+      >
     }
     @if (view().view === 'loading') {
       <span class="skeleton skeleton--clock" aria-hidden="true"></span>

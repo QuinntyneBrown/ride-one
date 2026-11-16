@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Control the belt
+
+Person(rider, "Rider", "Stands on the treadmill and watches the dashboard")
+System(wattzup, "Wattzup", "Live telemetry and interval workouts for an Echelon bike or treadmill")
+System_Ext(treadmill, "Echelon treadmill", "Stride treadmill exposing the Echelon BLE GATT service")
+System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
+
+Rel(rider, wattzup, "Starts, pauses, resumes and stops the ride in", "Browser")
+Rel(rider, treadmill, "Stops the belt with the console button or safety key")
+Rel(wattzup, os, "Writes start-belt and stop-belt through")
+Rel(os, treadmill, "Exchanges speed reports and belt commands with", "BLE GATT")
+@enduml

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { RidePreview as Preview } from '../../core/ride-preview';
 
-/** The Your ride panel's total, profile, summary and legend (L2-059). */
+/** The Your ride panel's total, profile, summary and legend (L2-059, L2-072). */
 @Component({
   selector: 'wz-ride-preview',
   templateUrl: './ride-preview.html',

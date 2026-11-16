@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Decode treadmill telemetry
+
+Person(rider, "Rider", "Walks or runs on the treadmill and watches the dashboard")
+System(wattzup, "Wattzup", "Decodes the treadmill's speed and incline and shows them live")
+System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
+System_Ext(tm, "Echelon treadmill", "Notifies D3 speed and D2 incline on …f3 and …f4")
+
+Rel(rider, wattzup, "Reads speed, incline, pace and distance in", "Browser")
+Rel(wattzup, os, "Receives notifications through")
+Rel(tm, os, "Notifies speed and incline when they change", "BLE GATT")
+@enduml

@@ -13,9 +13,16 @@ using Wattzup.Core.Workouts;
 var simulate = args.Contains("--simulate", StringComparer.OrdinalIgnoreCase);
 // Inside Wattzup.app the bundle is the content root and runtime output goes to Application Support (ADR 0008).
 var bundled = OperatingSystem.IsMacOS() && AppContext.BaseDirectory.Contains(".app/Contents/MacOS", StringComparison.Ordinal);
+// --machine treadmill is short for --Wattzup:Machine treadmill (L2-062).
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    Args = [.. args.Where(a => !string.Equals(a, "--simulate", StringComparison.OrdinalIgnoreCase))],
+    Args =
+    [
+        .. args.Where(a => !string.Equals(a, "--simulate", StringComparison.OrdinalIgnoreCase))
+            .Select(a => string.Equals(a, "--machine", StringComparison.OrdinalIgnoreCase) ? "--Wattzup:Machine"
+                : a.StartsWith("--machine=", StringComparison.OrdinalIgnoreCase) ? "--Wattzup:Machine=" + a["--machine=".Length..]
+                : a),
+    ],
     ContentRootPath = bundled ? AppContext.BaseDirectory : null,
 });
 if (bundled)
@@ -72,11 +79,13 @@ builder.Services.AddSingleton(sp =>
             Simulated = facts.Simulated,
             BindAddress = facts.BindAddress,
             Exposed = facts.Exposed,
+            Machine = options.ParsedMachine,
         },
         sp.GetRequiredService<TimeProvider>(),
         displayName);
 });
 builder.Services.AddSingleton<StateBroadcaster>();
+builder.Services.AddSingleton<Wattzup.Core.Machines.MachineSelector>();
 builder.Services.AddSingleton<ActiveConnectionRegistry>();
 builder.Services.Configure<RawPacketLogOptions>(builder.Configuration.GetSection(RawPacketLogOptions.SectionName));
 builder.Services.Configure<StatusSnapshotOptions>(builder.Configuration.GetSection(StatusSnapshotOptions.SectionName));
@@ -92,6 +101,9 @@ builder.Services.AddSingleton<IResistanceCommander, ResistanceCommander>();
 builder.Services.AddSingleton<PowerTraceHistory>();
 builder.Services.AddSingleton<WorkoutEngine>();
 builder.Services.AddSingleton<IResistanceControl>(sp => sp.GetRequiredService<WorkoutEngine>());
+builder.Services.AddSingleton<Wattzup.Core.Treadmill.ITreadmillCommander, Wattzup.Core.Treadmill.TreadmillCommander>();
+builder.Services.AddSingleton<ITreadmillControl>(sp => sp.GetRequiredService<WorkoutEngine>());
+builder.Services.AddSingleton<IMachineControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddSingleton<BikeConnectionService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<BikeConnectionService>());
@@ -126,6 +138,8 @@ api.MapEventTokenEndpoints();
 api.MapEventsEndpoints();
 api.MapBikeEndpoints();
 api.MapResistanceEndpoints();
+api.MapTreadmillEndpoints();
+api.MapMachineEndpoints();
 api.MapWorkoutEndpoints();
 api.MapDiagnosticsEndpoints();
 

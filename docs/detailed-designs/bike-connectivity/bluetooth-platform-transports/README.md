@@ -34,6 +34,12 @@ Each transport marshals native callbacks onto the thread pool before it calls th
 
 The hardware smoke test of L2-043 is run by a person on each platform, never by an agent or CI. CI builds every project but runs no transport against hardware (ADR 0007). Every automated test uses `SimulatedBikeTransport` or a test double of the two interfaces.
 
+### Notify characteristics per machine
+
+`IBikeConnection.SubscribeAsync(notifyCharacteristicUuids, onNotify, ct)` takes the list of notify characteristics that `BikeConnectionService` names from the chosen machine's profile: `[…f4]` for the bike, `[…f4, …f3]` for the treadmill (ADR 0009, L2-063). Each transport subscribes every listed characteristic that the Echelon service `…f1` has, and completes only when every subscription is in place, so no init command is written before the last one (L2-063 criterion 5). Frames from every subscribed characteristic go to the same `onNotify`, one frame per call. A listed characteristic that the service lacks is skipped; `<TO SUPPLY>` whether a transport logs the skip. Writes still go only to `…f2`; no transport writes another characteristic or the `FE59` firmware-update service (L2-063 criterion 10).
+
+`SimulatedBikeTransport` advertises 2 devices: `ECHSIM-0001` with the Echelon service `…f1`, and `STRIDE-SIM-0001` with the treadmill's advertised service `…f0`. Each machine's filter selects its own device. Connecting to `STRIDE-SIM-0001` returns a `SimulatedTreadmillConnection`, which reports speed and incline only when they change, as the real treadmill does. On subscribe it reports `D3` speed 0 and `D2` incline 0. Its answers to belt, speed and incline commands, and the `SimulationControl` members `IgnoreBeltStart` and `StopBeltFromConsole()`, are described in `treadmill/control-the-belt` and `treadmill/control-speed-and-incline`. `--simulate --machine treadmill` runs the treadmill with no hardware, and the dashboard then shows the `Simulated treadmill` banner (L2-071).
+
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

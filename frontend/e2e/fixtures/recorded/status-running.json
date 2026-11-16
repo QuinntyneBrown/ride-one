@@ -14,7 +14,11 @@
       "work_level": 18,
       "rest_level": 6,
       "warmup": true,
-      "cooldown": true
+      "cooldown": true,
+      "work_speed": null,
+      "rest_speed": null,
+      "work_incline": null,
+      "rest_incline": null
     },
     "summary": "HIIT · 8 × 40s / 20s",
     "segments": [
@@ -24,7 +28,9 @@
         "duration": 180,
         "level": 8,
         "cadence": 80,
-        "round": null
+        "round": null,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "work",
@@ -32,7 +38,9 @@
         "duration": 40,
         "level": 18,
         "cadence": 98,
-        "round": 1
+        "round": 1,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "rest",
@@ -40,7 +48,9 @@
         "duration": 20,
         "level": 6,
         "cadence": 72,
-        "round": 1
+        "round": 1,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "work",
@@ -48,7 +58,9 @@
         "duration": 40,
         "level": 18,
         "cadence": 98,
-        "round": 2
+        "round": 2,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "rest",
@@ -56,7 +68,9 @@
         "duration": 20,
         "level": 6,
         "cadence": 72,
-        "round": 2
+        "round": 2,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "work",
@@ -64,7 +78,9 @@
         "duration": 40,
         "level": 18,
         "cadence": 98,
-        "round": 3
+        "round": 3,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "rest",
@@ -72,7 +88,9 @@
         "duration": 20,
         "level": 6,
         "cadence": 72,
-        "round": 3
+        "round": 3,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "work",
@@ -80,7 +98,9 @@
         "duration": 40,
         "level": 18,
         "cadence": 98,
-        "round": 4
+        "round": 4,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "rest",
@@ -88,7 +108,9 @@
         "duration": 20,
         "level": 6,
         "cadence": 72,
-        "round": 4
+        "round": 4,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "work",
@@ -96,7 +118,9 @@
         "duration": 40,
         "level": 18,
         "cadence": 98,
-        "round": 5
+        "round": 5,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "rest",
@@ -104,7 +128,9 @@
         "duration": 20,
         "level": 6,
         "cadence": 72,
-        "round": 5
+        "round": 5,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "work",
@@ -112,7 +138,9 @@
         "duration": 40,
         "level": 18,
         "cadence": 98,
-        "round": 6
+        "round": 6,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "rest",
@@ -120,7 +148,9 @@
         "duration": 20,
         "level": 6,
         "cadence": 72,
-        "round": 6
+        "round": 6,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "work",
@@ -128,7 +158,9 @@
         "duration": 40,
         "level": 18,
         "cadence": 98,
-        "round": 7
+        "round": 7,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "rest",
@@ -136,7 +168,9 @@
         "duration": 20,
         "level": 6,
         "cadence": 72,
-        "round": 7
+        "round": 7,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "work",
@@ -144,7 +178,9 @@
         "duration": 40,
         "level": 18,
         "cadence": 98,
-        "round": 8
+        "round": 8,
+        "speed": null,
+        "incline": null
       },
       {
         "kind": "cooldown",
@@ -152,12 +188,14 @@
         "duration": 120,
         "level": 6,
         "cadence": 70,
-        "round": null
+        "round": null,
+        "speed": null,
+        "incline": null
       }
     ],
     "segment": 0,
-    "remaining": 177,
-    "elapsed_seconds": 3,
+    "remaining": 176,
+    "elapsed_seconds": 4,
     "total_seconds": 760,
     "mode": "plan",
     "plan_level": 8,
@@ -167,48 +205,50 @@
   "cadence": 85,
   "speed_kmh": 31.9,
   "speed_mph": 19.8,
-  "packets": 111,
-  "first_data_at": 1794801325.969,
-  "last_data_at": 1794801432.999,
+  "packets": 25,
+  "first_data_at": 1794827506.701,
+  "last_data_at": 1794827538.146,
   "ui_clients": 0,
   "displayed_since": null,
-  "displayed_seconds": 7.2,
+  "displayed_seconds": 0,
   "adapter": "on",
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8787",
+  "bind_address": "127.0.0.1:8798",
   "connection_id": "0bf669f1",
   "power": 152,
   "target_power": 143,
   "avg_power": 152,
-  "distance_km": 0.03,
-  "kcal": 0,
+  "distance_km": 0.04,
+  "kcal": 1,
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794801430.007,
+      "at": 1794827535.228,
       "ride_seconds": 0,
       "level": 8,
       "source": "plan",
       "status": "ack",
-      "ack_ms": 0
+      "ack_ms": 0,
+      "command": "resistance",
+      "value": 8
     },
     {
-      "at": 1794801430.006,
-      "ride_seconds": 78,
+      "at": 1794827535.228,
+      "ride_seconds": null,
       "level": 10,
       "source": "manual",
       "status": "ack",
-      "ack_ms": 0
-    },
-    {
-      "at": 1794801351.358,
-      "ride_seconds": 0,
-      "level": 8,
-      "source": "plan",
-      "status": "ack",
-      "ack_ms": 1
+      "ack_ms": 0,
+      "command": "resistance",
+      "value": 10
     }
-  ]
+  ],
+  "machine": "bike",
+  "target_speed": null,
+  "incline": null,
+  "target_incline": null,
+  "belt": null,
+  "belt_countdown": null
 }

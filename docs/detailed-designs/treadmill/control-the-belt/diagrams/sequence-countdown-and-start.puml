@@ -1,0 +1,48 @@
+@startuml
+title UML sequence behaviour — Belt countdown and start
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "RidePage" as page
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "WorkoutEndpoints" as ep
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "TimeProvider" as clock
+  participant "WorkoutEngine" as engine
+  participant "TelemetryIngestor" as ingest
+  participant "BikeStateStore" as store
+  participant "ITreadmillCommander" as cmdr
+end box
+participant "Echelon treadmill" as treadmill
+
+rider -> ep : POST /api/workout (treadmill plan)
+ep -> engine : StartAsync(plan)
+engine -> store : Current: treadmill connected, belt = stopped
+engine -> store : Update(status "starting belt", belt = starting, belt_countdown = 3) [L2-066 AC1]
+engine --> ep : snapshot
+ep --> rider : 200 {"started": ...}
+store --> page : SSE: overlay "Belt starting in 3"
+clock -> engine : tick
+engine -> store : Update(belt_countdown = 2)
+clock -> engine : tick
+engine -> store : Update(belt_countdown = 1)
+clock -> engine : tick
+engine -> cmdr : StartBeltAsync(start)
+cmdr -> treadmill : write F0 B0 01 01 A2 with response; log "start" [L2-066 AC2, AC11]
+engine -> engine : BeltStartWrittenAt = now
+engine -> store : Update(belt_countdown = null; belt stays starting) [L2-066 AC2]
+treadmill -> ingest : D3 speed 1.0 km/h
+ingest -> store : Update(speed_kmh = 1.0, belt = running) [L2-064 AC7]
+clock -> engine : tick
+engine -> store : Current.belt = running
+engine -> engine : Status = "running"; BeltWasRunning; SentForSegment = null [L2-066 AC3]
+engine -> cmdr : SendSpeedAsync / SendInclineAsync (segment, source plan) [L2-068 AC4]
+engine -> store : Update(workout); ride clock counts from the next tick
+store --> page : SSE: overlay gone, ride running
+@enduml

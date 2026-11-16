@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Control the belt
+
+Container_Boundary(api, "Wattzup API") {
+  Component(engine, "WorkoutEngine", "BackgroundService, Wattzup.Core", "Countdown, start timeout, stop on pause/stop/replace/end, console-stop detection")
+  Component(cmdr, "ITreadmillCommander", "Wattzup.Core.Treadmill", "StartBeltAsync / StopBeltAsync(reason); logs each belt command")
+  Component(frames, "EchelonTreadmillCommands", "Wattzup.Protocol", "StartBelt and StopBelt frames")
+  Component(ingest, "TelemetryIngestor", "Wattzup.Core", "Derives belt from D3 speed")
+  Component(store, "BikeStateStore", "Wattzup.Core", "belt, belt_countdown, workout, error; broadcasts")
+  Component(reg, "ActiveConnectionRegistry", "Wattzup.Core", "Is the treadmill connected?")
+  Component(clock, "TimeProvider", ".NET", "Real time, or FakeTimeProvider in tests")
+}
+System_Ext(treadmill, "Echelon treadmill", "Echelon BLE GATT service")
+
+Rel(engine, cmdr, "StartBeltAsync, StopBeltAsync(reason)")
+Rel(cmdr, frames, "Builds frames with")
+Rel(cmdr, reg, "Writes through the active connection")
+Rel(engine, store, "Reads belt; Update(workout, belt, belt_countdown, error)")
+Rel(engine, reg, "IsConnected")
+Rel(engine, clock, "1 s ticks and the 10 s start timeout")
+Rel(ingest, store, "Update(speed, belt)")
+Rel(reg, treadmill, "Write with response", "BLE GATT")
+Rel(treadmill, ingest, "D3 speed notifications", "BLE GATT")
+@enduml

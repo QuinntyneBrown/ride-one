@@ -15,6 +15,9 @@ export class NumStepper {
   readonly value = input.required<string>();
   readonly error = input<string | null>(null);
   readonly readonly = input(false);
+  /** The noun after Less and More; the label lower-cased when not given. */
+  readonly stepName = input<string | null>(null);
+  readonly inputMode = input<'numeric' | 'decimal'>('numeric');
   readonly valueChange = output<string>();
   readonly step = output<1 | -1>();
   /** Enter in the field: the page moves focus to the form summary. */

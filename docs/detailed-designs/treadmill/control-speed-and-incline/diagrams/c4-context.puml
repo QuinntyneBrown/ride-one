@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Control speed and incline
+
+Person(rider, "Rider", "Raises or lowers the treadmill's speed and incline")
+System(wattzup, "Wattzup", "Sets speed and incline manually or per workout segment, and logs each command")
+System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
+System_Ext(tm, "Echelon treadmill", "Takes B2 set-speed and B1 set-incline; reports D3 and D2")
+
+Rel(rider, wattzup, "Sets speed and incline in", "Browser")
+Rel(wattzup, os, "Writes commands through")
+Rel(os, tm, "Commands and reports", "BLE GATT")
+@enduml

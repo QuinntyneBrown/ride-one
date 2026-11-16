@@ -21,7 +21,7 @@ interface IBikeTransport {
 interface IBikeConnection {
   +bool IsConnected
   +event Disconnected
-  +SubscribeAsync(characteristic, onNotify, ct): Task
+  +SubscribeAsync(notifyCharacteristicUuids: IReadOnlyList<string>, onNotify, ct): Task
   +WriteAsync(characteristic, data, withResponse, ct): Task
 }
 

@@ -43,7 +43,9 @@ describe('traceGeometry (L2-026)', () => {
     expect(g.planAverage).toBe(208);
     expect(g.legend).toEqual(['Actual', 'Work target', 'Recover']);
     const flat = traceGeometry(
-      testWorkout({ plan: { kind: 'flat', level: 12, minutes: 30, cadence: 85 } }),
+      testWorkout({
+        plan: { kind: 'flat', level: 12, minutes: 30, cadence: 85, speed: null, incline: null },
+      }),
       0,
     );
     expect(flat.legend).toEqual(['Actual', 'Work target']);

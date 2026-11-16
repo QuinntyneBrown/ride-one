@@ -61,7 +61,7 @@ public static class WorkoutEndpoints
             .ProducesProblem(StatusCodes.Status409Conflict)
             .RequireRateLimiting(Security.RateLimits.Control);
 
-    private static async Task<IResult> StartAsync(HttpRequest request, WorkoutEngine engine)
+    private static async Task<IResult> StartAsync(HttpRequest request, WorkoutEngine engine, Wattzup.Core.Machines.MachineSelector machines)
     {
         if (!JsonBody.IsJsonOrEmpty(request))
         {
@@ -74,7 +74,7 @@ public static class WorkoutEndpoints
             return Invalid(new Dictionary<string, string[]> { ["body"] = ["The request body is not valid JSON."] });
         }
 
-        var result = WorkoutPlanValidator.Validate(json);
+        var result = WorkoutPlanValidator.Validate(json, machines.Current);
         if (result.Plan is not { } plan)
         {
             return Invalid(result.Errors);

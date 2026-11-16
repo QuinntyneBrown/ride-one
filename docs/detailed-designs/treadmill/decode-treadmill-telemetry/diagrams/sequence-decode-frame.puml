@@ -1,0 +1,46 @@
+@startuml
+title UML sequence behaviour — Decode a treadmill speed or incline frame
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "LiveStateService" as live
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "TelemetryIngestor" as ingest
+  participant "TreadmillPacketDecoder" as dec
+  participant "CommandLog" as log
+  participant "BikeStateStore" as store
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeConnection" as conn
+end box
+participant "Echelon treadmill" as tm
+
+tm -> conn : notify F0 D3 02 23 28 10 (on …f3 or …f4)
+conn -> ingest : OnNotify(frame)
+ingest -> ingest : Add to raw packet sinks [L2-030]
+ingest -> store : read Current.Machine = treadmill
+ingest -> dec : Decode(frame)
+alt D3, at least 6 bytes
+  dec --> ingest : SpeedUpdate(9.0, 5.6) [L2-064 AC1]
+  ingest -> log : Acknowledge(commands, Speed, 9.0, nowMs) [L2-065 AC4]
+  ingest -> store : Update(packets + 1, speed_kmh = 9.0, speed_mph = 5.6,\n belt = running (starting held at speed 0) [L2-064 AC7],\n last_data_at, first_data_at ??= now [L2-064 AC6])
+else D2, at least 5 bytes
+  dec --> ingest : InclineUpdate(5) [L2-064 AC4]
+  ingest -> log : Acknowledge(commands, Incline, 5, nowMs) [L2-065 AC5]
+  ingest -> store : Update(packets + 1, incline = 5, data times)
+else D0, D1, short or unknown frame
+  dec --> ingest : null [L2-064 AC5]
+  ingest -> store : Update(packets + 1)
+end
+store --> live : broadcast (SSE)
+live --> rider : Speed, incline and pace update
+opt frame type is D0, D2 or D3
+  ingest -> conn : WriteAsync(same bytes, withResponse: false) [L2-063 AC7]
+  conn -> tm : write …f2
+end
+@enduml

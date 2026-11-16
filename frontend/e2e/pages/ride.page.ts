@@ -50,6 +50,8 @@ export class RidePage {
   readonly overlay: Locator;
   readonly overlayTitle: Locator;
   readonly overlayText: Locator;
+  readonly overlayCount: Locator;
+  readonly overlayResumeButton: Locator;
   readonly loadError: Locator;
   readonly loadErrorTitle: Locator;
   readonly loadErrorText: Locator;
@@ -78,6 +80,27 @@ export class RidePage {
   readonly commandLog: Locator;
   readonly commandLogConnection: Locator;
   readonly commandEntries: Locator;
+
+  readonly speed: Locator;
+  readonly speedValue: Locator;
+  readonly speedUnit: Locator;
+  readonly speedSub: Locator;
+  readonly incline: Locator;
+  readonly inclineValue: Locator;
+  readonly inclineUnit: Locator;
+  readonly inclineSub: Locator;
+  readonly treadmillAside: Locator;
+  readonly treadmillAsideTitle: Locator;
+  readonly speedControl: Locator;
+  readonly speedControlValue: Locator;
+  readonly inclineControl: Locator;
+  readonly inclineControlValue: Locator;
+  readonly lowerSpeedButton: Locator;
+  readonly raiseSpeedButton: Locator;
+  readonly lowerInclineButton: Locator;
+  readonly raiseInclineButton: Locator;
+  readonly treadmillPlanNote: Locator;
+  readonly treadmillCommandEntries: Locator;
 
   constructor(
     readonly page: Page,
@@ -131,6 +154,8 @@ export class RidePage {
     this.overlay = page.locator('.overlay-panel__card');
     this.overlayTitle = this.overlay.locator('h2');
     this.overlayText = this.overlay.locator('p');
+    this.overlayCount = this.overlay.locator('.overlay-panel__count');
+    this.overlayResumeButton = this.overlay.getByRole('button', { name: 'Resume' });
     this.loadError = this.main.locator('.empty--error');
     this.loadErrorTitle = this.loadError.locator('.empty__title');
     this.loadErrorText = this.loadError.locator('.empty__text');
@@ -159,6 +184,29 @@ export class RidePage {
     this.commandLog = this.aside.getByRole('region', { name: 'Sent to bike' });
     this.commandLogConnection = this.commandLog.locator('.cmd-log__head code');
     this.commandEntries = this.commandLog.locator('li');
+
+    this.speed = page.locator('.readout--speed');
+    this.speedValue = this.speed.locator('.numeral');
+    this.speedUnit = this.speed.locator('.readout__unit');
+    this.speedSub = this.speed.locator('.readout__sub span');
+    this.incline = page.locator('.readout--incline');
+    this.inclineValue = this.incline.locator('.numeral');
+    this.inclineUnit = this.incline.locator('.readout__unit');
+    this.inclineSub = this.incline.locator('.readout__sub span');
+    this.treadmillAside = page.getByRole('complementary', { name: 'Treadmill control' });
+    this.treadmillAsideTitle = this.treadmillAside.locator('h2');
+    this.speedControl = this.treadmillAside.getByRole('group', { name: 'Speed' });
+    this.speedControlValue = this.speedControl.locator('.numeral');
+    this.inclineControl = this.treadmillAside.getByRole('group', { name: 'Incline' });
+    this.inclineControlValue = this.inclineControl.locator('.numeral');
+    this.lowerSpeedButton = this.treadmillAside.getByRole('button', { name: 'Lower speed' });
+    this.raiseSpeedButton = this.treadmillAside.getByRole('button', { name: 'Raise speed' });
+    this.lowerInclineButton = this.treadmillAside.getByRole('button', { name: 'Lower incline' });
+    this.raiseInclineButton = this.treadmillAside.getByRole('button', { name: 'Raise incline' });
+    this.treadmillPlanNote = this.treadmillAside.locator('.plan-note');
+    this.treadmillCommandEntries = this.treadmillAside
+      .getByRole('region', { name: 'Sent to treadmill' })
+      .locator('li');
   }
 
   /** Loads `/` with GET /api/status answering `initial`, then streams it as the first message. */

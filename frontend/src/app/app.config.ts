@@ -11,7 +11,8 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
 import { apiKeyInterceptor } from './core/api-key.interceptor';
 import { BIKE_API } from './core/bike-api';
-import { HttpBikeApi, HttpWorkoutApi } from './core/http-api';
+import { HttpBikeApi, HttpMachineApi, HttpWorkoutApi } from './core/http-api';
+import { MACHINE_API } from './core/machine-api';
 import { ThemeService } from './core/theme.service';
 import { WORKOUT_API } from './core/workout-api';
 
@@ -24,5 +25,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([apiKeyInterceptor])),
     { provide: BIKE_API, useClass: HttpBikeApi },
     { provide: WORKOUT_API, useClass: HttpWorkoutApi },
+    { provide: MACHINE_API, useClass: HttpMachineApi },
   ],
 };

@@ -1,0 +1,122 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Choose the machine
+
+enum Machine {
+  Bike
+  Treadmill
+}
+
+enum MachineChoice {
+  Changed
+  Unchanged
+  WorkoutActive
+}
+
+class MachineProfile <<record>> {
+  +Machine Machine
+  +IReadOnlyList<string> NotifyCharacteristics
+  +IReadOnlyList<ReadOnlyMemory<byte>> InitSequence
+  +string NotFoundMessage
+  +Matches(ad: BikeAdvertisement): bool
+  +Keepalive(counter: byte): ReadOnlyMemory<byte>
+  +{static} For(machine: Machine): MachineProfile
+}
+
+class MachineSelector {
+  -BikeStateStore store
+  +Machine Current
+  +event Action<Machine> Changed
+  +Select(machine: Machine): void
+}
+
+interface IMachineControl {
+  +ChooseAsync(machine: Machine, ct): Task<MachineChoice>
+}
+
+class WorkoutEngine
+
+class MachineEndpoints <<static>> {
+  +MapMachineEndpoints(api): RouteGroupBuilder
+}
+
+class BikeConnectionService {
+  -IBikeTransport transport
+  -BikeStateStore store
+  -MachineSelector selector
+  -TelemetryIngestor ingestor
+  -TimeProvider time
+  #ExecuteAsync(ct): Task
+  -RunOnceAsync(profile: MachineProfile, ct): Task
+  -KeepAliveAsync(conn, profile, ct): Task
+}
+
+interface IBikeConnection {
+  +bool IsConnected
+  +event Disconnected
+  +SubscribeAsync(notifyCharacteristicUuids: IReadOnlyList<string>, onNotify: Action<ReadOnlyMemory<byte>>, ct): Task
+  +WriteAsync(bytes: ReadOnlyMemory<byte>, withResponse: bool, ct): Task
+}
+
+class EchelonDeviceFilter <<static>> {
+  +Matches(name: string?, uuids: IEnumerable<string>): bool
+}
+
+class EchelonTreadmillFilter <<static>> {
+  +Matches(name: string?, uuids: IEnumerable<string>): bool
+}
+
+class EchelonUuids <<static>> {
+  +string Service
+  +string WriteCharacteristic
+  +string TreadmillAdvertisedService
+  +string TreadmillNotifyCharacteristic
+  +IReadOnlyList<string> BikeNotifyCharacteristics
+  +IReadOnlyList<string> TreadmillNotifyCharacteristics
+}
+
+class EchelonTreadmillCommands <<static>> {
+  +IReadOnlyList<ReadOnlyMemory<byte>> InitSequence
+  +Keepalive(counter: byte): byte[]
+  +Acknowledgement(frame: ReadOnlySpan<byte>): byte[]?
+}
+
+class EchelonCommands <<static>> {
+  +IReadOnlyList<ReadOnlyMemory<byte>> InitSequence
+  +ReadOnlyMemory<byte> Keepalive
+}
+
+class BikeState <<record>> {
+  +Machine Machine
+  +double? TargetSpeed
+  +int? Incline
+  +int? TargetIncline
+  +BeltState? Belt
+  +int? BeltCountdown
+}
+
+WorkoutEngine ..|> IMachineControl
+MachineEndpoints ..> IMachineControl : calls
+IMachineControl ..> MachineChoice : returns
+WorkoutEngine --> MachineSelector : Select
+MachineSelector --> BikeState : resets via BikeStateStore
+BikeConnectionService --> MachineSelector : Changed cancels attempt
+BikeConnectionService ..> MachineProfile : For(store.Current.Machine)
+BikeConnectionService ..> IBikeConnection : subscribe, write
+MachineProfile --> Machine
+MachineProfile ..> EchelonDeviceFilter : bike
+MachineProfile ..> EchelonTreadmillFilter : treadmill
+MachineProfile ..> EchelonCommands : bike
+MachineProfile ..> EchelonTreadmillCommands : treadmill
+MachineProfile ..> EchelonUuids : notify lists
+BikeState --> Machine
+@enduml

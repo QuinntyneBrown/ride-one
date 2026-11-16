@@ -1,6 +1,6 @@
 <section class="cmd-log" aria-labelledby="cmd-title">
   <div class="cmd-log__head">
-    <h3 id="cmd-title">Sent to bike</h3>
+    <h3 id="cmd-title">{{ title() }}</h3>
     @if (connectionId(); as id) {
       <code>BLE · {{ id }}</code>
     }
@@ -9,7 +9,7 @@
     @for (e of entries(); track e.key) {
       <li>
         <time>{{ e.time }}</time><span class="cmd"
-          >RES {{ e.level }} <span>· {{ e.source }}</span></span
+          >{{ e.label }} <span>· {{ e.source }}</span></span
         ><span [class]="e.status">{{ e.text }}</span>
       </li>
     } @empty {

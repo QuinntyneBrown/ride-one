@@ -9,13 +9,13 @@ internal sealed class BlueZBikeConnection : IBikeConnection
     // GATT addressing of the Echelon service (see docs/protocol/echelon-ble-frames.md). The transport needs it to
     // find the characteristics; it does not reference Wattzup.Protocol (dependency rule), so it keeps its own copy.
     private const string WriteCharacteristicUuid = "0bf669f2-45f2-11e7-9598-0800200c9a66";
-    private const string NotifyCharacteristicUuid = "0bf669f4-45f2-11e7-9598-0800200c9a66";
 
     private readonly BlueZBus _bus;
     private readonly string _devicePath;
     private readonly TaskCompletionSource _servicesResolved = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly Dictionary<string, string> _characteristics = new(StringComparer.OrdinalIgnoreCase);
     private string? _writePath;
-    private string? _notifyPath;
+    private string[] _notifyPaths = [];
     private Action<ReadOnlyMemory<byte>>? _onNotify;
     private int _connected;
     private int _disposed;
@@ -63,30 +63,43 @@ internal sealed class BlueZBikeConnection : IBikeConnection
                 continue;
             }
 
-            if (string.Equals(uuid.GetString(), WriteCharacteristicUuid, StringComparison.OrdinalIgnoreCase))
-            {
-                _writePath = path;
-            }
-            else if (string.Equals(uuid.GetString(), NotifyCharacteristicUuid, StringComparison.OrdinalIgnoreCase))
-            {
-                _notifyPath = path;
-            }
+            _characteristics[uuid.GetString()] = path;
         }
 
-        if (_writePath is null || _notifyPath is null)
+        if (!_characteristics.TryGetValue(WriteCharacteristicUuid, out var writePath))
         {
-            throw new InvalidOperationException("The device does not expose the Echelon write and notify characteristics.");
+            throw new InvalidOperationException("The device does not expose the Echelon write characteristic.");
         }
+
+        _writePath = writePath;
 
         Volatile.Write(ref _connected, 1);
     }
 
-    public async Task SubscribeAsync(Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken)
+    public async Task SubscribeAsync(IReadOnlyList<string> notifyCharacteristicUuids, Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(notifyCharacteristicUuids);
         ArgumentNullException.ThrowIfNull(onNotify);
-        var notifyPath = _notifyPath ?? throw new InvalidOperationException("The bike is not connected.");
+        if (_writePath is null)
+        {
+            throw new InvalidOperationException("The bike is not connected.");
+        }
+
+        var paths = notifyCharacteristicUuids
+            .Select(uuid => _characteristics.TryGetValue(uuid, out var path) ? path : null)
+            .OfType<string>()
+            .ToArray();
+        if (paths.Length == 0)
+        {
+            throw new InvalidOperationException("The device does not expose the Echelon notify characteristic.");
+        }
+
         _onNotify = onNotify;
-        await _bus.CallAsync(notifyPath, BlueZBus.GattCharacteristic1, "StartNotify", cancellationToken).ConfigureAwait(false);
+        Volatile.Write(ref _notifyPaths, paths);
+        foreach (var path in paths)
+        {
+            await _bus.CallAsync(path, BlueZBus.GattCharacteristic1, "StartNotify", cancellationToken).ConfigureAwait(false);
+        }
     }
 
     public Task WriteAsync(ReadOnlyMemory<byte> bytes, bool withResponse, CancellationToken cancellationToken)
@@ -121,7 +134,7 @@ internal sealed class BlueZBikeConnection : IBikeConnection
         }
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-        if (_notifyPath is { } notifyPath)
+        foreach (var notifyPath in Volatile.Read(ref _notifyPaths))
         {
             await BestEffortAsync(notifyPath, BlueZBus.GattCharacteristic1, "StopNotify", timeout.Token).ConfigureAwait(false);
         }
@@ -158,7 +171,7 @@ internal sealed class BlueZBikeConnection : IBikeConnection
                 }
 
                 break;
-            case PropertiesChanged changed when changed.Path == _notifyPath && changed.Interface == BlueZBus.GattCharacteristic1
+            case PropertiesChanged changed when Volatile.Read(ref _notifyPaths).Contains(changed.Path) && changed.Interface == BlueZBus.GattCharacteristic1
                 && changed.Changed.TryGetValue("Value", out var value) && value.Type == VariantValueType.Array:
                 if (IsConnected && _onNotify is { } onNotify)
                 {

@@ -1,0 +1,83 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Decode treadmill telemetry
+
+abstract class TelemetryUpdate <<record>>
+
+class ResistanceUpdate <<record>> {
+  +int Level
+}
+
+class CadenceUpdate <<record>> {
+  +int Rpm
+  +double SpeedKmh
+  +double SpeedMph
+}
+
+class SpeedUpdate <<record>> {
+  +double Kmh
+  +double Mph
+}
+
+class InclineUpdate <<record>> {
+  +int Percent
+}
+
+class TreadmillPacketDecoder <<static>> {
+  +Decode(frame: ReadOnlySpan<byte>): TelemetryUpdate?
+}
+
+class PacketDecoder <<static>> {
+  +Decode(frame: ReadOnlySpan<byte>): TelemetryUpdate?
+}
+
+class TelemetryIngestor {
+  -BikeStateStore store
+  -IRawPacketSink[] sinks
+  -ActiveConnectionRegistry registry
+  +OnNotify(frame: ReadOnlyMemory<byte>): void
+}
+
+enum BeltState {
+  Stopped
+  Starting
+  Running
+}
+
+class CommandLog <<static>> {
+  +Acknowledge(log, kind: CommandKind, value: double, nowMs: long): ImmutableArray<CommandEntry>
+}
+
+class BikeState <<record>> {
+  +Machine Machine
+  +double? SpeedKmh
+  +double? SpeedMph
+  +int? Incline
+  +BeltState? Belt
+  +double? DistanceKm
+  +int Packets
+  +double? FirstDataAt
+  +double? LastDataAt
+}
+
+TelemetryUpdate <|-- ResistanceUpdate
+TelemetryUpdate <|-- CadenceUpdate
+TelemetryUpdate <|-- SpeedUpdate
+TelemetryUpdate <|-- InclineUpdate
+TreadmillPacketDecoder ..> SpeedUpdate : creates
+TreadmillPacketDecoder ..> InclineUpdate : creates
+TelemetryIngestor ..> TreadmillPacketDecoder : machine = treadmill
+TelemetryIngestor ..> PacketDecoder : machine = bike
+TelemetryIngestor ..> CommandLog : acknowledges
+TelemetryIngestor --> BikeState : updates via BikeStateStore
+BikeState --> BeltState
+@enduml

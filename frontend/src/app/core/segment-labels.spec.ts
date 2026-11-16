@@ -1,4 +1,12 @@
-import { kindLabel, nextLabel, phaseOf, roundLabel, statusBadge, toneOf } from './segment-labels';
+import {
+  badgeTone,
+  kindLabel,
+  nextLabel,
+  phaseOf,
+  roundLabel,
+  statusBadge,
+  toneOf,
+} from './segment-labels';
 import { testWorkout } from './test-state';
 
 describe('segment-labels (L2-025)', () => {
@@ -21,7 +29,12 @@ describe('segment-labels (L2-025)', () => {
 
   it('names the next segment, or null on the last', () => {
     const w = testWorkout();
-    expect(nextLabel(w.segments, 9)).toEqual({ kind: 'Recover', duration: '0:20', level: 6 });
+    expect(nextLabel(w.segments, 9)).toEqual({
+      kind: 'Recover',
+      duration: '0:20',
+      level: 6,
+      speed: null,
+    });
     expect(nextLabel(w.segments, 16)).toBeNull();
   });
 
@@ -35,5 +48,25 @@ describe('segment-labels (L2-025)', () => {
     ['ended: bike shut off', 'Bike shut off'],
   ] as const)('badge for %s is %s', (status, badge) => {
     expect(statusBadge(status)).toBe(badge);
+  });
+});
+
+describe('treadmill badges (L2-071 AC11)', () => {
+  it.each([
+    ['starting belt', 'Starting belt', 'info'],
+    ['paused: belt stopped', 'Belt stopped', 'warning'],
+    ['paused: bike disconnected', 'Treadmill disconnected', 'danger'],
+    ['waiting for bike', 'Waiting for treadmill', 'warning'],
+    ['ended: bike shut off', 'Treadmill shut off', 'warning'],
+    ['paused', 'Paused', 'warning'],
+    ['running', null, 'warning'],
+  ] as const)('%s reads %j', (status, text, tone) => {
+    expect(statusBadge(status, 'treadmill')).toBe(text);
+    expect(badgeTone(status, 'treadmill')).toBe(tone);
+  });
+
+  it('keeps the bike words and tone', () => {
+    expect(statusBadge('paused: bike disconnected')).toBe('Bike disconnected');
+    expect(badgeTone('paused: bike disconnected')).toBe('warning');
   });
 });

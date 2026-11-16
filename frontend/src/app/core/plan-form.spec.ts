@@ -118,12 +118,18 @@ describe('plan-form (L2-029)', () => {
       rest_level: 18,
       warmup: true,
       cooldown: true,
+      work_speed: null,
+      rest_speed: null,
+      work_incline: null,
+      rest_incline: null,
     });
     expect(toPlan({ ...DEFAULT_DRAFT, mode: 'flat' })).toEqual({
       kind: 'flat',
       level: 12,
       minutes: 30,
       cadence: 85,
+      speed: null,
+      incline: null,
     });
     expect(toPlan({ ...DEFAULT_DRAFT, rounds: '0' })).toBeNull();
   });

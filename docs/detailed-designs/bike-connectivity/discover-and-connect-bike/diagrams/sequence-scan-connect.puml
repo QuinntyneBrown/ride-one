@@ -39,7 +39,7 @@ transport -> bike : GATT connect
 bike --> transport : connected
 transport --> svc : IBikeConnection
 svc -> store : Update(ble = connected)
-svc -> conn : SubscribeAsync(NotifyCharacteristic, onNotify)
+svc -> conn : SubscribeAsync(BikeNotifyCharacteristics = […f4], onNotify)
 conn -> bike : enable notifications
 svc -> cmds : InitSequence
 cmds --> svc : [F0 A1 00 91, F0 A3 00 93, F0 B0 01 01 A2]

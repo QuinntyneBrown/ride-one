@@ -16,11 +16,13 @@ describe('SegmentChangeDetector (L2-027)', () => {
     expect(d.observe(testWorkout({ segment: 10 }))).toEqual({
       kind: 'rest',
       level: 6,
+      speed: null,
+      incline: null,
       duration: 20,
       round: 5,
       rounds: 8,
       last: false,
-      next: { kind: 'work', level: 18 },
+      next: { kind: 'work', level: 18, speed: null },
     });
   });
   it('ignores a change to no workout', () => {

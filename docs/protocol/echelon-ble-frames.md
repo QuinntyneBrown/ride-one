@@ -1,6 +1,8 @@
 # Echelon BLE frame structure
 
 This page describes the bytes Wattzup and the Echelon bike exchange over Bluetooth, down to the bit.
+The treadmill's frames, which share this page's framing and checksum, are in
+[echelon-treadmill-frames.md](./echelon-treadmill-frames.md).
 
 It draws on three sources:
 

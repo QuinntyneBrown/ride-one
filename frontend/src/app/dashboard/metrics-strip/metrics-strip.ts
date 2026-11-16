@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { BikeState } from '../../core/api-types';
 import { formatCount, formatDistance, formatLive, formatSpeed } from '../../core/metric-format';
+import { formatPace } from '../../core/pace';
 
-/** Heart rate, avg power, speed, distance and energy (L2-022). */
+/** Heart rate, avg power, speed, distance and energy; heart rate, distance and pace on the
+ * treadmill (L2-022, L2-071 criterion 4). */
 @Component({
   selector: 'wz-metrics-strip',
   templateUrl: './metrics-strip.html',
@@ -12,10 +14,18 @@ import { formatCount, formatDistance, formatLive, formatSpeed } from '../../core
 export class MetricsStrip {
   readonly state = input<BikeState | null>(null);
   readonly dimmed = input(false);
+  readonly treadmill = computed(() => this.state()?.machine === 'treadmill');
 
   protected readonly metrics = computed(() => {
     const s = this.state();
     if (!s) return null;
+    if (s.machine === 'treadmill') {
+      return [
+        { term: 'Heart rate', value: formatLive(s.heart_rate), unit: 'bpm', heart: true },
+        { term: 'Distance', value: formatDistance(s.distance_km), unit: 'km', heart: false },
+        { term: 'Pace', value: formatPace(s.speed_kmh), unit: '/km', heart: false },
+      ];
+    }
     return [
       { term: 'Heart rate', value: formatLive(s.heart_rate), unit: 'bpm', heart: true },
       { term: 'Avg power', value: formatCount(s.avg_power), unit: 'W', heart: false },

@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Run a treadmill workout
+
+Container_Boundary(api, "Wattzup API") {
+  Component(ep, "WorkoutEndpoints / TreadmillEndpoints", "Minimal APIs, Wattzup.Api", "POST /api/workout; POST /api/speed and /api/incline")
+  Component(val, "WorkoutPlanValidator", "Wattzup.Core", "Validate(body, machine)")
+  Component(engine, "WorkoutEngine", "BackgroundService, Wattzup.Core", "1 s tick loop; DriveAsync dispatches on the run's machine; ITreadmillControl")
+  Component(exp, "PlanExpander", "Wattzup.Core", "Plan to segments with speed and incline")
+  Component(sum, "WorkoutSummary", "Wattzup.Core", "Flat · <speed> km/h · <minutes> min")
+  Component(cmdr, "ITreadmillCommander", "Wattzup.Core.Treadmill", "SendSpeedAsync / SendInclineAsync; logs commands")
+  Component(store, "BikeStateStore", "Wattzup.Core", "machine, speed_kmh, incline, workout, distance_km, error")
+  Component(clock, "TimeProvider", ".NET", "Real time, or FakeTimeProvider in tests")
+}
+System_Ext(treadmill, "Echelon treadmill", "Echelon BLE GATT service")
+
+Rel(ep, store, "Reads machine")
+Rel(ep, val, "Validate(body, machine)")
+Rel(ep, engine, "StartAsync(plan); SetManualSpeedAsync / SetManualInclineAsync")
+Rel(engine, exp, "Expand(plan)")
+Rel(engine, sum, "For(plan)")
+Rel(engine, cmdr, "SendSpeedAsync / SendInclineAsync(plan or manual)")
+Rel(engine, store, "Reads speed_kmh and incline; Update(workout, distance_km, error)")
+Rel(engine, clock, "PeriodicTimer ticks")
+Rel(cmdr, treadmill, "Write with response", "BLE GATT")
+@enduml

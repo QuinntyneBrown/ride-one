@@ -1,0 +1,25 @@
+<div class="incline-control" role="group" aria-labelledby="incline-control-label">
+  <button
+    class="step-btn"
+    type="button"
+    aria-label="Lower incline"
+    [disabled]="lowerDisabled()"
+    (click)="step.emit(-1)"
+  >
+    <wz-icon name="minus" size="lg" />
+  </button>
+  <div class="incline-control__readout">
+    <span class="incline-control__label" id="incline-control-label">Incline</span
+    ><span class="numeral" aria-live="polite">{{ valueText() }}</span
+    ><small>%</small>
+  </div>
+  <button
+    class="step-btn"
+    type="button"
+    aria-label="Raise incline"
+    [disabled]="raiseDisabled()"
+    (click)="step.emit(1)"
+  >
+    <wz-icon name="plus" size="lg" />
+  </button>
+</div>

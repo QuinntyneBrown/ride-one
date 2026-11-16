@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speed and incline control — Wattzup design system</title>
+<meta name="description" content="Treadmill − value + controls for speed and incline.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+  <nav class="ds-nav" aria-label="Design system">
+    <div class="ds-nav__brand"><a href="../index.html">Wattzup DS</a><button class="ds-theme-toggle" type="button" aria-pressed="true">☀ Light</button></div>
+    <details open><summary>Foundations</summary><ul>
+      <li><a href="../foundations/color.html">Color</a></li>
+      <li><a href="../foundations/typography.html">Typography</a></li>
+      <li><a href="../foundations/spacing.html">Spacing</a></li>
+      <li><a href="../foundations/layout.html">Layout</a></li>
+      <li><a href="../foundations/elevation.html">Elevation</a></li>
+      <li><a href="../foundations/shape.html">Shape</a></li>
+      <li><a href="../foundations/motion.html">Motion</a></li>
+      <li><a href="../foundations/iconography.html">Iconography</a></li>
+      <li><a href="../foundations/theming.html">Theming</a></li>
+      <li><a href="../foundations/responsive.html">Responsive</a></li>
+      <li><a href="../foundations/accessibility.html">Accessibility</a></li>
+      <li><a href="../foundations/content.html">Content</a></li>
+    </ul></details>
+    <details open><summary>Components</summary><ul>
+      <li><a href="../components/button.html">Button</a></li>
+      <li><a href="../components/link.html">Link</a></li>
+      <li><a href="../components/chip.html">Chip</a></li>
+      <li><a href="../components/text-field.html">Text field</a></li>
+      <li><a href="../components/form-field.html">Form field</a></li>
+      <li><a href="../components/form-layout.html">Form layout</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li>
+      <li><a href="../components/switch.html">Switch</a></li>
+      <li><a href="../components/slider.html">Slider</a></li>
+      <li><a href="../components/number-stepper.html">Number stepper</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li>
+      <li><a href="../components/level-picker.html">Level picker</a></li>
+      <li><a href="../components/app-bar.html">App bar</a></li>
+      <li><a href="../components/lockup.html">Lockup</a></li>
+      <li><a href="../components/status-line.html">Status line</a></li>
+      <li><a href="../components/ride-clock.html">Ride clock</a></li>
+      <li><a href="../components/skip-link.html">Skip link</a></li>
+      <li><a href="../components/page-layout.html">Page layout</a></li>
+      <li><a href="../components/dialog.html">Dialog</a></li>
+      <li><a href="../components/overlay-panel.html">Overlay panel</a></li>
+      <li><a href="../components/tooltip.html">Tooltip</a></li>
+      <li><a href="../components/divider.html">Divider</a></li>
+      <li><a href="../components/readout.html">Readout</a></li>
+      <li><a href="../components/interval.html">Interval</a></li>
+      <li><a href="../components/power-trace.html">Power trace</a></li>
+      <li><a href="../components/metric-list.html">Metric list</a></li>
+      <li><a href="../components/ride-profile.html">Ride profile</a></li>
+      <li><a href="../components/command-log.html">Command log</a></li>
+      <li><a href="../components/description-list.html">Description list</a></li>
+      <li><a href="../components/code-block.html">Code block</a></li>
+      <li><a href="../components/badge.html">Badge</a></li>
+      <li><a href="../components/toast.html">Toast</a></li>
+      <li><a href="../components/alert.html">Alert and banner</a></li>
+      <li><a href="../components/phase-banner.html">Step-change banner</a></li>
+      <li><a href="../components/inline-message.html">Inline message</a></li>
+      <li><a href="../components/progress-bar.html">Progress bar</a></li>
+      <li><a href="../components/spinner.html">Spinner</a></li>
+      <li><a href="../components/skeleton.html">Skeleton</a></li>
+      <li><a href="../components/empty-state.html">Empty state</a></li>
+      <li><a href="../components/error-page.html">Error page</a></li>
+    </ul></details>
+    <details open><summary>Patterns</summary><ul>
+      <li><a href="../patterns/forms.html">Forms</a></li>
+      <li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li>
+      <li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li>
+      <li><a href="../patterns/page-structure.html">Page structure</a></li>
+      <li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li>
+      <li><a href="../patterns/live-data.html">Live data</a></li>
+      <li><a href="../patterns/notifications.html">Notifications</a></li>
+      <li><a href="../patterns/content-and-tone.html">Content and tone</a></li>
+    </ul></details>
+  </nav>
+  <main id="main" class="ds-main">
+    <header class="ds-header">
+      <p class="ds-kicker">Component · Inputs</p>
+      <h1>Speed and incline control</h1>
+      <p class="ds-lead">The speed control and the incline control are the treadmill's − 9.0 + and − 0 + in the side panel titled Speed and incline. They replace the level control and level picker when the machine is the treadmill (L2-071).</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: new</span></div>
+      <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
+    </header>
+    <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>One press sends a new value at once: speed 0.5 km/h below or above the reported speed (else the target, else 7.0), incline 1 % below or above the reported incline (else the target, else 0). Two blocks with the same structure; an Angular implementation can be one component per block.</p>
+    </section>
+    <section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
+<div class="ds-anatomy"><figure class="ds-anatomy__figure"><div class="speed-control" role="group" aria-labelledby="speed-control-label-3"><button class="step-btn" type="button" aria-label="Lower speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="speed-control__readout"><span class="speed-control__label" id="speed-control-label-3">Speed</span><span class="numeral" aria-live="polite">9.0</span><small>km/h</small></div><button class="step-btn" type="button" aria-label="Raise speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div><span class="ds-callout" style="left: 5%; top: 40%;" aria-hidden="true">1</span><span class="ds-callout" style="left: 50%; top: 8%;" aria-hidden="true">2</span><span class="ds-callout" style="left: 50%; top: 45%;" aria-hidden="true">3</span><span class="ds-callout" style="left: 50%; top: 85%;" aria-hidden="true">4</span></figure><ol class="ds-anatomy__list"><li><div><b>Step buttons</b><small><code>.step-btn</code>, 64px, shared with the level control.</small></div></li><li><div><b>Label</b><small><code>__label</code>, caption, names the group.</small></div></li><li><div><b>Value</b><small>Numeral xl (the value the treadmill reports).</small></div></li><li><div><b>Unit</b><small>km/h or %, caption.</small></div></li></ol></div>
+    </section>
+    <section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
+<div class="ds-example"><div class="ds-example__canvas "><div class="speed-control" role="group" aria-labelledby="speed-control-label-1"><button class="step-btn" type="button" aria-label="Lower speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="speed-control__readout"><span class="speed-control__label" id="speed-control-label-1">Speed</span><span class="numeral" aria-live="polite">9.0</span><small>km/h</small></div><button class="step-btn" type="button" aria-label="Raise speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div><div class="incline-control" role="group" aria-labelledby="incline-control-label-2"><button class="step-btn" type="button" aria-label="Lower incline" disabled><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="incline-control__readout"><span class="incline-control__label" id="incline-control-label-2">Incline</span><span class="numeral" aria-live="polite">0</span><small>%</small></div><button class="step-btn" type="button" aria-label="Raise incline"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div><div class="plan-note"><span>Following the plan — speed and incline change with each interval.</span></div></div><div class="ds-example__caption"><span>Running: incline at 0 %, so Lower incline is disabled.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class=&quot;speed-control&quot; role=&quot;group&quot; aria-labelledby=&quot;speed-control-label-1&quot;&gt;
+&lt;button class=&quot;step-btn&quot; type=&quot;button&quot; aria-label=&quot;Lower speed&quot;&gt;
+&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+&lt;path d=&quot;M5 12h14&quot;/&gt;
+&lt;/svg&gt;
+&lt;/button&gt;
+&lt;div class=&quot;speed-control__readout&quot;&gt;
+&lt;span class=&quot;speed-control__label&quot; id=&quot;speed-control-label-1&quot;&gt;Speed&lt;/span&gt;
+&lt;span class=&quot;numeral&quot; aria-live=&quot;polite&quot;&gt;9.0&lt;/span&gt;
+&lt;small&gt;km/h&lt;/small&gt;
+&lt;/div&gt;
+&lt;button class=&quot;step-btn&quot; type=&quot;button&quot; aria-label=&quot;Raise speed&quot;&gt;
+&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+&lt;path d=&quot;M12 5v14M5 12h14&quot;/&gt;
+&lt;/svg&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class=&quot;incline-control&quot; role=&quot;group&quot; aria-labelledby=&quot;incline-control-label-2&quot;&gt;
+&lt;button class=&quot;step-btn&quot; type=&quot;button&quot; aria-label=&quot;Lower incline&quot; disabled&gt;
+&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+&lt;path d=&quot;M5 12h14&quot;/&gt;
+&lt;/svg&gt;
+&lt;/button&gt;
+&lt;div class=&quot;incline-control__readout&quot;&gt;
+&lt;span class=&quot;incline-control__label&quot; id=&quot;incline-control-label-2&quot;&gt;Incline&lt;/span&gt;
+&lt;span class=&quot;numeral&quot; aria-live=&quot;polite&quot;&gt;0&lt;/span&gt;
+&lt;small&gt;%&lt;/small&gt;
+&lt;/div&gt;
+&lt;button class=&quot;step-btn&quot; type=&quot;button&quot; aria-label=&quot;Raise incline&quot;&gt;
+&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+&lt;path d=&quot;M12 5v14M5 12h14&quot;/&gt;
+&lt;/svg&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class=&quot;plan-note&quot;&gt;
+&lt;span&gt;Following the plan — speed and incline change with each interval.&lt;/span&gt;
+&lt;/div&gt;</code></pre></details></div><h3>Not connected</h3><div class="ds-example"><div class="ds-example__canvas "><div class="speed-control" role="group" aria-labelledby="speed-control-label-4"><button class="step-btn" type="button" aria-label="Lower speed" disabled><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="speed-control__readout"><span class="speed-control__label" id="speed-control-label-4">Speed</span><span class="numeral" aria-live="polite">--</span><small>km/h</small></div><button class="step-btn" type="button" aria-label="Raise speed" disabled><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div><div class="incline-control" role="group" aria-labelledby="incline-control-label-5"><button class="step-btn" type="button" aria-label="Lower incline" disabled><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="incline-control__readout"><span class="incline-control__label" id="incline-control-label-5">Incline</span><span class="numeral" aria-live="polite">--</span><small>%</small></div><button class="step-btn" type="button" aria-label="Raise incline" disabled><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div><div class="plan-note"><span>Speed and incline controls wake up once the treadmill connects.</span></div></div><div class="ds-example__caption"><span>ble is not connected: every step button disabled.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class=&quot;speed-control&quot; role=&quot;group&quot; aria-labelledby=&quot;speed-control-label-4&quot;&gt;
+&lt;button class=&quot;step-btn&quot; type=&quot;button&quot; aria-label=&quot;Lower speed&quot; disabled&gt;
+&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+&lt;path d=&quot;M5 12h14&quot;/&gt;
+&lt;/svg&gt;
+&lt;/button&gt;
+&lt;div class=&quot;speed-control__readout&quot;&gt;
+&lt;span class=&quot;speed-control__label&quot; id=&quot;speed-control-label-4&quot;&gt;Speed&lt;/span&gt;
+&lt;span class=&quot;numeral&quot; aria-live=&quot;polite&quot;&gt;--&lt;/span&gt;
+&lt;small&gt;km/h&lt;/small&gt;
+&lt;/div&gt;
+&lt;button class=&quot;step-btn&quot; type=&quot;button&quot; aria-label=&quot;Raise speed&quot; disabled&gt;
+&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+&lt;path d=&quot;M12 5v14M5 12h14&quot;/&gt;
+&lt;/svg&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class=&quot;incline-control&quot; role=&quot;group&quot; aria-labelledby=&quot;incline-control-label-5&quot;&gt;
+&lt;button class=&quot;step-btn&quot; type=&quot;button&quot; aria-label=&quot;Lower incline&quot; disabled&gt;
+&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+&lt;path d=&quot;M5 12h14&quot;/&gt;
+&lt;/svg&gt;
+&lt;/button&gt;
+&lt;div class=&quot;incline-control__readout&quot;&gt;
+&lt;span class=&quot;incline-control__label&quot; id=&quot;incline-control-label-5&quot;&gt;Incline&lt;/span&gt;
+&lt;span class=&quot;numeral&quot; aria-live=&quot;polite&quot;&gt;--&lt;/span&gt;
+&lt;small&gt;%&lt;/small&gt;
+&lt;/div&gt;
+&lt;button class=&quot;step-btn&quot; type=&quot;button&quot; aria-label=&quot;Raise incline&quot; disabled&gt;
+&lt;svg class=&quot;icon&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
+&lt;path d=&quot;M12 5v14M5 12h14&quot;/&gt;
+&lt;/svg&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class=&quot;plan-note&quot;&gt;
+&lt;span&gt;Speed and incline controls wake up once the treadmill connects.&lt;/span&gt;
+&lt;/div&gt;</code></pre></details></div>
+    </section>
+    <section class="ds-section" id="sizes" data-na="One size, 64px buttons."><h2><a href="#sizes">Sizes</a></h2>
+      <p class="ds-na">One size, 64px buttons.</p>
+    </section>
+    <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
+<div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Default</th><th scope="col">Hover</th><th scope="col">Active</th><th scope="col">Focus</th><th scope="col">Disabled</th></tr></thead><tbody><tr><th scope="row">Raise speed</th><td><button class="step-btn" type="button" aria-label="Raise speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></td><td><button class="step-btn" type="button" aria-label="Raise speed" data-state="hover"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></td><td><button class="step-btn" type="button" aria-label="Raise speed" data-state="active"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></td><td><button class="step-btn" type="button" aria-label="Raise speed" data-state="focus"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></td><td><button class="step-btn" type="button" aria-label="Raise speed" disabled><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></td></tr></tbody></table></div><h3>Both themes</h3><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas"><div class="speed-control" role="group" aria-labelledby="speed-control-label-6"><button class="step-btn" type="button" aria-label="Lower speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="speed-control__readout"><span class="speed-control__label" id="speed-control-label-6">Speed</span><span class="numeral" aria-live="polite">9.0</span><small>km/h</small></div><button class="step-btn" type="button" aria-label="Raise speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div></div><div data-theme="dark"><div class="ds-example__canvas"><div class="speed-control" role="group" aria-labelledby="speed-control-label-7"><button class="step-btn" type="button" aria-label="Lower speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="speed-control__readout"><span class="speed-control__label" id="speed-control-label-7">Speed</span><span class="numeral" aria-live="polite">9.0</span><small>km/h</small></div><button class="step-btn" type="button" aria-label="Raise speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div></div></div><ul><li><b>At the limits</b>: Lower speed is disabled at 1.0 km/h (or below, e.g. a stopped belt reporting 0.0) and Raise speed at 16.0; Lower incline at 0 % and Raise incline at 15 %.</li><li><b>Treadmill not connected</b>: all four disabled, the plan note reads the wake-up sentence.</li><li><b>Requested vs. reported</b>: the value here is what the treadmill reports; “Setting 9.0…” shows in the speed readout (see <a href="readout.html">Readout</a>), not here.</li></ul>
+    </section>
+    <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
+<ul><li>Spread across the side panel at every width; the panel sits under the ride area below 1024px.</li></ul>
+    </section>
+    <section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
+<p>Buttons on <code>--color-bg-subtle</code>; label <code>--color-fg-muted</code>, unit <code>--color-fg-subtle</code>; no theme-specific rules.</p>
+    </section>
+    <section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<h3>Role and pattern</h3><p>Each control is a <code>role="group"</code> labelled by its visible label, with two buttons and a live numeral (<code>aria-live="polite"</code>). Not a spinbutton: a press sends a command to the treadmill at once.</p><h3>Keyboard</h3><div class="ds-table-wrap"><table class="ds-table ds-keys"><thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead><tbody><tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Lower speed, Raise speed, Lower incline, Raise incline in DOM order.</td></tr><tr><td><kbd>Enter</kbd>, <kbd>Space</kbd></td><td>One step: 0.5 km/h or 1 %.</td></tr></tbody></table></div><h3>Focus</h3><p>Focus stays on the pressed button; a button that becomes disabled at its limit moves focus to its sibling.</p><h3>Labelling</h3><p>“Lower speed” / “Raise speed”, “Lower incline” / “Raise incline” (L2-071).</p><h3>Contrast</h3><div class="ds-example__canvas ds-example__canvas--stack"><div class="ds-pair"><span>Label on panel</span><span class="ds-pair__ratio" data-contrast="--color-fg-muted|--color-bg-surface" data-min="4.5"></span></div><div class="ds-pair"><span>Unit on panel</span><span class="ds-pair__ratio" data-contrast="--color-fg-subtle|--color-bg-surface" data-min="4.5"></span></div></div><h3>Motion</h3><p>Press scales to 0.96 over <code>--duration-fast</code>; none with reduced motion beyond the colour change.</p><h3>Touch</h3><p>64px buttons, well over 44 × 44.</p>
+    </section>
+    <section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>Panel title: “Speed and incline”.</li><li>Values: speed with one decimal (9.0), incline as a whole number (0).</li><li>Wake-up note: “Speed and incline controls wake up once the treadmill connects.”</li></ul>
+    </section>
+    <section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><div class="incline-control" role="group" aria-labelledby="incline-control-label-8"><button class="step-btn" type="button" aria-label="Lower incline" disabled><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="incline-control__readout"><span class="incline-control__label" id="incline-control-label-8">Incline</span><span class="numeral" aria-live="polite">0</span><small>%</small></div><button class="step-btn" type="button" aria-label="Raise incline"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div><figcaption>Disable the step that would leave 0–15 %.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><div class="incline-control" role="group" aria-labelledby="incline-control-label-9"><button class="step-btn" type="button" aria-label="Lower incline"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="incline-control__readout"><span class="incline-control__label" id="incline-control-label-9">Incline</span><span class="numeral" aria-live="polite">0</span><small>%</small></div><button class="step-btn" type="button" aria-label="Raise incline"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div><figcaption>Leave Lower incline live at 0 % and let the API answer 400.</figcaption></figure></div><div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><div class="speed-control" role="group" aria-labelledby="speed-control-label-10"><button class="step-btn" type="button" aria-label="Lower speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="speed-control__readout"><span class="speed-control__label" id="speed-control-label-10">Speed</span><span class="numeral" aria-live="polite">9.0</span><small>km/h</small></div><button class="step-btn" type="button" aria-label="Raise speed"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div><figcaption>Label each group with the spec word: Speed, Incline.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><div class="level-control"><button class="step-btn" type="button" aria-label="Lower resistance"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><div class="level-readout"><span class="numeral">9.0</span><small>of 32</small></div><button class="step-btn" type="button" aria-label="Raise resistance"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div><figcaption>Reuse the bike's level control and its resistance names for speed.</figcaption></figure></div>
+    </section>
+    <section class="ds-section" id="tokens"><h2><a href="#tokens">Tokens</a></h2>
+<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Part</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead><tbody><tr><td>Step size</td><td><code>--control-step</code></td><td colspan="2"><span data-token="--control-step"></span></td></tr><tr><td>Fill</td><td><code>--color-bg-subtle</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-bg-subtle" data-swatch></i><span data-token="--color-bg-subtle"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-bg-subtle" data-swatch></i><span data-token="--color-bg-subtle"></span></span></td></tr><tr><td>Label</td><td><code>--color-fg-muted</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-fg-muted" data-swatch></i><span data-token="--color-fg-muted"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-fg-muted" data-swatch></i><span data-token="--color-fg-muted"></span></span></td></tr><tr><td>Unit</td><td><code>--color-fg-subtle</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-fg-subtle" data-swatch></i><span data-token="--color-fg-subtle"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-fg-subtle" data-swatch></i><span data-token="--color-fg-subtle"></span></span></td></tr><tr><td>Numeral</td><td><code>--font-size-numeral-xl</code></td><td colspan="2"><span data-token="--font-size-numeral-xl"></span></td></tr></tbody></table></div>
+    </section>
+    <section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
+<pre><code>&lt;div class="speed-control" role="group" aria-labelledby="speed-label"&gt;
+  &lt;button class="step-btn" type="button" aria-label="Lower speed"&gt;…&lt;/button&gt;
+  &lt;div class="speed-control__readout"&gt;&lt;span class="speed-control__label" id="speed-label"&gt;Speed&lt;/span&gt;
+    &lt;span class="numeral" aria-live="polite"&gt;9.0&lt;/span&gt;&lt;small&gt;km/h&lt;/small&gt;&lt;/div&gt;
+  &lt;button class="step-btn" type="button" aria-label="Raise speed"&gt;…&lt;/button&gt;
+&lt;/div&gt;
+&lt;!-- .incline-control has the same elements: __readout, __label --&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.speed-control</code></td><td>Speed row: − value +.</td></tr><tr><td><code>.incline-control</code></td><td>Incline row, same structure.</td></tr><tr><td><code>__readout</code></td><td>Centred label, numeral and unit.</td></tr><tr><td><code>__label</code></td><td>Visible caption that labels the group.</td></tr><tr><td><code>.step-btn</code></td><td>64px step button (shared).</td></tr><tr><td><code>.plan-note</code></td><td>Plan or wake-up note under the controls.</td></tr></tbody></table></div>
+    </section>
+    <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/treadmill.html">pages/ride/treadmill</a> (running)</li><li><a href="../../mocks/pages/ride/treadmill-disconnected.html">pages/ride/treadmill-disconnected</a> (disabled)</li><li><a href="../../mocks/pages/ride/treadmill-countdown.html">pages/ride/treadmill-countdown</a> (belt not moving yet)</li></ul><p>New for the treadmill (L2-071); no drift.</p>
+    </section>
+
+    <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15, treadmill components added 2026-11-16</span><a href="#top">Back to top</a></footer>
+  </main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>
