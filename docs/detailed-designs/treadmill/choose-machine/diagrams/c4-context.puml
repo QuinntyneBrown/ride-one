@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Choose the machine
+
+Person(rider, "Rider", "Chooses the bike or the treadmill and rides it")
+System(wattzup, "Wattzup", "Live metrics, control and interval workouts for one Echelon machine at a time")
+System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
+System_Ext(bike, "Echelon bike", "ECH… name, Echelon service 0bf669f1")
+System_Ext(treadmill, "Echelon treadmill", "STRIDE… name, advertised service 0bf669f0")
+
+Rel(rider, wattzup, "Chooses the machine in", "Browser")
+Rel(wattzup, os, "Scans for the chosen machine through")
+Rel(os, bike, "Notifications and commands, when the bike is chosen", "BLE GATT")
+Rel(os, treadmill, "Notifications and commands, when the treadmill is chosen", "BLE GATT")
+@enduml

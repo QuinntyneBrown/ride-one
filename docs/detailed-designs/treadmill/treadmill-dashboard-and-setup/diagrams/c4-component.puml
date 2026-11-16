@@ -1,0 +1,36 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Treadmill dashboard and setup
+
+Container_Boundary(web, "Wattzup Web") {
+  Component(live, "LiveStateService", "Root service", "Only EventSource; state signal with machine")
+  Component(ride, "RidePage", "Component", "Speed and incline readouts, metrics strip, controls, overlays, log")
+  Component(controls, "SpeedControl / InclineControl", "Components", "Lower and Raise buttons")
+  Component(overlay, "RideOverlay", "Component", "Belt countdown, starting and stopped overlays; live region")
+  Component(setup, "SetupPage", "Component", "Machine choice and treadmill plan form")
+  Component(choice, "MachineChoice", "Component", "Machine radio group")
+  Component(preview, "RidePreview", "Component", "Speed profile, top speed, expected distance")
+  Component(helpers, "Pure helpers", "src/app/core", "treadmill-view, treadmill-controls, pace, belt-countdown, machine-words, treadmill-plan-form, plan-expansion, ride-preview")
+  Component(cmds, "TreadmillCommandService", "Root service", "Sends steps; 503 toasts")
+  Component(machineApi, "MACHINE_API", "MachineApi token", "choose, setSpeed, setIncline")
+  Component(workoutApi, "WORKOUT_API", "WorkoutApi token", "start, stop, pause, resume")
+}
+Container(api, "Wattzup API", "ASP.NET Core", "Endpoints and live state")
+
+Rel(ride, live, "Reads state")
+Rel(setup, live, "Reads machine and workout")
+Rel(ride, helpers, "Builds views")
+Rel(setup, helpers, "Validates, steps and previews drafts")
+Rel(ride, controls, "Renders")
+Rel(ride, overlay, "Renders")
+Rel(setup, choice, "Renders")
+Rel(setup, preview, "Renders")
+Rel(ride, cmds, "Step speed or incline")
+Rel(cmds, machineApi, "setSpeed / setIncline")
+Rel(setup, machineApi, "choose")
+Rel(setup, workoutApi, "start")
+Rel(machineApi, api, "POST", "JSON/HTTPS")
+Rel(workoutApi, api, "POST", "JSON/HTTPS")
+Rel(live, api, "GET /api/events", "SSE")
+@enduml

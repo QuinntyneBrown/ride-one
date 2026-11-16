@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Treadmill dashboard and setup
+
+Person(rider, "Rider", "Chooses the treadmill, sets up a plan and walks or runs on the belt")
+System(wattzup, "Wattzup", "Live metrics, speed and incline control and interval workouts for an Echelon bike or treadmill")
+System_Ext(treadmill, "Echelon treadmill", "Stride treadmill exposing the Echelon BLE GATT service")
+
+Rel(rider, wattzup, "Chooses the machine, sets up and watches the ride in", "Browser")
+Rel(wattzup, treadmill, "Sets speed and incline, starts and stops the belt", "BLE GATT")
+Rel(treadmill, wattzup, "Reports speed and incline", "BLE GATT")
+@enduml

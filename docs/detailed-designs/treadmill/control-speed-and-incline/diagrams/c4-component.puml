@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Control speed and incline
+
+Container_Boundary(api, "Wattzup API") {
+  Component(ep, "TreadmillEndpoints", "Minimal API", "POST /api/speed, POST /api/incline: validate and map results")
+  Component(res, "ResistanceEndpoints", "Minimal API", "409 wrong_machine on the treadmill")
+  Component(engine, "WorkoutEngine", "ITreadmillControl, Wattzup.Core", "Manual sends on the engine loop; manual mode")
+  Component(cmdr, "TreadmillCommander", "ITreadmillCommander, Wattzup.Core.Treadmill", "Logs, writes, sets targets")
+  Component(cmds, "EchelonTreadmillCommands", "Wattzup.Protocol", "SetSpeed, SetIncline, limits")
+  Component(log, "CommandLog", "Wattzup.Core", "Add, Fail, Acknowledge by kind")
+  Component(reg, "ActiveConnectionRegistry", "Wattzup.Core", "The open connection, or none")
+  Component(ingest, "TelemetryIngestor", "Wattzup.Core", "Acknowledges on D3 / D2 reports")
+  Component(store, "BikeStateStore", "Wattzup.Core", "target_speed, target_incline, commands; broadcasts")
+}
+System_Ext(tm, "Echelon treadmill", "Proprietary BLE GATT service")
+
+Rel(ep, engine, "SetManualSpeedAsync / SetManualInclineAsync")
+Rel(engine, cmdr, "SendSpeedAsync / SendInclineAsync(manual or plan)")
+Rel(cmdr, cmds, "Build frame")
+Rel(cmdr, reg, "Current connection")
+Rel(cmdr, log, "Add, Fail")
+Rel(cmdr, store, "Update(commands, target)")
+Rel(cmdr, tm, "Write with response", "BLE GATT")
+Rel(tm, ingest, "D3 / D2 report", "BLE GATT")
+Rel(ingest, log, "Acknowledge(kind, value)")
+Rel(ingest, store, "Update(report, commands)")
+@enduml

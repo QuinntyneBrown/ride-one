@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Manual speed override and back to plan
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "RidePage" as page
+  participant "MachineApi" as api
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "TreadmillEndpoints" as tep
+  participant "WorkoutEndpoints" as wep
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "WorkoutEngine" as engine
+  participant "WorkoutRun" as run
+  participant "ITreadmillCommander" as cmdr
+  participant "BikeStateStore" as store
+end box
+
+rider -> page : Raise speed (reported 9.0)
+page -> api : setSpeed(9.5)
+api -> tep : POST /api/speed {"speed": 9.5}
+tep -> engine : SetManualSpeedAsync(9.5)
+engine -> cmdr : SendSpeedAsync(9.5, manual, elapsed)
+cmdr -> store : Update(commands += speed 9.5 sending; target_speed = 9.5) [L2-065]
+cmdr --> engine : Sent
+engine -> run : Mode = manual; LastSentSpeed = 9.5; LastSentIncline kept [L2-068 AC7]
+engine -> store : Update(workout.mode = manual)
+tep --> api : 200 {"sent": 9.5}
+note over engine : each tick in manual mode sends no segment targets;\nthe hold is resent when a report differs and remaining % 5 == 0 [AC5]
+alt next segment starts (hiit)
+  engine -> run : Mode = plan; SentForSegment != Segment
+  engine -> cmdr : SendSpeedAsync / SendInclineAsync(segment, plan) [L2-047 AC2]
+else rider presses Back to plan
+  rider -> page : Back to plan
+  page -> wep : POST /api/workout/back-to-plan
+  wep -> engine : BackToPlanAsync()
+  engine -> run : Mode = plan; SentForSegment = null
+  engine -> cmdr : SendSpeedAsync / SendInclineAsync(segment, plan) at once [L2-068 AC7]
+end
+@enduml

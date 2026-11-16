@@ -26,6 +26,12 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Responsive and accessible layout](dashboard/responsive-accessible-layout/README.md) | `L2-040`, `L2-041`, `L2-061` |
 |  | [Dialogs and notifications](dashboard/dialogs-and-notifications/README.md) | `L2-023`, `L2-051`, `L2-053` |
 |  | [Unlock and not-found pages](dashboard/unlock-and-not-found/README.md) | `L2-055`, `L2-056` |
+| treadmill | [Choose the machine](treadmill/choose-machine/README.md) | `L2-062`, `L2-063`, `L2-070` |
+|  | [Decode treadmill telemetry](treadmill/decode-treadmill-telemetry/README.md) | `L2-064` |
+|  | [Control speed and incline](treadmill/control-speed-and-incline/README.md) | `L2-065`, `L2-069` |
+|  | [Control the belt](treadmill/control-the-belt/README.md) | `L2-066` |
+|  | [Run a treadmill workout](treadmill/run-treadmill-workout/README.md) | `L2-067`, `L2-068` |
+|  | [Treadmill dashboard and setup](treadmill/treadmill-dashboard-and-setup/README.md) | `L2-071`, `L2-072` |
 | platform | [Secure the API](platform/secure-api/README.md) | `L2-034`, `L2-035`, `L2-036` |
 |  | [Observability and resource use](platform/observability-and-resources/README.md) | `L2-033`, `L2-038` |
 |  | [Host and solution structure](platform/host-and-structure/README.md) | `L2-042`, `L2-044` |

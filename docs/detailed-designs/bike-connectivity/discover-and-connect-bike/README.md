@@ -27,7 +27,7 @@ The feature sits at the bottom of the bike-connectivity subsystem. It runs insid
   - `AdapterState` returns a `BluetoothAdapterState`, and `AdapterStateChanged` fires when the radio is switched on or off.
   - `ScanAsync(filter, timeout, ct)` returns the first matching `BikeAdvertisement` or `null`.
   - `ConnectAsync(advertisement, ct)` returns an `IBikeConnection`.
-- **`IBikeConnection`** — an open GATT link. It exposes `SubscribeAsync`, `WriteAsync(bytes, withResponse)`, `IsConnected` and a `Disconnected` event.
+- **`IBikeConnection`** — an open GATT link. It exposes `SubscribeAsync(notifyCharacteristicUuids, onNotify, ct)`, `WriteAsync(bytes, withResponse)`, `IsConnected` and a `Disconnected` event. The bike's list is `EchelonUuids.BikeNotifyCharacteristics`, `[…f4]` (ADR 0009).
 - **`BikeAdvertisement`** — record holding `Name`, `Address` and `ServiceUuids` as seen during the scan. `DisplayName` returns the name, or the address when the name is empty.
 - **`BluetoothAdapterState`** — enum `Unknown`, `On`, `Off`, serialised as `unknown`, `on`, `off` in `adapter`.
 - **`BikeStateStore`** — single-writer owner of `BikeState` in `Wattzup.Core`. `Update(Func<BikeState, BikeState>)` applies a change under a short lock, swaps the reference and raises `StateChanged`, which drives the broadcast. On every update `StateDerivations` (`live-state/stream-live-state`) sets `device_label` to `BikeOptions.DisplayName` when it is configured and a device is selected, and to `device` otherwise.
@@ -39,6 +39,10 @@ The scan lasts at most `ScanTimeout`. Before each scan the service sets `ble = s
 When the adapter is missing, off or unauthorised, `IBikeTransport` throws `BluetoothUnavailableException`. The service records `ble = error`, `adapter = off` and `error = "BluetoothUnavailableException: <message>"`, then retries after `ErrorBackoff`. Kestrel is already listening at that point because the service does not block host start-up (L2-039). The first scan that starts without the exception sets `adapter = on`. `AdapterStateChanged` updates `adapter` between attempts, so the dashboard's Bluetooth-off banner and overlay clear as soon as the radio returns.
 
 Every delay in the loop (scan timeout, init spacing, error backoff) is taken from an injected `TimeProvider`. Acceptance tests in `Wattzup.Api.AcceptanceTests` run the host through `WebApplicationFactory` with `SimulatedBikeTransport` and `FakeTimeProvider`, and read `GET /api/status` and the event stream. They cover the scan states, the 20 s timeout message, the subscribe-before-write order with 300 ms spacing, the `device_label` fallback and an adapter switched off and on through `SimulationControl`. The filter's table of names and UUIDs has one unit test per case in `Wattzup.Protocol.Tests`.
+
+### The chosen machine
+
+Wattzup drives the bike or the Echelon treadmill, one at a time (L2-062, ADR 0009). With the bike chosen, which is the default, the loop above is unchanged. `BikeConnectionService` reads `MachineProfile.For(store.Current.Machine)` at the start of each attempt and takes from it the device filter, the notify characteristic list, the init sequence, the keepalive frame and the not-found message. The bike's profile holds exactly the values described above. `EchelonDeviceFilter.Matches` now also rejects names starting with `STRIDE` (case-insensitive), even with the Echelon service, so the bike's scan never selects the treadmill (L2-063 criterion 4). A `MachineSelector.Changed` event cancels the whole current attempt, scan or open link, and the next attempt uses the new machine's profile. The treadmill's profile, the machine change and the treadmill's init sequence are described in `treadmill/choose-machine`.
 
 ## Requirements
 

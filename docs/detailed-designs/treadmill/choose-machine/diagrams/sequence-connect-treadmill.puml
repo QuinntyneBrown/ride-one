@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Scan, connect and initialise the treadmill
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup API application" #D1FADF
+  participant "BikeConnectionService" as svc
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "MachineProfile (treadmill)" as profile
+  participant "TelemetryIngestor" as ingest
+  participant "BikeStateStore" as store
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeTransport" as transport
+  participant "IBikeConnection" as conn
+end box
+participant "Echelon treadmill" as tm
+
+svc -> profile : For(store.Current.Machine = treadmill)
+loop until a treadmill is found
+  svc -> store : Update(ble = scanning, error = null)
+  svc -> transport : ScanAsync(profile.Matches, 20 s)
+  note right of transport : STRIDE… name, or service 0bf669f0\nand a name not starting ECH [L2-063 AC1-3]
+  alt no match within 20 s
+    transport --> svc : null
+    svc -> store : Update(error = "No Echelon treadmill found yet —\nswitch it on to wake it up") [L2-063 AC8]
+  else match
+    transport --> svc : BikeAdvertisement (STRIDE-8s22-000766)
+  end
+end
+svc -> store : Update(ble = connecting, device)
+svc -> transport : ConnectAsync(advertisement)
+transport --> svc : IBikeConnection
+svc -> store : Update(ble = connected)
+svc -> conn : SubscribeAsync([…f4, …f3], ingest.OnNotify) [L2-063 AC5]
+conn -> tm : enable notifications on …f4 and …f3
+loop F0 A4 00 94, F0 A1 00 91, F0 A3 00 93
+  svc -> conn : WriteAsync(cmd, withResponse: true)
+  conn -> tm : write …f2
+  svc -> svc : wait 300 ms (TimeProvider)
+end
+note over svc, tm : F0 B0 01 01 A2 is never written at init: it starts the belt [L2-063]
+loop every 1 s while connected
+  svc -> profile : Keepalive(n), n = 1..255 then 1
+  svc -> conn : WriteAsync(F0 A0 01 n checksum, withResponse: true) [L2-063 AC6]
+  svc -> store : Touch() (broadcast)
+end
+tm -> conn : notify F0 D3 02 00 00 C5 (speed 0)
+conn -> ingest : OnNotify(frame)
+ingest -> conn : WriteAsync(same bytes, withResponse: false) [L2-063 AC7]
+@enduml

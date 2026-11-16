@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Console stop and resume
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Backend — Wattzup API application" #D1FADF
+  participant "WorkoutEndpoints" as ep
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "TimeProvider" as clock
+  participant "WorkoutEngine" as engine
+  participant "TelemetryIngestor" as ingest
+  participant "BikeStateStore" as store
+  participant "ITreadmillCommander" as cmdr
+end box
+participant "Echelon treadmill" as treadmill
+
+note over engine : workout running, belt running, BeltWasRunning
+rider -> treadmill : press stop or pull the safety key
+treadmill -> ingest : D3 speed 0
+ingest -> store : Update(speed_kmh = 0, belt = stopped) [L2-064 AC7]
+clock -> engine : tick
+engine -> store : Current.belt = stopped
+engine -> engine : PausedByRider = true; BeltWasRunning = false; no count, no drive
+engine -> store : Update(status "paused: belt stopped") [L2-066 AC7]
+note over engine, cmdr : no belt command is written; the engine never restarts the belt by itself
+rider -> ep : POST /api/workout/resume
+ep -> engine : ResumeAsync()
+engine -> store : Current.belt = stopped
+engine -> store : Update(status "starting belt", belt = starting, belt_countdown = 3) [L2-066 AC1]
+note over engine : countdown, start-belt and wait for speed as in the countdown sequence
+@enduml

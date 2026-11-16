@@ -49,7 +49,7 @@ interface IBikeTransport {
 interface IBikeConnection {
   +bool IsConnected
   +event Disconnected
-  +SubscribeAsync(characteristic: Guid, onNotify: Action<ReadOnlyMemory<byte>>, ct): Task
+  +SubscribeAsync(notifyCharacteristicUuids: IReadOnlyList<string>, onNotify: Action<ReadOnlyMemory<byte>>, ct): Task
   +WriteAsync(characteristic: Guid, data: byte[], withResponse: bool, ct): Task
   +DisposeAsync(): ValueTask
 }

@@ -64,6 +64,12 @@ The validator reports every failing field, not only the first.
   - `CommandResult` tells the endpoint whether an active workout existed.
 - While a workout is `paused` and the bike stays connected, the engine keeps `DisconnectedSince` empty, so the 90-second shut-off clock does not run (L2-046).
 
+Treadmill (ADR 0009):
+
+- `POST /api/workout` passes the chosen machine: `WorkoutPlanValidator.Validate(body, machine)` with `store.Current.Machine`. On the treadmill the speed and incline fields of L2-067 are validated and the bike's level and cadence fields are ignored; on the bike L2-010 applies unchanged (`treadmill/run-treadmill-workout`).
+- On a treadmill run, start and resume run the 3-second belt countdown (status `starting belt`) before the ride clock moves. Pause, stop and replace write the stop-belt command once, with response, if the treadmill is connected (L2-066, `treadmill/control-the-belt`).
+- `starting belt` and `paused: belt stopped` are active statuses, so pause, resume and back-to-plan accept them and stop ends them.
+
 Frontend, `frontend`:
 
 - **`WorkoutApi`** (`src/app/core/workout-api.ts`) — contract with `start(plan)`, `stop()`, `pause()`, `resume()`, `backToPlan()` and `trace()`. Request and response types (`WorkoutPlan`, `Workout`, `TraceResponse`, `ProblemDetails`) come from the generated client in `src/app/api/`. The injection token `WORKOUT_API` is bound to `HttpWorkoutApi` in `app.config.ts`, and components inject the token.

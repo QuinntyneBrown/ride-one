@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — One treadmill workout tick
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup Core" #ECFDF3
+  participant "TimeProvider" as clock
+  participant "WorkoutEngine" as engine
+  participant "WorkoutRun" as run
+  participant "ITreadmillCommander" as cmdr
+  participant "BikeStateStore" as store
+end box
+participant "Echelon treadmill" as treadmill
+
+clock -> engine : PeriodicTimer tick (1 s); run running, belt running
+engine -> run : Elapsed += 1; Remaining -= 1 [L2-011]
+engine -> store : Current.speed_kmh
+engine -> run : Totals.DistanceKm += speed_kmh / 3600; power fields stay null [L2-064 AC9]
+alt Elapsed == TotalSeconds
+  engine -> engine : end the ride and stop the belt (control-the-belt)
+else
+  opt Remaining == 0
+    run -> run : Segment += 1; Remaining = new duration; hiit manual returns to plan [L2-047]
+  end
+  engine -> engine : DriveAsync(run): Machine = Treadmill
+  group DriveTreadmillAsync [L2-068]
+    alt Mode = plan and SentForSegment != Segment
+      engine -> cmdr : SendSpeedAsync(segment.Speed, plan, elapsed) [AC4]
+      cmdr -> treadmill : F0 B2 02 <hi> <lo> <cs>
+      engine -> cmdr : SendInclineAsync(segment.Incline, plan, elapsed) [AC4]
+      cmdr -> treadmill : F0 B1 01 <incline> <cs>
+    else Remaining % 5 == 0
+      engine -> store : Current.speed_kmh, Current.incline
+      opt speed_kmh != LastSentSpeed
+        engine -> cmdr : SendSpeedAsync(LastSentSpeed, plan or manual) [AC5]
+      end
+      opt incline != LastSentIncline
+        engine -> cmdr : SendInclineAsync(LastSentIncline, plan or manual) [AC5]
+      end
+    end
+    alt a send fails
+      engine -> store : Update(error = "set speed failed: <message>" or "set incline failed: <message>") [AC6]
+    end
+    engine -> run : SentForSegment = Segment; LastSentSpeed; LastSentIncline
+  end
+end
+engine -> store : Update(workout = run.ToSnapshot(), distance_km), broadcast
+@enduml

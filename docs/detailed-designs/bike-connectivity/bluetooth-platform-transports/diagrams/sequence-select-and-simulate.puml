@@ -34,7 +34,7 @@ svc -> sim : ScanAsync(IsEchelon, 20 s)
 sim --> svc : BikeAdvertisement("ECHSIM-0001")
 svc -> sim : ConnectAsync
 sim --> svc : SimulatedBikeConnection
-svc -> conn : SubscribeAsync(notify, onNotify)
+svc -> conn : SubscribeAsync(profile.NotifyCharacteristics, onNotify)
 loop every 1 s
   conn --> svc : onNotify(F0 D1 ... cadence ...)
 end

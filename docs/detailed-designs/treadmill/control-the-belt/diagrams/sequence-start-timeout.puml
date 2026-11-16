@@ -1,0 +1,28 @@
+@startuml
+title UML sequence behaviour — Belt start timeout
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup Core" #ECFDF3
+  participant "TimeProvider" as clock
+  participant "WorkoutEngine" as engine
+  participant "BikeStateStore" as store
+  participant "ITreadmillCommander" as cmdr
+end box
+participant "Echelon treadmill" as treadmill
+
+engine -> cmdr : StartBeltAsync()
+cmdr -> treadmill : write F0 B0 01 01 A2
+note right of treadmill : belt does not move; no D3 above 0
+engine -> engine : BeltStartWrittenAt = t0
+loop each tick while now - t0 < 10 s
+  clock -> engine : tick
+  engine -> store : Current.belt = starting; wait
+end
+clock -> engine : tick at t0 + 10 s
+engine -> engine : BeltStartWrittenAt = null; PausedByRider = true
+engine -> store : Update(status "paused: belt stopped", belt = stopped,\n error = "The belt did not start.") [L2-066 AC4]
+note over engine : the start-belt command is not repeated;\nPOST /api/workout/resume runs the countdown again
+@enduml

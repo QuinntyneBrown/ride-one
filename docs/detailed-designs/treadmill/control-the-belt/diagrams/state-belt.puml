@@ -1,0 +1,35 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+title Belt — state machine (treadmill only)
+state "null (not connected)" as None
+state "stopped" as Stopped
+state "starting" as Starting {
+  state "belt_countdown 3" as C3
+  state "belt_countdown 2" as C2
+  state "belt_countdown 1" as C1
+  state "belt_countdown null (start-belt written)" as Written
+  [*] --> C3
+  C3 --> C2 : tick
+  C2 --> C1 : tick
+  C1 --> Written : tick / StartBeltAsync
+}
+state "running" as Running
+
+[*] --> None
+None --> Stopped : treadmill connects [L2-064 AC8]
+Stopped --> Starting : workout starts or resumes [L2-066 AC1]
+Running --> Starting : replace (stop-belt, then countdown)
+Written --> Running : speed > 0 reported [L2-066 AC3]
+Written --> Stopped : 10 s without speed > 0 [L2-066 AC4]
+Starting --> Starting : speed 0 reported (stays starting)
+Starting --> Stopped : pause or stop during countdown
+Running --> Stopped : speed 0 reported (stop-belt, console or safety key)
+Stopped --> Running : speed > 0 reported
+Stopped --> None : link lost
+Starting --> None : link lost
+Running --> None : link lost
+@enduml

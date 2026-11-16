@@ -59,6 +59,23 @@ Verification:
 - `frontend` unit tests for `LiveStateService` with a fake `EventSource` and fake timers: parse, offline, 2 s reconnect, `retryNow`.
 - Playwright — the shared fixture serves `/api/events` as `text/event-stream` and exposes `pushState(partial)` over a full default state recorded from the backend running with `--simulate`. An unstubbed stream request fails the test.
 
+### Machine-specific fields
+
+The state now carries the chosen machine and both machines' fields (L2-014, L2-070, ADR 0009). On each machine the other machine's fields are written as `null`, never omitted, so the bike's fields keep their names and types:
+
+| Fields | Written by | Design |
+|---|---|---|
+| `machine` | `MachineSelector`; initial value from `Wattzup:Machine` | `treadmill/choose-machine` |
+| `incline`, `belt` (from speed), and `speed_kmh`, `speed_mph` as reported by the treadmill | `TelemetryIngestor`; `belt` also by `BikeConnectionService` on connect and disconnect | `treadmill/decode-treadmill-telemetry` |
+| `target_speed`, `target_incline`, and `commands` entries of kind `speed` and `incline` | `TreadmillCommander` | `treadmill/control-speed-and-incline` |
+| `belt` (`starting`, and `stopped` on a start timeout), `belt_countdown` | `WorkoutEngine` | `treadmill/control-the-belt` |
+
+- `WorkoutSnapshot` segments are `{kind, start, duration, level, cadence, round, speed, incline}`; `level`, `cadence` and `plan_level` are nullable. `status` gains `starting belt` and `paused: belt stopped`; the existing strings stay identifiers on both machines (L2-014).
+- `CommandEntry` is `{at, ride_seconds, level, source, status, ack_ms, command, value}`, with `level` nullable (`resistance-control/log-resistance-commands`).
+- A machine change resets `device`, `speed_kmh`, `speed_mph`, `distance_km`, `commands` and every machine-specific field in one update, so one broadcast carries the reset (L2-070 criterion 3).
+- The OpenAPI schema transformer describes each new field with its type and nullability, and the frontend's generated types in `src/app/api/` are regenerated in the same change (L2-070 criterion 4).
+- `LiveStateService` is unchanged: it remains the only connection, and every machine-aware view reads `state().machine`.
+
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

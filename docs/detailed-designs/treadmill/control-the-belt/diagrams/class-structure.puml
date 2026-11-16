@@ -1,0 +1,100 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Control the belt
+
+enum Machine {
+  Bike
+  Treadmill
+}
+
+enum BeltState {
+  Stopped
+  Starting
+  Running
+}
+
+class BikeState <<record>> {
+  +Machine Machine
+  +double? SpeedKmh
+  +BeltState? Belt
+  +int? BeltCountdown
+  +string? Error
+  +WorkoutSnapshot? Workout
+}
+
+class WorkoutStatus <<static>> {
+  +string StartingBelt = "starting belt"
+  +string PausedBeltStopped = "paused: belt stopped"
+  +IsActive(status: string): bool
+}
+
+class WorkoutRun {
+  +Machine Machine
+  +string Status
+  +bool PausedByRider
+  +int? BeltCountdown
+  +DateTimeOffset? BeltStartWrittenAt
+  +bool BeltWasRunning
+  +int? SentForSegment
+  +ToSnapshot(): WorkoutSnapshot
+}
+
+class WorkoutEngine {
+  +TimeSpan BeltStartTimeout = 10 s
+  +int BeltCountdownSeconds = 3
+  +StartAsync(plan, ct): Task<WorkoutSnapshot>
+  +PauseAsync(ct): Task<WorkoutSnapshot?>
+  +ResumeAsync(ct): Task<WorkoutSnapshot?>
+  +StopWorkoutAsync(ct): Task<WorkoutSnapshot?>
+  -TickAsync(ct): Task
+  -BeginCountdown(run): void
+}
+
+interface ITreadmillCommander {
+  +SendSpeedAsync(kmh: double, source: CommandSource, rideSeconds: int?, ct): Task<SendResult>
+  +SendInclineAsync(percent: int, source: CommandSource, rideSeconds: int?, ct): Task<SendResult>
+  +StartBeltAsync(ct): Task<SendResult>
+  +StopBeltAsync(reason: string, ct): Task<SendResult>
+}
+
+class TreadmillCommander {
+  -BikeStateStore store
+  -ActiveConnectionRegistry registry
+  -ILogger logger
+}
+
+class EchelonTreadmillCommands <<static>> {
+  +ReadOnlyMemory<byte> StartBelt
+  +ReadOnlyMemory<byte> StopBelt
+}
+
+class TelemetryIngestor {
+  +OnNotify(frame: ReadOnlyMemory<byte>): void
+}
+
+class BikeStateStore {
+  +BikeState Current
+  +Update(change: Func<BikeState,BikeState>): void
+}
+
+ITreadmillCommander <|.. TreadmillCommander
+WorkoutEngine "1" *-- "0..1" WorkoutRun : owns
+WorkoutEngine --> ITreadmillCommander : belt commands
+WorkoutEngine --> BikeStateStore : reads belt, publishes
+WorkoutEngine ..> WorkoutStatus
+TreadmillCommander ..> EchelonTreadmillCommands : frames
+TelemetryIngestor --> BikeStateStore : sets belt from speed
+BikeStateStore --> BikeState
+BikeState --> BeltState
+BikeState --> Machine
+WorkoutRun --> Machine
+@enduml
