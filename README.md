@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/design-system/assets/logo.svg" alt="Wattzup logo" width="128" height="128">
+</p>
+
 # Wattzup
 
 [![CI](https://github.com/QuinntyneBrown/wattzup/actions/workflows/ci.yml/badge.svg)](https://github.com/QuinntyneBrown/wattzup/actions/workflows/ci.yml)
