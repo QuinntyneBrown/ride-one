@@ -55,7 +55,11 @@ public sealed class DiagnosticsTests
         bike.Factory.Simulation.Notify(Resistance12);
         await flushed.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
-        var log = await File.ReadAllLinesAsync(Path.Combine(bike.Factory.Directory, "raw_packets.log"));
+        // The writer still holds the log open, as it does while Wattzup runs; share it as a
+        // reader tailing the log would (Windows refuses File.ReadAllLines here).
+        await using var stream = new FileStream(Path.Combine(bike.Factory.Directory, "raw_packets.log"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var reader = new StreamReader(stream);
+        var log = (await reader.ReadToEndAsync()).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         Assert.Contains(log, line => line.EndsWith(" f0 d2 01 0c cf", StringComparison.Ordinal));
     }
 
