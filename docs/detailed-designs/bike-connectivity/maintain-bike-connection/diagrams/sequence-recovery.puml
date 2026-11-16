@@ -26,7 +26,10 @@ else exception in scan, connect, init or keepalive
   conn --> svc : throws Exception
   svc -> reg : Clear()
   svc -> store : Update(ble = error, error = "<ExceptionType>: <message>") [L2-004]
-  svc -> svc : wait 3 s
+  opt BluetoothUnavailableException
+    svc -> store : Update(adapter = off)
+  end
+  svc -> svc : wait 3 s (TimeProvider)
   svc -> svc : Return to scan step
 else host stopping token cancelled
   svc -> svc : Exit loop (see host-and-structure)

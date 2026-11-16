@@ -12,23 +12,39 @@ skinparam class {
 title Class structure — Set resistance
 
 package "wattzup-web" {
-  class ResistanceCard <<component>> {
-    +Signal<BikeState> state
-    +WritableSignal<number> level = 12
-    +Signal<boolean> controlsDisabled
-    +adjust(delta: -1 | 1): void
-    +submit(): void
-    -clamp(n: number): number
+  class LevelControl <<component>> {
+    +Signal<ControlsState> controls
+    +lower(): void
+    +raise(): void
   }
-  class BikeApi <<service>> {
+  class LevelPicker <<component>> {
+    +Signal<ControlsState> controls
+    +choose(level: number): void
+  }
+  class PlanNote <<component>> {
+    +Signal<string> note
+    +Signal<boolean> showBackToPlan
+    +backToPlan(): void
+  }
+  class "resistance-controls.ts" as helpers <<pure>> {
+    +baseLevel(state: BikeState): number | null
+    +stepLevel(state: BikeState, delta: -1 | 1): number
+    +controlsState(state: BikeState, connection: StreamConnection): ControlsState
+    +planNote(state: BikeState): string
+  }
+  class ResistanceCommandService <<service>> {
+    +send(level: number): Promise<void>
+  }
+  interface BikeApi <<token BIKE_API>> {
     +setResistance(level: number): Promise<SetResistanceResult>
+    +backToPlan(): Promise<void>
   }
 }
 
 package "Wattzup.Api" {
   class ResistanceEndpoints <<static>> {
     +MapResistance(app: IEndpointRouteBuilder): void
-    -Handle(req: SetResistanceRequest, cmdr: IResistanceCommander): Task<IResult>
+    -Handle(req: SetResistanceRequest, control: IResistanceControl): Task<IResult>
   }
   class SetResistanceRequest <<record>> {
     +int? Level
@@ -36,14 +52,39 @@ package "Wattzup.Api" {
 }
 
 package "Wattzup.Core" {
+  interface IResistanceControl {
+    +SetManualAsync(level: int, ct): Task<SendResult>
+  }
+  class WorkoutEngine {
+    -Channel<EngineCommand> inbox
+    -WorkoutRun? run
+    +Post(command: EngineCommand): Task<EngineResult>
+  }
+  class WorkoutRun {
+    +WorkoutMode Mode
+    +int PlanLevel
+  }
+  enum WorkoutMode {
+    Plan
+    Manual
+  }
   interface IResistanceCommander {
-    +TrySendAsync(level: int, ct): Task<bool>
+    +SendAsync(level: int, source: CommandSource, ct): Task<SendResult>
   }
   class ResistanceCommander {
     -ActiveConnectionRegistry registry
     -BikeStateStore store
     -SemaphoreSlim gate
-    +TrySendAsync(level: int, ct): Task<bool>
+    +SendAsync(level: int, source: CommandSource, ct): Task<SendResult>
+  }
+  enum CommandSource {
+    Plan
+    Manual
+  }
+  enum SendResult {
+    Sent
+    NotConnected
+    Failed
   }
 }
 
@@ -54,10 +95,22 @@ package "Wattzup.Protocol" {
   }
 }
 
-ResistanceCard --> BikeApi
+LevelControl ..> helpers
+LevelPicker ..> helpers
+PlanNote ..> helpers
+LevelControl --> ResistanceCommandService
+LevelPicker --> ResistanceCommandService
+PlanNote --> BikeApi
+ResistanceCommandService --> BikeApi
 BikeApi ..> ResistanceEndpoints : HTTP
 ResistanceEndpoints ..> SetResistanceRequest
-ResistanceEndpoints --> IResistanceCommander
+ResistanceEndpoints --> IResistanceControl
+IResistanceControl ..> WorkoutEngine : posts ManualLevel
+WorkoutEngine "1" *-- "0..1" WorkoutRun
+WorkoutRun --> WorkoutMode
+WorkoutEngine --> IResistanceCommander
 IResistanceCommander <|.. ResistanceCommander
 ResistanceCommander ..> EchelonCommands
+ResistanceCommander ..> CommandSource
+ResistanceCommander ..> SendResult : returns
 @enduml

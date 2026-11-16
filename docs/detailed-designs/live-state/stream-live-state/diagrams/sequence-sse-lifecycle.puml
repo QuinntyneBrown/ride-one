@@ -10,6 +10,7 @@ box "Frontend — Wattzup Web application" #E0F2FE
   participant "LiveStateService" as live
 end box
 box "Backend — Wattzup API application" #D1FADF
+  participant "StatusEndpoints" as st
   participant "EventsEndpoints" as ep
 end box
 box "Backend — Wattzup Core and Protocol" #ECFDF3
@@ -18,7 +19,11 @@ box "Backend — Wattzup Core and Protocol" #ECFDF3
 end box
 
 rider -> live : Open dashboard
-live -> ep : GET /api/events (EventSource)
+live -> st : GET /api/status
+st -> store : Current
+st --> live : 200 BikeState (no ts) [L2-014]
+live -> live : state.set(...); on failure loadError = true
+live -> ep : GET /api/events (EventSource, event token if a key is set)
 ep -> ep : text/event-stream; Cache-Control: no-cache; no buffering
 ep -> bc : Register()
 bc -> store : Update(ui_clients = n) [L2-015]
@@ -28,11 +33,16 @@ loop until RequestAborted
   alt message within 15 s
     bc --> ep : channel item
     ep --> live : data: <json>
-  else 15 s idle
+    live -> live : state.set(parsed); lastStateAt = now
+  else 15 s idle (TimeProvider)
     ep --> live : : ping [L2-015]
   end
 end
-rider -> live : Close tab
-ep -> bc : Unregister(id) (finally)
+alt stream fails
+  live -> live : close; connection = offline; retry every 2 s [L2-054]
+else rider closes the tab
+  rider -> live : Close tab
+end
+ep -> bc : Unregister(id) (finally; abort logged at Debug)
 bc -> store : Update(ui_clients = n - 1) [L2-015]
 @enduml

@@ -1,0 +1,46 @@
+@startuml
+title UML sequence behaviour — Record and serve the power trace
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "RideTrace" as trace
+  participant "BikeApi" as api
+  participant "LiveStateService" as live
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "WorkoutTraceEndpoint" as ep
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "WorkoutEngine" as eng
+  participant "PowerTraceHistory" as hist
+  participant "BikeStateStore" as store
+end box
+
+eng -> hist : Reset() (workout starts)
+loop each 1 s tick
+  alt status running
+    eng -> store : Current.power (e.g. 317, or null)
+    eng -> hist : Append(elapsed_seconds, power ?? 0) [L2-050]
+    hist -> hist : overwrite oldest beyond 10,800 [L2-050]
+  else paused, waiting or ended
+    eng -> eng : append nothing
+  end
+end
+rider -> trace : Open or reload the dashboard
+trace -> api : getTrace()
+api -> ep : GET /api/workout/trace
+ep -> hist : Snapshot()
+hist --> ep : samples, oldest first
+alt no workout since start-up
+  ep --> api : 200 {"samples":[]} [L2-050]
+else
+  ep --> api : 200 {"samples":[[0,142],[1,151],...]} (under 200 KB) [L2-050]
+end
+api --> trace : history
+live -> trace : state messages with new elapsed_seconds
+trace -> trace : append [elapsed_seconds, power]
+@enduml

@@ -3,13 +3,17 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Log raw packets
 
+Person(rider, "Rider", "Opens the diagnostics dialog")
 System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular SPA", "Diagnostics dialog")
   Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
   ContainerDb(files, "Local files", "File system", "raw_packets.log, status.json")
 }
 System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
 System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
 
+Rel(rider, web, "Uses", "HTTPS / localhost")
+Rel(web, api, "GET /api/diagnostics/packets", "JSON/HTTP")
 Rel(api, files, "Appends and writes")
 Rel(api, os, "Scans, connects, subscribes and writes", "IBikeTransport")
 Rel(os, bike, "Notifications and commands", "BLE GATT")

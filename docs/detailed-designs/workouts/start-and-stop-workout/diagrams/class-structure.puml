@@ -12,59 +12,76 @@ skinparam class {
 title Class structure — Start and stop a workout
 
 package "wattzup-web" {
-  class WorkoutPanel <<component>> {
-    +FormArray<StepForm> steps
-    +Signal<boolean> canStop
-    +Signal<string | null> apiError
-    +addStep(): void
-    +removeStep(i: number): void
-    +start(): Promise<void>
-    +stop(): Promise<void>
+  interface WorkoutApi {
+    +start(plan: WorkoutPlan): Observable<StartResponse>
+    +stop(): Observable<StopResponse>
+    +pause(): Observable<WorkoutResponse>
+    +resume(): Observable<WorkoutResponse>
+    +backToPlan(): Observable<WorkoutResponse>
+    +trace(): Observable<TraceResponse>
   }
-  class WorkoutDraftStore <<service>> {
-    +load(): [number, number][]
-    +save(steps: [number, number][]): void
+  class HttpWorkoutApi <<service>> {
+    -http: HttpClient
   }
-  class BikeApi <<service>> {
-    +startWorkout(steps): Promise<StartWorkoutResult>
-    +stopWorkout(): Promise<void>
+  class WORKOUT_API <<InjectionToken>>
+  class RideControls <<component>> {
+    +selector = "wz-ride-controls"
+    +Signal<'pause' | 'resume'> action
+    +Signal<boolean> disabled
+    +press(): void
+  }
+  class LiveStateService <<service>> {
+    +Signal<BikeState | null> state
+    +Signal<boolean> streamUp
   }
 }
 
 package "Wattzup.Api" {
   class WorkoutEndpoints <<static>> {
-    +MapWorkout(app): void
+    +MapWorkout(group: RouteGroupBuilder): void
   }
-  class StartWorkoutRequest <<record>> {
-    +int[][]? Steps
+  class WorkoutProblems <<static>> {
+    +InvalidWorkout(errors): IResult
+    +NoActiveWorkout(): IResult
   }
 }
 
 package "Wattzup.Core" {
-  class WorkoutValidator <<static>> {
-    +const int MaxSteps = 100
-    +const int MaxStepSeconds = 3600
-    +TryCreate(steps: int[][]?, out def: WorkoutDefinition): bool
+  class WorkoutPlanValidator <<static>> {
+    +Validate(body: JsonElement): PlanValidationResult
   }
-  class WorkoutDefinition <<record>> {
-    +IReadOnlyList<WorkoutStep> Steps
+  class PlanValidationResult <<record>> {
+    +WorkoutPlan? Plan
+    +IReadOnlyDictionary<string, string[]> Errors
+    +bool IsValid
   }
-  class WorkoutStep <<record>> {
-    +int Level
-    +int Seconds
+  abstract class WorkoutPlan <<record>>
+  class HiitPlan <<record>>
+  class FlatPlan <<record>>
+  class WorkoutEngine <<BackgroundService>> {
+    +StartAsync(plan): Task<WorkoutSnapshot>
+    +StopAsync(): Task
+    +PauseAsync(): Task<CommandResult>
+    +ResumeAsync(): Task<CommandResult>
+    +BackToPlanAsync(): Task<CommandResult>
   }
-  class WorkoutEngine {
-    +Start(def: WorkoutDefinition): void
-    +Stop(): void
+  class CommandResult <<record>> {
+    +bool HadActiveWorkout
+    +WorkoutSnapshot? Workout
   }
 }
 
-WorkoutPanel --> WorkoutDraftStore
-WorkoutPanel --> BikeApi
-BikeApi ..> WorkoutEndpoints : HTTP
-WorkoutEndpoints ..> StartWorkoutRequest
-WorkoutEndpoints ..> WorkoutValidator
+WorkoutApi <|.. HttpWorkoutApi
+WORKOUT_API ..> WorkoutApi : provides
+RideControls ..> WORKOUT_API : injects
+RideControls --> LiveStateService
+HttpWorkoutApi ..> WorkoutEndpoints : HTTP
+WorkoutEndpoints ..> WorkoutPlanValidator
+WorkoutEndpoints ..> WorkoutProblems
 WorkoutEndpoints --> WorkoutEngine
-WorkoutValidator ..> WorkoutDefinition : creates
-WorkoutDefinition "1" *-- "1..100" WorkoutStep
+WorkoutPlanValidator ..> PlanValidationResult : returns
+PlanValidationResult --> WorkoutPlan
+WorkoutPlan <|-- HiitPlan
+WorkoutPlan <|-- FlatPlan
+WorkoutEngine ..> CommandResult
 @enduml

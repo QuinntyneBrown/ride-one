@@ -12,7 +12,8 @@ box "Backend — Wattzup API application" #D1FADF
   participant "Kestrel" as kestrel
 end box
 
-op -> program : start with ASPNETCORE_URLS
+
+op -> program : start with Wattzup:Urls
 program -> guard : StartingAsync
 alt all URLs loopback (default http://127.0.0.1:8787)
   guard --> program : ok (no key required) [L2-034]

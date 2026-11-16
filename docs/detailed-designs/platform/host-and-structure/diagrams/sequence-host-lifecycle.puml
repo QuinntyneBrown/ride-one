@@ -22,14 +22,14 @@ box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
   participant "IBikeConnection" as conn
 end box
 
-host -> host : bind WattzupOptions (json, env, args) [L2-042]
+host -> host : bind WattzupOptions (json, WATTZUP__*, args) [L2-042]
 host -> hs : StartAsync (non-blocking background loops)
 host -> host : listen on 127.0.0.1:8787
 rider -> web : open http://127.0.0.1:8787
 web -> files : GET /
-files --> web : index.html + bundles (same origin) [L2-044]
-web -> files : GET /workouts (client route)
-files --> web : index.html (fallback, /api excluded) [L2-044]
+files --> web : index.html (CSP style nonce) + bundles + fonts (same origin) [L2-044]
+web -> files : GET /setup (client route)
+files --> web : index.html (fallback; /api, /health, /openapi excluded) [L2-044]
 == stop signal (Ctrl+C / SIGTERM) ==
 host -> engine : cancel run
 host -> conn : DisposeAsync (disconnect bike)

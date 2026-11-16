@@ -8,29 +8,35 @@ skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
   participant "LiveStateService" as live
-  participant "HeroClock" as clock
-  participant "CountdownModel" as model
-  participant "StepTimeline" as tl
-  participant "RingCanvas" as ring
+  participant "Interval" as card
+  participant "RideClock" as rc
+  participant "CountdownClock" as model
+  participant "segment-labels" as labels
 end box
 box "Backend — Wattzup API application" #D1FADF
   participant "EventsEndpoints" as sse
 end box
 
-sse -> live : data: workout {step:0, remaining:10, status:"running", steps:[[12,120],[24,30]]}
-live -> clock : state() changes
-clock -> clock : phaseText = "Recovery · Resistance 12"; nextText = "Next 30 s at 24" [L2-025]
-clock -> model : anchor(10, running, 120, now) [L2-024]
-loop every animation frame
-  clock -> model : shown(now)
-  model --> clock : max(0, 10 - min(1.25, elapsed))
-  clock -> clock : digits = formatClock(shown) e.g. "0:10"
-  clock -> tl : fill current = 1 - shown / 120 [L2-026]
-  clock -> ring : vis.frac = shown / 120; pulse over final 10 s [L2-028]
+sse -> live : data: workout {segment:9, remaining:33, elapsed_seconds:427, total_seconds:760, status:"running"}
+live -> card : state() changes
+card -> model : anchor(workout, now) [L2-024]
+card -> labels : kindLabel(work), roundLabel = "Round 5 of 8", toneOf = work [L2-025]
+card -> labels : nextLabel = Recover 0:20 at level 6 [L2-025]
+card --> rider : "Work Round 5 of 8", "Next: Recover 0:20 at level 6"
+loop every animation frame while the document is visible
+  card -> model : remainingAt(now), progressAt(now)
+  model --> card : max(0, 33 - min(1.25, drift))
+  card -> card : numerals = formatDuration(ceil) e.g. "0:33"; write only on change
+  card -> card : bar --value = progress (once per second with reduced motion)
+  rc -> model : elapsedAt(now)
+  rc -> rc : "7:07 / 12:40" (floor of elapsed) [L2-024]
 end
-opt status != "running"
-  clock -> model : anchor(remaining, false, ...)
-  model --> clock : time held still [L2-024]
-  clock --> rider : status chip e.g. "paused: bike disconnected" [L2-025]
+opt no update for more than 1.25 s
+  model --> card : drift stays at 1.25; numerals stop [L2-024]
 end
+sse -> live : data: workout {status:"paused"}
+live -> card : state() changes
+card -> model : anchor(workout, now), running = false
+model --> card : drift = 0; time held still [L2-024]
+card --> rider : app bar badge "Paused" [L2-025]
 @enduml

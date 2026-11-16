@@ -2,38 +2,61 @@
 
 ## Overview
 
-A ride lasts from 20 minutes to several hours, and Wattzup runs unattended throughout. Two needs follow. When something goes wrong, the logs explain what happened without drowning in per-packet noise. And over a long ride, neither the backend process nor the browser tab grows in memory or burns CPU. This feature defines structured logging, a health endpoint, and the resource budgets with the tests that hold the system to them.
+A ride lasts from 20 minutes to several hours, and Wattzup runs unattended throughout. Two needs follow. When something goes wrong, the logs explain what happened without drowning in per-packet noise. And over a long ride, neither the backend process nor the browser tab grows in memory or burns CPU. This feature defines structured logging, a health endpoint, the memory bound of every buffer that grows with a ride, and the checks that hold the system to its resource budgets.
 
 **structured log** — log event with named properties (for example `Ble`, `Device`, `Error`) rather than text alone, so tools can filter and aggregate
 
-**soak test** — long automated run, 4 hours here, that measures memory and CPU trends against fixed budgets
+**soak test** — long run, a 4-hour ride here, that measures memory and CPU trends against fixed budgets
 
-**warm-up level** — memory reading taken 5 minutes after start, used as the baseline for growth
+**warm-up level** — memory reading taken 5 minutes into the ride, used as the baseline for growth
+
+**trace history** — per-ride list of `[ride_seconds, power]` samples behind the "Power vs. plan" trace, held by the backend (L2-050) and mirrored in the browser
+
+**frame scheduler** — single browser service that owns `requestAnimationFrame` for the dashboard and stops it while the tab is hidden
 
 ## Description
 
-Backend:
+Backend logging and health (L2-033):
 
-- **Logging** — `ILogger<T>` with source-generated `LoggerMessage` methods in `Log.cs` for each event (L2-033):
-  - `BleStateChanged(Ble, Device, Error)` at Information.
-  - `WorkoutStatusChanged(Status, Step, Cycle)` at Information.
-  - `ApiRequestFailed(Path, StatusCode, Error)` at Warning.
+- **`Log`** — `ILogger<T>` with source-generated `LoggerMessage` methods, one per event:
+  - `BleStateChanged(Ble, Device, Adapter, Transport, Error)` at Information.
+  - `WorkoutStatusChanged(Status, Segment, ElapsedSeconds, EndedReason)` at Information.
+  - `ApiRequestFailed(Path, StatusCode, Code)` at Warning.
   - `PacketReceived(Length, Type)` at Trace.
-  Console output uses the JSON formatter in production and the simple formatter in development. The default minimum level is Information, so per-packet events are off unless enabled.
-- **`StateChangeLogger`** — subscribes to `BikeStateStore.StateChanged` and logs only when `ble` or `workout.status` actually changes. Keepalive touches therefore produce no log lines.
-- **`HealthEndpoints`** — `GET /health` returns `200 {"status":"ok","ble":"<state>"}` whenever the HTTP host is serving. Bluetooth trouble is reported in the body, not as a failure code, because the API remains usable (L2-033).
-- **Resource design** (L2-038):
-  - Every buffer is bounded: SSE channels at 50, the raw-packet channel at 10,000 and history at 150.
-  - State is an immutable record swapped by reference.
-  - Serialisation uses pooled `ArrayBufferWriter` buffers.
-  - The process runs with Server GC off and `DOTNET_GCConserveMemory=5`.
-- **`SoakTests`** — xUnit test category `Soak`. It runs the host with `SimulatedBikeTransport` and 1 SSE client for 4 hours, and samples `Process.WorkingSet64` and CPU time every minute. It asserts memory growth of at most 20 MB over the warm-up level, and mean idle CPU below 2 % of one core (L2-038).
+  `Path` never carries the query string, so no event token reaches a log. No event carries the API key. Console output uses the JSON formatter in production and the simple formatter in development. The default minimum level is Information, so per-packet events are off unless enabled.
+- **`StateChangeLogger`** — hosted service subscribed to `BikeStateStore.StateChanged`. It logs only when `ble`, `adapter` or `workout.status` actually changes. Keepalive touches and per-second workout ticks therefore produce no log lines.
+- **`HealthEndpoints`** — `GET /health` returns `200 {"status":"ok","ble":"<state>"}` whenever the HTTP host is serving. Bluetooth trouble is reported in the body, not as a failure code, because the API remains usable. The endpoint sits outside the `/api` group, so it needs no API key.
 
-Frontend:
+Backend memory bounds (L2-038). Each buffer that a ride can grow has a fixed bound:
 
-- **`VisibilityPause`** — service listening for `visibilitychange`. `HeroClock` and `RingCanvas` stop their `requestAnimationFrame` loops while hidden and restart on return. `MetricHistory` keeps sampling (L2-038).
-- **Allocation discipline** — the render loop reuses one `Float32Array` uniform buffer and one `RingVisuals` object. Sparklines redraw on the history `version` signal only, not on every state message.
-- **Playwright soak** — keeps the dashboard open for 4 hours against the simulator. It records `performance.memory.usedJSHeapSize` (Chromium) every 5 minutes and frame timing through a `PerformanceObserver`. It asserts growth of at most 50 MB and at least 55 fps on the reference laptop. The reference hardware is `<TO SUPPLY>` (L2-038).
+| Buffer | Owner feature | Bound |
+|---|---|---|
+| Event-stream channel per client | `live-state/stream-live-state` | 50 messages, drop newest for that client (ADR 0004) |
+| Raw-packet write channel | `telemetry/log-raw-packets` | 10,000 lines |
+| `RecentPacketBuffer` for `GET /api/diagnostics/packets` | `telemetry/log-raw-packets` | 60 packets (L2-057) |
+| Command log in the state | `resistance-control/log-resistance-commands` | 5 entries (L2-048) |
+| `PowerTraceHistory` | `live-state/serve-power-trace` | ring of 10,800 samples, 1 per running second |
+| Event tokens | `platform/secure-api` | pruned at 60 s |
+
+- `PowerTraceHistory` is a fixed ring of 10,800 `PowerSample` structs, about 86 KB allocated once. A 3-hour ride fills it, and a longer ride overwrites the oldest samples, so a 4-hour ride adds no memory. The response stays near 130 KB, under the 200 KB of L2-050.
+- A new workout resets the history and the ride totals, so no ride's data outlives the next ride.
+- State is an immutable record swapped by reference. Serialisation writes into pooled `ArrayBufferWriter<byte>` buffers.
+
+Frontend (L2-038):
+
+- **`FrameScheduler`** — root service in `src/app/core/`. It is the only caller of `requestAnimationFrame` on the dashboard.
+  - `RideTrace` and the countdown (`workouts/show-workout-countdown`) call `request(callback)`, and each frame runs each pending callback once, so redraws never exceed one per frame (L2-028).
+  - It listens for `visibilitychange`. While `document.hidden` is true it requests no frames, and it requests the next frame when the tab is visible again.
+- **`PowerTraceStore`** — holds the browser copy of the trace history in 2 `Int32Array`s of 10,800 entries, matching the backend ring. It is filled from `GET /api/workout/trace` on load and appended from each state message (`dashboard/show-live-metrics`). It is cleared when a new workout starts, so its size is bounded by one plan.
+- **Allocation discipline** — the renderers reuse one vertex buffer (WebGL) or one `Path2D` per redraw (Canvas 2D). Segment geometry is recomputed only when the plan changes. The toast queue shows at most 3 toasts (L2-053).
+
+Checks:
+
+- **Backend soak** — xUnit category `Soak`, run only on request. It hosts the API with `SimulatedBikeTransport` and 1 in-memory event-stream client. It advances a `FakeTimeProvider` through a 4-hour HIIT ride (14,400 ticks with telemetry) and reads `GC.GetTotalMemory(forceFullCollection: true)` every simulated minute. It asserts growth of at most 20 MB over the warm-up level.
+- **Idle CPU** — measured by a person with `dotnet-counters` against the running host for 10 minutes with no client, against the budget of 2 % of one core. A CPU budget cannot be measured without waiting in real time, so no automated test covers it.
+- **Frontend soak** — Playwright spec tagged `@soak`, run only when a person asks. The stubbed event stream pushes 4 hours of state messages under Playwright's clock, and the spec reads `JSHeapUsedSize` through the Chrome DevTools Protocol every simulated 5 minutes. It asserts growth of at most 50 MB.
+- **Frame rate** — measured by a person on the reference laptop with a `PerformanceObserver` over frame timing, against at least 55 fps. The reference hardware is the machine next to the bike; each measurement records its model, CPU and browser version.
+- **Hidden tab** — a behaviour spec sets `document.hidden` through the page and asserts that `FrameScheduler` requests no frame until the tab is visible again.
 
 ## Requirements
 
@@ -58,13 +81,13 @@ Both the Wattzup API and Wattzup Web carry resource budgets. The API writes logs
 
 ### Components
 
-`StateChangeLogger` turns state transitions into structured events. `HealthEndpoints` reports liveness. `VisibilityPause` throttles the browser when the tab is hidden.
+`StateChangeLogger` turns state transitions into structured events. `HealthEndpoints` reports liveness. `FrameScheduler` stops animation in the browser when the tab is hidden, and `PowerTraceStore` holds the bounded trace history.
 
 ![C4 component view for observability and resource use](diagrams/c4-component.png)
 
 ### Class structure
 
-Log events are source-generated methods. The soak tests are ordinary test classes driving the simulated host.
+Log events are source-generated methods. The bounded buffers are owned by their features, and the soak tests drive the simulated host.
 
 ![Class diagram for observability and resource use](diagrams/class-structure.png)
 
@@ -76,6 +99,6 @@ A Bluetooth state change produces one structured Information event, keepalives p
 
 ### Behaviour — hidden tab
 
-Hiding the tab stops animation frames, and showing it resumes them (L2-038).
+Hiding the tab stops animation frames, and showing it resumes them. The trace history keeps growing from state messages while hidden, so the first visible frame draws the whole ride (L2-038).
 
 ![Sequence diagram for pausing animation on a hidden tab](diagrams/sequence-hidden-tab.png)

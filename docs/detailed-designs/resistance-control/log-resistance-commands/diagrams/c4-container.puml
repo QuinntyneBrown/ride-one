@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Log resistance commands
+
+Person(rider, "Rider", "Rides the bike and watches the dashboard")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular SPA", "Sent to bike panel and toasts")
+  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Command log in the in-memory state; includes Wattzup.Core and Wattzup.Protocol")
+}
+System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
+System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+
+Rel(rider, web, "Uses", "HTTPS / localhost")
+Rel(api, web, "Pushes state with commands", "SSE")
+Rel(api, os, "Writes commands, receives notifications", "IBikeTransport")
+Rel(os, bike, "Commands and resistance frames", "BLE GATT")
+@enduml

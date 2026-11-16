@@ -11,62 +11,130 @@ skinparam class {
 }
 title Class structure — Stream live state
 
-class BikeState <<record>> {
-  +string Ble
-  +string? Device
-  +string? Error
-  +int? Resistance
-  +int? TargetResistance
-  +WorkoutSnapshot? Workout
-  +int? Cadence
-  +double? SpeedKmh
-  +double? SpeedMph
-  +long Packets
-  +double? FirstDataAt
-  +double? LastDataAt
-  +int UiClients
-  +double? DisplayedSince
-  +double DisplayedSeconds
-}
-class BikeStateStore {
-  +BikeState Current
-  +event StateChanged
-  +Update(change): void
-  +Touch(): void
-}
-class DisplayTimeTracker <<static>> {
-  +FreshnessWindow = 5 s
-  +Apply(state: BikeState, now: double): BikeState
-}
-class StateBroadcaster {
-  -ConcurrentDictionary<Guid, SseClient> clients
-  +Register(): SseClient
-  +Unregister(id: Guid): void
-  -OnStateChanged(): void
-}
-class SseClient {
-  +Guid Id
-  +Channel<ReadOnlyMemory<byte>> Channel
-  +long Dropped
-}
-class EventsEndpoints <<static>> {
-  +HeartbeatInterval = 15 s
-  +MapEvents(app): void
-}
-class StatusEndpoints <<static>> {
-  +MapStatus(app): void
-}
-class LiveStateService <<Angular service>> {
-  +Signal<BikeState | null> state
-  +Signal<'connecting' | 'open' | 'offline'> connection
-  -connect(): void
+package "Wattzup.Core" {
+  class BikeState <<record>> {
+    +string Ble
+    +string? Device
+    +string? DeviceLabel
+    +string? Error
+    +int? Resistance
+    +int? TargetResistance
+    +WorkoutSnapshot? Workout
+    +int? Cadence
+    +double? SpeedKmh
+    +double? SpeedMph
+    +long Packets
+    +double? FirstDataAt
+    +double? LastDataAt
+    +int UiClients
+    +double? DisplayedSince
+    +double DisplayedSeconds
+    +string Adapter
+    +string Transport
+    +bool Simulated
+    +bool Exposed
+    +string BindAddress
+    +string ConnectionId
+    +int? Power
+    +int? TargetPower
+    +int? AvgPower
+    +double? DistanceKm
+    +int? Kcal
+    +int? HeartRate
+    +ImmutableArray<CommandEntry> Commands
+  }
+  class WorkoutSnapshot <<record>> {
+    +string Plan
+    +string Summary
+    +ImmutableArray<Segment> Segments
+    +int Segment
+    +int Remaining
+    +int ElapsedSeconds
+    +int TotalSeconds
+    +string Mode
+    +int PlanLevel
+    +string Status
+    +string? EndedReason
+  }
+  class Segment <<record>> {
+    +string Kind
+    +int Start
+    +int Duration
+    +int Level
+    +int Cadence
+    +int? Round
+  }
+  class CommandEntry <<record>> {
+    +double At
+    +int? RideSeconds
+    +int Level
+    +string Source
+    +string Status
+    +int? AckMs
+  }
+  class BikeStateStore {
+    -Lock gate
+    -TimeProvider time
+    +BikeState Current
+    +event StateChanged
+    +Update(change: Func<BikeState, BikeState>): void
+    +Touch(): void
+  }
+  class StateDerivations <<static>> {
+    +FreshnessWindow = 5 s
+    +Apply(state: BikeState, now: double, displayName: string?): BikeState
+  }
+  class StateBroadcaster {
+    -ConcurrentDictionary<Guid, SseClient> clients
+    +Register(): SseClient
+    +Unregister(id: Guid): void
+    -OnStateChanged(): void
+  }
+  class SseClient {
+    +Guid Id
+    +Channel<ReadOnlyMemory<byte>> Channel
+    +long Dropped
+  }
 }
 
+package "Wattzup.Api" {
+  class HostFacts {
+    +string Transport
+    +bool Simulated
+    +bool Exposed
+    +string BindAddress
+    +string ConnectionId
+  }
+  class EventsEndpoints <<static>> {
+    +HeartbeatInterval = 15 s
+    +MapEvents(app): void
+  }
+  class StatusEndpoints <<static>> {
+    +MapStatus(app): void
+  }
+}
+
+package "wattzup-web" {
+  class LiveStateService <<Angular service>> {
+    +Signal<BikeState | null> state
+    +Signal<'connecting' | 'open' | 'offline'> connection
+    +Signal<number | null> lastStateAt
+    +Signal<boolean> loadError
+    +retryNow(): void
+    -connect(): void
+  }
+}
+
+BikeState *-- "0..1" WorkoutSnapshot
+WorkoutSnapshot *-- "1..*" Segment
+BikeState *-- "0..5" CommandEntry
 BikeStateStore *-- BikeState
+BikeStateStore ..> StateDerivations : applies on every update
+HostFacts ..> BikeStateStore : seeds initial state
 StateBroadcaster --> BikeStateStore : subscribes
-StateBroadcaster ..> DisplayTimeTracker
 StateBroadcaster "1" *-- "0..*" SseClient
 EventsEndpoints --> StateBroadcaster
 StatusEndpoints --> BikeStateStore
 LiveStateService ..> EventsEndpoints : EventSource
+LiveStateService ..> StatusEndpoints : initial load
 @enduml

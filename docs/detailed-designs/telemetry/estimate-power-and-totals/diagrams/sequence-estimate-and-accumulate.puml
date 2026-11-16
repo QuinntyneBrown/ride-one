@@ -1,0 +1,41 @@
+@startuml
+title UML sequence behaviour — Estimate power and accumulate ride totals
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeConnection" as conn
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "TelemetryIngestor" as ing
+  participant "WorkoutEngine" as eng
+  participant "PowerEstimator" as pow
+  participant "RideTotals" as tot
+  participant "BikeStateStore" as store
+end box
+
+== Workout start ==
+eng -> tot : RideTotals.Empty
+eng -> store : Update(avg_power 0, distance_km 0.00, kcal 0) [L2-049]
+
+== Telemetry frame ==
+conn -> ing : OnNotify(D1 frame, cadence 95; resistance is 18)
+ing -> pow : EstimateWatts(95, 18)
+pow --> ing : max(0, round(95 x (0.55 + 18 x 0.155))) = 317 [L2-049]
+ing -> store : Update(cadence 95, power 317)
+
+== Engine tick (1 s) ==
+alt status running
+  eng -> pow : EstimateWatts(segment.cadence 98, segment.level 18)
+  pow --> eng : 327
+  eng -> tot : Tick(power 317, speed_kmh 35.6)
+  tot --> eng : PowerSum += 317, DistanceKm += 35.6 / 3600, RunningSeconds += 1
+  eng -> store : Update(target_power 327, avg_power, distance_km (2 dp), kcal) [L2-049]
+else paused, waiting, ended or stopped
+  eng -> store : Update(target_power null); totals unchanged [L2-049]
+end
+note over tot : avg_power 208 after 760 running seconds:\nkcal = round(208 x 760 / 1000 / 0.24 / 4.184) = 157
+note over store : heart_rate is never written and stays null [L2-049]
+@enduml

@@ -19,10 +19,16 @@ The Echelon bike has no wheel-speed sensor. Speed is derived from cadence with t
 - **`PacketDecoder`** (`Wattzup.Protocol`) — static `Decode(ReadOnlySpan<byte> frame)` returning a `TelemetryUpdate?`. It returns `null` for frames shorter than 4 bytes, frames not starting with `0xF0`, unknown frame types, and `0xD1` frames shorter than 13 bytes (L2-005).
 - **`TelemetryUpdate`** — abstract record with 2 cases. **`ResistanceUpdate(int Level)`** carries byte 3 of a `0xD2` frame (L2-006). **`CadenceUpdate(int Rpm, double SpeedKmh, double SpeedMph)`** carries `(frame[9] << 8) | frame[10]` and the derived speeds (L2-007).
 - **`SpeedCalculator`** (`Wattzup.Protocol`) — `KmhPerRpm = 0.37497622` and `KmPerMile = 1.609344`. `ToKmh(rpm)` returns `Math.Round(rpm × KmhPerRpm, 1, MidpointRounding.ToEven)`. `ToMph(rpm)` divides the **unrounded** km/h value by `KmPerMile` and then rounds to 1 decimal. Banker's rounding matches Python's `round` in the prototype.
-- **`TelemetryIngestor`** (`Wattzup.Core`) — notify handler registered by `BikeConnectionService`. For every frame it increments `packets` and forwards the bytes to `RawPacketLogger` (see `log-raw-packets`), whether or not the frame decodes. It then calls `PacketDecoder`. On a non-null update it applies the metric fields, sets `last_data_at` to now and sets `first_data_at` if it is `null`, all in one `BikeStateStore.Update` call.
-- **`IClock`** — injectable time source returning Unix epoch seconds as `double`, so tests control timestamps.
+- **`TelemetryIngestor`** (`Wattzup.Core`) — notify handler registered by `BikeConnectionService`. For every frame it hands the bytes to `RawPacketLogger` and `RecentPacketBuffer` (see `log-raw-packets`), whether or not the frame decodes. It then calls `PacketDecoder` and applies the outcome in 1 `BikeStateStore.Update` call: `packets` increases by 1 (L2-005), and on a non-null update the metric fields are set, `last_data_at` is set to now and `first_data_at` is set if it is `null` (L2-006, L2-007). In the same call it recomputes `power` from the new cadence and resistance (see `estimate-power-and-totals`) and, on a `ResistanceUpdate`, acknowledges pending commands (see `resistance-control/log-resistance-commands`). 1 frame therefore produces 1 broadcast.
+- **`TimeProvider`** — injected time source. `GetUtcNow().ToUnixTimeMilliseconds() / 1000.0` gives the Unix epoch seconds stored in `last_data_at` and `first_data_at`, and tests control it with `FakeTimeProvider`.
 
 Example frames from the specification decode as follows. `F0 D2 01 0C CF` → `ResistanceUpdate(12)`. `F0 D1 09 00 05 00 00 00 00 00 50 00 1F` → `CadenceUpdate(80, 30.0, 18.6)`. `F0 D0 01 01 C2` → `null`. The decoder does not validate the trailing checksum, which matches the prototype's behaviour.
+
+Verification:
+
+- `Wattzup.Protocol.Tests` — 1 case per criterion of L2-005, L2-006 and L2-007: short frame, wrong marker, unknown type, 12-byte `0xD1`, resistance 12, cadence 80, cadence 256 and cadence 0.
+- `Wattzup.Core.Tests` — `TelemetryIngestor` against a test double of `IBikeConnection` and `FakeTimeProvider`: every frame counts, and timestamps follow the rules of L2-006.
+- `Wattzup.Api.AcceptanceTests` — with `SimulatedBikeTransport`, `GET /api/status` shows `packets` rising and `cadence` and `speed_kmh` set after the first `0xD1` frame.
 
 ## Requirements
 
@@ -48,7 +54,7 @@ Decoding happens inside the Wattzup API container as notifications arrive.
 
 ### Components
 
-`TelemetryIngestor` receives each notification, counts and logs it, asks `PacketDecoder` for a `TelemetryUpdate`, and applies the result to `BikeStateStore`.
+`TelemetryIngestor` receives each notification, logs it, asks `PacketDecoder` for a `TelemetryUpdate`, and applies the count, the metrics, the estimated power and any acknowledgement to `BikeStateStore` in 1 update.
 
 ![C4 component view for decoding bike telemetry](diagrams/c4-component.png)
 
@@ -60,6 +66,6 @@ Decoding happens inside the Wattzup API container as notifications arrive.
 
 ### Behaviour — ingest one notification
 
-Every frame is counted and logged first (L2-005). Only well-formed `0xD2` and `0xD1` frames change metrics (L2-006, L2-007).
+Every frame is logged and counted (L2-005). Only well-formed `0xD2` and `0xD1` frames change metrics (L2-006, L2-007), and each change recomputes the estimated power (L2-049).
 
 ![Sequence diagram for ingesting one notification](diagrams/sequence-ingest-notification.png)

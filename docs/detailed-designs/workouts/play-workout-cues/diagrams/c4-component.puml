@@ -5,20 +5,25 @@ title Components — Play workout cues
 
 Person(rider, "Rider", "Hears and sees cues")
 Container_Boundary(web, "Wattzup Web") {
-  Component(live, "LiveStateService", "Angular service", "state signal")
-  Component(det, "TransitionDetector", "TypeScript", "Detects cycle:step changes")
-  Component(cd, "CountdownCues", "TypeScript", "Final 5 s pulse and 3 s beeps")
-  Component(banner, "TransitionBanner", "Angular component", "Banner, flash, live region")
+  Component(live, "LiveStateService", "Angular service", "Read-only state signal")
+  Component(det, "SegmentChangeDetector", "TypeScript, core/", "Detects segment changes after the first state")
+  Component(text, "cue-text / countdown-cue", "TypeScript, core/", "Banner lines, announcement, pulse and beep seconds")
+  Component(banner, "PhaseBanner", "Angular component, wz-phase-banner", "Banner and polite live region")
+  Component(interval, "Interval", "Angular component, wz-interval", "Countdown pulse (show-workout-countdown)")
   Component(cue, "CueService", "Angular service", "Web Audio beeps")
-  Component(toggle, "SoundToggle", "Angular component", "Beeps on or off")
+  Component(toggle, "BeepsToggle", "Angular component, wz-beeps-toggle", "Countdown beeps on or off")
+  Component(toast, "ToastService", "Angular service", "Info toast Beeps on (L2-053)")
 }
 Container(api, "Wattzup API", "ASP.NET Core", "Streams workout state")
 
 Rel(api, live, "data: BikeState", "SSE")
-Rel(det, live, "observe(workout)")
-Rel(banner, det, "Transition events")
+Rel(banner, live, "Reads workout")
+Rel(banner, det, "observe(workout)")
+Rel(banner, text, "bannerText / announcement")
 Rel(banner, cue, "beep(990 or 520)")
-Rel(cd, cue, "beep(660)")
+Rel(interval, text, "countdownCue(seconds)")
+Rel(interval, cue, "beep(660)")
 Rel(toggle, cue, "toggle()")
+Rel(cue, toast, "show(Beeps on)")
 Rel(rider, toggle, "Presses")
 @enduml

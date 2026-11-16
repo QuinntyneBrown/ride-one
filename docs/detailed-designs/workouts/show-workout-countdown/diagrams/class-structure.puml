@@ -11,65 +11,62 @@ skinparam class {
 }
 title Class structure — Show the workout countdown
 
-class CountdownModel {
-  -remaining: number | null
-  -at: number
-  -running: boolean
-  +stepSeconds: number
-  +anchor(remaining, running, stepSeconds, now): void
-  +shown(now): number | null
-  +fraction(now): number
-}
-class PhaseInfo <<static>> {
-  +EFFORT_MIN_LEVEL = 20
-  +phaseOf(level): 'effort' | 'recovery'
-  +phaseLabel(level): string
-  +nextLabel(step): string
-}
-class HeroClock <<component>> {
-  +Signal<string> phaseText
-  +Signal<string> nextText
-  +Signal<string> statusText
-  -frame(now): void
-}
-class StepTimeline <<component>> {
-  +InputSignal<number[][]> steps
-  +InputSignal<number> current
-  +Signal<number> cycle
-}
-class RingCanvas <<component>> {
-  +Signal<string> rendererName
-  -renderer: RingRenderer
-  -vis: RingVisuals
-}
-interface RingRenderer {
-  +name: string
-  +draw(time: number, vis: RingVisuals): void
-}
-class WebGpuRingRenderer
-class WebGl2RingRenderer
-class Canvas2dRingRenderer
-class RingVisuals {
-  +frac: number
-  +color: [number, number, number]
-  +target: [number, number, number]
-  +pulse: number
-  +energy: number
-  +flash: number
-  +ease(reducedMotion: boolean): void
-}
-class ThemeService <<service>> {
-  +setPhase(phase): void
+package "src/app/core" {
+  class CountdownClock {
+    +CAP_SECONDS = 1.25
+    -remaining: number
+    -elapsed: number
+    -total: number
+    -duration: number
+    -running: boolean
+    -at: number
+    +anchor(workout: Workout, now: number): void
+    +drift(now): number
+    +remainingAt(now): number
+    +elapsedAt(now): number
+    +progressAt(now): number
+  }
+  class formatDuration <<function>> {
+    +formatDuration(seconds: number): string
+  }
+  class SegmentLabels <<module segment-labels.ts>> {
+    +kindLabel(kind: SegmentKind): string
+    +phaseOf(kind): 'effort' | 'easy'
+    +toneOf(kind): 'work' | 'rest' | 'easy'
+    +roundLabel(segment, plan): string | null
+    +nextLabel(segments, index): NextSegment | null
+    +statusBadge(status: string): string | null
+  }
 }
 
-HeroClock --> CountdownModel
-HeroClock ..> PhaseInfo
-HeroClock --> ThemeService
-StepTimeline ..> CountdownModel : fraction
-StepTimeline ..> PhaseInfo
-RingCanvas --> RingRenderer
-RingCanvas *-- RingVisuals
-RingRenderer <|.. WebGpuRingRenderer
-RingRenderer <|.. WebGl2RingRenderer
-RingRenderer <|.. Canvas2dRingRenderer
+package "src/app/dashboard" {
+  class Interval <<component wz-interval>> {
+    +Signal<string> kind
+    +Signal<string | null> round
+    +Signal<'work' | 'rest' | 'easy'> tone
+    +Signal<NextSegment | null> next
+    -frame(now): void
+  }
+  class RideClock <<component wz-ride-clock>> {
+    +Signal<number | null> total
+    -frame(now): void
+  }
+  class WorkoutLink <<component wz-workout-link>> {
+    +Signal<string> label
+    +Signal<string> accessibleName
+  }
+}
+
+class LiveStateService <<service>> {
+  +Signal<BikeState | null> state
+}
+
+Interval --> CountdownClock : shared, dashboard-scoped
+RideClock --> CountdownClock : shared, dashboard-scoped
+Interval ..> SegmentLabels
+Interval ..> formatDuration
+RideClock ..> formatDuration
+Interval --> LiveStateService
+RideClock --> LiveStateService
+WorkoutLink --> LiveStateService
 @enduml

@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Serve the power trace
+
+Person(rider, "Rider", "Rides the bike and watches the dashboard")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular SPA", "Power vs. plan trace")
+  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "In-memory trace history; REST and SSE endpoints")
+}
+System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
+
+Rel(rider, web, "Uses", "HTTPS / localhost")
+Rel(web, api, "GET /api/workout/trace", "JSON/HTTP")
+Rel(api, web, "Live state with power and elapsed_seconds", "SSE")
+Rel(api, os, "Receives notifications", "IBikeTransport")
+@enduml

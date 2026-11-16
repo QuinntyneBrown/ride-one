@@ -12,30 +12,52 @@ skinparam class {
 title Class structure — Observability and resource use
 
 class Log <<static partial>> {
-  +BleStateChanged(logger, ble, device, error): void
-  +WorkoutStatusChanged(logger, status, step, cycle): void
-  +ApiRequestFailed(logger, path, statusCode, error): void
+  +BleStateChanged(logger, ble, device, adapter, transport, error): void
+  +WorkoutStatusChanged(logger, status, segment, elapsedSeconds, endedReason): void
+  +ApiRequestFailed(logger, path, statusCode, code): void
   +PacketReceived(logger, length, type): void
 }
-class StateChangeLogger {
+class StateChangeLogger <<hosted service>> {
   -string? lastBle
+  -string? lastAdapter
   -string? lastWorkoutStatus
-  -OnStateChanged(): void
+  -OnStateChanged(state: BikeState): void
 }
 class HealthEndpoints <<static>> {
   +MapHealth(app): void
 }
-class SoakTests <<xUnit, Soak>> {
-  +BackendMemoryAndCpuStayWithinBudget(): Task
-}
-class VisibilityPause <<Angular service>> {
-  +Signal<boolean> hidden
-}
 class BikeStateStore {
+  +BikeState Current
   +event StateChanged
+}
+class PowerTraceHistory {
+  -PowerSample[10800] ring
+  +Append(rideSeconds: int, power: int): void
+  +Snapshot(): PowerSample[]
+  +Reset(): void
+}
+class SoakTests <<xUnit, Soak>> {
+  -FakeTimeProvider time
+  +MemoryStaysWithin20MbOverFourHourRide(): Task
+}
+class FrameScheduler <<Angular service>> {
+  -Set<FrameRequestCallback> pending
+  -number? handle
+  +request(cb: FrameRequestCallback): void
+  -onVisibilityChange(): void
+}
+class PowerTraceStore <<Angular service>> {
+  -Int32Array seconds
+  -Int32Array watts
+  +Signal<number> count
+  +restore(samples: number[][]): void
+  +append(rideSeconds: number, watts: number): void
+  +reset(totalSeconds: number): void
 }
 
 StateChangeLogger --> BikeStateStore
 StateChangeLogger ..> Log
 HealthEndpoints ..> BikeStateStore
+SoakTests ..> PowerTraceHistory : measures through the host
+PowerTraceStore ..> PowerTraceHistory : mirrors via GET /api/workout/trace
 @enduml

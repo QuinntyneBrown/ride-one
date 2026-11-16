@@ -5,44 +5,57 @@ skinparam shadowing false
 skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
-box "Backend — Wattzup Core and Protocol" #ECFDF3
+box "Backend — Wattzup Core" #ECFDF3
+  participant "TimeProvider" as clock
   participant "WorkoutEngine" as engine
   participant "WorkoutRun" as run
-  participant "BikeStateStore" as store
   participant "IResistanceCommander" as cmdr
+  participant "BikeStateStore" as store
 end box
 box "Backend — Wattzup API application" #D1FADF
   participant "ActiveConnectionRegistry" as reg
 end box
 
+clock -> engine : PeriodicTimer tick (1 s), run is active
 engine -> reg : IsConnected
 alt not connected
-  engine -> run : GoneSince ??= now; SentFor = null
-  alt first_data_at set and now - GoneSince > 90 s
-    engine -> run : Status = "ended: bike shut off" [L2-013]
-    engine -> store : Update(workout)
-    engine -> engine : exit loop
-  else
-    engine -> run : Status = first_data_at ? "paused: bike disconnected" : "waiting for bike" [L2-013]
-    engine -> store : Update(workout) (Remaining unchanged)
-  end
-else connected
-  engine -> run : GoneSince = null
-  engine -> store : Current.resistance
-  opt SentFor != (Cycle, Step) or (resistance != level and Remaining % 5 == 0) [L2-012]
-    engine -> cmdr : TrySendAsync(level)
-    alt send throws
-      engine -> store : Update(error = "set resistance failed: <message>") [L2-012]
-    else ok
-      engine -> run : SentFor = (Cycle, Step)
+  engine -> run : SentForSegment = null
+  alt ride not started
+    engine -> run : Status = "waiting for bike" [L2-013]
+  else ride started
+    engine -> run : DisconnectedSince ??= now; Status = "paused: bike disconnected" [L2-013]
+    opt now - DisconnectedSince > 90 s
+      engine -> run : Status = "ended: bike shut off"; EndedReason = "bike shut off" [L2-013]
     end
   end
-  engine -> run : Status = "running"
-  engine -> store : Update(workout) [L2-011]
-  engine -> run : Remaining -= 1
-  opt Remaining <= 0
-    run -> run : Step = (Step + 1) % count; if Step == 0 then Cycle += 1 [L2-011]
-    run -> run : Remaining = Steps[Step].Seconds
+else connected, Status != "running"
+  engine -> run : DisconnectedSince = null
+  alt PausedByRider
+    engine -> run : Status = "paused"; nothing sent [L2-046]
+  else
+    engine -> run : Status = "running"; ride clock not counted on this tick [L2-013]
+    engine -> engine : Drive()
+  end
+else running
+  engine -> run : Count(): Elapsed += 1; Remaining -= 1 [L2-011]
+  alt Elapsed == TotalSeconds
+    engine -> run : Status = "ended"; bike left at last level [L2-011]
+  else
+    opt Remaining == 0
+      run -> run : Segment += 1; Remaining = Segments[Segment].Duration [L2-011]
+      run -> run : hiit in manual mode returns to plan [L2-047]
+    end
+    group Drive, plan mode only [L2-012]
+      engine -> store : Current.resistance
+      opt SentForSegment != Segment, or resistance != LastSentLevel and Remaining % 5 == 0
+        engine -> cmdr : SendAsync(level, source plan)
+        alt send fails
+          engine -> store : Update(error = "set resistance failed: <message>") [L2-012]
+        end
+        engine -> run : SentForSegment = Segment; LastSentLevel = level
+      end
+    end
   end
 end
+engine -> store : Update(workout = run.ToSnapshot()), broadcast [L2-011]
 @enduml

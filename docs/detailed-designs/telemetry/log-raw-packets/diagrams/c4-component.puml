@@ -3,18 +3,25 @@
 LAYOUT_WITH_LEGEND()
 title Components — Log raw packets
 
+Container(web, "Wattzup Web", "Angular SPA", "Diagnostics dialog")
 Container_Boundary(api, "Wattzup API") {
   Component(ing, "TelemetryIngestor", "Wattzup.Core", "Notify handler")
   Component(logger, "RawPacketLogger", "Bounded channel", "Non-blocking enqueue")
   Component(writer, "RawPacketLogWriter", "BackgroundService", "Drains, formats and appends")
   Component(fmt, "RawPacketFormatter", "Pure function", "epoch.mmm + lowercase hex")
   Component(roll, "RollingFile", "File helper", "Size-based rotation")
+  Component(recent, "RecentPacketBuffer", "Wattzup.Core", "Ring of the newest 60 frames")
+  Component(ep, "DiagnosticsEndpoints", "Minimal API", "GET /api/diagnostics/packets")
 }
 ContainerDb(files, "Local files", "File system", "raw_packets.log and archives .1 to .5")
 
-Rel(ing, logger, "Enqueue(now, frame)")
+Rel(ing, logger, "Enqueue(packet)")
+Rel(ing, recent, "Add(packet)")
 Rel(writer, logger, "Reads all")
 Rel(writer, fmt, "Format")
 Rel(writer, roll, "Append(line)")
 Rel(roll, files, "Writes and renames")
+Rel(web, ep, "GET", "JSON/HTTP")
+Rel(ep, recent, "Snapshot()")
+Rel(recent, fmt, "Format")
 @enduml

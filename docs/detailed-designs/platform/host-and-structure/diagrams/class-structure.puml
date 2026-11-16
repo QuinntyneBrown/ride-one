@@ -11,29 +11,60 @@ skinparam class {
 }
 title Class structure — Host composition
 
-class Program <<static>> {
-  +Main(args: string[]): Task
+package "Wattzup.Api" {
+  class Program <<static>> {
+    +Main(args: string[]): Task
+  }
+  class WattzupOptions {
+    +string Urls = "http://127.0.0.1:8787"
+    +SecurityOptions Security
+    +CorsOptions Cors
+    +BleOptions Ble
+    +BikeOptions Bike
+    +RawPacketLogOptions RawPacketLog
+    +StatusSnapshotOptions StatusSnapshot
+  }
+  class BikeOptions {
+    +string? DisplayName
+  }
+  abstract class BackgroundService {
+    #ExecuteAsync(ct): Task
+  }
+  class BikeConnectionService
+  class WorkoutEngineHost
+  class RawPacketLogWriter
+  class StatusSnapshotWriter
+  class StateChangeLogger
+  class EndpointGroups <<static>> {
+    +MapStatus / MapEvents / MapResistance
+    +MapWorkout / MapDiagnostics / MapHealth
+  }
 }
-class WattzupOptions {
-  +string Urls = "http://127.0.0.1:8787"
-  +SecurityOptions Security
-  +BleOptions Ble
-  +RawPacketLogOptions RawPacketLog
-  +StatusSnapshotOptions StatusSnapshot
+package "Wattzup.Core" {
+  class BikeStateStore <<singleton>>
+  class StateBroadcaster <<singleton>>
+  class ActiveConnectionRegistry <<singleton>>
 }
-abstract class BackgroundService {
-  #ExecuteAsync(ct): Task
+package "Wattzup.Mac" {
+  class AppDelegate {
+    +DidFinishLaunching(): void
+    +WillTerminate(): void
+  }
 }
-class BikeConnectionService
-class WorkoutEngineHost
-class RawPacketLogWriter
-class StatusSnapshotWriter
-class StateChangeLogger
-class BikeStateStore <<singleton>>
-class StateBroadcaster <<singleton>>
-class ActiveConnectionRegistry <<singleton>>
-class EndpointGroups <<static>> {
-  +MapStatus / MapEvents / MapResistance / MapWorkout / MapHealth
+package "wattzup-web" {
+  class appConfig <<ApplicationConfig>> {
+    +provideZonelessChangeDetection()
+    +provideRouter(routes)
+    +provideHttpClient(withInterceptors([apiKeyInterceptor]))
+    +BIKE_API -> HttpBikeApi
+    +TRACE_RENDERER_FACTORY -> createTraceRenderer
+  }
+  class routes <<Routes>> {
+    + "" : RidePage
+    + "setup" : SetupPage
+    + "unlock" : UnlockPage
+    + "**" : NotFoundPage
+  }
 }
 
 BackgroundService <|-- BikeConnectionService
@@ -41,10 +72,13 @@ BackgroundService <|-- WorkoutEngineHost
 BackgroundService <|-- RawPacketLogWriter
 BackgroundService <|-- StatusSnapshotWriter
 BackgroundService <|-- StateChangeLogger
-Program ..> WattzupOptions : binds
+WattzupOptions *-- BikeOptions
+Program ..> WattzupOptions : binds json, env, args
 Program ..> BackgroundService : registers
 Program ..> BikeStateStore : registers
 Program ..> StateBroadcaster : registers
 Program ..> ActiveConnectionRegistry : registers
 Program ..> EndpointGroups : maps
+AppDelegate ..> Program : starts and stops the host
+appConfig --> routes
 @enduml

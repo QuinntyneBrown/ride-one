@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Return to the plan
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "PlanNote" as note
+  participant "BikeApi" as api
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "WorkoutEndpoints" as wep
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "WorkoutEngine" as eng
+  participant "ResistanceCommander" as cmdr
+  participant "BikeStateStore" as store
+end box
+
+note over eng : hiit workout, mode = manual at 22, plan_level = 18
+alt next segment starts (hiit)
+  eng -> eng : tick reaches the segment boundary
+  eng -> store : Update(segment + 1, mode = plan, plan_level = 6) [L2-047]
+  eng -> cmdr : SendAsync(6, plan) [L2-012]
+  cmdr --> eng : Sent
+else rider presses Back to plan
+  rider -> note : Back to plan
+  note -> api : backToPlan()
+  api -> wep : POST /api/workout/back-to-plan
+  wep -> eng : Post(BackToPlan)
+  alt no active workout
+    eng --> wep : NoActiveWorkout
+    wep --> api : 409 code no_active_workout [L2-017]
+  else active workout
+    eng -> store : Update(mode = plan) [L2-047]
+    eng -> cmdr : SendAsync(plan_level = 18, plan)
+    cmdr --> eng : Sent
+    eng --> wep : Done
+    wep --> api : 200
+  end
+end
+note over eng : flat workout: no next segment, so mode stays manual until Back to plan [L2-047]
+@enduml

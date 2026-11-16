@@ -4,17 +4,21 @@ LAYOUT_WITH_LEGEND()
 title Components — Run an interval workout
 
 Container_Boundary(api, "Wattzup API") {
-  Component(engine, "WorkoutEngine", "Wattzup.Core", "1 s tick loop over WorkoutRun")
+  Component(engine, "WorkoutEngine", "BackgroundService, Wattzup.Core", "1 s tick loop and command channel over one WorkoutRun")
+  Component(exp, "PlanExpander", "Wattzup.Core", "Plan to ordered segments")
+  Component(sum, "WorkoutSummary", "Wattzup.Core", "Plan to summary label")
   Component(reg, "ActiveConnectionRegistry", "Singleton", "Is the bike connected?")
-  Component(cmdr, "IResistanceCommander", "Wattzup.Core", "Sends set-resistance commands")
-  Component(store, "BikeStateStore", "Wattzup.Core", "workout, resistance, error")
-  Component(clock, "IClock / TimeProvider", ".NET", "Real or virtual time")
+  Component(cmdr, "IResistanceCommander", "Wattzup.Core", "Sends set-resistance commands and logs them")
+  Component(store, "BikeStateStore", "Wattzup.Core", "workout, resistance, error; broadcasts")
+  Component(clock, "TimeProvider", ".NET", "Real time, or FakeTimeProvider in tests")
 }
 System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
 
+Rel(engine, exp, "Expand(plan)")
+Rel(engine, sum, "For(plan)")
 Rel(engine, reg, "IsConnected")
-Rel(engine, cmdr, "TrySendAsync(level)")
+Rel(engine, cmdr, "SendAsync(level, plan)")
 Rel(engine, store, "Reads resistance; Update(workout)")
-Rel(engine, clock, "Ticks and timestamps")
+Rel(engine, clock, "PeriodicTimer ticks and timestamps")
 Rel(cmdr, bike, "Write with response", "BLE GATT")
 @enduml

@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Estimate power and ride totals
+
+Person(rider, "Rider", "Rides the bike and watches the dashboard")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular SPA", "Power readout and ride totals strip")
+  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Estimates in Wattzup.Core; state over SSE")
+}
+System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
+System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+
+Rel(rider, web, "Uses", "HTTPS / localhost")
+Rel(api, web, "Pushes power, target_power, avg_power, distance_km, kcal", "SSE")
+Rel(api, os, "Receives notifications", "IBikeTransport")
+Rel(os, bike, "Notifications", "BLE GATT")
+@enduml

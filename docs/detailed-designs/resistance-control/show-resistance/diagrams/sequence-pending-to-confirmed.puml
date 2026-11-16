@@ -8,23 +8,26 @@ skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
   participant "LiveStateService" as live
-  participant "ResistanceCard" as card
-  participant "ResistanceBar" as bar
+  participant "resistanceView" as view
+  participant "LevelReadout" as readout
+  participant "LevelPicker" as picker
 end box
 box "Backend — Wattzup API application" #D1FADF
   participant "EventsEndpoints" as sse
 end box
 
-sse -> live : data: {resistance:12, target_resistance:20, ...}
-live -> card : state() changes
-card -> card : valueText = "12"; barPercent = 37.5
-card -> card : targetLabel = "setting 20…"; markerPercent = 62.5 [L2-019]
-card -> bar : percent 37.5, marker 62.5
-bar --> rider : bar at 37.5 %, marker at 62.5 %
-sse -> live : data: {resistance:20, target_resistance:20, ...}
-live -> card : state() changes
-card -> card : valueText = "20"; barPercent = 62.5
-card -> card : targetLabel = "target 20 ✓" [L2-019]
-card -> bar : percent 62.5, marker 62.5
-bar --> rider : bar meets marker, label confirms
+sse -> live : data: {resistance:18, target_resistance:22, workout:{mode:"manual", plan_level:18}}
+live -> view : state() changes
+view --> live : valueText "18", settingText "Setting 22…", litUpTo 18, pressed 22, plan 18 [L2-019]
+live -> readout : computed view
+readout --> rider : 18 of 32, Setting 22… (role=status)
+live -> picker : computed view
+picker --> rider : levels 1–18 is-lit, level 22 aria-pressed, level 18 is-plan
+sse -> live : data: {resistance:22, target_resistance:22, workout:{mode:"manual", plan_level:18}}
+live -> view : state() changes
+view --> live : valueText "22", settingText null, litUpTo 22, pressed 22, plan 18 [L2-019]
+live -> readout : computed view
+readout --> rider : 22 of 32, no Setting text
+live -> picker : computed view
+picker --> rider : levels 1–22 is-lit, level 22 aria-pressed, level 18 is-plan
 @enduml

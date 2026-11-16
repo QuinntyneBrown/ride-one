@@ -5,40 +5,38 @@ skinparam shadowing false
 skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
-actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
-  participant "WorkoutPanel" as panel
-  participant "WorkoutDraftStore" as draft
-  participant "BikeApi" as api
+  participant "SetupPage" as page
+  participant "WorkoutApi" as api
 end box
 box "Backend — Wattzup API application" #D1FADF
   participant "WorkoutEndpoints" as ep
 end box
-box "Backend — Wattzup Core and Protocol" #ECFDF3
-  participant "WorkoutValidator" as val
+box "Backend — Wattzup Core" #ECFDF3
+  participant "WorkoutPlanValidator" as val
   participant "WorkoutEngine" as engine
+  participant "BikeStateStore" as store
 end box
 
-panel -> draft : load()
-draft --> panel : last steps or [[12,120],[24,30]] [L2-029]
-rider -> panel : Edit steps: 12 for 120 s, 24 for 30 s
-alt any field invalid
-  panel --> rider : inline range error; Start disabled [L2-029]
-else form valid
-  rider -> panel : Press Start
-  panel -> api : startWorkout([[12,120],[24,30]])
-  api -> ep : POST /api/workout {"steps":[[12,120],[24,30]]}
-  ep -> val : TryCreate(steps) [L2-010]
-  alt invalid (empty, > 100 steps, level not 1..32, seconds not 1..3600, non-integer)
-    val --> ep : false
-    ep --> api : 400 {"error":"steps must be [[level 1-32, seconds>0], ...]"} [L2-017]
-    api --> panel : show error beside panel
-  else valid
-    val --> ep : WorkoutDefinition
-    ep -> engine : Start(definition) (cancels any running workout)
-    ep --> api : 200 {"started":[[12,120],[24,30]]} [L2-017]
-    api --> panel : ok
-    panel -> draft : save(steps)
+page -> api : start({kind:"hiit", rounds:8, work_seconds:40, rest_seconds:20, work_level:18, rest_level:6, warmup:true, cooldown:true})
+api -> ep : POST /api/workout
+ep -> val : Validate(body) [L2-010]
+alt unknown kind, missing or mistyped field, or value out of range
+  val --> ep : Errors e.g. {"rounds":["Enter 1 to 30 rounds."]}
+  ep --> api : 400 ProblemDetails {code:"invalid_workout", errors} [L2-010, L2-017]
+  api --> page : error; no workout started
+else valid
+  val --> ep : HiitPlan
+  ep -> engine : StartAsync(plan)
+  engine -> engine : discard active run; expand to 17 segments, 760 s; reset ride totals [L2-013, L2-045]
+  alt bike connected
+    engine -> engine : status "running"; send segment 0 level [L2-012]
+  else not connected
+    engine -> engine : status "waiting for bike" [L2-013]
   end
+  engine -> store : Update(workout), broadcast
+  engine --> ep : WorkoutSnapshot
+  ep --> api : 200 {"started": <workout>} [L2-017]
+  api --> page : ok
 end
 @enduml

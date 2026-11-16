@@ -1,0 +1,58 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Estimate power and ride totals
+
+package "Wattzup.Core" {
+  class PowerEstimator <<static>> {
+    +const double Base = 0.55
+    +const double PerLevel = 0.155
+    +EstimateWatts(cadence: int?, level: int?): int?
+  }
+  class RideTotals <<record>> {
+    +int RunningSeconds
+    +long PowerSum
+    +double DistanceKm
+    +Tick(power: int?, speedKmh: double?): RideTotals
+    +int AvgPower
+    +double DistanceKmRounded
+    +int Kcal
+    +static Empty: RideTotals
+  }
+  class WorkoutRun {
+    +Segment CurrentSegment
+    +string Status
+    +RideTotals Totals
+  }
+  class WorkoutEngine {
+    -WorkoutRun? run
+    -Tick(now): void
+  }
+  class TelemetryIngestor {
+    +OnNotify(frame: ReadOnlyMemory<byte>): void
+  }
+  class BikeState <<record>> {
+    +int? Power
+    +int? TargetPower
+    +int? AvgPower
+    +double? DistanceKm
+    +int? Kcal
+    +int? HeartRate = null
+  }
+}
+
+WorkoutEngine "1" *-- "0..1" WorkoutRun
+WorkoutRun *-- RideTotals
+WorkoutEngine ..> PowerEstimator : target power
+TelemetryIngestor ..> PowerEstimator : power
+WorkoutEngine ..> BikeState : updates via BikeStateStore
+TelemetryIngestor ..> BikeState : updates via BikeStateStore
+@enduml

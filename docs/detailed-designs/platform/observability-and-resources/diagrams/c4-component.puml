@@ -6,13 +6,16 @@ title Components — Observability and resource use
 Person_Ext(dev, "Developer / operator", "Reads logs, checks health")
 Container_Boundary(api, "Wattzup API") {
   Component(store, "BikeStateStore", "Wattzup.Core", "StateChanged")
-  Component(scl, "StateChangeLogger", "Wattzup.Api", "Logs ble and workout transitions")
-  Component(log, "Log (LoggerMessage)", "Source generated", "Structured events")
+  Component(scl, "StateChangeLogger", "Wattzup.Api", "Logs ble, adapter and workout transitions")
+  Component(log, "Log (LoggerMessage)", "Source generated", "Structured events; no key, token or query string")
   Component(health, "HealthEndpoints", "Minimal API", "GET /health")
+  Component(hist, "PowerTraceHistory", "Wattzup.Core (serve-power-trace)", "Ring of 10,800 samples")
 }
 Container_Boundary(web, "Wattzup Web") {
-  Component(vis, "VisibilityPause", "Angular service", "Stops rAF when hidden")
-  Component(anim, "HeroClock / RingCanvas", "Angular components", "Animation loops")
+  Component(frames, "FrameScheduler", "Angular service", "Sole rAF owner; stops when hidden")
+  Component(trace, "RideTrace", "Angular component", "Power vs. plan canvas")
+  Component(countdown, "Countdown", "workouts feature", "Local interpolation")
+  Component(pts, "PowerTraceStore", "Angular service", "Int32Array copy, 10,800 entries")
 }
 
 Rel(store, scl, "StateChanged")
@@ -20,5 +23,8 @@ Rel(scl, log, "BleStateChanged / WorkoutStatusChanged")
 Rel(health, store, "Reads ble")
 Rel(dev, health, "GET", "HTTP")
 Rel(dev, log, "Reads", "stdout JSON")
-Rel(anim, vis, "Subscribes")
+Rel(trace, frames, "request(draw)")
+Rel(countdown, frames, "request(tick)")
+Rel(trace, pts, "Reads samples")
+Rel(pts, hist, "GET /api/workout/trace on load", "JSON/HTTP")
 @enduml

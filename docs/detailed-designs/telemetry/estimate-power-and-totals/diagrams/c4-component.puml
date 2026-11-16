@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Estimate power and ride totals
+
+Container_Boundary(api, "Wattzup API") {
+  Component(ing, "TelemetryIngestor", "Wattzup.Core", "Applies decoded frames")
+  Component(eng, "WorkoutEngine", "Wattzup.Core", "1 s tick while running")
+  Component(pow, "PowerEstimator", "Wattzup.Core", "EstimateWatts(cadence, level)")
+  Component(tot, "RideTotals", "Wattzup.Core", "Per-run accumulator")
+  Component(store, "BikeStateStore", "Wattzup.Core", "Only writer of BikeState")
+  Component(sse, "EventsEndpoints", "Minimal API", "GET /api/events")
+}
+Container(web, "Wattzup Web", "Angular SPA", "Readouts (dashboard/show-live-metrics)")
+
+Rel(ing, pow, "power = EstimateWatts(cadence, resistance)")
+Rel(ing, store, "Update(power)")
+Rel(eng, pow, "target_power = EstimateWatts(aim, level)")
+Rel(eng, tot, "Tick(power, speed_kmh)")
+Rel(eng, store, "Update(target_power, avg_power, distance_km, kcal)")
+Rel(store, sse, "StateChanged")
+Rel(sse, web, "data: BikeState", "SSE")
+@enduml

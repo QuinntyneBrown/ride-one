@@ -7,7 +7,7 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
-  participant "BikeApi + ApiKeyInterceptor" as api
+  participant "HttpBikeApi + apiKeyInterceptor" as api
   participant "LiveStateService" as live
 end box
 box "Backend — Wattzup API application" #D1FADF
@@ -23,8 +23,9 @@ api -> hdr : POST /api/resistance, X-Api-Key, body <= 16 KB
 hdr -> auth : authenticate
 alt key missing or wrong (FixedTimeEquals false)
   auth --> api : 401 (nothing reaches the bike) [L2-035]
+  api -> api : navigate to /unlock (L2-055)
 else key valid
-  auth -> rate : acquire 'control'
+  auth -> rate : acquire 'control' (/api/resistance, /api/workout*)
   alt > 20 requests in 1 s from client
     rate --> api : 429 [L2-036]
   else permitted

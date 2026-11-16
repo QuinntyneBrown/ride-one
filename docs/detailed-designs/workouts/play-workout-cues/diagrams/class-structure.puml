@@ -11,35 +11,56 @@ skinparam class {
 }
 title Class structure — Play workout cues
 
-class CueService <<service>> {
-  -ctx: AudioContext | null
-  +Signal<boolean> enabled
-  +toggle(): void
-  +beep(freq: number, seconds: number): void
-}
-class TransitionDetector {
-  -lastKey: string | null
-  +observe(w: WorkoutSnapshot | null): Transition | null
-}
-class Transition <<interface>> {
-  +phase: 'effort' | 'recovery'
-  +level: number
-  +seconds: number
-}
-class CountdownCues {
-  +onWholeSecond(whole: number, running: boolean): void
-}
-class TransitionBanner <<component>> {
-  +Signal<string> text
-  +show(t: Transition): void
-}
-class SoundToggle <<component>> {
-  +label: Signal<string>
+package "src/app/core" {
+  class CueService <<service>> {
+    -ctx: AudioContext | null
+    +Signal<boolean> enabled
+    +toggle(): void
+    +beep(freq: number, seconds: number): void
+  }
+  class SegmentChangeDetector {
+    -seen: boolean
+    -lastKey: number | null
+    +observe(w: Workout | null): SegmentChange | null
+  }
+  class SegmentChange <<interface>> {
+    +kind: SegmentKind
+    +level: number
+    +duration: number
+    +round: number | null
+    +rounds: number | null
+    +next: NextSegment | null
+  }
+  class CueText <<module cue-text.ts>> {
+    +bannerText(c: SegmentChange): BannerText
+    +announcement(c: SegmentChange): string
+  }
+  class CountdownCue <<module countdown-cue.ts>> {
+    +countdownCue(wholeSecondsLeft: number, running: boolean): {pulse, beep}
+  }
 }
 
-TransitionDetector ..> Transition : emits
-TransitionBanner ..> Transition
-TransitionBanner --> CueService
-CountdownCues --> CueService
-SoundToggle --> CueService
+package "src/app/dashboard" {
+  class PhaseBanner <<component wz-phase-banner>> {
+    +Signal<BannerText | null> text
+    +Signal<'rest' | null> modifier
+    +Signal<string> announcement
+  }
+  class BeepsToggle <<component wz-beeps-toggle>> {
+    +Signal<string> accessibleName
+    +press(): void
+  }
+  class Interval <<component wz-interval>> {
+    -frame(now): void
+  }
+}
+
+SegmentChangeDetector ..> SegmentChange : emits
+CueText ..> SegmentChange
+PhaseBanner *-- SegmentChangeDetector
+PhaseBanner ..> CueText
+PhaseBanner --> CueService
+Interval ..> CountdownCue
+Interval --> CueService
+BeepsToggle --> CueService
 @enduml

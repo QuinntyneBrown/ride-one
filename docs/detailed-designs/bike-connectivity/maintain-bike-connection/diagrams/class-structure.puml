@@ -16,6 +16,7 @@ class BikeConnectionService {
   -ActiveConnectionRegistry registry
   -BikeStateStore store
   -ConnectivityOptions options
+  -TimeProvider time
   #ExecuteAsync(ct): Task
   -RunKeepaliveAsync(conn: IBikeConnection, ct): Task
   -HandleFailure(ex: Exception): void

@@ -8,21 +8,31 @@ The prototype relied on the Python library `bleak`, which hides the differences 
 
 **app bundle** — macOS directory package (`.app`) carrying an `Info.plist`; macOS grants Bluetooth access only to bundled applications that declare a usage description
 
-**hardware smoke test** — manual or scripted check against a real bike: scan, connect, receive cadence, set resistance
+**hardware smoke test** — check run by a person against a real bike: scan, connect, receive cadence, set resistance
 
-Every other backend feature talks only to `IBikeTransport` and `IBikeConnection`. The transport is chosen once at start-up from configuration or the operating system, so platform code never leaks into the protocol, core or API layers.
+**supported transport** — transport that has passed its hardware smoke test and is advertised as supported
+
+Every other backend feature talks only to `IBikeTransport` and `IBikeConnection`. The transport is chosen once at start-up from configuration or the operating system, so platform code never leaks into the protocol, core or API layers. CoreBluetooth is the first real transport, because the machine next to the bike is a Mac (ADR 0007). The BlueZ and Windows transports follow against the same abstraction. Until they pass their smoke tests they are built but not advertised as supported.
 
 ## Description
 
-- **`IBikeTransport` / `IBikeConnection` / `BikeAdvertisement`** — the abstraction in `Wattzup.Ble.Abstractions`, described in `discover-and-connect-bike`.
-- **`WinRtBikeTransport`** (`Wattzup.Ble.Windows`, target `net8.0-windows10.0.19041.0` or later) — uses `BluetoothLEAdvertisementWatcher` for scanning, `BluetoothLEDevice.FromBluetoothAddressAsync` for connecting, and `GattCharacteristic.ValueChanged` for notifications.
-- **`BlueZBikeTransport`** (`Wattzup.Ble.BlueZ`, target `net8.0`) — talks to BlueZ 5.50 or later over D-Bus (`org.bluez.Adapter1`, `Device1`, `GattCharacteristic1`). D-Bus client library: `<TO SUPPLY>` (candidates: `Linux.Bluetooth`, `Tmds.DBus`).
-- **`CoreBluetoothBikeTransport`** (`Wattzup.Ble.CoreBluetooth`, target `net8.0-macos`) — wraps `CBCentralManager` and `CBPeripheral` delegates as tasks and events. The macOS host is packaged as `Wattzup.app` with `NSBluetoothAlwaysUsageDescription` in `Info.plist`. ASP.NET Core runs inside that bundle.
-- **`SimulatedBikeTransport`** (`Wattzup.Ble.Simulated`) — advertises `ECHSIM-0001`, accepts every write, and emits a `0xD1` workout packet every 1 s with a synthetic cadence curve. It emits a `0xD2` resistance packet after each set-resistance write, echoing the requested level. Tests inject faults through `SimulationControl` (power off, drop link, throw on write).
-- **`TransportSelector`** — registers one transport in DI. `--simulate` or `Wattzup:Ble:Transport = Simulated` selects the simulator. Otherwise the selector uses `OperatingSystem.IsWindows/IsLinux/IsMacOS`.
+- **`IBikeTransport` / `IBikeConnection` / `BikeAdvertisement` / `BluetoothAdapterState`** — the abstraction in `Wattzup.Ble.Abstractions`, described in `discover-and-connect-bike`. Each transport reports a fixed `Name`, which the state carries as `transport` (L2-014), and an `AdapterState` with an `AdapterStateChanged` event, which the state carries as `adapter`.
+- **`CoreBluetoothBikeTransport`** (`Wattzup.Ble.CoreBluetooth`, target `net10.0-macos`, `Name = "CoreBluetooth"`) — wraps the `CBCentralManager` and `CBPeripheral` delegates as tasks and events.
+  - `CBCentralManager.State` maps to `AdapterState`: `PoweredOn` is `On`; `PoweredOff`, `Unauthorized` and `Unsupported` are `Off`; `Unknown` and `Resetting` are `Unknown`.
+  - It ships in `Wattzup.Mac`, a `net10.0-macos` app bundle around `Wattzup.Api` with `NSBluetoothAlwaysUsageDescription` in its `Info.plist` (ADR 0007, `host-and-structure`). ASP.NET Core runs inside that bundle.
+  - Building it needs the macOS workload. The other projects build without it.
+- **`BlueZBikeTransport`** (`Wattzup.Ble.BlueZ`, target `net10.0`, `Name = "BlueZ"`) — talks to BlueZ 5.50 or later over D-Bus (`org.bluez.Adapter1`, `Device1`, `GattCharacteristic1`). `Adapter1.Powered` maps to `AdapterState`. D-Bus client library: `Tmds.DBus.Protocol`, which is maintained, trimming-safe and has no native dependency. Not yet a supported transport.
+- **`WinRtBikeTransport`** (`Wattzup.Ble.Windows`, target `net10.0-windows10.0.19041.0`, `Name = "WinRT"`) — uses `BluetoothLEAdvertisementWatcher` for scanning, `BluetoothLEDevice.FromBluetoothAddressAsync` for connecting, and `GattCharacteristic.ValueChanged` for notifications. `Radio.State` maps to `AdapterState`. Not yet a supported transport.
+- **`SimulatedBikeTransport`** (`Wattzup.Ble.Simulated`, `Name = "Simulated"`) — advertises `ECHSIM-0001`, accepts every write, and emits a `0xD1` workout packet every 1 s with a synthetic cadence curve. It emits a `0xD2` resistance packet after each set-resistance write, echoing the requested level. It takes `TimeProvider`, so tests advance its clock with `FakeTimeProvider`. Tests inject faults through `SimulationControl`: power the bike off, switch the adapter off, drop the link, throw on the next write.
+- **`TransportSelector`** — registers exactly one transport in DI.
+  - `--simulate` or `Wattzup:Ble:Transport = Simulated` selects the simulator, and `HostFacts` sets `simulated = true` in the state (`live-state/stream-live-state`). The dashboard then shows the `Simulated bike` banner (L2-054).
+  - Otherwise `Wattzup:Ble:Transport` names a transport, or the selector picks by operating system in the order CoreBluetooth (`OperatingSystem.IsMacOS`), BlueZ (`IsLinux`), WinRT (`IsWindows`).
+  - The selector registers only transports whose assembly the host references. `Wattzup.Mac` contributes CoreBluetooth. `Wattzup.Api` targets `net10.0` and `net10.0-windows10.0.19041.0`. Both targets reference `Wattzup.Ble.BlueZ`, which registers only when `OperatingSystem.IsLinux()`. Only the Windows target references `Wattzup.Ble.Windows`.
 - **`BluetoothUnavailableException`** — thrown by every transport when the adapter is missing, off or unauthorised, so `BikeConnectionService` handles the 3 platforms the same way.
 
-Each transport marshals native callbacks onto the thread pool before it calls the notify handler, and never blocks a native callback thread. UUID comparison is case-insensitive in every transport.
+Each transport marshals native callbacks onto the thread pool before it calls the notify handler, and never blocks a native callback thread. UUID comparison is case-insensitive in every transport. No type outside a `Wattzup.Ble.*` project touches a platform Bluetooth API.
+
+The hardware smoke test of L2-043 is run by a person on each platform, never by an agent or CI. CI builds every project but runs no transport against hardware (ADR 0007). Every automated test uses `SimulatedBikeTransport` or a test double of the two interfaces.
 
 ## Requirements
 
@@ -34,13 +44,13 @@ Each transport marshals native callbacks onto the thread pool before it calls th
 
 ### System context
 
-Wattzup reaches the bike through whichever OS Bluetooth stack the host runs on.
+Wattzup reaches the bike through whichever OS Bluetooth stack the host runs on, CoreBluetooth first.
 
 ![C4 system context for the Bluetooth platform transports](diagrams/c4-context.png)
 
 ### Containers
 
-The transport is a library loaded into the Wattzup API container. On macOS that container is packaged as an app bundle.
+The transport is a library loaded into the Wattzup API container. On macOS that container is packaged as the `Wattzup.Mac` app bundle.
 
 ![C4 container view for the Bluetooth platform transports](diagrams/c4-container.png)
 
@@ -52,7 +62,7 @@ The transport is a library loaded into the Wattzup API container. On macOS that 
 
 ### Class structure
 
-The 4 transports realise the same 2 interfaces. Only `TransportSelector` knows the concrete types.
+The 4 transports realise the same 2 interfaces and report their name and adapter state. Only `TransportSelector` knows the concrete types.
 
 ![Class diagram for the Bluetooth platform transports](diagrams/class-structure.png)
 

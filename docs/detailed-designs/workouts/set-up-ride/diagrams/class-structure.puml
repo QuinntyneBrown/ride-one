@@ -1,0 +1,123 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Set up a ride
+
+package "src/app/core" {
+  class PlanForm <<module plan-form.ts>> {
+    +DEFAULT_DRAFT: PlanDraft
+    +PRESETS: Preset[]
+    +applyPreset(draft, id): PlanDraft
+    +parseClock(text): number | null
+    +formatClock(seconds): string
+    +parseUnit(text): number | null
+    +validateDraft(draft): FieldError[]
+    +toPlan(draft): WorkoutPlan
+  }
+  class PlanDraft <<interface>> {
+    +mode: 'hiit' | 'flat'
+    +preset: PresetId | null
+    +hiit: HiitDraft
+    +flat: FlatDraft
+  }
+  class FieldError <<interface>> {
+    +field: string
+    +message: string
+    +linkText: string
+  }
+  class PlanExpansion <<module plan-expansion.ts>> {
+    +expandPlan(plan: WorkoutPlan): Segment[]
+    +planSummary(plan: WorkoutPlan): string
+    +estimateWatts(cadence, level): number
+  }
+  class RidePreviewFn <<module ride-preview.ts>> {
+    +previewOf(plan: WorkoutPlan): RidePreviewModel
+  }
+  class RidePreviewModel <<interface>> {
+    +totalSeconds: number
+    +structure: string
+    +timeUnderLoad: string | null
+    +peakLevel: number
+    +avgPower: number
+    +kcal: number
+    +profile: ProfileBar[]
+  }
+  class PlanDraftStore <<service>> {
+    +KEY = "wattzup.planDraft"
+    +load(): PlanDraft
+    +save(draft: PlanDraft): void
+  }
+  interface WorkoutApi {
+    +start(plan): Observable<StartResponse>
+  }
+}
+
+package "src/app/dashboard" {
+  class SetupPage <<component wz-setup-page>> {
+    +FormGroup<PlanDraftForm> form
+    +Signal<FieldError[]> errors
+    +Signal<RidePreviewModel | null> preview
+    +Signal<'idle' | 'submitting' | 'error'> phase
+    +start(): void
+  }
+  class ModeCards <<component wz-mode-cards>>
+  class Presets <<component wz-presets>>
+  class Chip <<component wz-chip>>
+  class NumStepper <<component wz-num-stepper>> {
+    +label: InputSignal<string>
+    +format: InputSignal<(n) => string>
+    +parse: InputSignal<(s) => number | null>
+    +error: InputSignal<string | null>
+  }
+  class LevelSlider <<component wz-level-slider>>
+  class Toggles <<component wz-toggles>>
+  class FormSummary <<component wz-form-summary>> {
+    +errors: InputSignal<FieldError[]>
+    +focus(): void
+  }
+  class RidePreview <<component wz-ride-preview>>
+  class Profile <<component wz-profile>>
+  class RideSummary <<component wz-ride-summary>>
+  class ReplaceRideDialog <<component wz-replace-ride-dialog>> {
+    +data: ReplaceRideData
+    +Signal<'idle' | 'busy' | 'failed'> phase
+    +replace(): void
+    +keep(): void
+  }
+}
+
+interface ControlValueAccessor
+
+SetupPage ..> PlanForm
+SetupPage ..> RidePreviewFn
+SetupPage --> PlanDraftStore
+SetupPage ..> WorkoutApi : WORKOUT_API
+SetupPage ..> ReplaceRideDialog : Dialog.open
+ReplaceRideDialog ..> WorkoutApi : WORKOUT_API
+RidePreviewFn ..> PlanExpansion
+RidePreviewFn ..> RidePreviewModel : returns
+PlanForm ..> PlanDraft
+PlanForm ..> FieldError
+SetupPage *-- ModeCards
+SetupPage *-- Presets
+SetupPage *-- NumStepper
+SetupPage *-- LevelSlider
+SetupPage *-- Toggles
+SetupPage *-- FormSummary
+SetupPage *-- RidePreview
+Presets *-- Chip
+RidePreview *-- Profile
+RidePreview *-- RideSummary
+ControlValueAccessor <|.. ModeCards
+ControlValueAccessor <|.. NumStepper
+ControlValueAccessor <|.. LevelSlider
+ControlValueAccessor <|.. Toggles
+@enduml

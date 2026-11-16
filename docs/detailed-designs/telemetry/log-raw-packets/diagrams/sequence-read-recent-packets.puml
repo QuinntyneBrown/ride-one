@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Read the recent packets
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "Diagnostics dialog" as dlg
+  participant "BikeApi" as api
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "DiagnosticsEndpoints" as ep
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "RecentPacketBuffer" as recent
+  participant "RawPacketFormatter" as fmt
+end box
+
+rider -> dlg : Open diagnostics
+dlg -> api : getRecentPackets()
+api -> ep : GET /api/diagnostics/packets
+ep -> recent : Snapshot()
+recent -> recent : copy slots under lock, oldest first
+alt no notifications yet
+  recent --> ep : []
+else frames received
+  loop each of the newest 60 frames
+    recent -> fmt : Format(packet)
+    fmt --> recent : "<epoch.mmm> <lowercase hex>"
+  end
+  recent --> ep : lines (no file read) [L2-057]
+end
+ep --> api : 200 {"lines":[...]}
+api --> dlg : lines
+dlg --> rider : lines rendered as text
+@enduml

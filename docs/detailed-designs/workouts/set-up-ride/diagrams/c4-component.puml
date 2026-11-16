@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Set up a ride
+
+Person(rider, "Rider", "Builds and starts a plan")
+Container_Boundary(web, "Wattzup Web") {
+  Component(page, "SetupPage", "Angular component, wz-setup-page", "Route /setup; typed form; submit flow")
+  Component(form, "Form components", "wz-mode-cards, wz-presets, wz-chip, wz-num-stepper, wz-level-slider, wz-toggles, wz-form-summary", "Edit the plan draft")
+  Component(preview, "RidePreview", "wz-ride-preview, wz-profile, wz-ride-summary", "Your ride panel and Start ride")
+  Component(dialog, "ReplaceRideDialog", "CDK Dialog, wz-replace-ride-dialog", "Confirms replacing an active ride")
+  Component(rules, "plan-form / plan-expansion / ride-preview", "TypeScript, core/", "Validation, presets, expansion, summary, preview figures")
+  Component(draft, "PlanDraftStore", "Angular service", "localStorage wattzup.planDraft")
+  Component(live, "LiveStateService", "Angular service", "Read-only state signal")
+  Component(wapi, "WorkoutApi", "Contract + WORKOUT_API token", "start(plan)")
+}
+Container(api, "Wattzup API", "ASP.NET Core", "POST /api/workout (start-and-stop-workout)")
+
+Rel(rider, form, "Edits")
+Rel(rider, preview, "Presses Start ride")
+Rel(page, form, "Binds the FormGroup")
+Rel(page, rules, "validateDraft / toPlan / previewOf / planSummary")
+Rel(page, preview, "Preview input")
+Rel(page, draft, "load / save")
+Rel(page, live, "Is a workout active?")
+Rel(page, dialog, "Dialog.open(...)")
+Rel(page, wapi, "start(plan)")
+Rel(dialog, wapi, "start(plan)")
+Rel(wapi, api, "POST /api/workout", "JSON/HTTP")
+@enduml

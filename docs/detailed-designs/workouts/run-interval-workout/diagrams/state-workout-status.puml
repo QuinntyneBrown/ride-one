@@ -4,26 +4,30 @@ skinparam shadowing false
 skinparam roundcorner 8
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
-skinparam class {
-  BorderColor #344054
-  FontColor #101828
-  BackgroundColor #F9FAFB
-}
 title Workout status — state machine
-[*] --> WaitingForBike : Start (no data yet)
-[*] --> Running : Start (bike connected)
-WaitingForBike : "waiting for bike"
-Running : "running"
-Paused : "paused: bike disconnected"
-Ended : "ended: bike shut off"
-Stopped : "stopped"
-WaitingForBike --> Running : bike connected
-Running --> Paused : bike disconnects
-Paused --> Running : reconnect within 90 s
-Paused --> Ended : disconnected > 90 s
-Running --> Stopped : Stop
-Paused --> Stopped : Stop
-WaitingForBike --> Stopped : Stop
+state "waiting for bike" as Waiting
+state "running" as Running
+state "paused" as Paused
+state "paused: bike disconnected" as Disconnected
+state "ended" as Ended
+state "ended: bike shut off" as ShutOff
+state "stopped" as Stopped
+
+[*] --> Waiting : start (bike not connected)
+[*] --> Running : start (bike connected)
+Waiting --> Running : bike connects (ride starts at 0:00)
+Running --> Disconnected : bike disconnects
+Disconnected --> Running : reconnect within 90 s
+Disconnected --> ShutOff : disconnected > 90 s
+Running --> Paused : pause
+Paused --> Running : resume (bike connected)
+Paused --> Disconnected : bike disconnects
+Running --> Ended : elapsed = total
+Waiting --> Stopped : stop
+Running --> Stopped : stop
+Paused --> Stopped : stop
+Disconnected --> Stopped : stop
 Ended --> [*]
+ShutOff --> [*]
 Stopped --> [*]
 @enduml

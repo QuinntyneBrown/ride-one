@@ -2,7 +2,7 @@
 
 ## Overview
 
-This feature describes how the Wattzup code base is organised and how it runs. It covers the .NET projects and their dependencies, the Angular application, configuration, and the host process lifecycle. Every other feature design names types inside the projects defined here.
+This feature describes how the Wattzup code base is organised and how it runs. It covers the .NET projects and their dependencies, the Angular application, configuration, bundled assets, and the host process lifecycle. Every other feature design names types inside the projects defined here.
 
 **solution** — the .NET `Wattzup.sln` and its projects
 
@@ -10,46 +10,93 @@ This feature describes how the Wattzup code base is organised and how it runs. I
 
 **single origin** — the Angular build is served by the same ASP.NET Core process and port as the API, so the browser needs no CORS
 
-The dependency rule points inward. `Wattzup.Protocol` depends on nothing. `Wattzup.Core` depends on Protocol and the BLE abstractions. Platform transports depend only on the abstractions. `Wattzup.Api` composes everything.
+**composition root** — the one place that binds contracts to implementations: `Program.cs` for the backend, `app.config.ts` for the frontend
+
+The dependency rule points inward. `Wattzup.Protocol` depends on nothing. `Wattzup.Ble.Abstractions` depends on nothing but the base library. Platform transports depend only on the abstractions. `Wattzup.Core` depends on Protocol and the abstractions. `Wattzup.Api` composes everything, and `Wattzup.Mac` bundles it as a macOS app (ADR 0007). The backend is one process on one machine next to the bike, with all state in memory (ADR 0004).
 
 ## Description
 
-.NET solution (current LTS, `Directory.Build.props` with nullable enabled and warnings as errors):
+Repository layout, as fixed in `AGENTS.md`:
 
-| Project | Kind | Contains |
+```
+wattzup/
+├── Wattzup.sln, Directory.Build.props, README.md
+├── src/
+│   ├── Wattzup.Protocol/  Wattzup.Ble.Abstractions/
+│   ├── Wattzup.Ble.CoreBluetooth/  Wattzup.Ble.BlueZ/  Wattzup.Ble.Windows/  Wattzup.Ble.Simulated/
+│   ├── Wattzup.Core/  Wattzup.Api/  Wattzup.Mac/
+├── tests/
+│   ├── Wattzup.Protocol.Tests/  Wattzup.Core.Tests/  Wattzup.Api.AcceptanceTests/
+├── wattzup-web/
+│   ├── src/app/{api,core,dashboard}/, src/app/app.config.ts
+│   ├── e2e/ (fixtures/, pages/, specs)
+│   └── proxy.conf.json
+└── docs/
+```
+
+.NET solution (`Directory.Build.props` sets the current LTS, `net10.0`, with nullable enabled and warnings as errors):
+
+| Project | Target | Contains |
 |---|---|---|
-| `Wattzup.Protocol` | class library | `EchelonUuids`, `EchelonCommands`, `EchelonDeviceFilter`, `PacketDecoder`, `TelemetryUpdate`, `SpeedCalculator` |
-| `Wattzup.Ble.Abstractions` | class library | `IBikeTransport`, `IBikeConnection`, `BikeAdvertisement`, `BluetoothUnavailableException` |
-| `Wattzup.Ble.Windows` / `.BlueZ` / `.CoreBluetooth` / `.Simulated` | class libraries | Platform transports (see `bluetooth-platform-transports`) |
-| `Wattzup.Core` | class library | `BikeState`, `BikeStateStore`, `StateBroadcaster`, `DisplayTimeTracker`, `TelemetryIngestor`, `IResistanceCommander`, `WorkoutEngine`, `WorkoutValidator`, `RawPacketLogger`, `StatusSnapshotWriter` |
-| `Wattzup.Api` | ASP.NET Core web app | `Program.cs`, hosted services, endpoint groups, security, `wwwroot` |
-| `Wattzup.Mac` | `net*-macos` app | Bundles `Wattzup.Api` with `Info.plist` (`NSBluetoothAlwaysUsageDescription`) |
-| `Wattzup.Protocol.Tests`, `Wattzup.Core.Tests`, `Wattzup.Api.AcceptanceTests` | xUnit | Unit tests; acceptance tests over `WebApplicationFactory` + `SimulatedBikeTransport` |
+| `Wattzup.Protocol` | `net10.0` | `EchelonUuids`, `EchelonCommands`, `EchelonDeviceFilter`, `PacketDecoder`, `TelemetryUpdate`, `SpeedCalculator` |
+| `Wattzup.Ble.Abstractions` | `net10.0` | `IBikeTransport`, `IBikeConnection`, `BikeAdvertisement`, `BluetoothAdapterState`, `BluetoothUnavailableException` |
+| `Wattzup.Ble.CoreBluetooth` | `net10.0-macos` | First real transport (ADR 0007, `bluetooth-platform-transports`) |
+| `Wattzup.Ble.BlueZ` | `net10.0` | BlueZ transport, built but not yet supported |
+| `Wattzup.Ble.Windows` | `net10.0-windows10.0.19041.0` | WinRT transport, built but not yet supported |
+| `Wattzup.Ble.Simulated` | `net10.0` | `SimulatedBikeTransport`, `SimulationControl` (`--simulate`) |
+| `Wattzup.Core` | `net10.0` | State store, broadcaster, display-time tracker, telemetry ingestion, power and ride-total estimates, command log, plan expansion and validation, workout engine, trace history, raw-packet and snapshot writers; types are named in their feature designs |
+| `Wattzup.Api` | `net10.0` | `Program.cs`, hosted services, endpoint groups, security, `wwwroot` |
+| `Wattzup.Mac` | `net10.0-macos` | App bundle around `Wattzup.Api` with `NSBluetoothAlwaysUsageDescription` in `Info.plist`; registers the CoreBluetooth transport |
+| `Wattzup.Protocol.Tests`, `Wattzup.Core.Tests` | `net10.0` | xUnit unit tests, one case per table row |
+| `Wattzup.Api.AcceptanceTests` | `net10.0` | ATDD through the API with `WebApplicationFactory`, `SimulatedBikeTransport` and `FakeTimeProvider` |
+
+Building `Wattzup.Mac` and `Wattzup.Ble.CoreBluetooth` needs the macOS workload. The other projects build without it, and CI builds every project but runs no transport against hardware (ADR 0007).
 
 - **`Program.cs`** — builds the host with minimal APIs (L2-042):
-  - It registers singletons (`BikeStateStore`, `StateBroadcaster`, `ActiveConnectionRegistry`, `RawPacketLogger`, `EventTokenService`).
-  - It registers hosted services (`BikeConnectionService`, `WorkoutEngine` loop, `RawPacketLogWriter`, `StatusSnapshotWriter`, `StateChangeLogger`) and the transport through `TransportSelector`.
-  - It maps the endpoint groups under `/api`, plus `/health` and `/openapi/v1.json`.
+  - It registers singletons (`BikeStateStore`, `StateBroadcaster`, `ActiveConnectionRegistry`, `RawPacketLogger`, `EventTokenService`) and `TimeProvider.System`, which tests replace with `FakeTimeProvider`.
+  - It registers hosted services (`BikeConnectionService`, the workout engine loop, `RawPacketLogWriter`, `StatusSnapshotWriter`, `StateChangeLogger`, `BindAddressGuard`) and the transport through `TransportSelector`.
+  - It maps the endpoint groups under `/api` (status, events, resistance, workout, diagnostics), plus `/health` and `/openapi/v1.json`.
+  - Each endpoint validates its input and calls one Core service. Errors are ProblemDetails with a `code` extension where a client branches on them.
 - **Thread safety** — `BikeStateStore` is the only writer of `BikeState`. It applies changes under a short lock and publishes by reference swap. Workout run state is touched only by the engine loop (L2-042).
-- **`WattzupOptions`** — bound from `appsettings.json`, then `WATTZUP__*` environment variables, then the command line (L2-042). It covers:
-  - `Urls` (default `http://127.0.0.1:8787`)
-  - `Security:ApiKey` and `Cors:Origins`
-  - `Ble:Transport`
-  - `RawPacketLog:*` and `StatusSnapshot:*`
+- **`WattzupOptions`** — bound from `appsettings.json`, then `WATTZUP__*` environment variables, then the command line (L2-042). The README documents every setting in the same change that adds it.
+
+| Setting | Default | Used by |
+|---|---|---|
+| `Wattzup:Urls` | `http://127.0.0.1:8787` | Kestrel, `BindAddressGuard` |
+| `Wattzup:Security:ApiKey` | empty | `secure-api`, `unlock-and-not-found` help text |
+| `Wattzup:Cors:Origins` | empty | `secure-api` |
+| `Wattzup:Ble:Transport` | by operating system | `bluetooth-platform-transports` |
+| `Wattzup:Bike:DisplayName` | empty | `device_label` (`discover-and-connect-bike`, `show-connection-status`) |
+| `Wattzup:RawPacketLog:*` | `raw_packets.log`, 10 MB, 5 files | `log-raw-packets` |
+| `Wattzup:StatusSnapshot:*` | `status.json` | `persist-status-snapshot` |
+| `--simulate` | off | `TransportSelector`, `simulated` |
+
 - **Graceful shutdown** — `HostOptions.ShutdownTimeout = 5 s`. On stop, in reverse start order:
-  1. `WorkoutEngine` cancels its run.
+  1. The workout engine cancels its run.
   2. `BikeConnectionService` disposes the connection, which disconnects the bike.
   3. `EventsEndpoints` loops end through `ApplicationStopping`.
   4. `StatusSnapshotWriter` performs its final write.
   This realises L2-039, recorded in `discover-and-connect-bike`.
-- **Static hosting** — `UseDefaultFiles` and `UseStaticFiles` serve `wwwroot` (the Angular `dist/browser` output, copied at publish). `MapFallbackToFile("index.html")` serves client routes, excluding `/api` (L2-044).
+- **Static hosting** — `UseDefaultFiles` and `UseStaticFiles` serve `wwwroot`, the Angular `dist/wattzup-web/browser` output copied at publish. `MapFallbackToFile("index.html")` serves client routes and excludes `/api`, `/health` and `/openapi` (L2-044). An unknown `/api/*` path answers a 404 ProblemDetails, while an unknown client route loads the app, which shows the not-found page (L2-056). `index.html` is served with the per-response CSP style nonce described in `secure-api`.
 
 Angular application `wattzup-web` (L2-044):
 
-- Current Angular version, standalone components only, `ChangeDetectionStrategy.OnPush` everywhere, signals for state, and zoneless change detection where supported.
-- `src/app/core/` holds `LiveStateService`, `BikeApi`, `CueService`, `MetricHistory`, `WorkoutDraftStore`, `MotionPreference` and `ThemeService`. `src/app/dashboard/` holds the components. `src/app/api/` holds types generated from `/openapi/v1.json` by `openapi-typescript`. CI regenerates them and fails on a diff.
+- Current Angular version, standalone components only, `ChangeDetectionStrategy.OnPush` everywhere, signals for state, and zoneless change detection (`provideZonelessChangeDetection`).
+- Each component is `name.ts` + `name.html` + `name.scss` with `templateUrl` and `styleUrl`, selector `wz-<name>`, in its own folder under `src/app/dashboard/`. Each stylesheet is one encapsulated BEM block named as in the mocks.
+- **`app.config.ts`** — composition root.
+  - It provides the router with the routes `/` (`RidePage`), `/setup` (workouts), `/unlock` (`UnlockPage`) and `**` (`NotFoundPage`).
+  - It provides `HttpClient` with `withInterceptors([apiKeyInterceptor])`, the `BIKE_API` token bound to `HttpBikeApi`, and `TRACE_RENDERER_FACTORY` bound to `createTraceRenderer`.
+- `src/app/core/` holds the services and pure helpers with their unit tests:
+  - live state and API: `LiveStateService`, `BikeApi` with its `BIKE_API` token, `HttpBikeApi`, `ApiKeyStore`, `apiKeyInterceptor`, `safeReturnUrl`;
+  - dialogs and notifications: `DialogLauncher`, `ConnectionBannerService`, `ToastService`, `toastQueue`, `diagnosticsReport`;
+  - dashboard helpers: `connectionStatus`, `rideViewState`, `powerDelta`, `metricFormat`, `estimateWatts`;
+  - the trace: `FrameScheduler`, `MotionPreference`, `TraceRenderer`, `createTraceRenderer`, `TraceRendererStatus`, `traceGeometry`, `PowerTraceStore`;
+  - the workout helpers named in the workouts designs.
+- `src/app/api/` holds types generated from `/openapi/v1.json` by `openapi-typescript`. It is never hand-edited. CI regenerates it and fails on a diff.
 - `proxy.conf.json` forwards `/api` to `127.0.0.1:8787` during `ng serve`.
-- `angular.json` budgets set `initial` to an error at 300 KB (gzipped size measured in CI with `gzip -9`), and shader source is lazy-loaded with the ring renderer.
+- **Fonts** (ADR 0005) — Inter, Archivo and JetBrains Mono ship as Latin-subset WOFF2 variable fonts under `wattzup-web/public/fonts/`, with their SIL Open Font License 1.1 files beside them. The global foundations declare them with `@font-face` and `font-display: swap`. No font is loaded from a CDN, which the `font-src 'self'` policy enforces.
+- **Budgets** — `angular.json` sets the `initial` budget to an error at 300 KB, and CI measures the gzipped size with `gzip -9` (L2-044). Fonts count against the build size but not the JavaScript budget.
+- **Global styles** — foundations only: tokens from `docs/design-system/tokens/`, `@font-face`, reset and utilities. Components read tokens by role, never by hex value.
 
 ## Requirements
 
@@ -68,19 +115,19 @@ The rider opens Wattzup in a browser on the same machine that talks to the bike.
 
 ### Containers
 
-One process serves both Wattzup Web and the Wattzup API from a single origin, and writes local files.
+One process serves both Wattzup Web and the Wattzup API from a single origin, and writes local files. On macOS the process runs inside the `Wattzup.Mac` app bundle.
 
 ![C4 container view for the host and solution structure](diagrams/c4-container.png)
 
 ### Components
 
-The projects form an inward-pointing dependency graph with `Wattzup.Api` at the edge.
+The projects form an inward-pointing dependency graph with `Wattzup.Api` at the edge and `Wattzup.Mac` around it.
 
 ![C4 component view of the solution projects](diagrams/c4-component.png)
 
 ### Class structure
 
-`Program` composes options, singletons and hosted services. Each hosted service is a separate class with its own lifecycle.
+`Program` composes options, singletons and hosted services. Each hosted service is a separate class with its own lifecycle. `app.config.ts` does the same for the frontend.
 
 ![Class diagram for the host composition](diagrams/class-structure.png)
 

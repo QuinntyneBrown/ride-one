@@ -7,21 +7,24 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
-  participant "VisibilityPause" as vis
-  participant "RingCanvas" as ring
-  participant "HeroClock" as clock
-  participant "MetricHistory" as hist
+  participant "FrameScheduler" as frames
+  participant "RideTrace" as trace
+  participant "PowerTraceStore" as pts
+  participant "LiveStateService" as live
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "EventsEndpoints" as ep
 end box
 
-rider -> vis : switch to another tab (visibilitychange)
-vis -> ring : hidden = true
-ring -> ring : cancelAnimationFrame [L2-038]
-vis -> clock : hidden = true
-clock -> clock : cancelAnimationFrame [L2-038]
-hist -> hist : keeps 1 s sampling
-rider -> vis : return to tab
-vis -> ring : hidden = false
-ring -> ring : requestAnimationFrame
-vis -> clock : hidden = false
-clock -> clock : re-derive digits from CountdownModel anchor
+rider -> frames : switch to another tab (visibilitychange, hidden)
+frames -> frames : cancelAnimationFrame; request no frames [L2-038]
+ep -> live : data: state (each second)
+live -> pts : append(elapsed_seconds, power)
+trace -> frames : request(draw)
+frames -> frames : queued, not scheduled while hidden
+rider -> frames : return to tab (visible)
+frames -> frames : requestAnimationFrame
+frames -> trace : draw() once for this frame [L2-028]
+trace -> pts : read all samples since 0:00
+trace --> rider : whole ride drawn up to the playhead
 @enduml

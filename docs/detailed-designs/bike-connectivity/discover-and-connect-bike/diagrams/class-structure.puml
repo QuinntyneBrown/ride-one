@@ -15,10 +15,21 @@ class BikeConnectionService {
   -IBikeTransport transport
   -BikeStateStore store
   -ConnectivityOptions options
+  -TimeProvider time
   -ILogger logger
   #ExecuteAsync(ct: CancellationToken): Task
   -ScanAsync(ct): Task<BikeAdvertisement?>
   -InitialiseAsync(conn: IBikeConnection, ct): Task
+}
+
+class BikeOptions {
+  +string? DisplayName
+}
+
+enum BluetoothAdapterState {
+  Unknown
+  On
+  Off
 }
 
 class ConnectivityOptions {
@@ -28,6 +39,9 @@ class ConnectivityOptions {
 }
 
 interface IBikeTransport {
+  +string Name
+  +BluetoothAdapterState AdapterState
+  +event AdapterStateChanged
   +ScanAsync(filter: Func<BikeAdvertisement,bool>, timeout: TimeSpan, ct): Task<BikeAdvertisement?>
   +ConnectAsync(ad: BikeAdvertisement, ct): Task<IBikeConnection>
 }
@@ -66,6 +80,7 @@ class EchelonCommands <<static>> {
 
 class BikeStateStore {
   +BikeState Current
+  -BikeOptions bike
   +event StateChanged
   +Update(change: Func<BikeState,BikeState>): void
 }
@@ -91,4 +106,7 @@ IBikeTransport ..> BikeAdvertisement : returns
 IBikeTransport ..> BluetoothUnavailableException : throws
 EchelonDeviceFilter ..> EchelonUuids : reads Service
 BikeStateStore --> BleStatus : state.ble
+BikeStateStore --> BluetoothAdapterState : state.adapter
+BikeStateStore --> BikeOptions : device_label
+IBikeTransport --> BluetoothAdapterState
 @enduml

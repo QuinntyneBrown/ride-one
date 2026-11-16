@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Serve the power trace
+
+package "Wattzup.Core" {
+  class PowerSample <<record struct>> {
+    +int RideSeconds
+    +int Power
+  }
+  class PowerTraceHistory {
+    +const int Capacity = 10800
+    -PowerSample[] ring
+    -int next
+    -int count
+    -Lock gate
+    +Reset(): void
+    +Append(rideSeconds: int, power: int): void
+    +Snapshot(): PowerSample[]
+  }
+  class WorkoutEngine {
+    -PowerTraceHistory trace
+    -Tick(now): void
+  }
+}
+
+package "Wattzup.Api" {
+  class WorkoutTraceEndpoint <<static>> {
+    +MapTrace(group: RouteGroupBuilder): void
+    -Handle(trace: PowerTraceHistory): IResult
+  }
+}
+
+package "wattzup-web" {
+  interface BikeApi <<token BIKE_API>> {
+    +getTrace(): Promise<PowerTrace>
+  }
+  class PowerTrace <<generated>> {
+    +samples: [number, number][]
+  }
+}
+
+PowerTraceHistory "1" *-- "0..10800" PowerSample
+WorkoutEngine --> PowerTraceHistory : writes
+WorkoutTraceEndpoint --> PowerTraceHistory : reads
+BikeApi ..> WorkoutTraceEndpoint : HTTP
+BikeApi ..> PowerTrace : returns
+@enduml

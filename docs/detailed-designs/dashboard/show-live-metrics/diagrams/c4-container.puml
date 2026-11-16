@@ -5,14 +5,14 @@ title Containers — Show live metrics
 
 Person(rider, "Rider", "Rides the bike and watches the dashboard")
 System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular SPA", "Dashboard, countdown and controls in the browser")
-  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
+  Container(web, "Wattzup Web", "Angular SPA", "Readouts, totals strip and the power vs. plan trace")
+  Container(api, "Wattzup API", "ASP.NET Core (net10.0)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
 }
-System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
+System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
 System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
 
-Rel(rider, web, "Uses", "HTTPS / localhost")
-Rel(web, api, "Calls REST and subscribes to SSE", "JSON/HTTP")
+Rel(rider, web, "Uses", "HTTP / localhost")
+Rel(web, api, "Calls REST and subscribes to SSE", "JSON/HTTP, same origin")
 Rel(api, os, "Scans, connects, subscribes and writes", "IBikeTransport")
 Rel(os, bike, "Notifications and commands", "BLE GATT")
 @enduml

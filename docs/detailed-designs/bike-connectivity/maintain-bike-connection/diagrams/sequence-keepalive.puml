@@ -17,7 +17,7 @@ box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
 end box
 participant "Echelon bike" as bike
 
-loop every 1 s while conn.IsConnected [L2-003]
+loop every 1 s (PeriodicTimer over TimeProvider) while conn.IsConnected [L2-003]
   svc -> conn : WriteAsync(WriteCharacteristic, F0 A0 01 01 92, withResponse: true)
   conn -> bike : write request
   bike --> conn : write response

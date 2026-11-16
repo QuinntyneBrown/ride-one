@@ -4,20 +4,26 @@ LAYOUT_WITH_LEGEND()
 title Components — Solution projects
 
 Container_Boundary(proc, "Wattzup process") {
+  Component(mac, "Wattzup.Mac", "net10.0-macos app", "Bundle host on macOS (ADR 0007)")
   Component(api, "Wattzup.Api", "ASP.NET Core", "Program, hosted services, endpoints, security, wwwroot")
-  Component(core, "Wattzup.Core", "Class library", "State, broadcaster, workout engine, writers")
+  Component(core, "Wattzup.Core", "Class library", "State, broadcaster, estimates, workout engine, writers")
   Component(proto, "Wattzup.Protocol", "Class library", "Commands, decoder, filters; no dependencies")
-  Component(abs, "Wattzup.Ble.Abstractions", "Class library", "IBikeTransport, IBikeConnection")
-  Component(plat, "Wattzup.Ble.*", "Class libraries", "Windows, BlueZ, CoreBluetooth, Simulated")
-  Component(spa, "wattzup-web (wwwroot)", "Angular build", "Static SPA assets")
-  Component(mac, "Wattzup.Mac", "net-macos app", "Bundle host on macOS")
+  Component(abs, "Wattzup.Ble.Abstractions", "Class library", "IBikeTransport, IBikeConnection, BluetoothAdapterState")
+  Component(cb, "Wattzup.Ble.CoreBluetooth", "net10.0-macos", "First real transport")
+  Component(plat, "Wattzup.Ble.BlueZ / .Windows", "Class libraries", "Built, not yet supported")
+  Component(sim, "Wattzup.Ble.Simulated", "Class library", "~--simulate and every automated test")
+  Component(spa, "wattzup-web (wwwroot)", "Angular build", "Static SPA assets and fonts")
 }
 
+Rel(mac, api, "Hosts")
+Rel(mac, cb, "Registers")
 Rel(api, core, "References")
+Rel(api, sim, "References (via TransportSelector)")
 Rel(api, plat, "References (via TransportSelector)")
 Rel(api, spa, "Serves")
 Rel(core, proto, "References")
 Rel(core, abs, "References")
+Rel(cb, abs, "Implements")
 Rel(plat, abs, "Implements")
-Rel(mac, api, "Hosts")
+Rel(sim, abs, "Implements")
 @enduml

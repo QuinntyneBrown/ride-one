@@ -2,33 +2,58 @@
 
 ## Overview
 
-Riders open the dashboard on whatever screen is nearest: a phone clipped to the handlebars, a tablet on a stand, or a laptop or TV across the room. Some ride with a keyboard or a screen reader, and some have asked their system to reduce motion. This feature defines the dashboard's page layout across 5 viewport classes and the accessibility behaviour that applies to every component on it, targeting WCAG 2.2 AA.
+Riders open Wattzup on whatever screen is nearest: a phone clipped to the handlebars, a tablet on a stand, or a laptop or TV across the room. Some ride with a keyboard or a screen reader, and some have asked their system to reduce motion. This feature defines the page layout of the ride dashboard and the setup screen across the design's breakpoints, and the accessibility behaviour that applies to every component, targeting WCAG 2.2 AA.
 
-**viewport class** — width band: XS (< 576 px), SM (576–767 px), MD (768–991 px), LG (992–1199 px) and XL (≥ 1200 px)
+**breakpoint** — viewport width at which the layout changes: 40 rem (640 px), 48 rem (768 px) and 64 rem (1024 px), from the mocks' `ui.css` (L2-040)
 
-**live region** — element marked `aria-live` whose text changes are read aloud by screen readers without moving focus
+**ride layout** — the ride dashboard's grid of `ride-main` (readouts, interval card, trace, totals strip) and `ride-aside` (the resistance panel and the `Sent to bike` log)
+
+**live region** — element whose text changes are read aloud by screen readers without moving focus
 
 **reduced motion** — the user preference `prefers-reduced-motion: reduce`
 
-The prototype already used fluid sizing (`clamp()`, `min(92vw, 520px)`) and a single reduced-motion rule. This design keeps those values and makes the breakpoints, touch targets, focus order and announcements explicit.
+The breakpoints replace the generic XS to XL widths of the old design. The layout follows `docs/mocks/pages/ride/*.html` and `docs/mocks/pages/setup/*.html`, and the tokens come from `docs/design-system/tokens/`.
 
 ## Description
 
-- **`DashboardPage`** — root routed component. Its template order is header (`ConnectionPill`, `SoundToggle`), hero (`HeroClock` over `RingCanvas`), `StepTimeline`, metric grid (`ResistanceCard`, `SpeedCard`), `WorkoutPanel`, then `DiagnosticsFooter`. DOM order equals visual order, so Tab order follows the layout (L2-041).
-- **Layout tokens** (`styles/_layout.scss`):
-  - The content column is `max-width: 900px`, centred, with a 16 px side gutter.
-  - The hero is `width: min(92vw, 520px)` with `aspect-ratio: 1`.
-  - Clock digits use `font-size: clamp(64px, 19vw, 124px)`.
-  - `overflow-x: clip` on the root prevents horizontal scroll (L2-040).
-- **Metric grid** — CSS grid with 1 column below 768 px and `repeat(2, 1fr)` at 768 px and above. The header uses `flex-wrap: wrap` with a gap, so the pills drop under the title at XS rather than overlapping (L2-040).
-- **Touch targets** — every button and input has `min-height: 44px` and `min-width: 44px` (L2-040).
-- **`ResizeObserver`** in `RingCanvas` and `Sparkline` — resizes the canvases on orientation change or layout change without a reload (L2-040).
-- **`LiveAnnouncer`** (Angular CDK) — `TransitionBanner` calls `announce('Effort, resistance 24, 30 seconds', 'polite')` at each step transition. The per-second clock carries `role="timer"` and `aria-live="off"`, so it is never read out each second (L2-041).
-- **Accessible names** — −/+ carry `aria-label="Decrease resistance"` / `"Increase resistance"`, the input is labelled `Resistance level`, and `RingCanvas` carries `aria-hidden="true"`.
-- **Focus styles** — a `:focus-visible` outline of 2 px in `--fg` with a 2 px offset on every interactive element.
-- **`MotionPreference`** — service exposing `reduced` as a signal from `matchMedia('(prefers-reduced-motion: reduce)')`, updated on change. Components read it to skip the digit pulse, the banner animation and colour easing. The ring renders a static frame (L2-041).
-- **Colour contrast** — `--fg #eef2f6` on `--card #151a22`, and `--muted #8a94a3` on `--bg #0b0e13`. Both pairs are checked against 4.5:1 by an automated contrast test. Any failing pair is adjusted. Exact adjusted values: `<TO SUPPLY>` after the check runs (L2-041).
-- **Automated checks** — Playwright runs the dashboard at 375, 600, 800, 1024 and 1440 px widths, asserts the column count and the absence of horizontal scroll, and runs `@axe-core/playwright` with no serious or critical violations allowed (L2-040, L2-041).
+Layout (L2-040). Each layout block lives in the stylesheet of the component that renders it, with `min-width` media queries in rem:
+
+| Viewport | Ride dashboard | Setup screen |
+|---|---|---|
+| below 40 rem | One column, `ride-aside` below `ride-main`. `app-bar__end` takes a full row, the Pause, End and beeps labels become visually hidden, and the buttons become 44 px icon buttons. The power numeral uses `--font-size-numeral-hero`. | One column, ride preview below the form |
+| 40–47.99 rem | Readouts sit two across. The power numeral grows to `--font-size-numeral-hero-lg`, and the countdown numerals scale with the viewport. `app-bar__divider` shows. | Field grids of 2 and 3 columns |
+| 48–63.99 rem | The `metrics` strip shows all 5 metrics in one row | As above |
+| 64 rem and wider | `ride-layout` places the 340 px `ride-aside` (`--layout-ride-aside`) beside `ride-main`, each scrolling on its own inside a `100dvh` app | The 420 px `setup-aside` (`--layout-setup-aside`) sits beside the form |
+
+- **`RidePage`** (`wz-ride-page`) — renders the skip link, `AppBar`, the connection banners and the `ride-layout` grid. Its stylesheet holds the mocks' layout blocks `app`, `ride-layout`, `ride-main`, `ride-aside` and `readouts`. DOM order equals visual order, so Tab order follows the layout (L2-041).
+- **`AppBar`** (`wz-app-bar`, block `app-bar`) — holds, in DOM order:
+  - the `lockup`, `app-bar__divider` and `StatusLine`;
+  - the workout button, labelled with `summary` or `Set up a ride`;
+  - in `app-bar__end`: the ride clock, Pause or Resume, End, the beeps toggle and Diagnostics.
+  The bar uses `flex-wrap: wrap`, so items wrap without overlapping. Nothing scrolls horizontally at 320 px, because every block uses `minmax(0, 1fr)` columns and `min-width: 0`, and long names truncate with an ellipsis.
+- **Touch targets** — every control is at least 44 × 44 px through the `--target-min` token: buttons, picker levels, close buttons, toast actions and links styled as buttons (L2-040).
+- **Re-sizing** — `RideTrace` observes its plot with `ResizeObserver`, so an orientation change reflows the grid and re-sizes the canvas without a reload (L2-040, `show-live-metrics`).
+
+Accessibility (L2-041):
+
+- **Skip link** — `Skip to content` is the first focusable element and targets `#main` (`ride-main`).
+- **Focus order and visibility** — Tab reaches the workout button, Pause or Resume, End, the beeps toggle, Diagnostics, Lower, the level picker, Raise and Back to plan, in that order. Every interactive element shows a `:focus-visible` outline in `--color-focus-ring`. On `/setup`, every field is reachable in form order.
+- **Names** — the stepper buttons are named `Lower resistance` and `Raise resistance`, and each picker level is named `Level <n>` (`resistance-control`). The beeps toggle exposes `aria-pressed` (`workouts/play-workout-cues`). The workout button's accessible name is `Edit workout: <summary>`. The trace canvas carries `aria-hidden="true"` and has a text summary (`show-live-metrics`).
+- **Announcements** — a segment change is announced through the CDK `LiveAnnouncer` with `polite` politeness, for example `Work, resistance 18, 40 seconds`. The workouts feature makes the call. The countdown carries `role="timer"` and `aria-live="off"`, so it is never read out each second.
+- **States beyond colour** — every state carried by colour also has text or an attribute: the status line's state label, the delta text, `aria-pressed` on the level picker and the beeps toggle, `aria-current`, `aria-invalid` and `disabled`. Components style those states through the attribute.
+- **`MotionPreference`** — root service exposing `reduced` as a signal from `matchMedia('(prefers-reduced-motion: reduce)')`, updated on change. Under reduced motion the digit pulse, the phase-banner animation and the scanning animation are off, and colours change without transition. The global foundations carry the mocks' reduced-motion rule as a backstop (L2-041).
+- **Themes and contrast** — the app follows `prefers-color-scheme` between the dark and light token sets. The token pairs in `docs/design-system/tokens/contrast-pairs.json` meet 4.5:1 for text and 3:1 for large text and UI components in both themes, including the faint text the mocks lifted to `#80868f` (L2-041).
+- **Dialogs** — every dialog is a CDK Dialog, which traps focus, closes with Escape and returns focus to the control that opened it (`dialogs-and-notifications`).
+
+Tests:
+
+- Playwright behaviour specs, through the `RidePage` and `SetupPage` page objects with stubbed `/api/**` and a stubbed event stream, cover:
+  - the Tab order through the app bar and the resistance panel;
+  - the skip link;
+  - the accessible names;
+  - the `polite` announcement on a segment change;
+  - focus return from each dialog.
+- The responsive sweep (320, 600, 800, 1024 and 1440 px, asserting the column count and no horizontal scroll) and the `@axe-core/playwright` scan of each screen are written and kept current. They run only when a person asks, as do visual baselines (L2-040, L2-041).
 
 ## Requirements
 
@@ -41,30 +66,30 @@ The prototype already used fluid sizing (`clamp()`, `min(92vw, 520px)`) and a si
 
 ### System context
 
-The rider uses Wattzup from any device with a browser.
+The rider uses Wattzup from any device with a browser, by touch, mouse or keyboard, with or without a screen reader.
 
 ![C4 system context for the responsive and accessible layout](diagrams/c4-context.png)
 
 ### Containers
 
-Layout and accessibility are properties of Wattzup Web; the Wattzup API only supplies data.
+Layout and accessibility are properties of Wattzup Web. The Wattzup API only supplies data.
 
 ![C4 container view for the responsive and accessible layout](diagrams/c4-container.png)
 
 ### Components
 
-`DashboardPage` arranges the feature components. `MotionPreference` and `LiveAnnouncer` provide cross-cutting accessibility services.
+`RidePage` arranges the feature components in DOM order. `MotionPreference` and `LiveAnnouncer` provide cross-cutting accessibility services.
 
 ![C4 component view for the responsive and accessible layout](diagrams/c4-component.png)
 
 ### Class structure
 
-The page composes every dashboard component. Accessibility services are injected where needed.
+The page composes the app bar, banners, main area and aside. Each child is a separate component with its own BEM block.
 
 ![Class diagram for the responsive and accessible layout](diagrams/class-structure.png)
 
-### Behaviour — viewport change and step announcement
+### Behaviour — rotation and segment announcement
 
-A rotation from portrait phone to landscape reflows the grid and resizes the canvases. A step transition is announced politely, without reading the clock each second (L2-040, L2-041).
+A rotation from a portrait phone to landscape crosses the 40 rem breakpoint, reflows the readouts and re-sizes the trace canvas. A segment change is announced politely, without reading the countdown each second (L2-040, L2-041).
 
-![Sequence diagram for viewport change and announcement](diagrams/sequence-reflow-and-announce.png)
+![Sequence diagram for a rotation and a segment announcement](diagrams/sequence-reflow-and-announce.png)

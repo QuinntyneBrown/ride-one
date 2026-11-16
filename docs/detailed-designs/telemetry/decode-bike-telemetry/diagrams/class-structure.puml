@@ -11,49 +11,55 @@ skinparam class {
 }
 title Class structure — Decode bike telemetry
 
-class PacketDecoder <<static>> {
-  +const byte Marker = 0xF0
-  +const byte ResistanceType = 0xD2
-  +const byte WorkoutType = 0xD1
-  +Decode(frame: ReadOnlySpan<byte>): TelemetryUpdate?
+package "Wattzup.Protocol" {
+  class PacketDecoder <<static>> {
+    +const byte Marker = 0xF0
+    +const byte ResistanceType = 0xD2
+    +const byte WorkoutType = 0xD1
+    +Decode(frame: ReadOnlySpan<byte>): TelemetryUpdate?
+  }
+
+  abstract class TelemetryUpdate <<record>>
+  class ResistanceUpdate <<record>> {
+    +int Level
+  }
+  class CadenceUpdate <<record>> {
+    +int Rpm
+    +double SpeedKmh
+    +double SpeedMph
+  }
+
+  class SpeedCalculator <<static>> {
+    +const double KmhPerRpm = 0.37497622
+    +const double KmPerMile = 1.609344
+    +ToKmh(rpm: int): double
+    +ToMph(rpm: int): double
+  }
 }
 
-abstract class TelemetryUpdate <<record>>
-class ResistanceUpdate <<record>> {
-  +int Level
-}
-class CadenceUpdate <<record>> {
-  +int Rpm
-  +double SpeedKmh
-  +double SpeedMph
-}
+package "Wattzup.Core" {
+  class TelemetryIngestor {
+    -BikeStateStore store
+    -RawPacketLogger rawLog
+    -RecentPacketBuffer recent
+    -TimeProvider time
+    +OnNotify(frame: ReadOnlyMemory<byte>): void
+  }
 
-class SpeedCalculator <<static>> {
-  +const double KmhPerRpm = 0.37497622
-  +const double KmPerMile = 1.609344
-  +ToKmh(rpm: int): double
-  +ToMph(rpm: int): double
-}
+  class BikeState <<record>> {
+    +int? Resistance
+    +int? Cadence
+    +double? SpeedKmh
+    +double? SpeedMph
+    +int? Power
+    +long Packets
+    +double? FirstDataAt
+    +double? LastDataAt
+  }
 
-class TelemetryIngestor {
-  -BikeStateStore store
-  -RawPacketLogger rawLog
-  -IClock clock
-  +OnNotify(frame: ReadOnlyMemory<byte>): void
-}
-
-interface IClock {
-  +double NowEpochSeconds
-}
-
-class BikeState <<record>> {
-  +int? Resistance
-  +int? Cadence
-  +double? SpeedKmh
-  +double? SpeedMph
-  +long Packets
-  +double? FirstDataAt
-  +double? LastDataAt
+  class PowerEstimator <<static>> {
+    +EstimateWatts(cadence: int?, level: int?): int?
+  }
 }
 
 TelemetryUpdate <|-- ResistanceUpdate
@@ -61,6 +67,6 @@ TelemetryUpdate <|-- CadenceUpdate
 PacketDecoder ..> TelemetryUpdate : returns
 PacketDecoder ..> SpeedCalculator : uses
 TelemetryIngestor ..> PacketDecoder : uses
-TelemetryIngestor --> IClock
+TelemetryIngestor ..> PowerEstimator : uses
 TelemetryIngestor ..> BikeState : updates via BikeStateStore
 @enduml

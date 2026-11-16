@@ -22,6 +22,7 @@ participant "Echelon bike" as bike
 loop until a device is found
   svc -> store : Update(ble = scanning, error = null) [L2-001]
   svc -> transport : ScanAsync(IsEchelon, 20 s)
+  svc -> store : Update(adapter = on) once the scan starts
   transport -> filter : IsEchelon(advertisement) per device
   filter --> transport : name starts with ECH or service UUID present
   alt no match within 20 s
@@ -32,6 +33,7 @@ loop until a device is found
   end
 end
 svc -> store : Update(ble = connecting, device = DisplayName) [L2-002]
+store -> store : StateDerivations: device_label = Bike:DisplayName ?? device
 svc -> transport : ConnectAsync(advertisement)
 transport -> bike : GATT connect
 bike --> transport : connected

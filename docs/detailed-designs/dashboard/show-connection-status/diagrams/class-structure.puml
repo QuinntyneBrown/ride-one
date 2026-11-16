@@ -14,26 +14,73 @@ title Class structure — Show connection status
 class LiveStateService <<service>> {
   +Signal<BikeState | null> state
   +Signal<'connecting' | 'open' | 'offline'> connection
+  +Signal<Date | null> lastStateAt
+  +Signal<boolean> loadFailed
   +RECONNECT_DELAY_MS = 2000
+  +retryNow(): void
+  +reload(): void
   -connect(): void
 }
-class ConnectionPill <<component>> {
-  +Signal<string> text
-  +Signal<'ok' | 'err' | 'warn'> dot
+class ConnectionStatus <<value>> {
+  +string name
+  +string label
+  +'bluetooth' | 'bluetooth-off' | 'wifi-off' icon
+  +'ok' | 'wait' | 'bad' tone
+  +boolean scanning
 }
-class DiagnosticsFooter <<component>> {
-  +Signal<string> errorText
-  +Signal<number> packets
-  +Signal<number> liveSeconds
-  +Signal<string> updated
+class connectionStatus <<pure helper>> {
+  +connectionStatus(state, connection, loadFailed): ConnectionStatus
 }
-class UiErrorStore <<service>> {
-  +Signal<string | null> latest
-  +set(msg: string): void
-  +clear(): void
+class RideViewState <<value>> {
+  +'loading' | 'load-failed' | 'ride' view
+  +'scanning' | 'adapter-off' | 'bike-lost' | 'bike-shut-off' | null overlay
+  +boolean dimmed
+  +boolean commandsEnabled
+  +boolean pauseEnabled
+  +boolean endEnabled
+  +string | null controlsNote
+}
+class rideViewState <<pure helper>> {
+  +rideViewState(state, connection, loadFailed): RideViewState
+}
+class Banner <<value>> {
+  +'offline' | 'adapter-off' | 'reconnected' | 'simulated' | 'exposed' id
+  +'warning' | 'danger' | 'success' | 'info' tone
+  +string title
+  +string text
+  +string | null action
+  +boolean dismissible
+}
+class ConnectionBannerService <<service>> {
+  +Signal<Banner[]> banners
+  +dismiss(id): void
+  -RECONNECTED_MS = 4000
+  -STORAGE_KEY = "wattzup.banners.dismissed"
+}
+class StatusLine <<component wz-status-line>> {
+  +Signal<ConnectionStatus> status
+}
+class ConnectionBanner <<component wz-connection-banner>>
+class RideOverlay <<component wz-ride-overlay>> {
+  +input overlay
+}
+class RidePage <<component wz-ride-page>> {
+  +Signal<RideViewState> view
+}
+class MotionPreference <<service>> {
+  +Signal<boolean> reduced
 }
 
-ConnectionPill --> LiveStateService
-DiagnosticsFooter --> LiveStateService
-DiagnosticsFooter --> UiErrorStore
+StatusLine ..> connectionStatus
+StatusLine ..> LiveStateService
+StatusLine ..> MotionPreference
+RidePage ..> rideViewState
+RidePage ..> LiveStateService
+RidePage *-- RideOverlay
+RidePage *-- ConnectionBanner
+ConnectionBanner --> ConnectionBannerService
+ConnectionBannerService --> LiveStateService
+ConnectionBannerService "1" o-- "*" Banner
+connectionStatus ..> ConnectionStatus : returns
+rideViewState ..> RideViewState : returns
 @enduml

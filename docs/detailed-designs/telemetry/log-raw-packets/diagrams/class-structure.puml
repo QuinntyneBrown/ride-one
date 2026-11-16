@@ -13,7 +13,7 @@ title Class structure — Log raw packets
 
 class RawPacketLogger {
   -Channel<RawPacket> channel
-  +Enqueue(epochSeconds: double, frame: ReadOnlySpan<byte>): void
+  +Enqueue(packet: RawPacket): void
   +ChannelReader<RawPacket> Reader
 }
 class RawPacket <<record struct>> {
@@ -23,6 +23,7 @@ class RawPacket <<record struct>> {
 class RawPacketLogWriter {
   -RawPacketLogger source
   -RollingFile file
+  -TimeProvider time
   #ExecuteAsync(ct): Task
 }
 class RawPacketFormatter <<static>> {
@@ -42,10 +43,25 @@ class RawPacketLogOptions {
   +int RetainedFiles = 5
   +bool Enabled = true
 }
+class RecentPacketBuffer {
+  +const int Capacity = 60
+  -RawPacket[] slots
+  -int next
+  -int count
+  -Lock gate
+  +Add(packet: RawPacket): void
+  +Snapshot(): IReadOnlyList<string>
+}
+class DiagnosticsEndpoints <<static>> {
+  +MapDiagnostics(app: IEndpointRouteBuilder): void
+}
 
 RawPacketLogger *-- "0..10000" RawPacket : buffers
+RecentPacketBuffer *-- "0..60" RawPacket : keeps newest
 RawPacketLogWriter --> RawPacketLogger : drains
 RawPacketLogWriter --> RollingFile : appends
 RawPacketLogWriter ..> RawPacketFormatter
+RecentPacketBuffer ..> RawPacketFormatter
 RollingFile ..> RawPacketLogOptions : configured by
+DiagnosticsEndpoints --> RecentPacketBuffer
 @enduml

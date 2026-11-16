@@ -11,36 +11,43 @@ skinparam class {
 }
 title Class structure — Responsive and accessible layout
 
-class DashboardPage <<component>>
-class ConnectionPill <<component>>
-class SoundToggle <<component>>
-class HeroClock <<component>>
-class RingCanvas <<component>>
-class StepTimeline <<component>>
-class ResistanceCard <<component>>
-class SpeedCard <<component>>
-class WorkoutPanel <<component>>
-class DiagnosticsFooter <<component>>
-class TransitionBanner <<component>>
+class RidePage <<component wz-ride-page>> {
+  blocks: app, ride-layout, ride-main, ride-aside, readouts
+}
+class AppBar <<component wz-app-bar>> {
+  block: app-bar
+}
+class StatusLine <<component wz-status-line>>
+class ConnectionBanner <<component wz-connection-banner>>
+class RideOverlay <<component wz-ride-overlay>>
+class Readout <<component wz-readout>>
+class IntervalCard <<component, workouts>>
+class RideTrace <<component wz-ride-trace>>
+class MetricsStrip <<component wz-metrics-strip>>
+class ResistancePanel <<component, resistance-control>>
+class CommandLog <<component, resistance-control>>
 class MotionPreference <<service>> {
   +Signal<boolean> reduced
 }
 class LiveAnnouncer <<CDK service>> {
   +announce(msg: string, politeness): Promise<void>
 }
+class Dialog <<CDK service>> {
+  +open(component, config): DialogRef
+}
 
-DashboardPage *-- ConnectionPill
-DashboardPage *-- SoundToggle
-DashboardPage *-- HeroClock
-DashboardPage *-- RingCanvas
-DashboardPage *-- StepTimeline
-DashboardPage *-- ResistanceCard
-DashboardPage *-- SpeedCard
-DashboardPage *-- WorkoutPanel
-DashboardPage *-- DiagnosticsFooter
-DashboardPage *-- TransitionBanner
-HeroClock ..> MotionPreference
-RingCanvas ..> MotionPreference
-TransitionBanner ..> MotionPreference
-TransitionBanner ..> LiveAnnouncer
+RidePage *-- AppBar
+RidePage *-- ConnectionBanner
+RidePage *-- "2" Readout
+RidePage *-- IntervalCard
+RidePage *-- RideTrace
+RidePage *-- MetricsStrip
+RidePage *-- RideOverlay
+RidePage *-- ResistancePanel
+RidePage *-- CommandLog
+AppBar *-- StatusLine
+AppBar ..> Dialog : opens dialogs
+StatusLine ..> MotionPreference
+IntervalCard ..> MotionPreference
+IntervalCard ..> LiveAnnouncer
 @enduml

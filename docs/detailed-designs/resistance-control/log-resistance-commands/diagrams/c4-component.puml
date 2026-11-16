@@ -1,0 +1,38 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Log resistance commands
+
+Person(rider, "Rider", "Watches the dashboard")
+Container_Boundary(web, "Wattzup Web") {
+  Component(live, "LiveStateService", "Angular service", "Read-only state signal")
+  Component(log, "CmdLog", "Angular component", "Sent to bike panel (cmd-log)")
+  Component(view, "command-log-view", "Pure helper (core)", "Ride time and status text")
+  Component(fb, "CommandFeedbackService", "Angular service", "Success and slow-confirm toasts")
+  Component(toast, "ToastService", "Angular service", "Shows toasts (dashboard)")
+}
+Container_Boundary(be, "Wattzup API") {
+  Component(eng, "WorkoutEngine", "Wattzup.Core", "Sends plan and manual levels")
+  Component(cmdr, "ResistanceCommander", "Wattzup.Core", "Adds entries, marks failures")
+  Component(ing, "TelemetryIngestor", "Wattzup.Core", "Acknowledges on resistance frames")
+  Component(cl, "CommandLog", "Wattzup.Core", "Pure Add / Fail / Acknowledge")
+  Component(store, "BikeStateStore", "Wattzup.Core", "Only writer of BikeState.commands")
+  Component(sse, "EventsEndpoints", "Minimal API", "GET /api/events")
+}
+System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+
+Rel(eng, cmdr, "SendAsync(level, source)")
+Rel(cmdr, cl, "Add, Fail")
+Rel(cmdr, store, "Update(commands)")
+Rel(cmdr, bike, "Write with response", "BLE GATT")
+Rel(bike, ing, "0xD2 resistance frame", "BLE GATT")
+Rel(ing, cl, "Acknowledge(level, now)")
+Rel(ing, store, "Update(resistance, commands)")
+Rel(store, sse, "StateChanged")
+Rel(sse, live, "data: BikeState", "SSE")
+Rel(log, live, "Reads state()")
+Rel(log, view, "Formats entries")
+Rel(fb, live, "effect on state().commands")
+Rel(fb, toast, "Success / warning toast")
+Rel(rider, log, "Reads")
+@enduml

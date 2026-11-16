@@ -1,0 +1,48 @@
+@startuml
+title UML sequence behaviour — Send, acknowledge or fail a resistance command
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "WorkoutEngine" as eng
+  participant "ResistanceCommander" as cmdr
+  participant "CommandLog" as cl
+  participant "TelemetryIngestor" as ing
+  participant "BikeStateStore" as store
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeConnection" as conn
+end box
+participant "Echelon bike" as bike
+
+eng -> cmdr : SendAsync(18, plan) at ride time 7:01
+alt no active connection
+  cmdr -> cl : Add(entry 18, status failed)
+  cmdr -> store : Update(commands) [L2-048]
+  cmdr --> eng : NotConnected
+else connected
+  cmdr -> cl : Add({at, ride_seconds 421, level 18, plan, sending, ack_ms null})
+  cl --> cmdr : 5 newest, newest first [L2-048]
+  cmdr -> store : Update(commands)
+  cmdr -> conn : WriteAsync(F0 B1 01 12 B4, withResponse: true)
+  alt write throws
+    conn --> cmdr : exception
+    cmdr -> cl : Fail(entry)
+    cmdr -> store : Update(commands: entry failed) [L2-048]
+    cmdr --> eng : Failed(message)
+  else written
+    conn -> bike : write request
+    bike --> conn : write response
+    cmdr --> eng : Sent
+    bike -> conn : notify F0 D2 01 12 D5 (40 ms after the write)
+    conn -> ing : OnNotify(frame)
+    ing -> cl : Acknowledge(level 18, now)
+    cl -> cl : walk newest first; ack each sending 18; stop at first other level [L2-048]
+    cl --> ing : entry status ack, ack_ms 40
+    ing -> store : Update(resistance 18, commands) in one change
+  end
+end
+note over cl : 22 written before 18 is acknowledged: a report of 22 acks 22 and stops; 18 stays sending [L2-048]
+@enduml

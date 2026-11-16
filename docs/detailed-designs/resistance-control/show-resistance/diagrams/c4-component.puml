@@ -5,14 +5,18 @@ title Components — Show resistance
 
 Person(rider, "Rider", "Watches the dashboard")
 Container_Boundary(web, "Wattzup Web") {
-  Component(live, "LiveStateService", "Angular service", "state signal from SSE")
-  Component(card, "ResistanceCard", "Angular component", "valueText, barPercent, targetLabel, markerPercent")
-  Component(bar, "ResistanceBar", "Angular component", "Meter with target marker")
+  Component(live, "LiveStateService", "Angular service", "Read-only state signal from SSE")
+  Component(view, "resistanceView", "Pure helper (core)", "valueText, settingText, litUpTo, pressedLevel, planLevel")
+  Component(readout, "LevelReadout", "Angular component", "Numeral, of 32, Setting n…")
+  Component(picker, "LevelPicker", "Angular component", "32 bars: lit, pressed, plan outline")
 }
 Container(api, "Wattzup API", "ASP.NET Core", "Publishes BikeState over SSE")
 
 Rel(api, live, "data: BikeState", "SSE")
-Rel(card, live, "Reads state()")
-Rel(card, bar, "percent, markerPercent")
-Rel(rider, card, "Reads")
+Rel(readout, live, "Reads state()")
+Rel(picker, live, "Reads state()")
+Rel(readout, view, "computed")
+Rel(picker, view, "computed")
+Rel(rider, readout, "Reads")
+Rel(rider, picker, "Reads")
 @enduml

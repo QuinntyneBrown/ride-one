@@ -11,60 +11,129 @@ skinparam class {
 }
 title Class structure — Run an interval workout
 
-class WorkoutEngine {
-  -WorkoutRun? current
-  -CancellationTokenSource? cts
-  -ActiveConnectionRegistry registry
-  -IResistanceCommander commander
-  -BikeStateStore store
-  -TimeProvider time
-  +TimeSpan ShutdownGrace = 90 s
-  +Start(def: WorkoutDefinition): void
-  +Stop(): void
-  -RunAsync(run: WorkoutRun, ct): Task
-  -TickAsync(run: WorkoutRun): Task<bool>
-}
-
-class WorkoutRun {
-  +WorkoutDefinition Definition
-  +int Step
-  +int Cycle
-  +int Remaining
-  +string Status
-  +(int, int)? SentFor
-  +double? GoneSince
-  +Advance(): void
-  +ToSnapshot(): WorkoutSnapshot
-}
-
-class WorkoutSnapshot <<record>> {
-  +int[][] Steps
-  +int Step
-  +int Cycle
-  +int Remaining
-  +string Status
-}
-
-class WorkoutStatus <<static>> {
-  +WaitingForBike = "waiting for bike"
-  +Running = "running"
-  +Paused = "paused: bike disconnected"
-  +Ended = "ended: bike shut off"
-  +Stopped = "stopped"
-}
-
-class WorkoutDefinition <<record>>
-interface IResistanceCommander {
-  +TrySendAsync(level: int, ct): Task<bool>
+package "Wattzup.Core" {
+  abstract class WorkoutPlan <<record>> {
+    +string Kind
+  }
+  class HiitPlan <<record>> {
+    +int Rounds
+    +int WorkSeconds
+    +int RestSeconds
+    +int WorkLevel
+    +int RestLevel
+    +bool Warmup
+    +bool Cooldown
+  }
+  class FlatPlan <<record>> {
+    +int Level
+    +int Minutes
+    +int Cadence
+  }
+  enum SegmentKind {
+    warmup
+    work
+    rest
+    cooldown
+    steady
+  }
+  class Segment <<record>> {
+    +SegmentKind Kind
+    +int Start
+    +int Duration
+    +int Level
+    +int Cadence
+    +int? Round
+  }
+  class PlanExpander <<static>> {
+    +WarmupSeconds = 180
+    +CooldownSeconds = 120
+    +Expand(plan: WorkoutPlan): IReadOnlyList<Segment>
+  }
+  class WorkoutSummary <<static>> {
+    +For(plan: WorkoutPlan): string
+  }
+  class WorkoutEngine <<BackgroundService>> {
+    -WorkoutRun? run
+    -Channel<WorkoutCommand> commands
+    -TimeProvider time
+    +TimeSpan ShutOffGrace = 90 s
+    +StartAsync(plan): Task<WorkoutSnapshot>
+    +StopAsync(): Task
+    +PauseAsync(): Task<CommandResult>
+    +ResumeAsync(): Task<CommandResult>
+    +BackToPlanAsync(): Task<CommandResult>
+    #ExecuteAsync(ct): Task
+    -TickAsync(): Task
+    -DriveAsync(): Task
+  }
+  class WorkoutRun {
+    +WorkoutPlan Plan
+    +IReadOnlyList<Segment> Segments
+    +string Summary
+    +int TotalSeconds
+    +int Segment
+    +int Remaining
+    +int Elapsed
+    +string Status
+    +string? EndedReason
+    +string Mode
+    +int PlanLevel
+    +bool HasStarted
+    +bool PausedByRider
+    +int? SentForSegment
+    +int? LastSentLevel
+    +DateTimeOffset? DisconnectedSince
+    +bool IsActive
+    +Count(): void
+    +ToSnapshot(): WorkoutSnapshot
+  }
+  class WorkoutSnapshot <<record>> {
+    +WorkoutPlan Plan
+    +string Summary
+    +IReadOnlyList<Segment> Segments
+    +int Segment
+    +int Remaining
+    +int ElapsedSeconds
+    +int TotalSeconds
+    +string Mode
+    +int PlanLevel
+    +string Status
+    +string? EndedReason
+  }
+  class WorkoutStatus <<static>> {
+    +WaitingForBike = "waiting for bike"
+    +Running = "running"
+    +Paused = "paused"
+    +PausedBikeDisconnected = "paused: bike disconnected"
+    +Ended = "ended"
+    +EndedBikeShutOff = "ended: bike shut off"
+    +Stopped = "stopped"
+  }
+  interface IResistanceCommander {
+    +SendAsync(level: int, source: CommandSource, ct): Task<SendResult>
+  }
+  class BikeStateStore {
+    +BikeState Current
+    +Update(change: Func<BikeState, BikeState>): void
+  }
 }
 class ActiveConnectionRegistry {
   +bool IsConnected
 }
 
+WorkoutPlan <|-- HiitPlan
+WorkoutPlan <|-- FlatPlan
+PlanExpander ..> WorkoutPlan : reads
+PlanExpander ..> Segment : creates
+Segment --> SegmentKind
 WorkoutEngine *-- "0..1" WorkoutRun
-WorkoutRun --> WorkoutDefinition
+WorkoutEngine ..> PlanExpander
+WorkoutEngine ..> WorkoutSummary
+WorkoutRun --> WorkoutPlan
+WorkoutRun "1" *-- "1..*" Segment
 WorkoutRun ..> WorkoutSnapshot : projects
 WorkoutRun ..> WorkoutStatus
 WorkoutEngine --> IResistanceCommander
 WorkoutEngine --> ActiveConnectionRegistry
+WorkoutEngine --> BikeStateStore
 @enduml

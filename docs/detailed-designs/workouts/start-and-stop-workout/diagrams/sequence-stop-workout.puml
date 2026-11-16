@@ -7,27 +7,29 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
-  participant "WorkoutPanel" as panel
-  participant "BikeApi" as api
+  participant "EndRideDialog (L2-051)" as dlg
+  participant "WorkoutApi" as api
 end box
 box "Backend — Wattzup API application" #D1FADF
   participant "WorkoutEndpoints" as ep
 end box
-box "Backend — Wattzup Core and Protocol" #ECFDF3
+box "Backend — Wattzup Core" #ECFDF3
   participant "WorkoutEngine" as engine
   participant "BikeStateStore" as store
 end box
 
-rider -> panel : Press Stop
-panel -> api : stopWorkout()
+rider -> dlg : Press End ride
+dlg -> api : stop()
 api -> ep : POST /api/workout/stop
-ep -> engine : Stop()
-alt a workout exists
-  engine -> engine : cancel tick loop
-  engine -> store : Update(workout.status = "stopped")
+ep -> engine : StopAsync()
+alt active workout
+  engine -> engine : status "stopped"; stop ticking; bike left at current level [L2-013]
+  engine -> store : Update(workout), broadcast
+else ended workout
+  engine -> engine : no change; status kept
 else no workout
-  engine -> engine : no-op; workout stays null
+  engine -> engine : no-op; workout stays null [L2-017]
 end
 ep --> api : 200 {"stopped":true} [L2-017]
-api --> panel : ok
+api --> dlg : ok
 @enduml

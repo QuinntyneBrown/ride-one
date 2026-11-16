@@ -1,5 +1,5 @@
 @startuml
-title UML sequence behaviour — Set resistance from the dashboard
+title UML sequence behaviour — Set resistance from the panel
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam roundcorner 12
@@ -7,14 +7,17 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
-  participant "ResistanceCard" as card
+  participant "LevelControl" as ctl
+  participant "ResistanceCommandService" as svc
   participant "BikeApi" as api
-  participant "DiagnosticsFooter" as footer
+  participant "ToastService" as toast
 end box
 box "Backend — Wattzup API application" #D1FADF
   participant "ResistanceEndpoints" as ep
 end box
 box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "IResistanceControl" as ctrl
+  participant "WorkoutEngine" as eng
   participant "ResistanceCommander" as cmdr
   participant "EchelonCommands" as cmds
   participant "BikeStateStore" as store
@@ -24,32 +27,46 @@ box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
 end box
 participant "Echelon bike" as bike
 
-rider -> card : Press + (bike reports 10)
-card -> card : base = state.resistance ?? input; clamp(base + 1) to 1..32 = 11 [L2-020]
-card -> api : setResistance(11)
+rider -> ctl : Press Raise resistance (bike reports 10)
+ctl -> ctl : stepLevel(state, +1) = 11 [L2-020]
+ctl -> svc : send(11)
+svc -> api : setResistance(11), 5 s timeout
 api -> ep : POST /api/resistance {"level":11}
 alt level missing, non-integer, < 1 or > 32
-  ep --> api : 400 {"error":"level must be 1-32"} [L2-016]
+  ep --> api : 400 code invalid_level, "level must be 1-32" [L2-016]
 else valid
-  ep -> cmdr : TrySendAsync(11)
+  ep -> ctrl : SetManualAsync(11)
+  ctrl -> eng : Post(ManualLevel(11))
+  eng -> cmdr : SendAsync(11, manual)
   alt no active connection
-    cmdr --> ep : false (nothing written) [L2-008]
-    ep --> api : 503 {"error":"bike not connected"} [L2-016]
+    cmdr --> eng : NotConnected (nothing written) [L2-008]
+    eng --> ctrl : NotConnected (mode unchanged)
+    ctrl --> ep : NotConnected
+    ep --> api : 503 code bike_not_connected [L2-016]
   else connected
     cmdr -> cmds : SetResistance(11)
     cmds --> cmdr : F0 B1 01 0B AD [L2-008]
-    cmdr -> conn : WriteAsync(WriteCharacteristic, bytes, withResponse: true)
+    cmdr -> conn : WriteAsync(write characteristic, bytes, withResponse: true)
     conn -> bike : write request
     bike --> conn : write response
     cmdr -> store : Update(target_resistance = 11) [L2-009]
-    cmdr --> ep : true
+    cmdr --> eng : Sent
+    opt workout active
+      eng -> store : Update(workout.mode = manual, plan_level unchanged) [L2-047]
+    end
+    eng --> ctrl : Sent
+    ctrl --> ep : Sent
     ep --> api : 200 {"sent":11}
   end
 end
-alt non-2xx
-  api --> footer : error = response.error
-else network failure
-  api --> footer : error = "server offline" [L2-020]
+alt 503
+  api --> svc : bike_not_connected
+  svc -> toast : danger "Couldn't set resistance" / "The bike isn't connected. Pedal to wake it, then try again." [L2-020]
+else no answer within 5 s
+  api --> svc : timeout
+  svc -> toast : danger "The server didn't answer (timeout after 5 s). Level 11 was not sent." + Retry [L2-020]
+  rider -> toast : Retry
+  toast -> svc : send(11)
 end
-bike -> conn : notify F0 D2 01 0B CE (actual level, see decode-bike-telemetry)
+bike -> conn : notify F0 D2 01 0B CE (resistance, see decode-bike-telemetry)
 @enduml

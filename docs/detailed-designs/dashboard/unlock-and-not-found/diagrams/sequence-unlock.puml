@@ -1,0 +1,47 @@
+@startuml
+title UML sequence behaviour — 401, unlock and return
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "LiveStateService" as live
+  participant "apiKeyInterceptor" as icpt
+  participant "Router" as router
+  participant "UnlockPage" as page
+  participant "HttpBikeApi (BIKE_API)" as api
+  participant "ApiKeyStore" as store
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "ApiKeyAuthenticationHandler" as auth
+end box
+
+rider -> live : open http://192.168.1.20:8787/
+live -> icpt : GET /api/status (no key held)
+icpt -> auth : request without X-Api-Key
+auth --> icpt : 401
+icpt -> store : clear()
+icpt -> router : navigate /unlock?returnUrl=%2F [L2-055]
+router -> page : show "Unlock Wattzup", password field
+rider -> page : type key, press Unlock
+page -> page : phase submitting: input readonly, "Unlocking…" [L2-055]
+page -> api : verifyKey(key)
+api -> auth : GET /api/status, X-Api-Key, SKIP_UNLOCK_REDIRECT
+alt wrong key
+  auth --> api : 401
+  api --> page : rejected
+  page -> page : Alert "That key didn’t work", aria-invalid,\n"The server answered 401 Unauthorized for this key." [L2-055]
+else server unreachable or 5 s timeout
+  api --> page : unreachable
+  page -> page : Alert "Can’t reach Wattzup at 192.168.1.20:8787", Try again, key kept [L2-055]
+else correct key
+  auth --> api : 200 state
+  api --> page : ok
+  page -> store : set(key) in sessionStorage wattzup.apiKey [L2-055]
+  page -> live : restart() (event token, then EventSource)
+  page -> router : navigateByUrl(safeReturnUrl("/"))
+  router --> rider : ride dashboard
+end
+@enduml

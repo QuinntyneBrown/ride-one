@@ -1,0 +1,80 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Log resistance commands
+
+package "Wattzup.Core" {
+  class CommandEntry <<record>> {
+    +double At
+    +int? RideSeconds
+    +int Level
+    +CommandSource Source
+    +CommandStatus Status
+    +int? AckMs
+    ~long WrittenTimestamp
+  }
+  enum CommandSource {
+    Plan
+    Manual
+  }
+  enum CommandStatus {
+    Sending
+    Ack
+    Failed
+  }
+  class CommandLog <<static>> {
+    +const int Capacity = 5
+    +Add(log: ImmutableArray<CommandEntry>, entry: CommandEntry): ImmutableArray<CommandEntry>
+    +Fail(log, entry: CommandEntry): ImmutableArray<CommandEntry>
+    +Acknowledge(log, level: int, now: long): ImmutableArray<CommandEntry>
+  }
+  class ResistanceCommander {
+    -ActiveConnectionRegistry registry
+    -BikeStateStore store
+    -TimeProvider time
+    +SendAsync(level: int, source: CommandSource, ct): Task<SendResult>
+  }
+  class TelemetryIngestor {
+    -BikeStateStore store
+    -TimeProvider time
+    +OnNotify(frame: ReadOnlyMemory<byte>): void
+  }
+  class BikeState <<record>> {
+    +ImmutableArray<CommandEntry> Commands
+    +string ConnectionId
+  }
+}
+
+package "wattzup-web" {
+  class CmdLog <<component>> {
+    +Signal<CommandEntry[]> entries
+    +Signal<string> connectionId
+  }
+  class "command-log-view.ts" as view <<pure>> {
+    +formatRideTime(seconds: number): string
+    +statusText(entry: CommandEntry): string
+  }
+  class CommandFeedbackService <<service>> {
+    -Map<number, Timer> slowTimers
+    -onCommands(entries: CommandEntry[]): void
+  }
+}
+
+CommandEntry --> CommandSource
+CommandEntry --> CommandStatus
+CommandLog ..> CommandEntry : transforms
+ResistanceCommander ..> CommandLog : Add, Fail
+TelemetryIngestor ..> CommandLog : Acknowledge
+BikeState "1" *-- "0..5" CommandEntry
+CmdLog ..> view
+CmdLog ..> BikeState : reads over SSE
+CommandFeedbackService ..> BikeState : reads over SSE
+@enduml

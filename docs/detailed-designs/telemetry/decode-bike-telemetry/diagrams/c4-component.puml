@@ -5,18 +5,22 @@ title Components — Decode bike telemetry
 
 Container_Boundary(api, "Wattzup API") {
   Component(conn, "IBikeConnection", "Wattzup.Ble.Abstractions", "Delivers notify payloads")
-  Component(ing, "TelemetryIngestor", "Wattzup.Core", "Counts, logs, decodes and applies frames")
+  Component(ing, "TelemetryIngestor", "Wattzup.Core", "Logs, counts, decodes and applies frames")
   Component(dec, "PacketDecoder", "Wattzup.Protocol", "Frame bytes to TelemetryUpdate")
   Component(speed, "SpeedCalculator", "Wattzup.Protocol", "Cadence to km/h and mph")
-  Component(log, "RawPacketLogger", "Wattzup.Core", "Buffered raw frame log")
-  Component(store, "BikeStateStore", "Wattzup.Core", "Owns BikeState")
+  Component(log, "RawPacketLogger and RecentPacketBuffer", "Wattzup.Core", "Raw frame log and last 60 lines")
+  Component(pow, "PowerEstimator", "Wattzup.Core", "Estimated power (estimate-power-and-totals)")
+  Component(cl, "CommandLog", "Wattzup.Core", "Acknowledges commands (log-resistance-commands)")
+  Component(store, "BikeStateStore", "Wattzup.Core", "Only writer of BikeState")
 }
 System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
 
 Rel(bike, conn, "Notifications", "BLE GATT")
-Rel(conn, ing, "onNotify(bytes)")
-Rel(ing, log, "Enqueue(frame)")
+Rel(conn, ing, "OnNotify(bytes)")
+Rel(ing, log, "Enqueue / Add(frame)")
 Rel(ing, dec, "Decode(frame)")
 Rel(dec, speed, "ToKmh / ToMph")
-Rel(ing, store, "Update(packets, metrics, timestamps)")
+Rel(ing, pow, "EstimateWatts(cadence, resistance)")
+Rel(ing, cl, "Acknowledge(level)")
+Rel(ing, store, "Update(packets, metrics, power, commands, timestamps)")
 @enduml

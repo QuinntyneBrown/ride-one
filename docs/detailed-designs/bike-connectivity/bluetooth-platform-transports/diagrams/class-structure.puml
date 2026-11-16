@@ -12,6 +12,9 @@ skinparam class {
 title Class structure — Bluetooth platform transports
 
 interface IBikeTransport {
+  +string Name
+  +BluetoothAdapterState AdapterState
+  +event AdapterStateChanged
   +ScanAsync(filter, timeout, ct): Task<BikeAdvertisement?>
   +ConnectAsync(ad, ct): Task<IBikeConnection>
 }
@@ -22,8 +25,15 @@ interface IBikeConnection {
   +WriteAsync(characteristic, data, withResponse, ct): Task
 }
 
+enum BluetoothAdapterState {
+  Unknown
+  On
+  Off
+}
 class WinRtBikeTransport {
+  +Name = "WinRT"
   -BluetoothLEAdvertisementWatcher watcher
+  -Radio radio
 }
 class WinRtBikeConnection {
   -BluetoothLEDevice device
@@ -31,6 +41,7 @@ class WinRtBikeConnection {
   -GattCharacteristic notify
 }
 class BlueZBikeTransport {
+  +Name = "BlueZ"
   -IAdapter1 adapter
 }
 class BlueZBikeConnection {
@@ -39,6 +50,7 @@ class BlueZBikeConnection {
   -IGattCharacteristic1 notify
 }
 class CoreBluetoothBikeTransport {
+  +Name = "CoreBluetooth"
   -CBCentralManager central
   -CentralDelegate delegate
 }
@@ -46,7 +58,9 @@ class CoreBluetoothBikeConnection {
   -CBPeripheral peripheral
 }
 class SimulatedBikeTransport {
+  +Name = "Simulated"
   +SimulationControl Control
+  -TimeProvider time
 }
 class SimulatedBikeConnection {
   -PeriodicTimer telemetry
@@ -54,11 +68,13 @@ class SimulatedBikeConnection {
 }
 class SimulationControl {
   +bool PoweredOn
+  +bool AdapterOn
   +DropLink(): void
   +ThrowOnNextWrite(ex: Exception): void
 }
 class TransportSelector <<static>> {
   +AddBikeTransport(services, config, args): IServiceCollection
+  -Order = [CoreBluetooth, BlueZ, WinRT]
 }
 class BluetoothUnavailableException
 
@@ -77,4 +93,5 @@ SimulatedBikeTransport ..> SimulatedBikeConnection : creates
 SimulatedBikeTransport *-- SimulationControl
 TransportSelector ..> IBikeTransport : registers
 IBikeTransport ..> BluetoothUnavailableException : throws
+IBikeTransport --> BluetoothAdapterState
 @enduml
