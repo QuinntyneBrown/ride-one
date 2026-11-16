@@ -1,0 +1,7 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+  "title": "The bike is already connected.",
+  "status": 409,
+  "code": "already_connected",
+  "trace_id": "00-2ad9495af604514b7d59180f6168daf9-aa7c7bc9f83bcec4-00"
+}

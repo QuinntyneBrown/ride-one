@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures/wz-test';
 import { SetupPage } from './pages/setup.page';
 import { DEFAULT_PLAN, FLAT_PLAN, freeRide, workout } from './fixtures/states';
+import invalidWorkout from './fixtures/recorded/problem-invalid-workout.json';
 
 const started = { json: { started: workout() } };
 
@@ -139,15 +140,7 @@ test.describe('Ride setup screen (L2-029)', () => {
     api,
     events,
   }) => {
-    api.on('POST', '/api/workout', {
-      status: 400,
-      json: {
-        title: 'Invalid workout',
-        status: 400,
-        code: 'invalid_workout',
-        errors: { work_seconds: ['Work must be at most 60:00.'] },
-      },
-    });
+    api.on('POST', '/api/workout', { status: 400, json: invalidWorkout });
     const setup = new SetupPage(page, api, events);
     await setup.open();
     await setup.preset('Tabata').click();

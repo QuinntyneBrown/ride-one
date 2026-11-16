@@ -1,8 +1,32 @@
-// Stub states in the L2-014 contract. Shaped like the backend's --simulate output, with the
-// mocks' cast: Echelon EX-5s mid-ride on the default 8 × 40s / 20s plan at 7:07.
-// Re-record against `dotnet run -- --simulate` when the contract changes.
+// Stub states in the L2-014 contract. Each builder starts from a response recorded from the
+// backend running with --simulate (recorded/, `npm run record:api`) and lays the mocks' cast on
+// top: Echelon EX-5s mid-ride on the default 8 × 40s / 20s plan at 7:07. A cast field the
+// backend does not send fails the test, so the stubs cannot drift from the contract.
+import recordedRunning from './recorded/status-running.json';
+import recordedStarted from './recorded/workout-started.json';
 
 export type Json = Record<string, unknown>;
+
+/** The recorded response with `cast` laid over it; throws on a field the recording lacks. */
+export function fromRecording<T extends Json>(recorded: T, cast: Json, what: string): T {
+  for (const key of Object.keys(cast)) {
+    if (!(key in recorded)) {
+      throw new Error(
+        `Stub ${what} sets "${key}", which the backend does not send. Re-record with npm run record:api.`,
+      );
+    }
+  }
+  return { ...recorded, ...cast };
+}
+
+function sameShape(recorded: Json, items: Json[], what: string): Json[] {
+  return items.map((item) => fromRecording(recorded, item, what));
+}
+
+const RECORDED_STATE = recordedRunning as unknown as Json;
+const RECORDED_WORKOUT = recordedStarted.started as unknown as Json;
+const RECORDED_SEGMENT = recordedStarted.started.segments[0] as unknown as Json;
+const RECORDED_COMMAND = recordedRunning.commands[0] as unknown as Json;
 
 export const DEFAULT_PLAN = {
   kind: 'hiit',
@@ -17,29 +41,33 @@ export const DEFAULT_PLAN = {
 
 export const FLAT_PLAN = { kind: 'flat', level: 12, minutes: 30, cadence: 85 } as const;
 
-export const DEFAULT_SEGMENTS = [
-  { kind: 'warmup', start: 0, duration: 180, level: 8, cadence: 80, round: null },
-  { kind: 'work', start: 180, duration: 40, level: 18, cadence: 98, round: 1 },
-  { kind: 'rest', start: 220, duration: 20, level: 6, cadence: 72, round: 1 },
-  { kind: 'work', start: 240, duration: 40, level: 18, cadence: 98, round: 2 },
-  { kind: 'rest', start: 280, duration: 20, level: 6, cadence: 72, round: 2 },
-  { kind: 'work', start: 300, duration: 40, level: 18, cadence: 98, round: 3 },
-  { kind: 'rest', start: 340, duration: 20, level: 6, cadence: 72, round: 3 },
-  { kind: 'work', start: 360, duration: 40, level: 18, cadence: 98, round: 4 },
-  { kind: 'rest', start: 400, duration: 20, level: 6, cadence: 72, round: 4 },
-  { kind: 'work', start: 420, duration: 40, level: 18, cadence: 98, round: 5 },
-  { kind: 'rest', start: 460, duration: 20, level: 6, cadence: 72, round: 5 },
-  { kind: 'work', start: 480, duration: 40, level: 18, cadence: 98, round: 6 },
-  { kind: 'rest', start: 520, duration: 20, level: 6, cadence: 72, round: 6 },
-  { kind: 'work', start: 540, duration: 40, level: 18, cadence: 98, round: 7 },
-  { kind: 'rest', start: 580, duration: 20, level: 6, cadence: 72, round: 7 },
-  { kind: 'work', start: 600, duration: 40, level: 18, cadence: 98, round: 8 },
-  { kind: 'cooldown', start: 640, duration: 120, level: 6, cadence: 70, round: null },
-];
+export const DEFAULT_SEGMENTS = sameShape(
+  RECORDED_SEGMENT,
+  [
+    { kind: 'warmup', start: 0, duration: 180, level: 8, cadence: 80, round: null },
+    { kind: 'work', start: 180, duration: 40, level: 18, cadence: 98, round: 1 },
+    { kind: 'rest', start: 220, duration: 20, level: 6, cadence: 72, round: 1 },
+    { kind: 'work', start: 240, duration: 40, level: 18, cadence: 98, round: 2 },
+    { kind: 'rest', start: 280, duration: 20, level: 6, cadence: 72, round: 2 },
+    { kind: 'work', start: 300, duration: 40, level: 18, cadence: 98, round: 3 },
+    { kind: 'rest', start: 340, duration: 20, level: 6, cadence: 72, round: 3 },
+    { kind: 'work', start: 360, duration: 40, level: 18, cadence: 98, round: 4 },
+    { kind: 'rest', start: 400, duration: 20, level: 6, cadence: 72, round: 4 },
+    { kind: 'work', start: 420, duration: 40, level: 18, cadence: 98, round: 5 },
+    { kind: 'rest', start: 460, duration: 20, level: 6, cadence: 72, round: 5 },
+    { kind: 'work', start: 480, duration: 40, level: 18, cadence: 98, round: 6 },
+    { kind: 'rest', start: 520, duration: 20, level: 6, cadence: 72, round: 6 },
+    { kind: 'work', start: 540, duration: 40, level: 18, cadence: 98, round: 7 },
+    { kind: 'rest', start: 580, duration: 20, level: 6, cadence: 72, round: 7 },
+    { kind: 'work', start: 600, duration: 40, level: 18, cadence: 98, round: 8 },
+    { kind: 'cooldown', start: 640, duration: 120, level: 6, cadence: 70, round: null },
+  ],
+  'segment',
+);
 
 /** Default plan, work round 5 of 8, 0:33 left, 7:07 of 12:40. */
 export function workout(change: Json = {}): Json {
-  return {
+  const cast = {
     plan: DEFAULT_PLAN,
     summary: 'HIIT · 8 × 40s / 20s',
     segments: DEFAULT_SEGMENTS,
@@ -53,6 +81,7 @@ export function workout(change: Json = {}): Json {
     ended_reason: null,
     ...change,
   };
+  return fromRecording(RECORDED_WORKOUT, cast, 'workout');
 }
 
 export function flatWorkout(change: Json = {}): Json {
@@ -74,7 +103,7 @@ export const NOW = Date.UTC(2026, 10, 15, 19, 10, 12);
 export const NOW_S = NOW / 1000;
 
 export function state(change: Json = {}): Json {
-  return {
+  const cast = {
     ble: 'connected',
     device: 'ECHEX-3-141844',
     device_label: 'Echelon EX-5s',
@@ -103,13 +132,18 @@ export function state(change: Json = {}): Json {
     distance_km: 2.53,
     kcal: 89,
     heart_rate: null,
-    commands: [
-      { at: NOW_S - 6, ride_seconds: 421, level: 18, source: 'plan', status: 'ack', ack_ms: 40 },
-      { at: NOW_S - 27, ride_seconds: 400, level: 6, source: 'plan', status: 'ack', ack_ms: 34 },
-      { at: NOW_S - 67, ride_seconds: 360, level: 18, source: 'plan', status: 'ack', ack_ms: 41 },
-    ],
+    commands: sameShape(
+      RECORDED_COMMAND,
+      [
+        { at: NOW_S - 6, ride_seconds: 421, level: 18, source: 'plan', status: 'ack', ack_ms: 40 },
+        { at: NOW_S - 27, ride_seconds: 400, level: 6, source: 'plan', status: 'ack', ack_ms: 34 },
+        { at: NOW_S - 67, ride_seconds: 360, level: 18, source: 'plan', status: 'ack', ack_ms: 41 },
+      ],
+      'command',
+    ),
     ...change,
   };
+  return fromRecording(RECORDED_STATE, cast, 'state');
 }
 
 /** Connected with no workout: a free ride. */

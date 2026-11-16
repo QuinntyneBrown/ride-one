@@ -6,17 +6,18 @@ production build is served by `Wattzup.Api` from the same origin. The repository
 
 ## Scripts
 
-| Command                           | What it does                                                                                                                   |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `npm start`                       | `ng serve` on http://localhost:4200, proxying `/api` to the backend on `127.0.0.1:8787` (`proxy.conf.json`)                    |
-| `npm run build`                   | Production build, then checks the initial bundle against the 300 KB gzipped budget                                             |
-| `npm run build:api`               | Production build copied into `../src/Wattzup.Api/wwwroot`                                                                      |
-| `npm test`                        | Unit tests (Vitest) for the services and pure helpers in `src/app/core/`                                                       |
-| `npm run lint`                    | angular-eslint, plus a type check of the Playwright code in `e2e/`                                                             |
-| `npm run format` / `format:check` | Prettier                                                                                                                       |
-| `npm run e2e`                     | Behaviour specs: Playwright, Chromium only, every `/api` request and the event stream stubbed                                  |
-| `npm run e2e:sweeps`              | Accessibility (axe-core), reduced-motion, touch-target and responsive sweeps; run only when a person asks                      |
-| `npm run generate:api`            | Regenerates `src/app/api/schema.d.ts` from `http://127.0.0.1:8787/openapi/v1.json` (start the backend with `--simulate` first) |
+| Command                           | What it does                                                                                                                                                      |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm start`                       | `ng serve` on http://localhost:4200, proxying `/api` to the backend on `127.0.0.1:8787` (`proxy.conf.json`)                                                       |
+| `npm run build`                   | Production build, then checks the initial bundle against the 300 KB gzipped budget                                                                                |
+| `npm run build:api`               | Production build copied into `../src/Wattzup.Api/wwwroot`                                                                                                         |
+| `npm test`                        | Unit tests (Vitest) for the services and pure helpers in `src/app/core/`                                                                                          |
+| `npm run lint`                    | angular-eslint, plus a type check of the Playwright code in `e2e/`                                                                                                |
+| `npm run format` / `format:check` | Prettier                                                                                                                                                          |
+| `npm run e2e`                     | Behaviour specs: Playwright, Chromium only, every `/api` request and the event stream stubbed                                                                     |
+| `npm run e2e:sweeps`              | Accessibility (axe-core), reduced-motion, touch-target and responsive sweeps; run only when a person asks                                                         |
+| `npm run generate:api`            | Regenerates `src/app/api/schema.d.ts` from `http://127.0.0.1:8787/openapi/v1.json` (start the backend with `--simulate` first)                                    |
+| `npm run record:api`              | Records real responses into `e2e/fixtures/recorded/`, which the Playwright stub builders start from (backend running with `--simulate`; never part of a test run) |
 
 Install the browser once with `npx playwright install chromium`.
 

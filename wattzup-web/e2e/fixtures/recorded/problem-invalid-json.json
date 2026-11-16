@@ -1,0 +1,10 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "The plan is not valid.",
+  "status": 400,
+  "errors": {
+    "body": ["The request body is not valid JSON."]
+  },
+  "code": "invalid_workout",
+  "trace_id": "00-29591c50ed5de4415c37eac7a9faddc2-991c4662ae99f41f-00"
+}

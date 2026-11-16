@@ -1,0 +1,7 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+  "title": "No such endpoint.",
+  "status": 404,
+  "code": "not_found",
+  "trace_id": "00-ae7de13260309988f55f1c2f884ba285-0b7f48932bd440f0-00"
+}

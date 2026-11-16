@@ -130,8 +130,10 @@ cd wattzup-web && npm ci && npm start                       # terminal 2: http:/
 ```
 
 `npm start` serves the dashboard with live reload and forwards `/api` to the backend on
-`127.0.0.1:8787` (`proxy.conf.json`). After a change to the API contract, regenerate the frontend
-types with the backend running: `npm run generate:api`.
+`127.0.0.1:8787` (`proxy.conf.json`). After a change to the API contract, with the backend running
+with `--simulate`, regenerate the frontend types (`npm run generate:api`) and re-record the
+responses the Playwright stubs are built from (`npm run record:api`, into
+`e2e/fixtures/recorded/`). Recording is never part of a test run.
 
 ### Share on your network
 

@@ -1,0 +1,7 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+  "title": "No workout is active.",
+  "status": 409,
+  "code": "no_active_workout",
+  "trace_id": "00-28ecbb873d5a3f09a78d57e12903a40d-76562ffdb1fee102-00"
+}

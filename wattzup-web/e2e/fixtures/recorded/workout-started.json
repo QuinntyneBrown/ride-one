@@ -1,0 +1,161 @@
+{
+  "started": {
+    "plan": {
+      "kind": "hiit",
+      "rounds": 8,
+      "work_seconds": 40,
+      "rest_seconds": 20,
+      "work_level": 18,
+      "rest_level": 6,
+      "warmup": true,
+      "cooldown": true
+    },
+    "summary": "HIIT · 8 × 40s / 20s",
+    "segments": [
+      {
+        "kind": "warmup",
+        "start": 0,
+        "duration": 180,
+        "level": 8,
+        "cadence": 80,
+        "round": null
+      },
+      {
+        "kind": "work",
+        "start": 180,
+        "duration": 40,
+        "level": 18,
+        "cadence": 98,
+        "round": 1
+      },
+      {
+        "kind": "rest",
+        "start": 220,
+        "duration": 20,
+        "level": 6,
+        "cadence": 72,
+        "round": 1
+      },
+      {
+        "kind": "work",
+        "start": 240,
+        "duration": 40,
+        "level": 18,
+        "cadence": 98,
+        "round": 2
+      },
+      {
+        "kind": "rest",
+        "start": 280,
+        "duration": 20,
+        "level": 6,
+        "cadence": 72,
+        "round": 2
+      },
+      {
+        "kind": "work",
+        "start": 300,
+        "duration": 40,
+        "level": 18,
+        "cadence": 98,
+        "round": 3
+      },
+      {
+        "kind": "rest",
+        "start": 340,
+        "duration": 20,
+        "level": 6,
+        "cadence": 72,
+        "round": 3
+      },
+      {
+        "kind": "work",
+        "start": 360,
+        "duration": 40,
+        "level": 18,
+        "cadence": 98,
+        "round": 4
+      },
+      {
+        "kind": "rest",
+        "start": 400,
+        "duration": 20,
+        "level": 6,
+        "cadence": 72,
+        "round": 4
+      },
+      {
+        "kind": "work",
+        "start": 420,
+        "duration": 40,
+        "level": 18,
+        "cadence": 98,
+        "round": 5
+      },
+      {
+        "kind": "rest",
+        "start": 460,
+        "duration": 20,
+        "level": 6,
+        "cadence": 72,
+        "round": 5
+      },
+      {
+        "kind": "work",
+        "start": 480,
+        "duration": 40,
+        "level": 18,
+        "cadence": 98,
+        "round": 6
+      },
+      {
+        "kind": "rest",
+        "start": 520,
+        "duration": 20,
+        "level": 6,
+        "cadence": 72,
+        "round": 6
+      },
+      {
+        "kind": "work",
+        "start": 540,
+        "duration": 40,
+        "level": 18,
+        "cadence": 98,
+        "round": 7
+      },
+      {
+        "kind": "rest",
+        "start": 580,
+        "duration": 20,
+        "level": 6,
+        "cadence": 72,
+        "round": 7
+      },
+      {
+        "kind": "work",
+        "start": 600,
+        "duration": 40,
+        "level": 18,
+        "cadence": 98,
+        "round": 8
+      },
+      {
+        "kind": "cooldown",
+        "start": 640,
+        "duration": 120,
+        "level": 6,
+        "cadence": 70,
+        "round": null
+      }
+    ],
+    "segment": 0,
+    "remaining": 180,
+    "elapsed_seconds": 0,
+    "total_seconds": 760,
+    "mode": "plan",
+    "plan_level": 8,
+    "status": "running",
+    "ended_reason": null
+  }
+}

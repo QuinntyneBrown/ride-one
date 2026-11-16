@@ -1,0 +1,10 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "The plan is not valid.",
+  "status": 400,
+  "errors": {
+    "work_seconds": ["Work must be at most 60:00."]
+  },
+  "code": "invalid_workout",
+  "trace_id": "00-c9deef73b752b3bf2b244cc22856d867-fa6b6f9a182b6402-00"
+}
