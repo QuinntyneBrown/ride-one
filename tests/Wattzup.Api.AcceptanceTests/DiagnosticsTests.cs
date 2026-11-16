@@ -30,13 +30,24 @@ public sealed class DiagnosticsTests
     public async Task Given_61_notifications_then_the_endpoint_returns_the_newest_60_in_the_raw_log_format()
     {
         await using var bike = await Bike.StartAsync();
-        var start = bike.Stream.Last!.Value.GetProperty("packets").GetInt32();
+        // Waits on the store, not the event stream: a burst of 61 may overflow the stream's
+        // per-client queue, which by design drops the newest messages for a slow reader (L2-015).
+        var store = bike.Factory.Services.GetRequiredService<BikeStateStore>();
+        var start = store.Current.Packets;
+        var counted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        store.StateChanged += s =>
+        {
+            if (s.Packets >= start + 61)
+            {
+                counted.TrySetResult();
+            }
+        };
         for (var i = 0; i < 61; i++)
         {
             bike.Factory.Simulation.Notify(Resistance12);
         }
 
-        await bike.Stream.WaitForAsync(s => s.GetProperty("packets").GetInt32() == start + 61, "61 more packets");
+        await counted.Task.WaitAsync(TimeSpan.FromSeconds(10));
         using var response = await bike.Client.GetAsync(new Uri("/api/diagnostics/packets", UriKind.Relative));
 
         var lines = (await Bike.JsonAsync(response)).GetProperty("lines");
