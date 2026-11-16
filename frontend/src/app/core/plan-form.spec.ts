@@ -12,15 +12,15 @@ import {
 } from './plan-form';
 
 describe('plan-form (L2-029)', () => {
-  it('defaults to the 40 / 20 HIIT plan and flat 12 / 30 / 85 (AC1, AC3)', () => {
+  it('defaults to an 18-round HIIT plan with no preset and flat 12 / 30 / 85 (AC1, AC3)', () => {
     expect(DEFAULT_DRAFT).toEqual({
       mode: 'hiit',
-      preset: '40-20',
-      rounds: '8',
+      preset: null,
+      rounds: '18',
       work: '0:40',
       rest: '0:20',
-      workLevel: 18,
-      restLevel: 6,
+      workLevel: 26,
+      restLevel: 18,
       warmup: true,
       cooldown: true,
       flatLevel: 12,
@@ -45,11 +45,11 @@ describe('plan-form (L2-029)', () => {
   });
 
   it.each(['rounds', 'work', 'rest'] as const)('editing %s clears the preset (AC2)', (field) => {
-    expect(editDraft(DEFAULT_DRAFT, { [field]: '9' }).preset).toBeNull();
+    expect(editDraft(applyPreset(DEFAULT_DRAFT, '40-20'), { [field]: '9' }).preset).toBeNull();
   });
 
   it('editing a level keeps the preset', () => {
-    expect(editDraft(DEFAULT_DRAFT, { workLevel: 20 }).preset).toBe('40-20');
+    expect(editDraft(applyPreset(DEFAULT_DRAFT, '40-20'), { workLevel: 20 }).preset).toBe('40-20');
   });
 
   it.each([
@@ -83,12 +83,12 @@ describe('plan-form (L2-029)', () => {
   });
 
   it.each([
-    ['rounds', 1, '9'],
+    ['rounds', 1, '19'],
     ['work', 1, '0:45'],
     ['rest', -1, '0:15'],
     ['minutes', 1, '35 min'],
     ['cadence', -1, '80 rpm'],
-    ['workLevel', 1, 19],
+    ['workLevel', 1, 27],
   ] as const)('steps %s by %i (AC9)', (field, dir, value) => {
     expect(stepDraft(DEFAULT_DRAFT, field, dir)[field]).toBe(value);
   });
@@ -111,11 +111,11 @@ describe('plan-form (L2-029)', () => {
   it('turns a valid draft into a plan', () => {
     expect(toPlan(DEFAULT_DRAFT)).toEqual({
       kind: 'hiit',
-      rounds: 8,
+      rounds: 18,
       work_seconds: 40,
       rest_seconds: 20,
-      work_level: 18,
-      rest_level: 6,
+      work_level: 26,
+      rest_level: 18,
       warmup: true,
       cooldown: true,
     });

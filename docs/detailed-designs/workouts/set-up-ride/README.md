@@ -14,7 +14,7 @@ Before a ride the rider opens the setup screen at `/setup`, picks HIIT intervals
 
 **replace-ride dialog** — confirmation shown when Start ride is pressed while a workout is active
 
-**default plan** — HIIT, 8 rounds, work 0:40 at level 18, recover 0:20 at level 6, warm-up and cool-down on; 12:40 in total
+**default plan** — HIIT, 18 rounds, work 0:40 at level 26, recover 0:20 at level 18, warm-up (level 20) and cool-down (level 18) on; 22:40 in total
 
 The backend side of starting a ride, the validation of the plan and the `invalid_workout` answer belong to `start-and-stop-workout`. The setup screen repeats the validation in the browser so the rider sees each problem before submitting, with the same messages.
 
@@ -29,15 +29,15 @@ Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and
   - `planSummary(plan)` returns the summary label by the rules of L2-060, mirroring `WorkoutSummary`.
   - `estimateWatts(cadence, level)` returns `max(0, round(cadence × (0.55 + level × 0.155)))` (ADR 0003).
 - **`ride-preview.ts`** — `previewOf(plan)` returns the *Your ride* values (L2-059):
-  - `totalSeconds` is the sum of the segment durations; the default plan gives `12:40`.
-  - `structure` is `<rounds> × <work> / <rest>` in `m:ss` for HIIT (`8 × 0:40 / 0:20`), and `Level <n> throughout` for flat.
+  - `totalSeconds` is the sum of the segment durations; the default plan gives `22:40`.
+  - `structure` is `<rounds> × <work> / <rest>` in `m:ss` for HIIT (`18 × 0:40 / 0:20`), and `Level <n> throughout` for flat.
   - `timeUnderLoad` is rounds × work as `m:ss` (`5:20`) for HIIT, and `null` for flat, so the row is not shown.
   - `peakLevel` is the highest segment level, shown `Level <max>`.
-  - `avgPower` is `round(Σ estimateWatts(cadence, level) × duration ÷ total)` over the segments, shown `~<n> W`. The default plan gives `~208 W`; flat level 12 at 85 rpm gives `~205 W`.
-  - `kcal` is `round(avgPower × total ÷ 1000 ÷ 0.24 ÷ 4.184)`, shown `~<n> kcal`. The default plan gives `~157 kcal`; the flat plan gives `~367 kcal`.
+  - `avgPower` is `round(Σ estimateWatts(cadence, level) × duration ÷ total)` over the segments, shown `~<n> W`. The default plan gives `~357 W`; flat level 12 at 85 rpm gives `~205 W`.
+  - `kcal` is `round(avgPower × total ÷ 1000 ÷ 0.24 ÷ 4.184)`, shown `~<n> kcal`. The default plan gives `~484 kcal`; the flat plan gives `~367 kcal`.
   - `profile` is one bar per segment in a `0 0 <total> 32` view box, as drawn in the mocks. With `inset = 0.002 × total`, each bar has `x = start + inset`, `width = duration − 2 × inset`, `height = level` and `y = 32 − level`. Its tone is `is-work` for `work` and `steady`, `is-rest` for `rest`, and `is-easy` for `warmup` and `cooldown`.
 - **`plan-form.ts`** — the plan draft's rules (L2-029):
-  - `DEFAULT_DRAFT` is the default plan with the `40 / 20` preset pressed. Flat defaults are level 12, 30 minutes and cadence 85.
+  - `DEFAULT_DRAFT` is the default plan with no preset pressed (18 rounds matches no preset). Flat defaults are level 12, 30 minutes and cadence 85.
   - `PRESETS` holds the 4 presets. `applyPreset(draft, id)` fills Rounds, Work and Recover and marks the preset pressed. Editing any of those 3 fields clears the pressed preset.
   - `parseClock('0:40')` returns 40 and `formatClock(40)` returns `0:40`. `parseUnit('30 min')` and `parseUnit('85 rpm')` read the number before the unit. Text that does not parse is invalid.
   - `validateDraft(draft)` returns, for each failing field of the current mode, its message, which is the text of L2-010 (for example `Enter 1 to 30 rounds.` and `Recover must be at least 0:05.`), and its summary link text. The mocks give the link text `Rounds — enter 1 to 30` and `Recover — at least 0:05`; the link text for every field is listed in L2-029, criterion 4.
@@ -107,7 +107,7 @@ Playwright (`frontend/e2e/`), with every `/api/**` request answered by the share
 
 - Page objects: `e2e/pages/setup.page.ts` (mode cards, presets, steppers, sliders, switches, form summary, preview, Start ride, Close) and `e2e/pages/replace-ride.dialog.ts` (title, description, Keep current ride, Replace ride, close, alert).
 - `e2e/setup.spec.ts`:
-  - `shows the default plan with the 40 / 20 preset pressed` (L2-029 AC1)
+  - `shows the default plan with no preset pressed` (L2-029 AC1)
   - `fills rounds, work and recover from a preset, and clears it on edit` (L2-029 AC2)
   - `shows flat fields with their defaults` (L2-029 AC3)
   - `names an out-of-range field, lists it, disables Start and blanks the total` (L2-029 AC4)
@@ -115,7 +115,7 @@ Playwright (`frontend/e2e/`), with every `/api/**` request answered by the share
   - `shows Couldn't start the ride on a 400 and keeps the settings` (L2-029 AC6)
   - `restores the last submitted plan after a reload` (L2-029 AC7)
   - `Close returns to the dashboard without a request` (L2-029 AC8)
-  - `previews the default plan: 12:40, 8 × 0:40 / 0:20, 5:20, Level 18, ~208 W, ~157 kcal` (L2-059 AC1, AC2)
+  - `previews the default plan: 22:40, 18 × 0:40 / 0:20, 12:00, Level 26, ~357 W, ~484 kcal` (L2-059 AC1, AC2)
   - `previews a flat plan without time under load` (L2-059 AC3)
 - `e2e/replace-ride.spec.ts`:
   - `asks before replacing an active ride, with focus on Keep current ride` (L2-052 AC1)

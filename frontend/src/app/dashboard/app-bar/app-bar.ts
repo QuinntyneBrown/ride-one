@@ -6,6 +6,7 @@ import { statusBadge } from '../../core/segment-labels';
 import { CueService } from '../../core/cue.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
+import { ThemeService } from '../../core/theme.service';
 import { Icon } from '../icon/icon';
 import { RideClock } from '../ride-clock/ride-clock';
 import { StatusLine } from '../status-line/status-line';
@@ -24,6 +25,7 @@ export class AppBar {
   protected readonly actions = inject(RideActions);
   protected readonly dialogs = inject(DialogLauncher);
   protected readonly cues = inject(CueService);
+  protected readonly theme = inject(ThemeService);
 
   protected readonly badge = computed(() => {
     const w = this.workout();

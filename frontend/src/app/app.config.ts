@@ -2,6 +2,8 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   type ApplicationConfig,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -10,12 +12,14 @@ import { routes } from './app.routes';
 import { apiKeyInterceptor } from './core/api-key.interceptor';
 import { BIKE_API } from './core/bike-api';
 import { HttpBikeApi, HttpWorkoutApi } from './core/http-api';
+import { ThemeService } from './core/theme.service';
 import { WORKOUT_API } from './core/workout-api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
+    provideAppInitializer(() => void inject(ThemeService)),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([apiKeyInterceptor])),
     { provide: BIKE_API, useClass: HttpBikeApi },

@@ -67,6 +67,15 @@
     <button
       class="btn btn--quiet btn--icon"
       type="button"
+      aria-label="Light theme"
+      [attr.aria-pressed]="theme.theme() === 'light'"
+      (click)="theme.toggle()"
+    >
+      <wz-icon [name]="theme.theme() === 'light' ? 'moon' : 'sun'" />
+    </button>
+    <button
+      class="btn btn--quiet btn--icon"
+      type="button"
       aria-label="Diagnostics"
       (click)="dialogs.openDiagnostics()"
     >

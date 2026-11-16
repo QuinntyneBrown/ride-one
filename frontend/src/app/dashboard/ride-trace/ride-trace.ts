@@ -14,6 +14,7 @@ import {
 import type { BikeState } from '../../core/api-types';
 import { FrameScheduler } from '../../core/frame-scheduler';
 import { PowerTraceStore } from '../../core/power-trace.store';
+import { ThemeService } from '../../core/theme.service';
 import { traceDrawList } from '../../core/trace-draw-list';
 import { traceGeometry } from '../../core/trace-geometry';
 import {
@@ -38,6 +39,7 @@ export class RideTrace {
 
   private readonly store = inject(PowerTraceStore);
   private readonly frames = inject(FrameScheduler);
+  private readonly theme = inject(ThemeService);
   private readonly status = inject(TraceRendererStatus);
   private readonly factory = inject(TRACE_RENDERER_FACTORY);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -63,13 +65,14 @@ export class RideTrace {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
-    const schemes = matchMedia('(prefers-color-scheme: dark)');
-    const onScheme = (): void => {
-      this.colors = null;
-      this.frames.requestDraw(this.draw);
-    };
-    schemes.addEventListener('change', onScheme);
-
+    // A theme change re-reads the colours and redraws (L2-061 AC5).
+    effect(() => {
+      this.theme.theme();
+      untracked(() => {
+        this.colors = null;
+        this.frames.requestDraw(this.draw);
+      });
+    });
     effect(() => {
       const canvas = this.canvasRef()?.nativeElement;
       const plot = this.plot()?.nativeElement;
@@ -82,7 +85,6 @@ export class RideTrace {
     });
     afterNextRender(() => this.frames.requestDraw(this.draw));
     destroyRef.onDestroy(() => {
-      schemes.removeEventListener('change', onScheme);
       this.detach();
     });
   }

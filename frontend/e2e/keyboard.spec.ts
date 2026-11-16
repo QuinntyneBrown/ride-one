@@ -22,6 +22,7 @@ test.describe('Keyboard use (L2-041)', () => {
       ride.pauseButton,
       ride.endButton,
       ride.beepsButton,
+      ride.themeButton,
       ride.diagnosticsButton,
       ride.lowerButton,
       ride.raiseButton,

@@ -23,7 +23,7 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Persist the status snapshot](live-state/persist-status-snapshot/README.md) | `L2-031` |
 | dashboard | [Show connection status](dashboard/show-connection-status/README.md) | `L2-018`, `L2-054`, `L2-058` |
 |  | [Show live metrics](dashboard/show-live-metrics/README.md) | `L2-021`, `L2-022`, `L2-026`, `L2-028` |
-|  | [Responsive and accessible layout](dashboard/responsive-accessible-layout/README.md) | `L2-040`, `L2-041` |
+|  | [Responsive and accessible layout](dashboard/responsive-accessible-layout/README.md) | `L2-040`, `L2-041`, `L2-061` |
 |  | [Dialogs and notifications](dashboard/dialogs-and-notifications/README.md) | `L2-023`, `L2-051`, `L2-053` |
 |  | [Unlock and not-found pages](dashboard/unlock-and-not-found/README.md) | `L2-055`, `L2-056` |
 | platform | [Secure the API](platform/secure-api/README.md) | `L2-034`, `L2-035`, `L2-036` |

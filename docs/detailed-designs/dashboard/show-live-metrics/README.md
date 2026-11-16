@@ -37,8 +37,8 @@ Core helpers and services (`frontend/src/app/core/`, each with unit tests):
   - `kcal` and `packets` with a thousands separator (`1,284`) through `Intl.NumberFormat('en')`.
 - **`traceGeometry(workout, elapsed)`** — pure scene builder for the trace (L2-026):
   - `blocks`: one per segment from `start` to `start + duration` at its target power. Each has a phase class: `work` for work and steady, `rest` for recover, `easy` for warm-up and cool-down. Each has a `past` flag when `start + duration ≤ elapsed`.
-  - `yMax = max(300, ceil(max target × 1.3 ÷ 100) × 100)` W, shown as `trace__max` (`500 W` for the default plan).
-  - `ticks`: the smallest step of 2, 5, 10, 15, 30 or 60 minutes that gives 8 or fewer ticks from `0:00`. The default 12:40 ride gets `0:00` to `12:00` every 2 minutes.
+  - `yMax = max(300, ceil(max target × 1.3 ÷ 100) × 100)` W, shown as `trace__max` (`500 W` for an 8 × 0:40 / 0:20 plan at work 18, `600 W` for the default plan at work 26).
+  - `ticks`: the smallest step of 2, 5, 10, 15, 30 or 60 minutes that gives 8 or fewer ticks from `0:00`. A 12:40 ride gets `0:00` to `12:00` every 2 minutes; the default 22:40 ride gets `0:00` to `20:00` every 5 minutes.
   - `planAverage`: the time-weighted mean target power, used in the text summary.
   - `legend`: Actual and Work target, plus Recover for `hiit`.
 - **`PowerTraceStore`** — root service holding the browser copy of `PowerTraceHistory` (`live-state/serve-power-trace`) as 2 `Int32Array`s of 10,800 entries (`platform/observability-and-resources`).

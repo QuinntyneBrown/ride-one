@@ -15,6 +15,8 @@ export type IconName =
   | 'close'
   | 'bell'
   | 'bell-off'
+  | 'sun'
+  | 'moon'
   | 'alert-circle'
   | 'info'
   | 'check-circle'
