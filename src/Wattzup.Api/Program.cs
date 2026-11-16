@@ -1,6 +1,7 @@
 using Wattzup.Api;
 using Wattzup.Api.Bluetooth;
 using Wattzup.Api.Endpoints;
+using Wattzup.Api.Security;
 using Wattzup.Core.Bluetooth;
 using Wattzup.Core.State;
 using Wattzup.Core.Telemetry;
@@ -21,6 +22,9 @@ builder.Services.Configure<BikeOptions>(builder.Configuration.GetSection(BikeOpt
 // The state contract keeps the prototype's snake_case names, and writes nulls (L2-014).
 builder.Services.ConfigureHttpJsonOptions(json => WattzupJson.Configure(json.SerializerOptions));
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+var security = builder.Configuration.GetSection(SecurityOptions.SectionName).Get<SecurityOptions>() ?? new SecurityOptions();
+builder.Services.AddWattzupRateLimits(security);
 
 var transportName = TransportSelector.Resolve(builder.Configuration[$"{ConnectivityOptions.SectionName}:Transport"]);
 var displayName = builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"];
@@ -48,9 +52,12 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<BikeConnectionServ
 
 var app = builder.Build();
 
+app.UseRateLimiter();
 app.MapOpenApi();
 app.MapStatusEndpoints();
-app.MapGroup("/api").MapEventsEndpoints();
+var api = app.MapGroup("/api");
+api.MapEventsEndpoints();
+api.MapBikeEndpoints();
 
 app.Run();
 
