@@ -26,10 +26,6 @@
   border-color: var(--color-border-strong);
 }
 .mode-card:has(input:checked) {
-  border-color: var(--color-accent);
-  background: var(--color-bg-subtle);
-}
-:host-context([data-theme='light']) .mode-card:has(input:checked) {
   border-color: var(--color-fg-accent);
   background: var(--color-accent-subtle);
 }

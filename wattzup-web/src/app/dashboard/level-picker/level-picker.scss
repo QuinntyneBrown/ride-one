@@ -24,10 +24,7 @@
 }
 .level-picker button[aria-pressed='true'],
 .level-picker button.is-lit {
-  background: var(--color-volt-fill);
-}
-:host-context([data-theme='light']) .level-picker button.is-lit,
-:host-context([data-theme='light']) .level-picker button[aria-pressed='true'] {
+  /* volt-300 in the dark theme, the darker work green in the light theme */
   background: var(--color-series-work);
 }
 .level-picker button.is-plan {
