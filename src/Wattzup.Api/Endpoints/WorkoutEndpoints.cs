@@ -45,7 +45,8 @@ public static class WorkoutEndpoints
         workout.MapGet("/trace", (PowerTraceHistory history) =>
                 TypedResults.Ok(new PowerTrace([.. history.Snapshot().Select(s => new[] { s.RideSeconds, s.Power })])))
             .WithName("GetWorkoutTrace")
-            .WithSummary("The ride's power trace, one sample per running second.");
+            .WithSummary("The ride's power trace, one sample per running second.")
+            .RequireRateLimiting(Security.RateLimits.Control);
 
         return api;
     }

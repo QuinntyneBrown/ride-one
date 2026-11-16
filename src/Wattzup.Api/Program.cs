@@ -5,6 +5,7 @@ using Wattzup.Api.Security;
 using Wattzup.Core.Bluetooth;
 using Wattzup.Core.State;
 using Wattzup.Core.Resistance;
+using Wattzup.Core.Security;
 using Wattzup.Core.Telemetry;
 using Wattzup.Core.Workouts;
 
@@ -27,6 +28,21 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 var security = builder.Configuration.GetSection(SecurityOptions.SectionName).Get<SecurityOptions>() ?? new SecurityOptions();
 builder.Services.AddWattzupRateLimits(security);
+builder.Services.Configure<WattzupOptions>(builder.Configuration.GetSection(WattzupOptions.SectionName));
+builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection(SecurityOptions.SectionName));
+builder.Services.AddHostedService<BindAddressGuard>();
+builder.Services.AddSingleton<EventTokenService>();
+var keyed = !string.IsNullOrEmpty(security.ApiKey);
+if (keyed)
+{
+    builder.Services.AddAuthentication(ApiKeyAuthenticationHandler.SchemeName)
+        .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationHandler.SchemeName, null);
+    builder.Services.AddAuthorization();
+}
+
+var origins = builder.Configuration.GetSection(Wattzup.Api.Security.CorsOptions.SectionName).Get<Wattzup.Api.Security.CorsOptions>()?.Origins ?? [];
+builder.Services.AddCors(cors => cors.AddDefaultPolicy(policy =>
+    policy.WithOrigins([.. origins]).WithHeaders("Content-Type", ApiKeyAuthenticationHandler.Header).WithMethods("GET", "POST")));
 
 var transportName = TransportSelector.Resolve(builder.Configuration[$"{ConnectivityOptions.SectionName}:Transport"]);
 var displayName = builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"];
@@ -68,10 +84,31 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<BikeConnectionServ
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+app.UseMiddleware<SecurityHeadersMiddleware>();
+app.UseMiddleware<BodySizeLimitMiddleware>();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors();
+if (keyed)
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
+
 app.UseRateLimiter();
+app.UseAppShell();
 app.MapOpenApi();
-app.MapStatusEndpoints();
+app.MapHealthEndpoint();
 var api = app.MapGroup("/api");
+if (keyed)
+{
+    api.RequireAuthorization();
+}
+
+api.MapStatusEndpoints();
+api.MapEventTokenEndpoints();
 api.MapEventsEndpoints();
 api.MapBikeEndpoints();
 api.MapResistanceEndpoints();

@@ -12,3 +12,12 @@ public sealed class SecurityOptions
 
     public TimeSpan ControlWindow { get; set; } = TimeSpan.FromSeconds(1);
 }
+
+/// <summary><c>Wattzup:Cors</c> (L2-034).</summary>
+public sealed class CorsOptions
+{
+    public const string SectionName = "Wattzup:Cors";
+
+    /// <summary>Origins allowed to call the API cross-origin; empty (the default) allows none.</summary>
+    public IReadOnlyList<string> Origins { get; set; } = [];
+}
