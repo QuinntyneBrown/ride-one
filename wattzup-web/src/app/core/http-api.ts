@@ -6,9 +6,9 @@ import { SKIP_UNLOCK_REDIRECT } from './api-key.interceptor';
 import type {
   BikeState,
   EventToken,
-  PacketLines,
+  RecentPackets,
   PowerTrace,
-  StartWorkoutResponse,
+  WorkoutStarted,
   WorkoutPlan,
   WorkoutSnapshot,
 } from './api-types';
@@ -42,7 +42,7 @@ export class HttpBikeApi implements BikeApi {
   }
 
   async diagnosticsPackets(): Promise<string[]> {
-    return (await firstValueFrom(this.http.get<PacketLines>('/api/diagnostics/packets'))).lines;
+    return (await firstValueFrom(this.http.get<RecentPackets>('/api/diagnostics/packets'))).lines;
   }
 
   async reconnect(): Promise<void> {
@@ -71,8 +71,7 @@ export class HttpWorkoutApi implements WorkoutApi {
   private readonly http = inject(HttpClient);
 
   async start(plan: WorkoutPlan): Promise<WorkoutSnapshot> {
-    return (await firstValueFrom(this.http.post<StartWorkoutResponse>('/api/workout', plan)))
-      .started;
+    return (await firstValueFrom(this.http.post<WorkoutStarted>('/api/workout', plan))).started;
   }
 
   async stop(): Promise<void> {

@@ -27,7 +27,9 @@ test.describe('Unlock page (L2-055)', () => {
   }) => {
     api.on('GET', '/api/status', keyed);
     api.on('POST', '/api/events/token', (r) =>
-      r.headers()['x-api-key'] === KEY ? { json: { token: 'tok-1' } } : { status: 401, json: {} },
+      r.headers()['x-api-key'] === KEY
+        ? { json: { token: 'tok-1', expires_in: 60 } }
+        : { status: 401, json: {} },
     );
     await page.goto('/');
     const unlock = new UnlockPage(page);
@@ -118,7 +120,7 @@ test.describe('Unlock page (L2-055)', () => {
 
   test('never returns to another origin', async ({ page, api }) => {
     api.on('GET', '/api/status', keyed);
-    api.on('POST', '/api/events/token', { json: { token: 'tok-2' } });
+    api.on('POST', '/api/events/token', { json: { token: 'tok-2', expires_in: 60 } });
     await page.goto('/unlock?returnUrl=%2F%2Fevil.example');
     const unlock = new UnlockPage(page);
     await unlock.keyField.fill(KEY);

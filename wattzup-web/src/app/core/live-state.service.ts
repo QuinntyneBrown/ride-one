@@ -2,7 +2,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiKeyStore } from './api-key.store';
-import type { BikeState } from './api-types';
+import type { BikeState, StreamMessage } from './api-types';
 import { BIKE_API } from './bike-api';
 import type { StreamConnection } from './stream-connection';
 
@@ -98,9 +98,9 @@ export class LiveStateService {
     this.source = source;
     source.onmessage = (event: MessageEvent<string>) => {
       if (this.source !== source) return;
-      let next: BikeState;
+      let next: StreamMessage;
       try {
-        next = JSON.parse(event.data) as BikeState;
+        next = JSON.parse(event.data) as StreamMessage;
       } catch {
         return;
       }

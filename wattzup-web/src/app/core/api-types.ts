@@ -1,20 +1,28 @@
-// The one module that names the generated OpenAPI types (src/app/api/schema.d.ts).
-// If the generated schema names differ, only these aliases change.
+// The one module that names the generated OpenAPI types (src/app/api/schema.d.ts, written by
+// `npm run generate:api`). If the generated schema names change, only these aliases change.
 import type { components } from '../api/schema';
 
 type Schemas = components['schemas'];
 
 export type BikeState = Schemas['BikeState'];
+/** A message on /api/events: the state plus the server's send time (not part of BikeState). */
+export type StreamMessage = BikeState & { ts?: number };
 export type WorkoutSnapshot = Schemas['WorkoutSnapshot'];
 export type Segment = Schemas['Segment'];
 export type SegmentKind = Segment['kind'];
 export type WorkoutStatus = WorkoutSnapshot['status'];
 export type CommandEntry = Schemas['CommandEntry'];
-export type HiitPlan = Schemas['HiitPlan'];
-export type FlatPlan = Schemas['FlatPlan'];
-export type WorkoutPlan = HiitPlan | FlatPlan;
+export type HiitPlan = Schemas['WorkoutPlanHiitPlan'];
+export type FlatPlan = Schemas['WorkoutPlanFlatPlan'];
+export type WorkoutPlan = Schemas['WorkoutPlan'];
 export type PowerTrace = Schemas['PowerTrace'];
-export type PacketLines = Schemas['PacketLines'];
+export type RecentPackets = Schemas['RecentPackets'];
 export type EventToken = Schemas['EventToken'];
+export type HealthReport = Schemas['HealthReport'];
 export type ProblemDetails = Schemas['ProblemDetails'];
-export type StartWorkoutResponse = Schemas['StartWorkoutResponse'];
+export type ValidationProblemDetails = Schemas['HttpValidationProblemDetails'];
+export type SetResistanceRequest = Schemas['SetResistanceRequest'];
+export type ResistanceSent = Schemas['ResistanceSent'];
+export type WorkoutStarted = Schemas['WorkoutStarted'];
+export type WorkoutStopped = Schemas['WorkoutStopped'];
+export type WorkoutChanged = Schemas['WorkoutChanged'];
