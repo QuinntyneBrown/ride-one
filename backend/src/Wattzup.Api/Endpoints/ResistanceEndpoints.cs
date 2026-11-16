@@ -23,6 +23,7 @@ public static class ResistanceEndpoints
             .Accepts<SetResistanceRequest>("application/json")
             .Produces<ResistanceSent>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status415UnsupportedMediaType)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
             .RequireRateLimiting(Security.RateLimits.Control);
@@ -49,6 +50,7 @@ public static class ResistanceEndpoints
         return await control.SetManualAsync(level, request.HttpContext.RequestAborted) switch
         {
             SendResult.SentResult => TypedResults.Ok(new ResistanceSent(level)),
+            SendResult.WrongMachineResult => TreadmillEndpoints.WrongMachine("The bike is not the chosen machine."),
             SendResult.NotConnectedResult => Problems.WithCode(StatusCodes.Status503ServiceUnavailable, "bike_not_connected", "The bike is not connected.", new Dictionary<string, object?> { ["error"] = "bike not connected" }),
             SendResult.FailedResult failed => Problems.WithCode(StatusCodes.Status503ServiceUnavailable, "send_failed", "The bike did not take the command.", new Dictionary<string, object?> { ["error"] = $"set resistance failed: {failed.Message}" }),
             _ => throw new InvalidOperationException("Unknown send result."),

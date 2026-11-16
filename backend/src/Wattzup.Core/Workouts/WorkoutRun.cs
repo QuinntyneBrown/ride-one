@@ -43,6 +43,15 @@ internal sealed class WorkoutRun
 
     public int? LastSentLevel { get; set; }
 
+    /// <summary>Treadmill: the speed last sent, km/h (L2-068).</summary>
+    public double? LastSentSpeed { get; set; }
+
+    /// <summary>Treadmill: the incline last sent, % (L2-068).</summary>
+    public int? LastSentIncline { get; set; }
+
+    /// <summary>A manual command took over from the plan until the next segment (L2-047, L2-068).</summary>
+    public void EnterManual() => Mode = ResistanceMode.Manual;
+
     public DateTimeOffset? DisconnectedSince { get; set; }
 
     public RideTotals Totals { get; set; } = RideTotals.Empty;

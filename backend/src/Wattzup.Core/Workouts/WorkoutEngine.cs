@@ -1,9 +1,11 @@
 using System.Threading.Channels;
 using Microsoft.Extensions.Hosting;
 using Wattzup.Core.Bluetooth;
+using Wattzup.Core.Machines;
 using Wattzup.Core.Resistance;
 using Wattzup.Core.State;
 using Wattzup.Core.Telemetry;
+using Wattzup.Core.Treadmill;
 
 namespace Wattzup.Core.Workouts;
 
@@ -13,15 +15,39 @@ public interface IResistanceControl
     Task<SendResult> SetManualAsync(int level, CancellationToken cancellationToken);
 }
 
+/// <summary>The one Core service behind <c>POST /api/speed</c> and <c>POST /api/incline</c> (L2-068, L2-069).</summary>
+public interface ITreadmillControl
+{
+    Task<SendResult> SetManualSpeedAsync(double kmh, CancellationToken cancellationToken);
+
+    Task<SendResult> SetManualInclineAsync(int percent, CancellationToken cancellationToken);
+}
+
+/// <summary>The outcome of choosing a machine (L2-062).</summary>
+public enum MachineChoice
+{
+    Changed,
+    Unchanged,
+    WorkoutActive,
+}
+
+/// <summary>The one Core service behind <c>POST /api/machine</c> (L2-062).</summary>
+public interface IMachineControl
+{
+    Task<MachineChoice> ChooseAsync(Machine machine, CancellationToken cancellationToken);
+}
+
 /// <summary>
 /// Owns at most one workout run. Commands and the 1-second ticks run one at a time on one loop, so no lock guards
 /// the run (L2-011 to L2-013, L2-046, L2-047, L2-049, L2-050).
 /// </summary>
 public sealed class WorkoutEngine(
     IResistanceCommander commander,
+    ITreadmillCommander treadmill,
+    MachineSelector machines,
     BikeStateStore store,
     ActiveConnectionRegistry registry,
-    PowerTraceHistory trace) : BackgroundService, IResistanceControl
+    PowerTraceHistory trace) : BackgroundService, IResistanceControl, ITreadmillControl, IMachineControl
 {
     public static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
     public static readonly TimeSpan ShutOffGrace = TimeSpan.FromSeconds(90);
@@ -120,6 +146,11 @@ public sealed class WorkoutEngine(
         PostAsync(
             async () =>
             {
+                if (store.Current.Machine != Machine.Bike)
+                {
+                    return SendResult.WrongMachine;
+                }
+
                 var result = await commander.SendAsync(level, CommandSource.Manual, _run?.Elapsed, cancellationToken).ConfigureAwait(false);
                 if (result is SendResult.SentResult && _run is { IsActive: true } run)
                 {
@@ -129,6 +160,72 @@ public sealed class WorkoutEngine(
                 }
 
                 return result;
+            },
+            cancellationToken);
+
+    /// <summary>A manual speed: during a ride it overrides the plan until the next segment (L2-068).</summary>
+    public Task<SendResult> SetManualSpeedAsync(double kmh, CancellationToken cancellationToken) =>
+        PostAsync(
+            async () =>
+            {
+                if (store.Current.Machine != Machine.Treadmill)
+                {
+                    return SendResult.WrongMachine;
+                }
+
+                var result = await treadmill.SendSpeedAsync(kmh, CommandSource.Manual, _run?.Elapsed, cancellationToken).ConfigureAwait(false);
+                if (result is SendResult.SentResult && _run is { IsActive: true } run)
+                {
+                    run.EnterManual();
+                    run.LastSentSpeed = kmh;
+                    Publish(run);
+                }
+
+                return result;
+            },
+            cancellationToken);
+
+    /// <summary>A manual incline: during a ride it overrides the plan until the next segment (L2-068).</summary>
+    public Task<SendResult> SetManualInclineAsync(int percent, CancellationToken cancellationToken) =>
+        PostAsync(
+            async () =>
+            {
+                if (store.Current.Machine != Machine.Treadmill)
+                {
+                    return SendResult.WrongMachine;
+                }
+
+                var result = await treadmill.SendInclineAsync(percent, CommandSource.Manual, _run?.Elapsed, cancellationToken).ConfigureAwait(false);
+                if (result is SendResult.SentResult && _run is { IsActive: true } run)
+                {
+                    run.EnterManual();
+                    run.LastSentIncline = percent;
+                    Publish(run);
+                }
+
+                return result;
+            },
+            cancellationToken);
+
+    /// <summary>Chooses the machine; refused while a workout is active (L2-062).</summary>
+    public Task<MachineChoice> ChooseAsync(Machine machine, CancellationToken cancellationToken) =>
+        PostAsync(
+            () =>
+            {
+                if (store.Current.Machine == machine)
+                {
+                    return Task.FromResult(MachineChoice.Unchanged);
+                }
+
+                if (_run is { IsActive: true })
+                {
+                    return Task.FromResult(MachineChoice.WorkoutActive);
+                }
+
+                _run = null;
+                trace.Reset();
+                machines.Select(machine);
+                return Task.FromResult(MachineChoice.Changed);
             },
             cancellationToken);
 
