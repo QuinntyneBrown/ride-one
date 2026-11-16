@@ -10,7 +10,16 @@ const base = process.argv[2] ?? 'http://127.0.0.1:8787';
 const out = new URL('../e2e/fixtures/recorded/', import.meta.url);
 mkdirSync(out, { recursive: true });
 
-const plan = { kind: 'hiit', rounds: 8, work_seconds: 40, rest_seconds: 20, work_level: 18, rest_level: 6, warmup: true, cooldown: true };
+const plan = {
+  kind: 'hiit',
+  rounds: 8,
+  work_seconds: 40,
+  rest_seconds: 20,
+  work_level: 18,
+  rest_level: 6,
+  warmup: true,
+  cooldown: true,
+};
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function call(method, path, body, contentType = 'application/json') {
@@ -24,7 +33,9 @@ async function call(method, path, body, contentType = 'application/json') {
 
 function save(name, response, expectedStatus) {
   if (response.status !== expectedStatus) {
-    throw new Error(`${name}: expected ${expectedStatus}, got ${response.status} ${JSON.stringify(response.json)}`);
+    throw new Error(
+      `${name}: expected ${expectedStatus}, got ${response.status} ${JSON.stringify(response.json)}`,
+    );
   }
   writeFileSync(new URL(`${name}.json`, out), JSON.stringify(response.json, null, 2) + '\n');
   console.log(`recorded ${name} (${response.status})`);
@@ -40,10 +51,18 @@ for (let i = 0; ; i++) {
 await call('POST', '/api/workout/stop');
 save('status-free-ride', await call('GET', '/api/status'), 200);
 save('problem-no-active-workout', await call('POST', '/api/workout/pause'), 409);
-save('problem-invalid-workout', await call('POST', '/api/workout', { ...plan, work_seconds: 3601 }), 400);
+save(
+  'problem-invalid-workout',
+  await call('POST', '/api/workout', { ...plan, work_seconds: 3601 }),
+  400,
+);
 save('problem-invalid-json', await call('POST', '/api/workout', '{"kind":'), 400);
 save('problem-invalid-level', await call('POST', '/api/resistance', { level: 33 }), 400);
-save('problem-unsupported-media-type', await call('POST', '/api/resistance', 'level=12', 'text/plain'), 415);
+save(
+  'problem-unsupported-media-type',
+  await call('POST', '/api/resistance', 'level=12', 'text/plain'),
+  415,
+);
 save('problem-already-connected', await call('POST', '/api/bike/reconnect'), 409);
 save('problem-not-found', await call('GET', '/api/nope'), 404);
 save('resistance-sent', await call('POST', '/api/resistance', { level: 10 }), 200);
@@ -57,4 +76,6 @@ save('workout-stopped', await call('POST', '/api/workout/stop'), 200);
 save('packets', await call('GET', '/api/diagnostics/packets'), 200);
 save('health', await call('GET', '/health'), 200);
 
-execFileSync('npx', ['prettier', '--write', '--log-level', 'warn', new URL('.', out).pathname], { stdio: 'inherit' });
+execFileSync('npx', ['prettier', '--write', '--log-level', 'warn', new URL('.', out).pathname], {
+  stdio: 'inherit',
+});
