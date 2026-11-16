@@ -6,10 +6,11 @@ namespace Wattzup.Protocol;
 /// </summary>
 public static class EchelonTreadmillCommands
 {
-    public const double MinSpeedKmh = 1.0;
-    public const double MaxSpeedKmh = 16.0;
+    /// <summary>The Echelon Stride's own range, 0.5 to 12 mph (ADR 0010).</summary>
+    public const double MinSpeedKmh = 0.8;
+    public const double MaxSpeedKmh = 19.3;
     public const int MinIncline = 0;
-    public const int MaxIncline = 15;
+    public const int MaxIncline = 10;
 
     /// <summary>The three init requests, in order (L2-063).</summary>
     public static IReadOnlyList<ReadOnlyMemory<byte>> InitSequence { get; } =
@@ -35,11 +36,11 @@ public static class EchelonTreadmillCommands
     /// <summary>The counter after <paramref name="counter"/>: 1 to 255, then 1 again, never 0.</summary>
     public static byte NextKeepaliveCounter(byte counter) => counter == 255 ? (byte)1 : (byte)(counter + 1);
 
-    /// <summary>True when <paramref name="kmh"/> is 1.0 to 16.0 in steps of 0.1 (L2-065).</summary>
+    /// <summary>True when <paramref name="kmh"/> is 0.8 to 19.3 in steps of 0.1 (L2-065).</summary>
     public static bool IsValidSpeed(double kmh) =>
         kmh is >= MinSpeedKmh and <= MaxSpeedKmh && Math.Abs((kmh * 10) - Math.Round(kmh * 10)) < 1e-9;
 
-    /// <summary>True when <paramref name="percent"/> is 0 to 15 (L2-065).</summary>
+    /// <summary>True when <paramref name="percent"/> is 0 to 10 (L2-065).</summary>
     public static bool IsValidIncline(int percent) => percent is >= MinIncline and <= MaxIncline;
 
     /// <summary><c>F0 B2 02 &lt;hi&gt; &lt;lo&gt; &lt;checksum&gt;</c>, the speed in metres per hour (L2-065).</summary>
@@ -47,7 +48,7 @@ public static class EchelonTreadmillCommands
     {
         if (!IsValidSpeed(kmh))
         {
-            throw new ArgumentOutOfRangeException(nameof(kmh), kmh, "The speed must be 1.0 to 16.0 km/h in steps of 0.1.");
+            throw new ArgumentOutOfRangeException(nameof(kmh), kmh, "The speed must be 0.8 to 19.3 km/h in steps of 0.1.");
         }
 
         var metresPerHour = (int)Math.Round(kmh * 1000, MidpointRounding.AwayFromZero);
@@ -60,7 +61,7 @@ public static class EchelonTreadmillCommands
     {
         if (!IsValidIncline(percent))
         {
-            throw new ArgumentOutOfRangeException(nameof(percent), percent, "The incline must be 0 to 15 %.");
+            throw new ArgumentOutOfRangeException(nameof(percent), percent, "The incline must be 0 to 10 %.");
         }
 
         byte[] body = [0xF0, 0xB1, 0x01, (byte)percent];

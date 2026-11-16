@@ -20,8 +20,8 @@ public sealed record InclineSent(int Sent);
 /// <summary><c>POST /api/speed</c> and <c>POST /api/incline</c> (L2-069).</summary>
 public static class TreadmillEndpoints
 {
-    public const string InvalidSpeed = "speed must be 1.0-16.0";
-    public const string InvalidIncline = "incline must be 0-15";
+    public const string InvalidSpeed = "speed must be 0.8-19.3";
+    public const string InvalidIncline = "incline must be 0-10";
 
     public static RouteGroupBuilder MapTreadmillEndpoints(this RouteGroupBuilder api)
     {

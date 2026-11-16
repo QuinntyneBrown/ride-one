@@ -68,9 +68,23 @@ public sealed class TreadmillControlTests
         Assert.Equal("incline", state.GetProperty("commands")[0].GetProperty("command").GetString());
     }
 
+    [Fact]
+    public async Task Given_the_treadmill_when_the_Strides_top_speed_and_incline_are_posted_then_they_are_written()
+    {
+        await using var treadmill = await TreadmillAsync();
+
+        using var speed = await treadmill.PostAsync("/api/speed", new { speed = 19.3 });
+        using var incline = await treadmill.PostAsync("/api/incline", new { incline = 10 });
+
+        Assert.Equal(HttpStatusCode.OK, speed.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, incline.StatusCode);
+        Assert.Contains(treadmill.Factory.Simulation.Writes, w => Convert.ToHexString(w.Bytes) == "F0B2024B6453");
+        Assert.Contains(treadmill.Factory.Simulation.Writes, w => Convert.ToHexString(w.Bytes) == "F0B1010AAC");
+    }
+
     [Theory]
-    [InlineData("{\"speed\":0.9}")]
-    [InlineData("{\"speed\":16.1}")]
+    [InlineData("{\"speed\":0.7}")]
+    [InlineData("{\"speed\":19.4}")]
     [InlineData("{\"speed\":9.25}")]
     [InlineData("{\"speed\":\"9\"}")]
     [InlineData("{}")]
@@ -84,12 +98,12 @@ public sealed class TreadmillControlTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await Bike.JsonAsync(response);
         Assert.Equal("invalid_speed", problem.GetProperty("code").GetString());
-        Assert.Equal("speed must be 1.0-16.0", problem.GetProperty("error").GetString());
+        Assert.Equal("speed must be 0.8-19.3", problem.GetProperty("error").GetString());
     }
 
     [Theory]
     [InlineData("{\"incline\":-1}")]
-    [InlineData("{\"incline\":16}")]
+    [InlineData("{\"incline\":11}")]
     [InlineData("{\"incline\":2.5}")]
     [InlineData("{}")]
     public async Task Given_an_invalid_incline_then_the_answer_is_400_invalid_incline(string body)
@@ -101,7 +115,7 @@ public sealed class TreadmillControlTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await Bike.JsonAsync(response);
         Assert.Equal("invalid_incline", problem.GetProperty("code").GetString());
-        Assert.Equal("incline must be 0-15", problem.GetProperty("error").GetString());
+        Assert.Equal("incline must be 0-10", problem.GetProperty("error").GetString());
     }
 
     [Fact]

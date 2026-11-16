@@ -3,6 +3,6 @@
   "title": "The incline is not valid.",
   "status": 400,
   "code": "invalid_incline",
-  "error": "incline must be 0-15",
-  "trace_id": "00-4f365b119d2d6e1dd021364d852b4ab9-1725d6d14c983804-00"
+  "error": "incline must be 0-10",
+  "trace_id": "00-fb13d437c58d47b1cfd927af4ebd5989-b78a77bf8ffb9cc9-00"
 }

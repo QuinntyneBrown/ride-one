@@ -105,14 +105,14 @@ save('problem-invalid-machine', await call('POST', '/api/machine', { machine: 'r
 save('machine-treadmill', await call('POST', '/api/machine', { machine: 'treadmill' }), 200);
 await waitConnected('treadmill');
 save('status-treadmill-idle', await call('GET', '/api/status'), 200);
-save('problem-invalid-speed', await call('POST', '/api/speed', { speed: 16.5 }), 400);
-save('problem-invalid-incline', await call('POST', '/api/incline', { incline: 16 }), 400);
+save('problem-invalid-speed', await call('POST', '/api/speed', { speed: 19.4 }), 400);
+save('problem-invalid-incline', await call('POST', '/api/incline', { incline: 11 }), 400);
 save('problem-wrong-machine-resistance', await call('POST', '/api/resistance', { level: 10 }), 409);
 save('speed-sent', await call('POST', '/api/speed', { speed: 8.5 }), 200);
 save('incline-sent', await call('POST', '/api/incline', { incline: 2 }), 200);
 save(
   'problem-invalid-treadmill-workout',
-  await call('POST', '/api/workout', { ...treadmillPlan, work_speed: 16.5 }),
+  await call('POST', '/api/workout', { ...treadmillPlan, work_speed: 19.4 }),
   400,
 );
 save('treadmill-workout-started', await call('POST', '/api/workout', treadmillPlan), 200);

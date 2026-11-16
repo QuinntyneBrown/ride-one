@@ -55,13 +55,13 @@ public sealed class TreadmillPlanTests
     }
 
     [Theory]
-    [InlineData("work_speed", "0.9", "Speed must be 1.0 to 16.0 km/h.")]
-    [InlineData("rest_speed", "16.1", "Speed must be 1.0 to 16.0 km/h.")]
+    [InlineData("work_speed", "0.7", "Speed must be 0.8 to 19.3 km/h.")]
+    [InlineData("rest_speed", "19.4", "Speed must be 0.8 to 19.3 km/h.")]
     [InlineData("work_speed", "9.25", "Enter a speed like 9.0.")]
     [InlineData("rest_speed", "\"7\"", "Enter a speed like 9.0.")]
     [InlineData("work_speed", "<missing>", "Enter a speed like 9.0.")]
-    [InlineData("work_incline", "-1", "Incline must be 0 to 15 %.")]
-    [InlineData("rest_incline", "16", "Incline must be 0 to 15 %.")]
+    [InlineData("work_incline", "-1", "Incline must be 0 to 10 %.")]
+    [InlineData("rest_incline", "11", "Incline must be 0 to 10 %.")]
     [InlineData("work_incline", "2.5", "Enter a whole number.")]
     [InlineData("rest_incline", "<missing>", "Enter a whole number.")]
     [InlineData("rounds", "0", "Enter 1 to 30 rounds.")]
@@ -76,10 +76,10 @@ public sealed class TreadmillPlanTests
     }
 
     [Theory]
-    [InlineData("speed", "0.9", "Speed must be 1.0 to 16.0 km/h.")]
-    [InlineData("speed", "16.1", "Speed must be 1.0 to 16.0 km/h.")]
+    [InlineData("speed", "0.7", "Speed must be 0.8 to 19.3 km/h.")]
+    [InlineData("speed", "19.4", "Speed must be 0.8 to 19.3 km/h.")]
     [InlineData("speed", "7.05", "Enter a speed like 9.0.")]
-    [InlineData("incline", "16", "Incline must be 0 to 15 %.")]
+    [InlineData("incline", "11", "Incline must be 0 to 10 %.")]
     [InlineData("incline", "\"2\"", "Enter a whole number.")]
     [InlineData("minutes", "181", "Enter 1 to 180 minutes.")]
     public void Each_flat_field_outside_its_range_is_named_with_its_message(string field, string value, string message)

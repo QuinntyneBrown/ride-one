@@ -227,7 +227,7 @@ test.describe('Treadmill plan on setup (L2-072, L2-067)', () => {
     const setup = new SetupPage(page, api, events);
     await setup.open(treadmillIdle());
     await setup.startButton.click();
-    await expect(setup.startError).toContainText('Speed must be 1.0 to 16.0 km/h.');
+    await expect(setup.startError).toContainText('Speed must be 0.8 to 19.3 km/h.');
   });
 
   test('restores the last submitted treadmill plan after a reload', async ({

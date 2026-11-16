@@ -17,9 +17,9 @@ public static class WorkoutPlanValidator
     public const string WholeNumber = "Enter a whole number.";
     public const string OnOrOff = "Choose on or off.";
     public const string LevelRange = "Level must be 1 to 32.";
-    public const string SpeedRange = "Speed must be 1.0 to 16.0 km/h.";
+    public const string SpeedRange = "Speed must be 0.8 to 19.3 km/h.";
     public const string SpeedFormat = "Enter a speed like 9.0.";
-    public const string InclineRange = "Incline must be 0 to 15 %.";
+    public const string InclineRange = "Incline must be 0 to 10 %.";
 
     public static PlanValidationResult Validate(JsonElement body) => Validate(body, Machine.Bike);
 
@@ -89,7 +89,7 @@ public static class WorkoutPlanValidator
         return new FlatPlan(null, minutes, null, speed, incline);
     }
 
-    /// <summary>A speed of 1.0 to 16.0 km/h with at most one decimal (L2-067).</summary>
+    /// <summary>A speed of 0.8 to 19.3 km/h with at most one decimal (L2-067).</summary>
     private static double Speed(JsonElement body, string field, Dictionary<string, string[]> errors)
     {
         if (!body.TryGetProperty(field, out var value) || value.ValueKind != JsonValueKind.Number || !value.TryGetDouble(out var speed)

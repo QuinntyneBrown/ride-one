@@ -55,17 +55,17 @@ public sealed class TreadmillPlanEndpointTests
 
         using var response = await treadmill.PostAsync("/api/workout", new
         {
-            kind = "hiit", rounds = 18, work_seconds = 40, rest_seconds = 20, work_speed = 16.5, rest_speed = 9.25,
-            work_incline = 16, rest_incline = 0, warmup = true, cooldown = true,
+            kind = "hiit", rounds = 18, work_seconds = 40, rest_seconds = 20, work_speed = 19.4, rest_speed = 9.25,
+            work_incline = 11, rest_incline = 0, warmup = true, cooldown = true,
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await Bike.JsonAsync(response);
         Assert.Equal("invalid_workout", problem.GetProperty("code").GetString());
         var errors = problem.GetProperty("errors");
-        Assert.Equal("Speed must be 1.0 to 16.0 km/h.", errors.GetProperty("work_speed")[0].GetString());
+        Assert.Equal("Speed must be 0.8 to 19.3 km/h.", errors.GetProperty("work_speed")[0].GetString());
         Assert.Equal("Enter a speed like 9.0.", errors.GetProperty("rest_speed")[0].GetString());
-        Assert.Equal("Incline must be 0 to 15 %.", errors.GetProperty("work_incline")[0].GetString());
+        Assert.Equal("Incline must be 0 to 10 %.", errors.GetProperty("work_incline")[0].GetString());
     }
 
     [Fact]
