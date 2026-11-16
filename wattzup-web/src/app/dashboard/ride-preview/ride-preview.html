@@ -1,0 +1,61 @@
+<aside class="setup-aside" aria-label="Ride preview">
+  <h2>Your ride</h2>
+  <p class="numeral ride-total" [attr.aria-label]="'Total ride time ' + total()">{{ total() }}</p>
+  @if (preview(); as p) {
+    <svg
+      class="profile"
+      [attr.viewBox]="'0 0 ' + p.totalSeconds + ' 32'"
+      preserveAspectRatio="none"
+      role="img"
+      [attr.aria-label]="'Resistance profile: ' + p.structure"
+    >
+      @for (bar of p.profile; track $index) {
+        <rect
+          [attr.class]="bar.tone"
+          [attr.x]="bar.x"
+          [attr.width]="bar.width"
+          [attr.y]="bar.y"
+          [attr.height]="bar.height"
+        />
+      }
+    </svg>
+    <div class="profile-axis" aria-hidden="true">
+      <span>0:00</span><span>{{ p.total }}</span>
+    </div>
+    <dl class="summary">
+      <div>
+        <dt>Structure</dt>
+        <dd>{{ p.structure }}</dd>
+      </div>
+      @if (p.timeUnderLoad; as load) {
+        <div>
+          <dt>Time under load</dt>
+          <dd>{{ load }}</dd>
+        </div>
+      }
+      <div>
+        <dt>Peak resistance</dt>
+        <dd>Level {{ p.peakLevel }}</dd>
+      </div>
+      <div>
+        <dt>Expected avg power</dt>
+        <dd>~{{ p.avgPower }} W</dd>
+      </div>
+      <div>
+        <dt>Expected energy</dt>
+        <dd>~{{ p.kcal }} kcal</dd>
+      </div>
+    </dl>
+  }
+  <div class="setup-aside__foot">
+    <ul class="legend">
+      @for (item of preview()?.legend ?? []; track item) {
+        <li>
+          <span class="swatch" [class]="'swatch--' + item" aria-hidden="true"></span
+          >{{ legendLabels[item] }}
+        </li>
+      }
+    </ul>
+    <ng-content />
+  </div>
+</aside>

@@ -1,9 +1,17 @@
 // Opens the dialogs through the CDK, which owns the backdrop, focus trap, Escape and focus
 // return (L2-023, L2-051, L2-052). Dialog components load on first use.
-import { Dialog } from '@angular/cdk/dialog';
+import { Dialog, type DialogRef } from '@angular/cdk/dialog';
 import type { ComponentType } from '@angular/cdk/portal';
 import { Injectable, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import type { WorkoutPlan } from './api-types';
+
+export interface ReplaceRideData {
+  plan: WorkoutPlan;
+  elapsed: string;
+  currentSummary: string;
+  newSummary: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DialogLauncher {
@@ -20,9 +28,12 @@ export class DialogLauncher {
     this.open(EndRideDialog, 'end-ride', '[data-autofocus]');
   }
 
-  async openReplaceRide(plan: WorkoutPlan): Promise<boolean> {
-    void plan;
-    return false;
+  /** Resolves true when the new ride started (L2-052). */
+  async openReplaceRide(data: ReplaceRideData): Promise<boolean> {
+    const { ReplaceRideDialog } =
+      await import('../dashboard/replace-ride-dialog/replace-ride-dialog');
+    const ref = this.open(ReplaceRideDialog, 'replace-ride', '[data-autofocus]', data);
+    return ref ? (await firstValueFrom(ref.closed)) === true : false;
   }
 
   private open<T>(
@@ -30,9 +41,9 @@ export class DialogLauncher {
     id: string,
     autoFocus: string,
     data?: unknown,
-  ): void {
-    if (this.dialog.getDialogById(id)) return;
-    this.dialog.open(component, {
+  ): DialogRef<unknown, T> | null {
+    if (this.dialog.getDialogById(id)) return null;
+    return this.dialog.open(component, {
       panelClass: 'wz-dialog-pane',
       backdropClass: 'wz-backdrop',
       restoreFocus: true,

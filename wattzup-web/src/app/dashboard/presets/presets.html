@@ -1,0 +1,13 @@
+<div class="presets" role="group" aria-label="Presets">
+  @for (p of presets; track p.id) {
+    <button
+      class="chip"
+      type="button"
+      [attr.aria-pressed]="pressed() === p.id"
+      [disabled]="disabled()"
+      (click)="choose.emit(p.id)"
+    >
+      {{ p.label }}
+    </button>
+  }
+</div>

@@ -1,0 +1,29 @@
+<fieldset class="mode-cards">
+  <legend class="visually-hidden">Training mode</legend>
+  <label class="mode-card">
+    <span class="mode-card__title"
+      ><input
+        type="radio"
+        name="mode"
+        value="hiit"
+        [checked]="mode() === 'hiit'"
+        [disabled]="disabled()"
+        (change)="mode.set('hiit')"
+      />HIIT intervals</span
+    >
+    <p>Hard and easy efforts on repeat. Resistance switches at every interval.</p>
+  </label>
+  <label class="mode-card">
+    <span class="mode-card__title"
+      ><input
+        type="radio"
+        name="mode"
+        value="flat"
+        [checked]="mode() === 'flat'"
+        [disabled]="disabled()"
+        (change)="mode.set('flat')"
+      />Flat resistance</span
+    >
+    <p>One level, held the whole ride. You set the pace with your legs.</p>
+  </label>
+</fieldset>
