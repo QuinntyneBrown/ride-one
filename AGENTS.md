@@ -1,8 +1,9 @@
 ## Purpose
 
-> Wattzup turns an Echelon bike into a live training display. It connects to the bike over
-> Bluetooth, shows cadence, speed and resistance in real time, and runs interval workouts that set
-> the resistance for the rider.
+> Wattzup turns an Echelon bike or treadmill into a live training display. It connects to the
+> chosen machine over Bluetooth, shows its live metrics in real time (cadence, speed and resistance
+> on the bike; speed, incline and distance on the treadmill), and runs interval workouts that set
+> the bike's resistance or the treadmill's speed and incline for the rider.
 
 Before adding or changing anything, ask how it serves that purpose; if it does not, do not build
 it, and if a request works against it, say so.
@@ -86,7 +87,10 @@ committed.
 
 Use the words the specs use in code, docs and UI; no synonyms. A workout follows a plan (`hiit` or
 `flat`) expanded into segments (kind, start, duration, level, cadence aim, round); the bike's reported level is "resistance",
-the requested one is "target resistance"; the Bluetooth link state is `ble`.
+the requested one is "target resistance"; the Bluetooth link state is `ble`. The machine is `bike` or
+`treadmill`. On the treadmill the reported value is "speed" and the requested one "target speed";
+likewise "incline" and "target incline"; the moving surface is the "belt" (`stopped`, `starting`,
+`running`).
 
 ## Prefer best practice
 
