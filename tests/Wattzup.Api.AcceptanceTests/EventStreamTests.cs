@@ -40,7 +40,7 @@ public sealed class EventStreamTests
     [Fact]
     public async Task Given_no_message_for_15_seconds_then_the_client_receives_a_ping()
     {
-        using var factory = new WattzupApiFactory();
+        using var factory = new WattzupApiFactory { WithoutBluetooth = true };
         using var client = factory.CreateClient();
         await using var stream = await EventStreamReader.OpenAsync(client);
         await stream.WaitForAsync(_ => true, "the first state");

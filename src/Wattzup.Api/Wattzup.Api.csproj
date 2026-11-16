@@ -2,6 +2,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Wattzup.Core\Wattzup.Core.csproj" />
+    <ProjectReference Include="..\Wattzup.Ble.Simulated\Wattzup.Ble.Simulated.csproj" />
+    <ProjectReference Include="..\Wattzup.Protocol\Wattzup.Protocol.csproj" />
+    <ProjectReference Include="..\Wattzup.Ble.Abstractions\Wattzup.Ble.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

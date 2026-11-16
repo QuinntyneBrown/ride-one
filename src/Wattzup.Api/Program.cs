@@ -1,26 +1,50 @@
 using Wattzup.Api;
+using Wattzup.Api.Bluetooth;
 using Wattzup.Api.Endpoints;
+using Wattzup.Core.Bluetooth;
 using Wattzup.Core.State;
+using Wattzup.Core.Telemetry;
 
-var builder = WebApplication.CreateBuilder(args);
+// --simulate selects the simulated bike (L2-043); it is not a key=value setting, so it is taken out of args.
+var simulate = args.Contains("--simulate", StringComparer.OrdinalIgnoreCase);
+var builder = WebApplication.CreateBuilder(args.Where(a => !string.Equals(a, "--simulate", StringComparison.OrdinalIgnoreCase)).ToArray());
+if (simulate)
+{
+    builder.Configuration["Wattzup:Ble:Transport"] = TransportSelector.Simulated;
+}
 
 var options = builder.Configuration.GetSection(WattzupOptions.SectionName).Get<WattzupOptions>() ?? new WattzupOptions();
 builder.WebHost.UseUrls(options.Urls);
+builder.Services.Configure<ConnectivityOptions>(builder.Configuration.GetSection(ConnectivityOptions.SectionName));
+builder.Services.Configure<BikeOptions>(builder.Configuration.GetSection(BikeOptions.SectionName));
 
 // The state contract keeps the prototype's snake_case names, and writes nulls (L2-014).
 builder.Services.ConfigureHttpJsonOptions(json => WattzupJson.Configure(json.SerializerOptions));
 builder.Services.AddOpenApi();
 
+var transportName = TransportSelector.Resolve(builder.Configuration[$"{ConnectivityOptions.SectionName}:Transport"]);
+var displayName = builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"];
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddSingleton(sp => new BikeStateStore(
-    new BikeState
-    {
-        Transport = "none",
-        BindAddress = new Uri(options.Urls).Authority,
-    },
-    sp.GetRequiredService<TimeProvider>(),
-    null));
+builder.Services.AddBikeTransport(transportName);
+builder.Services.AddSingleton(sp =>
+{
+    var facts = HostFacts.For(sp.GetRequiredService<Wattzup.Ble.Abstractions.IBikeTransport>().Name, options.Urls);
+    return new BikeStateStore(
+        new BikeState
+        {
+            Transport = facts.Transport,
+            Simulated = facts.Simulated,
+            BindAddress = facts.BindAddress,
+            Exposed = facts.Exposed,
+        },
+        sp.GetRequiredService<TimeProvider>(),
+        displayName);
+});
 builder.Services.AddSingleton<StateBroadcaster>();
+builder.Services.AddSingleton<ActiveConnectionRegistry>();
+builder.Services.AddSingleton<TelemetryIngestor>();
+builder.Services.AddSingleton<BikeConnectionService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<BikeConnectionService>());
 
 var app = builder.Build();
 

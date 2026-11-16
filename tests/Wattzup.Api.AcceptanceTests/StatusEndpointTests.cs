@@ -20,7 +20,7 @@ public sealed class StatusEndpointTests
     [Fact]
     public async Task Given_a_fresh_start_when_status_is_read_then_it_is_the_starting_state()
     {
-        using var factory = new WattzupApiFactory();
+        using var factory = new WattzupApiFactory { WithoutBluetooth = true };
         using var client = factory.CreateClient();
 
         using var response = await client.GetAsync(new Uri("/api/status", UriKind.Relative));
@@ -36,7 +36,7 @@ public sealed class StatusEndpointTests
         Assert.Equal(0, state.GetProperty("commands").GetArrayLength());
         Assert.Equal("unknown", state.GetProperty("adapter").GetString());
         Assert.Equal("0bf669f1", state.GetProperty("connection_id").GetString());
-        Assert.False(state.GetProperty("simulated").GetBoolean());
+        Assert.True(state.GetProperty("simulated").GetBoolean(), "the test host runs the simulated bike");
         Assert.False(state.GetProperty("exposed").GetBoolean());
         Assert.Equal(JsonValueKind.String, state.GetProperty("transport").ValueKind);
         Assert.Equal(JsonValueKind.String, state.GetProperty("bind_address").ValueKind);
@@ -51,7 +51,7 @@ public sealed class StatusEndpointTests
     [Fact]
     public async Task Given_the_host_is_up_when_health_is_read_then_it_reports_the_ble_state()
     {
-        using var factory = new WattzupApiFactory();
+        using var factory = new WattzupApiFactory { WithoutBluetooth = true };
         using var client = factory.CreateClient();
 
         using var response = await client.GetAsync(new Uri("/health", UriKind.Relative));
@@ -64,7 +64,7 @@ public sealed class StatusEndpointTests
     [Fact]
     public async Task Given_the_host_is_up_when_the_openapi_document_is_read_then_it_describes_status_and_the_state_schema()
     {
-        using var factory = new WattzupApiFactory();
+        using var factory = new WattzupApiFactory { WithoutBluetooth = true };
         using var client = factory.CreateClient();
 
         using var response = await client.GetAsync(new Uri("/openapi/v1.json", UriKind.Relative));

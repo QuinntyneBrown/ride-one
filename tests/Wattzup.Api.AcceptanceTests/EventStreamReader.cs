@@ -79,6 +79,38 @@ public sealed class EventStreamReader : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Advances the fake clock by <paramref name="step"/> until a state matches, waiting briefly after each step
+    /// for the host to react. Fails naming the last state after <paramref name="maxSteps"/>.
+    /// </summary>
+    public async Task<JsonElement> AdvanceUntilAsync(
+        Microsoft.Extensions.Time.Testing.FakeTimeProvider time,
+        Func<JsonElement, bool> predicate,
+        string what,
+        TimeSpan step,
+        int maxSteps = 30)
+    {
+        ArgumentNullException.ThrowIfNull(time);
+        if (Last is { } last && predicate(last))
+        {
+            return last;
+        }
+
+        for (var i = 0; i < maxSteps; i++)
+        {
+            time.Advance(step);
+            try
+            {
+                return await WaitForAsync(predicate, what, TimeSpan.FromMilliseconds(300));
+            }
+            catch (TimeoutException)
+            {
+            }
+        }
+
+        throw new TimeoutException($"Advanced {maxSteps} × {step} waiting for {what}, but the last state was: {Describe(Last)}");
+    }
+
     /// <summary>True once <see cref="TryPingAsync"/> has seen a ping.</summary>
     public bool SawPing { get; private set; }
 
