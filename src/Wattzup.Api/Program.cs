@@ -24,7 +24,7 @@ builder.Services.Configure<BikeOptions>(builder.Configuration.GetSection(BikeOpt
 
 // The state contract keeps the prototype's snake_case names, and writes nulls (L2-014).
 builder.Services.ConfigureHttpJsonOptions(json => WattzupJson.Configure(json.SerializerOptions));
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(openApi => openApi.AddSchemaTransformer<Wattzup.Api.OpenApi.ContractSchemaTransformer>());
 builder.Services.AddProblemDetails();
 var security = builder.Configuration.GetSection(SecurityOptions.SectionName).Get<SecurityOptions>() ?? new SecurityOptions();
 builder.Services.AddWattzupRateLimits(security);
@@ -47,6 +47,7 @@ builder.Services.AddCors(cors => cors.AddDefaultPolicy(policy =>
 var transportName = TransportSelector.Resolve(builder.Configuration[$"{ConnectivityOptions.SectionName}:Transport"]);
 var displayName = builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"];
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.Configure<HostOptions>(host => host.ShutdownTimeout = TimeSpan.FromSeconds(5));
 builder.Services.AddBikeTransport(transportName);
 builder.Services.AddSingleton(sp =>
 {

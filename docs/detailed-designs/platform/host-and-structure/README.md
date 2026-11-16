@@ -77,7 +77,7 @@ Building `Wattzup.Mac` and `Wattzup.Ble.CoreBluetooth` needs the macOS workload.
   3. `EventsEndpoints` loops end through `ApplicationStopping`.
   4. `StatusSnapshotWriter` performs its final write.
   This realises L2-039, recorded in `discover-and-connect-bike`.
-- **Static hosting** — `UseDefaultFiles` and `UseStaticFiles` serve `wwwroot`, the Angular `dist/wattzup-web/browser` output copied at publish. `MapFallbackToFile("index.html")` serves client routes and excludes `/api`, `/health` and `/openapi` (L2-044). An unknown `/api/*` path answers a 404 ProblemDetails, while an unknown client route loads the app, which shows the not-found page (L2-056). `index.html` is served with the per-response CSP style nonce described in `secure-api`.
+- **Static hosting** — `UseStaticFiles` serves `wwwroot`, the Angular `dist/wattzup-web/browser` output copied at publish. The `AppShell` middleware, at the end of the pipeline, handles requests no endpoint matched: it serves `index.html` for `/` and every client route, excluding `/api`, `/health`, `/openapi` and paths with a file extension (L2-044). It is middleware rather than `MapFallbackToFile` because a catch-all fallback endpoint would take part in routing and replace the 415 and 405 answers of known endpoints, and because `index.html` must be rewritten per response with the style nonce. An unknown `/api/*` path answers a 404 ProblemDetails, while an unknown client route loads the app, which shows the not-found page (L2-056). `index.html` is served with the per-response CSP style nonce described in `secure-api`.
 
 Angular application `wattzup-web` (L2-044):
 
