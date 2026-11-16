@@ -22,9 +22,11 @@ test('40–48 rem: readouts two across', async ({ page, api, events }) => {
   await page.setViewportSize({ width: 700, height: 900 });
   const ride = new RidePage(page, api, events);
   await ride.open(state());
-  expect(
-    Math.abs((await box(ride.power)).y - (await box(page.locator('.readout--cadence'))).y),
-  ).toBeLessThan(40);
+  // Two across: cadence sits to the right of power, bottom-aligned with it as in the mocks.
+  const power = await box(ride.power);
+  const cadence = await box(page.locator('.readout--cadence'));
+  expect(cadence.x).toBeGreaterThanOrEqual(power.x + power.width);
+  expect(Math.abs(cadence.y + cadence.height - (power.y + power.height))).toBeLessThan(8);
 });
 
 test('48–64 rem: the five metrics in one row', async ({ page, api, events }) => {

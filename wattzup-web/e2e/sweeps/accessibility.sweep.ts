@@ -6,10 +6,22 @@ import { RidePage } from '../pages/ride.page';
 import { SetupPage } from '../pages/setup.page';
 import { freeRide, state, workout } from '../fixtures/states';
 
+/** Waits for entrance animations (dialog fade-in, toasts) so contrast is measured at rest. */
+const settled = (page: import('@playwright/test').Page) =>
+  page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
+  );
+
 const serious = async (page: import('@playwright/test').Page) =>
-  (
-    await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
-  ).violations
+  (await settled(page),
+  await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+    .analyze()).violations
     .filter((v) => v.impact === 'serious' || v.impact === 'critical')
     .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
 
@@ -89,8 +101,12 @@ test('every control is at least 44 × 44 px', async ({ page, api, events }) => {
   const ride = new RidePage(page, api, events);
   await ride.open(state({ workout: workout({ mode: 'manual' }) }));
   const small = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>('button, a[href], input, [role="switch"]')]
-      .filter((e) => !e.closest('.level-picker') && !e.classList.contains('skip-link'))
+    [
+      ...document.querySelectorAll<HTMLElement>(
+        'button, a[href], input, [role="switch"], [role="slider"]',
+      ),
+    ]
+      .filter((e) => !e.classList.contains('skip-link'))
       .map((e) => ({ e, r: e.getBoundingClientRect() }))
       .filter(({ r }) => r.width > 0 && (r.width < 44 || r.height < 44))
       .map(({ e, r }) => `${e.outerHTML.slice(0, 60)} ${r.width}×${r.height}`),

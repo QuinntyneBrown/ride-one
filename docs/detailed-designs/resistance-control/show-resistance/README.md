@@ -8,7 +8,7 @@ The resistance panel tells the rider the bike's current resistance level, and wh
 
 **lit level** — level picker bar at or below the reported resistance, drawn filled (`is-lit`)
 
-**pressed level** — level picker bar of the requested level, `aria-pressed="true"`
+**pressed level** — the requested level: the picker's `aria-valuenow`, its bar drawn filled (`is-set`)
 
 **plan outline** — outline on the picker bar of the plan's level while a manual override is active (`is-plan`)
 
@@ -23,7 +23,7 @@ This feature is display only. It reads the live `BikeState` signal that `live-st
   - **`pressedLevel`** — `target_resistance ?? resistance`, or `null` when both are `null`.
   - **`planLevel`** — `workout.plan_level` when `workout.mode` is `manual`; otherwise `null` (L2-019).
 - **`LevelReadout`** (`wz-level-readout`) — OnPush component inside `LevelControl`, element `level-readout`. It renders `valueText` in a `numeral` span with `aria-live="polite"`, the caption `of 32`, and `settingText` in `level-readout__target` with `role="status"`.
-- **`LevelPicker`** (`wz-level-picker`, see `set-resistance`) — for each level n it sets the class `is-lit` when `n ≤ litUpTo`, `aria-pressed="true"` when `n === pressedLevel`, and the class `is-plan` when `n === planLevel`. The pressed state is an attribute, so assistive technology announces it. The plan outline is a shape cue, not a colour; the plan level is also named in the plan note (`Manual level. Plan was <plan_level>.` for `flat`). The class names `level-readout`, `level-readout__target`, `level-picker`, `is-lit` and `is-plan` are kept from the mocks because e2e locators depend on them.
+- **`LevelPicker`** (`wz-level-picker`, see `set-resistance`) — for each level n it sets the class `is-lit` when `n ≤ litUpTo`, the class `is-set` when `n === pressedLevel`, and the class `is-plan` when `n === planLevel`; the slider's `aria-valuenow` and `aria-valuetext` carry the pressed level, so assistive technology announces it. The plan outline is a shape cue, not a colour; the plan level is also named in the plan note (`Manual level. Plan was <plan_level>.` for `flat`). The class names `level-readout`, `level-readout__target`, `level-picker`, `is-lit` and `is-plan` are kept from the mocks because e2e locators depend on them.
 - **`LiveStateService.state`** — read-only `Signal<BikeState | null>` (see `live-state/stream-live-state`). The components derive their values with `computed(() => resistanceView(state()))`.
 
 Worked values from the specification and the mocks (`docs/mocks/pages/ride/default.html`, `manual.html`):

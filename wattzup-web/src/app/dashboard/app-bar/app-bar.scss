@@ -34,6 +34,15 @@
   }
 }
 
+/* Below 360 px the clock and the four controls no longer fit on one line; the controls wrap
+   under the clock rather than hide the ride total or scroll sideways (WCAG 1.4.10, L2-040). */
+@media (max-width: 22.49rem) {
+  .app-bar__end {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+  }
+}
+
 .skeleton--status {
   width: 12rem;
   height: 1rem;

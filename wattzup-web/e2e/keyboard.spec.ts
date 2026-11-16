@@ -25,25 +25,36 @@ test.describe('Keyboard use (L2-041)', () => {
       ride.diagnosticsButton,
       ride.lowerButton,
       ride.raiseButton,
-      ride.level(1),
+      ride.picker,
+      ride.backToPlanButton,
     ];
     for (const control of order) {
       await page.keyboard.press('Tab');
       await expect(control).toBeFocused();
     }
-    await ride.level(32).focus();
-    await page.keyboard.press('Tab');
-    await expect(ride.backToPlanButton).toBeFocused();
   });
 
-  test('Space presses the level picker and Enter toggles beeps', async ({ page, api, events }) => {
-    api.on('POST', '/api/resistance', { json: { level: 20 } });
+  test('arrow, Page and Home/End keys move the level picker; Enter toggles beeps', async ({
+    page,
+    api,
+    events,
+  }) => {
+    api.on('POST', '/api/resistance', { json: { level: 19 } });
     const ride = new RidePage(page, api, events);
     await ride.open(state());
-    await ride.level(20).focus();
-    await page.keyboard.press('Space');
-    const [call] = await api.waitForCall('POST', '/api/resistance');
-    expect(call.body).toEqual({ level: 20 });
+    await ride.picker.focus();
+    for (const key of ['ArrowRight', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']) {
+      await page.keyboard.press(key);
+    }
+    const calls = await api.waitForCall('POST', '/api/resistance', 6);
+    expect(calls.map((c) => c.body)).toEqual([
+      { level: 19 },
+      { level: 17 },
+      { level: 22 },
+      { level: 14 },
+      { level: 1 },
+      { level: 32 },
+    ]);
     await ride.beepsButton.focus();
     await page.keyboard.press('Enter');
     await expect(ride.beepsButton).toHaveAttribute('aria-pressed', 'true');

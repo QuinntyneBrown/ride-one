@@ -1,15 +1,25 @@
 @let v = view();
-<div class="level-picker" role="group" aria-label="Pick a resistance level">
+<div
+  class="level-picker"
+  role="slider"
+  aria-label="Resistance level"
+  aria-orientation="horizontal"
+  aria-valuemin="1"
+  aria-valuemax="32"
+  [attr.aria-valuenow]="value()"
+  [attr.aria-valuetext]="value() === null ? 'No level yet' : 'Level ' + value() + ' of 32'"
+  [attr.aria-disabled]="disabled() ? 'true' : null"
+  [attr.tabindex]="disabled() ? -1 : 0"
+  (click)="onClick($event)"
+  (keydown)="onKey($event)"
+>
   @for (l of levels; track l.level) {
-    <button
-      type="button"
+    <span
+      class="level-picker__bar"
+      aria-hidden="true"
       [class.is-lit]="l.level <= v.litUpTo"
+      [class.is-set]="l.level === v.pressedLevel"
       [class.is-plan]="l.level === v.planLevel"
-      [attr.aria-pressed]="l.level === v.pressedLevel"
-      [attr.aria-label]="'Level ' + l.level"
-      [style.--h]="l.height"
-      [disabled]="disabled()"
-      (click)="pick.emit(l.level)"
-    ></button>
+    ></span>
   }
 </div>

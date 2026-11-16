@@ -1,3 +1,5 @@
+@use 'sass:math';
+
 :host {
   display: block;
 }
@@ -7,31 +9,37 @@
   align-items: flex-end;
   gap: var(--space-0-5);
   height: 3.5rem;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  touch-action: manipulation;
 }
-.level-picker button {
+.level-picker[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.level-picker__bar {
   flex: 1;
   min-width: 0;
-  height: var(--h, 50%);
-  padding: 0;
-  border: 0;
+  height: 50%;
   border-radius: var(--radius-xs);
   background: var(--color-track);
-  cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-standard);
 }
-.level-picker button:hover {
+.level-picker:not([aria-disabled='true']):hover .level-picker__bar:not(.is-lit) {
   background: var(--color-bg-subtle-hover);
 }
-.level-picker button[aria-pressed='true'],
-.level-picker button.is-lit {
+/* Heights rise from 30.2 % at level 1 to 100 % at level 32, as in the mocks. */
+@for $i from 1 through 32 {
+  .level-picker__bar:nth-child(#{$i}) {
+    height: math.div(math.round((30.2 + math.div(($i - 1) * 69.8, 31)) * 10), 10) * 1%;
+  }
+}
+.level-picker__bar.is-lit,
+.level-picker__bar.is-set {
   /* volt-300 in the dark theme, the darker work green in the light theme */
   background: var(--color-series-work);
 }
-.level-picker button.is-plan {
+.level-picker__bar.is-plan {
   outline: 1px solid color-mix(in srgb, var(--color-fg-default) 60%, transparent);
   outline-offset: 1px;
-}
-.level-picker button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
 }

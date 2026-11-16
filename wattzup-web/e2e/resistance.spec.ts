@@ -10,7 +10,8 @@ test.describe('Resistance readout (L2-019)', () => {
     await expect(ride.levelOf).toHaveText('of 32');
     await expect(ride.pickerLevels).toHaveCount(32);
     await expect(ride.litLevels).toHaveCount(18);
-    await expect(ride.level(18)).toHaveAttribute('aria-pressed', 'true');
+    await expect(ride.picker).toHaveAttribute('aria-valuenow', '18');
+    await expect(ride.picker).toHaveAttribute('aria-valuetext', 'Level 18 of 32');
     await expect(ride.levelSetting).toHaveCount(0);
   });
 
@@ -21,7 +22,7 @@ test.describe('Resistance readout (L2-019)', () => {
     await expect(ride.litLevels).toHaveCount(0);
   });
 
-  test('reads Setting 22… and presses level 22 while the bike catches up', async ({
+  test('reads Setting 22… and sets the picker to 22 while the bike catches up', async ({
     page,
     api,
     events,
@@ -30,8 +31,7 @@ test.describe('Resistance readout (L2-019)', () => {
     await ride.open(state({ target_resistance: 22, workout: workout({ mode: 'manual' }) }));
     await expect(ride.levelValue).toHaveText('18');
     await expect(ride.levelSetting).toHaveText('Setting 22…');
-    await expect(ride.level(22)).toHaveAttribute('aria-pressed', 'true');
-    await expect(ride.level(18)).toHaveAttribute('aria-pressed', 'false');
+    await expect(ride.picker).toHaveAttribute('aria-valuenow', '22');
   });
 
   test('outlines the plan level in manual mode', async ({ page, api, events }) => {
@@ -73,13 +73,25 @@ test.describe('Resistance controls (L2-020)', () => {
     expect(calls.map((c) => c.body)).toEqual([{ level: 16 }, { level: 13 }, { level: 11 }]);
   });
 
-  test('the picker sends the chosen level', async ({ page, api, events }) => {
+  test('tapping a bar of the picker sends that level', async ({ page, api, events }) => {
     api.on('POST', '/api/resistance', { json: { level: 22 } });
     const ride = new RidePage(page, api, events);
     await ride.open(state());
     await ride.level(22).click();
     const [call] = await api.waitForCall('POST', '/api/resistance');
     expect(call.body).toEqual({ level: 22 });
+  });
+
+  test('the picker is one target the full width of the panel and at least 44 px tall', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(state());
+    const box = await ride.picker.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    await expect(ride.picker.getByRole('button')).toHaveCount(0);
   });
 
   test('disables Lower at 1 and Raise at 32', async ({ page, api, events }) => {
@@ -97,7 +109,9 @@ test.describe('Resistance controls (L2-020)', () => {
     await ride.open(state({ ble: 'connecting' }));
     await expect(ride.lowerButton).toBeDisabled();
     await expect(ride.raiseButton).toBeDisabled();
-    await expect(ride.level(5)).toBeDisabled();
+    await expect(ride.picker).toHaveAttribute('aria-disabled', 'true');
+    await ride.level(5).click();
+    expect(api.calls('POST', '/api/resistance')).toHaveLength(0);
     await expect(ride.planNote).toHaveText('Resistance controls wake up once the bike connects.');
   });
 });

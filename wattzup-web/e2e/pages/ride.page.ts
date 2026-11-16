@@ -145,10 +145,10 @@ export class RidePage {
     this.levelSetting = this.aside.locator('.level-readout__target');
     this.lowerButton = this.aside.getByRole('button', { name: 'Lower resistance' });
     this.raiseButton = this.aside.getByRole('button', { name: 'Raise resistance' });
-    this.picker = this.aside.getByRole('group', { name: 'Pick a resistance level' });
-    this.pickerLevels = this.picker.getByRole('button');
-    this.litLevels = this.picker.locator('button.is-lit');
-    this.planLevels = this.picker.locator('button.is-plan');
+    this.picker = this.aside.getByRole('slider', { name: 'Resistance level' });
+    this.pickerLevels = this.picker.locator('.level-picker__bar');
+    this.litLevels = this.picker.locator('.level-picker__bar.is-lit');
+    this.planLevels = this.picker.locator('.level-picker__bar.is-plan');
     this.planNote = this.aside.locator('.plan-note');
     this.backToPlanButton = this.planNote.getByRole('button', { name: 'Back to plan' });
     this.commandLog = this.aside.getByRole('region', { name: 'Sent to bike' });
@@ -183,8 +183,9 @@ export class RidePage {
     return scope.getByRole('link', { name, exact: true });
   }
 
+  /** The bar for level `n` in the picker; tapping it picks that level. */
   level(n: number): Locator {
-    return this.picker.getByRole('button', { name: `Level ${n}`, exact: true });
+    return this.pickerLevels.nth(n - 1);
   }
 
   /** The value of the totals-strip metric with this term, e.g. `Avg power`. */
