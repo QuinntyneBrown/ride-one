@@ -50,6 +50,7 @@ builder.Services.AddSingleton<StateBroadcaster>();
 builder.Services.AddSingleton<ActiveConnectionRegistry>();
 builder.Services.AddSingleton<TelemetryIngestor>();
 builder.Services.AddSingleton<IResistanceCommander, ResistanceCommander>();
+builder.Services.AddSingleton<PowerTraceHistory>();
 builder.Services.AddSingleton<WorkoutEngine>();
 builder.Services.AddSingleton<IResistanceControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<WorkoutEngine>());
@@ -65,6 +66,7 @@ var api = app.MapGroup("/api");
 api.MapEventsEndpoints();
 api.MapBikeEndpoints();
 api.MapResistanceEndpoints();
+api.MapWorkoutEndpoints();
 
 app.Run();
 

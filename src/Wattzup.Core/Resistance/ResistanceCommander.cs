@@ -23,7 +23,8 @@ public abstract record SendResult
 /// <summary>Writes set-resistance commands to the bike (L2-008, L2-009, L2-048).</summary>
 public interface IResistanceCommander
 {
-    Task<SendResult> SendAsync(int level, CommandSource source, CancellationToken cancellationToken);
+    /// <summary>Sends <paramref name="level"/>; <paramref name="rideSeconds"/> is the ride time logged with it, null with no workout.</summary>
+    Task<SendResult> SendAsync(int level, CommandSource source, int? rideSeconds, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -34,14 +35,14 @@ public sealed class ResistanceCommander(BikeStateStore store, ActiveConnectionRe
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public async Task<SendResult> SendAsync(int level, CommandSource source, CancellationToken cancellationToken)
+    public async Task<SendResult> SendAsync(int level, CommandSource source, int? rideSeconds, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             var connection = registry.Current;
             var nowMs = store.Time.GetUtcNow().ToUnixTimeMilliseconds();
-            var entry = new CommandEntry(nowMs / 1000.0, store.Current.Workout?.ElapsedSeconds, level, source, CommandStatus.Sending, null)
+            var entry = new CommandEntry(nowMs / 1000.0, rideSeconds, level, source, CommandStatus.Sending, null)
             {
                 WrittenUnixMs = nowMs,
             };
