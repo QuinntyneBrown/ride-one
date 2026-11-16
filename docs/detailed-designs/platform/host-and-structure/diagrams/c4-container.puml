@@ -6,7 +6,7 @@ title Containers — Host and solution structure
 Person(rider, "Rider", "Rides the bike and watches the dashboard")
 System_Boundary(wattzup, "Wattzup") {
   Container(web, "Wattzup Web", "Angular SPA", "Ride dashboard, setup, unlock and not-found pages in the browser; bundled fonts")
-  Container(mac, "Wattzup.Mac", "net10.0-macos app bundle", "Hosts the Wattzup API on macOS with NSBluetoothAlwaysUsageDescription")
+  Container(mac, "Wattzup.Mac", "Wattzup.app bundle (bundle.sh)", "Hosts the Wattzup API on macOS with NSBluetoothAlwaysUsageDescription")
   Container(api, "Wattzup API", "ASP.NET Core (net10.0)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
   ContainerDb(files, "Local files", "File system", "raw_packets.log, status.json")
 }

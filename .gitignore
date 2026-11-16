@@ -13,6 +13,9 @@ server.log
 # .NET build output
 bin/
 obj/
+artifacts/
+# The dashboard build, copied in by `npm run build:api`
+src/Wattzup.Api/wwwroot/
 TestResults/
 *.user
 .vs/

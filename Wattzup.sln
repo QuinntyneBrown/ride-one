@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wattzup.Protocol.Tests", "t
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wattzup.Core.Tests", "tests\Wattzup.Core.Tests\Wattzup.Core.Tests.csproj", "{B2573BC3-D1C1-4C21-90D4-4DD6F74E39F6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wattzup.Ble.CoreBluetooth", "src\Wattzup.Ble.CoreBluetooth\Wattzup.Ble.CoreBluetooth.csproj", "{3987004F-2B23-4B99-A665-6609EEA5EBA0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,18 @@ Global
 		{B2573BC3-D1C1-4C21-90D4-4DD6F74E39F6}.Release|x64.Build.0 = Release|Any CPU
 		{B2573BC3-D1C1-4C21-90D4-4DD6F74E39F6}.Release|x86.ActiveCfg = Release|Any CPU
 		{B2573BC3-D1C1-4C21-90D4-4DD6F74E39F6}.Release|x86.Build.0 = Release|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Debug|x64.Build.0 = Debug|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Debug|x86.Build.0 = Debug|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Release|x64.ActiveCfg = Release|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Release|x64.Build.0 = Release|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Release|x86.ActiveCfg = Release|Any CPU
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,5 +156,6 @@ Global
 		{09C46013-25B1-48DF-8AC0-0F511617B13C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{F90BB0FE-B9EC-42DF-8747-A7AB822C651B} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{B2573BC3-D1C1-4C21-90D4-4DD6F74E39F6} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{3987004F-2B23-4B99-A665-6609EEA5EBA0} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

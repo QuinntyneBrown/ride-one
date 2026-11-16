@@ -1,4 +1,5 @@
 using Wattzup.Ble.Abstractions;
+using Wattzup.Ble.CoreBluetooth;
 using Wattzup.Ble.Simulated;
 
 namespace Wattzup.Api.Bluetooth;
@@ -8,11 +9,7 @@ public static class TransportSelector
 {
     public const string Simulated = "Simulated";
 
-    /// <summary>Platform transports contributed by the host, keyed by name, e.g. <c>CoreBluetooth</c> from Wattzup.Mac.</summary>
-    private static readonly Dictionary<string, Func<IServiceProvider, IBikeTransport>> Platform = new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>Lets a host (Wattzup.Mac) or a referenced transport project contribute a platform transport.</summary>
-    public static void Contribute(string name, Func<IServiceProvider, IBikeTransport> factory) => Platform[name] = factory;
+    public const string CoreBluetooth = "CoreBluetooth";
 
     /// <summary>The transport name for this operating system: CoreBluetooth, BlueZ or WinRT.</summary>
     public static string DefaultForPlatform() =>
@@ -27,9 +24,9 @@ public static class TransportSelector
             services.AddSingleton<SimulationControl>();
             services.AddSingleton<IBikeTransport>(sp => new SimulatedBikeTransport(sp.GetRequiredService<SimulationControl>(), sp.GetRequiredService<TimeProvider>()));
         }
-        else if (Platform.TryGetValue(name, out var factory))
+        else if (string.Equals(name, CoreBluetooth, StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsMacOS())
         {
-            services.AddSingleton(factory);
+            services.AddSingleton<IBikeTransport>(_ => OperatingSystem.IsMacOS() ? new CoreBluetoothBikeTransport() : throw new PlatformNotSupportedException());
         }
         else
         {

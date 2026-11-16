@@ -11,7 +11,20 @@ using Wattzup.Core.Workouts;
 
 // --simulate selects the simulated bike (L2-043); it is not a key=value setting, so it is taken out of args.
 var simulate = args.Contains("--simulate", StringComparer.OrdinalIgnoreCase);
-var builder = WebApplication.CreateBuilder(args.Where(a => !string.Equals(a, "--simulate", StringComparison.OrdinalIgnoreCase)).ToArray());
+// Inside Wattzup.app the bundle is the content root and runtime output goes to Application Support (ADR 0008).
+var bundled = OperatingSystem.IsMacOS() && AppContext.BaseDirectory.Contains(".app/Contents/MacOS", StringComparison.Ordinal);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = [.. args.Where(a => !string.Equals(a, "--simulate", StringComparison.OrdinalIgnoreCase))],
+    ContentRootPath = bundled ? AppContext.BaseDirectory : null,
+});
+if (bundled)
+{
+    var data = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support", "Wattzup");
+    builder.Configuration[$"{RawPacketLogOptions.SectionName}:Path"] ??= Path.Combine(data, "raw_packets.log");
+    builder.Configuration[$"{StatusSnapshotOptions.SectionName}:Path"] ??= Path.Combine(data, "status.json");
+}
+
 if (simulate)
 {
     builder.Configuration["Wattzup:Ble:Transport"] = TransportSelector.Simulated;

@@ -40,17 +40,17 @@ wattzup/
 |---|---|---|
 | `Wattzup.Protocol` | `net10.0` | `EchelonUuids`, `EchelonCommands`, `EchelonDeviceFilter`, `PacketDecoder`, `TelemetryUpdate`, `SpeedCalculator` |
 | `Wattzup.Ble.Abstractions` | `net10.0` | `IBikeTransport`, `IBikeConnection`, `BikeAdvertisement`, `BluetoothAdapterState`, `BluetoothUnavailableException` |
-| `Wattzup.Ble.CoreBluetooth` | `net10.0-macos` | First real transport (ADR 0007, `bluetooth-platform-transports`) |
+| `Wattzup.Ble.CoreBluetooth` | `net10.0` (macOS only at run time) | First real transport, through the Objective-C runtime (ADR 0007, ADR 0008, `bluetooth-platform-transports`) |
 | `Wattzup.Ble.BlueZ` | `net10.0` | BlueZ transport, built but not yet supported |
 | `Wattzup.Ble.Windows` | `net10.0-windows10.0.19041.0` | WinRT transport, built but not yet supported |
 | `Wattzup.Ble.Simulated` | `net10.0` | `SimulatedBikeTransport`, `SimulationControl` (`--simulate`) |
 | `Wattzup.Core` | `net10.0` | State store, broadcaster, display-time tracker, telemetry ingestion, power and ride-total estimates, command log, plan expansion and validation, workout engine, trace history, raw-packet and snapshot writers; types are named in their feature designs |
 | `Wattzup.Api` | `net10.0` | `Program.cs`, hosted services, endpoint groups, security, `wwwroot` |
-| `Wattzup.Mac` | `net10.0-macos` | App bundle around `Wattzup.Api` with `NSBluetoothAlwaysUsageDescription` in `Info.plist`; registers the CoreBluetooth transport |
+| `Wattzup.Mac` | `Info.plist` + `bundle.sh` | Builds `Wattzup.app` around the published `Wattzup.Api` with `NSBluetoothAlwaysUsageDescription` in `Info.plist`, signed ad hoc; inside it the host writes runtime output to `~/Library/Application Support/Wattzup/` (ADR 0008) |
 | `Wattzup.Protocol.Tests`, `Wattzup.Core.Tests` | `net10.0` | xUnit unit tests, one case per table row |
 | `Wattzup.Api.AcceptanceTests` | `net10.0` | ATDD through the API with `WebApplicationFactory`, `SimulatedBikeTransport` and `FakeTimeProvider` |
 
-Building `Wattzup.Mac` and `Wattzup.Ble.CoreBluetooth` needs the macOS workload. The other projects build without it, and CI builds every project but runs no transport against hardware (ADR 0007).
+Every project builds with the plain .NET SDK (ADR 0008). CI builds every project but runs no transport against hardware (ADR 0007).
 
 - **`Program.cs`** — builds the host with minimal APIs (L2-042):
   - It registers singletons (`BikeStateStore`, `StateBroadcaster`, `ActiveConnectionRegistry`, `RawPacketLogger`, `EventTokenService`) and `TimeProvider.System`, which tests replace with `FakeTimeProvider`.

@@ -5,6 +5,7 @@
     <ProjectReference Include="..\Wattzup.Ble.Simulated\Wattzup.Ble.Simulated.csproj" />
     <ProjectReference Include="..\Wattzup.Protocol\Wattzup.Protocol.csproj" />
     <ProjectReference Include="..\Wattzup.Ble.Abstractions\Wattzup.Ble.Abstractions.csproj" />
+    <ProjectReference Include="..\Wattzup.Ble.CoreBluetooth\Wattzup.Ble.CoreBluetooth.csproj" />
   </ItemGroup>
 
   <ItemGroup>

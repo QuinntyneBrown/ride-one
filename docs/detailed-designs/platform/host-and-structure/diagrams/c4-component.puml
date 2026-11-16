@@ -4,19 +4,19 @@ LAYOUT_WITH_LEGEND()
 title Components — Solution projects
 
 Container_Boundary(proc, "Wattzup process") {
-  Component(mac, "Wattzup.Mac", "net10.0-macos app", "Bundle host on macOS (ADR 0007)")
+  Component(mac, "Wattzup.Mac", "Wattzup.app bundle", "Bundle host on macOS (ADR 0008)")
   Component(api, "Wattzup.Api", "ASP.NET Core", "Program, hosted services, endpoints, security, wwwroot")
   Component(core, "Wattzup.Core", "Class library", "State, broadcaster, estimates, workout engine, writers")
   Component(proto, "Wattzup.Protocol", "Class library", "Commands, decoder, filters; no dependencies")
   Component(abs, "Wattzup.Ble.Abstractions", "Class library", "IBikeTransport, IBikeConnection, BluetoothAdapterState")
-  Component(cb, "Wattzup.Ble.CoreBluetooth", "net10.0-macos", "First real transport")
+  Component(cb, "Wattzup.Ble.CoreBluetooth", "net10.0, Objective-C runtime", "First real transport")
   Component(plat, "Wattzup.Ble.BlueZ / .Windows", "Class libraries", "Built, not yet supported")
   Component(sim, "Wattzup.Ble.Simulated", "Class library", "~--simulate and every automated test")
   Component(spa, "wattzup-web (wwwroot)", "Angular build", "Static SPA assets and fonts")
 }
 
-Rel(mac, api, "Hosts")
-Rel(mac, cb, "Registers")
+Rel(mac, api, "Packages (bundle.sh)")
+Rel(api, cb, "References (via TransportSelector, macOS only)")
 Rel(api, core, "References")
 Rel(api, sim, "References (via TransportSelector)")
 Rel(api, plat, "References (via TransportSelector)")

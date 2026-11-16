@@ -1,6 +1,6 @@
 # 0007. CoreBluetooth is the first real transport
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [0008](0008-corebluetooth-through-the-objective-c-runtime.md) (plain `net10.0`, no macOS workload)
 - **Date:** 2026-11-15
 
 ## Context
