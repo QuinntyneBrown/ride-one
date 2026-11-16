@@ -12,4 +12,15 @@ export const routes: Routes = [
     title: 'Set up your ride · Wattzup',
     loadComponent: () => import('./dashboard/setup-page/setup-page').then((m) => m.SetupPage),
   },
+  {
+    path: 'unlock',
+    title: 'Unlock · Wattzup',
+    loadComponent: () => import('./dashboard/unlock-page/unlock-page').then((m) => m.UnlockPage),
+  },
+  {
+    path: '**',
+    title: 'Page not found · Wattzup',
+    loadComponent: () =>
+      import('./dashboard/not-found-page/not-found-page').then((m) => m.NotFoundPage),
+  },
 ];

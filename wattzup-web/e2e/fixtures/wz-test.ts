@@ -269,15 +269,22 @@ export const test = base.extend<{ api: ApiStub; events: EventStreamStub; audio: 
     await audio.install();
     await use(audio);
   },
-  api: async ({ page }, use) => {
-    const api = new ApiStub(page);
-    await api.install();
-    await use(api);
-    expect(api.unanswered, 'unanswered /api requests').toEqual([]);
-  },
-  events: async ({ page }, use) => {
-    const events = new EventStreamStub(page);
-    await events.install();
-    await use(events);
-  },
+  // Automatic, so no test can reach a real backend even when it never names them.
+  api: [
+    async ({ page }, use) => {
+      const api = new ApiStub(page);
+      await api.install();
+      await use(api);
+      expect(api.unanswered, 'unanswered /api requests').toEqual([]);
+    },
+    { auto: true },
+  ],
+  events: [
+    async ({ page }, use) => {
+      const events = new EventStreamStub(page);
+      await events.install();
+      await use(events);
+    },
+    { auto: true },
+  ],
 });

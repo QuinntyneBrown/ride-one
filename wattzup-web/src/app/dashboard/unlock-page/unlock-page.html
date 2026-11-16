@@ -1,0 +1,58 @@
+<wz-auth-card>
+  <h1 class="unlock__title">Unlock Wattzup</h1>
+  <p class="text-muted">
+    This Wattzup server is shared on your network, so it asks for its API key. You'll only need it
+    once per browser session.
+  </p>
+  @switch (problem()) {
+    @case ('unreachable') {
+      <wz-alert
+        tone="danger"
+        icon="wifi-off"
+        [heading]="'Can’t reach Wattzup at ' + host"
+        text="Check that the Wattzup server is running on that computer, then try again."
+      />
+    }
+    @case ('rejected') {
+      <wz-alert tone="danger" icon="alert-circle" heading="That key didn’t work">
+        <span><a href="#key" (click)="focusKey($event)">Check the API key</a> and try again.</span>
+      </wz-alert>
+    }
+  }
+  <form class="unlock__form" novalidate (submit)="unlock($event)">
+    <div class="field">
+      <label class="field__label" for="key">API key</label>
+      <input
+        #key
+        class="input input--lg"
+        id="key"
+        name="key"
+        type="password"
+        autocomplete="current-password"
+        spellcheck="false"
+        [readOnly]="busy()"
+        [attr.aria-invalid]="problem() === 'rejected' || problem() === 'empty' ? 'true' : null"
+        [attr.aria-describedby]="
+          problem() === 'rejected' || problem() === 'empty' ? 'key-help key-err' : 'key-help'
+        "
+      />
+      <span class="field__help" id="key-help"
+        >Find it in appsettings.json under Wattzup:Security:ApiKey, or in the
+        WATTZUP__SECURITY__APIKEY variable.</span
+      >
+      @if (problem() === 'rejected') {
+        <p class="field__error" id="key-err">The server answered 401 Unauthorized for this key.</p>
+      } @else if (problem() === 'empty') {
+        <p class="field__error" id="key-err">Enter the API key.</p>
+      }
+    </div>
+    <button
+      class="btn btn--volt btn--lg btn--block"
+      type="submit"
+      [disabled]="busy()"
+      [attr.aria-busy]="busy() ? 'true' : null"
+    >
+      {{ busy() ? 'Unlocking…' : problem() === 'unreachable' ? 'Try again' : 'Unlock' }}
+    </button>
+  </form>
+</wz-auth-card>
