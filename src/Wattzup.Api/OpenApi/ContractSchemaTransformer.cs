@@ -1,11 +1,17 @@
+using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using Wattzup.Api.Endpoints;
+using Wattzup.Core.Workouts;
 
 namespace Wattzup.Api.OpenApi;
 
 /// <summary>
-/// Every property of a Wattzup contract type is always written (nulls included, L2-014), so the document marks each
-/// one required; nullability comes from the type. The generated frontend types then need no optional fields.
+/// Makes /openapi/v1.json state the contract exactly, so the generated frontend types need no hand-written
+/// additions (L2-014, L2-052):
+/// every property of a Wattzup type is required (nulls are always written); <c>WorkoutSnapshot.status</c> is an enum
+/// of its strings; a trace sample is a pair; problems carry the <c>code</c> and <c>error</c> extensions.
 /// </summary>
 public sealed class ContractSchemaTransformer : IOpenApiSchemaTransformer
 {
@@ -13,7 +19,8 @@ public sealed class ContractSchemaTransformer : IOpenApiSchemaTransformer
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(context);
-        if (context.JsonTypeInfo.Type.Namespace?.StartsWith("Wattzup", StringComparison.Ordinal) == true && schema.Properties is { Count: > 0 } properties)
+        var type = context.JsonTypeInfo.Type;
+        if (type.Namespace?.StartsWith("Wattzup", StringComparison.Ordinal) == true && schema.Properties is { Count: > 0 } properties)
         {
             schema.Required ??= new HashSet<string>(StringComparer.Ordinal);
             foreach (var name in properties.Keys)
@@ -22,6 +29,35 @@ public sealed class ContractSchemaTransformer : IOpenApiSchemaTransformer
             }
         }
 
+        if (type == typeof(WorkoutSnapshot) && Property(schema, "status") is OpenApiSchema status)
+        {
+            status.Enum = [.. WorkoutStatus.All.Select(s => (JsonNode)JsonValue.Create(s))];
+        }
+
+        if (type == typeof(PowerTrace) && Property(schema, "samples") is OpenApiSchema { Items: OpenApiSchema pair })
+        {
+            pair.MinItems = 2;
+            pair.MaxItems = 2;
+        }
+
+        if (type == typeof(ProblemDetails) || type == typeof(HttpValidationProblemDetails))
+        {
+            schema.Properties ??= new Dictionary<string, IOpenApiSchema>(StringComparer.Ordinal);
+            schema.Properties["code"] = new OpenApiSchema
+            {
+                Type = JsonSchemaType.String | JsonSchemaType.Null,
+                Description = "What a client branches on, e.g. bike_not_connected, invalid_workout, rate_limited.",
+            };
+            schema.Properties["error"] = new OpenApiSchema
+            {
+                Type = JsonSchemaType.String | JsonSchemaType.Null,
+                Description = "The rider-facing message, where the prototype returned one.",
+            };
+        }
+
         return Task.CompletedTask;
     }
+
+    private static IOpenApiSchema? Property(OpenApiSchema schema, string name) =>
+        schema.Properties is { } properties && properties.TryGetValue(name, out var property) ? property : null;
 }

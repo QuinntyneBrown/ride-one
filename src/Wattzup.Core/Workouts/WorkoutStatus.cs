@@ -11,6 +11,9 @@ public static class WorkoutStatus
     public const string EndedBikeShutOff = "ended: bike shut off";
     public const string Stopped = "stopped";
 
+    /// <summary>Every status, in the order the contract lists them.</summary>
+    public static IReadOnlyList<string> All { get; } = [WaitingForBike, Running, Paused, PausedBikeDisconnected, Ended, EndedBikeShutOff, Stopped];
+
     /// <summary>Ended, shut off and stopped are terminal; any other status is active.</summary>
     public static bool IsActive(string status) =>
         status is not (Ended or EndedBikeShutOff or Stopped);
