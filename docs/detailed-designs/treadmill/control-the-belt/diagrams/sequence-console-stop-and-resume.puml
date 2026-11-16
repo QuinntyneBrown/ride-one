@@ -26,6 +26,7 @@ clock -> engine : tick
 engine -> store : Current.belt = stopped
 engine -> engine : no count, no drive
 engine -> store : Update(status "paused: belt stopped") [L2-066 AC7]
+note over store : the dashboard shows Belt stopped with Resume [L2-071 AC16]
 note over engine, cmdr : no belt command is written; the engine never restarts the belt by itself
 rider -> ep : POST /api/workout/resume
 ep -> engine : ResumeAsync()

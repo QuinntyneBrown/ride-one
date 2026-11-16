@@ -1,0 +1,31 @@
+@startuml
+title UML sequence behaviour — Expire a nearby entry
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "MachinePage" as page
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "TimeProvider timer" as timer
+  participant "NearbyMachines" as nearby
+  participant "BikeStateStore" as store
+end box
+
+note over nearby : bike last seen at t; treadmill held (connected)
+loop every second
+  timer -> nearby : Flush()
+  nearby -> nearby : Expire()
+  alt now − bike.seen_at > 30 s and the bike is not held
+    nearby -> nearby : Remove the bike entry [L2-074 AC3]
+    nearby -> store : Update(nearby = [treadmill])
+    store --> page : broadcast (SSE)
+    page -> page : The nearby count drops to 1; the bike card shows 0 of 4
+  else nothing changed
+    nearby -> nearby : No update, no broadcast [L2-074 AC5]
+  end
+end
+note over nearby : a held entry keeps its last RSSI and never expires while connected [L2-074 AC4]
+@enduml

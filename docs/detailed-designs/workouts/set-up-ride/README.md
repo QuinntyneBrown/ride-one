@@ -130,14 +130,14 @@ Unit tests in `src/app/core/`:
 - `plan-form.spec.ts` — one case per L2-010 range row, each preset, preset clearing, and clock and unit parsing.
 - `plan-draft.store.spec.ts` — restore, missing key, storage that throws, and invalid stored data.
 
-### Treadmill
+### Machine and treadmill
 
-The setup screen also chooses the machine and builds treadmill plans (L2-072). Its design is `treadmill/treadmill-dashboard-and-setup`. In short:
+The setup screen no longer chooses the machine; the machine page at `/machine` does (L2-073, `treadmill/choose-machine`). The treadmill form is designed in `treadmill/treadmill-dashboard-and-setup`. In short:
 
-- `MachineChoice` (`wz-machine-choice`), a `Machine` radio group with `Bike` and `Treadmill`, comes first. Choosing the other machine sends `POST /api/machine` through `MACHINE_API`; it is disabled while a workout is active.
-- With `machine` `bike`, everything above is unchanged, including the `localStorage` key `wattzup.planDraft`.
-- With `machine` `treadmill`, the form shows speed and incline fields from `treadmill-plan-form.ts`, the draft is kept under `wattzup.treadmillPlanDraft`, and the *Your ride* panel shows a speed profile, Top speed and Expected distance from `treadmillPreviewOf` instead of resistance, power and energy.
-- The start flow and the replace-ride dialog are shared. On the treadmill the dialog adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 12).
+- On both machines the header shows `wz-status-line` with `<device_label>`, a `Switch to treadmill` link (`Switch to bike` on the treadmill) that calls `RideActions.switchMachine` and so ends a running workout through the end dialog before opening `/machine`, and `Close` (`app-bar__close`) (L2-072 criterion 1). `MachineChoice` (`wz-machine-choice`) is removed.
+- With `machine` `bike`, everything above is unchanged, including the `localStorage` key `wattzup.planDraft`. A started bike plan is also recorded by `MachineHistoryStore.recordStart` as the bike's last session (L2-072 criterion 10).
+- With `machine` `treadmill`, the screen reads `Set up your run`, the form shows presets and the `Work`, `Recover` or `Hold` effort rows from `treadmill-plan-form.ts`, the draft is kept under `wattzup.treadmillPlanDraft`, and the *Your run* panel shows speed and incline profiles with expected distance, climb and energy from `treadmillPreviewOf`.
+- The start flow and the replace dialog are shared. On the treadmill the dialog reads `Replace the run in progress?` and adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 15).
 
 ## Requirements
 

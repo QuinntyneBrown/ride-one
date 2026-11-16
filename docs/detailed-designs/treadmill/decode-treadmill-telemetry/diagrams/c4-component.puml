@@ -11,7 +11,9 @@ Container_Boundary(api, "Wattzup API") {
   Component(log, "CommandLog", "Wattzup.Core", "Acknowledge(log, kind, value, nowMs)")
   Component(sinks, "IRawPacketSink", "Wattzup.Core", "Raw packet log and recent packet buffer")
   Component(store, "BikeStateStore", "Wattzup.Core", "speed_kmh, speed_mph, incline, belt; broadcasts")
-  Component(engine, "WorkoutEngine", "Wattzup.Core", "Adds speed ÷ 3600 to distance_km per running tick")
+  Component(engine, "WorkoutEngine", "Wattzup.Core", "Writes distance_km, climb_m and kcal per running tick")
+  Component(totals, "RideTotals", "Wattzup.Core", "Distance, climb and energy of the ride")
+  Component(energy, "TreadmillEnergy", "Wattzup.Core", "ACSM kcal per second, 75 kg runner")
 }
 
 Rel(conn, ingest, "OnNotify(frame)")
@@ -21,5 +23,7 @@ Rel(ingest, bikeDec, "Decode(frame) on the bike")
 Rel(ingest, log, "Acknowledge speed or incline entries")
 Rel(ingest, store, "One Update per frame")
 Rel(ingest, conn, "Echo D0 / D2 / D3 without response")
-Rel(engine, store, "Reads speed_kmh; Update(distance_km)")
+Rel(engine, store, "Reads speed_kmh, incline; Update(distance_km, climb_m, kcal)")
+Rel(engine, totals, "TickTreadmill(speed, incline)")
+Rel(totals, energy, "KcalPerSecond(speed, incline)")
 @enduml

@@ -3,7 +3,9 @@
 Static HTML mocks of every Wattzup screen, dialog and notification in every state. They are the
 source of truth for the UI (see `AGENTS.md`). The look, layout and copy come from the Magic Patterns
 OS design *Wattzup* (`vnjsCrjBAfcZGnW9rHMoch`, prototype `f5zb7cLTQFMdzC5JcFyupj`: frames *Ride
-Dashboard* and *Training Setup*). The mocks also add the pieces the specs require and that design
+Dashboard*, *Training Setup*, *Choose Machine* (`masjUNhEVdxXudyJsSX9GW`), *Run Setup*
+(`3exZTV1GoJjHpTtShFsmsf`) and *Run Dashboard* (`sGuCezQfiSSnFCVAmbH2Ae`)). The treadmill mocks follow
+the three treadmill frames, and L2-062…L2-074 were rewritten to match them on 2026-11-16 (ADR 0010). The mocks also add the pieces the specs require and that design
 does not have. Every place where the design and `docs/specs/` disagree is listed under
 [Open questions](#open-questions). None of them was settled quietly.
 
@@ -36,12 +38,18 @@ Every mock uses this cast.
   38.42 km.
 - **Presets:** Tabata 8 × 0:20 / 0:10, 40 / 20 (8 × 0:40 / 0:20), Minute on 10 × 1:00 / 1:00, Long
   climbs 4 × 4:00 / 2:00.
-- **Treadmill** (L2-062…L2-072): *Echelon Stride*, BLE name `STRIDE-8s22-000766` (no display name is
-  configured, so `device_label` is the BLE name); the simulated one is `STRIDE-SIM-0001`. Its sample ride is
-  the treadmill setup's default plan: HIIT 18 × 0:40 / 0:20, work 9.0 km/h, recover 7.0 km/h, incline 0 % /
-  0 %, warm-up and cool-down on, 22:40 in total (`HIIT · 18 × 40s / 20s`). The mid-ride moment is 7:07,
-  *Work, round 5 of 18*, 0:33 left: 9.0 km/h (5.6 mph), incline 0 %, 0.92 km, pace 6:40 /km. Flat: 7.0
-  km/h, 0 %, 30 min (`Flat · 7.0 km/h · 30 min`).
+- **Treadmill** (*Choose Machine*, *Run Setup*, *Run Dashboard* frames): *Echelon Stride*, serial
+  `STRIDE-8s22-000766`, signal 4 of 4, last session *Hill walk 30 min · 4 days ago*; the bike's card shows
+  its advertised name `ECHEX-3-141844`, signal 3 of 4, last session *HIIT 8 × 40s · yesterday*, and is the last used
+  machine. The header reads *2 machines nearby*. Limits are the frame's: 0.8–19.3 km/h, incline 0–10 %.
+  - **Sample run** (the frame's `DEFAULT_RUN`, the *Minute on* preset): HIIT 6 × 1:00 / 1:00, work
+    13.0 km/h at 2 %, recover 6.0 km/h at 1 %, 3 min warm-up at 7.0 km/h and 1 %, 2 min cool-down at
+    6.0 km/h and 0 %, 16:00 in total (`HIIT · 6 × 1:00 / 1:00`). The mid-run moment is 9:33, *Work, round
+    4 of 6*, 0:27 left: 13.0 km/h (4:37 /km), incline 2 %, heart rate 164, avg pace 6:47 /km, 1.41 km,
+    22 m climbed, 116 kcal. These numbers come from the frame's `useRun` simulation.
+  - **Steady run** (*Hill walk*): 6.5 km/h at 8 % for 30 min, shown at 14:22.
+  - **Presets:** Sprints 30/30, Minute on, Hill repeats, Norwegian 4×4; Steady: Hill walk, Easy run,
+    Tempo. Quick speeds on the dashboard: 5, 8, 10, 12, 14, 16 km/h.
 - **Network-exposed server:** `192.168.1.20:8787`, with its API key set in
   `Wattzup:Security:ApiKey`.
 
@@ -49,9 +57,9 @@ Estimates follow the design's `estimateWatts`: watts = round(cadence × (0.55 + 
 
 ## What is covered, and why it is about 50 files
 
-Wattzup has two core screens, the ride dashboard and ride setup. Around them sit an API-key unlock
-page, a 404 page, three dialogs and three notification families. That makes 10 screens and 62 mock
-files, 16 of them for the treadmill. This is below the 120–250 typical of a mid-sized product, because the product is small.
+Wattzup has three core screens: the machine picker, ride setup and the ride dashboard. Around them sit
+an API-key unlock page, a 404 page, three dialogs and three notification families. That makes 11
+screens and 71 mock files, 25 of them for the treadmill and the machine picker. This is below the 120–250 typical of a mid-sized product, because the product is small.
 
 Some screens that most products have are deliberately left out:
 
@@ -110,28 +118,21 @@ specs, the detailed design or the mock.
     - the 404 page (L2-044)
     - the confirmations for ending and for replacing a ride (L2-013, L2-017)
 
-13. **Treadmill copy the specs do not give.** L2-071 and L2-072 word most of the treadmill UI; these lines
-    were written for the mocks and need a decision:
-    - setup lead `Wattzup drives the treadmill's speed and incline for you. Pick how.` and the mode cards
-      `HIIT intervals` / `Hard and easy efforts on repeat. Speed and incline switch at every interval.` and
-      `Flat speed` / `One speed and incline, held the whole ride.`;
-    - the flat preview's Structure `7.0 km/h throughout` and the profile's name `Speed profile: …`;
-    - the plan note `Following the plan — speed and incline change with each interval.` (L2-047 criterion 5
-      only words the bike);
-    - the third line of `Lost the treadmill`: `The plan is paused. If the treadmill stays off for 90 seconds,
-      Wattzup ends the ride.`, and the scanning overlay's `Your ride starts as soon as the treadmill
-      connects: <summary>.`;
-    - the treadmill disconnect banner's title `Lost the treadmill` (L2-054 has no disconnect banner for the
-      bike to follow); it has no Dismiss, because the safety advice must stay visible;
-    - the end-ride dialog drops the bike's `Your power trace and totals stay on the dashboard…` line, as the
-      treadmill has no trace.
-14. **Treadmill behaviour the specs leave open**, shown one way in the mocks:
-    - Pause is disabled during the belt countdown, End stays enabled (L2-066 does not say);
-    - `Belt stopped` adds a Resume button in the overlay beside the app bar's Resume, not focused on purpose;
-    - with the belt stopped the speed readout reads `Setting 9.0…`, as L2-071 criterion 1 literally says;
-    - Raise speed from a reported 0.0 would send 0.5 km/h, below the 1.0 minimum (L2-071 criterion 5);
-    - the bike's `Reconnected` banner (L2-054 criterion 4) says the plan picked up, which is wrong on the
-      treadmill (the ride stays paused, L2-066 criterion 8), so it has no treadmill mock.
+13. **Treadmill frames, settled.** The treadmill mocks follow the frames *Choose Machine*, *Run Setup*
+    and *Run Dashboard*. On 2026-11-16, L1-002, L1-013 and L2-062…L2-074 were rewritten to match them
+    (ADR 0010), as were the protocol reference's limits and AGENTS.md's vocabulary. Two decisions changed
+    the mocks rather than the specs:
+    - The frame's *Safety key pulled* state is `ride/treadmill-belt-stopped`, worded so that it is
+      true for both causes, because a pulled key and the console's stop button both report speed 0.
+    - The bike's card shows its advertised name, not a made-up serial.
+
+    Still open:
+    - The *Lost the Stride* copy assumes the treadmill stops its own belt when the link drops. A person
+      must confirm this on hardware before release (L2-043 criterion 5, ADR 0010).
+    - Heart rate shows a value in the mocks, but `heart_rate` is always `null` (open question 1,
+      ADR 0003).
+    - The treadmill detailed designs, the backend and the frontend still follow the earlier specs and
+      will be updated slice by slice.
 
 ## Re-checking and re-screenshotting
 
@@ -150,12 +151,13 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | paused | disconnected | scanning | bluetooth-off | offline | ended | flat | manual | edge | treadmill | treadmill-countdown | treadmill-belt-stopped | treadmill-disconnected | treadmill-scanning | invalid | submitting | treadmill-flat | treadmill-invalid | machine-locked | machine-failed | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Ride dashboard (`ride`) | [✅](pages/ride/default.html) | [✅](pages/ride/loading.html) | [✅](pages/ride/empty.html) | [✅](pages/ride/error.html) | [✅](pages/ride/paused.html) | [✅](pages/ride/disconnected.html) | [✅](pages/ride/scanning.html) | [✅](pages/ride/bluetooth-off.html) | [✅](pages/ride/offline.html) | [✅](pages/ride/ended.html) | [✅](pages/ride/flat.html) | [✅](pages/ride/manual.html) | [✅](pages/ride/edge.html) | [✅](pages/ride/treadmill.html) | [✅](pages/ride/treadmill-countdown.html) | [✅](pages/ride/treadmill-belt-stopped.html) | [✅](pages/ride/treadmill-disconnected.html) | [✅](pages/ride/treadmill-scanning.html) |  |  |  |  |  |  | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-023`, `L2-024`, `L2-025`, `L2-026`, `L2-027`, `L2-040`, `L2-041`, `L2-001`, `L2-013`, `L2-039`, `L2-064`, `L2-066`, `L2-068`, `L2-071` |
-| Set up your ride (`setup`) | [✅](pages/setup/default.html) | [✅](pages/setup/loading.html) | ➖ | [✅](pages/setup/error.html) |  |  |  |  |  |  | [✅](pages/setup/flat.html) |  |  | [✅](pages/setup/treadmill.html) |  |  |  |  | [✅](pages/setup/invalid.html) | [✅](pages/setup/submitting.html) | [✅](pages/setup/treadmill-flat.html) | [✅](pages/setup/treadmill-invalid.html) | [✅](pages/setup/machine-locked.html) | [✅](pages/setup/machine-failed.html) | `L2-010`, `L2-029`, `L2-040`, `L2-041`, `L2-062`, `L2-067`, `L2-072` |
-| Unlock Wattzup (`unlock`) | [✅](pages/unlock/default.html) | ➖ | ➖ | [✅](pages/unlock/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/invalid.html) | [✅](pages/unlock/submitting.html) |  |  |  |  | `L2-035`, `L2-036` |
-| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-044` |
+| Screen | default | loading | empty | error | paused | disconnected | scanning | bluetooth-off | offline | ended | flat | manual | edge | treadmill | treadmill-paused | treadmill-flat | treadmill-manual | treadmill-countdown | treadmill-belt-stopped | treadmill-disconnected | treadmill-scanning | connecting | not-found | not-found-bike | invalid | submitting | treadmill-invalid | treadmill-submitting | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Ride dashboard (`ride`) | [✅](pages/ride/default.html) | [✅](pages/ride/loading.html) | [✅](pages/ride/empty.html) | [✅](pages/ride/error.html) | [✅](pages/ride/paused.html) | [✅](pages/ride/disconnected.html) | [✅](pages/ride/scanning.html) | [✅](pages/ride/bluetooth-off.html) | [✅](pages/ride/offline.html) | [✅](pages/ride/ended.html) | [✅](pages/ride/flat.html) | [✅](pages/ride/manual.html) | [✅](pages/ride/edge.html) | [✅](pages/ride/treadmill.html) | [✅](pages/ride/treadmill-paused.html) | [✅](pages/ride/treadmill-flat.html) | [✅](pages/ride/treadmill-manual.html) | [✅](pages/ride/treadmill-countdown.html) | [✅](pages/ride/treadmill-belt-stopped.html) | [✅](pages/ride/treadmill-disconnected.html) | [✅](pages/ride/treadmill-scanning.html) |  |  |  |  |  |  |  | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-023`, `L2-024`, `L2-025`, `L2-026`, `L2-027`, `L2-040`, `L2-041`, `L2-001`, `L2-013`, `L2-039`, `L2-064`, `L2-066`, `L2-068`, `L2-071` |
+| Choose your machine (`choose-machine`) | [✅](pages/choose-machine/default.html) | [✅](pages/choose-machine/loading.html) | [✅](pages/choose-machine/empty.html) | [✅](pages/choose-machine/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/choose-machine/connecting.html) | [✅](pages/choose-machine/not-found.html) | [✅](pages/choose-machine/not-found-bike.html) |  |  |  |  | `L2-062`, `L2-063`, `L2-072`, `L2-073`, `L2-074` |
+| Set up your ride (`setup`) | [✅](pages/setup/default.html) | [✅](pages/setup/loading.html) | ➖ | [✅](pages/setup/error.html) |  |  |  |  |  |  | [✅](pages/setup/flat.html) |  |  | [✅](pages/setup/treadmill.html) |  | [✅](pages/setup/treadmill-flat.html) |  |  |  |  |  |  |  |  | [✅](pages/setup/invalid.html) | [✅](pages/setup/submitting.html) | [✅](pages/setup/treadmill-invalid.html) | [✅](pages/setup/treadmill-submitting.html) | `L2-010`, `L2-029`, `L2-040`, `L2-041`, `L2-062`, `L2-067`, `L2-072` |
+| Unlock Wattzup (`unlock`) | [✅](pages/unlock/default.html) | ➖ | ➖ | [✅](pages/unlock/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/invalid.html) | [✅](pages/unlock/submitting.html) |  |  | `L2-035`, `L2-036` |
+| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-044` |
 
 ### Dialogs
 

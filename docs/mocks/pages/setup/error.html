@@ -16,22 +16,18 @@
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app app--fixed">
-<header class="app-bar" style="justify-content: space-between;">
+<header class="app-bar">
   <a class="lockup " href="../../pages/ride/default.html" aria-label="Wattzup dashboard"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></a>
-  <a class="btn btn--quiet btn--sm" href="../../pages/ride/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Close</a>
+  <span class="app-bar__divider" aria-hidden="true"></span>
+  <div class="statusline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg><span class="statusline__name">Echelon EX-5s</span></div>
+  <a class="btn btn--quiet btn--sm" href="../../pages/choose-machine/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>Switch to treadmill</a>
+  <a class="btn btn--quiet btn--sm app-bar__close" href="../../pages/ride/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Close</a>
 </header>
 <div class="setup-layout">
   <main id="main" class="setup-main">
     <div class="setup-main__inner">
     <h1>Set up your ride</h1>
     <p class="lead">Wattzup drives the bike's resistance for you. Pick how.</p>
-    <fieldset class="machine-choice">
-      <legend class="machine-choice__legend">Machine</legend>
-      <div class="machine-choice__options">
-        <label class="machine-choice__option"><input type="radio" name="machine" value="bike" checked><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M5.5 17 9 9h6l3.5 8M9 9l3 8M15 9l-1-3h-2"/></svg>Bike</label>
-        <label class="machine-choice__option"><input type="radio" name="machine" value="treadmill"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 18h14l4-4M6 18v3M15 18v3M17 14l2-9h2"/><circle cx="10" cy="4.5" r="1.5"/><path d="M10 7l-1 4 3 2v3M10 7l3 2 2-1M9 11l-2 3"/></svg>Treadmill</label>
-      </div>
-    </fieldset>
     
     <fieldset class="mode-cards">
       <legend class="visually-hidden">Training mode</legend>
@@ -119,8 +115,7 @@
     <li><a href="treadmill.html">treadmill</a></li>
     <li><a href="treadmill-flat.html">treadmill-flat</a></li>
     <li><a href="treadmill-invalid.html">treadmill-invalid</a></li>
-    <li><a href="machine-locked.html">machine-locked</a></li>
-    <li><a href="machine-failed.html">machine-failed</a></li>
+    <li><a href="treadmill-submitting.html">treadmill-submitting</a></li>
   </ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>

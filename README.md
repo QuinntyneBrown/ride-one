@@ -221,6 +221,7 @@ Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environm
 | `Wattzup:Ble:KeepaliveInterval` | `00:00:01` | How often the keepalive command is written while connected. |
 | `Wattzup:Ble:ErrorBackoff` | `00:00:03` | The wait before retrying after a Bluetooth error. |
 | `Wattzup:Bike:DisplayName` | Empty | A name to show for the bike instead of its advertised name. |
+| `Wattzup:Treadmill:DisplayName` | `Echelon Stride` | A name to show for the treadmill instead of its advertised name; empty shows the advertised name. |
 | `Wattzup:RawPacketLog:Enabled` | `true` | Whether notifications are written to the raw packet log. |
 | `Wattzup:RawPacketLog:Path` | `raw_packets.log` | The log file. Relative paths resolve against the content root. |
 | `Wattzup:RawPacketLog:MaxBytes` | `10485760` | The size at which the log rotates. |

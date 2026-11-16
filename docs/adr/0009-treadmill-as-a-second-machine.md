@@ -1,6 +1,6 @@
 # 0009. The treadmill as a second machine
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [0010](0010-treadmill-run-design.md) (limits, belt on disconnect, treadmill trace and energy, machine page)
 - **Date:** 2026-11-16
 
 ## Context

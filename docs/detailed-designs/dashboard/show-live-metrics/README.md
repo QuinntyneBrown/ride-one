@@ -87,9 +87,9 @@ Tests:
 
 Treadmill (`treadmill/treadmill-dashboard-and-setup`, L2-071):
 
-- Everything above applies when `machine` is `bike`. With `machine` `treadmill`, `RidePage` shows the speed and incline readouts (`Readout` kinds `speed` and `incline`) in place of power and cadence, and does not render `RideTrace` or its legend. No speed trace is drawn (ADR 0009).
-- `MetricsStrip` shows heart rate, distance and pace (`formatPace`, `m:ss` `/km`) on the treadmill, and does not show average power or energy, which are `null` there (L2-064, L2-071 criterion 4).
-- `PowerTraceStore` loads no trace on the treadmill, because the power trace is bike-only.
+- Everything above applies when `machine` is `bike`. With `machine` `treadmill`, `RidePage` shows the speed and incline readouts (`Readout` kinds `speed` and `incline`) in place of power and cadence, and `RideTrace` draws *Speed vs. plan* with an incline lane through the same `TraceRenderer` (ADR 0010, L2-071 criterion 6).
+- `MetricsStrip` shows Heart rate, Avg pace, Distance, Climbed and Energy on the treadmill, and does not show power or cadence; `kcal` there is the treadmill's estimate (L2-064 criterion 11, L2-071 criterion 7).
+- `PowerTraceStore` loads no trace on the treadmill, because the power trace is bike-only; `TreadmillTraceStore` keeps the reported speed and incline in the browser instead.
 
 ## Requirements
 

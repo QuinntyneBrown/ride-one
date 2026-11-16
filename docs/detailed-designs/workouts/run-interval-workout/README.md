@@ -79,7 +79,7 @@ On host shutdown the loop observes the stopping token and exits within the 5 s t
 - **Drive dispatches.** `DriveAsync` sends the level through `IResistanceCommander` on the bike, and the segment's speed and incline through `ITreadmillCommander` on the treadmill, with the same send-once-per-segment and resend-on-multiples-of-5 rule (L2-068). `WorkoutRun` gains `LastSentSpeed` and `LastSentIncline` beside `LastSentLevel`.
 - **Two more statuses.** `WorkoutStatus` gains `starting belt` and `paused: belt stopped`; both are active. The status strings `waiting for bike`, `paused: bike disconnected` and `ended: bike shut off` stay as identifiers on both machines, and the UI words them for the treadmill (L2-014, L2-071).
 - **Belt.** On the treadmill, a start or resume runs the 3-second belt countdown before the ride clock moves, and pause, stop, replace and the plan's end write the stop-belt command. A reconnect within 90 s lands in `paused` rather than `running` (L2-066 criterion 8), so the belt starts only after the rider resumes.
-- **Totals.** On the treadmill, each running tick adds distance only; the power and energy fields stay `null` (L2-064 criterion 9).
+- **Totals.** On the treadmill, each running tick adds distance, climb and the ACSM energy estimate through `RideTotals.TickTreadmill`; the power fields stay `null` (L2-064 criteria 9 to 11, `treadmill/decode-treadmill-telemetry`).
 
 The treadmill rules are designed in `treadmill/run-treadmill-workout` (plan, expansion, drive, manual override) and `treadmill/control-the-belt` (countdown, start timeout, belt stop, console stop).
 

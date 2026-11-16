@@ -8,7 +8,7 @@ Container_Boundary(api, "Wattzup API") {
   Component(val, "WorkoutPlanValidator", "Wattzup.Core", "Validate(body, machine)")
   Component(engine, "WorkoutEngine", "BackgroundService, Wattzup.Core", "1 s tick loop; DriveAsync dispatches on the run's machine; ITreadmillControl")
   Component(exp, "PlanExpander", "Wattzup.Core", "Plan to segments with speed and incline")
-  Component(sum, "WorkoutSummary", "Wattzup.Core", "Flat · <speed> km/h · <minutes> min")
+  Component(sum, "WorkoutSummary", "Wattzup.Core", "Steady · <speed> km/h at <incline>% · <minutes> min")
   Component(cmdr, "ITreadmillCommander", "Wattzup.Core.Treadmill", "SendSpeedAsync / SendInclineAsync; logs commands")
   Component(store, "BikeStateStore", "Wattzup.Core", "machine, speed_kmh, incline, workout, distance_km, error")
   Component(clock, "TimeProvider", ".NET", "Real time, or FakeTimeProvider in tests")

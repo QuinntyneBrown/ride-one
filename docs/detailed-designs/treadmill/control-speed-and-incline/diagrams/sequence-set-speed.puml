@@ -29,8 +29,8 @@ ctl -> client : setSpeed(9.0)
 client -> ep : POST /api/speed {"speed":9.0}
 alt bike chosen
   ep --> client : 409 code = wrong_machine [L2-069 AC5]
-else not 1.0-16.0 or more than 1 decimal
-  ep --> client : 400 code = invalid_speed, "speed must be 1.0-16.0" [L2-069 AC2]
+else not 0.8-19.3 or more than 1 decimal
+  ep --> client : 400 code = invalid_speed, "speed must be 0.8-19.3" [L2-069 AC2]
 else valid
   ep -> engine : SetManualSpeedAsync(9.0)
   engine -> cmdr : SendSpeedAsync(9.0, manual, rideSeconds)

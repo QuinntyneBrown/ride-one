@@ -3,6 +3,14 @@
 LAYOUT_WITH_LEGEND()
 title Components — Choose the machine
 
+Container_Boundary(web, "Wattzup Web") {
+  Component(page, "MachinePage", "Angular component", "Cards as one radio group; connects on pick; opens /setup when connected")
+  Component(card, "MachineCard / SignalBars", "Angular components", "One machine: signal, names, controls, last session")
+  Component(view, "machine-page-view", "Pure helper", "Heading, card view, card status")
+  Component(history, "MachineHistoryStore", "Service over localStorage", "Last session per machine, last used")
+  Component(live, "LiveStateService", "Service", "Owns the EventSource; state signal")
+  Component(mapi, "MACHINE_API", "Injection token", "choose(machine)")
+}
 Container_Boundary(api, "Wattzup API") {
   Component(ep, "MachineEndpoints", "Minimal API", "POST /api/machine: validates the body, maps the result")
   Component(engine, "WorkoutEngine", "IMachineControl, Wattzup.Core", "ChooseAsync on the engine loop: refuses during a workout")
@@ -16,6 +24,13 @@ Container_Boundary(api, "Wattzup API") {
 }
 System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
 
+Rel(page, card, "Renders two")
+Rel(page, view, "Builds the views")
+Rel(page, history, "Reads")
+Rel(page, live, "Reads machine, ble, error, nearby")
+Rel(page, mapi, "choose(machine)")
+Rel(mapi, ep, "POST /api/machine", "JSON/HTTPS")
+Rel(store, live, "Broadcasts", "SSE")
 Rel(ep, engine, "ChooseAsync(machine)")
 Rel(engine, sel, "Select(machine)")
 Rel(sel, store, "Update: machine, ble = scanning, resets")

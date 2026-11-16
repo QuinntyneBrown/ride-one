@@ -7,6 +7,7 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 | bike-connectivity | [Discover and connect the bike](bike-connectivity/discover-and-connect-bike/README.md) | `L2-001`, `L2-002`, `L2-039` |
 |  | [Maintain the bike connection](bike-connectivity/maintain-bike-connection/README.md) | `L2-003`, `L2-004` |
 |  | [Bluetooth platform transports](bike-connectivity/bluetooth-platform-transports/README.md) | `L2-043` |
+|  | [List nearby machines](bike-connectivity/list-nearby-machines/README.md) | `L2-074` |
 | telemetry | [Decode bike telemetry](telemetry/decode-bike-telemetry/README.md) | `L2-005`, `L2-006`, `L2-007` |
 |  | [Estimate power and ride totals](telemetry/estimate-power-and-totals/README.md) | `L2-049` |
 |  | [Log raw packets](telemetry/log-raw-packets/README.md) | `L2-030`, `L2-057` |
@@ -26,7 +27,7 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Responsive and accessible layout](dashboard/responsive-accessible-layout/README.md) | `L2-040`, `L2-041`, `L2-061` |
 |  | [Dialogs and notifications](dashboard/dialogs-and-notifications/README.md) | `L2-023`, `L2-051`, `L2-053` |
 |  | [Unlock and not-found pages](dashboard/unlock-and-not-found/README.md) | `L2-055`, `L2-056` |
-| treadmill | [Choose the machine](treadmill/choose-machine/README.md) | `L2-062`, `L2-063`, `L2-070` |
+| treadmill | [Choose the machine](treadmill/choose-machine/README.md) | `L2-062`, `L2-063`, `L2-070`, `L2-073` |
 |  | [Decode treadmill telemetry](treadmill/decode-treadmill-telemetry/README.md) | `L2-064` |
 |  | [Control speed and incline](treadmill/control-speed-and-incline/README.md) | `L2-065`, `L2-069` |
 |  | [Control the belt](treadmill/control-the-belt/README.md) | `L2-066` |

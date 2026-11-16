@@ -1,0 +1,79 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — List nearby machines
+
+class BikeAdvertisement <<record>> {
+  +string? Name
+  +string Address
+  +IReadOnlyList<string> ServiceUuids
+  +int? Rssi
+}
+
+enum Machine {
+  Bike
+  Treadmill
+}
+
+class NearbyMachine <<record>> {
+  +Machine Machine
+  +string? Name
+  +string Label
+  +int? Rssi
+  +int Signal
+  +double SeenAt
+}
+
+class SignalBars <<static>> {
+  +FromRssi(rssi: int?): int
+}
+
+class NearbyFilter <<static>> {
+  +Build(chosen: Machine, nearby: NearbyMachines): Func<BikeAdvertisement, bool>
+}
+
+class NearbyMachines {
+  -BikeStateStore store
+  -TimeProvider time
+  -WattzupOptions options
+  -ImmutableArray<NearbyMachine> pending
+  -Machine? held
+  +Heard(machine: Machine, advertisement: BikeAdvertisement): void
+  +Hold(machine: Machine): void
+  +Release(machine: Machine): void
+  +Expire(): void
+  -Flush(): void
+}
+
+class BikeConnectionService {
+  -RunAttemptAsync(ct): Task
+}
+
+class BikeState <<record>> {
+  +Machine Machine
+  +ImmutableArray<NearbyMachine> Nearby
+}
+
+interface IBikeTransport {
+  +ScanAsync(filter, timeout, ct): Task<BikeAdvertisement?>
+}
+
+NearbyMachine --> Machine
+BikeState "1" *-- "0..2" NearbyMachine : nearby
+NearbyMachines ..> SignalBars : signal
+NearbyMachines ..> NearbyMachine : builds
+NearbyMachines --> BikeState : writes via BikeStateStore
+NearbyFilter ..> NearbyMachines : Heard
+NearbyFilter ..> BikeAdvertisement : reads
+BikeConnectionService ..> NearbyFilter : builds the scan filter
+BikeConnectionService --> NearbyMachines : Hold / Release
+BikeConnectionService --> IBikeTransport : ScanAsync
+@enduml

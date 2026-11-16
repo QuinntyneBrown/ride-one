@@ -60,12 +60,37 @@
         "manual",
         "edge",
         "treadmill",
+        "treadmill-paused",
+        "treadmill-flat",
+        "treadmill-manual",
         "treadmill-countdown",
         "treadmill-belt-stopped",
         "treadmill-disconnected",
         "treadmill-scanning"
       ],
       "not_applicable": {}
+    },
+    {
+      "id": "choose-machine",
+      "kind": "page",
+      "title": "Choose your machine",
+      "route": "/machine",
+      "requirements": [
+        "L2-062",
+        "L2-063",
+        "L2-072",
+        "L2-073",
+        "L2-074"
+      ],
+      "states": [
+        "default",
+        "connecting",
+        "not-found",
+        "not-found-bike",
+        "loading",
+        "empty",
+        "error"
+      ]
     },
     {
       "id": "setup",
@@ -91,8 +116,7 @@
         "treadmill",
         "treadmill-flat",
         "treadmill-invalid",
-        "machine-locked",
-        "machine-failed"
+        "treadmill-submitting"
       ],
       "not_applicable": {
         "empty": "Setup always shows values: the saved draft, or 8 × 0:40 / 0:20 on first run (L2-029)."

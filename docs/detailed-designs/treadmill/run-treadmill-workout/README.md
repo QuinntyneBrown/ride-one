@@ -4,7 +4,7 @@
 
 With the treadmill chosen, the rider runs the same two kinds of plan as on the bike, `hiit` and `flat`, with speeds and inclines in place of resistance levels and the cadence goal. The backend validates the plan against the treadmill's ranges, expands it into segments, and sets the treadmill's speed and incline for each segment. The rider can override the speed or incline mid-ride; the plan takes over again at the next segment or on Back to plan. The ride's distance is integrated from the reported speed; the bike's power and energy estimates do not apply (ADR 0003, ADR 0009).
 
-**treadmill plan** — `hiit` or `flat` plan whose targets are speeds in km/h (1.0–16.0, at most 1 decimal) and inclines in whole percent (0–15) (L2-067)
+**treadmill plan** — `hiit` or `flat` plan whose targets are speeds in km/h (0.8–19.3, at most 1 decimal) and inclines in whole percent (0–10) (L2-067, ADR 0010)
 
 **segment speed** — speed in km/h the engine sets for a segment, `speed` in the segment
 
@@ -31,26 +31,26 @@ All types live in `Wattzup.Core` unless stated otherwise.
 | Kind | Field | Rule | Message |
 |---|---|---|---|
 | `hiit` | `rounds`, `work_seconds`, `rest_seconds`, `warmup`, `cooldown` | as L2-010 | as L2-010 |
-| `hiit` | `work_speed`, `rest_speed` | number 1.0–16.0 | `Speed must be 1.0 to 16.0 km/h.` |
-| `flat` | `speed` | number 1.0–16.0 | `Speed must be 1.0 to 16.0 km/h.` |
+| `hiit` | `work_speed`, `rest_speed` | number 0.8–19.3 | `Speed must be 0.8 to 19.3 km/h.` |
+| `flat` | `speed` | number 0.8–19.3 | `Speed must be 0.8 to 19.3 km/h.` |
 | any | a speed field that is not a number or has more than 1 decimal (`9.25`) | | `Enter a speed like 9.0.` |
-| `hiit` | `work_incline`, `rest_incline` | integer 0–15 | `Incline must be 0 to 15 %.` |
-| `flat` | `incline` | integer 0–15 | `Incline must be 0 to 15 %.` |
+| `hiit` | `work_incline`, `rest_incline` | integer 0–10 | `Incline must be 0 to 10 %.` |
+| `flat` | `incline` | integer 0–10 | `Incline must be 0 to 10 %.` |
 | any | an incline field that is not an integer | | `Enter a whole number.` |
 | `flat` | `minutes` | integer 1–180 | `Enter 1 to 180 minutes.` |
 
   The decimal check reads the JSON number's text, so `9.0` and `9` pass and `9.25` fails. The range limits are `EchelonTreadmillCommands.MinSpeedKmh`, `MaxSpeedKmh`, `MinIncline` and `MaxIncline` (`Wattzup.Protocol`), so the validator and the command builder share one source. A rejection is the ProblemDetails of L2-010 with `code` = `invalid_workout` (`workouts/start-and-stop-workout`).
-- **`WorkoutSummary.For(plan)`** — a treadmill `flat` plan reads `Flat · <speed> km/h · <minutes> min`, with the speed to 1 decimal (`Flat · 7.0 km/h · 30 min`). A `hiit` plan reads as L2-060 on both machines (L2-067 criterion 8).
+- **`WorkoutSummary.For(plan)`** — a treadmill `flat` plan reads `Steady · <speed> km/h at <incline>% · <minutes> min`, with the speed to 1 decimal (`Steady · 6.5 km/h at 8% · 30 min`). The UI calls a `flat` plan *Steady* on the treadmill; the contract keeps `flat` (ADR 0010). A `hiit` plan reads as L2-060 on both machines (L2-067 criterion 8).
 
 ### Expansion
 
 - **`Segment`** — becomes `(SegmentKind Kind, int Start, int Duration, int? Level, int? Cadence, int? Round, double? Speed, int? Incline)`. On the bike `Speed` and `Incline` are `null`; on the treadmill `Level` and `Cadence` are `null` (L2-068 criterion 3, L2-070).
 - **`PlanExpander.Expand(plan)`** — chooses the rules by the plan's fields: a plan with a speed is a treadmill plan (L2-068).
   - A treadmill `flat` plan yields one `steady` segment of `minutes × 60` s at `speed` and `incline` (criterion 2).
-  - A treadmill `hiit` plan with `warmup` starts with a `warmup` segment of 180 s at `rest_speed` and incline 0.
+  - A treadmill `hiit` plan with `warmup` starts with a `warmup` segment of 180 s at `rest_speed` + 1.0 km/h, at most 19.3, and `rest_incline`.
   - Each round r adds a `work` segment at `work_speed` and `work_incline` and a `rest` segment at `rest_speed` and `rest_incline`, round r.
   - With `cooldown`, the last round has no `rest` segment, and a `cooldown` segment of 120 s at `rest_speed` and incline 0 ends the plan.
-  - Durations, rounds and `start` follow L2-045 (criterion 1). The default treadmill plan (18 × 0:40 / 0:20, 9.0 / 7.0 km/h, incline 0, warm-up and cool-down) therefore yields the same 22:40 timeline as the default bike plan.
+  - Durations, rounds and `start` follow L2-045 (criterion 1). The default treadmill plan, *Minute on* (6 × 1:00 / 1:00, 13.0 / 6.0 km/h, 2 / 1 %, warm-up and cool-down, L2-072 criterion 4), therefore yields a 16:00 timeline: a 3:00 warm-up at 7.0 km/h and 1 %, 6 work and 5 rest segments, and a 2:00 cool-down at 6.0 km/h and 0 %.
 - **`WorkoutRun`** — `PlanLevel` is `int?` and is `null` on the treadmill, so `plan_level` is `null` (L2-070). The engine reads the machine from `store.Current.Machine`, which cannot change while a run is active (L2-062). The run gains `LastSentSpeed` (`double?`) and `LastSentIncline` (`int?`) beside `SentForSegment` and `LastSentLevel`.
 
 ### Drive
@@ -98,9 +98,9 @@ Each test runs `Wattzup.Api.AcceptanceTests` through `WebApplicationFactory` wit
 
 `Wattzup.Core.Tests` holds the tables, one case per row:
 
-- `WorkoutPlanValidatorTests` — one case per row of the treadmill table above, including 0.9, 16.1, 9.25, `"9"` as a string, -1, 16 and 2.5, plus one bike plan checked against `Machine.Treadmill` and one treadmill plan against `Machine.Bike` (L2-067 AC6).
-- `PlanExpanderTests` — treadmill flat; treadmill warm-up at `rest_speed` and incline 0; rounds; cool-down drops the last rest; bike plans give `null` speed and incline (L2-068 AC1 to AC3).
-- `WorkoutSummaryTests` — the treadmill flat summary.
+- `WorkoutPlanValidatorTests` — one case per row of the treadmill table above, including 0.7, 19.4, 9.25, `"9"` as a string, -1, 11 and 2.5, plus one bike plan checked against `Machine.Treadmill` and one treadmill plan against `Machine.Bike` (L2-067 AC6).
+- `PlanExpanderTests` — treadmill flat; treadmill warm-up at `rest_speed` + 1.0 and `rest_incline`; a `rest_speed` of 18.8 capped at 19.3; rounds; cool-down drops the last rest; bike plans give `null` speed and incline (L2-068 AC1 to AC3).
+- `WorkoutSummaryTests` — the treadmill flat summary `Steady · 6.5 km/h at 8% · 30 min`.
 - `WorkoutEngineTreadmillDriveTests` — with a test double of `ITreadmillCommander`: speed drift only, incline drift only, both, a failed send retried at the next multiple of 5, and manual hold.
 
 ### Open questions
