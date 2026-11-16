@@ -9,6 +9,7 @@ export class RidePage {
   readonly statusState: Locator;
   readonly statusIcon: Locator;
 
+  readonly skipLink: Locator;
   readonly workoutLink: Locator;
   readonly badge: Locator;
   readonly rideClock: Locator;
@@ -85,6 +86,7 @@ export class RidePage {
     this.statusState = page.locator('.statusline__state');
     this.statusIcon = page.locator('.statusline svg');
 
+    this.skipLink = page.getByRole('link', { name: 'Skip to content' });
     const bar = page.locator('.app-bar');
     this.workoutLink = bar.locator('a.app-bar__workout');
     this.badge = bar.locator('.badge');
