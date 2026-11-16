@@ -16,7 +16,7 @@ This feature is display only. It reads the live `BikeState` signal that `live-st
 
 ## Description
 
-- **`resistance-view.ts`** (`wattzup-web/src/app/core/`) — pure helper `resistanceView(state)` with a unit test per case. It returns:
+- **`resistance-view.ts`** (`frontend/src/app/core/`) — pure helper `resistanceView(state)` with a unit test per case. It returns:
   - **`valueText`** — `resistance` as a string, or `--` when `null` (L2-019).
   - **`settingText`** — `Setting <target>…` when `target_resistance` is set and differs from `resistance`; otherwise `null` (L2-019).
   - **`litUpTo`** — `resistance`, or `0` when `null`, so no level is lit.
@@ -37,7 +37,7 @@ Worked values from the specification and the mocks (`docs/mocks/pages/ride/defau
 
 Verification:
 
-- `wattzup-web` unit tests for `resistanceView`, 1 case per row above and per criterion of L2-019.
+- `frontend` unit tests for `resistanceView`, 1 case per row above and per criterion of L2-019.
 - Playwright — the `RidePage.resistance` page object reads the readout, the lit levels, the pressed level and the plan outline. A spec pushes 2 stubbed state messages (`resistance` 18 with target 22, then 22 with target 22) and checks that `Setting 22…` appears and then disappears.
 
 ## Requirements

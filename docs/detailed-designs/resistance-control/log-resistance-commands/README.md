@@ -34,7 +34,7 @@ Backend (`Wattzup.Core`):
 - **`TelemetryIngestor`** (see `decode-bike-telemetry`) — on a `ResistanceUpdate(level)` it calls `CommandLog.Acknowledge` inside the same `BikeStateStore.Update` that sets `resistance`, so 1 broadcast carries both.
 - **`ActiveConnectionRegistry`** — read by the commander to decide between `failed` and `sending`.
 
-Frontend (`wattzup-web`):
+Frontend (`frontend`):
 
 - **`CmdLog`** (`wz-cmd-log`, `src/app/dashboard/cmd-log/`) — OnPush component, BEM block `cmd-log`, a `section` labelled by its `Sent to bike` heading. The `cmd-log__head` shows `BLE · <connection_id>`. The list renders each entry as `<time>` with the ride time, `RES <level>` with `· <source>`, and a status span with class `ack`, `sending` or `failed`. With no entries it reads `No commands yet this session.` (L2-048). The class names are kept from the mocks because e2e locators depend on them. The status is carried by text as well as colour.
 - **`command-log-view.ts`** (`src/app/core/`) — pure helper. `formatRideTime(seconds)` gives `m:ss` below 1 hour and `h:mm:ss` from 1 hour, as in `docs/mocks/pages/ride/edge.html` (`1:02:00`). `statusText(entry)` gives `ack <n>ms`, `sending` or `failed`. An entry with `ride_seconds` `null` shows the local time of `at` as `h:mm:ss` (L2-048).

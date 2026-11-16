@@ -39,7 +39,7 @@ package "Wattzup.Api" {
   }
 }
 
-package "wattzup-web" {
+package "frontend" {
   interface BikeApi <<token BIKE_API>> {
     +getTrace(): Promise<PowerTrace>
   }

@@ -22,7 +22,7 @@ The backend side of starting a ride, the validation of the plan and the `invalid
 
 ### Pure helpers
 
-Each helper lives in `wattzup-web/src/app/core/`, has its unit tests beside it, and has no Angular dependency.
+Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and has no Angular dependency.
 
 - **`plan-expansion.ts`** — the frontend's single implementation of the plan rules (L2-059):
   - `expandPlan(plan)` returns the segments by the rules of L2-045, mirroring `PlanExpander` in `Wattzup.Core`.
@@ -48,7 +48,7 @@ The backend and frontend expansions are written once per side and tested against
 
 ### Components
 
-Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` and `name.scss`, under `wattzup-web/src/app/dashboard/`, the components folder of the AGENTS.md tree. Each component owns the BEM blocks in its row of the table below, and no block has two owners. The mocks' classes are kept, and the mocks' inline `style` attributes move into the owning stylesheet. Shared blocks (`btn`, `alert`, `legend`, `swatch`, `numeral`, `field__error`, `skeleton`, `app-bar`, `lockup`) belong to the design system and are not restyled here.
+Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` and `name.scss`, under `frontend/src/app/dashboard/`, the components folder of the AGENTS.md tree. Each component owns the BEM blocks in its row of the table below, and no block has two owners. The mocks' classes are kept, and the mocks' inline `style` attributes move into the owning stylesheet. Shared blocks (`btn`, `alert`, `legend`, `swatch`, `numeral`, `field__error`, `skeleton`, `app-bar`, `lockup`) belong to the design system and are not restyled here.
 
 | Component | Selector | Blocks | Role |
 |---|---|---|---|
@@ -103,7 +103,7 @@ The screen follows the six setup mocks (L2-029, L2-059):
 
 ### Acceptance tests
 
-Playwright (`wattzup-web/e2e/`), with every `/api/**` request answered by the shared fixture and `/api/events` served by the SSE fixture. The responses for `POST /api/workout` (200 and 400) are recorded against the backend running with `--simulate`.
+Playwright (`frontend/e2e/`), with every `/api/**` request answered by the shared fixture and `/api/events` served by the SSE fixture. The responses for `POST /api/workout` (200 and 400) are recorded against the backend running with `--simulate`.
 
 - Page objects: `e2e/pages/setup.page.ts` (mode cards, presets, steppers, sliders, switches, form summary, preview, Start ride, Close) and `e2e/pages/replace-ride.dialog.ts` (title, description, Keep current ride, Replace ride, close, alert).
 - `e2e/setup.spec.ts`:

@@ -10,7 +10,7 @@ allows same-origin resources only (L2-036), so fonts cannot come from a CDN (moc
 
 ## Decision
 
-`wattzup-web` bundles the three families as WOFF2 variable fonts under its assets, declares them
+`frontend` bundles the three families as WOFF2 variable fonts under its assets, declares them
 with `@font-face` in the global foundations, subsets them to Latin, and uses `font-display: swap`.
 Their licences (SIL Open Font License 1.1) ship beside the files.
 

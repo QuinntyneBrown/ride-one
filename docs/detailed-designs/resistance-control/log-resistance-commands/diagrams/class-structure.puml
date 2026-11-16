@@ -53,7 +53,7 @@ package "Wattzup.Core" {
   }
 }
 
-package "wattzup-web" {
+package "frontend" {
   class CmdLog <<component>> {
     +Signal<CommandEntry[]> entries
     +Signal<string> connectionId

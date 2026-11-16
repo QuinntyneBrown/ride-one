@@ -1,4 +1,4 @@
-# wattzup-web
+# frontend
 
 The Wattzup dashboard: the Angular app that shows the bike's live state and runs workouts. Its
 production build is served by `Wattzup.Api` from the same origin. The repository
@@ -10,7 +10,7 @@ production build is served by `Wattzup.Api` from the same origin. The repository
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm start`                       | `ng serve` on http://localhost:4200, proxying `/api` to the backend on `127.0.0.1:8787` (`proxy.conf.json`)                                                       |
 | `npm run build`                   | Production build, then checks the initial bundle against the 300 KB gzipped budget                                                                                |
-| `npm run build:api`               | Production build copied into `../src/Wattzup.Api/wwwroot`                                                                                                         |
+| `npm run build:api`               | Production build copied into `../backend/src/Wattzup.Api/wwwroot`                                                                                                 |
 | `npm test`                        | Unit tests (Vitest) for the services and pure helpers in `src/app/core/`                                                                                          |
 | `npm run lint`                    | angular-eslint, plus a type check of the Playwright code in `e2e/`                                                                                                |
 | `npm run format` / `format:check` | Prettier                                                                                                                                                          |

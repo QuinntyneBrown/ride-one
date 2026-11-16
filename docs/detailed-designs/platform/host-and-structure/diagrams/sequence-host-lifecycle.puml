@@ -7,7 +7,7 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
-  participant "Browser (wattzup-web)" as web
+  participant "Browser (frontend)" as web
 end box
 box "Backend — Wattzup API application" #D1FADF
   participant "Program / Host" as host

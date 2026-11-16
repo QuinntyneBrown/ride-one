@@ -51,7 +51,7 @@ package "Wattzup.Mac" {
     +WillTerminate(): void
   }
 }
-package "wattzup-web" {
+package "frontend" {
   class appConfig <<ApplicationConfig>> {
     +provideZonelessChangeDetection()
     +provideRouter(routes)

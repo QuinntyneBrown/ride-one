@@ -33,7 +33,7 @@ Backend (`Wattzup.Core`; no rule lives in `Wattzup.Protocol`, the transports or 
   - Before any workout has started, the 3 totals are `null` (L2-014). The dashboard shows them as `0`, `0.00` and `0` (L2-022, see `dashboard/show-live-metrics`).
 - **`BikeState.HeartRate`** — always `null`. No transport and no Core service writes it (L2-049, ADR 0003).
 
-Frontend: the power readout, its delta to the target and the totals strip belong to `dashboard/show-live-metrics` (L2-021, L2-022). The setup preview's expected power and energy (L2-059) use a TypeScript twin of `EstimateWatts` in `wattzup-web/src/app/core/`, tested against the same table of cases as `PowerEstimator`.
+Frontend: the power readout, its delta to the target and the totals strip belong to `dashboard/show-live-metrics` (L2-021, L2-022). The setup preview's expected power and energy (L2-059) use a TypeScript twin of `EstimateWatts` in `frontend/src/app/core/`, tested against the same table of cases as `PowerEstimator`.
 
 Verification:
 

@@ -1,7 +1,7 @@
 // Records real API responses from the backend running with the simulated bike into
 // e2e/fixtures/recorded/, so the Playwright stubs keep the backend's exact shapes (AGENTS.md, E2E).
 // Recording is never part of a test run. Start the backend first:
-//   dotnet run --project src/Wattzup.Api -- --simulate
+//   dotnet run --project backend/src/Wattzup.Api -- --simulate
 // then: npm run record:api [-- http://127.0.0.1:8787]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';

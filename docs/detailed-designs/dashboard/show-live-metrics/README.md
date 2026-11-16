@@ -20,7 +20,7 @@ The trace and the totals strip replace the prototype's 150-sample sparklines, an
 
 ## Description
 
-Core helpers and services (`wattzup-web/src/app/core/`, each with unit tests):
+Core helpers and services (`frontend/src/app/core/`, each with unit tests):
 
 - **`estimateWatts(cadence, level)`** — the design's formula, implemented once in the frontend and checked against the same table of cases as `Wattzup.Core` (L2-049, L2-059).
 - **`powerDelta(power, target, status)`** — returns `{text, tone}` (L2-021):
@@ -55,7 +55,7 @@ Core helpers and services (`wattzup-web/src/app/core/`, each with unit tests):
 - **`TraceRendererStatus`** — root signal holding the active `kind`, which the diagnostics dialog shows as `Trace renderer: WebGL` or `Canvas 2D` (`dialogs-and-notifications`).
 - **`FrameScheduler`** — the only `requestAnimationFrame` caller. It coalesces requests to one draw per frame and stops while the tab is hidden (`platform/observability-and-resources`).
 
-Components (`wattzup-web/src/app/dashboard/`, OnPush, signals only):
+Components (`frontend/src/app/dashboard/`, OnPush, signals only):
 
 - **`Readout`** (`wz-readout`, block `readout`, modifiers `readout--power` and `readout--cadence`) — renders `label`, `readout__value` (`numeral` plus `readout__unit`) and one `ng-content` slot for `readout__sub`.
   - **Power** shows `power` with `W`. Its sub-line reads `Target <n> W` with a `Delta` (`wz-delta`, block `delta`, `delta--on`, `delta--high` or `delta--low`), or `Free ride — no target`.

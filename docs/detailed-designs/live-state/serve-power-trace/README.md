@@ -24,7 +24,7 @@ Backend:
 - **`WorkoutTraceEndpoint`** (`Wattzup.Api`, in the `/api/workout` group) — maps `GET /api/workout/trace` and returns `200 {"samples": [[ride_seconds, power], ...]}`. With no workout since start-up, `samples` is `[]` (L2-050). The response is written with `Utf8JsonWriter` straight from the snapshot. The endpoint holds no rule.
 - **Size** — a sample serialises to about 12 bytes (`[10799,317],`), so 10,800 samples stay near 130 KB, under the 200 KB limit of L2-050.
 
-Frontend (`wattzup-web`):
+Frontend (`frontend`):
 
 - **`BikeApi.getTrace()`** — reads the endpoint with the generated `PowerTrace` type.
 - **`RideTrace`** (see `workouts/show-workout-countdown` and `dashboard`) — loads the history when the dashboard opens and after the event stream reconnects, then appends `[elapsed_seconds, power]` from each state message whose `elapsed_seconds` is new. The drawing itself belongs to L2-026 and L2-028.

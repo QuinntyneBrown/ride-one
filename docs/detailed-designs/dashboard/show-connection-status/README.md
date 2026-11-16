@@ -18,7 +18,7 @@ The status line replaces the prototype's coloured pill, and the banners and over
 
 ## Description
 
-Core services and helpers (`wattzup-web/src/app/core/`):
+Core services and helpers (`frontend/src/app/core/`):
 
 - **`LiveStateService`** — the only owner of the `EventSource` and of the reconnect logic (L2-044). It exposes read-only signals:
   - `state` (`BikeState | null`), the last state received. Its type comes from the OpenAPI document (`src/app/api/`).
@@ -56,7 +56,7 @@ Core services and helpers (`wattzup-web/src/app/core/`):
   - **exposed**, info, `role="status"`: `Shared on your network` / `This server listens on <bind_address>. Anyone with the API key can change the bike's resistance.` It shows while `exposed` is true, until dismissed.
   Dismissals are kept in session storage under `wattzup.banners.dismissed`, so a dismissed banner stays hidden for the browser session. Every storage access is wrapped in `try`/`catch` and falls back to memory.
 
-Components (`wattzup-web/src/app/dashboard/`, each `name.ts` + `name.html` + `name.scss`, OnPush):
+Components (`frontend/src/app/dashboard/`, each `name.ts` + `name.html` + `name.scss`, OnPush):
 
 - **`StatusLine`** (`wz-status-line`, block `statusline`) — renders `connectionStatus` as an icon, `statusline__name` and `statusline__state`. Tone `wait` adds `statusline--wait`, and tone `bad` adds `statusline--bad`. The scanning icon animates unless `MotionPreference.reduced` is true. The name is bound with interpolation, so a device name such as `<b>x</b>` renders as literal text (L2-018, L2-036).
 - **`ConnectionBanner`** (`wz-connection-banner`) — renders each banner through the shared `Alert` component (block `alert`, with the mocks' `banner` class and `alert--warning`, `alert--danger` or `alert--success`). It places a `Dismiss` close button on dismissible banners.

@@ -15,7 +15,7 @@ bin/
 obj/
 artifacts/
 # The dashboard build, copied in by `npm run build:api`
-src/Wattzup.Api/wwwroot/
+backend/src/Wattzup.Api/wwwroot/
 TestResults/
 *.user
 .vs/

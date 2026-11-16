@@ -11,7 +11,7 @@ skinparam class {
 }
 title Class structure — Show resistance
 
-package "wattzup-web" {
+package "frontend" {
   class LiveStateService <<service>> {
     +Signal<BikeState | null> state
   }

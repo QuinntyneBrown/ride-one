@@ -31,7 +31,7 @@ folder (`Wattzup.app/Contents/{Info.plist,MacOS/}`) and needs no Xcode to assemb
   `artifacts/Wattzup.app/Contents/MacOS/` and signs the bundle ad hoc with `codesign`. Inside a
   bundle the host uses the bundle as its content root and writes `raw_packets.log` and
   `status.json` under `~/Library/Application Support/Wattzup/`.
-- Run from a terminal (`dotnet run --project src/Wattzup.Api`), the server works too, once the
+- Run from a terminal (`dotnet run --project backend/src/Wattzup.Api`), the server works too, once the
   terminal app has Bluetooth permission.
 
 ## Consequences

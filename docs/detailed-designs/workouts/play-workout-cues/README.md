@@ -14,7 +14,7 @@ The first state received never triggers a cue: joining a ride mid-segment, or re
 
 ## Description
 
-Pure helpers in `wattzup-web/src/app/core/`, with unit tests:
+Pure helpers in `frontend/src/app/core/`, with unit tests:
 
 - **`SegmentChangeDetector`** (`segment-change-detector.ts`) — `observe(workout)` remembers the key of the last state, where the key is `workout.segment`, or `null` with no workout.
   - It returns `null` for the first state it sees, whatever it holds (L2-027).
@@ -48,7 +48,7 @@ With `prefers-reduced-motion: reduce`, the pulse and the banner animation are no
 
 ### Acceptance tests
 
-Playwright (`wattzup-web/e2e/`), with `/api/**` answered by the shared fixture, `/api/events` served by the SSE fixture, and time controlled by `page.clock`. Tones are checked through a test double of `AudioContext` installed by the fixture with `page.addInitScript`, which records each oscillator's frequency and duration.
+Playwright (`frontend/e2e/`), with `/api/**` answered by the shared fixture, `/api/events` served by the SSE fixture, and time controlled by `page.clock`. Tones are checked through a test double of `AudioContext` installed by the fixture with `page.addInitScript`, which records each oscillator's frequency and duration.
 
 - `e2e/pages/ride.page.ts` — the ride page object, which owns the beeps toggle, phase banner, live region and time-left locators.
 - `e2e/workout-cues.spec.ts`:

@@ -11,7 +11,7 @@ skinparam class {
 }
 title Class structure — Start and stop a workout
 
-package "wattzup-web" {
+package "frontend" {
   interface WorkoutApi {
     +start(plan: WorkoutPlan): Observable<StartResponse>
     +stop(): Observable<StopResponse>
