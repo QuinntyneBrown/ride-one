@@ -120,4 +120,7 @@ public sealed record BikeState
 
     /// <summary>Treadmill only: the workout's climb in whole metres (L2-064 criterion 10).</summary>
     public int? ClimbM { get; init; }
+
+    /// <summary>The Echelon machines heard while scanning, at most one per machine (L2-074); kept across a machine change.</summary>
+    public IReadOnlyList<NearbyMachine> Nearby { get; init; } = [];
 }

@@ -18,6 +18,7 @@ public sealed partial class BikeConnectionService(
     ActiveConnectionRegistry registry,
     TelemetryIngestor ingestor,
     MachineSelector machines,
+    NearbyMachines nearby,
     TimeProvider time,
     IOptions<ConnectivityOptions> options,
     ILogger<BikeConnectionService> logger) : BackgroundService
@@ -98,7 +99,8 @@ public sealed partial class BikeConnectionService(
     private async Task RunOnceAsync(MachineProfile profile, CancellationToken waitToken, CancellationToken stoppingToken)
     {
         store.Update(s => s with { Ble = BleState.Scanning, Error = null });
-        var scan = transport.ScanAsync(a => profile.Matches(a.Name, a.ServiceUuids), _options.ScanTimeout, waitToken);
+        // The filter records every Echelon machine heard and accepts only the chosen one (L2-074).
+        var scan = transport.ScanAsync(NearbyFilter.Build(profile.Machine, nearby), _options.ScanTimeout, waitToken);
         store.Update(s => s.Adapter == AdapterState.On ? s : s with { Adapter = AdapterState.On });
         var advertisement = await scan.ConfigureAwait(false);
         if (advertisement is null)
@@ -124,6 +126,7 @@ public sealed partial class BikeConnectionService(
             }
 
             connection.Disconnected += OnDisconnected;
+            nearby.Hold(profile.Machine);
             try
             {
                 store.Update(s => s with
@@ -152,6 +155,7 @@ public sealed partial class BikeConnectionService(
             finally
             {
                 connection.Disconnected -= OnDisconnected;
+                nearby.Release(profile.Machine);
                 registry.Clear();
             }
 

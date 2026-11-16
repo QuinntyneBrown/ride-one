@@ -71,6 +71,7 @@ export function testState(change: Partial<BikeState> = {}): BikeState {
     belt: null,
     belt_countdown: null,
     climb_m: null,
+    nearby: [],
     ...change,
   };
 }

@@ -51,7 +51,7 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
         var stopping = 0;
 
         // An active scan delivers the advertisement and the scan response separately; merge them per address.
-        void Evaluate(ulong address, string? name, string[] uuids)
+        void Evaluate(ulong address, string? name, string[] uuids, int rssi)
         {
             string? mergedName;
             string[] mergedUuids;
@@ -73,7 +73,7 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
                 mergedUuids = [.. entry.Uuids];
             }
 
-            var advertisement = new BikeAdvertisement(mergedName, FormatAddress(address), mergedUuids);
+            var advertisement = new BikeAdvertisement(mergedName, FormatAddress(address), mergedUuids, rssi);
             try
             {
                 if (filter(advertisement))
@@ -95,7 +95,8 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
             var address = args.BluetoothAddress;
             var name = args.Advertisement.LocalName;
             var uuids = args.Advertisement.ServiceUuids.Select(u => u.ToString("D")).ToArray();
-            _ = Task.Run(() => Evaluate(address, name, uuids), CancellationToken.None);
+            int rssi = args.RawSignalStrengthInDBm;
+            _ = Task.Run(() => Evaluate(address, name, uuids, rssi), CancellationToken.None);
         }
 
         void OnStopped(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementWatcherStoppedEventArgs args)

@@ -339,6 +339,7 @@ export interface components {
             belt_countdown: null | number;
             /** Format: int32 */
             climb_m: null | number;
+            nearby: components["schemas"]["NearbyMachine"][];
         };
         /** @enum {unknown} */
         BleState: "starting" | "scanning" | "connecting" | "connected" | "disconnected" | "error";
@@ -398,6 +399,17 @@ export interface components {
         Machine: "bike" | "treadmill";
         MachineChosen: {
             machine: components["schemas"]["Machine"];
+        };
+        NearbyMachine: {
+            machine: components["schemas"]["Machine"];
+            name: null | string;
+            label: string;
+            /** Format: int32 */
+            rssi: null | number;
+            /** Format: int32 */
+            signal: number;
+            /** Format: double */
+            seen_at: number;
         };
         PowerTrace: {
             samples: number[][];

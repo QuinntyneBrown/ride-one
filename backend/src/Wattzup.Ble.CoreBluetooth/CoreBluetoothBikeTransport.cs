@@ -146,7 +146,7 @@ public sealed class CoreBluetoothBikeTransport : IBikeTransport, IBleCallbacks, 
         }
     }
 
-    void IBleCallbacks.Discovered(IntPtr peripheral, IntPtr advertisementData)
+    void IBleCallbacks.Discovered(IntPtr peripheral, IntPtr advertisementData, IntPtr rssi)
     {
         var handler = _onDiscovered;
         if (handler is null)
@@ -165,7 +165,9 @@ public sealed class CoreBluetoothBikeTransport : IBikeTransport, IBleCallbacks, 
             _peripherals[id] = ObjC.objc_retain(peripheral);
         }
 
-        var advertisement = new BikeAdvertisement(name, id, uuids);
+        // RSSI is an NSNumber in dBm; CoreBluetooth reports 127 when it has none.
+        var dbm = rssi == IntPtr.Zero ? 127 : (int)(long)ObjC.Send(rssi, ObjC.Sel("integerValue"));
+        var advertisement = new BikeAdvertisement(name, id, uuids, dbm == 127 ? null : dbm);
         ThreadPool.QueueUserWorkItem(_ => handler(advertisement));
     }
 

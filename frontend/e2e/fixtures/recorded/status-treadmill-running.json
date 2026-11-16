@@ -406,8 +406,8 @@
   "speed_kmh": 8,
   "speed_mph": 5,
   "packets": 13,
-  "first_data_at": 1794870521.494,
-  "last_data_at": 1794870531.676,
+  "first_data_at": 1794871108.068,
+  "last_data_at": 1794871118.146,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -425,7 +425,7 @@
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794870531.676,
+      "at": 1794871118.146,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -435,7 +435,7 @@
       "value": 0
     },
     {
-      "at": 1794870531.676,
+      "at": 1794871118.146,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -445,7 +445,7 @@
       "value": 8
     },
     {
-      "at": 1794870526.55,
+      "at": 1794871113.131,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -455,7 +455,7 @@
       "value": 2
     },
     {
-      "at": 1794870526.544,
+      "at": 1794871113.123,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -471,5 +471,23 @@
   "target_incline": 0,
   "belt": "running",
   "belt_countdown": null,
-  "climb_m": 0
+  "climb_m": 0,
+  "nearby": [
+    {
+      "machine": "bike",
+      "name": "ECHSIM-0001",
+      "label": "ECHSIM-0001",
+      "rssi": -68,
+      "signal": 3,
+      "seen_at": 1794871111.61
+    },
+    {
+      "machine": "treadmill",
+      "name": "STRIDE-SIM-0001",
+      "label": "Echelon Stride",
+      "rssi": -55,
+      "signal": 4,
+      "seen_at": 1794871111.61
+    }
+  ]
 }

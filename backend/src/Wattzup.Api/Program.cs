@@ -88,6 +88,8 @@ builder.Services.AddSingleton(sp =>
 });
 builder.Services.AddSingleton<StateBroadcaster>();
 builder.Services.AddSingleton<Wattzup.Core.Machines.MachineSelector>();
+builder.Services.AddSingleton(displayNames);
+builder.Services.AddSingleton<Wattzup.Core.Machines.NearbyMachines>();
 builder.Services.AddSingleton<ActiveConnectionRegistry>();
 builder.Services.Configure<RawPacketLogOptions>(builder.Configuration.GetSection(RawPacketLogOptions.SectionName));
 builder.Services.Configure<StatusSnapshotOptions>(builder.Configuration.GetSection(StatusSnapshotOptions.SectionName));

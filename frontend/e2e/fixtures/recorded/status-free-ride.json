@@ -34,5 +34,6 @@
   "target_incline": null,
   "belt": null,
   "belt_countdown": null,
-  "climb_m": null
+  "climb_m": null,
+  "nearby": []
 }

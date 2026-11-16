@@ -14,6 +14,11 @@ public sealed class SimulationControl
     private readonly List<SimulatedWrite> _writes = [];
     private readonly List<byte[]> _heldEchoes = [];
     private readonly List<string> _subscribed = [];
+    private readonly Dictionary<string, int> _advertising = new(StringComparer.Ordinal)
+    {
+        [SimulatedBikeTransport.DeviceName] = SimulatedBikeTransport.DeviceRssi,
+        [SimulatedBikeTransport.TreadmillName] = SimulatedBikeTransport.TreadmillRssi,
+    };
     private bool _poweredOn = true;
     private bool _adapterOn = true;
     private TaskCompletionSource _wrote = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -139,6 +144,40 @@ public sealed class SimulationControl
 
     /// <summary>Stops the treadmill's belt as its console or safety key would; it reports speed 0 (L2-066 criterion 7).</summary>
     public void StopBeltFromConsole() => BeltStopRequested?.Invoke();
+
+    /// <summary>Starts <paramref name="name"/> advertising at <paramref name="rssi"/> dBm, or changes its RSSI (L2-074).</summary>
+    public void Advertise(string name, int rssi)
+    {
+        lock (_gate)
+        {
+            _advertising[name] = rssi;
+        }
+
+        Changed?.Invoke();
+    }
+
+    /// <summary>Stops <paramref name="name"/> advertising; a scan no longer hears it.</summary>
+    public void Silence(string name)
+    {
+        lock (_gate)
+        {
+            _advertising.Remove(name);
+        }
+
+        Changed?.Invoke();
+    }
+
+    /// <summary>The devices advertising now, with their RSSI.</summary>
+    internal IReadOnlyList<KeyValuePair<string, int>> Advertising
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return [.. _advertising];
+            }
+        }
+    }
 
     /// <summary>Drops the open link, as if the bike went out of range.</summary>
     public void DropLink() => LinkDropRequested?.Invoke();

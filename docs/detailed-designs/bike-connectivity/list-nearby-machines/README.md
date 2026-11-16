@@ -27,7 +27,7 @@ The list lives in memory with the rest of the state, in the one Wattzup process 
 - **`NearbyMachine`** (`Wattzup.Core.State`, new record) — `Machine Machine`, `string? Name`, `string Label`, `int? Rssi`, `int Signal`, `double SeenAt` (Unix seconds). Serialised as `{machine, name, label, rssi, signal, seen_at}` in snake_case with nulls written (L2-014).
 - **`BikeState`** — gains `ImmutableArray<NearbyMachine> Nearby`, `[]` at start-up (L2-014 criterion 1). `MachineSelector.Select` keeps it across a machine change, because both machines' entries stay true.
 - **`SignalBars.FromRssi(int? rssi)`** (`Wattzup.Core.Machines`, new, pure) — returns 4 for −60 dBm or more, 3 for −70 or more, 2 for −80 or more, 1 for −90 or more, and 0 below or for `null` (L2-074 criterion 2).
-- **`NearbyMachines`** (`Wattzup.Core.Machines`, new singleton) — the only code that changes `nearby`. It takes `BikeStateStore`, `IOptions<WattzupOptions>` and `TimeProvider`.
+- **`NearbyMachines`** (`Wattzup.Core.Machines`, new singleton) — the only code that changes `nearby`. It takes `BikeStateStore`, `DisplayNames` (both machines' display name settings, also used for `device_label`) and `TimeProvider`.
   - `Heard(Machine machine, BikeAdvertisement advertisement)` replaces that machine's entry with one built from the advertisement: `name` the advertised name, `label` the machine's display name setting else `name`, `rssi`, `signal` from `SignalBars.FromRssi`, and `seen_at` now (L2-074 criterion 1).
   - `Hold(Machine machine)` and `Release(Machine machine)` mark the chosen machine's entry as held while its link is open: a held entry keeps its last RSSI and does not expire (L2-074 criterion 4).
   - `Expire()` removes each entry that is not held and was last seen more than 30 s ago (L2-074 criterion 3).
@@ -52,10 +52,9 @@ The list lives in memory with the rest of the state, in the one Wattzup process 
 - `Given_the_treadmill_display_name_then_its_nearby_label_is_that_name` (L2-074 AC1)
 - `Given_a_machine_stops_advertising_then_its_entry_goes_after_30_seconds` (L2-074 AC3)
 - `Given_the_chosen_machine_connects_then_its_entry_stays_and_the_other_machine_is_never_connected` (L2-074 AC4)
-- `Given_many_advertisements_in_one_second_then_nearby_is_broadcast_once` (L2-074 AC5)
 - `The_OpenAPI_document_describes_nearby` (L2-074 AC7)
 
-`Wattzup.Core.Tests` hold `SignalBarsTests`, one case per row: −50, −60, −61, −70, −80, −90, −91 dBm and `null`. `NearbyFilterTests` cover a bike advertisement while the treadmill is chosen (recorded, not accepted), a treadmill advertisement while the treadmill is chosen (recorded and accepted), and a non-Echelon device (neither).
+`Wattzup.Core.Tests` hold `SignalBarsTests`, one case per row: −50, −60, −61, −70, −80, −90, −91 dBm and `null`. `NearbyMachinesTests` prove the batching and expiry against `FakeTimeProvider`: five advertisements in one second reach the store once with the last RSSI (L2-074 AC5), nothing is published while nothing changes, an entry goes 30 s after it was last heard, and a held entry stays until 30 s after its release. The batching is tested here rather than through the API because the simulator coalesces quick changes on its own, so an API test could not tell batching from coalescing. `NearbyFilterTests` cover a bike advertisement while the treadmill is chosen (recorded, not accepted), a treadmill advertisement while the treadmill is chosen (recorded and accepted), and a non-Echelon device (neither).
 
 ### Open questions
 

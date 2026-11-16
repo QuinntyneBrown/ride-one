@@ -277,6 +277,7 @@ export function treadmillIdle(change: Json = {}): Json {
     belt: 'stopped',
     belt_countdown: null,
     climb_m: null,
+    nearby: [],
     commands: [],
     ...change,
   });
