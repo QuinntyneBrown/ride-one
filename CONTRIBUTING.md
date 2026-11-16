@@ -36,8 +36,7 @@ Security vulnerabilities are never reported in a public issue; see [`SECURITY.md
 
 1. Read [`AGENTS.md`](AGENTS.md). It is the single source of the repository's rules, and it applies
    to people and coding agents alike.
-2. Read the architecture decision records in `docs/adr/` for the area you will change, once there
-   are any.
+2. Read the architecture decision records in `docs/adr/` for the area you will change.
 3. For anything larger than a small fix, open an issue first so the approach can be agreed before
    you write code.
 
@@ -70,17 +69,16 @@ behaviour).
 
 ## Development setup
 
-Follow [Getting started](README.md#getting-started) in the README. In short, for the prototype:
+Follow [Getting started](README.md#getting-started) in the README. In short, you need the .NET 10
+SDK and Node.js 24 with npm, and no bike:
 
 ```shell
-cd ../wattzup-prototype              # the prototype lives beside this repository
-python3 -m venv .venv
-.venv/bin/pip install --only-binary=:all: -r requirements.txt
-.venv/bin/python echelon_server.py   # the dashboard on http://localhost:8787
+dotnet run --project src/Wattzup.Api -- --simulate   # the backend with the simulated bike
+cd wattzup-web && npm ci && npm start                # the dashboard on http://localhost:4200
 ```
 
-The rewrite's setup is added to the README in the change that scaffolds it. It will run without a
-bike through the simulated transport (`dotnet run -- --simulate`).
+The prototype the rewrite replaces is in `../wattzup-prototype/` beside this repository; read it
+there as the reference for behaviour.
 
 ## Coding conventions
 
@@ -120,8 +118,9 @@ bike through the simulated transport (`dotnet run -- --simulate`).
   repository owner asks; do keep them current.
 - Hardware smoke tests are run by hand with a real bike.
 
-The commands for each suite are listed in the README once the suite exists. A change is done when
-the behaviour specs and the backend tests pass.
+The commands for each suite are in the README under
+[Building and testing](README.md#building-and-testing). A change is done when the backend tests,
+the dashboard's format, lint and unit tests, and the behaviour specs pass.
 
 ## Commits and pull requests
 
