@@ -1,0 +1,93 @@
+# Builds and tests the backend and the dashboard. No job touches Bluetooth hardware: every test runs
+# against the simulated bike or stubbed responses (AGENTS.md, ADR 0007). Visual, responsive and
+# accessibility sweeps are not run here; a person runs them on request.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build (warnings are errors)
+        run: dotnet build Wattzup.sln -c Release
+      - name: Unit and acceptance tests
+        run: dotnet test Wattzup.sln -c Release --no-build
+
+  frontend:
+    name: Dashboard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wattzup-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: wattzup-web/package-lock.json
+      - run: npm ci
+      - name: Format
+        run: npm run format:check
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Production build and 300 KB gzipped budget
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Behaviour specs (Chromium)
+        run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: wattzup-web/test-results/
+          retention-days: 7
+
+  api-types:
+    name: Generated API types match the backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: wattzup-web/package-lock.json
+      - name: Start the backend with the simulated bike
+        run: |
+          dotnet build src/Wattzup.Api -c Release
+          dotnet run --project src/Wattzup.Api -c Release --no-build -- --simulate \
+            --Wattzup:RawPacketLog:Enabled=false --Wattzup:StatusSnapshot:Enabled=false &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8787/health && break; sleep 1; done
+      - name: Regenerate and compare
+        working-directory: wattzup-web
+        run: |
+          npm ci
+          npm run generate:api
+          git diff --exit-code -- src/app/api
