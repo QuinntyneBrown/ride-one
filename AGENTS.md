@@ -75,8 +75,8 @@ wattzup/
 Runtime output (`raw_packets.log`, `status.json`, `server.log`) is git-ignored and never
 committed.
 
-Use the words the specs use in code, docs and UI; no synonyms. A workout is made of steps (a
-resistance level and a duration) repeated in cycles; the bike's reported level is "resistance",
+Use the words the specs use in code, docs and UI; no synonyms. A workout follows a plan (`hiit` or
+`flat`) expanded into segments (kind, start, duration, level, cadence aim, round); the bike's reported level is "resistance",
 the requested one is "target resistance"; the Bluetooth link state is `ble`.
 
 ## Prefer best practice
