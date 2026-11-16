@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace Wattzup.Api.AcceptanceTests;
 
-public sealed class StatusEndpointTests(WattzupApiFactory factory) : IClassFixture<WattzupApiFactory>
+public sealed class StatusEndpointTests
 {
     private static readonly string[] NullableFields =
     [
@@ -20,6 +20,7 @@ public sealed class StatusEndpointTests(WattzupApiFactory factory) : IClassFixtu
     [Fact]
     public async Task Given_a_fresh_start_when_status_is_read_then_it_is_the_starting_state()
     {
+        using var factory = new WattzupApiFactory();
         using var client = factory.CreateClient();
 
         using var response = await client.GetAsync(new Uri("/api/status", UriKind.Relative));
@@ -50,6 +51,7 @@ public sealed class StatusEndpointTests(WattzupApiFactory factory) : IClassFixtu
     [Fact]
     public async Task Given_the_host_is_up_when_health_is_read_then_it_reports_the_ble_state()
     {
+        using var factory = new WattzupApiFactory();
         using var client = factory.CreateClient();
 
         using var response = await client.GetAsync(new Uri("/health", UriKind.Relative));
@@ -62,6 +64,7 @@ public sealed class StatusEndpointTests(WattzupApiFactory factory) : IClassFixtu
     [Fact]
     public async Task Given_the_host_is_up_when_the_openapi_document_is_read_then_it_describes_status_and_the_state_schema()
     {
+        using var factory = new WattzupApiFactory();
         using var client = factory.CreateClient();
 
         using var response = await client.GetAsync(new Uri("/openapi/v1.json", UriKind.Relative));
