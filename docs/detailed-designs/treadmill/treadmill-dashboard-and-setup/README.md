@@ -58,7 +58,6 @@ Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and
   - `baseSpeed(state)` is the reported speed, else `target_speed`, else 7.0. `stepSpeed(state, dir)` adds or subtracts 0.5 km/h, clamped to 1.0–16.0 and rounded to 1 decimal.
   - `baseIncline(state)` is the reported incline, else `target_incline`, else 0. `stepIncline(state, dir)` adds or subtracts 1 %, clamped to 0–15.
   - `treadmillControlsState(state, commandsEnabled)` returns the four disabled flags and a note. Each button is disabled at its limit (1.0 or 16.0 km/h, 0 or 15 %). With `ble` not `connected`, every button is disabled and the note reads `Speed and incline controls wake up once the treadmill connects.`
-- **`belt-countdown.ts`** — `beltAnnouncement(previousCountdown, countdown)` returns `Belt starting in <n>` only when `belt_countdown` changes to a new number, else `null`. The polite live region therefore announces each number once (L2-071 criterion 8).
 - **`treadmill-plan-form.ts`** — the treadmill plan draft's rules (L2-072):
   - `TreadmillPlanDraft` holds the mode, Rounds, Work, Recover, Work speed, Recover speed, Work incline, Recover incline, the warm-up and cool-down switches, and the flat Speed, Incline and Duration.
   - `DEFAULT_TREADMILL_DRAFT` is HIIT with 18 rounds, work 0:40, recover 0:20, work speed 9.0, recover speed 7.0, both inclines 0, warm-up and cool-down on; its flat fields are 7.0 km/h, 0 % and 30 minutes (L2-072 criteria 4 and 5).
@@ -89,7 +88,7 @@ Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` an
 | `InclineControl` | `wz-incline-control` | `Lower incline` and `Raise incline` buttons, mirroring `LevelControl` |
 | `MetricsStrip` | `wz-metrics-strip` | On the treadmill: heart rate (`--` `bpm`), distance (`<n.nn>` `km`) and pace (`m:ss` `/km`); average power and energy are not shown (L2-071 criterion 4) |
 | `RidePage` | `wz-ride-page` | With `machine` `treadmill`, shows the speed and incline readouts in place of power and cadence, and drops `wz-ride-trace`. The aside is labelled `Treadmill control` and titled `Speed and incline`, and holds the two controls, the controls note, `wz-plan-note` and `wz-cmd-log` |
-| `RideOverlay` | `wz-ride-overlay` | Renders the three belt overlays. The countdown numeral is shown large; the announcement goes to a polite live region fed by `beltAnnouncement` |
+| `RideOverlay` | `wz-ride-overlay` | Renders the three belt overlays. The countdown numeral is shown large and hidden from assistive technology; the overlay's heading, `Belt starting in <n>`, is itself the polite live region, so each number is announced once as the heading changes (L2-071 criterion 8) |
 | `CmdLog` | `wz-cmd-log` | Titled from `machineWords(machine).panelTitle`; each entry reads `commandLabel(entry)` with `· <source>` and its status |
 | `EndRideDialog` | `wz-end-ride-dialog` | On the treadmill reads `You're <elapsed> into <total>. Wattzup stops the belt.` (L2-071 criterion 12) |
 | `ReplaceRideDialog` | `wz-replace-ride-dialog` | On the treadmill adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 12) |
@@ -141,6 +140,11 @@ Playwright (`frontend/e2e/`), Chromium only. The shared fixture answers every `/
 Unit tests in `src/app/core/`: `machine-words.spec.ts`, `pace.spec.ts` (9.0, 0, `null`), `treadmill-view.spec.ts`, `treadmill-controls.spec.ts` (each base fallback and each limit), `belt-countdown.spec.ts`, `treadmill-plan-form.spec.ts` (one case per row of the L2-067 table and its messages), `plan-draft.store.spec.ts` (the treadmill key), `plan-expansion.spec.ts` (the same rows as the backend's treadmill `PlanExpanderTests` and the flat summary), `ride-preview.spec.ts` (top speed and expected distance), and the treadmill cases of `segment-labels`, `ride-view-state`, `ride-overlay-text`, `connection-status`, `connection-banners`, `cue-text` and `command-log-view`.
 
 ### Open questions
+
+- **Copy the requirements do not give.** The implementation uses: flat plan note `Holding a flat speed and incline for the whole ride.`; manual plan note `Manual speed and incline. Plan takes over next interval.`; shut-off overlay `Ride ended — the treadmill shut off`; reconnected banner `<label> is back. The ride is paused at <t> — press Resume to start the belt again.` (the bike's wording would promise a resistance, and L2-066 criterion 8 keeps the ride paused); recover phase detail `0:20 · next: Work at 9.0 km/h`. L2-071 should adopt or replace them.
+- **Bike wording left on the treadmill:** the network-sharing banner, the offline note and the loading skeleton (the machine is unknown before the first state).
+- **Machine switch failure.** `setup/machine-failed.html` shows no alert; the implementation places a danger alert after the fieldset with L2-072 criterion 2's wording and reverts the choice. The radio group shows no busy state while the request runs.
+- **"Setting <n>…"** shows while the reported speed is more than 0.05 km/h from the target, the tolerance of L2-068 criterion 5.
 
 - **Choice in the browser while a request runs.** L2-072 criterion 2 switches the form when the request is sent and reverts on failure. Between the two, a state message still carries the old `machine`. The page shows the chosen machine until the request settles, then follows the state. `<TO SUPPLY>` whether the mocks show a busy state for the radio group.
 - **Draft per machine.** L2-072 criterion 9 restores the last submitted plan for each machine, so the design keeps two storage keys. The bike key keeps its name so existing drafts survive.

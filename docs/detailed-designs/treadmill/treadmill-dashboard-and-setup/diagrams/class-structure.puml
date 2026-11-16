@@ -67,9 +67,6 @@ class "treadmill-controls" as tc <<helper>> {
 class "pace" as pace <<helper>> {
   +formatPace(speedKmh: number | null): string
 }
-class "belt-countdown" as bc <<helper>> {
-  +beltAnnouncement(previous, countdown): string | null
-}
 class "machine-words" as mw <<helper>> {
   +machineWords(machine): MachineWords
 }
@@ -117,7 +114,6 @@ RidePage --> LiveStateService
 RidePage ..> tv
 RidePage ..> tc
 RidePage ..> pace
-RidePage ..> bc
 RidePage ..> mw
 RidePage *-- SpeedControl
 RidePage *-- InclineControl
