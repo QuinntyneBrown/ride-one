@@ -4,7 +4,7 @@
 
 This feature describes how the Wattzup code base is organised and how it runs. It covers the .NET projects and their dependencies, the Angular application, configuration, bundled assets, and the host process lifecycle. Every other feature design names types inside the projects defined here.
 
-**solution** — the .NET `Wattzup.sln` and its projects
+**solution** — the .NET `backend/Wattzup.sln` and its projects
 
 **hosted service** — long-running background task started and stopped by the ASP.NET Core generic host
 
@@ -20,14 +20,16 @@ Repository layout, as fixed in `AGENTS.md`:
 
 ```
 wattzup/
-├── Wattzup.sln, Directory.Build.props, README.md
-├── src/
-│   ├── Wattzup.Protocol/  Wattzup.Ble.Abstractions/
-│   ├── Wattzup.Ble.CoreBluetooth/  Wattzup.Ble.BlueZ/  Wattzup.Ble.Windows/  Wattzup.Ble.Simulated/
-│   ├── Wattzup.Core/  Wattzup.Api/  Wattzup.Mac/
-├── tests/
-│   ├── Wattzup.Protocol.Tests/  Wattzup.Core.Tests/  Wattzup.Api.AcceptanceTests/
-├── wattzup-web/
+├── README.md
+├── backend/
+│   ├── Wattzup.sln, Directory.Build.props
+│   ├── src/
+│   │   ├── Wattzup.Protocol/  Wattzup.Ble.Abstractions/
+│   │   ├── Wattzup.Ble.CoreBluetooth/  Wattzup.Ble.BlueZ/  Wattzup.Ble.Windows/  Wattzup.Ble.Simulated/
+│   │   └── Wattzup.Core/  Wattzup.Api/  Wattzup.Mac/
+│   └── tests/
+│       └── Wattzup.Protocol.Tests/  Wattzup.Core.Tests/  Wattzup.Api.AcceptanceTests/
+├── frontend/
 │   ├── src/app/{api,core,dashboard}/, src/app/app.config.ts
 │   ├── e2e/ (fixtures/, pages/, specs)
 │   └── proxy.conf.json
@@ -77,9 +79,9 @@ Every project builds with the plain .NET SDK (ADR 0008). CI builds every project
   3. `EventsEndpoints` loops end through `ApplicationStopping`.
   4. `StatusSnapshotWriter` performs its final write.
   This realises L2-039, recorded in `discover-and-connect-bike`.
-- **Static hosting** — `UseStaticFiles` serves `wwwroot`, the Angular `dist/wattzup-web/browser` output copied at publish. The `AppShell` middleware, at the end of the pipeline, handles requests no endpoint matched: it serves `index.html` for `/` and every client route, excluding `/api`, `/health`, `/openapi` and paths with a file extension (L2-044). It is middleware rather than `MapFallbackToFile` because a catch-all fallback endpoint would take part in routing and replace the 415 and 405 answers of known endpoints, and because `index.html` must be rewritten per response with the style nonce. An unknown `/api/*` path answers a 404 ProblemDetails, while an unknown client route loads the app, which shows the not-found page (L2-056). `index.html` is served with the per-response CSP style nonce described in `secure-api`.
+- **Static hosting** — `UseStaticFiles` serves `wwwroot`, the Angular `dist/wattzup/browser` output copied at publish. The `AppShell` middleware, at the end of the pipeline, handles requests no endpoint matched: it serves `index.html` for `/` and every client route, excluding `/api`, `/health`, `/openapi` and paths with a file extension (L2-044). It is middleware rather than `MapFallbackToFile` because a catch-all fallback endpoint would take part in routing and replace the 415 and 405 answers of known endpoints, and because `index.html` must be rewritten per response with the style nonce. An unknown `/api/*` path answers a 404 ProblemDetails, while an unknown client route loads the app, which shows the not-found page (L2-056). `index.html` is served with the per-response CSP style nonce described in `secure-api`.
 
-Angular application `wattzup-web` (L2-044):
+Angular application `wattzup` in `frontend/` (L2-044):
 
 - Current Angular version, standalone components only, `ChangeDetectionStrategy.OnPush` everywhere, signals for state, and zoneless change detection (`provideZonelessChangeDetection`).
 - Each component is `name.ts` + `name.html` + `name.scss` with `templateUrl` and `styleUrl`, selector `wz-<name>`, in its own folder under `src/app/dashboard/`. Each stylesheet is one encapsulated BEM block named as in the mocks.
@@ -94,7 +96,7 @@ Angular application `wattzup-web` (L2-044):
   - the workout helpers named in the workouts designs.
 - `src/app/api/` holds types generated from `/openapi/v1.json` by `openapi-typescript`. It is never hand-edited. CI regenerates it and fails on a diff.
 - `proxy.conf.json` forwards `/api` to `127.0.0.1:8787` during `ng serve`.
-- **Fonts** (ADR 0005) — Inter, Archivo and JetBrains Mono ship as Latin-subset WOFF2 variable fonts under `wattzup-web/public/fonts/`, with their SIL Open Font License 1.1 files beside them. The global foundations declare them with `@font-face` and `font-display: swap`. No font is loaded from a CDN, which the `font-src 'self'` policy enforces.
+- **Fonts** (ADR 0005) — Inter, Archivo and JetBrains Mono ship as Latin-subset WOFF2 variable fonts under `frontend/public/fonts/`, with their SIL Open Font License 1.1 files beside them. The global foundations declare them with `@font-face` and `font-display: swap`. No font is loaded from a CDN, which the `font-src 'self'` policy enforces.
 - **Budgets** — `angular.json` sets the `initial` budget to an error at 300 KB, and CI measures the gzipped size with `gzip -9` (L2-044). Fonts count against the build size but not the JavaScript budget.
 - **Global styles** — foundations only: tokens from `docs/design-system/tokens/`, `@font-face`, reset and utilities. Components read tokens by role, never by hex value.
 

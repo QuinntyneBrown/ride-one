@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "wattzup-web": {
+    "wattzup": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -75,10 +75,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "wattzup-web:build:production"
+              "buildTarget": "wattzup:build:production"
             },
             "development": {
-              "buildTarget": "wattzup-web:build:development"
+              "buildTarget": "wattzup:build:development"
             }
           },
           "defaultConfiguration": "development",

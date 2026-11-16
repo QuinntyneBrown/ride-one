@@ -73,8 +73,8 @@ Follow [Getting started](README.md#getting-started) in the README. In short, you
 SDK and Node.js 24 with npm, and no bike:
 
 ```shell
-dotnet run --project src/Wattzup.Api -- --simulate   # the backend with the simulated bike
-cd wattzup-web && npm ci && npm start                # the dashboard on http://localhost:4200
+dotnet run --project backend/src/Wattzup.Api -- --simulate   # the backend with the simulated bike
+cd frontend && npm ci && npm start                           # the dashboard on http://localhost:4200
 ```
 
 The prototype the rewrite replaces is in `../wattzup-prototype/` beside this repository; read it

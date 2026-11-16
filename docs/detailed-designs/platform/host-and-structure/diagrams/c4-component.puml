@@ -12,7 +12,7 @@ Container_Boundary(proc, "Wattzup process") {
   Component(cb, "Wattzup.Ble.CoreBluetooth", "net10.0, Objective-C runtime", "First real transport")
   Component(plat, "Wattzup.Ble.BlueZ / .Windows", "Class libraries", "Built, not yet supported")
   Component(sim, "Wattzup.Ble.Simulated", "Class library", "~--simulate and every automated test")
-  Component(spa, "wattzup-web (wwwroot)", "Angular build", "Static SPA assets and fonts")
+  Component(spa, "frontend (wwwroot)", "Angular build", "Static SPA assets and fonts")
 }
 
 Rel(mac, api, "Packages (bundle.sh)")

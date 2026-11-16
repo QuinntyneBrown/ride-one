@@ -16,9 +16,12 @@ Do not invent a mission in its place.
 - The working prototype, `echelon_server.py` (Python, aiohttp, bleak) with its single-page UI
   `index.html`, lives outside this repository in `../wattzup-prototype/`. Read it there; do not
   copy it back in. It is the reference for behaviour, not the product: the rewrite is a .NET
-  backend (`Wattzup.sln`) and an Angular app (`wattzup-web`), laid out in
-  `docs/detailed-designs/platform/host-and-structure/`. Behaviour from the prototype is preserved
-  unless a requirement says otherwise. `raw_packets.log` and `status.json` are runtime output,
+  backend (`backend/`, `Wattzup.sln`) and an Angular app (`frontend/`), laid out in
+  `docs/detailed-designs/platform/host-and-structure/`. The repository follows the popkin layout:
+  all backend code (solution, build props, projects, tests) lives under `backend/`, all frontend
+  code (the Angular workspace and its Playwright specs) under `frontend/`, and nothing but
+  guidance, docs and repository tooling sits at the root. Behaviour from the prototype is
+  preserved unless a requirement says otherwise. `raw_packets.log` and `status.json` are runtime output,
   not source.
 - Before building a feature, read its requirement (`docs/specs/L1.md`, `L2.md`), its detailed
   design (`docs/detailed-designs/`) and its mocks (`docs/mocks/`, the source of truth for the UI;
@@ -37,29 +40,31 @@ after updating this tree in the same change.
 ```
 wattzup/
 ├── AGENTS.md, CLAUDE.md, README.md        # guidance; README documents every setting
-├── Wattzup.sln
-├── Directory.Build.props                  # nullable enabled, warnings as errors
-├── src/
-│   ├── Wattzup.Protocol/                  # frames, commands, checksum, decoder, speed (zero deps)
-│   ├── Wattzup.Ble.Abstractions/          # IBikeTransport, IBikeConnection
-│   ├── Wattzup.Ble.Windows/
-│   ├── Wattzup.Ble.BlueZ/
-│   ├── Wattzup.Ble.CoreBluetooth/
-│   ├── Wattzup.Ble.Simulated/             # SimulatedBikeTransport (--simulate)
-│   ├── Wattzup.Core/                      # state store, broadcaster, workout engine, writers
-│   ├── Wattzup.Api/                       # Program.cs, endpoints, hosted services, wwwroot
-│   └── Wattzup.Mac/                       # macOS app bundle around Wattzup.Api
-├── tests/
-│   ├── Wattzup.Protocol.Tests/            # unit tests, one case per table row
-│   ├── Wattzup.Core.Tests/
-│   └── Wattzup.Api.AcceptanceTests/       # ATDD through the API, WebApplicationFactory
-├── wattzup-web/                           # the Angular app (only frontend)
+├── backend/                               # ALL backend code; nothing .NET outside it
+│   ├── Wattzup.sln
+│   ├── Directory.Build.props              # nullable enabled, warnings as errors
+│   ├── src/
+│   │   ├── Wattzup.Protocol/              # frames, commands, checksum, decoder, speed (zero deps)
+│   │   ├── Wattzup.Ble.Abstractions/      # IBikeTransport, IBikeConnection
+│   │   ├── Wattzup.Ble.Windows/
+│   │   ├── Wattzup.Ble.BlueZ/
+│   │   ├── Wattzup.Ble.CoreBluetooth/
+│   │   ├── Wattzup.Ble.Simulated/         # SimulatedBikeTransport (--simulate)
+│   │   ├── Wattzup.Core/                  # state store, broadcaster, workout engine, writers
+│   │   ├── Wattzup.Api/                   # Program.cs, endpoints, hosted services, wwwroot
+│   │   └── Wattzup.Mac/                   # macOS app bundle around Wattzup.Api (bundle.sh)
+│   └── tests/
+│       ├── Wattzup.Protocol.Tests/        # unit tests, one case per table row
+│       ├── Wattzup.Core.Tests/
+│       └── Wattzup.Api.AcceptanceTests/   # ATDD through the API, WebApplicationFactory
+├── frontend/                              # ALL frontend code: the Angular app `wattzup`
 │   ├── src/app/
 │   │   ├── api/                           # generated from /openapi/v1.json, never hand-edited
 │   │   ├── core/                          # services and pure helpers, with unit tests
 │   │   ├── dashboard/                     # components (name.ts + name.html + name.scss)
 │   │   └── app.config.ts                  # composition root
 │   ├── e2e/                               # Playwright: fixtures/, pages/ (page objects), specs
+│   ├── scripts/                           # bundle-size check, API recording
 │   └── proxy.conf.json                    # /api → 127.0.0.1:8787 during ng serve
 ├── docs/
 │   ├── specs/                             # L0.md (mission, when written), L1.md, L2.md
@@ -71,6 +76,10 @@ wattzup/
 ├── .github/                               # issue and PR templates, CI workflows
 └── .agents/skills/, .claude/skills/       # agent skills
 ```
+
+Run .NET commands against `backend/` (`dotnet build backend/Wattzup.sln`, `dotnet run --project
+backend/src/Wattzup.Api -- --simulate`) and npm commands from `frontend/` (`cd frontend && npm …`).
+`npm run build:api` copies the production build into `backend/src/Wattzup.Api/wwwroot`.
 
 Runtime output (`raw_packets.log`, `status.json`, `server.log`) is git-ignored and never
 committed.
@@ -137,8 +146,8 @@ Protocol and the abstractions. `Wattzup.Api` (minimal APIs, hosted services, sec
 
 ## Frontend
 
-`wattzup-web` is the only frontend application; a further one needs its own ADR. Its production
-build is served by `Wattzup.Api` from the same origin.
+`frontend/` holds the only frontend application, `wattzup`; a further one needs its own ADR. Its
+production build is served by `Wattzup.Api` from the same origin.
 
 - Prettier and angular-eslint own formatting and lint; CI fails on either.
 - Current Angular: standalone components, signals for state, `ChangeDetectionStrategy.OnPush`

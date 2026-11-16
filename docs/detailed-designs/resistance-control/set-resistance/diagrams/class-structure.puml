@@ -11,7 +11,7 @@ skinparam class {
 }
 title Class structure — Set resistance
 
-package "wattzup-web" {
+package "frontend" {
   class LevelControl <<component>> {
     +Signal<ControlsState> controls
     +lower(): void

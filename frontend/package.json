@@ -1,5 +1,5 @@
 {
-  "name": "wattzup-web",
+  "name": "wattzup",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "e2e": "playwright test",
-    "build:api": "npm run build && node -e \"const fs=require('node:fs');const d='../src/Wattzup.Api/wwwroot';fs.mkdirSync(d,{recursive:true});fs.cpSync('dist/wattzup-web/browser',d,{recursive:true})\"",
+    "build:api": "npm run build && node -e \"const fs=require('node:fs');const d='../backend/src/Wattzup.Api/wwwroot';fs.mkdirSync(d,{recursive:true});fs.cpSync('dist/wattzup/browser',d,{recursive:true})\"",
     "generate:api": "npx --yes openapi-typescript@7.13.0 http://127.0.0.1:8787/openapi/v1.json -o src/app/api/schema.d.ts",
     "e2e:sweeps": "playwright test --config playwright.sweeps.config.ts",
     "record:api": "node scripts/record-api.mjs"

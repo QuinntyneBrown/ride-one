@@ -114,7 +114,7 @@ package "Wattzup.Api" {
   }
 }
 
-package "wattzup-web" {
+package "frontend" {
   class LiveStateService <<Angular service>> {
     +Signal<BikeState | null> state
     +Signal<'connecting' | 'open' | 'offline'> connection

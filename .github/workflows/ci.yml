@@ -29,23 +29,23 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Build (warnings are errors)
-        run: dotnet build Wattzup.sln -c Release
+        run: dotnet build backend/Wattzup.sln -c Release
       - name: Unit and acceptance tests
-        run: dotnet test Wattzup.sln -c Release --no-build
+        run: dotnet test backend/Wattzup.sln -c Release --no-build
 
   frontend:
     name: Dashboard
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: wattzup-web
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: wattzup-web/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - name: Format
         run: npm run format:check
@@ -63,7 +63,7 @@ jobs:
         if: failure()
         with:
           name: playwright-traces
-          path: wattzup-web/test-results/
+          path: frontend/test-results/
           retention-days: 7
 
   api-types:
@@ -78,15 +78,15 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: wattzup-web/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
       - name: Start the backend with the simulated bike
         run: |
-          dotnet build src/Wattzup.Api -c Release
-          dotnet run --project src/Wattzup.Api -c Release --no-build -- --simulate \
+          dotnet build backend/src/Wattzup.Api -c Release
+          dotnet run --project backend/src/Wattzup.Api -c Release --no-build -- --simulate \
             --Wattzup:RawPacketLog:Enabled=false --Wattzup:StatusSnapshot:Enabled=false &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8787/health && break; sleep 1; done
       - name: Regenerate and compare
-        working-directory: wattzup-web
+        working-directory: frontend
         run: |
           npm ci
           npm run generate:api

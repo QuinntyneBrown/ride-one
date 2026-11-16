@@ -64,7 +64,7 @@ The validator reports every failing field, not only the first.
   - `CommandResult` tells the endpoint whether an active workout existed.
 - While a workout is `paused` and the bike stays connected, the engine keeps `DisconnectedSince` empty, so the 90-second shut-off clock does not run (L2-046).
 
-Frontend, `wattzup-web`:
+Frontend, `frontend`:
 
 - **`WorkoutApi`** (`src/app/core/workout-api.ts`) — contract with `start(plan)`, `stop()`, `pause()`, `resume()`, `backToPlan()` and `trace()`. Request and response types (`WorkoutPlan`, `Workout`, `TraceResponse`, `ProblemDetails`) come from the generated client in `src/app/api/`. The injection token `WORKOUT_API` is bound to `HttpWorkoutApi` in `app.config.ts`, and components inject the token.
 - **`RideControls`** (`src/app/dashboard/ride-controls/`, selector `wz-ride-controls`, block `ride-controls`) — the app bar's Pause or Resume button. It keeps the mock's `btn` and `btn__label` classes and follows the ride page's `default`, `paused` and `ended` mocks (`docs/mocks/pages/ride/`). It reads `LiveStateService.state()` and shows the states in the table below (L2-046). Pressing the button calls `WORKOUT_API.pause()` or `resume()`. The button does not change its own label: the label follows the next streamed state. While the event stream is down, the button is disabled (L2-054). A failed request shows a danger toast (L2-053): `Couldn't pause the ride` or `Couldn't resume the ride` / `The Wattzup server didn't answer. Try again.` (L2-046).
@@ -93,7 +93,7 @@ Backend, `Wattzup.Api.AcceptanceTests` (`WebApplicationFactory`, `SimulatedBikeT
 
 `Wattzup.Core.Tests`: `WorkoutPlanValidatorTests` holds one case per row of the validation table, plus each L2-010 AC7 case (unknown kind, missing field, fractional number, non-boolean switch) and a body with several failing fields.
 
-Frontend, Playwright (`wattzup-web/e2e/`), with every `/api/**` request answered by the shared fixture and `/api/events` served by the SSE fixture:
+Frontend, Playwright (`frontend/e2e/`), with every `/api/**` request answered by the shared fixture and `/api/events` served by the SSE fixture:
 
 - `e2e/pages/ride.page.ts` — the ride page object, which owns the Pause, Resume and End locators.
 - `e2e/ride-controls.spec.ts`:

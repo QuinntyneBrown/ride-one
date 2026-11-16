@@ -13,7 +13,7 @@ countdown and a full-ride "Power vs. plan" trace (mocks open questions 5 and 8).
 
 The countdown is DOM text with a progress bar. The trace is drawn on one canvas with WebGL2, falling
 back to Canvas 2D when WebGL2 or its shaders fail (L2-028). Both renderers sit behind one interface
-in `wattzup-web/src/app/core/`, draw at most once per animation frame, cap the pixel ratio at 2,
+in `frontend/src/app/core/`, draw at most once per animation frame, cap the pixel ratio at 2,
 and stop while the tab is hidden. WebGPU is not used.
 
 ## Consequences

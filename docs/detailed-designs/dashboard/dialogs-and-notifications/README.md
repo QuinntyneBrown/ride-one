@@ -16,7 +16,7 @@ Every dialog is an Angular CDK Dialog, never a hand-rolled modal. The CDK provid
 
 ## Description
 
-Shared building blocks (`wattzup-web/src/app/dashboard/`):
+Shared building blocks (`frontend/src/app/dashboard/`):
 
 - **`DialogShell`** (`wz-dialog-shell`, block `dialog`) — renders the mocks' `dialog__panel`, `dialog__header` with `dialog__icon` (`--info` or `--danger`), `dialog__title`, the description, `dialog__body` and `dialog__footer`.
   - It declares each `ng-content` slot once: `[slot=description]`, `[slot=body]` and `[slot=footer]`.

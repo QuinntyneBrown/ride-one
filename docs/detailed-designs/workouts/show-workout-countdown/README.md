@@ -18,7 +18,7 @@ This feature is display only. Segment-change banners and beeps belong to `play-w
 
 ## Description
 
-Pure helpers in `wattzup-web/src/app/core/`, each with unit tests and no Angular dependency:
+Pure helpers in `frontend/src/app/core/`, each with unit tests and no Angular dependency:
 
 - **`CountdownClock`** (`countdown-clock.ts`) — holds one anchor.
   - `anchor(workout, now)` stores `remaining`, `elapsed_seconds`, `total_seconds`, the current segment's `duration` and `running = status === 'running'`. It is called for every streamed state.
@@ -34,7 +34,7 @@ Pure helpers in `wattzup-web/src/app/core/`, each with unit tests and no Angular
   - `nextLabel(segments, index)` returns `{kind, duration, level}` for the next segment, rendered `Next: <Kind> <m:ss> at level <n>`, or `null` on the last segment, rendered `Last stretch`.
   - `statusBadge(status)` returns `Paused` for `paused` and `null` for `running`. The other statuses read `Waiting for bike`, `Bike disconnected`, `Ended` (`ended` and `stopped`) and `Bike shut off` (L2-025). The overlays of L2-058 show alongside them.
 
-Components in `wattzup-web/src/app/dashboard/`, each standalone, `OnPush`, with `name.ts`, `name.html` and `name.scss`:
+Components in `frontend/src/app/dashboard/`, each standalone, `OnPush`, with `name.ts`, `name.html` and `name.scss`:
 
 - **`Interval`** (`interval/`, selector `wz-interval`, block `interval`) — the interval card. It keeps the mock's elements and classes:
   - `interval__kind` holds the `swatch swatch--<tone>` marker, the kind label and, in `<small>`, the round (L2-025).
@@ -57,7 +57,7 @@ Tone colours are read from the design tokens by role (`work`, `rest`, `easy`), n
 
 ### Acceptance tests
 
-Playwright (`wattzup-web/e2e/`), with `/api/**` answered by the shared fixture and `/api/events` served by the SSE fixture. Time is controlled with Playwright's clock (`page.clock`), never with waits.
+Playwright (`frontend/e2e/`), with `/api/**` answered by the shared fixture and `/api/events` served by the SSE fixture. Time is controlled with Playwright's clock (`page.clock`), never with waits.
 
 - `e2e/pages/ride.page.ts` — the ride page object, which owns the interval card, ride clock, status badge and workout link locators.
 - `e2e/interval-countdown.spec.ts`:

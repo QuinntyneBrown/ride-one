@@ -24,5 +24,5 @@ Pause and resume are endpoints (L2-046). A flat block may last up to 180 minutes
 - `POST /api/workout` takes a plan, not a list of steps; the prototype's request body is no longer
   accepted.
 - The expansion is a table of cases unit-tested in `Wattzup.Core.Tests`; the setup preview's
-  helper in `wattzup-web/src/app/core/` is tested against the same table.
+  helper in `frontend/src/app/core/` is tested against the same table.
 - The 90-second shut-off and the 5-second resend rules are kept unchanged.

@@ -46,7 +46,7 @@ Backend:
 - **`StatusEndpoints`** — `GET /api/status` returns `BikeStateStore.Current` without `ts` (L2-014).
 - **OpenAPI** — `Microsoft.AspNetCore.OpenApi` documents every endpoint and the `BikeState` schema at `/openapi/v1.json` (L2-014). A schema transformer marks every property required and nullable where L2-014 allows `null`, so the generated TypeScript types read `number | null` rather than optional fields.
 
-Frontend (`wattzup-web`):
+Frontend (`frontend`):
 
 - **`LiveStateService`** (`src/app/core/`) — the only owner of the `EventSource`. It exposes read-only signals: `state` (`BikeState | null`, generated type), `connection` (`connecting`, `open` or `offline`), `lastStateAt` and `loadError`. On start it loads `GET /api/status` through `BikeApi`; a failure sets `loadError` (L2-058, see `dashboard`). It then opens `EventSource('/api/events')`, with the event token when an API key is set. Each message is parsed into `state`. On `error` it closes the source, sets `offline` and reconnects every 2 s (L2-054); `retryNow()` reconnects at once for the `Retry now` button. No component opens its own connection or polls.
 
@@ -56,7 +56,7 @@ Verification:
 
 - `Wattzup.Core.Tests` — `StateDerivations` table (L2-032 and `device_label`); `StateBroadcaster` with 1 undrained client reaching 50 messages while a second client receives every message (L2-015).
 - `Wattzup.Api.AcceptanceTests` — through `WebApplicationFactory` with `SimulatedBikeTransport`: `GET /api/status` at start-up matches L2-014 criterion 1 and carries every field; a real SSE response read in memory delivers the current state first, a broadcast next, and `: ping` after `FakeTimeProvider` advances 15 s; `ui_clients` follows 2 opened and 1 closed streams.
-- `wattzup-web` unit tests for `LiveStateService` with a fake `EventSource` and fake timers: parse, offline, 2 s reconnect, `retryNow`.
+- `frontend` unit tests for `LiveStateService` with a fake `EventSource` and fake timers: parse, offline, 2 s reconnect, `retryNow`.
 - Playwright — the shared fixture serves `/api/events` as `text/event-stream` and exposes `pushState(partial)` over a full default state recorded from the backend running with `--simulate`. An unstubbed stream request fails the test.
 
 ## Requirements
