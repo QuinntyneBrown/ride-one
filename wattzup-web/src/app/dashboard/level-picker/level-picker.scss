@@ -1,0 +1,40 @@
+:host {
+  display: block;
+}
+.level-picker {
+  margin-top: var(--space-6);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-0-5);
+  height: 3.5rem;
+}
+.level-picker button {
+  flex: 1;
+  min-width: 0;
+  height: var(--h, 50%);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: var(--color-track);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+.level-picker button:hover {
+  background: var(--color-bg-subtle-hover);
+}
+.level-picker button[aria-pressed='true'],
+.level-picker button.is-lit {
+  background: var(--color-volt-fill);
+}
+:host-context([data-theme='light']) .level-picker button.is-lit,
+:host-context([data-theme='light']) .level-picker button[aria-pressed='true'] {
+  background: var(--color-series-work);
+}
+.level-picker button.is-plan {
+  outline: 1px solid color-mix(in srgb, var(--color-fg-default) 60%, transparent);
+  outline-offset: 1px;
+}
+.level-picker button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

@@ -36,6 +36,22 @@ export class RidePage {
   readonly intervalNext: Locator;
   readonly intervalSetup: Locator;
 
+  readonly aside: Locator;
+  readonly levelValue: Locator;
+  readonly levelOf: Locator;
+  readonly levelSetting: Locator;
+  readonly lowerButton: Locator;
+  readonly raiseButton: Locator;
+  readonly picker: Locator;
+  readonly pickerLevels: Locator;
+  readonly litLevels: Locator;
+  readonly planLevels: Locator;
+  readonly planNote: Locator;
+  readonly backToPlanButton: Locator;
+  readonly commandLog: Locator;
+  readonly commandLogConnection: Locator;
+  readonly commandEntries: Locator;
+
   constructor(
     readonly page: Page,
     private readonly api: ApiStub,
@@ -74,6 +90,22 @@ export class RidePage {
     this.progress = this.interval.getByRole('progressbar', { name: 'Interval progress' });
     this.intervalNext = this.interval.locator('.interval__next');
     this.intervalSetup = this.interval.getByRole('link', { name: 'Set up a ride' });
+
+    this.aside = page.getByRole('complementary', { name: 'Bike control' });
+    this.levelValue = this.aside.locator('.level-readout .numeral');
+    this.levelOf = this.aside.locator('.level-readout small');
+    this.levelSetting = this.aside.locator('.level-readout__target');
+    this.lowerButton = this.aside.getByRole('button', { name: 'Lower resistance' });
+    this.raiseButton = this.aside.getByRole('button', { name: 'Raise resistance' });
+    this.picker = this.aside.getByRole('group', { name: 'Pick a resistance level' });
+    this.pickerLevels = this.picker.getByRole('button');
+    this.litLevels = this.picker.locator('button.is-lit');
+    this.planLevels = this.picker.locator('button.is-plan');
+    this.planNote = this.aside.locator('.plan-note');
+    this.backToPlanButton = this.planNote.getByRole('button', { name: 'Back to plan' });
+    this.commandLog = this.aside.getByRole('region', { name: 'Sent to bike' });
+    this.commandLogConnection = this.commandLog.locator('.cmd-log__head code');
+    this.commandEntries = this.commandLog.locator('li');
   }
 
   /** Loads `/` with GET /api/status answering `initial`, then streams it as the first message. */
@@ -85,6 +117,10 @@ export class RidePage {
 
   push(message: Json): Promise<void> {
     return this.events.push(message);
+  }
+
+  level(n: number): Locator {
+    return this.picker.getByRole('button', { name: `Level ${n}`, exact: true });
   }
 
   /** The value of the totals-strip metric with this term, e.g. `Avg power`. */

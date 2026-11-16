@@ -1,0 +1,15 @@
+@let v = view();
+<div class="level-picker" role="group" aria-label="Pick a resistance level">
+  @for (l of levels; track l.level) {
+    <button
+      type="button"
+      [class.is-lit]="l.level <= v.litUpTo"
+      [class.is-plan]="l.level === v.planLevel"
+      [attr.aria-pressed]="l.level === v.pressedLevel"
+      [attr.aria-label]="'Level ' + l.level"
+      [style.--h]="l.height"
+      [disabled]="disabled()"
+      (click)="pick.emit(l.level)"
+    ></button>
+  }
+</div>

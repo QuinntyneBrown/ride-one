@@ -61,6 +61,30 @@
         <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
       }
     </main>
-    <aside class="ride-aside" aria-label="Bike control"></aside>
+    <aside class="ride-aside" aria-label="Bike control">
+      <h2 class="label">Resistance</h2>
+      @let controls = resistanceControls();
+      <wz-level-control
+        [view]="resistance()"
+        [controls]="controls"
+        (step)="stepResistance($event)"
+      />
+      <wz-level-picker
+        [view]="resistance()"
+        [disabled]="controls.pickerDisabled"
+        (pick)="commands.set($event)"
+      />
+      @let note = planNote();
+      <wz-plan-note
+        [text]="note.text"
+        [backToPlan]="note.backToPlan"
+        [disabled]="!view().commandsEnabled"
+        (back)="commands.backToPlan()"
+      />
+      <wz-cmd-log
+        [commands]="state()?.commands ?? []"
+        [connectionId]="state()?.connection_id ?? null"
+      />
+    </aside>
   </div>
 </div>

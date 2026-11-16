@@ -1,0 +1,55 @@
+@use 'design-system/numeral';
+
+:host {
+  display: block;
+}
+.level-control {
+  margin-top: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.step-btn {
+  display: grid;
+  place-items: center;
+  width: var(--control-step);
+  height: var(--control-step);
+  flex: none;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-subtle);
+  color: var(--color-fg-default);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    scale var(--duration-fast) var(--ease-standard);
+}
+.step-btn:hover {
+  background: var(--color-bg-subtle-hover);
+}
+.step-btn:active {
+  scale: 0.96;
+}
+.step-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.level-readout {
+  text-align: center;
+}
+.level-readout .numeral {
+  font-size: var(--font-size-numeral-2xl);
+  line-height: 1;
+  display: block;
+}
+.level-readout small {
+  font: var(--text-caption);
+  color: var(--color-fg-subtle);
+}
+.level-readout__target {
+  display: block;
+  margin-top: var(--space-1);
+  font: var(--text-caption);
+  color: var(--color-fg-warn);
+}
