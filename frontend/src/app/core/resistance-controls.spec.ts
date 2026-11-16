@@ -37,7 +37,9 @@ describe('resistance-controls (L2-020, L2-047)', () => {
   it.each([
     [testWorkout(), 'Following the plan — levels change with each interval.', false],
     [
-      testWorkout({ plan: { kind: 'flat', level: 12, minutes: 30, cadence: 85 } }),
+      testWorkout({
+        plan: { kind: 'flat', level: 12, minutes: 30, cadence: 85, speed: null, incline: null },
+      }),
       'Holding a flat level for the whole ride.',
       false,
     ],
@@ -46,7 +48,7 @@ describe('resistance-controls (L2-020, L2-047)', () => {
       testWorkout({
         mode: 'manual',
         plan_level: 12,
-        plan: { kind: 'flat', level: 12, minutes: 30, cadence: 85 },
+        plan: { kind: 'flat', level: 12, minutes: 30, cadence: 85, speed: null, incline: null },
       }),
       'Manual level. Plan was 12.',
       true,

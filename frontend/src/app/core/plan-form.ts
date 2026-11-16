@@ -204,6 +204,8 @@ export function toPlan(draft: PlanDraft): WorkoutPlan | null {
       level: draft.flatLevel,
       minutes: parseUnit(draft.minutes) as number,
       cadence: parseUnit(draft.cadence) as number,
+      speed: null,
+      incline: null,
     };
   }
   return {
@@ -215,5 +217,9 @@ export function toPlan(draft: PlanDraft): WorkoutPlan | null {
     rest_level: draft.restLevel,
     warmup: draft.warmup,
     cooldown: draft.cooldown,
+    work_speed: null,
+    rest_speed: null,
+    work_incline: null,
+    rest_incline: null,
   };
 }

@@ -170,6 +170,8 @@ test.describe('Command log (L2-048)', () => {
             source: 'manual',
             status: 'sending',
             ack_ms: null,
+            command: 'resistance',
+            value: 22,
           },
           {
             at: NOW_S - 6,
@@ -178,6 +180,8 @@ test.describe('Command log (L2-048)', () => {
             source: 'plan',
             status: 'ack',
             ack_ms: 40,
+            command: 'resistance',
+            value: 18,
           },
           {
             at: NOW_S - 9,
@@ -186,6 +190,8 @@ test.describe('Command log (L2-048)', () => {
             source: 'plan',
             status: 'failed',
             ack_ms: null,
+            command: 'resistance',
+            value: 6,
           },
         ],
       }),
@@ -206,7 +212,16 @@ test.describe('Command log (L2-048)', () => {
     await ride.open(
       freeRide({
         commands: [
-          { at: NOW_S, ride_seconds: null, level: 9, source: 'manual', status: 'ack', ack_ms: 38 },
+          {
+            at: NOW_S,
+            ride_seconds: null,
+            level: 9,
+            source: 'manual',
+            status: 'ack',
+            ack_ms: 38,
+            command: 'resistance',
+            value: 9,
+          },
         ],
       }),
     );

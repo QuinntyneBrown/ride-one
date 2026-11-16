@@ -37,6 +37,10 @@ export const DEFAULT_PLAN = {
   rest_level: 6,
   warmup: true,
   cooldown: true,
+  work_speed: null,
+  rest_speed: null,
+  work_incline: null,
+  rest_incline: null,
 } as const;
 
 /** The plan the setup form starts with on first use (L2-029 AC1). */
@@ -47,7 +51,14 @@ export const SETUP_DEFAULT_PLAN = {
   rest_level: 18,
 } as const;
 
-export const FLAT_PLAN = { kind: 'flat', level: 12, minutes: 30, cadence: 85 } as const;
+export const FLAT_PLAN = {
+  kind: 'flat',
+  level: 12,
+  minutes: 30,
+  cadence: 85,
+  speed: null,
+  incline: null,
+} as const;
 
 export const DEFAULT_SEGMENTS = sameShape(
   RECORDED_SEGMENT,
@@ -96,7 +107,18 @@ export function flatWorkout(change: Json = {}): Json {
   return workout({
     plan: FLAT_PLAN,
     summary: 'Flat · Level 12 · 30 min',
-    segments: [{ kind: 'steady', start: 0, duration: 1800, level: 12, cadence: 85, round: null }],
+    segments: [
+      {
+        kind: 'steady',
+        start: 0,
+        duration: 1800,
+        level: 12,
+        cadence: 85,
+        round: null,
+        speed: null,
+        incline: null,
+      },
+    ],
     segment: 0,
     remaining: 938,
     elapsed_seconds: 862,
@@ -143,9 +165,33 @@ export function state(change: Json = {}): Json {
     commands: sameShape(
       RECORDED_COMMAND,
       [
-        { at: NOW_S - 6, ride_seconds: 421, level: 18, source: 'plan', status: 'ack', ack_ms: 40 },
-        { at: NOW_S - 27, ride_seconds: 400, level: 6, source: 'plan', status: 'ack', ack_ms: 34 },
-        { at: NOW_S - 67, ride_seconds: 360, level: 18, source: 'plan', status: 'ack', ack_ms: 41 },
+        {
+          at: NOW_S - 6,
+          ride_seconds: 421,
+          level: 18,
+          source: 'plan',
+          status: 'ack',
+          ack_ms: 40,
+          value: 18,
+        },
+        {
+          at: NOW_S - 27,
+          ride_seconds: 400,
+          level: 6,
+          source: 'plan',
+          status: 'ack',
+          ack_ms: 34,
+          value: 6,
+        },
+        {
+          at: NOW_S - 67,
+          ride_seconds: 360,
+          level: 18,
+          source: 'plan',
+          status: 'ack',
+          ack_ms: 41,
+          value: 18,
+        },
       ],
       'command',
     ),

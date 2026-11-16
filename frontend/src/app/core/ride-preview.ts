@@ -46,14 +46,14 @@ export function previewOf(plan: WorkoutPlan): RidePreview {
         ? `${plan.rounds} × ${formatDuration(plan.work_seconds)} / ${formatDuration(plan.rest_seconds)}`
         : `Level ${plan.level} throughout`,
     timeUnderLoad: plan.kind === 'hiit' ? formatDuration(plan.rounds * plan.work_seconds) : null,
-    peakLevel: Math.max(...segments.map((s) => s.level)),
+    peakLevel: Math.max(...segments.map((s) => s.level ?? 0)),
     avgPower,
     kcal: energyKcal(avgPower, total),
     profile: segments.map((s) => ({
       x: round2(s.start + inset),
       width: round2(s.duration - 2 * inset),
-      y: 32 - s.level,
-      height: s.level,
+      y: 32 - (s.level ?? 0),
+      height: s.level ?? 0,
       tone: profileTone(s.kind),
     })),
     legend: plan.kind === 'hiit' ? ['work', 'rest'] : ['steady'],

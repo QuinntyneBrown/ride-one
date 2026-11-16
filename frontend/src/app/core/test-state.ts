@@ -12,6 +12,10 @@ export function testWorkout(change: Partial<WorkoutSnapshot> = {}): WorkoutSnaps
     rest_level: 6,
     warmup: true,
     cooldown: true,
+    work_speed: null,
+    rest_speed: null,
+    work_incline: null,
+    rest_incline: null,
   } as const;
   return {
     plan,
@@ -60,6 +64,12 @@ export function testState(change: Partial<BikeState> = {}): BikeState {
     kcal: 89,
     heart_rate: null,
     commands: [],
+    machine: 'bike',
+    target_speed: null,
+    incline: null,
+    target_incline: null,
+    belt: null,
+    belt_countdown: null,
     ...change,
   };
 }

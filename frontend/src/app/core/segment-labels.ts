@@ -34,7 +34,7 @@ export function roundLabel(segment: Segment, plan: WorkoutPlan): string | null {
 export interface NextLabel {
   kind: string;
   duration: string;
-  level: number;
+  level: number | null;
 }
 
 export function nextLabel(segments: readonly Segment[], index: number): NextLabel | null {
@@ -47,7 +47,9 @@ const BADGES: Record<WorkoutStatus, string | null> = {
   running: null,
   paused: 'Paused',
   'waiting for bike': 'Waiting for bike',
+  'starting belt': 'Starting belt',
   'paused: bike disconnected': 'Bike disconnected',
+  'paused: belt stopped': 'Belt stopped',
   ended: 'Ended',
   stopped: 'Ended',
   'ended: bike shut off': 'Bike shut off',

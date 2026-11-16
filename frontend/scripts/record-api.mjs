@@ -1,8 +1,9 @@
-// Records real API responses from the backend running with the simulated bike into
+// Records real API responses from the backend running with the simulated bike and treadmill into
 // e2e/fixtures/recorded/, so the Playwright stubs keep the backend's exact shapes (AGENTS.md, E2E).
 // Recording is never part of a test run. Start the backend first:
 //   dotnet run --project backend/src/Wattzup.Api -- --simulate
 // then: npm run record:api [-- http://127.0.0.1:8787]
+// The recorder switches the backend to the simulated treadmill and back to the bike before it ends.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
@@ -20,7 +21,30 @@ const plan = {
   warmup: true,
   cooldown: true,
 };
+const treadmillPlan = {
+  kind: 'hiit',
+  rounds: 18,
+  work_seconds: 40,
+  rest_seconds: 20,
+  work_speed: 9.0,
+  rest_speed: 7.0,
+  work_incline: 0,
+  rest_incline: 0,
+  warmup: true,
+  cooldown: true,
+};
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitConnected(machine) {
+  for (let i = 0; ; i++) {
+    const status = await call('GET', '/api/status').catch(() => null);
+    // `ble` turns connected before the start-up commands are written; give them time to finish.
+    if (status?.json.ble === 'connected' && status.json.machine === machine) return wait(1500);
+    if (i > 30)
+      throw new Error(`The backend at ${base} is not connected to the simulated ${machine}.`);
+    await wait(1000);
+  }
+}
 
 async function call(method, path, body, contentType = 'application/json') {
   const response = await fetch(base + path, {
@@ -75,6 +99,31 @@ save('workout-resumed', await call('POST', '/api/workout/resume'), 200);
 save('workout-stopped', await call('POST', '/api/workout/stop'), 200);
 save('packets', await call('GET', '/api/diagnostics/packets'), 200);
 save('health', await call('GET', '/health'), 200);
+save('problem-wrong-machine', await call('POST', '/api/speed', { speed: 7.0 }), 409);
+save('problem-invalid-machine', await call('POST', '/api/machine', { machine: 'rower' }), 400);
+
+save('machine-treadmill', await call('POST', '/api/machine', { machine: 'treadmill' }), 200);
+await waitConnected('treadmill');
+save('status-treadmill-idle', await call('GET', '/api/status'), 200);
+save('problem-invalid-speed', await call('POST', '/api/speed', { speed: 16.5 }), 400);
+save('problem-invalid-incline', await call('POST', '/api/incline', { incline: 16 }), 400);
+save('problem-wrong-machine-resistance', await call('POST', '/api/resistance', { level: 10 }), 409);
+save('speed-sent', await call('POST', '/api/speed', { speed: 8.5 }), 200);
+save('incline-sent', await call('POST', '/api/incline', { incline: 2 }), 200);
+save(
+  'problem-invalid-treadmill-workout',
+  await call('POST', '/api/workout', { ...treadmillPlan, work_speed: 16.5 }),
+  400,
+);
+save('treadmill-workout-started', await call('POST', '/api/workout', treadmillPlan), 200);
+await wait(1200);
+save('status-treadmill-countdown', await call('GET', '/api/status'), 200);
+await wait(6000);
+save('status-treadmill-running', await call('GET', '/api/status'), 200);
+save('treadmill-workout-paused', await call('POST', '/api/workout/pause'), 200);
+save('treadmill-workout-stopped', await call('POST', '/api/workout/stop'), 200);
+save('machine-bike', await call('POST', '/api/machine', { machine: 'bike' }), 200);
+await waitConnected('bike');
 
 execFileSync('npx', ['prettier', '--write', '--log-level', 'warn', new URL('.', out).pathname], {
   stdio: 'inherit',

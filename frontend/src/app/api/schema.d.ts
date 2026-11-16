@@ -106,6 +106,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/speed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sets the treadmill's speed in km/h; during a plan this is a manual override until the next segment. */
+        post: operations["SetSpeed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/incline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sets the treadmill's incline in %; during a plan this is a manual override until the next segment. */
+        post: operations["SetIncline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/machine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Chooses the bike or the treadmill; the backend drops the current link and scans for that machine. */
+        post: operations["ChooseMachine"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/diagnostics/packets": {
         parameters: {
             query?: never;
@@ -227,6 +278,8 @@ export interface components {
     schemas: {
         /** @enum {unknown} */
         AdapterState: "unknown" | "on" | "off";
+        /** @enum {unknown} */
+        BeltState: "stopped" | "starting" | "running" | null;
         BikeState: {
             ble: components["schemas"]["BleState"];
             device: null | string;
@@ -274,21 +327,39 @@ export interface components {
             /** Format: int32 */
             heart_rate: null | number;
             commands: components["schemas"]["CommandEntry"][];
+            machine: components["schemas"]["Machine"];
+            /** Format: double */
+            target_speed: null | number;
+            /** Format: int32 */
+            incline: null | number;
+            /** Format: int32 */
+            target_incline: null | number;
+            belt: null | components["schemas"]["BeltState"];
+            /** Format: int32 */
+            belt_countdown: null | number;
         };
         /** @enum {unknown} */
         BleState: "starting" | "scanning" | "connecting" | "connected" | "disconnected" | "error";
+        ChooseMachineRequest: {
+            machine: components["schemas"]["Machine"];
+        };
         CommandEntry: {
             /** Format: double */
             at: number;
             /** Format: int32 */
             ride_seconds: null | number;
             /** Format: int32 */
-            level: number;
+            level: null | number;
             source: components["schemas"]["CommandSource"];
             status: components["schemas"]["CommandStatus"];
             /** Format: int32 */
             ack_ms: null | number;
+            command: components["schemas"]["CommandKind"];
+            /** Format: double */
+            value: number;
         };
+        /** @enum {unknown} */
+        CommandKind: "resistance" | "speed" | "incline";
         /** @enum {unknown} */
         CommandSource: "plan" | "manual";
         /** @enum {unknown} */
@@ -316,6 +387,15 @@ export interface components {
             code?: null | string;
             /** @description The rider-facing message, where the prototype returned one. */
             error?: null | string;
+        };
+        InclineSent: {
+            /** Format: int32 */
+            sent: number;
+        };
+        /** @enum {unknown} */
+        Machine: "bike" | "treadmill";
+        MachineChosen: {
+            machine: components["schemas"]["Machine"];
         };
         PowerTrace: {
             samples: number[][];
@@ -348,17 +428,33 @@ export interface components {
             /** Format: int32 */
             duration: number;
             /** Format: int32 */
-            level: number;
+            level: null | number;
             /** Format: int32 */
-            cadence: number;
+            cadence: null | number;
             /** Format: int32 */
             round: null | number;
+            /** Format: double */
+            speed: null | number;
+            /** Format: int32 */
+            incline: null | number;
         };
         /** @enum {unknown} */
         SegmentKind: "warmup" | "work" | "rest" | "cooldown" | "steady";
+        SetInclineRequest: {
+            /** Format: int32 */
+            incline: number;
+        };
         SetResistanceRequest: {
             /** Format: int32 */
             level: number;
+        };
+        SetSpeedRequest: {
+            /** Format: double */
+            speed: number;
+        };
+        SpeedSent: {
+            /** Format: double */
+            sent: number;
         };
         WorkoutChanged: {
             workout: components["schemas"]["WorkoutSnapshot"];
@@ -368,11 +464,15 @@ export interface components {
             /** @enum {string} */
             kind: "flat";
             /** Format: int32 */
-            level: number;
+            level: null | number;
             /** Format: int32 */
             minutes: number;
             /** Format: int32 */
-            cadence: number;
+            cadence: null | number;
+            /** Format: double */
+            speed: null | number;
+            /** Format: int32 */
+            incline: null | number;
         };
         WorkoutPlanHiitPlan: {
             /** @enum {string} */
@@ -384,11 +484,19 @@ export interface components {
             /** Format: int32 */
             rest_seconds: number;
             /** Format: int32 */
-            work_level: number;
+            work_level: null | number;
             /** Format: int32 */
-            rest_level: number;
+            rest_level: null | number;
             warmup: boolean;
             cooldown: boolean;
+            /** Format: double */
+            work_speed: null | number;
+            /** Format: double */
+            rest_speed: null | number;
+            /** Format: int32 */
+            work_incline: null | number;
+            /** Format: int32 */
+            rest_incline: null | number;
         };
         WorkoutSnapshot: {
             plan: components["schemas"]["WorkoutPlan"];
@@ -404,9 +512,9 @@ export interface components {
             total_seconds: number;
             mode: components["schemas"]["ResistanceMode"];
             /** Format: int32 */
-            plan_level: number;
+            plan_level: null | number;
             /** @enum {string} */
-            status: "waiting for bike" | "running" | "paused" | "paused: bike disconnected" | "ended" | "ended: bike shut off" | "stopped";
+            status: "waiting for bike" | "starting belt" | "running" | "paused" | "paused: bike disconnected" | "paused: belt stopped" | "ended" | "ended: bike shut off" | "stopped";
             ended_reason: null | string;
         };
         WorkoutStarted: {
@@ -560,6 +668,15 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
             /** @description Unsupported Media Type */
             415: {
                 headers: {
@@ -571,6 +688,177 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetSpeed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetSpeedRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpeedSent"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetIncline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetInclineRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InclineSent"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ChooseMachine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChooseMachineRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MachineChosen"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
                 headers: {
                     [name: string]: unknown;
                 };

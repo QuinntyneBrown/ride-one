@@ -9,6 +9,8 @@ describe('command-log-view (L2-048)', () => {
       source: 'plan',
       status: 'ack',
       ack_ms: 40,
+      command: 'resistance',
+      value: 18,
       ...o,
     }) as const;
   it('shows ride time as m:ss or h:mm:ss', () => {

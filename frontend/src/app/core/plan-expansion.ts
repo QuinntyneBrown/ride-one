@@ -16,20 +16,23 @@ export function expandPlan(plan: WorkoutPlan): Segment[] {
         level: plan.level,
         cadence: plan.cadence,
         round: null,
+        speed: null,
+        incline: null,
       },
     ];
   }
   const segments: Segment[] = [];
   let start = 0;
-  const push = (s: Omit<Segment, 'start'>): void => {
-    segments.push({ ...s, start });
+  const push = (s: Omit<Segment, 'start' | 'speed' | 'incline'>): void => {
+    segments.push({ ...s, start, speed: null, incline: null });
     start += s.duration;
   };
+  const restLevel = plan.rest_level ?? 0;
   if (plan.warmup) {
     push({
       kind: 'warmup',
       duration: WARMUP_SECONDS,
-      level: Math.max(1, plan.rest_level + 2),
+      level: Math.max(1, restLevel + 2),
       cadence: 80,
       round: null,
     });
@@ -50,7 +53,7 @@ export function expandPlan(plan: WorkoutPlan): Segment[] {
     push({
       kind: 'cooldown',
       duration: COOLDOWN_SECONDS,
-      level: Math.max(1, plan.rest_level),
+      level: Math.max(1, restLevel),
       cadence: 70,
       round: null,
     });
@@ -72,8 +75,10 @@ export function planSummary(plan: WorkoutPlan): string {
   return `HIIT · ${plan.rounds} × ${formatDuration(plan.work_seconds)} / ${formatDuration(plan.rest_seconds)}`;
 }
 
-/** Estimated watts: max(0, round(cadence × (0.55 + level × 0.155))) (ADR 0003). */
-export function estimateWatts(cadence: number, level: number): number {
+/** Estimated watts: max(0, round(cadence × (0.55 + level × 0.155))) (ADR 0003); 0 without a
+ * level or cadence (a treadmill segment). */
+export function estimateWatts(cadence: number | null, level: number | null): number {
+  if (cadence === null || level === null) return 0;
   return Math.max(0, Math.round(cadence * (0.55 + level * 0.155)));
 }
 

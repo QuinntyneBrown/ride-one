@@ -1,0 +1,7 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+  "title": "The bike is not the chosen machine.",
+  "status": 409,
+  "code": "wrong_machine",
+  "trace_id": "00-038ae3e003ce0a1f450e41c1afaa9546-e9f33509a9fde72a-00"
+}

@@ -11,12 +11,27 @@ const defaultPlan: HiitPlan = {
   rest_level: 6,
   warmup: true,
   cooldown: true,
+  work_speed: null,
+  rest_speed: null,
+  work_incline: null,
+  rest_incline: null,
 };
 
 describe('expandPlan (L2-045)', () => {
   it('expands a flat plan into one steady segment (AC1)', () => {
-    expect(expandPlan({ kind: 'flat', level: 12, minutes: 30, cadence: 85 })).toEqual([
-      { kind: 'steady', start: 0, duration: 1800, level: 12, cadence: 85, round: null },
+    expect(
+      expandPlan({ kind: 'flat', level: 12, minutes: 30, cadence: 85, speed: null, incline: null }),
+    ).toEqual([
+      {
+        kind: 'steady',
+        start: 0,
+        duration: 1800,
+        level: 12,
+        cadence: 85,
+        round: null,
+        speed: null,
+        incline: null,
+      },
     ]);
   });
 
@@ -28,16 +43,54 @@ describe('expandPlan (L2-045)', () => {
       level: 8,
       cadence: 80,
       round: null,
+      speed: null,
+      incline: null,
     });
   });
 
   it('makes each round a work then a rest segment (AC3)', () => {
     const segments = expandPlan({ ...defaultPlan, warmup: false, cooldown: false, rounds: 2 });
     expect(segments).toEqual([
-      { kind: 'work', start: 0, duration: 40, level: 18, cadence: 98, round: 1 },
-      { kind: 'rest', start: 40, duration: 20, level: 6, cadence: 72, round: 1 },
-      { kind: 'work', start: 60, duration: 40, level: 18, cadence: 98, round: 2 },
-      { kind: 'rest', start: 100, duration: 20, level: 6, cadence: 72, round: 2 },
+      {
+        kind: 'work',
+        start: 0,
+        duration: 40,
+        level: 18,
+        cadence: 98,
+        round: 1,
+        speed: null,
+        incline: null,
+      },
+      {
+        kind: 'rest',
+        start: 40,
+        duration: 20,
+        level: 6,
+        cadence: 72,
+        round: 1,
+        speed: null,
+        incline: null,
+      },
+      {
+        kind: 'work',
+        start: 60,
+        duration: 40,
+        level: 18,
+        cadence: 98,
+        round: 2,
+        speed: null,
+        incline: null,
+      },
+      {
+        kind: 'rest',
+        start: 100,
+        duration: 20,
+        level: 6,
+        cadence: 72,
+        round: 2,
+        speed: null,
+        incline: null,
+      },
     ]);
   });
 
@@ -51,6 +104,8 @@ describe('expandPlan (L2-045)', () => {
       level: 6,
       cadence: 70,
       round: null,
+      speed: null,
+      incline: null,
     });
   });
 
@@ -90,9 +145,16 @@ describe('planSummary (L2-060)', () => {
   });
 
   it('summarises a flat plan (AC3)', () => {
-    expect(planSummary({ kind: 'flat', level: 12, minutes: 30, cadence: 85 })).toBe(
-      'Flat · Level 12 · 30 min',
-    );
+    expect(
+      planSummary({
+        kind: 'flat',
+        level: 12,
+        minutes: 30,
+        cadence: 85,
+        speed: null,
+        incline: null,
+      }),
+    ).toBe('Flat · Level 12 · 30 min');
   });
 });
 

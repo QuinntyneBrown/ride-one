@@ -3,12 +3,12 @@ import type { SegmentKind, WorkoutSnapshot } from './api-types';
 
 export interface SegmentChange {
   kind: SegmentKind;
-  level: number;
+  level: number | null;
   duration: number;
   round: number | null;
   rounds: number;
   last: boolean;
-  next: { kind: SegmentKind; level: number } | null;
+  next: { kind: SegmentKind; level: number | null } | null;
 }
 
 export class SegmentChangeDetector {

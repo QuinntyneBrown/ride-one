@@ -11,6 +11,10 @@ describe('previewOf (L2-059)', () => {
       rest_level: 6,
       warmup: true,
       cooldown: true,
+      work_speed: null,
+      rest_speed: null,
+      work_incline: null,
+      rest_incline: null,
     });
     expect(p.total).toBe('12:40');
     expect(p.totalSeconds).toBe(760);
@@ -23,7 +27,14 @@ describe('previewOf (L2-059)', () => {
   });
 
   it('previews a flat plan without time under load', () => {
-    const p = previewOf({ kind: 'flat', level: 12, minutes: 30, cadence: 85 });
+    const p = previewOf({
+      kind: 'flat',
+      level: 12,
+      minutes: 30,
+      cadence: 85,
+      speed: null,
+      incline: null,
+    });
     expect(p.total).toBe('30:00');
     expect(p.structure).toBe('Level 12 throughout');
     expect(p.timeUnderLoad).toBeNull();
@@ -43,6 +54,10 @@ describe('previewOf (L2-059)', () => {
       rest_level: 6,
       warmup: true,
       cooldown: true,
+      work_speed: null,
+      rest_speed: null,
+      work_incline: null,
+      rest_incline: null,
     });
     expect(p.profile.length).toBe(17);
     const [warmup, work, rest] = p.profile;
