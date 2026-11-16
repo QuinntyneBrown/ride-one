@@ -42,7 +42,7 @@ public sealed class ResistanceCommander(BikeStateStore store, ActiveConnectionRe
         {
             var connection = registry.Current;
             var nowMs = store.Time.GetUtcNow().ToUnixTimeMilliseconds();
-            var entry = new CommandEntry(nowMs / 1000.0, rideSeconds, level, source, CommandStatus.Sending, null)
+            var entry = CommandEntry.ForResistance(nowMs / 1000.0, rideSeconds, level, source, CommandStatus.Sending, null) with
             {
                 WrittenUnixMs = nowMs,
             };

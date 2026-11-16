@@ -15,6 +15,7 @@ public sealed class CoreBluetoothBikeTransport : IBikeTransport, IBleCallbacks, 
     internal const string ServiceUuid = "0bf669f1-45f2-11e7-9598-0800200c9a66";
     internal const string WriteUuid = "0bf669f2-45f2-11e7-9598-0800200c9a66";
     internal const string NotifyUuid = "0bf669f4-45f2-11e7-9598-0800200c9a66";
+    internal const string SecondNotifyUuid = "0bf669f3-45f2-11e7-9598-0800200c9a66";
 
     private static readonly TimeSpan StateWait = TimeSpan.FromSeconds(5);
 

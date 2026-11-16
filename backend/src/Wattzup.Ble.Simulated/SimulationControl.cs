@@ -13,6 +13,7 @@ public sealed class SimulationControl
     private readonly List<string> _events = [];
     private readonly List<SimulatedWrite> _writes = [];
     private readonly List<byte[]> _heldEchoes = [];
+    private readonly List<string> _subscribed = [];
     private bool _poweredOn = true;
     private bool _adapterOn = true;
     private TaskCompletionSource _wrote = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -22,6 +23,8 @@ public sealed class SimulationControl
     internal event Action? LinkDropRequested;
 
     internal event Action<byte[]>? FrameInjected;
+
+    internal event Action? BeltStopRequested;
 
     /// <summary>The bike is on and advertising. Switching it off drops an open link.</summary>
     public bool PoweredOn
@@ -63,6 +66,21 @@ public sealed class SimulationControl
 
     /// <summary>While true, the bike ignores set-resistance writes and echoes nothing.</summary>
     public bool IgnoreResistance { get; set; }
+
+    /// <summary>While true, the treadmill ignores the start-belt command and its belt stays still (L2-066 criterion 4).</summary>
+    public bool IgnoreBeltStart { get; set; }
+
+    /// <summary>The notify characteristics subscribed so far, in order.</summary>
+    public IReadOnlyList<string> Subscribed
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return [.. _subscribed];
+            }
+        }
+    }
 
     /// <summary>The cadence the bike reports in its 0xD1 frames.</summary>
     public int Cadence { get; set; } = 85;
@@ -119,6 +137,9 @@ public sealed class SimulationControl
         }
     }
 
+    /// <summary>Stops the treadmill's belt as its console or safety key would; it reports speed 0 (L2-066 criterion 7).</summary>
+    public void StopBeltFromConsole() => BeltStopRequested?.Invoke();
+
     /// <summary>Drops the open link, as if the bike went out of range.</summary>
     public void DropLink() => LinkDropRequested?.Invoke();
 
@@ -146,6 +167,15 @@ public sealed class SimulationControl
         lock (_gate)
         {
             _events.Add(linkEvent);
+        }
+    }
+
+    internal void Record(string linkEvent, IEnumerable<string> characteristics)
+    {
+        lock (_gate)
+        {
+            _events.Add(linkEvent);
+            _subscribed.AddRange(characteristics);
         }
     }
 

@@ -182,7 +182,8 @@ Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environm
 
 | Setting | Default | Description |
 |---|---|---|
-| `--simulate` | Off | Use the simulated bike instead of Bluetooth. Same as `Wattzup:Ble:Transport=Simulated`. |
+| `--simulate` | Off | Use the simulated bike and treadmill instead of Bluetooth. Same as `Wattzup:Ble:Transport=Simulated`. |
+| `Wattzup:Machine` | `bike` | The machine to connect to at start-up: `bike` or `treadmill`. `--machine treadmill` is short for `--Wattzup:Machine=treadmill`. The rider can change it on the setup screen while no ride is active; the change lasts until the process stops. |
 | `Wattzup:Urls` | `http://127.0.0.1:8787` | Where the backend listens. A non-loopback address requires `Wattzup:Security:ApiKey`. |
 | `Wattzup:Security:ApiKey` | Empty | When set, every `/api` request requires it in `X-Api-Key`; the event stream takes a single-use token from `POST /api/events/token`. |
 | `Wattzup:Security:ControlPermits` | `20` | Control requests (resistance, workout, reconnect) allowed per client per window; further requests get `429`. |

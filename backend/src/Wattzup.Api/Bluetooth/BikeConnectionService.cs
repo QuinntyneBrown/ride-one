@@ -1,29 +1,32 @@
 using Microsoft.Extensions.Options;
 using Wattzup.Ble.Abstractions;
 using Wattzup.Core.Bluetooth;
+using Wattzup.Core.Machines;
 using Wattzup.Core.State;
 using Wattzup.Core.Telemetry;
-using Wattzup.Protocol;
 
 namespace Wattzup.Api.Bluetooth;
 
 /// <summary>
-/// Finds, connects, initialises and keeps the bike alive for the life of the process, recovering from every
-/// disconnect and Bluetooth error (L2-001 to L2-004, L2-039). No failure ends the loop; only host shutdown does.
+/// Finds, connects, initialises and keeps the chosen machine alive for the life of the process, recovering from
+/// every disconnect and Bluetooth error (L2-001 to L2-004, L2-039, L2-063). No failure ends the loop; only host
+/// shutdown does. Choosing the other machine (L2-062) cancels the current scan, wait or link and starts over.
 /// </summary>
 public sealed partial class BikeConnectionService(
     IBikeTransport transport,
     BikeStateStore store,
     ActiveConnectionRegistry registry,
     TelemetryIngestor ingestor,
+    MachineSelector machines,
     TimeProvider time,
     IOptions<ConnectivityOptions> options,
     ILogger<BikeConnectionService> logger) : BackgroundService
 {
-    public const string NoBikeFound = "No Echelon bike found yet — pedal to wake it up";
+    public const string NoBikeFound = MachineProfile.NoBikeFound;
 
     private readonly ConnectivityOptions _options = options.Value;
     private CancellationTokenSource? _wait;
+    private CancellationTokenSource? _attempt;
 
     /// <summary>Cuts the current scan or error backoff short so a scan starts at once (L2-004 criterion 5).</summary>
     public void RequestReconnect() => Volatile.Read(ref _wait)?.Cancel();
@@ -31,19 +34,27 @@ public sealed partial class BikeConnectionService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         transport.AdapterStateChanged += OnAdapterStateChanged;
+        machines.Changed += OnMachineChanged;
         try
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                using var wait = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+                using var attempt = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+                using var wait = CancellationTokenSource.CreateLinkedTokenSource(attempt.Token);
+                Volatile.Write(ref _attempt, attempt);
                 Volatile.Write(ref _wait, wait);
                 try
                 {
-                    await RunOnceAsync(wait.Token, stoppingToken).ConfigureAwait(false);
+                    await RunOnceAsync(MachineProfile.For(store.Current.Machine), wait.Token, attempt.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
                     break;
+                }
+                catch (OperationCanceledException) when (attempt.IsCancellationRequested)
+                {
+                    // The machine changed: scan for the other one.
+                    registry.Clear();
                 }
                 catch (OperationCanceledException)
                 {
@@ -72,25 +83,27 @@ public sealed partial class BikeConnectionService(
                 finally
                 {
                     Interlocked.CompareExchange(ref _wait, null, wait);
+                    Interlocked.CompareExchange(ref _attempt, null, attempt);
                 }
             }
         }
         finally
         {
             transport.AdapterStateChanged -= OnAdapterStateChanged;
+            machines.Changed -= OnMachineChanged;
             registry.Clear();
         }
     }
 
-    private async Task RunOnceAsync(CancellationToken waitToken, CancellationToken stoppingToken)
+    private async Task RunOnceAsync(MachineProfile profile, CancellationToken waitToken, CancellationToken stoppingToken)
     {
         store.Update(s => s with { Ble = BleState.Scanning, Error = null });
-        var scan = transport.ScanAsync(a => EchelonDeviceFilter.Matches(a.Name, a.ServiceUuids), _options.ScanTimeout, waitToken);
+        var scan = transport.ScanAsync(a => profile.Matches(a.Name, a.ServiceUuids), _options.ScanTimeout, waitToken);
         store.Update(s => s.Adapter == AdapterState.On ? s : s with { Adapter = AdapterState.On });
         var advertisement = await scan.ConfigureAwait(false);
         if (advertisement is null)
         {
-            store.Update(s => s with { Ble = BleState.Scanning, Error = NoBikeFound });
+            store.Update(s => s with { Ble = BleState.Scanning, Error = profile.NotFoundMessage });
             return;
         }
 
@@ -113,20 +126,24 @@ public sealed partial class BikeConnectionService(
             connection.Disconnected += OnDisconnected;
             try
             {
-                store.Update(s => s with { Ble = BleState.Connected });
-                await connection.SubscribeAsync(ingestor.OnNotify, linkLost.Token).ConfigureAwait(false);
-                for (var i = 0; i < EchelonCommands.InitSequence.Count; i++)
+                store.Update(s => s with
+                {
+                    Ble = BleState.Connected,
+                    Belt = profile.Machine == Machine.Treadmill ? BeltState.Stopped : null,
+                });
+                await connection.SubscribeAsync(profile.NotifyCharacteristics, frame => ingestor.OnNotify(frame, connection), linkLost.Token).ConfigureAwait(false);
+                for (var i = 0; i < profile.InitSequence.Count; i++)
                 {
                     if (i > 0)
                     {
                         await Task.Delay(_options.InitCommandSpacing, time, linkLost.Token).ConfigureAwait(false);
                     }
 
-                    await connection.WriteAsync(EchelonCommands.InitSequence[i], withResponse: true, linkLost.Token).ConfigureAwait(false);
+                    await connection.WriteAsync(profile.InitSequence[i], withResponse: true, linkLost.Token).ConfigureAwait(false);
                 }
 
                 registry.Set(connection);
-                await KeepAliveAsync(connection, linkLost.Token).ConfigureAwait(false);
+                await KeepAliveAsync(profile, connection, linkLost.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested && linkLost.IsCancellationRequested)
             {
@@ -140,14 +157,15 @@ public sealed partial class BikeConnectionService(
 
             if (!stoppingToken.IsCancellationRequested)
             {
-                store.Update(s => s with { Ble = BleState.Disconnected });
+                store.Update(s => s with { Ble = BleState.Disconnected, Belt = null, BeltCountdown = null });
             }
         }
     }
 
-    private async Task KeepAliveAsync(IBikeConnection connection, CancellationToken linkLost)
+    private async Task KeepAliveAsync(MachineProfile profile, IBikeConnection connection, CancellationToken linkLost)
     {
         using var timer = new PeriodicTimer(_options.KeepaliveInterval, time);
+        byte counter = 1;
         while (connection.IsConnected && await timer.WaitForNextTickAsync(linkLost).ConfigureAwait(false))
         {
             if (!connection.IsConnected)
@@ -155,8 +173,20 @@ public sealed partial class BikeConnectionService(
                 break;
             }
 
-            await connection.WriteAsync(EchelonCommands.Keepalive, withResponse: true, linkLost).ConfigureAwait(false);
+            await connection.WriteAsync(profile.Keepalive(counter), withResponse: true, linkLost).ConfigureAwait(false);
+            counter = Wattzup.Protocol.EchelonTreadmillCommands.NextKeepaliveCounter(counter);
             store.Touch();
+        }
+    }
+
+    private void OnMachineChanged(Machine machine)
+    {
+        try
+        {
+            Volatile.Read(ref _attempt)?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
         }
     }
 

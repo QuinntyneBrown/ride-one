@@ -27,19 +27,25 @@ public static class CommandLog
 
     /// <summary>Sets that entry's status to <c>failed</c>.</summary>
     public static ImmutableArray<CommandEntry> Fail(IReadOnlyList<CommandEntry> log, CommandEntry entry) =>
-        log.Select(e => e.WrittenUnixMs == entry.WrittenUnixMs && e.Level == entry.Level && e.Source == entry.Source ? e with { Status = CommandStatus.Failed } : e).ToImmutableArray();
+        log.Select(e => e.WrittenUnixMs == entry.WrittenUnixMs && e.Command == entry.Command && e.Value == entry.Value && e.Source == entry.Source ? e with { Status = CommandStatus.Failed } : e).ToImmutableArray();
 
     /// <summary>
-    /// Acknowledges <c>sending</c> entries of the reported level, walking from the newest and stopping at
-    /// the first entry of another level, so an older entry behind a newer different level stays <c>sending</c>.
+    /// Acknowledges <c>sending</c> entries of the reported kind and value, walking from the newest entry of that kind
+    /// and stopping at the first one with another value, so an older entry behind a newer different value stays
+    /// <c>sending</c>. Entries of other kinds are passed over (L2-048 criterion 4, L2-065 criterion 6).
     /// </summary>
-    public static ImmutableArray<CommandEntry> Acknowledge(IReadOnlyList<CommandEntry> log, int level, long nowUnixMs)
+    public static ImmutableArray<CommandEntry> Acknowledge(IReadOnlyList<CommandEntry> log, CommandKind kind, double value, long nowUnixMs)
     {
         var builder = log.ToImmutableArray().ToBuilder();
         for (var i = 0; i < builder.Count; i++)
         {
             var e = builder[i];
-            if (e.Level != level)
+            if (e.Command != kind)
+            {
+                continue;
+            }
+
+            if (Math.Abs(e.Value - value) > 0.05)
             {
                 break;
             }

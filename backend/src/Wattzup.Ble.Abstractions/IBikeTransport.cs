@@ -17,7 +17,7 @@ public interface IBikeTransport
     Task<IBikeConnection> ConnectAsync(BikeAdvertisement advertisement, CancellationToken cancellationToken);
 }
 
-/// <summary>An open GATT link to the bike's Echelon service.</summary>
+/// <summary>An open GATT link to the Echelon service of the bike or the treadmill.</summary>
 public interface IBikeConnection : IAsyncDisposable
 {
     bool IsConnected { get; }
@@ -25,8 +25,12 @@ public interface IBikeConnection : IAsyncDisposable
     /// <summary>Raised once when the link drops. Never raised on a native callback thread.</summary>
     event Action? Disconnected;
 
-    /// <summary>Subscribes to the notify characteristic; each frame is handed to <paramref name="onNotify"/>.</summary>
-    Task SubscribeAsync(Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken);
+    /// <summary>
+    /// Subscribes to each of <paramref name="notifyCharacteristicUuids"/> the service has (the bike's one, the
+    /// treadmill's two; L2-002, L2-063); frames from any of them are handed to <paramref name="onNotify"/>, in arrival
+    /// order. Throws when the service has none of them.
+    /// </summary>
+    Task SubscribeAsync(IReadOnlyList<string> notifyCharacteristicUuids, Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken);
 
     /// <summary>Writes to the write characteristic.</summary>
     Task WriteAsync(ReadOnlyMemory<byte> bytes, bool withResponse, CancellationToken cancellationToken);

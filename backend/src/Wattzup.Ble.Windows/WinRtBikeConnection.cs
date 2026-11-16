@@ -13,19 +13,18 @@ internal sealed class WinRtBikeConnection : IBikeConnection
     private readonly GattSession _session;
     private readonly GattDeviceService _service;
     private readonly GattCharacteristic _write;
-    private readonly GattCharacteristic _notify;
+    private readonly List<GattCharacteristic> _notify = [];
     private readonly Channel<byte[]> _frames = Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions { SingleReader = true });
     private Task? _pump;
     private int _connected = 1;
     private int _disposed;
 
-    public WinRtBikeConnection(BluetoothLEDevice device, GattSession session, GattDeviceService service, GattCharacteristic write, GattCharacteristic notify)
+    public WinRtBikeConnection(BluetoothLEDevice device, GattSession session, GattDeviceService service, GattCharacteristic write)
     {
         _device = device;
         _session = session;
         _service = service;
         _write = write;
-        _notify = notify;
         device.ConnectionStatusChanged += OnConnectionStatusChanged;
     }
 
@@ -33,14 +32,31 @@ internal sealed class WinRtBikeConnection : IBikeConnection
 
     public event Action? Disconnected;
 
-    public async Task SubscribeAsync(Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken)
+    public async Task SubscribeAsync(IReadOnlyList<string> notifyCharacteristicUuids, Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(notifyCharacteristicUuids);
         ArgumentNullException.ThrowIfNull(onNotify);
+        foreach (var uuid in notifyCharacteristicUuids)
+        {
+            if (await WinRtBikeTransport.TryFindCharacteristicAsync(_service, Guid.Parse(uuid), cancellationToken).ConfigureAwait(false) is { } notify)
+            {
+                _notify.Add(notify);
+            }
+        }
+
+        if (_notify.Count == 0)
+        {
+            throw new InvalidOperationException("The device does not expose the Echelon notify characteristic.");
+        }
+
         _pump ??= Task.Run(() => PumpAsync(onNotify), CancellationToken.None);
-        _notify.ValueChanged += OnValueChanged;
-        var status = await _notify.WriteClientCharacteristicConfigurationDescriptorAsync(
-            GattClientCharacteristicConfigurationDescriptorValue.Notify).AsTask(cancellationToken).ConfigureAwait(false);
-        WinRtBikeTransport.ThrowIfFailed(status, "subscribe to the notify characteristic");
+        foreach (var notify in _notify)
+        {
+            notify.ValueChanged += OnValueChanged;
+            var status = await notify.WriteClientCharacteristicConfigurationDescriptorAsync(
+                GattClientCharacteristicConfigurationDescriptorValue.Notify).AsTask(cancellationToken).ConfigureAwait(false);
+            WinRtBikeTransport.ThrowIfFailed(status, "subscribe to the notify characteristic");
+        }
     }
 
     public async Task WriteAsync(ReadOnlyMemory<byte> bytes, bool withResponse, CancellationToken cancellationToken)
@@ -65,7 +81,10 @@ internal sealed class WinRtBikeConnection : IBikeConnection
 
         Volatile.Write(ref _connected, 0);
         _device.ConnectionStatusChanged -= OnConnectionStatusChanged;
-        _notify.ValueChanged -= OnValueChanged;
+        foreach (var notify in _notify)
+        {
+            notify.ValueChanged -= OnValueChanged;
+        }
         _frames.Writer.TryComplete();
         if (_pump is { } pump)
         {
