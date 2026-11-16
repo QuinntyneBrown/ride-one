@@ -1,4 +1,5 @@
 using Wattzup.Ble.Abstractions;
+using Wattzup.Ble.BlueZ;
 using Wattzup.Ble.CoreBluetooth;
 using Wattzup.Ble.Simulated;
 
@@ -10,6 +11,8 @@ public static class TransportSelector
     public const string Simulated = "Simulated";
 
     public const string CoreBluetooth = "CoreBluetooth";
+    public const string BlueZ = "BlueZ";
+    public const string WinRT = "WinRT";
 
     /// <summary>The transport name for this operating system: CoreBluetooth, BlueZ or WinRT.</summary>
     public static string DefaultForPlatform() =>
@@ -28,6 +31,16 @@ public static class TransportSelector
         {
             services.AddSingleton<IBikeTransport>(_ => OperatingSystem.IsMacOS() ? new CoreBluetoothBikeTransport() : throw new PlatformNotSupportedException());
         }
+        else if (string.Equals(name, BlueZ, StringComparison.OrdinalIgnoreCase) && OperatingSystem.IsLinux())
+        {
+            services.AddSingleton<IBikeTransport>(_ => new BlueZBikeTransport());
+        }
+#if WINDOWS
+        else if (string.Equals(name, WinRT, StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddSingleton<IBikeTransport>(_ => new Wattzup.Ble.Windows.WinRtBikeTransport());
+        }
+#endif
         else
         {
             services.AddSingleton<IBikeTransport>(new UnavailableBikeTransport(name));

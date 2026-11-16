@@ -7,5 +7,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- The API host and its acceptance tests target Windows on Windows, so the WinRT transport is
+         referenced there, and plain net10.0 elsewhere (bluetooth-platform-transports design). -->
+    <WattzupHostFramework Condition="'$(WattzupHostFramework)' == '' and '$(OS)' == 'Windows_NT'">net10.0-windows10.0.19041.0</WattzupHostFramework>
+    <WattzupHostFramework Condition="'$(WattzupHostFramework)' == ''">net10.0</WattzupHostFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 </Project>

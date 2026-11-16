@@ -6,6 +6,11 @@
     <ProjectReference Include="..\Wattzup.Protocol\Wattzup.Protocol.csproj" />
     <ProjectReference Include="..\Wattzup.Ble.Abstractions\Wattzup.Ble.Abstractions.csproj" />
     <ProjectReference Include="..\Wattzup.Ble.CoreBluetooth\Wattzup.Ble.CoreBluetooth.csproj" />
+    <ProjectReference Include="..\Wattzup.Ble.BlueZ\Wattzup.Ble.BlueZ.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+    <ProjectReference Include="..\Wattzup.Ble.Windows\Wattzup.Ble.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -13,7 +18,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>$(WattzupHostFramework)</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
