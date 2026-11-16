@@ -1,3 +1,5 @@
+using Wattzup.Core.Workouts;
+
 namespace Wattzup.Core.State;
 
 /// <summary>The Bluetooth link state, <c>ble</c> in the contract (L2-014).</summary>
@@ -37,7 +39,7 @@ public sealed record BikeState
 
     public int? TargetResistance { get; init; }
 
-    public WorkoutState? Workout { get; init; }
+    public WorkoutSnapshot? Workout { get; init; }
 
     public int? Cadence { get; init; }
 
@@ -82,5 +84,5 @@ public sealed record BikeState
     /// <summary>Always null: Wattzup has no heart-rate source (ADR 0003).</summary>
     public int? HeartRate { get; init; }
 
-    public IReadOnlyList<ResistanceCommand> Commands { get; init; } = [];
+    public IReadOnlyList<CommandEntry> Commands { get; init; } = [];
 }

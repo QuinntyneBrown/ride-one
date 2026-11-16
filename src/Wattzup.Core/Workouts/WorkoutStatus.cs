@@ -1,0 +1,17 @@
+namespace Wattzup.Core.Workouts;
+
+/// <summary>The <c>workout.status</c> strings of the state contract (L2-014).</summary>
+public static class WorkoutStatus
+{
+    public const string WaitingForBike = "waiting for bike";
+    public const string Running = "running";
+    public const string Paused = "paused";
+    public const string PausedBikeDisconnected = "paused: bike disconnected";
+    public const string Ended = "ended";
+    public const string EndedBikeShutOff = "ended: bike shut off";
+    public const string Stopped = "stopped";
+
+    /// <summary>Ended, shut off and stopped are terminal; any other status is active.</summary>
+    public static bool IsActive(string status) =>
+        status is not (Ended or EndedBikeShutOff or Stopped);
+}

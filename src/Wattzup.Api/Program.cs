@@ -22,7 +22,7 @@ builder.Services.AddSingleton(new BikeStateStore(new BikeState
 {
     Transport = "none",
     BindAddress = new Uri(options.Urls).Authority,
-}));
+}, TimeProvider.System, null));
 
 var app = builder.Build();
 
