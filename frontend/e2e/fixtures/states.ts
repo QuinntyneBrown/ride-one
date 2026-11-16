@@ -28,6 +28,7 @@ const RECORDED_STATE = recordedRunning as unknown as Json;
 const RECORDED_WORKOUT = recordedStarted.started as unknown as Json;
 const RECORDED_SEGMENT = recordedStarted.started.segments[0] as unknown as Json;
 const RECORDED_COMMAND = recordedRunning.commands[0] as unknown as Json;
+const RECORDED_NEARBY = recordedRunning.nearby[0] as unknown as Json;
 
 export const DEFAULT_PLAN = {
   kind: 'hiit',
@@ -391,4 +392,18 @@ export function treadmillState(change: Json = {}): Json {
     ],
     ...change,
   });
+}
+
+/** One `nearby` entry (L2-074): the recorded shape with `change` laid over it. */
+export function nearbyEntry(machine: 'bike' | 'treadmill', change: Json = {}): Json {
+  const cast: Json =
+    machine === 'bike'
+      ? { machine, name: 'ECHEX-3-141844', label: 'Echelon EX-5s', rssi: -68, signal: 3 }
+      : { machine, name: 'STRIDE-8s22-000766', label: 'Echelon Stride', rssi: -55, signal: 4 };
+  return fromRecording(RECORDED_NEARBY, { ...cast, seen_at: NOW_S, ...change }, 'nearby entry');
+}
+
+/** The machine page's state: the bike chosen and connected, no workout, both machines nearby. */
+export function machinePageState(change: Json = {}): Json {
+  return freeRide({ nearby: [nearbyEntry('bike'), nearbyEntry('treadmill')], ...change });
 }

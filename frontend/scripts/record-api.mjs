@@ -65,12 +65,7 @@ function save(name, response, expectedStatus) {
   console.log(`recorded ${name} (${response.status})`);
 }
 
-for (let i = 0; ; i++) {
-  const health = await call('GET', '/health').catch(() => null);
-  if (health?.json.ble === 'connected') break;
-  if (i > 30) throw new Error(`The backend at ${base} is not connected to the simulated bike.`);
-  await wait(1000);
-}
+await waitConnected('bike');
 
 await call('POST', '/api/workout/stop');
 save('status-free-ride', await call('GET', '/api/status'), 200);
@@ -93,6 +88,11 @@ save('resistance-sent', await call('POST', '/api/resistance', { level: 10 }), 20
 save('workout-started', await call('POST', '/api/workout', plan), 200);
 await wait(3500);
 save('status-running', await call('GET', '/api/status'), 200);
+save(
+  'problem-machine-workout-active',
+  await call('POST', '/api/machine', { machine: 'treadmill' }),
+  409,
+);
 save('trace', await call('GET', '/api/workout/trace'), 200);
 save('workout-paused', await call('POST', '/api/workout/pause'), 200);
 save('workout-resumed', await call('POST', '/api/workout/resume'), 200);

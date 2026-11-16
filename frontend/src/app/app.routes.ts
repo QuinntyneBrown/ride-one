@@ -13,6 +13,11 @@ export const routes: Routes = [
     loadComponent: () => import('./dashboard/setup-page/setup-page').then((m) => m.SetupPage),
   },
   {
+    path: 'machine',
+    title: 'Choose machine · Wattzup',
+    loadComponent: () => import('./dashboard/machine-page/machine-page').then((m) => m.MachinePage),
+  },
+  {
     path: 'unlock',
     title: 'Unlock · Wattzup',
     loadComponent: () => import('./dashboard/unlock-page/unlock-page').then((m) => m.UnlockPage),

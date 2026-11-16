@@ -34,3 +34,4 @@ export type SetSpeedRequest = Schemas['SetSpeedRequest'];
 export type SpeedSent = Schemas['SpeedSent'];
 export type SetInclineRequest = Schemas['SetInclineRequest'];
 export type InclineSent = Schemas['InclineSent'];
+export type NearbyMachine = Schemas['NearbyMachine'];
