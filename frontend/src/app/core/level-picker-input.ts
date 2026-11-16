@@ -1,36 +1,52 @@
-// What the level picker's keys and taps choose (L2-020, L2-041): a pure helper for the slider.
+// What the level picker's keys and taps choose (L2-020, L2-041, L2-072 AC5): a pure helper for
+// the slider, over the bike's levels 1–32 or the Stride's incline 0–10 %.
 export const MIN_LEVEL = 1;
 export const MAX_LEVEL = 32;
-const PAGE = 4;
-/** Where a key press starts when nothing is set yet, as Raise and Lower do. */
-const START = 12;
 
-const clamp = (level: number): number => Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, level));
+/** The values a picker offers; `start` is where a key press starts when nothing is set yet. */
+export interface PickerRange {
+  min: number;
+  max: number;
+  page: number;
+  start: number;
+}
 
-/** The level a key moves to from `current`, or null for a key the slider does not handle. */
-export function levelForKey(key: string, current: number | null): number | null {
-  const from = current ?? START;
+/** Raise and Lower start at 12 when nothing is set yet; Page moves by 4. */
+export const LEVEL_RANGE: PickerRange = { min: MIN_LEVEL, max: MAX_LEVEL, page: 4, start: 12 };
+/** The Stride's incline, 0 to 10 % (L2-065). */
+export const INCLINE_RANGE: PickerRange = { min: 0, max: 10, page: 2, start: 0 };
+
+const clamp = (n: number, r: PickerRange): number => Math.min(r.max, Math.max(r.min, n));
+
+/** The value a key moves to from `current`, or null for a key the slider does not handle. */
+export function levelForKey(
+  key: string,
+  current: number | null,
+  range: PickerRange = LEVEL_RANGE,
+): number | null {
+  const from = current ?? range.start;
   switch (key) {
     case 'ArrowRight':
     case 'ArrowUp':
-      return clamp(from + 1);
+      return clamp(from + 1, range);
     case 'ArrowLeft':
     case 'ArrowDown':
-      return clamp(from - 1);
+      return clamp(from - 1, range);
     case 'PageUp':
-      return clamp(from + PAGE);
+      return clamp(from + range.page, range);
     case 'PageDown':
-      return clamp(from - PAGE);
+      return clamp(from - range.page, range);
     case 'Home':
-      return MIN_LEVEL;
+      return range.min;
     case 'End':
-      return MAX_LEVEL;
+      return range.max;
     default:
       return null;
   }
 }
 
-/** The level under a tap `fraction` of the way across the bars (0 = left edge, 1 = right edge). */
-export function levelAtFraction(fraction: number): number {
-  return clamp(Math.floor(fraction * MAX_LEVEL) + 1);
+/** The value under a tap `fraction` of the way across the bars (0 = left edge, 1 = right edge). */
+export function levelAtFraction(fraction: number, range: PickerRange = LEVEL_RANGE): number {
+  const bars = range.max - range.min + 1;
+  return clamp(Math.floor(fraction * bars) + range.min, range);
 }

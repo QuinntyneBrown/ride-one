@@ -29,27 +29,27 @@ describe('treadmill controls (L2-071 AC5, AC6)', () => {
     expect(baseIncline(treadmill(change))).toBe(base);
   });
 
-  it('steps speed by 0.5 within 1.0 to 16.0', () => {
+  it('steps speed by 0.5 within 0.8 to 19.3', () => {
     expect(stepSpeed(treadmill(), 1)).toBe(9.5);
     expect(stepSpeed(treadmill(), -1)).toBe(8.5);
-    expect(stepSpeed(treadmill({ speed_kmh: 15.8 }), 1)).toBe(16);
-    expect(stepSpeed(treadmill({ speed_kmh: 1.2 }), -1)).toBe(1);
+    expect(stepSpeed(treadmill({ speed_kmh: 19 }), 1)).toBe(19.3);
+    expect(stepSpeed(treadmill({ speed_kmh: 1 }), -1)).toBe(0.8);
   });
 
-  it('steps incline by 1 within 0 to 15', () => {
+  it('steps incline by 1 within 0 to 10', () => {
     expect(stepIncline(treadmill(), 1)).toBe(3);
     expect(stepIncline(treadmill({ incline: 0 }), -1)).toBe(0);
-    expect(stepIncline(treadmill({ incline: 15 }), 1)).toBe(15);
+    expect(stepIncline(treadmill({ incline: 10 }), 1)).toBe(10);
   });
 
   it('disables each button at its limit', () => {
-    expect(treadmillControlsState(treadmill({ speed_kmh: 16, incline: 0 }), true)).toEqual({
+    expect(treadmillControlsState(treadmill({ speed_kmh: 19.3, incline: 0 }), true)).toEqual({
       lowerSpeedDisabled: false,
       raiseSpeedDisabled: true,
       lowerInclineDisabled: true,
       raiseInclineDisabled: false,
     });
-    expect(treadmillControlsState(treadmill({ speed_kmh: 1, incline: 15 }), true)).toEqual({
+    expect(treadmillControlsState(treadmill({ speed_kmh: 0.8, incline: 10 }), true)).toEqual({
       lowerSpeedDisabled: true,
       raiseSpeedDisabled: false,
       lowerInclineDisabled: false,

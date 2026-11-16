@@ -1,13 +1,28 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import type { ResistanceView } from '../../core/resistance-view';
-import { levelForKey, levelAtFraction } from '../../core/level-picker-input';
+import {
+  INCLINE_RANGE,
+  LEVEL_RANGE,
+  levelAtFraction,
+  levelForKey,
+} from '../../core/level-picker-input';
 
-const LEVELS = Array.from({ length: 32 }, (_, i) => ({ level: i + 1 }));
+/** What an incline picker lights: every bar up to the value, the value set (L2-072 AC5). */
+export function inclineView(incline: number | null): ResistanceView {
+  return {
+    valueText: '',
+    settingText: null,
+    litUpTo: incline ?? -1,
+    pressedLevel: incline,
+    planLevel: null,
+  };
+}
 
 /**
- * 32 bars, one per level (L2-019, L2-020), as one slider: a single Tab stop operated by arrow,
- * Page and Home/End keys, and by tapping anywhere on the bars, so the whole track is one target
- * well over 44 × 44 px (L2-041, WCAG 2.2 target size).
+ * One bar per value as one slider: the bike's 32 levels (L2-019, L2-020) or, with `incline`, the
+ * Stride's 11 incline bars from 0 to 10 % (L2-072 AC5). A single Tab stop operated by arrow, Page
+ * and Home/End keys, and by tapping anywhere on the bars, so the whole track is one target well
+ * over 44 × 44 px (L2-041, WCAG 2.2 target size).
  */
 @Component({
   selector: 'wz-level-picker',
@@ -18,20 +33,38 @@ const LEVELS = Array.from({ length: 32 }, (_, i) => ({ level: i + 1 }));
 export class LevelPicker {
   readonly view = input.required<ResistanceView>();
   readonly disabled = input(false);
+  /** The Stride's incline picker, 0 to 10 %. */
+  readonly incline = input(false);
+  readonly fieldId = input<string | null>(null);
+  /** The id of the visible label; without it the slider is named `Resistance level`. */
+  readonly labelledBy = input<string | null>(null);
+  /** Overrides the bike's `Level <n> of 32`. */
+  readonly valueText = input<string | null>(null);
   readonly pick = output<number>();
-  protected readonly levels = LEVELS;
+
+  protected readonly range = computed(() => (this.incline() ? INCLINE_RANGE : LEVEL_RANGE));
+  protected readonly levels = computed(() => {
+    const { min, max } = this.range();
+    return Array.from({ length: max - min + 1 }, (_, i) => ({ level: min + i }));
+  });
   protected readonly value = computed(() => this.view().pressedLevel);
+  protected readonly text = computed(() => {
+    const own = this.valueText();
+    if (own !== null) return own;
+    const v = this.value();
+    return v === null ? 'No level yet' : `Level ${v} of 32`;
+  });
 
   protected onClick(event: MouseEvent): void {
     if (this.disabled()) return;
     const track = event.currentTarget as HTMLElement;
     const box = track.getBoundingClientRect();
-    this.pick.emit(levelAtFraction((event.clientX - box.left) / box.width));
+    this.pick.emit(levelAtFraction((event.clientX - box.left) / box.width, this.range()));
   }
 
   protected onKey(event: KeyboardEvent): void {
     if (this.disabled()) return;
-    const next = levelForKey(event.key, this.value());
+    const next = levelForKey(event.key, this.value(), this.range());
     if (next === null) return;
     event.preventDefault();
     this.pick.emit(next);

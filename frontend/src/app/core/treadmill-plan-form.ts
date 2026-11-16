@@ -6,29 +6,30 @@ import {
   type DraftError,
   type DraftField,
   type PlanDraft,
-  type PresetId,
-  applyPreset,
   parseClock,
   parseUnit,
   stepDraft,
   validateDraft,
 } from './plan-form';
 
-export const MIN_SPEED = 1.0;
-export const MAX_SPEED = 16.0;
+/** The Echelon Stride's limits (L2-065, L2-067). */
+export const MIN_SPEED = 0.8;
+export const MAX_SPEED = 19.3;
 export const SPEED_STEP = 0.5;
 export const MIN_INCLINE = 0;
-export const MAX_INCLINE = 15;
+export const MAX_INCLINE = 10;
 export const INCLINE_STEP = 1;
+const MINUTES_STEP = 5;
+const MIN_MINUTES = 1;
+const MAX_MINUTES = 180;
 
-export const SPEED_RANGE = 'Speed must be 1.0 to 16.0 km/h.';
+export const SPEED_RANGE = 'Speed must be 0.8 to 19.3 km/h.';
 export const SPEED_FORMAT = 'Enter a speed like 9.0.';
-export const INCLINE_RANGE = 'Incline must be 0 to 15 %.';
+export const INCLINE_RANGE = 'Incline must be 0 to 10 %.';
 export const WHOLE_NUMBER = 'Enter a whole number.';
 
 export interface TreadmillPlanDraft {
   mode: 'hiit' | 'flat';
-  preset: PresetId | null;
   rounds: string;
   work: string;
   rest: string;
@@ -61,36 +62,106 @@ export interface TreadmillDraftError {
   link: string;
 }
 
+export type TreadmillPresetId =
+  | 'sprints-30-30'
+  | 'minute-on'
+  | 'hill-repeats'
+  | 'norwegian-4x4'
+  | 'hill-walk'
+  | 'easy-run'
+  | 'tempo';
+
+/** A preset and the draft values it sets (L2-072 AC3). */
+export interface TreadmillPreset {
+  id: TreadmillPresetId;
+  label: string;
+  mode: TreadmillPlanDraft['mode'];
+  values: Partial<TreadmillPlanDraft>;
+}
+
+const hiit = (
+  id: TreadmillPresetId,
+  label: string,
+  rounds: number,
+  work: string,
+  rest: string,
+  workSpeed: string,
+  restSpeed: string,
+  workIncline: number,
+  restIncline: number,
+): TreadmillPreset => ({
+  id,
+  label,
+  mode: 'hiit',
+  values: {
+    rounds: String(rounds),
+    work,
+    rest,
+    workSpeed,
+    restSpeed,
+    workIncline: String(workIncline),
+    restIncline: String(restIncline),
+  },
+});
+
+const steady = (
+  id: TreadmillPresetId,
+  label: string,
+  speed: string,
+  incline: number,
+  minutes: number,
+): TreadmillPreset => ({
+  id,
+  label,
+  mode: 'flat',
+  values: { speed, incline: String(incline), minutes: String(minutes) },
+});
+
+export const TREADMILL_PRESETS: readonly TreadmillPreset[] = [
+  hiit('sprints-30-30', 'Sprints 30/30', 10, '0:30', '0:30', '15.0', '5.5', 1, 0),
+  hiit('minute-on', 'Minute on', 6, '1:00', '1:00', '13.0', '6.0', 2, 1),
+  hiit('hill-repeats', 'Hill repeats', 6, '1:30', '1:30', '9.0', '5.5', 8, 0),
+  hiit('norwegian-4x4', 'Norwegian 4×4', 4, '4:00', '3:00', '12.5', '6.0', 3, 1),
+  steady('hill-walk', 'Hill walk', '6.5', 8, 30),
+  steady('easy-run', 'Easy run', '9.5', 1, 30),
+  steady('tempo', 'Tempo', '12.5', 1, 20),
+];
+
+/** The presets offered for a mode, in order. */
+export function presetsFor(mode: TreadmillPlanDraft['mode']): readonly TreadmillPreset[] {
+  return TREADMILL_PRESETS.filter((p) => p.mode === mode);
+}
+
+/** HIIT with the Minute on values; the Steady fields hold Hill walk's (L2-072 AC4). */
 export const DEFAULT_TREADMILL_DRAFT: TreadmillPlanDraft = {
   mode: 'hiit',
-  preset: null,
-  rounds: '18',
-  work: '0:40',
-  rest: '0:20',
-  workSpeed: '9.0',
-  restSpeed: '7.0',
-  workIncline: '0',
-  restIncline: '0',
+  rounds: '6',
+  work: '1:00',
+  rest: '1:00',
+  workSpeed: '13.0',
+  restSpeed: '6.0',
+  workIncline: '2',
+  restIncline: '1',
   warmup: true,
   cooldown: true,
-  speed: '7.0',
-  incline: '0',
-  minutes: '30 min',
+  speed: '6.5',
+  incline: '8',
+  minutes: '30',
 };
 
 type SpeedField = 'workSpeed' | 'restSpeed' | 'speed';
 type InclineField = 'workIncline' | 'restIncline' | 'incline';
-type SharedField = 'rounds' | 'work' | 'rest' | 'minutes';
+type SharedField = 'rounds' | 'work' | 'rest';
 
 const SPEED_LINKS: Record<SpeedField, string> = {
-  workSpeed: 'Work speed — 1.0 to 16.0 km/h',
-  restSpeed: 'Recover speed — 1.0 to 16.0 km/h',
-  speed: 'Speed — 1.0 to 16.0 km/h',
+  workSpeed: 'Work speed — 0.8 to 19.3 km/h',
+  restSpeed: 'Recover speed — 0.8 to 19.3 km/h',
+  speed: 'Speed — 0.8 to 19.3 km/h',
 };
 const INCLINE_LINKS: Record<InclineField, string> = {
-  workIncline: 'Work incline — 0 to 15 %',
-  restIncline: 'Recover incline — 0 to 15 %',
-  incline: 'Incline — 0 to 15 %',
+  workIncline: 'Work incline — 0 to 10 %',
+  restIncline: 'Recover incline — 0 to 10 %',
+  incline: 'Incline — 0 to 10 %',
 };
 
 const HIIT_FIELDS: TreadmillField[] = [
@@ -128,7 +199,7 @@ function asBikeDraft(draft: TreadmillPlanDraft): PlanDraft {
   return {
     ...DEFAULT_DRAFT,
     mode: draft.mode,
-    preset: draft.preset,
+    preset: null,
     rounds: draft.rounds,
     work: draft.work,
     rest: draft.rest,
@@ -170,29 +241,52 @@ export function validateTreadmillDraft(draft: TreadmillPlanDraft): TreadmillDraf
   return errors;
 }
 
-/** Applies an edit; editing Rounds, Work or Recover clears the pressed preset. */
 export function editTreadmillDraft(
   draft: TreadmillPlanDraft,
   change: Partial<TreadmillPlanDraft>,
 ): TreadmillPlanDraft {
-  const clears = 'rounds' in change || 'work' in change || 'rest' in change;
-  return { ...draft, ...change, ...(clears ? { preset: null } : {}) };
+  return { ...draft, ...change };
 }
 
-export function applyTreadmillPreset(draft: TreadmillPlanDraft, id: PresetId): TreadmillPlanDraft {
-  const filled = applyPreset(asBikeDraft(draft), id);
-  return {
-    ...draft,
-    preset: filled.preset,
-    rounds: filled.rounds,
-    work: filled.work,
-    rest: filled.rest,
-  };
+export function applyTreadmillPreset(
+  draft: TreadmillPlanDraft,
+  id: TreadmillPresetId,
+): TreadmillPlanDraft {
+  const p = TREADMILL_PRESETS.find((x) => x.id === id);
+  return p ? { ...draft, ...p.values } : draft;
+}
+
+/** The parsed value of a field, so `9` matches `9.0` and `60` matches `1:00`. */
+function valueOf(field: TreadmillField, text: string): number | null {
+  if (isSpeed(field)) return parseSpeed(text);
+  if (isIncline(field)) return parseIncline(text);
+  if (field === 'work' || field === 'rest') return parseClock(text);
+  return parseUnit(text);
+}
+
+/** True while every value the preset sets still matches the draft (L2-072 AC3). */
+export function presetPressed(draft: TreadmillPlanDraft, id: TreadmillPresetId): boolean {
+  const p = TREADMILL_PRESETS.find((x) => x.id === id);
+  if (!p || p.mode !== draft.mode) return false;
+  return (Object.entries(p.values) as [TreadmillField, string][]).every(([field, text]) => {
+    const want = valueOf(field, text);
+    return want !== null && valueOf(field, draft[field]) === want;
+  });
+}
+
+/** Whether Slower (-1) or Faster (+1) can still move a speed (L2-072 AC5). */
+export function canStepSpeed(text: string, dir: 1 | -1): boolean {
+  const n = parseSpeed(text);
+  if (n === null) return true;
+  return dir > 0 ? n < MAX_SPEED : n > MIN_SPEED;
 }
 
 const clamp = (n: number, min: number, max: number): number => Math.min(max, Math.max(min, n));
 
-/** Less (-1) or More (+1): speeds by 0.5 km/h, inclines by 1 %, the rest as stepDraft (L2-072 AC6). */
+/**
+ * Less (-1) or More (+1): speeds by 0.5 km/h within 0.8–19.3, inclines by 1 % within 0–10,
+ * Duration by 5 minutes, and Rounds, Work and Recover as stepDraft (L2-072 AC5, AC6).
+ */
 export function stepTreadmillDraft(
   draft: TreadmillPlanDraft,
   field: TreadmillField,
@@ -208,6 +302,11 @@ export function stepTreadmillDraft(
       parseIncline(draft[field]) ?? (parseIncline(DEFAULT_TREADMILL_DRAFT[field]) as number);
     const next = clamp(base + dir * INCLINE_STEP, MIN_INCLINE, MAX_INCLINE);
     return editTreadmillDraft(draft, { [field]: String(next) });
+  }
+  if (field === 'minutes') {
+    const base = parseUnit(draft.minutes) ?? (parseUnit(DEFAULT_TREADMILL_DRAFT.minutes) as number);
+    const next = clamp(base + dir * MINUTES_STEP, MIN_MINUTES, MAX_MINUTES);
+    return editTreadmillDraft(draft, { minutes: String(next) });
   }
   const stepped = stepDraft(asBikeDraft(draft), field as SharedField, dir);
   return editTreadmillDraft(draft, { [field]: stepped[field as SharedField] });

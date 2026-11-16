@@ -1,8 +1,12 @@
-// The last submitted plan draft per machine, kept in localStorage (L2-029 AC7, L2-072 AC9).
+// The last submitted plan draft per machine, kept in localStorage (L2-029 AC7, L2-072 AC10).
 import { Injectable } from '@angular/core';
 import { DEFAULT_DRAFT, type PlanDraft, PRESETS } from './plan-form';
 import { SafeStorage } from './safe-storage';
-import { DEFAULT_TREADMILL_DRAFT, type TreadmillPlanDraft } from './treadmill-plan-form';
+import {
+  DEFAULT_TREADMILL_DRAFT,
+  type TreadmillPlanDraft,
+  validateTreadmillDraft,
+} from './treadmill-plan-form';
 
 export const PLAN_DRAFT_KEY = 'wattzup.planDraft';
 export const TREADMILL_PLAN_DRAFT_KEY = 'wattzup.treadmillPlanDraft';
@@ -20,18 +24,28 @@ const TREADMILL_STRINGS = [
   'minutes',
 ] as const;
 
-/** Accepts a stored treadmill draft only when every field has the right shape. */
+/**
+ * Accepts a stored treadmill draft only when every field has the right shape and the draft still
+ * validates, so one saved under the old 16.0 km/h and 15 % limits falls back (L2-072 AC10).
+ */
 export function readTreadmillDraft(raw: string | null): TreadmillPlanDraft {
   if (!raw) return DEFAULT_TREADMILL_DRAFT;
   try {
     const d = JSON.parse(raw) as Partial<TreadmillPlanDraft>;
     const ok =
       (d.mode === 'hiit' || d.mode === 'flat') &&
-      (d.preset === null || PRESETS.some((p) => p.id === d.preset)) &&
       TREADMILL_STRINGS.every((k) => typeof d[k] === 'string') &&
       typeof d.warmup === 'boolean' &&
       typeof d.cooldown === 'boolean';
-    return ok ? (d as TreadmillPlanDraft) : DEFAULT_TREADMILL_DRAFT;
+    if (!ok) return DEFAULT_TREADMILL_DRAFT;
+    const draft = d as TreadmillPlanDraft;
+    const read: TreadmillPlanDraft = {
+      mode: draft.mode,
+      warmup: draft.warmup,
+      cooldown: draft.cooldown,
+      ...Object.fromEntries(TREADMILL_STRINGS.map((k) => [k, draft[k]])),
+    } as TreadmillPlanDraft;
+    return validateTreadmillDraft(read).length === 0 ? read : DEFAULT_TREADMILL_DRAFT;
   } catch {
     return DEFAULT_TREADMILL_DRAFT;
   }

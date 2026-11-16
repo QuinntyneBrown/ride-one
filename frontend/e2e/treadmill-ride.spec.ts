@@ -93,7 +93,7 @@ test.describe('Treadmill dashboard: readouts and controls (L2-071)', () => {
     await ride.raiseSpeedButton.click();
     await expect.poll(() => api.calls('POST', '/api/speed').at(-1)?.body).toEqual({ speed: 7.5 });
 
-    await ride.push(treadmillState({ speed_kmh: 16, target_speed: 16, incline: 15 }));
+    await ride.push(treadmillState({ speed_kmh: 19.3, target_speed: 19.3, incline: 10 }));
     await expect(ride.raiseSpeedButton).toBeDisabled();
     await expect(ride.raiseInclineButton).toBeDisabled();
     await expect(ride.lowerSpeedButton).toBeEnabled();
@@ -290,10 +290,10 @@ test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
     const setup = new SetupPage(page, api, events);
     const replace = new ReplaceRideDialog(page);
     await setup.open(treadmillState());
-    await setup.flatSpeedCard.check();
+    await setup.steadyCard.check();
     await setup.startButton.click();
     await expect(replace.description).toHaveText(
-      "You're 7:07 into HIIT · 18 × 40s / 20s. Starting Steady · 7.0 km/h at 0% · 30 min ends it and begins the new ride at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.",
+      "You're 7:07 into HIIT · 18 × 40s / 20s. Starting Steady · 6.5 km/h at 8% · 30 min ends it and begins the new ride at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.",
     );
   });
 

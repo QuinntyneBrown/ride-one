@@ -1,7 +1,13 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { PRESETS, type PresetId } from '../../core/plan-form';
 
-/** The preset chips; the pressed one carries `aria-pressed` (L2-029). */
+/** One preset chip and whether it shows pressed. */
+export interface PresetChip {
+  id: string;
+  label: string;
+  pressed: boolean;
+}
+
+/** The preset chips; a pressed one carries `aria-pressed` (L2-029, L2-072 AC3). */
 @Component({
   selector: 'wz-presets',
   templateUrl: './presets.html',
@@ -9,8 +15,7 @@ import { PRESETS, type PresetId } from '../../core/plan-form';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Presets {
-  readonly pressed = input<PresetId | null>(null);
+  readonly items = input.required<readonly PresetChip[]>();
   readonly disabled = input(false);
-  readonly choose = output<PresetId>();
-  protected readonly presets = PRESETS;
+  readonly choose = output<string>();
 }

@@ -44,10 +44,15 @@ describe('PlanDraftStore', () => {
   });
 });
 
-describe('readTreadmillDraft (L2-072 AC9)', () => {
+describe('readTreadmillDraft (L2-072 AC10)', () => {
   it('restores a stored treadmill draft', () => {
     const stored = { ...DEFAULT_TREADMILL_DRAFT, workSpeed: '9.5' };
     expect(readTreadmillDraft(JSON.stringify(stored))).toEqual(stored);
+  });
+
+  it('drops the preset an older draft stored', () => {
+    const stored = { ...DEFAULT_TREADMILL_DRAFT, preset: null };
+    expect(readTreadmillDraft(JSON.stringify(stored))).toEqual(DEFAULT_TREADMILL_DRAFT);
   });
 
   it.each([
@@ -56,6 +61,8 @@ describe('readTreadmillDraft (L2-072 AC9)', () => {
     '{',
     '{"mode":"run"}',
     JSON.stringify({ ...DEFAULT_TREADMILL_DRAFT, speed: 7 }),
+    JSON.stringify({ ...DEFAULT_TREADMILL_DRAFT, workSpeed: '19.5' }),
+    JSON.stringify({ ...DEFAULT_TREADMILL_DRAFT, restIncline: '12' }),
   ])('falls back to the defaults for %j', (raw) => {
     expect(readTreadmillDraft(raw)).toEqual(DEFAULT_TREADMILL_DRAFT);
   });

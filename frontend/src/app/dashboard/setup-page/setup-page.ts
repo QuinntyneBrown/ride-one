@@ -14,6 +14,7 @@ import { RideActions } from '../../core/ride-actions';
 import { formatDuration } from '../../core/format-duration';
 import type { Machine } from '../../core/api-types';
 import { LiveStateService } from '../../core/live-state.service';
+import { MachineHistoryStore } from '../../core/machine-history.store';
 import { setupLead } from '../../core/machine-words';
 import { planSummary } from '../../core/plan-expansion';
 import { PlanDraftStore } from '../../core/plan-draft.store';
@@ -21,6 +22,7 @@ import {
   type DraftField,
   type PlanDraft,
   type PresetId,
+  PRESETS,
   applyPreset,
   editDraft,
   stepDraft,
@@ -35,7 +37,10 @@ import {
 import {
   type TreadmillField,
   type TreadmillPlanDraft,
+  type TreadmillPresetId,
   applyTreadmillPreset,
+  presetPressed,
+  presetsFor,
   editTreadmillDraft,
   stepTreadmillDraft,
   toTreadmillPlan,
@@ -46,10 +51,11 @@ import { WORKOUT_API } from '../../core/workout-api';
 import { Alert } from '../alert/alert';
 import { FormSummary } from '../form-summary/form-summary';
 import { Icon } from '../icon/icon';
+import { EffortRow } from '../effort-row/effort-row';
 import { LevelSlider } from '../level-slider/level-slider';
 import { ModeCards } from '../mode-cards/mode-cards';
 import { NumStepper } from '../num-stepper/num-stepper';
-import { Presets } from '../presets/presets';
+import { type PresetChip, Presets } from '../presets/presets';
 import { RidePreview } from '../ride-preview/ride-preview';
 import { StatusLine } from '../status-line/status-line';
 import { Toggles } from '../toggles/toggles';
@@ -75,18 +81,19 @@ export const TREADMILL_FIELD_IDS: Record<TreadmillField, string> = {
   restSpeed: 'rest-speed',
   workIncline: 'work-incline',
   restIncline: 'rest-incline',
-  speed: 'speed',
-  incline: 'incline',
+  speed: 'hold-speed',
+  incline: 'hold-incline',
   minutes: 'duration',
 };
 
 type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
 
-/** Route `/setup`: choose the machine, build a plan and start it (L2-029, L2-052, L2-059, L2-072). */
+/** Route `/setup`: build a plan for the chosen machine and start it (L2-029, L2-052, L2-059, L2-072). */
 @Component({
   selector: 'wz-setup-page',
   imports: [
     Alert,
+    EffortRow,
     FormSummary,
     Icon,
     LevelSlider,
@@ -105,6 +112,7 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
 export class SetupPage {
   private readonly live = inject(LiveStateService);
   private readonly store = inject(PlanDraftStore);
+  private readonly history = inject(MachineHistoryStore);
   private readonly workouts = inject(WORKOUT_API);
   private readonly dialogs = inject(DialogLauncher);
   private readonly actions = inject(RideActions);
@@ -161,6 +169,30 @@ export class SetupPage {
 
   protected readonly lead = computed(() => setupLead(this.machine()));
 
+  protected readonly bikeChips = computed<PresetChip[]>(() =>
+    PRESETS.map((p) => ({ id: p.id, label: p.label, pressed: this.draft().preset === p.id })),
+  );
+  /** The mode's presets, each pressed while its values still match (L2-072 AC3). */
+  protected readonly treadmillChips = computed<PresetChip[]>(() => {
+    const d = this.tdraft();
+    return presetsFor(d.mode).map((p) => ({
+      id: p.id,
+      label: p.label,
+      pressed: presetPressed(d, p.id),
+    }));
+  });
+
+  /** `Fix the field marked in red to start.` on the treadmill (L2-072 AC7), counted on the bike. */
+  protected readonly startHint = computed(() => {
+    const n = this.links().length;
+    if (this.treadmill()) {
+      return n === 1
+        ? 'Fix the field marked in red to start.'
+        : 'Fix the fields marked in red to start.';
+    }
+    return `Fix the ${n} ${n === 1 ? 'field' : 'fields'} marked in red to start.`;
+  });
+
   protected readonly loading = computed(() => !this.live.state() && !this.live.loadFailed());
   protected readonly busy = signal(false);
   protected readonly startError = signal<StartError | null>(null);
@@ -192,9 +224,10 @@ export class SetupPage {
     this.draft.update((d) => editDraft(d, change));
   }
 
-  protected preset(id: PresetId): void {
-    if (this.treadmill()) this.tdraft.update((d) => applyTreadmillPreset(d, id));
-    else this.draft.update((d) => applyPreset(d, id));
+  protected preset(id: string): void {
+    if (this.treadmill()) {
+      this.tdraft.update((d) => applyTreadmillPreset(d, id as TreadmillPresetId));
+    } else this.draft.update((d) => applyPreset(d, id as PresetId));
   }
 
   protected step(field: DraftField, dir: 1 | -1): void {
@@ -218,13 +251,17 @@ export class SetupPage {
         currentSummary: workout.summary,
         newSummary: planSummary(plan),
       });
-      if (started) await this.router.navigateByUrl('/');
+      if (started) {
+        this.history.recordStart(this.machine(), planSummary(plan), new Date());
+        await this.router.navigateByUrl('/');
+      }
       return;
     }
     this.busy.set(true);
     this.startError.set(null);
     try {
-      await this.workouts.start(plan);
+      const snapshot = await this.workouts.start(plan);
+      this.history.recordStart(this.machine(), snapshot.summary, new Date());
       await this.router.navigateByUrl('/');
     } catch (e) {
       if (e instanceof HttpErrorResponse && e.status === 401) return;

@@ -15,7 +15,7 @@ describe('machineWords (L2-071)', () => {
   it('leads the setup screen with the machine', () => {
     expect(setupLead('bike')).toBe("Wattzup drives the bike's resistance for you. Pick how.");
     expect(setupLead('treadmill')).toBe(
-      "Wattzup drives the treadmill's speed and incline for you. Pick how.",
+      "Wattzup drives the Stride's belt speed and incline for you. Pick how.",
     );
   });
 });

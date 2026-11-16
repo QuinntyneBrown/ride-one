@@ -9,7 +9,6 @@ export class SetupPage {
   readonly closeLink: Locator;
   readonly hiitCard: Locator;
   readonly flatCard: Locator;
-  readonly flatSpeedCard: Locator;
   readonly presets: Locator;
   readonly formSummary: Locator;
   readonly formSummaryTitle: Locator;
@@ -29,6 +28,10 @@ export class SetupPage {
   readonly skeletons: Locator;
   readonly lead: Locator;
   readonly statusName: Locator;
+  readonly steadyCard: Locator;
+  readonly presetButtons: Locator;
+  readonly treadmillFlatHint: Locator;
+  readonly safetyLine: Locator;
   readonly switchLink: Locator;
   readonly machineGroup: Locator;
 
@@ -42,7 +45,6 @@ export class SetupPage {
     this.closeLink = page.getByRole('link', { name: 'Close' });
     this.hiitCard = page.getByRole('radio', { name: 'HIIT intervals' });
     this.flatCard = page.getByRole('radio', { name: 'Flat resistance' });
-    this.flatSpeedCard = page.getByRole('radio', { name: 'Flat speed' });
     this.presets = page.getByRole('group', { name: 'Presets' });
     this.formSummary = page.locator('.form-summary');
     this.formSummaryTitle = this.formSummary.locator('.alert__title');
@@ -61,6 +63,12 @@ export class SetupPage {
     this.startHint = this.preview.locator('#start-hint');
     this.skeletons = page.locator('.skeleton');
     this.lead = page.locator('.setup-main .lead');
+    this.steadyCard = page.getByRole('radio', { name: 'Steady' });
+    this.presetButtons = this.presets.getByRole('button');
+    this.treadmillFlatHint = page.getByText(
+      'You can still change speed and incline mid-run from the dashboard.',
+    );
+    this.safetyLine = this.preview.locator('.setup-aside__safety');
     this.statusName = page.locator('.app-bar .statusline__name');
     this.switchLink = page.locator('.app-bar').getByRole('link', { name: /^Switch to / });
     this.machineGroup = page.getByRole('group', { name: 'Machine' });
@@ -113,5 +121,42 @@ export class SetupPage {
 
   summaryTerms(): Locator {
     return this.preview.locator('.summary dt');
+  }
+
+  modeCard(title: string): Locator {
+    return this.page.locator('.mode-card', { has: this.page.getByRole('radio', { name: title }) });
+  }
+
+  /** A treadmill effort row, `Work`, `Recover` or Steady's `Hold` (L2-072 AC5, AC6). */
+  effortRow(row: string): Locator {
+    return this.page.getByRole('group', { name: row, exact: true });
+  }
+
+  effortSpeed(row: string): Locator {
+    return this.effortRow(row).getByRole('textbox', { name: 'Speed', exact: true });
+  }
+
+  effortPace(row: string): Locator {
+    return this.effortRow(row).locator('.effort-row__pace');
+  }
+
+  effortError(row: string): Locator {
+    return this.effortRow(row).locator('.field__error');
+  }
+
+  effortIncline(row: string): Locator {
+    return this.effortRow(row).getByRole('slider', { name: 'Incline', exact: true });
+  }
+
+  effortInclineText(row: string): Locator {
+    return this.effortRow(row).locator('.effort-row__incline');
+  }
+
+  slower(row: string): Locator {
+    return this.page.getByRole('button', { name: `Slower ${row}`, exact: true });
+  }
+
+  faster(row: string): Locator {
+    return this.page.getByRole('button', { name: `Faster ${row}`, exact: true });
   }
 }

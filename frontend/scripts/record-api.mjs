@@ -21,15 +21,16 @@ const plan = {
   warmup: true,
   cooldown: true,
 };
+// The treadmill setup form's default, Minute on (L2-072 AC4).
 const treadmillPlan = {
   kind: 'hiit',
-  rounds: 18,
-  work_seconds: 40,
-  rest_seconds: 20,
-  work_speed: 9.0,
-  rest_speed: 7.0,
-  work_incline: 0,
-  rest_incline: 0,
+  rounds: 6,
+  work_seconds: 60,
+  rest_seconds: 60,
+  work_speed: 13.0,
+  rest_speed: 6.0,
+  work_incline: 2,
+  rest_incline: 1,
   warmup: true,
   cooldown: true,
 };
