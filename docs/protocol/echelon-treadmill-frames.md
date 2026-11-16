@@ -47,7 +47,7 @@ way, so Wattzup does the same. Each write or notification carries one frame.
 | `A1` | to treadmill | Device info request | 4 | At init (L2-063) |
 | `A3` | to treadmill | Range request | 4 | At init (L2-063) |
 | `A4` | to treadmill | Unknown request | 4 | At init (L2-063), first, as the reference does |
-| `B0` | to treadmill | Belt start / stop | 5 | On a workout start, pause, stop or end (L2-066) |
+| `B0` | to treadmill | Belt start / stop | 5 | On a workout start, pause, stop, replace or end, and after a start timeout (L2-066) |
 | `B1` | to treadmill | Set incline | 5 | On request (L2-065) |
 | `B2` | to treadmill | Set speed | 6 | On request (L2-065) |
 | `D0` | from treadmill | Unknown | 5 | Acknowledged (echoed); no metric (L2-063, L2-064) |
