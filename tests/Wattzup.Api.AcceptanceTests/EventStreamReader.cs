@@ -65,7 +65,7 @@ public sealed class EventStreamReader : IAsyncDisposable
                     continue;
                 }
 
-                var state = JsonDocument.Parse(raw).RootElement.Clone();
+                var state = JsonElement.Parse(raw);
                 Last = state;
                 if (predicate(state))
                 {
@@ -142,7 +142,7 @@ public sealed class EventStreamReader : IAsyncDisposable
         {
             if (raw != Ping)
             {
-                Last = JsonDocument.Parse(raw).RootElement.Clone();
+                Last = JsonElement.Parse(raw);
             }
         }
     }
