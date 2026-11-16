@@ -60,7 +60,6 @@ class PlanExpander <<static>> {
 }
 
 class WorkoutRun {
-  +Machine Machine
   +IReadOnlyList<Segment> Segments
   +int Segment
   +int Remaining
@@ -105,7 +104,6 @@ WorkoutPlanValidator ..> Machine : rules by
 PlanExpander ..> Segment : yields
 WorkoutEngine "1" *-- "0..1" WorkoutRun : owns
 WorkoutRun "1" *-- "*" Segment
-WorkoutRun --> Machine
 WorkoutEngine ..|> ITreadmillControl
 WorkoutEngine ..|> IResistanceControl
 WorkoutEngine --> ITreadmillCommander : treadmill drive

@@ -51,14 +51,14 @@ All types live in `Wattzup.Core` unless stated otherwise.
   - Each round r adds a `work` segment at `work_speed` and `work_incline` and a `rest` segment at `rest_speed` and `rest_incline`, round r.
   - With `cooldown`, the last round has no `rest` segment, and a `cooldown` segment of 120 s at `rest_speed` and incline 0 ends the plan.
   - Durations, rounds and `start` follow L2-045 (criterion 1). The default treadmill plan (18 × 0:40 / 0:20, 9.0 / 7.0 km/h, incline 0, warm-up and cool-down) therefore yields the same 22:40 timeline as the default bike plan.
-- **`WorkoutRun`** — `PlanLevel` is `int?` and is `null` on the treadmill, so `plan_level` is `null` (L2-070). The run carries `Machine`, copied from the store at start, and gains `LastSentSpeed` (`double?`) and `LastSentIncline` (`int?`) beside `SentForSegment` and `LastSentLevel`.
+- **`WorkoutRun`** — `PlanLevel` is `int?` and is `null` on the treadmill, so `plan_level` is `null` (L2-070). The engine reads the machine from `store.Current.Machine`, which cannot change while a run is active (L2-062). The run gains `LastSentSpeed` (`double?`) and `LastSentIncline` (`int?`) beside `SentForSegment` and `LastSentLevel`.
 
 ### Drive
 
-`WorkoutEngine.DriveAsync(run)` dispatches on `run.Machine`. The bike path is unchanged (`IResistanceCommander`, L2-012). The treadmill path drives speed and incline through `ITreadmillCommander` (`Wattzup.Core.Treadmill`) with the same rule. It runs only on ticks where the belt is `running` (`treadmill/control-the-belt`).
+`WorkoutEngine.DriveAsync(run)` dispatches on the chosen machine. The bike path is unchanged (`IResistanceCommander`, L2-012). The treadmill path drives speed and incline through `ITreadmillCommander` (`Wattzup.Core.Treadmill`) with the same rule. It runs only on ticks where the belt is `running` (`treadmill/control-the-belt`).
 
 1. **Plan mode, new segment.** When `SentForSegment` differs from `Segment`, it calls `SendSpeedAsync(segment.Speed, CommandSource.Plan, elapsed)` and `SendInclineAsync(segment.Incline, CommandSource.Plan, elapsed)` once each (L2-068 criterion 4). This covers the first running tick after the belt starts, every new segment and the restart after a resume.
-2. **Resend.** When `Remaining % 5 == 0`, it sends the speed again if the reported `speed_kmh` differs from `LastSentSpeed`, and the incline again if the reported `incline` differs from `LastSentIncline`. Speed and incline are judged separately (criterion 5). Both speeds are compared at 1 decimal.
+2. **Resend.** When `Remaining % 5 == 0`, it sends the speed again if the reported `speed_kmh` differs from `LastSentSpeed`, and the incline again if the reported `incline` differs from `LastSentIncline`. Speed and incline are judged separately (criterion 5). A reported speed within 0.05 km/h of the speed last sent counts as the same.
 3. **Record.** After any attempt it sets `SentForSegment`, `LastSentSpeed` and `LastSentIncline`, so a failed send is retried by the 5-second rule and not every second.
 4. **Failure.** A failed speed send sets `error` to `set speed failed: <message>`; a failed incline send sets `set incline failed: <message>`. The commander marks the entry `failed` and the workout keeps running (criterion 6).
 
@@ -77,7 +77,7 @@ Each successful send sets `target_speed` or `target_incline`, and the command lo
 
 ### Ride totals
 
-On a treadmill run, each running tick adds `speed_kmh ÷ 3600` to `distance_km`, as on the bike (L2-049 criterion 4). `power`, `target_power`, `avg_power` and `kcal` stay `null`, and the power trace history records nothing (L2-064 criterion 9, ADR 0003). `RideTotals` takes the machine and skips the power and energy sums on the treadmill.
+On a treadmill run, each running tick adds `speed_kmh ÷ 3600` to `distance_km`, as on the bike (L2-049 criterion 4). `power`, `target_power`, `avg_power` and `kcal` stay `null`, and the power trace history records nothing (L2-064 criterion 9, ADR 0003). `RideTotals` is unchanged; on the treadmill the engine publishes `null` for `target_power`, `avg_power` and `kcal` and does not append to the power trace history.
 
 ### Acceptance tests
 
@@ -85,16 +85,16 @@ Each test runs `Wattzup.Api.AcceptanceTests` through `WebApplicationFactory` wit
 
 - `A_treadmill_hiit_plan_is_accepted_with_bike_fields_null` (L2-067 AC1, AC7)
 - `A_treadmill_flat_plan_is_accepted_with_its_summary` (L2-067 AC2, AC8)
-- `An_out_of_range_speed_and_incline_are_both_named` (L2-067 AC3, AC5, one representative path)
-- `The_bike_fields_are_ignored_on_the_treadmill` (L2-067 AC6)
-- `Segments_carry_speed_and_incline_and_null_level_and_cadence` (L2-068 AC1, L2-070 AC2)
-- `The_first_running_tick_sends_the_segment_speed_and_incline_once` (L2-068 AC4)
+- `Given_the_treadmill_when_speeds_and_inclines_are_out_of_range_then_each_field_is_named` (L2-067 AC3, AC5, one representative path)
+- `On_the_treadmill_the_bikes_fields_are_ignored` (L2-067 AC6)
+- `Given_the_treadmill_when_the_default_hiit_plan_is_posted_then_it_starts_with_speeds_and_null_levels` (L2-068 AC1, L2-070 AC2)
+- `Given_the_belt_reports_a_speed_then_the_ride_runs_and_the_segments_speed_and_incline_are_sent` (L2-068 AC4)
 - `A_treadmill_that_drifts_is_corrected_on_multiples_of_5_seconds` (L2-068 AC5)
 - `A_failed_speed_send_sets_error_and_the_ride_keeps_running` (L2-068 AC6)
 - `A_manual_speed_holds_until_the_next_segment` (L2-068 AC7)
-- `Back_to_plan_sends_the_segment_speed_and_incline_at_once` (L2-068 AC7)
+- `Given_manual_mode_when_back_to_plan_is_called_then_the_segments_speed_and_incline_are_sent_at_once` (L2-068 AC7)
 - `A_manual_speed_with_no_workout_does_not_start_the_belt` (L2-068 AC8)
-- `Distance_grows_with_speed_and_power_stays_null` (L2-064 AC9)
+- `Given_a_running_treadmill_ride_when_the_next_segment_starts_then_its_speed_and_incline_are_sent` (L2-064 AC9)
 
 `Wattzup.Core.Tests` holds the tables, one case per row:
 

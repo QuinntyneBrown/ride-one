@@ -71,13 +71,13 @@ The feature mirrors `resistance-control/set-resistance` and `resistance-control/
 
 `Wattzup.Api.AcceptanceTests` run the host with `SimulatedBikeTransport`, `--machine treadmill` and `FakeTimeProvider`:
 
-- `Sending_speed_9_sets_the_target_logs_sending_and_acknowledges_on_report` (L2-065 AC4, L2-069 AC1)
-- `Sending_incline_5_sets_the_target_and_is_acknowledged_on_report` (L2-065 AC5, L2-069 AC1)
-- `Speed_out_of_range_answers_400_invalid_speed` (L2-069 AC2)
-- `Incline_not_an_integer_answers_400_invalid_incline` (L2-069 AC3)
-- `Speed_without_a_connected_treadmill_answers_503_and_logs_failed` (L2-065 AC7, L2-069 AC4)
+- `Given_the_treadmill_is_connected_when_speed_8_5_is_posted_then_it_is_written_and_logged` (L2-065 AC4, L2-069 AC1)
+- `Given_the_treadmill_is_connected_when_incline_3_is_posted_then_it_is_written_and_acknowledged` (L2-065 AC5, L2-069 AC1)
+- `Given_an_invalid_speed_then_the_answer_is_400_invalid_speed` (L2-069 AC2)
+- `Given_an_invalid_incline_then_the_answer_is_400_invalid_incline` (L2-069 AC3)
+- `Given_the_treadmill_is_not_connected_then_a_valid_speed_answers_503` (L2-065 AC7, L2-069 AC4)
 - `A_failing_write_answers_503_send_failed` (L2-069 AC4)
-- `Speed_on_the_bike_and_resistance_on_the_treadmill_answer_409_wrong_machine` (L2-069 AC5)
+- `Given_the_bike_is_chosen_then_speed_and_incline_answer_409_wrong_machine` (L2-069 AC5)
 
 The rate limit and API key follow the representative paths of `platform/secure-api` (L2-069 criterion 6).
 

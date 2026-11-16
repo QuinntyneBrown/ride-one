@@ -18,13 +18,13 @@ box "Backend — Wattzup Core" #ECFDF3
 end box
 participant "Echelon treadmill" as treadmill
 
-note over engine : workout running, belt running, BeltWasRunning
+note over engine : workout running, belt running
 rider -> treadmill : press stop or pull the safety key
 treadmill -> ingest : D3 speed 0
 ingest -> store : Update(speed_kmh = 0, belt = stopped) [L2-064 AC7]
 clock -> engine : tick
 engine -> store : Current.belt = stopped
-engine -> engine : PausedByRider = true; BeltWasRunning = false; no count, no drive
+engine -> engine : no count, no drive
 engine -> store : Update(status "paused: belt stopped") [L2-066 AC7]
 note over engine, cmdr : no belt command is written; the engine never restarts the belt by itself
 rider -> ep : POST /api/workout/resume

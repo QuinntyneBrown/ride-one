@@ -42,7 +42,7 @@ The protocol reference's example frames decode as follows. `F0 D3 02 23 28 10` â
 `Wattzup.Api.AcceptanceTests` run the host with `SimulatedBikeTransport`, `--machine treadmill` and `FakeTimeProvider`:
 
 - `A_speed_frame_sets_kmh_and_mph_and_stamps_the_data_time` (L2-064 AC1, AC6)
-- `An_incline_frame_sets_incline_and_leaves_resistance_null` (L2-064 AC4)
+- `On_the_treadmill_D3_sets_speed_and_a_running_belt_and_D2_sets_incline_not_resistance` (L2-064 AC4)
 - `A_connected_treadmill_reports_belt_stopped_until_it_moves` (L2-064 AC8)
 - `A_disconnected_treadmill_reports_belt_null` (L2-064 AC8)
 - `A_running_treadmill_workout_adds_speed_to_the_distance_each_second` (L2-064 AC9)

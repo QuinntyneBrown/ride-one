@@ -38,32 +38,32 @@ class WorkoutStatus <<static>> {
 }
 
 class WorkoutRun {
-  +Machine Machine
   +string Status
   +bool PausedByRider
   +int? BeltCountdown
+  +DateTimeOffset? CountdownShownAt
   +DateTimeOffset? BeltStartWrittenAt
-  +bool BeltWasRunning
   +int? SentForSegment
   +ToSnapshot(): WorkoutSnapshot
 }
 
 class WorkoutEngine {
   +TimeSpan BeltStartTimeout = 10 s
-  +int BeltCountdownSeconds = 3
+  +TimeSpan BeltCountdownStep = 1 s
   +StartAsync(plan, ct): Task<WorkoutSnapshot>
   +PauseAsync(ct): Task<WorkoutSnapshot?>
   +ResumeAsync(ct): Task<WorkoutSnapshot?>
   +StopWorkoutAsync(ct): Task<WorkoutSnapshot?>
   -TickAsync(ct): Task
-  -BeginCountdown(run): void
+  -RunOrCountDownAsync(run, ct): Task
+  -CountDownAsync(run, now, ct): Task
 }
 
 interface ITreadmillCommander {
   +SendSpeedAsync(kmh: double, source: CommandSource, rideSeconds: int?, ct): Task<SendResult>
   +SendInclineAsync(percent: int, source: CommandSource, rideSeconds: int?, ct): Task<SendResult>
-  +StartBeltAsync(ct): Task<SendResult>
-  +StopBeltAsync(reason: string, ct): Task<SendResult>
+  +StartBeltAsync(reason: BeltReason, ct): Task<SendResult>
+  +StopBeltAsync(reason: BeltReason, ct): Task<SendResult>
 }
 
 class TreadmillCommander {
@@ -96,5 +96,4 @@ TelemetryIngestor --> BikeStateStore : sets belt from speed
 BikeStateStore --> BikeState
 BikeState --> BeltState
 BikeState --> Machine
-WorkoutRun --> Machine
 @enduml

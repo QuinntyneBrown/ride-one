@@ -74,18 +74,16 @@ The feature extends `bike-connectivity/discover-and-connect-bike` and `bike-conn
 
 `Wattzup.Api.AcceptanceTests` run the host through `WebApplicationFactory` with `SimulatedBikeTransport` and `FakeTimeProvider`, and await SSE messages with a timeout that names the last message received.
 
-- `Without_a_machine_setting_the_bike_is_chosen_and_found` (L2-062 AC1)
-- `With_Machine_treadmill_the_treadmill_is_chosen_and_found` (L2-062 AC2, L2-063 AC1)
-- `Choosing_the_treadmill_closes_the_link_resets_the_fields_and_scans_for_it` (L2-062 AC3, L2-070 AC3)
-- `Choosing_the_chosen_machine_leaves_the_link_alone` (L2-062 AC4)
-- `Choosing_the_other_machine_during_a_workout_answers_409_workout_active` (L2-062 AC5)
-- `An_unknown_machine_answers_400_invalid_machine` (L2-062 AC6)
-- `The_treadmill_subscribes_both_characteristics_then_writes_A4_A1_A3_300_ms_apart` (L2-063 AC5)
-- `The_treadmill_keepalive_counts_1_to_255_and_wraps_to_1` (L2-063 AC6)
-- `No_treadmill_within_20_seconds_sets_the_treadmill_not_found_message` (L2-063 AC8)
+- `Given_the_treadmill_is_chosen_when_the_backend_starts_then_it_streams_the_treadmill_state` (L2-062 AC2, L2-063 AC1)
+- `Given_the_bike_is_connected_when_the_treadmill_is_chosen_then_the_backend_switches_and_connects_to_it` (L2-062 AC3, L2-070 AC3)
+- `Given_the_chosen_machine_is_posted_then_the_answer_is_200_and_the_link_stays` (L2-062 AC4)
+- `Given_a_workout_is_active_then_choosing_the_other_machine_answers_409_workout_active` (L2-062 AC5)
+- `Given_an_invalid_machine_then_the_answer_is_400_invalid_machine` (L2-062 AC6)
+- `Given_the_treadmill_link_opens_then_both_notifies_are_subscribed_before_A4_A1_A3_300_ms_apart` (L2-063 AC5)
+- `Given_the_treadmill_is_connected_then_the_keepalive_counts_up_once_a_second_with_response` (L2-063 AC6)
+- `Given_no_treadmill_answers_for_20_seconds_then_the_scan_reports_it_and_keeps_scanning` (L2-063 AC8)
 - `A_dropped_treadmill_link_recovers_as_the_bike_does` (L2-063 AC9)
-- `Every_treadmill_write_goes_to_the_write_characteristic` (L2-063 AC10)
-- `The_bike_fields_are_null_on_the_treadmill_and_the_treadmill_fields_null_on_the_bike` (L2-070 AC1, AC2)
+- `Given_the_bike_is_chosen_then_machine_is_bike_and_the_treadmill_fields_are_null` (L2-070 AC1, AC2)
 
 `Wattzup.Protocol.Tests` hold the tables, one case per row: `EchelonTreadmillFilterTests` (`STRIDE-8s22-000766`, `stride-8s`, no name with `0BF669F0-…`, `ECHEX-3-141844` with `…f0`), `EchelonDeviceFilterTests` (the L2-001 rows plus `STRIDE-8s22-000766` with `…f1`), and `EchelonTreadmillCommandsTests` (`InitSequence`, `Keepalive` at counters 1 and 255, `Acknowledgement` for `D0`, `D2`, `D3` and `D1`). `Wattzup.Core.Tests` cover `MachineSelector.Select` (no-op on the same machine, the reset list of L2-070 criterion 3, one broadcast) and `MachineProfile.For`.
 
