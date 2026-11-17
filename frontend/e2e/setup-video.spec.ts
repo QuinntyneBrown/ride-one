@@ -23,6 +23,28 @@ test.describe('Ride along to a video on setup (L2-029 AC17-20)', () => {
     await expect(setup.videoSwitch).toBeVisible();
   });
 
+  test('prefills the 30 Minute HIIT link, also after the link was cleared', async ({
+    page,
+    api,
+    events,
+  }) => {
+    api.on('POST', '/api/workout', { json: workoutStarted });
+    const setup = new SetupPage(page, api, events);
+    await setup.open(freeRide());
+    await setup.videoSwitch.check();
+    await expect(setup.videoUrl).toHaveValue(GCN);
+    await expect(setup.videoPreview).toHaveAttribute('src', /\/embed\/QUoToFsMNig\?/);
+
+    await setup.videoUrl.fill('');
+    await setup.startButton.click();
+    await api.waitForCall('POST', '/api/workout');
+    await expect(page).toHaveURL(/\/$/);
+
+    await setup.open(freeRide());
+    await expect(setup.videoSwitch).toBeChecked();
+    await expect(setup.videoUrl).toHaveValue(GCN);
+  });
+
   test('names a link that is not YouTube and still starts without a video', async ({
     page,
     api,

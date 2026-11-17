@@ -121,6 +121,16 @@ describe('the plan video (L2-029 AC17, AC19, AC20)', () => {
     expect(linkError({ on: false, url: 'https://vimeo.com/1', start: 0 })).toBeNull();
   });
 
+  it('prefills the GCN 30 Minute HIIT link by default and for an empty stored link', () => {
+    expect(DEFAULT_VIDEO_DRAFT).toEqual({ on: false, url: gcn, start: 0 });
+    expect(readVideoDraft('{"on":true,"url":"","start":12}')).toEqual({
+      on: true,
+      url: gcn,
+      start: 12,
+    });
+    expect(readVideoDraft('{"on":true,"url":"  ","start":0}').url).toBe(gcn);
+  });
+
   it('restores a stored draft and falls back for anything else', () => {
     const stored = { on: true, url: gcn, start: 12 };
     expect(readVideoDraft(JSON.stringify(stored))).toEqual(stored);
