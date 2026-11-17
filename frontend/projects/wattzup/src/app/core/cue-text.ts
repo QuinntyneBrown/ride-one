@@ -1,6 +1,6 @@
 // The phase banner's lines and the polite announcement (L2-027, L2-041); in km/h on the treadmill
 // (L2-071 criterion 19).
-import { formatDuration } from './format-duration';
+import { formatDuration } from '@wattzup/components';
 import type { SegmentChange } from './segment-change-detector';
 import { kindLabel } from './segment-labels';
 

@@ -11,7 +11,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
-import { formatDuration } from '../../core/format-duration';
+import { formatDuration } from '@wattzup/components';
 import type { Machine, StartPlan } from '@wattzup/api';
 import { planVideo } from '../../core/video-link';
 import { LiveStateService } from '../../core/live-state.service';

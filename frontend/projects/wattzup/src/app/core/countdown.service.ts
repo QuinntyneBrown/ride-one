@@ -2,7 +2,7 @@
 // re-anchored on every streamed state and read on every frame (L2-024).
 import { Injectable, type OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { CountdownClock } from './countdown-clock';
-import { formatDuration } from './format-duration';
+import { formatDuration } from '@wattzup/components';
 import { FrameScheduler } from './frame-scheduler';
 import { LiveStateService } from './live-state.service';
 import { MotionPreference } from './motion-preference';

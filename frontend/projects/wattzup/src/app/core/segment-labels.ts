@@ -1,6 +1,6 @@
 // Labels for the interval card and the app bar badge (L2-025).
 import type { Machine, Segment, SegmentKind, WorkoutStatus } from '@wattzup/api';
-import { formatDuration } from './format-duration';
+import { formatDuration } from '@wattzup/components';
 
 export type Phase = 'effort' | 'easy';
 export type Tone = 'work' | 'rest' | 'easy';

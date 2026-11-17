@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { formatPace } from '../../core/pace';
+import { formatPace } from '@wattzup/components';
 import { canStepSpeed, parseIncline, parseSpeed } from '../../core/treadmill-plan-form';
 import { Icon } from '../icon/icon';
 import { inclineView, LevelPicker } from '../level-picker/level-picker';

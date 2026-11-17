@@ -1,4 +1,4 @@
-import { formatCount, formatDistance, formatLive, formatSpeed } from './metric-format';
+import { formatCount, formatDistance, formatLive, formatSpeed } from '@wattzup/components';
 
 describe('metricFormat (L2-021, L2-022)', () => {
   it('shows -- for a null live value', () => {

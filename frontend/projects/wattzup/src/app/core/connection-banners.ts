@@ -1,6 +1,6 @@
 // Which connection banners show (L2-054). Pure: the service supplies time, history and dismissals.
 import type { BikeState, StreamConnection } from '@wattzup/api';
-import { formatDuration } from './format-duration';
+import { formatDuration } from '@wattzup/components';
 import { isActive } from './workout-status';
 
 export type BannerId =

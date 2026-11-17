@@ -1,4 +1,4 @@
-import { formatDuration } from './format-duration';
+import { formatDuration } from '@wattzup/components';
 
 describe('formatDuration', () => {
   it.each([

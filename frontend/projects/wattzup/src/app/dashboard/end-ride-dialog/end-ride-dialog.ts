@@ -2,7 +2,7 @@ import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { EndRideData } from '../../core/dialog-launcher';
-import { formatDuration } from '../../core/format-duration';
+import { formatDuration } from '@wattzup/components';
 import { LiveStateService } from '../../core/live-state.service';
 import { WORKOUT_API } from '@wattzup/api';
 import { Alert } from '../alert/alert';

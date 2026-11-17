@@ -1,6 +1,6 @@
-@use '../design-system/dl';
-@use '../design-system/skeleton';
-@use '../design-system/spinner';
+@use 'design-system/dl';
+@use 'design-system/skeleton';
+@use 'design-system/spinner';
 
 :host {
   display: flex;

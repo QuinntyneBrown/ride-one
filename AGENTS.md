@@ -61,6 +61,11 @@ wattzup/
 ├── frontend/                              # ALL frontend code: one Angular workspace (ADR 0013)
 │   ├── angular.json, tsconfig.json         # workspace; path aliases @wattzup/components, @wattzup/api
 │   ├── projects/
+│   │   ├── components/                    # library @wattzup/components: presentation components
+│   │   │   └── src/
+│   │   │       ├── lib/                   # <design-system name>/ (name.ts + .html + .scss), format/
+│   │   │       ├── styles/design-system/  # shared SCSS partials (@use 'design-system/btn')
+│   │   │       └── public-api.ts
 │   │   ├── api/                           # library @wattzup/api: talking to the backend
 │   │   │   └── src/
 │   │   │       ├── generated/             # schema.d.ts from /openapi/v1.json, never hand-edited

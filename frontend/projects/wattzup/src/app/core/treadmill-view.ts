@@ -1,7 +1,6 @@
 // What the treadmill's speed and incline readouts show (L2-071 criteria 2 to 4).
 import type { BikeState } from '@wattzup/api';
-import { formatSpeed } from './metric-format';
-import { formatPace } from './pace';
+import { formatSpeed, formatPace } from '@wattzup/components';
 
 export interface SpeedView {
   valueText: string;

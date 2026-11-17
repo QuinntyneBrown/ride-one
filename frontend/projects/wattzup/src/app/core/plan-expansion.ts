@@ -1,7 +1,7 @@
 // The frontend's single implementation of the plan rules (L2-045, L2-060, L2-049, L2-068),
 // mirroring PlanExpander, WorkoutSummary and PowerEstimator in Wattzup.Core.
 import type { IntervalsPlan, Segment, StartPlan, WorkoutPlan } from '@wattzup/api';
-import { formatDuration } from './format-duration';
+import { formatDuration } from '@wattzup/components';
 
 export const WARMUP_SECONDS = 180;
 export const COOLDOWN_SECONDS = 120;

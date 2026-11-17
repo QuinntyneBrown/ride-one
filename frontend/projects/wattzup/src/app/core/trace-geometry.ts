@@ -1,6 +1,6 @@
 // The "Power vs. plan" scene, independent of how it is drawn (L2-026).
 import type { WorkoutSnapshot } from '@wattzup/api';
-import { formatDuration } from './format-duration';
+import { formatDuration } from '@wattzup/components';
 import { averageTargetPower, estimateWatts } from './plan-expansion';
 
 export type TracePhase = 'work' | 'rest' | 'easy';

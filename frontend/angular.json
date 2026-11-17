@@ -37,7 +37,7 @@
               "projects/wattzup/src/styles.scss"
             ],
             "stylePreprocessorOptions": {
-              "includePaths": ["projects/wattzup/src/app/dashboard"]
+              "includePaths": ["projects/components/src/styles"]
             }
           },
           "configurations": {
@@ -130,6 +130,39 @@
           "options": {
             "lintFilePatterns": ["projects/api/**/*.ts", "projects/api/**/*.html"],
             "eslintConfig": "projects/api/eslint.config.js"
+          }
+        }
+      }
+    },
+    "components": {
+      "projectType": "library",
+      "root": "projects/components",
+      "sourceRoot": "projects/components/src",
+      "prefix": "wz",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/components/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/components/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/components/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/components/**/*.ts", "projects/components/**/*.html"],
+            "eslintConfig": "projects/components/eslint.config.js"
           }
         }
       }

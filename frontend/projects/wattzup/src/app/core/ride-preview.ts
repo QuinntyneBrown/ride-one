@@ -1,8 +1,7 @@
 // The "Your ride" panel values, from the same plan expansion as the backend (L2-059, L2-072).
 import type { HiitPlan, IntervalsPlan, Segment, SegmentKind, WorkoutPlan } from '@wattzup/api';
-import { formatDuration } from './format-duration';
+import { formatDuration, formatPace } from '@wattzup/components';
 import { formatStart } from './video-link';
-import { formatPace } from './pace';
 import { kcalPerSecond } from './treadmill-energy';
 import { MAX_SPEED } from './treadmill-plan-form';
 import {

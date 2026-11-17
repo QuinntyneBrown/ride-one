@@ -1,6 +1,6 @@
 // The diagnostics dialog's rows and the plain-text report it copies (L2-023).
 import type { BikeState } from '@wattzup/api';
-import { formatCount } from './metric-format';
+import { formatCount } from '@wattzup/components';
 
 export interface DiagnosticsRow {
   label: string;

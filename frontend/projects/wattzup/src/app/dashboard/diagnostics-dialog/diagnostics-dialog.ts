@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { BIKE_API } from '@wattzup/api';
 import { diagnosticsReport, diagnosticsRows } from '../../core/diagnostics-report';
 import { LiveStateService } from '../../core/live-state.service';
-import { epochTime } from '../../core/local-time';
+import { epochTime } from '@wattzup/components';
 import { TraceRendererStatus } from '../../core/trace-renderer-status';
 import { DialogShell } from '../dialog-shell/dialog-shell';
 import { Icon } from '../icon/icon';

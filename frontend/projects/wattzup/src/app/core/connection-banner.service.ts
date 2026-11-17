@@ -3,7 +3,7 @@ import { Injectable, computed, effect, inject, signal, untracked } from '@angula
 import type { BikeState } from '@wattzup/api';
 import { type BannerId, banners, isReconnect } from './connection-banners';
 import { LiveStateService } from './live-state.service';
-import { clockTime } from './local-time';
+import { clockTime } from '@wattzup/components';
 import { SafeStorage } from '@wattzup/api';
 
 const DISMISSED_KEY = 'wattzup.banners.dismissed';

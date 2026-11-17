@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import type { CommandEntry, Machine } from '@wattzup/api';
 import { commandLabel, commandTime, statusText } from '../../core/command-log-view';
 import { machineWords } from '../../core/machine-words';
-import { epochClock } from '../../core/local-time';
+import { epochClock } from '@wattzup/components';
 
 /** "Sent to bike" or "Sent to treadmill": the last commands and their acknowledgement
  * (L2-048, L2-071 criterion 14). */

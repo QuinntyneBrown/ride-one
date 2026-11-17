@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { BikeState } from '@wattzup/api';
-import { formatCount, formatDistance, formatLive, formatSpeed } from '../../core/metric-format';
-import { formatAvgPace } from '../../core/pace';
+import {
+  formatCount,
+  formatDistance,
+  formatLive,
+  formatSpeed,
+  formatAvgPace,
+} from '@wattzup/components';
 
 /** Heart rate, avg power, speed, distance and energy; on the treadmill heart rate, avg pace,
  * distance, climbed and energy (L2-022, L2-071 criterion 7). */
