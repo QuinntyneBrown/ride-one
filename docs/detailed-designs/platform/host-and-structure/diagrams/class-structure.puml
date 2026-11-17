@@ -51,19 +51,41 @@ package "Wattzup.Mac" {
     +WillTerminate(): void
   }
 }
-package "frontend" {
+package "frontend/projects/wattzup" {
   class appConfig <<ApplicationConfig>> {
     +provideZonelessChangeDetection()
     +provideRouter(routes)
     +provideHttpClient(withInterceptors([apiKeyInterceptor]))
+    +UNAUTHORIZED_HANDLER -> redirectToUnlock
     +BIKE_API -> HttpBikeApi
+    +WORKOUT_API -> HttpWorkoutApi
+    +MACHINE_API -> HttpMachineApi
+    +YOUTUBE_PLAYER -> IframeYouTubePlayer
     +TRACE_RENDERER_FACTORY -> createTraceRenderer
   }
   class routes <<Routes>> {
     + "" : RidePage
     + "setup" : SetupPage
+    + "machine" : MachinePage
     + "unlock" : UnlockPage
     + "**" : NotFoundPage
+  }
+  class LiveStateService <<root>> {
+    +state: Signal<BikeState | null>
+    +connection: Signal<StreamConnection>
+  }
+}
+package "frontend/projects/api" {
+  interface BikeApi
+  class HttpBikeApi
+  class apiKeyInterceptor <<HttpInterceptorFn>>
+  class UNAUTHORIZED_HANDLER <<InjectionToken>>
+  class ApiKeyStore <<root>>
+}
+package "frontend/projects/components" {
+  class "Presentation components" as Pres <<standalone, OnPush>> {
+    +inputs()
+    +outputs()
   }
 }
 
@@ -81,4 +103,11 @@ Program ..> ActiveConnectionRegistry : registers
 Program ..> EndpointGroups : maps
 AppDelegate ..> Program : starts and stops the host
 appConfig --> routes
+BikeApi <|.. HttpBikeApi
+appConfig ..> HttpBikeApi : binds BIKE_API
+appConfig ..> UNAUTHORIZED_HANDLER : binds
+apiKeyInterceptor ..> ApiKeyStore
+apiKeyInterceptor ..> UNAUTHORIZED_HANDLER : calls on 401
+LiveStateService ..> BikeApi : eventToken()
+routes ..> Pres : pages render
 @enduml

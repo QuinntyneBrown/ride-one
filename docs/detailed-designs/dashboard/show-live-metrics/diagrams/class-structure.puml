@@ -82,7 +82,7 @@ class Delta <<component wz-delta>> {
   +input text
   +input tone: 'on' | 'high' | 'low'
 }
-class MetricsStrip <<component wz-metrics-strip>>
+class MetricList <<component wz-metric-list>>
 class RideTrace <<component wz-ride-trace>> {
   -TraceRenderer renderer
   -ResizeObserver observer
@@ -104,6 +104,6 @@ traceGeometry ..> estimateWatts
 Readout *-- Delta
 Readout ..> powerDelta
 Readout ..> metricFormat
-MetricsStrip ..> metricFormat
+MetricList ..> metricFormat
 powerDelta ..> estimateWatts
 @enduml

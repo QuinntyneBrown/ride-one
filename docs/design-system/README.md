@@ -50,6 +50,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Form layout](components/form-layout.html) | How setup and unlock arrange fields, the error summary and the submit action. |
 | [Radio group (mode cards)](components/radio-group.html) | Card-style radio group that picks the training mode. |
 | [Machine choice](components/machine-choice.html) | Segmented radio group that picks the bike or the treadmill (L2-072). |
+| [Machine card](components/machine-card.html) | Radio card on the machine page: one nearby machine, its signal and its last session (L2-073). |
 | [Switch](components/switch.html) | On/off setting: warm-up and cool-down. |
 | [Set list](components/set-list.html) | The warm-up, sets and cool-down of an intervals plan, edited in a dialog. |
 | [Video ride-along](components/video.html) | Video frame, start point and Video / Power vs. plan switch (proposed). |
@@ -57,6 +58,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Number stepper](components/number-stepper.html) | − value + control for rounds, work, recover, duration and cadence. |
 | [Level control](components/level-control.html) | − level + for the bike's resistance, with the requested level shown until the bike confirms it. |
 | [Speed and incline control](components/speed-control.html) | − value + for the treadmill's speed and incline (L2-071). |
+| [Effort row](components/effort-row.html) | One treadmill effort on the setup screen: a typable speed with its pace, and an incline picker (L2-072). |
 | [Level picker](components/level-picker.html) | 32 bars, one slider, that jump straight to a resistance level. |
 
 ### Shell

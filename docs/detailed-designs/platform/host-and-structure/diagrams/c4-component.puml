@@ -12,7 +12,13 @@ Container_Boundary(proc, "Wattzup process") {
   Component(cb, "Wattzup.Ble.CoreBluetooth", "net10.0, Objective-C runtime", "First real transport")
   Component(plat, "Wattzup.Ble.BlueZ / .Windows", "Class libraries", "Built, not yet supported")
   Component(sim, "Wattzup.Ble.Simulated", "Class library", "~--simulate and every automated test")
-  Component(spa, "frontend (wwwroot)", "Angular build", "Static SPA assets and fonts")
+  Component(spa, "frontend (wwwroot)", "Angular build", "Static SPA assets and fonts, built from the wattzup app")
+}
+
+Container_Boundary(ws, "frontend Angular workspace (ADR 0013)") {
+  Component(app, "wattzup", "Angular application", "Pages, dialogs, services, stores, helpers, app.config.ts")
+  Component(lib, "components", "Angular library", "Presentation components named as in the design system; SCSS partials")
+  Component(apilib, "api", "Angular library", "Generated types, contracts and tokens, HTTP, API-key interceptor")
 }
 
 Rel(mac, api, "Packages (bundle.sh)")
@@ -26,4 +32,9 @@ Rel(core, abs, "References")
 Rel(cb, abs, "Implements")
 Rel(plat, abs, "Implements")
 Rel(sim, abs, "Implements")
+Rel(app, lib, "Imports @wattzup/components")
+Rel(app, apilib, "Imports @wattzup/api")
+Rel(lib, apilib, "Imports types only")
+Rel(app, spa, "Builds to dist/wattzup/browser")
+Rel(apilib, api, "Calls /api over HTTP and SSE")
 @enduml

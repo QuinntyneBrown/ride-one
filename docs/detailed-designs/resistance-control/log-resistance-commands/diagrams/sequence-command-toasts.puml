@@ -8,7 +8,7 @@ skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
   participant "LiveStateService" as live
-  participant "CmdLog" as log
+  participant "CommandLog" as log
   participant "CommandFeedbackService" as fb
   participant "ToastService" as toast
 end box

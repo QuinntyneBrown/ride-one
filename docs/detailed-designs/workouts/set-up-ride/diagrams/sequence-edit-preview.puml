@@ -11,9 +11,9 @@ box "Frontend — Wattzup Web application" #E0F2FE
   participant "PlanDraftStore" as draft
   participant "plan-form" as form
   participant "ride-preview / plan-expansion" as prev
-  participant "NumStepper (Rounds)" as rounds
+  participant "NumberStepper (Rounds)" as rounds
   participant "FormSummary" as summary
-  participant "RidePreview" as panel
+  participant "RideProfile" as panel
 end box
 
 page -> draft : load()

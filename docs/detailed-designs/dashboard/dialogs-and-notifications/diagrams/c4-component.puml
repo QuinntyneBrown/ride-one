@@ -10,7 +10,7 @@ Container_Boundary(web, "Wattzup Web") {
   Component(cdk, "CDK Dialog", "Angular CDK", "Backdrop, focus trap, Escape")
   Component(diag, "DiagnosticsDialog", "Angular component", "Blocks diag, diag-log")
   Component(end, "EndRideDialog", "Angular component", "Default, busy, failed")
-  Component(shell, "DialogShell + Alert", "Angular components", "Blocks dialog, alert")
+  Component(shell, "Dialog + Alert", "Angular components", "Blocks dialog, alert")
   Component(report, "diagnosticsReport", "Pure helper", "Plain-text copy")
   Component(toasts, "ToastService + toastQueue", "Angular service, pure reducer", "At most 3; 5 s info and success expiry")
   Component(region, "ToastRegion + Toast", "Angular components", "Blocks toast-region, toast")

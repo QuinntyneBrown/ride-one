@@ -16,7 +16,7 @@ This feature is display only. It reads the live `BikeState` signal that `live-st
 
 ## Description
 
-- **`resistance-view.ts`** (`frontend/src/app/core/`) — pure helper `resistanceView(state)` with a unit test per case. It returns:
+- **`resistance-view.ts`** (`frontend/projects/wattzup/src/app/core/`) — pure helper `resistanceView(state)` with a unit test per case. It returns:
   - **`valueText`** — `resistance` as a string, or `--` when `null` (L2-019).
   - **`settingText`** — `Setting <target>…` when `target_resistance` is set and differs from `resistance`; otherwise `null` (L2-019).
   - **`litUpTo`** — `resistance`, or `0` when `null`, so no level is lit.

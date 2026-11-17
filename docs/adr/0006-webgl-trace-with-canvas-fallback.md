@@ -20,3 +20,5 @@ and stop while the tab is hidden. WebGPU is not used.
 
 - One rendering path less to test; Canvas 2D is the reference the WebGL output is compared with.
 - Diagnostics shows the active renderer.
+
+> **Note (2026-11-17):** `frontend/src/app/core/` is now `frontend/projects/wattzup/src/app/core/`; the frontend became a workspace of three projects with ADR 0013. The decision above is unchanged.

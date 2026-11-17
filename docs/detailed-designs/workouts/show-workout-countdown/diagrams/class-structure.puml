@@ -11,7 +11,7 @@ skinparam class {
 }
 title Class structure — Show the workout countdown
 
-package "src/app/core" {
+package "projects/wattzup/src/app/core" {
   class CountdownClock {
     +CAP_SECONDS = 1.25
     -remaining: number
@@ -39,7 +39,7 @@ package "src/app/core" {
   }
 }
 
-package "src/app/dashboard" {
+package "projects/components/src/lib + projects/wattzup/src/app/dashboard" {
   class Interval <<component wz-interval>> {
     +Signal<string> kind
     +Signal<string | null> round

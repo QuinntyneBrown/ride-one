@@ -1,0 +1,60 @@
+@use 'design-system/app-bar';
+@use 'design-system/lockup';
+
+:host {
+  display: block;
+}
+.choose-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.choose-main:focus {
+  outline: none;
+}
+.choose-main__inner {
+  width: 100%;
+  max-width: 64rem;
+  margin-inline: auto;
+  padding: var(--space-10) var(--space-5);
+}
+@media (min-width: 64rem) {
+  .choose-main__inner {
+    padding: var(--space-12) var(--space-8);
+  }
+}
+.choose-main h1 {
+  margin: 0;
+  font: var(--text-h1);
+  letter-spacing: var(--letter-spacing-tight);
+}
+.choose-main .lead {
+  margin: var(--space-2) 0 0;
+  max-width: 36rem;
+  color: var(--color-fg-muted);
+}
+.choose-main__nearby {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-body-sm);
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+}
+.machine-grid {
+  margin: var(--space-10) 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+@media (min-width: 48rem) {
+  .machine-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.machine-grid__alert {
+  grid-column: 1 / -1;
+}

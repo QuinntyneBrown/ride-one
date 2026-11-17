@@ -58,12 +58,24 @@ wattzup/
 │       ├── Wattzup.Protocol.Tests/        # unit tests, one case per table row
 │       ├── Wattzup.Core.Tests/
 │       └── Wattzup.Api.AcceptanceTests/   # ATDD through the API, WebApplicationFactory
-├── frontend/                              # ALL frontend code: the Angular app `wattzup`
-│   ├── src/app/
-│   │   ├── api/                           # generated from /openapi/v1.json, never hand-edited
-│   │   ├── core/                          # services and pure helpers, with unit tests
-│   │   ├── dashboard/                     # components (name.ts + name.html + name.scss)
-│   │   └── app.config.ts                  # composition root
+├── frontend/                              # ALL frontend code: one Angular workspace
+│   ├── projects/
+│   │   ├── api/                           # library @wattzup/api: types, contracts, tokens, HTTP
+│   │   │   └── src/
+│   │   │       ├── generated/             # generated from /openapi/v1.json, never hand-edited
+│   │   │       ├── lib/                   # contracts, HTTP, interceptor, key store, with tests
+│   │   │       └── public-api.ts
+│   │   ├── components/                    # library @wattzup/components: presentation components
+│   │   │   └── src/
+│   │   │       ├── lib/                   # one folder per component, named as in the design system
+│   │   │       ├── styles/design-system/  # SCSS partials (`@use 'design-system/btn'`)
+│   │   │       └── public-api.ts
+│   │   └── wattzup/                       # the application
+│   │       └── src/app/
+│   │           ├── core/                  # services and pure helpers, with unit tests
+│   │           ├── dashboard/             # pages, dialogs, orchestrating components
+│   │           └── app.config.ts          # composition root
+│   ├── public/                            # fonts and images, copied into the app's build
 │   ├── e2e/                               # Playwright: fixtures/, pages/ (page objects), specs
 │   ├── scripts/                           # bundle-size check, API recording
 │   └── proxy.conf.json                    # /api → 127.0.0.1:8787 during ng serve
@@ -154,13 +166,28 @@ Protocol and the abstractions. `Wattzup.Api` (minimal APIs, hosted services, sec
 
 ## Frontend
 
-`frontend/` holds the only frontend application, `wattzup`; a further one needs its own ADR. Its
-production build is served by `Wattzup.Api` from the same origin.
+`frontend/` is one Angular workspace of three projects under `projects/` (ADR 0013): the
+`components` library (presentation components, imported as `@wattzup/components`), the `api`
+library (everything about talking to the backend, `@wattzup/api`) and the `wattzup` application
+(everything else). `wattzup` is the only application; a further one needs its own ADR. Its
+production build (`dist/wattzup/browser`) is served by `Wattzup.Api` from the same origin.
+
+- **Dependency direction.** `wattzup` → `components` and `api`; `components` → `api` for types
+  only; `api` → nothing in the workspace. No library imports the app. ESLint
+  (`no-restricted-imports`) enforces it. The libraries are compiled from source through the path
+  aliases in `frontend/tsconfig.json`, never built or published on their own.
+- **Presentation components live in `components`**, each named as the design-system component it
+  renders (a part keeps its own name, filed under its component in the host-and-structure
+  design). A presentation component takes inputs and emits outputs and injects no app service,
+  API token or router; its parent computes what it shows. A component that orchestrates (pages,
+  dialogs that call services, anything that injects a store, a token or the router) stays in the
+  app under `src/app/dashboard/`.
 
 - Prettier and angular-eslint own formatting and lint; CI fails on either.
 - Current Angular: standalone components, signals for state, `ChangeDetectionStrategy.OnPush`
   everywhere, zoneless where supported.
-- Selectors are `wz-*`; class, file and folder names omit the prefix.
+- Selectors are `wz-*` in every project (`prefix: "wz"`); class, file and folder names omit the
+  prefix.
 - **File per type.** A component is `name.ts` + `name.html` + `name.scss` with
   `templateUrl`/`styleUrl`, never inline `template`/`styles`.
 - **One encapsulated BEM stylesheet per component.** Default encapsulation, never
@@ -179,10 +206,13 @@ production build is served by `Wattzup.Api` from the same origin.
 - One injectable service, `LiveStateService`, owns the `EventSource`, the reconnect logic and the
   live state, exposed as a read-only signal. No component opens its own connection or polls.
 - Logic with many cases (metric history, the countdown and phase, cues, the workout draft) lives
-  in a service or pure helper under `src/app/core/` with its unit tests, never in a component.
-- API types come from the backend's OpenAPI document (`src/app/api/`, generated); never
-  hand-write a type the contract defines. API services have a contract and an injection token;
-  components depend on the token. `app.config.ts` is the composition root.
+  in a service or pure helper with its unit tests, never in a component: in the app under
+  `projects/wattzup/src/app/core/`, or beside the library code it serves. Each project has its own
+  `test` target; `npm test` runs them all.
+- API types come from the backend's OpenAPI document (`projects/api/src/generated/`, generated);
+  never hand-write a type the contract defines. API services have a contract and an injection
+  token in `api`; app components depend on the token. The app's `app.config.ts` is the only
+  composition root: it binds every token, including the `api` library's `UNAUTHORIZED_HANDLER`.
 - **No inline forms.** Button-triggered editing (e.g. the workout editor) opens a CDK Dialog or
   navigates to a screen. Never hand-roll modals.
 - The animation loop pauses when the tab is hidden and respects `prefers-reduced-motion`. The

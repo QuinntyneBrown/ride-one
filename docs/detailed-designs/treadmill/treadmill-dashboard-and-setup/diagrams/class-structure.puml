@@ -141,7 +141,7 @@ class EffortRow {
   +stepSpeed: output<1 | -1>
   +pickIncline: output<number>
 }
-class RidePreview
+class RideProfile
 
 MachineApi <|.. HttpMachineApi
 token ..> MachineApi : provides
@@ -164,7 +164,7 @@ SpeedControl ..> SpeedView
 SpeedControl ..> TreadmillControlsState
 InclineControl ..> InclineView
 SetupPage *-- "2" EffortRow
-SetupPage *-- RidePreview
+SetupPage *-- RideProfile
 SetupPage --> PlanDraftStore
 SetupPage --> MachineHistoryStore : recordStart
 SetupPage --> RideActions : Switch to bike

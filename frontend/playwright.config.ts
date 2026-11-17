@@ -17,7 +17,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npx ng serve --port 4300',
+    command: 'npx ng serve wattzup --port 4300',
     url: 'http://localhost:4300',
     reuseExistingServer: !process.env['CI'],
     timeout: 180_000,

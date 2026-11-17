@@ -26,3 +26,5 @@ Pause and resume are endpoints (L2-046). A flat block may last up to 180 minutes
 - The expansion is a table of cases unit-tested in `Wattzup.Core.Tests`; the setup preview's
   helper in `frontend/src/app/core/` is tested against the same table.
 - The 90-second shut-off and the 5-second resend rules are kept unchanged.
+
+> **Note (2026-11-17):** `frontend/src/app/core/` is now `frontend/projects/wattzup/src/app/core/`; the frontend became a workspace of three projects with ADR 0013. The decision above is unchanged.

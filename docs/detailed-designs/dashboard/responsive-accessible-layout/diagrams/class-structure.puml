@@ -23,7 +23,7 @@ class RideOverlay <<component wz-ride-overlay>>
 class Readout <<component wz-readout>>
 class IntervalCard <<component, workouts>>
 class RideTrace <<component wz-ride-trace>>
-class MetricsStrip <<component wz-metrics-strip>>
+class MetricList <<component wz-metric-list>>
 class ResistancePanel <<component, resistance-control>>
 class CommandLog <<component, resistance-control>>
 class MotionPreference <<service>> {
@@ -41,7 +41,7 @@ RidePage *-- ConnectionBanner
 RidePage *-- "2" Readout
 RidePage *-- IntervalCard
 RidePage *-- RideTrace
-RidePage *-- MetricsStrip
+RidePage *-- MetricList
 RidePage *-- RideOverlay
 RidePage *-- ResistancePanel
 RidePage *-- CommandLog

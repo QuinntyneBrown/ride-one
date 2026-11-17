@@ -26,7 +26,7 @@ The backend side of starting a ride, the validation of the plan and the `invalid
 
 ### Pure helpers
 
-Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and has no Angular dependency.
+Each helper lives in `frontend/projects/wattzup/src/app/core/`, has its unit tests beside it, and has no Angular dependency.
 
 - **`plan-expansion.ts`** — the frontend's single implementation of the plan rules (L2-059):
   - `expandPlan(plan)` returns the segments by the rules of L2-045, mirroring `PlanExpander` in `Wattzup.Core`.
@@ -45,26 +45,26 @@ Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and
   - `PRESETS` holds the 4 presets. `applyPreset(draft, id)` fills Rounds, Work and Recover and marks the preset pressed. Editing any of those 3 fields clears the pressed preset.
   - `parseClock('0:40')` returns 40 and `formatClock(40)` returns `0:40`. `parseUnit('30 min')` and `parseUnit('85 rpm')` read the number before the unit. Text that does not parse is invalid.
   - `validateDraft(draft)` returns, for each failing field of the current mode, its message, which is the text of L2-010 (for example `Enter 1 to 30 rounds.` and `Recover must be at least 0:05.`), and its summary link text. The mocks give the link text `Rounds — enter 1 to 30` and `Recover — at least 0:05`; the link text for every field is listed in L2-029, criterion 4.
-  - `toPlan(draft)` returns the `WorkoutPlan` (generated type from `src/app/api/`) for a valid draft.
+  - `toPlan(draft)` returns the `WorkoutPlan` (generated type from `frontend/projects/api/src/generated/`) for a valid draft.
 - **`PlanDraftStore`** (`plan-draft.store.ts`, root-provided) — reads and writes the last submitted draft under the `localStorage` key `wattzup.planDraft`, inside `try/catch`. Missing, unreadable or invalid data yields `DEFAULT_DRAFT` (L2-029).
 
 The backend and frontend expansions are written once per side and tested against the same rows: the L2-045 and L2-060 criteria and the default and flat preview figures of L2-059 (ADR 0002).
 
 ### Components
 
-Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` and `name.scss`, under `frontend/src/app/dashboard/`, the components folder of the AGENTS.md tree. Each component owns the BEM blocks in its row of the table below, and no block has two owners. The mocks' classes are kept, and the mocks' inline `style` attributes move into the owning stylesheet. Shared blocks (`btn`, `alert`, `legend`, `swatch`, `numeral`, `field__error`, `skeleton`, `app-bar`, `lockup`) belong to the design system and are not restyled here.
+Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` and `name.scss`, with presentation components in `frontend/projects/components/src/lib/`, the rest in `frontend/projects/wattzup/src/app/dashboard/` (ADR 0013; mapping in `platform/host-and-structure`). Each component owns the BEM blocks in its row of the table below, and no block has two owners. The mocks' classes are kept, and the mocks' inline `style` attributes move into the owning stylesheet. Shared blocks (`btn`, `alert`, `legend`, `swatch`, `numeral`, `field__error`, `skeleton`, `app-bar`, `lockup`) belong to the design system and are not restyled here.
 
 | Component | Selector | Blocks | Role |
 |---|---|---|---|
 | `SetupPage` | `wz-setup-page` | `setup-layout`, `setup-main`, `field-grid` | Route `/setup`, lazy-loaded. App bar with the Close link to `/`, the form, the preview, and the submit flow |
-| `ModeCards` | `wz-mode-cards` | `mode-cards`, `mode-card` | `fieldset` radio group, *HIIT intervals*, *Intervals* or *Flat resistance*; a two-way `mode` model |
+| `RadioGroup` | `wz-radio-group` | `mode-cards`, `mode-card` | `fieldset` radio group, *HIIT intervals*, *Intervals* or *Flat resistance*; a two-way `mode` model |
 | `Presets` | `wz-presets` | `presets` | `role="group"` named `Presets`, holding one `wz-chip` per preset |
 | `Chip` | `wz-chip` | `chip` | Toggle button with `aria-pressed` |
-| `NumStepper` | `wz-num-stepper` | `num-stepper` | Label, `Less <label>` and `More <label>` buttons, and a numeric text input; `value` input with `valueChange` and `step` outputs |
-| `LevelSlider` | `wz-level-slider` | `level-slider` | Range 1–32 with `<output>` `<n> / 32`; modifiers `--rest` and `--large` |
-| `Toggles` | `wz-toggles` | `toggles`, `toggle-row`, `switch` | Warm-up (`3 min, easy`) and Cool-down (`2 min, easy`) as `role="switch"` checkboxes |
+| `NumberStepper` | `wz-number-stepper` | `num-stepper` | Label, `Less <label>` and `More <label>` buttons, and a numeric text input; `value` input with `valueChange` and `step` outputs |
+| `Slider` | `wz-slider` | `level-slider` | Range 1–32 with `<output>` `<n> / 32`; modifiers `--rest` and `--large` |
+| `Switch` | `wz-switch` | `toggles`, `toggle-row`, `switch` | Warm-up (`3 min, easy`) and Cool-down (`2 min, easy`) as `role="switch"` checkboxes |
 | `FormSummary` | `wz-form-summary` | `form-summary` | Danger alert `<n> things to fix before you start` with one link per invalid field |
-| `RidePreview` | `wz-ride-preview` | `setup-aside`, `ride-total` | The *Your ride* panel, the legend and the Start ride button |
+| `RideProfile` | `wz-ride-profile` | `setup-aside`, `ride-total` | The *Your ride* panel, the legend and the Start ride button |
 | `Profile` | `wz-profile` | `profile`, `profile-axis` | SVG profile with `role="img"` and `aria-label="Resistance profile: <structure>"`; axis `0:00` to the total |
 | `RideSummary` | `wz-ride-summary` | `summary` | `dl` of Structure, Time under load, Peak resistance, Expected avg power and Expected energy |
 | `ReplaceRideDialog` | `wz-replace-ride-dialog` | none of its own | CDK Dialog content inside the design system's dialog frame |
@@ -127,7 +127,7 @@ Playwright (`frontend/e2e/`), with every `/api/**` request answered by the share
   - `keeps the current ride and the new settings when the request fails` (L2-052 AC3)
   - `Escape closes the dialog and returns focus to Start ride` (L2-052)
 
-Unit tests in `src/app/core/`:
+Unit tests in `frontend/projects/wattzup/src/app/core/`:
 
 - `plan-expansion.spec.ts` — the same rows as `PlanExpanderTests` and `WorkoutSummaryTests` in `Wattzup.Core.Tests` (L2-059 AC4).
 - `ride-preview.spec.ts` — the default and flat figures, and the profile geometry of a warm-up, a work, a rest and a cool-down bar.
@@ -146,12 +146,12 @@ The *Intervals* mode builds an `intervals` plan (L2-010, L2-029 criteria 10 to 1
   - `toIntervalsPlan(draft)`, which writes `null` for a stretch that is off.
 - **`plan-expansion.ts`** expands `intervals` as L2-045 criteria 7 and 8 and summarises it as L2-060 criterion 4; **`ride-preview.ts`** gives Structure `<sets> sets · <efforts> efforts` and time under load as L2-059 criterion 5. Both are tested against the same rows as `PlanExpanderTests` and `WorkoutSummaryTests`.
 - **`PlanDraftStore`** keeps the draft under `wattzup.intervalsDraft`; unreadable or invalid data yields `DEFAULT_INTERVALS`.
-- **Components** (all under `frontend/src/app/dashboard/`):
+- **Components** (presentation components in `frontend/projects/components/src/lib/`, the rest in `frontend/projects/wattzup/src/app/dashboard/` (ADR 0013; mapping in `platform/host-and-structure`)):
 
 | Component | Selector | Blocks | Role |
 |---|---|---|---|
 | `SetList` | `wz-set-list` | `set-list`, `set-row` | The Warm-up row, one row per set and the Cool-down row as an ordered list; per row `Edit`, and per set `Move up`, `Move down` and `Remove`, named `Edit set <i>`, `Move set <i> up`, `Move set <i> down` and `Remove set <i>`; `Add set` below. It emits the action (`editSet`, `editStretch`, `switchStretch`, `move`, `remove`, `add`); the page applies it and the list moves focus as the Set list page of the design system says |
-| `EditSetDialog` | `wz-edit-set-dialog` | `edit-set` | CDK Dialog content in `wz-dialog-shell` (`size: 'md'`): the steppers and sliders of L2-029 criterion 13, reusing `wz-num-stepper` and `wz-level-slider`; closes with the new `SetDraft` or `undefined` |
+| `EditSetDialog` | `wz-edit-set-dialog` | `edit-set` | CDK Dialog content in `wz-dialog` (`size: 'md'`): the steppers and sliders of L2-029 criterion 13, reusing `wz-number-stepper` and `wz-slider`; closes with the new `SetDraft` or `undefined` |
 | `EditStretchDialog` | `wz-edit-stretch-dialog` | `edit-stretch` | The same for the warm-up and cool-down (L2-029 criterion 14) |
 
 `DialogLauncher` gains `openEditSet({index, set, adding})` and `openEditStretch({kind, stretch})`, each returning a `Promise` of the saved value. Both use the launcher's `panelClass`, `ariaLabelledBy` and `restoreFocus`, so focus goes back to the button that opened them. The warm-up and cool-down switches sit on the rows themselves; turning one off keeps its values for when it is turned on again.

@@ -6,8 +6,8 @@ title Components — Set up a ride
 Person(rider, "Rider", "Builds and starts a plan")
 Container_Boundary(web, "Wattzup Web") {
   Component(page, "SetupPage", "Angular component, wz-setup-page", "Route /setup; typed form; submit flow")
-  Component(form, "Form components", "wz-mode-cards, wz-presets, wz-chip, wz-num-stepper, wz-level-slider, wz-toggles, wz-form-summary", "Edit the plan draft")
-  Component(preview, "RidePreview", "wz-ride-preview, wz-profile, wz-ride-summary", "Your ride panel and Start ride")
+  Component(form, "Form components", "wz-radio-group, wz-presets, wz-chip, wz-number-stepper, wz-slider, wz-switch, wz-form-summary", "Edit the plan draft")
+  Component(preview, "RideProfile", "wz-ride-profile, wz-profile, wz-ride-summary", "Your ride panel and Start ride")
   Component(dialog, "ReplaceRideDialog", "CDK Dialog, wz-replace-ride-dialog", "Confirms replacing an active ride")
   Component(rules, "plan-form / plan-expansion / ride-preview", "TypeScript, core/", "Validation, presets, expansion, summary, preview figures")
   Component(draft, "PlanDraftStore", "Angular service", "localStorage wattzup.planDraft")
