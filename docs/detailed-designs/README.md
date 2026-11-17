@@ -16,7 +16,7 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Log resistance commands](resistance-control/log-resistance-commands/README.md) | `L2-048` |
 | workouts | [Start and stop a workout](workouts/start-and-stop-workout/README.md) | `L2-010`, `L2-017`, `L2-046` |
 |  | [Run an interval workout](workouts/run-interval-workout/README.md) | `L2-011`, `L2-012`, `L2-013`, `L2-045`, `L2-060` |
-|  | [Set up a ride](workouts/set-up-ride/README.md) | `L2-029`, `L2-052`, `L2-059` |
+|  | [Set up a ride](workouts/set-up-ride/README.md) | `L2-010`, `L2-029`, `L2-052`, `L2-059` |
 |  | [Show the workout countdown](workouts/show-workout-countdown/README.md) | `L2-024`, `L2-025` |
 |  | [Play workout cues](workouts/play-workout-cues/README.md) | `L2-027` |
 | live-state | [Stream live state](live-state/stream-live-state/README.md) | `L2-014`, `L2-015`, `L2-032`, `L2-037` |
@@ -27,7 +27,7 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Responsive and accessible layout](dashboard/responsive-accessible-layout/README.md) | `L2-040`, `L2-041`, `L2-061` |
 |  | [Dialogs and notifications](dashboard/dialogs-and-notifications/README.md) | `L2-023`, `L2-051`, `L2-053` |
 |  | [Unlock and not-found pages](dashboard/unlock-and-not-found/README.md) | `L2-055`, `L2-056` |
-| treadmill | [Choose the machine](treadmill/choose-machine/README.md) | `L2-062`, `L2-063`, `L2-070`, `L2-073` |
+| treadmill | [Choose the machine](treadmill/choose-machine/README.md) | `L2-062`, `L2-063`, `L2-070`, `L2-073`, `L2-075` |
 |  | [Decode treadmill telemetry](treadmill/decode-treadmill-telemetry/README.md) | `L2-064` |
 |  | [Control speed and incline](treadmill/control-speed-and-incline/README.md) | `L2-065`, `L2-069` |
 |  | [Control the belt](treadmill/control-the-belt/README.md) | `L2-066` |

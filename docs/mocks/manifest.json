@@ -102,13 +102,19 @@
         "L2-029",
         "L2-040",
         "L2-041",
+        "L2-045",
+        "L2-059",
+        "L2-060",
         "L2-062",
         "L2-067",
-        "L2-072"
+        "L2-072",
+        "L2-075"
       ],
       "states": [
         "default",
         "flat",
+        "intervals",
+        "intervals-invalid",
         "loading",
         "error",
         "invalid",
@@ -119,7 +125,7 @@
         "treadmill-submitting"
       ],
       "not_applicable": {
-        "empty": "Setup always shows values: the saved draft, or 8 × 0:40 / 0:20 on first run (L2-029)."
+        "empty": "Setup always shows values: the saved draft, or the default plan on first run (L2-029)."
       }
     },
     {
@@ -199,6 +205,42 @@
       ],
       "not_applicable": {
         "invalid": "Confirmation only; the dialog has no inputs."
+      }
+    },
+    {
+      "id": "edit-set",
+      "kind": "dialog",
+      "title": "Edit set",
+      "opens_from": "setup",
+      "requirements": [
+        "L2-010",
+        "L2-029"
+      ],
+      "states": [
+        "default",
+        "invalid"
+      ],
+      "not_applicable": {
+        "busy": "Save only changes the draft in the browser; there is no request.",
+        "failed": "Save only changes the draft in the browser; nothing can fail."
+      }
+    },
+    {
+      "id": "edit-stretch",
+      "kind": "dialog",
+      "title": "Warm-up and cool-down",
+      "opens_from": "setup",
+      "requirements": [
+        "L2-010",
+        "L2-029"
+      ],
+      "states": [
+        "default",
+        "invalid"
+      ],
+      "not_applicable": {
+        "busy": "Save only changes the draft in the browser; there is no request.",
+        "failed": "Save only changes the draft in the browser; nothing can fail."
       }
     },
     {

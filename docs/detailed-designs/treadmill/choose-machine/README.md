@@ -69,6 +69,11 @@ The feature extends `bike-connectivity/discover-and-connect-bike` and `bike-conn
   4. Its keepalive writes `profile.Keepalive(counter)` with response once per second and calls `BikeStateStore.Touch()` (L2-063 criterion 6). The counter starts at 1 on each connection, counts to 255 and wraps to 1, never 0.
   5. Disconnects and Bluetooth exceptions recover as L2-004 (L2-063 criterion 9).
 - **Cancel on change** — `BikeConnectionService` subscribes to `MachineSelector.Changed`. The handler cancels the whole current attempt: the scan, the connection being opened, the init sequence or the keepalive. The loop disposes the connection, clears `ActiveConnectionRegistry` and starts the next attempt at once with the new profile. Unlike a link drop, a cancelled attempt does not write `ble = disconnected`, because `Select` has already set `scanning`.
+- **Treadmill flag** (L2-075, ADR 0011) — `TreadmillOptions.Enabled`, bound from `Wattzup:Treadmill:Enabled`, default `false`:
+  - `TreadmillGuard`, an `IHostedLifecycleService` like `BindAddressGuard`, throws in `StartingAsync` with `Treadmill support is off. Set Wattzup:Treadmill:Enabled to true to use the treadmill.` when the flag is off and `Wattzup:Machine` is `treadmill`.
+  - `MachineEndpoints` answers 409 ProblemDetails with `code` = `machine_unavailable` for `{"machine":"treadmill"}` while the flag is off, before calling `IMachineControl`.
+  - `NearbyFilter.Build` takes the flag and, while it is off, neither records nor accepts a treadmill advertisement.
+  - `BikeState.TreadmillEnabled` (`treadmill_enabled`) is seeded once from the flag and never changes while the process runs.
 - **`WattzupOptions.Machine`** — bound from `Wattzup:Machine`, `bike` or `treadmill`, default `bike`, validated at start-up. `Program.cs` maps `--machine treadmill` to it. The setting is documented in the README.
 - **OpenAPI** — the schema transformer describes `machine`, `target_speed`, `incline`, `target_incline`, `belt`, `belt_countdown` and `climb_m` with their types and nullability, and the frontend's generated types come from it (L2-070 criterion 4).
 
@@ -80,7 +85,7 @@ The feature extends `bike-connectivity/discover-and-connect-bike` and `bike-conn
 
 The machine page follows the mocks `docs/mocks/pages/choose-machine/` (states `default`, `connecting`, `not-found`, `not-found-bike`, `loading`, `empty`, `error`). It replaces the Machine radio group that the setup screen used to show; `MachineChoice` (`wz-machine-choice`) is removed with its `machine-choice.html` and `machine-choice.scss`.
 
-- **Route** — `app.routes.ts` gains `{ path: 'machine', loadComponent: MachinePage }`, titled `Choose machine · Wattzup`.
+- **Route** — `app.routes.ts` gains `{ path: 'machine', loadComponent: MachinePage }`, titled `Choose machine · Wattzup`. A functional `canMatch` guard, `treadmillEnabledGuard` (`core/treadmill-enabled.guard.ts`), waits for the first live state and redirects to `/setup` while `treadmill_enabled` is `false` (L2-073 criterion 11). The setup header's `Switch to …` link and the ride aside's `End and switch to …` are rendered only while `treadmill_enabled` is `true`.
 - **`machine-history.store.ts`** (`core/`, new) — `MachineHistoryStore`, root-provided, over `SafeStorage` and the `localStorage` key `wattzup.machineHistory`. It holds `{lastUsed: Machine | null, sessions: {bike?: LastSession, treadmill?: LastSession}}` with `LastSession` = `{machine, summary, started_at}` (ISO 8601). `recordStart(machine, summary, startedAt)` writes the machine's session and sets `lastUsed`; `SetupPage` calls it when `WORKOUT_API.start` succeeds (L2-072 criterion 10). Missing or unreadable data yields no sessions and no last used machine.
 - **`machine-page-view.ts`** (`core/`, new, pure) — builds what the page shows from the live state, the history and today's date:
   - `nearbyHeading(state)` returns `Looking for machines…` while `state` is `null`, `No machines nearby` when `nearby` is empty, else `<n> machines nearby` (L2-073 criterion 4).
@@ -149,6 +154,7 @@ Unit tests in `src/app/core/`: `machine-page-view.spec.ts` (the heading's 3 case
 | `L2-062` | `L1-013` | Machine choice. Wattzup drives one machine at a time, `bike` or `treadmill`. `Wattzup:Machine` chooses it at start-up, default `bike`, and `POST /api/machine` changes it while no workout is active; the choice holds until it is changed or the process restarts. |
 | `L2-063` | `L1-013` | Treadmill scanning and connection. With the treadmill chosen, the backend scans for a `STRIDE` name or the treadmill's advertised service, subscribes to both notify characteristics, writes `F0 A4 00 94`, `F0 A1 00 91` and `F0 A3 00 93` 300 ms apart, never writes `F0 B0 01 01 A2` at init, sends a counting keepalive and echoes `D0`, `D2` and `D3` frames. |
 | `L2-070` | `L1-013` | Machine-specific state fields. The state carries both machines' fields, with the other machine's fields `null`, and a machine change resets them. |
+| `L2-075` | `L1-013` | Treadmill feature flag. `Wattzup:Treadmill:Enabled`, default `false`, turns treadmill support on; while it is off the bike is the only machine. |
 | `L2-073` | `L1-013` | Choose the machine. The machine page at `/machine` lets the rider pick the bike or the Stride; picking connects at once. |
 
 ## Diagrams

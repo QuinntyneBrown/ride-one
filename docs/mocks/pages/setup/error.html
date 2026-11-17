@@ -7,7 +7,7 @@
 <meta name="mock:kind" content="page">
 <meta name="mock:screen" content="setup">
 <meta name="mock:state" content="error">
-<meta name="mock:requirements" content="L2-010 L2-029 L2-040 L2-041 L2-062 L2-067 L2-072">
+<meta name="mock:requirements" content="L2-010 L2-029 L2-040 L2-041 L2-045 L2-059 L2-060 L2-062 L2-067 L2-072 L2-075">
 <meta name="description" content="The server rejected Start ride (400): its message sits beside the Start button and every setting is kept (L2-029).">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
@@ -32,6 +32,7 @@
     <fieldset class="mode-cards">
       <legend class="visually-hidden">Training mode</legend>
       <label class="mode-card"><span class="mode-card__title"><input type="radio" name="mode" value="hiit" checked>HIIT intervals</span><p class="mode-card__text">Hard and easy efforts on repeat. Resistance switches at every interval.</p></label>
+      <label class="mode-card"><span class="mode-card__title"><input type="radio" name="mode" value="intervals">Intervals</span><p class="mode-card__text">Build your own sets: every set, the warm-up and the cool-down has its own times, levels and cadence aim.</p></label>
       <label class="mode-card"><span class="mode-card__title"><input type="radio" name="mode" value="flat">Flat resistance</span><p class="mode-card__text">One level, held the whole ride. You set the pace with your legs.</p></label>
     </fieldset>
     <div class="chip-group" role="group" aria-label="Presets"><button class="chip chip--solid" type="button" aria-pressed="false">Tabata</button><button class="chip chip--solid" type="button" aria-pressed="true">40 / 20</button><button class="chip chip--solid" type="button" aria-pressed="false">Minute on</button><button class="chip chip--solid" type="button" aria-pressed="false">Long climbs</button></div>
@@ -108,6 +109,8 @@
   <ul class="mock-bar__states">
     <li><a href="default.html">default</a></li>
     <li><a href="flat.html">flat</a></li>
+    <li><a href="intervals.html">intervals</a></li>
+    <li><a href="intervals-invalid.html">intervals-invalid</a></li>
     <li><a href="loading.html">loading</a></li>
     <li><a href="error.html" aria-current="page">error</a></li>
     <li><a href="invalid.html">invalid</a></li>

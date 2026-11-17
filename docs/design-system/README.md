@@ -51,6 +51,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Radio group (mode cards)](components/radio-group.html) | Card-style radio group that picks the training mode. |
 | [Machine choice](components/machine-choice.html) | Segmented radio group that picks the bike or the treadmill (L2-072). |
 | [Switch](components/switch.html) | On/off setting: warm-up and cool-down. |
+| [Set list](components/set-list.html) | The warm-up, sets and cool-down of an intervals plan, edited in a dialog. |
 | [Slider](components/slider.html) | Level slider for work, recover and flat resistance. |
 | [Number stepper](components/number-stepper.html) | − value + control for rounds, work, recover, duration and cadence. |
 | [Level control](components/level-control.html) | − level + for the bike's resistance, with the requested level shown until the bike confirms it. |

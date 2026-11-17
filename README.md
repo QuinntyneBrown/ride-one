@@ -41,11 +41,13 @@ talks to the bike and serves an Angular dashboard from the same origin.
   notification arrives.
 - **Resistance control.** Set the target resistance from the dashboard; the bike's reported
   resistance confirms each change.
-- **Interval workouts.** `hiit` and `flat` plans expand into segments that set the resistance, with
-  a countdown and audio cues.
+- **Interval workouts.** `hiit`, `intervals` and `flat` plans expand into segments that set the
+  resistance, with a countdown and audio cues. An `intervals` plan is built from sets, each with its
+  own times, levels and cadence aims, plus a warm-up and cool-down of any length. Work efforts aim
+  at 100 rpm.
 - **Connection status.** Scanning, connecting and reconnecting are shown as they happen, with
   automatic retry after a Bluetooth error.
-- **Treadmill.** Pick the Echelon Stride or the bike on the machine page (`/machine`), which
+- **Treadmill** (off by default, see below). Pick the Echelon Stride or the bike on the machine page (`/machine`), which
   lists the machines nearby with their signal. Set speed
   and incline from the dashboard; treadmill workouts set them for each segment. Wattzup starts the
   belt only after a 3-second countdown, stops it when a ride is paused, stopped or ends, and pauses
@@ -65,7 +67,9 @@ is not listed as supported until its hardware smoke test (scan, connect, receive
 resistance; L2-043) has been run by hand with a real bike. CoreBluetooth is the first transport to
 be verified ([ADR 0007](docs/adr/0007-corebluetooth-first.md)).
 
-Treadmill support runs end to end against the simulated treadmill. Its Bluetooth frames come from a
+Treadmill support is **off by default** (`Wattzup:Treadmill:Enabled`, [ADR 0011](docs/adr/0011-treadmill-behind-a-flag.md)):
+on the first real Stride-8s it accepted Bluetooth writes but reported nothing and did not start its
+belt. With the setting on, it runs end to end against the simulated treadmill. Its Bluetooth frames come from a
 third-party reference, not from Echelon; the steps a person must confirm on a real treadmill are
 listed under "Needs hardware confirmation" in
 [`docs/protocol/echelon-treadmill-frames.md`](docs/protocol/echelon-treadmill-frames.md).
@@ -146,7 +150,7 @@ banner.
 ### Run with the simulated treadmill
 
 ```shell
-dotnet run --project backend/src/Wattzup.Api -- --simulate --machine treadmill
+dotnet run --project backend/src/Wattzup.Api -- --simulate --machine treadmill --Wattzup:Treadmill:Enabled=true
 ```
 
 The simulated treadmill, `STRIDE-SIM-0001`, connects immediately, starts its belt when Wattzup asks
@@ -157,7 +161,7 @@ while no ride is active.
 
 ```shell
 dotnet run --project backend/src/Wattzup.Api                       # the bike
-dotnet run --project backend/src/Wattzup.Api -- --machine treadmill  # the treadmill
+dotnet run --project backend/src/Wattzup.Api -- --machine treadmill --Wattzup:Treadmill:Enabled=true  # the treadmill
 ```
 
 The backend selects the transport for your operating system, scans for the chosen machine and
@@ -222,6 +226,7 @@ Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environm
 | `Wattzup:Ble:KeepaliveInterval` | `00:00:01` | How often the keepalive command is written while connected. |
 | `Wattzup:Ble:ErrorBackoff` | `00:00:03` | The wait before retrying after a Bluetooth error. |
 | `Wattzup:Bike:DisplayName` | Empty | A name to show for the bike instead of its advertised name. |
+| `Wattzup:Treadmill:Enabled` | `false` | Turns treadmill support on (L2-075). While it is off, the bike is the only machine: the backend refuses to start with `--machine treadmill`, `POST /api/machine` answers 409 `machine_unavailable` for the treadmill, and the machine page and every switch link are hidden. Environment variable `WATTZUP__TREADMILL__ENABLED`. |
 | `Wattzup:Treadmill:DisplayName` | `Echelon Stride` | A name to show for the treadmill instead of its advertised name; empty shows the advertised name. |
 | `Wattzup:RawPacketLog:Enabled` | `true` | Whether notifications are written to the raw packet log. |
 | `Wattzup:RawPacketLog:Path` | `raw_packets.log` | The log file. Relative paths resolve against the content root. |

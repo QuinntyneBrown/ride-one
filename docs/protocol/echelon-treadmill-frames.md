@@ -204,6 +204,25 @@ The reference reads byte 11 as heart rate on some models and, on Stride 4 models
   speed commands are ignored, and a requirement must be added first.
 - **Device Information `180A`** and **DFU `FE59`**: never read or written by Wattzup.
 
+## Hardware findings 2026-11-16
+
+The first real test, on `STRIDE-8s22-000766` from macOS (Device Information: manufacturer
+`ChangYow`, model `SI0115 V2`, hardware `221.00.231.255`, firmware `09`):
+
+- Discovery (item 1) works: the treadmill advertises `0bf669f0-…` and is found by name.
+- Subscribing to `…f3` and `…f4` succeeds (`isNotifying` true), and every write is acknowledged.
+- **The treadmill sent no notification at all** in any session: none after the init frames (also
+  with `A1` four times as the reference does), none for keepalives, none after
+  `F0 B0 01 01 A2` followed by `F0 D0 01 00 C1` and `F0 D0 01 11 D2`, none after the Stride 4
+  sequence with `F0 E0 FD 3E 65 48 D5 8D`, and none while the belt ran from the console with speed
+  and incline changed by hand. It sent no `E0` challenge either.
+- The belt did not move on `F0 B0 01 01 A2` (item 6 fails).
+- The built-in Echelon screen reports `Connected Via: UART`; after *Forget Equipment* the Bluetooth
+  behaviour was the same.
+
+Treadmill support is therefore off by default (ADR 0011, L2-075). The next step is a capture of the
+official Echelon app driving this treadmill.
+
 ## Needs hardware confirmation
 
 A person runs this list on the real treadmill (`STRIDE-8s22-000766`), standing beside the belt with

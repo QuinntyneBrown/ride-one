@@ -11,4 +11,5 @@
 | [0007](0007-corebluetooth-first.md) | CoreBluetooth is the first real transport | Accepted, amended by 0008 |
 | [0008](0008-corebluetooth-through-the-objective-c-runtime.md) | CoreBluetooth through the Objective-C runtime, in a plain app bundle | Accepted |
 | [0009](0009-treadmill-as-a-second-machine.md) | The treadmill as a second machine | Accepted, amended by 0010 |
-| [0010](0010-treadmill-run-design.md) | The treadmill follows the Run design: the Stride's limits, estimates, and a machine page | Accepted |
+| [0010](0010-treadmill-run-design.md) | The treadmill follows the Run design: the Stride's limits, estimates, and a machine page | Accepted, amended by 0011 |
+| [0011](0011-treadmill-behind-a-flag.md) | Treadmill support behind a flag | Accepted |
