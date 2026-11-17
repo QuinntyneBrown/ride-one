@@ -47,6 +47,7 @@ import {
   type RidePreview as Preview,
   previewOf,
   treadmillPreviewOf,
+  withVideoRow,
 } from '../../core/ride-preview';
 import {
   type TreadmillField,
@@ -199,6 +200,11 @@ export class SetupPage {
       next.preview ??
       (previous && previous.source.machine === next.machine ? previous.value : null),
   });
+
+  /** The shown preview with the `Video` row while the plan carries a video (L2-059 AC6). */
+  protected readonly previewWithVideo = computed(() =>
+    withVideoRow(this.shownPreview(), planVideo(this.vdraft())?.start_seconds ?? null),
+  );
 
   protected readonly lead = computed(() => setupLead(this.machine()));
 

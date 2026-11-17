@@ -1,4 +1,6 @@
 @use 'design-system/toggle';
+@use 'design-system/btn';
+@use 'design-system/icon';
 @use 'design-system/field';
 
 :host {
@@ -16,4 +18,30 @@
   flex-direction: column;
   gap: var(--space-4);
   margin-top: var(--space-4);
+}
+.video-sync__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-6);
+}
+.video-sync__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-video-bg);
+  color: var(--color-video-fg);
+}
+.video-frame__host {
+  position: absolute;
+  inset: 0;
 }

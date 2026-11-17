@@ -28,6 +28,7 @@ export type IconName =
   | 'bike'
   | 'treadmill'
   | 'switch'
+  | 'target'
   | 'edit'
   | 'chevron-up'
   | 'chevron-down'

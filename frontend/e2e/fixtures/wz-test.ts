@@ -3,6 +3,7 @@
 // loads, so a test pushes state messages on demand and can fail the stream (L2-015, L2-054).
 import { test as base, expect, type Page, type Request } from '@playwright/test';
 import { state, type Json } from './states';
+import { FakeYouTube } from './fake-youtube';
 
 export { expect };
 
@@ -263,7 +264,12 @@ export class AudioRecorder {
   }
 }
 
-export const test = base.extend<{ api: ApiStub; events: EventStreamStub; audio: AudioRecorder }>({
+export const test = base.extend<{
+  api: ApiStub;
+  events: EventStreamStub;
+  audio: AudioRecorder;
+  youtube: FakeYouTube;
+}>({
   audio: async ({ page }, use) => {
     const audio = new AudioRecorder(page);
     await audio.install();
@@ -276,6 +282,16 @@ export const test = base.extend<{ api: ApiStub; events: EventStreamStub; audio: 
       await api.install();
       await use(api);
       expect(api.unanswered, 'unanswered /api requests').toEqual([]);
+    },
+    { auto: true },
+  ],
+  // Automatic: the YouTube player is always the fake, and nothing else off localhost loads.
+  youtube: [
+    async ({ page }, use) => {
+      const youtube = new FakeYouTube(page);
+      await youtube.install();
+      await use(youtube);
+      expect(youtube.offsite, 'requests off localhost').toEqual([]);
     },
     { auto: true },
   ],

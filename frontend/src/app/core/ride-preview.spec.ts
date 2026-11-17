@@ -1,4 +1,4 @@
-import { previewOf, treadmillPreviewOf } from './ride-preview';
+import { previewOf, treadmillPreviewOf, withVideoRow } from './ride-preview';
 import { testIntervalsPlan } from './test-state';
 
 describe('previewOf (L2-059)', () => {
@@ -144,5 +144,39 @@ describe('treadmillPreviewOf (L2-072 AC8)', () => {
       { term: 'Expected distance', value: '~3.5 km' },
     ]);
     expect(p.legend).toEqual(['steady']);
+  });
+});
+
+describe('withVideoRow (L2-059 AC6)', () => {
+  const hiit = previewOf(testIntervalsPlan());
+  const flat = previewOf({
+    kind: 'flat',
+    video: null,
+    level: 12,
+    minutes: 30,
+    cadence: 85,
+    speed: null,
+    incline: null,
+  });
+
+  it('adds Video Synced from <m:ss.s> right after Time under load', () => {
+    const terms = withVideoRow(hiit, 12)!.rows.map((r) => r.term);
+    expect(terms.indexOf('Video')).toBe(terms.indexOf('Time under load') + 1);
+    expect(withVideoRow(hiit, 12)!.rows.find((r) => r.term === 'Video')?.value).toBe(
+      'Synced from 0:12.0',
+    );
+  });
+
+  it('adds it after Structure when the plan has no time under load', () => {
+    expect(
+      withVideoRow(flat, 61.5)!
+        .rows.map((r) => r.term)
+        .slice(0, 2),
+    ).toEqual(['Structure', 'Video']);
+  });
+
+  it('leaves the preview as it is with no video', () => {
+    expect(withVideoRow(hiit, null)).toBe(hiit);
+    expect(withVideoRow(null, 12)).toBeNull();
   });
 });

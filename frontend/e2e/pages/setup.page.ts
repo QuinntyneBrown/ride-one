@@ -36,6 +36,13 @@ export class SetupPage {
   readonly videoSwitchRow: Locator;
   readonly videoUrl: Locator;
   readonly videoUrlError: Locator;
+  readonly videoPreview: Locator;
+  readonly videoStart: Locator;
+  readonly videoEarlier: Locator;
+  readonly videoLater: Locator;
+  readonly useVideoTime: Locator;
+  readonly checkVideo: Locator;
+  readonly videoHelp: Locator;
   readonly switchLink: Locator;
   readonly machineGroup: Locator;
   readonly intervalsCard: Locator;
@@ -81,6 +88,13 @@ export class SetupPage {
     this.videoSwitchRow = page.locator('.toggle-row', { has: this.videoSwitch });
     this.videoUrl = page.getByRole('textbox', { name: 'YouTube link', exact: true });
     this.videoUrlError = page.locator('.video-sync .field__error');
+    this.videoPreview = page.locator('.video-sync .video-frame iframe');
+    this.videoStart = page.getByRole('textbox', { name: 'Ride 0:00 starts at', exact: true });
+    this.videoEarlier = page.getByRole('button', { name: 'Half a second earlier', exact: true });
+    this.videoLater = page.getByRole('button', { name: 'Half a second later', exact: true });
+    this.useVideoTime = page.getByRole('button', { name: "Use video's current time", exact: true });
+    this.checkVideo = page.getByRole('button', { name: 'Check', exact: true });
+    this.videoHelp = page.locator('#video-help');
     this.safetyLine = this.preview.locator('.setup-aside__safety');
     this.statusName = page.locator('.app-bar .statusline__name');
     this.switchLink = page.locator('.app-bar').getByRole('link', { name: /^Switch to / });

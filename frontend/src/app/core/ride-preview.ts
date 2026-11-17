@@ -1,6 +1,7 @@
 // The "Your ride" panel values, from the same plan expansion as the backend (L2-059, L2-072).
 import type { HiitPlan, IntervalsPlan, Segment, SegmentKind, WorkoutPlan } from './api-types';
 import { formatDuration } from './format-duration';
+import { formatStart } from './video-link';
 import {
   averageTargetPower,
   energyKcal,
@@ -154,4 +155,22 @@ export function treadmillPreviewOf(plan: WorkoutPlan): TreadmillRidePreview {
       { term: 'Expected distance', value: `~${distanceKm.toFixed(1)} km` },
     ],
   };
+}
+
+/**
+ * The preview with `Video` `Synced from <m:ss.s>` after Time under load (after Structure when
+ * there is none), while the plan carries a video; otherwise the preview unchanged (L2-059 AC6).
+ */
+export function withVideoRow<P extends RidePreview>(
+  preview: P | null,
+  start: number | null,
+): P | null {
+  if (!preview || start === null) return preview;
+  const rows = [...preview.rows];
+  const after = rows.findIndex((r) => r.term === 'Time under load');
+  rows.splice((after < 0 ? 0 : after) + 1, 0, {
+    term: 'Video',
+    value: `Synced from ${formatStart(start)}`,
+  });
+  return { ...preview, rows };
 }

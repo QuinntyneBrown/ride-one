@@ -299,6 +299,10 @@
   --color-bg-inverse: var(--palette-neutral-950);
   --color-bg-backdrop: rgb(11 12 14 / 0.55);
   --color-bg-veil: rgb(245 246 241 / 0.92);
+  /* Video surface: the same in both themes, like the picture it frames. */
+  --color-video-bg: var(--palette-neutral-950);
+  --color-video-fg: var(--palette-neutral-50);
+  --color-video-scrim: rgb(11 12 14 / 0.6);
 
   --color-fg-default: var(--palette-neutral-950);
   --color-fg-muted: var(--palette-neutral-700);

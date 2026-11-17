@@ -46,11 +46,11 @@ package "Wattzup Web — core" {
     +title(): string
     +destroy(): void
     +state: Signal<PlayerState>
-    +refused: Observable<void>
-    +error: Observable<number>
+    +refused: Signal<number>
+    +error: Signal<number | null>
   }
   class IframeYouTubePlayer
-  class FakeYouTubePlayer
+  class "FakeYouTube (e2e fixture)" as FakeYouTube
   class "video-sync.ts" as VideoSyncRules <<pure>> {
     +targetPosition(video, workout): number
     +syncAction(status, playerState, position, target): SyncAction
@@ -103,7 +103,7 @@ WorkoutPlanValidator ..> YouTubeLink : parses with
 WorkoutPlanValidator ..> RideVideo : creates
 
 YouTubePlayer <|.. IframeYouTubePlayer
-YouTubePlayer <|.. FakeYouTubePlayer
+FakeYouTube ..> IframeYouTubePlayer : answers the iframe_api it loads
 YouTubePlayer ..> PlayerHandle : creates
 VideoSync ..> VideoSyncRules : applies
 VideoSync --> PlayerHandle : drives

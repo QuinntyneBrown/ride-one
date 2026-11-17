@@ -60,7 +60,7 @@ The feature extends three existing designs:
   - loads `https://www.youtube.com/iframe_api` once, through a `<script>` element added on first use, so the initial bundle is unchanged;
   - builds the iframe source itself as `https://www.youtube-nocookie.com/embed/<video_id>` from `video_id`, never from a submitted link, and titles the iframe `Ride-along video` (L2-076 criterion 8);
   - reports a play call whose `playing` state does not follow as `refused`, and YouTube error codes as `error`.
-- **`FakeYouTubePlayer`** (`e2e/fixtures/` and `core/testing/`, new) — the double used by unit tests and Playwright; it reports states and times on demand. No automated test loads YouTube (ADR 0012).
+- **`FakeYouTube`** (`e2e/fixtures/fake-youtube.ts`, new) — the Playwright double. The shared fixture answers `https://www.youtube.com/iframe_api` with a script that defines a fake `YT.Player`, answers `https://www.youtube-nocookie.com/**` with a blank page, and fails any other request off localhost. Tests drive the fake's states and times and read the calls the app made, so `IframeYouTubePlayer` itself runs in every end-to-end test. Unit tests reach a fake `PlayerHandle` through `YOUTUBE_PLAYER`. No automated test loads YouTube (ADR 0012).
 
 **Sync rules.**
 - **`video-sync.ts`** (`core/`, new, pure) — the rules of L2-076 as functions of the workout and the player's report:
@@ -115,7 +115,7 @@ The feature extends three existing designs:
 - `YouTubeLinkTests`: the 5 accepted forms of L2-010 criterion 14, each with and without `https://`, `www.` and `m.`; and each rejection of criterion 16, among them `https://vimeo.com/76979871`, `https://www.youtube.com/watch?v=short`, `javascript:alert(1)` and a 2049-character link.
 - `WorkoutPlanValidatorTests`: the `start_seconds` rows -0.1, 0, 43200, 43200.1, `"12"` and 12.34 (which rounds to 12.3).
 
-Playwright (`frontend/e2e/`, Chromium only) replaces `YOUTUBE_PLAYER` with `FakeYouTubePlayer`. Page objects `e2e/pages/ride.page.ts` and `e2e/pages/setup.page.ts` own the selectors. `e2e/ride-video.spec.ts`:
+Playwright (`frontend/e2e/`, Chromium only) runs the real `IframeYouTubePlayer` against `FakeYouTube`, the fake IFrame player API. Page objects `e2e/pages/ride.page.ts` and `e2e/pages/setup.page.ts` own the selectors. `e2e/ride-video.spec.ts`:
 - `shows the Video and Power vs. plan tabs with the player and the plan strip` (L2-076 AC1)
 - `shows the trace alone when the plan has no video` (L2-076 AC1)
 - `keeps the player following the ride behind Power vs. plan until the workout ends` (L2-076 AC2)

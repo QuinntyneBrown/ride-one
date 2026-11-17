@@ -8,7 +8,7 @@ Container_Boundary(web, "Wattzup Web") {
   Component(setup, "SetupPage", "Angular component", "Posts the plan with video or null")
   Component(ride, "RidePage", "Angular component", "Main view tabs, ride video, plan strip or trace")
   Component(sync, "VideoSync", "Angular service", "Applies video-sync.ts to each state and player report")
-  Component(token, "YOUTUBE_PLAYER", "Injection token", "IframeYouTubePlayer in the app, FakeYouTubePlayer in tests")
+  Component(token, "YOUTUBE_PLAYER", "Injection token", "IframeYouTubePlayer, which tests run against a fake IFrame player API")
   Component(live, "LiveStateService", "Angular service", "Owns the EventSource and the live state")
   Component(actions, "RideActions", "Angular service", "pause() and resume() with their toasts")
 }
