@@ -57,6 +57,7 @@ import {
   type TreadmillPlanDraft,
   type TreadmillPresetId,
   applyTreadmillPreset,
+  effortRowView,
   presetPressed,
   presetsFor,
   editTreadmillDraft,
@@ -78,8 +79,8 @@ import {
   SetList,
   RideProfile,
   StatusLine,
+  EffortRow,
 } from '@wattzup/components';
-import { EffortRow } from '../effort-row/effort-row';
 import { VideoLink } from '../video-link/video-link';
 
 /** The input id of each draft field; the form summary links to them. */
@@ -165,6 +166,14 @@ export class SetupPage {
   protected readonly intervals = computed(
     () => !this.treadmill() && this.draft().mode === 'intervals',
   );
+  protected readonly effortViews = computed(() => {
+    const t = this.tdraft();
+    return {
+      work: effortRowView(t.workSpeed, t.workIncline),
+      rest: effortRowView(t.restSpeed, t.restIncline),
+      hold: effortRowView(t.speed, t.incline),
+    };
+  });
   protected readonly setList = computed(() => setListView(this.idraft()));
   protected readonly ierrors = computed(() => validateIntervals(this.idraft()));
   protected readonly errors = computed(() => validateDraft(this.draft()));

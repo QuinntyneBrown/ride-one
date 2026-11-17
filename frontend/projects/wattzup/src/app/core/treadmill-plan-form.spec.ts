@@ -1,4 +1,5 @@
 import {
+  effortRowView,
   DEFAULT_TREADMILL_DRAFT,
   type TreadmillPlanDraft,
   applyTreadmillPreset,
@@ -221,5 +222,24 @@ describe('treadmill plan draft (L2-072, L2-067)', () => {
       incline: 8,
     });
     expect(toTreadmillPlan({ ...flat, speed: '0' })).toBeNull();
+  });
+});
+
+describe('effortRowView (L2-072 AC5-7)', () => {
+  it('reads the pace, the incline and the step limits from what is typed', () => {
+    expect(effortRowView('6.5', '8')).toEqual({
+      pace: '9:14',
+      incline: 8,
+      canSlower: true,
+      canFaster: true,
+    });
+  });
+
+  it('has no pace or incline for text that is not valid, and stops at the limits', () => {
+    const view = effortRowView('fast', '');
+    expect(view.incline).toBeNull();
+    expect(view.pace).toBe(effortRowView('0', '0').pace);
+    expect(effortRowView('19.3', '0').canFaster).toBe(false);
+    expect(effortRowView('0.8', '0').canSlower).toBe(false);
   });
 });

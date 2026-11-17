@@ -28,3 +28,6 @@ export * from './lib/command-log/command-log';
 export * from './lib/metric-list/metric-list';
 export * from './lib/ride-profile/ride-profile';
 export * from './lib/plan-strip/plan-strip';
+export * from './lib/signal-bars/signal-bars';
+export * from './lib/machine-card/machine-card';
+export * from './lib/effort-row/effort-row';

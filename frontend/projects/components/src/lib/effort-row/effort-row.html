@@ -12,14 +12,14 @@
     <div>
       <div class="effort-row__head">
         <label [for]="id + '-speed'">Speed</label
-        ><span class="effort-row__pace">{{ pace() }} /km</span>
+        ><span class="effort-row__pace">{{ view().pace }} /km</span>
       </div>
       <div class="effort-row__speed">
         <button
           class="btn btn--icon effort-row__btn"
           type="button"
           [attr.aria-label]="'Slower ' + title()"
-          [disabled]="disabled() || !canSlower()"
+          [disabled]="disabled() || !view().canSlower"
           (click)="step.emit(-1)"
         >
           <wz-icon name="minus" size="sm" />
@@ -44,7 +44,7 @@
           class="btn btn--icon effort-row__btn"
           type="button"
           [attr.aria-label]="'Faster ' + title()"
-          [disabled]="disabled() || !canFaster()"
+          [disabled]="disabled() || !view().canFaster"
           (click)="step.emit(1)"
         >
           <wz-icon name="plus" size="sm" />
