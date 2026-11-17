@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Set up your ride · treadmill-invalid — Wattzup mocks</title>
+<title>Set up your run · treadmill-invalid — Wattzup mocks</title>
 <meta name="mock:kind" content="page">
 <meta name="mock:screen" content="setup">
 <meta name="mock:state" content="treadmill-invalid">
-<meta name="mock:requirements" content="L2-010 L2-029 L2-040 L2-041 L2-062 L2-067 L2-072">
-<meta name="description" content="Treadmill HIIT with three fields out of range: inline speed and incline messages, a summary linking to each field, Start ride disabled (L2-067, L2-072).">
+<meta name="mock:requirements" content="L2-010 L2-029 L2-040 L2-041 L2-045 L2-059 L2-060 L2-062 L2-067 L2-072 L2-075 L2-076">
+<meta name="description" content="The runner typed 25.0 into Work speed: the field and the summary say ‘Speed must be 0.8 to 19.3 km/h.’ and Start run is disabled.">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
 <link rel="stylesheet" href="../../assets/mock.css">
@@ -16,123 +16,122 @@
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app app--fixed">
-<header class="app-bar" style="justify-content: space-between;">
-  <a class="lockup " href="../../pages/ride/default.html" aria-label="Wattzup dashboard"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></a>
-  <a class="btn btn--quiet btn--sm" href="../../pages/ride/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Close</a>
+<header class="app-bar">
+  <a class="lockup " href="../../pages/ride/treadmill.html" aria-label="Wattzup dashboard"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></a>
+  <span class="app-bar__divider" aria-hidden="true"></span>
+  <div class="statusline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg><span class="statusline__name">Echelon Stride</span></div>
+  <a class="btn btn--quiet btn--sm" href="../../pages/choose-machine/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>Switch to bike</a>
+  <a class="btn btn--quiet btn--sm app-bar__close" href="../../pages/ride/treadmill.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Close</a>
 </header>
 <div class="setup-layout">
   <main id="main" class="setup-main">
     <div class="setup-main__inner">
-    <h1>Set up your ride</h1>
-    <p class="lead">Wattzup drives the treadmill's speed and incline for you. Pick how.</p>
-    <div class="alert alert--danger form-summary" role="alert" tabindex="-1" style="margin-top: var(--space-6);"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">3 things to fix before you start</span>
-      <ul><li><a href="#work-speed">Work speed — 1.0 to 16.0 km/h</a></li><li><a href="#rest-speed">Recover speed — 1.0 to 16.0 km/h</a></li><li><a href="#rest-incline">Recover incline — 0 to 15 %</a></li></ul></div></div>
-    <fieldset class="machine-choice">
-      <legend class="machine-choice__legend">Machine</legend>
-      <div class="machine-choice__options">
-        <label class="machine-choice__option"><input type="radio" name="machine" value="bike"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M5.5 17 9 9h6l3.5 8M9 9l3 8M15 9l-1-3h-2"/></svg>Bike</label>
-        <label class="machine-choice__option"><input type="radio" name="machine" value="treadmill" checked><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 18h14l4-4M6 18v3M15 18v3M17 14l2-9h2"/><circle cx="10" cy="4.5" r="1.5"/><path d="M10 7l-1 4 3 2v3M10 7l3 2 2-1M9 11l-2 3"/></svg>Treadmill</label>
-      </div>
-    </fieldset>
+    <h1>Set up your run</h1>
+    <p class="lead">Wattzup drives the Stride's belt speed and incline for you. Pick how.</p>
+    <div class="alert alert--danger form-summary" role="alert" tabindex="-1"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">1 thing to fix before you start</span>
+      <ul><li><a href="#work-speed">Work speed — 0.8 to 19.3 km/h</a></li></ul></div></div>
     <fieldset class="mode-cards">
       <legend class="visually-hidden">Training mode</legend>
       <label class="mode-card"><span class="mode-card__title"><input type="radio" name="mode" value="hiit" checked>HIIT intervals</span><p class="mode-card__text">Hard and easy efforts on repeat. Speed and incline switch at every interval.</p></label>
-      <label class="mode-card"><span class="mode-card__title"><input type="radio" name="mode" value="flat">Flat speed</span><p class="mode-card__text">One speed and incline, held the whole ride.</p></label>
+      <label class="mode-card"><span class="mode-card__title"><input type="radio" name="mode" value="flat">Steady</span><p class="mode-card__text">One speed and one incline, held the whole run. Good for hill walks and easy miles.</p></label>
     </fieldset>
-    <div class="chip-group" role="group" aria-label="Presets"><button class="chip chip--solid" type="button" aria-pressed="false">Tabata</button><button class="chip chip--solid" type="button" aria-pressed="false">40 / 20</button><button class="chip chip--solid" type="button" aria-pressed="false">Minute on</button><button class="chip chip--solid" type="button" aria-pressed="false">Long climbs</button></div>
+    <div class="chip-group" role="group" aria-label="Presets"><button class="chip chip--solid" type="button" aria-pressed="false">Sprints 30/30</button><button class="chip chip--solid" type="button" aria-pressed="false">Minute on</button><button class="chip chip--solid" type="button" aria-pressed="false">Hill repeats</button><button class="chip chip--solid" type="button" aria-pressed="false">Norwegian 4×4</button></div>
     <div class="field-grid">
       <div class="num-stepper">
   <label class="num-stepper__label" for="rounds">Rounds</label>
   <div class="num-stepper__row">
     <button class="btn btn--subtle btn--icon" type="button" aria-label="Less rounds"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-    <input class="num-stepper__input" id="rounds" type="text" inputmode="numeric" value="18" size="5">
+    <input class="num-stepper__input" id="rounds" type="text" inputmode="numeric" value="6" size="5">
     <button class="btn btn--subtle btn--icon" type="button" aria-label="More rounds"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   </div>
-  
 </div>
       <div class="num-stepper">
   <label class="num-stepper__label" for="work">Work</label>
   <div class="num-stepper__row">
     <button class="btn btn--subtle btn--icon" type="button" aria-label="Less work"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-    <input class="num-stepper__input" id="work" type="text" inputmode="numeric" value="0:40" size="5">
+    <input class="num-stepper__input" id="work" type="text" inputmode="numeric" value="1:00" size="5">
     <button class="btn btn--subtle btn--icon" type="button" aria-label="More work"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   </div>
-  
 </div>
       <div class="num-stepper">
   <label class="num-stepper__label" for="rest">Recover</label>
   <div class="num-stepper__row">
     <button class="btn btn--subtle btn--icon" type="button" aria-label="Less recover"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-    <input class="num-stepper__input" id="rest" type="text" inputmode="numeric" value="0:20" size="5">
+    <input class="num-stepper__input" id="rest" type="text" inputmode="numeric" value="1:00" size="5">
     <button class="btn btn--subtle btn--icon" type="button" aria-label="More recover"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   </div>
-  
 </div>
     </div>
-    <div class="field-grid field-grid--2">
-      <div class="num-stepper" data-invalid>
-  <label class="num-stepper__label" for="work-speed">Work speed (km/h)</label>
-  <div class="num-stepper__row">
-    <button class="btn btn--subtle btn--icon" type="button" aria-label="Less work speed"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-    <input class="num-stepper__input" id="work-speed" type="text" inputmode="decimal" value="16.5" size="5" aria-invalid="true" aria-describedby="work-speed-err">
-    <button class="btn btn--subtle btn--icon" type="button" aria-label="More work speed"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <div class="effort-rows">
+<div class="effort-row" role="group" aria-labelledby="work-title">
+  <div class="effort-row__title" id="work-title"><span class="swatch swatch--work" aria-hidden="true"></span>Work</div>
+  <div class="effort-row__grid">
+    <div>
+      <div class="effort-row__head"><label for="work-speed">Speed</label><span class="effort-row__pace">–:–– /km</span></div>
+      <div class="effort-row__speed">
+        <button class="btn btn--subtle btn--icon" type="button" aria-label="Slower Work"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <span class="effort-row__value"><input class="effort-row__input" id="work-speed" type="text" inputmode="decimal" value="25.0" size="4" aria-invalid="true" aria-describedby="work-speed-err"><small>km/h</small></span>
+        <button class="btn btn--subtle btn--icon" type="button" aria-label="Faster Work"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+      <p class="field__error" id="work-speed-err">Speed must be 0.8 to 19.3 km/h.</p>
+    </div>
+    <div>
+      <div class="effort-row__head"><span id="work-incline-label">Incline</span><span class="effort-row__incline">2%</span></div>
+      <div class="level-picker level-picker--incline" role="slider" aria-labelledby="work-incline-label" aria-valuemin="0" aria-valuemax="10" aria-valuenow="2" aria-valuetext="Work incline 2% of 10%" tabindex="0"><span class="level-picker__bar is-lit" aria-hidden="true" style="--h: 22%;"></span><span class="level-picker__bar is-lit" aria-hidden="true" style="--h: 30%;"></span><span class="level-picker__bar is-lit" aria-hidden="true" style="--h: 38%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 45%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 53%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 61%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 69%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 77%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 84%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 92%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 100%;"></span></div>
+      <div class="level-slider__scale" aria-hidden="true"><span>0%</span><span>10%</span></div>
+    </div>
   </div>
-  <p class="field__error" id="work-speed-err">Speed must be 1.0 to 16.0 km/h.</p>
 </div>
-      <div class="num-stepper" data-invalid>
-  <label class="num-stepper__label" for="rest-speed">Recover speed (km/h)</label>
-  <div class="num-stepper__row">
-    <button class="btn btn--subtle btn--icon" type="button" aria-label="Less recover speed"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-    <input class="num-stepper__input" id="rest-speed" type="text" inputmode="decimal" value="9.25" size="5" aria-invalid="true" aria-describedby="rest-speed-err">
-    <button class="btn btn--subtle btn--icon" type="button" aria-label="More recover speed"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+<div class="effort-row" role="group" aria-labelledby="rest-title">
+  <div class="effort-row__title" id="rest-title"><span class="swatch swatch--rest" aria-hidden="true"></span>Recover</div>
+  <div class="effort-row__grid">
+    <div>
+      <div class="effort-row__head"><label for="rest-speed">Speed</label><span class="effort-row__pace">10:00 /km</span></div>
+      <div class="effort-row__speed">
+        <button class="btn btn--subtle btn--icon" type="button" aria-label="Slower Recover"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <span class="effort-row__value"><input class="effort-row__input" id="rest-speed" type="text" inputmode="decimal" value="6.0" size="4"><small>km/h</small></span>
+        <button class="btn btn--subtle btn--icon" type="button" aria-label="Faster Recover"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </div>
+    <div>
+      <div class="effort-row__head"><span id="rest-incline-label">Incline</span><span class="effort-row__incline">1%</span></div>
+      <div class="level-picker level-picker--incline" role="slider" aria-labelledby="rest-incline-label" aria-valuemin="0" aria-valuemax="10" aria-valuenow="1" aria-valuetext="Recover incline 1% of 10%" tabindex="0"><span class="level-picker__bar is-lit" aria-hidden="true" style="--h: 22%;"></span><span class="level-picker__bar is-lit" aria-hidden="true" style="--h: 30%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 38%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 45%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 53%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 61%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 69%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 77%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 84%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 92%;"></span><span class="level-picker__bar" aria-hidden="true" style="--h: 100%;"></span></div>
+      <div class="level-slider__scale" aria-hidden="true"><span>0%</span><span>10%</span></div>
+    </div>
   </div>
-  <p class="field__error" id="rest-speed-err">Enter a speed like 9.0.</p>
-</div>
-      <div class="num-stepper">
-  <label class="num-stepper__label" for="work-incline">Work incline (%)</label>
-  <div class="num-stepper__row">
-    <button class="btn btn--subtle btn--icon" type="button" aria-label="Less work incline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-    <input class="num-stepper__input" id="work-incline" type="text" inputmode="numeric" value="0" size="5">
-    <button class="btn btn--subtle btn--icon" type="button" aria-label="More work incline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-  </div>
-  
-</div>
-      <div class="num-stepper" data-invalid>
-  <label class="num-stepper__label" for="rest-incline">Recover incline (%)</label>
-  <div class="num-stepper__row">
-    <button class="btn btn--subtle btn--icon" type="button" aria-label="Less recover incline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-    <input class="num-stepper__input" id="rest-incline" type="text" inputmode="numeric" value="16" size="5" aria-invalid="true" aria-describedby="rest-incline-err">
-    <button class="btn btn--subtle btn--icon" type="button" aria-label="More recover incline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-  </div>
-  <p class="field__error" id="rest-incline-err">Incline must be 0 to 15 %.</p>
 </div>
     </div>
     <div class="toggles">
-      <label class="toggle-row"><span class="toggle-row__label"><b>Warm-up</b><small>3 min, easy</small></span><span class="switch"><input type="checkbox" role="switch" checked></span></label>
-      <label class="toggle-row"><span class="toggle-row__label"><b>Cool-down</b><small>2 min, easy</small></span><span class="switch"><input type="checkbox" role="switch" checked></span></label>
+      <label class="toggle-row"><span class="toggle-row__label"><b>Warm-up</b><small>3 min, brisk walk</small></span><span class="switch"><input type="checkbox" role="switch" checked></span></label>
+      <label class="toggle-row"><span class="toggle-row__label"><b>Cool-down</b><small>2 min, walk, deck back to 0%</small></span><span class="switch"><input type="checkbox" role="switch" checked></span></label>
     </div>
     </div>
   </main>
-  <aside class="setup-aside" aria-label="Ride preview">
-    <h2>Your ride</h2>
-    <p class="numeral ride-total" aria-label="Total ride time —">—</p>
-    <svg class="profile" viewBox="0 0 1360 32" preserveAspectRatio="none" role="img" aria-label="Speed profile: 18 × 0:40 / 0:20"><rect class="is-easy" x="1.5" width="177.0" y="18" height="14"/><rect class="is-work" x="181.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="221.5" width="17.0" y="18" height="14"/><rect class="is-work" x="241.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="281.5" width="17.0" y="18" height="14"/><rect class="is-work" x="301.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="341.5" width="17.0" y="18" height="14"/><rect class="is-work" x="361.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="401.5" width="17.0" y="18" height="14"/><rect class="is-work" x="421.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="461.5" width="17.0" y="18" height="14"/><rect class="is-work" x="481.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="521.5" width="17.0" y="18" height="14"/><rect class="is-work" x="541.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="581.5" width="17.0" y="18" height="14"/><rect class="is-work" x="601.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="641.5" width="17.0" y="18" height="14"/><rect class="is-work" x="661.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="701.5" width="17.0" y="18" height="14"/><rect class="is-work" x="721.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="761.5" width="17.0" y="18" height="14"/><rect class="is-work" x="781.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="821.5" width="17.0" y="18" height="14"/><rect class="is-work" x="841.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="881.5" width="17.0" y="18" height="14"/><rect class="is-work" x="901.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="941.5" width="17.0" y="18" height="14"/><rect class="is-work" x="961.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="1001.5" width="17.0" y="18" height="14"/><rect class="is-work" x="1021.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="1061.5" width="17.0" y="18" height="14"/><rect class="is-work" x="1081.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="1121.5" width="17.0" y="18" height="14"/><rect class="is-work" x="1141.5" width="37.0" y="14" height="18"/><rect class="is-rest" x="1181.5" width="17.0" y="18" height="14"/><rect class="is-work" x="1201.5" width="37.0" y="14" height="18"/><rect class="is-easy" x="1241.5" width="117.0" y="18" height="14"/></svg>
-    <div class="profile-axis" aria-hidden="true"><span>0:00</span><span>22:40</span></div>
+  <aside class="setup-aside" aria-label="Run preview">
+    <h2>Your run</h2>
+    <p class="numeral ride-total" aria-label="Total run time 16:00">16:00</p>
+    <div class="profile-head" aria-hidden="true"><span>Speed</span><span>19.3 km/h</span></div>
+    <svg class="profile" viewBox="0 0 960 193" preserveAspectRatio="none" role="img" aria-label="Speed profile: 6 × 1:00 / 1:00, top speed 13.0 km/h"><rect class="is-easy" x="1.9" width="176.2" y="123" height="70"/><rect class="is-work" x="181.9" width="56.2" y="63" height="130"/><rect class="is-rest" x="241.9" width="56.2" y="133" height="60"/><rect class="is-work" x="301.9" width="56.2" y="63" height="130"/><rect class="is-rest" x="361.9" width="56.2" y="133" height="60"/><rect class="is-work" x="421.9" width="56.2" y="63" height="130"/><rect class="is-rest" x="481.9" width="56.2" y="133" height="60"/><rect class="is-work" x="541.9" width="56.2" y="63" height="130"/><rect class="is-rest" x="601.9" width="56.2" y="133" height="60"/><rect class="is-work" x="661.9" width="56.2" y="63" height="130"/><rect class="is-rest" x="721.9" width="56.2" y="133" height="60"/><rect class="is-work" x="781.9" width="56.2" y="63" height="130"/><rect class="is-easy" x="841.9" width="116.2" y="133" height="60"/></svg>
+    <div class="profile-head" aria-hidden="true"><span>Incline</span><span>10%</span></div>
+    <svg class="profile profile--incline" viewBox="0 0 960 10" preserveAspectRatio="none" role="img" aria-label="Incline profile, steepest 2%"><polygon class="incline-area" points="0,10 0,9 180,9 180,8 240,8 240,9 300,9 300,8 360,8 360,9 420,9 420,8 480,8 480,9 540,9 540,8 600,8 600,9 660,9 660,8 720,8 720,9 780,9 780,8 840,8 840,10 960,10 960,10"/><polyline class="incline-line" points="0,9 180,9 180,8 240,8 240,9 300,9 300,8 360,8 360,9 420,9 420,8 480,8 480,9 540,9 540,8 600,8 600,9 660,9 660,8 720,8 720,9 780,9 780,8 840,8 840,10 960,10"/></svg>
+    <div class="profile-axis" aria-hidden="true"><span>0:00</span><span>16:00</span></div>
     <dl class="dl dl--split">
-      <div><dt>Structure</dt><dd>18 × 0:40 / 0:20</dd></div>
-      <div><dt>Time under load</dt><dd>12:00</dd></div>
-      <div><dt>Top speed</dt><dd>9.0 km/h</dd></div>
-      <div><dt>Expected distance</dt><dd>~3.0 km</dd></div>
+      <div><dt>Structure</dt><dd>6 × 1:00 / 1:00</dd></div>
+      <div><dt>Top speed</dt><dd>13.0 km/h · 4:37 /km</dd></div>
+      <div><dt>Steepest</dt><dd>2%</dd></div>
+      <div><dt>Expected distance</dt><dd>~2.35 km</dd></div>
+      <div><dt>Expected climb</dt><dd>~35 m</dd></div>
+      <div><dt>Expected energy</dt><dd>~184 kcal</dd></div>
     </dl>
     <div class="setup-aside__foot">
       <ul class="legend"><li><span class="swatch swatch--work" aria-hidden="true"></span>Work</li><li><span class="swatch swatch--rest" aria-hidden="true"></span>Recover</li></ul>
-      <button class="btn btn--primary btn--xl btn--block" type="button" disabled aria-describedby="start-hint">Start ride</button>
-      <p id="start-hint" class="text-muted text-sm" style="margin-top: var(--space-2);">Fix the 3 fields marked in red to start.</p>
+      <p class="setup-aside__safety">Clip the safety key to your clothes. The belt starts 3 seconds after you tap Start.</p>
+      <button class="btn btn--primary btn--xl btn--block" type="button" disabled aria-describedby="start-hint">Start run</button>
+      <p id="start-hint" class="start-hint">Fix the field marked in red to start.</p>
     </div>
   </aside>
 </div>
 </div>
-<p class="mock-note" style="top: 12rem; left: 40rem;">Flat's links read ‘Speed — 1.0 to 16.0 km/h’ and ‘Incline — 0 to 15 %’. A non-integer incline reads ‘Enter a whole number.’ (L2-067).</p>
 
 <nav class="mock-bar" aria-label="Mock navigation">
   <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
@@ -140,6 +139,10 @@
   <ul class="mock-bar__states">
     <li><a href="default.html">default</a></li>
     <li><a href="flat.html">flat</a></li>
+    <li><a href="intervals.html">intervals</a></li>
+    <li><a href="intervals-invalid.html">intervals-invalid</a></li>
+    <li><a href="video.html">video</a></li>
+    <li><a href="video-invalid.html">video-invalid</a></li>
     <li><a href="loading.html">loading</a></li>
     <li><a href="error.html">error</a></li>
     <li><a href="invalid.html">invalid</a></li>
@@ -147,8 +150,7 @@
     <li><a href="treadmill.html">treadmill</a></li>
     <li><a href="treadmill-flat.html">treadmill-flat</a></li>
     <li><a href="treadmill-invalid.html" aria-current="page">treadmill-invalid</a></li>
-    <li><a href="machine-locked.html">machine-locked</a></li>
-    <li><a href="machine-failed.html">machine-failed</a></li>
+    <li><a href="treadmill-submitting.html">treadmill-submitting</a></li>
   </ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>

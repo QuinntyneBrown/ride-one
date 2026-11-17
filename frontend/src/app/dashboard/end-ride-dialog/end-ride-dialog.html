@@ -1,6 +1,6 @@
 <wz-dialog-shell
   dialogId="end-ride"
-  heading="End this ride?"
+  [heading]="run ? 'Stop the belt and end this run?' : 'End this ride?'"
   [description]="description()"
   icon="stop"
   tone="danger"
@@ -16,13 +16,15 @@
         text="The Wattzup server didn't answer. The ride is still running — try again."
       />
     }
-    <p class="text-muted text-sm">
-      Your power trace and totals stay on the dashboard until you start a new ride.
-    </p>
+    @if (!run) {
+      <p class="text-muted text-sm">
+        Your power trace and totals stay on the dashboard until you start a new ride.
+      </p>
+    }
   </div>
   <div dialog-footer class="end-ride__actions">
     <button class="btn" type="button" data-autofocus [disabled]="busy()" (click)="ref.close()">
-      Keep riding
+      {{ run ? 'Keep running' : 'Keep riding' }}
     </button>
     <button
       class="btn btn--danger"
@@ -31,7 +33,7 @@
       [attr.aria-busy]="busy() ? 'true' : null"
       (click)="end()"
     >
-      {{ busy() ? 'Ending…' : failed() ? 'Try again' : 'End ride' }}
+      {{ busy() ? 'Ending…' : failed() ? 'Try again' : run ? 'Stop belt' : 'End ride' }}
     </button>
   </div>
 </wz-dialog-shell>

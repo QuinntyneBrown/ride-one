@@ -2,7 +2,7 @@
 
 ## Overview
 
-Before a ride the rider opens the setup screen at `/setup`, picks HIIT intervals or one flat level, adjusts the plan, and presses Start ride. Beside the form, the *Your ride* panel previews the plan as it is edited: its total time, a resistance profile of its segments, and a summary with the expected average power and energy. When a ride is already in progress, Start ride first asks the rider to confirm that the new ride replaces it. The screen follows the Magic Patterns *Training Setup* frame, reproduced in `docs/mocks/pages/setup/` and `docs/mocks/dialogs/replace-ride/`.
+Before a ride the rider opens the setup screen at `/setup`, picks HIIT intervals, configurable interval sets or one flat level, adjusts the plan, and presses Start ride. Beside the form, the *Your ride* panel previews the plan as it is edited: its total time, a resistance profile of its segments, and a summary with the expected average power and energy. When a ride is already in progress, Start ride first asks the rider to confirm that the new ride replaces it. The screen follows the Magic Patterns *Training Setup* frame, reproduced in `docs/mocks/pages/setup/` and `docs/mocks/dialogs/replace-ride/`.
 
 **plan draft** — the form's working copy of a plan, in the units the rider edits (`0:40`, `30 min`, `85 rpm`); turned into a `WorkoutPlan` (L2-010) only when it is valid
 
@@ -10,7 +10,11 @@ Before a ride the rider opens the setup screen at `/setup`, picks HIIT intervals
 
 **ride preview** — values derived from the plan draft by the same plan expansion as the backend (L2-045): total time, profile, structure, time under load, peak resistance, expected average power and expected energy
 
-**time under load** — rounds × work seconds of a HIIT plan
+**time under load** — rounds × work seconds of a HIIT plan; the sum of every effort's work seconds of an intervals plan
+
+**set** — one entry of an `intervals` plan: `rounds` efforts of `work_seconds` at `work_level` and `work_cadence`, each followed by a recover of `rest_seconds` at `rest_level` and `rest_cadence` (none when `rest_seconds` is 0)
+
+**Descending recoveries** — the intervals preset and first-use default: warm-up 5:00 at level 8 and 80 rpm; 8 × 0:30 efforts at level 28 and 100 rpm in sets of 1, 2, 2, 2 and 1 with recovers of 3:00, 2:30, 2:00, 1:30 and none at level 8 and 72 rpm; cool-down 6:00 at level 6 and 70 rpm; 30:00 in total
 
 **replace-ride dialog** — confirmation shown when Start ride is pressed while a workout is active
 
@@ -33,8 +37,8 @@ Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and
   - `structure` is `<rounds> × <work> / <rest>` in `m:ss` for HIIT (`18 × 0:40 / 0:20`), and `Level <n> throughout` for flat.
   - `timeUnderLoad` is rounds × work as `m:ss` (`5:20`) for HIIT, and `null` for flat, so the row is not shown.
   - `peakLevel` is the highest segment level, shown `Level <max>`.
-  - `avgPower` is `round(Σ estimateWatts(cadence, level) × duration ÷ total)` over the segments, shown `~<n> W`. The default plan gives `~357 W`; flat level 12 at 85 rpm gives `~205 W`.
-  - `kcal` is `round(avgPower × total ÷ 1000 ÷ 0.24 ÷ 4.184)`, shown `~<n> kcal`. The default plan gives `~484 kcal`; the flat plan gives `~367 kcal`.
+  - `avgPower` is `round(Σ estimateWatts(cadence, level) × duration ÷ total)` over the segments, shown `~<n> W`. The default plan gives `~362 W`; flat level 12 at 85 rpm gives `~205 W`.
+  - `kcal` is `round(avgPower × total ÷ 1000 ÷ 0.24 ÷ 4.184)`, shown `~<n> kcal`. The default plan gives `~490 kcal`; the flat plan gives `~367 kcal`.
   - `profile` is one bar per segment in a `0 0 <total> 32` view box, as drawn in the mocks. With `inset = 0.002 × total`, each bar has `x = start + inset`, `width = duration − 2 × inset`, `height = level` and `y = 32 − level`. Its tone is `is-work` for `work` and `steady`, `is-rest` for `rest`, and `is-easy` for `warmup` and `cooldown`.
 - **`plan-form.ts`** — the plan draft's rules (L2-029):
   - `DEFAULT_DRAFT` is the default plan with no preset pressed (18 rounds matches no preset). Flat defaults are level 12, 30 minutes and cadence 85.
@@ -53,10 +57,10 @@ Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` an
 | Component | Selector | Blocks | Role |
 |---|---|---|---|
 | `SetupPage` | `wz-setup-page` | `setup-layout`, `setup-main`, `field-grid` | Route `/setup`, lazy-loaded. App bar with the Close link to `/`, the form, the preview, and the submit flow |
-| `ModeCards` | `wz-mode-cards` | `mode-cards`, `mode-card` | `fieldset` radio group, *HIIT intervals* or *Flat resistance*; a `ControlValueAccessor` |
+| `ModeCards` | `wz-mode-cards` | `mode-cards`, `mode-card` | `fieldset` radio group, *HIIT intervals*, *Intervals* or *Flat resistance*; a two-way `mode` model |
 | `Presets` | `wz-presets` | `presets` | `role="group"` named `Presets`, holding one `wz-chip` per preset |
 | `Chip` | `wz-chip` | `chip` | Toggle button with `aria-pressed` |
-| `NumStepper` | `wz-num-stepper` | `num-stepper` | Label, `Less <label>` and `More <label>` buttons, and a numeric text input; a `ControlValueAccessor` with `format` and `parse` inputs |
+| `NumStepper` | `wz-num-stepper` | `num-stepper` | Label, `Less <label>` and `More <label>` buttons, and a numeric text input; `value` input with `valueChange` and `step` outputs |
 | `LevelSlider` | `wz-level-slider` | `level-slider` | Range 1–32 with `<output>` `<n> / 32`; modifiers `--rest` and `--large` |
 | `Toggles` | `wz-toggles` | `toggles`, `toggle-row`, `switch` | Warm-up (`3 min, easy`) and Cool-down (`2 min, easy`) as `role="switch"` checkboxes |
 | `FormSummary` | `wz-form-summary` | `form-summary` | Danger alert `<n> things to fix before you start` with one link per invalid field |
@@ -65,7 +69,7 @@ Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` an
 | `RideSummary` | `wz-ride-summary` | `summary` | `dl` of Structure, Time under load, Peak resistance, Expected avg power and Expected energy |
 | `ReplaceRideDialog` | `wz-replace-ride-dialog` | none of its own | CDK Dialog content inside the design system's dialog frame |
 
-`SetupPage` builds a typed reactive `FormGroup` from `plan-form.ts`, with validators that call `validateDraft`. The components hold no rule of their own. The `Less` and `More` buttons step Rounds by 1, Work and Recover by 5 s, Duration by 5 min and Cadence goal by 5 rpm, and the level sliders step by 1 (L2-029, criterion 9).
+`SetupPage` holds the drafts in signals (`draft`, and `intervals` for the Intervals mode) and derives the errors, the plan and the preview with `computed` from the pure helpers. The components hold no rule of their own. The `Less` and `More` buttons step Rounds by 1, Work and Recover by 5 s, Duration by 5 min and Cadence goal by 5 rpm, and the level sliders step by 1 (L2-029, criterion 9).
 
 ### Screen states
 
@@ -115,7 +119,7 @@ Playwright (`frontend/e2e/`), with every `/api/**` request answered by the share
   - `shows Couldn't start the ride on a 400 and keeps the settings` (L2-029 AC6)
   - `restores the last submitted plan after a reload` (L2-029 AC7)
   - `Close returns to the dashboard without a request` (L2-029 AC8)
-  - `previews the default plan: 22:40, 18 × 0:40 / 0:20, 12:00, Level 26, ~357 W, ~484 kcal` (L2-059 AC1, AC2)
+  - `previews the default plan: 22:40, 18 × 0:40 / 0:20, 12:00, Level 26, ~362 W, ~490 kcal` (L2-059 AC1, AC2)
   - `previews a flat plan without time under load` (L2-059 AC3)
 - `e2e/replace-ride.spec.ts`:
   - `asks before replacing an active ride, with focus on Keep current ride` (L2-052 AC1)
@@ -130,21 +134,63 @@ Unit tests in `src/app/core/`:
 - `plan-form.spec.ts` — one case per L2-010 range row, each preset, preset clearing, and clock and unit parsing.
 - `plan-draft.store.spec.ts` — restore, missing key, storage that throws, and invalid stored data.
 
-### Treadmill
+### Intervals plans
 
-The setup screen also chooses the machine and builds treadmill plans (L2-072). Its design is `treadmill/treadmill-dashboard-and-setup`. In short:
+The *Intervals* mode builds an `intervals` plan (L2-010, L2-029 criteria 10 to 16), as drawn in `docs/mocks/pages/setup/intervals.html`, `intervals-invalid.html` and `docs/mocks/dialogs/edit-set/`.
 
-- `MachineChoice` (`wz-machine-choice`), a `Machine` radio group with `Bike` and `Treadmill`, comes first. Choosing the other machine sends `POST /api/machine` through `MACHINE_API`; it is disabled while a workout is active.
-- With `machine` `bike`, everything above is unchanged, including the `localStorage` key `wattzup.planDraft`.
-- With `machine` `treadmill`, the form shows speed and incline fields from `treadmill-plan-form.ts`, the draft is kept under `wattzup.treadmillPlanDraft`, and the *Your ride* panel shows a speed profile, Top speed and Expected distance from `treadmillPreviewOf` instead of resistance, power and energy.
-- The start flow and the replace-ride dialog are shared. On the treadmill the dialog adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 12).
+- **`intervals-form.ts`** (pure helper, beside `plan-form.ts`) holds `IntervalsDraft` = `{preset, warmup: StretchDraft, cooldown: StretchDraft, sets: SetDraft[]}`, where a `StretchDraft` is `{on, seconds, level, cadence}` and a `SetDraft` is `{rounds, work_seconds, work_level, work_cadence, rest_seconds, rest_level, rest_cadence}` in numbers. It provides:
+  - `INTERVAL_PRESETS` (`descending`, `even`) and `DEFAULT_INTERVALS` (the *Descending recoveries* plan with that preset pressed);
+  - `addSet`, `removeSet`, `moveSet(i, -1 | 1)` and `replaceSet(i, set)`, each clearing the pressed preset;
+  - for the dialogs, `SetFields` and `StretchFields` (the values as typed, with Recover `None` for 0), `setFieldsOf`/`stretchFieldsOf`, `stepSetField`/`stepStretchField`, `validateSet(fields)` and `validateStretch(kind, fields)` returning the messages of L2-010 criterion 12 per field, and `toSetDraft`/`toStretch`;
+  - `validateIntervals(draft)` for the plan rules of L2-010 criterion 13, with the summary links `Sets — at most 30 efforts` and `Sets — at most 180 minutes`;
+  - `toIntervalsPlan(draft)`, which writes `null` for a stretch that is off.
+- **`plan-expansion.ts`** expands `intervals` as L2-045 criteria 7 and 8 and summarises it as L2-060 criterion 4; **`ride-preview.ts`** gives Structure `<sets> sets · <efforts> efforts` and time under load as L2-059 criterion 5. Both are tested against the same rows as `PlanExpanderTests` and `WorkoutSummaryTests`.
+- **`PlanDraftStore`** keeps the draft under `wattzup.intervalsDraft`; unreadable or invalid data yields `DEFAULT_INTERVALS`.
+- **Components** (all under `frontend/src/app/dashboard/`):
+
+| Component | Selector | Blocks | Role |
+|---|---|---|---|
+| `SetList` | `wz-set-list` | `set-list`, `set-row` | The Warm-up row, one row per set and the Cool-down row as an ordered list; per row `Edit`, and per set `Move up`, `Move down` and `Remove`, named `Edit set <i>`, `Move set <i> up`, `Move set <i> down` and `Remove set <i>`; `Add set` below. It emits the action (`editSet`, `editStretch`, `switchStretch`, `move`, `remove`, `add`); the page applies it and the list moves focus as the Set list page of the design system says |
+| `EditSetDialog` | `wz-edit-set-dialog` | `edit-set` | CDK Dialog content in `wz-dialog-shell` (`size: 'md'`): the steppers and sliders of L2-029 criterion 13, reusing `wz-num-stepper` and `wz-level-slider`; closes with the new `SetDraft` or `undefined` |
+| `EditStretchDialog` | `wz-edit-stretch-dialog` | `edit-stretch` | The same for the warm-up and cool-down (L2-029 criterion 14) |
+
+`DialogLauncher` gains `openEditSet({index, set, adding})` and `openEditStretch({kind, stretch})`, each returning a `Promise` of the saved value. Both use the launcher's `panelClass`, `ariaLabelledBy` and `restoreFocus`, so focus goes back to the button that opened them. The warm-up and cool-down switches sit on the rows themselves; turning one off keeps its values for when it is turned on again.
+
+Rounds across sets are numbered from 1, so the dashboard's `Round r of n` (L2-025, L2-027) takes n from the number of `work` segments (`segment-labels.ts`, `segment-change-detector.ts`) for every plan kind.
+
+Playwright (`e2e/setup.spec.ts`, describe `Intervals plan`), with the page object `e2e/pages/edit-plan-part.dialog.ts` (the Edit set, Add set, Warm-up and Cool-down dialogs) and the set-list locators in `setup.page.ts`:
+
+- `shows the Descending recoveries plan on first use: 30:00, 5 sets · 8 efforts` (L2-029 AC10, AC11; L2-059 AC5)
+- `edits a set in a dialog and returns focus to its Edit button` (L2-029 AC12, AC13)
+- `switches to the Even sets preset` (L2-029 AC11)
+- `shows a recover of 0:00 as None` (L2-029 AC13)
+- `edits the warm-up length and turns the cool-down off` (L2-029 AC12, AC14)
+- `adds, moves and removes sets` (L2-029 AC12)
+- `disables Save for a set out of range` (L2-029 AC15)
+- `lists a plan of more than 30 efforts and links to Add set` (L2-029 AC15)
+- `posts the intervals plan and goes to the dashboard` (L2-029 AC5)
+- `restores the last submitted intervals plan after a reload` (L2-029 AC16)
+
+### Machine and treadmill
+
+The setup screen no longer chooses the machine; the machine page at `/machine` does (L2-073, `treadmill/choose-machine`). While treadmill support is off (L2-075, ADR 0011), `treadmill_enabled` is `false`, the `Switch to …` link is not rendered, and the screen is the bike's. The treadmill form is designed in `treadmill/treadmill-dashboard-and-setup`. In short:
+
+- On both machines the header shows `wz-status-line` with `<device_label>`, a `Switch to treadmill` link (`Switch to bike` on the treadmill) that calls `RideActions.switchMachine` and so ends a running workout through the end dialog before opening `/machine`, and `Close` (`app-bar__close`) (L2-072 criterion 1). `MachineChoice` (`wz-machine-choice`) is removed.
+- With `machine` `bike`, everything above is unchanged, including the `localStorage` key `wattzup.planDraft`. A started bike plan is also recorded by `MachineHistoryStore.recordStart` as the bike's last session (L2-072 criterion 10).
+- With `machine` `treadmill`, the screen reads `Set up your run`, the form shows presets and the `Work`, `Recover` or `Hold` effort rows from `treadmill-plan-form.ts`, the draft is kept under `wattzup.treadmillPlanDraft`, and the *Your run* panel shows speed and incline profiles with expected distance, climb and energy from `treadmillPreviewOf`.
+- The start flow and the replace dialog are shared. On the treadmill the dialog reads `Replace the run in progress?` and adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 15).
+
+### Ride-along video
+
+Below the plan, in every mode on either machine, `VideoLink` (`wz-video-link`) adds the switch `Ride along to a video` / `Plays in sync on the dashboard`, off on first use. With the switch on, it shows the `YouTube link` field, and for an accepted link a preview with the start point `Ride 0:00 starts at` (L2-029 criteria 17 and 18). A link that is not YouTube shows its field error but does not block Start ride, which then sends `video: null` (L2-029 criterion 19). `SetupPage` adds `video` `{url, start_seconds}` or `null` to the plan it posts. `PlanDraftStore` keeps the video draft under `wattzup.videoDraft` and restores it on reload (L2-029 criterion 20). `ride-preview.ts` adds `Video` `Synced from <m:ss.s>` after Time under load (L2-059 criterion 6). The components, rules, tests and mocks (`setup/video`, `setup/video-invalid`) are described in `workouts/ride-along-video`.
 
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-029` | `L1-007` | Ride setup screen. The `/setup` screen must let the rider build a plan and start it. |
+| `L2-029` | `L1-007` | Ride setup screen. The `/setup` screen must let the rider build a plan and start it; criteria 17 to 20 add the ride-along video. |
 | `L2-052` | `L1-007` | Replace-ride dialog. Given an active workout, when Start ride is pressed on `/setup`, then a dialog `Replace the ride in progress?` opens; `Replace ride` sends `POST /api/workout` and on success takes the rider to `/`; a failure keeps the current ride and the new settings. |
+| `L2-010` | `L1-004` | Workout plan definition and validation, including the `intervals` kind and the optional `video`. |
 | `L2-059` | `L1-007` | Ride preview on setup. The `Your ride` panel shows the total time, a resistance profile of the plan's segments and a summary, computed by the same plan expansion as the backend (L2-045). |
 
 ## Diagrams
@@ -169,7 +215,7 @@ Wattzup Web builds and previews the plan in the browser and submits it to the Wa
 
 ### Class structure
 
-The form components are `ControlValueAccessor`s bound to one typed form. The preview is a pure function of the plan, built on the same expansion the backend uses.
+The form components take inputs and emit edits; the page holds the drafts in signals. The preview is a pure function of the plan, built on the same expansion the backend uses.
 
 ![Class diagram for setting up a ride](diagrams/class-structure.png)
 

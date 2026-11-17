@@ -29,6 +29,6 @@ export function machineWords(machine: Machine | null | undefined): MachineWords 
 /** The setup screen's lead sentence (L2-072). */
 export function setupLead(machine: Machine): string {
   return machine === 'treadmill'
-    ? "Wattzup drives the treadmill's speed and incline for you. Pick how."
+    ? "Wattzup drives the Stride's belt speed and incline for you. Pick how."
     : "Wattzup drives the bike's resistance for you. Pick how.";
 }

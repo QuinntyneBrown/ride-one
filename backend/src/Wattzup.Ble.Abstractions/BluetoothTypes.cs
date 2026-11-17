@@ -8,8 +8,8 @@ public enum BluetoothAdapterState
     Off,
 }
 
-/// <summary>A device as seen during a scan.</summary>
-public sealed record BikeAdvertisement(string? Name, string Address, IReadOnlyList<string> ServiceUuids)
+/// <summary>A device as seen during a scan; <paramref name="Rssi"/> is its signal strength in dBm, null when the platform gives none.</summary>
+public sealed record BikeAdvertisement(string? Name, string Address, IReadOnlyList<string> ServiceUuids, int? Rssi = null)
 {
     /// <summary>The advertised name, or the address when the name is empty (L2-002).</summary>
     public string DisplayName => string.IsNullOrEmpty(Name) ? Address : Name;

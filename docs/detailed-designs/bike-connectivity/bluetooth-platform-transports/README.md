@@ -32,19 +32,24 @@ Every other backend feature talks only to `IBikeTransport` and `IBikeConnection`
 
 Each transport marshals native callbacks onto the thread pool before it calls the notify handler, and never blocks a native callback thread. UUID comparison is case-insensitive in every transport. No type outside a `Wattzup.Ble.*` project touches a platform Bluetooth API.
 
-The hardware smoke test of L2-043 is run by a person on each platform, never by an agent or CI. CI builds every project but runs no transport against hardware (ADR 0007). Every automated test uses `SimulatedBikeTransport` or a test double of the two interfaces.
+The hardware smoke test of L2-043 is run by a person on each platform, never by an agent or CI. On the treadmill it adds 2 checks: with the belt running under a Wattzup workout, switching Bluetooth off on the host stops the belt within 2 s (criterion 5), and pulling the safety key reports speed 0 (criterion 6). The dashboard's *Lost the Stride* copy rests on criterion 5 (ADR 0010); until a person has run it on each platform, it is an assumption, and its result is `<TO SUPPLY>`. CI builds every project but runs no transport against hardware (ADR 0007). Every automated test uses `SimulatedBikeTransport` or a test double of the two interfaces.
 
 ### Notify characteristics per machine
 
 `IBikeConnection.SubscribeAsync(notifyCharacteristicUuids, onNotify, ct)` takes the list of notify characteristics that `BikeConnectionService` names from the chosen machine's profile: `[…f4]` for the bike, `[…f4, …f3]` for the treadmill (ADR 0009, L2-063). Each transport subscribes every listed characteristic that the Echelon service `…f1` has, and completes only when every subscription is in place, so no init command is written before the last one (L2-063 criterion 5). Frames from every subscribed characteristic go to the same `onNotify`, one frame per call. A listed characteristic that the service lacks is skipped; `<TO SUPPLY>` whether a transport logs the skip. Writes still go only to `…f2`; no transport writes another characteristic or the `FE59` firmware-update service (L2-063 criterion 10).
 
-`SimulatedBikeTransport` advertises 2 devices: `ECHSIM-0001` with the Echelon service `…f1`, and `STRIDE-SIM-0001` with the treadmill's advertised service `…f0`. Each machine's filter selects its own device. Connecting to `STRIDE-SIM-0001` returns a `SimulatedTreadmillConnection`, which reports speed and incline only when they change, as the real treadmill does. On subscribe it reports `D3` speed 0 and `D2` incline 0. Its answers to belt, speed and incline commands, and the `SimulationControl` members `IgnoreBeltStart` and `StopBeltFromConsole()`, are described in `treadmill/control-the-belt` and `treadmill/control-speed-and-incline`. `--simulate --machine treadmill` runs the treadmill with no hardware, and the dashboard then shows the `Simulated treadmill` banner (L2-071).
+### Signal strength
+
+`BikeAdvertisement` gains `int? Rssi`, the received signal strength in dBm of that advertisement. Each transport fills it from the platform's scan result (`BluetoothLEAdvertisementReceivedEventArgs.RawSignalStrengthInDBm` on Windows, the `RSSI` property of the BlueZ device, the `RSSI` argument of `centralManager:didDiscoverPeripheral:advertisementData:RSSI:` on macOS), or leaves it `null` when the platform gives none. `nearby` uses it (`bike-connectivity/list-nearby-machines`, L2-074).
+
+`SimulatedBikeTransport` advertises 2 devices: `ECHSIM-0001` with the Echelon service `…f1` at −68 dBm, and `STRIDE-SIM-0001` with the treadmill's advertised service `…f0` at −55 dBm (L2-074 criterion 6). Each machine's filter selects its own device. Connecting to `STRIDE-SIM-0001` returns a `SimulatedTreadmillConnection`, which reports speed and incline only when they change, as the real treadmill does. On subscribe it reports `D3` speed 0 and `D2` incline 0. Its answers to belt, speed and incline commands, and the `SimulationControl` members `IgnoreBeltStart` and `StopBeltFromConsole()`, are described in `treadmill/control-the-belt` and `treadmill/control-speed-and-incline`. `--simulate --machine treadmill` runs the treadmill with no hardware, and the dashboard then shows the `Simulated treadmill` banner (L2-071).
 
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-043` | `L1-012` | Cross-platform Bluetooth. |
+| `L2-043` | `L1-012` | Cross-platform Bluetooth. Each platform transport passes a hardware smoke test run by a person; on the Echelon Stride that test also checks that the belt stops within 2 s of the link dropping and that pulling the safety key reports speed 0. |
+| `L2-074` | `L1-001` | Nearby machines. While it scans, the backend keeps a short list of the Echelon machines it hears, with their signal strength. |
 
 ## Diagrams
 

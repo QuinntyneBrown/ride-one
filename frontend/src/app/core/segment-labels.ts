@@ -1,5 +1,5 @@
 // Labels for the interval card and the app bar badge (L2-025).
-import type { Machine, Segment, SegmentKind, WorkoutPlan, WorkoutStatus } from './api-types';
+import type { Machine, Segment, SegmentKind, WorkoutStatus } from './api-types';
 import { formatDuration } from './format-duration';
 
 export type Phase = 'effort' | 'easy';
@@ -26,9 +26,14 @@ export function toneOf(kind: SegmentKind): Tone {
   return kind === 'rest' ? 'rest' : 'easy';
 }
 
-export function roundLabel(segment: Segment, plan: WorkoutPlan): string | null {
-  if ((segment.kind !== 'work' && segment.kind !== 'rest') || plan.kind !== 'hiit') return null;
-  return `Round ${segment.round} of ${plan.rounds}`;
+/** The number of rounds in a ride: its work segments (L2-025 criterion 1). */
+export function roundCount(segments: readonly Segment[]): number {
+  return segments.filter((s) => s.kind === 'work').length;
+}
+
+export function roundLabel(segment: Segment, segments: readonly Segment[]): string | null {
+  if (segment.kind !== 'work' && segment.kind !== 'rest') return null;
+  return `Round ${segment.round} of ${roundCount(segments)}`;
 }
 
 export interface NextLabel {
@@ -37,6 +42,8 @@ export interface NextLabel {
   level: number | null;
   /** The treadmill segment's speed; null on the bike. */
   speed: string | null;
+  /** The treadmill segment's incline in %; 0 on the bike. */
+  incline: number;
 }
 
 export function nextLabel(segments: readonly Segment[], index: number): NextLabel | null {
@@ -47,6 +54,7 @@ export function nextLabel(segments: readonly Segment[], index: number): NextLabe
     duration: formatDuration(next.duration),
     level: next.level,
     speed: next.speed === null ? null : next.speed.toFixed(1),
+    incline: next.incline ?? 0,
   };
 }
 

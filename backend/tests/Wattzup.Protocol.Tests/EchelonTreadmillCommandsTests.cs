@@ -44,7 +44,8 @@ public sealed class EchelonTreadmillCommandsTests
     [InlineData(1.0, "F0B20203E88F")]
     [InlineData(7.0, "F0B2021B5817")]
     [InlineData(9.0, "F0B2022328EF")]
-    [InlineData(16.0, "F0B2023E8062")]
+    [InlineData(0.8, "F0B2020320C7")]
+    [InlineData(19.3, "F0B2024B6453")]
     public void Set_speed_is_metres_per_hour_big_endian_with_the_checksum(double kmh, string expected)
     {
         Assert.Equal(expected, Convert.ToHexString(EchelonTreadmillCommands.SetSpeed(kmh)));
@@ -53,25 +54,25 @@ public sealed class EchelonTreadmillCommandsTests
     [Theory]
     [InlineData(0, "F0B10100A2")]
     [InlineData(5, "F0B10105A7")]
-    [InlineData(15, "F0B1010FB1")]
+    [InlineData(10, "F0B1010AAC")]
     public void Set_incline_appends_the_checksum(int percent, string expected)
     {
         Assert.Equal(expected, Convert.ToHexString(EchelonTreadmillCommands.SetIncline(percent)));
     }
 
     [Theory]
-    [InlineData(0.9)]
-    [InlineData(16.1)]
+    [InlineData(0.7)]
+    [InlineData(19.4)]
     [InlineData(9.25)]
-    public void Set_speed_rejects_values_outside_1_to_16_or_finer_than_a_tenth(double kmh)
+    public void Set_speed_rejects_values_outside_0_8_to_19_3_or_finer_than_a_tenth(double kmh)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => EchelonTreadmillCommands.SetSpeed(kmh));
     }
 
     [Theory]
     [InlineData(-1)]
-    [InlineData(16)]
-    public void Set_incline_rejects_values_outside_0_to_15(int percent)
+    [InlineData(11)]
+    public void Set_incline_rejects_values_outside_0_to_10(int percent)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => EchelonTreadmillCommands.SetIncline(percent));
     }

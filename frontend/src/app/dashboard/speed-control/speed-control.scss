@@ -14,15 +14,13 @@
 .speed-control__readout {
   text-align: center;
 }
-.speed-control__label {
-  display: block;
-  font: var(--text-caption);
-  color: var(--color-fg-muted);
-}
 .speed-control__readout .numeral {
   display: block;
   font-size: var(--font-size-numeral-xl);
   line-height: var(--line-height-none);
+}
+.speed-control__readout--hero .numeral {
+  font-size: var(--font-size-numeral-2xl);
 }
 .speed-control__readout small {
   font: var(--text-caption);

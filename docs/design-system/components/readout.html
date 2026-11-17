@@ -36,7 +36,7 @@
       <li><a href="../components/form-field.html">Form field</a></li>
       <li><a href="../components/form-layout.html">Form layout</a></li>
       <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li>
-      <li><a href="../components/switch.html">Switch</a></li>
+      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li>
       <li><a href="../components/slider.html">Slider</a></li>
       <li><a href="../components/number-stepper.html">Number stepper</a></li>
       <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li>
@@ -184,7 +184,7 @@
 &lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.readouts</code></td><td>Row.</td></tr><tr><td><code>.readout--power .readout--cadence</code></td><td>Size.</td></tr><tr><td><code>.delta--on/--low/--high</code></td><td>Delta tone.</td></tr><tr><td><code>.is-stale</code></td><td>Stale values.</td></tr><tr><td><code>.readout--speed</code></td><td>Treadmill hero readout: speed in km/h with target and mph (sizes as <code>.readout--power</code>).</td></tr><tr><td><code>.readout--incline</code></td><td>Treadmill secondary readout: incline in % with target (sizes as <code>.readout--cadence</code>).</td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a> (readouts)</li><li><a href="../../mocks/pages/ride/offline.html">pages/ride/offline</a> (stale)</li><li><a href="../../mocks/pages/ride/edge.html">pages/ride/edge</a> (4-digit power)</li><li><a href="../../mocks/pages/ride/treadmill.html">pages/ride/treadmill</a> (speed and incline)</li><li><a href="../../mocks/pages/ride/treadmill-belt-stopped.html">pages/ride/treadmill-belt-stopped</a> (Setting 9.0…)</li></ul><p>Drift fixed during extraction: stale readouts used inline <code>style="opacity: 0.45"</code>; now <code>.is-stale</code> with <code>--opacity-stale</code>.</p>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a> (readouts)</li><li><a href="../../mocks/pages/ride/offline.html">pages/ride/offline</a> (stale)</li><li><a href="../../mocks/pages/ride/edge.html">pages/ride/edge</a> (4-digit power)</li><li><a href="../../mocks/pages/ride/treadmill.html">pages/ride/treadmill</a> (speed and incline)</li><li><a href="../../mocks/pages/ride/treadmill-manual.html">pages/ride/treadmill-manual</a> (Ramping to 13.5)</li></ul><p>Drift fixed during extraction: stale readouts used inline <code>style="opacity: 0.45"</code>; now <code>.is-stale</code> with <code>--opacity-stale</code>.</p>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

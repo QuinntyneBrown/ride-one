@@ -14,7 +14,7 @@ On the treadmill, speed and incline take the place of the bike's resistance leve
 
 **command kind** — what a command entry sets: `resistance`, `speed` or `incline`, carried as `command`
 
-Speed is accepted from 1.0 to 16.0 km/h in steps of 0.1, and incline from 0 to 15 %. The upper speed limit is deliberately below the reference implementation's 22 km/h (ADR 0009). Both commands are written with response to the write characteristic `…f2` only. The bike's `F0 B1` frame sets resistance; on the treadmill the same type sets incline, so the builder is chosen by the machine, never by the caller's guess.
+Speed is accepted from 0.8 to 19.3 km/h (0.5 to 12 mph) in steps of 0.1, and incline from 0 to 10 %. These are the Echelon Stride's own ranges, inside what the reference implementation sends (0–22 km/h, 0–15 %) (ADR 0010). Both commands are written with response to the write characteristic `…f2` only. The bike's `F0 B1` frame sets resistance; on the treadmill the same type sets incline, so the builder is chosen by the machine, never by the caller's guess.
 
 The feature mirrors `resistance-control/set-resistance` and `resistance-control/log-resistance-commands` for the treadmill. The engine's use of these commands during a workout (plan and manual mode, resends) belongs to `treadmill/run-treadmill-workout`. The dashboard controls and toasts belong to `treadmill/treadmill-dashboard-and-setup`.
 
@@ -22,8 +22,8 @@ The feature mirrors `resistance-control/set-resistance` and `resistance-control/
 
 ### Protocol (`Wattzup.Protocol`)
 
-- **`EchelonTreadmillCommands.SetSpeed(double kmh)`** — throws `ArgumentOutOfRangeException` below `MinSpeedKmh` (1.0) or above `MaxSpeedKmh` (16.0), so nothing is written (L2-065 criterion 3). Otherwise it returns `F0 B2 02 <hi> <lo> <checksum>` with `value = round(kmh × 1000)` and the checksum of the frame reference.
-- **`EchelonTreadmillCommands.SetIncline(int percent)`** — throws below `MinIncline` (0) or above `MaxIncline` (15). Otherwise it returns `F0 B1 01 <percent> <checksum>`.
+- **`EchelonTreadmillCommands.SetSpeed(double kmh)`** — throws `ArgumentOutOfRangeException` below `MinSpeedKmh` (0.8) or above `MaxSpeedKmh` (19.3), so nothing is written (L2-065 criterion 3). Otherwise it returns `F0 B2 02 <hi> <lo> <checksum>` with `value = round(kmh × 1000)` and the checksum of the frame reference.
+- **`EchelonTreadmillCommands.SetIncline(int percent)`** — throws below `MinIncline` (0) or above `MaxIncline` (10). Otherwise it returns `F0 B1 01 <percent> <checksum>`.
 - The checksum is `EchelonCommands.Checksum`, the sum of the preceding bytes masked to 8 bits, shared with the bike.
 
 ### Core (`Wattzup.Core`)
@@ -47,17 +47,17 @@ The feature mirrors `resistance-control/set-resistance` and `resistance-control/
 
   | Case | Answer |
   |---|---|
-  | Speed 1.0–16.0 with at most 1 decimal | 200 `{"sent": <speed>}` |
-  | Speed out of range, more than 1 decimal, not a number, or no body | 400, `code` `invalid_speed`, `error` `speed must be 1.0-16.0` |
-  | Incline integer 0–15 | 200 `{"sent": <incline>}` |
-  | Incline out of range, not an integer, or no body | 400, `code` `invalid_incline`, `error` `incline must be 0-15` |
+  | Speed 0.8–19.3 with at most 1 decimal | 200 `{"sent": <speed>}` |
+  | Speed out of range, more than 1 decimal, not a number, or no body | 400, `code` `invalid_speed`, `error` `speed must be 0.8-19.3` |
+  | Incline integer 0–10 | 200 `{"sent": <incline>}` |
+  | Incline out of range, not an integer, or no body | 400, `code` `invalid_incline`, `error` `incline must be 0-10` |
   | Treadmill not connected | 503, `code` `treadmill_not_connected`, `error` `treadmill not connected` |
   | Write failed | 503, `code` `send_failed` |
   | Bike chosen | 409, `code` `wrong_machine` |
 
   The bodies are `SetSpeedRequest(double Speed)` and `SetInclineRequest(int Incline)`; the answers are `SpeedSent(double Sent)` and `InclineSent(int Sent)`. Both endpoints carry the control rate limit of L2-036 and the API key of L2-035 (L2-069 criterion 6).
 - **`ResistanceEndpoints`** — `POST /api/resistance` answers 409 with `code` = `wrong_machine` when the treadmill is chosen (L2-069 criterion 5), before it calls `IResistanceControl`.
-- The machine check compares the request with the chosen machine (`MachineSelector.Current`). AGENTS.md keeps rules out of endpoints, so the check should sit in the Core service the endpoint calls rather than in the endpoint. Where it sits, and whether it runs before or after validation of the value, is `<TO SUPPLY>` by the implementation; L2-069 does not fix the order.
+- The machine check compares the request with the chosen machine (`MachineSelector.Current`). AGENTS.md keeps rules out of endpoints, so the check should sit in the Core service the endpoint calls rather than in the endpoint. L2-069 criterion 5 validates the value first, so an invalid speed on the bike answers 400 and a valid one 409. Which Core service holds the check is `<TO SUPPLY>` by the implementation.
 
 ### Simulator (`Wattzup.Ble.Simulated`)
 
@@ -65,7 +65,7 @@ The feature mirrors `resistance-control/set-resistance` and `resistance-control/
 
 ### Acceptance tests
 
-`Wattzup.Protocol.Tests` hold `EchelonTreadmillCommandsTests`, one case per row of L2-065 criteria 1–3: speeds 9.0, 7.0, 1.0 and 16.0; inclines 0, 5 and 15; speeds 0.9 and 16.1 and inclines −1 and 16 refused.
+`Wattzup.Protocol.Tests` hold `EchelonTreadmillCommandsTests`, one case per row of L2-065 criteria 1–3: speeds 9.0 (`F0 B2 02 23 28 EF`), 7.0, 1.0, 0.8 (`F0 B2 02 03 20 C7`) and 19.3 (`F0 B2 02 4B 64 53`); inclines 0, 5 and 10 (`F0 B1 01 0A AC`); speeds 0.7 and 19.4 and inclines −1 and 11 refused.
 
 `Wattzup.Core.Tests` hold `CommandLogTests` for the kind-aware acknowledgement: a speed report acknowledges a speed entry; a newer speed entry for another value blocks an older one; a speed report leaves an incline entry `sending`; an incline report leaves a speed entry `sending`; a resistance entry carries `command` `resistance` and `value` equal to its level.
 
@@ -84,13 +84,13 @@ The rate limit and API key follow the representative paths of `platform/secure-a
 ### Open questions
 
 - **Speed acknowledgement precision.** The treadmill reports metres per hour, so a requested 9.0 km/h is confirmed by a report that rounds to 9.0. A console that moves in its own steps (for example 0.5 km/h) would never confirm 9.1; the entry then stays `sending` and the engine resends on the 5-second rule. Steps of 0.1 and 0.5 km/h are on the hardware list (item 8).
-- **Treadmill limits.** 16.0 km/h and 15 % are assumed to be within the treadmill's own maxima (hardware items 8 and 9).
+- **Treadmill limits.** 19.3 km/h and 10 % are the Echelon Stride's published maxima (ADR 0010); a person confirms them on hardware (hardware items 8 and 9).
 
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-065` | `L1-013` | Speed and incline commands. The backend builds `F0 B2 02 <hi> <lo> <checksum>` for 1.0–16.0 km/h and `F0 B1 01 <incline> <checksum>` for 0–15 %, writes each with response, sets `target_speed` or `target_incline`, and logs each in `commands` with `command` and `value`; a report acknowledges only entries of its own kind. |
+| `L2-065` | `L1-013` | Speed and incline commands. The backend builds `F0 B2 02 <hi> <lo> <checksum>` for 0.8–19.3 km/h and `F0 B1 01 <incline> <checksum>` for 0–10 %, writes each with response, sets `target_speed` or `target_incline`, and logs each in `commands` with `command` and `value`; a report acknowledges only entries of its own kind. |
 | `L2-069` | `L1-013` | Speed and incline endpoints. `POST /api/speed {"speed"}` and `POST /api/incline {"incline"}` answer 200 `{"sent"}`, 400 `invalid_speed` or `invalid_incline`, 503 `treadmill_not_connected` or `send_failed`, and 409 `wrong_machine` on the bike; `POST /api/resistance` answers 409 `wrong_machine` on the treadmill. |
 
 ## Diagrams

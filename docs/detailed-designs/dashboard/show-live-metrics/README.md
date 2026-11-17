@@ -66,6 +66,7 @@ Components (`frontend/src/app/dashboard/`, OnPush, signals only):
   - Speed shows `speed_kmh` with `km/h · <speed_mph> mph`, for example `25.1` `km/h · 15.6 mph` (L2-021).
   - Totals stay on screen after a ride ends or stops, because the backend keeps their final values until a new ride starts (L2-049).
 - **`RideTrace`** (`wz-ride-trace`, block `trace`) — a `figure` with the `trace__head` caption `Power vs. plan` and the `trace__legend` list. `trace__plot` holds the canvas, and `trace__axis` holds the ticks.
+- **With a ride-along video** — when `workout.plan.video` is set, `RidePage` puts the `Main view` tab list above the main area, with `Video` selected and `Power vs. plan`. `Video` shows `wz-ride-video` and `wz-plan-strip` in place of `RideTrace`. `Power vs. plan` shows `RideTrace` as above, while the hidden player keeps following the ride. With `video` `null` nothing changes (L2-076 criteria 1 and 2; `workouts/ride-along-video`).
   - The canvas carries `aria-hidden="true"`. A visually hidden summary reads `Average <avg_power> W against a plan average of <planAverage> W` (L2-028).
   - Tick positions are set through `[style.inset-inline-start.%]` bindings. The template has no static `style` attribute, and Angular applies the bindings through the CSSOM, which the CSP allows.
   - A `ResizeObserver` on `trace__plot` calls `resize` with `min(devicePixelRatio, 2)`, so the canvas follows layout and orientation changes and never renders above 2× (L2-028, L2-040).
@@ -87,9 +88,9 @@ Tests:
 
 Treadmill (`treadmill/treadmill-dashboard-and-setup`, L2-071):
 
-- Everything above applies when `machine` is `bike`. With `machine` `treadmill`, `RidePage` shows the speed and incline readouts (`Readout` kinds `speed` and `incline`) in place of power and cadence, and does not render `RideTrace` or its legend. No speed trace is drawn (ADR 0009).
-- `MetricsStrip` shows heart rate, distance and pace (`formatPace`, `m:ss` `/km`) on the treadmill, and does not show average power or energy, which are `null` there (L2-064, L2-071 criterion 4).
-- `PowerTraceStore` loads no trace on the treadmill, because the power trace is bike-only.
+- Everything above applies when `machine` is `bike`. With `machine` `treadmill`, `RidePage` shows the speed and incline readouts (`Readout` kinds `speed` and `incline`) in place of power and cadence, and `RideTrace` draws *Speed vs. plan* with an incline lane through the same `TraceRenderer` (ADR 0010, L2-071 criterion 6).
+- `MetricsStrip` shows Heart rate, Avg pace, Distance, Climbed and Energy on the treadmill, and does not show power or cadence; `kcal` there is the treadmill's estimate (L2-064 criterion 11, L2-071 criterion 7).
+- `PowerTraceStore` loads no trace on the treadmill, because the power trace is bike-only; `TreadmillTraceStore` keeps the reported speed and incline in the browser instead.
 
 ## Requirements
 
@@ -98,6 +99,7 @@ Treadmill (`treadmill/treadmill-dashboard-and-setup`, L2-071):
 | `L2-021` | `L1-006` | Power, cadence and speed readouts. |
 | `L2-022` | `L1-006` | Ride totals strip. |
 | `L2-026` | `L1-007` | Power vs. plan trace. The dashboard must draw the ride's estimated power against the plan's target power. |
+| `L2-076` | `L1-007` | Video ride-along. With a video in the plan, the main area offers `Video` and `Power vs. plan`; the trace is the second tab (criteria 1 and 2). |
 | `L2-028` | `L1-007` | Trace renderer with fallback. The trace must render with WebGL2, falling back to Canvas 2D. |
 
 ## Diagrams

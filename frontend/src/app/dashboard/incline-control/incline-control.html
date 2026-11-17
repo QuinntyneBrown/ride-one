@@ -1,4 +1,4 @@
-<div class="incline-control" role="group" aria-labelledby="incline-control-label">
+<div class="incline-control" role="group" [attr.aria-labelledby]="labelledBy()">
   <button
     class="step-btn"
     type="button"
@@ -9,9 +9,8 @@
     <wz-icon name="minus" size="lg" />
   </button>
   <div class="incline-control__readout">
-    <span class="incline-control__label" id="incline-control-label">Incline</span
-    ><span class="numeral" aria-live="polite">{{ valueText() }}</span
-    ><small>%</small>
+    <span class="numeral" aria-live="polite">{{ valueText() }}<small>%</small></span
+    ><small>of 10%</small>
   </div>
   <button
     class="step-btn"

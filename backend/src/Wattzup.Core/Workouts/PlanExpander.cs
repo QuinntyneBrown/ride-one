@@ -1,3 +1,5 @@
+using Wattzup.Protocol;
+
 namespace Wattzup.Core.Workouts;
 
 /// <summary>Expands a plan into its ordered segments (L2-045, L2-068).</summary>
@@ -6,7 +8,7 @@ public static class PlanExpander
     public const int WarmupSeconds = 180;
     public const int CooldownSeconds = 120;
     public const int WarmupCadence = 80;
-    public const int WorkCadence = 98;
+    public const int WorkCadence = 100;
     public const int RestCadence = 72;
     public const int CooldownCadence = 70;
 
@@ -30,7 +32,8 @@ public static class PlanExpander
             case HiitPlan { WorkSpeed: { } workSpeed, RestSpeed: { } restSpeed } hiit:
                 if (hiit.Warmup)
                 {
-                    Add(SegmentKind.Warmup, WarmupSeconds, null, null, null, restSpeed, 0);
+                    // The warm-up is a brisk walk: 1 km/h above the recover speed, at the recover incline (L2-068).
+                    Add(SegmentKind.Warmup, WarmupSeconds, null, null, null, Math.Min(Math.Round(restSpeed + 1.0, 1), EchelonTreadmillCommands.MaxSpeedKmh), hiit.RestIncline ?? 0);
                 }
 
                 for (var round = 1; round <= hiit.Rounds; round++)
@@ -69,6 +72,32 @@ public static class PlanExpander
                 if (hiit.Cooldown)
                 {
                     Add(SegmentKind.Cooldown, CooldownSeconds, Math.Max(1, hiit.RestLevel ?? 0), CooldownCadence, null);
+                }
+
+                break;
+            case IntervalsPlan intervals:
+                if (intervals.Warmup is { } warmup)
+                {
+                    Add(SegmentKind.Warmup, warmup.Seconds, warmup.Level, warmup.Cadence, null);
+                }
+
+                // Rounds run across sets; a recover carries the round of the effort before it (L2-045 criterion 8).
+                var effort = 0;
+                foreach (var set in intervals.Sets)
+                {
+                    for (var i = 0; i < set.Rounds; i++)
+                    {
+                        Add(SegmentKind.Work, set.WorkSeconds, set.WorkLevel, set.WorkCadence, ++effort);
+                        if (set.RestSeconds > 0)
+                        {
+                            Add(SegmentKind.Rest, set.RestSeconds, set.RestLevel, set.RestCadence, effort);
+                        }
+                    }
+                }
+
+                if (intervals.Cooldown is { } cooldown)
+                {
+                    Add(SegmentKind.Cooldown, cooldown.Seconds, cooldown.Level, cooldown.Cadence, null);
                 }
 
                 break;

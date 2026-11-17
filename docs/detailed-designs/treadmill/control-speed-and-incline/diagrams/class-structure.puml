@@ -74,10 +74,10 @@ abstract class SendResult <<record>> {
 }
 
 class EchelonTreadmillCommands <<static>> {
-  +double MinSpeedKmh = 1.0
-  +double MaxSpeedKmh = 16.0
+  +double MinSpeedKmh = 0.8
+  +double MaxSpeedKmh = 19.3
   +int MinIncline = 0
-  +int MaxIncline = 15
+  +int MaxIncline = 10
   +SetSpeed(kmh: double): byte[]
   +SetIncline(percent: int): byte[]
 }

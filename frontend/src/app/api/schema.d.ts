@@ -337,6 +337,10 @@ export interface components {
             belt: null | components["schemas"]["BeltState"];
             /** Format: int32 */
             belt_countdown: null | number;
+            /** Format: int32 */
+            climb_m: null | number;
+            nearby: components["schemas"]["NearbyMachine"][];
+            treadmill_enabled: boolean;
         };
         /** @enum {unknown} */
         BleState: "starting" | "scanning" | "connecting" | "connected" | "disconnected" | "error";
@@ -392,10 +396,37 @@ export interface components {
             /** Format: int32 */
             sent: number;
         };
+        IntervalSet: {
+            /** Format: int32 */
+            rounds: number;
+            /** Format: int32 */
+            work_seconds: number;
+            /** Format: int32 */
+            work_level: number;
+            /** Format: int32 */
+            work_cadence: number;
+            /** Format: int32 */
+            rest_seconds: number;
+            /** Format: int32 */
+            rest_level: number;
+            /** Format: int32 */
+            rest_cadence: number;
+        };
         /** @enum {unknown} */
         Machine: "bike" | "treadmill";
         MachineChosen: {
             machine: components["schemas"]["Machine"];
+        };
+        NearbyMachine: {
+            machine: components["schemas"]["Machine"];
+            name: null | string;
+            label: string;
+            /** Format: int32 */
+            rssi: null | number;
+            /** Format: int32 */
+            signal: number;
+            /** Format: double */
+            seen_at: number;
         };
         PowerTrace: {
             samples: number[][];
@@ -420,6 +451,16 @@ export interface components {
         ResistanceSent: {
             /** Format: int32 */
             sent: number;
+        };
+        RideVideo: {
+            video_id: string;
+            /** Format: double */
+            start_seconds: number;
+        };
+        RideVideoLink: {
+            url: string;
+            /** Format: double */
+            start_seconds: number;
         };
         Segment: {
             kind: components["schemas"]["SegmentKind"];
@@ -456,10 +497,18 @@ export interface components {
             /** Format: double */
             sent: number;
         };
+        Stretch: {
+            /** Format: int32 */
+            seconds: number;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            cadence: number;
+        };
         WorkoutChanged: {
             workout: components["schemas"]["WorkoutSnapshot"];
         };
-        WorkoutPlan: components["schemas"]["WorkoutPlanHiitPlan"] | components["schemas"]["WorkoutPlanFlatPlan"];
+        WorkoutPlan: components["schemas"]["WorkoutPlanHiitPlan"] | components["schemas"]["WorkoutPlanFlatPlan"] | components["schemas"]["WorkoutPlanIntervalsPlan"];
         WorkoutPlanFlatPlan: {
             /** @enum {string} */
             kind: "flat";
@@ -473,6 +522,7 @@ export interface components {
             speed: null | number;
             /** Format: int32 */
             incline: null | number;
+            video: null | components["schemas"]["RideVideo"];
         };
         WorkoutPlanHiitPlan: {
             /** @enum {string} */
@@ -497,6 +547,15 @@ export interface components {
             work_incline: null | number;
             /** Format: int32 */
             rest_incline: null | number;
+            video: null | components["schemas"]["RideVideo"];
+        };
+        WorkoutPlanIntervalsPlan: {
+            /** @enum {string} */
+            kind: "intervals";
+            warmup: null | components["schemas"]["Stretch"];
+            sets: components["schemas"]["IntervalSet"][];
+            cooldown: null | components["schemas"]["Stretch"];
+            video: null | components["schemas"]["RideVideo"];
         };
         WorkoutSnapshot: {
             plan: components["schemas"]["WorkoutPlan"];
@@ -895,6 +954,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description A plan. Its optional video is sent as a RideVideoLink {url, start_seconds}; the answer reports it as a RideVideo {video_id, start_seconds}. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["WorkoutPlan"];

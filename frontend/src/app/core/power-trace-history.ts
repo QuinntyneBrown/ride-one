@@ -8,6 +8,11 @@ export class PowerTraceHistory {
   readonly watts = new Int32Array(TRACE_CAPACITY);
   private count = 0;
 
+  /** The watts, as a trace series reads them. */
+  get values(): Int32Array {
+    return this.watts;
+  }
+
   get length(): number {
     return this.count;
   }

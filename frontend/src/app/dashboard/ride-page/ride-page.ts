@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  untracked,
+} from '@angular/core';
 import { CommandFeedbackService } from '../../core/command-feedback.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
@@ -15,6 +24,8 @@ import { resistanceView } from '../../core/resistance-view';
 import { rideViewState } from '../../core/ride-view-state';
 import { TreadmillCommandService } from '../../core/treadmill-command.service';
 import {
+  baseIncline,
+  baseSpeed,
   stepIncline,
   stepSpeed,
   treadmillControlsState,
@@ -23,9 +34,12 @@ import {
 import { inclineView, speedView } from '../../core/treadmill-view';
 import { InclineControl } from '../incline-control/incline-control';
 import { SpeedControl } from '../speed-control/speed-control';
+import { QuickSpeeds } from '../quick-speeds/quick-speeds';
+import { formatPace } from '../../core/pace';
+import { Icon } from '../icon/icon';
 import { CmdLog } from '../cmd-log/cmd-log';
 import { LevelControl } from '../level-control/level-control';
-import { LevelPicker } from '../level-picker/level-picker';
+import { LevelPicker, inclineView as pickerView } from '../level-picker/level-picker';
 import { PlanNote } from '../plan-note/plan-note';
 import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
@@ -36,14 +50,21 @@ import { Interval } from '../interval/interval';
 import { MetricsStrip } from '../metrics-strip/metrics-strip';
 import { PhaseBanner } from '../phase-banner/phase-banner';
 import { Readout } from '../readout/readout';
+import { VideoSync } from '../../core/video-sync.service';
+import { type MainView, MainViewTabs } from '../main-view-tabs/main-view-tabs';
+import { PlanStrip } from '../plan-strip/plan-strip';
+import { RideVideo } from '../ride-video/ride-video';
 
 /** Route `/`: the ride dashboard. */
 @Component({
   selector: 'wz-ride-page',
   imports: [
     AppBar,
+    NgTemplateOutlet,
+    QuickSpeeds,
     CmdLog,
     ConnectionBanner,
+    Icon,
     InclineControl,
     SpeedControl,
     LoadError,
@@ -56,8 +77,11 @@ import { Readout } from '../readout/readout';
     PhaseBanner,
     PlanNote,
     Readout,
+    MainViewTabs,
+    PlanStrip,
+    RideVideo,
   ],
-  providers: [CountdownService, CueDirector],
+  providers: [CountdownService, CueDirector, VideoSync],
   templateUrl: './ride-page.html',
   styleUrl: './ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +90,18 @@ export class RidePage {
   protected readonly live = inject(LiveStateService);
   protected readonly state = this.live.state;
   protected readonly workout = computed(() => this.state()?.workout ?? null);
+  /** The ride-along video of the workout, or null (L2-076 AC1). */
+  protected readonly video = computed(() => this.workout()?.plan.video ?? null);
+  /** Which tab shows; back to Video for each new workout, kept until it ends (L2-076 AC2). */
+  protected readonly mainView = linkedSignal<string | null, MainView>({
+    source: computed(() => (this.workout() ? JSON.stringify(this.workout()!.plan) : null)),
+    computation: () => 'video',
+  });
+  private readonly videoSync = inject(VideoSync);
+  /** A player error selects Power vs. plan; the ride carries on (L2-076 AC7). */
+  private readonly onVideoError = effect(() => {
+    if (this.videoSync.failed()) untracked(() => this.mainView.set('chart'));
+  });
   protected readonly view = computed(() =>
     rideViewState(this.state(), this.live.connection(), this.live.loadFailed()),
   );
@@ -96,6 +132,14 @@ export class RidePage {
 
   protected readonly commands = inject(ResistanceCommandService);
   protected readonly actions = inject(RideActions);
+  /** Switching machines is offered only with treadmill support on (L2-073 AC11, L2-075). */
+  protected readonly canSwitch = computed(() => this.state()?.treadmill_enabled === true);
+  /** `End and switch to bike` on the treadmill, `… to treadmill` on the bike (L2-071 AC12). */
+  protected readonly switchLabel = computed(() =>
+    this.state()?.machine === 'treadmill'
+      ? 'End and switch to bike'
+      : 'End and switch to treadmill',
+  );
   protected readonly dialogs = inject(DialogLauncher);
   protected readonly overlay = computed(() => {
     const kind = this.view().overlay;
@@ -118,8 +162,21 @@ export class RidePage {
     treadmillControlsState(this.state(), this.view().commandsEnabled),
   );
   protected readonly treadmillNote = computed(() => {
-    const note = this.view().controlsNote;
+    const note = this.view().controlsNote ?? this.treadmillControls().note;
     return note ? { text: note, backToPlan: false } : treadmillPlanNote(this.state());
+  });
+  /** The panel's target speed and incline, and the device tail for the log (L2-071 AC8, 9, 12). */
+  protected readonly treadmillTargets = computed(() => {
+    const s = this.state();
+    const speed = baseSpeed(s);
+    const incline = baseIncline(s);
+    return {
+      speedText: speed.toFixed(1),
+      speedNote: `km/h target · ${formatPace(speed)} /km`,
+      inclineText: String(incline),
+      inclinePicker: pickerView(incline),
+      deviceTail: s?.device ? s.device.slice(-6) : null,
+    };
   });
   protected readonly treadmillCommands = inject(TreadmillCommandService);
 
@@ -138,5 +195,10 @@ export class RidePage {
   constructor() {
     inject(CommandFeedbackService).start();
     this.live.ensureStarted();
+  }
+
+  protected switchMachine(event: Event): void {
+    event.preventDefault();
+    this.actions.switchMachine();
   }
 }

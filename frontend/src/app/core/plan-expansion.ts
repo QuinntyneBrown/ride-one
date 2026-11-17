@@ -1,20 +1,85 @@
 // The frontend's single implementation of the plan rules (L2-045, L2-060, L2-049, L2-068),
 // mirroring PlanExpander, WorkoutSummary and PowerEstimator in Wattzup.Core.
-import type { Segment, WorkoutPlan } from './api-types';
+import type { IntervalsPlan, Segment, StartPlan, WorkoutPlan } from './api-types';
 import { formatDuration } from './format-duration';
 
 export const WARMUP_SECONDS = 180;
 export const COOLDOWN_SECONDS = 120;
+/** Cadence aims of a `hiit` plan's segments, in rpm (L2-045). */
+export const WARMUP_CADENCE = 80;
+export const WORK_CADENCE = 100;
+export const REST_CADENCE = 72;
+export const COOLDOWN_CADENCE = 70;
+/** The Echelon Stride's top speed (L2-065, ADR 0010). */
+export const MAX_TREADMILL_SPEED = 19.3;
 
 /** A treadmill plan carries speeds in place of levels (L2-067). */
-export function isTreadmillPlan(plan: WorkoutPlan): boolean {
+export function isTreadmillPlan(plan: WorkoutPlan | StartPlan): boolean {
+  if (plan.kind === 'intervals') return false;
   return plan.kind === 'flat'
     ? plan.speed !== null
     : plan.work_speed !== null && plan.rest_speed !== null;
 }
 
+/** The number of efforts in an intervals plan: the rounds of every set. */
+export function effortCount(plan: IntervalsPlan): number {
+  return plan.sets.reduce((sum, s) => sum + s.rounds, 0);
+}
+
+/** Expands an intervals plan; rounds run across sets (L2-045 criteria 7 and 8). */
+function expandIntervalsPlan(plan: IntervalsPlan): Segment[] {
+  const segments: Segment[] = [];
+  let start = 0;
+  const push = (s: Omit<Segment, 'start' | 'speed' | 'incline'>): void => {
+    segments.push({ ...s, start, speed: null, incline: null });
+    start += s.duration;
+  };
+  const { warmup, cooldown } = plan;
+  if (warmup) {
+    push({
+      kind: 'warmup',
+      duration: warmup.seconds,
+      level: warmup.level,
+      cadence: warmup.cadence,
+      round: null,
+    });
+  }
+  let effort = 0;
+  for (const set of plan.sets) {
+    for (let i = 0; i < set.rounds; i++) {
+      effort++;
+      push({
+        kind: 'work',
+        duration: set.work_seconds,
+        level: set.work_level,
+        cadence: set.work_cadence,
+        round: effort,
+      });
+      if (set.rest_seconds > 0) {
+        push({
+          kind: 'rest',
+          duration: set.rest_seconds,
+          level: set.rest_level,
+          cadence: set.rest_cadence,
+          round: effort,
+        });
+      }
+    }
+  }
+  if (cooldown) {
+    push({
+      kind: 'cooldown',
+      duration: cooldown.seconds,
+      level: cooldown.level,
+      cadence: cooldown.cadence,
+      round: null,
+    });
+  }
+  return segments;
+}
+
 /** Expands a treadmill plan (L2-068 criteria 1 and 2). */
-function expandTreadmillPlan(plan: WorkoutPlan): Segment[] {
+function expandTreadmillPlan(plan: Exclude<WorkoutPlan, IntervalsPlan>): Segment[] {
   const segments: Segment[] = [];
   let start = 0;
   const push = (
@@ -31,7 +96,14 @@ function expandTreadmillPlan(plan: WorkoutPlan): Segment[] {
     push('steady', plan.minutes * 60, plan.speed, plan.incline ?? 0, null);
     return segments;
   }
-  if (plan.warmup) push('warmup', WARMUP_SECONDS, plan.rest_speed, 0, null);
+  // The warm-up is a brisk walk: 1 km/h above the recover speed, at the recover incline (L2-068).
+  if (plan.warmup) {
+    const warmupSpeed = Math.min(
+      Math.round(((plan.rest_speed ?? 0) + 1) * 10) / 10,
+      MAX_TREADMILL_SPEED,
+    );
+    push('warmup', WARMUP_SECONDS, warmupSpeed, plan.rest_incline ?? 0, null);
+  }
   for (let round = 1; round <= plan.rounds; round++) {
     push('work', plan.work_seconds, plan.work_speed, plan.work_incline ?? 0, round);
     if (!(plan.cooldown && round === plan.rounds)) {
@@ -43,6 +115,7 @@ function expandTreadmillPlan(plan: WorkoutPlan): Segment[] {
 }
 
 export function expandPlan(plan: WorkoutPlan): Segment[] {
+  if (plan.kind === 'intervals') return expandIntervalsPlan(plan);
   if (isTreadmillPlan(plan)) return expandTreadmillPlan(plan);
   if (plan.kind === 'flat') {
     return [
@@ -70,18 +143,24 @@ export function expandPlan(plan: WorkoutPlan): Segment[] {
       kind: 'warmup',
       duration: WARMUP_SECONDS,
       level: Math.max(1, restLevel + 2),
-      cadence: 80,
+      cadence: WARMUP_CADENCE,
       round: null,
     });
   }
   for (let round = 1; round <= plan.rounds; round++) {
-    push({ kind: 'work', duration: plan.work_seconds, level: plan.work_level, cadence: 98, round });
+    push({
+      kind: 'work',
+      duration: plan.work_seconds,
+      level: plan.work_level,
+      cadence: WORK_CADENCE,
+      round,
+    });
     if (!(plan.cooldown && round === plan.rounds)) {
       push({
         kind: 'rest',
         duration: plan.rest_seconds,
         level: plan.rest_level,
-        cadence: 72,
+        cadence: REST_CADENCE,
         round,
       });
     }
@@ -91,7 +170,7 @@ export function expandPlan(plan: WorkoutPlan): Segment[] {
       kind: 'cooldown',
       duration: COOLDOWN_SECONDS,
       level: Math.max(1, restLevel),
-      cadence: 70,
+      cadence: COOLDOWN_CADENCE,
       round: null,
     });
   }
@@ -103,8 +182,13 @@ export function totalSeconds(segments: readonly Segment[]): number {
 }
 
 export function planSummary(plan: WorkoutPlan): string {
+  if (plan.kind === 'intervals') {
+    const n = effortCount(plan);
+    return `Intervals · ${n} ${n === 1 ? 'effort' : 'efforts'} · ${formatDuration(totalSeconds(expandPlan(plan)))}`;
+  }
   if (plan.kind === 'flat') {
-    if (plan.speed !== null) return `Flat · ${plan.speed.toFixed(1)} km/h · ${plan.minutes} min`;
+    if (plan.speed !== null)
+      return `Steady · ${plan.speed.toFixed(1)} km/h at ${plan.incline ?? 0}% · ${plan.minutes} min`;
     return `Flat · Level ${plan.level} · ${plan.minutes} min`;
   }
   if (plan.work_seconds < 60) {

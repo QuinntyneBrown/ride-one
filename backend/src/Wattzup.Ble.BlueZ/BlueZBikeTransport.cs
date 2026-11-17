@@ -220,7 +220,8 @@ public sealed class BlueZBikeTransport : IBikeTransport, IAsyncDisposable
         var uuids = properties.TryGetValue("UUIDs", out var u) && u.Type == VariantValueType.Array
             ? u.GetArray<string>()
             : [];
-        return new BikeAdvertisement(name, address, uuids);
+        int? rssi = properties.TryGetValue("RSSI", out var r) && r.Type == VariantValueType.Int16 ? r.GetInt16() : null;
+        return new BikeAdvertisement(name, address, uuids, rssi);
     }
 
     private static string AddressFromPath(string path)

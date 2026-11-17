@@ -1,26 +1,27 @@
 {
   "ble": "connected",
   "device": "STRIDE-SIM-0001",
-  "device_label": "STRIDE-SIM-0001",
+  "device_label": "Echelon Stride",
   "error": null,
   "resistance": null,
   "target_resistance": null,
   "workout": {
     "plan": {
       "kind": "hiit",
-      "rounds": 18,
-      "work_seconds": 40,
-      "rest_seconds": 20,
+      "rounds": 6,
+      "work_seconds": 60,
+      "rest_seconds": 60,
       "work_level": null,
       "rest_level": null,
       "warmup": true,
       "cooldown": true,
-      "work_speed": 9,
-      "rest_speed": 7,
-      "work_incline": 0,
-      "rest_incline": 0
+      "work_speed": 13,
+      "rest_speed": 6,
+      "work_incline": 2,
+      "rest_incline": 1,
+      "video": null
     },
-    "summary": "HIIT · 18 × 40s / 20s",
+    "summary": "HIIT · 6 × 1:00 / 1:00",
     "segments": [
       {
         "kind": "warmup",
@@ -30,373 +31,133 @@
         "cadence": null,
         "round": null,
         "speed": 7,
-        "incline": 0
+        "incline": 1
       },
       {
         "kind": "work",
         "start": 180,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
         "round": 1,
-        "speed": 9,
-        "incline": 0
+        "speed": 13,
+        "incline": 2
       },
       {
         "kind": "rest",
-        "start": 220,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 1,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
         "start": 240,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 2,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 280,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 2,
-        "speed": 7,
-        "incline": 0
+        "round": 1,
+        "speed": 6,
+        "incline": 1
       },
       {
         "kind": "work",
         "start": 300,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 3,
-        "speed": 9,
-        "incline": 0
+        "round": 2,
+        "speed": 13,
+        "incline": 2
       },
       {
         "kind": "rest",
-        "start": 340,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 3,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
         "start": 360,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 4,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 400,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 4,
-        "speed": 7,
-        "incline": 0
+        "round": 2,
+        "speed": 6,
+        "incline": 1
       },
       {
         "kind": "work",
         "start": 420,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 5,
-        "speed": 9,
-        "incline": 0
+        "round": 3,
+        "speed": 13,
+        "incline": 2
       },
       {
         "kind": "rest",
-        "start": 460,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 5,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
         "start": 480,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 6,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 520,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 6,
-        "speed": 7,
-        "incline": 0
+        "round": 3,
+        "speed": 6,
+        "incline": 1
       },
       {
         "kind": "work",
         "start": 540,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 7,
-        "speed": 9,
-        "incline": 0
+        "round": 4,
+        "speed": 13,
+        "incline": 2
       },
       {
         "kind": "rest",
-        "start": 580,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 7,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
         "start": 600,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 8,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 640,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 8,
-        "speed": 7,
-        "incline": 0
+        "round": 4,
+        "speed": 6,
+        "incline": 1
       },
       {
         "kind": "work",
         "start": 660,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 9,
-        "speed": 9,
-        "incline": 0
+        "round": 5,
+        "speed": 13,
+        "incline": 2
       },
       {
         "kind": "rest",
-        "start": 700,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 9,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
         "start": 720,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 10,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 760,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 10,
-        "speed": 7,
-        "incline": 0
+        "round": 5,
+        "speed": 6,
+        "incline": 1
       },
       {
         "kind": "work",
         "start": 780,
-        "duration": 40,
+        "duration": 60,
         "level": null,
         "cadence": null,
-        "round": 11,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 820,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 11,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
-        "start": 840,
-        "duration": 40,
-        "level": null,
-        "cadence": null,
-        "round": 12,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 880,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 12,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
-        "start": 900,
-        "duration": 40,
-        "level": null,
-        "cadence": null,
-        "round": 13,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 940,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 13,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
-        "start": 960,
-        "duration": 40,
-        "level": null,
-        "cadence": null,
-        "round": 14,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 1000,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 14,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
-        "start": 1020,
-        "duration": 40,
-        "level": null,
-        "cadence": null,
-        "round": 15,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 1060,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 15,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
-        "start": 1080,
-        "duration": 40,
-        "level": null,
-        "cadence": null,
-        "round": 16,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 1120,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 16,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
-        "start": 1140,
-        "duration": 40,
-        "level": null,
-        "cadence": null,
-        "round": 17,
-        "speed": 9,
-        "incline": 0
-      },
-      {
-        "kind": "rest",
-        "start": 1180,
-        "duration": 20,
-        "level": null,
-        "cadence": null,
-        "round": 17,
-        "speed": 7,
-        "incline": 0
-      },
-      {
-        "kind": "work",
-        "start": 1200,
-        "duration": 40,
-        "level": null,
-        "cadence": null,
-        "round": 18,
-        "speed": 9,
-        "incline": 0
+        "round": 6,
+        "speed": 13,
+        "incline": 2
       },
       {
         "kind": "cooldown",
-        "start": 1240,
+        "start": 840,
         "duration": 120,
         "level": null,
         "cadence": null,
         "round": null,
-        "speed": 7,
+        "speed": 6,
         "incline": 0
       }
     ],
     "segment": 0,
-    "remaining": 179,
-    "elapsed_seconds": 1,
-    "total_seconds": 1360,
+    "remaining": 180,
+    "elapsed_seconds": 0,
+    "total_seconds": 960,
     "mode": "plan",
     "plan_level": null,
     "status": "running",
@@ -405,9 +166,9 @@
   "cadence": null,
   "speed_kmh": 7,
   "speed_mph": 4.3,
-  "packets": 32,
-  "first_data_at": 1794827506.701,
-  "last_data_at": 1794827545.697,
+  "packets": 16,
+  "first_data_at": 1794882571.516,
+  "last_data_at": 1794882584.509,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -415,27 +176,27 @@
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8798",
+  "bind_address": "127.0.0.1:8797",
   "connection_id": "0bf669f1",
   "power": null,
   "target_power": null,
   "avg_power": null,
   "distance_km": 0,
-  "kcal": null,
+  "kcal": 0,
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794827545.697,
+      "at": 1794882584.509,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
       "status": "ack",
       "ack_ms": 0,
       "command": "incline",
-      "value": 0
+      "value": 1
     },
     {
-      "at": 1794827545.697,
+      "at": 1794882584.509,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -445,7 +206,7 @@
       "value": 7
     },
     {
-      "at": 1794827540.268,
+      "at": 1794882578.162,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -455,7 +216,7 @@
       "value": 2
     },
     {
-      "at": 1794827540.262,
+      "at": 1794882578.157,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -467,8 +228,28 @@
   ],
   "machine": "treadmill",
   "target_speed": 7,
-  "incline": 0,
-  "target_incline": 0,
+  "incline": 1,
+  "target_incline": 1,
   "belt": "running",
-  "belt_countdown": null
+  "belt_countdown": null,
+  "climb_m": 0,
+  "nearby": [
+    {
+      "machine": "bike",
+      "name": "ECHSIM-0001",
+      "label": "ECHSIM-0001",
+      "rssi": -68,
+      "signal": 3,
+      "seen_at": 1794882576.645
+    },
+    {
+      "machine": "treadmill",
+      "name": "STRIDE-SIM-0001",
+      "label": "Echelon Stride",
+      "rssi": -55,
+      "signal": 4,
+      "seen_at": 1794882576.645
+    }
+  ],
+  "treadmill_enabled": true
 }

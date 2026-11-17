@@ -1,249 +1,344 @@
 import { expect, test } from './fixtures/wz-test';
+import { MachinePage } from './pages/machine.page';
 import { SetupPage } from './pages/setup.page';
-import { freeRide, state, treadmillIdle } from './fixtures/states';
-import machineTreadmill from './fixtures/recorded/machine-treadmill.json';
+import { freeRide, NOW, state, treadmillIdle } from './fixtures/states';
+import workoutStopped from './fixtures/recorded/workout-stopped.json';
+import { EndRideDialog } from './pages/end-ride.dialog';
 import treadmillStarted from './fixtures/recorded/treadmill-workout-started.json';
 import invalidTreadmillWorkout from './fixtures/recorded/problem-invalid-treadmill-workout.json';
 
-/** The treadmill HIIT plan the setup form starts with (L2-072 AC4). */
+/** The treadmill HIIT plan the setup form starts with: Minute on (L2-072 AC4). */
 const TREADMILL_DEFAULT_PLAN = {
   kind: 'hiit',
-  rounds: 18,
-  work_seconds: 40,
-  rest_seconds: 20,
+  video: null,
+  rounds: 6,
+  work_seconds: 60,
+  rest_seconds: 60,
   work_level: null,
   rest_level: null,
   warmup: true,
   cooldown: true,
-  work_speed: 9,
-  rest_speed: 7,
-  work_incline: 0,
-  rest_incline: 0,
+  work_speed: 13,
+  rest_speed: 6,
+  work_incline: 2,
+  rest_incline: 1,
 };
 
-test.describe('Machine choice on setup (L2-072)', () => {
-  test('shows the Machine choice first with the current machine checked', async ({
+test.describe('Setup header (L2-072 AC1, L2-073 AC9)', () => {
+  test('shows the device status line, Switch to bike and Close, and no machine choice', async ({
     page,
     api,
     events,
   }) => {
     const setup = new SetupPage(page, api, events);
-    await setup.open(freeRide());
-    await expect(setup.machineChoice).toBeVisible();
-    await expect(setup.bikeOption).toBeChecked();
-    await expect(setup.treadmillOption).not.toBeChecked();
-    await expect(setup.lead).toHaveText("Wattzup drives the bike's resistance for you. Pick how.");
-
     await setup.open(treadmillIdle());
-    await expect(setup.treadmillOption).toBeChecked();
-    await expect(setup.lead).toHaveText(
-      "Wattzup drives the treadmill's speed and incline for you. Pick how.",
-    );
+    await expect(setup.statusName).toHaveText('STRIDE-8s22-000766');
+    await expect(setup.switchLink).toHaveText('Switch to bike');
+    await expect(setup.closeLink).toBeVisible();
+    await expect(setup.machineGroup).toHaveCount(0);
+
+    await setup.open(freeRide({ treadmill_enabled: true }));
+    await expect(setup.statusName).toHaveText('Echelon EX-5s');
+    await expect(setup.switchLink).toHaveText('Switch to treadmill');
+    await expect(setup.machineGroup).toHaveCount(0);
   });
 
-  test('switches the machine and the form, and reverts with an alert on failure', async ({
+  test('Switch to … opens the machine page at once with no workout', async ({
     page,
     api,
     events,
   }) => {
-    api.on('POST', '/api/machine', { json: machineTreadmill });
     const setup = new SetupPage(page, api, events);
-    await setup.open(freeRide());
-    await setup.treadmillOption.check();
-    const [call] = await api.waitForCall('POST', '/api/machine');
-    expect(call?.body).toEqual({ machine: 'treadmill' });
-    await expect(setup.treadmillOption).toBeChecked();
-    await expect(setup.lead).toHaveText(
-      "Wattzup drives the treadmill's speed and incline for you. Pick how.",
-    );
-    await expect(setup.machineError).toHaveCount(0);
-
-    api.on('POST', '/api/machine', { abort: true });
-    await events.push(treadmillIdle());
-    await setup.bikeOption.check();
-    await expect(setup.machineError).toBeVisible();
-    await expect(setup.machineError).toContainText("The Wattzup server didn't answer. Try again.");
-    await expect(setup.treadmillOption).toBeChecked();
-    await expect(setup.lead).toHaveText(
-      "Wattzup drives the treadmill's speed and incline for you. Pick how.",
-    );
+    await setup.open(treadmillIdle());
+    await setup.switchLink.click();
+    await expect(page).toHaveURL(/\/machine$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('What are you training on?');
   });
 
-  test('disables the machine choice during a ride', async ({ page, api, events }) => {
+  test('with a workout, Switch to … ends it through the end dialog, then opens the machine page', async ({
+    page,
+    api,
+    events,
+  }) => {
+    api.on('POST', '/api/workout/stop', { json: workoutStopped });
     const setup = new SetupPage(page, api, events);
-    await setup.open(state());
-    await expect(setup.machineChoice).toHaveAttribute('disabled', '');
-    await expect(setup.treadmillOption).toBeDisabled();
-    await expect(setup.bikeOption).toBeDisabled();
-    await expect(setup.machineHelp).toHaveText('End the ride in progress to change the machine.');
-    await expect(setup.machineChoice).toHaveAttribute('aria-describedby', 'machine-help');
+    const end = new EndRideDialog(page);
+    await setup.open(state({ treadmill_enabled: true }));
+    await setup.switchLink.click();
+    await expect(end.dialog).toBeVisible();
+    await expect(page).toHaveURL(/\/setup$/);
+    await end.endRideButton.click();
+    await api.waitForCall('POST', '/api/workout/stop');
+    await expect(page).toHaveURL(/\/machine$/);
   });
 });
 
-test.describe('Treadmill plan on setup (L2-072, L2-067)', () => {
-  test('shows the treadmill HIIT defaults', async ({ page, api, events }) => {
+test.describe('Run Setup (L2-072, L2-067)', () => {
+  test('titles the screen Set up your run with the HIIT and Steady cards', async ({
+    page,
+    api,
+    events,
+  }) => {
     const setup = new SetupPage(page, api, events);
     await setup.open(treadmillIdle());
-    await expect(setup.hiitCard).toBeChecked();
-    await expect(setup.field('Rounds')).toHaveValue('18');
-    await expect(setup.field('Work')).toHaveValue('0:40');
-    await expect(setup.field('Recover')).toHaveValue('0:20');
-    await expect(setup.field('Work speed (km/h)')).toHaveValue('9.0');
-    await expect(setup.field('Recover speed (km/h)')).toHaveValue('7.0');
-    await expect(setup.field('Work incline (%)')).toHaveValue('0');
-    await expect(setup.field('Recover incline (%)')).toHaveValue('0');
-    await expect(setup.warmup).toBeChecked();
-    await expect(setup.cooldown).toBeChecked();
+    await expect(setup.heading).toHaveText('Set up your run');
+    await expect(setup.lead).toHaveText(
+      "Wattzup drives the Stride's belt speed and incline for you. Pick how.",
+    );
+    await expect(setup.modeCard('HIIT intervals')).toContainText(
+      'Hard and easy efforts on repeat. Speed and incline switch at every interval.',
+    );
+    await expect(setup.modeCard('Steady')).toContainText(
+      'One speed and one incline, held the whole run. Good for hill walks and easy miles.',
+    );
     await expect(setup.slider('Work resistance')).toHaveCount(0);
   });
 
-  test('shows the treadmill flat defaults', async ({ page, api, events }) => {
+  test('previews the Minute on run', async ({ page, api, events }) => {
     const setup = new SetupPage(page, api, events);
     await setup.open(treadmillIdle());
-    await setup.flatSpeedCard.check();
-    await expect(setup.field('Speed (km/h)')).toHaveValue('7.0');
-    await expect(setup.field('Incline (%)')).toHaveValue('0');
-    await expect(setup.field('Duration')).toHaveValue('30 min');
-    await expect(setup.field('Cadence goal')).toHaveCount(0);
-    await expect(setup.presets).toHaveCount(0);
-  });
-
-  test('steps speed by 0.5 and incline by 1', async ({ page, api, events }) => {
-    const setup = new SetupPage(page, api, events);
-    await setup.open(treadmillIdle());
-    await setup.more('work speed').click();
-    await expect(setup.field('Work speed (km/h)')).toHaveValue('9.5');
-    await setup.less('recover speed').click();
-    await expect(setup.field('Recover speed (km/h)')).toHaveValue('6.5');
-    await setup.more('work incline').click();
-    await expect(setup.field('Work incline (%)')).toHaveValue('1');
-    await setup.less('recover incline').click();
-    await expect(setup.field('Recover incline (%)')).toHaveValue('0');
-  });
-
-  test('names an out-of-range speed or incline and lists it in the summary', async ({
-    page,
-    api,
-    events,
-  }) => {
-    const setup = new SetupPage(page, api, events);
-    await setup.open(treadmillIdle());
-    await setup.field('Work speed (km/h)').fill('16.5');
-    await setup.field('Recover speed (km/h)').fill('9.25');
-    await setup.field('Recover incline (%)').fill('16');
-    await expect(setup.fieldError('Work speed (km/h)')).toHaveText(
-      'Speed must be 1.0 to 16.0 km/h.',
+    await expect(setup.previewHeading).toHaveText('Your run');
+    await expect(setup.total).toHaveText('16:00');
+    await expect(setup.total).toHaveAttribute('aria-label', 'Total run time 16:00');
+    await expect(setup.profile.first()).toHaveAttribute(
+      'aria-label',
+      'Speed profile: 6 × 1:00 / 1:00, top speed 13.0 km/h',
     );
-    await expect(setup.fieldError('Recover speed (km/h)')).toHaveText('Enter a speed like 9.0.');
-    await expect(setup.fieldError('Recover incline (%)')).toHaveText('Incline must be 0 to 15 %.');
-    await expect(setup.formSummaryTitle).toHaveText('3 things to fix before you start');
-    await expect(setup.formSummaryLinks).toHaveText([
-      'Work speed — 1.0 to 16.0 km/h',
-      'Recover speed — 1.0 to 16.0 km/h',
-      'Recover incline — 0 to 15 %',
-    ]);
-    await expect(setup.formSummaryLinks.first()).toHaveAttribute('href', '#work-speed');
-    await expect(setup.startButton).toBeDisabled();
-    await expect(setup.total).toHaveText('—');
-
-    await setup.field('Recover incline (%)').fill('1.5');
-    await expect(setup.fieldError('Recover incline (%)')).toHaveText('Enter a whole number.');
-
-    await setup.flatSpeedCard.check();
-    await setup.field('Speed (km/h)').fill('0.5');
-    await setup.field('Incline (%)').fill('-1');
-    await expect(setup.formSummaryLinks).toHaveText([
-      'Speed — 1.0 to 16.0 km/h',
-      'Incline — 0 to 15 %',
-    ]);
-  });
-
-  test('previews the speed profile, top speed and expected distance', async ({
-    page,
-    api,
-    events,
-  }) => {
-    const setup = new SetupPage(page, api, events);
-    await setup.open(treadmillIdle());
-    await expect(setup.total).toHaveText('22:40');
-    await expect(setup.profile).toHaveAttribute('aria-label', 'Speed profile: 18 × 0:40 / 0:20');
-    await expect(setup.profileBars).toHaveCount(37);
-    await expect(setup.profileBars.nth(0)).toHaveAttribute('height', '14');
-    await expect(setup.profileBars.nth(1)).toHaveAttribute('height', '18');
+    await expect(setup.inclineProfile).toHaveAttribute(
+      'aria-label',
+      'Incline profile, steepest 2%',
+    );
+    await expect(setup.profileHeads).toHaveText(['Speed19.3 km/h', 'Incline10%']);
     await expect(setup.summaryTerms()).toHaveText([
       'Structure',
-      'Time under load',
       'Top speed',
+      'Steepest',
       'Expected distance',
+      'Expected climb',
+      'Expected energy',
     ]);
-    await expect(setup.summaryValue('Structure')).toHaveText('18 × 0:40 / 0:20');
-    await expect(setup.summaryValue('Time under load')).toHaveText('12:00');
-    await expect(setup.summaryValue('Top speed')).toHaveText('9.0 km/h');
-    await expect(setup.summaryValue('Expected distance')).toHaveText('~3.0 km');
-
-    await setup.flatSpeedCard.check();
-    await expect(setup.total).toHaveText('30:00');
-    await expect(setup.summaryTerms()).toHaveText(['Structure', 'Top speed', 'Expected distance']);
-    await expect(setup.summaryValue('Structure')).toHaveText('7.0 km/h throughout');
-    await expect(setup.summaryValue('Top speed')).toHaveText('7.0 km/h');
-    await expect(setup.summaryValue('Expected distance')).toHaveText('~3.5 km');
-    await expect(setup.legend).toHaveText(['Steady']);
+    await expect(setup.summaryValue('Structure')).toHaveText('6 × 1:00 / 1:00');
+    await expect(setup.summaryValue('Top speed')).toHaveText('13.0 km/h · 4:37 /km');
+    await expect(setup.summaryValue('Steepest')).toHaveText('2%');
+    await expect(setup.summaryValue('Expected distance')).toHaveText('~2.35 km');
+    await expect(setup.summaryValue('Expected climb')).toHaveText('~35 m');
+    await expect(setup.summaryValue('Expected energy')).toHaveText('~184 kcal');
   });
 
-  test('starts a treadmill ride and goes to the dashboard', async ({ page, api, events }) => {
-    api.on('POST', '/api/workout', { json: treadmillStarted });
+  test('shows the Minute on and Hill walk defaults on first use', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await setup.open(treadmillIdle());
+    await expect(setup.hiitCard).toBeChecked();
+    await expect(setup.presetButtons).toHaveText([
+      'Sprints 30/30',
+      'Minute on',
+      'Hill repeats',
+      'Norwegian 4×4',
+    ]);
+    await expect(setup.preset('Minute on')).toHaveAttribute('aria-pressed', 'true');
+    await expect(setup.field('Rounds')).toHaveValue('6');
+    await expect(setup.field('Work')).toHaveValue('1:00');
+    await expect(setup.field('Recover')).toHaveValue('1:00');
+    await expect(setup.effortSpeed('Work')).toHaveValue('13.0');
+    await expect(setup.effortPace('Work')).toHaveText('4:37 /km');
+    await expect(setup.effortSpeed('Recover')).toHaveValue('6.0');
+    await expect(setup.effortPace('Recover')).toHaveText('10:00 /km');
+    await expect(setup.effortIncline('Work')).toHaveAttribute('aria-valuenow', '2');
+    await expect(setup.effortInclineText('Work')).toHaveText('2%');
+    await expect(setup.effortIncline('Recover')).toHaveAttribute('aria-valuenow', '1');
+    await expect(setup.warmup).toBeChecked();
+    await expect(setup.cooldown).toBeChecked();
+    await expect(page.locator('.toggle-row', { has: setup.warmup })).toContainText(
+      '3 min, brisk walk',
+    );
+    await expect(page.locator('.toggle-row', { has: setup.cooldown })).toContainText(
+      '2 min, walk, deck back to 0%',
+    );
+
+    await setup.steadyCard.check();
+    await expect(setup.presetButtons).toHaveText(['Hill walk', 'Easy run', 'Tempo']);
+    await expect(setup.preset('Hill walk')).toHaveAttribute('aria-pressed', 'true');
+    await expect(setup.effortSpeed('Hold')).toHaveValue('6.5');
+    await expect(setup.effortIncline('Hold')).toHaveAttribute('aria-valuenow', '8');
+  });
+
+  test('fills a preset and shows it pressed until a value changes', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const setup = new SetupPage(page, api, events);
+    await setup.open(treadmillIdle());
+    await setup.preset('Hill repeats').click();
+    await expect(setup.field('Rounds')).toHaveValue('6');
+    await expect(setup.field('Work')).toHaveValue('1:30');
+    await expect(setup.effortSpeed('Work')).toHaveValue('9.0');
+    await expect(setup.effortSpeed('Recover')).toHaveValue('5.5');
+    await expect(setup.effortIncline('Work')).toHaveAttribute('aria-valuenow', '8');
+    await expect(setup.effortIncline('Recover')).toHaveAttribute('aria-valuenow', '0');
+    await expect(setup.preset('Hill repeats')).toHaveAttribute('aria-pressed', 'true');
+    await expect(setup.preset('Minute on')).toHaveAttribute('aria-pressed', 'false');
+    await setup.faster('Work').click();
+    await expect(setup.preset('Hill repeats')).toHaveAttribute('aria-pressed', 'false');
+    await setup.slower('Work').click();
+    await expect(setup.preset('Hill repeats')).toHaveAttribute('aria-pressed', 'true');
+
+    await setup.steadyCard.check();
+    await setup.preset('Tempo').click();
+    await expect(setup.effortSpeed('Hold')).toHaveValue('12.5');
+    await expect(setup.effortIncline('Hold')).toHaveAttribute('aria-valuenow', '1');
+    await expect(setup.field('Duration (min)')).toHaveValue('20');
+  });
+
+  test('steps speed by 0.5 within its limits and picks an incline', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const setup = new SetupPage(page, api, events);
+    await setup.open(treadmillIdle());
+    await setup.faster('Work').click();
+    await expect(setup.effortSpeed('Work')).toHaveValue('13.5');
+    await setup.slower('Recover').click();
+    await expect(setup.effortSpeed('Recover')).toHaveValue('5.5');
+    await setup.effortSpeed('Work').fill('19.3');
+    await expect(setup.faster('Work')).toBeDisabled();
+    await setup.effortSpeed('Recover').fill('0.8');
+    await expect(setup.slower('Recover')).toBeDisabled();
+    await expect(setup.effortPace('Work')).toHaveText('3:07 /km');
+
+    await setup.effortIncline('Work').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(setup.effortIncline('Work')).toHaveAttribute('aria-valuenow', '3');
+    await expect(setup.effortInclineText('Work')).toHaveText('3%');
+    await page.keyboard.press('End');
+    await expect(setup.effortIncline('Work')).toHaveAttribute('aria-valuenow', '10');
+    await expect(setup.effortIncline('Work')).toHaveAttribute(
+      'aria-valuetext',
+      'Work incline 10% of 10%',
+    );
+    await setup.effortIncline('Recover').focus();
+    await page.keyboard.press('Home');
+    await expect(setup.effortIncline('Recover')).toHaveAttribute('aria-valuenow', '0');
+  });
+
+  test('shows the Hold row and the Duration stepper for Steady', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await setup.open(treadmillIdle());
+    await setup.steadyCard.check();
+    await expect(setup.effortRow('Work')).toHaveCount(0);
+    await expect(setup.effortPace('Hold')).toHaveText('9:14 /km');
+    await expect(setup.field('Duration (min)')).toHaveValue('30');
+    await setup.more('duration (min)').click();
+    await expect(setup.field('Duration (min)')).toHaveValue('35');
+    await setup.less('duration (min)').click();
+    await setup.less('duration (min)').click();
+    await expect(setup.field('Duration (min)')).toHaveValue('25');
+    await expect(setup.field('Cadence goal')).toHaveCount(0);
+    await expect(setup.treadmillFlatHint).toBeVisible();
+  });
+
+  test('names an out-of-range speed and disables Start run', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await setup.open(treadmillIdle());
+    await setup.effortSpeed('Work').fill('25.0');
+    await expect(setup.effortSpeed('Work')).toHaveAttribute('aria-invalid', 'true');
+    await expect(setup.effortError('Work')).toHaveText('Speed must be 0.8 to 19.3 km/h.');
+    await expect(setup.formSummaryTitle).toHaveText('1 thing to fix before you start');
+    await expect(setup.formSummaryLinks).toHaveText(['Work speed — 0.8 to 19.3 km/h']);
+    await expect(setup.formSummaryLinks.first()).toHaveAttribute('href', '#work-speed');
+    await expect(setup.startButton).toBeDisabled();
+    await expect(setup.startHint).toHaveText('Fix the field marked in red to start.');
+
+    await setup.effortSpeed('Recover').fill('6.25');
+    await expect(setup.effortError('Recover')).toHaveText('Enter a speed like 9.0.');
+    await expect(setup.formSummaryTitle).toHaveText('2 things to fix before you start');
+
+    await setup.steadyCard.check();
+    await setup.effortSpeed('Hold').fill('0.5');
+    await expect(setup.formSummaryLinks).toHaveText(['Speed — 0.8 to 19.3 km/h']);
+  });
+
+  test('shows the safety-key line above Start run', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await setup.open(treadmillIdle());
+    await expect(setup.safetyLine).toHaveText(
+      'Clip the safety key to your clothes. The belt starts 3 seconds after you tap Start.',
+    );
+    await expect(setup.startButton).toHaveText('Start run');
+    await setup.open(freeRide());
+    await expect(setup.safetyLine).toHaveCount(0);
+    await expect(setup.startButton).toHaveText('Start ride');
+  });
+
+  test('starts a run, shows Starting…, and opens the dashboard', async ({ page, api, events }) => {
+    api.on('POST', '/api/workout', { hang: true });
     const setup = new SetupPage(page, api, events);
     await setup.open(treadmillIdle());
     await setup.startButton.click();
     const [call] = await api.waitForCall('POST', '/api/workout');
     expect(call?.body).toEqual(TREADMILL_DEFAULT_PLAN);
-    await expect(page).toHaveURL(/\/$/);
+    await expect(setup.startButton).toHaveText('Starting…');
+    await expect(setup.startButton).toBeDisabled();
   });
 
-  test('posts a treadmill flat plan', async ({ page, api, events }) => {
+  test('opens the dashboard once the run has started', async ({ page, api, events }) => {
     api.on('POST', '/api/workout', { json: treadmillStarted });
     const setup = new SetupPage(page, api, events);
     await setup.open(treadmillIdle());
-    await setup.flatSpeedCard.check();
-    await setup.more('incline').click();
+    await setup.startButton.click();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test('posts a Steady plan', async ({ page, api, events }) => {
+    api.on('POST', '/api/workout', { json: treadmillStarted });
+    const setup = new SetupPage(page, api, events);
+    await setup.open(treadmillIdle());
+    await setup.steadyCard.check();
+    await setup.faster('Hold').click();
     await setup.startButton.click();
     const [call] = await api.waitForCall('POST', '/api/workout');
     expect(call?.body).toEqual({
       kind: 'flat',
+      video: null,
       level: null,
       minutes: 30,
       cadence: null,
       speed: 7,
-      incline: 1,
+      incline: 8,
     });
   });
 
-  test('lists the backend messages when a treadmill plan is refused', async ({
-    page,
-    api,
-    events,
-  }) => {
+  test('lists the backend messages when a run is refused', async ({ page, api, events }) => {
     api.on('POST', '/api/workout', { status: 400, json: invalidTreadmillWorkout });
     const setup = new SetupPage(page, api, events);
     await setup.open(treadmillIdle());
     await setup.startButton.click();
-    await expect(setup.startError).toContainText('Speed must be 1.0 to 16.0 km/h.');
+    await expect(setup.startError).toContainText('Speed must be 0.8 to 19.3 km/h.');
   });
 
-  test('restores the last submitted treadmill plan after a reload', async ({
+  test('restores the last submitted run and records the last session', async ({
     page,
     api,
     events,
   }) => {
+    await page.clock.setSystemTime(NOW);
     api.on('POST', '/api/workout', { json: treadmillStarted });
     const setup = new SetupPage(page, api, events);
     await setup.open(treadmillIdle());
-    await setup.more('work speed').click();
+    await setup.faster('Work').click();
     await setup.startButton.click();
     await expect(page).toHaveURL(/\/$/);
     await setup.open(treadmillIdle());
-    await expect(setup.field('Work speed (km/h)')).toHaveValue('9.5');
+    await expect(setup.effortSpeed('Work')).toHaveValue('13.5');
     await setup.open(freeRide());
     await expect(setup.slider('Work resistance')).toHaveValue('26');
+
+    const machines = new MachinePage(page, api, events);
+    await machines.open();
+    await expect(machines.card('treadmill').lastSession).toHaveText(
+      `${treadmillStarted.started.summary} · today`,
+    );
+    await expect(machines.card('treadmill').tag).toHaveText('Last used');
   });
 });

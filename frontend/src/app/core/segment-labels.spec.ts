@@ -7,7 +7,8 @@ import {
   statusBadge,
   toneOf,
 } from './segment-labels';
-import { testWorkout } from './test-state';
+import { expandPlan } from './plan-expansion';
+import { testIntervalsPlan, testWorkout } from './test-state';
 
 describe('segment-labels (L2-025)', () => {
   it.each([
@@ -22,9 +23,15 @@ describe('segment-labels (L2-025)', () => {
 
   it('names the round for work and rest only', () => {
     const w = testWorkout();
-    expect(roundLabel(w.segments[9], w.plan)).toBe('Round 5 of 8');
-    expect(roundLabel(w.segments[10], w.plan)).toBe('Round 5 of 8');
-    expect(roundLabel(w.segments[0], w.plan)).toBeNull();
+    expect(roundLabel(w.segments[9], w.segments)).toBe('Round 5 of 8');
+    expect(roundLabel(w.segments[10], w.segments)).toBe('Round 5 of 8');
+    expect(roundLabel(w.segments[0], w.segments)).toBeNull();
+  });
+
+  it('counts the rounds of an intervals plan from its efforts (L2-025 AC1)', () => {
+    const segments = expandPlan(testIntervalsPlan());
+    expect(roundLabel(segments[1], segments)).toBe('Round 1 of 8');
+    expect(roundLabel(segments[15], segments)).toBe('Round 8 of 8');
   });
 
   it('names the next segment, or null on the last', () => {
@@ -34,8 +41,15 @@ describe('segment-labels (L2-025)', () => {
       duration: '0:20',
       level: 6,
       speed: null,
+      incline: 0,
     });
     expect(nextLabel(w.segments, 16)).toBeNull();
+  });
+
+  it('names the next run segment with its speed and incline (L2-071 AC5)', () => {
+    const w = testWorkout();
+    const segments = w.segments.map((s) => ({ ...s, level: null, speed: 6, incline: 1 }));
+    expect(nextLabel(segments, 9)).toMatchObject({ kind: 'Recover', speed: '6.0', incline: 1 });
   });
 
   it.each([

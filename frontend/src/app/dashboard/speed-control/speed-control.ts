@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Icon } from '../icon/icon';
 
-/** Lower speed and Raise speed around the reported speed (L2-071 criterion 5). */
+/** Slower and Faster around the target speed and its pace (L2-071 criterion 8). */
 @Component({
   selector: 'wz-speed-control',
   imports: [Icon],
@@ -10,7 +10,12 @@ import { Icon } from '../icon/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpeedControl {
+  /** The target speed, e.g. `13.0`. */
   readonly valueText = input.required<string>();
+  /** `km/h target · <pace> /km`. */
+  readonly noteText = input.required<string>();
+  /** The id of the section heading that names the group. */
+  readonly labelledBy = input.required<string>();
   readonly lowerDisabled = input(false);
   readonly raiseDisabled = input(false);
   readonly step = output<1 | -1>();

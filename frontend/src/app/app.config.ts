@@ -15,6 +15,8 @@ import { HttpBikeApi, HttpMachineApi, HttpWorkoutApi } from './core/http-api';
 import { MACHINE_API } from './core/machine-api';
 import { ThemeService } from './core/theme.service';
 import { WORKOUT_API } from './core/workout-api';
+import { IframeYouTubePlayer } from './core/iframe-youtube-player';
+import { YOUTUBE_PLAYER } from './core/youtube-player';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,6 +27,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([apiKeyInterceptor])),
     { provide: BIKE_API, useClass: HttpBikeApi },
     { provide: WORKOUT_API, useClass: HttpWorkoutApi },
+    { provide: YOUTUBE_PLAYER, useClass: IframeYouTubePlayer },
     { provide: MACHINE_API, useClass: HttpMachineApi },
   ],
 };

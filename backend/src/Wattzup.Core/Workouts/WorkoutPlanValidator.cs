@@ -13,13 +13,25 @@ public sealed record PlanValidationResult(WorkoutPlan? Plan, IReadOnlyDictionary
 /// </summary>
 public static class WorkoutPlanValidator
 {
-    public const string ChooseKind = "Choose HIIT or Flat.";
+    public const string ChooseKind = "Choose HIIT, Intervals or Flat.";
     public const string WholeNumber = "Enter a whole number.";
     public const string OnOrOff = "Choose on or off.";
     public const string LevelRange = "Level must be 1 to 32.";
-    public const string SpeedRange = "Speed must be 1.0 to 16.0 km/h.";
+    public const string SpeedRange = "Speed must be 0.8 to 19.3 km/h.";
     public const string SpeedFormat = "Enter a speed like 9.0.";
-    public const string InclineRange = "Incline must be 0 to 15 %.";
+    public const string InclineRange = "Incline must be 0 to 10 %.";
+    public const string SetCount = "Enter 1 to 10 sets.";
+    public const string RoundsRange = "Enter 1 to 30 rounds.";
+    public const string CadenceAimRange = "Cadence aim must be 40 to 150 rpm.";
+    public const string RecoverRange = "Recover must be 0 (none) or at least 0:05.";
+    public const string TooManyEfforts = "At most 30 efforts in a plan.";
+    public const string TooLong = "A ride can be at most 180 minutes.";
+    public const string VideoLink = "That doesn't look like a YouTube link.";
+    public const string VideoStart = "Start point must be 0:00 to 12:00:00.";
+    public const decimal MaxStartSeconds = 43200m;
+    public const int MaxSets = 10;
+    public const int MaxEfforts = 30;
+    public const int MaxRideSeconds = 180 * 60;
 
     public static PlanValidationResult Validate(JsonElement body) => Validate(body, Machine.Bike);
 
@@ -36,15 +48,61 @@ public static class WorkoutPlanValidator
             "flat" when machine == Machine.Treadmill => TreadmillFlat(body, errors),
             "hiit" => Hiit(body, errors),
             "flat" => Flat(body, errors),
+            "intervals" when machine == Machine.Bike => Intervals(body, errors),
             _ => null,
         };
 
-        if (kind is not ("hiit" or "flat"))
+        if (kind is not ("hiit" or "flat") && !(kind == "intervals" && machine == Machine.Bike))
         {
             errors["kind"] = [ChooseKind];
         }
 
+        var video = body.ValueKind == JsonValueKind.Object ? Video(body, errors) : null;
+        if (plan is not null && video is not null)
+        {
+            plan = plan with { Video = video };
+        }
+
         return errors.Count == 0 ? new PlanValidationResult(plan, errors) : new PlanValidationResult(null, errors);
+    }
+
+    /// <summary>
+    /// The optional <c>video</c> of any plan kind: absent or null is no video; otherwise the link shall be a YouTube
+    /// link and the start point a number from 0 to 43200, rounded to 0.1. Only the id and the start point are kept
+    /// (L2-010 criteria 14 to 17).
+    /// </summary>
+    private static RideVideo? Video(JsonElement body, Dictionary<string, string[]> errors)
+    {
+        if (!body.TryGetProperty("video", out var video) || video.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        if (video.ValueKind != JsonValueKind.Object)
+        {
+            errors["video.url"] = [VideoLink];
+            return null;
+        }
+
+        string id = string.Empty;
+        var linkOk = video.TryGetProperty("url", out var url) && url.ValueKind == JsonValueKind.String
+            && YouTubeLink.TryParseId(url.GetString(), out id);
+        if (!linkOk)
+        {
+            errors["video.url"] = [VideoLink];
+        }
+
+        decimal start = 0;
+        var startOk = video.TryGetProperty("start_seconds", out var s) && s.ValueKind == JsonValueKind.Number
+            && s.TryGetDecimal(out start) && start >= 0 && start <= MaxStartSeconds;
+        if (!startOk)
+        {
+            errors["video.start_seconds"] = [VideoStart];
+        }
+
+        return linkOk && startOk
+            ? new RideVideo(id, (double)Math.Round(start, 1, MidpointRounding.AwayFromZero))
+            : null;
     }
 
     private static HiitPlan Hiit(JsonElement body, Dictionary<string, string[]> errors)
@@ -65,6 +123,95 @@ public static class WorkoutPlanValidator
         var minutes = Int(body, "minutes", errors, 1, 180, "Enter 1 to 180 minutes.", "Enter 1 to 180 minutes.");
         var cadence = Int(body, "cadence", errors, 40, 150, "Cadence goal must be 40 to 150 rpm.", "Cadence goal must be 40 to 150 rpm.");
         return new FlatPlan(level, minutes, cadence);
+    }
+
+    private static IntervalsPlan? Intervals(JsonElement body, Dictionary<string, string[]> errors)
+    {
+        var warmup = OptionalStretch(body, "warmup", "Warm-up must be 1:00 to 30:00.", errors);
+        var cooldown = OptionalStretch(body, "cooldown", "Cool-down must be 1:00 to 30:00.", errors);
+        if (!body.TryGetProperty("sets", out var setsJson) || setsJson.ValueKind != JsonValueKind.Array
+            || setsJson.GetArrayLength() is 0 or > MaxSets)
+        {
+            errors["sets"] = [SetCount];
+            return null;
+        }
+
+        var sets = new List<IntervalSet>();
+        var i = 0;
+        foreach (var set in setsJson.EnumerateArray())
+        {
+            var path = $"sets[{i++}].";
+            if (set.ValueKind != JsonValueKind.Object)
+            {
+                errors[path.TrimEnd('.')] = [WholeNumber];
+                continue;
+            }
+
+            var count = errors.Count;
+            var parsed = new IntervalSet(
+                Int(set, "rounds", errors, 1, 30, RoundsRange, RoundsRange, path),
+                Int(set, "work_seconds", errors, 5, 3600, "Work must be at least 0:05.", "Work must be at most 60:00.", path),
+                Int(set, "work_level", errors, 1, 32, LevelRange, LevelRange, path),
+                Int(set, "work_cadence", errors, 40, 150, CadenceAimRange, CadenceAimRange, path),
+                Rest(set, errors, path),
+                Int(set, "rest_level", errors, 1, 32, LevelRange, LevelRange, path),
+                Int(set, "rest_cadence", errors, 40, 150, CadenceAimRange, CadenceAimRange, path));
+            if (errors.Count == count)
+            {
+                sets.Add(parsed);
+            }
+        }
+
+        if (errors.Count > 0)
+        {
+            return null;
+        }
+
+        var plan = new IntervalsPlan(warmup, sets, cooldown);
+        var seconds = (warmup?.Seconds ?? 0) + (cooldown?.Seconds ?? 0) + sets.Sum(s => s.Rounds * (s.WorkSeconds + s.RestSeconds));
+        if (plan.Efforts > MaxEfforts)
+        {
+            errors["sets"] = [TooManyEfforts];
+        }
+        else if (seconds > MaxRideSeconds)
+        {
+            errors["sets"] = [TooLong];
+        }
+
+        return plan;
+    }
+
+    /// <summary>A recover of 0 (none) or 5 to 3600 seconds.</summary>
+    private static int Rest(JsonElement set, Dictionary<string, string[]> errors, string path)
+    {
+        var rest = Int(set, "rest_seconds", errors, 0, 3600, RecoverRange, "Recover must be at most 60:00.", path);
+        if (rest is > 0 and < 5)
+        {
+            errors[path + "rest_seconds"] = [RecoverRange];
+        }
+
+        return rest;
+    }
+
+    /// <summary>A warm-up or cool-down: <c>null</c> for off, or an object of seconds (60–1800), level and cadence aim.</summary>
+    private static Stretch? OptionalStretch(JsonElement body, string field, string secondsRange, Dictionary<string, string[]> errors)
+    {
+        if (!body.TryGetProperty(field, out var value) || value.ValueKind is not (JsonValueKind.Null or JsonValueKind.Object))
+        {
+            errors[field] = [OnOrOff];
+            return null;
+        }
+
+        if (value.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        var path = field + ".";
+        return new Stretch(
+            Int(value, "seconds", errors, 60, 1800, secondsRange, secondsRange, path),
+            Int(value, "level", errors, 1, 32, LevelRange, LevelRange, path),
+            Int(value, "cadence", errors, 40, 150, CadenceAimRange, CadenceAimRange, path));
     }
 
     private static HiitPlan TreadmillHiit(JsonElement body, Dictionary<string, string[]> errors)
@@ -89,7 +236,7 @@ public static class WorkoutPlanValidator
         return new FlatPlan(null, minutes, null, speed, incline);
     }
 
-    /// <summary>A speed of 1.0 to 16.0 km/h with at most one decimal (L2-067).</summary>
+    /// <summary>A speed of 0.8 to 19.3 km/h with at most one decimal (L2-067).</summary>
     private static double Speed(JsonElement body, string field, Dictionary<string, string[]> errors)
     {
         if (!body.TryGetProperty(field, out var value) || value.ValueKind != JsonValueKind.Number || !value.TryGetDouble(out var speed)
@@ -107,21 +254,21 @@ public static class WorkoutPlanValidator
         return Math.Round(speed, 1);
     }
 
-    private static int Int(JsonElement body, string field, Dictionary<string, string[]> errors, int min, int max, string tooLow, string tooHigh)
+    private static int Int(JsonElement body, string field, Dictionary<string, string[]> errors, int min, int max, string tooLow, string tooHigh, string path = "")
     {
         if (!body.TryGetProperty(field, out var value) || value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out var number))
         {
-            errors[field] = [WholeNumber];
+            errors[path + field] = [WholeNumber];
             return 0;
         }
 
         if (number < min)
         {
-            errors[field] = [tooLow];
+            errors[path + field] = [tooLow];
         }
         else if (number > max)
         {
-            errors[field] = [tooHigh];
+            errors[path + field] = [tooHigh];
         }
 
         return number;

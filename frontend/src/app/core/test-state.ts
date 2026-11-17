@@ -1,10 +1,11 @@
 // Builders for unit tests: a full L2-014 state, mid-ride on the default plan.
-import type { BikeState, WorkoutSnapshot } from './api-types';
+import type { BikeState, IntervalsPlan, WorkoutSnapshot } from './api-types';
 import { expandPlan } from './plan-expansion';
 
 export function testWorkout(change: Partial<WorkoutSnapshot> = {}): WorkoutSnapshot {
   const plan = {
     kind: 'hiit',
+    video: null,
     rounds: 8,
     work_seconds: 40,
     rest_seconds: 20,
@@ -70,6 +71,28 @@ export function testState(change: Partial<BikeState> = {}): BikeState {
     target_incline: null,
     belt: null,
     belt_countdown: null,
+    climb_m: null,
+    nearby: [],
+    treadmill_enabled: false,
     ...change,
+  };
+}
+
+/** The Descending recoveries plan (L2-010 criterion 11): 30:00, 8 efforts in 5 sets. */
+export function testIntervalsPlan(): IntervalsPlan {
+  return {
+    kind: 'intervals',
+    video: null,
+    warmup: { seconds: 300, level: 8, cadence: 80 },
+    sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
+      rounds: i === 0 || i === 4 ? 1 : 2,
+      work_seconds: 30,
+      work_level: 28,
+      work_cadence: 100,
+      rest_seconds,
+      rest_level: 8,
+      rest_cadence: 72,
+    })),
+    cooldown: { seconds: 360, level: 6, cadence: 70 },
   };
 }

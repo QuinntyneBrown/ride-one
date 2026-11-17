@@ -28,15 +28,16 @@ The interval card, countdown and phase are drawn by `show-workout-countdown`; ba
 
 All types live in `Wattzup.Core`. The endpoints that call them are in `start-and-stop-workout`.
 
-- **`WorkoutPlan`** — abstract record with two subtypes, `HiitPlan(Rounds, WorkSeconds, RestSeconds, WorkLevel, RestLevel, Warmup, Cooldown)` and `FlatPlan(Level, Minutes, Cadence)`. It is serialised with the `kind` discriminator and snake_case names. Only `WorkoutPlanValidator` creates one (see `start-and-stop-workout`).
+- **`WorkoutPlan`** — abstract record with three subtypes, `HiitPlan(Rounds, WorkSeconds, RestSeconds, WorkLevel, RestLevel, Warmup, Cooldown)`, `IntervalsPlan(Stretch? Warmup, IReadOnlyList<IntervalSet> Sets, Stretch? Cooldown)` and `FlatPlan(Level, Minutes, Cadence)`, where `Stretch(Seconds, Level, Cadence)` and `IntervalSet(Rounds, WorkSeconds, WorkLevel, WorkCadence, RestSeconds, RestLevel, RestCadence)`. It is serialised with the `kind` discriminator and snake_case names. Only `WorkoutPlanValidator` creates one (see `start-and-stop-workout`).
 - **`Segment`** — immutable record `(SegmentKind Kind, int Start, int Duration, int Level, int Cadence, int? Round)`. `SegmentKind` serialises as `warmup`, `work`, `rest`, `cooldown` and `steady`.
 - **`PlanExpander.Expand(plan)`** — pure static function returning `IReadOnlyList<Segment>` (L2-045):
   - A `flat` plan yields one `steady` segment: `start` 0, `duration` = `minutes × 60`, `level`, `cadence` = the plan's cadence goal, `round` `null`.
   - A `hiit` plan with `warmup` starts with a `warmup` segment of 180 s at level `max(1, rest_level + 2)` with cadence aim 80.
-  - Each round r from 1 to `rounds` adds a `work` segment (`work_seconds`, `work_level`, cadence aim 98, round r), then a `rest` segment (`rest_seconds`, `rest_level`, cadence aim 72, round r).
+  - Each round r from 1 to `rounds` adds a `work` segment (`work_seconds`, `work_level`, cadence aim 100, round r), then a `rest` segment (`rest_seconds`, `rest_level`, cadence aim 72, round r).
   - With `cooldown`, the last round has no `rest` segment, and a `cooldown` segment of 120 s at level `max(1, rest_level)` with cadence aim 70 ends the plan.
+  - An `intervals` plan yields its `warmup` segment (when not `null`), then for each set and each of its rounds a `work` segment (`work_seconds`, `work_level`, `work_cadence`) and, when `rest_seconds` > 0, a `rest` segment (`rest_seconds`, `rest_level`, `rest_cadence`), then its `cooldown` segment (when not `null`). `round` counts the efforts across all sets from 1; a `rest` carries the round of the effort before it (L2-045 criteria 7 and 8). The *Descending recoveries* plan yields 17 segments and 1800 s.
   - Each `start` is the running sum of the durations before it. The plan 8 × 40 s / 20 s, work 18, recover 6, warm-up and cool-down yields 17 segments and 760 s.
-- **`WorkoutSummary.For(plan)`** — pure static function (L2-060). A `hiit` plan with `work_seconds` under 60 reads `HIIT · <rounds> × <work>s / <rest>s`. With 60 s or more it reads `HIIT · <rounds> × <m:ss> / <m:ss>`. A `flat` plan reads `Flat · Level <level> · <minutes> min`.
+- **`WorkoutSummary.For(plan)`** — pure static function (L2-060). A `hiit` plan with `work_seconds` under 60 reads `HIIT · <rounds> × <work>s / <rest>s`. With 60 s or more it reads `HIIT · <rounds> × <m:ss> / <m:ss>`. A `flat` plan reads `Flat · Level <level> · <minutes> min`. An `intervals` plan reads `Intervals · <efforts> efforts · <m:ss total>` (`1 effort` for one), e.g. `Intervals · 8 efforts · 30:00`.
 - **`WorkoutStatus`** — string constants `waiting for bike`, `running`, `paused`, `paused: bike disconnected`, `ended`, `ended: bike shut off` and `stopped`. The UI displays these values, so they are part of the state contract (L2-014). `ended`, `ended: bike shut off` and `stopped` are terminal; a workout in any other status is *active*.
 - **`WorkoutRun`** — mutable run state, touched only by the engine loop:
   - `Plan`, `Segments`, `Summary`, `TotalSeconds` (sum of durations)
@@ -79,7 +80,7 @@ On host shutdown the loop observes the stopping token and exits within the 5 s t
 - **Drive dispatches.** `DriveAsync` sends the level through `IResistanceCommander` on the bike, and the segment's speed and incline through `ITreadmillCommander` on the treadmill, with the same send-once-per-segment and resend-on-multiples-of-5 rule (L2-068). `WorkoutRun` gains `LastSentSpeed` and `LastSentIncline` beside `LastSentLevel`.
 - **Two more statuses.** `WorkoutStatus` gains `starting belt` and `paused: belt stopped`; both are active. The status strings `waiting for bike`, `paused: bike disconnected` and `ended: bike shut off` stay as identifiers on both machines, and the UI words them for the treadmill (L2-014, L2-071).
 - **Belt.** On the treadmill, a start or resume runs the 3-second belt countdown before the ride clock moves, and pause, stop, replace and the plan's end write the stop-belt command. A reconnect within 90 s lands in `paused` rather than `running` (L2-066 criterion 8), so the belt starts only after the rider resumes.
-- **Totals.** On the treadmill, each running tick adds distance only; the power and energy fields stay `null` (L2-064 criterion 9).
+- **Totals.** On the treadmill, each running tick adds distance, climb and the ACSM energy estimate through `RideTotals.TickTreadmill`; the power fields stay `null` (L2-064 criteria 9 to 11, `treadmill/decode-treadmill-telemetry`).
 
 The treadmill rules are designed in `treadmill/run-treadmill-workout` (plan, expansion, drive, manual override) and `treadmill/control-the-belt` (countdown, start timeout, belt stop, console stop).
 

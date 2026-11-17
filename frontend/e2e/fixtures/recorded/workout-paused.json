@@ -12,7 +12,8 @@
       "work_speed": null,
       "rest_speed": null,
       "work_incline": null,
-      "rest_incline": null
+      "rest_incline": null,
+      "video": null
     },
     "summary": "HIIT · 8 × 40s / 20s",
     "segments": [
@@ -31,7 +32,7 @@
         "start": 180,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 1,
         "speed": null,
         "incline": null
@@ -51,7 +52,7 @@
         "start": 240,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 2,
         "speed": null,
         "incline": null
@@ -71,7 +72,7 @@
         "start": 300,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 3,
         "speed": null,
         "incline": null
@@ -91,7 +92,7 @@
         "start": 360,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 4,
         "speed": null,
         "incline": null
@@ -111,7 +112,7 @@
         "start": 420,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 5,
         "speed": null,
         "incline": null
@@ -131,7 +132,7 @@
         "start": 480,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 6,
         "speed": null,
         "incline": null
@@ -151,7 +152,7 @@
         "start": 540,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 7,
         "speed": null,
         "incline": null
@@ -171,7 +172,7 @@
         "start": 600,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 8,
         "speed": null,
         "incline": null

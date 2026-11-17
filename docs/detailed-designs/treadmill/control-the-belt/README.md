@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Echelon treadmill moves a belt with a person standing on it. Wattzup starts that belt only to start or resume a workout, and only after a 3-second countdown that the dashboard shows and announces. It stops the belt whenever the workout is paused, stopped, replaced or ends. When the treadmill reports that its belt stopped on its own (console stop button or safety key), Wattzup pauses the ride and never restarts the belt by itself; the rider resumes through the countdown again (ADR 0009, L2-066).
+The Echelon treadmill moves a belt with a person standing on it. Wattzup starts that belt only to start or resume a workout, and only after a 3-second countdown that the dashboard shows and announces. It stops the belt whenever the workout is paused, stopped, replaced or ends. When the treadmill reports that its belt stopped on its own (console stop button or safety key), Wattzup pauses the ride and never restarts the belt by itself; the rider resumes through the countdown again (ADR 0009, L2-066). When the Bluetooth link drops, the treadmill stops its own belt; Wattzup relies on that and tells the runner to step onto the side rails (ADR 0010, L2-071 criterion 17).
 
 **belt** — the treadmill's moving surface; its state in the contract is `belt`: `stopped`, `starting` or `running`, and `null` on the bike or while the treadmill is not connected
 
@@ -14,11 +14,13 @@ The Echelon treadmill moves a belt with a person standing on it. Wattzup starts 
 
 **start timeout** — 10 s period after the start-belt command within which the treadmill shall report a speed above 0
 
-**console stop** — the treadmill reporting speed 0 while the belt was running, because the rider pressed the console's stop button or pulled the safety key
+**console stop** — the treadmill reporting speed 0 while the belt was running, because the rider pressed the console's stop button or pulled the safety key; both arrive as the same speed 0, so Wattzup cannot tell them apart and reports one state, `paused: belt stopped` (ADR 0010)
+
+**link-loss stop** — the treadmill stopping its own belt when the Bluetooth link drops; an assumption about the hardware that a person checks before release (L2-043 criterion 5)
 
 **stop reason** — word logged with each belt command: `start`, `pause`, `stop`, `replace` or `end`
 
-The feature sits in the treadmill subsystem, inside the workout engine that `workouts/run-interval-workout` describes for the bike. The engine stays the single loop for both machines; the belt rules apply only when the run's machine is the treadmill. Speed and incline per segment belong to `treadmill/run-treadmill-workout`. The frames that report speed, and the derivation of `belt` from that speed, belong to `treadmill/decode-treadmill-telemetry`. The countdown overlay, its live-region announcement and the safety-key sentences belong to `treadmill/treadmill-dashboard-and-setup`. With the bike chosen, no belt command is ever written and `belt` and `belt_countdown` stay `null` (L2-066 criterion 10, L2-070).
+The feature sits in the treadmill subsystem, inside the workout engine that `workouts/run-interval-workout` describes for the bike. The engine stays the single loop for both machines; the belt rules apply only when the run's machine is the treadmill. Speed and incline per segment belong to `treadmill/run-treadmill-workout`. The frames that report speed, and the derivation of `belt` from that speed, belong to `treadmill/decode-treadmill-telemetry`. The countdown overlay, its live-region announcement, and the *Belt stopped* and *Lost the Stride* overlays belong to `treadmill/treadmill-dashboard-and-setup`. With the bike chosen, no belt command is ever written and `belt` and `belt_countdown` stay `null` (L2-066 criterion 10, L2-070).
 
 ## Description
 
@@ -65,11 +67,11 @@ A pause during the countdown also writes the stop-belt command; the start-belt c
 
 ### Console stop
 
-A tick on a `running` treadmill run reads `store.Current.Belt`. A run is `running` only after the belt reported running, so when `belt` is no longer `running` the treadmill's console or safety key stopped the belt. The tick sets the status to `paused: belt stopped`, does not count and does not drive (L2-066 criterion 7). The engine writes no belt command. `POST /api/workout/resume` restarts the belt through the countdown of *Starting the belt*.
+A tick on a `running` treadmill run reads `store.Current.Belt`. A run is `running` only after the belt reported running, so when `belt` is no longer `running` the treadmill's console or safety key stopped the belt. The tick sets the status to `paused: belt stopped`, does not count and does not drive (L2-066 criterion 7). The engine writes no belt command. The dashboard words this status neutrally, `Belt stopped`, and names the safety key only as one possible cause (L2-071 criterion 16). `POST /api/workout/resume` restarts the belt through the countdown of *Starting the belt*.
 
 ### Disconnect
 
-A treadmill run follows the bike's disconnect rules with one change. The not-connected tick sets the status to `paused: bike disconnected` and starts the 90-second shut-off grace of L2-013. It also clears the countdown fields and, once the ride has run, sets `PausedByRider`. A reconnect within 90 s therefore lands in `paused`, not `running`, and the belt starts only through the countdown after the rider resumes (L2-066 criterion 8). Wattzup cannot stop the belt while disconnected; the treadmill's safety key and stop button always can, and the dashboard says so (L2-071). A run that never started stays `waiting for bike` across a disconnect and begins the countdown again on reconnect.
+A treadmill run follows the bike's disconnect rules with one change. The not-connected tick sets the status to `paused: bike disconnected` and starts the 90-second shut-off grace of L2-013. It also clears the countdown fields and, once the ride has run, sets `PausedByRider`. A reconnect within 90 s therefore lands in `paused`, not `running`, and the belt starts only through the countdown after the rider resumes (L2-066 criterion 8). Wattzup cannot write the stop-belt command while disconnected. The design relies on the treadmill stopping its own belt when the link drops (ADR 0010), and the dashboard tells the runner the Stride stopped its belt and to step onto the side rails (L2-071 criterion 17). L2-043 criterion 5 makes a person confirm on hardware, before release, that the belt stops within 2 s of the link dropping; if it does not, ADR 0010 reverts that wording. A run that never started stays `waiting for bike` across a disconnect and begins the countdown again on reconnect.
 
 ### Acceptance tests
 
@@ -92,6 +94,8 @@ The bike's existing workout tests (`WorkoutRunTests`) cover AC10: their write as
 
 ### Open questions
 
+- **Belt on link loss.** No automated test can show what the real belt does when the link drops; the simulator only models it. `SimulatedTreadmillConnection` reports speed 0 and stops its belt when the simulated link is cut, so the UI's *Lost the Stride* path runs end to end. The hardware result of L2-043 criterion 5 is `<TO SUPPLY>`.
+
 - **Resume with the belt still running.** Pause always writes the stop-belt command (L2-066 criterion 6), so criterion 5 is reached only when the resume arrives before the treadmill reports speed 0, or when the stop did not take. In the first case the ride continues and the following speed-0 report then pauses it as a console stop.
 - **Console countdown.** The treadmill may run a countdown of its own after the start-belt command (`echelon-treadmill-frames.md`, hardware item 6). The 10 s start timeout should cover it; the hardware smoke test confirms the figure.
 - **First countdown second.** The countdown begins on the start or resume command, between ticks, so the number 3 shows for less than 1 s. The 1-second spacing applies to 2 and 1 and to the start write.
@@ -101,7 +105,8 @@ The bike's existing workout tests (`WorkoutRunTests`) cover AC10: their write as
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-066` | `L1-013` | Belt control. Wattzup starts the treadmill's belt only to start or resume a workout, and only after a 3-second countdown the UI shows and announces, and stops the belt whenever a workout on the treadmill pauses, is stopped, is replaced or ends. |
+| `L2-066` | `L1-013` | Belt control. Wattzup starts the treadmill's belt only to start or resume a workout, and only after a 3-second countdown the UI shows and announces, and stops the belt whenever a workout on the treadmill pauses, is stopped, is replaced or ends. When the Bluetooth link drops, the treadmill stops its own belt (checked on hardware by L2-043 criterion 5). |
+| `L2-043` | `L1-012` | Cross-platform Bluetooth. A person runs the hardware smoke check on each platform, including that the belt stops within 2 s of the link dropping (criterion 5) and that pulling the safety key reports speed 0 (criterion 6). |
 | `L2-064` | `L1-013` | Treadmill telemetry decoding. A reported speed above 0 means `belt` is `running`; 0 means `stopped`, except while `belt` is `starting` (criteria 7 and 8). |
 
 ## Diagrams

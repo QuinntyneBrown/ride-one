@@ -15,9 +15,27 @@ public sealed record WorkoutChanged(WorkoutSnapshot Workout);
 /// <summary>The answer of <c>GET /api/workout/trace</c>: <c>[ride_seconds, power]</c> pairs, oldest first (L2-050).</summary>
 public sealed record PowerTrace(IReadOnlyList<int[]> Samples);
 
+/// <summary>The ride-along video as a plan sends it: a YouTube link and the start point in seconds (L2-010).</summary>
+public sealed record RideVideoLink(string Url, double StartSeconds);
+
 /// <summary>The <c>/api/workout</c> group (L2-017, L2-046, L2-047, L2-050).</summary>
 public static class WorkoutEndpoints
 {
+    /// <summary>
+    /// The request's <c>video</c> is a link and a start point; the answer reports the id the link names (L2-010
+    /// criterion 14). Both shapes share <see cref="WorkoutPlan"/>, so the request's is published as its own schema.
+    /// </summary>
+    private static async Task DescribeVideoLinkAsync(
+        Microsoft.OpenApi.OpenApiOperation operation, Microsoft.AspNetCore.OpenApi.OpenApiOperationTransformerContext context, CancellationToken ct)
+    {
+        var link = await context.GetOrCreateSchemaAsync(typeof(RideVideoLink), null, ct);
+        context.Document?.AddComponent(nameof(RideVideoLink), link);
+        if (operation.RequestBody is Microsoft.OpenApi.OpenApiRequestBody body)
+        {
+            body.Description = "A plan. Its optional video is sent as a RideVideoLink {url, start_seconds}; the answer reports it as a RideVideo {video_id, start_seconds}.";
+        }
+    }
+
     public static RouteGroupBuilder MapWorkoutEndpoints(this RouteGroupBuilder api)
     {
         var workout = api.MapGroup("/workout").WithTags("Workout");
@@ -26,6 +44,7 @@ public static class WorkoutEndpoints
             .WithName("StartWorkout")
             .WithSummary("Starts a hiit or flat plan, replacing any ride in progress, whether or not the bike is connected.")
             .Accepts<WorkoutPlan>("application/json")
+            .AddOpenApiOperationTransformer(DescribeVideoLinkAsync)
             .Produces<WorkoutStarted>()
             .ProducesValidationProblem()
             .RequireRateLimiting(Security.RateLimits.Control);

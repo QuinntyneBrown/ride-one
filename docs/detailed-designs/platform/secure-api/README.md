@@ -32,6 +32,7 @@ The browser side of the key, the `/unlock` page and the 401 redirect, belongs to
   - The policy is `default-src 'self'; script-src 'self'; style-src 'self' 'nonce-<n>'; font-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`.
   - `font-src 'self'` holds because the fonts are bundled and self-hosted (ADR 0005).
   - Angular adds component styles as `<style>` elements at run time. The host therefore serves `index.html` with a fresh per-response nonce in the `ngCspNonce` attribute and the same nonce in `style-src`. The production build turns off critical-CSS inlining so no other inline style exists.
+  - The policy allows exactly 2 origins beyond `'self'`, for the ride-along video (L2-036 criterion 4, ADR 0012): `frame-src https://www.youtube-nocookie.com` for the embedded player and `https://www.youtube.com` in `script-src` for the IFrame player API. `connect-src`, `style-src`, `font-src` and `img-src` stay same-origin. The frontend loads the player script only when a valid link is entered on setup or the workout has a video (`workouts/ride-along-video`). `Every_response_allows_only_the_YouTube_player_origins_beyond_self` reads the header.
 - **Error handling** — `AddProblemDetails` plus `UseExceptionHandler`. Unhandled exceptions return a generic 500 `ProblemDetails`, and the detail goes to the server log only (L2-036).
 - **Output encoding** — Angular interpolation escapes all text. No component binds `innerHTML` with state values, so device names, the device label and error strings cannot inject markup (L2-036).
 - **Frontend key handling** — `apiKeyInterceptor` adds `X-Api-Key` from `ApiKeyStore` (session storage) to every `/api` request. `LiveStateService` requests an event token before each (re)connect when a key is held. The key is never put in a URL or a log (`dashboard/unlock-and-not-found`).
@@ -52,7 +53,7 @@ The single-use token and constant-time comparison have unit tests in `Wattzup.Co
 |-------|--------------|-------------|
 | `L2-034` | `L1-009` | Network exposure. |
 | `L2-035` | `L1-009` | API authentication. When an API key is configured, every `/api/*` endpoint must require it. |
-| `L2-036` | `L1-009` | Input validation and hardening. |
+| `L2-036` | `L1-009` | Input validation and hardening, with the two Content-Security-Policy exceptions for the ride-along video (criterion 4, ADR 0012). |
 
 ## Diagrams
 

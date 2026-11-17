@@ -1,0 +1,69 @@
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app app--fixed">
+  <header class="app-bar">
+    <a class="lockup" routerLink="/" aria-label="Wattzup dashboard">
+      <svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true">
+        <rect width="48" height="48" rx="12" />
+        <path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10" />
+      </svg>
+      <span class="lockup__word">wattzup</span>
+    </a>
+    <span class="choose-main__nearby app-bar__close" role="status"
+      ><wz-icon name="bluetooth" size="sm" />{{ heading() }}</span
+    >
+  </header>
+  <main id="main" class="choose-main" tabindex="-1">
+    <div class="choose-main__inner">
+      <h1>What are you training on?</h1>
+      <p class="lead">
+        Wattzup drives one machine at a time. Pick one — the other stays disconnected until you
+        switch.
+      </p>
+      <fieldset class="machine-grid" [attr.aria-busy]="loading() || connecting() ? 'true' : null">
+        <legend class="visually-hidden">Machine</legend>
+        @if (alert(); as a) {
+          <wz-alert
+            class="machine-grid__alert"
+            tone="danger"
+            icon="alert-circle"
+            heading="Couldn't switch the machine"
+            [text]="
+              a === 'workout-active'
+                ? 'End the run in progress to change the machine.'
+                : 'The Wattzup server didn\'t answer. Try again.'
+            "
+          />
+        }
+        @if (noneNearby()) {
+          <wz-alert
+            class="machine-grid__alert"
+            tone="warning"
+            icon="warning"
+            heading="No machines nearby"
+            text="Switch the bike's console on, or switch on the Stride and clip in its safety key. Wattzup keeps looking."
+          />
+        }
+        <wz-machine-card
+          machine="bike"
+          [view]="bike()"
+          [loading]="loading()"
+          [status]="bikeStatus()"
+          [checked]="picked() === 'bike'"
+          [disabled]="connecting()"
+          (pick)="pick('bike')"
+          (retry)="pick('bike')"
+        />
+        <wz-machine-card
+          machine="treadmill"
+          [view]="treadmill()"
+          [loading]="loading()"
+          [status]="treadmillStatus()"
+          [checked]="picked() === 'treadmill'"
+          [disabled]="connecting()"
+          (pick)="pick('treadmill')"
+          (retry)="pick('treadmill')"
+        />
+      </fieldset>
+    </div>
+  </main>
+</div>

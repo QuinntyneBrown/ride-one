@@ -1,4 +1,4 @@
-// The treadmill side panel's rules (L2-071 criteria 5 and 6, L2-068).
+// The treadmill side panel's rules (L2-071 criteria 8 to 11, L2-068).
 import type { BikeState } from './api-types';
 import type { PlanNote } from './resistance-controls';
 import {
@@ -12,25 +12,31 @@ import {
 
 export { INCLINE_STEP, MAX_INCLINE, MAX_SPEED, MIN_INCLINE, MIN_SPEED, SPEED_STEP };
 
+/** The quick speeds, in km/h (L2-071 criterion 8). */
+export const QUICK_SPEEDS = [5, 8, 10, 12, 14, 16] as const;
+export const BELT_NOTE = 'Speed and incline controls wake up once the belt is running.';
+
 const DEFAULT_SPEED = 7.0;
 const DEFAULT_INCLINE = 0;
 
 const clamp = (n: number, min: number, max: number): number => Math.min(max, Math.max(min, n));
+const segmentOf = (state: BikeState | null) => {
+  const w = state?.workout;
+  return w ? (w.segments[w.segment] ?? null) : null;
+};
 
-/** The reported speed when above 0, else the target, else 7.0 km/h. */
+/** `target_speed`, else the current segment's speed, else 7.0 km/h. */
 export function baseSpeed(state: BikeState | null): number {
-  const speed = state?.speed_kmh ?? null;
-  if (speed !== null && speed > 0) return speed;
-  return state?.target_speed ?? DEFAULT_SPEED;
+  return state?.target_speed ?? segmentOf(state)?.speed ?? DEFAULT_SPEED;
 }
 
 export function stepSpeed(state: BikeState | null, dir: 1 | -1): number {
   return clamp(Math.round((baseSpeed(state) + dir * SPEED_STEP) * 10) / 10, MIN_SPEED, MAX_SPEED);
 }
 
-/** The reported incline, else the target, else 0. */
+/** `target_incline`, else `incline`, else 0. */
 export function baseIncline(state: BikeState | null): number {
-  return state?.incline ?? state?.target_incline ?? DEFAULT_INCLINE;
+  return state?.target_incline ?? state?.incline ?? DEFAULT_INCLINE;
 }
 
 export function stepIncline(state: BikeState | null, dir: 1 | -1): number {
@@ -42,18 +48,33 @@ export interface TreadmillControlsState {
   raiseSpeedDisabled: boolean;
   lowerInclineDisabled: boolean;
   raiseInclineDisabled: boolean;
+  quickDisabled: boolean;
+  pickerDisabled: boolean;
+  /** The quick speed equal to `target_speed`, or null. */
+  pressedQuick: number | null;
+  /** `Speed and incline controls wake up once the belt is running.`, or null. */
+  note: string | null;
 }
 
 export function treadmillControlsState(
   state: BikeState | null,
   commandsEnabled: boolean,
 ): TreadmillControlsState {
-  if (!commandsEnabled) {
+  const target = state?.target_speed ?? null;
+  const pressedQuick = QUICK_SPEEDS.find((q) => target !== null && Math.abs(q - target) < 0.05);
+  const belt = state?.belt === 'running';
+  const paused = state?.workout?.status.startsWith('paused') ?? false;
+  const note = commandsEnabled && !belt && !paused ? BELT_NOTE : null;
+  if (!commandsEnabled || !belt) {
     return {
       lowerSpeedDisabled: true,
       raiseSpeedDisabled: true,
       lowerInclineDisabled: true,
       raiseInclineDisabled: true,
+      quickDisabled: true,
+      pickerDisabled: true,
+      pressedQuick: pressedQuick ?? null,
+      note,
     };
   }
   const speed = baseSpeed(state);
@@ -63,27 +84,42 @@ export function treadmillControlsState(
     raiseSpeedDisabled: speed >= MAX_SPEED,
     lowerInclineDisabled: incline <= MIN_INCLINE,
     raiseInclineDisabled: incline >= MAX_INCLINE,
+    quickDisabled: false,
+    pickerDisabled: false,
+    pressedQuick: pressedQuick ?? null,
+    note: null,
   };
 }
 
-/** Whether the plan or the rider sets the speed and incline, and Back to plan. */
+/** Whether the plan or the rider sets the speed and incline, and Back to plan (L2-071 AC11). */
 export function treadmillPlanNote(state: BikeState | null): PlanNote {
   const w = state?.workout;
   if (!w) return { text: 'Manual control — no plan is running.', backToPlan: false };
   const flat = w.plan.kind === 'flat';
   if (w.mode === 'manual') {
-    const planSpeed = w.segments[w.segment]?.speed ?? null;
+    const segment = w.segments[w.segment];
+    const speedOff =
+      state?.target_speed != null &&
+      segment?.speed != null &&
+      Math.abs(state.target_speed - segment.speed) >= 0.05;
+    const inclineOff =
+      state?.target_incline != null &&
+      segment?.incline != null &&
+      state.target_incline !== segment.incline;
+    const what =
+      speedOff && !inclineOff
+        ? 'Manual speed.'
+        : inclineOff && !speedOff
+          ? 'Manual incline.'
+          : 'Manual speed and incline.';
     return {
-      text:
-        flat && planSpeed !== null
-          ? `Manual speed and incline. Plan was ${planSpeed.toFixed(1)} km/h.`
-          : 'Manual speed and incline. Plan takes over next interval.',
+      text: w.plan.kind === 'hiit' ? `${what} Plan takes over next interval.` : what,
       backToPlan: true,
     };
   }
   return {
     text: flat
-      ? 'Holding a flat speed and incline for the whole ride.'
+      ? 'Holding one speed and incline for the whole run.'
       : 'Following the plan — speed and incline change with each interval.',
     backToPlan: false,
   };

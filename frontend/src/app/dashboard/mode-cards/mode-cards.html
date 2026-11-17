@@ -19,6 +19,24 @@
       }
     </p>
   </label>
+  @if (machine() === 'bike') {
+    <label class="mode-card">
+      <span class="mode-card__title"
+        ><input
+          type="radio"
+          name="mode"
+          value="intervals"
+          [checked]="mode() === 'intervals'"
+          [disabled]="disabled()"
+          (change)="mode.set('intervals')"
+        />Intervals</span
+      >
+      <p>
+        Build your own sets: every set, the warm-up and the cool-down has its own times, levels and
+        cadence aim.
+      </p>
+    </label>
+  }
   <label class="mode-card">
     <span class="mode-card__title"
       ><input
@@ -28,11 +46,11 @@
         [checked]="mode() === 'flat'"
         [disabled]="disabled()"
         (change)="mode.set('flat')"
-      />{{ machine() === 'treadmill' ? 'Flat speed' : 'Flat resistance' }}</span
+      />{{ machine() === 'treadmill' ? 'Steady' : 'Flat resistance' }}</span
     >
     <p>
       @if (machine() === 'treadmill') {
-        One speed and incline, held the whole ride.
+        One speed and one incline, held the whole run. Good for hill walks and easy miles.
       } @else {
         One level, held the whole ride. You set the pace with your legs.
       }

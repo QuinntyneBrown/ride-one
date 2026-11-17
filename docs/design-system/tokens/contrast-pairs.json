@@ -462,6 +462,18 @@
       "bg": "--color-bg-subtle",
       "min": 1.4,
       "note": "unchecked radio ring in a machine option (decorative; the label and the checked dot carry the state)"
+    },
+    {
+      "fg": "--color-video-fg",
+      "bg": "--color-video-bg",
+      "min": 4.5,
+      "note": "video title and time on the video frame (L2-076)"
+    },
+    {
+      "fg": "--color-video-fg",
+      "bg": "--color-video-scrim",
+      "min": 4.5,
+      "note": "text over the video scrim (L2-076)"
     }
   ]
 }

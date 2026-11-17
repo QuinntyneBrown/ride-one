@@ -1,6 +1,14 @@
 import { expect, test } from './fixtures/wz-test';
 import { SetupPage } from './pages/setup.page';
-import { FLAT_PLAN, SETUP_DEFAULT_PLAN, freeRide, workout } from './fixtures/states';
+import { EditPlanPartDialog } from './pages/edit-plan-part.dialog';
+import {
+  FLAT_PLAN,
+  INTERVALS_PLAN,
+  SETUP_DEFAULT_PLAN,
+  freeRide,
+  workout,
+} from './fixtures/states';
+import intervalsStarted from './fixtures/recorded/intervals-workout-started.json';
 import invalidWorkout from './fixtures/recorded/problem-invalid-workout.json';
 
 const started = { json: { started: workout() } };
@@ -207,8 +215,8 @@ test.describe('Ride preview (L2-059)', () => {
     await expect(setup.summaryValue('Structure')).toHaveText('18 × 0:40 / 0:20');
     await expect(setup.summaryValue('Time under load')).toHaveText('12:00');
     await expect(setup.summaryValue('Peak resistance')).toHaveText('Level 26');
-    await expect(setup.summaryValue('Expected avg power')).toHaveText('~357 W');
-    await expect(setup.summaryValue('Expected energy')).toHaveText('~484 kcal');
+    await expect(setup.summaryValue('Expected avg power')).toHaveText('~362 W');
+    await expect(setup.summaryValue('Expected energy')).toHaveText('~490 kcal');
     await expect(setup.legend).toHaveText(['Work', 'Recover']);
   });
 
@@ -226,5 +234,186 @@ test.describe('Ride preview (L2-059)', () => {
     ]);
     await expect(setup.summaryValue('Expected avg power')).toHaveText('~205 W');
     await expect(setup.summaryValue('Expected energy')).toHaveText('~367 kcal');
+  });
+});
+
+test.describe('Intervals plan (L2-029 AC10-16, L2-059 AC5)', () => {
+  async function openIntervals(setup: SetupPage): Promise<void> {
+    await setup.open();
+    await setup.intervalsCard.check();
+  }
+
+  test('shows the Descending recoveries plan on first use: 30:00, 5 sets · 8 efforts', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await expect(setup.intervalsModeCard).toContainText(
+      'Build your own sets: every set, the warm-up and the cool-down has its own times, levels and cadence aim.',
+    );
+    await expect(setup.preset('Descending recoveries')).toHaveAttribute('aria-pressed', 'true');
+    await expect(setup.preset('Even sets')).toHaveAttribute('aria-pressed', 'false');
+    await expect(setup.stretchValue('Warm-up')).toHaveText('5:00 · Level 8 · 80 rpm');
+    await expect(setup.stretchValue('Cool-down')).toHaveText('6:00 · Level 6 · 70 rpm');
+    await expect(setup.setRows).toHaveCount(5);
+    await expect(setup.setRow(1)).toContainText('Set 1');
+    await expect(setup.setRow(1)).toContainText('1 × 0:30 · L28 · 100 rpm');
+    await expect(setup.setRow(1)).toContainText('Recover 3:00 · L8 · 72 rpm');
+    await expect(setup.setRow(5)).toContainText('No recover');
+    await expect(setup.rowAction('Move set 1 up')).toBeDisabled();
+    await expect(setup.rowAction('Move set 5 down')).toBeDisabled();
+    await expect(setup.total).toHaveText('30:00');
+    await expect(setup.summaryValue('Structure')).toHaveText('5 sets · 8 efforts');
+    await expect(setup.summaryValue('Time under load')).toHaveText('4:00');
+    await expect(setup.summaryValue('Peak resistance')).toHaveText('Level 28');
+    await expect(setup.summaryValue('Expected avg power')).toHaveText('~174 W');
+    await expect(setup.summaryValue('Expected energy')).toHaveText('~312 kcal');
+    await expect(setup.profileBars).toHaveCount(17);
+  });
+
+  test('switches to the Even sets preset', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.preset('Even sets').click();
+    await expect(setup.setRows).toHaveCount(3);
+    await expect(setup.setRow(1)).toContainText('4 × 0:40 · L26 · 100 rpm');
+    await expect(setup.setRow(1)).toContainText('Recover 0:20 · L12 · 72 rpm');
+    await expect(setup.stretchValue('Warm-up')).toHaveText('3:00 · Level 8 · 80 rpm');
+    await expect(setup.total).toHaveText('17:00');
+  });
+
+  test('edits a set in a dialog and returns focus to its Edit button', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.rowAction('Edit set 2').click();
+    const dialog = new EditPlanPartDialog(page, 'Edit set 2');
+    await expect(dialog.field('Rounds')).toHaveValue('2');
+    await expect(dialog.field('Recover')).toHaveValue('2:30');
+    await expect(dialog.field('Work cadence')).toHaveValue('100 rpm');
+    await expect(dialog.slider('Work resistance')).toHaveValue('28');
+    await dialog.more('rounds').click();
+    await dialog.saveButton.click();
+    await expect(dialog.dialog).toBeHidden();
+    await expect(setup.setRow(2)).toContainText('3 × 0:30 · L28 · 100 rpm');
+    await expect(setup.rowAction('Edit set 2')).toBeFocused();
+    await expect(setup.preset('Descending recoveries')).toHaveAttribute('aria-pressed', 'false');
+    await expect(setup.total).toHaveText('33:00');
+
+    await setup.rowAction('Edit set 2').click();
+    await dialog.more('rounds').click();
+    await page.keyboard.press('Escape');
+    await expect(dialog.dialog).toBeHidden();
+    await expect(setup.setRow(2)).toContainText('3 × 0:30');
+  });
+
+  test('shows a recover of 0:00 as None', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.rowAction('Edit set 5').click();
+    const dialog = new EditPlanPartDialog(page, 'Edit set 5');
+    await expect(dialog.field('Recover')).toHaveValue('None');
+    await dialog.more('recover').click();
+    await expect(dialog.field('Recover')).toHaveValue('0:05');
+    await dialog.less('recover').click();
+    await expect(dialog.field('Recover')).toHaveValue('None');
+  });
+
+  test('edits the warm-up length and turns the cool-down off', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.rowAction('Edit warm-up').click();
+    const dialog = new EditPlanPartDialog(page, 'Warm-up');
+    await expect(dialog.field('Duration')).toHaveValue('5:00');
+    await dialog.less('duration').click();
+    await expect(dialog.field('Duration')).toHaveValue('4:30');
+    await dialog.saveButton.click();
+    await expect(setup.stretchValue('Warm-up')).toHaveText('4:30 · Level 8 · 80 rpm');
+    await expect(setup.total).toHaveText('29:30');
+    await setup.cooldown.uncheck();
+    await expect(setup.total).toHaveText('23:30');
+  });
+
+  test('adds, moves and removes sets', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.addSetButton.click();
+    const dialog = new EditPlanPartDialog(page, 'Add set');
+    await expect(dialog.field('Rounds')).toHaveValue('1');
+    await dialog.saveButton.click();
+    await expect(setup.setRows).toHaveCount(6);
+    await expect(setup.setRow(6)).toContainText('1 × 0:30 · L28 · 100 rpm');
+
+    await setup.rowAction('Move set 1 down').click();
+    await expect(setup.setRow(2)).toContainText('Recover 3:00');
+    await expect(setup.rowAction('Move set 2 down')).toBeFocused();
+
+    await setup.rowAction('Remove set 6').click();
+    await expect(setup.setRows).toHaveCount(5);
+    await expect(setup.addSetButton).toBeFocused();
+  });
+
+  test('disables Save for a set out of range', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.rowAction('Edit set 2').click();
+    const dialog = new EditPlanPartDialog(page, 'Edit set 2');
+    await dialog.field('Rounds').fill('31');
+    await dialog.field('Recover').fill('0:03');
+    await expect(dialog.fieldError('Rounds')).toHaveText('Enter 1 to 30 rounds.');
+    await expect(dialog.fieldError('Recover')).toHaveText(
+      'Recover must be 0 (none) or at least 0:05.',
+    );
+    await expect(dialog.saveButton).toBeDisabled();
+  });
+
+  test('lists a plan of more than 30 efforts and links to Add set', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.rowAction('Edit set 2').click();
+    const dialog = new EditPlanPartDialog(page, 'Edit set 2');
+    await dialog.field('Rounds').fill('30');
+    await dialog.saveButton.click();
+    await expect(setup.formSummaryLinks).toHaveText(['Sets — at most 30 efforts']);
+    await expect(setup.startButton).toBeDisabled();
+    await setup.formSummaryLinks.first().click();
+    await expect(setup.addSetButton).toBeFocused();
+  });
+
+  test('posts the intervals plan and goes to the dashboard', async ({ page, api, events }) => {
+    api.on('POST', '/api/workout', { json: intervalsStarted });
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.startButton.click();
+    await expect(page).toHaveURL(/\/$/);
+    const [call] = api.calls('POST', '/api/workout');
+    expect(call.body).toEqual(INTERVALS_PLAN);
+  });
+
+  test('restores the last submitted intervals plan after a reload', async ({
+    page,
+    api,
+    events,
+  }) => {
+    api.on('POST', '/api/workout', { json: intervalsStarted });
+    const setup = new SetupPage(page, api, events);
+    await openIntervals(setup);
+    await setup.rowAction('Edit set 2').click();
+    await new EditPlanPartDialog(page, 'Edit set 2').more('rounds').click();
+    await new EditPlanPartDialog(page, 'Edit set 2').saveButton.click();
+    await setup.startButton.click();
+    await expect(page).toHaveURL(/\/$/);
+    await setup.open();
+    await expect(setup.intervalsCard).toBeChecked();
+    await expect(setup.setRow(2)).toContainText('3 × 0:30');
   });
 });

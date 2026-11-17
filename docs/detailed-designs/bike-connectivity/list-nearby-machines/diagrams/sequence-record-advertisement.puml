@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Record an advertisement in nearby
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "MachinePage" as page
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "BikeConnectionService" as svc
+end box
+box "Backend — Wattzup Core and Protocol" #ECFDF3
+  participant "NearbyFilter" as filter
+  participant "NearbyMachines" as nearby
+  participant "BikeStateStore" as store
+end box
+box "Backend — Wattzup Infrastructure (BLE)" #FFF4E5
+  participant "IBikeTransport" as transport
+end box
+
+note over svc : machine = treadmill
+svc -> filter : Build(Treadmill, nearby)
+svc -> transport : ScanAsync(filter, 20 s)
+transport -> filter : ECHEX-3-141844, …f1, −68 dBm
+filter -> filter : EchelonDeviceFilter matches (bike)
+filter -> nearby : Heard(Bike, advertisement) [L2-074 AC1]
+nearby -> nearby : signal = FromRssi(−68) = 3 [L2-074 AC2];\nlabel = Wattzup:Bike:DisplayName else name
+filter --> transport : false (the bike is not chosen) [L2-074 AC4]
+transport -> filter : STRIDE-8s22-000766, …f0, −55 dBm
+filter -> filter : EchelonTreadmillFilter matches (treadmill)
+filter -> nearby : Heard(Treadmill, advertisement)
+filter --> transport : true
+transport --> svc : STRIDE-8s22-000766
+svc -> transport : ConnectAsync (the treadmill only)
+svc -> nearby : Hold(Treadmill) [L2-074 AC4]
+nearby -> nearby : 1-second timer fires
+nearby -> store : Update(nearby = [bike 3 bars, treadmill 4 bars]) [L2-074 AC5]
+store --> page : broadcast (SSE)
+page -> page : "2 machines nearby", signal bars per card [L2-073]
+@enduml

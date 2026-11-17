@@ -1,19 +1,22 @@
 @let v = view();
 <div
   class="level-picker"
+  [class.level-picker--incline]="incline()"
   role="slider"
-  aria-label="Resistance level"
+  [attr.id]="fieldId()"
+  [attr.aria-label]="labelledBy() ? null : label()"
+  [attr.aria-labelledby]="labelledBy()"
   aria-orientation="horizontal"
-  aria-valuemin="1"
-  aria-valuemax="32"
+  [attr.aria-valuemin]="range().min"
+  [attr.aria-valuemax]="range().max"
   [attr.aria-valuenow]="value()"
-  [attr.aria-valuetext]="value() === null ? 'No level yet' : 'Level ' + value() + ' of 32'"
+  [attr.aria-valuetext]="text()"
   [attr.aria-disabled]="disabled() ? 'true' : null"
   [attr.tabindex]="disabled() ? -1 : 0"
   (click)="onClick($event)"
   (keydown)="onKey($event)"
 >
-  @for (l of levels; track l.level) {
+  @for (l of levels(); track l.level) {
     <span
       class="level-picker__bar"
       aria-hidden="true"

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choose your machine · error — Wattzup mocks</title>
+<meta name="mock:kind" content="page">
+<meta name="mock:screen" content="choose-machine">
+<meta name="mock:state" content="error">
+<meta name="mock:requirements" content="L2-062 L2-063 L2-072 L2-073 L2-074">
+<meta name="description" content="POST /api/machine failed: the alert ‘Couldn&#x27;t switch the machine’ shows above the cards and nothing is picked.">
+<link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
+<link rel="stylesheet" href="../../../design-system/assets/components.css">
+<link rel="stylesheet" href="../../assets/mock.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app app--fixed">
+<header class="app-bar">
+  <a class="lockup " href="../../pages/ride/treadmill.html" aria-label="Wattzup dashboard"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></a>
+  <span class="choose-main__nearby app-bar__close"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg>2 machines nearby</span>
+</header>
+<main id="main" class="choose-main">
+  <div class="choose-main__inner">
+  <h1>What are you training on?</h1>
+  <p class="lead">Wattzup drives one machine at a time. Pick one — the other stays disconnected until you switch.</p>
+  <fieldset class="machine-grid">
+    <legend class="visually-hidden">Machine</legend>
+    <div class="alert alert--danger" role="alert"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">Couldn't switch the machine</span><span>The Wattzup server didn't answer. Try again.</span></div></div>
+    <label class="machine-card" for="machine-bike">
+      <input class="machine-card__input" type="radio" name="machine" id="machine-bike" value="bike" aria-describedby="machine-bike-desc">
+      <span class="machine-card__media"><img src="../../assets/machines/bike.jpg" alt=""><span class="machine-card__tag">Last used</span></span>
+      <span class="machine-card__body">
+        <span class="machine-card__kind"><span>Bike</span><span class="signal-bars" role="img" aria-label="Signal 3 of 4"><span class="signal-bars__bar is-lit" style="--h: 5.5px;"></span><span class="signal-bars__bar is-lit" style="--h: 8.0px;"></span><span class="signal-bars__bar is-lit" style="--h: 10.5px;"></span><span class="signal-bars__bar" style="--h: 13.0px;"></span></span></span>
+        <span class="machine-card__name">Echelon EX-5s</span>
+        <span class="machine-card__serial">ECHEX-3-141844</span>
+        <dl class="dl dl--split" id="machine-bike-desc">
+          <div><dt>Wattzup controls</dt><dd>Resistance, levels 1–32</dd></div>
+          <div><dt>Last session</dt><dd>HIIT 8 × 40s · yesterday</dd></div>
+        </dl>
+        <span class="machine-card__foot"><span class="machine-card__cta machine-card__cta--primary">Ride the bike</span></span>
+      </span>
+    </label>
+    <label class="machine-card" for="machine-stride">
+      <input class="machine-card__input" type="radio" name="machine" id="machine-stride" value="treadmill" aria-describedby="machine-stride-desc">
+      <span class="machine-card__media"><img src="../../assets/machines/stride.jpg" alt=""></span>
+      <span class="machine-card__body">
+        <span class="machine-card__kind"><span>Treadmill</span><span class="signal-bars" role="img" aria-label="Signal 4 of 4"><span class="signal-bars__bar is-lit" style="--h: 5.5px;"></span><span class="signal-bars__bar is-lit" style="--h: 8.0px;"></span><span class="signal-bars__bar is-lit" style="--h: 10.5px;"></span><span class="signal-bars__bar is-lit" style="--h: 13.0px;"></span></span></span>
+        <span class="machine-card__name">Echelon Stride</span>
+        <span class="machine-card__serial">STRIDE-8s22-000766</span>
+        <dl class="dl dl--split" id="machine-stride-desc">
+          <div><dt>Wattzup controls</dt><dd>Speed 0.8–19.3 km/h, incline 0–10%</dd></div>
+          <div><dt>Last session</dt><dd>Hill walk 30 min · 4 days ago</dd></div>
+        </dl>
+        <span class="machine-card__foot"><span class="machine-card__cta">Run on the Stride</span></span>
+      </span>
+    </label>
+  </fieldset>
+  </div>
+</main>
+</div>
+
+<nav class="mock-bar" aria-label="Mock navigation">
+  <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
+  <span class="mock-bar__screen">Choose your machine</span>
+  <ul class="mock-bar__states">
+    <li><a href="default.html">default</a></li>
+    <li><a href="connecting.html">connecting</a></li>
+    <li><a href="not-found.html">not-found</a></li>
+    <li><a href="not-found-bike.html">not-found-bike</a></li>
+    <li><a href="loading.html">loading</a></li>
+    <li><a href="empty.html">empty</a></li>
+    <li><a href="error.html" aria-current="page">error</a></li>
+  </ul>
+  <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
+  <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
+</nav>
+<script src="../../assets/mock.js"></script>
+</body>
+</html>

@@ -114,14 +114,14 @@ are not supported.
 | 0–7 | 0 | 8 | Marker | `F0` | |
 | 8–15 | 1 | 8 | Type | `B1` | |
 | 16–23 | 2 | 8 | Length | `01` | |
-| 24–31 | 3 | 8 | Target incline | uint8, whole percent, 0–15 | Decoded (L2-065) |
+| 24–31 | 3 | 8 | Target incline | uint8, whole percent, 0–10 | Decoded (L2-065) |
 | 32–39 | 4 | 8 | Checksum | `(0xA2 + incline) mod 256` | |
 
 | Target incline | Bytes |
 |---|---|
 | 0 % | `F0 B1 01 00 A2` |
 | 5 % | `F0 B1 01 05 A7` |
-| 15 % | `F0 B1 01 0F B1` |
+| 10 % | `F0 B1 01 0A AC` |
 
 ### `B2` Set speed: 48 bits
 
@@ -135,12 +135,13 @@ are not supported.
 
 | Target speed | Value | Bytes |
 |---|---|---|
+| 0.8 km/h | 800 | `F0 B2 02 03 20 C7` |
 | 1.0 km/h | 1000 | `F0 B2 02 03 E8 8F` |
 | 7.0 km/h | 7000 | `F0 B2 02 1B 58 17` |
 | 9.0 km/h | 9000 | `F0 B2 02 23 28 EF` |
-| 16.0 km/h | 16000 | `F0 B2 02 3E 80 62` |
+| 19.3 km/h | 19300 | `F0 B2 02 4B 64 53` |
 
-The reference accepts 0–22 km/h. Wattzup accepts 1.0–16.0 km/h in steps of 0.1 (ADR 0009).
+The reference accepts 0–22 km/h. Wattzup accepts 0.8–19.3 km/h in steps of 0.1, and incline 0–10 %, the Echelon Stride's own ranges (ADR 0010).
 
 ### Acknowledgements
 
@@ -203,6 +204,25 @@ The reference reads byte 11 as heart rate on some models and, on Stride 4 models
   speed commands are ignored, and a requirement must be added first.
 - **Device Information `180A`** and **DFU `FE59`**: never read or written by Wattzup.
 
+## Hardware findings 2026-11-16
+
+The first real test, on `STRIDE-8s22-000766` from macOS (Device Information: manufacturer
+`ChangYow`, model `SI0115 V2`, hardware `221.00.231.255`, firmware `09`):
+
+- Discovery (item 1) works: the treadmill advertises `0bf669f0-…` and is found by name.
+- Subscribing to `…f3` and `…f4` succeeds (`isNotifying` true), and every write is acknowledged.
+- **The treadmill sent no notification at all** in any session: none after the init frames (also
+  with `A1` four times as the reference does), none for keepalives, none after
+  `F0 B0 01 01 A2` followed by `F0 D0 01 00 C1` and `F0 D0 01 11 D2`, none after the Stride 4
+  sequence with `F0 E0 FD 3E 65 48 D5 8D`, and none while the belt ran from the console with speed
+  and incline changed by hand. It sent no `E0` challenge either.
+- The belt did not move on `F0 B0 01 01 A2` (item 6 fails).
+- The built-in Echelon screen reports `Connected Via: UART`; after *Forget Equipment* the Bluetooth
+  behaviour was the same.
+
+Treadmill support is therefore off by default (ADR 0011, L2-075). The next step is a capture of the
+official Echelon app driving this treadmill.
+
 ## Needs hardware confirmation
 
 A person runs this list on the real treadmill (`STRIDE-8s22-000766`), standing beside the belt with
@@ -221,13 +241,13 @@ an agent or by CI.
 6. **Start belt:** after the countdown, `F0 B0 01 01 A2` starts the belt, and a `D3` above 0 follows.
    Note any console countdown of its own.
 7. **Stop belt:** `F0 B0 01 00 A1` stops the belt from every speed used below.
-8. **Speed steps:** 1.0, 7.0, 9.0 and 16.0 km/h (`F0 B2 02 …`) each set the console to that speed;
-   steps of 0.1 and 0.5 km/h are accepted; 16.0 km/h is within the treadmill's own maximum.
-9. **Incline steps:** 0, 1, 5 and 15 % (`F0 B1 01 …`) each set the console to that incline; 15 % is
-   within the treadmill's own maximum.
+8. **Speed steps:** 0.8, 7.0, 9.0 and 19.3 km/h (`F0 B2 02 …`) each set the console to that speed;
+   steps of 0.1 and 0.5 km/h are accepted; 19.3 km/h is the treadmill's own maximum.
+9. **Incline steps:** 0, 1, 5 and 10 % (`F0 B1 01 …`) each set the console to that incline; 10 % is
+   the treadmill's own maximum.
 10. **Console stop:** stopping the belt from the console and pulling the safety key both report speed
     0 and pause the ride, and Wattzup does not restart the belt.
-11. **Disconnect:** switching Bluetooth off mid-ride: note what the belt does on its own; the UI shows
-    the safety-key message; after reconnecting the ride stays paused.
+11. **Disconnect:** switching Bluetooth off mid-ride stops the belt within 2 seconds (L2-043 criterion 5;
+    the UI's *Lost the Stride* copy depends on it, ADR 0010); after reconnecting the ride stays paused.
 12. **Unlock challenge:** whether the treadmill sends an `E0` frame and ignores commands until it is
     answered.

@@ -102,7 +102,40 @@ class BikeState <<record>> {
   +int? TargetIncline
   +BeltState? Belt
   +int? BeltCountdown
+  +int? ClimbM
+  +ImmutableArray<NearbyMachine> Nearby
 }
+
+package "Wattzup Web (frontend)" {
+  class MachinePage <<component>> {
+    -picked: Signal<Machine | null>
+    -alert: Signal<'failed' | 'workout-active' | null>
+    +pick(machine: Machine): Promise<void>
+  }
+  class MachineCard <<component>> {
+    +view: InputSignal<MachineCardView>
+    +status: InputSignal<CardStatus>
+    +picked: OutputEmitterRef<Machine>
+  }
+  class MachineHistoryStore <<service>> {
+    +lastUsed: Signal<Machine | null>
+    +session(machine: Machine): LastSession | null
+    +recordStart(machine, summary, startedAt): void
+  }
+  class "machine-page-view" as MachinePageView <<pure>> {
+    +nearbyHeading(state): string
+    +machineCardView(machine, state, history, today): MachineCardView
+    +cardStatus(machine, picked, state, failed): CardStatus
+  }
+  interface MachineApi {
+    +choose(machine: Machine): Promise<void>
+  }
+}
+MachinePage --> MachineCard : renders 2
+MachinePage ..> MachinePageView
+MachinePage --> MachineHistoryStore
+MachinePage --> MachineApi : MACHINE_API
+MachineApi ..> MachineEndpoints : POST /api/machine
 
 WorkoutEngine ..|> IMachineControl
 MachineEndpoints ..> IMachineControl : calls

@@ -26,7 +26,13 @@ export type IconName =
   | 'key'
   | 'flag'
   | 'bike'
-  | 'treadmill';
+  | 'treadmill'
+  | 'switch'
+  | 'target'
+  | 'edit'
+  | 'chevron-up'
+  | 'chevron-down'
+  | 'trash';
 
 /** The mocks' stroke icons, always decorative (`aria-hidden`). */
 @Component({

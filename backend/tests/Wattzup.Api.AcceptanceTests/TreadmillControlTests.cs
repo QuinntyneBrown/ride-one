@@ -68,9 +68,23 @@ public sealed class TreadmillControlTests
         Assert.Equal("incline", state.GetProperty("commands")[0].GetProperty("command").GetString());
     }
 
+    [Fact]
+    public async Task Given_the_treadmill_when_the_Strides_top_speed_and_incline_are_posted_then_they_are_written()
+    {
+        await using var treadmill = await TreadmillAsync();
+
+        using var speed = await treadmill.PostAsync("/api/speed", new { speed = 19.3 });
+        using var incline = await treadmill.PostAsync("/api/incline", new { incline = 10 });
+
+        Assert.Equal(HttpStatusCode.OK, speed.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, incline.StatusCode);
+        Assert.Contains(treadmill.Factory.Simulation.Writes, w => Convert.ToHexString(w.Bytes) == "F0B2024B6453");
+        Assert.Contains(treadmill.Factory.Simulation.Writes, w => Convert.ToHexString(w.Bytes) == "F0B1010AAC");
+    }
+
     [Theory]
-    [InlineData("{\"speed\":0.9}")]
-    [InlineData("{\"speed\":16.1}")]
+    [InlineData("{\"speed\":0.7}")]
+    [InlineData("{\"speed\":19.4}")]
     [InlineData("{\"speed\":9.25}")]
     [InlineData("{\"speed\":\"9\"}")]
     [InlineData("{}")]
@@ -84,12 +98,12 @@ public sealed class TreadmillControlTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await Bike.JsonAsync(response);
         Assert.Equal("invalid_speed", problem.GetProperty("code").GetString());
-        Assert.Equal("speed must be 1.0-16.0", problem.GetProperty("error").GetString());
+        Assert.Equal("speed must be 0.8-19.3", problem.GetProperty("error").GetString());
     }
 
     [Theory]
     [InlineData("{\"incline\":-1}")]
-    [InlineData("{\"incline\":16}")]
+    [InlineData("{\"incline\":11}")]
     [InlineData("{\"incline\":2.5}")]
     [InlineData("{}")]
     public async Task Given_an_invalid_incline_then_the_answer_is_400_invalid_incline(string body)
@@ -101,7 +115,7 @@ public sealed class TreadmillControlTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await Bike.JsonAsync(response);
         Assert.Equal("invalid_incline", problem.GetProperty("code").GetString());
-        Assert.Equal("incline must be 0-15", problem.GetProperty("error").GetString());
+        Assert.Equal("incline must be 0-10", problem.GetProperty("error").GetString());
     }
 
     [Fact]
@@ -121,7 +135,7 @@ public sealed class TreadmillControlTests
     [Fact]
     public async Task Given_the_bike_is_chosen_then_speed_and_incline_answer_409_wrong_machine()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
 
         using var speed = await bike.PostAsync("/api/speed", new { speed = 7.0 });
         using var incline = await bike.PostAsync("/api/incline", new { incline = 1 });
@@ -147,7 +161,7 @@ public sealed class TreadmillControlTests
     [Fact]
     public async Task Given_the_bike_is_connected_when_the_treadmill_is_chosen_then_the_backend_switches_and_connects_to_it()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
 
         using var response = await bike.PostAsync("/api/machine", new { machine = "treadmill" });
 
@@ -163,14 +177,14 @@ public sealed class TreadmillControlTests
     [Fact]
     public async Task Given_the_machine_changes_then_the_other_machines_fields_are_reset_before_the_scan()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
         await bike.Stream.AdvanceUntilAsync(bike.Factory.Time, s => s.GetProperty("cadence").ValueKind == JsonValueKind.Number, "a cadence", TimeSpan.FromSeconds(1));
 
         using var response = await bike.PostAsync("/api/machine", new { machine = "treadmill" });
 
         var state = await bike.Stream.WaitForAsync(s => s.GetProperty("machine").GetString() == "treadmill", "the treadmill chosen");
         Assert.Equal("scanning", state.GetProperty("ble").GetString());
-        foreach (var field in new[] { "device", "cadence", "speed_kmh", "power", "distance_km", "workout" })
+        foreach (var field in new[] { "device", "device_label", "cadence", "speed_kmh", "power", "distance_km", "kcal", "climb_m", "workout" })
         {
             Assert.Equal(JsonValueKind.Null, state.GetProperty(field).ValueKind);
         }
@@ -196,7 +210,7 @@ public sealed class TreadmillControlTests
     [InlineData("")]
     public async Task Given_an_invalid_machine_then_the_answer_is_400_invalid_machine(string body)
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
 
         using var response = await bike.PostRawAsync("/api/machine", body);
 
@@ -209,7 +223,7 @@ public sealed class TreadmillControlTests
     [Fact]
     public async Task Given_a_workout_is_active_then_choosing_the_other_machine_answers_409_workout_active()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
         await Ride.StartAsync(bike, Ride.ShortHiit);
 
         using var response = await bike.PostAsync("/api/machine", new { machine = "treadmill" });

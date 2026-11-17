@@ -51,6 +51,8 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Radio group (mode cards)](components/radio-group.html) | Card-style radio group that picks the training mode. |
 | [Machine choice](components/machine-choice.html) | Segmented radio group that picks the bike or the treadmill (L2-072). |
 | [Switch](components/switch.html) | On/off setting: warm-up and cool-down. |
+| [Set list](components/set-list.html) | The warm-up, sets and cool-down of an intervals plan, edited in a dialog. |
+| [Video ride-along](components/video.html) | Video frame, start point and Video / Power vs. plan switch (proposed). |
 | [Slider](components/slider.html) | Level slider for work, recover and flat resistance. |
 | [Number stepper](components/number-stepper.html) | − value + control for rounds, work, recover, duration and cadence. |
 | [Level control](components/level-control.html) | − level + for the bike's resistance, with the requested level shown until the bike confirms it. |
@@ -127,6 +129,12 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 ## Changelog
 
+- **2026-11-17, video ride-along (L2-029 criteria 17–21, L2-076, ADR 0012).** The new component page [Video ride-along](components/video.html) covers:
+  - `.video-frame` (with `--fill`, `__poster`, `__title`, `__meta`, `__scrim`) and `.video-sync`;
+  - `.view-switch`, a two-tab switch. It is the system's first tabs pattern, scoped to the dashboard's main view, not the kit's general Tabs;
+  - `.profile--strip` with `rect.is-playhead`.
+
+  New tokens `--color-video-bg`, `--color-video-fg` and `--color-video-scrim` are the same in both themes, because they frame a picture rather than the UI. Two contrast pairs were added (video text on the frame and on the scrim).
 - **2026-11-16, treadmill (L2-062…L2-072).** New components: machine choice (`.machine-choice`), speed and incline control (`.speed-control`, `.incline-control`). New variants: `.readout--speed`, `.readout--incline`, `.metrics--treadmill`, `.overlay-panel--belt` with `.overlay-panel__count`. Three contrast pairs added for the machine choice. No token was added or changed.
 
 ## Drift log
@@ -151,6 +159,10 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | ride | Dark veil let numerals show through overlay text | Veil raised to 0.9 |
 | ride | Disabled step button 0.3 opacity | `--opacity-disabled` |
 | notifications | Toast auto-dismiss 5 s | 8 s, pause on hover/focus (WCAG 2.2.1) |
+| Magic Patterns *Ride Dashboard* (video) | Video background `bg-black` and scrim `bg-black/60`, raw | `--color-video-bg`, `--color-video-scrim` |
+| ride/video, ride/video-blocked | Level-picker bar heights recomputed (34.7 % instead of 34.8 %, …) | Copied from the other ride mocks |
+| setup/video, setup/intervals* | Mock notes pinned 40rem from the left scrolled the page sideways at 360 px | Anchored to the right edge |
+| Magic Patterns *Training Setup* (video) | Start-point stepper buttons 40 px | `btn--icon` at `--target-comfortable` (44 px) |
 
 Remaining differences between the mocks and this system are listed after the mocks were pointed at it (see *Verification*).
 
@@ -162,14 +174,14 @@ python3 .claude/skills/extracting-design-systems/scripts/check_contrast.py docs/
 python3 .claude/skills/writing-html-mocks/scripts/screenshot_mocks.py docs/design-system --out docs/design-system/.cache/shots
 ```
 
-Run on 2026-11-15:
+Run on 2026-11-15, and again on 2026-11-17 for the video ride-along:
 
 | Check | Result |
 |---|---|
-| `check_design_system.py` | 61 pages (12 foundations, 40 components, 8 patterns, index), 0 errors, 0 warnings |
-| `check_contrast.py` | 144 passed, 0 failed, 0 unresolved (73 pairs × 2 themes, less theme-specific pairs) |
-| `tokens_to_json.py` | `tokens.json` written, 334 tokens |
-| `check_mocks.py docs/mocks --write` with the mocks reading this system | 10 screens, 62 mocks, 0 errors, 0 warnings (2026-11-16) |
+| `check_design_system.py` | 65 pages (12 foundations, 44 components, 8 patterns, index), 0 errors, 0 warnings (2026-11-17) |
+| `check_contrast.py` | 154 passed, 0 failed, 0 unresolved (78 pairs × 2 themes, less theme-specific pairs; 2026-11-17) |
+| `tokens_to_json.py` | `tokens.json` written, 337 tokens (2026-11-17) |
+| `check_mocks.py docs/mocks --write` with the mocks reading this system | 13 screens, 81 mocks, 0 errors, 0 warnings (2026-11-17) |
 | Horizontal overflow at 360px, all 46 mocks and 61 pages, both themes | none |
 | Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280 |
 

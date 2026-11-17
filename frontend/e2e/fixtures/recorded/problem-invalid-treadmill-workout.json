@@ -3,8 +3,8 @@
   "title": "The plan is not valid.",
   "status": 400,
   "errors": {
-    "work_speed": ["Speed must be 1.0 to 16.0 km/h."]
+    "work_speed": ["Speed must be 0.8 to 19.3 km/h."]
   },
   "code": "invalid_workout",
-  "trace_id": "00-5c7e2cbf38f6de64c9605a8fdbeebde3-d2aefed66ad18767-00"
+  "trace_id": "00-6cb352bec3ca4364b916caae86a17f66-a3cb472d85b1870d-00"
 }

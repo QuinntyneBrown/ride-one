@@ -4,7 +4,8 @@ import type { WorkoutPlan } from './api-types';
 export type PresetId = 'tabata' | '40-20' | 'minute-on' | 'long-climbs';
 
 export interface PlanDraft {
-  mode: 'hiit' | 'flat';
+  /** `intervals` keeps its own draft (`IntervalsDraft`); this records only that it is chosen. */
+  mode: 'hiit' | 'intervals' | 'flat';
   preset: PresetId | null;
   rounds: string;
   work: string;
@@ -167,7 +168,7 @@ const HIIT_FIELDS: DraftField[] = ['rounds', 'work', 'rest', 'workLevel', 'restL
 const FLAT_FIELDS: DraftField[] = ['flatLevel', 'minutes', 'cadence'];
 
 export function fieldsOf(mode: PlanDraft['mode']): DraftField[] {
-  return mode === 'hiit' ? HIIT_FIELDS : FLAT_FIELDS;
+  return mode === 'hiit' ? HIIT_FIELDS : mode === 'flat' ? FLAT_FIELDS : [];
 }
 
 function secondsLink(field: 'work' | 'rest', n: number | null): string {
@@ -196,11 +197,13 @@ export function stepDraft(draft: PlanDraft, field: DraftField, dir: 1 | -1): Pla
   return editDraft(draft, { [field]: rule.format(next) } as Partial<PlanDraft>);
 }
 
+/** The HIIT or Flat plan; null while invalid, or for `intervals`, which has its own draft. */
 export function toPlan(draft: PlanDraft): WorkoutPlan | null {
-  if (validateDraft(draft).length > 0) return null;
+  if (draft.mode === 'intervals' || validateDraft(draft).length > 0) return null;
   if (draft.mode === 'flat') {
     return {
       kind: 'flat',
+      video: null,
       level: draft.flatLevel,
       minutes: parseUnit(draft.minutes) as number,
       cadence: parseUnit(draft.cadence) as number,
@@ -210,6 +213,7 @@ export function toPlan(draft: PlanDraft): WorkoutPlan | null {
   }
   return {
     kind: 'hiit',
+    video: null,
     rounds: parseUnit(draft.rounds) as number,
     work_seconds: parseClock(draft.work) as number,
     rest_seconds: parseClock(draft.rest) as number,

@@ -27,9 +27,9 @@ Written --> Running : speed > 0 reported [L2-066 AC3]
 Written --> Stopped : 10 s without speed > 0 [L2-066 AC4]
 Starting --> Starting : speed 0 reported (stays starting)
 Starting --> Stopped : pause or stop during countdown
-Running --> Stopped : speed 0 reported (stop-belt, console or safety key)
+Running --> Stopped : speed 0 reported (stop-belt, console or safety key;\nreported as one state, Belt stopped)
 Stopped --> Running : speed > 0 reported
 Stopped --> None : link lost
 Starting --> None : link lost
-Running --> None : link lost
+Running --> None : link lost (the treadmill stops its own belt) [L2-066, L2-043 AC5]
 @enduml

@@ -7,7 +7,7 @@
 <meta name="mock:kind" content="page">
 <meta name="mock:screen" content="setup">
 <meta name="mock:state" content="loading">
-<meta name="mock:requirements" content="L2-010 L2-029 L2-040 L2-041 L2-062 L2-067 L2-072">
+<meta name="mock:requirements" content="L2-010 L2-029 L2-040 L2-041 L2-045 L2-059 L2-060 L2-062 L2-067 L2-072 L2-075 L2-076">
 <meta name="description" content="Restoring the saved draft and checking for a ride in progress: skeletons in the form's layout.">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
@@ -16,9 +16,12 @@
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app app--fixed">
-<header class="app-bar" style="justify-content: space-between;">
+<header class="app-bar">
   <a class="lockup " href="../../pages/ride/default.html" aria-label="Wattzup dashboard"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></a>
-  <a class="btn btn--quiet btn--sm" href="../../pages/ride/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Close</a>
+  <span class="app-bar__divider" aria-hidden="true"></span>
+  <div class="statusline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg><span class="statusline__name">Echelon EX-5s</span></div>
+  <a class="btn btn--quiet btn--sm" href="../../pages/choose-machine/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>Switch to treadmill</a>
+  <a class="btn btn--quiet btn--sm app-bar__close" href="../../pages/ride/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>Close</a>
 </header>
 <div class="setup-layout">
   <main id="main" class="setup-main" aria-busy="true">
@@ -26,7 +29,6 @@
     <h1>Set up your ride</h1>
     <p class="lead">Wattzup drives the bike's resistance for you. Pick how.</p>
     <div aria-hidden="true">
-      <span class="skeleton skeleton--rect machine-skeleton" style="height: 3.25rem; width: 16rem; margin-top: var(--space-8);"></span>
       <span class="skeleton skeleton--rect" style="height: 7rem; margin-top: var(--space-8);"></span>
       <span class="skeleton skeleton--rect" style="height: 2.25rem; width: 60%; margin-top: var(--space-10);"></span>
       <span class="skeleton skeleton--rect" style="height: 4rem; margin-top: var(--space-8);"></span>
@@ -51,6 +53,10 @@
   <ul class="mock-bar__states">
     <li><a href="default.html">default</a></li>
     <li><a href="flat.html">flat</a></li>
+    <li><a href="intervals.html">intervals</a></li>
+    <li><a href="intervals-invalid.html">intervals-invalid</a></li>
+    <li><a href="video.html">video</a></li>
+    <li><a href="video-invalid.html">video-invalid</a></li>
     <li><a href="loading.html" aria-current="page">loading</a></li>
     <li><a href="error.html">error</a></li>
     <li><a href="invalid.html">invalid</a></li>
@@ -58,8 +64,7 @@
     <li><a href="treadmill.html">treadmill</a></li>
     <li><a href="treadmill-flat.html">treadmill-flat</a></li>
     <li><a href="treadmill-invalid.html">treadmill-invalid</a></li>
-    <li><a href="machine-locked.html">machine-locked</a></li>
-    <li><a href="machine-failed.html">machine-failed</a></li>
+    <li><a href="treadmill-submitting.html">treadmill-submitting</a></li>
   </ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>

@@ -84,6 +84,12 @@ package "src/app/dashboard" {
     +focus(): void
   }
   class RidePreview <<component wz-ride-preview>>
+  class VideoLink <<component wz-video-link>>
+  class VideoDraft <<interface>> {
+    +on: boolean
+    +url: string
+    +start: number
+  }
   class Profile <<component wz-profile>>
   class RideSummary <<component wz-ride-summary>>
   class ReplaceRideDialog <<component wz-replace-ride-dialog>> {
@@ -113,6 +119,8 @@ SetupPage *-- LevelSlider
 SetupPage *-- Toggles
 SetupPage *-- FormSummary
 SetupPage *-- RidePreview
+SetupPage *-- VideoLink
+PlanDraftStore ..> VideoDraft : wattzup.videoDraft
 Presets *-- Chip
 RidePreview *-- Profile
 RidePreview *-- RideSummary

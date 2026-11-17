@@ -85,12 +85,13 @@ backend/src/Wattzup.Api -- --simulate`) and npm commands from `frontend/` (`cd f
 Runtime output (`raw_packets.log`, `status.json`, `server.log`) is git-ignored and never
 committed.
 
-Use the words the specs use in code, docs and UI; no synonyms. A workout follows a plan (`hiit` or
-`flat`) expanded into segments (kind, start, duration, level, cadence aim, round); the bike's reported level is "resistance",
+Use the words the specs use in code, docs and UI; no synonyms. A workout follows a plan (`hiit`,
+`intervals` or `flat`; an `intervals` plan is a warm-up, ordered sets and a cool-down) expanded into segments (kind, start, duration, level, cadence aim, round); the bike's reported level is "resistance",
 the requested one is "target resistance"; the Bluetooth link state is `ble`. The machine is `bike` or
 `treadmill`. On the treadmill the reported value is "speed" and the requested one "target speed";
 likewise "incline" and "target incline"; the moving surface is the "belt" (`stopped`, `starting`,
-`running`).
+`running`). On the treadmill the UI calls a ride a "run" and a `flat` plan "Steady"; the API keeps
+`flat` and the `workout.status` strings on both machines (ADR 0010).
 
 ## Prefer best practice
 
@@ -167,7 +168,7 @@ production build is served by `Wattzup.Api` from the same origin.
   inline `style` in templates.
 - Global styles are foundations only (tokens, `@font-face`, reset, utilities). Read tokens by
   role, never hex. Fonts are bundled and self-hosted, never loaded from a CDN (the CSP allows
-  same-origin only).
+  same-origin only, except the YouTube player for a ride-along video, ADR 0012).
 - **Declare each `ng-content` slot once.** A component rendering `<a>` or `<button>` by
   condition puts its slots in one `<ng-template>` rendered with `ngTemplateOutlet` in both
   branches. A consumer `@if` wrapping several `[slot=…]` nodes loses the slot (NG8011): one `@if`

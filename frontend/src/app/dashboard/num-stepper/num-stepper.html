@@ -4,7 +4,7 @@
     <button
       class="btn btn--icon num-stepper__btn"
       type="button"
-      [attr.aria-label]="'Less ' + (stepName() ?? label().toLowerCase())"
+      [attr.aria-label]="lessLabel() ?? 'Less ' + (stepName() ?? label().toLowerCase())"
       [disabled]="readonly()"
       (click)="step.emit(-1)"
     >
@@ -20,14 +20,15 @@
       [value]="value()"
       [readOnly]="readonly()"
       [attr.aria-invalid]="error() ? 'true' : null"
-      [attr.aria-describedby]="error() ? fieldId() + '-err' : null"
+      [attr.aria-describedby]="description()"
       (input)="valueChange.emit($any($event.target).value)"
       (keydown.enter)="$event.preventDefault(); submitted.emit()"
+      (blur)="blurred.emit()"
     />
     <button
       class="btn btn--icon num-stepper__btn"
       type="button"
-      [attr.aria-label]="'More ' + (stepName() ?? label().toLowerCase())"
+      [attr.aria-label]="moreLabel() ?? 'More ' + (stepName() ?? label().toLowerCase())"
       [disabled]="readonly()"
       (click)="step.emit(1)"
     >

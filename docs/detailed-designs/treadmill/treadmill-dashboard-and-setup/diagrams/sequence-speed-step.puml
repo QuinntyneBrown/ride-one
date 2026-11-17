@@ -5,7 +5,7 @@ skinparam shadowing false
 skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
-actor "Rider" as rider
+actor "Runner" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
   participant "SpeedControl" as control
   participant "RidePage" as page
@@ -19,24 +19,24 @@ box "Backend — Wattzup API application" #D1FADF
   participant "TreadmillEndpoints" as api
 end box
 
-rider -> control : Raise speed
+rider -> control : Faster
 control -> page : step(1)
 page -> tc : stepSpeed(state, 1)
-tc --> page : reported 7.0 + 0.5 = 7.5, clamped to 1.0-16.0 [L2-071]
-page -> cmds : setSpeed(7.5)
-cmds -> mapi : setSpeed(7.5)
-mapi -> api : POST /api/speed {"speed":7.5}
+tc --> page : target_speed 13.0 + 0.5 = 13.5, clamped to 0.8-19.3 [L2-071 AC8]
+page -> cmds : setSpeed(13.5)
+cmds -> mapi : setSpeed(13.5)
+mapi -> api : POST /api/speed {"speed":13.5}
 alt treadmill connected
-  api --> mapi : 200 {"sent":7.5} [L2-069]
-  api --> live : data: target_speed 7.5, speed_kmh 7.0, commands SPD 7.5 sending
+  api --> mapi : 200 {"sent":13.5} [L2-069]
+  api --> live : data: target_speed 13.5, speed_kmh 13.0, commands SPD 13.5 sending
   live --> page : state
-  page --> rider : "Setting 7.5…"; log "SPD 7.5 · manual" [L2-071]
-  api --> live : data: speed_kmh 7.5, entry ack
-  page --> rider : "7.5 km/h", "Target 7.5 km/h", "4.7 mph"
+  page --> rider : "Ramping to 13.5"; plan note "Manual speed."; log "SPD 13.5 · manual" [L2-071 AC3, AC11, AC12]
+  api --> live : data: speed_kmh 13.5, entry ack
+  page --> rider : "13.5 km/h", "4:27 /km", "At target"
 else treadmill not connected
   api --> mapi : 503 code treadmill_not_connected [L2-069]
   mapi --> cmds : rejects
-  cmds -> toast : danger "Couldn't set speed" / "The treadmill isn't connected. Switch it on, then try again." [L2-071]
+  cmds -> toast : danger "Couldn't set speed" / "The Stride isn't connected. Switch it on, then try again." [L2-071 AC13]
   toast --> rider : toast
 end
 @enduml

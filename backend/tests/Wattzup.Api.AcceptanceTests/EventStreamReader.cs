@@ -135,6 +135,29 @@ public sealed class EventStreamReader : IAsyncDisposable
         }
     }
 
+    /// <summary>Reads every state message that arrives within <paramref name="window"/>, skipping pings.</summary>
+    public async Task<IReadOnlyList<JsonElement>> CollectAsync(TimeSpan window)
+    {
+        var states = new List<JsonElement>();
+        using var cts = new CancellationTokenSource(window);
+        try
+        {
+            while (true)
+            {
+                var raw = await _messages.Reader.ReadAsync(cts.Token);
+                if (raw != Ping)
+                {
+                    Last = JsonElement.Parse(raw);
+                    states.Add(Last.Value);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return states;
+        }
+    }
+
     /// <summary>Drops every message already received.</summary>
     public void Drain()
     {

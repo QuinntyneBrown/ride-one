@@ -117,4 +117,13 @@ public sealed record BikeState
 
     /// <summary>Treadmill only: 3, 2 or 1 during the countdown before the belt starts (L2-066).</summary>
     public int? BeltCountdown { get; init; }
+
+    /// <summary>Treadmill only: the workout's climb in whole metres (L2-064 criterion 10).</summary>
+    public int? ClimbM { get; init; }
+
+    /// <summary>The Echelon machines heard while scanning, at most one per machine (L2-074); kept across a machine change.</summary>
+    public IReadOnlyList<NearbyMachine> Nearby { get; init; } = [];
+
+    /// <summary>True when <c>Wattzup:Treadmill:Enabled</c> is on (L2-075); fixed at start-up.</summary>
+    public bool TreadmillEnabled { get; init; }
 }

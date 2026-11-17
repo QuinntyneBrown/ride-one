@@ -189,6 +189,26 @@ public sealed class SecurityTests
     }
 
     [Fact]
+    public async Task Every_response_allows_only_the_YouTube_player_origins_beyond_self()
+    {
+        using var factory = new WattzupApiFactory { WithoutBluetooth = true };
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync(new Uri("/api/status", UriKind.Relative));
+
+        var directives = response.Headers.GetValues("Content-Security-Policy").Single()
+            .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .ToDictionary(d => d.Split(' ')[0], d => d[(d.IndexOf(' ', StringComparison.Ordinal) + 1)..], StringComparer.Ordinal);
+        Assert.Equal("'self' https://www.youtube.com", directives["script-src"]);
+        Assert.Equal("https://www.youtube-nocookie.com", directives["frame-src"]);
+        Assert.Equal("'self'", directives["connect-src"]);
+        Assert.Equal("'self'", directives["font-src"]);
+        Assert.Equal("'self' data:", directives["img-src"]);
+        Assert.Equal("'self'", directives["default-src"]);
+        Assert.DoesNotContain("youtube", directives["style-src"], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task An_unhandled_exception_returns_a_generic_500_problem()
     {
         using var factory = new WattzupApiFactory { WithoutBluetooth = true };

@@ -57,6 +57,28 @@ class CommandLog <<static>> {
   +Acknowledge(log, kind: CommandKind, value: double, nowMs: long): ImmutableArray<CommandEntry>
 }
 
+class TreadmillEnergy <<static>> {
+  +RunnerMassKg: double = 75
+  +KcalPerSecond(speedKmh: double, incline: int): double
+}
+
+class RideTotals <<record>> {
+  +int RunningSeconds
+  +long PowerSum
+  +double DistanceKm
+  +double ClimbM
+  +double EnergyKcal
+  +Tick(power: int?, speedKmh: double?): RideTotals
+  +TickTreadmill(speedKmh: double?, incline: int?): RideTotals
+  +DistanceKmRounded: double
+  +ClimbMRounded: int
+  +TreadmillKcal: int
+}
+
+class WorkoutEngine {
+  -RunningTick(): void
+}
+
 class BikeState <<record>> {
   +Machine Machine
   +double? SpeedKmh
@@ -64,6 +86,8 @@ class BikeState <<record>> {
   +int? Incline
   +BeltState? Belt
   +double? DistanceKm
+  +int? ClimbM
+  +int? Kcal
   +int Packets
   +double? FirstDataAt
   +double? LastDataAt
@@ -80,4 +104,7 @@ TelemetryIngestor ..> PacketDecoder : machine = bike
 TelemetryIngestor ..> CommandLog : acknowledges
 TelemetryIngestor --> BikeState : updates via BikeStateStore
 BikeState --> BeltState
+RideTotals ..> TreadmillEnergy : kcal per second
+WorkoutEngine --> RideTotals : replaces each running tick
+WorkoutEngine --> BikeState : writes distance_km, climb_m, kcal
 @enduml

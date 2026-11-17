@@ -13,8 +13,38 @@ public sealed class TreadmillConnectionTests
 {
     private static readonly TimeSpan Brief = TimeSpan.FromMilliseconds(300);
 
+    /// <summary>Treadmill support on (L2-075), with the treadmill chosen at start-up.</summary>
     public static WattzupApiFactory TreadmillFactory() =>
-        new(new Dictionary<string, string?> { ["Wattzup:Machine"] = "treadmill" });
+        new(new Dictionary<string, string?> { ["Wattzup:Machine"] = "treadmill", ["Wattzup:Treadmill:Enabled"] = "true" });
+
+    /// <summary>Treadmill support on (L2-075), with the bike chosen at start-up.</summary>
+    public static WattzupApiFactory BikeWithTreadmill(IDictionary<string, string?>? settings = null) =>
+        new(new Dictionary<string, string?>(settings ?? new Dictionary<string, string?>()) { ["Wattzup:Treadmill:Enabled"] = "true" });
+
+    [Fact]
+    public async Task Given_no_treadmill_display_name_is_set_then_device_label_is_Echelon_Stride()
+    {
+        await using var treadmill = await Bike.StartAsync(TreadmillFactory());
+
+        var state = await treadmill.Stream.WaitForAsync(s => s.GetProperty("ble").GetString() == "connected", "ble connected");
+
+        Assert.Equal("Echelon Stride", state.GetProperty("device_label").GetString());
+    }
+
+    [Fact]
+    public async Task Given_an_empty_treadmill_display_name_then_device_label_is_the_advertised_name()
+    {
+        await using var treadmill = await Bike.StartAsync(new WattzupApiFactory(new Dictionary<string, string?>
+        {
+            ["Wattzup:Machine"] = "treadmill",
+            ["Wattzup:Treadmill:Enabled"] = "true",
+            ["Wattzup:Treadmill:DisplayName"] = "",
+        }));
+
+        var state = await treadmill.Stream.WaitForAsync(s => s.GetProperty("ble").GetString() == "connected", "ble connected");
+
+        Assert.Equal(SimulatedBikeTransport.TreadmillName, state.GetProperty("device_label").GetString());
+    }
 
     [Fact]
     public async Task Given_the_treadmill_is_chosen_when_the_backend_starts_then_it_streams_the_treadmill_state()

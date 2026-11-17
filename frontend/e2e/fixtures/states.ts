@@ -5,6 +5,7 @@
 import recordedRunning from './recorded/status-running.json';
 import recordedStarted from './recorded/workout-started.json';
 import recordedTreadmillRunning from './recorded/status-treadmill-running.json';
+import recordedVideoStarted from './recorded/video-workout-started.json';
 
 export type Json = Record<string, unknown>;
 
@@ -28,9 +29,11 @@ const RECORDED_STATE = recordedRunning as unknown as Json;
 const RECORDED_WORKOUT = recordedStarted.started as unknown as Json;
 const RECORDED_SEGMENT = recordedStarted.started.segments[0] as unknown as Json;
 const RECORDED_COMMAND = recordedRunning.commands[0] as unknown as Json;
+const RECORDED_NEARBY = recordedRunning.nearby[0] as unknown as Json;
 
 export const DEFAULT_PLAN = {
   kind: 'hiit',
+  video: null,
   rounds: 8,
   work_seconds: 40,
   rest_seconds: 20,
@@ -52,8 +55,26 @@ export const SETUP_DEFAULT_PLAN = {
   rest_level: 18,
 } as const;
 
+/** The Descending recoveries plan, as the Intervals form posts it on first use (L2-029 AC11). */
+export const INTERVALS_PLAN = {
+  kind: 'intervals',
+  video: null,
+  warmup: { seconds: 300, level: 8, cadence: 80 },
+  sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
+    rounds: i === 0 || i === 4 ? 1 : 2,
+    work_seconds: 30,
+    work_level: 28,
+    work_cadence: 100,
+    rest_seconds,
+    rest_level: 8,
+    rest_cadence: 72,
+  })),
+  cooldown: { seconds: 360, level: 6, cadence: 70 },
+};
+
 export const FLAT_PLAN = {
   kind: 'flat',
+  video: null,
   level: 12,
   minutes: 30,
   cadence: 85,
@@ -104,6 +125,14 @@ export function workout(change: Json = {}): Json {
   return fromRecording(RECORDED_WORKOUT, cast, 'workout');
 }
 
+/** The ride-along video of a plan, as the backend reports it (L2-014). */
+export const RIDE_VIDEO = recordedVideoStarted.started.plan.video;
+
+/** The default plan with the GCN video synced from 0:12.0 (L2-076). */
+export function videoWorkout(change: Json = {}): Json {
+  return workout({ plan: { ...DEFAULT_PLAN, video: RIDE_VIDEO }, ...change });
+}
+
 export function flatWorkout(change: Json = {}): Json {
   return workout({
     plan: FLAT_PLAN,
@@ -135,6 +164,8 @@ export const NOW_S = NOW / 1000;
 
 export function state(change: Json = {}): Json {
   const cast = {
+    // Treadmill support is off by default (L2-075); treadmill states turn it on.
+    treadmill_enabled: false,
     ble: 'connected',
     device: 'ECHEX-3-141844',
     device_label: 'Echelon EX-5s',
@@ -264,6 +295,7 @@ const BIKE_FIELDS_NULL = {
 export function treadmillIdle(change: Json = {}): Json {
   return state({
     ...BIKE_FIELDS_NULL,
+    treadmill_enabled: true,
     machine: 'treadmill',
     device: 'STRIDE-8s22-000766',
     device_label: 'STRIDE-8s22-000766',
@@ -276,6 +308,8 @@ export function treadmillIdle(change: Json = {}): Json {
     target_incline: null,
     belt: 'stopped',
     belt_countdown: null,
+    climb_m: null,
+    nearby: [],
     commands: [],
     ...change,
   });
@@ -284,6 +318,7 @@ export function treadmillIdle(change: Json = {}): Json {
 /** The treadmill setup default: 18 × 0:40 / 0:20 at 9.0 / 7.0 km/h, incline 0 (L2-072 AC4). */
 export const TREADMILL_PLAN = {
   kind: 'hiit',
+  video: null,
   rounds: 18,
   work_seconds: 40,
   rest_seconds: 20,
@@ -349,6 +384,8 @@ export function treadmillState(change: Json = {}): Json {
     incline: 0,
     target_incline: 0,
     distance_km: 0.92,
+    climb_m: 0,
+    kcal: 98,
     belt: 'running',
     commands: [
       treadmillCommand({
@@ -387,6 +424,25 @@ export function treadmillState(change: Json = {}): Json {
         ack_ms: 47,
       }),
     ],
+    ...change,
+  });
+}
+
+/** One `nearby` entry (L2-074): the recorded shape with `change` laid over it. */
+export function nearbyEntry(machine: 'bike' | 'treadmill', change: Json = {}): Json {
+  const cast: Json =
+    machine === 'bike'
+      ? { machine, name: 'ECHEX-3-141844', label: 'Echelon EX-5s', rssi: -68, signal: 3 }
+      : { machine, name: 'STRIDE-8s22-000766', label: 'Echelon Stride', rssi: -55, signal: 4 };
+  return fromRecording(RECORDED_NEARBY, { ...cast, seen_at: NOW_S, ...change }, 'nearby entry');
+}
+
+/** The machine page's state: treadmill support on, the bike chosen and connected, no workout, both
+ * machines nearby. */
+export function machinePageState(change: Json = {}): Json {
+  return freeRide({
+    treadmill_enabled: true,
+    nearby: [nearbyEntry('bike'), nearbyEntry('treadmill')],
     ...change,
   });
 }

@@ -59,8 +59,8 @@ export function banners(input: BannerInput): Banner[] {
       id: 'treadmill-lost',
       tone: 'danger',
       icon: 'bluetooth-off',
-      title: 'Lost the treadmill',
-      text: "Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
+      title: 'Lost the Stride',
+      text: 'Step onto the side rails. If the Stride stays off for 90 seconds, Wattzup ends the run.',
       action: null,
       dismissable: false,
     });

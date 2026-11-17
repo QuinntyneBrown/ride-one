@@ -51,6 +51,9 @@ builder.Services.AddWattzupRateLimits(security);
 builder.Services.Configure<WattzupOptions>(builder.Configuration.GetSection(WattzupOptions.SectionName));
 builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection(SecurityOptions.SectionName));
 builder.Services.AddHostedService<BindAddressGuard>();
+var treadmill = builder.Configuration.GetSection(TreadmillOptions.SectionName).Get<TreadmillOptions>() ?? new TreadmillOptions();
+builder.Services.Configure<TreadmillOptions>(builder.Configuration.GetSection(TreadmillOptions.SectionName));
+builder.Services.AddHostedService<TreadmillGuard>();
 builder.Services.AddSingleton<EventTokenService>();
 var keyed = !string.IsNullOrEmpty(security.ApiKey);
 if (keyed)
@@ -65,7 +68,9 @@ builder.Services.AddCors(cors => cors.AddDefaultPolicy(policy =>
     policy.WithOrigins([.. origins]).WithHeaders("Content-Type", ApiKeyAuthenticationHandler.Header).WithMethods("GET", "POST")));
 
 var transportName = TransportSelector.Resolve(builder.Configuration[$"{ConnectivityOptions.SectionName}:Transport"]);
-var displayName = builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"];
+var displayNames = new DisplayNames(
+    builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"],
+    builder.Configuration[$"{TreadmillOptions.SectionName}:DisplayName"] ?? TreadmillOptions.DefaultDisplayName);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.Configure<HostOptions>(host => host.ShutdownTimeout = TimeSpan.FromSeconds(5));
 builder.Services.AddBikeTransport(transportName);
@@ -80,12 +85,15 @@ builder.Services.AddSingleton(sp =>
             BindAddress = facts.BindAddress,
             Exposed = facts.Exposed,
             Machine = options.ParsedMachine,
+            TreadmillEnabled = treadmill.Enabled,
         },
         sp.GetRequiredService<TimeProvider>(),
-        displayName);
+        displayNames);
 });
 builder.Services.AddSingleton<StateBroadcaster>();
 builder.Services.AddSingleton<Wattzup.Core.Machines.MachineSelector>();
+builder.Services.AddSingleton(displayNames);
+builder.Services.AddSingleton<Wattzup.Core.Machines.NearbyMachines>();
 builder.Services.AddSingleton<ActiveConnectionRegistry>();
 builder.Services.Configure<RawPacketLogOptions>(builder.Configuration.GetSection(RawPacketLogOptions.SectionName));
 builder.Services.Configure<StatusSnapshotOptions>(builder.Configuration.GetSection(StatusSnapshotOptions.SectionName));

@@ -51,6 +51,7 @@ public sealed class MachineSelector(BikeStateStore store)
             TargetIncline = null,
             Belt = null,
             BeltCountdown = null,
+            ClimbM = null,
         };
     }
 }

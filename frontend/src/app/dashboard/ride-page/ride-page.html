@@ -38,23 +38,23 @@
         <div class="readouts" [class.readouts--dimmed]="view().dimmed">
           @let sp = speed();
           <wz-readout kind="speed" label="Speed" [value]="sp.valueText" unit="km/h">
-            @if (sp.settingText; as setting) {
-              <span class="delta delta--low">{{ setting }}</span>
-            } @else if (sp.targetText; as target) {
-              <span>{{ target }}</span>
-            }
-            <span>{{ sp.mphText }}</span>
+            <span class="readout__pace">{{ sp.paceText }}</span>
+            <span
+              class="delta"
+              [class.delta--on]="sp.statusTone === 'success'"
+              [class.delta--low]="sp.statusTone === 'warning'"
+              >{{ sp.statusText }}</span
+            >
           </wz-readout>
           @let inc = incline();
           <wz-readout kind="incline" label="Incline" [value]="inc.valueText" unit="%">
-            @if (inc.settingText; as setting) {
-              <span class="delta delta--low">{{ setting }}</span>
-            } @else if (inc.targetText; as target) {
-              <span>{{ target }}</span>
+            @if (inc.noteText; as note) {
+              <span>{{ note }}</span>
             }
           </wz-readout>
           <wz-interval [workout]="workout()" />
         </div>
+        <ng-container [ngTemplateOutlet]="mainViewTpl" />
         <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
         @if (overlay(); as o) {
           <wz-ride-overlay
@@ -96,7 +96,7 @@
           }}</wz-readout>
           <wz-interval [workout]="workout()" />
         </div>
-        <wz-ride-trace [state]="state()" [dimmed]="view().dimmed" />
+        <ng-container [ngTemplateOutlet]="mainViewTpl" />
         <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
         @if (overlay(); as o) {
           <wz-ride-overlay
@@ -110,19 +110,37 @@
     </main>
     @if (treadmill()) {
       <aside class="ride-aside" aria-label="Treadmill control">
-        <h2 class="label">Speed and incline</h2>
         @let tc = treadmillControls();
+        @let tt = treadmillTargets();
+        <h2 class="label" id="speed-label">Speed</h2>
         <wz-speed-control
-          [valueText]="speed().valueText"
+          labelledBy="speed-label"
+          [valueText]="tt.speedText"
+          [noteText]="tt.speedNote"
           [lowerDisabled]="tc.lowerSpeedDisabled"
           [raiseDisabled]="tc.raiseSpeedDisabled"
           (step)="stepSpeed($event)"
         />
+        <wz-quick-speeds
+          [pressed]="tc.pressedQuick"
+          [disabled]="tc.quickDisabled"
+          (pick)="treadmillCommands.setSpeed($event)"
+        />
+        <h2 class="label ride-aside__section" id="incline-label">Incline</h2>
         <wz-incline-control
-          [valueText]="incline().valueText"
+          labelledBy="incline-label"
+          [valueText]="tt.inclineText"
           [lowerDisabled]="tc.lowerInclineDisabled"
           [raiseDisabled]="tc.raiseInclineDisabled"
           (step)="stepIncline($event)"
+        />
+        <wz-level-picker
+          label="Pick an incline"
+          [incline]="true"
+          [view]="tt.inclinePicker"
+          [valueText]="tt.inclineText + '% of 10%'"
+          [disabled]="tc.pickerDisabled"
+          (pick)="treadmillCommands.setIncline($event)"
         />
         @let tnote = treadmillNote();
         <wz-plan-note
@@ -131,11 +149,18 @@
           [disabled]="!view().commandsEnabled"
           (back)="commands.backToPlan()"
         />
-        <wz-cmd-log
-          [commands]="state()?.commands ?? []"
-          [connectionId]="state()?.connection_id ?? null"
-          machine="treadmill"
-        />
+        <div class="ride-aside__foot">
+          <wz-cmd-log
+            [commands]="state()?.commands ?? []"
+            [connectionId]="tt.deviceTail"
+            machine="treadmill"
+          />
+          @if (canSwitch()) {
+            <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
+              ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
+            >
+          }
+        </div>
       </aside>
     } @else {
       <aside class="ride-aside" aria-label="Bike control">
@@ -158,12 +183,38 @@
           [disabled]="!view().commandsEnabled"
           (back)="commands.backToPlan()"
         />
-        <wz-cmd-log
-          [commands]="state()?.commands ?? []"
-          [connectionId]="state()?.connection_id ?? null"
-        />
+        <div class="ride-aside__foot">
+          <wz-cmd-log
+            [commands]="state()?.commands ?? []"
+            [connectionId]="state()?.connection_id ?? null"
+          />
+          @if (canSwitch()) {
+            <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
+              ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
+            >
+          }
+        </div>
       </aside>
     }
   </div>
 </div>
 <wz-phase-banner />
+
+<!-- The video and trace views, shared by both machines (L2-076, L2-071 AC6). -->
+<ng-template #mainViewTpl>
+  @if (video(); as v) {
+    <section class="ride-view" aria-label="Main view">
+      <wz-main-view-tabs [(view)]="mainView" />
+      <wz-ride-video [video]="v" [hidden]="mainView() !== 'video'" />
+      @if (mainView() === 'video') {
+        <wz-plan-strip [workout]="workout()!" />
+      } @else {
+        <div class="ride-view__chart" id="view-chart" role="tabpanel" aria-labelledby="tab-chart">
+          <wz-ride-trace [state]="state()" [dimmed]="view().dimmed" />
+        </div>
+      }
+    </section>
+  } @else {
+    <wz-ride-trace [state]="state()" [dimmed]="view().dimmed" />
+  }
+</ng-template>

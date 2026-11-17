@@ -64,7 +64,7 @@ describe('cue-text (L2-027)', () => {
     expect(bannerText(c).headline).toBe(`${word} · 8`);
   });
 
-  it('treadmill work and recover in km/h', () => {
+  it('treadmill work and recover in km/h with the incline (L2-071 AC19)', () => {
     const work = {
       kind: 'work',
       level: null,
@@ -77,10 +77,10 @@ describe('cue-text (L2-027)', () => {
       next: { kind: 'rest', level: null, speed: 7 },
     } as const;
     expect(bannerText(work)).toEqual({
-      headline: 'WORK · 9.0 KM/H · GO!',
+      headline: 'WORK · 9.0 KM/H · 0% · GO!',
       detail: 'Round 5 of 18 · 0:40',
     });
-    expect(announcement(work)).toBe('Work, 9.0 km/h, incline 0 %, 40 seconds');
+    expect(announcement(work)).toBe('Work, 9.0 km/h, incline 0%, 40 seconds');
     const rest = {
       ...work,
       kind: 'rest',
@@ -90,9 +90,9 @@ describe('cue-text (L2-027)', () => {
       next: { kind: 'work', level: null, speed: 9 },
     } as const;
     expect(bannerText(rest)).toEqual({
-      headline: 'RECOVER · 7.0 KM/H',
+      headline: 'RECOVER · 7.0 KM/H · 1%',
       detail: '0:20 · next: Work at 9.0 km/h',
     });
-    expect(announcement(rest)).toBe('Recover, 7.0 km/h, incline 1 %, 20 seconds');
+    expect(announcement(rest)).toBe('Recover, 7.0 km/h, incline 1%, 20 seconds');
   });
 });

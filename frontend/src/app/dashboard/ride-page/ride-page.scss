@@ -1,6 +1,7 @@
 @use 'design-system/skeleton';
 @use 'design-system/app-bar';
 @use 'design-system/label';
+@use 'design-system/btn';
 
 :host {
   display: block;
@@ -23,6 +24,18 @@
   display: flex;
   flex-direction: column;
   padding: var(--space-6) var(--space-5) var(--space-5);
+}
+.ride-view {
+  margin-top: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: var(--layout-trace-min);
+}
+.ride-view__chart {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 .ride-main:focus {
   outline: none;
@@ -65,6 +78,9 @@
 .readouts--dimmed {
   opacity: 0.45;
 }
+.readout__pace {
+  color: var(--color-fg-muted);
+}
 .delta {
   font-weight: var(--font-weight-medium);
 }
@@ -100,4 +116,23 @@
 .skeleton--trace {
   flex: 1;
   min-height: 12rem;
+}
+
+.ride-aside__foot {
+  margin-top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 64rem) {
+  .ride-aside__foot {
+    margin-top: auto;
+  }
+}
+.ride-aside__foot > .btn {
+  align-self: flex-start;
+  margin-top: var(--space-5);
+  margin-left: calc(-1 * var(--space-2));
+}
+.ride-aside__section {
+  margin-top: var(--space-8);
 }

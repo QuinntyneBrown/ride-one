@@ -32,7 +32,7 @@ describe('command-log-view (L2-048)', () => {
     [{ command: 'resistance', level: 18, value: 18 }, 'RES 18'],
     [{ command: 'speed', level: null, value: 9 }, 'SPD 9.0'],
     [{ command: 'speed', level: null, value: 8.5 }, 'SPD 8.5'],
-    [{ command: 'incline', level: null, value: 2 }, 'INC 2'],
+    [{ command: 'incline', level: null, value: 2 }, 'INC 2%'],
   ])('labels %j as %s', (o, label) => {
     expect(commandLabel(at(o))).toBe(label);
   });

@@ -1,6 +1,5 @@
 // Turns a trace scene and the power history into pixel-space primitives that both renderers
 // draw the same way (L2-026, ADR 0006).
-import type { PowerTraceHistory } from './power-trace-history';
 import type { TracePhase, TraceScene } from './trace-geometry';
 
 export type TraceColorRole = TracePhase | 'actual' | 'grid' | 'playhead';
@@ -36,11 +35,18 @@ export interface TraceDrawList {
   lines: TraceLine[];
 }
 
+/** One value per ride second, oldest first: watts, or tenths of km/h. */
+export interface TraceSeries {
+  readonly length: number;
+  readonly seconds: ArrayLike<number>;
+  readonly values: ArrayLike<number>;
+}
+
 const GAP = 1.5;
 
 export function traceDrawList(
   scene: TraceScene,
-  history: Pick<PowerTraceHistory, 'length' | 'seconds' | 'watts'>,
+  history: TraceSeries,
   width: number,
   height: number,
   pixelRatio: number,
@@ -53,14 +59,14 @@ export function traceDrawList(
   const sy = height / scene.yMax;
   const px = pixelRatio;
 
-  for (let w = 100; w < scene.yMax; w += 100) {
+  for (let w = scene.gridStep; w < scene.yMax; w += scene.gridStep) {
     const y = height - w * sy;
     lines.push({ points: [0, y, width, y], width: 1 * px, role: 'grid', alpha: 1 });
   }
   for (const b of scene.blocks) {
     const x0 = b.start * sx + GAP * px;
     const x1 = Math.max(x0, b.end * sx - GAP * px);
-    const top = height - b.watts * sy;
+    const top = height - b.value * sy;
     rects.push({
       x: x0,
       y: top,
@@ -80,7 +86,7 @@ export function traceDrawList(
     const points: number[] = [];
     for (let i = 0; i < history.length; i++) {
       const x = (history.seconds[i] + 0.5) * sx;
-      const y = height - Math.min(scene.yMax, history.watts[i]) * sy;
+      const y = height - Math.min(scene.yMax, history.values[i]) * sy;
       points.push(x, y);
     }
     areas.push({ points, base: height, role: 'actual', alpha: 0.12 });

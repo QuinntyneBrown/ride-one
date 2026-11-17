@@ -22,3 +22,7 @@
     animation: none;
   }
 }
+.spinner--sm {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}

@@ -74,17 +74,34 @@ public sealed class OpenApiTests
     }
 
     [Fact]
-    public async Task The_workout_plan_is_a_kind_discriminated_union_of_hiit_and_flat()
+    public async Task The_workout_plan_is_a_kind_discriminated_union_of_hiit_flat_and_intervals()
     {
         var doc = await DocumentAsync();
         var schemas = doc.GetProperty("components").GetProperty("schemas");
 
         Assert.True(schemas.TryGetProperty("WorkoutPlanHiitPlan", out var hiit));
         Assert.True(schemas.TryGetProperty("WorkoutPlanFlatPlan", out _));
+        Assert.True(schemas.TryGetProperty("WorkoutPlanIntervalsPlan", out var intervals));
+        Assert.Equal(["kind", "warmup", "sets", "cooldown", "video"], intervals.GetProperty("properties").EnumerateObject().Select(p => p.Name));
+        Assert.Contains("video", hiit.GetProperty("required").EnumerateArray().Select(r => r.GetString()));
+        Assert.Equal(
+            ["video_id", "start_seconds"],
+            schemas.GetProperty("RideVideo").GetProperty("required").EnumerateArray().Select(r => r.GetString()));
         Assert.Equal("kind", schemas.GetProperty("WorkoutPlan").GetProperty("discriminator").GetProperty("propertyName").GetString());
         Assert.Contains("work_seconds", hiit.GetProperty("properties").EnumerateObject().Select(p => p.Name));
         Assert.True(schemas.TryGetProperty("WorkoutSnapshot", out var snapshot));
         Assert.Contains("ended_reason", snapshot.GetProperty("required").EnumerateArray().Select(r => r.GetString()));
+    }
+
+    [Fact]
+    public async Task Starting_a_workout_documents_the_video_link_a_plan_carries_in_the_request()
+    {
+        var doc = await DocumentAsync();
+        var link = doc.GetProperty("components").GetProperty("schemas").GetProperty("RideVideoLink");
+
+        Assert.Equal(["url", "start_seconds"], link.GetProperty("required").EnumerateArray().Select(r => r.GetString()));
+        var body = doc.GetProperty("paths").GetProperty("/api/workout").GetProperty("post").GetProperty("requestBody");
+        Assert.Contains("RideVideoLink", body.GetProperty("description").GetString(), StringComparison.Ordinal);
     }
 
     [Fact]

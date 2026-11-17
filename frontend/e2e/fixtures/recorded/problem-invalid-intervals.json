@@ -1,0 +1,10 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "The plan is not valid.",
+  "status": 400,
+  "errors": {
+    "sets[0].rest_seconds": ["Recover must be 0 (none) or at least 0:05."]
+  },
+  "code": "invalid_workout",
+  "trace_id": "00-36972e533cf37335024bb53bbf097e7f-fd671381391f686c-00"
+}

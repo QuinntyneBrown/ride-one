@@ -3,6 +3,6 @@
   "title": "The speed is not valid.",
   "status": 400,
   "code": "invalid_speed",
-  "error": "speed must be 1.0-16.0",
-  "trace_id": "00-8bdf944feb36d85f0b1cfec4056c762a-eafe2c79ce1b6642-00"
+  "error": "speed must be 0.8-19.3",
+  "trace_id": "00-2e5335513db982c8fa45a9894d211ebf-62a1e27972380059-00"
 }

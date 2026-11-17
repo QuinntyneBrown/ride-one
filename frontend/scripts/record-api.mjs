@@ -1,7 +1,7 @@
 // Records real API responses from the backend running with the simulated bike and treadmill into
 // e2e/fixtures/recorded/, so the Playwright stubs keep the backend's exact shapes (AGENTS.md, E2E).
-// Recording is never part of a test run. Start the backend first:
-//   dotnet run --project backend/src/Wattzup.Api -- --simulate
+// Recording is never part of a test run. Start the backend first, with treadmill support on (L2-075):
+//   dotnet run --project backend/src/Wattzup.Api -- --simulate --Wattzup:Treadmill:Enabled=true
 // then: npm run record:api [-- http://127.0.0.1:8787]
 // The recorder switches the backend to the simulated treadmill and back to the bike before it ends.
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -21,17 +21,33 @@ const plan = {
   warmup: true,
   cooldown: true,
 };
+// The treadmill setup form's default, Minute on (L2-072 AC4).
 const treadmillPlan = {
   kind: 'hiit',
-  rounds: 18,
-  work_seconds: 40,
-  rest_seconds: 20,
-  work_speed: 9.0,
-  rest_speed: 7.0,
-  work_incline: 0,
-  rest_incline: 0,
+  rounds: 6,
+  work_seconds: 60,
+  rest_seconds: 60,
+  work_speed: 13.0,
+  rest_speed: 6.0,
+  work_incline: 2,
+  rest_incline: 1,
   warmup: true,
   cooldown: true,
+};
+// The Descending recoveries plan (L2-010 criterion 11).
+const intervalsPlan = {
+  kind: 'intervals',
+  warmup: { seconds: 300, level: 8, cadence: 80 },
+  sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
+    rounds: i === 0 || i === 4 ? 1 : 2,
+    work_seconds: 30,
+    work_level: 28,
+    work_cadence: 100,
+    rest_seconds,
+    rest_level: 8,
+    rest_cadence: 72,
+  })),
+  cooldown: { seconds: 360, level: 6, cadence: 70 },
 };
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -65,12 +81,7 @@ function save(name, response, expectedStatus) {
   console.log(`recorded ${name} (${response.status})`);
 }
 
-for (let i = 0; ; i++) {
-  const health = await call('GET', '/health').catch(() => null);
-  if (health?.json.ble === 'connected') break;
-  if (i > 30) throw new Error(`The backend at ${base} is not connected to the simulated bike.`);
-  await wait(1000);
-}
+await waitConnected('bike');
 
 await call('POST', '/api/workout/stop');
 save('status-free-ride', await call('GET', '/api/status'), 200);
@@ -93,10 +104,34 @@ save('resistance-sent', await call('POST', '/api/resistance', { level: 10 }), 20
 save('workout-started', await call('POST', '/api/workout', plan), 200);
 await wait(3500);
 save('status-running', await call('GET', '/api/status'), 200);
+save(
+  'problem-machine-workout-active',
+  await call('POST', '/api/machine', { machine: 'treadmill' }),
+  409,
+);
 save('trace', await call('GET', '/api/workout/trace'), 200);
 save('workout-paused', await call('POST', '/api/workout/pause'), 200);
 save('workout-resumed', await call('POST', '/api/workout/resume'), 200);
 save('workout-stopped', await call('POST', '/api/workout/stop'), 200);
+save(
+  'problem-invalid-intervals',
+  await call('POST', '/api/workout', {
+    ...intervalsPlan,
+    sets: [{ ...intervalsPlan.sets[0], rest_seconds: 3 }],
+  }),
+  400,
+);
+save('intervals-workout-started', await call('POST', '/api/workout', intervalsPlan), 200);
+save('intervals-workout-stopped', await call('POST', '/api/workout/stop'), 200);
+save(
+  'video-workout-started',
+  await call('POST', '/api/workout', {
+    ...plan,
+    video: { url: 'https://www.youtube.com/watch?v=QUoToFsMNig', start_seconds: 12 },
+  }),
+  200,
+);
+await call('POST', '/api/workout/stop');
 save('packets', await call('GET', '/api/diagnostics/packets'), 200);
 save('health', await call('GET', '/health'), 200);
 save('problem-wrong-machine', await call('POST', '/api/speed', { speed: 7.0 }), 409);
@@ -105,14 +140,14 @@ save('problem-invalid-machine', await call('POST', '/api/machine', { machine: 'r
 save('machine-treadmill', await call('POST', '/api/machine', { machine: 'treadmill' }), 200);
 await waitConnected('treadmill');
 save('status-treadmill-idle', await call('GET', '/api/status'), 200);
-save('problem-invalid-speed', await call('POST', '/api/speed', { speed: 16.5 }), 400);
-save('problem-invalid-incline', await call('POST', '/api/incline', { incline: 16 }), 400);
+save('problem-invalid-speed', await call('POST', '/api/speed', { speed: 19.4 }), 400);
+save('problem-invalid-incline', await call('POST', '/api/incline', { incline: 11 }), 400);
 save('problem-wrong-machine-resistance', await call('POST', '/api/resistance', { level: 10 }), 409);
 save('speed-sent', await call('POST', '/api/speed', { speed: 8.5 }), 200);
 save('incline-sent', await call('POST', '/api/incline', { incline: 2 }), 200);
 save(
   'problem-invalid-treadmill-workout',
-  await call('POST', '/api/workout', { ...treadmillPlan, work_speed: 16.5 }),
+  await call('POST', '/api/workout', { ...treadmillPlan, work_speed: 19.4 }),
   400,
 );
 save('treadmill-workout-started', await call('POST', '/api/workout', treadmillPlan), 200);

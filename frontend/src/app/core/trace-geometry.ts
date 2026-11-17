@@ -8,7 +8,8 @@ export type TracePhase = 'work' | 'rest' | 'easy';
 export interface TraceBlock {
   start: number;
   end: number;
-  watts: number;
+  /** The target in the scene's unit: watts on the bike, tenths of km/h on the treadmill. */
+  value: number;
   phase: TracePhase;
   past: boolean;
 }
@@ -19,9 +20,14 @@ export interface TraceTick {
 }
 
 export interface TraceScene {
+  title: string;
   total: number;
   elapsed: number;
   yMax: number;
+  /** Grid lines every this many units below `yMax`. */
+  gridStep: number;
+  /** The plot's top label, `300 W` or `15 km/h`. */
+  maxLabel: string;
   blocks: TraceBlock[];
   ticks: TraceTick[];
   planAverage: number;
@@ -41,33 +47,42 @@ export function tickStep(total: number): number {
   return 3600;
 }
 
+/** A labelled tick every `step` seconds from 0:00. */
+export function traceTicks(total: number, step: number): TraceTick[] {
+  const ticks: TraceTick[] = [];
+  for (let t = 0; t <= total; t += step) {
+    ticks.push({ label: formatDuration(t), percent: total > 0 ? (t / total) * 100 : 0 });
+  }
+  return ticks;
+}
+
+/** The tone of a segment's block. */
+export function phaseOfKind(kind: string): TracePhase {
+  return kind === 'work' || kind === 'steady' ? 'work' : kind === 'rest' ? 'rest' : 'easy';
+}
+
 export function traceGeometry(workout: WorkoutSnapshot, elapsed: number): TraceScene {
   const total = workout.total_seconds;
   const blocks = workout.segments.map((s) => ({
     start: s.start,
     end: s.start + s.duration,
-    watts: estimateWatts(s.cadence, s.level),
-    phase: (s.kind === 'work' || s.kind === 'steady'
-      ? 'work'
-      : s.kind === 'rest'
-        ? 'rest'
-        : 'easy') as TracePhase,
+    value: estimateWatts(s.cadence, s.level),
+    phase: phaseOfKind(s.kind),
     past: s.start + s.duration <= elapsed,
   }));
-  const step = tickStep(total);
-  const ticks: TraceTick[] = [];
-  for (let t = 0; t <= total; t += step) {
-    ticks.push({ label: formatDuration(t), percent: total > 0 ? (t / total) * 100 : 0 });
-  }
+  const yMax = yMaxFor(Math.max(0, ...blocks.map((b) => b.value)));
   return {
+    title: 'Power vs. plan',
     total,
     elapsed,
-    yMax: yMaxFor(Math.max(0, ...blocks.map((b) => b.watts))),
+    yMax,
+    gridStep: 100,
+    maxLabel: `${yMax} W`,
     blocks,
-    ticks,
+    ticks: traceTicks(total, tickStep(total)),
     planAverage: averageTargetPower(workout.segments),
     legend:
-      workout.plan.kind === 'hiit'
+      workout.plan.kind !== 'flat'
         ? ['Actual', 'Work target', 'Recover']
         : ['Actual', 'Work target'],
   };

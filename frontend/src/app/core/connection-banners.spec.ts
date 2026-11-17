@@ -69,7 +69,7 @@ describe('isReconnect', () => {
 });
 
 describe('banners on the treadmill (L2-071 AC10, AC11)', () => {
-  it('carries the safety-key sentence when the treadmill is lost mid-ride', () => {
+  it('reads Lost the Stride without Dismiss when the treadmill is lost mid-ride (AC17)', () => {
     const [b] = banners({
       ...base,
       state: testState({
@@ -78,9 +78,14 @@ describe('banners on the treadmill (L2-071 AC10, AC11)', () => {
         workout: testWorkout({ status: 'paused: bike disconnected' }),
       }),
     });
-    expect(b).toMatchObject({ id: 'treadmill-lost', tone: 'danger', title: 'Lost the treadmill' });
+    expect(b).toMatchObject({
+      id: 'treadmill-lost',
+      tone: 'danger',
+      title: 'Lost the Stride',
+      dismissable: false,
+    });
     expect(b.text).toBe(
-      "Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
+      'Step onto the side rails. If the Stride stays off for 90 seconds, Wattzup ends the run.',
     );
   });
 

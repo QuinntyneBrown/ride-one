@@ -4,12 +4,15 @@ import { traceDrawList } from './trace-draw-list';
 import type { TraceScene } from './trace-geometry';
 
 const scene: TraceScene = {
+  title: 'Power vs. plan',
+  gridStep: 100,
+  maxLabel: '300 W',
   total: 100,
   elapsed: 50,
   yMax: 300,
   blocks: [
-    { start: 0, end: 50, watts: 150, phase: 'easy', past: true },
-    { start: 50, end: 100, watts: 300, phase: 'work', past: false },
+    { start: 0, end: 50, value: 150, phase: 'easy', past: true },
+    { start: 50, end: 100, value: 300, phase: 'work', past: false },
   ],
   ticks: [],
   planAverage: 225,

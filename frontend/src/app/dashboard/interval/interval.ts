@@ -26,7 +26,7 @@ export class Interval {
     return {
       label: kindLabel(s.kind),
       tone: toneOf(s.kind),
-      round: roundLabel(s, w.plan),
+      round: roundLabel(s, w.segments),
       next: nextLabel(w.segments, w.segment),
     };
   });
