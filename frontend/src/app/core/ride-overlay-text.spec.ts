@@ -50,16 +50,18 @@ describe('rideOverlayText on the treadmill (L2-071)', () => {
 
   it('names the paused time when the belt stopped', () => {
     expect(rideOverlayText('belt-stopped', treadmill()).lines).toEqual([
-      "The treadmill's belt stopped, so Wattzup paused the ride at 7:07. Press Resume to start the belt again after a 3-second countdown.",
+      'The belt stopped, so Wattzup paused the run at 7:07. If you pulled the safety key, clip it back in, then press Resume — the belt starts after a 3-second countdown.',
     ]);
+    expect(rideOverlayText('belt-stopped', treadmill()).icon).toBe('key');
   });
 
-  it('names the safety key when the treadmill is lost', () => {
+  it('reads Lost the Stride with the side rails when the treadmill is lost (AC17)', () => {
     const o = rideOverlayText('bike-lost', treadmill());
-    expect(o.title).toBe('Lost the treadmill');
-    expect(o.lines[0]).toBe(
-      "STRIDE-8s22-000766 stopped answering. Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
-    );
+    expect(o.title).toBe('Lost the Stride');
+    expect(o.lines).toEqual([
+      'The Stride stopped answering and stopped its belt. Step onto the side rails, then reconnect — your run is saved at 7:07.',
+    ]);
+    expect(o.note).toBeNull();
   });
 
   it('looks for the treadmill while scanning', () => {
@@ -67,7 +69,10 @@ describe('rideOverlayText on the treadmill (L2-071)', () => {
       'scanning',
       treadmill({ ble: 'scanning', workout: testWorkout({ status: 'waiting for bike' }) }),
     );
-    expect(o.title).toBe('Looking for your treadmill');
-    expect(o.lines[1]).toMatch(/^Your ride starts as soon as the treadmill connects: /);
+    expect(o.title).toBe('Looking for your Stride');
+    expect(o.lines[0]).toBe(
+      'No Echelon treadmill found yet — switch it on and clip in the safety key. Wattzup scans again every 20 seconds.',
+    );
+    expect(o.lines[1]).toMatch(/^Your run starts as soon as the Stride connects: /);
   });
 });

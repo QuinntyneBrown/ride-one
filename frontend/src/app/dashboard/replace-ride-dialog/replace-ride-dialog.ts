@@ -6,7 +6,7 @@ import { WORKOUT_API } from '../../core/workout-api';
 import { Alert } from '../alert/alert';
 import { DialogShell } from '../dialog-shell/dialog-shell';
 
-/** Replace the ride in progress? (L2-052, L2-071 criterion 12) */
+/** Replace the ride in progress? (L2-052), or the run on the treadmill (L2-071 criterion 15) */
 @Component({
   selector: 'wz-replace-ride-dialog',
   imports: [Alert, DialogShell],
@@ -20,9 +20,11 @@ export class ReplaceRideDialog {
   private readonly workouts = inject(WORKOUT_API);
   protected readonly busy = signal(false);
   protected readonly failed = signal(false);
+  /** The run's words on the treadmill (L2-071 criterion 15). */
+  protected readonly run = isTreadmillPlan(this.data.plan);
   protected readonly description =
-    `You're ${this.data.elapsed} into ${this.data.currentSummary}. Starting ${this.data.newSummary} ends it and begins the new ride at 0:00.` +
-    (isTreadmillPlan(this.data.plan)
+    `You're ${this.data.elapsed} into ${this.data.currentSummary}. Starting ${this.data.newSummary} ends it and begins the new ${this.run ? 'run' : 'ride'} at 0:00.` +
+    (this.run
       ? ' Wattzup stops the belt first, then counts down 3 seconds before starting it again.'
       : '');
 

@@ -8,7 +8,7 @@ import { WORKOUT_API } from '../../core/workout-api';
 import { Alert } from '../alert/alert';
 import { DialogShell } from '../dialog-shell/dialog-shell';
 
-/** End this ride? (L2-051, L2-071 criterion 12) */
+/** End this ride? (L2-051), or Stop the belt and end this run? (L2-071 criterion 15) */
 @Component({
   selector: 'wz-end-ride-dialog',
   imports: [Alert, DialogShell],
@@ -23,6 +23,8 @@ export class EndRideDialog {
   private readonly router = inject(Router);
   private readonly data = inject<EndRideData | null>(DIALOG_DATA, { optional: true });
 
+  /** The run's words on the treadmill (L2-071 criterion 15). */
+  protected readonly run = this.live.state()?.machine === 'treadmill';
   protected readonly busy = signal(false);
   protected readonly failed = signal(false);
 
@@ -33,7 +35,7 @@ export class EndRideDialog {
     const elapsed = formatDuration(w?.elapsed_seconds ?? 0);
     const total = formatDuration(w?.total_seconds ?? 0);
     if (s?.machine === 'treadmill')
-      return `You're ${elapsed} into ${total}. Wattzup stops the belt.`;
+      return `You're ${elapsed} into ${total}. Wattzup stops the belt; your trace and totals stay on the dashboard until you start a new run.`;
     const level = s?.resistance ?? s?.target_resistance ?? '--';
     return `You're ${elapsed} into ${total}. Wattzup stops changing the resistance and leaves the bike at level ${level}.`;
   });

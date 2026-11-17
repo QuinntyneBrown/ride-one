@@ -1,4 +1,4 @@
-// The copy of the ride overlays (L2-058 AC3–AC6, L2-071 criteria 8 to 11).
+// The copy of the ride overlays (L2-058 AC3–AC6, L2-071 criteria 14, 16 to 18).
 import type { BikeState } from './api-types';
 import { formatDuration } from './format-duration';
 import type { RideOverlayKind } from './ride-view-state';
@@ -6,16 +6,13 @@ import type { RideOverlayKind } from './ride-view-state';
 export interface RideOverlayText {
   kind: RideOverlayKind;
   role: 'status' | 'alert' | null;
-  icon: 'bluetooth-off' | 'flag' | 'stop' | null;
+  icon: 'bluetooth-off' | 'flag' | 'key' | null;
   /** The belt countdown's 3, 2 or 1, shown large and hidden from assistive technology. */
   count: number | null;
   title: string;
   lines: string[];
   note: string | null;
 }
-
-const SAFETY_KEY =
-  "Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.";
 
 export function rideOverlayText(kind: RideOverlayKind, state: BikeState): RideOverlayText {
   return state.machine === 'treadmill'
@@ -43,29 +40,31 @@ function treadmillOverlayText(kind: RideOverlayKind, state: BikeState): RideOver
       return {
         ...base,
         role: 'alert',
-        icon: 'stop',
+        icon: 'key',
         title: 'Belt stopped',
         lines: [
-          `The treadmill's belt stopped, so Wattzup paused the ride at ${elapsed}. Press Resume to start the belt again after a 3-second countdown.`,
+          `The belt stopped, so Wattzup paused the run at ${elapsed}. If you pulled the safety key, clip it back in, then press Resume — the belt starts after a 3-second countdown.`,
         ],
       };
     case 'scanning': {
       const lines = [
-        'No Echelon treadmill found yet — switch it on. Wattzup scans again every 20 seconds.',
+        'No Echelon treadmill found yet — switch it on and clip in the safety key. Wattzup scans again every 20 seconds.',
       ];
       if (state.workout?.status === 'waiting for bike') {
-        lines.push(`Your ride starts as soon as the treadmill connects: ${state.workout.summary}.`);
+        lines.push(`Your run starts as soon as the Stride connects: ${state.workout.summary}.`);
       }
-      return { ...base, role: 'status', icon: null, title: 'Looking for your treadmill', lines };
+      return { ...base, role: 'status', icon: null, title: 'Looking for your Stride', lines };
     }
     case 'bike-lost':
       return {
         ...base,
         role: 'alert',
         icon: 'bluetooth-off',
-        title: 'Lost the treadmill',
-        lines: [`${treadmill} stopped answering. ${SAFETY_KEY}`],
-        note: 'The plan is paused. If the treadmill stays off for 90 seconds, Wattzup ends the ride.',
+        title: 'Lost the Stride',
+        // The belt claim rests on L2-043 criterion 5.
+        lines: [
+          `The Stride stopped answering and stopped its belt. Step onto the side rails, then reconnect — your run is saved at ${elapsed}.`,
+        ],
       };
     case 'bike-shut-off':
       return {

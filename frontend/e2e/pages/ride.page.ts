@@ -53,6 +53,8 @@ export class RidePage {
   readonly overlayText: Locator;
   readonly overlayCount: Locator;
   readonly overlayResumeButton: Locator;
+  readonly overlayReconnectButton: Locator;
+  readonly overlayIcon: Locator;
   readonly loadError: Locator;
   readonly loadErrorTitle: Locator;
   readonly loadErrorText: Locator;
@@ -185,6 +187,8 @@ export class RidePage {
     this.overlayText = this.overlay.locator('p');
     this.overlayCount = this.overlay.locator('.overlay-panel__count');
     this.overlayResumeButton = this.overlay.getByRole('button', { name: 'Resume' });
+    this.overlayReconnectButton = this.overlay.getByRole('button', { name: 'Reconnect' });
+    this.overlayIcon = this.overlay.locator('.overlay-panel__icon [data-icon]');
     this.loadError = this.main.locator('.empty--error');
     this.loadErrorTitle = this.loadError.locator('.empty__title');
     this.loadErrorText = this.loadError.locator('.empty__text');
@@ -289,6 +293,10 @@ export class RidePage {
 
   bannerText(banner: Locator): Locator {
     return banner.locator('.alert__text');
+  }
+
+  bannerDismiss(banner: Locator): Locator {
+    return banner.getByRole('button', { name: /^Dismiss/ });
   }
 
   button(scope: Locator, name: string): Locator {

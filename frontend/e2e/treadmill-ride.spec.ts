@@ -21,7 +21,7 @@ test.describe('Treadmill dashboard: readouts and controls (L2-071)', () => {
     events,
   }) => {
     const ride = new RidePage(page, api, events);
-    const end = new EndRideDialog(page);
+    const end = new EndRideDialog(page, 'treadmill');
     await ride.open(treadmillState({ device_label: 'Echelon Stride' }));
     await expect(ride.statusName).toHaveText('Echelon Stride');
     await expect(ride.statusState).toHaveText('Connected');
@@ -340,20 +340,17 @@ test.describe('Treadmill dashboard: belt and connection (L2-066, L2-071)', () =>
     );
     await expect(ride.overlayTitle).toHaveText('Belt stopped');
     await expect(ride.overlayText).toHaveText(
-      "The treadmill's belt stopped, so Wattzup paused the ride at 7:07. Press Resume to start the belt again after a 3-second countdown.",
+      'The belt stopped, so Wattzup paused the run at 7:07. If you pulled the safety key, clip it back in, then press Resume — the belt starts after a 3-second countdown.',
     );
     await expect(ride.overlay).toHaveAttribute('role', 'alert');
+    await expect(ride.overlayIcon).toHaveAttribute('data-icon', 'key');
     await expect(ride.badge).toHaveText('Belt stopped');
     await expect(ride.resumeButton).toBeEnabled();
     await ride.overlayResumeButton.click();
     await api.waitForCall('POST', '/api/workout/resume');
   });
 
-  test('shows the safety-key sentence when the treadmill is lost', async ({
-    page,
-    api,
-    events,
-  }) => {
+  test('reads Lost the Stride in the overlay and the banner', async ({ page, api, events }) => {
     const ride = new RidePage(page, api, events);
     await ride.open(
       treadmillState({
@@ -362,18 +359,17 @@ test.describe('Treadmill dashboard: belt and connection (L2-066, L2-071)', () =>
         workout: treadmillWorkout({ status: 'paused: bike disconnected' }),
       }),
     );
-    await expect(ride.overlayTitle).toHaveText('Lost the treadmill');
-    await expect(ride.overlayText.first()).toHaveText(
-      "STRIDE-8s22-000766 stopped answering. Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
-    );
-    await expect(ride.overlayText.last()).toHaveText(
-      'The plan is paused. If the treadmill stays off for 90 seconds, Wattzup ends the ride.',
-    );
-    const banner = ride.banner('Lost the treadmill');
+    await expect(ride.overlayTitle).toHaveText('Lost the Stride');
+    await expect(ride.overlayText).toHaveText([
+      'The Stride stopped answering and stopped its belt. Step onto the side rails, then reconnect — your run is saved at 7:07.',
+    ]);
+    await expect(ride.overlayReconnectButton).toBeVisible();
+    const banner = ride.banner('Lost the Stride');
     await expect(ride.bannerText(banner)).toHaveText(
-      "Wattzup can't stop the belt while it's disconnected — use the treadmill's safety key or stop button.",
+      'Step onto the side rails. If the Stride stays off for 90 seconds, Wattzup ends the run.',
     );
     await expect(banner).toHaveClass(/alert--danger/);
+    await expect(ride.bannerDismiss(banner)).toHaveCount(0);
     await expect(ride.badge).toHaveText('Treadmill disconnected');
     await expect(ride.badge).toHaveClass(/badge--danger/);
   });
@@ -395,10 +391,10 @@ test.describe('Treadmill dashboard: belt and connection (L2-066, L2-071)', () =>
     );
     await expect(ride.statusName).toHaveText('Echelon treadmill');
     await expect(ride.statusState).toHaveText('Scanning…');
-    await expect(ride.overlayTitle).toHaveText('Looking for your treadmill');
+    await expect(ride.overlayTitle).toHaveText('Looking for your Stride');
     await expect(ride.overlayText).toHaveText([
-      'No Echelon treadmill found yet — switch it on. Wattzup scans again every 20 seconds.',
-      'Your ride starts as soon as the treadmill connects: HIIT · 18 × 40s / 20s.',
+      'No Echelon treadmill found yet — switch it on and clip in the safety key. Wattzup scans again every 20 seconds.',
+      'Your run starts as soon as the Stride connects: HIIT · 18 × 40s / 20s.',
     ]);
     await expect(ride.badge).toHaveText('Waiting for treadmill');
 
@@ -416,26 +412,29 @@ test.describe('Treadmill dashboard: belt and connection (L2-066, L2-071)', () =>
 });
 
 test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
-  test('words the end-ride and replace-ride dialogs for the belt', async ({
-    page,
-    api,
-    events,
-  }) => {
+  test('words the end and replace dialogs for the run (AC15)', async ({ page, api, events }) => {
     const ride = new RidePage(page, api, events);
-    const end = new EndRideDialog(page);
+    const end = new EndRideDialog(page, 'treadmill');
     await ride.open(treadmillState());
     await ride.stopBeltButton.click();
-    await expect(end.description).toHaveText("You're 7:07 into 22:40. Wattzup stops the belt.");
+    await expect(end.description).toHaveText(
+      "You're 7:07 into 22:40. Wattzup stops the belt; your trace and totals stay on the dashboard until you start a new run.",
+    );
+    await expect(end.note).toHaveCount(0);
+    await expect(end.endRideButton).toBeVisible();
+    await expect(end.keepRidingButton).toBeFocused();
     await end.keepRidingButton.click();
 
     const setup = new SetupPage(page, api, events);
-    const replace = new ReplaceRideDialog(page);
+    const replace = new ReplaceRideDialog(page, 'treadmill');
     await setup.open(treadmillState());
     await setup.steadyCard.check();
     await setup.startButton.click();
     await expect(replace.description).toHaveText(
-      "You're 7:07 into HIIT · 18 × 40s / 20s. Starting Steady · 6.5 km/h at 8% · 30 min ends it and begins the new ride at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.",
+      "You're 7:07 into HIIT · 18 × 40s / 20s. Starting Steady · 6.5 km/h at 8% · 30 min ends it and begins the new run at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.",
     );
+    await expect(replace.keepButton).toBeFocused();
+    await expect(replace.replaceButton).toBeVisible();
   });
 
   test('shows the next segment and the segment-change banner in km/h', async ({
@@ -449,12 +448,12 @@ test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
     await expect(ride.intervalNext).toHaveText('Next: Work 0:40 at 9.0 km/h, 0%');
     await ride.beepsButton.click();
     await ride.push(treadmillState({ workout: treadmillWorkout({ segment: 11, remaining: 40 }) }));
-    await expect(ride.phaseHeadline).toHaveText('WORK · 9.0 KM/H · GO!');
+    await expect(ride.phaseHeadline).toHaveText('WORK · 9.0 KM/H · 0% · GO!');
     await expect(ride.phaseDetail).toHaveText('Round 6 of 18 · 0:40');
-    await expect(ride.cueAnnouncement).toHaveText('Work, 9.0 km/h, incline 0 %, 40 seconds');
+    await expect(ride.cueAnnouncement).toHaveText('Work, 9.0 km/h, incline 0%, 40 seconds');
     await expect(ride.intervalNext).toHaveText('Next: Recover 0:20 at 7.0 km/h, 0%');
     await ride.push(treadmillState({ workout: treadmillWorkout({ segment: 12, remaining: 20 }) }));
-    await expect(ride.phaseHeadline).toHaveText('RECOVER · 7.0 KM/H');
+    await expect(ride.phaseHeadline).toHaveText('RECOVER · 7.0 KM/H · 0%');
     await expect(ride.phaseDetail).toHaveText('0:20 · next: Work at 9.0 km/h');
     expect((await audio.tones()).length).toBeGreaterThan(0);
   });
