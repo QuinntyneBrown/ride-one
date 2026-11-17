@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import type { RideVideo as Video } from '../../core/api-types';
 import { VideoSync } from '../../core/video-sync.service';
+import { Icon } from '../icon/icon';
 
 /**
  * The `Video` tab panel: hosts the ride-along player and hands it to VideoSync. The page hides it,
@@ -18,12 +19,13 @@ import { VideoSync } from '../../core/video-sync.service';
  */
 @Component({
   selector: 'wz-ride-video',
+  imports: [Icon],
   templateUrl: './ride-video.html',
   styleUrl: './ride-video.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RideVideo {
-  private readonly sync = inject(VideoSync);
+  protected readonly sync = inject(VideoSync);
   readonly video = input.required<Video>();
   private readonly videoId = computed(() => this.video().video_id);
   private readonly host = viewChild.required<ElementRef<HTMLElement>>('host');

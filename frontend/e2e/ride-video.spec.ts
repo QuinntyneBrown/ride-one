@@ -2,6 +2,9 @@ import { expect, test } from './fixtures/wz-test';
 import { RidePage } from './pages/ride.page';
 import { state, videoWorkout, workout } from './fixtures/states';
 import type { FakeYouTube, PlayerCall } from './fixtures/fake-youtube';
+import { ToastRegion } from './pages/toast-region';
+import workoutPaused from './fixtures/recorded/workout-paused.json';
+import workoutResumed from './fixtures/recorded/workout-resumed.json';
 
 // The default plan at 7:07 of 12:40, with the video synced from 0:12.0: the target is 439.0 s.
 const riding = (change = {}) => state({ workout: videoWorkout(change) });
@@ -143,5 +146,71 @@ test.describe('Ride along to a video on the dashboard (L2-076)', () => {
     await page.keyboard.press('ArrowLeft');
     await expect(ride.videoTab).toBeFocused();
     await expect(ride.videoTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('pauses and resumes the ride from the player', async ({ page, api, events, youtube }) => {
+    api.on('POST', '/api/workout/pause', { json: workoutPaused });
+    api.on('POST', '/api/workout/resume', { json: workoutResumed });
+    const ride = new RidePage(page, api, events);
+    await ride.open(riding());
+    await expect.poll(() => since(youtube, 0)).toEqual(['seekTo(439)', 'playVideo']);
+
+    const seen = (await calls(youtube)).length;
+    await youtube.drive('paused', 439.4);
+    await api.waitForCall('POST', '/api/workout/pause');
+    await events.push(riding({ elapsed_seconds: 427 }));
+    await events.push(riding({ status: 'paused' }));
+    await expect(ride.resumeButton).toBeVisible();
+    expect(await since(youtube, seen)).not.toContain('playVideo');
+
+    await youtube.drive('playing', 439.4);
+    await api.waitForCall('POST', '/api/workout/resume');
+    await events.push(riding({ elapsed_seconds: 428 }));
+    await expect(ride.planStrip).toHaveAttribute('aria-label', 'Ride progress: 7:08 of 12:40');
+    expect(await since(youtube, seen)).not.toContain('pauseVideo');
+  });
+
+  test('covers the player with Play video in sync after 2 refusals', async ({
+    page,
+    api,
+    events,
+    youtube,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await page.addInitScript(() => {
+      (window as unknown as { __fakeYT: unknown }).__fakeYT = {
+        players: [],
+        title: '',
+        refusePlay: true,
+      };
+    });
+    await ride.open(riding());
+    await expect(ride.playScrim).toBeVisible({ timeout: 10_000 });
+    await expect(ride.rideClock).toBeVisible();
+
+    await youtube.refusePlay(false);
+    const seen = (await calls(youtube)).length;
+    await ride.playScrim.click();
+    await expect(ride.playScrim).toHaveCount(0);
+    expect(await since(youtube, seen)).toEqual(['seekTo(439)', 'playVideo']);
+  });
+
+  test("shows Couldn't play the video and selects Power vs. plan on a player error", async ({
+    page,
+    api,
+    events,
+    youtube,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    const toasts = new ToastRegion(page);
+    await ride.open(riding());
+    await expect.poll(() => since(youtube, 0)).toEqual(['seekTo(439)', 'playVideo']);
+    await youtube.fail(150);
+    await expect(toasts.toast("Couldn't play the video")).toContainText(
+      'The ride carries on without it.',
+    );
+    await expect(ride.chartTab).toHaveAttribute('aria-selected', 'true');
+    await expect(ride.trace).toBeVisible();
+    await expect(ride.rideClock).toBeVisible();
   });
 });

@@ -39,3 +39,26 @@ export function syncAction(i: SyncInput): SyncAction {
   if (i.player === 'playing' || i.player === 'buffering') return 'pause-at';
   return drifted ? 'seek' : 'none';
 }
+
+export type RiderAction = 'pause-ride' | 'resume-ride' | 'none';
+
+/**
+ * What the rider's own pause or play inside the player does to the ride: a pause while `running`
+ * pauses the ride, a play while `paused` resumes it. A change the sync made is never the rider's
+ * (L2-076 criterion 5).
+ */
+export function riderAction(
+  status: WorkoutStatus,
+  player: PlayerState,
+  cause: 'rider' | 'sync',
+): RiderAction {
+  if (cause === 'sync') return 'none';
+  if (status === 'running' && player === 'paused') return 'pause-ride';
+  if (status === 'paused' && player === 'playing') return 'resume-ride';
+  return 'none';
+}
+
+/** Playback counts as blocked at 2 refused play calls in a row (L2-076 criterion 6). */
+export function isBlocked(refusals: number): boolean {
+  return refusals >= 2;
+}

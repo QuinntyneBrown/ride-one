@@ -1,3 +1,6 @@
+@use 'design-system/btn';
+@use 'design-system/icon';
+
 :host {
   display: flex;
   flex-direction: column;
@@ -22,6 +25,23 @@
 .video-frame__host {
   position: absolute;
   inset: 0;
+}
+.video-frame__scrim {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  min-width: var(--target-comfortable);
+  min-height: var(--target-comfortable);
+  border: 0;
+  padding: var(--space-4);
+  background: var(--color-video-scrim);
+  color: inherit;
+  cursor: pointer;
+}
+.video-frame__scrim:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--focus-ring-width) * 2);
 }
 // Under 1024 px the video keeps 16:9 at full width (L2-076 AC12).
 @media (max-width: 1023.98px) {

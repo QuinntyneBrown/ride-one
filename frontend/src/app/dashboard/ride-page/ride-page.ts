@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  untracked,
+} from '@angular/core';
 import { CommandFeedbackService } from '../../core/command-feedback.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
@@ -81,6 +89,11 @@ export class RidePage {
   protected readonly mainView = linkedSignal<string | null, MainView>({
     source: computed(() => (this.workout() ? JSON.stringify(this.workout()!.plan) : null)),
     computation: () => 'video',
+  });
+  private readonly videoSync = inject(VideoSync);
+  /** A player error selects Power vs. plan; the ride carries on (L2-076 AC7). */
+  private readonly onVideoError = effect(() => {
+    if (this.videoSync.failed()) untracked(() => this.mainView.set('chart'));
   });
   protected readonly view = computed(() =>
     rideViewState(this.state(), this.live.connection(), this.live.loadFailed()),

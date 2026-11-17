@@ -1,5 +1,5 @@
 import type { WorkoutStatus } from './api-types';
-import { type SyncInput, syncAction, targetPosition } from './video-sync';
+import { type SyncInput, isBlocked, riderAction, syncAction, targetPosition } from './video-sync';
 import type { PlayerState } from './youtube-player';
 
 const at = (change: Partial<SyncInput>): SyncInput => ({
@@ -73,5 +73,39 @@ describe('syncAction and the page being shown (L2-076 AC10)', () => {
     expect(syncAction(at({ resync: true }))).toBe('seek');
     expect(syncAction(at({ resync: true, player: 'paused' }))).toBe('play-at');
     expect(syncAction(at({ resync: true, status: 'paused', player: 'paused' }))).toBe('seek');
+  });
+});
+
+describe('riderAction (L2-076 AC5)', () => {
+  it.each<[WorkoutStatus, PlayerState, string]>([
+    ['running', 'paused', 'pause-ride'],
+    ['running', 'playing', 'none'],
+    ['running', 'buffering', 'none'],
+    ['running', 'ended', 'none'],
+    ['paused', 'playing', 'resume-ride'],
+    ['paused', 'paused', 'none'],
+    ['paused: bike disconnected', 'playing', 'none'],
+    ['paused: belt stopped', 'playing', 'none'],
+    ['waiting for bike', 'playing', 'none'],
+    ['ended', 'playing', 'none'],
+    ['stopped', 'paused', 'none'],
+  ])('the rider under %s leaving the player %s gives %s', (status, player, action) => {
+    expect(riderAction(status, player, 'rider')).toBe(action);
+  });
+
+  it('never counts a change the sync made', () => {
+    expect(riderAction('running', 'paused', 'sync')).toBe('none');
+    expect(riderAction('paused', 'playing', 'sync')).toBe('none');
+  });
+});
+
+describe('isBlocked (L2-076 AC6)', () => {
+  it.each([
+    [0, false],
+    [1, false],
+    [2, true],
+    [3, true],
+  ])('%d refusals in a row: %s', (n, blocked) => {
+    expect(isBlocked(n)).toBe(blocked);
   });
 });
