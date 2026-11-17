@@ -1,5 +1,5 @@
 // What the machine page shows, from the live state, the stored history and today (L2-073).
-import type { BikeState, Machine } from './api-types';
+import type { BikeState, Machine } from '@wattzup/api';
 import type { MachineHistory } from './machine-history.store';
 
 export interface MachineCardView {

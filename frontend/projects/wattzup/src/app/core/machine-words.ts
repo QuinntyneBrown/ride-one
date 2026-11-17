@@ -1,5 +1,5 @@
 // The nouns and titles that name the chosen machine in the UI (L2-071 criteria 11 and 14).
-import type { Machine } from './api-types';
+import type { Machine } from '@wattzup/api';
 
 export interface MachineWords {
   /** `bike` or `treadmill`, inside a sentence. */

@@ -1,6 +1,6 @@
 // The ride-along video's rules on the setup screen (L2-029 criteria 17 to 20, ADR 0012). The link rule mirrors
 // YouTubeLink in Wattzup.Core: the same forms are accepted, every other link is refused, and only the id is used.
-import type { RideVideoLink } from './api-types';
+import type { RideVideoLink } from '@wattzup/api';
 
 /** The video draft, one for every mode and both machines, kept with the plan drafts. */
 export interface VideoDraft {

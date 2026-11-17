@@ -1,5 +1,5 @@
 // Turns streamed workout states into segment changes; the first state never cues (L2-027).
-import type { SegmentKind, WorkoutSnapshot } from './api-types';
+import type { SegmentKind, WorkoutSnapshot } from '@wattzup/api';
 import { roundCount } from './segment-labels';
 
 export interface SegmentChange {

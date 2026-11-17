@@ -1,5 +1,5 @@
 // The resistance panel's rules (L2-020, L2-047).
-import type { BikeState } from './api-types';
+import type { BikeState } from '@wattzup/api';
 
 export const MIN_LEVEL = 1;
 export const MAX_LEVEL = 32;

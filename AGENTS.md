@@ -61,10 +61,14 @@ wattzup/
 ├── frontend/                              # ALL frontend code: one Angular workspace (ADR 0013)
 │   ├── angular.json, tsconfig.json         # workspace; path aliases @wattzup/components, @wattzup/api
 │   ├── projects/
+│   │   ├── api/                           # library @wattzup/api: talking to the backend
+│   │   │   └── src/
+│   │   │       ├── generated/             # schema.d.ts from /openapi/v1.json, never hand-edited
+│   │   │       ├── lib/                   # type aliases, contracts + tokens, HTTP, interceptor
+│   │   │       └── public-api.ts
 │   │   └── wattzup/                       # the application
 │   │       └── src/
 │   │           ├── app/
-│   │           │   ├── api/               # generated from /openapi/v1.json, never hand-edited
 │   │           │   ├── core/              # services and pure helpers, with unit tests
 │   │           │   ├── dashboard/         # components (name.ts + name.html + name.scss)
 │   │           │   └── app.config.ts      # composition root

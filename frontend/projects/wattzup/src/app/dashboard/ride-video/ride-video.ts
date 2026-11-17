@@ -9,7 +9,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import type { RideVideo as Video } from '../../core/api-types';
+import type { RideVideo as Video } from '@wattzup/api';
 import { VideoSync } from '../../core/video-sync.service';
 import { Icon } from '../icon/icon';
 

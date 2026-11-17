@@ -1,16 +1,20 @@
-// Adds X-Api-Key to /api requests and turns a 401 into the unlock page (L2-035, L2-055).
+// Adds X-Api-Key to /api requests and reports a 401 to the app (L2-035, L2-055). The app decides
+// what a 401 means for the rider through UNAUTHORIZED_HANDLER; this library knows no route.
 import { HttpContextToken, HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { InjectionToken, inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { ApiKeyStore } from './api-key.store';
 
 export const SKIP_UNLOCK_REDIRECT = new HttpContextToken<boolean>(() => false);
 
+/** Called after a 401 has cleared the key, unless the request set SKIP_UNLOCK_REDIRECT. */
+export type UnauthorizedHandler = () => void;
+export const UNAUTHORIZED_HANDLER = new InjectionToken<UnauthorizedHandler>('UNAUTHORIZED_HANDLER');
+
 export const apiKeyInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.startsWith('/api')) return next(req);
   const keys = inject(ApiKeyStore);
-  const router = inject(Router);
+  const onUnauthorized = inject(UNAUTHORIZED_HANDLER, { optional: true });
   const key = keys.key();
   const request =
     key && !req.headers.has('X-Api-Key') ? req.clone({ setHeaders: { 'X-Api-Key': key } }) : req;
@@ -22,13 +26,7 @@ export const apiKeyInterceptor: HttpInterceptorFn = (req, next) => {
         !req.context.get(SKIP_UNLOCK_REDIRECT)
       ) {
         keys.clear();
-        const current = router.currentNavigation();
-        const returnUrl = current
-          ? router.serializeUrl(current.finalUrl ?? current.extractedUrl)
-          : router.url;
-        if (!returnUrl.startsWith('/unlock')) {
-          void router.navigate(['/unlock'], { queryParams: { returnUrl } });
-        }
+        onUnauthorized?.();
       }
       return throwError(() => error);
     }),

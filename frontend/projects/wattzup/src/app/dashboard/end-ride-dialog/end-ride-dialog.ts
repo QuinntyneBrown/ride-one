@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import type { EndRideData } from '../../core/dialog-launcher';
 import { formatDuration } from '../../core/format-duration';
 import { LiveStateService } from '../../core/live-state.service';
-import { WORKOUT_API } from '../../core/workout-api';
+import { WORKOUT_API } from '@wattzup/api';
 import { Alert } from '../alert/alert';
 import { DialogShell } from '../dialog-shell/dialog-shell';
 

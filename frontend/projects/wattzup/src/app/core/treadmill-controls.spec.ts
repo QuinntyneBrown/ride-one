@@ -1,4 +1,4 @@
-import type { BikeState } from './api-types';
+import type { BikeState } from '@wattzup/api';
 import { testState, testWorkout } from './test-state';
 import {
   BELT_NOTE,

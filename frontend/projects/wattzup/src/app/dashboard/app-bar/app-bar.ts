@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { Machine, WorkoutSnapshot } from '../../core/api-types';
+import type { Machine, WorkoutSnapshot } from '@wattzup/api';
 import type { RideViewState } from '../../core/ride-view-state';
 import { badgeTone, statusBadge } from '../../core/segment-labels';
 import { CueService } from '../../core/cue.service';

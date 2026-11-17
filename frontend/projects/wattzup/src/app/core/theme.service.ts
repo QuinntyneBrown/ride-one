@@ -1,6 +1,6 @@
 // The UI theme: dark unless the rider picks light; the device preference is ignored (L2-061).
 import { DOCUMENT, Injectable, inject, signal } from '@angular/core';
-import { SafeStorage } from './safe-storage';
+import { SafeStorage } from '@wattzup/api';
 
 export type Theme = 'dark' | 'light';
 

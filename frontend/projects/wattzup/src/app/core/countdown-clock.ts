@@ -1,5 +1,5 @@
 // Local interpolation between the once-per-second server updates (L2-024).
-import type { WorkoutSnapshot } from './api-types';
+import type { WorkoutSnapshot } from '@wattzup/api';
 
 const CAP_SECONDS = 1.25;
 

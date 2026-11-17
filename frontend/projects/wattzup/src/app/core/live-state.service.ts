@@ -1,10 +1,8 @@
 // The only owner of the EventSource and its reconnect logic (L2-044, L2-018, L2-054).
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { ApiKeyStore } from './api-key.store';
-import type { BikeState, Machine, StreamMessage } from './api-types';
-import { BIKE_API } from './bike-api';
-import type { StreamConnection } from './stream-connection';
+import { ApiKeyStore, BIKE_API } from '@wattzup/api';
+import type { BikeState, Machine, StreamMessage, StreamConnection } from '@wattzup/api';
 
 export const RECONNECT_DELAY_MS = 2000;
 

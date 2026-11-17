@@ -2,11 +2,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { BIKE_API } from './bike-api';
+import { BIKE_API, WORKOUT_API } from '@wattzup/api';
 import { DialogLauncher } from './dialog-launcher';
 import { LiveStateService } from './live-state.service';
 import { ToastService } from './toast.service';
-import { WORKOUT_API } from './workout-api';
 import { isActive } from './workout-status';
 
 @Injectable({ providedIn: 'root' })

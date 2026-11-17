@@ -1,4 +1,4 @@
-import type { WorkoutStatus } from './api-types';
+import type { WorkoutStatus } from '@wattzup/api';
 import { type SyncInput, isBlocked, riderAction, syncAction, targetPosition } from './video-sync';
 import type { PlayerState } from './youtube-player';
 

@@ -12,7 +12,7 @@ import { Router, RouterLink } from '@angular/router';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
 import { formatDuration } from '../../core/format-duration';
-import type { Machine, StartPlan } from '../../core/api-types';
+import type { Machine, StartPlan } from '@wattzup/api';
 import { planVideo } from '../../core/video-link';
 import { LiveStateService } from '../../core/live-state.service';
 import { MachineHistoryStore } from '../../core/machine-history.store';
@@ -62,7 +62,7 @@ import {
   validateTreadmillDraft,
 } from '../../core/treadmill-plan-form';
 import { isActive } from '../../core/workout-status';
-import { WORKOUT_API } from '../../core/workout-api';
+import { WORKOUT_API } from '@wattzup/api';
 import { Alert } from '../alert/alert';
 import { FormSummary } from '../form-summary/form-summary';
 import { Icon } from '../icon/icon';

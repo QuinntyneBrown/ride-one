@@ -13,7 +13,7 @@ import {
   toSetDraft,
   validateIntervals,
 } from './intervals-form';
-import { SafeStorage } from './safe-storage';
+import { SafeStorage } from '@wattzup/api';
 import { readVideoDraft, type VideoDraft } from './video-link';
 import {
   DEFAULT_TREADMILL_DRAFT,

@@ -1,10 +1,10 @@
 // Holds banner history and dismissals; the rules live in connection-banners.ts (L2-054).
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
-import type { BikeState } from './api-types';
+import type { BikeState } from '@wattzup/api';
 import { type BannerId, banners, isReconnect } from './connection-banners';
 import { LiveStateService } from './live-state.service';
 import { clockTime } from './local-time';
-import { SafeStorage } from './safe-storage';
+import { SafeStorage } from '@wattzup/api';
 
 const DISMISSED_KEY = 'wattzup.banners.dismissed';
 export const RECONNECTED_MS = 4000;

@@ -1,5 +1,5 @@
 // The treadmill side panel's rules (L2-071 criteria 8 to 11, L2-068).
-import type { BikeState } from './api-types';
+import type { BikeState } from '@wattzup/api';
 import type { PlanNote } from './resistance-controls';
 import {
   INCLINE_STEP,

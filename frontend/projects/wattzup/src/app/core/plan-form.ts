@@ -1,5 +1,5 @@
 // The plan draft's rules for the setup screen (L2-029, L2-010 messages).
-import type { WorkoutPlan } from './api-types';
+import type { WorkoutPlan } from '@wattzup/api';
 
 export type PresetId = 'tabata' | '40-20' | 'minute-on' | 'long-climbs';
 

@@ -1,6 +1,6 @@
 // The ride-along video's sync rules (L2-076 criteria 3, 4 and 10, ADR 0012): the video follows the
 // ride, never the other way round, except for the rider's own pause and play (see VideoSync).
-import type { RideVideo, WorkoutStatus } from './api-types';
+import type { RideVideo, WorkoutStatus } from '@wattzup/api';
 import type { PlayerState } from './youtube-player';
 
 export type SyncAction = 'play-at' | 'pause-at' | 'seek' | 'none';

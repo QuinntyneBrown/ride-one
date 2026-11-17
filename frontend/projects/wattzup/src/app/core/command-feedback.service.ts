@@ -1,6 +1,6 @@
 // Success and slow-confirm toasts for manual resistance commands (L2-048).
 import { Injectable, effect, inject } from '@angular/core';
-import type { BikeState, CommandEntry } from './api-types';
+import type { BikeState, CommandEntry } from '@wattzup/api';
 import { LiveStateService } from './live-state.service';
 import { ToastService } from './toast.service';
 

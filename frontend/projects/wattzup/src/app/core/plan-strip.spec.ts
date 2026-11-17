@@ -1,5 +1,5 @@
 import { stripOf } from './plan-strip';
-import type { Segment } from './api-types';
+import type { Segment } from '@wattzup/api';
 
 const seg = (kind: Segment['kind'], start: number, duration: number): Segment =>
   ({ kind, start, duration, level: 8, cadence: null, round: null }) as unknown as Segment;

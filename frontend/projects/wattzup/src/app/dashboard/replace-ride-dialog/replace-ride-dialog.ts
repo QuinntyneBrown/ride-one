@@ -2,7 +2,7 @@ import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import type { ReplaceRideData } from '../../core/dialog-launcher';
 import { isTreadmillPlan } from '../../core/plan-expansion';
-import { WORKOUT_API } from '../../core/workout-api';
+import { WORKOUT_API } from '@wattzup/api';
 import { Alert } from '../alert/alert';
 import { DialogShell } from '../dialog-shell/dialog-shell';
 

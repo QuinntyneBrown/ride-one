@@ -1,9 +1,9 @@
 // Keeps PowerTraceHistory in step with the stream and the trace endpoint (L2-026, L2-050).
 import { Injectable, effect, inject, signal, untracked } from '@angular/core';
-import type { BikeState } from './api-types';
+import type { BikeState } from '@wattzup/api';
 import { LiveStateService } from './live-state.service';
 import { PowerTraceHistory } from './power-trace-history';
-import { WORKOUT_API } from './workout-api';
+import { WORKOUT_API } from '@wattzup/api';
 
 @Injectable({ providedIn: 'root' })
 export class PowerTraceStore {

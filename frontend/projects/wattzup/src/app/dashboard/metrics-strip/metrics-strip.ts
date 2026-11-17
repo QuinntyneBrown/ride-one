@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import type { BikeState } from '../../core/api-types';
+import type { BikeState } from '@wattzup/api';
 import { formatCount, formatDistance, formatLive, formatSpeed } from '../../core/metric-format';
 import { formatAvgPace } from '../../core/pace';
 

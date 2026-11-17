@@ -8,8 +8,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { ApiKeyStore } from '../../core/api-key.store';
-import { BIKE_API } from '../../core/bike-api';
+import { ApiKeyStore, BIKE_API } from '@wattzup/api';
 import { LiveStateService } from '../../core/live-state.service';
 import { safeReturnUrl } from '../../core/safe-return-url';
 import { Alert } from '../alert/alert';
