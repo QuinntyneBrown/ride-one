@@ -1,64 +1,20 @@
-# Components
+# components
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.0.
+The `@wattzup/components` library: Wattzup's presentation components (ADR 0013). Each one renders
+a component of the design system ([`docs/design-system/`](../../../docs/design-system/README.md))
+and is named after it: class, file, folder and `wz-` selector. A part the design system documents
+inside another component keeps its own name (for example `incline-control` in Speed and incline
+control). The host-and-structure design maps every component to its design-system page.
 
-## Code scaffolding
+- A component takes inputs and emits outputs. It injects only framework services (`ElementRef`,
+  `Injector`, the CDK `DialogRef`), never an app service, an API token or the router. The types
+  of its inputs are exported with it from `src/public-api.ts`.
+- It may name a type from `@wattzup/api`, never a value. Sibling components are imported by
+  relative path, never through the barrel. ESLint enforces both.
+- Each component is `name.ts` + `name.html` + `name.scss`, one encapsulated BEM block. The BEM
+  classes are the mocks' own; the e2e locators depend on them.
+- `src/styles/design-system/` holds the SCSS partials every project reads as
+  `@use 'design-system/btn'` (`stylePreprocessorOptions.includePaths` in `angular.json`).
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the library, run:
-
-```bash
-ng build components
-```
-
-This command will compile your project, and the build artifacts will be placed in the `dist/` directory.
-
-### Publishing the Library
-
-Once the project is built, you can publish your library by following these steps:
-
-1. Navigate to the `dist` directory:
-
-   ```bash
-   cd dist/components
-   ```
-
-2. Run the `npm publish` command to publish your library to the npm registry:
-   ```bash
-   npm publish
-   ```
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The app imports it through the `@wattzup/components` path alias; it is compiled from source and
+never built or published on its own. `ng test components` runs its unit tests.

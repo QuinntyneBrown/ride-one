@@ -35,6 +35,79 @@ module.exports = defineConfig([
       ],
     },
   },
+  // Dependency direction (ADR 0013): wattzup -> components -> api (types only), wattzup -> api.
+  // No library imports the app, its own barrel, or a path outside its project.
+  {
+    files: ['projects/components/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@wattzup/api',
+              allowTypeImports: true,
+              message: 'Presentation components may name API types only (ADR 0013).',
+            },
+            {
+              name: '@wattzup/components',
+              message: 'Import a sibling component by its relative path, not the barrel.',
+            },
+            {
+              name: '@angular/router',
+              message: 'Presentation components know no route; emit an output (ADR 0013).',
+            },
+          ],
+          patterns: [
+            {
+              regex: '^(\\.\\./){3,}',
+              message: 'A library never imports outside its project (ADR 0013).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['projects/api/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: '@wattzup/components', message: 'The api library depends on nothing else.' },
+            { name: '@wattzup/api', message: 'Import within the library by relative path.' },
+            {
+              name: '@angular/router',
+              message: 'The api library knows no route; use UNAUTHORIZED_HANDLER (ADR 0013).',
+            },
+          ],
+          patterns: [
+            {
+              regex: '^(\\.\\./){3,}',
+              message: 'A library never imports outside its project (ADR 0013).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['projects/wattzup/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^(\\.\\./){4,}',
+              message: 'Use @wattzup/components or @wattzup/api, never a library path (ADR 0013).',
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
