@@ -5,6 +5,11 @@ import { formatDuration } from './format-duration';
 
 export const WARMUP_SECONDS = 180;
 export const COOLDOWN_SECONDS = 120;
+/** Cadence aims of a `hiit` plan's segments, in rpm (L2-045). */
+export const WARMUP_CADENCE = 80;
+export const WORK_CADENCE = 100;
+export const REST_CADENCE = 72;
+export const COOLDOWN_CADENCE = 70;
 /** The Echelon Stride's top speed (L2-065, ADR 0010). */
 export const MAX_TREADMILL_SPEED = 19.3;
 
@@ -79,18 +84,24 @@ export function expandPlan(plan: WorkoutPlan): Segment[] {
       kind: 'warmup',
       duration: WARMUP_SECONDS,
       level: Math.max(1, restLevel + 2),
-      cadence: 80,
+      cadence: WARMUP_CADENCE,
       round: null,
     });
   }
   for (let round = 1; round <= plan.rounds; round++) {
-    push({ kind: 'work', duration: plan.work_seconds, level: plan.work_level, cadence: 98, round });
+    push({
+      kind: 'work',
+      duration: plan.work_seconds,
+      level: plan.work_level,
+      cadence: WORK_CADENCE,
+      round,
+    });
     if (!(plan.cooldown && round === plan.rounds)) {
       push({
         kind: 'rest',
         duration: plan.rest_seconds,
         level: plan.rest_level,
-        cadence: 72,
+        cadence: REST_CADENCE,
         round,
       });
     }
@@ -100,7 +111,7 @@ export function expandPlan(plan: WorkoutPlan): Segment[] {
       kind: 'cooldown',
       duration: COOLDOWN_SECONDS,
       level: Math.max(1, restLevel),
-      cadence: 70,
+      cadence: COOLDOWN_CADENCE,
       round: null,
     });
   }

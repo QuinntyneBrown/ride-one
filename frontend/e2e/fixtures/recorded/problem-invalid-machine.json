@@ -4,5 +4,5 @@
   "status": 400,
   "code": "invalid_machine",
   "error": "machine must be bike or treadmill",
-  "trace_id": "00-1749e8ec7a981b4d7f0d81a835f6cf08-24ddc1d8f81c536f-00"
+  "trace_id": "00-f31a05c8689a25148b6483022280ed5e-b889aa89a50c2692-00"
 }

@@ -8,7 +8,7 @@ public static class PlanExpander
     public const int WarmupSeconds = 180;
     public const int CooldownSeconds = 120;
     public const int WarmupCadence = 80;
-    public const int WorkCadence = 98;
+    public const int WorkCadence = 100;
     public const int RestCadence = 72;
     public const int CooldownCadence = 70;
 

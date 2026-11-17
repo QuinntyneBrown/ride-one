@@ -31,9 +31,9 @@ public sealed class PlanExpanderTests
 
         Assert.Equal(
             [
-                new Segment(SegmentKind.Work, 0, 40, 18, 98, 1),
+                new Segment(SegmentKind.Work, 0, 40, 18, 100, 1),
                 new Segment(SegmentKind.Rest, 40, 20, 6, 72, 1),
-                new Segment(SegmentKind.Work, 60, 40, 18, 98, 2),
+                new Segment(SegmentKind.Work, 60, 40, 18, 100, 2),
                 new Segment(SegmentKind.Rest, 100, 20, 6, 72, 2),
             ],
             segments);

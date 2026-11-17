@@ -37,7 +37,7 @@
         "start": 180,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 1,
         "speed": null,
         "incline": null
@@ -57,7 +57,7 @@
         "start": 240,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 2,
         "speed": null,
         "incline": null
@@ -77,7 +77,7 @@
         "start": 300,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 3,
         "speed": null,
         "incline": null
@@ -97,7 +97,7 @@
         "start": 360,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 4,
         "speed": null,
         "incline": null
@@ -117,7 +117,7 @@
         "start": 420,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 5,
         "speed": null,
         "incline": null
@@ -137,7 +137,7 @@
         "start": 480,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 6,
         "speed": null,
         "incline": null
@@ -157,7 +157,7 @@
         "start": 540,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 7,
         "speed": null,
         "incline": null
@@ -177,7 +177,7 @@
         "start": 600,
         "duration": 40,
         "level": 18,
-        "cadence": 98,
+        "cadence": 100,
         "round": 8,
         "speed": null,
         "incline": null
@@ -205,9 +205,9 @@
   "cadence": 85,
   "speed_kmh": 31.9,
   "speed_mph": 19.8,
-  "packets": 6,
-  "first_data_at": 1794871108.068,
-  "last_data_at": 1794871111.151,
+  "packets": 9,
+  "first_data_at": 1794876789.603,
+  "last_data_at": 1794876795.601,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -215,17 +215,17 @@
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8797",
+  "bind_address": "127.0.0.1:8788",
   "connection_id": "0bf669f1",
   "power": 152,
   "target_power": 143,
-  "avg_power": 114,
-  "distance_km": 0.03,
-  "kcal": 0,
+  "avg_power": 152,
+  "distance_km": 0.04,
+  "kcal": 1,
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794871108.072,
+      "at": 1794876792.19,
       "ride_seconds": 0,
       "level": 8,
       "source": "plan",
@@ -235,12 +235,12 @@
       "value": 8
     },
     {
-      "at": 1794871108.067,
+      "at": 1794876792.186,
       "ride_seconds": null,
       "level": 10,
       "source": "manual",
       "status": "ack",
-      "ack_ms": 1,
+      "ack_ms": 0,
       "command": "resistance",
       "value": 10
     }
@@ -259,7 +259,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794871107.149
+      "seen_at": 1794876788.599
     },
     {
       "machine": "treadmill",
@@ -267,7 +267,7 @@
       "label": "Echelon Stride",
       "rssi": -55,
       "signal": 4,
-      "seen_at": 1794871107.15
+      "seen_at": 1794876788.599
     }
   ]
 }

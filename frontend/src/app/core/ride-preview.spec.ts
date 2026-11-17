@@ -21,8 +21,8 @@ describe('previewOf (L2-059)', () => {
     expect(p.structure).toBe('8 × 0:40 / 0:20');
     expect(p.timeUnderLoad).toBe('5:20');
     expect(p.peakLevel).toBe(18);
-    expect(p.avgPower).toBe(208);
-    expect(p.kcal).toBe(157);
+    expect(p.avgPower).toBe(211);
+    expect(p.kcal).toBe(160);
     expect(p.legend).toEqual(['work', 'rest']);
   });
 

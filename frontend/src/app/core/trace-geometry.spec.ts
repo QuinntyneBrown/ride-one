@@ -6,7 +6,7 @@ describe('traceGeometry (L2-026)', () => {
     const g = traceGeometry(testWorkout(), 427);
     expect(g.blocks.length).toBe(17);
     expect(g.blocks[0]).toEqual({ start: 0, end: 180, watts: 143, phase: 'easy', past: true });
-    expect(g.blocks[1]).toEqual({ start: 180, end: 220, watts: 327, phase: 'work', past: true });
+    expect(g.blocks[1]).toEqual({ start: 180, end: 220, watts: 334, phase: 'work', past: true });
     expect(g.blocks[2].phase).toBe('rest');
     expect(g.blocks[9].past).toBe(false);
     expect(g.total).toBe(760);
@@ -40,7 +40,7 @@ describe('traceGeometry (L2-026)', () => {
   });
   it('has a plan average and a legend per kind', () => {
     const g = traceGeometry(testWorkout(), 0);
-    expect(g.planAverage).toBe(208);
+    expect(g.planAverage).toBe(211);
     expect(g.legend).toEqual(['Actual', 'Work target', 'Recover']);
     const flat = traceGeometry(
       testWorkout({

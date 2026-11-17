@@ -4,5 +4,5 @@
   "status": 400,
   "code": "invalid_level",
   "error": "level must be 1-32",
-  "trace_id": "00-fc0c6c21e4943c42a9f1b0a835af939e-4ad09f0c91af27ad-00"
+  "trace_id": "00-89d30fb926734293b60bbfd0764ccaea-f071657a6af2fb34-00"
 }

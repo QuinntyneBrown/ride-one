@@ -207,8 +207,8 @@ test.describe('Ride preview (L2-059)', () => {
     await expect(setup.summaryValue('Structure')).toHaveText('18 × 0:40 / 0:20');
     await expect(setup.summaryValue('Time under load')).toHaveText('12:00');
     await expect(setup.summaryValue('Peak resistance')).toHaveText('Level 26');
-    await expect(setup.summaryValue('Expected avg power')).toHaveText('~357 W');
-    await expect(setup.summaryValue('Expected energy')).toHaveText('~484 kcal');
+    await expect(setup.summaryValue('Expected avg power')).toHaveText('~362 W');
+    await expect(setup.summaryValue('Expected energy')).toHaveText('~490 kcal');
     await expect(setup.legend).toHaveText(['Work', 'Recover']);
   });
 

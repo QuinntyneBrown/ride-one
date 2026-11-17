@@ -9,9 +9,9 @@
   "cadence": null,
   "speed_kmh": 0,
   "speed_mph": 0,
-  "packets": 9,
-  "first_data_at": 1794871108.068,
-  "last_data_at": 1794871112.215,
+  "packets": 12,
+  "first_data_at": 1794876789.603,
+  "last_data_at": 1794876796.334,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -19,7 +19,7 @@
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8797",
+  "bind_address": "127.0.0.1:8788",
   "connection_id": "0bf669f1",
   "power": null,
   "target_power": null,
@@ -42,7 +42,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794871111.61
+      "seen_at": 1794876795.73
     },
     {
       "machine": "treadmill",
@@ -50,7 +50,7 @@
       "label": "Echelon Stride",
       "rssi": -55,
       "signal": 4,
-      "seen_at": 1794871111.61
+      "seen_at": 1794876795.73
     }
   ]
 }
