@@ -10,3 +10,6 @@ export * from './lib/plan-note/plan-note';
 export * from './lib/speed-control/speed-control';
 export * from './lib/incline-control/incline-control';
 export * from './lib/level-picker/level-picker';
+export * from './lib/level-control/level-control';
+export * from './lib/quick-speeds/quick-speeds';
+export * from './lib/set-list/set-list';

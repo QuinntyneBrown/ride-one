@@ -1,6 +1,8 @@
 import {
   DEFAULT_INTERVALS,
+  setListView,
   addSet,
+  MAX_SETS,
   applyIntervalPreset,
   moveSet,
   removeSet,
@@ -152,5 +154,22 @@ describe('intervals-form (L2-010 AC11-13, L2-029 AC11-15)', () => {
       { message: 'A ride can be at most 180 minutes.', link: 'Sets — at most 180 minutes' },
     ]);
     expect(validateIntervals(DEFAULT_INTERVALS)).toEqual([]);
+  });
+});
+
+describe('setListView', () => {
+  it('lists each set, both stretches and whether another set fits', () => {
+    const view = setListView(DEFAULT_INTERVALS);
+    expect(view.sets).toEqual(DEFAULT_INTERVALS.sets.map((s) => setLines(s)));
+    expect(view.warmup).toEqual({
+      kind: 'warmup',
+      name: 'Warm-up',
+      line: stretchLine(DEFAULT_INTERVALS.warmup),
+      on: DEFAULT_INTERVALS.warmup.on,
+    });
+    expect(view.cooldown.name).toBe('Cool-down');
+    expect(view.full).toBe(false);
+    const full = { ...DEFAULT_INTERVALS, sets: Array(MAX_SETS).fill(DEFAULT_INTERVALS.sets[0]) };
+    expect(setListView(full).full).toBe(true);
   });
 });

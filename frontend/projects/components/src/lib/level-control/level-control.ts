@@ -1,7 +1,13 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import type { ControlsState } from '../../core/resistance-controls';
-import type { ResistanceView } from '../../core/resistance-view';
+import type { ResistanceView } from '../level-picker/level-picker';
 import { Icon } from '@wattzup/components';
+
+/** Which of Lower, Raise and the level picker are disabled. */
+export interface ControlsState {
+  lowerDisabled: boolean;
+  raiseDisabled: boolean;
+  pickerDisabled: boolean;
+}
 
 /** Lower and Raise around the resistance readout (L2-019, L2-020). */
 @Component({

@@ -30,6 +30,7 @@ import {
   replaceSet,
   setStretch,
   toIntervalsPlan,
+  setListView,
   validateIntervals,
 } from '../../core/intervals-form';
 import {
@@ -72,10 +73,10 @@ import {
   type PresetChip,
   Presets,
   Switch,
+  SetList,
 } from '@wattzup/components';
 import { EffortRow } from '../effort-row/effort-row';
 import { RidePreview } from '../ride-preview/ride-preview';
-import { SetList } from '../set-list/set-list';
 import { StatusLine } from '../status-line/status-line';
 import { VideoLink } from '../video-link/video-link';
 
@@ -160,6 +161,7 @@ export class SetupPage {
   protected readonly intervals = computed(
     () => !this.treadmill() && this.draft().mode === 'intervals',
   );
+  protected readonly setList = computed(() => setListView(this.idraft()));
   protected readonly ierrors = computed(() => validateIntervals(this.idraft()));
   protected readonly errors = computed(() => validateDraft(this.draft()));
   protected readonly terrors = computed(() => validateTreadmillDraft(this.tdraft()));

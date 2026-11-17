@@ -26,6 +26,7 @@ import { TreadmillCommandService } from '../../core/treadmill-command.service';
 import {
   baseIncline,
   baseSpeed,
+  QUICK_SPEEDS,
   stepIncline,
   stepSpeed,
   treadmillControlsState,
@@ -39,11 +40,11 @@ import {
   PlanNote,
   LevelPicker,
   inclineView as pickerView,
+  QuickSpeeds,
+  LevelControl,
 } from '@wattzup/components';
-import { QuickSpeeds } from '../quick-speeds/quick-speeds';
 import { formatPace } from '../../core/pace';
 import { CmdLog } from '../cmd-log/cmd-log';
-import { LevelControl } from '../level-control/level-control';
 import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
 import { LoadError } from '../load-error/load-error';
@@ -90,6 +91,7 @@ import { RideVideo } from '../ride-video/ride-video';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RidePage {
+  protected readonly quickSpeeds = QUICK_SPEEDS;
   protected readonly live = inject(LiveStateService);
   protected readonly state = this.live.state;
   protected readonly workout = computed(() => this.state()?.workout ?? null);

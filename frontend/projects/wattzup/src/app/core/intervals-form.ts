@@ -1,5 +1,6 @@
 // The Intervals draft's rules for the setup screen and its dialogs (L2-010 AC11-13, L2-029 AC11-15).
 import type { IntervalSet, IntervalsPlan } from '@wattzup/api';
+import type { SetListView } from '@wattzup/components';
 import { WARMUP_CADENCE, WORK_CADENCE, REST_CADENCE, COOLDOWN_CADENCE } from './plan-expansion';
 import { formatClock, parseClock, parseUnit } from './plan-form';
 
@@ -158,6 +159,22 @@ export function toIntervalsPlan(draft: IntervalsDraft): IntervalsPlan | null {
     warmup: stretch(draft.warmup),
     sets: draft.sets.map((s) => ({ ...s })),
     cooldown: stretch(draft.cooldown),
+  };
+}
+
+/** What the set list shows for a draft (L2-029 AC12). */
+export function setListView(draft: IntervalsDraft): SetListView {
+  const row = (kind: StretchKind) => ({
+    kind,
+    name: STRETCH_NAMES[kind],
+    line: stretchLine(draft[kind]),
+    on: draft[kind].on,
+  });
+  return {
+    sets: draft.sets.map((s) => setLines(s)),
+    warmup: row('warmup'),
+    cooldown: row('cooldown'),
+    full: draft.sets.length >= MAX_SETS,
   };
 }
 

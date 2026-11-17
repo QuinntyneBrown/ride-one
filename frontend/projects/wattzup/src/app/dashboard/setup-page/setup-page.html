@@ -211,7 +211,7 @@
             } @else if (d.mode === 'intervals') {
               <wz-presets [items]="intervalChips()" [disabled]="busy()" (choose)="preset($event)" />
               <wz-set-list
-                [draft]="idraft()"
+                [view]="setList()"
                 [disabled]="busy()"
                 [error]="ierrors()[0]?.message ?? null"
                 (editSet)="editSet($event)"

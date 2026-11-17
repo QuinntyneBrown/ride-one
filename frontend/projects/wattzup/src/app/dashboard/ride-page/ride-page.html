@@ -122,6 +122,7 @@
           (step)="stepSpeed($event)"
         />
         <wz-quick-speeds
+          [speeds]="quickSpeeds"
           [pressed]="tc.pressedQuick"
           [disabled]="tc.quickDisabled"
           (pick)="treadmillCommands.setSpeed($event)"
