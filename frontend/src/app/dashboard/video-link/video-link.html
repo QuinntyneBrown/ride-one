@@ -1,0 +1,36 @@
+<div class="toggles toggles--video">
+  <label class="toggle-row"
+    ><span class="toggle-row__label"
+      ><b>Ride along to a video</b><small>Plays in sync on the dashboard</small></span
+    ><span class="switch"
+      ><input
+        type="checkbox"
+        role="switch"
+        [checked]="draft().on"
+        [disabled]="disabled()"
+        (change)="setOn($any($event.target).checked)" /></span
+  ></label>
+</div>
+@if (draft().on) {
+  @let err = error();
+  <div class="video-sync">
+    <div class="field">
+      <label class="field__label" for="video-url">YouTube link</label>
+      <input
+        class="input"
+        id="video-url"
+        type="url"
+        inputmode="url"
+        autocomplete="off"
+        [value]="draft().url"
+        [readOnly]="disabled()"
+        [attr.aria-invalid]="err ? 'true' : null"
+        [attr.aria-describedby]="err ? 'video-url-error' : null"
+        (input)="setUrl($any($event.target).value)"
+      />
+      @if (err) {
+        <p class="field__error" id="video-url-error">{{ err }}</p>
+      }
+    </div>
+  </div>
+}

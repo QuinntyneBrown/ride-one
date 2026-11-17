@@ -14,6 +14,7 @@ import {
   validateIntervals,
 } from './intervals-form';
 import { SafeStorage } from './safe-storage';
+import { readVideoDraft, type VideoDraft } from './video-link';
 import {
   DEFAULT_TREADMILL_DRAFT,
   type TreadmillPlanDraft,
@@ -23,6 +24,8 @@ import {
 export const PLAN_DRAFT_KEY = 'wattzup.planDraft';
 export const TREADMILL_PLAN_DRAFT_KEY = 'wattzup.treadmillPlanDraft';
 export const INTERVALS_DRAFT_KEY = 'wattzup.intervalsDraft';
+/** One video draft for every mode and both machines (L2-029 AC20). */
+export const VIDEO_DRAFT_KEY = 'wattzup.videoDraft';
 
 const isInt = (v: unknown, min: number, max: number): boolean =>
   Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
@@ -170,5 +173,13 @@ export class PlanDraftStore {
 
   saveIntervals(draft: IntervalsDraft): void {
     this.storage.set(INTERVALS_DRAFT_KEY, JSON.stringify(draft));
+  }
+
+  loadVideo(): VideoDraft {
+    return readVideoDraft(this.storage.get(VIDEO_DRAFT_KEY));
+  }
+
+  saveVideo(draft: VideoDraft): void {
+    this.storage.set(VIDEO_DRAFT_KEY, JSON.stringify(draft));
   }
 }

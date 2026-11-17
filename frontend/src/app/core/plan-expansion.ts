@@ -1,6 +1,6 @@
 // The frontend's single implementation of the plan rules (L2-045, L2-060, L2-049, L2-068),
 // mirroring PlanExpander, WorkoutSummary and PowerEstimator in Wattzup.Core.
-import type { IntervalsPlan, Segment, WorkoutPlan } from './api-types';
+import type { IntervalsPlan, Segment, StartPlan, WorkoutPlan } from './api-types';
 import { formatDuration } from './format-duration';
 
 export const WARMUP_SECONDS = 180;
@@ -14,7 +14,7 @@ export const COOLDOWN_CADENCE = 70;
 export const MAX_TREADMILL_SPEED = 19.3;
 
 /** A treadmill plan carries speeds in place of levels (L2-067). */
-export function isTreadmillPlan(plan: WorkoutPlan): boolean {
+export function isTreadmillPlan(plan: WorkoutPlan | StartPlan): boolean {
   if (plan.kind === 'intervals') return false;
   return plan.kind === 'flat'
     ? plan.speed !== null

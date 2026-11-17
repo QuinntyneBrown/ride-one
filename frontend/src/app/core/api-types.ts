@@ -18,6 +18,14 @@ export type IntervalsPlan = Schemas['WorkoutPlanIntervalsPlan'];
 export type IntervalSet = Schemas['IntervalSet'];
 export type Stretch = Schemas['Stretch'];
 export type WorkoutPlan = Schemas['WorkoutPlan'];
+export type RideVideo = Schemas['RideVideo'];
+export type RideVideoLink = Schemas['RideVideoLink'];
+/** A plan as `POST /api/workout` takes it: its `video` is a link and a start point (L2-010 AC14). */
+export type StartPlan = WorkoutPlan extends infer P
+  ? P extends WorkoutPlan
+    ? Omit<P, 'video'> & { video: RideVideoLink | null }
+    : never
+  : never;
 export type PowerTrace = Schemas['PowerTrace'];
 export type RecentPackets = Schemas['RecentPackets'];
 export type EventToken = Schemas['EventToken'];

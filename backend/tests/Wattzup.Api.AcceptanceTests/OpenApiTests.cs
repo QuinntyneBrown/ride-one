@@ -94,6 +94,17 @@ public sealed class OpenApiTests
     }
 
     [Fact]
+    public async Task Starting_a_workout_documents_the_video_link_a_plan_carries_in_the_request()
+    {
+        var doc = await DocumentAsync();
+        var link = doc.GetProperty("components").GetProperty("schemas").GetProperty("RideVideoLink");
+
+        Assert.Equal(["url", "start_seconds"], link.GetProperty("required").EnumerateArray().Select(r => r.GetString()));
+        var body = doc.GetProperty("paths").GetProperty("/api/workout").GetProperty("post").GetProperty("requestBody");
+        Assert.Contains("RideVideoLink", body.GetProperty("description").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task The_workout_status_is_an_enum_of_its_contract_strings()
     {
         var doc = await DocumentAsync();

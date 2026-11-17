@@ -30,6 +30,7 @@ The feature extends three existing designs:
 ### Core (`Wattzup.Core`)
 
 - **`RideVideo(string VideoId, double StartSeconds)`** (`Workouts/WorkoutPlan.cs`, new) — the validated video of a plan. `WorkoutPlan` gains `RideVideo? Video`, so `HiitPlan`, `FlatPlan` and `IntervalsPlan` all carry it. It serialises as `{"video_id": …, "start_seconds": …}`, and as `null` when the plan has no video (L2-010 criteria 14 and 15). `PlanExpander`, `WorkoutSummary` and `WorkoutEngine` ignore it, so a video changes neither the segments nor the summary nor the ride.
+- **`RideVideoLink(string Url, double StartSeconds)`** (`Wattzup.Api/Endpoints/WorkoutEndpoints.cs`, new) — the video as `POST /api/workout` takes it. The request and the answer share `WorkoutPlan`, so `StartWorkout` publishes the request's shape as its own schema, and the frontend's `StartPlan` (`core/api-types.ts`) is the generated plan with `video` as a `RideVideoLink`.
 - **`YouTubeLink.TryParseId(string url, out string id)`** (`Workouts/YouTubeLink.cs`, new, pure) — accepts the forms of the L2-010 plan table and returns the 11-character id:
   - `youtube.com/watch?v=<id>`, `youtu.be/<id>`, `youtube.com/shorts/<id>` and `youtube.com/embed/<id>`;
   - with or without `https://`, `www.` or `m.`;

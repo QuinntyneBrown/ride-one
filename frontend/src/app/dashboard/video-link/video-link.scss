@@ -1,0 +1,19 @@
+@use 'design-system/toggle';
+@use 'design-system/field';
+
+:host {
+  display: block;
+}
+.toggles {
+  margin-top: var(--space-10);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+  display: flex;
+  flex-direction: column;
+}
+.video-sync {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}

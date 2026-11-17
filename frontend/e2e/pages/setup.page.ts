@@ -32,6 +32,10 @@ export class SetupPage {
   readonly presetButtons: Locator;
   readonly treadmillFlatHint: Locator;
   readonly safetyLine: Locator;
+  readonly videoSwitch: Locator;
+  readonly videoSwitchRow: Locator;
+  readonly videoUrl: Locator;
+  readonly videoUrlError: Locator;
   readonly switchLink: Locator;
   readonly machineGroup: Locator;
   readonly intervalsCard: Locator;
@@ -73,6 +77,10 @@ export class SetupPage {
     this.treadmillFlatHint = page.getByText(
       'You can still change speed and incline mid-run from the dashboard.',
     );
+    this.videoSwitch = page.getByRole('switch', { name: /Ride along to a video/ });
+    this.videoSwitchRow = page.locator('.toggle-row', { has: this.videoSwitch });
+    this.videoUrl = page.getByRole('textbox', { name: 'YouTube link', exact: true });
+    this.videoUrlError = page.locator('.video-sync .field__error');
     this.safetyLine = this.preview.locator('.setup-aside__safety');
     this.statusName = page.locator('.app-bar .statusline__name');
     this.switchLink = page.locator('.app-bar').getByRole('link', { name: /^Switch to / });

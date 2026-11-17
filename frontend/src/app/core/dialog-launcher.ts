@@ -4,7 +4,7 @@ import { Dialog, type DialogRef } from '@angular/cdk/dialog';
 import type { ComponentType } from '@angular/cdk/portal';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { WorkoutPlan } from './api-types';
+import type { StartPlan } from './api-types';
 import type { SetDraft, StretchDraft, StretchKind } from './intervals-form';
 
 export interface EditSetData {
@@ -19,7 +19,7 @@ export interface EditStretchData {
 }
 
 export interface ReplaceRideData {
-  plan: WorkoutPlan;
+  plan: StartPlan;
   elapsed: string;
   currentSummary: string;
   newSummary: string;

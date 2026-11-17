@@ -457,6 +457,11 @@ export interface components {
             /** Format: double */
             start_seconds: number;
         };
+        RideVideoLink: {
+            url: string;
+            /** Format: double */
+            start_seconds: number;
+        };
         Segment: {
             kind: components["schemas"]["SegmentKind"];
             /** Format: int32 */
@@ -949,6 +954,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description A plan. Its optional video is sent as a RideVideoLink {url, start_seconds}; the answer reports it as a RideVideo {video_id, start_seconds}. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["WorkoutPlan"];

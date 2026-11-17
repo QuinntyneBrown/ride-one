@@ -1,9 +1,9 @@
 // The workout API contract (L2-017). Components inject WORKOUT_API, never HttpWorkoutApi.
 import { InjectionToken } from '@angular/core';
-import type { PowerTrace, WorkoutPlan, WorkoutSnapshot } from './api-types';
+import type { PowerTrace, StartPlan, WorkoutSnapshot } from './api-types';
 
 export interface WorkoutApi {
-  start(plan: WorkoutPlan): Promise<WorkoutSnapshot>;
+  start(plan: StartPlan): Promise<WorkoutSnapshot>;
   stop(): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;

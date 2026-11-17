@@ -12,7 +12,8 @@ import { Router, RouterLink } from '@angular/router';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
 import { formatDuration } from '../../core/format-duration';
-import type { Machine } from '../../core/api-types';
+import type { Machine, StartPlan } from '../../core/api-types';
+import { planVideo } from '../../core/video-link';
 import { LiveStateService } from '../../core/live-state.service';
 import { MachineHistoryStore } from '../../core/machine-history.store';
 import { setupLead } from '../../core/machine-words';
@@ -73,6 +74,7 @@ import { RidePreview } from '../ride-preview/ride-preview';
 import { SetList } from '../set-list/set-list';
 import { StatusLine } from '../status-line/status-line';
 import { Toggles } from '../toggles/toggles';
+import { VideoLink } from '../video-link/video-link';
 
 /** The input id of each draft field; the form summary links to them. */
 export const FIELD_IDS: Record<DraftField, string> = {
@@ -119,6 +121,7 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
     SetList,
     StatusLine,
     Toggles,
+    VideoLink,
   ],
   templateUrl: './setup-page.html',
   styleUrl: './setup-page.scss',
@@ -149,6 +152,7 @@ export class SetupPage {
   protected readonly draft = signal<PlanDraft>(this.store.load());
   protected readonly tdraft = signal<TreadmillPlanDraft>(this.store.loadTreadmill());
   protected readonly idraft = signal(this.store.loadIntervals());
+  protected readonly vdraft = signal(this.store.loadVideo());
   /** The bike's Intervals mode (L2-029 AC10). */
   protected readonly intervals = computed(
     () => !this.treadmill() && this.draft().mode === 'intervals',
@@ -311,8 +315,10 @@ export class SetupPage {
   }
 
   protected async start(): Promise<void> {
-    const plan = this.plan();
-    if (!plan || this.busy()) return;
+    const shape = this.plan();
+    if (!shape || this.busy()) return;
+    const plan: StartPlan = { ...shape, video: planVideo(this.vdraft()) };
+    this.store.saveVideo(this.vdraft());
     if (this.treadmill()) this.store.saveTreadmill(this.tdraft());
     else {
       this.store.save(this.draft());
@@ -324,10 +330,10 @@ export class SetupPage {
         plan,
         elapsed: formatDuration(workout.elapsed_seconds),
         currentSummary: workout.summary,
-        newSummary: planSummary(plan),
+        newSummary: planSummary(shape),
       });
       if (started) {
-        this.history.recordStart(this.machine(), planSummary(plan), new Date());
+        this.history.recordStart(this.machine(), planSummary(shape), new Date());
         await this.router.navigateByUrl('/');
       }
       return;

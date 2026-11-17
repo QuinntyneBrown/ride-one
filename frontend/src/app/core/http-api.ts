@@ -13,7 +13,7 @@ import type {
   RecentPackets,
   PowerTrace,
   WorkoutStarted,
-  WorkoutPlan,
+  StartPlan,
   WorkoutSnapshot,
 } from './api-types';
 import { type BikeApi, COMMAND_TIMEOUT_MS, type KeyCheck, RequestTimeoutError } from './bike-api';
@@ -80,7 +80,7 @@ export class HttpBikeApi implements BikeApi {
 export class HttpWorkoutApi implements WorkoutApi {
   private readonly http = inject(HttpClient);
 
-  async start(plan: WorkoutPlan): Promise<WorkoutSnapshot> {
+  async start(plan: StartPlan): Promise<WorkoutSnapshot> {
     return (await firstValueFrom(this.http.post<WorkoutStarted>('/api/workout', plan))).started;
   }
 
