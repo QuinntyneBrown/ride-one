@@ -1,6 +1,6 @@
 import { DialogRef } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { Icon, type IconName } from '../icon/icon';
+import { Icon, type IconName } from '@wattzup/components';
 
 /** Header, body and footer of every dialog (block `dialog`); the CDK supplies the rest. */
 @Component({

@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import type { RideVideo as Video } from '@wattzup/api';
 import { VideoSync } from '../../core/video-sync.service';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 
 /**
  * The `Video` tab panel: hosts the ride-along player and hands it to VideoSync. The page hides it,

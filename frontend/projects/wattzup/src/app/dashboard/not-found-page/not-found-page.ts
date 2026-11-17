@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AuthCard } from '../auth-card/auth-card';
+import { AuthCard } from '@wattzup/components';
 
 /** Any unknown route (L2-056). */
 @Component({

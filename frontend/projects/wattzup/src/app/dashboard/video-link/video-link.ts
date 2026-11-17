@@ -22,8 +22,7 @@ import {
   videoIdOf,
 } from '../../core/video-link';
 import { type PlayerHandle, YOUTUBE_PLAYER } from '../../core/youtube-player';
-import { Icon } from '../icon/icon';
-import { NumStepper } from '../num-stepper/num-stepper';
+import { Icon, NumberStepper } from '@wattzup/components';
 
 /**
  * The ride-along video on the setup screen: the `Ride along to a video` switch and, when on, the
@@ -32,7 +31,7 @@ import { NumStepper } from '../num-stepper/num-stepper';
  */
 @Component({
   selector: 'wz-video-link',
-  imports: [Icon, NumStepper],
+  imports: [Icon, NumberStepper],
   templateUrl: './video-link.html',
   styleUrl: './video-link.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

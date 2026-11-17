@@ -63,18 +63,21 @@ import {
 } from '../../core/treadmill-plan-form';
 import { isActive } from '../../core/workout-status';
 import { WORKOUT_API } from '@wattzup/api';
-import { Alert } from '../alert/alert';
-import { FormSummary } from '../form-summary/form-summary';
-import { Icon } from '../icon/icon';
+import {
+  Alert,
+  FormSummary,
+  Icon,
+  Slider,
+  RadioGroup,
+  NumberStepper,
+  type PresetChip,
+  Presets,
+  Switch,
+} from '@wattzup/components';
 import { EffortRow } from '../effort-row/effort-row';
-import { LevelSlider } from '../level-slider/level-slider';
-import { ModeCards } from '../mode-cards/mode-cards';
-import { NumStepper } from '../num-stepper/num-stepper';
-import { type PresetChip, Presets } from '../presets/presets';
 import { RidePreview } from '../ride-preview/ride-preview';
 import { SetList } from '../set-list/set-list';
 import { StatusLine } from '../status-line/status-line';
-import { Toggles } from '../toggles/toggles';
 import { VideoLink } from '../video-link/video-link';
 
 /** The input id of each draft field; the form summary links to them. */
@@ -113,15 +116,15 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
     EffortRow,
     FormSummary,
     Icon,
-    LevelSlider,
-    ModeCards,
-    NumStepper,
+    Slider,
+    RadioGroup,
+    NumberStepper,
     Presets,
     RidePreview,
     RouterLink,
     SetList,
     StatusLine,
-    Toggles,
+    Switch,
     VideoLink,
   ],
   templateUrl: './setup-page.html',

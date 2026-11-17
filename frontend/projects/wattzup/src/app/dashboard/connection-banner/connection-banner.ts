@@ -3,7 +3,7 @@ import { ConnectionBannerService } from '../../core/connection-banner.service';
 import type { Banner } from '../../core/connection-banners';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { LiveStateService } from '../../core/live-state.service';
-import { Alert } from '../alert/alert';
+import { Alert } from '@wattzup/components';
 
 /** The banners between the app bar and the dashboard (L2-054). */
 @Component({

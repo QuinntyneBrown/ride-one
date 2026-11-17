@@ -6,7 +6,7 @@ import { LiveStateService } from '../../core/live-state.service';
 import { epochTime } from '@wattzup/components';
 import { TraceRendererStatus } from '../../core/trace-renderer-status';
 import { DialogShell } from '../dialog-shell/dialog-shell';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 
 /** What Wattzup sees right now (L2-023). */
 @Component({

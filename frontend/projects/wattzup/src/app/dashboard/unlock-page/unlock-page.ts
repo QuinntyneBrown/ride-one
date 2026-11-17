@@ -11,8 +11,7 @@ import { Router } from '@angular/router';
 import { ApiKeyStore, BIKE_API } from '@wattzup/api';
 import { LiveStateService } from '../../core/live-state.service';
 import { safeReturnUrl } from '../../core/safe-return-url';
-import { Alert } from '../alert/alert';
-import { AuthCard } from '../auth-card/auth-card';
+import { Alert, AuthCard } from '@wattzup/components';
 
 type Problem = 'empty' | 'rejected' | 'unreachable' | null;
 

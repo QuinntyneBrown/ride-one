@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { RideOverlayText } from '../../core/ride-overlay-text';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 
 /** The veil over the dashboard when the machine can't be used, and the belt overlays (L2-058,
  * L2-071). */

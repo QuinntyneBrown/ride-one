@@ -12,13 +12,12 @@ import {
   validateSet,
 } from '../../core/intervals-form';
 import { DialogShell } from '../dialog-shell/dialog-shell';
-import { LevelSlider } from '../level-slider/level-slider';
-import { NumStepper } from '../num-stepper/num-stepper';
+import { Slider, NumberStepper } from '@wattzup/components';
 
 /** Edit set <i> or Add set: the set's times, levels and cadence aims (L2-029 AC13, AC15). */
 @Component({
   selector: 'wz-edit-set-dialog',
-  imports: [DialogShell, LevelSlider, NumStepper],
+  imports: [DialogShell, Slider, NumberStepper],
   templateUrl: './edit-set-dialog.html',
   styleUrl: './edit-set-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

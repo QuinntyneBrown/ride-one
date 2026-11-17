@@ -8,7 +8,7 @@
 >
   <div class="edit-stretch">
     <div class="edit-stretch__grid">
-      <wz-num-stepper
+      <wz-number-stepper
         fieldId="stretch-duration"
         label="Duration"
         [value]="f.duration"
@@ -17,7 +17,7 @@
         (step)="step('duration', $event)"
         (submitted)="save()"
       />
-      <wz-num-stepper
+      <wz-number-stepper
         fieldId="stretch-cadence"
         label="Cadence aim"
         [value]="f.cadence"
@@ -27,7 +27,7 @@
         (submitted)="save()"
       />
     </div>
-    <wz-level-slider
+    <wz-slider
       fieldId="stretch-level"
       label="Resistance"
       tone="rest"

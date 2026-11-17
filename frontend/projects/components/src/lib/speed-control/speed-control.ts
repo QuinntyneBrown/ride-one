@@ -1,17 +1,19 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 
-/** Lower incline and Raise incline around the target incline, of 10 % (L2-071 criterion 9). */
+/** Slower and Faster around the target speed and its pace (L2-071 criterion 8). */
 @Component({
-  selector: 'wz-incline-control',
+  selector: 'wz-speed-control',
   imports: [Icon],
-  templateUrl: './incline-control.html',
-  styleUrl: './incline-control.scss',
+  templateUrl: './speed-control.html',
+  styleUrl: './speed-control.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class InclineControl {
-  /** The target incline, e.g. `2`. */
+export class SpeedControl {
+  /** The target speed, e.g. `13.0`. */
   readonly valueText = input.required<string>();
+  /** `km/h target · <pace> /km`. */
+  readonly noteText = input.required<string>();
   /** The id of the section heading that names the group. */
   readonly labelledBy = input.required<string>();
   readonly lowerDisabled = input(false);

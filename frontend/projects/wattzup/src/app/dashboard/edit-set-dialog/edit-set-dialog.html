@@ -8,7 +8,7 @@
 >
   <div class="edit-set">
     <div class="edit-set__grid">
-      <wz-num-stepper
+      <wz-number-stepper
         fieldId="set-rounds"
         label="Rounds"
         [value]="f.rounds"
@@ -17,7 +17,7 @@
         (step)="step('rounds', $event)"
         (submitted)="save()"
       />
-      <wz-num-stepper
+      <wz-number-stepper
         fieldId="set-work"
         label="Work"
         [value]="f.work"
@@ -26,7 +26,7 @@
         (step)="step('work', $event)"
         (submitted)="save()"
       />
-      <wz-num-stepper
+      <wz-number-stepper
         fieldId="set-rest"
         label="Recover"
         [value]="f.rest"
@@ -36,13 +36,13 @@
         (submitted)="save()"
       />
     </div>
-    <wz-level-slider
+    <wz-slider
       fieldId="set-work-level"
       label="Work resistance"
       [level]="f.workLevel"
       (levelChange)="edit({ workLevel: $event })"
     />
-    <wz-level-slider
+    <wz-slider
       fieldId="set-rest-level"
       label="Recover resistance"
       tone="rest"
@@ -50,7 +50,7 @@
       (levelChange)="edit({ restLevel: $event })"
     />
     <div class="edit-set__grid edit-set__grid--2">
-      <wz-num-stepper
+      <wz-number-stepper
         fieldId="set-work-cadence"
         label="Work cadence"
         [value]="f.workCadence"
@@ -59,7 +59,7 @@
         (step)="step('workCadence', $event)"
         (submitted)="save()"
       />
-      <wz-num-stepper
+      <wz-number-stepper
         fieldId="set-rest-cadence"
         label="Recover cadence"
         [value]="f.restCadence"

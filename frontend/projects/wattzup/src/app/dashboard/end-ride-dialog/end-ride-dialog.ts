@@ -5,7 +5,7 @@ import type { EndRideData } from '../../core/dialog-launcher';
 import { formatDuration } from '@wattzup/components';
 import { LiveStateService } from '../../core/live-state.service';
 import { WORKOUT_API } from '@wattzup/api';
-import { Alert } from '../alert/alert';
+import { Alert } from '@wattzup/components';
 import { DialogShell } from '../dialog-shell/dialog-shell';
 
 /** End this ride? (L2-051), or Stop the belt and end this run? (L2-071 criterion 15) */

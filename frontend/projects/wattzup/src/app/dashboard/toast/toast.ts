@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import type { Toast as ToastModel } from '../../core/toast-queue';
-import { Icon, type IconName } from '../icon/icon';
+import { Icon, type IconName } from '@wattzup/components';
 
 const ICONS: Record<ToastModel['tone'], IconName> = {
   info: 'info',

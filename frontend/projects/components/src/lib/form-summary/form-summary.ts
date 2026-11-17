@@ -6,7 +6,7 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import { Alert } from '../alert/alert';
+import { Alert } from '@wattzup/components';
 
 export interface SummaryLink {
   fieldId: string;
