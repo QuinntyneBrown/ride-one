@@ -1,0 +1,100 @@
+/* The stage of a Wattzup film (docs/videos/README.md), used with film-runtime.js.
+   Colours and faces are the tokens of docs/design-system/tokens/tokens.css, which slides.html
+   links first; the faces are the app's own bundled fonts. Sizes are film pixels on a 1920×1080
+   stage, not the app's rem scale. No rule here animates: no transition, no animation. film.js
+   moves things through S.ref. */
+
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: block;
+  src: url("../../../frontend/public/fonts/inter-latin-wght.woff2") format("woff2"); }
+@font-face { font-family: "Archivo"; font-style: normal; font-weight: 100 900; font-stretch: 62% 125%; font-display: block;
+  src: url("../../../frontend/public/fonts/archivo-latin-wdth-wght.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 800; font-display: block;
+  src: url("../../../frontend/public/fonts/jetbrains-mono-latin-wght.woff2") format("woff2"); }
+
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--palette-neutral-950); }
+#frame { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden;
+  background: var(--palette-neutral-950); color: var(--palette-neutral-50); font: 500 34px/1.35 var(--font-family-sans); }
+#stage, .scene, .fill { position: absolute; inset: 0; }
+.scene { overflow: hidden; display: none; }
+.fill { width: 100%; height: 100%; }
+img { display: block; }
+
+/* Type: a headline of two to six words, one of them in the accent colour. Archivo, the face of the
+   app's numerals and wordmark, set expanded and heavy as the lockup is. */
+.headline { margin: 0; font: 800 132px/1 var(--font-family-numeral); font-stretch: 112%; letter-spacing: -0.035em; }
+.headline--md { font-size: 100px; }
+.kicker { margin: 0; font: 700 26px/1.2 var(--font-family-sans); letter-spacing: 0.14em; text-transform: uppercase; }
+.lede { margin: 0; font: 500 40px/1.3 var(--font-family-sans); }
+.figure { margin: 0; font: 700 300px/0.9 var(--font-family-numeral); font-stretch: 75%; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.wordmark { display: inline-flex; align-items: center; gap: 36px; font: 800 150px/1 var(--font-family-numeral); font-stretch: 125%; letter-spacing: var(--letter-spacing-brand); }
+.wordmark svg { width: 150px; height: 150px; flex: none; }
+.accent { color: var(--palette-volt-300); }
+.word { display: inline-block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; vertical-align: top; }
+.word__in { display: inline-block; }
+
+/* Fields: the ground of a scene. Acts change colour. Ink and volt are the brand; rest blue,
+   heart red and the chalk of the light theme are the app's own roles. */
+.field--ink { background: var(--palette-neutral-950); color: var(--palette-neutral-50); }
+.field--panel { background: var(--palette-neutral-900); color: var(--palette-neutral-50); }
+.field--volt { background: var(--palette-volt-300); color: var(--palette-neutral-950); }
+.field--volt .accent { color: var(--palette-rest-850); }
+.field--chalk { background: var(--palette-neutral-25); color: var(--palette-neutral-950); }
+.field--chalk .accent { color: var(--palette-volt-800); }
+.field--rest { background: var(--palette-rest-850); color: var(--palette-neutral-0); }
+.field--rest .accent { color: var(--palette-volt-300); }
+.field--heart { background: var(--palette-heart-400); color: var(--palette-neutral-950); }
+.field--heart .accent { color: var(--palette-neutral-0); }
+/* A photograph of the machine bleeding to every edge, darkened so the type reads. */
+.field--photo { background: var(--palette-neutral-950) center / cover no-repeat; color: var(--palette-neutral-50); }
+.field--photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(11 12 14 / 0.92) 0%, rgb(11 12 14 / 0.7) 45%, rgb(11 12 14 / 0.25) 100%); }
+.field--photo > * { position: relative; z-index: 1; }
+/* A grid of fine lines in volt, the texture of the power trace, for the ink field. */
+.grid-lines { position: absolute; inset: 0; background-image:
+  linear-gradient(rgb(215 255 58 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(215 255 58 / 0.06) 1px, transparent 1px);
+  background-size: 96px 96px; }
+
+/* Devices drawn around a screenshot. --w is the frame's width, --ratio the window's width / height. */
+.device { position: relative; flex: none; box-sizing: border-box; width: var(--w); box-shadow: 0 4px 8px rgb(0 0 0 / 0.12), 0 40px 80px -24px rgb(0 0 0 / 0.6); }
+.device__screen { width: 100%; aspect-ratio: var(--ratio); object-fit: cover; object-position: top left; background: var(--palette-neutral-950); }
+.device--phone { padding: 14px; border-radius: 60px; background: var(--palette-neutral-800); outline: 2px solid var(--palette-neutral-650); }
+.device--phone .device__screen { border-radius: 46px; }
+.device--tablet { padding: 24px; border-radius: 44px; background: var(--palette-neutral-800); outline: 2px solid var(--palette-neutral-650); }
+.device--tablet .device__screen { border-radius: 20px; }
+.device--browser { border-radius: 18px; overflow: hidden; background: var(--palette-neutral-900); outline: 1px solid var(--palette-neutral-700); }
+.device__bar { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 20px; background: var(--palette-neutral-850); border-bottom: 1px solid var(--palette-neutral-800); }
+.device__bar i { width: 14px; height: 14px; border-radius: 50%; background: var(--palette-heart-400); }
+.device__bar i:nth-child(2) { background: var(--palette-warn-400); }
+.device__bar i:nth-child(3) { background: var(--palette-volt-300); }
+.device__url { flex: 0 1 46%; margin: 0 auto; padding: 6px 20px; border-radius: var(--radius-full); background: var(--palette-neutral-950); color: var(--palette-neutral-400);
+  font: 500 18px/1.2 var(--font-family-mono); text-align: center; }
+.device--grow { width: auto; display: flex; justify-content: center; box-shadow: none; }
+.device__grow { position: relative; height: 100%; box-sizing: border-box; border: 12px solid var(--palette-neutral-800); overflow: hidden; background: var(--palette-neutral-950);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 0.12), 0 40px 80px -24px rgb(0 0 0 / 0.6); }
+.device__grow img { position: absolute; left: 0; top: 0; width: 100%; height: auto; min-height: 100%; object-fit: cover; object-position: top left; }
+
+/* A close-up: the region a line is about, enlarged, with a ring in volt. */
+.closeup { border-radius: var(--radius-lg); outline: 6px solid var(--palette-volt-300); outline-offset: 6px; box-shadow: 0 40px 80px -24px rgb(0 0 0 / 0.6); }
+.field--volt .closeup, .field--chalk .closeup { outline-color: var(--palette-neutral-950); }
+
+/* A card of the film's own: a short line on a surface, on any field. */
+.card { box-sizing: border-box; display: flex; align-items: center; gap: 28px; margin-bottom: 26px; padding: 30px 40px; border-radius: var(--radius-lg);
+  background: var(--palette-neutral-900); color: var(--palette-neutral-50); outline: 2px solid var(--palette-neutral-800); font: 700 38px/1.2 var(--font-family-sans);
+  box-shadow: 0 30px 60px -24px rgb(0 0 0 / 0.5); }
+.card__n { flex: none; width: 64px; height: 64px; border-radius: var(--radius-md); background: var(--palette-volt-300); color: var(--palette-neutral-950);
+  font: 800 34px/64px var(--font-family-numeral); text-align: center; }
+.field--volt .card, .field--chalk .card { background: var(--palette-neutral-0); color: var(--palette-neutral-950); outline-color: var(--palette-neutral-200); }
+.field--volt .card__n, .field--chalk .card__n { background: var(--palette-neutral-950); color: var(--palette-volt-300); }
+
+.wipe { position: absolute; top: -10%; left: -180px; width: calc(100% + 360px); height: 120%; display: none; }
+
+/* Captions are off unless the build is given --captions (or C is pressed while it plays). */
+#captions { position: absolute; left: 0; right: 0; bottom: 56px; display: flex; justify-content: center; z-index: 2000; }
+#captions[hidden] { display: none; }
+#captions span { max-width: 1500px; padding: 12px 28px; border-radius: var(--radius-md); background: rgb(0 0 0 / 0.78); color: var(--palette-neutral-0);
+  font: 600 38px/1.3 var(--font-family-sans); text-align: center; }
+
+/* Only when a person opens the page. */
+#play { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%); padding: 14px 36px; border: 0; border-radius: var(--radius-lg);
+  background: var(--palette-volt-300); color: var(--palette-neutral-950); font: 800 20px/1 var(--font-family-numeral); cursor: pointer; }
+#play[hidden] { display: none; }
+#errors { position: fixed; inset: 16px auto auto 16px; margin: 0; padding: 16px; background: var(--palette-heart-600); color: var(--palette-neutral-0); font: 16px/1.4 var(--font-family-mono); z-index: 3000; }
