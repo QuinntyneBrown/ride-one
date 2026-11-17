@@ -4,7 +4,7 @@ import { ToastRegion } from './pages/toast-region';
 import { EndRideDialog } from './pages/end-ride.dialog';
 import { ReplaceRideDialog } from './pages/replace-ride.dialog';
 import { SetupPage } from './pages/setup.page';
-import { treadmillIdle, treadmillState, treadmillWorkout } from './fixtures/states';
+import { FLAT_PLAN, treadmillIdle, treadmillState, treadmillWorkout } from './fixtures/states';
 import treadmillPaused from './fixtures/recorded/treadmill-workout-paused.json';
 import speedSent from './fixtures/recorded/speed-sent.json';
 import inclineSent from './fixtures/recorded/incline-sent.json';
@@ -457,6 +457,47 @@ test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
     await expect(ride.phaseHeadline).toHaveText('RECOVER · 7.0 KM/H');
     await expect(ride.phaseDetail).toHaveText('0:20 · next: Work at 9.0 km/h');
     expect((await audio.tones()).length).toBeGreaterThan(0);
+  });
+
+  test('titles the trace Speed vs. plan with an incline lane (AC6)', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState({ incline: 1 }));
+    await expect(ride.traceTitle).toHaveText('Speed vs. plan · incline below');
+    await expect(ride.traceLegend).toHaveText(['Actual', 'Work', 'Recover']);
+    await expect(ride.traceMax).toHaveText('15 km/h');
+    await expect(ride.traceTicks).toHaveText([
+      '0:00',
+      '3:00',
+      '6:00',
+      '9:00',
+      '12:00',
+      '15:00',
+      '18:00',
+      '21:00',
+    ]);
+    await expect(ride.traceCanvas).toBeAttached();
+    await expect(ride.inclineLaneMax).toHaveText('10%');
+    await expect(ride.inclineLane).toHaveAccessibleName(
+      "Incline profile: the plan dashed, the deck's actual incline filled",
+    );
+    await expect(ride.inclineLanePlan).toHaveAttribute('points', /.+/);
+    await ride.push(
+      treadmillState({ incline: 1, workout: treadmillWorkout({ elapsed_seconds: 428 }) }),
+    );
+    await expect(ride.inclineLaneActual).toHaveAttribute('points', /^427,9 /);
+
+    await ride.push(
+      treadmillState({
+        workout: treadmillWorkout({
+          plan: { ...FLAT_PLAN, level: null, cadence: null, speed: 9, incline: 0 },
+        }),
+      }),
+    );
+    await expect(ride.traceLegend).toHaveText(['Actual', 'Work']);
   });
 
   test('titles the log Sent to treadmill with the newest 4 SPD and INC entries', async ({

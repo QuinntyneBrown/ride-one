@@ -73,6 +73,11 @@ export class RidePage {
   readonly traceTicks: Locator;
   readonly traceSummary: Locator;
   readonly traceEmpty: Locator;
+  readonly traceTitle: Locator;
+  readonly inclineLane: Locator;
+  readonly inclineLaneMax: Locator;
+  readonly inclineLanePlan: Locator;
+  readonly inclineLaneActual: Locator;
 
   readonly aside: Locator;
   readonly levelValue: Locator;
@@ -200,6 +205,11 @@ export class RidePage {
     this.traceTicks = this.trace.locator('.trace__axis span');
     this.traceSummary = this.trace.locator('.trace__summary');
     this.traceEmpty = this.trace.locator('.empty');
+    this.traceTitle = this.trace.locator('.trace__head > span');
+    this.inclineLane = this.trace.locator('.trace__lane svg');
+    this.inclineLaneMax = this.trace.locator('.trace__lane-max');
+    this.inclineLanePlan = this.inclineLane.locator('.incline-plan');
+    this.inclineLaneActual = this.inclineLane.locator('.incline-line');
 
     this.aside = page.getByRole('complementary', { name: 'Bike control' });
     this.levelValue = this.aside.locator('.level-readout .numeral');

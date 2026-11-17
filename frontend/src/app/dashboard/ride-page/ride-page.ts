@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -59,6 +60,7 @@ import { RideVideo } from '../ride-video/ride-video';
   selector: 'wz-ride-page',
   imports: [
     AppBar,
+    NgTemplateOutlet,
     QuickSpeeds,
     CmdLog,
     ConnectionBanner,
