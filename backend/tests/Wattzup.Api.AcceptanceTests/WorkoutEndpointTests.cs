@@ -69,6 +69,25 @@ public sealed class WorkoutEndpointTests
     }
 
     [Fact]
+    public async Task An_intervals_field_is_rejected_by_its_path()
+    {
+        await using var bike = await Bike.StartAsync();
+
+        using var response = await bike.PostAsync("/api/workout", new
+        {
+            kind = "intervals",
+            warmup = (object?)null,
+            sets = new[] { new { rounds = 2, work_seconds = 30, work_level = 28, work_cadence = 100, rest_seconds = 3, rest_level = 8, rest_cadence = 72 } },
+            cooldown = (object?)null,
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await Bike.JsonAsync(response);
+        Assert.Equal("invalid_workout", problem.GetProperty("code").GetString());
+        Assert.Equal("Recover must be 0 (none) or at least 0:05.", problem.GetProperty("errors").GetProperty("sets[0].rest_seconds")[0].GetString());
+    }
+
+    [Fact]
     public async Task An_unknown_kind_is_rejected_and_no_workout_starts()
     {
         await using var bike = await Bike.StartAsync();
@@ -76,7 +95,7 @@ public sealed class WorkoutEndpointTests
         using var response = await bike.PostAsync("/api/workout", new { kind = "tabata" });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("Choose HIIT or Flat.", (await Bike.JsonAsync(response)).GetProperty("errors").GetProperty("kind")[0].GetString());
+        Assert.Equal("Choose HIIT, Intervals or Flat.", (await Bike.JsonAsync(response)).GetProperty("errors").GetProperty("kind")[0].GetString());
         Assert.Equal(JsonValueKind.Null, (await StatusAsync(bike)).GetProperty("workout").ValueKind);
     }
 

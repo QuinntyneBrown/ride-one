@@ -18,6 +18,24 @@ public static class Ride
 
     public static readonly object Flat = new { kind = "flat", level = 12, minutes = 1, cadence = 85 };
 
+    /// <summary>The Descending recoveries plan (L2-010 criterion 11): 30:00, 8 efforts, the last without a recover.</summary>
+    public static readonly object Descending = new
+    {
+        kind = "intervals",
+        warmup = new { seconds = 300, level = 8, cadence = 80 },
+        sets = new[] { 180, 150, 120, 90, 0 }.Select((rest, i) => new
+        {
+            rounds = i is 0 or 4 ? 1 : 2,
+            work_seconds = 30,
+            work_level = 28,
+            work_cadence = 100,
+            rest_seconds = rest,
+            rest_level = 8,
+            rest_cadence = 72,
+        }).ToArray(),
+        cooldown = new { seconds = 360, level = 6, cadence = 70 },
+    };
+
     public static JsonElement Workout(JsonElement state) => state.GetProperty("workout");
 
     public static string? Status(JsonElement state) =>
