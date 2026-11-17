@@ -245,6 +245,25 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
   .set-row__value { grid-column: 1 / -1; grid-row: 2; }
 }
 
+/* ---------- Video ride-along ------------------------------------------------- */
+/* The YouTube player sits in .video-frame; in the mocks a poster stands in for the embed. */
+.video-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border: var(--border-width-hairline) solid var(--color-border-default); border-radius: var(--radius-lg); background: var(--color-video-bg); color: var(--color-video-fg); }
+.video-frame--fill { aspect-ratio: auto; flex: 1; min-height: 12rem; }
+.video-frame__poster { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--space-2); padding: var(--space-4); text-align: center; }
+.video-frame__title { font: var(--text-body); font-weight: var(--font-weight-semibold); }
+.video-frame__meta { font: var(--text-caption); opacity: 0.8; font-variant-numeric: tabular-nums; }
+.video-frame__scrim { position: absolute; inset: 0; display: grid; place-items: center; border: 0; padding: var(--space-4); background: var(--color-video-scrim); color: inherit; cursor: pointer; }
+.video-frame__scrim:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus-ring); outline-offset: calc(-1 * var(--focus-ring-width) * 2); }
+.video-sync { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4); }
+.video-sync__row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4) var(--space-6); }
+.video-sync__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.video-sync .num-stepper__input { width: 6ch; }
+.view-switch { display: inline-flex; gap: var(--space-0-5); padding: var(--space-0-5); border-radius: var(--radius-md); background: var(--color-bg-subtle); }
+.view-switch__tab { min-height: var(--target-comfortable); padding-inline: var(--space-3); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-fg-muted); font: var(--text-label); cursor: pointer; transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
+.view-switch__tab:hover { color: var(--color-fg-default); }
+.view-switch__tab[aria-selected="true"] { background: var(--color-bg-surface-raised); color: var(--color-fg-default); box-shadow: var(--shadow-1); }
+.view-switch__tab:focus-visible { outline: var(--focus-ring-width) solid var(--color-focus-ring); outline-offset: var(--focus-ring-offset); }
+
 /* ---------- Slider ----------------------------------------------------------- */
 .level-slider { --slider: var(--color-series-work); }
 .level-slider--rest { --slider: var(--color-series-rest); }
@@ -395,6 +414,8 @@ hr, .divider { border: 0; border-top: var(--border-width-hairline) solid var(--c
 /* ---------- Ride profile (setup preview) --------------------------------------- */
 .ride-total { margin-top: var(--space-2); font-size: var(--font-size-numeral-xl); }
 .profile { margin-top: var(--space-6); width: 100%; height: 9rem; display: block; }
+.profile--strip { height: var(--space-2); margin-top: var(--space-2); }
+.profile rect.is-playhead { fill: var(--color-playhead); }
 .profile rect.is-work { fill: var(--color-series-work); } .profile rect.is-rest { fill: var(--color-series-rest); } .profile rect.is-easy { fill: var(--color-series-easy); opacity: var(--opacity-disabled); }
 .profile-axis { margin-top: var(--space-2); display: flex; justify-content: space-between; font: var(--text-caption); color: var(--color-fg-subtle); }
 
