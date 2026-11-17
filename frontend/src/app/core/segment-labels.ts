@@ -42,6 +42,8 @@ export interface NextLabel {
   level: number | null;
   /** The treadmill segment's speed; null on the bike. */
   speed: string | null;
+  /** The treadmill segment's incline in %; 0 on the bike. */
+  incline: number;
 }
 
 export function nextLabel(segments: readonly Segment[], index: number): NextLabel | null {
@@ -52,6 +54,7 @@ export function nextLabel(segments: readonly Segment[], index: number): NextLabe
     duration: formatDuration(next.duration),
     level: next.level,
     speed: next.speed === null ? null : next.speed.toFixed(1),
+    incline: next.incline ?? 0,
   };
 }
 

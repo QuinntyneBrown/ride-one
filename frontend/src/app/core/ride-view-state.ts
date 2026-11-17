@@ -69,7 +69,12 @@ export function rideViewState(
     overlay,
     dimmed: overlay === 'bike-lost' || offline,
     commandsEnabled: !offline && connected,
-    pauseEnabled: !offline && active,
+    // The treadmill can't pause mid-countdown or while it is not connected (L2-071 criterion 1).
+    pauseEnabled:
+      !offline &&
+      active &&
+      (state.machine !== 'treadmill' ||
+        (connected && status !== 'starting belt' && state.belt_countdown === null)),
     endEnabled: active,
     controlsNote: connected
       ? null

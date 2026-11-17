@@ -88,6 +88,31 @@ describe('rideViewState on the treadmill (L2-071)', () => {
   const treadmill = (status: Parameters<typeof testWorkout>[0], change = {}) =>
     testState({ machine: 'treadmill', workout: testWorkout(status), ...change });
 
+  it.each([
+    ['running', {}, true],
+    ['paused', {}, true],
+    ['paused: belt stopped', { belt: 'stopped' }, true],
+    ['starting belt', { belt: 'starting', belt_countdown: 2 }, false],
+    ['starting belt', { belt: 'starting' }, false],
+    ['running', { ble: 'disconnected' }, false],
+    ['running', { ble: 'scanning' }, false],
+  ] as const)('enables Pause under %s with %j: %s (L2-071 AC1)', (status, change, enabled) => {
+    const v = rideViewState(treadmill({ status }, change), 'open', false);
+    expect(v.pauseEnabled).toBe(enabled);
+  });
+
+  it('keeps the bike Pause enabled while the bike is disconnected', () => {
+    const v = rideViewState(
+      testState({
+        ble: 'disconnected',
+        workout: testWorkout({ status: 'paused: bike disconnected' }),
+      }),
+      'open',
+      false,
+    );
+    expect(v.pauseEnabled).toBe(true);
+  });
+
   it('shows the belt countdown while belt_countdown is set', () => {
     const v = rideViewState(
       treadmill({ status: 'starting belt' }, { belt: 'starting', belt_countdown: 2 }),

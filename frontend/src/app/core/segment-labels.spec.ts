@@ -41,8 +41,15 @@ describe('segment-labels (L2-025)', () => {
       duration: '0:20',
       level: 6,
       speed: null,
+      incline: 0,
     });
     expect(nextLabel(w.segments, 16)).toBeNull();
+  });
+
+  it('names the next run segment with its speed and incline (L2-071 AC5)', () => {
+    const w = testWorkout();
+    const segments = w.segments.map((s) => ({ ...s, level: null, speed: 6, incline: 1 }));
+    expect(nextLabel(segments, 9)).toMatchObject({ kind: 'Recover', speed: '6.0', incline: 1 });
   });
 
   it.each([

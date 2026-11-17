@@ -94,6 +94,9 @@ export class RidePage {
   readonly speedValue: Locator;
   readonly speedUnit: Locator;
   readonly speedSub: Locator;
+  readonly speedPace: Locator;
+  readonly speedStatus: Locator;
+  readonly stopBeltButton: Locator;
   readonly incline: Locator;
   readonly inclineValue: Locator;
   readonly inclineUnit: Locator;
@@ -129,6 +132,7 @@ export class RidePage {
     this.pauseButton = bar.getByRole('button', { name: 'Pause', exact: true });
     this.resumeButton = bar.getByRole('button', { name: 'Resume', exact: true });
     this.endButton = bar.getByRole('button', { name: 'End', exact: true });
+    this.stopBeltButton = bar.getByRole('button', { name: 'Stop belt', exact: true });
     this.switchLink = page
       .locator('.ride-aside__foot')
       .getByRole('link', { name: /^End and switch to / });
@@ -209,6 +213,8 @@ export class RidePage {
     this.speedValue = this.speed.locator('.numeral');
     this.speedUnit = this.speed.locator('.readout__unit');
     this.speedSub = this.speed.locator('.readout__sub span');
+    this.speedPace = this.speed.locator('.readout__pace');
+    this.speedStatus = this.speed.locator('.readout__sub .delta');
     this.incline = page.locator('.readout--incline');
     this.inclineValue = this.incline.locator('.numeral');
     this.inclineUnit = this.incline.locator('.readout__unit');

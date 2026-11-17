@@ -38,19 +38,18 @@
         <div class="readouts" [class.readouts--dimmed]="view().dimmed">
           @let sp = speed();
           <wz-readout kind="speed" label="Speed" [value]="sp.valueText" unit="km/h">
-            @if (sp.settingText; as setting) {
-              <span class="delta delta--low">{{ setting }}</span>
-            } @else if (sp.targetText; as target) {
-              <span>{{ target }}</span>
-            }
-            <span>{{ sp.mphText }}</span>
+            <span class="readout__pace">{{ sp.paceText }}</span>
+            <span
+              class="delta"
+              [class.delta--on]="sp.statusTone === 'success'"
+              [class.delta--low]="sp.statusTone === 'warning'"
+              >{{ sp.statusText }}</span
+            >
           </wz-readout>
           @let inc = incline();
           <wz-readout kind="incline" label="Incline" [value]="inc.valueText" unit="%">
-            @if (inc.settingText; as setting) {
-              <span class="delta delta--low">{{ setting }}</span>
-            } @else if (inc.targetText; as target) {
-              <span>{{ target }}</span>
+            @if (inc.noteText; as note) {
+              <span>{{ note }}</span>
             }
           </wz-readout>
           <wz-interval [workout]="workout()" />

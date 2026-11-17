@@ -53,14 +53,25 @@
         <wz-icon name="pause" size="sm" /><span class="btn__label">Pause</span>
       </button>
     }
-    <button
-      class="btn btn--quiet btn--end"
-      type="button"
-      [disabled]="!view().endEnabled"
-      (click)="actions.end()"
-    >
-      <wz-icon name="stop" size="sm" /><span class="btn__label">End</span>
-    </button>
+    @if (machine() === 'treadmill') {
+      <button
+        class="btn btn--stop-belt btn--collapsible"
+        type="button"
+        [disabled]="!view().endEnabled"
+        (click)="actions.end()"
+      >
+        <wz-icon name="stop" size="sm" /><span class="btn__label">Stop belt</span>
+      </button>
+    } @else {
+      <button
+        class="btn btn--quiet btn--end"
+        type="button"
+        [disabled]="!view().endEnabled"
+        (click)="actions.end()"
+      >
+        <wz-icon name="stop" size="sm" /><span class="btn__label">End</span>
+      </button>
+    }
     <button
       class="btn btn--quiet btn--icon"
       type="button"

@@ -384,6 +384,8 @@ export function treadmillState(change: Json = {}): Json {
     incline: 0,
     target_incline: 0,
     distance_km: 0.92,
+    climb_m: 0,
+    kcal: 98,
     belt: 'running',
     commands: [
       treadmillCommand({

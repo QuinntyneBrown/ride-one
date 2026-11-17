@@ -78,6 +78,9 @@
 .readouts--dimmed {
   opacity: 0.45;
 }
+.readout__pace {
+  color: var(--color-fg-muted);
+}
 .delta {
   font-weight: var(--font-weight-medium);
 }

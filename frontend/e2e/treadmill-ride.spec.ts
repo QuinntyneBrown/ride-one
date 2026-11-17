@@ -15,59 +15,115 @@ const notConnected = {
 };
 
 test.describe('Treadmill dashboard: readouts and controls (L2-071)', () => {
-  test('shows speed with target and mph, and Setting while the treadmill catches up', async ({
+  test('shows the Stride in the status line and Stop belt in place of End', async ({
     page,
     api,
     events,
   }) => {
     const ride = new RidePage(page, api, events);
-    await ride.open(treadmillState());
-    await expect(ride.speedValue).toHaveText('9.0');
+    const end = new EndRideDialog(page);
+    await ride.open(treadmillState({ device_label: 'Echelon Stride' }));
+    await expect(ride.statusName).toHaveText('Echelon Stride');
+    await expect(ride.statusState).toHaveText('Connected');
+    await expect(ride.workoutLink).toHaveText('HIIT · 18 × 40s / 20s');
+    await expect(ride.rideClock).toHaveText('7:07 / 22:40');
+    await expect(ride.endButton).toHaveCount(0);
+    await expect(ride.stopBeltButton).toHaveClass(/btn--stop-belt/);
+    await ride.stopBeltButton.click();
+    await expect(end.description).toBeVisible();
+    await end.keepRidingButton.click();
+
+    await ride.push(treadmillState({ workout: treadmillWorkout({ status: 'starting belt' }) }));
+    await expect(ride.pauseButton).toBeDisabled();
+    await ride.push(treadmillState({ ble: 'disconnected' }));
+    await expect(ride.pauseButton).toBeDisabled();
+    await ride.push(treadmillState({ workout: treadmillWorkout({ status: 'paused' }) }));
+    await expect(ride.resumeButton).toBeEnabled();
+  });
+
+  test('shows speed in km/h with pace, and no mph', async ({ page, api, events }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState({ speed_kmh: 13, speed_mph: 8.1, target_speed: 13 }));
+    await expect(ride.speedValue).toHaveText('13.0');
     await expect(ride.speedUnit).toHaveText('km/h');
-    await expect(ride.speedSub).toHaveText(['Target 9.0 km/h', '5.6 mph']);
-    await ride.push(treadmillState({ speed_kmh: 7, speed_mph: 4.3, target_speed: 9 }));
-    await expect(ride.speedValue).toHaveText('7.0');
-    await expect(ride.speedSub).toHaveText(['Setting 9.0…', '4.3 mph']);
+    await expect(ride.speedPace).toHaveText('4:37 /km');
+    await expect(ride.speed).not.toContainText('mph');
+    await ride.push(treadmillState({ speed_kmh: 0.4, target_speed: 0.4 }));
+    await expect(ride.speedPace).toHaveText('–:–– /km');
   });
 
-  test('shows incline with target, and Setting while it changes', async ({ page, api, events }) => {
-    const ride = new RidePage(page, api, events);
-    await ride.open(treadmillState({ incline: 2, target_incline: 2 }));
-    await expect(ride.inclineValue).toHaveText('2');
-    await expect(ride.inclineUnit).toHaveText('%');
-    await expect(ride.inclineSub).toHaveText(['Target 2 %']);
-    await ride.push(treadmillState({ incline: 2, target_incline: 3 }));
-    await expect(ride.inclineSub).toHaveText(['Setting 3…']);
-  });
-
-  test('shows pace 6:40 /km at 9.0 km/h and -- when stopped', async ({ page, api, events }) => {
-    const ride = new RidePage(page, api, events);
-    await ride.open(treadmillState());
-    await expect(ride.metric('Pace')).toHaveText('6:40/km');
-    await ride.push(treadmillIdle());
-    await expect(ride.metric('Pace')).toHaveText('--/km');
-  });
-
-  test('shows heart rate, distance and pace, and hides power, cadence and the trace', async ({
+  test('words the speed status: starting, paused, stopped, ramping and at target', async ({
     page,
     api,
     events,
   }) => {
     const ride = new RidePage(page, api, events);
     await ride.open(treadmillState());
-    await expect(ride.metrics.locator('dt')).toHaveText(['Heart rate', 'Distance', 'Pace']);
+    await expect(ride.speedStatus).toHaveText('At target');
+    await expect(ride.speedStatus).toHaveClass(/delta--on/);
+    await ride.push(treadmillState({ speed_kmh: 7, target_speed: 9 }));
+    await expect(ride.speedStatus).toHaveText('Ramping to 9.0');
+    await expect(ride.speedStatus).toHaveClass(/delta--low/);
+    await ride.push(treadmillState({ speed_kmh: 8.96, target_speed: 9 }));
+    await expect(ride.speedStatus).toHaveText('At target');
+    await ride.push(
+      treadmillState({ speed_kmh: 0, workout: treadmillWorkout({ status: 'starting belt' }) }),
+    );
+    await expect(ride.speedStatus).toHaveText('Starting belt');
+    await ride.push(
+      treadmillState({ speed_kmh: 0, workout: treadmillWorkout({ status: 'paused' }) }),
+    );
+    await expect(ride.speedStatus).toHaveText('Belt paused');
+    await ride.push(treadmillState({ speed_kmh: 0, belt: 'stopped' }));
+    await expect(ride.speedStatus).toHaveText('Belt stopped');
+  });
+
+  test('shows the incline with its plan or Deck moving to', async ({ page, api, events }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState({ incline: 0, target_incline: 0 }));
+    await expect(ride.inclineValue).toHaveText('0');
+    await expect(ride.inclineUnit).toHaveText('%');
+    await expect(ride.inclineSub).toHaveText(['Plan 0%']);
+    await ride.push(treadmillState({ incline: 0, target_incline: 3 }));
+    await expect(ride.inclineSub).toHaveText(['Deck moving to 3%']);
+  });
+
+  test('shows heart rate, avg pace, distance, climbed and energy', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState({ distance_km: 1.05, climb_m: 22, kcal: 1116 }));
+    await expect(ride.metrics.locator('dt')).toHaveText([
+      'Heart rate',
+      'Avg pace',
+      'Distance',
+      'Climbed',
+      'Energy',
+    ]);
     await expect(ride.metric('Heart rate')).toHaveText('--bpm');
-    await expect(ride.metric('Distance')).toHaveText('0.92km');
+    await expect(ride.metric('Avg pace')).toHaveText('6:47/km');
+    await expect(ride.metric('Distance')).toHaveText('1.05km');
+    await expect(ride.metric('Climbed')).toHaveText('22m');
+    await expect(ride.metric('Energy')).toHaveText('1,116kcal');
     await expect(ride.power).toHaveCount(0);
     await expect(ride.cadenceValue).toHaveCount(0);
-    await expect(ride.trace).toHaveCount(0);
+    await ride.push(treadmillState({ distance_km: 0 }));
+    await expect(ride.metric('Avg pace')).toHaveText('–:––/km');
+  });
+
+  test('keeps the Speed and incline panel in place of the resistance panel', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState());
     await expect(ride.aside).toHaveCount(0);
     await expect(ride.treadmillAsideTitle).toHaveText('Speed and incline');
     await expect(ride.speedControlValue).toHaveText('9.0');
     await expect(ride.inclineControlValue).toHaveText('0');
-    await expect(ride.treadmillPlanNote).toHaveText(
-      'Following the plan — speed and incline change with each interval.',
-    );
   });
 
   test('steps speed by 0.5 and incline by 1, disabled at their limits', async ({
@@ -283,7 +339,7 @@ test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
     const ride = new RidePage(page, api, events);
     const end = new EndRideDialog(page);
     await ride.open(treadmillState());
-    await ride.endButton.click();
+    await ride.stopBeltButton.click();
     await expect(end.description).toHaveText("You're 7:07 into 22:40. Wattzup stops the belt.");
     await end.keepRidingButton.click();
 
@@ -305,13 +361,13 @@ test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
   }) => {
     const ride = new RidePage(page, api, events);
     await ride.open(treadmillState({ workout: treadmillWorkout({ segment: 10, remaining: 1 }) }));
-    await expect(ride.intervalNext).toHaveText('Next: Work 0:40 at 9.0 km/h');
+    await expect(ride.intervalNext).toHaveText('Next: Work 0:40 at 9.0 km/h, 0%');
     await ride.beepsButton.click();
     await ride.push(treadmillState({ workout: treadmillWorkout({ segment: 11, remaining: 40 }) }));
     await expect(ride.phaseHeadline).toHaveText('WORK · 9.0 KM/H · GO!');
     await expect(ride.phaseDetail).toHaveText('Round 6 of 18 · 0:40');
     await expect(ride.cueAnnouncement).toHaveText('Work, 9.0 km/h, incline 0 %, 40 seconds');
-    await expect(ride.intervalNext).toHaveText('Next: Recover 0:20 at 7.0 km/h');
+    await expect(ride.intervalNext).toHaveText('Next: Recover 0:20 at 7.0 km/h, 0%');
     await ride.push(treadmillState({ workout: treadmillWorkout({ segment: 12, remaining: 20 }) }));
     await expect(ride.phaseHeadline).toHaveText('RECOVER · 7.0 KM/H');
     await expect(ride.phaseDetail).toHaveText('0:20 · next: Work at 9.0 km/h');
