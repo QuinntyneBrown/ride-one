@@ -25,3 +25,7 @@ node_modules/
 
 # macOS
 .DS_Store
+
+# Video build intermediates (docs/videos/README.md)
+docs/videos/**/narration.wav
+docs/videos/**/*.partial.mp4

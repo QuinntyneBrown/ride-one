@@ -68,12 +68,15 @@ wattzup/
 │   ├── scripts/                           # bundle-size check, API recording
 │   └── proxy.conf.json                    # /api → 127.0.0.1:8787 during ng serve
 ├── docs/
+│   ├── journeys.md                        # the user journeys, by value add
+│   ├── videos/                            # a narrated film per journey (docs/videos/README.md)
 │   ├── specs/                             # L0.md (mission, when written), L1.md, L2.md
 │   ├── detailed-designs/                  # {subsystem}/{feature}/README.md + diagrams/
 │   ├── mocks/                             # HTML mocks, UI source of truth
 │   ├── design-system/                     # extracted from the mocks
 │   ├── adr/                               # architecture decision records
 │   └── protocol/                          # Echelon BLE frame reference (echelon-ble-frames.md)
+├── tools/                                 # video-record, video-audio, video-build (the films)
 ├── .github/                               # issue and PR templates, CI workflows
 └── .agents/skills/, .claude/skills/       # agent skills
 ```
