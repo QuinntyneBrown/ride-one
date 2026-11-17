@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { connectionStatus } from '../../core/connection-status';
 import { LiveStateService } from '../../core/live-state.service';
 import { MotionPreference } from '../../core/motion-preference';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 
 /** Icon, name and state label for the connection (L2-018). */
 @Component({

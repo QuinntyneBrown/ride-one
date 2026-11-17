@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import type { Machine } from '@wattzup/api';
 import type { CardStatus, MachineCardView } from '../../core/machine-page-view';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 import { SignalBars } from '../signal-bars/signal-bars';
 
 /** One machine as a radio card on the machine page (L2-073). */

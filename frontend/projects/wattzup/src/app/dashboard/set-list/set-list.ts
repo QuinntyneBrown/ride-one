@@ -18,7 +18,7 @@ import {
   stretchLine,
 } from '../../core/intervals-form';
 import { NgTemplateOutlet } from '@angular/common';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 
 /** The warm-up, the sets and the cool-down of an Intervals plan, each with its actions (block
  * `set-list`, L2-029 AC12). It emits the action; the page applies it. */

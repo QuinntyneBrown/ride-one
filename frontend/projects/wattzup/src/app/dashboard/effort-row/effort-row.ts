@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { formatPace } from '../../core/pace';
 import { canStepSpeed, parseIncline, parseSpeed } from '../../core/treadmill-plan-form';
-import { Icon } from '../icon/icon';
-import { inclineView, LevelPicker } from '../level-picker/level-picker';
+import { Icon, inclineView, LevelPicker } from '@wattzup/components';
 
 /**
  * One treadmill effort row, `Work`, `Recover` or Steady's `Hold`: a typable speed between

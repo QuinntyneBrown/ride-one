@@ -1,11 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import type { ResistanceView } from '../../core/resistance-view';
-import {
-  INCLINE_RANGE,
-  LEVEL_RANGE,
-  levelAtFraction,
-  levelForKey,
-} from '../../core/level-picker-input';
+import { INCLINE_RANGE, LEVEL_RANGE, levelAtFraction, levelForKey } from './level-picker-input';
+
+/** What a level picker shows: the lit bars, the pressed (set) level and the plan's level. */
+export interface ResistanceView {
+  valueText: string;
+  settingText: string | null;
+  litUpTo: number;
+  pressedLevel: number | null;
+  planLevel: number | null;
+}
 
 /** What an incline picker lights: every bar up to the value, the value set (L2-072 AC5). */
 export function inclineView(incline: number | null): ResistanceView {

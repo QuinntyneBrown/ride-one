@@ -41,7 +41,7 @@
           @if (treadmill()) {
             @let t = tdraft();
             @let terr = terrorFor();
-            <wz-mode-cards
+            <wz-radio-group
               [mode]="t.mode"
               machine="treadmill"
               (modeChange)="setMode($event)"
@@ -50,7 +50,7 @@
             <wz-presets [items]="treadmillChips()" [disabled]="busy()" (choose)="preset($event)" />
             @if (t.mode === 'hiit') {
               <div class="field-grid">
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="tids.rounds"
                   label="Rounds"
                   [value]="t.rounds"
@@ -60,7 +60,7 @@
                   (step)="tstep('rounds', $event)"
                   (submitted)="focusSummary()"
                 />
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="tids.work"
                   label="Work"
                   [value]="t.work"
@@ -70,7 +70,7 @@
                   (step)="tstep('work', $event)"
                   (submitted)="focusSummary()"
                 />
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="tids.rest"
                   label="Recover"
                   [value]="t.rest"
@@ -109,7 +109,7 @@
                   (submitted)="focusSummary()"
                 />
               </div>
-              <wz-toggles
+              <wz-switch
                 machine="treadmill"
                 [warmup]="t.warmup"
                 (warmupChange)="tedit({ warmup: $event })"
@@ -135,7 +135,7 @@
                 />
               </div>
               <div class="setup-narrow">
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="tids.minutes"
                   label="Duration (min)"
                   [value]="t.minutes"
@@ -151,11 +151,11 @@
               </p>
             }
           } @else {
-            <wz-mode-cards [mode]="d.mode" (modeChange)="setMode($event)" [disabled]="busy()" />
+            <wz-radio-group [mode]="d.mode" (modeChange)="setMode($event)" [disabled]="busy()" />
             @if (d.mode === 'hiit') {
               <wz-presets [items]="bikeChips()" [disabled]="busy()" (choose)="preset($event)" />
               <div class="field-grid">
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="ids.rounds"
                   label="Rounds"
                   [value]="d.rounds"
@@ -165,7 +165,7 @@
                   (step)="step('rounds', $event)"
                   (submitted)="focusSummary()"
                 />
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="ids.work"
                   label="Work"
                   [value]="d.work"
@@ -175,7 +175,7 @@
                   (step)="step('work', $event)"
                   (submitted)="focusSummary()"
                 />
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="ids.rest"
                   label="Recover"
                   [value]="d.rest"
@@ -186,14 +186,14 @@
                   (submitted)="focusSummary()"
                 />
               </div>
-              <wz-level-slider
+              <wz-slider
                 [fieldId]="ids.workLevel"
                 label="Work resistance"
                 [level]="d.workLevel"
                 (levelChange)="edit({ workLevel: $event })"
                 [disabled]="busy()"
               />
-              <wz-level-slider
+              <wz-slider
                 [fieldId]="ids.restLevel"
                 label="Recover resistance"
                 tone="rest"
@@ -201,7 +201,7 @@
                 (levelChange)="edit({ restLevel: $event })"
                 [disabled]="busy()"
               />
-              <wz-toggles
+              <wz-switch
                 [warmup]="d.warmup"
                 (warmupChange)="edit({ warmup: $event })"
                 [cooldown]="d.cooldown"
@@ -223,7 +223,7 @@
               />
             } @else {
               <div class="setup-flat">
-                <wz-level-slider
+                <wz-slider
                   [fieldId]="ids.flatLevel"
                   label="Resistance level"
                   [large]="true"
@@ -233,7 +233,7 @@
                 />
               </div>
               <div class="field-grid field-grid--2">
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="ids.minutes"
                   label="Duration"
                   [value]="d.minutes"
@@ -243,7 +243,7 @@
                   (step)="step('minutes', $event)"
                   (submitted)="focusSummary()"
                 />
-                <wz-num-stepper
+                <wz-number-stepper
                   [fieldId]="ids.cadence"
                   label="Cadence goal"
                   [value]="d.cadence"

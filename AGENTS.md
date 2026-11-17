@@ -65,10 +65,15 @@ wattzup/
 │   │   │       ├── generated/             # generated from /openapi/v1.json, never hand-edited
 │   │   │       ├── lib/                   # contracts, HTTP, interceptor, key store, with tests
 │   │   │       └── public-api.ts
+│   │   ├── components/                    # library @wattzup/components: presentation components
+│   │   │   └── src/
+│   │   │       ├── lib/                   # one folder per component, named as in the design system
+│   │   │       ├── styles/design-system/  # SCSS partials (`@use 'design-system/btn'`)
+│   │   │       └── public-api.ts
 │   │   └── wattzup/                       # the application
 │   │       └── src/app/
 │   │           ├── core/                  # services and pure helpers, with unit tests
-│   │           ├── dashboard/             # components (name.ts + name.html + name.scss)
+│   │           ├── dashboard/             # pages, dialogs, orchestrating components
 │   │           └── app.config.ts          # composition root
 │   ├── public/                            # fonts and images, copied into the app's build
 │   ├── e2e/                               # Playwright: fixtures/, pages/ (page objects), specs

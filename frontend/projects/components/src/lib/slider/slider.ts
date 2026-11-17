@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, input, model } from '@angular/core'
 
 /** A 1–32 range with its `<n> / 32` output (block `level-slider`, L2-029). */
 @Component({
-  selector: 'wz-level-slider',
-  templateUrl: './level-slider.html',
-  styleUrl: './level-slider.scss',
+  selector: 'wz-slider',
+  templateUrl: './slider.html',
+  styleUrl: './slider.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LevelSlider {
+export class Slider {
   readonly fieldId = input.required<string>();
   readonly label = input.required<string>();
   readonly level = model.required<number>();

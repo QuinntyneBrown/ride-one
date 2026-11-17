@@ -32,15 +32,18 @@ import {
   treadmillPlanNote,
 } from '../../core/treadmill-controls';
 import { inclineView, speedView } from '../../core/treadmill-view';
-import { InclineControl } from '../incline-control/incline-control';
-import { SpeedControl } from '../speed-control/speed-control';
+import {
+  InclineControl,
+  SpeedControl,
+  Icon,
+  PlanNote,
+  LevelPicker,
+  inclineView as pickerView,
+} from '@wattzup/components';
 import { QuickSpeeds } from '../quick-speeds/quick-speeds';
 import { formatPace } from '../../core/pace';
-import { Icon } from '../icon/icon';
 import { CmdLog } from '../cmd-log/cmd-log';
 import { LevelControl } from '../level-control/level-control';
-import { LevelPicker, inclineView as pickerView } from '../level-picker/level-picker';
-import { PlanNote } from '../plan-note/plan-note';
 import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
 import { LoadError } from '../load-error/load-error';

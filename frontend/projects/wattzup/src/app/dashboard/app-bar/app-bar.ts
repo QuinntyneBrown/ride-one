@@ -7,7 +7,7 @@ import { CueService } from '../../core/cue.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
 import { ThemeService } from '../../core/theme.service';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 import { RideClock } from '../ride-clock/ride-clock';
 import { StatusLine } from '../status-line/status-line';
 

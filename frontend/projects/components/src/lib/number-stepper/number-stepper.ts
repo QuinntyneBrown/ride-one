@@ -1,15 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { Icon } from '../icon/icon';
+import { Icon } from '@wattzup/components';
 
 /** Label, Less and More, and a numeric text input (block `num-stepper`, L2-029). */
 @Component({
-  selector: 'wz-num-stepper',
+  selector: 'wz-number-stepper',
   imports: [Icon],
-  templateUrl: './num-stepper.html',
-  styleUrl: './num-stepper.scss',
+  templateUrl: './number-stepper.html',
+  styleUrl: './number-stepper.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NumStepper {
+export class NumberStepper {
   readonly fieldId = input.required<string>();
   readonly label = input.required<string>();
   readonly value = input.required<string>();
