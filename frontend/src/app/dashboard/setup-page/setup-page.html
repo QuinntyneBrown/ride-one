@@ -263,7 +263,11 @@
         }
       </div>
     </main>
-    <wz-ride-preview [preview]="previewWithVideo()" [valid]="!links().length">
+    <wz-ride-preview
+      [preview]="previewWithVideo()"
+      [valid]="!links().length"
+      [machineNoun]="treadmill() ? 'run' : 'ride'"
+    >
       @if (treadmill()) {
         <p class="setup-aside__safety">
           Clip the safety key to your clothes. The belt starts 3 seconds after you tap Start.

@@ -21,6 +21,9 @@ export class SetupPage {
   readonly total: Locator;
   readonly profile: Locator;
   readonly profileBars: Locator;
+  readonly previewHeading: Locator;
+  readonly inclineProfile: Locator;
+  readonly profileHeads: Locator;
   readonly profileAxis: Locator;
   readonly legend: Locator;
   readonly startButton: Locator;
@@ -69,9 +72,12 @@ export class SetupPage {
     this.warmup = page.getByRole('switch', { name: /Warm-up/ });
     this.cooldown = page.getByRole('switch', { name: /Cool-down/ });
     this.flatHint = page.getByText('You can still nudge the level mid-ride from the dashboard.');
-    this.preview = page.getByRole('complementary', { name: 'Ride preview' });
+    this.preview = page.getByRole('complementary', { name: /^(Ride|Run) preview$/ });
     this.total = this.preview.locator('.ride-total');
-    this.profile = this.preview.locator('svg.profile');
+    this.profile = this.preview.locator('svg.profile:not(.profile--incline)');
+    this.previewHeading = this.preview.getByRole('heading', { level: 2 });
+    this.inclineProfile = this.preview.locator('svg.profile--incline');
+    this.profileHeads = this.preview.locator('.profile-head');
     this.profileBars = this.profile.locator('rect');
     this.profileAxis = this.preview.locator('.profile-axis span');
     this.legend = this.preview.locator('.legend li');

@@ -94,6 +94,37 @@ test.describe('Run Setup (L2-072, L2-067)', () => {
     await expect(setup.slider('Work resistance')).toHaveCount(0);
   });
 
+  test('previews the Minute on run', async ({ page, api, events }) => {
+    const setup = new SetupPage(page, api, events);
+    await setup.open(treadmillIdle());
+    await expect(setup.previewHeading).toHaveText('Your run');
+    await expect(setup.total).toHaveText('16:00');
+    await expect(setup.total).toHaveAttribute('aria-label', 'Total run time 16:00');
+    await expect(setup.profile.first()).toHaveAttribute(
+      'aria-label',
+      'Speed profile: 6 × 1:00 / 1:00, top speed 13.0 km/h',
+    );
+    await expect(setup.inclineProfile).toHaveAttribute(
+      'aria-label',
+      'Incline profile, steepest 2%',
+    );
+    await expect(setup.profileHeads).toHaveText(['Speed19.3 km/h', 'Incline10%']);
+    await expect(setup.summaryTerms()).toHaveText([
+      'Structure',
+      'Top speed',
+      'Steepest',
+      'Expected distance',
+      'Expected climb',
+      'Expected energy',
+    ]);
+    await expect(setup.summaryValue('Structure')).toHaveText('6 × 1:00 / 1:00');
+    await expect(setup.summaryValue('Top speed')).toHaveText('13.0 km/h · 4:37 /km');
+    await expect(setup.summaryValue('Steepest')).toHaveText('2%');
+    await expect(setup.summaryValue('Expected distance')).toHaveText('~2.35 km');
+    await expect(setup.summaryValue('Expected climb')).toHaveText('~35 m');
+    await expect(setup.summaryValue('Expected energy')).toHaveText('~184 kcal');
+  });
+
   test('shows the Minute on and Hill walk defaults on first use', async ({ page, api, events }) => {
     const setup = new SetupPage(page, api, events);
     await setup.open(treadmillIdle());

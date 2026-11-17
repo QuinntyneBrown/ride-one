@@ -76,7 +76,7 @@ Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and
   - `validateTreadmillDraft(draft)` returns, for each failing field of the current mode, the L2-067 message and the summary link text of L2-072 criterion 7: `Work speed — 0.8 to 19.3 km/h`, `Recover speed — 0.8 to 19.3 km/h`, `Speed — 0.8 to 19.3 km/h`, `Work incline — 0 to 10 %`, `Recover incline — 0 to 10 %` or `Incline — 0 to 10 %`.
   - `toTreadmillPlan(draft)` returns the generated `WorkoutPlan` for a valid draft.
 - **`plan-expansion.ts`** — `expandPlan(plan)` expands a treadmill plan by L2-068 criteria 1 and 2, mirroring `PlanExpander`: the warm-up at `rest_speed` + 1.0 km/h (at most 19.3) and `rest_incline`, the cool-down at `rest_speed` and 0 %. `planSummary(plan)` reads `Steady · <speed> km/h at <incline>% · <minutes> min` for a treadmill `flat` plan (L2-067 criterion 8).
-- **`ride-preview.ts`** — `treadmillPreviewOf(plan)` returns the *Your run* panel (L2-072 criterion 8): the total time; a speed profile, each bar's height the segment's speed on a 19.3 km/h scale; an incline profile from 0 to 10 % on the same time axis; and the rows Structure, Top speed `<n> km/h · <pace> /km`, Steepest `<n>%`, Expected distance `~<n.nn> km`, Expected climb `~<n> m` and Expected energy `~<n> kcal`. Distance, climb and energy sum each expanded segment as L2-064 criteria 9 to 11 sum each tick. For *Minute on* they read 16:00, `6 × 1:00 / 1:00`, `13.0 km/h · 4:37 /km`, `2%`, `~2.35 km`, `~34 m` and `~184 kcal`.
+- **`ride-preview.ts`** — `treadmillPreviewOf(plan)` returns the *Your run* panel (L2-072 criterion 8): the total time; a speed profile, each bar's height the segment's speed on a 19.3 km/h scale; an incline profile from 0 to 10 % on the same time axis; and the rows Structure, Top speed `<n> km/h · <pace> /km`, Steepest `<n>%`, Expected distance `~<n.nn> km`, Expected climb `~<n> m` and Expected energy `~<n> kcal`. Distance, climb and energy sum each expanded segment as L2-064 criteria 9 to 11 sum each tick. For *Minute on* they read 16:00, `6 × 1:00 / 1:00`, `13.0 km/h · 4:37 /km`, `2%`, `~2.35 km`, `~35 m` and `~184 kcal`.
 - **`MachineHistoryStore`** (`core/machine-history.store.ts`, from `treadmill/choose-machine`) — `recordStart(machine, summary, startedAt)` keeps the last session and the last used machine (L2-072 criterion 10).
 - **`PlanDraftStore`** (`plan-draft.store.ts`) — keeps the last submitted draft per machine under `wattzup.planDraft` and `wattzup.treadmillPlanDraft`. `readTreadmillDraft` yields `DEFAULT_TREADMILL_DRAFT` for missing, unreadable or out-of-range data, so a draft saved under the old 16.0 km/h and 15 % limits that no longer validates falls back to the default (L2-072 criterion 10).
 - **Helpers that word the machine** — each reads `machine` from the state or takes it as an argument:
@@ -171,7 +171,7 @@ Playwright (`frontend/e2e/`), Chromium only. The shared fixture answers every `/
   - `steps speed by 0.5 within its limits and picks an incline` (L2-072 AC5)
   - `shows the Hold row and the Duration stepper for Steady` (L2-072 AC6)
   - `names an out-of-range speed or incline and disables Start run` (L2-072 AC7)
-  - `previews the Minute on run: 16:00, 2.35 km, 34 m and 184 kcal` (L2-072 AC8)
+  - `previews the Minute on run: 16:00, 2.35 km, 35 m and 184 kcal` (L2-072 AC8)
   - `shows the safety-key line above Start run` (L2-072 AC9)
   - `restores the last submitted run and records the last session` (L2-072 AC10)
   - `starts a run, shows Starting…, and opens the dashboard` (L2-072 AC11)
@@ -181,7 +181,7 @@ Unit tests in `src/app/core/`: `pace.spec.ts` (13.0, 0.4, `null`, and the averag
 ### Open questions
 
 - **Trace after a reload.** `GET /api/workout/trace` serves power only (L2-050), so the treadmill's *Actual* line and reported incline start again from the reload; the plan blocks are complete. Restoring them needs L2-050 to carry speed and incline, a requirement change.
-- **Preview rounding.** *Minute on*'s expected climb is exactly 34.5 m, and summing in floating point gives 34.4999…, which rounds to the `~34 m` of L2-072 criterion 8. The helper should round half to even so both orders of summation read 34; `<TO SUPPLY>` whether the requirement should instead state the rounding.
+- **Preview rounding.** *Minute on*'s expected climb is exactly 34.5 m. Summed one second at a time, as the engine sums ticks, it is 34.5000…1 m, which rounds to 35 under L2-064 criterion 10; the preview therefore reads `~35 m`, the figure the dashboard shows at the end of the run, and L2-072 criterion 8 states it.
 - **Heart rate.** The mocks show a heart rate, but `heart_rate` is always `null` and reads `--` `bpm` (ADR 0003, L2-071 criterion 7).
 - **Disconnect copy.** *Lost the Stride* assumes the treadmill stops its own belt when the link drops; it holds only after the hardware check of L2-043 criterion 5 (ADR 0010).
 - **Copy the requirements do not give.** The shut-off overlay, the reconnected banner and the recover phase detail keep the wording the current implementation uses (`Ride ended — the treadmill shut off`, `<label> is back. The run is paused at <t> — press Resume to start the belt again.`, `1:00 · next: Work at 13.0 km/h`); L2-071 should adopt or replace them.
