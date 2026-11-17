@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { Icon } from '@wattzup/components';
+import { Icon } from '../icon/icon';
 
 /** `Couldn't load your ride` in place of the dashboard (L2-058 AC7). */
 @Component({

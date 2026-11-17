@@ -1,11 +1,6 @@
 @let f = fields();
 @let err = errors();
-<wz-dialog-shell
-  dialogId="edit-stretch"
-  [heading]="heading"
-  [description]="description"
-  icon="sliders"
->
+<wz-dialog dialogId="edit-stretch" [heading]="heading" [description]="description" icon="sliders">
   <div class="edit-stretch">
     <div class="edit-stretch__grid">
       <wz-number-stepper
@@ -39,4 +34,4 @@
     <button class="btn" type="button" (click)="ref.close()">Cancel</button>
     <button class="btn btn--volt" type="button" [disabled]="!saved()" (click)="save()">Save</button>
   </div>
-</wz-dialog-shell>
+</wz-dialog>

@@ -1,4 +1,5 @@
 // The resistance panel's rules (L2-020, L2-047).
+import type { ControlsState } from '@wattzup/components';
 import type { BikeState } from '@wattzup/api';
 
 export const MIN_LEVEL = 1;
@@ -13,11 +14,7 @@ export function stepLevel(state: BikeState | null, delta: 1 | -1): number {
   return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, baseLevel(state) + delta));
 }
 
-export interface ControlsState {
-  lowerDisabled: boolean;
-  raiseDisabled: boolean;
-  pickerDisabled: boolean;
-}
+export type { ControlsState };
 
 export function controlsState(state: BikeState | null, commandsEnabled: boolean): ControlsState {
   if (!commandsEnabled) return { lowerDisabled: true, raiseDisabled: true, pickerDisabled: true };

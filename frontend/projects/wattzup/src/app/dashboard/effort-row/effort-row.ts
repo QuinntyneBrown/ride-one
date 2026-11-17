@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { formatPace } from '@wattzup/components';
 import { canStepSpeed, parseIncline, parseSpeed } from '../../core/treadmill-plan-form';
 import { Icon } from '@wattzup/components';
-import { inclineView, LevelPicker } from '../level-picker/level-picker';
+import { inclineView, LevelPicker } from '@wattzup/components';
 
 /**
  * One treadmill effort row, `Work`, `Recover` or Steady's `Hold`: a typable speed between

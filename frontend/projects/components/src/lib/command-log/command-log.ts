@@ -1,22 +1,22 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { CommandEntry, Machine } from '@wattzup/api';
-import { commandLabel, commandTime, statusText } from '../../core/command-log-view';
-import { machineWords } from '../../core/machine-words';
-import { epochClock } from '@wattzup/components';
+import { commandLabel, commandTime, statusText } from './command-log-view';
+import { epochClock } from '../format/local-time';
 
 /** "Sent to bike" or "Sent to treadmill": the last commands and their acknowledgement
  * (L2-048, L2-071 criterion 14). */
 @Component({
-  selector: 'wz-cmd-log',
-  templateUrl: './cmd-log.html',
-  styleUrl: './cmd-log.scss',
+  selector: 'wz-command-log',
+  templateUrl: './command-log.html',
+  styleUrl: './command-log.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CmdLog {
+export class CommandLog {
   readonly commands = input<readonly CommandEntry[]>([]);
   readonly connectionId = input<string | null>(null);
   readonly machine = input<Machine>('bike');
-  protected readonly title = computed(() => machineWords(this.machine()).panelTitle);
+  /** `Sent to bike` or `Sent to treadmill`. */
+  readonly title = input.required<string>();
 
   protected readonly entries = computed(() =>
     // The treadmill's log keeps the newest 4 (L2-071 AC12).

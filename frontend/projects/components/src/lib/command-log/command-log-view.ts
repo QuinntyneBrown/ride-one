@@ -1,6 +1,6 @@
 // The "Sent to bike" / "Sent to treadmill" entries (L2-048, L2-071 criterion 14).
 import type { CommandEntry } from '@wattzup/api';
-import { formatDuration } from '@wattzup/components';
+import { formatDuration } from '../format/format-duration';
 
 export function commandTime(
   entry: CommandEntry,

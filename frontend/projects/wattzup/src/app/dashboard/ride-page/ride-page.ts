@@ -26,12 +26,15 @@ import { TreadmillCommandService } from '../../core/treadmill-command.service';
 import {
   baseIncline,
   baseSpeed,
+  QUICK_SPEEDS,
   stepIncline,
   stepSpeed,
   treadmillControlsState,
   treadmillPlanNote,
 } from '../../core/treadmill-controls';
 import { inclineView, speedView } from '../../core/treadmill-view';
+import { machineWords } from '../../core/machine-words';
+import { stripOf } from '../../core/plan-strip';
 import {
   InclineControl,
   SpeedControl,
@@ -42,19 +45,22 @@ import {
   type MainView,
   MainViewTabs,
 } from '@wattzup/components';
-import { QuickSpeeds } from '../quick-speeds/quick-speeds';
-import { CmdLog } from '../cmd-log/cmd-log';
-import { LevelControl } from '../level-control/level-control';
-import { LevelPicker, inclineView as pickerView } from '../level-picker/level-picker';
+import {
+  QuickSpeeds,
+  CommandLog,
+  LevelControl,
+  LevelPicker,
+  inclineView as pickerView,
+  OverlayPanel,
+  MetricList,
+  PlanStrip,
+} from '@wattzup/components';
 import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
-import { RideOverlay } from '../ride-overlay/ride-overlay';
 import { RideTrace } from '../ride-trace/ride-trace';
 import { Interval } from '../interval/interval';
-import { MetricsStrip } from '../metrics-strip/metrics-strip';
 import { PhaseBanner } from '../phase-banner/phase-banner';
 import { VideoSync } from '../../core/video-sync.service';
-import { PlanStrip } from '../plan-strip/plan-strip';
 import { RideVideo } from '../ride-video/ride-video';
 
 /** Route `/`: the ride dashboard. */
@@ -64,18 +70,18 @@ import { RideVideo } from '../ride-video/ride-video';
     AppBar,
     NgTemplateOutlet,
     QuickSpeeds,
-    CmdLog,
+    CommandLog,
     ConnectionBanner,
     Icon,
     InclineControl,
     SpeedControl,
     EmptyState,
-    RideOverlay,
+    OverlayPanel,
     RideTrace,
     Interval,
     LevelControl,
     LevelPicker,
-    MetricsStrip,
+    MetricList,
     PhaseBanner,
     PlanNote,
     Readout,
@@ -181,6 +187,15 @@ export class RidePage {
     };
   });
   protected readonly treadmillCommands = inject(TreadmillCommandService);
+  protected readonly quickSpeeds = QUICK_SPEEDS;
+  protected readonly logTitle = {
+    bike: machineWords('bike').panelTitle,
+    treadmill: machineWords('treadmill').panelTitle,
+  };
+  protected readonly planStrip = computed(() => {
+    const w = this.workout();
+    return w ? stripOf(w.segments, w.elapsed_seconds, w.total_seconds) : null;
+  });
 
   protected stepSpeed(dir: 1 | -1): void {
     void this.treadmillCommands.setSpeed(stepSpeed(this.state(), dir));

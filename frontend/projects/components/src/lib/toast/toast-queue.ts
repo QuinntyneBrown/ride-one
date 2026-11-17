@@ -8,7 +8,7 @@ export interface ToastInput {
   action?: { label: string; run: () => void };
 }
 
-export interface Toast extends ToastInput {
+export interface ToastMessage extends ToastInput {
   id: number;
   /** Absolute expiry time, or null when paused or never expiring. */
   expiresAt: number | null;
@@ -17,7 +17,7 @@ export interface Toast extends ToastInput {
 }
 
 export interface ToastQueue {
-  visible: Toast[];
+  visible: ToastMessage[];
   waiting: ToastInput[];
   nextId: number;
 }
@@ -32,7 +32,7 @@ export function emptyQueue(): ToastQueue {
 const expires = (tone: ToastTone): boolean => tone === 'info' || tone === 'success';
 
 function show(q: ToastQueue, input: ToastInput, now: number): ToastQueue {
-  const toast: Toast = {
+  const toast: ToastMessage = {
     ...input,
     id: q.nextId,
     expiresAt: expires(input.tone) ? now + TOAST_LIFETIME_MS : null,

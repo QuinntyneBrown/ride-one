@@ -48,7 +48,7 @@
       }
       @case ('bike-shut-off') {
         <div class="cluster">
-          <a class="btn btn--volt" routerLink="/setup">Set up a new ride</a>
+          <a class="btn btn--volt" [routerLink]="setupLink()">Set up a new ride</a>
         </div>
       }
     }

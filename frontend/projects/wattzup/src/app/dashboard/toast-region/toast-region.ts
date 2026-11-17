@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ToastService } from '../../core/toast.service';
-import { Toast } from '../toast/toast';
+import { Toast } from '@wattzup/components';
 
 /** The single toast region, mounted in the root so toasts survive navigation (L2-053). */
 @Component({

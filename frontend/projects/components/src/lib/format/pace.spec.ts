@@ -1,4 +1,4 @@
-import { formatAvgPace, formatPace } from '@wattzup/components';
+import { formatAvgPace, formatPace } from './pace';
 
 describe('formatPace (L2-071 AC2)', () => {
   it.each([

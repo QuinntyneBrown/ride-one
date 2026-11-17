@@ -33,7 +33,7 @@
         <div class="trace-skeleton" aria-hidden="true">
           <span class="skeleton skeleton--rect skeleton--trace"></span>
         </div>
-        <wz-metrics-strip />
+        <wz-metric-list />
       } @else if (treadmill()) {
         <div class="readouts" [class.readouts--dimmed]="view().dimmed">
           @let sp = speed();
@@ -55,10 +55,11 @@
           <wz-interval [workout]="workout()" />
         </div>
         <ng-container [ngTemplateOutlet]="mainViewTpl" />
-        <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
+        <wz-metric-list [state]="state()" [dimmed]="view().dimmed" />
         @if (overlay(); as o) {
-          <wz-ride-overlay
+          <wz-overlay-panel
             [overlay]="o"
+            setupLink="/setup"
             [reconnecting]="actions.reconnecting()"
             (reconnect)="actions.reconnect()"
             (diagnostics)="dialogs.openDiagnostics()"
@@ -97,10 +98,11 @@
           <wz-interval [workout]="workout()" />
         </div>
         <ng-container [ngTemplateOutlet]="mainViewTpl" />
-        <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
+        <wz-metric-list [state]="state()" [dimmed]="view().dimmed" />
         @if (overlay(); as o) {
-          <wz-ride-overlay
+          <wz-overlay-panel
             [overlay]="o"
+            setupLink="/setup"
             [reconnecting]="actions.reconnecting()"
             (reconnect)="actions.reconnect()"
             (diagnostics)="dialogs.openDiagnostics()"
@@ -122,6 +124,7 @@
           (step)="stepSpeed($event)"
         />
         <wz-quick-speeds
+          [speeds]="quickSpeeds"
           [pressed]="tc.pressedQuick"
           [disabled]="tc.quickDisabled"
           (pick)="treadmillCommands.setSpeed($event)"
@@ -150,10 +153,11 @@
           (back)="commands.backToPlan()"
         />
         <div class="ride-aside__foot">
-          <wz-cmd-log
+          <wz-command-log
             [commands]="state()?.commands ?? []"
             [connectionId]="tt.deviceTail"
             machine="treadmill"
+            [title]="logTitle.treadmill"
           />
           @if (canSwitch()) {
             <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
@@ -184,9 +188,10 @@
           (back)="commands.backToPlan()"
         />
         <div class="ride-aside__foot">
-          <wz-cmd-log
+          <wz-command-log
             [commands]="state()?.commands ?? []"
             [connectionId]="state()?.connection_id ?? null"
+            [title]="logTitle.bike"
           />
           @if (canSwitch()) {
             <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
@@ -207,7 +212,7 @@
       <wz-main-view-tabs [(view)]="mainView" />
       <wz-ride-video [video]="v" [hidden]="mainView() !== 'video'" />
       @if (mainView() === 'video') {
-        <wz-plan-strip [workout]="workout()!" />
+        <wz-plan-strip [strip]="planStrip()!" />
       } @else {
         <div class="ride-view__chart" id="view-chart" role="tabpanel" aria-labelledby="tab-chart">
           <wz-ride-trace [state]="state()" [dimmed]="view().dimmed" />

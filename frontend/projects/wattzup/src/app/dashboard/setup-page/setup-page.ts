@@ -75,7 +75,7 @@ import {
   Switch,
 } from '@wattzup/components';
 import { EffortRow } from '../effort-row/effort-row';
-import { RidePreview } from '../ride-preview/ride-preview';
+import { RideProfile } from '@wattzup/components';
 import { SetList } from '../set-list/set-list';
 import { StatusLine } from '../status-line/status-line';
 import { VideoLink } from '../video-link/video-link';
@@ -120,7 +120,7 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
     RadioGroup,
     NumberStepper,
     Presets,
-    RidePreview,
+    RideProfile,
     RouterLink,
     SetList,
     StatusLine,

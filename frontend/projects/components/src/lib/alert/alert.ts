@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { Icon, type IconName } from '@wattzup/components';
+import { Icon, type IconName } from '../icon/icon';
 
 /** An inline alert or a full-width banner (block `alert`, `banner`). */
 @Component({

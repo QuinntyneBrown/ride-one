@@ -4,12 +4,12 @@ import type { ReplaceRideData } from '../../core/dialog-launcher';
 import { isTreadmillPlan } from '../../core/plan-expansion';
 import { WORKOUT_API } from '@wattzup/api';
 import { Alert } from '@wattzup/components';
-import { DialogShell } from '../dialog-shell/dialog-shell';
+import { Dialog } from '@wattzup/components';
 
 /** Replace the ride in progress? (L2-052), or the run on the treadmill (L2-071 criterion 15) */
 @Component({
   selector: 'wz-replace-ride-dialog',
-  imports: [Alert, DialogShell],
+  imports: [Alert, Dialog],
   templateUrl: './replace-ride-dialog.html',
   styleUrl: './replace-ride-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

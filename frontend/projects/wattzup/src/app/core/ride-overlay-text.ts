@@ -1,18 +1,9 @@
 // The copy of the ride overlays (L2-058 AC3–AC6, L2-071 criteria 14, 16 to 18).
 import type { BikeState } from '@wattzup/api';
 import { formatDuration } from '@wattzup/components';
-import type { RideOverlayKind } from './ride-view-state';
+import type { RideOverlayKind, RideOverlayText } from '@wattzup/components';
 
-export interface RideOverlayText {
-  kind: RideOverlayKind;
-  role: 'status' | 'alert' | null;
-  icon: 'bluetooth-off' | 'flag' | 'key' | null;
-  /** The belt countdown's 3, 2 or 1, shown large and hidden from assistive technology. */
-  count: number | null;
-  title: string;
-  lines: string[];
-  note: string | null;
-}
+export type { RideOverlayText };
 
 export function rideOverlayText(kind: RideOverlayKind, state: BikeState): RideOverlayText {
   return state.machine === 'treadmill'

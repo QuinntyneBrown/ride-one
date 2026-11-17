@@ -1,6 +1,14 @@
 // The "Your ride" panel values, from the same plan expansion as the backend (L2-059, L2-072).
 import type { HiitPlan, IntervalsPlan, Segment, SegmentKind, WorkoutPlan } from '@wattzup/api';
-import { formatDuration, formatPace } from '@wattzup/components';
+import {
+  type InclineProfile,
+  type ProfileBar,
+  type ProfileTone,
+  type RidePreview,
+  type SummaryRow,
+  formatDuration,
+  formatPace,
+} from '@wattzup/components';
 import { formatStart } from './video-link';
 import { kcalPerSecond } from './treadmill-energy';
 import { MAX_SPEED } from './treadmill-plan-form';
@@ -12,38 +20,7 @@ import {
   totalSeconds,
 } from './plan-expansion';
 
-export type ProfileTone = 'is-work' | 'is-rest' | 'is-easy';
-
-export interface ProfileBar {
-  x: number;
-  width: number;
-  y: number;
-  height: number;
-  tone: ProfileTone;
-}
-
-export interface SummaryRow {
-  term: string;
-  value: string;
-}
-
-/** What the panel shows, for either machine. */
-export interface RidePreview {
-  totalSeconds: number;
-  total: string;
-  structure: string;
-  timeUnderLoad: string | null;
-  profileLabel: string;
-  profile: ProfileBar[];
-  /** The profile's view box height: 32 for the bike, 193 (19.3 km/h × 10) for the run. */
-  profileHeight: number;
-  /** The run's incline profile; null on the bike. */
-  incline: InclineProfile | null;
-  /** `Your ride` or `Your run`. */
-  noun: 'ride' | 'run';
-  rows: SummaryRow[];
-  legend: ('work' | 'rest' | 'steady')[];
-}
+export type { InclineProfile, ProfileBar, ProfileTone, RidePreview, SummaryRow };
 
 export interface BikeRidePreview extends RidePreview {
   peakLevel: number;
@@ -54,15 +31,6 @@ export interface BikeRidePreview extends RidePreview {
 export interface TreadmillRidePreview extends RidePreview {
   topSpeed: number;
   distanceKm: number;
-}
-
-/** The incline profile under a run's speed profile: 0 to 10 % on the same time axis. */
-export interface InclineProfile {
-  label: string;
-  /** `x,y` points of the line, y = 10 − incline. */
-  line: string;
-  /** The line closed down to the axis. */
-  area: string;
 }
 
 /** The profile view box is 32 units high: a level is one unit, a km/h two (16 km/h fills it). */

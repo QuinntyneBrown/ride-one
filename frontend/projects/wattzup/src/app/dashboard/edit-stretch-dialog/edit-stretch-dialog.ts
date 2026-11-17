@@ -11,7 +11,7 @@ import {
   toStretch,
   validateStretch,
 } from '../../core/intervals-form';
-import { DialogShell } from '../dialog-shell/dialog-shell';
+import { Dialog } from '@wattzup/components';
 import { Slider, NumberStepper } from '@wattzup/components';
 
 const DESCRIPTIONS = {
@@ -22,7 +22,7 @@ const DESCRIPTIONS = {
 /** Warm-up or Cool-down: its length, resistance and cadence aim (L2-029 AC14, AC15). */
 @Component({
   selector: 'wz-edit-stretch-dialog',
-  imports: [DialogShell, Slider, NumberStepper],
+  imports: [Dialog, Slider, NumberStepper],
   templateUrl: './edit-stretch-dialog.html',
   styleUrl: './edit-stretch-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

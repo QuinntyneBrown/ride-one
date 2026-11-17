@@ -1,22 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { BikeState } from '@wattzup/api';
-import {
-  formatCount,
-  formatDistance,
-  formatLive,
-  formatSpeed,
-  formatAvgPace,
-} from '@wattzup/components';
+import { formatCount, formatDistance, formatLive, formatSpeed } from '../format/metric-format';
+import { formatAvgPace } from '../format/pace';
 
 /** Heart rate, avg power, speed, distance and energy; on the treadmill heart rate, avg pace,
  * distance, climbed and energy (L2-022, L2-071 criterion 7). */
 @Component({
-  selector: 'wz-metrics-strip',
-  templateUrl: './metrics-strip.html',
-  styleUrl: './metrics-strip.scss',
+  selector: 'wz-metric-list',
+  templateUrl: './metric-list.html',
+  styleUrl: './metric-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MetricsStrip {
+export class MetricList {
   readonly state = input<BikeState | null>(null);
   readonly dimmed = input(false);
   readonly treadmill = computed(() => this.state()?.machine === 'treadmill');

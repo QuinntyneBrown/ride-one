@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { Icon } from '@wattzup/components';
+import { Icon } from '../icon/icon';
 
 /** Lower incline and Raise incline around the target incline, of 10 % (L2-071 criterion 9). */
 @Component({

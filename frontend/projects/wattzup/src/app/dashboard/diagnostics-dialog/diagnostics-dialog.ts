@@ -5,13 +5,13 @@ import { diagnosticsReport, diagnosticsRows } from '../../core/diagnostics-repor
 import { LiveStateService } from '../../core/live-state.service';
 import { epochTime } from '@wattzup/components';
 import { TraceRendererStatus } from '../../core/trace-renderer-status';
-import { DialogShell } from '../dialog-shell/dialog-shell';
+import { Dialog } from '@wattzup/components';
 import { Icon } from '@wattzup/components';
 
 /** What Wattzup sees right now (L2-023). */
 @Component({
   selector: 'wz-diagnostics-dialog',
-  imports: [DialogShell, Icon],
+  imports: [Dialog, Icon],
   templateUrl: './diagnostics-dialog.html',
   styleUrl: './diagnostics-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
