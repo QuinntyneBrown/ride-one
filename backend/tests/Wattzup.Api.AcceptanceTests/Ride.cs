@@ -22,12 +22,12 @@ public static class Ride
     public static readonly object Descending = new
     {
         kind = "intervals",
-        warmup = new { seconds = 300, level = 8, cadence = 80 },
+        warmup = new { seconds = 300, level = 14, cadence = 80 },
         sets = new[] { 180, 150, 120, 90, 0 }.Select((rest, i) => new
         {
             rounds = i is 0 or 4 ? 1 : 2,
             work_seconds = 30,
-            work_level = 28,
+            work_level = 24,
             work_cadence = 100,
             rest_seconds = rest,
             rest_level = 8,

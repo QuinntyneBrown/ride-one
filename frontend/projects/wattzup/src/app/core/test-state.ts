@@ -83,11 +83,11 @@ export function testIntervalsPlan(): IntervalsPlan {
   return {
     kind: 'intervals',
     video: null,
-    warmup: { seconds: 300, level: 8, cadence: 80 },
+    warmup: { seconds: 300, level: 14, cadence: 80 },
     sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
       rounds: i === 0 || i === 4 ? 1 : 2,
       work_seconds: 30,
-      work_level: 28,
+      work_level: 24,
       work_cadence: 100,
       rest_seconds,
       rest_level: 8,

@@ -51,7 +51,7 @@ Every mock uses this cast.
   - **Presets:** Sprints 30/30, Minute on, Hill repeats, Norwegian 4×4; Steady: Hill walk, Easy run,
     Tempo. Quick speeds on the dashboard: 5, 8, 10, 12, 14, 16 km/h.
 - **Video ride-along** (*Training Setup* and *Ride Dashboard* frames, 2026-11-17): the Intervals plan
-  *Descending recoveries* (30:00, 8 efforts at level 28 and 100 rpm) with the video *GCN Training ·
+  *Descending recoveries* (30:00, 8 efforts at level 24 and 100 rpm) with the video *GCN Training ·
   30 Minute HIIT Cardio* (`https://www.youtube.com/watch?v=QUoToFsMNig`), its ride 0:00 lined up with
   0:12.0 of the video. The mid-ride moment is 11:42, *Work, round 3 of 8*, 0:18 left: 472 W against
   489 W, 97 rpm (aim 100), heart rate 162, avg power 172 W, 30.4 km/h, 4.61 km, 120 kcal. The invalid

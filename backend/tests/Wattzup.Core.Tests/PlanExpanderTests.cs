@@ -73,8 +73,8 @@ public sealed class PlanExpanderTests
 
     /// <summary>The Descending recoveries plan (L2-010 criterion 11).</summary>
     private static readonly IntervalsPlan Descending = new(
-        new Stretch(300, 8, 80),
-        [.. new[] { (1, 180), (2, 150), (2, 120), (2, 90), (1, 0) }.Select(s => new IntervalSet(s.Item1, 30, 28, 100, s.Item2, 8, 72))],
+        new Stretch(300, 14, 80),
+        [.. new[] { (1, 180), (2, 150), (2, 120), (2, 90), (1, 0) }.Select(s => new IntervalSet(s.Item1, 30, 24, 100, s.Item2, 8, 72))],
         new Stretch(360, 6, 70));
 
     [Fact]
@@ -84,8 +84,8 @@ public sealed class PlanExpanderTests
 
         Assert.Equal(17, segments.Count);
         Assert.Equal(1800, segments[^1].Start + segments[^1].Duration);
-        Assert.Equal(new Segment(SegmentKind.Warmup, 0, 300, 8, 80, null), segments[0]);
-        Assert.Equal(new Segment(SegmentKind.Work, 300, 30, 28, 100, 1), segments[1]);
+        Assert.Equal(new Segment(SegmentKind.Warmup, 0, 300, 14, 80, null), segments[0]);
+        Assert.Equal(new Segment(SegmentKind.Work, 300, 30, 24, 100, 1), segments[1]);
         Assert.Equal(new Segment(SegmentKind.Rest, 330, 180, 8, 72, 1), segments[2]);
         Assert.Equal(new Segment(SegmentKind.Cooldown, 1440, 360, 6, 70, null), segments[^1]);
     }

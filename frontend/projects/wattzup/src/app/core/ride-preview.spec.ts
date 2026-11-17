@@ -8,9 +8,9 @@ describe('previewOf (L2-059)', () => {
     expect(p.total).toBe('30:00');
     expect(p.structure).toBe('5 sets · 8 efforts');
     expect(p.timeUnderLoad).toBe('4:00');
-    expect(p.peakLevel).toBe(28);
-    expect(p.avgPower).toBe(174);
-    expect(p.kcal).toBe(312);
+    expect(p.peakLevel).toBe(24);
+    expect(p.avgPower).toBe(179);
+    expect(p.kcal).toBe(321);
     expect(p.legend).toEqual(['work', 'rest']);
     expect(p.profile).toHaveLength(17);
     expect(p.profileLabel).toBe('Resistance profile: 5 sets · 8 efforts');
