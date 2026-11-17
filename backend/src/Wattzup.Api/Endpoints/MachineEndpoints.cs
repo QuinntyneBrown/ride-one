@@ -29,7 +29,7 @@ public static class MachineEndpoints
         return api;
     }
 
-    private static async Task<IResult> ChooseAsync(HttpRequest request, IMachineControl control)
+    private static async Task<IResult> ChooseAsync(HttpRequest request, IMachineControl control, BikeStateStore store)
     {
         if (!JsonBody.IsJsonOrEmpty(request))
         {
@@ -50,6 +50,12 @@ public static class MachineEndpoints
         if (machine is not { } chosen)
         {
             return Problems.WithCode(StatusCodes.Status400BadRequest, "invalid_machine", "The machine is not valid.", new Dictionary<string, object?> { ["error"] = InvalidMachine });
+        }
+
+        if (chosen == Machine.Treadmill && !store.Current.TreadmillEnabled)
+        {
+            // Treadmill support is off (L2-075, L2-062 criterion 8).
+            return Problems.WithCode(StatusCodes.Status409Conflict, "machine_unavailable", "Treadmill support is off.");
         }
 
         return await control.ChooseAsync(chosen, request.HttpContext.RequestAborted) switch

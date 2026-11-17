@@ -135,7 +135,7 @@ public sealed class TreadmillControlTests
     [Fact]
     public async Task Given_the_bike_is_chosen_then_speed_and_incline_answer_409_wrong_machine()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
 
         using var speed = await bike.PostAsync("/api/speed", new { speed = 7.0 });
         using var incline = await bike.PostAsync("/api/incline", new { incline = 1 });
@@ -161,7 +161,7 @@ public sealed class TreadmillControlTests
     [Fact]
     public async Task Given_the_bike_is_connected_when_the_treadmill_is_chosen_then_the_backend_switches_and_connects_to_it()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
 
         using var response = await bike.PostAsync("/api/machine", new { machine = "treadmill" });
 
@@ -177,7 +177,7 @@ public sealed class TreadmillControlTests
     [Fact]
     public async Task Given_the_machine_changes_then_the_other_machines_fields_are_reset_before_the_scan()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
         await bike.Stream.AdvanceUntilAsync(bike.Factory.Time, s => s.GetProperty("cadence").ValueKind == JsonValueKind.Number, "a cadence", TimeSpan.FromSeconds(1));
 
         using var response = await bike.PostAsync("/api/machine", new { machine = "treadmill" });
@@ -210,7 +210,7 @@ public sealed class TreadmillControlTests
     [InlineData("")]
     public async Task Given_an_invalid_machine_then_the_answer_is_400_invalid_machine(string body)
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
 
         using var response = await bike.PostRawAsync("/api/machine", body);
 
@@ -223,7 +223,7 @@ public sealed class TreadmillControlTests
     [Fact]
     public async Task Given_a_workout_is_active_then_choosing_the_other_machine_answers_409_workout_active()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
         await Ride.StartAsync(bike, Ride.ShortHiit);
 
         using var response = await bike.PostAsync("/api/machine", new { machine = "treadmill" });

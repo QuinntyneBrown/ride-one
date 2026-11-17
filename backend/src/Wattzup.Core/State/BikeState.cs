@@ -123,4 +123,7 @@ public sealed record BikeState
 
     /// <summary>The Echelon machines heard while scanning, at most one per machine (L2-074); kept across a machine change.</summary>
     public IReadOnlyList<NearbyMachine> Nearby { get; init; } = [];
+
+    /// <summary>True when <c>Wattzup:Treadmill:Enabled</c> is on (L2-075); fixed at start-up.</summary>
+    public bool TreadmillEnabled { get; init; }
 }

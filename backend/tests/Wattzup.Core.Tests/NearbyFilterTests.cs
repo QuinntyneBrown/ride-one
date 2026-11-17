@@ -36,7 +36,7 @@ public sealed class NearbyFilterTests : IDisposable
     [Fact]
     public void A_bike_heard_while_the_treadmill_is_chosen_is_recorded_but_not_accepted()
     {
-        Assert.False(NearbyFilter.Build(Machine.Treadmill, _nearby)(BikeAd));
+        Assert.False(NearbyFilter.Build(Machine.Treadmill, _nearby, treadmillEnabled: true)(BikeAd));
 
         Assert.Equal([new NearbyMachine(Machine.Bike, "ECHEX-3", "ECHEX-3", -68, 3, 1_000)], Flushed());
     }
@@ -44,15 +44,24 @@ public sealed class NearbyFilterTests : IDisposable
     [Fact]
     public void A_treadmill_heard_while_the_treadmill_is_chosen_is_recorded_and_accepted()
     {
-        Assert.True(NearbyFilter.Build(Machine.Treadmill, _nearby)(TreadmillAd));
+        Assert.True(NearbyFilter.Build(Machine.Treadmill, _nearby, treadmillEnabled: true)(TreadmillAd));
 
         Assert.Equal([new NearbyMachine(Machine.Treadmill, "STRIDE-8s22", "Echelon Stride", -55, 4, 1_000)], Flushed());
     }
 
     [Fact]
+    public void A_treadmill_heard_while_treadmill_support_is_off_is_neither_recorded_nor_accepted()
+    {
+        Assert.False(NearbyFilter.Build(Machine.Bike, _nearby, treadmillEnabled: false)(TreadmillAd));
+        Assert.True(NearbyFilter.Build(Machine.Bike, _nearby, treadmillEnabled: false)(BikeAd));
+
+        Assert.Equal([Machine.Bike], Flushed().Select(m => m.Machine));
+    }
+
+    [Fact]
     public void A_device_that_is_not_an_Echelon_machine_is_neither()
     {
-        Assert.False(NearbyFilter.Build(Machine.Bike, _nearby)(Speaker));
+        Assert.False(NearbyFilter.Build(Machine.Bike, _nearby, treadmillEnabled: true)(Speaker));
 
         Assert.Empty(Flushed());
     }

@@ -100,7 +100,7 @@ public sealed partial class BikeConnectionService(
     {
         store.Update(s => s with { Ble = BleState.Scanning, Error = null });
         // The filter records every Echelon machine heard and accepts only the chosen one (L2-074).
-        var scan = transport.ScanAsync(NearbyFilter.Build(profile.Machine, nearby), _options.ScanTimeout, waitToken);
+        var scan = transport.ScanAsync(NearbyFilter.Build(profile.Machine, nearby, store.Current.TreadmillEnabled), _options.ScanTimeout, waitToken);
         store.Update(s => s.Adapter == AdapterState.On ? s : s with { Adapter = AdapterState.On });
         var advertisement = await scan.ConfigureAwait(false);
         if (advertisement is null)

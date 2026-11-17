@@ -51,6 +51,9 @@ builder.Services.AddWattzupRateLimits(security);
 builder.Services.Configure<WattzupOptions>(builder.Configuration.GetSection(WattzupOptions.SectionName));
 builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection(SecurityOptions.SectionName));
 builder.Services.AddHostedService<BindAddressGuard>();
+var treadmill = builder.Configuration.GetSection(TreadmillOptions.SectionName).Get<TreadmillOptions>() ?? new TreadmillOptions();
+builder.Services.Configure<TreadmillOptions>(builder.Configuration.GetSection(TreadmillOptions.SectionName));
+builder.Services.AddHostedService<TreadmillGuard>();
 builder.Services.AddSingleton<EventTokenService>();
 var keyed = !string.IsNullOrEmpty(security.ApiKey);
 if (keyed)
@@ -82,6 +85,7 @@ builder.Services.AddSingleton(sp =>
             BindAddress = facts.BindAddress,
             Exposed = facts.Exposed,
             Machine = options.ParsedMachine,
+            TreadmillEnabled = treadmill.Enabled,
         },
         sp.GetRequiredService<TimeProvider>(),
         displayNames);

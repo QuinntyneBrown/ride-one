@@ -1,7 +1,7 @@
 // Records real API responses from the backend running with the simulated bike and treadmill into
 // e2e/fixtures/recorded/, so the Playwright stubs keep the backend's exact shapes (AGENTS.md, E2E).
-// Recording is never part of a test run. Start the backend first:
-//   dotnet run --project backend/src/Wattzup.Api -- --simulate
+// Recording is never part of a test run. Start the backend first, with treadmill support on (L2-075):
+//   dotnet run --project backend/src/Wattzup.Api -- --simulate --Wattzup:Treadmill:Enabled=true
 // then: npm run record:api [-- http://127.0.0.1:8787]
 // The recorder switches the backend to the simulated treadmill and back to the bike before it ends.
 import { mkdirSync, writeFileSync } from 'node:fs';

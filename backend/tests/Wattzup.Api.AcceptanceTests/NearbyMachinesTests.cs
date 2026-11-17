@@ -22,7 +22,7 @@ public sealed class NearbyMachinesTests
     /// <summary>A host whose chosen bike is silent, so it keeps scanning and hears only the treadmill.</summary>
     private static async Task<Bike> ScanningAsync(WattzupApiFactory? factory = null)
     {
-        factory ??= new WattzupApiFactory();
+        factory ??= TreadmillConnectionTests.BikeWithTreadmill();
         var bike = await Bike.StartAsync(factory, connected: false);
         factory.Simulation.Silence(SimulatedBikeTransport.DeviceName);
         factory.Simulation.PoweredOn = true;
@@ -32,7 +32,7 @@ public sealed class NearbyMachinesTests
     [Fact]
     public async Task Given_the_simulator_then_nearby_lists_the_bike_and_the_treadmill_with_their_signal()
     {
-        await using var bike = await Bike.StartAsync(connected: false);
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill(), connected: false);
         bike.Factory.Simulation.PoweredOn = true;
 
         var state = await AdvanceUntilAsync(bike, s => Nearby(s).Length == 2, "both machines nearby");
@@ -53,7 +53,7 @@ public sealed class NearbyMachinesTests
     [Fact]
     public async Task Given_the_treadmill_display_name_then_its_nearby_label_is_that_name()
     {
-        await using var bike = await ScanningAsync(new WattzupApiFactory(new Dictionary<string, string?> { ["Wattzup:Treadmill:DisplayName"] = "Hall treadmill" }));
+        await using var bike = await ScanningAsync(TreadmillConnectionTests.BikeWithTreadmill(new Dictionary<string, string?> { ["Wattzup:Treadmill:DisplayName"] = "Hall treadmill" }));
 
         var state = await AdvanceUntilAsync(bike, s => Entry(s, "treadmill") is not null, "the treadmill nearby");
 
@@ -77,7 +77,7 @@ public sealed class NearbyMachinesTests
     [Fact]
     public async Task Given_the_chosen_machine_connects_then_its_entry_stays_and_the_other_machine_is_never_connected()
     {
-        await using var bike = await Bike.StartAsync();
+        await using var bike = await Bike.StartAsync(TreadmillConnectionTests.BikeWithTreadmill());
         await AdvanceUntilAsync(bike, s => Nearby(s).Length == 2, "both machines nearby");
 
         var state = await AdvanceUntilAsync(bike, s => Entry(s, "treadmill") is null, "the treadmill gone", maxSeconds: 35);

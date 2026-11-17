@@ -51,4 +51,7 @@ public sealed class TreadmillOptions
 
     /// <summary>Shown as <c>device_label</c> once the treadmill is selected; empty uses the advertised name.</summary>
     public string? DisplayName { get; set; } = DefaultDisplayName;
+
+    /// <summary>Turns treadmill support on; off by default until the Stride answers over Bluetooth (L2-075, ADR 0011).</summary>
+    public bool Enabled { get; set; }
 }

@@ -340,6 +340,7 @@ export interface components {
             /** Format: int32 */
             climb_m: null | number;
             nearby: components["schemas"]["NearbyMachine"][];
+            treadmill_enabled: boolean;
         };
         /** @enum {unknown} */
         BleState: "starting" | "scanning" | "connecting" | "connected" | "disconnected" | "error";
