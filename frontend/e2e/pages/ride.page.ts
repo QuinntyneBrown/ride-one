@@ -112,6 +112,14 @@ export class RidePage {
   readonly lowerInclineButton: Locator;
   readonly raiseInclineButton: Locator;
   readonly treadmillPlanNote: Locator;
+  readonly treadmillBackToPlan: Locator;
+  readonly speedControlNote: Locator;
+  readonly inclineControlNote: Locator;
+  readonly quickSpeeds: Locator;
+  readonly inclinePicker: Locator;
+  readonly inclinePickerBars: Locator;
+  readonly treadmillCommandTitle: Locator;
+  readonly treadmillCommandLink: Locator;
   readonly treadmillCommandEntries: Locator;
 
   constructor(
@@ -221,15 +229,25 @@ export class RidePage {
     this.inclineSub = this.incline.locator('.readout__sub span');
     this.treadmillAside = page.getByRole('complementary', { name: 'Treadmill control' });
     this.treadmillAsideTitle = this.treadmillAside.locator('h2');
-    this.speedControl = this.treadmillAside.getByRole('group', { name: 'Speed' });
+    this.speedControl = this.treadmillAside.getByRole('group', { name: 'Speed', exact: true });
     this.speedControlValue = this.speedControl.locator('.numeral');
-    this.inclineControl = this.treadmillAside.getByRole('group', { name: 'Incline' });
+    this.inclineControl = this.treadmillAside.getByRole('group', { name: 'Incline', exact: true });
     this.inclineControlValue = this.inclineControl.locator('.numeral');
-    this.lowerSpeedButton = this.treadmillAside.getByRole('button', { name: 'Lower speed' });
-    this.raiseSpeedButton = this.treadmillAside.getByRole('button', { name: 'Raise speed' });
+    this.lowerSpeedButton = this.treadmillAside.getByRole('button', { name: 'Slower' });
+    this.raiseSpeedButton = this.treadmillAside.getByRole('button', { name: 'Faster' });
+    this.speedControlNote = this.speedControl.locator('small');
+    this.inclineControlNote = this.inclineControl.locator('.incline-control__readout > small');
+    this.quickSpeeds = this.treadmillAside
+      .getByRole('group', { name: 'Jump to a speed' })
+      .getByRole('button');
+    this.inclinePicker = this.treadmillAside.getByRole('slider', { name: 'Pick an incline' });
+    this.inclinePickerBars = this.inclinePicker.locator('.level-picker__bar');
+    this.treadmillCommandTitle = this.treadmillAside.locator('.cmd-log h3');
+    this.treadmillCommandLink = this.treadmillAside.locator('.cmd-log__head code');
     this.lowerInclineButton = this.treadmillAside.getByRole('button', { name: 'Lower incline' });
     this.raiseInclineButton = this.treadmillAside.getByRole('button', { name: 'Raise incline' });
     this.treadmillPlanNote = this.treadmillAside.locator('.plan-note');
+    this.treadmillBackToPlan = this.treadmillPlanNote.getByRole('button', { name: 'Back to plan' });
     this.treadmillCommandEntries = this.treadmillAside
       .getByRole('region', { name: 'Sent to treadmill' })
       .locator('li');
@@ -277,6 +295,13 @@ export class RidePage {
   }
 
   /** The value of the totals-strip metric with this term, e.g. `Avg power`. */
+  /** A quick speed chip, `5` to `16` (L2-071 AC8). */
+  quickSpeed(speed: string): Locator {
+    return this.treadmillAside
+      .getByRole('group', { name: 'Jump to a speed' })
+      .getByRole('button', { name: speed, exact: true });
+  }
+
   metric(term: string): Locator {
     return this.metrics
       .locator('div', { has: this.page.locator('dt', { hasText: term }) })

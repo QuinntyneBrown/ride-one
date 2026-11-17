@@ -19,13 +19,16 @@ export class CmdLog {
   protected readonly title = computed(() => machineWords(this.machine()).panelTitle);
 
   protected readonly entries = computed(() =>
-    this.commands().map((c, i) => ({
-      key: `${c.at}-${c.level}-${i}`,
-      time: commandTime(c, epochClock),
-      label: commandLabel(c),
-      source: c.source,
-      status: c.status,
-      text: statusText(c),
-    })),
+    // The treadmill's log keeps the newest 4 (L2-071 AC12).
+    (this.machine() === 'treadmill' ? this.commands().slice(0, 4) : this.commands()).map(
+      (c, i) => ({
+        key: `${c.at}-${c.level}-${i}`,
+        time: commandTime(c, epochClock),
+        label: commandLabel(c),
+        source: c.source,
+        status: c.status,
+        text: statusText(c),
+      }),
+    ),
   );
 }

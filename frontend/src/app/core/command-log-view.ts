@@ -15,7 +15,7 @@ export function commandLabel(entry: CommandEntry): string {
     case 'speed':
       return `SPD ${entry.value.toFixed(1)}`;
     case 'incline':
-      return `INC ${entry.value}`;
+      return `INC ${entry.value}%`;
     default:
       return `RES ${entry.level ?? entry.value}`;
   }

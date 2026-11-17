@@ -128,19 +128,37 @@
     </main>
     @if (treadmill()) {
       <aside class="ride-aside" aria-label="Treadmill control">
-        <h2 class="label">Speed and incline</h2>
         @let tc = treadmillControls();
+        @let tt = treadmillTargets();
+        <h2 class="label" id="speed-label">Speed</h2>
         <wz-speed-control
-          [valueText]="speed().valueText"
+          labelledBy="speed-label"
+          [valueText]="tt.speedText"
+          [noteText]="tt.speedNote"
           [lowerDisabled]="tc.lowerSpeedDisabled"
           [raiseDisabled]="tc.raiseSpeedDisabled"
           (step)="stepSpeed($event)"
         />
+        <wz-quick-speeds
+          [pressed]="tc.pressedQuick"
+          [disabled]="tc.quickDisabled"
+          (pick)="treadmillCommands.setSpeed($event)"
+        />
+        <h2 class="label ride-aside__section" id="incline-label">Incline</h2>
         <wz-incline-control
-          [valueText]="incline().valueText"
+          labelledBy="incline-label"
+          [valueText]="tt.inclineText"
           [lowerDisabled]="tc.lowerInclineDisabled"
           [raiseDisabled]="tc.raiseInclineDisabled"
           (step)="stepIncline($event)"
+        />
+        <wz-level-picker
+          label="Pick an incline"
+          [incline]="true"
+          [view]="tt.inclinePicker"
+          [valueText]="tt.inclineText + '% of 10%'"
+          [disabled]="tc.pickerDisabled"
+          (pick)="treadmillCommands.setIncline($event)"
         />
         @let tnote = treadmillNote();
         <wz-plan-note
@@ -152,7 +170,7 @@
         <div class="ride-aside__foot">
           <wz-cmd-log
             [commands]="state()?.commands ?? []"
-            [connectionId]="state()?.connection_id ?? null"
+            [connectionId]="tt.deviceTail"
             machine="treadmill"
           />
           @if (canSwitch()) {

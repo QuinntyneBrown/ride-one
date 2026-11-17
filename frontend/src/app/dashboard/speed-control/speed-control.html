@@ -1,22 +1,20 @@
-<div class="speed-control" role="group" aria-labelledby="speed-control-label">
+<div class="speed-control" role="group" [attr.aria-labelledby]="labelledBy()">
   <button
     class="step-btn"
     type="button"
-    aria-label="Lower speed"
+    aria-label="Slower"
     [disabled]="lowerDisabled()"
     (click)="step.emit(-1)"
   >
     <wz-icon name="minus" size="lg" />
   </button>
-  <div class="speed-control__readout">
-    <span class="speed-control__label" id="speed-control-label">Speed</span
-    ><span class="numeral" aria-live="polite">{{ valueText() }}</span
-    ><small>km/h</small>
+  <div class="speed-control__readout speed-control__readout--hero">
+    <span class="numeral" aria-live="polite">{{ valueText() }}</span><small>{{ noteText() }}</small>
   </div>
   <button
     class="step-btn"
     type="button"
-    aria-label="Raise speed"
+    aria-label="Faster"
     [disabled]="raiseDisabled()"
     (click)="step.emit(1)"
   >

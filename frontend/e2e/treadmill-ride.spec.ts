@@ -113,7 +113,7 @@ test.describe('Treadmill dashboard: readouts and controls (L2-071)', () => {
     await expect(ride.metric('Avg pace')).toHaveText('–:––/km');
   });
 
-  test('keeps the Speed and incline panel in place of the resistance panel', async ({
+  test('shows the Speed and Incline sections in place of the resistance panel', async ({
     page,
     api,
     events,
@@ -121,38 +121,123 @@ test.describe('Treadmill dashboard: readouts and controls (L2-071)', () => {
     const ride = new RidePage(page, api, events);
     await ride.open(treadmillState());
     await expect(ride.aside).toHaveCount(0);
-    await expect(ride.treadmillAsideTitle).toHaveText('Speed and incline');
+    await expect(ride.treadmillAsideTitle).toHaveText(['Speed', 'Incline']);
     await expect(ride.speedControlValue).toHaveText('9.0');
-    await expect(ride.inclineControlValue).toHaveText('0');
+    await expect(ride.inclineControlValue).toHaveText('0%');
   });
 
-  test('steps speed by 0.5 and incline by 1, disabled at their limits', async ({
+  test('steps speed by 0.5 from the target and sends a quick speed', async ({
     page,
     api,
     events,
   }) => {
     api.on('POST', '/api/speed', { json: speedSent });
-    api.on('POST', '/api/incline', { json: inclineSent });
     const ride = new RidePage(page, api, events);
-    await ride.open(treadmillState({ incline: 2, target_incline: 2 }));
+    await ride.open(treadmillState({ speed_kmh: 7, target_speed: 9 }));
+    await expect(ride.speedControlValue).toHaveText('9.0');
+    await expect(ride.speedControlNote).toHaveText('km/h target · 6:40 /km');
     await ride.raiseSpeedButton.click();
     await ride.lowerSpeedButton.click();
+    await ride.quickSpeed('12').click();
+    const speeds = await api.waitForCall('POST', '/api/speed', 3);
+    expect(speeds.map((c) => c.body)).toEqual([{ speed: 9.5 }, { speed: 8.5 }, { speed: 12 }]);
+    await expect(ride.quickSpeeds).toHaveText(['5', '8', '10', '12', '14', '16']);
+
+    await ride.push(treadmillState({ target_speed: 10, speed_kmh: 10 }));
+    await expect(ride.quickSpeed('10')).toHaveAttribute('aria-pressed', 'true');
+    await expect(ride.quickSpeed('12')).toHaveAttribute('aria-pressed', 'false');
+
+    await ride.push(treadmillState({ target_speed: null }));
+    await ride.raiseSpeedButton.click();
+    await expect.poll(() => api.calls('POST', '/api/speed').at(-1)?.body).toEqual({ speed: 9.5 });
+
+    await ride.push(treadmillState({ speed_kmh: 19.3, target_speed: 19.3 }));
+    await expect(ride.raiseSpeedButton).toBeDisabled();
+    await expect(ride.lowerSpeedButton).toBeEnabled();
+    await ride.push(treadmillState({ speed_kmh: 0.8, target_speed: 0.8 }));
+    await expect(ride.lowerSpeedButton).toBeDisabled();
+  });
+
+  test('steps the incline by 1 and picks it from the bars', async ({ page, api, events }) => {
+    api.on('POST', '/api/incline', { json: inclineSent });
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState({ incline: 1, target_incline: 2 }));
+    await expect(ride.inclineControlValue).toHaveText('2%');
+    await expect(ride.inclineControlNote).toHaveText('of 10%');
+    await expect(ride.inclinePicker).toHaveAttribute('aria-valuenow', '2');
+    await expect(ride.inclinePicker).toHaveAttribute('aria-valuetext', '2% of 10%');
+    await expect(ride.inclinePickerBars).toHaveCount(11);
+    await expect(ride.inclinePicker.locator('.is-lit')).toHaveCount(3);
     await ride.raiseInclineButton.click();
     await ride.lowerInclineButton.click();
-    const speeds = await api.waitForCall('POST', '/api/speed', 2);
-    expect(speeds.map((c) => c.body)).toEqual([{ speed: 9.5 }, { speed: 8.5 }]);
-    const inclines = await api.waitForCall('POST', '/api/incline', 2);
-    expect(inclines.map((c) => c.body)).toEqual([{ incline: 3 }, { incline: 1 }]);
+    await ride.inclinePicker.press('ArrowRight');
+    const inclines = await api.waitForCall('POST', '/api/incline', 3);
+    expect(inclines.map((c) => c.body)).toEqual([{ incline: 3 }, { incline: 1 }, { incline: 3 }]);
 
-    await ride.push(treadmillIdle({ target_speed: null }));
+    await ride.push(treadmillState({ incline: 0, target_incline: 0 }));
     await expect(ride.lowerInclineButton).toBeDisabled();
-    await ride.raiseSpeedButton.click();
-    await expect.poll(() => api.calls('POST', '/api/speed').at(-1)?.body).toEqual({ speed: 7.5 });
-
-    await ride.push(treadmillState({ speed_kmh: 19.3, target_speed: 19.3, incline: 10 }));
-    await expect(ride.raiseSpeedButton).toBeDisabled();
+    await ride.push(treadmillState({ incline: 10, target_incline: 10 }));
     await expect(ride.raiseInclineButton).toBeDisabled();
-    await expect(ride.lowerSpeedButton).toBeEnabled();
+  });
+
+  test('disables speed and incline until the belt runs', async ({ page, api, events }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillIdle());
+    for (const control of [
+      ride.lowerSpeedButton,
+      ride.raiseSpeedButton,
+      ride.lowerInclineButton,
+      ride.raiseInclineButton,
+      ride.quickSpeed('8'),
+    ]) {
+      await expect(control).toBeDisabled();
+    }
+    await expect(ride.inclinePicker).toHaveAttribute('aria-disabled', 'true');
+    await expect(ride.treadmillPlanNote).toHaveText(
+      'Speed and incline controls wake up once the belt is running.',
+    );
+    await ride.push(
+      treadmillState({ belt: 'stopped', workout: treadmillWorkout({ status: 'paused' }) }),
+    );
+    await expect(ride.raiseSpeedButton).toBeDisabled();
+    await expect(ride.treadmillPlanNote).not.toContainText('wake up');
+  });
+
+  test('words the plan note and offers Back to plan in manual mode', async ({
+    page,
+    api,
+    events,
+  }) => {
+    api.on('POST', '/api/workout/back-to-plan', { json: { workout: treadmillWorkout() } });
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState());
+    await expect(ride.treadmillPlanNote).toHaveText(
+      'Following the plan — speed and incline change with each interval.',
+    );
+    await ride.push(
+      treadmillState({ target_speed: 11, workout: treadmillWorkout({ mode: 'manual' }) }),
+    );
+    await expect(ride.treadmillPlanNote).toContainText(
+      'Manual speed. Plan takes over next interval.',
+    );
+    await ride.push(
+      treadmillState({ target_incline: 3, workout: treadmillWorkout({ mode: 'manual' }) }),
+    );
+    await expect(ride.treadmillPlanNote).toContainText(
+      'Manual incline. Plan takes over next interval.',
+    );
+    await ride.push(
+      treadmillState({
+        target_speed: 11,
+        target_incline: 3,
+        workout: treadmillWorkout({ mode: 'manual' }),
+      }),
+    );
+    await expect(ride.treadmillPlanNote).toContainText(
+      'Manual speed and incline. Plan takes over next interval.',
+    );
+    await ride.treadmillBackToPlan.click();
+    await api.waitForCall('POST', '/api/workout/back-to-plan');
   });
 
   test('disables the controls with a note until the treadmill connects', async ({
@@ -374,19 +459,22 @@ test.describe('Treadmill dashboard: dialogs, phase and log (L2-071)', () => {
     expect((await audio.tones()).length).toBeGreaterThan(0);
   });
 
-  test('titles the log Sent to treadmill and reads SPD and INC entries', async ({
+  test('titles the log Sent to treadmill with the newest 4 SPD and INC entries', async ({
     page,
     api,
     events,
   }) => {
     const ride = new RidePage(page, api, events);
     await ride.open(treadmillState());
+    await expect(ride.treadmillCommandTitle).toHaveText('Sent to treadmill');
+    await expect(ride.treadmillCommandLink).toHaveText('BLE · 000766');
     await expect(ride.treadmillCommandEntries).toHaveText([
-      '7:00INC 0 · planack 46ms',
+      '7:00INC 0% · planack 46ms',
       '7:00SPD 9.0 · planack 612ms',
-      '6:40INC 0 · planack 44ms',
+      '6:40INC 0% · planack 44ms',
       '6:40SPD 7.0 · planack 588ms',
-      '6:00INC 0 · planack 47ms',
     ]);
+    await ride.push(treadmillState({ commands: [] }));
+    await expect(ride.treadmillCommandEntries).toHaveText(['No commands yet this session.']);
   });
 });

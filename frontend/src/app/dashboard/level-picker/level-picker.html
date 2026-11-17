@@ -4,7 +4,7 @@
   [class.level-picker--incline]="incline()"
   role="slider"
   [attr.id]="fieldId()"
-  [attr.aria-label]="labelledBy() ? null : 'Resistance level'"
+  [attr.aria-label]="labelledBy() ? null : label()"
   [attr.aria-labelledby]="labelledBy()"
   aria-orientation="horizontal"
   [attr.aria-valuemin]="range().min"

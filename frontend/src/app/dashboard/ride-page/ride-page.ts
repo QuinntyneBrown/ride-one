@@ -23,6 +23,8 @@ import { resistanceView } from '../../core/resistance-view';
 import { rideViewState } from '../../core/ride-view-state';
 import { TreadmillCommandService } from '../../core/treadmill-command.service';
 import {
+  baseIncline,
+  baseSpeed,
   stepIncline,
   stepSpeed,
   treadmillControlsState,
@@ -31,10 +33,12 @@ import {
 import { inclineView, speedView } from '../../core/treadmill-view';
 import { InclineControl } from '../incline-control/incline-control';
 import { SpeedControl } from '../speed-control/speed-control';
+import { QuickSpeeds } from '../quick-speeds/quick-speeds';
+import { formatPace } from '../../core/pace';
 import { Icon } from '../icon/icon';
 import { CmdLog } from '../cmd-log/cmd-log';
 import { LevelControl } from '../level-control/level-control';
-import { LevelPicker } from '../level-picker/level-picker';
+import { LevelPicker, inclineView as pickerView } from '../level-picker/level-picker';
 import { PlanNote } from '../plan-note/plan-note';
 import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
@@ -55,6 +59,7 @@ import { RideVideo } from '../ride-video/ride-video';
   selector: 'wz-ride-page',
   imports: [
     AppBar,
+    QuickSpeeds,
     CmdLog,
     ConnectionBanner,
     Icon,
@@ -155,8 +160,21 @@ export class RidePage {
     treadmillControlsState(this.state(), this.view().commandsEnabled),
   );
   protected readonly treadmillNote = computed(() => {
-    const note = this.view().controlsNote;
+    const note = this.view().controlsNote ?? this.treadmillControls().note;
     return note ? { text: note, backToPlan: false } : treadmillPlanNote(this.state());
+  });
+  /** The panel's target speed and incline, and the device tail for the log (L2-071 AC8, 9, 12). */
+  protected readonly treadmillTargets = computed(() => {
+    const s = this.state();
+    const speed = baseSpeed(s);
+    const incline = baseIncline(s);
+    return {
+      speedText: speed.toFixed(1),
+      speedNote: `km/h target · ${formatPace(speed)} /km`,
+      inclineText: String(incline),
+      inclinePicker: pickerView(incline),
+      deviceTail: s?.device ? s.device.slice(-6) : null,
+    };
   });
   protected readonly treadmillCommands = inject(TreadmillCommandService);
 

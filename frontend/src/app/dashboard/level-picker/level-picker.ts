@@ -38,6 +38,8 @@ export class LevelPicker {
   readonly fieldId = input<string | null>(null);
   /** The id of the visible label; without it the slider is named `Resistance level`. */
   readonly labelledBy = input<string | null>(null);
+  /** The accessible name when there is no visible label; `Resistance level` by default. */
+  readonly label = input('Resistance level');
   /** Overrides the bike's `Level <n> of 32`. */
   readonly valueText = input<string | null>(null);
   readonly pick = output<number>();
