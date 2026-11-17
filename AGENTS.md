@@ -58,12 +58,15 @@ wattzup/
 │       ├── Wattzup.Protocol.Tests/        # unit tests, one case per table row
 │       ├── Wattzup.Core.Tests/
 │       └── Wattzup.Api.AcceptanceTests/   # ATDD through the API, WebApplicationFactory
-├── frontend/                              # ALL frontend code: the Angular app `wattzup`
-│   ├── src/app/
-│   │   ├── api/                           # generated from /openapi/v1.json, never hand-edited
-│   │   ├── core/                          # services and pure helpers, with unit tests
-│   │   ├── dashboard/                     # components (name.ts + name.html + name.scss)
-│   │   └── app.config.ts                  # composition root
+├── frontend/                              # ALL frontend code: one Angular workspace
+│   ├── projects/
+│   │   └── wattzup/                       # the application
+│   │       └── src/app/
+│   │           ├── api/                   # generated from /openapi/v1.json, never hand-edited
+│   │           ├── core/                  # services and pure helpers, with unit tests
+│   │           ├── dashboard/             # components (name.ts + name.html + name.scss)
+│   │           └── app.config.ts          # composition root
+│   ├── public/                            # fonts and images, copied into the app's build
 │   ├── e2e/                               # Playwright: fixtures/, pages/ (page objects), specs
 │   ├── scripts/                           # bundle-size check, API recording
 │   └── proxy.conf.json                    # /api → 127.0.0.1:8787 during ng serve

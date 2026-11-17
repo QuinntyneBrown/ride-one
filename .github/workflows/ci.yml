@@ -90,4 +90,4 @@ jobs:
         run: |
           npm ci
           npm run generate:api
-          git diff --exit-code -- src/app/api
+          git diff --exit-code -- projects/wattzup/src/app/api
