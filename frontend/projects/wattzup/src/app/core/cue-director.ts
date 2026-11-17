@@ -9,6 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import type { PhaseBannerView } from '@wattzup/components';
 import { countdownCue } from './countdown-cue';
 import { CountdownService } from './countdown.service';
 import { CueService } from './cue.service';
@@ -18,12 +19,7 @@ import { SegmentChangeDetector } from './segment-change-detector';
 
 export const BANNER_MS = 1800;
 
-export interface PhaseBannerView {
-  id: number;
-  headline: string;
-  detail: string;
-  rest: boolean;
-}
+export type { PhaseBannerView };
 
 @Injectable()
 export class CueDirector implements OnDestroy {

@@ -9,7 +9,7 @@
       <span class="lockup__word">wattzup</span>
     </a>
     <span class="app-bar__divider" aria-hidden="true"></span>
-    <wz-status-line />
+    <wz-status-line [status]="status()" [reducedMotion]="reducedMotion()" />
     @if (canSwitch()) {
       <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
         ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
@@ -263,7 +263,7 @@
         }
       </div>
     </main>
-    <wz-ride-preview
+    <wz-ride-profile
       [preview]="previewWithVideo()"
       [valid]="!links().length"
       [machineNoun]="treadmill() ? 'run' : 'ride'"
@@ -318,6 +318,6 @@
           {{ startHint() }}
         </p>
       }
-    </wz-ride-preview>
+    </wz-ride-profile>
   </div>
 </div>

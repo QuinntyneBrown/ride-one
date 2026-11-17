@@ -17,6 +17,8 @@ import { planVideo } from '../../core/video-link';
 import { LiveStateService } from '../../core/live-state.service';
 import { MachineHistoryStore } from '../../core/machine-history.store';
 import { setupLead } from '../../core/machine-words';
+import { liveConnectionStatus } from '../../core/connection-status';
+import { MotionPreference } from '../../core/motion-preference';
 import { planSummary } from '../../core/plan-expansion';
 import { PlanDraftStore } from '../../core/plan-draft.store';
 import {
@@ -74,10 +76,10 @@ import {
   Presets,
   Switch,
   SetList,
+  RideProfile,
+  StatusLine,
 } from '@wattzup/components';
 import { EffortRow } from '../effort-row/effort-row';
-import { RidePreview } from '../ride-preview/ride-preview';
-import { StatusLine } from '../status-line/status-line';
 import { VideoLink } from '../video-link/video-link';
 
 /** The input id of each draft field; the form summary links to them. */
@@ -120,7 +122,7 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
     RadioGroup,
     NumberStepper,
     Presets,
-    RidePreview,
+    RideProfile,
     RouterLink,
     SetList,
     StatusLine,
@@ -139,6 +141,8 @@ export class SetupPage {
   private readonly dialogs = inject(DialogLauncher);
   private readonly actions = inject(RideActions);
   private readonly router = inject(Router);
+  protected readonly status = liveConnectionStatus();
+  protected readonly reducedMotion = inject(MotionPreference).reduced;
   private readonly summary = viewChild(FormSummary);
 
   /** The machine the state reports; changes only when the value does. */

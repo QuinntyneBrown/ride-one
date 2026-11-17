@@ -10,7 +10,7 @@
   @if (view().view === 'loading') {
     <span class="skeleton skeleton--status" aria-hidden="true"></span>
   } @else {
-    <wz-status-line />
+    <wz-status-line [status]="status()" [reducedMotion]="reducedMotion()" />
   }
   @if (workout(); as w) {
     <a
@@ -37,7 +37,7 @@
     @if (view().view === 'loading') {
       <span class="skeleton skeleton--clock" aria-hidden="true"></span>
     } @else {
-      <wz-ride-clock [workout]="workout()" />
+      <wz-ride-clock [elapsed]="countdown.elapsedText()" [total]="total()" />
     }
     @if (paused()) {
       <button

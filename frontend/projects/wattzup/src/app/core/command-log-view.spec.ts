@@ -1,4 +1,4 @@
-import { commandLabel, commandTime, statusText } from './command-log-view';
+import { commandLabel, commandLogView, commandTime, statusText } from './command-log-view';
 
 describe('command-log-view (L2-048)', () => {
   const at = (o: object) =>
@@ -35,5 +35,40 @@ describe('command-log-view (L2-048)', () => {
     [{ command: 'incline', level: null, value: 2 }, 'INC 2%'],
   ])('labels %j as %s', (o, label) => {
     expect(commandLabel(at(o))).toBe(label);
+  });
+});
+
+describe('commandLogView (L2-048, L2-071 AC12)', () => {
+  const entry = (i: number) =>
+    ({
+      at: i,
+      ride_seconds: 421,
+      level: 18,
+      source: 'plan',
+      status: 'ack',
+      ack_ms: 40,
+      command: 'resistance',
+      value: 18,
+    }) as const;
+  const commands = [0, 1, 2, 3, 4, 5].map(entry);
+
+  it('titles the panel for the machine and keeps every bike command', () => {
+    const view = commandLogView(commands, 'bike', () => 'x');
+    expect(view.title).toBe('Sent to bike');
+    expect(view.entries).toHaveLength(6);
+    expect(view.entries[0]).toEqual({
+      key: '0-18-0',
+      time: '7:01',
+      label: 'RES 18',
+      source: 'plan',
+      status: 'ack',
+      text: 'ack 40ms',
+    });
+  });
+
+  it('keeps the newest 4 on the treadmill', () => {
+    const view = commandLogView(commands, 'treadmill', () => 'x');
+    expect(view.title).toBe('Sent to treadmill');
+    expect(view.entries).toHaveLength(4);
   });
 });

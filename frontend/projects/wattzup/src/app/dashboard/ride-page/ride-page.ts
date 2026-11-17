@@ -12,7 +12,11 @@ import { CommandFeedbackService } from '../../core/command-feedback.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
 import { rideOverlayText } from '../../core/ride-overlay-text';
+import { commandLogView } from '../../core/command-log-view';
 import { CueDirector } from '../../core/cue-director';
+import { epochClock } from '../../core/local-time';
+import { metricItems } from '../../core/metric-items';
+import { stripOf } from '../../core/plan-strip';
 import { CountdownService } from '../../core/countdown.service';
 import { LiveStateService } from '../../core/live-state.service';
 import { formatLive } from '../../core/metric-format';
@@ -46,18 +50,18 @@ import {
   Readout,
   type MainView,
   MainViewTabs,
+  CommandLog,
+  MetricList,
+  PhaseBanner,
+  PlanStrip,
 } from '@wattzup/components';
 import { formatPace } from '../../core/pace';
-import { CmdLog } from '../cmd-log/cmd-log';
 import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
 import { RideOverlay } from '../ride-overlay/ride-overlay';
 import { RideTrace } from '../ride-trace/ride-trace';
 import { Interval } from '../interval/interval';
-import { MetricsStrip } from '../metrics-strip/metrics-strip';
-import { PhaseBanner } from '../phase-banner/phase-banner';
 import { VideoSync } from '../../core/video-sync.service';
-import { PlanStrip } from '../plan-strip/plan-strip';
 import { RideVideo } from '../ride-video/ride-video';
 
 /** Route `/`: the ride dashboard. */
@@ -67,7 +71,7 @@ import { RideVideo } from '../ride-video/ride-video';
     AppBar,
     NgTemplateOutlet,
     QuickSpeeds,
-    CmdLog,
+    CommandLog,
     ConnectionBanner,
     Icon,
     InclineControl,
@@ -78,7 +82,7 @@ import { RideVideo } from '../ride-video/ride-video';
     Interval,
     LevelControl,
     LevelPicker,
-    MetricsStrip,
+    MetricList,
     PhaseBanner,
     PlanNote,
     Readout,
@@ -162,6 +166,19 @@ export class RidePage {
   });
 
   protected readonly treadmill = computed(() => this.state()?.machine === 'treadmill');
+  protected readonly cues = inject(CueDirector);
+  protected readonly metrics = computed(() => metricItems(this.state()));
+  protected readonly commandLog = computed(() =>
+    commandLogView(
+      this.state()?.commands ?? [],
+      this.treadmill() ? 'treadmill' : 'bike',
+      epochClock,
+    ),
+  );
+  protected readonly strip = computed(() => {
+    const w = this.workout();
+    return w ? stripOf(w.segments, w.elapsed_seconds, w.total_seconds) : null;
+  });
   protected readonly speed = computed(() => speedView(this.state()));
   protected readonly incline = computed(() => inclineView(this.state()));
   protected readonly treadmillControls = computed(() =>

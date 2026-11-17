@@ -1,4 +1,4 @@
-@if (cues.banner(); as b) {
+@if (banner(); as b) {
   @for (view of [b]; track view.id) {
     <div class="phase-banner" [class.phase-banner--rest]="view.rest" aria-hidden="true">
       <span class="phase-banner__headline">{{ view.headline }}</span>
@@ -7,5 +7,5 @@
   }
 }
 <div class="phase-announcer visually-hidden" role="status" aria-live="polite">
-  {{ cues.announcement() }}
+  {{ announcement() }}
 </div>

@@ -1,15 +1,16 @@
 // The app bar's status line (L2-018). First matching row wins.
 import type { BikeState, StreamConnection } from '@wattzup/api';
+import { computed, inject, type Signal } from '@angular/core';
+import type { ConnectionStatus, StatusIcon, StatusTone } from '@wattzup/components';
+import { LiveStateService } from './live-state.service';
 import { machineWords } from './machine-words';
 
-export type StatusIcon = 'bluetooth' | 'bluetooth-scan' | 'bluetooth-off' | 'wifi-off';
-export type StatusTone = 'ok' | 'wait' | 'bad';
+export type { ConnectionStatus, StatusIcon, StatusTone };
 
-export interface ConnectionStatus {
-  name: string;
-  label: string;
-  icon: StatusIcon;
-  tone: StatusTone;
+/** The live connection status for a status line; call it in an injection context. */
+export function liveConnectionStatus(): Signal<ConnectionStatus> {
+  const live = inject(LiveStateService);
+  return computed(() => connectionStatus(live.state(), live.connection(), live.loadFailed()));
 }
 
 export function connectionStatus(

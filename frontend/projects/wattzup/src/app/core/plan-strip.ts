@@ -2,20 +2,10 @@
 // (L2-076 AC1). Same scale as the setup preview: one unit per second.
 import type { Segment } from '@wattzup/api';
 import { formatDuration } from './format-duration';
-import { type ProfileTone, profileTone } from './ride-preview';
+import type { PlanStripView, StripBar } from '@wattzup/components';
+import { profileTone } from './ride-preview';
 
-export interface StripBar {
-  x: number;
-  width: number;
-  tone: ProfileTone;
-}
-
-export interface PlanStripView {
-  total: number;
-  bars: StripBar[];
-  playhead: { x: number; width: number };
-  label: string;
-}
+export type { PlanStripView, StripBar };
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 

@@ -3,13 +3,15 @@ import { RouterLink } from '@angular/router';
 import type { Machine, WorkoutSnapshot } from '@wattzup/api';
 import type { RideViewState } from '../../core/ride-view-state';
 import { badgeTone, statusBadge } from '../../core/segment-labels';
+import { liveConnectionStatus } from '../../core/connection-status';
+import { CountdownService } from '../../core/countdown.service';
 import { CueService } from '../../core/cue.service';
+import { formatDuration } from '../../core/format-duration';
+import { MotionPreference } from '../../core/motion-preference';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
 import { ThemeService } from '../../core/theme.service';
-import { Icon } from '@wattzup/components';
-import { RideClock } from '../ride-clock/ride-clock';
-import { StatusLine } from '../status-line/status-line';
+import { Icon, RideClock, StatusLine } from '@wattzup/components';
 
 /** The ride dashboard's app bar, in DOM order = Tab order (L2-041). */
 @Component({
@@ -27,6 +29,13 @@ export class AppBar {
   protected readonly dialogs = inject(DialogLauncher);
   protected readonly cues = inject(CueService);
   protected readonly theme = inject(ThemeService);
+  protected readonly countdown = inject(CountdownService);
+  protected readonly status = liveConnectionStatus();
+  protected readonly reducedMotion = inject(MotionPreference).reduced;
+  protected readonly total = computed(() => {
+    const w = this.workout();
+    return w ? formatDuration(w.total_seconds) : null;
+  });
 
   protected readonly badge = computed(() => {
     const w = this.workout();
