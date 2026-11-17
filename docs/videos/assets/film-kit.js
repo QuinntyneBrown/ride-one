@@ -112,11 +112,11 @@
 
   /**
    * The brand bug: the mark in the top-right corner of every scene but the first and the last,
-   * so every frame of the film is a Wattzup frame.
+   * so every frame of the film is a Wattzup frame. An ink ring keeps it apart from a volt field.
    */
   const bug = (skip = [Film.timing.scenes[0].id, Film.timing.scenes.at(-1).id]) => Film.overlay((S) => {
     const spans = Film.timing.scenes.filter((s) => !skip.includes(s.id)).map((s) => [s.start, s.start + s.length]);
-    return `<div style="position:absolute;right:44px;top:40px;width:56px;height:56px" ${S.ref((el, T) => {
+    return `<div style="position:absolute;right:44px;top:40px;width:56px;height:56px;border-radius:14px;box-shadow:0 0 0 3px var(--palette-neutral-950)" ${S.ref((el, T) => {
       el.style.opacity = spans.some(([a, b]) => T >= a && T < b) ? 1 : 0;
     })}>${mark(56)}</div>`;
   });
