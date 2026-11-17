@@ -199,13 +199,13 @@ One process serves both Wattzup Web and the Wattzup API from a single origin, an
 
 ### Components
 
-The projects form an inward-pointing dependency graph with `Wattzup.Api` at the edge and `Wattzup.Mac` around it.
+The projects form an inward-pointing dependency graph with `Wattzup.Api` at the edge and `Wattzup.Mac` around it. In the frontend workspace the `wattzup` application depends on the `components` and `api` libraries, `components` takes only types from `api`, and neither library depends on the application (ADR 0013).
 
 ![C4 component view of the solution projects](diagrams/c4-component.png)
 
 ### Class structure
 
-`Program` composes options, singletons and hosted services. Each hosted service is a separate class with its own lifecycle. `app.config.ts` does the same for the frontend.
+`Program` composes options, singletons and hosted services. Each hosted service is a separate class with its own lifecycle. `app.config.ts` does the same for the frontend: it binds the `api` library's tokens to their implementations and the 401 reaction to `redirectToUnlock`, and pages pass values into the `components` library's presentation components.
 
 ![Class diagram for the host composition](diagrams/class-structure.png)
 

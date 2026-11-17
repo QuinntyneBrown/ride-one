@@ -81,7 +81,7 @@ The feature extends `bike-connectivity/discover-and-connect-bike` and `bike-conn
 
 `SimulatedBikeTransport` advertises both `ECHSIM-0001` (the Echelon service `…f1`) and `STRIDE-SIM-0001` (the treadmill's advertised service `…f0`), so each filter finds its own machine and rejects the other. Connecting to `STRIDE-SIM-0001` returns a `SimulatedTreadmillConnection`. On subscribe it reports a `D3` speed of 0 and a `D2` incline of 0; it notifies only on change, like the real treadmill. Its behaviour for belt, speed and incline commands is described in `treadmill/control-the-belt` and `treadmill/control-speed-and-incline`. `--simulate --machine treadmill` therefore runs the treadmill with no hardware.
 
-### Frontend (`frontend/src/app/`)
+### Frontend (`frontend/projects/`)
 
 The machine page follows the mocks `docs/mocks/pages/choose-machine/` (states `default`, `connecting`, `not-found`, `not-found-bike`, `loading`, `empty`, `error`). It replaces the Machine radio group that the setup screen used to show; `MachineChoice` (`wz-machine-choice`) is removed with its `machine-choice.html` and `machine-choice.scss`.
 
@@ -136,7 +136,7 @@ Playwright (`frontend/e2e/`, Chromium only) drives the machine page through the 
 - `ends the workout through the end dialog before opening the machine page` (L2-073 AC9)
 - `stacks the cards under 768 px` (L2-073 AC10)
 
-Unit tests in `src/app/core/`: `machine-page-view.spec.ts` (the heading's 3 cases, each card field with and without a `nearby` entry, the last-session ages today, yesterday and 3 days ago, and each card status) and `machine-history.store.spec.ts` (record, read back, unreadable data).
+Unit tests in `projects/wattzup/src/app/core/`: `machine-page-view.spec.ts` (the heading's 3 cases, each card field with and without a `nearby` entry, the last-session ages today, yesterday and 3 days ago, and each card status) and `machine-history.store.spec.ts` (record, read back, unreadable data).
 
 ### Open questions
 

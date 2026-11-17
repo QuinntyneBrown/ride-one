@@ -16,7 +16,7 @@ class DialogLauncher <<service>> {
   +openDiagnostics(): DialogRef
   +openEndRide(): DialogRef
 }
-class DialogShell <<component wz-dialog-shell>> {
+class Dialog <<component wz-dialog>> {
   +input tone: 'info' | 'danger'
   +input size: 'default' | 'sm'
   +slots: description, body, footer
@@ -78,8 +78,8 @@ class ToastView <<component wz-toast>> {
 
 DialogLauncher ..> DiagnosticsDialog : opens
 DialogLauncher ..> EndRideDialog : opens
-DiagnosticsDialog *-- DialogShell
-EndRideDialog *-- DialogShell
+DiagnosticsDialog *-- Dialog
+EndRideDialog *-- Dialog
 EndRideDialog *-- Alert : failed state
 DiagnosticsDialog ..> diagnosticsReport
 DiagnosticsDialog ..> BikeApi

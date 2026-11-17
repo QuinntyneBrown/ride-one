@@ -19,11 +19,11 @@ class AppBar <<component wz-app-bar>> {
 }
 class StatusLine <<component wz-status-line>>
 class ConnectionBanner <<component wz-connection-banner>>
-class RideOverlay <<component wz-ride-overlay>>
+class OverlayPanel <<component wz-overlay-panel>>
 class Readout <<component wz-readout>>
 class IntervalCard <<component, workouts>>
 class RideTrace <<component wz-ride-trace>>
-class MetricsStrip <<component wz-metrics-strip>>
+class MetricList <<component wz-metric-list>>
 class ResistancePanel <<component, resistance-control>>
 class CommandLog <<component, resistance-control>>
 class MotionPreference <<service>> {
@@ -41,8 +41,8 @@ RidePage *-- ConnectionBanner
 RidePage *-- "2" Readout
 RidePage *-- IntervalCard
 RidePage *-- RideTrace
-RidePage *-- MetricsStrip
-RidePage *-- RideOverlay
+RidePage *-- MetricList
+RidePage *-- OverlayPanel
 RidePage *-- ResistancePanel
 RidePage *-- CommandLog
 AppBar *-- StatusLine

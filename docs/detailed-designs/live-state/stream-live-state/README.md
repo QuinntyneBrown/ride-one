@@ -48,7 +48,7 @@ Backend:
 
 Frontend (`frontend`):
 
-- **`LiveStateService`** (`src/app/core/`) — the only owner of the `EventSource`. It exposes read-only signals: `state` (`BikeState | null`, generated type), `connection` (`connecting`, `open` or `offline`), `lastStateAt` and `loadError`. On start it loads `GET /api/status` through `BikeApi`; a failure sets `loadError` (L2-058, see `dashboard`). It then opens `EventSource('/api/events')`, with the event token when an API key is set. Each message is parsed into `state`. On `error` it closes the source, sets `offline` and reconnects every 2 s (L2-054); `retryNow()` reconnects at once for the `Retry now` button. No component opens its own connection or polls.
+- **`LiveStateService`** (`projects/wattzup/src/app/core/`) — the only owner of the `EventSource`. It exposes read-only signals: `state` (`BikeState | null`, generated type), `connection` (`connecting`, `open` or `offline`), `lastStateAt` and `loadError`. On start it loads `GET /api/status` through `BikeApi`; a failure sets `loadError` (L2-058, see `dashboard`). It then opens `EventSource('/api/events')`, with the event token when an API key is set. Each message is parsed into `state`. On `error` it closes the source, sets `offline` and reconnects every 2 s (L2-054); `retryNow()` reconnects at once for the `Retry now` button. No component opens its own connection or polls.
 
 Latency targets (L2-037) shape 3 choices. Serialisation happens once per broadcast, not once per client. Writes skip the MVC formatters. Each SSE write is flushed immediately. A BenchmarkDotNet and k6 harness measures notify-to-browser p95 against `SimulatedBikeTransport`; it runs on demand on the machine next to the bike and does not gate CI (L2-037).
 
@@ -75,7 +75,7 @@ The state now carries the chosen machine and both machines' fields (L2-014, L2-0
 - `WorkoutSnapshot` segments are `{kind, start, duration, level, cadence, round, speed, incline}`; `level`, `cadence` and `plan_level` are nullable. `status` gains `starting belt` and `paused: belt stopped`; the existing strings stay identifiers on both machines (L2-014).
 - `CommandEntry` is `{at, ride_seconds, level, source, status, ack_ms, command, value}`, with `level` nullable (`resistance-control/log-resistance-commands`).
 - A machine change resets `device`, `device_label`, `workout`, `speed_kmh`, `speed_mph`, `distance_km`, `kcal`, `commands` and every machine-specific field (`climb_m` among them) in one update, keeping `nearby`, so one broadcast carries the reset (L2-070 criterion 3).
-- The OpenAPI schema transformer describes each new field with its type and nullability, and the frontend's generated types in `src/app/api/` are regenerated in the same change (L2-070 criterion 4).
+- The OpenAPI schema transformer describes each new field with its type and nullability, and the frontend's generated types in `projects/api/src/generated/` are regenerated in the same change (L2-070 criterion 4).
 - `nearby` is `[{machine, name, label, rssi, signal, seen_at}]`, at most one entry per machine; a change to `nearby` alone is broadcast at most once a second (L2-074).
 - `LiveStateService` is unchanged: it remains the only connection, and every machine-aware view reads `state().machine`.
 - `workout.plan` carries `video`: `{video_id, start_seconds}` when the plan has a ride-along video, else `null`, written and never omitted (L2-010 criteria 14 and 15, ADR 0012). The OpenAPI transformer describes it and the generated types follow. The dashboard builds the player from it (`workouts/ride-along-video`).

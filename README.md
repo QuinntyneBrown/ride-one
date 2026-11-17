@@ -246,7 +246,7 @@ The raw packet log and the status snapshot are written to the content root
 | Build the backend | `dotnet build backend/Wattzup.sln` | Every project; warnings are errors |
 | Test the backend | `dotnet test backend/Wattzup.sln` | xUnit unit tests for protocol and core rules, and acceptance tests through the API with `WebApplicationFactory`, the simulated bike and `FakeTimeProvider` |
 | Check formatting and lint | `cd frontend && npm run format:check && npm run lint` | Prettier and angular-eslint |
-| Test the dashboard | `cd frontend && npm test` | Unit tests for the services and helpers in `src/app/core/` |
+| Test the dashboard | `cd frontend && npm test` | Unit tests of the three workspace projects: the app's services and helpers (`projects/wattzup/src/app/core/`), the API library and the components library |
 | Build the dashboard | `cd frontend && npm run build` | Production build and the 300 KB gzipped initial bundle budget |
 | Run the behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium, with every `/api` request and the event stream stubbed |
 

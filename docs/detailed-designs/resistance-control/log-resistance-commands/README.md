@@ -36,9 +36,9 @@ Backend (`Wattzup.Core`):
 
 Frontend (`frontend`):
 
-- **`CmdLog`** (`wz-cmd-log`, `src/app/dashboard/cmd-log/`) — OnPush component, BEM block `cmd-log`, a `section` labelled by its `Sent to bike` heading. The `cmd-log__head` shows `BLE · <connection_id>`. The list renders each entry as `<time>` with the ride time, `RES <level>` with `· <source>`, and a status span with class `ack`, `sending` or `failed`. With no entries it reads `No commands yet this session.` (L2-048). The class names are kept from the mocks because e2e locators depend on them. The status is carried by text as well as colour.
-- **`command-log-view.ts`** (`src/app/core/`) — pure helper. `formatRideTime(seconds)` gives `m:ss` below 1 hour and `h:mm:ss` from 1 hour, as in `docs/mocks/pages/ride/edge.html` (`1:02:00`). `statusText(entry)` gives `ack <n>ms`, `sending` or `failed`. An entry with `ride_seconds` `null` shows the local time of `at` as `h:mm:ss` (L2-048).
-- **`CommandFeedbackService`** (`src/app/core/`) — reads `LiveStateService.state` in an `effect` and keys entries by `at`. For `manual` entries only (L2-048):
+- **`CommandLog`** (`wz-command-log`, `projects/components/src/lib/command-log/`) — OnPush component, BEM block `cmd-log`, a `section` labelled by its `Sent to bike` heading. The `cmd-log__head` shows `BLE · <connection_id>`. The list renders each entry as `<time>` with the ride time, `RES <level>` with `· <source>`, and a status span with class `ack`, `sending` or `failed`. With no entries it reads `No commands yet this session.` (L2-048). The class names are kept from the mocks because e2e locators depend on them. The status is carried by text as well as colour.
+- **`command-log-view.ts`** (`projects/components/src/lib/command-log/`) — pure helper. `formatRideTime(seconds)` gives `m:ss` below 1 hour and `h:mm:ss` from 1 hour, as in `docs/mocks/pages/ride/edge.html` (`1:02:00`). `statusText(entry)` gives `ack <n>ms`, `sending` or `failed`. An entry with `ride_seconds` `null` shows the local time of `at` as `h:mm:ss` (L2-048).
+- **`CommandFeedbackService`** (`projects/wattzup/src/app/core/`) — reads `LiveStateService.state` in an `effect` and keys entries by `at`. For `manual` entries only (L2-048):
   - A transition from `sending` to `ack` shows a success toast `Resistance set to <n>` / `<device_label> confirmed level <n> in <ack_ms> ms.` through `ToastService` (see `dashboard`, L2-053).
   - An entry first seen as `sending` starts a 5 s timer. If the entry is still `sending` when it fires, a warning toast `Bike is slow to confirm` shows. The toast is dismissed when that entry becomes `ack`.
   - The timer uses an injected scheduler, so unit tests advance it with fake timers.
@@ -57,7 +57,7 @@ The log is shared by both machines (L2-065). `CommandEntry` gains `command` (`Co
 
 - `CommandLog.Acknowledge(log, kind, value, nowMs)` considers only entries of `kind`. It stops at the first entry of the same kind with a different value, so an entry of another kind neither blocks nor is acknowledged by the report (L2-065 criterion 6). `TelemetryIngestor` calls it with `CommandKind.Resistance` and the reported level on the bike.
 - `CommandLog.Fail` identifies the entry by its write time, kind and value.
-- `CmdLog` reads `RES <level>`, `SPD <value>` or `INC <value>` through the frontend helper `commandLabel(entry)`, and its heading reads `Sent to bike` or `Sent to treadmill` by `machine` (L2-071 criterion 14). The toasts of `CommandFeedbackService` stay resistance-only.
+- `CommandLog` reads `RES <level>`, `SPD <value>` or `INC <value>` through the frontend helper `commandLabel(entry)`, and its heading reads `Sent to bike` or `Sent to treadmill` by `machine` (L2-071 criterion 14). The toasts of `CommandFeedbackService` stay resistance-only.
 
 The treadmill's commands are described in `treadmill/control-speed-and-incline` and the dashboard's wording in `treadmill/treadmill-dashboard-and-setup`.
 
@@ -83,7 +83,7 @@ The Wattzup API records commands and acknowledgements in the state. Wattzup Web 
 
 ### Components
 
-`ResistanceCommander` adds entries and marks failures. `TelemetryIngestor` acknowledges them. Both go through `BikeStateStore`. In the browser, `CmdLog` renders the log and `CommandFeedbackService` raises toasts.
+`ResistanceCommander` adds entries and marks failures. `TelemetryIngestor` acknowledges them. Both go through `BikeStateStore`. In the browser, `CommandLog` renders the log and `CommandFeedbackService` raises toasts.
 
 ![C4 component view for logging resistance commands](diagrams/c4-component.png)
 

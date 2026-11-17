@@ -8,7 +8,7 @@ skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
   participant "RidePage" as page
-  participant "RideOverlay" as overlay
+  participant "OverlayPanel" as overlay
   participant "ConnectionBanner" as banner
   participant "ConnectionBannerService" as banners
   participant "LiveStateService" as live

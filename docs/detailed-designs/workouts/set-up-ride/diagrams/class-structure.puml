@@ -11,7 +11,7 @@ skinparam class {
 }
 title Class structure — Set up a ride
 
-package "src/app/core" {
+package "projects/wattzup/src/app/core" {
   class PlanForm <<module plan-form.ts>> {
     +DEFAULT_DRAFT: PlanDraft
     +PRESETS: Preset[]
@@ -60,7 +60,7 @@ package "src/app/core" {
   }
 }
 
-package "src/app/dashboard" {
+package "projects/components/src/lib and projects/wattzup/src/app/dashboard" {
   class SetupPage <<component wz-setup-page>> {
     +FormGroup<PlanDraftForm> form
     +Signal<FieldError[]> errors
@@ -68,22 +68,22 @@ package "src/app/dashboard" {
     +Signal<'idle' | 'submitting' | 'error'> phase
     +start(): void
   }
-  class ModeCards <<component wz-mode-cards>>
+  class RadioGroup <<component wz-radio-group>>
   class Presets <<component wz-presets>>
   class Chip <<component wz-chip>>
-  class NumStepper <<component wz-num-stepper>> {
+  class NumberStepper <<component wz-number-stepper>> {
     +label: InputSignal<string>
     +format: InputSignal<(n) => string>
     +parse: InputSignal<(s) => number | null>
     +error: InputSignal<string | null>
   }
-  class LevelSlider <<component wz-level-slider>>
-  class Toggles <<component wz-toggles>>
+  class Slider <<component wz-slider>>
+  class Switch <<component wz-switch>>
   class FormSummary <<component wz-form-summary>> {
     +errors: InputSignal<FieldError[]>
     +focus(): void
   }
-  class RidePreview <<component wz-ride-preview>>
+  class RideProfile <<component wz-ride-profile>>
   class VideoLink <<component wz-video-link>>
   class VideoDraft <<interface>> {
     +on: boolean
@@ -112,20 +112,20 @@ RidePreviewFn ..> PlanExpansion
 RidePreviewFn ..> RidePreviewModel : returns
 PlanForm ..> PlanDraft
 PlanForm ..> FieldError
-SetupPage *-- ModeCards
+SetupPage *-- RadioGroup
 SetupPage *-- Presets
-SetupPage *-- NumStepper
-SetupPage *-- LevelSlider
-SetupPage *-- Toggles
+SetupPage *-- NumberStepper
+SetupPage *-- Slider
+SetupPage *-- Switch
 SetupPage *-- FormSummary
-SetupPage *-- RidePreview
+SetupPage *-- RideProfile
 SetupPage *-- VideoLink
 PlanDraftStore ..> VideoDraft : wattzup.videoDraft
 Presets *-- Chip
-RidePreview *-- Profile
-RidePreview *-- RideSummary
-ControlValueAccessor <|.. ModeCards
-ControlValueAccessor <|.. NumStepper
-ControlValueAccessor <|.. LevelSlider
-ControlValueAccessor <|.. Toggles
+RideProfile *-- Profile
+RideProfile *-- RideSummary
+ControlValueAccessor <|.. RadioGroup
+ControlValueAccessor <|.. NumberStepper
+ControlValueAccessor <|.. Slider
+ControlValueAccessor <|.. Switch
 @enduml

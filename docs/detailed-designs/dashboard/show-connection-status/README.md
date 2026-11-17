@@ -18,10 +18,10 @@ The status line replaces the prototype's coloured pill, and the banners and over
 
 ## Description
 
-Core services and helpers (`frontend/src/app/core/`):
+Core services and helpers (`frontend/projects/wattzup/src/app/core/`):
 
 - **`LiveStateService`** — the only owner of the `EventSource` and of the reconnect logic (L2-044). It exposes read-only signals:
-  - `state` (`BikeState | null`), the last state received. Its type comes from the OpenAPI document (`src/app/api/`).
+  - `state` (`BikeState | null`), the last state received. Its type comes from the OpenAPI document (`projects/api/src/generated/`).
   - `connection` (`'connecting' | 'open' | 'offline'`).
   - `lastStateAt` (`Date | null`), the browser time of the last state message.
   - `loadFailed` (`boolean`), set when the initial `GET /api/status` fails.
@@ -56,18 +56,18 @@ Core services and helpers (`frontend/src/app/core/`):
   - **exposed**, info, `role="status"`: `Shared on your network` / `This server listens on <bind_address>. Anyone with the API key can change the bike's resistance.` It shows while `exposed` is true, until dismissed.
   Dismissals are kept in session storage under `wattzup.banners.dismissed`, so a dismissed banner stays hidden for the browser session. Every storage access is wrapped in `try`/`catch` and falls back to memory.
 
-Components (`frontend/src/app/dashboard/`, each `name.ts` + `name.html` + `name.scss`, OnPush):
+Components (presentation components in `frontend/projects/components/src/lib/`, pages and containers in `frontend/projects/wattzup/src/app/dashboard/`; each `name.ts` + `name.html` + `name.scss`, OnPush):
 
 - **`StatusLine`** (`wz-status-line`, block `statusline`) — renders `connectionStatus` as an icon, `statusline__name` and `statusline__state`. Tone `wait` adds `statusline--wait`, and tone `bad` adds `statusline--bad`. The scanning icon animates unless `MotionPreference.reduced` is true. The name is bound with interpolation, so a device name such as `<b>x</b>` renders as literal text (L2-018, L2-036).
 - **`ConnectionBanner`** (`wz-connection-banner`) — renders each banner through the shared `Alert` component (block `alert`, with the mocks' `banner` class and `alert--warning`, `alert--danger` or `alert--success`). It places a `Dismiss` close button on dismissible banners.
-- **`RideOverlay`** (`wz-ride-overlay`, block `overlay-panel`) — renders the overlay inside `ride-main`, with `role="alert"` for `bike-lost` and `adapter-off` and `role="status"` for `scanning` and `bike-shut-off`, as in the mocks. The scanning overlay shows the `spinner--lg` spinner, static under reduced motion. `Open diagnostics` opens the diagnostics dialog (`dialogs-and-notifications`).
+- **`OverlayPanel`** (`wz-overlay-panel`, block `overlay-panel`) — renders the overlay inside `ride-main`, with `role="alert"` for `bike-lost` and `adapter-off` and `role="status"` for `scanning` and `bike-shut-off`, as in the mocks. The scanning overlay shows the `spinner--lg` spinner, static under reduced motion. `Open diagnostics` opens the diagnostics dialog (`dialogs-and-notifications`).
 - **`RidePage`** — applies `rideViewState`. It adds `readouts--dimmed` and `metrics--dimmed` where the mock dims with an inline opacity, shows skeletons for `loading`, and passes `commandsEnabled`, `pauseEnabled`, `endEnabled` and `controlsNote` to the app bar and the resistance panel (`resistance-control`).
 
 The `Lost the bike` mock also shows a `Reconnect` button. It calls `POST /api/bike/reconnect` through `BIKE_API`, which cancels the current wait and starts a new scan at once (L2-004, L2-058). A 409 `already_connected` is ignored, because the next streamed state already shows the connection.
 
 Tests:
 
-- Unit tests in `src/app/core/` cover `connectionStatus` with one case per table row, `rideViewState` with one case per precedence step, and `ConnectionBannerService` with each banner and the 4 s reconnected timer.
+- Unit tests in `projects/wattzup/src/app/core/` cover `connectionStatus` with one case per table row, `rideViewState` with one case per precedence step, and `ConnectionBannerService` with each banner and the 4 s reconnected timer.
 - Playwright behaviour specs use the `RidePage` and `ConnectionBanner` page objects and the shared fixture, which answers every `/api/**` request and serves `/api/events` as a stubbed `text/event-stream`. They push a state per table row and assert the status line, then fail the stream and assert `Server offline` `Retrying…`, the warning banner, disabled controls and a reconnect attempt after 2 s under Playwright's clock. They also assert each overlay and banner, and the literal rendering of a markup device name.
 
 ## Requirements
@@ -94,7 +94,7 @@ Wattzup Web shows the Bluetooth and adapter state streamed by the Wattzup API, a
 
 ### Components
 
-`StatusLine`, `ConnectionBanner` and `RideOverlay` read `LiveStateService` through pure helpers. `ConnectionBannerService` adds the timed and dismissed banners.
+`StatusLine`, `ConnectionBanner` and `OverlayPanel` read `LiveStateService` through pure helpers. `ConnectionBannerService` adds the timed and dismissed banners.
 
 ![C4 component view for showing connection status](diagrams/c4-component.png)
 

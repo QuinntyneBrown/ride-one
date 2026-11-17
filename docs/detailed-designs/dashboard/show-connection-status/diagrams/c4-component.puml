@@ -11,7 +11,7 @@ Container_Boundary(web, "Wattzup Web") {
   Component(banners, "ConnectionBannerService", "Angular service", "Visible banners, 4 s reconnected timer, session dismissals")
   Component(line, "StatusLine", "Angular component", "Block statusline")
   Component(banner, "ConnectionBanner", "Angular component", "Alert with banner class")
-  Component(overlay, "RideOverlay", "Angular component", "Block overlay-panel")
+  Component(overlay, "OverlayPanel", "Angular component", "Block overlay-panel")
   Component(page, "RidePage", "Angular component", "Applies the ride view state")
 }
 Container(api, "Wattzup API", "ASP.NET Core", "GET /api/status, SSE /api/events")

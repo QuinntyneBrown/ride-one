@@ -14,7 +14,7 @@ The first state received never triggers a cue: joining a ride mid-segment, or re
 
 ## Description
 
-Pure helpers in `frontend/src/app/core/`, with unit tests:
+Pure helpers in `frontend/projects/wattzup/src/app/core/`, with unit tests:
 
 - **`SegmentChangeDetector`** (`segment-change-detector.ts`) — `observe(workout)` remembers the key of the last state, where the key is `workout.segment`, or `null` with no workout.
   - It returns `null` for the first state it sees, whatever it holds (L2-027).
@@ -33,12 +33,12 @@ Pure helpers in `frontend/src/app/core/`, with unit tests:
 
 Services and components:
 
-- **`CueService`** (`src/app/core/cue.service.ts`, root-provided) — the only owner of the `AudioContext`.
+- **`CueService`** (`projects/wattzup/src/app/core/cue.service.ts`, root-provided) — the only owner of the `AudioContext`.
   - `enabled` is a signal, `false` at page load.
   - `toggle()` runs inside the click handler, so the browser allows audio. When off, it creates the `AudioContext`, sets `enabled`, plays `beep(880, 0.08)`, and shows the info toast `Beeps on` / `You'll hear a tone at each interval change and in the last 3 seconds.` (L2-053). When on, it closes the context and clears `enabled`; no toast is shown.
   - `beep(freq, seconds)` plays a sine oscillator with a gain envelope rising from 0.0001 to 0.3 in 10 ms and falling back to 0.0001 by `seconds`. It does nothing when disabled.
-- **`BeepsToggle`** (`src/app/dashboard/beeps-toggle/`, selector `wz-beeps-toggle`) — the app bar icon button. Its accessible name is `Countdown beeps off` or `Countdown beeps on`, with `aria-pressed` bound to `enabled`, so the state is not carried by the icon alone (L2-027). It keeps the mock's `btn btn--quiet btn--icon` classes.
-- **`PhaseBanner`** (`src/app/dashboard/phase-banner/`, selector `wz-phase-banner`, block `phase-banner`) — subscribes, through an `effect` on `LiveStateService.state()`, to `SegmentChangeDetector`. On a change it does the following:
+- **`BeepsToggle`** (`src/app/dashboard/beeps-toggle/` in the first design, now the beeps button of `wz-app-bar` in `projects/components/src/lib/app-bar/`, selector `wz-beeps-toggle`) — the app bar icon button. Its accessible name is `Countdown beeps off` or `Countdown beeps on`, with `aria-pressed` bound to `enabled`, so the state is not carried by the icon alone (L2-027). It keeps the mock's `btn btn--quiet btn--icon` classes.
+- **`PhaseBanner`** (`projects/components/src/lib/phase-banner/`, selector `wz-phase-banner`, block `phase-banner`) — subscribes, through an `effect` on `LiveStateService.state()`, to `SegmentChangeDetector`. On a change it does the following:
   1. It shows the headline and, in `<small>`, the detail line for 1.8 s. The element is `aria-hidden`, as in the mocks. The modifier is `phase-banner--rest` for `rest`; `work` takes no modifier. `warmup` and `cooldown` are easy segments and take `phase-banner--rest`. `steady` is a flat plan's only segment, so it never causes a transition and needs no modifier.
   2. It writes `announcement(change)` to a visually hidden `role="status"` `aria-live="polite"` region.
   3. It calls `CueService.beep(990, 0.35)` for `work` and `beep(520, 0.35)` for any other kind (L2-027). The 520 Hz duration is not stated in L2-027 and follows the work tone.
@@ -59,7 +59,7 @@ Playwright (`frontend/e2e/`), with `/api/**` answered by the shared fixture, `/a
   - `starts with beeps off and turns them on with a tone and a toast` (L2-027 AC4)
   - `plays no banner or tone for the first state of a running ride` (L2-027 AC5)
 
-Unit tests in `src/app/core/`: `segment-change-detector.spec.ts` (first state, unchanged, changed, to `null`, replaced ride), `cue-text.spec.ts` (one case per table row and per kind label), and `countdown-cue.spec.ts` (6 down to 0, running and not running).
+Unit tests in `projects/wattzup/src/app/core/`: `segment-change-detector.spec.ts` (first state, unchanged, changed, to `null`, replaced ride), `cue-text.spec.ts` (one case per table row and per kind label), and `countdown-cue.spec.ts` (6 down to 0, running and not running).
 
 ## Requirements
 

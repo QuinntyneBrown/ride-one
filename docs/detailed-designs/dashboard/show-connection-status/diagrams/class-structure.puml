@@ -61,7 +61,7 @@ class StatusLine <<component wz-status-line>> {
   +Signal<ConnectionStatus> status
 }
 class ConnectionBanner <<component wz-connection-banner>>
-class RideOverlay <<component wz-ride-overlay>> {
+class OverlayPanel <<component wz-overlay-panel>> {
   +input overlay
 }
 class RidePage <<component wz-ride-page>> {
@@ -76,7 +76,7 @@ StatusLine ..> LiveStateService
 StatusLine ..> MotionPreference
 RidePage ..> rideViewState
 RidePage ..> LiveStateService
-RidePage *-- RideOverlay
+RidePage *-- OverlayPanel
 RidePage *-- ConnectionBanner
 ConnectionBanner --> ConnectionBannerService
 ConnectionBannerService --> LiveStateService

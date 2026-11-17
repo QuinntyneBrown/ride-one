@@ -9,7 +9,7 @@ actor "Runner" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
   participant "RidePage" as page
   participant "rideViewState / rideOverlayText" as view
-  participant "RideOverlay" as overlay
+  participant "OverlayPanel" as overlay
   participant "LiveStateService" as live
   participant "WORKOUT_API" as wapi
 end box

@@ -74,8 +74,8 @@ wattzup/
 │   │   └── wattzup/                       # the application
 │   │       └── src/
 │   │           ├── app/
-│   │           │   ├── core/              # services and pure helpers, with unit tests
-│   │           │   ├── dashboard/         # components (name.ts + name.html + name.scss)
+│   │           │   ├── core/              # services, stores and pure helpers, with unit tests
+│   │           │   ├── dashboard/         # pages, orchestrating dialogs and containers
 │   │           │   └── app.config.ts      # composition root
 │   │           └── tokens.css, styles.scss  # global foundations
 │   ├── public/                            # fonts and images, served as-is
@@ -166,8 +166,21 @@ Protocol and the abstractions. `Wattzup.Api` (minimal APIs, hosted services, sec
 
 ## Frontend
 
-`frontend/` holds the only frontend application, `wattzup`; a further one needs its own ADR. Its
-production build is served by `Wattzup.Api` from the same origin.
+`frontend/` is one Angular workspace (ADR 0013) holding the only frontend application, `wattzup`,
+and two libraries; a further application needs its own ADR. The production build of `wattzup` is
+served by `Wattzup.Api` from the same origin, from `dist/wattzup/browser`.
+
+- **Three projects, one direction.** `components` (`@wattzup/components`) holds every
+  presentation component, named as in the design system, with the display formatting it
+  shares with the app. `api` (`@wattzup/api`) holds the generated API types, the contracts with
+  their injection tokens, the HTTP implementations, the API-key interceptor and the event-stream
+  contract. `wattzup` holds everything else. `wattzup` may import both libraries;
+  `components` imports types only from `api`; `api` imports nothing from the workspace; no
+  library imports the app. Lint (`no-restricted-imports`) enforces it. The app consumes the
+  libraries through path aliases to their source, so no library build is needed.
+- **A presentation component** takes inputs and emits outputs. It injects no app service, no API
+  token and never the `Router`; a link to a screen takes its target as an input. A component
+  that needs an app service is a page, a dialog or a container and lives in the app.
 
 - Prettier and angular-eslint own formatting and lint; CI fails on either.
 - Current Angular: standalone components, signals for state, `ChangeDetectionStrategy.OnPush`
@@ -191,10 +204,14 @@ production build is served by `Wattzup.Api` from the same origin.
 - One injectable service, `LiveStateService`, owns the `EventSource`, the reconnect logic and the
   live state, exposed as a read-only signal. No component opens its own connection or polls.
 - Logic with many cases (metric history, the countdown and phase, cues, the workout draft) lives
-  in a service or pure helper under `src/app/core/` with its unit tests, never in a component.
-- API types come from the backend's OpenAPI document (`src/app/api/`, generated); never
-  hand-write a type the contract defines. API services have a contract and an injection token;
-  components depend on the token. `app.config.ts` is the composition root.
+  in a service or pure helper with its unit tests, never in a component: under
+  `projects/wattzup/src/app/core/`, or beside its component in `projects/components/src/lib/`
+  when it only shapes that component's display.
+- API types come from the backend's OpenAPI document (`projects/api/src/generated/`, generated);
+  never hand-write a type the contract defines. API services have a contract and an injection
+  token in `@wattzup/api`; components depend on the token. `app.config.ts` in the app is the
+  only composition root.
+- Each project has its own unit-test target; `npm test` runs all three.
 - **No inline forms.** Button-triggered editing (e.g. the workout editor) opens a CDK Dialog or
   navigates to a screen. Never hand-roll modals.
 - The animation loop pauses when the tab is hidden and respects `prefers-reduced-motion`. The

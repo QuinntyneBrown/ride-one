@@ -42,13 +42,13 @@ Related designs:
 
 ### API contract and live state
 
-- **`api-types.ts`** — aliases `Machine`, `BeltState`, `NearbyMachine`, `SetSpeedRequest`, `SpeedSent`, `SetInclineRequest` and `InclineSent` from the generated schema in `src/app/api/`, which comes from the backend's OpenAPI document (L2-014, L2-070). `BikeState` gains `climb_m` and `nearby` there. No type is hand-written.
-- **`MachineApi`** (`core/machine-api.ts`) — the contract behind the token `MACHINE_API`: `choose(machine)`, `setSpeed(speed)` and `setIncline(incline)`. The two setters reject with `RequestTimeoutError` after 5 s, as `BikeApi.setResistance` does. `HttpMachineApi` (`http-api.ts`) implements it, and `app.config.ts` binds it.
+- **`api-types.ts`** — aliases `Machine`, `BeltState`, `NearbyMachine`, `SetSpeedRequest`, `SpeedSent`, `SetInclineRequest` and `InclineSent` from the generated schema in `projects/api/src/generated/`, which comes from the backend's OpenAPI document (L2-014, L2-070). `BikeState` gains `climb_m` and `nearby` there. No type is hand-written.
+- **`MachineApi`** (`projects/api/src/lib/machine-api.ts`) — the contract behind the token `MACHINE_API`: `choose(machine)`, `setSpeed(speed)` and `setIncline(incline)`. The two setters reject with `RequestTimeoutError` after 5 s, as `BikeApi.setResistance` does. `HttpMachineApi` (`http-api.ts`) implements it, and `app.config.ts` binds it.
 - **`LiveStateService`** — unchanged and still the only owner of the `EventSource`. Every machine-aware view reads `state().machine`. No component opens its own connection or polls.
 
 ### Pure helpers
 
-Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and has no Angular dependency.
+Each helper lives in `frontend/projects/wattzup/src/app/core/`, has its unit tests beside it, and has no Angular dependency.
 
 - **`machine-words.ts`** — `machineWords(machine)` returns `{noun, title, label, panelTitle, ride, otherMachine}`: on the treadmill `treadmill`, `Echelon treadmill`, `Treadmill`, `Sent to treadmill`, `run` and `bike`; on the bike `bike`, `Echelon bike`, `Bike`, `Sent to bike`, `ride` and `treadmill`.
 - **`pace.ts`** — `formatPace(speedKmh)` returns 3600 ÷ speed seconds per kilometre as `m:ss`, so 13.0 km/h reads `4:37`. A speed below 0.5 km/h or `null` reads `–:––` (L2-071 criterion 2). `formatAvgPace(elapsedSeconds, distanceKm)` returns elapsed ÷ distance as `m:ss`, or `–:––` while the distance is 0 (L2-071 criterion 7).
@@ -97,7 +97,7 @@ Each helper lives in `frontend/src/app/core/`, has its unit tests beside it, and
 
 ### Components
 
-Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` and `name.scss` under `frontend/src/app/dashboard/`. The components hold no rule of their own.
+Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` and `name.scss` under `frontend/projects/components/src/lib/` (presentation) or `frontend/projects/wattzup/src/app/dashboard/` (pages and containers). The components hold no rule of their own.
 
 **Run Dashboard** (`RidePage` with `machine` `treadmill`):
 
@@ -107,13 +107,13 @@ Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` an
 | `Readout` | `wz-readout` | `kind` `speed`: `<value>` `km/h`, `<pace> /km` and the status from `speedView`; `kind` `incline`: `<value>` `%` and `noteText`. No mph is shown (L2-071 criteria 2 to 4) |
 | `Interval` | `wz-interval` | Kind, round, countdown and the next line from `nextLabel` (L2-071 criterion 5) |
 | `RideTrace` | `wz-ride-trace` | With `machine` `treadmill`, titled `Speed vs. plan · incline below` with the legend Actual, Work and (on `hiit`) Recover; draws the speed scene of `treadmillTraceGeometry` through the existing `TraceRenderer` (WebGL with the Canvas 2D fallback, ADR 0006), so the animation loop pauses when the tab is hidden and respects reduced motion. The incline lane below it is a small SVG (`.trace__lane`, as the design system draws it) whose reported line holds one point per incline change; the video and trace views render from one template on both machines (L2-071 criterion 6, L2-076) |
-| `MetricsStrip` | `wz-metrics-strip` | Heart rate (`--` `bpm`), Avg pace, Distance (`km`, 2 decimals), Climbed (`m`) and Energy (`kcal`, thousands separator); no power or cadence (L2-071 criterion 7) |
+| `MetricList` | `wz-metric-list` | Heart rate (`--` `bpm`), Avg pace, Distance (`km`, 2 decimals), Climbed (`m`) and Energy (`kcal`, thousands separator); no power or cadence (L2-071 criterion 7) |
 | `SpeedControl` | `wz-speed-control` | Section `Speed`: `Slower` and `Faster` around the target (`speed-control__readout--hero`, `km/h target · <pace> /km`), then `wz-quick-speeds` (L2-071 criterion 8) |
 | `QuickSpeeds` | `wz-quick-speeds` (new) | 6 buttons `5` to `16` with `aria-pressed` on the one equal to `target_speed`; emits the speed |
 | `InclineControl` | `wz-incline-control` | Section `Incline`: `Lower incline` and `Raise incline` around `<target>%` `of 10%`, then `wz-level-picker` with the `level-picker--incline` modifier, 11 bars as a slider (`aria-valuemin` 0, `aria-valuemax` 10, arrow keys by 1 %) (L2-071 criterion 9) |
 | `PlanNote` | `wz-plan-note` | `treadmillPlanNote` with `Back to plan` (L2-071 criterion 11) |
-| `CmdLog` | `wz-cmd-log` | `Sent to treadmill`, `BLE · <last 6 characters of device>`, the newest 4 entries as `<m:ss> SPD <value> · <source>` or `INC <value>%`, with `ack <n>ms`, `sending` or `failed`; `No commands yet this session.` when empty. Below it, in `ride-aside__foot`, `End and switch to bike` (L2-071 criterion 12) |
-| `RideOverlay` | `wz-ride-overlay` | The countdown numeral large and hidden from assistive technology; the heading `Belt starting in <n>` is the polite live region, so each number is announced once. Also the belt-stopped, *Lost the Stride* and scanning overlays (L2-071 criteria 14 and 16 to 18) |
+| `CommandLog` | `wz-command-log` | `Sent to treadmill`, `BLE · <last 6 characters of device>`, the newest 4 entries as `<m:ss> SPD <value> · <source>` or `INC <value>%`, with `ack <n>ms`, `sending` or `failed`; `No commands yet this session.` when empty. Below it, in `ride-aside__foot`, `End and switch to bike` (L2-071 criterion 12) |
+| `OverlayPanel` | `wz-overlay-panel` | The countdown numeral large and hidden from assistive technology; the heading `Belt starting in <n>` is the polite live region, so each number is announced once. Also the belt-stopped, *Lost the Stride* and scanning overlays (L2-071 criteria 14 and 16 to 18) |
 | `PhaseBanner` | `wz-phase-banner` | The segment-change banner of `bannerText` (L2-071 criterion 19) |
 | `EndRideDialog` | `wz-end-ride-dialog` | CDK Dialog: `Stop the belt and end this run?` / `You're <elapsed> into <total>. Wattzup stops the belt; your trace and totals stay on the dashboard until you start a new run.` with `Keep running` (focused) and `Stop belt` (L2-071 criterion 15) |
 | `ReplaceRideDialog` | `wz-replace-ride-dialog` | CDK Dialog: `Replace the run in progress?` / `You're <elapsed> into <summary>. Starting <new summary> ends it and begins the new run at 0:00. Wattzup stops the belt first, then counts down 3 seconds before starting it again.` with `Keep current run` (focused) and `Replace run` (L2-071 criterion 15) |
@@ -125,13 +125,13 @@ Under 1024 px the side panel follows the main area, and under 640 px the metrics
 | Component | Selector | Role |
 |---|---|---|
 | `SetupPage` | `wz-setup-page` | Header with `wz-status-line` (`<device_label>`), the `Switch to bike` link (`Switch to treadmill` on the bike) through `RideActions.switchMachine`, and `Close` (`app-bar__close`); no machine radio group on either machine (L2-072 criterion 1). Title `Set up your run` with `Wattzup drives the Stride's belt speed and incline for you. Pick how.` (L2-072 criterion 2) |
-| `ModeCards` | `wz-mode-cards` | `HIIT intervals` / `Hard and easy efforts on repeat. Speed and incline switch at every interval.` and `Steady` / `One speed and one incline, held the whole run. Good for hill walks and easy miles.` |
+| `RadioGroup` | `wz-radio-group` | `HIIT intervals` / `Hard and easy efforts on repeat. Speed and incline switch at every interval.` and `Steady` / `One speed and one incline, held the whole run. Good for hill walks and easy miles.` |
 | `Presets` | `wz-presets` | The mode's presets from `TREADMILL_PRESETS`, each with `aria-pressed` from `presetPressed` (L2-072 criterion 3) |
-| `NumStepper` | `wz-num-stepper` | Rounds, Work and Recover (L2-029), and Steady's `Duration (min)` stepping by 5 (L2-072 criteria 5 and 6) |
+| `NumberStepper` | `wz-number-stepper` | Rounds, Work and Recover (L2-029), and Steady's `Duration (min)` stepping by 5 (L2-072 criteria 5 and 6) |
 | `EffortRow` | `wz-effort-row` (new) | One row, `Work`, `Recover` or Steady's `Hold`: a typable speed field between `Slower <row>` and `Faster <row>` with its pace `<m:ss> /km`, and an incline picker (`wz-level-picker`, `level-picker--incline`) showing `<n>%`. `aria-invalid` and the L2-067 message mark an out-of-range field (L2-072 criteria 5 to 7) |
-| `Toggles` | `wz-toggles` | `Warm-up` `3 min, brisk walk` and `Cool-down` `2 min, walk, deck back to 0%` |
+| `Switch` | `wz-switch` | `Warm-up` `3 min, brisk walk` and `Cool-down` `2 min, walk, deck back to 0%` |
 | `FormSummary` | `wz-form-summary` | `<n> thing(s) to fix before you start` with the links of `validateTreadmillDraft` (L2-072 criterion 7) |
-| `RidePreview` | `wz-ride-preview` | `Your run`: the total, the speed profile above the incline profile (`profile--incline`), the summary rows of `treadmillPreviewOf`, then `Clip the safety key to your clothes. The belt starts 3 seconds after you tap Start.` above `Start run`, or `Fix the field marked in red to start.` with Start run disabled (L2-072 criteria 7 to 9) |
+| `RideProfile` | `wz-ride-profile` | `Your run`: the total, the speed profile above the incline profile (`profile--incline`), the summary rows of `treadmillPreviewOf`, then `Clip the safety key to your clothes. The belt starts 3 seconds after you tap Start.` above `Start run`, or `Fix the field marked in red to start.` with Start run disabled (L2-072 criteria 7 to 9) |
 
 Steady shows the line `You can still change speed and incline mid-run from the dashboard.` under the `Hold` row (L2-072 criterion 6). *Start run* reads `Starting…` while the request runs and follows the bike's start flow of `workouts/set-up-ride`: the replace dialog when a workout is active, else `WORKOUT_API.start(toTreadmillPlan(draft))`. On success it saves the draft, calls `MachineHistoryStore.recordStart`, and navigates to `/`, where the belt countdown runs (L2-072 criteria 10 and 11).
 
@@ -176,7 +176,7 @@ Playwright (`frontend/e2e/`), Chromium only. The shared fixture answers every `/
   - `restores the last submitted run and records the last session` (L2-072 AC10)
   - `starts a run, shows Starting…, and opens the dashboard` (L2-072 AC11)
 
-Unit tests in `src/app/core/`: `pace.spec.ts` (13.0, 0.4, `null`, and the average pace), `treadmill-view.spec.ts` (each status of L2-071 criterion 3, each incline note), `treadmill-controls.spec.ts` (each base fallback, each limit, the belt gate, each plan note), `treadmill-trace.spec.ts` (the scale at top speeds 8, 13 and 19.3, each tick step), `treadmill-energy.spec.ts` (the rows of the backend's `TreadmillEnergyTests`), `treadmill-plan-form.spec.ts` (one case per row of the L2-067 table, each preset and its pressed rule), `plan-draft.store.spec.ts` (a draft under the old limits falls back), `plan-expansion.spec.ts` (the warm-up rule and the Steady summary), `ride-preview.spec.ts` (the *Minute on* figures), and the treadmill cases of `segment-labels`, `ride-view-state`, `ride-overlay-text`, `connection-status`, `connection-banners`, `cue-text` and `command-log-view`.
+Unit tests beside their helpers in `projects/wattzup/src/app/core/` (`pace.spec.ts` in `projects/components/src/lib/format/`): `pace.spec.ts` (13.0, 0.4, `null`, and the average pace), `treadmill-view.spec.ts` (each status of L2-071 criterion 3, each incline note), `treadmill-controls.spec.ts` (each base fallback, each limit, the belt gate, each plan note), `treadmill-trace.spec.ts` (the scale at top speeds 8, 13 and 19.3, each tick step), `treadmill-energy.spec.ts` (the rows of the backend's `TreadmillEnergyTests`), `treadmill-plan-form.spec.ts` (one case per row of the L2-067 table, each preset and its pressed rule), `plan-draft.store.spec.ts` (a draft under the old limits falls back), `plan-expansion.spec.ts` (the warm-up rule and the Steady summary), `ride-preview.spec.ts` (the *Minute on* figures), and the treadmill cases of `segment-labels`, `ride-view-state`, `ride-overlay-text`, `connection-status`, `connection-banners`, `cue-text` and `command-log-view`.
 
 ### Open questions
 

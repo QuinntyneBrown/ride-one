@@ -131,7 +131,7 @@ class InclineControl {
   +pick: output<number>
 }
 class RideTrace
-class RideOverlay
+class OverlayPanel
 class SetupPage
 class EffortRow {
   +label: 'Work' | 'Recover' | 'Hold'
@@ -155,7 +155,7 @@ RidePage *-- SpeedControl
 SpeedControl *-- QuickSpeeds
 RidePage *-- InclineControl
 RidePage *-- RideTrace
-RidePage *-- RideOverlay
+RidePage *-- OverlayPanel
 RidePage --> TreadmillCommandService
 RidePage --> RideActions : End and switch to bike
 RideTrace ..> tt

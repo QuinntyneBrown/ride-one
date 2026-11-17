@@ -16,7 +16,7 @@ The server side of the key, including constant-time comparison and event tokens,
 
 ## Description
 
-Core (`frontend/src/app/core/`):
+Core (`frontend/projects/wattzup/src/app/core/`):
 
 - **`ApiKeyStore`** — root service holding the session key as a `Signal<string | null>`. `set(key)` writes `sessionStorage['wattzup.apiKey']`, and `clear()` removes it. Every storage access is wrapped in `try`/`catch` and falls back to memory, so a blocked storage still unlocks for the page's lifetime. The store never logs the key.
 - **`apiKeyInterceptor`** — functional `HttpInterceptorFn` registered in `app.config.ts`:
@@ -26,7 +26,7 @@ Core (`frontend/src/app/core/`):
 - **`safeReturnUrl(value)`** — pure helper that accepts only a path starting with `/` and not with `//`, and returns `/` otherwise, so the redirect cannot leave the origin.
 - **`BikeApi.verifyKey(key)`** — sends `GET /api/status` with `X-Api-Key: <key>` and `SKIP_UNLOCK_REDIRECT`. It resolves to `ok`, `rejected` (401) or `unreachable` (status 0, a 5xx from a proxy, or a 5 s timeout).
 
-Components (`frontend/src/app/dashboard/`):
+Components (presentation components in `frontend/projects/components/src/lib/`, pages in `frontend/projects/wattzup/src/app/dashboard/`):
 
 - **`AuthCard`** (`wz-auth-card`, blocks `auth-layout` and `auth-card`) — centred card with the large `lockup`, declaring one default `ng-content` slot. `centered` adds `auth-card--centered`, replacing the inline `text-align: center` of the not-found mock.
 - **`UnlockPage`** (`wz-unlock-page`, route `/unlock`) — heading `Unlock Wattzup`, the intro `This Wattzup server is shared on your network, so it asks for its API key. You'll only need it once per browser session.`, and a form with one typed `FormControl<string>`. The phases follow the 4 mocks (L2-055):

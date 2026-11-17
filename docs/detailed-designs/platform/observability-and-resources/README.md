@@ -44,7 +44,7 @@ Backend memory bounds (L2-038). Each buffer that a ride can grow has a fixed bou
 
 Frontend (L2-038):
 
-- **`FrameScheduler`** — root service in `src/app/core/`. It is the only caller of `requestAnimationFrame` on the dashboard.
+- **`FrameScheduler`** — root service in `projects/wattzup/src/app/core/`. It is the only caller of `requestAnimationFrame` on the dashboard.
   - `RideTrace` and the countdown (`workouts/show-workout-countdown`) call `request(callback)`, and each frame runs each pending callback once, so redraws never exceed one per frame (L2-028).
   - It listens for `visibilitychange`. While `document.hidden` is true it requests no frames, and it requests the next frame when the tab is visible again.
 - **`PowerTraceStore`** — holds the browser copy of the trace history in 2 `Int32Array`s of 10,800 entries, matching the backend ring. It is filled from `GET /api/workout/trace` on load and appended from each state message (`dashboard/show-live-metrics`). It is cleared when a new workout starts, so its size is bounded by one plan.

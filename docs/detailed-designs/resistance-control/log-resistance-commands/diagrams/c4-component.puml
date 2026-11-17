@@ -6,7 +6,7 @@ title Components — Log resistance commands
 Person(rider, "Rider", "Watches the dashboard")
 Container_Boundary(web, "Wattzup Web") {
   Component(live, "LiveStateService", "Angular service", "Read-only state signal")
-  Component(log, "CmdLog", "Angular component", "Sent to bike panel (cmd-log)")
+  Component(log, "CommandLog", "Angular component", "Sent to bike panel (cmd-log)")
   Component(view, "command-log-view", "Pure helper (core)", "Ride time and status text")
   Component(fb, "CommandFeedbackService", "Angular service", "Success and slow-confirm toasts")
   Component(toast, "ToastService", "Angular service", "Shows toasts (dashboard)")

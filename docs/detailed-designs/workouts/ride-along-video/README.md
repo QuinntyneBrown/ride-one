@@ -46,10 +46,10 @@ The feature extends three existing designs:
 ### API (`Wattzup.Api`)
 
 - **`WorkoutEndpoints`** — unchanged. `POST /api/workout` validates through `WorkoutPlanValidator` and answers 400 ProblemDetails naming `video.url` or `video.start_seconds` with the messages above.
-- **`ContractSchemaTransformer`** (`OpenApi/`) — describes `plan.video` as a nullable object with `video_id` (string) and `start_seconds` (number). The frontend's `src/app/api/schema.d.ts` is regenerated from it in the same change.
+- **`ContractSchemaTransformer`** (`OpenApi/`) — describes `plan.video` as a nullable object with `video_id` (string) and `start_seconds` (number). The frontend's `projects/api/src/generated/schema.d.ts` is regenerated from it in the same change.
 - **`SecurityHeaders`** (`Security/SecurityHeaders.cs`) — the Content-Security-Policy gains exactly `frame-src https://www.youtube-nocookie.com` and `https://www.youtube.com` in `script-src`. `connect-src`, `style-src`, `font-src` and `img-src` stay as they are (L2-036 criterion 4, ADR 0012).
 
-### Frontend (`frontend/src/app/`)
+### Frontend (`frontend/projects/`)
 
 **Player contract.**
 - **`YouTubePlayer`** (`core/youtube-player.ts`, new) — the contract every player use goes through, behind the injection token `YOUTUBE_PLAYER`:
@@ -137,7 +137,7 @@ Playwright (`frontend/e2e/`, Chromium only) runs the real `IframeYouTubePlayer` 
 
 The responsive criterion (L2-076 AC12) is covered by the responsive sweep, which runs only when a person asks.
 
-Unit tests in `src/app/core/`:
+Unit tests in `projects/wattzup/src/app/core/`:
 - `video-sync.spec.ts`: each status of criterion 4; drift of 1.4 s and 1.6 s; the rider's pause and play under each status; one and 2 refusals; a sync-caused pause that is not the rider's.
 - `video-link.spec.ts`: the same rows as `YouTubeLinkTests`; `formatStart` and `parseStart` round trips; `stepStart` at 0:00.0 and 0:00.4.
 

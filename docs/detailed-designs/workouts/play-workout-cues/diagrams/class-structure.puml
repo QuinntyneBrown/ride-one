@@ -11,7 +11,7 @@ skinparam class {
 }
 title Class structure — Play workout cues
 
-package "src/app/core" {
+package "projects/wattzup/src/app/core" {
   class CueService <<service>> {
     -ctx: AudioContext | null
     +Signal<boolean> enabled
@@ -40,7 +40,7 @@ package "src/app/core" {
   }
 }
 
-package "src/app/dashboard" {
+package "projects/components/src/lib and projects/wattzup/src/app/dashboard" {
   class PhaseBanner <<component wz-phase-banner>> {
     +Signal<BannerText | null> text
     +Signal<'rest' | null> modifier
