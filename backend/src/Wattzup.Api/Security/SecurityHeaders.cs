@@ -20,6 +20,9 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
         return nonce;
     }
 
+    public const string YouTubeScriptOrigin = "https://www.youtube.com";
+    public const string YouTubePlayerOrigin = "https://www.youtube-nocookie.com";
+
     public Task InvokeAsync(HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -29,8 +32,10 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
             var style = context.Items[NonceKey] is string nonce ? $"'self' 'nonce-{nonce}'" : "'self'";
             headers.XContentTypeOptions = "nosniff";
             headers["Referrer-Policy"] = "no-referrer";
+            // The YouTube player is the one third-party origin: its iframe and its IFrame player API script, for the
+            // ride-along video. Connections, styles, fonts and images stay same-origin (L2-036 criterion 4, ADR 0012).
             headers.ContentSecurityPolicy =
-                $"default-src 'self'; script-src 'self'; style-src {style}; font-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
+                $"default-src 'self'; script-src 'self' {YouTubeScriptOrigin}; style-src {style}; font-src 'self'; connect-src 'self'; img-src 'self' data:; frame-src {YouTubePlayerOrigin}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
             return Task.CompletedTask;
         });
         return next(context);
