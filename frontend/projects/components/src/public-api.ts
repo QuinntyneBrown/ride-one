@@ -32,3 +32,8 @@ export * from './lib/plan-strip/plan-strip';
 export * from './lib/overlay-panel/overlay-panel';
 export * from './lib/level-picker/level-picker-input';
 export * from './lib/toast/toast-queue';
+export * from './lib/status-line/status-line';
+export * from './lib/ride-clock/ride-clock';
+export * from './lib/phase-banner/phase-banner';
+export * from './lib/interval/interval';
+export * from './lib/app-bar/app-bar';

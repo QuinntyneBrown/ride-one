@@ -1,5 +1,5 @@
 <header class="app-bar">
-  <a class="lockup" routerLink="/" aria-label="Wattzup dashboard">
+  <a class="lockup" [routerLink]="homeLink()" aria-label="Wattzup dashboard">
     <svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true">
       <rect width="48" height="48" rx="12" />
       <path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10" />
@@ -7,20 +7,20 @@
     <span class="lockup__word">wattzup</span>
   </a>
   <span class="app-bar__divider" aria-hidden="true"></span>
-  @if (view().view === 'loading') {
+  @if (loading()) {
     <span class="skeleton skeleton--status" aria-hidden="true"></span>
   } @else {
-    <wz-status-line />
+    <wz-status-line [status]="status()" [reducedMotion]="reducedMotion()" />
   }
   @if (workout(); as w) {
     <a
       class="btn btn--quiet btn--sm app-bar__workout"
-      routerLink="/setup"
+      [routerLink]="setupLink()"
       [attr.aria-label]="'Edit workout: ' + w.summary"
       ><wz-icon name="sliders" size="sm" />{{ w.summary }}</a
     >
   } @else {
-    <a class="btn btn--quiet btn--sm app-bar__workout" routerLink="/setup"
+    <a class="btn btn--quiet btn--sm app-bar__workout" [routerLink]="setupLink()"
       ><wz-icon name="sliders" size="sm" />Set up a ride</a
     >
   }
@@ -34,22 +34,17 @@
         >{{ b.text }}</span
       >
     }
-    @if (view().view === 'loading') {
+    @if (loading()) {
       <span class="skeleton skeleton--clock" aria-hidden="true"></span>
     } @else {
-      <wz-ride-clock [workout]="workout()" />
+      <wz-ride-clock [elapsed]="elapsed()" [totalSeconds]="workout()?.total_seconds ?? null" />
     }
     @if (paused()) {
-      <button
-        class="btn"
-        type="button"
-        [disabled]="!view().pauseEnabled"
-        (click)="actions.resume()"
-      >
+      <button class="btn" type="button" [disabled]="!pauseEnabled()" (click)="resumeRide.emit()">
         <wz-icon name="play" size="sm" /><span class="btn__label">Resume</span>
       </button>
     } @else {
-      <button class="btn" type="button" [disabled]="!view().pauseEnabled" (click)="actions.pause()">
+      <button class="btn" type="button" [disabled]="!pauseEnabled()" (click)="pauseRide.emit()">
         <wz-icon name="pause" size="sm" /><span class="btn__label">Pause</span>
       </button>
     }
@@ -57,8 +52,8 @@
       <button
         class="btn btn--stop-belt btn--collapsible"
         type="button"
-        [disabled]="!view().endEnabled"
-        (click)="actions.end()"
+        [disabled]="!endEnabled()"
+        (click)="endRide.emit()"
       >
         <wz-icon name="stop" size="sm" /><span class="btn__label">Stop belt</span>
       </button>
@@ -66,8 +61,8 @@
       <button
         class="btn btn--quiet btn--end"
         type="button"
-        [disabled]="!view().endEnabled"
-        (click)="actions.end()"
+        [disabled]="!endEnabled()"
+        (click)="endRide.emit()"
       >
         <wz-icon name="stop" size="sm" /><span class="btn__label">End</span>
       </button>
@@ -75,26 +70,26 @@
     <button
       class="btn btn--quiet btn--icon"
       type="button"
-      [attr.aria-pressed]="cues.beeps()"
-      [attr.aria-label]="cues.beeps() ? 'Countdown beeps on' : 'Countdown beeps off'"
-      (click)="cues.toggle()"
+      [attr.aria-pressed]="beeps()"
+      [attr.aria-label]="beeps() ? 'Countdown beeps on' : 'Countdown beeps off'"
+      (click)="toggleBeeps.emit()"
     >
-      <wz-icon [name]="cues.beeps() ? 'bell' : 'bell-off'" />
+      <wz-icon [name]="beeps() ? 'bell' : 'bell-off'" />
     </button>
     <button
       class="btn btn--quiet btn--icon"
       type="button"
       aria-label="Light theme"
-      [attr.aria-pressed]="theme.theme() === 'light'"
-      (click)="theme.toggle()"
+      [attr.aria-pressed]="theme() === 'light'"
+      (click)="toggleTheme.emit()"
     >
-      <wz-icon [name]="theme.theme() === 'light' ? 'moon' : 'sun'" />
+      <wz-icon [name]="theme() === 'light' ? 'moon' : 'sun'" />
     </button>
     <button
       class="btn btn--quiet btn--icon"
       type="button"
       aria-label="Diagnostics"
-      (click)="dialogs.openDiagnostics()"
+      (click)="diagnostics.emit()"
     >
       <wz-icon name="activity" />
     </button>

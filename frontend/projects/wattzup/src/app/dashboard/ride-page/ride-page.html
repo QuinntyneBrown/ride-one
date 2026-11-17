@@ -1,6 +1,26 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="app app--fixed">
-  <wz-app-bar [workout]="workout()" [machine]="state()?.machine ?? 'bike'" [view]="view()" />
+  <wz-app-bar
+    [workout]="workout()"
+    [machine]="state()?.machine ?? 'bike'"
+    [loading]="view().view === 'loading'"
+    [pauseEnabled]="view().pauseEnabled"
+    [endEnabled]="view().endEnabled"
+    [status]="status()"
+    [reducedMotion]="reducedMotion()"
+    [elapsed]="countdown.elapsedText()"
+    [badge]="badge()"
+    [beeps]="beeps.beeps()"
+    [theme]="theme.theme()"
+    homeLink="/"
+    setupLink="/setup"
+    (pauseRide)="actions.pause()"
+    (resumeRide)="actions.resume()"
+    (endRide)="actions.end()"
+    (toggleBeeps)="beeps.toggle()"
+    (toggleTheme)="theme.toggle()"
+    (diagnostics)="dialogs.openDiagnostics()"
+  />
   <wz-connection-banner />
   <div class="ride-layout">
     <main
@@ -28,7 +48,7 @@
             <span class="skeleton skeleton--rect skeleton--cadence"></span>
             <span class="skeleton skeleton--rect skeleton--sub"></span>
           </div>
-          <wz-interval [loading]="true" />
+          <wz-interval [loading]="true" setupLink="/setup" />
         </div>
         <div class="trace-skeleton" aria-hidden="true">
           <span class="skeleton skeleton--rect skeleton--trace"></span>
@@ -52,7 +72,13 @@
               <span>{{ note }}</span>
             }
           </wz-readout>
-          <wz-interval [workout]="workout()" />
+          <wz-interval
+            [segment]="segment()"
+            [remaining]="countdown.remainingText()"
+            [progress]="countdown.progress()"
+            [pulse]="cues.pulse()"
+            setupLink="/setup"
+          />
         </div>
         <ng-container [ngTemplateOutlet]="mainViewTpl" />
         <wz-metric-list [state]="state()" [dimmed]="view().dimmed" />
@@ -95,7 +121,13 @@
           <wz-readout kind="cadence" label="Cadence" [value]="c.value" unit="rpm">{{
             c.sub
           }}</wz-readout>
-          <wz-interval [workout]="workout()" />
+          <wz-interval
+            [segment]="segment()"
+            [remaining]="countdown.remainingText()"
+            [progress]="countdown.progress()"
+            [pulse]="cues.pulse()"
+            setupLink="/setup"
+          />
         </div>
         <ng-container [ngTemplateOutlet]="mainViewTpl" />
         <wz-metric-list [state]="state()" [dimmed]="view().dimmed" />
@@ -203,7 +235,7 @@
     }
   </div>
 </div>
-<wz-phase-banner />
+<wz-phase-banner [banner]="cues.banner()" [announcement]="cues.announcement()" />
 
 <!-- The video and trace views, shared by both machines (L2-076, L2-071 AC6). -->
 <ng-template #mainViewTpl>

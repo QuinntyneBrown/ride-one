@@ -1,5 +1,7 @@
 import {
+  appBarBadge,
   badgeTone,
+  intervalSegment,
   kindLabel,
   nextLabel,
   phaseOf,
@@ -82,5 +84,37 @@ describe('treadmill badges (L2-071 AC11)', () => {
   it('keeps the bike words and tone', () => {
     expect(statusBadge('paused: bike disconnected')).toBe('Bike disconnected');
     expect(badgeTone('paused: bike disconnected')).toBe('warning');
+  });
+});
+
+describe('intervalSegment (L2-024, L2-025)', () => {
+  it('names the current segment, its round and what comes next', () => {
+    const w = testWorkout();
+    expect(intervalSegment(w)).toEqual({
+      label: 'Work',
+      tone: 'work',
+      round: 'Round 5 of 8',
+      next: nextLabel(w.segments, 9),
+    });
+  });
+
+  it('is null without a workout or past the last segment', () => {
+    expect(intervalSegment(null)).toBeNull();
+    expect(intervalSegment(testWorkout({ segment: 99 }))).toBeNull();
+  });
+});
+
+describe('appBarBadge (L2-025)', () => {
+  it('is the status badge with its tone', () => {
+    const w = testWorkout({ status: 'paused' });
+    expect(appBarBadge(w, 'bike')).toEqual({
+      text: statusBadge('paused', 'bike'),
+      tone: badgeTone('paused', 'bike'),
+    });
+  });
+
+  it('is null for a running workout or without one', () => {
+    expect(appBarBadge(testWorkout(), 'bike')).toBeNull();
+    expect(appBarBadge(null, 'bike')).toBeNull();
   });
 });

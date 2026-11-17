@@ -34,6 +34,11 @@ import {
 } from '../../core/treadmill-controls';
 import { inclineView, speedView } from '../../core/treadmill-view';
 import { machineWords } from '../../core/machine-words';
+import { connectionStatus } from '../../core/connection-status';
+import { CueService } from '../../core/cue.service';
+import { MotionPreference } from '../../core/motion-preference';
+import { appBarBadge, intervalSegment } from '../../core/segment-labels';
+import { ThemeService } from '../../core/theme.service';
 import { stripOf } from '../../core/plan-strip';
 import {
   InclineControl,
@@ -55,11 +60,9 @@ import {
   MetricList,
   PlanStrip,
 } from '@wattzup/components';
-import { AppBar } from '../app-bar/app-bar';
+import { AppBar, Interval, PhaseBanner } from '@wattzup/components';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
 import { RideTrace } from '../ride-trace/ride-trace';
-import { Interval } from '../interval/interval';
-import { PhaseBanner } from '../phase-banner/phase-banner';
 import { VideoSync } from '../../core/video-sync.service';
 import { RideVideo } from '../ride-video/ride-video';
 
@@ -188,6 +191,18 @@ export class RidePage {
   });
   protected readonly treadmillCommands = inject(TreadmillCommandService);
   protected readonly quickSpeeds = QUICK_SPEEDS;
+  protected readonly countdown = inject(CountdownService);
+  protected readonly cues = inject(CueDirector);
+  protected readonly beeps = inject(CueService);
+  protected readonly theme = inject(ThemeService);
+  protected readonly reducedMotion = inject(MotionPreference).reduced;
+  protected readonly status = computed(() =>
+    connectionStatus(this.live.state(), this.live.connection(), this.live.loadFailed()),
+  );
+  protected readonly badge = computed(() =>
+    appBarBadge(this.workout(), this.state()?.machine ?? 'bike'),
+  );
+  protected readonly segment = computed(() => intervalSegment(this.workout()));
   protected readonly logTitle = {
     bike: machineWords('bike').panelTitle,
     treadmill: machineWords('treadmill').panelTitle,

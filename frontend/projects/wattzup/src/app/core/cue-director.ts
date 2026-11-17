@@ -18,12 +18,9 @@ import { SegmentChangeDetector } from './segment-change-detector';
 
 export const BANNER_MS = 1800;
 
-export interface PhaseBannerView {
-  id: number;
-  headline: string;
-  detail: string;
-  rest: boolean;
-}
+import type { PhaseBannerView } from '@wattzup/components';
+
+export type { PhaseBannerView };
 
 @Injectable()
 export class CueDirector implements OnDestroy {

@@ -15,11 +15,11 @@
       </span>
       <span
         class="numeral interval__left"
-        [class.is-pulse]="cues.pulse()"
+        [class.is-pulse]="pulse()"
         role="timer"
         aria-live="off"
-        [attr.aria-label]="countdown.remainingText() + ' left in this interval'"
-        >{{ countdown.remainingText() }}</span
+        [attr.aria-label]="remaining() + ' left in this interval'"
+        >{{ remaining() }}</span
       >
     </div>
     <div
@@ -55,6 +55,6 @@
     <p class="interval__next">
       Pick HIIT intervals or a flat level and Wattzup drives the resistance for you.
     </p>
-    <a class="btn btn--volt interval__setup" routerLink="/setup">Set up a ride</a>
+    <a class="btn btn--volt interval__setup" [routerLink]="setupLink()">Set up a ride</a>
   </div>
 }

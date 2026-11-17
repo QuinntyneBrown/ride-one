@@ -1,6 +1,11 @@
 // Labels for the interval card and the app bar badge (L2-025).
-import type { Machine, Segment, SegmentKind, WorkoutStatus } from '@wattzup/api';
-import { formatDuration } from '@wattzup/components';
+import type { Machine, Segment, SegmentKind, WorkoutSnapshot, WorkoutStatus } from '@wattzup/api';
+import {
+  type AppBarBadge,
+  type IntervalSegment,
+  type NextLabel,
+  formatDuration,
+} from '@wattzup/components';
 
 export type Phase = 'effort' | 'easy';
 export type Tone = 'work' | 'rest' | 'easy';
@@ -36,15 +41,7 @@ export function roundLabel(segment: Segment, segments: readonly Segment[]): stri
   return `Round ${segment.round} of ${roundCount(segments)}`;
 }
 
-export interface NextLabel {
-  kind: string;
-  duration: string;
-  level: number | null;
-  /** The treadmill segment's speed; null on the bike. */
-  speed: string | null;
-  /** The treadmill segment's incline in %; 0 on the bike. */
-  incline: number;
-}
+export type { NextLabel };
 
 export function nextLabel(segments: readonly Segment[], index: number): NextLabel | null {
   const next = segments[index + 1];
@@ -88,4 +85,22 @@ export function badgeTone(status: WorkoutStatus, machine: Machine = 'bike'): Bad
   if (status === 'starting belt') return 'info';
   if (machine === 'treadmill' && status === 'paused: bike disconnected') return 'danger';
   return 'warning';
+}
+
+/** The interval card's segment: label, tone, round and what comes next (L2-024, L2-025). */
+export function intervalSegment(w: WorkoutSnapshot | null): IntervalSegment | null {
+  const s = w?.segments[w.segment];
+  if (!w || !s) return null;
+  return {
+    label: kindLabel(s.kind),
+    tone: toneOf(s.kind),
+    round: roundLabel(s, w.segments),
+    next: nextLabel(w.segments, w.segment),
+  };
+}
+
+/** The app bar's badge for the workout's status, or null when the status has none. */
+export function appBarBadge(w: WorkoutSnapshot | null, machine: Machine): AppBarBadge | null {
+  const text = w ? statusBadge(w.status, machine) : null;
+  return w && text ? { text, tone: badgeTone(w.status, machine) } : null;
 }

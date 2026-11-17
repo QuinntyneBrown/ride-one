@@ -15,6 +15,8 @@ import { formatDuration } from '@wattzup/components';
 import type { Machine, StartPlan } from '@wattzup/api';
 import { planVideo } from '../../core/video-link';
 import { LiveStateService } from '../../core/live-state.service';
+import { connectionStatus } from '../../core/connection-status';
+import { MotionPreference } from '../../core/motion-preference';
 import { MachineHistoryStore } from '../../core/machine-history.store';
 import { setupLead } from '../../core/machine-words';
 import { planSummary } from '../../core/plan-expansion';
@@ -77,7 +79,7 @@ import {
 import { EffortRow } from '../effort-row/effort-row';
 import { RideProfile } from '@wattzup/components';
 import { SetList } from '../set-list/set-list';
-import { StatusLine } from '../status-line/status-line';
+import { StatusLine } from '@wattzup/components';
 import { VideoLink } from '../video-link/video-link';
 
 /** The input id of each draft field; the form summary links to them. */
@@ -133,6 +135,10 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
 })
 export class SetupPage {
   private readonly live = inject(LiveStateService);
+  protected readonly reducedMotion = inject(MotionPreference).reduced;
+  protected readonly status = computed(() =>
+    connectionStatus(this.live.state(), this.live.connection(), this.live.loadFailed()),
+  );
   private readonly store = inject(PlanDraftStore);
   private readonly history = inject(MachineHistoryStore);
   private readonly workouts = inject(WORKOUT_API);

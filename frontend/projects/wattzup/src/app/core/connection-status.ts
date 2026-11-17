@@ -2,15 +2,9 @@
 import type { BikeState, StreamConnection } from '@wattzup/api';
 import { machineWords } from './machine-words';
 
-export type StatusIcon = 'bluetooth' | 'bluetooth-scan' | 'bluetooth-off' | 'wifi-off';
-export type StatusTone = 'ok' | 'wait' | 'bad';
+import type { ConnectionStatus, StatusIcon, StatusTone } from '@wattzup/components';
 
-export interface ConnectionStatus {
-  name: string;
-  label: string;
-  icon: StatusIcon;
-  tone: StatusTone;
-}
+export type { ConnectionStatus, StatusIcon, StatusTone };
 
 export function connectionStatus(
   state: BikeState | null,

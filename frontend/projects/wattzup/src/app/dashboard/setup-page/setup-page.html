@@ -9,7 +9,7 @@
       <span class="lockup__word">wattzup</span>
     </a>
     <span class="app-bar__divider" aria-hidden="true"></span>
-    <wz-status-line />
+    <wz-status-line [status]="status()" [reducedMotion]="reducedMotion()" />
     @if (canSwitch()) {
       <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
         ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
