@@ -33,6 +33,7 @@ import {
   setStretch,
   toIntervalsPlan,
   validateIntervals,
+  setListView,
 } from '../../core/intervals-form';
 import {
   type DraftField,
@@ -62,6 +63,7 @@ import {
   stepTreadmillDraft,
   toTreadmillPlan,
   validateTreadmillDraft,
+  effortRowView,
 } from '../../core/treadmill-plan-form';
 import { isActive } from '../../core/workout-status';
 import { WORKOUT_API } from '@wattzup/api';
@@ -76,9 +78,8 @@ import {
   Presets,
   Switch,
 } from '@wattzup/components';
-import { EffortRow } from '../effort-row/effort-row';
+import { EffortRow, SetList } from '@wattzup/components';
 import { RideProfile } from '@wattzup/components';
-import { SetList } from '../set-list/set-list';
 import { StatusLine } from '@wattzup/components';
 import { VideoLink } from '../video-link/video-link';
 
@@ -161,6 +162,16 @@ export class SetupPage {
   protected readonly tids = TREADMILL_FIELD_IDS;
   protected readonly draft = signal<PlanDraft>(this.store.load());
   protected readonly tdraft = signal<TreadmillPlanDraft>(this.store.loadTreadmill());
+  protected readonly setList = computed(() => setListView(this.idraft()));
+  protected readonly workView = computed(() =>
+    effortRowView(this.tdraft().workSpeed, this.tdraft().workIncline),
+  );
+  protected readonly restView = computed(() =>
+    effortRowView(this.tdraft().restSpeed, this.tdraft().restIncline),
+  );
+  protected readonly holdView = computed(() =>
+    effortRowView(this.tdraft().speed, this.tdraft().incline),
+  );
   protected readonly idraft = signal(this.store.loadIntervals());
   protected readonly vdraft = signal(this.store.loadVideo());
   /** The bike's Intervals mode (L2-029 AC10). */

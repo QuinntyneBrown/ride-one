@@ -2,9 +2,10 @@
 import type { IntervalSet, IntervalsPlan } from '@wattzup/api';
 import { WARMUP_CADENCE, WORK_CADENCE, REST_CADENCE, COOLDOWN_CADENCE } from './plan-expansion';
 import { formatClock, parseClock, parseUnit } from './plan-form';
+import type { SetListView, StretchKind, StretchRow } from '@wattzup/components';
 
 export type IntervalPresetId = 'descending' | 'even';
-export type StretchKind = 'warmup' | 'cooldown';
+export type { StretchKind };
 
 /** A warm-up or cool-down; turning it off keeps its values for when it is turned on again. */
 export interface StretchDraft {
@@ -362,4 +363,20 @@ export function stepStretchField(
   }
   const current = parseClock(fields.duration) ?? 60;
   return { ...fields, duration: formatClock(Math.min(1800, Math.max(60, current + dir * 30))) };
+}
+
+/** What the set list shows for a draft (L2-029 AC12). */
+export function setListView(d: IntervalsDraft): SetListView {
+  const row = (kind: StretchKind): StretchRow => ({
+    kind,
+    name: STRETCH_NAMES[kind],
+    line: stretchLine(d[kind]),
+    on: d[kind].on,
+  });
+  return {
+    warmup: row('warmup'),
+    cooldown: row('cooldown'),
+    sets: d.sets.map((s) => setLines(s)),
+    full: d.sets.length >= MAX_SETS,
+  };
 }

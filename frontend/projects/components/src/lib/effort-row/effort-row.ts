@@ -1,8 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { formatPace } from '@wattzup/components';
-import { canStepSpeed, parseIncline, parseSpeed } from '../../core/treadmill-plan-form';
-import { Icon } from '@wattzup/components';
-import { inclineView, LevelPicker } from '@wattzup/components';
+import { Icon } from '../icon/icon';
+import { inclineView, LevelPicker } from '../level-picker/level-picker';
+
+/** What the row shows for the typed speed and incline. */
+export interface EffortRowView {
+  /** The pace for the typed speed, `m:ss`, or `–:––`. */
+  pace: string;
+  /** The incline in %; null when it cannot be read. */
+  incline: number | null;
+  canSlower: boolean;
+  canFaster: boolean;
+}
 
 /**
  * One treadmill effort row, `Work`, `Recover` or Steady's `Hold`: a typable speed between
@@ -22,7 +30,7 @@ export class EffortRow {
   readonly tone = input<'work' | 'rest' | 'steady'>('work');
   readonly large = input(false);
   readonly speed = input.required<string>();
-  readonly incline = input.required<string>();
+  readonly view = input.required<EffortRowView>();
   readonly error = input<string | null>(null);
   readonly disabled = input(false);
   readonly speedChange = output<string>();
@@ -30,13 +38,9 @@ export class EffortRow {
   readonly inclineChange = output<number>();
   readonly submitted = output();
 
-  protected readonly pace = computed(() => formatPace(parseSpeed(this.speed())));
-  private readonly inclineValue = computed(() => parseIncline(this.incline()));
-  protected readonly inclineView = computed(() => inclineView(this.inclineValue()));
-  protected readonly inclineText = computed(() => `${this.inclineValue() ?? '–'}%`);
+  protected readonly inclineView = computed(() => inclineView(this.view().incline));
+  protected readonly inclineText = computed(() => `${this.view().incline ?? '–'}%`);
   protected readonly inclineValueText = computed(
-    () => `${this.title()} incline ${this.inclineValue() ?? 0}% of 10%`,
+    () => `${this.title()} incline ${this.view().incline ?? 0}% of 10%`,
   );
-  protected readonly canSlower = computed(() => canStepSpeed(this.speed(), -1));
-  protected readonly canFaster = computed(() => canStepSpeed(this.speed(), 1));
 }

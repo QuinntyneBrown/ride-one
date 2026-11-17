@@ -37,3 +37,6 @@ export * from './lib/ride-clock/ride-clock';
 export * from './lib/phase-banner/phase-banner';
 export * from './lib/interval/interval';
 export * from './lib/app-bar/app-bar';
+export * from './lib/machine-card/machine-card';
+export * from './lib/effort-row/effort-row';
+export * from './lib/set-list/set-list';

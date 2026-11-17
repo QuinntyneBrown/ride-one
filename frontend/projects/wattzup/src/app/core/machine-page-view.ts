@@ -1,21 +1,9 @@
 // What the machine page shows, from the live state, the stored history and today (L2-073).
 import type { BikeState, Machine } from '@wattzup/api';
+import type { CardStatus, MachineCardView } from '@wattzup/components';
 import type { MachineHistory } from './machine-history.store';
 
-export interface MachineCardView {
-  kind: 'Bike' | 'Treadmill';
-  name: string;
-  advertisedName: string;
-  signal: number;
-  signalLabel: string;
-  controls: string;
-  lastSession: string;
-  lastUsed: boolean;
-  cta: string;
-}
-
-export type CardStatus =
-  { kind: 'idle' } | { kind: 'connecting'; text: string } | { kind: 'not-found'; text: string };
+export type { CardStatus, MachineCardView };
 
 const WORDS: Record<
   Machine,

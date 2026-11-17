@@ -19,7 +19,7 @@ import {
   nearbyHeading,
 } from '../../core/machine-page-view';
 import { Alert, Icon } from '@wattzup/components';
-import { MachineCard } from '../machine-card/machine-card';
+import { MachineCard } from '@wattzup/components';
 
 type PickAlert = 'failed' | 'workout-active';
 

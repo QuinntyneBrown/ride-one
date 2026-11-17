@@ -1,7 +1,22 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import type { Machine } from '@wattzup/api';
-import type { CardStatus, MachineCardView } from '../../core/machine-page-view';
-import { Icon, SignalBars } from '@wattzup/components';
+import { Icon } from '../icon/icon';
+import { SignalBars } from '../signal-bars/signal-bars';
+
+export interface MachineCardView {
+  kind: 'Bike' | 'Treadmill';
+  name: string;
+  advertisedName: string;
+  signal: number;
+  signalLabel: string;
+  controls: string;
+  lastSession: string;
+  lastUsed: boolean;
+  cta: string;
+}
+
+export type CardStatus =
+  { kind: 'idle' } | { kind: 'connecting'; text: string } | { kind: 'not-found'; text: string };
 
 /** One machine as a radio card on the machine page (L2-073). */
 @Component({

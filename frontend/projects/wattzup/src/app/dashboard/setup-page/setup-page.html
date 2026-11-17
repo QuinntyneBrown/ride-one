@@ -87,7 +87,7 @@
                   title="Work"
                   tone="work"
                   [speed]="t.workSpeed"
-                  [incline]="t.workIncline"
+                  [view]="workView()"
                   [error]="terr.workSpeed ?? terr.workIncline ?? null"
                   [disabled]="busy()"
                   (speedChange)="tedit({ workSpeed: $event })"
@@ -100,7 +100,7 @@
                   title="Recover"
                   tone="rest"
                   [speed]="t.restSpeed"
-                  [incline]="t.restIncline"
+                  [view]="restView()"
                   [error]="terr.restSpeed ?? terr.restIncline ?? null"
                   [disabled]="busy()"
                   (speedChange)="tedit({ restSpeed: $event })"
@@ -125,7 +125,7 @@
                   tone="steady"
                   [large]="true"
                   [speed]="t.speed"
-                  [incline]="t.incline"
+                  [view]="holdView()"
                   [error]="terr.speed ?? terr.incline ?? null"
                   [disabled]="busy()"
                   (speedChange)="tedit({ speed: $event })"
@@ -211,7 +211,7 @@
             } @else if (d.mode === 'intervals') {
               <wz-presets [items]="intervalChips()" [disabled]="busy()" (choose)="preset($event)" />
               <wz-set-list
-                [draft]="idraft()"
+                [view]="setList()"
                 [disabled]="busy()"
                 [error]="ierrors()[0]?.message ?? null"
                 (editSet)="editSet($event)"

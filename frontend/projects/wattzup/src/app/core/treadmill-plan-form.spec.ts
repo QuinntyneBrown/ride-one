@@ -1,4 +1,5 @@
 import {
+  effortRowView,
   DEFAULT_TREADMILL_DRAFT,
   type TreadmillPlanDraft,
   applyTreadmillPreset,
@@ -221,5 +222,16 @@ describe('treadmill plan draft (L2-072, L2-067)', () => {
       incline: 8,
     });
     expect(toTreadmillPlan({ ...flat, speed: '0' })).toBeNull();
+  });
+});
+
+describe('effortRowView (L2-072 AC5–7)', () => {
+  it.each([
+    ['10.0', '2', { pace: '6:00', incline: 2, canSlower: true, canFaster: true }],
+    ['19.3', '10%', { pace: '3:07', incline: 10, canSlower: true, canFaster: false }],
+    ['0.8', '0', { pace: '75:00', incline: 0, canSlower: false, canFaster: true }],
+    ['fast', 'steep', { pace: '–:––', incline: null, canSlower: true, canFaster: true }],
+  ])('speed %s and incline %s', (speed, incline, view) => {
+    expect(effortRowView(speed, incline)).toEqual(view);
   });
 });

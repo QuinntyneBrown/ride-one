@@ -1,6 +1,7 @@
 // The treadmill plan draft's rules for the setup screen (L2-072, L2-067 messages). Rounds, Work,
 // Recover and Duration follow the bike's rules in plan-form.ts (L2-010).
 import type { WorkoutPlan } from '@wattzup/api';
+import { type EffortRowView, formatPace } from '@wattzup/components';
 import {
   DEFAULT_DRAFT,
   type DraftError,
@@ -339,5 +340,15 @@ export function toTreadmillPlan(draft: TreadmillPlanDraft): WorkoutPlan | null {
     rest_speed: parseSpeed(draft.restSpeed) as number,
     work_incline: parseIncline(draft.workIncline) as number,
     rest_incline: parseIncline(draft.restIncline) as number,
+  };
+}
+
+/** What an effort row shows for its typed speed and incline (L2-072 AC5–7). */
+export function effortRowView(speed: string, incline: string): EffortRowView {
+  return {
+    pace: formatPace(parseSpeed(speed)),
+    incline: parseIncline(incline),
+    canSlower: canStepSpeed(speed, -1),
+    canFaster: canStepSpeed(speed, 1),
   };
 }
