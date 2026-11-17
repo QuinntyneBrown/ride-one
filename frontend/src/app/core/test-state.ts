@@ -5,6 +5,7 @@ import { expandPlan } from './plan-expansion';
 export function testWorkout(change: Partial<WorkoutSnapshot> = {}): WorkoutSnapshot {
   const plan = {
     kind: 'hiit',
+    video: null,
     rounds: 8,
     work_seconds: 40,
     rest_seconds: 20,
@@ -81,6 +82,7 @@ export function testState(change: Partial<BikeState> = {}): BikeState {
 export function testIntervalsPlan(): IntervalsPlan {
   return {
     kind: 'intervals',
+    video: null,
     warmup: { seconds: 300, level: 8, cadence: 80 },
     sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
       rounds: i === 0 || i === 4 ? 1 : 2,

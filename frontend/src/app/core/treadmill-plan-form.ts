@@ -317,6 +317,7 @@ export function toTreadmillPlan(draft: TreadmillPlanDraft): WorkoutPlan | null {
   if (draft.mode === 'flat') {
     return {
       kind: 'flat',
+      video: null,
       level: null,
       minutes: parseUnit(draft.minutes) as number,
       cadence: null,
@@ -326,6 +327,7 @@ export function toTreadmillPlan(draft: TreadmillPlanDraft): WorkoutPlan | null {
   }
   return {
     kind: 'hiit',
+    video: null,
     rounds: parseUnit(draft.rounds) as number,
     work_seconds: parseClock(draft.work) as number,
     rest_seconds: parseClock(draft.rest) as number,

@@ -12,7 +12,8 @@
       "work_speed": null,
       "rest_speed": null,
       "work_incline": null,
-      "rest_incline": null
+      "rest_incline": null,
+      "video": null
     },
     "summary": "HIIT · 8 × 40s / 20s",
     "segments": [
@@ -188,8 +189,8 @@
       }
     ],
     "segment": 0,
-    "remaining": 177,
-    "elapsed_seconds": 3,
+    "remaining": 176,
+    "elapsed_seconds": 4,
     "total_seconds": 760,
     "mode": "plan",
     "plan_level": 8,

@@ -18,7 +18,8 @@
       "work_speed": 13,
       "rest_speed": 6,
       "work_incline": 2,
-      "rest_incline": 1
+      "rest_incline": 1,
+      "video": null
     },
     "summary": "HIIT · 6 × 1:00 / 1:00",
     "segments": [
@@ -165,9 +166,9 @@
   "cadence": null,
   "speed_kmh": 7,
   "speed_mph": 4.3,
-  "packets": 17,
-  "first_data_at": 1794878416.356,
-  "last_data_at": 1794878431.347,
+  "packets": 16,
+  "first_data_at": 1794882571.516,
+  "last_data_at": 1794882584.509,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -175,7 +176,7 @@
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8788",
+  "bind_address": "127.0.0.1:8797",
   "connection_id": "0bf669f1",
   "power": null,
   "target_power": null,
@@ -185,7 +186,7 @@
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794878431.347,
+      "at": 1794882584.509,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -195,7 +196,7 @@
       "value": 1
     },
     {
-      "at": 1794878431.347,
+      "at": 1794882584.509,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -205,7 +206,7 @@
       "value": 7
     },
     {
-      "at": 1794878424.534,
+      "at": 1794882578.162,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -215,7 +216,7 @@
       "value": 2
     },
     {
-      "at": 1794878424.532,
+      "at": 1794882578.157,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -239,7 +240,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794878423.025
+      "seen_at": 1794882576.645
     },
     {
       "machine": "treadmill",
@@ -247,7 +248,7 @@
       "label": "Echelon Stride",
       "rssi": -55,
       "signal": 4,
-      "seen_at": 1794878423.025
+      "seen_at": 1794882576.645
     }
   ],
   "treadmill_enabled": true

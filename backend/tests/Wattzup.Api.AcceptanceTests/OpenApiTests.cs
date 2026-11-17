@@ -82,7 +82,11 @@ public sealed class OpenApiTests
         Assert.True(schemas.TryGetProperty("WorkoutPlanHiitPlan", out var hiit));
         Assert.True(schemas.TryGetProperty("WorkoutPlanFlatPlan", out _));
         Assert.True(schemas.TryGetProperty("WorkoutPlanIntervalsPlan", out var intervals));
-        Assert.Equal(["kind", "warmup", "sets", "cooldown"], intervals.GetProperty("properties").EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["kind", "warmup", "sets", "cooldown", "video"], intervals.GetProperty("properties").EnumerateObject().Select(p => p.Name));
+        Assert.Contains("video", hiit.GetProperty("required").EnumerateArray().Select(r => r.GetString()));
+        Assert.Equal(
+            ["video_id", "start_seconds"],
+            schemas.GetProperty("RideVideo").GetProperty("required").EnumerateArray().Select(r => r.GetString()));
         Assert.Equal("kind", schemas.GetProperty("WorkoutPlan").GetProperty("discriminator").GetProperty("propertyName").GetString());
         Assert.Contains("work_seconds", hiit.GetProperty("properties").EnumerateObject().Select(p => p.Name));
         Assert.True(schemas.TryGetProperty("WorkoutSnapshot", out var snapshot));

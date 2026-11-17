@@ -144,10 +144,9 @@ Two dashboards agreeing within 1.5 s (L2-076 criterion 9) follows from both comp
 
 ### Open questions
 
-- **`plan.video` in the contract.** L2-010 criterion 14 and ADR 0012 give `plan.video` `{video_id, start_seconds}`, but the `workout` line of L2-014 does not list it yet. `<TO SUPPLY>`: the L2-014 wording.
-- **Tab label on the treadmill.** L2-076 names the second tab `Power vs. plan`, and its status list includes the treadmill's statuses. On the treadmill the main area shows the speed trace (`treadmill/treadmill-dashboard-and-setup`). `<TO SUPPLY>`: whether the treadmill's tab reads `Speed vs. plan`.
-- **Draft scope.** This design keeps one video draft for every mode and both machines. L2-029 criterion 20 says only "with the plan drafts". `<TO SUPPLY>`: confirmation, or one draft per machine.
-- **Start point beyond the video's length.** A start point past the video's end gives a player `ended` state from the first second. `<TO SUPPLY>`: whether that counts as an error under L2-076 criterion 7.
+- **Tab label on the treadmill.** L2-076 names the second tab `Power vs. plan`, and the tab keeps that name on both machines, although on the treadmill it shows the speed trace (`treadmill/treadmill-dashboard-and-setup`). Renaming it needs a requirement first.
+- **Draft scope.** One video draft serves every mode and both machines; L2-029 criterion 20 says only "with the plan drafts".
+- **Start point beyond the video's length.** A start point past the video's end gives a player `ended` state from the first second. It is a normal state, not an error under L2-076 criterion 7: the ride carries on and the video stays ended.
 - **Ride position before the first state.** Before the first state arrives, the playhead and the target are unknown. The design creates the player only once a state with a video is seen.
 
 ## Requirements
@@ -156,6 +155,7 @@ Two dashboards agreeing within 1.5 s (L2-076 criterion 9) follows from both comp
 |-------|--------------|-------------|
 | `L2-076` | `L1-007` | Video ride-along. With a video in the plan (L2-010), the dashboard plays it in step with the ride. The ride clock leads; the video follows and never holds the ride up. |
 | `L2-010` | `L1-004` | Workout plan definition and validation. A workout is defined by a plan of one of three kinds, submitted as JSON with snake_case fields; criteria 14 to 17 add the optional `video` `{url, start_seconds}`, of which the backend keeps only the video id and the start point and never fetches the link. |
+| `L2-014` | `L1-005` | State model contract. `workout.plan` carries `video` `{video_id, start_seconds}` for a ride-along video, else `null` (ADR 0012). |
 | `L2-029` | `L1-007` | Ride setup screen. The `/setup` screen must let the rider build a plan and start it; criteria 17 to 20 add the `Ride along to a video` switch, the `YouTube link` field, the preview and the start point. |
 | `L2-059` | `L1-007` | Ride preview on setup. Criterion 6: given the ride-along video is on with a valid link, then the summary adds `Video` `Synced from <m:ss.s>` after Time under load; otherwise the row is not shown. |
 | `L2-036` | `L1-009` | Input validation and hardening. Criterion 4: a Content-Security-Policy that allows only same-origin scripts, styles and connections, with two exceptions for the ride-along video (ADR 0012): `frame-src https://www.youtube-nocookie.com` and `script-src https://www.youtube.com` (the IFrame player API). No other origin is allowed. |

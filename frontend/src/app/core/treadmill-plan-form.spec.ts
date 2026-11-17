@@ -198,6 +198,7 @@ describe('treadmill plan draft (L2-072, L2-067)', () => {
   it('turns a valid draft into a treadmill plan', () => {
     expect(toTreadmillPlan(DEFAULT_TREADMILL_DRAFT)).toEqual({
       kind: 'hiit',
+      video: null,
       rounds: 6,
       work_seconds: 60,
       rest_seconds: 60,
@@ -212,6 +213,7 @@ describe('treadmill plan draft (L2-072, L2-067)', () => {
     });
     expect(toTreadmillPlan(flat)).toEqual({
       kind: 'flat',
+      video: null,
       level: null,
       minutes: 30,
       cadence: null,

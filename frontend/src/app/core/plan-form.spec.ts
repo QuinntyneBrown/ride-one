@@ -111,6 +111,7 @@ describe('plan-form (L2-029)', () => {
   it('turns a valid draft into a plan', () => {
     expect(toPlan(DEFAULT_DRAFT)).toEqual({
       kind: 'hiit',
+      video: null,
       rounds: 18,
       work_seconds: 40,
       rest_seconds: 20,
@@ -125,6 +126,7 @@ describe('plan-form (L2-029)', () => {
     });
     expect(toPlan({ ...DEFAULT_DRAFT, mode: 'flat' })).toEqual({
       kind: 'flat',
+      video: null,
       level: 12,
       minutes: 30,
       cadence: 85,

@@ -78,7 +78,7 @@ The state now carries the chosen machine and both machines' fields (L2-014, L2-0
 - The OpenAPI schema transformer describes each new field with its type and nullability, and the frontend's generated types in `src/app/api/` are regenerated in the same change (L2-070 criterion 4).
 - `nearby` is `[{machine, name, label, rssi, signal, seen_at}]`, at most one entry per machine; a change to `nearby` alone is broadcast at most once a second (L2-074).
 - `LiveStateService` is unchanged: it remains the only connection, and every machine-aware view reads `state().machine`.
-- `workout.plan` carries `video`: `{video_id, start_seconds}` when the plan has a ride-along video, else `null`, written and never omitted (L2-010 criteria 14 and 15, ADR 0012). The OpenAPI transformer describes it and the generated types follow. The dashboard builds the player from it (`workouts/ride-along-video`). The `workout` line of L2-014 does not list `plan.video` yet; `<TO SUPPLY>` the L2-014 wording.
+- `workout.plan` carries `video`: `{video_id, start_seconds}` when the plan has a ride-along video, else `null`, written and never omitted (L2-010 criteria 14 and 15, ADR 0012). The OpenAPI transformer describes it and the generated types follow. The dashboard builds the player from it (`workouts/ride-along-video`).
 
 ## Requirements
 

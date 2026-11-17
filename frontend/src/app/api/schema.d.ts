@@ -452,6 +452,11 @@ export interface components {
             /** Format: int32 */
             sent: number;
         };
+        RideVideo: {
+            video_id: string;
+            /** Format: double */
+            start_seconds: number;
+        };
         Segment: {
             kind: components["schemas"]["SegmentKind"];
             /** Format: int32 */
@@ -512,6 +517,7 @@ export interface components {
             speed: null | number;
             /** Format: int32 */
             incline: null | number;
+            video: null | components["schemas"]["RideVideo"];
         };
         WorkoutPlanHiitPlan: {
             /** @enum {string} */
@@ -536,6 +542,7 @@ export interface components {
             work_incline: null | number;
             /** Format: int32 */
             rest_incline: null | number;
+            video: null | components["schemas"]["RideVideo"];
         };
         WorkoutPlanIntervalsPlan: {
             /** @enum {string} */
@@ -543,6 +550,7 @@ export interface components {
             warmup: null | components["schemas"]["Stretch"];
             sets: components["schemas"]["IntervalSet"][];
             cooldown: null | components["schemas"]["Stretch"];
+            video: null | components["schemas"]["RideVideo"];
         };
         WorkoutSnapshot: {
             plan: components["schemas"]["WorkoutPlan"];

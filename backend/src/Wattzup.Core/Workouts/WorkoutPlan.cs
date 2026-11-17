@@ -7,7 +7,17 @@ namespace Wattzup.Core.Workouts;
 [JsonDerivedType(typeof(HiitPlan), "hiit")]
 [JsonDerivedType(typeof(FlatPlan), "flat")]
 [JsonDerivedType(typeof(IntervalsPlan), "intervals")]
-public abstract record WorkoutPlan;
+public abstract record WorkoutPlan
+{
+    /// <summary>The ride-along video, or null for none (L2-010 criteria 14 and 15, ADR 0012).</summary>
+    public RideVideo? Video { get; init; }
+}
+
+/// <summary>
+/// A plan's ride-along video: the YouTube video id and the start point, the position in the video that lines up with
+/// the ride's 0:00, to 0.1 s. The submitted link is never kept (ADR 0012).
+/// </summary>
+public sealed record RideVideo(string VideoId, double StartSeconds);
 
 /// <summary>
 /// HIIT rounds of work and recover, with an optional warm-up and cool-down. On the bike the levels are set and the

@@ -32,6 +32,7 @@ const RECORDED_NEARBY = recordedRunning.nearby[0] as unknown as Json;
 
 export const DEFAULT_PLAN = {
   kind: 'hiit',
+  video: null,
   rounds: 8,
   work_seconds: 40,
   rest_seconds: 20,
@@ -56,6 +57,7 @@ export const SETUP_DEFAULT_PLAN = {
 /** The Descending recoveries plan, as the Intervals form posts it on first use (L2-029 AC11). */
 export const INTERVALS_PLAN = {
   kind: 'intervals',
+  video: null,
   warmup: { seconds: 300, level: 8, cadence: 80 },
   sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
     rounds: i === 0 || i === 4 ? 1 : 2,
@@ -71,6 +73,7 @@ export const INTERVALS_PLAN = {
 
 export const FLAT_PLAN = {
   kind: 'flat',
+  video: null,
   level: 12,
   minutes: 30,
   cadence: 85,
@@ -306,6 +309,7 @@ export function treadmillIdle(change: Json = {}): Json {
 /** The treadmill setup default: 18 × 0:40 / 0:20 at 9.0 / 7.0 km/h, incline 0 (L2-072 AC4). */
 export const TREADMILL_PLAN = {
   kind: 'hiit',
+  video: null,
   rounds: 18,
   work_seconds: 40,
   rest_seconds: 20,

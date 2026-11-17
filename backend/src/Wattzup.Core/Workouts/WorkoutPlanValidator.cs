@@ -26,6 +26,9 @@ public static class WorkoutPlanValidator
     public const string RecoverRange = "Recover must be 0 (none) or at least 0:05.";
     public const string TooManyEfforts = "At most 30 efforts in a plan.";
     public const string TooLong = "A ride can be at most 180 minutes.";
+    public const string VideoLink = "That doesn't look like a YouTube link.";
+    public const string VideoStart = "Start point must be 0:00 to 12:00:00.";
+    public const decimal MaxStartSeconds = 43200m;
     public const int MaxSets = 10;
     public const int MaxEfforts = 30;
     public const int MaxRideSeconds = 180 * 60;
@@ -54,7 +57,52 @@ public static class WorkoutPlanValidator
             errors["kind"] = [ChooseKind];
         }
 
+        var video = body.ValueKind == JsonValueKind.Object ? Video(body, errors) : null;
+        if (plan is not null && video is not null)
+        {
+            plan = plan with { Video = video };
+        }
+
         return errors.Count == 0 ? new PlanValidationResult(plan, errors) : new PlanValidationResult(null, errors);
+    }
+
+    /// <summary>
+    /// The optional <c>video</c> of any plan kind: absent or null is no video; otherwise the link shall be a YouTube
+    /// link and the start point a number from 0 to 43200, rounded to 0.1. Only the id and the start point are kept
+    /// (L2-010 criteria 14 to 17).
+    /// </summary>
+    private static RideVideo? Video(JsonElement body, Dictionary<string, string[]> errors)
+    {
+        if (!body.TryGetProperty("video", out var video) || video.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        if (video.ValueKind != JsonValueKind.Object)
+        {
+            errors["video.url"] = [VideoLink];
+            return null;
+        }
+
+        string id = string.Empty;
+        var linkOk = video.TryGetProperty("url", out var url) && url.ValueKind == JsonValueKind.String
+            && YouTubeLink.TryParseId(url.GetString(), out id);
+        if (!linkOk)
+        {
+            errors["video.url"] = [VideoLink];
+        }
+
+        decimal start = 0;
+        var startOk = video.TryGetProperty("start_seconds", out var s) && s.ValueKind == JsonValueKind.Number
+            && s.TryGetDecimal(out start) && start >= 0 && start <= MaxStartSeconds;
+        if (!startOk)
+        {
+            errors["video.start_seconds"] = [VideoStart];
+        }
+
+        return linkOk && startOk
+            ? new RideVideo(id, (double)Math.Round(start, 1, MidpointRounding.AwayFromZero))
+            : null;
     }
 
     private static HiitPlan Hiit(JsonElement body, Dictionary<string, string[]> errors)

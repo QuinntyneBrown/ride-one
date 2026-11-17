@@ -12,7 +12,8 @@
       "work_speed": 13,
       "rest_speed": 6,
       "work_incline": 2,
-      "rest_incline": 1
+      "rest_incline": 1,
+      "video": null
     },
     "summary": "HIIT · 6 × 1:00 / 1:00",
     "segments": [

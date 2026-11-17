@@ -19,7 +19,7 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Set up a ride](workouts/set-up-ride/README.md) | `L2-010`, `L2-029`, `L2-052`, `L2-059` |
 |  | [Show the workout countdown](workouts/show-workout-countdown/README.md) | `L2-024`, `L2-025` |
 |  | [Play workout cues](workouts/play-workout-cues/README.md) | `L2-027` |
-|  | [Ride along to a video](workouts/ride-along-video/README.md) | `L2-076`, `L2-010`, `L2-029`, `L2-036`, `L2-059` |
+|  | [Ride along to a video](workouts/ride-along-video/README.md) | `L2-076`, `L2-010`, `L2-014`, `L2-029`, `L2-036`, `L2-059` |
 | live-state | [Stream live state](live-state/stream-live-state/README.md) | `L2-014`, `L2-015`, `L2-032`, `L2-037` |
 |  | [Serve the power trace](live-state/serve-power-trace/README.md) | `L2-050` |
 |  | [Persist the status snapshot](live-state/persist-status-snapshot/README.md) | `L2-031` |

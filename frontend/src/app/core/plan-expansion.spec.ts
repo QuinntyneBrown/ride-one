@@ -11,6 +11,7 @@ import { testIntervalsPlan } from './test-state';
 // The same rows as PlanExpanderTests and WorkoutSummaryTests in Wattzup.Core.Tests (L2-059 AC4).
 const defaultPlan: HiitPlan = {
   kind: 'hiit',
+  video: null,
   rounds: 8,
   work_seconds: 40,
   rest_seconds: 20,
@@ -27,7 +28,15 @@ const defaultPlan: HiitPlan = {
 describe('expandPlan (L2-045)', () => {
   it('expands a flat plan into one steady segment (AC1)', () => {
     expect(
-      expandPlan({ kind: 'flat', level: 12, minutes: 30, cadence: 85, speed: null, incline: null }),
+      expandPlan({
+        kind: 'flat',
+        video: null,
+        level: 12,
+        minutes: 30,
+        cadence: 85,
+        speed: null,
+        incline: null,
+      }),
     ).toEqual([
       {
         kind: 'steady',
@@ -155,6 +164,7 @@ describe('planSummary (L2-060)', () => {
     expect(
       planSummary({
         kind: 'flat',
+        video: null,
         level: 12,
         minutes: 30,
         cadence: 85,
@@ -181,6 +191,7 @@ describe('estimateWatts (L2-049)', () => {
 describe('expandPlan for the treadmill (L2-068)', () => {
   const treadmill = {
     kind: 'hiit',
+    video: null,
     rounds: 2,
     work_seconds: 40,
     rest_seconds: 20,
@@ -235,6 +246,7 @@ describe('expandPlan for the treadmill (L2-068)', () => {
   it('expands a flat plan into one steady segment at speed and incline (AC2)', () => {
     const flat = {
       kind: 'flat',
+      video: null,
       level: null,
       minutes: 30,
       cadence: null,

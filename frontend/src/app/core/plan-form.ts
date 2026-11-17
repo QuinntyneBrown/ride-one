@@ -203,6 +203,7 @@ export function toPlan(draft: PlanDraft): WorkoutPlan | null {
   if (draft.mode === 'flat') {
     return {
       kind: 'flat',
+      video: null,
       level: draft.flatLevel,
       minutes: parseUnit(draft.minutes) as number,
       cadence: parseUnit(draft.cadence) as number,
@@ -212,6 +213,7 @@ export function toPlan(draft: PlanDraft): WorkoutPlan | null {
   }
   return {
     kind: 'hiit',
+    video: null,
     rounds: parseUnit(draft.rounds) as number,
     work_seconds: parseClock(draft.work) as number,
     rest_seconds: parseClock(draft.rest) as number,

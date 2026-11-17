@@ -10,6 +10,7 @@ import invalidTreadmillWorkout from './fixtures/recorded/problem-invalid-treadmi
 /** The treadmill HIIT plan the setup form starts with: Minute on (L2-072 AC4). */
 const TREADMILL_DEFAULT_PLAN = {
   kind: 'hiit',
+  video: null,
   rounds: 6,
   work_seconds: 60,
   rest_seconds: 60,
@@ -268,6 +269,7 @@ test.describe('Run Setup (L2-072, L2-067)', () => {
     const [call] = await api.waitForCall('POST', '/api/workout');
     expect(call?.body).toEqual({
       kind: 'flat',
+      video: null,
       level: null,
       minutes: 30,
       cadence: null,

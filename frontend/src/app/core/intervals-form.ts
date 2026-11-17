@@ -154,6 +154,7 @@ export function toIntervalsPlan(draft: IntervalsDraft): IntervalsPlan | null {
     on ? { seconds, level, cadence } : null;
   return {
     kind: 'intervals',
+    video: null,
     warmup: stretch(draft.warmup),
     sets: draft.sets.map((s) => ({ ...s })),
     cooldown: stretch(draft.cooldown),

@@ -261,4 +261,60 @@ public sealed class WorkoutPlanValidatorTests
 
         Assert.Equal(["cooldown", "rounds", "work_level", "work_seconds"], result.Errors.Keys.Order());
     }
+
+    [Theory]
+    [InlineData("0", 0.0)]
+    [InlineData("12", 12.0)]
+    [InlineData("12.34", 12.3)]
+    [InlineData("12.35", 12.4)]
+    [InlineData("43200", 43200.0)]
+    public void A_valid_video_keeps_only_its_id_and_the_start_point_to_0_1(string start, double expected)
+    {
+        var result = Validate(With(Flat, "video", $$"""{"url":"https://youtu.be/QUoToFsMNig","start_seconds":{{start}}}"""));
+
+        Assert.Empty(result.Errors);
+        Assert.Equal(new RideVideo("QUoToFsMNig", expected), result.Plan!.Video);
+    }
+
+    [Theory]
+    [InlineData("<missing>")]
+    [InlineData("null")]
+    public void No_video_gives_a_null_video(string video)
+    {
+        var result = Validate(With(Flat, "video", video));
+
+        Assert.Empty(result.Errors);
+        Assert.Null(result.Plan!.Video);
+    }
+
+    [Theory]
+    [InlineData("-0.1")]
+    [InlineData("43200.1")]
+    [InlineData("\"12\"")]
+    [InlineData("null")]
+    public void A_start_point_out_of_range_or_not_a_number_is_named(string start)
+    {
+        var result = Validate(With(Hiit, "video", $$"""{"url":"https://youtu.be/QUoToFsMNig","start_seconds":{{start}}}"""));
+
+        Assert.Equal([WorkoutPlanValidator.VideoStart], result.Errors["video.start_seconds"]);
+    }
+
+    [Theory]
+    [InlineData("""{"url":"https://vimeo.com/76979871","start_seconds":0}""")]
+    [InlineData("""{"url":42,"start_seconds":0}""")]
+    [InlineData("""{"start_seconds":0}""")]
+    public void A_link_that_is_not_YouTube_is_named(string video)
+    {
+        var result = Validate(With(Hiit, "video", video));
+
+        Assert.Equal([WorkoutPlanValidator.VideoLink], result.Errors["video.url"]);
+    }
+
+    [Fact]
+    public void A_video_that_is_not_an_object_is_named_by_its_link()
+    {
+        var result = Validate(With(Flat, "video", "\"https://youtu.be/QUoToFsMNig\""));
+
+        Assert.Equal([WorkoutPlanValidator.VideoLink], result.Errors["video.url"]);
+    }
 }

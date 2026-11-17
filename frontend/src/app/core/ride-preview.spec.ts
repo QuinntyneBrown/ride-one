@@ -24,6 +24,7 @@ describe('previewOf (L2-059)', () => {
   it('previews the default plan', () => {
     const p = previewOf({
       kind: 'hiit',
+      video: null,
       rounds: 8,
       work_seconds: 40,
       rest_seconds: 20,
@@ -49,6 +50,7 @@ describe('previewOf (L2-059)', () => {
   it('previews a flat plan without time under load', () => {
     const p = previewOf({
       kind: 'flat',
+      video: null,
       level: 12,
       minutes: 30,
       cadence: 85,
@@ -67,6 +69,7 @@ describe('previewOf (L2-059)', () => {
   it('draws one profile bar per segment in a 0 0 <total> 32 box', () => {
     const p = previewOf({
       kind: 'hiit',
+      video: null,
       rounds: 8,
       work_seconds: 40,
       rest_seconds: 20,
@@ -91,6 +94,7 @@ describe('previewOf (L2-059)', () => {
 describe('treadmillPreviewOf (L2-072 AC8)', () => {
   const hiit = {
     kind: 'hiit',
+    video: null,
     rounds: 18,
     work_seconds: 40,
     rest_seconds: 20,
@@ -127,6 +131,7 @@ describe('treadmillPreviewOf (L2-072 AC8)', () => {
   it('previews a treadmill flat plan', () => {
     const p = treadmillPreviewOf({
       kind: 'flat',
+      video: null,
       level: null,
       minutes: 30,
       cadence: null,
