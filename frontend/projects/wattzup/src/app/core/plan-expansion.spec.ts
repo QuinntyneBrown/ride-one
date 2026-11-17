@@ -5,7 +5,7 @@ import {
   planSummary,
   totalSeconds,
 } from './plan-expansion';
-import type { HiitPlan } from './api-types';
+import type { HiitPlan } from '@wattzup/api';
 import { testIntervalsPlan } from './test-state';
 
 // The same rows as PlanExpanderTests and WorkoutSummaryTests in Wattzup.Core.Tests (L2-059 AC4).

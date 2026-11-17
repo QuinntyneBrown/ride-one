@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, model } from '@angular/core';
-import type { Machine } from '../../core/api-types';
+import type { Machine } from '@wattzup/api';
 
 /** Warm-up and Cool-down switches, worded for the machine (L2-029, L2-072 AC5). */
 @Component({

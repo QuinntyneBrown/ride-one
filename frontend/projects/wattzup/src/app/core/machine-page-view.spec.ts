@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { BikeState, NearbyMachine } from './api-types';
+import type { BikeState, NearbyMachine } from '@wattzup/api';
 import type { MachineHistory } from './machine-history.store';
 import {
   cardStatus,

@@ -1,6 +1,6 @@
 import { DialogRef } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { BIKE_API } from '../../core/bike-api';
+import { BIKE_API } from '@wattzup/api';
 import { diagnosticsReport, diagnosticsRows } from '../../core/diagnostics-report';
 import { LiveStateService } from '../../core/live-state.service';
 import { epochTime } from '../../core/local-time';

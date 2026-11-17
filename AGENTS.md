@@ -60,9 +60,13 @@ wattzup/
 │       └── Wattzup.Api.AcceptanceTests/   # ATDD through the API, WebApplicationFactory
 ├── frontend/                              # ALL frontend code: one Angular workspace
 │   ├── projects/
+│   │   ├── api/                           # library @wattzup/api: types, contracts, tokens, HTTP
+│   │   │   └── src/
+│   │   │       ├── generated/             # generated from /openapi/v1.json, never hand-edited
+│   │   │       ├── lib/                   # contracts, HTTP, interceptor, key store, with tests
+│   │   │       └── public-api.ts
 │   │   └── wattzup/                       # the application
 │   │       └── src/app/
-│   │           ├── api/                   # generated from /openapi/v1.json, never hand-edited
 │   │           ├── core/                  # services and pure helpers, with unit tests
 │   │           ├── dashboard/             # components (name.ts + name.html + name.scss)
 │   │           └── app.config.ts          # composition root

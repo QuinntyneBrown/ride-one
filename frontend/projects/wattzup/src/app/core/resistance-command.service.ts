@@ -2,9 +2,8 @@
 // danger toasts (L2-020, L2-047).
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { BIKE_API, RequestTimeoutError } from './bike-api';
+import { BIKE_API, RequestTimeoutError, WORKOUT_API } from '@wattzup/api';
 import { ToastService } from './toast.service';
-import { WORKOUT_API } from './workout-api';
 
 const TITLE = "Couldn't set resistance";
 

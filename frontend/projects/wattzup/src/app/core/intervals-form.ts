@@ -1,5 +1,5 @@
 // The Intervals draft's rules for the setup screen and its dialogs (L2-010 AC11-13, L2-029 AC11-15).
-import type { IntervalSet, IntervalsPlan } from './api-types';
+import type { IntervalSet, IntervalsPlan } from '@wattzup/api';
 import { WARMUP_CADENCE, WORK_CADENCE, REST_CADENCE, COOLDOWN_CADENCE } from './plan-expansion';
 import { formatClock, parseClock, parseUnit } from './plan-form';
 

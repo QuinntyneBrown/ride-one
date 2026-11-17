@@ -9,12 +9,18 @@ import {
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
-import { apiKeyInterceptor } from './core/api-key.interceptor';
-import { BIKE_API } from './core/bike-api';
-import { HttpBikeApi, HttpMachineApi, HttpWorkoutApi } from './core/http-api';
-import { MACHINE_API } from './core/machine-api';
+import {
+  apiKeyInterceptor,
+  BIKE_API,
+  HttpBikeApi,
+  HttpMachineApi,
+  HttpWorkoutApi,
+  MACHINE_API,
+  UNAUTHORIZED_HANDLER,
+  WORKOUT_API,
+} from '@wattzup/api';
 import { ThemeService } from './core/theme.service';
-import { WORKOUT_API } from './core/workout-api';
+import { redirectToUnlock } from './core/unlock-redirect';
 import { IframeYouTubePlayer } from './core/iframe-youtube-player';
 import { YOUTUBE_PLAYER } from './core/youtube-player';
 
@@ -25,6 +31,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => void inject(ThemeService)),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([apiKeyInterceptor])),
+    { provide: UNAUTHORIZED_HANDLER, useFactory: redirectToUnlock },
     { provide: BIKE_API, useClass: HttpBikeApi },
     { provide: WORKOUT_API, useClass: HttpWorkoutApi },
     { provide: YOUTUBE_PLAYER, useClass: IframeYouTubePlayer },

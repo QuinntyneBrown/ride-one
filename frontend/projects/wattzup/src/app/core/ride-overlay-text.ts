@@ -1,5 +1,5 @@
 // The copy of the ride overlays (L2-058 AC3–AC6, L2-071 criteria 14, 16 to 18).
-import type { BikeState } from './api-types';
+import type { BikeState } from '@wattzup/api';
 import { formatDuration } from './format-duration';
 import type { RideOverlayKind } from './ride-view-state';
 

@@ -1,5 +1,5 @@
 // The power readout's verdict against the segment target (L2-021).
-import type { WorkoutStatus } from './api-types';
+import type { WorkoutStatus } from '@wattzup/api';
 
 export type DeltaTone = 'on' | 'high' | 'low';
 

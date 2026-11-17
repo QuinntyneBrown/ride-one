@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import type { Machine } from '../../core/api-types';
+import type { Machine } from '@wattzup/api';
 import type { CardStatus, MachineCardView } from '../../core/machine-page-view';
 import { Icon } from '../icon/icon';
 import { SignalBars } from '../signal-bars/signal-bars';

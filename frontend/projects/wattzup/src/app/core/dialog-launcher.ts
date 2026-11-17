@@ -4,7 +4,7 @@ import { Dialog, type DialogRef } from '@angular/cdk/dialog';
 import type { ComponentType } from '@angular/cdk/portal';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { StartPlan } from './api-types';
+import type { StartPlan } from '@wattzup/api';
 import type { SetDraft, StretchDraft, StretchKind } from './intervals-form';
 
 export interface EditSetData {

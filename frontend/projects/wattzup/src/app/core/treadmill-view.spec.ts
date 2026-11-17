@@ -1,4 +1,4 @@
-import type { BikeState, WorkoutStatus } from './api-types';
+import type { BikeState, WorkoutStatus } from '@wattzup/api';
 import { testState, testWorkout } from './test-state';
 import { inclineView, speedView } from './treadmill-view';
 

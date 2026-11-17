@@ -1,5 +1,5 @@
 // The "Speed vs. plan · incline below" scene (L2-071 criterion 6).
-import type { WorkoutSnapshot } from './api-types';
+import type { WorkoutSnapshot } from '@wattzup/api';
 import { formatDuration } from './format-duration';
 import { type TraceScene, phaseOfKind, traceTicks } from './trace-geometry';
 import type { TreadmillTraceHistory } from './treadmill-trace-history';

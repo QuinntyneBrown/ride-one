@@ -11,7 +11,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import type { BikeState } from '../../core/api-types';
+import type { BikeState } from '@wattzup/api';
 import { FrameScheduler } from '../../core/frame-scheduler';
 import { PowerTraceStore } from '../../core/power-trace.store';
 import { ThemeService } from '../../core/theme.service';

@@ -1,4 +1,4 @@
-import type { WorkoutSnapshot, WorkoutStatus } from './api-types';
+import type { WorkoutSnapshot, WorkoutStatus } from '@wattzup/api';
 
 const TERMINAL: readonly WorkoutStatus[] = ['ended', 'ended: bike shut off', 'stopped'];
 

@@ -1,6 +1,6 @@
 // Keeps TreadmillTraceHistory in step with the stream (L2-071 criterion 6).
 import { Injectable, effect, inject, signal, untracked } from '@angular/core';
-import type { BikeState } from './api-types';
+import type { BikeState } from '@wattzup/api';
 import { LiveStateService } from './live-state.service';
 import { TreadmillTraceHistory } from './treadmill-trace-history';
 

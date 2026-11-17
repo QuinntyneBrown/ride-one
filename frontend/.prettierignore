@@ -6,4 +6,4 @@ test-results
 playwright-report
 public/fonts
 package-lock.json
-projects/wattzup/src/app/api
+projects/api/src/generated

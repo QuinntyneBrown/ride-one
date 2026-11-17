@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import type { CommandEntry, Machine } from '../../core/api-types';
+import type { CommandEntry, Machine } from '@wattzup/api';
 import { commandLabel, commandTime, statusText } from '../../core/command-log-view';
 import { machineWords } from '../../core/machine-words';
 import { epochClock } from '../../core/local-time';

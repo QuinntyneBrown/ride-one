@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { WorkoutSnapshot } from '../../core/api-types';
+import type { WorkoutSnapshot } from '@wattzup/api';
 import { CountdownService } from '../../core/countdown.service';
 import { CueDirector } from '../../core/cue-director';
 import { kindLabel, nextLabel, roundLabel, toneOf } from '../../core/segment-labels';

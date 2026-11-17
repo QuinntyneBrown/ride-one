@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import type { WorkoutSnapshot } from '../../core/api-types';
+import type { WorkoutSnapshot } from '@wattzup/api';
 import { CountdownService } from '../../core/countdown.service';
 import { formatDuration } from '../../core/format-duration';
 

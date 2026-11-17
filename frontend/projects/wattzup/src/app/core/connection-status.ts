@@ -1,7 +1,6 @@
 // The app bar's status line (L2-018). First matching row wins.
-import type { BikeState } from './api-types';
+import type { BikeState, StreamConnection } from '@wattzup/api';
 import { machineWords } from './machine-words';
-import type { StreamConnection } from './stream-connection';
 
 export type StatusIcon = 'bluetooth' | 'bluetooth-scan' | 'bluetooth-off' | 'wifi-off';
 export type StatusTone = 'ok' | 'wait' | 'bad';

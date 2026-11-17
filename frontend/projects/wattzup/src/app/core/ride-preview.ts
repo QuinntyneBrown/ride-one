@@ -1,5 +1,5 @@
 // The "Your ride" panel values, from the same plan expansion as the backend (L2-059, L2-072).
-import type { HiitPlan, IntervalsPlan, Segment, SegmentKind, WorkoutPlan } from './api-types';
+import type { HiitPlan, IntervalsPlan, Segment, SegmentKind, WorkoutPlan } from '@wattzup/api';
 import { formatDuration } from './format-duration';
 import { formatStart } from './video-link';
 import { formatPace } from './pace';

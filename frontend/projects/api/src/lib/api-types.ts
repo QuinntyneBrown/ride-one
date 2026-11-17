@@ -1,6 +1,6 @@
 // The one module that names the generated OpenAPI types (src/app/api/schema.d.ts, written by
 // `npm run generate:api`). If the generated schema names change, only these aliases change.
-import type { components } from '../api/schema';
+import type { components } from '../generated/schema';
 
 type Schemas = components['schemas'];
 

@@ -2,8 +2,7 @@
 // (L2-071 criterion 7). The reported and target values come back over the event stream.
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { RequestTimeoutError } from './bike-api';
-import { MACHINE_API } from './machine-api';
+import { RequestTimeoutError, MACHINE_API } from '@wattzup/api';
 import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })

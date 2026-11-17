@@ -1,7 +1,6 @@
 // Which skeleton, overlay or error the ride dashboard shows, and which controls work (L2-058,
 // L2-071 criteria 8 and 9).
-import type { BikeState } from './api-types';
-import type { StreamConnection } from './stream-connection';
+import type { BikeState, StreamConnection } from '@wattzup/api';
 import { isActive } from './workout-status';
 
 export type RideView = 'loading' | 'load-failed' | 'ride';

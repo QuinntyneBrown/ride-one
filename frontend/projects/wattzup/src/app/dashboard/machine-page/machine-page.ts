@@ -8,9 +8,8 @@ import {
   signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import type { Machine } from '../../core/api-types';
+import { type Machine, MACHINE_API } from '@wattzup/api';
 import { LiveStateService } from '../../core/live-state.service';
-import { MACHINE_API } from '../../core/machine-api';
 import { MachineHistoryStore } from '../../core/machine-history.store';
 import {
   cardStatus,

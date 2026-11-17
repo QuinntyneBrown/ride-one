@@ -1,5 +1,5 @@
 // Builders for unit tests: a full L2-014 state, mid-ride on the default plan.
-import type { BikeState, IntervalsPlan, WorkoutSnapshot } from './api-types';
+import type { BikeState, IntervalsPlan, WorkoutSnapshot } from '@wattzup/api';
 import { expandPlan } from './plan-expansion';
 
 export function testWorkout(change: Partial<WorkoutSnapshot> = {}): WorkoutSnapshot {

@@ -1,8 +1,7 @@
 // The last session per machine and the last used machine, kept in localStorage, not on the
 // server (L2-072 AC10, L2-073 AC2 and AC3).
 import { Injectable } from '@angular/core';
-import type { Machine } from './api-types';
-import { SafeStorage } from './safe-storage';
+import { type Machine, SafeStorage } from '@wattzup/api';
 
 export const MACHINE_HISTORY_KEY = 'wattzup.machineHistory';
 

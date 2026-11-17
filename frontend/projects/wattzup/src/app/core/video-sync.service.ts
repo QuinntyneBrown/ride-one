@@ -12,7 +12,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import type { RideVideo, WorkoutStatus } from './api-types';
+import type { RideVideo, WorkoutStatus } from '@wattzup/api';
 import { LiveStateService } from './live-state.service';
 import { RideActions } from './ride-actions';
 import { ToastService } from './toast.service';
