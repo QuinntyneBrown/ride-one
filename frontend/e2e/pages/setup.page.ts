@@ -34,6 +34,11 @@ export class SetupPage {
   readonly safetyLine: Locator;
   readonly switchLink: Locator;
   readonly machineGroup: Locator;
+  readonly intervalsCard: Locator;
+  readonly intervalsModeCard: Locator;
+  readonly setList: Locator;
+  readonly setRows: Locator;
+  readonly addSetButton: Locator;
 
   constructor(
     readonly page: Page,
@@ -72,6 +77,12 @@ export class SetupPage {
     this.statusName = page.locator('.app-bar .statusline__name');
     this.switchLink = page.locator('.app-bar').getByRole('link', { name: /^Switch to / });
     this.machineGroup = page.getByRole('group', { name: 'Machine' });
+    // The radio's name includes its description; `HIIT intervals` must not match.
+    this.intervalsCard = page.getByRole('radio', { name: /^Intervals / });
+    this.intervalsModeCard = page.locator('.mode-card', { has: this.intervalsCard });
+    this.setList = page.getByRole('list', { name: 'Plan' });
+    this.setRows = this.setList.locator('.set-row:not(.set-row--stretch)');
+    this.addSetButton = page.getByRole('button', { name: 'Add set', exact: true });
   }
 
   /** Loads `/setup` with `initial` as the live state. */
@@ -158,5 +169,22 @@ export class SetupPage {
 
   faster(row: string): Locator {
     return this.page.getByRole('button', { name: `Faster ${row}`, exact: true });
+  }
+
+  /** A set row of the Intervals plan, `Set <i>` from 1 (L2-029 AC12). */
+  setRow(i: number): Locator {
+    return this.setRows.nth(i - 1);
+  }
+
+  /** The value line of the `Warm-up` or `Cool-down` row. */
+  stretchValue(name: 'Warm-up' | 'Cool-down'): Locator {
+    return this.setList
+      .locator('.set-row--stretch', { has: this.page.getByRole('switch', { name }) })
+      .locator('.set-row__value');
+  }
+
+  /** `Edit set 2`, `Edit warm-up`, `Move set 1 down`, `Remove set 3`… */
+  rowAction(name: string): Locator {
+    return this.setList.getByRole('button', { name, exact: true });
   }
 }

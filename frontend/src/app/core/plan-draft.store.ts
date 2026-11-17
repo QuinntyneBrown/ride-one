@@ -1,6 +1,18 @@
-// The last submitted plan draft per machine, kept in localStorage (L2-029 AC7, L2-072 AC10).
+// The last submitted plan draft per machine, and the bike's Intervals draft, kept in localStorage
+// (L2-029 AC7, AC16, L2-072 AC10).
 import { Injectable } from '@angular/core';
 import { DEFAULT_DRAFT, type PlanDraft, PRESETS } from './plan-form';
+import {
+  DEFAULT_INTERVALS,
+  INTERVAL_PRESETS,
+  type IntervalsDraft,
+  MAX_SETS,
+  type SetDraft,
+  type StretchDraft,
+  setFieldsOf,
+  toSetDraft,
+  validateIntervals,
+} from './intervals-form';
 import { SafeStorage } from './safe-storage';
 import {
   DEFAULT_TREADMILL_DRAFT,
@@ -10,6 +22,64 @@ import {
 
 export const PLAN_DRAFT_KEY = 'wattzup.planDraft';
 export const TREADMILL_PLAN_DRAFT_KEY = 'wattzup.treadmillPlanDraft';
+export const INTERVALS_DRAFT_KEY = 'wattzup.intervalsDraft';
+
+const isInt = (v: unknown, min: number, max: number): boolean =>
+  Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
+
+function isStretch(v: unknown): v is StretchDraft {
+  const s = v as Partial<StretchDraft> | null;
+  return (
+    typeof s === 'object' &&
+    s !== null &&
+    typeof s.on === 'boolean' &&
+    isInt(s.seconds, 60, 1800) &&
+    isInt(s.level, 1, 32) &&
+    isInt(s.cadence, 40, 150)
+  );
+}
+
+function isSet(v: unknown): v is SetDraft {
+  const s = v as SetDraft | null;
+  return (
+    typeof s === 'object' &&
+    s !== null &&
+    isInt(s.work_level, 1, 32) &&
+    isInt(s.rest_level, 1, 32) &&
+    [s.rounds, s.work_seconds, s.rest_seconds, s.work_cadence, s.rest_cadence].every((n) =>
+      Number.isInteger(n),
+    ) &&
+    toSetDraft(setFieldsOf(s)) !== null
+  );
+}
+
+/** Accepts a stored Intervals draft only when it is whole and still valid (L2-029 AC16). */
+export function readIntervalsDraft(raw: string | null): IntervalsDraft {
+  if (!raw) return DEFAULT_INTERVALS;
+  try {
+    const d = JSON.parse(raw) as Partial<IntervalsDraft> | null;
+    const ok =
+      typeof d === 'object' &&
+      d !== null &&
+      (d.preset === null || INTERVAL_PRESETS.some((p) => p.id === d.preset)) &&
+      isStretch(d.warmup) &&
+      isStretch(d.cooldown) &&
+      Array.isArray(d.sets) &&
+      d.sets.length >= 1 &&
+      d.sets.length <= MAX_SETS &&
+      d.sets.every(isSet);
+    if (!ok) return DEFAULT_INTERVALS;
+    const draft: IntervalsDraft = {
+      preset: d.preset ?? null,
+      warmup: d.warmup as StretchDraft,
+      sets: d.sets as SetDraft[],
+      cooldown: d.cooldown as StretchDraft,
+    };
+    return validateIntervals(draft).length === 0 ? draft : DEFAULT_INTERVALS;
+  } catch {
+    return DEFAULT_INTERVALS;
+  }
+}
 
 const TREADMILL_STRINGS = [
   'rounds',
@@ -60,7 +130,7 @@ export function readDraft(raw: string | null): PlanDraft {
   try {
     const d = JSON.parse(raw) as Partial<PlanDraft>;
     const ok =
-      (d.mode === 'hiit' || d.mode === 'flat') &&
+      (d.mode === 'hiit' || d.mode === 'intervals' || d.mode === 'flat') &&
       (d.preset === null || PRESETS.some((p) => p.id === d.preset)) &&
       STRINGS.every((k) => typeof d[k] === 'string') &&
       LEVELS.every(
@@ -92,5 +162,13 @@ export class PlanDraftStore {
 
   saveTreadmill(draft: TreadmillPlanDraft): void {
     this.storage.set(TREADMILL_PLAN_DRAFT_KEY, JSON.stringify(draft));
+  }
+
+  loadIntervals(): IntervalsDraft {
+    return readIntervalsDraft(this.storage.get(INTERVALS_DRAFT_KEY));
+  }
+
+  saveIntervals(draft: IntervalsDraft): void {
+    this.storage.set(INTERVALS_DRAFT_KEY, JSON.stringify(draft));
   }
 }

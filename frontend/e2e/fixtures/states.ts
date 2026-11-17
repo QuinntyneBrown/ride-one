@@ -53,6 +53,22 @@ export const SETUP_DEFAULT_PLAN = {
   rest_level: 18,
 } as const;
 
+/** The Descending recoveries plan, as the Intervals form posts it on first use (L2-029 AC11). */
+export const INTERVALS_PLAN = {
+  kind: 'intervals',
+  warmup: { seconds: 300, level: 8, cadence: 80 },
+  sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
+    rounds: i === 0 || i === 4 ? 1 : 2,
+    work_seconds: 30,
+    work_level: 28,
+    work_cadence: 100,
+    rest_seconds,
+    rest_level: 8,
+    rest_cadence: 72,
+  })),
+  cooldown: { seconds: 360, level: 6, cadence: 70 },
+};
+
 export const FLAT_PLAN = {
   kind: 'flat',
   level: 12,

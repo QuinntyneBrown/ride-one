@@ -141,7 +141,7 @@ The *Intervals* mode builds an `intervals` plan (L2-010, L2-029 criteria 10 to 1
 - **`intervals-form.ts`** (pure helper, beside `plan-form.ts`) holds `IntervalsDraft` = `{preset, warmup: StretchDraft, cooldown: StretchDraft, sets: SetDraft[]}`, where a `StretchDraft` is `{on, seconds, level, cadence}` and a `SetDraft` is `{rounds, work_seconds, work_level, work_cadence, rest_seconds, rest_level, rest_cadence}` in numbers. It provides:
   - `INTERVAL_PRESETS` (`descending`, `even`) and `DEFAULT_INTERVALS` (the *Descending recoveries* plan with that preset pressed);
   - `addSet`, `removeSet`, `moveSet(i, -1 | 1)` and `replaceSet(i, set)`, each clearing the pressed preset;
-  - `validateSet(set)` and `validateStretch(kind, stretch)` for the dialogs, returning the messages of L2-010 criterion 12 per field;
+  - for the dialogs, `SetFields` and `StretchFields` (the values as typed, with Recover `None` for 0), `setFieldsOf`/`stretchFieldsOf`, `stepSetField`/`stepStretchField`, `validateSet(fields)` and `validateStretch(kind, fields)` returning the messages of L2-010 criterion 12 per field, and `toSetDraft`/`toStretch`;
   - `validateIntervals(draft)` for the plan rules of L2-010 criterion 13, with the summary links `Sets — at most 30 efforts` and `Sets — at most 180 minutes`;
   - `toIntervalsPlan(draft)`, which writes `null` for a stretch that is off.
 - **`plan-expansion.ts`** expands `intervals` as L2-045 criteria 7 and 8 and summarises it as L2-060 criterion 4; **`ride-preview.ts`** gives Structure `<sets> sets · <efforts> efforts` and time under load as L2-059 criterion 5. Both are tested against the same rows as `PlanExpanderTests` and `WorkoutSummaryTests`.
@@ -150,7 +150,7 @@ The *Intervals* mode builds an `intervals` plan (L2-010, L2-029 criteria 10 to 1
 
 | Component | Selector | Blocks | Role |
 |---|---|---|---|
-| `SetList` | `wz-set-list` | `set-list`, `set-row` | The Warm-up row, one row per set and the Cool-down row as an ordered list; per row `Edit`, and per set `Move up`, `Move down` and `Remove`, named `Edit set <i>`, `Move set <i> up`, `Move set <i> down` and `Remove set <i>`; `Add set` below. It emits the action; the page applies it |
+| `SetList` | `wz-set-list` | `set-list`, `set-row` | The Warm-up row, one row per set and the Cool-down row as an ordered list; per row `Edit`, and per set `Move up`, `Move down` and `Remove`, named `Edit set <i>`, `Move set <i> up`, `Move set <i> down` and `Remove set <i>`; `Add set` below. It emits the action (`editSet`, `editStretch`, `switchStretch`, `move`, `remove`, `add`); the page applies it and the list moves focus as the Set list page of the design system says |
 | `EditSetDialog` | `wz-edit-set-dialog` | `edit-set` | CDK Dialog content in `wz-dialog-shell` (`size: 'md'`): the steppers and sliders of L2-029 criterion 13, reusing `wz-num-stepper` and `wz-level-slider`; closes with the new `SetDraft` or `undefined` |
 | `EditStretchDialog` | `wz-edit-stretch-dialog` | `edit-stretch` | The same for the warm-up and cool-down (L2-029 criterion 14) |
 
@@ -158,13 +158,16 @@ The *Intervals* mode builds an `intervals` plan (L2-010, L2-029 criteria 10 to 1
 
 Rounds across sets are numbered from 1, so the dashboard's `Round r of n` (L2-025, L2-027) takes n from the number of `work` segments (`segment-labels.ts`, `segment-change-detector.ts`) for every plan kind.
 
-Playwright (`e2e/setup.spec.ts`, describe `Intervals plan`), with the page object `e2e/pages/edit-set.dialog.ts` and the set-list locators in `setup.page.ts`:
+Playwright (`e2e/setup.spec.ts`, describe `Intervals plan`), with the page object `e2e/pages/edit-plan-part.dialog.ts` (the Edit set, Add set, Warm-up and Cool-down dialogs) and the set-list locators in `setup.page.ts`:
 
 - `shows the Descending recoveries plan on first use: 30:00, 5 sets · 8 efforts` (L2-029 AC10, AC11; L2-059 AC5)
 - `edits a set in a dialog and returns focus to its Edit button` (L2-029 AC12, AC13)
-- `edits the warm-up length` (L2-029 AC14)
+- `switches to the Even sets preset` (L2-029 AC11)
+- `shows a recover of 0:00 as None` (L2-029 AC13)
+- `edits the warm-up length and turns the cool-down off` (L2-029 AC12, AC14)
 - `adds, moves and removes sets` (L2-029 AC12)
 - `disables Save for a set out of range` (L2-029 AC15)
+- `lists a plan of more than 30 efforts and links to Add set` (L2-029 AC15)
 - `posts the intervals plan and goes to the dashboard` (L2-029 AC5)
 - `restores the last submitted intervals plan after a reload` (L2-029 AC16)
 

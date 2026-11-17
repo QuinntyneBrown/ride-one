@@ -206,6 +206,19 @@
                 (cooldownChange)="edit({ cooldown: $event })"
                 [disabled]="busy()"
               />
+            } @else if (d.mode === 'intervals') {
+              <wz-presets [items]="intervalChips()" [disabled]="busy()" (choose)="preset($event)" />
+              <wz-set-list
+                [draft]="idraft()"
+                [disabled]="busy()"
+                [error]="ierrors()[0]?.message ?? null"
+                (editSet)="editSet($event)"
+                (editStretch)="editStretch($event)"
+                (switchStretch)="toggleStretch($event.kind, $event.on)"
+                (move)="moveSet($event.index, $event.dir)"
+                (remove)="removeSet($event)"
+                (add)="addSet()"
+              />
             } @else {
               <div class="setup-flat">
                 <wz-level-slider

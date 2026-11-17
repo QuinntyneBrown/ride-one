@@ -1,6 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { PLAN_DRAFT_KEY, PlanDraftStore, readDraft, readTreadmillDraft } from './plan-draft.store';
+import {
+  PLAN_DRAFT_KEY,
+  PlanDraftStore,
+  readDraft,
+  readIntervalsDraft,
+  readTreadmillDraft,
+} from './plan-draft.store';
+import { DEFAULT_INTERVALS, applyIntervalPreset } from './intervals-form';
 import { DEFAULT_TREADMILL_DRAFT } from './treadmill-plan-form';
 import { DEFAULT_DRAFT, applyPreset } from './plan-form';
 
@@ -65,5 +72,36 @@ describe('readTreadmillDraft (L2-072 AC10)', () => {
     JSON.stringify({ ...DEFAULT_TREADMILL_DRAFT, restIncline: '12' }),
   ])('falls back to the defaults for %j', (raw) => {
     expect(readTreadmillDraft(raw)).toEqual(DEFAULT_TREADMILL_DRAFT);
+  });
+});
+
+describe('readIntervalsDraft (L2-029 AC16)', () => {
+  it('keeps the Intervals mode of the bike draft', () => {
+    const d = { ...DEFAULT_DRAFT, mode: 'intervals' as const };
+    expect(readDraft(JSON.stringify(d))).toEqual(d);
+  });
+
+  it('reads a stored draft back', () => {
+    const d = applyIntervalPreset(DEFAULT_INTERVALS, 'even');
+    expect(readIntervalsDraft(JSON.stringify(d))).toEqual(d);
+  });
+
+  it.each([
+    null,
+    '{',
+    '[]',
+    JSON.stringify({ ...DEFAULT_INTERVALS, preset: 'tabata' }),
+    JSON.stringify({ ...DEFAULT_INTERVALS, sets: [] }),
+    JSON.stringify({
+      ...DEFAULT_INTERVALS,
+      warmup: { on: 'yes', seconds: 300, level: 8, cadence: 80 },
+    }),
+    JSON.stringify({ ...DEFAULT_INTERVALS, sets: [{ ...DEFAULT_INTERVALS.sets[0], rounds: 31 }] }),
+    JSON.stringify({
+      ...DEFAULT_INTERVALS,
+      sets: [{ ...DEFAULT_INTERVALS.sets[0], rest_seconds: 3 }],
+    }),
+  ])('falls back to the default for %s', (raw) => {
+    expect(readIntervalsDraft(raw)).toBe(DEFAULT_INTERVALS);
   });
 });
