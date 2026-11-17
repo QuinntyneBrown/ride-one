@@ -26,6 +26,37 @@ module.exports = defineConfig([
     },
   },
   {
+    // Dependency direction (ADR 0013): api depends on nothing else in the workspace.
+    files: ['**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@wattzup/components',
+              message: 'api depends on nothing else in the workspace (ADR 0013).',
+            },
+            {
+              name: '@wattzup/api',
+              message: 'Import a sibling in the library by its relative path.',
+            },
+            {
+              name: '@angular/router',
+              message: 'api knows no route; the app reacts through UNAUTHORIZED_HANDLER.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['**/wattzup/**', '**/components/**'],
+              message: 'api depends on nothing else in the workspace (ADR 0013).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.html'],
     rules: {},
   },
