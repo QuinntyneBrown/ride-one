@@ -81,6 +81,10 @@ Frontend, `frontend`:
 | `paused` | Resume, beside the `Paused` badge (`show-workout-countdown`) | yes |
 | `ended`, `ended: bike shut off`, `stopped`, none, or no state yet | Pause | no |
 
+### Ride-along video in the plan
+
+Every plan kind accepts an optional `video` `{url, start_seconds}` on either machine (L2-010 criteria 14 to 17, ADR 0012). `WorkoutPlanValidator` reads the link through `YouTubeLink.TryParseId`, keeps only the 11-character id and the start point rounded to 0.1, and drops the link. The validated plan carries `RideVideo(VideoId, StartSeconds)`, reported as `plan.video` `{video_id, start_seconds}`, or `null` without a video. A rejected link is named `video.url` with `That doesn't look like a YouTube link.`; a start point outside 0 to 43200 is named `video.start_seconds` with `Start point must be 0:00 to 12:00:00.` A video changes neither the segments nor the summary nor the ride. The backend never fetches the link. The parser, its table tests and `RideVideoTests` are described in `workouts/ride-along-video`.
+
 ### Acceptance tests
 
 Backend, `Wattzup.Api.AcceptanceTests` (`WebApplicationFactory`, `SimulatedBikeTransport`, `FakeTimeProvider`, state read from the in-memory SSE response):

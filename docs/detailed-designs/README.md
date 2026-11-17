@@ -19,11 +19,12 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Set up a ride](workouts/set-up-ride/README.md) | `L2-010`, `L2-029`, `L2-052`, `L2-059` |
 |  | [Show the workout countdown](workouts/show-workout-countdown/README.md) | `L2-024`, `L2-025` |
 |  | [Play workout cues](workouts/play-workout-cues/README.md) | `L2-027` |
+|  | [Ride along to a video](workouts/ride-along-video/README.md) | `L2-076`, `L2-010`, `L2-029`, `L2-036`, `L2-059` |
 | live-state | [Stream live state](live-state/stream-live-state/README.md) | `L2-014`, `L2-015`, `L2-032`, `L2-037` |
 |  | [Serve the power trace](live-state/serve-power-trace/README.md) | `L2-050` |
 |  | [Persist the status snapshot](live-state/persist-status-snapshot/README.md) | `L2-031` |
 | dashboard | [Show connection status](dashboard/show-connection-status/README.md) | `L2-018`, `L2-054`, `L2-058` |
-|  | [Show live metrics](dashboard/show-live-metrics/README.md) | `L2-021`, `L2-022`, `L2-026`, `L2-028` |
+|  | [Show live metrics](dashboard/show-live-metrics/README.md) | `L2-021`, `L2-022`, `L2-026`, `L2-028`, `L2-076` |
 |  | [Responsive and accessible layout](dashboard/responsive-accessible-layout/README.md) | `L2-040`, `L2-041`, `L2-061` |
 |  | [Dialogs and notifications](dashboard/dialogs-and-notifications/README.md) | `L2-023`, `L2-051`, `L2-053` |
 |  | [Unlock and not-found pages](dashboard/unlock-and-not-found/README.md) | `L2-055`, `L2-056` |

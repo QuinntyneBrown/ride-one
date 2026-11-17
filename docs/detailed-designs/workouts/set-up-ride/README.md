@@ -180,13 +180,17 @@ The setup screen no longer chooses the machine; the machine page at `/machine` d
 - With `machine` `treadmill`, the screen reads `Set up your run`, the form shows presets and the `Work`, `Recover` or `Hold` effort rows from `treadmill-plan-form.ts`, the draft is kept under `wattzup.treadmillPlanDraft`, and the *Your run* panel shows speed and incline profiles with expected distance, climb and energy from `treadmillPreviewOf`.
 - The start flow and the replace dialog are shared. On the treadmill the dialog reads `Replace the run in progress?` and adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 15).
 
+### Ride-along video
+
+Below the plan, in every mode on either machine, `VideoLink` (`wz-video-link`) adds the switch `Ride along to a video` / `Plays in sync on the dashboard`, off on first use. With the switch on, it shows the `YouTube link` field, and for an accepted link a preview with the start point `Ride 0:00 starts at` (L2-029 criteria 17 and 18). A link that is not YouTube shows its field error but does not block Start ride, which then sends `video: null` (L2-029 criterion 19). `SetupPage` adds `video` `{url, start_seconds}` or `null` to the plan it posts. `PlanDraftStore` keeps the video draft under `wattzup.videoDraft` and restores it on reload (L2-029 criterion 20). `ride-preview.ts` adds `Video` `Synced from <m:ss.s>` after Time under load (L2-059 criterion 6). The components, rules, tests and mocks (`setup/video`, `setup/video-invalid`) are described in `workouts/ride-along-video`.
+
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-029` | `L1-007` | Ride setup screen. The `/setup` screen must let the rider build a plan and start it. |
+| `L2-029` | `L1-007` | Ride setup screen. The `/setup` screen must let the rider build a plan and start it; criteria 17 to 20 add the ride-along video. |
 | `L2-052` | `L1-007` | Replace-ride dialog. Given an active workout, when Start ride is pressed on `/setup`, then a dialog `Replace the ride in progress?` opens; `Replace ride` sends `POST /api/workout` and on success takes the rider to `/`; a failure keeps the current ride and the new settings. |
-| `L2-010` | `L1-004` | Workout plan definition and validation, including the `intervals` kind. |
+| `L2-010` | `L1-004` | Workout plan definition and validation, including the `intervals` kind and the optional `video`. |
 | `L2-059` | `L1-007` | Ride preview on setup. The `Your ride` panel shows the total time, a resistance profile of the plan's segments and a summary, computed by the same plan expansion as the backend (L2-045). |
 
 ## Diagrams

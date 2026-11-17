@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Ride along to a video
+
+Person(rider, "Rider", "Sets up and rides")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular", "Setup video switch, link and preview; dashboard tabs, player and plan strip")
+  Container(api, "Wattzup API", "ASP.NET Core (.NET)", "Validates plan.video, keeps the id and start point, streams the state, writes the CSP")
+}
+System_Ext(player, "YouTube player", "iframe from www.youtube-nocookie.com, IFrame player API from www.youtube.com")
+
+Rel(rider, web, "Uses", "HTTPS, same origin")
+Rel(web, api, "POST /api/workout with video; reads plan.video and elapsed_seconds", "JSON / SSE")
+Rel(web, player, "Creates, seeks, plays and pauses", "IFrame player API")
+Rel(api, web, "Content-Security-Policy with two YouTube exceptions", "HTTP headers")
+@enduml
