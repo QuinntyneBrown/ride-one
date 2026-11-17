@@ -42,20 +42,21 @@ import {
   inclineView as pickerView,
   QuickSpeeds,
   LevelControl,
+  EmptyState,
+  Readout,
+  type MainView,
+  MainViewTabs,
 } from '@wattzup/components';
 import { formatPace } from '../../core/pace';
 import { CmdLog } from '../cmd-log/cmd-log';
 import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
-import { LoadError } from '../load-error/load-error';
 import { RideOverlay } from '../ride-overlay/ride-overlay';
 import { RideTrace } from '../ride-trace/ride-trace';
 import { Interval } from '../interval/interval';
 import { MetricsStrip } from '../metrics-strip/metrics-strip';
 import { PhaseBanner } from '../phase-banner/phase-banner';
-import { Readout } from '../readout/readout';
 import { VideoSync } from '../../core/video-sync.service';
-import { type MainView, MainViewTabs } from '../main-view-tabs/main-view-tabs';
 import { PlanStrip } from '../plan-strip/plan-strip';
 import { RideVideo } from '../ride-video/ride-video';
 
@@ -71,7 +72,7 @@ import { RideVideo } from '../ride-video/ride-video';
     Icon,
     InclineControl,
     SpeedControl,
-    LoadError,
+    EmptyState,
     RideOverlay,
     RideTrace,
     Interval,

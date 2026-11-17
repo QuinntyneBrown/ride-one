@@ -63,9 +63,9 @@ import {
   validateTreadmillDraft,
 } from '../../core/treadmill-plan-form';
 import { isActive } from '../../core/workout-status';
-import { Alert } from '../alert/alert';
-import { FormSummary } from '../form-summary/form-summary';
 import {
+  Alert,
+  FormSummary,
   Icon,
   Slider,
   RadioGroup,

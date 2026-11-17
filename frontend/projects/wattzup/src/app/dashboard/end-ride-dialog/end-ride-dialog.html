@@ -1,4 +1,4 @@
-<wz-dialog-shell
+<wz-dialog
   dialogId="end-ride"
   [heading]="run ? 'Stop the belt and end this run?' : 'End this ride?'"
   [description]="description()"
@@ -36,4 +36,4 @@
       {{ busy() ? 'Ending…' : failed() ? 'Try again' : run ? 'Stop belt' : 'End ride' }}
     </button>
   </div>
-</wz-dialog-shell>
+</wz-dialog>

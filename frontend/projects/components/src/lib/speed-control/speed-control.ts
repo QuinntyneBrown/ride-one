@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { Icon } from '@wattzup/components';
+import { Icon } from '../icon/icon';
 
 /** Slower and Faster around the target speed and its pace (L2-071 criterion 8). */
 @Component({

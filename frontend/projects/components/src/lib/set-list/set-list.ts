@@ -9,7 +9,7 @@ import {
   output,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { Icon } from '@wattzup/components';
+import { Icon } from '../icon/icon';
 
 export type StretchKind = 'warmup' | 'cooldown';
 

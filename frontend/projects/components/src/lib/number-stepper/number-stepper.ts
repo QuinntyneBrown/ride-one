@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { Icon } from '@wattzup/components';
+import { Icon } from '../icon/icon';
 
 /** Label, Less and More, and a numeric text input (block `num-stepper`, L2-029). */
 @Component({

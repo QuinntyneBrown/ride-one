@@ -5,13 +5,12 @@ import type { EndRideData } from '../../core/dialog-launcher';
 import { formatDuration } from '../../core/format-duration';
 import { LiveStateService } from '../../core/live-state.service';
 import { WORKOUT_API } from '@wattzup/api';
-import { Alert } from '../alert/alert';
-import { DialogShell } from '../dialog-shell/dialog-shell';
+import { Alert, Dialog } from '@wattzup/components';
 
 /** End this ride? (L2-051), or Stop the belt and end this run? (L2-071 criterion 15) */
 @Component({
   selector: 'wz-end-ride-dialog',
-  imports: [Alert, DialogShell],
+  imports: [Alert, Dialog],
   templateUrl: './end-ride-dialog.html',
   styleUrl: './end-ride-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

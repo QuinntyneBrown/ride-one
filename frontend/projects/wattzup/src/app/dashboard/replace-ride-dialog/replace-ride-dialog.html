@@ -1,4 +1,4 @@
-<wz-dialog-shell
+<wz-dialog
   dialogId="replace-ride"
   [heading]="run ? 'Replace the run in progress?' : 'Replace the ride in progress?'"
   [description]="description"
@@ -29,4 +29,4 @@
       {{ busy() ? 'Starting…' : failed() ? 'Try again' : run ? 'Replace run' : 'Replace ride' }}
     </button>
   </div>
-</wz-dialog-shell>
+</wz-dialog>

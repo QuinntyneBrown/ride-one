@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import type { ResistanceView } from '../level-picker/level-picker';
-import { Icon } from '@wattzup/components';
+import { Icon } from '../icon/icon';
 
 /** Which of Lower, Raise and the level picker are disabled. */
 export interface ControlsState {

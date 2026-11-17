@@ -1,12 +1,8 @@
 // The toast rules as a pure reducer; time is an argument so tests need no timers (L2-053).
-export type ToastTone = 'info' | 'success' | 'warning' | 'danger';
+import type { ToastMessage, ToastTone } from '@wattzup/components';
 
-export interface ToastInput {
-  tone: ToastTone;
-  title: string;
-  text: string;
-  action?: { label: string; run: () => void };
-}
+export type { ToastTone };
+export type ToastInput = ToastMessage;
 
 export interface Toast extends ToastInput {
   id: number;
