@@ -140,31 +140,25 @@ specs, the detailed design or the mock.
     - The treadmill detailed designs, the backend and the frontend still follow the earlier specs and
       will be updated slice by slice.
 
-14. **Video ride-along, from the 2026-11-17 Magic Patterns update.** Mocks `setup/video`,
-    `setup/video-invalid`, `ride/video` and `ride/video-blocked`; components `video-frame`,
-    `video-sync` and `view-switch`, and the `--color-video-*` tokens, were added to the design system.
-    There is no requirement, detailed design or ADR for this yet, and it must have them before any code:
-    - **CSP.** AGENTS.md and L2-036 allow same-origin content only. Embedding YouTube needs
-      `frame-src https://www.youtube-nocookie.com` and its player script, which needs an ADR.
-    - **Where the link lives.** In the frames it sits in the browser's setup draft, not in the plan the
-      backend runs. If the backend never sees it, the video only plays on the device that started the
-      ride.
-    - **Sync rule.** The frames treat the ride clock as the leader: the video is re-seeked when it drifts
-      by more than 1.5 s. Pausing inside the video pauses the ride, and a lost Bluetooth link pauses the
-      video.
-15. **The frames' interval editor differs from the specs, and the mocks keep the specs.** The 2026-11-17
-    *Training Setup* frame edits the same GCN plan as a per-round ladder inside HIIT. Each round has its
-    own effort and recovery, with one work level and one recover level. It also has *Make every round
-    the same*, *Set each round separately*, and warm-up and cool-down steppers that go down to *Off*.
-    L2-010 and L2-029 (already built) specify a separate **Intervals** mode with sets instead, each set
-    with its own levels and cadence aims. That covers every plan the ladder can build, so the
+14. **Video ride-along, settled 2026-11-17.** Mocks `setup/video`, `setup/video-invalid`, `ride/video`
+    and `ride/video-blocked`; components `video-frame`, `video-sync` and `view-switch`, and the
+    `--color-video-*` tokens. Specified in L2-010 criteria 14–17 (the plan's `video`), L2-014
+    (`plan.video` is `{video_id, start_seconds}`), L2-029 criteria 17–21 (setup), L2-059 criterion 6,
+    L2-036 criterion 4 (the CSP exception) and the new L2-076 (dashboard playback). ADR 0012 records
+    the decisions:
+    - The video belongs to the plan, so every open dashboard plays it and a reload keeps it.
+    - The only third-party origin is `youtube-nocookie.com`.
+    - The ride clock leads.
+    The detailed design is still to be written.
+15. **The frames' interval editor, settled in favour of the specs.** The 2026-11-17 *Training Setup*
+    frame edits the GCN plan as a per-round ladder inside HIIT. L2-010 and L2-029 (already built) keep a
+    separate **Intervals** mode with sets, which can build every plan the ladder can. The
     `setup/intervals*` mocks and the edit-set and edit-stretch dialogs are unchanged. The frame's preset
-    name *GCN 30-min HIIT* is shown as *Descending recoveries*.
-16. **Treadmill support off.** In the frames, the Stride card on *Choose Machine* is greyed out and
-    reads *Treadmill support is off for now*, under *1 machine available*. L2-073 criterion 11 (already
-    built) instead redirects `/machine` to `/setup`, so no page shows that card. The Switch links are
-    hidden in both. The new mocks show the support-off header and aside. The older bike mocks still
-    show the Switch links, which is the support-on look.
+    name *GCN 30-min HIIT* is *Descending recoveries*.
+16. **Treadmill support off, settled in favour of the specs.** The frames grey out the Stride card on
+    *Choose Machine*. L2-073 criterion 11 redirects `/machine` to `/setup` instead, so no page shows that
+    card. The Switch links are hidden in both. The video mocks show the support-off header and aside;
+    the older bike mocks show the Switch links, which is the support-on look.
 
 ## Re-checking and re-screenshotting
 
@@ -185,9 +179,9 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 | Screen | default | loading | empty | error | paused | disconnected | scanning | bluetooth-off | offline | ended | flat | manual | edge | video | video-blocked | treadmill | treadmill-paused | treadmill-flat | treadmill-manual | treadmill-countdown | treadmill-belt-stopped | treadmill-disconnected | treadmill-scanning | connecting | not-found | not-found-bike | intervals | intervals-invalid | video-invalid | invalid | submitting | treadmill-invalid | treadmill-submitting | Requirements |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Ride dashboard (`ride`) | [✅](pages/ride/default.html) | [✅](pages/ride/loading.html) | [✅](pages/ride/empty.html) | [✅](pages/ride/error.html) | [✅](pages/ride/paused.html) | [✅](pages/ride/disconnected.html) | [✅](pages/ride/scanning.html) | [✅](pages/ride/bluetooth-off.html) | [✅](pages/ride/offline.html) | [✅](pages/ride/ended.html) | [✅](pages/ride/flat.html) | [✅](pages/ride/manual.html) | [✅](pages/ride/edge.html) | [✅](pages/ride/video.html) | [✅](pages/ride/video-blocked.html) | [✅](pages/ride/treadmill.html) | [✅](pages/ride/treadmill-paused.html) | [✅](pages/ride/treadmill-flat.html) | [✅](pages/ride/treadmill-manual.html) | [✅](pages/ride/treadmill-countdown.html) | [✅](pages/ride/treadmill-belt-stopped.html) | [✅](pages/ride/treadmill-disconnected.html) | [✅](pages/ride/treadmill-scanning.html) |  |  |  |  |  |  |  |  |  |  | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-023`, `L2-024`, `L2-025`, `L2-026`, `L2-027`, `L2-040`, `L2-041`, `L2-001`, `L2-013`, `L2-039`, `L2-064`, `L2-066`, `L2-068`, `L2-071` |
+| Ride dashboard (`ride`) | [✅](pages/ride/default.html) | [✅](pages/ride/loading.html) | [✅](pages/ride/empty.html) | [✅](pages/ride/error.html) | [✅](pages/ride/paused.html) | [✅](pages/ride/disconnected.html) | [✅](pages/ride/scanning.html) | [✅](pages/ride/bluetooth-off.html) | [✅](pages/ride/offline.html) | [✅](pages/ride/ended.html) | [✅](pages/ride/flat.html) | [✅](pages/ride/manual.html) | [✅](pages/ride/edge.html) | [✅](pages/ride/video.html) | [✅](pages/ride/video-blocked.html) | [✅](pages/ride/treadmill.html) | [✅](pages/ride/treadmill-paused.html) | [✅](pages/ride/treadmill-flat.html) | [✅](pages/ride/treadmill-manual.html) | [✅](pages/ride/treadmill-countdown.html) | [✅](pages/ride/treadmill-belt-stopped.html) | [✅](pages/ride/treadmill-disconnected.html) | [✅](pages/ride/treadmill-scanning.html) |  |  |  |  |  |  |  |  |  |  | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-023`, `L2-024`, `L2-025`, `L2-026`, `L2-027`, `L2-040`, `L2-041`, `L2-001`, `L2-013`, `L2-039`, `L2-064`, `L2-066`, `L2-068`, `L2-071`, `L2-076` |
 | Choose your machine (`choose-machine`) | [✅](pages/choose-machine/default.html) | [✅](pages/choose-machine/loading.html) | [✅](pages/choose-machine/empty.html) | [✅](pages/choose-machine/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/choose-machine/connecting.html) | [✅](pages/choose-machine/not-found.html) | [✅](pages/choose-machine/not-found-bike.html) |  |  |  |  |  |  |  | `L2-062`, `L2-063`, `L2-072`, `L2-073`, `L2-074` |
-| Set up your ride (`setup`) | [✅](pages/setup/default.html) | [✅](pages/setup/loading.html) | ➖ | [✅](pages/setup/error.html) |  |  |  |  |  |  | [✅](pages/setup/flat.html) |  |  | [✅](pages/setup/video.html) |  | [✅](pages/setup/treadmill.html) |  | [✅](pages/setup/treadmill-flat.html) |  |  |  |  |  |  |  |  | [✅](pages/setup/intervals.html) | [✅](pages/setup/intervals-invalid.html) | [✅](pages/setup/video-invalid.html) | [✅](pages/setup/invalid.html) | [✅](pages/setup/submitting.html) | [✅](pages/setup/treadmill-invalid.html) | [✅](pages/setup/treadmill-submitting.html) | `L2-010`, `L2-029`, `L2-040`, `L2-041`, `L2-045`, `L2-059`, `L2-060`, `L2-062`, `L2-067`, `L2-072`, `L2-075` |
+| Set up your ride (`setup`) | [✅](pages/setup/default.html) | [✅](pages/setup/loading.html) | ➖ | [✅](pages/setup/error.html) |  |  |  |  |  |  | [✅](pages/setup/flat.html) |  |  | [✅](pages/setup/video.html) |  | [✅](pages/setup/treadmill.html) |  | [✅](pages/setup/treadmill-flat.html) |  |  |  |  |  |  |  |  | [✅](pages/setup/intervals.html) | [✅](pages/setup/intervals-invalid.html) | [✅](pages/setup/video-invalid.html) | [✅](pages/setup/invalid.html) | [✅](pages/setup/submitting.html) | [✅](pages/setup/treadmill-invalid.html) | [✅](pages/setup/treadmill-submitting.html) | `L2-010`, `L2-029`, `L2-040`, `L2-041`, `L2-045`, `L2-059`, `L2-060`, `L2-062`, `L2-067`, `L2-072`, `L2-075`, `L2-076` |
 | Unlock Wattzup (`unlock`) | [✅](pages/unlock/default.html) | ➖ | ➖ | [✅](pages/unlock/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/invalid.html) | [✅](pages/unlock/submitting.html) |  |  | `L2-035`, `L2-036` |
 | Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-044` |
 

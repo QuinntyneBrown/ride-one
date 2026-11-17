@@ -13,3 +13,4 @@
 | [0009](0009-treadmill-as-a-second-machine.md) | The treadmill as a second machine | Accepted, amended by 0010 |
 | [0010](0010-treadmill-run-design.md) | The treadmill follows the Run design: the Stride's limits, estimates, and a machine page | Accepted, amended by 0011 |
 | [0011](0011-treadmill-behind-a-flag.md) | Treadmill support behind a flag | Accepted |
+| [0012](0012-youtube-ride-along.md) | Ride along to a YouTube video | Accepted |

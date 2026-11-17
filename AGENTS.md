@@ -168,7 +168,7 @@ production build is served by `Wattzup.Api` from the same origin.
   inline `style` in templates.
 - Global styles are foundations only (tokens, `@font-face`, reset, utilities). Read tokens by
   role, never hex. Fonts are bundled and self-hosted, never loaded from a CDN (the CSP allows
-  same-origin only).
+  same-origin only, except the YouTube player for a ride-along video, ADR 0012).
 - **Declare each `ng-content` slot once.** A component rendering `<a>` or `<button>` by
   condition puts its slots in one `<ng-template>` rendered with `ngTemplateOutlet` in both
   branches. A consumer `@if` wrapping several `[slot=…]` nodes loses the slot (NG8011): one `@if`
