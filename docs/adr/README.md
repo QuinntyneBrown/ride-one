@@ -14,3 +14,4 @@
 | [0010](0010-treadmill-run-design.md) | The treadmill follows the Run design: the Stride's limits, estimates, and a machine page | Accepted, amended by 0011 |
 | [0011](0011-treadmill-behind-a-flag.md) | Treadmill support behind a flag | Accepted |
 | [0012](0012-youtube-ride-along.md) | Ride along to a YouTube video | Accepted |
+| [0013](0013-angular-workspace-with-libraries.md) | One Angular workspace with `components`, `api` and `wattzup` projects | Accepted |

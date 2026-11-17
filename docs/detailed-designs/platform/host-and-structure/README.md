@@ -29,10 +29,12 @@ wattzup/
 │   │   └── Wattzup.Core/  Wattzup.Api/  Wattzup.Mac/
 │   └── tests/
 │       └── Wattzup.Protocol.Tests/  Wattzup.Core.Tests/  Wattzup.Api.AcceptanceTests/
-├── frontend/
-│   ├── src/app/{api,core,dashboard}/, src/app/app.config.ts
-│   ├── e2e/ (fixtures/, pages/, specs)
-│   └── proxy.conf.json
+├── frontend/                      one Angular workspace (ADR 0013)
+│   ├── projects/components/src/   library: lib/ (presentation components, format/), styles/design-system/
+│   ├── projects/api/src/          library: generated/schema.d.ts, lib/ (contracts, tokens, HTTP, interceptor)
+│   ├── projects/wattzup/src/      application: app/{core,dashboard}/, app/app.config.ts, tokens.css, styles.scss
+│   ├── e2e/ (fixtures/, pages/, specs), scripts/, public/
+│   └── angular.json, tsconfig.json, proxy.conf.json
 └── docs/
 ```
 
@@ -81,24 +83,98 @@ Every project builds with the plain .NET SDK (ADR 0008). CI builds every project
   This realises L2-039, recorded in `discover-and-connect-bike`.
 - **Static hosting** — `UseStaticFiles` serves `wwwroot`, the Angular `dist/wattzup/browser` output copied at publish. The `AppShell` middleware, at the end of the pipeline, handles requests no endpoint matched: it serves `index.html` for `/` and every client route, excluding `/api`, `/health`, `/openapi` and paths with a file extension (L2-044). It is middleware rather than `MapFallbackToFile` because a catch-all fallback endpoint would take part in routing and replace the 415 and 405 answers of known endpoints, and because `index.html` must be rewritten per response with the style nonce. An unknown `/api/*` path answers a 404 ProblemDetails, while an unknown client route loads the app, which shows the not-found page (L2-056). `index.html` is served with the per-response CSP style nonce described in `secure-api`.
 
-Angular application `wattzup` in `frontend/` (L2-044):
+Angular workspace in `frontend/` (L2-044, ADR 0013). One workspace holds three projects, all under `frontend/projects/`:
 
+| Project | Type | Path alias | Holds |
+|---|---|---|---|
+| `components` | library | `@wattzup/components` | Every presentation component, each named as its design-system component or as a named part of one; the display-formatting helpers in `lib/format/` (`formatDuration`, `formatLive`, `formatPace`, `epochClock`…); the shared SCSS partials in `src/styles/design-system/` |
+| `api` | library | `@wattzup/api` | The generated OpenAPI types in `src/generated/schema.d.ts`; the type aliases (`api-types.ts`); the contracts `BikeApi`, `WorkoutApi`, `MachineApi` with their tokens `BIKE_API`, `WORKOUT_API`, `MACHINE_API`; the HTTP implementations; `apiKeyInterceptor`, `ApiKeyStore`, `SafeStorage` and the `UNAUTHORIZED_HANDLER` token; the `StreamConnection` type |
+| `wattzup` | application | — | Pages and orchestrating dialogs (`src/app/dashboard/`), services, stores and pure helpers (`src/app/core/`), routes and `app.config.ts`; the global foundations `tokens.css` and `styles.scss` |
+
+- **Dependency direction** — `wattzup` → `components` and `wattzup` → `api`. `components` → `api` for types only (`import type`). `api` depends on nothing in the workspace, and no library imports the application. `no-restricted-imports` rules in `frontend/eslint.config.js` enforce it; `npm run lint` fails on a breach.
+- **Path aliases** — `frontend/tsconfig.json` maps `@wattzup/components` and `@wattzup/api` to each library's `src/public-api.ts`. The application compiles the library source directly, so `ng serve`, `ng test`, `ng build` and tree-shaking need no library build. Each library keeps the CLI's `ng-packagr` `build` target, which `npm run build` never runs.
+- **Presentation components** — a component in `components` renders a design-system component from its inputs and reports interactions through outputs. It injects no application service, no API token and never the `Router`; a link to a screen uses `RouterLink` with the target passed in (`setupLink`). Values a component once injected (the countdown, the cues, the theme, the connection status) are read by the page and passed in. The mapping of every former `src/app/dashboard/` folder is in the appendix below.
 - Current Angular version, standalone components only, `ChangeDetectionStrategy.OnPush` everywhere, signals for state, and zoneless change detection (`provideZonelessChangeDetection`).
-- Each component is `name.ts` + `name.html` + `name.scss` with `templateUrl` and `styleUrl`, selector `wz-<name>`, in its own folder under `src/app/dashboard/`. Each stylesheet is one encapsulated BEM block named as in the mocks.
-- **`app.config.ts`** — composition root.
-  - It provides the router with the routes `/` (`RidePage`), `/setup` (workouts), `/unlock` (`UnlockPage`) and `**` (`NotFoundPage`).
-  - It provides `HttpClient` with `withInterceptors([apiKeyInterceptor])`, the `BIKE_API` token bound to `HttpBikeApi`, and `TRACE_RENDERER_FACTORY` bound to `createTraceRenderer`.
-- `src/app/core/` holds the services and pure helpers with their unit tests:
-  - live state and API: `LiveStateService`, `BikeApi` with its `BIKE_API` token, `HttpBikeApi`, `ApiKeyStore`, `apiKeyInterceptor`, `safeReturnUrl`;
-  - dialogs and notifications: `DialogLauncher`, `ConnectionBannerService`, `ToastService`, `toastQueue`, `diagnosticsReport`;
-  - dashboard helpers: `connectionStatus`, `rideViewState`, `powerDelta`, `metricFormat`, `estimateWatts`;
+- Each component is `name.ts` + `name.html` + `name.scss` with `templateUrl` and `styleUrl`, selector `wz-<name>` (both libraries set `prefix: "wz"`), in its own folder: `projects/components/src/lib/<name>/` for presentation, `projects/wattzup/src/app/dashboard/<name>/` for pages, dialogs and containers. Each stylesheet is one encapsulated BEM block named as in the mocks. Every project's `stylePreprocessorOptions.includePaths` lists `projects/components/src/styles`, so `@use 'design-system/btn'` resolves in all three.
+- **`app.config.ts`** — the one composition root, in `projects/wattzup/src/app/`.
+  - It provides the router with the routes `/` (`RidePage`), `/setup` (`SetupPage`), `/machine` (`MachinePage`), `/unlock` (`UnlockPage`) and `**` (`NotFoundPage`).
+  - It provides `HttpClient` with `withInterceptors([apiKeyInterceptor])`, binds `BIKE_API`, `WORKOUT_API` and `MACHINE_API` to `HttpBikeApi`, `HttpWorkoutApi` and `HttpMachineApi`, `YOUTUBE_PLAYER` to `IframeYouTubePlayer`, and `UNAUTHORIZED_HANDLER` to `redirectToUnlock`, which sends the rider to `/unlock` with the return URL after a 401 (L2-055). `api` itself knows no route.
+- `projects/wattzup/src/app/core/` holds the services and pure helpers with their unit tests:
+  - live state: `LiveStateService`, the one owner of the `EventSource` and the reconnect logic (L2-044 AC2), `safeReturnUrl`, `redirectToUnlock`;
+  - dialogs and notifications: `DialogLauncher`, `ConnectionBannerService`, `ToastService`, `diagnosticsReport`;
+  - dashboard helpers: `connectionStatus`, `rideViewState`, `powerDelta`, `resistanceView`, `segmentLabels`;
   - the trace: `FrameScheduler`, `MotionPreference`, `TraceRenderer`, `createTraceRenderer`, `TraceRendererStatus`, `traceGeometry`, `PowerTraceStore`;
   - the workout helpers named in the workouts designs.
-- `src/app/api/` holds types generated from `/openapi/v1.json` by `openapi-typescript`. It is never hand-edited. CI regenerates it and fails on a diff.
+- `projects/api/src/generated/schema.d.ts` holds types generated from `/openapi/v1.json` by `openapi-typescript` (`npm run generate:api`). It is never hand-edited. CI regenerates it and fails on a diff.
+- **Unit tests** — each project has its own `test` target (`@angular/build:unit-test`, Vitest), and specs sit beside their code. `npm test` runs all three projects.
+- **Build output** — only the application is built for production. Its `outputPath` is `dist/wattzup`, so the output is `dist/wattzup/browser`, which `npm run build:api` copies into `backend/src/Wattzup.Api/wwwroot`.
 - `proxy.conf.json` forwards `/api` to `127.0.0.1:8787` during `ng serve`.
 - **Fonts** (ADR 0005) — Inter, Archivo and JetBrains Mono ship as Latin-subset WOFF2 variable fonts under `frontend/public/fonts/`, with their SIL Open Font License 1.1 files beside them. The global foundations declare them with `@font-face` and `font-display: swap`. No font is loaded from a CDN, which the `font-src 'self'` policy enforces.
-- **Budgets** — `angular.json` sets the `initial` budget to an error at 300 KB, and CI measures the gzipped size with `gzip -9` (L2-044). Fonts count against the build size but not the JavaScript budget.
-- **Global styles** — foundations only: tokens from `docs/design-system/tokens/`, `@font-face`, reset and utilities. Components read tokens by role, never by hex value.
+- **Budgets** — `angular.json` sets the application's raw `initial` budget as an early warning, and `scripts/check-bundle-size.mjs`, run by `npm run build`, fails when the initial files exceed 300 KB gzipped (L2-044). Fonts count against the build size but not the JavaScript budget.
+- **Global styles** — foundations only, in `projects/wattzup/src/tokens.css` and `styles.scss`: tokens from `docs/design-system/tokens/`, `@font-face`, reset and utilities. Components read tokens by role, never by hex value.
+
+### Component mapping (ADR 0013)
+
+Every folder of the former `frontend/src/app/dashboard/`, with its project and its name there. A library component takes the design-system name (`docs/design-system/components/`); a named part of a design-system component keeps the BEM block the design system gives it. BEM classes are unchanged in every row. "Lifted" names what the page now passes in instead of the component injecting it.
+
+| Former folder | Project | Now | Design-system component | Notes |
+|---|---|---|---|---|
+| `alert` | components | `alert` | Alert and banner | |
+| `app-bar` | components | `app-bar` | App bar | Lifted: status, clock text, badge, beeps, theme, `setupLink`/`homeLink`; actions are outputs |
+| `auth-card` | components | `auth-card` | Page layout (centred single card) | Part, BEM block `auth-card` |
+| `cmd-log` | components | `command-log` | Command log | Lifted: title; `commandLog` helpers move with it |
+| `connection-banner` | wattzup | `dashboard/connection-banner` | Alert and banner | Container: reads `ConnectionBannerService`, `LiveStateService`, `DialogLauncher` |
+| `design-system/` (SCSS partials) | components | `src/styles/design-system/` | — | Resolved through `includePaths` |
+| `diagnostics-dialog` | wattzup | `dashboard/diagnostics-dialog` | Dialog | Orchestrating dialog |
+| `dialog-shell` | components | `dialog` | Dialog | Injects only the CDK `DialogRef` |
+| `edit-set-dialog` | wattzup | `dashboard/edit-set-dialog` | Dialog | Orchestrating dialog |
+| `edit-stretch-dialog` | wattzup | `dashboard/edit-stretch-dialog` | Dialog | Orchestrating dialog |
+| `effort-row` | components | `effort-row` | Effort row (page added) | Lifted: pace, incline and step limits (`effortRowView`) |
+| `end-ride-dialog` | wattzup | `dashboard/end-ride-dialog` | Dialog | Orchestrating dialog |
+| `form-summary` | components | `form-summary` | Form layout | Part, BEM block `form-summary` |
+| `icon` | components | `icon` | Iconography (foundation) | |
+| `incline-control` | components | `incline-control` | Speed and incline control | Part |
+| `interval` | components | `interval` | Interval | Lifted: segment labels, time left, progress, pulse, `setupLink` |
+| `level-control` | components | `level-control` | Level control | View types move with it |
+| `level-picker` | components | `level-picker` | Level picker | `levelPickerInput` helper moves with it |
+| `level-slider` | components | `slider` | Slider | |
+| `load-error` | components | `empty-state` | Empty state | |
+| `machine-card` | components | `machine-card` | Machine card (page added) | View types move with it |
+| `machine-page` | wattzup | `dashboard/machine-page` | — | Page |
+| `main-view-tabs` | components | `main-view-tabs` | Video ride-along (view switch) | Part |
+| `metrics-strip` | components | `metric-list` | Metric list | |
+| `mode-cards` | components | `radio-group` | Radio group (mode cards) | |
+| `not-found-page` | wattzup | `dashboard/not-found-page` | Error page | Page |
+| `num-stepper` | components | `number-stepper` | Number stepper | |
+| `phase-banner` | components | `phase-banner` | Step-change banner | Lifted: banner and announcement |
+| `plan-note` | components | `plan-note` | Level control, speed control | Part |
+| `plan-strip` | components | `plan-strip` | Ride profile (`profile--strip`) | Part; lifted: the strip (`stripOf`) |
+| `presets` | components | `presets` | Chip | Part |
+| `quick-speeds` | components | `quick-speeds` | Speed and incline control | Part; lifted: the speeds |
+| `readout` | components | `readout` | Readout | |
+| `replace-ride-dialog` | wattzup | `dashboard/replace-ride-dialog` | Dialog | Orchestrating dialog |
+| `ride-clock` | components | `ride-clock` | Ride clock | Lifted: elapsed text |
+| `ride-overlay` | components | `overlay-panel` | Overlay panel | Lifted: `setupLink` |
+| `ride-page` | wattzup | `dashboard/ride-page` | — | Page |
+| `ride-preview` | components | `ride-profile` | Ride profile | View type moves with it |
+| `ride-trace` | wattzup | `dashboard/ride-trace` | Power trace | Container: owns the render loop over the trace stores (ADR 0006) |
+| `ride-video` | wattzup | `dashboard/ride-video` | Video ride-along | Container: drives the YouTube player (ADR 0012) |
+| `set-list` | components | `set-list` | Set list | Lifted: rows and stretch lines (`setListView`) |
+| `setup-page` | wattzup | `dashboard/setup-page` | — | Page |
+| `signal-bars` | components | `signal-bars` | Machine card | Part |
+| `speed-control` | components | `speed-control` | Speed and incline control | |
+| `status-line` | components | `status-line` | Status line | Lifted: the status (`connectionStatus`) and reduced motion |
+| `toast` | components | `toast` | Toast | `toastQueue` helper moves with it |
+| `toast-region` | wattzup | `dashboard/toast-region` | Toast | Container: reads `ToastService` |
+| `toggles` | components | `switch` | Switch | |
+| `unlock-page` | wattzup | `dashboard/unlock-page` | — | Page |
+| `video-link` | wattzup | `dashboard/video-link` | Video ride-along | Container: checks the link through `YOUTUBE_PLAYER` |
+
+### Open questions
+
+- The power trace, the ride video and the video link are containers in the application. Splitting each into a presentation component in `components` and a container in the application is deferred.
+- Design-system components with no Angular counterpart yet, which exist only as SCSS partials or markup (button, chip, link, badge, tooltip, skeleton, spinner, progress bar, description list, code block, lockup, skip link, divider, inline message), are deferred.
+- Publishing the libraries, Storybook or a component gallery are out of scope (ADR 0013).
 
 ## Requirements
 

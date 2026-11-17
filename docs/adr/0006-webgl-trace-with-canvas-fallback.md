@@ -20,3 +20,5 @@ and stop while the tab is hidden. WebGPU is not used.
 
 - One rendering path less to test; Canvas 2D is the reference the WebGL output is compared with.
 - Diagnostics shows the active renderer.
+
+> **Note (2026-11-17):** the frontend paths named here moved with [ADR 0013](0013-angular-workspace-with-libraries.md): services and helpers that were in `frontend/src/app/core/` are now in `frontend/projects/wattzup/src/app/core/`, display formatting in `frontend/projects/components/src/lib/format/`. The decision is unchanged.

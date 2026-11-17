@@ -51,20 +51,35 @@ package "Wattzup.Mac" {
     +WillTerminate(): void
   }
 }
-package "frontend" {
+package "frontend/projects/wattzup" {
   class appConfig <<ApplicationConfig>> {
     +provideZonelessChangeDetection()
     +provideRouter(routes)
     +provideHttpClient(withInterceptors([apiKeyInterceptor]))
     +BIKE_API -> HttpBikeApi
-    +TRACE_RENDERER_FACTORY -> createTraceRenderer
+    +WORKOUT_API -> HttpWorkoutApi
+    +MACHINE_API -> HttpMachineApi
+    +YOUTUBE_PLAYER -> IframeYouTubePlayer
+    +UNAUTHORIZED_HANDLER -> redirectToUnlock
   }
   class routes <<Routes>> {
     + "" : RidePage
     + "setup" : SetupPage
+    + "machine" : MachinePage
     + "unlock" : UnlockPage
     + "**" : NotFoundPage
   }
+  class RidePage <<page>>
+}
+package "frontend/projects/api" {
+  interface BikeApi
+  class HttpBikeApi
+  class apiKeyInterceptor <<HttpInterceptorFn>>
+  class UNAUTHORIZED_HANDLER <<InjectionToken>>
+}
+package "frontend/projects/components" {
+  class AppBar <<presentation>>
+  class Readout <<presentation>>
 }
 
 BackgroundService <|-- BikeConnectionService
@@ -81,4 +96,12 @@ Program ..> ActiveConnectionRegistry : registers
 Program ..> EndpointGroups : maps
 AppDelegate ..> Program : starts and stops the host
 appConfig --> routes
+BikeApi <|.. HttpBikeApi
+appConfig ..> HttpBikeApi : binds
+appConfig ..> UNAUTHORIZED_HANDLER : binds
+apiKeyInterceptor ..> UNAUTHORIZED_HANDLER : calls on 401
+routes --> RidePage
+RidePage ..> AppBar : inputs and outputs
+RidePage ..> Readout : inputs
+RidePage ..> BikeApi : via BIKE_API
 @enduml
