@@ -137,9 +137,11 @@
             [connectionId]="state()?.connection_id ?? null"
             machine="treadmill"
           />
-          <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
-            ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
-          >
+          @if (canSwitch()) {
+            <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
+              ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
+            >
+          }
         </div>
       </aside>
     } @else {
@@ -168,9 +170,11 @@
             [commands]="state()?.commands ?? []"
             [connectionId]="state()?.connection_id ?? null"
           />
-          <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
-            ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
-          >
+          @if (canSwitch()) {
+            <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
+              ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
+            >
+          }
         </div>
       </aside>
     }

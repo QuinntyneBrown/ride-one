@@ -68,6 +68,12 @@ export class MachinePage {
 
   constructor() {
     this.live.ensureStarted();
+    // Treadmill support off: the machine page is not reachable (L2-073 AC11, L2-075 AC6).
+    effect(() => {
+      if (this.state()?.treadmill_enabled === false) {
+        void this.router.navigateByUrl('/setup', { replaceUrl: true });
+      }
+    });
     effect(() => {
       const picked = this.picked();
       const state = this.state();

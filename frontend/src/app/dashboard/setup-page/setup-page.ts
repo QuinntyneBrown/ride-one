@@ -141,6 +141,8 @@ export class SetupPage {
     this.machine() === 'treadmill' ? 'Switch to bike' : 'Switch to treadmill',
   );
   protected readonly treadmill = computed(() => this.machine() === 'treadmill');
+  /** Switching machines is offered only with treadmill support on (L2-073 AC11, L2-075). */
+  protected readonly canSwitch = computed(() => this.live.state()?.treadmill_enabled === true);
 
   protected readonly ids = FIELD_IDS;
   protected readonly tids = TREADMILL_FIELD_IDS;

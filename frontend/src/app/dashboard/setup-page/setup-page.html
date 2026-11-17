@@ -10,9 +10,11 @@
     </a>
     <span class="app-bar__divider" aria-hidden="true"></span>
     <wz-status-line />
-    <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
-      ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
-    >
+    @if (canSwitch()) {
+      <a class="btn btn--quiet btn--sm" href="/machine" (click)="switchMachine($event)"
+        ><wz-icon name="switch" size="sm" />{{ switchLabel() }}</a
+      >
+    }
     <a class="btn btn--quiet btn--sm app-bar__close" routerLink="/"
       ><wz-icon name="close" size="sm" />Close</a
     >

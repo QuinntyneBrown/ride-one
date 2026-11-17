@@ -14,6 +14,7 @@ import workoutStopped from './fixtures/recorded/workout-stopped.json';
 import { EndRideDialog } from './pages/end-ride.dialog';
 import { MachinePage, session } from './pages/machine.page';
 import { RidePage } from './pages/ride.page';
+import { SetupPage } from './pages/setup.page';
 
 const NOT_FOUND = 'No Echelon treadmill found yet — switch it on to wake it up';
 
@@ -207,7 +208,7 @@ test.describe('Machine page (L2-073)', () => {
     api.on('POST', '/api/workout/stop', { json: workoutStopped });
     const ride = new RidePage(page, api, events);
     const end = new EndRideDialog(page);
-    await ride.open(state());
+    await ride.open(state({ treadmill_enabled: true }));
     await expect(ride.switchLink).toHaveText('End and switch to treadmill');
     await ride.switchLink.click();
     await expect(end.dialog).toBeVisible();
@@ -224,7 +225,7 @@ test.describe('Machine page (L2-073)', () => {
     const ride = new RidePage(page, api, events);
     await ride.open(treadmillState());
     await expect(ride.switchLink).toHaveText('End and switch to bike');
-    await ride.open(freeRide());
+    await ride.open(freeRide({ treadmill_enabled: true }));
     await ride.switchLink.click();
     await expect(page).toHaveURL(/\/machine$/);
     expect(api.calls('POST', '/api/workout/stop')).toHaveLength(0);
@@ -238,5 +239,29 @@ test.describe('Machine page (L2-073)', () => {
     const treadmill = await machine.treadmill.root.boundingBox();
     expect(treadmill!.y).toBeGreaterThanOrEqual(bike!.y + bike!.height);
     expect(bike!.height).toBeGreaterThanOrEqual(44);
+  });
+});
+
+test.describe('Treadmill support off (L2-073 AC11, L2-075 AC6)', () => {
+  test('/machine opens the setup screen', async ({ page, api, events }) => {
+    const machine = new MachinePage(page, api, events);
+    await machine.open(freeRide());
+    await expect(page).toHaveURL(/\/setup$/);
+  });
+
+  test('shows no Switch link on the setup screen or the dashboard', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const setup = new SetupPage(page, api, events);
+    await setup.open(freeRide());
+    await expect(setup.heading).toHaveText('Set up your ride');
+    await expect(setup.switchLink).toHaveCount(0);
+    const ride = new RidePage(page, api, events);
+    await ride.open(state());
+    await expect(ride.switchLink).toHaveCount(0);
+    await ride.open(freeRide());
+    await expect(ride.switchLink).toHaveCount(0);
   });
 });

@@ -36,7 +36,7 @@ test.describe('Setup header (L2-072 AC1, L2-073 AC9)', () => {
     await expect(setup.closeLink).toBeVisible();
     await expect(setup.machineGroup).toHaveCount(0);
 
-    await setup.open(freeRide());
+    await setup.open(freeRide({ treadmill_enabled: true }));
     await expect(setup.statusName).toHaveText('Echelon EX-5s');
     await expect(setup.switchLink).toHaveText('Switch to treadmill');
     await expect(setup.machineGroup).toHaveCount(0);
@@ -62,7 +62,7 @@ test.describe('Setup header (L2-072 AC1, L2-073 AC9)', () => {
     api.on('POST', '/api/workout/stop', { json: workoutStopped });
     const setup = new SetupPage(page, api, events);
     const end = new EndRideDialog(page);
-    await setup.open(state());
+    await setup.open(state({ treadmill_enabled: true }));
     await setup.switchLink.click();
     await expect(end.dialog).toBeVisible();
     await expect(page).toHaveURL(/\/setup$/);

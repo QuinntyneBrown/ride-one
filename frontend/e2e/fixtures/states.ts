@@ -152,6 +152,8 @@ export const NOW_S = NOW / 1000;
 
 export function state(change: Json = {}): Json {
   const cast = {
+    // Treadmill support is off by default (L2-075); treadmill states turn it on.
+    treadmill_enabled: false,
     ble: 'connected',
     device: 'ECHEX-3-141844',
     device_label: 'Echelon EX-5s',
@@ -281,6 +283,7 @@ const BIKE_FIELDS_NULL = {
 export function treadmillIdle(change: Json = {}): Json {
   return state({
     ...BIKE_FIELDS_NULL,
+    treadmill_enabled: true,
     machine: 'treadmill',
     device: 'STRIDE-8s22-000766',
     device_label: 'STRIDE-8s22-000766',
@@ -419,7 +422,12 @@ export function nearbyEntry(machine: 'bike' | 'treadmill', change: Json = {}): J
   return fromRecording(RECORDED_NEARBY, { ...cast, seen_at: NOW_S, ...change }, 'nearby entry');
 }
 
-/** The machine page's state: the bike chosen and connected, no workout, both machines nearby. */
+/** The machine page's state: treadmill support on, the bike chosen and connected, no workout, both
+ * machines nearby. */
 export function machinePageState(change: Json = {}): Json {
-  return freeRide({ nearby: [nearbyEntry('bike'), nearbyEntry('treadmill')], ...change });
+  return freeRide({
+    treadmill_enabled: true,
+    nearby: [nearbyEntry('bike'), nearbyEntry('treadmill')],
+    ...change,
+  });
 }

@@ -98,6 +98,8 @@ export class RidePage {
 
   protected readonly commands = inject(ResistanceCommandService);
   protected readonly actions = inject(RideActions);
+  /** Switching machines is offered only with treadmill support on (L2-073 AC11, L2-075). */
+  protected readonly canSwitch = computed(() => this.state()?.treadmill_enabled === true);
   /** `End and switch to bike` on the treadmill, `… to treadmill` on the bike (L2-071 AC12). */
   protected readonly switchLabel = computed(() =>
     this.state()?.machine === 'treadmill'
