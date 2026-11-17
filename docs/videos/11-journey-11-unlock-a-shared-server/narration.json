@@ -1,0 +1,19 @@
+{
+  "voice": "af_heart",
+  "bpm": 120,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": { "file": "../assets/music/en-la-playa-soca.mp3", "offset": 0.27, "duckDb": 16, "betweenDb": 5, "fadeSeconds": 2 },
+  "scenes": [
+    { "id": "hook", "bars": 4, "lines": ["Share the server with your tablet, and keep everyone else out."] },
+    { "id": "unlock", "bars": 6, "lines": ["On a shared server, every request needs the API key, so Wattzup opens Unlock Wattzup.", "You'll only need the key once per browser session."] },
+    { "id": "help", "bars": 5, "lines": ["The help names where the key lives: appsettings, or the environment variable."] },
+    { "id": "rejected", "bars": 5, "lines": ["A wrong key says so: That key didn't work, and the field names the four oh one."] },
+    { "id": "unlocking", "bars": 4, "lines": ["The right key reads Unlocking while the server checks it."] },
+    { "id": "shared", "bars": 6, "lines": ["Then you're on the dashboard.", "A banner says the server is shared on your network, once per session."] },
+    { "id": "phone", "bars": 4, "lines": ["On a phone, the same card, sized to your thumb."] },
+    { "id": "proof", "bars": 6, "lines": ["What the tests prove: without the right key, every request gets four oh one.", "And the live stream opens with a token that works once and expires in sixty seconds."] },
+    { "id": "close", "bars": 5, "lines": ["That is journey eleven. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+  ]
+}
