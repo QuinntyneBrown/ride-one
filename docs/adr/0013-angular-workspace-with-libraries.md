@@ -33,9 +33,12 @@ the routes, the BEM classes, the bundle budget and the production output path do
   `@wattzup/components` and `@wattzup/api`, point at each library's `src/public-api.ts`. The app
   compiles library source directly, so `ng serve`, `ng test` and tree-shaking work with no separate
   library build. The libraries are not published, so they have no `ng-packagr` build target and
-  the CLI's `ng-package.json` and `tsconfig.lib.prod.json` are removed; a library build that no
-  script runs would only rot. This departs from the generated library layout in that one respect;
-  publishing would need a new ADR.
+  the CLI's `ng-package.json`, `tsconfig.lib.prod.json` and per-project ESLint configs are
+  removed; a library build that no script runs would only rot, and one root ESLint config covers
+  every project. Each library keeps a minimal private `package.json` with `"sideEffects": false`,
+  without which the bundler cannot drop unused exports of the barrel (the initial bundle grew by
+  about 5 KB gzipped without it). This departs from the generated library layout in those
+  respects; publishing would need a new ADR.
 - **Dependency direction.** `wattzup` → `components`, `wattzup` → `api`, `components` → `api`
   for types only (a component may name a contract type such as `Machine` in an input), `api` →
   nothing in the workspace. No library imports the application. An ESLint
@@ -47,7 +50,10 @@ the routes, the BEM classes, the bundle budget and the production output path do
   `routerLink`. Where a component injected an app service only to read a value
   (`phase-banner`, `ride-clock`, `status-line`) or called an app helper only to format its inputs
   (`command-log`, `metric-list`, `effort-row`, `plan-strip`, `set-list`, `quick-speeds`), the
-  parent computes the value with the same helper and passes it in. The type of an input belongs to
+  parent computes the value with the same helper and passes it in; the new app helpers
+  (`commandLogView`, `metricItems`, `effortRowView`, `setListView`, `liveConnectionStatus`) have
+  unit tests. A pure helper that only one library component uses moves with it (`level-picker-input`
+  with `level-picker`). The type of an input belongs to
   the component and is exported from `@wattzup/components`; app helpers that build it import it
   from there. A component whose job is orchestration stays in the app even when the design
   system names it: `app-bar`, `connection-banner`, `interval` (it links to `/setup` and reads the
@@ -76,7 +82,9 @@ the routes, the BEM classes, the bundle budget and the production output path do
   (L2-055). `SafeStorage`, which `ApiKeyStore` needs, moves to `api` and is exported for the app's
   stores.
 - **Unit tests.** Each project has its own `test` target (`@angular/build:unit-test`, Vitest, as
-  before) and specs move with their code. `npm test` runs `ng test`, which runs every project's
+  before) and specs move with their code. The unit-test builder needs a build target for its
+  options; with no library build, the libraries' targets name `wattzup:build:development`, which
+  also gives them the SCSS include paths. `npm test` runs `ng test`, which runs every project's
   target. `npm run build` builds `wattzup`, still to `dist/wattzup/browser`.
 
 ## Consequences
@@ -88,5 +96,8 @@ the routes, the BEM classes, the bundle budget and the production output path do
 - Every path under `frontend/src/app/` in the docs moved; designs and ADRs name the new paths.
 - AGENTS.md's folder tree and Frontend rules describe the three projects. Its rule that pure helpers
   live under `src/app/core/` now reads per project: helpers stay with the project that owns them.
+  This was a conflict between that rule and the library boundary, corrected in AGENTS.md here.
+- `ng serve`, `ng build` and Playwright's web server name the `wattzup` project, since a
+  workspace with several projects has no default one.
 - Design-system components with no Angular counterpart today (button, chip, link, badge, tooltip,
   skeleton) stay SCSS partials; turning them into components is a later change.

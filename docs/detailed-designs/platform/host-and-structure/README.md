@@ -93,7 +93,7 @@ Angular workspace in `frontend/` (L2-044, ADR 0013). One `angular.json` holds th
 | `wattzup` | application, prefix `wz` | Pages, dialogs and orchestrating components under `src/app/dashboard/`; services, stores and pure helpers under `src/app/core/`; routes and `app.config.ts`; `main.ts`, `index.html`, `tokens.css`, `styles.scss` | `@wattzup/components`, `@wattzup/api` |
 
 - **Path aliases** — `frontend/tsconfig.json` maps `@wattzup/components` and `@wattzup/api` to each library's `src/public-api.ts`. The app compiles library source directly, so `ng serve`, `ng test` and tree-shaking need no library build. The libraries are not published and have no `ng-packagr` target.
-- **Dependency direction** — an ESLint `no-restricted-imports` rule in `frontend/eslint.config.js` rejects an import of the app from either library, of `@wattzup/components` from `api`, and a value import of `@wattzup/api` from `components`. Relative imports never cross a project.
+- **Dependency direction** — an ESLint `no-restricted-imports` rule in `frontend/eslint.config.js` (`@typescript-eslint/no-restricted-imports`) rejects, in either library, a relative import that leaves the project, the router, and the library's own barrel; in `api`, `@wattzup/components`; in `components`, a value import of `@wattzup/api`. In the app it rejects a relative import into a library's internals.
 - **Presentation components** — standalone, `ChangeDetectionStrategy.OnPush`, inputs and outputs only. A component injects only framework services (`ElementRef`, `Injector`, the CDK `DialogRef`), never an app service, an API token or the router. The type of each input is exported with the component from `public-api.ts`; the app's helpers that compute it import it from `@wattzup/components`.
 - Current Angular version, standalone components only, `ChangeDetectionStrategy.OnPush` everywhere, signals for state, and zoneless change detection (`provideZonelessChangeDetection`).
 - Each component is `name.ts` + `name.html` + `name.scss` with `templateUrl` and `styleUrl`, selector `wz-<name>`, in its own folder. Each stylesheet is one encapsulated BEM block named as in the mocks. Every project's `stylePreprocessorOptions.includePaths` is `projects/components/src/styles`, so a stylesheet reads a partial as `@use 'design-system/btn'`.
@@ -103,11 +103,12 @@ Angular workspace in `frontend/` (L2-044, ADR 0013). One `angular.json` holds th
 - `projects/wattzup/src/app/core/` holds the services and pure helpers with their unit tests:
   - live state: `LiveStateService`, the one owner of the `EventSource` and its reconnect policy (L2-044 criterion 2), and `safeReturnUrl`;
   - dialogs and notifications: `DialogLauncher`, `ConnectionBannerService`, `ToastService`, `toastQueue`, `diagnosticsReport`;
-  - dashboard helpers: `connectionStatus`, `rideViewState`, `powerDelta`, `metricFormat`, `estimateWatts`, `commandLogEntries`, `metricItems`;
+  - dashboard helpers: `connectionStatus`, `liveConnectionStatus`, `rideViewState`, `powerDelta`, `metricFormat`, `estimateWatts`, `commandLogView`, `metricItems`;
   - the trace: `FrameScheduler`, `MotionPreference`, `TraceRenderer`, `createTraceRenderer`, `TraceRendererStatus`, `traceGeometry`, `PowerTraceStore`;
   - the workout helpers named in the workouts designs.
 - `projects/api/src/generated/schema.d.ts` is generated from `/openapi/v1.json` by `openapi-typescript` (`npm run generate:api`). It is never hand-edited. CI regenerates it and fails on a diff. `api-types.ts` is the only module that names its types.
-- **Unit tests** — each project has a `test` target (`@angular/build:unit-test`, Vitest, jsdom). Specs sit beside their code. `npm test` runs `ng test`, which runs all three targets.
+- **Unit tests** — each project has a `test` target (`@angular/build:unit-test`, Vitest, jsdom). The libraries' targets take their build options from `wattzup:build:development`. Specs sit beside their code. `npm test` runs `ng test`, which runs all three targets.
+- **Library `package.json`** — each library has a private `package.json` with `"sideEffects": false` so the bundler drops what the app does not import from the barrel.
 - **Build output** — `npm run build` runs `ng build wattzup` to `frontend/dist/wattzup/browser`, then `scripts/check-bundle-size.mjs`. `npm run build:api` copies that folder to `backend/src/Wattzup.Api/wwwroot`.
 - `proxy.conf.json` forwards `/api` to `127.0.0.1:8787` during `ng serve`.
 - **Fonts** (ADR 0005) — Inter, Archivo and JetBrains Mono ship as Latin-subset WOFF2 variable fonts under `frontend/public/fonts/`, with their SIL Open Font License 1.1 files beside them. The global foundations declare them with `@font-face` and `font-display: swap`. No font is loaded from a CDN, which the `font-src 'self'` policy enforces.
@@ -161,7 +162,7 @@ Every folder that was in `frontend/src/app/dashboard/`, its project and its name
 |---|---|---|---|---|
 | `alert` | `components` | `alert` | Alert and banner | |
 | `auth-card` | `components` | `auth-card` | Page layout (part) | The centred single-card shell of `/unlock` |
-| `cmd-log` | `components` | `command-log` | Command log | Lifted: the title and the entries (`commandLogEntries`) |
+| `cmd-log` | `components` | `command-log` | Command log | Lifted: the title and the entries (`commandLogView`) |
 | `dialog-shell` | `components` | `dialog` | Dialog | Injects only the CDK `DialogRef` |
 | `effort-row` | `components` | `effort-row` | Effort row (page added) | Lifted: pace, incline and the step limits (`effortRowView`) |
 | `form-summary` | `components` | `form-summary` | Form layout (part) | The error summary |
@@ -184,10 +185,10 @@ Every folder that was in `frontend/src/app/dashboard/`, its project and its name
 | `readout` | `components` | `readout` | Readout | |
 | `ride-clock` | `components` | `ride-clock` | Ride clock | Lifted: elapsed and total text from `CountdownService` |
 | `ride-preview` | `components` | `ride-profile` | Ride profile | Owns the `RidePreview` view type |
-| `set-list` | `components` | `set-list` | Set list | Lifted: the set lines, the stretch rows and `full` |
+| `set-list` | `components` | `set-list` | Set list | Lifted: the set lines, the stretch rows and `full` (`setListView`) |
 | `signal-bars` | `components` | `signal-bars` | Machine card (part) | |
 | `speed-control` | `components` | `speed-control` | Speed and incline control | |
-| `status-line` | `components` | `status-line` | Status line | Lifted: the status (`connectionStatus`) and reduced motion |
+| `status-line` | `components` | `status-line` | Status line | Lifted: the status (`liveConnectionStatus`) and reduced motion |
 | `toast` | `components` | `toast` | Toast | Owns the `Toast` view type |
 | `toggles` | `components` | `switch` | Switch | |
 | `app-bar` | `wattzup` | `app-bar` | App bar | Injects `CueService`, `DialogLauncher`, `RideActions`, `ThemeService` |

@@ -81,7 +81,7 @@ The feature extends `bike-connectivity/discover-and-connect-bike` and `bike-conn
 
 `SimulatedBikeTransport` advertises both `ECHSIM-0001` (the Echelon service `…f1`) and `STRIDE-SIM-0001` (the treadmill's advertised service `…f0`), so each filter finds its own machine and rejects the other. Connecting to `STRIDE-SIM-0001` returns a `SimulatedTreadmillConnection`. On subscribe it reports a `D3` speed of 0 and a `D2` incline of 0; it notifies only on change, like the real treadmill. Its behaviour for belt, speed and incline commands is described in `treadmill/control-the-belt` and `treadmill/control-speed-and-incline`. `--simulate --machine treadmill` therefore runs the treadmill with no hardware.
 
-### Frontend (`frontend/src/app/`)
+### Frontend (`frontend/projects/wattzup/src/app/`, with presentation components in `frontend/projects/components/` and API code in `frontend/projects/api/`)
 
 The machine page follows the mocks `docs/mocks/pages/choose-machine/` (states `default`, `connecting`, `not-found`, `not-found-bike`, `loading`, `empty`, `error`). It replaces the Machine radio group that the setup screen used to show; `MachineChoice` (`wz-machine-choice`) is removed with its `machine-choice.html` and `machine-choice.scss`.
 
@@ -99,8 +99,8 @@ The machine page follows the mocks `docs/mocks/pages/choose-machine/` (states `d
   - A not-found `error` from the backend (`profile.NotFoundMessage`, L2-063 criterion 8) after the pick marks that card `not-found`; its `Try again` button picks it again (L2-073 criterion 7). The backend clears the error as soon as it scans again, often in the next message, so the page does not read it from `state`: `LiveStateService.scanError` keeps the latest `{machine, error, seq}` seen with `ble` = `scanning`, numbered, from every state it receives. The page notes `seq` when the rider picks and counts only a later error. While a card is `not-found` the other card can be picked.
   - A rejected `choose` clears `picked` and shows the danger alert `Couldn't switch the machine` / `The Wattzup server didn't answer. Try again.`; a 409 with `code` `workout_active` shows `End the run in progress to change the machine.` (L2-073 criterion 8).
   - With `nearby` empty, a notice reads `No machines nearby` / `Switch the bike's console on, or switch on the Stride and clip in its safety key. Wattzup keeps looking.`, and both cards stay pickable (L2-073 criterion 5).
-- **`MachineCard`** (`dashboard/machine-card/`, `wz-machine-card`, new) — renders one `machineCardView` as a `label` around a visually hidden radio input (`machine-card__input`), with the decorative photo (`alt=""`), `wz-signal-bars`, the definition list of `Wattzup controls` and `Last session`, the *Last used* tag and the call to action (volt on the last used machine). The `--failed` modifier and the `aria-invalid` attribute carry the not-found state; text carries it too. Each card is at least 44 × 44 px with a visible focus ring; under 768 px the cards stack (L2-073 criterion 10).
-- **`SignalBars`** (`dashboard/signal-bars/`, `wz-signal-bars`, new) — 4 bars, the first `signal` lit, with `role="img"` and the label `Signal <n> of 4`.
+- **`MachineCard`** (`components/machine-card/`, `wz-machine-card`, new) — renders one `machineCardView` as a `label` around a visually hidden radio input (`machine-card__input`), with the decorative photo (`alt=""`), `wz-signal-bars`, the definition list of `Wattzup controls` and `Last session`, the *Last used* tag and the call to action (volt on the last used machine). The `--failed` modifier and the `aria-invalid` attribute carry the not-found state; text carries it too. Each card is at least 44 × 44 px with a visible focus ring; under 768 px the cards stack (L2-073 criterion 10).
+- **`SignalBars`** (`components/signal-bars/`, `wz-signal-bars`, new) — 4 bars, the first `signal` lit, with `role="img"` and the label `Signal <n> of 4`.
 - **Reaching the page** — `RideActions.switchMachine(target)` (`core/ride-actions.ts`) serves the dashboards' `End and switch to bike` / `End and switch to treadmill` and the setup's `Switch to …` link. With a workout active it opens the end dialog through `DialogLauncher`; once the workout has ended it navigates to `/machine`. With no workout it navigates at once (L2-073 criterion 9).
 
 ### Acceptance tests
@@ -136,7 +136,7 @@ Playwright (`frontend/e2e/`, Chromium only) drives the machine page through the 
 - `ends the workout through the end dialog before opening the machine page` (L2-073 AC9)
 - `stacks the cards under 768 px` (L2-073 AC10)
 
-Unit tests in `src/app/core/`: `machine-page-view.spec.ts` (the heading's 3 cases, each card field with and without a `nearby` entry, the last-session ages today, yesterday and 3 days ago, and each card status) and `machine-history.store.spec.ts` (record, read back, unreadable data).
+Unit tests in `frontend/projects/wattzup/src/app/core/`: `machine-page-view.spec.ts` (the heading's 3 cases, each card field with and without a `nearby` entry, the last-session ages today, yesterday and 3 days ago, and each card status) and `machine-history.store.spec.ts` (record, read back, unreadable data).
 
 ### Open questions
 

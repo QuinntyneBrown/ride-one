@@ -46,10 +46,10 @@ The feature extends three existing designs:
 ### API (`Wattzup.Api`)
 
 - **`WorkoutEndpoints`** — unchanged. `POST /api/workout` validates through `WorkoutPlanValidator` and answers 400 ProblemDetails naming `video.url` or `video.start_seconds` with the messages above.
-- **`ContractSchemaTransformer`** (`OpenApi/`) — describes `plan.video` as a nullable object with `video_id` (string) and `start_seconds` (number). The frontend's `src/app/api/schema.d.ts` is regenerated from it in the same change.
+- **`ContractSchemaTransformer`** (`OpenApi/`) — describes `plan.video` as a nullable object with `video_id` (string) and `start_seconds` (number). The frontend's `frontend/projects/api/src/generated/schema.d.ts` is regenerated from it in the same change.
 - **`SecurityHeaders`** (`Security/SecurityHeaders.cs`) — the Content-Security-Policy gains exactly `frame-src https://www.youtube-nocookie.com` and `https://www.youtube.com` in `script-src`. `connect-src`, `style-src`, `font-src` and `img-src` stay as they are (L2-036 criterion 4, ADR 0012).
 
-### Frontend (`frontend/src/app/`)
+### Frontend (`frontend/projects/wattzup/src/app/`, with presentation components in `frontend/projects/components/` and API code in `frontend/projects/api/`)
 
 **Player contract.**
 - **`YouTubePlayer`** (`core/youtube-player.ts`, new) — the contract every player use goes through, behind the injection token `YOUTUBE_PLAYER`:
@@ -72,9 +72,9 @@ The feature extends three existing designs:
 - **`VideoSync`** (`core/video-sync.service.ts`, new, component-provided) — applies `syncAction` on each state from `LiveStateService.state` and on each player report. It calls `RideActions.pause()` or `RideActions.resume()` for `riderAction`, so failures show the toasts of L2-046 (criterion 5). On `error` it shows the danger toast `Couldn't play the video` / `The ride carries on without it.` through `ToastService` and selects `Power vs. plan` (criterion 7). `playNow()`, called by `Play video in sync`, seeks to the target, plays and clears the refusal count (criterion 6). Every dashboard computes the same target from the same state, so 2 dashboards on one ride agree within 1.5 s (criterion 9).
 
 **Dashboard components.** These follow `docs/mocks/pages/ride/video.html` and `video-blocked.html`.
-- **`MainViewTabs`** (`dashboard/main-view-tabs/`, `wz-main-view-tabs`, new) — the `view-switch` tab list labelled `Main view`, with `Video` and `Power vs. plan`. It uses a roving `tabindex`; the arrow keys move between the tabs and `aria-selected` marks the chosen one (criterion 11). The caption reads `In sync · pauses with the ride`. `RidePage` holds the choice in a signal, keyed by the workout, so it lasts until the workout ends (criterion 2). Under 576 px the tab list and caption wrap (criterion 12).
+- **`MainViewTabs`** (`components/main-view-tabs/`, `wz-main-view-tabs`, new) — the `view-switch` tab list labelled `Main view`, with `Video` and `Power vs. plan`. It uses a roving `tabindex`; the arrow keys move between the tabs and `aria-selected` marks the chosen one (criterion 11). The caption reads `In sync · pauses with the ride`. `RidePage` holds the choice in a signal, keyed by the workout, so it lasts until the workout ends (criterion 2). Under 576 px the tab list and caption wrap (criterion 12).
 - **`RideVideo`** (`dashboard/ride-video/`, `wz-ride-video`, new) — the `video-frame video-frame--fill` tab panel that hosts the player. It stays mounted, hidden, while `Power vs. plan` is selected, so the player keeps following the ride (criterion 2). With blocked playback it covers the player with `video-frame__scrim`, a button reading `Play video in sync`, at least 44 × 44 px with a visible focus ring. One press seeks to the target and plays (criteria 6 and 11). It keeps 16:9 at full width under 1024 px (criterion 12).
-- **`PlanStrip`** (`dashboard/plan-strip/`, `wz-plan-strip`, new) — the `profile profile--strip` under the video. It draws the segments from `plan-expansion.ts`, with a playhead at `elapsed_seconds` and the label `Ride progress: <elapsed> of <total>` (criterion 1).
+- **`PlanStrip`** (`components/plan-strip/`, `wz-plan-strip`, new) — the `profile profile--strip` under the video. It draws the segments from `plan-expansion.ts`, with a playhead at `elapsed_seconds` and the label `Ride progress: <elapsed> of <total>` (criterion 1).
 - **`RidePage`** — with `workout.plan.video` set, it shows `wz-main-view-tabs`, then `wz-ride-video` and `wz-plan-strip` while `Video` is selected, or `wz-ride-trace` while `Power vs. plan` is selected. With `video` `null` it shows `wz-ride-trace` alone, as L2-026 (criterion 1). It provides `VideoSync` and creates the player only when the workout has a video (criterion 8).
 
 **Setup components.** These follow `docs/mocks/pages/setup/video.html` and `video-invalid.html`.
@@ -137,7 +137,7 @@ Playwright (`frontend/e2e/`, Chromium only) runs the real `IframeYouTubePlayer` 
 
 The responsive criterion (L2-076 AC12) is covered by the responsive sweep, which runs only when a person asks.
 
-Unit tests in `src/app/core/`:
+Unit tests in `frontend/projects/wattzup/src/app/core/`:
 - `video-sync.spec.ts`: each status of criterion 4; drift of 1.4 s and 1.6 s; the rider's pause and play under each status; one and 2 refusals; a sync-caused pause that is not the rider's.
 - `video-link.spec.ts`: the same rows as `YouTubeLinkTests`; `formatStart` and `parseStart` round trips; `stepStart` at 0:00.0 and 0:00.4.
 

@@ -16,9 +16,9 @@ Every dialog is an Angular CDK Dialog, never a hand-rolled modal. The CDK provid
 
 ## Description
 
-Shared building blocks (`frontend/src/app/dashboard/`):
+Shared building blocks (`Dialog` and `Alert` in `frontend/projects/components/src/lib/`, `DialogLauncher` in `frontend/projects/wattzup/src/app/core/`; ADR 0013):
 
-- **`DialogShell`** (`wz-dialog-shell`, block `dialog`) — renders the mocks' `dialog__panel`, `dialog__header` with `dialog__icon` (`--info` or `--danger`), `dialog__title`, the description, `dialog__body` and `dialog__footer`.
+- **`Dialog`** (`wz-dialog`, block `dialog`) — renders the mocks' `dialog__panel`, `dialog__header` with `dialog__icon` (`--info` or `--danger`), `dialog__title`, the description, `dialog__body` and `dialog__footer`.
   - It declares each `ng-content` slot once: `[slot=description]`, `[slot=body]` and `[slot=footer]`.
   - It sets `aria-labelledby` and `aria-describedby` on the CDK container through the dialog config.
   - `size` maps to `dialog__panel--sm` for the end-ride dialog.
@@ -109,7 +109,7 @@ Wattzup Web renders the dialogs and toasts. The Wattzup API answers the packet l
 
 ### Class structure
 
-Both dialogs compose `DialogShell`. The toast rules live in the pure `toastQueue` reducer, so the components only render.
+Both dialogs compose `Dialog`. The toast rules live in the pure `toastQueue` reducer, so the components only render.
 
 ![Class diagram for dialogs and notifications](diagrams/class-structure.png)
 

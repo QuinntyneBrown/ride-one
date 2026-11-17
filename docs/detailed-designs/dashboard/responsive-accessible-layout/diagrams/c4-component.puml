@@ -7,7 +7,7 @@ Person(rider, "Rider", "Phone, tablet, desktop; touch, keyboard or screen reader
 Container_Boundary(web, "Wattzup Web") {
   Component(page, "RidePage", "Angular component", "Skip link; blocks app, ride-layout, ride-main, ride-aside, readouts")
   Component(bar, "AppBar", "Angular component", "Block app-bar; wraps below 40 rem")
-  Component(main, "Main area components", "Angular components", "Readout, interval card, RideTrace, MetricsStrip")
+  Component(main, "Main area components", "Angular components", "Readout, interval card, RideTrace, MetricList")
   Component(aside, "Resistance panel", "resistance-control components", "Stepper, level picker, plan note, Sent to bike")
   Component(motion, "MotionPreference", "Angular service", "prefers-reduced-motion signal")
   Component(announcer, "LiveAnnouncer", "Angular CDK", "Polite segment announcements")

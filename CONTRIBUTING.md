@@ -101,6 +101,9 @@ there as the reference for behaviour.
 - Standalone components, signals and OnPush change detection.
 - One type per file, and no single-file components: `name.ts` + `name.html` + `name.scss`.
 - Selectors use `wz-*`; class, file and folder names omit the prefix.
+- Presentation components go in the `components` library, named as in the design system, and
+  take inputs and emit outputs; API code goes in the `api` library; everything else is the
+  `wattzup` app (`frontend/projects/`, ADR 0013).
 - Read design tokens by role, never hex values.
 - Button-triggered editing opens a CDK Dialog or navigates to a screen; no inline forms.
 - Every interaction works with touch and with the keyboard, colour is never the only carrier of a

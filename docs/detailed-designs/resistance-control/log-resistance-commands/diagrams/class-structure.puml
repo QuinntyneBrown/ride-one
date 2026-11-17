@@ -54,7 +54,7 @@ package "Wattzup.Core" {
 }
 
 package "frontend" {
-  class CmdLog <<component>> {
+  class CommandLog <<component>> {
     +Signal<CommandEntry[]> entries
     +Signal<string> connectionId
   }
@@ -74,7 +74,7 @@ CommandLog ..> CommandEntry : transforms
 ResistanceCommander ..> CommandLog : Add, Fail
 TelemetryIngestor ..> CommandLog : Acknowledge
 BikeState "1" *-- "0..5" CommandEntry
-CmdLog ..> view
-CmdLog ..> BikeState : reads over SSE
+CommandLog ..> view
+CommandLog ..> BikeState : reads over SSE
 CommandFeedbackService ..> BikeState : reads over SSE
 @enduml

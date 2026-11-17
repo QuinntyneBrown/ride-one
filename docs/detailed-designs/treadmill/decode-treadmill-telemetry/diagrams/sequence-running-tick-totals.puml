@@ -7,7 +7,7 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 box "Frontend — Wattzup Web application" #E0F2FE
   participant "LiveStateService" as live
-  participant "MetricsStrip" as strip
+  participant "MetricList" as strip
 end box
 box "Backend — Wattzup Core" #ECFDF3
   participant "WorkoutEngine" as engine
