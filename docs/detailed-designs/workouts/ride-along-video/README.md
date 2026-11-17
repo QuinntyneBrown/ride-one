@@ -84,13 +84,14 @@ The feature extends three existing designs:
   - `stepStart(seconds, dir)` moves the start point by 0.5 s and never below 0:00.0 (L2-029 criterion 18).
 - **`VideoLink`** (`dashboard/video-link/`, `wz-video-link`, new) — below the plan, in every mode on either machine (L2-029 criterion 17):
   - a `toggles--video` switch `Ride along to a video` / `Plays in sync on the dashboard`, off on first use;
+  - the `YouTube link` field prefilled with `DEFAULT_VIDEO_URL`, the GCN 30 Minute HIIT Cardio link `https://www.youtube.com/watch?v=QUoToFsMNig` (criterion 17);
   - with the switch on, the field `YouTube link` (`type="url"`);
   - for a link that `videoIdOf` accepts, the `video-sync` block: a preview through `YOUTUBE_PLAYER`, the stepper `Ride 0:00 starts at` (`Half a second earlier` / `Half a second later`), `Use video's current time`, which pauses the preview and copies its time, and `Check`, which plays the preview from the start point. The help text is `Scrub the preview past the intro to the moment the warm-up begins, then use that time. The video skips to it when you start, and pauses and resumes with the ride.` (criterion 18);
   - for a non-empty link that `videoIdOf` rejects, the field error `That doesn't look like a YouTube link. Paste a youtube.com or youtu.be link.` with `aria-invalid`, and neither the preview nor the start point. The error does not block Start ride (criterion 19).
 
   The preview's title and time come from the player. The backend never sees the title.
 - **`SetupPage`** — adds `video` to the plan it posts: `{url, start_seconds}` for a valid link with the switch on, otherwise `null` (L2-029 criteria 17, 19 and 20).
-- **`PlanDraftStore`** — keeps `{on, url, start}` under `wattzup.videoDraft`, one draft shared by every mode and both machines. It is saved with the plan drafts on Start ride and restored on reload (L2-029 criterion 20). Unreadable data yields the switch off.
+- **`PlanDraftStore`** — keeps `{on, url, start}` under `wattzup.videoDraft`, one draft shared by every mode and both machines. It is saved with the plan drafts on Start ride and restored on reload (L2-029 criterion 20). Unreadable data yields the switch off with the default link; a stored draft whose link is empty gets the default link back, so the field is never empty on load.
 - **`ride-preview.ts`** — adds the row `Video` `Synced from <m:ss.s>` after Time under load while the switch is on with a valid link; otherwise the row is absent (L2-059 criterion 6).
 
 ### Screen states
@@ -130,6 +131,7 @@ Playwright (`frontend/e2e/`, Chromium only) runs the real `IframeYouTubePlayer` 
 
 `e2e/setup-video.spec.ts`:
 - `shows the video switch off on first use and the link field when on` (L2-029 AC17)
+- `prefills the 30 Minute HIIT link, also after the link was cleared` (L2-029 AC17)
 - `previews a valid link and steps the start point by half a second` (L2-029 AC18)
 - `names a link that is not YouTube and still starts without a video` (L2-029 AC19)
 - `posts the video with the plan and restores it after a reload` (L2-029 AC20)

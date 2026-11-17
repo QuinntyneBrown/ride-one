@@ -280,12 +280,15 @@ wattzup/
 │       └── Wattzup.Api.AcceptanceTests/
 ├── frontend/                        The Angular dashboard and its Playwright specs
 ├── docs/
+│   ├── journeys.md                  The user journeys, by value add
+│   ├── videos/                      A narrated film of each journey
 │   ├── specs/                       Requirements: L1 (high level), L2 (acceptance criteria)
 │   ├── detailed-designs/            One design per feature, grouped by subsystem
 │   ├── mocks/                       HTML mocks, the source of truth for the UI
 │   ├── design-system/               Tokens and components extracted from the mocks
 │   ├── adr/                         Architecture decision records
 │   └── protocol/                    Echelon Bluetooth message and frame reference
+├── tools/                           The video tools: screenshots, narration and music, the film
 └── .github/                         CI workflows, issue and pull request templates
 ```
 
@@ -293,6 +296,7 @@ wattzup/
 
 | Document | Description |
 |---|---|
+| [User journeys](docs/journeys.md) | What a rider can do, by value add, each with a [narrated film](docs/videos/README.md) |
 | [Requirements](docs/specs/L1.md) | What Wattzup must do (L1), with acceptance criteria in [L2](docs/specs/L2.md) |
 | [Detailed designs](docs/detailed-designs/README.md) | One design per feature, with C4, class and sequence diagrams |
 | [Architecture decisions](docs/adr/README.md) | Why the architecture is the way it is |
