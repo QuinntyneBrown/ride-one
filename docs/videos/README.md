@@ -9,6 +9,7 @@ the same tools, effects, transitions and motion, in Wattzup's own brand.
 | # | Video | Runtime | What it is |
 |---|-------|---------|------------|
 | 01 | [Journey 1: Ride a HIIT workout](01-journey-01-ride-a-hiit-workout/README.md) | 1:48 | Set up your ride with HIIT intervals and Tabata, the preview, Start ride and `Starting…`; round 5 of 8 at level 18 with the next segment; the plan sending each level and Sent to bike with the bike's acks; WORK · 18 · GO!; power vs. plan; the dashboard from a phone to a desktop |
+| 02 | [Journey 2: Connect your machine](02-journey-02-connect-your-machine/README.md) | 1:32 | What are you training on? with the bike's and the Stride's cards, what Wattzup controls and the last session; Looking for machines… and 2 machines nearby; Last used, the bike picked and Connecting to bike…; setup opening with the status line Connected; the Stride not answering with Try again; the cards stacked on a phone and side by side from 768 px; no switch while a ride runs |
 
 ## What every video is
 
