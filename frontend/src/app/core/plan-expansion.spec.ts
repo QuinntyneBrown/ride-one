@@ -6,6 +6,7 @@ import {
   totalSeconds,
 } from './plan-expansion';
 import type { HiitPlan } from './api-types';
+import { testIntervalsPlan } from './test-state';
 
 // The same rows as PlanExpanderTests and WorkoutSummaryTests in Wattzup.Core.Tests (L2-059 AC4).
 const defaultPlan: HiitPlan = {
@@ -243,5 +244,80 @@ describe('expandPlan for the treadmill (L2-068)', () => {
     expect(expandPlan(flat)).toEqual([seg('steady', 0, 1800, 7, 2, null)]);
     expect(planSummary(flat)).toBe('Steady · 7.0 km/h at 2% · 30 min');
     expect(expectedDistanceKm(expandPlan(flat))).toBe(3.5);
+  });
+});
+
+// The same rows as the intervals cases of PlanExpanderTests and WorkoutSummaryTests (L2-045 AC7-9).
+describe('expandPlan for an intervals plan (L2-045)', () => {
+  it('is the warm-up, every effort and recover, and the cool-down (AC7)', () => {
+    const segments = expandPlan(testIntervalsPlan());
+    expect(segments).toHaveLength(17);
+    expect(totalSeconds(segments)).toBe(1800);
+    expect(segments[0]).toEqual({
+      kind: 'warmup',
+      start: 0,
+      duration: 300,
+      level: 8,
+      cadence: 80,
+      round: null,
+      speed: null,
+      incline: null,
+    });
+    expect(segments[1]).toMatchObject({
+      kind: 'work',
+      start: 300,
+      duration: 30,
+      level: 28,
+      cadence: 100,
+      round: 1,
+    });
+    expect(segments[2]).toMatchObject({
+      kind: 'rest',
+      start: 330,
+      duration: 180,
+      level: 8,
+      cadence: 72,
+      round: 1,
+    });
+    expect(segments[16]).toMatchObject({
+      kind: 'cooldown',
+      start: 1440,
+      duration: 360,
+      level: 6,
+      cadence: 70,
+      round: null,
+    });
+  });
+
+  it('numbers the efforts across sets; a recover carries its effort round (AC8)', () => {
+    const segments = expandPlan(testIntervalsPlan());
+    expect(segments.filter((s) => s.kind === 'work').map((s) => s.round)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8,
+    ]);
+    expect(segments.filter((s) => s.kind === 'rest').map((s) => [s.round, s.duration])).toEqual([
+      [1, 180],
+      [2, 150],
+      [3, 150],
+      [4, 120],
+      [5, 120],
+      [6, 90],
+      [7, 90],
+    ]);
+  });
+
+  it('runs efforts back to back with no recover, and leaves out stretches that are off', () => {
+    const plan = { ...testIntervalsPlan(), warmup: null, cooldown: null };
+    plan.sets = [{ ...plan.sets[0], rounds: 2, rest_seconds: 0 }];
+    expect(expandPlan(plan).map((s) => [s.kind, s.start, s.round])).toEqual([
+      ['work', 0, 1],
+      ['work', 30, 2],
+    ]);
+  });
+
+  it('summarises an intervals plan (L2-060 AC4)', () => {
+    expect(planSummary(testIntervalsPlan())).toBe('Intervals · 8 efforts · 30:00');
+    const one = { ...testIntervalsPlan(), warmup: null, cooldown: null };
+    one.sets = [{ ...one.sets[0], rest_seconds: 0 }];
+    expect(planSummary(one)).toBe('Intervals · 1 effort · 0:30');
   });
 });

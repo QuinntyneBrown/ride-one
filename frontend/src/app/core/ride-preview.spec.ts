@@ -1,6 +1,26 @@
 import { previewOf, treadmillPreviewOf } from './ride-preview';
+import { testIntervalsPlan } from './test-state';
 
 describe('previewOf (L2-059)', () => {
+  it('previews the Descending recoveries plan (AC5)', () => {
+    const p = previewOf(testIntervalsPlan());
+    expect(p.total).toBe('30:00');
+    expect(p.structure).toBe('5 sets · 8 efforts');
+    expect(p.timeUnderLoad).toBe('4:00');
+    expect(p.peakLevel).toBe(28);
+    expect(p.avgPower).toBe(174);
+    expect(p.kcal).toBe(312);
+    expect(p.legend).toEqual(['work', 'rest']);
+    expect(p.profile).toHaveLength(17);
+    expect(p.profileLabel).toBe('Resistance profile: 5 sets · 8 efforts');
+  });
+
+  it('names one set and one effort in the singular', () => {
+    const plan = { ...testIntervalsPlan() };
+    plan.sets = [{ ...plan.sets[0], rest_seconds: 0 }];
+    expect(previewOf(plan).structure).toBe('1 set · 1 effort');
+  });
+
   it('previews the default plan', () => {
     const p = previewOf({
       kind: 'hiit',

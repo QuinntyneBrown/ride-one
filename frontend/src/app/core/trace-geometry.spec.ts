@@ -1,5 +1,6 @@
 import { tickStep, traceGeometry, yMaxFor } from './trace-geometry';
-import { testWorkout } from './test-state';
+import { expandPlan } from './plan-expansion';
+import { testIntervalsPlan, testWorkout } from './test-state';
 
 describe('traceGeometry (L2-026)', () => {
   it('builds one block per segment with phase and past flags', () => {
@@ -37,6 +38,11 @@ describe('traceGeometry (L2-026)', () => {
       '12:00',
     ]);
     expect(g.ticks[1].percent).toBeCloseTo(15.79, 2);
+  });
+  it('keeps the Recover legend for an intervals plan', () => {
+    const plan = testIntervalsPlan();
+    const g = traceGeometry(testWorkout({ plan, segments: expandPlan(plan) }), 0);
+    expect(g.legend).toEqual(['Actual', 'Work target', 'Recover']);
   });
   it('has a plan average and a legend per kind', () => {
     const g = traceGeometry(testWorkout(), 0);

@@ -9,9 +9,9 @@
   "cadence": 85,
   "speed_kmh": 31.9,
   "speed_mph": 19.8,
-  "packets": 3,
-  "first_data_at": 1794876789.603,
-  "last_data_at": 1794876791.601,
+  "packets": 4,
+  "first_data_at": 1794877189.931,
+  "last_data_at": 1794877192.928,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -42,7 +42,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794876788.599
+      "seen_at": 1794877188.927
     },
     {
       "machine": "treadmill",
@@ -50,7 +50,7 @@
       "label": "Echelon Stride",
       "rssi": -55,
       "signal": 4,
-      "seen_at": 1794876788.599
+      "seen_at": 1794877188.928
     }
   ]
 }

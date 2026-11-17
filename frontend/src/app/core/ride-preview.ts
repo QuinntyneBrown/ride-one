@@ -1,10 +1,11 @@
 // The "Your ride" panel values, from the same plan expansion as the backend (L2-059, L2-072).
-import type { HiitPlan, Segment, SegmentKind, WorkoutPlan } from './api-types';
+import type { HiitPlan, IntervalsPlan, Segment, SegmentKind, WorkoutPlan } from './api-types';
 import { formatDuration } from './format-duration';
 import {
   averageTargetPower,
   energyKcal,
   expandPlan,
+  effortCount,
   expectedDistanceKm,
   totalSeconds,
 } from './plan-expansion';
@@ -74,9 +75,21 @@ function common(plan: WorkoutPlan, segments: readonly Segment[], structure: stri
     totalSeconds: total,
     total: formatDuration(total),
     structure,
-    timeUnderLoad: plan.kind === 'hiit' ? formatDuration(plan.rounds * plan.work_seconds) : null,
-    legend: (plan.kind === 'hiit' ? ['work', 'rest'] : ['steady']) as RidePreview['legend'],
+    timeUnderLoad: plan.kind === 'flat' ? null : formatDuration(timeUnderLoad(segments)),
+    legend: (plan.kind === 'flat' ? ['steady'] : ['work', 'rest']) as RidePreview['legend'],
   };
+}
+
+/** The sum of every effort's work time. */
+function timeUnderLoad(segments: readonly Segment[]): number {
+  return segments.filter((s) => s.kind === 'work').reduce((sum, s) => sum + s.duration, 0);
+}
+
+const plural = (n: number, one: string): string => `${n} ${one}${n === 1 ? '' : 's'}`;
+
+/** `<sets> sets · <efforts> efforts` (L2-059 criterion 5). */
+function intervalsStructure(plan: IntervalsPlan): string {
+  return `${plural(plan.sets.length, 'set')} · ${plural(effortCount(plan), 'effort')}`;
 }
 
 function hiitStructure(plan: HiitPlan): string {
@@ -91,7 +104,12 @@ function rowsOf(base: { structure: string; timeUnderLoad: string | null }): Summ
 
 export function previewOf(plan: WorkoutPlan): BikeRidePreview {
   const segments = expandPlan(plan);
-  const structure = plan.kind === 'hiit' ? hiitStructure(plan) : `Level ${plan.level} throughout`;
+  const structure =
+    plan.kind === 'hiit'
+      ? hiitStructure(plan)
+      : plan.kind === 'intervals'
+        ? intervalsStructure(plan)
+        : `Level ${plan.level} throughout`;
   const base = common(plan, segments, structure);
   const avgPower = averageTargetPower(segments);
   const peakLevel = Math.max(...segments.map((s) => s.level ?? 0));
@@ -116,7 +134,11 @@ export function previewOf(plan: WorkoutPlan): BikeRidePreview {
 export function treadmillPreviewOf(plan: WorkoutPlan): TreadmillRidePreview {
   const segments = expandPlan(plan);
   const structure =
-    plan.kind === 'hiit' ? hiitStructure(plan) : `${(plan.speed ?? 0).toFixed(1)} km/h throughout`;
+    plan.kind === 'flat'
+      ? `${(plan.speed ?? 0).toFixed(1)} km/h throughout`
+      : plan.kind === 'hiit'
+        ? hiitStructure(plan)
+        : intervalsStructure(plan);
   const base = common(plan, segments, structure);
   const topSpeed = Math.max(...segments.map((s) => s.speed ?? 0));
   const distanceKm = expectedDistanceKm(segments);

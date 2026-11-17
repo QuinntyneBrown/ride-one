@@ -194,8 +194,8 @@
       }
     ],
     "segment": 0,
-    "remaining": 176,
-    "elapsed_seconds": 4,
+    "remaining": 177,
+    "elapsed_seconds": 3,
     "total_seconds": 760,
     "mode": "plan",
     "plan_level": 8,
@@ -206,8 +206,8 @@
   "speed_kmh": 31.9,
   "speed_mph": 19.8,
   "packets": 9,
-  "first_data_at": 1794876789.603,
-  "last_data_at": 1794876795.601,
+  "first_data_at": 1794877189.931,
+  "last_data_at": 1794877195.929,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -220,12 +220,12 @@
   "power": 152,
   "target_power": 143,
   "avg_power": 152,
-  "distance_km": 0.04,
-  "kcal": 1,
+  "distance_km": 0.03,
+  "kcal": 0,
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794876792.19,
+      "at": 1794877193.058,
       "ride_seconds": 0,
       "level": 8,
       "source": "plan",
@@ -235,7 +235,7 @@
       "value": 8
     },
     {
-      "at": 1794876792.186,
+      "at": 1794877193.053,
       "ride_seconds": null,
       "level": 10,
       "source": "manual",
@@ -259,7 +259,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794876788.599
+      "seen_at": 1794877188.927
     },
     {
       "machine": "treadmill",
@@ -267,7 +267,7 @@
       "label": "Echelon Stride",
       "rssi": -55,
       "signal": 4,
-      "seen_at": 1794876788.599
+      "seen_at": 1794877188.928
     }
   ]
 }

@@ -36,6 +36,7 @@ public sealed record FlatPlan(int? Level, int Minutes, int? Cadence, double? Spe
 public sealed record IntervalsPlan(Stretch? Warmup, IReadOnlyList<IntervalSet> Sets, Stretch? Cooldown) : WorkoutPlan
 {
     /// <summary>The number of efforts: the rounds of every set.</summary>
+    [JsonIgnore]
     public int Efforts => Sets.Sum(s => s.Rounds);
 }
 

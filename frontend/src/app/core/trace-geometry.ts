@@ -67,7 +67,7 @@ export function traceGeometry(workout: WorkoutSnapshot, elapsed: number): TraceS
     ticks,
     planAverage: averageTargetPower(workout.segments),
     legend:
-      workout.plan.kind === 'hiit'
+      workout.plan.kind !== 'flat'
         ? ['Actual', 'Work target', 'Recover']
         : ['Actual', 'Work target'],
   };

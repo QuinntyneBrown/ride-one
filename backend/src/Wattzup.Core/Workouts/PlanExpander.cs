@@ -75,6 +75,32 @@ public static class PlanExpander
                 }
 
                 break;
+            case IntervalsPlan intervals:
+                if (intervals.Warmup is { } warmup)
+                {
+                    Add(SegmentKind.Warmup, warmup.Seconds, warmup.Level, warmup.Cadence, null);
+                }
+
+                // Rounds run across sets; a recover carries the round of the effort before it (L2-045 criterion 8).
+                var effort = 0;
+                foreach (var set in intervals.Sets)
+                {
+                    for (var i = 0; i < set.Rounds; i++)
+                    {
+                        Add(SegmentKind.Work, set.WorkSeconds, set.WorkLevel, set.WorkCadence, ++effort);
+                        if (set.RestSeconds > 0)
+                        {
+                            Add(SegmentKind.Rest, set.RestSeconds, set.RestLevel, set.RestCadence, effort);
+                        }
+                    }
+                }
+
+                if (intervals.Cooldown is { } cooldown)
+                {
+                    Add(SegmentKind.Cooldown, cooldown.Seconds, cooldown.Level, cooldown.Cadence, null);
+                }
+
+                break;
             default:
                 throw new ArgumentException($"Unknown plan type {plan.GetType().Name}.", nameof(plan));
         }

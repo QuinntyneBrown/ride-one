@@ -148,8 +148,8 @@
       }
     ],
     "segment": 0,
-    "remaining": 180,
-    "elapsed_seconds": 0,
+    "remaining": 178,
+    "elapsed_seconds": 2,
     "total_seconds": 960,
     "mode": "plan",
     "plan_level": null,

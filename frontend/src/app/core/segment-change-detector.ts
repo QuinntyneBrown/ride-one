@@ -1,5 +1,6 @@
 // Turns streamed workout states into segment changes; the first state never cues (L2-027).
 import type { SegmentKind, WorkoutSnapshot } from './api-types';
+import { roundCount } from './segment-labels';
 
 export interface SegmentChange {
   kind: SegmentKind;
@@ -35,7 +36,7 @@ export class SegmentChangeDetector {
       incline: segment.incline,
       duration: segment.duration,
       round: segment.round,
-      rounds: workout.plan.kind === 'hiit' ? workout.plan.rounds : 0,
+      rounds: roundCount(workout.segments),
       last: !next,
       next: next ? { kind: next.kind, level: next.level, speed: next.speed } : null,
     };

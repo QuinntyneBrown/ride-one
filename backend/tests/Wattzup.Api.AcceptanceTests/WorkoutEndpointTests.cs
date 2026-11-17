@@ -69,6 +69,22 @@ public sealed class WorkoutEndpointTests
     }
 
     [Fact]
+    public async Task An_intervals_plan_starts_a_workout()
+    {
+        await using var bike = await Bike.StartAsync();
+
+        var workout = await Ride.StartAsync(bike, Ride.Descending);
+
+        Assert.Equal("intervals", workout.GetProperty("plan").GetProperty("kind").GetString());
+        Assert.Equal(28, workout.GetProperty("plan").GetProperty("sets")[0].GetProperty("work_level").GetInt32());
+        Assert.Equal(300, workout.GetProperty("plan").GetProperty("warmup").GetProperty("seconds").GetInt32());
+        Assert.Equal("running", workout.GetProperty("status").GetString());
+        Assert.Equal(17, workout.GetProperty("segments").GetArrayLength());
+        Assert.Equal(1800, workout.GetProperty("total_seconds").GetInt32());
+        Assert.Equal("Intervals · 8 efforts · 30:00", workout.GetProperty("summary").GetString());
+    }
+
+    [Fact]
     public async Task An_intervals_field_is_rejected_by_its_path()
     {
         await using var bike = await Bike.StartAsync();

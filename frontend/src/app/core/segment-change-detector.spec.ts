@@ -1,5 +1,6 @@
 import { SegmentChangeDetector } from './segment-change-detector';
-import { testWorkout } from './test-state';
+import { expandPlan } from './plan-expansion';
+import { testIntervalsPlan, testWorkout } from './test-state';
 
 describe('SegmentChangeDetector (L2-027)', () => {
   it('ignores the first state', () => {
@@ -24,6 +25,13 @@ describe('SegmentChangeDetector (L2-027)', () => {
       last: false,
       next: { kind: 'work', level: 18, speed: null },
     });
+  });
+  it('counts the rounds of an intervals plan from its efforts (L2-027)', () => {
+    const plan = testIntervalsPlan();
+    const segments = expandPlan(plan);
+    const d = new SegmentChangeDetector();
+    d.observe(testWorkout({ plan, segments, segment: 0 }));
+    expect(d.observe(testWorkout({ plan, segments, segment: 1 }))?.rounds).toBe(8);
   });
   it('ignores a change to no workout', () => {
     const d = new SegmentChangeDetector();

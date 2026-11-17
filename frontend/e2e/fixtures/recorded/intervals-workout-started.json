@@ -1,0 +1,245 @@
+{
+  "started": {
+    "plan": {
+      "kind": "intervals",
+      "warmup": {
+        "seconds": 300,
+        "level": 8,
+        "cadence": 80
+      },
+      "sets": [
+        {
+          "rounds": 1,
+          "work_seconds": 30,
+          "work_level": 28,
+          "work_cadence": 100,
+          "rest_seconds": 180,
+          "rest_level": 8,
+          "rest_cadence": 72
+        },
+        {
+          "rounds": 2,
+          "work_seconds": 30,
+          "work_level": 28,
+          "work_cadence": 100,
+          "rest_seconds": 150,
+          "rest_level": 8,
+          "rest_cadence": 72
+        },
+        {
+          "rounds": 2,
+          "work_seconds": 30,
+          "work_level": 28,
+          "work_cadence": 100,
+          "rest_seconds": 120,
+          "rest_level": 8,
+          "rest_cadence": 72
+        },
+        {
+          "rounds": 2,
+          "work_seconds": 30,
+          "work_level": 28,
+          "work_cadence": 100,
+          "rest_seconds": 90,
+          "rest_level": 8,
+          "rest_cadence": 72
+        },
+        {
+          "rounds": 1,
+          "work_seconds": 30,
+          "work_level": 28,
+          "work_cadence": 100,
+          "rest_seconds": 0,
+          "rest_level": 8,
+          "rest_cadence": 72
+        }
+      ],
+      "cooldown": {
+        "seconds": 360,
+        "level": 6,
+        "cadence": 70
+      }
+    },
+    "summary": "Intervals · 8 efforts · 30:00",
+    "segments": [
+      {
+        "kind": "warmup",
+        "start": 0,
+        "duration": 300,
+        "level": 8,
+        "cadence": 80,
+        "round": null,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "work",
+        "start": 300,
+        "duration": 30,
+        "level": 28,
+        "cadence": 100,
+        "round": 1,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "rest",
+        "start": 330,
+        "duration": 180,
+        "level": 8,
+        "cadence": 72,
+        "round": 1,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "work",
+        "start": 510,
+        "duration": 30,
+        "level": 28,
+        "cadence": 100,
+        "round": 2,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "rest",
+        "start": 540,
+        "duration": 150,
+        "level": 8,
+        "cadence": 72,
+        "round": 2,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "work",
+        "start": 690,
+        "duration": 30,
+        "level": 28,
+        "cadence": 100,
+        "round": 3,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "rest",
+        "start": 720,
+        "duration": 150,
+        "level": 8,
+        "cadence": 72,
+        "round": 3,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "work",
+        "start": 870,
+        "duration": 30,
+        "level": 28,
+        "cadence": 100,
+        "round": 4,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "rest",
+        "start": 900,
+        "duration": 120,
+        "level": 8,
+        "cadence": 72,
+        "round": 4,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "work",
+        "start": 1020,
+        "duration": 30,
+        "level": 28,
+        "cadence": 100,
+        "round": 5,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "rest",
+        "start": 1050,
+        "duration": 120,
+        "level": 8,
+        "cadence": 72,
+        "round": 5,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "work",
+        "start": 1170,
+        "duration": 30,
+        "level": 28,
+        "cadence": 100,
+        "round": 6,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "rest",
+        "start": 1200,
+        "duration": 90,
+        "level": 8,
+        "cadence": 72,
+        "round": 6,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "work",
+        "start": 1290,
+        "duration": 30,
+        "level": 28,
+        "cadence": 100,
+        "round": 7,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "rest",
+        "start": 1320,
+        "duration": 90,
+        "level": 8,
+        "cadence": 72,
+        "round": 7,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "work",
+        "start": 1410,
+        "duration": 30,
+        "level": 28,
+        "cadence": 100,
+        "round": 8,
+        "speed": null,
+        "incline": null
+      },
+      {
+        "kind": "cooldown",
+        "start": 1440,
+        "duration": 360,
+        "level": 6,
+        "cadence": 70,
+        "round": null,
+        "speed": null,
+        "incline": null
+      }
+    ],
+    "segment": 0,
+    "remaining": 300,
+    "elapsed_seconds": 0,
+    "total_seconds": 1800,
+    "mode": "plan",
+    "plan_level": 8,
+    "status": "running",
+    "ended_reason": null
+  }
+}

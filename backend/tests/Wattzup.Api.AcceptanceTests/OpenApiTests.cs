@@ -74,13 +74,15 @@ public sealed class OpenApiTests
     }
 
     [Fact]
-    public async Task The_workout_plan_is_a_kind_discriminated_union_of_hiit_and_flat()
+    public async Task The_workout_plan_is_a_kind_discriminated_union_of_hiit_flat_and_intervals()
     {
         var doc = await DocumentAsync();
         var schemas = doc.GetProperty("components").GetProperty("schemas");
 
         Assert.True(schemas.TryGetProperty("WorkoutPlanHiitPlan", out var hiit));
         Assert.True(schemas.TryGetProperty("WorkoutPlanFlatPlan", out _));
+        Assert.True(schemas.TryGetProperty("WorkoutPlanIntervalsPlan", out var intervals));
+        Assert.Equal(["kind", "warmup", "sets", "cooldown"], intervals.GetProperty("properties").EnumerateObject().Select(p => p.Name));
         Assert.Equal("kind", schemas.GetProperty("WorkoutPlan").GetProperty("discriminator").GetProperty("propertyName").GetString());
         Assert.Contains("work_seconds", hiit.GetProperty("properties").EnumerateObject().Select(p => p.Name));
         Assert.True(schemas.TryGetProperty("WorkoutSnapshot", out var snapshot));

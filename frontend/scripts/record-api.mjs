@@ -34,6 +34,21 @@ const treadmillPlan = {
   warmup: true,
   cooldown: true,
 };
+// The Descending recoveries plan (L2-010 criterion 11).
+const intervalsPlan = {
+  kind: 'intervals',
+  warmup: { seconds: 300, level: 8, cadence: 80 },
+  sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
+    rounds: i === 0 || i === 4 ? 1 : 2,
+    work_seconds: 30,
+    work_level: 28,
+    work_cadence: 100,
+    rest_seconds,
+    rest_level: 8,
+    rest_cadence: 72,
+  })),
+  cooldown: { seconds: 360, level: 6, cadence: 70 },
+};
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function waitConnected(machine) {
@@ -98,6 +113,16 @@ save('trace', await call('GET', '/api/workout/trace'), 200);
 save('workout-paused', await call('POST', '/api/workout/pause'), 200);
 save('workout-resumed', await call('POST', '/api/workout/resume'), 200);
 save('workout-stopped', await call('POST', '/api/workout/stop'), 200);
+save(
+  'problem-invalid-intervals',
+  await call('POST', '/api/workout', {
+    ...intervalsPlan,
+    sets: [{ ...intervalsPlan.sets[0], rest_seconds: 3 }],
+  }),
+  400,
+);
+save('intervals-workout-started', await call('POST', '/api/workout', intervalsPlan), 200);
+save('intervals-workout-stopped', await call('POST', '/api/workout/stop'), 200);
 save('packets', await call('GET', '/api/diagnostics/packets'), 200);
 save('health', await call('GET', '/health'), 200);
 save('problem-wrong-machine', await call('POST', '/api/speed', { speed: 7.0 }), 409);

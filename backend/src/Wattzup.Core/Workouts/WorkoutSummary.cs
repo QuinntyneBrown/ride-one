@@ -11,6 +11,9 @@ public static class WorkoutSummary
         HiitPlan h => string.Create(CultureInfo.InvariantCulture, $"HIIT · {h.Rounds} × {Clock(h.WorkSeconds)} / {Clock(h.RestSeconds)}"),
         FlatPlan { Speed: { } speed } f => string.Create(CultureInfo.InvariantCulture, $"Steady · {speed:0.0} km/h at {f.Incline ?? 0}% · {f.Minutes} min"),
         FlatPlan f => string.Create(CultureInfo.InvariantCulture, $"Flat · Level {f.Level} · {f.Minutes} min"),
+        IntervalsPlan i => string.Create(
+            CultureInfo.InvariantCulture,
+            $"Intervals · {i.Efforts} {(i.Efforts == 1 ? "effort" : "efforts")} · {Clock(PlanExpander.Expand(i).Sum(s => s.Duration))}"),
         _ => throw new ArgumentException($"Unknown plan type {plan?.GetType().Name}.", nameof(plan)),
     };
 

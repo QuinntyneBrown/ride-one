@@ -6,5 +6,5 @@
     "body": ["The request body is not valid JSON."]
   },
   "code": "invalid_workout",
-  "trace_id": "00-59d97a488a7ae57bce40ae636e5d5f94-0798adc1f936e358-00"
+  "trace_id": "00-03593efef43a2183a02b7cbcc7d4a50a-3d56a2123b84b6aa-00"
 }

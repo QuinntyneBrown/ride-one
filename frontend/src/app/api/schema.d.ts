@@ -395,6 +395,22 @@ export interface components {
             /** Format: int32 */
             sent: number;
         };
+        IntervalSet: {
+            /** Format: int32 */
+            rounds: number;
+            /** Format: int32 */
+            work_seconds: number;
+            /** Format: int32 */
+            work_level: number;
+            /** Format: int32 */
+            work_cadence: number;
+            /** Format: int32 */
+            rest_seconds: number;
+            /** Format: int32 */
+            rest_level: number;
+            /** Format: int32 */
+            rest_cadence: number;
+        };
         /** @enum {unknown} */
         Machine: "bike" | "treadmill";
         MachineChosen: {
@@ -470,10 +486,18 @@ export interface components {
             /** Format: double */
             sent: number;
         };
+        Stretch: {
+            /** Format: int32 */
+            seconds: number;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            cadence: number;
+        };
         WorkoutChanged: {
             workout: components["schemas"]["WorkoutSnapshot"];
         };
-        WorkoutPlan: components["schemas"]["WorkoutPlanHiitPlan"] | components["schemas"]["WorkoutPlanFlatPlan"];
+        WorkoutPlan: components["schemas"]["WorkoutPlanHiitPlan"] | components["schemas"]["WorkoutPlanFlatPlan"] | components["schemas"]["WorkoutPlanIntervalsPlan"];
         WorkoutPlanFlatPlan: {
             /** @enum {string} */
             kind: "flat";
@@ -511,6 +535,13 @@ export interface components {
             work_incline: null | number;
             /** Format: int32 */
             rest_incline: null | number;
+        };
+        WorkoutPlanIntervalsPlan: {
+            /** @enum {string} */
+            kind: "intervals";
+            warmup: null | components["schemas"]["Stretch"];
+            sets: components["schemas"]["IntervalSet"][];
+            cooldown: null | components["schemas"]["Stretch"];
         };
         WorkoutSnapshot: {
             plan: components["schemas"]["WorkoutPlan"];

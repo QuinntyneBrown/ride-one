@@ -165,9 +165,9 @@
   "cadence": null,
   "speed_kmh": 0,
   "speed_mph": 0,
-  "packets": 13,
-  "first_data_at": 1794876789.603,
-  "last_data_at": 1794876797.249,
+  "packets": 14,
+  "first_data_at": 1794877189.931,
+  "last_data_at": 1794877198.115,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -185,7 +185,7 @@
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794876797.249,
+      "at": 1794877198.115,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -195,7 +195,7 @@
       "value": 2
     },
     {
-      "at": 1794876797.244,
+      "at": 1794877198.111,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -219,7 +219,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794876795.73
+      "seen_at": 1794877196.599
     },
     {
       "machine": "treadmill",
@@ -227,7 +227,7 @@
       "label": "Echelon Stride",
       "rssi": -55,
       "signal": 4,
-      "seen_at": 1794876795.73
+      "seen_at": 1794877196.599
     }
   ]
 }
