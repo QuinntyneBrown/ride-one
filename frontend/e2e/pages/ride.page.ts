@@ -59,6 +59,14 @@ export class RidePage {
   readonly tryAgainButton: Locator;
 
   readonly trace: Locator;
+  readonly mainViewTabs: Locator;
+  readonly videoTab: Locator;
+  readonly chartTab: Locator;
+  readonly mainViewCaption: Locator;
+  readonly videoPanel: Locator;
+  readonly videoPlayer: Locator;
+  readonly planStrip: Locator;
+  readonly playScrim: Locator;
   readonly traceCanvas: Locator;
   readonly traceLegend: Locator;
   readonly traceMax: Locator;
@@ -166,6 +174,14 @@ export class RidePage {
     this.tryAgainButton = this.loadError.getByRole('button', { name: 'Try again' });
 
     this.trace = page.locator('figure.trace');
+    this.mainViewTabs = page.getByRole('tablist', { name: 'Main view' });
+    this.videoTab = this.mainViewTabs.getByRole('tab', { name: 'Video', exact: true });
+    this.chartTab = this.mainViewTabs.getByRole('tab', { name: 'Power vs. plan', exact: true });
+    this.mainViewCaption = page.locator('.main-view-tabs__caption');
+    this.videoPanel = page.locator('#view-video');
+    this.videoPlayer = page.frameLocator('iframe[title="Ride-along video"]').locator('body');
+    this.planStrip = page.locator('svg.profile--strip');
+    this.playScrim = page.getByRole('button', { name: 'Play video in sync', exact: true });
     this.traceCanvas = this.trace.locator('canvas');
     this.traceLegend = this.trace.locator('.trace__legend li');
     this.traceMax = this.trace.locator('.trace__max');
@@ -214,6 +230,15 @@ export class RidePage {
   }
 
   /** Loads `/` with GET /api/status answering `initial`, then streams it as the first message. */
+  /** Hides or shows the tab, as switching browser tabs would (L2-076 AC10). */
+  async setVisibility(visibility: 'hidden' | 'visible'): Promise<void> {
+    await this.page.evaluate((v) => {
+      Object.defineProperty(document, 'visibilityState', { value: v, configurable: true });
+      Object.defineProperty(document, 'hidden', { value: v === 'hidden', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    }, visibility);
+  }
+
   async open(initial: Json = state(), options: { stream?: boolean } = {}): Promise<void> {
     this.api.on('GET', '/api/status', { json: initial });
     await this.page.goto('/');

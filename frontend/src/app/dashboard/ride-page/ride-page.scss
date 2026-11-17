@@ -25,6 +25,18 @@
   flex-direction: column;
   padding: var(--space-6) var(--space-5) var(--space-5);
 }
+.ride-view {
+  margin-top: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: var(--layout-trace-min);
+}
+.ride-view__chart {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 .ride-main:focus {
   outline: none;
 }

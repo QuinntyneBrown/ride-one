@@ -5,6 +5,7 @@
 import recordedRunning from './recorded/status-running.json';
 import recordedStarted from './recorded/workout-started.json';
 import recordedTreadmillRunning from './recorded/status-treadmill-running.json';
+import recordedVideoStarted from './recorded/video-workout-started.json';
 
 export type Json = Record<string, unknown>;
 
@@ -122,6 +123,14 @@ export function workout(change: Json = {}): Json {
     ...change,
   };
   return fromRecording(RECORDED_WORKOUT, cast, 'workout');
+}
+
+/** The ride-along video of a plan, as the backend reports it (L2-014). */
+export const RIDE_VIDEO = recordedVideoStarted.started.plan.video;
+
+/** The default plan with the GCN video synced from 0:12.0 (L2-076). */
+export function videoWorkout(change: Json = {}): Json {
+  return workout({ plan: { ...DEFAULT_PLAN, video: RIDE_VIDEO }, ...change });
 }
 
 export function flatWorkout(change: Json = {}): Json {

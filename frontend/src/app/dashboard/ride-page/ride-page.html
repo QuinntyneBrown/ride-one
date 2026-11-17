@@ -96,7 +96,26 @@
           }}</wz-readout>
           <wz-interval [workout]="workout()" />
         </div>
-        <wz-ride-trace [state]="state()" [dimmed]="view().dimmed" />
+        @if (video(); as v) {
+          <section class="ride-view" aria-label="Main view">
+            <wz-main-view-tabs [(view)]="mainView" />
+            <wz-ride-video [video]="v" [hidden]="mainView() !== 'video'" />
+            @if (mainView() === 'video') {
+              <wz-plan-strip [workout]="workout()!" />
+            } @else {
+              <div
+                class="ride-view__chart"
+                id="view-chart"
+                role="tabpanel"
+                aria-labelledby="tab-chart"
+              >
+                <wz-ride-trace [state]="state()" [dimmed]="view().dimmed" />
+              </div>
+            }
+          </section>
+        } @else {
+          <wz-ride-trace [state]="state()" [dimmed]="view().dimmed" />
+        }
         <wz-metrics-strip [state]="state()" [dimmed]="view().dimmed" />
         @if (overlay(); as o) {
           <wz-ride-overlay

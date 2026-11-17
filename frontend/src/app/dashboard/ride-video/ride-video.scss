@@ -1,0 +1,33 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+:host([hidden]) {
+  display: none;
+}
+.video-frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-video-bg);
+  color: var(--color-video-fg);
+}
+.video-frame--fill {
+  flex: 1;
+  min-height: 12rem;
+}
+.video-frame__host {
+  position: absolute;
+  inset: 0;
+}
+// Under 1024 px the video keeps 16:9 at full width (L2-076 AC12).
+@media (max-width: 1023.98px) {
+  .video-frame--fill {
+    flex: none;
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+  }
+}

@@ -123,6 +123,15 @@ save(
 );
 save('intervals-workout-started', await call('POST', '/api/workout', intervalsPlan), 200);
 save('intervals-workout-stopped', await call('POST', '/api/workout/stop'), 200);
+save(
+  'video-workout-started',
+  await call('POST', '/api/workout', {
+    ...plan,
+    video: { url: 'https://www.youtube.com/watch?v=QUoToFsMNig', start_seconds: 12 },
+  }),
+  200,
+);
+await call('POST', '/api/workout/stop');
 save('packets', await call('GET', '/api/diagnostics/packets'), 200);
 save('health', await call('GET', '/health'), 200);
 save('problem-wrong-machine', await call('POST', '/api/speed', { speed: 7.0 }), 409);

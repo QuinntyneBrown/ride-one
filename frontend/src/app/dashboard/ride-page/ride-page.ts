@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal } from '@angular/core';
 import { CommandFeedbackService } from '../../core/command-feedback.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
@@ -37,6 +37,10 @@ import { Interval } from '../interval/interval';
 import { MetricsStrip } from '../metrics-strip/metrics-strip';
 import { PhaseBanner } from '../phase-banner/phase-banner';
 import { Readout } from '../readout/readout';
+import { VideoSync } from '../../core/video-sync.service';
+import { type MainView, MainViewTabs } from '../main-view-tabs/main-view-tabs';
+import { PlanStrip } from '../plan-strip/plan-strip';
+import { RideVideo } from '../ride-video/ride-video';
 
 /** Route `/`: the ride dashboard. */
 @Component({
@@ -58,8 +62,11 @@ import { Readout } from '../readout/readout';
     PhaseBanner,
     PlanNote,
     Readout,
+    MainViewTabs,
+    PlanStrip,
+    RideVideo,
   ],
-  providers: [CountdownService, CueDirector],
+  providers: [CountdownService, CueDirector, VideoSync],
   templateUrl: './ride-page.html',
   styleUrl: './ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,6 +75,13 @@ export class RidePage {
   protected readonly live = inject(LiveStateService);
   protected readonly state = this.live.state;
   protected readonly workout = computed(() => this.state()?.workout ?? null);
+  /** The ride-along video of the workout, or null (L2-076 AC1). */
+  protected readonly video = computed(() => this.workout()?.plan.video ?? null);
+  /** Which tab shows; back to Video for each new workout, kept until it ends (L2-076 AC2). */
+  protected readonly mainView = linkedSignal<string | null, MainView>({
+    source: computed(() => (this.workout() ? JSON.stringify(this.workout()!.plan) : null)),
+    computation: () => 'video',
+  });
   protected readonly view = computed(() =>
     rideViewState(this.state(), this.live.connection(), this.live.loadFailed()),
   );
