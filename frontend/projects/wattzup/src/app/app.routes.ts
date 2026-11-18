@@ -19,6 +19,11 @@ export const routes: Routes = [
       import('./dashboard/class-library-page/class-library-page').then((m) => m.ClassLibraryPage),
   },
   {
+    path: 'classes/:id',
+    title: 'Class · Wattzup',
+    loadComponent: () => import('./dashboard/class-page/class-page').then((m) => m.ClassPage),
+  },
+  {
     path: 'machine',
     title: 'Choose machine · Wattzup',
     loadComponent: () => import('./dashboard/machine-page/machine-page').then((m) => m.MachinePage),

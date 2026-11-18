@@ -1,0 +1,213 @@
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app app--fixed">
+  <header class="app-bar">
+    <a class="lockup" routerLink="/classes" aria-label="Wattzup class library">
+      <svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true">
+        <rect width="48" height="48" rx="12" />
+        <path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10" />
+      </svg>
+      <span class="lockup__word">wattzup</span>
+    </a>
+    <span class="app-bar__divider" aria-hidden="true"></span>
+    <a class="btn btn--quiet btn--sm class-page__back" routerLink="/classes"
+      ><wz-icon name="arrow-left" size="sm" />All classes</a
+    >
+    <wz-status-line class="app-bar__close" [status]="status()" [reducedMotion]="reducedMotion()" />
+  </header>
+  @switch (phase()) {
+    @case ('not-found') {
+      <main id="main" class="library" tabindex="-1">
+        <div class="library__inner">
+          <div class="empty empty--error">
+            <span class="empty__icon"><wz-icon name="alert-circle" size="lg" /></span>
+            <h1 class="empty__title">We can't find that class</h1>
+            <p class="empty__text">
+              It isn't in the class library. Pick another, or build your own ride.
+            </p>
+            <div class="empty__actions">
+              <a class="btn btn--primary" routerLink="/classes"
+                ><wz-icon name="arrow-left" size="sm" />All classes</a
+              >
+              <a class="btn btn--subtle" routerLink="/setup">Build your own ride</a>
+            </div>
+          </div>
+        </div>
+      </main>
+    }
+    @case ('loading') {
+      <div class="setup-layout">
+        <main id="main" class="setup-main" tabindex="-1" aria-busy="true">
+          <div class="class-page" aria-hidden="true">
+            <span class="skeleton skeleton--rect class-page__skeleton-frame"></span>
+            <span class="skeleton skeleton--text class-page__skeleton-meta"></span>
+            <span class="skeleton skeleton--title class-page__skeleton-title"></span>
+            <span class="skeleton skeleton--text class-page__skeleton-lead"></span>
+            <span class="skeleton skeleton--rect class-page__skeleton-link"></span>
+          </div>
+          <h1 class="visually-hidden">Loading the class</h1>
+        </main>
+        <aside class="setup-aside" aria-label="The plan">
+          <div class="plan-head"><h2>The plan</h2></div>
+          <span
+            class="skeleton skeleton--rect class-page__skeleton-total"
+            aria-hidden="true"
+          ></span>
+          <span
+            class="skeleton skeleton--rect class-page__skeleton-strip"
+            aria-hidden="true"
+          ></span>
+          <div class="setup-aside__foot">
+            <button class="btn btn--primary btn--xl btn--block" type="button" disabled>
+              Start ride
+            </button>
+          </div>
+        </aside>
+      </div>
+    }
+    @default {
+      @let e = entry()!;
+      @let d = draft()!;
+      @let p = preview()!;
+      @let l = lines()!;
+      <div class="setup-layout">
+        <main id="main" class="setup-main" tabindex="-1">
+          <div class="class-page">
+            <div class="video-frame">
+              @if (videoId()) {
+                <div class="video-frame__poster">
+                  <span class="video-frame__title">{{ e.channel }} · {{ e.title }}</span>
+                  <span class="video-frame__meta">Cued at {{ startText() }}, the ride’s 0:00</span>
+                </div>
+                <div #host class="video-frame__host"></div>
+              } @else {
+                <div class="video-frame__poster">
+                  <span class="video-frame__title"
+                    >Paste this ride’s YouTube link below to play it in sync on the dashboard.</span
+                  >
+                </div>
+              }
+            </div>
+            <p class="class-page__meta">
+              <b>{{ e.channel }}</b><span>{{ e.shelf.title }}</span
+              ><span>{{ e.focus }}</span>
+            </p>
+            <h1>{{ e.title }}</h1>
+            <p class="lead">{{ e.description }}</p>
+            <div class="class-page__link">
+              <div class="field">
+                <label class="field__label" for="video-url">YouTube link</label>
+                <input
+                  class="input"
+                  id="video-url"
+                  type="url"
+                  inputmode="url"
+                  autocomplete="off"
+                  placeholder="https://www.youtube.com/watch?v=…"
+                  aria-describedby="video-help"
+                  [value]="d.url"
+                />
+              </div>
+              <div class="num-stepper">
+                <label class="num-stepper__label" for="video-offset">Ride starts at</label>
+                <div class="num-stepper__row">
+                  <button
+                    class="btn btn--subtle btn--icon"
+                    type="button"
+                    aria-label="Half a second earlier"
+                  >
+                    <wz-icon name="minus" size="sm" />
+                  </button>
+                  <input
+                    class="numeral num-stepper__input"
+                    id="video-offset"
+                    type="text"
+                    inputmode="decimal"
+                    size="6"
+                    aria-describedby="video-help"
+                    [value]="startText()"
+                    readonly
+                  />
+                  <button
+                    class="btn btn--subtle btn--icon"
+                    type="button"
+                    aria-label="Half a second later"
+                  >
+                    <wz-icon name="plus" size="sm" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p class="field__help" id="video-help">
+              Skips the intro so the video's first pedal stroke lands on your 0:00.
+            </p>
+          </div>
+        </main>
+        <aside class="setup-aside" aria-label="The plan">
+          <div class="plan-head"><h2>The plan</h2></div>
+          <p class="numeral ride-total" [attr.aria-label]="'Total ride time ' + p.total">
+            {{ p.total }}
+          </p>
+          <svg
+            class="profile"
+            [attr.viewBox]="'0 0 ' + p.totalSeconds + ' 32'"
+            preserveAspectRatio="none"
+            role="img"
+            [attr.aria-label]="p.profileLabel"
+          >
+            @for (bar of p.profile; track $index) {
+              <rect
+                [attr.class]="bar.tone"
+                [attr.x]="bar.x"
+                [attr.width]="bar.width"
+                [attr.y]="bar.y"
+                [attr.height]="bar.height"
+              />
+            }
+          </svg>
+          <ul class="legend">
+            @for (item of p.legend; track item) {
+              <li>
+                <span class="swatch" [class]="'swatch--' + item" aria-hidden="true"></span
+                >{{ legendLabels[item] }}
+              </li>
+            }
+            @if (l.stretches; as stretches) {
+              <li class="legend__aside">{{ stretches }}</li>
+            }
+          </ul>
+          <dl class="dl dl--split">
+            <div>
+              <dt>Structure</dt>
+              <dd>{{ l.structure }}</dd>
+            </div>
+            <div>
+              <dt>Cadence</dt>
+              <dd>{{ l.cadence }}</dd>
+            </div>
+            <div>
+              <dt>Expected avg power</dt>
+              <dd>~{{ p.avgPower }} W</dd>
+            </div>
+          </dl>
+          <div class="setup-aside__group" role="group" aria-labelledby="resistance-title">
+            <h3 id="resistance-title">Resistance</h3>
+            @for (row of rows(); track row.name) {
+              <wz-level-row
+                [name]="row.name"
+                [level]="row.level"
+                [canLower]="row.canLower"
+                [canRaise]="row.canRaise"
+              />
+            }
+          </div>
+          <div class="setup-aside__foot">
+            <button class="btn btn--primary btn--xl btn--block" type="button">Start ride</button>
+            <a class="btn btn--quiet btn--block" routerLink="/setup"
+              >Change intervals in full setup</a
+            >
+          </div>
+        </aside>
+      </div>
+    }
+  }
+</div>

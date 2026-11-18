@@ -11,6 +11,7 @@ export type IconName =
   | 'pause'
   | 'play'
   | 'link'
+  | 'arrow-left'
   | 'activity'
   | 'sliders'
   | 'close'
