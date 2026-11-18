@@ -63,7 +63,7 @@ Every mock uses this cast.
     Threshold, 4 × 2:00 / 1:00 at 19 / 10, 20:00, ~230 W).
   - *30 min* (“Structured intervals with a proper warm-up.”): *30 Minute HIIT Cardio* (GCN Training,
     HIIT, 8 × 0:30 · 3:00 → 1:30 recover at 24 / 6, 30:00, ~154 W, the only one with a link, cued at
-    0:12.0) and *30 Min Tempo Paceline* (Wattzup Studio, Tempo, 4 × 6:00 / 2:00 at 17 / 11, 36:00).
+    0:03.0) and *30 Min Tempo Paceline* (Wattzup Studio, Tempo, 4 × 6:00 / 2:00 at 17 / 11, 36:00).
   - *60 min endurance* (“Long aerobic rides. Steady legs, steady heart.”): *60 Min Dolomites
     Endurance* (Wattzup Scenic, Zone 2, Steady at level 12 for 1:00:00, 85 rpm) and *60 Min Coastal
     Endurance + Surges* (Wattzup Scenic, Endurance, 5 × 6:00 / 5:00 at 15 / 11, 1:00:00).

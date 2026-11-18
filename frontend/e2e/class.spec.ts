@@ -31,13 +31,13 @@ test.describe('Class page (L2-080)', () => {
     );
 
     await expect(cls.previewTitle).toHaveText('GCN Training · 30 Minute HIIT Cardio');
-    await expect(cls.previewMeta).toHaveText('Cued at 0:12.0, the ride’s 0:00');
+    await expect(cls.previewMeta).toHaveText('Cued at 0:03.0, the ride’s 0:00');
     await expect
       .poll(async () => (await youtube.players())[0]?.src ?? '')
       .toContain('/embed/QUoToFsMNig');
-    expect((await youtube.players())[0]?.src).toContain('start=12');
+    expect((await youtube.players())[0]?.src).toContain('&start=3&');
     await expect(cls.videoUrl).toHaveValue('https://www.youtube.com/watch?v=QUoToFsMNig');
-    await expect(cls.videoStart).toHaveValue('0:12.0');
+    await expect(cls.videoStart).toHaveValue('0:03.0');
     await expect(cls.videoHelp).toHaveText(
       "Skips the intro so the video's first pedal stroke lands on your 0:00.",
     );
@@ -204,24 +204,24 @@ test.describe('Class page (L2-080)', () => {
     await expect.poll(async () => (await youtube.players()).length).toBe(1);
 
     await cls.later.click();
-    await expect(cls.videoStart).toHaveValue('0:12.5');
-    await expect(cls.previewMeta).toHaveText('Cued at 0:12.5, the ride’s 0:00');
+    await expect(cls.videoStart).toHaveValue('0:03.5');
+    await expect(cls.previewMeta).toHaveText('Cued at 0:03.5, the ride’s 0:00');
     await expect
       .poll(
         async () =>
           (await youtube.players())[0]?.calls.filter((c) => c.name === 'seekTo').at(-1)?.args[0],
       )
-      .toBe(12.5);
+      .toBe(3.5);
     await cls.earlier.click();
     await cls.earlier.click();
-    await expect(cls.videoStart).toHaveValue('0:11.5');
+    await expect(cls.videoStart).toHaveValue('0:02.5');
     await expect(cls.resetButton).toBeVisible();
 
     await cls.videoStart.fill('20');
     await cls.videoStart.press('Enter');
     await expect(cls.videoStart).toHaveValue('0:20.0');
     await cls.resetButton.click();
-    await expect(cls.videoStart).toHaveValue('0:12.0');
+    await expect(cls.videoStart).toHaveValue('0:03.0');
   });
 
   test('starts the plan as shown with its video and goes to the dashboard', async ({
@@ -258,7 +258,7 @@ test.describe('Class page (L2-080)', () => {
     expect(body.warmup.level).toBe(8);
     expect(body.video).toEqual({
       url: 'https://www.youtube.com/watch?v=QUoToFsMNig',
-      start_seconds: 12.5,
+      start_seconds: 3.5,
     });
     release();
     await expect(page).toHaveURL(/\/$/);
@@ -301,7 +301,7 @@ test.describe('Class page (L2-080)', () => {
       "The Wattzup server didn't accept the plan. Your settings are kept — try again.",
     );
     await expect(cls.work.value).toHaveText('25 / 32');
-    await expect(cls.videoStart).toHaveValue('0:12.0');
+    await expect(cls.videoStart).toHaveValue('0:03.0');
 
     api.on('POST', '/api/workout', { json: videoStarted });
     await cls.tryAgain.click();
@@ -329,7 +329,7 @@ test.describe('Class page (L2-080)', () => {
     await expect(setup.setRow(1)).toContainText('Recover 3:00 · L6 · 72 rpm');
     await expect(setup.videoSwitch).toBeChecked();
     await expect(setup.videoUrl).toHaveValue('https://www.youtube.com/watch?v=QUoToFsMNig');
-    await expect(setup.videoStart).toHaveValue('0:12.5');
+    await expect(setup.videoStart).toHaveValue('0:03.5');
   });
 
   test('opens full setup in Flat with the steady level and no video', async ({
