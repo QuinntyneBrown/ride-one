@@ -241,6 +241,7 @@
     "mode": "plan",
     "plan_level": 8,
     "status": "running",
-    "ended_reason": null
+    "ended_reason": null,
+    "session_id": null
   }
 }

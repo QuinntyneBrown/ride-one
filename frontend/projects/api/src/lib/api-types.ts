@@ -20,10 +20,13 @@ export type Stretch = Schemas['Stretch'];
 export type WorkoutPlan = Schemas['WorkoutPlan'];
 export type RideVideo = Schemas['RideVideo'];
 export type RideVideoLink = Schemas['RideVideoLink'];
-/** A plan as `POST /api/workout` takes it: its `video` is a link and a start point (L2-010 AC14). */
+/**
+ * A plan as `POST /api/workout` takes it: its `video` is a link and a start point (L2-010 AC14),
+ * and `class_id` names the class it was started from, for the session (L2-081 AC7).
+ */
 export type StartPlan = WorkoutPlan extends infer P
   ? P extends WorkoutPlan
-    ? Omit<P, 'video'> & { video: RideVideoLink | null }
+    ? Omit<P, 'video'> & { video: RideVideoLink | null; class_id?: string }
     : never
   : never;
 export type PowerTrace = Schemas['PowerTrace'];
@@ -50,3 +53,11 @@ export type ClassCatalogue = Schemas['ClassCatalogueResponse'];
 export type ClassShelf = Schemas['ClassShelfResponse'];
 export type ClassEntry = Schemas['ClassResponse'];
 export type ShelfRef = Schemas['ShelfRef'];
+export type SessionSummary = Schemas['SessionSummary'];
+export type SessionDetail = Schemas['SessionDetail'];
+export type SessionList = Schemas['SessionList'];
+export type Dip = Schemas['Dip'];
+export type ProgressReport = Schemas['ProgressReport'];
+export type StreakFigures = Schemas['StreakFigures'];
+export type ClassAttempts = Schemas['ClassAttempts'];
+export type AchievementFigures = Schemas['AchievementFigures'];

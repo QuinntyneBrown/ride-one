@@ -1,0 +1,10 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "The plan is not valid.",
+  "status": 400,
+  "errors": {
+    "class_id": ["No class has that id."]
+  },
+  "code": "invalid_workout",
+  "trace_id": "00-9d1fbc38e9bfe578d46abb2883f97bd7-ba35e7a862eb2e1b-00"
+}

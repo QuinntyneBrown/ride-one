@@ -149,12 +149,13 @@
       }
     ],
     "segment": 0,
-    "remaining": 180,
-    "elapsed_seconds": 0,
+    "remaining": 179,
+    "elapsed_seconds": 1,
     "total_seconds": 960,
     "mode": "plan",
     "plan_level": null,
     "status": "paused",
-    "ended_reason": null
+    "ended_reason": null,
+    "session_id": null
   }
 }

@@ -30,6 +30,7 @@ export function testWorkout(change: Partial<WorkoutSnapshot> = {}): WorkoutSnaps
     plan_level: 18,
     status: 'running',
     ended_reason: null,
+    session_id: null,
     ...change,
   };
 }

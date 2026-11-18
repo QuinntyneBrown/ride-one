@@ -155,6 +155,7 @@
     "mode": "plan",
     "plan_level": null,
     "status": "starting belt",
-    "ended_reason": null
+    "ended_reason": null,
+    "session_id": null
   }
 }

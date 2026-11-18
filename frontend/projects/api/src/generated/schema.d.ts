@@ -208,6 +208,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every saved session's summary, newest first. */
+        get: operations["ListSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One session with its previous attempt and the personal bests it set; an unknown id answers 404 session_not_found. */
+        get: operations["GetSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The streak, this week, the totals, each class's finished attempts and the achievements, in local days. */
+        get: operations["GetProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workout": {
         parameters: {
             query?: never;
@@ -234,6 +285,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Stops the ride; a ride of a minute or more on the bike is saved as a session. */
         post: operations["StopWorkout"];
         delete?: never;
         options?: never;
@@ -310,6 +362,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AchievementFigures: {
+            id: string;
+            title: string;
+            detail: string;
+            /** Format: int32 */
+            goal: number;
+            unit: null | string;
+            /** Format: double */
+            value: number;
+            unlocked: boolean;
+        };
         /** @enum {unknown} */
         AdapterState: "unknown" | "on" | "off";
         /** @enum {unknown} */
@@ -381,6 +444,11 @@ export interface components {
         ChooseMachineRequest: {
             machine: components["schemas"]["Machine"];
         };
+        ClassAttempts: {
+            class_id: string;
+            title: string;
+            attempts: components["schemas"]["SessionSummary"][];
+        };
         ClassCatalogueResponse: {
             shelves: components["schemas"]["ClassShelfResponse"][];
         };
@@ -420,6 +488,19 @@ export interface components {
         CommandSource: "plan" | "manual";
         /** @enum {unknown} */
         CommandStatus: "sending" | "ack" | "failed";
+        Dip: {
+            /** Format: int32 */
+            start: number;
+            /** Format: int32 */
+            duration: number;
+            /** Format: int32 */
+            target: number;
+            /** Format: int32 */
+            low: number;
+            kind: components["schemas"]["SegmentKind"];
+            /** Format: int32 */
+            round: null | number;
+        };
         EventToken: {
             token: string;
             /** Format: int32 */
@@ -495,6 +576,16 @@ export interface components {
             /** @description The rider-facing message, where the prototype returned one. */
             error?: null | string;
         };
+        ProgressReport: {
+            /** Format: date */
+            today: string;
+            streak: components["schemas"]["StreakFigures"];
+            ride_days: string[];
+            week: components["schemas"]["WeekFigures"];
+            totals: components["schemas"]["TotalFigures"];
+            classes: components["schemas"]["ClassAttempts"][];
+            achievements: components["schemas"]["AchievementFigures"][];
+        };
         RecentPackets: {
             lines: string[];
         };
@@ -533,6 +624,60 @@ export interface components {
         };
         /** @enum {unknown} */
         SegmentKind: "warmup" | "work" | "rest" | "cooldown" | "steady";
+        SessionDetail: {
+            previous: null | components["schemas"]["SessionSummary"];
+            bests: string[];
+            id: string;
+            /** Format: date-time */
+            ended_at: string;
+            class_id: null | string;
+            title: string;
+            plan: components["schemas"]["WorkoutPlan"];
+            segments: components["schemas"]["Segment"][];
+            /** Format: int32 */
+            planned_seconds: number;
+            /** Format: int32 */
+            ridden_seconds: number;
+            completed: boolean;
+            /** Format: int32 */
+            avg_power: number;
+            /** Format: int32 */
+            max_power: number;
+            /** Format: int32 */
+            best_minute_power: number;
+            /** Format: int32 */
+            avg_cadence: number;
+            /** Format: double */
+            distance_km: number;
+            /** Format: int32 */
+            kcal: number;
+            /** Format: int32 */
+            on_target_pct: number;
+            dips: components["schemas"]["Dip"][];
+            power_trace: number[];
+            cadence_trace: number[];
+        };
+        SessionList: {
+            sessions: components["schemas"]["SessionSummary"][];
+        };
+        SessionSummary: {
+            id: string;
+            /** Format: date-time */
+            ended_at: string;
+            class_id: null | string;
+            title: string;
+            /** Format: int32 */
+            ridden_seconds: number;
+            /** Format: int32 */
+            planned_seconds: number;
+            completed: boolean;
+            /** Format: int32 */
+            avg_power: number;
+            /** Format: int32 */
+            on_target_pct: number;
+            /** Format: int32 */
+            dip_count: number;
+        };
         SetInclineRequest: {
             /** Format: int32 */
             incline: number;
@@ -554,6 +699,13 @@ export interface components {
             /** Format: double */
             sent: number;
         };
+        StreakFigures: {
+            /** Format: int32 */
+            current: number;
+            /** Format: int32 */
+            best: number;
+            rode_today: boolean;
+        };
         Stretch: {
             /** Format: int32 */
             seconds: number;
@@ -561,6 +713,20 @@ export interface components {
             level: number;
             /** Format: int32 */
             cadence: number;
+        };
+        TotalFigures: {
+            /** Format: int32 */
+            rides: number;
+            /** Format: int32 */
+            ridden_seconds: number;
+            /** Format: double */
+            distance_km: number;
+        };
+        WeekFigures: {
+            /** Format: int32 */
+            rides: number;
+            /** Format: int32 */
+            goal: number;
         };
         WorkoutChanged: {
             workout: components["schemas"]["WorkoutSnapshot"];
@@ -632,12 +798,14 @@ export interface components {
             /** @enum {string} */
             status: "waiting for bike" | "starting belt" | "running" | "paused" | "paused: bike disconnected" | "paused: belt stopped" | "ended" | "ended: bike shut off" | "stopped";
             ended_reason: null | string;
+            session_id: null | string;
         };
         WorkoutStarted: {
             started: components["schemas"]["WorkoutSnapshot"];
         };
         WorkoutStopped: {
             stopped: boolean;
+            session_id: null | string;
         };
     };
     responses: never;
@@ -1051,6 +1219,77 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ListSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionList"];
+                };
+            };
+        };
+    };
+    GetSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionDetail"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressReport"];
                 };
             };
         };
