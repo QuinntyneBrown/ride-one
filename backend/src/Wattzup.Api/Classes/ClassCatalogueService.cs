@@ -31,9 +31,7 @@ public sealed partial class ClassCatalogueService(
         try
         {
             using var file = File.OpenRead(FilePath);
-            result = file.Length > ClassCatalogueReader.MaxBytes
-                ? new CatalogueLoadResult(null, [], "larger than 1 MB")
-                : ClassCatalogueReader.Read(file, file.Length);
+            result = ClassCatalogueReader.Read(file, file.Length);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

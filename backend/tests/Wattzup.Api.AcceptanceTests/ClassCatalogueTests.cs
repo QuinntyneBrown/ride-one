@@ -79,6 +79,21 @@ public sealed class ClassCatalogueTests
     }
 
     [Fact]
+    public async Task Given_a_class_with_an_invalid_plan_then_it_is_left_out_and_the_others_are_served()
+    {
+        using var factory = FactoryWith(Catalogue.Replace("\"level\": 12", "\"level\": 40", StringComparison.Ordinal));
+        using var client = factory.CreateClient();
+
+        var json = await GetJsonAsync(client, "/api/classes");
+
+        var shelf = Assert.Single(json.GetProperty("shelves").EnumerateArray());
+        Assert.Equal("power-intervals", Assert.Single(shelf.GetProperty("classes").EnumerateArray()).GetProperty("id").GetString());
+        Assert.Contains(factory.Logs.Entries, e => e.Level == Microsoft.Extensions.Logging.LogLevel.Warning
+            && e.Message.Contains("steady-hour", StringComparison.Ordinal)
+            && e.Message.Contains("plan.level", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Given_no_setting_then_the_default_classes_json_is_served()
     {
         using var factory = new WattzupApiFactory { WithoutBluetooth = true };
