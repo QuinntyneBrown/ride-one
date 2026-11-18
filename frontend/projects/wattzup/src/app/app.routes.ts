@@ -13,6 +13,12 @@ export const routes: Routes = [
     loadComponent: () => import('./dashboard/setup-page/setup-page').then((m) => m.SetupPage),
   },
   {
+    path: 'classes',
+    title: 'Ride a class · Wattzup',
+    loadComponent: () =>
+      import('./dashboard/class-library-page/class-library-page').then((m) => m.ClassLibraryPage),
+  },
+  {
     path: 'machine',
     title: 'Choose machine · Wattzup',
     loadComponent: () => import('./dashboard/machine-page/machine-page').then((m) => m.MachinePage),

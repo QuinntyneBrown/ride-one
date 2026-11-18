@@ -10,6 +10,7 @@ export type IconName =
   | 'stop'
   | 'pause'
   | 'play'
+  | 'link'
   | 'activity'
   | 'sliders'
   | 'close'
