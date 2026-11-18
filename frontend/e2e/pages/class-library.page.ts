@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import recordedClasses from '../fixtures/recorded/classes.json';
+import type { Request } from '@playwright/test';
 import type { ApiStub, EventStreamStub, StubResponse } from '../fixtures/wz-test';
 import { freeRide, type Json } from '../fixtures/states';
 
@@ -48,6 +49,7 @@ export class ClassLibraryPage {
   readonly heading: Locator;
   readonly lead: Locator;
   readonly statusName: Locator;
+  readonly statusState: Locator;
   readonly buildYourOwn: Locator;
   readonly tabs: Locator;
   readonly shelves: Locator;
@@ -59,6 +61,9 @@ export class ClassLibraryPage {
   readonly tryAgain: Locator;
   readonly noticeBuildYourOwn: Locator;
 
+  /** The live state the page was opened with. */
+  live: Json = freeRide();
+
   constructor(
     readonly page: Page,
     private readonly api: ApiStub,
@@ -67,6 +72,7 @@ export class ClassLibraryPage {
     this.heading = page.getByRole('heading', { level: 1 });
     this.lead = page.locator('.library__head .lead');
     this.statusName = page.locator('.app-bar .statusline__name');
+    this.statusState = page.locator('.app-bar .statusline__state');
     this.buildYourOwn = page.locator('.app-bar').getByRole('link', { name: 'Build your own ride' });
     this.tabs = page.getByRole('tablist', { name: 'Ride length' }).getByRole('tab');
     this.shelves = page.locator('section.shelf');
@@ -101,9 +107,12 @@ export class ClassLibraryPage {
 
   /** Loads `/classes` with `catalogue` as the answer of GET /api/classes and `live` as the state. */
   async open(
-    catalogue: StubResponse = { json: recordedClasses },
+    catalogue: StubResponse | ((request: Request) => StubResponse | Promise<StubResponse>) = {
+      json: recordedClasses,
+    },
     live: Json = freeRide(),
   ): Promise<void> {
+    this.live = live;
     this.api.on('GET', '/api/classes', catalogue);
     this.api.on('GET', '/api/status', { json: live });
     await this.page.goto('/classes');

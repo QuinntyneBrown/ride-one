@@ -18,7 +18,7 @@ import {
   visibleShelves,
 } from '../../core/class-library-view';
 import { liveConnectionStatus } from '../../core/connection-status';
-import { LiveStateService } from '../../core/live-state.service';
+import { bikeOnly } from '../../core/machine-guards';
 import { MotionPreference } from '../../core/motion-preference';
 
 type Phase = 'loading' | 'ready' | 'error';
@@ -65,7 +65,7 @@ export class ClassLibraryPage {
   );
 
   constructor() {
-    inject(LiveStateService).ensureStarted();
+    bikeOnly();
     void this.load();
   }
 
