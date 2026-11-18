@@ -14,7 +14,7 @@ Before a ride the rider opens the setup screen at `/setup`, picks HIIT intervals
 
 **set** — one entry of an `intervals` plan: `rounds` efforts of `work_seconds` at `work_level` and `work_cadence`, each followed by a recover of `rest_seconds` at `rest_level` and `rest_cadence` (none when `rest_seconds` is 0)
 
-**Descending recoveries** — the intervals preset and first-use default: warm-up 5:00 at level 8 and 80 rpm; 8 × 0:30 efforts at level 28 and 100 rpm in sets of 1, 2, 2, 2 and 1 with recovers of 3:00, 2:30, 2:00, 1:30 and none at level 8 and 72 rpm; cool-down 6:00 at level 6 and 70 rpm; 30:00 in total
+**Descending recoveries** — the intervals preset and first-use default: warm-up 5:00 at level 14 and 80 rpm; 8 × 0:30 efforts at level 24 and 100 rpm in sets of 1, 2, 2, 2 and 1 with recovers of 3:00, 2:30, 2:00, 1:30 and none at level 8 and 72 rpm; cool-down 6:00 at level 6 and 70 rpm; 30:00 in total
 
 **replace-ride dialog** — confirmation shown when Start ride is pressed while a workout is active
 

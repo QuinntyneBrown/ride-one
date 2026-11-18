@@ -269,7 +269,7 @@ describe('expandPlan for an intervals plan (L2-045)', () => {
       kind: 'warmup',
       start: 0,
       duration: 300,
-      level: 8,
+      level: 14,
       cadence: 80,
       round: null,
       speed: null,
@@ -279,7 +279,7 @@ describe('expandPlan for an intervals plan (L2-045)', () => {
       kind: 'work',
       start: 300,
       duration: 30,
-      level: 28,
+      level: 24,
       cadence: 100,
       round: 1,
     });

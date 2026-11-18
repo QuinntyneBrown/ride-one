@@ -255,11 +255,11 @@ test.describe('Intervals plan (L2-029 AC10-16, L2-059 AC5)', () => {
     );
     await expect(setup.preset('Descending recoveries')).toHaveAttribute('aria-pressed', 'true');
     await expect(setup.preset('Even sets')).toHaveAttribute('aria-pressed', 'false');
-    await expect(setup.stretchValue('Warm-up')).toHaveText('5:00 · Level 8 · 80 rpm');
+    await expect(setup.stretchValue('Warm-up')).toHaveText('5:00 · Level 14 · 80 rpm');
     await expect(setup.stretchValue('Cool-down')).toHaveText('6:00 · Level 6 · 70 rpm');
     await expect(setup.setRows).toHaveCount(5);
     await expect(setup.setRow(1)).toContainText('Set 1');
-    await expect(setup.setRow(1)).toContainText('1 × 0:30 · L28 · 100 rpm');
+    await expect(setup.setRow(1)).toContainText('1 × 0:30 · L24 · 100 rpm');
     await expect(setup.setRow(1)).toContainText('Recover 3:00 · L8 · 72 rpm');
     await expect(setup.setRow(5)).toContainText('No recover');
     await expect(setup.rowAction('Move set 1 up')).toBeDisabled();
@@ -267,9 +267,9 @@ test.describe('Intervals plan (L2-029 AC10-16, L2-059 AC5)', () => {
     await expect(setup.total).toHaveText('30:00');
     await expect(setup.summaryValue('Structure')).toHaveText('5 sets · 8 efforts');
     await expect(setup.summaryValue('Time under load')).toHaveText('4:00');
-    await expect(setup.summaryValue('Peak resistance')).toHaveText('Level 28');
-    await expect(setup.summaryValue('Expected avg power')).toHaveText('~174 W');
-    await expect(setup.summaryValue('Expected energy')).toHaveText('~312 kcal');
+    await expect(setup.summaryValue('Peak resistance')).toHaveText('Level 24');
+    await expect(setup.summaryValue('Expected avg power')).toHaveText('~179 W');
+    await expect(setup.summaryValue('Expected energy')).toHaveText('~321 kcal');
     await expect(setup.profileBars).toHaveCount(17);
   });
 
@@ -296,11 +296,11 @@ test.describe('Intervals plan (L2-029 AC10-16, L2-059 AC5)', () => {
     await expect(dialog.field('Rounds')).toHaveValue('2');
     await expect(dialog.field('Recover')).toHaveValue('2:30');
     await expect(dialog.field('Work cadence')).toHaveValue('100 rpm');
-    await expect(dialog.slider('Work resistance')).toHaveValue('28');
+    await expect(dialog.slider('Work resistance')).toHaveValue('24');
     await dialog.more('rounds').click();
     await dialog.saveButton.click();
     await expect(dialog.dialog).toBeHidden();
-    await expect(setup.setRow(2)).toContainText('3 × 0:30 · L28 · 100 rpm');
+    await expect(setup.setRow(2)).toContainText('3 × 0:30 · L24 · 100 rpm');
     await expect(setup.rowAction('Edit set 2')).toBeFocused();
     await expect(setup.preset('Descending recoveries')).toHaveAttribute('aria-pressed', 'false');
     await expect(setup.total).toHaveText('33:00');
@@ -333,7 +333,7 @@ test.describe('Intervals plan (L2-029 AC10-16, L2-059 AC5)', () => {
     await dialog.less('duration').click();
     await expect(dialog.field('Duration')).toHaveValue('4:30');
     await dialog.saveButton.click();
-    await expect(setup.stretchValue('Warm-up')).toHaveText('4:30 · Level 8 · 80 rpm');
+    await expect(setup.stretchValue('Warm-up')).toHaveText('4:30 · Level 14 · 80 rpm');
     await expect(setup.total).toHaveText('29:30');
     await setup.cooldown.uncheck();
     await expect(setup.total).toHaveText('23:30');
@@ -347,7 +347,7 @@ test.describe('Intervals plan (L2-029 AC10-16, L2-059 AC5)', () => {
     await expect(dialog.field('Rounds')).toHaveValue('1');
     await dialog.saveButton.click();
     await expect(setup.setRows).toHaveCount(6);
-    await expect(setup.setRow(6)).toContainText('1 × 0:30 · L28 · 100 rpm');
+    await expect(setup.setRow(6)).toContainText('1 × 0:30 · L24 · 100 rpm');
 
     await setup.rowAction('Move set 1 down').click();
     await expect(setup.setRow(2)).toContainText('Recover 3:00');

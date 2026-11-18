@@ -106,8 +106,8 @@ public sealed class WorkoutPlanValidatorTests
     private static string DescendingWith(params int[] rests)
     {
         int[] rounds = [1, 2, 2, 2, 1];
-        var sets = string.Join(",", rests.Select((rest, i) => $$"""{"rounds":{{rounds[i]}},"work_seconds":30,"work_level":28,"work_cadence":100,"rest_seconds":{{rest}},"rest_level":8,"rest_cadence":72}"""));
-        return Intervals("[" + sets + "]", cooldown: """{"seconds":360,"level":6,"cadence":70}""");
+        var sets = string.Join(",", rests.Select((rest, i) => $$"""{"rounds":{{rounds[i]}},"work_seconds":30,"work_level":24,"work_cadence":100,"rest_seconds":{{rest}},"rest_level":8,"rest_cadence":72}"""));
+        return Intervals("[" + sets + "]", warmup: """{"seconds":300,"level":14,"cadence":80}""", cooldown: """{"seconds":360,"level":6,"cadence":70}""");
     }
 
     private static string Intervals(string sets, string warmup = """{"seconds":300,"level":8,"cadence":80}""", string cooldown = "null") =>
@@ -122,10 +122,10 @@ public sealed class WorkoutPlanValidatorTests
 
         Assert.Empty(result.Errors);
         var plan = Assert.IsType<IntervalsPlan>(result.Plan);
-        Assert.Equal(new Stretch(300, 8, 80), plan.Warmup);
+        Assert.Equal(new Stretch(300, 14, 80), plan.Warmup);
         Assert.Equal(new Stretch(360, 6, 70), plan.Cooldown);
         Assert.Equal([180, 150, 120, 90, 0], plan.Sets.Select(s => s.RestSeconds));
-        Assert.Equal(new IntervalSet(1, 30, 28, 100, 180, 8, 72), plan.Sets[0]);
+        Assert.Equal(new IntervalSet(1, 30, 24, 100, 180, 8, 72), plan.Sets[0]);
     }
 
     [Fact]

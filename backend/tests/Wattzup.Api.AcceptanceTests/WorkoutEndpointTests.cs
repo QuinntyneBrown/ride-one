@@ -76,7 +76,7 @@ public sealed class WorkoutEndpointTests
         var workout = await Ride.StartAsync(bike, Ride.Descending);
 
         Assert.Equal("intervals", workout.GetProperty("plan").GetProperty("kind").GetString());
-        Assert.Equal(28, workout.GetProperty("plan").GetProperty("sets")[0].GetProperty("work_level").GetInt32());
+        Assert.Equal(24, workout.GetProperty("plan").GetProperty("sets")[0].GetProperty("work_level").GetInt32());
         Assert.Equal(300, workout.GetProperty("plan").GetProperty("warmup").GetProperty("seconds").GetInt32());
         Assert.Equal("running", workout.GetProperty("status").GetString());
         Assert.Equal(17, workout.GetProperty("segments").GetArrayLength());

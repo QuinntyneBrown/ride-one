@@ -77,9 +77,9 @@ describe('intervals-form (L2-010 AC11-13, L2-029 AC11-15)', () => {
   });
 
   it('writes the row lines', () => {
-    expect(stretchLine(DEFAULT_INTERVALS.warmup)).toBe('5:00 · Level 8 · 80 rpm');
+    expect(stretchLine(DEFAULT_INTERVALS.warmup)).toBe('5:00 · Level 14 · 80 rpm');
     expect(setLines(DEFAULT_INTERVALS.sets[1])).toEqual({
-      work: '2 × 0:30 · L28 · 100 rpm',
+      work: '2 × 0:30 · L24 · 100 rpm',
       rest: 'Recover 2:30 · L8 · 72 rpm',
     });
     expect(setLines(DEFAULT_INTERVALS.sets[4]).rest).toBe('No recover');
@@ -132,7 +132,7 @@ describe('intervals-form (L2-010 AC11-13, L2-029 AC11-15)', () => {
 
   it('steps a stretch: duration by 0:30 within 1:00 to 30:00, cadence by 5', () => {
     const fields = stretchFieldsOf(DEFAULT_INTERVALS.warmup);
-    expect(fields).toEqual({ duration: '5:00', level: 8, cadence: '80 rpm' });
+    expect(fields).toEqual({ duration: '5:00', level: 14, cadence: '80 rpm' });
     expect(stepStretchField(fields, 'duration', -1).duration).toBe('4:30');
     expect(stepStretchField({ ...fields, duration: '1:00' }, 'duration', -1).duration).toBe('1:00');
     expect(stepStretchField(fields, 'cadence', 1).cadence).toBe('85 rpm');
