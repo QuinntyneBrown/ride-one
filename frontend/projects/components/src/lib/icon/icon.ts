@@ -12,6 +12,7 @@ export type IconName =
   | 'play'
   | 'link'
   | 'arrow-left'
+  | 'reset'
   | 'activity'
   | 'sliders'
   | 'close'

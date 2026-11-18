@@ -69,6 +69,7 @@
       @let d = draft()!;
       @let p = preview()!;
       @let l = lines()!;
+      @let err = linkError();
       <div class="setup-layout">
         <main id="main" class="setup-main" tabindex="-1">
           <div class="class-page">
@@ -76,7 +77,7 @@
               @if (videoId()) {
                 <div class="video-frame__poster">
                   <span class="video-frame__title">{{ e.channel }} · {{ e.title }}</span>
-                  <span class="video-frame__meta">Cued at {{ startText() }}, the ride’s 0:00</span>
+                  <span class="video-frame__meta">Cued at {{ cuedAt() }}, the ride’s 0:00</span>
                 </div>
                 <div #host class="video-frame__host"></div>
               } @else {
@@ -103,9 +104,14 @@
                   inputmode="url"
                   autocomplete="off"
                   placeholder="https://www.youtube.com/watch?v=…"
-                  aria-describedby="video-help"
+                  [attr.aria-invalid]="err ? 'true' : null"
+                  [attr.aria-describedby]="err ? 'video-url-error' : 'video-help'"
                   [value]="d.url"
+                  (input)="setUrl($any($event.target).value)"
                 />
+                @if (err) {
+                  <p class="field__error" id="video-url-error">{{ err }}</p>
+                }
               </div>
               <div class="num-stepper">
                 <label class="num-stepper__label" for="video-offset">Ride starts at</label>
@@ -114,6 +120,8 @@
                     class="btn btn--subtle btn--icon"
                     type="button"
                     aria-label="Half a second earlier"
+                    [disabled]="!videoId()"
+                    (click)="stepStart(-1)"
                   >
                     <wz-icon name="minus" size="sm" />
                   </button>
@@ -125,12 +133,17 @@
                     size="6"
                     aria-describedby="video-help"
                     [value]="startText()"
-                    readonly
+                    [readOnly]="!videoId()"
+                    (input)="startText.set($any($event.target).value)"
+                    (keydown.enter)="commitStart()"
+                    (blur)="commitStart()"
                   />
                   <button
                     class="btn btn--subtle btn--icon"
                     type="button"
                     aria-label="Half a second later"
+                    [disabled]="!videoId()"
+                    (click)="stepStart(1)"
                   >
                     <wz-icon name="plus" size="sm" />
                   </button>
@@ -143,7 +156,14 @@
           </div>
         </main>
         <aside class="setup-aside" aria-label="The plan">
-          <div class="plan-head"><h2>The plan</h2></div>
+          <div class="plan-head">
+            <h2>The plan</h2>
+            @if (edited()) {
+              <button class="btn btn--quiet btn--sm" type="button" (click)="reset()">
+                <wz-icon name="reset" size="sm" />Reset to class
+              </button>
+            }
+          </div>
           <p class="numeral ride-total" [attr.aria-label]="'Total ride time ' + p.total">
             {{ p.total }}
           </p>
@@ -152,7 +172,7 @@
             [attr.viewBox]="'0 0 ' + p.totalSeconds + ' 32'"
             preserveAspectRatio="none"
             role="img"
-            [attr.aria-label]="p.profileLabel"
+            [attr.aria-label]="'Resistance profile: ' + l.structure + ', peak level ' + p.peakLevel"
           >
             @for (bar of p.profile; track $index) {
               <rect
@@ -197,6 +217,7 @@
                 [level]="row.level"
                 [canLower]="row.canLower"
                 [canRaise]="row.canRaise"
+                (step)="stepLevel(row.name, $event)"
               />
             }
           </div>

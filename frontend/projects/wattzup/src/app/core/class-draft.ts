@@ -111,3 +111,52 @@ export function stretchLine(plan: WorkoutPlan): string | null {
     .join(' · ');
   return line || null;
 }
+
+const clamp = (level: number, dir: 1 | -1): number =>
+  Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, level + dir));
+
+/**
+ * Moves every effort's, every recover's or the flat level by `dir`, each within 1 to 32; warm-up and
+ * cool-down never move. At the limit the plan comes back unchanged (L2-080 AC7, AC8).
+ */
+export function shiftLevels(plan: WorkoutPlan, row: LevelRowName, dir: 1 | -1): WorkoutPlan {
+  const next = shifted(plan, row, dir);
+  return JSON.stringify(next) === JSON.stringify(plan) ? plan : next;
+}
+
+function shifted(plan: WorkoutPlan, row: LevelRowName, dir: 1 | -1): WorkoutPlan {
+  switch (plan.kind) {
+    case 'flat':
+      return row === 'Steady' && plan.level !== null
+        ? { ...plan, level: clamp(plan.level, dir) }
+        : plan;
+    case 'hiit':
+      if (row === 'Work' && plan.work_level !== null) {
+        return { ...plan, work_level: clamp(plan.work_level, dir) };
+      }
+      if (row === 'Recover' && plan.rest_level !== null) {
+        return { ...plan, rest_level: clamp(plan.rest_level, dir) };
+      }
+      return plan;
+    case 'intervals':
+      if (row === 'Steady') return plan;
+      return {
+        ...plan,
+        sets: plan.sets.map((s) =>
+          row === 'Work'
+            ? { ...s, work_level: clamp(s.work_level, dir) }
+            : { ...s, rest_level: clamp(s.rest_level, dir) },
+        ),
+      };
+  }
+}
+
+/** True when the plan, the link or the start point differs from the class's (L2-080 AC9). */
+export function isEdited(draft: ClassDraft, entry: ClassEntry): boolean {
+  const original = draftOf(entry);
+  return (
+    draft.url.trim() !== original.url ||
+    draft.start !== original.start ||
+    JSON.stringify(draft.plan) !== JSON.stringify(original.plan)
+  );
+}

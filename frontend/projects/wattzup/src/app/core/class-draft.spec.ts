@@ -1,5 +1,13 @@
 import type { ClassEntry, WorkoutPlan } from '@wattzup/api';
-import { cadenceLine, draftOf, levelRows, stretchLine, structureLine } from './class-draft';
+import {
+  cadenceLine,
+  draftOf,
+  isEdited,
+  levelRows,
+  shiftLevels,
+  stretchLine,
+  structureLine,
+} from './class-draft';
 
 const set = (rounds: number, rest: number, change: object = {}) => ({
   rounds,
@@ -104,5 +112,43 @@ describe('class-draft (L2-080)', () => {
     expect(stretchLine({ ...HIIT_CARDIO, cooldown: null })).toBe('5:00 warm-up');
     expect(stretchLine(HIIT)).toMatch(/^\d+:\d\d warm-up$/);
     expect(stretchLine(FLAT)).toBeNull();
+  });
+
+  it('moves every effort and every recover, never the warm-up or cool-down (AC7)', () => {
+    const up = shiftLevels(HIIT_CARDIO, 'Work', 1);
+    expect(up.kind === 'intervals' && up.sets.map((s) => s.work_level)).toEqual([
+      25, 25, 25, 25, 25,
+    ]);
+    expect(up.kind === 'intervals' && up.warmup?.level).toBe(8);
+    expect(up.kind === 'intervals' && up.cooldown?.level).toBe(6);
+    const down = shiftLevels(HIIT_CARDIO, 'Recover', -1);
+    expect(down.kind === 'intervals' && down.sets.map((s) => s.rest_level)).toEqual([
+      5, 5, 5, 5, 5,
+    ]);
+    expect(shiftLevels(HIIT, 'Work', 1)).toMatchObject({ work_level: 19, rest_level: 6 });
+    expect(shiftLevels(HIIT, 'Recover', -1)).toMatchObject({ work_level: 18, rest_level: 5 });
+  });
+
+  it('moves the flat level with the Steady row (AC8)', () => {
+    expect(shiftLevels(FLAT, 'Steady', 1)).toMatchObject({ level: 13 });
+  });
+
+  it.each([
+    ['Work', 1, { ...HIIT, work_level: 32 }],
+    ['Recover', -1, { ...HIIT, rest_level: 1 }],
+    ['Steady', 1, { ...FLAT, level: 32 }],
+    ['Steady', -1, { ...FLAT, level: 1 }],
+  ] as const)('keeps %s within 1 to 32 (dir %d)', (row, dir, plan) => {
+    expect(shiftLevels(plan as WorkoutPlan, row, dir)).toBe(plan);
+  });
+
+  it('is edited when a level, the link or the start point differs from the class (AC9)', () => {
+    const entry = classOf(HIIT_CARDIO);
+    const draft = draftOf(entry);
+    expect(isEdited(draft, entry)).toBe(false);
+    expect(isEdited({ ...draft, plan: shiftLevels(draft.plan, 'Work', 1) }, entry)).toBe(true);
+    expect(isEdited({ ...draft, url: '' }, entry)).toBe(true);
+    expect(isEdited({ ...draft, start: 12.5 }, entry)).toBe(true);
+    expect(isEdited({ ...draft, url: ` ${draft.url} ` }, entry)).toBe(false);
   });
 });

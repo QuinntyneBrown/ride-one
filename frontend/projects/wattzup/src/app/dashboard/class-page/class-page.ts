@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  linkedSignal,
   signal,
   untracked,
   viewChild,
@@ -18,7 +19,10 @@ import {
   cadenceLine,
   type ClassDraft,
   draftOf,
+  isEdited,
+  type LevelRowName,
   levelRows,
+  shiftLevels,
   stretchLine,
   structureLine,
 } from '../../core/class-draft';
@@ -26,7 +30,7 @@ import { liveConnectionStatus } from '../../core/connection-status';
 import { bikeOnly } from '../../core/machine-guards';
 import { MotionPreference } from '../../core/motion-preference';
 import { previewOf } from '../../core/ride-preview';
-import { formatStart, videoIdOf } from '../../core/video-link';
+import { formatStart, linkError, parseStart, stepStart, videoIdOf } from '../../core/video-link';
 import { type PlayerHandle, YOUTUBE_PLAYER } from '../../core/youtube-player';
 
 type Phase = 'loading' | 'ready' | 'not-found';
@@ -75,7 +79,18 @@ export class ClassPage {
     const d = this.draft();
     return d ? videoIdOf(d.url) : null;
   });
-  protected readonly startText = computed(() => formatStart(this.draft()?.start ?? 0));
+  protected readonly cuedAt = computed(() => formatStart(this.draft()?.start ?? 0));
+  /** The start point as typed; committed on Enter or leaving the field. */
+  protected readonly startText = linkedSignal(() => this.cuedAt());
+  protected readonly linkError = computed(() => {
+    const d = this.draft();
+    return d ? linkError({ on: true, url: d.url, start: d.start }) : null;
+  });
+  protected readonly edited = computed(() => {
+    const d = this.draft();
+    const e = this.entry();
+    return !!d && !!e && isEdited(d, e);
+  });
   protected readonly legendLabels = { work: 'Work', rest: 'Recover', steady: 'Steady' } as const;
 
   private readonly host = viewChild<ElementRef<HTMLElement>>('host');
@@ -130,5 +145,37 @@ export class ClassPage {
     } catch {
       this.phase.set('not-found');
     }
+  }
+
+  protected stepLevel(row: LevelRowName, dir: 1 | -1): void {
+    this.draft.update((d) => d && { ...d, plan: shiftLevels(d.plan, row, dir) });
+  }
+
+  protected setUrl(url: string): void {
+    this.draft.update((d) => d && { ...d, url });
+  }
+
+  protected stepStart(dir: 1 | -1): void {
+    this.setStart(stepStart(this.draft()?.start ?? 0, dir));
+  }
+
+  protected commitStart(): void {
+    const start = parseStart(this.startText());
+    if (start === null || start === this.draft()?.start) this.startText.set(this.cuedAt());
+    else this.setStart(start);
+  }
+
+  /** Puts back the class's plan, link and start point (L2-080 AC9). */
+  protected reset(): void {
+    const e = this.entry();
+    if (!e) return;
+    const original = draftOf(e);
+    this.draft.set(original);
+    this.player()?.seek(original.start);
+  }
+
+  private setStart(start: number): void {
+    this.draft.update((d) => d && { ...d, start });
+    this.player()?.seek(start);
   }
 }
