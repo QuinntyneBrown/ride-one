@@ -38,3 +38,7 @@ export * from './lib/session-traces/session-traces';
 export * from './lib/dip-list/dip-list';
 export * from './lib/week-strip/week-strip';
 export * from './lib/stat-strip/stat-strip';
+export * from './lib/trend-chart/trend-chart';
+export * from './lib/session-list/session-list';
+export * from './lib/streak-calendar/streak-calendar';
+export * from './lib/achievement-list/achievement-list';

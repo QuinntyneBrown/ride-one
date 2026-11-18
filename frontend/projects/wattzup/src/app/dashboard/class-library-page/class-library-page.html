@@ -10,7 +10,20 @@
     </a>
     <span class="app-bar__divider" aria-hidden="true"></span>
     <wz-status-line [status]="status()" [reducedMotion]="reducedMotion()" />
-    <a class="btn btn--quiet btn--sm app-bar__close" routerLink="/setup">Build your own ride</a>
+    @let link = progressLink();
+    <a
+      class="btn btn--quiet btn--sm app-bar__close"
+      routerLink="/progress"
+      [attr.aria-label]="link.badge ? link.label : null"
+    >
+      <wz-icon name="trending-up" size="sm" />Progress
+      @if (link.badge) {
+        <span class="streak-badge" [class.streak-badge--today]="link.today" aria-hidden="true">{{
+          link.badge
+        }}</span>
+      }
+    </a>
+    <a class="btn btn--quiet btn--sm" routerLink="/setup">Build your own ride</a>
   </header>
   <main
     id="main"
