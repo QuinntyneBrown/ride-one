@@ -101,7 +101,7 @@
             "kind": "intervals",
             "warmup": {
               "seconds": 300,
-              "level": 14,
+              "level": 18,
               "cadence": 80
             },
             "sets": [
@@ -111,7 +111,7 @@
                 "work_level": 24,
                 "work_cadence": 98,
                 "rest_seconds": 180,
-                "rest_level": 6,
+                "rest_level": 10,
                 "rest_cadence": 72
               },
               {
@@ -120,7 +120,7 @@
                 "work_level": 24,
                 "work_cadence": 98,
                 "rest_seconds": 150,
-                "rest_level": 6,
+                "rest_level": 10,
                 "rest_cadence": 72
               },
               {
@@ -129,7 +129,7 @@
                 "work_level": 24,
                 "work_cadence": 98,
                 "rest_seconds": 120,
-                "rest_level": 6,
+                "rest_level": 10,
                 "rest_cadence": 72
               },
               {
@@ -138,7 +138,7 @@
                 "work_level": 24,
                 "work_cadence": 98,
                 "rest_seconds": 90,
-                "rest_level": 6,
+                "rest_level": 10,
                 "rest_cadence": 72
               },
               {
@@ -147,7 +147,7 @@
                 "work_level": 24,
                 "work_cadence": 98,
                 "rest_seconds": 0,
-                "rest_level": 6,
+                "rest_level": 10,
                 "rest_cadence": 72
               }
             ],

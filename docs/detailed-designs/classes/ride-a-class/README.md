@@ -82,8 +82,8 @@ None new. `GET /api/classes/{id}` belongs to `classes/browse-classes` (L2-078 cr
 
 | Mock | State |
 |---|---|
-| `pages/class/default` | *30 Minute HIIT Cardio*: the GCN preview cued at 0:03.0, 30:00, `8 × 0:30 · 3:00 → 1:30 recover`, `98 / 72 rpm`, `~166 W`, Work 24 and Recover 6 |
-| `pages/class/edited` | Work raised to 26 and Recover to 8 (`~177 W`), with `Reset to class` shown |
+| `pages/class/default` | *30 Minute HIIT Cardio*: the GCN preview cued at 0:03.0, 30:00, `8 × 0:30 · 3:00 → 1:30 recover`, `98 / 72 rpm`, `~197 W`, warm-up 18, Work 24 and Recover 10 |
+| `pages/class/edited` | Work raised to 26 and Recover to 12 (`~212 W`), with `Reset to class` shown |
 | `pages/class/no-link` | *20 Minute Power Intervals* with no link: the poster prompt and an empty `YouTube link` field |
 | `pages/class/invalid-link` | A Vimeo link: the field error, no preview; Start ride still enabled |
 | `pages/class/flat` | *60 Min Dolomites Endurance*: `Level 12 throughout`, `85 rpm` and one `Steady` row |

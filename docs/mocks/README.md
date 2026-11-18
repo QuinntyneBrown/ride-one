@@ -62,7 +62,7 @@ Every mock uses this cast.
     VO₂ max, 6 × 1:00 / 1:00 at 22 / 7, 20:00, ~207 W) and *20 Min Threshold Builder* (Wattzup Studio,
     Threshold, 4 × 2:00 / 1:00 at 19 / 10, 20:00, ~230 W).
   - *30 min* (“Structured intervals with a proper warm-up.”): *30 Minute HIIT Cardio* (GCN Training,
-    HIIT, a 5:00 warm-up at 14, 8 × 0:30 · 3:00 → 1:30 recover at 24 / 6, 30:00, ~166 W, the only
+    HIIT, a 5:00 warm-up at 18, 8 × 0:30 · 3:00 → 1:30 recover at 24 / 10, 30:00, ~197 W, the only
     one with a link, cued at 0:03.0) and *30 Min Tempo Paceline* (Wattzup Studio, Tempo,
     4 × 6:00 / 2:00 at 17 / 11, 36:00).
   - *60 min endurance* (“Long aerobic rides. Steady legs, steady heart.”): *60 Min Dolomites
@@ -71,7 +71,7 @@ Every mock uses this cast.
   - Covers are YouTube thumbnails (ADR 0014): the GCN card shows `i.ytimg.com/vi/QUoToFsMNig/mqdefault.jpg`;
     the five classes without a link show the poster. The frames' generated images stay in
     `assets/classes/` for the design-system examples only. The edited plan raises work to 26 and
-    recover to 8 (~182 W, the estimate of ADR 0003). The ride started from the library is `ride/class-workout`: 11:42,
+    recover to 12 (~212 W, the estimate of ADR 0003). The ride started from the library is `ride/class-workout`: 11:42,
     work round 3 of 8, 409 W against 418 W, 98 rpm aim, at the library's levels.
 - **Network-exposed server:** `192.168.1.20:8787`, with its API key set in
   `Wattzup:Security:ApiKey`.
