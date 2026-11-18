@@ -62,6 +62,7 @@
         "edge",
         "video",
         "video-blocked",
+        "video-workout",
         "treadmill",
         "treadmill-paused",
         "treadmill-flat",
@@ -94,6 +95,55 @@
         "empty",
         "error"
       ]
+    },
+    {
+      "id": "video-library",
+      "kind": "page",
+      "title": "Video library",
+      "route": "/videos",
+      "requirements": [
+        "L2-010",
+        "L2-029",
+        "L2-040",
+        "L2-041",
+        "L2-076"
+      ],
+      "states": [
+        "default",
+        "filtered",
+        "loading",
+        "empty",
+        "error",
+        "disconnected"
+      ],
+      "not_applicable": {}
+    },
+    {
+      "id": "video-workout",
+      "kind": "page",
+      "title": "Video workout",
+      "route": "/videos/:id",
+      "requirements": [
+        "L2-010",
+        "L2-029",
+        "L2-040",
+        "L2-041",
+        "L2-076"
+      ],
+      "states": [
+        "default",
+        "no-link",
+        "invalid-link",
+        "edited",
+        "flat",
+        "loading",
+        "submitting",
+        "error",
+        "not-found"
+      ],
+      "not_applicable": {
+        "empty": "A video always has a plan; an unknown video is the not-found state."
+      }
     },
     {
       "id": "setup",

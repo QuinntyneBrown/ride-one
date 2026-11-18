@@ -131,6 +131,11 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 ## Changelog
 
+- **2026-11-17, video library (proposed; no requirement yet, see the mocks' open question 17).** CSS only, from the Magic Patterns *Video Library* and *Video Workout* frames; component pages follow when the design system is next extracted:
+  - `.library` (with `__inner`, `__head`), `.shelf` (with `__head`, `__title`, `__blurb`, `__count`, `__grid`) and `.video-card` (with `__cover`, `__poster`, `__length`, `__title`, `__meta`, `__note`), a link whose strip is a `.profile`;
+  - the video page: `.video-page` (with `__meta`, `__link`, `__back`), `.video-frame__cover`, `.plan-head`, `.setup-aside__group` and `.legend__aside`;
+  - `.level-row`, a compact − level + for the plan's work, recover or steady level, with 44 px buttons;
+  - the length filter reuses `.view-switch` as a tablist. No token was added or changed.
 - **2026-11-17, video ride-along (L2-029 criteria 17–21, L2-076, ADR 0012).** The new component page [Video ride-along](components/video.html) covers:
   - `.video-frame` (with `--fill`, `__poster`, `__title`, `__meta`, `__scrim`) and `.video-sync`;
   - `.view-switch`, a two-tab switch. It is the system's first tabs pattern, scoped to the dashboard's main view, not the kit's general Tabs;
