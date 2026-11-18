@@ -55,7 +55,7 @@
           { "rounds": 1, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 0, "rest_level": 6, "rest_cadence": 72 }
         ],
         "cooldown": { "seconds": 360, "level": 6, "cadence": 70 },
-        "video": { "url": "https://www.youtube.com/watch?v=QUoToFsMNig", "start_seconds": 12 }
+        "video": { "url": "https://www.youtube.com/watch?v=QUoToFsMNig", "start_seconds": 3 }
       }
     },
     {

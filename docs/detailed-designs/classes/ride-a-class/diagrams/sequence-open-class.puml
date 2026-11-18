@@ -47,7 +47,7 @@ else bike
     alt plan has a video
       page -> player : create(host, video_id, start_seconds)
       player --> page : PlayerHandle, cued
-      page --> rider : Preview, Cued at 0:12.0, the ride's 0:00; link filled [L2-080 AC2]
+      page --> rider : Preview, Cued at 0:03.0, the ride's 0:00; link filled [L2-080 AC2]
     else no video
       page --> rider : Paste this ride's YouTube link below…; empty link [L2-080 AC3]
     end
