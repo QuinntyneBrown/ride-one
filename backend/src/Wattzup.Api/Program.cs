@@ -115,7 +115,8 @@ builder.Services.AddSingleton<ITreadmillControl>(sp => sp.GetRequiredService<Wor
 builder.Services.AddSingleton<IMachineControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddSingleton<Wattzup.Core.Classes.ClassCatalogueStore>();
-builder.Services.AddHostedService<Wattzup.Api.Classes.ClassCatalogueService>();
+builder.Services.AddSingleton<Wattzup.Api.Classes.ClassCatalogueService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<Wattzup.Api.Classes.ClassCatalogueService>());
 builder.Services.AddSingleton<BikeConnectionService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<BikeConnectionService>());
 

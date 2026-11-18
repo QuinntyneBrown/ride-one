@@ -1,28 +1,64 @@
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Wattzup.Core.Classes;
 
 namespace Wattzup.Api.Classes;
 
 /// <summary>
-/// Loads the class catalogue file named by <see cref="ClassesOptions"/> into the <see cref="ClassCatalogueStore"/>.
-/// A missing or unusable file leaves the catalogue empty and the backend starts as usual (L2-077 criterion 5).
+/// Loads the class catalogue file named by <see cref="ClassesOptions"/> into the <see cref="ClassCatalogueStore"/>
+/// and reloads it after each save (L2-077). A missing or unusable file leaves the current catalogue in place (empty at
+/// start-up) and the backend runs as usual. A save is read again <see cref="Debounce"/> after the last change, so an
+/// editor that saves in several writes is read once, within the 2 s of criterion 7.
 /// </summary>
 public sealed partial class ClassCatalogueService(
     ClassCatalogueStore store,
     IOptions<ClassesOptions> options,
     IHostEnvironment environment,
-    ILogger<ClassCatalogueService> logger) : IHostedService
+    TimeProvider time,
+    ILogger<ClassCatalogueService> logger) : IHostedService, IDisposable
 {
+    public static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(500);
+
+    private readonly Lock _gate = new();
+    private PhysicalFileProvider? _provider;
+    private IDisposable? _watch;
+    private ITimer? _debounce;
+
     /// <summary>The catalogue file's full path: the setting, resolved against the content root when relative.</summary>
     public string FilePath { get; } = Path.GetFullPath(Path.Combine(environment.ContentRootPath, options.Value.Path));
+
+    /// <summary>Raised when a change to the file has been noticed and its reload is scheduled.</summary>
+    public event EventHandler? ChangeNoticed;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         Load();
+        Watch();
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        Dispose();
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        // Disposed outside the lock: disposing the watcher waits for its callback thread, which may be waiting for
+        // the lock in OnChanged.
+        IDisposable? watch, debounce, provider;
+        lock (_gate)
+        {
+            (watch, debounce, provider) = (_watch, _debounce, _provider);
+            (_watch, _debounce, _provider) = (null, null, null);
+        }
+
+        watch?.Dispose();
+        debounce?.Dispose();
+        provider?.Dispose();
+    }
 
     /// <summary>Reads the file; replaces the catalogue on success and keeps the current one when the file is unusable.</summary>
     public void Load()
@@ -51,6 +87,39 @@ public sealed partial class ClassCatalogueService(
 
         store.Replace(result.Catalogue);
         LogLoaded(result.Catalogue.Classes.Count, result.Catalogue.Shelves.Count, FilePath);
+    }
+
+    private void Watch()
+    {
+        var directory = Path.GetDirectoryName(FilePath);
+        if (directory is null || !Directory.Exists(directory))
+        {
+            return;
+        }
+
+        var name = Path.GetFileName(FilePath);
+        lock (_gate)
+        {
+            _provider = new PhysicalFileProvider(directory);
+            var provider = _provider;
+            _watch = ChangeToken.OnChange(() => provider.Watch(name), OnChanged);
+        }
+    }
+
+    private void OnChanged()
+    {
+        lock (_gate)
+        {
+            if (_provider is null)
+            {
+                return;
+            }
+
+            _debounce ??= time.CreateTimer(_ => Load(), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _debounce.Change(Debounce, Timeout.InfiniteTimeSpan);
+        }
+
+        ChangeNoticed?.Invoke(this, EventArgs.Empty);
     }
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Couldn't read the class catalogue {Path}: {Reason}")]

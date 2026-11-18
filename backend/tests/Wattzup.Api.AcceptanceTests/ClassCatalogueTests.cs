@@ -5,6 +5,8 @@
 
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Wattzup.Api.Classes;
 
 namespace Wattzup.Api.AcceptanceTests;
 
@@ -192,5 +194,46 @@ public sealed class ClassCatalogueTests
         using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Given_the_file_is_saved_then_the_new_catalogue_is_served_and_an_invalid_one_keeps_the_last()
+    {
+        using var factory = FactoryWith(Catalogue);
+        using var client = factory.CreateClient();
+        var service = factory.Services.GetRequiredService<ClassCatalogueService>();
+        var path = Path.Combine(factory.Directory, "classes.json");
+
+        await SaveAsync(service, factory, path, Catalogue.Replace("Steady Hour", "Steady Hour, Revised", StringComparison.Ordinal));
+        var revised = await GetJsonAsync(client, "/api/classes/steady-hour");
+        Assert.Equal("Steady Hour, Revised", revised.GetProperty("title").GetString());
+
+        await SaveAsync(service, factory, path, "{not json");
+        var kept = await GetJsonAsync(client, "/api/classes/steady-hour");
+        Assert.Equal("Steady Hour, Revised", kept.GetProperty("title").GetString());
+        Assert.Contains(factory.Logs.Entries, e => e.Level == Microsoft.Extensions.Logging.LogLevel.Error && e.Message.Contains("not valid JSON", StringComparison.Ordinal));
+    }
+
+    /// <summary>Writes the file, awaits the watcher noticing it, then advances the fake clock past the debounce.</summary>
+    private static async Task SaveAsync(ClassCatalogueService service, WattzupApiFactory factory, string path, string json)
+    {
+        var noticed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnNoticed(object? sender, EventArgs e) => noticed.TrySetResult();
+        service.ChangeNoticed += OnNoticed;
+        try
+        {
+            await File.WriteAllTextAsync(path, json);
+            await noticed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        }
+        catch (TimeoutException)
+        {
+            Assert.Fail($"The watcher never noticed the save of {path}.");
+        }
+        finally
+        {
+            service.ChangeNoticed -= OnNoticed;
+        }
+
+        factory.Time.Advance(ClassCatalogueService.Debounce);
     }
 }
