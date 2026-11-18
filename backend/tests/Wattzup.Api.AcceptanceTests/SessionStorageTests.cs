@@ -80,6 +80,7 @@ public sealed class SessionStorageTests
         var root = Path.Combine(Path.GetTempPath(), "content-root");
 
         Assert.Equal(Path.Combine(root, "sessions.json"), SessionFileService.ResolvePath(root, new SessionsOptions()));
-        Assert.Equal("/data/rides.json", SessionFileService.ResolvePath(root, new SessionsOptions { Path = "/data/rides.json" }));
+        var absolute = Path.Combine(Path.GetTempPath(), "data", "rides.json");
+        Assert.Equal(absolute, SessionFileService.ResolvePath(root, new SessionsOptions { Path = absolute }));
     }
 }
