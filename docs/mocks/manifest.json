@@ -44,7 +44,8 @@
         "L2-066",
         "L2-068",
         "L2-071",
-        "L2-076"
+        "L2-076",
+        "L2-084"
       ],
       "states": [
         "default",
@@ -56,6 +57,7 @@
         "scanning",
         "bluetooth-off",
         "offline",
+        "complete",
         "ended",
         "flat",
         "manual",
@@ -106,7 +108,8 @@
         "L2-078",
         "L2-079",
         "L2-040",
-        "L2-041"
+        "L2-041",
+        "L2-086"
       ],
       "states": [
         "default",
@@ -146,6 +149,57 @@
       "not_applicable": {
         "empty": "A class always has a plan; an unknown class is the not-found state."
       }
+    },
+    {
+      "id": "session",
+      "kind": "page",
+      "title": "Session Summary",
+      "route": "/sessions/:id",
+      "requirements": [
+        "L2-083",
+        "L2-084",
+        "L2-085",
+        "L2-087",
+        "L2-040",
+        "L2-041"
+      ],
+      "states": [
+        "default",
+        "from-list",
+        "ended-early",
+        "first-ride",
+        "no-dips",
+        "goal-hit",
+        "loading",
+        "not-found",
+        "error"
+      ],
+      "not_applicable": {
+        "empty": "A session always has a ride; a missing one is not-found."
+      }
+    },
+    {
+      "id": "progress",
+      "kind": "page",
+      "title": "Progress",
+      "route": "/progress",
+      "requirements": [
+        "L2-083",
+        "L2-086",
+        "L2-087",
+        "L2-040",
+        "L2-041"
+      ],
+      "states": [
+        "default",
+        "measure-dips",
+        "rode-today",
+        "no-trend",
+        "empty",
+        "loading",
+        "error"
+      ],
+      "not_applicable": {}
     },
     {
       "id": "setup",
