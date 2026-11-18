@@ -1,0 +1,36 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Review a session
+
+Container_Boundary(web, "Wattzup Web") {
+  Component(dialog, "EndRideDialog", "CDK dialog", "Stops the ride; navigates to the summary")
+  Component(overlay, "RideOverlay", "Angular component", "See your ride after shut-off or completion")
+  Component(page, "SessionPage", "Angular component", "/sessions/:id, lazy")
+  Component(view, "session-view.ts", "Pure helper", "Date line, delta, dips, traces, totals, week line")
+  Component(traces, "SessionTraces", "Presentation component", "Cadence and power over the ride")
+  Component(dips, "DipList", "Presentation component", "Cadence dips, focus output")
+  Component(week, "WeekStrip", "Presentation component", "This week, Monday first")
+  Component(stats, "StatStrip", "Presentation component", "Totals")
+  Component(sapi, "SESSION_API", "Injection token", "HttpSessionApi")
+  Component(wapi, "WORKOUT_API", "Injection token", "stop() returns session_id")
+}
+Container_Boundary(api, "Wattzup API") {
+  Component(ep, "SessionEndpoints", "Minimal API", "GET /api/sessions, /api/sessions/{id}, /api/progress")
+  Component(calc, "ProgressCalculator", "Pure Core", "Previous attempt, bests, streak, week")
+  Component(store, "SessionStore", "Core", "Sessions newest first")
+}
+
+Rel(dialog, wapi, "stop()")
+Rel(dialog, page, "Navigates to, state justFinished")
+Rel(overlay, page, "Links to")
+Rel(page, sapi, "get(id), progress()")
+Rel(sapi, ep, "GET", "JSON")
+Rel(ep, store, "Reads")
+Rel(ep, calc, "PreviousAttempt, BestsSetBy, Report")
+Rel(page, view, "Formats with")
+Rel(page, traces, "Renders")
+Rel(page, dips, "Renders")
+Rel(page, week, "Renders")
+Rel(page, stats, "Renders")
+@enduml

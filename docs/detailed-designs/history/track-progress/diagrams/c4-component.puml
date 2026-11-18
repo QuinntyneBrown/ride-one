@@ -1,0 +1,34 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Track progress
+
+Container_Boundary(web, "Wattzup Web") {
+  Component(page, "ProgressPage", "Angular component", "/progress, lazy")
+  Component(library, "ClassLibraryPage", "Angular component", "Progress link with the streak")
+  Component(view, "progress-view.ts", "Pure helper", "Trend, calendar, streak, rows, badges")
+  Component(trend, "TrendChart", "Presentation component", "One point per attempt")
+  Component(list, "SessionList", "Presentation component", "Every session, newest first")
+  Component(cal, "StreakCalendar", "Presentation component", "Six weeks and the weekly goal")
+  Component(ach, "AchievementList", "Presentation component", "Goals and progress")
+  Component(radio, "RadioGroup", "Presentation component", "Class to compare")
+  Component(sapi, "SESSION_API", "Injection token", "HttpSessionApi")
+}
+Container_Boundary(api, "Wattzup API") {
+  Component(ep, "SessionEndpoints", "Minimal API", "GET /api/sessions, GET /api/progress")
+  Component(calc, "ProgressCalculator", "Pure Core", "Streak, week, classes, achievements")
+  Component(store, "SessionStore", "Core", "Sessions newest first")
+}
+
+Rel(page, sapi, "list(), progress()")
+Rel(library, sapi, "progress()")
+Rel(sapi, ep, "GET", "JSON")
+Rel(ep, store, "Reads")
+Rel(ep, calc, "Report(sessions, now, zone)")
+Rel(page, view, "Shapes with")
+Rel(page, trend, "Renders")
+Rel(page, list, "Renders")
+Rel(page, cal, "Renders")
+Rel(page, ach, "Renders")
+Rel(page, radio, "Renders")
+@enduml

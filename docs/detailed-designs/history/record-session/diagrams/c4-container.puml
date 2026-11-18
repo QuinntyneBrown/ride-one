@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Record a session
+
+Person(rider, "Rider", "Ends a ride")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular", "Ride dashboard, End ride dialog")
+  Container(api, "Wattzup API", "ASP.NET Core", "Workout engine; builds and saves sessions")
+  ContainerDb(file, "Sessions file", "JSON file", "sessions.json: the newest 500 sessions")
+}
+System_Ext(bike, "Echelon bike", "BLE")
+
+Rel(rider, web, "Uses", "Browser")
+Rel(web, api, "POST /api/workout/stop; GET /api/events", "JSON/HTTP, SSE")
+Rel(api, bike, "Samples power and cadence each second", "BLE")
+Rel(api, file, "Reads at start, writes atomically after each save", "File system")
+@enduml

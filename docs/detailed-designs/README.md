@@ -36,6 +36,9 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Treadmill dashboard and setup](treadmill/treadmill-dashboard-and-setup/README.md) | `L2-071`, `L2-072` |
 | classes | [Browse the class library](classes/browse-classes/README.md) | `L2-077`, `L2-078`, `L2-079`, `L2-036`, `L2-073` |
 |  | [Ride a class](classes/ride-a-class/README.md) | `L2-080`, `L2-078`, `L2-010`, `L2-029`, `L2-052`, `L2-059`, `L2-076` |
+| history | [Record a session](history/record-session/README.md) | `L2-081`, `L2-082`, `L2-014`, `L2-051` |
+|  | [Review a session](history/review-session/README.md) | `L2-083`, `L2-084`, `L2-085`, `L2-087`, `L2-051`, `L2-058` |
+|  | [Track progress](history/track-progress/README.md) | `L2-086`, `L2-087`, `L2-083`, `L2-079` |
 | platform | [Secure the API](platform/secure-api/README.md) | `L2-034`, `L2-035`, `L2-036`, `L2-078` |
 |  | [Observability and resource use](platform/observability-and-resources/README.md) | `L2-033`, `L2-038` |
 |  | [Host and solution structure](platform/host-and-structure/README.md) | `L2-042`, `L2-044` |
