@@ -28,6 +28,23 @@ describe('rideViewState (L2-058)', () => {
     expect(rideViewState(s, 'open', false).overlay).toBe('bike-shut-off');
   });
 
+  it('a plan ended and saved on the bike shows ride-complete; unsaved or on the treadmill, nothing (L2-084)', () => {
+    const ended = (change: Parameters<typeof testWorkout>[0]) =>
+      testWorkout({ status: 'ended', ...change });
+    expect(
+      rideViewState(testState({ workout: ended({ session_id: 'abc123abc123' }) }), 'open', false)
+        .overlay,
+    ).toBe('ride-complete');
+    expect(rideViewState(testState({ workout: ended({}) }), 'open', false).overlay).toBeNull();
+    expect(
+      rideViewState(
+        testState({ machine: 'treadmill', workout: ended({ session_id: 'abc123abc123' }) }),
+        'open',
+        false,
+      ).overlay,
+    ).toBeNull();
+  });
+
   it('5. a disconnected ride is bike-lost, dimmed, End enabled', () => {
     const s = testState({
       ble: 'scanning',

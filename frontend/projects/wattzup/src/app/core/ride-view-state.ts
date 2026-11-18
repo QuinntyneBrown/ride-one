@@ -9,6 +9,7 @@ export type RideOverlayKind =
   | 'adapter-off'
   | 'bike-lost'
   | 'bike-shut-off'
+  | 'ride-complete'
   | 'belt-countdown'
   | 'belt-starting'
   | 'belt-stopped';
@@ -55,6 +56,9 @@ export function rideViewState(
   let overlay: RideOverlayKind | null = null;
   if (state.adapter === 'off') overlay = 'adapter-off';
   else if (status === 'ended: bike shut off') overlay = 'bike-shut-off';
+  // A plan ridden to its end and saved leads to its summary (L2-084 AC3).
+  else if (status === 'ended' && state.machine === 'bike' && state.workout?.session_id)
+    overlay = 'ride-complete';
   else if (status === 'paused: bike disconnected') overlay = 'bike-lost';
   else if (state.belt_countdown !== null) overlay = 'belt-countdown';
   else if (status === 'starting belt') overlay = 'belt-starting';

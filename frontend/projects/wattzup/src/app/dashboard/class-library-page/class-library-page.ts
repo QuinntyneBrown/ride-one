@@ -8,7 +8,7 @@ import {
   viewChildren,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { CLASS_API, type ClassCatalogue } from '@wattzup/api';
+import { CLASS_API, SESSION_API, type ClassCatalogue } from '@wattzup/api';
 import { ClassCard, Icon, Shelf, StatusLine } from '@wattzup/components';
 import {
   cardView,
@@ -20,6 +20,7 @@ import {
 import { liveConnectionStatus } from '../../core/connection-status';
 import { bikeOnly } from '../../core/machine-guards';
 import { MotionPreference } from '../../core/motion-preference';
+import { streakLink, type StreakLink } from '../../core/progress-view';
 
 type Phase = 'loading' | 'ready' | 'error';
 
@@ -33,6 +34,7 @@ type Phase = 'loading' | 'ready' | 'error';
 })
 export class ClassLibraryPage {
   private readonly classes = inject(CLASS_API);
+  private readonly sessions = inject(SESSION_API);
   private readonly router = inject(Router);
   private readonly tabButtons = viewChildren<ElementRef<HTMLButtonElement>>('tabButton');
 
@@ -60,6 +62,8 @@ export class ClassLibraryPage {
       }),
     })),
   );
+  /** The Progress link; without the streak until progress answers, and if it fails (L2-079 AC13). */
+  protected readonly progressLink = signal<StreakLink>(streakLink(null));
   protected readonly empty = computed(
     () => this.phase() === 'ready' && this.catalogue().shelves.length === 0,
   );
@@ -67,6 +71,15 @@ export class ClassLibraryPage {
   constructor() {
     bikeOnly();
     void this.load();
+    void this.loadStreak();
+  }
+
+  private async loadStreak(): Promise<void> {
+    try {
+      this.progressLink.set(streakLink(await this.sessions.progress()));
+    } catch {
+      // The link stays, without the count.
+    }
   }
 
   protected async load(): Promise<void> {

@@ -339,6 +339,7 @@
   --color-series-easy: var(--palette-neutral-300);  /* warm-up, cool-down blocks */
   --color-series-actual: var(--palette-neutral-950);/* rider's actual power */
   --color-series-grid: var(--palette-neutral-200);
+  --color-series-dip: var(--palette-heart-600);     /* cadence dip bands on the session traces */
   --color-fg-rest: var(--palette-rest-600);
   --color-fg-heart: var(--palette-heart-600);
   --color-fg-warn: var(--palette-warn-700);
@@ -428,6 +429,7 @@
   --color-series-easy: var(--palette-neutral-650);
   --color-series-actual: var(--palette-neutral-50);
   --color-series-grid: var(--palette-neutral-800);
+  --color-series-dip: var(--palette-heart-400);
   --color-fg-rest: var(--palette-rest-300);
   --color-fg-heart: var(--palette-heart-400);
   --color-fg-warn: var(--palette-warn-400);
@@ -519,6 +521,7 @@
     --color-series-easy: var(--palette-neutral-650);
     --color-series-actual: var(--palette-neutral-50);
     --color-series-grid: var(--palette-neutral-800);
+    --color-series-dip: var(--palette-heart-400);
     --color-fg-rest: var(--palette-rest-300);
     --color-fg-heart: var(--palette-heart-400);
     --color-fg-warn: var(--palette-warn-400);

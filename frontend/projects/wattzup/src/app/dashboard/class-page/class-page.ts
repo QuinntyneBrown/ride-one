@@ -202,7 +202,7 @@ export class ClassPage {
   protected async start(): Promise<void> {
     const d = this.draft();
     if (!d || this.busy()) return;
-    const plan = toStartRequest(d);
+    const plan = toStartRequest(d, this.id());
     const workout = this.live.state()?.workout ?? null;
     if (isActive(workout)) {
       const started = await this.dialogs.openReplaceRide({

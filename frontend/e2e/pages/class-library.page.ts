@@ -3,6 +3,7 @@ import recordedClasses from '../fixtures/recorded/classes.json';
 import type { Request } from '@playwright/test';
 import type { ApiStub, EventStreamStub, StubResponse } from '../fixtures/wz-test';
 import { freeRide, type Json } from '../fixtures/states';
+import { progressReport } from '../fixtures/sessions';
 
 /** One class card on the library page. */
 export class ClassCardPart {
@@ -51,6 +52,8 @@ export class ClassLibraryPage {
   readonly statusName: Locator;
   readonly statusState: Locator;
   readonly buildYourOwn: Locator;
+  readonly progress: Locator;
+  readonly streakBadge: Locator;
   readonly tabs: Locator;
   readonly shelves: Locator;
   readonly cards: Locator;
@@ -74,6 +77,8 @@ export class ClassLibraryPage {
     this.statusName = page.locator('.app-bar .statusline__name');
     this.statusState = page.locator('.app-bar .statusline__state');
     this.buildYourOwn = page.locator('.app-bar').getByRole('link', { name: 'Build your own ride' });
+    this.progress = page.locator('.app-bar').getByRole('link', { name: /^Progress/ });
+    this.streakBadge = this.progress.locator('.streak-badge');
     this.tabs = page.getByRole('tablist', { name: 'Ride length' }).getByRole('tab');
     this.shelves = page.locator('section.shelf');
     this.cards = page.locator('a.class-card');
@@ -111,9 +116,11 @@ export class ClassLibraryPage {
       json: recordedClasses,
     },
     live: Json = freeRide(),
+    progress: StubResponse = { json: progressReport() },
   ): Promise<void> {
     this.live = live;
     this.api.on('GET', '/api/classes', catalogue);
+    this.api.on('GET', '/api/progress', progress);
     this.api.on('GET', '/api/status', { json: live });
     await this.page.goto('/classes');
     await this.events.push(live);

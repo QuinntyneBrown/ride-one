@@ -12,15 +12,19 @@ export interface RideOverlayText {
   title: string;
   lines: string[];
   note: string | null;
+  /** The saved ride the overlay offers to open, on the bike (L2-084 AC2, AC3). */
+  sessionId: string | null;
 }
+
+type OverlayCopy = Omit<RideOverlayText, 'sessionId'>;
 
 export function rideOverlayText(kind: RideOverlayKind, state: BikeState): RideOverlayText {
   return state.machine === 'treadmill'
-    ? treadmillOverlayText(kind, state)
-    : bikeOverlayText(kind, state);
+    ? { ...treadmillOverlayText(kind, state), sessionId: null }
+    : { ...bikeOverlayText(kind, state), sessionId: state.workout?.session_id ?? null };
 }
 
-function treadmillOverlayText(kind: RideOverlayKind, state: BikeState): RideOverlayText {
+function treadmillOverlayText(kind: RideOverlayKind, state: BikeState): OverlayCopy {
   const treadmill = state.device_label ?? 'Your treadmill';
   const elapsed = formatDuration(state.workout?.elapsed_seconds ?? 0);
   const base = { kind, count: null, note: null };
@@ -77,11 +81,12 @@ function treadmillOverlayText(kind: RideOverlayKind, state: BikeState): RideOver
         ],
       };
     case 'adapter-off':
+    case 'ride-complete':
       return bikeOverlayText(kind, state);
   }
 }
 
-function bikeOverlayText(kind: RideOverlayKind, state: BikeState): RideOverlayText {
+function bikeOverlayText(kind: RideOverlayKind, state: BikeState): OverlayCopy {
   const bike = state.device_label ?? 'Your bike';
   const elapsed = formatDuration(state.workout?.elapsed_seconds ?? 0);
   switch (kind) {
@@ -138,6 +143,18 @@ function bikeOverlayText(kind: RideOverlayKind, state: BikeState): RideOverlayTe
         title: 'Ride ended — the bike shut off',
         lines: [
           `${bike} was off for more than 90 seconds, so Wattzup ended the workout at ${elapsed}. Your numbers are kept below.`,
+        ],
+        note: null,
+      };
+    case 'ride-complete':
+      return {
+        kind,
+        count: null,
+        role: 'status',
+        icon: 'flag',
+        title: 'Ride complete',
+        lines: [
+          `${state.workout?.summary ?? 'Your ride'} · ${formatDuration(state.workout?.total_seconds ?? 0)}. Your ride is saved.`,
         ],
         note: null,
       };

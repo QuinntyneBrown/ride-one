@@ -1,0 +1,46 @@
+@startuml
+title UML sequence behaviour — Open Progress
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Frontend — Wattzup Web" #E0F2FE
+  participant "ProgressPage" as page
+  participant "progress-view.ts" as view
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "SessionEndpoints" as ep
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "SessionStore" as store
+  participant "ProgressCalculator" as calc
+  participant "TimeProvider" as time
+end box
+
+page -> page : phase = loading [L2-086 AC10]
+par
+  page -> ep : GET /api/sessions
+  ep -> store : All
+  ep --> page : summaries, newest first [L2-083 AC1]
+else
+  page -> ep : GET /api/progress
+  ep -> time : GetUtcNow, LocalTimeZone
+  ep -> calc : Report(sessions, now, zone) [L2-087]
+  calc --> ep : streak, ride_days, week, totals, classes, achievements
+  ep --> page : Progress [L2-083 AC4]
+end
+alt no sessions
+  page -> page : phase = empty: No rides yet, Find a class [L2-086 AC9]
+else sessions
+  page -> view : comparableClasses(progress)
+  alt none ridden twice
+    page -> page : Ride a class twice to see a trend. [L2-086 AC5]
+  else
+    page -> page : classId = most recently ridden [L2-086 AC2]
+    page -> view : trendView(attempts, power)
+  end
+  page -> view : streakView, calendarOf, rideButton, sessionRows, achievementViews
+  page -> page : phase = ready [L2-086 AC1, AC6 to AC8]
+end
+@enduml

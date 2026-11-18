@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Track progress
+
+Person(rider, "Rider", "Wants to get stronger and keep the streak")
+System(wattzup, "Wattzup", "Live training display that keeps the ride history")
+
+Rel(rider, wattzup, "Checks progress and picks the next class in")
+@enduml

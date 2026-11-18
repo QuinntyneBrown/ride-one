@@ -35,7 +35,11 @@ export type IconName =
   | 'edit'
   | 'chevron-up'
   | 'chevron-down'
-  | 'trash';
+  | 'trash'
+  | 'trophy'
+  | 'search'
+  | 'chevron-right'
+  | 'trending-up';
 
 /** The mocks' stroke icons, always decorative (`aria-hidden`). */
 @Component({

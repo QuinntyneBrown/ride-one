@@ -1,0 +1,90 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Track progress
+
+class ProgressCalculator <<static>> {
+  +WeeklyGoal = 4
+  +RiddenDays(sessions, zone): ISet<DateOnly>
+  +Streak(sessions, now, zone): StreakFigures
+  +WeekStart(now, zone): DateTimeOffset
+  +WeekRides(sessions, now, zone): int
+  +PreviousAttempt(sessions, s): SessionRecord?
+  +BestsSetBy(sessions, s): IReadOnlyList<string>
+  +Achievements(sessions, streak): IReadOnlyList<AchievementFigures>
+  +Report(sessions, now, zone): ProgressReport
+}
+class ProgressReport {
+  +Today: DateOnly
+  +Streak: StreakFigures
+  +RideDays: IReadOnlyList<DateOnly>
+  +Week: WeekFigures
+  +Totals: TotalFigures
+  +Classes: IReadOnlyList<ClassAttempts>
+  +Achievements: IReadOnlyList<AchievementFigures>
+}
+class StreakFigures {
+  +Current: int
+  +Best: int
+  +RodeToday: bool
+}
+class WeekFigures {
+  +Rides: int
+  +Goal: int
+}
+class TotalFigures {
+  +Rides: int
+  +RiddenSeconds: int
+  +DistanceKm: double
+}
+class ClassAttempts {
+  +ClassId: string
+  +Title: string
+  +Attempts: IReadOnlyList<SessionSummary>
+}
+class AchievementFigures {
+  +Id, Title, Detail: string
+  +Goal: int
+  +Unit: string?
+  +Value: double
+  +Unlocked: bool
+}
+class "progress-view.ts" as view <<pure>> {
+  +comparableClasses(p): ClassAttempts[]
+  +trendView(attempts, measure): TrendView
+  +calendarOf(rideDays, today, weeks): CalendarDay[][]
+  +streakView(p): StreakView
+  +rideButton(streak): string
+  +sessionRows(list): SessionRow[]
+  +achievementViews(list): AchievementView[]
+}
+class ProgressPage {
+  -phase: Signal<Phase>
+  -classId: Signal<string | null>
+  -measure: Signal<Measure>
+}
+class TrendChart <<component>>
+class SessionList <<component>>
+class StreakCalendar <<component>>
+class AchievementList <<component>>
+
+ProgressCalculator ..> ProgressReport : creates
+ProgressReport *-- StreakFigures
+ProgressReport *-- WeekFigures
+ProgressReport *-- TotalFigures
+ProgressReport *-- "0..*" ClassAttempts
+ProgressReport *-- "6" AchievementFigures
+ProgressPage ..> view
+ProgressPage --> TrendChart
+ProgressPage --> SessionList
+ProgressPage --> StreakCalendar
+ProgressPage --> AchievementList
+@enduml

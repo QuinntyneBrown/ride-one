@@ -165,10 +165,11 @@ export function isEdited(draft: ClassDraft, entry: ClassEntry): boolean {
 }
 
 /** The plan as shown, with `video` `{url, start_seconds}` for a YouTube link, else null (L2-080 AC4, AC10). */
-export function toStartRequest(draft: ClassDraft): StartPlan {
+export function toStartRequest(draft: ClassDraft, classId: string): StartPlan {
   const url = draft.url.trim();
   const video = videoIdOf(url) ? { url, start_seconds: draft.start } : null;
-  return { ...draft.plan, video } as StartPlan;
+  // The class it came from, so the saved session names it (L2-081 AC7).
+  return { ...draft.plan, video, class_id: classId } as StartPlan;
 }
 
 /** What `Change intervals in full setup` writes for setup to restore (L2-080 AC12). */

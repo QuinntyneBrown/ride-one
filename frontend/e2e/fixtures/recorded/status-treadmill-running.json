@@ -155,20 +155,21 @@
       }
     ],
     "segment": 0,
-    "remaining": 180,
-    "elapsed_seconds": 0,
+    "remaining": 179,
+    "elapsed_seconds": 1,
     "total_seconds": 960,
     "mode": "plan",
     "plan_level": null,
     "status": "running",
-    "ended_reason": null
+    "ended_reason": null,
+    "session_id": null
   },
   "cadence": null,
   "speed_kmh": 7,
   "speed_mph": 4.3,
-  "packets": 16,
-  "first_data_at": 1794882571.516,
-  "last_data_at": 1794882584.509,
+  "packets": 165,
+  "first_data_at": 1794982320.458,
+  "last_data_at": 1794982475.4,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -176,7 +177,7 @@
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8797",
+  "bind_address": "127.0.0.1:8788",
   "connection_id": "0bf669f1",
   "power": null,
   "target_power": null,
@@ -186,7 +187,7 @@
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794882584.509,
+      "at": 1794982475.4,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -196,7 +197,7 @@
       "value": 1
     },
     {
-      "at": 1794882584.509,
+      "at": 1794982475.4,
       "ride_seconds": 0,
       "level": null,
       "source": "plan",
@@ -206,7 +207,7 @@
       "value": 7
     },
     {
-      "at": 1794882578.162,
+      "at": 1794982469.625,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -216,7 +217,7 @@
       "value": 2
     },
     {
-      "at": 1794882578.157,
+      "at": 1794982469.622,
       "ride_seconds": null,
       "level": null,
       "source": "manual",
@@ -240,7 +241,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794882576.645
+      "seen_at": 1794982468.106
     },
     {
       "machine": "treadmill",
@@ -248,7 +249,7 @@
       "label": "Echelon Stride",
       "rssi": -55,
       "signal": 4,
-      "seen_at": 1794882576.645
+      "seen_at": 1794982468.106
     }
   ],
   "treadmill_enabled": true

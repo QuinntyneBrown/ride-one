@@ -204,36 +204,52 @@ public sealed class ClassCatalogueTests
         var service = factory.Services.GetRequiredService<ClassCatalogueService>();
         var path = Path.Combine(factory.Directory, "classes.json");
 
-        await SaveAsync(service, factory, path, Catalogue.Replace("Steady Hour", "Steady Hour, Revised", StringComparison.Ordinal));
+        await SaveAsync(service, factory, path, Catalogue.Replace("Steady Hour", "Steady Hour, Revised", StringComparison.Ordinal),
+            async () => (await GetJsonAsync(client, "/api/classes/steady-hour")).GetProperty("title").GetString() == "Steady Hour, Revised");
         var revised = await GetJsonAsync(client, "/api/classes/steady-hour");
         Assert.Equal("Steady Hour, Revised", revised.GetProperty("title").GetString());
 
-        await SaveAsync(service, factory, path, "{not json");
+        await SaveAsync(service, factory, path, "{not json", () => Task.FromResult(HasInvalidJsonError(factory)));
         var kept = await GetJsonAsync(client, "/api/classes/steady-hour");
         Assert.Equal("Steady Hour, Revised", kept.GetProperty("title").GetString());
-        Assert.Contains(factory.Logs.Entries, e => e.Level == Microsoft.Extensions.Logging.LogLevel.Error && e.Message.Contains("not valid JSON", StringComparison.Ordinal));
+        Assert.True(HasInvalidJsonError(factory));
     }
 
-    /// <summary>Writes the file, awaits the watcher noticing it, then advances the fake clock past the debounce.</summary>
-    private static async Task SaveAsync(ClassCatalogueService service, WattzupApiFactory factory, string path, string json)
+    private static bool HasInvalidJsonError(WattzupApiFactory factory) =>
+        factory.Logs.Entries.Any(e => e.Level == Microsoft.Extensions.Logging.LogLevel.Error && e.Message.Contains("not valid JSON", StringComparison.Ordinal));
+
+    /// <summary>
+    /// Writes the file, then, each time the watcher notices a change, advances the fake clock past the debounce until
+    /// <paramref name="loaded"/> holds. A watcher event left over from an earlier save can arrive before this write
+    /// lands (inotify on Linux), so one notice is not proof that this save was read.
+    /// </summary>
+    private static async Task SaveAsync(ClassCatalogueService service, WattzupApiFactory factory, string path, string json, Func<Task<bool>> loaded)
     {
-        var noticed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        void OnNoticed(object? sender, EventArgs e) => noticed.TrySetResult();
+        using var notices = new SemaphoreSlim(0);
+        void OnNoticed(object? sender, EventArgs e) => notices.Release();
         service.ChangeNoticed += OnNoticed;
         try
         {
             await File.WriteAllTextAsync(path, json);
-            await noticed.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        }
-        catch (TimeoutException)
-        {
-            Assert.Fail($"The watcher never noticed the save of {path}.");
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+            while (true)
+            {
+                var left = deadline - DateTime.UtcNow;
+                if (left <= TimeSpan.Zero || !await notices.WaitAsync(left))
+                {
+                    Assert.Fail($"The save of {path} was never read: the watcher stopped noticing changes before it loaded.");
+                }
+
+                factory.Time.Advance(ClassCatalogueService.Debounce);
+                if (await loaded())
+                {
+                    return;
+                }
+            }
         }
         finally
         {
             service.ChangeNoticed -= OnNoticed;
         }
-
-        factory.Time.Advance(ClassCatalogueService.Debounce);
     }
 }

@@ -1,7 +1,9 @@
 // Records real API responses from the backend running with the simulated bike and treadmill into
 // e2e/fixtures/recorded/, so the Playwright stubs keep the backend's exact shapes (AGENTS.md, E2E).
-// Recording is never part of a test run. Start the backend first, with treadmill support on (L2-075):
-//   dotnet run --project backend/src/Wattzup.Api -- --simulate --Wattzup:Treadmill:Enabled=true
+// Recording is never part of a test run. Start the backend first, with treadmill support on (L2-075)
+// and an empty sessions file of its own, so the session recordings start from no history (L2-082):
+//   dotnet run --project backend/src/Wattzup.Api -- --simulate --Wattzup:Treadmill:Enabled=true \
+//     --Wattzup:Sessions:Path=/tmp/wattzup-record/sessions.json
 // then: npm run record:api [-- http://127.0.0.1:8787]
 // The recorder switches the backend to the simulated treadmill and back to the bike before it ends.
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -142,6 +144,34 @@ save(
   200,
 );
 await call('POST', '/api/workout/stop');
+
+// Ride history (L2-081, L2-083): no sessions yet, then a class ride of a minute, saved when it stops.
+save('sessions-empty', await call('GET', '/api/sessions'), 200);
+save('progress-empty', await call('GET', '/api/progress'), 200);
+save(
+  'problem-invalid-class-id',
+  await call('POST', '/api/workout', { ...plan, class_id: 'no-such-class' }),
+  400,
+);
+const hiitClass = (await call('GET', '/api/classes/30-minute-hiit-cardio')).json;
+const { video, ...classPlan } = hiitClass.plan;
+const classStart = await call('POST', '/api/workout', {
+  ...classPlan,
+  video: {
+    url: `https://www.youtube.com/watch?v=${video.video_id}`,
+    start_seconds: video.start_seconds,
+  },
+  class_id: hiitClass.id,
+});
+if (classStart.status !== 200) throw new Error(`class start: ${JSON.stringify(classStart.json)}`);
+await wait(62_000);
+const stopped = await call('POST', '/api/workout/stop');
+save('workout-stopped-session', stopped, 200);
+save('status-stopped-session', await call('GET', '/api/status'), 200);
+save('sessions', await call('GET', '/api/sessions'), 200);
+save('session', await call('GET', `/api/sessions/${stopped.json.session_id}`), 200);
+save('progress', await call('GET', '/api/progress'), 200);
+save('problem-session-not-found', await call('GET', '/api/sessions/000000000000'), 404);
 save('packets', await call('GET', '/api/diagnostics/packets'), 200);
 save('health', await call('GET', '/health'), 200);
 save('problem-wrong-machine', await call('POST', '/api/speed', { speed: 7.0 }), 409);

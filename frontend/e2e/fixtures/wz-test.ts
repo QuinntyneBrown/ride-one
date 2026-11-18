@@ -4,6 +4,7 @@
 import { test as base, expect, type Page, type Request } from '@playwright/test';
 import { state, type Json } from './states';
 import { FakeYouTube } from './fake-youtube';
+import recordedProgressEmpty from './recorded/progress-empty.json';
 
 export { expect };
 
@@ -36,6 +37,8 @@ export class ApiStub {
   async install(): Promise<void> {
     this.on('GET', '/api/status', { json: state() });
     this.on('GET', '/api/workout/trace', { json: { samples: [] } });
+    // The class library asks for the streak; with no sessions it has none (L2-079 AC13).
+    this.on('GET', '/api/progress', { json: recordedProgressEmpty });
     await this.page.route('**/api/**', async (route) => {
       const request = route.request();
       const url = new URL(request.url());

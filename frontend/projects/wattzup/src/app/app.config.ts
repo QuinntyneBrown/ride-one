@@ -15,6 +15,8 @@ import {
   CLASS_API,
   HttpBikeApi,
   HttpClassApi,
+  HttpSessionApi,
+  SESSION_API,
   HttpMachineApi,
   HttpWorkoutApi,
   MACHINE_API,
@@ -39,5 +41,6 @@ export const appConfig: ApplicationConfig = {
     { provide: YOUTUBE_PLAYER, useClass: IframeYouTubePlayer },
     { provide: MACHINE_API, useClass: HttpMachineApi },
     { provide: CLASS_API, useClass: HttpClassApi },
+    { provide: SESSION_API, useClass: HttpSessionApi },
   ],
 };

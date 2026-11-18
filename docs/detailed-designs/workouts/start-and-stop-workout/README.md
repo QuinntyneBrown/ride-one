@@ -30,7 +30,8 @@ Backend, `Wattzup.Api`:
 
 - **`WorkoutEndpoints`** — maps the route group `/api/workout` (L2-017). Each endpoint validates its input, calls one Core service, and holds no rule.
   - `POST /api/workout` reads the body as a `JsonElement` and passes it to `WorkoutPlanValidator.Validate`. On failure it returns `400` through `Results.ValidationProblem(errors, extensions: { code = "invalid_workout" })`. On success it awaits `WorkoutEngine.StartAsync(plan)` and returns `200 {"started": <workout>}`, whether or not the bike is connected. The endpoint declares `Accepts<WorkoutPlan>`, so the OpenAPI document describes the plan as a `kind`-discriminated union.
-  - `POST /api/workout/stop` awaits `WorkoutEngine.StopAsync()` and always returns `200 {"stopped":true}`. With no workout, `workout` stays `null`. A workout that has already ended keeps its status.
+  - `POST /api/workout/stop` awaits `WorkoutEngine.StopAsync()` and always returns `200 {"stopped":true, "session_id":…}`. `session_id` names the session the ride was saved as, or is `null` when none was saved: no workout, a ride under a minute, or the treadmill (L2-081 criterion 8, `history/record-session`). With no workout, `workout` stays `null`. A workout that has already ended keeps its status.
+  - `POST /api/workout` accepts an optional top-level `class_id` beside the plan. It shall name a class in the catalogue, or the answer is 400 `invalid_workout` with the field `class_id`, like every other rejection (L2-010). The class's id and title go to the engine as a `RideOrigin`, and the session keeps them (L2-081 criterion 7).
   - `POST /api/workout/pause`, `/resume` and `/back-to-plan` await the matching engine method. With no active workout they return `409` ProblemDetails with `code` = `no_active_workout`. Otherwise they return `200 {"workout": <workout>}`.
   - `GET /api/workout/trace` returns `200 {"samples":[[ride_seconds, power], ...]}` from the power trace history (L2-050). With no workout, `samples` is `[]`.
 - **`WorkoutProblems`** — builds the two ProblemDetails bodies with a generic `title` and the `code` extension. Request detail goes only to the server log (L2-036).
@@ -57,7 +58,7 @@ The validator reports every failing field, not only the first.
 
 - **`WorkoutEngine`** — `StartAsync`, `StopAsync`, `PauseAsync`, `ResumeAsync` and `BackToPlanAsync` post a command to the engine loop and await its reply (see `run-interval-workout`). The commands behave as follows:
   - **Start** replaces any active workout and begins the new one at segment 0, `elapsed_seconds` 0, with fresh ride totals (L2-013).
-  - **Stop** sets `status` to `stopped`, stops ticking, leaves the bike at its current level, and broadcasts (L2-013).
+  - **Stop** sets `status` to `stopped`, stops ticking, leaves the bike at its current level, saves the ride as a session on the bike when it ran at least a minute (`history/record-session`), and broadcasts with `workout.session_id` (L2-013, L2-081).
   - **Pause** sets the rider-pause flag. With the bike connected, `status` becomes `paused` at once, the ride clock stops, and nothing is sent (L2-046). Pausing an already paused workout changes nothing and answers `200`.
   - **Resume** clears the flag and the segment's sent marker, so the plan level is sent again. The status becomes `running` if the bike is connected, otherwise `waiting for bike` (ride not started) or `paused: bike disconnected` (L2-046).
   - **Back-to-plan** sets `mode` to `plan` and sends `plan_level` at once (L2-047).
@@ -72,7 +73,7 @@ Treadmill (ADR 0009):
 
 Frontend, `frontend`:
 
-- **`WorkoutApi`** (`frontend/projects/api/src/lib/workout-api.ts`) — contract with `start(plan)`, `stop()`, `pause()`, `resume()`, `backToPlan()` and `trace()`. Request and response types (`WorkoutPlan`, `Workout`, `TraceResponse`, `ProblemDetails`) come from the generated client in `frontend/projects/api/src/generated/`. The injection token `WORKOUT_API` is bound to `HttpWorkoutApi` in `app.config.ts`, and components inject the token.
+- **`WorkoutApi`** (`frontend/projects/api/src/lib/workout-api.ts`) — contract with `start(plan)` (the plan may carry `class_id`), `stop()` (resolves to the `session_id` or `null`), `pause()`, `resume()`, `backToPlan()` and `trace()`. Request and response types (`WorkoutPlan`, `Workout`, `TraceResponse`, `ProblemDetails`) come from the generated client in `frontend/projects/api/src/generated/`. The injection token `WORKOUT_API` is bound to `HttpWorkoutApi` in `app.config.ts`, and components inject the token.
 - **`RideControls`** (`frontend/projects/wattzup/src/app/dashboard/ride-controls/`, selector `wz-ride-controls`, block `ride-controls`) — the app bar's Pause or Resume button. It keeps the mock's `btn` and `btn__label` classes and follows the ride page's `default`, `paused` and `ended` mocks (`docs/mocks/pages/ride/`). It reads `LiveStateService.state()` and shows the states in the table below (L2-046). Pressing the button calls `WORKOUT_API.pause()` or `resume()`. The button does not change its own label: the label follows the next streamed state. While the event stream is down, the button is disabled (L2-054). A failed request shows a danger toast (L2-053): `Couldn't pause the ride` or `Couldn't resume the ride` / `The Wattzup server didn't answer. Try again.` (L2-046).
 
 | Workout | Button | Enabled |
@@ -117,6 +118,7 @@ Frontend, Playwright (`frontend/e2e/`), with every `/api/**` request answered by
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-010` | `L1-004` | Workout plan definition and validation. A workout is defined by a plan of one of two kinds, `hiit` or `flat`, submitted as JSON with snake_case fields; any rejection is a ProblemDetails with `code` = `invalid_workout` and an `errors` map from field name to messages. |
+| `L2-081` | `L1-015` | Session record. Criteria 7 and 8: `POST /api/workout` takes an optional `class_id`, and `POST /api/workout/stop` answers `{stopped:true, session_id}`. |
 | `L2-017` | `L1-005` | Workout endpoints. `POST /api/workout` with a plan body (L2-010), `POST /api/workout/stop`, `POST /api/workout/pause`, `POST /api/workout/resume`, `POST /api/workout/back-to-plan`, and `GET /api/workout/trace`. |
 | `L2-046` | `L1-004` | Pause and resume. A `running` workout pauses on `POST /api/workout/pause` and continues from the same point on `POST /api/workout/resume`; the dashboard shows Pause or Resume accordingly. |
 

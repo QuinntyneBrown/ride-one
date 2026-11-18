@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Review a session
+
+Person(rider, "Rider", "Reviews a ride")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular", "Session Summary at /sessions/:id")
+  Container(api, "Wattzup API", "ASP.NET Core", "Serves sessions and progress figures")
+  ContainerDb(file, "Sessions file", "JSON file", "sessions.json")
+}
+
+Rel(rider, web, "Uses", "Browser")
+Rel(web, api, "GET /api/sessions/{id}, GET /api/progress", "JSON/HTTP")
+Rel(api, file, "Loaded at start", "File system")
+@enduml

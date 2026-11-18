@@ -6,6 +6,7 @@ import recordedClasses from './fixtures/recorded/classes.json';
 import { expect, test } from './fixtures/wz-test';
 import { freeRide, treadmillIdle } from './fixtures/states';
 import { ClassLibraryPage } from './pages/class-library.page';
+import { progressReport } from './fixtures/sessions';
 
 const LEAD =
   'Pick a class. The bike follows its plan — resistance changes land on the beat of the workout.';
@@ -186,5 +187,48 @@ test.describe('Class library (L2-079)', () => {
     await library.open(undefined, treadmillIdle());
 
     await expect(page).toHaveURL(/\/setup$/);
+  });
+
+  test('links to Progress with the streak in its name and badge (L2-079 AC13)', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const library = new ClassLibraryPage(page, api, events);
+    await library.open();
+
+    await expect(library.progress).toHaveAttribute('href', '/progress');
+    await expect(library.progress).toHaveAccessibleName('Progress, 3-day streak');
+    await expect(library.streakBadge).toHaveText('3d');
+    await expect(library.streakBadge).not.toHaveClass(/streak-badge--today/);
+  });
+
+  test('fills the streak badge once ridden today', async ({ page, api, events }) => {
+    const library = new ClassLibraryPage(page, api, events);
+    await library.open(undefined, undefined, {
+      json: progressReport({ streak: { current: 4, best: 6, rode_today: true } }),
+    });
+
+    await expect(library.progress).toHaveAccessibleName('Progress, 4-day streak, ridden today');
+    await expect(library.streakBadge).toHaveClass(/streak-badge--today/);
+  });
+
+  test('shows Progress without a badge when there is no streak or progress fails', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const library = new ClassLibraryPage(page, api, events);
+    await library.open(undefined, undefined, {
+      json: progressReport({ streak: { current: 0, best: 6, rode_today: false } }),
+    });
+    await expect(library.progress).toHaveAccessibleName('Progress');
+    await expect(library.streakBadge).toHaveCount(0);
+
+    api.on('GET', '/api/progress', { abort: true });
+    await page.reload();
+    await expect(library.cards).toHaveCount(6);
+    await expect(library.progress).toHaveAccessibleName('Progress');
+    await expect(library.streakBadge).toHaveCount(0);
   });
 });
