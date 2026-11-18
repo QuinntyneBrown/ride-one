@@ -1,8 +1,9 @@
 // The class page's rules: the draft a class starts from, its level rows and the plan card's lines
 // (L2-080). The catalogue is never written: every change here is to this ride only.
-import type { ClassEntry, Segment, WorkoutPlan } from '@wattzup/api';
+import type { ClassEntry, Segment, StartPlan, WorkoutPlan } from '@wattzup/api';
 import { formatDuration } from './format-duration';
 import { expandPlan } from './plan-expansion';
+import { videoIdOf } from './video-link';
 
 /** What the class page edits: the plan, the YouTube link and the start point. */
 export interface ClassDraft {
@@ -159,4 +160,11 @@ export function isEdited(draft: ClassDraft, entry: ClassEntry): boolean {
     draft.start !== original.start ||
     JSON.stringify(draft.plan) !== JSON.stringify(original.plan)
   );
+}
+
+/** The plan as shown, with `video` `{url, start_seconds}` for a YouTube link, else null (L2-080 AC4, AC10). */
+export function toStartRequest(draft: ClassDraft): StartPlan {
+  const url = draft.url.trim();
+  const video = videoIdOf(url) ? { url, start_seconds: draft.start } : null;
+  return { ...draft.plan, video } as StartPlan;
 }

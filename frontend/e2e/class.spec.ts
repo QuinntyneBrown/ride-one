@@ -3,9 +3,11 @@
 // Description: The class page at /classes/:id: the class's header, its video preview cued at the
 // start point, the plan card and the resistance rows; a missing class and the treadmill.
 import dolomites from './fixtures/recorded/class-60-min-dolomites-endurance.json';
+import videoStarted from './fixtures/recorded/video-workout-started.json';
 import notFound from './fixtures/recorded/problem-class-not-found.json';
 import { expect, test } from './fixtures/wz-test';
-import { treadmillIdle } from './fixtures/states';
+import { state, treadmillIdle, workout } from './fixtures/states';
+import { ReplaceRideDialog } from './pages/replace-ride.dialog';
 import { ClassPage } from './pages/class.page';
 
 test.describe('Class page (L2-080)', () => {
@@ -219,5 +221,88 @@ test.describe('Class page (L2-080)', () => {
     await expect(cls.videoStart).toHaveValue('0:20.0');
     await cls.resetButton.click();
     await expect(cls.videoStart).toHaveValue('0:12.0');
+  });
+
+  test('starts the plan as shown with its video and goes to the dashboard', async ({
+    page,
+    api,
+    events,
+  }) => {
+    let release: () => void = () => undefined;
+    const answered = new Promise<void>((r) => (release = r));
+    api.on('POST', '/api/workout', async () => {
+      await answered;
+      return { json: videoStarted };
+    });
+    const cls = new ClassPage(page, api, events);
+    await cls.open();
+    await cls.work.raise.click();
+    await cls.later.click();
+
+    await cls.startButton.click();
+    await expect(cls.startButton).toHaveText('Starting…');
+    await expect(cls.startButton).toBeDisabled();
+    const [request] = await api.waitForCall('POST', '/api/workout');
+    const body = request!.body as {
+      kind: string;
+      sets: { work_level: number; rest_level: number }[];
+      warmup: { level: number };
+      video: unknown;
+    };
+    expect(body.kind).toBe('intervals');
+    expect(body.sets.map((s) => s.work_level)).toEqual([25, 25, 25, 25, 25]);
+    expect(body.sets.map((s) => s.rest_level)).toEqual([6, 6, 6, 6, 6]);
+    expect(body.warmup.level).toBe(8);
+    expect(body.video).toEqual({
+      url: 'https://www.youtube.com/watch?v=QUoToFsMNig',
+      start_seconds: 12.5,
+    });
+    release();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test('starts without a video when the link is not YouTube', async ({ page, api, events }) => {
+    api.on('POST', '/api/workout', { json: videoStarted });
+    const cls = new ClassPage(page, api, events);
+    await cls.open();
+    await cls.videoUrl.fill('https://vimeo.com/76979871');
+
+    await cls.startButton.click();
+    const [request] = await api.waitForCall('POST', '/api/workout');
+    expect((request!.body as { video: unknown }).video).toBeNull();
+  });
+
+  test('asks before replacing an active ride', async ({ page, api, events }) => {
+    api.on('POST', '/api/workout', { json: { started: workout() } });
+    const cls = new ClassPage(page, api, events);
+    const replace = new ReplaceRideDialog(page);
+    await cls.open(undefined, undefined, state());
+
+    await cls.startButton.click();
+    await expect(replace.keepButton).toBeFocused();
+    expect(api.calls('POST', '/api/workout')).toHaveLength(0);
+    await replace.replaceButton.click();
+    await expect(page).toHaveURL(/\/$/);
+    expect(api.calls('POST', '/api/workout')).toHaveLength(1);
+  });
+
+  test('keeps every value when the start fails and tries again', async ({ page, api, events }) => {
+    api.on('POST', '/api/workout', { status: 500, json: { title: 'error', status: 500 } });
+    const cls = new ClassPage(page, api, events);
+    await cls.open();
+    await cls.work.raise.click();
+
+    await cls.startButton.click();
+    await expect(cls.alert).toContainText("Couldn't start the ride");
+    await expect(cls.alert).toContainText(
+      "The Wattzup server didn't accept the plan. Your settings are kept — try again.",
+    );
+    await expect(cls.work.value).toHaveText('25 / 32');
+    await expect(cls.videoStart).toHaveValue('0:12.0');
+
+    api.on('POST', '/api/workout', { json: videoStarted });
+    await cls.tryAgain.click();
+    await expect(page).toHaveURL(/\/$/);
+    expect(api.calls('POST', '/api/workout')).toHaveLength(2);
   });
 });

@@ -83,10 +83,10 @@ export class ClassPage {
     this.recover = new LevelRowPart(this.resistance, 'Recover');
     this.steady = new LevelRowPart(this.resistance, 'Steady');
     this.resetButton = this.plan.getByRole('button', { name: 'Reset to class' });
-    this.startButton = this.plan.locator('.setup-aside__foot button.btn--primary');
+    this.startButton = this.plan.getByRole('button', { name: /^(Start ride|Starting…)$/ });
     this.fullSetup = this.plan.getByRole('link', { name: 'Change intervals in full setup' });
     this.alert = this.plan.getByRole('alert');
-    this.tryAgain = this.alert.getByRole('button', { name: 'Try again' });
+    this.tryAgain = this.plan.getByRole('button', { name: 'Try again' });
     this.skeleton = page.locator('.class-page .skeleton');
     this.notFound = page.locator('.library .empty');
     this.notFoundTitle = this.notFound.getByRole('heading', { level: 1 });

@@ -7,6 +7,7 @@ import {
   shiftLevels,
   stretchLine,
   structureLine,
+  toStartRequest,
 } from './class-draft';
 
 const set = (rounds: number, rest: number, change: object = {}) => ({
@@ -150,5 +151,15 @@ describe('class-draft (L2-080)', () => {
     expect(isEdited({ ...draft, url: '' }, entry)).toBe(true);
     expect(isEdited({ ...draft, start: 12.5 }, entry)).toBe(true);
     expect(isEdited({ ...draft, url: ` ${draft.url} ` }, entry)).toBe(false);
+  });
+
+  it('starts the plan as shown with the link, or with no video for a link that is not YouTube (AC4, AC10)', () => {
+    const draft = { ...draftOf(classOf(HIIT_CARDIO)), start: 12.5 };
+    expect(toStartRequest(draft)).toEqual({
+      ...HIIT_CARDIO,
+      video: { url: 'https://www.youtube.com/watch?v=QUoToFsMNig', start_seconds: 12.5 },
+    });
+    expect(toStartRequest({ ...draft, url: 'https://vimeo.com/76979871' }).video).toBeNull();
+    expect(toStartRequest({ ...draft, url: '' }).video).toBeNull();
   });
 });

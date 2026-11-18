@@ -222,10 +222,33 @@
             }
           </div>
           <div class="setup-aside__foot">
-            <button class="btn btn--primary btn--xl btn--block" type="button">Start ride</button>
-            <a class="btn btn--quiet btn--block" routerLink="/setup"
-              >Change intervals in full setup</a
+            @if (startFailed()) {
+              <wz-alert
+                class="class-page__error"
+                tone="danger"
+                icon="alert-circle"
+                heading="Couldn't start the ride"
+                text="The Wattzup server didn't accept the plan. Your settings are kept — try again."
+              />
+            }
+            <button
+              class="btn btn--primary btn--xl btn--block"
+              type="button"
+              [disabled]="busy()"
+              [attr.aria-busy]="busy() ? 'true' : null"
+              (click)="start()"
             >
+              {{ busy() ? 'Starting…' : startFailed() ? 'Try again' : 'Start ride' }}
+            </button>
+            @if (busy()) {
+              <button class="btn btn--quiet btn--block" type="button" disabled>
+                Change intervals in full setup
+              </button>
+            } @else {
+              <a class="btn btn--quiet btn--block" routerLink="/setup"
+                >Change intervals in full setup</a
+              >
+            }
           </div>
         </aside>
       </div>

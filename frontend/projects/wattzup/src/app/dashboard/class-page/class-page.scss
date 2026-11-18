@@ -235,6 +235,10 @@
     padding-top: var(--space-8);
   }
 }
+.class-page__error {
+  display: block;
+  margin-bottom: var(--space-4);
+}
 .setup-aside__foot .btn + .btn {
   margin-top: var(--space-2);
 }

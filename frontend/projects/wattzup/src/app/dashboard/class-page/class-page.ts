@@ -12,9 +12,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
-import { CLASS_API, type ClassEntry } from '@wattzup/api';
-import { Icon, LevelRow, StatusLine } from '@wattzup/components';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Router, RouterLink } from '@angular/router';
+import { CLASS_API, type ClassEntry, WORKOUT_API } from '@wattzup/api';
+import { Alert, Icon, LevelRow, StatusLine } from '@wattzup/components';
 import {
   cadenceLine,
   type ClassDraft,
@@ -23,10 +24,17 @@ import {
   type LevelRowName,
   levelRows,
   shiftLevels,
+  toStartRequest,
   stretchLine,
   structureLine,
 } from '../../core/class-draft';
 import { liveConnectionStatus } from '../../core/connection-status';
+import { DialogLauncher } from '../../core/dialog-launcher';
+import { formatDuration } from '../../core/format-duration';
+import { LiveStateService } from '../../core/live-state.service';
+import { MachineHistoryStore } from '../../core/machine-history.store';
+import { planSummary } from '../../core/plan-expansion';
+import { isActive } from '../../core/workout-status';
 import { bikeOnly } from '../../core/machine-guards';
 import { MotionPreference } from '../../core/motion-preference';
 import { previewOf } from '../../core/ride-preview';
@@ -38,7 +46,7 @@ type Phase = 'loading' | 'ready' | 'not-found';
 /** Route `/classes/:id`: one class, its video and plan, and Start ride (L2-080). */
 @Component({
   selector: 'wz-class-page',
-  imports: [Icon, LevelRow, RouterLink, StatusLine],
+  imports: [Alert, Icon, LevelRow, RouterLink, StatusLine],
   templateUrl: './class-page.html',
   styleUrl: './class-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,12 +58,19 @@ export class ClassPage {
   private readonly classes = inject(CLASS_API);
   private readonly players = inject(YOUTUBE_PLAYER);
   private readonly title = inject(Title);
+  private readonly live = inject(LiveStateService);
+  private readonly workouts = inject(WORKOUT_API);
+  private readonly dialogs = inject(DialogLauncher);
+  private readonly history = inject(MachineHistoryStore);
+  private readonly router = inject(Router);
 
   protected readonly status = liveConnectionStatus();
   protected readonly reducedMotion = inject(MotionPreference).reduced;
   protected readonly phase = signal<Phase>('loading');
   protected readonly entry = signal<ClassEntry | null>(null);
   protected readonly draft = signal<ClassDraft | null>(null);
+  protected readonly busy = signal(false);
+  protected readonly startFailed = signal(false);
 
   protected readonly preview = computed(() => {
     const d = this.draft();
@@ -177,5 +192,38 @@ export class ClassPage {
   private setStart(start: number): void {
     this.draft.update((d) => d && { ...d, start });
     this.player()?.seek(start);
+  }
+
+  /** Start ride: replace-ride first with a workout active, else POST the plan as shown (L2-080 AC10, AC11). */
+  protected async start(): Promise<void> {
+    const d = this.draft();
+    if (!d || this.busy()) return;
+    const plan = toStartRequest(d);
+    const workout = this.live.state()?.workout ?? null;
+    if (isActive(workout)) {
+      const started = await this.dialogs.openReplaceRide({
+        plan,
+        elapsed: formatDuration(workout.elapsed_seconds),
+        currentSummary: workout.summary,
+        newSummary: planSummary(d.plan),
+      });
+      if (started) {
+        this.history.recordStart('bike', planSummary(d.plan), new Date());
+        await this.router.navigateByUrl('/');
+      }
+      return;
+    }
+    this.busy.set(true);
+    this.startFailed.set(false);
+    try {
+      const snapshot = await this.workouts.start(plan);
+      this.history.recordStart('bike', snapshot.summary, new Date());
+      await this.router.navigateByUrl('/');
+    } catch (e) {
+      if (e instanceof HttpErrorResponse && e.status === 401) return;
+      this.startFailed.set(true);
+    } finally {
+      this.busy.set(false);
+    }
   }
 }
