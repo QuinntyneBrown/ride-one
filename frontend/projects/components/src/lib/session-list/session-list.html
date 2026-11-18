@@ -44,7 +44,11 @@
     }
   </ul>
   @if (foldable()) {
-    <button class="btn btn--quiet btn--sm session-list__more" type="button" (click)="toggleAll.emit()">
+    <button
+      class="btn btn--quiet btn--sm session-list__more"
+      type="button"
+      (click)="toggleAll.emit()"
+    >
       {{ expanded() ? 'Show fewer' : 'Show all ' + total() }}
     </button>
   }

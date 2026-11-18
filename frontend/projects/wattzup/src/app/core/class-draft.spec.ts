@@ -156,12 +156,13 @@ describe('class-draft (L2-080)', () => {
 
   it('starts the plan as shown with the link, or with no video for a link that is not YouTube (AC4, AC10)', () => {
     const draft = { ...draftOf(classOf(HIIT_CARDIO)), start: 12.5 };
-    expect(toStartRequest(draft)).toEqual({
+    expect(toStartRequest(draft, 'hiit-cardio')).toEqual({
       ...HIIT_CARDIO,
       video: { url: 'https://www.youtube.com/watch?v=QUoToFsMNig', start_seconds: 12.5 },
+      class_id: 'hiit-cardio',
     });
-    expect(toStartRequest({ ...draft, url: 'https://vimeo.com/76979871' }).video).toBeNull();
-    expect(toStartRequest({ ...draft, url: '' }).video).toBeNull();
+    expect(toStartRequest({ ...draft, url: 'https://vimeo.com/76979871' }, 'x').video).toBeNull();
+    expect(toStartRequest({ ...draft, url: '' }, 'x').video).toBeNull();
   });
 
   it('fills the Intervals draft and the video for an intervals class (AC12)', () => {

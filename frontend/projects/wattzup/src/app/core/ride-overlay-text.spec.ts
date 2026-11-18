@@ -29,6 +29,22 @@ describe('rideOverlayText', () => {
       testState({ device_label: 'Echelon EX-5s', workout: testWorkout({ elapsed_seconds: 582 }) }),
     );
     expect(o.lines[0]).toContain('ended the workout at 9:42');
+    expect(o.sessionId).toBeNull();
+  });
+
+  it('offers the saved ride: Ride complete with the summary and total (L2-084)', () => {
+    const s = testState({
+      workout: testWorkout({
+        status: 'ended',
+        summary: 'HIIT · 8 × 40s / 20s',
+        total_seconds: 760,
+        session_id: 'abc123abc123',
+      }),
+    });
+    const o = rideOverlayText('ride-complete', s);
+    expect(o).toMatchObject({ title: 'Ride complete', role: 'status', sessionId: 'abc123abc123' });
+    expect(o.lines).toEqual(['HIIT · 8 × 40s / 20s · 12:40. Your ride is saved.']);
+    expect(rideOverlayText('bike-shut-off', s).sessionId).toBe('abc123abc123');
   });
 });
 

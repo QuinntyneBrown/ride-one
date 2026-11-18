@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -43,9 +44,10 @@ export class SessionPage {
   private readonly sessions = inject(SESSION_API);
   readonly id = input.required<string>();
 
-  /** Set by End ride and the ride overlays; lost on reload, so a reload reads All sessions (AC2). */
-  protected readonly justFinished =
-    (inject(Location).getState() as { justFinished?: unknown } | null)?.justFinished === true;
+  private readonly location = inject(Location);
+  private readonly arrival = this.location.getState() as Record<string, unknown> | null;
+  /** Set by End ride and the ride overlays; cleared once shown, so a reload reads All sessions (AC2). */
+  protected readonly justFinished = this.arrival?.['justFinished'] === true;
   protected readonly phase = signal<Phase>('loading');
   private readonly loaded = signal<Loaded | null>(null);
   /** The dip the dip list has hovered or focused, joined to the traces (AC10). */
@@ -71,6 +73,15 @@ export class SessionPage {
 
   constructor() {
     bikeOnly();
+    if (this.justFinished) {
+      // The browser keeps history.state across a reload; drop the flag from this entry.
+      afterNextRender(() =>
+        this.location.replaceState(this.location.path(), '', {
+          ...this.arrival,
+          justFinished: false,
+        }),
+      );
+    }
     effect(() => {
       const id = this.id();
       untracked(() => void this.load(id));

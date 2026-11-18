@@ -249,8 +249,10 @@ test.describe('Class page (L2-080)', () => {
       sets: { work_level: number; rest_level: number }[];
       warmup: { level: number };
       video: unknown;
+      class_id: string;
     };
     expect(body.kind).toBe('intervals');
+    expect(body.class_id).toBe('30-minute-hiit-cardio');
     expect(body.sets.map((s) => s.work_level)).toEqual([25, 25, 25, 25, 25]);
     expect(body.sets.map((s) => s.rest_level)).toEqual([6, 6, 6, 6, 6]);
     expect(body.warmup.level).toBe(8);
