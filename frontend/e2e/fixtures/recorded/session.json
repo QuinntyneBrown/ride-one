@@ -1,15 +1,15 @@
 {
   "previous": null,
   "bests": [],
-  "id": "baad5479c6fe",
-  "ended_at": "2026-11-18T06:14:28.077579+00:00",
+  "id": "c0338f77c78d",
+  "ended_at": "2026-11-18T19:18:41.364808+00:00",
   "class_id": "30-minute-hiit-cardio",
   "title": "30 Minute HIIT Cardio",
   "plan": {
     "kind": "intervals",
     "warmup": {
       "seconds": 300,
-      "level": 8,
+      "level": 14,
       "cadence": 80
     },
     "sets": [
@@ -66,7 +66,7 @@
     },
     "video": {
       "video_id": "QUoToFsMNig",
-      "start_seconds": 12
+      "start_seconds": 3
     }
   },
   "segments": [
@@ -74,7 +74,7 @@
       "kind": "warmup",
       "start": 0,
       "duration": 300,
-      "level": 8,
+      "level": 14,
       "cadence": 80,
       "round": null,
       "speed": null,
@@ -244,14 +244,14 @@
   "planned_seconds": 1800,
   "ridden_seconds": 62,
   "completed": false,
-  "avg_power": 152,
-  "max_power": 152,
-  "best_minute_power": 152,
+  "avg_power": 231,
+  "max_power": 231,
+  "best_minute_power": 231,
   "avg_cadence": 85,
   "distance_km": 0.55,
-  "kcal": 9,
+  "kcal": 14,
   "on_target_pct": 100,
   "dips": [],
-  "power_trace": [152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152],
+  "power_trace": [231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231],
   "cadence_trace": [85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85]
 }

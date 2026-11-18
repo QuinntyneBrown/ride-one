@@ -13,7 +13,7 @@
     "kind": "intervals",
     "warmup": {
       "seconds": 300,
-      "level": 8,
+      "level": 14,
       "cadence": 80
     },
     "sets": [
