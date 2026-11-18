@@ -8,6 +8,8 @@ __pycache__/
 raw_packets.log
 raw_packets.log.*
 status.json
+sessions.json
+sessions.json.*
 server.log
 
 # .NET build output

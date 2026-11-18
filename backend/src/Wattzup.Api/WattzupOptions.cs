@@ -63,3 +63,11 @@ public sealed class ClassesOptions
 
     public string Path { get; set; } = "classes.json";
 }
+
+/// <summary>The sessions file (L2-082, ADR 0015): <c>Wattzup:Sessions:Path</c>, relative to the content root.</summary>
+public sealed class SessionsOptions
+{
+    public const string SectionName = "Wattzup:Sessions";
+
+    public string Path { get; set; } = "sessions.json";
+}
