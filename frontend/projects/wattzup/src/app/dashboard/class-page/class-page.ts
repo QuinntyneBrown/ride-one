@@ -15,7 +15,7 @@ import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { CLASS_API, type ClassEntry, WORKOUT_API } from '@wattzup/api';
-import { Alert, Icon, LevelRow, StatusLine } from '@wattzup/components';
+import { Alert, Icon, LevelRow, NumberStepper, StatusLine } from '@wattzup/components';
 import {
   cadenceLine,
   type ClassDraft,
@@ -30,6 +30,7 @@ import {
   structureLine,
 } from '../../core/class-draft';
 import { liveConnectionStatus } from '../../core/connection-status';
+import { ClassNotFound } from '../class-not-found/class-not-found';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { formatDuration } from '../../core/format-duration';
 import { LiveStateService } from '../../core/live-state.service';
@@ -48,7 +49,7 @@ type Phase = 'loading' | 'ready' | 'not-found';
 /** Route `/classes/:id`: one class, its video and plan, and Start ride (L2-080). */
 @Component({
   selector: 'wz-class-page',
-  imports: [Alert, Icon, LevelRow, RouterLink, StatusLine],
+  imports: [Alert, ClassNotFound, Icon, LevelRow, NumberStepper, RouterLink, StatusLine],
   templateUrl: './class-page.html',
   styleUrl: './class-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

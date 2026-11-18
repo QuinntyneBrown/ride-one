@@ -16,23 +16,7 @@
   </header>
   @switch (phase()) {
     @case ('not-found') {
-      <main id="main" class="library" tabindex="-1">
-        <div class="library__inner">
-          <div class="empty empty--error">
-            <span class="empty__icon"><wz-icon name="alert-circle" size="lg" /></span>
-            <h1 class="empty__title">We can't find that class</h1>
-            <p class="empty__text">
-              It isn't in the class library. Pick another, or build your own ride.
-            </p>
-            <div class="empty__actions">
-              <a class="btn btn--primary" routerLink="/classes"
-                ><wz-icon name="arrow-left" size="sm" />All classes</a
-              >
-              <a class="btn btn--subtle" routerLink="/setup">Build your own ride</a>
-            </div>
-          </div>
-        </div>
-      </main>
+      <wz-class-not-found />
     }
     @case ('loading') {
       <div class="setup-layout">
@@ -113,42 +97,20 @@
                   <p class="field__error" id="video-url-error">{{ err }}</p>
                 }
               </div>
-              <div class="num-stepper">
-                <label class="num-stepper__label" for="video-offset">Ride starts at</label>
-                <div class="num-stepper__row">
-                  <button
-                    class="btn btn--subtle btn--icon"
-                    type="button"
-                    aria-label="Half a second earlier"
-                    [disabled]="!videoId()"
-                    (click)="stepStart(-1)"
-                  >
-                    <wz-icon name="minus" size="sm" />
-                  </button>
-                  <input
-                    class="numeral num-stepper__input"
-                    id="video-offset"
-                    type="text"
-                    inputmode="decimal"
-                    size="6"
-                    aria-describedby="video-help"
-                    [value]="startText()"
-                    [readOnly]="!videoId()"
-                    (input)="startText.set($any($event.target).value)"
-                    (keydown.enter)="commitStart()"
-                    (blur)="commitStart()"
-                  />
-                  <button
-                    class="btn btn--subtle btn--icon"
-                    type="button"
-                    aria-label="Half a second later"
-                    [disabled]="!videoId()"
-                    (click)="stepStart(1)"
-                  >
-                    <wz-icon name="plus" size="sm" />
-                  </button>
-                </div>
-              </div>
+              <wz-number-stepper
+                fieldId="video-offset"
+                label="Ride starts at"
+                lessLabel="Half a second earlier"
+                moreLabel="Half a second later"
+                describedBy="video-help"
+                inputMode="decimal"
+                [value]="startText()"
+                [readonly]="!videoId()"
+                (valueChange)="startText.set($event)"
+                (submitted)="commitStart()"
+                (blurred)="commitStart()"
+                (step)="stepStart($event)"
+              />
             </div>
             <p class="field__help" id="video-help">
               Skips the intro so the video's first pedal stroke lands on your 0:00.
@@ -169,7 +131,7 @@
           </p>
           <svg
             class="profile"
-            [attr.viewBox]="'0 0 ' + p.totalSeconds + ' 32'"
+            [attr.viewBox]="'0 0 ' + p.totalSeconds + ' ' + p.profileHeight"
             preserveAspectRatio="none"
             role="img"
             [attr.aria-label]="'Resistance profile: ' + l.structure + ', peak level ' + p.peakLevel"
