@@ -54,6 +54,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Switch](components/switch.html) | On/off setting: warm-up and cool-down. |
 | [Set list](components/set-list.html) | The warm-up, sets and cool-down of an intervals plan, edited in a dialog. |
 | [Video ride-along](components/video.html) | Video frame, start point and Video / Power vs. plan switch (proposed). |
+| [Level row](components/level-row.html) | Compact − level + for one level of a plan before the ride: work, recover or steady (proposed). |
 | [Slider](components/slider.html) | Level slider for work, recover and flat resistance. |
 | [Number stepper](components/number-stepper.html) | − value + control for rounds, work, recover, duration and cadence. |
 | [Level control](components/level-control.html) | − level + for the bike's resistance, with the requested level shown until the bike confirms it. |
@@ -85,6 +86,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 | Component | Summary |
 |---|---|
+| [Video card and shelf](components/video-card.html) | One video of the library with its length, plan strip and peak, on a shelf of rides of one length (proposed). |
 | [Readout](components/readout.html) | The big live numbers: power and cadence with target and delta. |
 | [Interval](components/interval.html) | Current interval: kind, round, time left, progress and what comes next. |
 | [Power trace](components/power-trace.html) | Rider's power drawn against the plan's target blocks for the whole ride. |
@@ -131,7 +133,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 ## Changelog
 
-- **2026-11-17, video library (proposed; no requirement yet, see the mocks' open question 17).** CSS only, from the Magic Patterns *Video Library* and *Video Workout* frames; component pages follow when the design system is next extracted:
+- **2026-11-17, video library (proposed; no requirement yet, see the mocks' open question 17).** From the Magic Patterns *Video Library* and *Video Workout* frames. New component pages [Video card and shelf](components/video-card.html) and [Level row](components/level-row.html); [Page layout](components/page-layout.html) gains the library and video-page layouts and [Video ride-along](components/video.html) the cover variant and the length filter:
   - `.library` (with `__inner`, `__head`), `.shelf` (with `__head`, `__title`, `__blurb`, `__count`, `__grid`) and `.video-card` (with `__cover`, `__poster`, `__length`, `__title`, `__meta`, `__note`), a link whose strip is a `.profile`;
   - the video page: `.video-page` (with `__meta`, `__link`, `__back`), `.video-frame__cover`, `.plan-head`, `.setup-aside__group` and `.legend__aside`;
   - `.level-row`, a compact − level + for the plan's work, recover or steady level, with 44 px buttons;
@@ -181,16 +183,16 @@ python3 .claude/skills/extracting-design-systems/scripts/check_contrast.py docs/
 python3 .claude/skills/writing-html-mocks/scripts/screenshot_mocks.py docs/design-system --out docs/design-system/.cache/shots
 ```
 
-Run on 2026-11-15, and again on 2026-11-17 for the video ride-along:
+Run on 2026-11-15, and again on 2026-11-17 for the video ride-along and the video library:
 
 | Check | Result |
 |---|---|
-| `check_design_system.py` | 65 pages (12 foundations, 44 components, 8 patterns, index), 0 errors, 0 warnings (2026-11-17) |
-| `check_contrast.py` | 154 passed, 0 failed, 0 unresolved (78 pairs × 2 themes, less theme-specific pairs; 2026-11-17) |
+| `check_design_system.py` | 69 pages (48 components, 8 patterns), 0 errors, 0 warnings (2026-11-17, video library) |
+| `check_contrast.py` | 154 passed, 0 failed, 0 unresolved (2026-11-17; the video card and level row reuse existing pairs) |
 | `tokens_to_json.py` | `tokens.json` written, 337 tokens (2026-11-17) |
-| `check_mocks.py docs/mocks --write` with the mocks reading this system | 13 screens, 81 mocks, 0 errors, 0 warnings (2026-11-17) |
+| `check_mocks.py docs/mocks --write` with the mocks reading this system | 15 screens, 97 mocks, 0 errors, 0 warnings (2026-11-17) |
 | Horizontal overflow at 360px, all 46 mocks and 61 pages, both themes | none |
-| Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280 |
+| Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280; video card and level row pages and every video-library and video-workout mock at 360, 768 and 1280, both themes (2026-11-17) |
 
 ### Closing the loop with the mocks
 
