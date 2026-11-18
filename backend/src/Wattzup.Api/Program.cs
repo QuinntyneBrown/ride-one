@@ -159,6 +159,7 @@ api.MapMachineEndpoints();
 api.MapWorkoutEndpoints();
 api.MapDiagnosticsEndpoints();
 api.MapClassEndpoints();
+api.MapSessionEndpoints();
 
 app.Run();
 

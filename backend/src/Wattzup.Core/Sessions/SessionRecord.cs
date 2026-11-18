@@ -9,7 +9,7 @@ public readonly record struct RideSample(int Power, int Cadence);
 public sealed record Dip(int Start, int Duration, int Target, int Low, SegmentKind Kind, int? Round);
 
 /// <summary>A saved ride, a <em>session</em> (L2-081, ADR 0015). Serialised in snake_case with nulls written.</summary>
-public sealed record SessionRecord
+public record SessionRecord
 {
     public required string Id { get; init; }
 
@@ -76,3 +76,19 @@ public sealed record SessionInput(
     IReadOnlyList<Segment> Segments,
     IReadOnlyList<RideSample> Samples,
     RideTotals Totals);
+
+/// <summary>A session as <c>GET /api/sessions/{id}</c> answers it: the whole record, its previous attempt and the bests it set (L2-083).</summary>
+public sealed record SessionDetail : SessionRecord
+{
+    [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
+    public SessionDetail(SessionRecord session, SessionSummary? previous, IReadOnlyList<string> bests)
+        : base(session)
+    {
+        Previous = previous;
+        Bests = bests;
+    }
+
+    public SessionSummary? Previous { get; init; }
+
+    public IReadOnlyList<string> Bests { get; init; }
+}
