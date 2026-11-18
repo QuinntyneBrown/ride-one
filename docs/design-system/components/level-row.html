@@ -36,7 +36,7 @@
       <li><a href="../components/form-field.html">Form field</a></li>
       <li><a href="../components/form-layout.html">Form layout</a></li>
       <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li><li><a href="../components/machine-card.html">Machine card</a></li>
-      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li><li><a href="../components/video-card.html">Video card and shelf</a></li><li><a href="../components/level-row.html">Level row</a></li>
+      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li><li><a href="../components/class-card.html">Class card and shelf</a></li><li><a href="../components/level-row.html">Level row</a></li>
       <li><a href="../components/slider.html">Slider</a></li>
       <li><a href="../components/number-stepper.html">Number stepper</a></li>
       <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li><li><a href="../components/effort-row.html">Effort row</a></li>
@@ -91,7 +91,7 @@
     </header>
     <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
 <p>A level row sets one level of a plan before the ride: work, recover, or the single steady level. It is the compact cousin of the <a href="level-control.html">Level control</a>, which drives the bike's resistance live during a ride with 64 px buttons and a large numeral.</p>
-<p>Use it in the plan panel of a video's page, where two or three levels stack in a narrow column. Use the level control on the ride dashboard and the <a href="slider.html">Slider</a> on Set up your ride.</p>
+<p>Use it in the plan panel of a class page, where two or three levels stack in a narrow column. Use the level control on the ride dashboard and the <a href="slider.html">Slider</a> on Set up your ride.</p>
     </section>
     <section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
 <div class="ds-anatomy"><figure class="ds-anatomy__figure"><div class="level-row"><span class="level-row__name"><span class="swatch swatch--work" aria-hidden="true"></span>Work</span><button class="btn btn--subtle btn--icon" type="button" aria-label="Lower work resistance"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><span class="numeral level-row__value" aria-live="polite" aria-label="Work level 24 of 32">24<small> / 32</small></span><button class="btn btn--subtle btn--icon" type="button" aria-label="Raise work resistance"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div><span class="ds-callout" style="left: 4%; top: 10%;" aria-hidden="true">1</span><span class="ds-callout" style="left: 34%; top: 10%;" aria-hidden="true">2</span><span class="ds-callout" style="left: 62%; top: 10%;" aria-hidden="true">3</span><span class="ds-callout" style="left: 88%; top: 10%;" aria-hidden="true">4</span></figure>
@@ -146,7 +146,7 @@
 &lt;/div&gt;</code></pre><p>In Angular, <code>wz-level-row</code>: inputs <code>name</code>, <code>kind</code>, <code>value</code>, <code>disabled</code>; output <code>valueChange</code>.</p>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>From these mocks:</p><ul><li><a href="../../mocks/pages/video-workout/default.html">pages/video-workout/default</a></li><li><a href="../../mocks/pages/video-workout/edited.html">pages/video-workout/edited</a></li><li><a href="../../mocks/pages/video-workout/flat.html">pages/video-workout/flat</a></li><li><a href="../../mocks/pages/video-workout/submitting.html">pages/video-workout/submitting</a></li></ul>
+<p>From these mocks:</p><ul><li><a href="../../mocks/pages/class/default.html">pages/class/default</a></li><li><a href="../../mocks/pages/class/edited.html">pages/class/edited</a></li><li><a href="../../mocks/pages/class/flat.html">pages/class/flat</a></li><li><a href="../../mocks/pages/class/submitting.html">pages/class/submitting</a></li></ul>
 <p>Drift fixed from the <em>Video Workout</em> frame: buttons 40 → 44 px; the frame's swatch colours were raw hex, now the series tokens.</p>
     </section>
 
