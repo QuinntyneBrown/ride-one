@@ -132,8 +132,65 @@ public sealed class ClassCatalogueTests
 
         var paths = doc.GetProperty("paths");
         Assert.True(paths.GetProperty("/api/classes").TryGetProperty("get", out _));
+        Assert.True(paths.GetProperty("/api/classes/{id}").TryGetProperty("get", out var get));
+        Assert.True(get.GetProperty("responses").TryGetProperty("404", out _));
         var schemas = doc.GetProperty("components").GetProperty("schemas");
         var required = schemas.GetProperty("ClassResponse").GetProperty("required").EnumerateArray().Select(r => r.GetString());
         Assert.Equal(["channel", "description", "focus", "id", "plan", "shelf", "title"], required.Order());
+    }
+
+    [Fact]
+    public async Task Given_a_class_id_then_GET_class_answers_200_with_that_class()
+    {
+        using var factory = FactoryWith(Catalogue);
+        using var client = factory.CreateClient();
+
+        var json = await GetJsonAsync(client, "/api/classes/steady-hour");
+
+        Assert.Equal("Steady Hour", json.GetProperty("title").GetString());
+        Assert.Equal("long", json.GetProperty("shelf").GetProperty("id").GetString());
+        Assert.Equal("flat", json.GetProperty("plan").GetProperty("kind").GetString());
+    }
+
+    [Theory]
+    [InlineData("unknown")]
+    [InlineData("..%2Fx")]
+    [InlineData("Steady-Hour")]
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+    public async Task Given_an_unknown_id_then_GET_class_answers_404_class_not_found(string id)
+    {
+        using var factory = FactoryWith(Catalogue);
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync(new Uri($"/api/classes/{id}", UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("class_not_found", (await Bike.JsonAsync(response)).GetProperty("code").GetString());
+    }
+
+    [Theory]
+    [InlineData("/api/classes")]
+    [InlineData("/api/classes/steady-hour")]
+    public async Task Given_POST_on_classes_then_the_answer_is_405(string path)
+    {
+        using var factory = FactoryWith(Catalogue);
+        using var client = factory.CreateClient();
+
+        using var response = await client.PostAsync(new Uri(path, UriKind.Relative), null);
+
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("/api/classes")]
+    [InlineData("/api/classes/steady-hour")]
+    public async Task Given_an_API_key_then_GET_classes_without_it_answers_401(string path)
+    {
+        using var factory = FactoryWith(Catalogue, new Dictionary<string, string?> { ["Wattzup:Security:ApiKey"] = "test-key-0123456789" });
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 }

@@ -24,7 +24,25 @@ public static class ClassEndpoints
             .WithName("ListClasses")
             .WithSummary("The class catalogue: every shelf that has a class, with its classes, in file order.")
             .Produces<ClassCatalogueResponse>();
+        api.MapGet("/classes/{id}", Get)
+            .WithName("GetClass")
+            .WithSummary("One class by id; an unknown id answers 404 class_not_found.")
+            .Produces<ClassResponse>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
         return api;
+    }
+
+    private static IResult Get(string id, ClassCatalogueStore store)
+    {
+        var catalogue = store.Current;
+        if (ClassCatalogueReader.IsId(id)
+            && catalogue.Find(id) is { } entry
+            && catalogue.Shelves.FirstOrDefault(s => s.Id == entry.ShelfId) is { } shelf)
+        {
+            return TypedResults.Ok(ToResponse(entry, shelf));
+        }
+
+        return Problems.WithCode(StatusCodes.Status404NotFound, "class_not_found", "No class has that id.");
     }
 
     private static ClassCatalogueResponse ToResponse(ClassCatalogue catalogue) =>
