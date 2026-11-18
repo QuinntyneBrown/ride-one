@@ -66,7 +66,7 @@ The feature extends these existing designs:
   - **Start.** It reads the file through `SessionFile.Read`. On success it calls `SessionStore.Load`. On an error it calls `SetAside`, logs one error naming the path and the reason, and starts empty (L2-082 criteria 2, 5 and 6).
   - **Save.** It subscribes to `SessionStore.Saved` and writes the file with `SessionFile.Write`. An `IOException` or `UnauthorizedAccessException` is logged, and nothing is thrown back into the engine (criterion 7).
 - **`WorkoutEndpoints`** changes:
-  - **Start.** `StartAsync` reads an optional top-level `class_id`. It must name a class in `ClassCatalogueStore.Current`; otherwise the answer is 422 `invalid_workout` with the field `class_id`. The endpoint passes `RideOrigin(id, entry.Title)` to the engine (L2-081 criterion 7).
+  - **Start.** `StartAsync` reads an optional top-level `class_id`. It must name a class in `ClassCatalogueStore.Current`; otherwise the answer is 400 `invalid_workout` with the field `class_id`. The endpoint passes `RideOrigin(id, entry.Title)` to the engine (L2-081 criterion 7).
   - **Stop.** `POST /api/workout/stop` answers `WorkoutStopped(bool Stopped, string? SessionId)` (criterion 8).
 - `GET /api/sessions…` and `GET /api/progress` belong to `history/review-session` and `history/track-progress`.
 
@@ -81,7 +81,7 @@ The feature extends these existing designs:
 `Wattzup.Api.AcceptanceTests` (`SessionRecordingTests`, `SessionStorageTests`) start the host with `SimulatedBikeTransport` and `FakeTimeProvider`, and set `Wattzup:Sessions:Path` to a file in the factory's per-test folder:
 - `Given_a_bike_ride_of_a_minute_when_it_is_stopped_then_a_session_is_saved_and_its_id_answered` (L2-081 AC1, AC8)
 - `Given_a_ride_under_a_minute_when_it_is_stopped_then_no_session_is_saved` (AC2)
-- `Given_a_class_start_then_the_session_has_the_class_id_and_title` and `Given_an_unknown_class_id_then_the_start_answers_422` (AC7)
+- `Given_a_class_start_then_the_session_has_the_class_id_and_title` and `Given_an_unknown_class_id_then_the_start_answers_400_naming_class_id` (AC7)
 - `Given_the_bike_is_off_for_90_seconds_then_the_ended_ride_is_saved` (AC1)
 - `Given_a_saved_session_when_the_backend_restarts_then_it_is_still_served` (L2-082 AC2)
 - `Given_an_unreadable_file_then_it_is_set_aside_and_the_backend_starts_empty` (AC6)

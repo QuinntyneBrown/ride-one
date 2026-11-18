@@ -6,8 +6,8 @@ namespace Wattzup.Api.Endpoints;
 /// <summary>The answer of <c>POST /api/workout</c>.</summary>
 public sealed record WorkoutStarted(WorkoutSnapshot Started);
 
-/// <summary>The answer of <c>POST /api/workout/stop</c>.</summary>
-public sealed record WorkoutStopped(bool Stopped);
+/// <summary>The answer of <c>POST /api/workout/stop</c>: the saved session's id, or null when none was saved (L2-081).</summary>
+public sealed record WorkoutStopped(bool Stopped, string? SessionId);
 
 /// <summary>The answer of pause, resume and back-to-plan.</summary>
 public sealed record WorkoutChanged(WorkoutSnapshot Workout);
@@ -51,10 +51,11 @@ public static class WorkoutEndpoints
 
         workout.MapPost("/stop", async (WorkoutEngine engine, CancellationToken ct) =>
             {
-                await engine.StopWorkoutAsync(ct);
-                return TypedResults.Ok(new WorkoutStopped(true));
+                var stopped = await engine.StopWorkoutAsync(ct);
+                return TypedResults.Ok(new WorkoutStopped(true, stopped?.SessionId));
             })
             .WithName("StopWorkout")
+            .WithSummary("Stops the ride; a ride of a minute or more on the bike is saved as a session.")
             .RequireRateLimiting(Security.RateLimits.Control);
 
         Map(workout, "/pause", "PauseWorkout", (e, ct) => e.PauseAsync(ct));
@@ -80,7 +81,8 @@ public static class WorkoutEndpoints
             .ProducesProblem(StatusCodes.Status409Conflict)
             .RequireRateLimiting(Security.RateLimits.Control);
 
-    private static async Task<IResult> StartAsync(HttpRequest request, WorkoutEngine engine, Wattzup.Core.Machines.MachineSelector machines)
+    private static async Task<IResult> StartAsync(
+        HttpRequest request, WorkoutEngine engine, Wattzup.Core.Machines.MachineSelector machines, Wattzup.Core.Classes.ClassCatalogueStore classes)
     {
         if (!JsonBody.IsJsonOrEmpty(request))
         {
@@ -99,7 +101,21 @@ public static class WorkoutEndpoints
             return Invalid(result.Errors);
         }
 
-        return TypedResults.Ok(new WorkoutStarted(await engine.StartAsync(plan, request.HttpContext.RequestAborted)));
+        RideOrigin? origin = null;
+        if (json.ValueKind == JsonValueKind.Object && json.TryGetProperty("class_id", out var classId) && classId.ValueKind != JsonValueKind.Null)
+        {
+            if (classId.ValueKind != JsonValueKind.String
+                || classId.GetString() is not { } id
+                || !Wattzup.Core.Classes.ClassCatalogueReader.IsId(id)
+                || classes.Current.Find(id) is not { } entry)
+            {
+                return Invalid(new Dictionary<string, string[]> { ["class_id"] = ["No class has that id."] });
+            }
+
+            origin = new RideOrigin(entry.Id, entry.Title);
+        }
+
+        return TypedResults.Ok(new WorkoutStarted(await engine.StartAsync(plan, origin, request.HttpContext.RequestAborted)));
     }
 
     private static Microsoft.AspNetCore.Http.HttpResults.ValidationProblem Invalid(IReadOnlyDictionary<string, string[]> errors) =>

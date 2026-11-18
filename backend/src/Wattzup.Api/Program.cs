@@ -108,6 +108,7 @@ builder.Services.AddHostedService<StateChangeLogger>();
 builder.Services.AddSingleton<TelemetryIngestor>();
 builder.Services.AddSingleton<IResistanceCommander, ResistanceCommander>();
 builder.Services.AddSingleton<PowerTraceHistory>();
+builder.Services.AddSingleton<Wattzup.Core.Sessions.SessionStore>();
 builder.Services.AddSingleton<WorkoutEngine>();
 builder.Services.AddSingleton<IResistanceControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddSingleton<Wattzup.Core.Treadmill.ITreadmillCommander, Wattzup.Core.Treadmill.TreadmillCommander>();

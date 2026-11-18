@@ -27,11 +27,15 @@ public sealed class WattzupApiFactory(IDictionary<string, string?>? settings = n
 
     public string Directory { get; } = System.IO.Directory.CreateTempSubdirectory("wattzup-tests-").FullName;
 
+    /// <summary>The sessions file, in <see cref="Directory"/> unless a setting names another (L2-082 criterion 8).</summary>
+    public string SessionsPath => Path.Combine(Directory, "sessions.json");
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("Wattzup:Ble:Transport", "Simulated");
         builder.UseSetting("Wattzup:RawPacketLog:Path", Path.Combine(Directory, "raw_packets.log"));
         builder.UseSetting("Wattzup:StatusSnapshot:Path", Path.Combine(Directory, "status.json"));
+        builder.UseSetting("Wattzup:Sessions:Path", SessionsPath);
         foreach (var (key, value) in settings ?? new Dictionary<string, string?>())
         {
             builder.UseSetting(key, value);
