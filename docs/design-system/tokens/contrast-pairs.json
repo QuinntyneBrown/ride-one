@@ -341,13 +341,13 @@
       "fg": "--color-fg-warn",
       "bg": "--color-bg-canvas",
       "min": 4.5,
-      "note": "below-target delta, Scanning…"
+      "note": "below-target delta, Scanning\u2026"
     },
     {
       "fg": "--color-fg-warn",
       "bg": "--color-bg-surface",
       "min": 4.5,
-      "note": "Setting 22… and 'sending' in the resistance panel"
+      "note": "Setting 22\u2026 and 'sending' in the resistance panel"
     },
     {
       "fg": "--color-fg-rest",
@@ -474,6 +474,24 @@
       "bg": "--color-video-scrim",
       "min": 4.5,
       "note": "text over the video scrim (L2-076)"
+    },
+    {
+      "fg": "--color-series-dip",
+      "bg": "--color-bg-canvas",
+      "min": 3,
+      "note": "cadence dip band on the session traces (L2-085)"
+    },
+    {
+      "fg": "--color-series-dip",
+      "bg": "--color-bg-surface",
+      "min": 3,
+      "note": "Under target key swatch (L2-085)"
+    },
+    {
+      "fg": "--color-fg-on-volt",
+      "bg": "--color-volt-fill",
+      "min": 4.5,
+      "note": "personal-best chip and unlocked achievement badge (L2-085, L2-086)"
     }
   ]
 }
