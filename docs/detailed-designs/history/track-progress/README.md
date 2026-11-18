@@ -48,9 +48,9 @@ All methods take the sessions (newest first), `DateTimeOffset now` and the `Time
 - **`TrendChart`** (`trend-chart/`, `wz-trend-chart`):
   - It shows the latest value and unit, and the change line with `since your first ride on <d Mon> · <k> rides`.
   - Three gridlines with labels, and the polyline, are drawn in a 100 × 100 SVG.
-  - One button per attempt is named `<d Mon>: <value>` and positioned by percentage. The latest point is larger.
+  - One link per attempt (`href` `/sessions/<id>`) is named `<d Mon>: <value>` and positioned by percentage. The latest point is larger.
   - Inputs: `view: TrendView`. Output: `open(id)`.
-- **`SessionList`** (`session-list/`, `wz-session-list`) — `Sessions` with `<n> saved`, then a row link per session to `/sessions/<id>`, and `Show all <n>` / `Show fewer`. Under 576 px a row shows the title with the date and time beneath, `Avg` and `On target`. Inputs: `rows: SessionRow[]`.
+- **`SessionList`** (`session-list/`, `wz-session-list`) — `Sessions` with `<n> saved`, then a row link per session to `/sessions/<id>`, and `Show all <n>` / `Show fewer`. Under 576 px a row shows the title with the date and time beneath, `Avg` and `On target`. Inputs: `rows: SessionRow[]`, `total`, `expanded` and `foldable`; outputs `toggleAll` and `open`. Like `ClassCard`, each row is a plain `href`, and a plain click emits `open(id)` for the page to route, so the library never touches the router.
 - **`StreakCalendar`** (`streak-calendar/`, `wz-streak-calendar`):
   - It shows `Streak`, the number, `Best`, the message, and a grid of six weeks (each day named and marked `--ridden`, `--today` or `--future`).
   - `This week` shows `<n> of 4 rides` with a meter (`role="meter"`, `aria-valuenow`), followed by the `All time` line.
@@ -62,7 +62,7 @@ All methods take the sessions (newest first), `DateTimeOffset now` and the `Time
 - **`progress-view.ts`** (`core/`, new, pure, with its spec):
   - **Classes.** `comparableClasses(progress)` gives the classes with 2 or more attempts, most recently ridden first.
   - **Trend.** `trendView(attempts, measure)` gives the values, the change text (`+18 W`, `−3%`, `2 fewer`, `No change`), the scale with its padding (as the frame: a quarter of the range, at least 2, or 1 for dips) and the point positions.
-  - **Calendar.** `calendarOf(rideDays, today, weeks)` gives the Monday-first grid.
+  - **Calendar.** `calendarOf(progress, 6)` from `session-view.ts` gives the Monday-first grid.
   - **Streak.** `streakView(progress)` gives the number, the message and the `beats your best` line.
   - **Ride button.** `rideButton(streak)` reads `Ride to make it <n+1>` or `Ride again`.
   - **Sessions.** `sessionRows(summaries)` gives the list's rows.
@@ -89,22 +89,14 @@ All methods take the sessions (newest first), `DateTimeOffset now` and the `Time
 
 ### Acceptance tests
 
-`Wattzup.Api.AcceptanceTests` (`ProgressTests`), with `FakeTimeProvider` set to a known local time:
-- `Given_sessions_on_consecutive_days_then_GET_progress_answers_the_streak_week_and_classes` (L2-083 AC4)
-- `Given_no_sessions_then_GET_progress_answers_zero_figures_and_locked_achievements` (L2-087 AC3)
+`Wattzup.Api.AcceptanceTests` (`SessionsApiTests`), with `FakeTimeProvider` set to a known local time:
+- `Given_progress_then_it_answers_the_figures_in_local_days` (L2-083 AC4)
 
-`Wattzup.Core.Tests` (`ProgressCalculatorTests`) has one case per row of the three L2-087 tables. These include the 23:59 / 00:01 boundary, yesterday-only, two days ago, two rides on one day, a Sunday versus the Monday week start, each achievement at goal − 1 and at goal, and the ordering.
+`Wattzup.Core.Tests` (`ProgressCalculatorTests`) has one case per row of the three L2-087 tables. These include the 23:59 / 00:01 boundary, yesterday-only, two days ago, two rides on one day, a Sunday versus the Monday week start, each achievement at goal − 1 and at goal, the ordering, and no sessions at all (L2-087 AC3).
 
-Playwright (`e2e/progress.spec.ts`, page object `e2e/pages/progress.page.ts`):
-- `shows Getting stronger for the most recent class ridden twice, with its trend` (L2-086 AC2, AC3)
-- `switches class with the radios and measure with the tabs, by keyboard` (AC2, AC3)
-- `opens a session from the chart and from the list, and shows all sessions` (AC4, AC6)
-- `shows the streak calendar, weekly goal and achievements` (AC7, AC8)
-- `reads Ride again when ridden today` (AC1)
-- `shows no-trend, empty, loading and error` (AC5, AC9, AC10)
-- `the class library links to Progress with the streak` (L2-079 AC13)
+Playwright (`e2e/progress.spec.ts`, page object `e2e/pages/progress.page.ts`), one test per behaviour of L2-086: the header and `Ride to make it <n>` or `Ride again` (AC1); the class radios and measure tabs by click and arrow keys (AC2, AC3); the chart's points as links, the latest larger (AC4); dips counted down as better (AC3); no trend (AC5); the newest 8 sessions and `Show all` (AC6); the streak messages, the six-week calendar, this week and all time (AC7); the achievements (AC8); `No rides yet` (AC9); loading and error (AC10); the treadmill redirect (AC11).
 
-`progress-view.spec.ts` covers each helper. The existing `class-library.spec.ts` stubs `/api/progress`.
+`e2e/class-library.spec.ts` covers the library's `Progress` link: its name and `<n>d` badge, the filled badge when ridden today, and no badge with no streak or when progress fails (L2-079 AC13).
 
 ### Open questions
 

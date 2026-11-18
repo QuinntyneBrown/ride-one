@@ -219,6 +219,11 @@ specs, the detailed design or the mock.
     - **Ride complete:** the frames end a ride only through End. A plan that runs to its end
       gets the `ride/complete` overlay with `See your ride`.
 
+    Built on 2026-11-18 (`feat/ride-history`): sessions saved on the bike and kept in
+    `sessions.json`, their endpoints, the Session Summary at `/sessions/:id`, Progress at
+    `/progress`, the library's `Progress` link, and End ride and `Ride complete` opening the
+    summary.
+
 ## Re-checking and re-screenshotting
 
 ```sh

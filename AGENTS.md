@@ -102,7 +102,7 @@ committed.
 
 Use the words the specs use in code, docs and UI; no synonyms. A workout follows a plan (`hiit`,
 `intervals` or `flat`; an `intervals` plan is a warm-up, ordered sets and a cool-down) expanded into segments (kind, start, duration, level, cadence aim, round); the bike's reported level is "resistance",
-the requested one is "target resistance"; the Bluetooth link state is `ble`. A class is a catalogue entry (ADR 0014): a bike plan with the YouTube video it follows, on a shelf; the rider picks one in the class library (`/classes`) and opens its class page (`/classes/:id`). The machine is `bike` or
+the requested one is "target resistance"; the Bluetooth link state is `ble`. A class is a catalogue entry (ADR 0014): a bike plan with the YouTube video it follows, on a shelf; the rider picks one in the class library (`/classes`) and opens its class page (`/classes/:id`). A session is a saved bike ride (ADR 0015): what was ridden, its totals, its traces and its cadence dips, kept on the backend; the rider reads one on its Session Summary (`/sessions/:id`) and all of them on Progress (`/progress`), with the streak, the weekly goal, personal bests and achievements. The machine is `bike` or
 `treadmill`. On the treadmill the reported value is "speed" and the requested one "target speed";
 likewise "incline" and "target incline"; the moving surface is the "belt" (`stopped`, `starting`,
 `running`). On the treadmill the UI calls a ride a "run" and a `flat` plan "Steady"; the API keeps

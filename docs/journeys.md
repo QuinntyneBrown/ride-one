@@ -18,3 +18,4 @@ narrated film in [`docs/videos/`](videos/README.md).
 | 11 | Unlock a shared server | Enter the API key once to use a networked server. |
 | 12 | Check diagnostics | See what Wattzup hears from the bike; copy the details. |
 | 13 | Switch light or dark | Ride in the dark theme by default, or switch to light. |
+| 14 | Review your rides | See each saved ride's summary and dips, then your progress and streak. |

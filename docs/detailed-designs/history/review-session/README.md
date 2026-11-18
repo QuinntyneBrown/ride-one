@@ -58,17 +58,17 @@ These endpoints are mapped on the `/api` group, so the API key applies when one 
 
 **App.**
 - **`session-view.ts`** (`core/`, new, pure, with its spec) builds the page's text and drawing data:
-  - `dateLine(endedAt, justFinished)` reads `Ride saved · Tuesday 17 Nov at 18:10`.
+  - `dateLine(endedAt, justFinished)` reads `Ride saved · Tuesday 17 Nov at 18:10`, in the browser's local time.
   - `deltaOf(session)` reads `{text: '+12 W', direction: 'up' | 'down' | 'same', since: 'vs last time, 12 Nov'}`, or `null`.
   - `endedEarly(session)` gives the `Ended early · …` line.
   - `dipListView(session)` gives the lead line, the rows and the no-dips line.
   - `tracesView(session)` gives the points, bands, aims and ticks as `trace-geometry` does for the live trace.
   - `totals(session)` gives the six stats.
   - `weekLine(week)` gives `<n> of 4 rides this week. <m> more to hit your goal.`, or `Weekly goal hit — …`.
-  - `streakDays(progress)` gives the week strip from `ride_days` and `today`, through `calendarOf` in `progress-view.ts`.
+  - `calendarOf(progress, weeks)` gives the week strip (one week) from `ride_days` and `today`; `progress-view.ts` uses it for the six-week calendar.
 - **`SessionPage`** (`dashboard/session-page/`, new; route `sessions/:id`, lazy `loadComponent`; title `Your ride · Wattzup`):
   - **Data.** It reads `SESSION_API.get(id)` and `SESSION_API.progress()` together. `phase` is `loading`, `ready`, `not-found` or `error`.
-  - **Just finished.** `justFinished` comes from `history.state.justFinished`, which `EndRideDialog` and the ride overlays set through `Router.navigate(…, {state})`. It is lost on reload, so a reload reads `All sessions` (L2-085 criterion 2).
+  - **Just finished.** `justFinished` comes from `history.state.justFinished`, which `EndRideDialog` and the ride overlays set through `Router.navigate(…, {state})`. The browser keeps `history.state` across a reload, so the page clears the flag on its history entry once it has rendered (`Location.replaceState`); a reload reads `All sessions` (L2-085 criterion 2).
   - **Header.** The back link (`Done` or `All sessions`) goes to `/progress`. `Ride this again` links to `/classes/<class_id>` when there is one.
   - **Dip focus.** The page holds `focusDip` in a signal, which joins `DipList` to `SessionTraces` (criterion 10).
   - **Treadmill.** `bikeOnly()` sends the treadmill to `/setup` (criterion 13).
@@ -95,25 +95,18 @@ These endpoints are mapped on the `/api` group, so the API key applies when one 
 
 ### Acceptance tests
 
-`Wattzup.Api.AcceptanceTests` (`SessionEndpointsTests`):
-- `Given_sessions_then_GET_sessions_lists_their_summaries_newest_first` (L2-083 AC1)
-- `Given_a_session_id_then_GET_session_answers_the_session_with_previous_and_bests` (AC2)
-- `Given_an_unknown_id_then_GET_session_answers_404_session_not_found` (AC3)
-- `Given_POST_or_no_API_key_then_405_or_401` (AC5)
-- `The_session_endpoints_are_in_the_OpenAPI_document` (AC6)
+`Wattzup.Api.AcceptanceTests` (`SessionsApiTests`, shared with `history/track-progress`; the sessions file is seeded through `SessionFile.Write`):
+- `Given_no_sessions_then_the_list_is_empty` and `Given_sessions_then_the_list_has_their_summaries_newest_first` (L2-083 AC1)
+- `Given_a_session_id_then_the_whole_session_is_answered_with_its_previous_attempt_and_bests` and `Given_a_first_ride_then_previous_is_null_and_no_best_is_invented` (AC2, L2-087)
+- `Given_an_id_no_session_has_then_the_answer_is_404_session_not_found` (AC3)
+- `Given_another_method_then_the_answer_is_405` and `Given_an_api_key_then_a_request_without_it_answers_401` (AC5)
+- `The_three_endpoints_are_in_the_OpenAPI_document` (AC6)
 
 `Wattzup.Core.Tests` (`ProgressCalculatorTests`) has one case per row for the previous attempt and the bests (L2-087).
 
-Playwright (`e2e/session.spec.ts`, page object `e2e/pages/session-summary.page.ts`, with `/api/sessions/*` and `/api/progress` answered from recordings):
-- `ending a bike ride opens its summary as just finished` (L2-084 AC1, L2-085 AC2)
-- `shows the headline, delta, bests, streak, dips, totals and Ride this again` (L2-085 AC1, AC3 to AC9, AC11)
-- `highlights a dip on the trace when its row is focused` (AC10)
-- `shows the first-ride, ended-early and no-dips states` (AC4 to AC6, AC9)
-- `shows not-found and error with Try again` (AC12)
-- `the bike-shut-off and ride-complete overlays open the summary` (L2-084 AC2, AC3)
-- `redirects the treadmill to setup` (AC13)
+Playwright (`e2e/session.spec.ts`, page object `e2e/pages/session-summary.page.ts`, stubs in `e2e/fixtures/sessions.ts` laid over the recorded answers), one test per behaviour of L2-085: the date line, title and delta (AC1, AC4); `All sessions` and `Ride this again` (AC2, AC3); the fall and `0 W` (AC4); the first ride (AC3, AC4, AC6); `Ended early` (AC5); the bests in order (AC6); the streak, week strip and weekly line (AC7); the traces' text alternative and dip bands (AC8); the dip rows and their highlight on hover and focus (AC9, AC10); no dips (AC9); the totals without heart rate (AC11); loading, not-found and error with `Try again` (AC12); the treadmill redirect (AC13).
 
-The existing `dialogs.spec.ts` expectation of `/classes` after End ride becomes `/sessions/<id>`. The treadmill case still expects `/setup`. `session-view.spec.ts` covers each formatter.
+L2-084 is proven where the ride ends: `e2e/dialogs.spec.ts` (`End ride with a saved ride opens its summary as just finished`, including the reload that reads `All sessions`) and `e2e/banners-and-states.spec.ts` (the `bike-shut-off` overlay with `See your ride`, `Ride complete` with it focused, no overlay without a session or on the treadmill).
 
 ### Open questions
 

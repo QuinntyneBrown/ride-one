@@ -80,16 +80,18 @@ The feature extends these existing designs:
 
 `Wattzup.Api.AcceptanceTests` (`SessionRecordingTests`, `SessionStorageTests`) start the host with `SimulatedBikeTransport` and `FakeTimeProvider`, and set `Wattzup:Sessions:Path` to a file in the factory's per-test folder:
 - `Given_a_bike_ride_of_a_minute_when_it_is_stopped_then_a_session_is_saved_and_its_id_answered` (L2-081 AC1, AC8)
-- `Given_a_ride_under_a_minute_when_it_is_stopped_then_no_session_is_saved` (AC2)
-- `Given_a_class_start_then_the_session_has_the_class_id_and_title` and `Given_an_unknown_class_id_then_the_start_answers_400_naming_class_id` (AC7)
-- `Given_the_bike_is_off_for_90_seconds_then_the_ended_ride_is_saved` (AC1)
+- `Given_a_ride_under_a_minute_when_it_is_stopped_then_no_session_is_saved` and `Given_no_workout_when_stop_is_called_then_the_answer_has_no_session` (AC2, AC8)
+- `Given_a_plan_that_runs_to_its_end_then_the_ended_ride_is_saved_with_the_first_ended_state` and `Given_the_bike_is_off_for_90_seconds_then_the_ended_ride_is_saved` (AC1)
+- `Given_a_running_ride_then_its_session_id_is_null` (L2-014)
+- `Given_the_treadmill_then_no_session_is_saved` (AC3)
+- `Given_a_class_start_then_the_session_has_the_class_id_and_title`, `Given_a_setup_ride_then_the_session_is_titled_by_the_workout_summary` and `Given_an_unknown_class_id_then_the_start_answers_400_naming_class_id` (AC7)
 - `Given_a_saved_session_when_the_backend_restarts_then_it_is_still_served` (L2-082 AC2)
 - `Given_an_unreadable_file_then_it_is_set_aside_and_the_backend_starts_empty` (AC6)
-- `Given_no_setting_then_sessions_json_is_used` (AC1)
+- `Given_a_file_that_cannot_be_written_then_the_error_is_logged_and_the_ride_still_ends_with_its_session` (AC5)
 
 `Wattzup.Core.Tests`:
 - `SessionBuilderTests` has one case per row of both L2-081 tables: tolerance per kind, a 5 s run that is not a dip, a 6 s run that is, a run split by a segment boundary, the `on_target_pct` with no counted segment, `best_minute_power` on a rising ride, `completed` at planned − 5 and planned − 6, and the 5-second traces with a partial last bucket.
-- `SessionFileTests` cover a missing file, a corrupt file, the 500 cap (through `SessionStore`), and a write that leaves no `.tmp` behind.
+- `SessionFileTests` cover a missing file, a corrupt file, the 500 cap (through `SessionStore`), and a write that leaves no `.tmp` behind. The default path (`sessions.json` beside the content root, L2-082 AC1) is checked through `SessionFileService.ResolvePath`.
 
 ### Open questions
 
