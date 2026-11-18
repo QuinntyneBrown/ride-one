@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — Load the catalogue at start-up
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Backend — Wattzup API application" #D1FADF
+  participant "Host" as host
+  participant "ClassCatalogueService" as svc
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "ClassCatalogueReader" as reader
+  participant "WorkoutPlanValidator" as val
+  participant "ClassCatalogueStore" as store
+end box
+box "Backend — Infrastructure" #FFF4E5
+  database "classes.json" as file
+  participant "ILogger" as log
+end box
+
+host -> svc : StartAsync
+svc -> file : Open Wattzup:Classes:Path [L2-077 AC2]
+alt file missing or unreadable
+  file --> svc : IOException
+  svc -> log : Error: path and reason, once [L2-077 AC5]
+  svc -> store : Replace(ClassCatalogue.Empty)
+else file opened
+  file --> svc : Stream, length
+  svc -> reader : Read(stream, length)
+  alt over 1 MB or not valid JSON
+    reader --> svc : FileError [L2-077 AC5]
+    svc -> log : Error: path and reason, once
+    svc -> store : Replace(ClassCatalogue.Empty)
+  else parsed
+    reader -> reader : Drop shelves with a bad or repeated id [L2-077 AC4]
+    loop each class
+      reader -> reader : Check id, title, channel, focus, description, shelf [L2-077 table]
+      reader -> val : Validate(plan, Machine.Bike)
+      val --> reader : plan or errors (treadmill plans rejected) [L2-077 AC3]
+    end
+    reader -> reader : Keep the first 20 shelves and 200 classes [L2-077 AC6]
+    reader --> svc : Catalogue + problems
+    svc -> log : Warning per problem: entry and field [L2-077 AC3]
+    svc -> store : Replace(catalogue) [L2-077 AC1]
+  end
+end
+svc -> file : Watch through PhysicalFileProvider
+svc --> host : Started; the backend starts either way
+@enduml

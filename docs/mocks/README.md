@@ -56,6 +56,22 @@ Every mock uses this cast.
   0:12.0 of the video. The mid-ride moment is 11:42, *Work, round 3 of 8*, 0:18 left: 472 W against
   489 W, 97 rpm (aim 100), heart rate 162, avg power 172 W, 30.4 km/h, 4.61 km, 120 kcal. The invalid
   link is `https://vimeo.com/76979871`.
+- **Class library** (*Video Library* and *Video Workout* frames, 2026-11-17): six classes on three
+  shelves, as the default `classes.json` ships them (L2-077). Lengths, peaks and expected power are computed from each plan as the frames compute them.
+  - *20 min* (“Short and sharp — fits a lunch break.”): *20 Minute Power Intervals* (Wattzup Studio,
+    VO₂ max, 6 × 1:00 / 1:00 at 22 / 7, 20:00, ~207 W) and *20 Min Threshold Builder* (Wattzup Studio,
+    Threshold, 4 × 2:00 / 1:00 at 19 / 10, 20:00, ~230 W).
+  - *30 min* (“Structured intervals with a proper warm-up.”): *30 Minute HIIT Cardio* (GCN Training,
+    HIIT, 8 × 0:30 · 3:00 → 1:30 recover at 24 / 6, 30:00, ~154 W, the only one with a link, cued at
+    0:12.0) and *30 Min Tempo Paceline* (Wattzup Studio, Tempo, 4 × 6:00 / 2:00 at 17 / 11, 36:00).
+  - *60 min endurance* (“Long aerobic rides. Steady legs, steady heart.”): *60 Min Dolomites
+    Endurance* (Wattzup Scenic, Zone 2, Steady at level 12 for 1:00:00, 85 rpm) and *60 Min Coastal
+    Endurance + Surges* (Wattzup Scenic, Endurance, 5 × 6:00 / 5:00 at 15 / 11, 1:00:00).
+  - Covers are YouTube thumbnails (ADR 0014): the GCN card shows `i.ytimg.com/vi/QUoToFsMNig/mqdefault.jpg`;
+    the five classes without a link show the poster. The frames' generated images stay in
+    `assets/classes/` for the design-system examples only. The edited plan raises work to 26 and
+    recover to 8 (~177 W). The ride started from the library is `ride/class-workout`: 11:42,
+    work round 3 of 8, 409 W against 418 W, 98 rpm aim, at the library's levels.
 - **Network-exposed server:** `192.168.1.20:8787`, with its API key set in
   `Wattzup:Security:ApiKey`.
 
@@ -160,6 +176,26 @@ specs, the detailed design or the mock.
     card. The Switch links are hidden in both. The video mocks show the support-off header and aside;
     the older bike mocks show the Switch links, which is the support-on look.
 
+17. **Class library, settled 2026-11-17.** Mocks `class-library/*`, `class/*` and
+    `ride/class-workout`; components `shelf`, `class-card`, `level-row` and the class-page layout in
+    `docs/design-system/assets/components.css`. Requirements L1-014 and L2-077 to L2-080, ADR 0014.
+    The bike lands on the library after Choose machine, End ride returns to it, and *Build your own
+    ride* opens Set up your ride. The open questions were settled:
+    - **Where the catalogue lives:** a JSON file the backend reads and serves read-only at
+      `GET /api/classes` and `GET /api/classes/{id}` (L2-077, L2-078, ADR 0014). So
+      `class-library/loading` and `error` do occur.
+    - **Covers:** the YouTube thumbnail, built from the video id. The CSP admits exactly
+      `img-src https://i.ytimg.com` (ADR 0014 amending 0012). A class without a link shows the
+      poster.
+    - **Shelves:** defined in the catalogue (id, title, tagline, order); each class names its shelf.
+      *30 Min Tempo Paceline* stays on the 30 min shelf at 36:00, because the shelf is the owner's
+      choice, not a length bucket.
+    - **Start point:** steps by 0.5 s on the class page, as on setup (`Half a second earlier` /
+      `later`).
+    - **Invalid link:** Start ride stays enabled and rides without a video, as on setup (L2-029).
+    - **The word:** a library entry is a *class*: `Ride a class`, `All classes`, `Reset to class`,
+      routes `/classes` and `/classes/:id`. “Video” is only the YouTube video itself.
+
 ## Re-checking and re-screenshotting
 
 ```sh
@@ -177,13 +213,15 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | paused | disconnected | scanning | bluetooth-off | offline | ended | flat | manual | edge | video | video-blocked | treadmill | treadmill-paused | treadmill-flat | treadmill-manual | treadmill-countdown | treadmill-belt-stopped | treadmill-disconnected | treadmill-scanning | connecting | not-found | not-found-bike | intervals | intervals-invalid | video-invalid | invalid | submitting | treadmill-invalid | treadmill-submitting | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Ride dashboard (`ride`) | [✅](pages/ride/default.html) | [✅](pages/ride/loading.html) | [✅](pages/ride/empty.html) | [✅](pages/ride/error.html) | [✅](pages/ride/paused.html) | [✅](pages/ride/disconnected.html) | [✅](pages/ride/scanning.html) | [✅](pages/ride/bluetooth-off.html) | [✅](pages/ride/offline.html) | [✅](pages/ride/ended.html) | [✅](pages/ride/flat.html) | [✅](pages/ride/manual.html) | [✅](pages/ride/edge.html) | [✅](pages/ride/video.html) | [✅](pages/ride/video-blocked.html) | [✅](pages/ride/treadmill.html) | [✅](pages/ride/treadmill-paused.html) | [✅](pages/ride/treadmill-flat.html) | [✅](pages/ride/treadmill-manual.html) | [✅](pages/ride/treadmill-countdown.html) | [✅](pages/ride/treadmill-belt-stopped.html) | [✅](pages/ride/treadmill-disconnected.html) | [✅](pages/ride/treadmill-scanning.html) |  |  |  |  |  |  |  |  |  |  | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-023`, `L2-024`, `L2-025`, `L2-026`, `L2-027`, `L2-040`, `L2-041`, `L2-001`, `L2-013`, `L2-039`, `L2-064`, `L2-066`, `L2-068`, `L2-071`, `L2-076` |
-| Choose your machine (`choose-machine`) | [✅](pages/choose-machine/default.html) | [✅](pages/choose-machine/loading.html) | [✅](pages/choose-machine/empty.html) | [✅](pages/choose-machine/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/choose-machine/connecting.html) | [✅](pages/choose-machine/not-found.html) | [✅](pages/choose-machine/not-found-bike.html) |  |  |  |  |  |  |  | `L2-062`, `L2-063`, `L2-072`, `L2-073`, `L2-074` |
-| Set up your ride (`setup`) | [✅](pages/setup/default.html) | [✅](pages/setup/loading.html) | ➖ | [✅](pages/setup/error.html) |  |  |  |  |  |  | [✅](pages/setup/flat.html) |  |  | [✅](pages/setup/video.html) |  | [✅](pages/setup/treadmill.html) |  | [✅](pages/setup/treadmill-flat.html) |  |  |  |  |  |  |  |  | [✅](pages/setup/intervals.html) | [✅](pages/setup/intervals-invalid.html) | [✅](pages/setup/video-invalid.html) | [✅](pages/setup/invalid.html) | [✅](pages/setup/submitting.html) | [✅](pages/setup/treadmill-invalid.html) | [✅](pages/setup/treadmill-submitting.html) | `L2-010`, `L2-029`, `L2-040`, `L2-041`, `L2-045`, `L2-059`, `L2-060`, `L2-062`, `L2-067`, `L2-072`, `L2-075`, `L2-076` |
-| Unlock Wattzup (`unlock`) | [✅](pages/unlock/default.html) | ➖ | ➖ | [✅](pages/unlock/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/invalid.html) | [✅](pages/unlock/submitting.html) |  |  | `L2-035`, `L2-036` |
-| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-044` |
+| Screen | default | loading | empty | error | paused | disconnected | scanning | bluetooth-off | offline | ended | flat | manual | edge | video | video-blocked | class-workout | treadmill | treadmill-paused | treadmill-flat | treadmill-manual | treadmill-countdown | treadmill-belt-stopped | treadmill-disconnected | treadmill-scanning | connecting | not-found | not-found-bike | filtered | no-link | invalid-link | edited | submitting | intervals | intervals-invalid | video-invalid | invalid | treadmill-invalid | treadmill-submitting | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Ride dashboard (`ride`) | [✅](pages/ride/default.html) | [✅](pages/ride/loading.html) | [✅](pages/ride/empty.html) | [✅](pages/ride/error.html) | [✅](pages/ride/paused.html) | [✅](pages/ride/disconnected.html) | [✅](pages/ride/scanning.html) | [✅](pages/ride/bluetooth-off.html) | [✅](pages/ride/offline.html) | [✅](pages/ride/ended.html) | [✅](pages/ride/flat.html) | [✅](pages/ride/manual.html) | [✅](pages/ride/edge.html) | [✅](pages/ride/video.html) | [✅](pages/ride/video-blocked.html) | [✅](pages/ride/class-workout.html) | [✅](pages/ride/treadmill.html) | [✅](pages/ride/treadmill-paused.html) | [✅](pages/ride/treadmill-flat.html) | [✅](pages/ride/treadmill-manual.html) | [✅](pages/ride/treadmill-countdown.html) | [✅](pages/ride/treadmill-belt-stopped.html) | [✅](pages/ride/treadmill-disconnected.html) | [✅](pages/ride/treadmill-scanning.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-023`, `L2-024`, `L2-025`, `L2-026`, `L2-027`, `L2-040`, `L2-041`, `L2-001`, `L2-013`, `L2-039`, `L2-064`, `L2-066`, `L2-068`, `L2-071`, `L2-076` |
+| Choose your machine (`choose-machine`) | [✅](pages/choose-machine/default.html) | [✅](pages/choose-machine/loading.html) | [✅](pages/choose-machine/empty.html) | [✅](pages/choose-machine/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/choose-machine/connecting.html) | [✅](pages/choose-machine/not-found.html) | [✅](pages/choose-machine/not-found-bike.html) |  |  |  |  |  |  |  |  |  |  |  | `L2-062`, `L2-063`, `L2-072`, `L2-073`, `L2-074` |
+| Class library (`class-library`) | [✅](pages/class-library/default.html) | [✅](pages/class-library/loading.html) | [✅](pages/class-library/empty.html) | [✅](pages/class-library/error.html) |  | [✅](pages/class-library/disconnected.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-library/filtered.html) |  |  |  |  |  |  |  |  |  |  | `L2-077`, `L2-078`, `L2-079`, `L2-040`, `L2-041` |
+| Class page (`class`) | [✅](pages/class/default.html) | [✅](pages/class/loading.html) | ➖ | [✅](pages/class/error.html) |  |  |  |  |  |  | [✅](pages/class/flat.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class/not-found.html) |  |  | [✅](pages/class/no-link.html) | [✅](pages/class/invalid-link.html) | [✅](pages/class/edited.html) | [✅](pages/class/submitting.html) |  |  |  |  |  |  | `L2-010`, `L2-029`, `L2-076`, `L2-078`, `L2-080`, `L2-040`, `L2-041` |
+| Set up your ride (`setup`) | [✅](pages/setup/default.html) | [✅](pages/setup/loading.html) | ➖ | [✅](pages/setup/error.html) |  |  |  |  |  |  | [✅](pages/setup/flat.html) |  |  | [✅](pages/setup/video.html) |  |  | [✅](pages/setup/treadmill.html) |  | [✅](pages/setup/treadmill-flat.html) |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/setup/submitting.html) | [✅](pages/setup/intervals.html) | [✅](pages/setup/intervals-invalid.html) | [✅](pages/setup/video-invalid.html) | [✅](pages/setup/invalid.html) | [✅](pages/setup/treadmill-invalid.html) | [✅](pages/setup/treadmill-submitting.html) | `L2-010`, `L2-029`, `L2-040`, `L2-041`, `L2-045`, `L2-059`, `L2-060`, `L2-062`, `L2-067`, `L2-072`, `L2-075`, `L2-076` |
+| Unlock Wattzup (`unlock`) | [✅](pages/unlock/default.html) | ➖ | ➖ | [✅](pages/unlock/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/submitting.html) |  |  |  | [✅](pages/unlock/invalid.html) |  |  | `L2-035`, `L2-036` |
+| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-044` |
 
 ### Dialogs
 

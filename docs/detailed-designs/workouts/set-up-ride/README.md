@@ -171,6 +171,15 @@ Playwright (`e2e/setup.spec.ts`, describe `Intervals plan`), with the page objec
 - `posts the intervals plan and goes to the dashboard` (L2-029 AC5)
 - `restores the last submitted intervals plan after a reload` (L2-029 AC16)
 
+### Opened from a class
+
+A class page (`classes/ride-a-class`) can open this screen through `Change intervals in full setup` (L2-080 criterion 12). The class page writes the drafts before it navigates:
+- a `PlanDraft` whose `mode` is the class's kind;
+- an `IntervalsDraft` for an `intervals` class;
+- a `VideoDraft` with the class's link and start point.
+
+These replace the drafts that were there. `SetupPage` needs no change for this, because it loads its mode, plan and video from `PlanDraftStore` on every visit, as after a reload.
+
 ### Machine and treadmill
 
 The setup screen no longer chooses the machine; the machine page at `/machine` does (L2-073, `treadmill/choose-machine`). While treadmill support is off (L2-075, ADR 0011), `treadmill_enabled` is `false`, the `Switch to …` link is not rendered, and the screen is the bike's. The treadmill form is designed in `treadmill/treadmill-dashboard-and-setup`. In short:
@@ -192,6 +201,7 @@ Below the plan, in every mode on either machine, `VideoLink` (`wz-video-link`) a
 | `L2-052` | `L1-007` | Replace-ride dialog. Given an active workout, when Start ride is pressed on `/setup`, then a dialog `Replace the ride in progress?` opens; `Replace ride` sends `POST /api/workout` and on success takes the rider to `/`; a failure keeps the current ride and the new settings. |
 | `L2-010` | `L1-004` | Workout plan definition and validation, including the `intervals` kind and the optional `video`. |
 | `L2-059` | `L1-007` | Ride preview on setup. The `Your ride` panel shows the total time, a resistance profile of the plan's segments and a summary, computed by the same plan expansion as the backend (L2-045). |
+| `L2-080` | `L1-014` | Class page. Criterion 12: given `Change intervals in full setup`, then `/setup` opens in the plan's mode (`HIIT`, `Intervals` or `Flat`) with this page's plan and video in that mode's draft, replacing the draft that was there. |
 
 ## Diagrams
 

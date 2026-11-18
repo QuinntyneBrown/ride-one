@@ -4,7 +4,7 @@ LAYOUT_WITH_LEGEND()
 title Components — Choose the machine
 
 Container_Boundary(web, "Wattzup Web") {
-  Component(page, "MachinePage", "Angular component", "Cards as one radio group; connects on pick; opens /setup when connected")
+  Component(page, "MachinePage", "Angular component", "Cards as one radio group; connects on pick; opens /classes for the bike or /setup for the treadmill when connected")
   Component(card, "MachineCard / SignalBars", "Angular components", "One machine: signal, names, controls, last session")
   Component(view, "machine-page-view", "Pure helper", "Heading, card view, card status")
   Component(history, "MachineHistoryStore", "Service over localStorage", "Last session per machine, last used")

@@ -1,6 +1,6 @@
 # 0012. Ride along to a YouTube video
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [0014](0014-class-catalogue-as-a-file.md) (`img-src https://i.ytimg.com` for class covers)
 - **Date:** 2026-11-17
 
 ## Context

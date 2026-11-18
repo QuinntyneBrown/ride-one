@@ -95,7 +95,7 @@ The machine page follows the mocks `docs/mocks/pages/choose-machine/` (states `d
 - **`MachinePage`** (`dashboard/machine-page/`, `wz-machine-page`, new) — reads `LiveStateService.state` and `MachineHistoryStore`, and holds two signals: `picked` (`Machine | null`) and `alert` (`null`, `failed` or `workout-active`).
   - Its heading reads `What are you training on?` with the lead `Wattzup drives one machine at a time. Pick one — the other stays disconnected until you switch.`, and the status line reads `nearbyHeading` (L2-073 criteria 1 and 4).
   - The two cards form one `role="radiogroup"`; arrow keys move focus and selection between them, as a native radio group does (L2-073 criterion 1).
-  - Picking a card sets `picked` and calls `MACHINE_API.choose(machine)`; both cards are disabled while `picked` is set (L2-073 criterion 6). An effect navigates to `/setup` once `state.machine` equals `picked` and `ble` is `connected`.
+  - Picking a card sets `picked` and calls `MACHINE_API.choose(machine)`; both cards are disabled while `picked` is set (L2-073 criterion 6). An effect navigates once `state.machine` equals `picked` and `ble` is `connected`: to `/classes` for the bike (L2-079, `classes/browse-classes`) and to `/setup` for the treadmill.
   - A not-found `error` from the backend (`profile.NotFoundMessage`, L2-063 criterion 8) after the pick marks that card `not-found`; its `Try again` button picks it again (L2-073 criterion 7). The backend clears the error as soon as it scans again, often in the next message, so the page does not read it from `state`: `LiveStateService.scanError` keeps the latest `{machine, error, seq}` seen with `ble` = `scanning`, numbered, from every state it receives. The page notes `seq` when the rider picks and counts only a later error. While a card is `not-found` the other card can be picked.
   - A rejected `choose` clears `picked` and shows the danger alert `Couldn't switch the machine` / `The Wattzup server didn't answer. Try again.`; a 409 with `code` `workout_active` shows `End the run in progress to change the machine.` (L2-073 criterion 8).
   - With `nearby` empty, a notice reads `No machines nearby` / `Switch the bike's console on, or switch on the Stride and clip in its safety key. Wattzup keeps looking.`, and both cards stay pickable (L2-073 criterion 5).
@@ -185,7 +185,7 @@ Wattzup Web's machine page sends the choice to the Wattzup API, which scans, con
 
 ### Behaviour — pick a machine on the machine page
 
-The rider picks the Stride's card. The page posts the choice, disables both cards and shows `Connecting to treadmill…`, then opens `/setup` once the treadmill is connected. A scan that finds nothing turns the card red with `Try again`; a failed post shows an alert (L2-073 criteria 6 to 8).
+The rider picks the Stride's card. The page posts the choice, disables both cards and shows `Connecting to treadmill…`, then opens `/setup` once the treadmill is connected. The bike's card opens `/classes` instead. A scan that finds nothing turns the card red with `Try again`; a failed post shows an alert (L2-073 criteria 6 to 8).
 
 ![Sequence diagram for picking a machine on the machine page](diagrams/sequence-pick-machine-page.png)
 

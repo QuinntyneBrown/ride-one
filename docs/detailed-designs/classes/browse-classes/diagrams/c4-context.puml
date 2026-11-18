@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Browse the class library
+
+Person(rider, "Rider", "Picks a class to ride on the Echelon bike")
+Person(owner, "Owner", "Edits the class catalogue")
+System(wattzup, "Wattzup", "Live training display that drives the bike")
+System_Ext(ytimg, "YouTube image host", "i.ytimg.com: video thumbnails")
+
+Rel(rider, wattzup, "Browses the class library in")
+Rel(owner, wattzup, "Edits classes.json for")
+Rel(rider, ytimg, "Browser loads class covers from", "HTTPS")
+@enduml

@@ -54,6 +54,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Switch](components/switch.html) | On/off setting: warm-up and cool-down. |
 | [Set list](components/set-list.html) | The warm-up, sets and cool-down of an intervals plan, edited in a dialog. |
 | [Video ride-along](components/video.html) | Video frame, start point and Video / Power vs. plan switch (proposed). |
+| [Level row](components/level-row.html) | Compact − level + for one level of a plan before the ride: work, recover or steady (proposed). |
 | [Slider](components/slider.html) | Level slider for work, recover and flat resistance. |
 | [Number stepper](components/number-stepper.html) | − value + control for rounds, work, recover, duration and cadence. |
 | [Level control](components/level-control.html) | − level + for the bike's resistance, with the requested level shown until the bike confirms it. |
@@ -85,6 +86,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 | Component | Summary |
 |---|---|
+| [Class card and shelf](components/class-card.html) | One video of the library with its length, plan strip and peak, on a shelf the catalogue defines (proposed). |
 | [Readout](components/readout.html) | The big live numbers: power and cadence with target and delta. |
 | [Interval](components/interval.html) | Current interval: kind, round, time left, progress and what comes next. |
 | [Power trace](components/power-trace.html) | Rider's power drawn against the plan's target blocks for the whole ride. |
@@ -131,6 +133,11 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 ## Changelog
 
+- **2026-11-17, class library (L2-077 to L2-080; was proposed with no requirement yet, see the mocks' open question 17).** From the Magic Patterns *Video Library* and *Video Workout* frames. New component pages [Class card and shelf](components/class-card.html) and [Level row](components/level-row.html); [Page layout](components/page-layout.html) gains the library and class-page layouts and [Video ride-along](components/video.html) the cover variant and the length filter:
+  - `.library` (with `__inner`, `__head`), `.shelf` (with `__head`, `__title`, `__blurb`, `__count`, `__grid`) and `.class-card` (with `__cover`, `__poster`, `__length`, `__title`, `__meta`, `__note`), a link whose strip is a `.profile`;
+  - the video page: `.class-page` (with `__meta`, `__link`, `__back`), `.video-frame__cover`, `.plan-head`, `.setup-aside__group` and `.legend__aside`;
+  - `.level-row`, a compact − level + for the plan's work, recover or steady level, with 44 px buttons;
+  - the shelf filter reuses `.view-switch` as a tablist. No token was added or changed.
 - **2026-11-17, video ride-along (L2-029 criteria 17–21, L2-076, ADR 0012).** The new component page [Video ride-along](components/video.html) covers:
   - `.video-frame` (with `--fill`, `__poster`, `__title`, `__meta`, `__scrim`) and `.video-sync`;
   - `.view-switch`, a two-tab switch. It is the system's first tabs pattern, scoped to the dashboard's main view, not the kit's general Tabs;
@@ -176,16 +183,16 @@ python3 .claude/skills/extracting-design-systems/scripts/check_contrast.py docs/
 python3 .claude/skills/writing-html-mocks/scripts/screenshot_mocks.py docs/design-system --out docs/design-system/.cache/shots
 ```
 
-Run on 2026-11-15, and again on 2026-11-17 for the video ride-along:
+Run on 2026-11-15, and again on 2026-11-17 for the video ride-along and the class library:
 
 | Check | Result |
 |---|---|
-| `check_design_system.py` | 65 pages (12 foundations, 44 components, 8 patterns, index), 0 errors, 0 warnings (2026-11-17) |
-| `check_contrast.py` | 154 passed, 0 failed, 0 unresolved (78 pairs × 2 themes, less theme-specific pairs; 2026-11-17) |
+| `check_design_system.py` | 69 pages (48 components, 8 patterns), 0 errors, 0 warnings (2026-11-17, class library) |
+| `check_contrast.py` | 154 passed, 0 failed, 0 unresolved (2026-11-17; the class card and level row reuse existing pairs) |
 | `tokens_to_json.py` | `tokens.json` written, 337 tokens (2026-11-17) |
-| `check_mocks.py docs/mocks --write` with the mocks reading this system | 13 screens, 81 mocks, 0 errors, 0 warnings (2026-11-17) |
+| `check_mocks.py docs/mocks --write` with the mocks reading this system | 15 screens, 97 mocks, 0 errors, 0 warnings (2026-11-17) |
 | Horizontal overflow at 360px, all 46 mocks and 61 pages, both themes | none |
-| Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280 |
+| Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280; class card and level row pages and every class-library and class mock at 360, 768 and 1280, both themes (2026-11-17) |
 
 ### Closing the loop with the mocks
 

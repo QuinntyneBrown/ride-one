@@ -102,7 +102,7 @@ committed.
 
 Use the words the specs use in code, docs and UI; no synonyms. A workout follows a plan (`hiit`,
 `intervals` or `flat`; an `intervals` plan is a warm-up, ordered sets and a cool-down) expanded into segments (kind, start, duration, level, cadence aim, round); the bike's reported level is "resistance",
-the requested one is "target resistance"; the Bluetooth link state is `ble`. The machine is `bike` or
+the requested one is "target resistance"; the Bluetooth link state is `ble`. A class is a catalogue entry (ADR 0014): a bike plan with the YouTube video it follows, on a shelf; the rider picks one in the class library (`/classes`) and opens its class page (`/classes/:id`). The machine is `bike` or
 `treadmill`. On the treadmill the reported value is "speed" and the requested one "target speed";
 likewise "incline" and "target incline"; the moving surface is the "belt" (`stopped`, `starting`,
 `running`). On the treadmill the UI calls a ride a "run" and a `flat` plan "Steady"; the API keeps
@@ -198,7 +198,7 @@ production build (`dist/wattzup/browser`) is served by `Wattzup.Api` from the sa
   inline `style` in templates.
 - Global styles are foundations only (tokens, `@font-face`, reset, utilities). Read tokens by
   role, never hex. Fonts are bundled and self-hosted, never loaded from a CDN (the CSP allows
-  same-origin only, except the YouTube player for a ride-along video, ADR 0012).
+  same-origin only, except YouTube: the player for a ride-along video and the thumbnails shown as class covers, ADRs 0012 and 0014).
 - **Declare each `ng-content` slot once.** A component rendering `<a>` or `<button>` by
   condition puts its slots in one `<ng-template>` rendered with `ngTemplateOutlet` in both
   branches. A consumer `@if` wrapping several `[slot=…]` nodes loses the slot (NG8011): one `@if`

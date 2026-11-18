@@ -37,6 +37,6 @@ alt bike stays off for more than 90 s
   engine -> ep : status = "ended: bike shut off"
   ep -> live : data: state
   live -> page : overlay bike-shut-off
-  page -> overlay : "Ride ended — the bike shut off", Set up a new ride [L2-058]
+  page -> overlay : "Ride ended — the bike shut off", Ride another class and Build your own ride [L2-058 AC6]
 end
 @enduml

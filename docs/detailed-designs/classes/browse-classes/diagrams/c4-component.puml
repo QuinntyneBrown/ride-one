@@ -1,0 +1,34 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Browse the class library
+
+Container_Boundary(web, "Wattzup Web") {
+  Component(page, "ClassLibraryPage", "Angular component", "Tabs, shelves, loading, empty and error states")
+  Component(view, "class-library-view.ts", "Pure helper", "Card views, shelf filter, thumbnail URL")
+  Component(shelf, "Shelf", "Presentation component", "Shelf heading, tagline and count")
+  Component(card, "ClassCard", "Presentation component", "Cover, length, title, meta and strip")
+  Component(token, "CLASS_API", "Injection token", "HttpClassApi")
+  Component(guard, "bikeOnly", "Route guard", "Redirects the treadmill to /setup")
+}
+Container_Boundary(api, "Wattzup API") {
+  Component(ep, "ClassEndpoints", "Minimal API", "GET /api/classes and /api/classes/{id}")
+  Component(svc, "ClassCatalogueService", "Hosted service", "Loads, watches and debounces the file")
+  Component(reader, "ClassCatalogueReader", "Core", "Applies the L2-077 rules")
+  Component(validator, "WorkoutPlanValidator", "Core", "Validates each class plan for the bike")
+  Component(store, "ClassCatalogueStore", "Core", "Current catalogue, swapped by reference")
+}
+ComponentDb(file, "classes.json", "JSON file", "The catalogue")
+
+Rel(page, token, "list()")
+Rel(token, ep, "GET /api/classes", "JSON")
+Rel(page, view, "Maps classes with")
+Rel(page, shelf, "Renders")
+Rel(shelf, card, "Contains")
+Rel(guard, page, "Guards")
+Rel(ep, store, "Reads Current")
+Rel(svc, file, "Reads and watches")
+Rel(svc, reader, "Read(stream)")
+Rel(reader, validator, "Validate(plan, Bike)")
+Rel(svc, store, "Replace(catalogue)")
+@enduml
