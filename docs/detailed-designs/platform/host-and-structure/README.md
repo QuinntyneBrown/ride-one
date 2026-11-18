@@ -49,8 +49,8 @@ wattzup/
 | `Wattzup.Ble.BlueZ` | `net10.0` | BlueZ transport, built but not yet supported |
 | `Wattzup.Ble.Windows` | `net10.0-windows10.0.19041.0` | WinRT transport, built but not yet supported |
 | `Wattzup.Ble.Simulated` | `net10.0` | `SimulatedBikeTransport`, `SimulationControl` (`--simulate`) |
-| `Wattzup.Core` | `net10.0` | State store, broadcaster, display-time tracker, telemetry ingestion, power and ride-total estimates, command log, plan expansion and validation, workout engine, trace history, raw-packet and snapshot writers; types are named in their feature designs |
-| `Wattzup.Api` | `net10.0`; `net10.0-windows10.0.19041.0` when built on Windows | `Program.cs`, hosted services, endpoint groups, security, `wwwroot`; registers the transport for the operating system |
+| `Wattzup.Core` | `net10.0` | State store, broadcaster, display-time tracker, telemetry ingestion, power and ride-total estimates, command log, plan expansion and validation, workout engine, class catalogue reader and store (`Classes/`), trace history, raw-packet and snapshot writers; types are named in their feature designs |
+| `Wattzup.Api` | `net10.0`; `net10.0-windows10.0.19041.0` when built on Windows | `Program.cs`, hosted services, endpoint groups, security, `wwwroot` and the default class catalogue `classes.json` (`classes/browse-classes`); registers the transport for the operating system |
 | `Wattzup.Mac` | `Info.plist` + `bundle.sh` | Builds `Wattzup.app` around the published `Wattzup.Api` with `NSBluetoothAlwaysUsageDescription` in `Info.plist`, signed ad hoc; inside it the host writes runtime output to `~/Library/Application Support/Wattzup/` (ADR 0008) |
 | `Wattzup.Protocol.Tests`, `Wattzup.Core.Tests` | `net10.0` | xUnit unit tests, one case per table row |
 | `Wattzup.Api.AcceptanceTests` | `net10.0` | ATDD through the API with `WebApplicationFactory`, `SimulatedBikeTransport` and `FakeTimeProvider` |
@@ -98,7 +98,7 @@ Angular workspace in `frontend/` (L2-044, ADR 0013). One `angular.json` holds th
 - Current Angular version, standalone components only, `ChangeDetectionStrategy.OnPush` everywhere, signals for state, and zoneless change detection (`provideZonelessChangeDetection`).
 - Each component is `name.ts` + `name.html` + `name.scss` with `templateUrl` and `styleUrl`, selector `wz-<name>`, in its own folder. Each stylesheet is one encapsulated BEM block named as in the mocks. Every project's `stylePreprocessorOptions.includePaths` is `projects/components/src/styles`, so a stylesheet reads a partial as `@use 'design-system/btn'`.
 - **`app.config.ts`** — the composition root, in the app and nowhere else.
-  - It provides the router with the routes `/` (`RidePage`), `/setup` (workouts), `/machine` (`MachinePage`), `/unlock` (`UnlockPage`) and `**` (`NotFoundPage`).
+  - It provides the router with the routes `/` (`RidePage`), `/setup` (workouts), `/classes` (`ClassLibraryPage`) and `/classes/:id` (`ClassPage`), both guarded by `bikeOnly` (`classes/browse-classes`, `classes/ride-a-class`), `/machine` (`MachinePage`), `/unlock` (`UnlockPage`) and `**` (`NotFoundPage`).
   - It provides `HttpClient` with `withInterceptors([apiKeyInterceptor])`, binds `UNAUTHORIZED_HANDLER` to the app's redirect to `/unlock?returnUrl=…` (L2-055), and binds `BIKE_API`, `WORKOUT_API` and `MACHINE_API` to `HttpBikeApi`, `HttpWorkoutApi` and `HttpMachineApi`, and `YOUTUBE_PLAYER` to `IframeYouTubePlayer`.
 - `projects/wattzup/src/app/core/` holds the services and pure helpers with their unit tests:
   - live state: `LiveStateService`, the one owner of the `EventSource` and its reconnect policy (L2-044 criterion 2), and `safeReturnUrl`;
@@ -173,6 +173,9 @@ Every folder that was in `frontend/src/app/dashboard/`, its project and its name
 | `level-slider` | `components` | `slider` | Slider | |
 | `load-error` | `components` | `empty-state` | Empty state | The loading-failed variant (block `empty`) |
 | `machine-card` | `components` | `machine-card` | Machine card (page added) | The radio card of `/machine`; owns `MachineCardView` and `CardStatus` |
+| — (new) | `components` | `class-card` | Class card | The card of `/classes`; owns `ClassCardView` (`classes/browse-classes`) |
+| — (new) | `components` | `shelf` | Class card and shelf (part) | A labelled section of class cards |
+| — (new) | `components` | `level-row` | Level row | The Work, Recover or Steady stepper of `/classes/:id` (`classes/ride-a-class`) |
 | `main-view-tabs` | `components` | `main-view-tabs` | Video ride-along (part) | Block `view-switch` |
 | `metrics-strip` | `components` | `metric-list` | Metric list | Lifted: the metric items (`metricItems`) |
 | `mode-cards` | `components` | `radio-group` | Radio group (mode cards) | |
@@ -194,13 +197,14 @@ Every folder that was in `frontend/src/app/dashboard/`, its project and its name
 | `app-bar` | `wattzup` | `app-bar` | App bar | Injects `CueService`, `DialogLauncher`, `RideActions`, `ThemeService` |
 | `connection-banner` | `wattzup` | `connection-banner` | Alert and banner | Injects `ConnectionBannerService`, `LiveStateService` |
 | `interval` | `wattzup` | `interval` | Interval | Links to `/setup`; reads `CountdownService`, `CueDirector` |
-| `ride-overlay` | `wattzup` | `ride-overlay` | Overlay panel | Links to `/setup` |
+| `ride-overlay` | `wattzup` | `ride-overlay` | Overlay panel | Links to `/classes` and `/setup` (L2-058 criterion 6) |
 | `ride-trace` | `wattzup` | `ride-trace` | Power trace | Hosts the renderer; injects the trace stores and `TRACE_RENDERER_FACTORY` |
 | `ride-video` | `wattzup` | `ride-video` | Video ride-along | Injects `VideoSync` |
 | `video-link` | `wattzup` | `video-link` | Video ride-along | Injects `YOUTUBE_PLAYER` |
 | `toast-region` | `wattzup` | `toast-region` | Toast | Reads `ToastService` |
 | `diagnostics-dialog`, `edit-set-dialog`, `edit-stretch-dialog`, `end-ride-dialog`, `replace-ride-dialog` | `wattzup` | unchanged | Dialog | Orchestrating dialogs |
 | `machine-page`, `not-found-page`, `ride-page`, `setup-page`, `unlock-page` | `wattzup` | unchanged | Page layout | Routed pages |
+| — (new) | `wattzup` | `class-library-page`, `class-page` | Page layout | Routed pages; inject `CLASS_API` |
 | `design-system/` (SCSS partials) | `components` | `src/styles/design-system/` | Foundations and partials | |
 
 ## Open questions

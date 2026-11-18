@@ -37,7 +37,7 @@ else End ride
     ep --> api : 200 {"stopped":true}
     api --> dlg : ok
     dlg -> cdk : close()
-    dlg -> router : navigate('/setup') [L2-051]
+    dlg -> router : navigate('/classes') on the bike, '/setup' on the treadmill [L2-051 AC2]
   else request fails or times out
     ep --[#red]x api : no answer
     api --> dlg : error

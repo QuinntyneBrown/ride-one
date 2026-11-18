@@ -1,0 +1,131 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Browse the class library
+
+package "Wattzup.Core.Classes" {
+  class Shelf {
+    +string Id
+    +string Title
+    +string Tagline
+  }
+  class ClassEntry {
+    +string Id
+    +string Title
+    +string Channel
+    +string Focus
+    +string Description
+    +string ShelfId
+    +WorkoutPlan Plan
+  }
+  class ClassCatalogue {
+    +IReadOnlyList<Shelf> Shelves
+    +IReadOnlyList<ClassEntry> Classes
+    +{static} ClassCatalogue Empty
+    +Find(id: string): ClassEntry?
+    +ClassesOn(shelfId: string): IReadOnlyList<ClassEntry>
+  }
+  class ClassCatalogueReader <<static>> {
+    +Read(file: Stream, length: long): CatalogueLoadResult
+  }
+  class CatalogueLoadResult {
+    +ClassCatalogue? Catalogue
+    +IReadOnlyList<CatalogueEntryProblem> Problems
+    +string? FileError
+  }
+  class CatalogueEntryProblem {
+    +string Entry
+    +string Field
+    +string Message
+  }
+  class ClassCatalogueStore {
+    +ClassCatalogue Current
+    +Replace(catalogue: ClassCatalogue): void
+  }
+}
+package "Wattzup.Core.Workouts" {
+  abstract class WorkoutPlan {
+    +RideVideo? Video
+  }
+  class WorkoutPlanValidator <<static>> {
+    +Validate(body: JsonElement, machine: Machine): PlanValidationResult
+  }
+}
+package "Wattzup.Api" {
+  class ClassesOptions {
+    +string Path = "classes.json"
+  }
+  class ClassCatalogueService <<IHostedService>> {
+    -TimeProvider time
+    -PhysicalFileProvider files
+    +StartAsync(ct): Task
+    +StopAsync(ct): Task
+    -Reload(): void
+  }
+  class ClassEndpoints <<static>> {
+    +MapClassEndpoints(api: RouteGroupBuilder): void
+  }
+  class ClassResponse {
+    +string id
+    +string title
+    +string channel
+    +string focus
+    +string description
+    +ShelfRef shelf
+    +WorkoutPlan plan
+  }
+}
+package "Frontend: api and app" {
+  interface ClassApi {
+    +list(): Promise<ClassCatalogue>
+    +get(id: string): Promise<ClassEntry | 'not-found'>
+  }
+  class HttpClassApi
+  class ClassCardView {
+    +href: string
+    +cover: string | null
+    +length: string
+    +title: string
+    +meta: string
+    +strip: PlanStripView
+    +stripLabel: string
+  }
+  class "class-library-view.ts" as clv <<pure>> {
+    +cardView(entry): ClassCardView
+    +visibleShelves(catalogue, tab): ClassShelf[]
+    +countLabel(n): string
+    +thumbnailUrl(videoId): string | null
+  }
+  class ClassLibraryPage {
+    -phase: Signal<'loading' | 'ready' | 'empty' | 'error'>
+    -tab: Signal<'all' | string>
+    +retry(): void
+  }
+}
+
+ClassCatalogue "1" *-- "*" Shelf
+ClassCatalogue "1" *-- "*" ClassEntry
+ClassEntry --> WorkoutPlan
+ClassCatalogueReader ..> WorkoutPlanValidator : validates plans with
+ClassCatalogueReader ..> CatalogueLoadResult : returns
+CatalogueLoadResult "1" *-- "*" CatalogueEntryProblem
+CatalogueLoadResult o-- ClassCatalogue
+ClassCatalogueStore --> ClassCatalogue : current
+ClassCatalogueService ..> ClassCatalogueReader : reads with
+ClassCatalogueService --> ClassCatalogueStore : publishes to
+ClassCatalogueService ..> ClassesOptions : path
+ClassEndpoints ..> ClassCatalogueStore : reads
+ClassEndpoints ..> ClassResponse : answers
+HttpClassApi ..|> ClassApi
+ClassLibraryPage ..> ClassApi : CLASS_API
+ClassLibraryPage ..> clv : maps with
+clv ..> ClassCardView : builds
+@enduml

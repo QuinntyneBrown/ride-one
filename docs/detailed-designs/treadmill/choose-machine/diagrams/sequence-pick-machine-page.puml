@@ -47,7 +47,7 @@ else changed
   alt treadmill found and connected
     store --> live : machine = treadmill, ble = connected (SSE)
     live --> page : state()
-    page -> router : navigate('/setup') [L2-073 AC6]
+    page -> router : navigate('/setup'); the bike's card navigates to '/classes' instead (L2-079) [L2-073 AC6]
   else nothing found within 20 s
     store --> live : error = "No Echelon treadmill found yet — …" [L2-063 AC8]
     live --> page : state()

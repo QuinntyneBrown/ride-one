@@ -1,0 +1,38 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Ride a class
+
+Container_Boundary(web, "Wattzup Web") {
+  Component(page, "ClassPage", "Angular component", "Header, preview, plan card, levels, Start ride")
+  Component(draft, "class-draft.ts", "Pure helper", "Draft, level shifts, lines, requests")
+  Component(link, "video-link.ts", "Pure helper", "videoIdOf, stepStart, formatStart")
+  Component(preview, "ride-preview.ts", "Pure helper", "previewOf: total, power, energy")
+  Component(row, "LevelRow", "Presentation component", "Lower, value, Raise")
+  Component(strip, "PlanStrip", "Presentation component", "The plan's bars")
+  Component(player, "YOUTUBE_PLAYER", "Injection token", "IframeYouTubePlayer")
+  Component(classapi, "CLASS_API", "Injection token", "HttpClassApi")
+  Component(workoutapi, "WORKOUT_API", "Injection token", "HttpWorkoutApi")
+  Component(dialog, "ReplaceRideDialog", "CDK dialog", "Asks before replacing a running ride")
+  Component(drafts, "PlanDraftStore", "Angular service", "Setup drafts in local storage")
+  Component(live, "LiveStateService", "Angular service", "Live state, active workout")
+}
+Container_Boundary(api, "Wattzup API") {
+  Component(classes, "ClassEndpoints", "Minimal API", "GET /api/classes/{id}")
+  Component(workouts, "WorkoutEndpoints", "Minimal API", "POST /api/workout")
+}
+
+Rel(page, classapi, "get(id)")
+Rel(classapi, classes, "GET /api/classes/{id}", "JSON")
+Rel(page, draft, "Applies")
+Rel(draft, link, "Reads links with")
+Rel(page, preview, "Computes the plan card with")
+Rel(page, row, "Renders")
+Rel(page, strip, "Renders")
+Rel(page, player, "Previews the cued video through")
+Rel(page, live, "Reads the active workout from")
+Rel(page, dialog, "Opens when a ride is running")
+Rel(page, workoutapi, "start(plan + video)")
+Rel(workoutapi, workouts, "POST /api/workout", "JSON")
+Rel(page, drafts, "save, saveIntervals, saveVideo")
+@enduml

@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Ride a class
+
+Person(rider, "Rider", "Opens a class and rides it")
+System(wattzup, "Wattzup", "Live training display that drives the bike")
+System_Ext(bike, "Echelon bike", "Bluetooth Low Energy")
+System_Ext(youtube, "YouTube player", "youtube-nocookie.com embed")
+
+Rel(rider, wattzup, "Opens a class and starts the ride in")
+Rel(wattzup, bike, "Sets resistance per segment", "BLE")
+Rel(rider, youtube, "Browser previews the class video from", "HTTPS")
+@enduml

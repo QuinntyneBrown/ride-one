@@ -16,14 +16,14 @@ Riders often follow a training video, such as GCN Training's *30 Minute HIIT Car
 
 The ride clock leads and the video follows. The video never pauses, delays or stops the ride. The one exception is a pause the rider makes inside the player, which counts as pressing Pause (L2-076 criterion 5). A video that cannot play leaves the ride running and falls back to the power trace (L2-076 criterion 7).
 
-Until this feature, Wattzup loaded nothing from another origin (L2-036, ADR 0005). YouTube can only be played through its embedded player: an iframe served by YouTube and driven by YouTube's IFrame player API script. ADR 0012 admits exactly that player as the one third-party origin. The backend never fetches the link or contacts YouTube; only the browser does, and only when a plan has a video.
+Until this feature, Wattzup loaded nothing from another origin (L2-036, ADR 0005). YouTube can only be played through its embedded player: an iframe served by YouTube and driven by YouTube's IFrame player API script. ADR 0012 admits exactly that player as the third-party origin for the video. ADR 0014 later adds YouTube thumbnails for class covers. The backend never fetches the link or contacts YouTube; only the browser does, and only when a plan has a video.
 
 The feature extends three existing designs:
 - `workouts/set-up-ride` gains the video switch and link below the plan (L2-029 criteria 17 to 20) and the preview's `Video` row (L2-059 criterion 6).
 - `workouts/start-and-stop-workout` gains the `video` rows of the plan table (L2-010 criteria 14 to 17).
 - `dashboard/show-live-metrics` gives up the main area's trace to the video while `Video` is the selected view (L2-026, L2-076 criteria 1 and 2).
 
-`platform/secure-api` carries the two Content-Security-Policy exceptions (L2-036 criterion 4).
+`platform/secure-api` carries the Content-Security-Policy exceptions (L2-036 criterion 4). ADR 0014 amends ADR 0012 with a third YouTube origin, `img-src https://i.ytimg.com`, for the class covers of `classes/browse-classes`. A ride started from a class (`classes/ride-a-class`) carries `plan.video` like any other plan, so this feature plays it unchanged (mock `ride/class-workout`).
 
 ## Description
 
@@ -47,7 +47,7 @@ The feature extends three existing designs:
 
 - **`WorkoutEndpoints`** — unchanged. `POST /api/workout` validates through `WorkoutPlanValidator` and answers 400 ProblemDetails naming `video.url` or `video.start_seconds` with the messages above.
 - **`ContractSchemaTransformer`** (`OpenApi/`) — describes `plan.video` as a nullable object with `video_id` (string) and `start_seconds` (number). The frontend's `frontend/projects/api/src/generated/schema.d.ts` is regenerated from it in the same change.
-- **`SecurityHeaders`** (`Security/SecurityHeaders.cs`) — the Content-Security-Policy gains exactly `frame-src https://www.youtube-nocookie.com` and `https://www.youtube.com` in `script-src`. `connect-src`, `style-src`, `font-src` and `img-src` stay as they are (L2-036 criterion 4, ADR 0012).
+- **`SecurityHeaders`** (`Security/SecurityHeaders.cs`) — for the player, the Content-Security-Policy gains exactly `frame-src https://www.youtube-nocookie.com` and `https://www.youtube.com` in `script-src`. `connect-src`, `style-src` and `font-src` stay as they are. `img-src` gains `https://i.ytimg.com` for class covers only (L2-036 criterion 4, ADRs 0012 and 0014).
 
 ### Frontend (`frontend/projects/wattzup/src/app/`, with presentation components in `frontend/projects/components/` and API code in `frontend/projects/api/`)
 
@@ -102,6 +102,7 @@ The feature extends three existing designs:
 | `pages/setup/video-invalid` | The video on with a Vimeo link: the field error, no preview, no start point and no `Video` row; Start ride still starts the ride |
 | `pages/ride/video` | Mid-ride, work round 3 of 8 at 11:42 of 30:00: the `Video` tab selected, the video playing at 11:54.0, the plan strip below |
 | `pages/ride/video-blocked` | Mid-ride with blocked playback: `Play video in sync` covers the player and the ride keeps running |
+| `pages/ride/class-workout` | The same dashboard for a ride started from a class (`classes/ride-a-class`) |
 
 ### Acceptance tests
 
@@ -110,7 +111,7 @@ The feature extends three existing designs:
 - `Given_a_plan_with_no_video_then_plan_video_is_null` (L2-010 AC15)
 - `Given_a_Vimeo_link_then_the_answer_is_400_naming_video_url` (L2-010 AC16)
 - `Given_a_start_point_above_12_hours_then_the_answer_is_400_naming_video_start_seconds` (L2-010 AC17)
-- `Every_response_allows_only_the_YouTube_player_origins_beyond_self` (L2-036 AC4)
+- `Every_response_allows_only_the_YouTube_origins_beyond_self` (L2-036 AC4)
 
 `Wattzup.Core.Tests` hold the tables, one case per row:
 - `YouTubeLinkTests`: the 5 accepted forms of L2-010 criterion 14, each with and without `https://`, `www.` and `m.`; and each rejection of criterion 16, among them `https://vimeo.com/76979871`, `https://www.youtube.com/watch?v=short`, `javascript:alert(1)` and a 2049-character link.
@@ -161,7 +162,7 @@ Two dashboards agreeing within 1.5 s (L2-076 criterion 9) follows from both comp
 | `L2-014` | `L1-005` | State model contract. `workout.plan` carries `video` `{video_id, start_seconds}` for a ride-along video, else `null` (ADR 0012). |
 | `L2-029` | `L1-007` | Ride setup screen. The `/setup` screen must let the rider build a plan and start it; criteria 17 to 20 add the `Ride along to a video` switch, the `YouTube link` field, the preview and the start point. |
 | `L2-059` | `L1-007` | Ride preview on setup. Criterion 6: given the ride-along video is on with a valid link, then the summary adds `Video` `Synced from <m:ss.s>` after Time under load; otherwise the row is not shown. |
-| `L2-036` | `L1-009` | Input validation and hardening. Criterion 4: a Content-Security-Policy that allows only same-origin scripts, styles and connections, with two exceptions for the ride-along video (ADR 0012): `frame-src https://www.youtube-nocookie.com` and `script-src https://www.youtube.com` (the IFrame player API). No other origin is allowed. |
+| `L2-036` | `L1-009` | Input validation and hardening. Criterion 4: a Content-Security-Policy that allows only same-origin scripts, styles and connections, with three exceptions for YouTube (ADR 0012): `frame-src https://www.youtube-nocookie.com` and `script-src https://www.youtube.com` (the IFrame player API) for the ride-along video, and `img-src https://i.ytimg.com` for class covers (L2-079). |
 | `L2-046` | `L1-004` | Pause and resume. Criterion 6: given a pause or resume request fails, then a danger toast `Couldn't pause the ride` or `Couldn't resume the ride` / `The Wattzup server didn't answer. Try again.` shows; a pause or play inside the player goes through the same requests (L2-076 criterion 5). |
 | `L2-026` | `L1-007` | Power vs. plan trace. The dashboard must draw the ride's estimated power against the plan's target power; with a video it is the `Power vs. plan` tab (L2-076 criteria 1 and 2). |
 
@@ -175,7 +176,7 @@ The rider sets up and rides with Wattzup. With a video in the plan, the rider's 
 
 ### Containers
 
-Wattzup Web posts the plan with its video to the Wattzup API and reads `plan.video` back from the event stream. The YouTube player, an iframe and its IFrame player API script, runs in the browser beside Wattzup Web and is the one third-party origin the Content-Security-Policy allows.
+Wattzup Web posts the plan with its video to the Wattzup API and reads `plan.video` back from the event stream. The YouTube player, an iframe and its IFrame player API script, runs in the browser beside Wattzup Web. Its 2 origins are the ones the Content-Security-Policy allows for the video; the third YouTube origin, `i.ytimg.com`, serves class covers only (ADR 0014).
 
 ![C4 container view for the video ride-along](diagrams/c4-container.png)
 

@@ -1,0 +1,60 @@
+@startuml
+title UML sequence behaviour — Browse the class library
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web application" #E0F2FE
+  participant "bikeOnly" as guard
+  participant "ClassLibraryPage" as page
+  participant "class-library-view.ts" as view
+  participant "ClassCard" as card
+  participant "CLASS_API" as client
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "ClassEndpoints" as ep
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "ClassCatalogueStore" as store
+end box
+participant "i.ytimg.com" as yt
+
+rider -> guard : Open /classes
+alt machine is treadmill
+  guard --> rider : Redirect to /setup [L2-079 AC12]
+else bike
+  guard -> page : Activate
+  page --> rider : Skeletons, tabs disabled [L2-079 AC8]
+  page -> client : list()
+  client -> ep : GET /api/classes (X-Api-Key when set) [L2-078 AC6]
+  ep -> store : Current
+  store --> ep : Shelves and classes
+  ep --> client : 200 {shelves:[…]} in file order [L2-078 AC1]
+  alt request failed
+    client --> page : error
+    page --> rider : Couldn't load the classes, Try again [L2-079 AC10]
+  else shelves empty
+    client --> page : {shelves:[]}
+    page --> rider : No classes yet, Build your own ride [L2-079 AC9]
+  else shelves
+    client --> page : catalogue
+    page -> view : visibleShelves(catalogue, all); cardView(entry) for each
+    view --> page : ClassCardView: length, Peak L<n>, strip, cover or null [L2-079 AC5]
+    page --> rider : Tabs All + one per shelf; shelves with n classes [L2-079 AC2, AC4]
+    card -> yt : GET /vi/<video_id>/mqdefault.jpg, lazy [L2-079 AC6]
+    alt image loads
+      yt --> card : Thumbnail in the 16:9 cover
+    else image fails or no video
+      card --> page : coverFailed
+      page --> rider : Poster, Video link not set when no video [L2-079 AC6, AC7]
+    end
+    rider -> page : Arrow keys to the 30 min tab [L2-079 AC2]
+    page -> view : visibleShelves(catalogue, 30-min)
+    page --> rider : Only that shelf [L2-079 AC3]
+    rider -> card : Open a card
+    card --> rider : Navigate to /classes/<id> (classes/ride-a-class)
+  end
+end
+@enduml

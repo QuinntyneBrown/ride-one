@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Ride a class
+
+Person(rider, "Rider", "Opens a class")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular", "Class page at /classes/:id")
+  Container(api, "Wattzup API", "ASP.NET Core", "Serves the class, starts the workout")
+}
+System_Ext(youtube, "YouTube player", "Embedded iframe")
+System_Ext(bike, "Echelon bike", "BLE")
+
+Rel(rider, web, "Uses", "Browser")
+Rel(web, api, "GET /api/classes/{id}; POST /api/workout", "JSON/HTTP")
+Rel(web, youtube, "Previews through", "IFrame player API")
+Rel(api, bike, "Drives", "BLE")
+@enduml

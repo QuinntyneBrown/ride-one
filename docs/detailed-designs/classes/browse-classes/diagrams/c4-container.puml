@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Browse the class library
+
+Person(rider, "Rider", "Picks a class")
+Person(owner, "Owner", "Edits the catalogue")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular", "Class library page at /classes")
+  Container(api, "Wattzup API", "ASP.NET Core", "Reads and serves the catalogue")
+  ContainerDb(file, "Class catalogue", "JSON file", "classes.json: shelves and classes")
+}
+System_Ext(ytimg, "YouTube image host", "i.ytimg.com")
+
+Rel(rider, web, "Uses", "Browser")
+Rel(web, api, "GET /api/classes", "JSON/HTTP")
+Rel(api, file, "Reads and watches", "File system")
+Rel(owner, file, "Edits")
+Rel(web, ytimg, "Loads covers from", "HTTPS, img-src")
+@enduml

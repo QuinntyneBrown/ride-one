@@ -16,7 +16,7 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Log resistance commands](resistance-control/log-resistance-commands/README.md) | `L2-048` |
 | workouts | [Start and stop a workout](workouts/start-and-stop-workout/README.md) | `L2-010`, `L2-017`, `L2-046` |
 |  | [Run an interval workout](workouts/run-interval-workout/README.md) | `L2-011`, `L2-012`, `L2-013`, `L2-045`, `L2-060` |
-|  | [Set up a ride](workouts/set-up-ride/README.md) | `L2-010`, `L2-029`, `L2-052`, `L2-059` |
+|  | [Set up a ride](workouts/set-up-ride/README.md) | `L2-010`, `L2-029`, `L2-052`, `L2-059`, `L2-080` |
 |  | [Show the workout countdown](workouts/show-workout-countdown/README.md) | `L2-024`, `L2-025` |
 |  | [Play workout cues](workouts/play-workout-cues/README.md) | `L2-027` |
 |  | [Ride along to a video](workouts/ride-along-video/README.md) | `L2-076`, `L2-010`, `L2-014`, `L2-029`, `L2-036`, `L2-059` |
@@ -34,6 +34,8 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 |  | [Control the belt](treadmill/control-the-belt/README.md) | `L2-066` |
 |  | [Run a treadmill workout](treadmill/run-treadmill-workout/README.md) | `L2-067`, `L2-068` |
 |  | [Treadmill dashboard and setup](treadmill/treadmill-dashboard-and-setup/README.md) | `L2-071`, `L2-072` |
-| platform | [Secure the API](platform/secure-api/README.md) | `L2-034`, `L2-035`, `L2-036` |
+| classes | [Browse the class library](classes/browse-classes/README.md) | `L2-077`, `L2-078`, `L2-079`, `L2-036`, `L2-073` |
+|  | [Ride a class](classes/ride-a-class/README.md) | `L2-080`, `L2-078`, `L2-010`, `L2-029`, `L2-052`, `L2-059`, `L2-076` |
+| platform | [Secure the API](platform/secure-api/README.md) | `L2-034`, `L2-035`, `L2-036`, `L2-078` |
 |  | [Observability and resource use](platform/observability-and-resources/README.md) | `L2-033`, `L2-038` |
 |  | [Host and solution structure](platform/host-and-structure/README.md) | `L2-042`, `L2-044` |
