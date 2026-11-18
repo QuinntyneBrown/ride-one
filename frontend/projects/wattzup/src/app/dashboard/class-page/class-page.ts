@@ -24,6 +24,7 @@ import {
   type LevelRowName,
   levelRows,
   shiftLevels,
+  toSetupDrafts,
   toStartRequest,
   stretchLine,
   structureLine,
@@ -34,6 +35,7 @@ import { formatDuration } from '../../core/format-duration';
 import { LiveStateService } from '../../core/live-state.service';
 import { MachineHistoryStore } from '../../core/machine-history.store';
 import { planSummary } from '../../core/plan-expansion';
+import { PlanDraftStore } from '../../core/plan-draft.store';
 import { isActive } from '../../core/workout-status';
 import { bikeOnly } from '../../core/machine-guards';
 import { MotionPreference } from '../../core/motion-preference';
@@ -63,6 +65,7 @@ export class ClassPage {
   private readonly dialogs = inject(DialogLauncher);
   private readonly history = inject(MachineHistoryStore);
   private readonly router = inject(Router);
+  private readonly drafts = inject(PlanDraftStore);
 
   protected readonly status = liveConnectionStatus();
   protected readonly reducedMotion = inject(MotionPreference).reduced;
@@ -225,5 +228,26 @@ export class ClassPage {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  /** Writes this page's plan and video as setup's drafts, replacing them, and opens setup (L2-080 AC12). */
+  protected openFullSetup(event: MouseEvent): void {
+    const d = this.draft();
+    if (
+      !d ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    event.preventDefault();
+    const { plan, intervals, video } = toSetupDrafts(d);
+    this.drafts.save(plan);
+    if (intervals) this.drafts.saveIntervals(intervals);
+    this.drafts.saveVideo(video);
+    void this.router.navigateByUrl('/setup');
   }
 }

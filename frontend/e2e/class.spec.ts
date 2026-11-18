@@ -8,6 +8,7 @@ import notFound from './fixtures/recorded/problem-class-not-found.json';
 import { expect, test } from './fixtures/wz-test';
 import { state, treadmillIdle, workout } from './fixtures/states';
 import { ReplaceRideDialog } from './pages/replace-ride.dialog';
+import { SetupPage } from './pages/setup.page';
 import { ClassPage } from './pages/class.page';
 
 test.describe('Class page (L2-080)', () => {
@@ -304,5 +305,45 @@ test.describe('Class page (L2-080)', () => {
     await cls.tryAgain.click();
     await expect(page).toHaveURL(/\/$/);
     expect(api.calls('POST', '/api/workout')).toHaveLength(2);
+  });
+
+  test('opens full setup in Intervals with this plan and video, replacing the draft', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const cls = new ClassPage(page, api, events);
+    const setup = new SetupPage(page, api, events);
+    await cls.open();
+    await cls.work.raise.click();
+    await cls.later.click();
+
+    await cls.fullSetup.click();
+    await expect(page).toHaveURL(/\/setup$/);
+    await expect(setup.intervalsCard).toBeChecked();
+    await expect(setup.stretchValue('Warm-up')).toHaveText('5:00 · Level 8 · 80 rpm');
+    await expect(setup.setRows).toHaveCount(5);
+    await expect(setup.setRow(1)).toContainText('1 × 0:30 · L25 · 98 rpm');
+    await expect(setup.setRow(1)).toContainText('Recover 3:00 · L6 · 72 rpm');
+    await expect(setup.videoSwitch).toBeChecked();
+    await expect(setup.videoUrl).toHaveValue('https://www.youtube.com/watch?v=QUoToFsMNig');
+    await expect(setup.videoStart).toHaveValue('0:12.5');
+  });
+
+  test('opens full setup in Flat with the steady level and no video', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const cls = new ClassPage(page, api, events);
+    const setup = new SetupPage(page, api, events);
+    await cls.open('60-min-dolomites-endurance', { json: dolomites });
+    await cls.steady.raise.click();
+
+    await cls.fullSetup.click();
+    await expect(page).toHaveURL(/\/setup$/);
+    await expect(setup.flatCard).toBeChecked();
+    await expect(setup.slider('Resistance level')).toHaveValue('13');
+    await expect(setup.videoSwitch).not.toBeChecked();
   });
 });

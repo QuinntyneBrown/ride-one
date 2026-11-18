@@ -3,7 +3,9 @@
 import type { ClassEntry, Segment, StartPlan, WorkoutPlan } from '@wattzup/api';
 import { formatDuration } from './format-duration';
 import { expandPlan } from './plan-expansion';
-import { videoIdOf } from './video-link';
+import { DEFAULT_INTERVALS, type IntervalsDraft, type StretchDraft } from './intervals-form';
+import { DEFAULT_DRAFT, formatClock, type PlanDraft } from './plan-form';
+import { DEFAULT_VIDEO_DRAFT, type VideoDraft, videoIdOf } from './video-link';
 
 /** What the class page edits: the plan, the YouTube link and the start point. */
 export interface ClassDraft {
@@ -167,4 +169,67 @@ export function toStartRequest(draft: ClassDraft): StartPlan {
   const url = draft.url.trim();
   const video = videoIdOf(url) ? { url, start_seconds: draft.start } : null;
   return { ...draft.plan, video } as StartPlan;
+}
+
+/** What `Change intervals in full setup` writes for setup to restore (L2-080 AC12). */
+export interface SetupDrafts {
+  plan: PlanDraft;
+  intervals: IntervalsDraft | null;
+  video: VideoDraft;
+}
+
+function stretchOf(
+  stretch: { seconds: number; level: number; cadence: number } | null,
+  fallback: StretchDraft,
+): StretchDraft {
+  return stretch ? { on: true, ...stretch } : { ...fallback, on: false };
+}
+
+/** Setup's drafts in the class's mode, filled from this page's plan and video (L2-080 AC12). */
+export function toSetupDrafts(draft: ClassDraft): SetupDrafts {
+  const p = draft.plan;
+  const url = draft.url.trim();
+  const video: VideoDraft = videoIdOf(url)
+    ? { on: true, url, start: draft.start }
+    : { ...DEFAULT_VIDEO_DRAFT };
+  const base: PlanDraft = { ...DEFAULT_DRAFT, mode: p.kind, preset: null };
+  switch (p.kind) {
+    case 'hiit':
+      return {
+        plan: {
+          ...base,
+          rounds: String(p.rounds),
+          work: formatClock(p.work_seconds),
+          rest: formatClock(p.rest_seconds),
+          workLevel: p.work_level ?? DEFAULT_DRAFT.workLevel,
+          restLevel: p.rest_level ?? DEFAULT_DRAFT.restLevel,
+          warmup: p.warmup,
+          cooldown: p.cooldown,
+        },
+        intervals: null,
+        video,
+      };
+    case 'flat':
+      return {
+        plan: {
+          ...base,
+          flatLevel: p.level ?? DEFAULT_DRAFT.flatLevel,
+          minutes: `${p.minutes} min`,
+          cadence: p.cadence === null ? DEFAULT_DRAFT.cadence : `${p.cadence} rpm`,
+        },
+        intervals: null,
+        video,
+      };
+    case 'intervals':
+      return {
+        plan: base,
+        intervals: {
+          preset: null,
+          warmup: stretchOf(p.warmup, DEFAULT_INTERVALS.warmup),
+          sets: p.sets.map((s) => ({ ...s })),
+          cooldown: stretchOf(p.cooldown, DEFAULT_INTERVALS.cooldown),
+        },
+        video,
+      };
+  }
 }

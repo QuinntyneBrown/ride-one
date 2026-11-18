@@ -245,7 +245,7 @@
                 Change intervals in full setup
               </button>
             } @else {
-              <a class="btn btn--quiet btn--block" routerLink="/setup"
+              <a class="btn btn--quiet btn--block" href="/setup" (click)="openFullSetup($event)"
                 >Change intervals in full setup</a
               >
             }

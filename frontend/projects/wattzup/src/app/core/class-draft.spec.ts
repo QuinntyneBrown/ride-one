@@ -7,6 +7,7 @@ import {
   shiftLevels,
   stretchLine,
   structureLine,
+  toSetupDrafts,
   toStartRequest,
 } from './class-draft';
 
@@ -161,5 +162,53 @@ describe('class-draft (L2-080)', () => {
     });
     expect(toStartRequest({ ...draft, url: 'https://vimeo.com/76979871' }).video).toBeNull();
     expect(toStartRequest({ ...draft, url: '' }).video).toBeNull();
+  });
+
+  it('fills the Intervals draft and the video for an intervals class (AC12)', () => {
+    const drafts = toSetupDrafts(draftOf(classOf(HIIT_CARDIO)));
+    expect(drafts.plan).toMatchObject({ mode: 'intervals', preset: null });
+    expect(drafts.intervals).toEqual({
+      preset: null,
+      warmup: { on: true, seconds: 300, level: 8, cadence: 80 },
+      sets: HIIT_CARDIO.kind === 'intervals' ? HIIT_CARDIO.sets : [],
+      cooldown: { on: true, seconds: 360, level: 6, cadence: 70 },
+    });
+    expect(drafts.video).toEqual({
+      on: true,
+      url: 'https://www.youtube.com/watch?v=QUoToFsMNig',
+      start: 12,
+    });
+  });
+
+  it('keeps a missing warm-up off in the Intervals draft (AC12)', () => {
+    const plan = { ...HIIT_CARDIO, warmup: null } as WorkoutPlan;
+    expect(toSetupDrafts(draftOf(classOf(plan))).intervals?.warmup.on).toBe(false);
+  });
+
+  it('fills the HIIT fields for a hiit class (AC12)', () => {
+    expect(toSetupDrafts(draftOf(classOf(HIIT)))).toMatchObject({
+      plan: {
+        mode: 'hiit',
+        preset: null,
+        rounds: '8',
+        work: '0:40',
+        rest: '0:20',
+        workLevel: 18,
+        restLevel: 6,
+        warmup: true,
+        cooldown: false,
+      },
+      intervals: null,
+      video: { on: false },
+    });
+  });
+
+  it('fills the Flat fields for a flat class (AC12)', () => {
+    expect(toSetupDrafts(draftOf(classOf(FLAT))).plan).toMatchObject({
+      mode: 'flat',
+      flatLevel: 12,
+      minutes: '60 min',
+      cadence: '85 rpm',
+    });
   });
 });
