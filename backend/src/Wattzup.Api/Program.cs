@@ -53,6 +53,7 @@ builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection(Sec
 builder.Services.AddHostedService<BindAddressGuard>();
 var treadmill = builder.Configuration.GetSection(TreadmillOptions.SectionName).Get<TreadmillOptions>() ?? new TreadmillOptions();
 builder.Services.Configure<TreadmillOptions>(builder.Configuration.GetSection(TreadmillOptions.SectionName));
+builder.Services.Configure<ClassesOptions>(builder.Configuration.GetSection(ClassesOptions.SectionName));
 builder.Services.AddHostedService<TreadmillGuard>();
 builder.Services.AddSingleton<EventTokenService>();
 var keyed = !string.IsNullOrEmpty(security.ApiKey);
@@ -113,6 +114,8 @@ builder.Services.AddSingleton<Wattzup.Core.Treadmill.ITreadmillCommander, Wattzu
 builder.Services.AddSingleton<ITreadmillControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddSingleton<IMachineControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<WorkoutEngine>());
+builder.Services.AddSingleton<Wattzup.Core.Classes.ClassCatalogueStore>();
+builder.Services.AddHostedService<Wattzup.Api.Classes.ClassCatalogueService>();
 builder.Services.AddSingleton<BikeConnectionService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<BikeConnectionService>());
 
@@ -150,6 +153,7 @@ api.MapTreadmillEndpoints();
 api.MapMachineEndpoints();
 api.MapWorkoutEndpoints();
 api.MapDiagnosticsEndpoints();
+api.MapClassEndpoints();
 
 app.Run();
 
