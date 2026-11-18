@@ -34,3 +34,7 @@ export * from './lib/effort-row/effort-row';
 export * from './lib/shelf/shelf';
 export * from './lib/class-card/class-card';
 export * from './lib/level-row/level-row';
+export * from './lib/session-traces/session-traces';
+export * from './lib/dip-list/dip-list';
+export * from './lib/week-strip/week-strip';
+export * from './lib/stat-strip/stat-strip';
