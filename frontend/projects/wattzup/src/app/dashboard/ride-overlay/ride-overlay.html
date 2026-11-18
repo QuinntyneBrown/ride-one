@@ -7,7 +7,7 @@
     } @else if (o.icon; as icon) {
       <span
         class="overlay-panel__icon"
-        [class.overlay-panel__icon--ok]="o.kind === 'bike-shut-off'"
+        [class.overlay-panel__icon--ok]="o.kind === 'bike-shut-off' || o.kind === 'ride-complete'"
         [class.overlay-panel__icon--warn]="o.kind === 'belt-stopped'"
         ><wz-icon [name]="icon" size="xl"
       /></span>
@@ -48,7 +48,27 @@
       }
       @case ('bike-shut-off') {
         <div class="cluster">
-          <a class="btn btn--volt" routerLink="/setup">Set up a new ride</a>
+          @if (o.sessionId; as id) {
+            <a class="btn btn--volt" [routerLink]="['/sessions', id]" [state]="justFinished"
+              >See your ride</a
+            >
+            <a class="btn" routerLink="/classes">Ride another class</a>
+          } @else {
+            <a class="btn btn--volt" routerLink="/classes">Ride another class</a>
+            <a class="btn" routerLink="/setup">Build your own ride</a>
+          }
+        </div>
+      }
+      @case ('ride-complete') {
+        <div class="cluster">
+          <a
+            #seeYourRide
+            class="btn btn--volt"
+            [routerLink]="['/sessions', o.sessionId]"
+            [state]="justFinished"
+            >See your ride</a
+          >
+          <a class="btn" routerLink="/classes">Ride another class</a>
         </div>
       }
     }

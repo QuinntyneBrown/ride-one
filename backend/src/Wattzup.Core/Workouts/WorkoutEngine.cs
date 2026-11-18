@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Wattzup.Core.Bluetooth;
 using Wattzup.Core.Machines;
 using Wattzup.Core.Resistance;
+using Wattzup.Core.Sessions;
 using Wattzup.Core.State;
 using Wattzup.Core.Telemetry;
 using Wattzup.Core.Treadmill;
@@ -47,7 +48,8 @@ public sealed class WorkoutEngine(
     MachineSelector machines,
     BikeStateStore store,
     ActiveConnectionRegistry registry,
-    PowerTraceHistory trace) : BackgroundService, IResistanceControl, ITreadmillControl, IMachineControl
+    PowerTraceHistory trace,
+    SessionStore sessions) : BackgroundService, IResistanceControl, ITreadmillControl, IMachineControl
 {
     public static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
     public static readonly TimeSpan ShutOffGrace = TimeSpan.FromSeconds(90);
@@ -60,21 +62,30 @@ public sealed class WorkoutEngine(
 
     /// <summary>Starts <paramref name="plan"/>, replacing any active ride (L2-013 criterion 5).</summary>
     public Task<WorkoutSnapshot> StartAsync(WorkoutPlan plan, CancellationToken cancellationToken) =>
-        PostAsync(() => StartRunAsync(plan, cancellationToken), cancellationToken);
+        StartAsync(plan, null, cancellationToken);
 
-    /// <summary>Stops the active ride; the bike keeps its level (L2-013 criterion 6). Null with no workout.</summary>
+    /// <summary>Starts <paramref name="plan"/> from the class <paramref name="origin"/> names, or from setup when null.</summary>
+    public Task<WorkoutSnapshot> StartAsync(WorkoutPlan plan, RideOrigin? origin, CancellationToken cancellationToken) =>
+        PostAsync(() => StartRunAsync(plan, origin, cancellationToken), cancellationToken);
+
+    /// <summary>
+    /// Stops the active ride; the bike keeps its level (L2-013 criterion 6) and a ride of a minute or more is saved
+    /// (L2-081). Answers the stopped ride, or null when no workout was active.
+    /// </summary>
     public Task<WorkoutSnapshot?> StopWorkoutAsync(CancellationToken cancellationToken) =>
         PostAsync(
             async () =>
             {
-                if (_run is { IsActive: true } run)
+                if (_run is not { IsActive: true } run)
                 {
-                    await StopBeltAsync(run, BeltReason.Stop, cancellationToken).ConfigureAwait(false);
-                    run.Status = WorkoutStatus.Stopped;
-                    Publish(run);
+                    return null;
                 }
 
-                return _run?.ToSnapshot();
+                await StopBeltAsync(run, BeltReason.Stop, cancellationToken).ConfigureAwait(false);
+                run.Status = WorkoutStatus.Stopped;
+                Finish(run);
+                Publish(run);
+                return run.ToSnapshot();
             },
             cancellationToken);
 
@@ -275,14 +286,14 @@ public sealed class WorkoutEngine(
         }
     }
 
-    private async Task<WorkoutSnapshot> StartRunAsync(WorkoutPlan plan, CancellationToken cancellationToken)
+    private async Task<WorkoutSnapshot> StartRunAsync(WorkoutPlan plan, RideOrigin? origin, CancellationToken cancellationToken)
     {
         if (_run is { IsActive: true } previous && registry.IsConnected)
         {
             await StopBeltAsync(previous, BeltReason.Replace, cancellationToken).ConfigureAwait(false);
         }
 
-        var run = new WorkoutRun(plan);
+        var run = new WorkoutRun(plan, origin);
         _run = run;
         trace.Reset();
         if (registry.IsConnected)
@@ -325,6 +336,7 @@ public sealed class WorkoutEngine(
                 {
                     run.Status = WorkoutStatus.EndedBikeShutOff;
                     run.EndedReason = "bike shut off";
+                    Finish(run);
                 }
             }
 
@@ -377,7 +389,9 @@ public sealed class WorkoutEngine(
         {
             // The treadmill reports no power; its trace stays empty (L2-064).
             trace.Append(run.Elapsed, state.Power ?? 0);
+            run.Samples.Add(new RideSample(state.Power ?? 0, state.Cadence ?? 0));
         }
+
         if (run.Remaining <= 0)
         {
             if (run.IsLastSegment || run.Elapsed >= run.TotalSeconds)
@@ -385,6 +399,7 @@ public sealed class WorkoutEngine(
                 run.Remaining = 0;
                 run.Status = WorkoutStatus.Ended;
                 await StopBeltAsync(run, BeltReason.End, cancellationToken).ConfigureAwait(false);
+                Finish(run);
                 Publish(run);
                 return;
             }
@@ -399,6 +414,36 @@ public sealed class WorkoutEngine(
     }
 
     private bool OnTreadmill => store.Current.Machine == Machine.Treadmill;
+
+    /// <summary>
+    /// Saves a ride on the bike that has just ended, when it ran a minute or more (L2-081 criteria 1 to 3). Runs on the
+    /// engine loop before the ended state is published, so that state already carries the session id.
+    /// </summary>
+    private void Finish(WorkoutRun run)
+    {
+        if (run.Finished || OnTreadmill)
+        {
+            return;
+        }
+
+        run.Finished = true;
+        if (run.Samples.Count < SessionBuilder.MinimumSeconds)
+        {
+            return;
+        }
+
+        var session = SessionBuilder.Build(new SessionInput(
+            sessions.NewId(),
+            store.Time.GetUtcNow(),
+            run.Origin?.ClassId,
+            run.Origin?.Title ?? run.Summary,
+            run.Plan,
+            run.Segments,
+            [.. run.Samples],
+            run.Totals));
+        sessions.Add(session);
+        run.SessionId = session.Id;
+    }
 
     /// <summary>
     /// Runs the ride at once on the bike; on the treadmill only when the belt already runs, otherwise through the

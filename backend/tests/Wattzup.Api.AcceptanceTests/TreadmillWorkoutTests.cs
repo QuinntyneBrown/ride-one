@@ -22,7 +22,7 @@ public sealed class TreadmillWorkoutTests
         work_incline = 2, rest_incline = 1, warmup = false, cooldown = false,
     };
 
-    private static readonly object OneMinuteFlat = new { kind = "flat", speed = 9.0, incline = 0, minutes = 1 };
+    internal static readonly object OneMinuteFlat = new { kind = "flat", speed = 9.0, incline = 0, minutes = 1 };
 
     private static readonly object TwoMinuteClimb = new { kind = "flat", speed = 13.0, incline = 2, minutes = 2 };
 
@@ -60,7 +60,7 @@ public sealed class TreadmillWorkoutTests
     }
 
 
-    private static async Task<Bike> TreadmillAsync(bool connected = true)
+    internal static async Task<Bike> TreadmillAsync(bool connected = true)
     {
         var treadmill = await Bike.StartAsync(TreadmillConnectionTests.TreadmillFactory(), connected);
         if (connected)
@@ -81,7 +81,7 @@ public sealed class TreadmillWorkoutTests
         bike.Stream.AdvanceUntilAsync(bike.Factory.Time, predicate, what, TimeSpan.FromSeconds(1), maxSeconds);
 
     /// <summary>Starts <paramref name="plan"/> and runs the countdown until the belt is running and the ride is running.</summary>
-    private static async Task<JsonElement> StartRunningAsync(Bike bike, object plan)
+    internal static async Task<JsonElement> StartRunningAsync(Bike bike, object plan)
     {
         await Ride.StartAsync(bike, plan);
         return await AdvanceUntilAsync(bike, s => Ride.Status(s) == "running" && s.GetProperty("belt").GetString() == "running", "a running ride on a running belt");

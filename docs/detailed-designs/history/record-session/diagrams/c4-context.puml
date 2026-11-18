@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Record a session
+
+Person(rider, "Rider", "Rides the Echelon bike")
+System(wattzup, "Wattzup", "Live training display that drives the bike and keeps the ride history")
+System_Ext(bike, "Echelon bike", "Reports cadence and resistance over Bluetooth LE")
+
+Rel(rider, wattzup, "Ends a ride in")
+Rel(wattzup, bike, "Reads each second of the ride from", "BLE")
+@enduml

@@ -120,6 +120,7 @@ export function workout(change: Json = {}): Json {
     plan_level: 18,
     status: 'running',
     ended_reason: null,
+    session_id: null,
     ...change,
   };
   return fromRecording(RECORDED_WORKOUT, cast, 'workout');

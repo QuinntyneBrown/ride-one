@@ -1,6 +1,9 @@
 import { expect, test } from './fixtures/wz-test';
 import { RidePage } from './pages/ride.page';
-import { NOW, freeRide, state, workout } from './fixtures/states';
+import { NOW, freeRide, state, treadmillState, treadmillWorkout, workout } from './fixtures/states';
+import recordedSession from './fixtures/recorded/session.json';
+import { progressAfterRide } from './fixtures/sessions';
+import { SessionSummaryPage } from './pages/session-summary.page';
 
 test.describe('Connection banners (L2-054)', () => {
   test('a dropped stream warns with the time of the last state and Retry now', async ({
@@ -143,7 +146,7 @@ test.describe('Ride dashboard overlays and errors (L2-058)', () => {
     await api.waitForCall('POST', '/api/bike/reconnect');
   });
 
-  test('a bike that shut off ends the ride with Set up a new ride', async ({
+  test('a bike that shut off ends the ride with Ride another class and Build your own ride', async ({
     page,
     api,
     events,
@@ -159,7 +162,80 @@ test.describe('Ride dashboard overlays and errors (L2-058)', () => {
     await expect(ride.overlayText).toHaveText(
       'Echelon EX-5s was off for more than 90 seconds, so Wattzup ended the workout at 9:42. Your numbers are kept below.',
     );
-    await expect(ride.link(ride.overlay, 'Set up a new ride')).toHaveAttribute('href', '/setup');
+    await expect(ride.link(ride.overlay, 'Ride another class')).toHaveAttribute('href', '/classes');
+    await expect(ride.link(ride.overlay, 'Build your own ride')).toHaveAttribute('href', '/setup');
+  });
+
+  test('a bike that shut off with a saved ride offers See your ride (L2-084 AC2)', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(
+      state({
+        ble: 'disconnected',
+        workout: workout({
+          status: 'ended: bike shut off',
+          elapsed_seconds: 582,
+          session_id: 'baad5479c6fe',
+        }),
+      }),
+    );
+    await expect(ride.overlayTitle).toHaveText('Ride ended — the bike shut off');
+    await expect(ride.link(ride.overlay, 'See your ride')).toHaveAttribute(
+      'href',
+      '/sessions/baad5479c6fe',
+    );
+    await expect(ride.link(ride.overlay, 'Ride another class')).toHaveAttribute('href', '/classes');
+    await expect(ride.link(ride.overlay, 'Build your own ride')).toHaveCount(0);
+  });
+
+  test('a plan that ended with a saved ride reads Ride complete with See your ride focused (L2-084 AC3)', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(
+      state({
+        workout: workout({ status: 'ended', elapsed_seconds: 760, session_id: 'baad5479c6fe' }),
+      }),
+    );
+    await expect(ride.overlay).toHaveAttribute('role', 'status');
+    await expect(ride.overlayTitle).toHaveText('Ride complete');
+    await expect(ride.overlayText).toHaveText('HIIT · 8 × 40s / 20s · 12:40. Your ride is saved.');
+    const see = ride.link(ride.overlay, 'See your ride');
+    await expect(see).toBeFocused();
+    await expect(ride.link(ride.overlay, 'Ride another class')).toHaveAttribute('href', '/classes');
+
+    const summary = new SessionSummaryPage(page, api, events);
+    summary.answer({ json: recordedSession }, { json: progressAfterRide() }, 'baad5479c6fe');
+    await see.click();
+    await expect(page).toHaveURL(/\/sessions\/baad5479c6fe$/);
+    await expect(summary.back).toHaveText('Done');
+    await expect(summary.date).toHaveText(/^Ride saved · /);
+  });
+
+  test('a plan that ended without a saved ride leaves the dashboard as it was', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(state({ workout: workout({ status: 'ended', elapsed_seconds: 760 }) }));
+    await expect(ride.endButton).toBeVisible();
+    await expect(ride.overlay).toHaveCount(0);
+  });
+
+  test('the treadmill shows no Ride complete (L2-084 AC4)', async ({ page, api, events }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(
+      treadmillState({
+        workout: treadmillWorkout({ status: 'ended', session_id: 'baad5479c6fe' }),
+      }),
+    );
+    await expect(ride.overlay).toHaveCount(0);
   });
 
   test('a failed GET /api/status reads Couldn’t load your ride and Try again reloads', async ({

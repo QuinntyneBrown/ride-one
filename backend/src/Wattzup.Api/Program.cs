@@ -53,6 +53,8 @@ builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection(Sec
 builder.Services.AddHostedService<BindAddressGuard>();
 var treadmill = builder.Configuration.GetSection(TreadmillOptions.SectionName).Get<TreadmillOptions>() ?? new TreadmillOptions();
 builder.Services.Configure<TreadmillOptions>(builder.Configuration.GetSection(TreadmillOptions.SectionName));
+builder.Services.Configure<ClassesOptions>(builder.Configuration.GetSection(ClassesOptions.SectionName));
+builder.Services.Configure<SessionsOptions>(builder.Configuration.GetSection(SessionsOptions.SectionName));
 builder.Services.AddHostedService<TreadmillGuard>();
 builder.Services.AddSingleton<EventTokenService>();
 var keyed = !string.IsNullOrEmpty(security.ApiKey);
@@ -107,12 +109,18 @@ builder.Services.AddHostedService<StateChangeLogger>();
 builder.Services.AddSingleton<TelemetryIngestor>();
 builder.Services.AddSingleton<IResistanceCommander, ResistanceCommander>();
 builder.Services.AddSingleton<PowerTraceHistory>();
+builder.Services.AddSingleton<Wattzup.Core.Sessions.SessionStore>();
+builder.Services.AddSingleton<Wattzup.Api.Sessions.SessionFileService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<Wattzup.Api.Sessions.SessionFileService>());
 builder.Services.AddSingleton<WorkoutEngine>();
 builder.Services.AddSingleton<IResistanceControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddSingleton<Wattzup.Core.Treadmill.ITreadmillCommander, Wattzup.Core.Treadmill.TreadmillCommander>();
 builder.Services.AddSingleton<ITreadmillControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddSingleton<IMachineControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<WorkoutEngine>());
+builder.Services.AddSingleton<Wattzup.Core.Classes.ClassCatalogueStore>();
+builder.Services.AddSingleton<Wattzup.Api.Classes.ClassCatalogueService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<Wattzup.Api.Classes.ClassCatalogueService>());
 builder.Services.AddSingleton<BikeConnectionService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<BikeConnectionService>());
 
@@ -150,6 +158,8 @@ api.MapTreadmillEndpoints();
 api.MapMachineEndpoints();
 api.MapWorkoutEndpoints();
 api.MapDiagnosticsEndpoints();
+api.MapClassEndpoints();
+api.MapSessionEndpoints();
 
 app.Run();
 

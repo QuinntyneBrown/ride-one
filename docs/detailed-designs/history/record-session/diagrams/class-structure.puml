@@ -1,0 +1,113 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Record a session
+
+class SessionRecord {
+  +Id: string
+  +EndedAt: DateTimeOffset
+  +ClassId: string?
+  +Title: string
+  +Plan: WorkoutPlan
+  +Segments: IReadOnlyList<Segment>
+  +PlannedSeconds: int
+  +RiddenSeconds: int
+  +Completed: bool
+  +AvgPower: int
+  +MaxPower: int
+  +BestMinutePower: int
+  +AvgCadence: int
+  +DistanceKm: double
+  +Kcal: int
+  +OnTargetPct: int
+  +Dips: IReadOnlyList<Dip>
+  +PowerTrace: IReadOnlyList<int>
+  +CadenceTrace: IReadOnlyList<int>
+  +ToSummary(): SessionSummary
+}
+class Dip {
+  +Start: int
+  +Duration: int
+  +Target: int
+  +Low: int
+  +Kind: SegmentKind
+  +Round: int?
+}
+class SessionSummary {
+  +Id, EndedAt, ClassId, Title
+  +RiddenSeconds, PlannedSeconds, Completed
+  +AvgPower, OnTargetPct, DipCount
+}
+class RideSample {
+  +Power: int
+  +Cadence: int
+}
+class SessionInput {
+  +Id: string
+  +EndedAt: DateTimeOffset
+  +Origin: RideOrigin?
+  +Summary: string
+  +Plan: WorkoutPlan
+  +Segments: IReadOnlyList<Segment>
+  +Samples: IReadOnlyList<RideSample>
+  +Totals: RideTotals
+}
+class SessionBuilder <<static>> {
+  +MinSeconds = 60
+  +DipMinSeconds = 6
+  +Build(input): SessionRecord
+  +DipTolerance(kind): int?
+}
+class SessionStore {
+  +MaxSessions = 500
+  +All: IReadOnlyList<SessionRecord>
+  +Find(id): SessionRecord?
+  +Load(sessions)
+  +Add(session)
+  +Saved: event
+}
+class SessionFile <<static>> {
+  +MaxBytes = 16 MB
+  +Read(path): SessionFileResult
+  +Write(path, sessions)
+  +SetAside(path)
+}
+class RideOrigin {
+  +ClassId: string
+  +Title: string
+}
+class WorkoutRun {
+  +Samples: List<RideSample>
+  +Origin: RideOrigin?
+  +SessionId: string?
+}
+class WorkoutEngine {
+  +StartAsync(plan, origin, ct)
+  +StopWorkoutAsync(ct)
+  -Finish(run)
+}
+class SessionFileService <<hosted>>
+
+SessionRecord *-- "0..*" Dip
+SessionRecord ..> SessionSummary : creates
+SessionInput o-- "0..*" RideSample
+SessionInput --> RideOrigin
+SessionBuilder ..> SessionInput : reads
+SessionBuilder ..> SessionRecord : creates
+SessionStore o-- "0..500" SessionRecord
+WorkoutEngine --> WorkoutRun : owns one
+WorkoutRun o-- "0..*" RideSample
+WorkoutRun --> RideOrigin
+WorkoutEngine ..> SessionBuilder
+WorkoutEngine --> SessionStore
+SessionFileService --> SessionStore
+SessionFileService ..> SessionFile
+@enduml

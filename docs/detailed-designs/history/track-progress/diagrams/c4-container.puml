@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Track progress
+
+Person(rider, "Rider", "Checks progress")
+System_Boundary(wattzup, "Wattzup") {
+  Container(web, "Wattzup Web", "Angular", "Progress at /progress; Progress link on /classes")
+  Container(api, "Wattzup API", "ASP.NET Core", "Computes streaks, goals, trends and achievements")
+  ContainerDb(file, "Sessions file", "JSON file", "sessions.json")
+}
+
+Rel(rider, web, "Uses", "Browser")
+Rel(web, api, "GET /api/sessions, GET /api/progress", "JSON/HTTP")
+Rel(api, file, "Loaded at start", "File system")
+@enduml

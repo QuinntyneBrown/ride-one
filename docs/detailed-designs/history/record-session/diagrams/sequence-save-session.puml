@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour — End a ride and save it
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Frontend — Wattzup Web" #E0F2FE
+  participant "EndRideDialog" as dlg
+end box
+box "Backend — Wattzup API application" #D1FADF
+  participant "WorkoutEndpoints" as ep
+  participant "SessionFileService" as fsvc
+end box
+box "Backend — Wattzup Core" #ECFDF3
+  participant "WorkoutEngine" as engine
+  participant "SessionBuilder" as builder
+  participant "SessionStore" as store
+  participant "BikeStateStore" as state
+end box
+box "Backend — Infrastructure" #FFF4E5
+  database "sessions.json" as file
+end box
+
+loop each running second on the bike
+  engine -> engine : Totals.Tick; Samples.Add(power, cadence) [L2-081]
+end
+alt rider presses End ride
+  dlg -> ep : POST /api/workout/stop
+  ep -> engine : StopWorkoutAsync
+  engine -> engine : Status = stopped
+else plan reaches its end
+  engine -> engine : Status = ended
+else bike off for 90 s
+  engine -> engine : Status = ended: bike shut off [L2-058]
+end
+engine -> engine : Finish(run)
+alt bike and Elapsed >= 60
+  engine -> builder : Build(samples, segments, totals, origin, now, id)
+  builder --> engine : SessionRecord (dips, on target, best minute, traces)
+  engine -> store : Add(session) [L2-082 AC4: newest 500]
+  store -> fsvc : Saved(list)
+  fsvc -> file : Write sessions.json.tmp, move over sessions.json [L2-082 AC3]
+  alt write fails
+    fsvc -> fsvc : Log error; the session stays in memory [L2-082 AC7]
+  end
+  engine -> engine : run.SessionId = id
+else treadmill or under a minute
+  engine -> engine : no session [L2-081 AC2, AC3]
+end
+engine -> state : Publish(workout.session_id) [L2-014]
+ep --> dlg : 200 {stopped: true, session_id} [L2-081 AC8]
+@enduml

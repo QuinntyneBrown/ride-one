@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures/wz-test';
 import { RidePage } from './pages/ride.page';
-import { startingState, state } from './fixtures/states';
+import { NOW, startingState, state } from './fixtures/states';
 
 test.describe('Connection status line (L2-018)', () => {
   test('reads the device label and Connected', async ({ page, api, events }) => {
@@ -50,14 +50,18 @@ test.describe('Connection status line (L2-018)', () => {
     api,
     events,
   }) => {
-    await page.clock.install();
+    // Paused, so only runFor moves time: the real time CI spends between steps must not count
+    // towards the 2 s delay.
+    await page.clock.install({ time: NOW });
     const ride = new RidePage(page, api, events);
     await ride.open(state());
+    await page.clock.pauseAt(NOW + 60_000);
     await events.fail();
+    await page.clock.runFor(100);
     await expect(ride.statusName).toHaveText('Server offline');
     await expect(ride.statusState).toHaveText('Retrying…');
     expect((await events.connections()).length).toBe(1);
-    await page.clock.runFor(1900);
+    await page.clock.runFor(1800);
     expect((await events.connections()).length).toBe(1);
     await page.clock.runFor(200);
     await expect.poll(async () => (await events.connections()).length).toBe(2);
@@ -65,6 +69,7 @@ test.describe('Connection status line (L2-018)', () => {
     await page.clock.runFor(2100);
     await expect.poll(async () => (await events.connections()).length).toBe(3);
     await ride.push(state());
+    await page.clock.runFor(100);
     await expect(ride.statusState).toHaveText('Connected');
   });
 

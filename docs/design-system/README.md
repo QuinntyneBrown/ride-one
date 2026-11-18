@@ -87,6 +87,15 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | Component | Summary |
 |---|---|
 | [Class card and shelf](components/class-card.html) | One video of the library with its length, plan strip and peak, on a shelf the catalogue defines (proposed). |
+| [Session traces](components/session-traces.html) | Cadence against its aim with each dip marked, and power beneath, over a saved ride. |
+| [Dip list](components/dip-list.html) | Every cadence dip of a ride as a row that highlights it on the traces. |
+| [Week strip](components/week-strip.html) | This week, Monday to Sunday, filled where the rider rode. |
+| [Stat strip](components/stat-strip.html) | A session's totals as labelled numerals. |
+| [Personal-best chip and delta](components/best-chip.html) | A best the session set, and the signed change since last time. |
+| [Trend chart](components/trend-chart.html) | One measure across the finished attempts at a class. |
+| [Session list](components/session-list.html) | Saved sessions, newest first, each opening its summary. |
+| [Streak calendar](components/streak-calendar.html) | Current and best streak, six weeks of ridden days and the weekly goal. |
+| [Achievement badge](components/achievement.html) | A goal over all rides: unlocked, or how close it is. |
 | [Readout](components/readout.html) | The big live numbers: power and cadence with target and delta. |
 | [Interval](components/interval.html) | Current interval: kind, round, time left, progress and what comes next. |
 | [Power trace](components/power-trace.html) | Rider's power drawn against the plan's target blocks for the whole ride. |
@@ -133,6 +142,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 ## Changelog
 
+- **2026-11-18, ride history (L2-081 to L2-087, ADR 0015).** From the Magic Patterns *Session Summary* and *Progress* frames. New token `--color-series-dip` (heart 600 light, heart 400 dark) with contrast pairs; new component pages [Session traces](components/session-traces.html), [Dip list](components/dip-list.html), [Week strip](components/week-strip.html), [Stat strip](components/stat-strip.html), [Personal-best chip and delta](components/best-chip.html), [Trend chart](components/trend-chart.html), [Session list](components/session-list.html), [Streak calendar](components/streak-calendar.html) and [Achievement badge](components/achievement.html); layout `.history` (with `__inner`, `__grid`, `--progress`, `__aside`), `.session-head`, `.streak-panel`, `.progress-head`, `.compare`, `.measure-tabs` and `.streak-badge` in `components.css`. Heart rate was dropped from the totals (ADR 0003).
 - **2026-11-17, class library (L2-077 to L2-080; was proposed with no requirement yet, see the mocks' open question 17).** From the Magic Patterns *Video Library* and *Video Workout* frames. New component pages [Class card and shelf](components/class-card.html) and [Level row](components/level-row.html); [Page layout](components/page-layout.html) gains the library and class-page layouts and [Video ride-along](components/video.html) the cover variant and the length filter:
   - `.library` (with `__inner`, `__head`), `.shelf` (with `__head`, `__title`, `__blurb`, `__count`, `__grid`) and `.class-card` (with `__cover`, `__poster`, `__length`, `__title`, `__meta`, `__note`), a link whose strip is a `.profile`;
   - the video page: `.class-page` (with `__meta`, `__link`, `__back`), `.video-frame__cover`, `.plan-head`, `.setup-aside__group` and `.legend__aside`;

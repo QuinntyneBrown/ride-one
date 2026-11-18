@@ -234,6 +234,8 @@ Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environm
 | `Wattzup:RawPacketLog:RetainedFiles` | `5` | Rotated files kept (`.1` to `.5`). |
 | `Wattzup:StatusSnapshot:Enabled` | `true` | Whether the state is mirrored to the status file. |
 | `Wattzup:StatusSnapshot:Path` | `status.json` | The status file, written atomically. |
+| `Wattzup:Classes:Path` | `classes.json` | The class catalogue (L2-077, ADR 0014): a JSON file of shelves and classes, each class a bike plan with its YouTube video. A relative path resolves against the content root. A class that breaks a rule is left out with a warning; a missing or invalid file is an empty catalogue. A saved change is served within 2 s. A Wattzup update can replace the shipped `classes.json`, so keep an edited catalogue outside the app folder and point this setting at it. Environment variable `WATTZUP__CLASSES__PATH`. |
+| `Wattzup:Sessions:Path` | `sessions.json` | The saved rides (L2-082, ADR 0015): a ride on the bike of a minute or more is kept here when it ends, newest first, the newest 500. A relative path resolves against the content root. Each save writes a temporary file and moves it over the old one. A file that cannot be read at start is renamed to `<file>.unreadable` and Wattzup starts with no sessions; a failed write is logged and never stops a ride ending. Back the file up with the rest of your data; keep it outside the app folder if an update replaces that folder. Environment variable `WATTZUP__SESSIONS__PATH`. |
 | `Wattzup:StatusSnapshot:MinInterval` | `00:00:00.500` | The minimum time between two writes; the final state is always written. |
 
 The raw packet log and the status snapshot are written to the content root

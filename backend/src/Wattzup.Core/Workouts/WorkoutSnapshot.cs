@@ -26,4 +26,7 @@ public sealed record WorkoutSnapshot
     public required string Status { get; init; }
 
     public string? EndedReason { get; init; }
+
+    /// <summary>The id of the session saved when this ride ended on the bike, else null (L2-081).</summary>
+    public string? SessionId { get; init; }
 }

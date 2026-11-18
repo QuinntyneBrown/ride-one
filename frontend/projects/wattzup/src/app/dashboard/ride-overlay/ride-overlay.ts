@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  type ElementRef,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { RideOverlayText } from '../../core/ride-overlay-text';
 import { Icon } from '@wattzup/components';
@@ -18,4 +26,13 @@ export class RideOverlay {
   readonly reconnect = output();
   readonly diagnostics = output();
   readonly resumeRide = output();
+
+  /** The summary opens as just finished: `Done` and `Ride saved` (L2-085 AC2). */
+  protected readonly justFinished = { justFinished: true };
+  private readonly seeYourRide = viewChild<ElementRef<HTMLAnchorElement>>('seeYourRide');
+
+  constructor() {
+    // Ride complete takes focus to See your ride (L2-084 AC3).
+    effect(() => this.seeYourRide()?.nativeElement.focus());
+  }
 }

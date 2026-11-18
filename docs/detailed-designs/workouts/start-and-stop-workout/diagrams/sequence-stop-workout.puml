@@ -24,12 +24,13 @@ api -> ep : POST /api/workout/stop
 ep -> engine : StopAsync()
 alt active workout
   engine -> engine : status "stopped"; stop ticking; bike left at current level [L2-013]
-  engine -> store : Update(workout), broadcast
+  engine -> engine : on the bike, at least 60 s ridden: save the session (history/record-session) [L2-081]
+  engine -> store : Update(workout with session_id), broadcast
 else ended workout
   engine -> engine : no change; status kept
 else no workout
   engine -> engine : no-op; workout stays null [L2-017]
 end
-ep --> api : 200 {"stopped":true} [L2-017]
-api --> dlg : ok
+ep --> api : 200 {"stopped":true, "session_id"} [L2-017, L2-081 AC8]
+api --> dlg : session_id or null
 @enduml

@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Record a session
+
+Container_Boundary(api, "Wattzup API") {
+  Component(workouts, "WorkoutEndpoints", "Minimal API", "POST /api/workout (class_id), POST /api/workout/stop")
+  Component(engine, "WorkoutEngine", "Hosted service", "Ticks the run; keeps a RideSample per running second")
+  Component(builder, "SessionBuilder", "Pure Core", "Dips, on target, best minute, traces")
+  Component(store, "SessionStore", "Core", "Sessions newest first, capped at 500")
+  Component(fileSvc, "SessionFileService", "Hosted service", "Loads at start, writes after each save")
+  Component(fileIo, "SessionFile", "Core", "Read, atomic Write, SetAside")
+  Component(catalogue, "ClassCatalogueStore", "Core", "Class titles for class_id")
+  Component(state, "BikeStateStore", "Core", "Publishes workout.session_id")
+}
+ContainerDb(file, "Sessions file", "JSON")
+
+Rel(workouts, catalogue, "Looks up class_id in")
+Rel(workouts, engine, "StartAsync(plan, origin), StopWorkoutAsync")
+Rel(engine, builder, "Build(input) when the run ends")
+Rel(engine, store, "Add(session)")
+Rel(engine, state, "Publishes the snapshot with session_id")
+Rel(store, fileSvc, "Saved event")
+Rel(fileSvc, fileIo, "Read, Write, SetAside")
+Rel(fileIo, file, "Reads and replaces")
+@enduml

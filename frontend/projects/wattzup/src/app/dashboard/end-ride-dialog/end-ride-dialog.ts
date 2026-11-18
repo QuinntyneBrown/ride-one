@@ -44,9 +44,19 @@ export class EndRideDialog {
     this.ref.disableClose = true;
     this.failed.set(false);
     try {
-      await this.workouts.stop();
+      const sessionId = await this.workouts.stop();
       this.ref.close();
-      await this.router.navigateByUrl(this.data?.next ?? '/setup');
+      if (this.data?.next) {
+        await this.router.navigateByUrl(this.data.next);
+      } else if (this.run) {
+        // The treadmill lands on setup (L2-051 criterion 2, L2-084 AC4).
+        await this.router.navigateByUrl('/setup');
+      } else if (sessionId) {
+        // A saved ride opens its summary as just finished (L2-084 AC1).
+        await this.router.navigate(['/sessions', sessionId], { state: { justFinished: true } });
+      } else {
+        await this.router.navigateByUrl('/classes');
+      }
     } catch {
       this.failed.set(true);
     } finally {

@@ -12,7 +12,11 @@ import { routes } from './app.routes';
 import {
   apiKeyInterceptor,
   BIKE_API,
+  CLASS_API,
   HttpBikeApi,
+  HttpClassApi,
+  HttpSessionApi,
+  SESSION_API,
   HttpMachineApi,
   HttpWorkoutApi,
   MACHINE_API,
@@ -36,5 +40,7 @@ export const appConfig: ApplicationConfig = {
     { provide: WORKOUT_API, useClass: HttpWorkoutApi },
     { provide: YOUTUBE_PLAYER, useClass: IframeYouTubePlayer },
     { provide: MACHINE_API, useClass: HttpMachineApi },
+    { provide: CLASS_API, useClass: HttpClassApi },
+    { provide: SESSION_API, useClass: HttpSessionApi },
   ],
 };

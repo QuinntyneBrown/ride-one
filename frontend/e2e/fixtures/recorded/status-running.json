@@ -195,20 +195,21 @@
       }
     ],
     "segment": 0,
-    "remaining": 176,
-    "elapsed_seconds": 4,
+    "remaining": 177,
+    "elapsed_seconds": 3,
     "total_seconds": 760,
     "mode": "plan",
     "plan_level": 8,
     "status": "running",
-    "ended_reason": null
+    "ended_reason": null,
+    "session_id": null
   },
   "cadence": 85,
   "speed_kmh": 31.9,
   "speed_mph": 19.8,
-  "packets": 8,
-  "first_data_at": 1794882571.516,
-  "last_data_at": 1794882576.516,
+  "packets": 93,
+  "first_data_at": 1794982320.458,
+  "last_data_at": 1794982405.456,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -216,17 +217,17 @@
   "transport": "Simulated",
   "simulated": true,
   "exposed": false,
-  "bind_address": "127.0.0.1:8797",
+  "bind_address": "127.0.0.1:8788",
   "connection_id": "0bf669f1",
   "power": 152,
   "target_power": 143,
   "avg_power": 152,
-  "distance_km": 0.04,
-  "kcal": 1,
+  "distance_km": 0.03,
+  "kcal": 0,
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794882573.098,
+      "at": 1794982402.548,
       "ride_seconds": 0,
       "level": 8,
       "source": "plan",
@@ -236,14 +237,44 @@
       "value": 8
     },
     {
-      "at": 1794882573.093,
-      "ride_seconds": null,
+      "at": 1794982402.547,
+      "ride_seconds": 0,
       "level": 10,
       "source": "manual",
       "status": "ack",
       "ack_ms": 0,
       "command": "resistance",
       "value": 10
+    },
+    {
+      "at": 1794982328.575,
+      "ride_seconds": 0,
+      "level": 8,
+      "source": "plan",
+      "status": "ack",
+      "ack_ms": 0,
+      "command": "resistance",
+      "value": 8
+    },
+    {
+      "at": 1794982328.573,
+      "ride_seconds": 0,
+      "level": 8,
+      "source": "plan",
+      "status": "ack",
+      "ack_ms": 0,
+      "command": "resistance",
+      "value": 8
+    },
+    {
+      "at": 1794982328.569,
+      "ride_seconds": 4,
+      "level": 8,
+      "source": "plan",
+      "status": "ack",
+      "ack_ms": 0,
+      "command": "resistance",
+      "value": 8
     }
   ],
   "machine": "bike",
@@ -260,15 +291,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794882570.513
-    },
-    {
-      "machine": "treadmill",
-      "name": "STRIDE-SIM-0001",
-      "label": "Echelon Stride",
-      "rssi": -55,
-      "signal": 4,
-      "seen_at": 1794882570.514
+      "seen_at": 1794982319.455
     }
   ],
   "treadmill_enabled": true

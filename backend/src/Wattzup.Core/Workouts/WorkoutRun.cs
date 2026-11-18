@@ -3,9 +3,10 @@ namespace Wattzup.Core.Workouts;
 /// <summary>The mutable state of one ride, touched only by the engine loop (run-interval-workout design).</summary>
 internal sealed class WorkoutRun
 {
-    public WorkoutRun(WorkoutPlan plan)
+    public WorkoutRun(WorkoutPlan plan, RideOrigin? origin = null)
     {
         Plan = plan;
+        Origin = origin;
         Segments = PlanExpander.Expand(plan);
         Summary = WorkoutSummary.For(plan);
         TotalSeconds = Segments.Sum(s => s.Duration);
@@ -65,6 +66,18 @@ internal sealed class WorkoutRun
 
     public RideTotals Totals { get; set; } = RideTotals.Empty;
 
+    /// <summary>The class the ride was started from, or null for a ride from setup (L2-081 criterion 7).</summary>
+    public RideOrigin? Origin { get; }
+
+    /// <summary>Bike: one sample per running second, for the session (L2-081).</summary>
+    public List<Sessions.RideSample> Samples { get; } = [];
+
+    /// <summary>The saved session's id, once the ride has ended and been saved.</summary>
+    public string? SessionId { get; set; }
+
+    /// <summary>True once the ride has been handed to the session store, saved or not; it is never finished twice.</summary>
+    public bool Finished { get; set; }
+
     public Segment Current => Segments[Segment];
 
     public bool IsActive => WorkoutStatus.IsActive(Status);
@@ -84,5 +97,6 @@ internal sealed class WorkoutRun
         PlanLevel = PlanLevel,
         Status = Status,
         EndedReason = EndedReason,
+        SessionId = SessionId,
     };
 }

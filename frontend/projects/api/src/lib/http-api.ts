@@ -6,18 +6,26 @@ import { SKIP_UNLOCK_REDIRECT } from './api-key.interceptor';
 import type {
   BikeState,
   ChooseMachineRequest,
+  ClassCatalogue,
+  ClassEntry,
   EventToken,
   Machine,
   SetInclineRequest,
   SetSpeedRequest,
   RecentPackets,
   PowerTrace,
+  ProgressReport,
+  SessionDetail,
+  SessionList,
   WorkoutStarted,
+  WorkoutStopped,
   StartPlan,
   WorkoutSnapshot,
 } from './api-types';
 import { type BikeApi, COMMAND_TIMEOUT_MS, type KeyCheck, RequestTimeoutError } from './bike-api';
+import type { ClassApi } from './class-api';
 import type { MachineApi } from './machine-api';
+import type { SessionApi } from './session-api';
 import type { WorkoutApi } from './workout-api';
 
 /** Posts a command and turns a 5 s silence into RequestTimeoutError. */
@@ -84,8 +92,9 @@ export class HttpWorkoutApi implements WorkoutApi {
     return (await firstValueFrom(this.http.post<WorkoutStarted>('/api/workout', plan))).started;
   }
 
-  async stop(): Promise<void> {
-    await firstValueFrom(this.http.post('/api/workout/stop', null));
+  async stop(): Promise<string | null> {
+    const stopped = await firstValueFrom(this.http.post<WorkoutStopped>('/api/workout/stop', null));
+    return stopped?.session_id ?? null;
   }
 
   async pause(): Promise<void> {
@@ -122,5 +131,49 @@ export class HttpMachineApi implements MachineApi {
   setIncline(incline: number): Promise<void> {
     const body: SetInclineRequest = { incline };
     return postCommand(this.http, '/api/incline', body);
+  }
+}
+
+@Injectable()
+export class HttpClassApi implements ClassApi {
+  private readonly http = inject(HttpClient);
+
+  list(): Promise<ClassCatalogue> {
+    return firstValueFrom(this.http.get<ClassCatalogue>('/api/classes'));
+  }
+
+  async get(id: string): Promise<ClassEntry | 'not-found'> {
+    try {
+      return await firstValueFrom(
+        this.http.get<ClassEntry>(`/api/classes/${encodeURIComponent(id)}`),
+      );
+    } catch (e) {
+      if (e instanceof HttpErrorResponse && e.status === 404) return 'not-found';
+      throw e;
+    }
+  }
+}
+
+@Injectable()
+export class HttpSessionApi implements SessionApi {
+  private readonly http = inject(HttpClient);
+
+  list(): Promise<SessionList> {
+    return firstValueFrom(this.http.get<SessionList>('/api/sessions'));
+  }
+
+  async get(id: string): Promise<SessionDetail | 'not-found'> {
+    try {
+      return await firstValueFrom(
+        this.http.get<SessionDetail>(`/api/sessions/${encodeURIComponent(id)}`),
+      );
+    } catch (e) {
+      if (e instanceof HttpErrorResponse && e.status === 404) return 'not-found';
+      throw e;
+    }
+  }
+
+  progress(): Promise<ProgressReport> {
+    return firstValueFrom(this.http.get<ProgressReport>('/api/progress'));
   }
 }
