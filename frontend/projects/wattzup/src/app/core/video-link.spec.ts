@@ -10,7 +10,7 @@ import {
   videoIdOf,
 } from './video-link';
 
-// The same rows as YouTubeLinkTests in Wattzup.Core.Tests (L2-010 criteria 14 and 16).
+// The same rows as the YouTube link tests in @wattzup/browser (L2-010 criteria 14 and 16).
 describe('videoIdOf (L2-029 AC18, AC19)', () => {
   it.each([
     'https://www.youtube.com/watch?v=QUoToFsMNig',

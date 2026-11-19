@@ -1,6 +1,4 @@
-// The history file contract of the browser edition (L2-094 AC4 to AC6): Export history and
-// Import history on Progress. The backend edition keeps sessions.json next to the bike and binds
-// nothing; only a screen whose EDITION is `browser` injects it.
+// The history file contract (L2-094 AC4 to AC6): Export history and Import history on Progress.
 import { InjectionToken } from '@angular/core';
 
 /** What an import added, skipped as already here, and left out as unreadable. */

@@ -1,7 +1,7 @@
 // Unit Test
 // Traces to: L2-085, L2-087, L2-092, L2-094
-// Description: Mirrors backend/tests/Wattzup.Core.Tests/ProgressCalculatorTests.cs row for row, in
-// the same UTC−5 zone, so the browser counts days as the backend does.
+// Description: The progress calculator, one case per table row, in a fixed UTC−5 zone so days are
+// counted in the rider's zone, not UTC.
 import type { IntervalsPlan, WorkoutPlan } from '@wattzup/api';
 import { expand } from './plan-expander';
 import { RideTotals } from './ride-totals';

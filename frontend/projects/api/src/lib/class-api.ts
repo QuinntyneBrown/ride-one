@@ -1,12 +1,11 @@
-// The class catalogue API contract (L2-078, ADR 0014). Components inject CLASS_API, never
-// HttpClassApi.
+// The class catalogue contract (L2-078, ADR 0014). Components inject CLASS_API.
 import { InjectionToken } from '@angular/core';
 import type { ClassCatalogue, ClassEntry } from './api-types';
 
 export interface ClassApi {
-  /** GET /api/classes: every shelf that has a class, with its classes, in file order. */
+  /** Every shelf that has a class, with its classes, in file order. */
   list(): Promise<ClassCatalogue>;
-  /** GET /api/classes/{id}; 'not-found' for a 404 (class_not_found). */
+  /** One class; 'not-found' when there is none with this id. */
   get(id: string): Promise<ClassEntry | 'not-found'>;
 }
 

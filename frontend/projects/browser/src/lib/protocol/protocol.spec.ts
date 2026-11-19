@@ -1,7 +1,7 @@
 // Unit Test
 // Traces to: L2-001, L2-002, L2-003, L2-005, L2-006, L2-007, L2-008, L2-092
-// Description: The browser mirror of Wattzup.Protocol, proven by the same table of cases as
-// backend/tests/Wattzup.Protocol.Tests (the reference).
+// Description: The Echelon protocol (frames, commands, checksum, decoder, device filter, speed),
+// one case per table row.
 import { checksum, INIT_SEQUENCE, KEEPALIVE, setResistance } from './echelon-commands';
 import { BIKE_FILTER, matchesBike } from './echelon-device-filter';
 import { ECHELON_UUIDS } from './echelon-uuids';

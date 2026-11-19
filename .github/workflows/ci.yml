@@ -1,9 +1,9 @@
-# Builds and tests the backend and the dashboard. No job touches Bluetooth hardware: every test runs
-# against the simulated bike or stubbed responses (AGENTS.md, ADR 0007). Visual, responsive and
+# Builds and tests the app. No job touches Bluetooth hardware: every test runs against a fake
+# navigator.bluetooth or the simulated bike (AGENTS.md). Visual, responsive and
 # accessibility sweeps are not run here; a person runs them on request.
 #
-# Kept fast: the checkout leaves out docs/ (the films alone are 170 MB), node_modules, NuGet packages
-# and the Playwright browser are cached, and the behaviour specs run in two shards beside the other
+# Kept fast: the checkout leaves out docs/ (the films alone are 170 MB), node_modules and the Playwright
+# browser are cached, and the behaviour specs run in two shards beside the other
 # checks. `node tools/verify/verify.mjs` runs the same checks locally.
 name: CI
 
@@ -19,36 +19,7 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  DOTNET_NOLOGO: true
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-
 jobs:
-  backend:
-    name: Backend (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: backend
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-      - uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/Directory.*.props') }}
-          restore-keys: nuget-${{ runner.os }}-
-      - name: Build (warnings are errors)
-        run: dotnet build backend/Wattzup.sln -c Release
-      - name: Unit and acceptance tests
-        run: dotnet test backend/Wattzup.sln -c Release --no-build
-
   frontend:
     name: Dashboard
     runs-on: ubuntu-latest
@@ -77,8 +48,6 @@ jobs:
         run: npm test
       - name: Production build and 300 KB gzipped budget
         run: npm run build
-      - name: Browser edition build and 300 KB gzipped budget
-        run: npm run build:browser
 
   e2e:
     name: Behaviour specs (${{ matrix.shard }}/2)
@@ -122,35 +91,3 @@ jobs:
           name: playwright-traces-${{ matrix.shard }}
           path: frontend/test-results/
           retention-days: 7
-
-  api-types:
-    name: Generated API types match the backend
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            backend
-            frontend
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/Directory.*.props') }}
-          restore-keys: nuget-${{ runner.os }}-
-      - name: Start the backend with the simulated bike
-        run: |
-          dotnet build backend/src/Wattzup.Api -c Release
-          dotnet run --project backend/src/Wattzup.Api -c Release --no-build -- --simulate \
-            --Wattzup:RawPacketLog:Enabled=false --Wattzup:StatusSnapshot:Enabled=false &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8787/health && break; sleep 1; done
-      - name: Regenerate and compare
-        working-directory: frontend
-        run: |
-          npm run generate:api
-          git diff --exit-code -- projects/api/src/generated

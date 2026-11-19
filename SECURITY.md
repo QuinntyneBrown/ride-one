@@ -25,11 +25,10 @@ through their [GitHub profile](https://github.com/QuinntyneBrown).
 
 Include as much of the following as you can:
 
-- the kind of issue (for example, an unauthenticated control request, a bypass of the API key or
-  event token, cross-site request forgery, injection or cross-site scripting);
-- the affected endpoint, page or source file, with the branch or commit;
-- the steps to reproduce it, and any configuration it needs (bind address, API key, CORS
-  origins);
+- the kind of issue (for example, a Content-Security-Policy bypass, injection, cross-site
+  scripting, or data leaving the device);
+- the affected page or source file, with the branch or commit;
+- the steps to reproduce it, and the browser and host it needs;
 - a proof of concept, if you have one;
 - the impact, and how an attacker could use it.
 
@@ -45,8 +44,8 @@ Please give us reasonable time to fix an issue before you disclose it publicly.
 ## Scope
 
 In scope: the code in this repository, the prototype it was derived from (`echelon_server.py`,
-`index.html`, kept outside the repository), the backend and the dashboard, and anything that lets a request reach the bike
-without the configured protection.
+`index.html`, kept outside the repository) and the app, and anything that lets another page or
+origin reach the bike or the rider's history.
 
 Out of scope: denial-of-service testing, social engineering, physical attacks, weaknesses in the
 bike's own firmware or in the Bluetooth Low Energy protocol itself, and findings in third-party

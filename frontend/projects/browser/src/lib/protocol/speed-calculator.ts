@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Protocol/SpeedCalculator.cs: speed derived from cadence; the bike has no wheel
+// Speed derived from cadence; the bike has no wheel
 // sensor (L2-007).
 export const KMH_PER_RPM = 0.37497622;
 export const KM_PER_MILE = 1.609344;

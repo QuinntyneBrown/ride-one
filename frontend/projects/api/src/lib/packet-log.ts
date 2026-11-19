@@ -1,6 +1,5 @@
-// The browser edition's packet log (L2-095): the commands sent to the bike, and every packet while
-// Log every packet is on, downloadable in the raw_packets.log format. The backend edition binds
-// nothing: its log is a file on the server (L2-030).
+// The packet log (L2-095): the commands sent to the bike, and every packet while Log every packet
+// is on, downloadable as a text file.
 import { InjectionToken, type Signal } from '@angular/core';
 
 export interface PacketLogView {

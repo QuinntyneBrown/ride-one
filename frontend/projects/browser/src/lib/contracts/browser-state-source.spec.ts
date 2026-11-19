@@ -23,7 +23,6 @@ describe('BrowserStateSource', () => {
       workout: null,
       packets: 0,
     });
-    expect(s.connection()).toBe('open');
   });
 });
 

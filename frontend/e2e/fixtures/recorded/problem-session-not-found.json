@@ -1,7 +1,0 @@
-{
-  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
-  "title": "No session has that id.",
-  "status": 404,
-  "code": "session_not_found",
-  "trace_id": "00-8f76464e4d0adb907b843c890877594e-f4b315d9de7a5c43-00"
-}

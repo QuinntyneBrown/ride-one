@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core's BikeStateStore: the only writer of the bike state (L2-014, L2-093). Each
+// The only writer of the bike state (L2-014, L2-093). Each
 // change replaces the state whole, and `device_label` is derived from `device`, as in
 // StateDerivations.
 import { Injectable, signal } from '@angular/core';
@@ -20,14 +20,10 @@ export function initialBikeState(): BikeState {
     packets: 0,
     first_data_at: null,
     last_data_at: null,
-    ui_clients: 1,
     displayed_since: null,
     displayed_seconds: 0,
     adapter: 'unknown',
-    transport: 'Web Bluetooth',
     simulated: false,
-    exposed: false,
-    bind_address: '',
     connection_id: '',
     power: null,
     target_power: null,

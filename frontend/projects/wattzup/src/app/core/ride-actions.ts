@@ -1,7 +1,6 @@
 // The ride commands: Pause, Resume, End and Reconnect (L2-046, L2-051, L2-058).
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { BIKE_API, WORKOUT_API } from '@wattzup/api';
+import { BIKE_API, isContractError, WORKOUT_API } from '@wattzup/api';
 import { DialogLauncher } from './dialog-launcher';
 import { ToastService } from './toast.service';
 
@@ -28,12 +27,11 @@ export class RideActions {
     try {
       await this.bike.reconnect();
     } catch (e) {
-      const status = e instanceof HttpErrorResponse ? e.status : 0;
-      if (status !== 401 && status !== 409) {
+      if (!isContractError(e, 'already_connected')) {
         this.toasts.show({
           tone: 'danger',
           title: "Couldn't reconnect",
-          text: "The Wattzup server didn't answer. Try again.",
+          text: "The bike didn't answer. Wake it with a pedal stroke, then try again.",
         });
       }
     } finally {
@@ -48,12 +46,11 @@ export class RideActions {
   private async run(request: () => Promise<void>, title: string): Promise<void> {
     try {
       await request();
-    } catch (e) {
-      if (e instanceof HttpErrorResponse && e.status === 401) return;
+    } catch {
       this.toasts.show({
         tone: 'danger',
         title,
-        text: "The Wattzup server didn't answer. Try again.",
+        text: 'Something went wrong. Try again.',
       });
     }
   }

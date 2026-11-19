@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Protocol/EchelonCommands.cs: the bytes written to the bike (L2-002, L2-003,
+// The bytes written to the bike (L2-002, L2-003,
 // L2-008).
 export const MIN_LEVEL = 1;
 export const MAX_LEVEL = 32;

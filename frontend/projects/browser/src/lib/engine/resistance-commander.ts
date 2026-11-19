@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Resistance/ResistanceCommander.cs: writes F0 B1 01 <level> <checksum> with
+// Writes F0 B1 01 <level> <checksum> with
 // response, sets `target_resistance` and logs every attempt (L2-008, L2-009, L2-048). Writes are
 // serialised so a manual and a plan command never interleave on the link.
 import { inject, Injectable } from '@angular/core';
@@ -59,7 +59,7 @@ export class ResistanceCommander {
       await gatt.write(setResistance(level));
     } catch (e) {
       this.store.update((s) => ({ ...s, commands: fail(s.commands, entry) }));
-      // The rider sees a generic toast; the reason goes to the console, as the backend's to its log.
+      // The rider sees a generic toast; the reason goes to the console.
       this.log.warn(`Wattzup: set resistance ${level} failed: ${messageOf(e)}`);
       return { kind: 'failed', message: messageOf(e) };
     }

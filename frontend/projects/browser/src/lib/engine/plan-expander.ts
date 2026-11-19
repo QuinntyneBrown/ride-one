@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Workouts/PlanExpander.cs: a plan expanded into its segments (L2-010,
+// A plan expanded into its segments (L2-010,
 // L2-045).
 import type { Segment, SegmentKind, WorkoutPlan } from '@wattzup/api';
 

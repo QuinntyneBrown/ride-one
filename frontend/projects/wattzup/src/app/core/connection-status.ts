@@ -1,10 +1,5 @@
 // The app bar's status line (L2-018). First matching row wins.
-import {
-  BIKE_PAIRING,
-  type BikeState,
-  type BluetoothSupport,
-  type StreamConnection,
-} from '@wattzup/api';
+import { BIKE_PAIRING, type BikeState, type BluetoothSupport } from '@wattzup/api';
 import { computed, inject, type Signal } from '@angular/core';
 import type { ConnectionStatus, StatusIcon, StatusTone } from '@wattzup/components';
 import { LiveStateService } from './live-state.service';
@@ -15,15 +10,11 @@ export type { ConnectionStatus, StatusIcon, StatusTone };
 export function liveConnectionStatus(): Signal<ConnectionStatus> {
   const live = inject(LiveStateService);
   const pairing = inject(BIKE_PAIRING);
-  return computed(() =>
-    connectionStatus(live.state(), live.connection(), live.loadFailed(), pairing.support()),
-  );
+  return computed(() => connectionStatus(live.state(), pairing.support()));
 }
 
 export function connectionStatus(
   state: BikeState | null,
-  connection: StreamConnection,
-  loadFailed: boolean,
   support: BluetoothSupport = 'ready',
 ): ConnectionStatus {
   if (support !== 'ready') {
@@ -35,10 +26,7 @@ export function connectionStatus(
       tone: 'wait',
     };
   }
-  if (connection === 'offline') {
-    return { name: 'Server offline', label: 'Retrying…', icon: 'wifi-off', tone: 'bad' };
-  }
-  if (!state || loadFailed) {
+  if (!state) {
     return { name: 'Bike status', label: 'Unknown', icon: 'bluetooth', tone: 'wait' };
   }
   if (state.adapter === 'off') {
@@ -54,7 +42,7 @@ export function connectionStatus(
     case 'connecting':
       return { name: label, label: 'Connecting…', icon: 'bluetooth', tone: 'wait' };
     case 'disconnected':
-      // No bike chosen yet in the browser edition: nothing has gone wrong (L2-090 AC1).
+      // No bike chosen yet: nothing has gone wrong (L2-090 AC1).
       if (state.device === null) {
         return { name: 'No bike connected', label: '', icon: 'bluetooth', tone: 'quiet' };
       }

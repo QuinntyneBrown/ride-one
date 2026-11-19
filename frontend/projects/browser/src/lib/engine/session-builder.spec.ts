@@ -1,6 +1,6 @@
 // Unit Test
 // Traces to: L2-081, L2-092, L2-094
-// Description: Mirrors backend/tests/Wattzup.Core.Tests/SessionBuilderTests.cs row for row.
+// Description: The session builder, one case per table row.
 import type { Segment, SegmentKind } from '@wattzup/api';
 import { RideTotals } from './ride-totals';
 import { buildSession, dipTolerance } from './session-builder';

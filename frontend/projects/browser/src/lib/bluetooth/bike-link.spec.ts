@@ -339,7 +339,7 @@ describe('BikeLink', () => {
     expect(store.state()).toMatchObject({ ble: 'connected', error: null });
   });
 
-  it('a connection the bike never answers gives up after 15 s and retries, as the backend (L2-091 AC3)', async () => {
+  it('a connection the bike never answers gives up after 15 s and retries (L2-091 AC3)', async () => {
     const { port, clock, link, store } = setUp();
     port.connectHangs = 1;
     void link.pair();

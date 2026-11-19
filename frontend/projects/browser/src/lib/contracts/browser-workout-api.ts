@@ -1,19 +1,19 @@
-// WORKOUT_API in the browser edition (L2-092): the workout engine runs in the page. Answers and
-// failures match POST /api/workout and its commands, so the screens are unchanged (L2-088 AC5).
-import { HttpErrorResponse } from '@angular/common/http';
+// WORKOUT_API (L2-092): the workout engine runs in the page. A refusal is a ContractError.
 import { inject, Injectable } from '@angular/core';
-import type { PowerTrace, StartPlan, WorkoutApi, WorkoutSnapshot } from '@wattzup/api';
+import {
+  ContractError,
+  type PowerTrace,
+  type StartPlan,
+  type WorkoutApi,
+  type WorkoutSnapshot,
+} from '@wattzup/api';
 import { type RideOrigin, WorkoutEngine } from '../engine/workout-engine';
 import { validatePlan, type ValidationErrors } from '../engine/workout-plan-validator';
-import { problem } from './browser-bike-api';
 import { BrowserClassApi } from './browser-class-api';
 
-/** POST /api/workout's 400: a ValidationProblem with code `invalid_workout`. */
-export function invalidWorkout(errors: ValidationErrors): HttpErrorResponse {
-  return new HttpErrorResponse({
-    status: 400,
-    error: { status: 400, title: 'The plan is not valid.', code: 'invalid_workout', errors },
-  });
+/** A plan that is not valid, with the messages for each field. */
+export function invalidWorkout(errors: ValidationErrors): ContractError {
+  return new ContractError('invalid_workout', 'The plan is not valid.', errors);
 }
 
 @Injectable()
@@ -22,7 +22,7 @@ export class BrowserWorkoutApi implements WorkoutApi {
   private readonly classes = inject(BrowserClassApi);
 
   async start(plan: StartPlan): Promise<WorkoutSnapshot> {
-    // The plan goes through JSON, as it would to the API, so the validator sees what it would.
+    // The plan goes through JSON, so the validator sees plain data, as from an imported file.
     const body: unknown = JSON.parse(JSON.stringify(plan));
     const result = validatePlan(body);
     if (!result.plan) throw invalidWorkout(result.errors);
@@ -58,6 +58,6 @@ export class BrowserWorkoutApi implements WorkoutApi {
   }
 
   private orConflict(snapshot: WorkoutSnapshot | null): void {
-    if (!snapshot) throw problem(409, 'no_active_workout', 'No workout is active.');
+    if (!snapshot) throw new ContractError('no_active_workout', 'No workout is active.');
   }
 }

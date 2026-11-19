@@ -1,4 +1,4 @@
-// The "Your ride" panel values, from the same plan expansion as the backend (L2-059).
+// The "Your ride" panel values, from the same plan expansion as the workout engine (L2-059).
 import type { HiitPlan, IntervalsPlan, Segment, SegmentKind, WorkoutPlan } from '@wattzup/api';
 import type { ProfileBar, ProfileTone, RidePreview, SummaryRow } from '@wattzup/components';
 import { formatDuration } from './format-duration';

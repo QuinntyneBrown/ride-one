@@ -1,6 +1,6 @@
 // Unit Test
 // Traces to: L2-011, L2-012, L2-013, L2-046, L2-047, L2-049, L2-050, L2-092
-// Description: The browser's WorkoutEngine, as Wattzup.Core's, on a fake clock: it sends the
+// Description: The WorkoutEngine on a fake clock: it sends the
 // plan's level, steps segments, pauses, waits for the bike and ends; its time comes from the
 // monotonic clock, so a throttled tab catches up instead of stretching the ride.
 import { TestBed } from '@angular/core/testing';

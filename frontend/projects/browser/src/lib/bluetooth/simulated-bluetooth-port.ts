@@ -1,6 +1,5 @@
-// The development simulator (L2-099 AC1): a bike that needs no chooser and behaves as the backend's
-// SimulatedBikeConnection, sending a 0xD1 workout frame each second and echoing each resistance
-// write as a 0xD2 frame, with the same bytes. Bound only in a development build opened with
+// The development simulator (L2-099 AC1): a bike that needs no chooser, sending a 0xD1 workout
+// frame each second and echoing each resistance write as a 0xD2 frame, as the real bike does. Bound only in a development build opened with
 // ?simulate; production builds never construct it.
 import { checksum } from '../protocol/echelon-commands';
 import { MARKER, RESISTANCE, WORKOUT_DATA } from '../protocol/packet-decoder';

@@ -12,7 +12,7 @@ export interface DeviceHistoryView {
   readonly stale: boolean;
 }
 
-/** Your history, the browser edition's panel on Progress: where rides are kept, when they were
+/** Your history, the panel on Progress: where rides are kept, when they were
  * last exported, and Export and Import history (L2-094). */
 @Component({
   selector: 'wz-device-history',

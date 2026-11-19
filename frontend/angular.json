@@ -29,6 +29,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "projects/wattzup/src",
+                "output": "/"
               }
             ],
             "styles": [
@@ -38,7 +43,8 @@
             ],
             "stylePreprocessorOptions": {
               "includePaths": ["projects/components/src/styles"]
-            }
+            },
+            "serviceWorker": "ngsw-config.json"
           },
           "configurations": {
             "production": {
@@ -68,89 +74,6 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
-            },
-            "browser": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "350kB",
-                  "maximumError": "600kB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "12kB",
-                  "maximumError": "20kB"
-                }
-              ],
-              "outputHashing": "all",
-              "optimization": {
-                "scripts": true,
-                "styles": {
-                  "minify": true,
-                  "inlineCritical": false
-                },
-                "fonts": false
-              },
-              "outputPath": "dist/wattzup-browser",
-              "assets": [
-                {
-                  "glob": "**/*",
-                  "input": "public"
-                },
-                {
-                  "glob": "classes.json",
-                  "input": "dist/browser-assets",
-                  "output": "/"
-                },
-                {
-                  "glob": "manifest.webmanifest",
-                  "input": "projects/wattzup/src",
-                  "output": "/"
-                }
-              ],
-              "fileReplacements": [
-                {
-                  "replace": "projects/wattzup/src/app/app.config.ts",
-                  "with": "projects/wattzup/src/app/app.config.browser.ts"
-                }
-              ],
-              "index": {
-                "input": "projects/wattzup/src/index.browser.html",
-                "output": "index.html"
-              },
-              "serviceWorker": "ngsw-config.json"
-            },
-            "browser-development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true,
-              "outputPath": "dist/wattzup-browser",
-              "assets": [
-                {
-                  "glob": "**/*",
-                  "input": "public"
-                },
-                {
-                  "glob": "classes.json",
-                  "input": "dist/browser-assets",
-                  "output": "/"
-                },
-                {
-                  "glob": "manifest.webmanifest",
-                  "input": "projects/wattzup/src",
-                  "output": "/"
-                }
-              ],
-              "fileReplacements": [
-                {
-                  "replace": "projects/wattzup/src/app/app.config.ts",
-                  "with": "projects/wattzup/src/app/app.config.browser.ts"
-                }
-              ],
-              "index": {
-                "input": "projects/wattzup/src/index.browser.html",
-                "output": "index.html"
-              }
             }
           },
           "defaultConfiguration": "production"
@@ -163,15 +86,9 @@
             },
             "development": {
               "buildTarget": "wattzup:build:development"
-            },
-            "browser": {
-              "buildTarget": "wattzup:build:browser-development"
             }
           },
-          "defaultConfiguration": "development",
-          "options": {
-            "proxyConfig": "proxy.conf.json"
-          }
+          "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular/build:unit-test",
@@ -193,13 +110,6 @@
       "sourceRoot": "projects/api/src",
       "prefix": "wz",
       "architect": {
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "buildTarget": "wattzup:build:development",
-            "tsConfig": "projects/api/tsconfig.spec.json"
-          }
-        },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {

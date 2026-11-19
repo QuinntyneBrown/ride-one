@@ -3,7 +3,7 @@ import { BIKE_PAIRING } from '@wattzup/api';
 import { Alert } from '@wattzup/components';
 import { supportNotice } from '../../core/support-notice';
 
-/** The banner under the header of setup and a class page when the browser edition cannot reach
+/** The banner under the header of setup and a class page when the page cannot reach
  * Bluetooth (L2-089). The page stays usable; only starting a ride is blocked. */
 @Component({
   selector: 'wz-support-banner',

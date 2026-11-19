@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/State/CommandLog.cs: pure operations over `commands` (L2-048). The time a
+// Pure operations over `commands` (L2-048). The time a
 // command was written is its `at`, in seconds, so no field beyond the contract is kept.
 import type { BikeState } from '@wattzup/api';
 

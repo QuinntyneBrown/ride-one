@@ -1,7 +1,7 @@
 // Unit Test
 // Traces to: L2-010, L2-017, L2-045, L2-049, L2-050, L2-092
-// Description: Mirrors backend/tests/Wattzup.Core.Tests PlanExpanderTests, WorkoutSummaryTests,
-// RideTotalsTests, PowerTraceHistoryTests and YouTubeLinkTests row for row.
+// Description: The plan expander, workout summary, ride totals, power trace history and YouTube
+// link rules, one case per table row.
 import type { HiitPlan, IntervalsPlan, IntervalSet, Segment } from '@wattzup/api';
 import { expand } from './plan-expander';
 import { PowerTraceHistory } from './power-trace-history';

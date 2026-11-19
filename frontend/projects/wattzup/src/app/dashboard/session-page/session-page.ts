@@ -12,7 +12,6 @@ import {
 import { Location } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
-  EDITION,
   type ProgressReport,
   SESSION_API,
   SESSION_ARCHIVE,
@@ -53,9 +52,8 @@ export class SessionPage {
 
   private readonly location = inject(Location);
   private readonly toasts = inject(ToastService);
-  /** The browser edition's history, to warn about a ride it could not keep (L2-094 AC7). */
-  private readonly archive =
-    inject(EDITION) === 'browser' ? inject(SESSION_ARCHIVE, { optional: true }) : null;
+  /** The history, to warn about a ride it could not keep (L2-094 AC7). */
+  private readonly archive = inject(SESSION_ARCHIVE);
   private readonly arrival = this.location.getState() as Record<string, unknown> | null;
   /** Set by End ride and the ride overlays; cleared once shown, so a reload reads All sessions (AC2). */
   protected readonly justFinished = this.arrival?.['justFinished'] === true;
@@ -113,7 +111,7 @@ export class SessionPage {
       }
       this.loaded.set({ session, progress });
       this.phase.set('ready');
-      if (this.justFinished && this.archive && !this.archive.isSaved(id)) {
+      if (this.justFinished && !this.archive.isSaved(id)) {
         this.toasts.show(NOT_KEPT);
       }
     } catch {

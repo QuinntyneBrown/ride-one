@@ -2,7 +2,7 @@ import { estimateWatts, expandPlan, planSummary, totalSeconds } from './plan-exp
 import type { HiitPlan } from '@wattzup/api';
 import { testIntervalsPlan } from './test-state';
 
-// The same rows as PlanExpanderTests and WorkoutSummaryTests in Wattzup.Core.Tests (L2-059 AC4).
+// The same rows as the plan expander and workout summary tests in @wattzup/browser (L2-059 AC4).
 const defaultPlan: HiitPlan = {
   kind: 'hiit',
   video: null,

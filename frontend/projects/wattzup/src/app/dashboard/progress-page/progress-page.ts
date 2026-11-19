@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
-  EDITION,
   SESSION_API,
   SESSION_ARCHIVE,
   type ProgressReport,
@@ -71,11 +70,9 @@ export class ProgressPage {
   private readonly sessions = inject(SESSION_API);
   private readonly router = inject(Router);
   private readonly toasts = inject(ToastService);
-  /** The history file, in the browser edition only (L2-094). */
-  private readonly archive =
-    inject(EDITION) === 'browser' ? inject(SESSION_ARCHIVE, { optional: true }) : null;
-  protected readonly keepsHistory = this.archive !== null;
-  private readonly lastExportedAt = signal(this.archive?.lastExportedAt() ?? null);
+  /** The history file (L2-094). */
+  private readonly archive = inject(SESSION_ARCHIVE);
+  private readonly lastExportedAt = signal(this.archive.lastExportedAt());
   private readonly classButtons = viewChildren<ElementRef<HTMLButtonElement>>('classButton');
   private readonly measureButtons = viewChildren<ElementRef<HTMLButtonElement>>('measureButton');
 
@@ -116,9 +113,9 @@ export class ProgressPage {
     (this.progress()?.achievements ?? []).map(achievementView),
   );
 
-  /** Your history, in the browser edition (L2-094 AC4). */
+  /** Your history (L2-094 AC4). */
   protected readonly history = computed(() =>
-    this.archive ? deviceHistoryView(this.total(), this.lastExportedAt(), Date.now()) : null,
+    deviceHistoryView(this.total(), this.lastExportedAt(), Date.now()),
   );
 
   constructor() {
@@ -127,14 +124,12 @@ export class ProgressPage {
 
   /** Saves the history as wattzup-sessions-<date>.json (L2-094 AC5). */
   protected async exportHistory(): Promise<void> {
-    if (!this.archive) return;
     saveFile(await this.archive.exportAll(), exportFileName(Date.now()));
     this.lastExportedAt.set(this.archive.lastExportedAt());
   }
 
   /** Adds a history file's new rides and says what happened (L2-094 AC5, AC6). */
   protected async importHistory(file: File): Promise<void> {
-    if (!this.archive) return;
     try {
       const result = await this.archive.importFile(file);
       this.toasts.show(importToast(result, file.name));

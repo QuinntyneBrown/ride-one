@@ -1,5 +1,10 @@
 # video-record
 
+> **Out of date.** The films' `shots.ts` scripts were written against the old `/api` stub
+> fixtures (`wz-test.ts` with `api` and `events`, `fixtures/states.ts`), which went with the
+> backend. They must be ported to the fake `navigator.bluetooth` fixture before a film can be
+> re-shot; the published films are unchanged.
+
 Saves a video's screenshots: runs the folder's `shots.ts` in Chromium against the running app and
 writes PNGs at double density into the folder's `shots/`. Standard: `docs/videos/README.md`,
 "Screenshots".

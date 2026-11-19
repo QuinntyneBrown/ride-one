@@ -1,6 +1,6 @@
 // Unit Test
 // Traces to: L2-077, L2-092, L2-096
-// Description: Mirrors backend/tests/Wattzup.Core.Tests/ClassCatalogueReaderTests.cs row for row.
+// Description: The class catalogue reader, one case per table row.
 import { LEVEL_RANGE } from './workout-plan-validator';
 import { MAX_BYTES, readCatalogue } from './class-catalogue-reader';
 

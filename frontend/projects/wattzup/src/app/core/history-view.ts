@@ -1,5 +1,5 @@
-// What the browser edition's Your history panel and import toasts say (L2-094 AC4 to AC6), as in
-// the Progress mocks' browser states.
+// What the Your history panel and import toasts say (L2-094 AC4 to AC6), as in
+// the Progress mocks.
 import type { ImportReport } from '@wattzup/api';
 import type { DeviceHistoryView, ToastMessage } from '@wattzup/components';
 

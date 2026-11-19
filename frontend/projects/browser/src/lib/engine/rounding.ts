@@ -1,5 +1,5 @@
 // .NET's Math.Round modes, which JavaScript's Math.round matches for neither negative halves nor
-// decimals. The mirrors round exactly as Wattzup.Core does.
+// decimals. Every rule rounds through here, so totals agree everywhere.
 
 /** `Math.Round(value, digits, MidpointRounding.AwayFromZero)`. */
 export function roundAwayFromZero(value: number, digits = 0): number {

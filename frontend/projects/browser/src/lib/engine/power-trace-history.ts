@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Workouts/PowerTraceHistory.cs: the power of each running second, newest
+// The power of each running second, newest
 // 10 800 kept, oldest first (L2-050).
 export interface PowerSample {
   rideSeconds: number;

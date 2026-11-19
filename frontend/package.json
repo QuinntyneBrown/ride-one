@@ -3,20 +3,15 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "prestart": "node scripts/copy-classes.mjs",
     "start": "ng serve wattzup",
     "build": "ng build wattzup && node scripts/check-bundle-size.mjs",
-    "build:browser": "node scripts/copy-classes.mjs && ng build wattzup --configuration browser && node scripts/check-bundle-size.mjs dist/wattzup-browser/browser",
     "watch": "ng build wattzup --watch --configuration development",
     "test": "ng test --watch=false",
     "lint": "ng lint && tsc -p e2e/tsconfig.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "e2e": "playwright test",
-    "build:api": "npm run build && node -e \"const fs=require('node:fs');const d='../backend/src/Wattzup.Api/wwwroot';fs.mkdirSync(d,{recursive:true});fs.cpSync('dist/wattzup/browser',d,{recursive:true})\"",
-    "generate:api": "npx --yes openapi-typescript@7.13.0 http://127.0.0.1:8787/openapi/v1.json -o projects/api/src/generated/schema.d.ts",
-    "e2e:sweeps": "playwright test --config playwright.sweeps.config.ts",
-    "record:api": "node scripts/record-api.mjs"
+    "e2e:sweeps": "playwright test --config playwright.sweeps.config.ts"
   },
   "private": true,
   "packageManager": "npm@11.19.1",

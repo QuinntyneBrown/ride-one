@@ -1,5 +1,5 @@
-// Mirrors Wattzup.Protocol/PacketDecoder.cs and TelemetryUpdate.cs: decodes a notify frame
-// (L2-005 to L2-007). The trailing checksum is not checked, as in the backend.
+// Decodes a notify frame
+// (L2-005 to L2-007). The trailing checksum is not checked.
 import { toKmh, toMph } from './speed-calculator';
 
 export const MARKER = 0xf0;
