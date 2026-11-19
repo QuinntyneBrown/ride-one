@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve wattzup",
     "build": "ng build wattzup && node scripts/check-bundle-size.mjs",
+    "build:browser": "ng build wattzup --configuration browser && node scripts/check-bundle-size.mjs dist/wattzup-browser/browser",
     "watch": "ng build wattzup --watch --configuration development",
     "test": "ng test --watch=false",
     "lint": "ng lint && tsc -p e2e/tsconfig.json",

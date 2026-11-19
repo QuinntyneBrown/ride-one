@@ -30,10 +30,10 @@ end
 sw --> boot : index.browser.html with CSP meta [L2-097 AC2]
 boot -> boot : provideBrowserEdition(); EDITION = 'browser'
 boot -> live : create
-live -> src : open(listener)
+live -> src : ensureStarted()
 src -> rt : start(); subscribe to the state store
 rt --> src : initial BikeState (ble 'disconnected')
-src --> live : state(BikeState); connection('open')
+src --> live : state signal (BikeState); connection 'open'
 live --> page : state signal
 page --> rider : Dashboard with Connect bike [no /api request, L2-088 AC2]
 @enduml

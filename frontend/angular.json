@@ -68,6 +68,48 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "browser": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "350kB",
+                  "maximumError": "600kB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "12kB",
+                  "maximumError": "20kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": false
+              },
+              "outputPath": "dist/wattzup-browser",
+              "fileReplacements": [
+                {
+                  "replace": "projects/wattzup/src/app/app.config.ts",
+                  "with": "projects/wattzup/src/app/app.config.browser.ts"
+                }
+              ]
+            },
+            "browser-development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "outputPath": "dist/wattzup-browser",
+              "fileReplacements": [
+                {
+                  "replace": "projects/wattzup/src/app/app.config.ts",
+                  "with": "projects/wattzup/src/app/app.config.browser.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -80,6 +122,9 @@
             },
             "development": {
               "buildTarget": "wattzup:build:development"
+            },
+            "browser": {
+              "buildTarget": "wattzup:build:browser-development"
             }
           },
           "defaultConfiguration": "development",
@@ -118,6 +163,27 @@
           "builder": "@angular-eslint/builder:lint",
           "options": {
             "lintFilePatterns": ["projects/api/**/*.ts", "projects/api/**/*.html"]
+          }
+        }
+      }
+    },
+    "browser": {
+      "projectType": "library",
+      "root": "projects/browser",
+      "sourceRoot": "projects/browser/src",
+      "prefix": "wz",
+      "architect": {
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "wattzup:build:development",
+            "tsConfig": "projects/browser/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/browser/**/*.ts", "projects/browser/**/*.html"]
           }
         }
       }

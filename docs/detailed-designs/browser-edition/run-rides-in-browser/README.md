@@ -40,8 +40,8 @@ Clock and loop:
 Live state:
 
 - **`BikeStateStore`** — holds the current `BikeState`, applies each change and `StateDerivations` synchronously, and notifies subscribers with the new reference. There is no lock: the page is single-threaded.
-- **`BrowserStateSource`** — implements `LIVE_STATE_SOURCE`. `open(listener)` calls `listener.connection('open')`, then `listener.state(current)`, then forwards each change on the same task, so a notification reaches the signal with no serialisation and no network hop (L2-093 criteria 1 and 2). It never reports `offline`, so the backend connection banners never show (L2-093 criterion 4).
-- **`LiveStateService`** — unchanged in role: it owns the state signal and is the only subscriber of `LIVE_STATE_SOURCE`. Its `EventSource` code moves into `EventSourceStateSource` in `@wattzup/api` (see `build-and-host`).
+- **`BrowserStateSource`** — implements `LIVE_STATE_SOURCE`. `ensureStarted()` sets `connection` to `open` and `state` to the store's current state, then sets `state` on each change on the same task, so a notification reaches the signal with no serialisation and no network hop (L2-093 criteria 1 and 2). It never reports `offline`, so the backend connection banners never show (L2-093 criterion 4).
+- **`LiveStateService`** — unchanged in role: it owns the state signal and is the only reader of `LIVE_STATE_SOURCE`. Its `EventSource` code moves into `EventStreamLiveState` in `@wattzup/api` (see `build-and-host`).
 
 Long rides and leaving:
 

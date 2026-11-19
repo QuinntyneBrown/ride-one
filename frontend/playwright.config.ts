@@ -18,13 +18,30 @@ export default defineConfig({
     timezoneId: 'UTC',
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'chromium', testIgnore: 'browser/**', use: { ...devices['Desktop Chrome'] } },
+    // The browser edition (ADR 0017): its own build, no backend, a fake navigator.bluetooth.
+    {
+      name: 'browser-edition',
+      testDir: './e2e/browser',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4301' },
+    },
+  ],
   // The production build, served statically: it starts in seconds where the dev server compiles on demand, and
   // it is what the backend serves (L2-001). The build is incremental, so a rebuild with no change is quick.
-  webServer: {
-    command: 'npx ng build wattzup && node scripts/serve-dist.mjs 4300',
-    url: 'http://localhost:4300',
-    reuseExistingServer: !process.env['CI'],
-    timeout: 180_000,
-  },
+  webServer: [
+    {
+      command: 'npx ng build wattzup && node scripts/serve-dist.mjs 4300',
+      url: 'http://localhost:4300',
+      reuseExistingServer: !process.env['CI'],
+      timeout: 180_000,
+    },
+    {
+      command:
+        'npx ng build wattzup --configuration browser && node scripts/serve-dist.mjs 4301 dist/wattzup-browser/browser',
+      url: 'http://localhost:4301',
+      reuseExistingServer: !process.env['CI'],
+      timeout: 180_000,
+    },
+  ],
 });

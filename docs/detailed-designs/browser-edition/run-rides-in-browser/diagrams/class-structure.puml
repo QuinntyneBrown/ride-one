@@ -56,7 +56,8 @@ class ResistanceCommander {
   +set(level: number, source: 'manual' | 'auto'): Promise<void>
 }
 class BrowserStateSource {
-  +open(listener: StateListener): () => void
+  +state: Signal<BikeState | null>
+  +ensureStarted(): void
 }
 class RideJournal {
   +save(run: WorkoutRun): Promise<void>

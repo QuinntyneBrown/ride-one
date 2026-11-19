@@ -41,12 +41,12 @@ Wiring:
   | `WORKOUT_API` | `HttpWorkoutApi` | `BrowserWorkoutApi` |
   | `CLASS_API` | `HttpClassApi` | `BrowserClassApi` |
   | `SESSION_API` | `HttpSessionApi` | `BrowserSessionApi` |
-  | `LIVE_STATE_SOURCE` (new) | `EventSourceStateSource` | `BrowserStateSource` |
+  | `LIVE_STATE_SOURCE` (new) | `EventStreamLiveState` | `BrowserStateSource` |
   | `BIKE_PAIRING` (new) | `ServerBikePairing` | `BrowserBikePairing` |
   | `SESSION_ARCHIVE` (new) | not offered (`null`) | `BrowserSessionArchive` |
   | `EDITION` (new) | `'backend'` | `'browser'` |
 
-- **`LIVE_STATE_SOURCE`** (new contract in `@wattzup/api`) — `open(listener: StateListener): () => void`, where `StateListener` receives `state(BikeState)` and `connection(StreamConnection)`. `EventSourceStateSource` holds the `EventSource`, event-token and 2 s reconnect logic that `LiveStateService` holds today; `LiveStateService` keeps the signals and depends on the token (see `run-rides-in-browser`).
+- **`LIVE_STATE_SOURCE`** (new contract in `@wattzup/api`) — `LiveStateSource` exposes the read-only signals `state`, `connection`, `lastStateAt`, `loadFailed`, `loadStatus` and `streamEpoch`, and the calls `ensureStarted()`, `reload()`, `restart()` and `retryNow()`. `EventStreamLiveState` holds the `GET /api/status`, `EventSource`, event-token and 2 s reconnect logic that `LiveStateService` held before; `LiveStateService` reads the token and re-exposes its signals (see `run-rides-in-browser`).
 - **`EDITION`** (new token in `@wattzup/api`) — `InjectionToken<'backend' | 'browser'>`. A screen that differs between editions reads it: the Unlock page is not routed, the Diagnostics dialog hides the backend's file facts, and Progress shows **Export history** and **Import history** only in the browser edition. No component tests a build flag.
 - **`BrowserBikeRuntime`** (`@wattzup/browser`, `lib/engine/`) — root-provided singleton that owns the browser edition's state store, bike link, workout engine and session journal. Every in-browser contract implementation delegates to it, so 1 bike connection and 1 engine serve every screen.
 

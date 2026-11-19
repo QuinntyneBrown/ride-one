@@ -19,7 +19,7 @@ Container_Boundary(app, "Wattzup Web, browser edition") {
 }
 Rel(pages, live, "Read state")
 Rel(pages, wapi, "Call")
-Rel(live, src, "open(listener)")
+Rel(live, src, "Reads signals")
 Rel(src, store, "Subscribes")
 Rel(link, ingest, "Packets")
 Rel(ingest, decoder, "Decodes with")

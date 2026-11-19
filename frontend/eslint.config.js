@@ -35,7 +35,8 @@ module.exports = defineConfig([
       ],
     },
   },
-  // Dependency direction (ADR 0013): wattzup -> components -> api (types only), wattzup -> api.
+  // Dependency direction (ADR 0013, 0017): wattzup -> components -> api (types only), wattzup -> api,
+  // browser -> api, and only app.config.browser.ts -> browser.
   // No library imports the app, its own barrel, or a path outside its project.
   {
     files: ['projects/components/**/*.ts'],
@@ -76,11 +77,34 @@ module.exports = defineConfig([
         {
           paths: [
             { name: '@wattzup/components', message: 'The api library depends on nothing else.' },
+            { name: '@wattzup/browser', message: 'The api library depends on nothing else.' },
             { name: '@wattzup/api', message: 'Import within the library by relative path.' },
             {
               name: '@angular/router',
               message: 'The api library knows no route; use UNAUTHORIZED_HANDLER (ADR 0013).',
             },
+          ],
+          patterns: [
+            {
+              regex: '^(\\.\\./){3,}',
+              message: 'A library never imports outside its project (ADR 0013).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // The browser edition's library (ADR 0017): browser -> api, nothing else in the workspace.
+  {
+    files: ['projects/browser/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: '@wattzup/components', message: 'The browser library depends on api only.' },
+            { name: '@wattzup/browser', message: 'Import within the library by relative path.' },
+            { name: '@angular/router', message: 'The browser library knows no route.' },
           ],
           patterns: [
             {
@@ -98,6 +122,13 @@ module.exports = defineConfig([
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: '@wattzup/browser',
+              message:
+                'Only app.config.browser.ts imports @wattzup/browser, so the backend edition never bundles it (ADR 0017).',
+            },
+          ],
           patterns: [
             {
               regex: '^(\\.\\./){4,}',
@@ -106,6 +137,12 @@ module.exports = defineConfig([
           ],
         },
       ],
+    },
+  },
+  {
+    files: ['projects/wattzup/src/app/app.config.browser.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': 'off',
     },
   },
   {
