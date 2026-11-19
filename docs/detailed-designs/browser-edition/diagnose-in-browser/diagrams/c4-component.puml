@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Diagnose in the browser
+
+Container_Boundary(app, "Wattzup Web, browser edition") {
+  Component(dialog, "Diagnostics dialog", "Angular dialog", "Packets, Download packet log, Log every packet")
+  Component(api, "BrowserBikeApi", "BIKE_API implementation", "diagnosticsPackets()")
+  Component(link, "BikeLink", "lib/bluetooth", "Appends each packet in and out")
+  Component(ring, "RecentPacketBuffer", "lib/bluetooth mirror", "Newest 2,000 packets")
+  Component(fmt, "RawPacketFormatter", "lib/bluetooth mirror", "raw_packets.log lines")
+  Component(log, "BrowserLog", "lib/engine", "Console logger; per-packet only when debugging")
+  Component(debug, "PacketDebugging", "lib/engine", "Switch, off by default")
+}
+Rel(dialog, api, "diagnosticsPackets()")
+Rel(dialog, debug, "Toggles")
+Rel(api, ring, "Reads")
+Rel(api, fmt, "Formats with")
+Rel(link, ring, "append()")
+Rel(link, log, "Connection changes, errors")
+Rel(log, debug, "Reads")
+@enduml

@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Keep sessions in the browser
+
+Container_Boundary(app, "Wattzup Web, browser edition") {
+  Component(progress, "Progress page", "Angular page", "Export, import, persistence note when EDITION is browser")
+  Component(summary, "Session Summary page", "Angular page", "Reads SESSION_API")
+  Component(wapi, "BrowserWorkoutApi", "WORKOUT_API implementation", "stop() saves the session")
+  Component(sapi, "BrowserSessionApi", "SESSION_API implementation", "list, get, progress")
+  Component(archive, "BrowserSessionArchive", "SESSION_ARCHIVE implementation", "exportAll, importFile, persistent")
+  Component(builder, "SessionBuilder", "lib/engine mirror", "Builds the L2-081 record")
+  Component(calc, "ProgressCalculator", "lib/engine mirror", "L2-087 figures")
+  Component(store, "SessionStore", "lib/storage mirror", "Newest 500 in memory and IndexedDB")
+  Component(validator, "SessionRecordValidator", "lib/storage", "L2-081 field rules for imports")
+  Component(persist, "StoragePersistence", "lib/storage", "navigator.storage.persist()")
+  ComponentDb(db, "WattzupDatabase", "IndexedDB wrapper", "sessions and journal stores")
+}
+Rel(progress, archive, "Calls")
+Rel(progress, sapi, "progress()")
+Rel(summary, sapi, "get(id)")
+Rel(wapi, builder, "Builds")
+Rel(wapi, store, "add()")
+Rel(sapi, store, "Reads")
+Rel(sapi, calc, "Computes")
+Rel(archive, validator, "Validates")
+Rel(archive, store, "Adds new sessions")
+Rel(archive, persist, "Reads persistent")
+Rel(store, db, "Transactions")
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Download the packet log
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider or helper" as rider
+box "Frontend — Wattzup Web, browser edition" #E0F2FE
+  participant "Diagnostics dialog" as dlg
+end box
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BikeLink" as link
+  participant "RecentPacketBuffer" as ring
+  participant "BrowserBikeApi" as api
+  participant "RawPacketFormatter" as fmt
+  participant "BrowserLog" as log
+end box
+
+loop each notification and write
+  link -> ring : append(RawPacket) [newest 2,000, L2-095 AC1]
+  opt Log every packet is on [L2-095 AC4]
+    link -> log : packet(p) -> console.debug
+  end
+end
+rider -> dlg : Open Diagnostics
+dlg -> api : diagnosticsPackets()
+api -> ring : snapshot()
+api -> fmt : line(p) for each
+api --> dlg : lines (L2-057 shape)
+dlg --> rider : Recent packets; backend-only rows hidden [L2-095 AC3]
+rider -> dlg : Download packet log
+dlg -> dlg : Blob(lines) -> object URL -> wattzup-packets-<time>.log [L2-095 AC2]
+dlg --> rider : File saved
+@enduml

@@ -1,0 +1,59 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Check browser support
+
+enum SupportVerdict {
+  ready
+  insecure
+  unsupported
+  adapter-off
+}
+class SupportEnvironment {
+  +isSecureContext: boolean
+  +hasBluetooth: boolean
+  +available: boolean | null
+}
+class "supportVerdict()" as fn <<pure function>> {
+  +(env: SupportEnvironment): SupportVerdict
+}
+interface BluetoothPort {
+  +isSupported(): boolean
+  +availability(): Promise<boolean>
+  +onAvailabilityChanged(fn): () => void
+}
+class WebBluetoothPort
+interface BikePairing {
+  +support(): Signal<SupportVerdict>
+}
+class BrowserBikePairing {
+  -port: BluetoothPort
+  -verdict: WritableSignal<SupportVerdict>
+  +support(): Signal<SupportVerdict>
+}
+class ServerBikePairing {
+  +support(): Signal<SupportVerdict>  // always ready
+}
+class UnsupportedNotice <<component>> {
+  +verdict: input<SupportVerdict>
+}
+class RideStartGuard <<CanActivateFn>>
+
+WebBluetoothPort ..|> BluetoothPort
+BrowserBikePairing ..|> BikePairing
+ServerBikePairing ..|> BikePairing
+BrowserBikePairing --> BluetoothPort
+BrowserBikePairing ..> fn : calls
+fn ..> SupportEnvironment
+fn ..> SupportVerdict
+RideStartGuard ..> BikePairing
+UnsupportedNotice ..> SupportVerdict
+@enduml

@@ -1,6 +1,6 @@
 # Wattzup detailed designs
 
-This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.NET) backend and an Angular frontend. Each feature is a vertical slice with its own `README.md` and rendered diagrams, and traces to the level-2 requirements in [`docs/specs/L2.md`](../specs/L2.md).
+This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.NET) backend and an Angular frontend, plus the browser edition, which runs the same Angular app with no backend (L1-016). Each feature is a vertical slice with its own `README.md` and rendered diagrams, and traces to the level-2 requirements in [`docs/specs/L2.md`](../specs/L2.md).
 
 | Subsystem | Feature | L2 requirements |
 |---|---|---|
@@ -35,5 +35,13 @@ This tree holds the detailed designs for the Wattzup rewrite: an ASP.NET Core (.
 | platform | [Secure the API](platform/secure-api/README.md) | `L2-034`, `L2-035`, `L2-036`, `L2-078` |
 |  | [Observability and resource use](platform/observability-and-resources/README.md) | `L2-033`, `L2-038` |
 |  | [Host and solution structure](platform/host-and-structure/README.md) | `L2-042`, `L2-044` |
+| browser-edition | [Build and host the browser edition](browser-edition/build-and-host/README.md) | `L2-088`, `L2-097`, `L2-098` |
+|  | [Check browser support](browser-edition/check-browser-support/README.md) | `L2-089` |
+|  | [Connect the bike in the browser](browser-edition/connect-bike-in-browser/README.md) | `L2-090`, `L2-091` |
+|  | [Run rides in the browser](browser-edition/run-rides-in-browser/README.md) | `L2-092`, `L2-093` |
+|  | [Keep sessions in the browser](browser-edition/keep-sessions-in-browser/README.md) | `L2-094` |
+|  | [Load classes in the browser](browser-edition/load-classes-in-browser/README.md) | `L2-096` |
+|  | [Diagnose in the browser](browser-edition/diagnose-in-browser/README.md) | `L2-095` |
+|  | [Simulate the bike in the browser](browser-edition/simulate-bike-in-browser/README.md) | `L2-099` |
 
 The treadmill subsystem and the nearby-machines feature were removed when Wattzup became bike only ([ADR 0016](../adr/0016-bike-only.md)).

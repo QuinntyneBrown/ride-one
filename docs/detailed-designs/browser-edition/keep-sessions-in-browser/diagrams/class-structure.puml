@@ -1,0 +1,68 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Keep sessions in the browser
+
+class WattzupDatabase {
+  +open(): Promise<IDBDatabase>
+  +transaction(stores, mode): IDBTransaction
+}
+class SessionStore {
+  -sessions: SessionRecord[]
+  +load(): Promise<void>
+  +all(): readonly SessionRecord[]
+  +byId(id): SessionRecord | undefined
+  +add(s: SessionRecord): Promise<void>
+}
+class SessionBuilder <<pure>> {
+  +build(input: SessionInput): SessionRecord
+}
+class ProgressCalculator <<pure>> {
+  +report(sessions, now, timeZone): ProgressReport
+}
+class SessionRecordValidator <<pure>> {
+  +validate(raw: unknown): SessionRecord | Rejection
+}
+class StoragePersistence {
+  +persistent: Signal<boolean | null>
+  +request(): Promise<void>
+}
+interface SessionApi {
+  +list(): Promise<SessionList>
+  +get(id): Promise<SessionDetail | 'not-found'>
+  +progress(): Promise<ProgressReport>
+}
+interface SessionArchive {
+  +persistent: Signal<boolean | null>
+  +exportAll(): Promise<Blob>
+  +importFile(file: File): Promise<ImportReport>
+}
+class ImportReport {
+  +added: number
+  +skipped: number
+  +rejected: number
+}
+class BrowserSessionApi
+class BrowserSessionArchive
+class "SessionRecord (L2-081)" as SessionRecord
+
+BrowserSessionApi ..|> SessionApi
+BrowserSessionArchive ..|> SessionArchive
+BrowserSessionApi --> SessionStore
+BrowserSessionApi ..> ProgressCalculator
+BrowserSessionArchive --> SessionStore
+BrowserSessionArchive ..> SessionRecordValidator
+BrowserSessionArchive --> StoragePersistence
+BrowserSessionArchive ..> ImportReport
+SessionStore --> WattzupDatabase
+SessionStore o-- "0..500" SessionRecord
+SessionBuilder ..> SessionRecord
+@enduml

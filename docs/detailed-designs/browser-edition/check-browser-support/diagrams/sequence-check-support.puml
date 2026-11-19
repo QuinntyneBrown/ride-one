@@ -1,0 +1,44 @@
+@startuml
+title UML sequence behaviour — Decide browser support at start
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web, browser edition" #E0F2FE
+  participant "Ride Dashboard" as page
+  participant "UnsupportedNotice" as notice
+end box
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserBikePairing" as pairing
+  participant "supportVerdict()" as fn
+  participant "WebBluetoothPort" as port
+  participant "BikeStateStore" as store
+end box
+box "Browser — platform" #FFF4E5
+  participant "navigator.bluetooth" as nb
+end box
+
+rider -> page : Open the edition
+page -> pairing : support()
+pairing -> port : isSupported(); isSecureContext
+alt bluetooth present
+  port -> nb : getAvailability()
+  nb --> port : true or false
+end
+pairing -> fn : supportVerdict(env)
+fn --> pairing : verdict
+alt unsupported or insecure [L2-089 AC1, AC3]
+  pairing --> page : verdict
+  page -> notice : render(verdict)
+  notice --> rider : Needs Chrome or Edge / Open over HTTPS; classes and rides still readable
+else adapter-off [L2-089 AC2]
+  pairing -> store : ble 'error', error 'Bluetooth is off or missing on this device'
+  page --> rider : Status line says Bluetooth is off
+else ready [L2-089 AC4]
+  page --> rider : Connect bike, no notice
+end
+nb -> port : availabilitychanged
+port -> pairing : recompute verdict
+@enduml

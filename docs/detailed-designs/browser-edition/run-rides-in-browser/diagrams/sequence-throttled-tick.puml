@@ -1,0 +1,30 @@
+@startuml
+title UML sequence behaviour — A throttled tick crosses segment ends
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "SystemClock" as clock
+  participant "WorkoutEngine" as engine
+  participant "WorkoutRun" as run
+  participant "ResistanceCommander" as cmd
+  participant "BikeStateStore" as store
+end box
+box "Browser — Web Bluetooth" #FFF4E5
+  participant "Echelon bike (GATT)" as bike
+end box
+
+note over clock : The tab was hidden; the 250 ms tick arrives 60 s late.
+clock -> engine : tick
+engine -> clock : now()
+engine -> run : runningSeconds(now) = now - startedAt - pausedTotal
+engine -> run : segmentAt(seconds)
+run --> engine : current segment (2 ends crossed)
+engine -> run : fill samples for each missed second
+engine -> cmd : set(current.level, 'auto') once [L2-092 AC3]
+cmd -> bike : write setResistance(level) with response
+cmd -> store : update(target_resistance, commands)
+engine -> store : update(workout snapshot, totals)
+@enduml

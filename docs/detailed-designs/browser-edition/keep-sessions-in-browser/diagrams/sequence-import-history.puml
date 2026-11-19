@@ -1,0 +1,40 @@
+@startuml
+title UML sequence behaviour — Import a history file
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web, browser edition" #E0F2FE
+  participant "Progress page" as page
+end box
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserSessionArchive" as archive
+  participant "SessionRecordValidator" as val
+  participant "SessionStore" as store
+end box
+box "Browser — storage" #FFF4E5
+  database "IndexedDB" as idb
+end box
+
+rider -> page : Import history; pick a file
+page -> archive : importFile(file)
+alt file.size > 16 MB or not JSON or not {sessions:[...]} [L2-094 AC6]
+  archive --> page : ImportReport(0, 0, all) and reason
+else history file
+  loop each session
+    archive -> val : validate(raw)
+    alt invalid
+      val --> archive : rejected += 1
+    else id already saved
+      archive -> archive : skipped += 1
+    else new and valid
+      archive -> store : add(session)
+      store -> idb : put session
+    end
+  end
+  archive --> page : ImportReport(added, skipped, rejected) [L2-094 AC5]
+end
+page --> rider : Toast with the counts; Progress refreshed
+@enduml

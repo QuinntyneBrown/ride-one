@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Load classes in the browser
+
+interface ClassApi {
+  +list(): Promise<ClassCatalogue>
+  +get(id: string): Promise<ClassEntry | 'not-found'>
+}
+class BrowserClassApi {
+  -loaded: Promise<CatalogueResult> | null
+  -fetchFn: typeof fetch
+  +list(): Promise<ClassCatalogue>
+  +get(id: string): Promise<ClassEntry | 'not-found'>
+  -load(): Promise<CatalogueResult>
+}
+class ClassCatalogueReader <<pure>> {
+  +read(text: string): CatalogueResult
+}
+class CatalogueResult {
+  +shelves: ClassShelf[]
+  +classes: ClassEntry[]
+  +problems: CatalogueProblem[]
+  +fatal: string | null
+}
+class CatalogueProblem {
+  +subject: string
+  +field: string
+  +message: string
+}
+class WorkoutPlanValidator <<pure>> {
+  +validate(plan: unknown): StartPlan | PlanProblem
+}
+BrowserClassApi ..|> ClassApi
+BrowserClassApi ..> ClassCatalogueReader
+ClassCatalogueReader ..> CatalogueResult
+CatalogueResult *-- "0..*" CatalogueProblem
+ClassCatalogueReader ..> WorkoutPlanValidator
+@enduml

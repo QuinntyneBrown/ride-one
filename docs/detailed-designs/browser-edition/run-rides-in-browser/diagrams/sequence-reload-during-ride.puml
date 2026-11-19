@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Reload during a ride
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+actor "Rider" as rider
+box "Frontend — Wattzup Web, browser edition" #E0F2FE
+  participant "LeaveGuard" as guard
+  participant "Session Summary" as summary
+end box
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "WorkoutEngine" as engine
+  participant "RideJournal" as journal
+  participant "BrowserBikeRuntime" as rt
+  participant "SessionBuilder" as builder
+end box
+box "Browser — storage" #FFF4E5
+  database "IndexedDB" as idb
+end box
+
+loop every 10 running seconds, and on pagehide
+  engine -> journal : save(run)
+  journal -> idb : put journal {plan, class_id, started_at, samples, commands}
+end
+rider -> guard : Reload or close the tab
+guard --> rider : beforeunload: confirm leaving [L2-092 AC5]
+rider -> guard : Leave
+== next load ==
+rt -> journal : take()
+journal -> idb : get and delete journal
+idb --> journal : entry or none
+alt entry with at least 60 running seconds (L2-081)
+  journal --> rt : entry
+  rt -> builder : build(entry) as ended; completed by its rule
+  builder -> idb : add session (see keep-sessions-in-browser)
+  rt --> summary : a toast links to the saved ride
+else shorter or none
+  rt -> rt : discard; nothing resumed
+end
+@enduml

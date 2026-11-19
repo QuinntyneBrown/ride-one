@@ -1,0 +1,78 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Build and host the browser edition
+
+package "@wattzup/api" {
+  interface BikeApi
+  interface WorkoutApi
+  interface ClassApi
+  interface SessionApi
+  interface LiveStateSource {
+    +open(listener: StateListener): () => void
+  }
+  interface BikePairing {
+    +support(): PairingSupport
+    +required: Signal<boolean>
+    +pair(): Promise<'paired' | 'cancelled'>
+  }
+  interface SessionArchive {
+    +exportAll(): Promise<Blob>
+    +importFile(file: File): Promise<ImportReport>
+  }
+  class EDITION <<InjectionToken>> {
+    'backend' | 'browser'
+  }
+}
+
+package "@wattzup/browser" {
+  class BrowserBikeRuntime <<root singleton>> {
+    +store: BikeStateStore
+    +link: BikeLink
+    +engine: WorkoutEngine
+    +journal: RideJournal
+    +start(): void
+  }
+  class BrowserBikeApi
+  class BrowserWorkoutApi
+  class BrowserClassApi
+  class BrowserSessionApi
+  class BrowserStateSource
+  class BrowserBikePairing
+  class BrowserSessionArchive
+  class "provideBrowserEdition()" as provide <<function>> {
+    +returns: Provider[]
+  }
+}
+
+package "wattzup app" {
+  class "app.config.browser.ts" as root <<composition root>>
+  class UpdateGate {
+    -swUpdate: SwUpdate
+    -live: LiveStateService
+    +onVersionReady(): void
+  }
+}
+
+BrowserBikeApi ..|> BikeApi
+BrowserWorkoutApi ..|> WorkoutApi
+BrowserClassApi ..|> ClassApi
+BrowserSessionApi ..|> SessionApi
+BrowserStateSource ..|> LiveStateSource
+BrowserBikePairing ..|> BikePairing
+BrowserSessionArchive ..|> SessionArchive
+BrowserBikeApi --> BrowserBikeRuntime
+BrowserWorkoutApi --> BrowserBikeRuntime
+BrowserStateSource --> BrowserBikeRuntime
+BrowserBikePairing --> BrowserBikeRuntime
+root ..> provide : calls
+provide ..> EDITION : provides 'browser'
+@enduml

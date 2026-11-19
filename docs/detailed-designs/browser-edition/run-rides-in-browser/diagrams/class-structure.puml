@@ -1,0 +1,84 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Run rides in the browser
+
+interface Clock {
+  +now(): number
+  +wallNow(): number
+  +every(ms, fn): () => void
+  +after(ms, fn): () => void
+}
+class SystemClock
+class FakeClock
+class BikeStateStore {
+  -current: BikeState
+  +get state(): BikeState
+  +update(fn: (s: BikeState) => BikeState): void
+  +touch(): void
+  +subscribe(fn: (s: BikeState) => void): () => void
+}
+class StateDerivations <<pure>> {
+  +apply(next: BikeState, now: number): BikeState
+}
+class PacketDecoder <<pure>> {
+  +decode(bytes: Uint8Array): TelemetryUpdate | null
+}
+class TelemetryIngestor {
+  +onPacket(bytes: Uint8Array): void
+}
+class WorkoutEngine {
+  -run: WorkoutRun | null
+  +start(plan: StartPlan, classId: string | null): WorkoutSnapshot
+  +stop(): string | null
+  +pause(): void
+  +resume(): void
+  +backToPlan(): void
+  -tick(): void
+}
+class WorkoutRun {
+  +segments: Segment[]
+  +startedAt: number
+  +pausedTotal: number
+  +samples: RideSample[]
+  +runningSeconds(now): number
+  +segmentAt(seconds): Segment
+}
+class ResistanceCommander {
+  +set(level: number, source: 'manual' | 'auto'): Promise<void>
+}
+class BrowserStateSource {
+  +open(listener: StateListener): () => void
+}
+class RideJournal {
+  +save(run: WorkoutRun): Promise<void>
+  +take(): Promise<JournalEntry | null>
+}
+class WakeLockKeeper {
+  +onStatus(status: WorkoutStatus | null): void
+}
+class "BikeState (generated)" as BikeState
+
+SystemClock ..|> Clock
+FakeClock ..|> Clock
+BikeStateStore ..> StateDerivations
+BikeStateStore --> Clock
+BikeStateStore --> BikeState : current
+TelemetryIngestor ..> PacketDecoder
+TelemetryIngestor --> BikeStateStore
+WorkoutEngine --> Clock
+WorkoutEngine *-- "0..1" WorkoutRun
+WorkoutEngine --> ResistanceCommander
+WorkoutEngine --> BikeStateStore
+WorkoutEngine --> RideJournal
+BrowserStateSource --> BikeStateStore
+WakeLockKeeper ..> BikeStateStore
+@enduml

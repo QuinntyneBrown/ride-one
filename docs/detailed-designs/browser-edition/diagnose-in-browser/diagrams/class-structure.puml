@@ -1,0 +1,45 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Diagnose in the browser
+
+class RawPacket {
+  +at: number
+  +direction: 'in' | 'out'
+  +bytes: Uint8Array
+}
+class RecentPacketBuffer {
+  -items: RawPacket[2000]
+  -next: number
+  +append(p: RawPacket): void
+  +snapshot(): RawPacket[]
+}
+class RawPacketFormatter <<pure>> {
+  +line(p: RawPacket): string
+}
+class PacketDebugging {
+  +enabled: WritableSignal<boolean>
+}
+class BrowserLog {
+  +info(msg, data?): void
+  +warn(msg, data?): void
+  +error(msg, data?): void
+  +packet(p: RawPacket): void
+}
+class BrowserBikeApi {
+  +diagnosticsPackets(): Promise<string[]>
+}
+RecentPacketBuffer o-- "0..2000" RawPacket
+BrowserBikeApi --> RecentPacketBuffer
+BrowserBikeApi ..> RawPacketFormatter
+BrowserLog --> PacketDebugging
+BrowserLog ..> RawPacketFormatter
+@enduml
