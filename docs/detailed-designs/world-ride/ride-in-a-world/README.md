@@ -48,6 +48,7 @@ None new. `GET /api/classes/{id}` serves `world`, and the live state carries `wo
   - **Segment panel.** `world-ride__interval`: the label, the countdown with `role="timer"`, the `progress` named `Segment progress`, and the next line (L2-093).
   - **Resistance panel.** `world-ride__resistance`: `Lower resistance`, the output named `Resistance` with its caption, and `Raise resistance`. Each button is disabled as `controlsState` says (L2-096).
   - **Overlays.** The paused overlay `role="status"`: `Paused on <route>` / `The world holds still until you pedal again.`. The lost-bike overlay `role="alert"`: `Lost the bike`, the lost text, and `Reconnect`. While it shows, the HUD is `inert` and focus moves to `Reconnect`. When it closes, focus returns to the app bar's first control (L2-097).
+  - **Ride complete overlay.** When `status` becomes `ended` or `ended: bike shut off` with a `session_id`, the scene holds still, the HUD is `inert`, and the overlay of L2-084 shows over it with `See your ride` (focused) and `Ride another class`. With `session_id` `null`, the page navigates to `/` (L2-097 criterion 5).
   - Every control is at least 44 × 44 px with a visible focus ring, in the Tab order of L2-091 criterion 1 (L2-091 criterion 4).
   - **Layout.** Under 1024 px the resistance panel and the bike's name are hidden (L2-096 criterion 4). Under 768 px the class line, the total and the Pause label are hidden, along with the board. Under 640 px the route profile is hidden and the panels stack (L2-098 criterion 8).
 
@@ -69,9 +70,10 @@ None new. `GET /api/classes/{id}` serves `world`, and the live state carries `wo
 | `pages/world-ride/default` | Old Town Criterium at 5:00 of 30:00, `Work · 1 of 8`, 142 W against 418 W (`-276 W`), resistance 24 |
 | `pages/world-ride/docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast` | Each of the six classes in its own world, at the times of the Class Worlds canvas |
 | `pages/world-ride/paused` | `Resume`, and `Paused on Cathedral Circuit` |
+| `pages/world-ride/ended` | `Ride complete` over the held scene, with `See your ride` focused (L2-097 criterion 5) |
 | `pages/world-ride/disconnected` | `Lost the bike`, parked at 1.61 km on Cathedral Circuit, with `Reconnect`; the HUD inert |
 | `pages/world-ride/renderer-unavailable` | No scene; the HUD works (`world-ride/draw-class-scene`) |
-| `pages/class/default` | Gains `Ride in Old Town Criterium` beside Start ride (mock change pending) |
+| `pages/class/default` | `Ride in Old Town Criterium` beside Start ride |
 
 The mocks' `loading`, `error` and `scenery-ready` states belong to Google Photorealistic 3D Tiles, which L1-016 leaves out of scope.
 
@@ -98,6 +100,7 @@ Playwright (`frontend/e2e/`, Chromium only):
   - `steps resistance, reads Manual, and disables at 1, 32 and without the bike` (L2-096 AC1 to AC3)
   - `holds the world still with Paused on <route>` (L2-097 AC1)
   - `shows Lost the bike with the parked distance, and Reconnect calls the bike` (L2-097 AC2 to AC4)
+  - `shows Ride complete over the held world when the plan ends` (L2-097 AC5)
 
 Unit tests:
 - `world-ride-access.spec.ts`: one case per row of L2-090 criteria 3 and 4.
@@ -107,9 +110,7 @@ The bundle budget (L2-090 criterion 8) is checked by `frontend/scripts/` in CI. 
 
 ### Open questions
 
-- **A ride that ends while World Ride is open.** L2-090 criterion 4 is checked when the screen opens. When the plan ends (`ended`) or the bike shuts off, L2-084 gives the dashboard an overlay (`Ride complete`, `See your ride`). The World Ride response is <TO SUPPLY>: either the same overlay over the scene, or navigation to `/`.
 - **One block or several components.** The design system extracts World Ride as one block, `world-ride`. `WorldRide` therefore renders the whole HUD from one view. If the design system later gives the board or the resistance panel its own block, those parts move into components of their own.
-- **Mock back links.** Five of the six world mocks link `Library` to the class library. L2-090 criterion 6 makes the link `Class`, to the class's own page. The mocks change to match.
 
 ## Requirements
 
@@ -120,8 +121,9 @@ The bundle budget (L2-090 criterion 8) is checked by `frontend/scripts/` in CI. 
 | `L2-092` | `L1-016` | World Ride live metrics. The panel shows the readouts of L2-021 in the World Ride layout: estimated power against target, cadence, heart (always `--`) and speed. |
 | `L2-093` | `L1-016` | World Ride current segment. The panel shows the countdown of L2-024 and the phase of L2-025, and names the next effort in the scene's words. |
 | `L2-096` | `L1-016` | World Ride resistance. − and + send `POST /api/resistance`; the caption reads `Manual` in manual mode; the buttons are disabled at 1, at 32 and without the bike. |
-| `L2-097` | `L1-016` | World Ride pause and lost bike. A paused ride holds the scene still under `Paused on <route>`. A lost bike shows `Lost the bike` with `Reconnect`. |
+| `L2-097` | `L1-016` | World Ride pause and lost bike. A paused ride holds the scene still under `Paused on <route>`. A lost bike shows `Lost the bike` with `Reconnect`. A ride that ends shows `Ride complete` over the held scene. |
 | `L2-080` | `L1-014` | Class page. Start ride's request, replace-ride dialog and error alert are shared with `Ride in <world name>`. |
+| `L2-084` | `L1-015` | Ending a ride opens its summary. The `Ride complete` overlay and `See your ride`. |
 | `L2-051` | `L1-007` | End-ride dialog. End opens it; ending leads to the session or the class library. |
 | `L2-046` | `L1-004` | Pause and resume. Pause and Resume call the workout endpoints and show a toast when they fail. |
 | `L2-047` | `L1-003` | Manual resistance override. A level set by the rider puts the workout in `manual` mode until the next segment. |

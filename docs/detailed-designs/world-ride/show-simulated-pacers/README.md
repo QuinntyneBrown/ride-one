@@ -43,7 +43,7 @@ The name carries each row's meaning. The jersey colour adds to it and never repl
 
 **Page.** `WorldRidePage` computes `pacerBoard(elapsed_seconds, speed_kmh)` from the live state. The board follows the server's `elapsed_seconds`, which stops while the ride is not running, so the gaps stop too (L2-095 criterion 4). The page holds the rows in a signal and passes them to `WorldRide`. Nothing else reads them.
 
-**Mock change.** `docs/mocks/pages/world-ride/*` gain the `Simulated pacers` line under the board heading, in the same change as the code (L2-095).
+**Mock.** `docs/mocks/pages/world-ride/*` show the `Simulated pacers` line under the board heading (L2-095).
 
 ### Example
 

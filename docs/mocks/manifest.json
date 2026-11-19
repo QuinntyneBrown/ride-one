@@ -81,7 +81,18 @@
         "L2-021",
         "L2-024",
         "L2-025",
-        "L2-049"
+        "L2-049",
+        "L2-088",
+        "L2-089",
+        "L2-090",
+        "L2-091",
+        "L2-092",
+        "L2-093",
+        "L2-094",
+        "L2-095",
+        "L2-096",
+        "L2-097",
+        "L2-098"
       ],
       "states": [
         "default",
@@ -93,6 +104,7 @@
         "coast",
         "paused",
         "disconnected",
+        "ended",
         "loading",
         "error",
         "scenery-ready",
@@ -100,7 +112,8 @@
       ],
       "not_applicable": {
         "empty": "A World Ride always has a selected class and plan. The class library owns the empty catalogue."
-      }
+      },
+      "route": "/classes/:id/world"
     },
     {
       "id": "class-worlds",

@@ -21,3 +21,5 @@
 | [0017](0017-browser-edition.md) | A browser edition with no backend | Superseded by 0019 |
 | [0018](0018-static-content-security-policy.md) | A static Content-Security-Policy for the browser edition | Accepted, amended by 0019 |
 | [0019](0019-no-backend.md) | No backend: Wattzup runs in the browser only | Accepted |
+
+| [0017](0017-three-js-for-world-ride.md) | Three.js draws the World Ride scene, in its own lazy chunk | Accepted |
