@@ -38,7 +38,7 @@ export default defineConfig({
     },
     {
       command:
-        'npx ng build wattzup --configuration browser && node scripts/serve-dist.mjs 4301 dist/wattzup-browser/browser',
+        'node scripts/copy-classes.mjs && npx ng build wattzup --configuration browser && node scripts/serve-dist.mjs 4301 dist/wattzup-browser/browser',
       url: 'http://localhost:4301',
       reuseExistingServer: !process.env['CI'],
       timeout: 180_000,

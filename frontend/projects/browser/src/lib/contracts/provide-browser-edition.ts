@@ -24,11 +24,11 @@ import { WorkoutEngine } from '../engine/workout-engine';
 import { SessionStore } from '../storage/session-store';
 import { BrowserBikeApi } from './browser-bike-api';
 import { BrowserBikePairing } from './browser-bike-pairing';
+import { BrowserClassApi } from './browser-class-api';
 import { BrowserSessionApi } from './browser-session-api';
 import { BrowserSessionArchive } from './browser-session-archive';
 import { BrowserStateSource } from './browser-state-source';
 import { BrowserWorkoutApi } from './browser-workout-api';
-import { notYetInTheBrowser } from './not-yet-in-the-browser';
 
 /** Asks the browser to keep the history when space runs low (L2-094 AC4); a refusal changes nothing
  * on screen, since Your history always says where rides are kept. */
@@ -50,7 +50,8 @@ export function provideBrowserEdition(): EnvironmentProviders {
     { provide: BIKE_PAIRING, useClass: BrowserBikePairing },
     { provide: BIKE_API, useClass: BrowserBikeApi },
     { provide: WORKOUT_API, useClass: BrowserWorkoutApi },
-    { provide: CLASS_API, useValue: notYetInTheBrowser('CLASS_API') },
+    BrowserClassApi,
+    { provide: CLASS_API, useExisting: BrowserClassApi },
     { provide: SESSION_API, useClass: BrowserSessionApi },
     { provide: SESSION_ARCHIVE, useClass: BrowserSessionArchive },
     provideEnvironmentInitializer(requestPersistentStorage),

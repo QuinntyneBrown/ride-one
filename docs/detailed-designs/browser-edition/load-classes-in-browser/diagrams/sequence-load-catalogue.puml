@@ -12,7 +12,7 @@ box "Frontend — Wattzup Web, browser edition" #E0F2FE
 end box
 box "Frontend — @wattzup/browser" #ECFDF3
   participant "BrowserClassApi" as api
-  participant "ClassCatalogueReader" as reader
+  participant "readCatalogue" as reader
 end box
 box "Hosting — Static host" #FFF4E5
   participant "classes.json" as file
@@ -33,7 +33,7 @@ alt 404, network error, over 1 MB or not a catalogue [L2-096 AC3]
   api --> page : empty catalogue
   page --> rider : Empty state; Set up a ride still offered
 else catalogue
-  api -> reader : read(text)
+  api -> reader : readCatalogue(text)
   reader --> api : kept shelves and classes, problems [L2-096 AC2]
   api -> api : console.warn per problem (class id and field)
   api --> page : ClassCatalogue

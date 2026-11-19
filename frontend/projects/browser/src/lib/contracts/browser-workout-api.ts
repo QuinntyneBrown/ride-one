@@ -3,9 +3,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type { PowerTrace, StartPlan, WorkoutApi, WorkoutSnapshot } from '@wattzup/api';
-import { WorkoutEngine } from '../engine/workout-engine';
+import { type RideOrigin, WorkoutEngine } from '../engine/workout-engine';
 import { validatePlan, type ValidationErrors } from '../engine/workout-plan-validator';
 import { problem } from './browser-bike-api';
+import { BrowserClassApi } from './browser-class-api';
 
 /** POST /api/workout's 400: a ValidationProblem with code `invalid_workout`. */
 export function invalidWorkout(errors: ValidationErrors): HttpErrorResponse {
@@ -18,6 +19,7 @@ export function invalidWorkout(errors: ValidationErrors): HttpErrorResponse {
 @Injectable()
 export class BrowserWorkoutApi implements WorkoutApi {
   private readonly engine = inject(WorkoutEngine);
+  private readonly classes = inject(BrowserClassApi);
 
   async start(plan: StartPlan): Promise<WorkoutSnapshot> {
     // The plan goes through JSON, as it would to the API, so the validator sees what it would.
@@ -25,12 +27,14 @@ export class BrowserWorkoutApi implements WorkoutApi {
     const result = validatePlan(body);
     if (!result.plan) throw invalidWorkout(result.errors);
     const classId = (body as { class_id?: unknown }).class_id;
+    let origin: RideOrigin | null = null;
     if (classId !== undefined && classId !== null) {
-      // The class library comes to the browser edition with L2-096.
-      throw invalidWorkout({ class_id: ['No class has that id.'] });
+      const entry = await this.classes.find(classId);
+      if (!entry) throw invalidWorkout({ class_id: ['No class has that id.'] });
+      origin = { classId: entry.id, title: entry.title };
     }
     this.engine.start();
-    return this.engine.startWorkout(result.plan, null);
+    return this.engine.startWorkout(result.plan, origin);
   }
 
   async stop(): Promise<string | null> {

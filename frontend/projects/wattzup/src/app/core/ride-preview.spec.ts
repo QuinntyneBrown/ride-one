@@ -79,6 +79,24 @@ describe('previewOf (L2-059)', () => {
     expect(rest).toEqual({ x: 221.52, width: 16.96, y: 26, height: 6, tone: 'is-rest' });
     expect(p.profile.at(-1)?.tone).toBe('is-easy');
   });
+
+  it('keeps every bar of a long ride a positive width, however short its segment', () => {
+    const p = previewOf({
+      kind: 'hiit',
+      video: null,
+      rounds: 40,
+      work_seconds: 50,
+      rest_seconds: 5,
+      work_level: 18,
+      rest_level: 6,
+      warmup: true,
+      cooldown: true,
+    });
+    const rests = p.profile.filter((bar) => bar.tone === 'is-rest');
+    expect(rests.length).toBeGreaterThan(0);
+    for (const bar of p.profile) expect(bar.width).toBeGreaterThan(0);
+    expect(rests[0].width).toBe(2.5);
+  });
 });
 
 describe('withVideoRow (L2-059 AC6)', () => {

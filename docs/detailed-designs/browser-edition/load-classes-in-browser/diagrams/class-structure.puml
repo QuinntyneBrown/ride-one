@@ -16,23 +16,24 @@ interface ClassApi {
   +get(id: string): Promise<ClassEntry | 'not-found'>
 }
 class BrowserClassApi {
-  -loaded: Promise<CatalogueResult> | null
-  -fetchFn: typeof fetch
+  -loading: Promise<Catalogue> | null
+  -fetchFile: CATALOGUE_FETCH
+  -log: CATALOGUE_LOG
   +list(): Promise<ClassCatalogue>
   +get(id: string): Promise<ClassEntry | 'not-found'>
-  -load(): Promise<CatalogueResult>
+  +find(id: unknown): Promise<ClassEntry | null>
+  -load(): Promise<Catalogue>
 }
-class ClassCatalogueReader <<pure>> {
-  +read(text: string): CatalogueResult
+class "readCatalogue" as ClassCatalogueReader <<pure function>> {
+  +readCatalogue(text, bytes?): CatalogueLoadResult
 }
-class CatalogueResult {
-  +shelves: ClassShelf[]
-  +classes: ClassEntry[]
-  +problems: CatalogueProblem[]
-  +fatal: string | null
+class "CatalogueLoadResult" as CatalogueResult {
+  +catalogue: {shelves, classes} | null
+  +problems: CatalogueEntryProblem[]
+  +fileError: string | null
 }
-class CatalogueProblem {
-  +subject: string
+class "CatalogueEntryProblem" as CatalogueProblem {
+  +entry: string
   +field: string
   +message: string
 }
