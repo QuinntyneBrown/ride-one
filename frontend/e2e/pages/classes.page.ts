@@ -43,6 +43,11 @@ export class ClassesPage {
     });
   }
 
+  /** The class page's `Ride in <world name>` action (L2-090 AC1). */
+  rideIn(worldName: string): Locator {
+    return this.page.getByRole('button', { name: `Ride in ${worldName}`, exact: true });
+  }
+
   async openLibrary(): Promise<void> {
     await this.page.goto('/classes');
   }
