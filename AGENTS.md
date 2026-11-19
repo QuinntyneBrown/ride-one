@@ -77,7 +77,7 @@ wattzup/
 │   │           └── app.config.ts          # composition root
 │   ├── public/                            # fonts and images, copied into the app's build
 │   ├── e2e/                               # Playwright: fixtures/, pages/ (page objects), specs
-│   ├── scripts/                           # bundle-size check, API recording
+│   ├── scripts/                           # bundle-size check, API recording, e2e static server
 │   └── proxy.conf.json                    # /api → 127.0.0.1:8787 during ng serve
 ├── docs/
 │   ├── journeys.md                        # the user journeys, by value add
@@ -88,7 +88,7 @@ wattzup/
 │   ├── design-system/                     # extracted from the mocks
 │   ├── adr/                               # architecture decision records
 │   └── protocol/                          # Echelon BLE frame reference (echelon-ble-frames.md)
-├── tools/                                 # video-record, video-audio, video-build (the films)
+├── tools/                                 # verify (every CI check, locally); video-record, video-audio, video-build (the films)
 ├── .github/                               # issue and PR templates, CI workflows
 └── .agents/skills/, .claude/skills/       # agent skills
 ```
@@ -96,6 +96,8 @@ wattzup/
 Run .NET commands against `backend/` (`dotnet build backend/Wattzup.sln`, `dotnet run --project
 backend/src/Wattzup.Api -- --simulate`) and npm commands from `frontend/` (`cd frontend && npm …`).
 `npm run build:api` copies the production build into `backend/src/Wattzup.Api/wwwroot`.
+`node tools/verify/verify.mjs` runs every check CI runs (backend build and tests, frontend install, format,
+lint, unit tests, production build and behaviour specs) side by side; run it before pushing.
 
 Runtime output (`raw_packets.log`, `status.json`, `server.log`) is git-ignored and never
 committed.

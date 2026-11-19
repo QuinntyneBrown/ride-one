@@ -80,8 +80,9 @@ public sealed class EventStreamReader : IAsyncDisposable
     }
 
     /// <summary>
-    /// Advances the fake clock by <paramref name="step"/> until a state matches, waiting briefly after each step
-    /// for the host to react. Fails naming the last state after <paramref name="maxSteps"/>.
+    /// Advances the fake clock by <paramref name="step"/> until a state matches, letting the host react after each
+    /// step. A step is done once the host has answered it and then gone quiet for <see cref="Settle"/>, or after
+    /// <see cref="StepWait"/> when it says nothing. Fails naming the last state after <paramref name="maxSteps"/>.
     /// </summary>
     public async Task<JsonElement> AdvanceUntilAsync(
         Microsoft.Extensions.Time.Testing.FakeTimeProvider time,
@@ -91,6 +92,7 @@ public sealed class EventStreamReader : IAsyncDisposable
         int maxSteps = 30)
     {
         ArgumentNullException.ThrowIfNull(time);
+        ArgumentNullException.ThrowIfNull(predicate);
         if (Last is { } last && predicate(last))
         {
             return last;
@@ -99,16 +101,43 @@ public sealed class EventStreamReader : IAsyncDisposable
         for (var i = 0; i < maxSteps; i++)
         {
             time.Advance(step);
-            try
+            var wait = StepWait;
+            while (await TryReadAsync(wait) is { } raw)
             {
-                return await WaitForAsync(predicate, what, TimeSpan.FromMilliseconds(300));
-            }
-            catch (TimeoutException)
-            {
+                if (raw != Ping)
+                {
+                    var state = JsonElement.Parse(raw);
+                    Last = state;
+                    if (predicate(state))
+                    {
+                        return state;
+                    }
+                }
+
+                wait = Settle;
             }
         }
 
         throw new TimeoutException($"Advanced {maxSteps} × {step} waiting for {what}, but the last state was: {Describe(Last)}");
+    }
+
+    /// <summary>How long a step waits for the host's first answer before the clock moves on.</summary>
+    private static readonly TimeSpan StepWait = TimeSpan.FromMilliseconds(300);
+
+    /// <summary>How long the stream must stay quiet after an answer before the step counts as handled.</summary>
+    private static readonly TimeSpan Settle = TimeSpan.FromMilliseconds(40);
+
+    private async Task<string?> TryReadAsync(TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        try
+        {
+            return await _messages.Reader.ReadAsync(cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
     }
 
     /// <summary>True once <see cref="TryPingAsync"/> has seen a ping.</summary>
