@@ -39,7 +39,6 @@ Wiring:
   |---|---|---|
   | `BIKE_API` | `HttpBikeApi` | `BrowserBikeApi` |
   | `WORKOUT_API` | `HttpWorkoutApi` | `BrowserWorkoutApi` |
-  | `MACHINE_API` | `HttpMachineApi` | `BrowserMachineApi` (bike only) |
   | `CLASS_API` | `HttpClassApi` | `BrowserClassApi` |
   | `SESSION_API` | `HttpSessionApi` | `BrowserSessionApi` |
   | `LIVE_STATE_SOURCE` (new) | `EventSourceStateSource` | `BrowserStateSource` |

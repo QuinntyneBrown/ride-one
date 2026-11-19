@@ -28,7 +28,7 @@ Mirrors (`@wattzup/browser`; each has the same name and behaviour as the .NET ty
 | `engine/` | `WorkoutPlanValidator`, `PlanExpander`, `WorkoutEngine`, `WorkoutRun`, `PowerTraceHistory` | `Wattzup.Core/Workouts` | plans, segments, stepping, waiting, pause, replacement, trace (L2-010 to L2-013, L2-045, L2-046, L2-050) |
 
 - The mirrors use the generated contract types from `@wattzup/api` (`BikeState`, `WorkoutSnapshot`, `Segment`, `CommandEntry`, `StartPlan`), so the in-browser state has exactly the shape of L2-014 and every screen reads it unchanged (L2-092 criterion 2). The fields that describe the backend host take fixed values: `transport` `WebBluetooth`, `simulated` from `?simulate`, `exposed` `false`, `bind_address` `null`, `ui_clients` 1. `<TO SUPPLY>`: whether L2-014 allows `WebBluetooth` as a `transport` value or the contract gains it.
-- Treadmill fields are always `null` and `machine` is always `bike`; `BrowserMachineApi.choose('treadmill')` rejects with `code` `treadmill_disabled`, as the backend does with the flag off (L2-075).
+- The edition drives the bike only and has no machine choice (ADR 0016).
 - **Parity tests** — each mirror's unit tests restate the rows of the reference's tests, 1 TypeScript case per C# case, with the same name and the same inputs and outputs (L2-092 criterion 1). A change to a rule changes both in the same change (AGENTS.md). `<TO SUPPLY>`: whether to move the shared rows into case files read by both test suites, which removes the duplication but adds a folder to the layout.
 
 Clock and loop:
