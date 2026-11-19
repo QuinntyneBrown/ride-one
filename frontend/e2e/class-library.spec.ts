@@ -25,17 +25,34 @@ test.describe('Class library (L2-079)', () => {
     await expect(library.lead).toHaveText(LEAD);
     await expect(library.statusName).toHaveText('Echelon EX-5s');
     await expect(library.buildYourOwn).toHaveAttribute('href', '/setup');
-    await expect(library.tabs).toHaveText(['All', '20 min', '30 min', '60 min endurance']);
+    await expect(library.tabs).toHaveText([
+      'All',
+      '10–15 min',
+      '20 min',
+      '25 min',
+      '30 min',
+      '35 min',
+      '40 min',
+      '45–50 min',
+      '55–60 min',
+      '60 min endurance',
+    ]);
     await expect(library.tab('All')).toHaveAttribute('aria-selected', 'true');
     await expect(library.shelves.getByRole('heading', { level: 2 })).toHaveText([
+      '10–15 min',
       '20 min',
+      '25 min',
       '30 min',
+      '35 min',
+      '40 min',
+      '45–50 min',
+      '55–60 min',
       '60 min endurance',
     ]);
     const short = library.shelf('20 min');
     await expect(short.tagline).toHaveText('Short and sharp — fits a lunch break.');
-    await expect(short.count).toHaveText('2 classes');
-    await expect(library.cards).toHaveCount(6);
+    await expect(short.count).toHaveText('45 classes');
+    await expect(library.cards).toHaveCount(191);
   });
 
   test("shows each card's length, title, meta and strip, and opens its class page", async ({
@@ -98,13 +115,11 @@ test.describe('Class library (L2-079)', () => {
     await expect(library.tab('All')).toHaveAttribute('tabindex', '-1');
 
     await page.keyboard.press('ArrowRight');
-    await expect(library.tab('60 min endurance')).toBeFocused();
-    await expect(library.shelves.getByRole('heading', { level: 2 })).toHaveText([
-      '60 min endurance',
-    ]);
+    await expect(library.tab('35 min')).toBeFocused();
+    await expect(library.shelves.getByRole('heading', { level: 2 })).toHaveText(['35 min']);
     await page.keyboard.press('Home');
     await expect(library.tab('All')).toBeFocused();
-    await expect(library.shelves).toHaveCount(3);
+    await expect(library.shelves).toHaveCount(9);
 
     await library.tab('20 min').click();
     await page.reload();
@@ -123,6 +138,8 @@ test.describe('Class library (L2-079)', () => {
     await library.open();
 
     const gcn = library.card('30 Minute HIIT Cardio');
+    // The thumbnail is lazy: it loads, and so fails, only once its card is near the viewport.
+    await gcn.link.scrollIntoViewIfNeeded();
     await expect(gcn.poster).toContainText('GCN Training');
     await expect(gcn.thumbnail).toHaveCount(0);
     await expect(gcn.note).toHaveCount(0);
@@ -170,7 +187,7 @@ test.describe('Class library (L2-079)', () => {
 
     api.on('GET', '/api/classes', { json: recordedClasses });
     await library.tryAgain.click();
-    await expect(library.cards).toHaveCount(6);
+    await expect(library.cards).toHaveCount(191);
     expect(api.calls('GET', '/api/classes')).toHaveLength(2);
   });
 
@@ -179,7 +196,7 @@ test.describe('Class library (L2-079)', () => {
     await library.open(undefined, freeRide({ ble: 'disconnected' }));
 
     await expect(library.statusState).toHaveText('Disconnected');
-    await expect(library.cards).toHaveCount(6);
+    await expect(library.cards).toHaveCount(191);
   });
 
   test('redirects the treadmill to setup', async ({ page, api, events }) => {
@@ -227,7 +244,7 @@ test.describe('Class library (L2-079)', () => {
 
     api.on('GET', '/api/progress', { abort: true });
     await page.reload();
-    await expect(library.cards).toHaveCount(6);
+    await expect(library.cards).toHaveCount(191);
     await expect(library.progress).toHaveAccessibleName('Progress');
     await expect(library.streakBadge).toHaveCount(0);
   });
