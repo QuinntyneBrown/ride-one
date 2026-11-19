@@ -43,6 +43,7 @@ import { MotionPreference } from '../../core/motion-preference';
 import { previewOf } from '../../core/ride-preview';
 import { formatStart, linkError, parseStart, stepStart, videoIdOf } from '../../core/video-link';
 import { type PlayerHandle, YOUTUBE_PLAYER } from '../../core/youtube-player';
+import { OnlineStatus } from '../../core/online-status';
 
 type Phase = 'loading' | 'ready' | 'not-found';
 
@@ -69,6 +70,8 @@ export class ClassPage {
 
   private readonly classes = inject(CLASS_API);
   private readonly players = inject(YOUTUBE_PLAYER);
+  /** Offline, the frame says the video cannot play instead of mounting the player (L2-098 AC1). */
+  protected readonly online = inject(OnlineStatus).online;
   private readonly title = inject(Title);
   private readonly live = inject(LiveStateService);
   private readonly workouts = inject(WORKOUT_API);

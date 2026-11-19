@@ -1,8 +1,9 @@
 // Acceptance Test
-// Traces to: L2-096, L2-079, L2-080
+// Traces to: L2-096, L2-079, L2-080, L2-098
 // Description: The browser edition reads its class catalogue from classes.json beside index.html:
 // valid classes are listed on their shelves and invalid ones left out and named in the console; a
-// class page starts its ride; a missing file shows the library's empty state and /setup still works.
+// class page starts its ride; a missing file shows the library's empty state and /setup still works;
+// offline, a class page says its video cannot play and still starts the ride.
 import { expect, test } from './fixtures/browser-test';
 import { BrowserClassesPage } from './pages/browser-classes.page';
 import { BrowserRidePage } from './pages/browser-ride.page';
@@ -23,6 +24,18 @@ const catalogue = JSON.stringify({
       description: 'One level, held.',
       shelf: 'short',
       plan: flat,
+    },
+    {
+      id: 'with-video',
+      title: 'Ride along',
+      channel: 'GCN Training',
+      focus: 'Zone 2',
+      description: 'The plan with its video.',
+      shelf: 'short',
+      plan: {
+        ...flat,
+        video: { url: 'https://www.youtube.com/watch?v=QUoToFsMNig', start_seconds: 3 },
+      },
     },
     {
       id: 'too-hard',
@@ -48,7 +61,7 @@ test('the valid classes of classes.json are listed and an invalid one is named i
   await classes.openLibrary();
 
   await expect(classes.shelfHeadings).toHaveText(['20 min']);
-  await expect(classes.cards).toHaveCount(1);
+  await expect(classes.cards).toHaveCount(2);
   await expect(classes.card('Steady climb')).toBeVisible();
   expect(warnings.some((w) => w.includes('classes.json') && w.includes('too-hard'))).toBe(true);
 });
@@ -85,4 +98,22 @@ test('a missing classes.json shows the empty library and /setup still works', as
   expect(pageErrors.length).toBeGreaterThan(0);
   expect(pageErrors.every((e) => /classes\.json|404/.test(e))).toBe(true);
   pageErrors.length = 0;
+});
+
+test('offline, a class page says its video cannot play and still starts the ride (L2-098 AC1)', async ({
+  page,
+  context,
+}) => {
+  const classes = new BrowserClassesPage(page);
+  await classes.serveCatalogue(catalogue);
+  await page.goto('/classes/with-video');
+  await expect(classes.heading).toHaveText('Ride along');
+  await expect(classes.offlineNotice).toBeHidden();
+
+  await context.setOffline(true);
+  await expect(classes.offlineNotice).toContainText('You’re offline, so the video can’t play.');
+  await expect(classes.startButton).toBeEnabled();
+
+  await context.setOffline(false);
+  await expect(classes.offlineNotice).toBeHidden();
 });

@@ -11,6 +11,8 @@ export class BrowserClassesPage {
   readonly startButton: Locator;
   readonly startHint: Locator;
   readonly banner: Locator;
+  /** The video frame's notice while the device is offline (L2-098 AC1). */
+  readonly offlineNotice: Locator;
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { level: 1 });
@@ -23,6 +25,7 @@ export class BrowserClassesPage {
     this.startButton = page.getByRole('button', { name: /^(Start ride|Starting…)$/ });
     this.startHint = page.locator('#start-blocked');
     this.banner = page.locator('.banner[role="alert"]');
+    this.offlineNotice = page.locator('.video-frame__poster[role="status"]');
   }
 
   /** Answers the edition's request for `classes.json` with this text, or with a 404. */

@@ -59,7 +59,16 @@
         <main id="main" class="setup-main" tabindex="-1">
           <div class="class-page">
             <div class="video-frame">
-              @if (videoId()) {
+              @if (videoId() && !online()) {
+                <div class="video-frame__poster" role="status">
+                  <wz-icon name="wifi-off" size="xl" />
+                  <span class="video-frame__title">You’re offline, so the video can’t play.</span>
+                  <span class="video-frame__meta"
+                    >Start ride rides the plan without it. The video plays here again once you’re
+                    back online.</span
+                  >
+                </div>
+              } @else if (videoId()) {
                 <div class="video-frame__poster">
                   <span class="video-frame__title">{{ e.channel }} · {{ e.title }}</span>
                   <span class="video-frame__meta">Cued at {{ cuedAt() }}, the ride’s 0:00</span>
