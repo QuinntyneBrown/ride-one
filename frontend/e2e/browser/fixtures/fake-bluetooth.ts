@@ -94,6 +94,16 @@ function installFakeBluetooth(): void {
       (b) => b.toString(16).toUpperCase().padStart(2, '0'),
     ).join('');
 
+  // As Chrome: one GATT operation at a time; a write while another is in flight fails.
+  let writing = false;
+  const write = async (name: string, value: BufferSource): Promise<void> => {
+    if (writing) throw new DOMException('GATT operation already in progress.', 'NetworkError');
+    writing = true;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    writing = false;
+    record(name, hex(value));
+  };
+
   const characteristic = (uuid: string) => {
     const c = Object.assign(new EventTarget(), {
       uuid,
@@ -103,10 +113,8 @@ function installFakeBluetooth(): void {
         subscribed.push(c);
         return c;
       },
-      writeValueWithResponse: async (value: BufferSource) =>
-        record('writeWithResponse', hex(value)),
-      writeValueWithoutResponse: async (value: BufferSource) =>
-        record('writeWithoutResponse', hex(value)),
+      writeValueWithResponse: (value: BufferSource) => write('writeWithResponse', value),
+      writeValueWithoutResponse: (value: BufferSource) => write('writeWithoutResponse', value),
     });
     return c;
   };

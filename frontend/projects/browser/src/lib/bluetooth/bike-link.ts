@@ -145,13 +145,20 @@ export class BikeLink {
     if (attempt === this.generation) await this.connect(device);
   }
 
-  /** Logs every write to the bike in the packet log (L2-095 AC1). */
+  /** Writes one at a time, as Web Bluetooth allows one GATT operation at a time ("GATT operation
+   * already in progress"), and logs every write in the packet log (L2-095 AC1). */
   private logged(gatt: GattLink): GattLink {
+    let queue: Promise<unknown> = Promise.resolve();
     return {
       startNotifications: (onPacket) => gatt.startNotifications(onPacket),
-      write: async (bytes) => {
-        await gatt.write(bytes);
-        this.packets.sent(this.clock.epochMs(), bytes);
+      write: (bytes) => {
+        const written = queue.then(async () => {
+          await gatt.write(bytes);
+          this.packets.sent(this.clock.epochMs(), bytes);
+        });
+        // A failed write must not hold up the ones after it.
+        queue = written.catch(() => undefined);
+        return written;
       },
       disconnect: () => gatt.disconnect(),
     };

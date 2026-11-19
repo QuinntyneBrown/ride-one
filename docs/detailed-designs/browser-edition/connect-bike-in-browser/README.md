@@ -19,7 +19,7 @@ In the backend edition the backend scans for the bike in the background and conn
   - `knownBikes(): Promise<BikeDevice[]>` — `getDevices()` filtered by `isEchelonDevice`, or `[]` where the browser lacks it.
   - `BikeDevice` — wraps `BluetoothDevice`: `name`, `connect(): Promise<GattLink>`, `onDisconnected(listener)` for the `gattserverdisconnected` event, and `whenNearby()` where `watchAdvertisements()` is offered, which resolves on the first `advertisementreceived` and then stops watching.
   - `GattLink` — `startNotifications(onPacket)`, `write(bytes)` (always `writeValueWithResponse`), `disconnect()`.
-- **`BikeLink`** (`lib/bluetooth/`) — the browser counterpart of `BikeConnectionService`. It holds the known bike and runs this state machine, writing `ble`, `device` and `error` through `BikeStateStore`:
+- **`BikeLink`** (`lib/bluetooth/`) — the browser counterpart of `BikeConnectionService`. It holds the known bike and runs this state machine, writing `ble`, `device` and `error` through `BikeStateStore`. Its connection writes one command at a time, so init commands, keepalives and resistance commands queue rather than overlap; Chrome refuses a GATT write while another is in flight (`NetworkError: GATT operation already in progress`), and the first hardware run dropped the link on that error several times a minute:
 
   | From | Event | To | Action |
   |---|---|---|---|

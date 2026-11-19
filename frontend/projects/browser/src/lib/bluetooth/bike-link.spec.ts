@@ -20,13 +20,27 @@ import { FakeClock } from './fake-clock';
 
 class FakeGatt implements GattLink {
   readonly log: string[];
-  constructor(log: string[]) {
+  private inFlight = false;
+  /** As Chrome: a write while another is in flight fails (one GATT operation at a time). */
+  constructor(
+    log: string[],
+    private readonly strict = false,
+  ) {
     this.log = log;
   }
   async startNotifications(): Promise<void> {
     this.log.push('subscribe');
   }
   async write(bytes: Uint8Array): Promise<void> {
+    if (this.strict) {
+      if (this.inFlight) {
+        throw new DOMException('GATT operation already in progress.', 'NetworkError');
+      }
+      this.inFlight = true;
+      await null;
+      await null;
+      this.inFlight = false;
+    }
     this.log.push(`write ${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`);
   }
   disconnect(): void {
@@ -37,6 +51,8 @@ class FakeGatt implements GattLink {
 class FakePort implements BluetoothPort {
   readonly log: string[] = [];
   answer: 'pick' | 'cancel' | 'blocked' = 'pick';
+  /** Writes fail while another is in flight, as on Chrome. */
+  strict = false;
   /** Errors the next connection attempts throw, in order. */
   readonly connectFailures: Error[] = [];
   private readonly dropped: (() => void)[] = [];
@@ -85,7 +101,7 @@ class FakePort implements BluetoothPort {
         this.log.push('connect');
         const failure = this.connectFailures.shift();
         if (failure) throw failure;
-        return new FakeGatt(this.log);
+        return new FakeGatt(this.log, this.strict);
       },
       onDisconnected: (listener) => this.dropped.push(listener),
     };
@@ -201,6 +217,24 @@ describe('BikeLink', () => {
       connection_id: '0bf669f1',
       error: null,
     });
+  });
+
+  it('writes one at a time, so a command sent during another write waits instead of failing', async () => {
+    const { port, store, clock, link } = setUp();
+    port.strict = true;
+    void link.pair();
+    await clock.advance(600);
+    // A resistance command and a keepalive meet, as the engine and the keepalive loop do.
+    const conn = link.connection()!;
+    await Promise.all([
+      conn.write(Uint8Array.of(0xf0, 0xb1, 0x01, 0x02, 0xa4)),
+      conn.write(Uint8Array.of(0xf0, 0xa0, 0x01, 0x01, 0x92)),
+    ]);
+    expect(store.state()).toMatchObject({ ble: 'connected', error: null });
+    expect(port.log.filter((e) => e.startsWith('write')).slice(-2)).toEqual([
+      'write f0b10102a4',
+      KEEPALIVE,
+    ]);
   });
 
   it('logs each write to the bike in the packet log, and its packets only on request (L2-095)', async () => {
