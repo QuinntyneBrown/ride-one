@@ -8,7 +8,7 @@ Container_Boundary(app, "Wattzup Web, browser edition") {
   Component(link, "BikeLink", "lib/bluetooth", "Same in every mode")
   Component(web, "WebBluetoothPort", "lib/bluetooth", "Production and specs")
   Component(sim, "SimulatedBluetoothPort", "lib/bluetooth", "ECHSIM-0001; dev builds only")
-  Component(clock, "SystemClock", "lib/engine", "Drives the simulator's frames")
+  Component(clock, "Clock", "lib/bluetooth", "Drives the simulator's frames")
 }
 Container_Boundary(fx, "Playwright fixtures") {
   Component(fake, "fake-bluetooth.ts", "Init script", "Scripted navigator.bluetooth; records writes")

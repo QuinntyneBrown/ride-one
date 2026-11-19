@@ -13,11 +13,10 @@ title Class structure — Run rides in the browser
 
 interface Clock {
   +now(): number
-  +wallNow(): number
-  +every(ms, fn): () => void
-  +after(ms, fn): () => void
+  +epochMs(): number
+  +delay(ms: number): Promise<void>
 }
-class SystemClock
+class SYSTEM_CLOCK <<const>>
 class FakeClock
 class BikeStateStore {
   -current: BikeState
@@ -37,23 +36,27 @@ class TelemetryIngestor {
 }
 class WorkoutEngine {
   -run: WorkoutRun | null
-  +start(plan: StartPlan, classId: string | null): WorkoutSnapshot
-  +stop(): string | null
-  +pause(): void
-  +resume(): void
-  +backToPlan(): void
-  -tick(): void
+  +startWorkout(plan: WorkoutPlan, origin: RideOrigin | null): Promise<WorkoutSnapshot>
+  +stop(): Promise<WorkoutSnapshot | null>
+  +pause(): Promise<WorkoutSnapshot | null>
+  +resume(): Promise<WorkoutSnapshot | null>
+  +backToPlan(): Promise<WorkoutSnapshot | null>
+  +setManual(level: number): Promise<SendResult>
+  +trace(): PowerTrace
+  -tick(): Promise<void>
+  -step(run: WorkoutRun): Promise<void>
+  -drive(run: WorkoutRun): Promise<void>
 }
 class WorkoutRun {
   +segments: Segment[]
-  +startedAt: number
-  +pausedTotal: number
+  +elapsed: number
+  +anchor: number
+  +totals: RideTotals
   +samples: RideSample[]
-  +runningSeconds(now): number
-  +segmentAt(seconds): Segment
+  +toSnapshot(): WorkoutSnapshot
 }
 class ResistanceCommander {
-  +set(level: number, source: 'manual' | 'auto'): Promise<void>
+  +send(level: number, source: 'plan' | 'manual', rideSeconds: number | null): Promise<SendResult>
 }
 class BrowserStateSource {
   +state: Signal<BikeState | null>
@@ -68,7 +71,7 @@ class WakeLockKeeper {
 }
 class "BikeState (generated)" as BikeState
 
-SystemClock ..|> Clock
+SYSTEM_CLOCK ..|> Clock
 FakeClock ..|> Clock
 BikeStateStore ..> StateDerivations
 BikeStateStore --> Clock

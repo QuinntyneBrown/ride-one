@@ -39,4 +39,12 @@ export class FakeClock implements Clock {
     this.time = end;
     await settle();
   }
+
+  /** Moves time forward by `ms` at once, as a throttled tab does: every delay already due
+   * resolves late, at the new time, rather than at its own. */
+  async jump(ms: number): Promise<void> {
+    this.time += ms;
+    for (const t of this.timers) t.at = Math.max(t.at, this.time);
+    await this.advance(0);
+  }
 }

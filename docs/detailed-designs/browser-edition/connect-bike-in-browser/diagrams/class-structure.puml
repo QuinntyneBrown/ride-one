@@ -28,8 +28,8 @@ interface GattLink {
 }
 interface Clock {
   +now(): number
-  +every(ms: number, fn): () => void
-  +after(ms: number, fn): () => void
+  +epochMs(): number
+  +delay(ms: number): Promise<void>
 }
 class WebBluetoothPort
 class BikeLink {

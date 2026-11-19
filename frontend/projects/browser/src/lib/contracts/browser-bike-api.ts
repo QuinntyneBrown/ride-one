@@ -6,7 +6,7 @@ import { inject, Injectable } from '@angular/core';
 import type { BikeApi, BikeState, KeyCheck } from '@wattzup/api';
 import { BikeLink } from '../bluetooth/bike-link';
 import { BikeStateStore } from '../engine/bike-state-store';
-import { ResistanceCommander } from '../engine/resistance-commander';
+import { WorkoutEngine } from '../engine/workout-engine';
 import { MAX_LEVEL, MIN_LEVEL } from '../protocol/echelon-commands';
 
 /** The answer the API gives, as the error the HTTP client would raise. */
@@ -26,7 +26,7 @@ export function problem(
 export class BrowserBikeApi implements BikeApi {
   private readonly store = inject(BikeStateStore);
   private readonly link = inject(BikeLink);
-  private readonly commander = inject(ResistanceCommander);
+  private readonly engine = inject(WorkoutEngine);
 
   async status(): Promise<BikeState> {
     return this.store.state();
@@ -41,7 +41,8 @@ export class BrowserBikeApi implements BikeApi {
     if (!Number.isInteger(level) || level < MIN_LEVEL || level > MAX_LEVEL) {
       throw problem(400, 'invalid_level', 'The level is not valid.');
     }
-    const result = await this.commander.send(level, 'manual', null);
+    // Through the engine: during a ride a manual level overrides the plan (L2-047).
+    const result = await this.engine.setManual(level);
     if (result.kind === 'not-connected') {
       throw problem(503, 'bike_not_connected', 'The bike is not connected.', 'bike not connected');
     }

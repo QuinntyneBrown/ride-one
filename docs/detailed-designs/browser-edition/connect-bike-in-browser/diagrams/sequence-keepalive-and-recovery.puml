@@ -7,7 +7,7 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — @wattzup/browser" #ECFDF3
-  participant "SystemClock" as clock
+  participant "Clock" as clock
   participant "BikeLink" as link
   participant "BikeStateStore" as store
   participant "WorkoutEngine" as engine

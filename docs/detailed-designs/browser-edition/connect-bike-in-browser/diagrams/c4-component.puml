@@ -10,7 +10,7 @@ Container_Boundary(app, "Wattzup Web, browser edition") {
   Component(link, "BikeLink", "lib/bluetooth", "State machine, init, keepalive, 3 s retry")
   Component(port, "WebBluetoothPort", "lib/bluetooth", "Only wrapper over navigator.bluetooth")
   Component(frames, "EchelonCommands", "lib/protocol", "Init, keepalive and resistance bytes")
-  Component(clock, "SystemClock", "lib/engine", "Monotonic now() and every(ms)")
+  Component(clock, "Clock", "lib/bluetooth", "Monotonic now() and delay(ms)")
   Component(store, "BikeStateStore", "lib/engine", "Only writer of BikeState")
   Component(engine, "WorkoutEngine", "lib/engine", "Waits while disconnected")
 }

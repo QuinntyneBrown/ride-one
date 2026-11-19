@@ -34,11 +34,12 @@ class FakeBluetoothPort <<test helper>> {
 }
 interface Clock {
   +now(): number
-  +every(ms, fn): () => void
-  +after(ms, fn): () => void
+  +epochMs(): number
+  +delay(ms: number): Promise<void>
 }
 class FakeClock <<test helper>> {
-  +advance(ms: number): void
+  +advance(ms: number): Promise<void>
+  +jump(ms: number): Promise<void>
 }
 class BikeLink
 class "fake-bluetooth.ts" as fixture <<Playwright init script>> {
