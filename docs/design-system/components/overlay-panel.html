@@ -35,11 +35,11 @@
       <li><a href="../components/text-field.html">Text field</a></li>
       <li><a href="../components/form-field.html">Form field</a></li>
       <li><a href="../components/form-layout.html">Form layout</a></li>
-      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li><li><a href="../components/machine-card.html">Machine card</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
       <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li><li><a href="../components/class-card.html">Class card and shelf</a></li><li><a href="../components/level-row.html">Level row</a></li><li><a href="../components/session-traces.html">Session traces</a></li><li><a href="../components/dip-list.html">Dip list</a></li><li><a href="../components/week-strip.html">Week strip</a></li><li><a href="../components/stat-strip.html">Stat strip</a></li><li><a href="../components/best-chip.html">Personal-best chip and delta</a></li><li><a href="../components/trend-chart.html">Trend chart</a></li><li><a href="../components/session-list.html">Session list</a></li><li><a href="../components/streak-calendar.html">Streak calendar</a></li><li><a href="../components/achievement.html">Achievement badge</a></li>
       <li><a href="../components/slider.html">Slider</a></li>
       <li><a href="../components/number-stepper.html">Number stepper</a></li>
-      <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li><li><a href="../components/effort-row.html">Effort row</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
       <li><a href="../components/level-picker.html">Level picker</a></li>
       <li><a href="../components/app-bar.html">App bar</a></li>
       <li><a href="../components/lockup.html">Lockup</a></li>
@@ -85,7 +85,7 @@
     <header class="ds-header">
       <p class="ds-kicker">Component · Containers and overlays</p>
       <h1>Overlay panel</h1>
-      <p class="ds-lead">The overlay panel veils the ride area (not the whole page) when the bike state stops the ride: Lost the bike, Looking for your bike, Bluetooth is off, Ride ended; on the treadmill also the belt countdown and Belt stopped.</p>
+      <p class="ds-lead">The overlay panel veils the ride area (not the whole page) when the bike state stops the ride: Lost the bike, Looking for your bike, Bluetooth is off, Ride ended.</p>
       <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span></div>
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
@@ -126,24 +126,6 @@
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</code></pre></details></div>
-    <h3>Treadmill: belt countdown</h3><div class="ds-example"><div class="ds-example__canvas "><div class="overlay-panel overlay-panel--static overlay-panel--belt"><div class="overlay-panel__card"><span class="overlay-panel__count numeral" aria-hidden="true">3</span><h2 aria-live="polite" aria-atomic="true">Belt starting in 3</h2><p>Stand on the side rails. The belt starts when the count reaches zero.</p></div></div></div><div class="ds-example__caption"><span>3, 2, 1 before the belt starts; the heading is a polite live region announced once per number (L2-066, L2-071).</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class=&quot;overlay-panel overlay-panel--static overlay-panel--belt&quot;&gt;
-&lt;div class=&quot;overlay-panel__card&quot;&gt;
-&lt;span class=&quot;overlay-panel__count numeral&quot; aria-hidden=&quot;true&quot;&gt;3&lt;/span&gt;
-&lt;h2 aria-live=&quot;polite&quot; aria-atomic=&quot;true&quot;&gt;Belt starting in 3&lt;/h2&gt;
-&lt;p&gt;Stand on the side rails. The belt starts when the count reaches zero.&lt;/p&gt;
-&lt;/div&gt;
-&lt;/div&gt;</code></pre></details></div><h3>Treadmill: belt stopped</h3><div class="ds-example"><div class="ds-example__canvas "><div class="overlay-panel overlay-panel--static"><div class="overlay-panel__card" role="alert"><svg class="icon overlay-panel__icon overlay-panel__icon--warn" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><h2>Belt stopped</h2><p>The treadmill's belt stopped, so Wattzup paused the ride at 7:07. Press Resume to start the belt again after a 3-second countdown.</p><div class="overlay-panel__actions"><button class="btn btn--primary" type="button">Resume</button></div></div></div></div><div class="ds-example__caption"><span>The belt stopped from the console or safety key; Resume restarts it through the countdown.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class=&quot;overlay-panel overlay-panel--static&quot;&gt;
-&lt;div class=&quot;overlay-panel__card&quot; role=&quot;alert&quot;&gt;
-&lt;svg class=&quot;icon overlay-panel__icon overlay-panel__icon--warn&quot; aria-hidden=&quot;true&quot; viewBox=&quot;0 0 24 24&quot;&gt;
-&lt;rect x=&quot;5&quot; y=&quot;5&quot; width=&quot;14&quot; height=&quot;14&quot; rx=&quot;2&quot;/&gt;
-&lt;/svg&gt;
-&lt;h2&gt;Belt stopped&lt;/h2&gt;
-&lt;p&gt;The treadmill's belt stopped, so Wattzup paused the ride at 7:07. Press Resume to start the belt again after a 3-second countdown.&lt;/p&gt;
-&lt;div class=&quot;overlay-panel__actions&quot;&gt;
-&lt;button class=&quot;btn btn--primary&quot; type=&quot;button&quot;&gt;Resume&lt;/button&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</code></pre></details></div>
     </section>
     <section class="ds-section" id="sizes" data-na="Fills the main column."><h2><a href="#sizes">Sizes</a></h2>
       <p class="ds-na">Fills the main column.</p>
@@ -170,10 +152,10 @@
 <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Part</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead><tbody><tr><td>Veil</td><td><code>--color-bg-veil</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-bg-veil" data-swatch></i><span data-token="--color-bg-veil"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-bg-veil" data-swatch></i><span data-token="--color-bg-veil"></span></span></td></tr><tr><td>Layer</td><td><code>--z-raised</code></td><td colspan="2"><span data-token="--z-raised"></span></td></tr><tr><td>Icon</td><td><code>--icon-size-xl</code></td><td colspan="2"><span data-token="--icon-size-xl"></span></td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
-<pre><code>&lt;div class="overlay-panel"&gt;&lt;div class="overlay-panel__card" role="alert"&gt;…&lt;/div&gt;&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.overlay-panel</code></td><td>Veil over a positioned parent.</td></tr><tr><td><code>.overlay-panel__icon--warn/--ok</code></td><td>Icon tone.</td></tr><tr><td><code>.overlay-panel--static</code></td><td>Documentation only.</td></tr><tr><td><code>.overlay-panel--belt</code></td><td>Belt countdown: larger heading.</td></tr><tr><td><code>.overlay-panel__count</code></td><td>The 3, 2, 1 numeral (decorative; the heading carries the number).</td></tr></tbody></table></div>
+<pre><code>&lt;div class="overlay-panel"&gt;&lt;div class="overlay-panel__card" role="alert"&gt;…&lt;/div&gt;&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.overlay-panel</code></td><td>Veil over a positioned parent.</td></tr><tr><td><code>.overlay-panel__icon--warn/--ok</code></td><td>Icon tone.</td></tr><tr><td><code>.overlay-panel--static</code></td><td>Documentation only.</td></tr><tr><td><code>.overlay-panel__count</code></td><td>The 3, 2, 1 numeral (decorative; the heading carries the number).</td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/disconnected.html">pages/ride/disconnected</a> (lost)</li><li><a href="../../mocks/pages/ride/scanning.html">pages/ride/scanning</a> (scanning)</li><li><a href="../../mocks/pages/ride/bluetooth-off.html">pages/ride/bluetooth-off</a> (Bluetooth off)</li><li><a href="../../mocks/pages/ride/ended.html">pages/ride/ended</a> (ended)</li><li><a href="../../mocks/pages/ride/treadmill-countdown.html">pages/ride/treadmill-countdown</a> (belt countdown)</li><li><a href="../../mocks/pages/ride/treadmill-belt-stopped.html">pages/ride/treadmill-belt-stopped</a> (belt stopped)</li><li><a href="../../mocks/pages/ride/treadmill-disconnected.html">pages/ride/treadmill-disconnected</a> (Lost the treadmill)</li></ul><p>Drift fixed during extraction: background was declared twice (backdrop then veil); one veil token now. Icon tones moved from <code>.icon.is-*</code> to <code>.overlay-panel__icon--*</code>.</p>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/disconnected.html">pages/ride/disconnected</a> (lost)</li><li><a href="../../mocks/pages/ride/scanning.html">pages/ride/scanning</a> (scanning)</li><li><a href="../../mocks/pages/ride/bluetooth-off.html">pages/ride/bluetooth-off</a> (Bluetooth off)</li><li><a href="../../mocks/pages/ride/ended.html">pages/ride/ended</a> (ended)</li></ul><p>Drift fixed during extraction: background was declared twice (backdrop then veil); one veil token now. Icon tones moved from <code>.icon.is-*</code> to <code>.overlay-panel__icon--*</code>.</p>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

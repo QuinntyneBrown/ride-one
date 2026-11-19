@@ -22,12 +22,10 @@ end box
 
 dlg -> wep : POST /api/workout/stop
 wep --> dlg : {stopped: true, session_id}
-alt bike and session_id set
+alt session_id set
   dlg -> router : navigate /sessions/<id>, state justFinished [L2-084 AC1]
-else bike, no session
+else no session
   dlg -> router : navigate /classes
-else treadmill
-  dlg -> router : navigate /setup [L2-084 AC4]
 end
 router -> page : create (lazy)
 page -> page : phase = loading, skeletons [L2-085 AC12]

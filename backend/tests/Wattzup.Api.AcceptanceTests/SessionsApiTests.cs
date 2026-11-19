@@ -19,7 +19,7 @@ public sealed class SessionsApiTests
     private static SessionRecord Session(string id, DateTimeOffset endedAt, string? classId, int power, int ridden = 360, int dipAt = -1)
     {
         var segments = PlanExpander.Expand(Plan);
-        var samples = Enumerable.Range(0, ridden).Select(t => new RideSample(power, t >= dipAt && t < dipAt + 8 ? 80 : segments.First(s => t >= s.Start && t < s.Start + s.Duration).Cadence ?? 85)).ToArray();
+        var samples = Enumerable.Range(0, ridden).Select(t => new RideSample(power, t >= dipAt && t < dipAt + 8 ? 80 : segments.First(s => t >= s.Start && t < s.Start + s.Duration).Cadence)).ToArray();
         var totals = samples.Aggregate(RideTotals.Empty, (acc, s) => acc.Tick(s.Power, 30));
         return SessionBuilder.Build(new SessionInput(id, endedAt, classId, classId is null ? WorkoutSummary.For(Plan) : "20 Minute Power Intervals", Plan, segments, samples, totals));
     }

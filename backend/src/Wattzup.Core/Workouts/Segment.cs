@@ -17,8 +17,5 @@ public enum ResistanceMode
     Manual,
 }
 
-/// <summary>
-/// One segment of an expanded plan (L2-045, L2-068). <see cref="Start"/> is the second offset from the start of the
-/// ride. The bike's segments carry a level and cadence aim; the treadmill's a speed (km/h) and incline (%).
-/// </summary>
-public sealed record Segment(SegmentKind Kind, int Start, int Duration, int? Level, int? Cadence, int? Round, double? Speed = null, int? Incline = null);
+/// <summary>One segment of an expanded plan (L2-045). <see cref="Start"/> is the second offset from the start of the ride.</summary>
+public sealed record Segment(SegmentKind Kind, int Start, int Duration, int Level, int Cadence, int? Round);

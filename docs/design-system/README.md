@@ -49,8 +49,6 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Form field](components/form-field.html) | Label, control, help and error stacked as one unit. |
 | [Form layout](components/form-layout.html) | How setup and unlock arrange fields, the error summary and the submit action. |
 | [Radio group (mode cards)](components/radio-group.html) | Card-style radio group that picks the training mode. |
-| [Machine choice](components/machine-choice.html) | Segmented radio group that picks the bike or the treadmill (L2-072). |
-| [Machine card](components/machine-card.html) | Radio card on the machine page: one nearby machine, its signal and its last session (L2-073). |
 | [Switch](components/switch.html) | On/off setting: warm-up and cool-down. |
 | [Set list](components/set-list.html) | The warm-up, sets and cool-down of an intervals plan, edited in a dialog. |
 | [Video ride-along](components/video.html) | Video frame, start point and Video / Power vs. plan switch (proposed). |
@@ -58,8 +56,6 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | [Slider](components/slider.html) | Level slider for work, recover and flat resistance. |
 | [Number stepper](components/number-stepper.html) | − value + control for rounds, work, recover, duration and cadence. |
 | [Level control](components/level-control.html) | − level + for the bike's resistance, with the requested level shown until the bike confirms it. |
-| [Speed and incline control](components/speed-control.html) | − value + for the treadmill's speed and incline (L2-071). |
-| [Effort row](components/effort-row.html) | One treadmill effort on the setup screen: a typable speed with its pace, and an incline picker (L2-072). |
 | [Level picker](components/level-picker.html) | 32 bars, one slider, that jump straight to a resistance level. |
 
 ### Shell
@@ -142,6 +138,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 ## Changelog
 
+- **2026-11-19, bike only (ADR 0016).** The components and variants added for the treadmill on 2026-11-16 are removed: the pages Machine choice, Machine card, Speed and incline control and Effort row, their blocks (`.machine-choice`, `.machine-card`, `.signal-bars`, `.speed-control`, `.incline-control`, `.effort-row`, `.quick-speeds`), and the variants `.readout--speed`, `.readout--incline`, `.metrics--treadmill` and `.overlay-panel--belt`. Their three contrast pairs are removed. No token changed.
 - **2026-11-19, Library link on the ride app bar (L2-079 criterion 15).** From the updated Magic Patterns *Ride Dashboard* frame. [App bar](components/app-bar.html) documents the bike-only `Library` link after the lockup (`.app-bar__library`, a `.btn--quiet.btn--sm` link with the grid icon), its place in the Tab order and on phones, and its accessible name. No token, contrast pair or `components.css` rule changed.
 - **2026-11-18, ride history (L2-081 to L2-087, ADR 0015).** From the Magic Patterns *Session Summary* and *Progress* frames. New token `--color-series-dip` (heart 600 light, heart 400 dark) with contrast pairs; new component pages [Session traces](components/session-traces.html), [Dip list](components/dip-list.html), [Week strip](components/week-strip.html), [Stat strip](components/stat-strip.html), [Personal-best chip and delta](components/best-chip.html), [Trend chart](components/trend-chart.html), [Session list](components/session-list.html), [Streak calendar](components/streak-calendar.html) and [Achievement badge](components/achievement.html); layout `.history` (with `__inner`, `__grid`, `--progress`, `__aside`), `.session-head`, `.streak-panel`, `.progress-head`, `.compare`, `.measure-tabs` and `.streak-badge` in `components.css`. Heart rate was dropped from the totals (ADR 0003).
 - **2026-11-17, class library (L2-077 to L2-080; was proposed with no requirement yet, see the mocks' open question 17).** From the Magic Patterns *Video Library* and *Video Workout* frames. New component pages [Class card and shelf](components/class-card.html) and [Level row](components/level-row.html); [Page layout](components/page-layout.html) gains the library and class-page layouts and [Video ride-along](components/video.html) the cover variant and the length filter:
@@ -155,7 +152,6 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
   - `.profile--strip` with `rect.is-playhead`.
 
   New tokens `--color-video-bg`, `--color-video-fg` and `--color-video-scrim` are the same in both themes, because they frame a picture rather than the UI. Two contrast pairs were added (video text on the frame and on the scrim).
-- **2026-11-16, treadmill (L2-062…L2-072).** New components: machine choice (`.machine-choice`), speed and incline control (`.speed-control`, `.incline-control`). New variants: `.readout--speed`, `.readout--incline`, `.metrics--treadmill`, `.overlay-panel--belt` with `.overlay-panel__count`. Three contrast pairs added for the machine choice. No token was added or changed.
 
 ## Drift log
 
@@ -194,14 +190,14 @@ python3 .claude/skills/extracting-design-systems/scripts/check_contrast.py docs/
 python3 .claude/skills/writing-html-mocks/scripts/screenshot_mocks.py docs/design-system --out docs/design-system/.cache/shots
 ```
 
-Run on 2026-11-15, and again on 2026-11-17 for the video ride-along and the class library:
+Run on 2026-11-15, again on 2026-11-17 for the video ride-along and the class library, and on 2026-11-19 after the treadmill was removed (ADR 0016):
 
 | Check | Result |
 |---|---|
-| `check_design_system.py` | 69 pages (48 components, 8 patterns), 0 errors, 0 warnings (2026-11-17, class library) |
-| `check_contrast.py` | 154 passed, 0 failed, 0 unresolved (2026-11-17; the class card and level row reuse existing pairs) |
+| `check_design_system.py` | 74 pages (53 components, 8 patterns), 0 errors, 0 warnings (2026-11-19, bike only) |
+| `check_contrast.py` | 154 passed, 0 failed, 0 unresolved (2026-11-19, bike only) |
 | `tokens_to_json.py` | `tokens.json` written, 337 tokens (2026-11-17) |
-| `check_mocks.py docs/mocks --write` with the mocks reading this system | 15 screens, 97 mocks, 0 errors, 0 warnings (2026-11-17) |
+| `check_mocks.py docs/mocks --write` with the mocks reading this system | 16 screens, 89 mocks, 0 errors, 0 warnings (2026-11-19, bike only) |
 | Horizontal overflow at 360px, all 46 mocks and 61 pages, both themes | none |
 | Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280; class card and level row pages and every class-library and class mock at 360, 768 and 1280, both themes (2026-11-17) |
 

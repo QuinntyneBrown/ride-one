@@ -180,18 +180,13 @@ A class page (`classes/ride-a-class`) can open this screen through `Change inter
 
 These replace the drafts that were there. `SetupPage` needs no change for this, because it loads its mode, plan and video from `PlanDraftStore` on every visit, as after a reload.
 
-### Machine and treadmill
+### Header
 
-The setup screen no longer chooses the machine; the machine page at `/machine` does (L2-073, `treadmill/choose-machine`). While treadmill support is off (L2-075, ADR 0011), `treadmill_enabled` is `false`, the `Switch to …` link is not rendered, and the screen is the bike's. The treadmill form is designed in `treadmill/treadmill-dashboard-and-setup`. In short:
-
-- On both machines the header shows `wz-status-line` with `<device_label>`, a `Switch to treadmill` link (`Switch to bike` on the treadmill) that calls `RideActions.switchMachine` and so ends a running workout through the end dialog before opening `/machine`, and `Close` (`app-bar__close`) (L2-072 criterion 1). `MachineChoice` (`wz-machine-choice`) is removed.
-- With `machine` `bike`, everything above is unchanged, including the `localStorage` key `wattzup.planDraft`. A started bike plan is also recorded by `MachineHistoryStore.recordStart` as the bike's last session (L2-072 criterion 10).
-- With `machine` `treadmill`, the screen reads `Set up your run`, the form shows presets and the `Work`, `Recover` or `Hold` effort rows from `treadmill-plan-form.ts`, the draft is kept under `wattzup.treadmillPlanDraft`, and the *Your run* panel shows speed and incline profiles with expected distance, climb and energy from `treadmillPreviewOf`.
-- The start flow and the replace dialog are shared. On the treadmill the dialog reads `Replace the run in progress?` and adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 15).
+The header shows `wz-status-line` with `<device_label>` and `Close` (`app-bar__close`), which returns to `/` without starting anything (L2-029 criterion 8). The setup screen offers no choice of machine: Wattzup drives the bike only (ADR 0016).
 
 ### Ride-along video
 
-Below the plan, in every mode on either machine, `VideoLink` (`wz-video-link`) adds the switch `Ride along to a video` / `Plays in sync on the dashboard`, off on first use. With the switch on, it shows the `YouTube link` field, prefilled with the GCN 30 Minute HIIT Cardio link, and for an accepted link a preview with the start point `Ride 0:00 starts at` (L2-029 criteria 17 and 18). A link that is not YouTube shows its field error but does not block Start ride, which then sends `video: null` (L2-029 criterion 19). `SetupPage` adds `video` `{url, start_seconds}` or `null` to the plan it posts. `PlanDraftStore` keeps the video draft under `wattzup.videoDraft` and restores it on reload (L2-029 criterion 20). `ride-preview.ts` adds `Video` `Synced from <m:ss.s>` after Time under load (L2-059 criterion 6). The components, rules, tests and mocks (`setup/video`, `setup/video-invalid`) are described in `workouts/ride-along-video`.
+Below the plan, in every mode, `VideoLink` (`wz-video-link`) adds the switch `Ride along to a video` / `Plays in sync on the dashboard`, off on first use. With the switch on, it shows the `YouTube link` field, prefilled with the GCN 30 Minute HIIT Cardio link, and for an accepted link a preview with the start point `Ride 0:00 starts at` (L2-029 criteria 17 and 18). A link that is not YouTube shows its field error but does not block Start ride, which then sends `video: null` (L2-029 criterion 19). `SetupPage` adds `video` `{url, start_seconds}` or `null` to the plan it posts. `PlanDraftStore` keeps the video draft under `wattzup.videoDraft` and restores it on reload (L2-029 criterion 20). `ride-preview.ts` adds `Video` `Synced from <m:ss.s>` after Time under load (L2-059 criterion 6). The components, rules, tests and mocks (`setup/video`, `setup/video-invalid`) are described in `workouts/ride-along-video`.
 
 ## Requirements
 

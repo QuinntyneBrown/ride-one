@@ -17,6 +17,6 @@
     { "id": "free", "bars": 5, "lines": ["With no workout, it's a free ride: no target, no cadence goal, and Set up a ride one tap away."] },
     { "id": "sizes", "bars": 5, "lines": ["On a phone or a tablet, the same numbers lead the screen."] },
     { "id": "proof", "bars": 6, "lines": ["What the tests prove: on target means within eight percent of the target.", "And the totals stay on screen after the ride ends, until the next one starts."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey three. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey three. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

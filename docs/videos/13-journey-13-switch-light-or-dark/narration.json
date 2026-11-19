@@ -13,6 +13,6 @@
     { "id": "everywhere", "bars": 5, "lines": ["Your choice sticks: after a reload, and on every screen, like Set up your ride."] },
     { "id": "phones", "bars": 5, "lines": ["On a phone, dark or light, the same numbers lead."] },
     { "id": "proof", "bars": 6, "lines": ["What the tests prove: the app is dark by default, even when the device prefers light.", "And the theme you pick is kept after a reload, on every screen."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey thirteen. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey thirteen. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

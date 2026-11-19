@@ -40,4 +40,4 @@ What the tests prove: a manual level holds until the next segment. And Back to p
 
 **close** (5 bars)
 
-That is journey four. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey four. Wattzup turns an Echelon bike into a live training display.

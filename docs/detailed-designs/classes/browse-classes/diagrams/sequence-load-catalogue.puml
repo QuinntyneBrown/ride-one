@@ -36,8 +36,8 @@ else file opened
     reader -> reader : Drop shelves with a bad or repeated id [L2-077 AC4]
     loop each class
       reader -> reader : Check id, title, channel, focus, description, shelf [L2-077 table]
-      reader -> val : Validate(plan, Machine.Bike)
-      val --> reader : plan or errors (treadmill plans rejected) [L2-077 AC3]
+      reader -> val : Validate(plan)
+      val --> reader : plan or errors [L2-077 AC3]
     end
     reader -> reader : Keep the first 20 shelves and 200 classes [L2-077 AC6]
     reader --> svc : Catalogue + problems

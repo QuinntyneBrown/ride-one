@@ -36,4 +36,4 @@ What the tests prove: if the video drifts more than a second and a half, it seek
 
 **close** (5 bars)
 
-That is journey nine. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey nine. Wattzup turns an Echelon bike into a live training display.

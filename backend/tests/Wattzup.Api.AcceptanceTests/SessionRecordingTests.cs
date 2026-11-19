@@ -1,8 +1,8 @@
 // Acceptance Test
 // Traces to: L2-081, L2-014
 // Description: A ride of a minute or more on the bike is saved as a session when it is stopped, when its plan ends and
-// when the bike has been off for 90 s; the stop answer and workout.session_id carry its id. Shorter rides and the
-// treadmill save nothing. A class start keeps the class id and title; an unknown class id is refused.
+// when the bike has been off for 90 s; the stop answer and workout.session_id carry its id. Shorter rides save
+// nothing. A class start keeps the class id and title; an unknown class id is refused.
 
 using System.Net;
 using System.Text.Json;
@@ -92,19 +92,6 @@ public sealed class SessionRecordingTests
         var state = await Ride.RunToAsync(bike, 61);
 
         Assert.Equal(JsonValueKind.Null, Ride.Workout(state).GetProperty("session_id").ValueKind);
-    }
-
-    [Fact]
-    public async Task Given_the_treadmill_then_no_session_is_saved()
-    {
-        await using var treadmill = await TreadmillWorkoutTests.TreadmillAsync();
-        await TreadmillWorkoutTests.StartRunningAsync(treadmill, new { kind = "flat", speed = 9.0, incline = 0, minutes = 5 });
-        await Ride.RunToAsync(treadmill, 60);
-
-        using var response = await treadmill.PostAsync("/api/workout/stop");
-
-        Assert.Equal(JsonValueKind.Null, (await Bike.JsonAsync(response)).GetProperty("session_id").ValueKind);
-        Assert.False(File.Exists(treadmill.Factory.SessionsPath));
     }
 
     [Fact]

@@ -36,4 +36,4 @@ What the tests prove: a bike ride of a minute or more is saved, and kept after a
 
 **close** (5 bars)
 
-That is journey fourteen. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey fourteen. Wattzup turns an Echelon bike into a live training display.

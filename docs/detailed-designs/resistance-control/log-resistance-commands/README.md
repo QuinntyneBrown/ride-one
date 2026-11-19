@@ -51,16 +51,6 @@ Verification:
 - `Wattzup.Api.AcceptanceTests` — through `WebApplicationFactory` with `SimulatedBikeTransport`. `SimulationControl` holds the echo of a write, the test advances `FakeTimeProvider` by 38 ms and releases it, and the event stream then shows the entry `ack` with `ack_ms` 38. A second test powers the bike off and checks the `failed` entry.
 - Playwright — the `RidePage.commandLog` page object owns the selectors. Specs push stubbed state messages: an empty log, 3 entries with each status, a manual entry turning `ack` (success toast), and a manual entry left `sending` for 5 s with the page clock advanced (warning toast).
 
-### Command kind and value
-
-The log is shared by both machines (L2-065). `CommandEntry` gains `command` (`CommandKind`: `resistance`, `speed` or `incline`) and `value` (`double`), and `level` becomes `int?`. Each entry is serialised as `{at, ride_seconds, level, source, status, ack_ms, command, value}` (L2-014). A resistance entry has `command` `resistance` and `value` equal to its `level`; a speed or incline entry has `level` `null` and `value` the requested km/h or percent.
-
-- `CommandLog.Acknowledge(log, kind, value, nowMs)` considers only entries of `kind`. It stops at the first entry of the same kind with a different value, so an entry of another kind neither blocks nor is acknowledged by the report (L2-065 criterion 6). `TelemetryIngestor` calls it with `CommandKind.Resistance` and the reported level on the bike.
-- `CommandLog.Fail` identifies the entry by its write time, kind and value.
-- `CommandLog` reads `RES <level>`, `SPD <value>` or `INC <value>` through the frontend helper `commandLabel(entry)`, and its heading reads `Sent to bike` or `Sent to treadmill` by `machine` (L2-071 criterion 14). The toasts of `CommandFeedbackService` stay resistance-only.
-
-The treadmill's commands are described in `treadmill/control-speed-and-incline` and the dashboard's wording in `treadmill/treadmill-dashboard-and-setup`.
-
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

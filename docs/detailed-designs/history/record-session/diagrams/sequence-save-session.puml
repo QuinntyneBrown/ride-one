@@ -22,7 +22,7 @@ box "Backend — Infrastructure" #FFF4E5
   database "sessions.json" as file
 end box
 
-loop each running second on the bike
+loop each running second
   engine -> engine : Totals.Tick; Samples.Add(power, cadence) [L2-081]
 end
 alt rider presses End ride
@@ -35,7 +35,7 @@ else bike off for 90 s
   engine -> engine : Status = ended: bike shut off [L2-058]
 end
 engine -> engine : Finish(run)
-alt bike and Elapsed >= 60
+alt Elapsed >= 60
   engine -> builder : Build(samples, segments, totals, origin, now, id)
   builder --> engine : SessionRecord (dips, on target, best minute, traces)
   engine -> store : Add(session) [L2-082 AC4: newest 500]
@@ -45,7 +45,7 @@ alt bike and Elapsed >= 60
     fsvc -> fsvc : Log error; the session stays in memory [L2-082 AC7]
   end
   engine -> engine : run.SessionId = id
-else treadmill or under a minute
+else under a minute
   engine -> engine : no session [L2-081 AC2, AC3]
 end
 engine -> state : Publish(workout.session_id) [L2-014]

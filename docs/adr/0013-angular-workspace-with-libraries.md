@@ -1,6 +1,6 @@
 # 0013. An Angular workspace with `components`, `api` and `wattzup` projects
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [0016](0016-bike-only.md) (no treadmill, so `incline-control`, `machine-card` and the `Machine` type are gone)
 - **Date:** 2026-11-17
 
 ## Context

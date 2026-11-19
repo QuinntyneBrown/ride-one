@@ -36,4 +36,4 @@ What the tests prove: without the right key, every request gets four oh one. And
 
 **close** (5 bars)
 
-That is journey eleven. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey eleven. Wattzup turns an Echelon bike into a live training display.

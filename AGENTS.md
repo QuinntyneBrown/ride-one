@@ -1,9 +1,8 @@
 ## Purpose
 
-> Wattzup turns an Echelon bike or treadmill into a live training display. It connects to the
-> chosen machine over Bluetooth, shows its live metrics in real time (cadence, speed and resistance
-> on the bike; speed, incline and distance on the treadmill), and runs interval workouts that set
-> the bike's resistance or the treadmill's speed and incline for the rider.
+> Wattzup turns an Echelon bike into a live training display. It connects to the bike over
+> Bluetooth, shows its live metrics in real time (cadence, speed and resistance), and runs interval
+> workouts that set the bike's resistance for the rider.
 
 Before adding or changing anything, ask how it serves that purpose; if it does not, do not build
 it, and if a request works against it, say so.
@@ -104,11 +103,8 @@ committed.
 
 Use the words the specs use in code, docs and UI; no synonyms. A workout follows a plan (`hiit`,
 `intervals` or `flat`; an `intervals` plan is a warm-up, ordered sets and a cool-down) expanded into segments (kind, start, duration, level, cadence aim, round); the bike's reported level is "resistance",
-the requested one is "target resistance"; the Bluetooth link state is `ble`. A class is a catalogue entry (ADR 0014): a bike plan with the YouTube video it follows, on a shelf; the rider picks one in the class library (`/classes`) and opens its class page (`/classes/:id`). A session is a saved bike ride (ADR 0015): what was ridden, its totals, its traces and its cadence dips, kept on the backend; the rider reads one on its Session Summary (`/sessions/:id`) and all of them on Progress (`/progress`), with the streak, the weekly goal, personal bests and achievements. The machine is `bike` or
-`treadmill`. On the treadmill the reported value is "speed" and the requested one "target speed";
-likewise "incline" and "target incline"; the moving surface is the "belt" (`stopped`, `starting`,
-`running`). On the treadmill the UI calls a ride a "run" and a `flat` plan "Steady"; the API keeps
-`flat` and the `workout.status` strings on both machines (ADR 0010).
+the requested one is "target resistance"; the Bluetooth link state is `ble`. A class is a catalogue entry (ADR 0014): a bike plan with the YouTube video it follows, on a shelf; the rider picks one in the class library (`/classes`) and opens its class page (`/classes/:id`). A session is a saved bike ride (ADR 0015): what was ridden, its totals, its traces and its cadence dips, kept on the backend; the rider reads one on its Session Summary (`/sessions/:id`) and all of them on Progress (`/progress`), with the streak, the weekly goal, personal bests and achievements. Wattzup supports the
+bike only (ADR 0016); there is no machine choice.
 
 ## Prefer best practice
 

@@ -1,39 +1,39 @@
-# Transcript: Journey 2, Connect your machine
+# Transcript: Journey 2, Connect your bike
 
 The words of [`narration.json`](narration.json), scene by scene. The voice is Kokoro `af_heart`.
 
 **hook** (4 bars)
 
-One app, two machines. Pick the one you're on, and Wattzup connects it.
+Nothing to pick. Switch the bike on, and Wattzup finds it.
 
-**choose** (6 bars)
+**scanning** (6 bars)
 
-What are you training on? The bike and the Stride, each with what Wattzup controls, and your last session.
+Until it hears the bike, the status line reads Scanning, and the dashboard asks you to pedal to wake it.
 
-**nearby** (4 bars)
+**connecting** (4 bars)
 
-Wattzup keeps looking, and counts the machines nearby.
-
-**pick** (5 bars)
-
-Your last machine is marked Last used. Pick the bike, and it reads Connecting to bike.
+The bike answers, and Wattzup connects.
 
 **connected** (5 bars)
 
-Once the bike is connected, setup opens, and the status line says so.
+Connected, with the bike's name in the status line. Set up a ride, or just pedal.
 
-**failed** (5 bars)
+**bluetooth** (5 bars)
 
-If the Stride isn't answering, its card says what to check, with Try again.
+If Bluetooth is off, the dashboard says so. Turn it on, and Wattzup connects on its own.
+
+**error** (5 bars)
+
+After a Bluetooth error, the status line says so, and Wattzup tries again.
 
 **grow** (6 bars)
 
-On a phone, the cards stack. From seven sixty-eight pixels, they sit side by side.
+On a phone, the status line sits in the app bar. On a desktop, it's the same bike.
 
 **proof** (6 bars)
 
-What the tests prove: the server won't switch machines while a ride is running. So the dashboard ends the ride first, through the end dialog.
+What the tests prove: with no bike found, Wattzup scans again every twenty seconds. While connected, it keeps the link alive every second, and after an error it tries again in three.
 
 **close** (5 bars)
 
-That is journey two. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey two. Wattzup turns an Echelon bike into a live training display.

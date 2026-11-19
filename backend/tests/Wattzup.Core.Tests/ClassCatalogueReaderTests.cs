@@ -156,7 +156,7 @@ public sealed class ClassCatalogueReaderTests
     }
 
     [Fact]
-    public void A_class_with_a_treadmill_plan_is_left_out()
+    public void A_class_whose_plan_has_no_level_is_left_out()
     {
         var result = ReadOneClass("plan", JsonNode.Parse("""{"kind":"flat","speed":9.0,"incline":2,"minutes":30}"""));
 

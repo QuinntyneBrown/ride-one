@@ -1,6 +1,4 @@
 using System.Text.Json;
-using Wattzup.Core.State;
-using Wattzup.Protocol;
 
 namespace Wattzup.Core.Workouts;
 
@@ -8,8 +6,7 @@ namespace Wattzup.Core.Workouts;
 public sealed record PlanValidationResult(WorkoutPlan? Plan, IReadOnlyDictionary<string, string[]> Errors);
 
 /// <summary>
-/// The only creator of <see cref="WorkoutPlan"/> (L2-010, L2-067). The chosen machine decides which fields are read;
-/// the other machine's fields are ignored. Reports every failing field.
+/// The only creator of <see cref="WorkoutPlan"/> (L2-010). Reports every failing field.
 /// </summary>
 public static class WorkoutPlanValidator
 {
@@ -17,9 +14,6 @@ public static class WorkoutPlanValidator
     public const string WholeNumber = "Enter a whole number.";
     public const string OnOrOff = "Choose on or off.";
     public const string LevelRange = "Level must be 1 to 32.";
-    public const string SpeedRange = "Speed must be 0.8 to 19.3 km/h.";
-    public const string SpeedFormat = "Enter a speed like 9.0.";
-    public const string InclineRange = "Incline must be 0 to 10 %.";
     public const string SetCount = "Enter 1 to 10 sets.";
     public const string RoundsRange = "Enter 1 to 30 rounds.";
     public const string CadenceAimRange = "Cadence aim must be 40 to 150 rpm.";
@@ -33,9 +27,7 @@ public static class WorkoutPlanValidator
     public const int MaxEfforts = 30;
     public const int MaxRideSeconds = 180 * 60;
 
-    public static PlanValidationResult Validate(JsonElement body) => Validate(body, Machine.Bike);
-
-    public static PlanValidationResult Validate(JsonElement body, Machine machine)
+    public static PlanValidationResult Validate(JsonElement body)
     {
         var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
         var kind = body.ValueKind == JsonValueKind.Object && body.TryGetProperty("kind", out var k) && k.ValueKind == JsonValueKind.String
@@ -44,15 +36,13 @@ public static class WorkoutPlanValidator
 
         WorkoutPlan? plan = kind switch
         {
-            "hiit" when machine == Machine.Treadmill => TreadmillHiit(body, errors),
-            "flat" when machine == Machine.Treadmill => TreadmillFlat(body, errors),
             "hiit" => Hiit(body, errors),
             "flat" => Flat(body, errors),
-            "intervals" when machine == Machine.Bike => Intervals(body, errors),
+            "intervals" => Intervals(body, errors),
             _ => null,
         };
 
-        if (kind is not ("hiit" or "flat") && !(kind == "intervals" && machine == Machine.Bike))
+        if (kind is not ("hiit" or "flat" or "intervals"))
         {
             errors["kind"] = [ChooseKind];
         }
@@ -212,46 +202,6 @@ public static class WorkoutPlanValidator
             Int(value, "seconds", errors, 60, 1800, secondsRange, secondsRange, path),
             Int(value, "level", errors, 1, 32, LevelRange, LevelRange, path),
             Int(value, "cadence", errors, 40, 150, CadenceAimRange, CadenceAimRange, path));
-    }
-
-    private static HiitPlan TreadmillHiit(JsonElement body, Dictionary<string, string[]> errors)
-    {
-        var rounds = Int(body, "rounds", errors, 1, 30, "Enter 1 to 30 rounds.", "Enter 1 to 30 rounds.");
-        var work = Int(body, "work_seconds", errors, 5, 3600, "Work must be at least 0:05.", "Work must be at most 60:00.");
-        var rest = Int(body, "rest_seconds", errors, 5, 3600, "Recover must be at least 0:05.", "Recover must be at most 60:00.");
-        var workSpeed = Speed(body, "work_speed", errors);
-        var restSpeed = Speed(body, "rest_speed", errors);
-        var workIncline = Int(body, "work_incline", errors, EchelonTreadmillCommands.MinIncline, EchelonTreadmillCommands.MaxIncline, InclineRange, InclineRange);
-        var restIncline = Int(body, "rest_incline", errors, EchelonTreadmillCommands.MinIncline, EchelonTreadmillCommands.MaxIncline, InclineRange, InclineRange);
-        var warmup = Bool(body, "warmup", errors);
-        var cooldown = Bool(body, "cooldown", errors);
-        return new HiitPlan(rounds, work, rest, null, null, warmup, cooldown, workSpeed, restSpeed, workIncline, restIncline);
-    }
-
-    private static FlatPlan TreadmillFlat(JsonElement body, Dictionary<string, string[]> errors)
-    {
-        var speed = Speed(body, "speed", errors);
-        var incline = Int(body, "incline", errors, EchelonTreadmillCommands.MinIncline, EchelonTreadmillCommands.MaxIncline, InclineRange, InclineRange);
-        var minutes = Int(body, "minutes", errors, 1, 180, "Enter 1 to 180 minutes.", "Enter 1 to 180 minutes.");
-        return new FlatPlan(null, minutes, null, speed, incline);
-    }
-
-    /// <summary>A speed of 0.8 to 19.3 km/h with at most one decimal (L2-067).</summary>
-    private static double Speed(JsonElement body, string field, Dictionary<string, string[]> errors)
-    {
-        if (!body.TryGetProperty(field, out var value) || value.ValueKind != JsonValueKind.Number || !value.TryGetDouble(out var speed)
-            || Math.Abs((speed * 10) - Math.Round(speed * 10)) > 1e-9)
-        {
-            errors[field] = [SpeedFormat];
-            return 0;
-        }
-
-        if (speed is < EchelonTreadmillCommands.MinSpeedKmh or > EchelonTreadmillCommands.MaxSpeedKmh)
-        {
-            errors[field] = [SpeedRange];
-        }
-
-        return Math.Round(speed, 1);
     }
 
     private static int Int(JsonElement body, string field, Dictionary<string, string[]> errors, int min, int max, string tooLow, string tooHigh, string path = "")

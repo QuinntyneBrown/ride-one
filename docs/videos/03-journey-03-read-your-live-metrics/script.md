@@ -36,4 +36,4 @@ What the tests prove: on target means within eight percent of the target. And th
 
 **close** (5 bars)
 
-That is journey three. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey three. Wattzup turns an Echelon bike into a live training display.

@@ -7,7 +7,6 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
-  participant "bikeOnly" as guard
   participant "ClassLibraryPage" as page
   participant "class-library-view.ts" as view
   participant "ClassCard" as card
@@ -21,11 +20,7 @@ box "Backend — Wattzup Core" #ECFDF3
 end box
 participant "i.ytimg.com" as yt
 
-rider -> guard : Open /classes
-alt machine is treadmill
-  guard --> rider : Redirect to /setup [L2-079 AC12]
-else bike
-  guard -> page : Activate
+rider -> page : Open /classes
   page --> rider : Skeletons, tabs disabled [L2-079 AC8]
   page -> client : list()
   client -> ep : GET /api/classes (X-Api-Key when set) [L2-078 AC6]
@@ -56,5 +51,4 @@ else bike
     rider -> card : Open a card
     card --> rider : Navigate to /classes/<id> (classes/ride-a-class)
   end
-end
 @enduml

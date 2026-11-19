@@ -37,7 +37,7 @@ The feature extends three existing designs:
   - `<id>` is exactly 11 characters of `A–Z a–z 0–9 _ -`, and other query parameters such as `t=40` are ignored.
 
   It rejects every other host and scheme (`https://vimeo.com/76979871`, `javascript:alert(1)`), a malformed id (`watch?v=short`) and a link over 2048 characters (L2-010 criterion 16). It matches with ordinal comparisons and no network access.
-- **`WorkoutPlanValidator`** (`Workouts/WorkoutPlanValidator.cs`) — reads the optional `video` of every plan kind on either machine:
+- **`WorkoutPlanValidator`** (`Workouts/WorkoutPlanValidator.cs`) — reads the optional `video` of every plan kind:
   - absent or `null` gives `Video` = `null` (L2-010 criterion 15);
   - a `url` that `YouTubeLink` rejects is named `video.url` with `VideoLink` = `That doesn't look like a YouTube link.` (L2-010 criterion 16);
   - a `start_seconds` below 0, above 43200 or not a number is named `video.start_seconds` with `VideoStart` = `Start point must be 0:00 to 12:00:00.`; a valid value is rounded to 0.1 (L2-010 criterion 17);
@@ -82,7 +82,7 @@ The feature extends three existing designs:
   - `formatStart(seconds)` writes `m:ss.s`, for example `0:12.0`;
   - `parseStart(text)` reads `m:ss.s`, `ss.s` or `ss`;
   - `stepStart(seconds, dir)` moves the start point by 0.5 s and never below 0:00.0 (L2-029 criterion 18).
-- **`VideoLink`** (`dashboard/video-link/`, `wz-video-link`, new) — below the plan, in every mode on either machine (L2-029 criterion 17):
+- **`VideoLink`** (`dashboard/video-link/`, `wz-video-link`, new) — below the plan, in every mode (L2-029 criterion 17):
   - a `toggles--video` switch `Ride along to a video` / `Plays in sync on the dashboard`, off on first use;
   - the `YouTube link` field prefilled with `DEFAULT_VIDEO_URL`, the GCN 30 Minute HIIT Cardio link `https://www.youtube.com/watch?v=QUoToFsMNig` (criterion 17);
   - with the switch on, the field `YouTube link` (`type="url"`);
@@ -91,7 +91,7 @@ The feature extends three existing designs:
 
   The preview's title and time come from the player. The backend never sees the title.
 - **`SetupPage`** — adds `video` to the plan it posts: `{url, start_seconds}` for a valid link with the switch on, otherwise `null` (L2-029 criteria 17, 19 and 20).
-- **`PlanDraftStore`** — keeps `{on, url, start}` under `wattzup.videoDraft`, one draft shared by every mode and both machines. It is saved with the plan drafts on Start ride and restored on reload (L2-029 criterion 20). Unreadable data yields the switch off with the default link; a stored draft whose link is empty gets the default link back, so the field is never empty on load.
+- **`PlanDraftStore`** — keeps `{on, url, start}` under `wattzup.videoDraft`, one draft shared by every mode. It is saved with the plan drafts on Start ride and restored on reload (L2-029 criterion 20). Unreadable data yields the switch off with the default link; a stored draft whose link is empty gets the default link back, so the field is never empty on load.
 - **`ride-preview.ts`** — adds the row `Video` `Synced from <m:ss.s>` after Time under load while the switch is on with a valid link; otherwise the row is absent (L2-059 criterion 6).
 
 ### Screen states
@@ -148,8 +148,7 @@ Two dashboards agreeing within 1.5 s (L2-076 criterion 9) follows from both comp
 
 ### Open questions
 
-- **Tab label on the treadmill.** L2-076 names the second tab `Power vs. plan`, and the tab keeps that name on both machines, although on the treadmill it shows the speed trace (`treadmill/treadmill-dashboard-and-setup`). Renaming it needs a requirement first.
-- **Draft scope.** One video draft serves every mode and both machines; L2-029 criterion 20 says only "with the plan drafts".
+- **Draft scope.** One video draft serves every mode; L2-029 criterion 20 says only "with the plan drafts".
 - **Start point beyond the video's length.** A start point past the video's end gives a player `ended` state from the first second. It is a normal state, not an error under L2-076 criterion 7: the ride carries on and the video stays ended.
 - **Ride position before the first state.** Before the first state arrives, the playhead and the target are unknown. The design creates the player only once a state with a video is seen.
 

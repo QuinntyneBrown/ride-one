@@ -16,6 +16,6 @@
     { "id": "even", "bars": 5, "lines": ["Or start from Even sets: three sets of four efforts, seventeen minutes in all."] },
     { "id": "phone", "bars": 4, "lines": ["On a phone, every row keeps its actions within reach."] },
     { "id": "proof", "bars": 6, "lines": ["What the tests prove: a plan holds at most thirty efforts and a hundred and eighty minutes.", "And the last Intervals plan you started comes back after a reload."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey five. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey five. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

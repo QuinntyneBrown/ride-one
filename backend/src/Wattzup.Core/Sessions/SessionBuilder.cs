@@ -63,7 +63,7 @@ public static class SessionBuilder
         {
             if (runSegment is { } s && end - runStart >= MinimumDipSeconds)
             {
-                dips.Add(new Dip(runStart, end - runStart, s.Cadence ?? 0, runLow, s.Kind, s.Round));
+                dips.Add(new Dip(runStart, end - runStart, s.Cadence, runLow, s.Kind, s.Round));
             }
 
             runSegment = null;

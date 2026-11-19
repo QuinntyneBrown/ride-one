@@ -1,6 +1,6 @@
 # 0011. Treadmill support behind a flag
 
-- **Status:** Accepted
+- **Status:** Superseded by [0016](0016-bike-only.md) (bike only)
 - **Date:** 2026-11-16
 
 ## Context

@@ -14,6 +14,6 @@
     { "id": "history", "bars": 5, "lines": ["Every saved ride is listed, with six weeks of streak and your achievements."] },
     { "id": "phones", "bars": 5, "lines": ["On a phone, the summary and progress stack into one column."] },
     { "id": "proof", "bars": 7, "lines": ["What the tests prove: a bike ride of a minute or more is saved, and kept after a restart.", "Streaks and bests come from your own rides, never invented."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey fourteen. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey fourteen. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

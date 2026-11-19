@@ -14,7 +14,7 @@ internal sealed class CoreBluetoothBikeConnection(CoreBluetoothBikeTransport tra
     private TaskCompletionSource? _step;
     private IntPtr _service;
     private IntPtr _write;
-    private IntPtr[] _notify = [];
+    private IntPtr _notify;
     private Action<ReadOnlyMemory<byte>>? _onNotify;
     private int _connected;
     private int _closed;
@@ -44,39 +44,22 @@ internal sealed class CoreBluetoothBikeConnection(CoreBluetoothBikeTransport tra
             () => ObjC.SendVoid(
                 peripheral,
                 ObjC.Sel("discoverCharacteristics:forService:"),
-                Foundation.Array(
-                    Foundation.Uuid(CoreBluetoothBikeTransport.WriteUuid),
-                    Foundation.Uuid(CoreBluetoothBikeTransport.NotifyUuid),
-                    Foundation.Uuid(CoreBluetoothBikeTransport.SecondNotifyUuid)),
+                Foundation.Array(Foundation.Uuid(CoreBluetoothBikeTransport.WriteUuid), Foundation.Uuid(CoreBluetoothBikeTransport.NotifyUuid)),
                 _service),
             cancellationToken).ConfigureAwait(false);
         using (AutoreleasePool.Push())
         {
             var characteristics = ObjC.Send(_service, ObjC.Sel("characteristics"));
             _write = Find(characteristics, CoreBluetoothBikeTransport.WriteUuid) ?? throw new IOException("The bike has no write characteristic.");
+            _notify = Find(characteristics, CoreBluetoothBikeTransport.NotifyUuid) ?? throw new IOException("The bike has no notify characteristic.");
         }
     }
 
-    public async Task SubscribeAsync(IReadOnlyList<string> notifyCharacteristicUuids, Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken)
+    public async Task SubscribeAsync(Action<ReadOnlyMemory<byte>> onNotify, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(notifyCharacteristicUuids);
         ArgumentNullException.ThrowIfNull(onNotify);
-        using (AutoreleasePool.Push())
-        {
-            var characteristics = ObjC.Send(_service, ObjC.Sel("characteristics"));
-            _notify = [.. notifyCharacteristicUuids.Select(uuid => Find(characteristics, uuid)).OfType<IntPtr>()];
-        }
-
-        if (_notify.Length == 0)
-        {
-            throw new IOException("The bike has no notify characteristic.");
-        }
-
         _onNotify = onNotify;
-        foreach (var notify in _notify)
-        {
-            await StepAsync(() => ObjC.SendVoid(peripheral, ObjC.Sel("setNotifyValue:forCharacteristic:"), (byte)1, notify), cancellationToken).ConfigureAwait(false);
-        }
+        await StepAsync(() => ObjC.SendVoid(peripheral, ObjC.Sel("setNotifyValue:forCharacteristic:"), (byte)1, _notify), cancellationToken).ConfigureAwait(false);
     }
 
     public async Task WriteAsync(ReadOnlyMemory<byte> bytes, bool withResponse, CancellationToken cancellationToken)
@@ -144,7 +127,7 @@ internal sealed class CoreBluetoothBikeConnection(CoreBluetoothBikeTransport tra
 
     internal void OnValue(IntPtr characteristic, byte[] bytes)
     {
-        if (Array.IndexOf(Volatile.Read(ref _notify), characteristic) >= 0 && _onNotify is { } handler)
+        if (characteristic == _notify && _onNotify is { } handler)
         {
             ThreadPool.QueueUserWorkItem(_ => handler(bytes));
         }

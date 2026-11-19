@@ -59,14 +59,12 @@ package "frontend/projects/wattzup" {
     +UNAUTHORIZED_HANDLER -> redirectToUnlock
     +BIKE_API -> HttpBikeApi
     +WORKOUT_API -> HttpWorkoutApi
-    +MACHINE_API -> HttpMachineApi
     +YOUTUBE_PLAYER -> IframeYouTubePlayer
     +TRACE_RENDERER_FACTORY -> createTraceRenderer
   }
   class routes <<Routes>> {
     + "" : RidePage
     + "setup" : SetupPage
-    + "machine" : MachinePage
     + "unlock" : UnlockPage
     + "**" : NotFoundPage
   }

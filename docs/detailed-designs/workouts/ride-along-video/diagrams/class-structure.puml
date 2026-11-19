@@ -30,7 +30,7 @@ package "Wattzup.Core" {
   class WorkoutPlanValidator <<static>> {
     +VideoLink: string
     +VideoStart: string
-    +Validate(body, machine): PlanValidationResult
+    +Validate(body): PlanValidationResult
   }
 }
 

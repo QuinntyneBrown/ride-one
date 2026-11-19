@@ -56,7 +56,7 @@ None new. `GET /api/classes/{id}` belongs to `classes/browse-classes` (L2-078 cr
 - The plan card's strip is the profile `previewOf` draws for setup (`svg.profile`), labelled `Resistance profile: <structure>, peak level <n>`, with the legend `Work` / `Recover`.
 
 **Page.**
-- **`ClassPage`** (`dashboard/class-page/`, new, route `classes/:id`, guarded by `bikeOnly` from `classes/browse-classes`; title `<class title> · Wattzup`):
+- **`ClassPage`** (`dashboard/class-page/`, new, route `classes/:id`; title `<class title> · Wattzup`):
   - **Loading.** On entry it calls `CLASS_API.get(id)` and shows a skeleton until the class arrives (criterion 13).
   - **Not found.** `'not-found'` shows `ClassNotFound` (`dashboard/class-not-found/`, new), the error page block `We can't find that class` / `It isn't in the class library. Pick another, or build your own ride.`, with `All classes` and `Build your own ride` (criterion 13).
   - **Header.** `All classes` (link to `/classes`), the bike's name, the chips `<channel>`, `<shelf title>` and `<focus>`, the `h1` title and the description, all rendered as text (criterion 1).
@@ -76,7 +76,6 @@ None new. `GET /api/classes/{id}` belongs to `classes/browse-classes` (L2-078 cr
     - A failure shows the `alert` `Couldn't start the ride` / `The Wattzup server didn't accept the plan. Your settings are kept — try again.` above the start button, which then reads `Try again` (`class/error`), and keeps every value (criterion 11).
   - **Full setup.** `Change intervals in full setup` is a link to `/setup`; a plain click calls `toSetupDrafts(draft)`. It saves the drafts through `PlanDraftStore`: `save`, `saveIntervals` for an `intervals` class, and `saveVideo`. These replace what was there, and then it navigates to `/setup`. Setup restores its mode from `PlanDraft.mode` as it does on any load, so it opens in the class's mode with the class's plan and video (criterion 12).
 - **Layout.** Under 1024 px the preview keeps 16:9 at full width above the plan card. Under 576 px nothing scrolls sideways. Every button has a visible focus ring (criterion 15).
-- **Treadmill.** The `bikeOnly` guard redirects `/classes/<id>` to `/setup` on the treadmill (criterion 14).
 
 ### Screen states
 
@@ -115,7 +114,6 @@ Playwright (`frontend/e2e/`, Chromium only):
   - `keeps every value and offers Try again when the start fails` (L2-080 AC11)
   - `opens full setup in the class's mode with its plan and video` (L2-080 AC12)
   - `shows We can't find that class for an unknown id` (L2-080 AC13)
-  - `redirects the treadmill to setup` (L2-080 AC14)
 
 Unit tests: `class-draft.spec.ts` covers each row of `structureLine` (hiit, intervals with differing and equal recovers, flat); `cadenceLine`; `shiftLevels` at 1 and 32 and on a plan whose sets differ; `isEdited` for each kind of change; `toStartRequest` with a valid, an invalid and an empty link; `toSetupDrafts` for each kind. The responsive criterion (L2-080 AC15) is covered by the responsive sweep, which runs only when a person asks.
 

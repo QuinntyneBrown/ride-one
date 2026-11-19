@@ -15,6 +15,6 @@
     { "id": "asleep", "bars": 4, "lines": ["Until the bike connects, the controls wait."] },
     { "id": "phone", "bars": 5, "lines": ["On a phone, the panel follows the ride totals, and the picker is one target, the full width."] },
     { "id": "proof", "bars": 6, "lines": ["What the tests prove: a manual level holds until the next segment.", "And Back to plan sends the plan's level at once."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey four. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey four. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

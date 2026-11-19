@@ -341,13 +341,13 @@
       "fg": "--color-fg-warn",
       "bg": "--color-bg-canvas",
       "min": 4.5,
-      "note": "below-target delta, Scanning\u2026"
+      "note": "below-target delta, Scanning…"
     },
     {
       "fg": "--color-fg-warn",
       "bg": "--color-bg-surface",
       "min": 4.5,
-      "note": "Setting 22\u2026 and 'sending' in the resistance panel"
+      "note": "Setting 22… and 'sending' in the resistance panel"
     },
     {
       "fg": "--color-fg-rest",
@@ -444,24 +444,6 @@
       "themes": [
         "light"
       ]
-    },
-    {
-      "fg": "--color-selected-border",
-      "bg": "--color-bg-subtle",
-      "min": 3,
-      "note": "chosen machine option's edge on the segmented track (L2-072)"
-    },
-    {
-      "fg": "--color-fg-accent",
-      "bg": "--color-selected-bg",
-      "min": 3,
-      "note": "radio dot in the chosen machine option"
-    },
-    {
-      "fg": "--color-border-strong",
-      "bg": "--color-bg-subtle",
-      "min": 1.4,
-      "note": "unchecked radio ring in a machine option (decorative; the label and the checked dot carry the state)"
     },
     {
       "fg": "--color-video-fg",

@@ -44,4 +44,4 @@ What no screen shows: if the bike drifts off the level, the plan sends it again 
 
 **close** (5 bars)
 
-That is journey one. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey one. Wattzup turns an Echelon bike into a live training display.

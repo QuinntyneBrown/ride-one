@@ -86,12 +86,6 @@ Tests:
   - `Trace renderer: Canvas 2D` when an init script makes `getContext('webgl2')` return `null`.
 - Pixel comparison of the 2 renderers belongs to the visual sweep, which runs only when a person asks.
 
-Treadmill (`treadmill/treadmill-dashboard-and-setup`, L2-071):
-
-- Everything above applies when `machine` is `bike`. With `machine` `treadmill`, `RidePage` shows the speed and incline readouts (`Readout` kinds `speed` and `incline`) in place of power and cadence, and `RideTrace` draws *Speed vs. plan* with an incline lane through the same `TraceRenderer` (ADR 0010, L2-071 criterion 6).
-- `MetricList` shows Heart rate, Avg pace, Distance, Climbed and Energy on the treadmill, and does not show power or cadence; `kcal` there is the treadmill's estimate (L2-064 criterion 11, L2-071 criterion 7).
-- `PowerTraceStore` loads no trace on the treadmill, because the power trace is bike-only; `TreadmillTraceStore` keeps the reported speed and incline in the browser instead.
-
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

@@ -12,7 +12,7 @@ public sealed class BikeStateStoreTests
     [Fact]
     public void Update_publishes_the_derived_state_and_raises_StateChanged()
     {
-        var store = new BikeStateStore(new BikeState { Transport = "Simulated", BindAddress = "x" }, new FakeTimeProvider(), new DisplayNames(Bike: "Echelon EX-5s"));
+        var store = new BikeStateStore(new BikeState { Transport = "Simulated", BindAddress = "x" }, new FakeTimeProvider(), "Echelon EX-5s");
         BikeState? seen = null;
         store.StateChanged += s => seen = s;
 

@@ -89,7 +89,7 @@ Angular workspace in `frontend/` (L2-044, ADR 0013). One `angular.json` holds th
 | Project | Type | Holds | May depend on |
 |---|---|---|---|
 | `components` | library, prefix `wz` | Every presentation component, one folder each under `src/lib/`, named as the design-system component it renders, and the design-system SCSS partials under `src/styles/design-system/` | `@wattzup/api`, for types only |
-| `api` | library, prefix `wz` | The generated OpenAPI types (`src/generated/schema.d.ts`), the type aliases (`api-types.ts`), the contracts `BikeApi`, `WorkoutApi`, `MachineApi` with their tokens `BIKE_API`, `WORKOUT_API`, `MACHINE_API`, the HTTP implementations (`http-api.ts`), `apiKeyInterceptor` with the `UNAUTHORIZED_HANDLER` token, `ApiKeyStore`, `SafeStorage`, and the event-stream type `StreamConnection` | nothing in the workspace |
+| `api` | library, prefix `wz` | The generated OpenAPI types (`src/generated/schema.d.ts`), the type aliases (`api-types.ts`), the contracts `BikeApi` and `WorkoutApi` with their tokens `BIKE_API` and `WORKOUT_API`, the HTTP implementations (`http-api.ts`), `apiKeyInterceptor` with the `UNAUTHORIZED_HANDLER` token, `ApiKeyStore`, `SafeStorage`, and the event-stream type `StreamConnection` | nothing in the workspace |
 | `wattzup` | application, prefix `wz` | Pages, dialogs and orchestrating components under `src/app/dashboard/`; services, stores and pure helpers under `src/app/core/`; routes and `app.config.ts`; `main.ts`, `index.html`, `tokens.css`, `styles.scss` | `@wattzup/components`, `@wattzup/api` |
 
 - **Path aliases** — `frontend/tsconfig.json` maps `@wattzup/components` and `@wattzup/api` to each library's `src/public-api.ts`. The app compiles library source directly, so `ng serve`, `ng test` and tree-shaking need no library build. The libraries are not published and have no `ng-packagr` target.
@@ -98,8 +98,8 @@ Angular workspace in `frontend/` (L2-044, ADR 0013). One `angular.json` holds th
 - Current Angular version, standalone components only, `ChangeDetectionStrategy.OnPush` everywhere, signals for state, and zoneless change detection (`provideZonelessChangeDetection`).
 - Each component is `name.ts` + `name.html` + `name.scss` with `templateUrl` and `styleUrl`, selector `wz-<name>`, in its own folder. Each stylesheet is one encapsulated BEM block named as in the mocks. Every project's `stylePreprocessorOptions.includePaths` is `projects/components/src/styles`, so a stylesheet reads a partial as `@use 'design-system/btn'`.
 - **`app.config.ts`** — the composition root, in the app and nowhere else.
-  - It provides the router with the routes `/` (`RidePage`), `/setup` (workouts), `/classes` (`ClassLibraryPage`) and `/classes/:id` (`ClassPage`), both guarded by `bikeOnly` (`classes/browse-classes`, `classes/ride-a-class`), `/sessions/:id` (`SessionPage`) and `/progress` (`ProgressPage`), both lazy-loaded with `loadComponent` and guarded by `bikeOnly` (`history/review-session`, `history/track-progress`), `/machine` (`MachinePage`), `/unlock` (`UnlockPage`) and `**` (`NotFoundPage`).
-  - It provides `HttpClient` with `withInterceptors([apiKeyInterceptor])`, binds `UNAUTHORIZED_HANDLER` to the app's redirect to `/unlock?returnUrl=…` (L2-055), and binds `BIKE_API`, `WORKOUT_API` and `MACHINE_API` to `HttpBikeApi`, `HttpWorkoutApi` and `HttpMachineApi`, and `YOUTUBE_PLAYER` to `IframeYouTubePlayer`.
+  - It provides the router with the routes `/` (`RidePage`), `/setup` (workouts), `/classes` (`ClassLibraryPage`) and `/classes/:id` (`ClassPage`) (`classes/browse-classes`, `classes/ride-a-class`), `/sessions/:id` (`SessionPage`) and `/progress` (`ProgressPage`), both lazy-loaded with `loadComponent` (`history/review-session`, `history/track-progress`), `/unlock` (`UnlockPage`) and `**` (`NotFoundPage`).
+  - It provides `HttpClient` with `withInterceptors([apiKeyInterceptor])`, binds `UNAUTHORIZED_HANDLER` to the app's redirect to `/unlock?returnUrl=…` (L2-055), and binds `BIKE_API` and `WORKOUT_API` to `HttpBikeApi` and `HttpWorkoutApi`, and `YOUTUBE_PLAYER` to `IframeYouTubePlayer`.
 - `projects/wattzup/src/app/core/` holds the services and pure helpers with their unit tests:
   - live state: `LiveStateService`, the one owner of the `EventSource` and its reconnect policy (L2-044 criterion 2), and `safeReturnUrl`;
   - dialogs and notifications: `DialogLauncher`, `ConnectionBannerService`, `ToastService`, `toastQueue`, `diagnosticsReport`;
@@ -156,7 +156,7 @@ The host binds, starts background services without blocking, serves the SPA and 
 
 ## Appendix: component mapping (ADR 0013)
 
-Every folder that was in `frontend/src/app/dashboard/`, its project and its name there. *Part of* means the design system documents it inside another component's page; it keeps its own name and BEM block. *Lifted* names the value the parent now computes and passes in, so the component injects nothing of the app's.
+Every folder that was in `frontend/src/app/dashboard/`, its project and its name there. *Part of* means the design system documents it inside another component's page; it keeps its own name and BEM block. *Lifted* names the value the parent now computes and passes in, so the component injects nothing of the app's. The treadmill's components (`effort-row`, `incline-control`, `machine-card`, `quick-speeds`, `signal-bars`, `speed-control`) and `machine-page` were removed with the treadmill (ADR 0016).
 
 | Former folder | Project | Name | Design-system component | Notes |
 |---|---|---|---|---|
@@ -164,15 +164,12 @@ Every folder that was in `frontend/src/app/dashboard/`, its project and its name
 | `auth-card` | `components` | `auth-card` | Page layout (part) | The centred single-card shell of `/unlock` |
 | `cmd-log` | `components` | `command-log` | Command log | Lifted: the title and the entries (`commandLogView`) |
 | `dialog-shell` | `components` | `dialog` | Dialog | Injects only the CDK `DialogRef` |
-| `effort-row` | `components` | `effort-row` | Effort row (page added) | Lifted: pace, incline and the step limits (`effortRowView`) |
 | `form-summary` | `components` | `form-summary` | Form layout (part) | The error summary |
 | `icon` | `components` | `icon` | Iconography (foundation) | |
-| `incline-control` | `components` | `incline-control` | Speed and incline control (part) | |
 | `level-control` | `components` | `level-control` | Level control | Owns `ResistanceView` and `ControlsState` |
 | `level-picker` | `components` | `level-picker` | Level picker | Brings its key and pointer helper `level-picker-input` and its spec |
 | `level-slider` | `components` | `slider` | Slider | |
 | `load-error` | `components` | `empty-state` | Empty state | The loading-failed variant (block `empty`) |
-| `machine-card` | `components` | `machine-card` | Machine card (page added) | The radio card of `/machine`; owns `MachineCardView` and `CardStatus` |
 | — (new) | `components` | `class-card` | Class card | The card of `/classes`; owns `ClassCardView` (`classes/browse-classes`) |
 | — (new) | `components` | `shelf` | Class card and shelf (part) | A labelled section of class cards |
 | — (new) | `components` | `level-row` | Level row | The Work, Recover or Steady stepper of `/classes/:id` (`classes/ride-a-class`) |
@@ -189,16 +186,13 @@ Every folder that was in `frontend/src/app/dashboard/`, its project and its name
 | `mode-cards` | `components` | `radio-group` | Radio group (mode cards) | |
 | `num-stepper` | `components` | `number-stepper` | Number stepper | |
 | `phase-banner` | `components` | `phase-banner` | Step-change banner | Lifted: the banner and the announcement from `CueDirector` |
-| `plan-note` | `components` | `plan-note` | Level control, Speed and incline control (part) | |
+| `plan-note` | `components` | `plan-note` | Level control (part) | |
 | `plan-strip` | `components` | `plan-strip` | Video ride-along (part) | Block `profile--strip`. Lifted: the strip (`stripOf`) |
 | `presets` | `components` | `presets` | Chip (part) | The preset chip row |
-| `quick-speeds` | `components` | `quick-speeds` | Chip (part) | Lifted: the speeds (`QUICK_SPEEDS`) |
 | `readout` | `components` | `readout` | Readout | |
 | `ride-clock` | `components` | `ride-clock` | Ride clock | Lifted: elapsed and total text from `CountdownService` |
 | `ride-preview` | `components` | `ride-profile` | Ride profile | Owns the `RidePreview` view type |
 | `set-list` | `components` | `set-list` | Set list | Lifted: the set lines, the stretch rows and `full` (`setListView`) |
-| `signal-bars` | `components` | `signal-bars` | Machine card (part) | |
-| `speed-control` | `components` | `speed-control` | Speed and incline control | |
 | `status-line` | `components` | `status-line` | Status line | Lifted: the status (`liveConnectionStatus`) and reduced motion |
 | `toast` | `components` | `toast` | Toast | Owns the `Toast` view type |
 | `toggles` | `components` | `switch` | Switch | |
@@ -211,7 +205,7 @@ Every folder that was in `frontend/src/app/dashboard/`, its project and its name
 | `video-link` | `wattzup` | `video-link` | Video ride-along | Injects `YOUTUBE_PLAYER` |
 | `toast-region` | `wattzup` | `toast-region` | Toast | Reads `ToastService` |
 | `diagnostics-dialog`, `edit-set-dialog`, `edit-stretch-dialog`, `end-ride-dialog`, `replace-ride-dialog` | `wattzup` | unchanged | Dialog | Orchestrating dialogs |
-| `machine-page`, `not-found-page`, `ride-page`, `setup-page`, `unlock-page` | `wattzup` | unchanged | Page layout | Routed pages |
+| `not-found-page`, `ride-page`, `setup-page`, `unlock-page` | `wattzup` | unchanged | Page layout | Routed pages |
 | — (new) | `wattzup` | `class-library-page`, `class-page` | Page layout | Routed pages; inject `CLASS_API` (the library also `SESSION_API`) |
 | — (new) | `wattzup` | `session-page`, `progress-page` | Page layout | Lazy routed pages; inject `SESSION_API` (`history/*`) |
 | `design-system/` (SCSS partials) | `components` | `src/styles/design-system/` | Foundations and partials | |

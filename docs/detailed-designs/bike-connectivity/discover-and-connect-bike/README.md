@@ -40,10 +40,6 @@ When the adapter is missing, off or unauthorised, `IBikeTransport` throws `Bluet
 
 Every delay in the loop (scan timeout, init spacing, error backoff) is taken from an injected `TimeProvider`. Acceptance tests in `Wattzup.Api.AcceptanceTests` run the host through `WebApplicationFactory` with `SimulatedBikeTransport` and `FakeTimeProvider`, and read `GET /api/status` and the event stream. They cover the scan states, the 20 s timeout message, the subscribe-before-write order with 300 ms spacing, the `device_label` fallback and an adapter switched off and on through `SimulationControl`. The filter's table of names and UUIDs has one unit test per case in `Wattzup.Protocol.Tests`.
 
-### The chosen machine
-
-Wattzup drives the bike or the Echelon treadmill, one at a time (L2-062, ADR 0009). With the bike chosen, which is the default, the loop above is unchanged. `BikeConnectionService` reads `MachineProfile.For(store.Current.Machine)` at the start of each attempt and takes from it the device filter, the notify characteristic list, the init sequence, the keepalive frame and the not-found message. The bike's profile holds exactly the values described above. `EchelonDeviceFilter.Matches` now also rejects names starting with `STRIDE` (case-insensitive), even with the Echelon service, so the bike's scan never selects the treadmill (L2-063 criterion 4). A `MachineSelector.Changed` event cancels the whole current attempt, scan or open link, and the next attempt uses the new machine's profile. The treadmill's profile, the machine change and the treadmill's init sequence are described in `treadmill/choose-machine`.
-
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

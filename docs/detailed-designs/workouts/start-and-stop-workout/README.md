@@ -30,7 +30,7 @@ Backend, `Wattzup.Api`:
 
 - **`WorkoutEndpoints`** — maps the route group `/api/workout` (L2-017). Each endpoint validates its input, calls one Core service, and holds no rule.
   - `POST /api/workout` reads the body as a `JsonElement` and passes it to `WorkoutPlanValidator.Validate`. On failure it returns `400` through `Results.ValidationProblem(errors, extensions: { code = "invalid_workout" })`. On success it awaits `WorkoutEngine.StartAsync(plan)` and returns `200 {"started": <workout>}`, whether or not the bike is connected. The endpoint declares `Accepts<WorkoutPlan>`, so the OpenAPI document describes the plan as a `kind`-discriminated union.
-  - `POST /api/workout/stop` awaits `WorkoutEngine.StopAsync()` and always returns `200 {"stopped":true, "session_id":…}`. `session_id` names the session the ride was saved as, or is `null` when none was saved: no workout, a ride under a minute, or the treadmill (L2-081 criterion 8, `history/record-session`). With no workout, `workout` stays `null`. A workout that has already ended keeps its status.
+  - `POST /api/workout/stop` awaits `WorkoutEngine.StopAsync()` and always returns `200 {"stopped":true, "session_id":…}`. `session_id` names the session the ride was saved as, or is `null` when none was saved: no workout or a ride under a minute (L2-081 criterion 8, `history/record-session`). With no workout, `workout` stays `null`. A workout that has already ended keeps its status.
   - `POST /api/workout` accepts an optional top-level `class_id` beside the plan. It shall name a class in the catalogue, or the answer is 400 `invalid_workout` with the field `class_id`, like every other rejection (L2-010). The class's id and title go to the engine as a `RideOrigin`, and the session keeps them (L2-081 criterion 7).
   - `POST /api/workout/pause`, `/resume` and `/back-to-plan` await the matching engine method. With no active workout they return `409` ProblemDetails with `code` = `no_active_workout`. Otherwise they return `200 {"workout": <workout>}`.
   - `GET /api/workout/trace` returns `200 {"samples":[[ride_seconds, power], ...]}` from the power trace history (L2-050). With no workout, `samples` is `[]`.
@@ -65,12 +65,6 @@ The validator reports every failing field, not only the first.
   - `CommandResult` tells the endpoint whether an active workout existed.
 - While a workout is `paused` and the bike stays connected, the engine keeps `DisconnectedSince` empty, so the 90-second shut-off clock does not run (L2-046).
 
-Treadmill (ADR 0009):
-
-- `POST /api/workout` passes the chosen machine: `WorkoutPlanValidator.Validate(body, machine)` with `store.Current.Machine`. On the treadmill the speed and incline fields of L2-067 are validated and the bike's level and cadence fields are ignored; on the bike L2-010 applies unchanged (`treadmill/run-treadmill-workout`).
-- On a treadmill run, start and resume run the 3-second belt countdown (status `starting belt`) before the ride clock moves. Pause, stop and replace write the stop-belt command once, with response, if the treadmill is connected (L2-066, `treadmill/control-the-belt`).
-- `starting belt` and `paused: belt stopped` are active statuses, so pause, resume and back-to-plan accept them and stop ends them.
-
 Frontend, `frontend`:
 
 - **`WorkoutApi`** (`frontend/projects/api/src/lib/workout-api.ts`) — contract with `start(plan)` (the plan may carry `class_id`), `stop()` (resolves to the `session_id` or `null`), `pause()`, `resume()`, `backToPlan()` and `trace()`. Request and response types (`WorkoutPlan`, `Workout`, `TraceResponse`, `ProblemDetails`) come from the generated client in `frontend/projects/api/src/generated/`. The injection token `WORKOUT_API` is bound to `HttpWorkoutApi` in `app.config.ts`, and components inject the token.
@@ -84,7 +78,7 @@ Frontend, `frontend`:
 
 ### Ride-along video in the plan
 
-Every plan kind accepts an optional `video` `{url, start_seconds}` on either machine (L2-010 criteria 14 to 17, ADR 0012). `WorkoutPlanValidator` reads the link through `YouTubeLink.TryParseId`, keeps only the 11-character id and the start point rounded to 0.1, and drops the link. The validated plan carries `RideVideo(VideoId, StartSeconds)`, reported as `plan.video` `{video_id, start_seconds}`, or `null` without a video. A rejected link is named `video.url` with `That doesn't look like a YouTube link.`; a start point outside 0 to 43200 is named `video.start_seconds` with `Start point must be 0:00 to 12:00:00.` A video changes neither the segments nor the summary nor the ride. The backend never fetches the link. The parser, its table tests and `RideVideoTests` are described in `workouts/ride-along-video`.
+Every plan kind accepts an optional `video` `{url, start_seconds}` (L2-010 criteria 14 to 17, ADR 0012). `WorkoutPlanValidator` reads the link through `YouTubeLink.TryParseId`, keeps only the 11-character id and the start point rounded to 0.1, and drops the link. The validated plan carries `RideVideo(VideoId, StartSeconds)`, reported as `plan.video` `{video_id, start_seconds}`, or `null` without a video. A rejected link is named `video.url` with `That doesn't look like a YouTube link.`; a start point outside 0 to 43200 is named `video.start_seconds` with `Start point must be 0:00 to 12:00:00.` A video changes neither the segments nor the summary nor the ride. The backend never fetches the link. The parser, its table tests and `RideVideoTests` are described in `workouts/ride-along-video`.
 
 ### Acceptance tests
 

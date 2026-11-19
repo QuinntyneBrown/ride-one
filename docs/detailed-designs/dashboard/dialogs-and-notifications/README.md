@@ -51,7 +51,7 @@ End-ride dialog (L2-051):
 
 - **`EndRideDialog`** (`wz-end-ride-dialog`) — opened from End while a workout is active. It has 3 states, as in `default.html`, `busy.html` and `failed.html`:
   - **Default** — title `End this ride?`, description `You're <elapsed> into <total>. Wattzup stops changing the resistance and leaves the bike at level <resistance>.` and the body note `Your power trace and totals stay on the dashboard until you start a new ride.` Focus starts on `Keep riding`.
-  - **Busy** — after `End ride` it calls `BIKE_API.stopWorkout()` (`POST /api/workout/stop`). The button reads `Ending…` with `aria-busy="true"`, both buttons are disabled, and `disableClose` is set so Escape cannot close mid-request. On success the dialog closes and the router navigates by `LiveStateService.state().machine`: to `/classes` on the bike (L2-079, `classes/browse-classes`) and to `/setup` on the treadmill (L2-051 criterion 2).
+  - **Busy** — after `End ride` it calls `BIKE_API.stopWorkout()` (`POST /api/workout/stop`). The button reads `Ending…` with `aria-busy="true"`, both buttons are disabled, and `disableClose` is set so Escape cannot close mid-request. On success the dialog closes and the router navigates to `/classes` (L2-079, `classes/browse-classes`, L2-051 criterion 2); `history/review-session` adds the summary of a saved ride (L2-084).
   - **Failed** — the body shows the danger `Alert` `Couldn't end the ride` / `The Wattzup server didn't answer. The ride is still running — try again.` The danger button reads `Try again`, and focus returns to `Keep riding`.
   - Escape, the close button or `Keep riding` closes the dialog without a request. The ride continues, and focus returns to End (L2-051).
   - `<elapsed>` and `<total>` use the ride-clock format of `workouts/show-workout-countdown`.
@@ -76,7 +76,7 @@ Tests:
 - Playwright behaviour specs use the `DiagnosticsDialog`, `EndRideDialog` and `ToastRegion` page objects with stubbed `/api/**`, including `/api/diagnostics/packets` and `/api/workout/stop`, and a stubbed event stream. They assert:
   - each diagnostics row, the packet lines and the clipboard text (with clipboard permission granted to the test context);
   - Escape and focus return for each dialog;
-  - the end-ride busy, failed and success states, with navigation to `/classes` on the bike and `/setup` on the treadmill;
+  - the end-ride busy, failed and success states, with navigation to `/classes`;
   - toast stacking, the 5 s expiry under Playwright's clock, and pause on hover.
 
 ## Requirements
@@ -84,7 +84,7 @@ Tests:
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-023` | `L1-008` | Diagnostics dialog. The Diagnostics button in the app bar must open a dialog titled `Diagnostics` describing what Wattzup sees. |
-| `L2-051` | `L1-007` | End-ride dialog. Criterion 2: on success the dialog closes and the rider is taken to `/classes` on the bike (L2-079) or `/setup` on the treadmill. |
+| `L2-051` | `L1-007` | End-ride dialog. Criterion 2: on success the dialog closes and the rider is taken to `/classes` (L2-079). |
 | `L2-053` | `L1-006` | Toasts. |
 
 ## Diagrams
@@ -121,7 +121,7 @@ The dialog opens with the live values, fetches the latest packets, copies the re
 
 ### Behaviour — end a ride
 
-The rider confirms, the stop request runs with the dialog busy, and success opens `/classes` on the bike or `/setup` on the treadmill. A failure keeps the ride running and offers `Try again` (L2-051).
+The rider confirms, the stop request runs with the dialog busy, and success opens `/classes`. A failure keeps the ride running and offers `Try again` (L2-051).
 
 ![Sequence diagram for ending a ride](diagrams/sequence-end-ride.png)
 
