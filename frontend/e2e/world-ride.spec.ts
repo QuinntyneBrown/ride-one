@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-090, L2-091, L2-092, L2-093, L2-096, L2-097
+// Traces to: L2-090, L2-091, L2-092, L2-093, L2-094, L2-096, L2-097
 // Description: World Ride at /classes/:id/world: opened from the class page with Ride in <world
 // name>, which starts the class ride exactly as Start ride does; shown only for that class's ride in
 // progress; its app bar.
@@ -371,5 +371,41 @@ test.describe('World Ride pause, lost bike and the end (L2-097)', () => {
     await world.open();
     await world.push(classRide({}, { status: 'ended', session_id: null }));
     await expect(page).toHaveURL(/\/$/);
+  });
+});
+
+test.describe('World Ride route profile (L2-094)', () => {
+  const at290 = (status = 'running') =>
+    classRide({ distance_km: 1.56 }, { status, segment: 0, remaining: 10, elapsed_seconds: 290 });
+
+  test("shows the grade, climbed and distance for the ride's moment", async ({
+    page,
+    api,
+    events,
+  }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open(undefined, undefined, at290());
+
+    await expect(world.profileGrade).toHaveText('+0.6%');
+    await expect(world.profileClimbed).toHaveText('12 m climbed');
+    await expect(world.profileDistance).toHaveText('1.56 km');
+  });
+
+  test('names the route profile by its elevation range', async ({ page, api, events }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open(undefined, undefined, at290());
+    await expect(world.routeImage).toHaveAccessibleName('Route profile, 39 m of elevation');
+  });
+
+  test('holds the grade and profile still while paused', async ({ page, api, events }) => {
+    await page.clock.install({ time: new Date('2026-11-19T07:00:00Z') });
+    const world = new WorldRidePage(page, api, events);
+    await world.open(undefined, undefined, at290('paused'));
+    await expect(world.profileClimbed).toHaveText('12 m climbed');
+
+    await page.clock.runFor(30_000);
+    await world.push(at290('paused'));
+    await expect(world.profileGrade).toHaveText('+0.6%');
+    await expect(world.profileClimbed).toHaveText('12 m climbed');
   });
 });

@@ -5,6 +5,7 @@ import { formatDistance, formatLive, formatSpeed } from './metric-format';
 import { powerDelta } from './power-delta';
 import { controlsState, MAX_LEVEL } from './resistance-controls';
 import { rideOverlayText } from './ride-overlay-text';
+import { routeProfile, routeProfileView } from './route-profile';
 import { kindLabel, roundCount, toneOf } from './segment-labels';
 import type { World } from './worlds';
 
@@ -26,6 +27,16 @@ export function worldRideView(state: BikeState, entry: ClassEntry, world: World)
     },
     segment: state.workout ? segmentView(state.workout, world) : null,
     resistance: resistanceView(state),
+    profile: state.workout
+      ? {
+          ...routeProfileView(
+            routeProfile(world, state.workout.segments),
+            state.workout.segments,
+            state.workout.elapsed_seconds,
+          ),
+          distanceText: `${formatDistance(state.distance_km)} km`,
+        }
+      : null,
     overlay: overlayView(state, world),
   };
 }

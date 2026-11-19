@@ -124,6 +124,47 @@
           <p class="world-ride__next">{{ seg.next }}</p>
         </section>
       }
+      @if (v.profile; as p) {
+        <section class="world-ride__profile world-ride__panel" aria-label="Route profile">
+          <div class="world-ride__row">
+            <strong class="world-ride__metric">{{ p.gradeText }}</strong>
+            <span class="world-ride__climbed">{{ p.climbedText }}</span>
+            <span class="world-ride__distance">{{ p.distanceText }}</span>
+          </div>
+          <svg
+            class="world-ride__route"
+            role="img"
+            [attr.aria-label]="p.label"
+            [attr.viewBox]="'0 0 ' + p.width + ' 100'"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <clipPath id="world-ride-done">
+                <rect x="0" y="0" [attr.width]="p.doneWidth" height="100" />
+              </clipPath>
+            </defs>
+            <path [attr.d]="p.area" />
+            <path class="is-done" [attr.d]="p.area" clip-path="url(#world-ride-done)" />
+            @for (bar of p.strip; track $index) {
+              <rect
+                [attr.x]="bar.x"
+                [attr.width]="bar.width"
+                y="94"
+                height="6"
+                [attr.class]="bar.tone"
+              />
+            }
+            <line
+              class="is-playhead"
+              [attr.x1]="p.playhead.x"
+              [attr.x2]="p.playhead.x"
+              [attr.y1]="p.playhead.y"
+              y2="100"
+              vector-effect="non-scaling-stroke"
+            />
+          </svg>
+        </section>
+      }
       @let r = v.resistance;
       <section class="world-ride__panel world-ride__resistance" aria-label="Resistance">
         <button

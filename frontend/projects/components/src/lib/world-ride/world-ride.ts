@@ -27,6 +27,8 @@ export interface WorldRideView {
   readonly segment: WorldRideSegment | null;
   /** The resistance panel (L2-096). */
   readonly resistance: WorldRideResistance;
+  /** The route profile; null with no workout (L2-094). */
+  readonly profile: WorldRideProfile | null;
   /** Paused, the lost bike or the saved ride's end, over the HUD (L2-097). */
   readonly overlay: WorldRideOverlay | null;
 }
@@ -38,6 +40,26 @@ export interface WorldRideOverlay {
   readonly text: string;
   /** The saved session `See your ride` opens, for `ended`. */
   readonly sessionHref: string | null;
+}
+
+/** The route-profile panel: the class drawn as terrain at the ride's moment (L2-094). */
+export interface WorldRideProfile {
+  /** `+0.5%`. */
+  readonly gradeText: string;
+  /** `9 m climbed`. */
+  readonly climbedText: string;
+  /** `1.56 km`. */
+  readonly distanceText: string;
+  /** `Route profile, <n> m of elevation`. */
+  readonly label: string;
+  /** The SVG's width, one unit per second of the plan. */
+  readonly width: number;
+  /** The terrain's path. */
+  readonly area: string;
+  /** The ridden part's width. */
+  readonly doneWidth: number;
+  readonly strip: readonly { readonly x: number; readonly width: number; readonly tone: string }[];
+  readonly playhead: { readonly x: number; readonly y: number };
 }
 
 /** The resistance panel: the level, its caption and which steps are allowed (L2-096). */

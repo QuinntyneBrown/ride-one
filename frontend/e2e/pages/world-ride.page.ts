@@ -32,6 +32,11 @@ export class WorldRidePage {
   readonly lower: Locator;
   readonly raise: Locator;
   readonly hud: Locator;
+  readonly profile: Locator;
+  readonly profileGrade: Locator;
+  readonly profileClimbed: Locator;
+  readonly profileDistance: Locator;
+  readonly routeImage: Locator;
   readonly pausedOverlay: Locator;
   readonly lostOverlay: Locator;
   readonly reconnectButton: Locator;
@@ -71,6 +76,11 @@ export class WorldRidePage {
     this.lower = this.resistance.getByRole('button', { name: 'Lower resistance' });
     this.raise = this.resistance.getByRole('button', { name: 'Raise resistance' });
     this.hud = this.main.locator('.world-ride__hud');
+    this.profile = this.main.getByRole('region', { name: 'Route profile' });
+    this.profileGrade = this.profile.locator('.world-ride__metric');
+    this.profileClimbed = this.profile.locator('.world-ride__climbed');
+    this.profileDistance = this.profile.locator('.world-ride__distance');
+    this.routeImage = this.profile.getByRole('img');
     this.pausedOverlay = this.main.locator('.world-ride__overlay[role="status"]', {
       hasText: 'Paused on',
     });
