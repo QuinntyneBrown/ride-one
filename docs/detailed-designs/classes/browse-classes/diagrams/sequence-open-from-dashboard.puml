@@ -6,15 +6,15 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "RidePage" as ride
   participant "AppBar" as bar
   participant "Router" as router
   participant "ClassLibraryPage" as page
   participant "LiveStateService" as live
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "ClassEndpoints" as ep
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserClassApi (CLASS_API)" as ep
   participant "WorkoutEngine" as engine
 end box
 
@@ -25,11 +25,11 @@ rider -> bar : Tap, click, or Enter on Library
 bar -> router : routerLink /classes
 router -> ride : Destroy
 router -> page : Activate
-note right of bar : No POST to /api/workout… is sent;\nthe workout is untouched [L2-079 AC15]
-page -> ep : GET /api/classes
-ep --> page : 200 {shelves:[…]}
+note right of bar : Nothing on WORKOUT_API is called;\nthe workout is untouched [L2-079 AC15]
+page -> ep : list()
+ep --> page : {shelves:[…]}
 page --> rider : Ride a class [L2-079 AC1]
-live -> live : Event stream stays open (root service)
+live -> live : Keeps the live state (root service)
 engine -> engine : Keeps ticking
 rider -> page : Browser Back
 page -> router : Navigate to /

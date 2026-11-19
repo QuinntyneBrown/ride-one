@@ -1,9 +1,9 @@
 @startuml
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
-title Components — Connect the bike in the browser
+title Components — Connect the bike
 
-Container_Boundary(app, "Wattzup Web, browser edition") {
+Container_Boundary(app, "Wattzup Web") {
   Component(dash, "Ride Dashboard", "Angular page", "Shows Connect bike while BIKE_PAIRING.required()")
   Component(pairing, "BrowserBikePairing", "BIKE_PAIRING implementation", "pair(): opens the chooser first")
   Component(bikeapi, "BrowserBikeApi", "BIKE_API implementation", "reconnect()")

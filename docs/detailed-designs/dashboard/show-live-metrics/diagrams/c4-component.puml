@@ -17,10 +17,10 @@ Container_Boundary(web, "Wattzup Web") {
   Component(frames, "FrameScheduler", "Angular service", "One draw per frame; stops when hidden")
   Component(status, "TraceRendererStatus", "Angular service", "Active renderer for Diagnostics")
 }
-Container(api, "Wattzup API", "ASP.NET Core", "SSE /api/events, GET /api/workout/trace")
+Container(api, "@wattzup/browser", "In-page contracts", "BrowserStateSource forwards each new BikeState")
 
-Rel(api, live, "data: BikeState", "SSE")
-Rel(pts, api, "GET /api/workout/trace", "JSON/HTTP")
+Rel(api, live, "New BikeState", "LIVE_STATE_SOURCE")
+Rel(pts, api, "WORKOUT_API.trace()")
 Rel(readout, helpers, "Formats with")
 Rel(strip, helpers, "Formats with")
 Rel(readout, live, "Reads")

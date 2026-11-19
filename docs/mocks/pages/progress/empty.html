@@ -28,22 +28,17 @@
     <span class="empty__icon"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg></span>
     <h1 class="empty__title">No rides yet</h1>
     <p class="empty__text">Finish a class and it shows up here, with your streak and what changed since last time.</p>
-    <div class="empty__actions"><a class="btn btn--primary" href="../class-library/default.html">Find a class</a></div>
+    <div class="empty__actions"><a class="btn btn--primary" href="../class-library/default.html">Find a class</a><button class="btn btn--quiet" type="button" aria-describedby="import-hint"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Import history</button></div>
+    <p class="device-history__hint" id="import-hint">Moving from another device? Import the history you exported there.</p>
   </div>
 </div></main>
+<p class="mock-note" style="top: 40rem; right: 1rem;">A new browser starts empty, so Import history is offered beside Find a class. It opens the file picker (JSON only); the result is the same toast as on a filled Progress page.</p>
 </div>
 
 <nav class="mock-bar" aria-label="Mock navigation">
   <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
   <span class="mock-bar__screen">Progress</span>
-  <ul class="mock-bar__states">
-    <li><a href="default.html">default</a></li><li><a href="measure-dips.html">measure-dips</a></li><li><a href="rode-today.html">rode-today</a></li><li><a href="no-trend.html">no-trend</a></li><li><a href="empty.html" aria-current="page">empty</a></li><li><a href="loading.html">loading</a></li><li><a href="error.html">error</a></li>
-    <li><a href="browser-imported.html">browser-imported</a></li>
-    <li><a href="browser-nothing-new.html">browser-nothing-new</a></li>
-    <li><a href="browser-not-a-backup.html">browser-not-a-backup</a></li>
-    <li><a href="browser-partly-rejected.html">browser-partly-rejected</a></li>
-    <li><a href="browser-empty.html">browser-empty</a></li>
-  </ul>
+  <ul class="mock-bar__states"><li><a href="default.html">default</a></li><li><a href="measure-dips.html">measure-dips</a></li><li><a href="rode-today.html">rode-today</a></li><li><a href="no-trend.html">no-trend</a></li><li><a href="loading.html">loading</a></li><li><a href="error.html">error</a></li><li><a href="imported.html">imported</a></li><li><a href="nothing-new.html">nothing-new</a></li><li><a href="not-a-backup.html">not-a-backup</a></li><li><a href="partly-rejected.html">partly-rejected</a></li><li><a href="empty.html" aria-current="page">empty</a></li></ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
 </nav>

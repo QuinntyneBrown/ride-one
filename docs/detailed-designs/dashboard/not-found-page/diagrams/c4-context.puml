@@ -1,14 +1,10 @@
 @startuml
 !include <C4/C4_Context>
 LAYOUT_WITH_LEGEND()
-title System Context — Unlock and not-found pages
+title System Context — Not-found page
 
-Person(rider, "Rider", "Rides the bike and watches the dashboard")
-System(wattzup, "Wattzup", "Live telemetry, resistance control and interval workouts for an Echelon bike")
-System_Ext(bike, "Echelon bike", "Indoor bike exposing a proprietary BLE GATT service")
-System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
+Person(rider, "Rider", "Rides the bike and watches Wattzup")
+System(wattzup, "Wattzup", "Angular app running in Chrome or Edge; no server")
 
-Rel(rider, wattzup, "Unlocks a shared server and recovers from unknown addresses on", "Browser")
-Rel(wattzup, os, "Scans, connects and writes through")
-Rel(os, bike, "Exchanges notifications and commands with", "BLE GATT")
+Rel(rider, wattzup, "Uses", "Browser")
 @enduml

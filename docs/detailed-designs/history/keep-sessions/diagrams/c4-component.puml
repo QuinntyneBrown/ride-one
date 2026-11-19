@@ -1,20 +1,20 @@
 @startuml
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
-title Components — Keep sessions in the browser
+title Components — Keep sessions
 
-Container_Boundary(app, "Wattzup Web, browser edition") {
-  Component(progress, "Progress page", "Angular page", "Your history, export and import when EDITION is browser")
+Container_Boundary(app, "Wattzup Web") {
+  Component(progress, "Progress page", "Angular page", "Your history, export and import")
   Component(summary, "Session Summary page", "Angular page", "Reads SESSION_API")
   Component(wapi, "BrowserWorkoutApi", "WORKOUT_API implementation", "stop() answers the session id")
-  Component(engine, "WorkoutEngine", "lib/engine mirror", "Saves a ride of 60 s or more as it ends")
+  Component(engine, "WorkoutEngine", "lib/engine", "Saves a ride of 60 s or more as it ends")
   Component(sapi, "BrowserSessionApi", "SESSION_API implementation", "list, get, progress")
   Component(archive, "BrowserSessionArchive", "SESSION_ARCHIVE implementation", "exportAll, importFile, lastExportedAt")
-  Component(builder, "SessionBuilder", "lib/engine mirror", "Builds the L2-081 record")
-  Component(calc, "ProgressCalculator", "lib/engine mirror", "L2-087 figures")
-  Component(store, "SessionStore", "lib/storage mirror", "Newest 500 in memory and IndexedDB")
+  Component(builder, "SessionBuilder", "lib/engine", "Builds the L2-081 record")
+  Component(calc, "ProgressCalculator", "lib/engine", "L2-087 figures")
+  Component(store, "SessionStore", "lib/storage", "Newest 500 in memory and IndexedDB")
   Component(validator, "validSession", "lib/storage", "L2-081 field rules for imports")
-  Component(persist, "requestPersistentStorage", "provideBrowserEdition initializer", "navigator.storage.persist() at start")
+  Component(persist, "requestPersistentStorage", "provideBrowserContracts initializer", "navigator.storage.persist() at start")
   ComponentDb(db, "IndexedDbSessionDatabase", "SESSION_DATABASE, IndexedDB", "sessions store")
 }
 Rel(progress, archive, "Calls")

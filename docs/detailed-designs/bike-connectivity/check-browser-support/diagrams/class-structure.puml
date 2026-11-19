@@ -41,9 +41,6 @@ class BrowserBikePairing {
   -store: BikeStateStore
   -setAdapter(available: boolean)
 }
-class "BIKE_PAIRING default" as ServerBikePairing {
-  support: always ready
-}
 class "supportNotice()" as notice <<pure function>> {
   +(support, pageUrl): SupportNotice | null
 }
@@ -51,7 +48,6 @@ class SupportBanner <<component>>
 
 WebBluetoothPort ..|> BluetoothPort
 BrowserBikePairing ..|> BikePairing
-ServerBikePairing ..|> BikePairing
 BrowserBikePairing --> BluetoothPort
 WebBluetoothPort ..> fn : calls
 fn ..> SupportEnvironment

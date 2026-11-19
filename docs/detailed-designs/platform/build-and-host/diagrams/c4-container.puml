@@ -1,12 +1,12 @@
 @startuml
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
-title Containers — Build and host the browser edition
+title Containers — Build and host Wattzup
 
 Person(rider, "Rider", "Rides the bike")
 System_Ext(host, "Static host", "Serves files over HTTPS")
 System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
-  Container(app, "Wattzup Web, browser edition", "Angular, app.config.browser.ts", "Screens, in-browser contracts, workout engine")
+  Container(app, "Wattzup Web", "Angular, app.config.ts", "Screens, in-browser contracts, workout engine")
   Container(sw, "Service worker", "@angular/service-worker", "Caches the app shell and classes.json; offline start")
   ContainerDb(idb, "Wattzup database", "IndexedDB", "Sessions and the ride journal")
 }

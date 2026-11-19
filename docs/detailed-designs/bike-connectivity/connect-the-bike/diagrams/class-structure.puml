@@ -9,7 +9,7 @@ skinparam class {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-title Class structure — Connect the bike in the browser
+title Class structure — Connect the bike
 
 interface BluetoothPort {
   +support(): BluetoothSupport

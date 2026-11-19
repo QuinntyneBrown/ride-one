@@ -26,25 +26,26 @@ class Alert <<component wz-alert>> {
   +input banner: boolean
 }
 class DiagnosticsDialog <<component wz-diagnostics-dialog>> {
-  +Signal<DiagnosticsRow[]> rows
-  +Signal<string[]> lines
-  +copy(): Promise<void>
+  +rows: Signal<DiagnosticsRow[]>
+  +setEveryPacket(on: boolean): void
+  +download(): void
 }
 class DiagnosticsRow <<value>> {
   +string label
   +string value
-}
-class diagnosticsReport <<pure helper>> {
-  +diagnosticsReport(rows, lines): string
 }
 class EndRideDialog <<component wz-end-ride-dialog>> {
   +Signal<'default' | 'busy' | 'failed'> phase
   +endRide(): Promise<void>
   +keepRiding(): void
 }
-interface BikeApi <<contract, BIKE_API>> {
-  +diagnosticsPackets(): Observable<{lines: string[]}>
-  +stopWorkout(): Observable<{stopped: boolean}>
+interface WorkoutApi <<contract, WORKOUT_API>> {
+  +stop(): Promise<string | null>
+}
+interface PacketLogContract <<contract, PACKET_LOG>> {
+  +view: Signal<PacketLogView>
+  +setEveryPacket(on: boolean): void
+  +file(): Blob
 }
 class Toast <<value>> {
   +ToastId id
@@ -81,10 +82,9 @@ DialogLauncher ..> EndRideDialog : opens
 DiagnosticsDialog *-- Dialog
 EndRideDialog *-- Dialog
 EndRideDialog *-- Alert : failed state
-DiagnosticsDialog ..> diagnosticsReport
-DiagnosticsDialog ..> BikeApi
-EndRideDialog ..> BikeApi
-DiagnosticsDialog "1" *-- "8" DiagnosticsRow
+DiagnosticsDialog ..> PacketLogContract
+EndRideDialog ..> WorkoutApi
+DiagnosticsDialog "1" *-- "*" DiagnosticsRow
 ToastService ..> toastQueue
 ToastService "1" o-- "0..3 visible" Toast
 ToastRegion --> ToastService

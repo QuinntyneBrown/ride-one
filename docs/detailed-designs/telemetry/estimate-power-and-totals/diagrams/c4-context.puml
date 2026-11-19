@@ -3,12 +3,10 @@
 LAYOUT_WITH_LEGEND()
 title System Context — Estimate power and ride totals
 
-Person(rider, "Rider", "Rides the bike and watches the dashboard")
-System(wattzup, "Wattzup", "Live telemetry, resistance control and interval workouts for an Echelon bike")
-System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
-System_Ext(bike, "Echelon bike", "Reports cadence and resistance; no power or heart rate")
+Person(rider, "Rider", "Rides the bike and watches Wattzup")
+System(wattzup, "Wattzup", "Angular app running in Chrome or Edge; no server")
+System_Ext(bike, "Echelon bike", "Indoor bike exposing a proprietary BLE GATT service")
 
-Rel(rider, wattzup, "Reads estimated power and ride totals in", "Browser")
-Rel(wattzup, os, "Receives notifications through")
-Rel(os, bike, "Cadence and resistance frames", "BLE GATT")
+Rel(rider, wattzup, "Uses", "Browser")
+Rel(wattzup, bike, "Notifications and commands", "Web Bluetooth GATT")
 @enduml

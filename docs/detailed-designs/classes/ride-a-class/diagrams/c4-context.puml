@@ -3,12 +3,12 @@
 LAYOUT_WITH_LEGEND()
 title System Context — Ride a class
 
-Person(rider, "Rider", "Opens a class and rides it")
-System(wattzup, "Wattzup", "Live training display that drives the bike")
-System_Ext(bike, "Echelon bike", "Bluetooth Low Energy")
-System_Ext(youtube, "YouTube player", "youtube-nocookie.com embed")
+Person(rider, "Rider", "Rides the bike and watches Wattzup")
+System(wattzup, "Wattzup", "Angular app running in Chrome or Edge; no server")
+System_Ext(bike, "Echelon bike", "Indoor bike exposing a proprietary BLE GATT service")
+System_Ext(youtube, "YouTube", "Player and thumbnails")
 
-Rel(rider, wattzup, "Opens a class and starts the ride in")
-Rel(wattzup, bike, "Sets resistance per segment", "BLE")
-Rel(rider, youtube, "Browser previews the class video from", "HTTPS")
+Rel(rider, wattzup, "Uses", "Browser")
+Rel(wattzup, bike, "Notifications and commands", "Web Bluetooth GATT")
+Rel(wattzup, youtube, "Embeds the player; loads covers", "HTTPS")
 @enduml

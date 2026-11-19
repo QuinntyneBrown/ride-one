@@ -1,14 +1,14 @@
 @startuml
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
-title Containers — Simulate the bike in the browser
+title Containers — Simulate the bike
 
 System_Ext(runner, "Playwright runner", "Node.js")
 System_Boundary(browser, "Chromium") {
-  Container(app, "Wattzup Web, browser edition", "Angular + @wattzup/browser", "Simulator bound in dev with ?simulate")
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Simulator bound in dev with ?simulate")
   Container(fake, "Fake Bluetooth fixture", "addInitScript", "Replaces navigator.bluetooth under test")
 }
-Container(serve, "serve-dist.mjs", "Node static server", "Serves dist/wattzup-browser/browser")
+Container(serve, "serve-dist.mjs", "Node static server", "Serves dist/wattzup/browser")
 Rel(runner, fake, "Installs; scripts offers, notifications, failures")
 Rel(runner, serve, "Starts")
 Rel(serve, app, "Serves files to")

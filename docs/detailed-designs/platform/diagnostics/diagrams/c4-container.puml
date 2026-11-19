@@ -1,11 +1,11 @@
 @startuml
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
-title Containers — Diagnose in the browser
+title Containers — Diagnostics
 
 Person(rider, "Rider or helper", "Troubleshoots")
 System_Boundary(browser, "Rider's browser") {
-  Container(app, "Wattzup Web, browser edition", "Angular + @wattzup/browser", "Packet ring, Diagnostics dialog")
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Packet ring, Diagnostics dialog")
   Container(console, "Developer console", "Browser DevTools", "Log lines")
   Container(dl, "Downloads", "Browser UI", "Saves the packet log")
 }

@@ -11,95 +11,86 @@ skinparam class {
 }
 title Class structure — Record a session
 
-class SessionRecord {
-  +Id: string
-  +EndedAt: DateTimeOffset
-  +ClassId: string?
-  +Title: string
-  +Plan: WorkoutPlan
-  +Segments: IReadOnlyList<Segment>
-  +PlannedSeconds: int
-  +RiddenSeconds: int
-  +Completed: bool
-  +AvgPower: int
-  +MaxPower: int
-  +BestMinutePower: int
-  +AvgCadence: int
-  +DistanceKm: double
-  +Kcal: int
-  +OnTargetPct: int
-  +Dips: IReadOnlyList<Dip>
-  +PowerTrace: IReadOnlyList<int>
-  +CadenceTrace: IReadOnlyList<int>
-  +ToSummary(): SessionSummary
+class SessionRecord <<contract type>> {
+  +id: string
+  +ended_at: string
+  +class_id: string | null
+  +title: string
+  +plan: WorkoutPlan
+  +segments: Segment[]
+  +planned_seconds: number
+  +ridden_seconds: number
+  +completed: boolean
+  +avg_power: number
+  +max_power: number
+  +best_minute_power: number
+  +avg_cadence: number
+  +distance_km: number
+  +kcal: number
+  +on_target_pct: number
+  +dips: Dip[]
+  +power_trace: number[]
+  +cadence_trace: number[]
 }
 class Dip {
-  +Start: int
-  +Duration: int
-  +Target: int
-  +Low: int
-  +Kind: SegmentKind
-  +Round: int?
+  +start: number
+  +duration: number
+  +target: number
+  +low: number
+  +kind: SegmentKind
+  +round: number | null
 }
 class SessionSummary {
-  +Id, EndedAt, ClassId, Title
-  +RiddenSeconds, PlannedSeconds, Completed
-  +AvgPower, OnTargetPct, DipCount
+  +id, ended_at, class_id, title
+  +ridden_seconds, planned_seconds, completed
+  +avg_power, on_target_pct, dip_count
 }
 class RideSample {
-  +Power: int
-  +Cadence: int
+  +power: number
+  +cadence: number
 }
 class SessionInput {
-  +Id: string
-  +EndedAt: DateTimeOffset
-  +Origin: RideOrigin?
-  +Summary: string
-  +Plan: WorkoutPlan
-  +Segments: IReadOnlyList<Segment>
-  +Samples: IReadOnlyList<RideSample>
-  +Totals: RideTotals
+  +id: string
+  +endedAt: string
+  +classId: string | null
+  +title: string
+  +plan: WorkoutPlan
+  +segments: Segment[]
+  +samples: RideSample[]
+  +totals: RideTotals
 }
-class SessionBuilder <<static>> {
-  +MinSeconds = 60
-  +DipMinSeconds = 6
-  +Build(input): SessionRecord
-  +DipTolerance(kind): int?
+class "session-builder" as SessionBuilder <<module>> {
+  +MINIMUM_SECONDS = 60
+  +MINIMUM_DIP_SECONDS = 6
+  +buildSession(input): SessionRecord
+  +dipTolerance(kind): number | null
 }
-class SessionStore {
-  +MaxSessions = 500
-  +All: IReadOnlyList<SessionRecord>
-  +Find(id): SessionRecord?
-  +Load(sessions)
-  +Add(session)
-  +Saved: event
+class "session-record" as SessionRecordFns <<module>> {
+  +toSummary(record): SessionSummary
 }
-class SessionFile <<static>> {
-  +MaxBytes = 16 MB
-  +Read(path): SessionFileResult
-  +Write(path, sessions)
-  +SetAside(path)
+class SessionStore <<lib/storage>> {
+  +MAX_SESSIONS = 500
+  +newId(): string
+  +add(session): Promise<void>
 }
 class RideOrigin {
-  +ClassId: string
-  +Title: string
+  +classId: string
+  +title: string
 }
 class WorkoutRun {
-  +Samples: List<RideSample>
-  +Origin: RideOrigin?
-  +SessionId: string?
+  +samples: RideSample[]
+  +origin: RideOrigin | null
+  +sessionId: string | null
 }
 class WorkoutEngine {
-  +StartAsync(plan, origin, ct)
-  +StopWorkoutAsync(ct)
-  -Finish(run)
+  +startWorkout(plan, origin)
+  +stop()
+  -finish(run)
 }
-class SessionFileService <<hosted>>
 
 SessionRecord *-- "0..*" Dip
-SessionRecord ..> SessionSummary : creates
+SessionRecordFns ..> SessionSummary : creates
 SessionInput o-- "0..*" RideSample
-SessionInput --> RideOrigin
 SessionBuilder ..> SessionInput : reads
 SessionBuilder ..> SessionRecord : creates
 SessionStore o-- "0..500" SessionRecord
@@ -108,6 +99,4 @@ WorkoutRun o-- "0..*" RideSample
 WorkoutRun --> RideOrigin
 WorkoutEngine ..> SessionBuilder
 WorkoutEngine --> SessionStore
-SessionFileService --> SessionStore
-SessionFileService ..> SessionFile
 @enduml

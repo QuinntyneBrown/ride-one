@@ -13,9 +13,9 @@ Container_Boundary(web, "Wattzup Web") {
   Component(link, "WorkoutLink", "Angular component, wz-workout-link", "Summary link to /setup")
   Component(frame, "Frame loop", "Angular service", "requestAnimationFrame, paused when hidden")
 }
-Container(api, "Wattzup API", "ASP.NET Core", "Streams workout state")
+Container(api, "@wattzup/browser", "In-page contracts", "BrowserStateSource forwards each new BikeState")
 
-Rel(api, live, "data: BikeState", "SSE")
+Rel(api, live, "New BikeState", "LIVE_STATE_SOURCE")
 Rel(interval, live, "Reads workout")
 Rel(rideclock, live, "Reads workout")
 Rel(link, live, "Reads workout.summary")

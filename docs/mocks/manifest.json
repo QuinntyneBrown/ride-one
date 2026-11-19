@@ -37,9 +37,8 @@
         "L2-027",
         "L2-040",
         "L2-041",
-        "L2-001",
         "L2-013",
-        "L2-039",
+        "L2-058",
         "L2-076",
         "L2-084",
         "L2-079",
@@ -51,12 +50,8 @@
         "default",
         "loading",
         "empty",
-        "error",
         "paused",
         "disconnected",
-        "scanning",
-        "bluetooth-off",
-        "offline",
         "complete",
         "ended",
         "flat",
@@ -65,12 +60,14 @@
         "video",
         "video-blocked",
         "class-workout",
-        "browser-unsupported",
-        "browser-insecure",
-        "browser-bluetooth-off",
-        "browser-no-bike"
+        "unsupported",
+        "insecure",
+        "bluetooth-off",
+        "no-bike"
       ],
-      "not_applicable": {}
+      "not_applicable": {
+        "error": "Wattzup reads the bike in the page, so there is no state that can fail to load; Bluetooth failures are the bluetooth-off, unsupported, insecure and disconnected states."
+      }
     },
     {
       "id": "class-library",
@@ -122,8 +119,8 @@
         "submitting",
         "error",
         "not-found",
-        "browser-unsupported",
-        "browser-insecure",
+        "unsupported",
+        "insecure",
         "offline"
       ],
       "not_applicable": {
@@ -155,7 +152,7 @@
         "loading",
         "not-found",
         "error",
-        "browser-not-kept"
+        "not-kept"
       ],
       "not_applicable": {
         "empty": "A session always has a ride; a missing one is not-found."
@@ -180,14 +177,13 @@
         "measure-dips",
         "rode-today",
         "no-trend",
-        "empty",
         "loading",
         "error",
-        "browser-imported",
-        "browser-nothing-new",
-        "browser-not-a-backup",
-        "browser-partly-rejected",
-        "browser-empty"
+        "imported",
+        "nothing-new",
+        "not-a-backup",
+        "partly-rejected",
+        "empty"
       ],
       "not_applicable": {}
     },
@@ -219,31 +215,11 @@
         "error",
         "invalid",
         "submitting",
-        "browser-unsupported",
-        "browser-insecure"
+        "unsupported",
+        "insecure"
       ],
       "not_applicable": {
         "empty": "Setup always shows values: the saved draft, or the default plan on first run (L2-029)."
-      }
-    },
-    {
-      "id": "unlock",
-      "kind": "page",
-      "title": "Unlock Wattzup",
-      "route": "/unlock",
-      "requirements": [
-        "L2-035",
-        "L2-036"
-      ],
-      "states": [
-        "default",
-        "invalid",
-        "submitting",
-        "error"
-      ],
-      "not_applicable": {
-        "loading": "The form renders immediately; nothing is fetched until the key is submitted.",
-        "empty": "A single-field form has no collection to be empty."
       }
     },
     {
@@ -252,7 +228,7 @@
       "title": "Page not found",
       "route": "*",
       "requirements": [
-        "L2-044"
+        "L2-056"
       ],
       "states": [
         "default"
@@ -269,6 +245,7 @@
       "title": "End ride",
       "opens_from": "ride",
       "requirements": [
+        "L2-051",
         "L2-017"
       ],
       "states": [
@@ -341,17 +318,13 @@
       "opens_from": "ride",
       "requirements": [
         "L2-023",
-        "L2-033",
         "L2-095",
-        "L2-088",
         "L2-089"
       ],
       "states": [
         "default",
-        "scroll",
-        "browser",
-        "browser-packets",
-        "browser-bluetooth-off"
+        "packets",
+        "bluetooth-off"
       ],
       "not_applicable": {
         "busy": "Read-only panel; it starts no action that can be in flight.",
@@ -404,18 +377,18 @@
       "title": "Connection banner",
       "opens_from": "ride",
       "requirements": [
+        "L2-054",
         "L2-018",
-        "L2-034",
-        "L2-039",
-        "L2-043"
+        "L2-099"
       ],
       "states": [
         "info",
         "success",
-        "warning",
-        "danger",
-        "persistent"
-      ]
+        "danger"
+      ],
+      "not_applicable": {
+        "warning": "Wattzup has no server connection to lose; warnings during a ride are toasts (ride-toast)."
+      }
     }
   ]
 }

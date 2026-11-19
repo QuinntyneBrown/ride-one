@@ -14,9 +14,9 @@ Container_Boundary(web, "Wattzup Web") {
   Component(toggle, "BeepsToggle", "Angular component, wz-beeps-toggle", "Countdown beeps on or off")
   Component(toast, "ToastService", "Angular service", "Info toast Beeps on (L2-053)")
 }
-Container(api, "Wattzup API", "ASP.NET Core", "Streams workout state")
+Container(api, "@wattzup/browser", "In-page contracts", "BrowserStateSource forwards each new BikeState")
 
-Rel(api, live, "data: BikeState", "SSE")
+Rel(api, live, "New BikeState", "LIVE_STATE_SOURCE")
 Rel(banner, live, "Reads workout")
 Rel(banner, det, "observe(workout)")
 Rel(banner, text, "bannerText / announcement")

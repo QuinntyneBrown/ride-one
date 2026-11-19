@@ -1,11 +1,11 @@
 @startuml
 !include <C4/C4_Context>
 LAYOUT_WITH_LEGEND()
-title System Context — Simulate the bike in the browser
+title System Context — Simulate the bike
 
-Person(dev, "Developer", "Runs the edition with ?simulate")
-System_Ext(runner, "Playwright runner", "Runs browser-edition specs in Chromium")
-System(wattzup, "Wattzup browser edition", "Development or test build")
+Person(dev, "Developer", "Runs Wattzup with ?simulate")
+System_Ext(runner, "Playwright runner", "Runs Playwright specs in Chromium")
+System(wattzup, "Wattzup", "Development or test build")
 Rel(dev, wattzup, "Opens /?simulate")
 Rel(runner, wattzup, "Loads with a fake navigator.bluetooth; asserts behaviour")
 @enduml

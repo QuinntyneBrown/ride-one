@@ -6,16 +6,16 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Hosting — Static host" #FFF4E5
+  participant "Static files + fallback" as files
+end box
+box "Frontend — Wattzup Web" #E0F2FE
   participant "Router" as router
   participant "NotFoundPage" as page
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "Static files + fallback" as files
-end box
 
 rider -> files : GET /workouts/history
-files --> rider : index.html (fallback for client routes; /api excluded)
+files --> rider : index.html (fallback for client routes, or from the service worker)
 rider -> router : bootstrap; match /workouts/history
 router -> router : no route matches; wildcard ** [L2-056]
 router -> page : activate

@@ -9,51 +9,22 @@ skinparam class {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-title Class structure — Unlock and not-found pages
+title Class structure — Not-found page
 
-class ApiKeyStore <<service>> {
-  +Signal<string | null> key
-  +set(key: string): void
-  +clear(): void
-  -STORAGE_KEY = "wattzup.apiKey"
-}
-class apiKeyInterceptor <<HttpInterceptorFn>> {
-  +intercept(req, next): Observable<HttpEvent>
-}
-class SKIP_UNLOCK_REDIRECT <<HttpContextToken<boolean>>>
-class safeReturnUrl <<pure helper>> {
-  +safeReturnUrl(value: string | null): string
-}
-interface BikeApi <<contract, BIKE_API>> {
-  +verifyKey(key: string): Observable<'ok' | 'rejected' | 'unreachable'>
-}
-class HttpBikeApi
-class UnlockPage <<component wz-unlock-page>> {
-  +FormControl<string> key
-  +Signal<'default' | 'submitting' | 'rejected' | 'unreachable'> phase
-  +string host
-  +submit(): void
+class "app.routes.ts" as routes <<routes>> {
+  +'**': NotFoundPage, title "Page not found · Wattzup"
 }
 class NotFoundPage <<component wz-not-found-page>> {
-  +string path
+  +path: string
 }
 class AuthCard <<component wz-auth-card>> {
   +input centered: boolean
 }
-class Alert <<component wz-alert>>
-class LiveStateService <<service>> {
-  +restart(): void
+class Router <<Angular>> {
+  +url: string
 }
 
-BikeApi <|.. HttpBikeApi
-apiKeyInterceptor --> ApiKeyStore
-apiKeyInterceptor ..> SKIP_UNLOCK_REDIRECT : honours
-HttpBikeApi ..> SKIP_UNLOCK_REDIRECT : sets on verifyKey
-UnlockPage ..> BikeApi
-UnlockPage --> ApiKeyStore
-UnlockPage ..> safeReturnUrl
-UnlockPage ..> LiveStateService
-UnlockPage *-- AuthCard
-UnlockPage *-- Alert
+routes ..> NotFoundPage : wildcard
 NotFoundPage *-- AuthCard
+NotFoundPage ..> Router : reads url
 @enduml

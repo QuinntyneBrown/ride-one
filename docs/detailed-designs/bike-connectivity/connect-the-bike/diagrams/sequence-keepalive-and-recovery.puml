@@ -23,7 +23,7 @@ loop every 1 s while connected
   link -> store : touch()
 end
 bike -> link : gattserverdisconnected
-link -> store : ble 'disconnected' [L2-091 AC2]
+link -> store : ble 'disconnected' [L2-004 AC1]
 store -> engine : ble changed
 engine -> store : workout.status 'paused: bike disconnected' (L2-013)
 link -> clock : after(3000, retry)
@@ -35,13 +35,13 @@ loop until connected or the ride ends
     link -> link : subscribe; init commands 300 ms apart
     link -> store : ble 'connected'
     store -> engine : resume per L2-013
-  else Web Bluetooth error [L2-091 AC3]
+  else Web Bluetooth error [L2-004 AC2]
     bike --> link : NetworkError: <message>
     link -> store : ble 'error', error 'NetworkError: <message>'
     link -> clock : after(3000, retry)
   end
 end
-opt rider presses Reconnect [L2-091 AC5]
+opt rider presses Reconnect [L2-004 AC5]
   rider -> link : reconnect()
   link -> link : cancel pending retry; connect at once
 end

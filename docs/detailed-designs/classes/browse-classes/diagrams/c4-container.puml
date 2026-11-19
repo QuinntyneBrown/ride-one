@@ -3,18 +3,16 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Browse the class library
 
-Person(rider, "Rider", "Picks a class")
-Person(owner, "Owner", "Edits the catalogue")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular", "Class library page at /classes")
-  Container(api, "Wattzup API", "ASP.NET Core", "Reads and serves the catalogue")
-  ContainerDb(file, "Class catalogue", "JSON file", "classes.json: shelves and classes")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Class library page; reads classes.json from its host")
+  Container(webbt, "Web Bluetooth stack", "navigator.bluetooth", "GATT client")
 }
-System_Ext(ytimg, "YouTube image host", "i.ytimg.com")
+System_Ext(bike, "Echelon bike", "BLE GATT")
+System_Ext(youtube, "YouTube", "IFrame player and thumbnails")
 
-Rel(rider, web, "Uses", "Browser")
-Rel(web, api, "GET /api/classes", "JSON/HTTP")
-Rel(api, file, "Reads and watches", "File system")
-Rel(owner, file, "Edits")
-Rel(web, ytimg, "Loads covers from", "HTTPS, img-src")
+Rel(rider, app, "Uses")
+Rel(app, webbt, "connect, notify, write")
+Rel(webbt, bike, "GATT", "BLE")
+Rel(app, youtube, "Embeds", "HTTPS, CSP-limited")
 @enduml

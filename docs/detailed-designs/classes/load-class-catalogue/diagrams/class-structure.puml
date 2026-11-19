@@ -9,7 +9,7 @@ skinparam class {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-title Class structure — Load classes in the browser
+title Class structure — Load the class catalogue
 
 interface ClassApi {
   +list(): Promise<ClassCatalogue>

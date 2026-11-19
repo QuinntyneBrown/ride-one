@@ -12,19 +12,19 @@ Container_Boundary(web, "Wattzup Web") {
   Component(cal, "StreakCalendar", "Presentation component", "Six weeks and the weekly goal")
   Component(ach, "AchievementList", "Presentation component", "Goals and progress")
   Component(radio, "RadioGroup", "Presentation component", "Class to compare")
-  Component(sapi, "SESSION_API", "Injection token", "HttpSessionApi")
+  Component(sapi, "SESSION_API", "Injection token", "Bound to BrowserSessionApi")
 }
-Container_Boundary(api, "Wattzup API") {
-  Component(ep, "SessionEndpoints", "Minimal API", "GET /api/sessions, GET /api/progress")
-  Component(calc, "ProgressCalculator", "Pure Core", "Streak, week, classes, achievements")
-  Component(store, "SessionStore", "Core", "Sessions newest first")
+Container_Boundary(lib, "@wattzup/browser") {
+  Component(ep, "BrowserSessionApi", "lib/contracts", "Session list and progress")
+  Component(calc, "progress-calculator", "lib/engine, pure", "Streak, week, classes, achievements")
+  Component(store, "SessionStore", "lib/storage", "Sessions newest first, in IndexedDB")
 }
 
 Rel(page, sapi, "list(), progress()")
 Rel(library, sapi, "progress()")
-Rel(sapi, ep, "GET", "JSON")
+Rel(ep, sapi, "Implements")
 Rel(ep, store, "Reads")
-Rel(ep, calc, "Report(sessions, now, zone)")
+Rel(ep, calc, "report(sessions, now, zone)")
 Rel(page, view, "Shapes with")
 Rel(page, trend, "Renders")
 Rel(page, list, "Renders")

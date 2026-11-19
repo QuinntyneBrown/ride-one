@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components — Check browser support
 
-Container_Boundary(app, "Wattzup Web, browser edition") {
+Container_Boundary(app, "Wattzup Web") {
   Component(port, "WebBluetoothPort", "@wattzup/browser lib/bluetooth", "Only wrapper over navigator.bluetooth")
   Component(verdict, "supportVerdict()", "Pure function", "ready, insecure, unsupported")
   Component(pairing, "BrowserBikePairing", "BIKE_PAIRING implementation", "support signal, checkAgain()")

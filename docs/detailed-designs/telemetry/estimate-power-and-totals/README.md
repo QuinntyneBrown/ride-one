@@ -18,33 +18,33 @@ Power follows each telemetry frame. Target power and the totals follow the worko
 
 ## Description
 
-Backend (`Wattzup.Core`; no rule lives in `Wattzup.Protocol`, the transports or the endpoints):
+All rules live in `@wattzup/browser`'s `lib/engine/`; no rule lives in `lib/protocol/`, `lib/bluetooth/` or the contracts:
 
-- **`PowerEstimator`** — static and pure. `EstimateWatts(int? cadence, int? level)` returns `null` when either value is `null` (L2-049). Otherwise it returns `Math.Max(0, (int)Math.Round(cadence × (0.55 + level × 0.155), MidpointRounding.AwayFromZero))`. Away-from-zero rounding matches the design's JavaScript `Math.round` for these non-negative values. Cadence 95 at level 18 gives 317; cadence 98 at level 18 gives 327 (L2-049).
-- **`TelemetryIngestor`** (see `decode-bike-telemetry`) — sets `power = EstimateWatts(cadence, resistance)` in the same `BikeStateStore.Update` that applies each decoded frame, so `power` always matches the cadence and resistance it is shown with.
-- **`RideTotals`** — immutable record owned by the engine's `WorkoutRun`: `RunningSeconds`, `PowerSum` and `DistanceKm` (unrounded). `Tick(int? power, double? speedKmh)` adds `power ?? 0` to `PowerSum`, adds `(speedKmh ?? 0) ÷ 3600` to `DistanceKm` and adds 1 to `RunningSeconds` (L2-049). Derived values:
-  - `AvgPower` — `round(PowerSum ÷ RunningSeconds)`, or `0` before the first running second.
-  - `DistanceKmRounded` — `DistanceKm` rounded to 2 decimals.
-  - `Kcal` — `round(AvgPower × RunningSeconds ÷ 1000 ÷ 0.24 ÷ 4.184)`. `AvgPower` 208 after 760 running seconds gives 157 (L2-049).
-- **`WorkoutEngine`** (see `workouts/run-interval-workout`) — on each running tick it calls `RideTotals.Tick` with the current `power` and `speed_kmh`, and writes `avg_power`, `distance_km`, `kcal` and `target_power` in the tick's 1 `BikeStateStore.Update`:
-  - `target_power` is `EstimateWatts(segment.cadence, segment.level)` while `status` is `running`, and `null` otherwise (L2-049).
+- **`estimateWatts(cadence, level)`** (`power-estimator.ts`) — pure. It returns `null` when either value is `null` (L2-049). Otherwise it returns `max(0, round(cadence × (0.55 + level × 0.155)))`, halves rounded away from zero, which matches the design's JavaScript `Math.round` for these non-negative values. Cadence 95 at level 18 gives 317; cadence 98 at level 18 gives 327 (L2-049).
+- **`TelemetryIngestor`** (see `decode-bike-telemetry`) — sets `power = estimateWatts(cadence, resistance)` in the same `BikeStateStore.update` that applies each decoded frame, so `power` always matches the cadence and resistance it is shown with.
+- **`RideTotals`** (`ride-totals.ts`) — immutable value owned by the engine's `WorkoutRun`: `runningSeconds`, `powerSum` and `distanceKm` (unrounded). `tick(power, speedKmh)` adds `power ?? 0` to `powerSum`, adds `(speedKmh ?? 0) ÷ 3600` to `distanceKm` and adds 1 to `runningSeconds` (L2-049). Derived values:
+  - `avgPower` — `round(powerSum ÷ runningSeconds)`, or `0` before the first running second.
+  - `distanceKmRounded` — `distanceKm` rounded to 2 decimals.
+  - `kcal` — `round(avgPower × runningSeconds ÷ 1000 ÷ 0.24 ÷ 4.184)`. `avgPower` 208 after 760 running seconds gives 157 (L2-049).
+- **`WorkoutEngine`** (see `workouts/run-interval-workout`) — on each running second it calls `RideTotals.tick` with the current `power` and `speed_kmh`, and writes `avg_power`, `distance_km`, `kcal` and `target_power` in 1 `BikeStateStore.update`:
+  - `target_power` is `estimateWatts(segment.cadence, segment.level)` while `status` is `running`, and `null` otherwise (L2-049).
   - Starting a workout replaces the run, so the totals reset to `0`, `0.00` and `0` (L2-049, L2-013).
   - Ending or stopping a workout leaves the last totals in the state until the next start (L2-049).
   - Before any workout has started, the 3 totals are `null` (L2-014). The dashboard shows them as `0`, `0.00` and `0` (L2-022, see `dashboard/show-live-metrics`).
-- **`BikeState.HeartRate`** — always `null`. No transport and no Core service writes it (L2-049, ADR 0003).
+- **`heart_rate`** — always `null`. Nothing writes it (L2-049, ADR 0003).
 
-Frontend: the power readout, its delta to the target and the totals strip belong to `dashboard/show-live-metrics` (L2-021, L2-022). The setup preview's expected power and energy (L2-059) use a TypeScript twin of `EstimateWatts` in `frontend/projects/wattzup/src/app/core/`, tested against the same table of cases as `PowerEstimator`.
+The power readout, its delta to the target and the totals strip belong to `dashboard/show-live-metrics` (L2-021, L2-022). The setup preview's expected power and energy (L2-059) use the same estimate in the app's `core/`, tested against the same table of cases.
 
 Verification:
 
-- `Wattzup.Core.Tests` — `PowerEstimator` table: (95, 18) → 317; (98, 18) → 327; (`null`, 18) → `null`; (95, `null`) → `null`; (0, 18) → 0. `RideTotals` table: the 760 s case giving `kcal` 157; `null` power counted as 0; distance from `speed_kmh` ÷ 3600; reset on start; values kept on stop.
-- `Wattzup.Api.AcceptanceTests` — with `SimulatedBikeTransport` and `FakeTimeProvider`, a started workout advanced by 10 ticks shows non-zero `avg_power` and `distance_km` in `GET /api/status`, `target_power` while running and `null` after pause, and `heart_rate` `null` throughout.
+- `power-estimator.spec.ts` — (95, 18) → 317; (98, 18) → 327; (`null`, 18) → `null`; (95, `null`) → `null`; (0, 18) → 0.
+- `workout-engine.spec.ts` with `FakeClock` — the 760 s case giving `kcal` 157; `null` power counted as 0; distance from `speed_kmh` ÷ 3600; reset on start; values kept on stop; `target_power` while running and `null` after pause; `heart_rate` `null` throughout.
 
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-049` | `L1-002` | Power and ride-total estimates. Estimates live in `Wattzup.Core`. |
+| `L2-049` | `L1-002` | Power and ride-total estimates. Power shall be estimated from cadence and resistance, target power from the segment's cadence aim and level, and the ride's average power, distance and energy accumulated each running second, reset on start and kept on end; heart rate shall stay `null`. |
 
 ## Diagrams
 
@@ -56,19 +56,19 @@ The bike supplies cadence and resistance; Wattzup estimates power and totals fro
 
 ### Containers
 
-All estimates are computed in the Wattzup API container and pushed to Wattzup Web in the state.
+All estimates are computed in the Wattzup app in the rider's browser and carried in the live state.
 
 ![C4 container view for estimating power and ride totals](diagrams/c4-container.png)
 
 ### Components
 
-`TelemetryIngestor` and `WorkoutEngine` call `PowerEstimator`. The engine keeps `RideTotals` per run. Both write through `BikeStateStore`.
+`TelemetryIngestor` and `WorkoutEngine` call `estimateWatts`. The engine keeps `RideTotals` per run. Both write through `BikeStateStore`.
 
 ![C4 component view for estimating power and ride totals](diagrams/c4-component.png)
 
 ### Class structure
 
-`PowerEstimator` is a pure function and `RideTotals` an immutable accumulator, so every formula is a table test.
+`estimateWatts` is a pure function and `RideTotals` an immutable accumulator, so every formula is a table test.
 
 ![Class diagram for estimating power and ride totals](diagrams/class-structure.png)
 

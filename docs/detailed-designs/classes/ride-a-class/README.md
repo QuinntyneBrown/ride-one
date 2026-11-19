@@ -12,7 +12,7 @@ A class from the library (`classes/browse-classes`) is a plan with the YouTube v
 
 **effort level** / **recover level** — on the class page, the highest `work_level` or `rest_level` of the plan; one step of its stepper moves every effort's (recover's) level by 1, which keeps the plan's shape
 
-Starting a class adds no new backend path. The page posts the ordinary `POST /api/workout` (`workouts/start-and-stop-workout`) with the plan as shown and `video` `{url, start_seconds}` or `null`. The dashboard then plays the video as `workouts/ride-along-video` describes. The state contract is unchanged.
+Starting a class adds no new contract. The page calls the ordinary `WORKOUT_API.start` (`workouts/start-and-stop-workout`) with the plan as shown and `video` `{url, start_seconds}` or `null`. The dashboard then plays the video as `workouts/ride-along-video` describes. The state contract is unchanged.
 
 The feature reuses four existing parts:
 - the L2-029 link and start-point rules (`core/video-link.ts`);
@@ -22,9 +22,9 @@ The feature reuses four existing parts:
 
 ## Description
 
-### Backend
+### Contracts
 
-None new. `GET /api/classes/{id}` belongs to `classes/browse-classes` (L2-078 criteria 3 and 4). `POST /api/workout` validates the plan exactly as on setup (L2-010).
+None new. `CLASS_API.get(id)` belongs to `classes/browse-classes` and `classes/load-class-catalogue` (L2-078 criteria 3 and 4). `WORKOUT_API.start` validates the plan exactly as on setup (L2-010) and accepts the class's `class_id` (L2-081 criterion 7).
 
 ### Frontend (`frontend/projects/wattzup/src/app/`, with presentation components in `frontend/projects/components/`)
 
@@ -71,9 +71,9 @@ None new. `GET /api/classes/{id}` belongs to `classes/browse-classes` (L2-078 cr
     - `Reset to class` appears while `isEdited`, and puts back `draftOf(entry)` (criterion 9).
   - **Start ride.**
     - It reads `LiveStateService.state().workout`. With an active workout, it opens the replace-ride dialog (L2-052) first.
-    - With none, or once the dialog confirms, it calls `WORKOUT_API.start(toStartRequest(draft))`. The button reads `Starting…` and is disabled while the request runs.
+    - With none, or once the dialog confirms, it calls `WORKOUT_API.start(toStartRequest(draft))`. The button reads `Starting…` and is disabled while the call runs.
     - Success navigates to `/` (criterion 10).
-    - A failure shows the `alert` `Couldn't start the ride` / `The Wattzup server didn't accept the plan. Your settings are kept — try again.` above the start button, which then reads `Try again` (`class/error`), and keeps every value (criterion 11).
+    - A failure shows the `alert` `Couldn't start the ride` / `Wattzup couldn't start the plan. Your settings are kept — try again.` above the start button, which then reads `Try again` (`class/error`), and keeps every value (criterion 11).
   - **Full setup.** `Change intervals in full setup` is a link to `/setup`; a plain click calls `toSetupDrafts(draft)`. It saves the drafts through `PlanDraftStore`: `save`, `saveIntervals` for an `intervals` class, and `saveVideo`. These replace what was there, and then it navigates to `/setup`. Setup restores its mode from `PlanDraft.mode` as it does on any load, so it opens in the class's mode with the class's plan and video (criterion 12).
 - **Layout.** Under 1024 px the preview keeps 16:9 at full width above the plan card. Under 576 px nothing scrolls sideways. Every button has a visible focus ring (criterion 15).
 
@@ -94,10 +94,10 @@ None new. `GET /api/classes/{id}` belongs to `classes/browse-classes` (L2-078 cr
 
 ### Acceptance tests
 
-The backend paths are covered by `classes/browse-classes` (`GET /api/classes/{id}`) and `workouts/start-and-stop-workout` (`POST /api/workout`). This feature adds no API test.
+The contracts are covered by `classes/load-class-catalogue` (`CLASS_API.get`) and `workouts/start-and-stop-workout` (`WORKOUT_API.start`). This feature adds no contract test.
 
 Playwright (`frontend/e2e/`, Chromium only):
-- **Fixtures.** The shared fixture answers `/api/classes/{id}` from recordings (`e2e/fixtures/recorded/class-30-minute-hiit-cardio.json`, `class-not-found.json`). It answers `POST /api/workout` and the event stream as on setup, and serves YouTube through `FakeYouTube` (`workouts/ride-along-video`).
+- **Fixtures.** The spec serves a test `classes.json` beside `index.html`, drives the bike through the fake `navigator.bluetooth`, and serves YouTube through `FakeYouTube` (`workouts/ride-along-video`).
 - **Page object.** `e2e/pages/class.page.ts`.
 - **Spec `e2e/class.spec.ts`:**
   - `shows the class header, chips and description, with All classes back to the library` (L2-080 AC1)
@@ -128,8 +128,8 @@ Unit tests: `class-draft.spec.ts` covers each row of `structureLine` (hiit, inte
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-080` | `L1-014` | Class page. `/classes/:id` shows one class (L2-078) and starts a ride with its plan and video. Changes made here apply to this ride only; the catalogue is never written. |
-| `L2-078` | `L1-005` | Class endpoints. Criteria 3 and 4: `GET /api/classes/{id}` answers 200 with the class, or 404 ProblemDetails with `code` `class_not_found` for an id not in the catalogue. |
-| `L2-010` | `L1-004` | Workout plan definition and validation. The class page posts the plan and `video` `{url, start_seconds}` to `POST /api/workout`, which validates them as on setup. |
+| `L2-078` | `L1-005` | Class contract. Criteria 3 and 4: `CLASS_API.get(id)` answers the class, or not found for an id not in the catalogue. |
+| `L2-010` | `L1-004` | Workout plan definition and validation. The class page starts the plan and `video` `{url, start_seconds}` through `WORKOUT_API.start`, which validates them as on setup. |
 | `L2-029` | `L1-007` | Ride setup screen. Criteria 18 and 19: the link preview, the start point and the invalid-link message, reused on the class page; criterion 12 of L2-080 opens setup prefilled. |
 | `L2-052` | `L1-007` | Replace-ride dialog. Given an active workout when Start ride is pressed, the dialog opens first. |
 | `L2-059` | `L1-007` | Ride preview on setup. The class page's plan card computes total time, structure, time under load and expected power as the setup preview does. |
@@ -145,7 +145,7 @@ The rider opens a class in Wattzup and starts the ride, and Wattzup drives the b
 
 ### Containers
 
-Wattzup Web reads the class from the Wattzup API, and posts the ride to it. The YouTube player runs in the browser beside Wattzup Web.
+Wattzup Web reads the class through `CLASS_API` and starts the ride through `WORKOUT_API`, both in the page. The YouTube player runs in the browser beside Wattzup Web.
 
 ![C4 container view for riding a class](diagrams/c4-container.png)
 
@@ -163,7 +163,7 @@ Wattzup Web reads the class from the Wattzup API, and posts the ride to it. The 
 
 ### Behaviour — open a class
 
-The page asks for the class by id and shows a skeleton. A class gives the header, the preview and the plan card. A 404 gives `We can't find that class` (L2-080 criteria 1 to 3 and 13).
+The page asks for the class by id and shows a skeleton. A class gives the header, the preview and the plan card. Not found gives `We can't find that class` (L2-080 criteria 1 to 3 and 13).
 
 ![Sequence diagram for opening a class](diagrams/sequence-open-class.png)
 
@@ -175,7 +175,7 @@ A press of `Raise work resistance` moves every effort's level by 1 and recompute
 
 ### Behaviour — start the ride
 
-With a ride in progress, the replace-ride dialog asks first. The page posts the plan as shown with the video, and opens the dashboard on success. A failure keeps every value and offers `Try again` (L2-080 criteria 10 and 11, L2-052).
+With a ride in progress, the replace-ride dialog asks first. The page starts the plan as shown with the video, and opens the dashboard on success. A failure keeps every value and offers `Try again` (L2-080 criteria 10 and 11, L2-052).
 
 ![Sequence diagram for starting a class ride](diagrams/sequence-start-class-ride.png)
 

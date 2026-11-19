@@ -6,7 +6,7 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider or helper" as rider
-box "Frontend — Wattzup Web, browser edition" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "Diagnostics dialog" as dlg
 end box
 box "Frontend — @wattzup/browser" #ECFDF3
@@ -25,7 +25,7 @@ loop each packet from the bike
 end
 rider -> dlg : Open Diagnostics
 dlg -> ring : view()
-dlg --> rider : Browser rows, backend rows left out [L2-095 AC3];\n212 commands · 20 KB
+dlg --> rider : Browser, bike and storage rows [L2-023 AC1];\n212 commands · 20 KB
 rider -> dlg : Log every packet on
 dlg -> ring : setEveryPacket(true)
 rider -> dlg : Download packet log

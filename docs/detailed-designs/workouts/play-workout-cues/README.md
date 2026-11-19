@@ -48,7 +48,7 @@ With `prefers-reduced-motion: reduce`, the pulse and the banner animation are no
 
 ### Acceptance tests
 
-Playwright (`frontend/e2e/`), with `/api/**` answered by the shared fixture, `/api/events` served by the SSE fixture, and time controlled by `page.clock`. Tones are checked through a test double of `AudioContext` installed by the fixture with `page.addInitScript`, which records each oscillator's frequency and duration.
+Playwright (`frontend/e2e/`), with the fake `navigator.bluetooth` fixture driving the bike, and time controlled by `page.clock`. Tones are checked through a test double of `AudioContext` installed by the fixture with `page.addInitScript`, which records each oscillator's frequency and duration.
 
 - `e2e/pages/ride.page.ts` — the ride page object, which owns the beeps toggle, phase banner, live region and time-left locators.
 - `e2e/workout-cues.spec.ts`:

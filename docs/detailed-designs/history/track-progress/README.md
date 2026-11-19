@@ -16,31 +16,24 @@ A rider who repeats a class wants to see the trend. They also want a reason to r
 
 **achievement** — a goal measured over all sessions, such as `Seven straight` or `Century`, expressed by plan properties and never by a class id (ADR 0014, L2-087)
 
-Every figure here is computed in `Wattzup.Core` from the real sessions and the time now (ADR 0015). The page has honest empty states and shows no seeded history: no sessions yet, no class ridden twice yet, and no streak.
+Every figure here is computed in `@wattzup/browser` from the real sessions and the time now (L2-087). The page has honest empty states and shows no seeded history: no sessions yet, no class ridden twice yet, and no streak.
 
 ## Description
 
-### Core (`Wattzup.Core/Sessions/ProgressCalculator.cs`, new, pure)
+### Figures (`@wattzup/browser`, `lib/engine/progress-calculator.ts`, pure)
 
-All methods take the sessions (newest first), `DateTimeOffset now` and the `TimeZoneInfo` (`TimeProvider.LocalTimeZone`). Each row of the L2-087 tables has a unit test.
-- **`RiddenDays(sessions, zone)`** — the set of local `DateOnly` on which a session ended.
-- **`Streak(sessions, now, zone)`** returns `StreakFigures(int Current, int Best, bool RodeToday)`:
+Every function takes the sessions (newest first), the time now in epoch milliseconds and a `TimeZone` (`BROWSER_TIME_ZONE`, from `Date.getTimezoneOffset`; a fixed offset in tests). Each row of the L2-087 tables has a unit test.
+- **`riddenDays(sessions, zone)`** — the set of local days (`YYYY-MM-DD`) on which a session ended.
+- **`streak(sessions, nowMs, zone)`** returns `{current, best, rode_today}`:
   - **Current.** Count back from today when today was ridden, else from yesterday, while each day is ridden.
-  - **Best.** The longest run of consecutive days, and never less than `Current`.
-- **`WeekStart(now, zone)`** returns Monday 00:00 of the local week. **`WeekRides`** counts the sessions that ended at or after it. `WeeklyGoal` is 4.
-- **`Achievements(sessions, streak)`** — the six rows of the L2-087 table as `AchievementFigures(Id, Title, Detail, Goal, Unit, Value, Unlocked)`, ordered unlocked first, then by `Value ÷ Goal` descending, then by table order.
-- **`Report(sessions, now, zone)`** returns `ProgressReport` with:
-  - `Today`;
-  - `Streak`;
-  - `RideDays`, the ridden days in this week and the five before it, oldest first;
-  - `Week(Rides, Goal)`;
-  - `Totals(Rides, RiddenSeconds, DistanceKm)`;
-  - `Classes`, one `ClassAttempts(ClassId, Title, Attempts)` per class with a finished attempt, titled by its latest attempt, attempts oldest first;
-  - `Achievements`.
+  - **Best.** The longest run of consecutive days, and never less than `current`.
+- **`weekStart(nowMs, zone)`** returns Monday 00:00 of the local week. **`weekRides`** counts the sessions that ended at or after it. `WEEKLY_GOAL` is 4.
+- **`achievements(sessions, streak)`** — the six rows of the L2-087 table as `{id, title, detail, goal, unit, value, unlocked}`, ordered unlocked first, then by `value ÷ goal` descending, then by table order.
+- **`report(sessions, nowMs, zone)`** returns the contract's `ProgressReport` with `today`, `streak`, `ride_days` (the ridden days in this week and the five before it, oldest first), `week {rides, goal}`, `totals {rides, ridden_seconds, distance_km}`, `classes` (one `{class_id, title, attempts}` per class with a finished attempt, titled by its latest attempt, attempts oldest first) and `achievements`.
 
-### API
+### Contract
 
-- **`GET /api/progress`** (`SessionEndpoints`) → `ProgressResponse`, the `ProgressReport` in snake_case, with `today` and `ride_days` as `YYYY-MM-DD` (L2-083 criterion 4). It reads `SessionStore.All` and `TimeProvider` (the host's, faked in tests).
+- **`SESSION_API.progress()`** (`BrowserSessionApi`) resolves `report(SessionStore's sessions, the clock's now, BROWSER_TIME_ZONE)`, with `today` and `ride_days` as `YYYY-MM-DD` (L2-083 criterion 4).
 
 ### Frontend
 
@@ -88,10 +81,7 @@ All methods take the sessions (newest first), `DateTimeOffset now` and the `Time
 
 ### Acceptance tests
 
-`Wattzup.Api.AcceptanceTests` (`SessionsApiTests`), with `FakeTimeProvider` set to a known local time:
-- `Given_progress_then_it_answers_the_figures_in_local_days` (L2-083 AC4)
-
-`Wattzup.Core.Tests` (`ProgressCalculatorTests`) has one case per row of the three L2-087 tables. These include the 23:59 / 00:01 boundary, yesterday-only, two days ago, two rides on one day, a Sunday versus the Monday week start, each achievement at goal − 1 and at goal, the ordering, and no sessions at all (L2-087 AC3).
+`progress-calculator.spec.ts` (`@wattzup/browser`), with the time and a fixed UTC−5 zone set by each test, has one case per row of the three L2-087 tables. These include the 23:59 / 00:01 boundary, yesterday-only, two days ago, two rides on one day, a Sunday versus the Monday week start, each achievement at goal − 1 and at goal, the ordering, and no sessions at all (L2-087 AC3).
 
 Playwright (`e2e/progress.spec.ts`, page object `e2e/pages/progress.page.ts`), one test per behaviour of L2-086: the header and `Ride to make it <n>` or `Ride again` (AC1); the class radios and measure tabs by click and arrow keys (AC2, AC3); the chart's points as links, the latest larger (AC4); dips counted down as better (AC3); no trend (AC5); the newest 8 sessions and `Show all` (AC6); the streak messages, the six-week calendar, this week and all time (AC7); the achievements (AC8); `No rides yet` (AC9); loading and error (AC10).
 
@@ -107,8 +97,8 @@ Playwright (`e2e/progress.spec.ts`, page object `e2e/pages/progress.page.ts`), o
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-086` | `L1-015` | Progress page. `Getting stronger` with a class radio group, `Measure` tabs and a trend chart, the session list, the streak calendar, the weekly goal and the achievements, with the ride button, and no-trend, empty, loading and error states. |
-| `L2-087` | `L1-015` | Streaks, weekly goal, previous attempt, bests and achievements: the rules as tables, computed in Core from the sessions and the time now in the backend's local time zone. |
-| `L2-083` | `L1-005` | Sessions API. Criterion 4: `GET /api/progress`. |
+| `L2-087` | `L1-015` | Streaks, weekly goal, previous attempt, bests and achievements: the rules as tables, computed in `@wattzup/browser` from the sessions and the time now in the browser's time zone. |
+| `L2-083` | `L1-005` | Session contract. Criterion 4: `SESSION_API.progress()`. |
 | `L2-079` | `L1-014` | Class library page. Criterion 13: the `Progress` link with the streak. |
 
 ## Diagrams
@@ -127,13 +117,13 @@ Wattzup Web reads the session summaries and the progress figures from the Wattzu
 
 ### Components
 
-`ProgressPage` calls `SESSION_API`, shapes the answer with `progress-view.ts`, and renders `TrendChart`, `SessionList`, `StreakCalendar` and `AchievementList`. `ClassLibraryPage` also reads the streak for its link. `SessionEndpoints` asks `ProgressCalculator` for the report.
+`ProgressPage` calls `SESSION_API`, shapes the answer with `progress-view.ts`, and renders `TrendChart`, `SessionList`, `StreakCalendar` and `AchievementList`. `ClassLibraryPage` also reads the streak for its link. `BrowserSessionApi` asks `report` for the figures.
 
 ![C4 component view for tracking progress](diagrams/c4-component.png)
 
 ### Class structure
 
-`ProgressCalculator` returns a `ProgressReport` made of the streak, the week, the totals, the class attempts and the achievement figures. On the frontend, `progress-view.ts` turns the generated `Progress` into the views that the components take.
+`report` returns a `ProgressReport` made of the streak, the week, the totals, the class attempts and the achievement figures. In the app, `progress-view.ts` turns the contract's `Progress` into the views that the components take.
 
 ![Class diagram for tracking progress](diagrams/class-structure.png)
 

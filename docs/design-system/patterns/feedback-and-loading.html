@@ -90,10 +90,10 @@
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#when">When to use</a></li><li><a href="#structure">Structure</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
     <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
-<p>Pick the lightest feedback that fits: the control itself (busy button, Setting 22…), then inline text, then a toast, then an alert. Skeletons for known layouts, the spinner only when the layout is unknown (scanning).</p>
+<p>Pick the lightest feedback that fits: the control itself (busy button, Setting 22…), then inline text, then a toast, then an alert. Skeletons for known layouts, the spinner only when the layout is unknown.</p>
     </section>
     <section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
-<ul><li>Busy buttons for requests the rider started (Start, End, Unlock).</li><li>Pending target resistance under the level until the bike confirms.</li><li>Toasts for results that happen away from the control (slow to confirm, couldn't set).</li><li>Skeletons on first load of ride and setup.</li></ul>
+<ul><li>Busy buttons for actions the rider started (Start, End).</li><li>Pending target resistance under the level until the bike confirms.</li><li>Toasts for results that happen away from the control (slow to confirm, couldn't set).</li><li>Skeletons on first load of ride and setup.</li></ul>
     </section>
     <section class="ds-section" id="structure"><h2><a href="#structure">Structure</a></h2>
 <div class="ds-example"><div class="ds-example__canvas "><button class="btn btn--primary" type="button" aria-busy="true" disabled>Starting…</button><span class="inline-status inline-status--warning"><span class="dot" aria-hidden="true"></span>Setting 22…</span><span class="spinner" aria-hidden="true"></span><span class="skeleton skeleton--text" style="width: 8rem;" aria-hidden="true"></span></div><div class="ds-example__caption"><span>Busy, pending, spinner, skeleton.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;button class="btn btn--primary" type="button" aria-busy="true" disabled&gt;Starting…&lt;/button&gt;

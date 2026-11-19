@@ -5,15 +5,15 @@ skinparam shadowing false
 skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "LiveStateService" as live
   participant "RidePage" as page
   participant "VideoSync" as sync
   participant "video-sync.ts" as rules
   participant "YOUTUBE_PLAYER handle" as player
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "EventsEndpoints" as events
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserStateSource" as events
 end box
 
 events -> live : state (workout.status, elapsed_seconds, plan.video)

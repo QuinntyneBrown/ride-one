@@ -9,7 +9,7 @@ skinparam class {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-title Class structure — Build and host the browser edition
+title Class structure — Build and host Wattzup
 
 package "@wattzup/api" {
   interface BikeApi
@@ -18,7 +18,7 @@ package "@wattzup/api" {
   interface SessionApi
   interface LiveStateSource {
     +state: Signal<BikeState | null>
-    +connection: Signal<StreamConnection>
+    +lastStateAt: Signal<Date | null>
     +ensureStarted(): void
   }
   interface BikePairing {
@@ -30,13 +30,10 @@ package "@wattzup/api" {
     +exportAll(): Promise<Blob>
     +importFile(file: File): Promise<ImportReport>
   }
-  class EDITION <<InjectionToken>> {
-    'backend' | 'browser'
-  }
 }
 
 package "@wattzup/browser" {
-  class "Shared services" as Shared <<provideBrowserEdition()>> {
+  class "Shared services" as Shared <<provideBrowserContracts()>> {
     +BikeStateStore
     +BikeLink
     +WorkoutEngine
@@ -49,13 +46,13 @@ package "@wattzup/browser" {
   class BrowserStateSource
   class BrowserBikePairing
   class BrowserSessionArchive
-  class "provideBrowserEdition()" as provide <<function>> {
+  class "provideBrowserContracts()" as provide <<function>> {
     +returns: Provider[]
   }
 }
 
 package "wattzup app" {
-  class "app.config.browser.ts" as root <<composition root>>
+  class "app.config.ts" as root <<composition root>>
 }
 
 BrowserBikeApi ..|> BikeApi
@@ -70,5 +67,4 @@ BrowserWorkoutApi --> Shared
 BrowserStateSource --> Shared
 BrowserBikePairing --> Shared
 root ..> provide : calls
-provide ..> EDITION : provides 'browser'
 @enduml

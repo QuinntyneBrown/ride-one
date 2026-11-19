@@ -6,18 +6,15 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "ClassPage" as page
   participant "LiveStateService" as live
   participant "ReplaceRideDialog" as dialog
   participant "class-draft.ts" as draft
-  participant "WORKOUT_API" as client
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "WorkoutEndpoints" as ep
-end box
-box "Backend — Wattzup Core" #ECFDF3
-  participant "WorkoutPlanValidator" as val
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserWorkoutApi (WORKOUT_API)" as ep
+  participant "validatePlan" as val
   participant "WorkoutEngine" as engine
 end box
 
@@ -38,19 +35,16 @@ end
 page -> draft : toStartRequest(draft)
 draft --> page : plan as shown + video {url, start_seconds} or null [L2-080 AC10]
 page --> rider : Starting…, disabled [L2-080 AC10]
-page -> client : start(plan)
-client -> ep : POST /api/workout
-ep -> val : Validate(body, Bike) [L2-010]
+page -> ep : start(plan)
+ep -> val : validatePlan(body) [L2-010]
 alt accepted
-  val --> ep : plan with RideVideo
-  ep -> engine : Start(plan)
+  val --> ep : plan with video {video_id, start_seconds}
+  ep -> engine : startWorkout(plan, class origin)
   engine --> ep : WorkoutSnapshot
-  ep --> client : 200
-  client --> page : started
+  ep --> page : started
   page --> rider : Navigate to /; the video plays in sync (workouts/ride-along-video) [L2-076]
-else rejected or no answer
-  ep --> client : 400 ProblemDetails or network error
-  client --> page : error
+else refused or failed
+  ep --> page : ContractError invalid_workout, or another error
   page --> rider : Couldn't start the ride… Try again; every value kept [L2-080 AC11]
 end
 @enduml

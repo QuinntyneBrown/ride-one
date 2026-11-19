@@ -1,16 +1,16 @@
 @startuml
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
-title Components — Build and host the browser edition
+title Components — Build and host Wattzup
 
-Container_Boundary(app, "Wattzup Web, browser edition") {
-  Component(root, "app.config.browser.ts", "Composition root", "Shared providers plus provideBrowserEdition()")
+Container_Boundary(app, "Wattzup Web") {
+  Component(root, "app.config.ts", "Composition root", "Shared providers plus provideBrowserContracts()")
   Component(screens, "Pages and dialogs", "Angular components", "Inject contract tokens only")
   Component(live, "LiveStateService", "Angular service", "Read-only state signal")
-  Component(tokens, "Contracts and tokens", "@wattzup/api", "BIKE_API, WORKOUT_API, CLASS_API, SESSION_API, LIVE_STATE_SOURCE, BIKE_PAIRING, SESSION_ARCHIVE, EDITION")
-  Component(provide, "provideBrowserEdition()", "@wattzup/browser", "Binds each token to its Browser* class")
+  Component(tokens, "Contracts and tokens", "@wattzup/api", "BIKE_API, WORKOUT_API, CLASS_API, SESSION_API, LIVE_STATE_SOURCE, BIKE_PAIRING, SESSION_ARCHIVE, PACKET_LOG")
+  Component(provide, "provideBrowserContracts()", "@wattzup/browser", "Binds each token to its Browser* class")
   Component(impls, "Browser* contract classes", "@wattzup/browser lib/contracts", "In-browser implementations")
-  Component(runtime, "Shared services", "provideBrowserEdition()", "BikeStateStore, BikeLink, WorkoutEngine, SessionStore: one each")
+  Component(runtime, "Shared services", "provideBrowserContracts()", "BikeStateStore, BikeLink, WorkoutEngine, SessionStore: one each")
 }
 
 Rel(root, provide, "Calls")

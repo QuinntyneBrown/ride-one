@@ -1,6 +1,6 @@
 # 0017. A browser edition with no backend
 
-- **Status:** Accepted
+- **Status:** Superseded by [0019](0019-no-backend.md) (the browser edition is now the only Wattzup); previously amended by [0018](0018-static-content-security-policy.md)
 - **Date:** 2026-11-19
 - **Amends:** [0004](0004-sse-and-single-process-in-memory-state.md), [0013](0013-angular-workspace-with-libraries.md), [0014](0014-class-catalogue-as-a-file.md), [0015](0015-sessions-kept-in-a-file.md)
 

@@ -1,14 +1,14 @@
 @startuml
 !include <C4/C4_Context>
 LAYOUT_WITH_LEGEND()
-title System Context — Host and solution structure
+title System Context — Workspace structure
 
-Person(rider, "Rider", "Rides the bike and watches the dashboard")
-System(wattzup, "Wattzup", "Live telemetry, resistance control and interval workouts for an Echelon bike")
+Person(rider, "Rider", "Rides the bike and watches Wattzup")
+System(wattzup, "Wattzup", "Angular app running in Chrome or Edge; no server")
 System_Ext(bike, "Echelon bike", "Indoor bike exposing a proprietary BLE GATT service")
-System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
+System_Ext(youtube, "YouTube", "Player and thumbnails")
 
-Rel(rider, wattzup, "Opens http://127.0.0.1:8787 in", "Browser")
-Rel(wattzup, os, "Scans, connects and writes through")
-Rel(os, bike, "Exchanges notifications and commands with", "BLE GATT")
+Rel(rider, wattzup, "Uses", "Browser")
+Rel(wattzup, bike, "Notifications and commands", "Web Bluetooth GATT")
+Rel(wattzup, youtube, "Embeds the player; loads covers", "HTTPS")
 @enduml

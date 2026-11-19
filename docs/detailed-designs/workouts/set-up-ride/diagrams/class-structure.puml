@@ -56,7 +56,7 @@ package "projects/wattzup/src/app/core" {
     +save(draft: PlanDraft): void
   }
   interface WorkoutApi {
-    +start(plan): Observable<StartResponse>
+    +start(plan): Promise<WorkoutSnapshot>
   }
 }
 

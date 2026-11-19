@@ -9,7 +9,7 @@ skinparam class {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-title Class structure — Diagnose in the browser
+title Class structure — Diagnostics
 
 interface "PacketLog (contract)" as Contract {
   +view: Signal<PacketLogView>

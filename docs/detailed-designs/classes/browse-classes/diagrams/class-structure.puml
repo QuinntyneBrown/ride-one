@@ -11,84 +11,36 @@ skinparam class {
 }
 title Class structure — Browse the class library
 
-package "Wattzup.Core.Classes" {
-  class Shelf {
-    +string Id
-    +string Title
-    +string Tagline
+package "@wattzup/api" {
+  interface ClassShelf {
+    +id: string
+    +title: string
+    +tagline: string
+    +classes: ClassEntry[]
   }
-  class ClassEntry {
-    +string Id
-    +string Title
-    +string Channel
-    +string Focus
-    +string Description
-    +string ShelfId
-    +WorkoutPlan Plan
+  interface ClassEntry {
+    +id: string
+    +title: string
+    +channel: string
+    +focus: string
+    +description: string
+    +shelf: {id, title, tagline}
+    +plan: WorkoutPlan
   }
-  class ClassCatalogue {
-    +IReadOnlyList<Shelf> Shelves
-    +IReadOnlyList<ClassEntry> Classes
-    +{static} ClassCatalogue Empty
-    +Find(id: string): ClassEntry?
-    +ClassesOn(shelfId: string): IReadOnlyList<ClassEntry>
-  }
-  class ClassCatalogueReader <<static>> {
-    +Read(file: Stream, length: long): CatalogueLoadResult
-  }
-  class CatalogueLoadResult {
-    +ClassCatalogue? Catalogue
-    +IReadOnlyList<CatalogueEntryProblem> Problems
-    +string? FileError
-  }
-  class CatalogueEntryProblem {
-    +string Entry
-    +string Field
-    +string Message
-  }
-  class ClassCatalogueStore {
-    +ClassCatalogue Current
-    +Replace(catalogue: ClassCatalogue): void
+  interface ClassCatalogue {
+    +shelves: ClassShelf[]
   }
 }
-package "Wattzup.Core.Workouts" {
-  abstract class WorkoutPlan {
-    +RideVideo? Video
-  }
-  class WorkoutPlanValidator <<static>> {
-    +Validate(body: JsonElement): PlanValidationResult
-  }
-}
-package "Wattzup.Api" {
-  class ClassesOptions {
-    +string Path = "classes.json"
-  }
-  class ClassCatalogueService <<IHostedService>> {
-    -TimeProvider time
-    -PhysicalFileProvider files
-    +StartAsync(ct): Task
-    +StopAsync(ct): Task
-    -Reload(): void
-  }
-  class ClassEndpoints <<static>> {
-    +MapClassEndpoints(api: RouteGroupBuilder): void
-  }
-  class ClassResponse {
-    +string id
-    +string title
-    +string channel
-    +string focus
-    +string description
-    +ShelfRef shelf
-    +WorkoutPlan plan
-  }
-}
-package "Frontend: api and app" {
+package "@wattzup/api contract" {
   interface ClassApi {
     +list(): Promise<ClassCatalogue>
     +get(id: string): Promise<ClassEntry | 'not-found'>
   }
-  class HttpClassApi
+}
+package "@wattzup/browser" {
+  class BrowserClassApi
+}
+package "wattzup app" {
   class ClassCardView {
     +href: string
     +cover: string | null
@@ -112,20 +64,9 @@ package "Frontend: api and app" {
   }
 }
 
-ClassCatalogue "1" *-- "*" Shelf
-ClassCatalogue "1" *-- "*" ClassEntry
-ClassEntry --> WorkoutPlan
-ClassCatalogueReader ..> WorkoutPlanValidator : validates plans with
-ClassCatalogueReader ..> CatalogueLoadResult : returns
-CatalogueLoadResult "1" *-- "*" CatalogueEntryProblem
-CatalogueLoadResult o-- ClassCatalogue
-ClassCatalogueStore --> ClassCatalogue : current
-ClassCatalogueService ..> ClassCatalogueReader : reads with
-ClassCatalogueService --> ClassCatalogueStore : publishes to
-ClassCatalogueService ..> ClassesOptions : path
-ClassEndpoints ..> ClassCatalogueStore : reads
-ClassEndpoints ..> ClassResponse : answers
-HttpClassApi ..|> ClassApi
+ClassCatalogue "1" *-- "*" ClassShelf
+ClassShelf "1" *-- "*" ClassEntry
+BrowserClassApi ..|> ClassApi
 ClassLibraryPage ..> ClassApi : CLASS_API
 ClassLibraryPage ..> clv : maps with
 clv ..> ClassCardView : builds

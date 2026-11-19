@@ -9,7 +9,7 @@ skinparam class {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-title Class structure — Simulate the bike in the browser
+title Class structure — Simulate the bike
 
 interface BluetoothPort {
   +isSupported(): boolean

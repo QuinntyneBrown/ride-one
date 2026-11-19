@@ -14,7 +14,7 @@ Container_Boundary(web, "Wattzup Web") {
   Component(live, "LiveStateService", "Angular service", "Read-only state signal")
   Component(wapi, "WorkoutApi", "Contract + WORKOUT_API token", "start(plan)")
 }
-Container(api, "Wattzup API", "ASP.NET Core", "POST /api/workout (start-and-stop-workout)")
+Container(api, "@wattzup/browser", "In-page contracts", "BrowserWorkoutApi and the workout engine (start-and-stop-workout)")
 
 Rel(rider, form, "Edits")
 Rel(rider, preview, "Presses Start ride")
@@ -26,5 +26,5 @@ Rel(page, live, "Is a workout active?")
 Rel(page, dialog, "Dialog.open(...)")
 Rel(page, wapi, "start(plan)")
 Rel(dialog, wapi, "start(plan)")
-Rel(wapi, api, "POST /api/workout", "JSON/HTTP")
+Rel(api, wapi, "Implements")
 @enduml

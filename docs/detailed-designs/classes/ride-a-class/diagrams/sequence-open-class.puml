@@ -6,34 +6,25 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "ClassPage" as page
   participant "class-draft.ts" as draft
   participant "ride-preview.ts" as preview
   participant "YOUTUBE_PLAYER" as player
-  participant "CLASS_API" as client
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "ClassEndpoints" as ep
-end box
-box "Backend — Wattzup Core" #ECFDF3
-  participant "ClassCatalogueStore" as store
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserClassApi (CLASS_API)" as client
 end box
 
 rider -> page : Open /classes/30-minute-hiit-cardio
   page --> rider : Skeleton [L2-080 AC13]
   page -> client : get(id)
-  client -> ep : GET /api/classes/{id}
-  ep -> store : Find(id)
+  client -> client : find id in the catalogue read from classes.json
   alt not in the catalogue
-    store --> ep : null
-    ep --> client : 404 class_not_found [L2-078 AC4]
-    client --> page : 'not-found'
+    client --> page : 'not-found' [L2-078 AC4]
     page --> rider : We can't find that class, All classes, Build your own ride [L2-080 AC13]
   else found
-    store --> ep : ClassEntry
-    ep --> client : 200 class, plan.video {video_id, start_seconds} [L2-078 AC3]
-    client --> page : ClassEntry
+    client --> page : ClassEntry, plan.video {video_id, start_seconds} [L2-078 AC3]
     page -> draft : draftOf(entry)
     draft --> page : ClassDraft {plan, url, start}
     page -> preview : previewOf(plan)

@@ -1,22 +1,20 @@
 @startuml
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
-title Containers — Host and solution structure
+title Containers — Workspace structure
 
-Person(rider, "Rider", "Rides the bike and watches the dashboard")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular SPA", "Ride dashboard, setup, unlock and not-found pages in the browser; bundled fonts")
-  Container(mac, "Wattzup.Mac", "Wattzup.app bundle (bundle.sh)", "Hosts the Wattzup API on macOS with NSBluetoothAlwaysUsageDescription")
-  Container(api, "Wattzup API", "ASP.NET Core (net10.0)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
-  ContainerDb(files, "Local files", "File system", "raw_packets.log, status.json")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "The wattzup application and its libraries")
+  ContainerDb(db, "IndexedDB", "Database wattzup", "Sessions and the ride journal")
+  Container(webbt, "Web Bluetooth stack", "navigator.bluetooth", "GATT client")
 }
-System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
-System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+System_Ext(bike, "Echelon bike", "BLE GATT")
+System_Ext(youtube, "YouTube", "IFrame player and thumbnails")
 
-Rel(rider, web, "Uses", "HTTP / localhost")
-Rel(web, api, "Calls REST and subscribes to SSE", "JSON/HTTP, same origin")
-Rel(mac, api, "Hosts in process")
-Rel(api, files, "Appends and writes")
-Rel(api, os, "Scans, connects, subscribes and writes", "IBikeTransport")
-Rel(os, bike, "Notifications and commands", "BLE GATT")
+Rel(rider, app, "Uses")
+Rel(app, db, "Reads and writes")
+Rel(app, webbt, "connect, notify, write")
+Rel(webbt, bike, "GATT", "BLE")
+Rel(app, youtube, "Embeds", "HTTPS, CSP-limited")
 @enduml

@@ -8,25 +8,17 @@ Container_Boundary(web, "Wattzup Web") {
   Component(view, "class-library-view.ts", "Pure helper", "Card views, shelf filter, thumbnail URL")
   Component(shelf, "Shelf", "Presentation component", "Shelf heading, tagline and count")
   Component(card, "ClassCard", "Presentation component", "Cover, length, title, meta and strip")
-  Component(token, "CLASS_API", "Injection token", "HttpClassApi")
+  Component(token, "CLASS_API", "Injection token, @wattzup/api", "list(), get(id)")
+  Component(impl, "BrowserClassApi", "@wattzup/browser", "Fetches and reads classes.json once (classes/load-class-catalogue)")
 }
-Container_Boundary(api, "Wattzup API") {
-  Component(ep, "ClassEndpoints", "Minimal API", "GET /api/classes and /api/classes/{id}")
-  Component(svc, "ClassCatalogueService", "Hosted service", "Loads, watches and debounces the file")
-  Component(reader, "ClassCatalogueReader", "Core", "Applies the L2-077 rules")
-  Component(validator, "WorkoutPlanValidator", "Core", "Validates each class plan for the bike")
-  Component(store, "ClassCatalogueStore", "Core", "Current catalogue, swapped by reference")
-}
-ComponentDb(file, "classes.json", "JSON file", "The catalogue")
+System_Ext(host, "Static host", "classes.json beside index.html")
+System_Ext(yt, "i.ytimg.com", "Class covers")
 
 Rel(page, token, "list()")
-Rel(token, ep, "GET /api/classes", "JSON")
+Rel(impl, token, "Implements")
+Rel(impl, host, "fetch classes.json", "HTTPS")
 Rel(page, view, "Maps classes with")
 Rel(page, shelf, "Renders")
 Rel(shelf, card, "Contains")
-Rel(ep, store, "Reads Current")
-Rel(svc, file, "Reads and watches")
-Rel(svc, reader, "Read(stream)")
-Rel(reader, validator, "Validate(plan, Bike)")
-Rel(svc, store, "Replace(catalogue)")
+Rel(card, yt, "Loads the cover", "HTTPS")
 @enduml

@@ -9,7 +9,7 @@ skinparam class {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-title Class structure — Keep sessions in the browser
+title Class structure — Keep sessions
 
 interface SessionDatabase {
   +loadAll(): Promise<SessionRecord[]>

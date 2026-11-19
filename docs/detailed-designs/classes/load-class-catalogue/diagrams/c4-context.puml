@@ -1,11 +1,11 @@
 @startuml
 !include <C4/C4_Context>
 LAYOUT_WITH_LEGEND()
-title System Context — Load classes in the browser
+title System Context — Load the class catalogue
 
 Person(owner, "Owner", "Edits classes.json")
 Person(rider, "Rider", "Browses and rides classes")
-System(wattzup, "Wattzup browser edition", "Reads and validates the catalogue")
+System(wattzup, "Wattzup", "Reads and validates the catalogue")
 System_Ext(host, "Static host", "Serves classes.json beside index.html")
 System_Ext(youtube, "YouTube", "Covers and videos")
 Rel(owner, host, "Replaces classes.json on")

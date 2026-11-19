@@ -11,51 +11,42 @@ skinparam class {
 }
 title Class structure — Track progress
 
-class ProgressCalculator <<static>> {
-  +WeeklyGoal = 4
-  +RiddenDays(sessions, zone): ISet<DateOnly>
-  +Streak(sessions, now, zone): StreakFigures
-  +WeekStart(now, zone): DateTimeOffset
-  +WeekRides(sessions, now, zone): int
-  +PreviousAttempt(sessions, s): SessionRecord?
-  +BestsSetBy(sessions, s): IReadOnlyList<string>
-  +Achievements(sessions, streak): IReadOnlyList<AchievementFigures>
-  +Report(sessions, now, zone): ProgressReport
+class "progress-calculator" as ProgressCalculator <<module, @wattzup/browser>> {
+  +WEEKLY_GOAL = 4
+  +riddenDays(sessions, zone): Set<string>
+  +streak(sessions, nowMs, zone): StreakFigures
+  +weekStart(nowMs, zone): number
+  +weekRides(sessions, nowMs, zone): number
+  +previousAttempt(sessions, s): SessionRecord | null
+  +bestsSetBy(sessions, s): string[]
+  +achievements(sessions, streak): AchievementFigures[]
+  +report(sessions, nowMs, zone): ProgressReport
 }
-class ProgressReport {
-  +Today: DateOnly
-  +Streak: StreakFigures
-  +RideDays: IReadOnlyList<DateOnly>
-  +Week: WeekFigures
-  +Totals: TotalFigures
-  +Classes: IReadOnlyList<ClassAttempts>
-  +Achievements: IReadOnlyList<AchievementFigures>
+class ProgressReport <<contract type>> {
+  +today: string
+  +streak: StreakFigures
+  +ride_days: string[]
+  +week: {rides, goal}
+  +totals: {rides, ridden_seconds, distance_km}
+  +classes: ClassAttempts[]
+  +achievements: AchievementFigures[]
 }
 class StreakFigures {
-  +Current: int
-  +Best: int
-  +RodeToday: bool
-}
-class WeekFigures {
-  +Rides: int
-  +Goal: int
-}
-class TotalFigures {
-  +Rides: int
-  +RiddenSeconds: int
-  +DistanceKm: double
+  +current: number
+  +best: number
+  +rode_today: boolean
 }
 class ClassAttempts {
-  +ClassId: string
-  +Title: string
-  +Attempts: IReadOnlyList<SessionSummary>
+  +class_id: string
+  +title: string
+  +attempts: SessionSummary[]
 }
 class AchievementFigures {
-  +Id, Title, Detail: string
-  +Goal: int
-  +Unit: string?
-  +Value: double
-  +Unlocked: bool
+  +id, title, detail: string
+  +goal: number
+  +unit: string | null
+  +value: number
+  +unlocked: boolean
 }
 class "progress-view.ts" as view <<pure>> {
   +comparableClasses(p): ClassAttempts[]
@@ -78,8 +69,6 @@ class AchievementList <<component>>
 
 ProgressCalculator ..> ProgressReport : creates
 ProgressReport *-- StreakFigures
-ProgressReport *-- WeekFigures
-ProgressReport *-- TotalFigures
 ProgressReport *-- "0..*" ClassAttempts
 ProgressReport *-- "6" AchievementFigures
 ProgressPage ..> view
