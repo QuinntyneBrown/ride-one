@@ -13,5 +13,18 @@
     (navigate)="navigate($event)"
     (sessionOpened)="openSession($event)"
     (reconnected)="reconnect()"
-  />
+    [sceneUnavailable]="sceneUnavailable()"
+  >
+    @if (scene(); as sc) {
+      <wz-world-scene
+        slot="scene"
+        [world]="sc.world"
+        [segments]="sc.segments"
+        [elapsed]="sc.elapsed"
+        [speedKmh]="sc.speedKmh"
+        [running]="sc.running"
+        (unavailable)="sceneUnavailable.set(true)"
+      />
+    }
+  </wz-world-ride>
 }

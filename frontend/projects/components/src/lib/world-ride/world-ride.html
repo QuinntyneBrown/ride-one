@@ -116,6 +116,12 @@
         </ol>
       </aside>
     </div>
+    @if (sceneUnavailable()) {
+      <section class="world-ride__source world-ride__panel" role="status">
+        <h2 class="world-ride__source-title">This screen can't draw 3D worlds</h2>
+        <p>The ride still runs on the numbers.</p>
+      </section>
+    }
     <div class="world-ride__bottom">
       @if (v.segment; as seg) {
         @let cd = countdown();

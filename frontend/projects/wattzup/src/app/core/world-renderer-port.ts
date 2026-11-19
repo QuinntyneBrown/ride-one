@@ -1,0 +1,32 @@
+// The contract the World Ride scene draws through (ADR 0017). The real renderer is Three.js in
+// world-renderer.ts, loaded on demand; tests reach a fake through the same contract.
+import { InjectionToken } from '@angular/core';
+import type { Segment } from '@wattzup/api';
+import type { World } from './worlds';
+
+/** What the renderer draws in one frame (L2-098). */
+export interface SceneFrame {
+  /** Metres the rider has ridden in the scene. */
+  readonly s: number;
+  /** The pedals' angle, in radians. */
+  readonly crank: number;
+  readonly segments: readonly Segment[];
+  /** The ride's `elapsed_seconds`. */
+  readonly elapsed: number;
+  readonly speedKmh: number;
+  /** No camera sway and no turning pedals (L2-098 AC6). */
+  readonly reducedMotion: boolean;
+}
+
+export interface WorldRenderer {
+  /** Starts drawing `world` on `canvas`; false when WebGL is unavailable or fails (L2-098 AC4). */
+  start(canvas: HTMLCanvasElement, world: World): boolean;
+  resize(width: number, height: number, pixelRatio: number): void;
+  draw(frame: SceneFrame): void;
+  dispose(): void;
+}
+
+/** Loads a renderer: the real one imports Three.js only when World Ride opens (L2-090 AC8). */
+export type WorldRendererLoader = () => Promise<WorldRenderer>;
+
+export const WORLD_RENDERER = new InjectionToken<WorldRendererLoader>('WORLD_RENDERER');

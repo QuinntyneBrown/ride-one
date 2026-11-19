@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-090, L2-091, L2-092, L2-093, L2-094, L2-095, L2-096, L2-097
+// Traces to: L2-090, L2-091, L2-092, L2-093, L2-094, L2-095, L2-096, L2-097, L2-098
 // Description: World Ride at /classes/:id/world: opened from the class page with Ride in <world
 // name>, which starts the class ride exactly as Start ride does; shown only for that class's ride in
 // progress; its app bar.
@@ -468,5 +468,43 @@ test.describe('World Ride simulated pacers (L2-095)', () => {
     for (const name of ['Maya', 'Jonas', 'Ana', 'Kenji', 'Sophie', 'Ravi']) {
       expect(bodies.join(' ')).not.toContain(name);
     }
+  });
+});
+
+test.describe('World Ride scene (L2-098, L2-089 AC4)', () => {
+  test("draws the scene of the class's world with its text alternative", async ({
+    page,
+    api,
+    events,
+  }) => {
+    const world = new WorldRidePage(page, api, events);
+    const panorama = page.waitForResponse((r) => r.url().includes('/worlds/oldtown/'));
+    await world.open();
+
+    await expect(world.scene).toHaveAccessibleName(
+      'A cyclist on Cathedral Circuit in Old Town Criterium',
+    );
+    await expect(world.sceneNotice).toHaveCount(0);
+    // Scene assets come from the same origin (the fixture fails any other).
+    expect(new URL((await panorama).url()).origin).toBe(new URL(page.url()).origin);
+  });
+
+  test("shows This screen can't draw 3D worlds when WebGL is off, and the HUD still works", async ({
+    page,
+    api,
+    events,
+    webgl,
+  }) => {
+    await webgl.disable();
+    api.on('POST', '/api/resistance', { json: { level: 25 } });
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+
+    await expect(world.sceneNotice).toContainText("This screen can't draw 3D worlds");
+    await expect(world.sceneNotice).toContainText('The ride still runs on the numbers.');
+    await expect(world.scene).toHaveCount(0);
+    await expect(world.power).toHaveText('142');
+    await world.raise.click();
+    await api.waitForCall('POST', '/api/resistance');
   });
 });

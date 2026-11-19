@@ -153,6 +153,8 @@ export class WorldRide {
   readonly reconnected = output<void>();
   /** True while a reconnect is in flight. */
   readonly reconnecting = input(false);
+  /** True when this screen can't draw the scene: the notice shows instead (L2-098 AC4). */
+  readonly sceneUnavailable = input(false);
 
   /** The HUD is inert under the lost-bike and end overlays (L2-097 AC2, AC5). */
   protected readonly inert = computed(() => {

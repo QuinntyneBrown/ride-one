@@ -22,6 +22,7 @@ import { worldRideAccess } from '../../core/world-ride-access';
 import { worldRideView } from '../../core/world-ride-view';
 import { worldById } from '../../core/worlds';
 import { ClassNotFound } from '../class-not-found/class-not-found';
+import { WorldScene } from '../world-scene/world-scene';
 
 type Phase = 'loading' | 'ready' | 'not-found';
 
@@ -31,7 +32,7 @@ type Phase = 'loading' | 'ready' | 'not-found';
  */
 @Component({
   selector: 'wz-world-ride-page',
-  imports: [ClassNotFound, WorldRide],
+  imports: [ClassNotFound, WorldRide, WorldScene],
   templateUrl: './world-ride-page.html',
   styleUrl: './world-ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,6 +55,9 @@ export class WorldRidePage {
   /** Decided once, when the class and the first state are both in (L2-090 AC3, AC4). */
   private readonly shown = signal(false);
 
+  /** Set once the scene reports it cannot draw (L2-098 AC4). */
+  protected readonly sceneUnavailable = signal(false);
+
   private readonly world = computed(() => {
     const id = this.entry()?.world;
     return id ? worldById(id) : null;
@@ -64,6 +68,21 @@ export class WorldRidePage {
     const entry = this.entry();
     const world = this.world();
     return this.shown() && state && entry && world ? worldRideView(state, entry, world) : null;
+  });
+
+  /** What the scene draws; null once it reports it cannot (L2-098 AC4). */
+  protected readonly scene = computed(() => {
+    const world = this.world();
+    if (!world || this.sceneUnavailable()) return null;
+    const state = this.live.state();
+    const workout = state?.workout;
+    return {
+      world,
+      segments: workout?.segments ?? [],
+      elapsed: workout?.elapsed_seconds ?? 0,
+      speedKmh: state?.speed_kmh ?? null,
+      running: workout?.status === 'running',
+    };
   });
 
   protected readonly clock = computed(() => ({

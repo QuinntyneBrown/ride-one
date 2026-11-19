@@ -32,6 +32,8 @@ export class WorldRidePage {
   readonly lower: Locator;
   readonly raise: Locator;
   readonly hud: Locator;
+  readonly scene: Locator;
+  readonly sceneNotice: Locator;
   readonly profile: Locator;
   readonly board: Locator;
   readonly boardTitle: Locator;
@@ -81,6 +83,8 @@ export class WorldRidePage {
     this.lower = this.resistance.getByRole('button', { name: 'Lower resistance' });
     this.raise = this.resistance.getByRole('button', { name: 'Raise resistance' });
     this.hud = this.main.locator('.world-ride__hud');
+    this.scene = this.main.locator('canvas');
+    this.sceneNotice = this.main.locator('.world-ride__source[role="status"]');
     this.profile = this.main.getByRole('region', { name: 'Route profile' });
     this.board = this.main.getByRole('complementary', { name: /^Riders nearby/ });
     this.boardTitle = this.board.getByRole('heading', { level: 2 });
