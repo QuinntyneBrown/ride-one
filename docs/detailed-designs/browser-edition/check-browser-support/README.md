@@ -27,17 +27,10 @@ The browser edition reaches the bike through Web Bluetooth, a browser API that o
 - **`BrowserBikePairing`** — implements `BIKE_PAIRING`'s `support: Signal<BluetoothSupport>` and `checkAgain()`. On a `ready` page it asks `availability()` at start and on **Check again**, and follows `availabilitychanged`, writing `adapter` `on` or `off` through `BikeStateStore`; on an `unsupported` or `insecure` page it asks Bluetooth nothing. `provideBrowserEdition()` builds it at start, so every page's status line knows. The `BIKE_PAIRING` default (backend edition) is always `ready`.
 - **Status line** — `connectionStatus(…, support)` reads **Bluetooth · Unavailable in this browser** (tone `wait`) when the verdict is not `ready`, and **Bluetooth · Off** (tone `bad`, as the backend edition) when `adapter` is `off`, not that no bike was found (L2-089 criterion 2).
 - **Ride Dashboard** — `rideViewState(…, support)` picks the overlay, first match wins: `browser-unsupported`, `browser-insecure`, `adapter-off`, then `connect-bike` and the rest. `rideOverlayText(kind, state, EDITION, location.href)` words them as the `browser-unsupported`, `browser-insecure` and `browser-bluetooth-off` Ride mocks: *Open Wattzup in Chrome or Edge* with **Copy link** (the page address, which reads *Link copied* for 1.6 s); *Open the secure version of this page* with **Open over HTTPS** (the same address on `https:`); *Turn on Bluetooth* with **Check again** and **Open diagnostics**. Each is an `alert` with a warning icon, and none offers **Connect bike** (L2-089 criteria 1 to 3). The backend edition's adapter-off overlay is unchanged.
-- **`UnsupportedNotice`** (`@wattzup/components`, presentation) — the notice shown on the Ride Dashboard and `/setup` in place of **Connect bike** and **Start ride**. It takes the verdict as input and renders the copy below; it injects nothing. `<TO SUPPLY>`: the mock for this notice in `docs/mocks/`, which shall exist before the component is built.
-
-  | Verdict | Heading | Body |
-  |---|---|---|
-  | `unsupported` | Wattzup needs Bluetooth in Chrome or Edge | Open Wattzup in Chrome or Edge on a computer or an Android phone. Your classes and past rides are still here. |
-  | `insecure` | Open Wattzup over HTTPS | The browser only allows Bluetooth on secure pages. Open the https:// address of this page. |
-
-- **`RideStartGuard`** (app, `core/`) — `CanActivateFn` on the ride routes that start a ride; on `unsupported` or `insecure` it keeps the rider on `/setup` with the notice. `/classes`, `/classes/:id`, `/sessions/:id` and `/progress` stay open; a class page shows the notice in place of **Ride this class** (L2-089 criterion 1).
+- **Setup and class pages** — `SupportBanner` (app, `dashboard/support-banner/`) renders the `wz-alert` warning banner of the `browser-unsupported` and `browser-insecure` Ride Setup and Class mocks under the header: *Open Wattzup in Chrome or Edge.* with **Copy link**, or *Open the secure version of this page.* with **Open over HTTPS** (a link, through the alert's `actionHref`). The page stays usable; **Start ride** is disabled and described by the reason under it: *Needs Chrome or Edge to reach the bike.* or *Needs the HTTPS page to reach the bike.* `supportNotice(support, pageUrl)` (`core/`) words the banner and the reason. The class library, Progress and Session Summary stay open and need nothing (L2-089 criterion 1).
 - Nothing is shown when the verdict is `ready` (L2-089 criterion 4).
 
-Verification: unit tests for `supportVerdict` (one per table row) and for `BrowserBikePairing` recomputing on `availabilitychanged`; browser-edition specs that delete `navigator.bluetooth` before load, stub `isSecureContext`, and answer `getAvailability()` with `false`, asserting the notice, the readable class library and the absence of any Bluetooth call.
+Verification: unit tests for `supportVerdict` (one per table row), `BrowserBikePairing` (verdict, `getAvailability`, `availabilitychanged`, **Check again**, nothing asked on an unsupported page), `rideViewState`, `rideOverlayText`, `connectionStatus` and `supportNotice`; browser-edition specs (`support.spec.ts`) that shadow `navigator.bluetooth`, stub `isSecureContext` and answer `getAvailability()` with `false` before load, asserting the dashboard notices, the status line, **Copy link**, the readable class library, the setup and class-page banners with **Start ride** disabled, and **Connect bike** returning once Bluetooth is on.
 
 ## Requirements
 
@@ -61,13 +54,13 @@ Only the browser edition's app takes part. It asks the browser's Web Bluetooth A
 
 ### Components
 
-`BluetoothPort` reads the browser, `supportVerdict` decides, `BrowserBikePairing` exposes the verdict through the `BIKE_PAIRING` token, and the pages, the guard and `UnsupportedNotice` act on it.
+`BluetoothPort` reads the browser, `supportVerdict` decides, `BrowserBikePairing` exposes the verdict through the `BIKE_PAIRING` token, and the Ride Dashboard's overlay, the status line and `SupportBanner` act on it.
 
 ![C4 component view for checking browser support](diagrams/c4-component.png)
 
 ### Class structure
 
-`supportVerdict` is pure over `SupportEnvironment`. `BrowserBikePairing` turns it into a signal and the app reads it only through `BikePairing`.
+`supportVerdict` is pure over `SupportEnvironment`. `BrowserBikePairing` turns it into a signal, keeps `adapter` from `getAvailability()`, and the app reads both only through `BikePairing` and the live state.
 
 ![Class diagram for checking browser support](diagrams/class-structure.png)
 

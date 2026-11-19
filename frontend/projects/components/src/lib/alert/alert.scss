@@ -55,7 +55,10 @@
   gap: var(--space-3);
   margin-top: var(--space-1);
 }
-.alert__actions button {
+.alert__actions button,
+.alert__actions a {
+  display: inline-flex;
+  align-items: center;
   min-height: var(--target-comfortable);
   padding: 0;
   background: none;

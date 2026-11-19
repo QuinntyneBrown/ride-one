@@ -5,20 +5,19 @@ title Components — Check browser support
 
 Container_Boundary(app, "Wattzup Web, browser edition") {
   Component(port, "WebBluetoothPort", "@wattzup/browser lib/bluetooth", "Only wrapper over navigator.bluetooth")
-  Component(verdict, "supportVerdict()", "Pure function", "ready, insecure, unsupported, adapter-off")
-  Component(pairing, "BrowserBikePairing", "BIKE_PAIRING implementation", "support() signal")
-  Component(store, "BikeStateStore", "lib/engine", "Writes ble and error for adapter-off")
-  Component(guard, "RideStartGuard", "Angular CanActivateFn", "Keeps unsupported riders off ride routes")
-  Component(notice, "UnsupportedNotice", "@wattzup/components", "Presentation: heading and body for a verdict")
-  Component(pages, "Ride Dashboard, Setup, Class page", "Angular pages", "Show the notice or the controls")
+  Component(verdict, "supportVerdict()", "Pure function", "ready, insecure, unsupported")
+  Component(pairing, "BrowserBikePairing", "BIKE_PAIRING implementation", "support signal, checkAgain()")
+  Component(store, "BikeStateStore", "lib/engine", "Holds adapter on or off")
+  Component(dash, "Ride Dashboard", "Angular page", "Overlay in place of Connect bike; status line")
+  Component(banner, "SupportBanner", "app dashboard", "Banner over Setup and Class page; Start ride disabled")
 }
 System_Ext(webbt, "Web Bluetooth API", "Browser")
 
-Rel(port, webbt, "Reads")
+Rel(port, webbt, "Reads isSecureContext, getAvailability, availabilitychanged")
 Rel(pairing, port, "Reads support and availability")
-Rel(pairing, verdict, "Calls")
-Rel(pairing, store, "Reports adapter-off to")
-Rel(guard, pairing, "Reads support()")
-Rel(pages, pairing, "Read support()")
-Rel(pages, notice, "Render")
+Rel(port, verdict, "Calls")
+Rel(pairing, store, "Writes adapter to")
+Rel(dash, pairing, "Reads support")
+Rel(dash, store, "Reads adapter (live state)")
+Rel(banner, pairing, "Reads support")
 @enduml

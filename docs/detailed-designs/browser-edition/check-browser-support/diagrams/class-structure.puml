@@ -11,49 +11,51 @@ skinparam class {
 }
 title Class structure — Check browser support
 
-enum SupportVerdict {
+enum BluetoothSupport {
   ready
   insecure
   unsupported
-  adapter-off
 }
 class SupportEnvironment {
   +isSecureContext: boolean
   +hasBluetooth: boolean
-  +available: boolean | null
 }
 class "supportVerdict()" as fn <<pure function>> {
-  +(env: SupportEnvironment): SupportVerdict
+  +(env: SupportEnvironment): BluetoothSupport
 }
 interface BluetoothPort {
-  +isSupported(): boolean
+  +support(): BluetoothSupport
   +availability(): Promise<boolean>
-  +onAvailabilityChanged(fn): () => void
+  +onAvailabilityChanged(listener): void
+  +requestBike(): Promise<BikeDevice | null>
 }
 class WebBluetoothPort
 interface BikePairing {
-  +support(): Signal<SupportVerdict>
+  +support: Signal<BluetoothSupport>
+  +required: Signal<boolean>
+  +pair(): Promise<void>
+  +checkAgain(): Promise<void>
 }
 class BrowserBikePairing {
   -port: BluetoothPort
-  -verdict: WritableSignal<SupportVerdict>
-  +support(): Signal<SupportVerdict>
+  -store: BikeStateStore
+  -setAdapter(available: boolean)
 }
 class "BIKE_PAIRING default" as ServerBikePairing {
-  +support(): Signal<SupportVerdict>  // always ready
+  support: always ready
 }
-class UnsupportedNotice <<component>> {
-  +verdict: input<SupportVerdict>
+class "supportNotice()" as notice <<pure function>> {
+  +(support, pageUrl): SupportNotice | null
 }
-class RideStartGuard <<CanActivateFn>>
+class SupportBanner <<component>>
 
 WebBluetoothPort ..|> BluetoothPort
 BrowserBikePairing ..|> BikePairing
 ServerBikePairing ..|> BikePairing
 BrowserBikePairing --> BluetoothPort
-BrowserBikePairing ..> fn : calls
+WebBluetoothPort ..> fn : calls
 fn ..> SupportEnvironment
-fn ..> SupportVerdict
-RideStartGuard ..> BikePairing
-UnsupportedNotice ..> SupportVerdict
+fn ..> BluetoothSupport
+SupportBanner ..> BikePairing
+SupportBanner ..> notice
 @enduml

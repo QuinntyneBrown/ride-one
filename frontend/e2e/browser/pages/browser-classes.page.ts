@@ -9,6 +9,8 @@ export class BrowserClassesPage {
   readonly emptyTitle: Locator;
   readonly emptyBuildYourOwn: Locator;
   readonly startButton: Locator;
+  readonly startHint: Locator;
+  readonly banner: Locator;
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { level: 1 });
@@ -19,6 +21,8 @@ export class BrowserClassesPage {
       .locator('.library .empty')
       .getByRole('link', { name: 'Build your own ride' });
     this.startButton = page.getByRole('button', { name: /^(Start ride|Starting…)$/ });
+    this.startHint = page.locator('#start-blocked');
+    this.banner = page.locator('.banner[role="alert"]');
   }
 
   /** Answers the edition's request for `classes.json` with this text, or with a 404. */

@@ -14,7 +14,9 @@ import {
 import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { CLASS_API, type ClassEntry, WORKOUT_API } from '@wattzup/api';
+import { BIKE_PAIRING, CLASS_API, type ClassEntry, WORKOUT_API } from '@wattzup/api';
+import { supportNotice } from '../../core/support-notice';
+import { SupportBanner } from '../support-banner/support-banner';
 import { Alert, Icon, LevelRow, NumberStepper, StatusLine } from '@wattzup/components';
 import {
   cadenceLine,
@@ -47,7 +49,16 @@ type Phase = 'loading' | 'ready' | 'not-found';
 /** Route `/classes/:id`: one class, its video and plan, and Start ride (L2-080). */
 @Component({
   selector: 'wz-class-page',
-  imports: [Alert, ClassNotFound, Icon, LevelRow, NumberStepper, RouterLink, StatusLine],
+  imports: [
+    Alert,
+    ClassNotFound,
+    Icon,
+    LevelRow,
+    NumberStepper,
+    RouterLink,
+    StatusLine,
+    SupportBanner,
+  ],
   templateUrl: './class-page.html',
   styleUrl: './class-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -71,6 +82,12 @@ export class ClassPage {
   protected readonly entry = signal<ClassEntry | null>(null);
   protected readonly draft = signal<ClassDraft | null>(null);
   protected readonly busy = signal(false);
+  /** Why Start ride is disabled when the browser cannot reach Bluetooth (L2-089 AC1, AC3). */
+  protected readonly startBlocked = computed(
+    () => supportNotice(this.pairing.support(), '')?.startHint ?? null,
+  );
+  private readonly pairing = inject(BIKE_PAIRING);
+
   protected readonly startFailed = signal(false);
 
   protected readonly preview = computed(() => {

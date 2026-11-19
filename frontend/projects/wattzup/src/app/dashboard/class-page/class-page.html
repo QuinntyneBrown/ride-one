@@ -14,6 +14,7 @@
     >
     <wz-status-line class="app-bar__close" [status]="status()" [reducedMotion]="reducedMotion()" />
   </header>
+  <wz-support-banner />
   @switch (phase()) {
     @case ('not-found') {
       <wz-class-not-found />
@@ -196,12 +197,16 @@
             <button
               class="btn btn--primary btn--xl btn--block"
               type="button"
-              [disabled]="busy()"
+              [disabled]="busy() || startBlocked() !== null"
               [attr.aria-busy]="busy() ? 'true' : null"
+              [attr.aria-describedby]="startBlocked() !== null ? 'start-blocked' : null"
               (click)="start()"
             >
               {{ busy() ? 'Starting…' : startFailed() ? 'Try again' : 'Start ride' }}
             </button>
+            @if (startBlocked(); as hint) {
+              <p id="start-blocked" class="class-page__start-hint">{{ hint }}</p>
+            }
             @if (busy()) {
               <button class="btn btn--quiet btn--block" type="button" disabled>
                 Change intervals in full setup

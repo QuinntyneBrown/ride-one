@@ -11,7 +11,9 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { formatDuration } from '../../core/format-duration';
-import { type StartPlan, WORKOUT_API } from '@wattzup/api';
+import { BIKE_PAIRING, type StartPlan, WORKOUT_API } from '@wattzup/api';
+import { supportNotice } from '../../core/support-notice';
+import { SupportBanner } from '../support-banner/support-banner';
 import { planVideo } from '../../core/video-link';
 import { LiveStateService } from '../../core/live-state.service';
 import { liveConnectionStatus } from '../../core/connection-status';
@@ -79,6 +81,7 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
 @Component({
   selector: 'wz-setup-page',
   imports: [
+    SupportBanner,
     Alert,
     FormSummary,
     Icon,
@@ -162,6 +165,12 @@ export class SetupPage {
 
   protected readonly loading = computed(() => !this.live.state() && !this.live.loadFailed());
   protected readonly busy = signal(false);
+  /** Why Start ride is disabled when the browser cannot reach Bluetooth (L2-089 AC1, AC3). */
+  protected readonly startBlocked = computed(
+    () => supportNotice(this.pairing.support(), '')?.startHint ?? null,
+  );
+  private readonly pairing = inject(BIKE_PAIRING);
+
   protected readonly startError = signal<StartError | null>(null);
 
   constructor() {
