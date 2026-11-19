@@ -31,6 +31,8 @@ export type PowerTrace = Schemas['PowerTrace'];
 export type ClassCatalogue = Schemas['ClassCatalogueResponse'];
 export type ClassShelf = Schemas['ClassShelfResponse'];
 export type ClassEntry = Schemas['ClassResponse'];
+/** The id of one of the six World Ride scenes a class may name (L2-088). */
+export type WorldId = NonNullable<ClassEntry['world']>;
 export type SessionSummary = Schemas['SessionSummary'];
 export type SessionDetail = Schemas['SessionDetail'];
 export type SessionList = Schemas['SessionList'];
