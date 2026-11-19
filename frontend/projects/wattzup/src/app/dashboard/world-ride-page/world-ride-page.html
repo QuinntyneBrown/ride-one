@@ -1,5 +1,12 @@
-@if (world(); as w) {
-  <main id="main" class="world-ride" [attr.aria-label]="w.name">
-    <h1 class="world-ride__title">{{ w.name }}</h1>
-  </main>
+@if (phase() === 'not-found') {
+  <wz-class-not-found />
+} @else if (view(); as v) {
+  <wz-world-ride
+    [view]="v"
+    [clock]="clock()"
+    [classHref]="classHref()"
+    (pauseToggled)="togglePause()"
+    (endRequested)="end()"
+    (navigate)="navigate($event)"
+  />
 }

@@ -119,6 +119,32 @@
   height: 1.25em;
   flex: none;
 }
+// Collapsible: icon-only below 640px, label from 640px.
+.btn--collapsible {
+  padding-inline: 0;
+  width: var(--control-height-md);
+}
+.btn--collapsible .btn__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 40rem) {
+  .btn--collapsible {
+    padding-inline: var(--space-4);
+    width: auto;
+  }
+  .btn--collapsible .btn__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+}
 .btn[aria-busy='true'] {
   color: transparent;
   pointer-events: none;

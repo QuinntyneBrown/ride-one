@@ -1,0 +1,59 @@
+@let v = view();
+<main id="main" class="world-ride" tabindex="-1" [attr.aria-label]="v.title">
+  <div class="world-ride__scene"><ng-content select="[slot=scene]" /></div>
+  <div class="world-ride__hud">
+    <header class="world-ride__bar">
+      <a
+        class="lockup"
+        [href]="homeHref()"
+        aria-label="Wattzup dashboard"
+        (click)="follow($event, homeHref())"
+        ><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true">
+          <rect width="48" height="48" rx="12" />
+          <path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10" /></svg
+        ><span class="lockup__word">wattzup</span></a
+      >
+      <a
+        class="btn btn--quiet btn--collapsible"
+        [href]="classHref()"
+        aria-label="Class"
+        (click)="follow($event, classHref())"
+        ><wz-icon name="arrow-left" size="sm" /><span class="btn__label">Class</span></a
+      >
+      <div class="world-ride__class">
+        <h1 class="world-ride__title">{{ v.title }}</h1>
+        <span class="world-ride__muted">{{ v.classLine }}</span>
+      </div>
+      @if (v.bike) {
+        <span class="world-ride__bike"><wz-icon name="bluetooth" size="sm" />{{ v.bike }}</span>
+      }
+      <div class="world-ride__actions">
+        @let c = clock();
+        <span
+          class="world-ride__clock"
+          [attr.aria-label]="'Elapsed ' + c.elapsed + ' of ' + c.total"
+          >{{ c.elapsed
+          }}<span class="world-ride__muted world-ride__total"> / {{ c.total }}</span></span
+        >
+        <button
+          class="btn btn--collapsible"
+          type="button"
+          [attr.aria-label]="v.paused ? 'Resume' : 'Pause'"
+          (click)="pauseToggled.emit()"
+        >
+          <wz-icon [name]="v.paused ? 'play' : 'pause'" size="sm" /><span class="btn__label">{{
+            v.paused ? 'Resume' : 'Pause'
+          }}</span>
+        </button>
+        <button
+          class="btn btn--quiet btn--collapsible"
+          type="button"
+          aria-label="End"
+          (click)="endRequested.emit()"
+        >
+          <wz-icon name="stop" size="sm" /><span class="btn__label">End</span>
+        </button>
+      </div>
+    </header>
+  </div>
+</main>

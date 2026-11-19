@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -8,16 +9,31 @@ import {
   untracked,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { CLASS_API } from '@wattzup/api';
+import { Router } from '@angular/router';
+import { CLASS_API, type ClassEntry } from '@wattzup/api';
+import { WorldRide } from '@wattzup/components';
+import { CountdownService } from '../../core/countdown.service';
+import { formatDuration } from '../../core/format-duration';
 import { LiveStateService } from '../../core/live-state.service';
-import { type World, worldById } from '../../core/worlds';
+import { RideActions } from '../../core/ride-actions';
+import { worldRideAccess } from '../../core/world-ride-access';
+import { worldRideView } from '../../core/world-ride-view';
+import { worldById } from '../../core/worlds';
+import { ClassNotFound } from '../class-not-found/class-not-found';
 
-/** Route `/classes/:id/world`: the ride in progress of class `:id` in that class's scene (L2-090). */
+type Phase = 'loading' | 'ready' | 'not-found';
+
+/**
+ * Route `/classes/:id/world`: the ride in progress of class `:id` in that class's scene. It reads
+ * the class and the live state, and drives the ride through the dashboard's commands (L2-090).
+ */
 @Component({
   selector: 'wz-world-ride-page',
+  imports: [ClassNotFound, WorldRide],
   templateUrl: './world-ride-page.html',
   styleUrl: './world-ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [CountdownService],
 })
 export class WorldRidePage {
   /** The route's `:id`. */
@@ -25,9 +41,34 @@ export class WorldRidePage {
 
   private readonly classes = inject(CLASS_API);
   private readonly title = inject(Title);
+  private readonly router = inject(Router);
   private readonly live = inject(LiveStateService);
+  private readonly actions = inject(RideActions);
+  private readonly countdown = inject(CountdownService);
 
-  protected readonly world = signal<World | null>(null);
+  protected readonly phase = signal<Phase>('loading');
+  private readonly entry = signal<ClassEntry | null>(null);
+  /** Decided once, when the class and the first state are both in (L2-090 AC3, AC4). */
+  private readonly shown = signal(false);
+
+  private readonly world = computed(() => {
+    const id = this.entry()?.world;
+    return id ? worldById(id) : null;
+  });
+
+  protected readonly view = computed(() => {
+    const state = this.live.state();
+    const entry = this.entry();
+    const world = this.world();
+    return this.shown() && state && entry && world ? worldRideView(state, entry, world) : null;
+  });
+
+  protected readonly clock = computed(() => ({
+    elapsed: this.countdown.elapsedText(),
+    total: formatDuration(this.live.state()?.workout?.total_seconds ?? 0),
+  }));
+
+  protected readonly classHref = computed(() => `/classes/${encodeURIComponent(this.id())}`);
 
   constructor() {
     this.live.ensureStarted();
@@ -35,13 +76,48 @@ export class WorldRidePage {
       const id = this.id();
       untracked(() => void this.load(id));
     });
+    // The state held when the page opens may predate the ride just started from the class page, so
+    // it can show the ride but only a state that arrives after opening sends the rider away.
+    const openedAt = untracked(this.live.lastStateAt);
+    effect(() => {
+      const entry = this.entry();
+      const state = this.live.state();
+      const fresh = this.live.lastStateAt() !== openedAt;
+      if (!entry || !state || untracked(this.shown)) return;
+      if (worldRideAccess(this.id(), entry, state.workout) === 'show') {
+        this.shown.set(true);
+      } else if (fresh) {
+        void this.router.navigateByUrl(untracked(this.classHref), { replaceUrl: true });
+      }
+    });
   }
 
   private async load(id: string): Promise<void> {
-    const entry = await this.classes.get(id);
-    if (entry === 'not-found' || !entry.world) return;
-    const world = worldById(entry.world);
-    this.world.set(world);
-    this.title.setTitle(world.name);
+    this.phase.set('loading');
+    try {
+      const entry = await this.classes.get(id);
+      if (entry === 'not-found') {
+        this.phase.set('not-found');
+        this.title.setTitle('Class not found · Wattzup');
+        return;
+      }
+      this.entry.set(entry);
+      if (entry.world) this.title.setTitle(worldById(entry.world).name);
+      this.phase.set('ready');
+    } catch {
+      this.phase.set('not-found');
+    }
+  }
+
+  protected togglePause(): void {
+    void (this.view()?.paused ? this.actions.resume() : this.actions.pause());
+  }
+
+  protected end(): void {
+    this.actions.end();
+  }
+
+  protected navigate(href: string): void {
+    void this.router.navigateByUrl(href);
   }
 }
