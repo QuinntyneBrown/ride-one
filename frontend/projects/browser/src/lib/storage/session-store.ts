@@ -44,6 +44,26 @@ export class SessionStore {
     await this.database.write([session], trimmed);
   }
 
+  /** Adds the sessions whose id is new, in one write, and keeps the newest 500 (L2-094 AC5). */
+  async addMany(sessions: SessionRecord[]): Promise<{ added: number; skipped: number }> {
+    await this.ready();
+    const known = new Set(this.all.map((s) => s.id));
+    const fresh: SessionRecord[] = [];
+    for (const s of sessions) {
+      if (known.has(s.id)) continue;
+      known.add(s.id);
+      fresh.push(s);
+    }
+    if (fresh.length === 0) return { added: 0, skipped: sessions.length };
+    const merged = [...this.all, ...fresh].sort(newestFirst);
+    const kept = new Set(merged.slice(0, MAX_SESSIONS).map((s) => s.id));
+    const put = fresh.filter((s) => kept.has(s.id));
+    const deleted = this.all.filter((s) => !kept.has(s.id)).map((s) => s.id);
+    await this.database.write(put, deleted);
+    this.all = merged.slice(0, MAX_SESSIONS);
+    return { added: put.length, skipped: sessions.length - fresh.length };
+  }
+
   newId(): string {
     for (;;) {
       const bytes = crypto.getRandomValues(new Uint8Array(6));

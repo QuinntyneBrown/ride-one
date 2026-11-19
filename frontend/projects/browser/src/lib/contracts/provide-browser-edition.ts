@@ -1,11 +1,17 @@
 // Binds every api contract to its in-browser implementation (L2-088, ADR 0017).
-import type { Provider } from '@angular/core';
+import {
+  type EnvironmentProviders,
+  makeEnvironmentProviders,
+  provideEnvironmentInitializer,
+} from '@angular/core';
 import {
   BIKE_API,
   BIKE_PAIRING,
   CLASS_API,
+  EDITION,
   LIVE_STATE_SOURCE,
   SESSION_API,
+  SESSION_ARCHIVE,
   WORKOUT_API,
 } from '@wattzup/api';
 import { BikeLink } from '../bluetooth/bike-link';
@@ -19,12 +25,20 @@ import { SessionStore } from '../storage/session-store';
 import { BrowserBikeApi } from './browser-bike-api';
 import { BrowserBikePairing } from './browser-bike-pairing';
 import { BrowserSessionApi } from './browser-session-api';
+import { BrowserSessionArchive } from './browser-session-archive';
 import { BrowserStateSource } from './browser-state-source';
 import { BrowserWorkoutApi } from './browser-workout-api';
 import { notYetInTheBrowser } from './not-yet-in-the-browser';
 
-export function provideBrowserEdition(): Provider[] {
-  return [
+/** Asks the browser to keep the history when space runs low (L2-094 AC4); a refusal changes nothing
+ * on screen, since Your history always says where rides are kept. */
+function requestPersistentStorage(): void {
+  void navigator.storage?.persist?.().catch(() => false);
+}
+
+export function provideBrowserEdition(): EnvironmentProviders {
+  return makeEnvironmentProviders([
+    { provide: EDITION, useValue: 'browser' },
     BikeStateStore,
     TelemetryIngestor,
     BikeLink,
@@ -38,5 +52,7 @@ export function provideBrowserEdition(): Provider[] {
     { provide: WORKOUT_API, useClass: BrowserWorkoutApi },
     { provide: CLASS_API, useValue: notYetInTheBrowser('CLASS_API') },
     { provide: SESSION_API, useClass: BrowserSessionApi },
-  ];
+    { provide: SESSION_ARCHIVE, useClass: BrowserSessionArchive },
+    provideEnvironmentInitializer(requestPersistentStorage),
+  ]);
 }

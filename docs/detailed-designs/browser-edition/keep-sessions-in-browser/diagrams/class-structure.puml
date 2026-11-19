@@ -22,6 +22,7 @@ class SessionStore {
   +list(): SessionRecord[]
   +find(id): SessionRecord | null
   +add(s: SessionRecord): Promise<void>
+  +addMany(s: SessionRecord[]): Promise<{added, skipped}>
   +newId(): string
 }
 class SessionBuilder <<pure>> {
@@ -30,12 +31,8 @@ class SessionBuilder <<pure>> {
 class ProgressCalculator <<pure>> {
   +report(sessions, now, timeZone): ProgressReport
 }
-class SessionRecordValidator <<pure>> {
-  +validate(raw: unknown): SessionRecord | Rejection
-}
-class StoragePersistence {
-  +persistent: Signal<boolean | null>
-  +request(): Promise<void>
+class "validSession" as SessionRecordValidator <<pure function>> {
+  +validSession(raw: unknown): SessionRecord | null
 }
 interface SessionApi {
   +list(): Promise<SessionList>
@@ -43,9 +40,9 @@ interface SessionApi {
   +progress(): Promise<ProgressReport>
 }
 interface SessionArchive {
-  +persistent: Signal<boolean | null>
   +exportAll(): Promise<Blob>
-  +importFile(file: File): Promise<ImportReport>
+  +importFile(file: Blob): Promise<ImportReport | 'not-a-history'>
+  +lastExportedAt(): number | null
 }
 class ImportReport {
   +added: number
@@ -62,7 +59,6 @@ BrowserSessionApi --> SessionStore
 BrowserSessionApi ..> ProgressCalculator
 BrowserSessionArchive --> SessionStore
 BrowserSessionArchive ..> SessionRecordValidator
-BrowserSessionArchive --> StoragePersistence
 BrowserSessionArchive ..> ImportReport
 SessionStore --> SessionDatabase
 IndexedDbSessionDatabase ..|> SessionDatabase

@@ -59,4 +59,26 @@ describe('SessionStore (browser)', () => {
     const { store } = setUp([]);
     expect(store.newId()).toMatch(/^[a-f0-9]{12}$/);
   });
+
+  it('adds the new sessions of an import in one write, skipping known ids (L2-094 AC5)', async () => {
+    const { store, writes } = setUp([rec('a', 1)]);
+    expect(await store.addMany([rec('a', 1), rec('b', 2), rec('b', 2), rec('c', 0)])).toEqual({
+      added: 2,
+      skipped: 2,
+    });
+    expect(store.list().map((s) => s.id)).toEqual(['b', 'a', 'c']);
+    expect(writes).toEqual([{ put: ['b', 'c'], deleted: [] }]);
+  });
+
+  it('an import of only known sessions writes nothing', async () => {
+    const { store, writes } = setUp([rec('a', 1)]);
+    expect(await store.addMany([rec('a', 1)])).toEqual({ added: 0, skipped: 1 });
+    expect(writes).toEqual([]);
+  });
+
+  it('a failed import write changes nothing already saved (L2-094 AC6)', async () => {
+    const { store } = setUp([rec('a', 1)], true);
+    await expect(store.addMany([rec('b', 2)])).rejects.toThrow();
+    expect(store.list().map((s) => s.id)).toEqual(['a']);
+  });
 });

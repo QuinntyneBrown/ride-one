@@ -11,7 +11,7 @@ box "Frontend — Wattzup Web, browser edition" #E0F2FE
 end box
 box "Frontend — @wattzup/browser" #ECFDF3
   participant "BrowserSessionArchive" as archive
-  participant "SessionRecordValidator" as val
+  participant "validSession" as val
   participant "SessionStore" as store
 end box
 box "Browser — storage" #FFF4E5
@@ -21,20 +21,17 @@ end box
 rider -> page : Import history; pick a file
 page -> archive : importFile(file)
 alt file.size > 16 MB or not JSON or not {sessions:[...]} [L2-094 AC6]
-  archive --> page : ImportReport(0, 0, all) and reason
+  archive --> page : 'not-a-history', nothing changed
 else history file
   loop each session
-    archive -> val : validate(raw)
-    alt invalid
-      val --> archive : rejected += 1
-    else id already saved
-      archive -> archive : skipped += 1
-    else new and valid
-      archive -> store : add(session)
-      store -> idb : put session
-    end
+    archive -> val : validSession(raw)
+    val --> archive : record, or null: rejected += 1
   end
+  archive -> store : addMany(valid)
+  store -> store : skip known ids; keep the newest 500
+  store -> idb : put new sessions, delete trimmed, in 1 transaction
+  store --> archive : added, skipped
   archive --> page : ImportReport(added, skipped, rejected) [L2-094 AC5]
 end
-page --> rider : Toast with the counts; Progress refreshed
+page --> rider : Toast with the counts (history-view);\nProgress reloaded when rides were added
 @enduml

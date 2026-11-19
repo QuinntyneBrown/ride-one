@@ -14,3 +14,5 @@ export * from './lib/stream-connection';
 export * from './lib/live-state-source';
 export * from './lib/event-stream-live-state';
 export * from './lib/workout-api';
+export * from './lib/edition';
+export * from './lib/session-archive';
