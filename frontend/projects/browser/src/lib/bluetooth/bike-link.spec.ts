@@ -1,7 +1,7 @@
 // Unit Test
-// Traces to: L2-090
-// Description: BikeLink picks the bike through the chooser, connects, subscribes, then sends the
-// init sequence 300 ms apart, on a fake port and a fake clock.
+// Traces to: L2-090, L2-091
+// Description: BikeLink picks the bike through the chooser, connects, subscribes, sends the init
+// sequence 300 ms apart, keeps the link alive and recovers it, on a fake port and a fake clock.
 import { TestBed } from '@angular/core/testing';
 import { BikeStateStore } from '../engine/bike-state-store';
 import { TelemetryIngestor } from '../engine/telemetry-ingestor';
@@ -35,6 +35,10 @@ class FakeGatt implements GattLink {
 class FakePort implements BluetoothPort {
   readonly log: string[] = [];
   answer: 'pick' | 'cancel' | 'blocked' = 'pick';
+  /** Errors the next connection attempts throw, in order. */
+  readonly connectFailures: Error[] = [];
+  private readonly dropped: (() => void)[] = [];
+
   async requestBike(): Promise<BikeDevice | null> {
     this.log.push('chooser');
     if (this.answer === 'cancel') return null;
@@ -43,10 +47,33 @@ class FakePort implements BluetoothPort {
       name: 'ECHEX-3-141844',
       connect: async () => {
         this.log.push('connect');
+        const failure = this.connectFailures.shift();
+        if (failure) throw failure;
         return new FakeGatt(this.log);
       },
+      onDisconnected: (listener) => this.dropped.push(listener),
     };
   }
+
+  /** The bike drops the link (`gattserverdisconnected`). */
+  drop(): void {
+    for (const listener of this.dropped) listener();
+  }
+
+  count(entry: string): number {
+    return this.log.filter((e) => e === entry).length;
+  }
+}
+
+const KEEPALIVE = 'write f0a0010192';
+
+/** Pairs and lets the init sequence finish. */
+async function connected() {
+  const ctx = setUp();
+  void ctx.link.pair();
+  await ctx.clock.advance(600);
+  expect(ctx.store.state().ble).toBe('connected');
+  return ctx;
 }
 
 function setUp() {
@@ -122,5 +149,77 @@ describe('BikeLink', () => {
       error: "The browser didn't open its device list. Press Connect bike again.",
     });
     expect(link.pairingRequired()).toBe(true);
+  });
+
+  it('writes the keepalive once per second while connected (L2-091 AC1)', async () => {
+    const { port, clock } = await connected();
+    expect(port.count(KEEPALIVE)).toBe(0);
+    await clock.advance(5000);
+    expect(port.count(KEEPALIVE)).toBeGreaterThanOrEqual(4);
+    expect(port.count(KEEPALIVE)).toBeLessThanOrEqual(6);
+  });
+
+  it('a dropped link goes disconnected, stops the keepalive and retries in 3 s without the chooser (L2-091 AC2)', async () => {
+    const { port, clock, store } = await connected();
+    port.drop();
+    expect(store.state()).toMatchObject({ ble: 'disconnected', device: 'ECHEX-3-141844' });
+    const keepalives = port.count(KEEPALIVE);
+    await clock.advance(2999);
+    expect(port.count('connect')).toBe(1);
+    expect(port.count(KEEPALIVE)).toBe(keepalives);
+    await clock.advance(1);
+    expect(port.count('connect')).toBe(2);
+    expect(port.count('chooser')).toBe(1);
+    expect(store.state().ble).toBe('connected');
+  });
+
+  it('keeps retrying every 3 s until the bike answers', async () => {
+    const { port, clock, store } = await connected();
+    port.connectFailures.push(
+      new DOMException('Connection attempt failed.', 'NetworkError'),
+      new DOMException('Connection attempt failed.', 'NetworkError'),
+    );
+    port.drop();
+    await clock.advance(3000);
+    expect(store.state()).toMatchObject({
+      ble: 'error',
+      error: 'NetworkError: Connection attempt failed.',
+    });
+    await clock.advance(3000);
+    expect(port.count('connect')).toBe(3);
+    await clock.advance(3000);
+    expect(port.count('connect')).toBe(4);
+    expect(store.state()).toMatchObject({ ble: 'connected', error: null });
+  });
+
+  it('a Web Bluetooth error reads <name>: <message> and retries after 3 s (L2-091 AC3)', async () => {
+    const { port, clock, link, store } = setUp();
+    port.connectFailures.push(new DOMException('GATT Server is disconnected.', 'NetworkError'));
+    await link.pair();
+    expect(store.state()).toMatchObject({
+      ble: 'error',
+      error: 'NetworkError: GATT Server is disconnected.',
+    });
+    await clock.advance(3000);
+    await clock.advance(600);
+    expect(store.state()).toMatchObject({ ble: 'connected', error: null });
+  });
+
+  it('Reconnect cancels the pending retry and connects at once (L2-091 AC5)', async () => {
+    const { port, clock, link, store } = await connected();
+    port.drop();
+    await clock.advance(1000);
+    expect(await link.reconnect()).toBe('connecting');
+    await clock.advance(0);
+    expect(port.count('connect')).toBe(2);
+    expect(store.state().ble).toBe('connected');
+    await clock.advance(5000);
+    expect(port.count('connect')).toBe(2);
+  });
+
+  it('Reconnect while connected changes nothing (L2-004 AC5)', async () => {
+    const { port, link } = await connected();
+    expect(await link.reconnect()).toBe('already-connected');
+    expect(port.count('connect')).toBe(1);
   });
 });

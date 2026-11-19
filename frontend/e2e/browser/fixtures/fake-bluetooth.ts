@@ -17,11 +17,14 @@ interface Control {
   calls: BluetoothCall[];
   /** Sends a frame from the bike on every subscribed characteristic. */
   notify(hex: string): void;
+  /** The bike drops the link: `gattserverdisconnected` on the device picked. */
+  drop(): void;
 }
 
 /** Runs in the page before any app script. */
 function installFakeBluetooth(): void {
   const subscribed: EventTarget[] = [];
+  let picked: (EventTarget & { gatt: { connected: boolean } }) | null = null;
   const control: Control = {
     chooser: 'pick',
     deviceName: 'ECHEX-3-141844',
@@ -32,6 +35,12 @@ function installFakeBluetooth(): void {
         (c as unknown as { value: DataView }).value = new DataView(bytes.buffer);
         c.dispatchEvent(new Event('characteristicvaluechanged'));
       }
+    },
+    drop: () => {
+      if (!picked) return;
+      picked.gatt.connected = false;
+      subscribed.length = 0;
+      picked.dispatchEvent(new Event('gattserverdisconnected'));
     },
   };
   (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth = control;
@@ -87,13 +96,13 @@ function installFakeBluetooth(): void {
         };
       },
     };
-    const d = {
+    const d = Object.assign(new EventTarget(), {
       id: 'fake-bike',
       name: control.deviceName,
       gatt: server,
-      addEventListener: () => undefined,
-    };
+    });
     server.device = d;
+    picked = d;
     return d;
   };
 
@@ -134,6 +143,18 @@ export class FakeBluetooth {
     await this.page.evaluate((h) => {
       (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.notify(h);
     }, hex);
+  }
+
+  /** The bike drops the link, as when it shuts off or goes out of range. */
+  async drop(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.drop();
+    });
+  }
+
+  /** How many times the page called `name`. */
+  async count(name: string): Promise<number> {
+    return (await this.calls()).filter((c) => c.name === name).length;
   }
 
   /** Every Bluetooth call the page made, in order. */

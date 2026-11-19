@@ -44,7 +44,11 @@ export class WebBluetoothPort implements BluetoothPort {
       if (e instanceof DOMException && e.name === 'SecurityError') throw new ChooserBlockedError();
       throw e;
     }
-    return { name: device.name ?? 'Echelon bike', connect: () => connect(device) };
+    return {
+      name: device.name ?? 'Echelon bike',
+      connect: () => connect(device),
+      onDisconnected: (listener) => device.addEventListener('gattserverdisconnected', listener),
+    };
   }
 }
 

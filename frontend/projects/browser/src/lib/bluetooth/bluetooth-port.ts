@@ -15,6 +15,8 @@ export interface GattLink {
 export interface BikeDevice {
   readonly name: string;
   connect(): Promise<GattLink>;
+  /** Calls `listener` whenever the bike drops the link (`gattserverdisconnected`). */
+  onDisconnected(listener: () => void): void;
 }
 
 export interface BluetoothPort {
