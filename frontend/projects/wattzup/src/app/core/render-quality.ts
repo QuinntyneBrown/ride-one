@@ -1,0 +1,136 @@
+// The World Ride scene's quality tiers, its techniques and its frame budget (L2-099, ADR 0018).
+// Pure: the renderer asks which techniques are in force and holds no rule of its own.
+
+export type Tier = 'low' | 'medium' | 'high' | 'ultra';
+export type Backend = 'webgpu' | 'webgl2';
+
+export interface Technique {
+  /** The number of the technique in L2-099. */
+  readonly id: number;
+  readonly name: string;
+  /** The lowest tier that draws it; null when it is not built. */
+  readonly from: Tier | null;
+  /** With reduced motion: drawn as usual, drawn without moving on its own, or not drawn. */
+  readonly reducedMotion: 'kept' | 'still' | 'off';
+}
+
+const TIERS: readonly Tier[] = ['low', 'medium', 'high', 'ultra'];
+
+const t = (
+  id: number,
+  name: string,
+  from: Tier | null,
+  reducedMotion: Technique['reducedMotion'] = 'kept',
+): Technique => ({ id, name, from, reducedMotion });
+
+/** The table of L2-099, in its order. */
+export const TECHNIQUES: readonly Technique[] = [
+  t(1, 'Photogrammetric environment', 'high'),
+  t(2, 'Scanned road surface', 'high'),
+  t(3, 'Photometric-stereo materials', 'medium'),
+  t(4, 'PBR microfacet shading', 'low'),
+  t(5, 'Baked lightmaps', 'medium'),
+  t(6, 'HDR image-based lighting', 'medium'),
+  t(7, 'Temporal anti-aliasing', 'high'),
+  t(8, 'Anisotropic filtering and mipmaps', 'low'),
+  t(9, 'Layered road material', 'medium'),
+  t(10, 'Screen-space reflections with probes', 'high'),
+  t(11, 'Atmospheric scattering sky', 'medium'),
+  t(12, 'Cascaded shadow maps', 'medium'),
+  t(13, 'Irradiance probes', 'high'),
+  t(14, 'Wet-surface shading', 'medium'),
+  t(15, 'Clear-coat frame paint', 'medium'),
+  t(16, 'Specular anti-aliasing', 'high'),
+  t(17, 'AgX tone mapping', 'low'),
+  t(18, 'Hierarchical LOD with geomorphing', 'medium'),
+  t(19, 'Stochastic texture tiling', 'medium'),
+  t(20, 'Planar reflections', 'high'),
+  t(21, 'Rear-view mirror', null),
+  t(22, 'Road wear decals', 'medium'),
+  t(23, 'Photometric lamps', 'medium'),
+  t(24, 'Retroreflective markings', 'medium'),
+  t(25, 'Volumetric clouds', 'ultra', 'still'),
+  t(26, 'Froxel volumetric fog', 'ultra'),
+  t(27, 'Surface-water simulation', 'high', 'still'),
+  t(28, 'Tyre spray', 'high', 'off'),
+  t(29, 'Windshield water', null),
+  t(30, 'Two-sided foliage', 'medium'),
+  t(31, 'Wind animation', 'medium', 'off'),
+  t(32, 'Alpha-coverage mipmaps', 'medium'),
+  t(33, 'Per-pixel motion blur', 'high', 'off'),
+  t(34, 'Wheel rotational blur', 'medium', 'off'),
+  t(35, 'Auto exposure', 'medium'),
+  t(36, 'Ground-truth ambient occlusion', 'high'),
+  t(37, 'Contact shadows', 'high'),
+  t(38, 'Clustered forward lighting', 'high'),
+  t(39, 'LTC area lights', 'medium'),
+  t(40, 'Precomputed radiance transfer sky', 'ultra'),
+  t(41, 'Virtual texturing', 'ultra'),
+  t(42, 'Geometry clipmaps', 'high'),
+  t(43, 'Octahedral impostors', 'medium'),
+  t(44, '3D Gaussian splatting', 'ultra'),
+  t(45, 'BVH ray-traced reflections', 'ultra'),
+  t(46, 'Dynamic diffuse global illumination', 'ultra'),
+  t(47, 'ReSTIR many-light sampling', 'ultra'),
+  t(48, 'SVGF denoising', 'ultra'),
+  t(49, 'Screen-space glare', 'medium'),
+  t(50, 'Heat haze', 'high', 'off'),
+];
+
+const rank = (tier: Tier) => TIERS.indexOf(tier);
+
+/** The tier the scene opens at (L2-099 AC3). */
+export function startTier(backend: Backend): Tier {
+  return backend === 'webgpu' ? 'ultra' : 'high';
+}
+
+/** The ids of the techniques drawn (L2-099 AC2, AC5). */
+export function techniquesAt(tier: Tier, backend: Backend, reducedMotion: boolean): Set<number> {
+  const top = backend === 'webgl2' ? Math.min(rank(tier), rank('high')) : rank(tier);
+  return new Set(
+    TECHNIQUES.filter(
+      (x) =>
+        x.from !== null && rank(x.from) <= top && !(reducedMotion && x.reducedMotion === 'off'),
+    ).map((x) => x.id),
+  );
+}
+
+const BUDGET_MS = 1000 / 60;
+const OVER_MS = BUDGET_MS * 1.2;
+const WINDOW_MS = 2000;
+
+/** Lowers the tier after two 2 s windows in a row whose median frame is over 20 ms (AC4). */
+export class FrameBudget {
+  private start: number | null = null;
+  private frames: number[] = [];
+  private overInARow = 0;
+
+  constructor(private current: Tier) {}
+
+  get tier(): Tier {
+    return this.current;
+  }
+
+  /** Records one frame; returns `drop` when the tier has just been lowered. */
+  sample(now: number, frameMs: number): 'keep' | 'drop' {
+    let verdict: 'keep' | 'drop' = 'keep';
+    if (this.start === null) this.start = now;
+    if (now - this.start >= WINDOW_MS) {
+      verdict = this.close();
+      this.start = now;
+      this.frames = [];
+    }
+    this.frames.push(frameMs);
+    return verdict;
+  }
+
+  private close(): 'keep' | 'drop' {
+    const sorted = [...this.frames].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
+    this.overInARow = median > OVER_MS ? this.overInARow + 1 : 0;
+    if (this.overInARow < 2 || this.current === 'low') return 'keep';
+    this.overInARow = 0;
+    this.current = TIERS[rank(this.current) - 1]!;
+    return 'drop';
+  }
+}
