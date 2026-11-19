@@ -70,6 +70,53 @@
       }
     },
     {
+      "id": "world-ride",
+      "kind": "page",
+      "title": "World Ride",
+      "opens_from": "class",
+      "requirements": [
+        "L2-018",
+        "L2-019",
+        "L2-020",
+        "L2-021",
+        "L2-024",
+        "L2-025",
+        "L2-049"
+      ],
+      "states": [
+        "default",
+        "docklands",
+        "granite",
+        "oldtown",
+        "prairie",
+        "dolomites",
+        "coast",
+        "paused",
+        "disconnected",
+        "loading",
+        "error",
+        "scenery-ready",
+        "renderer-unavailable"
+      ],
+      "not_applicable": {
+        "empty": "A World Ride always has a selected class and plan. The class library owns the empty catalogue."
+      }
+    },
+    {
+      "id": "class-worlds",
+      "kind": "page",
+      "title": "Class Worlds design canvas",
+      "requirements": [],
+      "states": [
+        "default"
+      ],
+      "not_applicable": {
+        "loading": "The source is a fixed design-review canvas of six local class snapshots.",
+        "empty": "The source is a fixed design-review canvas of six local class snapshots.",
+        "error": "The source is a fixed design-review canvas of six local class snapshots."
+      }
+    },
+    {
       "id": "class-library",
       "kind": "page",
       "title": "Class library",
