@@ -10,4 +10,6 @@ export * from './lib/http-api';
 export * from './lib/safe-storage';
 export * from './lib/session-api';
 export * from './lib/stream-connection';
+export * from './lib/live-state-source';
+export * from './lib/event-stream-live-state';
 export * from './lib/workout-api';
