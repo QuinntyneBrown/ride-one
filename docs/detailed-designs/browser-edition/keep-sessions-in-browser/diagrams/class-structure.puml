@@ -23,6 +23,7 @@ class SessionStore {
   +find(id): SessionRecord | null
   +add(s: SessionRecord): Promise<void>
   +addMany(s: SessionRecord[]): Promise<{added, skipped}>
+  +isSaved(id): boolean
   +newId(): string
 }
 class SessionBuilder <<pure>> {
@@ -42,6 +43,7 @@ interface SessionApi {
 interface SessionArchive {
   +exportAll(): Promise<Blob>
   +importFile(file: Blob): Promise<ImportReport | 'not-a-history'>
+  +isSaved(id: string): boolean
   +lastExportedAt(): number | null
 }
 class ImportReport {

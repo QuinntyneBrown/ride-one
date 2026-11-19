@@ -38,6 +38,7 @@ describe('SessionStore (browser)', () => {
     await store.add(rec('b', 2));
     expect(store.list().map((s) => s.id)).toEqual(['b', 'a']);
     expect(writes).toEqual([{ put: ['b'], deleted: [] }]);
+    expect(store.isSaved('b')).toBe(true);
   });
 
   it('keeps the newest 500, deleting the oldest in the same write (L2-094 AC3)', async () => {
@@ -53,6 +54,7 @@ describe('SessionStore (browser)', () => {
     const { store } = setUp([], true);
     await expect(store.add(rec('a', 1))).rejects.toThrow('Quota exceeded');
     expect(store.find('a')?.id).toBe('a');
+    expect(store.isSaved('a')).toBe(false);
   });
 
   it('new ids are 12 lowercase hex characters', () => {

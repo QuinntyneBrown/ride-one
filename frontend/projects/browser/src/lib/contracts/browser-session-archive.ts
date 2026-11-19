@@ -48,6 +48,10 @@ export class BrowserSessionArchive implements SessionArchive {
     return { added, skipped, rejected: sessions.length - valid.length };
   }
 
+  isSaved(id: string): boolean {
+    return this.store.isSaved(id);
+  }
+
   lastExportedAt(): number | null {
     const value = Number(this.storage.get(LAST_EXPORTED_KEY));
     return Number.isFinite(value) && value > 0 ? value : null;

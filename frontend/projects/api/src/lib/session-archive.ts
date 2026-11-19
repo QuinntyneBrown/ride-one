@@ -16,6 +16,8 @@ export interface SessionArchive {
   /** Adds a history file's new sessions; `not-a-history` when the file is not one (too large, not
    * JSON, not `{"sessions":[…]}`), with nothing changed. */
   importFile(file: Blob): Promise<ImportReport | 'not-a-history'>;
+  /** False for a session this page holds but the browser could not keep (L2-094 AC7). */
+  isSaved(id: string): boolean;
   /** When the history was last exported from this browser, in Unix ms, or null. */
   lastExportedAt(): number | null;
 }

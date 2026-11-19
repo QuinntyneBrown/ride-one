@@ -139,7 +139,9 @@
         "L2-085",
         "L2-087",
         "L2-040",
-        "L2-041"
+        "L2-041",
+        "L2-094",
+        "L2-088"
       ],
       "states": [
         "default",
@@ -150,7 +152,8 @@
         "goal-hit",
         "loading",
         "not-found",
-        "error"
+        "error",
+        "browser-not-kept"
       ],
       "not_applicable": {
         "empty": "A session always has a ride; a missing one is not-found."

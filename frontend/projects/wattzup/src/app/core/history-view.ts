@@ -85,6 +85,13 @@ export function importToast(
   };
 }
 
+/** A ride that ended but the browser had no room to keep (L2-094 AC7). */
+export const NOT_KEPT: ToastMessage = {
+  tone: 'warning',
+  title: 'Couldn’t keep this ride',
+  text: 'This browser has no room to save it. It stays here until you close the page — export your history from Progress to keep it.',
+};
+
 /** An import whose rides could not be written (storage full or blocked): nothing changed. */
 export const IMPORT_FAILED: ToastMessage = {
   tone: 'danger',

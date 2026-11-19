@@ -15,6 +15,8 @@ export class SessionStore {
   private readonly database = inject(SESSION_DATABASE);
   private all: SessionRecord[] = [];
   private loading: Promise<void> | null = null;
+  /** Sessions this page holds that the database refused (L2-094 AC7). */
+  private readonly unsaved = new Set<string>();
 
   /** Resolves once the saved sessions are read; a failed read leaves the list empty. */
   ready(): Promise<void> {
@@ -41,7 +43,17 @@ export class SessionStore {
     const list = [session, ...this.all];
     const trimmed = list.slice(MAX_SESSIONS).map((s) => s.id);
     this.all = list.slice(0, MAX_SESSIONS);
-    await this.database.write([session], trimmed);
+    try {
+      await this.database.write([session], trimmed);
+    } catch (e) {
+      this.unsaved.add(session.id);
+      throw e;
+    }
+  }
+
+  /** False for a session this page holds but the browser could not keep. */
+  isSaved(id: string): boolean {
+    return !this.unsaved.has(id);
   }
 
   /** Adds the sessions whose id is new, in one write, and keeps the newest 500 (L2-094 AC5). */
