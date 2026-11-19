@@ -48,11 +48,11 @@ test.describe('Class page (L2-080)', () => {
     await expect(cls.stretches).toHaveText('5:00 warm-up · 6:00 cool-down');
     await expect(cls.figure('Structure')).toHaveText('8 × 0:30 · 3:00 → 1:30 recover');
     await expect(cls.figure('Cadence')).toHaveText('98 / 72 rpm');
-    await expect(cls.figure('Expected avg power')).toHaveText('~154 W');
+    await expect(cls.figure('Expected avg power')).toHaveText('~197 W');
     await expect(cls.levelRows).toHaveCount(2);
     await expect(cls.work.value).toHaveText('24 / 32');
     await expect(cls.work.value).toHaveAttribute('aria-label', 'Work level 24 of 32');
-    await expect(cls.recover.value).toHaveText('6 / 32');
+    await expect(cls.recover.value).toHaveText('10 / 32');
     await expect(cls.resetButton).toHaveCount(0);
     await expect(cls.startButton).toHaveText('Start ride');
   });
@@ -131,15 +131,15 @@ test.describe('Class page (L2-080)', () => {
     await expect(cls.work.value).toHaveText('26 / 32');
     await expect(cls.work.value).toHaveAttribute('aria-label', 'Work level 26 of 32');
     await expect(cls.work.value).toHaveAttribute('aria-live', 'polite');
-    await expect(cls.recover.value).toHaveText('8 / 32');
+    await expect(cls.recover.value).toHaveText('12 / 32');
     await expect(cls.strip).toHaveAttribute('aria-label', /peak level 26/);
-    await expect(cls.figure('Expected avg power')).toHaveText('~169 W');
+    await expect(cls.figure('Expected avg power')).toHaveText('~212 W');
     await expect(cls.resetButton).toBeVisible();
 
     await cls.resetButton.click();
     await expect(cls.work.value).toHaveText('24 / 32');
-    await expect(cls.recover.value).toHaveText('6 / 32');
-    await expect(cls.figure('Expected avg power')).toHaveText('~154 W');
+    await expect(cls.recover.value).toHaveText('10 / 32');
+    await expect(cls.figure('Expected avg power')).toHaveText('~197 W');
     await expect(cls.resetButton).toHaveCount(0);
   });
 
@@ -147,7 +147,7 @@ test.describe('Class page (L2-080)', () => {
     const cls = new ClassPage(page, api, events);
     await cls.open();
 
-    for (let i = 0; i < 5; i++) await cls.recover.lower.click();
+    for (let i = 0; i < 9; i++) await cls.recover.lower.click();
     await expect(cls.recover.value).toHaveText('1 / 32');
     await expect(cls.recover.lower).toBeDisabled();
     for (let i = 0; i < 8; i++) await cls.work.raise.click();
@@ -254,8 +254,8 @@ test.describe('Class page (L2-080)', () => {
     expect(body.kind).toBe('intervals');
     expect(body.class_id).toBe('30-minute-hiit-cardio');
     expect(body.sets.map((s) => s.work_level)).toEqual([25, 25, 25, 25, 25]);
-    expect(body.sets.map((s) => s.rest_level)).toEqual([6, 6, 6, 6, 6]);
-    expect(body.warmup.level).toBe(8);
+    expect(body.sets.map((s) => s.rest_level)).toEqual([10, 10, 10, 10, 10]);
+    expect(body.warmup.level).toBe(18);
     expect(body.video).toEqual({
       url: 'https://www.youtube.com/watch?v=QUoToFsMNig',
       start_seconds: 3.5,
@@ -323,10 +323,10 @@ test.describe('Class page (L2-080)', () => {
     await cls.fullSetup.click();
     await expect(page).toHaveURL(/\/setup$/);
     await expect(setup.intervalsCard).toBeChecked();
-    await expect(setup.stretchValue('Warm-up')).toHaveText('5:00 · Level 8 · 80 rpm');
+    await expect(setup.stretchValue('Warm-up')).toHaveText('5:00 · Level 18 · 80 rpm');
     await expect(setup.setRows).toHaveCount(5);
     await expect(setup.setRow(1)).toContainText('1 × 0:30 · L25 · 98 rpm');
-    await expect(setup.setRow(1)).toContainText('Recover 3:00 · L6 · 72 rpm');
+    await expect(setup.setRow(1)).toContainText('Recover 3:00 · L10 · 72 rpm');
     await expect(setup.videoSwitch).toBeChecked();
     await expect(setup.videoUrl).toHaveValue('https://www.youtube.com/watch?v=QUoToFsMNig');
     await expect(setup.videoStart).toHaveValue('0:03.5');

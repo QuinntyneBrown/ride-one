@@ -3,14 +3,14 @@
   "device": "ECHSIM-0001",
   "device_label": "ECHSIM-0001",
   "error": null,
-  "resistance": 8,
-  "target_resistance": 8,
+  "resistance": 18,
+  "target_resistance": 18,
   "workout": {
     "plan": {
       "kind": "intervals",
       "warmup": {
         "seconds": 300,
-        "level": 8,
+        "level": 18,
         "cadence": 80
       },
       "sets": [
@@ -20,7 +20,7 @@
           "work_level": 24,
           "work_cadence": 98,
           "rest_seconds": 180,
-          "rest_level": 6,
+          "rest_level": 10,
           "rest_cadence": 72
         },
         {
@@ -29,7 +29,7 @@
           "work_level": 24,
           "work_cadence": 98,
           "rest_seconds": 150,
-          "rest_level": 6,
+          "rest_level": 10,
           "rest_cadence": 72
         },
         {
@@ -38,7 +38,7 @@
           "work_level": 24,
           "work_cadence": 98,
           "rest_seconds": 120,
-          "rest_level": 6,
+          "rest_level": 10,
           "rest_cadence": 72
         },
         {
@@ -47,7 +47,7 @@
           "work_level": 24,
           "work_cadence": 98,
           "rest_seconds": 90,
-          "rest_level": 6,
+          "rest_level": 10,
           "rest_cadence": 72
         },
         {
@@ -56,7 +56,7 @@
           "work_level": 24,
           "work_cadence": 98,
           "rest_seconds": 0,
-          "rest_level": 6,
+          "rest_level": 10,
           "rest_cadence": 72
         }
       ],
@@ -67,7 +67,7 @@
       },
       "video": {
         "video_id": "QUoToFsMNig",
-        "start_seconds": 12
+        "start_seconds": 3
       }
     },
     "summary": "Intervals · 8 efforts · 30:00",
@@ -76,7 +76,7 @@
         "kind": "warmup",
         "start": 0,
         "duration": 300,
-        "level": 8,
+        "level": 18,
         "cadence": 80,
         "round": null,
         "speed": null,
@@ -96,7 +96,7 @@
         "kind": "rest",
         "start": 330,
         "duration": 180,
-        "level": 6,
+        "level": 10,
         "cadence": 72,
         "round": 1,
         "speed": null,
@@ -116,7 +116,7 @@
         "kind": "rest",
         "start": 540,
         "duration": 150,
-        "level": 6,
+        "level": 10,
         "cadence": 72,
         "round": 2,
         "speed": null,
@@ -136,7 +136,7 @@
         "kind": "rest",
         "start": 720,
         "duration": 150,
-        "level": 6,
+        "level": 10,
         "cadence": 72,
         "round": 3,
         "speed": null,
@@ -156,7 +156,7 @@
         "kind": "rest",
         "start": 900,
         "duration": 120,
-        "level": 6,
+        "level": 10,
         "cadence": 72,
         "round": 4,
         "speed": null,
@@ -176,7 +176,7 @@
         "kind": "rest",
         "start": 1050,
         "duration": 120,
-        "level": 6,
+        "level": 10,
         "cadence": 72,
         "round": 5,
         "speed": null,
@@ -196,7 +196,7 @@
         "kind": "rest",
         "start": 1200,
         "duration": 90,
-        "level": 6,
+        "level": 10,
         "cadence": 72,
         "round": 6,
         "speed": null,
@@ -216,7 +216,7 @@
         "kind": "rest",
         "start": 1320,
         "duration": 90,
-        "level": 6,
+        "level": 10,
         "cadence": 72,
         "round": 7,
         "speed": null,
@@ -248,17 +248,17 @@
     "elapsed_seconds": 62,
     "total_seconds": 1800,
     "mode": "plan",
-    "plan_level": 8,
+    "plan_level": 18,
     "status": "stopped",
     "ended_reason": null,
-    "session_id": "baad5479c6fe"
+    "session_id": "d5c44da15cb7"
   },
   "cadence": 85,
   "speed_kmh": 31.9,
   "speed_mph": 19.8,
-  "packets": 159,
-  "first_data_at": 1794982320.458,
-  "last_data_at": 1794982467.456,
+  "packets": 73,
+  "first_data_at": 1795030035.103,
+  "last_data_at": 1795030101.099,
   "ui_clients": 0,
   "displayed_since": null,
   "displayed_seconds": 0,
@@ -268,15 +268,25 @@
   "exposed": false,
   "bind_address": "127.0.0.1:8788",
   "connection_id": "0bf669f1",
-  "power": 152,
+  "power": 284,
   "target_power": null,
-  "avg_power": 152,
+  "avg_power": 284,
   "distance_km": 0.55,
-  "kcal": 9,
+  "kcal": 18,
   "heart_rate": null,
   "commands": [
     {
-      "at": 1794982406.068,
+      "at": 1795030039.75,
+      "ride_seconds": 0,
+      "level": 18,
+      "source": "plan",
+      "status": "ack",
+      "ack_ms": 0,
+      "command": "resistance",
+      "value": 18
+    },
+    {
+      "at": 1795030039.717,
       "ride_seconds": 0,
       "level": 8,
       "source": "plan",
@@ -286,27 +296,17 @@
       "value": 8
     },
     {
-      "at": 1794982406.064,
+      "at": 1795030039.716,
       "ride_seconds": 0,
-      "level": 8,
+      "level": 14,
       "source": "plan",
       "status": "ack",
       "ack_ms": 0,
       "command": "resistance",
-      "value": 8
+      "value": 14
     },
     {
-      "at": 1794982406.062,
-      "ride_seconds": 0,
-      "level": 8,
-      "source": "plan",
-      "status": "ack",
-      "ack_ms": 0,
-      "command": "resistance",
-      "value": 8
-    },
-    {
-      "at": 1794982406.057,
+      "at": 1795030039.712,
       "ride_seconds": 3,
       "level": 8,
       "source": "plan",
@@ -316,7 +316,7 @@
       "value": 8
     },
     {
-      "at": 1794982402.548,
+      "at": 1795030036.198,
       "ride_seconds": 0,
       "level": 8,
       "source": "plan",
@@ -340,7 +340,7 @@
       "label": "ECHSIM-0001",
       "rssi": -68,
       "signal": 3,
-      "seen_at": 1794982319.455
+      "seen_at": 1795030034.099
     }
   ],
   "treadmill_enabled": true

@@ -1,15 +1,15 @@
 {
   "previous": null,
   "bests": [],
-  "id": "baad5479c6fe",
-  "ended_at": "2026-11-18T06:14:28.077579+00:00",
+  "id": "d5c44da15cb7",
+  "ended_at": "2026-11-18T19:28:21.758701+00:00",
   "class_id": "30-minute-hiit-cardio",
   "title": "30 Minute HIIT Cardio",
   "plan": {
     "kind": "intervals",
     "warmup": {
       "seconds": 300,
-      "level": 8,
+      "level": 18,
       "cadence": 80
     },
     "sets": [
@@ -19,7 +19,7 @@
         "work_level": 24,
         "work_cadence": 98,
         "rest_seconds": 180,
-        "rest_level": 6,
+        "rest_level": 10,
         "rest_cadence": 72
       },
       {
@@ -28,7 +28,7 @@
         "work_level": 24,
         "work_cadence": 98,
         "rest_seconds": 150,
-        "rest_level": 6,
+        "rest_level": 10,
         "rest_cadence": 72
       },
       {
@@ -37,7 +37,7 @@
         "work_level": 24,
         "work_cadence": 98,
         "rest_seconds": 120,
-        "rest_level": 6,
+        "rest_level": 10,
         "rest_cadence": 72
       },
       {
@@ -46,7 +46,7 @@
         "work_level": 24,
         "work_cadence": 98,
         "rest_seconds": 90,
-        "rest_level": 6,
+        "rest_level": 10,
         "rest_cadence": 72
       },
       {
@@ -55,7 +55,7 @@
         "work_level": 24,
         "work_cadence": 98,
         "rest_seconds": 0,
-        "rest_level": 6,
+        "rest_level": 10,
         "rest_cadence": 72
       }
     ],
@@ -66,7 +66,7 @@
     },
     "video": {
       "video_id": "QUoToFsMNig",
-      "start_seconds": 12
+      "start_seconds": 3
     }
   },
   "segments": [
@@ -74,7 +74,7 @@
       "kind": "warmup",
       "start": 0,
       "duration": 300,
-      "level": 8,
+      "level": 18,
       "cadence": 80,
       "round": null,
       "speed": null,
@@ -94,7 +94,7 @@
       "kind": "rest",
       "start": 330,
       "duration": 180,
-      "level": 6,
+      "level": 10,
       "cadence": 72,
       "round": 1,
       "speed": null,
@@ -114,7 +114,7 @@
       "kind": "rest",
       "start": 540,
       "duration": 150,
-      "level": 6,
+      "level": 10,
       "cadence": 72,
       "round": 2,
       "speed": null,
@@ -134,7 +134,7 @@
       "kind": "rest",
       "start": 720,
       "duration": 150,
-      "level": 6,
+      "level": 10,
       "cadence": 72,
       "round": 3,
       "speed": null,
@@ -154,7 +154,7 @@
       "kind": "rest",
       "start": 900,
       "duration": 120,
-      "level": 6,
+      "level": 10,
       "cadence": 72,
       "round": 4,
       "speed": null,
@@ -174,7 +174,7 @@
       "kind": "rest",
       "start": 1050,
       "duration": 120,
-      "level": 6,
+      "level": 10,
       "cadence": 72,
       "round": 5,
       "speed": null,
@@ -194,7 +194,7 @@
       "kind": "rest",
       "start": 1200,
       "duration": 90,
-      "level": 6,
+      "level": 10,
       "cadence": 72,
       "round": 6,
       "speed": null,
@@ -214,7 +214,7 @@
       "kind": "rest",
       "start": 1320,
       "duration": 90,
-      "level": 6,
+      "level": 10,
       "cadence": 72,
       "round": 7,
       "speed": null,
@@ -244,14 +244,14 @@
   "planned_seconds": 1800,
   "ridden_seconds": 62,
   "completed": false,
-  "avg_power": 152,
-  "max_power": 152,
-  "best_minute_power": 152,
+  "avg_power": 284,
+  "max_power": 284,
+  "best_minute_power": 284,
   "avg_cadence": 85,
   "distance_km": 0.55,
-  "kcal": 9,
+  "kcal": 18,
   "on_target_pct": 100,
   "dips": [],
-  "power_trace": [152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152],
+  "power_trace": [284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284],
   "cadence_trace": [85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85]
 }

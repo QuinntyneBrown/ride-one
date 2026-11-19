@@ -46,13 +46,13 @@
       "shelf": "30-min",
       "plan": {
         "kind": "intervals",
-        "warmup": { "seconds": 300, "level": 8, "cadence": 80 },
+        "warmup": { "seconds": 300, "level": 18, "cadence": 80 },
         "sets": [
-          { "rounds": 1, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 180, "rest_level": 6, "rest_cadence": 72 },
-          { "rounds": 2, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 150, "rest_level": 6, "rest_cadence": 72 },
-          { "rounds": 2, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 120, "rest_level": 6, "rest_cadence": 72 },
-          { "rounds": 2, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 90, "rest_level": 6, "rest_cadence": 72 },
-          { "rounds": 1, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 0, "rest_level": 6, "rest_cadence": 72 }
+          { "rounds": 1, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 180, "rest_level": 10, "rest_cadence": 72 },
+          { "rounds": 2, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 150, "rest_level": 10, "rest_cadence": 72 },
+          { "rounds": 2, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 120, "rest_level": 10, "rest_cadence": 72 },
+          { "rounds": 2, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 90, "rest_level": 10, "rest_cadence": 72 },
+          { "rounds": 1, "work_seconds": 30, "work_level": 24, "work_cadence": 98, "rest_seconds": 0, "rest_level": 10, "rest_cadence": 72 }
         ],
         "cooldown": { "seconds": 360, "level": 6, "cadence": 70 },
         "video": { "url": "https://www.youtube.com/watch?v=QUoToFsMNig", "start_seconds": 3 }
