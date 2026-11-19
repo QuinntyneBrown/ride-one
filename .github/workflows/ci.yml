@@ -107,12 +107,11 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+      # The runner image already carries Chromium's system libraries (it ships Google Chrome), so only the
+      # browser is fetched, and only when it is not cached; apt alone took up to 90 s.
       - name: Install Chromium
         if: steps.browsers.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-      - name: Install Chromium's system libraries
-        if: steps.browsers.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
+        run: npx playwright install chromium
       - name: Behaviour specs (Chromium)
         run: npx playwright test --shard=${{ matrix.shard }}/2
       - uses: actions/upload-artifact@v4
