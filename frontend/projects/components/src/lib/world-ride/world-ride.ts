@@ -11,6 +11,19 @@ export interface WorldRideView {
   readonly bike: string | null;
   /** True while the ride is paused: the button reads Resume. */
   readonly paused: boolean;
+  /** The live readouts, `--` when missing (L2-092). */
+  readonly metrics: WorldRideMetrics;
+}
+
+/** The metrics panel: estimated power against target, cadence, heart and speed (L2-092). */
+export interface WorldRideMetrics {
+  readonly power: string;
+  readonly target: string;
+  /** `On target`, `+<n> W`, `-<n> W` or `Paused`, with its tone; null with no reading. */
+  readonly delta: { readonly text: string; readonly tone: 'on' | 'high' | 'low' } | null;
+  readonly cadence: string;
+  readonly heart: string;
+  readonly speed: string;
 }
 
 /** The ride's clock, `<elapsed> / <total>`, interpolated as the dashboard's (L2-024). */

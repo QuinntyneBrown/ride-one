@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-090, L2-091
+// Traces to: L2-090, L2-091, L2-092
 // Description: World Ride at /classes/:id/world: opened from the class page with Ride in <world
 // name>, which starts the class ride exactly as Start ride does; shown only for that class's ride in
 // progress; its app bar.
@@ -183,5 +183,41 @@ test.describe('World Ride access and app bar (L2-090, L2-091)', () => {
     await world.open();
     await world.pauseButton.click();
     await expect(toasts.region).toContainText("Couldn't pause the ride");
+  });
+});
+
+test.describe('World Ride live metrics (L2-092)', () => {
+  test('shows power against target, cadence, heart as -- and speed', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+
+    await expect(world.power).toHaveText('142');
+    await expect(world.powerUnit).toHaveText('W est.');
+    await expect(world.powerUnit).toHaveAttribute('title', 'Estimated from cadence and resistance');
+    await expect(world.target).toHaveText('Target 418 W -276 W');
+    await expect(world.stat('Cadence')).toHaveText('79 rpm');
+    await expect(world.stat('Heart')).toHaveText('-- bpm');
+    await expect(world.stat('Speed')).toHaveText('19.2 km/h');
+
+    await world.push(classRide({ power: 207, target_power: 205 }));
+    await expect(world.target).toHaveText('Target 205 W On target');
+  });
+
+  test('shows -- for a missing reading', async ({ page, api, events }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open(
+      undefined,
+      undefined,
+      classRide({ power: null, target_power: null, cadence: null, speed_kmh: null }),
+    );
+
+    await expect(world.power).toHaveText('--');
+    await expect(world.target).toHaveText('Target -- W');
+    await expect(world.stat('Cadence')).toHaveText('-- rpm');
+    await expect(world.stat('Speed')).toHaveText('-- km/h');
   });
 });

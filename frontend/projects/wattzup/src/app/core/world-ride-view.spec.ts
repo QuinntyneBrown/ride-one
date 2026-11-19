@@ -24,3 +24,45 @@ describe('worldRideView app bar (L2-091)', () => {
     expect(worldRideView(state, entry, oldTown).paused).toBe(paused);
   });
 });
+
+describe('worldRideView metrics (L2-092)', () => {
+  it('shows estimated power against target, cadence, heart and speed', () => {
+    const state = testState({
+      power: 142,
+      target_power: 418,
+      cadence: 79,
+      speed_kmh: 19.2,
+      heart_rate: null,
+    });
+
+    expect(worldRideView(state, entry, oldTown).metrics).toEqual({
+      power: '142',
+      target: '418',
+      delta: { text: '-276 W', tone: 'low' },
+      cadence: '79',
+      heart: '--',
+      speed: '19.2',
+    });
+  });
+
+  it('reads On target within 8 %', () => {
+    const state = testState({ power: 207, target_power: 205 });
+    expect(worldRideView(state, entry, oldTown).metrics.delta).toEqual({
+      text: 'On target',
+      tone: 'on',
+    });
+  });
+
+  it('shows -- for every missing reading, with no delta', () => {
+    const state = testState({ power: null, target_power: null, cadence: null, speed_kmh: null });
+    const metrics = worldRideView(state, entry, oldTown).metrics;
+
+    expect([metrics.power, metrics.target, metrics.cadence, metrics.speed]).toEqual([
+      '--',
+      '--',
+      '--',
+      '--',
+    ]);
+    expect(metrics.delta).toBeNull();
+  });
+});

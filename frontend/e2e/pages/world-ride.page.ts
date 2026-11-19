@@ -17,6 +17,10 @@ export class WorldRidePage {
   readonly resumeButton: Locator;
   readonly endButton: Locator;
   readonly notFoundTitle: Locator;
+  readonly metrics: Locator;
+  readonly power: Locator;
+  readonly powerUnit: Locator;
+  readonly target: Locator;
 
   constructor(
     readonly page: Page,
@@ -35,6 +39,15 @@ export class WorldRidePage {
     this.resumeButton = this.bar.getByRole('button', { name: 'Resume' });
     this.endButton = this.bar.getByRole('button', { name: 'End' });
     this.notFoundTitle = page.getByRole('heading', { level: 1, name: "We can't find that class" });
+    this.metrics = this.main.getByRole('region', { name: 'Live metrics' });
+    this.power = this.metrics.locator('.world-ride__power');
+    this.powerUnit = this.metrics.locator('.world-ride__unit');
+    this.target = this.metrics.locator('.world-ride__target');
+  }
+
+  /** A metric of the panel's description list by its term: `Cadence`, `Heart` or `Speed`. */
+  stat(term: string): Locator {
+    return this.metrics.locator(`dt:text-is("${term}") + dd`);
   }
 
   /** The accessible names of the app bar's controls, in Tab order. */

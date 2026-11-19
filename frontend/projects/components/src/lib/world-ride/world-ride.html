@@ -55,5 +55,45 @@
         </button>
       </div>
     </header>
+    @let m = v.metrics;
+    <div class="world-ride__top">
+      <section class="world-ride__panel" aria-label="Live metrics">
+        <div role="group" aria-label="Power" aria-describedby="world-ride-power-estimate">
+          <strong class="world-ride__power">{{ m.power }}</strong>
+          <b class="world-ride__unit" title="Estimated from cadence and resistance">W est.</b>
+          <span class="visually-hidden" id="world-ride-power-estimate"
+            >Estimated from cadence and resistance</span
+          >
+        </div>
+        <div class="world-ride__target">
+          Target {{ m.target }} W
+          @if (m.delta; as d) {
+            <b class="world-ride__delta" [class.world-ride__accent]="d.tone === 'on'">{{
+              d.text
+            }}</b>
+          }
+        </div>
+        <dl class="world-ride__stats">
+          <div>
+            <dt>Cadence</dt>
+            <dd>
+              <strong>{{ m.cadence }}</strong> rpm
+            </dd>
+          </div>
+          <div>
+            <dt>Heart</dt>
+            <dd>
+              <strong>{{ m.heart }}</strong> bpm
+            </dd>
+          </div>
+          <div>
+            <dt>Speed</dt>
+            <dd>
+              <strong>{{ m.speed }}</strong> km/h
+            </dd>
+          </div>
+        </dl>
+      </section>
+    </div>
   </div>
 </main>
