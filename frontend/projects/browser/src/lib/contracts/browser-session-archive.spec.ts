@@ -39,7 +39,12 @@ const file = (body: unknown) => new Blob([typeof body === 'string' ? body : JSON
 
 function setUp(saved: SessionRecord[] = []) {
   localStorage.removeItem(LAST_EXPORTED_KEY);
-  const database: SessionDatabase = { loadAll: async () => saved, write: async () => undefined };
+  const database: SessionDatabase = {
+    loadAll: async () => saved,
+    write: async () => undefined,
+    readJournal: async () => null,
+    writeJournal: async () => undefined,
+  };
   TestBed.configureTestingModule({
     providers: [
       SessionStore,

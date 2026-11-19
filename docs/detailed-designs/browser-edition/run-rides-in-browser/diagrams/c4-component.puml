@@ -14,7 +14,7 @@ Container_Boundary(app, "Wattzup Web, browser edition") {
   Component(store, "BikeStateStore", "lib/engine mirror", "Only writer of BikeState")
   Component(engine, "WorkoutEngine", "lib/engine mirror", "Ticks on the monotonic clock")
   Component(cmd, "ResistanceCommander", "lib/engine mirror", "Target resistance and command log")
-  Component(journal, "RideJournal", "lib/storage", "The ride in progress, every 10 s")
+  Component(journal, "SessionStore + journal", "lib/storage", "The ride in progress, every 10 s; saved on the next load")
   Component(wake, "WakeLockKeeper", "lib/engine", "Screen wake lock during a ride")
 }
 Rel(pages, live, "Read state")
@@ -28,6 +28,6 @@ Rel(wapi, engine, "Commands")
 Rel(engine, cmd, "Sets segment targets")
 Rel(cmd, link, "Writes setResistance")
 Rel(engine, store, "update(workout, totals)")
-Rel(engine, journal, "Saves the run")
+Rel(engine, journal, "keepJournal(), clearJournal()")
 Rel(wake, store, "Watches workout.status")
 @enduml

@@ -67,6 +67,8 @@ export function provideBrowserEdition(): EnvironmentProviders {
     { provide: SESSION_API, useClass: BrowserSessionApi },
     { provide: SESSION_ARCHIVE, useClass: BrowserSessionArchive },
     provideEnvironmentInitializer(requestPersistentStorage),
+    // Saves a ride the page closed on before anything reads the sessions (L2-092 AC5).
+    provideEnvironmentInitializer(() => void inject(SessionStore).ready()),
     // Asks at start whether Bluetooth is on, so every page's status line can say (L2-089 AC2).
     provideEnvironmentInitializer(() => void inject(BIKE_PAIRING)),
     provideEnvironmentInitializer(() => {

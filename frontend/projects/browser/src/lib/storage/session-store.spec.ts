@@ -7,13 +7,34 @@ import { TestBed } from '@angular/core/testing';
 import { SESSION_DATABASE, type SessionDatabase } from './session-database';
 import type { SessionRecord } from '../engine/session-record';
 import { MAX_SESSIONS, SessionStore } from './session-store';
+import type { RideJournalEntry } from './ride-journal';
+
+/** A flat ride of `planned` seconds, `ridden` of them in the journal. */
+function journalOf(ridden: number, planned = 120): RideJournalEntry {
+  return {
+    classId: null,
+    title: 'Flat · Level 12',
+    plan: { kind: 'flat', video: null, level: 12, minutes: planned / 60, cadence: 80 },
+    segments: [
+      { kind: 'steady', start: 0, duration: planned, level: 12, cadence: 80, round: null },
+    ],
+    samples: Array.from({ length: ridden }, () => ({ power: 150, cadence: 80 })),
+    totals: { runningSeconds: ridden, powerSum: 150 * ridden, distanceKm: 0.5 },
+    savedAt: Date.UTC(2026, 10, 18, 7, 30),
+  };
+}
 
 const at = (minute: number) => new Date(Date.UTC(2026, 10, 18, 0, minute)).toISOString();
 const rec = (id: string, minute: number) => ({ id, ended_at: at(minute) }) as SessionRecord;
 
-function setUp(saved: SessionRecord[], fail = false) {
+function setUp(saved: SessionRecord[], fail = false, journal: RideJournalEntry | null = null) {
   const writes: { put: string[]; deleted: string[] }[] = [];
+  const kept = { journal };
   const database: SessionDatabase = {
+    readJournal: async () => kept.journal,
+    writeJournal: async (entry) => {
+      kept.journal = entry;
+    },
     loadAll: async () => saved,
     write: async (put, deleted) => {
       writes.push({ put: put.map((s) => s.id), deleted });
@@ -23,7 +44,7 @@ function setUp(saved: SessionRecord[], fail = false) {
   TestBed.configureTestingModule({
     providers: [SessionStore, { provide: SESSION_DATABASE, useValue: database }],
   });
-  return { store: TestBed.inject(SessionStore), writes };
+  return { store: TestBed.inject(SessionStore), writes, kept };
 }
 
 describe('SessionStore (browser)', () => {
@@ -82,5 +103,37 @@ describe('SessionStore (browser)', () => {
     const { store } = setUp([rec('a', 1)], true);
     await expect(store.addMany([rec('b', 2)])).rejects.toThrow();
     expect(store.list().map((s) => s.id)).toEqual(['a']);
+  });
+
+  describe('a ride the page closed on (L2-092 AC5)', () => {
+    it('is saved as an ended session when it ran 60 s or more, and the journal is cleared', async () => {
+      const { store, kept } = setUp([rec('a', 1)], false, journalOf(70));
+      await store.ready();
+      const [saved] = store.list();
+      expect(saved.ridden_seconds).toBe(70);
+      expect(saved.completed).toBe(false);
+      expect(saved.ended_at).toBe('2026-11-18T07:30:00.000Z');
+      expect(store.list()).toHaveLength(2);
+      expect(kept.journal).toBeNull();
+    });
+
+    it('is completed by its rule when it reached the end of the plan', async () => {
+      const { store } = setUp([], false, journalOf(120));
+      await store.ready();
+      expect(store.list()[0].completed).toBe(true);
+    });
+
+    it('is dropped when it ran under 60 s', async () => {
+      const { store, kept } = setUp([], false, journalOf(59));
+      await store.ready();
+      expect(store.list()).toEqual([]);
+      expect(kept.journal).toBeNull();
+    });
+
+    it('stays in the journal when the save fails, for the next load to try again', async () => {
+      const { store, kept } = setUp([], true, journalOf(70));
+      await store.ready();
+      expect(kept.journal).not.toBeNull();
+    });
   });
 });

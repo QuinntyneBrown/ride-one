@@ -62,9 +62,17 @@ class BrowserStateSource {
   +state: Signal<BikeState | null>
   +ensureStarted(): void
 }
-class RideJournal {
-  +save(run: WorkoutRun): Promise<void>
-  +take(): Promise<JournalEntry | null>
+class RideJournalEntry {
+  +classId, title, plan, segments
+  +samples: RideSample[]
+  +totals
+  +savedAt: number
+}
+class SessionStore {
+  +ready(): Promise<void>
+  +keepJournal(entry): Promise<void>
+  +clearJournal(): Promise<void>
+  -recoverJournal(): Promise<void>
 }
 class WakeLockKeeper {
   +onStatus(status: WorkoutStatus | null): void
@@ -82,7 +90,8 @@ WorkoutEngine --> Clock
 WorkoutEngine *-- "0..1" WorkoutRun
 WorkoutEngine --> ResistanceCommander
 WorkoutEngine --> BikeStateStore
-WorkoutEngine --> RideJournal
+WorkoutEngine --> SessionStore : keepJournal, clearJournal
+SessionStore ..> RideJournalEntry
 BrowserStateSource --> BikeStateStore
 WakeLockKeeper ..> BikeStateStore
 @enduml

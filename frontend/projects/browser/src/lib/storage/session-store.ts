@@ -2,8 +2,11 @@
 // kept (L2-082, L2-094 AC3). It loads from the SessionDatabase once and writes each change; a
 // failed write keeps the session in memory for this page (L2-094 AC7).
 import { inject, Injectable } from '@angular/core';
-import { SESSION_DATABASE } from './session-database';
+import { RideTotals } from '../engine/ride-totals';
+import { buildSession, MINIMUM_SECONDS } from '../engine/session-builder';
 import type { SessionRecord } from '../engine/session-record';
+import type { RideJournalEntry } from './ride-journal';
+import { SESSION_DATABASE } from './session-database';
 
 export const MAX_SESSIONS = 500;
 
@@ -18,15 +21,58 @@ export class SessionStore {
   /** Sessions this page holds that the database refused (L2-094 AC7). */
   private readonly unsaved = new Set<string>();
 
-  /** Resolves once the saved sessions are read; a failed read leaves the list empty. */
+  /** Resolves once the saved sessions are read and a ride left in the journal is saved; a failed
+   * read leaves the list empty. */
   ready(): Promise<void> {
-    this.loading ??= this.database.loadAll().then(
-      (sessions) => {
-        this.all = [...sessions, ...this.all].sort(newestFirst).slice(0, MAX_SESSIONS);
-      },
-      () => undefined,
-    );
+    this.loading ??= this.database
+      .loadAll()
+      .then(
+        (sessions) => {
+          this.all = [...sessions, ...this.all].sort(newestFirst).slice(0, MAX_SESSIONS);
+        },
+        () => undefined,
+      )
+      .then(() => this.recoverJournal());
     return this.loading;
+  }
+
+  /** Keeps the ride in progress (L2-092 AC5). Never rejects: the ride goes on without it. */
+  async keepJournal(entry: RideJournalEntry): Promise<void> {
+    await this.database.writeJournal(entry).catch(() => undefined);
+  }
+
+  /** The ride ended on this page: nothing to recover on the next load. */
+  async clearJournal(): Promise<void> {
+    await this.database.writeJournal(null).catch(() => undefined);
+  }
+
+  /** A ride the page closed on: saved as ended when L2-081 would, never resumed (L2-092 AC5). */
+  private async recoverJournal(): Promise<void> {
+    const entry = await this.database.readJournal().catch(() => null);
+    if (!entry) return;
+    if (entry.samples.length >= MINIMUM_SECONDS) {
+      const t = entry.totals;
+      const session = buildSession({
+        id: this.newId(),
+        endedAt: new Date(entry.savedAt).toISOString(),
+        classId: entry.classId,
+        title: entry.title,
+        plan: entry.plan,
+        segments: entry.segments,
+        samples: entry.samples,
+        totals: new RideTotals(t.runningSeconds, t.powerSum, t.distanceKm),
+      });
+      const list = [session, ...this.all].sort(newestFirst);
+      const trimmed = list.slice(MAX_SESSIONS).map((s) => s.id);
+      this.all = list.slice(0, MAX_SESSIONS);
+      try {
+        await this.database.write([session], trimmed);
+      } catch {
+        this.unsaved.add(session.id);
+        return; // The journal stays, so the next load tries again.
+      }
+    }
+    await this.clearJournal();
   }
 
   list(): SessionRecord[] {

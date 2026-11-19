@@ -62,3 +62,32 @@ test('a ride the browser has no room for still opens its summary, with a warning
     'This browser has no room to save it. It stays here until you close the page — export your history from Progress to keep it.',
   );
 });
+
+test('a ride the page closes on is asked about, kept, and saved on the next load (L2-092 AC5)', async ({
+  page,
+}) => {
+  await page.clock.install();
+  const ride = new BrowserRidePage(page);
+  await ride.open();
+  await ride.connect();
+  await expect(ride.statusState).toHaveText('Connected');
+  const setup = new BrowserSetupPage(page);
+  await setup.open();
+  await setup.startButton.click();
+  await page.waitForURL(/\/$/);
+  await page.clock.runFor(65_000);
+
+  const asked: string[] = [];
+  page.on('dialog', (dialog) => {
+    asked.push(dialog.type());
+    void dialog.accept();
+  });
+  await page.reload();
+  expect(asked).toEqual(['beforeunload']);
+
+  // The ride is not resumed, and it is on Progress as an ended ride.
+  await expect(ride.connectButton).toBeVisible();
+  const progress = new BrowserProgressPage(page);
+  await progress.open();
+  await expect(progress.rows).toHaveCount(1);
+});

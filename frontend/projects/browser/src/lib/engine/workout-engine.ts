@@ -3,7 +3,7 @@
 // L2-013, L2-046, L2-047, L2-049, L2-050). Unlike the backend, which counts 1 s ticks, running
 // time comes from the monotonic clock (L2-092): a tick steps the run by every whole second the
 // clock says has passed, so a throttled tab catches up instead of stretching the ride.
-import { inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
 import type {
   PowerTrace,
   Segment,
@@ -14,6 +14,7 @@ import type {
 import { BikeLink } from '../bluetooth/bike-link';
 import { CLOCK } from '../bluetooth/clock';
 import { buildSession, MINIMUM_SECONDS } from './session-builder';
+import type { RideJournalEntry } from '../storage/ride-journal';
 import { SessionStore } from '../storage/session-store';
 import { BikeStateStore } from './bike-state-store';
 import { expand } from './plan-expander';
@@ -39,6 +40,9 @@ export interface RideSample {
   power: number;
   cadence: number;
 }
+
+/** The ride in progress is written to the journal every 10 running seconds (L2-092 AC5). */
+const JOURNAL_SECONDS = 10;
 
 const ACTIVE = (status: WorkoutStatus) =>
   status !== 'ended' && status !== 'ended: bike shut off' && status !== 'stopped';
@@ -117,6 +121,25 @@ export class WorkoutEngine {
   private queue: Promise<unknown> = Promise.resolve();
   private started = false;
 
+  constructor() {
+    if (typeof window === 'undefined') return;
+    // A ride closes with its page; ask first, and keep what was ridden (L2-092 AC5).
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!this.run?.isActive) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    const pageHide = () => {
+      if (this.run?.isActive) void this.keepJournal(this.run);
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    window.addEventListener('pagehide', pageHide);
+    inject(DestroyRef).onDestroy(() => {
+      window.removeEventListener('beforeunload', beforeUnload);
+      window.removeEventListener('pagehide', pageHide);
+    });
+  }
+
   /** Starts the tick loop once. */
   start(): void {
     if (this.started) return;
@@ -127,8 +150,10 @@ export class WorkoutEngine {
   /** Starts `plan`, replacing any active ride (L2-013 AC5). */
   startWorkout(plan: WorkoutPlan, origin: RideOrigin | null): Promise<WorkoutSnapshot> {
     return this.post(async () => {
+      const previous = this.run;
       const run = new WorkoutRun(plan, origin);
       this.run = run;
+      if (previous?.isActive) await this.sessions.clearJournal();
       this.history.reset();
       if (this.connected) await this.runIt(run);
       this.publish(run);
@@ -249,7 +274,14 @@ export class WorkoutEngine {
     }
     const due = Math.floor((now - run.anchor) / 1000);
     if (due <= run.elapsed) return;
+    const before = run.elapsed;
     while (run.elapsed < due && run.status === 'running') await this.step(run);
+    if (
+      run.isActive &&
+      Math.floor(run.elapsed / JOURNAL_SECONDS) > Math.floor(before / JOURNAL_SECONDS)
+    ) {
+      await this.keepJournal(run);
+    }
     // However many seconds and segment ends this tick crossed, only the segment it lands in
     // gets its level (L2-092 AC3).
     if (run.status === 'running') await this.drive(run);
@@ -282,6 +314,7 @@ export class WorkoutEngine {
   private async finish(run: WorkoutRun): Promise<void> {
     if (run.finished) return;
     run.finished = true;
+    await this.sessions.clearJournal();
     if (run.samples.length < MINIMUM_SECONDS) return;
     const session = buildSession({
       id: this.sessions.newId(),
@@ -299,6 +332,24 @@ export class WorkoutEngine {
     } catch {
       // Kept in memory for this page, so its summary still opens (L2-094 AC7).
     }
+  }
+
+  /** Writes what the ride has so far, for the next load to save if the page closes (L2-092 AC5). */
+  private keepJournal(run: WorkoutRun): Promise<void> {
+    const entry: RideJournalEntry = {
+      classId: run.origin?.classId ?? null,
+      title: run.origin?.title ?? run.summary,
+      plan: run.plan,
+      segments: run.segments,
+      samples: [...run.samples],
+      totals: {
+        runningSeconds: run.totals.runningSeconds,
+        powerSum: run.totals.powerSum,
+        distanceKm: run.totals.distanceKm,
+      },
+      savedAt: this.clock.epochMs(),
+    };
+    return this.sessions.keepJournal(entry);
   }
 
   private async runIt(run: WorkoutRun): Promise<void> {

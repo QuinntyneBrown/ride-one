@@ -10,6 +10,7 @@ import type { GattLink } from '../bluetooth/bluetooth-port';
 import { CLOCK } from '../bluetooth/clock';
 import { FakeClock } from '../bluetooth/fake-clock';
 import { SessionStore } from '../storage/session-store';
+import type { RideJournalEntry } from '../storage/ride-journal';
 import { SESSION_DATABASE, type SessionDatabase } from '../storage/session-database';
 import { BikeStateStore } from './bike-state-store';
 import { ResistanceCommander } from './resistance-commander';
@@ -31,7 +32,12 @@ const SHORT: WorkoutPlan = {
 function setUp(connectedAtStart = true) {
   const clock = new FakeClock(1_794_784_639_000);
   const saved: string[] = [];
+  const journal: (RideJournalEntry | null)[] = [];
   const database: SessionDatabase = {
+    readJournal: async () => null,
+    writeJournal: async (entry) => {
+      journal.push(entry);
+    },
     loadAll: async () => [],
     write: async (put) => {
       saved.push(...put.map((s) => s.id));
@@ -69,6 +75,7 @@ function setUp(connectedAtStart = true) {
     clock,
     levels,
     saved,
+    journal,
     sessions: TestBed.inject(SessionStore),
     store,
     engine,
@@ -93,6 +100,36 @@ describe('WorkoutEngine', () => {
     expect(snapshot.summary).toBe('HIIT · 2 × 10s / 10s');
     expect(levels).toEqual([20]);
     expect(workout().total_seconds).toBe(40);
+  });
+
+  it('keeps the ride in the journal every 10 running seconds and clears it at the end (L2-092 AC5)', async () => {
+    const { clock, engine, journal } = setUp();
+    await engine.startWorkout(SHORT, null);
+    await clock.advance(9_000);
+    expect(journal).toEqual([]);
+    await clock.advance(1_000);
+    expect(journal).toHaveLength(1);
+    expect(journal[0]).toMatchObject({
+      title: 'HIIT · 2 × 10s / 10s',
+      totals: { runningSeconds: 10 },
+    });
+    expect(journal[0]!.samples).toHaveLength(10);
+    await clock.advance(30_000);
+    expect(journal.at(-1)).toBeNull();
+  });
+
+  it('asks before the page unloads while a ride is active, and not after it ends (L2-092 AC5)', async () => {
+    const { clock, engine } = setUp();
+    const unload = () => {
+      const event = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(unload()).toBe(false);
+    await engine.startWorkout(SHORT, null);
+    expect(unload()).toBe(true);
+    await clock.advance(40_000);
+    expect(unload()).toBe(false);
   });
 
   it('counts running seconds from the clock and steps to the next segment, sending its level', async () => {
