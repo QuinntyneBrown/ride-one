@@ -180,7 +180,9 @@
         "error",
         "browser-imported",
         "browser-nothing-new",
-        "browser-not-a-backup"
+        "browser-not-a-backup",
+        "browser-partly-rejected",
+        "browser-empty"
       ],
       "not_applicable": {}
     },
