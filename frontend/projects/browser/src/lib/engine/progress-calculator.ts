@@ -6,7 +6,7 @@ import type {
   ProgressReport,
   StreakFigures,
 } from '@wattzup/api';
-import { roundToEven } from '../engine/rounding';
+import { roundToEven } from './rounding';
 import { toSummary, type SessionRecord } from './session-record';
 import { addDays, dayOfWeek, localDay, localMidnight, type TimeZone } from './time-zone';
 

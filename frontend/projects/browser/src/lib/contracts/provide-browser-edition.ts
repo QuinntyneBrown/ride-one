@@ -15,8 +15,10 @@ import { BikeStateStore } from '../engine/bike-state-store';
 import { ResistanceCommander } from '../engine/resistance-commander';
 import { TelemetryIngestor } from '../engine/telemetry-ingestor';
 import { WorkoutEngine } from '../engine/workout-engine';
+import { SessionStore } from '../storage/session-store';
 import { BrowserBikeApi } from './browser-bike-api';
 import { BrowserBikePairing } from './browser-bike-pairing';
+import { BrowserSessionApi } from './browser-session-api';
 import { BrowserStateSource } from './browser-state-source';
 import { BrowserWorkoutApi } from './browser-workout-api';
 import { notYetInTheBrowser } from './not-yet-in-the-browser';
@@ -28,12 +30,13 @@ export function provideBrowserEdition(): Provider[] {
     BikeLink,
     ResistanceCommander,
     WorkoutEngine,
+    SessionStore,
     { provide: BLUETOOTH_PORT, useClass: WebBluetoothPort },
     { provide: LIVE_STATE_SOURCE, useClass: BrowserStateSource },
     { provide: BIKE_PAIRING, useClass: BrowserBikePairing },
     { provide: BIKE_API, useClass: BrowserBikeApi },
     { provide: WORKOUT_API, useClass: BrowserWorkoutApi },
     { provide: CLASS_API, useValue: notYetInTheBrowser('CLASS_API') },
-    { provide: SESSION_API, useValue: notYetInTheBrowser('SESSION_API') },
+    { provide: SESSION_API, useClass: BrowserSessionApi },
   ];
 }

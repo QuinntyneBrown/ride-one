@@ -1,9 +1,9 @@
 // Mirrors Wattzup.Core/Sessions/SessionBuilder.cs: the session of a ride that has just ended,
 // with its cadence dips, on-target share, best minute and 5 s traces (L2-081).
 import type { Dip, Segment, SegmentKind, WorkoutPlan } from '@wattzup/api';
-import type { RideSample } from '../engine/workout-engine';
-import type { RideTotals } from '../engine/ride-totals';
-import { roundAwayFromZero } from '../engine/rounding';
+import type { RideSample } from './workout-engine';
+import type { RideTotals } from './ride-totals';
+import { roundAwayFromZero } from './rounding';
 import type { SessionRecord } from './session-record';
 
 export const MINIMUM_SECONDS = 60;

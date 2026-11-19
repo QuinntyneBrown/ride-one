@@ -13,6 +13,8 @@ import type {
 } from '@wattzup/api';
 import { BikeLink } from '../bluetooth/bike-link';
 import { CLOCK } from '../bluetooth/clock';
+import { buildSession, MINIMUM_SECONDS } from './session-builder';
+import { SessionStore } from '../storage/session-store';
 import { BikeStateStore } from './bike-state-store';
 import { expand } from './plan-expander';
 import { estimateWatts } from './power-estimator';
@@ -36,16 +38,6 @@ export interface RideOrigin {
 export interface RideSample {
   power: number;
   cadence: number;
-}
-
-/** A ride, as the engine hands it over when it ends. */
-export interface FinishedRide {
-  plan: WorkoutPlan;
-  origin: RideOrigin | null;
-  summary: string;
-  segments: Segment[];
-  samples: RideSample[];
-  totals: RideTotals;
 }
 
 const ACTIVE = (status: WorkoutStatus) =>
@@ -119,13 +111,11 @@ export class WorkoutEngine {
   private readonly commander = inject(ResistanceCommander);
   private readonly link = inject(BikeLink);
   private readonly clock = inject(CLOCK);
+  private readonly sessions = inject(SessionStore);
   private readonly history = new PowerTraceHistory();
   private run: WorkoutRun | null = null;
   private queue: Promise<unknown> = Promise.resolve();
   private started = false;
-
-  /** Saves a ride that has just ended; returns the session id, or null when none was saved. */
-  finishRide: (ride: FinishedRide) => Promise<string | null> = async () => null;
 
   /** Starts the tick loop once. */
   start(): void {
@@ -288,17 +278,27 @@ export class WorkoutEngine {
     }
   }
 
+  /** Ends the run once; a ride of 60 running seconds or more is saved as a session (L2-081). */
   private async finish(run: WorkoutRun): Promise<void> {
     if (run.finished) return;
     run.finished = true;
-    run.sessionId = await this.finishRide({
+    if (run.samples.length < MINIMUM_SECONDS) return;
+    const session = buildSession({
+      id: this.sessions.newId(),
+      endedAt: new Date(this.clock.epochMs()).toISOString(),
+      classId: run.origin?.classId ?? null,
+      title: run.origin?.title ?? run.summary,
       plan: run.plan,
-      origin: run.origin,
-      summary: run.summary,
       segments: run.segments,
       samples: [...run.samples],
       totals: run.totals,
     });
+    run.sessionId = session.id;
+    try {
+      await this.sessions.add(session);
+    } catch {
+      // Kept in memory for this page, so its summary still opens (L2-094 AC7).
+    }
   }
 
   private async runIt(run: WorkoutRun): Promise<void> {

@@ -9,6 +9,8 @@ import { BikeLink } from '../bluetooth/bike-link';
 import type { GattLink } from '../bluetooth/bluetooth-port';
 import { CLOCK } from '../bluetooth/clock';
 import { FakeClock } from '../bluetooth/fake-clock';
+import { SessionStore } from '../storage/session-store';
+import { SESSION_DATABASE, type SessionDatabase } from '../storage/session-database';
 import { BikeStateStore } from './bike-state-store';
 import { ResistanceCommander } from './resistance-commander';
 import { WorkoutEngine } from './workout-engine';
@@ -28,6 +30,13 @@ const SHORT: WorkoutPlan = {
 
 function setUp(connectedAtStart = true) {
   const clock = new FakeClock(1_794_784_639_000);
+  const saved: string[] = [];
+  const database: SessionDatabase = {
+    loadAll: async () => [],
+    write: async (put) => {
+      saved.push(...put.map((s) => s.id));
+    },
+  };
   const levels: number[] = [];
   let connected = connectedAtStart;
   let report: (level: number) => void = () => undefined;
@@ -45,6 +54,8 @@ function setUp(connectedAtStart = true) {
       BikeStateStore,
       ResistanceCommander,
       WorkoutEngine,
+      SessionStore,
+      { provide: SESSION_DATABASE, useValue: database },
       { provide: CLOCK, useValue: clock },
       { provide: BikeLink, useValue: { connection: () => (connected ? gatt : null) } },
     ],
@@ -57,6 +68,8 @@ function setUp(connectedAtStart = true) {
   return {
     clock,
     levels,
+    saved,
+    sessions: TestBed.inject(SessionStore),
     store,
     engine,
     workout: () => store.state().workout!,
@@ -182,5 +195,44 @@ describe('WorkoutEngine', () => {
     expect(store.state()).toMatchObject({ avg_power: 200, distance_km: 0.1 });
     expect(engine.trace().samples).toHaveLength(10);
     expect(engine.trace().samples[0]).toEqual([1, 200]);
+  });
+
+  it('a ride of 60 running seconds or more is saved as a session and its id answered (L2-081)', async () => {
+    const { clock, engine, saved, sessions, store } = setUp();
+    store.update((s) => ({ ...s, power: 150, cadence: 100 }));
+    await engine.startWorkout({ ...SHORT, rounds: 4 }, null);
+    await clock.advance(60_000);
+    const stopped = await engine.stop();
+    expect(stopped!.session_id).toMatch(/^[a-f0-9]{12}$/);
+    expect(saved).toEqual([stopped!.session_id]);
+    const session = sessions.find(stopped!.session_id!)!;
+    expect(session).toMatchObject({
+      ended_at: new Date(1_794_784_639_000 + 60_000).toISOString(),
+      class_id: null,
+      title: 'HIIT · 4 × 10s / 10s',
+      ridden_seconds: 60,
+      planned_seconds: 80,
+      completed: false,
+      avg_power: 150,
+    });
+  });
+
+  it('a ride under 60 running seconds is not saved', async () => {
+    const { clock, engine, saved } = setUp();
+    await engine.startWorkout(SHORT, null);
+    await clock.advance(30_000);
+    expect((await engine.stop())!.session_id).toBeNull();
+    expect(saved).toEqual([]);
+  });
+
+  it('a session that could not be written still has its id, so its summary opens (L2-094 AC7)', async () => {
+    const { clock, engine, sessions } = setUp();
+    TestBed.inject(SESSION_DATABASE).write = async () => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError');
+    };
+    await engine.startWorkout({ ...SHORT, rounds: 4 }, null);
+    await clock.advance(60_000);
+    const id = (await engine.stop())!.session_id!;
+    expect(sessions.find(id)).not.toBeNull();
   });
 });

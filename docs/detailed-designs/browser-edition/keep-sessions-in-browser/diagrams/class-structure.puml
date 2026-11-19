@@ -11,16 +11,18 @@ skinparam class {
 }
 title Class structure — Keep sessions in the browser
 
-class WattzupDatabase {
-  +open(): Promise<IDBDatabase>
-  +transaction(stores, mode): IDBTransaction
+interface SessionDatabase {
+  +loadAll(): Promise<SessionRecord[]>
+  +write(put: SessionRecord[], deleteIds: string[]): Promise<void>
 }
+class IndexedDbSessionDatabase
 class SessionStore {
-  -sessions: SessionRecord[]
-  +load(): Promise<void>
-  +all(): readonly SessionRecord[]
-  +byId(id): SessionRecord | undefined
+  -all: SessionRecord[]
+  +ready(): Promise<void>
+  +list(): SessionRecord[]
+  +find(id): SessionRecord | null
   +add(s: SessionRecord): Promise<void>
+  +newId(): string
 }
 class SessionBuilder <<pure>> {
   +build(input: SessionInput): SessionRecord
@@ -62,7 +64,8 @@ BrowserSessionArchive --> SessionStore
 BrowserSessionArchive ..> SessionRecordValidator
 BrowserSessionArchive --> StoragePersistence
 BrowserSessionArchive ..> ImportReport
-SessionStore --> WattzupDatabase
+SessionStore --> SessionDatabase
+IndexedDbSessionDatabase ..|> SessionDatabase
 SessionStore o-- "0..500" SessionRecord
 SessionBuilder ..> SessionRecord
 @enduml

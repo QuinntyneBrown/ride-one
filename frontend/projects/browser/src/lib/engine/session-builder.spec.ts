@@ -2,7 +2,7 @@
 // Traces to: L2-081, L2-092, L2-094
 // Description: Mirrors backend/tests/Wattzup.Core.Tests/SessionBuilderTests.cs row for row.
 import type { Segment, SegmentKind } from '@wattzup/api';
-import { RideTotals } from '../engine/ride-totals';
+import { RideTotals } from './ride-totals';
 import { buildSession, dipTolerance } from './session-builder';
 import { toSummary } from './session-record';
 

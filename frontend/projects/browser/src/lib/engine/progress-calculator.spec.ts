@@ -3,8 +3,8 @@
 // Description: Mirrors backend/tests/Wattzup.Core.Tests/ProgressCalculatorTests.cs row for row, in
 // the same UTC−5 zone, so the browser counts days as the backend does.
 import type { IntervalsPlan, WorkoutPlan } from '@wattzup/api';
-import { expand } from '../engine/plan-expander';
-import { RideTotals } from '../engine/ride-totals';
+import { expand } from './plan-expander';
+import { RideTotals } from './ride-totals';
 import {
   achievements,
   bestsSetBy,
