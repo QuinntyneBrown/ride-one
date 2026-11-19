@@ -23,6 +23,10 @@ interface Control {
   notify(hex: string): void;
   /** The bike drops the link: `gattserverdisconnected` on the device picked. */
   drop(): void;
+  /** Offers `getDevices()`, answering the bike as chosen on an earlier visit (L2-090 AC5). */
+  rememberBike(): void;
+  /** The remembered bike advertises: `advertisementreceived` while it is watched. */
+  advertise(): void;
 }
 
 /** Runs in the page before any app script. */
@@ -39,6 +43,8 @@ function installFakeBluetooth(): void {
     },
     deviceName: 'ECHEX-3-141844',
     calls: [],
+    rememberBike: () => undefined,
+    advertise: () => undefined,
     notify: (text) => {
       const bytes = Uint8Array.from(text.split(' ').map((b) => parseInt(b, 16)));
       for (const c of subscribed) {
@@ -53,6 +59,29 @@ function installFakeBluetooth(): void {
       picked.dispatchEvent(new Event('gattserverdisconnected'));
     },
   };
+  control.rememberBike = () => {
+    const known = device();
+    let watching = false;
+    Object.assign(known, {
+      watchAdvertisements: async () => {
+        record('watchAdvertisements');
+        watching = true;
+      },
+      get watchingAdvertisements() {
+        return watching;
+      },
+    });
+    control.advertise = () => {
+      if (watching) known.dispatchEvent(new Event('advertisementreceived'));
+    };
+    Object.assign(bluetooth, {
+      getDevices: async () => {
+        record('getDevices');
+        return [known];
+      },
+    });
+  };
+  control.advertise = () => undefined;
   (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth = control;
   const record = (name: string, args?: unknown): void => {
     control.calls.push({ name, at: performance.now(), args });
@@ -166,6 +195,21 @@ export class FakeBluetooth {
   async unavailableBeforeLoad(): Promise<void> {
     await this.page.addInitScript(() => {
       (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.available = false;
+    });
+  }
+
+  /** Before the page loads: the bike was chosen on an earlier visit, and the browser offers
+   * `getDevices()` to find it again (L2-090 AC5). */
+  async rememberBikeBeforeLoad(): Promise<void> {
+    await this.page.addInitScript(() => {
+      (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.rememberBike();
+    });
+  }
+
+  /** The remembered bike advertises, as when the rider wakes it. */
+  async advertise(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.advertise();
     });
   }
 

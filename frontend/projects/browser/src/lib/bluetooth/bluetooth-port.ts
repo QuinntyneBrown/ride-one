@@ -18,6 +18,9 @@ export interface BikeDevice {
   connect(): Promise<GattLink>;
   /** Calls `listener` whenever the bike drops the link (`gattserverdisconnected`). */
   onDisconnected(listener: () => void): void;
+  /** Resolves on the bike's next advertisement, as it wakes; absent where the browser cannot
+   * watch for advertisements (L2-090 AC5). */
+  whenNearby?(): Promise<void>;
 }
 
 export interface BluetoothPort {
@@ -27,6 +30,9 @@ export interface BluetoothPort {
   availability(): Promise<boolean>;
   /** Calls `listener` on `availabilitychanged`, as the rider switches Bluetooth. */
   onAvailabilityChanged(listener: (available: boolean) => void): void;
+  /** `getDevices()`: the Echelon bikes chosen on earlier visits, or none where the browser does
+   * not offer it (L2-090 AC5). */
+  knownBikes(): Promise<BikeDevice[]>;
   /** Opens the browser's device chooser for Echelon bikes; null when the rider cancels. */
   requestBike(): Promise<BikeDevice | null>;
 }

@@ -32,6 +32,11 @@ export class SimulatedBluetoothPort implements BluetoothPort {
     // The simulated radio never changes.
   }
 
+  /** The simulated bike is never remembered: Connect bike picks it each visit. */
+  async knownBikes(): Promise<BikeDevice[]> {
+    return [];
+  }
+
   async requestBike(): Promise<BikeDevice> {
     return new SimulatedBike(this.clock);
   }

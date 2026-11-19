@@ -20,6 +20,7 @@ export class BrowserBikePairing implements BikePairing {
     if (this.support() !== 'ready') return;
     this.port.onAvailabilityChanged((available) => this.setAdapter(available));
     void this.checkAgain();
+    void this.link.reconnectKnown();
   }
 
   pair(): Promise<void> {

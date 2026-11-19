@@ -59,6 +59,23 @@ export class BikeLink {
     await this.connect(device);
   }
 
+  /** At start: connects to the one bike chosen on an earlier visit once it advertises, without
+   * the chooser; otherwise Connect bike stays on offer (L2-090 AC5). Never rejects. */
+  async reconnectKnown(): Promise<void> {
+    try {
+      const known = await this.port.knownBikes();
+      const bike = known.length === 1 ? known[0] : null;
+      if (!bike?.whenNearby || this._device()) return;
+      await bike.whenNearby();
+      if (this._device()) return; // The rider picked a bike meanwhile.
+      this._device.set(bike);
+      bike.onDisconnected(() => this.dropped());
+      await this.connect(bike);
+    } catch (e) {
+      this.log.warn(`Wattzup: could not watch for the bike chosen before: ${messageOf(e)}`);
+    }
+  }
+
   /** Cancels a pending retry and connects at once (L2-091 AC5). */
   async reconnect(): Promise<ReconnectResult> {
     const device = this._device();

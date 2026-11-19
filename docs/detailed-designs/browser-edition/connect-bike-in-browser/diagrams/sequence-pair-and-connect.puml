@@ -22,19 +22,19 @@ end box
 
 rider -> dash : Press Connect bike
 dash -> pairing : pair()
-pairing -> port : requestBike() before any await [L2-090 AC6]
+pairing -> link : pair()
+link -> port : requestBike() before any await [L2-090 AC6]
 port -> chooser : requestDevice(filters ECH*, service; optionalServices) [L2-090 AC2]
 chooser --> rider : List of Echelon devices
 alt rider cancels [L2-090 AC4]
   rider -> chooser : Cancel
   chooser --> port : NotFoundError
-  port --> pairing : null
-  pairing --> dash : 'cancelled' (no toast; ble stays disconnected)
+  port --> link : null
+  link --> dash : nothing changes (no toast; ble stays disconnected)
 else rider picks the bike
   rider -> chooser : Pick ECHEX-3-141844
   chooser --> port : BluetoothDevice
-  port --> pairing : BikeDevice
-  pairing -> link : use(device)
+  port --> link : BikeDevice, now the known bike
   link -> store : ble 'connecting', device = name [L2-090 AC3]
   link -> bike : gatt.connect()
   bike --> link : GattLink

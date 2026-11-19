@@ -2,7 +2,7 @@
 // navigator.bluetooth (AGENTS.md, L2-090). The DOM library has no Web Bluetooth types, so the
 // few members used are declared here.
 import type { BluetoothSupport } from '@wattzup/api';
-import { BIKE_FILTER } from '../protocol/echelon-device-filter';
+import { BIKE_FILTER, matchesBike } from '../protocol/echelon-device-filter';
 import { ECHELON_UUIDS } from '../protocol/echelon-uuids';
 import {
   type BikeDevice,
@@ -28,10 +28,12 @@ interface WebGattServer {
 interface WebDevice extends EventTarget {
   readonly name?: string;
   readonly gatt?: WebGattServer;
+  watchAdvertisements?(options?: { signal?: AbortSignal }): Promise<void>;
 }
 interface WebBluetooth extends EventTarget {
   requestDevice(options: typeof BIKE_FILTER): Promise<WebDevice>;
   getAvailability?(): Promise<boolean>;
+  getDevices?(): Promise<WebDevice[]>;
 }
 
 const webBluetooth = (): WebBluetooth | undefined =>
@@ -72,12 +74,38 @@ export class WebBluetoothPort implements BluetoothPort {
       if (e instanceof DOMException && e.name === 'SecurityError') throw new ChooserBlockedError();
       throw e;
     }
-    return {
-      name: device.name ?? 'Echelon bike',
-      connect: () => connect(device),
-      onDisconnected: (listener) => device.addEventListener('gattserverdisconnected', listener),
-    };
+    return bikeOf(device);
   }
+
+  async knownBikes(): Promise<BikeDevice[]> {
+    const devices = await webBluetooth()
+      ?.getDevices?.()
+      .catch(() => []);
+    return (devices ?? []).filter((d) => matchesBike(d.name ?? null, [])).map(bikeOf);
+  }
+}
+
+function bikeOf(device: WebDevice): BikeDevice {
+  return {
+    name: device.name ?? 'Echelon bike',
+    connect: () => connect(device),
+    onDisconnected: (listener) => device.addEventListener('gattserverdisconnected', listener),
+    whenNearby: device.watchAdvertisements ? () => nearby(device) : undefined,
+  };
+}
+
+/** Watches for the bike's advertisements until the first arrives (L2-090 AC5). */
+function nearby(device: WebDevice): Promise<void> {
+  const stop = new AbortController();
+  const seen = new Promise<void>((resolve) =>
+    device.addEventListener('advertisementreceived', () => resolve(), {
+      once: true,
+      signal: stop.signal,
+    }),
+  );
+  return device.watchAdvertisements!({ signal: stop.signal })
+    .then(() => seen)
+    .finally(() => stop.abort());
 }
 
 async function connect(device: WebDevice): Promise<GattLink> {

@@ -12,14 +12,17 @@ skinparam class {
 title Class structure — Connect the bike in the browser
 
 interface BluetoothPort {
+  +support(): BluetoothSupport
+  +availability(): Promise<boolean>
+  +onAvailabilityChanged(fn): void
   +requestBike(): Promise<BikeDevice | null>
   +knownBikes(): Promise<BikeDevice[]>
 }
 interface BikeDevice {
-  +name: string | null
+  +name: string
   +connect(): Promise<GattLink>
-  +watchAdvertisements?(): Promise<void>
-  +onDisconnected(fn): () => void
+  +onDisconnected(fn): void
+  +whenNearby?(): Promise<void>
 }
 interface GattLink {
   +startNotifications(onPacket: (bytes: Uint8Array) => void): Promise<void>
@@ -33,16 +36,18 @@ interface Clock {
 }
 class WebBluetoothPort
 class BikeLink {
-  -device: BikeDevice | null
+  -device: Signal<BikeDevice | null>
   -gatt: GattLink | null
-  -lastKeepaliveAt: number
-  -cancelRetry: (() => void) | null
-  +use(device: BikeDevice): Promise<void>
-  +reconnectNow(): Promise<void>
-  +write(bytes: Uint8Array): Promise<void>
-  -initialise(): Promise<void>
-  -onKeepaliveTick(): void
-  -scheduleRetry(): void
+  -generation: number
+  +pairingRequired: Signal<boolean>
+  +connection(): GattLink | null
+  +pair(): Promise<void>
+  +reconnectKnown(): Promise<void>
+  +reconnect(): Promise<ReconnectResult>
+  -connect(device): Promise<void>
+  -dropped(): void
+  -fail(device, e): void
+  -keepAlive(gatt, attempt): Promise<void>
 }
 class EchelonCommands <<lib/protocol>> {
   +deviceInfo: Uint8Array
@@ -53,7 +58,9 @@ class EchelonCommands <<lib/protocol>> {
 }
 class BrowserBikePairing {
   +required: Signal<boolean>
-  +pair(): Promise<'paired' | 'cancelled'>
+  +support: Signal<BluetoothSupport>
+  +pair(): Promise<void>
+  +checkAgain(): Promise<void>
 }
 class BrowserBikeApi {
   +reconnect(): Promise<void>

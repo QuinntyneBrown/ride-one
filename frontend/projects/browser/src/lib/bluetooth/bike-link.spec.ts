@@ -53,10 +53,32 @@ class FakePort implements BluetoothPort {
     // Not exercised by BikeLink.
   }
 
+  /** What `getDevices()` finds: bikes chosen on earlier visits (L2-090 AC5). */
+  known: BikeDevice[] = [];
+  /** Resolves the remembered bike's `whenNearby()`, as its first advertisement. */
+  advertise: () => void = () => undefined;
+
+  async knownBikes(): Promise<BikeDevice[]> {
+    this.log.push('known');
+    return this.known;
+  }
+
+  /** A bike chosen before; `nearby` false leaves out `whenNearby`, as a browser without
+   * watchAdvertisements(). */
+  remember(nearby = true): void {
+    const bike = this.bike();
+    const seen = new Promise<void>((resolve) => (this.advertise = resolve));
+    this.known = [nearby ? { ...bike, whenNearby: () => seen } : bike];
+  }
+
   async requestBike(): Promise<BikeDevice | null> {
     this.log.push('chooser');
     if (this.answer === 'cancel') return null;
     if (this.answer === 'blocked') throw new ChooserBlockedError();
+    return this.bike();
+  }
+
+  private bike(): BikeDevice {
     return {
       name: 'ECHEX-3-141844',
       connect: async () => {
@@ -113,6 +135,49 @@ function setUp() {
 describe('BikeLink', () => {
   it('needs pairing until a bike is picked', () => {
     expect(setUp().link.pairingRequired()).toBe(true);
+  });
+
+  describe('a bike chosen on an earlier visit (L2-090 AC5)', () => {
+    it('is connected without the chooser once it advertises', async () => {
+      const { port, link, store, clock } = setUp();
+      port.remember();
+      const done = link.reconnectKnown();
+      await Promise.resolve();
+      expect(port.count('connect')).toBe(0);
+      port.advertise();
+      await clock.advance(1000);
+      await done;
+      expect(port.count('chooser')).toBe(0);
+      expect(port.count('connect')).toBe(1);
+      expect(store.state()).toMatchObject({ ble: 'connected', device: 'ECHEX-3-141844' });
+      expect(link.pairingRequired()).toBe(false);
+    });
+
+    it('is left alone where the browser cannot watch for its advertisements', async () => {
+      const { port, link } = setUp();
+      port.remember(false);
+      await link.reconnectKnown();
+      expect(port.count('connect')).toBe(0);
+      expect(link.pairingRequired()).toBe(true);
+    });
+
+    it('is not connected when the rider picked a bike while it was quiet', async () => {
+      const { port, link, clock } = setUp();
+      port.remember();
+      const done = link.reconnectKnown();
+      const paired = link.pair();
+      await clock.advance(1000);
+      await paired;
+      port.advertise();
+      await done;
+      expect(port.count('connect')).toBe(1);
+    });
+
+    it('with no bike remembered, nothing is asked of the bike', async () => {
+      const { port, link } = setUp();
+      await link.reconnectKnown();
+      expect(port.log).toEqual(['known']);
+    });
   });
 
   it('connects, subscribes, then writes the 3 init commands 300 ms apart (L2-090 AC3)', async () => {

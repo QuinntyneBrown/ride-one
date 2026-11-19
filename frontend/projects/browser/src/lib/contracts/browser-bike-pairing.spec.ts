@@ -25,6 +25,7 @@ class FakePort implements BluetoothPort {
     this.listener = listener;
   };
   requestBike = async () => null;
+  knownBikes = async () => [];
   change(available: boolean): void {
     this.available = available;
     this.listener?.(available);

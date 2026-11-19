@@ -42,7 +42,7 @@ loop until connected or the ride ends
   end
 end
 opt rider presses Reconnect [L2-091 AC5]
-  rider -> link : reconnectNow()
+  rider -> link : reconnect()
   link -> link : cancel pending retry; connect at once
 end
 @enduml

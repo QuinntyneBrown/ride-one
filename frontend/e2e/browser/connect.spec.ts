@@ -87,3 +87,27 @@ test('a chooser that cannot open puts ble in error', async ({ page, bluetooth })
   await expect(ride.statusState).toHaveText('Error');
   await expect(ride.connectButton).toBeEnabled();
 });
+
+test.describe('a bike chosen on an earlier visit (L2-090 AC5)', () => {
+  test.beforeEach(async ({ bluetooth }) => {
+    await bluetooth.rememberBikeBeforeLoad();
+  });
+
+  test('is connected without the chooser once it advertises', async ({ page, bluetooth }) => {
+    const ride = new BrowserRidePage(page);
+    await ride.open();
+    await expect.poll(() => bluetooth.count('watchAdvertisements')).toBe(1);
+    await bluetooth.advertise();
+    await expect(ride.statusState).toHaveText('Connected');
+    expect(await bluetooth.count('requestDevice')).toBe(0);
+    expect(await bluetooth.count('gatt.connect')).toBe(1);
+  });
+
+  test('leaves Connect bike on offer while it is not advertising', async ({ page, bluetooth }) => {
+    const ride = new BrowserRidePage(page);
+    await ride.open();
+    await expect.poll(() => bluetooth.count('watchAdvertisements')).toBe(1);
+    await expect(ride.connectButton).toBeVisible();
+    expect(await bluetooth.count('gatt.connect')).toBe(0);
+  });
+});
