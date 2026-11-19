@@ -42,7 +42,10 @@
         "L2-039",
         "L2-076",
         "L2-084",
-        "L2-079"
+        "L2-079",
+        "L2-089",
+        "L2-090",
+        "L2-088"
       ],
       "states": [
         "default",
@@ -61,7 +64,11 @@
         "edge",
         "video",
         "video-blocked",
-        "class-workout"
+        "class-workout",
+        "browser-unsupported",
+        "browser-insecure",
+        "browser-bluetooth-off",
+        "browser-no-bike"
       ],
       "not_applicable": {}
     },
@@ -100,7 +107,9 @@
         "L2-078",
         "L2-080",
         "L2-040",
-        "L2-041"
+        "L2-041",
+        "L2-089",
+        "L2-088"
       ],
       "states": [
         "default",
@@ -111,7 +120,9 @@
         "loading",
         "submitting",
         "error",
-        "not-found"
+        "not-found",
+        "browser-unsupported",
+        "browser-insecure"
       ],
       "not_applicable": {
         "empty": "A class always has a plan; an unknown class is the not-found state."
@@ -155,7 +166,9 @@
         "L2-086",
         "L2-087",
         "L2-040",
-        "L2-041"
+        "L2-041",
+        "L2-094",
+        "L2-088"
       ],
       "states": [
         "default",
@@ -164,7 +177,10 @@
         "no-trend",
         "empty",
         "loading",
-        "error"
+        "error",
+        "browser-imported",
+        "browser-nothing-new",
+        "browser-not-a-backup"
       ],
       "not_applicable": {}
     },
@@ -181,7 +197,9 @@
         "L2-045",
         "L2-059",
         "L2-060",
-        "L2-076"
+        "L2-076",
+        "L2-089",
+        "L2-088"
       ],
       "states": [
         "default",
@@ -193,7 +211,9 @@
         "loading",
         "error",
         "invalid",
-        "submitting"
+        "submitting",
+        "browser-unsupported",
+        "browser-insecure"
       ],
       "not_applicable": {
         "empty": "Setup always shows values: the saved draft, or the default plan on first run (L2-029)."
@@ -314,11 +334,17 @@
       "opens_from": "ride",
       "requirements": [
         "L2-023",
-        "L2-033"
+        "L2-033",
+        "L2-095",
+        "L2-088",
+        "L2-089"
       ],
       "states": [
         "default",
-        "scroll"
+        "scroll",
+        "browser",
+        "browser-packets",
+        "browser-bluetooth-off"
       ],
       "not_applicable": {
         "busy": "Read-only panel; it starts no action that can be in flight.",

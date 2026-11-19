@@ -861,3 +861,23 @@ pre, .code-block { background: var(--color-bg-surface-sunken); padding: var(--sp
 .streak-badge { margin-left: var(--space-1); padding: 0 var(--space-1-5, 0.375rem); border-radius: var(--radius-sm); border: var(--border-width-hairline) solid var(--color-border-strong); font-family: var(--font-family-numeral); font-stretch: condensed; font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
 .streak-badge--today { border-color: transparent; background: var(--color-volt-fill); color: var(--color-fg-on-volt); }
 .app-bar__title { font: var(--text-label); }
+
+/* Device history (browser edition, L2-094): ride history kept in this browser, with export and import. */
+.device-history { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-6); border-top: var(--border-width-hairline) solid var(--color-border-default); }
+.device-history__title { font: var(--text-label); color: var(--color-fg-muted); }
+.device-history__text { font: var(--text-body-sm); }
+.device-history__age { font: var(--text-body-sm); color: var(--color-fg-muted); }
+.device-history__age--stale { color: var(--color-fg-warn); }
+.device-history__actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-top: var(--space-2); }
+.device-history__hint { font: var(--text-caption); color: var(--color-fg-subtle); }
+
+/* Packet log (browser edition, L2-095): what the in-memory log holds, and its download. */
+.packet-log { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-4); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-bg-surface-sunken); }
+.packet-log__count { font: var(--text-body-sm); color: var(--color-fg-muted); }
+.packet-log__count b { font: var(--text-h4); color: var(--color-fg-default); font-variant-numeric: tabular-nums; }
+.packet-log__live { display: inline-flex; align-items: center; gap: var(--space-2); margin-left: var(--space-2); font: var(--text-caption); color: var(--color-fg-accent); }
+.packet-log__live::before { content: ""; width: var(--space-2); height: var(--space-2); border-radius: var(--radius-full); background: currentColor; }
+.diag-footnote { display: flex; gap: var(--space-2); align-items: flex-start; margin-top: var(--space-3); font: var(--text-caption); color: var(--color-fg-subtle); }
+.diag-footnote .icon { flex: none; margin-top: 0.1rem; }
+.statusline--quiet .icon, .statusline--quiet .statusline__name { color: var(--color-fg-muted); font-weight: var(--font-weight-regular); }
+.diag-split { border-top: var(--border-width-hairline) solid var(--color-border-default); padding-top: var(--space-4); }
