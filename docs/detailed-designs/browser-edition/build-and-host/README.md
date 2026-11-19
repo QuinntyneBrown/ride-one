@@ -42,7 +42,7 @@ Wiring:
   | `CLASS_API` | `HttpClassApi` | `BrowserClassApi` |
   | `SESSION_API` | `HttpSessionApi` | `BrowserSessionApi` |
   | `LIVE_STATE_SOURCE` (new) | `EventStreamLiveState` | `BrowserStateSource` |
-  | `BIKE_PAIRING` (new) | `ServerBikePairing` | `BrowserBikePairing` |
+  | `BIKE_PAIRING` (new) | token default (never required) | `BrowserBikePairing` |
   | `SESSION_ARCHIVE` (new) | not offered (`null`) | `BrowserSessionArchive` |
   | `EDITION` (new) | `'backend'` | `'browser'` |
 

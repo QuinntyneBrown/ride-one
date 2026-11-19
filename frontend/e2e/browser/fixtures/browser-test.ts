@@ -2,11 +2,13 @@
 // request to /api/** fails the spec, and the YouTube fake fails any other request off localhost.
 import { test as base, expect } from '@playwright/test';
 import { FakeYouTube } from '../../fixtures/fake-youtube';
+import { FakeBluetooth } from './fake-bluetooth';
 
 export { expect };
 
 export const test = base.extend<{
   apiRequests: string[];
+  bluetooth: FakeBluetooth;
   pageErrors: string[];
   youtube: FakeYouTube;
 }>({
@@ -33,6 +35,15 @@ export const test = base.extend<{
       });
       await use(requests);
       expect(requests, 'requests to a backend').toEqual([]);
+    },
+    { auto: true },
+  ],
+  // Automatic: navigator.bluetooth is always the fake; no spec reaches a real adapter or bike.
+  bluetooth: [
+    async ({ page }, use) => {
+      const bluetooth = new FakeBluetooth(page);
+      await bluetooth.install();
+      await use(bluetooth);
     },
     { auto: true },
   ],

@@ -59,7 +59,12 @@ describe('EchelonDeviceFilter', () => {
 
   it("asks the browser's chooser for ECH names or the Echelon service, never a STRIDE (L2-090 AC2)", () => {
     expect(BIKE_FILTER).toEqual({
-      filters: [{ namePrefix: 'ECH' }, { services: [ECHELON_UUIDS.service] }],
+      filters: [
+        { namePrefix: 'ECH' },
+        { namePrefix: 'Ech' },
+        { namePrefix: 'ech' },
+        { services: [ECHELON_UUIDS.service] },
+      ],
       exclusionFilters: [{ namePrefix: 'STRIDE' }],
       optionalServices: [ECHELON_UUIDS.service],
     });

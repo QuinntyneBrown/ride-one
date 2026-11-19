@@ -23,6 +23,8 @@ export class RideOverlay {
   readonly overlay = input.required<RideOverlayText>();
   readonly reconnecting = input(false);
   readonly reconnect = output();
+  /** Connect bike: the parent opens the device chooser in this click (L2-090). */
+  readonly connect = output();
   readonly diagnostics = output();
 
   /** The summary opens as just finished: `Done` and `Ride saved` (L2-085 AC2). */

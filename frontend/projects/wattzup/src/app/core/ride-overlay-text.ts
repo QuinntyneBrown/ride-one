@@ -5,7 +5,7 @@ import type { RideOverlayKind } from './ride-view-state';
 
 export interface RideOverlayText {
   kind: RideOverlayKind;
-  role: 'status' | 'alert' | null;
+  role: 'status' | 'alert' | 'region' | null;
   icon: 'bluetooth-off' | 'flag' | null;
   title: string;
   lines: string[];
@@ -22,6 +22,17 @@ function overlayCopy(kind: RideOverlayKind, state: BikeState): Omit<RideOverlayT
   const bike = state.device_label ?? 'Your bike';
   const elapsed = formatDuration(state.workout?.elapsed_seconds ?? 0);
   switch (kind) {
+    case 'connect-bike':
+      return {
+        kind,
+        role: 'region',
+        icon: null,
+        title: 'Connect your bike',
+        lines: [
+          'Wake the bike with a few pedal strokes, then pick it from the list your browser shows. Wattzup remembers it next time.',
+        ],
+        note: 'Not in the list? Close the Echelon app on your phone — the bike talks to one device at a time.',
+      };
     case 'scanning': {
       const lines = [
         'No Echelon bike found yet — pedal to wake it up. Wattzup scans again every 20 seconds.',

@@ -36,6 +36,10 @@ export function connectionStatus(
     case 'connecting':
       return { name: label, label: 'Connecting…', icon: 'bluetooth', tone: 'wait' };
     case 'disconnected':
+      // No bike chosen yet in the browser edition: nothing has gone wrong (L2-090 AC1).
+      if (state.device === null) {
+        return { name: 'No bike connected', label: '', icon: 'bluetooth', tone: 'quiet' };
+      }
       return { name: label, label: 'Disconnected', icon: 'bluetooth-off', tone: 'bad' };
     default:
       return { name: 'Bike status', label: 'Error', icon: 'bluetooth-off', tone: 'bad' };

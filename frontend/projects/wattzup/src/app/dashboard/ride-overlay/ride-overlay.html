@@ -1,20 +1,31 @@
 @let o = overlay();
 <div class="overlay-panel">
-  <div class="overlay-panel__card" [attr.role]="o.role">
+  <div
+    class="overlay-panel__card"
+    [attr.role]="o.role"
+    [attr.aria-labelledby]="o.role === 'region' ? 'ride-overlay-title' : null"
+  >
     @if (o.icon; as icon) {
       <span
         class="overlay-panel__icon"
         [class.overlay-panel__icon--ok]="o.kind === 'bike-shut-off' || o.kind === 'ride-complete'"
         ><wz-icon [name]="icon" size="xl"
       /></span>
-    } @else {
+    } @else if (o.kind !== 'connect-bike') {
       <span class="spinner spinner--lg" aria-hidden="true"></span>
     }
-    <h2>{{ o.title }}</h2>
+    <h2 id="ride-overlay-title">{{ o.title }}</h2>
     @for (line of o.lines; track $index) {
       <p>{{ line }}</p>
     }
     @switch (o.kind) {
+      @case ('connect-bike') {
+        <div class="overlay-panel__actions">
+          <button class="btn btn--primary btn--lg" type="button" (click)="connect.emit()">
+            <wz-icon name="bluetooth" size="sm" />Connect bike
+          </button>
+        </div>
+      }
       @case ('adapter-off') {
         <div class="cluster">
           <button class="btn" type="button" (click)="diagnostics.emit()">Open diagnostics</button>

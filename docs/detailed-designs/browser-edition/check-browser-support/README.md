@@ -25,7 +25,7 @@ The browser edition reaches the bike through Web Bluetooth, a browser API that o
 
   `insecure` wins over `unsupported`, because Chromium hides `navigator.bluetooth` on an insecure page and the fix there is HTTPS, not another browser.
 - **`BluetoothPort`** (`lib/bluetooth/`) — the only wrapper over `navigator.bluetooth`. It exposes `isSupported()`, `availability(): Promise<boolean>` and an `availabilitychanged` listener, plus the chooser and device calls of `connect-bike-in-browser`. `WebBluetoothPort` is the real one; tests and `?simulate` use fakes.
-- **`BrowserBikePairing.support()`** — returns the current `PairingSupport` (the verdict) as a signal. It recomputes on `availabilitychanged`. `ServerBikePairing` (backend edition) always answers `ready`.
+- **`BrowserBikePairing.support()`** — returns the current `PairingSupport` (the verdict) as a signal. It recomputes on `availabilitychanged`. The `BIKE_PAIRING` default (backend edition) always answers `ready`.
 - **`BikeStateStore`** — on `adapter-off` it writes `ble` `error` and `error` `Bluetooth is off or missing on this device` (L2-089 criterion 2); on `unsupported` and `insecure` it leaves `ble` `disconnected` and connects nothing.
 - **`UnsupportedNotice`** (`@wattzup/components`, presentation) — the notice shown on the Ride Dashboard and `/setup` in place of **Connect bike** and **Start ride**. It takes the verdict as input and renders the copy below; it injects nothing. `<TO SUPPLY>`: the mock for this notice in `docs/mocks/`, which shall exist before the component is built.
 

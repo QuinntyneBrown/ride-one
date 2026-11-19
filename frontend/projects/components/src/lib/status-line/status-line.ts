@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { Icon } from '../icon/icon';
 
 export type StatusIcon = 'bluetooth' | 'bluetooth-scan' | 'bluetooth-off' | 'wifi-off';
-export type StatusTone = 'ok' | 'wait' | 'bad';
+export type StatusTone = 'ok' | 'wait' | 'bad' | 'quiet';
 
 /** The connection as the status line shows it: a name, a state label, an icon and a tone. */
 export interface ConnectionStatus {

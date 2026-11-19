@@ -15,9 +15,15 @@ export function matchesBike(name: string | null, serviceUuids: readonly string[]
   );
 }
 
-/** The same rule as options for the browser's device chooser (`requestDevice`). */
+/** The same rule as options for the browser's device chooser (`requestDevice`). `namePrefix` is
+ * case-sensitive, hence 3 spellings for the case-insensitive rule of L2-001. */
 export const BIKE_FILTER = {
-  filters: [{ namePrefix: 'ECH' }, { services: [ECHELON_UUIDS.service] }],
+  filters: [
+    { namePrefix: 'ECH' },
+    { namePrefix: 'Ech' },
+    { namePrefix: 'ech' },
+    { services: [ECHELON_UUIDS.service] },
+  ],
   exclusionFilters: [{ namePrefix: TREADMILL_NAME_PREFIX }],
   optionalServices: [ECHELON_UUIDS.service],
 };

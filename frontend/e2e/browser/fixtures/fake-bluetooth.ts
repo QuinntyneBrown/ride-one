@@ -1,0 +1,124 @@
+// A fake navigator.bluetooth, installed before the app loads (AGENTS.md, browser-edition specs).
+// It records every call and write, answers the device chooser as the spec says, and has no other
+// member, so an unexpected Bluetooth call throws in the page and fails the spec.
+import type { Page } from '@playwright/test';
+
+export type ChooserAnswer = 'pick' | 'cancel' | 'blocked';
+
+export interface BluetoothCall {
+  name: string;
+  at: number;
+  args?: unknown;
+}
+
+interface Control {
+  chooser: ChooserAnswer;
+  deviceName: string;
+  calls: BluetoothCall[];
+}
+
+/** Runs in the page before any app script. */
+function installFakeBluetooth(): void {
+  const control: Control = { chooser: 'pick', deviceName: 'ECHEX-3-141844', calls: [] };
+  (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth = control;
+  const record = (name: string, args?: unknown): void => {
+    control.calls.push({ name, at: performance.now(), args });
+  };
+  const hex = (value: BufferSource): string =>
+    Array.from(
+      value instanceof ArrayBuffer
+        ? new Uint8Array(value)
+        : new Uint8Array(value.buffer, value.byteOffset, value.byteLength),
+      (b) => b.toString(16).toUpperCase().padStart(2, '0'),
+    ).join('');
+
+  const characteristic = (uuid: string) => ({
+    uuid,
+    addEventListener: () => undefined,
+    startNotifications: async () => {
+      record('startNotifications', uuid);
+      return characteristic(uuid);
+    },
+    writeValueWithResponse: async (value: BufferSource) => record('writeWithResponse', hex(value)),
+    writeValueWithoutResponse: async (value: BufferSource) =>
+      record('writeWithoutResponse', hex(value)),
+  });
+
+  const device = () => {
+    const server = {
+      connected: false,
+      device: null as unknown,
+      connect: async () => {
+        record('gatt.connect');
+        server.connected = true;
+        return server;
+      },
+      disconnect: () => {
+        record('gatt.disconnect');
+        server.connected = false;
+      },
+      getPrimaryService: async (uuid: string) => {
+        record('getPrimaryService', uuid);
+        return {
+          uuid,
+          getCharacteristic: async (c: string) => {
+            record('getCharacteristic', c);
+            return characteristic(c);
+          },
+        };
+      },
+    };
+    const d = {
+      id: 'fake-bike',
+      name: control.deviceName,
+      gatt: server,
+      addEventListener: () => undefined,
+    };
+    server.device = d;
+    return d;
+  };
+
+  const bluetooth = {
+    requestDevice: async (options: unknown) => {
+      record('requestDevice', options);
+      if (control.chooser === 'cancel') {
+        throw new DOMException('User cancelled the requestDevice() chooser.', 'NotFoundError');
+      }
+      if (control.chooser === 'blocked') {
+        throw new DOMException(
+          'Must be handling a user gesture to show a permission request.',
+          'SecurityError',
+        );
+      }
+      return device();
+    },
+  };
+  Object.defineProperty(navigator, 'bluetooth', { value: bluetooth, configurable: true });
+}
+
+export class FakeBluetooth {
+  constructor(private readonly page: Page) {}
+
+  async install(): Promise<void> {
+    await this.page.addInitScript(installFakeBluetooth);
+  }
+
+  /** How the browser's device chooser answers the next request. */
+  async answerChooser(answer: ChooserAnswer): Promise<void> {
+    await this.page.evaluate((a) => {
+      (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.chooser = a;
+    }, answer);
+  }
+
+  /** Every Bluetooth call the page made, in order. */
+  calls(): Promise<BluetoothCall[]> {
+    return this.page.evaluate(
+      () => (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.calls,
+    );
+  }
+
+  /** The bytes written to the bike, as upper-case hex, with how they were written. */
+  async writes(): Promise<BluetoothCall[]> {
+    return (await this.calls()).filter((c) => c.name.startsWith('write'));
+  }
+}

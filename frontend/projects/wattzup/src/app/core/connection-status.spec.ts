@@ -23,6 +23,14 @@ describe('connectionStatus (L2-018)', () => {
       'bluetooth-off',
       'bad',
     ],
+    [
+      'no bike chosen yet (browser edition, L2-090 AC1)',
+      { ble: 'disconnected', device: null, device_label: null },
+      'No bike connected',
+      '',
+      'bluetooth',
+      'quiet',
+    ],
     ['adapter off', { ble: 'error', adapter: 'off' }, 'Bluetooth', 'Off', 'bluetooth-off', 'bad'],
     ['error', { ble: 'error' }, 'Bike status', 'Error', 'bluetooth-off', 'bad'],
   ] as const)('%s', (_, change, name, label, icon, tone) => {

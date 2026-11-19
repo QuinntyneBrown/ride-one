@@ -1,14 +1,21 @@
+import { TestBed } from '@angular/core/testing';
+import { BikeStateStore } from '../engine/bike-state-store';
 import { BrowserStateSource } from './browser-state-source';
+
+function source(): BrowserStateSource {
+  TestBed.configureTestingModule({ providers: [BrowserStateSource, BikeStateStore] });
+  return TestBed.inject(BrowserStateSource);
+}
 
 describe('BrowserStateSource', () => {
   it('has no state until started', () => {
-    expect(new BrowserStateSource().state()).toBeNull();
+    expect(source().state()).toBeNull();
   });
 
   it('starts with no bike chosen: ble disconnected and nothing measured (L2-090 AC1)', () => {
-    const source = new BrowserStateSource();
-    source.ensureStarted();
-    expect(source.state()).toMatchObject({
+    const s = source();
+    s.ensureStarted();
+    expect(s.state()).toMatchObject({
       ble: 'disconnected',
       device: null,
       resistance: null,
@@ -16,6 +23,20 @@ describe('BrowserStateSource', () => {
       workout: null,
       packets: 0,
     });
-    expect(source.connection()).toBe('open');
+    expect(s.connection()).toBe('open');
+  });
+});
+
+describe('BrowserStateSource, once started', () => {
+  it('follows every change to the store', () => {
+    TestBed.configureTestingModule({ providers: [BrowserStateSource, BikeStateStore] });
+    const s = TestBed.inject(BrowserStateSource);
+    s.ensureStarted();
+    TestBed.inject(BikeStateStore).update((b) => ({ ...b, ble: 'connecting', device: 'ECHEX-3' }));
+    expect(s.state()).toMatchObject({
+      ble: 'connecting',
+      device: 'ECHEX-3',
+      device_label: 'ECHEX-3',
+    });
   });
 });

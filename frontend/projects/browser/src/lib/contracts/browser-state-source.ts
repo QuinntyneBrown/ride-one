@@ -1,59 +1,23 @@
-// The browser edition's live state (L2-093): the bike as this page sees it over Web Bluetooth.
-// There is no stream to lose, so the connection is always open.
-import { Injectable, signal } from '@angular/core';
-import type { BikeState, LiveStateSource, StreamConnection } from '@wattzup/api';
-
-/** No bike chosen yet: `ble` disconnected, nothing measured (L2-090 AC1). */
-export function initialBikeState(): BikeState {
-  return {
-    ble: 'disconnected',
-    device: null,
-    device_label: null,
-    error: null,
-    resistance: null,
-    target_resistance: null,
-    workout: null,
-    cadence: null,
-    speed_kmh: null,
-    speed_mph: null,
-    packets: 0,
-    first_data_at: null,
-    last_data_at: null,
-    ui_clients: 1,
-    displayed_since: null,
-    displayed_seconds: 0,
-    adapter: 'unknown',
-    transport: 'Web Bluetooth',
-    simulated: false,
-    exposed: false,
-    bind_address: '',
-    connection_id: '',
-    power: null,
-    target_power: null,
-    avg_power: null,
-    distance_km: null,
-    kcal: null,
-    heart_rate: null,
-    commands: [],
-  };
-}
+// The browser edition's live state (L2-093): the BikeStateStore as this page sees it. There is no
+// stream to lose, so the connection is always open.
+import { computed, inject, Injectable, signal } from '@angular/core';
+import type { LiveStateSource, StreamConnection } from '@wattzup/api';
+import { BikeStateStore } from '../engine/bike-state-store';
 
 @Injectable()
 export class BrowserStateSource implements LiveStateSource {
-  private readonly _state = signal<BikeState | null>(null);
-  private readonly _lastStateAt = signal<Date | null>(null);
+  private readonly store = inject(BikeStateStore);
+  private readonly started = signal(false);
 
-  readonly state = this._state.asReadonly();
+  readonly state = computed(() => (this.started() ? this.store.state() : null));
   readonly connection = signal<StreamConnection>('open').asReadonly();
-  readonly lastStateAt = this._lastStateAt.asReadonly();
+  readonly lastStateAt = computed(() => (this.started() ? new Date() : null));
   readonly loadFailed = signal(false).asReadonly();
   readonly loadStatus = signal<number | null>(null).asReadonly();
   readonly streamEpoch = signal(1).asReadonly();
 
   ensureStarted(): void {
-    if (this._state()) return;
-    this._state.set(initialBikeState());
-    this._lastStateAt.set(new Date());
+    this.started.set(true);
   }
 
   reload(): void {

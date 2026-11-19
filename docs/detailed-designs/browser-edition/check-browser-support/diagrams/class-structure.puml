@@ -39,7 +39,7 @@ class BrowserBikePairing {
   -verdict: WritableSignal<SupportVerdict>
   +support(): Signal<SupportVerdict>
 }
-class ServerBikePairing {
+class "BIKE_PAIRING default" as ServerBikePairing {
   +support(): Signal<SupportVerdict>  // always ready
 }
 class UnsupportedNotice <<component>> {

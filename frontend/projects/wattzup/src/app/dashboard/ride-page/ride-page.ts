@@ -39,6 +39,7 @@ import {
   PhaseBanner,
   PlanStrip,
 } from '@wattzup/components';
+import { BIKE_PAIRING } from '@wattzup/api';
 import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
 import { RideOverlay } from '../ride-overlay/ride-overlay';
@@ -76,6 +77,7 @@ import { RideVideo } from '../ride-video/ride-video';
 })
 export class RidePage {
   protected readonly live = inject(LiveStateService);
+  protected readonly pairing = inject(BIKE_PAIRING);
   protected readonly state = this.live.state;
   protected readonly workout = computed(() => this.state()?.workout ?? null);
   /** The ride-along video of the workout, or null (L2-076 AC1). */
@@ -91,7 +93,12 @@ export class RidePage {
     if (this.videoSync.failed()) untracked(() => this.mainView.set('chart'));
   });
   protected readonly view = computed(() =>
-    rideViewState(this.state(), this.live.connection(), this.live.loadFailed()),
+    rideViewState(
+      this.state(),
+      this.live.connection(),
+      this.live.loadFailed(),
+      this.pairing.required(),
+    ),
   );
 
   protected readonly power = computed(() => {

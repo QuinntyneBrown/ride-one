@@ -7,6 +7,6 @@ import { BrowserRidePage } from './pages/browser-ride.page';
 test('opens the dashboard with no bike chosen and no backend', async ({ page }) => {
   const ride = new BrowserRidePage(page);
   await ride.open();
-  await expect(ride.statusName).toHaveText('Echelon bike');
-  await expect(ride.statusState).toHaveText('Disconnected');
+  await expect(ride.statusName).toHaveText('No bike connected');
+  await expect(ride.statusState).toHaveCount(0);
 });

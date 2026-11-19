@@ -4,7 +4,7 @@ import { isActive } from './workout-status';
 
 export type RideView = 'loading' | 'load-failed' | 'ride';
 export type RideOverlayKind =
-  'scanning' | 'adapter-off' | 'bike-lost' | 'bike-shut-off' | 'ride-complete';
+  'connect-bike' | 'scanning' | 'adapter-off' | 'bike-lost' | 'bike-shut-off' | 'ride-complete';
 
 export interface RideViewState {
   view: RideView;
@@ -20,6 +20,8 @@ export function rideViewState(
   state: BikeState | null,
   connection: StreamConnection,
   loadFailed: boolean,
+  /** No bike chosen yet in the browser edition (L2-090 AC1). */
+  pairingRequired = false,
 ): RideViewState {
   const offline = connection === 'offline';
   if (loadFailed) {
@@ -47,6 +49,7 @@ export function rideViewState(
   const status = state.workout?.status;
   let overlay: RideOverlayKind | null = null;
   if (state.adapter === 'off') overlay = 'adapter-off';
+  else if (pairingRequired) overlay = 'connect-bike';
   else if (status === 'ended: bike shut off') overlay = 'bike-shut-off';
   // A plan ridden to its end and saved leads to its summary (L2-084 AC3).
   else if (status === 'ended' && state.workout?.session_id) overlay = 'ride-complete';
