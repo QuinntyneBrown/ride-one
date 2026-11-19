@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-090, L2-091, L2-092, L2-093
+// Traces to: L2-090, L2-091, L2-092, L2-093, L2-096
 // Description: World Ride at /classes/:id/world: opened from the class page with Ride in <world
 // name>, which starts the class ride exactly as Start ride does; shown only for that class's ride in
 // progress; its app bar.
@@ -263,5 +263,43 @@ test.describe('World Ride current segment (L2-093)', () => {
 
     await expect(world.segmentLabel).toHaveText('Cool-down');
     await expect(world.next).toHaveText('Last stretch to the finish arch');
+  });
+});
+
+test.describe('World Ride resistance (L2-096)', () => {
+  test('shows the level and steps it with - and +', async ({ page, api, events }) => {
+    api.on('POST', '/api/resistance', { json: { level: 25 } });
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+
+    await expect(world.level).toHaveText('24');
+    await expect(world.levelCaption).toHaveText('Resistance / 32');
+    await world.raise.click();
+    const [up] = await api.waitForCall('POST', '/api/resistance');
+    expect(up!.body).toEqual({ level: 25 });
+    await world.lower.click();
+    const calls = await api.waitForCall('POST', '/api/resistance', 2);
+    expect(calls[1]!.body).toEqual({ level: 23 });
+  });
+
+  test('reads Manual in manual mode', async ({ page, api, events }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open(undefined, undefined, classRide({}, { mode: 'manual' }));
+    await expect(world.levelCaption).toHaveText('Manual');
+  });
+
+  test('disables - at 1, + at 32 and both without the bike', async ({ page, api, events }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open(undefined, undefined, classRide({ resistance: 1, target_resistance: 1 }));
+    await expect(world.lower).toBeDisabled();
+    await expect(world.raise).toBeEnabled();
+
+    await world.push(classRide({ resistance: 32, target_resistance: 32 }));
+    await expect(world.lower).toBeEnabled();
+    await expect(world.raise).toBeDisabled();
+
+    await world.push(classRide({ ble: 'disconnected' }));
+    await expect(world.lower).toBeDisabled();
+    await expect(world.raise).toBeDisabled();
   });
 });

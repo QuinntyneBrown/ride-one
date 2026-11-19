@@ -15,6 +15,17 @@ export interface WorldRideView {
   readonly metrics: WorldRideMetrics;
   /** The current segment; null with no workout (L2-093). */
   readonly segment: WorldRideSegment | null;
+  /** The resistance panel (L2-096). */
+  readonly resistance: WorldRideResistance;
+}
+
+/** The resistance panel: the level, its caption and which steps are allowed (L2-096). */
+export interface WorldRideResistance {
+  readonly level: string;
+  /** `Resistance / 32`, or `Manual` in manual mode. */
+  readonly caption: string;
+  readonly lowerDisabled: boolean;
+  readonly raiseDisabled: boolean;
 }
 
 /** The current-segment panel's words (L2-093). */
@@ -77,6 +88,8 @@ export class WorldRide {
 
   readonly pauseToggled = output<void>();
   readonly endRequested = output<void>();
+  /** − or + on the resistance panel. */
+  readonly stepped = output<-1 | 1>();
   /** A plain click on a link, with its `href`. */
   readonly navigate = output<string>();
 

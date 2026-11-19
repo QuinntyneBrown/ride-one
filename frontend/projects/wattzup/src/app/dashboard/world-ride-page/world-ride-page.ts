@@ -15,6 +15,8 @@ import { WorldRide } from '@wattzup/components';
 import { CountdownService } from '../../core/countdown.service';
 import { formatDuration } from '../../core/format-duration';
 import { LiveStateService } from '../../core/live-state.service';
+import { ResistanceCommandService } from '../../core/resistance-command.service';
+import { stepLevel } from '../../core/resistance-controls';
 import { RideActions } from '../../core/ride-actions';
 import { worldRideAccess } from '../../core/world-ride-access';
 import { worldRideView } from '../../core/world-ride-view';
@@ -44,6 +46,7 @@ export class WorldRidePage {
   private readonly router = inject(Router);
   private readonly live = inject(LiveStateService);
   private readonly actions = inject(RideActions);
+  private readonly resistance = inject(ResistanceCommandService);
   private readonly timer = inject(CountdownService);
 
   protected readonly phase = signal<Phase>('loading');
@@ -123,6 +126,11 @@ export class WorldRidePage {
 
   protected togglePause(): void {
     void (this.view()?.paused ? this.actions.resume() : this.actions.pause());
+  }
+
+  /** − or + sends the level one lower or higher (L2-096 AC2, L2-047). */
+  protected step(delta: -1 | 1): void {
+    void this.resistance.set(stepLevel(this.live.state(), delta));
   }
 
   protected end(): void {

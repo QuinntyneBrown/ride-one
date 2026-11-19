@@ -26,6 +26,11 @@ export class WorldRidePage {
   readonly segmentLeft: Locator;
   readonly segmentProgress: Locator;
   readonly next: Locator;
+  readonly resistance: Locator;
+  readonly level: Locator;
+  readonly levelCaption: Locator;
+  readonly lower: Locator;
+  readonly raise: Locator;
 
   constructor(
     readonly page: Page,
@@ -53,6 +58,11 @@ export class WorldRidePage {
     this.segmentLeft = this.segment.getByRole('timer');
     this.segmentProgress = this.segment.getByRole('progressbar', { name: 'Segment progress' });
     this.next = this.segment.locator('.world-ride__next');
+    this.resistance = this.main.getByRole('region', { name: 'Resistance' });
+    this.level = this.resistance.getByRole('status', { name: 'Resistance' });
+    this.levelCaption = this.resistance.locator('.world-ride__caption');
+    this.lower = this.resistance.getByRole('button', { name: 'Lower resistance' });
+    this.raise = this.resistance.getByRole('button', { name: 'Raise resistance' });
   }
 
   /** A metric of the panel's description list by its term: `Cadence`, `Heart` or `Speed`. */

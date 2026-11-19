@@ -123,6 +123,31 @@
           <p class="world-ride__next">{{ seg.next }}</p>
         </section>
       }
+      @let r = v.resistance;
+      <section class="world-ride__panel world-ride__resistance" aria-label="Resistance">
+        <button
+          class="btn btn--lg btn--icon"
+          type="button"
+          aria-label="Lower resistance"
+          [disabled]="r.lowerDisabled"
+          (click)="stepped.emit(-1)"
+        >
+          <wz-icon name="minus" />
+        </button>
+        <div>
+          <output aria-label="Resistance">{{ r.level }}</output>
+          <span class="world-ride__caption">{{ r.caption }}</span>
+        </div>
+        <button
+          class="btn btn--lg btn--icon"
+          type="button"
+          aria-label="Raise resistance"
+          [disabled]="r.raiseDisabled"
+          (click)="stepped.emit(1)"
+        >
+          <wz-icon name="plus" />
+        </button>
+      </section>
     </div>
   </div>
 </main>

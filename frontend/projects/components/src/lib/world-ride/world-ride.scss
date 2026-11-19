@@ -223,7 +223,8 @@
   stroke-width: var(--border-width-thick);
 }
 .world-ride__resistance {
-  display: flex;
+  // Hidden under 1024 px (L2-096 AC4), shown as flex from 64rem below.
+  display: none;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
@@ -326,6 +327,7 @@
     grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr) 14rem;
   }
   .world-ride__resistance {
+    display: flex;
     grid-column: auto;
   }
 }

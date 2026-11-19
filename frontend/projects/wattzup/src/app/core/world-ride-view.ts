@@ -3,6 +3,7 @@ import type { WorldRideSegment, WorldRideView } from '@wattzup/components';
 import { formatDuration } from './format-duration';
 import { formatLive, formatSpeed } from './metric-format';
 import { powerDelta } from './power-delta';
+import { controlsState, MAX_LEVEL } from './resistance-controls';
 import { kindLabel, roundCount, toneOf } from './segment-labels';
 import type { World } from './worlds';
 
@@ -23,6 +24,7 @@ export function worldRideView(state: BikeState, entry: ClassEntry, world: World)
       speed: formatSpeed(state.speed_kmh),
     },
     segment: state.workout ? segmentView(state.workout, world) : null,
+    resistance: resistanceView(state),
   };
 }
 
@@ -43,5 +45,16 @@ function segmentView(workout: WorkoutSnapshot, world: World): WorldRideSegment |
     next: next
       ? `Next: ${next.kind === 'work' ? world.effortName : kindLabel(next.kind)} · ${formatDuration(next.duration)} at level ${next.level}`
       : 'Last stretch to the finish arch',
+  };
+}
+
+/** − and + step the bike's level, only while it is connected (L2-096). */
+function resistanceView(state: BikeState): WorldRideView['resistance'] {
+  const controls = controlsState(state, state.ble === 'connected');
+  return {
+    level: formatLive(state.resistance),
+    caption: state.workout?.mode === 'manual' ? 'Manual' : `Resistance / ${MAX_LEVEL}`,
+    lowerDisabled: controls.lowerDisabled,
+    raiseDisabled: controls.raiseDisabled,
   };
 }

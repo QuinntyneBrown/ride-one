@@ -97,3 +97,35 @@ describe('worldRideView segment (L2-093)', () => {
     expect(worldRideView(testState({ workout: null }), entry, oldTown).segment).toBeNull();
   });
 });
+
+describe('worldRideView resistance (L2-096)', () => {
+  const resistance = (change: Parameters<typeof testState>[0]) =>
+    worldRideView(testState(change), entry, oldTown).resistance;
+
+  it('shows the level over Resistance / 32 in plan mode', () => {
+    expect(resistance({ resistance: 24 })).toEqual({
+      level: '24',
+      caption: 'Resistance / 32',
+      lowerDisabled: false,
+      raiseDisabled: false,
+    });
+  });
+
+  it('reads Manual in manual mode', () => {
+    expect(resistance({ workout: testWorkout({ mode: 'manual' }) }).caption).toBe('Manual');
+  });
+
+  it.each([
+    [1, 'connected', true, false],
+    [32, 'connected', false, true],
+    [12, 'disconnected', true, true],
+    [12, 'scanning', true, true],
+  ] as const)(
+    'at level %i with ble %s, lower %s and raise %s are disabled',
+    (level, ble, lower, raise) => {
+      expect(resistance({ resistance: level, ble })).toEqual(
+        expect.objectContaining({ lowerDisabled: lower, raiseDisabled: raise }),
+      );
+    },
+  );
+});
