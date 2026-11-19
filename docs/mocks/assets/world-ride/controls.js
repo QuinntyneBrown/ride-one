@@ -22,7 +22,7 @@
   }));
 })();
 
-const sceneryForm = document.querySelector('.world-ride__source form');
+const sceneryForm = document.querySelector('.world-ride__form');
 if (sceneryForm) {
   const field = sceneryForm.querySelector('input');
   const submit = sceneryForm.querySelector('button');

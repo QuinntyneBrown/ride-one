@@ -83,6 +83,10 @@
   --palette-warn-800: #6e4100;
   --palette-warn-950: #2a1f0d;
 
+  /* ---------- Primitives: jerseys (World Ride riders only) -------------- */
+  --palette-cyan-300: #3ff0ff;     /* MP World Ride jersey */
+  --palette-violet-400: #9b6bff;   /* MP World Ride jersey */
+
   /* ---------- Primitives: typography ------------------------------------ */
   /* Inter, Archivo (wdth 72) and JetBrains Mono are bundled with the app
      (the CSP allows same-origin only); the stacks fall back locally. */
@@ -278,6 +282,20 @@
   --color-video-bg: var(--palette-neutral-950);
   --color-video-fg: var(--palette-neutral-50);
   --color-video-scrim: rgb(11 12 14 / 0.6);
+  /* World Ride: instrument panels over a scene photo. 0.9 keeps every HUD
+     text pair at AA even over a pure white (dark) or black (light) photo. */
+  --color-bg-hud: rgb(245 246 241 / 0.9);
+  /* Rider jerseys: identity marks, the same in both themes, never text. */
+  --color-rider-1: var(--palette-neutral-50);
+  --color-rider-2: var(--palette-heart-400);
+  --color-rider-3: var(--palette-cyan-300);
+  --color-rider-4: var(--palette-volt-300);     /* you */
+  --color-rider-5: var(--palette-warn-400);
+  --color-rider-6: var(--palette-violet-400);
+  --color-rider-7: var(--palette-rest-300);
+  /* Theme-specific artwork: show one of two images per theme. */
+  --theme-display-light: block;
+  --theme-display-dark: none;
 
   --color-fg-default: var(--palette-neutral-950);
   --color-fg-muted: var(--palette-neutral-700);
@@ -369,6 +387,9 @@
   --color-bg-inverse: var(--palette-neutral-50);
   --color-bg-backdrop: rgb(11 12 14 / 0.7);
   --color-bg-veil: rgb(11 12 14 / 0.9);
+  --color-bg-hud: rgb(11 12 14 / 0.9);
+  --theme-display-light: none;
+  --theme-display-dark: block;
 
   --color-fg-default: var(--palette-neutral-50);
   --color-fg-muted: var(--palette-neutral-400);
@@ -461,6 +482,9 @@
     --color-bg-inverse: var(--palette-neutral-50);
     --color-bg-backdrop: rgb(11 12 14 / 0.7);
     --color-bg-veil: rgb(11 12 14 / 0.9);
+    --color-bg-hud: rgb(11 12 14 / 0.9);
+    --theme-display-light: none;
+    --theme-display-dark: block;
 
     --color-fg-default: var(--palette-neutral-50);
     --color-fg-muted: var(--palette-neutral-400);

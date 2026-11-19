@@ -27,6 +27,10 @@ This tree holds the detailed designs for Wattzup: an Angular app that runs entir
 | classes | [Load the class catalogue](classes/load-class-catalogue/README.md) | `L2-077`, `L2-096` |
 |  | [Browse the class library](classes/browse-classes/README.md) | `L2-077`, `L2-078`, `L2-079`, `L2-097` |
 |  | [Ride a class](classes/ride-a-class/README.md) | `L2-080`, `L2-078`, `L2-010`, `L2-029`, `L2-052`, `L2-059`, `L2-076` |
+| world-ride | [Assign a class scene](world-ride/assign-class-scene/README.md) | `L2-088`, `L2-090`, `L2-077`, `L2-078`, `L2-014` |
+|  | [Ride in a world](world-ride/ride-in-a-world/README.md) | `L2-090`, `L2-091`, `L2-092`, `L2-093`, `L2-096`, `L2-097`, `L2-080`, `L2-051`, `L2-046`, `L2-047` |
+|  | [Draw the class scene](world-ride/draw-class-scene/README.md) | `L2-089`, `L2-094`, `L2-098`, `L2-049`, `L2-090` |
+|  | [Show simulated pacers](world-ride/show-simulated-pacers/README.md) | `L2-095` |
 | history | [Record a session](history/record-session/README.md) | `L2-081`, `L2-014`, `L2-051` |
 |  | [Keep sessions](history/keep-sessions/README.md) | `L2-082`, `L2-094` |
 |  | [Review a session](history/review-session/README.md) | `L2-083`, `L2-084`, `L2-085`, `L2-087`, `L2-051`, `L2-058` |
