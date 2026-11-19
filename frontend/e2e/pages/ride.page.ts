@@ -10,6 +10,9 @@ export class RidePage {
   readonly statusIcon: Locator;
 
   readonly skipLink: Locator;
+  readonly lockup: Locator;
+  /** The bike's link to the class library (L2-079 AC15). */
+  readonly libraryLink: Locator;
   readonly workoutLink: Locator;
   readonly badge: Locator;
   readonly rideClock: Locator;
@@ -141,6 +144,8 @@ export class RidePage {
 
     this.skipLink = page.getByRole('link', { name: 'Skip to content' });
     const bar = page.locator('.app-bar');
+    this.lockup = bar.getByRole('link', { name: 'Wattzup dashboard' });
+    this.libraryLink = bar.getByRole('link', { name: 'Library', exact: true });
     this.workoutLink = bar.locator('a.app-bar__workout');
     this.badge = bar.locator('.badge');
     this.rideClock = bar.locator('.ride-clock');

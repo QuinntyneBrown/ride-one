@@ -1,11 +1,13 @@
 // Acceptance Test
 // Traces to: L2-079
 // Description: The class library at /classes: the catalogue as shelves of cards, each card one
-// link to its class page, with the YouTube thumbnail or the poster as its cover.
+// link to its class page, with the YouTube thumbnail or the poster as its cover; and the bike
+// Ride Dashboard's Library link to it, which leaves the workout untouched (AC15).
 import recordedClasses from './fixtures/recorded/classes.json';
 import { expect, test } from './fixtures/wz-test';
-import { freeRide, treadmillIdle } from './fixtures/states';
+import { freeRide, state, treadmillIdle, treadmillState } from './fixtures/states';
 import { ClassLibraryPage } from './pages/class-library.page';
+import { RidePage } from './pages/ride.page';
 import { progressReport } from './fixtures/sessions';
 
 const LEAD =
@@ -247,5 +249,67 @@ test.describe('Class library (L2-079)', () => {
     await expect(library.cards).toHaveCount(191);
     await expect(library.progress).toHaveAccessibleName('Progress');
     await expect(library.streakBadge).toHaveCount(0);
+  });
+});
+
+test.describe("The Ride Dashboard's Library link (L2-079 AC15)", () => {
+  /** Requests that would change the workout: anything but a read under /api/workout. */
+  const workoutChanges = (requests: { method: string; path: string }[]) =>
+    requests.filter((r) => r.method !== 'GET' && r.path.startsWith('/api/workout'));
+
+  test('opens the class library by keyboard during a ride, leaving the workout untouched', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const ride = new RidePage(page, api, events);
+    const library = new ClassLibraryPage(page, api, events);
+    library.answer();
+    await ride.open(state());
+    await expect(ride.workoutLink).toHaveAccessibleName('Edit workout: HIIT · 8 × 40s / 20s');
+
+    await ride.lockup.focus();
+    await page.keyboard.press('Tab');
+    await expect(ride.libraryLink).toBeFocused();
+    await expect(ride.libraryLink).toHaveCSS('outline-style', 'solid');
+    await expect(ride.libraryLink).toHaveText('Library');
+    await expect(ride.libraryLink).toHaveAccessibleName('Library');
+    const box = await ride.libraryLink.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/classes$/);
+    await expect(library.heading).toHaveText('Ride a class');
+    expect(workoutChanges(api.requests)).toEqual([]);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(ride.workoutLink).toHaveAccessibleName('Edit workout: HIIT · 8 × 40s / 20s');
+    await expect(ride.pauseButton).toBeEnabled();
+    expect(workoutChanges(api.requests)).toEqual([]);
+  });
+
+  test.describe('on a touch screen', () => {
+    test.use({ hasTouch: true });
+
+    test('opens the class library with a tap', async ({ page, api, events }) => {
+      const ride = new RidePage(page, api, events);
+      const library = new ClassLibraryPage(page, api, events);
+      library.answer();
+      await ride.open(state());
+
+      await ride.libraryLink.tap();
+      await expect(page).toHaveURL(/\/classes$/);
+      await expect(library.heading).toHaveText('Ride a class');
+      expect(workoutChanges(api.requests)).toEqual([]);
+    });
+  });
+
+  test('is not shown on the treadmill', async ({ page, api, events }) => {
+    const ride = new RidePage(page, api, events);
+    await ride.open(treadmillState());
+    await expect(ride.stopBeltButton).toBeVisible();
+    await expect(ride.libraryLink).toHaveCount(0);
   });
 });

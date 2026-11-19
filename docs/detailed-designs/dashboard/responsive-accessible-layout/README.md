@@ -27,7 +27,7 @@ Layout (L2-040). Each layout block lives in the stylesheet of the component that
 
 - **`RidePage`** (`wz-ride-page`) — renders the skip link, `AppBar`, the connection banners and the `ride-layout` grid. Its stylesheet holds the mocks' layout blocks `app`, `ride-layout`, `ride-main`, `ride-aside` and `readouts`. DOM order equals visual order, so Tab order follows the layout (L2-041).
 - **`AppBar`** (`wz-app-bar`, block `app-bar`) — holds, in DOM order:
-  - the `lockup`, `app-bar__divider` and `StatusLine`;
+  - the `lockup`, on the bike the `Library` link to `/classes` (`app-bar__library`, L2-079 criterion 15, `classes/browse-classes`), the `app-bar__divider` and `StatusLine`;
   - the workout button, labelled with `summary` or `Set up a ride`;
   - in `app-bar__end`: the ride clock, Pause or Resume, End, the beeps toggle, the theme toggle and Diagnostics.
   The bar uses `flex-wrap: wrap`, so items wrap without overlapping. Nothing scrolls horizontally at 320 px, because every block uses `minmax(0, 1fr)` columns and `min-width: 0`, and long names truncate with an ellipsis.
@@ -37,7 +37,7 @@ Layout (L2-040). Each layout block lives in the stylesheet of the component that
 Accessibility (L2-041):
 
 - **Skip link** — `Skip to content` is the first focusable element and targets `#main` (`ride-main`).
-- **Focus order and visibility** — Tab reaches the workout button, Pause or Resume, End, the beeps toggle, the theme toggle, Diagnostics, Lower, the level picker, Raise and Back to plan, in that order. Every interactive element shows a `:focus-visible` outline in `--color-focus-ring`. On `/setup`, every field is reachable in form order.
+- **Focus order and visibility** — Tab reaches the lockup, `Library` (bike), the workout button, Pause or Resume, End, the beeps toggle, the theme toggle, Diagnostics, Lower, the level picker, Raise and Back to plan, in that order. Every interactive element shows a `:focus-visible` outline in `--color-focus-ring`. On `/setup`, every field is reachable in form order.
 - **Names** — the stepper buttons are named `Lower resistance` and `Raise resistance`, and the level picker is one slider named `Resistance level` whose value reads `Level <n> of 32` (`resistance-control`). The beeps toggle exposes `aria-pressed` (`workouts/play-workout-cues`). The workout button's accessible name is `Edit workout: <summary>`. The trace canvas carries `aria-hidden="true"` and has a text summary (`show-live-metrics`).
 - **Announcements** — a segment change is announced through the CDK `LiveAnnouncer` with `polite` politeness, for example `Work, resistance 18, 40 seconds`. The workouts feature makes the call. The countdown carries `role="timer"` and `aria-live="off"`, so it is never read out each second.
 - **States beyond colour** — every state carried by colour also has text or an attribute: the status line's state label, the delta text, `aria-valuenow` on the level picker, `aria-pressed` on the beeps and theme toggles, `aria-current`, `aria-invalid` and `disabled`. Components style those states through the attribute.

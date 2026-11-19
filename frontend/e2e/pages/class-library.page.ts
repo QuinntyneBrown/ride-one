@@ -110,6 +110,17 @@ export class ClassLibraryPage {
     );
   }
 
+  /** Stubs the requests the library makes, for a visit that starts on another page. */
+  answer(
+    catalogue: StubResponse | ((request: Request) => StubResponse | Promise<StubResponse>) = {
+      json: recordedClasses,
+    },
+    progress: StubResponse = { json: progressReport() },
+  ): void {
+    this.api.on('GET', '/api/classes', catalogue);
+    this.api.on('GET', '/api/progress', progress);
+  }
+
   /** Loads `/classes` with `catalogue` as the answer of GET /api/classes and `live` as the state. */
   async open(
     catalogue: StubResponse | ((request: Request) => StubResponse | Promise<StubResponse>) = {
@@ -119,8 +130,7 @@ export class ClassLibraryPage {
     progress: StubResponse = { json: progressReport() },
   ): Promise<void> {
     this.live = live;
-    this.api.on('GET', '/api/classes', catalogue);
-    this.api.on('GET', '/api/progress', progress);
+    this.answer(catalogue, progress);
     this.api.on('GET', '/api/status', { json: live });
     await this.page.goto('/classes');
     await this.events.push(live);
