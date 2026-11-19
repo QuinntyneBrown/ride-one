@@ -129,3 +129,58 @@ describe('worldRideView resistance (L2-096)', () => {
     },
   );
 });
+
+describe('worldRideView overlay (L2-097)', () => {
+  const overlay = (
+    change: Parameters<typeof testWorkout>[0],
+    state: Parameters<typeof testState>[0] = {},
+  ) => worldRideView(testState({ workout: testWorkout(change), ...state }), entry, oldTown).overlay;
+
+  it('has none while running or waiting for the bike', () => {
+    expect(overlay({ status: 'running' })).toBeNull();
+    expect(overlay({ status: 'waiting for bike' })).toBeNull();
+  });
+
+  it('holds the world still on the route while paused', () => {
+    expect(overlay({ status: 'paused' })).toEqual({
+      kind: 'paused',
+      title: 'Paused on Cathedral Circuit',
+      text: 'The world holds still until you pedal again.',
+      sessionHref: null,
+    });
+  });
+
+  it('parks the rider at the distance ridden when the bike is lost', () => {
+    expect(overlay({ status: 'paused: bike disconnected' }, { distance_km: 1.61 })).toEqual({
+      kind: 'lost',
+      title: 'Lost the bike',
+      text: "Echelon EX-5s stopped answering. You're parked at 1.61 km on Cathedral Circuit. Wake it with a pedal stroke, then reconnect.",
+      sessionHref: null,
+    });
+  });
+
+  it('offers the saved ride when the plan ends', () => {
+    expect(overlay({ status: 'ended', session_id: 'abc' })).toEqual(
+      expect.objectContaining({
+        kind: 'ended',
+        title: 'Ride complete',
+        sessionHref: '/sessions/abc',
+      }),
+    );
+  });
+
+  it('offers the saved ride when the bike shut off', () => {
+    expect(overlay({ status: 'ended: bike shut off', session_id: 'abc' })).toEqual(
+      expect.objectContaining({
+        kind: 'ended',
+        title: 'Ride ended — the bike shut off',
+        sessionHref: '/sessions/abc',
+      }),
+    );
+  });
+
+  it('has none for an ended ride that was not saved, or a stopped one', () => {
+    expect(overlay({ status: 'ended', session_id: null })).toBeNull();
+    expect(overlay({ status: 'stopped', session_id: 'abc' })).toBeNull();
+  });
+});

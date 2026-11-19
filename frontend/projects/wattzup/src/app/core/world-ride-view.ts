@@ -1,9 +1,10 @@
 import type { BikeState, ClassEntry, WorkoutSnapshot } from '@wattzup/api';
 import type { WorldRideSegment, WorldRideView } from '@wattzup/components';
 import { formatDuration } from './format-duration';
-import { formatLive, formatSpeed } from './metric-format';
+import { formatDistance, formatLive, formatSpeed } from './metric-format';
 import { powerDelta } from './power-delta';
 import { controlsState, MAX_LEVEL } from './resistance-controls';
+import { rideOverlayText } from './ride-overlay-text';
 import { kindLabel, roundCount, toneOf } from './segment-labels';
 import type { World } from './worlds';
 
@@ -25,6 +26,7 @@ export function worldRideView(state: BikeState, entry: ClassEntry, world: World)
     },
     segment: state.workout ? segmentView(state.workout, world) : null,
     resistance: resistanceView(state),
+    overlay: overlayView(state, world),
   };
 }
 
@@ -57,4 +59,41 @@ function resistanceView(state: BikeState): WorldRideView['resistance'] {
     lowerDisabled: controls.lowerDisabled,
     raiseDisabled: controls.raiseDisabled,
   };
+}
+
+/** Paused, the lost bike, or the saved ride's end; none while riding (L2-097). */
+function overlayView(state: BikeState, world: World): WorldRideView['overlay'] {
+  const workout = state.workout;
+  switch (workout?.status) {
+    case 'paused':
+      return {
+        kind: 'paused',
+        title: `Paused on ${world.route}`,
+        text: 'The world holds still until you pedal again.',
+        sessionHref: null,
+      };
+    case 'paused: bike disconnected':
+      return {
+        kind: 'lost',
+        title: 'Lost the bike',
+        text: `${state.device_label ?? 'Your bike'} stopped answering. You're parked at ${formatDistance(state.distance_km)} km on ${world.route}. Wake it with a pedal stroke, then reconnect.`,
+        sessionHref: null,
+      };
+    case 'ended':
+    case 'ended: bike shut off': {
+      if (!workout.session_id) return null;
+      const copy = rideOverlayText(
+        workout.status === 'ended' ? 'ride-complete' : 'bike-shut-off',
+        state,
+      );
+      return {
+        kind: 'ended',
+        title: copy.title,
+        text: copy.lines.join(' '),
+        sessionHref: `/sessions/${encodeURIComponent(workout.session_id)}`,
+      };
+    }
+    default:
+      return null;
+  }
 }

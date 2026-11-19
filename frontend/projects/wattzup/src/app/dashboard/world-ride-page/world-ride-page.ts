@@ -83,6 +83,8 @@ export class WorldRidePage {
     };
   });
 
+  protected readonly reconnecting = this.actions.reconnecting;
+
   protected readonly classHref = computed(() => `/classes/${encodeURIComponent(this.id())}`);
 
   constructor() {
@@ -103,6 +105,14 @@ export class WorldRidePage {
         this.shown.set(true);
       } else if (fresh) {
         void this.router.navigateByUrl(untracked(this.classHref), { replaceUrl: true });
+      }
+    });
+    // A ride too short to save leaves for the dashboard when it ends (L2-097 AC5).
+    effect(() => {
+      const w = this.live.state()?.workout;
+      if (!this.shown() || !w || w.session_id) return;
+      if (w.status === 'ended' || w.status === 'ended: bike shut off') {
+        untracked(() => void this.router.navigateByUrl('/'));
       }
     });
   }
@@ -139,5 +149,14 @@ export class WorldRidePage {
 
   protected navigate(href: string): void {
     void this.router.navigateByUrl(href);
+  }
+
+  /** `See your ride` opens the summary as just finished (L2-085 AC2). */
+  protected openSession(href: string): void {
+    void this.router.navigateByUrl(href, { state: { justFinished: true } });
+  }
+
+  protected reconnect(): void {
+    void this.actions.reconnect();
   }
 }

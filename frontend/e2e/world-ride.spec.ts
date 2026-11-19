@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-090, L2-091, L2-092, L2-093, L2-096
+// Traces to: L2-090, L2-091, L2-092, L2-093, L2-096, L2-097
 // Description: World Ride at /classes/:id/world: opened from the class page with Ride in <world
 // name>, which starts the class ride exactly as Start ride does; shown only for that class's ride in
 // progress; its app bar.
@@ -301,5 +301,75 @@ test.describe('World Ride resistance (L2-096)', () => {
     await world.push(classRide({ ble: 'disconnected' }));
     await expect(world.lower).toBeDisabled();
     await expect(world.raise).toBeDisabled();
+  });
+});
+
+test.describe('World Ride pause, lost bike and the end (L2-097)', () => {
+  test('holds the world still with Paused on <route>', async ({ page, api, events }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+    await expect(world.pausedOverlay).toHaveCount(0);
+
+    await world.push(classRide({}, { status: 'paused' }));
+    await expect(world.pausedOverlay).toContainText('Paused on Cathedral Circuit');
+    await expect(world.pausedOverlay).toContainText('The world holds still until you pedal again.');
+  });
+
+  test('shows Lost the bike with the parked distance, and Reconnect calls the bike', async ({
+    page,
+    api,
+    events,
+  }) => {
+    api.on('POST', '/api/bike/reconnect', { status: 202, json: {} });
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+
+    await world.push(classRide({ ble: 'disconnected' }, { status: 'paused: bike disconnected' }));
+    await expect(world.lostOverlay).toContainText('Lost the bike');
+    await expect(world.lostOverlay).toContainText(
+      "Echelon EX-5s stopped answering. You're parked at 1.61 km on Cathedral Circuit. Wake it with a pedal stroke, then reconnect.",
+    );
+    await expect(world.reconnectButton).toBeFocused();
+    await expect(world.hud).toHaveAttribute('inert', '');
+
+    await world.reconnectButton.click();
+    await api.waitForCall('POST', '/api/bike/reconnect');
+
+    await world.push(classRide());
+    await expect(world.lostOverlay).toHaveCount(0);
+    await expect(world.hud).not.toHaveAttribute('inert');
+    await expect(world.lockup).toBeFocused();
+  });
+
+  test('shows Ride complete over the held world when the plan ends', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+
+    await world.push(
+      classRide({}, { status: 'ended', segment: 16, remaining: 0, session_id: 'a1b2c3d4e5f6' }),
+    );
+    await expect(world.endedOverlay).toContainText('Ride complete');
+    await expect(world.endedOverlay).toContainText(
+      'Intervals · 8 efforts · 30:00 · 30:00. Your ride is saved.',
+    );
+    await expect(world.seeYourRide).toBeFocused();
+    await expect(world.seeYourRide).toHaveAttribute('href', '/sessions/a1b2c3d4e5f6');
+    await expect(world.rideAnotherClass).toHaveAttribute('href', '/classes');
+    await expect(world.hud).toHaveAttribute('inert', '');
+  });
+
+  test('goes to the dashboard when a ride too short to save ends', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+    await world.push(classRide({}, { status: 'ended', session_id: null }));
+    await expect(page).toHaveURL(/\/$/);
   });
 });

@@ -31,6 +31,13 @@ export class WorldRidePage {
   readonly levelCaption: Locator;
   readonly lower: Locator;
   readonly raise: Locator;
+  readonly hud: Locator;
+  readonly pausedOverlay: Locator;
+  readonly lostOverlay: Locator;
+  readonly reconnectButton: Locator;
+  readonly endedOverlay: Locator;
+  readonly seeYourRide: Locator;
+  readonly rideAnotherClass: Locator;
 
   constructor(
     readonly page: Page,
@@ -63,6 +70,15 @@ export class WorldRidePage {
     this.levelCaption = this.resistance.locator('.world-ride__caption');
     this.lower = this.resistance.getByRole('button', { name: 'Lower resistance' });
     this.raise = this.resistance.getByRole('button', { name: 'Raise resistance' });
+    this.hud = this.main.locator('.world-ride__hud');
+    this.pausedOverlay = this.main.locator('.world-ride__overlay[role="status"]', {
+      hasText: 'Paused on',
+    });
+    this.lostOverlay = this.main.getByRole('alert');
+    this.reconnectButton = this.lostOverlay.getByRole('button', { name: 'Reconnect' });
+    this.endedOverlay = this.main.locator('.world-ride__overlay', { hasText: 'See your ride' });
+    this.seeYourRide = this.endedOverlay.getByRole('link', { name: 'See your ride' });
+    this.rideAnotherClass = this.endedOverlay.getByRole('link', { name: 'Ride another class' });
   }
 
   /** A metric of the panel's description list by its term: `Cadence`, `Heart` or `Speed`. */

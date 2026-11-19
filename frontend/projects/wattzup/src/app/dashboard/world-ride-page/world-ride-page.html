@@ -9,6 +9,9 @@
     (pauseToggled)="togglePause()"
     (endRequested)="end()"
     (stepped)="step($event)"
+    [reconnecting]="reconnecting()"
     (navigate)="navigate($event)"
+    (sessionOpened)="openSession($event)"
+    (reconnected)="reconnect()"
   />
 }

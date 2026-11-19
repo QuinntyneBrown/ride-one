@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  afterRenderEffect,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  type ElementRef,
+  input,
+  output,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { Icon } from '../icon/icon';
 
 /** What the World Ride HUD shows, computed by the page from the live state, the class and its world. */
@@ -17,6 +27,17 @@ export interface WorldRideView {
   readonly segment: WorldRideSegment | null;
   /** The resistance panel (L2-096). */
   readonly resistance: WorldRideResistance;
+  /** Paused, the lost bike or the saved ride's end, over the HUD (L2-097). */
+  readonly overlay: WorldRideOverlay | null;
+}
+
+/** An overlay over the scene: paused (a status), the lost bike or the ride's end (L2-097). */
+export interface WorldRideOverlay {
+  readonly kind: 'paused' | 'lost' | 'ended';
+  readonly title: string;
+  readonly text: string;
+  /** The saved session `See your ride` opens, for `ended`. */
+  readonly sessionHref: string | null;
 }
 
 /** The resistance panel: the level, its caption and which steps are allowed (L2-096). */
@@ -92,12 +113,47 @@ export class WorldRide {
   readonly stepped = output<-1 | 1>();
   /** A plain click on a link, with its `href`. */
   readonly navigate = output<string>();
+  /** A plain click on `See your ride`, with its `href`: the summary opens as just finished. */
+  readonly sessionOpened = output<string>();
+  /** `Reconnect` on the lost-bike overlay. */
+  readonly reconnected = output<void>();
+  /** True while a reconnect is in flight. */
+  readonly reconnecting = input(false);
 
-  protected follow(event: MouseEvent, href: string): void {
+  /** The HUD is inert under the lost-bike and end overlays (L2-097 AC2, AC5). */
+  protected readonly inert = computed(() => {
+    const kind = this.view().overlay?.kind;
+    return kind === 'lost' || kind === 'ended';
+  });
+
+  private readonly lockup = viewChild<ElementRef<HTMLElement>>('lockup');
+  private readonly reconnectButton = viewChild<ElementRef<HTMLElement>>('reconnect');
+  private readonly seeYourRide = viewChild<ElementRef<HTMLElement>>('seeYourRide');
+  private shownKind: WorldRideOverlay['kind'] | null = null;
+
+  constructor() {
+    // Focus moves to the overlay's action, and back to the app bar once the bike returns
+    // (L2-097 AC4; L2-084 AC3).
+    afterRenderEffect(() => {
+      const kind = this.view().overlay?.kind ?? null;
+      const reconnect = this.reconnectButton();
+      const seeYourRide = this.seeYourRide();
+      untracked(() => {
+        if (kind === this.shownKind) return;
+        const was = this.shownKind;
+        this.shownKind = kind;
+        if (kind === 'lost') reconnect?.nativeElement.focus();
+        else if (kind === 'ended') seeYourRide?.nativeElement.focus();
+        else if (was === 'lost') this.lockup()?.nativeElement.focus();
+      });
+    });
+  }
+
+  protected follow(event: MouseEvent, href: string, session = false): void {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
       return;
     }
     event.preventDefault();
-    this.navigate.emit(href);
+    (session ? this.sessionOpened : this.navigate).emit(href);
   }
 }

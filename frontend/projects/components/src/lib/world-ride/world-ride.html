@@ -1,9 +1,10 @@
 @let v = view();
 <main id="main" class="world-ride" tabindex="-1" [attr.aria-label]="v.title">
   <div class="world-ride__scene"><ng-content select="[slot=scene]" /></div>
-  <div class="world-ride__hud">
+  <div class="world-ride__hud" [inert]="inert()">
     <header class="world-ride__bar">
       <a
+        #lockup
         class="lockup"
         [href]="homeHref()"
         aria-label="Wattzup dashboard"
@@ -150,4 +151,56 @@
       </section>
     </div>
   </div>
+  @if (v.overlay; as o) {
+    @switch (o.kind) {
+      @case ('paused') {
+        <div class="world-ride__overlay" role="status">
+          <div class="world-ride__panel">
+            <h2 class="world-ride__overlay-title">{{ o.title }}</h2>
+            <p>{{ o.text }}</p>
+          </div>
+        </div>
+      }
+      @case ('lost') {
+        <div class="world-ride__overlay world-ride__overlay--lost" role="alert">
+          <div>
+            <h2 class="world-ride__overlay-title">{{ o.title }}</h2>
+            <p>{{ o.text }}</p>
+            <button
+              #reconnect
+              class="btn btn--primary"
+              type="button"
+              [disabled]="reconnecting()"
+              [attr.aria-busy]="reconnecting() ? 'true' : null"
+              (click)="reconnected.emit()"
+            >
+              Reconnect
+            </button>
+          </div>
+        </div>
+      }
+      @case ('ended') {
+        <div class="world-ride__overlay world-ride__overlay--lost" role="status">
+          <div>
+            <h2 class="world-ride__overlay-title">{{ o.title }}</h2>
+            <p>{{ o.text }}</p>
+            <div class="world-ride__overlay-actions">
+              @if (o.sessionHref; as href) {
+                <a
+                  #seeYourRide
+                  class="btn btn--primary"
+                  [href]="href"
+                  (click)="follow($event, href, true)"
+                  >See your ride</a
+                >
+              }
+              <a class="btn btn--subtle" href="/classes" (click)="follow($event, '/classes')"
+                >Ride another class</a
+              >
+            </div>
+          </div>
+        </div>
+      }
+    }
+  }
 </main>
