@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-102, L2-110, L1-017
+// Traces to: L2-102 criterion 9, L2-110, L1-017
 // Description: In the browser edition a class that names a world is ridden in it: Ride in <world
 // name> starts the ride on the connected bike and opens World Ride, which draws the scene from the
 // app's own files, with nothing sent off the device.

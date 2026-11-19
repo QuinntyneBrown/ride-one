@@ -59,7 +59,7 @@ None.
 - On each frame it advances the rider along the route by `speedKmh` ÷ 3.6 × the frame's seconds, only while `running`. Paused, the world holds still (L2-109 criterion 1).
 
 **Renderer (`core/world-renderer.ts`, new; WebGL through a 3D library, see Open questions).**
-- **`WorldRenderer`**: `start(canvas, world): boolean`, `resize(width, height, pixelRatio)`, `draw(frame: SceneFrame)` and `dispose()`. `start` returns `false` when WebGL is unavailable, or when the context or a shader fails to start (L2-110 criterion 4).
+- **`WorldRenderer`**: `start(canvas, world): Promise<boolean>`, `resize(width, height, pixelRatio)`, `draw(frame: SceneFrame)` and `dispose()`. `start` resolves `false` when neither WebGPU nor WebGL2 starts (L2-110 criterion 4, L2-111 criterion 1). The `WORLD_RENDERER` token holds the loader; both composition roots, `app.config.ts` and `app.config.browser.ts`, bind it to the same dynamic import, so the browser edition draws the scene too (L2-102 criterion 9).
 - **`SceneFrame`**: `{ s, crank, segments, elapsed, speedKmh, reducedMotion }`.
 - It lays the road ahead of the rider from the plan. For each 2 m step ahead it finds the segment the rider will be in, from the time that distance takes at the current speed. It then eases the gradient towards `targetGrade` for that segment, so a ramp is in view before its effort starts (L2-110 criterion 1).
 - Terrain, props, the panorama and the sea follow the camera, which sits just behind and above the rider's bike.
@@ -100,13 +100,13 @@ Playwright (`frontend/e2e/`, Chromium only), in `e2e/world-ride.spec.ts` with th
 Unit tests:
 - `worlds.spec.ts`: one `targetGrade` case per scene, at *s* 0 and at a point where the rolling term is not 0 (L2-101 AC2).
 - `route-profile.spec.ts`: the profile of a `hiit`, an `intervals` and a `flat` plan. Each checks the elevation, the climbed total and the metres at chosen seconds, and the `routeProfileView` text and label (L2-101 AC3, L2-106 AC1 to AC3).
-- `world-scene.spec.ts`: with a fake `WorldRenderer`, the rider does not advance while not running. The loop stops while the tab is hidden. `reducedMotion` is passed from `MotionPreference`. `unavailable` is emitted when `start` returns `false` (L2-110 AC1, AC4 to AC6).
+- `scene-driver.spec.ts`: the rider does not advance while not running, and a frame's step is capped. `WorldScene` itself has no TestBed test: the loop's start and stop while running, the text alternative and `unavailable` (the notice) are proven through Playwright in `e2e/world-ride.spec.ts`, which switches WebGPU and WebGL off with the `webgl` fixture (L2-110 AC1, AC4 to AC6).
 
 That no two scenes look the same (L2-101 AC1) and that the HUD stays readable over each scene (L2-110 AC7) are visual. The visual sweep covers them, and runs only when a person asks.
 
 ### Open questions
 
-- **3D library.** The design draws with Three.js, which is not a dependency of the workspace. Adding it, and loading it only in the World Ride chunk, needs an ADR (Prefer best practice, AGENTS.md). Until the ADR is written, `WorldRenderer` is the boundary that hides the library.
+- **3D library.** Closed by ADR 0019 (Three.js, pinned, in its own lazy chunk behind `WorldRenderer`), amended by ADR 0020 (its WebGPU renderer, falling back to WebGL2).
 - **Scene detail.** L2-101 fixes the gradients, names and descriptions. The exact look of each scene (prop spacing, colours, fog) follows `shared/worlds.ts` and the mocks' stills. It has no acceptance criterion beyond L2-101 criterion 1.
 - **Speed for the road ahead.** The renderer lays the road ahead at the current `speed_kmh`. The profile panel uses each segment's expected speed. When the rider rides much faster or slower than expected, the two differ in distance, but not in which segment a ramp belongs to.
 - **Asset size.** The size budget for the World Ride chunk and its assets is <TO SUPPLY>. Only the initial bundle has a budget (300 KB gzipped).
