@@ -95,6 +95,26 @@
           </div>
         </dl>
       </section>
+      <aside class="world-ride__board world-ride__panel" aria-labelledby="world-ride-board-title">
+        <h2 class="world-ride__board-title" id="world-ride-board-title">
+          Riders nearby · {{ v.title }}
+        </h2>
+        <p class="world-ride__muted">Simulated pacers</p>
+        <ol class="world-ride__riders">
+          @for (rider of v.pacers; track rider.name) {
+            <li
+              class="world-ride__rider"
+              [class]="'world-ride__rider--' + rider.jersey"
+              [attr.aria-current]="rider.you ? 'true' : null"
+            >
+              {{ rider.name }}
+              @if (rider.timeGap; as gap) {
+                <strong>{{ gap }}</strong>
+              }
+            </li>
+          }
+        </ol>
+      </aside>
     </div>
     <div class="world-ride__bottom">
       @if (v.segment; as seg) {

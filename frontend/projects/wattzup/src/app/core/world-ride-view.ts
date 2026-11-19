@@ -2,6 +2,7 @@ import type { BikeState, ClassEntry, WorkoutSnapshot } from '@wattzup/api';
 import type { WorldRideSegment, WorldRideView } from '@wattzup/components';
 import { formatDuration } from './format-duration';
 import { formatDistance, formatLive, formatSpeed } from './metric-format';
+import { pacerBoard } from './pacers';
 import { powerDelta } from './power-delta';
 import { controlsState, MAX_LEVEL } from './resistance-controls';
 import { rideOverlayText } from './ride-overlay-text';
@@ -27,6 +28,8 @@ export function worldRideView(state: BikeState, entry: ClassEntry, world: World)
     },
     segment: state.workout ? segmentView(state.workout, world) : null,
     resistance: resistanceView(state),
+    // Gaps follow the server's elapsed_seconds, which stops while the ride is not running.
+    pacers: pacerBoard(state.workout?.elapsed_seconds ?? 0, state.speed_kmh),
     profile: state.workout
       ? {
           ...routeProfileView(

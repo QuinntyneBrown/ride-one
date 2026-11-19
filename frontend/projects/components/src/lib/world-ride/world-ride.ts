@@ -27,6 +27,8 @@ export interface WorldRideView {
   readonly segment: WorldRideSegment | null;
   /** The resistance panel (L2-096). */
   readonly resistance: WorldRideResistance;
+  /** The Riders nearby board's rows, furthest ahead first (L2-095). */
+  readonly pacers: readonly WorldRidePacer[];
   /** The route profile; null with no workout (L2-094). */
   readonly profile: WorldRideProfile | null;
   /** Paused, the lost bike or the saved ride's end, over the HUD (L2-097). */
@@ -40,6 +42,16 @@ export interface WorldRideOverlay {
   readonly text: string;
   /** The saved session `See your ride` opens, for `ended`. */
   readonly sessionHref: string | null;
+}
+
+/** A row of the Riders nearby board: a simulated pacer, or You (L2-095). */
+export interface WorldRidePacer {
+  readonly name: string;
+  /** The rider colour, `--color-rider-<n>`. */
+  readonly jersey: number;
+  /** `+0:12` or `−0:04`; null for You. */
+  readonly timeGap: string | null;
+  readonly you: boolean;
 }
 
 /** The route-profile panel: the class drawn as terrain at the ride's moment (L2-094). */

@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-090, L2-091, L2-092, L2-093, L2-094, L2-096, L2-097
+// Traces to: L2-090, L2-091, L2-092, L2-093, L2-094, L2-095, L2-096, L2-097
 // Description: World Ride at /classes/:id/world: opened from the class page with Ride in <world
 // name>, which starts the class ride exactly as Start ride does; shown only for that class's ride in
 // progress; its app bar.
@@ -407,5 +407,66 @@ test.describe('World Ride route profile (L2-094)', () => {
     await world.push(at290('paused'));
     await expect(world.profileGrade).toHaveText('+0.6%');
     await expect(world.profileClimbed).toHaveText('12 m climbed');
+  });
+});
+
+test.describe('World Ride simulated pacers (L2-095)', () => {
+  const board = [
+    'Sophie Dubois +0:17',
+    'Maya Okafor +0:12',
+    'Jonas Lindqvist +0:01',
+    'You',
+    'Ana Ferreira −0:04',
+    'Ravi Patel −0:13',
+    'Kenji Watanabe −0:13',
+  ];
+
+  test('labels the board Riders nearby · <world> and Simulated pacers', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+    await expect(world.boardTitle).toHaveText('Riders nearby · Old Town Criterium');
+    await expect(world.boardNote).toHaveText('Simulated pacers');
+  });
+
+  test("lists the pacers and You by gap at the ride's moment, You current", async ({
+    page,
+    api,
+    events,
+  }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+    await expect(world.riders).toHaveText(board);
+    await expect(world.you).toHaveText('You');
+  });
+
+  test('keeps the gaps still while paused', async ({ page, api, events }) => {
+    await page.clock.install({ time: new Date('2026-11-19T07:00:00Z') });
+    const world = new WorldRidePage(page, api, events);
+    await world.open(undefined, undefined, classRide({}, { status: 'paused' }));
+    await expect(world.riders).toHaveText(board);
+
+    await page.clock.runFor(30_000);
+    await world.push(classRide({}, { status: 'paused' }));
+    await expect(world.riders).toHaveText(board);
+  });
+
+  test('sends no pacer to the backend', async ({ page, api, events }) => {
+    api.on('POST', '/api/workout/pause', { json: {} });
+    api.on('POST', '/api/resistance', { json: { level: 25 } });
+    const world = new WorldRidePage(page, api, events);
+    await world.open();
+    await expect(world.riders).toHaveCount(7);
+    await world.raise.click();
+    await world.pauseButton.click();
+    await api.waitForCall('POST', '/api/workout/pause');
+
+    const bodies = api.requests.map((r) => r.url + JSON.stringify(r.body ?? ''));
+    for (const name of ['Maya', 'Jonas', 'Ana', 'Kenji', 'Sophie', 'Ravi']) {
+      expect(bodies.join(' ')).not.toContain(name);
+    }
   });
 });
