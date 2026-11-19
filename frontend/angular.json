@@ -117,7 +117,8 @@
               "index": {
                 "input": "projects/wattzup/src/index.browser.html",
                 "output": "index.html"
-              }
+              },
+              "serviceWorker": "ngsw-config.json"
             },
             "browser-development": {
               "optimization": false,

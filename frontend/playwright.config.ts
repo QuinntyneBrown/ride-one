@@ -24,7 +24,13 @@ export default defineConfig({
     {
       name: 'browser-edition',
       testDir: './e2e/browser',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4301' },
+      // The browser build registers a service worker; its fetches would pass the specs' route
+      // fakes by, so only offline.spec.ts allows it.
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:4301',
+        serviceWorkers: 'block',
+      },
     },
   ],
   // The production build, served statically: it starts in seconds where the dev server compiles on demand, and

@@ -56,6 +56,24 @@ export class BrowserRidePage {
     return this.page.locator('.metrics > div').filter({ hasText: term }).locator('dd');
   }
 
+  /** Waits until the service worker controls the page with a version installed and its own
+   * requests have settled, so the page loads without the network (L2-098 AC1). */
+  async waitUntilKeptOffline(): Promise<void> {
+    await this.page.evaluate(() => navigator.serviceWorker.ready);
+    // The first load registers the worker; a reload puts the page under its control.
+    if (!(await this.page.evaluate(() => !!navigator.serviceWorker.controller))) {
+      await this.page.reload();
+    }
+    await this.page.waitForFunction(
+      async () =>
+        /Latest manifest hash: [0-9a-f]{40}/.test(await (await fetch('/ngsw/state')).text()),
+      undefined,
+      { polling: 250 },
+    );
+    // Going offline while the worker checks for an update leaves it serving nothing.
+    await this.page.waitForLoadState('networkidle');
+  }
+
   /** The web app manifest the page links (L2-098 AC2). */
   async manifest(): Promise<Record<string, unknown>> {
     const href = await this.page.locator('link[rel="manifest"]').getAttribute('href');

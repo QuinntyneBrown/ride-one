@@ -57,8 +57,8 @@ Hosting, security and offline:
 - **Privacy** — the edition makes no request after loading except `classes.json`, its own static files and YouTube's player and thumbnails (L2-097 criterion 3). It has no analytics, error reporting or remote logging. Bluetooth names, error strings, catalogue text and imported text are bound as text, never as HTML (L2-097 criterion 4).
 - **Validation** — the in-browser contracts validate input with the same rules as the API and reject with the `HttpErrorResponse` the HTTP client would raise for the API's answer: the same status and ProblemDetails body with the same `code`, such as `invalid_plan` (400) and `already_connected` (409), so every screen handles it as in the backend edition (L2-097 criterion 6).
 - **`manifest.webmanifest`** (`projects/wattzup/src/`, an asset of the browser configurations only) — `name` `Wattzup`, `short_name` `Wattzup`, `start_url` and `scope` `/`, `display` `standalone`, `theme_color` and `background_color` `#0b0c0e` (the dark canvas, `--palette-neutral-950`), and the icons in `public/icons/`: `icon-192.png` and `icon-512.png`, the favicon's volt tile, and `icon-maskable-512.png`, full bleed with the mark inside the central 80 % (L2-098 criterion 2). `index.browser.html` links it, with `apple-touch-icon` and `theme-color`. `install.spec.ts` reads the manifest and decodes each icon at its stated size.
-- **Angular service worker** (`@angular/service-worker`, `ngsw-config.json`) — prefetches the app shell, fonts, icons and lazy chunks, and caches `classes.json` with a freshness strategy (network first, cache when offline). YouTube is not cached (L2-098 criterion 1).
-- **`UpdateGate`** (`frontend/projects/wattzup/src/app/core/`, browser edition only) — listens to `SwUpdate.versionUpdates`. A new version is downloaded in the background and activated on the next load. It never calls `activateUpdate()` or reloads while `workout.status` is running, paused or waiting (L2-098 criterion 3).
+- **Angular service worker** (`@angular/service-worker`, `frontend/ngsw-config.json`, enabled in the `browser` configuration only) — `provideServiceWorker('ngsw-worker.js')` in `app.config.browser.ts` registers it once the app is stable, at most 30 s after load, and never in a development build. It prefetches the app shell (`index.html`, the manifest, every `.js` and `.css` file, the favicon) and the fonts, icons and images, and keeps `classes.json` in a data group with the freshness strategy: the network first, the cached copy when offline. YouTube is not cached (L2-098 criterion 1).
+- **Updates** — the worker checks `ngsw.json` in the background on each load and downloads a new version. It keeps each page on the version that page loaded with and serves the new one from the next load. Nothing in the app calls `SwUpdate.activateUpdate()` or reloads the page, so an update never interrupts a ride, and no update service is needed (L2-098 criterion 3).
 
 Verification:
 
@@ -66,8 +66,8 @@ Verification:
 - Browser-edition behaviour specs (`frontend/e2e/browser/`) run against `dist/wattzup-browser/browser` served by `scripts/serve-dist.mjs`. Every spec fails on any request to `/api/**` and on any origin other than its own and the faked YouTube (L2-088 criterion 2, L2-097 criterion 3).
 - A spec opens `/classes/<id>` and `/sessions/<id>` directly (L2-088 criterion 3).
 - The existing behaviour specs keep running against the backend edition unchanged (L2-088 criterion 4).
-- `UpdateGate` unit tests drive a fake `SwUpdate` with a ride running and stopped.
-- The offline criterion (L2-098 criterion 1) is a manual check, because Playwright's service-worker support with route fakes does not prove the real cache. `<TO SUPPLY>`: whether to add an automated offline spec once the fake-Bluetooth fixture exists.
+- `offline.spec.ts` proves L2-098 criterion 1. It loads the edition, waits until the worker reports its installed version and the network is idle, goes offline, reloads, connects to the faked bike and starts a ride from `/setup`. Playwright makes a page with any route bypass its service worker, so the spec drops the fixtures' routes before going offline. Every other browser-edition spec blocks service workers (`serviceWorkers: 'block'` in the project), so their route fakes see every request.
+- `install.spec.ts` reads the manifest and decodes each icon (L2-098 criterion 2).
 
 ## Requirements
 
@@ -99,7 +99,7 @@ The build turns the Angular workspace into a static folder. In the rider's brows
 
 ### Class structure
 
-The contracts and tokens live in `@wattzup/api`. The browser classes implement them and hold a reference to `BrowserBikeRuntime`. The `EDITION` token and `UpdateGate` are the only edition-aware pieces in the app.
+The contracts and tokens live in `@wattzup/api`. The browser classes implement them and hold a reference to `BrowserBikeRuntime`. The `EDITION` token is the only edition-aware piece in the app.
 
 ![Class diagram for building and hosting the browser edition](diagrams/class-structure.png)
 
@@ -111,6 +111,6 @@ The browser loads `index.html`, built from `index.browser.html`, from the host o
 
 ### Behaviour — deliver an update without interrupting a ride
 
-The service worker finds a new version in the background. `UpdateGate` holds activation while a ride is running and leaves the new version for the next load (L2-098 criterion 3).
+The service worker finds and downloads a new version in the background. The page keeps the version it loaded with, so a ride carries on, and the next load uses the new one (L2-098 criterion 3).
 
 ![Sequence for delivering an update](diagrams/sequence-update.png)

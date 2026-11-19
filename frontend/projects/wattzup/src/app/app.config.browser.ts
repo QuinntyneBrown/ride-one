@@ -4,11 +4,13 @@
 import {
   type ApplicationConfig,
   inject,
+  isDevMode,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { provideBrowserEdition } from '@wattzup/browser';
 import { routes } from './app.routes';
 import { ThemeService } from './core/theme.service';
@@ -23,5 +25,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideBrowserEdition(),
     { provide: YOUTUBE_PLAYER, useClass: IframeYouTubePlayer },
+    // Keeps the app for offline use (L2-098 AC1). A new version downloads in the background and
+    // serves the next load; nothing activates it or reloads the page, so a ride is never
+    // interrupted by an update (L2-098 AC3).
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };

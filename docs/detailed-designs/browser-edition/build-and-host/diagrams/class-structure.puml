@@ -57,11 +57,6 @@ package "@wattzup/browser" {
 
 package "wattzup app" {
   class "app.config.browser.ts" as root <<composition root>>
-  class UpdateGate {
-    -swUpdate: SwUpdate
-    -live: LiveStateService
-    +onVersionReady(): void
-  }
 }
 
 BrowserBikeApi ..|> BikeApi

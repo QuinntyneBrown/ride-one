@@ -9,22 +9,16 @@ box "Hosting — Static host" #FFF4E5
   participant "Static host" as host
 end box
 box "Frontend — Wattzup Web, browser edition" #E0F2FE
+  participant "Page (riding)" as page
   participant "Service worker" as sw
-  participant "SwUpdate" as swu
-  participant "UpdateGate" as gate
-  participant "LiveStateService" as live
 end box
 
+page -> sw : Load (any navigation)
+sw --> page : index.html and files of version A, from the cache
 sw -> host : GET ngsw.json (background check)
-host --> sw : New manifest hash
-sw -> host : Download the new version's files
-sw -> swu : VERSION_READY
-swu -> gate : versionUpdates
-gate -> live : state().workout?.status
-alt a ride is running, paused or waiting
-  gate -> gate : Do nothing now [L2-098 AC3]
-else no ride
-  gate -> gate : Leave the update for the next load
-end
-note over sw : The next navigation loads the new version.
+host --> sw : New manifest hash B
+sw -> host : Download version B's files
+note over page, sw : The page stays on version A; nothing calls activateUpdate() or reloads,\nso the ride carries on [L2-098 AC3]
+page -> sw : Next load
+sw --> page : Version B
 @enduml
