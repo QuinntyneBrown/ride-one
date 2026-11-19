@@ -15,11 +15,25 @@ interface Control {
   chooser: ChooserAnswer;
   deviceName: string;
   calls: BluetoothCall[];
+  /** Sends a frame from the bike on every subscribed characteristic. */
+  notify(hex: string): void;
 }
 
 /** Runs in the page before any app script. */
 function installFakeBluetooth(): void {
-  const control: Control = { chooser: 'pick', deviceName: 'ECHEX-3-141844', calls: [] };
+  const subscribed: EventTarget[] = [];
+  const control: Control = {
+    chooser: 'pick',
+    deviceName: 'ECHEX-3-141844',
+    calls: [],
+    notify: (text) => {
+      const bytes = Uint8Array.from(text.split(' ').map((b) => parseInt(b, 16)));
+      for (const c of subscribed) {
+        (c as unknown as { value: DataView }).value = new DataView(bytes.buffer);
+        c.dispatchEvent(new Event('characteristicvaluechanged'));
+      }
+    },
+  };
   (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth = control;
   const record = (name: string, args?: unknown): void => {
     control.calls.push({ name, at: performance.now(), args });
@@ -32,17 +46,22 @@ function installFakeBluetooth(): void {
       (b) => b.toString(16).toUpperCase().padStart(2, '0'),
     ).join('');
 
-  const characteristic = (uuid: string) => ({
-    uuid,
-    addEventListener: () => undefined,
-    startNotifications: async () => {
-      record('startNotifications', uuid);
-      return characteristic(uuid);
-    },
-    writeValueWithResponse: async (value: BufferSource) => record('writeWithResponse', hex(value)),
-    writeValueWithoutResponse: async (value: BufferSource) =>
-      record('writeWithoutResponse', hex(value)),
-  });
+  const characteristic = (uuid: string) => {
+    const c = Object.assign(new EventTarget(), {
+      uuid,
+      value: null as DataView | null,
+      startNotifications: async () => {
+        record('startNotifications', uuid);
+        subscribed.push(c);
+        return c;
+      },
+      writeValueWithResponse: async (value: BufferSource) =>
+        record('writeWithResponse', hex(value)),
+      writeValueWithoutResponse: async (value: BufferSource) =>
+        record('writeWithoutResponse', hex(value)),
+    });
+    return c;
+  };
 
   const device = () => {
     const server = {
@@ -108,6 +127,13 @@ export class FakeBluetooth {
     await this.page.evaluate((a) => {
       (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.chooser = a;
     }, answer);
+  }
+
+  /** Sends a frame from the bike, as space-separated hex bytes (`F0 D2 01 12 D5`). */
+  async notify(hex: string): Promise<void> {
+    await this.page.evaluate((h) => {
+      (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.notify(h);
+    }, hex);
   }
 
   /** Every Bluetooth call the page made, in order. */

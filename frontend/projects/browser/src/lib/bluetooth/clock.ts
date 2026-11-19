@@ -3,14 +3,17 @@
 import { InjectionToken } from '@angular/core';
 
 export interface Clock {
-  /** Milliseconds on a monotonic clock. */
+  /** Milliseconds on a monotonic clock, for durations. */
   now(): number;
+  /** Milliseconds since the Unix epoch, for the timestamps the state reports. */
+  epochMs(): number;
   /** Resolves once `ms` milliseconds have passed. */
   delay(ms: number): Promise<void>;
 }
 
 export const SYSTEM_CLOCK: Clock = {
   now: () => performance.now(),
+  epochMs: () => Date.now(),
   delay: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 };
 

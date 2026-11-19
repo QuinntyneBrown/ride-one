@@ -4,6 +4,7 @@
 // init sequence 300 ms apart, on a fake port and a fake clock.
 import { TestBed } from '@angular/core/testing';
 import { BikeStateStore } from '../engine/bike-state-store';
+import { TelemetryIngestor } from '../engine/telemetry-ingestor';
 import { BikeLink } from './bike-link';
 import {
   type BikeDevice,
@@ -55,6 +56,7 @@ function setUp() {
     providers: [
       BikeLink,
       BikeStateStore,
+      TelemetryIngestor,
       { provide: BLUETOOTH_PORT, useValue: port },
       { provide: CLOCK, useValue: clock },
     ],

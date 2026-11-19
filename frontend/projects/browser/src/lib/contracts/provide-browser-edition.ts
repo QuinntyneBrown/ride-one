@@ -12,6 +12,7 @@ import { BikeLink } from '../bluetooth/bike-link';
 import { BLUETOOTH_PORT } from '../bluetooth/bluetooth-port';
 import { WebBluetoothPort } from '../bluetooth/web-bluetooth-port';
 import { BikeStateStore } from '../engine/bike-state-store';
+import { TelemetryIngestor } from '../engine/telemetry-ingestor';
 import { BrowserBikePairing } from './browser-bike-pairing';
 import { BrowserStateSource } from './browser-state-source';
 import { notYetInTheBrowser } from './not-yet-in-the-browser';
@@ -19,6 +20,7 @@ import { notYetInTheBrowser } from './not-yet-in-the-browser';
 export function provideBrowserEdition(): Provider[] {
   return [
     BikeStateStore,
+    TelemetryIngestor,
     BikeLink,
     { provide: BLUETOOTH_PORT, useClass: WebBluetoothPort },
     { provide: LIVE_STATE_SOURCE, useClass: BrowserStateSource },

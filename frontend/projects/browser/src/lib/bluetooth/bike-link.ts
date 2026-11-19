@@ -3,6 +3,7 @@
 // `error` through the BikeStateStore.
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { BikeStateStore } from '../engine/bike-state-store';
+import { TelemetryIngestor } from '../engine/telemetry-ingestor';
 import { INIT_SEQUENCE } from '../protocol/echelon-commands';
 import { ECHELON_UUIDS } from '../protocol/echelon-uuids';
 import { type BikeDevice, BLUETOOTH_PORT, type GattLink } from './bluetooth-port';
@@ -22,6 +23,7 @@ export class BikeLink {
   private readonly port = inject(BLUETOOTH_PORT);
   private readonly store = inject(BikeStateStore);
   private readonly clock = inject(CLOCK);
+  private readonly ingestor = inject(TelemetryIngestor);
 
   /** Opens the chooser, then connects to the bike picked. Never rejects. */
   async pair(): Promise<void> {
@@ -48,7 +50,7 @@ export class BikeLink {
         ble: 'connected',
         connection_id: ECHELON_UUIDS.connectionId,
       }));
-      await gatt.startNotifications(() => undefined);
+      await gatt.startNotifications((frame) => this.ingestor.onNotify(frame));
       for (const [i, command] of INIT_SEQUENCE.entries()) {
         if (i > 0) await this.clock.delay(INIT_COMMAND_SPACING_MS);
         await gatt.write(command);

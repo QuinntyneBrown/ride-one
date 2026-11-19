@@ -8,10 +8,17 @@ async function settle(): Promise<void> {
 
 export class FakeClock implements Clock {
   private time = 0;
+
+  /** `epoch` is the wall-clock time, in Unix milliseconds, at which the fake starts. */
+  constructor(private readonly epoch = 0) {}
   private readonly timers: { at: number; resolve: () => void }[] = [];
 
   now(): number {
     return this.time;
+  }
+
+  epochMs(): number {
+    return this.epoch + this.time;
   }
 
   delay(ms: number): Promise<void> {
