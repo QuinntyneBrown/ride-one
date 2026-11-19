@@ -186,4 +186,45 @@ describe('ClassCatalogueReader', () => {
     expect(r.fileError).toBeNull();
     expect(r.catalogue!.shelves).toEqual([]);
   });
+
+  it.each(['docklands', 'granite', 'oldtown', 'prairie', 'dolomites', 'coast'])(
+    'a class keeps its world %s (World Ride)',
+    (world) => {
+      const r = readOneClass('world', world);
+      expect(r.problems).toEqual([]);
+      expect(r.catalogue!.classes[0].world).toBe(world);
+    },
+  );
+
+  it.each([undefined, null])('a class with world %s has no world', (value) => {
+    const r = readOneClass('world', value);
+    expect(r.problems).toEqual([]);
+    expect(r.catalogue!.classes[0].world).toBeNull();
+  });
+
+  it.each(['atlantis', 'OldTown', '', 3, { id: 'oldtown' }])(
+    'a class with world %j is left out, naming the world field',
+    (value) => {
+      const r = readOneClass('world', value);
+      expect(r.catalogue!.classes).toEqual([]);
+      expect(r.problems).toEqual([
+        {
+          entry: 'steady',
+          field: 'world',
+          message: 'A world is one of docklands, granite, oldtown, prairie, dolomites or coast.',
+        },
+      ]);
+    },
+  );
+
+  it('two classes may share a world', () => {
+    const r = read(
+      [shelf()],
+      [
+        { ...cls('a'), world: 'oldtown' },
+        { ...cls('b'), world: 'oldtown' },
+      ],
+    );
+    expect(r.catalogue!.classes.map((c) => c.world)).toEqual(['oldtown', 'oldtown']);
+  });
 });

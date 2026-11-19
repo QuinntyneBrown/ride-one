@@ -101,5 +101,6 @@ function entry(c: CatalogueClass, shelf: Shelf): ClassEntry {
     description: c.description,
     shelf: { id: shelf.id, title: shelf.title, tagline: shelf.tagline },
     plan: c.plan,
+    world: c.world,
   } as ClassEntry;
 }

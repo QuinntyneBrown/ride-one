@@ -104,6 +104,7 @@ class WorkoutRun {
       status: this.status,
       ended_reason: this.endedReason,
       session_id: this.sessionId,
+      class_id: this.origin?.classId ?? null,
     };
   }
 }

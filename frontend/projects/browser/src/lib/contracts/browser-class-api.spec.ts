@@ -94,4 +94,12 @@ describe('BrowserClassApi', () => {
       expect(log.error.mock.calls[0][0]).toContain(reason);
     },
   );
+
+  it('answers each class with its world, null when it names none (World Ride)', async () => {
+    const { api } = setup(
+      json({ shelves: [shelf('a')], classes: [{ ...cls('x'), world: 'coast' }, cls('y')] }),
+    );
+    expect(await api.get('x')).toEqual(expect.objectContaining({ world: 'coast' }));
+    expect(await api.get('y')).toEqual(expect.objectContaining({ world: null }));
+  });
 });
