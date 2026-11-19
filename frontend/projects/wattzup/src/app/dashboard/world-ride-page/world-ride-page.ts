@@ -44,7 +44,7 @@ export class WorldRidePage {
   private readonly router = inject(Router);
   private readonly live = inject(LiveStateService);
   private readonly actions = inject(RideActions);
-  private readonly countdown = inject(CountdownService);
+  private readonly timer = inject(CountdownService);
 
   protected readonly phase = signal<Phase>('loading');
   private readonly entry = signal<ClassEntry | null>(null);
@@ -64,9 +64,21 @@ export class WorldRidePage {
   });
 
   protected readonly clock = computed(() => ({
-    elapsed: this.countdown.elapsedText(),
+    elapsed: this.timer.elapsedText(),
     total: formatDuration(this.live.state()?.workout?.total_seconds ?? 0),
   }));
+
+  protected readonly countdown = computed(() => {
+    const w = this.live.state()?.workout;
+    const duration = w?.segments[w.segment]?.duration ?? 0;
+    const left = this.timer.wholeLeft();
+    return {
+      left: this.timer.remainingText(),
+      ridden: Math.max(0, Math.min(duration, duration - left)),
+      duration,
+      width: `${(this.timer.progress() * 100).toFixed(2)}%`,
+    };
+  });
 
   protected readonly classHref = computed(() => `/classes/${encodeURIComponent(this.id())}`);
 

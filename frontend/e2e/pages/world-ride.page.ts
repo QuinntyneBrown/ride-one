@@ -21,6 +21,11 @@ export class WorldRidePage {
   readonly power: Locator;
   readonly powerUnit: Locator;
   readonly target: Locator;
+  readonly segment: Locator;
+  readonly segmentLabel: Locator;
+  readonly segmentLeft: Locator;
+  readonly segmentProgress: Locator;
+  readonly next: Locator;
 
   constructor(
     readonly page: Page,
@@ -43,6 +48,11 @@ export class WorldRidePage {
     this.power = this.metrics.locator('.world-ride__power');
     this.powerUnit = this.metrics.locator('.world-ride__unit');
     this.target = this.metrics.locator('.world-ride__target');
+    this.segment = this.main.getByRole('region', { name: 'Current segment' });
+    this.segmentLabel = this.segment.locator('.world-ride__segment-label');
+    this.segmentLeft = this.segment.getByRole('timer');
+    this.segmentProgress = this.segment.getByRole('progressbar', { name: 'Segment progress' });
+    this.next = this.segment.locator('.world-ride__next');
   }
 
   /** A metric of the panel's description list by its term: `Cadence`, `Heart` or `Speed`. */

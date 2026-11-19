@@ -95,5 +95,34 @@
         </dl>
       </section>
     </div>
+    <div class="world-ride__bottom">
+      @if (v.segment; as seg) {
+        @let cd = countdown();
+        <section class="world-ride__interval world-ride__panel" aria-label="Current segment">
+          <div class="world-ride__row">
+            <b class="world-ride__segment-label">{{ seg.label }}</b>
+            <strong
+              class="world-ride__metric"
+              role="timer"
+              aria-live="off"
+              [attr.aria-label]="cd.left + ' left in this segment'"
+              >{{ cd.left }}</strong
+            >
+          </div>
+          <div
+            class="progress progress--thin"
+            [class]="'progress--' + seg.tone"
+            role="progressbar"
+            aria-label="Segment progress"
+            aria-valuemin="0"
+            [attr.aria-valuemax]="cd.duration"
+            [attr.aria-valuenow]="cd.ridden"
+          >
+            <div class="progress__bar" [style.--value]="cd.width"></div>
+          </div>
+          <p class="world-ride__next">{{ seg.next }}</p>
+        </section>
+      }
+    </div>
   </div>
 </main>

@@ -1,7 +1,9 @@
-import type { BikeState, ClassEntry } from '@wattzup/api';
-import type { WorldRideView } from '@wattzup/components';
+import type { BikeState, ClassEntry, WorkoutSnapshot } from '@wattzup/api';
+import type { WorldRideSegment, WorldRideView } from '@wattzup/components';
+import { formatDuration } from './format-duration';
 import { formatLive, formatSpeed } from './metric-format';
 import { powerDelta } from './power-delta';
+import { kindLabel, roundCount, toneOf } from './segment-labels';
 import type { World } from './worlds';
 
 /** What the World Ride HUD shows for a state, a class and its world (L2-091 to L2-097). */
@@ -20,5 +22,26 @@ export function worldRideView(state: BikeState, entry: ClassEntry, world: World)
       heart: '--',
       speed: formatSpeed(state.speed_kmh),
     },
+    segment: state.workout ? segmentView(state.workout, world) : null,
+  };
+}
+
+/** `Work · 1 of 8`, and the next segment in the world's words (L2-093). */
+function segmentView(workout: WorkoutSnapshot, world: World): WorldRideSegment | null {
+  const { segments } = workout;
+  const current = segments[workout.segment];
+  if (!current) return null;
+  const rounds = roundCount(segments);
+  const label =
+    current.kind === 'work' || current.kind === 'rest'
+      ? `${kindLabel(current.kind)} · ${current.round} of ${rounds}`
+      : kindLabel(current.kind);
+  const next = segments[workout.segment + 1];
+  return {
+    label,
+    tone: toneOf(current.kind),
+    next: next
+      ? `Next: ${next.kind === 'work' ? world.effortName : kindLabel(next.kind)} · ${formatDuration(next.duration)} at level ${next.level}`
+      : 'Last stretch to the finish arch',
   };
 }

@@ -66,3 +66,34 @@ describe('worldRideView metrics (L2-092)', () => {
     expect(metrics.delta).toBeNull();
   });
 });
+
+describe('worldRideView segment (L2-093)', () => {
+  const at = (segment: number) => {
+    const workout = testWorkout({ segment });
+    return worldRideView(testState({ workout }), entry, oldTown).segment;
+  };
+
+  it.each([
+    [0, 'Warm-up', 'Next: Cobbled sprint · 0:40 at level 18'],
+    [1, 'Work · 1 of 8', 'Next: Recover · 0:20 at level 6'],
+    [2, 'Recover · 1 of 8', 'Next: Cobbled sprint · 0:40 at level 18'],
+    [16, 'Cool-down', 'Last stretch to the finish arch'],
+  ])('segment %i reads %s, then %s', (segment, label, next) => {
+    expect(at(segment)).toEqual(expect.objectContaining({ label, next }));
+  });
+
+  it('reads Steady for a flat ride, with the finish next', () => {
+    const workout = testWorkout({
+      segments: [{ kind: 'steady', start: 0, duration: 1800, level: 12, cadence: 85, round: null }],
+      segment: 0,
+    });
+    const segment = worldRideView(testState({ workout }), entry, oldTown).segment;
+    expect(segment).toEqual(
+      expect.objectContaining({ label: 'Steady', next: 'Last stretch to the finish arch' }),
+    );
+  });
+
+  it('is null with no workout', () => {
+    expect(worldRideView(testState({ workout: null }), entry, oldTown).segment).toBeNull();
+  });
+});

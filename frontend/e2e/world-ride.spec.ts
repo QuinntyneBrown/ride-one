@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-090, L2-091, L2-092
+// Traces to: L2-090, L2-091, L2-092, L2-093
 // Description: World Ride at /classes/:id/world: opened from the class page with Ride in <world
 // name>, which starts the class ride exactly as Start ride does; shown only for that class's ride in
 // progress; its app bar.
@@ -219,5 +219,49 @@ test.describe('World Ride live metrics (L2-092)', () => {
     await expect(world.target).toHaveText('Target -- W');
     await expect(world.stat('Cadence')).toHaveText('-- rpm');
     await expect(world.stat('Speed')).toHaveText('-- km/h');
+  });
+});
+
+test.describe('World Ride current segment (L2-093)', () => {
+  test('shows the segment, countdown and next segment', async ({ page, api, events }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open(undefined, undefined, classRide({}, { status: 'paused', remaining: 15 }));
+
+    await expect(world.segmentLabel).toHaveText('Work · 1 of 8');
+    await expect(world.segmentLeft).toHaveText('0:15');
+    await expect(world.segmentProgress).toHaveAttribute('aria-valuenow', '15');
+    await expect(world.segmentProgress).toHaveAttribute('aria-valuemax', '30');
+    await expect(world.next).toHaveText('Next: Recover · 3:00 at level 10');
+
+    await world.push(classRide({}, { status: 'paused', segment: 2, remaining: 180 }));
+    await expect(world.segmentLabel).toHaveText('Recover · 1 of 8');
+  });
+
+  test('names the next effort by its world name', async ({ page, api, events }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open(
+      undefined,
+      undefined,
+      classRide({}, { status: 'paused', segment: 0, remaining: 10, elapsed_seconds: 290 }),
+    );
+
+    await expect(world.segmentLabel).toHaveText('Warm-up');
+    await expect(world.next).toHaveText('Next: Cobbled sprint · 0:30 at level 24');
+  });
+
+  test('reads Last stretch to the finish arch on the last segment', async ({
+    page,
+    api,
+    events,
+  }) => {
+    const world = new WorldRidePage(page, api, events);
+    await world.open(
+      undefined,
+      undefined,
+      classRide({}, { status: 'paused', segment: 16, remaining: 200, elapsed_seconds: 1600 }),
+    );
+
+    await expect(world.segmentLabel).toHaveText('Cool-down');
+    await expect(world.next).toHaveText('Last stretch to the finish arch');
   });
 });

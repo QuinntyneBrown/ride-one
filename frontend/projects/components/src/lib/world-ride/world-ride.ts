@@ -13,6 +13,17 @@ export interface WorldRideView {
   readonly paused: boolean;
   /** The live readouts, `--` when missing (L2-092). */
   readonly metrics: WorldRideMetrics;
+  /** The current segment; null with no workout (L2-093). */
+  readonly segment: WorldRideSegment | null;
+}
+
+/** The current-segment panel's words (L2-093). */
+export interface WorldRideSegment {
+  /** `Work · 1 of 8`, `Recover · 1 of 8`, `Warm-up`, `Cool-down` or `Steady`. */
+  readonly label: string;
+  readonly tone: 'work' | 'rest' | 'easy';
+  /** `Next: <name> · <m:ss> at level <n>`, or `Last stretch to the finish arch`. */
+  readonly next: string;
 }
 
 /** The metrics panel: estimated power against target, cadence, heart and speed (L2-092). */
@@ -24,6 +35,17 @@ export interface WorldRideMetrics {
   readonly cadence: string;
   readonly heart: string;
   readonly speed: string;
+}
+
+/** The segment's countdown, interpolated as the dashboard's (L2-024). */
+export interface WorldRideCountdown {
+  /** The time left, `m:ss`. */
+  readonly left: string;
+  /** Whole seconds ridden of the segment, out of `duration`. */
+  readonly ridden: number;
+  readonly duration: number;
+  /** The bar's width, e.g. `50.00%`. */
+  readonly width: string;
 }
 
 /** The ride's clock, `<elapsed> / <total>`, interpolated as the dashboard's (L2-024). */
@@ -47,6 +69,7 @@ export interface WorldRideClock {
 export class WorldRide {
   readonly view = input.required<WorldRideView>();
   readonly clock = input.required<WorldRideClock>();
+  readonly countdown = input.required<WorldRideCountdown>();
   /** Where `Class` leads: the class page. */
   readonly classHref = input.required<string>();
   /** Where the lockup leads: the dashboard. */
