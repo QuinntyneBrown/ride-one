@@ -104,12 +104,17 @@ public sealed class ClassCatalogueTests
         var json = await GetJsonAsync(client, "/api/classes");
 
         var shelves = json.GetProperty("shelves").EnumerateArray().ToList();
-        Assert.Equal(["20-min", "30-min", "60-min-endurance"], shelves.Select(s => s.GetProperty("id").GetString()));
-        Assert.Equal(6, shelves.Sum(s => s.GetProperty("classes").GetArrayLength()));
-        var withVideo = shelves.SelectMany(s => s.GetProperty("classes").EnumerateArray())
-            .Where(c => c.GetProperty("plan").GetProperty("video").ValueKind != JsonValueKind.Null)
+        Assert.Equal(
+            ["15-min", "20-min", "25-min", "30-min", "35-min", "40-min", "45-min", "60-min", "60-min-endurance"],
+            shelves.Select(s => s.GetProperty("id").GetString()));
+        var classes = shelves.SelectMany(s => s.GetProperty("classes").EnumerateArray()).ToList();
+        Assert.Equal(191, classes.Count);
+        var withoutVideo = classes
+            .Where(c => c.GetProperty("plan").GetProperty("video").ValueKind == JsonValueKind.Null)
             .Select(c => c.GetProperty("id").GetString());
-        Assert.Equal(["30-minute-hiit-cardio"], withVideo);
+        Assert.Equal(
+            ["20-minute-power-intervals", "20-min-threshold-builder", "30-min-tempo-paceline", "60-min-dolomites-endurance", "60-min-coastal-endurance-surges"],
+            withoutVideo);
     }
 
     [Fact]
