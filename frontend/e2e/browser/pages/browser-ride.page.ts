@@ -56,6 +56,20 @@ export class BrowserRidePage {
     return this.page.locator('.metrics > div').filter({ hasText: term }).locator('dd');
   }
 
+  /** The web app manifest the page links (L2-098 AC2). */
+  async manifest(): Promise<Record<string, unknown>> {
+    const href = await this.page.locator('link[rel="manifest"]').getAttribute('href');
+    return this.page.evaluate(async (url) => (await fetch(url!)).json(), href);
+  }
+
+  /** `192x192`: the size of the image at `src`, as the browser decodes it. */
+  imageSize(src: string): Promise<string> {
+    return this.page.evaluate(async (url) => {
+      const image = await createImageBitmap(await (await fetch(url)).blob());
+      return `${image.width}x${image.height}`;
+    }, src);
+  }
+
   /** The policy of the page's Content-Security-Policy <meta> element (L2-097 AC2). */
   async contentSecurityPolicy(): Promise<string> {
     return (

@@ -101,6 +101,11 @@
                   "glob": "classes.json",
                   "input": "dist/browser-assets",
                   "output": "/"
+                },
+                {
+                  "glob": "manifest.webmanifest",
+                  "input": "projects/wattzup/src",
+                  "output": "/"
                 }
               ],
               "fileReplacements": [
@@ -127,6 +132,11 @@
                 {
                   "glob": "classes.json",
                   "input": "dist/browser-assets",
+                  "output": "/"
+                },
+                {
+                  "glob": "manifest.webmanifest",
+                  "input": "projects/wattzup/src",
                   "output": "/"
                 }
               ],
