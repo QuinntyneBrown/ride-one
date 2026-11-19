@@ -29,10 +29,7 @@ public sealed class Bike : IAsyncDisposable
         if (connected)
         {
             await stream.WaitForAsync(s => s.GetProperty("ble").GetString() == "connected", "ble connected");
-            while (!await factory.Simulation.WaitForWritesAsync(3, TimeSpan.FromMilliseconds(300)))
-            {
-                factory.Time.Advance(TimeSpan.FromMilliseconds(300));
-            }
+            await InitialisedAsync(factory);
         }
         else
         {
@@ -40,6 +37,29 @@ public sealed class Bike : IAsyncDisposable
         }
 
         return bike;
+    }
+
+    /// <summary>
+    /// Waits for the three initialisation writes, which the backend spaces 300 ms apart on the fake clock. Each
+    /// write after the first can only come once the clock moves, so the clock moves first and the wait follows; if
+    /// the backend had not yet set its timer, the wait times out and the clock moves again.
+    /// </summary>
+    private static async Task InitialisedAsync(WattzupApiFactory factory)
+    {
+        var spacing = TimeSpan.FromMilliseconds(300);
+        while (!await factory.Simulation.WaitForWritesAsync(1, spacing))
+        {
+            factory.Time.Advance(spacing);
+        }
+
+        for (var count = 2; count <= 3; count++)
+        {
+            do
+            {
+                factory.Time.Advance(spacing);
+            }
+            while (!await factory.Simulation.WaitForWritesAsync(count, spacing));
+        }
     }
 
     public Task<HttpResponseMessage> PostAsync(string path, object? body = null) =>
