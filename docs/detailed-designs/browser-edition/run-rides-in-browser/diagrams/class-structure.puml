@@ -75,7 +75,10 @@ class SessionStore {
   -recoverJournal(): Promise<void>
 }
 class WakeLockKeeper {
-  +onStatus(status: WorkoutStatus | null): void
+  -wanted: boolean
+  -sentinel: WakeLockSentinel | null
+  -want(on: boolean): Promise<void>
+  -acquire(): Promise<void>
 }
 class "BikeState (generated)" as BikeState
 

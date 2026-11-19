@@ -28,6 +28,7 @@ import { ResistanceCommander } from '../engine/resistance-commander';
 import { TelemetryIngestor } from '../engine/telemetry-ingestor';
 import { WorkoutEngine } from '../engine/workout-engine';
 import { SessionStore } from '../storage/session-store';
+import { WakeLockKeeper } from '../engine/wake-lock-keeper';
 import { BrowserBikeApi } from './browser-bike-api';
 import { BrowserBikePairing } from './browser-bike-pairing';
 import { BrowserClassApi } from './browser-class-api';
@@ -53,6 +54,7 @@ export function provideBrowserEdition(): EnvironmentProviders {
     ResistanceCommander,
     WorkoutEngine,
     SessionStore,
+    WakeLockKeeper,
     PacketLog,
     { provide: PACKET_LOG, useExisting: PacketLog },
     simulate
@@ -67,6 +69,8 @@ export function provideBrowserEdition(): EnvironmentProviders {
     { provide: SESSION_API, useClass: BrowserSessionApi },
     { provide: SESSION_ARCHIVE, useClass: BrowserSessionArchive },
     provideEnvironmentInitializer(requestPersistentStorage),
+    // Keeps the screen on during a ride (L2-092 AC4).
+    provideEnvironmentInitializer(() => void inject(WakeLockKeeper)),
     // Saves a ride the page closed on before anything reads the sessions (L2-092 AC5).
     provideEnvironmentInitializer(() => void inject(SessionStore).ready()),
     // Asks at start whether Bluetooth is on, so every page's status line can say (L2-089 AC2).
