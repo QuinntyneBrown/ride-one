@@ -4,6 +4,7 @@ import { inject, Injectable } from '@angular/core';
 import { CLOCK } from '../bluetooth/clock';
 import { decode } from '../protocol/packet-decoder';
 import { BikeStateStore } from './bike-state-store';
+import { acknowledge } from './command-log';
 import { estimateWatts } from './power-estimator';
 
 @Injectable()
@@ -12,11 +13,18 @@ export class TelemetryIngestor {
   private readonly clock = inject(CLOCK);
 
   onNotify(frame: Uint8Array): void {
-    const now = this.clock.epochMs() / 1000;
+    const nowMs = this.clock.epochMs();
+    const now = nowMs / 1000;
     const update = decode(frame);
     this.store.update((s) => {
       let next = { ...s, packets: s.packets + 1 };
-      if (update?.kind === 'resistance') next = { ...next, resistance: update.level };
+      if (update?.kind === 'resistance') {
+        next = {
+          ...next,
+          resistance: update.level,
+          commands: acknowledge(next.commands, update.level, nowMs),
+        };
+      }
       if (update?.kind === 'cadence') {
         next = {
           ...next,

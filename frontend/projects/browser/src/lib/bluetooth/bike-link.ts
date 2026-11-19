@@ -8,6 +8,7 @@ import { INIT_SEQUENCE, KEEPALIVE } from '../protocol/echelon-commands';
 import { ECHELON_UUIDS } from '../protocol/echelon-uuids';
 import { type BikeDevice, BLUETOOTH_PORT, type GattLink } from './bluetooth-port';
 import { CLOCK } from './clock';
+import { messageOf, nameAndMessage } from './error-text';
 
 /** The spacing of the init commands, as the backend's InitCommandSpacing (L2-002). */
 export const INIT_COMMAND_SPACING_MS = 300;
@@ -32,6 +33,11 @@ export class BikeLink {
 
   /** True until the rider picks a bike. */
   readonly pairingRequired = computed(() => this._device() === null);
+
+  /** The connection commands are written to, or null while not connected. */
+  connection(): GattLink | null {
+    return this.store.state().ble === 'connected' ? this.gatt : null;
+  }
 
   /** Opens the chooser, then connects to the bike picked. Never rejects. */
   async pair(): Promise<void> {
@@ -102,7 +108,7 @@ export class BikeLink {
     this.gatt?.disconnect();
     this.gatt = null;
     const attempt = ++this.generation;
-    this.store.update((s) => ({ ...s, ble: 'error', error: webBluetoothError(e) }));
+    this.store.update((s) => ({ ...s, ble: 'error', error: nameAndMessage(e) }));
     void this.retryLater(device, attempt);
   }
 
@@ -125,13 +131,4 @@ export class BikeLink {
       }
     }
   }
-}
-
-function messageOf(e: unknown): string {
-  return e instanceof Error ? e.message : String(e);
-}
-
-/** `<error name>: <message>`, as L2-091 AC3 asks. */
-function webBluetoothError(e: unknown): string {
-  return e instanceof Error ? `${e.name}: ${e.message}` : String(e);
 }

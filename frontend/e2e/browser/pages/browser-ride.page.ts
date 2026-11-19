@@ -11,6 +11,9 @@ export class BrowserRidePage {
   readonly powerValue: Locator;
   readonly cadenceValue: Locator;
   readonly levelValue: Locator;
+  readonly raiseButton: Locator;
+  /** The entries of the Sent to bike log (L2-048). */
+  readonly commandEntries: Locator;
 
   constructor(private readonly page: Page) {
     this.statusName = page.locator('.statusline__name');
@@ -21,6 +24,9 @@ export class BrowserRidePage {
     this.powerValue = page.locator('.readout--power .numeral');
     this.cadenceValue = page.locator('.readout--cadence .numeral');
     this.levelValue = page.locator('.level-readout .numeral');
+    const aside = page.getByRole('complementary', { name: 'Bike control' });
+    this.raiseButton = aside.getByRole('button', { name: 'Raise resistance' });
+    this.commandEntries = aside.getByRole('region', { name: 'Sent to bike' }).locator('li');
   }
 
   /** One value of the metrics list, by its term (`Speed`, `Distance`…). */
