@@ -4,6 +4,12 @@
 > Bluetooth, shows its live metrics in real time (cadence, speed and resistance), and runs interval
 > workouts that set the bike's resistance for the rider.
 
+Wattzup comes in two editions of the same app (L1-016). The **backend edition** is the .NET
+backend next to the bike serving the Angular app. The **browser edition** is that Angular app alone,
+served as static files, talking to the bike over Web Bluetooth and keeping everything in the
+browser; it needs Chrome or Edge. Every rule below applies to both
+editions unless it names one.
+
 Before adding or changing anything, ask how it serves that purpose; if it does not, do not build
 it, and if a request works against it, say so.
 
@@ -17,7 +23,8 @@ Do not invent a mission in its place.
   `index.html`, lives outside this repository in `../wattzup-prototype/`. Read it there; do not
   copy it back in. It is the reference for behaviour, not the product: the rewrite is a .NET
   backend (`backend/`, `Wattzup.sln`) and an Angular app (`frontend/`), laid out in
-  `docs/detailed-designs/platform/host-and-structure/`. The repository follows the popkin layout:
+  `docs/detailed-designs/platform/host-and-structure/`. The browser edition reuses that Angular
+  app with a second composition root and the `browser` library (L2-088). The repository follows the popkin layout:
   all backend code (solution, build props, projects, tests) lives under `backend/`, all frontend
   code (the Angular workspace and its Playwright specs) under `frontend/`, and nothing but
   guidance, docs and repository tooling sits at the root. Behaviour from the prototype is
@@ -64,6 +71,14 @@ wattzup/
 │   │   │       ├── generated/             # generated from /openapi/v1.json, never hand-edited
 │   │   │       ├── lib/                   # contracts, HTTP, interceptor, key store, with tests
 │   │   │       └── public-api.ts
+│   │   ├── browser/                       # library @wattzup/browser: the browser edition's
+│   │   │   └── src/                       # in-browser api contracts (L2-088 to L2-099)
+│   │   │       ├── lib/protocol/          # frames, commands, checksum, decoder (mirrors Wattzup.Protocol)
+│   │   │       ├── lib/bluetooth/         # Web Bluetooth connection, keepalive, recovery, simulated bike
+│   │   │       ├── lib/engine/            # workout engine, estimates, session rules (mirrors Wattzup.Core)
+│   │   │       ├── lib/storage/           # IndexedDB sessions, export and import
+│   │   │       ├── lib/contracts/         # each api contract implemented in the browser
+│   │   │       └── public-api.ts
 │   │   ├── components/                    # library @wattzup/components: presentation components
 │   │   │   └── src/
 │   │   │       ├── lib/                   # one folder per component, named as in the design system
@@ -73,9 +88,11 @@ wattzup/
 │   │       └── src/app/
 │   │           ├── core/                  # services and pure helpers, with unit tests
 │   │           ├── dashboard/             # pages, dialogs, orchestrating components
-│   │           └── app.config.ts          # composition root
+│   │           ├── app.config.ts          # composition root, backend edition
+│   │           └── app.config.browser.ts  # composition root, browser edition (`browser` configuration)
 │   ├── public/                            # fonts and images, copied into the app's build
 │   ├── e2e/                               # Playwright: fixtures/, pages/ (page objects), specs
+│   │   └── browser/                       # browser-edition specs, against a fake navigator.bluetooth
 │   ├── scripts/                           # bundle-size check, API recording, e2e static server
 │   └── proxy.conf.json                    # /api → 127.0.0.1:8787 during ng serve
 ├── docs/
@@ -95,16 +112,21 @@ wattzup/
 Run .NET commands against `backend/` (`dotnet build backend/Wattzup.sln`, `dotnet run --project
 backend/src/Wattzup.Api -- --simulate`) and npm commands from `frontend/` (`cd frontend && npm …`).
 `npm run build:api` copies the production build into `backend/src/Wattzup.Api/wwwroot`.
+`npm run build:browser` builds the browser edition into `dist/wattzup-browser/browser`, a folder of
+static files that needs no backend; `npm start -- --configuration browser` serves it in development,
+and `?simulate` there connects to a simulated bike.
 `node tools/verify/verify.mjs` runs every check CI runs (backend build and tests, frontend install, format,
-lint, unit tests, production build and behaviour specs) side by side; run it before pushing.
+lint, unit tests, both editions' production builds and behaviour specs) side by side; run it before pushing.
 
 Runtime output (`raw_packets.log`, `status.json`, `server.log`) is git-ignored and never
 committed.
 
 Use the words the specs use in code, docs and UI; no synonyms. A workout follows a plan (`hiit`,
 `intervals` or `flat`; an `intervals` plan is a warm-up, ordered sets and a cool-down) expanded into segments (kind, start, duration, level, cadence aim, round); the bike's reported level is "resistance",
-the requested one is "target resistance"; the Bluetooth link state is `ble`. A class is a catalogue entry (ADR 0014): a bike plan with the YouTube video it follows, on a shelf; the rider picks one in the class library (`/classes`) and opens its class page (`/classes/:id`). A session is a saved bike ride (ADR 0015): what was ridden, its totals, its traces and its cadence dips, kept on the backend; the rider reads one on its Session Summary (`/sessions/:id`) and all of them on Progress (`/progress`), with the streak, the weekly goal, personal bests and achievements. Wattzup supports the
-bike only (ADR 0016); there is no machine choice.
+the requested one is "target resistance"; the Bluetooth link state is `ble`. A class is a catalogue entry (ADR 0014): a bike plan with the YouTube video it follows, on a shelf; the rider picks one in the class library (`/classes`) and opens its class page (`/classes/:id`). A session is a saved bike ride (ADR 0015): what was ridden, its totals, its traces and its cadence dips, kept on the backend (in IndexedDB in the browser edition); the rider reads one on its Session Summary (`/sessions/:id`) and all of them on Progress (`/progress`), with the streak, the weekly goal, personal bests and achievements. Wattzup supports the
+bike only (ADR 0016); there is no machine choice. The two editions are the
+"backend edition" and the "browser edition"; in the browser edition the in-browser implementation
+of an `api` contract is still called by the contract's name.
 
 ## Prefer best practice
 
@@ -121,9 +143,12 @@ only on the abstractions). `Wattzup.Core` (state, broadcaster, workout engine, w
 Protocol and the abstractions. `Wattzup.Api` (minimal APIs, hosted services, security,
 `wwwroot`) composes everything; `Wattzup.Mac` bundles it as a macOS app.
 
-- Protocol rules (framing, decoding, checksums, command bytes) live in `Wattzup.Protocol` and
-  nowhere else. Business rules (workout stepping, target vs. actual resistance, displayed time)
-  live in `Wattzup.Core`. An endpoint validates and calls one Core service; it holds no rule.
+- Protocol rules (framing, decoding, checksums, command bytes) live in `Wattzup.Protocol` and,
+  for the browser edition, in `@wattzup/browser`'s `lib/protocol/`, and nowhere else. Business
+  rules (workout stepping, target vs. actual resistance, displayed time) live in `Wattzup.Core`
+  and, for the browser edition, in `lib/engine/`. A rule that lives in both is changed in both in
+  the same change and proven by the same table of cases in each (L2-092); the backend's tests are
+  the reference. An endpoint validates and calls one Core service; it holds no rule.
 - Nothing outside a `Wattzup.Ble.*` transport touches a platform Bluetooth API. Every feature
   runs end to end against `SimulatedBikeTransport` (`--simulate`).
 - `BikeStateStore` is the only writer of `BikeState`; changes are applied under a short lock and
@@ -164,14 +189,20 @@ Protocol and the abstractions. `Wattzup.Api` (minimal APIs, hosted services, sec
 
 ## Frontend
 
-`frontend/` is one Angular workspace of three projects under `projects/` (ADR 0013): the
+`frontend/` is one Angular workspace of four projects under `projects/` (ADR 0013, L2-088): the
 `components` library (presentation components, imported as `@wattzup/components`), the `api`
-library (everything about talking to the backend, `@wattzup/api`) and the `wattzup` application
-(everything else). `wattzup` is the only application; a further one needs its own ADR. Its
-production build (`dist/wattzup/browser`) is served by `Wattzup.Api` from the same origin.
+library (the contracts, their tokens and everything about talking to the backend, `@wattzup/api`),
+the `browser` library (the browser edition's in-browser implementations of those contracts,
+`@wattzup/browser`) and the `wattzup` application (everything else). `wattzup` is the only
+application; a further one needs its own ADR. The browser edition is a build configuration of
+`wattzup`, not a second application. The backend edition's production build
+(`dist/wattzup/browser`) is served by `Wattzup.Api` from the same origin; the browser edition's
+(`dist/wattzup-browser/browser`) by any static host over HTTPS.
 
-- **Dependency direction.** `wattzup` → `components` and `api`; `components` → `api` for types
-  only; `api` → nothing in the workspace. No library imports the app. ESLint
+- **Dependency direction.** `wattzup` → `components`, `api` and `browser`; `components` → `api`
+  for types only; `browser` → `api`; `api` → nothing in the workspace. No library imports the app.
+  Only `app.config.browser.ts` imports `@wattzup/browser`, so the backend edition's bundle never
+  contains it. ESLint
   (`no-restricted-imports`) enforces it. The libraries are compiled from source through the path
   aliases in `frontend/tsconfig.json`, never built or published on their own.
 - **Presentation components live in `components`**, each named as the design-system component it
@@ -201,16 +232,27 @@ production build (`dist/wattzup/browser`) is served by `Wattzup.Api` from the sa
   condition puts its slots in one `<ng-template>` rendered with `ngTemplateOutlet` in both
   branches. A consumer `@if` wrapping several `[slot=…]` nodes loses the slot (NG8011): one `@if`
   per node.
-- One injectable service, `LiveStateService`, owns the `EventSource`, the reconnect logic and the
-  live state, exposed as a read-only signal. No component opens its own connection or polls.
+- One injectable service, `LiveStateService`, owns the live state, exposed as a read-only signal,
+  and its source: the `EventSource` and its reconnect logic in the backend edition, the in-browser
+  bike connection and workout engine in the browser edition. No component opens its own
+  connection, polls, or touches `navigator.bluetooth`; only `lib/bluetooth/` does.
 - Logic with many cases (metric history, the countdown and phase, cues, the workout draft) lives
   in a service or pure helper with its unit tests, never in a component: in the app under
   `projects/wattzup/src/app/core/`, or beside the library code it serves. Each project has its own
   `test` target; `npm test` runs them all.
 - API types come from the backend's OpenAPI document (`projects/api/src/generated/`, generated);
   never hand-write a type the contract defines. API services have a contract and an injection
-  token in `api`; app components depend on the token. The app's `app.config.ts` is the only
-  composition root: it binds every token, including the `api` library's `UNAUTHORIZED_HANDLER`.
+  token in `api`; app components depend on the token, never on an edition. The app has two
+  composition roots and no others: `app.config.ts` binds every token to its HTTP implementation,
+  including the `api` library's `UNAUTHORIZED_HANDLER`; `app.config.browser.ts`, swapped in by the
+  `browser` build configuration, binds every token to its `@wattzup/browser` implementation. A
+  screen that differs between the editions branches on an injected edition token, never on a
+  build flag inside a component.
+- **Browser edition.** Nothing it does leaves the device except loading YouTube videos and covers
+  (L2-097): no analytics, no remote logging, no other origin. Workout time comes from a monotonic
+  clock, never from counting ticks, because the browser throttles hidden tabs. Sessions live in
+  IndexedDB in the shape of the backend's session record, so export and import work across
+  editions.
 - **No inline forms.** Button-triggered editing (e.g. the workout editor) opens a CDK Dialog or
   navigates to a screen. Never hand-roll modals.
 - The animation loop pauses when the tab is hidden and respects `prefers-reduced-motion`. The
@@ -233,6 +275,12 @@ production build (`dist/wattzup/browser`) is served by `Wattzup.Api` from the sa
   baselines unprompted. Update baselines only for intentional design changes, after changing the
   mock first.
 - Chromium only; never configure or run another browser.
+- **Browser-edition specs** (`e2e/browser/`) run against the browser build with a fixture that
+  installs a fake `navigator.bluetooth`: it records every write and pushes notifications on demand,
+  and an unexpected Bluetooth call fails the spec. They make no `/api/**` request; any request
+  fails the spec. A real bike or Bluetooth adapter is never used, as for the backend edition.
+- In `@wattzup/browser` unit tests, time-driven rules (keepalive, init spacing, workout ticks,
+  retries) advance a fake clock; never sleep.
 
 ## Incremental implementation and ATDD (mandatory)
 
