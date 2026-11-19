@@ -63,6 +63,8 @@ export function provideBrowserEdition(): EnvironmentProviders {
     { provide: SESSION_API, useClass: BrowserSessionApi },
     { provide: SESSION_ARCHIVE, useClass: BrowserSessionArchive },
     provideEnvironmentInitializer(requestPersistentStorage),
+    // Asks at start whether Bluetooth is on, so every page's status line can say (L2-089 AC2).
+    provideEnvironmentInitializer(() => void inject(BIKE_PAIRING)),
     provideEnvironmentInitializer(() => {
       if (simulate) inject(BikeStateStore).update((s) => ({ ...s, simulated: true }));
     }),

@@ -73,6 +73,7 @@
             [reconnecting]="actions.reconnecting()"
             (reconnect)="actions.reconnect()"
             (connect)="pairing.pair()"
+            (checkAgain)="pairing.checkAgain()"
             (diagnostics)="dialogs.openDiagnostics()"
           />
         }

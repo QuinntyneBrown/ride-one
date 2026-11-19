@@ -39,6 +39,8 @@ export type IconName =
   | 'chevron-right'
   | 'trending-up'
   | 'grid'
+  | 'monitor-off'
+  | 'lock'
   | 'download'
   | 'upload';
 

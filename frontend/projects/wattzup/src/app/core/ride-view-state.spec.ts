@@ -103,4 +103,20 @@ describe('rideViewState (L2-058)', () => {
       rideViewState(testState({ workout: testWorkout({ status }) }), 'open', false).pauseEnabled,
     ).toBe(enabled);
   });
+
+  it.each([
+    ['unsupported', 'browser-unsupported'],
+    ['insecure', 'browser-insecure'],
+  ] as const)(
+    'a browser that cannot reach Bluetooth (%s) wins over every other overlay (L2-089)',
+    (support, overlay) => {
+      const state = testState({ adapter: 'off', ble: 'disconnected', device: null });
+      expect(rideViewState(state, 'open', false, true, support).overlay).toBe(overlay);
+    },
+  );
+
+  it('Bluetooth off wins over Connect bike in the browser edition (L2-089 AC2)', () => {
+    const state = testState({ adapter: 'off', ble: 'disconnected', device: null });
+    expect(rideViewState(state, 'open', false, true, 'ready').overlay).toBe('adapter-off');
+  });
 });

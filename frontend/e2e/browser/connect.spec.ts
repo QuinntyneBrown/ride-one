@@ -13,7 +13,7 @@ test('offers Connect bike and touches no Bluetooth until it is pressed', async (
   await ride.open();
   await expect(ride.connectButton).toBeVisible();
   await expect(ride.statusName).toHaveText('No bike connected');
-  expect(await bluetooth.calls()).toEqual([]);
+  expect(await bluetooth.deviceCalls()).toEqual([]);
 });
 
 test('asks the chooser for Echelon bikes and the Echelon service only', async ({
@@ -24,7 +24,7 @@ test('asks the chooser for Echelon bikes and the Echelon service only', async ({
   await ride.open();
   await ride.connect();
   await expect(ride.statusState).toHaveText('Connected');
-  const [request] = await bluetooth.calls();
+  const [request] = await bluetooth.deviceCalls();
   expect(request).toMatchObject({
     name: 'requestDevice',
     args: {
@@ -73,7 +73,7 @@ test('cancelling the chooser leaves the bike disconnected, with no toast', async
   await ride.open();
   await bluetooth.answerChooser('cancel');
   await ride.connect();
-  await expect.poll(async () => (await bluetooth.calls()).length).toBe(1);
+  await expect.poll(async () => (await bluetooth.deviceCalls()).length).toBe(1);
   await expect(ride.statusName).toHaveText('No bike connected');
   await expect(ride.connectButton).toBeEnabled();
   await expect(ride.toasts).toHaveCount(0);

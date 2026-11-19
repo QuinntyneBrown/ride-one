@@ -13,6 +13,10 @@ export interface BluetoothCall {
 
 interface Control {
   chooser: ChooserAnswer;
+  /** What `getAvailability()` answers: false when the device has no Bluetooth radio turned on. */
+  available: boolean;
+  /** Changes the answer and fires `availabilitychanged`, as when the rider switches Bluetooth. */
+  setAvailable(value: boolean): void;
   deviceName: string;
   calls: BluetoothCall[];
   /** Sends a frame from the bike on every subscribed characteristic. */
@@ -27,6 +31,12 @@ function installFakeBluetooth(): void {
   let picked: (EventTarget & { gatt: { connected: boolean } }) | null = null;
   const control: Control = {
     chooser: 'pick',
+    available: true,
+    setAvailable: (value) => {
+      control.available = value;
+      const event = Object.assign(new Event('availabilitychanged'), { value });
+      bluetooth.dispatchEvent(event);
+    },
     deviceName: 'ECHEX-3-141844',
     calls: [],
     notify: (text) => {
@@ -106,7 +116,11 @@ function installFakeBluetooth(): void {
     return d;
   };
 
-  const bluetooth = {
+  const bluetooth = Object.assign(new EventTarget(), {
+    getAvailability: async () => {
+      record('getAvailability');
+      return control.available;
+    },
     requestDevice: async (options: unknown) => {
       record('requestDevice', options);
       if (control.chooser === 'cancel') {
@@ -120,7 +134,7 @@ function installFakeBluetooth(): void {
       }
       return device();
     },
-  };
+  });
   Object.defineProperty(navigator, 'bluetooth', { value: bluetooth, configurable: true });
 }
 
@@ -129,6 +143,37 @@ export class FakeBluetooth {
 
   async install(): Promise<void> {
     await this.page.addInitScript(installFakeBluetooth);
+  }
+
+  /** Before the page loads: a browser without Web Bluetooth, such as Safari or Firefox. */
+  async removeBeforeLoad(): Promise<void> {
+    await this.page.addInitScript(() => {
+      // Shadow Chromium's own navigator.bluetooth, as a browser without Web Bluetooth has none.
+      Object.defineProperty(navigator, 'bluetooth', { value: undefined, configurable: true });
+    });
+  }
+
+  /** Before the page loads: a page on plain http, where Chromium hides Web Bluetooth. */
+  async insecureBeforeLoad(): Promise<void> {
+    await this.page.addInitScript(() => {
+      // Shadow Chromium's own navigator.bluetooth, as a browser without Web Bluetooth has none.
+      Object.defineProperty(navigator, 'bluetooth', { value: undefined, configurable: true });
+      Object.defineProperty(window, 'isSecureContext', { value: false, configurable: true });
+    });
+  }
+
+  /** Before the page loads: no Bluetooth radio turned on. */
+  async unavailableBeforeLoad(): Promise<void> {
+    await this.page.addInitScript(() => {
+      (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.available = false;
+    });
+  }
+
+  /** The rider turns Bluetooth on or off; the page hears `availabilitychanged`. */
+  async setAvailable(value: boolean): Promise<void> {
+    await this.page.evaluate((v) => {
+      (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.setAvailable(v);
+    }, value);
   }
 
   /** How the browser's device chooser answers the next request. */
@@ -162,6 +207,12 @@ export class FakeBluetooth {
     return this.page.evaluate(
       () => (window as unknown as { __fakeBluetooth: Control }).__fakeBluetooth.calls,
     );
+  }
+
+  /** The calls that reach for a device, leaving out `getAvailability()`, which only asks whether
+   * Bluetooth is on (L2-089) and requests nothing. */
+  async deviceCalls(): Promise<BluetoothCall[]> {
+    return (await this.calls()).filter((c) => c.name !== 'getAvailability');
   }
 
   /** The bytes written to the bike, as upper-case hex, with how they were written. */

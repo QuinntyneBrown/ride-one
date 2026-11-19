@@ -14,19 +14,19 @@ The browser edition reaches the bike through Web Bluetooth, a browser API that o
 
 ## Description
 
-- **`BluetoothSupport`** (`@wattzup/browser`, `lib/bluetooth/`) — pure function `supportVerdict(env)` over a `SupportEnvironment` of `{isSecureContext, hasBluetooth, available}`, with a unit test per row:
+- **`supportVerdict`** (`@wattzup/browser`, `lib/bluetooth/bluetooth-support.ts`) — pure function over `{isSecureContext, hasBluetooth}`, with a unit test per row:
 
-  | `isSecureContext` | `hasBluetooth` | `available` | Verdict |
-  |---|---|---|---|
-  | `false` | any | any | `insecure` |
-  | `true` | `false` | — | `unsupported` |
-  | `true` | `true` | `false` | `adapter-off` |
-  | `true` | `true` | `true` | `ready` |
+  | `isSecureContext` | `hasBluetooth` | Verdict |
+  |---|---|---|
+  | `false` | any | `insecure` |
+  | `true` | `false` | `unsupported` |
+  | `true` | `true` | `ready` |
 
-  `insecure` wins over `unsupported`, because Chromium hides `navigator.bluetooth` on an insecure page and the fix there is HTTPS, not another browser.
-- **`BluetoothPort`** (`lib/bluetooth/`) — the only wrapper over `navigator.bluetooth`. It exposes `isSupported()`, `availability(): Promise<boolean>` and an `availabilitychanged` listener, plus the chooser and device calls of `connect-bike-in-browser`. `WebBluetoothPort` is the real one; tests and `?simulate` use fakes.
-- **`BrowserBikePairing.support()`** — returns the current `PairingSupport` (the verdict) as a signal. It recomputes on `availabilitychanged`. The `BIKE_PAIRING` default (backend edition) always answers `ready`.
-- **`BikeStateStore`** — on `adapter-off` it writes `ble` `error` and `error` `Bluetooth is off or missing on this device` (L2-089 criterion 2); on `unsupported` and `insecure` it leaves `ble` `disconnected` and connects nothing.
+  `insecure` wins over `unsupported`, because Chromium hides `navigator.bluetooth` on an insecure page and the fix there is HTTPS, not another browser. The verdict type is `BluetoothSupport` in `@wattzup/api`.
+- **`BluetoothPort`** (`lib/bluetooth/`) — the only wrapper over `navigator.bluetooth`. Besides the chooser and device calls of `connect-bike-in-browser` it offers `support()` (the verdict), `availability()` (`getAvailability()`, `true` where the browser cannot tell) and `onAvailabilityChanged(listener)` (`availabilitychanged`). `WebBluetoothPort` is the real one; unit tests and `?simulate` use ports that are always `ready` and on.
+- **`BrowserBikePairing`** — implements `BIKE_PAIRING`'s `support: Signal<BluetoothSupport>` and `checkAgain()`. On a `ready` page it asks `availability()` at start and on **Check again**, and follows `availabilitychanged`, writing `adapter` `on` or `off` through `BikeStateStore`; on an `unsupported` or `insecure` page it asks Bluetooth nothing. `provideBrowserEdition()` builds it at start, so every page's status line knows. The `BIKE_PAIRING` default (backend edition) is always `ready`.
+- **Status line** — `connectionStatus(…, support)` reads **Bluetooth · Unavailable in this browser** (tone `wait`) when the verdict is not `ready`, and **Bluetooth · Off** (tone `bad`, as the backend edition) when `adapter` is `off`, not that no bike was found (L2-089 criterion 2).
+- **Ride Dashboard** — `rideViewState(…, support)` picks the overlay, first match wins: `browser-unsupported`, `browser-insecure`, `adapter-off`, then `connect-bike` and the rest. `rideOverlayText(kind, state, EDITION, location.href)` words them as the `browser-unsupported`, `browser-insecure` and `browser-bluetooth-off` Ride mocks: *Open Wattzup in Chrome or Edge* with **Copy link** (the page address, which reads *Link copied* for 1.6 s); *Open the secure version of this page* with **Open over HTTPS** (the same address on `https:`); *Turn on Bluetooth* with **Check again** and **Open diagnostics**. Each is an `alert` with a warning icon, and none offers **Connect bike** (L2-089 criteria 1 to 3). The backend edition's adapter-off overlay is unchanged.
 - **`UnsupportedNotice`** (`@wattzup/components`, presentation) — the notice shown on the Ride Dashboard and `/setup` in place of **Connect bike** and **Start ride**. It takes the verdict as input and renders the copy below; it injects nothing. `<TO SUPPLY>`: the mock for this notice in `docs/mocks/`, which shall exist before the component is built.
 
   | Verdict | Heading | Body |

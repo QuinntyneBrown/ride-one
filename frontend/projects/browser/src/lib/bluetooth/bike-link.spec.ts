@@ -39,6 +39,18 @@ class FakePort implements BluetoothPort {
   readonly connectFailures: Error[] = [];
   private readonly dropped: (() => void)[] = [];
 
+  support(): 'ready' {
+    return 'ready';
+  }
+
+  async availability(): Promise<boolean> {
+    return true;
+  }
+
+  onAvailabilityChanged(): void {
+    // Not exercised by BikeLink.
+  }
+
   async requestBike(): Promise<BikeDevice | null> {
     this.log.push('chooser');
     if (this.answer === 'cancel') return null;

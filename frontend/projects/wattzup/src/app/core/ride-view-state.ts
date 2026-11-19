@@ -1,10 +1,17 @@
 // Which skeleton, overlay or error the ride dashboard shows, and which controls work (L2-058).
-import type { BikeState, StreamConnection } from '@wattzup/api';
+import type { BikeState, BluetoothSupport, StreamConnection } from '@wattzup/api';
 import { isActive } from './workout-status';
 
 export type RideView = 'loading' | 'load-failed' | 'ride';
 export type RideOverlayKind =
-  'connect-bike' | 'scanning' | 'adapter-off' | 'bike-lost' | 'bike-shut-off' | 'ride-complete';
+  | 'browser-unsupported'
+  | 'browser-insecure'
+  | 'connect-bike'
+  | 'scanning'
+  | 'adapter-off'
+  | 'bike-lost'
+  | 'bike-shut-off'
+  | 'ride-complete';
 
 export interface RideViewState {
   view: RideView;
@@ -22,6 +29,8 @@ export function rideViewState(
   loadFailed: boolean,
   /** No bike chosen yet in the browser edition (L2-090 AC1). */
   pairingRequired = false,
+  /** The browser edition cannot reach Bluetooth on this page (L2-089 AC1, AC3). */
+  support: BluetoothSupport = 'ready',
 ): RideViewState {
   const offline = connection === 'offline';
   if (loadFailed) {
@@ -48,7 +57,9 @@ export function rideViewState(
   }
   const status = state.workout?.status;
   let overlay: RideOverlayKind | null = null;
-  if (state.adapter === 'off') overlay = 'adapter-off';
+  if (support === 'unsupported') overlay = 'browser-unsupported';
+  else if (support === 'insecure') overlay = 'browser-insecure';
+  else if (state.adapter === 'off') overlay = 'adapter-off';
   else if (pairingRequired) overlay = 'connect-bike';
   else if (status === 'ended: bike shut off') overlay = 'bike-shut-off';
   // A plan ridden to its end and saved leads to its summary (L2-084 AC3).

@@ -9,6 +9,7 @@
       <span
         class="overlay-panel__icon"
         [class.overlay-panel__icon--ok]="o.kind === 'bike-shut-off' || o.kind === 'ride-complete'"
+        [class.overlay-panel__icon--warn]="o.kind.startsWith('browser-') || o.checkAgain"
         ><wz-icon [name]="icon" size="xl"
       /></span>
     } @else if (o.kind !== 'connect-bike') {
@@ -26,10 +27,34 @@
           </button>
         </div>
       }
-      @case ('adapter-off') {
-        <div class="cluster">
-          <button class="btn" type="button" (click)="diagnostics.emit()">Open diagnostics</button>
+      @case ('browser-unsupported') {
+        <div class="overlay-panel__actions">
+          <button class="btn" type="button" (click)="copy(o.link)">
+            {{ copied() ? 'Link copied' : 'Copy link' }}
+          </button>
         </div>
+        <p>
+          <code>{{ o.link }}</code>
+        </p>
+      }
+      @case ('browser-insecure') {
+        <div class="overlay-panel__actions">
+          <a class="btn btn--primary" [href]="o.link">Open over HTTPS</a>
+        </div>
+      }
+      @case ('adapter-off') {
+        @if (o.checkAgain) {
+          <div class="overlay-panel__actions">
+            <button class="btn" type="button" (click)="checkAgain.emit()">Check again</button>
+            <button class="btn btn--quiet" type="button" (click)="diagnostics.emit()">
+              Open diagnostics
+            </button>
+          </div>
+        } @else {
+          <div class="cluster">
+            <button class="btn" type="button" (click)="diagnostics.emit()">Open diagnostics</button>
+          </div>
+        }
       }
       @case ('bike-lost') {
         <div class="cluster">

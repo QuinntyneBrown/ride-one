@@ -7,6 +7,13 @@ export class BrowserRidePage {
   /** The "Connect your bike" panel over the ride (L2-090 AC1). */
   readonly connectPanel: Locator;
   readonly connectButton: Locator;
+  /** The alert overlay that replaces Connect bike when the browser cannot reach Bluetooth. */
+  readonly notice: Locator;
+  readonly noticeTitle: Locator;
+  readonly copyLinkButton: Locator;
+  readonly openOverHttps: Locator;
+  readonly checkAgainButton: Locator;
+  readonly libraryLink: Locator;
   readonly toasts: Locator;
   readonly powerValue: Locator;
   readonly cadenceValue: Locator;
@@ -25,6 +32,12 @@ export class BrowserRidePage {
     this.connectPanel = page.getByRole('region', { name: 'Connect your bike' });
     this.connectButton = this.connectPanel.getByRole('button', { name: 'Connect bike' });
     this.toasts = page.locator('.toast-region .toast');
+    this.notice = page.locator('.overlay-panel__card[role="alert"]');
+    this.noticeTitle = this.notice.getByRole('heading', { level: 2 });
+    this.copyLinkButton = this.notice.getByRole('button', { name: /^(Copy link|Link copied)$/ });
+    this.openOverHttps = this.notice.getByRole('link', { name: 'Open over HTTPS' });
+    this.checkAgainButton = this.notice.getByRole('button', { name: 'Check again' });
+    this.libraryLink = page.getByRole('banner').getByRole('link', { name: 'Library' });
     this.powerValue = page.locator('.readout--power .numeral');
     this.cadenceValue = page.locator('.readout--cadence .numeral');
     this.levelValue = page.locator('.level-readout .numeral');

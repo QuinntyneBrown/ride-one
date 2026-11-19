@@ -1,6 +1,7 @@
 // The Web Bluetooth implementation of BluetoothPort: the only code that touches
 // navigator.bluetooth (AGENTS.md, L2-090). The DOM library has no Web Bluetooth types, so the
 // few members used are declared here.
+import type { BluetoothSupport } from '@wattzup/api';
 import { BIKE_FILTER } from '../protocol/echelon-device-filter';
 import { ECHELON_UUIDS } from '../protocol/echelon-uuids';
 import {
@@ -9,6 +10,7 @@ import {
   ChooserBlockedError,
   type GattLink,
 } from './bluetooth-port';
+import { supportVerdict } from './bluetooth-support';
 
 interface WebCharacteristic extends EventTarget {
   readonly value?: DataView;
@@ -27,13 +29,39 @@ interface WebDevice extends EventTarget {
   readonly name?: string;
   readonly gatt?: WebGattServer;
 }
-interface WebBluetooth {
+interface WebBluetooth extends EventTarget {
   requestDevice(options: typeof BIKE_FILTER): Promise<WebDevice>;
+  getAvailability?(): Promise<boolean>;
 }
 
+const webBluetooth = (): WebBluetooth | undefined =>
+  (navigator as Navigator & { bluetooth?: WebBluetooth }).bluetooth;
+
 export class WebBluetoothPort implements BluetoothPort {
+  support(): BluetoothSupport {
+    return supportVerdict({
+      isSecureContext: window.isSecureContext,
+      hasBluetooth: !!webBluetooth(),
+    });
+  }
+
+  async availability(): Promise<boolean> {
+    // A browser that cannot tell is given the benefit of the doubt: the chooser says the rest.
+    return (
+      (await webBluetooth()
+        ?.getAvailability?.()
+        .catch(() => true)) ?? true
+    );
+  }
+
+  onAvailabilityChanged(listener: (available: boolean) => void): void {
+    webBluetooth()?.addEventListener('availabilitychanged', (e) =>
+      listener((e as Event & { value?: boolean }).value !== false),
+    );
+  }
+
   async requestBike(): Promise<BikeDevice | null> {
-    const bluetooth = (navigator as Navigator & { bluetooth?: WebBluetooth }).bluetooth;
+    const bluetooth = webBluetooth();
     if (!bluetooth) throw new ChooserBlockedError();
     let device: WebDevice;
     try {

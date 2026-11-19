@@ -20,6 +20,18 @@ export function simulateRequested(devMode: boolean, search: string): boolean {
 export class SimulatedBluetoothPort implements BluetoothPort {
   constructor(private readonly clock: Clock) {}
 
+  support(): 'ready' {
+    return 'ready';
+  }
+
+  async availability(): Promise<boolean> {
+    return true;
+  }
+
+  onAvailabilityChanged(): void {
+    // The simulated radio never changes.
+  }
+
   async requestBike(): Promise<BikeDevice> {
     return new SimulatedBike(this.clock);
   }

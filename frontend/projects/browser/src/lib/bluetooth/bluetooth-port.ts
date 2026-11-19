@@ -1,6 +1,7 @@
 // The Bluetooth the link needs, as a port (ADR 0017): WebBluetoothPort in the app, a fake in unit
 // tests. Only implementations of this port touch navigator.bluetooth.
 import { InjectionToken } from '@angular/core';
+import type { BluetoothSupport } from '@wattzup/api';
 
 /** A connected GATT server, reduced to the Echelon service. */
 export interface GattLink {
@@ -20,6 +21,12 @@ export interface BikeDevice {
 }
 
 export interface BluetoothPort {
+  /** Whether this page can reach Web Bluetooth at all (L2-089). */
+  support(): BluetoothSupport;
+  /** `getAvailability()`: false when the device has no Bluetooth radio turned on. */
+  availability(): Promise<boolean>;
+  /** Calls `listener` on `availabilitychanged`, as the rider switches Bluetooth. */
+  onAvailabilityChanged(listener: (available: boolean) => void): void;
   /** Opens the browser's device chooser for Echelon bikes; null when the rider cancels. */
   requestBike(): Promise<BikeDevice | null>;
 }
