@@ -84,7 +84,11 @@ test.describe('Diagnostics dialog (L2-023)', () => {
     await expect
       .poll(() => page.evaluate(() => navigator.clipboard.readText()))
       .toContain('Last error: adapter reset');
-    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    // The Windows clipboard returns the copied \n line breaks as \r\n.
+    const copied = (await page.evaluate(() => navigator.clipboard.readText())).replace(
+      /\r\n/g,
+      '\n',
+    );
     expect(copied.startsWith('Server: Connected · event stream open · 2 viewers\n')).toBe(true);
     expect(copied.endsWith(`\n\n${PACKETS.join('\n')}`)).toBe(true);
   });
