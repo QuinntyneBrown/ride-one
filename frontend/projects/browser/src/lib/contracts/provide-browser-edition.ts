@@ -9,6 +9,7 @@ import {
 import {
   BIKE_API,
   BIKE_PAIRING,
+  PACKET_LOG,
   CLASS_API,
   EDITION,
   LIVE_STATE_SOURCE,
@@ -18,6 +19,7 @@ import {
 } from '@wattzup/api';
 import { BikeLink } from '../bluetooth/bike-link';
 import { BLUETOOTH_PORT } from '../bluetooth/bluetooth-port';
+import { PacketLog } from '../bluetooth/packet-log';
 import { CLOCK } from '../bluetooth/clock';
 import { SimulatedBluetoothPort, simulateRequested } from '../bluetooth/simulated-bluetooth-port';
 import { WebBluetoothPort } from '../bluetooth/web-bluetooth-port';
@@ -51,6 +53,8 @@ export function provideBrowserEdition(): EnvironmentProviders {
     ResistanceCommander,
     WorkoutEngine,
     SessionStore,
+    PacketLog,
+    { provide: PACKET_LOG, useExisting: PacketLog },
     simulate
       ? { provide: BLUETOOTH_PORT, useFactory: () => new SimulatedBluetoothPort(inject(CLOCK)) }
       : { provide: BLUETOOTH_PORT, useClass: WebBluetoothPort },

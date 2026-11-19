@@ -48,6 +48,12 @@ export class BrowserSessionArchive implements SessionArchive {
     return { added, skipped, rejected: sessions.length - valid.length };
   }
 
+  async stored(): Promise<{ rides: number; bytes: number | null }> {
+    await this.store.ready();
+    const estimate = await navigator.storage?.estimate?.().catch(() => null);
+    return { rides: this.store.list().length, bytes: estimate?.usage ?? null };
+  }
+
   isSaved(id: string): boolean {
     return this.store.isSaved(id);
   }

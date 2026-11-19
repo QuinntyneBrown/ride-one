@@ -42,6 +42,7 @@ import {
   IMPORT_FAILED,
   importToast,
 } from '../../core/history-view';
+import { saveFile } from '../../core/save-file';
 import { ToastService } from '../../core/toast.service';
 
 type Phase = 'loading' | 'ready' | 'error';
@@ -127,12 +128,7 @@ export class ProgressPage {
   /** Saves the history as wattzup-sessions-<date>.json (L2-094 AC5). */
   protected async exportHistory(): Promise<void> {
     if (!this.archive) return;
-    const url = URL.createObjectURL(await this.archive.exportAll());
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = exportFileName(Date.now());
-    link.click();
-    URL.revokeObjectURL(url);
+    saveFile(await this.archive.exportAll(), exportFileName(Date.now()));
     this.lastExportedAt.set(this.archive.lastExportedAt());
   }
 

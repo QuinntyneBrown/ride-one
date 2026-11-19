@@ -12,24 +12,25 @@ When the bike misbehaves, the backend edition offers 3 aids: the raw packet log 
 
 ## Description
 
-- **`RecentPacketBuffer`** (`@wattzup/browser`, `lib/bluetooth/`; mirror of `Wattzup.Core/Telemetry/RecentPacketBuffer`) — a ring of 2,000 `RawPacket {at, direction, bytes}`. `BikeLink` appends each notification and each write (L2-095 criterion 1).
-- **`RawPacketFormatter`** (mirror) — formats 1 packet as 1 line of `raw_packets.log` (L2-030), so a downloaded log reads like the backend's.
-- **`BrowserBikeApi.diagnosticsPackets()`** — answers the ring's lines, newest last, in the shape of L2-057, so the Diagnostics dialog shows them unchanged.
-- **Diagnostics dialog** (app, `dashboard/`) — when `EDITION` is `browser`:
-  - adds **Download packet log**, which saves the ring as `wattzup-packets-<yyyy-mm-ddThh-mm>.log` through an object URL (L2-095 criterion 2);
-  - adds a **Log every packet** switch bound to `PacketDebugging` (L2-095 criterion 4);
-  - hides the rows that describe the backend's files and process: the snapshot path, the bind address, the exposure and the transport's host facts (L2-095 criterion 3).
-  `<TO SUPPLY>`: the dialog's browser-edition state in `docs/mocks/`.
-- **`BrowserLog`** (`lib/engine/`) — the browser edition's logger, used where the backend uses `ILogger`: `info` for connection changes and commands, `warn` for catalogue problems and retries, `error` for Bluetooth errors. It writes to `console` only; nothing leaves the device (L2-097). Per-packet lines are written at `debug` only while `PacketDebugging` is on.
+- **`PacketLog`** (`@wattzup/browser`, `lib/bluetooth/packet-log.ts`; counterpart of `Wattzup.Core/Telemetry/RecentPacketBuffer` and the `raw_packets.log` file) — a ring of the newest 2,000 lines. `BikeLink` wraps each GATT link so every write is logged (`sent`), and logs each notification (`received`) only while `everyPacket` is on (L2-095 criterion 1). `formatRawPacket(epochSeconds, bytes)` mirrors `RawPacketFormatter.Format`, so a downloaded log reads like the backend's; its tests restate the .NET rows, with the ring's rows at 2,000.
+- **`PACKET_LOG`** (`@wattzup/api`) — the contract the dialog reads: `view` (`entries`, `bytes`, `everyPacket`), `setEveryPacket(on)` and `file(): Blob`. Bound to `PacketLog` in the browser edition only.
+- **`BrowserBikeApi.diagnosticsPackets()`** — answers the log's newest 60 lines, oldest first, in the shape of L2-057.
+- **Diagnostics dialog** (app, `dashboard/`) — when `EDITION` is `browser` it renders the `browser`, `browser-packets` and `browser-bluetooth-off` Diagnostics mocks:
+  - rows from `browserDiagnosticsRows` (`core/browser-diagnostics.ts`): Browser (`browserLabel` of the user agent, such as `Chrome 126 · macOS`), Web Bluetooth (`Available`, `Supported · adapter off`, or why it cannot be reached), Page, Bike (`None connected`, or the bike and its connection id), Connection and Last command while a bike is picked, Rides stored (`SESSION_ARCHIVE.stored()`: the rides and the origin's storage use), and Edition. The backend's server, transport, snapshot, viewer and renderer rows are left out (L2-095 criterion 3). Wattzup has no version number, so the mocks' App version row is the Edition;
+  - a footnote that nothing leaves the device;
+  - **Log every packet**, a switch bound to `PacketLog.setEveryPacket` (L2-095 criterion 4);
+  - the log's count (`212 commands · 20 KB`, or `packets` with *Recording* while every packet is logged) and **Download packet log**, which saves `wattzup-packets-<yyyy-mm-ddThh-mm>.log` (local time) through `saveFile` and reads *Saved to Downloads* for 1.6 s (L2-095 criterion 2);
+  - **Done** only; the backend's **Copy details** and packet list stay in the backend edition.
+- **`BROWSER_LOG`** (`lib/engine/browser-log.ts`) — the console, where the backend uses `ILogger`: `info` for connections and drops, `warn` for retried Bluetooth errors, `debug` for each packet only while every packet is logged. Nothing leaves the device (L2-097).
 - No status snapshot is written (L2-095 criterion 3). The state that L2-031 persists is visible live in the dialog.
 
-Verification: `RecentPacketBuffer` and `RawPacketFormatter` parity tests (ring overflow at 2,001; line format); a browser-edition spec that pushes packets through the fake Bluetooth fixture, opens the dialog, sees them, downloads the log and checks its first line, and checks the hidden backend rows.
+Verification: `PacketLog` parity tests (line format; the ring at 0, 1, 2,000 and 2,001; packets only while every packet is logged; the file text); a `BikeLink` test that its writes reach the log; `browserDiagnosticsRows`, `browserLabel`, `packetLogCount` and `packetLogFileName` tests; browser-edition specs (`diagnostics.spec.ts`) that check the rows and the missing backend rows, download the log and check each line's format, and turn on **Log every packet** to see a packet counted.
 
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-095` | `L1-016` | Diagnostics in the browser. The last 2,000 raw packets shall be kept in memory and shown by the Diagnostics dialog as L2-057 lists them; **Download packet log** shall download them in the format of `raw_packets.log`; no status snapshot file shall be written and backend-only fields shall be left out of the dialog; connection changes, commands and errors shall be logged to the console at the matching level, without per-packet entries unless debugging is turned on. |
+| `L2-095` | `L1-016` | Diagnostics in the browser. Every command written to the bike shall be kept in a packet log of the newest 2,000 entries in memory, with the bike's packets too while **Log every packet** is on, and the Diagnostics dialog shall show the log's count and size; **Download packet log** shall download it in the format of `raw_packets.log`; no status snapshot file shall be written and backend-only fields shall be left out of the dialog; connection changes, commands and errors shall be logged to the console at the matching level, without per-packet entries unless **Log every packet** is on. |
 
 ## Diagrams
 
@@ -59,6 +60,6 @@ The buffer holds `RawPacket`s; the formatter turns them into log lines; `PacketD
 
 ### Behaviour — download the packet log
 
-Packets accumulate in the ring; the dialog lists them and downloads them as a file (L2-095).
+Commands, and packets while every packet is logged, accumulate in the ring; the dialog counts them and downloads them as a file (L2-095).
 
 ![Sequence for downloading the packet log](diagrams/sequence-download-log.png)

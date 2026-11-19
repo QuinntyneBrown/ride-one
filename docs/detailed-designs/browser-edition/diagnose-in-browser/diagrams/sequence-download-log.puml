@@ -11,25 +11,25 @@ box "Frontend — Wattzup Web, browser edition" #E0F2FE
 end box
 box "Frontend — @wattzup/browser" #ECFDF3
   participant "BikeLink" as link
-  participant "RecentPacketBuffer" as ring
-  participant "BrowserBikeApi" as api
-  participant "RawPacketFormatter" as fmt
-  participant "BrowserLog" as log
+  participant "PacketLog" as ring
+  participant "BROWSER_LOG" as log
 end box
-
-loop each notification and write
-  link -> ring : append(RawPacket) [newest 2,000, L2-095 AC1]
-  opt Log every packet is on [L2-095 AC4]
-    link -> log : packet(p) -> console.debug
+loop each write to the bike
+  link -> ring : sent(epochMs, bytes) [newest 2,000, L2-095 AC1]
+end
+loop each packet from the bike
+  opt Log every packet is on [L2-095 AC1, AC4]
+    link -> ring : received(epochMs, bytes)
+    link -> log : console.debug
   end
 end
 rider -> dlg : Open Diagnostics
-dlg -> api : diagnosticsPackets()
-api -> ring : snapshot()
-api -> fmt : line(p) for each
-api --> dlg : lines (L2-057 shape)
-dlg --> rider : Recent packets; backend-only rows hidden [L2-095 AC3]
+dlg -> ring : view()
+dlg --> rider : Browser rows, backend rows left out [L2-095 AC3];\n212 commands · 20 KB
+rider -> dlg : Log every packet on
+dlg -> ring : setEveryPacket(true)
 rider -> dlg : Download packet log
-dlg -> dlg : Blob(lines) -> object URL -> wattzup-packets-<time>.log [L2-095 AC2]
-dlg --> rider : File saved
+dlg -> ring : file()
+dlg -> dlg : saveFile(wattzup-packets-<yyyy-mm-ddThh-mm>.log) [L2-095 AC2]
+dlg --> rider : Saved to Downloads
 @enduml

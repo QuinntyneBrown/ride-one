@@ -3,12 +3,14 @@
 // it, writing `ble`, `device` and `error` through the BikeStateStore.
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { BikeStateStore } from '../engine/bike-state-store';
+import { BROWSER_LOG } from '../engine/browser-log';
 import { TelemetryIngestor } from '../engine/telemetry-ingestor';
 import { INIT_SEQUENCE, KEEPALIVE } from '../protocol/echelon-commands';
 import { ECHELON_UUIDS } from '../protocol/echelon-uuids';
 import { type BikeDevice, BLUETOOTH_PORT, type GattLink } from './bluetooth-port';
 import { CLOCK } from './clock';
 import { messageOf, nameAndMessage } from './error-text';
+import { PacketLog } from './packet-log';
 
 /** The spacing of the init commands, as the backend's InitCommandSpacing (L2-002). */
 export const INIT_COMMAND_SPACING_MS = 300;
@@ -25,6 +27,8 @@ export class BikeLink {
   private readonly store = inject(BikeStateStore);
   private readonly clock = inject(CLOCK);
   private readonly ingestor = inject(TelemetryIngestor);
+  private readonly packets = inject(PacketLog);
+  private readonly log = inject(BROWSER_LOG);
 
   private readonly _device = signal<BikeDevice | null>(null);
   private gatt: GattLink | null = null;
@@ -69,7 +73,7 @@ export class BikeLink {
     const attempt = ++this.generation;
     this.store.update((s) => ({ ...s, ble: 'connecting', device: device.name, error: null }));
     try {
-      const gatt = await device.connect();
+      const gatt = this.logged(await device.connect());
       if (attempt !== this.generation) {
         gatt.disconnect();
         return;
@@ -80,7 +84,12 @@ export class BikeLink {
         ble: 'connected',
         connection_id: ECHELON_UUIDS.connectionId,
       }));
-      await gatt.startNotifications((frame) => this.ingestor.onNotify(frame));
+      this.log.info(`Wattzup: connected to ${device.name}`);
+      await gatt.startNotifications((frame) => {
+        this.packets.received(this.clock.epochMs(), frame);
+        if (this.packets.everyPacket()) this.log.debug('Wattzup: packet', frame);
+        this.ingestor.onNotify(frame);
+      });
       for (const [i, command] of INIT_SEQUENCE.entries()) {
         if (i > 0) await this.clock.delay(INIT_COMMAND_SPACING_MS);
         if (attempt !== this.generation) return;
@@ -100,6 +109,7 @@ export class BikeLink {
     this.gatt = null;
     const attempt = ++this.generation;
     this.store.update((s) => ({ ...s, ble: 'disconnected' }));
+    this.log.info(`Wattzup: ${device.name} disconnected; retrying in 3 s`);
     void this.retryLater(device, attempt);
   }
 
@@ -109,12 +119,25 @@ export class BikeLink {
     this.gatt = null;
     const attempt = ++this.generation;
     this.store.update((s) => ({ ...s, ble: 'error', error: nameAndMessage(e) }));
+    this.log.warn(`Wattzup: Bluetooth error, retrying in 3 s: ${nameAndMessage(e)}`);
     void this.retryLater(device, attempt);
   }
 
   private async retryLater(device: BikeDevice, attempt: number): Promise<void> {
     await this.clock.delay(RETRY_DELAY_MS);
     if (attempt === this.generation) await this.connect(device);
+  }
+
+  /** Logs every write to the bike in the packet log (L2-095 AC1). */
+  private logged(gatt: GattLink): GattLink {
+    return {
+      startNotifications: (onPacket) => gatt.startNotifications(onPacket),
+      write: async (bytes) => {
+        await gatt.write(bytes);
+        this.packets.sent(this.clock.epochMs(), bytes);
+      },
+      disconnect: () => gatt.disconnect(),
+    };
   }
 
   /** One keepalive per second while this connection lasts (L2-091 AC1). */

@@ -2,6 +2,8 @@
 // Traces to: L2-090, L2-091
 // Description: BikeLink picks the bike through the chooser, connects, subscribes, sends the init
 // sequence 300 ms apart, keeps the link alive and recovers it, on a fake port and a fake clock.
+import { PacketLog } from './packet-log';
+import { BROWSER_LOG } from '../engine/browser-log';
 import { TestBed } from '@angular/core/testing';
 import { BikeStateStore } from '../engine/bike-state-store';
 import { TelemetryIngestor } from '../engine/telemetry-ingestor';
@@ -94,10 +96,15 @@ function setUp() {
   TestBed.configureTestingModule({
     providers: [
       BikeLink,
+      PacketLog,
       BikeStateStore,
       TelemetryIngestor,
       { provide: BLUETOOTH_PORT, useValue: port },
       { provide: CLOCK, useValue: clock },
+      {
+        provide: BROWSER_LOG,
+        useValue: { info: () => undefined, warn: () => undefined, debug: () => undefined },
+      },
     ],
   });
   return { port, clock, store: TestBed.inject(BikeStateStore), link: TestBed.inject(BikeLink) };
@@ -129,6 +136,16 @@ describe('BikeLink', () => {
       connection_id: '0bf669f1',
       error: null,
     });
+  });
+
+  it('logs each write to the bike in the packet log, and its packets only on request (L2-095)', async () => {
+    const { clock, link } = setUp();
+    const log = TestBed.inject(PacketLog);
+    void link.pair();
+    await clock.advance(600);
+    expect(log.view().entries).toBe(3);
+    await clock.advance(1000);
+    expect(log.view().entries).toBe(4);
   });
 
   it('goes connecting before connected', async () => {

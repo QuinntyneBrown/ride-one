@@ -2,6 +2,7 @@
 // Traces to: L2-089
 // Description: BrowserBikePairing reports the page's Bluetooth support and keeps `adapter` in step
 // with getAvailability() and availabilitychanged; an unsupported page asks Bluetooth nothing.
+import { PacketLog } from '../bluetooth/packet-log';
 import { TestBed } from '@angular/core/testing';
 import type { BluetoothSupport } from '@wattzup/api';
 import { BikeLink } from '../bluetooth/bike-link';
@@ -37,6 +38,7 @@ function setup(verdict: BluetoothSupport, available = true) {
     providers: [
       BrowserBikePairing,
       BikeLink,
+      PacketLog,
       BikeStateStore,
       TelemetryIngestor,
       { provide: BLUETOOTH_PORT, useValue: port },
