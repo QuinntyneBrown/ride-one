@@ -4,8 +4,8 @@ import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 
 class FakeRenderer implements WorldRenderer {
   readonly frames: SceneFrame[] = [];
-  start(): boolean {
-    return true;
+  start(): Promise<boolean> {
+    return Promise.resolve(true);
   }
   resize(): void {
     /* not needed */

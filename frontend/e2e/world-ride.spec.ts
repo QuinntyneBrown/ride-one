@@ -16,6 +16,14 @@ import { ReplaceRideDialog } from './pages/replace-ride.dialog';
 import { ToastRegion } from './pages/toast-region';
 import { WorldRidePage } from './pages/world-ride.page';
 
+// The HUD's behaviour is proven without the GPU: drawn in software, the scene's passes slow every
+// step. The scene's own tests (World Ride scene) draw it.
+test.beforeEach(async ({ webgl }, testInfo) => {
+  if (!testInfo.titlePath.some((title) => title.startsWith('World Ride scene'))) {
+    await webgl.disable();
+  }
+});
+
 test.describe('World Ride (L2-090)', () => {
   test('shows Ride in Old Town Criterium on a class with a world, and not on one without', async ({
     page,

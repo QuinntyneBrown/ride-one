@@ -65,25 +65,34 @@ export class WorldScene {
 
     afterNextRender(() => {
       const canvas = this.canvas().nativeElement;
-      void this.load().then(
-        (loaded) => {
-          if (destroyed) return;
-          if (!loaded.start(canvas, untracked(this.world))) {
-            this.unavailable.emit();
-            return;
-          }
-          renderer = loaded;
-          const resize = () =>
-            loaded.resize(canvas.clientWidth, canvas.clientHeight, devicePixelRatio);
-          resize();
-          observer = new ResizeObserver(resize);
-          observer.observe(canvas);
-          this.driver.set(new SceneDriver(loaded));
-        },
-        () => {
-          if (!destroyed) this.unavailable.emit();
-        },
-      );
+      void this.load()
+        .then(async (loaded) => {
+          const started = await loaded.start(canvas, untracked(this.world));
+          return { loaded, started };
+        })
+        .then(
+          ({ loaded, started }) => {
+            if (destroyed) {
+              loaded.dispose();
+              return;
+            }
+            if (!started) {
+              loaded.dispose();
+              this.unavailable.emit();
+              return;
+            }
+            renderer = loaded;
+            const resize = () =>
+              loaded.resize(canvas.clientWidth, canvas.clientHeight, devicePixelRatio);
+            resize();
+            observer = new ResizeObserver(resize);
+            observer.observe(canvas);
+            this.driver.set(new SceneDriver(loaded));
+          },
+          () => {
+            if (!destroyed) this.unavailable.emit();
+          },
+        );
     });
 
     // The loop runs only while the ride runs: a paused world holds still (L2-097 AC1), and the

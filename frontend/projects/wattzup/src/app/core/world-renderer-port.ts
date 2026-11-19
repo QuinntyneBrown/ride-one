@@ -19,8 +19,11 @@ export interface SceneFrame {
 }
 
 export interface WorldRenderer {
-  /** Starts drawing `world` on `canvas`; false when WebGL is unavailable or fails (L2-098 AC4). */
-  start(canvas: HTMLCanvasElement, world: World): boolean;
+  /**
+   * Starts drawing `world` on `canvas` with WebGPU, else WebGL2; resolves false when neither
+   * starts (L2-098 AC4, L2-099 AC1, ADR 0018).
+   */
+  start(canvas: HTMLCanvasElement, world: World): Promise<boolean>;
   resize(width: number, height: number, pixelRatio: number): void;
   draw(frame: SceneFrame): void;
   dispose(): void;
