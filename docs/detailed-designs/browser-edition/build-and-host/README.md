@@ -23,7 +23,7 @@ Build:
 - **`browser` build configuration** (`frontend/angular.json`, project `wattzup`) — production settings with 5 differences from the default configuration:
   - `fileReplacements` swaps `src/app/app.config.ts` for `src/app/app.config.browser.ts`.
   - `outputPath` is `dist/wattzup-browser`, so the 2 editions never overwrite each other.
-  - `index` is `src/index.browser.html`, which carries the Content-Security-Policy `<meta>` element (L2-097).
+  - `index` is `src/index.browser.html`, written out as `index.html`, which carries the Content-Security-Policy `<meta>` element (L2-097).
   - `assets` add `manifest.webmanifest`, the app icons and `classes.json` (see `load-classes-in-browser`).
   - `serviceWorker` is `ngsw-config.json` (L2-098).
 - **`browser-development` configuration** — the same replacements without optimisation, used by `npm start -- --configuration browser`. Only this configuration honours `?simulate` (see `simulate-bike-in-browser`).
@@ -53,7 +53,7 @@ Wiring:
 Hosting, security and offline:
 
 - **Routing on a static host** — routes use the path location strategy, as in the backend edition. The README's *Browser edition* section gives the fallback setting for common hosts (Netlify `_redirects`, nginx `try_files`, `http-server --proxy`) so a deep link such as `/sessions/<id>` serves `index.html` (L2-088 criterion 3). `<TO SUPPLY>`: the default host, if the project publishes the edition itself.
-- **`index.browser.html`** — carries `<meta http-equiv="Content-Security-Policy">` with `default-src 'self'`, `connect-src 'self'`, `img-src 'self' data: https://i.ytimg.com`, `frame-src https://www.youtube-nocookie.com`, `script-src 'self' https://www.youtube.com`, `style-src 'self'` and `object-src 'none'` (L2-097 criterion 2). The hosting example also sends the same policy, `X-Content-Type-Options: nosniff` and `Referrer-Policy: no-referrer` as headers, because `frame-ancestors` and the other 2 headers have no `<meta>` form.
+- **`index.browser.html`** — the `index` of both browser configurations, written out as `index.html`. It carries `<meta http-equiv="Content-Security-Policy">` with `default-src 'self'`, `script-src 'self' https://www.youtube.com`, `style-src 'self' 'unsafe-inline'`, `font-src 'self'`, `connect-src 'self'`, `img-src 'self' data: https://i.ytimg.com`, `frame-src https://www.youtube-nocookie.com`, `object-src 'none'` and `base-uri 'self'`, and `<meta name="referrer" content="no-referrer">` (L2-097 criterion 2). It differs from the backend's header in 2 ways (ADR 0018): a static host cannot mint the per-response nonce the backend writes onto `<wz-root>`, so styles allow `'unsafe-inline'` for the `<style>` elements Angular injects; and `frame-ancestors` has no `<meta>` form. The hosting example sends the same policy plus `frame-ancestors 'none'`, `X-Content-Type-Options: nosniff` and `Referrer-Policy: no-referrer` as headers.
 - **Privacy** — the edition makes no request after loading except `classes.json`, its own static files and YouTube's player and thumbnails (L2-097 criterion 3). It has no analytics, error reporting or remote logging. Bluetooth names, error strings, catalogue text and imported text are bound as text, never as HTML (L2-097 criterion 4).
 - **Validation** — the in-browser contracts validate input with the same rules as the API and reject with the `HttpErrorResponse` the HTTP client would raise for the API's answer: the same status and ProblemDetails body with the same `code`, such as `invalid_plan` (400) and `already_connected` (409), so every screen handles it as in the backend edition (L2-097 criterion 6).
 - **`manifest.webmanifest`** — `name` `Wattzup`, `short_name` `Wattzup`, `start_url` `/`, `display` `standalone`, the theme and background colours from the design tokens, and 192 px and 512 px icons, including a maskable one (L2-098 criterion 2).
@@ -62,6 +62,7 @@ Hosting, security and offline:
 
 Verification:
 
+- `security.spec.ts` reads the policy's directives. Every browser-edition spec fails on a console error, so a violation of the policy on any page fails the suite (L2-097 criterion 2).
 - Browser-edition behaviour specs (`frontend/e2e/browser/`) run against `dist/wattzup-browser/browser` served by `scripts/serve-dist.mjs`. Every spec fails on any request to `/api/**` and on any origin other than its own and the faked YouTube (L2-088 criterion 2, L2-097 criterion 3).
 - A spec opens `/classes/<id>` and `/sessions/<id>` directly (L2-088 criterion 3).
 - The existing behaviour specs keep running against the backend edition unchanged (L2-088 criterion 4).
@@ -73,7 +74,7 @@ Verification:
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-088` | `L1-016` | Browser edition build and hosting. `npm run build:browser` shall produce static files in `dist/wattzup-browser/browser` that run Wattzup on any HTTPS static host, or on `http://localhost`, with no backend; the edition shall make no request to `/api/*` or another origin except YouTube, shall open deep links, shall leave the backend edition unchanged, shall look and behave as the backend edition except where L2-089 to L2-099 differ, and shall keep its initial JavaScript within 300 KB gzipped. |
-| `L2-097` | `L1-016` | Browser edition security and privacy. The edition shall have no API key, unlock page or event tokens; shall carry a Content-Security-Policy allowing only its own origin plus the 3 YouTube exceptions of L2-036; shall send no state, packet, session or device name off the device; shall render untrusted text as text; shall request only the Echelon service; and shall validate input by the API's rules with the API's `code` values. |
+| `L2-097` | `L1-016` | Browser edition security and privacy. The edition shall have no API key, unlock page or event tokens; shall carry a Content-Security-Policy allowing only its own origin plus the 3 YouTube exceptions of L2-036, with inline styles allowed because a static host cannot mint a nonce; shall send no state, packet, session or device name off the device; shall render untrusted text as text; shall request only the Echelon service; and shall validate input by the API's rules with the API's `code` values. |
 | `L2-098` | `L1-016` | Installable and offline. Once loaded over HTTPS, the edition shall load and run a ride from `/setup` offline, with class videos and covers unavailable; it shall be installable as an app; and a new version shall be used from the next load, never reloading a ride in progress. |
 
 ## Diagrams
@@ -104,7 +105,7 @@ The contracts and tokens live in `@wattzup/api`. The browser classes implement t
 
 ### Behaviour — start the browser edition
 
-The browser loads `index.browser.html` from the host or the service-worker cache. Angular bootstraps with the browser composition root, the runtime starts, and the dashboard renders from `LiveStateService` with no request to `/api` (L2-088, L2-097).
+The browser loads `index.html`, built from `index.browser.html`, from the host or the service-worker cache. Angular bootstraps with the browser composition root, the runtime starts, and the dashboard renders from `LiveStateService` with no request to `/api` (L2-088, L2-097).
 
 ![Sequence for starting the browser edition](diagrams/sequence-start.png)
 

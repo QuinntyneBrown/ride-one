@@ -27,7 +27,7 @@ alt first visit or online
 else offline after a first visit [L2-098 AC1]
   sw -> sw : Serve from cache
 end
-sw --> boot : index.browser.html with CSP meta [L2-097 AC2]
+sw --> boot : index.html with CSP meta [L2-097 AC2]
 boot -> boot : provideBrowserEdition(); EDITION = 'browser'
 boot -> live : create
 live -> src : ensureStarted()

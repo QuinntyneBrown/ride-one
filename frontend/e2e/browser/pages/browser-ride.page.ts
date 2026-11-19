@@ -56,6 +56,15 @@ export class BrowserRidePage {
     return this.page.locator('.metrics > div').filter({ hasText: term }).locator('dd');
   }
 
+  /** The policy of the page's Content-Security-Policy <meta> element (L2-097 AC2). */
+  async contentSecurityPolicy(): Promise<string> {
+    return (
+      (await this.page
+        .locator('meta[http-equiv="Content-Security-Policy"]')
+        .getAttribute('content')) ?? ''
+    );
+  }
+
   async open(query = ''): Promise<void> {
     await this.page.goto(`/${query}`);
   }

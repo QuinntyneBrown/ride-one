@@ -108,7 +108,11 @@
                   "replace": "projects/wattzup/src/app/app.config.ts",
                   "with": "projects/wattzup/src/app/app.config.browser.ts"
                 }
-              ]
+              ],
+              "index": {
+                "input": "projects/wattzup/src/index.browser.html",
+                "output": "index.html"
+              }
             },
             "browser-development": {
               "optimization": false,
@@ -131,7 +135,11 @@
                   "replace": "projects/wattzup/src/app/app.config.ts",
                   "with": "projects/wattzup/src/app/app.config.browser.ts"
                 }
-              ]
+              ],
+              "index": {
+                "input": "projects/wattzup/src/index.browser.html",
+                "output": "index.html"
+              }
             }
           },
           "defaultConfiguration": "production"

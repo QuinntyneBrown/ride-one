@@ -18,4 +18,5 @@
 | [0014](0014-class-catalogue-as-a-file.md) | A class catalogue in a file, with YouTube thumbnails as covers | Accepted, amended by 0017 |
 | [0015](0015-sessions-kept-in-a-file.md) | Sessions kept in a file, computed in Core | Accepted, amended by 0016 and 0017 |
 | [0016](0016-bike-only.md) | Wattzup supports the bike only | Accepted |
-| [0017](0017-browser-edition.md) | A browser edition with no backend | Accepted |
+| [0017](0017-browser-edition.md) | A browser edition with no backend | Accepted, amended by 0018 |
+| [0018](0018-static-content-security-policy.md) | A static Content-Security-Policy for the browser edition | Accepted |
