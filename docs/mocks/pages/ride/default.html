@@ -7,7 +7,7 @@
 <meta name="mock:kind" content="page">
 <meta name="mock:screen" content="ride">
 <meta name="mock:state" content="default">
-<meta name="mock:requirements" content="L2-084 L2-018 L2-019 L2-020 L2-021 L2-023 L2-024 L2-025 L2-026 L2-027 L2-040 L2-041 L2-001 L2-013 L2-039 L2-064 L2-066 L2-068 L2-071 L2-076">
+<meta name="mock:requirements" content="L2-084 L2-018 L2-019 L2-020 L2-021 L2-023 L2-024 L2-025 L2-026 L2-027 L2-040 L2-041 L2-001 L2-013 L2-039 L2-064 L2-066 L2-068 L2-071 L2-076 L2-079">
 <meta name="description" content="Mid-ride on the 8 × 40s / 20s HIIT plan: work round 5 of 8, on target at 317 W, resistance following the plan at 18.">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
@@ -18,6 +18,7 @@
 <div class="app app--fixed">
 <header class="app-bar">
   <a class="lockup " href="../../pages/ride/default.html" aria-label="Wattzup dashboard"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></a>
+  <a class="btn btn--quiet btn--sm app-bar__library" href="../../pages/class-library/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Library</a>
   <span class="app-bar__divider" aria-hidden="true"></span>
   <div class="statusline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg><span class="statusline__name">Echelon EX-5s</span><span class="statusline__state">Connected</span></div>
   <a class="btn btn--quiet btn--sm" href="../../pages/setup/default.html" aria-label="Edit workout: HIIT · 8 × 40s / 20s"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>HIIT · 8 × 40s / 20s</a>
@@ -133,6 +134,7 @@
 </div>
 </div>
 <p class="mock-note" style="top: 15rem; left: 2rem;">The power trace is WebGL in the product (RideTrace) and redraws on every telemetry notification; this mock draws the same picture as static SVG.</p>
+<p class="mock-note" style="top: 4.5rem; left: 2rem;">Library is a plain link to /classes (L2-079 AC15): it sends nothing to the bike, so the ride keeps running and the dashboard picks it up again on return.</p>
 <p class="mock-note" style="top: 10rem; right: 24rem;">Interval time left counts down locally between the 1 Hz server updates (L2-024).</p>
 
 <nav class="mock-bar" aria-label="Mock navigation">
