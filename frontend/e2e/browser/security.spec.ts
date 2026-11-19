@@ -4,6 +4,7 @@
 // allows its own origin and the 3 YouTube exceptions only. Every browser-edition spec fails on a
 // console error, so a violation of the policy anywhere fails the suite.
 import { expect, test } from './fixtures/browser-test';
+import { NotFoundPage } from '../pages/not-found.page';
 import { BrowserRidePage } from './pages/browser-ride.page';
 
 test('every page carries the same-origin policy with the YouTube exceptions (L2-097 AC2)', async ({
@@ -32,4 +33,11 @@ test('every page carries the same-origin policy with the YouTube exceptions (L2-
   // A static host cannot mint a nonce per response, so Angular's own <style> elements need
   // 'unsafe-inline' (ADR 0018); styles still load from no other origin.
   expect(directives['style-src']).toEqual(["'self'", "'unsafe-inline'"]);
+});
+
+test('offers no unlock page: /unlock is not found (L2-097 AC1)', async ({ page }) => {
+  await page.goto('/unlock');
+  const notFound = new NotFoundPage(page);
+  await expect(notFound.code).toBeVisible();
+  await expect(page).toHaveTitle('Page not found · Wattzup');
 });
