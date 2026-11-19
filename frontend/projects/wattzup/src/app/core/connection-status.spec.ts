@@ -23,6 +23,14 @@ describe('connectionStatus (L2-018)', () => {
       'bluetooth-off',
       'bad',
     ],
+    [
+      'no bike chosen yet (browser edition, L2-090 AC1)',
+      { ble: 'disconnected', device: null, device_label: null },
+      'No bike connected',
+      '',
+      'bluetooth',
+      'quiet',
+    ],
     ['adapter off', { ble: 'error', adapter: 'off' }, 'Bluetooth', 'Off', 'bluetooth-off', 'bad'],
     ['error', { ble: 'error' }, 'Bike status', 'Error', 'bluetooth-off', 'bad'],
   ] as const)('%s', (_, change, name, label, icon, tone) => {
@@ -49,4 +57,16 @@ describe('connectionStatus (L2-018)', () => {
       tone: 'wait',
     });
   });
+
+  it.each(['unsupported', 'insecure'] as const)(
+    'reads Bluetooth · Unavailable in this browser when the page cannot reach it (%s, L2-089)',
+    (support) => {
+      expect(connectionStatus(testState(), 'open', false, support)).toEqual({
+        name: 'Bluetooth',
+        label: 'Unavailable in this browser',
+        icon: 'bluetooth-off',
+        tone: 'wait',
+      });
+    },
+  );
 });

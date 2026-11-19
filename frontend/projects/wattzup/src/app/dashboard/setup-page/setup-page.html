@@ -14,6 +14,7 @@
       ><wz-icon name="close" size="sm" />Close</a
     >
   </header>
+  <wz-support-banner />
   <div class="setup-layout">
     <main id="main" class="setup-main" tabindex="-1" [attr.aria-busy]="loading() ? 'true' : null">
       <div class="setup-main__inner">
@@ -170,14 +171,18 @@
       <button
         class="btn btn--volt btn--xl btn--block"
         type="button"
-        [disabled]="loading() || busy() || links().length > 0"
+        [disabled]="loading() || busy() || links().length > 0 || startBlocked() !== null"
         [attr.aria-busy]="busy() ? 'true' : null"
-        [attr.aria-describedby]="links().length ? 'start-hint' : null"
+        [attr.aria-describedby]="
+          startBlocked() !== null ? 'start-blocked' : links().length ? 'start-hint' : null
+        "
         (click)="start()"
       >
         {{ busy() ? 'Starting…' : startError() ? 'Try again' : 'Start ride' }}
       </button>
-      @if (links().length) {
+      @if (startBlocked(); as hint) {
+        <p id="start-blocked" class="text-muted text-sm setup-start-hint">{{ hint }}</p>
+      } @else if (links().length) {
         <p id="start-hint" class="text-muted text-sm setup-start-hint">
           {{ startHint() }}
         </p>

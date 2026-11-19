@@ -1,6 +1,6 @@
 # 0004. Server-Sent Events and single-process in-memory state
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [0017](0017-browser-edition.md) (the browser edition has no event stream or server process)
 - **Date:** 2026-11-15
 
 ## Context

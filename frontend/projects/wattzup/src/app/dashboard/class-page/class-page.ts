@@ -14,7 +14,9 @@ import {
 import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { CLASS_API, type ClassEntry, WORKOUT_API } from '@wattzup/api';
+import { BIKE_PAIRING, CLASS_API, type ClassEntry, WORKOUT_API } from '@wattzup/api';
+import { supportNotice } from '../../core/support-notice';
+import { SupportBanner } from '../support-banner/support-banner';
 import { Alert, Icon, LevelRow, NumberStepper, StatusLine } from '@wattzup/components';
 import {
   cadenceLine,
@@ -41,13 +43,23 @@ import { MotionPreference } from '../../core/motion-preference';
 import { previewOf } from '../../core/ride-preview';
 import { formatStart, linkError, parseStart, stepStart, videoIdOf } from '../../core/video-link';
 import { type PlayerHandle, YOUTUBE_PLAYER } from '../../core/youtube-player';
+import { OnlineStatus } from '../../core/online-status';
 
 type Phase = 'loading' | 'ready' | 'not-found';
 
 /** Route `/classes/:id`: one class, its video and plan, and Start ride (L2-080). */
 @Component({
   selector: 'wz-class-page',
-  imports: [Alert, ClassNotFound, Icon, LevelRow, NumberStepper, RouterLink, StatusLine],
+  imports: [
+    Alert,
+    ClassNotFound,
+    Icon,
+    LevelRow,
+    NumberStepper,
+    RouterLink,
+    StatusLine,
+    SupportBanner,
+  ],
   templateUrl: './class-page.html',
   styleUrl: './class-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,6 +70,8 @@ export class ClassPage {
 
   private readonly classes = inject(CLASS_API);
   private readonly players = inject(YOUTUBE_PLAYER);
+  /** Offline, the frame says the video cannot play instead of mounting the player (L2-098 AC1). */
+  protected readonly online = inject(OnlineStatus).online;
   private readonly title = inject(Title);
   private readonly live = inject(LiveStateService);
   private readonly workouts = inject(WORKOUT_API);
@@ -71,6 +85,12 @@ export class ClassPage {
   protected readonly entry = signal<ClassEntry | null>(null);
   protected readonly draft = signal<ClassDraft | null>(null);
   protected readonly busy = signal(false);
+  /** Why Start ride is disabled when the browser cannot reach Bluetooth (L2-089 AC1, AC3). */
+  protected readonly startBlocked = computed(
+    () => supportNotice(this.pairing.support(), '')?.startHint ?? null,
+  );
+  private readonly pairing = inject(BIKE_PAIRING);
+
   protected readonly startFailed = signal(false);
 
   protected readonly preview = computed(() => {

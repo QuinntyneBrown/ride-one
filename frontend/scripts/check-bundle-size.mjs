@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const LIMIT = 300 * 1024;
-const dir = 'dist/wattzup/browser';
+const dir = process.argv[2] ?? 'dist/wattzup/browser';
 const html = readFileSync(join(dir, 'index.html'), 'utf8');
 const files = [
   ...html.matchAll(/<script[^>]+src="([^"]+)"/g),

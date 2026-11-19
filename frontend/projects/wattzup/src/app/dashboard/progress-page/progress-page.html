@@ -59,7 +59,15 @@
               </p>
               <div class="empty__actions">
                 <a class="btn btn--primary" routerLink="/classes">Find a class</a>
+                @if (keepsHistory) {
+                  <wz-history-import describedBy="import-hint" (pick)="importHistory($event)" />
+                }
               </div>
+              @if (keepsHistory) {
+                <p class="history__hint" id="import-hint">
+                  Moving from another device? Import the history you exported there.
+                </p>
+              }
             </div>
           } @else {
             <div class="history__grid">
@@ -121,6 +129,13 @@
                   <wz-streak-calendar [view]="s" />
                 }
                 <wz-achievement-list [achievements]="achievements()" />
+                @if (history(); as h) {
+                  <wz-device-history
+                    [view]="h"
+                    (exportHistory)="exportHistory()"
+                    (importFile)="importHistory($event)"
+                  />
+                }
               </aside>
             </div>
           }

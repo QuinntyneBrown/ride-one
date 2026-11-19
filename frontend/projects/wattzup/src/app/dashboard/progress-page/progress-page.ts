@@ -8,9 +8,17 @@ import {
   viewChildren,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { SESSION_API, type ProgressReport, type SessionSummary } from '@wattzup/api';
+import {
+  EDITION,
+  SESSION_API,
+  SESSION_ARCHIVE,
+  type ProgressReport,
+  type SessionSummary,
+} from '@wattzup/api';
 import {
   AchievementList,
+  DeviceHistory,
+  HistoryImport,
   Icon,
   SessionList,
   StreakCalendar,
@@ -28,6 +36,14 @@ import {
   streakView,
   trendView,
 } from '../../core/progress-view';
+import {
+  deviceHistoryView,
+  exportFileName,
+  IMPORT_FAILED,
+  importToast,
+} from '../../core/history-view';
+import { saveFile } from '../../core/save-file';
+import { ToastService } from '../../core/toast.service';
 
 type Phase = 'loading' | 'ready' | 'error';
 
@@ -37,7 +53,16 @@ const RADIO_KEYS: Record<string, string> = { ArrowDown: 'ArrowRight', ArrowUp: '
 /** Route `/progress`: the trend, every saved session, the streak and the achievements (L2-086). */
 @Component({
   selector: 'wz-progress-page',
-  imports: [AchievementList, Icon, RouterLink, SessionList, StreakCalendar, TrendChart],
+  imports: [
+    AchievementList,
+    DeviceHistory,
+    HistoryImport,
+    Icon,
+    RouterLink,
+    SessionList,
+    StreakCalendar,
+    TrendChart,
+  ],
   templateUrl: './progress-page.html',
   styleUrl: './progress-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,6 +70,12 @@ const RADIO_KEYS: Record<string, string> = { ArrowDown: 'ArrowRight', ArrowUp: '
 export class ProgressPage {
   private readonly sessions = inject(SESSION_API);
   private readonly router = inject(Router);
+  private readonly toasts = inject(ToastService);
+  /** The history file, in the browser edition only (L2-094). */
+  private readonly archive =
+    inject(EDITION) === 'browser' ? inject(SESSION_ARCHIVE, { optional: true }) : null;
+  protected readonly keepsHistory = this.archive !== null;
+  private readonly lastExportedAt = signal(this.archive?.lastExportedAt() ?? null);
   private readonly classButtons = viewChildren<ElementRef<HTMLButtonElement>>('classButton');
   private readonly measureButtons = viewChildren<ElementRef<HTMLButtonElement>>('measureButton');
 
@@ -85,8 +116,32 @@ export class ProgressPage {
     (this.progress()?.achievements ?? []).map(achievementView),
   );
 
+  /** Your history, in the browser edition (L2-094 AC4). */
+  protected readonly history = computed(() =>
+    this.archive ? deviceHistoryView(this.total(), this.lastExportedAt(), Date.now()) : null,
+  );
+
   constructor() {
     void this.load();
+  }
+
+  /** Saves the history as wattzup-sessions-<date>.json (L2-094 AC5). */
+  protected async exportHistory(): Promise<void> {
+    if (!this.archive) return;
+    saveFile(await this.archive.exportAll(), exportFileName(Date.now()));
+    this.lastExportedAt.set(this.archive.lastExportedAt());
+  }
+
+  /** Adds a history file's new rides and says what happened (L2-094 AC5, AC6). */
+  protected async importHistory(file: File): Promise<void> {
+    if (!this.archive) return;
+    try {
+      const result = await this.archive.importFile(file);
+      this.toasts.show(importToast(result, file.name));
+      if (result !== 'not-a-history' && result.added > 0) await this.load();
+    } catch {
+      this.toasts.show(IMPORT_FAILED);
+    }
   }
 
   /** Both requests together; Try again repeats both (AC10). */

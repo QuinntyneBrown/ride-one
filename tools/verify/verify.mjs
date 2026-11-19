@@ -65,6 +65,7 @@ const web = async () => {
     step('unit tests', 'npm test', frontend),
     (async () => {
       await step('production build and budget', 'npm run build', frontend);
+      await step('browser edition build and budget', 'npm run build:browser', frontend);
       await step('behaviour specs', 'npm run e2e', frontend);
     })(),
   ]);

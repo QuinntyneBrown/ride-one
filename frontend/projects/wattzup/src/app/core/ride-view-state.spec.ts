@@ -55,6 +55,17 @@ describe('rideViewState (L2-058)', () => {
     expect(rideViewState(testState({ ble: 'scanning' }), 'open', false).overlay).toBe('scanning');
   });
 
+  it('6a. no bike chosen in the browser edition shows Connect your bike (L2-090 AC1)', () => {
+    const s = testState({ ble: 'disconnected', device: null });
+    expect(rideViewState(s, 'open', false, true).overlay).toBe('connect-bike');
+    expect(rideViewState(s, 'open', false).overlay).toBeNull();
+  });
+
+  it('6b. Bluetooth off outranks Connect your bike', () => {
+    const s = testState({ adapter: 'off', ble: 'error' });
+    expect(rideViewState(s, 'open', false, true).overlay).toBe('adapter-off');
+  });
+
   it('7. connected with no workout: no overlay, commands on, Pause and End off', () => {
     expect(rideViewState(testState({ workout: null }), 'open', false)).toMatchObject({
       view: 'ride',
@@ -91,5 +102,21 @@ describe('rideViewState (L2-058)', () => {
     expect(
       rideViewState(testState({ workout: testWorkout({ status }) }), 'open', false).pauseEnabled,
     ).toBe(enabled);
+  });
+
+  it.each([
+    ['unsupported', 'browser-unsupported'],
+    ['insecure', 'browser-insecure'],
+  ] as const)(
+    'a browser that cannot reach Bluetooth (%s) wins over every other overlay (L2-089)',
+    (support, overlay) => {
+      const state = testState({ adapter: 'off', ble: 'disconnected', device: null });
+      expect(rideViewState(state, 'open', false, true, support).overlay).toBe(overlay);
+    },
+  );
+
+  it('Bluetooth off wins over Connect bike in the browser edition (L2-089 AC2)', () => {
+    const state = testState({ adapter: 'off', ble: 'disconnected', device: null });
+    expect(rideViewState(state, 'open', false, true, 'ready').overlay).toBe('adapter-off');
   });
 });

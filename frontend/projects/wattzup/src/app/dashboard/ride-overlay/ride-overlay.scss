@@ -27,6 +27,9 @@
   color: var(--color-fg-heart);
   margin-bottom: var(--space-2);
 }
+.overlay-panel__icon--warn {
+  color: var(--color-fg-warn);
+}
 .overlay-panel__icon--ok {
   color: var(--color-fg-accent);
 }
@@ -36,7 +39,9 @@
 .overlay-panel__card p {
   font: var(--text-body-sm);
   color: var(--color-fg-muted);
+  overflow-wrap: anywhere;
 }
+.overlay-panel__actions,
 .cluster {
   display: flex;
   flex-wrap: wrap;

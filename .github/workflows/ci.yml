@@ -77,6 +77,8 @@ jobs:
         run: npm test
       - name: Production build and 300 KB gzipped budget
         run: npm run build
+      - name: Browser edition build and 300 KB gzipped budget
+        run: npm run build:browser
 
   e2e:
     name: Behaviour specs (${{ matrix.shard }}/2)

@@ -36,3 +36,5 @@ export * from './lib/trend-chart/trend-chart';
 export * from './lib/session-list/session-list';
 export * from './lib/streak-calendar/streak-calendar';
 export * from './lib/achievement-list/achievement-list';
+export * from './lib/device-history/device-history';
+export * from './lib/device-history/history-import';

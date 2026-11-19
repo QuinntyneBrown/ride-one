@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Keep sessions in the browser
+
+Person(rider, "Rider", "Rides, reviews sessions, exports and imports history")
+System(wattzup, "Wattzup browser edition", "Saves sessions and computes Progress in the browser")
+System_Ext(backend, "Wattzup backend edition", "Its sessions.json can be imported")
+Rel(rider, wattzup, "Rides and reviews")
+Rel(rider, backend, "Copies sessions.json from")
+Rel(rider, wattzup, "Imports and exports history files")
+@enduml

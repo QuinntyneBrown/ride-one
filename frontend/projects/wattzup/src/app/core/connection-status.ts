@@ -1,5 +1,10 @@
 // The app bar's status line (L2-018). First matching row wins.
-import type { BikeState, StreamConnection } from '@wattzup/api';
+import {
+  BIKE_PAIRING,
+  type BikeState,
+  type BluetoothSupport,
+  type StreamConnection,
+} from '@wattzup/api';
 import { computed, inject, type Signal } from '@angular/core';
 import type { ConnectionStatus, StatusIcon, StatusTone } from '@wattzup/components';
 import { LiveStateService } from './live-state.service';
@@ -9,14 +14,27 @@ export type { ConnectionStatus, StatusIcon, StatusTone };
 /** The live connection status for a status line; call it in an injection context. */
 export function liveConnectionStatus(): Signal<ConnectionStatus> {
   const live = inject(LiveStateService);
-  return computed(() => connectionStatus(live.state(), live.connection(), live.loadFailed()));
+  const pairing = inject(BIKE_PAIRING);
+  return computed(() =>
+    connectionStatus(live.state(), live.connection(), live.loadFailed(), pairing.support()),
+  );
 }
 
 export function connectionStatus(
   state: BikeState | null,
   connection: StreamConnection,
   loadFailed: boolean,
+  support: BluetoothSupport = 'ready',
 ): ConnectionStatus {
+  if (support !== 'ready') {
+    // No Web Bluetooth here, or not on HTTPS (L2-089 AC1, AC3).
+    return {
+      name: 'Bluetooth',
+      label: 'Unavailable in this browser',
+      icon: 'bluetooth-off',
+      tone: 'wait',
+    };
+  }
   if (connection === 'offline') {
     return { name: 'Server offline', label: 'Retrying…', icon: 'wifi-off', tone: 'bad' };
   }
@@ -36,6 +54,10 @@ export function connectionStatus(
     case 'connecting':
       return { name: label, label: 'Connecting…', icon: 'bluetooth', tone: 'wait' };
     case 'disconnected':
+      // No bike chosen yet in the browser edition: nothing has gone wrong (L2-090 AC1).
+      if (state.device === null) {
+        return { name: 'No bike connected', label: '', icon: 'bluetooth', tone: 'quiet' };
+      }
       return { name: label, label: 'Disconnected', icon: 'bluetooth-off', tone: 'bad' };
     default:
       return { name: 'Bike status', label: 'Error', icon: 'bluetooth-off', tone: 'bad' };

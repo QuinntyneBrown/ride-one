@@ -1,0 +1,74 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Build and host the browser edition
+
+package "@wattzup/api" {
+  interface BikeApi
+  interface WorkoutApi
+  interface ClassApi
+  interface SessionApi
+  interface LiveStateSource {
+    +state: Signal<BikeState | null>
+    +connection: Signal<StreamConnection>
+    +ensureStarted(): void
+  }
+  interface BikePairing {
+    +support: Signal<BluetoothSupport>
+    +required: Signal<boolean>
+    +pair(): Promise<'paired' | 'cancelled'>
+  }
+  interface SessionArchive {
+    +exportAll(): Promise<Blob>
+    +importFile(file: File): Promise<ImportReport>
+  }
+  class EDITION <<InjectionToken>> {
+    'backend' | 'browser'
+  }
+}
+
+package "@wattzup/browser" {
+  class "Shared services" as Shared <<provideBrowserEdition()>> {
+    +BikeStateStore
+    +BikeLink
+    +WorkoutEngine
+    +SessionStore
+  }
+  class BrowserBikeApi
+  class BrowserWorkoutApi
+  class BrowserClassApi
+  class BrowserSessionApi
+  class BrowserStateSource
+  class BrowserBikePairing
+  class BrowserSessionArchive
+  class "provideBrowserEdition()" as provide <<function>> {
+    +returns: Provider[]
+  }
+}
+
+package "wattzup app" {
+  class "app.config.browser.ts" as root <<composition root>>
+}
+
+BrowserBikeApi ..|> BikeApi
+BrowserWorkoutApi ..|> WorkoutApi
+BrowserClassApi ..|> ClassApi
+BrowserSessionApi ..|> SessionApi
+BrowserStateSource ..|> LiveStateSource
+BrowserBikePairing ..|> BikePairing
+BrowserSessionArchive ..|> SessionArchive
+BrowserBikeApi --> Shared
+BrowserWorkoutApi --> Shared
+BrowserStateSource --> Shared
+BrowserBikePairing --> Shared
+root ..> provide : calls
+provide ..> EDITION : provides 'browser'
+@enduml

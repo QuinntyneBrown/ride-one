@@ -38,7 +38,11 @@ export type IconName =
   | 'search'
   | 'chevron-right'
   | 'trending-up'
-  | 'grid';
+  | 'grid'
+  | 'monitor-off'
+  | 'lock'
+  | 'download'
+  | 'upload';
 
 /** The mocks' stroke icons, always decorative (`aria-hidden`). */
 @Component({

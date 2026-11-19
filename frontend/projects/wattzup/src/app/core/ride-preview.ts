@@ -30,14 +30,18 @@ export function profileTone(kind: SegmentKind): ProfileTone {
 }
 
 function profileOf(segments: readonly Segment[], height: (s: Segment) => number): ProfileBar[] {
-  const inset = 0.002 * totalSeconds(segments);
-  return segments.map((s) => ({
-    x: round2(s.start + inset),
-    width: round2(s.duration - 2 * inset),
-    y: PROFILE_HEIGHT - height(s),
-    height: height(s),
-    tone: profileTone(s.kind),
-  }));
+  const gap = 0.002 * totalSeconds(segments);
+  return segments.map((s) => {
+    // A segment shorter than the gaps keeps half its width, so no bar goes negative.
+    const inset = Math.min(gap, s.duration / 4);
+    return {
+      x: round2(s.start + inset),
+      width: round2(s.duration - 2 * inset),
+      y: PROFILE_HEIGHT - height(s),
+      height: height(s),
+      tone: profileTone(s.kind),
+    };
+  });
 }
 
 function common(plan: WorkoutPlan, segments: readonly Segment[], structure: string) {

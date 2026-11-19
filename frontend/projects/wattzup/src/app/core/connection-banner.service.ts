@@ -1,6 +1,6 @@
 // Holds banner history and dismissals; the rules live in connection-banners.ts (L2-054).
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
-import { type BikeState, SafeStorage } from '@wattzup/api';
+import { type BikeState, SafeStorage, EDITION } from '@wattzup/api';
 import { type BannerId, banners, isReconnect } from './connection-banners';
 import { LiveStateService } from './live-state.service';
 import { clockTime } from './local-time';
@@ -11,6 +11,7 @@ export const RECONNECTED_MS = 4000;
 @Injectable({ providedIn: 'root' })
 export class ConnectionBannerService {
   private readonly live = inject(LiveStateService);
+  private readonly edition = inject(EDITION);
   private readonly storage = new SafeStorage(() => sessionStorage);
   private readonly dismissed = signal<ReadonlySet<BannerId>>(this.loadDismissed());
   private readonly reconnected = signal<{
@@ -29,6 +30,7 @@ export class ConnectionBannerService {
       lastStateTime: at ? clockTime(at) : null,
       reconnected: this.reconnected(),
       dismissed: this.dismissed(),
+      edition: this.edition,
     });
   });
 

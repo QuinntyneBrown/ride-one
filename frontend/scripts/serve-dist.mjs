@@ -1,12 +1,17 @@
-// Serves the production build (dist/wattzup/browser) for the Playwright behaviour specs, falling back to
+// Serves a production build (dist/wattzup/browser, or the folder given) for the Playwright behaviour specs, falling back to
 // index.html for the app's routes. The specs answer every /api/** request themselves (e2e/fixtures), so this
-// server never proxies. Usage: node scripts/serve-dist.mjs [port]
+// server never proxies. Usage: node scripts/serve-dist.mjs [port] [folder]
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = fileURLToPath(new URL('../dist/wattzup/browser/', import.meta.url));
+const root = fileURLToPath(
+  new URL(
+    `../${(process.argv[3] ?? 'dist/wattzup/browser').replace(/\/?$/, '/')}`,
+    import.meta.url,
+  ),
+);
 const port = Number(process.argv[2] ?? 4300);
 const types = {
   '.html': 'text/html; charset=utf-8',

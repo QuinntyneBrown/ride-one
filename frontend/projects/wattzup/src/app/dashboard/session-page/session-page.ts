@@ -11,8 +11,16 @@ import {
 } from '@angular/core';
 import { Location } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { SESSION_API, type ProgressReport, type SessionDetail } from '@wattzup/api';
+import {
+  EDITION,
+  type ProgressReport,
+  SESSION_API,
+  SESSION_ARCHIVE,
+  type SessionDetail,
+} from '@wattzup/api';
 import { DipList, Icon, SessionTraces, StatStrip, WeekStrip } from '@wattzup/components';
+import { NOT_KEPT } from '../../core/history-view';
+import { ToastService } from '../../core/toast.service';
 import {
   calendarOf,
   dateLine,
@@ -44,6 +52,10 @@ export class SessionPage {
   readonly id = input.required<string>();
 
   private readonly location = inject(Location);
+  private readonly toasts = inject(ToastService);
+  /** The browser edition's history, to warn about a ride it could not keep (L2-094 AC7). */
+  private readonly archive =
+    inject(EDITION) === 'browser' ? inject(SESSION_ARCHIVE, { optional: true }) : null;
   private readonly arrival = this.location.getState() as Record<string, unknown> | null;
   /** Set by End ride and the ride overlays; cleared once shown, so a reload reads All sessions (AC2). */
   protected readonly justFinished = this.arrival?.['justFinished'] === true;
@@ -101,6 +113,9 @@ export class SessionPage {
       }
       this.loaded.set({ session, progress });
       this.phase.set('ready');
+      if (this.justFinished && this.archive && !this.archive.isSaved(id)) {
+        this.toasts.show(NOT_KEPT);
+      }
     } catch {
       this.phase.set('error');
     }

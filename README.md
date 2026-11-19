@@ -14,8 +14,13 @@ Low Energy, shows its metrics in real time (cadence, speed and resistance), and 
 workouts that set the bike's resistance for the rider, with a countdown clock and cues at every
 step.
 
-Wattzup runs as a single process on the computer next to the bike: an ASP.NET Core backend that
-talks to the bike and serves an Angular dashboard from the same origin.
+Wattzup comes in two editions of the same app ([ADR 0017](docs/adr/0017-browser-edition.md)):
+
+- The **backend edition** runs as a single process on the computer next to the bike: an ASP.NET
+  Core backend that talks to the bike and serves an Angular dashboard from the same origin.
+- The **browser edition** is that dashboard alone, served as static files. It talks to the bike
+  over Web Bluetooth and keeps everything in the browser. It needs Chrome or Edge; see
+  [Run in the browser](#run-in-the-browser).
 
 ## Contents
 
@@ -49,6 +54,8 @@ talks to the bike and serves an Angular dashboard from the same origin.
 - **Simulated bike.** Run every feature end to end without hardware (`--simulate`).
 - **Diagnostics.** A rolling raw packet log and a `status.json` snapshot of the live state.
 - **Secure by default.** Listens on loopback only; sharing on a network requires an API key.
+- **Browser edition.** The same dashboard with no backend to install: Web Bluetooth, rides kept in
+  the browser with export and import, installable and usable offline.
 
 ## Project status
 
@@ -180,6 +187,53 @@ dotnet run --project backend/src/Wattzup.Api -- --Wattzup:Urls=http://0.0.0.0:87
 
 The dashboard asks for the key once per browser session, and every `/api` request then requires it.
 
+### Run in the browser
+
+The browser edition needs Chrome or Edge on Windows, macOS, Linux, ChromeOS or Android, a page
+served over HTTPS or from `http://localhost`, and Bluetooth turned on. Safari, Firefox and every
+browser on iOS have no Web Bluetooth; the dashboard says so instead of offering **Connect bike**.
+
+```shell
+cd frontend && npm ci
+npm start -- --configuration browser      # development: http://localhost:4200
+npm run build:browser                     # production: dist/wattzup-browser/browser
+```
+
+Press **Connect bike** and pick the bike in the browser's device list; the browser remembers it,
+and where it can, Wattzup reconnects to it on the next visit once the bike wakes. In a development
+build, open `http://localhost:4200/?simulate` to ride the simulated bike, `ECHSIM-0001`, instead.
+A production build ignores `?simulate`.
+
+`npm run build:browser` copies `backend/src/Wattzup.Api/classes.json` beside `index.html`, so the
+browser edition offers the same classes; edit that file before building to change them. Rides are
+kept in this browser only (IndexedDB). **Export history** on Progress saves them to a file that
+**Import history** reads back, in either edition. **Download packet log** in Diagnostics saves the
+packets in the format of `raw_packets.log`.
+
+Serve `dist/wattzup-browser/browser` from any static host over HTTPS. The host must answer every
+path that is not a file with `index.html`, so links such as `/sessions/<id>` open. The page carries
+its Content-Security-Policy in a `<meta>` element; where the host can set headers, send it too,
+with the three that have no `<meta>` form ([ADR 0018](docs/adr/0018-static-content-security-policy.md)).
+For example, on Netlify:
+
+```text
+# _redirects
+/*  /index.html  200
+
+# _headers
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://www.youtube.com; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; img-src 'self' data: https://i.ytimg.com; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+```
+
+With nginx, `try_files $uri $uri/ /index.html;` does the fallback, and `add_header` sends the
+same headers.
+
+Once loaded, a service worker keeps the app, so it opens and rides without a connection; class
+videos and covers need one. A new version is fetched in the background and used from the next
+load, never in the middle of a ride. The browser can install the edition as an app.
+
 ## Configuration
 
 Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environment variables
@@ -210,6 +264,10 @@ Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environm
 | `Wattzup:Sessions:Path` | `sessions.json` | The saved rides (L2-082, ADR 0015): a ride of a minute or more is kept here when it ends, newest first, the newest 500. A relative path resolves against the content root. Each save writes a temporary file and moves it over the old one. A file that cannot be read at start is renamed to `<file>.unreadable` and Wattzup starts with no sessions; a failed write is logged and never stops a ride ending. Back the file up with the rest of your data; keep it outside the app folder if an update replaces that folder. Environment variable `WATTZUP__SESSIONS__PATH`. |
 | `Wattzup:StatusSnapshot:MinInterval` | `00:00:00.500` | The minimum time between two writes; the final state is always written. |
 
+The browser edition has none of these settings. Its one option is `?simulate` in the page address,
+which a development build (`npm start -- --configuration browser`) honours by connecting to the
+simulated bike; a production build ignores it.
+
 The raw packet log and the status snapshot are written to the content root
 (`backend/src/Wattzup.Api/` under `dotnet run`) unless configured otherwise. Both are git-ignored.
 
@@ -220,9 +278,10 @@ The raw packet log and the status snapshot are written to the content root
 | Build the backend | `dotnet build backend/Wattzup.sln` | Every project; warnings are errors |
 | Test the backend | `dotnet test backend/Wattzup.sln` | xUnit unit tests for protocol and core rules, and acceptance tests through the API with `WebApplicationFactory`, the simulated bike and `FakeTimeProvider` |
 | Check formatting and lint | `cd frontend && npm run format:check && npm run lint` | Prettier and angular-eslint |
-| Test the dashboard | `cd frontend && npm test` | Unit tests of all three frontend projects (`components`, `api`, `wattzup`) |
+| Test the dashboard | `cd frontend && npm test` | Unit tests of all four frontend projects (`components`, `api`, `browser`, `wattzup`) |
 | Build the dashboard | `cd frontend && npm run build` | Production build and the 300 KB gzipped initial bundle budget |
-| Run the behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium, with every `/api` request and the event stream stubbed |
+| Build the browser edition | `cd frontend && npm run build:browser` | Static files in `dist/wattzup-browser/browser`, with the same budget |
+| Run the behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium: the backend edition with every `/api` request and the event stream stubbed, and the browser edition against a fake `navigator.bluetooth` |
 
 No automated test uses a real bike or Bluetooth. The accessibility, responsive and visual sweeps
 (`npm run e2e:sweeps`) are maintained but run only on request.
@@ -252,7 +311,7 @@ wattzup/
 │       ├── Wattzup.Protocol.Tests/
 │       ├── Wattzup.Core.Tests/
 │       └── Wattzup.Api.AcceptanceTests/
-├── frontend/                        The Angular dashboard and its Playwright specs
+├── frontend/                        The Angular dashboard, in both editions, and its Playwright specs
 ├── docs/
 │   ├── journeys.md                  The user journeys, by value add
 │   ├── videos/                      A narrated film of each journey
