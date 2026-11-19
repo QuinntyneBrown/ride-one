@@ -29,6 +29,13 @@ describe('banners', () => {
     expect(b.action?.kind).toBe('diagnostics');
   });
 
+  it('names ?simulate in the browser edition (L2-099)', () => {
+    const state = testState({ simulated: true });
+    expect(banners({ ...base, state, edition: 'browser' })[0].text).toBe(
+      'No hardware connected — Wattzup was opened with ?simulate and is generating cadence and resistance.',
+    );
+  });
+
   it('shows the exposed and simulated banners until dismissed', () => {
     const state = testState({ exposed: true, simulated: true, bind_address: '0.0.0.0:8787' });
     expect(banners({ ...base, state }).map((b) => b.id)).toEqual(['exposed', 'simulated']);

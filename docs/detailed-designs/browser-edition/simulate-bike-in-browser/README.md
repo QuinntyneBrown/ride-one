@@ -14,19 +14,19 @@ Every feature of the backend edition runs end to end without a bike through `Sim
 
 Development simulation:
 
-- **`SimulatedBluetoothPort`** (`@wattzup/browser`, `lib/bluetooth/`) — implements `BluetoothPort`. `requestBike()` answers the simulated bike at once, with no chooser; `knownBikes()` answers it too, so a reload reconnects. Its `GattLink` mirrors `SimulatedBikeConnection`: a `0xD1` frame each second on `Clock` with the simulated cadence, and a `0xD2` frame echoing each `setResistance` write, with the same bytes as the .NET simulator. `supportVerdict` is `ready` (L2-099 criterion 1).
-- **Selection** — `provideBrowserEdition()` binds `BluetoothPort` to `SimulatedBluetoothPort` when `isDevMode()` is `true` and the URL holds `simulate`; otherwise to `WebBluetoothPort`. Production builds (`isDevMode()` `false`) never construct the simulator, and the bundler drops it from the production bundle (L2-099 criterion 1). `simulated` in the state is `true` while it is bound, so the status line shows the simulator as the backend edition does.
+- **`SimulatedBluetoothPort`** (`@wattzup/browser`, `lib/bluetooth/`) — implements `BluetoothPort`. `requestBike()` answers the simulated bike `ECHSIM-0001` at once, with no chooser. Its `GattLink` mirrors `SimulatedBikeConnection`: a `0xD1` frame each second on `Clock` with the simulated cadence (85 rpm), and a `0xD2` frame echoing each `setResistance` write, with the same bytes as the .NET simulator (L2-099 criterion 1).
+- **Selection** — `provideBrowserEdition()` binds `BluetoothPort` to `SimulatedBluetoothPort` when `simulateRequested(isDevMode(), location.search)` is `true` (a development build whose address holds the `simulate` parameter); otherwise to `WebBluetoothPort`. Production builds (`isDevMode()` `false`) never construct the simulator; its class, a few hundred bytes, stays in the bundle (L2-099 criterion 1). `simulated` in the state is `true` while it is bound, so the dashboard shows the *Simulated bike* banner as the backend edition does, worded for the browser: `Wattzup was opened with ?simulate` (the `info` connection-banner mock).
 
 Behaviour specs:
 
-- **`fake-bluetooth.ts`** (`frontend/e2e/fixtures/`) — an `addInitScript` that replaces `navigator.bluetooth` and `isSecureContext` before the app loads. It exposes, through `page.exposeFunction` and `page.evaluate`:
+- **`fake-bluetooth.ts`** (`frontend/e2e/browser/fixtures/`) — an `addInitScript` that replaces `navigator.bluetooth` and `isSecureContext` before the app loads. It exposes, through `page.exposeFunction` and `page.evaluate`:
   - `bluetooth.offer(device)` and `bluetooth.cancelNext()` — what the next `requestDevice` answers;
   - `bluetooth.notify(bytes)` — push a notification on the notify characteristic;
   - `bluetooth.disconnect()` — fire `gattserverdisconnected`;
   - `bluetooth.failNext(name, message)` — reject the next call with a DOMException;
   - `bluetooth.writes` — every write with its bytes and time, and every `requestDevice` call with its filters.
   Any call it has no script for (another service, `getDevices` when not offered, a write before subscribe) fails the spec with the call named (L2-099 criterion 2).
-- **`wz-browser-test.ts`** (`frontend/e2e/fixtures/`) — the browser-edition `test`: it installs `fake-bluetooth.ts` and `fake-youtube.ts`, serves `classes.json` from a recorded fixture, routes `**/api/**` to a failure, and fails the spec on any request to another origin (L2-088 criterion 2). Specs in `frontend/e2e/browser/` import `test` and `expect` from it and use the same page objects as the backend-edition specs.
+- **`browser-test.ts`** (`frontend/e2e/browser/fixtures/`) — the browser-edition `test`: it installs `fake-bluetooth.ts` and `fake-youtube.ts`, routes `**/api/**` to a failure, fails the spec on an error in the page's console, and fails the spec on any request to another origin (L2-088 criterion 2). Specs in `frontend/e2e/browser/` import `test` and `expect` from it and use their own page objects in `e2e/browser/pages/`; a spec that needs a catalogue serves its own `classes.json`, otherwise the build's copy answers. `simulate.spec.ts` proves the production build ignores `?simulate`.
 - **Playwright project** — `playwright.config.ts` gains a `browser-edition` project that serves `dist/wattzup-browser/browser` with `scripts/serve-dist.mjs` and runs `e2e/browser/`; Chromium only, as for every spec.
 
 Unit tests:

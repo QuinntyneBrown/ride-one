@@ -12,7 +12,7 @@ Container_Boundary(app, "Wattzup Web, browser edition") {
 }
 Container_Boundary(fx, "Playwright fixtures") {
   Component(fake, "fake-bluetooth.ts", "Init script", "Scripted navigator.bluetooth; records writes")
-  Component(wzb, "wz-browser-test.ts", "Fixture", "test and expect for e2e/browser specs")
+  Component(wzb, "browser-test.ts", "Fixture", "test and expect for e2e/browser specs")
 }
 Rel(provide, web, "Binds in production or without ?simulate")
 Rel(provide, sim, "Binds when isDevMode() and ?simulate")

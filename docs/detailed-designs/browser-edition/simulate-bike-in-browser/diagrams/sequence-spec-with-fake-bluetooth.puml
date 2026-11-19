@@ -7,7 +7,7 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 participant "Spec (e2e/browser)" as spec
 box "Test — Playwright fixtures" #FFF4E5
-  participant "wz-browser-test" as fx
+  participant "browser-test" as fx
   participant "fake-bluetooth.ts" as fake
 end box
 box "Frontend — Wattzup Web, browser edition" #E0F2FE

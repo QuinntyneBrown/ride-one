@@ -43,8 +43,8 @@ export class BrowserRidePage {
     return this.page.locator('.metrics > div').filter({ hasText: term }).locator('dd');
   }
 
-  async open(): Promise<void> {
-    await this.page.goto('/');
+  async open(query = ''): Promise<void> {
+    await this.page.goto(`/${query}`);
   }
 
   async connect(): Promise<void> {

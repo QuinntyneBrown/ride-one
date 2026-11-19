@@ -1,5 +1,5 @@
 // Which connection banners show (L2-054). Pure: the service supplies time, history and dismissals.
-import type { BikeState, StreamConnection } from '@wattzup/api';
+import type { BikeState, StreamConnection, Edition } from '@wattzup/api';
 import { formatDuration } from './format-duration';
 import { isActive } from './workout-status';
 
@@ -23,6 +23,8 @@ export interface BannerInput {
   lastStateTime: string | null;
   reconnected: { label: string; elapsed: number; level: number | null } | null;
   dismissed: ReadonlySet<BannerId>;
+  /** How the simulator was asked for differs: --simulate on the backend, ?simulate in the browser. */
+  edition?: Edition;
 }
 
 export function banners(input: BannerInput): Banner[] {
@@ -80,7 +82,10 @@ export function banners(input: BannerInput): Banner[] {
       tone: 'info',
       icon: 'info',
       title: 'Simulated bike',
-      text: 'No hardware connected — Wattzup started with --simulate and is generating cadence and resistance.',
+      text:
+        input.edition === 'browser'
+          ? 'No hardware connected — Wattzup was opened with ?simulate and is generating cadence and resistance.'
+          : 'No hardware connected — Wattzup started with --simulate and is generating cadence and resistance.',
       action: null,
       dismissable: true,
     });
