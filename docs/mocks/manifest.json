@@ -109,7 +109,8 @@
         "L2-040",
         "L2-041",
         "L2-089",
-        "L2-088"
+        "L2-088",
+        "L2-098"
       ],
       "states": [
         "default",
@@ -122,7 +123,8 @@
         "error",
         "not-found",
         "browser-unsupported",
-        "browser-insecure"
+        "browser-insecure",
+        "offline"
       ],
       "not_applicable": {
         "empty": "A class always has a plan; an unknown class is the not-found state."
