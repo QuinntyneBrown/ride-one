@@ -8,6 +8,7 @@ import type { GattLink } from '../bluetooth/bluetooth-port';
 import { CLOCK } from '../bluetooth/clock';
 import { FakeClock } from '../bluetooth/fake-clock';
 import { BikeStateStore } from './bike-state-store';
+import { BROWSER_LOG } from './browser-log';
 import { ResistanceCommander } from './resistance-commander';
 
 function setUp(gatt: GattLink | null) {
@@ -17,6 +18,14 @@ function setUp(gatt: GattLink | null) {
       ResistanceCommander,
       { provide: CLOCK, useValue: new FakeClock(1_794_784_639_021) },
       { provide: BikeLink, useValue: { connection: () => gatt } },
+      {
+        provide: BROWSER_LOG,
+        useValue: {
+          info: () => undefined,
+          warn: (m: string) => warned.push(m),
+          debug: () => undefined,
+        },
+      },
     ],
   });
   return {
@@ -26,6 +35,7 @@ function setUp(gatt: GattLink | null) {
 }
 
 const writes: string[] = [];
+const warned: string[] = [];
 const gatt = (fails = false): GattLink => ({
   startNotifications: async () => undefined,
   write: async (bytes) => {
@@ -36,7 +46,16 @@ const gatt = (fails = false): GattLink => ({
 });
 
 describe('ResistanceCommander', () => {
-  beforeEach(() => (writes.length = 0));
+  beforeEach(() => {
+    writes.length = 0;
+    warned.length = 0;
+  });
+
+  it('a failed write is logged with the level and the reason, as the backend logs it', async () => {
+    const { commander } = setUp(gatt(true));
+    await commander.send(13, 'manual', null);
+    expect(warned).toEqual(['Wattzup: set resistance 13 failed: GATT operation failed.']);
+  });
 
   it('writes set-resistance, logs it sending and sets the target', async () => {
     const { store, commander } = setUp(gatt());

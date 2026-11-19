@@ -18,6 +18,9 @@ export const INIT_COMMAND_SPACING_MS = 300;
 export const KEEPALIVE_INTERVAL_MS = 1000;
 /** The wait before a connection is tried again (L2-091 AC2, AC3). */
 export const RETRY_DELAY_MS = 3000;
+/** How long a connection step may take, as the backend's StepTimeout: a bike that never answers
+ * (asleep, out of range) fails the attempt and is retried rather than left connecting. */
+export const STEP_TIMEOUT_MS = 15_000;
 
 export type ReconnectResult = 'connecting' | 'already-connected' | 'no-bike';
 
@@ -90,7 +93,7 @@ export class BikeLink {
     const attempt = ++this.generation;
     this.store.update((s) => ({ ...s, ble: 'connecting', device: device.name, error: null }));
     try {
-      const gatt = this.logged(await device.connect());
+      const gatt = this.logged(await this.answered(device.connect()));
       if (attempt !== this.generation) {
         gatt.disconnect();
         return;
@@ -102,11 +105,13 @@ export class BikeLink {
         connection_id: ECHELON_UUIDS.connectionId,
       }));
       this.log.info(`Wattzup: connected to ${device.name}`);
-      await gatt.startNotifications((frame) => {
-        this.packets.received(this.clock.epochMs(), frame);
-        if (this.packets.everyPacket()) this.log.debug('Wattzup: packet', frame);
-        this.ingestor.onNotify(frame);
-      });
+      await this.answered(
+        gatt.startNotifications((frame) => {
+          this.packets.received(this.clock.epochMs(), frame);
+          if (this.packets.everyPacket()) this.log.debug('Wattzup: packet', frame);
+          this.ingestor.onNotify(frame);
+        }),
+      );
       for (const [i, command] of INIT_SEQUENCE.entries()) {
         if (i > 0) await this.clock.delay(INIT_COMMAND_SPACING_MS);
         if (attempt !== this.generation) return;
@@ -117,6 +122,14 @@ export class BikeLink {
       if (attempt !== this.generation) return;
       this.fail(device, e);
     }
+  }
+
+  /** `step`, or a TimeoutError once STEP_TIMEOUT_MS pass without an answer. */
+  private answered<T>(step: Promise<T>): Promise<T> {
+    const timeout = this.clock.delay(STEP_TIMEOUT_MS).then(() => {
+      throw new DOMException('The bike did not answer in time.', 'TimeoutError');
+    });
+    return Promise.race([step, timeout]);
   }
 
   /** `gattserverdisconnected`: the bike dropped the link (L2-091 AC2). */

@@ -7,6 +7,7 @@ import { CLOCK } from '../bluetooth/clock';
 import { messageOf } from '../bluetooth/error-text';
 import { setResistance } from '../protocol/echelon-commands';
 import { BikeStateStore } from './bike-state-store';
+import { BROWSER_LOG } from './browser-log';
 import { add, type CommandEntry, fail } from './command-log';
 
 export type SendResult =
@@ -17,6 +18,7 @@ export class ResistanceCommander {
   private readonly store = inject(BikeStateStore);
   private readonly link = inject(BikeLink);
   private readonly clock = inject(CLOCK);
+  private readonly log = inject(BROWSER_LOG);
   private queue: Promise<unknown> = Promise.resolve();
 
   /** Sends `level`; `rideSeconds` is the ride time logged with it, null with no workout. */
@@ -57,6 +59,8 @@ export class ResistanceCommander {
       await gatt.write(setResistance(level));
     } catch (e) {
       this.store.update((s) => ({ ...s, commands: fail(s.commands, entry) }));
+      // The rider sees a generic toast; the reason goes to the console, as the backend's to its log.
+      this.log.warn(`Wattzup: set resistance ${level} failed: ${messageOf(e)}`);
       return { kind: 'failed', message: messageOf(e) };
     }
     this.store.update((s) => ({ ...s, target_resistance: level }));

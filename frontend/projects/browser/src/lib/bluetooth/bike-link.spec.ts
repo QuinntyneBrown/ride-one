@@ -55,6 +55,8 @@ class FakePort implements BluetoothPort {
   strict = false;
   /** Errors the next connection attempts throw, in order. */
   readonly connectFailures: Error[] = [];
+  /** How many next connection attempts the bike never answers, as an asleep bike. */
+  connectHangs = 0;
   private readonly dropped: (() => void)[] = [];
 
   support(): 'ready' {
@@ -99,6 +101,10 @@ class FakePort implements BluetoothPort {
       name: 'ECHEX-3-141844',
       connect: async () => {
         this.log.push('connect');
+        if (this.connectHangs > 0) {
+          this.connectHangs--;
+          return new Promise<GattLink>(() => undefined);
+        }
         const failure = this.connectFailures.shift();
         if (failure) throw failure;
         return new FakeGatt(this.log, this.strict);
@@ -331,6 +337,23 @@ describe('BikeLink', () => {
     await clock.advance(3000);
     await clock.advance(600);
     expect(store.state()).toMatchObject({ ble: 'connected', error: null });
+  });
+
+  it('a connection the bike never answers gives up after 15 s and retries, as the backend (L2-091 AC3)', async () => {
+    const { port, clock, link, store } = setUp();
+    port.connectHangs = 1;
+    void link.pair();
+    await clock.advance(14_999);
+    expect(store.state().ble).toBe('connecting');
+    await clock.advance(1);
+    expect(store.state()).toMatchObject({
+      ble: 'error',
+      error: 'TimeoutError: The bike did not answer in time.',
+    });
+    await clock.advance(3000);
+    await clock.advance(600);
+    expect(store.state()).toMatchObject({ ble: 'connected', error: null });
+    expect(port.count('connect')).toBe(2);
   });
 
   it('Reconnect cancels the pending retry and connects at once (L2-091 AC5)', async () => {
