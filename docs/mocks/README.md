@@ -57,7 +57,7 @@ Every mock uses this cast.
   489 W, 97 rpm (aim 100), heart rate 162, avg power 172 W, 30.4 km/h, 4.61 km, 120 kcal. The invalid
   link is `https://vimeo.com/76979871`.
 - **Class library** (*Video Library* and *Video Workout* frames, 2026-11-17): six classes on three
-  shelves, as the default `classes.json` ships them (L2-077). Lengths, peaks and expected power are computed from each plan as the frames compute them.
+  shelves. The default `classes.json` ships these six, and the GCN Training classes beside them (L2-077). Lengths, peaks and expected power are computed from each plan as the frames compute them.
   - *20 min* (“Short and sharp — fits a lunch break.”): *20 Minute Power Intervals* (Wattzup Studio,
     VO₂ max, 6 × 1:00 / 1:00 at 22 / 7, 20:00, ~207 W) and *20 Min Threshold Builder* (Wattzup Studio,
     Threshold, 4 × 2:00 / 1:00 at 19 / 10, 20:00, ~230 W).
