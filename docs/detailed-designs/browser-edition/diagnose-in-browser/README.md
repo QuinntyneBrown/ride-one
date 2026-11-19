@@ -48,13 +48,13 @@ The app keeps the packets in memory and hands a file to the browser's download; 
 
 ### Components
 
-`BikeLink` appends to `RecentPacketBuffer`; `BrowserBikeApi` serves the lines to the dialog; `BrowserLog` writes to the console.
+`BikeLink` writes to `PacketLog`; the dialog reads its count and downloads it; `BROWSER_LOG` writes to the console.
 
 ![C4 component view for diagnosing in the browser](diagrams/c4-component.png)
 
 ### Class structure
 
-The buffer holds `RawPacket`s; the formatter turns them into log lines; `PacketDebugging` gates per-packet logging.
+`PacketLog` implements the `PACKET_LOG` contract and keeps `formatRawPacket` lines; its `everyPacket` switch gates the bike's packets, in the log and in the console.
 
 ![Class diagram for diagnosing in the browser](diagrams/class-structure.png)
 

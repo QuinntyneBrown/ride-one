@@ -17,7 +17,7 @@ box "Frontend — Wattzup Web, browser edition" #E0F2FE
 end box
 box "Frontend — @wattzup/browser" #ECFDF3
   participant "BrowserStateSource" as src
-  participant "BrowserBikeRuntime" as rt
+  participant "BikeStateStore" as rt
 end box
 
 rider -> sw : Open https://<host>/
@@ -31,7 +31,7 @@ sw --> boot : index.html with CSP meta [L2-097 AC2]
 boot -> boot : provideBrowserEdition(); EDITION = 'browser'
 boot -> live : create
 live -> src : ensureStarted()
-src -> rt : start(); subscribe to the state store
+src -> rt : read state()
 rt --> src : initial BikeState (ble 'disconnected')
 src --> live : state signal (BikeState); connection 'open'
 live --> page : state signal

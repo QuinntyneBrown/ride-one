@@ -48,7 +48,7 @@ Wiring:
 
 - **`LIVE_STATE_SOURCE`** (new contract in `@wattzup/api`) — `LiveStateSource` exposes the read-only signals `state`, `connection`, `lastStateAt`, `loadFailed`, `loadStatus` and `streamEpoch`, and the calls `ensureStarted()`, `reload()`, `restart()` and `retryNow()`. `EventStreamLiveState` holds the `GET /api/status`, `EventSource`, event-token and 2 s reconnect logic that `LiveStateService` held before; `LiveStateService` reads the token and re-exposes its signals (see `run-rides-in-browser`).
 - **`EDITION`** (new token in `@wattzup/api`) — `InjectionToken<'backend' | 'browser'>`. A screen that differs between editions reads it: the Unlock page is not routed, the Diagnostics dialog hides the backend's file facts, and Progress shows **Export history** and **Import history** only in the browser edition. No component tests a build flag.
-- **`BrowserBikeRuntime`** (`@wattzup/browser`, `lib/engine/`) — root-provided singleton that owns the browser edition's state store, bike link, workout engine and session journal. Every in-browser contract implementation delegates to it, so 1 bike connection and 1 engine serve every screen.
+- **Shared services** — `provideBrowserEdition()` provides `BikeStateStore`, `TelemetryIngestor`, `BikeLink`, `ResistanceCommander`, `WorkoutEngine`, `SessionStore`, `WakeLockKeeper` and `PacketLog` once, in the environment injector, and environment initializers start the pieces that run from load (the bike pairing, the journal recovery, the wake lock). Every in-browser contract implementation injects them, so 1 bike connection and 1 engine serve every screen.
 
 Hosting, security and offline:
 
@@ -94,13 +94,13 @@ The build turns the Angular workspace into a static folder. In the rider's brows
 
 ### Components
 
-`app.config.browser.ts` calls `provideBrowserEdition()`, which binds each `@wattzup/api` token to its in-browser implementation. Each implementation delegates to the one `BrowserBikeRuntime`. App components keep depending on the tokens only.
+`app.config.browser.ts` calls `provideBrowserEdition()`, which binds each `@wattzup/api` token to its in-browser implementation. Each implementation injects the shared services that `provideBrowserEdition()` provides once. App components keep depending on the tokens only.
 
 ![C4 component view for building and hosting the browser edition](diagrams/c4-component.png)
 
 ### Class structure
 
-The contracts and tokens live in `@wattzup/api`. The browser classes implement them and hold a reference to `BrowserBikeRuntime`. The `EDITION` token is the only edition-aware piece in the app.
+The contracts and tokens live in `@wattzup/api`. The browser classes implement them and inject the shared services. The `EDITION` token is the only edition-aware piece in the app.
 
 ![Class diagram for building and hosting the browser edition](diagrams/class-structure.png)
 

@@ -10,7 +10,7 @@ Container_Boundary(app, "Wattzup Web, browser edition") {
   Component(tokens, "Contracts and tokens", "@wattzup/api", "BIKE_API, WORKOUT_API, CLASS_API, SESSION_API, LIVE_STATE_SOURCE, BIKE_PAIRING, SESSION_ARCHIVE, EDITION")
   Component(provide, "provideBrowserEdition()", "@wattzup/browser", "Binds each token to its Browser* class")
   Component(impls, "Browser* contract classes", "@wattzup/browser lib/contracts", "In-browser implementations")
-  Component(runtime, "BrowserBikeRuntime", "@wattzup/browser lib/engine", "State store, bike link, engine, journal")
+  Component(runtime, "Shared services", "provideBrowserEdition()", "BikeStateStore, BikeLink, WorkoutEngine, SessionStore: one each")
 }
 
 Rel(root, provide, "Calls")
@@ -18,5 +18,5 @@ Rel(provide, tokens, "Provides implementations for")
 Rel(screens, tokens, "Inject")
 Rel(live, tokens, "Injects LIVE_STATE_SOURCE")
 Rel(impls, tokens, "Implement")
-Rel(impls, runtime, "Delegate to")
+Rel(impls, runtime, "Inject")
 @enduml

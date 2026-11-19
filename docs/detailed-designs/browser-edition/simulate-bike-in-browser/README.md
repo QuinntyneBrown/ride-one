@@ -32,9 +32,9 @@ Behaviour specs:
 Unit tests:
 
 - **`FakeClock`** (`lib/bluetooth/`, for tests) — `advance(ms)` resolves due `delay` promises in time order; `jump(ms)` moves time at once and resolves overdue delays late, as a throttled tab does; `now()` moves only with them. Every time-driven rule (keepalive, init spacing, workout ticks, retries, journal writes) takes `Clock` and is tested with `FakeClock`; no test sleeps (L2-099 criterion 3).
-- **`FakeBluetoothPort`** (test helper) — the in-process counterpart of the fixture for `BikeLink` and `BrowserBikePairing` unit tests.
+- **`FakePort`** (test helpers in `bike-link.spec.ts` and `browser-bike-pairing.spec.ts`) — the in-process counterpart of the fixture for the `BikeLink` and `BrowserBikePairing` unit tests.
 
-Verification: the simulator's frames compared byte for byte with `SimulatedBikeConnection`'s by parity tests; a spec per fixture verb; the production bundle checked to contain no `ECHSIM` string by `scripts/check-bundle-size.mjs`. `<TO SUPPLY>`: whether that string check belongs in the bundle script or in a separate build check, given AGENTS.md's rule against structure tests.
+Verification: the simulator's frames compared byte for byte with `SimulatedBikeConnection`'s by parity tests; a spec per fixture verb; and `simulate.spec.ts`, which proves through behaviour that the production build ignores `?simulate`: **Connect bike** opens the chooser. No build step searches the bundle for strings, since AGENTS.md rules out structure tests.
 
 ## Requirements
 

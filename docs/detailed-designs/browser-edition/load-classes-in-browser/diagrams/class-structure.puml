@@ -37,8 +37,8 @@ class "CatalogueEntryProblem" as CatalogueProblem {
   +field: string
   +message: string
 }
-class WorkoutPlanValidator <<pure>> {
-  +validate(plan: unknown): StartPlan | PlanProblem
+class "validatePlan()" as WorkoutPlanValidator <<pure function>> {
+  +(body: unknown): PlanValidationResult
 }
 BrowserClassApi ..|> ClassApi
 BrowserClassApi ..> ClassCatalogueReader

@@ -22,7 +22,7 @@ package "@wattzup/api" {
     +ensureStarted(): void
   }
   interface BikePairing {
-    +support(): PairingSupport
+    +support: Signal<BluetoothSupport>
     +required: Signal<boolean>
     +pair(): Promise<'paired' | 'cancelled'>
   }
@@ -36,12 +36,11 @@ package "@wattzup/api" {
 }
 
 package "@wattzup/browser" {
-  class BrowserBikeRuntime <<root singleton>> {
-    +store: BikeStateStore
-    +link: BikeLink
-    +engine: WorkoutEngine
-    +journal: RideJournal
-    +start(): void
+  class "Shared services" as Shared <<provideBrowserEdition()>> {
+    +BikeStateStore
+    +BikeLink
+    +WorkoutEngine
+    +SessionStore
   }
   class BrowserBikeApi
   class BrowserWorkoutApi
@@ -66,10 +65,10 @@ BrowserSessionApi ..|> SessionApi
 BrowserStateSource ..|> LiveStateSource
 BrowserBikePairing ..|> BikePairing
 BrowserSessionArchive ..|> SessionArchive
-BrowserBikeApi --> BrowserBikeRuntime
-BrowserWorkoutApi --> BrowserBikeRuntime
-BrowserStateSource --> BrowserBikeRuntime
-BrowserBikePairing --> BrowserBikeRuntime
+BrowserBikeApi --> Shared
+BrowserWorkoutApi --> Shared
+BrowserStateSource --> Shared
+BrowserBikePairing --> Shared
 root ..> provide : calls
 provide ..> EDITION : provides 'browser'
 @enduml

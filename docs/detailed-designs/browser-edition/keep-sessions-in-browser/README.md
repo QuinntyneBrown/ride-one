@@ -59,7 +59,7 @@ The app reads and writes the `sessions` store in IndexedDB. A history file passe
 
 ### Class structure
 
-`SessionStore` owns the sessions and writes through `WattzupDatabase`. The archive validates imports with `SessionRecordValidator`.
+`SessionStore` owns the sessions and writes through `SessionDatabase`. The archive validates imports with `validSession`.
 
 ![Class diagram for keeping sessions in the browser](diagrams/class-structure.png)
 
