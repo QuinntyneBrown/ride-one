@@ -19,14 +19,14 @@ public sealed record WorkoutSnapshot
 
     public ResistanceMode Mode { get; init; } = ResistanceMode.Plan;
 
-    /// <summary>The plan's level for the segment; null on the treadmill (L2-070).</summary>
-    public int? PlanLevel { get; init; }
+    /// <summary>The plan's level for the segment.</summary>
+    public int PlanLevel { get; init; }
 
     /// <summary>One of <see cref="WorkoutStatus"/>.</summary>
     public required string Status { get; init; }
 
     public string? EndedReason { get; init; }
 
-    /// <summary>The id of the session saved when this ride ended on the bike, else null (L2-081).</summary>
+    /// <summary>The id of the session saved when this ride ended, else null (L2-081).</summary>
     public string? SessionId { get; init; }
 }

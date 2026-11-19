@@ -11,17 +11,13 @@ public sealed class StateDerivationsTests
     private static readonly BikeState Initial = new() { Transport = "Simulated", BindAddress = "127.0.0.1:8787" };
 
     [Theory]
-    [InlineData(Machine.Bike, null, "Echelon Stride", "ECHEX-3", "ECHEX-3")]
-    [InlineData(Machine.Bike, "Echelon EX-5s", "Echelon Stride", "ECHEX-3", "Echelon EX-5s")]
-    [InlineData(Machine.Bike, "Echelon EX-5s", null, null, null)]
-    [InlineData(Machine.Bike, "", null, "ECHEX-3", "ECHEX-3")]
-    [InlineData(Machine.Treadmill, "Echelon EX-5s", "Echelon Stride", "STRIDE-8s22", "Echelon Stride")]
-    [InlineData(Machine.Treadmill, "Echelon EX-5s", "", "STRIDE-8s22", "STRIDE-8s22")]
-    [InlineData(Machine.Treadmill, null, "Echelon Stride", null, null)]
-    public void Device_label_is_the_chosen_machines_display_name_once_a_device_is_selected(
-        Machine machine, string? bikeName, string? treadmillName, string? device, string? expected)
+    [InlineData(null, "ECHEX-3", "ECHEX-3")]
+    [InlineData("Echelon EX-5s", "ECHEX-3", "Echelon EX-5s")]
+    [InlineData("Echelon EX-5s", null, null)]
+    [InlineData("", "ECHEX-3", "ECHEX-3")]
+    public void Device_label_is_the_display_name_once_a_device_is_selected(string? displayName, string? device, string? expected)
     {
-        var state = StateDerivations.Apply(Initial with { Machine = machine, Device = device }, now: 100, new DisplayNames(bikeName, treadmillName));
+        var state = StateDerivations.Apply(Initial with { Device = device }, now: 100, displayName);
 
         Assert.Equal(expected, state.DeviceLabel);
     }
@@ -31,11 +27,11 @@ public sealed class StateDerivationsTests
     {
         var state = Initial with { UiClients = 1, LastDataAt = 100 };
 
-        state = StateDerivations.Apply(state, now: 100, names: null);
+        state = StateDerivations.Apply(state, now: 100, displayName: null);
         Assert.Equal(100, state.DisplayedSince);
         Assert.Equal(0, state.DisplayedSeconds);
 
-        state = StateDerivations.Apply(state with { LastDataAt = 112.3 }, now: 112.34, names: null);
+        state = StateDerivations.Apply(state with { LastDataAt = 112.3 }, now: 112.34, displayName: null);
         Assert.Equal(100, state.DisplayedSince);
         Assert.Equal(12.3, state.DisplayedSeconds);
     }
@@ -47,7 +43,7 @@ public sealed class StateDerivationsTests
     {
         var state = Initial with { UiClients = clients, LastDataAt = lastDataAt, DisplayedSince = 90, DisplayedSeconds = 9.5 };
 
-        state = StateDerivations.Apply(state, now: 100, names: null);
+        state = StateDerivations.Apply(state, now: 100, displayName: null);
 
         Assert.Null(state.DisplayedSince);
         Assert.Equal(9.5, state.DisplayedSeconds);

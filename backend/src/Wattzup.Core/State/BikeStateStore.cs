@@ -5,7 +5,7 @@ namespace Wattzup.Core.State;
 /// snapshot; changes are applied under a short lock, derived (<see cref="StateDerivations"/>),
 /// published by reference swap, and announced through <see cref="StateChanged"/> in order.
 /// </summary>
-public sealed class BikeStateStore(BikeState initial, TimeProvider time, DisplayNames? displayNames)
+public sealed class BikeStateStore(BikeState initial, TimeProvider time, string? displayName)
 {
     private readonly Lock _gate = new();
     private BikeState _current = initial;
@@ -26,7 +26,7 @@ public sealed class BikeStateStore(BikeState initial, TimeProvider time, Display
         ArgumentNullException.ThrowIfNull(change);
         lock (_gate)
         {
-            var next = StateDerivations.Apply(change(_current), Now, displayNames);
+            var next = StateDerivations.Apply(change(_current), Now, displayName);
             Volatile.Write(ref _current, next);
             StateChanged?.Invoke(next);
             return next;

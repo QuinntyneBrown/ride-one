@@ -10,7 +10,7 @@ internal interface IBleCallbacks
 {
     void StateUpdated(IntPtr central);
 
-    void Discovered(IntPtr peripheral, IntPtr advertisementData, IntPtr rssi);
+    void Discovered(IntPtr peripheral, IntPtr advertisementData);
 
     void Connected(IntPtr peripheral);
 
@@ -110,7 +110,7 @@ internal static unsafe class BleDelegate
 
     [UnmanagedCallersOnly]
     private static void DidDiscover(IntPtr self, IntPtr cmd, IntPtr central, IntPtr peripheral, IntPtr data, IntPtr rssi) =>
-        Forward(self, t => t.Discovered(peripheral, data, rssi));
+        Forward(self, t => t.Discovered(peripheral, data));
 
     [UnmanagedCallersOnly]
     private static void DidConnect(IntPtr self, IntPtr cmd, IntPtr central, IntPtr peripheral) => Forward(self, t => t.Connected(peripheral));

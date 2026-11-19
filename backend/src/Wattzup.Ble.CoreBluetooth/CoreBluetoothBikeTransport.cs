@@ -15,7 +15,6 @@ public sealed class CoreBluetoothBikeTransport : IBikeTransport, IBleCallbacks, 
     internal const string ServiceUuid = "0bf669f1-45f2-11e7-9598-0800200c9a66";
     internal const string WriteUuid = "0bf669f2-45f2-11e7-9598-0800200c9a66";
     internal const string NotifyUuid = "0bf669f4-45f2-11e7-9598-0800200c9a66";
-    internal const string SecondNotifyUuid = "0bf669f3-45f2-11e7-9598-0800200c9a66";
 
     private static readonly TimeSpan StateWait = TimeSpan.FromSeconds(5);
 
@@ -146,7 +145,7 @@ public sealed class CoreBluetoothBikeTransport : IBikeTransport, IBleCallbacks, 
         }
     }
 
-    void IBleCallbacks.Discovered(IntPtr peripheral, IntPtr advertisementData, IntPtr rssi)
+    void IBleCallbacks.Discovered(IntPtr peripheral, IntPtr advertisementData)
     {
         var handler = _onDiscovered;
         if (handler is null)
@@ -165,9 +164,7 @@ public sealed class CoreBluetoothBikeTransport : IBikeTransport, IBleCallbacks, 
             _peripherals[id] = ObjC.objc_retain(peripheral);
         }
 
-        // RSSI is an NSNumber in dBm; CoreBluetooth reports 127 when it has none.
-        var dbm = rssi == IntPtr.Zero ? 127 : (int)(long)ObjC.Send(rssi, ObjC.Sel("integerValue"));
-        var advertisement = new BikeAdvertisement(name, id, uuids, dbm == 127 ? null : dbm);
+        var advertisement = new BikeAdvertisement(name, id, uuids);
         ThreadPool.QueueUserWorkItem(_ => handler(advertisement));
     }
 

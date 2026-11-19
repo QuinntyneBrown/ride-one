@@ -14,15 +14,6 @@ internal sealed class WorkoutRun
         PlanLevel = Segments[0].Level;
     }
 
-    /// <summary>Treadmill: the belt countdown shown (3, 2, 1), null when none is running (L2-066).</summary>
-    public int? BeltCountdown { get; set; }
-
-    /// <summary>Treadmill: when the current countdown number was first shown.</summary>
-    public DateTimeOffset? CountdownShownAt { get; set; }
-
-    /// <summary>Treadmill: when start-belt was written; null until the countdown reaches zero.</summary>
-    public DateTimeOffset? BeltStartWrittenAt { get; set; }
-
     public WorkoutPlan Plan { get; }
 
     public IReadOnlyList<Segment> Segments { get; }
@@ -43,7 +34,7 @@ internal sealed class WorkoutRun
 
     public ResistanceMode Mode { get; set; } = ResistanceMode.Plan;
 
-    public int? PlanLevel { get; set; }
+    public int PlanLevel { get; set; }
 
     public bool HasStarted { get; set; }
 
@@ -53,13 +44,7 @@ internal sealed class WorkoutRun
 
     public int? LastSentLevel { get; set; }
 
-    /// <summary>Treadmill: the speed last sent, km/h (L2-068).</summary>
-    public double? LastSentSpeed { get; set; }
-
-    /// <summary>Treadmill: the incline last sent, % (L2-068).</summary>
-    public int? LastSentIncline { get; set; }
-
-    /// <summary>A manual command took over from the plan until the next segment (L2-047, L2-068).</summary>
+    /// <summary>A manual command took over from the plan until the next segment (L2-047).</summary>
     public void EnterManual() => Mode = ResistanceMode.Manual;
 
     public DateTimeOffset? DisconnectedSince { get; set; }
@@ -69,7 +54,7 @@ internal sealed class WorkoutRun
     /// <summary>The class the ride was started from, or null for a ride from setup (L2-081 criterion 7).</summary>
     public RideOrigin? Origin { get; }
 
-    /// <summary>Bike: one sample per running second, for the session (L2-081).</summary>
+    /// <summary>One sample per running second, for the session (L2-081).</summary>
     public List<Sessions.RideSample> Samples { get; } = [];
 
     /// <summary>The saved session's id, once the ride has ended and been saved.</summary>

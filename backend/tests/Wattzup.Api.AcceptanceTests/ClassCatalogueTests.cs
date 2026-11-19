@@ -72,7 +72,6 @@ public sealed class ClassCatalogueTests
         var plan = power.GetProperty("plan");
         Assert.Equal("hiit", plan.GetProperty("kind").GetString());
         Assert.Equal(22, plan.GetProperty("work_level").GetInt32());
-        Assert.Equal(JsonValueKind.Null, plan.GetProperty("work_speed").ValueKind);
         Assert.Equal("QUoToFsMNig", plan.GetProperty("video").GetProperty("video_id").GetString());
         Assert.Equal(12, plan.GetProperty("video").GetProperty("start_seconds").GetDouble());
         Assert.False(plan.GetProperty("video").TryGetProperty("url", out _));

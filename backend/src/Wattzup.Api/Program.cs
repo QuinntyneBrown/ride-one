@@ -13,16 +13,9 @@ using Wattzup.Core.Workouts;
 var simulate = args.Contains("--simulate", StringComparer.OrdinalIgnoreCase);
 // Inside Wattzup.app the bundle is the content root and runtime output goes to Application Support (ADR 0008).
 var bundled = OperatingSystem.IsMacOS() && AppContext.BaseDirectory.Contains(".app/Contents/MacOS", StringComparison.Ordinal);
-// --machine treadmill is short for --Wattzup:Machine treadmill (L2-062).
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    Args =
-    [
-        .. args.Where(a => !string.Equals(a, "--simulate", StringComparison.OrdinalIgnoreCase))
-            .Select(a => string.Equals(a, "--machine", StringComparison.OrdinalIgnoreCase) ? "--Wattzup:Machine"
-                : a.StartsWith("--machine=", StringComparison.OrdinalIgnoreCase) ? "--Wattzup:Machine=" + a["--machine=".Length..]
-                : a),
-    ],
+    Args = [.. args.Where(a => !string.Equals(a, "--simulate", StringComparison.OrdinalIgnoreCase))],
     ContentRootPath = bundled ? AppContext.BaseDirectory : null,
 });
 if (bundled)
@@ -51,11 +44,8 @@ builder.Services.AddWattzupRateLimits(security);
 builder.Services.Configure<WattzupOptions>(builder.Configuration.GetSection(WattzupOptions.SectionName));
 builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection(SecurityOptions.SectionName));
 builder.Services.AddHostedService<BindAddressGuard>();
-var treadmill = builder.Configuration.GetSection(TreadmillOptions.SectionName).Get<TreadmillOptions>() ?? new TreadmillOptions();
-builder.Services.Configure<TreadmillOptions>(builder.Configuration.GetSection(TreadmillOptions.SectionName));
 builder.Services.Configure<ClassesOptions>(builder.Configuration.GetSection(ClassesOptions.SectionName));
 builder.Services.Configure<SessionsOptions>(builder.Configuration.GetSection(SessionsOptions.SectionName));
-builder.Services.AddHostedService<TreadmillGuard>();
 builder.Services.AddSingleton<EventTokenService>();
 var keyed = !string.IsNullOrEmpty(security.ApiKey);
 if (keyed)
@@ -70,9 +60,7 @@ builder.Services.AddCors(cors => cors.AddDefaultPolicy(policy =>
     policy.WithOrigins([.. origins]).WithHeaders("Content-Type", ApiKeyAuthenticationHandler.Header).WithMethods("GET", "POST")));
 
 var transportName = TransportSelector.Resolve(builder.Configuration[$"{ConnectivityOptions.SectionName}:Transport"]);
-var displayNames = new DisplayNames(
-    builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"],
-    builder.Configuration[$"{TreadmillOptions.SectionName}:DisplayName"] ?? TreadmillOptions.DefaultDisplayName);
+var displayName = builder.Configuration[$"{BikeOptions.SectionName}:DisplayName"];
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.Configure<HostOptions>(host => host.ShutdownTimeout = TimeSpan.FromSeconds(5));
 builder.Services.AddBikeTransport(transportName);
@@ -86,16 +74,11 @@ builder.Services.AddSingleton(sp =>
             Simulated = facts.Simulated,
             BindAddress = facts.BindAddress,
             Exposed = facts.Exposed,
-            Machine = options.ParsedMachine,
-            TreadmillEnabled = treadmill.Enabled,
         },
         sp.GetRequiredService<TimeProvider>(),
-        displayNames);
+        displayName);
 });
 builder.Services.AddSingleton<StateBroadcaster>();
-builder.Services.AddSingleton<Wattzup.Core.Machines.MachineSelector>();
-builder.Services.AddSingleton(displayNames);
-builder.Services.AddSingleton<Wattzup.Core.Machines.NearbyMachines>();
 builder.Services.AddSingleton<ActiveConnectionRegistry>();
 builder.Services.Configure<RawPacketLogOptions>(builder.Configuration.GetSection(RawPacketLogOptions.SectionName));
 builder.Services.Configure<StatusSnapshotOptions>(builder.Configuration.GetSection(StatusSnapshotOptions.SectionName));
@@ -114,9 +97,6 @@ builder.Services.AddSingleton<Wattzup.Api.Sessions.SessionFileService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<Wattzup.Api.Sessions.SessionFileService>());
 builder.Services.AddSingleton<WorkoutEngine>();
 builder.Services.AddSingleton<IResistanceControl>(sp => sp.GetRequiredService<WorkoutEngine>());
-builder.Services.AddSingleton<Wattzup.Core.Treadmill.ITreadmillCommander, Wattzup.Core.Treadmill.TreadmillCommander>();
-builder.Services.AddSingleton<ITreadmillControl>(sp => sp.GetRequiredService<WorkoutEngine>());
-builder.Services.AddSingleton<IMachineControl>(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<WorkoutEngine>());
 builder.Services.AddSingleton<Wattzup.Core.Classes.ClassCatalogueStore>();
 builder.Services.AddSingleton<Wattzup.Api.Classes.ClassCatalogueService>();
@@ -154,8 +134,6 @@ api.MapEventTokenEndpoints();
 api.MapEventsEndpoints();
 api.MapBikeEndpoints();
 api.MapResistanceEndpoints();
-api.MapTreadmillEndpoints();
-api.MapMachineEndpoints();
 api.MapWorkoutEndpoints();
 api.MapDiagnosticsEndpoints();
 api.MapClassEndpoints();

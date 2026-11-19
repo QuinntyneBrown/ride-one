@@ -1,7 +1,0 @@
-{
-  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
-  "title": "End the ride in progress to change the machine.",
-  "status": 409,
-  "code": "workout_active",
-  "trace_id": "00-93e1e08cc36bf0a58f97cf77ee878d48-790b8f6f433cc6cf-00"
-}

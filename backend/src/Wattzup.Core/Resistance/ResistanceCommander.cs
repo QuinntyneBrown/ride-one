@@ -4,7 +4,7 @@ using Wattzup.Protocol;
 
 namespace Wattzup.Core.Resistance;
 
-/// <summary>The outcome of one command send (L2-008, L2-065).</summary>
+/// <summary>The outcome of one resistance send (L2-008).</summary>
 public abstract record SendResult
 {
     public static SendResult Sent { get; } = new SentResult();
@@ -13,16 +13,11 @@ public abstract record SendResult
 
     public static SendResult Failed(string message) => new FailedResult(message);
 
-    /// <summary>The command belongs to the other machine (L2-069 criterion 5).</summary>
-    public static SendResult WrongMachine { get; } = new WrongMachineResult();
-
     public sealed record SentResult : SendResult;
 
     public sealed record NotConnectedResult : SendResult;
 
     public sealed record FailedResult(string Message) : SendResult;
-
-    public sealed record WrongMachineResult : SendResult;
 }
 
 /// <summary>Writes set-resistance commands to the bike (L2-008, L2-009, L2-048).</summary>
@@ -47,7 +42,7 @@ public sealed class ResistanceCommander(BikeStateStore store, ActiveConnectionRe
         {
             var connection = registry.Current;
             var nowMs = store.Time.GetUtcNow().ToUnixTimeMilliseconds();
-            var entry = CommandEntry.ForResistance(nowMs / 1000.0, rideSeconds, level, source, CommandStatus.Sending, null) with
+            var entry = new CommandEntry(nowMs / 1000.0, rideSeconds, level, source, CommandStatus.Sending, null)
             {
                 WrittenUnixMs = nowMs,
             };

@@ -143,7 +143,7 @@ public static partial class ClassCatalogueReader
             return new CatalogueEntryProblem(name, "plan", "A class needs a plan.");
         }
 
-        var result = WorkoutPlanValidator.Validate(body, Machine.Bike);
+        var result = WorkoutPlanValidator.Validate(body);
         if (result.Plan is null)
         {
             var (key, messages) = result.Errors.First();

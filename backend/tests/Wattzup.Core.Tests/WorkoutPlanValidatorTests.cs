@@ -244,17 +244,6 @@ public sealed class WorkoutPlanValidatorTests
     }
 
     [Fact]
-    public void The_treadmill_refuses_an_intervals_plan()
-    {
-        using var doc = JsonDocument.Parse(Descending);
-
-        var result = WorkoutPlanValidator.Validate(doc.RootElement, Wattzup.Core.State.Machine.Treadmill);
-
-        Assert.Null(result.Plan);
-        Assert.Equal(["kind"], result.Errors.Keys);
-    }
-
-    [Fact]
     public void Every_failing_field_is_reported()
     {
         var result = Validate("""{"kind":"hiit","rounds":31,"work_seconds":4,"rest_seconds":20,"work_level":33,"rest_level":6,"warmup":true}""");

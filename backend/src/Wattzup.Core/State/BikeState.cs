@@ -21,21 +21,6 @@ public enum AdapterState
     Off,
 }
 
-/// <summary>The machine Wattzup drives, <c>machine</c> in the contract (L2-062, ADR 0009).</summary>
-public enum Machine
-{
-    Bike,
-    Treadmill,
-}
-
-/// <summary>The treadmill's belt, <c>belt</c> in the contract (L2-064, L2-066).</summary>
-public enum BeltState
-{
-    Stopped,
-    Starting,
-    Running,
-}
-
 /// <summary>
 /// The full live state (L2-014). Immutable: <see cref="BikeStateStore"/> publishes a new instance
 /// for every change. Field names are written in snake_case and nulls are always written.
@@ -100,30 +85,4 @@ public sealed record BikeState
     public int? HeartRate { get; init; }
 
     public IReadOnlyList<CommandEntry> Commands { get; init; } = [];
-
-    public Machine Machine { get; init; } = Machine.Bike;
-
-    /// <summary>Treadmill only: the last requested speed, km/h (L2-065).</summary>
-    public double? TargetSpeed { get; init; }
-
-    /// <summary>Treadmill only: the last reported incline, % (L2-064).</summary>
-    public int? Incline { get; init; }
-
-    /// <summary>Treadmill only: the last requested incline, % (L2-065).</summary>
-    public int? TargetIncline { get; init; }
-
-    /// <summary>Treadmill only, while connected (L2-064, L2-066).</summary>
-    public BeltState? Belt { get; init; }
-
-    /// <summary>Treadmill only: 3, 2 or 1 during the countdown before the belt starts (L2-066).</summary>
-    public int? BeltCountdown { get; init; }
-
-    /// <summary>Treadmill only: the workout's climb in whole metres (L2-064 criterion 10).</summary>
-    public int? ClimbM { get; init; }
-
-    /// <summary>The Echelon machines heard while scanning, at most one per machine (L2-074); kept across a machine change.</summary>
-    public IReadOnlyList<NearbyMachine> Nearby { get; init; } = [];
-
-    /// <summary>True when <c>Wattzup:Treadmill:Enabled</c> is on (L2-075); fixed at start-up.</summary>
-    public bool TreadmillEnabled { get; init; }
 }

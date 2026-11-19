@@ -19,6 +19,7 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
     // find the service; it does not reference Wattzup.Protocol (dependency rule), so it keeps its own copy.
     internal static readonly Guid ServiceUuid = Guid.Parse("0bf669f1-45f2-11e7-9598-0800200c9a66");
     internal static readonly Guid WriteCharacteristicUuid = Guid.Parse("0bf669f2-45f2-11e7-9598-0800200c9a66");
+    internal static readonly Guid NotifyCharacteristicUuid = Guid.Parse("0bf669f4-45f2-11e7-9598-0800200c9a66");
 
     private readonly SemaphoreSlim _radioGate = new(1, 1);
     private readonly Lock _stateLock = new();
@@ -51,7 +52,7 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
         var stopping = 0;
 
         // An active scan delivers the advertisement and the scan response separately; merge them per address.
-        void Evaluate(ulong address, string? name, string[] uuids, int rssi)
+        void Evaluate(ulong address, string? name, string[] uuids)
         {
             string? mergedName;
             string[] mergedUuids;
@@ -73,7 +74,7 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
                 mergedUuids = [.. entry.Uuids];
             }
 
-            var advertisement = new BikeAdvertisement(mergedName, FormatAddress(address), mergedUuids, rssi);
+            var advertisement = new BikeAdvertisement(mergedName, FormatAddress(address), mergedUuids);
             try
             {
                 if (filter(advertisement))
@@ -95,8 +96,7 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
             var address = args.BluetoothAddress;
             var name = args.Advertisement.LocalName;
             var uuids = args.Advertisement.ServiceUuids.Select(u => u.ToString("D")).ToArray();
-            int rssi = args.RawSignalStrengthInDBm;
-            _ = Task.Run(() => Evaluate(address, name, uuids, rssi), CancellationToken.None);
+            _ = Task.Run(() => Evaluate(address, name, uuids), CancellationToken.None);
         }
 
         void OnStopped(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementWatcherStoppedEventArgs args)
@@ -175,7 +175,8 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
             }
 
             var write = await FindCharacteristicAsync(service, WriteCharacteristicUuid, cancellationToken).ConfigureAwait(false);
-            return new WinRtBikeConnection(device, session, service, write);
+            var notify = await FindCharacteristicAsync(service, NotifyCharacteristicUuid, cancellationToken).ConfigureAwait(false);
+            return new WinRtBikeConnection(device, session, service, write, notify);
         }
         catch
         {
@@ -211,14 +212,6 @@ public sealed class WinRtBikeTransport : IBikeTransport, IDisposable
             default:
                 throw new IOException($"Could not {action}: {status}.");
         }
-    }
-
-    /// <summary>The characteristic with <paramref name="uuid"/>, or null when the service has none.</summary>
-    internal static async Task<GattCharacteristic?> TryFindCharacteristicAsync(GattDeviceService service, Guid uuid, CancellationToken cancellationToken)
-    {
-        var result = await service.GetCharacteristicsForUuidAsync(uuid, BluetoothCacheMode.Uncached).AsTask(cancellationToken).ConfigureAwait(false);
-        ThrowIfFailed(result.Status, $"find characteristic {uuid:D}");
-        return result.Characteristics.Count > 0 ? result.Characteristics[0] : null;
     }
 
     private static async Task<GattCharacteristic> FindCharacteristicAsync(GattDeviceService service, Guid uuid, CancellationToken cancellationToken)
