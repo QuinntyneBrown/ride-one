@@ -43,7 +43,7 @@ rider -> page : Start ride
 page -> store : save plan drafts and VideoDraft {on, url, start} [L2-029 AC20]
 page -> client : start(plan + video {url, start_seconds} or null)
 client -> ep : POST /api/workout
-ep -> val : Validate(body, machine)
+ep -> val : Validate(body)
 val -> link : TryParseId(video.url)
 alt valid
   link --> val : QUoToFsMNig

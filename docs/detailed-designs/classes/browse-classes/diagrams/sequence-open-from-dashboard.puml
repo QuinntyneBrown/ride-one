@@ -19,7 +19,7 @@ box "Backend — Wattzup API application" #D1FADF
 end box
 
 note over engine : A workout is running or paused
-ride -> bar : machine = bike
+ride -> bar : Render the app bar
 bar --> rider : Library link after the lockup [L2-079 AC15]
 rider -> bar : Tap, click, or Enter on Library
 bar -> router : routerLink /classes

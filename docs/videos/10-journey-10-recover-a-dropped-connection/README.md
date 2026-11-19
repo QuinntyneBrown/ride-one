@@ -49,8 +49,6 @@ Each link that can drop says which one it is and how to get it back.
   disconnected ends the ride with `ended: bike shut off`
   (`Ninety_seconds_disconnected_ends_the_ride_with_bike_shut_off`), both in
   `backend/tests/Wattzup.Api.AcceptanceTests`, against the simulated bike with injected faults.
-- The treadmill's own wording (Lost the Stride) is in journey 6's requirements and is not shown
-  here.
 
 ## Build it again
 

@@ -34,11 +34,11 @@ Backend:
 - **`WorkoutSnapshot`** — `{plan, summary, segments, segment, remaining, elapsed_seconds, total_seconds, mode, plan_level, status, ended_reason}`. Each segment is `{kind, start, duration, level, cadence, round}`. `status` and `mode` are serialised as the exact strings of L2-014, such as `waiting for bike` and `paused: bike disconnected`. The plan is finite (ADR 0002).
 - **`CommandEntry`** — `{at, ride_seconds, level, source, status, ack_ms}` (see `resistance-control/log-resistance-commands`).
 - **`BikeStateJsonContext`** — source-generated `System.Text.Json` context with `JsonNamingPolicy.SnakeCaseLower` and `DefaultIgnoreCondition = Never`, so every field is present and nulls are written explicitly (L2-014). The stream and `GET /api/status` share it.
-- **Initial state** — `ble` `starting`, `packets` 0, `displayed_seconds` 0, `commands` `[]`, `nearby` `[]`, `adapter` `unknown`, `ui_clients` 0, the host facts set, and every nullable field `null` (L2-014). `device_label` stays `null` until a device is selected, so the initial state has all nullable fields `null` even with a configured display name.
+- **Initial state** — `ble` `starting`, `packets` 0, `displayed_seconds` 0, `commands` `[]`, `adapter` `unknown`, `ui_clients` 0, the host facts set, and every nullable field `null` (L2-014). `device_label` stays `null` until a device is selected, so the initial state has all nullable fields `null` even with a configured display name.
 - **`HostFacts`** (`Wattzup.Api`) — builds the start-up fields once. `transport` is the selected transport's name (`CoreBluetooth`, `BlueZ`, `WinRT` or `Simulated`). `simulated` is `true` with `--simulate`. `bind_address` is the configured listen address, such as `127.0.0.1:8787`. `exposed` is `true` when that address is not loopback. `connection_id` is `EchelonUuids.ConnectionId` (`Wattzup.Protocol`), the first 8 hex digits of the service UUID, `0bf669f1`.
 - **`BikeStateStore`** — singleton and only writer. `Update(Func<BikeState,BikeState>)` applies the change, then `StateDerivations.Apply(next, now)`, under a short lock. It publishes the result by reference swap and raises `StateChanged`. `Touch()` is an update with no field change, used by the keepalive so time-derived fields stay current (L2-003). `Current` reads without a lock.
 - **`StateDerivations`** — pure, with a unit test per case:
-  - `device_label` — the chosen machine's display name when configured and a device is selected, else `device` (L2-014): `Wattzup:Bike:DisplayName` (default empty) on the bike, `Wattzup:Treadmill:DisplayName` (default `Echelon Stride`) on the treadmill. The setting is documented in the README with the other `WattzupOptions`.
+  - `device_label` — the bike's display name, `Wattzup:Bike:DisplayName` (default empty), when configured and a device is selected, else `device` (L2-014). The setting is documented in the README with the other `WattzupOptions`.
   - displayed time — when `ui_clients > 0` and `now − last_data_at ≤ 5`, it sets `displayed_since ??= now` and `displayed_seconds = round(now − displayed_since, 1)`. Otherwise it sets `displayed_since` to `null` and keeps `displayed_seconds` (L2-032).
 - **`StateBroadcaster`** — subscribes to `StateChanged`. On each event it adds `ts`, serialises once to a UTF-8 buffer and calls `TryWrite` on every client channel. Each client has a `Channel<ReadOnlyMemory<byte>>` bounded at 50 with `FullMode = DropWrite`, so a slow client loses messages without affecting others (L2-015). `Register()` and `Unregister(id)` update `ui_clients` through the store.
 - **`SseClient`** — 1 per connection: the channel, a connection id and a dropped-message counter.
@@ -59,25 +59,8 @@ Verification:
 - `frontend` unit tests for `LiveStateService` with a fake `EventSource` and fake timers: parse, offline, 2 s reconnect, `retryNow`.
 - Playwright — the shared fixture serves `/api/events` as `text/event-stream` and exposes `pushState(partial)` over a full default state recorded from the backend running with `--simulate`. An unstubbed stream request fails the test.
 
-### Machine-specific fields
+### The plan's video
 
-The state now carries the chosen machine and both machines' fields (L2-014, L2-070, ADR 0009). On each machine the other machine's fields are written as `null`, never omitted, so the bike's fields keep their names and types:
-
-| Fields | Written by | Design |
-|---|---|---|
-| `machine` | `MachineSelector`; initial value from `Wattzup:Machine` | `treadmill/choose-machine` |
-| `incline`, `belt` (from speed), and `speed_kmh`, `speed_mph` as reported by the treadmill | `TelemetryIngestor`; `belt` also by `BikeConnectionService` on connect and disconnect | `treadmill/decode-treadmill-telemetry` |
-| `target_speed`, `target_incline`, and `commands` entries of kind `speed` and `incline` | `TreadmillCommander` | `treadmill/control-speed-and-incline` |
-| `belt` (`starting`, and `stopped` on a start timeout), `belt_countdown` | `WorkoutEngine` | `treadmill/control-the-belt` |
-| `climb_m`, and `kcal` as the treadmill's ACSM estimate | `WorkoutEngine` | `treadmill/decode-treadmill-telemetry` |
-| `nearby` (on both machines; `[]` at start-up) | `NearbyMachines` | `bike-connectivity/list-nearby-machines` |
-
-- `WorkoutSnapshot` segments are `{kind, start, duration, level, cadence, round, speed, incline}`; `level`, `cadence` and `plan_level` are nullable. `status` gains `starting belt` and `paused: belt stopped`; the existing strings stay identifiers on both machines (L2-014).
-- `CommandEntry` is `{at, ride_seconds, level, source, status, ack_ms, command, value}`, with `level` nullable (`resistance-control/log-resistance-commands`).
-- A machine change resets `device`, `device_label`, `workout`, `speed_kmh`, `speed_mph`, `distance_km`, `kcal`, `commands` and every machine-specific field (`climb_m` among them) in one update, keeping `nearby`, so one broadcast carries the reset (L2-070 criterion 3).
-- The OpenAPI schema transformer describes each new field with its type and nullability, and the frontend's generated types in `frontend/projects/api/src/generated/` are regenerated in the same change (L2-070 criterion 4).
-- `nearby` is `[{machine, name, label, rssi, signal, seen_at}]`, at most one entry per machine; a change to `nearby` alone is broadcast at most once a second (L2-074).
-- `LiveStateService` is unchanged: it remains the only connection, and every machine-aware view reads `state().machine`.
 - `workout.plan` carries `video`: `{video_id, start_seconds}` when the plan has a ride-along video, else `null`, written and never omitted (L2-010 criteria 14 and 15, ADR 0012). The OpenAPI transformer describes it and the generated types follow. The dashboard builds the player from it (`workouts/ride-along-video`).
 
 ## Requirements

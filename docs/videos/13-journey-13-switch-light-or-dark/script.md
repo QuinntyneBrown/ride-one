@@ -32,4 +32,4 @@ What the tests prove: the app is dark by default, even when the device prefers l
 
 **close** (5 bars)
 
-That is journey thirteen. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey thirteen. Wattzup turns an Echelon bike into a live training display.

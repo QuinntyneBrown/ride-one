@@ -36,7 +36,7 @@ session, and shows six weeks of streak and the achievements.
   the fixtures and page objects of `frontend/e2e/`. The sessions and progress are the stubs of
   `frontend/e2e/fixtures/sessions.ts`, laid over answers recorded from the backend running with
   `--simulate`. No backend, no Bluetooth and no bike ran.
-- **What the tests prove:** a bike ride of a minute or more is saved, the treadmill's are not
+- **What the tests prove:** a ride of a minute or more is saved
   (`SessionRecordingTests`, L2-081); sessions are kept in a file that survives a restart and an
   unreadable file is set aside (`SessionStorageTests`, `SessionFileTests`, L2-082); streaks, the
   weekly goal, bests and achievements are computed from the sessions in local days

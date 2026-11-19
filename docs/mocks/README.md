@@ -3,9 +3,8 @@
 Static HTML mocks of every Wattzup screen, dialog and notification in every state. They are the
 source of truth for the UI (see `AGENTS.md`). The look, layout and copy come from the Magic Patterns
 OS design *Wattzup* (`vnjsCrjBAfcZGnW9rHMoch`, prototype `f5zb7cLTQFMdzC5JcFyupj`: frames *Ride
-Dashboard*, *Training Setup*, *Choose Machine* (`masjUNhEVdxXudyJsSX9GW`), *Run Setup*
-(`3exZTV1GoJjHpTtShFsmsf`) and *Run Dashboard* (`sGuCezQfiSSnFCVAmbH2Ae`)). The treadmill mocks follow
-the three treadmill frames, and L2-062…L2-074 were rewritten to match them on 2026-11-16 (ADR 0010). The mocks also add the pieces the specs require and that design
+Dashboard* and *Training Setup*). Wattzup drives the bike only (ADR 0016), so the design's machine
+picker and run frames have no mocks. The mocks also add the pieces the specs require and that design
 does not have. Every place where the design and `docs/specs/` disagree is listed under
 [Open questions](#open-questions). None of them was settled quietly.
 
@@ -38,18 +37,6 @@ Every mock uses this cast.
   38.42 km.
 - **Presets:** Tabata 8 × 0:20 / 0:10, 40 / 20 (8 × 0:40 / 0:20), Minute on 10 × 1:00 / 1:00, Long
   climbs 4 × 4:00 / 2:00.
-- **Treadmill** (*Choose Machine*, *Run Setup*, *Run Dashboard* frames): *Echelon Stride*, serial
-  `STRIDE-8s22-000766`, signal 4 of 4, last session *Hill walk 30 min · 4 days ago*; the bike's card shows
-  its advertised name `ECHEX-3-141844`, signal 3 of 4, last session *HIIT 8 × 40s · yesterday*, and is the last used
-  machine. The header reads *2 machines nearby*. Limits are the frame's: 0.8–19.3 km/h, incline 0–10 %.
-  - **Sample run** (the frame's `DEFAULT_RUN`, the *Minute on* preset): HIIT 6 × 1:00 / 1:00, work
-    13.0 km/h at 2 %, recover 6.0 km/h at 1 %, 3 min warm-up at 7.0 km/h and 1 %, 2 min cool-down at
-    6.0 km/h and 0 %, 16:00 in total (`HIIT · 6 × 1:00 / 1:00`). The mid-run moment is 9:33, *Work, round
-    4 of 6*, 0:27 left: 13.0 km/h (4:37 /km), incline 2 %, heart rate 164, avg pace 6:47 /km, 1.41 km,
-    22 m climbed, 116 kcal. These numbers come from the frame's `useRun` simulation.
-  - **Steady run** (*Hill walk*): 6.5 km/h at 8 % for 30 min, shown at 14:22.
-  - **Presets:** Sprints 30/30, Minute on, Hill repeats, Norwegian 4×4; Steady: Hill walk, Easy run,
-    Tempo. Quick speeds on the dashboard: 5, 8, 10, 12, 14, 16 km/h.
 - **Video ride-along** (*Training Setup* and *Ride Dashboard* frames, 2026-11-17): the Intervals plan
   *Descending recoveries* (30:00, 8 efforts at level 24 and 100 rpm) with the video *GCN Training ·
   30 Minute HIIT Cardio* (`https://www.youtube.com/watch?v=QUoToFsMNig`), its ride 0:00 lined up with
@@ -80,9 +67,9 @@ Estimates follow the design's `estimateWatts`: watts = round(cadence × (0.55 + 
 
 ## What is covered, and why it is about 50 files
 
-Wattzup has three core screens: the machine picker, ride setup and the ride dashboard. Around them sit
-an API-key unlock page, a 404 page, three dialogs and three notification families. That makes 11
-screens and 71 mock files, 25 of them for the treadmill and the machine picker. This is below the 120–250 typical of a mid-sized product, because the product is small.
+Wattzup has two core screens: ride setup and the ride dashboard. Around them sit the class library
+and class page, the Session Summary and Progress, an API-key unlock page, a 404 page, five dialogs
+and three notification families. That makes 16 screens and 89 mock files. This is below the 120–250 typical of a mid-sized product, because the product is small.
 
 Some screens that most products have are deliberately left out:
 
@@ -141,21 +128,8 @@ specs, the detailed design or the mock.
     - the 404 page (L2-044)
     - the confirmations for ending and for replacing a ride (L2-013, L2-017)
 
-13. **Treadmill frames, settled.** The treadmill mocks follow the frames *Choose Machine*, *Run Setup*
-    and *Run Dashboard*. On 2026-11-16, L1-002, L1-013 and L2-062…L2-074 were rewritten to match them
-    (ADR 0010), as were the protocol reference's limits and AGENTS.md's vocabulary. Two decisions changed
-    the mocks rather than the specs:
-    - The frame's *Safety key pulled* state is `ride/treadmill-belt-stopped`, worded so that it is
-      true for both causes, because a pulled key and the console's stop button both report speed 0.
-    - The bike's card shows its advertised name, not a made-up serial.
-
-    Still open:
-    - The *Lost the Stride* copy assumes the treadmill stops its own belt when the link drops. A person
-      must confirm this on hardware before release (L2-043 criterion 5, ADR 0010).
-    - Heart rate shows a value in the mocks, but `heart_rate` is always `null` (open question 1,
-      ADR 0003).
-    - The treadmill detailed designs, the backend and the frontend still follow the earlier specs and
-      will be updated slice by slice.
+13. **Treadmill frames, removed 2026-11-19.** Wattzup supports the bike only (ADR 0016); the
+    treadmill mocks and the machine picker were deleted.
 
 14. **Video ride-along, settled 2026-11-17.** Mocks `setup/video`, `setup/video-invalid`, `ride/video`
     and `ride/video-blocked`; components `video-frame`, `video-sync` and `view-switch`, and the
@@ -172,15 +146,13 @@ specs, the detailed design or the mock.
     separate **Intervals** mode with sets, which can build every plan the ladder can. The
     `setup/intervals*` mocks and the edit-set and edit-stretch dialogs are unchanged. The frame's preset
     name *GCN 30-min HIIT* is *Descending recoveries*.
-16. **Treadmill support off, settled in favour of the specs.** The frames grey out the Stride card on
-    *Choose Machine*. L2-073 criterion 11 redirects `/machine` to `/setup` instead, so no page shows that
-    card. The Switch links are hidden in both. The video mocks show the support-off header and aside;
-    the older bike mocks show the Switch links, which is the support-on look.
+16. **Treadmill support off, removed 2026-11-19.** There is no treadmill and no Switch link
+    (ADR 0016).
 
 17. **Class library, settled 2026-11-17.** Mocks `class-library/*`, `class/*` and
     `ride/class-workout`; components `shelf`, `class-card`, `level-row` and the class-page layout in
     `docs/design-system/assets/components.css`. Requirements L1-014 and L2-077 to L2-080, ADR 0014.
-    The bike lands on the library after Choose machine, End ride returns to it, and *Build your own
+    End ride returns to the library when a ride is too short to save, and *Build your own
     ride* opens Set up your ride. The open questions were settled:
     - **Where the catalogue lives:** a JSON file the backend reads and serves read-only at
       `GET /api/classes` and `GET /api/classes/{id}` (L2-077, L2-078, ADR 0014). So
@@ -226,11 +198,9 @@ specs, the detailed design or the mock.
     summary.
 19. **Library link on the Ride Dashboard, open since 2026-11-19.** The updated *Ride Dashboard*
     frame (`9o27s1NQMXrbXwQFevkB6C`) puts a quiet `Library` entry with a grid icon right after the
-    lockup, before the divider and the status line; the bike mocks (`ride/*` except `treadmill*`)
+    lockup, before the divider and the status line; the ride mocks (`ride/*`)
     now show it there as the `btn btn--quiet btn--sm` link the library's own `Progress` link uses,
-    and it wraps with the rest of the bar's first row on a phone. The *Run Dashboard* frame has no
-    such entry, so the treadmill mocks are unchanged (L2-079: the treadmill does not show the
-    library). **Conflict:** in the frame, after 30 s of riding, `Library` pauses the ride and opens a
+    and it wraps with the rest of the bar's first row on a phone. **Conflict:** in the frame, after 30 s of riding, `Library` pauses the ride and opens a
     *Leave this ride?* popover with `Save ride and open library`, `Discard and open library` and
     `Keep riding`. L2-079 criterion 15 instead makes `Library` a plain link that leaves the workout
     untouched (no pause, no save, no discard), because the ride lives on the backend and is still
@@ -254,34 +224,33 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | paused | disconnected | scanning | bluetooth-off | offline | complete | ended | flat | manual | edge | video | video-blocked | class-workout | treadmill | treadmill-paused | treadmill-flat | treadmill-manual | treadmill-countdown | treadmill-belt-stopped | treadmill-disconnected | treadmill-scanning | connecting | not-found | not-found-bike | filtered | no-link | invalid-link | edited | submitting | from-list | ended-early | first-ride | no-dips | goal-hit | measure-dips | rode-today | no-trend | intervals | intervals-invalid | video-invalid | invalid | treadmill-invalid | treadmill-submitting | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Ride dashboard (`ride`) | [✅](pages/ride/default.html) | [✅](pages/ride/loading.html) | [✅](pages/ride/empty.html) | [✅](pages/ride/error.html) | [✅](pages/ride/paused.html) | [✅](pages/ride/disconnected.html) | [✅](pages/ride/scanning.html) | [✅](pages/ride/bluetooth-off.html) | [✅](pages/ride/offline.html) | [✅](pages/ride/complete.html) | [✅](pages/ride/ended.html) | [✅](pages/ride/flat.html) | [✅](pages/ride/manual.html) | [✅](pages/ride/edge.html) | [✅](pages/ride/video.html) | [✅](pages/ride/video-blocked.html) | [✅](pages/ride/class-workout.html) | [✅](pages/ride/treadmill.html) | [✅](pages/ride/treadmill-paused.html) | [✅](pages/ride/treadmill-flat.html) | [✅](pages/ride/treadmill-manual.html) | [✅](pages/ride/treadmill-countdown.html) | [✅](pages/ride/treadmill-belt-stopped.html) | [✅](pages/ride/treadmill-disconnected.html) | [✅](pages/ride/treadmill-scanning.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-023`, `L2-024`, `L2-025`, `L2-026`, `L2-027`, `L2-040`, `L2-041`, `L2-001`, `L2-013`, `L2-039`, `L2-064`, `L2-066`, `L2-068`, `L2-071`, `L2-076`, `L2-084`, `L2-079` |
-| Choose your machine (`choose-machine`) | [✅](pages/choose-machine/default.html) | [✅](pages/choose-machine/loading.html) | [✅](pages/choose-machine/empty.html) | [✅](pages/choose-machine/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/choose-machine/connecting.html) | [✅](pages/choose-machine/not-found.html) | [✅](pages/choose-machine/not-found-bike.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-062`, `L2-063`, `L2-072`, `L2-073`, `L2-074` |
-| Class library (`class-library`) | [✅](pages/class-library/default.html) | [✅](pages/class-library/loading.html) | [✅](pages/class-library/empty.html) | [✅](pages/class-library/error.html) |  | [✅](pages/class-library/disconnected.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-library/filtered.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-077`, `L2-078`, `L2-079`, `L2-040`, `L2-041`, `L2-086` |
-| Class page (`class`) | [✅](pages/class/default.html) | [✅](pages/class/loading.html) | ➖ | [✅](pages/class/error.html) |  |  |  |  |  |  |  | [✅](pages/class/flat.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class/not-found.html) |  |  | [✅](pages/class/no-link.html) | [✅](pages/class/invalid-link.html) | [✅](pages/class/edited.html) | [✅](pages/class/submitting.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-010`, `L2-029`, `L2-076`, `L2-078`, `L2-080`, `L2-040`, `L2-041` |
-| Session Summary (`session`) | [✅](pages/session/default.html) | [✅](pages/session/loading.html) | ➖ | [✅](pages/session/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/session/not-found.html) |  |  |  |  |  |  | [✅](pages/session/from-list.html) | [✅](pages/session/ended-early.html) | [✅](pages/session/first-ride.html) | [✅](pages/session/no-dips.html) | [✅](pages/session/goal-hit.html) |  |  |  |  |  |  |  |  |  | `L2-083`, `L2-084`, `L2-085`, `L2-087`, `L2-040`, `L2-041` |
-| Progress (`progress`) | [✅](pages/progress/default.html) | [✅](pages/progress/loading.html) | [✅](pages/progress/empty.html) | [✅](pages/progress/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/progress/measure-dips.html) | [✅](pages/progress/rode-today.html) | [✅](pages/progress/no-trend.html) |  |  |  |  |  |  | `L2-083`, `L2-086`, `L2-087`, `L2-040`, `L2-041` |
-| Set up your ride (`setup`) | [✅](pages/setup/default.html) | [✅](pages/setup/loading.html) | ➖ | [✅](pages/setup/error.html) |  |  |  |  |  |  |  | [✅](pages/setup/flat.html) |  |  | [✅](pages/setup/video.html) |  |  | [✅](pages/setup/treadmill.html) |  | [✅](pages/setup/treadmill-flat.html) |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/setup/submitting.html) |  |  |  |  |  |  |  |  | [✅](pages/setup/intervals.html) | [✅](pages/setup/intervals-invalid.html) | [✅](pages/setup/video-invalid.html) | [✅](pages/setup/invalid.html) | [✅](pages/setup/treadmill-invalid.html) | [✅](pages/setup/treadmill-submitting.html) | `L2-010`, `L2-029`, `L2-040`, `L2-041`, `L2-045`, `L2-059`, `L2-060`, `L2-062`, `L2-067`, `L2-072`, `L2-075`, `L2-076` |
-| Unlock Wattzup (`unlock`) | [✅](pages/unlock/default.html) | ➖ | ➖ | [✅](pages/unlock/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/submitting.html) |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/invalid.html) |  |  | `L2-035`, `L2-036` |
-| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-044` |
+| Screen | default | loading | empty | error | paused | disconnected | scanning | bluetooth-off | offline | complete | ended | flat | manual | edge | video | video-blocked | class-workout | filtered | no-link | invalid-link | edited | submitting | not-found | from-list | ended-early | first-ride | no-dips | goal-hit | measure-dips | rode-today | no-trend | intervals | intervals-invalid | video-invalid | invalid | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Ride dashboard (`ride`) | [✅](pages/ride/default.html) | [✅](pages/ride/loading.html) | [✅](pages/ride/empty.html) | [✅](pages/ride/error.html) | [✅](pages/ride/paused.html) | [✅](pages/ride/disconnected.html) | [✅](pages/ride/scanning.html) | [✅](pages/ride/bluetooth-off.html) | [✅](pages/ride/offline.html) | [✅](pages/ride/complete.html) | [✅](pages/ride/ended.html) | [✅](pages/ride/flat.html) | [✅](pages/ride/manual.html) | [✅](pages/ride/edge.html) | [✅](pages/ride/video.html) | [✅](pages/ride/video-blocked.html) | [✅](pages/ride/class-workout.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-023`, `L2-024`, `L2-025`, `L2-026`, `L2-027`, `L2-040`, `L2-041`, `L2-001`, `L2-013`, `L2-039`, `L2-076`, `L2-084`, `L2-079` |
+| Class library (`class-library`) | [✅](pages/class-library/default.html) | [✅](pages/class-library/loading.html) | [✅](pages/class-library/empty.html) | [✅](pages/class-library/error.html) |  | [✅](pages/class-library/disconnected.html) |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-library/filtered.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-077`, `L2-078`, `L2-079`, `L2-040`, `L2-041`, `L2-086` |
+| Class page (`class`) | [✅](pages/class/default.html) | [✅](pages/class/loading.html) | ➖ | [✅](pages/class/error.html) |  |  |  |  |  |  |  | [✅](pages/class/flat.html) |  |  |  |  |  |  | [✅](pages/class/no-link.html) | [✅](pages/class/invalid-link.html) | [✅](pages/class/edited.html) | [✅](pages/class/submitting.html) | [✅](pages/class/not-found.html) |  |  |  |  |  |  |  |  |  |  |  |  | `L2-010`, `L2-029`, `L2-076`, `L2-078`, `L2-080`, `L2-040`, `L2-041` |
+| Session Summary (`session`) | [✅](pages/session/default.html) | [✅](pages/session/loading.html) | ➖ | [✅](pages/session/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/session/not-found.html) | [✅](pages/session/from-list.html) | [✅](pages/session/ended-early.html) | [✅](pages/session/first-ride.html) | [✅](pages/session/no-dips.html) | [✅](pages/session/goal-hit.html) |  |  |  |  |  |  |  | `L2-083`, `L2-084`, `L2-085`, `L2-087`, `L2-040`, `L2-041` |
+| Progress (`progress`) | [✅](pages/progress/default.html) | [✅](pages/progress/loading.html) | [✅](pages/progress/empty.html) | [✅](pages/progress/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/progress/measure-dips.html) | [✅](pages/progress/rode-today.html) | [✅](pages/progress/no-trend.html) |  |  |  |  | `L2-083`, `L2-086`, `L2-087`, `L2-040`, `L2-041` |
+| Set up your ride (`setup`) | [✅](pages/setup/default.html) | [✅](pages/setup/loading.html) | ➖ | [✅](pages/setup/error.html) |  |  |  |  |  |  |  | [✅](pages/setup/flat.html) |  |  | [✅](pages/setup/video.html) |  |  |  |  |  |  | [✅](pages/setup/submitting.html) |  |  |  |  |  |  |  |  |  | [✅](pages/setup/intervals.html) | [✅](pages/setup/intervals-invalid.html) | [✅](pages/setup/video-invalid.html) | [✅](pages/setup/invalid.html) | `L2-010`, `L2-029`, `L2-040`, `L2-041`, `L2-045`, `L2-059`, `L2-060`, `L2-076` |
+| Unlock Wattzup (`unlock`) | [✅](pages/unlock/default.html) | ➖ | ➖ | [✅](pages/unlock/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/submitting.html) |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/unlock/invalid.html) | `L2-035`, `L2-036` |
+| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-044` |
 
 ### Dialogs
 
-| Screen | default | busy | invalid | failed | treadmill | scroll | Requirements |
-|---|---|---|---|---|---|---|---|
-| End ride (`end-ride`) | [✅](dialogs/end-ride/default.html) | [✅](dialogs/end-ride/busy.html) | ➖ | [✅](dialogs/end-ride/failed.html) | [✅](dialogs/end-ride/treadmill.html) |  | `L2-017`, `L2-066`, `L2-071` |
-| Replace ride in progress (`replace-ride`) | [✅](dialogs/replace-ride/default.html) | [✅](dialogs/replace-ride/busy.html) | ➖ | [✅](dialogs/replace-ride/failed.html) | [✅](dialogs/replace-ride/treadmill.html) |  | `L2-013`, `L2-017`, `L2-066`, `L2-071`, `L2-072` |
-| Edit set (`edit-set`) | [✅](dialogs/edit-set/default.html) | ➖ | [✅](dialogs/edit-set/invalid.html) | ➖ |  |  | `L2-010`, `L2-029` |
-| Warm-up and cool-down (`edit-stretch`) | [✅](dialogs/edit-stretch/default.html) | ➖ | [✅](dialogs/edit-stretch/invalid.html) | ➖ |  |  | `L2-010`, `L2-029` |
-| Diagnostics (`diagnostics`) | [✅](dialogs/diagnostics/default.html) | ➖ | ➖ |  |  | [✅](dialogs/diagnostics/scroll.html) | `L2-023`, `L2-033` |
+| Screen | default | busy | invalid | failed | scroll | Requirements |
+|---|---|---|---|---|---|---|
+| End ride (`end-ride`) | [✅](dialogs/end-ride/default.html) | [✅](dialogs/end-ride/busy.html) | ➖ | [✅](dialogs/end-ride/failed.html) |  | `L2-017` |
+| Replace ride in progress (`replace-ride`) | [✅](dialogs/replace-ride/default.html) | [✅](dialogs/replace-ride/busy.html) | ➖ | [✅](dialogs/replace-ride/failed.html) |  | `L2-013`, `L2-017` |
+| Edit set (`edit-set`) | [✅](dialogs/edit-set/default.html) | ➖ | [✅](dialogs/edit-set/invalid.html) | ➖ |  | `L2-010`, `L2-029` |
+| Warm-up and cool-down (`edit-stretch`) | [✅](dialogs/edit-stretch/default.html) | ➖ | [✅](dialogs/edit-stretch/invalid.html) | ➖ |  | `L2-010`, `L2-029` |
+| Diagnostics (`diagnostics`) | [✅](dialogs/diagnostics/default.html) | ➖ | ➖ |  | [✅](dialogs/diagnostics/scroll.html) | `L2-023`, `L2-033` |
 
 ### Notifications
 
-| Screen | info | success | warning | danger | with-action | stacked | treadmill-danger | effort | recover | countdown | treadmill | persistent | treadmill-info | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Ride toast (`ride-toast`) | [✅](notifications/ride-toast/info.html) | [✅](notifications/ride-toast/success.html) | [✅](notifications/ride-toast/warning.html) | [✅](notifications/ride-toast/danger.html) | [✅](notifications/ride-toast/with-action.html) | [✅](notifications/ride-toast/stacked.html) | [✅](notifications/ride-toast/treadmill-danger.html) |  |  |  |  |  |  | `L2-016`, `L2-020`, `L2-027`, `L2-069`, `L2-071` |
-| Step-change banner (`phase-banner`) | ➖ | ➖ | ➖ | ➖ |  |  |  | [✅](notifications/phase-banner/effort.html) | [✅](notifications/phase-banner/recover.html) | [✅](notifications/phase-banner/countdown.html) | [✅](notifications/phase-banner/treadmill.html) |  |  | `L2-027`, `L2-041`, `L2-071` |
-| Connection banner (`connection-banner`) | [✅](notifications/connection-banner/info.html) | [✅](notifications/connection-banner/success.html) | [✅](notifications/connection-banner/warning.html) | [✅](notifications/connection-banner/danger.html) |  |  | [✅](notifications/connection-banner/treadmill-danger.html) |  |  |  |  | [✅](notifications/connection-banner/persistent.html) | [✅](notifications/connection-banner/treadmill-info.html) | `L2-018`, `L2-034`, `L2-039`, `L2-043`, `L2-066`, `L2-071` |
+| Screen | info | success | warning | danger | with-action | stacked | effort | recover | countdown | persistent | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Ride toast (`ride-toast`) | [✅](notifications/ride-toast/info.html) | [✅](notifications/ride-toast/success.html) | [✅](notifications/ride-toast/warning.html) | [✅](notifications/ride-toast/danger.html) | [✅](notifications/ride-toast/with-action.html) | [✅](notifications/ride-toast/stacked.html) |  |  |  |  | `L2-016`, `L2-020`, `L2-027` |
+| Step-change banner (`phase-banner`) | ➖ | ➖ | ➖ | ➖ |  |  | [✅](notifications/phase-banner/effort.html) | [✅](notifications/phase-banner/recover.html) | [✅](notifications/phase-banner/countdown.html) |  | `L2-027`, `L2-041` |
+| Connection banner (`connection-banner`) | [✅](notifications/connection-banner/info.html) | [✅](notifications/connection-banner/success.html) | [✅](notifications/connection-banner/warning.html) | [✅](notifications/connection-banner/danger.html) |  |  |  |  |  | [✅](notifications/connection-banner/persistent.html) | `L2-018`, `L2-034`, `L2-039`, `L2-043` |
 
 <!-- coverage:end -->

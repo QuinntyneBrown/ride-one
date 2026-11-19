@@ -14,6 +14,6 @@
     { "id": "pause", "bars": 5, "lines": ["Pause the video, and the ride pauses with it. Resume one, and both carry on."] },
     { "id": "phone", "bars": 4, "lines": ["On a phone, the video sits under the numbers."] },
     { "id": "proof", "bars": 6, "lines": ["What the tests prove: if the video drifts more than a second and a half, it seeks back to the ride.", "And whenever the ride isn't running, the video holds."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey nine. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey nine. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

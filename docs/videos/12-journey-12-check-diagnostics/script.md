@@ -36,4 +36,4 @@ What the tests prove: every notification from the bike is appended to the raw pa
 
 **close** (5 bars)
 
-That is journey twelve. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey twelve. Wattzup turns an Echelon bike into a live training display.

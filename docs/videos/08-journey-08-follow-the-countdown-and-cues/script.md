@@ -40,4 +40,4 @@ What the tests prove: each change has its own tone, higher for work, lower for r
 
 **close** (5 bars)
 
-That is journey eight. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey eight. Wattzup turns an Echelon bike into a live training display.

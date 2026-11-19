@@ -9,11 +9,10 @@
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4.svg)
 ![Angular 22](https://img.shields.io/badge/Angular-22-DD0031.svg)
 
-Wattzup turns an Echelon bike or treadmill into a live training display. It connects to the machine
-over Bluetooth Low Energy, shows its metrics in real time (cadence, speed and resistance on the bike;
-speed, incline and distance on the treadmill), and runs interval workouts that set the bike's
-resistance or the treadmill's speed and incline for the rider, with a countdown clock and cues at
-every step.
+Wattzup turns an Echelon bike into a live training display. It connects to the bike over Bluetooth
+Low Energy, shows its metrics in real time (cadence, speed and resistance), and runs interval
+workouts that set the bike's resistance for the rider, with a countdown clock and cues at every
+step.
 
 Wattzup runs as a single process on the computer next to the bike: an ASP.NET Core backend that
 talks to the bike and serves an Angular dashboard from the same origin.
@@ -47,13 +46,7 @@ talks to the bike and serves an Angular dashboard from the same origin.
   at 100 rpm.
 - **Connection status.** Scanning, connecting and reconnecting are shown as they happen, with
   automatic retry after a Bluetooth error.
-- **Treadmill** (off by default, see below). Pick the Echelon Stride or the bike on the machine page (`/machine`), which
-  lists the machines nearby with their signal. Set speed
-  and incline from the dashboard; treadmill workouts set them for each segment. Wattzup starts the
-  belt only after a 3-second countdown, stops it when a ride is paused, stopped or ends, and pauses
-  the ride when the belt is stopped from the console
-  ([ADR 0009](docs/adr/0009-treadmill-as-a-second-machine.md)).
-- **Simulated bike and treadmill.** Run every feature end to end without hardware (`--simulate`).
+- **Simulated bike.** Run every feature end to end without hardware (`--simulate`).
 - **Diagnostics.** A rolling raw packet log and a `status.json` snapshot of the live state.
 - **Secure by default.** Listens on loopback only; sharing on a network requires an API key.
 
@@ -67,12 +60,7 @@ is not listed as supported until its hardware smoke test (scan, connect, receive
 resistance; L2-043) has been run by hand with a real bike. CoreBluetooth is the first transport to
 be verified ([ADR 0007](docs/adr/0007-corebluetooth-first.md)).
 
-Treadmill support is **off by default** (`Wattzup:Treadmill:Enabled`, [ADR 0011](docs/adr/0011-treadmill-behind-a-flag.md)):
-on the first real Stride-8s it accepted Bluetooth writes but reported nothing and did not start its
-belt. With the setting on, it runs end to end against the simulated treadmill. Its Bluetooth frames come from a
-third-party reference, not from Echelon; the steps a person must confirm on a real treadmill are
-listed under "Needs hardware confirmation" in
-[`docs/protocol/echelon-treadmill-frames.md`](docs/protocol/echelon-treadmill-frames.md).
+Wattzup supports the Echelon bike only ([ADR 0016](docs/adr/0016-bike-only.md)).
 
 The original Python prototype (`echelon_server.py` and `index.html`) is kept outside this
 repository, in `../wattzup-prototype/`, as the reference for behaviour.
@@ -123,7 +111,7 @@ Bluetooth abstractions, and `Wattzup.Api` composes everything. The full rules ar
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org) 24 or later, with npm
-- To use real hardware: an Echelon bike or Echelon Stride treadmill and a computer with Bluetooth
+- To use real hardware: an Echelon bike and a computer with Bluetooth
   Low Energy
   - **macOS:** Bluetooth permission for the app running the server (System Settings → Privacy &
     Security → Bluetooth).
@@ -147,27 +135,14 @@ Open `http://127.0.0.1:8787`. The simulated bike, `ECHSIM-0001`, connects immedi
 synthetic cadence and confirms every resistance change. The dashboard shows a **Simulated bike**
 banner.
 
-### Run with the simulated treadmill
+### Run with a bike
 
 ```shell
-dotnet run --project backend/src/Wattzup.Api -- --simulate --machine treadmill --Wattzup:Treadmill:Enabled=true
+dotnet run --project backend/src/Wattzup.Api
 ```
 
-The simulated treadmill, `STRIDE-SIM-0001`, connects immediately, starts its belt when Wattzup asks
-and reports every speed and incline it is set to. You can also switch machines on the setup screen
-while no ride is active.
-
-### Run with a bike or treadmill
-
-```shell
-dotnet run --project backend/src/Wattzup.Api                       # the bike
-dotnet run --project backend/src/Wattzup.Api -- --machine treadmill --Wattzup:Treadmill:Enabled=true  # the treadmill
-```
-
-The backend selects the transport for your operating system, scans for the chosen machine and
-connects. Pedal to wake the bike, or switch the treadmill on; the status line shows **Connected** and
-the machine's name. Stand on the treadmill's side rails when a ride starts: the belt starts when the
-countdown reaches zero.
+The backend selects the transport for your operating system, scans for the bike and connects.
+Pedal to wake the bike; the status line shows **Connected** and the bike's name.
 
 ### Build the macOS app
 
@@ -213,8 +188,7 @@ Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environm
 
 | Setting | Default | Description |
 |---|---|---|
-| `--simulate` | Off | Use the simulated bike and treadmill instead of Bluetooth. Same as `Wattzup:Ble:Transport=Simulated`. |
-| `Wattzup:Machine` | `bike` | The machine to connect to at start-up: `bike` or `treadmill`. `--machine treadmill` is short for `--Wattzup:Machine=treadmill`. The rider can change it on the setup screen while no ride is active; the change lasts until the process stops. |
+| `--simulate` | Off | Use the simulated bike instead of Bluetooth. Same as `Wattzup:Ble:Transport=Simulated`. |
 | `Wattzup:Urls` | `http://127.0.0.1:8787` | Where the backend listens. A non-loopback address requires `Wattzup:Security:ApiKey`. |
 | `Wattzup:Security:ApiKey` | Empty | When set, every `/api` request requires it in `X-Api-Key`; the event stream takes a single-use token from `POST /api/events/token`. |
 | `Wattzup:Security:ControlPermits` | `20` | Control requests (resistance, workout, reconnect) allowed per client per window; further requests get `429`. |
@@ -226,8 +200,6 @@ Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environm
 | `Wattzup:Ble:KeepaliveInterval` | `00:00:01` | How often the keepalive command is written while connected. |
 | `Wattzup:Ble:ErrorBackoff` | `00:00:03` | The wait before retrying after a Bluetooth error. |
 | `Wattzup:Bike:DisplayName` | Empty | A name to show for the bike instead of its advertised name. |
-| `Wattzup:Treadmill:Enabled` | `false` | Turns treadmill support on (L2-075). While it is off, the bike is the only machine: the backend refuses to start with `--machine treadmill`, `POST /api/machine` answers 409 `machine_unavailable` for the treadmill, and the machine page and every switch link are hidden. Environment variable `WATTZUP__TREADMILL__ENABLED`. |
-| `Wattzup:Treadmill:DisplayName` | `Echelon Stride` | A name to show for the treadmill instead of its advertised name; empty shows the advertised name. |
 | `Wattzup:RawPacketLog:Enabled` | `true` | Whether notifications are written to the raw packet log. |
 | `Wattzup:RawPacketLog:Path` | `raw_packets.log` | The log file. Relative paths resolve against the content root. |
 | `Wattzup:RawPacketLog:MaxBytes` | `10485760` | The size at which the log rotates. |
@@ -235,7 +207,7 @@ Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environm
 | `Wattzup:StatusSnapshot:Enabled` | `true` | Whether the state is mirrored to the status file. |
 | `Wattzup:StatusSnapshot:Path` | `status.json` | The status file, written atomically. |
 | `Wattzup:Classes:Path` | `classes.json` | The class catalogue (L2-077, ADR 0014): a JSON file of shelves and classes, each class a bike plan with its YouTube video. A relative path resolves against the content root. A class that breaks a rule is left out with a warning; a missing or invalid file is an empty catalogue. A saved change is served within 2 s. A Wattzup update can replace the shipped `classes.json`, so keep an edited catalogue outside the app folder and point this setting at it. Environment variable `WATTZUP__CLASSES__PATH`. |
-| `Wattzup:Sessions:Path` | `sessions.json` | The saved rides (L2-082, ADR 0015): a ride on the bike of a minute or more is kept here when it ends, newest first, the newest 500. A relative path resolves against the content root. Each save writes a temporary file and moves it over the old one. A file that cannot be read at start is renamed to `<file>.unreadable` and Wattzup starts with no sessions; a failed write is logged and never stops a ride ending. Back the file up with the rest of your data; keep it outside the app folder if an update replaces that folder. Environment variable `WATTZUP__SESSIONS__PATH`. |
+| `Wattzup:Sessions:Path` | `sessions.json` | The saved rides (L2-082, ADR 0015): a ride of a minute or more is kept here when it ends, newest first, the newest 500. A relative path resolves against the content root. Each save writes a temporary file and moves it over the old one. A file that cannot be read at start is renamed to `<file>.unreadable` and Wattzup starts with no sessions; a failed write is logged and never stops a ride ending. Back the file up with the rest of your data; keep it outside the app folder if an update replaces that folder. Environment variable `WATTZUP__SESSIONS__PATH`. |
 | `Wattzup:StatusSnapshot:MinInterval` | `00:00:00.500` | The minimum time between two writes; the final state is always written. |
 
 The raw packet log and the status snapshot are written to the content root

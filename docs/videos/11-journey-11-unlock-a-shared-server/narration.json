@@ -14,6 +14,6 @@
     { "id": "shared", "bars": 6, "lines": ["Then you're on the dashboard.", "A banner says the server is shared on your network, once per session."] },
     { "id": "phone", "bars": 4, "lines": ["On a phone, the same card, sized to your thumb."] },
     { "id": "proof", "bars": 6, "lines": ["What the tests prove: without the right key, every request gets four oh one.", "And the live stream opens with a token that works once and expires in sixty seconds."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey eleven. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey eleven. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

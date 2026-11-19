@@ -14,6 +14,6 @@
     { "id": "offline", "bars": 4, "lines": ["If the server drops, the first row says so: Offline, retrying every two seconds."] },
     { "id": "phone", "bars": 4, "lines": ["On a phone, the dialog fits the screen."] },
     { "id": "proof", "bars": 6, "lines": ["What the tests prove: every notification from the bike is appended to the raw packet log.", "And Copy details copies the values and the packets, nothing more."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey twelve. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey twelve. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

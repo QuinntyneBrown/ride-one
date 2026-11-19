@@ -19,24 +19,3 @@ Byte-level detail: [echelon-ble-frames.md](./echelon-ble-frames.md).
 | `D0` Unknown | Meaning unknown; always payload `01`; ignored. |
 | `D1` Workout data | About once per second: elapsed time, revolution count, cadence. |
 | `D2` Resistance | The bike's current resistance level. |
-
-## To the treadmill
-
-Byte-level detail: [echelon-treadmill-frames.md](./echelon-treadmill-frames.md).
-
-| Name | Description |
-|---|---|
-| `A0` Keepalive | Sent once per second with a counter 1–255. |
-| `A4`, `A1`, `A3` Init requests | Sent once each at init. Never `B0` at init: it starts the belt. |
-| `B0` Belt start / stop | `01` starts the belt, `00` stops it. |
-| `B1` Set incline | Sets the target incline, 0–10 % (ADR 0010). |
-| `B2` Set speed | Sets the target speed, km/h × 1000. |
-
-## From the treadmill
-
-| Name | Description |
-|---|---|
-| `D0` Unknown | Echoed back as an acknowledgement; no metric. |
-| `D2` Incline | The treadmill's current incline, %; echoed back. |
-| `D3` Speed | The belt's current speed, km/h × 1000; echoed back. |
-

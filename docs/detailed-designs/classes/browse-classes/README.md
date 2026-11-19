@@ -2,7 +2,7 @@
 
 ## Overview
 
-Riders follow YouTube bike classes, and each class pairs with a ride: a warm-up, intervals or a steady level, a cool-down, levels and cadence aims, and the point in the video where the ride starts. This feature keeps those classes as data and shows them to the rider as shelves of video covers (L1-014, ADR 0014). The owner adds, changes or removes a class by editing one JSON file, with no rebuild and no restart. On the bike, the library is where the rider lands after choosing the machine and after ending a ride (L2-073, L2-051, L2-058), and the Ride Dashboard links to it from its app bar at any time, a ride in progress included (L2-079 criterion 15).
+Riders follow YouTube bike classes, and each class pairs with a ride: a warm-up, intervals or a steady level, a cool-down, levels and cadence aims, and the point in the video where the ride starts. This feature keeps those classes as data and shows them to the rider as shelves of video covers (L1-014, ADR 0014). The owner adds, changes or removes a class by editing one JSON file, with no rebuild and no restart. The library is where the rider lands after ending a ride too short to save (L2-051, L2-058), and the Ride Dashboard links to it from its app bar at any time, a ride in progress included (L2-079 criterion 15).
 
 **class** — catalogue entry that pairs a bike plan with the YouTube video it follows, filed on one shelf
 
@@ -18,7 +18,7 @@ The catalogue is read-only. No screen writes it, and a ride never depends on it:
 
 The feature extends three existing designs:
 - `platform/secure-api` gains `img-src https://i.ytimg.com` for covers (L2-036 criterion 4, ADR 0014) and puts the 2 new endpoints behind the API key.
-- `treadmill/choose-machine` and `dashboard/dialogs-and-notifications` send the bike to `/classes` instead of `/setup`.
+- `dashboard/dialogs-and-notifications` sends the rider to `/classes` instead of `/setup` after a ride too short to save.
 - `platform/host-and-structure` gains the route, the components and the `Classes/` folder.
 - `dashboard/responsive-accessible-layout` gains the `Library` link in the ride app bar (`AppBar`), the dashboard's entry point to the library, and its place in the Tab order.
 
@@ -33,7 +33,7 @@ The class page at `/classes/:id` belongs to `classes/ride-a-class`.
 - **`ClassCatalogueReader.Read(Stream file, long length)`** (pure apart from the stream) — returns `CatalogueLoadResult(ClassCatalogue? Catalogue, IReadOnlyList<CatalogueEntryProblem> Problems, string? FileError)`. It applies the rules of L2-077 in this order:
   1. A file over 1 MB, or one that is not valid JSON, gives `Catalogue` = `null` with `FileError` naming the reason (criterion 5).
   2. Each shelf whose `id` breaks the id rule (`^[a-z0-9-]{1,64}$`) or repeats an earlier id is dropped with a problem naming the shelf. Its classes go with it (criterion 4).
-  3. Each class is checked against the L2-077 table: the id rule and uniqueness, `title` 1 to 80 characters, `channel` and `focus` 1 to 40, `description` 0 to 280, and `shelf` naming a kept shelf. Its `plan` is passed to `WorkoutPlanValidator.Validate(plan, Machine.Bike)`, so a treadmill plan or an invalid bike plan is rejected by the same rules as `POST /api/workout` (criterion 3).
+  3. Each class is checked against the L2-077 table: the id rule and uniqueness, `title` 1 to 80 characters, `channel` and `focus` 1 to 40, `description` 0 to 280, and `shelf` naming a kept shelf. Its `plan` is passed to `WorkoutPlanValidator.Validate(plan)`, so an invalid plan is rejected by the same rules as `POST /api/workout` (criterion 3).
   4. After 20 shelves and 200 valid classes, the rest are dropped with one problem stating the counts (criterion 6).
 
   Each `CatalogueEntryProblem(string Entry, string Field, string Message)` names the class id, or `classes[<i>]` when the id is missing.
@@ -50,7 +50,7 @@ The class page at `/classes/:id` belongs to `classes/ride-a-class`.
 - **`ClassEndpoints`** (`Endpoints/ClassEndpoints.cs`, new), mapped on the `/api` group, so `RequireAuthorization` applies the API key when one is set (L2-078 criterion 6). These are reads, not control endpoints, so no rate limit applies.
   - `GET /api/classes` → `ClassCatalogueResponse { shelves: [ClassShelfResponse { id, title, tagline, classes: [ClassResponse] }] }`. Shelves and classes come in file order, and a shelf with no class is left out (criteria 1 and 2).
   - `GET /api/classes/{id}` → `ClassResponse` (criterion 3). An unknown id, or one that breaks the id rule, answers `Problems.WithCode(404, "class_not_found", …)` (criterion 4). The route takes `{id}` as a string, so `../x` never reaches the file system.
-  - `ClassResponse { id, title, channel, focus, description, shelf: { id, title, tagline }, plan }`, where `plan` is the accepted plan as `workout.plan` serialises it (L2-014): bike fields set, treadmill fields `null`, `video` `{video_id, start_seconds}` or `null`.
+  - `ClassResponse { id, title, channel, focus, description, shelf: { id, title, tagline }, plan }`, where `plan` is the accepted plan as `workout.plan` serialises it (L2-014), with `video` `{video_id, start_seconds}` or `null`.
   - Each endpoint declares `.Produces<…>()` and `.ProducesProblem(404)`, so the OpenAPI document carries both shapes (criterion 7). Only `GET` is mapped, so any other method answers 405 (criterion 5).
 - **`classes.json`** (content root, new) — the default catalogue: 9 shelves by length (`15-min`, `20-min`, `25-min`, `30-min`, `35-min`, `40-min`, `45-min`, `60-min`, `60-min-endurance`), the 6 classes of `docs/mocks/README.md` (only *30 Minute HIIT Cardio* has a video, `QUoToFsMNig`, start 3), and one class per indoor training session in the GCN Training channel's workout playlists (185 videos, the *with music* version where a session has two), each with its video and the point where the session's 0:00 starts. Each plan follows the session's breakdown from the video description or, where there is none, its spoken cues; effort *e*/10 is level 8 + 1.6 × *e*, rounded. A session with more changes than an `intervals` plan holds (10 sets, 30 efforts) has its closest neighbouring steps merged, time-weighted. With 191 classes the `GET /api/classes` body is about 250 KB, close to the 256 KB of L2-078 criterion 8.
 - **`SecurityHeaders`** — `img-src 'self' data: https://i.ytimg.com` (L2-036 criterion 4, `platform/secure-api`).
@@ -90,10 +90,9 @@ The class page at `/classes/:id` belongs to `classes/ride-a-class`.
   - The heading block reads `Ride a class`, the lead copy and the bike's name, with `Build your own ride` linking to `/setup` (criterion 1).
   - The tab list reuses the `view-switch` pattern of `MainViewTabs`, with `All` and one tab per shelf, a roving `tabindex`, the arrow keys and `aria-selected` (criterion 2). The tabs are disabled while loading.
   - The states are skeletons (criterion 8), `No classes yet` (criterion 9), and `Couldn't load the classes` with `Try again` (criterion 10). The status line of L2-018 shows from the app bar, as on every page (criterion 11).
-  - `bikeOnly()` (`core/machine-guards.ts`, new), called in the page's constructor, is an effect that redirects to `/setup` (replacing the history entry) once `LiveStateService.state().machine` reads `treadmill` (criterion 12). It is an effect, not a route guard, because the machine is known only after the first state message arrives, as on Choose machine.
 - **Entry from the Ride Dashboard** (L2-079 criterion 15):
-  - `RidePage` (`dashboard/ride-page/ride-page.html`) renders `<wz-app-bar [workout] [machine] [view]>`, with `machine` from `LiveStateService.state().machine` (`bike` until the first state message).
-  - `AppBar` (`dashboard/app-bar/`, app layer, already imports `RouterLink`) renders, when `machine()` is `bike`, `<a class="btn btn--quiet btn--sm app-bar__library" routerLink="/classes"><wz-icon name="grid" size="sm" />Library</a>` right after the lockup and before the divider, so the Tab order is lockup, Library, workout link, then the end group (L2-041). The link has no `aria-label`: its text is its accessible name. `.btn` floors at `--target-comfortable` (44 × 44 px) and the global focus ring applies, so no new style is needed; `.app-bar__library` is a BEM hook with no rule of its own. On the treadmill the link is not rendered (the Run Dashboard frame has none).
+  - `RidePage` (`dashboard/ride-page/ride-page.html`) renders `<wz-app-bar [workout] [view]>`.
+  - `AppBar` (`dashboard/app-bar/`, app layer, already imports `RouterLink`) renders `<a class="btn btn--quiet btn--sm app-bar__library" routerLink="/classes"><wz-icon name="grid" size="sm" />Library</a>` right after the lockup and before the divider, so the Tab order is lockup, Library, workout link, then the end group (L2-041). The link has no `aria-label`: its text is its accessible name. `.btn` floors at `--target-comfortable` (44 × 44 px) and the global focus ring applies, so no new style is needed; `.app-bar__library` is a BEM hook with no rule of its own.
   - `Icon` (`components/icon/`) gains the decorative `grid` icon, the frame's `LayoutGrid`.
   - Following the link is plain router navigation to the existing `classes` route. Nothing is posted: the workout keeps running in `WorkoutEngine` on the backend, `LiveStateService` (root-provided) keeps its event stream open, and `RidePage` shows the same workout again when the rider returns to `/`.
 - **Grid** — `.shelf__grid` uses one column under 576 px, two from 576 px, three from 992 px and four from 1200 px, with no horizontal scroll. Each card and tab is at least 44 × 44 px with a visible focus ring (criterion 13).
@@ -108,8 +107,7 @@ The class page at `/classes/:id` belongs to `classes/ride-a-class`.
 | `pages/class-library/empty` | `No classes yet`, with `Build your own ride` |
 | `pages/class-library/error` | `Couldn't load the classes`, with `Try again` and `Build your own ride` |
 | `pages/class-library/disconnected` | The cards with the connection status line of L2-018 |
-| `pages/ride/*` except `treadmill*` | The ride app bar with `Library` after the lockup (L2-079 criterion 15) |
-| `pages/ride/treadmill*` | No `Library` link |
+| `pages/ride/*` | The ride app bar with `Library` after the lockup (L2-079 criterion 15) |
 
 ### Acceptance tests
 
@@ -125,7 +123,7 @@ The class page at `/classes/:id` belongs to `classes/ride-a-class`.
 - `SecurityTests.Every_response_allows_only_the_YouTube_player_origins_beyond_self` is renamed to `Every_response_allows_only_the_YouTube_origins_beyond_self`, and it also reads `img-src https://i.ytimg.com` (L2-036 AC4)
 
 `Wattzup.Core.Tests`, one case per row:
-- `ClassCatalogueReaderTests`: each field rule of the L2-077 table at and beyond its limits; a repeated class id; an unknown shelf; a treadmill plan; a repeated shelf id; 21 shelves and 201 classes; a file of 1 MB + 1 byte; malformed JSON.
+- `ClassCatalogueReaderTests`: each field rule of the L2-077 table at and beyond its limits; a repeated class id; an unknown shelf; a repeated shelf id; 21 shelves and 201 classes; a file of 1 MB + 1 byte; malformed JSON.
 
 Playwright (`frontend/e2e/`, Chromium only) answers `/api/classes` from a recording (`e2e/fixtures/recorded/classes.json`) and `https://i.ytimg.com/**` from a fixture image. Page object `e2e/pages/class-library.page.ts`; spec `e2e/class-library.spec.ts`:
 - `shows Ride a class with a tab per shelf and every shelf under All` (L2-079 AC1, AC2, AC4)
@@ -135,7 +133,6 @@ Playwright (`frontend/e2e/`, Chromium only) answers `/api/classes` from a record
 - `falls back to the poster when a thumbnail fails` (L2-079 AC6)
 - `shows skeletons, then No classes yet for an empty catalogue` (L2-079 AC8, AC9)
 - `shows Couldn't load the classes and retries with Try again` (L2-079 AC10)
-- `redirects the treadmill to setup` (L2-079 AC12)
 
 Page object `e2e/pages/ride.page.ts` owns the `Library` link's locator; `e2e/class-library.spec.ts` covers the entry point:
 - `opens the class library from the dashboard's Library link by keyboard, leaving the ride untouched` (L2-079 AC15): with a running workout in the stubbed event stream, Tab reaches `Library` straight after the lockup, Enter opens `/classes` with `Ride a class`, and no `POST` to `/api/workout…` was sent; browser Back shows the same workout on the dashboard.
@@ -157,9 +154,8 @@ Unit tests: `class-library-view.spec.ts` covers `cardView` for `hiit`, `interval
 |-------|--------------|-------------|
 | `L2-077` | `L1-014` | Class catalogue. A class is a bike plan with the YouTube video it follows. The catalogue of classes is a JSON file the backend reads, named by `Wattzup:Classes:Path` (default `classes.json`); invalid classes are left out with a warning, an unreadable file gives an empty catalogue, and a saved change is served within 2 s. |
 | `L2-078` | `L1-005` | Class endpoints. Two read-only endpoints serve the catalogue: `GET /api/classes` and `GET /api/classes/{id}`, with 404 `class_not_found` for an unknown id, the API key when one is set, and both shapes in the OpenAPI document. |
-| `L2-079` | `L1-014` | Class library page. `/classes` shows the catalogue as shelves of cards, with a tab per shelf, covers from YouTube thumbnails or the bundled poster, and loading, empty, error and disconnected states; the treadmill does not show it. Criterion 15: the bike's Ride Dashboard shall show a `Library` link after the lockup, opened by touch, click or Enter, that opens `/classes` and sends no request that changes the workout. |
+| `L2-079` | `L1-014` | Class library page. `/classes` shows the catalogue as shelves of cards, with a tab per shelf, covers from YouTube thumbnails or the bundled poster, and loading, empty, error and disconnected states. Criterion 15: the Ride Dashboard shall show a `Library` link after the lockup, opened by touch, click or Enter, that opens `/classes` and sends no request that changes the workout. |
 | `L2-036` | `L1-009` | Input validation and hardening. Criterion 4: a Content-Security-Policy that allows only same-origin scripts, styles and connections, with three exceptions for YouTube (ADR 0012): `frame-src https://www.youtube-nocookie.com` and `script-src https://www.youtube.com` (the IFrame player API) for the ride-along video, and `img-src https://i.ytimg.com` for class covers (L2-079). |
-| `L2-073` | `L1-013` | Choose the machine. Criterion 6: when `ble` becomes `connected`, the rider is taken to `/classes` for the bike (L2-079) or `/setup` for the treadmill. |
 | `L2-040` | `L1-011` | Responsive layout. The library's grid, tabs and cards follow the breakpoints of L2-079 criterion 13. |
 | `L2-041` | `L1-011` | Accessibility. Tabs, cards and covers meet the keyboard, focus and text-alternative rules of L2-079 criteria 2, 5, 6 and 13. |
 

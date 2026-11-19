@@ -71,7 +71,6 @@ All methods take the sessions (newest first), `DateTimeOffset now` and the `Time
   - **Data.** It reads `SESSION_API.list()` and `SESSION_API.progress()` together. `phase` is `loading`, `ready`, `empty` or `error`.
   - **Signals.** It holds `classId`, set on load to the most recently ridden comparable class, and `measure`.
   - **Navigation.** A chart point opens `/sessions/<id>`. The header button goes to `/classes`.
-  - **Treadmill.** `bikeOnly()` sends the treadmill to `/setup`.
 - **`ClassLibraryPage`** (changed) — it reads `SESSION_API.progress()` beside the catalogue for the `Progress` link and its `<n>d` badge. A failure leaves the link without the badge and never affects the library (L2-079 criterion 13).
 
 ### Screen states
@@ -94,7 +93,7 @@ All methods take the sessions (newest first), `DateTimeOffset now` and the `Time
 
 `Wattzup.Core.Tests` (`ProgressCalculatorTests`) has one case per row of the three L2-087 tables. These include the 23:59 / 00:01 boundary, yesterday-only, two days ago, two rides on one day, a Sunday versus the Monday week start, each achievement at goal − 1 and at goal, the ordering, and no sessions at all (L2-087 AC3).
 
-Playwright (`e2e/progress.spec.ts`, page object `e2e/pages/progress.page.ts`), one test per behaviour of L2-086: the header and `Ride to make it <n>` or `Ride again` (AC1); the class radios and measure tabs by click and arrow keys (AC2, AC3); the chart's points as links, the latest larger (AC4); dips counted down as better (AC3); no trend (AC5); the newest 8 sessions and `Show all` (AC6); the streak messages, the six-week calendar, this week and all time (AC7); the achievements (AC8); `No rides yet` (AC9); loading and error (AC10); the treadmill redirect (AC11).
+Playwright (`e2e/progress.spec.ts`, page object `e2e/pages/progress.page.ts`), one test per behaviour of L2-086: the header and `Ride to make it <n>` or `Ride again` (AC1); the class radios and measure tabs by click and arrow keys (AC2, AC3); the chart's points as links, the latest larger (AC4); dips counted down as better (AC3); no trend (AC5); the newest 8 sessions and `Show all` (AC6); the streak messages, the six-week calendar, this week and all time (AC7); the achievements (AC8); `No rides yet` (AC9); loading and error (AC10).
 
 `e2e/class-library.spec.ts` covers the library's `Progress` link: its name and `<n>d` badge, the filled badge when ridden today, and no badge with no streak or when progress fails (L2-079 AC13).
 
@@ -107,7 +106,7 @@ Playwright (`e2e/progress.spec.ts`, page object `e2e/pages/progress.page.ts`), o
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-086` | `L1-015` | Progress page. `Getting stronger` with a class radio group, `Measure` tabs and a trend chart, the session list, the streak calendar, the weekly goal and the achievements, with the ride button, and no-trend, empty, loading, error and treadmill states. |
+| `L2-086` | `L1-015` | Progress page. `Getting stronger` with a class radio group, `Measure` tabs and a trend chart, the session list, the streak calendar, the weekly goal and the achievements, with the ride button, and no-trend, empty, loading and error states. |
 | `L2-087` | `L1-015` | Streaks, weekly goal, previous attempt, bests and achievements: the rules as tables, computed in Core from the sessions and the time now in the backend's local time zone. |
 | `L2-083` | `L1-005` | Sessions API. Criterion 4: `GET /api/progress`. |
 | `L2-079` | `L1-014` | Class library page. Criterion 13: the `Progress` link with the streak. |

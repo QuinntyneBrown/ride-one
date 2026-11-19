@@ -30,10 +30,6 @@ Verification:
 - `Wattzup.Core.Tests` — `TelemetryIngestor` against a test double of `IBikeConnection` and `FakeTimeProvider`: every frame counts, and timestamps follow the rules of L2-006.
 - `Wattzup.Api.AcceptanceTests` — with `SimulatedBikeTransport`, `GET /api/status` shows `packets` rising and `cadence` and `speed_kmh` set after the first `0xD1` frame.
 
-### The treadmill
-
-`TelemetryIngestor` is the notify handler for both machines. It chooses the decoder by `store.Current.Machine`: `PacketDecoder` on the bike, as above, and `TreadmillPacketDecoder` on the treadmill, where `D2` means incline rather than resistance (ADR 0009). Counting and raw packet logging are the same on both machines. On a `ResistanceUpdate` it acknowledges only `resistance` entries, through `CommandLog.Acknowledge(log, CommandKind.Resistance, level, nowMs)`. The treadmill's decoding, the `belt` derivation and the acknowledgement echo are described in `treadmill/decode-treadmill-telemetry` and `treadmill/choose-machine`.
-
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

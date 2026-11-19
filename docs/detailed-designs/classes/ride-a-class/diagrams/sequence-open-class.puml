@@ -7,7 +7,6 @@ skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
 box "Frontend — Wattzup Web application" #E0F2FE
-  participant "bikeOnly" as guard
   participant "ClassPage" as page
   participant "class-draft.ts" as draft
   participant "ride-preview.ts" as preview
@@ -21,11 +20,7 @@ box "Backend — Wattzup Core" #ECFDF3
   participant "ClassCatalogueStore" as store
 end box
 
-rider -> guard : Open /classes/30-minute-hiit-cardio
-alt machine is treadmill
-  guard --> rider : Redirect to /setup [L2-080 AC14]
-else bike
-  guard -> page : Activate
+rider -> page : Open /classes/30-minute-hiit-cardio
   page --> rider : Skeleton [L2-080 AC13]
   page -> client : get(id)
   client -> ep : GET /api/classes/{id}
@@ -53,5 +48,4 @@ else bike
     end
     page --> rider : The plan card and the level rows [L2-080 AC6, AC7, AC8]
   end
-end
 @enduml

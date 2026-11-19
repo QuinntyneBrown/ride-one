@@ -40,10 +40,6 @@
         "L2-001",
         "L2-013",
         "L2-039",
-        "L2-064",
-        "L2-066",
-        "L2-068",
-        "L2-071",
         "L2-076",
         "L2-084",
         "L2-079"
@@ -65,39 +61,9 @@
         "edge",
         "video",
         "video-blocked",
-        "class-workout",
-        "treadmill",
-        "treadmill-paused",
-        "treadmill-flat",
-        "treadmill-manual",
-        "treadmill-countdown",
-        "treadmill-belt-stopped",
-        "treadmill-disconnected",
-        "treadmill-scanning"
+        "class-workout"
       ],
       "not_applicable": {}
-    },
-    {
-      "id": "choose-machine",
-      "kind": "page",
-      "title": "Choose your machine",
-      "route": "/machine",
-      "requirements": [
-        "L2-062",
-        "L2-063",
-        "L2-072",
-        "L2-073",
-        "L2-074"
-      ],
-      "states": [
-        "default",
-        "connecting",
-        "not-found",
-        "not-found-bike",
-        "loading",
-        "empty",
-        "error"
-      ]
     },
     {
       "id": "class-library",
@@ -215,10 +181,6 @@
         "L2-045",
         "L2-059",
         "L2-060",
-        "L2-062",
-        "L2-067",
-        "L2-072",
-        "L2-075",
         "L2-076"
       ],
       "states": [
@@ -231,11 +193,7 @@
         "loading",
         "error",
         "invalid",
-        "submitting",
-        "treadmill",
-        "treadmill-flat",
-        "treadmill-invalid",
-        "treadmill-submitting"
+        "submitting"
       ],
       "not_applicable": {
         "empty": "Setup always shows values: the saved draft, or the default plan on first run (L2-029)."
@@ -284,15 +242,12 @@
       "title": "End ride",
       "opens_from": "ride",
       "requirements": [
-        "L2-017",
-        "L2-066",
-        "L2-071"
+        "L2-017"
       ],
       "states": [
         "default",
         "busy",
-        "failed",
-        "treadmill"
+        "failed"
       ],
       "not_applicable": {
         "invalid": "Confirmation only; the dialog has no inputs."
@@ -305,16 +260,12 @@
       "opens_from": "setup",
       "requirements": [
         "L2-013",
-        "L2-017",
-        "L2-066",
-        "L2-071",
-        "L2-072"
+        "L2-017"
       ],
       "states": [
         "default",
         "busy",
-        "failed",
-        "treadmill"
+        "failed"
       ],
       "not_applicable": {
         "invalid": "Confirmation only; the dialog has no inputs."
@@ -382,9 +333,7 @@
       "requirements": [
         "L2-016",
         "L2-020",
-        "L2-027",
-        "L2-069",
-        "L2-071"
+        "L2-027"
       ],
       "states": [
         "info",
@@ -392,8 +341,7 @@
         "warning",
         "danger",
         "with-action",
-        "stacked",
-        "treadmill-danger"
+        "stacked"
       ]
     },
     {
@@ -403,14 +351,12 @@
       "opens_from": "ride",
       "requirements": [
         "L2-027",
-        "L2-041",
-        "L2-071"
+        "L2-041"
       ],
       "states": [
         "effort",
         "recover",
-        "countdown",
-        "treadmill"
+        "countdown"
       ],
       "not_applicable": {
         "info": "The banner is a workout cue whose look is set by the interval kind, not by severity; severities are covered by ride-toast and connection-banner.",
@@ -428,18 +374,14 @@
         "L2-018",
         "L2-034",
         "L2-039",
-        "L2-043",
-        "L2-066",
-        "L2-071"
+        "L2-043"
       ],
       "states": [
         "info",
         "success",
         "warning",
         "danger",
-        "persistent",
-        "treadmill-info",
-        "treadmill-danger"
+        "persistent"
       ]
     }
   ]

@@ -15,6 +15,6 @@
     { "id": "after", "bars": 5, "lines": ["The ride is over, but your power trace and totals stay on the dashboard until you start a new ride."] },
     { "id": "phone", "bars": 4, "lines": ["On a phone, the same dialog, the same choice."] },
     { "id": "proof", "bars": 6, "lines": ["What the tests prove: resume continues from the same point.", "And a paused ride is never shut off while the bike stays connected."] },
-    { "id": "close", "bars": 5, "lines": ["That is journey seven. Wattzup turns an Echelon bike or treadmill into a live training display."] }
+    { "id": "close", "bars": 5, "lines": ["That is journey seven. Wattzup turns an Echelon bike into a live training display."] }
   ]
 }

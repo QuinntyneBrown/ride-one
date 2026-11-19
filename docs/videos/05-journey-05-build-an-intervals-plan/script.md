@@ -44,4 +44,4 @@ What the tests prove: a plan holds at most thirty efforts and a hundred and eigh
 
 **close** (5 bars)
 
-That is journey five. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey five. Wattzup turns an Echelon bike into a live training display.

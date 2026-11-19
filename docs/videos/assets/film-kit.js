@@ -101,7 +101,7 @@
     <div class="fill field--ink">${S.aurora((t) => 0.6 * (1 - exit(t, S.length - 2.5, 2.5) * 0.6))}
     <div style="position:absolute;left:0;right:0;top:330px;text-align:center">
       <div ${S.rise(S.beat(1), { y: 40 })}>${lockup(150)}</div>
-      <p class="lede" style="margin:56px auto 0;max-width:1300px" ${S.rise(S.bar(1))}>Wattzup turns an Echelon bike or treadmill into a live training display.</p>
+      <p class="lede" style="margin:56px auto 0;max-width:1300px" ${S.rise(S.bar(1))}>Wattzup turns an Echelon bike into a live training display.</p>
       <p class="kicker accent" style="margin-top:40px" ${S.rise(S.bar(1) + S.BEAT * 2)}>Journey ${journey}</p>
     </div>
     </div>`);

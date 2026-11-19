@@ -35,10 +35,6 @@ Acceptance tests in `Wattzup.Api.AcceptanceTests` drive the host with `Simulated
 - During the 3 s backoff, `POST /api/bike/reconnect` answers 202 and a scan starts without advancing the clock; while connected it answers 409 `already_connected` (L2-004).
 - With `PoweredOn = false`, advancing the clock by 1 hour leaves the service scanning. Switching the bike back on yields `connected` within one 20 s scan cycle (L2-004).
 
-### The treadmill
-
-With the treadmill chosen (L2-062), the same keepalive loop and recovery loop run with the treadmill's profile (`treadmill/choose-machine`). The keepalive writes `MachineProfile.Keepalive(counter)` instead of the fixed frame: `F0 A0 01 <n> <checksum>`, where `<n>` starts at 1 on each connection, counts to 255 and wraps to 1, never 0 (L2-063 criterion 6). The bike's profile ignores the counter, so the bike's keepalive stays `F0 A0 01 01 92`. Disconnects and exceptions recover as described above (L2-063 criterion 9). A machine change (`MachineSelector.Changed`) cancels the keepalive like a reconnect request, but the loop does not write `ble = disconnected`, because the change has already set `scanning`. On the treadmill a disconnect also sets `belt` to `null` (L2-064 criterion 8). While Wattzup has no link, only the treadmill's safety key and stop button can stop the belt (L2-066).
-
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |

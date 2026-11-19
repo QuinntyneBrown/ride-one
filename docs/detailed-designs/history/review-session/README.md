@@ -2,7 +2,7 @@
 
 ## Overview
 
-After a ride, the rider wants to know how it went and whether it beat the last time. This feature is the Session Summary page at `/sessions/:id`, where the rider lands when a bike ride ends (L2-084, L2-085). It shows the average power, the change since the previous attempt at the same class, the personal bests, the streak, the power and cadence traces against the plan, the cadence dips and the totals of one session (`history/record-session`).
+After a ride, the rider wants to know how it went and whether it beat the last time. This feature is the Session Summary page at `/sessions/:id`, where the rider lands when a ride ends (L2-084, L2-085). It shows the average power, the change since the previous attempt at the same class, the personal bests, the streak, the power and cadence traces against the plan, the cadence dips and the totals of one session (`history/record-session`).
 
 **Session Summary** — page at `/sessions/:id` that shows one session
 
@@ -71,11 +71,10 @@ These endpoints are mapped on the `/api` group, so the API key applies when one 
   - **Just finished.** `justFinished` comes from `history.state.justFinished`, which `EndRideDialog` and the ride overlays set through `Router.navigate(…, {state})`. The browser keeps `history.state` across a reload, so the page clears the flag on its history entry once it has rendered (`Location.replaceState`); a reload reads `All sessions` (L2-085 criterion 2).
   - **Header.** The back link (`Done` or `All sessions`) goes to `/progress`. `Ride this again` links to `/classes/<class_id>` when there is one.
   - **Dip focus.** The page holds `focusDip` in a signal, which joins `DipList` to `SessionTraces` (criterion 10).
-  - **Treadmill.** `bikeOnly()` sends the treadmill to `/setup` (criterion 13).
-- **`EndRideDialog`** (changed) — after `stop()` it navigates to `/sessions/<id>` with `{state: {justFinished: true}}` on the bike when an id came back, else to `/classes`. The treadmill still goes to `/setup` (L2-084 criterion 1).
+- **`EndRideDialog`** (changed) — after `stop()` it navigates to `/sessions/<id>` with `{state: {justFinished: true}}` when an id came back, else to `/classes` (L2-084 criterion 1).
 - **`RideOverlay`** and `ride-view-state.ts` (changed):
   - The `bike-shut-off` overlay shows `See your ride` and `Ride another class` when `workout.session_id` is set.
-  - A new `ride-complete` overlay (`Ride complete`) shows for `ended` on the bike with a `session_id`, with `See your ride` focused (L2-084 criteria 2 and 3).
+  - A new `ride-complete` overlay (`Ride complete`) shows for `ended` with a `session_id`, with `See your ride` focused (L2-084 criteria 2 and 3).
 
 ### Screen states
 
@@ -104,9 +103,9 @@ These endpoints are mapped on the `/api` group, so the API key applies when one 
 
 `Wattzup.Core.Tests` (`ProgressCalculatorTests`) has one case per row for the previous attempt and the bests (L2-087).
 
-Playwright (`e2e/session.spec.ts`, page object `e2e/pages/session-summary.page.ts`, stubs in `e2e/fixtures/sessions.ts` laid over the recorded answers), one test per behaviour of L2-085: the date line, title and delta (AC1, AC4); `All sessions` and `Ride this again` (AC2, AC3); the fall and `0 W` (AC4); the first ride (AC3, AC4, AC6); `Ended early` (AC5); the bests in order (AC6); the streak, week strip and weekly line (AC7); the traces' text alternative and dip bands (AC8); the dip rows and their highlight on hover and focus (AC9, AC10); no dips (AC9); the totals without heart rate (AC11); loading, not-found and error with `Try again` (AC12); the treadmill redirect (AC13).
+Playwright (`e2e/session.spec.ts`, page object `e2e/pages/session-summary.page.ts`, stubs in `e2e/fixtures/sessions.ts` laid over the recorded answers), one test per behaviour of L2-085: the date line, title and delta (AC1, AC4); `All sessions` and `Ride this again` (AC2, AC3); the fall and `0 W` (AC4); the first ride (AC3, AC4, AC6); `Ended early` (AC5); the bests in order (AC6); the streak, week strip and weekly line (AC7); the traces' text alternative and dip bands (AC8); the dip rows and their highlight on hover and focus (AC9, AC10); no dips (AC9); the totals without heart rate (AC11); loading, not-found and error with `Try again` (AC12).
 
-L2-084 is proven where the ride ends: `e2e/dialogs.spec.ts` (`End ride with a saved ride opens its summary as just finished`, including the reload that reads `All sessions`) and `e2e/banners-and-states.spec.ts` (the `bike-shut-off` overlay with `See your ride`, `Ride complete` with it focused, no overlay without a session or on the treadmill).
+L2-084 is proven where the ride ends: `e2e/dialogs.spec.ts` (`End ride with a saved ride opens its summary as just finished`, including the reload that reads `All sessions`) and `e2e/banners-and-states.spec.ts` (the `bike-shut-off` overlay with `See your ride`, `Ride complete` with it focused, no overlay without a session).
 
 ### Open questions
 
@@ -118,8 +117,8 @@ L2-084 is proven where the ride ends: `e2e/dialogs.spec.ts` (`End ride with a sa
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-083` | `L1-005` | Sessions API. `GET /api/sessions` (summaries, newest first), `GET /api/sessions/{id}` (the session with `previous` and `bests`, 404 `session_not_found`) and `GET /api/progress`, read-only, behind the API key, in the OpenAPI document. |
-| `L2-084` | `L1-015` | Ending a ride opens its summary. On the bike, `End ride`, the bike-shut-off overlay and a new `Ride complete` overlay lead to `/sessions/<session_id>`; the treadmill is unchanged. |
-| `L2-085` | `L1-015` | Session Summary page. The headline, delta, ended-early line, bests, streak panel, traces, dips with highlight and totals of one session, with `Done` / `All sessions`, `Ride this again`, and loading, not-found, error and treadmill states. |
+| `L2-084` | `L1-015` | Ending a ride opens its summary. `End ride`, the bike-shut-off overlay and a new `Ride complete` overlay lead to `/sessions/<session_id>`. |
+| `L2-085` | `L1-015` | Session Summary page. The headline, delta, ended-early line, bests, streak panel, traces, dips with highlight and totals of one session, with `Done` / `All sessions`, `Ride this again`, and loading, not-found and error states. |
 | `L2-087` | `L1-015` | Streaks, weekly goal, previous attempt, bests and achievements, computed in Core in the backend's local time. |
 | `L2-051` | `L1-007` | End-ride dialog. Criterion 2: the bike goes to the saved session's summary. |
 | `L2-058` | `L1-006` | Ride dashboard states. Criterion 6: the bike-shut-off overlay offers `See your ride`. |

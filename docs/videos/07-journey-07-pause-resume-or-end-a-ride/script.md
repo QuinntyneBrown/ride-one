@@ -40,4 +40,4 @@ What the tests prove: resume continues from the same point. And a paused ride is
 
 **close** (5 bars)
 
-That is journey seven. Wattzup turns an Echelon bike or treadmill into a live training display.
+That is journey seven. Wattzup turns an Echelon bike into a live training display.
