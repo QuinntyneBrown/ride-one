@@ -1,6 +1,6 @@
 # 0015. Sessions kept in a file, computed in Core
 
-- **Status:** Accepted, amended by [0016](0016-bike-only.md) (bike only, so there are no treadmill runs to record)
+- **Status:** Accepted, amended by [0016](0016-bike-only.md) (bike only, so there are no treadmill runs to record); amended by [0017](0017-browser-edition.md) (the browser edition keeps sessions in IndexedDB)
 - **Date:** 2026-11-18
 - **Amends:** [0004](0004-sse-and-single-process-in-memory-state.md)
 
