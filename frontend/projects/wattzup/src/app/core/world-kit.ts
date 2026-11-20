@@ -1024,6 +1024,15 @@ export interface PaintedRowsOptions {
 }
 
 /**
+ * The pitch of the road `metres` ahead, nose up on a climb, from its height a metre either side:
+ * the angle about x that lays a thing lying on the road, as paint does, along the slope instead
+ * of level through it.
+ */
+export function slopeAt(heightAt: (metres: number) => number, metres: number): number {
+  return Math.atan((heightAt(metres + 1) - heightAt(metres - 1)) / 2);
+}
+
+/**
  * Names and cries painted all over the road, as Bonneville and Ibiza paint them: a row every few
  * metres of two names in staggered lanes either side of the crown, and every third row a slogan
  * painted big right across the road. One material per name, shared by every row that paints it.
@@ -1033,7 +1042,7 @@ export function paintedRows(
   options: PaintedRowsOptions,
   disposables: { dispose(): void }[],
   track: <T extends Texture>(texture: T) => T,
-): { mesh: Group; offset: number; x: number }[] {
+): { mesh: Group; offset: number; x: number; lies: true }[] {
   const name = new PlaneGeometry(2.4, 8);
   const slogan = new PlaneGeometry(6, 10);
   disposables.push(name, slogan);
@@ -1054,7 +1063,7 @@ export function paintedRows(
     }
     return material;
   };
-  const rows: { mesh: Group; offset: number; x: number }[] = [];
+  const rows: { mesh: Group; offset: number; x: number; lies: true }[] = [];
   const lay = (
     geometry: PlaneGeometry,
     text: string,
@@ -1067,7 +1076,7 @@ export function paintedRows(
     mesh.position.y = 0.012 - options.kerb;
     const holder = new Group();
     holder.add(mesh);
-    rows.push({ mesh: holder, offset, x });
+    rows.push({ mesh: holder, offset, x, lies: true });
   };
   let k = 0;
   for (let row = 0; row < Math.floor(options.loop / options.every); row++) {
