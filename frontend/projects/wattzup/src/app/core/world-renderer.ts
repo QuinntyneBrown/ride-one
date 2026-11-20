@@ -227,6 +227,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.4, fill: 1.3, colour: 0xfff0d8 },
     fogRange: [30, 240],
   },
+  // Dusk on the Golden Mile: the last light low behind the rider, the illuminations switched on.
+  blackpool: {
+    sky: 0x2d2c5c,
+    fog: 0x3b3766,
+    ground: 0x8f7b62,
+    road: 0x4c4d55,
+    sun: 8,
+    wet: false,
+    haze: false,
+    turbidity: 8,
+    rayleigh: 3.5,
+    azimuth: -150,
+    light: { sun: 2.2, fill: 2.0, colour: 0xffa878 },
+    fogRange: [80, 1400],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise and Ghent Six-Day have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day and Blackpool Illuminations have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -23,7 +23,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 17 | Level Up Your Cadence | Ghent Six-Day | 70% | Six-day racing under the Kuipke's wooden banking; cadence lifts with every lap the crowd counts. |
 | 18 | Nasty Pasty Sprint Session | Cornish Harbour (concept) |  | Fishing boats, pasty shops and slate cottages in a Cornwall harbour; sprint the quay between steep lanes. |
 | 19 | 15 Minutes HIIT Sprinting Efforts | Golden Gate Park (concept) |  | Eucalyptus and fog through San Francisco's park; sprint past the bison paddock toward Ocean Beach. |
-| 20 | In and Out, Shake It All About | Blackpool Illuminations (concept) |  | Seaside lights, piers and the tower; weave in and out of tram stops along the illuminated promenade. |
+| 20 | In and Out, Shake It All About | Blackpool Illuminations | 68% | Seaside lights, piers and the tower; weave in and out of tram stops along the illuminated promenade. |
 | 21 | Quick Sprint Session | Copacabana Promenade (concept) |  | Rio's wave-patterned beachfront at sunset; sprint between volleyball nets with Sugarloaf on the horizon. |
 | 22 | 15 Minute Beginner Session | Stanley Park Seawall (concept) |  | Vancouver's gentle seawall loop past totem poles, cedars and sailboats on English Bay. |
 | 23 | 15 Minute Cardio Workout at Home | Suburban Sunrise (concept) |  | Quiet tree-lined streets at dawn; sprinklers ticking, papers landing, neighbours waving from porches. |
