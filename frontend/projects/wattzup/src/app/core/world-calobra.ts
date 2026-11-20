@@ -61,6 +61,7 @@ export class CalobraStreet implements SceneStreet {
   private sea: Texture | null = null;
   private readonly boats: { mesh: Mesh; x: number; z: number; phase: number }[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -114,7 +115,7 @@ export class CalobraStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -124,7 +125,7 @@ export class CalobraStreet implements SceneStreet {
         crowd.set(
           i,
           p.x,
-          heightAt(Math.max(metres, 0)) + step,
+          heightAt(metres) + step,
           -metres,
           p.speed ? (p.speed > 0 ? 0 : Math.PI) : Math.PI / 2,
           0.95,
