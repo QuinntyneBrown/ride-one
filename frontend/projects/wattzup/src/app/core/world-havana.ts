@@ -1384,7 +1384,9 @@ function seaTexture(): CanvasTexture {
  * lines, and plaster peeling to the brick.
  */
 function facadeTexture(): CanvasTexture {
-  return canvasTexture(256, 512, (g) => {
+  return canvasTexture(512, 1024, (g) => {
+    // Drawn on a 256 × 512 grid at twice the resolution.
+    g.scale(2, 2);
     g.fillStyle = '#f2f2f0';
     g.fillRect(0, 0, 256, 512);
     const random = seeded(977);
@@ -1428,6 +1430,53 @@ function facadeTexture(): CanvasTexture {
       }
       g.fillStyle = 'rgba(255,255,255,0.7)';
       g.fillRect(0, y + 122, 256, 6);
+    }
+    // Weathering over it all: rain streaks run down from every balcony and sill, grime gathers
+    // under the string courses, mould in dark blooms, and here and there the paint has peeled
+    // away to an older, paler coat or to the brick beneath.
+    for (let y = 0; y < 512; y += 128) {
+      for (let x = 0; x < 256; x += 3 + random() * 5) {
+        const length = 10 + random() ** 2 * 70;
+        const grad = g.createLinearGradient(0, y, 0, y + length);
+        grad.addColorStop(0, `rgba(70,66,58,${0.12 + random() * 0.2})`);
+        grad.addColorStop(1, 'rgba(70,66,58,0)');
+        g.fillStyle = grad;
+        g.fillRect(x, y, 1.5 + random() * 3, length);
+      }
+      g.fillStyle = 'rgba(60,70,55,0.12)';
+      for (let i = 0; i < 4; i++) {
+        g.beginPath();
+        g.ellipse(
+          random() * 256,
+          y + 100 + random() * 24,
+          10 + random() * 20,
+          4 + random() * 8,
+          0,
+          0,
+          Math.PI * 2,
+        );
+        g.fill();
+      }
+    }
+    for (let i = 0; i < 7; i++) {
+      const cx = random() * 256;
+      const cy = random() * 512;
+      const brick = random() < 0.35;
+      g.fillStyle = brick ? 'rgba(150,90,70,0.7)' : 'rgba(225,215,195,0.65)';
+      g.beginPath();
+      const points = 22;
+      const size = (6 + random() * 10) * (brick ? 0.8 : 1.2);
+      for (let k = 0; k < points; k++) {
+        const a = (k / points) * Math.PI * 2;
+        const r = size * (0.45 + random() * 0.75);
+        g.lineTo(cx + Math.cos(a) * r * 1.4, cy + Math.sin(a) * r);
+      }
+      g.closePath();
+      g.fill();
+      if (brick) {
+        g.fillStyle = 'rgba(80,60,50,0.5)';
+        for (let k = -20; k < 20; k += 4) g.fillRect(cx - 18, cy + k, 36, 0.8);
+      }
     }
   });
 }
