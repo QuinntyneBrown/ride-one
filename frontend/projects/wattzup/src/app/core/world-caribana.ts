@@ -212,6 +212,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly boats: Group[] = [];
   private readonly clouds = new Group();
   private readonly ontarioPlace = new Group();
+  private readonly rotor = new Group();
   private readonly smoke: { mesh: Mesh; phase: number; material: MeshStandardMaterial }[] = [];
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
   private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
@@ -274,6 +275,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addGardiner(points);
     this.addDowntown();
     this.addOntarioPlace();
+    this.addExhibition();
     this.addBoats();
     this.addClouds();
   }
@@ -330,6 +332,8 @@ export class CaribanaStreet implements SceneStreet {
     }
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
     this.ontarioPlace.position.set(0, heightAt(1e6), 0);
+    // The turbine turns slowly in the lake breeze.
+    this.rotor.rotation.z = this.time * 1.1;
     // The cumulus drift slowly east with the lake breeze, a sky that never quite repeats.
     this.clouds.position.set(((this.time * 1.5) % 1200) - 600, heightAt(1e6), 0);
     this.boats.forEach((boat, i) => {
@@ -1927,6 +1931,64 @@ export class CaribanaStreet implements SceneStreet {
     }
     this.ontarioPlace.traverse((o) => (o.castShadow = true));
     this.group.add(this.ontarioPlace);
+  }
+
+  /**
+   * Exhibition Place, ahead and to the left beyond the route: the ExPlace wind turbine on its
+   * slender white tower, blades turning, the Hotel X tower in blue glass, and the long low
+   * halls of the Enercare Centre under their shallow roofs.
+   */
+  private addExhibition(): void {
+    const white = this.material({ color: 0xeef0f0, roughness: 0.4, metalness: 0.2 });
+    const glass = this.material({
+      map: this.repeat(condoTexture(), 0.25, 0.08),
+      color: 0x8fb3c8,
+      roughness: 0.2,
+      metalness: 0.4,
+    });
+    const hall = this.material({ color: 0xcfc8bb, roughness: 0.85 });
+    const roof = this.material({ color: 0x9aa3a8, roughness: 0.6, metalness: 0.3 });
+    const tower = new CylinderGeometry(1.4, 2.6, 78, 16);
+    tower.translate(0, 39, 0);
+    const nacelle = new BoxGeometry(3.2, 3, 8);
+    const hub = new SphereGeometry(1.6, 12, 8);
+    hub.scale(1, 1, 1.4);
+    const blade = new BoxGeometry(1.6, 33, 0.4);
+    blade.translate(0, 17, 0);
+    this.disposables.push(tower, nacelle, hub, blade);
+    const turbine = new Group();
+    turbine.add(new Mesh(tower, white));
+    const head = new Mesh(nacelle, white);
+    head.position.set(0, 79, 0.5);
+    turbine.add(head);
+    this.rotor.position.set(0, 79, -3.8);
+    this.rotor.add(new Mesh(hub, white));
+    for (let k = 0; k < 3; k++) {
+      const b = new Mesh(blade, white);
+      b.rotation.z = (k * Math.PI * 2) / 3;
+      this.rotor.add(b);
+    }
+    turbine.add(this.rotor);
+    turbine.position.set(-112, 0, -330);
+    // Turned to face up the lake, square to the rider's view.
+    this.ontarioPlace.add(turbine);
+    const slab = new BoxGeometry(36, 105, 22);
+    slab.translate(-150, 52.5, -620);
+    const crown = new BoxGeometry(30, 6, 18);
+    crown.translate(-150, 108, -620);
+    this.disposables.push(slab, crown);
+    this.ontarioPlace.add(new Mesh(slab, glass), new Mesh(crown, white));
+    for (const [x, z, w, d] of [
+      [-120, -470, 120, 60],
+      [-250, -540, 160, 80],
+    ] as const) {
+      const body = new BoxGeometry(w, 16, d);
+      body.translate(x, 8, z);
+      const top = new BoxGeometry(w + 4, 2, d + 4);
+      top.translate(x, 17, z);
+      this.disposables.push(body, top);
+      this.ontarioPlace.add(new Mesh(body, hall), new Mesh(top, roof));
+    }
   }
 
   /** Sailboats out on the lake, drifting slowly. */
