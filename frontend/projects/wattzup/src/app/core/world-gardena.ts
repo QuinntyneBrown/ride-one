@@ -33,6 +33,7 @@ import {
   dolomiteTexture,
   ease,
   FeatherFlags,
+  Figures,
   type FeatherWord,
   hazedMaterial,
   heightfield,
@@ -107,6 +108,21 @@ const SIGNS: readonly (readonly [number, number])[] = [
   [1, 380],
 ];
 
+/** Hikers on the meadow path, in summer walking clothes. */
+const HIKERS = 15;
+const HIKING: Wardrobe = {
+  tops: ['#d8283a', '#1d4f8f', '#f2c230', '#2a8a4a', '#ff8a1a', '#3ac8e8', '#6a3a8a'],
+  bottoms: ['#3a3a40', '#5a4a3a', '#6a5a48', '#2a3a5a'],
+  skins: SKINS,
+};
+/** The paragliders' canopies. */
+const GLIDERS = ['#ff3a3a', '#f2c230', '#3ac8e8', '#ff8a1a', '#8a3ad8', '#2a8a4a', '#ffffff'];
+
+/** How high the meadow on the right stands x metres out from the road's centre. */
+function meadow(x: number): number {
+  return x < 16 ? ((x - 4) / 12) * 2 : 2 + ((x - 16) / 44) * 12;
+}
+
 interface Prop {
   readonly mesh: Group;
   readonly offset: number;
@@ -122,6 +138,8 @@ export class GardenaStreet implements SceneStreet {
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
   private time = 0;
+  private readonly gliders: Group[] = [];
+  private hikers: Figures | null = null;
   private readonly flagMaterials = ['#1d4f8f', '#ffffff', '#2a8a4a', '#d8283a'].map(
     (colour) => new MeshStandardMaterial({ color: colour, side: DoubleSide, roughness: 0.8 }),
   );
@@ -153,6 +171,8 @@ export class GardenaStreet implements SceneStreet {
     this.crowd.build();
     this.addTrees();
     this.addCows();
+    this.addHikers();
+    this.addGliders();
     this.addSigns();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
@@ -177,6 +197,30 @@ export class GardenaStreet implements SceneStreet {
       prop.mesh.position.set(prop.x, ground(metres) + KERB + (prop.lift ?? 0), -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
+    // Hikers file up the meadow's path in twos and threes, a step every second.
+    const hikers = this.hikers;
+    if (hikers) {
+      for (let i = 0; i < HIKERS; i++) {
+        const offset = Math.floor(i / 3) * 80 + 30 + (i % 3) * 2.2 + this.time * 1.1;
+        const metres = along(offset, LOOP);
+        const x = 15 + (Math.floor(i / 3) % 3) * 4 + (i % 3) * 0.6;
+        const bob = Math.abs(Math.sin(this.time * 3.2 + i)) * 0.05;
+        hikers.set(i, x, ground(metres) + meadow(x) - 0.1, -metres, 0, 1, bob);
+      }
+      hikers.commit();
+    }
+    // Paragliders drift in wide, slow circles over the meadows below the pass, banking as they turn.
+    this.gliders.forEach((glider, i) => {
+      const turn = this.time * (0.05 + (i % 3) * 0.015) + i * 2.1;
+      const radius = 30 + (i % 4) * 14;
+      const metres = 90 + (i % 4) * 45 + Math.sin(turn) * radius;
+      glider.position.set(
+        (i % 2 ? 40 : -50) + (i % 3) * 25 + Math.cos(turn) * radius,
+        heightAt(Math.min(metres, AHEAD)) + 45 + (i % 4) * 22 + Math.sin(turn * 0.7) * 4,
+        -metres,
+      );
+      glider.rotation.set(0, -turn, Math.sin(turn) * 0.25);
+    });
     this.horizon.position.set(0, heightAt(AHEAD), -AHEAD);
   }
 
@@ -355,9 +399,41 @@ export class GardenaStreet implements SceneStreet {
         mesh: holder,
         offset: Math.floor(k / 4) * 120 + 190 + random() * 40,
         x,
-        lift: (x < 16 ? ((x - 4) / 12) * 2 : 2 + ((x - 16) / 44) * 12) - 0.2,
+        lift: meadow(x) - 0.2,
       });
     }
+  }
+
+  /** Hikers in twos and threes on the meadow path, packs on their backs. */
+  private addHikers(): void {
+    this.hikers = new Figures(this.group, this.disposables, HIKERS, HIKING, 6771);
+  }
+
+  /** Paragliders off the high meadows, their canopies bright against the sky. */
+  private addGliders(): void {
+    const canopy = new CylinderGeometry(6, 6, 2.6, 18, 1, true, Math.PI - 0.85, 1.7);
+    canopy.rotateX(Math.PI / 2);
+    canopy.translate(0, -6, 0);
+    const pilot = new CylinderGeometry(0.3, 0.3, 1.1, 6);
+    pilot.translate(0, -7.2, 0);
+    const line = new CylinderGeometry(0.02, 0.02, 6.4, 3);
+    this.disposables.push(canopy, pilot, line);
+    const harness = this.material({ color: 0x2a2a30, roughness: 0.8 });
+    const cord = this.material({ color: 0xe8e8e8, roughness: 0.8 });
+    GLIDERS.forEach((hex) => {
+      const glider = new Group();
+      const cloth = this.material({ color: hex, roughness: 0.7, side: DoubleSide });
+      glider.add(new Mesh(canopy, cloth), new Mesh(pilot, harness));
+      for (const side of [-1, 1]) {
+        const l = new Mesh(line, cord);
+        l.position.set(side * 2.4, -3.6, 0);
+        l.rotation.z = side * 0.62;
+        glider.add(l);
+      }
+      glider.scale.setScalar(1.4);
+      this.gliders.push(glider);
+      this.group.add(glider);
+    });
   }
 
   /** The brown kilometre signs counting down to the pass. */
@@ -513,13 +589,31 @@ export class GardenaStreet implements SceneStreet {
       flatShading: true,
     });
     const crag = seeded(6751);
+    // A tower of Dolomite: fluted by buttresses and gullies running up its walls, stepped back at
+    // a ledge band partway up, its crown broken into ragged teeth.
     const tower = (x: number, z: number, wide: number, tall: number, sides: number) => {
-      const geometry = new CylinderGeometry(wide * 0.62, wide, tall, sides, 8);
+      const flutes = sides;
+      const phase = crag() * 6.3;
+      const ledge = 0.38 + crag() * 0.12;
+      const geometry = new CylinderGeometry(1, 1, tall, 22, 14);
       const position = geometry.getAttribute('position');
+      const teeth = Array.from({ length: 23 }, () => crag());
       for (let i = 0; i < position.count; i++) {
-        const k = 1 + (crag() - 0.5) * 0.28;
-        position.setX(i, position.getX(i) * k);
-        position.setZ(i, position.getZ(i) * k);
+        const px = position.getX(i);
+        const pz = position.getZ(i);
+        const t = position.getY(i) / tall + 0.5;
+        const angle = Math.atan2(pz, px);
+        const flute =
+          1 + 0.16 * Math.sin(flutes * angle + phase) + 0.07 * Math.sin(flutes * 2.3 * angle);
+        // Sheer below the ledge, set back above it, narrowing into the crown.
+        const step = t < ledge ? 1 : 0.8 - (t - ledge) * 0.25;
+        const k = wide * flute * step * (1 + (crag() - 0.5) * 0.08);
+        position.setX(i, px * k);
+        position.setZ(i, pz * k);
+        if (t > 0.99) {
+          const tooth = teeth[Math.round(((angle + Math.PI) / (2 * Math.PI)) * 22)]!;
+          position.setY(i, position.getY(i) - tooth * tall * 0.12);
+        }
       }
       geometry.computeVertexNormals();
       geometry.translate(x, slope(x, z) - 10 + tall / 2, z);
@@ -542,6 +636,27 @@ export class GardenaStreet implements SceneStreet {
         [-760, -1350, 48, 210],
       ].map(([x, z, w, t]) => tower(x!, z!, w!, t!, 5)),
     ];
+    // The Sella's plateau behind the towers: a great table of rock, walled in layered tiers.
+    const sella = heightfield(
+      this.disposables,
+      [760, -1950],
+      [1300, 700, 90, 50],
+      (x, z) => {
+        const wall = ease((x - 230) / 90) * ease((-z - 1650) / 70) * ease((1380 - x) / 120);
+        const tiers = 330 + 40 * Math.round(Math.sin(x / 160 + z / 230) * 2);
+        return wall * (tiers + 30 * Math.sin(x / 37) * Math.sin(z / 29));
+      },
+      (y) => (y > 340 ? new Color(0xeae4d6) : y > 200 ? new Color(0xd8cebc) : new Color(0xc4b8a4)),
+    );
+    h.add(
+      new Mesh(
+        sella,
+        hazedMaterial(this.disposables, haze, 0xffffff, 0.3, {
+          vertexColors: true,
+          flatShading: true,
+        }),
+      ),
+    );
     const towers = mergeGeometries(rocks.map((r) => (r.index ? r.toNonIndexed() : r)))!;
     rocks.forEach((r) => r.dispose());
     this.disposables.push(towers);
