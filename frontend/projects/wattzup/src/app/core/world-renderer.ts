@@ -1350,6 +1350,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.8, fill: 1.4, colour: 0xffe0c0 },
     fogRange: [3000, 18000],
   },
+  // Dawn at Angkor: the sky warming from violet to gold, the sun just clear of the jungle, mist on the moat.
+  angkor: {
+    sky: 0x8a6aa8,
+    fog: 0xf0c8a8,
+    ground: 0x5a5a2a,
+    road: 0x9a4a2a,
+    sun: 9,
+    wet: false,
+    haze: false,
+    turbidity: 6,
+    rayleigh: 2.6,
+    azimuth: 95,
+    light: { sun: 2.8, fill: 1.9, colour: 0xffc890 },
+    fogRange: [900, 7000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
