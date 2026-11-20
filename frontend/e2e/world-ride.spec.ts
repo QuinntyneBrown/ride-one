@@ -356,6 +356,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Marina Bay Night');
   });
 
+  test('rides Quick & Sharp Sprinting Efforts in Champs-Élysées Finale up to the Arc', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Quick & Sharp Sprinting Efforts',
+      'Champs-Élysées Finale',
+      'quick-and-sharp-sprinting-efforts',
+    );
+    await expect(world.heading).toHaveText('Champs-Élysées Finale');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Champs-Élysées Finale');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

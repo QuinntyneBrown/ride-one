@@ -104,7 +104,7 @@ interface Look {
 }
 
 /** The scenes ridden on Old Town's cobbles rather than tarmac. */
-const COBBLED: ReadonlySet<WorldId> = new Set<WorldId>(['oldtown', 'koppenberg']);
+const COBBLED: ReadonlySet<WorldId> = new Set<WorldId>(['oldtown', 'koppenberg', 'champs']);
 
 /** Until each scene's own look lands: sky, fog, ground, road, sun, wet and haze. */
 const LOOKS: Record<WorldId, Look> = {
@@ -587,6 +587,21 @@ const LOOKS: Record<WorldId, Look> = {
       fillSky: 0x5a5aa0,
     },
     fogRange: [200, 2600],
+  },
+  // A golden summer evening in Paris: warm low sun behind the riders, the stone glowing.
+  champs: {
+    sky: 0x7aa8d8,
+    fog: 0xe0d4c0,
+    ground: 0xb8b0a2,
+    road: 0x6a645c,
+    sun: 22,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 1.4,
+    azimuth: -170,
+    light: { sun: 3, fill: 1.3, colour: 0xffe4c0 },
+    fogRange: [300, 3200],
   },
   caribana: {
     sky: 0x8ec5ee,

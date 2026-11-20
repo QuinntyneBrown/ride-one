@@ -114,7 +114,8 @@ export interface components {
         | 'edinburgh'
         | 'northshore'
         | 'campolongo'
-        | 'marinabay';
+        | 'marinabay'
+        | 'champs';
     };
     ClassShelfResponse: {
       id: string;
