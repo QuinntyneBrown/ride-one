@@ -590,6 +590,23 @@ export class MiamiStreet implements SceneStreet {
         metalness: 0.3,
       }),
     );
+    // The clubs' dance floors seen through their glass, and cocktail bars on some ground floors.
+    const clubFloor = this.material({
+      map: this.track(clubFloorTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(clubFloorTexture()),
+      emissiveIntensity: 1.3,
+      roughness: 0.15,
+      metalness: 0.3,
+    });
+    const barFloor = this.material({
+      map: this.track(cocktailBarTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(cocktailBarTexture()),
+      emissiveIntensity: 1.1,
+      roughness: 0.15,
+      metalness: 0.3,
+    });
     // The marquee bulbs chase round the fascia: the lit pattern slides along it.
     const chase = this.track(bulbTexture());
     chase.wrapS = RepeatWrapping;
@@ -864,7 +881,10 @@ export class MiamiStreet implements SceneStreet {
       hotel.add(a);
       // The ground floor: a lit lobby behind plate glass, and a marquee canopy over the door,
       // its fascia ringed with bulbs and its underside glowing.
-      const lobby = new Mesh(this.flat, lobbies[k % lobbies.length]!);
+      const lobby = new Mesh(
+        this.flat,
+        k % 4 === 1 ? clubFloor : k % 3 === 2 ? barFloor : lobbies[k % lobbies.length]!,
+      );
       lobby.rotation.y = -Math.PI / 2;
       lobby.scale.set(width * 0.86, 3.3, 1);
       lobby.position.set(-0.03, 1.75, 0);
@@ -4052,5 +4072,77 @@ function thatchTexture(): CanvasTexture {
       g.fillStyle = ['#b08a4a', '#6a4a2a', '#c8a060', '#5a3a1a'][Math.floor(random() * 4)]!;
       g.fillRect(random() * 64, random() * 64, 1, 4 + random() * 10);
     }
+  });
+}
+
+/**
+ * A nightclub through its glass: a dark room cut by magenta and cyan laser beams, a mirror
+ * ball's spots, dancers' silhouettes against a lit DJ booth.
+ */
+function clubFloorTexture(): CanvasTexture {
+  return canvasTexture(512, 128, (g) => {
+    g.fillStyle = '#12061e';
+    g.fillRect(0, 0, 512, 128);
+    const random = seeded(8421);
+    for (let i = 0; i < 14; i++) {
+      g.strokeStyle = i % 2 ? 'rgba(255,60,190,0.8)' : 'rgba(60,230,255,0.8)';
+      g.lineWidth = 1.5;
+      g.beginPath();
+      g.moveTo(256 + (random() - 0.5) * 60, 4);
+      g.lineTo(random() * 512, 128);
+      g.stroke();
+    }
+    for (let i = 0; i < 60; i++) {
+      g.fillStyle = ['#ffffff', '#ff7ad0', '#7af0ff'][i % 3]!;
+      g.fillRect(random() * 512, random() * 90, 2, 2);
+    }
+    g.fillStyle = '#3a1a5a';
+    g.fillRect(200, 70, 112, 40);
+    g.fillStyle = '#ff3fb4';
+    g.fillRect(200, 70, 112, 4);
+    for (let i = 0; i < 16; i++) {
+      const x = 10 + random() * 490;
+      g.fillStyle = '#05020a';
+      g.beginPath();
+      g.arc(x, 74, 7, 0, Math.PI * 2);
+      g.fill();
+      g.fillRect(x - 8, 80, 16, 48);
+      if (random() < 0.5) g.fillRect(x - 12, 52, 4, 26);
+    }
+    g.fillStyle = '#1a1a22';
+    for (let x = 0; x <= 512; x += 64) g.fillRect(x - 3, 0, 6, 128);
+  });
+}
+
+/** A cocktail bar through its glass: a backlit wall of bottles, a bar and its stools. */
+function cocktailBarTexture(): CanvasTexture {
+  return canvasTexture(512, 128, (g) => {
+    const wall = g.createLinearGradient(0, 0, 0, 128);
+    wall.addColorStop(0, '#ff9ad8');
+    wall.addColorStop(1, '#5a2a5a');
+    g.fillStyle = wall;
+    g.fillRect(0, 0, 512, 128);
+    const random = seeded(8431);
+    for (const y of [16, 40]) {
+      g.fillStyle = 'rgba(255,255,255,0.6)';
+      g.fillRect(20, y + 16, 472, 2);
+      for (let x = 24; x < 488; x += 7) {
+        g.fillStyle = ['#ffd060', '#60e0a0', '#a060ff', '#ff6060', '#f0f0f0'][
+          Math.floor(random() * 5)
+        ]!;
+        g.fillRect(x, y + 2, 4, 14);
+      }
+    }
+    g.fillStyle = '#2a1020';
+    g.fillRect(0, 76, 512, 22);
+    g.fillStyle = '#ffd0a0';
+    g.fillRect(0, 74, 512, 3);
+    for (let x = 30; x < 500; x += 44) {
+      g.fillStyle = '#c8a050';
+      g.fillRect(x - 8, 100, 16, 4);
+      g.fillRect(x - 1, 104, 2, 24);
+    }
+    g.fillStyle = '#1a1a22';
+    for (let x = 0; x <= 512; x += 64) g.fillRect(x - 3, 0, 6, 128);
   });
 }
