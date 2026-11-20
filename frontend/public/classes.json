@@ -9915,6 +9915,7 @@
     },
     {
       "id": "30-minute-intervals-fitness-training",
+      "world": "prospect",
       "title": "30 Minute Intervals: Fitness Training",
       "channel": "GCN",
       "focus": "HIIT",

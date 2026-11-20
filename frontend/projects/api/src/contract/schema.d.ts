@@ -142,7 +142,8 @@ export interface components {
         | 'paine'
         | 'ibiza'
         | 'skye'
-        | 'toronto';
+        | 'toronto'
+        | 'prospect';
     };
     ClassShelfResponse: {
       id: string;
