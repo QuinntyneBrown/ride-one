@@ -104,7 +104,8 @@ export interface components {
         | 'daytona'
         | 'koppenberg'
         | 'ventoux'
-        | 'chicago';
+        | 'chicago'
+        | 'havana';
     };
     ClassShelfResponse: {
       id: string;
