@@ -21,6 +21,7 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
+  SphereGeometry,
   type Texture,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -714,10 +715,15 @@ export class SouthBeachStreet implements SceneStreet {
     const fins = this.track(towerTexture());
     fins.wrapS = RepeatWrapping;
     fins.wrapT = RepeatWrapping;
-    const cream = hazed(0xfdf0dc, 0.25, { map: fins });
-    const pink = hazed(0xf6b8c8, 0.25);
-    const neon = hazed(0xff4fa8, 0.1, { emissive: new Color(0xff4fa8), emissiveIntensity: 1.2 });
-    const teal = hazed(0x2fe6e0, 0.1, { emissive: new Color(0x2fe6e0), emissiveIntensity: 1.2 });
+    // Lit against the sunrise behind it: its cream faces catch a little of the dawn glow.
+    const cream = hazed(0xfdf0dc, 0.12, {
+      map: fins,
+      emissive: new Color(0xffd9b0),
+      emissiveIntensity: 0.22,
+    });
+    const pink = hazed(0xf6b8c8, 0.12, { emissive: new Color(0xf6b8c8), emissiveIntensity: 0.18 });
+    const neon = hazed(0xff4fa8, 0.05, { emissive: new Color(0xff4fa8), emissiveIntensity: 2 });
+    const teal = hazed(0x2fe6e0, 0.05, { emissive: new Color(0x2fe6e0), emissiveIntensity: 2 });
     const t = this.tower;
     const stages: [number, number][] = [
       [46, 26],
@@ -738,8 +744,15 @@ export class SouthBeachStreet implements SceneStreet {
         pier.position.set(x, y + (h + 1.5) / 2, w * 0.35);
         t.add(pier);
       }
+      // Neon fins up the stage's face, between the corner piers.
+      for (const x of [-w / 4, 0, w / 4]) {
+        const fin = new Mesh(this.unit, i % 2 ? neon : teal);
+        fin.scale.set(0.8, h - 3, 0.6);
+        fin.position.set(x, y + h / 2, w * 0.35 + 0.3);
+        t.add(fin);
+      }
       const ring = new Mesh(this.unit, i % 2 ? teal : neon);
-      ring.scale.set(w + 0.6, 0.7, w * 0.7 + 0.6);
+      ring.scale.set(w + 0.6, 1.1, w * 0.7 + 0.6);
       ring.position.y = y + h;
       t.add(ring);
       y += h;
@@ -749,7 +762,19 @@ export class SouthBeachStreet implements SceneStreet {
     const tip = new CylinderGeometry(0.6, 0.6, 1.2, 8);
     tip.translate(0, y + 30, 0);
     this.disposables.push(spire, tip);
-    t.add(new Mesh(spire, pink), new Mesh(tip, neon));
+    // A neon crown at the foot of the spire and a beacon at its tip.
+    const crown = new CylinderGeometry(6, 7.5, 2, 16);
+    crown.translate(0, y + 1, 0);
+    const beacon = new SphereGeometry(1.6, 16, 12);
+    beacon.translate(0, y + 31.5, 0);
+    this.disposables.push(crown, beacon);
+    t.add(
+      new Mesh(spire, pink),
+      new Mesh(tip, neon),
+      new Mesh(crown, teal),
+      new Mesh(beacon, neon),
+    );
+    t.scale.setScalar(1.5);
     // The tower's name down its face in neon, as the hotels wear theirs.
     const sign = new Mesh(
       new PlaneGeometry(5, 34),
