@@ -164,6 +164,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Serpentine, Hyde Park');
   });
 
+  test('rides Easy Riding through the Napa vineyards', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Easy Riding', 'Napa Vineyards', 'easy-riding');
+    await expect(world.heading).toHaveText('Napa Vineyards');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Napa Vineyards');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

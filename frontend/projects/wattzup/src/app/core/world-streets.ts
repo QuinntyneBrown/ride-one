@@ -9,6 +9,7 @@ import { KoppenbergStreet } from './world-koppenberg';
 import { GoldenGateStreet } from './world-goldengate';
 import { StanleyParkStreet } from './world-stanleypark';
 import { SerpentineStreet } from './world-serpentine';
+import { NapaStreet } from './world-napa';
 import type { StreetFactory } from './world-kit';
 import { TourmaletStreet } from './world-tourmalet';
 import { TulipsStreet } from './world-tulips';
@@ -68,4 +69,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   champs: (track, disposables) => new ChampsStreet(track, disposables),
   tulips: (track, disposables) => new TulipsStreet(track, disposables),
   tourmalet: (track, disposables) => new TourmaletStreet(track, disposables),
+  napa: (track, disposables) => new NapaStreet(track, disposables),
 };

@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -311,6 +311,15 @@ None.
   - sheep grazing, climbers grinding up and fans lining both verges, bouncing as the riders pass (`Figures`);
   - the costumed devil in red with horns and trident, running a few metres ahead on the right, surging and dropping back, legs and arms swinging on the ride's clock;
   - ahead the mountainside with the switchbacks past La Mongie to the col, and the Pic du Midi's observatory beyond, keeping their bearing; the ground sinks below the valley.
+- **Napa Vineyards (`core/world-napa.ts`).** For `napa`, a valley road through the Napa Valley on a warm Californian afternoon, closed for the ride:
+  - the road between low kerbs with California's double yellow centre line and white edge lines, the fans' writing every 25 m, race barriers hung with the ride's banners (NAPA VALLEY, VINEYARD RIDE, CALIFORNIA, HARVEST, WATTZUP, SILVERADO), the kit's feather flags every 16 m along both and cloth banners across it;
+  - dusty shoulders out to 8 m, then on both sides blocks of trellised vine rows running out from the road every 2.5 m and climbing the valley's side at 1 in 20 to 108 m: a hedge of leaves with dark grape clusters on its cordon over a line of gnarled trunks, a post at the road end, warm soil and straw between the rows;
+  - beyond the vines the golden hills, climbing steeply, dotted with valley oaks singly and in clumps, their crowns broad, flat and olive;
+  - three stone wineries beside the road, the first 45 m ahead on the right in the opening view: a long fieldstone hall under a terracotta gable, arched doors and windows on its face to the road, a flagstone tasting terrace in front with tables under white umbrellas, spreading oaks either end and, at two of them, oak barrels stacked by the door; their vine blocks are left out;
+  - the shared crowd in knots along the barriers with open stretches between them, so the vine rows show;
+  - 300 m ahead, to the right of the road, a knoll striped with vines and on it the mission-style winery: a cream stucco hall under red tiles with an arcade of nine arches along its front, its bell tower with an open belfry, a bronze bell and a tiled pyramid roof under a cross, cypresses lining the drive up from the road and oaks round its foot; rounded golden hills either side and two blue ridges of the Mayacamas beyond, all hazed by hand. Vines, oaks and wineries on the right are hidden near the knoll so none stands in front of it.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -360,6 +369,7 @@ None.
 | `pages/world-ride/champs` | Champs-Élysées Finale at 4:50, warm-up, next `Sprint for the line` |
 | `pages/world-ride/tulips` | Dutch Tulip Fields at 4:50, warm-up, next `Polder spin` |
 | `pages/world-ride/tourmalet` | Col du Tourmalet at 4:50, warm-up, next `Devil’s ramp` |
+| `pages/world-ride/napa` | Napa Vineyards at 2:53, warm-up, next `Vineyard rise` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
