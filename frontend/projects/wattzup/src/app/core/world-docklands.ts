@@ -472,6 +472,12 @@ const DINER_COATS = ['#3b2f5c', '#5c2f3f', '#2f4a5c'];
 const DINER_HATS = ['#ff4fb8', '#ffb347', '#3fe0ff'];
 /** The stalls' paper lanterns, and the dishes on their menu boards, by stall in turn. */
 const STALL_LANTERN = '#f2261a';
+/** Gig posters pasted on the booths: colour and where on the cladding (px of 256). */
+const BOOTH_POSTERS: readonly (readonly [string, number, number])[] = [
+  ['#ff4fb8', 18, 150],
+  ['#3fe0ff', 98, 170],
+  ['#ffb347', 180, 140],
+];
 /** The paper lanterns' ribs, and the gold of their bands and tassels. */
 const LANTERN_RIBS = 9;
 const LANTERN_TASSEL = '#ffc24a';
@@ -3694,7 +3700,15 @@ export class DocklandsStreet {
   }
 
   private addStalls(): void {
-    const body = new MeshStandardMaterial({ color: 0x15141c, roughness: 0.7 });
+    // The booth is clad in dark timber slats, pasted with gig posters and stickers.
+    const cladding = this.track(boothTexture());
+    const body = new MeshStandardMaterial({
+      map: cladding,
+      emissiveMap: cladding,
+      emissive: new Color(0xffffff),
+      emissiveIntensity: 0.35,
+      roughness: 0.7,
+    });
     // The open hatch: a warm kitchen with shelves of jars, pans on the hob and a cook at work.
     const hatch = new MeshBasicMaterial({
       color: new Color(0xffffff).multiplyScalar(1.05),
@@ -5943,6 +5957,58 @@ function span(geometry: BufferGeometry, material: Material, from: Vector3, to: V
   mesh.position.copy(from).add(to).multiplyScalar(0.5);
   mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), along.normalize());
   return mesh;
+}
+
+/**
+ * A market booth's cladding: dark timber slats with their joints, and pasted over them a few
+ * gig posters in the street's neon colours and scattered stickers, the posters a little torn.
+ */
+function boothTexture(): CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const random = seeded(617);
+  for (let x = 0; x < size; x += 16) {
+    const shade = 34 + Math.floor(random() * 14);
+    ctx.fillStyle = `rgb(${shade + 8},${shade},${shade + 4})`;
+    ctx.fillRect(x, 0, 16, size);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(x, 0, 2, size);
+  }
+  BOOTH_POSTERS.forEach(([hex, px, py], i) => {
+    const w = 52;
+    const h = 72;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate((random() - 0.5) * 0.12);
+    ctx.fillStyle = hex;
+    ctx.fillRect(0, 0, w, h);
+    // A bold title and lines of small print.
+    ctx.fillStyle = 'rgba(20,10,30,0.85)';
+    ctx.fillRect(6, 8, w - 12, 12);
+    for (let k = 0; k < 4; k++) ctx.fillRect(6, 30 + k * 8, w - 12 - (k % 2) * 10, 3);
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath();
+    ctx.arc(w / 2, h - 12, 6 + (i % 2) * 2, 0, Math.PI * 2);
+    ctx.fill();
+    // A torn corner, showing the slats beneath.
+    ctx.fillStyle = 'rgb(40,34,38)';
+    ctx.beginPath();
+    ctx.moveTo(w, h);
+    ctx.lineTo(w - 14, h);
+    ctx.lineTo(w, h - 10);
+    ctx.fill();
+    ctx.restore();
+  });
+  for (let k = 0; k < 6; k++) {
+    ctx.fillStyle = BOOTH_POSTERS[k % BOOTH_POSTERS.length]![0];
+    ctx.fillRect(random() * size, 110 + random() * 30, 6 + random() * 4, 4 + random() * 3);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
 
 /** A stall's lit menu board: its dishes in white on a dark board, framed in its own neon. */
