@@ -50,7 +50,7 @@ export class CyclistKit {
   private readonly tyre = new TorusGeometry(WHEEL - 0.012, 0.016, 8, 40);
   private readonly rim = new TorusGeometry(WHEEL - 0.04, 0.012, 6, 40);
   private readonly disc = new CircleGeometry(WHEEL - 0.04, 32);
-  private readonly head = new SphereGeometry(0.09, 16, 12);
+  private readonly head = new SphereGeometry(0.1, 20, 16);
   private readonly helmet = new SphereGeometry(0.13, 18, 10, 0, Math.PI * 2, 0, Math.PI / 1.65);
   private readonly torso = new CapsuleGeometry(0.15, 0.3, 6, 12);
   private readonly limbs = new Map<number, CapsuleGeometry>();
@@ -299,8 +299,12 @@ export class Cyclist {
     const neck = this.limbMesh(0.055, nape.distanceTo(throat), kit.skin);
     place(neck, nape, throat);
     this.body.add(neck.mesh);
+    // A head is taller than it is wide and longer front to back than across: an egg, not a ball,
+    // its jaw dropping towards the throat.
     const head = new Mesh(parts.head, kit.skin);
-    head.position.copy(skull);
+    head.position.copy(skull).add(new Vector3(0, -0.01, -0.01));
+    head.scale.set(0.82, 1.08, 1.02);
+    head.rotation.x = 0.3;
     const helmet = new Mesh(parts.helmet, shell);
     helmet.position.copy(skull).add(new Vector3(0, 0.01, 0.015));
     helmet.scale.set(1, 0.85, 1.3);
