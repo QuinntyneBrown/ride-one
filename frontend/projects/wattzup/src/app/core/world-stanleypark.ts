@@ -17,10 +17,12 @@ import {
   CylinderGeometry,
   DoubleSide,
   Group,
+  type Material,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
+  SphereGeometry,
   type Texture,
   BoxGeometry,
 } from 'three/webgpu';
@@ -71,7 +73,9 @@ const BRIDGE_AHEAD = 480;
 const BRIDGE_X = 70;
 const BRIDGE_TURN = -0.5;
 const HAZE = 0xcfdde8;
-const WALKERS = 14;
+const WALKERS = 26;
+/** Canada geese grazing on the verge, in small flocks. */
+const GEESE = 14;
 const BOATS = 12;
 
 const SKINS = ['#f1c7a5', '#e2b48c', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26'];
@@ -145,6 +149,8 @@ export class StanleyParkStreet implements SceneStreet {
   private readonly walkers: Walker[] = [];
   private people: Figures | null = null;
   private readonly horizon = new Group();
+  private readonly geese: { mesh: Group; offset: number; x: number; phase: number }[] = [];
+  private readonly floatplane = new Group();
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly flagMaterials = ['#d8283a', '#ffffff', '#1f4e79', '#2e8b57'].map(
@@ -185,6 +191,8 @@ export class StanleyParkStreet implements SceneStreet {
     this.addRoadPaint();
     this.addBoats();
     this.addWalkers();
+    this.addGeese();
+    this.addFloatplane();
     this.addHorizon();
   }
 
@@ -233,6 +241,21 @@ export class StanleyParkStreet implements SceneStreet {
       });
       people.commit();
     }
+    // The geese peck at the grass, wandering a little.
+    for (const g of this.geese) {
+      const metres = along(g.offset, LOOP);
+      g.mesh.position.set(g.x + Math.sin(t * 0.1 + g.phase) * 0.4, ground(metres) + KERB, -metres);
+      g.mesh.rotation.y = g.phase + Math.sin(t * 0.07 + g.phase) * 0.8;
+      g.mesh.children[1]!.rotation.x = Math.max(0, Math.sin(t * 1.3 + g.phase)) * 1.1;
+    }
+    // The floatplane banks in a slow arc low over the bay, ahead and to the left.
+    const arc = t * 0.035;
+    this.floatplane.position.set(
+      -70 + Math.sin(arc) * 15,
+      heightAt(0) + 26 + Math.sin(arc * 2) * 2,
+      -200 + Math.cos(arc) * 15,
+    );
+    this.floatplane.rotation.set(0, arc + Math.PI / 2, 0.22);
     this.horizon.position.set(0, heightAt(BRIDGE_AHEAD), -BRIDGE_AHEAD);
   }
 
@@ -544,12 +567,97 @@ export class StanleyParkStreet implements SceneStreet {
       const running = i % 3 === 0;
       const ahead = i % 2 === 0;
       this.walkers.push({
-        offset: random() * LOOP,
+        // Half of them in the stretch the rider first sees, the rest round the loop.
+        offset: i % 2 ? 100 + random() * 160 : random() * LOOP,
         speed: (ahead ? 1 : -1) * (running ? 2.8 : 1.3),
         x: -(WALKWAY + (ahead ? -0.6 : 0.6)),
         phase: random() * 6,
       });
     }
+  }
+
+  /** Canada geese on the verge: brown backs, black necks with white chinstraps, heads down. */
+  private addGeese(): void {
+    const random = seeded(709);
+    const body = new SphereGeometry(1, 10, 8);
+    this.disposables.push(body);
+    const brown = this.material({ color: 0x6b5a48, roughness: 0.9 });
+    const black = this.material({ color: 0x161616, roughness: 0.8 });
+    const white = this.material({ color: 0xf2f2ee, roughness: 0.8 });
+    const pale = this.material({ color: 0xd8d0c0, roughness: 0.9 });
+    for (let k = 0; k < GEESE; k++) {
+      const goose = new Group();
+      const b = new Mesh(body, brown);
+      b.scale.set(0.2, 0.17, 0.38);
+      b.position.y = 0.32;
+      const belly = new Mesh(body, pale);
+      belly.scale.set(0.17, 0.12, 0.3);
+      belly.position.set(0, 0.26, 0.04);
+      b.castShadow = true;
+      // The neck pivots at the shoulders so the head dips to graze.
+      const neck = new Group();
+      neck.position.set(0, 0.38, -0.3);
+      const n = new Mesh(this.unit, black);
+      n.scale.set(0.06, 0.36, 0.06);
+      n.position.y = 0.18;
+      const head = new Mesh(body, black);
+      head.scale.set(0.06, 0.06, 0.1);
+      head.position.set(0, 0.37, -0.05);
+      const strap = new Mesh(body, white);
+      strap.scale.set(0.065, 0.035, 0.05);
+      strap.position.set(0, 0.34, -0.03);
+      neck.add(n, head, strap);
+      goose.add(b, neck, belly);
+      goose.scale.setScalar(1.8);
+      this.group.add(goose);
+      const flock = Math.floor(k / 5);
+      this.geese.push({
+        mesh: goose,
+        offset: 120 + flock * 45 + random() * 8,
+        x: 7.5 + random() * 4,
+        phase: random() * 6,
+      });
+    }
+  }
+
+  /**
+   * A floatplane over the bay: a white high-wing single-engine plane on two floats, a red
+   * stripe down its side and on its tail, banking in a slow arc as it comes in to Coal Harbour.
+   */
+  private addFloatplane(): void {
+    const white = this.material({ color: 0xf4f4f0, roughness: 0.5 });
+    const red = this.material({ color: 0xc0302a, roughness: 0.6 });
+    const dark = this.material({ color: 0x2a2e34, roughness: 0.5 });
+    const p = this.floatplane;
+    const part = (
+      m: Material,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      p.add(mesh);
+    };
+    part(white, 1.6, 1.8, 9.5, 0, 0, 0);
+    part(red, 1.65, 0.35, 9.6, 0, -0.2, 0);
+    part(dark, 1.5, 0.7, 1.4, 0, 0.5, -2.8);
+    part(white, 15, 0.25, 2, 0, 1.0, -1.6);
+    part(white, 0.25, 2.4, 1.6, 0, 1.4, 4.4);
+    part(red, 0.3, 1.2, 1.6, 0, 1.9, 4.4);
+    part(white, 5, 0.2, 1.4, 0, 0.3, 4.4);
+    for (const x of [-1.6, 1.6]) {
+      part(white, 0.6, 0.6, 7.5, x, -2.6, -0.4);
+      part(dark, 0.15, 1.8, 0.15, x * 0.7, -1.6, -1.8);
+      part(dark, 0.15, 1.8, 0.15, x * 0.7, -1.6, 1.4);
+    }
+    part(dark, 2.8, 0.15, 0.1, 0, 0, -4.85);
+    p.scale.setScalar(1.6);
+    this.group.add(p);
   }
 
   /**
