@@ -330,6 +330,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · North Shore, Oahu');
   });
 
+  test('rides Intense Climb: Passo Campolongo in Passo Campolongo up from Corvara', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Intense Climb: Passo Campolongo',
+      'Passo Campolongo',
+      'intense-climb-passo-campolongo',
+    );
+    await expect(world.heading).toHaveText('Passo Campolongo');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Passo Campolongo');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

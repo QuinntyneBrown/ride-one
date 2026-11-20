@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe and North Shore, Oahu have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu and Passo Campolongo have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -71,7 +71,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 65 | 20 Minute Fat Burning Workout | North Shore, Oahu | 72% | Big-wave beaches and shrimp trucks along Kamehameha Highway. |
 | 66 | 22 Minute Strength Intervals | Bealach na Bà (concept) |  | A single-track Highland road climbing above sea lochs through heather. |
 | 67 | Progressive Efforts on the Passo Gardena | Passo Gardena (concept) |  | Switchbacks beneath the Sella towers, efforts building toward the pass. |
-| 68 | Intense Climb: Passo Campolongo | Passo Campolongo (concept) |  | Forested hairpins from Corvara past ski lifts to a grassy saddle. |
+| 68 | Intense Climb: Passo Campolongo | Passo Campolongo | 74% | Forested hairpins from Corvara past ski lifts to a grassy saddle. |
 | 69 | 20 Minute High Intensity Workout | Han River Parks, Seoul (concept) |  | Riverside parks and fountain-lit bridges at night. |
 | 70 | Calorie Crush | Oktoberfest, Munich (concept) |  | Beer tents, brass bands and dirndls on the Theresienwiese at festival time. |
 | 71 | Fast Paced Cadence Variations | Marina Bay Night (concept) |  | Singapore's night loop around the Supertrees and the bay's glowing skyline. |
