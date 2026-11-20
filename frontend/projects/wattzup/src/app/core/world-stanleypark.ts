@@ -66,7 +66,10 @@ const TOTEMS = 140;
 /** The totem poles stand this far off the centre line, just behind the barrier. */
 const TOTEMS_X = 6.2;
 /** The Lions Gate Bridge stands this far ahead across the narrows, hazed by hand. */
-const BRIDGE_AHEAD = 640;
+const BRIDGE_AHEAD = 480;
+/** Its near tower stands this far right of the path, the bridge turned away across the narrows. */
+const BRIDGE_X = 70;
+const BRIDGE_TURN = -0.5;
 const HAZE = 0xcfdde8;
 const WALKERS = 14;
 const BOATS = 12;
@@ -556,29 +559,45 @@ export class StanleyParkStreet implements SceneStreet {
    */
   private addHorizon(): void {
     const haze = new Color(HAZE);
-    const green = hazedMaterial(this.disposables, haze, 0x3f7a4a, 0.12);
-    const deck = hazedMaterial(this.disposables, haze, 0x5a6a5e, 0.14);
-    const cable = hazedMaterial(this.disposables, haze, 0x3a5a40, 0.14);
+    const green = hazedMaterial(this.disposables, haze, 0x3f8a52, 0.06);
+    const deck = hazedMaterial(this.disposables, haze, 0x5a6a5e, 0.1);
+    const cable = hazedMaterial(this.disposables, haze, 0x3a6a46, 0.1);
     const h = this.horizon;
-    // The bridge runs across the view from the park's headland on the right over the water.
+    // The bridge leaves the park's headland on the right and crosses the narrows, turned away
+    // from the riders so its towers' legs stand apart and its deck and cables run off into the
+    // distance. Along the bridge is its own x; its towers stand at 0 and at the far side.
+    const bridge = new Group();
+    bridge.position.set(BRIDGE_X, 0, 0);
+    bridge.rotation.y = BRIDGE_TURN;
+    h.add(bridge);
     const deckY = 52;
-    const towers = [60, -400];
+    const towers = [0, -470];
+    const legs = 9;
     const span = new Mesh(this.unit, deck);
-    span.scale.set(1300, 3, 14);
-    span.position.set(-250, deckY, 0);
-    h.add(span);
+    span.scale.set(1200, 3, 2 * legs + 2);
+    span.position.set(-350, deckY, 0);
+    bridge.add(span);
+    const box = (w: number, height: number, d: number, x: number, y: number, z: number) => {
+      const mesh = new Mesh(this.unit, green);
+      mesh.scale.set(w, height, d);
+      mesh.position.set(x, y, z);
+      bridge.add(mesh);
+      return mesh;
+    };
     for (const x of towers) {
-      for (const z of [-6, 6]) {
-        const leg = new Mesh(this.unit, green);
-        leg.scale.set(4, 111, 4);
-        leg.position.set(x, 55.5 - 14, z);
-        h.add(leg);
-      }
-      for (const y of [deckY + 18, deckY + 40, deckY + 58]) {
-        const strut = new Mesh(this.unit, green);
-        strut.scale.set(3, 3, 16);
-        strut.position.set(x, y - 14, 0);
-        h.add(strut);
+      for (const z of [-legs, legs]) box(5, 111, 5, x, 55.5 - 14, z);
+      // Portal struts between the legs, and the X-bracing in each bay above the deck.
+      const levels = [deckY - 4, deckY + 16, deckY + 36, deckY + 56, 111 - 16];
+      for (const y of levels) box(4, 3.5, 2 * legs, x, y - 14, 0);
+      for (let i = 0; i < levels.length - 1; i++) {
+        const y0 = levels[i]! - 14;
+        const y1 = levels[i + 1]! - 14;
+        const length = Math.hypot(2 * legs, y1 - y0);
+        const angle = Math.atan2(y1 - y0, 2 * legs);
+        for (const sign of [1, -1]) {
+          const brace = box(2, length, 1.6, x, (y0 + y1) / 2, 0);
+          brace.rotation.x = sign * (Math.PI / 2 - angle);
+        }
       }
     }
     // Main cables: down from the towers' tops, sagging to the deck mid-span, and out to the ends.
@@ -590,24 +609,24 @@ export class StanleyParkStreet implements SceneStreet {
         return deckY + 4 + (top - deckY - 4) * (2 * u - 1) ** 2;
       }
       const edge = x > a ? a : b;
-      const end = x > a ? a + 200 : b - 420;
+      const end = x > a ? a + 180 : b - 420;
       return top - ((top - deckY) * (x - edge)) / (end - edge);
     };
-    for (let x = -800; x < 250; x += 6) {
-      for (const z of [-6, 6]) {
+    for (let x = -890; x < 180; x += 6) {
+      for (const z of [-legs, legs]) {
         const y0 = cableAt(x);
         const y1 = cableAt(x + 6);
         const piece = new Mesh(this.unit, cable);
         const length = Math.hypot(6, y1 - y0);
-        piece.scale.set(length, 0.9, 0.9);
+        piece.scale.set(length, 1.1, 1.1);
         piece.position.set(x + 3, (y0 + y1) / 2, z);
         piece.rotation.z = Math.atan2(y1 - y0, 6);
-        h.add(piece);
+        bridge.add(piece);
         if (Math.round(x) % 12 === 0 && y0 > deckY + 4) {
           const hanger = new Mesh(this.unit, cable);
           hanger.scale.set(0.3, y0 - deckY, 0.3);
           hanger.position.set(x, (y0 + deckY) / 2, z);
-          h.add(hanger);
+          bridge.add(hanger);
         }
       }
     }

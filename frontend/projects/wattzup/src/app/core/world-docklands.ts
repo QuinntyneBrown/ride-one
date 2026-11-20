@@ -373,6 +373,10 @@ const LANTERN_HALO_NEAR = 8;
 const LAMPS = 10;
 /** The towers' street floor: glazing this high above the pavement, in bays this wide. */
 const LOBBY = 4.6;
+/** Glass lifts: the share of towers with one, the least height that has one (m), its trip (s). */
+const LIFT_SHARE = 0.3;
+const LIFT_MIN_HEIGHT = 36;
+const LIFT_PERIOD = 26;
 const LOBBY_BAY = 6;
 
 /** What the rooftops are made of: crown band lights, a beacon, and a mast and lamp shape. */
@@ -441,6 +445,8 @@ export class DocklandsStreet {
   private readonly bikeRacks: { group: Group; offset: number }[] = [];
   private readonly taxiRanks: { group: Group; offset: number }[] = [];
   private readonly puddles: { mesh: Mesh; offset: number }[] = [];
+  /** Glass lift cars on the towers' street faces: where each rides between and its timing. */
+  private readonly lifts: { car: Group; low: number; high: number; phase: number }[] = [];
   private readonly skybridges: { group: Group; offset: number }[] = [];
   /** Delivery drones flying the street: each's loop position at time zero, speed and height. */
   private readonly drones: {
@@ -480,6 +486,7 @@ export class DocklandsStreet {
     this.stroll(still ? 0 : seconds);
     this.swim(still ? 0 : seconds);
     this.pedal(still ? 0 : seconds);
+    this.ride(still ? 0 : seconds);
     this.burst(seconds, still);
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
@@ -959,6 +966,18 @@ export class DocklandsStreet {
     const bracket = new BoxGeometry(BLADE + 0.3, 0.12, 0.12);
     this.disposables.push(...lobbies, canopyMaterial, blade, bracket);
     this.disposables.push(roof, ...facades, ...blades);
+    // Glass lifts up some towers' street faces, from their own sequence so the layout holds.
+    const liftRandom = seeded(421);
+    const liftGlass = new MeshBasicMaterial({
+      color: new Color('#ffe0b8').multiplyScalar(1.5),
+      toneMapped: false,
+    });
+    const liftRim = new MeshBasicMaterial({
+      color: new Color('#5ff2ff').multiplyScalar(2.2),
+      toneMapped: false,
+    });
+    const liftBox = new BoxGeometry(1, 1, 1);
+    this.disposables.push(liftGlass, liftRim, liftBox);
     // Shop signs along the canopies' road edges, from their own sequence so the layout holds.
     const shopRandom = seeded(359);
     const shopSigns = SHOPS.map(([name, hex]) => {
@@ -1125,6 +1144,30 @@ export class DocklandsStreet {
             arm.position.set(out, y, along);
             mesh.add(arm);
           }
+        }
+        if (liftRandom() < LIFT_SHARE && height > LIFT_MIN_HEIGHT) {
+          // On the face towards the street: a lit rail up the facade and the car riding it.
+          const face = -side * (width / 2);
+          const ground = -(height - FOOTING) / 2;
+          const low = ground + LOBBY + 2;
+          const high = ground + height - 8;
+          const rail = new Mesh(liftBox, liftRim);
+          rail.scale.set(0.3, high - low + 4, 0.3);
+          rail.position.set(face - side * 0.12, (low + high) / 2, 0);
+          mesh.add(rail);
+          const car = new Group();
+          const cab = new Mesh(liftBox, liftGlass);
+          cab.scale.set(3, 3.6, 3.2);
+          car.add(cab);
+          for (const y of [-1.86, 1.86]) {
+            const rim = new Mesh(liftBox, liftRim);
+            rim.scale.set(3.1, 0.2, 3.3);
+            rim.position.y = y;
+            car.add(rim);
+          }
+          car.position.set(face - side * 1.7, low, 0);
+          mesh.add(car);
+          this.lifts.push({ car, low, high, phase: liftRandom() });
         }
         this.group.add(mesh);
         this.towers.push({ mesh, side, offset: offset + depth / 2, width, depth });
@@ -3431,6 +3474,14 @@ export class DocklandsStreet {
         material.opacity = (1 - u) ** 1.4;
       }
       sparks.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  /** Runs the glass lifts up and down their towers, easing in and out at each end. */
+  private ride(seconds: number): void {
+    for (const { car, low, high, phase } of this.lifts) {
+      const t = seconds / LIFT_PERIOD + phase;
+      car.position.y = low + ((high - low) * (1 - Math.cos(t * Math.PI * 2))) / 2;
     }
   }
 
