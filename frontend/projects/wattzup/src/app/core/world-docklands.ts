@@ -330,6 +330,10 @@ const LANE_SYMBOL_LONG = 6.4;
 const TREE_OUT = 3;
 const TREE_EVERY = 24;
 const TREE_HEIGHT = 4.2;
+/** The trees' uplights: their neon in turn, the beam's radius at the crown (m), its brightness. */
+const TREE_UPLIGHTS = ['#3fe0ff', '#ff4fd8'];
+const TREE_UPLIGHT_WIDE = 1.9;
+const TREE_UPLIGHT_STRENGTH = 0.4;
 /** A lead cab's indicators: their orange, their glow across (m) and flashes a second. */
 const BLINK_COLOUR = '#ff6a00';
 const BLINK_GLOW = 2;
@@ -2923,6 +2927,28 @@ export class DocklandsStreet {
     });
     const haloPlane = new PlaneGeometry(TWINKLE_HALO, TWINKLE_HALO);
     this.disposables.push(halo, haloPlane);
+    // A neon uplight in each planter, its beam opening up into the crown.
+    const beamFade = this.track(lighthouseBeamTexture());
+    const uplights = TREE_UPLIGHTS.map((hex) => {
+      const material = new MeshBasicMaterial({
+        color: new Color(hex).multiplyScalar(TREE_UPLIGHT_STRENGTH),
+        map: beamFade,
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        side: DoubleSide,
+        toneMapped: false,
+      });
+      this.disposables.push(material);
+      return material;
+    });
+    const upBeam = new ConeGeometry(TREE_UPLIGHT_WIDE, TREE_HEIGHT, 20, 1, true);
+    // Its tip in the planter and its open end up in the crown: flipped, so the fade still runs
+    // from bright at the lamp to nothing at the far end.
+    upBeam.rotateX(Math.PI);
+    upBeam.translate(0, TREE_HEIGHT / 2, 0);
+    this.disposables.push(upBeam);
+    let uplit = 0;
     // The twinkle's phases draw from their own sequence, so the trees' layout is unchanged.
     const twinkleRandom = seeded(461);
     const random = seeded(347);
@@ -2942,6 +2968,9 @@ export class DocklandsStreet {
       stem.scale.y = TREE_HEIGHT - 1.6;
       stem.position.set(x, KERB + 0.6 + (TREE_HEIGHT - 1.6) / 2, 0);
       group.add(box, band, stem);
+      const up = new Mesh(upBeam, uplights[uplit++ % uplights.length]!);
+      up.position.set(x, KERB + 0.6, 0);
+      group.add(up);
       // Three overlapping lumps make a rounded, uneven crown.
       for (let k = 0; k < 3; k++) {
         const lump = new Mesh(crown, leaves);
