@@ -85,6 +85,7 @@ export class MiamiStreet implements SceneStreet {
     scale: number;
   }[] = [];
   private water: Texture | null = null;
+  private glitter: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
@@ -137,6 +138,7 @@ export class MiamiStreet implements SceneStreet {
     // The aircraft beacons on the spires blink, a second apart.
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
+    if (this.glitter) this.glitter.offset.set(Math.sin(seconds * 0.7) * 0.01, seconds * 0.05);
     // The blade signs pulse, each on its own beat, as neon on a timer does.
     this.signs.forEach((m, k) => {
       m.emissiveIntensity = 2.2 + Math.max(0, Math.sin(seconds * (0.9 + k * 0.23) + k)) * 1.2;
@@ -1151,22 +1153,30 @@ export class MiamiStreet implements SceneStreet {
     sea.position.set(-2500, -SEA - 0.1, -1000);
     this.disposables.push(sea.geometry);
     this.horizon.add(sea);
-    const shimmer = this.material({
-      color: 0xc8d4ff,
-      emissive: 0xc8d4ff,
-      emissiveIntensity: 1.4,
+    // The moon's path: a road of glitter laid on the sea from near the shore out to the
+    // horizon under the moon, narrow near and fading at its edges, its sparkles drifting.
+    const glitter = this.track(glitterTexture());
+    glitter.wrapS = RepeatWrapping;
+    glitter.wrapT = RepeatWrapping;
+    glitter.repeat.set(1, 1.5);
+    this.glitter = glitter;
+    const path = new PlaneGeometry(70, 1850);
+    path.rotateX(-Math.PI / 2);
+    this.disposables.push(path);
+    const shimmer = new MeshBasicMaterial({
+      map: glitter,
+      color: 0xd8e0ff,
       transparent: true,
-      opacity: 0.45,
       depthWrite: false,
+      blending: AdditiveBlending,
       fog: false,
     });
-    for (let k = 0; k < 40; k++) {
-      const m = new Mesh(this.unit, shimmer);
-      const d = 200 + k * 30;
-      m.scale.set(4 + random() * 8 + k * 0.4, 0.05, 0.6);
-      m.position.set(-120 - d * 0.6 + (random() - 0.5) * 10, -SEA, -d);
-      this.horizon.add(m);
-    }
+    this.disposables.push(shimmer);
+    const moonward = Math.atan2(900, 1900);
+    const road = new Mesh(path, shimmer);
+    road.rotation.y = moonward;
+    road.position.set(-Math.sin(moonward) * 980, -SEA + 0.05, -Math.cos(moonward) * 980);
+    this.horizon.add(road);
     // The city's violet glow rising behind the towers, and the moon over the sea.
     const glow = new MeshBasicMaterial({
       map: this.track(glowTexture()),
@@ -1850,5 +1860,22 @@ function streetSignTexture(): CanvasTexture {
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.fillText('OCEAN DR', 128, 26);
+  });
+}
+
+/**
+ * The glitter of a moon path: short bright dashes across the swell, thick down the middle and
+ * thinning to nothing at the sides.
+ */
+function glitterTexture(): CanvasTexture {
+  return canvasTexture(128, 512, (g) => {
+    const random = seeded(8251);
+    for (let i = 0; i < 1400; i++) {
+      const spread = (random() + random() + random()) / 3;
+      const x = spread * 128;
+      const edge = 1 - Math.abs(spread - 0.5) * 2;
+      g.fillStyle = `rgba(255,255,255,${(edge * (0.3 + random() * 0.7)).toFixed(2)})`;
+      g.fillRect(x - 4, random() * 512, 3 + random() * 10 * edge, 1 + random() * 3);
+    }
   });
 }
