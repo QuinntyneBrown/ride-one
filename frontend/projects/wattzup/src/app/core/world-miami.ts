@@ -25,6 +25,7 @@ import {
 import {
   canvasTexture,
   Figures,
+  haloTexture,
   loopMetres,
   Palms,
   Ribbons,
@@ -79,6 +80,7 @@ export class MiamiStreet implements SceneStreet {
     this.addRoad(roadHalf, points);
     this.addHotels(roadHalf);
     this.addPalms(roadHalf);
+    this.addLamps(roadHalf);
     this.addCars(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
@@ -374,6 +376,61 @@ export class MiamiStreet implements SceneStreet {
         this.group.add(holder);
         const x = side > 0 ? roadHalf + 2 : -roadHalf - 2.6;
         this.props.push({ mesh: holder, offset: offset + (side > 0 ? 0 : 7), x });
+      }
+  }
+
+  /**
+   * Deco lamp posts along the kerb and the promenade wall: a fluted white column, a ringed
+   * collar and a frosted globe, a halo round it in the damp air and a warm pool on the ground.
+   */
+  private addLamps(roadHalf: number): void {
+    const post = new CylinderGeometry(0.07, 0.11, 4.2, 10);
+    post.translate(0, 2.1, 0);
+    const collar = new CylinderGeometry(0.16, 0.12, 0.25, 12);
+    collar.translate(0, 4.25, 0);
+    const base = new CylinderGeometry(0.2, 0.24, 0.5, 10);
+    base.translate(0, 0.25, 0);
+    const globe = new SphereGeometry(0.28, 16, 12);
+    globe.translate(0, 4.62, 0);
+    this.disposables.push(post, collar, base, globe);
+    const white = this.material({ color: 0xece8f0, roughness: 0.4, metalness: 0.3 });
+    const lit = this.material({ color: 0xfff2d8, emissive: 0xffe8c0, emissiveIntensity: 3 });
+    const halo = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    const pool = new MeshBasicMaterial({
+      map: this.track(poolTexture()),
+      transparent: true,
+      opacity: 0.5,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(halo, pool);
+    for (let offset = 6; offset < LOOP; offset += 24)
+      for (const side of [-1, 1]) {
+        const lamp = new Group();
+        lamp.add(new Mesh(post, white), new Mesh(collar, white), new Mesh(base, white));
+        lamp.add(new Mesh(globe, lit));
+        const h = new Mesh(this.flat, halo);
+        h.scale.set(2.6, 2.6, 1);
+        h.position.y = 4.62;
+        const p = new Mesh(this.flat, pool);
+        p.rotation.x = -Math.PI / 2;
+        p.scale.set(7, 7, 1);
+        p.position.y = 0.02;
+        p.renderOrder = 1;
+        lamp.add(h, p);
+        lamp.children.slice(0, 3).forEach((m) => (m.castShadow = true));
+        lamp.position.y = 0.15;
+        const holder = new Group();
+        holder.add(lamp);
+        this.group.add(holder);
+        const x = side > 0 ? roadHalf + 0.7 : -roadHalf - 4.5;
+        this.props.push({ mesh: holder, offset: offset + (side > 0 ? 12 : 0), x });
       }
   }
 
@@ -878,5 +935,17 @@ function reflectionTexture(): CanvasTexture {
     g.globalCompositeOperation = 'destination-out';
     g.fillStyle = sides;
     g.fillRect(0, 0, 64, 256);
+  });
+}
+
+/** The warm pool a lamp throws on the wet ground. */
+function poolTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    const pool = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    pool.addColorStop(0, 'rgba(255,220,170,0.7)');
+    pool.addColorStop(0.5, 'rgba(255,200,140,0.22)');
+    pool.addColorStop(1, 'rgba(255,190,120,0)');
+    g.fillStyle = pool;
+    g.fillRect(0, 0, 64, 64);
   });
 }
