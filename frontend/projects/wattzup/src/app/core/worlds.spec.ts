@@ -68,6 +68,7 @@ describe('targetGrade (L2-101)', () => {
     ['prospect', { warmup: 0.5, work: 1, rest: 0, cooldown: -0.5, steady: 0.5 }, 1.110718],
     ['calobra', { warmup: 3, work: 6, rest: 3, cooldown: 1, steady: 5 }, 6.18453],
     ['strade', { warmup: 0.5, work: 3.5, rest: -2, cooldown: 0, steady: 1 }, 3.666077],
+    ['wicklow', { warmup: 2, work: 5, rest: 2, cooldown: 0, steady: 3 }, 5.147624],
     ['coast', { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 }, 4.795247],
   ])('%s asks for its grade per kind at s 0, plus its roll at s 300', (id, grades, workAt300) => {
     const world = worldById(id);

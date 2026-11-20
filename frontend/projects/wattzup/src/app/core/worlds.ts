@@ -633,6 +633,15 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0.5, work: 3.5, rest: -2, cooldown: 0, steady: 1 },
     roll: 0.9,
   },
+  {
+    id: 'wicklow',
+    name: 'Wicklow Gap',
+    route: 'the Wicklow Gap road',
+    effortName: 'Gap attack',
+    description: 'Irish race roads over bog and heather through the Wicklow Mountains.',
+    grade: { warmup: 2, work: 5, rest: 2, cooldown: 0, steady: 3 },
+    roll: 0.8,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

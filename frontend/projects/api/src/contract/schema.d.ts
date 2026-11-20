@@ -145,7 +145,8 @@ export interface components {
         | 'toronto'
         | 'prospect'
         | 'calobra'
-        | 'strade';
+        | 'strade'
+        | 'wicklow';
     };
     ClassShelfResponse: {
       id: string;

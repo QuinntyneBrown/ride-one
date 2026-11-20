@@ -1075,6 +1075,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.4, fill: 0.95, colour: 0xffc27a },
     fogRange: [160, 2600],
   },
+  // A bright, blustery Irish spring afternoon: blue sky between fast clouds, clean light on the bog.
+  wicklow: {
+    sky: 0x5a94d8,
+    fog: 0xc8d4dc,
+    ground: 0x7a6a48,
+    road: 0x55575a,
+    sun: 34,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 1.4,
+    azimuth: 210,
+    light: { sun: 2.6, fill: 1.7, colour: 0xfff4e0 },
+    fogRange: [900, 9000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

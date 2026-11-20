@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -496,6 +496,13 @@ None.
   - ahead the Crete Senesi folding away in layers of rolling ridges 80 to 190 m high, golden and green near and paling to blue-grey far off, lines of cypresses along their crests, and Siena on its ridge at the end of the road: the brick town packed along the crest under terracotta roofs, the Palazzo Pubblico with its crenellations and the slender Torre del Mangia rising over it to its white stone crown, and the Duomo's dome beside its black-and-white striped campanile, all hazed by hand. Everything along the road is hidden past 280 m.
 
   `lay`, `place` and `setTime` recycle it along a 480 m loop.
+- **Wicklow Gap (`core/world-wicklow.ts`).** For `wicklow`, race day on the mountain road on a bright, blustery spring afternoon:
+  - the tarmac with riders' names chalked across it, its grass verges, and the blanket bog either side, the ground sinking with the valley on the left;
+  - heather and ling, bog cotton, gorse in flower, granite boulders and peat banks with the turf stacked to dry;
+  - the pass's yellow warning signs and its name board in Irish and English, and the Wicklow Way's waymarker posts;
+  - fans' flags (most of them the tricolour) waving on the ride's clock, fans' cars on the verge, a marshal's motorbike, and marshals, fans and walkers (`Figures`);
+  - mountain sheep with their owners' paint marks, grazing on the ride's clock;
+  - Glendalough's dark lough far below under its conifers, the rounded granite mountains rolling up to Tonelagee, and clouds racing over them on the ride's clock, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -572,6 +579,7 @@ None.
 | `pages/world-ride/prospect` | Prospect Park at 4:50, warm-up, next `Park loop interval` |
 | `pages/world-ride/calobra` | Sa Calobra, Mallorca at 4:50, warm-up, next `Hairpin tempo` |
 | `pages/world-ride/strade` | Strade Bianche at 2:53, warm-up, next `Gravel spin` |
+| `pages/world-ride/wicklow` | Wicklow Gap at 4:50, warm-up, next `Gap attack` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
