@@ -213,6 +213,15 @@ export class CaribanaStreet implements SceneStreet {
   private readonly clouds = new Group();
   private readonly ontarioPlace = new Group();
   private readonly rotor = new Group();
+  private readonly gulls: {
+    bird: Group;
+    wings: [Mesh, Mesh];
+    centre: Vector3;
+    r: number;
+    phase: number;
+    speed: number;
+  }[] = [];
+  private readonly plane = new Group();
   private readonly smoke: { mesh: Mesh; phase: number; material: MeshStandardMaterial }[] = [];
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
   private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
@@ -278,6 +287,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addExhibition();
     this.addBoats();
     this.addClouds();
+    this.addSkyLife();
   }
 
   /** The parade's clock, in seconds; held at 0 for reduced motion. */
@@ -332,6 +342,24 @@ export class CaribanaStreet implements SceneStreet {
     }
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
     this.ontarioPlace.position.set(0, heightAt(1e6), 0);
+    for (const g of this.gulls) {
+      // Each gull wheels on a wide circle, flapping now and then and gliding between.
+      const a = this.time * g.speed + g.phase;
+      const metres = along(g.centre.z, LOOP);
+      g.bird.position.set(
+        g.centre.x + Math.cos(a) * g.r,
+        heightAt(Math.max(metres, 0)) + g.centre.y + Math.sin(a * 2) * 1.5,
+        -metres + Math.sin(a) * g.r,
+      );
+      g.bird.rotation.y = -a + (g.speed > 0 ? 0 : Math.PI);
+      g.bird.rotation.z = Math.sin(a) * 0.2 * Math.sign(g.speed);
+      const flap = Math.sin(this.time * 9 + g.phase * 3) * (Math.sin(a * 1.7) > 0 ? 0.7 : 0.08);
+      g.wings[0].rotation.z = 0.15 + flap;
+      g.wings[1].rotation.z = -0.15 - flap;
+    }
+    // The turboprop on final approach over the lake, sinking towards the island airport.
+    const u = (this.time * 0.012) % 1;
+    this.plane.position.set(420 - u * 600, heightAt(1e6) + 260 - u * 170, -1400 + u * 200);
     // The turbine turns slowly in the lake breeze.
     this.rotor.rotation.z = this.time * 1.1;
     // The cumulus drift slowly east with the lake breeze, a sky that never quite repeats.
@@ -1989,6 +2017,85 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(body, top);
       this.ontarioPlace.add(new Mesh(body, hall), new Mesh(top, roof));
     }
+  }
+
+  /**
+   * The sky's life: ring-billed gulls wheeling over the crowds and the food stalls, a twin
+   * turboprop descending over the lake towards the island airport, and a jet's contrail high
+   * above the city.
+   */
+  private addSkyLife(): void {
+    const white = this.material({ color: 0xf4f4f2, roughness: 0.7 });
+    const grey = this.material({ color: 0xaab0b6, roughness: 0.7, side: DoubleSide });
+    const body = ellipsoid(0.12, 1, 0.9, 2.6, 0, 0, 0, 8);
+    const wing = new BufferGeometry();
+    wing.setAttribute(
+      'position',
+      new BufferAttribute(new Float32Array([0, 0, -0.1, 0.62, 0.02, 0.05, 0, 0, 0.14]), 3),
+    );
+    wing.computeVertexNormals();
+    this.disposables.push(body, wing);
+    const random = seeded(1301);
+    for (let k = 0; k < 14; k++) {
+      const bird = new Group();
+      bird.add(new Mesh(body, white));
+      const left = new Mesh(wing, grey);
+      left.scale.x = -1;
+      const right = new Mesh(wing, grey);
+      bird.add(left, right);
+      this.group.add(bird);
+      const side = k % 3 === 0 ? -1 : 1;
+      this.gulls.push({
+        bird,
+        wings: [left, right],
+        centre: new Vector3(side * (10 + random() * 14), 14 + random() * 16, random() * LOOP),
+        r: 6 + random() * 10,
+        phase: random() * 6.3,
+        speed: (0.25 + random() * 0.2) * (random() < 0.5 ? 1 : -1),
+      });
+    }
+    // A twin turboprop, high-winged, white with a dark tail.
+    const fuselage = new CylinderGeometry(1.3, 1.1, 30, 10);
+    fuselage.rotateX(Math.PI / 2);
+    const mainWing = new BoxGeometry(28, 0.4, 3);
+    mainWing.translate(0, 1.2, -1);
+    const tail = new BoxGeometry(0.4, 6, 3.4);
+    tail.translate(0, 3, 13);
+    const tailplane = new BoxGeometry(9, 0.3, 2.2);
+    tailplane.translate(0, 5.8, 13.5);
+    const engines = mergeGeometries(
+      [-5, 5].map((x) => {
+        const e = new CylinderGeometry(0.7, 0.6, 5, 8);
+        e.rotateX(Math.PI / 2);
+        e.translate(x, 0.6, -2.5);
+        return e;
+      }),
+    )!;
+    const dark = this.material({ color: 0x1c2b4a, roughness: 0.5, fog: false });
+    const hull = this.material({ color: 0xf2f2f0, roughness: 0.5, fog: false });
+    this.disposables.push(fuselage, mainWing, tail, tailplane, engines);
+    this.plane.add(new Mesh(fuselage, hull), new Mesh(mainWing, hull), new Mesh(tail, dark));
+    this.plane.add(new Mesh(tailplane, dark), new Mesh(engines, dark));
+    this.plane.rotation.y = -Math.PI / 2 + 0.3;
+    this.plane.rotation.z = 0.05;
+    this.group.add(this.plane);
+    // A jet's contrail, a long thin streak spreading as it ages.
+    const trail = new CylinderGeometry(3, 0.6, 2600, 8, 1, true);
+    trail.rotateZ(Math.PI / 2 - 0.08);
+    trail.translate(-500, 1150, -3300);
+    this.disposables.push(trail);
+    const vapour = this.material({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+      fog: false,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.3,
+    });
+    const contrail = new Mesh(trail, vapour);
+    contrail.frustumCulled = false;
+    this.clouds.add(contrail);
   }
 
   /** Sailboats out on the lake, drifting slowly. */
