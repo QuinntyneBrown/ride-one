@@ -201,6 +201,7 @@ export class HavanaStreet implements SceneStreet {
     this.addClouds();
     this.addBoats(roadHalf);
     this.addBirds(roadHalf);
+    this.addBillboards(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -1201,6 +1202,22 @@ export class HavanaStreet implements SceneStreet {
     shell.scale(0.8, 1.2, 1.2);
     const small = new CylinderGeometry(0.22, 0.22, 0.16, 12);
     small.rotateZ(Math.PI / 2);
+    // The tub the shell sits on, rounded at its ends, and the scooter's tapering nose.
+    const tub = new CapsuleGeometry(0.62, 1.0, 4, 14);
+    tub.rotateX(Math.PI / 2);
+    tub.scale(1, 0.32, 1);
+    const nose = new CapsuleGeometry(0.22, 0.35, 4, 10);
+    nose.rotateX(0.5);
+    const torso = new CapsuleGeometry(0.17, 0.34, 3, 8);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const headlamp = new CylinderGeometry(0.1, 0.1, 0.06, 12);
+    headlamp.rotateX(Math.PI / 2);
+    this.disposables.push(tub, nose, torso, head, headlamp);
+    const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.5 });
+    const skin = this.material({ color: 0x8d5a3b, roughness: 0.8 });
+    const drivers = [0xf2efe6, 0x3a86ff, 0xe63946].map((c) =>
+      this.material({ color: c, roughness: 0.85 }),
+    );
     const lada = profile(
       [
         [-2.05, 0.3],
@@ -1269,9 +1286,22 @@ export class HavanaStreet implements SceneStreet {
       // A coco-taxi: the yellow egg shell over a black seat, on a scooter's three wheels.
       const taxi = new Group();
       put(taxi, shell, yellow, 0, 0.42, 0.15);
-      box(taxi, yellow, 1.3, 0.3, 2.3, 0, 0.35, 0.1);
-      box(taxi, black, 1.0, 0.5, 0.6, 0, 0.75, 0.6);
-      box(taxi, black, 0.5, 0.5, 0.5, 0, 0.75, -0.55);
+      put(taxi, tub, yellow, 0, 0.42, 0.25);
+      // The passengers' bench at the back, and the driver up front on the scooter's saddle.
+      box(taxi, black, 1.1, 0.22, 0.55, 0, 0.7, 0.75);
+      box(taxi, black, 1.1, 0.5, 0.12, 0, 0.95, 1.02);
+      box(taxi, black, 0.36, 0.14, 0.5, 0, 0.78, -0.3);
+      put(taxi, torso, drivers[i % drivers.length]!, 0, 1.2, -0.3);
+      put(taxi, head, skin, 0, 1.62, -0.33);
+      // The scooter's nose: a yellow fairing with its round headlamp, the handlebars and screen.
+      put(taxi, nose, yellow, 0, 0.6, -0.95);
+      put(taxi, headlamp, lamp, 0, 0.85, -1.2);
+      box(taxi, chrome, 0.7, 0.04, 0.04, 0, 1.12, -0.85);
+      const screen = new Mesh(this.unit, glass);
+      screen.scale.set(0.55, 0.32, 0.02);
+      screen.position.set(0, 1.28, -0.95);
+      screen.rotation.x = -0.35;
+      taxi.add(screen);
       put(taxi, small, tyre, 0, 0.22, -1.0);
       for (const x of [-0.6, 0.6]) put(taxi, small, tyre, x, 0.22, 0.9);
       vehicles.push({ group: taxi, lane: 1.4, speed: -(5 + random() * 2) });
@@ -1887,6 +1917,47 @@ export class HavanaStreet implements SceneStreet {
     this.birdList.forEach((b, i) => this.birds!.setColorAt(i, b.size > 1 ? dark : pale));
     this.birds.frustumCulled = false;
     this.group.add(this.birds);
+  }
+
+  /**
+   * The Malecón's painted hoardings: big boards on steel legs along the promenade, each a
+   * hand-painted message in the national colours, its paint faded by the sun and salt.
+   */
+  private addBillboards(roadHalf: number): void {
+    const x = -roadHalf - LANES - 1.4;
+    const steel = this.material({ color: 0x5a5e62, roughness: 0.7, metalness: 0.4 });
+    const leg = new BoxGeometry(0.16, 3.2, 0.16);
+    leg.translate(0, 1.6, 0);
+    const back = new BoxGeometry(7.4, 3.4, 0.12);
+    this.disposables.push(leg, back);
+    const boards = [
+      ['¡VIVA CUBA!', 'LIBRE'],
+      ['LA PATRIA', 'ES DE TODOS'],
+      ['HAVANA', 'MALECÓN'],
+    ] as const;
+    boards.forEach(([top, bottom], k) => {
+      const face = this.track(boardTexture(top, bottom, k));
+      const board = new Group();
+      const sheet = new Mesh(back, [
+        steel,
+        steel,
+        steel,
+        steel,
+        this.material({ map: face, roughness: 0.8 }),
+        steel,
+      ]);
+      sheet.position.y = 3.2 + 1.7;
+      sheet.castShadow = true;
+      for (const dx of [-2.6, 2.6]) {
+        const post = new Mesh(leg, steel);
+        post.position.x = dx;
+        board.add(post);
+      }
+      board.add(sheet);
+      board.rotation.y = 0.35;
+      this.group.add(board);
+      this.props.push({ mesh: board, offset: 60 + k * 120, x });
+    });
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
@@ -2784,5 +2855,48 @@ function wetTexture(): CanvasTexture {
       g.ellipse(x, y, 8 + random() * 30, 14 + random() * 60, random() * 0.4, 0, Math.PI * 2);
       g.fill();
     }
+  });
+}
+
+/**
+ * A hand-painted hoarding: a two-line message in heavy capitals over the flag's blue and white
+ * stripes and its red triangle, sun-faded and flaking at the edges.
+ */
+function boardTexture(top: string, bottom: string, look: number): CanvasTexture {
+  return canvasTexture(1024, 480, (g) => {
+    g.fillStyle = '#f2ede2';
+    g.fillRect(0, 0, 1024, 480);
+    for (let i = 0; i < 5; i++) {
+      g.fillStyle = i % 2 ? '#f2ede2' : '#1f4fa0';
+      g.fillRect(0, i * 96, 1024, 96);
+    }
+    g.fillStyle = '#c8202f';
+    g.beginPath();
+    g.moveTo(0, 0);
+    g.lineTo(look === 2 ? 300 : 360, 240);
+    g.lineTo(0, 480);
+    g.fill();
+    g.fillStyle = 'rgba(242,237,226,0.86)';
+    g.fillRect(360, 60, 640, 360);
+    g.fillStyle = look === 1 ? '#c8202f' : '#1b2e5c';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 110px sans-serif';
+    g.fillText(top, 680, 170, 600);
+    g.fillStyle = '#c8202f';
+    g.fillText(bottom, 680, 320, 600);
+    const random = seeded(1259 + look);
+    for (let i = 0; i < 120; i++) {
+      g.fillStyle = `rgba(230,225,215,${0.3 + random() * 0.5})`;
+      const edge = random() < 0.5;
+      g.fillRect(
+        edge ? random() * 1024 : random() < 0.5 ? random() * 60 : 964 + random() * 60,
+        edge ? (random() < 0.5 ? random() * 30 : 450 + random() * 30) : random() * 480,
+        4 + random() * 22,
+        3 + random() * 12,
+      );
+    }
+    g.fillStyle = 'rgba(255,250,235,0.18)';
+    g.fillRect(0, 0, 1024, 480);
   });
 }
