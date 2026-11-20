@@ -121,7 +121,8 @@ export interface components {
         | 'tourmalet'
         | 'napa'
         | 'glastonbury'
-        | 'pikeplace';
+        | 'pikeplace'
+        | 'hardknott';
     };
     ClassShelfResponse: {
       id: string;
