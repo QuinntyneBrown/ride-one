@@ -2,10 +2,12 @@
 // renderer builds a scene's street from here in place of its panorama and generic posts.
 import type { WorldId } from '@wattzup/api';
 import { CaribanaStreet } from './world-caribana';
+import { SouthBeachStreet } from './world-southbeach';
 import type { StreetFactory } from './world-kit';
 import { WestminsterStreet } from './world-westminster';
 
 export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   caribana: (track, disposables) => new CaribanaStreet(track, disposables),
+  southbeach: (track, disposables) => new SouthBeachStreet(track, disposables),
   westminster: (track, disposables) => new WestminsterStreet(track, disposables),
 };

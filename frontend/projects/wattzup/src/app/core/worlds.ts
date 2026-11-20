@@ -95,6 +95,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0.5, work: 3.5, rest: -1, cooldown: 0, steady: 0.5 },
     roll: 0.5,
   },
+  {
+    id: 'southbeach',
+    name: 'South Beach Sunrise',
+    route: 'Ocean Drive',
+    effortName: 'Sunrise chase',
+    description:
+      "Pastel art deco hotels with neon fins face palms, lifeguard towers and the Atlantic along Miami Beach's Ocean Drive at sunrise. The two-minute opener and the six short efforts each chase the rising sun up a rise toward the deco tower at the end of the drive.",
+    grade: { warmup: 0.5, work: 4, rest: -1, cooldown: 0, steady: 0.5 },
+    roll: 0.5,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

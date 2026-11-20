@@ -29,6 +29,13 @@ import {
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  barrierBannerTexture,
+  type BannerPanel,
+  clothBannerTexture,
+  paintTexture,
+  seeded,
+} from './world-kit';
 
 /** Metres from the road's centre to the house fronts. */
 export const FRONTAGE = 6.5;
@@ -80,6 +87,15 @@ const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
   ['HUP HUP', '#ffe14a', 0.8],
   ['VAMOS', '#f4f2ea', 0.2],
   ['GO ANA', '#ffe14a', -0.9],
+];
+/** The race's printed panels along the barriers. */
+const BARRIER_PANELS: readonly BannerPanel[] = [
+  { fill: '#1b1e24', ink: '#d7ff3a', text: 'OLD TOWN CRITERIUM' },
+  { fill: '#f2efe6', ink: '#b8322c', text: 'CATHEDRAL CIRCUIT' },
+  { fill: '#2d4e7a', ink: '#ffffff', text: 'COBBLED SPRINT' },
+  { fill: '#b8322c', ink: '#ffffff', text: 'RACE DAY' },
+  { fill: '#d7ff3a', ink: '#1b1e24', text: 'WATTZUP' },
+  { fill: '#f2efe6', ink: '#1b1e24', text: 'ALLEZ !' },
 ];
 /** The banners across the street: their words, cloth and ink. */
 const STREET_BANNERS: readonly (readonly [string, string, string])[] = [
@@ -305,7 +321,7 @@ export class OldTownStreet {
     const pavement = this.material(this.track(slabTexture()));
     // The left barriers are seen from the other face: their print runs the other way.
     const banners = [-1, 1].map((side) => {
-      const texture = this.track(bannerTexture());
+      const texture = this.track(barrierBannerTexture(BARRIER_PANELS));
       texture.repeat.set(-1, -side / 24);
       const material = this.material(texture);
       material.alphaTest = 0.5;
@@ -2067,53 +2083,6 @@ function roundRect(
   ctx.fill();
 }
 
-/** The barriers' banners, 24 m per repeat: printed panels, and a gap where a crossing opens. */
-function bannerTexture(): CanvasTexture {
-  // The canvas runs up the barrier across (u) and along the street down (v).
-  const w = 64;
-  const h = 1024;
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    const panels = [
-      { fill: '#1b1e24', ink: '#d7ff3a', text: 'OLD TOWN CRITERIUM' },
-      { fill: '#f2efe6', ink: '#b8322c', text: 'CATHEDRAL CIRCUIT' },
-      { fill: '#2d4e7a', ink: '#ffffff', text: 'COBBLED SPRINT' },
-      { fill: '#b8322c', ink: '#ffffff', text: 'RACE DAY' },
-      { fill: '#d7ff3a', ink: '#1b1e24', text: 'WATTZUP' },
-      { fill: '#f2efe6', ink: '#1b1e24', text: 'ALLEZ !' },
-    ];
-    const panel = h / 10;
-    for (let i = 0; i < 9; i++) {
-      const { fill, ink, text } = panels[i % panels.length]!;
-      const y = i * panel;
-      ctx.fillStyle = fill;
-      ctx.fillRect(0, y + 2, w, panel - 4);
-      ctx.save();
-      ctx.translate(w / 2, y + panel / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillStyle = ink;
-      ctx.font = 'bold 24px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, 0, 0, panel - 12);
-      ctx.restore();
-      // The barrier's steel frame between panels.
-      ctx.fillStyle = '#9aa0a6';
-      ctx.fillRect(0, y, w, 3);
-    }
-    // The tenth panel is left open: a crossing for the people on the pavement.
-  }
-  const texture = new CanvasTexture(canvas);
-  texture.wrapS = RepeatWrapping;
-  texture.wrapT = RepeatWrapping;
-  texture.repeat.set(1, 1 / 24);
-  texture.colorSpace = SRGBColorSpace;
-  return texture;
-}
-
 /**
  * Cathedral stone: lancet windows with tracery, three to a face; or a spire's openwork, rows
  * of quatrefoils diminishing towards the tip.
@@ -2219,61 +2188,6 @@ function coverTexture(): CanvasTexture {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('EAU', 64, 65);
-  }
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  return texture;
-}
-
-/** A slogan in road paint: rough-edged capitals, worn by the tyres that have crossed it. */
-function paintTexture(text: string, colour: string): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 1120;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.fillStyle = colour;
-    ctx.font = 'bold 120px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.setTransform(1, 0, 0, 7, 0, 0);
-    ctx.fillText(text, 256, 80, 490);
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    // Worn: specks of road showing through the paint.
-    ctx.globalCompositeOperation = 'destination-out';
-    const random = seeded(text.length * 31);
-    for (let i = 0; i < 2400; i++) {
-      ctx.fillRect(random() * 512, random() * 1120, 1 + random() * 4, 2 + random() * 8);
-    }
-  }
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  return texture;
-}
-
-function clothBannerTexture(text: string, fill: string, ink: string): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 700;
-  canvas.height = 130;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.fillStyle = fill;
-    ctx.fillRect(0, 0, 700, 130);
-    ctx.strokeStyle = ink;
-    ctx.lineWidth = 5;
-    ctx.strokeRect(10, 10, 680, 110);
-    ctx.fillStyle = ink;
-    ctx.font = 'bold 72px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, 350, 68, 640);
-    // Folds in the cloth.
-    const folds = ctx.createLinearGradient(0, 0, 700, 0);
-    for (let i = 0; i <= 6; i++) {
-      folds.addColorStop(i / 6, i % 2 ? 'rgba(0,0,0,0.14)' : 'rgba(255,255,255,0.06)');
-    }
-    ctx.fillStyle = folds;
-    ctx.fillRect(0, 0, 700, 130);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -2678,16 +2592,4 @@ function slabTexture(): CanvasTexture {
   texture.wrapT = RepeatWrapping;
   texture.colorSpace = SRGBColorSpace;
   return texture;
-}
-
-/** A repeatable sequence in [0, 1): the street is the same on every ride. */
-function seeded(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }

@@ -88,7 +88,8 @@ export interface components {
         | 'dolomites'
         | 'coast'
         | 'caribana'
-        | 'westminster';
+        | 'westminster'
+        | 'southbeach';
     };
     ClassShelfResponse: {
       id: string;
