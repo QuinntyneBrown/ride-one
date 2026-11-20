@@ -261,6 +261,9 @@ export class CaribanaStreet implements SceneStreet {
     green: MeshStandardMaterial;
   }[] = [];
   private confetti: InstancedMesh | null = null;
+  private spray: InstancedMesh | null = null;
+  private readonly hose = new Group();
+  private readonly drops: { speed: number; spread: number; phase: number; size: number }[] = [];
   private readonly flakes: {
     x: number;
     offset: number;
@@ -325,6 +328,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addGantry();
     this.addIntersection();
     this.addGrandstand();
+    this.addSpray();
     this.addConfetti();
     this.addOfficers();
     this.addBandBanners();
@@ -370,6 +374,7 @@ export class CaribanaStreet implements SceneStreet {
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
     this.placeConfetti(heightAt, along);
+    this.placeSpray(heightAt, along);
     // The signals run their cycle as usual though the road is closed: 20 s green, 3 amber, 20 red.
     const phase = this.time % 43;
     for (const lamp of this.signalLamps) {
@@ -1733,6 +1738,85 @@ export class CaribanaStreet implements SceneStreet {
     crossing.traverse((o) => (o.castShadow = o.type === 'Mesh' && o.parent !== crossing));
     this.group.add(crossing);
     this.props.push({ mesh: crossing, offset: CROSSING_AT, every: LOOP, x: 0, road: true });
+  }
+
+  /**
+   * Cooling the band down: a crew member at the back of the steel orchestra's float sprays a
+   * hose out over the left-hand masqueraders, an arc of droplets catching the sun, and the asphalt
+   * beneath lies dark and glossy where it lands.
+   */
+  private addSpray(): void {
+    const random = seeded(1801);
+    for (let k = 0; k < 420; k++) {
+      this.drops.push({
+        speed: 6.2 + random() * 1.6,
+        spread: (random() - 0.5) * 0.5,
+        phase: random(),
+        size: 0.5 + random() * 0.8,
+      });
+    }
+    const drop = new SphereGeometry(0.03, 5, 4);
+    drop.scale(1, 1.6, 1);
+    this.disposables.push(drop);
+    this.spray = this.instanced(
+      drop,
+      this.material({
+        color: 0xe8f4ff,
+        roughness: 0.05,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.75,
+        emissive: 0x8fb8d8,
+        emissiveIntensity: 0.4,
+      }),
+      this.drops.length,
+    );
+    this.spray.castShadow = false;
+    // The wet patch: glossy and dark, ragged at the edge.
+    const wet = new PlaneGeometry(6, 7);
+    wet.rotateX(-Math.PI / 2);
+    wet.translate(0, 0.006, 0);
+    this.disposables.push(wet);
+    const patch = new Mesh(
+      wet,
+      this.material({
+        map: this.track(wetTexture()),
+        transparent: true,
+        roughness: 0.08,
+        metalness: 0.25,
+        depthWrite: false,
+      }),
+    );
+    this.hose.add(patch);
+    this.group.add(this.hose);
+  }
+
+  private placeSpray(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    const spray = this.spray;
+    if (!spray) return;
+    // The nozzle at the rear rail of the steel orchestra's deck, 2.6 m up, aimed back over the
+    // band following it and swept slowly from side to side.
+    const metres = along(PAN_AT - 7.9, LOOP);
+    const base = heightAt(Math.max(metres, 0)) + ASPHALT;
+    const sweep = Math.sin(this.time * 0.8) * 0.35;
+    this.hose.position.set(TRUCK_X + Math.sin(sweep) * 2, base, -metres + 5.2);
+    this.drops.forEach((d, k) => {
+      const t = ((this.time * 0.9 + d.phase) % 1) * 1.1;
+      const heading = sweep + d.spread;
+      const reach = d.speed * t * Math.cos(0.5);
+      this.spot.set(
+        TRUCK_X + Math.sin(heading) * reach,
+        base + 2.6 + d.speed * t * Math.sin(0.5) - 4.9 * t * t,
+        -metres + Math.cos(heading) * reach,
+      );
+      this.size.setScalar(this.spot.y > base ? d.size : 0);
+      this.turn.identity();
+      spray.setMatrixAt(k, this.matrix.compose(this.spot, this.turn, this.size));
+    });
+    spray.instanceMatrix.needsUpdate = true;
   }
 
   /**
@@ -3521,6 +3605,24 @@ function streetSignTexture(name: string): CanvasTexture {
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.fillText(name, 256, 56, 470);
+  });
+}
+
+/** Wet asphalt: dark in the middle and ragged at the edge, puddled in places. */
+function wetTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    g.clearRect(0, 0, 256, 256);
+    const random = seeded(1811);
+    for (let i = 0; i < 70; i++) {
+      const x = 128 + (random() - 0.5) * 170;
+      const y = 128 + (random() - 0.5) * 190;
+      const r = 14 + random() * 36;
+      const blot = g.createRadialGradient(x, y, 0, x, y, r);
+      blot.addColorStop(0, 'rgba(18,20,24,0.5)');
+      blot.addColorStop(1, 'rgba(18,20,24,0)');
+      g.fillStyle = blot;
+      g.fillRect(x - r, y - r, 2 * r, 2 * r);
+    }
   });
 }
 
