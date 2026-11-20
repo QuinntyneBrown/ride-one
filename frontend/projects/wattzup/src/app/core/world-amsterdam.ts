@@ -749,35 +749,42 @@ export class AmsterdamStreet implements SceneStreet {
       this.disposables.push(car.body, car.glass, car.wheels);
       return car;
     });
-    for (let offset = 0; offset < LOOP;) {
-      const gap = bridgeGap(offset);
-      if (gap !== null) {
-        offset = gap + 1;
-        continue;
+    // Along the near kerb, and along the far quay's water's edge, facing the other way.
+    const rows = [
+      { x: -roadHalf - 1.25, turn: 0 },
+      { x: -roadHalf - QUAY - CANAL - 1.3, turn: Math.PI },
+    ];
+    for (const row of rows)
+      for (let offset = row.turn ? 5 : 0; offset < LOOP;) {
+        const gap = bridgeGap(offset);
+        if (gap !== null) {
+          offset = gap + 1;
+          continue;
+        }
+        const roll = random();
+        const car = kinds[roll < 0.55 ? 0 : roll < 0.88 ? 1 : 2]!;
+        if (offset + car.length > nextGap(offset)) {
+          offset = nextGap(offset);
+          continue;
+        }
+        if (random() < 0.2) {
+          offset += 3 + random() * 4;
+          continue;
+        }
+        const parked = new Group();
+        const paint = car === kinds[2] ? bodies[5]! : bodies[Math.floor(random() * bodies.length)]!;
+        parked.add(
+          new Mesh(car.body, paint),
+          new Mesh(car.glass, glass),
+          new Mesh(car.wheels, rubber),
+        );
+        parked.children.forEach((m) => (m.castShadow = true));
+        parked.children.forEach((m) => (m.position.y = KERB));
+        this.group.add(parked);
+        parked.children.forEach((m) => (m.rotation.y = row.turn));
+        this.props.push({ mesh: parked, offset: offset + car.length / 2, x: row.x });
+        offset += car.length + 0.6 + random() * 1.2;
       }
-      const roll = random();
-      const car = kinds[roll < 0.55 ? 0 : roll < 0.88 ? 1 : 2]!;
-      if (offset + car.length > nextGap(offset)) {
-        offset = nextGap(offset);
-        continue;
-      }
-      if (random() < 0.2) {
-        offset += 3 + random() * 4;
-        continue;
-      }
-      const parked = new Group();
-      const paint = car === kinds[2] ? bodies[5]! : bodies[Math.floor(random() * bodies.length)]!;
-      parked.add(
-        new Mesh(car.body, paint),
-        new Mesh(car.glass, glass),
-        new Mesh(car.wheels, rubber),
-      );
-      parked.children.forEach((m) => (m.castShadow = true));
-      parked.children.forEach((m) => (m.position.y = KERB));
-      this.group.add(parked);
-      this.props.push({ mesh: parked, offset: offset + car.length / 2, x: -roadHalf - 1.25 });
-      offset += car.length + 0.6 + random() * 1.2;
-    }
   }
 
   /**
@@ -1255,7 +1262,11 @@ export class AmsterdamStreet implements SceneStreet {
         offset,
         // On the pavement's open strip outside the stoops, or on the quay between the parked
         // cars and the elms.
-        x: nearSide ? roadHalf + 0.6 + random() * 0.5 : -roadHalf - 2.5 - random() * 1.1,
+        x: nearSide
+          ? roadHalf + 0.6 + random() * 0.5
+          : random() < 0.6
+            ? -roadHalf - 2.5 - random() * 1.1
+            : -roadHalf - QUAY - CANAL - 3 - random() * 1.2,
         speed: (random() < 0.5 ? 1 : -1) * (1 + random() * 0.4),
         scale: 0.9 + random() * 0.15,
         phase: random() * 6.3,
