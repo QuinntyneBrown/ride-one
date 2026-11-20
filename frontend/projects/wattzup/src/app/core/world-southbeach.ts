@@ -96,13 +96,25 @@ const STREET_BANNERS: readonly (readonly [string, string, string])[] = [
   ['OCEAN DRIVE', '#2fd3cf', '#1b1e24'],
   ['CHASE THE SUN', '#ffb23f', '#1b1e24'],
 ];
-/** What the fans paint on the road, its colour and how far off the centre line. */
+/**
+ * What the fans paint on the road, its colour and how far off the centre line: beside the
+ * riders' line, where it shows between them.
+ */
 const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
-  ['SUNRISE', '#fdf5e4', -0.7],
-  ['VAMOS', '#ff9ec9', 0.8],
-  ['OCEAN DR', '#fdf5e4', 0.1],
-  ['GO GO', '#2fe6e0', -0.9],
+  ['SUNRISE', '#fdf5e4', -2.0],
+  ['VAMOS', '#ff9ec9', 2.0],
+  ['OCEAN DR', '#fdf5e4', -2.0],
+  ['GO GO', '#2fe6e0', 2.0],
+  ['SOBE', '#ffe14a', -2.0],
+  ['CHASE IT', '#fdf5e4', 2.0],
+  ['ALLEZ', '#ff9ec9', -2.0],
+  ['WATTZUP', '#d7ff3a', 2.0],
 ];
+/**
+ * Fans' writing on the tarmac every ROAD_PAINT_EVERY metres, twice round the list: flat paint
+ * reads only in the first 25 m or so ahead, so some must always be that close.
+ */
+const ROAD_PAINT_EVERY = 25;
 /** Pennants on the lamp posts, in the race's colours. */
 const PENNANTS = ['#ff4fa8', '#2fd3cf', '#ffb23f', '#fdf5e4'];
 const SKINS = ['#f1c7a5', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26', '#e2b48c'];
@@ -240,6 +252,20 @@ export class SouthBeachStreet implements SceneStreet {
       [SEA + 0.6, 0.04],
       [SEA - 1.2, 0.04],
     ]);
+    // The race lane's edges, painted in the race's pink down both sides of the tarmac.
+    const edge = this.material({
+      color: 0xff7ab8,
+      roughness: 0.6,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    for (const side of [-1, 1]) {
+      const x = side * (r - 0.35);
+      this.ribbons.add(points, edge, [
+        [x + 0.09, 0.006],
+        [x - 0.09, 0.006],
+      ]);
+    }
     // Race barriers along both kerbs, hung with the race's banners.
     for (const side of [-1, 1]) {
       const texture = this.track(barrierBannerTexture(BARRIER_PANELS));
@@ -559,25 +585,24 @@ export class SouthBeachStreet implements SceneStreet {
 
   /** What the fans have painted on the tarmac. */
   private addRoadPaint(): void {
-    const plane = new PlaneGeometry(3.2, 7);
+    const plane = new PlaneGeometry(2.6, 9);
     this.disposables.push(plane);
-    ROAD_PAINT.forEach(([text, colour, x], i) => {
+    [...ROAD_PAINT, ...ROAD_PAINT].forEach(([text, colour, x], i) => {
       const material = this.material({
         map: this.track(paintTexture(text, colour)),
-        transparent: true,
-        depthWrite: false,
+        alphaTest: 0.35,
         polygonOffset: true,
         polygonOffsetFactor: -2,
         roughness: 0.7,
       });
       const mesh = new Mesh(plane, material);
       mesh.rotation.x = -Math.PI / 2;
-      mesh.position.y = 0.01;
+      mesh.position.y = 0.02;
       mesh.receiveShadow = true;
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 30 + i * 97, every: LOOP, x });
+      this.props.push({ mesh: holder, offset: 30 + i * ROAD_PAINT_EVERY, every: LOOP, x });
     });
   }
 
