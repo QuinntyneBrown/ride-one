@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit and Golden Gate Park have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park and Havana Malecón have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 47 | 20 Minute Crit Sprints | Chicago Loop Crit | 76% | Downtown streets beneath the L tracks; sprint every corner of a city criterium. |
 | 48 | High Cadence Sprints | Victoria Harbour (concept) |  | Hong Kong's neon skyline and Star Ferries; spin fast along the harbourfront promenade. |
 | 49 | 20 Minutes to Work on Your Cadence | Strade Bianche (concept) |  | White gravel roads between cypresses and Tuscan hill towns near Siena. |
-| 50 | 30 Sec On, 2 Min Off | Havana Malecón (concept) |  | Waves crash over the seawall; classic cars and pastel façades between surges. |
+| 50 | 30 Sec On, 2 Min Off | Havana Malecón | 75% | Waves crash over the seawall; classic cars and pastel façades between surges. |
 | 51 | Short 20 Minute Sprint Blitz | Holi in Jaipur (concept) |  | Colour-powder clouds in the Pink City's streets; sprint through every burst of festival colour. |
 | 52 | Sprint Into the Effort | Dubai Marina (concept) |  | Glass towers and yachts at dusk; sprint along the marina walk. |
 | 53 | 20/40 Interval Session | Sea Point, Cape Town (concept) |  | Promenade beneath Lion's Head and Table Mountain, Atlantic waves rolling in. |

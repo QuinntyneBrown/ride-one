@@ -257,6 +257,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Chicago Loop Crit');
   });
 
+  test('rides 30 Sec On, 2 Min Off in Havana Malecón along the seawall', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('30 Sec On, 2 Min Off', 'Havana Malecón', '30-sec-on-2-min-off');
+    await expect(world.heading).toHaveText('Havana Malecón');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Havana Malecón');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

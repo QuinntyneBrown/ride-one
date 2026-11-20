@@ -3350,6 +3350,7 @@
     },
     {
       "id": "30-sec-on-2-min-off",
+      "world": "havana",
       "title": "30 Sec On, 2 Min Off",
       "channel": "GCN Training",
       "focus": "HIIT",
