@@ -11785,6 +11785,7 @@
     },
     {
       "id": "3-mins-on-2-mins-off",
+      "world": "cinqueterre",
       "title": "3 Mins On, 2 Mins Off",
       "channel": "GCN Training",
       "focus": "HIIT",

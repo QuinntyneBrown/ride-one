@@ -1181,6 +1181,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 1.9, fill: 2.2, colour: 0xf4f0ea },
     fogRange: [120, 1400],
   },
+  // A warm, clear afternoon in early autumn on the Ligurian coast: the sun over the sea to the left.
+  cinqueterre: {
+    sky: 0x4a8ae0,
+    fog: 0xd8e4ee,
+    ground: 0x7a7a44,
+    road: 0x6a6864,
+    sun: 34,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.5,
+    azimuth: 235,
+    light: { sun: 2.9, fill: 1.6, colour: 0xfff0d8 },
+    fogRange: [2500, 16000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

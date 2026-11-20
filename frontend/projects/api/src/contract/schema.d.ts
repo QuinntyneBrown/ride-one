@@ -152,7 +152,8 @@ export interface components {
         | 'austin'
         | 'winnats'
         | 'redoute'
-        | 'angliru';
+        | 'angliru'
+        | 'cinqueterre';
     };
     ClassShelfResponse: {
       id: string;

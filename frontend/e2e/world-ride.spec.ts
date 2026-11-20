@@ -750,6 +750,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Angliru');
   });
 
+  test('rides 3 Mins On, 2 Mins Off along the cliffs of the Cinque Terre', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('3 Mins On, 2 Mins Off', 'Cinque Terre', '3-mins-on-2-mins-off');
+    await expect(world.heading).toHaveText('Cinque Terre');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Cinque Terre');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
