@@ -461,6 +461,8 @@ const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
 const SEAT_COLOURS = ['#d8342a', '#2f6fd6', '#2fb36a'];
 const SEAT_OUT = 3.7;
 const SEAT_Z = 0.3;
+/** The walkers' scarves, bright against their dark coats. */
+const WALKER_SCARVES = ['#ff4fb8', '#3fe0ff', '#ffb347', '#9b6bff', '#d8342a'];
 /** The diners' coats and their bright beanies, a set per stall. */
 const DINER_COATS = ['#3b2f5c', '#5c2f3f', '#2f4a5c'];
 const DINER_HATS = ['#ff4fb8', '#ffb347', '#3fe0ff'];
@@ -3748,15 +3750,6 @@ export class DocklandsStreet {
     const stick = new CylinderGeometry(0.008, 0.008, 1, 4);
     const beanie = new SphereGeometry(0.13, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2);
     this.disposables.push(...coats, ...hats, jeans, wood, torso, limb, stick, beanie);
-    // A part stretched from one point to another, as a sleeve, a leg or a chopstick is.
-    const span = (geometry: BufferGeometry, material: Material, from: Vector3, to: Vector3) => {
-      const mesh = new Mesh(geometry, material);
-      const along = to.clone().sub(from);
-      mesh.scale.y = along.length();
-      mesh.position.copy(from).add(to).multiplyScalar(0.5);
-      mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), along.normalize());
-      return mesh;
-    };
     const skin = new MeshStandardMaterial({ color: 0xc89a7a, roughness: 0.7 });
     const bowlLight = new MeshBasicMaterial({
       color: new Color('#fff1d6').multiplyScalar(1.4),
@@ -3901,6 +3894,19 @@ export class DocklandsStreet {
     const canopy = new ConeGeometry(0.62, 0.28, 12, 1, true);
     const pole = new CylinderGeometry(0.015, 0.015, 0.8, 4);
     this.disposables.push(...coats, skin, ...umbrellas, shaft, body, legs, head, canopy, pole);
+    // Sleeves, one arm up to the umbrella and one hanging, hair, and a scarf in a neon colour.
+    const sleeve = new CylinderGeometry(0.06, 0.055, 1, 6);
+    const hand = new SphereGeometry(0.055, 6, 4);
+    const hairCap = new SphereGeometry(0.14, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    const scarf = new CylinderGeometry(0.15, 0.17, 0.1, 10);
+    const hair = new MeshStandardMaterial({ color: 0x1a1210, roughness: 0.9 });
+    const scarves = WALKER_SCARVES.map(
+      (hex) =>
+        new MeshStandardMaterial({ color: hex, emissive: new Color(hex), emissiveIntensity: 0.4 }),
+    );
+    this.disposables.push(sleeve, hand, hairCap, scarf, hair, ...scarves);
+    // Their scarves draw from their own sequence, so the walkers' layout is unchanged.
+    const scarfRandom = seeded(509);
     const random = seeded(281);
     const person = (x: number, facing: number) => {
       const group = new Group();
@@ -3919,6 +3925,22 @@ export class DocklandsStreet {
       const p = new Mesh(pole, shaft);
       p.position.set(0.1, KERB + 2.0, 0);
       group.add(...hips, b, h, u, p);
+      const at = (x: number, y: number, z: number) => new Vector3(x, KERB + y, z);
+      // The umbrella arm bends at the elbow, its hand on the pole; the other hangs at the side.
+      const elbow = at(0.27, 1.42, 0.1);
+      const grip = at(0.1, 1.62, 0.02);
+      group.add(span(sleeve, coat, at(0.2, 1.74, 0), elbow), span(sleeve, coat, elbow, grip));
+      const fist = new Mesh(hand, skin);
+      fist.position.copy(grip);
+      const loose = at(-0.27, 1.18, 0.03);
+      group.add(fist, span(sleeve, coat, at(-0.2, 1.74, 0), loose));
+      const palm = new Mesh(hand, skin);
+      palm.position.copy(loose);
+      const cap = new Mesh(hairCap, hair);
+      cap.position.set(0, KERB + 2.03, -0.015);
+      const wrap = new Mesh(scarf, scarves[Math.floor(scarfRandom() * scarves.length)]!);
+      wrap.position.y = KERB + 1.83;
+      group.add(palm, cap, wrap);
       group.userData['legs'] = hips;
       group.position.x = x;
       group.rotation.y = facing;
@@ -5879,6 +5901,19 @@ function checkerBandTexture(): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+/**
+ * A part stretched from one point to another, as a sleeve, a leg or a chopstick is: a unit-tall
+ * shape along y, scaled to the distance and turned to lie between the two.
+ */
+function span(geometry: BufferGeometry, material: Material, from: Vector3, to: Vector3): Mesh {
+  const mesh = new Mesh(geometry, material);
+  const along = to.clone().sub(from);
+  mesh.scale.y = along.length();
+  mesh.position.copy(from).add(to).multiplyScalar(0.5);
+  mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), along.normalize());
+  return mesh;
 }
 
 /** A stall's lit menu board: its dishes in white on a dark board, framed in its own neon. */
