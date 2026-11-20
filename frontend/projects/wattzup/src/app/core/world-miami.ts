@@ -1405,6 +1405,15 @@ export class MiamiStreet implements SceneStreet {
       });
       return m;
     });
+    const lampGlint = new MeshBasicMaterial({
+      map: this.track(reflectionTexture()),
+      color: 0xffd8a0,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(lampGlint);
     for (let offset = 6; offset < LOOP; offset += 24)
       for (const side of [-1, 1]) {
         if (side > 0 && inCrossing(offset + 12, 1)) continue;
@@ -1431,7 +1440,15 @@ export class MiamiStreet implements SceneStreet {
         p.scale.set(7, 7, 1);
         p.position.y = 0.02;
         p.renderOrder = 1;
-        lamp.add(h, p);
+        // The globe mirrored in the wet road: a warm broken streak running from below the lamp
+        // across the near lane towards the rider.
+        const mirror = new Mesh(this.flat, lampGlint);
+        mirror.rotation.x = -Math.PI / 2;
+        mirror.rotation.z = Math.PI;
+        mirror.scale.set(1.1, 9, 1);
+        mirror.position.set(side > 0 ? -1.6 : 5.6, -0.12, 5);
+        mirror.renderOrder = 1;
+        lamp.add(h, p, mirror);
         lamp.children.slice(0, 3).forEach((m) => (m.castShadow = true));
         lamp.position.y = 0.15;
         const holder = new Group();
