@@ -761,46 +761,142 @@ export class HavanaStreet implements SceneStreet {
     this.group.add(this.crests);
   }
 
-  /** El Morro across the harbour mouth ahead: the castle's walls on its rock, and its lighthouse. */
+  /**
+   * El Morro across the harbour mouth ahead: a rocky headland rising from the sea, the castle's
+   * battered, sloping walls following it in angled bastions of ochre stone with their parapets and
+   * sentry boxes, the hill of La Cabaña green behind, and on the point the lighthouse, a pale
+   * round tower with a gallery and a dark lantern.
+   */
   private addMorro(roadHalf: number): void {
     const stone = this.material({
-      map: this.repeat(wallTexture(), 8, 8),
-      color: 0xd8c8a8,
+      map: this.repeat(wallTexture(), 6, 6),
+      color: 0xd9bf8c,
       roughness: 0.95,
     });
-    const rock = this.material({ color: 0x8a7a68, roughness: 1 });
-    const lamp = this.material({ color: 0xfff4d0, emissive: 0xffe8a0, emissiveIntensity: 0.6 });
+    const rock = this.material({ color: 0x6f6152, roughness: 1, flatShading: true });
+    const scrub = this.material({ color: 0x5d7a3e, roughness: 1, flatShading: true });
+    const tower = this.material({ color: 0xece4d2, roughness: 0.8 });
+    const dark = this.material({ color: 0x2a2e30, roughness: 0.6, metalness: 0.3 });
+    const lamp = this.material({ color: 0xfff4d0, emissive: 0xffe8a0, emissiveIntensity: 0.8 });
     const morro = new Group();
-    const base = new Mesh(this.unit, rock);
-    base.scale.set(130, 22, 70);
-    base.position.y = 9 - SEA - 6;
-    const walls = new Mesh(this.unit, stone);
-    walls.scale.set(90, 12, 46);
-    walls.position.y = 20;
-    const tower = new CylinderGeometry(2.6, 4.2, 40, 12);
-    tower.translate(0, 46, 0);
-    const lantern = new CylinderGeometry(3, 3, 4, 12);
-    lantern.translate(0, 68, 0);
-    this.disposables.push(tower, lantern);
-    const light = new Mesh(tower, stone);
-    light.position.x = 36;
-    const head = new Mesh(lantern, lamp);
-    head.position.x = 36;
-    // Battlements along the walls' top, and a bastion's corner at each end.
-    for (let x = -42; x <= 42; x += 6) {
-      const merlon = new Mesh(this.unit, stone);
-      merlon.scale.set(3, 2.4, 46.5);
-      merlon.position.set(x, 27.2, 0);
-      morro.add(merlon);
-    }
-    for (const x of [-48, 48]) {
-      const bastion = new Mesh(this.unit, stone);
-      bastion.scale.set(16, 16, 16);
-      bastion.rotation.y = Math.PI / 4;
-      bastion.position.set(x, 22, 18);
-      morro.add(bastion);
-    }
-    morro.add(base, walls, light, head);
+    // The headland: a heap of lumpy rock, with the green hill behind.
+    const lump = (
+      r: number,
+      x: number,
+      y: number,
+      z: number,
+      m: MeshStandardMaterial,
+      sy = 0.5,
+    ) => {
+      const g = new IcosahedronGeometry(1, 1);
+      const position = g.getAttribute('position') as BufferAttribute;
+      for (let v = 0; v < position.count; v++) {
+        // Displaced by its direction, so the faces that share a corner move it together.
+        const n = Math.sin(
+          position.getX(v) * 12.9 + position.getY(v) * 78.2 + position.getZ(v) * 37.7,
+        );
+        const k = 0.82 + 0.36 * ((((n * 43758.5) % 1) + 1) % 1);
+        position.setXYZ(v, position.getX(v) * k, position.getY(v) * k, position.getZ(v) * k);
+      }
+      g.computeVertexNormals();
+      this.disposables.push(g);
+      const mesh = new Mesh(g, m);
+      mesh.scale.set(r, r * sy, r * 0.8);
+      mesh.position.set(x, y, z);
+      morro.add(mesh);
+    };
+    lump(90, 0, -SEA - 6, 0, rock, 0.32);
+    lump(60, 60, -SEA - 4, -10, rock, 0.36);
+    lump(140, -40, -SEA - 10, -110, scrub, 0.42);
+    lump(110, 120, -SEA - 8, -140, scrub, 0.4);
+    // The castle: polygonal bastions with walls battered inward as they rise.
+    const bastion = (plan: [number, number][], height: number, x: number, y: number, z: number) => {
+      const shape = new Shape(plan.map(([px, pz]) => new Vector2(px, pz)));
+      const g = new ExtrudeGeometry(shape, { depth: height, bevelEnabled: false });
+      g.rotateX(-Math.PI / 2);
+      const position = g.getAttribute('position') as BufferAttribute;
+      for (let v = 0; v < position.count; v++) {
+        const t = position.getY(v) / height;
+        position.setX(v, position.getX(v) * (1 - t * 0.08));
+        position.setZ(v, position.getZ(v) * (1 - t * 0.08));
+      }
+      g.computeVertexNormals();
+      this.disposables.push(g);
+      const mesh = new Mesh(g, stone);
+      mesh.position.set(x, y, z);
+      morro.add(mesh);
+      // A parapet along the top, and a domed sentry box at the salient.
+      const cap = new Mesh(this.unit, stone);
+      const span = Math.max(...plan.map(([px]) => Math.abs(px))) * 1.7;
+      cap.scale.set(span, 1.4, 1.2);
+      cap.position.set(x, y + height + 0.7, z + plan[0]![1] * 0.92);
+      morro.add(cap);
+      const garita = new Mesh(new CylinderGeometry(1.1, 1.1, 3, 8), stone);
+      this.disposables.push(garita.geometry);
+      garita.position.set(x + plan[0]![0] * 0.9, y + height + 1.5, z + plan[0]![1] * 0.9);
+      morro.add(garita);
+    };
+    bastion(
+      [
+        [0, 24],
+        [26, 4],
+        [20, -20],
+        [-20, -20],
+        [-26, 4],
+      ],
+      16,
+      -30,
+      8,
+      6,
+    );
+    bastion(
+      [
+        [0, 20],
+        [20, 2],
+        [16, -18],
+        [-16, -18],
+        [-20, 2],
+      ],
+      18,
+      4,
+      10,
+      -14,
+    );
+    bastion(
+      [
+        [0, 18],
+        [18, 0],
+        [14, -16],
+        [-14, -16],
+        [-18, 0],
+      ],
+      14,
+      36,
+      8,
+      4,
+    );
+    const keep = new Mesh(this.unit, stone);
+    keep.scale.set(60, 10, 30);
+    keep.position.set(0, 28, -26);
+    morro.add(keep);
+    // The lighthouse on the point.
+    const shaft = new CylinderGeometry(2.4, 3.2, 34, 16);
+    const gallery = new CylinderGeometry(3.6, 3.6, 0.6, 16);
+    const lantern = new CylinderGeometry(2, 2, 3.2, 12);
+    const dome = new IcosahedronGeometry(2.1, 1);
+    this.disposables.push(shaft, gallery, lantern, dome);
+    const light = new Group();
+    const add = (g: BufferGeometry, m: MeshStandardMaterial, y: number) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.y = y;
+      light.add(mesh);
+    };
+    add(shaft, tower, 17);
+    add(gallery, dark, 34.3);
+    add(lantern, lamp, 36.2);
+    add(dome, dark, 38);
+    light.position.set(48, 18, 18);
+    morro.add(light);
     morro.position.set(-roadHalf - 330, 0, -1100);
     morro.rotation.y = 0.4;
     this.horizon.add(morro);
