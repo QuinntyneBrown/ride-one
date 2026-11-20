@@ -191,6 +191,7 @@ export class AlpeStreet implements SceneStreet {
   private readonly oranje: Crowd;
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   /** The flares' smoke: each puff, the side it drifts to and where it is in its rise. */
   private readonly smoke: { mesh: Mesh; side: number; phase: number }[] = [];
