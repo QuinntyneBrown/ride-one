@@ -603,6 +603,13 @@ const LAMP_OUT = 5;
 const LAMP_HEIGHT = 6;
 /** The cone of light under each lamp: its radius on the paving (m) and its brightness. */
 const LAMP_CONE_WIDE = 2.6;
+/** Each lamp's hanging basket: how far out on its bracket (m), how far below the globe (m),
+ * its flowers on top and the trailing strands over its rim, and the flowers' colours. */
+const BASKET_OUT = 0.6;
+const BASKET_DROP = 2.6;
+const BASKET_BLOOMS = 9;
+const BASKET_TRAILS = 5;
+const BASKET_FLOWERS = ['#ff4fb8', '#ffd24a', '#ff7a3a', '#f4f1ff'];
 const LAMP_CONE_STRENGTH = 0.55;
 /** The halo round a lamp's globe, and round a lantern's bulb, this wide. */
 const LAMP_HALO = 2.6;
@@ -2779,6 +2786,26 @@ export class DocklandsStreet {
     const cloth = new PlaneGeometry(BANNER_WIDE, BANNER_TALL);
     const bar = new BoxGeometry(1, 0.05, 0.05);
     this.disposables.push(...banners, ...trims, cloth, bar);
+    // A hanging basket on a bracket on the pole's other side: a bowl brimming with leaves,
+    // bright flowers on top and trailing strands spilling over its rim.
+    const bowl = new SphereGeometry(0.3, 14, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    const mound = new IcosahedronGeometry(0.3, 1);
+    const bead = new SphereGeometry(0.06, 6, 4);
+    const strand = new CylinderGeometry(0.018, 0.012, 1, 4);
+    const wicker = new MeshStandardMaterial({ color: 0x3a2a1c, roughness: 0.9 });
+    const foliage = new MeshStandardMaterial({
+      color: 0x2a5a3c,
+      roughness: 0.8,
+      flatShading: true,
+      emissive: new Color(0x0e2a1c),
+    });
+    const petals = BASKET_FLOWERS.map(
+      (hex) =>
+        new MeshStandardMaterial({ color: hex, emissive: new Color(hex), emissiveIntensity: 1.1 }),
+    );
+    this.disposables.push(bowl, mound, bead, strand, wicker, foliage, ...petals);
+    // The baskets draw from their own sequence, so the lamps are unchanged.
+    const basketRandom = seeded(641);
     for (let i = 0; i < LAMPS; i++) {
       const lamp = new Group();
       const shaft = new Mesh(pole, metal);
@@ -2816,6 +2843,44 @@ export class DocklandsStreet {
       trim.scale.set(0.05, BANNER_TALL / 0.05, 1);
       trim.position.set(centre + inward * (BANNER_WIDE / 2), top - BANNER_TALL / 2, 0);
       lamp.add(trim);
+      const bx = -inward * BASKET_OUT;
+      const by = LAMP_HEIGHT - BASKET_DROP;
+      const arm = new Mesh(bar, metal);
+      arm.scale.x = BASKET_OUT + 0.1;
+      arm.position.set(bx / 2, by + 0.75, 0);
+      const chain = new Mesh(strand, metal);
+      chain.scale.y = 0.6;
+      chain.position.set(bx, by + 0.45, 0);
+      const basket = new Mesh(bowl, wicker);
+      basket.position.set(bx, by, 0);
+      const leaves = new Mesh(mound, foliage);
+      leaves.scale.y = 0.6;
+      leaves.position.set(bx, by + 0.02, 0);
+      lamp.add(arm, chain, basket, leaves);
+      for (let k = 0; k < BASKET_BLOOMS; k++) {
+        const a = basketRandom() * Math.PI * 2;
+        const r = basketRandom() * 0.26;
+        const flower = new Mesh(bead, petals[k % petals.length]!);
+        flower.position.set(
+          bx + Math.cos(a) * r,
+          by + 0.12 + basketRandom() * 0.08,
+          Math.sin(a) * r,
+        );
+        lamp.add(flower);
+      }
+      for (let k = 0; k < BASKET_TRAILS; k++) {
+        const a = (k / BASKET_TRAILS) * Math.PI * 2 + basketRandom();
+        const from = new Vector3(bx + Math.cos(a) * 0.27, by, Math.sin(a) * 0.27);
+        const to = new Vector3(
+          bx + Math.cos(a) * 0.36,
+          by - 0.45 - basketRandom() * 0.3,
+          Math.sin(a) * 0.36,
+        );
+        lamp.add(span(strand, foliage, from, to));
+        const tip = new Mesh(bead, petals[(k + 1) % petals.length]!);
+        tip.position.copy(to);
+        lamp.add(tip);
+      }
       this.streak(lamp, '#ffd9a0', inward * 1.6, 0, -0.5, 14, 2.2, 2.6);
       this.streak(lamp, '#ffd9a0', 0, KERB, -0.5, 6, 1.4, 1);
       this.lamps.push(lamp);
