@@ -80,6 +80,7 @@ export class PikePlaceStreet implements SceneStreet {
   private readonly puffs: Puff[] = [];
   private readonly salmon: Mesh[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private ferry: Group | null = null;
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
@@ -141,14 +142,14 @@ export class PikePlaceStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.walkers.forEach((w, i) => {
         const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
         const step = w.speed ? Math.abs(Math.sin(this.time * 4 + w.phase)) * 0.04 : 0;
-        crowd.set(i, w.x, heightAt(Math.max(metres, 0)) + step, -metres, w.heading, 0.95, 0);
+        crowd.set(i, w.x, heightAt(metres) + step, -metres, w.heading, 0.95, 0);
       });
       crowd.commit();
     }

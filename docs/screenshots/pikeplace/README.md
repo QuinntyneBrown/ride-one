@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Wake Up and Smell the Lactic](http://
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/wake-up-and-smell-the-lactic?simulate`, click **Ride in Pike Place at Dawn**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [074 · The Needle and the Olympics stand over the Sound](bend-074-needle-and-olympics-stand.jpg) | The Space Needle and the Olympic Mountains across Elliott Bay were bent vertex by vertex with the market street's bends, so the Needle leaned and the peaks slewed with each turn. They now stand beyond the road unbent, as the panorama does, and the shoppers and props behind the rider stand on the street there instead of at the height under the rider. |
