@@ -838,6 +838,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Antwerp Port Sprint');
   });
 
+  test('rides Sandwich Max Efforts along the shore of Lake Tahoe', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Sandwich Max Efforts', 'Lake Tahoe', 'sandwich-max-efforts');
+    await expect(world.heading).toHaveText('Lake Tahoe');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Lake Tahoe');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
