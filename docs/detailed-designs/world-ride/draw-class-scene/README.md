@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -173,6 +173,13 @@ None.
   - a camel caravan on the left verge, each camel with a rider (`Figures`), plodding on the ride's clock;
   - clumps of date palms out on the sand;
   - Khufu, Khafre (its casing cap still on), Menkaure and the queens' pyramids on the left, and Cairo's blocks, domes and minarets in the haze on the right, all keeping their bearing round the plateau.
+- **Daytona Beach Sand (`core/world-daytona.ts`).** For `daytona`, the beach where stock cars once raced, on a bright morning:
+  - packed sand with tyre tracks for the riders, wet sand at the tide line, the surf rolling in on the ride's clock and the ocean beyond on the left, and soft dry sand rising on the right;
+  - striped umbrellas and towels, lifeguard towers with their flags, and a sea-oat dune ridge;
+  - pastel beachside hotels with balconies behind the dunes;
+  - the Main Street Pier crossing the beach on its pilings once a lap, its span over the riders' line left clear;
+  - a drag strip's start once a lap: a start line, a start tree whose ambers and green count down on the ride's clock, a timing board on its gantry, and vintage stock cars with their numbers;
+  - beachgoers strolling along the water and the sand (`Figures`).
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -204,6 +211,7 @@ None.
 | `pages/world-ride/venice` | Venice Beach Boardwalk at 1:53, warm-up, next `Palm sprint` |
 | `pages/world-ride/amsterdam` | Amsterdam Canals at 4:50, warm-up, next `Bridge-hop push` |
 | `pages/world-ride/giza` | Giza Plateau at 4:50, warm-up, next `Pyramid step` |
+| `pages/world-ride/daytona` | Daytona Beach Sand at 4:50, warm-up, next `Quarter-mile drag` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals and Giza Plateau have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau and Daytona Beach Sand have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -44,7 +44,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 38 | The Pyramid | Giza Plateau | 72% | Desert road around the pyramids at sunrise; efforts build and fall like the stones. |
 | 39 | Hold Your Intensity | Great Ocean Road (concept) |  | Australian sea cliffs and the Twelve Apostles; hold steady through winding, spray-dashed bends. |
 | 40 | Give Me One Minute | Times Square New Year's Eve (concept) |  | Confetti and countdown screens; every one-minute effort counts down to the ball drop. |
-| 41 | Drag Race | Daytona Beach Sand (concept) |  | Hard-packed sand where stock cars once raced; drag-race along the tide line. |
+| 41 | Drag Race | Daytona Beach Sand | 74% | Hard-packed sand where stock cars once raced; drag-race along the tide line. |
 | 42 | Max Effort Up & Overs | San Francisco Hills (concept) |  | Steep streets and Lombard's crooked bends; up and over each crest as cable cars clang. |
 | 43 | Non-Stop Sprinting | Monaco Street Circuit (concept) |  | Superyachts, the casino and the tunnel; sprint the harbour circuit on race weekend. |
 | 44 | In & Out of the Saddle Hill Climb Reps | Mont Ventoux (concept) |  | Bare white limestone in the mistral; stand and sit up the Giant of Provence. |

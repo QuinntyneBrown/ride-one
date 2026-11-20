@@ -368,6 +368,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 1.2, colour: 0xffc890 },
     fogRange: [120, 2600],
   },
+  // A bright Florida morning on the beach: high sun behind the rider, sea haze on the horizon.
+  daytona: {
+    sky: 0x8ec8ee,
+    fog: 0xcfe2ee,
+    ground: 0xe0c9a0,
+    road: 0xc9a878,
+    sun: 34,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.6,
+    azimuth: -145,
+    light: { sun: 3.2, fill: 1.2, colour: 0xfff4e0 },
+    fogRange: [80, 1400],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
