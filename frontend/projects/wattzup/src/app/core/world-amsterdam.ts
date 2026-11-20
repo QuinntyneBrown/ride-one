@@ -2959,11 +2959,29 @@ function facadeTexture(
     g.scale(2, 2);
     const random = seeded(seed);
     speckle(g, w, h, front, seed);
+    if (parseInt(front.slice(1, 3), 16) <= 0x90) {
+      // The mortar behind the bricks.
+      g.fillStyle = 'rgba(70,64,58,0.9)';
+      g.fillRect(0, 0, w, h);
+    }
     const light = parseInt(front.slice(1, 3), 16) > 0x90;
     if (!light) {
-      // Brick courses.
-      g.fillStyle = 'rgba(0,0,0,0.18)';
-      for (let y = 0; y < h; y += 4) g.fillRect(0, y, w, 1);
+      // Brick by brick in stretcher bond: each brick its own shade, some darker headers burnt
+      // nearly black, in recessed mortar joints.
+      const brick = new Color(front);
+      const shade = new Color();
+      for (let y = 0, row = 0; y < h; y += 3.2, row++) {
+        for (let x = row % 2 ? -3.6 : 0; x < w; x += 7.2) {
+          shade.copy(brick).offsetHSL(0, (random() - 0.5) * 0.1, (random() - 0.5) * 0.07);
+          if (random() < 0.06) shade.multiplyScalar(0.7);
+          g.fillStyle = `#${shade.getHexString()}`;
+          g.fillRect(x + 0.5, y + 0.5, 6.4, 2.4);
+        }
+      }
+    } else {
+      // Painted render, faintly lined out as ashlar.
+      g.fillStyle = 'rgba(0,0,0,0.06)';
+      for (let y = 0; y < h; y += 14) g.fillRect(0, y, w, 0.8);
     }
     // The outline, trimmed in sandstone.
     g.save();
