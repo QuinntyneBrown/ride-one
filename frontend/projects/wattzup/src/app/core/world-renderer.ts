@@ -1289,6 +1289,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.2, colour: 0xffd8a8 },
     fogRange: [160, 1400],
   },
+  // A bright, breezy spring afternoon in the port: clouds racing in off the North Sea, clear light between them.
+  antwerp: {
+    sky: 0x6a98d0,
+    fog: 0xd0dae2,
+    ground: 0x9a9890,
+    road: 0x4c4c4e,
+    sun: 40,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 1.3,
+    azimuth: 200,
+    light: { sun: 2.6, fill: 1.8, colour: 0xfff4e6 },
+    fogRange: [1500, 9000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
