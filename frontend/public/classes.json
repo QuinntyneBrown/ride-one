@@ -2238,6 +2238,7 @@
     },
     {
       "id": "beginner-training-session",
+      "world": "amsterdam",
       "title": "Beginner Training Session",
       "channel": "GCN Training",
       "focus": "Endurance",

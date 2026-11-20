@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `amsterdam`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -150,6 +150,13 @@ None.
   - a chrome diner with its DINER sign and gas pumps under a canopy once a lap on the right, and a motel with its MOTEL and flickering VACANCY neon on the left;
   - classic cars with tail fins and a big rig coming the other way, tumbleweeds rolling across, all on the ride's clock;
   - red mesas with banded cliffs and talus slopes standing round the horizon, keeping their distance.
+- **Amsterdam Canals (`core/world-amsterdam.ts`).** For `amsterdam`, the Herengracht on a spring morning:
+  - a brick street in herringbone clinker, the quay's paving, the canal's stone edge, brick walls and water below (the ground sinks to the water), the far quay and the narrow pavement on the rider's side;
+  - canal houses on both sides, cut out of the sky along their stepped, bell, neck and spout gables, with white-framed windows, hoist beams and doors;
+  - elms and dark green lamps on both quays, and bicycles crowding the quay's edge;
+  - a humpback brick bridge across the canal every 120 m, with parapets;
+  - houseboats moored along both walls, and a glass-roofed canal boat gliding by;
+  - commuters cycling both ways on upright bikes (`Figures` on a shared bike) and people on the pavements, all on the ride's clock.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -178,6 +185,7 @@ None.
 | `pages/world-ride/knicks` | Knicks Championship Parade at 1:53, warm-up, next `Float sprint` |
 | `pages/world-ride/vegas` | Las Vegas Strip at 4:50, warm-up, next `Green-light sprint` |
 | `pages/world-ride/route66` | Route 66 Desert at 4:50, warm-up, next `Signpost sprint` |
+| `pages/world-ride/amsterdam` | Amsterdam Canals at 4:50, warm-up, next `Bridge-hop push` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

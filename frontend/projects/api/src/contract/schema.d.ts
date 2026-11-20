@@ -97,7 +97,8 @@ export interface components {
         | 'nottinghill'
         | 'knicks'
         | 'vegas'
-        | 'route66';
+        | 'route66'
+        | 'amsterdam';
     };
     ClassShelfResponse: {
       id: string;
