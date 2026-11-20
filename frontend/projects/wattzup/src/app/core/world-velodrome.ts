@@ -140,6 +140,9 @@ export class VelodromeStreet implements SceneStreet {
   private readonly ribbons: Ribbons;
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
+  /** A fan's flag draped over the fence, and the flags and banners the fans bring. */
+  private readonly drape = new PlaneGeometry(1.8, 1.1);
+  private flags: MeshStandardMaterial[] = [];
   /** The roof's and the walls' textures, slid along as the rider rides. */
   private readonly sliding: { texture: Texture; every: number }[] = [];
 
@@ -152,6 +155,11 @@ export class VelodromeStreet implements SceneStreet {
   }
 
   build(roadHalf: number, points: number): void {
+    this.disposables.push(this.drape);
+    this.flags = FAN_FLAGS.map((draw) => {
+      const map = this.track(canvasTexture(240, 150, draw));
+      return this.material({ map, roughness: 0.85, side: DoubleSide });
+    });
     this.addTrack(roadHalf, points);
     this.addStands();
     this.addBackStraight();
@@ -297,6 +305,18 @@ export class VelodromeStreet implements SceneStreet {
       figures.set(i, x, y, z, side > 0 ? Math.PI / 2 : -Math.PI / 2, 0.8 + random() * 0.12),
     );
     figures.commit();
+    // The fans' flags draped over the fence from its rail, on the track's side.
+    const top = RISE + 1.1;
+    for (
+      let z = -STAND_CHUNK / 2 + 4 + random() * 4;
+      z < STAND_CHUNK / 2 - 3;
+      z += 7 + random() * 6
+    ) {
+      const flag = new Mesh(this.drape, this.flags[Math.floor(random() * this.flags.length)]!);
+      flag.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+      flag.position.set(-side * 1.66, top - 0.55, z);
+      holder.add(flag);
+    }
     return holder;
   }
 
@@ -678,6 +698,18 @@ export class VelodromeStreet implements SceneStreet {
       figures.set(i, x, y, z, heading, 0.8 + random() * 0.12);
     });
     figures.commit();
+    // The fans' flags draped over the bend's fence, facing the infield.
+    for (let phi = 0.15; phi < Math.PI - 0.1; phi += 0.11 + random() * 0.08) {
+      const radius = R_OUT - 0.06;
+      const flag = new Mesh(this.drape, this.flags[Math.floor(random() * this.flags.length)]!);
+      flag.position.set(
+        BEND_X + radius * Math.cos(phi),
+        top(phi) + 1.1 - 0.55,
+        -radius * Math.sin(phi),
+      );
+      flag.rotation.y = Math.atan2(BEND_X - flag.position.x, -flag.position.z);
+      h.add(flag);
+    }
     // The wall behind the stands, up to the roof.
     const back = R_OUT + 1.6 + BEND_ROWS * ROW_DEPTH + 1;
     const wallMap = this.track(wallTexture(roofAt(BEND_X)));
@@ -755,6 +787,57 @@ export class VelodromeStreet implements SceneStreet {
     this.disposables.push(material);
     return material;
   }
+}
+
+/** The fans' flags: the Union flag, England's cross, and banners for the riders and the track. */
+const FAN_FLAGS: readonly ((g: CanvasRenderingContext2D) => void)[] = [
+  (g) => {
+    // The Union flag.
+    g.fillStyle = '#012169';
+    g.fillRect(0, 0, 240, 150);
+    g.lineCap = 'butt';
+    for (const [w, colour] of [
+      [30, '#ffffff'],
+      [10, '#c8102e'],
+    ] as const) {
+      g.strokeStyle = colour;
+      g.lineWidth = w;
+      g.beginPath();
+      g.moveTo(0, 0);
+      g.lineTo(240, 150);
+      g.moveTo(240, 0);
+      g.lineTo(0, 150);
+      g.stroke();
+    }
+    g.fillStyle = '#ffffff';
+    g.fillRect(100, 0, 40, 150);
+    g.fillRect(0, 55, 240, 40);
+    g.fillStyle = '#c8102e';
+    g.fillRect(108, 0, 24, 150);
+    g.fillRect(0, 63, 240, 24);
+  },
+  (g) => {
+    // England's cross of St George.
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 240, 150);
+    g.fillStyle = '#c8102e';
+    g.fillRect(104, 0, 32, 150);
+    g.fillRect(0, 59, 240, 32);
+  },
+  (g) => banner(g, '#d7ff3a', '#1b1e24', 'GO MAYA!'),
+  (g) => banner(g, '#012169', '#ffffff', 'COME ON GB'),
+  (g) => banner(g, '#c8102e', '#ffffff', 'ALLEZ JONAS'),
+];
+
+/** A fan's hand-made banner: big letters on a bright sheet. */
+function banner(g: CanvasRenderingContext2D, fill: string, ink: string, text: string): void {
+  g.fillStyle = fill;
+  g.fillRect(0, 0, 240, 150);
+  g.fillStyle = ink;
+  g.font = 'bold 40px sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(text, 120, 78, 224);
 }
 
 /**
