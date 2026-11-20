@@ -1273,6 +1273,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.8, fill: 1.7, colour: 0xfff4e0 },
     fogRange: [1500, 12000],
   },
+  // A late summer afternoon on the Pacific shore, the low sun ahead and to the left over the
+  // ocean, gilding the sand and hazing the mountains.
+  santamonica: {
+    sky: 0xf2c8a0,
+    fog: 0xf2d6b8,
+    ground: 0xead6ae,
+    road: 0xc8c2b6,
+    sun: 18,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 2,
+    azimuth: 230,
+    light: { sun: 3.0, fill: 1.2, colour: 0xffd8a8 },
+    fogRange: [160, 1400],
+  },
   // A bright, breezy spring afternoon in the port: clouds racing in off the North Sea, clear light between them.
   antwerp: {
     sky: 0x6a98d0,

@@ -271,6 +271,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Coney Island Boardwalk');
   });
 
+  test('rides 20 Minute Cardio: Lose Weight Fast along the beach path to Santa Monica Pier', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '20 Minute Cardio: Lose Weight Fast',
+      'Santa Monica Pier',
+      '20-minute-cardio-lose-weight-fast',
+    );
+    await expect(world.heading).toHaveText('Santa Monica Pier');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Santa Monica Pier');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

@@ -15,6 +15,7 @@ import { MontmartreStreet } from './world-montmartre';
 import { BonnevilleStreet } from './world-bonneville';
 import type { StreetFactory } from './world-kit';
 import { AntwerpStreet } from './world-antwerp';
+import { SantaMonicaStreet } from './world-santamonica';
 import { LetrasStreet } from './world-letras';
 import { WinterludeStreet } from './world-winterlude';
 import { ConeyStreet } from './world-coney';
@@ -149,5 +150,6 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   coney: (track, disposables) => new ConeyStreet(track, disposables),
   winterlude: (track, disposables) => new WinterludeStreet(track, disposables),
   letras: (track, disposables) => new LetrasStreet(track, disposables),
+  santamonica: (track, disposables) => new SantaMonicaStreet(track, disposables),
   antwerp: (track, disposables) => new AntwerpStreet(track, disposables),
 };

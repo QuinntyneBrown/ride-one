@@ -29,6 +29,7 @@ import {
   clothBannerTexture,
   Crowd,
   Figures,
+  LifeguardTowers,
   Palms,
   hazedMaterial,
   loopMetres,
@@ -498,55 +499,9 @@ export class SouthBeachStreet implements SceneStreet {
 
   /** Lifeguard towers on the sand: painted huts on stilts with a ramp and a flag. */
   private addLifeguardTowers(): void {
-    const paints = [
-      ['#ff4fa8', '#ffe14a'],
-      ['#2fd3cf', '#ff9ec9'],
-      ['#ffb23f', '#7ad0ff'],
-      ['#c9b8f2', '#3fe08a'],
-      ['#f26b5b', '#fdf5e4'],
-    ];
-    const roof = new ConeGeometry(2.2, 0.9, 4);
-    roof.rotateY(Math.PI / 4);
-    this.disposables.push(roof);
-    const white = this.material({ color: 0xf6f3ea, roughness: 0.7 });
-    const red = this.material({ color: 0xd8283a, side: DoubleSide, roughness: 0.8 });
-    [...paints, ...paints].forEach(([wall, trim], i) => {
-      const tower = new Group();
-      tower.scale.setScalar(1.3);
-      const body = this.material({ map: this.track(hutTexture(wall!, trim!)), roughness: 0.7 });
-      const accent = this.material({ color: trim, roughness: 0.7 });
-      const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z = 0) => {
-        const mesh = new Mesh(this.unit, m);
-        mesh.scale.set(w, h, d);
-        mesh.position.set(x, y + h / 2, z);
-        mesh.castShadow = true;
-        tower.add(mesh);
-        return mesh;
-      };
-      for (const [x, z] of [
-        [-1, -1],
-        [1, -1],
-        [-1, 1],
-        [1, 1],
-      ] as const) {
-        box(white, 0.15, 1.8, 0.15, x, 0, z);
-      }
-      box(white, 3.2, 0.15, 3.2, 0, 1.8); // deck
-      box(body, 2.6, 2, 2.6, 0, 1.95); // hut
-      box(accent, 3.2, 0.12, 3.2, 0, 3.95);
-      const r = new Mesh(roof, accent);
-      r.position.y = 4.5;
-      tower.add(r);
-      const ramp = box(white, 1, 0.1, 3.4, -2.2, 0.9);
-      ramp.rotation.x = 0;
-      ramp.rotation.z = 0.55;
-      const mast = box(white, 0.06, 2, 0.06, 0, 4.4);
-      mast.castShadow = false;
-      const flag = new Mesh(new PlaneGeometry(0.8, 0.5), red);
-      flag.position.set(0, 6.1, 0.42);
-      flag.rotation.y = Math.PI / 2;
-      tower.add(flag);
-      this.disposables.push(flag.geometry);
+    const towers = new LifeguardTowers(this.disposables, this.track);
+    for (let i = 0; i < 10; i++) {
+      const tower = towers.make(i);
       this.group.add(tower);
       this.props.push({
         mesh: tower,
@@ -554,7 +509,7 @@ export class SouthBeachStreet implements SceneStreet {
         every: LOOP,
         x: 20 + (i % 2) * 5,
       });
-    });
+    }
   }
 
   /** Lamp posts on both pavements, each flying a pennant in the race's colours. */
@@ -973,22 +928,6 @@ function umbrellaTexture(colour: string): CanvasTexture {
       g.fillStyle = i % 2 ? '#fdf5e4' : colour;
       g.fillRect(i * 32, 0, 32, 64);
     }
-  });
-}
-
-/** A lifeguard hut's boards in `wall`, with a band of `trim` and a dark window. */
-function hutTexture(wall: string, trim: string): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    g.fillStyle = wall;
-    g.fillRect(0, 0, 256, 256);
-    g.fillStyle = 'rgba(0,0,0,0.08)';
-    for (let x = 0; x < 256; x += 16) g.fillRect(x, 0, 2, 256);
-    g.fillStyle = trim;
-    g.fillRect(0, 180, 256, 36);
-    g.fillStyle = '#2b3a4a';
-    g.fillRect(48, 50, 160, 90);
-    g.fillStyle = trim;
-    g.fillRect(124, 50, 8, 90);
   });
 }
 

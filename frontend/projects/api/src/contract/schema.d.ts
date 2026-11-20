@@ -159,6 +159,7 @@ export interface components {
         | 'coney'
         | 'winterlude'
         | 'letras'
+        | 'santamonica'
         | 'antwerp';
     };
     ClassShelfResponse: {
