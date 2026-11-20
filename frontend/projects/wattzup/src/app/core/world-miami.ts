@@ -537,6 +537,16 @@ export class MiamiStreet implements SceneStreet {
       emissiveIntensity: 0.9,
       roughness: 0.2,
     });
+    const planter = this.material({ color: 0xe8e0d8, roughness: 0.8 });
+    const blossomBall = new SphereGeometry(0.7, 10, 8);
+    this.disposables.push(blossomBall);
+    const blossom = this.material({
+      map: this.track(blossomTexture()),
+      roughness: 0.9,
+      emissive: 0x401030,
+      emissiveIntensity: 0.4,
+    });
+    const foliage = this.material({ color: 0x2a5a30, roughness: 0.9 });
     const brass = this.material({ color: 0xd8a848, roughness: 0.25, metalness: 0.9 });
     const velvet = this.material({ color: 0xa01030, roughness: 0.9 });
     const clubSign = this.material({
@@ -910,6 +920,20 @@ export class MiamiStreet implements SceneStreet {
       const holder = new Group();
       holder.add(hotel);
       this.group.add(holder);
+      // A planter at each end of the frontage, spilling bougainvillea in magenta flower.
+      for (const z of [-width / 2 + 1.4, width / 2 - 1.4]) {
+        const box = new Mesh(this.unit, planter);
+        box.scale.set(1.4, 0.7, 2.2);
+        box.position.set(-1.1, 0.5, z);
+        box.castShadow = true;
+        hotel.add(box);
+        for (let i = 0; i < 3; i++) {
+          const bush = new Mesh(blossomBall, i % 2 ? blossom : foliage);
+          bush.scale.set(0.8, 0.75, 1);
+          bush.position.set(-1.1 + (i - 1) * 0.15, 1.15 + (i % 2) * 0.2, z + (i - 1) * 0.6);
+          hotel.add(bush);
+        }
+      }
       // Every fourth hotel keeps a nightclub on its ground floor: a red rope on brass posts
       // holds back the queue along the shopfront, and a neon arrow points at the door.
       if (k % 4 === 1) {
@@ -2957,5 +2981,20 @@ function trolleyTexture(lit: boolean): CanvasTexture {
     g.font = 'bold 16px sans-serif';
     g.textAlign = 'center';
     g.fillText('TROLLEY', 128, 54);
+  });
+}
+
+/** Bougainvillea: dark leaves under a scatter of magenta bracts. */
+function blossomTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    g.fillStyle = '#2a4a2a';
+    g.fillRect(0, 0, 64, 64);
+    const random = seeded(8341);
+    for (let i = 0; i < 160; i++) {
+      g.fillStyle = random() < 0.8 ? '#e0208a' : '#ff6ab8';
+      g.beginPath();
+      g.arc(random() * 64, random() * 64, 1.5 + random() * 2, 0, Math.PI * 2);
+      g.fill();
+    }
   });
 }

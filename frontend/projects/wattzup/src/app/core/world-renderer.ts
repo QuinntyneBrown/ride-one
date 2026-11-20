@@ -456,20 +456,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 1.5, fill: 1.9, colour: 0xeef0ee },
     fogRange: [20, 380],
   },
-  // Late afternoon on the Malecón: a warm sun behind the rider, salt haze over the Gulf.
+  // Late afternoon on the Malecón, the hour Havana comes out to the wall: a low golden sun
+  // behind the rider raking the façades, long shadows, and a warm salt haze over the Gulf.
   havana: {
-    sky: 0x8cc4ec,
-    fog: 0xd8e2e6,
+    sky: 0x86bde6,
+    fog: 0xe6dccb,
     ground: 0x1f6a96,
     road: 0x5d5e66,
-    sun: 24,
+    sun: 15,
     wet: false,
     haze: false,
-    turbidity: 4,
-    rayleigh: 1.8,
-    azimuth: -140,
-    light: { sun: 3.1, fill: 1.2, colour: 0xffe8c8 },
-    fogRange: [90, 1800],
+    turbidity: 5.5,
+    rayleigh: 1.6,
+    azimuth: -130,
+    light: { sun: 3.4, fill: 1.0, colour: 0xffd29a },
+    fogRange: [110, 2200],
   },
   // A clear Cape morning: the sun behind the rider, the Atlantic glittering, the mountain sharp.
   seapoint: {
