@@ -162,6 +162,15 @@ export class IbizaStreet implements SceneStreet {
   private readonly horizon = new Group();
   private readonly sea = new Group();
   private readonly beams: Mesh[] = [];
+  /** The festoons' halos: a soft warm glow added over whatever lies behind each bulb. */
+  private readonly glow = new MeshBasicMaterial({
+    color: 0xffa040,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    side: DoubleSide,
+    toneMapped: false,
+  });
   private time = 0;
   private readonly flagMaterials = ['#ff4a9a', '#3ac8e8', '#f2c230', '#ffffff'].map(
     (colour) => new MeshStandardMaterial({ color: colour, side: DoubleSide, roughness: 0.8 }),
@@ -190,7 +199,8 @@ export class IbizaStreet implements SceneStreet {
   }
 
   build(roadHalf: number, points: number): void {
-    this.disposables.push(...this.flagMaterials);
+    this.disposables.push(...this.flagMaterials, this.glow);
+    this.glow.map = this.track(haloTexture());
     this.addGround(roadHalf, points);
     this.crowd.build();
     this.addSea();
@@ -347,6 +357,7 @@ export class IbizaStreet implements SceneStreet {
     const bulbs = new MeshBasicMaterial({ color: 0xffd890, toneMapped: false });
     this.disposables.push(bulbs);
     const string = this.festoonGeometry(12, 0.9, 16);
+    const strungGlow = this.festoonGlow(12, 0.9, 16, 1.5, true);
     let k = 0;
     for (const row of [0, 1]) {
       for (let offset = row * 7; offset < LOOP; k++) {
@@ -385,7 +396,11 @@ export class IbizaStreet implements SceneStreet {
           lights.rotation.y = Math.PI / 2;
           lights.scale.x = (width - 2) / 12;
           lights.position.set(-3.4, 3.0, 0);
-          club.add(lights);
+          const glow = new Mesh(strungGlow, this.glow);
+          glow.rotation.y = Math.PI / 2;
+          glow.scale.x = (width - 2) / 12;
+          glow.position.set(-3.4, 3.0, 0);
+          club.add(lights, glow);
           // The club's neon name on its roof, turned a little toward the rider.
           const [name, neon] = CLUB_NAMES[k % CLUB_NAMES.length]!;
           const sign = new Mesh(
@@ -493,9 +508,35 @@ export class IbizaStreet implements SceneStreet {
     const parts: BufferGeometry[] = [];
     for (let i = 0; i <= count; i++) {
       const u = i / count;
-      const bulb = new SphereGeometry(0.09, 6, 4);
+      const bulb = new SphereGeometry(0.14, 6, 4);
       bulb.translate(-span / 2 + u * span, -sag * 4 * u * (1 - u), 0);
       parts.push(bulb);
+    }
+    const geometry = mergeGeometries(parts)!;
+    parts.forEach((p) => p.dispose());
+    this.disposables.push(geometry);
+    return geometry;
+  }
+
+  /**
+   * The glow round each bulb of a festoon `span` long along x: a soft warm halo `size` metres
+   * across at each bulb, facing the rider, so the strings shine in the dusk rather than dot it.
+   * `across` turns each halo a quarter, for a string that is itself turned to run along the road.
+   */
+  private festoonGlow(
+    span: number,
+    sag: number,
+    count: number,
+    size: number,
+    across: boolean,
+  ): BufferGeometry {
+    const parts: BufferGeometry[] = [];
+    for (let i = 0; i <= count; i++) {
+      const u = i / count;
+      const halo = new PlaneGeometry(size, size);
+      if (across) halo.rotateY(Math.PI / 2);
+      halo.translate(-span / 2 + u * span, -sag * 4 * u * (1 - u), 0);
+      parts.push(halo);
     }
     const geometry = mergeGeometries(parts)!;
     parts.forEach((p) => p.dispose());
@@ -507,13 +548,16 @@ export class IbizaStreet implements SceneStreet {
   private addFestoons(roadHalf: number): void {
     const span = 2 * (roadHalf + 4.5);
     const string = this.festoonGeometry(span, 1.4, 34);
+    const halo = this.festoonGlow(span, 1.4, 34, 2.4, false);
     const bulbs = new MeshBasicMaterial({ color: 0xffe0a0, toneMapped: false });
     this.disposables.push(bulbs);
     for (let offset = 20; offset < LOOP; offset += FESTOON_EVERY) {
       const holder = new Group();
       const festoon = new Mesh(string, bulbs);
       festoon.position.y = 7.2;
-      holder.add(festoon);
+      const glow = new Mesh(halo, this.glow);
+      glow.position.y = 7.2;
+      holder.add(festoon, glow);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: 0 });
     }
@@ -818,5 +862,18 @@ function screenTexture(): CanvasTexture {
     g.fillStyle = '#d7ff3a';
     g.font = 'bold 40px sans-serif';
     g.fillText('WATTZUP · 128 BPM', 256, 128, 470);
+  });
+}
+
+/** A bulb's halo: warm white at its heart, fading to nothing at the rim. */
+function haloTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    const glow = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    glow.addColorStop(0, 'rgba(255,255,255,1)');
+    glow.addColorStop(0.2, 'rgba(255,235,190,0.7)');
+    glow.addColorStop(0.55, 'rgba(255,190,110,0.18)');
+    glow.addColorStop(1, 'rgba(255,170,80,0)');
+    g.fillStyle = glow;
+    g.fillRect(0, 0, 64, 64);
   });
 }
