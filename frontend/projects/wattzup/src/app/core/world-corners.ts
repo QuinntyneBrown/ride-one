@@ -178,6 +178,9 @@ export class Corners {
       if (!apex) return;
       const metres = apex.s - s;
       corner.position.set(0, heightAt(metres), -metres);
+      // The corner lies along the street's slope, so on a ramp the chevron board 14 m before the
+      // apex and the padding either side stand on the pavement, not level with the apex.
+      corner.rotation.x = Math.atan((heightAt(metres + 1) - heightAt(metres - 1)) / 2);
       // The outside of a right-hander is the left of the road; a left-hander's corner is its
       // mirror image, chevrons and all.
       corner.scale.x = apex.turn;
