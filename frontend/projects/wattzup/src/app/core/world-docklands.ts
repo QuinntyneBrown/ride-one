@@ -3572,8 +3572,10 @@ export class DocklandsStreet {
 
   private addStalls(): void {
     const body = new MeshStandardMaterial({ color: 0x15141c, roughness: 0.7 });
+    // The open hatch: a warm kitchen with shelves of jars, pans on the hob and a cook at work.
     const hatch = new MeshBasicMaterial({
-      color: new Color('#ffcf8a').multiplyScalar(1.4),
+      color: new Color(0xffffff).multiplyScalar(1.05),
+      map: this.track(hatchTexture()),
       toneMapped: false,
     });
     const unit = new BoxGeometry(1, 1, 1);
@@ -5445,6 +5447,64 @@ function screenTexture(words: string, i: number): CanvasTexture {
 }
 
 /** A stall awning: broad stripes of its colour and white, across the slope. */
+/**
+ * A stall's open hatch, seen from the road: a warm-lit kitchen with shelves of jars and bottles,
+ * pans steaming on the hob along the counter and a cook in a white cap behind it. Drawn on its
+ * side, as the hatch's box faces the road along its length.
+ */
+function hatchTexture(): CanvasTexture {
+  const w = 256;
+  const h = 100;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#ffe2b0');
+    g.addColorStop(1, '#e8963e');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    // Two shelves of jars and bottles along the back.
+    ctx.fillStyle = '#7a4520';
+    for (const y of [24, 46]) ctx.fillRect(8, y, w - 16, 3);
+    const jars = ['#c0392b', '#2e86ab', '#f4d35e', '#3c9d5d', '#8e5aa8'];
+    for (let x = 14, k = 0; x < w - 18; x += 13, k++) {
+      ctx.fillStyle = jars[k % jars.length]!;
+      ctx.fillRect(x, 24 - 9 - (k % 3) * 2, 8, 9 + (k % 3) * 2);
+      ctx.fillRect(x + 4, 46 - 8, 7, 8);
+    }
+    // The cook: a dark figure with a white cap, near the middle.
+    ctx.fillStyle = '#2a1c18';
+    ctx.beginPath();
+    ctx.arc(150, 54, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(136, 62, 28, 30);
+    ctx.fillStyle = '#f6f2ea';
+    ctx.fillRect(141, 40, 18, 8);
+    // The counter, with pans steaming on it.
+    ctx.fillStyle = '#3a2a24';
+    ctx.fillRect(0, 82, w, 18);
+    ctx.fillStyle = '#1c1414';
+    for (const x of [40, 92, 200]) {
+      ctx.beginPath();
+      ctx.ellipse(x, 80, 16, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 2;
+    for (const x of [40, 92, 200]) {
+      ctx.beginPath();
+      ctx.moveTo(x, 74);
+      ctx.bezierCurveTo(x - 6, 66, x + 6, 62, x, 54);
+      ctx.stroke();
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 /** A stall's lit menu board: its dishes in white on a dark board, framed in its own neon. */
 function menuTexture(dishes: readonly string[], hex: string): CanvasTexture {
   const canvas = document.createElement('canvas');
