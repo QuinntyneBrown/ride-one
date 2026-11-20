@@ -14,6 +14,7 @@ import {
   DoubleSide,
   ExtrudeGeometry,
   Group,
+  LatheGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -23,6 +24,7 @@ import {
   SphereGeometry,
   type Texture,
   TorusGeometry,
+  Vector2,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
@@ -97,6 +99,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addHouses(roadHalf);
     this.addElmsAndLamps(roadHalf);
     this.addParkedBikes(roadHalf);
+    this.addBollards(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -397,6 +400,44 @@ export class AmsterdamStreet implements SceneStreet {
     }
   }
 
+  /**
+   * Amsterdammertjes: the city's red-brown cast-iron bollards, each with its three St Andrew's
+   * crosses, standing in a line along the street's canal-side edge and along the kerb before the
+   * houses, cast as tiles of the gracht.
+   */
+  private addBollards(roadHalf: number): void {
+    const iron = this.material({ color: 0x4f2219, metalness: 0.35, roughness: 0.55 });
+    const tile = (spacing: number, gaps: boolean) => {
+      const parts: BufferGeometry[] = [];
+      for (let z = 0; z < 30; z += spacing) {
+        if (gaps && z % 10 > 8.4) continue;
+        const bollard = amsterdammertje();
+        bollard.translate(0, 0, -z);
+        parts.push(bollard);
+      }
+      const merged = mergeGeometries(parts)!;
+      parts.forEach((p) => p.dispose());
+      this.disposables.push(merged);
+      return merged;
+    };
+    const rows = [
+      { geometry: tile(1.6, false), x: -roadHalf - 0.35 },
+      { geometry: tile(2.4, true), x: roadHalf + 0.3 },
+    ];
+    for (const { geometry, x } of rows) {
+      for (let offset = 0; offset < LOOP; offset += 30) {
+        if (offset % BRIDGE < 8) continue;
+        const run = new Group();
+        const mesh = new Mesh(geometry, iron);
+        mesh.castShadow = true;
+        mesh.position.y = KERB;
+        run.add(mesh);
+        this.group.add(run);
+        this.props.push({ mesh: run, offset, x });
+      }
+    }
+  }
+
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
   private addParkedBikes(roadHalf: number): void {
     const frames = [0x1d1f24, 0x2a3a5c, 0x6a1a1a, 0x3a3a3a].map((hex) =>
@@ -616,6 +657,41 @@ function stoopGeometry(): { steps: BufferGeometry; railings: BufferGeometry } {
     return merged;
   };
   return { steps: merge(stone), railings: merge(iron) };
+}
+
+/**
+ * An Amsterdammertje: a slender cast-iron post 0.9 m tall on a flared foot, with a collar and a
+ * rounded cap, and its three St Andrew's crosses in relief, one above another, towards the road.
+ */
+function amsterdammertje(): BufferGeometry {
+  const profile = [
+    [0, 0],
+    [0.09, 0],
+    [0.085, 0.05],
+    [0.065, 0.1],
+    [0.055, 0.7],
+    [0.07, 0.74],
+    [0.07, 0.78],
+    [0.055, 0.8],
+    [0.058, 0.86],
+    [0.04, 0.9],
+    [0, 0.92],
+  ].map(([x, y]) => new Vector2(x, y));
+  const parts: BufferGeometry[] = [new LatheGeometry(profile, 10).toNonIndexed()];
+  for (const side of [-1, 1]) {
+    for (const y of [0.3, 0.42, 0.54]) {
+      for (const tilt of [Math.PI / 4, -Math.PI / 4]) {
+        const bar = new BoxGeometry(0.012, 0.09, 0.012);
+        bar.rotateX(tilt);
+        bar.translate(0, y, 0);
+        bar.translate(side * 0.058, 0, 0);
+        parts.push(bar.toNonIndexed());
+      }
+    }
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
 }
 
 /** An upright Dutch bike, along z: two wheels, its frame, saddle and swept-back bars. */
