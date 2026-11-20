@@ -19,8 +19,6 @@ import {
   Group,
   LineBasicMaterial,
   LineSegments,
-  Points,
-  PointsMaterial,
   type Material,
   Mesh,
   MeshBasicMaterial,
@@ -120,6 +118,8 @@ const WHEEL_AT = [-334, -560] as const;
 const BRIDGE_SPAN = [-20, -320] as const;
 const BRIDGE_Z = -640;
 const BRIDGE_DECK = 30;
+/** Each bulb's glow on the harbour bridge, across (m). */
+const BRIDGE_BULB = 7;
 const BRIDGE_PYLON = 110;
 const WHEEL_RADIUS = 56;
 const WHEEL_HUB = 64;
@@ -1395,15 +1395,21 @@ export class DocklandsStreet {
       fog: false,
       toneMapped: false,
     });
-    const bulbs = new PointsMaterial({
-      color: new Color('#fff4dc').multiplyScalar(1.6),
-      size: 4,
-      sizeAttenuation: false,
+    // Each bulb a small glowing quad facing the rider: point sizes are not honoured by every
+    // renderer backend, and points drew as single pixels.
+    this.glow ??= this.track(glowTexture());
+    const bulbs = new MeshBasicMaterial({
+      color: new Color('#fff4dc').multiplyScalar(2.4),
+      map: this.glow,
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
       fog: false,
       toneMapped: false,
     });
+    const bulb = new PlaneGeometry(BRIDGE_BULB, BRIDGE_BULB);
     const unit = new BoxGeometry(1, 1, 1);
-    this.disposables.push(steel, edge, wire, bulbs, unit);
+    this.disposables.push(steel, edge, wire, bulbs, bulb, unit);
     const box = (material: Material, w: number, h: number, d: number, x: number, y: number) => {
       const mesh = new Mesh(unit, material);
       mesh.scale.set(w, h, d);
@@ -1452,17 +1458,22 @@ export class DocklandsStreet {
       const a = from + (deckLong * k) / steps;
       const b = from + (deckLong * (k + 1)) / steps;
       lines.push(a, cable(a), near, b, cable(b), near);
-      lights.push(a, cable(a), near);
-      // A row of bulbs along the deck's edge too.
-      if (k % 2 === 0) lights.push(a, BRIDGE_DECK + 1.4, near);
+      // Bulbs strung along the cable, and a row along the deck's edge too.
+      if (k % 2 === 0) lights.push(a, cable(a), near, a, BRIDGE_DECK + 1.4, near);
       if (k % 4 === 0) lines.push(a, cable(a), near, a, BRIDGE_DECK + 1.2, near);
     }
     const lineGeometry = new BufferGeometry();
     lineGeometry.setAttribute('position', new BufferAttribute(new Float32Array(lines), 3));
-    const lightGeometry = new BufferGeometry();
-    lightGeometry.setAttribute('position', new BufferAttribute(new Float32Array(lights), 3));
-    this.disposables.push(lineGeometry, lightGeometry);
-    this.farShore.add(new LineSegments(lineGeometry, wire), new Points(lightGeometry, bulbs));
+    this.disposables.push(lineGeometry);
+    const lit = new InstancedMesh(bulb, bulbs, lights.length / 3);
+    const dummy = new Object3D();
+    for (let k = 0; k < lights.length / 3; k++) {
+      // Just in front of the cable, so the wire does not cut through the glow.
+      dummy.position.set(lights[k * 3]!, lights[k * 3 + 1]!, lights[k * 3 + 2]! + 0.5);
+      dummy.updateMatrix();
+      lit.setMatrixAt(k, dummy.matrix);
+    }
+    this.farShore.add(new LineSegments(lineGeometry, wire), lit);
   }
 
   /** The tallest tower on the skyline: stepped, with a magenta crown and a lit spire. */
