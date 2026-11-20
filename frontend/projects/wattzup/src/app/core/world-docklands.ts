@@ -4,6 +4,7 @@
 // view, so the street never ends.
 import {
   AdditiveBlending,
+  BackSide,
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
@@ -72,6 +73,8 @@ const BARGES: readonly { along: number; x: number; length: number }[] = [
   { along: 260, x: -42, length: 66 },
   { along: 400, x: 44, length: 48 },
 ];
+/** The night sky's dome, far beyond the skyline and the far shore. */
+const SKY_RADIUS = 3000;
 const CRANE_HEIGHT = 34;
 const BOOM = 64;
 /** A blade sign stands out this far from its façade. */
@@ -439,6 +442,7 @@ export class DocklandsStreet {
     );
     this.addPylon(roadHalf);
     this.addDock();
+    this.addSky();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -745,6 +749,28 @@ export class DocklandsStreet {
     this.group.add(this.dock);
   }
 
+  /**
+   * The night over the harbour city, in place of the physical sky, which is black at night:
+   * the city's violet glow along the horizon fading to deep navy overhead, with faint stars.
+   * It is drawn first, behind everything, untouched by fog or tone mapping.
+   */
+  private addSky(): void {
+    const texture = this.track(nightSkyTexture());
+    const material = new MeshBasicMaterial({
+      map: texture,
+      side: BackSide,
+      fog: false,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const dome = new SphereGeometry(SKY_RADIUS, 48, 24);
+    this.disposables.push(material, dome);
+    const sky = new Mesh(dome, material);
+    sky.renderOrder = -1;
+    sky.frustumCulled = false;
+    this.group.add(sky);
+  }
+
   /** Tells the street which stretches of the road ahead are bridge ramps. */
   setBridge(onBridge: (metres: number) => boolean, starts: readonly number[]): void {
     this.onBridge = onBridge;
@@ -927,6 +953,45 @@ function windowTexture(base: string, lit: string[], share: number, seed: number)
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * The night sky as an equirectangular texture: v runs from the nadir (bottom) to the zenith
+ * (top). Violet city glow hugs the horizon and fades to navy; stars thin out towards it.
+ */
+function nightSkyTexture(): CanvasTexture {
+  const width = 1024;
+  const height = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    // Canvas y runs down from the zenith: the horizon is at the middle.
+    const g = ctx.createLinearGradient(0, 0, 0, height);
+    g.addColorStop(0, '#05060f');
+    g.addColorStop(0.3, '#0b0c22');
+    g.addColorStop(0.42, '#231a45');
+    g.addColorStop(0.475, '#4a3470');
+    g.addColorStop(0.5, '#6a4a8c');
+    g.addColorStop(0.53, '#1a1530');
+    g.addColorStop(1, '#07070f');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, width, height);
+    const random = seeded(313);
+    for (let i = 0; i < 700; i++) {
+      // Stars gather overhead and fade into the glow.
+      const y = Math.pow(random(), 1.8) * height * 0.42;
+      const x = random() * width;
+      const fade = 1 - y / (height * 0.42);
+      ctx.fillStyle = `rgba(230,235,255,${(0.25 + random() * 0.6) * fade})`;
+      const size = random() < 0.08 ? 1.6 : 1;
+      ctx.fillRect(x, y, size, size);
+    }
+  }
+  const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
