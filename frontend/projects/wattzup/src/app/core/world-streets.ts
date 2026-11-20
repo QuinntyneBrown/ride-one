@@ -11,6 +11,7 @@ import { StanleyParkStreet } from './world-stanleypark';
 import { SerpentineStreet } from './world-serpentine';
 import { NapaStreet } from './world-napa';
 import type { StreetFactory } from './world-kit';
+import { SaguaroStreet } from './world-saguaro';
 import { HardknottStreet } from './world-hardknott';
 import { PikePlaceStreet } from './world-pikeplace';
 import { GlastonburyStreet } from './world-glastonbury';
@@ -76,4 +77,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   glastonbury: (track, disposables) => new GlastonburyStreet(track, disposables),
   pikeplace: (track, disposables) => new PikePlaceStreet(track, disposables),
   hardknott: (track, disposables) => new HardknottStreet(track, disposables),
+  saguaro: (track, disposables) => new SaguaroStreet(track, disposables),
 };

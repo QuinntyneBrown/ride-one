@@ -436,6 +436,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Hardknott Pass');
   });
 
+  test('rides Burn Fat Fast through the Saguaro Desert at sunrise', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Burn Fat Fast', 'Saguaro Desert', 'burn-fat-fast');
+    await expect(world.heading).toHaveText('Saguaro Desert');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Saguaro Desert');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
