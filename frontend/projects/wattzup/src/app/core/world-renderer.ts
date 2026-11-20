@@ -1319,6 +1319,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.6, colour: 0xfff6e8 },
     fogRange: [2500, 16000],
   },
+  // Midday in Death Valley: the sun near overhead, a hard white light off the salt, and the
+  // heat haze paling the sky and the far ranges.
+  deathvalley: {
+    sky: 0x9cc4ec,
+    fog: 0xf2e2c8,
+    ground: 0xd8c4a0,
+    road: 0x6a6662,
+    sun: 68,
+    wet: false,
+    haze: false,
+    turbidity: 6,
+    rayleigh: 1.4,
+    azimuth: 160,
+    light: { sun: 3.6, fill: 1.1, colour: 0xfff0d8 },
+    fogRange: [300, 4200],
+  },
   // Late on a cloudless afternoon on the Salar de Atacama: a deep high-altitude blue, the low sun turning the volcanoes pink.
   atacama: {
     sky: 0x2a6ad8,

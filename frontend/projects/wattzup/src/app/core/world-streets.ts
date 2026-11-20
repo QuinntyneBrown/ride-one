@@ -15,6 +15,7 @@ import { MontmartreStreet } from './world-montmartre';
 import { BonnevilleStreet } from './world-bonneville';
 import type { StreetFactory } from './world-kit';
 import { AtacamaStreet } from './world-atacama';
+import { DeathValleyStreet } from './world-deathvalley';
 import { TahoeStreet } from './world-tahoe';
 import { AntwerpStreet } from './world-antwerp';
 import { SantaMonicaStreet } from './world-santamonica';
@@ -155,5 +156,6 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   santamonica: (track, disposables) => new SantaMonicaStreet(track, disposables),
   antwerp: (track, disposables) => new AntwerpStreet(track, disposables),
   tahoe: (track, disposables) => new TahoeStreet(track, disposables),
+  deathvalley: (track, disposables) => new DeathValleyStreet(track, disposables),
   atacama: (track, disposables) => new AtacamaStreet(track, disposables),
 };

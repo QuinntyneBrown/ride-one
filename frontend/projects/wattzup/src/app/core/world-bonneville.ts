@@ -41,6 +41,7 @@ import {
   paintedRows,
   PopupTents,
   Ribbons,
+  saltCrustTexture,
   type SceneStreet,
   seeded,
   type Wardrobe,
@@ -274,7 +275,7 @@ export class BonnevilleStreet implements SceneStreet {
       [0.15, 0.008],
       [-0.15, 0.008],
     ]);
-    const crust = this.material({ map: this.repeat(crustTexture(), 9, 9), roughness: 0.9 });
+    const crust = this.material({ map: this.repeat(saltCrustTexture(), 9, 9), roughness: 0.9 });
     for (const side of [1, -1]) {
       const list: [number, number][] = [
         [side * 2400, 0],
@@ -783,38 +784,6 @@ function courseTexture(): CanvasTexture {
     for (let i = 0; i < 26; i++) {
       g.fillStyle = 'rgba(120,116,108,0.14)';
       g.fillRect(random() * 256, 0, 3 + random() * 6, 256);
-    }
-  });
-}
-
-/** The salt crust: white, cracked into polygons with low ridges along the cracks. */
-function crustTexture(): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    g.fillStyle = '#f2f1ec';
-    g.fillRect(0, 0, 256, 256);
-    const random = seeded(4403);
-    g.strokeStyle = 'rgba(160,156,146,0.55)';
-    g.lineWidth = 2;
-    // A jittered hexagonal net of cracks.
-    for (let row = 0; row < 9; row++) {
-      for (let col = 0; col < 9; col++) {
-        const cx = col * 32 + (row % 2) * 16;
-        const cy = row * 30;
-        g.beginPath();
-        for (let a = 0; a <= 6; a++) {
-          const angle = (a / 6) * Math.PI * 2 + 0.5;
-          const rr = 17 + (random() - 0.5) * 4;
-          const x = cx + Math.cos(angle) * rr;
-          const y = cy + Math.sin(angle) * rr;
-          if (a === 0) g.moveTo(x, y);
-          else g.lineTo(x, y);
-        }
-        g.stroke();
-      }
-    }
-    for (let i = 0; i < 500; i++) {
-      g.fillStyle = 'rgba(200,196,186,0.25)';
-      g.fillRect(random() * 256, random() * 256, 2, 2);
     }
   });
 }

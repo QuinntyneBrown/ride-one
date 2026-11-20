@@ -162,6 +162,7 @@ export interface components {
         | 'santamonica'
         | 'antwerp'
         | 'tahoe'
+        | 'deathvalley'
         | 'atacama';
     };
     ClassShelfResponse: {

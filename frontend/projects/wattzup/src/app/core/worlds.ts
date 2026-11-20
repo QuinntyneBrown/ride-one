@@ -782,6 +782,16 @@ export const WORLDS: readonly World[] = [
     roll: 0.6,
   },
   {
+    id: 'deathvalley',
+    name: 'Death Valley',
+    route: 'Badwater Road',
+    effortName: 'Heat surge',
+    description:
+      'Badwater Road runs below sea level across the floor of Death Valley in the blazing midday heat, the white salt flats of Badwater Basin glaring on the left beneath the Panamint Range and the dark Black Mountains rising on the right, toward golden dunes shimmering in the heat haze. The five-minute warm-up rolls past the salt pans at 282 feet below sea level, the half-minute and one-minute surges attack the shimmer over the flats, and the effort of two and a quarter minutes grinds toward the dunes before the two-minute cool-down spins out past the giant thermometer.',
+    grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0,
+  },
+  {
     id: 'atacama',
     name: 'Atacama Desert',
     route: 'the salar road',
