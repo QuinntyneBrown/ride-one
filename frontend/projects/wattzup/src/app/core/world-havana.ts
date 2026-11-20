@@ -16,6 +16,8 @@ import {
   DoubleSide,
   Group,
   IcosahedronGeometry,
+  InstancedMesh,
+  Matrix4,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
@@ -49,6 +51,10 @@ const ARCADE = 3.6;
 /** The surges: each breaks over the wall for SURGE seconds of every CYCLE. */
 const CYCLE = 8;
 const SURGE = 3.2;
+/** The drops flung up by each surge. */
+const SPRAY_DROPS = 90;
+/** How fast each breaker runs along the wall, in metres a second. */
+const RUN = 12;
 
 const CARS = [
   ['#e8455a', '#f5f1e8'],
@@ -67,9 +73,21 @@ const STROLL_WEAR = {
   skins: ['#e2b48c', '#c48a5f', '#8d5a3b', '#5a3a29', '#f0c8a0'],
 };
 
+interface Drop {
+  readonly x: number;
+  readonly z: number;
+  readonly vx: number;
+  readonly vy: number;
+  readonly vz: number;
+  readonly size: number;
+  readonly lag: number;
+}
+
 interface Spray {
-  readonly mesh: Mesh;
+  readonly burst: InstancedMesh;
+  readonly sheet: Mesh;
   readonly material: MeshStandardMaterial;
+  readonly drops: readonly Drop[];
   readonly delay: number;
 }
 
@@ -93,6 +111,7 @@ export class HavanaStreet implements SceneStreet {
   private readonly horizon = new Group();
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
+  private readonly drop = new Matrix4();
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -118,10 +137,27 @@ export class HavanaStreet implements SceneStreet {
     for (const spray of this.sprays) {
       // Each surge climbs over the wall, hangs and falls; then the sea is still till the next.
       const t = (((seconds + spray.delay) % CYCLE) + CYCLE) % CYCLE;
-      const k = t < SURGE ? Math.sin((Math.PI * t) / SURGE) : 0;
-      spray.mesh.visible = k > 0.02;
-      spray.mesh.scale.set(1 + k * 0.6, 0.2 + k * 1.8, 1 + k * 0.4);
-      spray.material.opacity = 0.85 * k;
+      const live = t < SURGE;
+      spray.burst.visible = live;
+      spray.sheet.visible = live;
+      if (!live) continue;
+      // The sheet of white water slams up the wall's face; the drops fly on, spread and fall.
+      const slam = Math.sin(Math.PI * Math.min(t / 1.2, 1));
+      spray.sheet.scale.set(1, 0.2 + slam * 1.6, 1 + slam * 0.3);
+      spray.material.opacity = 0.9 * (1 - (t / SURGE) ** 2);
+      spray.drops.forEach((d, i) => {
+        const u = t - d.lag;
+        const y = d.vy * u - 4.9 * u * u;
+        if (u <= 0 || y < -0.5) {
+          this.drop.makeScale(0, 0, 0);
+        } else {
+          const r = d.size * (0.7 + u * 0.4);
+          this.drop.makeScale(r, r * 1.6, r);
+          this.drop.setPosition(d.x + d.vx * u, WALL - 0.2 + y, d.z + d.vz * u);
+        }
+        spray.burst.setMatrixAt(i, this.drop);
+      });
+      spray.burst.instanceMatrix.needsUpdate = true;
     }
   }
 
@@ -205,29 +241,51 @@ export class HavanaStreet implements SceneStreet {
     ]);
   }
 
-  /** Spray thrown up over the seawall in surges, here and there along it. */
+  /**
+   * Spray thrown up over the seawall in surges, here and there along it: a sheet of white water
+   * slamming up the wall's face, and a burst of drops and spume flung high over the promenade.
+   */
   private addSpray(roadHalf: number): void {
     const random = seeded(901);
-    const plume = new IcosahedronGeometry(1, 2);
-    plume.scale(1.6, 2.4, 2.6);
-    plume.translate(0, 1.6, 0);
-    this.disposables.push(plume);
+    const blob = new IcosahedronGeometry(1, 1);
+    const sheet = new IcosahedronGeometry(1, 2);
+    sheet.scale(0.9, 2, 3.2);
+    sheet.translate(0, 1, 0);
+    this.disposables.push(blob, sheet);
     const x = -roadHalf - LANES - PROMENADE - 0.6;
-    for (let offset = 14; offset < LOOP; offset += 14 + random() * 16) {
+    for (let offset = 10; offset < LOOP; offset += 6 + random() * 6) {
       const material = this.material({
-        color: 0xf2f8fa,
+        color: 0xffffff,
+        emissive: 0xe4eef2,
+        emissiveIntensity: 0.75,
         transparent: true,
         opacity: 0,
-        roughness: 0.4,
+        roughness: 0.6,
         depthWrite: false,
       });
       const holder = new Group();
-      const mesh = new Mesh(plume, material);
-      mesh.position.y = WALL - 0.6;
-      holder.add(mesh);
+      const face = new Mesh(sheet, material);
+      face.position.set(-0.7, -SEA, 0);
+      const drops: Drop[] = [];
+      for (let i = 0; i < SPRAY_DROPS; i++) {
+        drops.push({
+          x: -0.6 + random() * 0.6,
+          z: (random() - 0.5) * 5,
+          vx: 0.4 + random() * 2.4,
+          vy: 3 + random() * 9,
+          vz: (random() - 0.5) * 2.4,
+          size: 0.05 + random() ** 3 * 0.5,
+          lag: random() * 0.6,
+        });
+      }
+      const burst = new InstancedMesh(blob, material, SPRAY_DROPS);
+      burst.frustumCulled = false;
+      holder.add(face, burst);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x });
-      this.sprays.push({ mesh, material, delay: random() * CYCLE });
+      // The swell meets the wall at a slant, so each set breaks along it, running toward the rider.
+      const delay = -offset / RUN + random() * 0.6;
+      this.sprays.push({ burst, sheet: face, material, drops, delay });
     }
   }
 
