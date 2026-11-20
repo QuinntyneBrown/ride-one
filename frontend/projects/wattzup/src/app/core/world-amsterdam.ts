@@ -124,6 +124,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addParkedBikes(roadHalf);
     this.addBollards(roadHalf);
     this.addParkedCars(roadHalf);
+    this.addStreetFurniture(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -763,6 +764,58 @@ export class AmsterdamStreet implements SceneStreet {
       this.group.add(parked);
       this.props.push({ mesh: parked, offset: offset + car.length / 2, x: -roadHalf - 1.25 });
       offset += car.length + 0.6 + random() * 1.2;
+    }
+  }
+
+  /**
+   * The quay's street furniture: a green cast-iron krul, the canals' curled urinal screen, near
+   * the first bridge, and dark green litter bins on posts every 45 m along both kerbs.
+   */
+  private addStreetFurniture(roadHalf: number): void {
+    const green = this.material({
+      color: 0x1f3a2c,
+      metalness: 0.35,
+      roughness: 0.55,
+      side: DoubleSide,
+    });
+    const zinc = this.material({ color: 0x6a6e70, metalness: 0.5, roughness: 0.5 });
+    const screen = new CylinderGeometry(0.85, 0.85, 1.7, 18, 1, true, 0, Math.PI * 1.55);
+    screen.translate(0, 1.05, 0);
+    const cap = new TorusGeometry(0.85, 0.05, 4, 18, Math.PI * 1.55);
+    cap.rotateX(Math.PI / 2);
+    cap.translate(0, 1.95, 0);
+    const finial = new ConeGeometry(0.12, 0.5, 8);
+    finial.translate(0, 2.3, 0);
+    const pillar = new CylinderGeometry(0.06, 0.08, 2.1, 8);
+    pillar.translate(0, 1.05, 0);
+    const bin = new CylinderGeometry(0.24, 0.22, 0.6, 12);
+    bin.translate(0, 0.85, 0);
+    const lid = new CylinderGeometry(0.26, 0.26, 0.06, 12);
+    lid.translate(0, 1.18, 0);
+    const post = new CylinderGeometry(0.04, 0.04, 0.9, 6);
+    post.translate(0, 0.45, 0);
+    this.disposables.push(screen, cap, finial, pillar, bin, lid, post);
+    const krul = new Group();
+    for (const geometry of [screen, cap, finial, pillar]) krul.add(new Mesh(geometry, green));
+    krul.rotation.y = 0.6;
+    krul.children.forEach((m) => (m.castShadow = true));
+    krul.position.y = KERB;
+    const spot = new Group();
+    spot.add(krul);
+    this.group.add(spot);
+    this.props.push({ mesh: spot, offset: BRIDGE - 3, x: -roadHalf - QUAY + 2.4 });
+    for (const x of [-roadHalf - 2.6, roadHalf + 0.35]) {
+      for (let offset = 7; offset < LOOP; offset += 45) {
+        if (bridgeGap(offset) !== null) continue;
+        const litter = new Group();
+        litter.add(new Mesh(bin, green), new Mesh(lid, zinc), new Mesh(post, zinc));
+        litter.children.forEach((m) => (m.castShadow = true));
+        litter.position.y = KERB;
+        const at = new Group();
+        at.add(litter);
+        this.group.add(at);
+        this.props.push({ mesh: at, offset: offset + (x > 0 ? 20 : 0), x });
+      }
     }
   }
 
