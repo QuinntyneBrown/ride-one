@@ -68,6 +68,9 @@ const BLOCK = 25;
 const ROW_EVERY = 2.5;
 /** The mission winery's knoll, its hills and the ridges beyond stand this far ahead. */
 const HORIZON_AHEAD = 300;
+/** The knoll and its mission winery stand nearer; the vines and oaks on the right stop short of it. */
+const MISSION_AT = 190;
+const KNOLL_FOOT = MISSION_AT - 65;
 const HAZE = 0xe4d6b8;
 
 /**
@@ -257,7 +260,7 @@ export class NapaStreet implements SceneStreet {
     const ground = (metres: number) => heightAt(Math.max(metres, 0));
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
-      prop.mesh.visible = !prop.near || metres < HORIZON_AHEAD - 20;
+      prop.mesh.visible = !prop.near || metres < KNOLL_FOOT;
       prop.mesh.position.set(prop.x, ground(metres) + KERB + prop.rise, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
@@ -919,7 +922,11 @@ export class NapaStreet implements SceneStreet {
    */
   private addHorizon(): void {
     const haze = new Color(HAZE);
-    const h = this.horizon;
+    const far = this.horizon;
+    // The knoll and the mission stand nearer than the hills and the ridges.
+    const h = new Group();
+    h.position.z = HORIZON_AHEAD - MISSION_AT;
+    far.add(h);
     // The knoll, its vine rows in stripes across it.
     const knoll = new SphereGeometry(1, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2);
     this.disposables.push(knoll);
@@ -1057,7 +1064,8 @@ export class NapaStreet implements SceneStreet {
       tree.position.set(x, Math.max(top(x, z), 0) - 0.5, z);
       h.add(tree);
     }
-    // The golden hills either side, rounded, and the Mayacamas' blue ridges beyond.
+    // The golden hills either side, rounded, and the Mayacamas' blue ridges beyond, at the
+    // horizon's distance.
     const hill = new SphereGeometry(1, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2);
     this.disposables.push(hill);
     const golds = [0xc9a456, 0xb8954c, 0xd2ae62].map((c, i) =>
@@ -1070,7 +1078,7 @@ export class NapaStreet implements SceneStreet {
       const m = new Mesh(hill, golds[i % 3]!);
       m.scale.set(150 + hr() * 160, 40 + hr() * 50, 120 + hr() * 80);
       m.position.set(x, rise(x) - 6, -250 - hr() * 300);
-      h.add(m);
+      far.add(m);
       for (let j = 0; j < 6; j++) {
         const ox = (hr() - 0.5) * m.scale.x;
         const oz = (hr() - 0.5) * m.scale.z * 0.5 + m.scale.z * 0.4;
@@ -1078,7 +1086,7 @@ export class NapaStreet implements SceneStreet {
         if (f <= 0) continue;
         const tree = this.oak(18 + hr() * 8, i + j);
         tree.position.set(x + ox, m.position.y + m.scale.y * Math.sqrt(f) - 2, m.position.z + oz);
-        h.add(tree);
+        far.add(tree);
       }
     }
     const ridges = [
@@ -1099,7 +1107,7 @@ export class NapaStreet implements SceneStreet {
       this.disposables.push(g);
       const m = new Mesh(g, hazedMaterial(this.disposables, haze, ridge.colour, ridge.amount));
       m.position.z = ridge.z;
-      h.add(m);
+      far.add(m);
     }
   }
 
