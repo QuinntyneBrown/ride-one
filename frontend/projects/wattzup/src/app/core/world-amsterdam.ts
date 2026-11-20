@@ -354,6 +354,9 @@ export class AmsterdamStreet implements SceneStreet {
     const iron = this.material({ color: 0x15171a, metalness: 0.5, roughness: 0.5 });
     const { steps, railings } = stoopGeometry();
     const timber = this.material({ color: 0x2a2420, roughness: 0.8 });
+    const ledge = this.material({ color: 0xece6d8, roughness: 0.75 });
+    const relief = GABLES.map((kind) => reliefGeometry(kind));
+    this.disposables.push(...relief);
     const hookGeometry = new TorusGeometry(0.1, 0.025, 4, 8, Math.PI * 1.5);
     this.disposables.push(hookGeometry);
     const gableRoof = roofGeometry(false);
@@ -422,6 +425,8 @@ export class AmsterdamStreet implements SceneStreet {
           const whole = new Group();
           const screen = new Mesh(shapes[k]!, [front, wall]);
           screen.scale.set(width, height, 0.5);
+          // The stone sills, lintels and cornice standing proud of the front.
+          screen.add(new Mesh(relief[k]!, ledge));
           const body = new Mesh(this.unit, wall);
           body.scale.set(width, height * EAVES, 11.5);
           body.position.set(width / 2, (height * EAVES) / 2, 6.25);
@@ -2466,6 +2471,39 @@ function geraniumGeometry(): BufferGeometry {
     bloom.translate((random() - 0.5) * 0.12, 0.06 + random() * 0.08, -0.45 + (i / 8) * 0.9);
     parts.push(bloom);
   }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/**
+ * A front's relief, in its 1 × 1 outline with depth in halves of a metre towards -z (the front
+ * is drawn 0.5 m thick): a stone sill under and a lintel over every upper window, matching
+ * facadeTexture, and the cornice along the eaves (and, on a mansion, along its top).
+ */
+function reliefGeometry(kind: Gable): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const h = 640;
+  const eaves = h * (1 - EAVES);
+  const floor = (h - 175 - eaves - 20) / 4;
+  const pane = (256 - 30) / bays(kind);
+  const ledge = (u: number, v: number, span: number, thick: number, depth: number) => {
+    const box = new BoxGeometry(span, thick, depth);
+    box.translate(u, v, -depth / 2);
+    parts.push(box);
+  };
+  for (let f = 0; f < 4; f++) {
+    const y = eaves + 24 + f * floor;
+    const tall = floor - 18 - (3 - f) * 5;
+    for (let c = 0; c < bays(kind); c++) {
+      const u = (15 + c * pane + pane / 2) / 256;
+      const span = (pane * 0.68 + 14) / 256;
+      ledge(u, 1 - (y + tall + 6) / h, span, 0.011, 0.36);
+      ledge(u, 1 - (y - 6) / h, span, 0.008, 0.2);
+    }
+  }
+  ledge(0.5, EAVES + 0.004, 1.02, 0.016, 0.6);
+  if (kind === 'cornice') ledge(0.5, EAVES + 0.07, 1.04, 0.012, 0.7);
   const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
   return merged;
