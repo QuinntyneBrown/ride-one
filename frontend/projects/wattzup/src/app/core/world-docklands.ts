@@ -32,6 +32,10 @@ const FOOTING = 6;
 const TILE = 24;
 /** The neon colours of the signs: magenta, cyan, volt and violet. */
 const NEON = ['#ff4fb8', '#3fe0ff', '#d8ff3e', '#9b6bff'];
+/** What the blade signs spell, top to bottom. */
+const SIGN_WORDS = ['HOTEL', 'NOODLES', 'BAR', 'DOCK 9', 'CLUB', 'OPEN', 'RAMEN', 'CAFE'];
+/** A blade sign stands out this far from its façade. */
+const BLADE = 2;
 /** The harbour skyline stands this far ahead, past the street's fog, and keeps its distance. */
 const SKYLINE_AHEAD = 700;
 /** The quay's kerb stands this high above the road, and is this wide. */
@@ -94,14 +98,18 @@ export class DocklandsStreet {
         metalness: 0.3,
       });
     });
-    const neon = NEON.map(
-      (hex) =>
-        new MeshStandardMaterial({
-          color: 0x000000,
-          emissive: new Color(hex),
-          emissiveIntensity: 2.4,
-        }),
-    );
+    // One blade sign material for each word, in a neon colour of its own.
+    const blades = SIGN_WORDS.map((word, i) => {
+      const texture = this.track(bladeTexture(word, NEON[i % NEON.length]!));
+      return new MeshStandardMaterial({
+        map: texture,
+        emissiveMap: texture,
+        emissive: new Color(0xffffff),
+        emissiveIntensity: 1.8,
+        roughness: 0.5,
+        side: DoubleSide,
+      });
+    });
     const lobbies = [
       { glass: '#ffd9a6', frame: '#1a1b22', dark: 0.15 },
       { glass: '#bfe6ff', frame: '#22242c', dark: 0.3 },
@@ -124,9 +132,10 @@ export class DocklandsStreet {
       roughness: 0.45,
     });
     const lobbyRandom = seeded(97);
-    this.disposables.push(...lobbies, canopyMaterial);
-    const strip = new BoxGeometry(0.5, 1, 0.5);
-    this.disposables.push(roof, ...facades, ...neon, strip);
+    const blade = new PlaneGeometry(BLADE, 1);
+    const bracket = new BoxGeometry(BLADE + 0.3, 0.12, 0.12);
+    this.disposables.push(...lobbies, canopyMaterial, blade, bracket);
+    this.disposables.push(roof, ...facades, ...blades);
 
     for (const side of [-1, 1] as const) {
       let offset = 0;
@@ -158,16 +167,23 @@ export class DocklandsStreet {
         this.disposables.push(glazing, canopyBox);
         mesh.add(lobby, canopy);
         if (this.random() < 0.45) {
-          // A neon sign runs down the face towards the road, part of the way up.
-          const sign = new Mesh(strip, neon[Math.floor(this.random() * neon.length)]!);
-          const tall = Math.min(height * 0.5, 10 + this.random() * 22);
-          sign.scale.set(1, tall, 1 + this.random() * 1.5);
-          sign.position.set(
-            -side * (width / 2 + 0.25),
-            FOOTING / 2 + 6 + tall / 2 + this.random() * (height * 0.3),
-            (this.random() - 0.5) * depth * 0.5,
-          );
+          // A blade sign stands out from the façade over the canopy, read down the street.
+          const material = blades[Math.floor(this.random() * blades.length)]!;
+          const tall = Math.min(height * 0.4, 6 + this.random() * 10);
+          this.random();
+          const lift = this.random() * height * 0.15;
+          const along = (this.random() - 0.5) * (depth - 4);
+          const sign = new Mesh(blade, material);
+          sign.scale.y = tall;
+          const out = -side * (width / 2 + BLADE / 2 + 0.15);
+          const foot = street + LOBBY + 1.6 + lift;
+          sign.position.set(out, foot + tall / 2, along);
           mesh.add(sign);
+          for (const y of [foot + 0.4, foot + tall - 0.4]) {
+            const arm = new Mesh(bracket, canopyMaterial);
+            arm.position.set(out, y, along);
+            mesh.add(arm);
+          }
         }
         this.group.add(mesh);
         this.towers.push({ mesh, side, offset: offset + depth / 2, width, depth });
@@ -452,6 +468,51 @@ function windowTexture(base: string, lit: string[], share: number, seed: number)
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * A blade sign at night: `word` in neon tube letters stacked top to bottom on a dark panel,
+ * with the tube's glow around them and a thin neon border.
+ */
+function bladeTexture(word: string, colour: string): CanvasTexture {
+  const width = 96;
+  const height = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#0b0c12';
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = colour;
+    ctx.shadowColor = colour;
+    ctx.shadowBlur = 10;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(6, 6, width - 12, height - 12);
+    const letters = [...word];
+    const step = (height - 40) / Math.max(letters.length, 4);
+    ctx.font = `bold ${Math.floor(Math.min(step * 0.8, 70))}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 4;
+    const top = height / 2 - (step * letters.length) / 2 + step / 2;
+    letters.forEach((letter, i) => {
+      ctx.shadowBlur = 16;
+      ctx.strokeText(letter, width / 2, top + i * step);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.85;
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeText(letter, width / 2, top + i * step);
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = colour;
+    });
+  }
+  const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
