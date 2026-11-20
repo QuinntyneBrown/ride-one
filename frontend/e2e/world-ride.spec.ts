@@ -231,6 +231,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Mont Ventoux');
   });
 
+  test('rides 20 Minute Crit Sprints in Chicago Loop Crit along Wabash Avenue', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '20 Minute Crit Sprints',
+      'Chicago Loop Crit',
+      '20-minute-crit-sprints',
+    );
+    await expect(world.heading).toHaveText('Chicago Loop Crit');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Chicago Loop Crit');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
