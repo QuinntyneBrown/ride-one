@@ -216,6 +216,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly heldFlags: InstancedMesh[] = [];
   private rags: InstancedMesh | null = null;
   private hair: InstancedMesh | null = null;
+  private trims: InstancedMesh | null = null;
   private faces: InstancedMesh | null = null;
   private shades: InstancedMesh | null = null;
   private readonly heldCounts = new Map<InstancedMesh, number>();
@@ -451,6 +452,7 @@ export class CaribanaStreet implements SceneStreet {
       if (d.male) this.held.makeScale(0, 0, 0);
       this.fringes?.setMatrixAt(i, d.male ? this.held : this.matrix);
       this.hair?.setMatrixAt(i, this.matrix);
+      this.trims?.setMatrixAt(i, this.matrix);
       this.faces?.setMatrixAt(i, this.matrix);
       if (this.shades && d.shaded >= 0) this.shades.setMatrixAt(d.shaded, this.matrix);
       this.placeHeld(d, i, t);
@@ -481,6 +483,7 @@ export class CaribanaStreet implements SceneStreet {
     if (this.medallions) this.medallions.instanceMatrix.needsUpdate = true;
     if (this.fringes) this.fringes.instanceMatrix.needsUpdate = true;
     if (this.hair) this.hair.instanceMatrix.needsUpdate = true;
+    if (this.trims) this.trims.instanceMatrix.needsUpdate = true;
     if (this.faces) this.faces.instanceMatrix.needsUpdate = true;
     if (this.shades) this.shades.instanceMatrix.needsUpdate = true;
     this.bodies.forEach((mesh, p) => {
@@ -877,6 +880,13 @@ export class CaribanaStreet implements SceneStreet {
       metalness: 0.55,
     });
     this.costumes = this.instanced(costume, sequins, n);
+    const trim = trimGeometry();
+    this.disposables.push(trim);
+    this.trims = this.instanced(
+      trim,
+      this.material({ color: 0xe8b830, roughness: 0.25, metalness: 0.85 }),
+      n,
+    );
     this.trunks = this.instanced(trunks, sequins, n);
     let women = 0;
     let men = 0;
@@ -2414,15 +2424,28 @@ function masCostume(male: boolean): BufferGeometry {
       leg.translate(side * 0.092, 0.8, -0.01);
       parts.push(leg);
     }
-    const boot = new CylinderGeometry(0.068, 0.052, 0.36, 10);
-    boot.translate(side * 0.1, 0.26, -0.015);
-    parts.push(boot);
-    const foot = new BoxGeometry(0.1, 0.08, 0.24);
-    foot.translate(side * 0.1, 0.04, -0.05);
-    parts.push(foot);
-    const cuff = new CylinderGeometry(0.075, 0.07, 0.05, 10);
-    cuff.translate(side * 0.1, 0.45, -0.035);
-    parts.push(cuff);
+    // A fitted boot: the shaft turned to follow the ankle, calf and knee, a pointed toe, a heel
+    // and a thin sole.
+    const shaft = new LatheGeometry(
+      [
+        [0.05, 0.06],
+        [0.047, 0.1],
+        [0.052, 0.17],
+        [0.064, 0.28],
+        [0.067, 0.36],
+        [0.066, 0.45],
+      ].map(([r, y]) => new Vector2(r!, y!)),
+      12,
+    );
+    shaft.translate(side * 0.1, 0, -0.02);
+    parts.push(shaft);
+    parts.push(ellipsoid(0.052, 1, 0.75, 2.3, side * 0.1, 0.05, -0.085, 10));
+    const heel = new BoxGeometry(0.05, 0.075, 0.05);
+    heel.translate(side * 0.1, 0.0375, 0.03);
+    parts.push(heel);
+    const sole = new BoxGeometry(0.1, 0.015, 0.2);
+    sole.translate(side * 0.1, 0.0075, -0.07);
+    parts.push(sole);
   }
   if (male) {
     // A sash from the shoulder across the chest to the hip.
@@ -2455,6 +2478,19 @@ function masCostume(male: boolean): BufferGeometry {
   collar.translate(0, 1.42, 0);
   parts.push(collar);
   const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/** The gold trims: a beaded cuff at the top of each boot, standing proud of the shaft. */
+function trimGeometry(): BufferGeometry {
+  const parts = [-1, 1].map((side) => {
+    const cuff = new TorusGeometry(0.07, 0.016, 6, 16);
+    cuff.rotateX(Math.PI / 2);
+    cuff.translate(side * 0.1, 0.45, -0.02);
+    return cuff.toNonIndexed();
+  });
+  const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
   return merged;
 }
