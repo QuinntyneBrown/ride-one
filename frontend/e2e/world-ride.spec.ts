@@ -195,6 +195,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Montmartre');
   });
 
+  test('rides Team Time Trial across the Bonneville salt', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Team Time Trial', 'Bonneville Salt Flats', 'team-time-trial');
+    await expect(world.heading).toHaveText('Bonneville Salt Flats');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Bonneville Salt Flats');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');
