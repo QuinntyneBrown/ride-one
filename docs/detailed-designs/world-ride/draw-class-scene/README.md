@@ -100,7 +100,7 @@ None.
   - pale pavements, race barriers hung with the race's banners, a coral-stone wall, the palm lawn, the sand, the surf line and the Atlantic out to the horizon on the right;
   - pastel art deco hotels on the left, two to five storeys, with eyebrow ledges over ribbon windows, stepped parapets, neon bands and a neon fin carrying each hotel's name, a side street opening between some of them;
   - café terraces under striped umbrellas, royal palms, painted lifeguard towers on the sand, lamp posts flying pennants, cloth banners across the drive and the fans' writing on the tarmac;
-  - the shared crowd behind the barriers, and brown pelicans gliding along the shore on the street's clock;
+  - the shared crowd behind the barriers, one deep and in clusters on the beach side so the sand, the lifeguard towers and the sea show between them, and brown pelicans gliding along the shore on the street's clock;
   - the stepped deco tower at the end of the drive, its setbacks ringed in neon, hazed by hand.
 
   `lay`, `place` and `setTime` recycle it along a 400 m loop. Every texture is drawn on a canvas, so the scene loads no assets. The shared kit (`core/world-kit.ts`) also holds the crowd behind the barriers, the painted road writing and the race's cloth and barrier banners, which Old Town, Caribana and South Beach draw from it.

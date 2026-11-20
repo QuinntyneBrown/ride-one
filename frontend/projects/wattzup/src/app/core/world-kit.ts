@@ -368,8 +368,8 @@ export interface CrowdOptions {
   readonly flagShare: number;
   /** Seeds for the layout and for the clothes, so a crowd is the same on every ride. */
   readonly seeds: readonly [number, number];
-  /** Leaves a gap in the crowd where `skip(side, offset)` is true. */
-  readonly skip?: (side: -1 | 1, offset: number) => boolean;
+  /** Leaves a gap in the crowd where `skip(side, offset, x)` is true. */
+  readonly skip?: (side: -1 | 1, offset: number, x: number) => boolean;
 }
 
 interface Fan {
@@ -421,7 +421,7 @@ export class Crowd {
             phase: random() * 6.3,
             flag: random() < o.flagShare ? Math.floor(random() * o.flags.length) : -1,
           };
-          if (!o.skip?.(side, fan.offset)) this.fans.push(fan);
+          if (!o.skip?.(side, fan.offset, fan.x)) this.fans.push(fan);
         }
       }
     }
