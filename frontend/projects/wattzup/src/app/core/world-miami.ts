@@ -694,6 +694,19 @@ export class MiamiStreet implements SceneStreet {
       this.signs.push(m);
       return m;
     });
+    const roofNames = NAMES.map((name, i) => {
+      const colour = `#${NEON[i % NEON.length]!.toString(16).padStart(6, '0')}`;
+      const m = this.material({
+        map: this.track(roofNameTexture(name, colour)),
+        emissive: 0xffffff,
+        emissiveMap: this.track(roofNameTexture(name, colour)),
+        emissiveIntensity: 2.4,
+        transparent: true,
+        depthWrite: false,
+      });
+      this.signs.push(m);
+      return m;
+    });
     const planter = this.material({ color: 0xe8e0d8, roughness: 0.8 });
     const blossomBall = new SphereGeometry(0.7, 10, 8);
     this.disposables.push(blossomBall);
@@ -1098,6 +1111,19 @@ export class MiamiStreet implements SceneStreet {
       const holder = new Group();
       holder.add(hotel);
       this.group.add(holder);
+      // The hotel's name in neon capitals on a frame on its roof, turned to face down the
+      // drive so it reads from far off, both ways.
+      for (const turn of [0, Math.PI]) {
+        const roofName = new Mesh(this.flat, roofNames[k % roofNames.length]!);
+        roofName.rotation.y = turn;
+        roofName.scale.set(17, 3.6, 1);
+        roofName.position.set(6, height + 4.2, -width * 0.36 + (turn ? -0.05 : 0.05));
+        hotel.add(roofName);
+      }
+      const frame = new Mesh(this.unit, iron);
+      frame.scale.set(17, 0.2, 0.2);
+      frame.position.set(6, height + 2.3, -width * 0.36);
+      hotel.add(frame);
       // A neon figure over the sidewalk at first-floor height: a flamingo, a palm, a
       // cocktail glass or a crescent moon, in tubes of light.
       // It hangs out from the wall on an iron bracket, side on to the street, so it faces
@@ -4281,5 +4307,21 @@ function puddleTexture(seed: number): CanvasTexture {
         g.fillRect(x + Math.sin(y * 0.4) * 2, y, w * (1 - y / 200), 2);
     }
     g.restore();
+  });
+}
+
+/** A roof sign: the hotel's name in tall neon capitals on clear air, with their glow. */
+function roofNameTexture(name: string, colour: string): CanvasTexture {
+  return canvasTexture(512, 96, (g) => {
+    g.font = 'bold 76px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.shadowColor = colour;
+    g.shadowBlur = 20;
+    g.fillStyle = colour;
+    g.fillText(name, 256, 50, 500);
+    g.shadowBlur = 0;
+    g.fillStyle = 'rgba(255,255,255,0.8)';
+    g.fillText(name, 256, 50, 500);
   });
 }
