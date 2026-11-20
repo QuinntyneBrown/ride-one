@@ -143,7 +143,8 @@ export interface components {
         | 'ibiza'
         | 'skye'
         | 'toronto'
-        | 'prospect';
+        | 'prospect'
+        | 'calobra';
     };
     ClassShelfResponse: {
       id: string;

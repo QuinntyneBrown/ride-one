@@ -657,6 +657,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Prospect Park');
   });
 
+  test('rides Aerobic Cadence Workout With Team Sky up the hairpins of Sa Calobra', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Aerobic Cadence Workout With Team Sky',
+      'Sa Calobra, Mallorca',
+      'aerobic-cadence-workout-with-team-sky',
+    );
+    await expect(world.heading).toHaveText('Sa Calobra, Mallorca');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Sa Calobra, Mallorca');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
