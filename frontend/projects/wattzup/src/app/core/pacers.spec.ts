@@ -1,4 +1,4 @@
-import { formatGap, PACERS, pacerBoard, pacerGap } from './pacers';
+import { formatGap, PACERS, pacerBoard, pacerGap, pacersOnRoad } from './pacers';
 
 const byName = (name: string) => PACERS.find((p) => p.name === name)!;
 
@@ -45,5 +45,33 @@ describe('pacerBoard (L2-107)', () => {
     const maya = pacerBoard(300, speed).find((r) => r.name === 'Maya Okafor');
     // 64.0 m ÷ 3 m/s = 21.3 s
     expect(maya?.timeGap).toBe('+0:21');
+  });
+});
+
+// L2-107 AC7: the pacers from 4 m behind to 300 m ahead ride in the scene, each on its own line.
+describe('pacersOnRoad (L2-107)', () => {
+  it('places the pacers in view at their gaps, at t 300', () => {
+    const riders = pacersOnRoad(300, 300);
+    expect(riders.map((r) => r.jersey)).toEqual([1, 2, 3]);
+    expect(riders.map((r) => r.metres)).toEqual([
+      expect.closeTo(90.8266, 3),
+      expect.closeTo(64.011, 3),
+      expect.closeTo(6.0319, 3),
+    ]);
+  });
+
+  it('draws a pacer alongside, and none past the end of the road in view, at t 0', () => {
+    const riders = pacersOnRoad(0, 40);
+    expect(riders.map((r) => [r.jersey, Math.round(r.metres)])).toEqual([
+      [3, 30],
+      [5, 1],
+    ]);
+  });
+
+  it('gives each pacer its own line across the road, clear of the rider', () => {
+    const ahead = PACERS.map((p) => ({ ...p, base: 10, amp: 0 }));
+    const lanes = ahead.map((p) => pacersOnRoad(0, 300, [p])[0]!.lane);
+    expect(new Set(lanes).size).toBe(PACERS.length);
+    for (const lane of lanes) expect(Math.abs(lane)).toBeGreaterThanOrEqual(0.8);
   });
 });

@@ -54,3 +54,29 @@ export function pacerBoard(t: number, speedKmh: number | null): WorldRidePacer[]
     .sort((a, b) => b.gap - a.gap)
     .map(({ row }) => row);
 }
+
+/** A pacer drawn in the World Ride scene (L2-107 AC7). */
+export interface PacerOnRoad {
+  readonly jersey: number;
+  /** Metres ahead of the rider; negative is behind. */
+  readonly metres: number;
+  /** Metres right of the road's centre line; negative is left. The rider rides on 0. */
+  readonly lane: number;
+}
+
+/** Each pacer's line across the road, by jersey: clear of the rider and of each other. */
+const LANES: Record<number, number> = { 1: -1.7, 2: 1.5, 3: -0.9, 5: 1.1, 6: -1.3, 7: 2.0 };
+/** A pacer alongside is still drawn; one further behind is out of the chase camera's view. */
+const ALONGSIDE = -4;
+
+/** The pacers from 4 m behind to `far` metres ahead, from furthest ahead (L2-107 AC7). */
+export function pacersOnRoad(
+  t: number,
+  far: number,
+  pacers: readonly Pacer[] = PACERS,
+): PacerOnRoad[] {
+  return pacers
+    .map((p) => ({ jersey: p.jersey, metres: pacerGap(p, t), lane: LANES[p.jersey] ?? 1 }))
+    .filter((p) => p.metres >= ALONGSIDE && p.metres <= far)
+    .sort((a, b) => b.metres - a.metres);
+}

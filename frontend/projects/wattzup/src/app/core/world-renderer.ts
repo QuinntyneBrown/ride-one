@@ -28,7 +28,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
-  CircleGeometry,
   Color,
   CylinderGeometry,
   DirectionalLight,
@@ -54,14 +53,16 @@ import {
   SRGBColorSpace,
   type Texture,
   TextureLoader,
-  TorusGeometry,
   Vector3,
   WebGPURenderer,
 } from 'three/webgpu';
 import type { WorldId } from '@wattzup/api';
+import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
 import { nextArch, roadAhead, type RoadPoint } from './scene-road';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
+import { Cyclist, CyclistKit } from './world-cyclist';
+import { cobbleTexture, OldTownStreet } from './world-oldtown';
 import { targetGrade, type World } from './worlds';
 
 interface Look {
@@ -75,6 +76,15 @@ interface Look {
   readonly wet: boolean;
   /** Shimmer over a hot road (technique 50). */
   readonly haze: boolean;
+  /** The physical sky's haze and its blue (technique 11). */
+  readonly turbidity?: number;
+  readonly rayleigh?: number;
+  /** Where the sun stands, in degrees from straight ahead; negative is left. */
+  readonly azimuth?: number;
+  /** The sun's strength and colour, and the sky's fill, where a scene sets its own. */
+  readonly light?: { readonly sun: number; readonly fill: number; readonly colour: number };
+  /** Where the fog starts and where it hides everything, in metres. */
+  readonly fogRange?: readonly [number, number];
 }
 
 /** Until each scene's own look lands: sky, fog, ground, road, sun, wet and haze. */
@@ -99,12 +109,17 @@ const LOOKS: Record<WorldId, Look> = {
   },
   oldtown: {
     sky: 0xa9c7e8,
-    fog: 0xd8dfe6,
+    fog: 0xdcd8cf,
     ground: 0x6b6256,
-    road: 0x7a7068,
-    sun: 35,
+    road: 0xd9d2c8,
+    sun: 48,
     wet: false,
     haze: false,
+    turbidity: 1.6,
+    rayleigh: 2.6,
+    azimuth: -162,
+    light: { sun: 3.2, fill: 1.1, colour: 0xffeccc },
+    fogRange: [30, 430],
   },
   prairie: {
     sky: 0xf0c27b,
@@ -140,6 +155,9 @@ const LOOKS: Record<WorldId, Look> = {
  * the next (a texture node, a join, an operator), so the chain carries them as one vec4 type.
  */
 type ColorNode = ReturnType<typeof vec4>;
+
+/** How far each panorama turns, as a share of its width, to put its landmark down the road. */
+const PANORAMA_TURN: Partial<Record<WorldId, number>> = { oldtown: -0.12 };
 
 /** Anisotropic filtering per tier (technique 8). */
 const ANISOTROPY: Record<Tier, number> = { low: 4, medium: 8, high: 16, ultra: 16 };
@@ -181,9 +199,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     roughness: 0.35,
   });
   private readonly arch = new Group();
-  private readonly pedals = new Group();
+  private you: Cyclist | null = null;
+  private readonly pacers = new Map<number, Cyclist>();
   private readonly wheelBlur: Mesh[] = [];
   private readonly lamps: PointLight[] = [];
+  private street: OldTownStreet | null = null;
   private readonly posts: Mesh[] = [];
   private readonly textures: Texture[] = [];
   private readonly disposables: { dispose(): void }[] = [];
@@ -211,8 +231,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.budget = new FrameBudget(startTier(this.backend));
 
-    this.buildScene(world);
+    this.buildScene(world, canvas);
+    await this.addPanorama(world);
+    if (world.id === 'oldtown') this.addStreet();
     this.applyTier();
+    (window as unknown as { __wz: unknown }).__wz = this; // DEBUG-REMOVE
     return true;
   }
 
@@ -244,13 +267,14 @@ export class ThreeWorldRenderer implements WorldRenderer {
       { t: frame.elapsed, s: frame.s, speed, grade: this.grade },
       AHEAD,
     );
-    this.layRoad(ahead);
+    this.layRoad(ahead, frame.s);
     const texture = this.roadMaterial.map;
     if (texture) texture.offset.y = (frame.s / DASH) % 1;
     this.placeArch(world, frame, speed, ahead);
     this.placeRoadside(frame.s, ahead);
+    this.placePacers(frame, ahead);
 
-    this.pedals.rotation.x = frame.reducedMotion ? 0 : -frame.crank;
+    this.you?.pose(frame.reducedMotion ? 0 : frame.crank);
     const blur = this.on.has(34) ? Math.min(0.55, speed / 14) : 0;
     for (const disc of this.wheelBlur) {
       disc.visible = blur > 0.02;
@@ -307,6 +331,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
     // The WebGPU renderer has no PCFSoftShadowMap: soft shadows (37) widen the PCF filter instead.
     renderer.shadowMap.type = PCFShadowMap;
     this.sun.shadow.radius = on.has(37) ? 4 : 1;
+    for (const rider of [this.you, ...this.pacers.values()]) {
+      if (rider) rider.contact.visible = on.has(37);
+    }
     this.sun.castShadow = on.has(12);
 
     this.roadMaterial.map = on.has(9) ? this.layeredRoad : this.plainRoad;
@@ -393,38 +420,51 @@ export class ThreeWorldRenderer implements WorldRenderer {
 
   private sunDirection(): Vector3 {
     const elevation = (this.look.sun * Math.PI) / 180;
-    return new Vector3(-0.5, Math.sin(elevation), -Math.cos(elevation)).normalize();
+    // Azimuth 0 is straight down the road ahead; positive turns the sun to the rider's right.
+    const azimuth = ((this.look.azimuth ?? -27) * Math.PI) / 180;
+    const level = Math.cos(elevation);
+    return new Vector3(
+      Math.sin(azimuth) * level,
+      Math.sin(elevation),
+      -Math.cos(azimuth) * level,
+    ).normalize();
   }
 
-  private buildScene(world: World): void {
+  private buildScene(world: World, canvas: HTMLCanvasElement): void {
     const look = this.look;
-    this.scene.fog = new Fog(look.fog, 60, 650);
-    this.scene.add(new HemisphereLight(look.sky, look.ground, look.sun < 0 ? 0.5 : 1.4));
+    this.scene.fog = new Fog(look.fog, look.fogRange?.[0] ?? 60, look.fogRange?.[1] ?? 650);
+    this.scene.add(
+      new HemisphereLight(look.sky, look.ground, look.sun < 0 ? 0.5 : (look.light?.fill ?? 1.4)),
+    );
 
     const sunDir = this.sunDirection();
-    this.sun.intensity = look.sun < 0 ? 0.15 : 2.2;
-    this.sun.position.copy(sunDir).multiplyScalar(60);
+    this.sun.intensity = look.sun < 0 ? 0.15 : (look.light?.sun ?? 2.2);
+    this.sun.color.set(look.light?.colour ?? 0xffffff);
+    // The shadow box reaches further down a street of houses than over open country.
+    const reach = world.id === 'oldtown' ? 45 : 25;
+    this.sun.target.position.set(0, 0, 25 - reach);
+    this.sun.position.copy(sunDir).multiplyScalar(80).add(this.sun.target.position);
     this.sun.shadow.mapSize.set(2048, 2048);
     // A tight box around the rider: the shadow stays sharp and steady as the road moves.
     const cam = this.sun.shadow.camera;
-    cam.left = -25;
-    cam.right = 25;
-    cam.top = 25;
-    cam.bottom = -25;
+    cam.left = -reach;
+    cam.right = reach;
+    cam.top = reach;
+    cam.bottom = -reach;
     cam.near = 1;
-    cam.far = 200;
+    cam.far = 240;
     this.sun.shadow.bias = -0.0005;
     this.scene.add(this.sun, this.sun.target);
 
     this.sky.scale.setScalar(4500);
-    this.sky.turbidity.value = 4;
-    this.sky.rayleigh.value = look.sun < 0 ? 0.3 : 1.6;
+    this.sky.turbidity.value = look.turbidity ?? 4;
+    this.sky.rayleigh.value = look.sun < 0 ? 0.3 : (look.rayleigh ?? 1.6);
+    this.sky.mieCoefficient.value = 0.003;
     this.sky.sunPosition.value.copy(sunDir);
     this.scene.add(this.sky);
 
-    this.addPanorama(world);
     this.plainRoad = this.track(roadTexture(false));
-    this.layeredRoad = this.track(roadTexture(true));
+    this.layeredRoad = this.track(world.id === 'oldtown' ? cobbleTexture() : roadTexture(true));
     this.roadMaterial.color.set(look.road);
     const groundMesh = this.addMesh(
       this.ground,
@@ -433,7 +473,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     groundMesh.receiveShadow = true;
     const roadMesh = this.addMesh(this.road, this.roadMaterial);
     roadMesh.receiveShadow = true;
-    this.addRider();
+    this.addRider(canvas);
     this.addArch();
     this.addRoadside();
   }
@@ -450,86 +490,98 @@ export class ThreeWorldRenderer implements WorldRenderer {
     return mesh;
   }
 
-  /** The photographed distance, on an arc far ahead that the fog does not reach. */
-  private addPanorama(world: World): void {
+  /**
+   * The photographed distance, on an arc far ahead that the fog does not reach. It is loaded
+   * before the first frame: a ride that has not started draws only when its state changes.
+   */
+  private async addPanorama(world: World): Promise<void> {
     const arc = (2 * Math.PI) / 3;
     const geometry = new CylinderGeometry(900, 900, 560, 48, 1, true, Math.PI - arc / 2, arc);
     const material = new MeshBasicMaterial({ side: BackSide, fog: false, transparent: true });
     const mesh = this.addMesh(geometry, material);
     mesh.position.y = 160;
-    new TextureLoader().load(`/worlds/${world.id}/panorama.webp`, (texture) => {
+    try {
+      const texture = await new TextureLoader().loadAsync(`/worlds/${world.id}/panorama.webp`);
       texture.colorSpace = SRGBColorSpace;
       texture.wrapS = RepeatWrapping;
       texture.repeat.x = -1;
-      material.map = texture;
+      texture.offset.x = PANORAMA_TURN[world.id] ?? 0;
+      material.map = this.track(texture);
+      material.alphaMap = this.track(fadeTexture());
       material.needsUpdate = true;
-      this.track(texture);
-    });
+    } catch {
+      mesh.visible = false;
+    }
   }
 
-  /** The rider's bike from behind: two wheels with their blur discs, the frame, pedals and rider. */
-  private addRider(): void {
-    const bike = new Group();
-    const dark = new MeshStandardMaterial({ color: 0x15171c, roughness: 0.6 });
-    const jersey = new MeshStandardMaterial({ color: 0xd8ff3e, roughness: 0.7 });
-    const blur = new MeshBasicMaterial({
-      color: 0x9aa0a6,
-      transparent: true,
-      opacity: 0,
-      depthWrite: false,
-      side: DoubleSide,
-    });
-    const wheel = new TorusGeometry(0.34, 0.025, 8, 32);
-    const disc = new CircleGeometry(0.33, 32);
-    for (const z of [-0.5, 0.5]) {
-      const w = new Mesh(wheel, dark);
-      w.rotation.y = Math.PI / 2;
-      w.position.set(0, 0.34, z);
-      w.castShadow = true;
-      const d = new Mesh(disc, blur);
-      d.rotation.y = Math.PI / 2;
-      d.position.set(0, 0.34, z);
-      this.wheelBlur.push(d);
-      bike.add(w, d);
+  /** The rider on their bike, from behind, in the You colour of the rider board. */
+  private addRider(canvas: HTMLCanvasElement): void {
+    const kit = new CyclistKit(this.frameMaterial);
+    const you = kit.make(riderColour(canvas, 4));
+    this.you = you;
+    this.wheelBlur.push(...you.wheelBlur);
+    this.scene.add(you.group);
+    this.disposables.push(kit, you.jersey, this.frameMaterial);
+    // The simulated pacers ride with the rider, each in its board colour (L2-107 AC7).
+    for (const pacer of PACERS) {
+      const rider = kit.make(riderColour(canvas, pacer.jersey));
+      rider.group.visible = false;
+      this.pacers.set(pacer.jersey, rider);
+      this.scene.add(rider.group);
+      this.disposables.push(rider.jersey);
     }
-    const frame = new Mesh(new BoxGeometry(0.05, 0.05, 1), this.frameMaterial);
-    frame.position.set(0, 0.62, 0);
-    const body = new Mesh(new BoxGeometry(0.42, 0.55, 0.3), jersey);
-    body.position.set(0, 1.15, 0.05);
-    body.rotation.x = -0.6;
-    const crank = new Mesh(new BoxGeometry(0.36, 0.04, 0.04), dark);
-    this.pedals.add(crank);
-    this.pedals.position.set(0, 0.36, 0);
-    for (const m of [frame, body, crank]) m.castShadow = true;
-    bike.add(frame, body, this.pedals);
-    this.disposables.push(
-      wheel,
-      disc,
-      frame.geometry,
-      body.geometry,
-      crank.geometry,
-      dark,
-      jersey,
-      blur,
-      this.frameMaterial,
-    );
-    this.scene.add(bike);
+  }
+
+  /** Puts each pacer in view at its gap, and hides the rest (L2-107 AC7). */
+  private placePacers(frame: SceneFrame, ahead: RoadPoint[]): void {
+    for (const rider of this.pacers.values()) rider.group.visible = false;
+    for (const p of pacersOnRoad(frame.elapsed, AHEAD * STEP)) {
+      const rider = this.pacers.get(p.jersey);
+      if (!rider) continue;
+      rider.group.visible = true;
+      rider.group.position.set(p.lane, heightAt(ahead, p.metres), -p.metres);
+      rider.pose(frame.reducedMotion ? 0 : frame.crank * (0.9 + p.jersey * 0.03) + p.jersey);
+    }
   }
 
   /** The arch over the road ahead: two posts, a beam and its label. */
   private addArch(): void {
     const material = new MeshStandardMaterial({ color: 0x1b1e24, roughness: 0.5 });
-    const post = new BoxGeometry(0.3, 5.6, 0.3);
-    for (const x of [-ROAD_HALF - 0.6, ROAD_HALF + 0.6]) {
-      const mesh = new Mesh(post, material);
-      mesh.position.set(x, 2.8, 0);
-      mesh.castShadow = true;
-      this.arch.add(mesh);
+    const steel = new MeshStandardMaterial({ color: 0x8d939b, metalness: 0.7, roughness: 0.35 });
+    // Each leg is a truss: four steel chords on a weighted foot.
+    const chord = new BoxGeometry(0.06, 5.2, 0.06);
+    const foot = new BoxGeometry(0.9, 0.25, 0.9);
+    for (const x of [-ROAD_HALF - 0.7, ROAD_HALF + 0.7]) {
+      for (const [dx, dz] of [
+        [-0.18, -0.18],
+        [0.18, -0.18],
+        [-0.18, 0.18],
+        [0.18, 0.18],
+      ] as const) {
+        const mesh = new Mesh(chord, steel);
+        mesh.position.set(x + dx, 2.75, dz);
+        mesh.castShadow = true;
+        this.arch.add(mesh);
+      }
+      const base = new Mesh(foot, material);
+      base.position.set(x, 0.125, 0);
+      base.castShadow = true;
+      this.arch.add(base);
     }
-    const beam = new Mesh(new BoxGeometry(2 * ROAD_HALF + 1.6, 1, 0.3), material);
-    beam.position.y = 5.4;
+    const beam = new Mesh(new BoxGeometry(2 * ROAD_HALF + 2, 1.4, 0.45), material);
+    beam.position.y = 5.6;
+    beam.castShadow = true;
     this.arch.add(beam);
-    this.disposables.push(material, post, beam.geometry);
+    // The line across the road where the effort starts.
+    const line = new Mesh(
+      new PlaneGeometry(2 * ROAD_HALF, 0.4),
+      new MeshStandardMaterial({ color: 0xf2f3ef, roughness: 0.6 }),
+    );
+    line.rotation.x = -Math.PI / 2;
+    line.position.y = 0.02;
+    line.receiveShadow = true;
+    this.arch.add(line);
+    this.disposables.push(material, steel, chord, foot, beam.geometry, line.geometry, line.material as Material);
     this.arch.visible = false;
     this.scene.add(this.arch);
   }
@@ -549,7 +601,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
       emissiveIntensity: this.look.sun < 0 ? 2.5 : 0.4,
       roughness: 0.4,
     });
-    for (let i = 0; i < POSTS; i++) {
+    // Old Town's kerbs have iron bollards (world-oldtown.ts) in place of verge posts.
+    const posts = this.world?.id === 'oldtown' ? 0 : POSTS;
+    for (let i = 0; i < posts; i++) {
       const mesh = new Mesh(post, reflector);
       mesh.visible = false;
       this.posts.push(mesh);
@@ -558,7 +612,15 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.disposables.push(post, reflector);
   }
 
+  private addStreet(): void {
+    const street = new OldTownStreet((t) => this.track(t), this.disposables);
+    street.build(ROAD_HALF, AHEAD + BEHIND + 1);
+    this.scene.add(street.group);
+    this.street = street;
+  }
+
   private placeRoadside(s: number, ahead: RoadPoint[]): void {
+    this.street?.place(s, (metres) => heightAt(ahead, metres));
     this.lamps.forEach((lamp, i) => {
       const metres = i * LAMP_EVERY - (s % LAMP_EVERY) + 8;
       lamp.position.set(
@@ -592,16 +654,16 @@ export class ThreeWorldRenderer implements WorldRenderer {
     }
     const texture = labelTexture(arch.label);
     const mesh = new Mesh(
-      new PlaneGeometry(2 * ROAD_HALF + 1.2, 0.8),
+      new PlaneGeometry(2 * ROAD_HALF + 1.8, 1.2),
       new MeshBasicMaterial({ map: texture, side: DoubleSide }),
     );
-    mesh.position.set(0, 5.4, 0.16);
+    mesh.position.set(0, 5.6, 0.24);
     this.arch.add(mesh);
     this.archLabel = { text: arch.label, texture, mesh };
   }
 
   /** Lays the road and the ground beside it over the points ahead, and a short run behind. */
-  private layRoad(ahead: RoadPoint[]): void {
+  private layRoad(ahead: RoadPoint[], s: number): void {
     const first = ahead[0]!;
     const behind: RoadPoint[] = [];
     for (let i = BEHIND; i >= 1; i--) {
@@ -610,6 +672,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     }
     const points = [...behind, ...ahead];
     fillStrip(this.road, points, ROAD_HALF, 0);
+    this.street?.lay(points, s);
     fillStrip(this.ground, points, GROUND_HALF, -0.05);
   }
 }
@@ -694,15 +757,44 @@ function roadTexture(layered: boolean): CanvasTexture {
   return texture;
 }
 
+/** Opaque below, fading out over the top fifth: the panorama's sky melts into the sky above. */
+function fadeTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 4;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 0, 128);
+    g.addColorStop(0, '#000');
+    g.addColorStop(0.22, '#fff');
+    g.addColorStop(1, '#fff');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 4, 128);
+  }
+  return new CanvasTexture(canvas);
+}
+
+/** A rider colour of the design system, `--color-rider-<n>` (4 is You), read from the page. */
+function riderColour(element: Element, n: number): Color {
+  const value = getComputedStyle(element).getPropertyValue(`--color-rider-${n}`).trim();
+  const colour = new Color(0xd7ff3a);
+  if (value) colour.setStyle(value);
+  return colour;
+}
+
 function labelTexture(text: string): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 96;
   const ctx = canvas.getContext('2d');
   if (ctx) {
-    ctx.fillStyle = '#1b1e24';
-    ctx.fillRect(0, 0, 1024, 96);
+    // As the mocks: dark lettering on the volt banner, inside a dark keyline.
     ctx.fillStyle = '#d8ff3e';
+    ctx.fillRect(0, 0, 1024, 96);
+    ctx.strokeStyle = '#1b1e24';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(8, 8, 1008, 80);
+    ctx.fillStyle = '#1b1e24';
     ctx.font = 'bold 60px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
