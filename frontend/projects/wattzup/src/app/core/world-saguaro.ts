@@ -55,6 +55,7 @@ export class SaguaroStreet implements SceneStreet {
   private readonly roadrunner = new Group();
   private readonly balloons: Group[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private roadHalf = 0;
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
@@ -94,16 +95,12 @@ export class SaguaroStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     // The roadrunner dashes across the road and back, head low, tail up.
     const metres = loopMetres(CROSSING, s, LOOP, BEHIND);
     const dash = Math.sin(this.time * 0.6);
-    this.roadrunner.position.set(
-      dash * (this.roadHalf + 4),
-      heightAt(Math.max(metres, 0)),
-      -metres,
-    );
+    this.roadrunner.position.set(dash * (this.roadHalf + 4), heightAt(metres), -metres);
     this.roadrunner.rotation.y = Math.cos(this.time * 0.6) > 0 ? -Math.PI / 2 : Math.PI / 2;
     this.roadrunner.children[0]!.position.y = Math.abs(Math.sin(this.time * 18)) * 0.04;
     const crowd = this.crowd;
