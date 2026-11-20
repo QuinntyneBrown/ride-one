@@ -100,8 +100,8 @@ const BARRIER_PANELS: readonly BannerPanel[] = [
   { fill: '#8a5ae8', ink: '#ffffff', text: '128 BPM' },
 ];
 const STREET_BANNERS: readonly (readonly [string, string, string, number])[] = [
-  ['IBIZA · SUNSET STRIP', '#ff4a9a', '#ffffff', 70],
-  ['WATTZUP · INTERVALS TO THE BEAT', '#1b1e24', '#d7ff3a', 420],
+  ['IBIZA · SUNSET STRIP', '#ff4a9a', '#ffffff', 118],
+  ['WATTZUP · INTERVALS TO THE BEAT', '#1b1e24', '#d7ff3a', 215],
 ];
 const FEATHERS: readonly FeatherWord[] = [
   ['IBIZA', '#ff4a9a', '#ffffff'],
@@ -566,7 +566,7 @@ export class IbizaStreet implements SceneStreet {
   private addStreetBanners(roadHalf: number): void {
     const post = new CylinderGeometry(0.1, 0.1, 6.4, 8);
     post.translate(0, 3.2, 0);
-    const cloth = new PlaneGeometry(2 * roadHalf + 1.2, 1.3);
+    const cloth = new PlaneGeometry(2 * roadHalf + 1.2, 2);
     this.disposables.push(post, cloth);
     const steel = this.material({ color: 0xf4f4f0, metalness: 0.4, roughness: 0.4 });
     for (const [text, fill, ink, offset] of STREET_BANNERS) {
@@ -578,7 +578,8 @@ export class IbizaStreet implements SceneStreet {
       }
       const c = new Mesh(
         cloth,
-        this.material({ map: this.track(clothBannerTexture(text, fill, ink)), side: DoubleSide }),
+        // Lit from within like a festival's light box, so it reads against the sun behind it.
+        this.lightBox(this.track(clothBannerTexture(text, fill, ink))),
       );
       c.position.y = 5.6;
       banner.add(c);
@@ -721,6 +722,17 @@ export class IbizaStreet implements SceneStreet {
       block.position.set(x, lift + tall / 2 - 2, z);
       h.add(block);
     }
+  }
+
+  /** A printed cloth lit from within, its own colours glowing through it. */
+  private lightBox(map: CanvasTexture): MeshStandardMaterial {
+    return this.material({
+      map,
+      emissive: 0xffffff,
+      emissiveMap: map,
+      emissiveIntensity: 0.55,
+      side: DoubleSide,
+    });
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
