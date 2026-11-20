@@ -134,11 +134,11 @@ export class WestminsterStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + KERB, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB, -metres);
     }
     for (const v of this.vehicles) {
       const metres = loopMetres(v.offset + v.speed * this.time, s, LOOP, BEHIND);
-      v.mesh.position.set(v.x, heightAt(Math.max(metres, 0)), -metres);
+      v.mesh.position.set(v.x, heightAt(metres), -metres);
     }
     this.placeWalkers(s, heightAt);
     this.landmarks.position.set(0, heightAt(1e6), -TOWER_AHEAD);
@@ -149,7 +149,7 @@ export class WestminsterStreet implements SceneStreet {
     if (!bodies || !legs || !heads) return;
     this.walkers.forEach((w, i) => {
       const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
-      const y = heightAt(Math.max(metres, 0)) + KERB;
+      const y = heightAt(metres) + KERB;
       const step = Math.abs(Math.sin(this.time * 5.5 + w.phase)) * 0.04;
       this.turn.setFromAxisAngle(this.up, w.speed > 0 ? 0 : Math.PI);
       this.size.setScalar(w.height);
