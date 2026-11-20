@@ -21,7 +21,8 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
-  SphereGeometry,
+  Shape,
+  ShapeGeometry,
   type Texture,
   TorusGeometry,
 } from 'three/webgpu';
@@ -387,8 +388,10 @@ export class SantaMonicaStreet implements SceneStreet {
 
   /**
    * The front on the right: beach houses and low hotels in white stucco and faded pastels, two to
-   * five storeys, flat roofs with a parapet, rows of windows, balconies on the taller ones, and a
-   * red-tiled roof on every third.
+   * five storeys, flat roofs with a parapet, rows of windows, balconies on the taller ones, a
+   * striped awning over the ground floor's café or shop, and a red-tiled roof on every third. The
+   * tall ones without tiles step back to a penthouse, and every fifth is a deco hotel in
+   * turquoise with white fins running up its face to a stepped crown.
    */
   private addFront(): void {
     const random = seeded(6151);
@@ -396,12 +399,17 @@ export class SantaMonicaStreet implements SceneStreet {
     const rail = this.material({ color: 0xf8f8f4, roughness: 0.6 });
     const tile = this.material({ color: 0xb85a3a, roughness: 0.85 });
     const walls = STUCCO.map((c) => this.material({ color: c, roughness: 0.9 }));
+    const deco = this.material({ color: 0x7ec8c0, roughness: 0.85 });
+    const awnings = ['#1d4f8f', '#ff6a5a', '#3ab06a', '#ffd23a', '#2fc8d8'].map((c) =>
+      this.material({ color: c, roughness: 0.8 }),
+    );
     for (let offset = 0, k = 0; offset < LOOP; k++) {
       const width = 12 + random() * 14;
-      const floors = 2 + Math.floor(random() * 4);
+      const floors = k % 5 === 3 ? 6 : 2 + Math.floor(random() * 4);
       const tall = floors * 3.2 + 0.8;
       const deep = 12 + random() * 6;
-      const wall = walls[k % walls.length]!;
+      const hotel = k % 5 === 3;
+      const wall = hotel ? deco : walls[k % walls.length]!;
       const b = new BoxBuilder();
       b.box(wall, [deep, tall, width], [deep / 2, tall / 2, 0]);
       b.box(rail, [0.4, 0.5, width + 0.2], [0, tall + 0.25, 0]);
@@ -416,7 +424,23 @@ export class SantaMonicaStreet implements SceneStreet {
           b.box(rail, [0.08, 0.9, width - 1], [-1.2, y - 0.6, 0]);
         }
       }
-      if (k % 3 === 1) {
+      // The ground floor's awning over its café or shop.
+      b.box(awnings[k % awnings.length]!, [1.8, 0.12, width - 1.5], [-0.8, 3.0, 0], 0.32);
+      if (hotel) {
+        // The deco hotel's white fins up its face, and its stepped crown.
+        for (let z = -width / 2 + 0.5; z <= width / 2 - 0.5; z += 3) {
+          b.box(rail, [0.5, tall + 1.2, 0.35], [-0.2, (tall + 1.2) / 2, z]);
+        }
+        b.box(wall, [deep * 0.5, 3, width * 0.5], [deep / 2, tall + 1.5, 0]);
+        b.box(rail, [deep * 0.5 + 0.3, 0.4, width * 0.5 + 0.3], [deep / 2, tall + 3.1, 0]);
+        b.box(wall, [deep * 0.25, 2.4, width * 0.25], [deep / 2, tall + 4.4, 0]);
+      } else if (floors > 3 && k % 3 !== 1) {
+        // A penthouse stepped back from the parapet, glazed across its front.
+        b.box(wall, [deep * 0.55, 3, width * 0.6], [deep * 0.6, tall + 1.5, 0]);
+        b.box(glass, [0.12, 1.8, width * 0.5], [deep * 0.6 - deep * 0.275 - 0.04, tall + 1.6, 0]);
+        b.box(rail, [deep * 0.55 + 0.3, 0.3, width * 0.6 + 0.3], [deep * 0.6, tall + 3.1, 0]);
+      }
+      if (k % 3 === 1 && !hotel) {
         // A red-tiled roof, hipped low over the top floor.
         b.box(tile, [deep * 0.72, 1.4, width * 0.72], [deep / 2, tall + 0.5, 0], 0);
         b.box(tile, [deep * 0.4, 0.8, width * 0.4], [deep / 2, tall + 1.5, 0], 0);
@@ -667,25 +691,27 @@ export class SantaMonicaStreet implements SceneStreet {
       }
     }
     h.add(coaster.build(this.disposables));
-    // The Santa Monica Mountains behind the front, ridge behind ridge into the haze: rounded,
-    // wide shoulders merged into one mesh per ridge.
+    // The Santa Monica Mountains across the bay beyond the pier and on to Malibu, two ridgelines
+    // of jagged crests, each one flat silhouette hazed by its distance.
     const random = seeded(6161);
-    for (const [far, tone, amount] of [
-      [800, 0x5a6a80, 0.5],
-      [1150, 0x7a88a0, 0.65],
+    for (const [far, tone, amount, base, rough] of [
+      [900, 0x5a6878, 0.55, 40, 60],
+      [1300, 0x7a8698, 0.7, 70, 80],
     ] as const) {
-      const peaks: BufferGeometry[] = [];
-      for (let x = 120; x < 1600; x += 140 + random() * 90) {
-        const tall = 40 + random() * 50 + far / 20;
-        const peak = new SphereGeometry(1, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-        peak.scale(220 + random() * 160, tall, 120 + random() * 60);
-        peak.translate(x, -4, -far - random() * 60);
-        peaks.push(peak);
+      const ridge = new Shape();
+      ridge.moveTo(-1600, -10);
+      let y: number = base;
+      for (let x = -1600; x <= 1400; x += 30) {
+        // A slow swell under quick crests, highest behind the pier and falling to the coast.
+        y = Math.max(8, y * 0.6 + 0.4 * (base + rough * (0.5 + 0.5 * Math.sin(x / 260 + far))));
+        const crest = y + (random() - 0.4) * rough * 0.35;
+        ridge.lineTo(x, crest * (1 - Math.max(0, x - 200) / 1600));
       }
-      const ridge = mergeGeometries(peaks)!;
-      peaks.forEach((p) => p.dispose());
-      this.disposables.push(ridge);
-      h.add(new Mesh(ridge, hazedMaterial(this.disposables, haze, tone, amount)));
+      ridge.lineTo(1400, -10);
+      const silhouette = new ShapeGeometry(ridge);
+      silhouette.translate(0, -4, -far);
+      this.disposables.push(silhouette);
+      h.add(new Mesh(silhouette, hazedMaterial(this.disposables, haze, tone, amount)));
     }
   }
 
