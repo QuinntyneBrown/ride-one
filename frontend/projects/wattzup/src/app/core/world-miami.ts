@@ -16,6 +16,8 @@ import {
   type CanvasTexture,
   CylinderGeometry,
   Group,
+  InstancedMesh,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -89,6 +91,9 @@ export class MiamiStreet implements SceneStreet {
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
+  private readonly drops: { x: number; y: number; z: number; speed: number }[] = [];
+  private rain: InstancedMesh | null = null;
+  private readonly drop = new Matrix4();
   /** The signals' red, amber and green lamps. */
   private readonly lights: MeshStandardMaterial[] = [];
   private readonly horizon = new Group();
@@ -122,6 +127,7 @@ export class MiamiStreet implements SceneStreet {
     this.addCrossings(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
+    this.addDrizzle();
   }
 
   setTime(seconds: number): void {
@@ -135,6 +141,17 @@ export class MiamiStreet implements SceneStreet {
     const cycle = seconds % 30;
     const lit = cycle < 14 ? 2 : cycle < 17 ? 1 : 0;
     this.lights.forEach((m, i) => (m.emissiveIntensity = i === lit ? 3.5 : 0.08));
+    // The drizzle falls and slants, each drop wrapping back to the top of its 14 m column.
+    const rain = this.rain;
+    if (rain) {
+      this.drops.forEach((d, i) => {
+        const y = (((d.y - seconds * d.speed) % 14) + 14) % 14;
+        this.drop.makeRotationZ(0.12);
+        this.drop.setPosition(d.x + y * 0.12, y, d.z);
+        rain.setMatrixAt(i, this.drop);
+      });
+      rain.instanceMatrix.needsUpdate = true;
+    }
     // The aircraft beacons on the spires blink, a second apart.
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
@@ -393,6 +410,19 @@ export class MiamiStreet implements SceneStreet {
     const drum = new CylinderGeometry(1.4, 1.4, 2.6, 14);
     const saucer = new SphereGeometry(0.7, 12, 6, 0, Math.PI * 2, 0, Math.PI / 3);
     this.disposables.push(drum, saucer);
+    const soft = this.track(auraTexture());
+    const auras = NEON.map((c) => {
+      const m = new MeshBasicMaterial({
+        map: soft,
+        color: c,
+        transparent: true,
+        opacity: 0.32,
+        depthWrite: false,
+        blending: AdditiveBlending,
+      });
+      this.disposables.push(m);
+      return m;
+    });
     const slab = this.material({ color: 0xf4f0ec, roughness: 0.7 });
     const rail = this.material({ color: 0xf8f8f8, roughness: 0.3, metalness: 0.4 });
     const signBox = this.material({ color: 0x14121c, roughness: 0.5, metalness: 0.6 });
@@ -528,6 +558,21 @@ export class MiamiStreet implements SceneStreet {
         t.position.set(-1.9, y, bladeZ);
         hotel.add(t);
       }
+      // The neon's glow in the humid air: a soft halo of the sign's colour round both faces,
+      // and a band of it along the roofline tube.
+      const aura = auras[k % auras.length]!;
+      for (const side of [-1, 1]) {
+        const halo = new Mesh(this.flat, aura);
+        halo.scale.set(7.5, tall + 5, 1);
+        halo.rotation.y = side > 0 ? 0 : Math.PI;
+        halo.position.set(-1.9, tall / 2 + 2.4, bladeZ + side * 0.3);
+        hotel.add(halo);
+      }
+      const roofGlow = new Mesh(this.flat, aura);
+      roofGlow.rotation.y = -Math.PI / 2;
+      roofGlow.scale.set(width * 1.05, 3.2, 1);
+      roofGlow.position.set(-0.2, height, 0);
+      hotel.add(roofGlow);
       for (const y of [3.4, 2.4 + tall / 2, 1.4 + tall]) {
         const arm = new Mesh(this.unit, iron);
         arm.scale.set(0.5, 0.12, 0.12);
@@ -1142,6 +1187,35 @@ export class MiamiStreet implements SceneStreet {
       NIGHT_WEAR,
       8143,
     );
+  }
+
+  /**
+   * The tail of the shower: a light drizzle of streaks falling round the rider, slanting a
+   * little in the sea breeze and catching the neon, held still for reduced motion.
+   */
+  private addDrizzle(): void {
+    const random = seeded(8281);
+    const streak = new PlaneGeometry(0.018, 0.55);
+    const material = new MeshBasicMaterial({
+      color: 0xc8d8ff,
+      transparent: true,
+      opacity: 0.32,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    const count = 700;
+    const rain = new InstancedMesh(streak, material, count);
+    rain.frustumCulled = false;
+    this.disposables.push(streak, material, rain);
+    for (let i = 0; i < count; i++)
+      this.drops.push({
+        x: (random() - 0.5) * 34,
+        y: random() * 14,
+        z: 6 - random() * 50,
+        speed: 7 + random() * 3,
+      });
+    this.rain = rain;
+    this.horizon.add(rain);
   }
 
   /** Across the bay, the towers lit floor by floor, the moon path and the night sea. */
@@ -1973,5 +2047,25 @@ function seaWallTexture(): CanvasTexture {
     g.fillRect(4, 118, 24, 2);
     g.fillStyle = 'rgba(255,255,255,0.2)';
     g.fillRect(4, 20, 2, 98);
+  });
+}
+
+/** A soft rectangular glow: bright across its middle, falling away to nothing at its edges. */
+function auraTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    const across = g.createLinearGradient(0, 0, 64, 0);
+    across.addColorStop(0, 'rgba(255,255,255,0)');
+    across.addColorStop(0.5, 'rgba(255,255,255,1)');
+    across.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = across;
+    g.fillRect(0, 0, 64, 64);
+    g.globalCompositeOperation = 'destination-in';
+    const down = g.createLinearGradient(0, 0, 0, 64);
+    down.addColorStop(0, 'rgba(0,0,0,0)');
+    down.addColorStop(0.25, 'rgba(0,0,0,1)');
+    down.addColorStop(0.75, 'rgba(0,0,0,1)');
+    down.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = down;
+    g.fillRect(0, 0, 64, 64);
   });
 }
