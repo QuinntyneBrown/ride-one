@@ -547,17 +547,41 @@ export class ThreeWorldRenderer implements WorldRenderer {
   /** The arch over the road ahead: two posts, a beam and its label. */
   private addArch(): void {
     const material = new MeshStandardMaterial({ color: 0x1b1e24, roughness: 0.5 });
-    const post = new BoxGeometry(0.3, 5.6, 0.3);
-    for (const x of [-ROAD_HALF - 0.6, ROAD_HALF + 0.6]) {
-      const mesh = new Mesh(post, material);
-      mesh.position.set(x, 2.8, 0);
-      mesh.castShadow = true;
-      this.arch.add(mesh);
+    const steel = new MeshStandardMaterial({ color: 0x8d939b, metalness: 0.7, roughness: 0.35 });
+    // Each leg is a truss: four steel chords on a weighted foot.
+    const chord = new BoxGeometry(0.06, 5.2, 0.06);
+    const foot = new BoxGeometry(0.9, 0.25, 0.9);
+    for (const x of [-ROAD_HALF - 0.7, ROAD_HALF + 0.7]) {
+      for (const [dx, dz] of [
+        [-0.18, -0.18],
+        [0.18, -0.18],
+        [-0.18, 0.18],
+        [0.18, 0.18],
+      ] as const) {
+        const mesh = new Mesh(chord, steel);
+        mesh.position.set(x + dx, 2.75, dz);
+        mesh.castShadow = true;
+        this.arch.add(mesh);
+      }
+      const base = new Mesh(foot, material);
+      base.position.set(x, 0.125, 0);
+      base.castShadow = true;
+      this.arch.add(base);
     }
-    const beam = new Mesh(new BoxGeometry(2 * ROAD_HALF + 1.6, 1, 0.3), material);
-    beam.position.y = 5.4;
+    const beam = new Mesh(new BoxGeometry(2 * ROAD_HALF + 2, 1.4, 0.45), material);
+    beam.position.y = 5.6;
+    beam.castShadow = true;
     this.arch.add(beam);
-    this.disposables.push(material, post, beam.geometry);
+    // The line across the road where the effort starts.
+    const line = new Mesh(
+      new PlaneGeometry(2 * ROAD_HALF, 0.4),
+      new MeshStandardMaterial({ color: 0xf2f3ef, roughness: 0.6 }),
+    );
+    line.rotation.x = -Math.PI / 2;
+    line.position.y = 0.02;
+    line.receiveShadow = true;
+    this.arch.add(line);
+    this.disposables.push(material, steel, chord, foot, beam.geometry, line.geometry, line.material as Material);
     this.arch.visible = false;
     this.scene.add(this.arch);
   }
@@ -630,10 +654,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
     }
     const texture = labelTexture(arch.label);
     const mesh = new Mesh(
-      new PlaneGeometry(2 * ROAD_HALF + 1.2, 0.8),
+      new PlaneGeometry(2 * ROAD_HALF + 1.8, 1.2),
       new MeshBasicMaterial({ map: texture, side: DoubleSide }),
     );
-    mesh.position.set(0, 5.4, 0.16);
+    mesh.position.set(0, 5.6, 0.24);
     this.arch.add(mesh);
     this.archLabel = { text: arch.label, texture, mesh };
   }
@@ -764,9 +788,13 @@ function labelTexture(text: string): CanvasTexture {
   canvas.height = 96;
   const ctx = canvas.getContext('2d');
   if (ctx) {
-    ctx.fillStyle = '#1b1e24';
-    ctx.fillRect(0, 0, 1024, 96);
+    // As the mocks: dark lettering on the volt banner, inside a dark keyline.
     ctx.fillStyle = '#d8ff3e';
+    ctx.fillRect(0, 0, 1024, 96);
+    ctx.strokeStyle = '#1b1e24';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(8, 8, 1008, 80);
+    ctx.fillStyle = '#1b1e24';
     ctx.font = 'bold 60px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

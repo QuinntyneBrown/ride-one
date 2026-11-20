@@ -58,6 +58,12 @@ const PALETTES: readonly Palette[] = [
   { wall: '#aebdc8', trim: '#f2f2ee', shutter: null, flowers: '#d8283a' },
 ];
 const AWNINGS = ['#b8322c', '#2f6b4f', '#2d4e7a', '#c9822b', '#6b2f4f'];
+const SIGNS: readonly { ground: string; emblem: 'cup' | 'key' | 'loaf' | 'wheel' }[] = [
+  { ground: '#2f5d4a', emblem: 'cup' },
+  { ground: '#7a2b2b', emblem: 'key' },
+  { ground: '#2d4e7a', emblem: 'loaf' },
+  { ground: '#1f2328', emblem: 'wheel' },
+];
 const ROOFS = ['#9a4b33', '#7c3d2c', '#a85a3a', '#5a5c63'];
 
 /** A spectator on the pavement. */
@@ -128,7 +134,14 @@ export class OldTownStreet {
   readonly group = new Group();
   private readonly houses: House[] = [];
   private readonly ribbons: { geometry: BufferGeometry; profile: [number, number][] }[] = [];
-  private readonly random = seeded(29);
+  /** Each house draws its details from its own sequence, so one new detail moves no other. */
+  private random = seeded(29);
+  private houseIndex = 0;
+
+  /** A draw in [0, 1) of its own for this house and `feature`, independent of every other. */
+  private chance(feature: number): number {
+    return seeded(7919 * (this.houseIndex + 1) + 104729 * feature)();
+  }
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly brick = new MeshStandardMaterial({ color: 0x8e4a37, roughness: 0.95 });
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
@@ -137,6 +150,24 @@ export class OldTownStreet {
   private fans: InstancedMesh[] = [];
   private flags: InstancedMesh | null = null;
   private readonly cathedral = new Group();
+  private readonly iron = new MeshStandardMaterial({ color: 0x1e2023, metalness: 0.5, roughness: 0.5 });
+  private readonly signBoard = new PlaneGeometry(0.7, 0.55);
+  private readonly dormer = tiledBox(1.6, 1.6, 1.5, 1.6, 0.25);
+  private readonly dormerRoof = prism(1.9, 0.8, 1.8);
+  /** The shop signs: a gilt emblem on a painted board, read from either side. */
+  private readonly signs = SIGNS.map(
+    (sign) =>
+      new MeshStandardMaterial({ map: signTexture(sign.ground, sign.emblem), side: DoubleSide, roughness: 0.6 }),
+  );
+  /** Wrought iron: balusters and a scroll, cut out of the canvas. */
+  private readonly railing = new MeshStandardMaterial({
+    map: railingTexture(),
+    alphaTest: 0.5,
+    side: DoubleSide,
+    color: 0x1e2023,
+    metalness: 0.5,
+    roughness: 0.5,
+  });
   private readonly matrix = new Matrix4();
   private readonly spot = new Vector3();
   private readonly turn = new Quaternion();
@@ -148,7 +179,10 @@ export class OldTownStreet {
   ) {}
 
   build(roadHalf: number, points: number): void {
-    this.disposables.push(this.unit, this.brick);
+    this.disposables.push(this.unit, this.brick, this.railing);
+    if (this.railing.map) this.track(this.railing.map);
+    this.disposables.push(this.iron, this.signBoard, this.dormer, this.dormerRoof, ...this.signs);
+    for (const sign of this.signs) if (sign.map) this.track(sign.map);
     this.addFurniture(roadHalf);
     this.addCrowd(roadHalf);
     this.addBunting();
@@ -190,6 +224,9 @@ export class OldTownStreet {
       ]);
     }
     const upper = PALETTES.map((p) => this.material(this.track(bayTexture(p, false))));
+    const shut = PALETTES.map((p, i) =>
+      p.shutter ? this.material(this.track(bayTexture(p, false, true))) : upper[i]!,
+    );
     const shop = PALETTES.map((p) => this.material(this.track(bayTexture(p, true))));
     const roofs = ROOFS.map((color) => this.material(this.track(tileTexture(color))));
     const gables = PALETTES.map((p) => this.material(null, p.wall));
@@ -211,8 +248,10 @@ export class OldTownStreet {
         if (style >= last) style++;
         last = style;
         const roof = roofs[Math.floor(layout() * roofs.length)]!;
+        this.houseIndex = this.houses.length;
+        this.random = seeded(7919 * (this.houses.length + 1) + 2);
         const mesh = this.house(width, storeys, {
-          upper: upper[style]!,
+          upper: (this.chance(1) < 0.3 ? shut : upper)[style]!,
           ...(this.random() < 0.5
             ? {
                 shop: shop[style]!,
@@ -582,6 +621,20 @@ export class OldTownStreet {
     const roofGeometry = prism(DEPTH + 0.6, rise, width + 0.2);
     const roofMesh = new Mesh(roofGeometry, roof);
     roofMesh.position.set(-DEPTH / 2, SHOP + height, 0);
+    // Dormers on the street side of the roof, each a window under its own small gable.
+    const dormers = Math.floor(this.random() * 3);
+    for (let i = 0; i < dormers; i++) {
+      const z = ((i + 0.5) / dormers - 0.5) * (width - 2);
+      const back = 1.6;
+      const base = SHOP + height + rise * (back / (DEPTH / 2 + 0.3));
+      const cheek = new Mesh(this.dormer, upper);
+      cheek.position.set(-back + 0.6, base + 0.5, z);
+      const cap = new Mesh(this.dormerRoof, roof);
+      cap.position.set(-back + 0.6, base + 1.15, z);
+      cap.rotation.y = Math.PI / 2;
+      cheek.castShadow = cap.castShadow = true;
+      group.add(cheek, cap);
+    }
     // One or two chimney stacks through the roof, each with its clay pot.
     const stacks = 1 + Math.floor(this.random() * 2);
     for (let i = 0; i < stacks; i++) {
@@ -603,10 +656,54 @@ export class OldTownStreet {
     }
     group.add(shopMesh, upperMesh, roofMesh);
     if (look.awning) group.add(this.awning(look.awning, width));
+    if (this.random() < 0.4) group.add(this.balcony(look.trim, width));
+    if (look.groundBay === BAY && this.random() < 0.6) group.add(this.sign(width));
     // The cornice under the eaves, and the string course over the shop floor.
     group.add(this.trim(trim, width + 0.3, 0.45, 0.42, SHOP + height - 0.22));
     group.add(this.trim(trim, width, 0.2, 0.24, SHOP));
     this.disposables.push(shopBox, upperBox, roofGeometry);
+    return group;
+  }
+
+  /** A painted sign on an iron bracket, standing out from the shop over the pavement. */
+  private sign(width: number): Group {
+    const group = new Group();
+    const z = (this.random() - 0.5) * (width - 2);
+    const arm = new Mesh(this.unit, this.iron);
+    arm.scale.set(1.1, 0.05, 0.05);
+    arm.position.set(0.55, SHOP + 0.9, z);
+    const board = new Mesh(this.signBoard, this.signs[Math.floor(this.random() * this.signs.length)]!);
+    board.rotation.y = Math.PI / 2;
+    board.rotateY(Math.PI / 2);
+    board.position.set(0.75, SHOP + 0.5, z);
+    arm.castShadow = board.castShadow = true;
+    group.add(arm, board);
+    return group;
+  }
+
+  /** A first-floor balcony the width of the house: a stone slab and a wrought-iron railing. */
+  private balcony(stone: Material, width: number): Group {
+    const group = new Group();
+    const deep = 0.85;
+    const floor = SHOP + 0.15;
+    const slab = new Mesh(this.unit, stone);
+    slab.scale.set(deep, 0.16, width - 0.8);
+    slab.position.set(deep / 2, floor, 0);
+    slab.castShadow = true;
+    group.add(slab);
+    const front = new PlaneGeometry(width - 0.8, 0.95);
+    const end = new PlaneGeometry(deep, 0.95);
+    this.disposables.push(front, end);
+    const rail = new Mesh(front, this.railing);
+    rail.rotation.y = Math.PI / 2;
+    rail.position.set(deep, floor + 0.55, 0);
+    group.add(rail);
+    for (const z of [-1, 1]) {
+      const side = new Mesh(end, this.railing);
+      side.position.set(deep / 2, floor + 0.55, (z * (width - 0.8)) / 2);
+      group.add(side);
+    }
+    for (const m of group.children) m.castShadow = true;
     return group;
   }
 
@@ -819,7 +916,7 @@ function homeTexture(palette: Palette): CanvasTexture {
 }
 
 /** One bay of a façade: an upper storey's shuttered window, or the shop floor's window. */
-function bayTexture(palette: Palette, shop: boolean): CanvasTexture {
+function bayTexture(palette: Palette, shop: boolean, closed = false): CanvasTexture {
   const w = 192;
   const h = shop ? 268 : 205;
   const canvas = document.createElement('canvas');
@@ -834,6 +931,12 @@ function bayTexture(palette: Palette, shop: boolean): CanvasTexture {
       ctx.fillStyle = random() < 0.5 ? 'rgba(0,0,0,0.035)' : 'rgba(255,255,255,0.05)';
       ctx.fillRect(random() * w, random() * h, 2 + random() * 6, 2 + random() * 6);
     }
+    // Weathering: grime splashed up from the street, and rain streaks under each sill.
+    const grime = ctx.createLinearGradient(0, h * 0.7, 0, h);
+    grime.addColorStop(0, 'rgba(60,50,40,0)');
+    grime.addColorStop(1, shop ? 'rgba(60,50,40,0.28)' : 'rgba(60,50,40,0.08)');
+    ctx.fillStyle = grime;
+    ctx.fillRect(0, 0, w, h);
     if (shop) {
       // A stone plinth, and a shop front in painted wood: a lit window above a panel.
       ctx.fillStyle = 'rgba(60,45,35,0.25)';
@@ -885,7 +988,7 @@ function bayTexture(palette: Palette, shop: boolean): CanvasTexture {
       const wh = 118;
       const x = (w - ww) / 2;
       const y = 44;
-      if (palette.shutter) {
+      if (palette.shutter && !closed) {
         ctx.fillStyle = palette.shutter;
         ctx.fillRect(x - 34, y, 32, wh);
         ctx.fillRect(x + ww + 2, y, 32, wh);
@@ -907,8 +1010,24 @@ function bayTexture(palette: Palette, shop: boolean): CanvasTexture {
       ctx.fillStyle = palette.trim;
       ctx.fillRect(x + ww / 2 - 2, y, 4, wh);
       ctx.fillRect(x, y + wh * 0.38, ww, 4);
+      if (closed && palette.shutter) {
+        // Both leaves shut against the afternoon sun.
+        ctx.fillStyle = palette.shutter;
+        ctx.fillRect(x, y, ww, wh);
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        for (let ly = y + 6; ly < y + wh; ly += 8) ctx.fillRect(x + 2, ly, ww - 4, 2);
+        ctx.fillRect(x + ww / 2 - 1, y, 2, wh);
+      }
       ctx.fillStyle = 'rgba(0,0,0,0.2)';
       ctx.fillRect(x - 8, y + wh + 10, ww + 16, 4);
+      for (let i = 0; i < 7; i++) {
+        const sx = x - 4 + random() * (ww + 8);
+        const streak = ctx.createLinearGradient(0, y + wh + 14, 0, h);
+        streak.addColorStop(0, 'rgba(70,60,50,0.16)');
+        streak.addColorStop(1, 'rgba(70,60,50,0)');
+        ctx.fillStyle = streak;
+        ctx.fillRect(sx, y + wh + 14, 2 + random() * 4, h - y - wh - 14);
+      }
       if (palette.flowers) {
         // A window box of geraniums on the sill.
         const by = y + wh + 2;
@@ -1114,6 +1233,79 @@ function gothicTexture(open: boolean): CanvasTexture {
     }
   }
   const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A shop sign: a painted board with a gilt border and the trade's emblem. */
+function signTexture(ground: string, emblem: 'cup' | 'key' | 'loaf' | 'wheel'): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 100;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = ground;
+    ctx.fillRect(0, 0, 128, 100);
+    ctx.strokeStyle = '#d6b456';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(6, 6, 116, 88);
+    ctx.fillStyle = '#e3c463';
+    ctx.strokeStyle = '#e3c463';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    if (emblem === 'cup') {
+      ctx.roundRect(42, 34, 36, 36, [0, 0, 14, 14]);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(82, 50, 9, -Math.PI / 2, Math.PI / 2);
+      ctx.stroke();
+    } else if (emblem === 'key') {
+      ctx.arc(44, 50, 12, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillRect(56, 47, 38, 6);
+      ctx.fillRect(84, 53, 6, 10);
+    } else if (emblem === 'loaf') {
+      ctx.ellipse(64, 54, 32, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.arc(64, 50, 22, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let a = 0; a < 6; a++) {
+        ctx.fillRect(64 + Math.cos(a) * 2 - 2, 50 - 2, 4, 4);
+      }
+      ctx.moveTo(42, 50);
+      ctx.lineTo(86, 50);
+      ctx.moveTo(64, 28);
+      ctx.lineTo(64, 72);
+      ctx.stroke();
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A balcony railing, one metre per repeat: a top rail, a bottom rail, balusters and a scroll. */
+function railingTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#ffffff';
+    ctx.fillRect(0, 0, 128, 8);
+    ctx.fillRect(0, 114, 128, 6);
+    for (let x = 4; x < 128; x += 16) ctx.fillRect(x, 0, 4, 120);
+    ctx.lineWidth = 4;
+    for (const cx of [32, 96]) {
+      ctx.beginPath();
+      ctx.arc(cx, 60, 14, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
