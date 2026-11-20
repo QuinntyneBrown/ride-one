@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -204,6 +204,16 @@ None.
   - crowd barriers along both kerbs hung with the crit's boards, turned to face the riders;
   - the prime sprint's banner hung from the L over a chequered line once a lap;
   - fans leaning on the barriers, cheering (`Figures`).
+- **Golden Gate Park (`core/world-goldengate.ts`).** For `goldengate`, John F. Kennedy Drive through San Francisco's park on a foggy summer morning, closed to cars for the race:
+  - the drive between low kerbs with the fans' writing every 25 m, race barriers hung with the race's banners (GOLDEN GATE PARK, JFK DRIVE, OCEAN BEACH, FOG CITY), cloth banners across it and the park's green lamp standards;
+  - lawns either side, then groves on a floor of fallen leaves: tall eucalyptus with pale peeling trunks and hanging blue-green crowns, wind-flattened Monterey cypress and Monterey pines;
+  - on the left the bison paddock: a dry meadow behind a post-and-rail fence with its sign at the gate, a feed shed and the herd grazing;
+  - on the right Spreckels Lake with model yachts tacking across it, and the park path where roller skaters and joggers go both ways (the kit's `Figures`);
+  - the shared crowd in knots along the barriers, the lawns showing between them;
+  - ahead the Dutch Windmill above Ocean Beach, its octagonal shingled tower, gallery and domed cap, its four lattice sails turning on the street's clock, tulip beds at its foot and the dunes and the Pacific behind, hazed by hand;
+  - the fog rolling in off the ocean, the kit's `Mist`: curtains across the horizon and banks drifting low over the lawns.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -239,6 +249,7 @@ None.
 | `pages/world-ride/koppenberg` | Koppenberg Cobbles at 0:53, warm-up, next `Cobbled climb` |
 | `pages/world-ride/ventoux` | Mont Ventoux at 4:50, warm-up, next `Out of the saddle` |
 | `pages/world-ride/chicago` | Chicago Loop Crit at 4:50, warm-up, next `Corner sprint` |
+| `pages/world-ride/goldengate` | Golden Gate Park at 1:53, warm-up, next `Paddock sprint` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

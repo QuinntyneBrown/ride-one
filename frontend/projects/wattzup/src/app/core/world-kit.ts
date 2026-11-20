@@ -15,6 +15,7 @@ import {
   type Material,
   Matrix4,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   Quaternion,
@@ -523,4 +524,122 @@ export class Crowd {
     this.group.add(mesh);
     return mesh;
   }
+}
+
+/** A curtain of mist across the horizon: how far ahead it stands, how tall, how thick. */
+export interface MistCurtain {
+  readonly ahead: number;
+  readonly height: number;
+  readonly opacity: number;
+}
+
+export interface MistOptions {
+  readonly colour: number;
+  /** The street repeats every `loop` metres; the banks drift along it. */
+  readonly loop: number;
+  readonly curtains: readonly MistCurtain[];
+  /** How many banks lie low over open ground, and where the k-th lies off the road's centre. */
+  readonly banks: number;
+  readonly bankX: (k: number) => number;
+}
+
+/**
+ * Mist a street draws itself, since the physical sky takes no fog: soft curtains across the
+ * horizon that veil the lower sky and whatever stands behind them, and banks lying low over
+ * open ground, drifting on the street's clock.
+ */
+export class Mist {
+  private readonly curtains: { mesh: Mesh; ahead: number }[] = [];
+  private readonly banks: { mesh: Mesh; offset: number; x: number }[] = [];
+
+  constructor(
+    private readonly group: Group,
+    private readonly disposables: { dispose(): void }[],
+    private readonly track: <T extends Texture>(texture: T) => T,
+    private readonly options: MistOptions,
+  ) {}
+
+  build(): void {
+    const o = this.options;
+    const veil = this.track(mistTexture(true));
+    for (const c of o.curtains) {
+      const plane = new PlaneGeometry(9000, c.height);
+      plane.translate(0, c.height / 2, 0);
+      const material = new MeshBasicMaterial({
+        color: o.colour,
+        map: veil,
+        transparent: true,
+        opacity: c.opacity,
+        depthWrite: false,
+        fog: false,
+      });
+      this.disposables.push(plane, material);
+      const mesh = new Mesh(plane, material);
+      mesh.renderOrder = -1;
+      this.curtains.push({ mesh, ahead: c.ahead });
+      this.group.add(mesh);
+    }
+    const sheet = new PlaneGeometry(90, 70);
+    sheet.rotateX(-Math.PI / 2);
+    const material = new MeshBasicMaterial({
+      color: o.colour,
+      map: this.track(mistTexture(false)),
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false,
+    });
+    this.disposables.push(sheet, material);
+    for (let k = 0; k < o.banks; k++) {
+      const mesh = new Mesh(sheet, material);
+      this.group.add(mesh);
+      this.banks.push({ mesh, offset: (k * o.loop) / o.banks, x: o.bankX(k) });
+    }
+  }
+
+  /**
+   * Stands each curtain on the road's height that far ahead and floats the banks 1.6 m over
+   * the ground, `rise(x)` above the road `x` metres off its centre.
+   */
+  place(
+    time: number,
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+    rise: (x: number) => number,
+  ): void {
+    for (const c of this.curtains) c.mesh.position.set(0, heightAt(c.ahead) - 20, -c.ahead);
+    for (const bank of this.banks) {
+      const metres = along(bank.offset + time * 0.4, this.options.loop);
+      bank.mesh.position.set(bank.x, heightAt(Math.max(metres, 0)) + rise(bank.x) + 1.6, -metres);
+    }
+  }
+}
+
+/**
+ * Mist's alpha: for a curtain, thick at the foot and thinning upward; for a bank, soft
+ * blotches fading at the edges.
+ */
+function mistTexture(curtain: boolean): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    if (curtain) {
+      const fade = g.createLinearGradient(0, 256, 0, 0);
+      fade.addColorStop(0, 'rgba(255,255,255,1)');
+      fade.addColorStop(0.3, 'rgba(255,255,255,0.95)');
+      fade.addColorStop(0.6, 'rgba(255,255,255,0.55)');
+      fade.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = fade;
+      g.fillRect(0, 0, 256, 256);
+      return;
+    }
+    const random = seeded(439);
+    for (let i = 0; i < 26; i++) {
+      const x = 40 + random() * 176;
+      const y = 40 + random() * 176;
+      const r = 24 + random() * 40;
+      const blot = g.createRadialGradient(x, y, 0, x, y, r);
+      blot.addColorStop(0, 'rgba(255,255,255,0.5)');
+      blot.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = blot;
+      g.fillRect(0, 0, 256, 256);
+    }
+  });
 }

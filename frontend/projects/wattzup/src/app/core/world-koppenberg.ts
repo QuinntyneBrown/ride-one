@@ -18,7 +18,6 @@ import {
   Group,
   type Material,
   Mesh,
-  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
@@ -34,6 +33,8 @@ import {
   Crowd,
   hazedMaterial,
   loopMetres,
+  Mist,
+  type MistCurtain,
   paintTexture,
   Ribbons,
   scaleFaceUv,
@@ -67,7 +68,7 @@ const MIST = 0xc9cec4;
  * horizon, one behind the hill so the church rises out of it and a thinner one veiling the hill,
  * and banks lying low over the fields, drifting on the street's clock.
  */
-const CURTAINS: readonly { ahead: number; height: number; opacity: number }[] = [
+const CURTAINS: readonly MistCurtain[] = [
   { ahead: 1100, height: 900, opacity: 1 },
   { ahead: 520, height: 220, opacity: 0.7 },
   { ahead: 290, height: 50, opacity: 0.3 },
@@ -132,8 +133,7 @@ export class KoppenbergStreet implements SceneStreet {
   private readonly grazing: { mesh: Group; spot: Spot; heading: number }[] = [];
   private readonly hill = new Group();
   private readonly church = new Group();
-  private readonly curtains: Mesh[] = [];
-  private readonly banks: { mesh: Mesh; offset: number; x: number }[] = [];
+  private readonly mist: Mist;
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly lion = new MeshStandardMaterial({ side: DoubleSide, roughness: 0.8 });
@@ -151,6 +151,13 @@ export class KoppenbergStreet implements SceneStreet {
       new MeshStandardMaterial({ color: '#d8283a', side: DoubleSide, roughness: 0.8 }),
     ];
     this.ribbons = new Ribbons(this.group, disposables);
+    this.mist = new Mist(this.group, disposables, track, {
+      colour: MIST,
+      loop: LOOP,
+      curtains: CURTAINS,
+      banks: MIST_BANKS,
+      bankX: (k) => (k % 2 ? 1 : -1) * (62 + (k % 3) * 25),
+    });
     this.crowd = new Crowd(this.group, disposables, {
       loop: LOOP,
       near: CROWD_NEAR,
@@ -181,7 +188,7 @@ export class KoppenbergStreet implements SceneStreet {
     this.addTractor();
     this.addHill();
     this.addChurch();
-    this.addMist();
+    this.mist.build();
   }
 
   /** The street's clock, in seconds; held at 0 for reduced motion. */
@@ -212,14 +219,7 @@ export class KoppenbergStreet implements SceneStreet {
     });
     this.hill.position.set(0, heightAt(HILL_AHEAD), -HILL_AHEAD);
     this.church.position.set(0, heightAt(CHURCH_AHEAD), -CHURCH_AHEAD);
-    this.curtains.forEach((curtain, i) => {
-      const ahead = CURTAINS[i]!.ahead;
-      curtain.position.set(0, heightAt(ahead) - 20, -ahead);
-    });
-    for (const bank of this.banks) {
-      const metres = along(bank.offset + this.time * 0.4, LOOP);
-      bank.mesh.position.set(bank.x, ground(metres) + bankAt(bank.x) + 1.6, -metres);
-    }
+    this.mist.place(this.time, heightAt, along, bankAt);
   }
 
   /** The lane's muddy edges, the grass banks, the fields beyond and the barriers. */
@@ -677,50 +677,6 @@ export class KoppenbergStreet implements SceneStreet {
     this.group.add(c);
   }
 
-  /** The mist's curtains across the horizon and its banks over the fields. */
-  private addMist(): void {
-    const veil = this.track(mistTexture(true));
-    for (const c of CURTAINS) {
-      const plane = new PlaneGeometry(9000, c.height);
-      plane.translate(0, c.height / 2, 0);
-      this.disposables.push(plane);
-      const material = new MeshBasicMaterial({
-        color: MIST,
-        map: veil,
-        transparent: true,
-        opacity: c.opacity,
-        depthWrite: false,
-        fog: false,
-      });
-      this.disposables.push(material);
-      const curtain = new Mesh(plane, material);
-      curtain.renderOrder = -1;
-      this.curtains.push(curtain);
-      this.group.add(curtain);
-    }
-    const wisp = this.track(mistTexture(false));
-    const sheet = new PlaneGeometry(90, 70);
-    sheet.rotateX(-Math.PI / 2);
-    this.disposables.push(sheet);
-    const material = new MeshBasicMaterial({
-      color: MIST,
-      map: wisp,
-      transparent: true,
-      opacity: 0.45,
-      depthWrite: false,
-    });
-    this.disposables.push(material);
-    for (let k = 0; k < MIST_BANKS; k++) {
-      const mesh = new Mesh(sheet, material);
-      this.group.add(mesh);
-      this.banks.push({
-        mesh,
-        offset: (k * LOOP) / MIST_BANKS,
-        x: (k % 2 ? 1 : -1) * (62 + (k % 3) * 25),
-      });
-    }
-  }
-
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial({ roughness: 0.9, ...options });
     this.disposables.push(material);
@@ -744,36 +700,6 @@ function bankAt(x: number): number {
   if (d <= 14) return 0.25 + ((d - 8) / 6) * 0.9;
   if (d <= 60) return 1.15 + ((d - 14) / 46) * 1.2;
   return 2.35;
-}
-
-/**
- * Mist's alpha: for a curtain, thick at the foot and thinning upward with soft lumps along its
- * top; for a bank, soft blotches fading at the edges.
- */
-function mistTexture(curtain: boolean): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    if (curtain) {
-      const fade = g.createLinearGradient(0, 256, 0, 0);
-      fade.addColorStop(0, 'rgba(255,255,255,1)');
-      fade.addColorStop(0.3, 'rgba(255,255,255,0.95)');
-      fade.addColorStop(0.6, 'rgba(255,255,255,0.55)');
-      fade.addColorStop(1, 'rgba(255,255,255,0)');
-      g.fillStyle = fade;
-      g.fillRect(0, 0, 256, 256);
-      return;
-    }
-    const random = seeded(439);
-    for (let i = 0; i < 26; i++) {
-      const x = 40 + random() * 176;
-      const y = 40 + random() * 176;
-      const r = 24 + random() * 40;
-      const blot = g.createRadialGradient(x, y, 0, x, y, r);
-      blot.addColorStop(0, 'rgba(255,255,255,0.5)');
-      blot.addColorStop(1, 'rgba(255,255,255,0)');
-      g.fillStyle = blot;
-      g.fillRect(0, 0, 256, 256);
-    }
-  });
 }
 
 /** Grey Balegem stone in courses. */
