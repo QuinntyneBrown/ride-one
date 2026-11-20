@@ -3263,13 +3263,30 @@ function sandTexture(): CanvasTexture {
   return canvasTexture(64, 64, (g) => speckle(g, 64, 64, '#8a8a9a', 8171));
 }
 
-/** The night sea, ripples catching the light. */
+/**
+ * The night sea: long low swells running in to the shore, dark in their troughs and catching
+ * the moon and the city's violet glow along their crests, broken by small chop.
+ */
 function seaTexture(): CanvasTexture {
-  return canvasTexture(128, 128, (g) => {
-    speckle(g, 128, 128, '#2a3060', 8181);
-    const random = seeded(8183);
-    g.fillStyle = 'rgba(200,210,255,0.3)';
-    for (let i = 0; i < 40; i++) g.fillRect(random() * 128, random() * 128, 10, 1);
+  return canvasTexture(256, 256, (g) => {
+    g.fillStyle = '#1e2452';
+    g.fillRect(0, 0, 256, 256);
+    const random = seeded(8181);
+    for (let y = 0; y < 256; y += 16) {
+      const phase = random() * 6;
+      // The trough, darker, then the crest catching the light.
+      g.fillStyle = 'rgba(8,10,30,0.45)';
+      for (let x = 0; x < 256; x += 2) g.fillRect(x, y + 6 + Math.sin(x / 20 + phase) * 3, 2, 6);
+      for (let x = 0; x < 256; x += 2) {
+        const glint = Math.max(0, Math.sin(x / 9 + phase * 3));
+        g.fillStyle = `rgba(${170 + glint * 60},${160 + glint * 60},255,${(0.15 + glint * 0.35).toFixed(2)})`;
+        g.fillRect(x, y + 3 + Math.sin(x / 20 + phase) * 3, 2, 1.5);
+      }
+    }
+    for (let i = 0; i < 160; i++) {
+      g.fillStyle = 'rgba(200,210,255,0.3)';
+      g.fillRect(random() * 256, random() * 256, 3 + random() * 6, 1);
+    }
   });
 }
 
