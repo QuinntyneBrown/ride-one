@@ -650,6 +650,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 1.4, colour: 0xfff6ea },
     fogRange: [250, 3200],
   },
+  // A warm Californian afternoon in the Napa Valley: a clear high sky, the sun behind the rider's
+  // left shoulder, golden light on the vines and a dusty warm haze over the hills and the ridges.
+  napa: {
+    sky: 0x8cbce8,
+    fog: 0xe4d6b8,
+    ground: 0xb59a5a,
+    road: 0x5c5c5e,
+    sun: 36,
+    wet: false,
+    haze: false,
+    turbidity: 4.4,
+    rayleigh: 1.4,
+    azimuth: -135,
+    light: { sun: 3.1, fill: 1.2, colour: 0xffe2b8 },
+    fogRange: [220, 2600],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

@@ -1571,6 +1571,7 @@
     },
     {
       "id": "easy-riding",
+      "world": "napa",
       "title": "Easy Riding",
       "channel": "GCN Training",
       "focus": "Endurance",
