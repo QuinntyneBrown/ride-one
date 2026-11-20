@@ -816,8 +816,8 @@ export class AmsterdamStreet implements SceneStreet {
   }
 
   /**
-   * The quay's street furniture: a green cast-iron krul, the canals' curled urinal screen, near
-   * the first bridge, and dark green litter bins on posts every 45 m along both kerbs.
+   * The quay's street furniture: a green cast-iron krul, the canals' curled urinal screen, just
+   * past the first bridge, and dark green litter bins on posts every 45 m along both kerbs.
    */
   private addStreetFurniture(roadHalf: number): void {
     const green = this.material({
@@ -851,7 +851,7 @@ export class AmsterdamStreet implements SceneStreet {
     const spot = new Group();
     spot.add(krul);
     this.group.add(spot);
-    this.props.push({ mesh: spot, offset: BRIDGE - 3, x: -roadHalf - QUAY + 2.4 });
+    this.props.push({ mesh: spot, offset: BRIDGE + 11, x: -roadHalf - QUAY + 2.4 });
     for (const x of [-roadHalf - 2.6, roadHalf + 0.35]) {
       for (let offset = 7; offset < LOOP; offset += 45) {
         if (bridgeGap(offset) !== null) continue;
@@ -959,6 +959,12 @@ export class AmsterdamStreet implements SceneStreet {
     const stone = this.material({ color: 0xd9d2c4, roughness: 0.85 });
     const iron = this.material({ color: 0x1c2a22, metalness: 0.5, roughness: 0.45 });
     const arch = bridgeGeometry();
+    const box = this.material({ color: 0x2a2a24, roughness: 0.8 });
+    const bloom = this.material({ color: 0xd8283e, roughness: 0.8 });
+    const glow = this.material({ color: 0xfff6e0, emissive: 0xfff0d0, emissiveIntensity: 0.4 });
+    const geraniums = geraniumGeometry();
+    const bulbs = archBulbs();
+    this.disposables.push(geraniums, bulbs);
     const railing = bridgeRailing();
     this.disposables.push(arch, railing);
     for (let offset = 0; offset < LOOP; offset += BRIDGE) {
@@ -979,7 +985,25 @@ export class AmsterdamStreet implements SceneStreet {
           pier.position.set(u, KERB + 0.6 + 1.4 * Math.sin((Math.PI * u) / CANAL), z);
           bridge.add(pier);
         }
+        // Planters of trailing geraniums hung along the railing's outer side, as the canal
+        // bridges carry them from spring to autumn.
+        for (let u = 3; u < CANAL - 2; u += 3.6) {
+          const top = KERB + 1.4 * Math.sin((Math.PI * u) / CANAL) + 0.8;
+          const planter = new Mesh(this.unit, box);
+          planter.scale.set(1.2, 0.3, 0.32);
+          planter.position.set(u, top, z * 1.06);
+          planter.rotation.z = Math.atan(
+            ((1.4 * Math.PI) / CANAL) * Math.cos((Math.PI * u) / CANAL),
+          );
+          const flowers = new Mesh(geraniums, bloom);
+          flowers.position.set(u, top + 0.15, z * 1.06);
+          flowers.rotation.set(0, Math.PI / 2, planter.rotation.z);
+          flowers.scale.set(1, 1.2, 1.2);
+          bridge.add(planter, flowers);
+        }
       }
+      // A row of white bulbs along the arch's face, lit at dusk.
+      bridge.add(new Mesh(bulbs, glow));
       bridge.scale.x = -1;
       this.group.add(bridge);
       this.props.push({ mesh: bridge, offset: offset + 2, x: -roadHalf - QUAY });
@@ -1980,6 +2004,24 @@ function bridgeGeometry(): BufferGeometry {
   const geometry = new ExtrudeGeometry(shape, { depth: 7, bevelEnabled: false });
   geometry.translate(0, 0, -3.5);
   return geometry;
+}
+
+/** Bulbs along both faces of a bridge's arch, following the opening's curve. */
+function archBulbs(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const span = CANAL - 8;
+  for (let k = 0; k <= 30; k++) {
+    const u = 4 + (k / 30) * span;
+    const y = -WATER + 2.9 * Math.sin((Math.PI * (u - 4)) / span) + 0.1;
+    for (const z of [-3.55, 3.55]) {
+      const bulb = new SphereGeometry(0.05, 5, 4);
+      bulb.translate(u, y, z);
+      parts.push(bulb);
+    }
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
 }
 
 /**
