@@ -164,7 +164,8 @@ export interface components {
         | 'tahoe'
         | 'deathvalley'
         | 'atacama'
-        | 'angkor';
+        | 'angkor'
+        | 'maunakea';
     };
     ClassShelfResponse: {
       id: string;

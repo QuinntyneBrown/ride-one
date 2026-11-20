@@ -882,6 +882,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Angkor Temples');
   });
 
+  test('rides 60 Minutes of Brutal Power up Mauna Kea past the observatories', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '60 Minutes of Brutal Power',
+      'Mauna Kea',
+      '60-minutes-of-brutal-power',
+    );
+    await expect(world.heading).toHaveText('Mauna Kea');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Mauna Kea');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

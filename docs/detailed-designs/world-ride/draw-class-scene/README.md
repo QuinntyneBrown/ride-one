@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`, `deathvalley`, `atacama`, `angkor`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`, `deathvalley`, `atacama`, `angkor`, `maunakea`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -624,6 +624,11 @@ None.
   - ruined sandstone gateways crowned with a carved face, fallen mossy blocks, and a strangler fig's roots poured over one;
   - tuk-tuks waiting on the verge, and monks in saffron robes walking it (`Figures`);
   - Angkor Wat's terraces and five lotus-bud towers dark against the sunrise across the water, keeping their bearing.
+- **Mauna Kea (`core/world-maunakea.ts`).** For `maunakea`, the summit road late in the afternoon, far above the clouds:
+  - the steep road with snow poles at its edge, the rust-red cinder slopes climbing on the right and the flank falling away on the left, the ground sunk below the cloud sea (`sink`);
+  - red and black cinder cones with their craters and old snow, and lava blocks strewn on the scree;
+  - stargazers with telescopes waiting by the road (`Figures`), and a support truck with its amber beacon grinding up behind the riders on the ride's clock;
+  - the sea of cloud drifting on the ride's clock, Mauna Loa's broad shield rising out of it, and the observatories' white and silver domes on the summit ridge, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -719,6 +724,7 @@ None.
 | `pages/world-ride/deathvalley` | Death Valley at 4:53, warm-up, next `Heat surge` |
 | `pages/world-ride/atacama` | Atacama Desert at 4:50, warm-up, next `Salt-flat burn` |
 | `pages/world-ride/angkor` | Angkor Temples at 4:50, warm-up, next `Pyramid step` |
+| `pages/world-ride/maunakea` | Mauna Kea at 4:50, warm-up, next `Summit grind` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
