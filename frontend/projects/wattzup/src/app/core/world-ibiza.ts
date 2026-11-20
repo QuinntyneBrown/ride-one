@@ -18,12 +18,14 @@ import {
   ConeGeometry,
   CylinderGeometry,
   DoubleSide,
+  ExtrudeGeometry,
   Group,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
+  Shape,
   SphereGeometry,
   type Texture,
 } from 'three/webgpu';
@@ -610,28 +612,49 @@ export class IbizaStreet implements SceneStreet {
     const mid = far / 2 + 20;
     path.position.set(Math.sin(azimuth) * mid, -2.1, -Math.cos(azimuth) * mid);
     this.sea.add(path);
-    // Conillera, long and dark against the glow, its lighthouse at the end, and its islets.
-    const island = hazedMaterial(this.disposables, haze, 0x4a3450, 0.3);
-    for (const [x, z, w, tall, d] of [
-      [-520, -880, 360, 70, 120],
-      [-330, -860, 160, 46, 90],
-      [-700, -920, 180, 40, 90],
-      [-190, -760, 50, 14, 30],
-      [-240, -740, 30, 9, 20],
-    ] as const) {
-      const ridge = new Mesh(new SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), island);
-      this.disposables.push(ridge.geometry);
-      ridge.scale.set(w / 2, tall, d / 2);
-      ridge.position.set(x, -4, z);
-      h.add(ridge);
-    }
+    // Conillera, long and rugged against the glow: a ridge of rocky peaks rising from sheer
+    // cliffs at either end, the islets off its tip, and the lighthouse on its point, lit.
+    const island = hazedMaterial(this.disposables, haze, 0x3e2a48, 0.22);
+    const random = seeded(7301);
+    const ridge = (from: number, to: number, high: number, z: number, depth: number) => {
+      const shape = new Shape();
+      shape.moveTo(from, -6);
+      shape.lineTo(from + 6, high * 0.45);
+      // A rolling, uneven crest: a long swell broken by humps and saddles, not a regular saw.
+      const steps = Math.round((to - from) / 8);
+      const phase = random() * 6;
+      for (let k = 1; k < steps; k++) {
+        const u = k / steps;
+        const swell = Math.sin(Math.PI * u) ** 0.45;
+        const rough = 0.82 + 0.12 * Math.sin(7 * u + phase) + 0.07 * Math.sin(19 * u + 2 * phase);
+        shape.lineTo(from + (to - from) * u, high * (0.5 + 0.5 * swell) * rough);
+      }
+      shape.lineTo(to - 6, high * 0.4);
+      shape.lineTo(to, -6);
+      shape.closePath();
+      const geometry = new ExtrudeGeometry(shape, { depth, bevelEnabled: false });
+      geometry.translate(0, 0, z - depth / 2);
+      this.disposables.push(geometry);
+      h.add(new Mesh(geometry, island));
+    };
+    ridge(-980, -260, 92, -720, 140);
+    ridge(-240, -180, 26, -690, 40);
+    ridge(-165, -140, 14, -680, 24);
+    ridge(-1180, -1010, 40, -760, 60);
     const tower = new Mesh(
-      new CylinderGeometry(1.4, 1.8, 12, 8),
-      hazedMaterial(this.disposables, haze, 0xf4ece0, 0.2),
+      new CylinderGeometry(2.2, 2.8, 16, 10),
+      hazedMaterial(this.disposables, haze, 0xf4ece0, 0.15),
     );
     this.disposables.push(tower.geometry);
-    tower.position.set(-700, 40, -920);
+    tower.position.set(-430, 74, -650);
     h.add(tower);
+    const lamp = new Mesh(
+      new SphereGeometry(3, 12, 8),
+      new MeshBasicMaterial({ color: 0xfff0c0, toneMapped: false, fog: false }),
+    );
+    this.disposables.push(lamp.geometry, lamp.material as MeshBasicMaterial);
+    lamp.position.set(-430, 84, -650);
+    h.add(lamp);
     // The headland of the bay ahead and right, its whitewashed town climbing the hill.
     const hill = hazedMaterial(this.disposables, haze, 0x6a5a48, 0.35);
     const headland = new Mesh(new SphereGeometry(1, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), hill);
@@ -642,14 +665,14 @@ export class IbizaStreet implements SceneStreet {
     const town = hazedMaterial(this.disposables, haze, 0xf6efe4, 0.25);
     const box = new BoxGeometry(1, 1, 1);
     this.disposables.push(box);
-    const random = seeded(7301);
+    const scatter = seeded(7303);
     for (let k = 0; k < 70; k++) {
-      const x = 40 + random() * 420;
-      const z = -120 - random() * 320;
+      const x = 40 + scatter() * 420;
+      const z = -120 - scatter() * 320;
       const lift = Math.max(0, 90 * (1 - ((x - 420) / 500) ** 2 - ((z + 420) / 240) ** 2)) - 8;
-      const tall = 6 + random() * 10;
+      const tall = 6 + scatter() * 10;
       const block = new Mesh(box, town);
-      block.scale.set(10 + random() * 12, tall, 10 + random() * 10);
+      block.scale.set(10 + scatter() * 12, tall, 10 + scatter() * 10);
       block.position.set(x, lift + tall / 2 - 2, z);
       h.add(block);
     }
