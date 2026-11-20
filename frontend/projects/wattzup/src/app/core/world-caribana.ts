@@ -77,6 +77,11 @@ const BARRICADE_BANNERS = [
   { text: 'PLAY MAS', fill: '#c8102e', ink: '#ffffff' },
 ] as const;
 
+/** The Gardiner Expressway's deck runs north of the boulevard between these, this high. */
+const GARDINER_NEAR = -40;
+const GARDINER_FAR = -63;
+const GARDINER_DECK = 9.5;
+
 /** Caribbean flags in the crowd and on the lamp banners: T&T, Jamaica, Barbados, Guyana. */
 const FLAG_KINDS = ['trinidad', 'jamaica', 'barbados', 'guyana'] as const;
 type FlagKind = (typeof FLAG_KINDS)[number];
@@ -191,6 +196,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly boats: Group[] = [];
   private readonly clouds = new Group();
   private readonly ontarioPlace = new Group();
+  private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
   private readonly mokos: {
     figure: Group;
     legs: [Group, Group];
@@ -241,6 +247,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addTrucks();
     this.addLamps();
     this.addTrees();
+    this.addGardiner(points);
     this.addDowntown();
     this.addOntarioPlace();
     this.addBoats();
@@ -269,6 +276,10 @@ export class CaribanaStreet implements SceneStreet {
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
+    for (const e of this.expressway) {
+      const metres = along(e.offset + this.time * e.speed, LOOP);
+      e.car.position.set(e.x, heightAt(Math.max(metres, 0)) + GARDINER_DECK, -metres);
+    }
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
     this.ontarioPlace.position.set(0, heightAt(1e6), 0);
     // The cumulus drift slowly east with the lake breeze, a sky that never quite repeats.
@@ -963,7 +974,7 @@ export class CaribanaStreet implements SceneStreet {
     for (const { trunk, crown } of shapes) this.disposables.push(trunk, crown);
     const random = seeded(211);
     for (const side of [-1, 1] as const) {
-      const every = side < 0 ? 11 : 23;
+      const every = side < 0 ? 26 : 23;
       for (let offset = 0; offset < LOOP; offset += every) {
         const tree = new Group();
         const shape = shapes[Math.floor(random() * shapes.length)]!;
@@ -978,6 +989,105 @@ export class CaribanaStreet implements SceneStreet {
         const x = side < 0 ? -(12 + random() * 7) : 12 + random() * 2;
         this.props.push({ mesh: tree, offset: offset + random() * 4, every: LOOP, x });
       }
+    }
+  }
+
+  /**
+   * The Gardiner Expressway, elevated north of the boulevard: a concrete deck of six lanes on
+   * bents of twin columns under a pier cap every 30 m, Jersey-barrier parapets, light poles on
+   * the median, and traffic running both ways above the parade.
+   */
+  private addGardiner(points: number): void {
+    const concrete = this.material({
+      map: this.repeat(concreteTexture(), 6, 6),
+      color: 0xc8c3ba,
+      roughness: 0.95,
+    });
+    const shade = this.material({ color: 0x7e7a74, roughness: 1 });
+    const deck = this.material({ color: 0x5d5f63, roughness: 0.9 });
+    const n = GARDINER_NEAR;
+    const f = GARDINER_FAR;
+    const d = GARDINER_DECK;
+    // The parapet facing the boulevard, the deck, and the far parapet.
+    this.ribbons.add(points, concrete, [
+      [n, d - 1.4],
+      [n, d + 0.9],
+      [n - 0.4, d + 0.9],
+      [n - 0.5, d],
+    ]);
+    this.ribbons.add(points, deck, [
+      [n - 0.5, d],
+      [f + 0.5, d],
+    ]);
+    this.ribbons.add(points, concrete, [
+      [f + 0.5, d],
+      [f + 0.4, d + 0.9],
+      [f, d + 0.9],
+    ]);
+    this.ribbons.add(points, shade, [
+      [f, d - 1.4],
+      [n, d - 1.4],
+    ]);
+    const column = new CylinderGeometry(0.75, 0.85, d - 1.4, 14);
+    column.translate(0, (d - 1.4) / 2, 0);
+    const cap = new BoxGeometry(2.2, 1.3, (n - f) * 0.92);
+    cap.translate(0, d - 2.05, 0);
+    const pole = new CylinderGeometry(0.08, 0.12, 9, 8);
+    pole.translate(0, d + 4.5, 0);
+    const arms = new BoxGeometry(0.08, 0.08, 5);
+    arms.translate(0, d + 9, 0);
+    this.disposables.push(column, cap, pole, arms);
+    const steel = this.material({ color: 0xa9aeb2, metalness: 0.7, roughness: 0.45 });
+    for (let offset = 0; offset < LOOP; offset += 30) {
+      const bent = new Group();
+      const centre = (n + f) / 2;
+      for (const z of [-6.5, 6.5]) {
+        const c = new Mesh(column, concrete);
+        c.position.set(0, 0, z);
+        bent.add(c);
+      }
+      const capMesh = new Mesh(cap, concrete);
+      bent.add(capMesh);
+      bent.rotation.y = Math.PI / 2;
+      const holder = new Group();
+      holder.add(bent);
+      if ((offset / 30) % 2 === 0) holder.add(new Mesh(pole, steel), new Mesh(arms, steel));
+      holder.traverse((o) => (o.castShadow = true));
+      holder.position.x = centre;
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, every: LOOP, x: centre, road: true });
+    }
+    // Traffic: eastbound in the near lanes, westbound in the far ones.
+    const paints = [0xf2f2f2, 0x1c1c1e, 0x8e9499, 0xb3121f, 0x23466e, 0xd9d4c7];
+    const random = seeded(887);
+    const glass = this.material({ color: 0x1e2a33, roughness: 0.1, metalness: 0.6 });
+    const tyre = this.material({ color: 0x141414, roughness: 0.9 });
+    for (let k = 0; k < 14; k++) {
+      const car = new Group();
+      const paint = this.material({
+        color: paints[Math.floor(random() * paints.length)]!,
+        roughness: 0.3,
+        metalness: 0.5,
+      });
+      const body = new Mesh(this.unit, paint);
+      body.scale.set(1.8, 0.75, 4.5);
+      body.position.y = 0.65;
+      const cabin = new Mesh(this.unit, glass);
+      cabin.scale.set(1.6, 0.55, 2.4);
+      cabin.position.set(0, 1.3, 0.2);
+      const wheels = new Mesh(this.unit, tyre);
+      wheels.scale.set(1.9, 0.5, 3.2);
+      wheels.position.y = 0.3;
+      car.add(body, cabin, wheels);
+      const eastbound = k % 2 === 0;
+      const lane = Math.floor(random() * 3);
+      this.group.add(car);
+      this.expressway.push({
+        car,
+        offset: random() * LOOP,
+        speed: eastbound ? 14 + random() * 6 : -(14 + random() * 6),
+        x: eastbound ? n - 2.5 - lane * 3.5 : f + 2.5 + lane * 3.5,
+      });
     }
   }
 
