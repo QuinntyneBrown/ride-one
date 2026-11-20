@@ -1271,6 +1271,7 @@ export class AmsterdamStreet implements SceneStreet {
       roughness: 0.2,
     });
     const clothes = this.material({ vertexColors: true, roughness: 0.85 });
+    const chalk = this.material({ map: this.track(menuBoardTexture()), roughness: 0.9 });
     const top = new CylinderGeometry(0.32, 0.32, 0.03, 16);
     top.translate(0, 0.74, 0);
     const stem = new CylinderGeometry(0.025, 0.12, 0.74, 8);
@@ -1308,6 +1309,29 @@ export class AmsterdamStreet implements SceneStreet {
     sign.scale.set(0.08, 0.5, 4.2);
     sign.position.set(PAVEMENT - 1.35 - 0.06, 3.3, -2.5);
     terrace.add(sign);
+    // The waiter in a long black apron bringing a tray out, the chalkboard of the day's menu
+    // standing at the terrace's end, and a dog lying under a table.
+    const waiter = new Mesh(standerGeometry(seeded(829), false), clothes);
+    this.disposables.push(waiter.geometry);
+    waiter.position.set(-0.6, 0, -3.4);
+    waiter.rotation.y = Math.PI / 2;
+    const apron = new Mesh(this.unit, iron);
+    apron.scale.set(0.42, 0.75, 0.05);
+    apron.position.set(-0.6 - 0.2, 0.62, -3.4);
+    apron.rotation.y = Math.PI / 2;
+    const tray = new Mesh(top, marble);
+    tray.scale.set(0.6, 1, 0.6);
+    tray.position.set(-0.95, 0.42, -3.4);
+    const easel = new Mesh(this.unit, [iron, chalk, iron, iron, iron, iron]);
+    easel.scale.set(0.05, 1.0, 0.6);
+    easel.position.set(-0.75, 0.5, 1.0);
+    easel.rotation.z = 0.12;
+    const hound = new Mesh(dogGeometry(), this.material({ color: 0x7a5a3a, roughness: 0.95 }));
+    this.disposables.push(hound.geometry);
+    hound.scale.set(1, 0.6, 1);
+    hound.rotation.y = Math.PI / 2;
+    hound.position.set(0.1, 0, -1.7);
+    terrace.add(waiter, apron, tray, easel, hound);
     terrace.position.y = KERB;
     this.group.add(terrace);
     this.props.push({ mesh: terrace, offset: BRIDGE + 2 - CROSS / 2 - 0.9, x: roadHalf + 1.35 });
@@ -3439,6 +3463,27 @@ function shopBoardTexture(): CanvasTexture {
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.fillText('ANTIEK &CURIOSA', 256, 34);
+  });
+}
+
+/** A café's chalkboard: the day's soup, apple pie and drinks in chalk, in a wooden frame. */
+function menuBoardTexture(): CanvasTexture {
+  return canvasTexture(128, 192, (g) => {
+    g.fillStyle = '#6a4a2e';
+    g.fillRect(0, 0, 128, 192);
+    g.fillStyle = '#1e2420';
+    g.fillRect(8, 8, 112, 176);
+    g.fillStyle = '#f2f2ea';
+    g.textAlign = 'center';
+    g.font = 'bold 16px serif';
+    g.fillText('VANDAAG', 64, 34);
+    g.font = '13px serif';
+    g.fillText('erwtensoep', 64, 62);
+    g.fillText('appeltaart', 64, 84);
+    g.fillText('koffie', 64, 106);
+    g.fillText('bier van de tap', 64, 128);
+    g.fillStyle = '#e8c820';
+    g.fillText('welkom!', 64, 162);
   });
 }
 
