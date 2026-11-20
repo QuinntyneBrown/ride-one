@@ -344,7 +344,10 @@ export class AmsterdamStreet implements SceneStreet {
     const stone = this.material({ color: 0xa39d92, roughness: 0.9 });
     const iron = this.material({ color: 0x15171a, metalness: 0.5, roughness: 0.5 });
     const { steps, railings } = stoopGeometry();
-    this.disposables.push(steps, railings);
+    const gableRoof = roofGeometry(false);
+    const hip = roofGeometry(true);
+    const roof = this.material({ map: this.repeat(roofTexture(), 0.25, 0.25), roughness: 0.85 });
+    this.disposables.push(steps, railings, gableRoof, hip);
     const decor = this.decor();
     const rows = [
       { x: roadHalf + PAVEMENT, turn: Math.PI / 2 },
@@ -396,17 +399,36 @@ export class AmsterdamStreet implements SceneStreet {
         const house = new Group();
         const variant = Math.floor(random() * 4);
         const face = fronts[k]![variant]!;
-        const mesh = new Mesh(shapes[k]!, [face, sides]);
-        mesh.scale.set(width, height, 12);
-        mesh.rotation.y = turn;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        house.add(mesh);
+        const block = (
+          front: MeshStandardMaterial,
+          wall: MeshStandardMaterial,
+          tiles: MeshStandardMaterial,
+        ) => {
+          // The front with its gable, 0.5 m thick; the house's body behind it up to the eaves;
+          // and a pitched roof of tiles, its ridge running back from the gable (or, behind a
+          // mansion's cornice, along the front).
+          const whole = new Group();
+          const screen = new Mesh(shapes[k]!, [front, wall]);
+          screen.scale.set(width, height, 0.5);
+          const body = new Mesh(this.unit, wall);
+          body.scale.set(width, height * EAVES, 11.5);
+          body.position.set(width / 2, (height * EAVES) / 2, 6.25);
+          const pitch = new Mesh(k === 4 ? hip : gableRoof, tiles);
+          pitch.scale.set(width, height * (k === 4 ? 0.2 : 0.95 - EAVES), 11.5);
+          pitch.position.set(0, height * EAVES, 0.5);
+          whole.add(screen, body, pitch);
+          whole.rotation.y = turn;
+          whole.children.forEach((m) => {
+            m.castShadow = true;
+            m.receiveShadow = true;
+          });
+          return whole;
+        };
+        house.add(block(face, sides, roof));
         if (turn < 0) {
-          const reflection = new Mesh(shapes[k]!, [mirrored.get(face)!, mirroredSides]);
-          reflection.scale.set(width, -height, 12);
+          const reflection = block(mirrored.get(face)!, mirroredSides, mirroredSides);
+          reflection.scale.y = -1;
           reflection.position.y = -2 * WATER;
-          reflection.rotation.y = turn;
           house.add(reflection);
         }
         // The stoop up to the door, its steps running out onto the pavement.
@@ -1600,6 +1622,46 @@ function bakfietsGeometry(): { frame: BufferGeometry; box: BufferGeometry } {
   const box = mergeGeometries(sides)!;
   sides.forEach((p) => p.dispose());
   return { frame, box };
+}
+
+/**
+ * A roof 1 wide (x), 1 tall and 1 deep (z): a prism whose ridge runs back along z from the
+ * front's gable, or, with `alongFront`, a ridge running along x, hipped at both ends.
+ */
+function roofGeometry(alongFront: boolean): BufferGeometry {
+  const shape = new Shape();
+  if (alongFront) {
+    shape.moveTo(0, 0);
+    shape.lineTo(1, 0);
+    shape.lineTo(0.5, 1);
+    shape.closePath();
+    const roof = new ExtrudeGeometry(shape, { depth: 1, bevelEnabled: false });
+    // Turn the triangle to stand across z, so the ridge runs along x.
+    roof.rotateY(-Math.PI / 2);
+    roof.translate(1, 0, 0);
+    return roof;
+  }
+  shape.moveTo(0, 0);
+  shape.lineTo(1, 0);
+  shape.lineTo(0.5, 1);
+  shape.closePath();
+  return new ExtrudeGeometry(shape, { depth: 1, bevelEnabled: false });
+}
+
+/** Roof tiles: dark red-brown and slate-grey pantiles in courses, weathered. */
+function roofTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    speckle(g, 128, 128, '#4a3430', 601);
+    const random = seeded(607);
+    for (let y = 0; y < 128; y += 8) {
+      g.fillStyle = 'rgba(0,0,0,0.35)';
+      g.fillRect(0, y, 128, 2);
+      for (let x = (y / 8) % 2 ? 0 : 6; x < 128; x += 12) {
+        g.fillStyle = `rgba(${random() < 0.5 ? '255,255,255' : '0,0,0'},${random() * 0.1})`;
+        g.fillRect(x, y + 2, 11, 6);
+      }
+    }
+  });
 }
 
 /** An upright Dutch bike, along z: two wheels, its frame, saddle and swept-back bars. */
