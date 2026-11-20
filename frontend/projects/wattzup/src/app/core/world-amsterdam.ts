@@ -124,6 +124,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addBollards(roadHalf);
     this.addParkedCars(roadHalf);
     this.addStreetFurniture(roadHalf);
+    this.addCafe(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -865,6 +866,66 @@ export class AmsterdamStreet implements SceneStreet {
         this.props.push({ mesh: at, offset: offset + (x > 0 ? 20 : 0), x });
       }
     }
+  }
+
+  /**
+   * A brown café on the corner by the first bridge: a narrow terrace of round marble-topped
+   * tables and bistro chairs against the front on the pavement, people sitting over drinks, and
+   * the café's name board in gold on dark green over the windows.
+   */
+  private addCafe(roadHalf: number): void {
+    const random = seeded(653);
+    const iron = this.material({ color: 0x1b1b1f, metalness: 0.5, roughness: 0.5 });
+    const marble = this.material({ color: 0xe8e4dc, roughness: 0.4 });
+    const wicker = this.material({ color: 0x8a6a40, roughness: 0.9 });
+    const board = this.material({ map: this.track(cafeBoardTexture()), roughness: 0.6 });
+    const glass = this.material({
+      color: 0xd8a040,
+      transparent: true,
+      opacity: 0.8,
+      roughness: 0.2,
+    });
+    const clothes = this.material({ vertexColors: true, roughness: 0.85 });
+    const top = new CylinderGeometry(0.32, 0.32, 0.03, 16);
+    top.translate(0, 0.74, 0);
+    const stem = new CylinderGeometry(0.025, 0.12, 0.74, 8);
+    stem.translate(0, 0.37, 0);
+    const seat = new CylinderGeometry(0.2, 0.2, 0.05, 12);
+    seat.translate(0, 0.46, 0);
+    const back = new BoxGeometry(0.4, 0.42, 0.04);
+    back.translate(0, 0.7, 0.19);
+    const beer = new CylinderGeometry(0.035, 0.03, 0.16, 8);
+    beer.translate(0.1, 0.84, -0.05);
+    this.disposables.push(top, stem, seat, back, beer);
+    const terrace = new Group();
+    for (let t = 0; t < 4; t++) {
+      const table = new Group();
+      table.add(new Mesh(top, marble), new Mesh(stem, iron), new Mesh(beer, glass));
+      table.position.set(0, 0, -t * 1.7);
+      terrace.add(table);
+      for (const side of [-1, 1]) {
+        const chair = new Group();
+        chair.add(new Mesh(seat, wicker), new Mesh(back, wicker), new Mesh(stem, iron));
+        chair.position.set(0, 0, -t * 1.7 + side * 0.55);
+        chair.rotation.y = side > 0 ? 0 : Math.PI;
+        terrace.add(chair);
+        if (random() < 0.7) {
+          const person = new Mesh(sitterGeometry(random), clothes);
+          person.position.copy(chair.position);
+          person.rotation.y = chair.rotation.y;
+          terrace.add(person);
+          this.disposables.push(person.geometry);
+        }
+      }
+    }
+    terrace.children.forEach((m) => m.traverse((o) => (o.castShadow = true)));
+    const sign = new Mesh(this.unit, board);
+    sign.scale.set(0.08, 0.5, 4.2);
+    sign.position.set(PAVEMENT - 1.35 - 0.06, 3.3, -2.5);
+    terrace.add(sign);
+    terrace.position.y = KERB;
+    this.group.add(terrace);
+    this.props.push({ mesh: terrace, offset: BRIDGE + 2 - CROSS / 2 - 0.9, x: roadHalf + 1.35 });
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
@@ -1951,6 +2012,56 @@ function flagTexture(amsterdam: boolean): CanvasTexture {
         g.fillRect(0, i * 43, 192, 43);
       }
     }
+  });
+}
+
+/**
+ * Someone sitting on a chair at a table, facing -z, dressed at random from the commuters'
+ * wardrobe in vertex colours: legs bent at the knee, a torso upright, forearms on the table.
+ */
+function sitterGeometry(random: () => number): BufferGeometry {
+  const pick = (list: readonly string[]) => new Color(list[Math.floor(random() * list.length)]!);
+  const top = pick(COMMUTER_WEAR.tops);
+  const bottom = pick(COMMUTER_WEAR.bottoms);
+  const skin = pick(COMMUTER_WEAR.skins);
+  const parts: [BufferGeometry, Color][] = [];
+  const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
+  for (const side of [-0.1, 0.1]) {
+    parts.push([limb(v(side, 0.5, 0.05), v(side, 0.52, -0.38), 0.075), bottom]);
+    parts.push([limb(v(side, 0.52, -0.38), v(side, 0.05, -0.42), 0.06), bottom]);
+    parts.push([limb(v(side * 2, 1.12, 0.02), v(side * 2.2, 0.82, -0.18), 0.045), top]);
+    parts.push([limb(v(side * 2.2, 0.82, -0.18), v(side * 1.2, 0.8, -0.42), 0.04), top]);
+  }
+  const torso = new CapsuleGeometry(0.18, 0.4, 4, 8);
+  torso.translate(0, 0.92, 0.04);
+  const head = new SphereGeometry(0.11, 10, 8);
+  head.translate(0, 1.36, 0.02);
+  parts.push([torso.toNonIndexed(), top], [head.toNonIndexed(), skin]);
+  const painted = parts.map(([geometry, colour]) => {
+    const count = geometry.getAttribute('position').count;
+    const colours = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) colour.toArray(colours, i * 3);
+    geometry.setAttribute('color', new BufferAttribute(colours, 3));
+    return geometry;
+  });
+  const merged = mergeGeometries(painted)!;
+  painted.forEach((p) => p.dispose());
+  return merged;
+}
+
+/** A brown café's name board: gilt letters on dark green, in a gilt frame. */
+function cafeBoardTexture(): CanvasTexture {
+  return canvasTexture(512, 64, (g) => {
+    g.fillStyle = '#1f3a2c';
+    g.fillRect(0, 0, 512, 64);
+    g.strokeStyle = '#c8a040';
+    g.lineWidth = 4;
+    g.strokeRect(6, 6, 500, 52);
+    g.fillStyle = '#d8b050';
+    g.font = 'bold 34px serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('CAFÉ DE GRACHT', 256, 34);
   });
 }
 
