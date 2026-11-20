@@ -292,7 +292,8 @@ export class DocklandsStreet {
         const street = -(height - FOOTING) / 2 + KERB;
         if (edgeRandom() < 0.4) {
           // A neon strip runs up each of the tower's corners on the road, above the canopy.
-          const material = edges[Math.floor(edgeRandom() * edges.length)]!;
+          const colour = Math.floor(edgeRandom() * edges.length);
+          const material = edges[colour]!;
           const foot = street + LOBBY + 0.6;
           const top = (height + FOOTING) / 2;
           for (const z of [-depth / 2, depth / 2]) {
@@ -300,6 +301,18 @@ export class DocklandsStreet {
             strip.scale.y = top - foot;
             strip.position.set(-side * (width / 2 + EDGE / 2), (top + foot) / 2, z);
             mesh.add(strip);
+            // Its colour runs down the wet pavement and out across the road, as neon does.
+            this.streak(mesh, NEON[colour]!, -side * (width / 2 + 4), street, z - 2, 16, 1.8, 1.5);
+            this.streak(
+              mesh,
+              NEON[colour]!,
+              -side * (width / 2 + SETBACK + 2),
+              street - KERB,
+              z - 3,
+              22,
+              1.4,
+              0.8,
+            );
           }
         }
         const length = depth - 2;
