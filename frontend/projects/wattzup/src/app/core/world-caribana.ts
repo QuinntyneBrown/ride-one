@@ -21,6 +21,7 @@ import {
   Matrix4,
   Mesh,
   MeshStandardMaterial,
+  OctahedronGeometry,
   PlaneGeometry,
   Quaternion,
   RepeatWrapping,
@@ -219,6 +220,10 @@ export class CaribanaStreet implements SceneStreet {
   private rags: InstancedMesh | null = null;
   private hair: InstancedMesh | null = null;
   private trims: InstancedMesh | null = null;
+  private glints: InstancedMesh | null = null;
+  /** Where on the costume each glint sits, three to a dancer, and when it flashes. */
+  private readonly sparks: { at: Vector3; phase: number; rate: number }[] = [];
+  private readonly glint = new Matrix4();
   private faces: InstancedMesh | null = null;
   private shades: InstancedMesh | null = null;
   private readonly heldCounts = new Map<InstancedMesh, number>();
@@ -468,6 +473,7 @@ export class CaribanaStreet implements SceneStreet {
       this.fringes?.setMatrixAt(i, d.male ? this.held : this.matrix);
       this.hair?.setMatrixAt(i, this.matrix);
       this.trims?.setMatrixAt(i, this.matrix);
+      this.placeGlints(i, t);
       this.faces?.setMatrixAt(i, this.matrix);
       if (this.shades && d.shaded >= 0) this.shades.setMatrixAt(d.shaded, this.matrix);
       this.placeHeld(d, i, t);
@@ -499,6 +505,7 @@ export class CaribanaStreet implements SceneStreet {
     if (this.fringes) this.fringes.instanceMatrix.needsUpdate = true;
     if (this.hair) this.hair.instanceMatrix.needsUpdate = true;
     if (this.trims) this.trims.instanceMatrix.needsUpdate = true;
+    if (this.glints) this.glints.instanceMatrix.needsUpdate = true;
     if (this.faces) this.faces.instanceMatrix.needsUpdate = true;
     if (this.shades) this.shades.instanceMatrix.needsUpdate = true;
     this.bodies.forEach((mesh, p) => {
@@ -515,6 +522,18 @@ export class CaribanaStreet implements SceneStreet {
       this.legPlumes[k]!.count = count[k]!;
       this.legPlumes[k]!.instanceMatrix.needsUpdate = true;
     });
+  }
+
+  /** Flashes dancer `i`'s three glints: each brief and bright as it catches the sun. */
+  private placeGlints(i: number, t: number): void {
+    const glints = this.glints;
+    if (!glints) return;
+    for (let k = 3 * i; k < 3 * i + 3; k++) {
+      const spark = this.sparks[k]!;
+      const flash = Math.pow(Math.max(0, Math.sin(t * spark.rate + spark.phase)), 8);
+      this.glint.makeScale(flash, flash, flash).setPosition(spark.at).premultiply(this.matrix);
+      glints.setMatrixAt(k, this.glint);
+    }
   }
 
   /**
@@ -895,6 +914,33 @@ export class CaribanaStreet implements SceneStreet {
       metalness: 0.55,
     });
     this.costumes = this.instanced(costume, sequins, n);
+    // Glints off the sequins: small stars that flash as each catches the sun.
+    const sparkle = new OctahedronGeometry(0.06, 0);
+    sparkle.scale(1, 2.2, 1);
+    this.disposables.push(sparkle);
+    this.glints = this.instanced(
+      sparkle,
+      this.material({ color: 0xffffff, emissive: 0xfff6d8, emissiveIntensity: 4 }),
+      3 * n,
+    );
+    this.glints.castShadow = false;
+    const sparking = seeded(157);
+    const spots = [
+      [0, 1.3, -0.15],
+      [0.08, 0.95, -0.14],
+      [-0.08, 0.95, -0.14],
+      [0.1, 0.3, -0.07],
+      [-0.1, 0.3, -0.07],
+      [0, 1.32, 0.17],
+    ];
+    for (let k = 0; k < 3 * n; k++) {
+      const [x, y, z] = spots[Math.floor(sparking() * spots.length)]!;
+      this.sparks.push({
+        at: new Vector3(x! + (sparking() - 0.5) * 0.06, y! + (sparking() - 0.5) * 0.06, z!),
+        phase: sparking() * 20,
+        rate: 1.5 + sparking() * 2.5,
+      });
+    }
     const trim = trimGeometry();
     this.disposables.push(trim);
     this.trims = this.instanced(
