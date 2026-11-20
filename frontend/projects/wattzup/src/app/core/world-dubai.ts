@@ -85,20 +85,14 @@ const HAZE = 0xc89aa0;
 const SKINS = ['#f1c7a5', '#e2b48c', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26'];
 /** The marina's evening crowd: white kandura, black abaya and the bright clothes of everyone else. */
 const MARINA: Wardrobe = {
-  tops: [
-    '#ffffff',
-    '#f8f8f4',
-    '#111111',
-    '#1a1a1e',
-    '#d8283a',
-    '#1f8a5a',
-    '#3ac8e8',
-    '#f2c230',
-    '#e8a0c0',
-    '#1d3c8f',
-  ],
-  bottoms: ['#ffffff', '#f8f8f4', '#111111', '#20242b', '#3a5a8a', '#c8b89a'],
+  tops: ['#d8283a', '#1f8a5a', '#3ac8e8', '#f2c230', '#e8a0c0', '#1d3c8f', '#f08a3a', '#2a2a2e'],
+  bottoms: ['#20242b', '#3a5a8a', '#c8b89a', '#8a6a4a', '#111111'],
   skins: SKINS,
+  // The Emiratis among them in a white kandura or a black abaya.
+  robes: [
+    { colour: '#fbfbf8', share: 0.3 },
+    { colour: '#141416', share: 0.14 },
+  ],
 };
 const BARRIER_PANELS: readonly BannerPanel[] = [
   { fill: '#111111', ink: '#e8c060', text: 'DUBAI MARINA' },

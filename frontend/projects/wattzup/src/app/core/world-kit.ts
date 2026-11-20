@@ -213,6 +213,12 @@ export interface Wardrobe {
   readonly tops: readonly string[];
   readonly bottoms: readonly string[];
   readonly skins: readonly string[];
+  /**
+   * Robes worn from shoulder to hem in one colour (a white kandura, a black abaya), each by its
+   * share of the crowd. Drawn from a seed of their own, so a wardrobe without robes dresses its
+   * crowd as before.
+   */
+  readonly robes?: readonly { readonly colour: string; readonly share: number }[];
 }
 
 /**
@@ -254,10 +260,21 @@ export class Figures {
     const random = seeded(seed);
     const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
     const c = new Color();
+    const robing = seeded(seed + 7);
     for (let i = 0; i < count; i++) {
       this.bodies.setColorAt(i, c.set(pick(wardrobe.tops)));
       this.legs.setColorAt(i, c.set(pick(wardrobe.bottoms)));
       this.heads.setColorAt(i, c.set(pick(wardrobe.skins)));
+      if (!wardrobe.robes) continue;
+      let roll = robing();
+      for (const robe of wardrobe.robes) {
+        if (roll < robe.share) {
+          this.bodies.setColorAt(i, c.set(robe.colour));
+          this.legs.setColorAt(i, c.set(robe.colour));
+          break;
+        }
+        roll -= robe.share;
+      }
     }
   }
 
