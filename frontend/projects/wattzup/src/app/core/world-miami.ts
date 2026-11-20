@@ -223,6 +223,22 @@ export class MiamiStreet implements SceneStreet {
         }),
     );
     this.disposables.push(...reflections);
+    const lobbies = [0, 1, 2, 3].map((v) =>
+      this.material({
+        map: this.track(lobbyTexture(8231 + v)),
+        emissive: 0xffffff,
+        emissiveMap: this.track(lobbyTexture(8231 + v)),
+        emissiveIntensity: 0.9,
+        roughness: 0.15,
+        metalness: 0.3,
+      }),
+    );
+    const bulbs = this.material({
+      map: this.track(bulbTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(bulbTexture()),
+      emissiveIntensity: 2.4,
+    });
     let offset = 0;
     let k = 0;
     while (offset < LOOP - 10) {
@@ -329,6 +345,27 @@ export class MiamiStreet implements SceneStreet {
       a.rotation.z = -0.25;
       a.position.set(-1.6, 3.4, -width * 0.1);
       hotel.add(a);
+      // The ground floor: a lit lobby behind plate glass, and a marquee canopy over the door,
+      // its fascia ringed with bulbs and its underside glowing.
+      const lobby = new Mesh(this.flat, lobbies[k % lobbies.length]!);
+      lobby.rotation.y = -Math.PI / 2;
+      lobby.scale.set(width * 0.86, 3.3, 1);
+      lobby.position.set(-0.03, 1.75, 0);
+      hotel.add(lobby);
+      const canopy = new Mesh(this.unit, facade);
+      canopy.scale.set(3, 0.35, width * 0.32);
+      canopy.position.set(-1.5, 3.7, 0);
+      canopy.castShadow = true;
+      const fascia = new Mesh(this.flat, bulbs);
+      fascia.rotation.y = -Math.PI / 2;
+      fascia.scale.set(width * 0.32, 0.35, 1);
+      fascia.position.set(-3.02, 3.7, 0);
+      const under = new Mesh(this.flat, line);
+      under.rotation.x = Math.PI / 2;
+      under.scale.set(2.8, width * 0.3, 1);
+      under.rotation.z = Math.PI / 2;
+      under.position.set(-1.5, 3.51, 0);
+      hotel.add(canopy, fascia, under);
       // The sign and the hotel's neon mirrored in the wet street: long soft streaks of its
       // colour running towards the rider across the sidewalk and the near lane.
       const mirror = reflections[k % reflections.length]!;
@@ -1003,5 +1040,73 @@ function poolTexture(): CanvasTexture {
     pool.addColorStop(1, 'rgba(255,190,120,0)');
     g.fillStyle = pool;
     g.fillRect(0, 0, 64, 64);
+  });
+}
+
+/**
+ * A hotel lobby through its plate glass: warm light on a terrazzo floor, a reception desk,
+ * potted palms, a chandelier's glow and the glazing bars of the shopfront.
+ */
+function lobbyTexture(seed: number): CanvasTexture {
+  return canvasTexture(512, 128, (g) => {
+    const random = seeded(seed);
+    const wall = g.createLinearGradient(0, 0, 0, 128);
+    wall.addColorStop(0, ['#ffd9a8', '#ffc8d8', '#c8f0ff', '#ffe8b8'][seed % 4]!);
+    wall.addColorStop(0.7, '#e0a878');
+    wall.addColorStop(1, '#6a4a48');
+    g.fillStyle = wall;
+    g.fillRect(0, 0, 512, 128);
+    // Chandeliers' glow along the ceiling.
+    for (let x = 60; x < 512; x += 130) {
+      const lamp = g.createRadialGradient(x, 10, 0, x, 10, 40);
+      lamp.addColorStop(0, 'rgba(255,255,240,0.95)');
+      lamp.addColorStop(1, 'rgba(255,240,200,0)');
+      g.fillStyle = lamp;
+      g.fillRect(x - 40, 0, 80, 50);
+    }
+    // The reception desk and some guests or potted palms.
+    g.fillStyle = '#3a2a2a';
+    g.fillRect(200, 78, 110, 34);
+    g.fillStyle = '#f4e0c0';
+    g.fillRect(200, 76, 110, 4);
+    for (let i = 0; i < 6; i++) {
+      const x = 20 + random() * 470;
+      if (random() < 0.5) {
+        g.fillStyle = '#2a4a2a';
+        g.beginPath();
+        g.arc(x, 74, 14, 0, Math.PI * 2);
+        g.fill();
+        g.fillStyle = '#5a3a2a';
+        g.fillRect(x - 6, 86, 12, 26);
+      } else {
+        g.fillStyle = ['#2a2a3a', '#7a2a4a', '#1a3a4a'][i % 3]!;
+        g.fillRect(x - 5, 66, 10, 46);
+        g.beginPath();
+        g.arc(x, 60, 6, 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+    // The terrazzo floor and the glazing bars.
+    g.fillStyle = 'rgba(240,220,200,0.6)';
+    g.fillRect(0, 112, 512, 16);
+    g.fillStyle = '#1a1a22';
+    for (let x = 0; x <= 512; x += 64) g.fillRect(x - 3, 0, 6, 128);
+    g.fillRect(0, 0, 512, 5);
+    g.fillRect(0, 122, 512, 6);
+  });
+}
+
+/** A marquee's fascia: two rows of chase-light bulbs on a dark band. */
+function bulbTexture(): CanvasTexture {
+  return canvasTexture(256, 16, (g) => {
+    g.fillStyle = '#1a1420';
+    g.fillRect(0, 0, 256, 16);
+    for (let x = 4; x < 256; x += 8)
+      for (const y of [4, 12]) {
+        g.fillStyle = (x / 8 + y) % 3 === 0 ? '#fff0c0' : '#ffd070';
+        g.beginPath();
+        g.arc(x, y, 2.4, 0, Math.PI * 2);
+        g.fill();
+      }
   });
 }
