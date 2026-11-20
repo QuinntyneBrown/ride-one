@@ -434,6 +434,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addGantry();
     for (const [name, at] of CROSS_STREETS) this.addIntersection(name, at);
     this.addGrandstand();
+    this.addScreen();
     this.addPavilion();
     this.addFootbridge();
     this.addSpray();
@@ -2106,6 +2107,49 @@ export class CaribanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: 31 + dz, every: LOOP, x: BARRIER - 0.9, road: true });
     }
+  }
+
+  /**
+   * A big LED screen on a trailer at the head of the grandstand, turned to the crowd and the
+   * oncoming bands, showing the broadcast: a Queen of the band close up under the carnival's
+   * name and the LIVE bug, with the panel grid of the screen over it.
+   */
+  private addScreen(): void {
+    const screen = new Group();
+    const dark = this.material({ color: 0x1b1c1f, roughness: 0.6 });
+    const steel = this.material({ color: 0x9da3a8, metalness: 0.7, roughness: 0.4 });
+    const picture = this.material({
+      map: this.track(broadcastTexture()),
+      emissive: 0xffffff,
+      emissiveMap: null,
+      emissiveIntensity: 0,
+      roughness: 0.4,
+    });
+    picture.emissiveMap = picture.map;
+    picture.emissiveIntensity = 0.9;
+    const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z: number) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y + h / 2, z);
+      screen.add(mesh);
+    };
+    // The trailer, its outriggers and the mast.
+    box(dark, 2.2, 0.8, 6.5, 0, 0.3, 0);
+    box(steel, 0.12, 0.12, 8, 0, 0.15, 0);
+    box(steel, 3.8, 0.12, 0.12, 0, 0.15, -2.5);
+    box(steel, 3.8, 0.12, 0.12, 0, 0.15, 2.5);
+    box(steel, 0.25, 3.2, 0.25, 0, 1.1, 0);
+    // The screen in its black frame, 7 m by 4 m, its face looking down the road (+z).
+    box(dark, 7.4, 4.4, 0.35, 0, 3.8, 0);
+    const face = new PlaneGeometry(7, 4);
+    face.translate(0, 6, 0.18);
+    this.disposables.push(face);
+    screen.add(new Mesh(face, picture));
+    screen.traverse((o) => (o.castShadow = true));
+    // Turned partly to the road so the crowd opposite and the bands can see it.
+    screen.rotation.y = 0.55;
+    this.group.add(screen);
+    this.props.push({ mesh: screen, offset: GRANDSTAND[0] - 8, every: LOOP, x: PAVEMENT + 3.5 });
   }
 
   /**
@@ -5252,6 +5296,79 @@ function festivalBannerTexture(fill: string, ink: string): CanvasTexture {
     g.fillText('CARNIVAL', 100, 146, 186);
     g.font = 'bold 46px system-ui, sans-serif';
     g.fillText('2026', 100, 530, 186);
+  });
+}
+
+/**
+ * The broadcast on the big screen: a Queen of the band close up, her plumes fanned against a
+ * stage-lit backdrop, the carnival's name in a lower third and a red LIVE bug, under the LED
+ * panel grid.
+ */
+function broadcastTexture(): CanvasTexture {
+  return canvasTexture(700, 400, (g) => {
+    const sky = g.createLinearGradient(0, 0, 0, 400);
+    sky.addColorStop(0, '#1b3f8a');
+    sky.addColorStop(1, '#ff7ab8');
+    g.fillStyle = sky;
+    g.fillRect(0, 0, 700, 400);
+    // The plumes fanned out behind her.
+    const colours = ['#ffd23f', '#ff2d87', '#13c3c9', '#ffffff', '#ff8a00'];
+    for (let k = 0; k < 29; k++) {
+      const a = -Math.PI * 0.95 + (k / 28) * Math.PI * 0.9;
+      g.strokeStyle = colours[k % colours.length]!;
+      g.lineWidth = 22;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(350, 330);
+      g.lineTo(350 + Math.cos(a) * 300, 330 + Math.sin(a) * 300);
+      g.stroke();
+    }
+    // Her face and shoulders, a jewelled crown and collar.
+    g.fillStyle = '#8d5a3b';
+    g.beginPath();
+    g.ellipse(350, 220, 50, 64, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillRect(270, 280, 160, 120);
+    g.fillStyle = '#ffd23f';
+    g.beginPath();
+    g.moveTo(300, 165);
+    g.lineTo(350, 110);
+    g.lineTo(400, 165);
+    g.closePath();
+    g.fill();
+    g.fillRect(270, 300, 160, 22);
+    g.fillStyle = '#1b1310';
+    g.fillRect(325, 210, 14, 6);
+    g.fillRect(361, 210, 14, 6);
+    g.fillStyle = '#9e2a3a';
+    g.fillRect(338, 248, 24, 6);
+    // The lower third and the LIVE bug.
+    g.fillStyle = 'rgba(10,10,14,0.78)';
+    g.fillRect(0, 330, 700, 70);
+    g.fillStyle = '#ffffff';
+    g.font = 'bold 34px system-ui, sans-serif';
+    g.textBaseline = 'middle';
+    g.fillText('TORONTO CARIBBEAN CARNIVAL · GRAND PARADE', 24, 365, 650);
+    g.fillStyle = '#e8133c';
+    g.fillRect(24, 22, 92, 40);
+    g.fillStyle = '#ffffff';
+    g.font = 'bold 28px system-ui, sans-serif';
+    g.fillText('LIVE', 38, 43);
+    // The LED panels' grid.
+    g.strokeStyle = 'rgba(0,0,0,0.35)';
+    g.lineWidth = 2;
+    for (let x = 0; x <= 700; x += 50) {
+      g.beginPath();
+      g.moveTo(x, 0);
+      g.lineTo(x, 400);
+      g.stroke();
+    }
+    for (let y = 0; y <= 400; y += 50) {
+      g.beginPath();
+      g.moveTo(0, y);
+      g.lineTo(700, y);
+      g.stroke();
+    }
   });
 }
 
