@@ -753,6 +753,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 4, work: 6, rest: 4, cooldown: 3, steady: 5 },
     roll: 1,
   },
+  {
+    id: 'santamonica',
+    name: 'Santa Monica Pier',
+    route: 'the beach path',
+    effortName: 'Pier sprint',
+    description:
+      'The beach bike path winds across the golden sand of Santa Monica toward the pier beneath a line of palms, past painted lifeguard towers and the surfers riding the breakers below the pilings, as the Pacific Park Ferris wheel turns over the pier in the late afternoon sun. The three-minute warm-up rolls past the first lifeguard towers, the long efforts of two and three minutes push along the sand under the palms, and the one-minute and half-minute surges sprint for the pier with the easy minutes spun beside the surf.',
+    grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
