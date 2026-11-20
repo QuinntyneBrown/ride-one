@@ -154,7 +154,8 @@ export interface components {
         | 'redoute'
         | 'angliru'
         | 'velodrome'
-        | 'cinqueterre';
+        | 'cinqueterre'
+        | 'angels';
     };
     ClassShelfResponse: {
       id: string;

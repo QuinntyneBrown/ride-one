@@ -770,6 +770,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Cinque Terre');
   });
 
+  test('rides Drop Ollie at All Costs up Els Àngels above Girona', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Drop Ollie at All Costs',
+      'Els Àngels, Girona',
+      'drop-ollie-at-all-costs',
+    );
+    await expect(world.heading).toHaveText('Els Àngels, Girona');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Els Àngels, Girona');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

@@ -1212,6 +1212,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.9, fill: 1.6, colour: 0xfff0d8 },
     fogRange: [2500, 16000],
   },
+  // A crisp, sunny winter morning of training-camp season above Girona: low sun, clear air, snow on the Pyrenees.
+  angels: {
+    sky: 0x5a94e0,
+    fog: 0xd8e2ec,
+    ground: 0x7a6040,
+    road: 0x4a4a4c,
+    sun: 28,
+    wet: false,
+    haze: false,
+    turbidity: 2.5,
+    rayleigh: 1.5,
+    azimuth: 150,
+    light: { sun: 2.8, fill: 1.6, colour: 0xfff0dc },
+    fogRange: [2500, 16000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
