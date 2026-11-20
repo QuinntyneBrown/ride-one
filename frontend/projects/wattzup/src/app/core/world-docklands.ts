@@ -36,6 +36,13 @@ const TILE = 24;
 const NEON = ['#ff4fb8', '#3fe0ff', '#d8ff3e', '#9b6bff'];
 /** What the blade signs spell, top to bottom. */
 const SIGN_WORDS = ['HOTEL', 'NOODLES', 'BAR', 'DOCK 9', 'CLUB', 'OPEN', 'RAMEN', 'CAFE'];
+/**
+ * The harbour: along this stretch of the loop, in metres, the left side has no towers and the
+ * quay looks over the water to the far shore, FAR_SHORE metres away.
+ */
+const HARBOUR_FROM = 20;
+const HARBOUR_TO = 250;
+const FAR_SHORE = 340;
 /** A blade sign stands out this far from its façade. */
 const BLADE = 2;
 /** The harbour skyline stands this far ahead, past the street's fog, and keeps its distance. */
@@ -72,6 +79,7 @@ export class DocklandsStreet {
   private readonly towers: Tower[] = [];
   private readonly random = seeded(41);
   private readonly skyline = new Group();
+  private readonly farShore = new Group();
   private readonly lamps: Group[] = [];
   private streakTexture: CanvasTexture | null = null;
   private readonly streakMaterials = new Map<string, MeshBasicMaterial>();
@@ -145,6 +153,10 @@ export class DocklandsStreet {
     for (const side of [-1, 1] as const) {
       let offset = 0;
       while (offset < LOOP) {
+        if (side < 0 && offset >= HARBOUR_FROM && offset < HARBOUR_TO) {
+          offset = HARBOUR_TO;
+          continue;
+        }
         const width = 14 + this.random() * 16;
         const depth = 14 + this.random() * 14;
         const height = 24 + this.random() ** 2 * 120;
@@ -210,6 +222,7 @@ export class DocklandsStreet {
     }
     this.roadHalf = roadHalf;
     this.addSkyline(facades, roof);
+    this.addFarShore(facades, roof);
   }
 
   /**
@@ -245,6 +258,38 @@ export class DocklandsStreet {
     }
     this.addLandmark(far[0]!, top);
     this.group.add(this.skyline);
+  }
+
+  /**
+   * The city across the harbour, on the left: lit towers along the far shore. It keeps its
+   * distance, like the skyline.
+   */
+  private addFarShore(facades: MeshStandardMaterial[], roof: MeshStandardMaterial): void {
+    const random = seeded(131);
+    const far = facades.map((facade) => {
+      const material = facade.clone();
+      material.fog = false;
+      material.emissiveIntensity = 0.8;
+      material.color.multiplyScalar(0.5);
+      return material;
+    });
+    const top = roof.clone();
+    top.fog = false;
+    this.disposables.push(...far, top);
+    for (let z = 80; z > -760;) {
+      const width = 16 + random() * 24;
+      const depth = 16 + random() * 18;
+      const height = 30 + random() ** 1.5 * 150;
+      const x = -FAR_SHORE - depth / 2 - random() * 120;
+      const geometry = towerGeometry(width, height, depth);
+      this.disposables.push(geometry);
+      const facade = far[Math.floor(random() * far.length)]!;
+      const mesh = new Mesh(geometry, [facade, facade, top, top, facade, facade]);
+      mesh.position.set(x, height / 2, z - width / 2);
+      this.farShore.add(mesh);
+      z -= width + 2 + random() * 10;
+    }
+    this.group.add(this.farShore);
   }
 
   /** The tallest tower on the skyline: stepped, with a magenta crown and a lit spire. */
@@ -312,7 +357,13 @@ export class DocklandsStreet {
       emissiveIntensity: 2.6,
       side: DoubleSide,
     });
-    this.disposables.push(pavement, kerb, neon);
+    const water = new MeshStandardMaterial({
+      color: 0x060a16,
+      roughness: 0.12,
+      metalness: 0.85,
+      side: DoubleSide,
+    });
+    this.disposables.push(pavement, kerb, neon, water);
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -344,6 +395,17 @@ export class DocklandsStreet {
           [roadHalf - 0.22, 0.012],
         ]),
       );
+      if (side < 0) {
+        // The harbour water beyond the quay, and the quay's stone face down to it.
+        this.ribbon(points, water, [
+          [-FAR_SHORE - 200, -0.03],
+          [-back, -0.03],
+        ]);
+        this.ribbon(points, kerb, [
+          [-back, -0.03],
+          [-back, KERB],
+        ]);
+      }
     }
   }
 
@@ -480,6 +542,7 @@ export class DocklandsStreet {
       lamp.position.set(i % 2 === 0 ? -LAMP_OUT : LAMP_OUT, heightAt(metres), -metres);
     });
     this.skyline.position.set(0, heightAt(1e6) - 4, -SKYLINE_AHEAD);
+    this.farShore.position.set(0, heightAt(0), 0);
   }
 }
 
