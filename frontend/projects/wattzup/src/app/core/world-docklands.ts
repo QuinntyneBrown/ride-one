@@ -454,6 +454,9 @@ const SEAT_OUT = 3.7;
 const SEAT_Z = 0.3;
 /** The stalls' paper lanterns, and the dishes on their menu boards, by stall in turn. */
 const STALL_LANTERN = '#f2261a';
+/** The paper lanterns' ribs, and the gold of their bands and tassels. */
+const LANTERN_RIBS = 9;
+const LANTERN_TASSEL = '#ffc24a';
 const STALL_MENUS: readonly (readonly string[])[] = [
   ['DUMPLINGS', 'BAO', 'TEA'],
   ['RAMEN', 'GYOZA', 'SODA'],
@@ -3644,9 +3647,21 @@ export class DocklandsStreet {
     this.disposables.push(body, hatch, unit, ...awnings, ...strips, steam, puff);
     // Red paper lanterns hung from the awning's edge, each in a soft glow.
     const paper = new MeshBasicMaterial({
-      color: new Color(STALL_LANTERN).multiplyScalar(1.1),
+      map: this.track(paperLanternTexture()),
+      color: new Color('#ffffff').multiplyScalar(1.1),
       toneMapped: false,
     });
+    // Each lantern has black lacquer caps, a cord up to the awning and a gold tassel below.
+    const lacquer = new MeshStandardMaterial({ color: 0x0d0b0c, roughness: 0.35 });
+    const gold = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color(LANTERN_TASSEL),
+      emissiveIntensity: 0.7,
+    });
+    const cap = new CylinderGeometry(0.12, 0.14, 0.07, 12);
+    const cord = new CylinderGeometry(0.012, 0.012, 1, 4);
+    const tassel = new CylinderGeometry(0.012, 0.03, 0.2, 6);
+    this.disposables.push(lacquer, gold, cap, cord, tassel);
     const paperGlow = new MeshBasicMaterial({
       color: new Color(STALL_LANTERN).multiplyScalar(1.6),
       map: this.glow,
@@ -3712,6 +3727,17 @@ export class DocklandsStreet {
         const ball = new Mesh(lantern, paper);
         ball.scale.y = 1.25;
         ball.position.set(x + 2.55, KERB + 1.72, z);
+        const lid = new Mesh(cap, lacquer);
+        lid.position.set(x + 2.55, KERB + 1.72 + 0.29, z);
+        const foot = new Mesh(cap, lacquer);
+        foot.rotation.x = Math.PI;
+        foot.position.set(x + 2.55, KERB + 1.72 - 0.29, z);
+        const string = new Mesh(cord, lacquer);
+        string.scale.y = 0.3;
+        string.position.set(x + 2.55, KERB + 1.72 + 0.46, z);
+        const tail = new Mesh(tassel, gold);
+        tail.position.set(x + 2.55, KERB + 1.72 - 0.42, z);
+        group.add(lid, foot, string, tail);
         const glow = new Mesh(puff, paperGlow);
         glow.scale.setScalar(1.1);
         glow.position.set(x + 2.55, KERB + 1.72, z + 0.25);
@@ -5679,6 +5705,41 @@ function climb(at: number, cruise: number): number {
     lift = Math.max(lift, (top - cruise) * eased);
   }
   return lift;
+}
+
+/**
+ * A red paper lantern's skin, wrapped round its sphere from top to bottom: lit red paper,
+ * brightest at its waist where the candle sits, crossed by the dark bamboo ribs that hold its
+ * shape, with a gold band near each end.
+ */
+function paperLanternTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+  const paper = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  paper.addColorStop(0, '#5a0c08');
+  paper.addColorStop(0.5, STALL_LANTERN);
+  paper.addColorStop(1, '#5a0c08');
+  ctx.fillStyle = paper;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // A warm core behind the paper, at the waist.
+  const core = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  core.addColorStop(0.3, 'rgba(255,170,90,0)');
+  core.addColorStop(0.5, 'rgba(255,170,90,0.55)');
+  core.addColorStop(0.7, 'rgba(255,170,90,0)');
+  ctx.fillStyle = core;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'rgba(40,6,4,0.75)';
+  for (let k = 1; k < LANTERN_RIBS; k++) {
+    ctx.fillRect(0, (k * canvas.height) / LANTERN_RIBS - 2, canvas.width, 4);
+  }
+  ctx.fillStyle = LANTERN_TASSEL;
+  ctx.fillRect(0, canvas.height * 0.1, canvas.width, 6);
+  ctx.fillRect(0, canvas.height * 0.9 - 6, canvas.width, 6);
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
 
 /** A stall's lit menu board: its dishes in white on a dark board, framed in its own neon. */
