@@ -62,6 +62,7 @@ export const WORLDS: readonly WorldId[] = [
   'como',
   'yosemite',
   'etna',
+  'timessquare',
 ];
 
 export interface Shelf {

@@ -133,7 +133,8 @@ export interface components {
         | 'bonneville'
         | 'como'
         | 'yosemite'
-        | 'etna';
+        | 'etna'
+        | 'timessquare';
     };
     ClassShelfResponse: {
       id: string;

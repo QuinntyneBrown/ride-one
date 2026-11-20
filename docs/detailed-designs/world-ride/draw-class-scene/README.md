@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -417,6 +417,15 @@ None.
   - old flows heaped in jagged black blocks with snow in the hollows, yellow broom and stunted birches, and a house half-swallowed by a flow;
   - the rust-red Silvestri craters beside the road, white 4x4 buses grinding up and down it, and walkers on the verges (`Figures`);
   - ahead the upper slopes streaked with snow, the summit cone with its plume of steam and ash rising and drifting on the ride's clock, lesser cones on its flanks, and the Ionian Sea far below, keeping their bearing.
+- **Times Square New Year's Eve (`core/world-timessquare.ts`).** For `timessquare`, Broadway through Times Square on the last night of the year, closed for the ride:
+  - Broadway's asphalt strewn with fallen confetti, names and cries chalked on it every 16 m (HAPPY NEW YEAR, 2027, 10 9 8 7 and more); kerbs, and dark paved plazas out to the tower fronts;
+  - blue police barriers hung with the ride's banners (TIMES SQUARE, NEW YEAR'S EVE, 2027, WATTZUP, COUNTDOWN, NYC), the kit's feather flags every 16 m along both, and two banners over the street (HAPPY NEW YEAR · 2027, TIMES SQUARE · COUNTDOWN);
+  - the party packed solid in the plazas behind the barriers in winter coats and New Year's colours, a third waving flags (the shared crowd), the cross streets kept clear;
+  - towers block after block either side, 11 m off the road's centre, 50 to 160 m tall and 18 to 34 m wide, a cross street every 80 m: their upper floors lit window by window, their lower floors wrapped in glowing billboards (HAPPY NEW YEAR, BROADWAY, COUNTDOWN, THE GREAT WHITE WAY, MIDNIGHT and more, as bursts, big digits, marquees and stripes) stacked along their fronts and round their corners toward the rider;
+  - confetti, nine hundred flakes of every colour, drifting down and spinning around the rider (`setTime` moves it, so it holds still for reduced motion);
+  - 260 m ahead, where Broadway meets Seventh Avenue, One Times Square: its narrow tower stacked with six screens up its front, 2027 in gold lights on its roof and the crystal ball on its pole above, its facets in five colours sparkling; lit towers either side of it and behind, hazed by hand. Everything along the street is hidden past it.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -481,6 +490,7 @@ None.
 | `pages/world-ride/como` | Lake Como at 4:50, warm-up, next `Lakeside surge` |
 | `pages/world-ride/yosemite` | Yosemite Valley at 4:50, warm-up, next `Valley VO2 effort` |
 | `pages/world-ride/etna` | Mount Etna at 4:50, warm-up, next `Volcano push` |
+| `pages/world-ride/timessquare` | Times Square New Year's Eve at 2:53, warm-up, next `Countdown minute` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

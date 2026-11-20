@@ -2644,6 +2644,7 @@
     },
     {
       "id": "give-me-one-minute",
+      "world": "timessquare",
       "title": "Give Me One Minute",
       "channel": "GCN Training",
       "focus": "HIIT",
