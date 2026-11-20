@@ -1834,7 +1834,11 @@ function facadeTexture(storeys: number, seed: number): CanvasTexture {
   });
 }
 
-/** The same windows, lit warm, pink or blue, or dark behind drawn blinds. */
+/**
+ * The same windows at night: rooms lit warm, pink or blue, brighter under the ceiling lamp,
+ * some with drapes drawn to the sides, some with someone standing at the glass or the blue
+ * flicker of a television, some dark behind half-lowered blinds.
+ */
 function windowsTexture(storeys: number, seed: number): CanvasTexture {
   return canvasTexture(512, 512, (g) => {
     g.fillStyle = '#000';
@@ -1845,10 +1849,33 @@ function windowsTexture(storeys: number, seed: number): CanvasTexture {
       const lit = ['#ffd8a0', '#ffe8c8', '#ff9ec9', '#a8e8ff', '#ffc890'][
         Math.floor(random() * 5)
       ]!;
-      g.fillStyle = lit;
+      const room = g.createLinearGradient(0, b.y, 0, b.y + b.h);
+      room.addColorStop(0, lit);
+      room.addColorStop(1, 'rgba(90,60,50,1)');
+      g.fillStyle = room;
       g.fillRect(b.x, b.y, b.w, b.h);
-      // Some have their blinds half down, slatted.
-      if (random() < 0.4) {
+      const roll = random();
+      if (roll < 0.15) {
+        // A television's blue glow.
+        g.fillStyle = 'rgba(110,160,255,0.85)';
+        g.fillRect(b.x, b.y + b.h * 0.4, b.w, b.h * 0.6);
+      } else if (roll < 0.3) {
+        // Someone at the window.
+        g.fillStyle = 'rgba(20,14,20,0.9)';
+        const cx = b.x + b.w * (0.3 + random() * 0.4);
+        g.beginPath();
+        g.arc(cx, b.y + b.h * 0.42, b.w * 0.14, 0, Math.PI * 2);
+        g.fill();
+        g.fillRect(cx - b.w * 0.2, b.y + b.h * 0.55, b.w * 0.4, b.h * 0.45);
+      }
+      if (random() < 0.45) {
+        // Drapes drawn to the sides.
+        g.fillStyle = ['rgba(200,40,80,0.85)', 'rgba(240,200,140,0.85)', 'rgba(40,120,120,0.85)'][
+          Math.floor(random() * 3)
+        ]!;
+        g.fillRect(b.x, b.y, b.w * 0.22, b.h);
+        g.fillRect(b.x + b.w * 0.78, b.y, b.w * 0.22, b.h);
+      } else if (random() < 0.4) {
         g.fillStyle = 'rgba(0,0,0,0.55)';
         const down = b.h * (0.3 + random() * 0.4);
         for (let y = 0; y < down; y += 3) g.fillRect(b.x, b.y + y, b.w, 2);
