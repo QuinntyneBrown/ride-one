@@ -136,6 +136,8 @@ export class MiamiStreet implements SceneStreet {
   private plane: Group | null = null;
   private blimp: Group | null = null;
   private moonCloud: Mesh | null = null;
+  private meteor: Mesh | null = null;
+  private starMaterial: MeshBasicMaterial | null = null;
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
@@ -339,6 +341,16 @@ export class MiamiStreet implements SceneStreet {
     // The cabs' hazard lights blink.
     const blinking = seconds % 0.9 < 0.45;
     this.hazards.forEach((h) => (h.visible = blinking));
+    // The stars shimmer through the haze, and every 23 s a shooting star falls in 0.8 s.
+    if (this.starMaterial)
+      this.starMaterial.opacity = 0.85 + Math.sin(seconds * 3.1) * Math.sin(seconds * 1.7) * 0.15;
+    if (this.meteor) {
+      const t = (seconds + 0.4) % 23;
+      const m = this.meteor.material as MeshBasicMaterial;
+      m.opacity = t < 0.8 ? Math.sin((t / 0.8) * Math.PI) : 0;
+      const cycle = Math.floor((seconds + 0.4) / 23);
+      this.meteor.position.set(-300 + (cycle % 4) * 260 + t * 160, 900 - t * 70, -2050);
+    }
     // The silvered cloud drifts slowly across the moon and back.
     if (this.moonCloud) this.moonCloud.position.x = -880 + Math.sin(seconds * 0.02) * 90;
     // The blimp drifts slowly along the beach, 450 m ahead and 130 m up.
@@ -3766,6 +3778,22 @@ export class MiamiStreet implements SceneStreet {
     this.disposables.push(silver.geometry, silver.material as MeshBasicMaterial);
     this.moonCloud = silver;
     this.horizon.add(silver);
+    // A shooting star now and then, a bright streak falling across the stars and fading.
+    const meteor = new Mesh(
+      new PlaneGeometry(240, 5),
+      new MeshBasicMaterial({
+        map: this.track(meteorTexture()),
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        blending: AdditiveBlending,
+        fog: false,
+      }),
+    );
+    meteor.rotation.z = -0.35;
+    this.disposables.push(meteor.geometry, meteor.material as MeshBasicMaterial);
+    this.meteor = meteor;
+    this.horizon.add(meteor);
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
@@ -3883,6 +3911,7 @@ export class MiamiStreet implements SceneStreet {
       }),
     );
     stars.position.set(0, 1100, -2100);
+    this.starMaterial = stars.material as MeshBasicMaterial;
     const clouds = new Mesh(
       new PlaneGeometry(5200, 500),
       new MeshBasicMaterial({
@@ -5405,5 +5434,17 @@ function muralTexture(seed: number): CanvasTexture {
     g.fillStyle = '#f4f0e8';
     g.font = 'italic 14px sans-serif';
     g.fillText('wz', 226, 248);
+  });
+}
+
+/** A shooting star's streak: a white-hot head trailing a fading tail. */
+function meteorTexture(): CanvasTexture {
+  return canvasTexture(256, 8, (g) => {
+    const tail = g.createLinearGradient(0, 0, 256, 0);
+    tail.addColorStop(0, 'rgba(200,210,255,0)');
+    tail.addColorStop(0.85, 'rgba(230,235,255,0.7)');
+    tail.addColorStop(1, 'rgba(255,255,255,1)');
+    g.fillStyle = tail;
+    g.fillRect(0, 2, 256, 4);
   });
 }
