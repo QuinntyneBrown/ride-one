@@ -15,6 +15,7 @@ import {
   Group,
   IcosahedronGeometry,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   RepeatWrapping,
   Shape,
@@ -41,7 +42,7 @@ const KERB = 0.12;
 /** The quay between the street and the canal, the canal's width, and its water below. */
 const QUAY = 5.2;
 const CANAL = 25;
-const WATER = 2.3;
+const WATER = 1.5;
 /** The far quay's width, and the narrow pavement before the houses on the rider's side. */
 const FAR_QUAY = 5;
 const PAVEMENT = 2.2;
@@ -108,12 +109,15 @@ export class AmsterdamStreet implements SceneStreet {
     this.ribbons.lay(points, s);
   }
 
-  /** The ground plane drops to the canal's water, so the canal lies below the quays. */
+  /**
+   * The ground plane drops far below the canal's water, so the canal lies below the quays and its
+   * reflections hang beneath the water's surface.
+   */
   sink(ground: BufferGeometry, points: readonly StreetPoint[]): void {
     const position = ground.getAttribute('position') as BufferAttribute;
     points.forEach((p, i) => {
-      position.setY(i * 2, p.height - WATER - 1);
-      position.setY(i * 2 + 1, p.height - WATER - 1);
+      position.setY(i * 2, p.height - WATER - 40);
+      position.setY(i * 2 + 1, p.height - WATER - 40);
     });
     position.needsUpdate = true;
     ground.computeBoundingSphere();
@@ -181,7 +185,17 @@ export class AmsterdamStreet implements SceneStreet {
       map: this.repeat(waterTexture(), 12, 12),
       roughness: 0.08,
       metalness: 0.25,
+      transparent: true,
+      opacity: 0.62,
+      depthWrite: false,
     });
+    const sky = new MeshBasicMaterial({ color: 0xb4cadb });
+    const mirroredWall = this.material({
+      map: this.repeat(brickTexture(), 2, 2),
+      color: 0x6f7a78,
+      roughness: 1,
+    });
+    this.disposables.push(sky);
     const edge = -r - QUAY;
     const far = edge - CANAL;
     this.ribbons.add(points, street, [
@@ -201,6 +215,20 @@ export class AmsterdamStreet implements SceneStreet {
     this.ribbons.add(points, wall, [
       [edge, -0.2],
       [edge, -WATER],
+    ]);
+    // The water mirrors the sky and its own walls: the sky lies far beneath it and the walls
+    // hang upside down under their reflections' line, all seen through the water's tint.
+    this.ribbons.add(points, sky, [
+      [edge, -WATER - 30],
+      [far, -WATER - 30],
+    ]);
+    this.ribbons.add(points, mirroredWall, [
+      [edge, -2 * WATER - KERB],
+      [edge, -WATER],
+    ]);
+    this.ribbons.add(points, mirroredWall, [
+      [far, -WATER],
+      [far, -2 * WATER - KERB],
     ]);
     this.ribbons.add(points, water, [
       [edge, -WATER],
@@ -244,6 +272,11 @@ export class AmsterdamStreet implements SceneStreet {
         }),
       ),
     );
+    // Their reflections in the canal: the same fronts, darkened by the water.
+    const mirrored = new Map(
+      fronts.flat().map((m) => [m, this.material({ map: m.map, color: 0x6f7a78, roughness: 1 })]),
+    );
+    const mirroredSides = this.material({ color: 0x3a3634, roughness: 1 });
     const rows = [
       { x: roadHalf + PAVEMENT, turn: Math.PI / 2 },
       { x: -roadHalf - QUAY - CANAL - FAR_QUAY, turn: -Math.PI / 2 },
@@ -255,12 +288,20 @@ export class AmsterdamStreet implements SceneStreet {
         const width = k === 4 ? 11 + random() * 5 : 5.6 + random() * 2.4;
         const height = k === 4 ? 15 + random() * 3 : 17 + random() * 4;
         const house = new Group();
-        const mesh = new Mesh(shapes[k]!, [fronts[k]![Math.floor(random() * 4)]!, sides]);
+        const face = fronts[k]![Math.floor(random() * 4)]!;
+        const mesh = new Mesh(shapes[k]!, [face, sides]);
         mesh.scale.set(width, height, 12);
         mesh.rotation.y = turn;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         house.add(mesh);
+        if (turn < 0) {
+          const reflection = new Mesh(shapes[k]!, [mirrored.get(face)!, mirroredSides]);
+          reflection.scale.set(width, -height, 12);
+          reflection.position.y = -2 * WATER;
+          reflection.rotation.y = turn;
+          house.add(reflection);
+        }
         this.group.add(house);
         // The house's front runs from `offset` to `offset + width` along the gracht.
         const setback = random() * 0.35;
@@ -278,6 +319,12 @@ export class AmsterdamStreet implements SceneStreet {
     const leaves = [0x5a8a3a, 0x6a9a44, 0x4f7f34].map((hex) =>
       this.material({ color: hex, roughness: 0.95 }),
     );
+    const shadowed = new Map(
+      leaves.map((m) => [
+        m,
+        this.material({ color: m.color.clone().multiplyScalar(0.6), roughness: 1 }),
+      ]),
+    );
     const iron = this.material({ color: 0x1f3a2c, metalness: 0.4, roughness: 0.5 });
     const glass = this.material({ color: 0xf2efe2, emissive: 0xfff0c8, emissiveIntensity: 0.3 });
     const trunk = new CylinderGeometry(0.2, 0.3, 6, 8);
@@ -293,8 +340,17 @@ export class AmsterdamStreet implements SceneStreet {
       for (let offset = 0; offset < LOOP; offset += 9) {
         if (offset % BRIDGE < 8) continue;
         const tree = new Group();
-        tree.add(new Mesh(trunk, bark), new Mesh(crown, leaves[Math.floor(random() * 3)]!));
+        const leaf = leaves[Math.floor(random() * 3)]!;
+        tree.add(new Mesh(trunk, bark), new Mesh(crown, leaf));
         tree.children.forEach((m) => (m.castShadow = true));
+        if (x < quays[0]!) {
+          // The far quay's elms hang upside down in the water.
+          const reflection = new Group();
+          reflection.add(new Mesh(trunk, bark), new Mesh(crown, shadowed.get(leaf)!));
+          reflection.scale.y = -1;
+          reflection.position.y = -2 * WATER;
+          tree.add(reflection);
+        }
         tree.scale.setScalar(0.9 + random() * 0.3);
         this.group.add(tree);
         this.props.push({ mesh: tree, offset: offset + random() * 2, x });
