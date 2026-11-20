@@ -1564,6 +1564,99 @@ export class HavanaStreet implements SceneStreet {
     });
     this.addBicitaxis(roadHalf, tyre, chrome);
     this.addBuses(roadHalf, tyre, glass);
+    this.addSidecars(roadHalf, tyre, chrome);
+  }
+
+  /**
+   * Soviet sidecar motorcycles, still hauling families about: an olive, black or blue bike with
+   * its tank, saddle and chrome handlebars, a rider in an open helmet, and bolted to its side a
+   * boat-shaped sidecar on a third wheel with a passenger riding low in it.
+   */
+  private addSidecars(
+    roadHalf: number,
+    tyre: MeshStandardMaterial,
+    chrome: MeshStandardMaterial,
+  ): void {
+    const random = seeded(1447);
+    const wheel = new TorusGeometry(0.3, 0.09, 8, 18);
+    wheel.rotateY(Math.PI / 2);
+    const tub = new CapsuleGeometry(0.36, 1.1, 4, 12);
+    tub.rotateX(Math.PI / 2);
+    tub.scale(1, 0.7, 1);
+    const torso = new CapsuleGeometry(0.17, 0.4, 3, 8);
+    const head = new SphereGeometry(0.13, 10, 8);
+    const limb = new CapsuleGeometry(0.06, 0.5, 3, 6);
+    this.disposables.push(wheel, tub, torso, head, limb);
+    const paints = [0x4a5a32, 0x1e1e20, 0x2b4f7a];
+    const shirts = [0xf2efe6, 0xe63946, 0x3a86ff, 0xf4a261];
+    const skin = this.material({ color: 0x7a4a2e, roughness: 0.8 });
+    const helmet = this.material({ color: 0xe8e4da, roughness: 0.4 });
+    for (let k = 0; k < 3; k++) {
+      const bike = new Group();
+      const paint = this.material({
+        color: paints[k % paints.length]!,
+        roughness: 0.45,
+        metalness: 0.3,
+      });
+      const add = (
+        g: BufferGeometry,
+        m: MeshStandardMaterial,
+        x: number,
+        y: number,
+        z: number,
+        rx = 0,
+      ) => {
+        const mesh = new Mesh(g, m);
+        mesh.position.set(x, y, z);
+        mesh.rotation.x = rx;
+        mesh.castShadow = true;
+        bike.add(mesh);
+        return mesh;
+      };
+      const box = (
+        m: MeshStandardMaterial,
+        sx: number,
+        sy: number,
+        sz: number,
+        x: number,
+        y: number,
+        z: number,
+      ) => add(this.unit, m, x, y, z).scale.set(sx, sy, sz);
+      // The bike: wheels, frame, tank and saddle, handlebars.
+      add(wheel, tyre, 0, 0.39, -0.75);
+      add(wheel, tyre, 0, 0.39, 0.75);
+      box(paint, 0.12, 0.3, 1.2, 0, 0.62, 0);
+      box(paint, 0.3, 0.22, 0.5, 0, 0.9, -0.3);
+      box(this.material({ color: 0x1a1a1a, roughness: 0.8 }), 0.28, 0.1, 0.55, 0, 0.92, 0.25);
+      box(chrome, 0.7, 0.04, 0.04, 0, 1.15, -0.65);
+      box(chrome, 0.08, 0.08, 0.6, -0.15, 0.45, 0.5);
+      // The rider, leaning to the bars.
+      const shirt = this.material({ color: shirts[(k + 1) % shirts.length]!, roughness: 0.85 });
+      add(torso, shirt, 0, 1.35, 0.15, -0.35);
+      add(head, helmet, 0, 1.8, -0.02);
+      for (const side of [-0.25, 0.25]) add(limb, skin, side, 1.3, -0.3, -1.1);
+      for (const side of [-0.14, 0.14])
+        add(limb, this.material({ color: 0x2b2d42, roughness: 0.9 }), side, 0.8, 0.0, 1.2);
+      // The sidecar, its wheel and its passenger.
+      add(tub, paint, 0.85, 0.62, 0.05);
+      add(wheel, tyre, 0.95, 0.33, 0.25).scale.setScalar(0.9);
+      add(
+        torso,
+        this.material({ color: shirts[k % shirts.length]!, roughness: 0.85 }),
+        0.85,
+        1.05,
+        0.25,
+      );
+      add(head, skin, 0.85, 1.45, 0.22);
+      bike.rotation.y = Math.PI;
+      bike.position.x = -roadHalf - (k === 1 ? 2.0 : 5.0);
+      this.group.add(bike);
+      this.cars.push({
+        mesh: bike,
+        offset: 45 + k * 120 + random() * 10,
+        speed: -(9 + random() * 3),
+      });
+    }
   }
 
   /**
