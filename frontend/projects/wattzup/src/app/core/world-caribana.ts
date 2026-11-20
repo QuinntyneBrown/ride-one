@@ -61,12 +61,43 @@ const HAZE = 0xcfe0ee;
 const FLAG_KINDS = ['trinidad', 'jamaica', 'barbados', 'guyana'] as const;
 type FlagKind = (typeof FLAG_KINDS)[number];
 
-/** Costume palettes, one per mas band section: feathers from the hub out, and the bodysuit. */
-const COSTUMES: readonly { feathers: readonly string[]; suit: string }[] = [
-  { feathers: ['#ff2d87', '#ff7ab8', '#ffd23f', '#ffffff'], suit: '#ff2d87' },
-  { feathers: ['#13c3c9', '#4de0a8', '#f5f0a0', '#ffffff'], suit: '#0fa3b1' },
-  { feathers: ['#ffb000', '#ff6b1a', '#e8133c', '#fff1c1'], suit: '#ff8a00' },
-  { feathers: ['#7b2ff7', '#c86bfa', '#3ad1ff', '#ffffff'], suit: '#6a1fd6' },
+/**
+ * Costume palettes, one per mas band section: the bodysuit, and the feathers of the backpiece's
+ * three layers as [hub, tip] pairs, outer plumes first.
+ */
+const COSTUMES: readonly { feathers: readonly (readonly [string, string])[]; suit: string }[] = [
+  {
+    feathers: [
+      ['#d81b60', '#ff7ab8'],
+      ['#ffb300', '#fff176'],
+      ['#ff2d87', '#ffd1e6'],
+    ],
+    suit: '#ff2d87',
+  },
+  {
+    feathers: [
+      ['#00838f', '#4de0d0'],
+      ['#2e7d32', '#b9f6ca'],
+      ['#00acc1', '#e0f7fa'],
+    ],
+    suit: '#0fa3b1',
+  },
+  {
+    feathers: [
+      ['#e65100', '#ffcc33'],
+      ['#c62828', '#ff8a65'],
+      ['#ff8f00', '#fff3c4'],
+    ],
+    suit: '#ff8a00',
+  },
+  {
+    feathers: [
+      ['#4a148c', '#b388ff'],
+      ['#1565c0', '#80d8ff'],
+      ['#7b2ff7', '#e1c4ff'],
+    ],
+    suit: '#6a1fd6',
+  },
 ];
 const SKINS = ['#5a3a29', '#7a4b33', '#8d5a3b', '#a36d47', '#c48a5f', '#e2b48c', '#3f2a1f'];
 const TROUSERS = ['#2f3e5c', '#1e2530', '#3b5a7a', '#5b4a3a', '#d9d2c3', '#141414'];
@@ -121,6 +152,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly dancers: Masquerader[] = [];
   private readonly bodies: InstancedMesh[] = [];
   private costumes: InstancedMesh | null = null;
+  private medallions: InstancedMesh | null = null;
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
   private readonly downtown = new Group();
@@ -226,10 +258,9 @@ export class CaribanaStreet implements SceneStreet {
       costumes.setMatrixAt(i, this.matrix);
       const k = d.costume;
       this.spot.set(x, y + 1.3 + bounce, -metres);
-      this.backpieces[k]!.setMatrixAt(
-        count[k]!,
-        this.matrix.compose(this.spot, this.turn, this.size),
-      );
+      this.matrix.compose(this.spot, this.turn, this.size);
+      this.backpieces[k]!.setMatrixAt(count[k]!, this.matrix);
+      this.medallions?.setMatrixAt(i, this.matrix);
       this.spot.set(x, y + 1.7 + bounce, -metres);
       this.headdresses[k]!.setMatrixAt(
         count[k]!,
@@ -238,6 +269,7 @@ export class CaribanaStreet implements SceneStreet {
       count[k]!++;
     });
     costumes.instanceMatrix.needsUpdate = true;
+    if (this.medallions) this.medallions.instanceMatrix.needsUpdate = true;
     this.bodies.forEach((mesh, p) => {
       mesh.count = posed[p]!;
       mesh.instanceMatrix.needsUpdate = true;
@@ -369,12 +401,26 @@ export class CaribanaStreet implements SceneStreet {
       roughness: 0.6,
     });
     for (const costume of COSTUMES) {
-      const back = featherFan(costume.feathers, 17, 1.15, 0.24, Math.PI * 0.9);
-      const crown = featherFan(costume.feathers, 9, 0.5, 0.11, Math.PI * 0.6);
+      const [outer, mid, inner] = costume.feathers;
+      const layers = [
+        featherFan(outer!, 23, 1.55, 0.2, Math.PI * 1.08, 0.3),
+        featherFan(mid!, 17, 1.05, 0.3, Math.PI, 0.25),
+        featherFan(inner!, 13, 0.62, 0.26, Math.PI * 0.95, 0.2),
+      ];
+      const back = mergeGeometries(layers)!;
+      layers.forEach((l) => l.dispose());
+      const crown = featherFan(inner!, 11, 0.55, 0.12, Math.PI * 0.6, 0.12);
       this.disposables.push(back, crown);
       this.backpieces.push(this.instanced(back, plumes, n));
       this.headdresses.push(this.instanced(crown, plumes, n));
     }
+    // The backpiece's sequinned frame: a jewelled medallion at the hub in the section's colour.
+    const medallion = medallionGeometry();
+    this.disposables.push(medallion);
+    this.medallions = this.instanced(medallion, sequins, n);
+    this.dancers.forEach((d, i) =>
+      this.medallions!.setColorAt(i, c.set(COSTUMES[d.costume]!.suit)),
+    );
   }
 
   /** Music trucks on the left apron: a flatbed of speaker stacks under a canopy, the band's name. */
@@ -718,6 +764,10 @@ function masCostume(): BufferGeometry {
   belt.scale(1.06, 1, 0.84);
   belt.translate(0, 0.99, 0);
   parts.push(belt);
+  const headband = new TorusGeometry(0.1, 0.022, 6, 18);
+  headband.rotateX(Math.PI / 2);
+  headband.translate(0, 1.66, -0.01);
+  parts.push(headband);
   const collar = new TorusGeometry(0.075, 0.022, 6, 16);
   collar.rotateX(Math.PI / 2);
   collar.translate(0, 1.42, 0);
@@ -750,38 +800,66 @@ function sequinTexture(): CanvasTexture {
 }
 
 /**
- * A fan of `count` feathers `length` long and `width` wide, spread over `spread` radians and
- * leaning back, each feather coloured from `colours` (hub to tip) through vertex colours.
+ * A fan of `count` plumes `length` long and `width` wide, spread over `spread` radians and
+ * leaning back `lean`, each shaded from `hub` to `tip` through vertex colours, darker where
+ * the quills cross at the hub.
  */
 function featherFan(
-  colours: readonly string[],
+  [hub, tip]: readonly [string, string],
   count: number,
   length: number,
   width: number,
   spread: number,
+  lean: number,
 ): BufferGeometry {
   const parts: BufferGeometry[] = [];
+  const from = new Color(hub);
+  const to = new Color(tip);
   const c = new Color();
+  const random = seeded(count * 7 + Math.round(length * 100));
   for (let i = 0; i < count; i++) {
-    const feather = new PlaneGeometry(width, length, 1, 3);
-    feather.translate(0, length / 2, 0);
-    const a = -spread / 2 + (spread * i) / (count - 1);
-    feather.rotateX(-0.25);
+    const long = length * (0.88 + random() * 0.2);
+    const feather = new PlaneGeometry(width, long, 1, 4);
+    feather.translate(0, long / 2, 0);
+    // Each plume droops a little more the further it leans from upright.
+    const a = -spread / 2 + (spread * i) / (count - 1) + (random() - 0.5) * 0.05;
+    feather.rotateX(-lean - Math.abs(a) * 0.08);
     feather.rotateZ(a);
-    feather.translate(0, 0, 0.18 + (i % 2) * 0.02);
+    feather.translate(0, 0, 0.16 + (i % 2) * 0.025);
     const position = feather.getAttribute('position') as BufferAttribute;
+    const uv = feather.getAttribute('uv') as BufferAttribute;
     const colour = new Float32Array(position.count * 3);
-    const base = colours[i % 2 === 0 ? 0 : 1]!;
     for (let v = 0; v < position.count; v++) {
-      const y = feather.getAttribute('uv')!.getY(v);
-      const hex = y < 0.5 ? base : y < 0.85 ? colours[2]! : colours[3]!;
-      c.set(hex);
+      const y = uv.getY(v);
+      c.copy(from).lerp(to, Math.pow(y, 0.9));
+      c.multiplyScalar(0.62 + 0.38 * Math.min(1, y * 2.5));
       colour.set([c.r, c.g, c.b], v * 3);
     }
     feather.setAttribute('color', new BufferAttribute(colour, 3));
     parts.push(feather);
   }
   const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/** The hub of a backpiece: a sequinned disc in a raised ring, studded with rhinestones. */
+function medallionGeometry(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const disc = new CylinderGeometry(0.2, 0.2, 0.03, 24);
+  disc.rotateX(Math.PI / 2);
+  disc.translate(0, 0.02, 0.15);
+  parts.push(disc);
+  const ring = new TorusGeometry(0.22, 0.028, 6, 28);
+  ring.translate(0, 0.02, 0.15);
+  parts.push(ring);
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2;
+    const stone = new SphereGeometry(0.026, 8, 6);
+    stone.translate(Math.cos(a) * 0.13, 0.02 + Math.sin(a) * 0.13, 0.13);
+    parts.push(stone);
+  }
+  const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
   parts.forEach((p) => p.dispose());
   return merged;
 }
@@ -922,30 +1000,36 @@ function flagTexture(kind: FlagKind, tall = false): CanvasTexture {
   });
 }
 
-/** One plume: a quill with soft barbs either side, transparent round it. */
+/**
+ * One ostrich plume: a pale quill with soft, ragged barbs curling out and up either side,
+ * fluffier towards the tip, transparent round it.
+ */
 function featherTexture(): CanvasTexture {
   return canvasTexture(64, 256, (g) => {
     g.clearRect(0, 0, 64, 256);
-    const grad = g.createLinearGradient(0, 256, 0, 0);
-    grad.addColorStop(0, '#f4f4f4');
-    grad.addColorStop(1, '#ffffff');
-    g.fillStyle = grad;
-    g.beginPath();
-    g.moveTo(32, 256);
-    g.bezierCurveTo(0, 180, 2, 40, 32, 0);
-    g.bezierCurveTo(62, 40, 64, 180, 32, 256);
-    g.fill();
-    g.strokeStyle = 'rgba(0,0,0,0.18)';
-    g.lineWidth = 1;
-    for (let y = 20; y < 250; y += 7) {
-      g.beginPath();
-      g.moveTo(32, y + 6);
-      g.lineTo(8, y);
-      g.moveTo(32, y + 6);
-      g.lineTo(56, y);
-      g.stroke();
+    const random = seeded(29);
+    g.lineCap = 'round';
+    for (let y = 250; y > 4; y -= 1.6) {
+      const along = 1 - y / 256;
+      // Narrow at the quill's foot, widest two thirds up, rounding off at the tip.
+      const reach =
+        30 * Math.sin(Math.min(1, along * 1.25) * Math.PI * 0.92) * (0.75 + random() * 0.3);
+      for (const side of [-1, 1]) {
+        const shade = 82 + random() * 18;
+        g.strokeStyle = `hsla(0,0%,${shade}%,${0.55 + random() * 0.4})`;
+        g.lineWidth = 1 + random() * 1.4;
+        g.beginPath();
+        g.moveTo(32, y);
+        g.quadraticCurveTo(
+          32 + side * reach * 0.6,
+          y - 4,
+          32 + side * reach,
+          y - 10 - random() * 6,
+        );
+        g.stroke();
+      }
     }
-    g.fillStyle = 'rgba(255,255,255,0.9)';
+    g.fillStyle = 'rgba(255,255,255,0.95)';
     g.fillRect(31, 0, 2, 256);
   });
 }
