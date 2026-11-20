@@ -157,11 +157,23 @@ const STANCES: readonly (readonly [readonly number[], readonly number[]])[] = [
     [-0.3, 1.12, 0.02, -0.17, 0.98, -0.06],
     [0.3, 1.52, -0.3, 0.3, 1.72, -0.56],
   ],
+  // Clapping along, the hands together in front of the chest.
+  [
+    [-0.22, 1.12, -0.16, -0.02, 1.3, -0.3],
+    [0.22, 1.12, -0.16, 0.02, 1.3, -0.3],
+  ],
+  // Arms folded across the chest, watching.
+  [
+    [-0.2, 1.1, -0.14, 0.12, 1.18, -0.2],
+    [0.2, 1.1, -0.14, -0.12, 1.22, -0.21],
+  ],
 ];
 const FLAG_STANCE = 1;
 const PHONE_STANCE = 3;
 const LEAN_STANCE = 4;
 const SELFIE_STANCE = 5;
+const CLAP_STANCE = 6;
+const FOLDED_STANCE = 7;
 
 const HAIRS = ['#14100d', '#1f1712', '#2e2018', '#3d2a1c', '#6b4a2b', '#0c0c0c'];
 const CAPS = ['#c8102e', '#111111', '#ffd23f', '#1b6ad8', '#ffffff', '#0f9d58'];
@@ -401,7 +413,11 @@ export class Spectators {
       const front = Math.abs(p.x) < o.near + 0.3 && p.height > 0.9;
       const roll = habits();
       if (front && p.stance === 0 && roll < 0.4) this.people[i] = { ...p, stance: LEAN_STANCE };
-      else if (p.height > 0.9 && (p.stance === 0 || p.stance === 2) && roll > 0.95) {
+      else if (p.stance === 0 && roll > 0.4 && roll < 0.62) {
+        this.people[i] = { ...p, stance: CLAP_STANCE };
+      } else if (p.stance === 0 && p.height > 0.9 && roll > 0.62 && roll < 0.72) {
+        this.people[i] = { ...p, stance: FOLDED_STANCE };
+      } else if (p.height > 0.9 && (p.stance === 0 || p.stance === 2) && roll > 0.95) {
         this.people[i] = { ...p, stance: SELFIE_STANCE, turned: true };
       }
     });
@@ -529,7 +545,7 @@ export class Spectators {
       const heading =
         (p.side < 0 ? -Math.PI / 2 : Math.PI / 2) + p.side * 0.3 + (p.turned ? Math.PI : 0);
       const beat = Math.sin(time * 4.2 + p.phase);
-      const calm = p.stance === 0 || p.stance === LEAN_STANCE;
+      const calm = p.stance === 0 || p.stance === LEAN_STANCE || p.stance === FOLDED_STANCE;
       const bounce = Math.abs(beat) * (calm ? 0.02 : 0.05);
       this.turn.setFromAxisAngle(this.up, heading + beat * 0.05);
       this.size.setScalar(p.height);

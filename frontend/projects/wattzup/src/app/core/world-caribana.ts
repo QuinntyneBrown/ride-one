@@ -211,6 +211,16 @@ const POSES: readonly (readonly [readonly number[], readonly number[]])[] = [
     [-0.44, 1.42, -0.04, -0.7, 1.5, -0.08],
     [0.44, 1.42, -0.04, 0.7, 1.5, -0.08],
   ],
+  // Both hands on the hips, elbows out, wining.
+  [
+    [-0.34, 1.15, 0.02, -0.17, 0.98, -0.05],
+    [0.34, 1.15, 0.02, 0.17, 0.98, -0.05],
+  ],
+  // Jumping up: the right arm thrown straight up, the left swung down and out behind.
+  [
+    [-0.33, 1.16, 0.12, -0.45, 0.96, 0.2],
+    [0.24, 1.66, -0.04, 0.2, 1.98, -0.04],
+  ],
 ];
 
 export class CaribanaStreet implements SceneStreet {
