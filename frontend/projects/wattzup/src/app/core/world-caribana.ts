@@ -369,6 +369,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addConfetti();
     this.addOfficers();
     this.addBandBanners();
+    this.addPress();
     this.addLamps();
     this.addTrees();
     this.addStalls();
@@ -1529,6 +1530,79 @@ export class CaribanaStreet implements SceneStreet {
         marching: true,
       });
     });
+  }
+
+  /**
+   * The press, walking backwards up the road ahead of the bands to shoot them as they come:
+   * photographers in MEDIA vests with long lenses raised to the eye, one crouching, and a
+   * videographer with a camera on the shoulder, all chipping up the road with the parade.
+   */
+  private addPress(): void {
+    const random = seeded(2309);
+    const vest = this.material({
+      map: this.track(clothBannerTexture('MEDIA', '#ff7a00', '#111111')),
+      roughness: 0.7,
+    });
+    const black = this.material({ color: 0x141416, roughness: 0.4, metalness: 0.3 });
+    const grey = this.material({ color: 0xd9dcde, roughness: 0.5, metalness: 0.2 });
+    const body = new BoxGeometry(0.15, 0.11, 0.08);
+    body.translate(0, 1.55, -0.3);
+    const lens = new CylinderGeometry(0.045, 0.05, 0.3, 10);
+    lens.rotateX(Math.PI / 2);
+    lens.translate(0, 1.53, -0.48);
+    const camcorder = new BoxGeometry(0.14, 0.2, 0.5);
+    camcorder.translate(0.14, 1.6, -0.12);
+    const hood = new BoxGeometry(0.16, 0.14, 0.1);
+    hood.translate(0.14, 1.62, -0.41);
+    const front = new CylinderGeometry(0.168, 0.162, 0.32, 12, 1, true, Math.PI / 2, Math.PI);
+    front.scale(1, 1, 0.76);
+    front.translate(0, 1.2, 0);
+    this.disposables.push(body, lens, camcorder, hood, front);
+    for (let k = 0; k < 8; k++) {
+      const video = k % 4 === 3;
+      const crouch = !video && k % 4 === 1;
+      const parts = spectatorParts(video ? 0 : 3, random() < 0.4, crouch);
+      this.disposables.push(parts.skin, parts.top, parts.bottom);
+      const person = new Group();
+      const skin = this.material({
+        color: SKINS[Math.floor(random() * SKINS.length)],
+        roughness: 0.6,
+      });
+      const shirt = this.material({ color: random() < 0.5 ? 0x111111 : 0x2f3e5c, roughness: 0.9 });
+      const trousers = this.material({
+        color: TROUSERS[Math.floor(random() * TROUSERS.length)],
+        roughness: 0.9,
+      });
+      person.add(
+        new Mesh(parts.skin, skin),
+        new Mesh(parts.top, shirt),
+        new Mesh(parts.bottom, trousers),
+      );
+      const vestFront = new Mesh(front, vest);
+      if (crouch) vestFront.position.y = -0.42;
+      person.add(vestFront);
+      const kit = video ? [camcorder, hood] : [body, lens];
+      for (const g of kit) {
+        const m = new Mesh(g, g === lens ? black : g === hood ? black : video ? grey : black);
+        if (crouch) m.position.y = -0.42;
+        person.add(m);
+      }
+      person.traverse((o) => (o.castShadow = true));
+      // Facing back down the road to the band coming up behind them, and the riders.
+      person.rotation.y = Math.PI + (random() - 0.5) * 0.7;
+      const holder = new Group();
+      holder.add(person);
+      this.group.add(holder);
+      const side = k % 2 ? 1 : -1;
+      this.props.push({
+        mesh: holder,
+        offset: 26 + k * 41 + random() * 6,
+        every: LOOP,
+        x: side * (1.9 + random() * 2.4),
+        road: true,
+        marching: true,
+      });
+    }
   }
 
   /**
