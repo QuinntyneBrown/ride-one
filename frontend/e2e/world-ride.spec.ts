@@ -580,6 +580,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Mount Teide');
   });
 
+  test('rides Intense High Tempo Bike Workout down the runway on Tempelhof Field', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Intense High Tempo Bike Workout',
+      'Tempelhof Field',
+      'intense-high-tempo-bike-workout',
+    );
+    await expect(world.heading).toHaveText('Tempelhof Field');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Tempelhof Field');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

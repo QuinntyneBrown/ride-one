@@ -936,6 +936,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.1, fill: 1.6, colour: 0xfff4e4 },
     fogRange: [1200, 14000],
   },
+  // A breezy summer evening over the field: a high, wide sky and low warm light across the grass.
+  tempelhof: {
+    sky: 0x5a9ae0,
+    fog: 0xd8e0e8,
+    ground: 0x8a9a4a,
+    road: 0x9a9890,
+    sun: 22,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.6,
+    azimuth: -110,
+    light: { sun: 2.7, fill: 1.5, colour: 0xffe8c8 },
+    fogRange: [600, 6000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

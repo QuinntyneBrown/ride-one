@@ -136,7 +136,8 @@ export interface components {
         | 'etna'
         | 'timessquare'
         | 'tremola'
-        | 'teide';
+        | 'teide'
+        | 'tempelhof';
     };
     ClassShelfResponse: {
       id: string;
