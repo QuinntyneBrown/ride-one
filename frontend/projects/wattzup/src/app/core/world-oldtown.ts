@@ -92,6 +92,7 @@ const ALLEY = 3.2;
 const MOTO_AHEAD = 30;
 const MOTO_X = -2.3;
 const FORWARD = new Vector3(0, 0, 1);
+const HAIR = ['#2a1d14', '#4a3222', '#7a5434', '#b08a5a', '#1a1a1a', '#9a9a96', '#5a2e1c'];
 const HATS = ['#efe6cf', '#1f2b44', '#c9372c', '#f2f0e8', '#d8ff3e'];
 const ROOFS = ['#9a4b33', '#7c3d2c', '#a85a3a', '#5a5c63'];
 
@@ -143,6 +144,8 @@ interface HouseLook {
   readonly awning: Material | null;
   /** What a shop sells, as its window shows: books, bread, flowers or clothes. */
   readonly trade: number;
+  /** Whether the upper windows keep window boxes of flowers. */
+  readonly flowers: boolean;
 }
 
 interface House {
@@ -180,7 +183,7 @@ export class OldTownStreet {
   private readonly brick = new MeshStandardMaterial({ color: 0x8e4a37, roughness: 0.95 });
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
   private readonly crowd: Fan[] = [];
-  /** The crowd's legs, torsos, heads, arms, hats and hand flags. */
+  /** The crowd's legs, torsos, heads, arms, hats, hand flags and hair. */
   private fans: InstancedMesh[] = [];
   private readonly hatted: boolean[] = [];
   private readonly reach = new Vector3();
@@ -219,6 +222,7 @@ export class OldTownStreet {
   private readonly alleyFloor = new MeshStandardMaterial({ color: 0x8a837a, roughness: 0.95 });
   /** Half a disc, its flat edge up: one scallop of an awning's hem. */
   private readonly scallop = new CircleGeometry(0.15, 10, Math.PI, Math.PI);
+  private readonly finial = new SphereGeometry(0.16, 8, 6);
   private readonly oculus = new CylinderGeometry(0.4, 0.4, 0.04, 16);
   private readonly pot = new CylinderGeometry(0.24, 0.18, 0.5, 10);
   private readonly bush = new SphereGeometry(0.42, 10, 8);
@@ -341,7 +345,15 @@ export class OldTownStreet {
     const shut = PALETTES.map((p, i) =>
       p.shutter ? this.material(this.track(bayTexture(p, false, true))) : upper[i]!,
     );
-    const shop = PALETTES.map((p) => this.material(this.track(bayTexture(p, true))));
+    // Shops light their windows from inside: a warm glow that only the glass gives off.
+    const glow = this.track(shopGlowTexture());
+    const shop = PALETTES.map((p) => {
+      const material = this.material(this.track(bayTexture(p, true)));
+      material.emissiveMap = glow;
+      material.emissive.set(0xffc58a);
+      material.emissiveIntensity = 0.32;
+      return material;
+    });
     const roofs = ROOFS.map((color) => this.material(this.track(tileTexture(color))));
     const gables = PALETTES.map((p) => this.material(null, p.wall));
     const trims = PALETTES.map((p) => this.material(null, p.trim));
@@ -383,6 +395,7 @@ export class OldTownStreet {
           roof: [roof, gables[style]!],
           trim: trims[style]!,
           trade: style % 4,
+          flowers: !!PALETTES[style]!.flowers,
         });
         mesh.rotation.y = side === 1 ? Math.PI : 0;
         this.group.add(mesh);
@@ -643,8 +656,8 @@ export class OldTownStreet {
 
   /** The crowd, moved with the street: one instance per spectator's legs, torso and head. */
   private placeCrowd(s: number, heightAt: (metres: number) => number): void {
-    const [legs, torsos, heads, arms, hats, waved] = this.fans;
-    if (!legs || !torsos || !heads || !arms || !hats || !waved) return;
+    const [legs, torsos, heads, arms, hats, waved, hair] = this.fans;
+    if (!legs || !torsos || !heads || !arms || !hats || !waved || !hair) return;
     this.crowd.forEach((fan, i) => {
       const metres = ((((fan.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const y = heightAt(Math.max(metres, 0)) + KERB;
@@ -663,6 +676,7 @@ export class OldTownStreet {
       set(torsos, (hip + neck) / 2, (neck - hip + 0.08) / 0.75);
       set(heads, fan.height - 0.11, 1);
       set(hats, fan.height - 0.02, this.hatted[i] ? 1 : 0);
+      set(hair, fan.height - 0.1, this.hatted[i] ? 0 : 1);
       // Each arm hangs from its shoulder, or reaches up and out to cheer.
       for (const side of [-1, 1]) {
         this.reach.set(side * (fan.cheer ? 0.35 : 0.1), fan.cheer ? 1 : -1, 0.08).normalize();
@@ -774,6 +788,10 @@ export class OldTownStreet {
     const cloth = new MeshStandardMaterial({ roughness: 0.85, side: DoubleSide });
     this.disposables.push(pennant, cloth);
     this.fans.push(new InstancedMesh(pennant, cloth, n));
+    // Hair on every bare head, in a natural range of shades.
+    const hair = new SphereGeometry(0.112, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2.1);
+    this.disposables.push(hair);
+    this.fans.push(new InstancedMesh(hair, material, n));
     const hats = seeded(47);
     const colour = new Color();
     this.crowd.forEach((fan, i) => {
@@ -785,6 +803,7 @@ export class OldTownStreet {
       this.hatted.push(hats() < 0.2);
       this.fans[4]!.setColorAt(i, colour.set(HATS[Math.floor(hats() * HATS.length)]!));
       this.fans[5]!.setColorAt(i, colour.set(PENNANTS[i % PENNANTS.length]!));
+      this.fans[6]!.setColorAt(i, colour.set(HAIR[Math.floor(hats() * HAIR.length)]!));
     });
     for (const mesh of this.fans) {
       mesh.castShadow = true;
@@ -1115,6 +1134,16 @@ export class OldTownStreet {
         key.scale.set(0.14, 0.26, 0.2);
         key.position.set(0.07, SHOP + k * STOREY + 2.64, sill.position.z);
         group.add(sill, lintel, key);
+        if (look.flowers) {
+          // A window box on the sill, geraniums spilling over its front.
+          const planter = new Mesh(this.unit, this.terracotta);
+          planter.scale.set(0.24, 0.2, 1.05);
+          planter.position.set(0.16, SHOP + k * STOREY + 0.76, sill.position.z);
+          const blooms = new Mesh(this.bush, this.geraniums);
+          blooms.scale.set(0.4, 0.3, 1.25);
+          blooms.position.set(0.18, SHOP + k * STOREY + 0.9, sill.position.z);
+          group.add(planter, blooms);
+        }
       }
     }
     // A row of dentils under the cornice.
@@ -1186,6 +1215,12 @@ export class OldTownStreet {
       const coping = new Mesh(this.unit, look.trim);
       coping.scale.set(0.55, 0.12, w + 0.1);
       coping.position.set(0.05, top + 0.86 + k * 0.8, 0);
+      // A stone ball on each step's outer corners.
+      for (const end of [-1, 1]) {
+        const finial = new Mesh(this.finial, look.trim);
+        finial.position.set(0.05, top + 1.04 + k * 0.8, (end * w) / 2 - end * 0.15);
+        group.add(finial);
+      }
       course.castShadow = coping.castShadow = true;
       group.add(course, coping);
     }
@@ -2061,6 +2096,31 @@ function clothBannerTexture(text: string, fill: string, ink: string): CanvasText
     ctx.fillRect(0, 0, 700, 130);
   }
   const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Where a shop bay glows: its window's interior, brightest low down where the lamps fall. */
+function shopGlowTexture(): CanvasTexture {
+  const w = 192;
+  const h = 268;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, w, h);
+    // The window as bayTexture draws it: inset 22 px, from 54 px down to 66 px off the foot.
+    const glow = ctx.createLinearGradient(0, 54, 0, h - 66);
+    glow.addColorStop(0, '#202020');
+    glow.addColorStop(1, '#ffffff');
+    ctx.fillStyle = glow;
+    ctx.fillRect(22, 54, w - 44, h - 26 - 54 - 40);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
