@@ -287,6 +287,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly pannists: { figure: Group; phase: number }[] = [];
   private readonly bandBanners: { group: Group; phase: number }[] = [];
   private engineRoom: Group | null = null;
+  private readonly sectionFlags: { flag: Group; phase: number }[] = [];
   private readonly truckLights: MeshStandardMaterial[] = [];
   private readonly policeLights: MeshStandardMaterial[] = [];
   private readonly closed = new MeshStandardMaterial({
@@ -385,6 +386,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addBandBanners();
     this.addPress();
     this.addEngineRoom();
+    this.addSectionFlags();
     this.addLamps();
     this.addBunting();
     this.addTrees();
@@ -448,6 +450,11 @@ export class CaribanaStreet implements SceneStreet {
       const beat = Math.max(0, Math.sin(this.time * Math.PI * 2.1 + k * 1.6));
       m.emissiveIntensity = 0.6 + Math.pow(beat, 4) * 3.2;
     });
+    // Each section's flag swings from side to side on its pole.
+    for (const f of this.sectionFlags) {
+      f.flag.rotation.y = Math.sin(this.time * 1.6 + f.phase) * 0.7;
+      f.flag.rotation.z = Math.sin(this.time * 1.6 + f.phase) * 0.12;
+    }
     // The engine room bobs on every beat as it plays.
     this.engineRoom?.children.forEach((p, k) => {
       p.position.y = Math.abs(Math.sin(this.time * 4.2 + k * 0.3)) * 0.05;
@@ -1611,6 +1618,72 @@ export class CaribanaStreet implements SceneStreet {
         marching: true,
       });
     });
+  }
+
+  /**
+   * Each costume section's flag, carried at its head: a big flag in the section's colour with
+   * its name, on a pole 4.5 m tall held up by a bearer in the section's T-shirt, swinging from
+   * side to side as the bearer walks.
+   */
+  private addSectionFlags(): void {
+    const names = ['FLAMINGO', 'CORAL REEF', 'SUNFIRE', 'ORCHID'];
+    const random = seeded(2609);
+    const pole = new CylinderGeometry(0.025, 0.03, 4.5, 6);
+    pole.translate(0, 2.25, 0);
+    const cloth = new PlaneGeometry(1.8, 1.2, 6, 2);
+    cloth.translate(0.92, 3.8, 0);
+    // A little ripple in the cloth.
+    const ripple = cloth.getAttribute('position') as BufferAttribute;
+    for (let i = 0; i < ripple.count; i++) {
+      ripple.setZ(i, Math.sin(ripple.getX(i) * 4) * 0.08 * (ripple.getX(i) / 1.8));
+    }
+    // Printed to face the way the bearer faces: back down the road, to the band and the riders.
+    cloth.rotateY(Math.PI);
+    cloth.computeVertexNormals();
+    this.disposables.push(pole, cloth);
+    const wood = this.material({ color: 0xd8d2c4, roughness: 0.6, metalness: 0.4 });
+    const trousers = this.material({ color: 0x1e2530, roughness: 0.9 });
+    for (let k = 0; k < LOOP / 40; k++) {
+      const costume = k % COSTUMES.length;
+      const colour = COSTUMES[costume]!.suit;
+      const flag = new Group();
+      flag.add(new Mesh(pole, wood));
+      flag.add(
+        new Mesh(
+          cloth,
+          this.material({
+            map: this.track(sectionFlagTexture(names[costume]!, colour)),
+            side: DoubleSide,
+            roughness: 0.7,
+          }),
+        ),
+      );
+      flag.position.set(0.3, 0.9, -0.06);
+      const parts = spectatorParts(1, random() < 0.5);
+      this.disposables.push(parts.skin, parts.top, parts.bottom);
+      const bearer = new Group();
+      const skin = this.material({
+        color: SKINS[Math.floor(random() * SKINS.length)],
+        roughness: 0.6,
+      });
+      bearer.add(new Mesh(parts.skin, skin), new Mesh(parts.top, this.material({ color: colour })));
+      bearer.add(new Mesh(parts.bottom, trousers), flag);
+      bearer.rotation.y = Math.PI + (random() - 0.5) * 0.6;
+      bearer.traverse((o) => (o.castShadow = true));
+      const holder = new Group();
+      holder.add(bearer);
+      this.group.add(holder);
+      this.sectionFlags.push({ flag, phase: random() * 6 });
+      const side = k % 2 ? 1 : -1;
+      this.props.push({
+        mesh: holder,
+        offset: k * 40 + 2,
+        every: LOOP,
+        x: side * (2.4 + random() * 1.5),
+        road: true,
+        marching: true,
+      });
+    }
   }
 
   /**
@@ -4457,6 +4530,30 @@ function guideSignTexture(top: string, bottom: string): CanvasTexture {
     g.fillText(top, 256, 62, 470);
     g.font = '40px system-ui, sans-serif';
     g.fillText(bottom, 256, 124, 470);
+  });
+}
+
+/** A section's flag: its name in white on its colour, a gold border and the band's star. */
+function sectionFlagTexture(name: string, colour: string): CanvasTexture {
+  return canvasTexture(384, 256, (g) => {
+    g.fillStyle = colour;
+    g.fillRect(0, 0, 384, 256);
+    g.strokeStyle = '#ffd23f';
+    g.lineWidth = 12;
+    g.strokeRect(6, 6, 372, 244);
+    g.fillStyle = '#ffd23f';
+    g.beginPath();
+    for (let k = 0; k < 10; k++) {
+      const r = k % 2 ? 22 : 50;
+      const a = (k / 10) * Math.PI * 2 - Math.PI / 2;
+      g.lineTo(192 + Math.cos(a) * r, 92 + Math.sin(a) * r);
+    }
+    g.fill();
+    g.fillStyle = '#ffffff';
+    g.font = 'bold 54px system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(name, 192, 196, 340);
   });
 }
 
