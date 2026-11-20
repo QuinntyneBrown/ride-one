@@ -1244,3 +1244,95 @@ export function haloTexture(): CanvasTexture {
     g.fillRect(0, 0, 64, 64);
   });
 }
+
+/**
+ * Lifeguard towers, as South Beach and Santa Monica stand them on the sand: a painted hut on four
+ * white stilts, its deck, a band of trim, a pyramid roof, a ramp down to the sand and a red flag
+ * on a mast. `make(i)` paints the i-th in the next of five pairs of colours; the pieces are made
+ * once and shared by every tower.
+ */
+export class LifeguardTowers {
+  private static readonly PAINTS = [
+    ['#ff4fa8', '#ffe14a'],
+    ['#2fd3cf', '#ff9ec9'],
+    ['#ffb23f', '#7ad0ff'],
+    ['#c9b8f2', '#3fe08a'],
+    ['#f26b5b', '#fdf5e4'],
+  ] as const;
+  private readonly unit = new BoxGeometry(1, 1, 1);
+  private readonly roof = new ConeGeometry(2.2, 0.9, 4);
+  private readonly cloth = new PlaneGeometry(0.8, 0.5);
+  private readonly white: MeshStandardMaterial;
+  private readonly red: MeshStandardMaterial;
+  private readonly paints: (readonly [MeshStandardMaterial, MeshStandardMaterial])[];
+
+  constructor(disposables: { dispose(): void }[], track: <T extends Texture>(texture: T) => T) {
+    this.roof.rotateY(Math.PI / 4);
+    this.white = new MeshStandardMaterial({ color: 0xf6f3ea, roughness: 0.7 });
+    this.red = new MeshStandardMaterial({ color: 0xd8283a, side: DoubleSide, roughness: 0.8 });
+    this.paints = LifeguardTowers.PAINTS.map(([wall, trim]) => {
+      const body = new MeshStandardMaterial({
+        map: track(hutTexture(wall, trim)),
+        roughness: 0.7,
+      });
+      const accent = new MeshStandardMaterial({ color: trim, roughness: 0.7 });
+      disposables.push(body, accent);
+      return [body, accent] as const;
+    });
+    disposables.push(this.unit, this.roof, this.cloth, this.white, this.red);
+  }
+
+  /** The i-th tower, its ramp running down toward -x, its feet at the origin. */
+  make(i: number): Group {
+    const [body, accent] = this.paints[i % this.paints.length]!;
+    const tower = new Group();
+    tower.scale.setScalar(1.3);
+    const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z = 0) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y + h / 2, z);
+      mesh.castShadow = true;
+      tower.add(mesh);
+      return mesh;
+    };
+    for (const [x, z] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ] as const) {
+      box(this.white, 0.15, 1.8, 0.15, x, 0, z);
+    }
+    box(this.white, 3.2, 0.15, 3.2, 0, 1.8); // deck
+    box(body, 2.6, 2, 2.6, 0, 1.95); // hut
+    box(accent, 3.2, 0.12, 3.2, 0, 3.95);
+    const r = new Mesh(this.roof, accent);
+    r.position.y = 4.5;
+    tower.add(r);
+    const ramp = box(this.white, 1, 0.1, 3.4, -2.2, 0.9);
+    ramp.rotation.z = 0.55;
+    const mast = box(this.white, 0.06, 2, 0.06, 0, 4.4);
+    mast.castShadow = false;
+    const flag = new Mesh(this.cloth, this.red);
+    flag.position.set(0, 6.1, 0.42);
+    flag.rotation.y = Math.PI / 2;
+    tower.add(flag);
+    return tower;
+  }
+}
+
+/** A lifeguard hut's boards in `wall`, with a band of `trim` and a dark window. */
+function hutTexture(wall: string, trim: string): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    g.fillStyle = wall;
+    g.fillRect(0, 0, 256, 256);
+    g.fillStyle = 'rgba(0,0,0,0.08)';
+    for (let x = 0; x < 256; x += 16) g.fillRect(x, 0, 2, 256);
+    g.fillStyle = trim;
+    g.fillRect(0, 180, 256, 36);
+    g.fillStyle = '#2b3a4a';
+    g.fillRect(48, 50, 160, 90);
+    g.fillStyle = trim;
+    g.fillRect(124, 50, 8, 90);
+  });
+}

@@ -87,6 +87,7 @@ export const WORLDS: readonly WorldId[] = [
   'coney',
   'winterlude',
   'letras',
+  'santamonica',
 ];
 
 export interface Shelf {
