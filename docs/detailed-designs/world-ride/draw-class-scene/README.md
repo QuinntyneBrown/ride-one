@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -289,6 +289,12 @@ None.
   - 240 m ahead the Serpentine Bridge across the lake, the road passing under the last of its five shallow arches: Portland stone with a proud ring of voussoirs to each arch, pilasters up the piers, cutwaters, a cornice and a balustrade, and a grassed embankment carrying the road on to it; beyond it Kensington Gardens' trees, the Albert Memorial's gilded Gothic spire rising over them, and to the left Knightsbridge over the far bank's trees: mansion blocks in red brick and Portland stone, six to nine storeys under slate mansards with chimney stacks, the turreted red-brick hotel by the park with its green copper cupolas, and the barracks tower, all hazed by hand. Trees, deckchairs and banners on the lawns are hidden past the bridge so none stands in front of its arches.
 
   `lay`, `place` and `setTime` recycle it along a 500 m loop.
+- **Champs-Élysées Finale (`core/world-champs.ts`).** For `champs`, the avenue on the last day of the great Tour:
+  - the avenue's cobbles (the renderer's cobbled road) between wide pavements of stone flags and gravel;
+  - double rows of clipped plane trees and Haussmann's cream ashlar façades with shopfront awnings, iron balconies and zinc mansards with dormers;
+  - barriers hung with the race's banners, and the crowd packed several deep behind them, bouncing on their toes (`Figures`);
+  - lamp posts flying tricolours that stir on the ride's clock, and the 1 km kite on its gantry once a lap;
+  - the Arc de Triomphe at the top of the avenue with a great tricolour beneath its vault, keeping its bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -335,6 +341,7 @@ None.
 | `pages/world-ride/campolongo` | Passo Campolongo at 4:50, warm-up, next `Forest hairpins` |
 | `pages/world-ride/marinabay` | Marina Bay Night at 4:50, warm-up, next `Bayfront spin-up` |
 | `pages/world-ride/serpentine` | Serpentine, Hyde Park at 1:53, warm-up, next `Lakeside surge` |
+| `pages/world-ride/champs` | Champs-Élysées Finale at 4:50, warm-up, next `Sprint for the line` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
