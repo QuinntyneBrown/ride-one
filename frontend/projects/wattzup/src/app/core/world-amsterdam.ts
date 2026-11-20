@@ -2856,10 +2856,18 @@ function carGeometry(kind: 'hatch' | 'city' | 'van'): {
       width: 1.9,
     },
   }[kind];
-  const shape = (points: number[][]) => {
+  // The profile is smoothed through its points, so the bonnet, screen and roof flow into one
+  // another, and closed straight along the sills.
+  const shape = (points: number[][], smooth = true) => {
     const outline = new Shape();
     outline.moveTo(points[0]![0]!, points[0]![1]!);
-    for (const [x, y] of points.slice(1)) outline.lineTo(x!, y!);
+    const rest = points.slice(1).map(([x, y]) => new Vector2(x!, y!));
+    if (smooth) {
+      outline.splineThru(rest.slice(0, -1));
+      outline.lineTo(rest.at(-1)!.x, rest.at(-1)!.y);
+    } else {
+      for (const p of rest) outline.lineTo(p.x, p.y);
+    }
     outline.closePath();
     return outline;
   };
@@ -2871,11 +2879,12 @@ function carGeometry(kind: 'hatch' | 'city' | 'van'): {
   };
   const body = place(
     new ExtrudeGeometry(shape(profiles.body), {
-      depth: profiles.width,
+      depth: profiles.width - 0.16,
       bevelEnabled: true,
-      bevelSize: 0.06,
-      bevelThickness: 0.06,
-      bevelSegments: 2,
+      bevelSize: 0.1,
+      bevelThickness: 0.1,
+      bevelSegments: 4,
+      curveSegments: 18,
     }),
     profiles.width,
   );
@@ -2898,6 +2907,23 @@ function carGeometry(kind: 'hatch' | 'city' | 'van'): {
   }
   const wheels = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
+  // Silver hubs on the wheels, and the door pillar dividing the side windows.
+  const hubs: BufferGeometry[] = [];
+  for (const x of profiles.wheels) {
+    for (const side of [-1, 1]) {
+      const hub = new CylinderGeometry(0.17, 0.17, 0.24, 12);
+      hub.rotateX(Math.PI / 2);
+      hub.translate(x - length / 2, 0.31, side * (profiles.width / 2 - 0.02));
+      hub.rotateY(Math.PI / 2);
+      hubs.push(hub);
+    }
+  }
+  const pillar = new BoxGeometry(profiles.width + 0.14, 0.5, 0.12);
+  pillar.translate(
+    0,
+    kind === 'van' ? 1.6 : 1.2,
+    -length / 2 + (profiles.glass[0]![0]! + profiles.glass[2]![0]!) / 2,
+  );
   const pair = (make: (z: number, side: number) => BufferGeometry | null) => {
     const pieces: BufferGeometry[] = [];
     for (const z of [-1, 1]) {
@@ -2929,7 +2955,13 @@ function carGeometry(kind: 'hatch' | 'city' | 'van'): {
     tail.translate(side * (profiles.width / 2 - 0.1), kind === 'van' ? 1.0 : 0.82, half);
     return tail;
   });
-  return { body, glass, wheels, plates, heads, tails, length };
+  const bright = mergeGeometries([heads, ...hubs])!;
+  heads.dispose();
+  hubs.forEach((h) => h.dispose());
+  const shell = mergeGeometries([body.index ? body.toNonIndexed() : body, pillar.toNonIndexed()])!;
+  body.dispose();
+  pillar.dispose();
+  return { body: shell, glass, wheels, plates, heads: bright, tails, length };
 }
 
 /**
