@@ -2469,18 +2469,34 @@ export class CaribanaStreet implements SceneStreet {
       this.drops.length,
     );
     this.spray.castShadow = false;
-    // The wet patch: glossy and dark, ragged at the edge.
-    const wet = new PlaneGeometry(6, 7);
-    wet.rotateX(-Math.PI / 2);
-    wet.translate(0, 0.006, 0);
+    // The wet patch where the water lands: overlapping puddles, each a faint dark, glossy disc
+    // pushed out of round, so the patch is darkest in the middle and ragged at its edge.
+    const scatter = seeded(1813);
+    const puddles: BufferGeometry[] = [];
+    for (let k = 0; k < 16; k++) {
+      const r = 0.6 + scatter() * 1.3;
+      const puddle = new CircleGeometry(r, 18);
+      const ring = puddle.getAttribute('position') as BufferAttribute;
+      for (let i = 1; i < ring.count; i++) {
+        const wobble = 0.75 + scatter() * 0.5;
+        ring.setXY(i, ring.getX(i) * wobble, ring.getY(i) * wobble);
+      }
+      puddle.rotateX(-Math.PI / 2);
+      puddle.translate((scatter() - 0.5) * 3.6, 0.017 + k * 0.0004, (scatter() - 0.5) * 4.4);
+      puddles.push(puddle.toNonIndexed());
+      puddle.dispose();
+    }
+    const wet = mergeGeometries(puddles)!;
+    puddles.forEach((p) => p.dispose());
     this.disposables.push(wet);
     const patch = new Mesh(
       wet,
       this.material({
-        map: this.track(wetTexture()),
+        color: 0x16181c,
         transparent: true,
-        roughness: 0.08,
-        metalness: 0.25,
+        opacity: 0.16,
+        roughness: 0.05,
+        metalness: 0.3,
         depthWrite: false,
       }),
     );
@@ -4573,24 +4589,6 @@ function streetSignTexture(name: string): CanvasTexture {
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.fillText(name, 256, 56, 470);
-  });
-}
-
-/** Wet asphalt: dark in the middle and ragged at the edge, puddled in places. */
-function wetTexture(): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    g.clearRect(0, 0, 256, 256);
-    const random = seeded(1811);
-    for (let i = 0; i < 70; i++) {
-      const x = 128 + (random() - 0.5) * 170;
-      const y = 128 + (random() - 0.5) * 190;
-      const r = 14 + random() * 36;
-      const blot = g.createRadialGradient(x, y, 0, x, y, r);
-      blot.addColorStop(0, 'rgba(18,20,24,0.5)');
-      blot.addColorStop(1, 'rgba(18,20,24,0)');
-      g.fillStyle = blot;
-      g.fillRect(x - r, y - r, 2 * r, 2 * r);
-    }
   });
 }
 
