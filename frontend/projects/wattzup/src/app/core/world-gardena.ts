@@ -43,6 +43,7 @@ import {
   Ribbons,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
   type Wardrobe,
 } from './world-kit';
@@ -129,6 +130,8 @@ interface Prop {
   readonly x: number;
   /** Raised this far above the road, for parts that stand up the slope. */
   readonly lift?: number;
+  /** Lies on the road, as paint does, and takes its slope. */
+  readonly lies?: boolean;
 }
 
 export class GardenaStreet implements SceneStreet {
@@ -194,7 +197,8 @@ export class GardenaStreet implements SceneStreet {
     for (const prop of this.props) {
       const metres = along(prop.offset, LOOP);
       prop.mesh.visible = metres < AHEAD - 12;
-      prop.mesh.position.set(prop.x, ground(metres) + KERB + (prop.lift ?? 0), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB + (prop.lift ?? 0), -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     // Hikers file up the meadow's path in twos and threes, a step every second.
