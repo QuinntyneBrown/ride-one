@@ -315,6 +315,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly clouds = new Group();
   private readonly ontarioPlace = new Group();
   private readonly rotor = new Group();
+  private readonly parkdale = new Group();
   private readonly gulls: {
     bird: Group;
     wings: [Mesh, Mesh];
@@ -464,6 +465,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addDowntown();
     this.addOntarioPlace();
     this.addExhibition();
+    this.addParkdale();
     this.addBoats();
     this.addClouds();
     this.addSkyLife();
@@ -558,6 +560,7 @@ export class CaribanaStreet implements SceneStreet {
     }
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
     this.ontarioPlace.position.set(0, heightAt(1e6), 0);
+    this.parkdale.position.set(0, heightAt(1e6), 0);
     for (const g of this.gulls) {
       // Each gull wheels on a wide circle, flapping now and then and gliding between.
       const a = this.time * g.speed + g.phase;
@@ -4030,6 +4033,55 @@ export class CaribanaStreet implements SceneStreet {
     this.group.add(h);
   }
 
+  /**
+   * Parkdale on its bluff north of the Gardiner: a dense canopy of old maples and lindens over
+   * the slope, and above it the 1960s apartment slabs along the top of the hill, brick and
+   * concrete with balconies stacked up their fronts, hazed by distance.
+   */
+  private addParkdale(): void {
+    const haze = new Color(HAZE);
+    const hazed = (hex: number, amount: number, map: Texture | null = null) => {
+      const material = new MeshStandardMaterial({ roughness: 0.85, fog: false, map });
+      material.color.set(hex).lerp(haze, amount);
+      this.disposables.push(material);
+      return material;
+    };
+    const random = seeded(3401);
+    const balconies = this.track(slabTexture());
+    balconies.wrapS = RepeatWrapping;
+    balconies.wrapT = RepeatWrapping;
+    const walls = [0xb07a5c, 0xcfc6b8, 0x9c8a78, 0xd8d0c2].map((hex) =>
+      hazed(hex, 0.32, balconies),
+    );
+    // The canopy along the slope: overlapping crowns in a band, darker low, lit on top.
+    const canopy: BufferGeometry[] = [];
+    for (let k = 0; k < 90; k++) {
+      const r = 9 + random() * 9;
+      const crown = new IcosahedronGeometry(r, 1);
+      crown.scale(1.2, 0.75, 1);
+      crown.translate(-95 - random() * 70, 8 + random() * 14 + (k % 3) * 3, -120 - random() * 620);
+      canopy.push(crown.toNonIndexed());
+      crown.dispose();
+    }
+    const trees = mergeGeometries(canopy)!;
+    canopy.forEach((c) => c.dispose());
+    this.disposables.push(trees);
+    this.parkdale.add(new Mesh(trees, hazed(0x3f6b35, 0.3)));
+    // The slabs along the top of the bluff, long sides to the lake.
+    for (let k = 0; k < 11; k++) {
+      const h = 38 + random() * 40;
+      const w = 18 + random() * 10;
+      const d = 40 + random() * 30;
+      const slab = new BoxGeometry(w, h, d);
+      for (const face of [0, 1]) scaleFaceUv(slab, face, d / 6, h / 2.9);
+      for (const face of [4, 5]) scaleFaceUv(slab, face, w / 6, h / 2.9);
+      slab.translate(-150 - random() * 60, h / 2 + 14, -170 - k * 52 - random() * 16);
+      this.disposables.push(slab);
+      this.parkdale.add(new Mesh(slab, walls[k % walls.length]!));
+    }
+    this.group.add(this.parkdale);
+  }
+
   /** Sailboats out on the lake, drifting slowly. */
   private addBoats(): void {
     const sail = new BufferGeometry();
@@ -5446,6 +5498,21 @@ function broadcastTexture(): CanvasTexture {
       g.lineTo(700, y);
       g.stroke();
     }
+  });
+}
+
+/** A 1960s apartment slab's front: a bay of windows over a balcony slab with its railing. */
+function slabTexture(): CanvasTexture {
+  return canvasTexture(64, 32, (g) => {
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 64, 32);
+    g.fillStyle = '#3a4048';
+    g.fillRect(6, 6, 22, 14);
+    g.fillRect(36, 6, 22, 14);
+    g.fillStyle = '#d8d8d8';
+    g.fillRect(0, 22, 64, 4);
+    g.fillStyle = 'rgba(40,44,50,0.6)';
+    for (let x = 2; x < 64; x += 4) g.fillRect(x, 26, 1, 6);
   });
 }
 
