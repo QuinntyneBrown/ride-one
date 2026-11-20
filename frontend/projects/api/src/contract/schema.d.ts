@@ -132,7 +132,8 @@ export interface components {
         | 'chichen'
         | 'bonneville'
         | 'como'
-        | 'yosemite';
+        | 'yosemite'
+        | 'etna';
     };
     ClassShelfResponse: {
       id: string;

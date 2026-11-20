@@ -512,6 +512,15 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0.5, work: 2, rest: 0, cooldown: -0.5, steady: 1 },
     roll: 0.8,
   },
+  {
+    id: 'etna',
+    name: 'Mount Etna',
+    route: 'the Sapienza road',
+    effortName: 'Volcano push',
+    description: 'Black volcanic slopes climbing toward a smoking summit.',
+    grade: { warmup: 3, work: 6, rest: 2, cooldown: 0, steady: 4 },
+    roll: 0.8,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

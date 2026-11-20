@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -412,6 +412,11 @@ None.
   - meadows of long grass, lupins and poppies, a split-rail fence, ponderosa pines, incense cedars and black oaks, and black-tailed deer grazing, heads lifting and lowering;
   - hikers walking the verge (`Figures`);
   - El Capitan's sheer granite face over the left, the north wall on the right with Yosemite Falls' upper and lower falls pouring on the ride's clock into their spray, the south wall's cliffs, talus and pine woods at the walls' feet, and Half Dome's cut face closing the valley ahead, keeping their bearing.
+- **Mount Etna (`core/world-etna.ts`).** For `etna`, the volcano's south face on a clear, windy afternoon:
+  - black cinder verges and the lava fields rising to the right and falling away towards the sea on the left; the ground sinks below them;
+  - old flows heaped in jagged black blocks with snow in the hollows, yellow broom and stunted birches, and a house half-swallowed by a flow;
+  - the rust-red Silvestri craters beside the road, white 4x4 buses grinding up and down it, and walkers on the verges (`Figures`);
+  - ahead the upper slopes streaked with snow, the summit cone with its plume of steam and ash rising and drifting on the ride's clock, lesser cones on its flanks, and the Ionian Sea far below, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -475,6 +480,7 @@ None.
 | `pages/world-ride/bonneville` | Bonneville Salt Flats at 2:53, warm-up, next `Paceline turn` |
 | `pages/world-ride/como` | Lake Como at 4:50, warm-up, next `Lakeside surge` |
 | `pages/world-ride/yosemite` | Yosemite Valley at 4:50, warm-up, next `Valley VO2 effort` |
+| `pages/world-ride/etna` | Mount Etna at 4:50, warm-up, next `Volcano push` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
