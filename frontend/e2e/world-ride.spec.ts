@@ -703,6 +703,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Haleakalā');
   });
 
+  test('rides Get Pumped With Grace down Sixth Street in Austin', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Get Pumped With Grace',
+      'Sixth Street, Austin',
+      'get-pumped-with-grace',
+    );
+    await expect(world.heading).toHaveText('Sixth Street, Austin');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Sixth Street, Austin');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

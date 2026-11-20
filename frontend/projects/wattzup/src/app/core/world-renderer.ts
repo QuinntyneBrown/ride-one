@@ -1105,6 +1105,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 2.3, colour: 0xffe8c8 },
     fogRange: [2500, 16000],
   },
+  // Dusk on a festival night: the sky going orange and violet behind the Capitol, neon coming on.
+  austin: {
+    sky: 0x4a3a6a,
+    fog: 0x6a4a6a,
+    ground: 0x3a3a40,
+    road: 0x3a3a40,
+    sun: 2,
+    wet: false,
+    haze: false,
+    turbidity: 9,
+    rayleigh: 3,
+    azimuth: 180,
+    light: { sun: 1.8, fill: 2.6, colour: 0xffa868 },
+    fogRange: [200, 1600],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
