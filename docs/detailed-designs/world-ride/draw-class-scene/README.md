@@ -2,7 +2,7 @@
 
 ## Overview
 
-World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
+World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan and which bends and rises in every scene, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
 **scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`, `deathvalley`, `atacama`, `angkor`, `jouvert`, `sambadrome`, `lisbon`, `cornwall`, `copacabana`, `bondi`, `kilauea`, `shibuya`, `muertos`, `pamplona`, `greatocean`, `sfhills`, `mardigras`, `victoria`, `jaipur`, `overseas`, `isleofman`, `artmuseum`, `lakelouise`, `bealach`, `gardena`, `hanriver`, `oktoberfest`, `brooklyn`, `strasbourg`, `kyoto`, `bathsheba`, `machupicchu`, `outback`, `telaviv`, `silverstone`, `murdehuy`, `arenberg`, `lakefront`, `diwali`, `sella`, `kona`, `sevensisters`, `brighton`, `iceland`, `sydneyharbour`, `zoncolan`, `valais`, `loire`, `copenhagen`, `surfers`, `moab`, `glasgow`, `mountwashington`, `grandcanyon`, `stampede`, `merce`, `stpatricks`, `bigsur`, `songkran`, `playground`, `hoover`, `aguascalientes`, `atlanticroad`, `fishhill`, `junkanoo`, `quebec`, `fuji`, `bund`, `comuna13`, `adelaide`, `sellaronda`, `marrakech`, `tamalpais`, `independence`, `fens`, `vienna`, `bluemountains`, `aubisque`, `rome`, `stbernard`, `nuevedejulio`, `okinawa`, `algarve`, `mulholland`, `provence`, `cherryblossom`, `kwaremont`, `oregon`, `cypress`, `iten`, `palouse`, `prague`, `penllech`, `pueblos`, `steppe`, `teotihuacan`, `furka`, `beachroad`, `blueridge`, `verona`, `valparaiso`, `maunakea`, `montroyal`, `utrecht`, `galibier`, `joshuatree`, `cabot`, `veleta`, `bayofislands`, `dales`, `engadin`, `miami`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
@@ -11,6 +11,8 @@ World Ride (L1-017) puts a class ride inside a 3D world built for that class. Th
 **route profile** — elevation of the whole class, computed second by second from the plan before the ride starts (L2-101 criterion 3)
 
 **climbed** — sum of the profile's rises above 0 up to a moment of the ride
+
+**bend** — the road turning left or right ahead of the rider, by the scene's `bend` angle over its `bend length` (L2-101 criterion 6). A bend is scenery only
 
 **effort arch** — arch over the road ahead, labelled with the scene's effort name before the next `work` segment, or `Finish` before the end
 
@@ -65,6 +67,24 @@ None.
 - Terrain, props, the panorama and the sea follow the camera, which sits just behind and above the rider's bike.
 - The effort arch stands where the rider will be when the next segment starts. It reads the scene's effort name before a `work` segment, and `Finish` before the end (L2-110 criterion 2).
 - With `reducedMotion`, the camera does not sway and the pedals do not turn. The world still moves as the rider rides (L2-110 criterion 6).
+
+**The bending road (`core/scene-bend.ts`, new, with `scene-bend.spec.ts`; the vertex stage in `core/world-bend.ts`, new; ADR 0023).** Every scene's road bends left and right as well as rising and falling (L2-101 criteria 6 and 7, L2-110 criterion 9). The street modules keep laying their road, kerbs, props, crowds and terrain along a straight road, `x` across it and `-metres` along it, as they always have. The bend is laid afterwards, on every vertex of the scene, so no street module is rewritten by hand.
+- **`bend`** — the word for the idea throughout. `World` gains `bend: { angle, length }`, the `bend` and `bend length` columns of L2-101.
+- **`heading(world, s)`** returns `angle × sin(s ÷ length) × cos(s ÷ (2.7 × length) + 1)` degrees, positive to the rider's right (L2-101 criterion 6). Its curvature is never more than `angle in radians × (1 + 1 ÷ 2.7) ÷ length`, so the tightest bend of each row has a radius of at least 25 m.
+- **`bendAhead(world, s)`** samples the road from 40 m behind the rider to 468 m ahead, one sample every 4 m (128 samples). Each sample is `(x, z, φ, k)`: the centre of the road, its heading φ turned from the heading under the rider (`heading(s + m) − heading(s)`), and its curvature k. The centre line is integrated from the rider outwards by the midpoint rule, so the rider is always at `(0, 0)` and the road under the bike always points down `−z`. Past the end of the road strip (300 m) the heading eases to 0 by the last sample, so the photographed distance and far props beyond it are only shifted, never swung round.
+- **`bendPoint(samples, x, z)`** maps a point of the straight road to the bending one, and is the specification the vertex stage follows line for line:
+  - the metres along the road are `m = −z`; the two samples around `m` are mixed linearly; outside the sampled run the point carries on along the end sample's heading;
+  - the point is moved to the sample's centre plus `x` along the sample's right-hand normal, so a building 6 m right of the kerb stays 6 m right of it round the bend;
+  - on the inside of a bend, `x` is eased towards the bend's centre, `(1 − e^(−k·x)) ÷ k`, so ground and props beyond the centre never fold back over the road;
+  - from 60 m to 400 m off the road the normal blends to plain `+x` and `x` to its straight value, so the far ground and backdrops are sheared rather than swung;
+  - the height is never touched: it comes from the gradient as before.
+- **`BendNode` (`core/world-bend.ts`).** A TSL `positionNode` that takes the vertex's world position (`modelWorldMatrix × positionLocal`, after instancing), applies `bendPoint` against a `uniformArray` of the 128 samples, and returns it to local space with `modelWorldMatrixInverse`. Sprites take the same rule on their centre. The renderer sets it on every material of the scene after `start` and on materials it makes later (the arch label), except the sky and the panorama, which stay where they are. Three's shadow pass uses the same `positionNode`, so shadows fall on the bent road. Bent meshes are drawn with `frustumCulled = false`, because their bounding spheres are those of the straight road.
+- **What follows the bend.** Everything laid along the road, because it is all in the scene's vertices: the road surface and ground strips, Old Town's and the kit's `Ribbons` (kerbs, pavements, barriers), `Crowd`, mist curtains, terrain cells, the props each module recycles in `place(s, heightAt)`, the pacers, You and the arch. `sink` keeps lowering the ground under a bridge and a module's `loopMetres` keeps recycling its props, because both work in straight coordinates before the bend is applied. The renderer's point lights (street lamps) are not vertices, so `placeRoadside` puts them through `bendPoint` on the CPU.
+- **The camera.** Its eye (5.5 m behind, 2.1 m up) and the point it looks at (24 m ahead, at the road's height) both go through `bendPoint` each frame. Both depend only on _s_, so the camera turns with the road as the rider moves and holds still when they stop; reduced motion removes the sway as before, and adds nothing (L2-110 criterion 6). Its yaw rate is the curvature times the speed, at most about 17° a second at 30 km/h on the tightest hairpin, with no further smoothing needed because the heading is continuous.
+- **Lighting.** Normals are not turned with the bend: a facade on a 40° bend is shaded as it would be on the straight road. The road's own normal points up, so the road is shaded correctly everywhere. Turning normals in the vertex stage would override each material's normal map; it is left out on purpose.
+- **Frame cost (L2-111 criterion 8).** One `Float32Array` of 512 values is filled on the CPU and uploaded each frame. Each vertex pays two array reads, a mix, one `exp`, a `sin` and a `cos`. No pass, texture or draw call is added; turning off frustum culling adds the draws of meshes outside the view, which in these scenes are only those behind the camera. The tiers of L2-111 absorb the rest: a screen that cannot hold a tier drops one as before.
+- **What does not change.** `targetGrade`, the route profile's formula, the speed, the distance, the HUD, the pacers' gaps and the session record and its shape (`schema.d.ts`) are untouched: the bend is drawn, never recorded (L2-110 criterion 10).
+
 - **Riders (`core/world-cyclist.ts`).** `CyclistKit` shares the geometry and materials of every rider in the scene. `make(jersey, number, frame?)` builds a `Cyclist`: a road bike with spokes, chainring and bottle, and a rider in the jersey's colour with a race number, a vented helmet and socks. The legs follow the crank through two-bone IK, and `pose(angle)` also rocks the bike with each stroke. The rider is You; the simulated pacers ride beside them (`show-simulated-pacers`). Under each bike lies a contact shadow, drawn from the tier that has technique 37.
 - **Old Town's street (`core/world-oldtown.ts`).** For `oldtown`, the renderer builds `OldTownStreet` in place of the generic roadside props. Its parts are:
   - procedural houses from seeded palettes, with shop or home ground floors, trades, roofs, gables, dormers, balconies, signs and flags. Each house draws its details from its own seeded sequence, so adding a detail reshuffles no other house, and its parts are merged into one mesh per material;
@@ -868,9 +888,12 @@ Playwright (`frontend/e2e/`, Chromium only), in `e2e/world-ride.spec.ts` with th
 - `holds the grade and profile still while paused` (L2-106 AC4)
 - `shows This screen can't draw 3D worlds when WebGL is off, and the HUD still works` (L2-110 AC4). The fixture's `FakeWebGl` switch makes `getContext('webgl2')` return `null`.
 - `loads no scene asset from another origin` (L2-101 AC4). The shared fixture fails the test on any request to another origin.
+- `shows a rising and falling road on the Bonneville salt` (L2-101 AC7, L2-106 AC1): Team Time Trial, once flat, shows a gradient other than `+0.0%`, metres climbed above 0 and a route profile with elevation.
 
 Unit tests:
 - `worlds.spec.ts`: one `targetGrade` case per scene, at *s* 0 and at a point where the rolling term is not 0 (L2-101 AC2).
+- `worlds.spec.ts`: one case per scene for its `bend` and `bend length`, its `heading` at a point where it is not 0, a tightest radius of at least 25 m and a `roll` above 0 (L2-101 AC6, AC7).
+- `scene-bend.spec.ts`: the road under the rider is straight and at `(0, 0)`; a scene with no bend maps every point to itself; consecutive frames move the samples by little (continuity); a point across the road stays the same distance from the centre line; for every scene, no point within 400 m of the road folds back over the road (the map's Jacobian stays positive); the heading eases to 0 past the road's end (L2-101 AC6, L2-110 AC9).
 - `route-profile.spec.ts`: the profile of a `hiit`, an `intervals` and a `flat` plan. Each checks the elevation, the climbed total and the metres at chosen seconds, and the `routeProfileView` text and label (L2-101 AC3, L2-106 AC1 to AC3).
 - `scene-driver.spec.ts`: the rider does not advance while not running, and a frame's step is capped. `WorldScene` itself has no TestBed test: the loop's start and stop while running, the text alternative and `unavailable` (the notice) are proven through Playwright in `e2e/world-ride.spec.ts`, which switches WebGPU and WebGL off with the `webgl` fixture (L2-110 AC1, AC4 to AC6).
 
@@ -881,16 +904,19 @@ That no two scenes look the same (L2-101 AC1) and that the HUD stays readable ov
 - **3D library.** Closed by ADR 0019 (Three.js, pinned, in its own lazy chunk behind `WorldRenderer`), amended by ADR 0020 (its WebGPU renderer, falling back to WebGL2).
 - **Scene detail.** L2-101 fixes the gradients, names and descriptions. The exact look of each scene (prop spacing, colours, fog) follows `shared/worlds.ts` and the mocks' stills. It has no acceptance criterion beyond L2-101 criterion 1.
 - **Speed for the road ahead.** The renderer lays the road ahead at the current `speed_kmh`. The profile panel uses each segment's expected speed. When the rider rides much faster or slower than expected, the two differ in distance, but not in which segment a ramp belongs to.
+- **Mocks' stills for the bend.** The world-ride mocks show each scene through a still captured from the renderer at 1440 × 900 (`docs/mocks/assets/world-ride/<id>.webp`). The stills were captured again from the bending renderer, in headed Chromium under Xvfb through in-app navigation, so every scene's mock shows its own bend and rise; the mocks' markup and BEM classes did not change.
+- **Normals on a bend.** Not turned (see The bending road). If a scene needs exact shading on its hairpins, a `normalNode` per material is the way, at the cost of its normal map.
 - **Asset size.** The size budget for the World Ride chunk and its assets is <TO SUPPLY>. Only the initial bundle has a budget (300 KB gzipped).
 
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-101` | `L1-017` | The scenes. Each scene has a name, a route, an effort name, a description and a road gradient per segment kind, with a rolling gradient laid over it. Each draws its own place; the target gradient and the route profile follow the stated formulas; assets are bundled and served from the same origin. |
+| `L2-101` | `L1-017` | The scenes. Each scene has a name, a route, an effort name, a description and a road gradient per segment kind, with a rolling gradient laid over it. Each draws its own place; the target gradient and the route profile follow the stated formulas; assets are bundled and served from the same origin. Every road rises and falls (`roll` above 0) and bends by its `bend` over its `bend length`. |
 | `L2-106` | `L1-017` | World Ride route profile. The panel shows the gradient, the metres climbed and the distance, draws the whole class as terrain with the ridden part shaded, and stops while the ride is not running. |
-| `L2-110` | `L1-017` | World Ride scene rendering. The scene is a WebGL view from behind the rider's bike. The road follows the plan, with an effort arch ahead. It falls back to a notice when WebGL is unavailable, stops when the tab is hidden, respects reduced motion, and keeps the HUD readable at every width. |
+| `L2-110` | `L1-017` | World Ride scene rendering. The scene is a WebGL view from behind the rider's bike. The road follows the plan, with an effort arch ahead. It falls back to a notice when WebGL is unavailable, stops when the tab is hidden, respects reduced motion, and keeps the HUD readable at every width. Everything laid along the road and the camera follow the bend; nothing recorded changes. |
 | `L2-049` | `L1-002` | Power and ride-total estimates. The expected speed of a segment uses the estimate `max(0, round(cadence × (0.55 + level × 0.155)))`. |
+| `L2-111` | `L1-017` | World Ride rendering quality. Criterion 8: the bend is laid in the vertex stage at every tier, so a tier held on a straight road is held on a bending one. |
 | `L2-102` | `L1-017` | Opening World Ride. Criterion 8: the scene loads only on World Ride, and the initial bundle stays within 300 KB gzipped. |
 
 ## Diagrams
@@ -930,3 +956,9 @@ The scene starts its renderer, or reports that it cannot. While the ride runs, e
 On each state message, the page reads the profile at `elapsed_seconds` and passes the view to the HUD (L2-106).
 
 ![Sequence diagram for showing the route profile](diagrams/sequence-route-profile.png)
+
+### Behaviour — bend the road each frame
+
+Each frame the renderer samples the bend from the rider's _s_, uploads the samples, and every material's vertex stage moves its vertices onto the bending road; the lamps and the camera take the same rule on the CPU (L2-101 criterion 6, L2-110 criteria 6 and 9).
+
+![Sequence diagram for bending the road each frame](diagrams/sequence-bend-road.png)
