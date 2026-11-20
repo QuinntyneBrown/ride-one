@@ -11,7 +11,20 @@
   },
   "routes": [
     { "route": "/index.html", "headers": { "Cache-Control": "no-cache" } },
-    { "route": "/ngsw-worker.js", "headers": { "Cache-Control": "no-cache" } },
+    {
+      "route": "/ngsw-worker.js",
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://www.youtube.com https://i.ytimg.com; object-src 'none'; base-uri 'self'"
+      }
+    },
+    {
+      "route": "/safety-worker.js",
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://www.youtube.com https://i.ytimg.com; object-src 'none'; base-uri 'self'"
+      }
+    },
     { "route": "/ngsw.json", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/classes.json", "headers": { "Cache-Control": "no-cache" } }
   ],

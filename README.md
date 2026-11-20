@@ -152,7 +152,9 @@ element; where the host can set headers, send it too, with the three that have n
 ```
 
 With nginx, `try_files $uri $uri/ /index.html;` does the fallback, and `add_header` sends the
-same headers.
+same headers. Do not send that policy on `ngsw-worker.js`: the service worker fetches the YouTube
+player and the class covers for the page, so it needs `connect-src 'self' https://www.youtube.com
+https://i.ytimg.com` instead (see `frontend/public/staticwebapp.config.json`).
 
 Once loaded, a service worker keeps the app, so it opens and rides without a connection; class
 videos and covers need one. A new version is fetched in the background and used from the next

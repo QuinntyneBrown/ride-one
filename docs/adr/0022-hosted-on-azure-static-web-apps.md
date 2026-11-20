@@ -18,7 +18,11 @@ deployed.**
 
 - `frontend/public/staticwebapp.config.json` is copied into the build. It rewrites unknown paths to
   `index.html`, sends the policy, `X-Content-Type-Options` and `Referrer-Policy` headers, and stops
-  `index.html` and the service worker files from being cached stale.
+  `index.html` and the service worker files from being cached stale. The service worker gets its
+  own policy: every request the page makes, the YouTube player script and the class covers on
+  `i.ytimg.com` included, is fetched by the worker under the worker's policy, so its
+  `connect-src` allows those two origins. With the page's `connect-src 'self'` there, the player
+  and the covers fail to load.
 - The `deploy` job in `.github/workflows/ci.yml` runs after the Dashboard and behaviour-spec jobs,
   uploads the build the Dashboard job made, and signs in to Azure with GitHub's OIDC token through
   the `gh-wattzup-deploy` app registration (Contributor on the static web app only). Its federated
