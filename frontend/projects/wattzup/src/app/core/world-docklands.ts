@@ -152,6 +152,9 @@ const CROSSING_DEPTH = 5;
 const BEACON_HEIGHT = 2.9;
 const BEACON_BLINK = 1.2;
 const BEACON_HALO_NEAR = 7;
+/** Kerbside bollards: how high (m) and how far apart (m). */
+const BOLLARD_HEIGHT = 0.95;
+const BOLLARD_EVERY = 8;
 /** Night-market stalls on the quay promenade, at these offsets round the loop. */
 const STALLS: readonly number[] = [26, 33, 40, 140, 147, 290, 297, 304, 460, 467, 580];
 const STALL_X = -10;
@@ -310,6 +313,8 @@ export class DocklandsStreet {
   private readonly train = new Group();
   private readonly lanterns: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
+  /** Pairs of lit bollards along the kerbs, every BOLLARD_EVERY metres round the loop. */
+  private readonly bollards: { group: Group; offset: number }[] = [];
   /** Zebra crossings over the road, their beacons' globes and halos blinking together. */
   private readonly crossings: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private beaconMaterial: MeshBasicMaterial | null = null;
@@ -1288,6 +1293,7 @@ export class DocklandsStreet {
     this.addLanterns(roadHalf);
     this.addStalls();
     this.addCrossings(roadHalf);
+    this.addBollards(roadHalf);
     this.addGates(roadHalf);
     this.addMachines(roadHalf);
     this.addWalkers(roadHalf);
@@ -1643,6 +1649,36 @@ export class DocklandsStreet {
       }
       this.group.add(group);
       this.crossings.push({ group, offset, blooms });
+    }
+  }
+
+  /**
+   * Low steel bollards along both kerbs, each crowned with a cyan light ring,
+   * drawing the road's edges on into the distance.
+   */
+  private addBollards(roadHalf: number): void {
+    const steel = new MeshStandardMaterial({ color: 0x1b1d26, metalness: 0.6, roughness: 0.35 });
+    const ring = new MeshBasicMaterial({
+      color: new Color('#5ff2ff').multiplyScalar(1.6),
+      toneMapped: false,
+    });
+    const post = new CylinderGeometry(0.11, 0.13, BOLLARD_HEIGHT, 10);
+    const band = new CylinderGeometry(0.125, 0.125, 0.09, 10);
+    this.disposables.push(steel, ring, post, band);
+    const x = roadHalf + KERB_WIDTH + 0.35;
+    for (let offset = 0; offset < LOOP; offset += BOLLARD_EVERY) {
+      // Clear of the crossings, whose beacons stand at the kerbs.
+      if (CROSSINGS.some((c) => Math.abs(c - offset) < 4)) continue;
+      const group = new Group();
+      for (const side of [-1, 1]) {
+        const stand = new Mesh(post, steel);
+        stand.position.set(side * x, KERB + BOLLARD_HEIGHT / 2, 0);
+        const light = new Mesh(band, ring);
+        light.position.set(side * x, KERB + BOLLARD_HEIGHT - 0.12, 0);
+        group.add(stand, light);
+      }
+      this.group.add(group);
+      this.bollards.push({ group, offset });
     }
   }
 
@@ -2507,6 +2543,11 @@ export class DocklandsStreet {
       crossing.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
       // Close up, a beacon's halo would swell to fill the view: it shows only further off.
       for (const bloom of crossing.blooms) bloom.visible = metres > BEACON_HALO_NEAR;
+    }
+    for (const bollard of this.bollards) {
+      const metres = ((((bollard.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      bollard.group.visible = !this.onBridge(Math.max(metres, 0));
+      bollard.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
     for (const stall of this.stalls) {
       const metres = ((((stall.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
