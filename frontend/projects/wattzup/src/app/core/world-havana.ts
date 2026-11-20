@@ -221,6 +221,7 @@ export class HavanaStreet implements SceneStreet {
     this.addPotholes(roadHalf);
     this.addDivers(roadHalf);
     this.addTrio(roadHalf);
+    this.addBusStop(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -2898,6 +2899,85 @@ export class HavanaStreet implements SceneStreet {
     this.props.push({ mesh: holder, offset: 57, x: -roadHalf - LANES - 2.6 });
   }
 
+  /**
+   * A bus stop on the inland pavement: a concrete shelter on two steel posts with a bench under
+   * it and a blue PARADA plate, and the little crowd that is always waiting at one, standing in
+   * the shade or leaning on the posts.
+   */
+  private addBusStop(roadHalf: number): void {
+    const random = seeded(1459);
+    const stop = new Group();
+    const concrete = this.material({ color: 0xd8d4cc, roughness: 0.9 });
+    const steel = this.material({ color: 0x4a5a6a, roughness: 0.6, metalness: 0.4 });
+    const plate = this.material({
+      map: this.track(paradaTexture()),
+      roughness: 0.6,
+      side: DoubleSide,
+    });
+    const box = (
+      m: MeshStandardMaterial,
+      sx: number,
+      sy: number,
+      sz: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(sx, sy, sz);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      stop.add(mesh);
+      return mesh;
+    };
+    box(concrete, 1.8, 0.14, 5.0, 0.6, 2.6, 0);
+    for (const z of [-2.1, 2.1]) box(steel, 0.1, 2.6, 0.1, 1.3, 1.3, z);
+    box(concrete, 0.5, 0.08, 3.6, 1.2, 0.48, 0);
+    box(steel, 0.06, 0.45, 0.06, 1.2, 0.24, 0);
+    const sign = new Mesh(new PlaneGeometry(0.7, 0.45), plate);
+    this.disposables.push(sign.geometry);
+    sign.position.set(-0.2, 2.25, 2.4);
+    stop.add(sign);
+    const pole = box(steel, 0.05, 2.3, 0.05, -0.2, 1.15, 2.4);
+    pole.castShadow = false;
+    // The people waiting.
+    const torso = new CapsuleGeometry(0.17, 0.42, 3, 8);
+    const leg = new CapsuleGeometry(0.07, 0.75, 3, 6);
+    const head = new SphereGeometry(0.11, 10, 8);
+    this.disposables.push(torso, leg, head);
+    const tops = [0xf2efe6, 0xe63946, 0x3a86ff, 0x2a9d8f, 0xf4a261, 0x8e44ad, 0xffd166];
+    const bottoms = [0x2b2d42, 0x3a5a8a, 0x1a1a1a, 0xc8b89a];
+    const skins = [0x8d5a3b, 0x6b4128, 0xc68b5e, 0xe0b08a, 0x4a2c1c];
+    for (let i = 0; i < 7; i++) {
+      const x = -0.2 + random() * 1.4;
+      const z = -2.3 + i * 0.75 + random() * 0.3;
+      const seated = i % 3 === 1;
+      const material = (list: number[]) =>
+        this.material({ color: list[Math.floor(random() * list.length)]!, roughness: 0.85 });
+      const trousers = material(bottoms);
+      for (const side of [-0.09, 0.09]) {
+        const l = new Mesh(leg, trousers);
+        if (seated) {
+          l.rotation.z = Math.PI / 2;
+          l.position.set(x - 0.3, 0.55, z + side);
+        } else l.position.set(x, 0.45, z + side);
+        stop.add(l);
+      }
+      const hip = seated ? 0.55 : 0.88;
+      const t = new Mesh(torso, material(tops));
+      t.position.set(seated ? 1.15 : x, hip + 0.32, z);
+      t.castShadow = true;
+      const h = new Mesh(head, material(skins));
+      h.position.set(seated ? 1.15 : x, hip + 0.8, z);
+      stop.add(t, h);
+    }
+    stop.position.y = KERB;
+    const holder = new Group();
+    holder.add(stop);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 46, x: roadHalf + 0.9 });
+  }
+
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial(options);
     this.disposables.push(material);
@@ -4285,5 +4365,27 @@ function graffitiTexture(): CanvasTexture {
       }
       g.globalAlpha = 1;
     }
+  });
+}
+
+/** A bus stop's plate: PARADA in white capitals on Havana's blue, with a bus drawn above. */
+function paradaTexture(): CanvasTexture {
+  return canvasTexture(128, 84, (g) => {
+    g.fillStyle = '#1f4fa0';
+    g.fillRect(0, 0, 128, 84);
+    g.fillStyle = '#f4f2ec';
+    g.fillRect(34, 10, 60, 24);
+    g.fillStyle = '#1f4fa0';
+    g.fillRect(40, 14, 10, 8);
+    g.fillRect(54, 14, 10, 8);
+    g.fillRect(68, 14, 10, 8);
+    g.fillStyle = '#f4f2ec';
+    g.beginPath();
+    g.arc(44, 36, 4, 0, Math.PI * 2);
+    g.arc(84, 36, 4, 0, Math.PI * 2);
+    g.fill();
+    g.font = 'bold 22px sans-serif';
+    g.textAlign = 'center';
+    g.fillText('PARADA', 64, 66, 116);
   });
 }
