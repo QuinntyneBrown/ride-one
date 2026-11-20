@@ -177,6 +177,12 @@ const LIGHTHOUSE_SCALE = 1.5;
 const LIGHTHOUSE_BEAM_LONG = 260;
 const LIGHTHOUSE_BEAM_WIDE = 12;
 const LIGHTHOUSE_TURN = 12;
+/** Each beam's nested cones: width as a share of the beam's, and brightness. */
+const LIGHTHOUSE_BEAM_LAYERS: readonly (readonly [number, number])[] = [
+  [1, 0.35],
+  [0.62, 0.5],
+  [0.3, 0.8],
+];
 const LIGHTHOUSE_FACING = Math.PI / 5;
 /**
  * The laser show: where its emitter stands on a rooftop ahead (x, y, z in m), how many beams,
@@ -1617,30 +1623,43 @@ export class DocklandsStreet {
     glow.scale.setScalar(26);
     glow.position.y = top + 3.2;
     house.add(glow);
-    // Two beams back to back, each a long open cone fading away from the lantern.
-    const beam = new MeshBasicMaterial({
-      map: this.track(lighthouseBeamTexture()),
-      color: new Color('#ffe9c0').multiplyScalar(1.4),
-      transparent: true,
-      blending: AdditiveBlending,
-      depthWrite: false,
-      side: DoubleSide,
-      fog: false,
-      toneMapped: false,
+    // Two beams back to back, each a long open cone fading away from the lantern. Each is three
+    // cones nested, wide and faint round narrow and bright, so its edges fall off softly.
+    const fade = this.track(lighthouseBeamTexture());
+    const layers = LIGHTHOUSE_BEAM_LAYERS.map(([wide, strength]) => {
+      const material = new MeshBasicMaterial({
+        map: fade,
+        color: new Color('#ffe9c0').multiplyScalar(strength),
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        side: DoubleSide,
+        fog: false,
+        toneMapped: false,
+      });
+      const geometry = new ConeGeometry(
+        LIGHTHOUSE_BEAM_WIDE * wide,
+        LIGHTHOUSE_BEAM_LONG,
+        24,
+        1,
+        true,
+      );
+      this.disposables.push(material, geometry);
+      return { material, geometry };
     });
-    const cone = new ConeGeometry(LIGHTHOUSE_BEAM_WIDE, LIGHTHOUSE_BEAM_LONG, 24, 1, true);
-    this.disposables.push(beam, cone);
     const turning = new Group();
     turning.position.y = top + 3.2;
     for (const turn of [0, Math.PI]) {
       const arm = new Group();
       arm.rotation.y = turn;
-      const ray = new Mesh(cone, beam);
-      // The cone's tip at the lantern, its mouth out along +x.
-      ray.rotation.z = Math.PI / 2;
-      ray.position.x = LIGHTHOUSE_BEAM_LONG / 2;
-      ray.frustumCulled = false;
-      arm.add(ray);
+      for (const { material, geometry } of layers) {
+        const ray = new Mesh(geometry, material);
+        // The cone's tip at the lantern, its mouth out along +x.
+        ray.rotation.z = Math.PI / 2;
+        ray.position.x = LIGHTHOUSE_BEAM_LONG / 2;
+        ray.frustumCulled = false;
+        arm.add(ray);
+      }
       turning.add(arm);
     }
     house.add(turning);
