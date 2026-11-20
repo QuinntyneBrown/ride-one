@@ -100,6 +100,7 @@ export class MiamiStreet implements SceneStreet {
   }[] = [];
   private water: Texture | null = null;
   private glitter: Texture | null = null;
+  private stream: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
@@ -187,6 +188,7 @@ export class MiamiStreet implements SceneStreet {
     // The aircraft beacons on the spires blink, a second apart.
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
+    if (this.stream) this.stream.offset.x = seconds * 0.02;
     if (this.glitter) this.glitter.offset.set(Math.sin(seconds * 0.7) * 0.01, seconds * 0.05);
     // The blade signs pulse, each on its own beat, as neon on a timer does.
     this.signs.forEach((m, k) => {
@@ -1589,6 +1591,55 @@ export class MiamiStreet implements SceneStreet {
     ship.position.set(-760, -SEA, -1250);
     ship.rotation.y = 0.35;
     this.horizon.add(ship);
+    // The causeway across the bay in front of the towers: a long low deck on piers, a lamp
+    // every 30 m along its rail, and the head and tail lights of its traffic streaming both
+    // ways.
+    const causeway = new Group();
+    const concrete = this.material({ color: 0x2a2838, roughness: 0.8, fog: false });
+    const deck = new Mesh(this.unit, concrete);
+    deck.scale.set(1400, 2.4, 14);
+    deck.position.y = 14;
+    causeway.add(deck);
+    for (let x = -680; x <= 680; x += 40) {
+      const pier = new Mesh(this.unit, concrete);
+      pier.scale.set(2.4, 14, 7);
+      pier.position.set(x, 6.5, 0);
+      causeway.add(pier);
+    }
+    const lampLight = this.material({
+      color: 0xffe0a0,
+      emissive: 0xffd890,
+      emissiveIntensity: 3,
+      fog: false,
+    });
+    for (let x = -690; x <= 690; x += 25) {
+      const lamp = new Mesh(this.unit, lampLight);
+      lamp.scale.set(1.2, 1.2, 1.2);
+      lamp.position.set(x, 21.5, 6.5);
+      const post = new Mesh(this.unit, concrete);
+      post.scale.set(0.4, 6, 0.4);
+      post.position.set(x, 18.3, 6.5);
+      causeway.add(lamp, post);
+    }
+    const stream = this.track(trafficStreamTexture());
+    stream.wrapS = RepeatWrapping;
+    stream.repeat.set(8, 1);
+    this.stream = stream;
+    const flow = new MeshBasicMaterial({
+      map: stream,
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      fog: false,
+    });
+    this.disposables.push(flow);
+    const lanes = new Mesh(new PlaneGeometry(1400, 1.6), flow);
+    lanes.position.set(0, 16.1, 7.1);
+    this.disposables.push(lanes.geometry);
+    causeway.add(lanes);
+    causeway.position.set(-820, -SEA, -820);
+    causeway.rotation.y = 0.12;
+    this.horizon.add(causeway);
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
@@ -2464,5 +2515,24 @@ function glassBlockTexture(): CanvasTexture {
         g.fillStyle = glow;
         g.fillRect(x + 1, y + 1, 14, 14);
       }
+  });
+}
+
+/** A causeway's traffic far off: white headlights in one lane, red tail lights in the other. */
+function trafficStreamTexture(): CanvasTexture {
+  return canvasTexture(256, 16, (g) => {
+    const random = seeded(8311);
+    for (let i = 0; i < 14; i++) {
+      g.fillStyle = '#fff4d8';
+      const x = random() * 256;
+      g.fillRect(x, 2, 3, 4);
+      g.fillRect(x + 5, 2, 3, 4);
+    }
+    for (let i = 0; i < 14; i++) {
+      g.fillStyle = '#ff3030';
+      const x = random() * 256;
+      g.fillRect(x, 10, 3, 4);
+      g.fillRect(x + 5, 10, 3, 4);
+    }
   });
 }
