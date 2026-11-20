@@ -14058,6 +14058,7 @@
     },
     {
       "id": "increase-your-threshold-power",
+      "world": "galibier",
       "title": "Increase Your Threshold Power",
       "channel": "GCN Training",
       "focus": "Threshold",
