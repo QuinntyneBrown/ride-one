@@ -2422,6 +2422,7 @@ function facadeTexture(): CanvasTexture {
     g.fillStyle = '#f2f2f0';
     g.fillRect(0, 0, 256, 512);
     const random = seeded(977);
+    const panes = seeded(1373);
     // Peeling and stains.
     for (let i = 0; i < 40; i++) {
       g.fillStyle = `rgba(150,110,90,${0.1 + random() * 0.25})`;
@@ -2447,10 +2448,7 @@ function facadeTexture(): CanvasTexture {
       for (const x of [26, 154]) {
         g.fillStyle = 'rgba(255,255,255,0.55)';
         g.fillRect(x + 12, y + 14, 52, 6);
-        g.fillStyle = '#26302f';
-        g.fillRect(x + 16, y + 24, 44, 100);
-        g.fillStyle = 'rgba(160,190,200,0.25)';
-        g.fillRect(x + 18, y + 26, 18, 40);
+        frenchWindow(g, x, y, panes);
         g.fillStyle = '#3f7a5a';
         g.fillRect(x, y + 24, 16, 100);
         g.fillRect(x + 60, y + 24, 16, 100);
@@ -3473,4 +3471,71 @@ function towerTexture(): CanvasTexture {
       }
     }
   });
+}
+
+/**
+ * One French window's opening, varied from window to window: open and dark with a curtain hung
+ * inside and stirring, shut behind its glazed doors whose panes catch the sky, or closed up
+ * behind its louvred shutters, wholly or by one leaf.
+ */
+function frenchWindow(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  random: () => number,
+): void {
+  const roll = random();
+  g.fillStyle = '#26302f';
+  g.fillRect(x + 16, y + 24, 44, 100);
+  if (roll < 0.35) {
+    // Open, a curtain hanging inside and drawn to one side.
+    const curtains = ['#f4f1ea', '#e8d8b8', '#f0c8c0', '#c8d8e8', '#f4f1ea'];
+    g.fillStyle = curtains[Math.floor(random() * curtains.length)]!;
+    const left = random() < 0.5;
+    const w = 12 + random() * 14;
+    g.beginPath();
+    g.moveTo(left ? x + 16 : x + 60, y + 24);
+    g.lineTo(left ? x + 16 + w : x + 60 - w, y + 24);
+    g.quadraticCurveTo(
+      left ? x + 16 + w * 0.5 : x + 60 - w * 0.5,
+      y + 80,
+      left ? x + 16 + w * 0.8 : x + 60 - w * 0.8,
+      y + 124,
+    );
+    g.lineTo(left ? x + 16 : x + 60, y + 124);
+    g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.15)';
+    for (let k = 0; k < 4; k++)
+      g.fillRect(left ? x + 18 + k * (w / 4) : x + 58 - k * (w / 4), y + 24, 1, 100);
+  } else if (roll < 0.7) {
+    // Shut behind glazed doors: white frames, panes reflecting the sky.
+    const sky = g.createLinearGradient(0, y + 24, 0, y + 124);
+    sky.addColorStop(0, 'rgba(200,225,240,0.95)');
+    sky.addColorStop(0.6, 'rgba(120,160,190,0.9)');
+    sky.addColorStop(1, 'rgba(60,80,95,0.9)');
+    g.fillStyle = sky;
+    g.fillRect(x + 16, y + 24, 44, 100);
+    g.fillStyle = '#f0ede6';
+    g.fillRect(x + 16, y + 24, 44, 3);
+    g.fillRect(x + 16, y + 24, 3, 100);
+    g.fillRect(x + 57, y + 24, 3, 100);
+    g.fillRect(x + 37, y + 24, 2, 100);
+    for (let k = y + 48; k < y + 124; k += 24) g.fillRect(x + 16, k, 44, 2);
+    g.fillStyle = 'rgba(255,255,255,0.35)';
+    g.beginPath();
+    g.moveTo(x + 20, y + 120);
+    g.lineTo(x + 34, y + 30);
+    g.lineTo(x + 38, y + 30);
+    g.lineTo(x + 24, y + 120);
+    g.fill();
+  } else {
+    // Closed up behind louvred shutters, both leaves or one.
+    const both = roll < 0.85;
+    g.fillStyle = '#3f7a5a';
+    g.fillRect(x + 16, y + 24, both ? 44 : 22, 100);
+    g.fillStyle = 'rgba(0,0,0,0.25)';
+    for (let k = y + 28; k < y + 122; k += 5) g.fillRect(x + 18, k, both ? 40 : 18, 1);
+    g.fillStyle = 'rgba(0,0,0,0.35)';
+    if (both) g.fillRect(x + 37, y + 24, 2, 100);
+  }
 }
