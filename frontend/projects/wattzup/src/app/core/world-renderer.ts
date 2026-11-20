@@ -728,6 +728,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.3, fill: 1.2, colour: 0xfff4e0 },
     fogRange: [260, 4200],
   },
+  // Sunrise in the Sonoran desert: the sun just up, long shadows, the sky pink to clear blue.
+  saguaro: {
+    sky: 0x8ab0e0,
+    fog: 0xf0c8b0,
+    ground: 0xc8a07a,
+    road: 0x505058,
+    sun: 9,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 2.2,
+    azimuth: -110,
+    light: { sun: 3, fill: 1.2, colour: 0xffc890 },
+    fogRange: [400, 4200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

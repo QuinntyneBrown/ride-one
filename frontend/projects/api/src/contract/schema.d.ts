@@ -123,7 +123,8 @@ export interface components {
         | 'glastonbury'
         | 'pikeplace'
         | 'hardknott'
-        | 'alpe';
+        | 'alpe'
+        | 'saguaro';
     };
     ClassShelfResponse: {
       id: string;
