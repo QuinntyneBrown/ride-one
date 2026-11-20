@@ -62,6 +62,7 @@ export class TahoeStreet implements SceneStreet {
   private water: Texture | null = null;
   private deep: Texture | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -106,13 +107,13 @@ export class TahoeStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.people.forEach((p, i) => {
         const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
-        const y = heightAt(Math.max(metres, 0)) + p.y;
+        const y = heightAt(metres) + p.y;
         const rock =
           p.y < 0
             ? Math.sin(this.time * 1.2 + p.phase) * 0.04
@@ -124,7 +125,7 @@ export class TahoeStreet implements SceneStreet {
       for (const b of this.boards) {
         const p = this.people[b.index]!;
         const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
-        b.mesh.position.set(p.x, heightAt(Math.max(metres, 0)) + p.y - 0.05, -metres);
+        b.mesh.position.set(p.x, heightAt(metres) + p.y - 0.05, -metres);
       }
     }
     this.horizon.position.set(0, heightAt(0), 0);

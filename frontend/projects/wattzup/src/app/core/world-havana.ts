@@ -1433,7 +1433,7 @@ export class HavanaStreet implements SceneStreet {
     const headlamp = new CylinderGeometry(0.13, 0.13, 0.08, 12);
     headlamp.rotateX(Math.PI / 2);
     this.disposables.push(body, cabin, windows, wheel, wall, hub, headlamp);
-    CARS.forEach(([colour, roof], k) => {
+    const build = (colour: string | number, roof: string | number) => {
       const paint = this.material({ color: colour, roughness: 0.3, metalness: 0.3 });
       const top = this.material({ color: roof, roughness: 0.35, metalness: 0.2 });
       const car = new Group();
@@ -1472,12 +1472,33 @@ export class HavanaStreet implements SceneStreet {
           put(hub, chrome, x, 0.37, z);
         }
       }
+      return car;
+    };
+    CARS.forEach(([colour, roof], k) => {
+      const car = build(colour, roof);
       // Oncoming down the far carriageway, in its two lanes.
       car.rotation.y = Math.PI;
       car.position.x = -roadHalf - (k % 2 ? 1.9 : 5.2);
       this.group.add(car);
       this.cars.push({ mesh: car, offset: k * 45 + random() * 20, speed: -(9 + random() * 4) });
     });
+    // Almendrones parked nose to tail along the inland kerb, as they are all along the
+    // Malecón, in ones and twos with gaps between, a few in faded or primer paint.
+    const parking = seeded(1511);
+    const faded = ['#8a8a7a', '#9a8a6a', '#6a7a7a', '#b0a890'];
+    for (let offset = 42; offset < LOOP - 20; offset += 26 + parking() * 60) {
+      const run = parking() < 0.4 ? 2 : 1;
+      for (let n = 0; n < run; n++) {
+        const [colour, roof] = CARS[Math.floor(parking() * CARS.length)]!;
+        const tired = parking() < 0.3;
+        const car = build(tired ? faded[n % faded.length]! : colour, tired ? '#d8d4c8' : roof);
+        car.rotation.y = (parking() - 0.5) * 0.04;
+        const holder = new Group();
+        holder.add(car);
+        this.group.add(holder);
+        this.props.push({ mesh: holder, offset: offset + n * 6.4, x: roadHalf - 1.15 });
+      }
+    }
     this.addTraffic(roadHalf, chrome, tyre, glass, wheel, hub);
   }
 
@@ -4141,6 +4162,8 @@ class Walkers {
   private readonly skirts: InstancedMesh;
   private readonly skirted: boolean[] = [];
   private readonly hands: InstancedMesh;
+  private readonly faces: InstancedMesh;
+  private readonly eyes: InstancedMesh;
   private readonly shaded: boolean[] = [];
   private readonly base = new Matrix4();
   private readonly local = new Matrix4();
@@ -4203,6 +4226,29 @@ class Walkers {
     this.skirts = make(skirt, 0.9);
     (this.skirts.material as MeshStandardMaterial).side = DoubleSide;
     this.hands = make(hand, 0.75, 2);
+    // A face on the front of the head (it faces -z): the nose and the ears in the walker's skin,
+    // and the dark eyes and brows above.
+    const nose = new ConeGeometry(0.022, 0.06, 6);
+    nose.rotateX(-Math.PI / 2);
+    nose.translate(0, -0.01, -0.115);
+    const ears = [-1, 1].map((side) => {
+      const ear = new SphereGeometry(0.028, 6, 5);
+      ear.scale(0.5, 1, 0.8);
+      ear.translate(side * 0.108, 0, 0);
+      return ear;
+    });
+    const face = mergeGeometries([nose.toNonIndexed(), ...ears.map((e) => e.toNonIndexed())])!;
+    const marks = [-1, 1].flatMap((side) => {
+      const eye = new SphereGeometry(0.014, 6, 4);
+      eye.translate(side * 0.038, 0.022, -0.1);
+      const brow = new BoxGeometry(0.04, 0.008, 0.01);
+      brow.translate(side * 0.038, 0.048, -0.102);
+      return [eye.toNonIndexed(), brow.toNonIndexed()];
+    });
+    const sight = mergeGeometries(marks)!;
+    for (const g of [nose, ...ears]) g.dispose();
+    this.faces = make(face, 0.7);
+    this.eyes = make(sight, 0.4);
     // A parasol held up against the sun: a shallow canopy on its shaft, in the right hand.
     const canopy = new ConeGeometry(0.55, 0.22, 10, 1, true);
     canopy.translate(0, 0.62, 0);
@@ -4235,6 +4281,8 @@ class Walkers {
       }
       this.parts[2]!.setColorAt(i, c.set(top));
       this.parts[3]!.setColorAt(i, c.set(skin));
+      this.faces.setColorAt(i, c.set(skin).multiplyScalar(0.92));
+      this.eyes.setColorAt(i, c.set('#1a120c'));
       this.parts[4]!.setColorAt(i, c.set(pick(hairs)));
       this.hats.setColorAt(i, c.set(random() < 0.6 ? '#e8d8a8' : pick(wardrobe.tops)));
       this.hatted.push(random() < 0.35);
@@ -4267,6 +4315,8 @@ class Walkers {
     if (this.skirted[i]) this.place(this.skirts, i, 0, 0.78 + lift, 0, 0);
     else this.skirts.setMatrixAt(i, this.out.compose(this.spot, this.turn, this.none));
     this.place(this.parts[3]!, i, 0, 1.66 + lift, 0, 0);
+    this.place(this.faces, i, 0, 1.66 + lift, 0, 0);
+    this.place(this.eyes, i, 0, 1.66 + lift, 0, 0);
     this.place(this.parts[4]!, i, 0, 1.67 + lift, 0, 0);
     if (this.hatted[i]) this.place(this.hats, i, 0, 1.75 + lift, 0, 0);
     else this.hats.setMatrixAt(i, this.out.compose(this.spot, this.turn, this.none));
