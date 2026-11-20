@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Low Cadence Workout](http://localhost
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/low-cadence-workout?simulate`, click **Ride in Tremola, Gotthard Pass**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [031 · The Gotthard's peaks stand over the setts](bend-031-gotthard-stands.jpg) | The Gotthard's peaks and the cloud over them were bent vertex by vertex with the Tremola's 55° bends, so they slewed across the sky with each switchback. They now stand beyond the road unbent, as the panorama does, and the bollards, walkers and props behind the rider stand on the cobbled road there instead of at the height under the rider. |
