@@ -80,7 +80,7 @@ const MUSCLE_BEACH = 165;
 const PIER_AHEAD = 440;
 /** The pier's deck reaches across the path from the land, so the wheel stands by the vanishing point. */
 const PIER_SHORE = 70;
-const HAZE = 0xd6dde0;
+const HAZE = 0xe8d2b0;
 
 const SKINS = ['#f1c7a5', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26', '#e2b48c'];
 const BEACHWEAR: Wardrobe = {

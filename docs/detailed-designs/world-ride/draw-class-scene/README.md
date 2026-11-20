@@ -150,7 +150,7 @@ None.
   - a chrome diner with its DINER sign and gas pumps under a canopy once a lap on the right, and a motel with its MOTEL and flickering VACANCY neon on the left;
   - classic cars with tail fins and a big rig coming the other way, tumbleweeds rolling across, all on the ride's clock;
   - red mesas with banded cliffs and talus slopes standing round the horizon, keeping their distance.
-- **Ocean Front Walk (`core/world-venice.ts`).** For `venice`, the bike path beside Venice Beach's boardwalk on a late afternoon:
+- **Ocean Front Walk (`core/world-venice.ts`).** For `venice`, the bike path beside Venice Beach's boardwalk at golden hour, the sun low over the ocean on the rider's left throwing long shadows across the path and a warm gold haze over the pier and the mountains ahead:
   - the path's dashed yellow centre line and white edges with the fans' writing every 25 m, race barriers hung with the race's banners on both sides, feather flags along them, cloth banners across the path and Venice's sign, VENICE in white letters on a steel frame, once a loop;
   - on the right the boardwalk's pale concrete, vendors' stalls under pop-up canopies and low stucco shops of one to three storeys in bright paint, each with a shopfront, a sign board and a striped awning, murals on some upper fronts and on the end walls facing the rider, and alleys between them. Every fifth is a beach hotel of four or five storeys with HOTEL lit on its roof, upper storeys have railed balconies, some parapets step up in the middle and the roofs carry water tanks and air conditioners, with a second row of taller apartment blocks behind;
   - tall Mexican fan palms in rows on both sides, each a thin ringed trunk, a skirt of dead fronds and a crown of fans;
