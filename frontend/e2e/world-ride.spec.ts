@@ -125,6 +125,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Suburban Sunrise');
   });
 
+  test('rides Quick HIIT Workout in Notting Hill Carnival on Ladbroke Grove', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Quick HIIT Workout', 'Notting Hill Carnival', 'quick-hiit-workout');
+    await expect(world.heading).toHaveText('Notting Hill Carnival');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Notting Hill Carnival');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

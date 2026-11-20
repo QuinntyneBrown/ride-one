@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations and Suburban Sunrise have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise and Notting Hill Carnival have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 23 | 15 Minute Cardio Workout at Home | Suburban Sunrise | 70% | Quiet tree-lined streets at dawn; sprinklers ticking, papers landing, neighbours waving from porches. |
 | 24 | 15 Min HIIT Cardio: Belly Fat Loss | Bondi to Bronte (concept) |  | Sydney's clifftop coast path; surf breaking below and an ocean pool at every headland. |
 | 25 | 15 Minute HIIT Cardio | Serpentine, Hyde Park (concept) |  | London lakeside paths with rowing boats and swans; each effort sweeps around the Serpentine. |
-| 26 | Quick HIIT Workout | Notting Hill Carnival (concept) |  | Sound systems throbbing on Ladbroke Grove; push through costumed mas bands on carnival Monday. |
+| 26 | Quick HIIT Workout | Notting Hill Carnival | 72% | Sound systems throbbing on Ladbroke Grove; push through costumed mas bands on carnival Monday. |
 | 27 | Instant Inferno | Kīlauea Lava Road (concept) |  | Hawaiian lava fields and glowing steam vents; each effort climbs toward the crater rim. |
 | 28 | Easy Riding | Napa Vineyards (concept) |  | Rolling vine rows and oak-shaded wineries on a warm Californian afternoon. |
 | 29 | Quick HIIT Sprint Workout | Las Vegas Strip (concept) |  | Neon casinos and dancing fountains after midnight; sprint from light to light down the boulevard. |

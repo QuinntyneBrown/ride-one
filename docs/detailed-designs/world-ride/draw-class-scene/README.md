@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -121,6 +121,13 @@ None.
   - a lot every 24 m each side: a clapboard house (one or two storeys) with a gable roof, chimney, lit and dark sash windows, a porch with posts and steps, a garage and driveway, a front walk, a mailbox by the kerb with its flag, and on some a white picket fence;
   - sprinklers ticking round their arcs, the morning paper arcing from the road onto each driveway, and neighbours waving from their porches, all on the ride's clock;
   - joggers and walkers on the sidewalks (`Figures`), backyard trees over the rooftops and the town's water tower ahead.
+- **Notting Hill Carnival (`core/world-nottinghill.ts`).** For `nottinghill`, Ladbroke Grove on carnival Monday:
+  - kerbs and grey flagged pavements up to four-storey pastel stucco terraces either side (sash windows, first-floor balconies, bays, steps and front doors);
+  - steel crowd barriers along both kerbs and the crowd packed behind them (`Figures`), jumping to the music;
+  - bunting in the islands' colours zigzagging across the road every 12 m;
+  - sound systems at the kerb (speaker stacks whose cones pulse on the beat, a gazebo and the system's banner) and jerk chicken stalls with their smoke rising, all on the ride's clock;
+  - three mas bands dancing up the road in feathered backpieces, slower than the rider;
+  - the Westway crossing overhead once a lap and Trellick Tower on the skyline ahead.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -145,6 +152,7 @@ None.
 | `pages/world-ride/ghent` | Ghent Six-Day at 4:50, warm-up, next `Bell-lap sprint` |
 | `pages/world-ride/blackpool` | Blackpool Illuminations at 4:50, warm-up, next `Tower sprint` |
 | `pages/world-ride/suburbia` | Suburban Sunrise at 4:50, warm-up, next `Cul-de-sac kick` |
+| `pages/world-ride/nottinghill` | Notting Hill Carnival at 4:50, warm-up, next `Sound system surge` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
