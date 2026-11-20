@@ -2751,7 +2751,18 @@ class SeatedRiders {
       parts.forEach((p) => p.dispose());
       return merged;
     };
-    this.meshes = [merge(tops), merge(legs), merge(skin)].map((geometry) => {
+    // Hair (or a beanie) over the head, and a collar of scarf at the neck.
+    const hair = new SphereGeometry(0.125, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    hair.translate(0, 1.84, 0.13);
+    const scarf = new TorusGeometry(0.1, 0.045, 6, 12);
+    scarf.rotateX(Math.PI / 2);
+    scarf.translate(0, 1.66, 0.14);
+    this.meshes = [
+      merge(tops),
+      merge(legs),
+      merge(skin),
+      merge([hair.toNonIndexed(), scarf.toNonIndexed()]),
+    ].map((geometry) => {
       const material = new MeshStandardMaterial({ roughness: 0.85 });
       const mesh = new InstancedMesh(geometry, material, count);
       mesh.frustumCulled = false;
@@ -2767,6 +2778,10 @@ class SeatedRiders {
       this.meshes[0]!.setColorAt(i, c.set(pick(COMMUTER_WEAR.tops)));
       this.meshes[1]!.setColorAt(i, c.set(pick(COMMUTER_WEAR.bottoms)));
       this.meshes[2]!.setColorAt(i, c.set(pick(COMMUTER_WEAR.skins)));
+      this.meshes[3]!.setColorAt(
+        i,
+        c.set(pick(['#1b1410', '#3a2a1e', '#6a4a2a', '#c8a060', '#9a9a96', '#b05a2a', '#2c3a5c'])),
+      );
     }
   }
 
