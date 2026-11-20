@@ -111,6 +111,17 @@ const WHEEL_RADIUS = 56;
 const WHEEL_HUB = 64;
 const WHEEL_CABINS = 18;
 const WHEEL_TURN = 0.04;
+/**
+ * The holographic whale: its length; its path across the sky ahead (from x, its length, its depth
+ * and height); where along it the ride starts; its speed.
+ */
+const WHALE_LENGTH = 70;
+const WHALE_FROM = -420;
+const WHALE_PATH = 640;
+const WHALE_Z = -430;
+const WHALE_HEIGHT = 78;
+const WHALE_START = 300;
+const WHALE_SPEED = 3;
 /** Neon gates over the road, at these offsets round the loop. */
 const GATES: readonly number[] = [70, 230, 380, 540];
 const GATE_HEIGHT = 6.5;
@@ -287,6 +298,7 @@ export class DocklandsStreet {
     this.fall(seconds, still);
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
+    this.swim(still ? 0 : seconds);
     const turning = this.wheel.userData['turning'] as Group | undefined;
     if (turning) turning.rotation.z = still ? 0 : seconds * WHEEL_TURN;
     this.fly(still ? 0 : seconds);
@@ -308,6 +320,7 @@ export class DocklandsStreet {
   }
   private readonly searchlights: Group[] = [];
   private readonly wheel = new Group();
+  private readonly whale = new Group();
 
   /**
    * Searchlight beams from the far shore's rooftops, leaning out and sweeping the violet haze
@@ -397,6 +410,60 @@ export class DocklandsStreet {
     this.wheel.userData['turning'] = turning;
     this.wheel.position.set(WHEEL_AT[0], WHEEL_HUB, WHEEL_AT[1]);
     this.farShore.add(this.wheel);
+  }
+
+  /**
+   * A holographic whale swimming slowly through the sky over the harbour: a wireframe of light in
+   * cyan, a long body with a fluke and fins.
+   */
+  private addWhale(): void {
+    const wire = new MeshBasicMaterial({
+      color: new Color('#3fe0ff').multiplyScalar(0.9),
+      wireframe: true,
+      transparent: true,
+      opacity: 0.55,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+    });
+    const body = new SphereGeometry(1, 18, 10);
+    const fluke = new ConeGeometry(0.5, 1, 4, 1, true);
+    this.disposables.push(wire, body, fluke);
+    const trunk = new Mesh(body, wire);
+    trunk.scale.set(WHALE_LENGTH / 2, WHALE_LENGTH / 9, WHALE_LENGTH / 8);
+    // Its tail narrows behind it to a flat fluke.
+    const tail = new Mesh(body, wire);
+    tail.scale.set(WHALE_LENGTH / 4, WHALE_LENGTH / 16, WHALE_LENGTH / 14);
+    tail.position.x = -WHALE_LENGTH * 0.55;
+    const flukes = new Mesh(fluke, wire);
+    flukes.scale.set(WHALE_LENGTH / 5, WHALE_LENGTH / 9, WHALE_LENGTH / 3);
+    flukes.rotation.z = Math.PI / 2;
+    flukes.position.x = -WHALE_LENGTH * 0.82;
+    const fins = [-1, 1].map((side) => {
+      const fin = new Mesh(fluke, wire);
+      fin.scale.set(WHALE_LENGTH / 14, WHALE_LENGTH / 5, WHALE_LENGTH / 30);
+      fin.rotation.set(side * 1.1, 0, -0.5);
+      fin.position.set(WHALE_LENGTH * 0.12, -WHALE_LENGTH / 14, side * WHALE_LENGTH * 0.12);
+      return fin;
+    });
+    this.whale.add(trunk, tail, flukes, ...fins);
+    this.group.add(this.whale);
+    this.swim(0);
+  }
+
+  /**
+   * Swims the whale across the sky ahead, from over the harbour towards the towers, nose first
+   * and side on to the rider, rising and falling; it comes round again past the far side.
+   */
+  private swim(seconds: number): void {
+    const along = (seconds * WHALE_SPEED + WHALE_START) % WHALE_PATH;
+    this.whale.position.set(
+      WHALE_FROM + along,
+      WHALE_HEIGHT + Math.sin(seconds * 0.25) * 6,
+      WHALE_Z,
+    );
+    this.whale.rotation.set(0, 0, Math.sin(seconds * 0.25 + 1) * 0.08);
   }
 
   private rain: LineSegments | null = null;
@@ -961,6 +1028,7 @@ export class DocklandsStreet {
     // The haze over the water, before the far shore, turned to face the road.
     this.addSearchlights();
     this.addWheel();
+    this.addWhale();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
   }
