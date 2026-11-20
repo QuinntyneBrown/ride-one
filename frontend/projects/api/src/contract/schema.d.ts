@@ -93,7 +93,8 @@ export interface components {
         | 'southbeach'
         | 'ghent'
         | 'blackpool'
-        | 'suburbia';
+        | 'suburbia'
+        | 'nottinghill';
     };
     ClassShelfResponse: {
       id: string;

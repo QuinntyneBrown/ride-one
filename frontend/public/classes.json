@@ -1460,6 +1460,7 @@
     },
     {
       "id": "quick-hiit-workout",
+      "world": "nottinghill",
       "title": "Quick HIIT Workout",
       "channel": "GCN",
       "focus": "HIIT",

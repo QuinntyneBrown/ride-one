@@ -257,6 +257,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.2, colour: 0xffc89a },
     fogRange: [70, 1100],
   },
+  // A warm August bank holiday afternoon in west London: high sun behind the rider, light haze.
+  nottinghill: {
+    sky: 0x9fc4e4,
+    fog: 0xcdd6dd,
+    ground: 0x8a867e,
+    road: 0x45464b,
+    sun: 38,
+    wet: false,
+    haze: false,
+    turbidity: 4.5,
+    rayleigh: 1.6,
+    azimuth: -140,
+    light: { sun: 3.2, fill: 1.0, colour: 0xfff0dc },
+    fogRange: [70, 1100],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

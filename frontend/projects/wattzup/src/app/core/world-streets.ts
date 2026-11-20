@@ -4,6 +4,7 @@ import type { WorldId } from '@wattzup/api';
 import { CaribanaStreet } from './world-caribana';
 import { SouthBeachStreet } from './world-southbeach';
 import type { StreetFactory } from './world-kit';
+import { NottingHillStreet } from './world-nottinghill';
 import { SuburbiaStreet } from './world-suburbia';
 import { BlackpoolStreet } from './world-blackpool';
 import { GhentStreet } from './world-ghent';
@@ -18,4 +19,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   ghent: (track, disposables) => new GhentStreet(track, disposables),
   blackpool: (track, disposables) => new BlackpoolStreet(track, disposables),
   suburbia: (track, disposables) => new SuburbiaStreet(track, disposables),
+  nottinghill: (track, disposables) => new NottingHillStreet(track, disposables),
 };
