@@ -38,7 +38,6 @@ import {
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   canvasTexture,
-  Figures,
   hazedMaterial,
   loopMetres,
   Ribbons,
@@ -95,7 +94,7 @@ export class AmsterdamStreet implements SceneStreet {
   private readonly riders: Rider[] = [];
   private readonly walkers: Walker[] = [];
   private cyclists: SeatedRiders | null = null;
-  private pedestrians: Figures | null = null;
+  private pedestrians: Walkers | null = null;
   private dogs: InstancedMesh | null = null;
   private readonly boats: { mesh: Group; offset: number; speed: number; float?: number }[] = [];
   private time = 0;
@@ -190,7 +189,16 @@ export class AmsterdamStreet implements SceneStreet {
         const metres = loopMetres(w.offset + w.speed * this.time, s + START, LOOP, BEHIND);
         const step = Math.abs(Math.sin(this.time * 4.5 + w.phase)) * 0.04;
         const y = heightAt(Math.max(metres, 0)) + KERB;
-        pedestrians.set(i, w.x, y, -metres, w.speed > 0 ? 0 : Math.PI, w.scale, step);
+        pedestrians.set(
+          i,
+          w.x,
+          y,
+          -metres,
+          w.speed > 0 ? 0 : Math.PI,
+          w.scale,
+          step,
+          this.time * 4.5 + w.phase,
+        );
         // Every fifth walker has a dog trotting ahead on its lead.
         if (this.dogs && i % 5 === 0) {
           const ahead = w.speed > 0 ? 1 : -1;
@@ -1248,13 +1256,7 @@ export class AmsterdamStreet implements SceneStreet {
         phase: random() * 6.3,
       });
     }
-    this.pedestrians = new Figures(
-      this.group,
-      this.disposables,
-      this.walkers.length,
-      COMMUTER_WEAR,
-      461,
-    );
+    this.pedestrians = new Walkers(this.group, this.disposables, this.walkers.length, 461);
     const dog = dogGeometry();
     const fur = new MeshStandardMaterial({ roughness: 0.95 });
     this.dogs = new InstancedMesh(dog, fur, Math.ceil(this.walkers.length / 5));
@@ -1455,6 +1457,115 @@ function limb(a: Vector3, b: Vector3, radius: number): BufferGeometry {
   );
   geometry.translate(a.x, a.y, a.z);
   return geometry.toNonIndexed();
+}
+
+/**
+ * People walking the pavements and the quay, 1.72 m tall at scale 1, as instanced meshes:
+ * trousers or skirts on two legs that swing with their stride, a coat or jacket with arms
+ * swinging against the legs, a head, hair in its own colour (or a cap), and a tote bag or
+ * backpack on some.
+ */
+class Walkers {
+  private readonly legs: InstancedMesh[];
+  private readonly body: InstancedMesh;
+  private readonly arms: InstancedMesh[];
+  private readonly head: InstancedMesh;
+  private readonly hair: InstancedMesh;
+  private readonly bag: InstancedMesh;
+  private readonly bags: boolean[] = [];
+  private readonly matrix = new Matrix4();
+  private readonly part = new Matrix4();
+  private readonly spot = new Vector3();
+  private readonly turn = new Quaternion();
+  private readonly size = new Vector3();
+  private readonly swing = new Quaternion();
+  private readonly up = new Vector3(0, 1, 0);
+  private readonly side = new Vector3(1, 0, 0);
+
+  constructor(group: Group, disposables: { dispose(): void }[], count: number, seed: number) {
+    const leg = new CapsuleGeometry(0.075, 0.72, 3, 8);
+    leg.translate(0, -0.42, 0);
+    const torso = new CapsuleGeometry(0.19, 0.42, 4, 10);
+    const arm = new CapsuleGeometry(0.045, 0.55, 3, 6);
+    arm.translate(0, -0.3, 0);
+    const head = new SphereGeometry(0.115, 12, 10);
+    const hair = new SphereGeometry(0.125, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    const bag = new BoxGeometry(0.3, 0.36, 0.1);
+    const make = (geometry: BufferGeometry, roughness: number) => {
+      const material = new MeshStandardMaterial({ roughness });
+      const mesh = new InstancedMesh(geometry, material, count);
+      mesh.frustumCulled = false;
+      mesh.castShadow = true;
+      group.add(mesh);
+      disposables.push(material, mesh);
+      return mesh;
+    };
+    disposables.push(leg, torso, arm, head, hair, bag);
+    this.legs = [make(leg, 0.9), make(leg, 0.9)];
+    this.body = make(torso, 0.85);
+    this.arms = [make(arm, 0.85), make(arm, 0.85)];
+    this.head = make(head, 0.7);
+    this.hair = make(hair, 0.9);
+    this.bag = make(bag, 0.8);
+    const random = seeded(seed);
+    const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
+    const c = new Color();
+    const hairs = ['#1b1410', '#3a2a1e', '#6a4a2a', '#c8a060', '#9a9a96', '#2a1a12', '#b05a2a'];
+    const totes = ['#e8dcc0', '#1d1f24', '#2c7be5', '#c8102e', '#3a6b4a'];
+    for (let i = 0; i < count; i++) {
+      const top = pick(COMMUTER_WEAR.tops);
+      const bottom = pick(COMMUTER_WEAR.bottoms);
+      this.body.setColorAt(i, c.set(top));
+      this.arms.forEach((a) => a.setColorAt(i, c.set(top)));
+      this.legs.forEach((l) => l.setColorAt(i, c.set(bottom)));
+      this.head.setColorAt(i, c.set(pick(COMMUTER_WEAR.skins)));
+      this.hair.setColorAt(i, c.set(pick(hairs)));
+      this.bag.setColorAt(i, c.set(pick(totes)));
+      this.bags.push(random() < 0.35);
+    }
+  }
+
+  /**
+   * Stands walker `i` at (x, y, z), turned `heading`, `scale` tall, lifted `bob`, at `stride`
+   * through its step cycle (radians).
+   */
+  set(
+    i: number,
+    x: number,
+    y: number,
+    z: number,
+    heading: number,
+    scale: number,
+    bob: number,
+    stride: number,
+  ): void {
+    this.turn.setFromAxisAngle(this.up, heading);
+    this.size.setScalar(scale);
+    this.matrix.compose(this.spot.set(x, y + bob, z), this.turn, this.size);
+    const at = (mesh: InstancedMesh, px: number, py: number, pz: number, angle = 0) => {
+      this.swing.setFromAxisAngle(this.side, angle);
+      this.part.compose(this.spot.set(px, py, pz), this.swing, this.size.setScalar(1));
+      mesh.setMatrixAt(i, this.part.premultiply(this.matrix));
+    };
+    const a = Math.sin(stride) * 0.35;
+    at(this.legs[0]!, -0.1, 0.9, 0, a);
+    at(this.legs[1]!, 0.1, 0.9, 0, -a);
+    at(this.body, 0, 1.15, 0);
+    at(this.arms[0]!, -0.24, 1.4, 0, -a * 0.8);
+    at(this.arms[1]!, 0.24, 1.4, 0, a * 0.8);
+    at(this.head, 0, 1.6, 0);
+    at(this.hair, 0, 1.63, 0.01);
+    if (this.bags[i]) at(this.bag, 0.3, 1.0, 0.02, a * 0.5);
+    else this.bag.setMatrixAt(i, this.part.makeScale(0, 0, 0));
+    this.size.setScalar(scale);
+  }
+
+  /** Uploads the walkers set this frame. */
+  commit(): void {
+    for (const mesh of [...this.legs, this.body, ...this.arms, this.head, this.hair, this.bag]) {
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
 }
 
 /**
