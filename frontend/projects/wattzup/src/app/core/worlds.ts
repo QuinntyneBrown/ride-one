@@ -419,6 +419,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 5, work: 12, rest: 7, cooldown: 3, steady: 9 },
     roll: 1.6,
   },
+  {
+    id: 'alpe',
+    name: "Alpe d'Huez",
+    route: 'the 21 hairpins',
+    effortName: 'Hairpin attack',
+    description:
+      "Twenty-one numbered hairpins stack up the mountainside above Bourg-d'Oisans on a blazing July afternoon, the tarmac covered in painted names and fans and camper vans packed onto every bend under the snowy peaks of the Grandes Rousses. The two-minute warm-up rolls out of the valley, each one-minute attack kicks round a hairpin through the orange roar of Dutch Corner by the church of Huez, and the two-minute blocks grind up the steep ramps toward the ski station at the top.",
+    grade: { warmup: 4, work: 9, rest: 7, cooldown: 3, steady: 7 },
+    roll: 1.2,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
