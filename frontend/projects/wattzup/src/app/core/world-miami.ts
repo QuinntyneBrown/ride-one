@@ -613,19 +613,44 @@ export class MiamiStreet implements SceneStreet {
       emissiveIntensity: 2,
       roughness: 0.5,
     });
+    // Each trunk is washed with light from its uplight, warm white on most and pink, cyan or
+    // violet on every third, fading as it climbs; a square iron grate rings the foot.
+    const shell = new CylinderGeometry(0.29, 0.34, 7, 14, 1, true);
+    shell.translate(0, 3.5, 0);
+    this.disposables.push(shell);
+    const wash = this.track(uplightTexture());
+    const washes = [0xffe8c0, 0xff4fb8, 0x3fe0ff, 0xffe8c0, 0xb46bff].map((c) => {
+      const m = new MeshBasicMaterial({
+        map: wash,
+        color: c,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false,
+        blending: AdditiveBlending,
+      });
+      this.disposables.push(m);
+      return m;
+    });
+    const grate = this.material({ color: 0x18181c, roughness: 0.7, metalness: 0.6 });
+    let n = 0;
     for (let offset = 0; offset < LOOP; offset += 14 + random() * 4)
       for (const side of [-1, 1]) {
         const p = palms.make(random);
         p.scale.multiplyScalar(1.2);
         const lamp = new Mesh(this.unit, uplight);
         lamp.scale.set(0.3, 0.12, 0.3);
-        lamp.position.y = 0.2;
+        lamp.position.set(0.5, 0.06, 0);
+        const lit = new Mesh(shell, washes[n % 3 === 2 ? 1 + (((n / 3) % 3) | 0) : 0]!);
+        const bed = new Mesh(this.unit, grate);
+        bed.scale.set(1.5, 0.03, 1.5);
+        bed.position.y = 0.01;
         const holder = new Group();
-        holder.add(p, lamp);
+        holder.add(p, lamp, lit, bed);
         holder.position.y = 0.15;
         this.group.add(holder);
         const x = side > 0 ? roadHalf + 2 : -roadHalf - 2.6;
         this.props.push({ mesh: holder, offset: offset + (side > 0 ? 0 : 7), x });
+        n++;
       }
   }
 
@@ -1675,5 +1700,19 @@ function neonWordTexture(text: string, colour: string): CanvasTexture {
     g.shadowBlur = 0;
     g.fillStyle = '#ffd8dc';
     g.fillText(text, 128, 34, 240);
+  });
+}
+
+/** Uplight on a trunk: bright at the foot, fading as it climbs, streaked by the bark rings. */
+function uplightTexture(): CanvasTexture {
+  return canvasTexture(16, 128, (g) => {
+    const fade = g.createLinearGradient(0, 128, 0, 0);
+    fade.addColorStop(0, 'rgba(255,255,255,0.9)');
+    fade.addColorStop(0.3, 'rgba(255,255,255,0.4)');
+    fade.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = fade;
+    g.fillRect(0, 0, 16, 128);
+    g.fillStyle = 'rgba(0,0,0,0.35)';
+    for (let y = 0; y < 128; y += 9) g.fillRect(0, y, 16, 2);
   });
 }
