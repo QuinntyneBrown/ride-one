@@ -29,6 +29,7 @@ import {
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { ROAD_END } from './scene-bend';
 import {
   barrierBannerTexture,
   type BannerPanel,
@@ -514,7 +515,13 @@ export class OldTownStreet {
   }
 
   /** Moves the houses with the rider: `heightAt` gives the road's height `metres` ahead. */
-  place(s: number, heightAt: (metres: number) => number): void {
+  place(s: number, road: (metres: number) => number): void {
+    // The street runs on past the end of the laid road: there it climbs on at the road's last
+    // grade, so the far houses on a ramp keep stepping up instead of standing level.
+    const end = road(ROAD_END);
+    const slope = (end - road(ROAD_END - 2)) / 2;
+    const heightAt = (metres: number) =>
+      metres <= ROAD_END ? road(metres) : end + slope * (metres - ROAD_END);
     for (const house of this.houses) {
       const start = ((((house.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const middle = start + house.width / 2;
@@ -526,9 +533,9 @@ export class OldTownStreet {
     }
     this.placeCrowd(s, heightAt);
     this.placeBunting(s, heightAt);
-    this.cathedral.position.set(CATHEDRAL_X, heightAt(1e6) - 2, -CATHEDRAL_AHEAD);
+    this.cathedral.position.set(CATHEDRAL_X, end - 2, -CATHEDRAL_AHEAD);
     this.moto.position.set(MOTO_X, heightAt(MOTO_AHEAD), -MOTO_AHEAD);
-    this.belfry.position.set(BELFRY_X, heightAt(1e6) - 2, -BELFRY_AHEAD);
+    this.belfry.position.set(BELFRY_X, end - 2, -BELFRY_AHEAD);
     // The swifts wheel over the roofs, a turn for every 60 m ridden.
     this.swifts.forEach((bird, i) => {
       const a = s / 60 + i * 2.4;
