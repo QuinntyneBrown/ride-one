@@ -139,6 +139,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addTour(roadHalf);
     this.addScaffold(roadHalf);
     this.addMovingLift(roadHalf);
+    this.addShop(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1564,6 +1565,79 @@ export class AmsterdamStreet implements SceneStreet {
       mesh: lift,
       offset: START + BEHIND + 52,
       x: -roadHalf - QUAY - CANAL - 2.6,
+    });
+  }
+
+  /**
+   * The corner house across the first cross street keeps a shop on its ground floor: an
+   * antiques dealer's, with a striped awning let down over the windows and its name board, and
+   * a couple of chairs and a mirror set out on the pavement.
+   */
+  private addShop(roadHalf: number): void {
+    const canvas = this.material({
+      map: this.track(awningTexture()),
+      side: DoubleSide,
+      roughness: 0.9,
+    });
+    const board = this.material({ map: this.track(shopBoardTexture()), roughness: 0.6 });
+    const iron = this.material({ color: 0x1b1b1f, metalness: 0.5, roughness: 0.5 });
+    const wood = this.material({ color: 0x6a4a2e, roughness: 0.8 });
+    const gilt = this.material({ color: 0xc8a040, metalness: 0.6, roughness: 0.35 });
+    const shop = new Group();
+    const awning = new Mesh(this.unit, canvas);
+    awning.scale.set(1.3, 0.03, 4.6);
+    awning.position.set(-0.6, 3.3, -2.6);
+    awning.rotation.z = 0.5;
+    const valance = new Mesh(this.unit, canvas);
+    valance.scale.set(0.02, 0.25, 4.6);
+    valance.position.set(-1.17, 2.9, -2.6);
+    for (const z of [-0.4, -4.8]) {
+      const arm = new Mesh(this.unit, iron);
+      arm.scale.set(1.3, 0.03, 0.03);
+      arm.position.set(-0.6, 3.25, z);
+      arm.rotation.z = 0.5;
+      shop.add(arm);
+    }
+    const sign = new Mesh(this.unit, [board, board, board, board, board, board]);
+    sign.scale.set(0.06, 0.45, 3.6);
+    sign.position.set(-0.04, 3.9, -2.6);
+    shop.add(awning, valance, sign);
+    // Wares set out on the pavement: two chairs and a gilt-framed mirror leaning on the wall.
+    for (const z of [-1.2, -3.8]) {
+      const chair = new Group();
+      const seat = new Mesh(this.unit, wood);
+      seat.scale.set(0.45, 0.05, 0.45);
+      seat.position.y = 0.46;
+      const back = new Mesh(this.unit, wood);
+      back.scale.set(0.05, 0.5, 0.45);
+      back.position.set(0.2, 0.72, 0);
+      chair.add(seat, back);
+      for (const [x, zz] of [
+        [-0.2, -0.2],
+        [0.2, -0.2],
+        [-0.2, 0.2],
+        [0.2, 0.2],
+      ] as const) {
+        const leg = new Mesh(this.unit, wood);
+        leg.scale.set(0.04, 0.46, 0.04);
+        leg.position.set(x, 0.23, zz);
+        chair.add(leg);
+      }
+      chair.position.set(-0.7, 0, z);
+      shop.add(chair);
+    }
+    const mirror = new Mesh(this.unit, gilt);
+    mirror.scale.set(0.06, 1.3, 0.8);
+    mirror.position.set(-0.12, 0.7, -2.5);
+    mirror.rotation.z = -0.1;
+    shop.add(mirror);
+    shop.traverse((o) => (o.castShadow = true));
+    shop.position.y = KERB;
+    this.group.add(shop);
+    this.props.push({
+      mesh: shop,
+      offset: BRIDGE + 2 + CROSS / 2 + 0.2,
+      x: roadHalf + PAVEMENT,
     });
   }
 
@@ -2998,6 +3072,29 @@ function standerGeometry(random: () => number, phone: boolean): BufferGeometry {
   const merged = mergeGeometries(painted)!;
   painted.forEach((p) => p.dispose());
   return merged;
+}
+
+/** An awning's canvas: broad stripes of bottle green and cream. */
+function awningTexture(): CanvasTexture {
+  return canvasTexture(256, 64, (g) => {
+    for (let x = 0; x < 256; x += 32) {
+      g.fillStyle = (x / 32) % 2 ? '#f0e8d4' : '#1f4a32';
+      g.fillRect(x, 0, 32, 64);
+    }
+  });
+}
+
+/** The antiques shop's board: its name in cream capitals on oxblood. */
+function shopBoardTexture(): CanvasTexture {
+  return canvasTexture(512, 64, (g) => {
+    g.fillStyle = '#5a1a1a';
+    g.fillRect(0, 0, 512, 64);
+    g.fillStyle = '#f0e8d4';
+    g.font = 'bold 32px serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('ANTIEK &CURIOSA', 256, 34);
+  });
 }
 
 /** A brown café's name board: gilt letters on dark green, in a gilt frame. */
