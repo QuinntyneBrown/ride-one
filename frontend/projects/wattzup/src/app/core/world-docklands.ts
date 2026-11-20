@@ -328,6 +328,13 @@ const CROSSING_BAR = 0.55;
 const CROSSING_DEPTH = 5;
 /** Their beacons: post height (m), blink period (s), and how near before the halo hides (m). */
 const BEACON_HEIGHT = 2.9;
+/** The traffic signals at each crossing: the mast's height (m), how far over the road its arm
+ * reaches (a fraction of the road's half-width past the centre), where along the arm the heads
+ * hang (fractions of its length), and the lamps' colours, top to bottom. */
+const SIGNAL_HEIGHT = 5.6;
+const SIGNAL_REACH = 0.3;
+const SIGNAL_HEADS = [0.45, 0.95];
+const SIGNAL_LAMPS = ['#ff3045', '#ffa81f', '#35ff8a'] as const;
 const BEACON_BLINK = 1.2;
 const BEACON_HALO_NEAR = 7;
 /** Bike-lane symbols: where round the loop, and their size on the road (m). */
@@ -2974,6 +2981,22 @@ export class DocklandsStreet {
     const stripe = new BoxGeometry(0.18, 0.3, 0.18);
     const ball = new SphereGeometry(0.32, 14, 10);
     this.disposables.push(paint, pole, band, globe, bar, post, stripe, ball);
+    // Traffic signals on a mast arm reaching out over the road at the near side of each crossing:
+    // dark heads with red, amber and green lamps, the green lit for the riders.
+    const mast = new CylinderGeometry(0.12, 0.15, SIGNAL_HEIGHT, 10);
+    const arm = new CylinderGeometry(0.07, 0.07, 1, 8);
+    const housing = new BoxGeometry(0.42, 1.15, 0.3);
+    const visor = new BoxGeometry(0.34, 0.04, 0.22);
+    const lamp = new CircleGeometry(0.12, 16);
+    const unlit = SIGNAL_LAMPS.map(
+      (hex) => new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(0.18) }),
+    );
+    const go = new MeshBasicMaterial({
+      color: new Color(SIGNAL_LAMPS[2]).multiplyScalar(2),
+      toneMapped: false,
+    });
+    const goHalo = this.halo(SIGNAL_LAMPS[2], 0.9);
+    this.disposables.push(mast, arm, housing, visor, lamp, ...unlit, go);
     const across = roadHalf * 2;
     const count = Math.floor(across / (CROSSING_BAR * 2));
     const start = -((count - 1) * CROSSING_BAR * 2) / 2;
@@ -3005,6 +3028,31 @@ export class DocklandsStreet {
         group.add(light, bloom);
         blooms.push(bloom);
         this.streak(group, '#ffa81f', x - side * 1.5, 0, z, 6, 1.2, 0.9);
+      }
+      const mx = roadHalf + KERB_WIDTH + 1;
+      const mz = CROSSING_DEPTH / 2 + 1.2;
+      const standard = new Mesh(mast, pole);
+      standard.position.set(mx, KERB + SIGNAL_HEIGHT / 2, mz);
+      const reach = new Vector3(-roadHalf * SIGNAL_REACH, KERB + SIGNAL_HEIGHT - 0.25, mz);
+      group.add(standard, span(arm, pole, new Vector3(mx, reach.y, mz), reach));
+      for (const at of SIGNAL_HEADS) {
+        const x = mx + (reach.x - mx) * at;
+        const y = reach.y - 0.75;
+        const head = new Mesh(housing, pole);
+        head.position.set(x, y, mz);
+        group.add(head, span(arm, pole, new Vector3(x, reach.y, mz), new Vector3(x, y + 0.5, mz)));
+        for (let k = 0; k < 3; k++) {
+          const ly = y + 0.36 - k * 0.36;
+          const disc = new Mesh(lamp, k === 2 ? go : unlit[k]!);
+          disc.position.set(x, ly, mz + 0.152);
+          const hood = new Mesh(visor, pole);
+          hood.position.set(x, ly + 0.15, mz + 0.26);
+          group.add(disc, hood);
+        }
+        const bloom = new Sprite(goHalo);
+        bloom.scale.setScalar(1.1);
+        bloom.position.set(x, y - 0.36, mz + 0.2);
+        group.add(bloom);
       }
       this.group.add(group);
       this.crossings.push({ group, offset, blooms });
