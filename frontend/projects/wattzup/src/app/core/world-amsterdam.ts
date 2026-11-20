@@ -114,6 +114,7 @@ export class AmsterdamStreet implements SceneStreet {
   private tilts: (() => number) | null = null;
   private foam: MeshStandardMaterial | null = null;
   private lanes: (() => number) | null = null;
+  private farDress: (() => number) | null = null;
   private bikeShape: BufferGeometry | null = null;
 
   constructor(
@@ -660,6 +661,23 @@ export class AmsterdamStreet implements SceneStreet {
             featured,
             -stoopSide,
           );
+        } else {
+          // Across the canal the fronts are dressed the same way, seen from the water: the
+          // dressing is built as for the rider's side and turned round to face the canal.
+          const dressing = new Group();
+          this.dress(
+            dressing,
+            GABLES[k]!,
+            width,
+            height,
+            along / width,
+            (this.farDress ??= seeded(773)),
+            decor,
+            false,
+            stoopSide,
+          );
+          dressing.rotation.y = Math.PI;
+          house.add(dressing);
         }
         if (random() < 0.16) {
           // A flag on a pole angled out from the first floor: Amsterdam's red-black-red with its
