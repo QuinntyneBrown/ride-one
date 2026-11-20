@@ -28,7 +28,7 @@ import {
   Vector2,
   Vector3,
 } from 'three/webgpu';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   canvasTexture,
   loopMetres,
@@ -669,41 +669,72 @@ export class CaribanaStreet implements SceneStreet {
     }
   }
 
-  /** Lakeshore park trees: mature maples on the left, a sparser row by the water on the right. */
+  /**
+   * Lakeshore park trees: a row of mature maples, lindens and honey locusts on the left and a
+   * sparser row by the water on the right. Each is one of four species, with a trunk that forks
+   * into limbs and a crown of irregular leaf clumps, lit yellow-green on top and shaded under.
+   */
   private addTrees(): void {
-    const trunk = new CylinderGeometry(0.18, 0.28, 4, 7);
-    trunk.translate(0, 2, 0);
-    const blobs = (
-      [
-        [0, 5.8, 0, 2.4],
-        [1.3, 5.0, 0.4, 1.7],
-        [-1.2, 5.2, -0.3, 1.8],
-        [0.2, 7.0, 0.2, 1.6],
-      ] as const
-    ).map(([x, y, z, r]) => {
-      const blob = new IcosahedronGeometry(r, 2);
-      blob.translate(x, y, z);
-      return blob;
+    const species = [
+      {
+        seed: 11,
+        clumps: 14,
+        radius: 3.0,
+        height: 6.4,
+        squash: 0.78,
+        light: '#7fae4a',
+        dark: '#24481f',
+      },
+      {
+        seed: 23,
+        clumps: 18,
+        radius: 3.4,
+        height: 7.2,
+        squash: 0.62,
+        light: '#9cbf55',
+        dark: '#2f5a23',
+      },
+      {
+        seed: 37,
+        clumps: 12,
+        radius: 2.5,
+        height: 6.8,
+        squash: 1.0,
+        light: '#6c9e45',
+        dark: '#1f421c',
+      },
+      {
+        seed: 53,
+        clumps: 16,
+        radius: 3.2,
+        height: 7.0,
+        squash: 0.85,
+        light: '#8db552',
+        dark: '#2a4f22',
+      },
+    ];
+    const leaves = this.material({
+      map: this.repeat(leafTexture(), 1.5, 1.5),
+      vertexColors: true,
+      roughness: 0.9,
     });
-    const crown = mergeGeometries(blobs)!;
-    blobs.forEach((b) => b.dispose());
-    this.disposables.push(trunk, crown);
-    const bark = this.material({ color: 0x4b3a2c, roughness: 1 });
+    const bark = this.material({
+      map: this.repeat(barkTexture(), 1, 2),
+      color: 0x8a7a68,
+      roughness: 1,
+    });
+    const shapes = species.map((sp) => treeGeometry(sp));
+    for (const { trunk, crown } of shapes) this.disposables.push(trunk, crown);
     const random = seeded(211);
-    const leafColours = [0x2f6a2c, 0x3b7a31, 0x285c27, 0x46863a];
     for (const side of [-1, 1] as const) {
       const every = side < 0 ? 11 : 23;
       for (let offset = 0; offset < LOOP; offset += every) {
         const tree = new Group();
-        const leaves = this.material({
-          color: leafColours[Math.floor(random() * leafColours.length)]!,
-          roughness: 0.95,
-        });
-        const t = new Mesh(trunk, bark);
-        const c = new Mesh(crown, leaves);
-        const scale = 0.8 + random() * 0.5;
-        tree.scale.setScalar(scale);
-        c.scale.set(1 + random() * 0.3, 0.85 + random() * 0.3, 1 + random() * 0.3);
+        const shape = shapes[Math.floor(random() * shapes.length)]!;
+        const t = new Mesh(shape.trunk, bark);
+        const c = new Mesh(shape.crown, leaves);
+        tree.scale.setScalar(0.85 + random() * 0.45);
+        tree.rotation.y = random() * Math.PI * 2;
         t.castShadow = true;
         c.castShadow = true;
         tree.add(t, c);
@@ -1242,6 +1273,150 @@ function cnTower(concrete: Material, grey: Material, glass: Material): Group {
     y += h;
   }
   return tower;
+}
+
+/** A tree species: its seed, how many leaf clumps, the crown's size and its two greens. */
+interface Species {
+  readonly seed: number;
+  readonly clumps: number;
+  readonly radius: number;
+  readonly height: number;
+  readonly squash: number;
+  readonly light: string;
+  readonly dark: string;
+}
+
+/**
+ * A park tree of `species`: a trunk forking into three or four limbs, and a crown of leaf
+ * clumps, each an icosahedron pushed out of round, set round the limbs' ends and shaded
+ * through vertex colours from a sunlit top to a dark underside.
+ */
+function treeGeometry(species: Species): { trunk: BufferGeometry; crown: BufferGeometry } {
+  const random = seeded(species.seed);
+  const { radius, height, squash } = species;
+  const base = new Vector3(0, 0, 0);
+  const fork = new Vector3(0, height * 0.42, 0);
+  const wood: BufferGeometry[] = limb(base, fork, 0.32, 0.22, 9);
+  const tips: Vector3[] = [];
+  const limbs = 3 + Math.floor(random() * 2);
+  for (let k = 0; k < limbs; k++) {
+    const a = (k / limbs) * Math.PI * 2 + random() * 0.6;
+    const out = radius * (0.45 + random() * 0.25);
+    const tip = new Vector3(
+      Math.cos(a) * out,
+      height * (0.78 + random() * 0.12),
+      Math.sin(a) * out,
+    );
+    wood.push(...limb(fork, tip, 0.17, 0.07, 7));
+    tips.push(tip);
+  }
+  const clumps: BufferGeometry[] = [];
+  const centre = new Vector3(0, height, 0);
+  for (let k = 0; k < species.clumps; k++) {
+    const r = radius * (0.4 + random() * 0.2);
+    const facets = new IcosahedronGeometry(r, 2);
+    facets.deleteAttribute('normal');
+    facets.deleteAttribute('uv');
+    const clump = mergeVertices(facets);
+    facets.dispose();
+    const position = clump.getAttribute('position') as BufferAttribute;
+    // Every copy of a corner moves together, by a hash of where it is, so the clump stays shut.
+    const salt = random() * 100;
+    for (let i = 0; i < position.count; i++) {
+      const x = position.getX(i);
+      const y = position.getY(i);
+      const z = position.getZ(i);
+      const hash = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719 + salt) * 43758.5453;
+      const bulge = 0.8 + (hash - Math.floor(hash)) * 0.4;
+      position.setXYZ(i, x * bulge, y * bulge, z * bulge);
+    }
+    const around = k < tips.length ? tips[k]!.clone() : centre.clone();
+    if (k >= tips.length) {
+      const a = random() * Math.PI * 2;
+      const up = random() * 2 - 0.6;
+      around.add(
+        new Vector3(
+          Math.cos(a) * radius * 0.62,
+          up * radius * squash * 0.55,
+          Math.sin(a) * radius * 0.62,
+        ),
+      );
+    }
+    clump.translate(around.x, around.y, around.z);
+    clump.computeVertexNormals();
+    // Leaves wrap the clump: planar texture coordinates from where each corner stands.
+    const uv = new Float32Array(position.count * 2);
+    for (let i = 0; i < position.count; i++) {
+      uv[i * 2] = (position.getX(i) + position.getZ(i)) * 0.35;
+      uv[i * 2 + 1] = position.getY(i) * 0.35;
+    }
+    clump.setAttribute('uv', new BufferAttribute(uv, 2));
+    clumps.push(clump);
+  }
+  const crown = mergeGeometries(clumps)!;
+  clumps.forEach((c) => c.dispose());
+  // Shade the crown: sunlit where it faces up and out, dark where it faces down or inward.
+  const position = crown.getAttribute('position') as BufferAttribute;
+  const normal = crown.getAttribute('normal') as BufferAttribute;
+  const colour = new Float32Array(position.count * 3);
+  const light = new Color(species.light);
+  const dark = new Color(species.dark);
+  const c = new Color();
+  const top = height + radius * squash;
+  const bottom = height - radius * squash;
+  for (let i = 0; i < position.count; i++) {
+    const rise = (position.getY(i) - bottom) / (top - bottom);
+    const facing = normal.getY(i) * 0.5 + 0.5;
+    const t = Math.min(1, Math.max(0, rise * 0.55 + facing * 0.45 + (random() - 0.5) * 0.12));
+    c.copy(dark).lerp(light, t);
+    colour.set([c.r, c.g, c.b], i * 3);
+  }
+  crown.setAttribute('color', new BufferAttribute(colour, 3));
+  const trunk = mergeGeometries(wood.map((w) => (w.index ? w.toNonIndexed() : w)))!;
+  wood.forEach((w) => w.dispose());
+  return { trunk, crown };
+}
+
+/** Leaves: overlapping small ovals in light and shadow, tinted by the crown's colours. */
+function leafTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    g.fillStyle = '#b8b8b8';
+    g.fillRect(0, 0, 256, 256);
+    const random = seeded(71);
+    for (let i = 0; i < 2600; i++) {
+      const l = 50 + random() * 50;
+      g.fillStyle = `hsl(80,12%,${l}%)`;
+      g.save();
+      g.translate(random() * 256, random() * 256);
+      g.rotate(random() * Math.PI);
+      g.beginPath();
+      g.ellipse(0, 0, 4 + random() * 3, 2 + random() * 1.5, 0, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+  });
+}
+
+/** Bark: grey-brown with long vertical fissures. */
+function barkTexture(): CanvasTexture {
+  return canvasTexture(128, 256, (g) => {
+    speckle(g, 128, 256, '#8e8378', 77);
+    const random = seeded(79);
+    g.strokeStyle = 'rgba(40,32,26,0.6)';
+    for (let i = 0; i < 40; i++) {
+      g.lineWidth = 1 + random() * 2;
+      let x = random() * 128;
+      let y = 0;
+      g.beginPath();
+      g.moveTo(x, y);
+      while (y < 256) {
+        x += (random() - 0.5) * 6;
+        y += 8 + random() * 10;
+        g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+  });
 }
 
 /** Pale concrete slabs, 1 m by 1 m (the texture covers 4 m), with dark joints. */
