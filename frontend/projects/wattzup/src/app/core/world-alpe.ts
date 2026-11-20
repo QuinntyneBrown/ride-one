@@ -221,6 +221,7 @@ export class AlpeStreet implements SceneStreet {
     this.addVans();
     this.addBendSigns();
     this.addChurch();
+    this.addVillage();
     this.addLarches();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
@@ -528,6 +529,104 @@ export class AlpeStreet implements SceneStreet {
     this.props.push({ mesh: g, offset: CHURCH, every: LOOP, x: -22, rise: -3.5 });
   }
 
+  /**
+   * The village of Huez round Dutch Corner: houses of grey stone or ochre and cream render
+   * stepping down the valley side round the church and up the mountain side, each under a steep
+   * slate gable with a chimney, a timber balcony across its gable end and shutters either side of
+   * its windows.
+   */
+  private addVillage(): void {
+    const random = seeded(2501);
+    const stone = this.material({ map: this.track(churchStoneTexture()), roughness: 1 });
+    stone.map!.wrapS = RepeatWrapping;
+    stone.map!.wrapT = RepeatWrapping;
+    const renders = [0xe8d8b4, 0xd9b77a, 0xf0e8d6, 0xc99a6a].map((c) =>
+      this.material({ color: c, roughness: 0.95 }),
+    );
+    const slate = this.material({ color: 0x4a4c52, roughness: 0.75 });
+    const timber = this.material({ color: 0x6a4428, roughness: 0.9 });
+    const shutters = [0x2f5a3a, 0x6a3a22, 0x3a4a6a].map((c) =>
+      this.material({ color: c, roughness: 0.8 }),
+    );
+    const glass = this.material({ color: 0x2a3036, roughness: 0.3 });
+    // Where each house stands: how far into the loop, how far off the road, how it is turned.
+    const houses: [number, number, number][] = [
+      [142, -40, 0.1],
+      [160, -32, 0.3],
+      [188, -36, -0.2],
+      [196, -17, 0.15],
+      [208, -28, 0.4],
+      [222, -16, -0.1],
+      [168, 20, -0.15],
+      [182, 27, 0.1],
+      [200, 20, 0.2],
+      [216, 30, -0.1],
+      [232, 22, 0.05],
+    ];
+    houses.forEach(([offset, x, turn], i) => {
+      const g = new Group();
+      const w = 7 + random() * 3;
+      const d = 9 + random() * 4;
+      const storeys = 2 + Math.floor(random() * 2);
+      const tall = storeys * 2.9 + 0.6;
+      // Downhill houses stand on a stone undercroft so they rise from the slope to the road.
+      const below = x < 0 ? -rise(x) : 0;
+      const walls = new BoxGeometry(w, tall + below, d);
+      for (const f of [0, 1]) scaleFaceUv(walls, f, d / 4, (tall + below) / 4);
+      for (const f of [4, 5]) scaleFaceUv(walls, f, w / 4, (tall + below) / 4);
+      walls.translate(0, (tall + below) / 2 - below, 0);
+      this.disposables.push(walls);
+      const body = new Mesh(walls, i % 3 === 0 ? stone : renders[i % renders.length]!);
+      body.castShadow = true;
+      body.receiveShadow = true;
+      g.add(body);
+      // The steep slate gable, its ridge across the road so the gable end faces it.
+      const pitch = new Shape();
+      pitch.moveTo(-d / 2 - 0.7, 0);
+      pitch.lineTo(d / 2 + 0.7, 0);
+      pitch.lineTo(0, d * 0.42);
+      pitch.closePath();
+      const roof = new ExtrudeGeometry(pitch, { depth: w + 1.2, bevelEnabled: false });
+      roof.rotateY(Math.PI / 2);
+      roof.translate(-(w + 1.2) / 2, tall, 0);
+      this.disposables.push(roof);
+      const r = new Mesh(roof, slate);
+      r.castShadow = true;
+      g.add(r);
+      const box = (
+        m: MeshStandardMaterial,
+        bw: number,
+        bh: number,
+        bd: number,
+        bx: number,
+        by: number,
+        bz: number,
+      ) => {
+        const mesh = new Mesh(this.unit, m);
+        mesh.scale.set(bw, bh, bd);
+        mesh.position.set(bx, by, bz);
+        g.add(mesh);
+        return mesh;
+      };
+      box(stone, 0.7, 2.2, 0.7, w * 0.2, tall + d * 0.3, d * 0.15);
+      // The face to the road: windows with shutters on each floor and a timber balcony.
+      const face = (x < 0 ? 1 : -1) * (w / 2 + 0.05);
+      for (let f = 0; f < storeys; f++) {
+        const y = 1.6 + f * 2.9;
+        for (const z of [-d * 0.25, d * 0.25]) {
+          box(glass, 0.08, 1.2, 0.9, face, y, z);
+          for (const sz of [-0.75, 0.75]) box(shutters[i % 3]!, 0.1, 1.3, 0.55, face, y, z + sz);
+        }
+      }
+      const by = 1.6 + (storeys - 1) * 2.9 - 1;
+      box(timber, 1.2, 0.15, d * 0.8, face + Math.sign(face) * 0.6, by, 0);
+      box(timber, 0.08, 0.9, d * 0.8, face + Math.sign(face) * 1.15, by + 0.5, 0);
+      g.rotation.y = turn;
+      this.group.add(g);
+      this.props.push({ mesh: g, offset, every: LOOP, x, rise: x < 0 ? rise(x) : rise(x) });
+    });
+  }
+
   /** Larches and spruces dotted up the meadow on the right and down the slope on the left. */
   private addLarches(): void {
     const random = seeded(2201);
@@ -545,7 +644,7 @@ export class AlpeStreet implements SceneStreet {
       const x = side > 0 ? 22 + random() ** 1.5 * 180 : -(14 + random() * 120);
       if (side < 0 && Math.abs(x + 22) < 12) continue;
       const offset = random() * LOOP;
-      if (side < 0 && Math.abs(offset - CHURCH) < 22) continue;
+      if (Math.abs(offset - 190) < 48 && Math.abs(x) < 45) continue;
       const tree = new Group();
       const h = 8 + random() * 9;
       const t = new Mesh(trunk, bark);
