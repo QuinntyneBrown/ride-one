@@ -2453,8 +2453,10 @@ export class HavanaStreet implements SceneStreet {
       color: 0xd9bf8c,
       roughness: 0.95,
     });
-    const rock = this.material({ color: 0x6f6152, roughness: 1, flatShading: true });
-    const scrub = this.material({ color: 0x5d7a3e, roughness: 1, flatShading: true });
+    const rock = this.material({ color: 0x9d9588, roughness: 1, flatShading: true, fog: false });
+    // The hill's colours carry their own light haze (they sit outside the scene's fog, which
+    // would wash them to khaki at this distance).
+    const scrub = this.material({ color: 0x819577, roughness: 1, fog: false });
     const tower = this.material({ color: 0xece4d2, roughness: 0.8 });
     const dark = this.material({ color: 0x2a2e30, roughness: 0.6, metalness: 0.3 });
     const lamp = this.material({ color: 0xfff4d0, emissive: 0xffe8a0, emissiveIntensity: 0.8 });
@@ -2489,6 +2491,38 @@ export class HavanaStreet implements SceneStreet {
     lump(60, 60, -SEA - 4, -10, rock, 0.36);
     lump(140, -40, -SEA - 10, -110, scrub, 0.42);
     lump(110, 120, -SEA - 8, -140, scrub, 0.4);
+    // The hill's cover: clumps of dark trees and scrub dotted over its slopes, thickest on the
+    // upper slopes and thinning toward the rock, so the hill reads as wooded rather than bare.
+    const clump = new IcosahedronGeometry(1, 0);
+    const woods = new InstancedMesh(
+      clump,
+      this.material({ color: 0xffffff, roughness: 1, flatShading: true, fog: false }),
+      260,
+    );
+    this.disposables.push(clump, woods);
+    const trees = seeded(1601);
+    const place = new Matrix4();
+    const tint = new Color();
+    const greens = [0x70846d, 0x6b7e69, 0x788a70, 0x7e8c72];
+    const hills: [number, number, number, number, number][] = [
+      [140, -40, -SEA - 10, -110, 0.42],
+      [110, 120, -SEA - 8, -140, 0.4],
+      [90, 0, -SEA - 6, 0, 0.32],
+    ];
+    for (let i = 0; i < 260; i++) {
+      const [r, cx, cy, cz, sy] = hills[i < 120 ? 0 : i < 220 ? 1 : 2]!;
+      const a = trees() * Math.PI * 2;
+      const d = Math.sqrt(trees()) * 0.68;
+      const dx = Math.cos(a) * d * r;
+      const dz = Math.sin(a) * d * r * 0.8;
+      const height = Math.sqrt(Math.max(0, 1 - d * d)) * r * sy * 0.9;
+      const size = 3 + trees() * 4;
+      place.makeScale(size, size * (0.7 + trees() * 0.5), size);
+      place.setPosition(cx + dx, cy + height + size * 0.4, cz + dz);
+      woods.setMatrixAt(i, place);
+      woods.setColorAt(i, tint.set(greens[Math.floor(trees() * greens.length)]!));
+    }
+    morro.add(woods);
     // The castle: polygonal bastions with walls battered inward as they rise.
     const bastion = (plan: [number, number][], height: number, x: number, y: number, z: number) => {
       const shape = new Shape(plan.map(([px, pz]) => new Vector2(px, pz)));
