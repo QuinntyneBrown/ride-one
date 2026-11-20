@@ -435,6 +435,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addSpray();
     this.addCastings();
     this.addLitter();
+    this.addStreamers();
     this.addDistantParade();
     this.addConfetti();
     this.addOfficers();
@@ -2427,6 +2428,63 @@ export class CaribanaStreet implements SceneStreet {
     crossing.traverse((o) => (o.castShadow = o.type === 'Mesh' && o.parent !== crossing));
     this.group.add(crossing);
     this.props.push({ mesh: crossing, offset: at, every: LANDMARKS, x: 0, road: true });
+  }
+
+  /**
+   * Paper streamers lying across the lanes where the trucks' cannons fired them: long thin
+   * ribbons curling over the asphalt in loops and S-bends, in the bands' colours.
+   */
+  private addStreamers(): void {
+    const random = seeded(3001);
+    const colours = ['#ff2d87', '#ffd23f', '#13c3c9', '#ff8a00', '#7b2ff7', '#ffffff', '#4de0a8'];
+    const materials = colours.map((colour) =>
+      this.material({ color: colour, roughness: 0.6, side: DoubleSide }),
+    );
+    for (let k = 0; k < 140; k++) {
+      // A curling path from where it starts: its heading turning, now and then looping round.
+      let x = 0;
+      let z = 0;
+      let heading = random() * Math.PI * 2;
+      const turn = (random() - 0.5) * 0.9;
+      const width = 0.05 + random() * 0.03;
+      const length = 2 + random() * 2.5;
+      const steps = 28;
+      const position: number[] = [];
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        heading += turn + Math.sin(t * 9 + k) * 0.35;
+        x += Math.cos(heading) * (length / steps);
+        z += Math.sin(heading) * (length / steps);
+        const nx = -Math.sin(heading) * width;
+        const nz = Math.cos(heading) * width;
+        const y = 0.004 + (i % 7 === 3 ? 0.012 : 0);
+        position.push(x + nx, y, -(z + nz), x - nx, y, -(z - nz));
+      }
+      const index: number[] = [];
+      for (let i = 0; i < steps; i++) {
+        const a = i * 2;
+        index.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      }
+      const strip = new BufferGeometry();
+      strip.setAttribute('position', new BufferAttribute(new Float32Array(position), 3));
+      strip.setIndex(index);
+      strip.computeVertexNormals();
+      this.disposables.push(strip);
+      // Each lies on the road where it fell, laid along the loop as the litter is.
+      const holder = new Group();
+      const mesh = new Mesh(strip, materials[k % materials.length]!);
+      mesh.receiveShadow = true;
+      holder.add(mesh);
+      this.group.add(holder);
+      this.props.push({
+        mesh: holder,
+        // Thickest behind the steel orchestra and the first band, where the cannons fired.
+        offset: k % 2 ? 26 + random() * 80 : random() * LOOP,
+        every: LOOP,
+        x: (random() - 0.5) * 2 * (CURB - 1.8),
+        road: true,
+      });
+    }
   }
 
   /**

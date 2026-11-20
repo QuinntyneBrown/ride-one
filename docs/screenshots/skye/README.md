@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Into the Unknown](http://localhost:42
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/into-the-unknown?simulate`, click **Ride in Isle of Skye Fog**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [052 · The Cuillin stand in the fog](bend-052-cuillin-stands.jpg) | The Black Cuillin ridges and the glen's slopes, half lost in the fog, were bent vertex by vertex with the Glen Brittle road's bends, swinging with each turn. They now stand beyond the road unbent, as the panorama does, and the sheep and props behind the rider stand on the road there instead of at the height under the rider. |
