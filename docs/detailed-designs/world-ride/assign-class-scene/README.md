@@ -4,7 +4,7 @@
 
 World Ride (L1-017) is a way to ride a class inside a 3D world built for that class. This feature is the backend half of that link. Each class in the catalogue names its scene, and the API carries the scene, and the class a running workout came from, to the frontend (L2-100, L2-102 criterion 5).
 
-**scene** — one of the worlds built into the frontend (L2-101), named by its id: `docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint` or `montreal`
+**scene** — one of the worlds built into the frontend (L2-101), named by its id: `docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal` or `stanleypark`
 
 **class scene** — the scene a class names in the catalogue file through its optional `world` field, or `null` when it names none
 
@@ -70,6 +70,7 @@ Both fields are always written, never omitted. Both changes regenerate the OpenA
 | `30-sec-on-2-min-off` | `havana` |
 | `20-40-interval-session` | `seapoint` |
 | `high-intensity-short-rest` | `montreal` |
+| `15-minute-beginner-session` | `stanleypark` |
 
 `POST /api/workout` does not change. It already takes `class_id` beside the plan and passes a `RideOrigin` to `WorkoutEngine.StartAsync` (L2-081 criterion 7).
 

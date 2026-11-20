@@ -1147,6 +1147,7 @@
     },
     {
       "id": "15-minute-beginner-session",
+      "world": "stanleypark",
       "title": "15 Minute Beginner Session",
       "channel": "GCN Training",
       "focus": "Endurance",

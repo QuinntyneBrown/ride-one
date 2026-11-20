@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -235,6 +235,15 @@ None.
   - food kiosks with striped awnings and glowing counters;
   - the main stage on the left once a lap and a smaller stage on the right: decks, truss, speaker stacks, a screen cycling the show's colours and lamps throwing coloured beams on the beat;
   - crowds packed along both pavements, thickest before the stages, and the bands on the decks, all bouncing on the beat (`Figures`).
+- **Stanley Park Seawall (`core/world-stanleypark.ts`).** For `stanleypark`, the seawall path around Vancouver's Stanley Park on a clear morning, closed for the ride:
+  - the path between low kerbs with the fans' writing every 25 m, race barriers hung with the ride's banners (STANLEY PARK, SEAWALL, VANCOUVER, ENGLISH BAY, LIONS GATE), the kit's feather flags every 16 m along both and cloth banners across it;
+  - on the left a concrete walkway where walkers and joggers go both ways (the kit's `Figures`), then the seawall's granite face dropping to English Bay, sailboats tacking on it; `sink` drops the ground below the water;
+  - on the right a grass verge, a mossy rock bank rising 7 m and the forest on and above it: western red cedars with drooping tiers on fluted reddish trunks and tall dark Douglas firs;
+  - once a lap, 60 m in, the totem poles of Brockton Point on their lawn: carved cedar poles of stacked figures painted black, red and blue-green, some with wings outstretched;
+  - the shared crowd in knots along the barriers;
+  - 640 m ahead the Lions Gate Bridge across the narrows, its green towers, sagging cables and high deck, freighters at anchor in the bay and the North Shore mountains about 4 km off, forested ridges with snow on their tops, all hazed by hand.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -274,6 +283,7 @@ None.
 | `pages/world-ride/havana` | Havana Malecón at 4:50, warm-up, next `Surge` |
 | `pages/world-ride/seapoint` | Sea Point, Cape Town at 4:50, warm-up, next `20-second burst` |
 | `pages/world-ride/montreal` | Montreal Jazz Fest at 4:50, warm-up, next `Encore` |
+| `pages/world-ride/stanleypark` | Stanley Park Seawall at 1:53, warm-up, next `Seawall push` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
