@@ -466,6 +466,13 @@ export class MiamiStreet implements SceneStreet {
       this.disposables.push(m);
       return m;
     });
+    const blocks = this.material({
+      map: this.track(glassBlockTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(glassBlockTexture()),
+      emissiveIntensity: 0.9,
+      roughness: 0.2,
+    });
     const brass = this.material({ color: 0xd8a848, roughness: 0.25, metalness: 0.9 });
     const velvet = this.material({ color: 0xa01030, roughness: 0.9 });
     const clubSign = this.material({
@@ -750,6 +757,21 @@ export class MiamiStreet implements SceneStreet {
       dish.rotation.set(0, 0, -1.1);
       dish.position.set(7, height + 1.1, width * 0.1);
       hotel.add(roof.build(this.disposables), aerial, lamp, dish);
+      // A stair tower of glass block over the entrance on every hotel but the clubs: a tall
+      // panel of glowing blocks rising from the marquee to the roofline, framed by fins.
+      if (k % 4 !== 1) {
+        const glassBlock = new Mesh(this.unit, blocks);
+        glassBlock.scale.set(1.6, height - 6, 2.4);
+        glassBlock.position.set(-0.8, 4.6 + (height - 6) / 2, -width * 0.05);
+        const capping = new Mesh(this.unit, facade);
+        capping.scale.set(2, 0.5, 2.8);
+        capping.position.set(-0.9, height - 1.1, -width * 0.05);
+        capping.castShadow = true;
+        const edge = new Mesh(tube, line);
+        edge.scale.set(1, height - 6, 1);
+        edge.position.set(-1.62, 4.6 + (height - 6) / 2, -width * 0.05 + 1.22);
+        hotel.add(glassBlock, capping, edge);
+      }
       // The hotel's name again in flowing neon script across the façade over the marquee, and
       // a small VACANCY sign glowing in a ground-floor corner window.
       const script = this.material({
@@ -2308,5 +2330,22 @@ function clubTexture(): CanvasTexture {
     g.lineTo(222, 90);
     g.closePath();
     g.fill();
+  });
+}
+
+/** Glass blocks lit from the stair behind: a grid of squares, each glowing at its heart. */
+function glassBlockTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    g.fillStyle = '#d8d0c8';
+    g.fillRect(0, 0, 64, 256);
+    for (let y = 0; y < 256; y += 16)
+      for (let x = 0; x < 64; x += 16) {
+        const glow = g.createRadialGradient(x + 8, y + 8, 0, x + 8, y + 8, 9);
+        glow.addColorStop(0, '#fff4dc');
+        glow.addColorStop(0.6, '#e8c8a0');
+        glow.addColorStop(1, '#8a7a7a');
+        g.fillStyle = glow;
+        g.fillRect(x + 1, y + 1, 14, 14);
+      }
   });
 }
