@@ -51,6 +51,8 @@ const SEA = 1.6;
 /** The portales: the arcade's height and the depth of its walk under the upper floors. */
 const PORTAL = 4.6;
 const ARCADE = 3.6;
+/** How far the balconies stand out from the upper floors. */
+const BALCONY = 0.8;
 /** The surges: each breaks over the wall for SURGE seconds of every CYCLE. */
 const CYCLE = 8;
 const SURGE = 3.2;
@@ -312,6 +314,13 @@ export class HavanaStreet implements SceneStreet {
     shops.wrapS = RepeatWrapping;
     const cornice = this.material({ color: 0xf5f1e8, roughness: 0.8 });
     const soffit = this.material({ color: 0x8a8278, roughness: 0.95 });
+    const iron = this.material({
+      map: this.track(railingTexture()),
+      alphaTest: 0.5,
+      side: DoubleSide,
+      roughness: 0.6,
+      metalness: 0.4,
+    });
     const arcade = new PlaneGeometry(1, 1);
     arcade.rotateY(-Math.PI / 2);
     this.disposables.push(arcade);
@@ -388,6 +397,47 @@ export class HavanaStreet implements SceneStreet {
       band.scale.set(0.4, 0.35, width - 0.1);
       band.position.set(-0.05, PORTAL + 0.1, -width / 2);
       building.add(top, band);
+      // Wrought-iron balconies on stone slabs before the French windows of each storey: one to a
+      // window, or one long balcony along the front.
+      const tile = ((width - 0.3) * 8) / width;
+      const long = random() < 0.35;
+      const slabs: BufferGeometry[] = [];
+      const rails: BufferGeometry[] = [];
+      for (let i = 0; i < floors; i++) {
+        const y = PORTAL + i * 4.2;
+        const spans: [number, number][] = [];
+        if (long) spans.push([-width + 0.6, -0.6]);
+        else {
+          for (let u = 2; u < width - 1.6; u += 4) {
+            const z = -width + 0.15 + (u * tile) / 8;
+            spans.push([z - 1.3, z + 1.3]);
+          }
+        }
+        for (const [z0, z1] of spans) {
+          const length = z1 - z0;
+          const slab = new BoxGeometry(BALCONY + 0.1, 0.16, length + 0.1);
+          slab.translate(-BALCONY / 2, y + 0.08, (z0 + z1) / 2);
+          slabs.push(slab);
+          const front = stretch(new PlaneGeometry(length, 1), length / 2.6);
+          front.rotateY(-Math.PI / 2);
+          front.translate(-BALCONY, y + 0.66, (z0 + z1) / 2);
+          rails.push(front);
+          for (const z of [z0, z1]) {
+            const side = stretch(new PlaneGeometry(BALCONY, 1), BALCONY / 2.6);
+            side.translate(-BALCONY / 2, y + 0.66, z);
+            rails.push(side);
+          }
+        }
+      }
+      const slabGeometry = mergeGeometries(slabs)!;
+      const railGeometry = mergeGeometries(rails)!;
+      [...slabs, ...rails].forEach((g) => g.dispose());
+      this.disposables.push(slabGeometry, railGeometry);
+      const slabMesh = new Mesh(slabGeometry, cornice);
+      slabMesh.castShadow = true;
+      const railMesh = new Mesh(railGeometry, iron);
+      railMesh.castShadow = true;
+      building.add(slabMesh, railMesh);
       this.group.add(building);
       this.props.push({ mesh: building, offset, x: roadHalf + 4 });
       offset += width;
@@ -749,21 +799,27 @@ function facadeTexture(): CanvasTexture {
       g.fillStyle = 'rgba(90,90,80,0.1)';
       g.fillRect(random() * 256, random() * 512, 3, 40 + random() * 80);
     }
-    // Upper floors: tall windows with green shutters and a balcony rail.
-    for (let y = 12; y < 384; y += 128) {
+    // Each storey: two tall French windows opening onto the balconies, their green shutters
+    // folded back, a moulded surround and a string course at the floor.
+    for (let y = 0; y < 512; y += 128) {
       for (const x of [26, 154]) {
-        g.fillStyle = '#2a3a3a';
-        g.fillRect(x, y + 14, 76, 92);
+        g.fillStyle = 'rgba(255,255,255,0.55)';
+        g.fillRect(x + 12, y + 14, 52, 6);
+        g.fillStyle = '#26302f';
+        g.fillRect(x + 16, y + 24, 44, 100);
+        g.fillStyle = 'rgba(160,190,200,0.25)';
+        g.fillRect(x + 18, y + 26, 18, 40);
         g.fillStyle = '#3f7a5a';
-        g.fillRect(x, y + 14, 18, 92);
-        g.fillRect(x + 58, y + 14, 18, 92);
-        g.fillStyle = '#1d1f24';
-        g.fillRect(x - 8, y + 92, 92, 4);
-        for (let b = x - 8; b < x + 86; b += 8) g.fillRect(b, y + 92, 2, 22);
-        g.fillRect(x - 8, y + 112, 92, 3);
+        g.fillRect(x, y + 24, 16, 100);
+        g.fillRect(x + 60, y + 24, 16, 100);
+        g.fillStyle = 'rgba(0,0,0,0.25)';
+        for (let k = y + 28; k < y + 122; k += 5) {
+          g.fillRect(x + 2, k, 12, 1);
+          g.fillRect(x + 62, k, 12, 1);
+        }
       }
       g.fillStyle = 'rgba(255,255,255,0.7)';
-      g.fillRect(0, y + 118, 256, 8);
+      g.fillRect(0, y + 122, 256, 6);
     }
   });
 }
@@ -880,4 +936,31 @@ function royalFrondTexture(): CanvasTexture {
     g.fillStyle = '#9aa060';
     g.fillRect(62, 0, 4, 512);
   });
+}
+
+/** A wrought-iron balcony railing: top rail, bottom rail and balusters with scrolls, open between. */
+function railingTexture(): CanvasTexture {
+  const texture = canvasTexture(256, 64, (g) => {
+    g.clearRect(0, 0, 256, 64);
+    g.fillStyle = '#1d2024';
+    g.fillRect(0, 0, 256, 6);
+    g.fillRect(0, 56, 256, 4);
+    for (let x = 4; x < 256; x += 10) g.fillRect(x, 0, 3, 60);
+    g.strokeStyle = '#1d2024';
+    g.lineWidth = 2;
+    for (let x = 0; x < 256; x += 40) {
+      g.beginPath();
+      g.arc(x + 20, 30, 9, 0, Math.PI * 2);
+      g.stroke();
+    }
+  });
+  texture.wrapS = RepeatWrapping;
+  return texture;
+}
+
+/** Repeats a plane's texture `times` across its width, so railings keep their spacing. */
+function stretch(plane: PlaneGeometry, times: number): PlaneGeometry {
+  const uv = plane.getAttribute('uv') as BufferAttribute;
+  for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * times);
+  return plane;
 }

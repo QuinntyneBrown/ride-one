@@ -9,6 +9,7 @@ import {
   BufferGeometry,
   CanvasTexture,
   Color,
+  CubicBezierCurve3,
   CylinderGeometry,
   DoubleSide,
   Group,
@@ -25,6 +26,7 @@ import {
   SphereGeometry,
   type Texture,
   TorusGeometry,
+  TubeGeometry,
   Vector2,
   Vector3,
 } from 'three/webgpu';
@@ -811,14 +813,43 @@ export class CaribanaStreet implements SceneStreet {
     }
   }
 
-  /** Lamp standards behind the barricades, each flying two banner flags. */
+  /**
+   * Toronto arterial lights behind the crowds: tapered octagonal galvanised poles on base
+   * plates, a davit arm curving out over the gutter to a cobra-head luminaire, and two banner
+   * brackets holding a pair of flag banners taut across the pole, square to the road.
+   */
   private addLamps(): void {
-    const pole = new CylinderGeometry(0.07, 0.1, 8, 8);
-    const arm = new BoxGeometry(1.6, 0.08, 0.08);
-    const head = new BoxGeometry(0.6, 0.15, 0.3);
-    const cloth = new PlaneGeometry(0.6, 1.4);
-    this.disposables.push(pole, arm, head, cloth);
-    const iron = this.material({ color: 0x3b4148, metalness: 0.6, roughness: 0.4 });
+    const pole = new CylinderGeometry(0.085, 0.17, 10.4, 8);
+    pole.translate(0, 5.2, 0);
+    const plate = new BoxGeometry(0.55, 0.08, 0.55);
+    plate.translate(0, 0.04, 0);
+    const skirt = new CylinderGeometry(0.2, 0.3, 0.5, 8);
+    skirt.translate(0, 0.33, 0);
+    const davit = new TubeGeometry(
+      new CubicBezierCurve3(
+        new Vector3(0, 9.8, 0),
+        new Vector3(0, 11.2, 0),
+        new Vector3(-1.4, 11.3, 0),
+        new Vector3(-4.4, 10.9, 0),
+      ),
+      16,
+      0.06,
+      6,
+    );
+    const head = ellipsoid(0.42, 1.7, 0.36, 0.75, -4.75, 10.85, 0);
+    const lens = ellipsoid(0.38, 1.45, 0.12, 0.62, -4.8, 10.76, 0);
+    const brackets = mergeGeometries(
+      [4.0, 6.3].map((y) => {
+        const bar = new BoxGeometry(1.8, 0.05, 0.05);
+        bar.translate(0, y, 0);
+        return bar;
+      }),
+    )!;
+    const cloth = new PlaneGeometry(0.74, 2.2);
+    this.disposables.push(pole, plate, skirt, davit, head, lens, brackets, cloth);
+    const steel = this.material({ color: 0xa9aeb2, metalness: 0.7, roughness: 0.45 });
+    const housing = this.material({ color: 0x8c9196, metalness: 0.5, roughness: 0.5 });
+    const glass = this.material({ color: 0xe8ecef, roughness: 0.2, metalness: 0.1 });
     const banners = FLAG_KINDS.map((kind) =>
       this.material({ map: this.track(flagTexture(kind, true)), side: DoubleSide, roughness: 0.8 }),
     );
@@ -826,25 +857,25 @@ export class CaribanaStreet implements SceneStreet {
     for (const side of [-1, 1] as const) {
       for (let offset = 0; offset < LOOP; offset += 36) {
         const lamp = new Group();
-        const p = new Mesh(pole, iron);
-        p.position.y = 4;
-        const a = new Mesh(arm, iron);
-        a.position.set(-side * 0.8, 7.8, 0);
-        const h = new Mesh(head, iron);
-        h.position.set(-side * 1.5, 7.7, 0);
-        lamp.add(p, a, h);
-        for (const dx of [-0.38, 0.38]) {
+        // Build every lamp reaching towards -x, then turn the left side's round to face in.
+        const arm = new Group();
+        arm.add(new Mesh(pole, steel), new Mesh(plate, steel), new Mesh(skirt, steel));
+        arm.add(new Mesh(davit, steel), new Mesh(head, housing), new Mesh(lens, glass));
+        arm.add(new Mesh(brackets, steel));
+        for (const dx of [-0.48, 0.48]) {
           const b = new Mesh(cloth, banners[k++ % banners.length]!);
-          b.position.set(-side * 0.02, 5.4, dx);
-          b.rotation.y = Math.PI / 2;
-          lamp.add(b);
+          b.position.set(dx, 5.15, 0);
+          arm.add(b);
         }
+        arm.rotation.y = side > 0 ? 0 : Math.PI;
+        arm.traverse((o) => (o.castShadow = true));
+        lamp.add(arm);
         this.group.add(lamp);
         this.props.push({
           mesh: lamp,
           offset: offset + (side > 0 ? 18 : 0),
           every: LOOP,
-          x: side * (CROWD_FAR + 0.4),
+          x: side * (PAVEMENT + 0.3),
         });
       }
     }
