@@ -65,6 +65,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly horizon = new Group();
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
+  private readonly flat = new PlaneGeometry(1, 1);
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -74,7 +75,7 @@ export class MiamiStreet implements SceneStreet {
   }
 
   build(roadHalf: number, points: number): void {
-    this.disposables.push(this.unit);
+    this.disposables.push(this.unit, this.flat);
     this.addRoad(roadHalf, points);
     this.addHotels(roadHalf);
     this.addPalms(roadHalf);
@@ -207,6 +208,19 @@ export class MiamiStreet implements SceneStreet {
     const neon = NEON.map((c) =>
       this.material({ color: c, emissive: c, emissiveIntensity: 2.6, roughness: 0.4 }),
     );
+    const streaks = this.track(reflectionTexture());
+    const reflections = NEON.map(
+      (c) =>
+        new MeshBasicMaterial({
+          map: streaks,
+          color: c,
+          transparent: true,
+          opacity: 0.55,
+          depthWrite: false,
+          blending: AdditiveBlending,
+        }),
+    );
+    this.disposables.push(...reflections);
     let offset = 0;
     let k = 0;
     while (offset < LOOP - 10) {
@@ -313,6 +327,21 @@ export class MiamiStreet implements SceneStreet {
       a.rotation.z = -0.25;
       a.position.set(-1.6, 3.4, -width * 0.1);
       hotel.add(a);
+      // The sign and the hotel's neon mirrored in the wet street: long soft streaks of its
+      // colour running towards the rider across the sidewalk and the near lane.
+      const mirror = reflections[k % reflections.length]!;
+      for (const [x, z, w, l] of [
+        [-1.6, width * 0.3 + 5, 2.2, 10],
+        [-FRONT - 1.4, width * 0.3 + 9, 2.6, 18],
+        [-FRONT - 3.6, -width * 0.1 + 8, 1.6, 14],
+      ] as const) {
+        const streak = new Mesh(this.flat, mirror);
+        streak.rotation.x = -Math.PI / 2;
+        streak.scale.set(w, l, 1);
+        streak.position.set(x, x > -FRONT ? 0.165 : 0.03, z);
+        streak.renderOrder = 1;
+        hotel.add(streak);
+      }
       const holder = new Group();
       holder.add(hotel);
       this.group.add(holder);
@@ -821,5 +850,33 @@ function cloudTexture(): CanvasTexture {
       g.fillRect(x - w / 2, y - w / 2, w, w);
       g.restore();
     }
+  });
+}
+
+/** A light's reflection in a wet street: broken vertical streaks, brightest near the light. */
+function reflectionTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    const random = seeded(8221);
+    for (let i = 0; i < 40; i++) {
+      const x = 8 + random() * 48;
+      const w = 1 + random() * 4;
+      const fall = g.createLinearGradient(0, 0, 0, 256);
+      const a = 0.2 + random() * 0.5;
+      fall.addColorStop(0, `rgba(255,255,255,${a})`);
+      fall.addColorStop(0.5, `rgba(255,255,255,${a * 0.4})`);
+      fall.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = fall;
+      const y = random() * 40;
+      g.fillRect(x, y, w, 256 - y - random() * 80);
+    }
+    // Fade the sides so a streak has no hard edge.
+    const sides = g.createLinearGradient(0, 0, 64, 0);
+    sides.addColorStop(0, 'rgba(0,0,0,1)');
+    sides.addColorStop(0.25, 'rgba(0,0,0,0)');
+    sides.addColorStop(0.75, 'rgba(0,0,0,0)');
+    sides.addColorStop(1, 'rgba(0,0,0,1)');
+    g.globalCompositeOperation = 'destination-out';
+    g.fillStyle = sides;
+    g.fillRect(0, 0, 64, 256);
   });
 }
