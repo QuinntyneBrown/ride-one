@@ -45,6 +45,18 @@ const SIGN_WORDS = ['HOTEL', 'NOODLES', 'BAR', 'DOCK 9', 'CLUB', 'OPEN', 'RAMEN'
  * quay looks over the water to the far shore, FAR_SHORE metres away.
  */
 const HARBOUR_FROM = 20;
+/**
+ * Boats moored in the harbour, `offset` metres along the loop and `out` metres beyond the
+ * quay's edge, `length` metres long; `hex` lights the cabin.
+ */
+const BOATS: readonly { offset: number; out: number; length: number; hex: string }[] = [
+  { offset: 52, out: 7, length: 16, hex: '#ffd49a' },
+  { offset: 84, out: 22, length: 24, hex: '#3fe0ff' },
+  { offset: 118, out: 8, length: 13, hex: '#ff4fb8' },
+  { offset: 150, out: 30, length: 20, hex: '#ffd49a' },
+  { offset: 186, out: 9, length: 18, hex: '#9b6bff' },
+  { offset: 222, out: 18, length: 15, hex: '#ffd49a' },
+];
 /** The harbour railing's height above the quay. */
 const RAILING = 1.1;
 const HARBOUR_TO = 250;
@@ -145,6 +157,7 @@ export class DocklandsStreet {
   private bridgeStarts: readonly number[] = [];
   private readonly pylon = new Group();
   private readonly dock = new Group();
+  private readonly boats: { mesh: Group; offset: number }[] = [];
   private skyReflection: CanvasTexture | null = null;
 
   /** The night sky as an environment map, for the water and glass to reflect. */
@@ -593,6 +606,7 @@ export class DocklandsStreet {
     this.addPylon(roadHalf);
     this.addDock();
     this.addSky();
+    this.addBoats(roadHalf + SETBACK + 2);
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -953,6 +967,66 @@ export class DocklandsStreet {
     this.group.add(sky);
   }
 
+  /**
+   * Boats moored along the harbour quay: white hulls, cabins lit in warm or neon light, a mast
+   * lamp, and their light lying on the water. `back` is the quay's edge from the road's centre.
+   */
+  private addBoats(back: number): void {
+    const hull = new MeshStandardMaterial({ color: 0xc9ccd6, roughness: 0.4, metalness: 0.1 });
+    const trim = new MeshStandardMaterial({ color: 0x1a1d28, roughness: 0.5 });
+    const unit = new BoxGeometry(1, 1, 1);
+    const bow = new CylinderGeometry(0.5, 0.5, 1, 3, 1);
+    this.disposables.push(hull, trim, unit, bow);
+    const glow = new Map<string, MeshStandardMaterial>();
+    const lit = (hex: string) => {
+      let material = glow.get(hex);
+      if (!material) {
+        material = new MeshStandardMaterial({
+          color: 0x000000,
+          emissive: new Color(hex),
+          emissiveIntensity: 2.4,
+        });
+        glow.set(hex, material);
+        this.disposables.push(material);
+      }
+      return material;
+    };
+    for (const { offset, out, length, hex } of BOATS) {
+      const boat = new Group();
+      const beam = length * 0.3;
+      const add = (
+        geometry: BufferGeometry,
+        material: Material,
+        w: number,
+        h: number,
+        d: number,
+        y: number,
+        z: number,
+      ) => {
+        const mesh = new Mesh(geometry, material);
+        mesh.scale.set(w, h, d);
+        mesh.position.set(0, y, z);
+        boat.add(mesh);
+        return mesh;
+      };
+      add(unit, hull, beam, 1.4, length * 0.8, 0.5, length * 0.1);
+      // The bow comes to a point towards the rider's way.
+      const point = add(bow, hull, beam / Math.sqrt(3), 1.4, beam * 0.5, 0.5, -length * 0.3);
+      point.rotation.y = Math.PI / 6;
+      point.scale.set((beam / Math.sqrt(3)) * 2, 1.4, length * 0.2 * 2);
+      add(unit, trim, beam * 1.02, 0.25, length * 0.8, 1.15, length * 0.1);
+      add(unit, hull, beam * 0.7, 1.6, length * 0.4, 2.1, length * 0.15);
+      add(unit, lit(hex), beam * 0.72, 0.55, length * 0.38, 2.3, length * 0.15);
+      add(unit, trim, 0.12, length * 0.3, 0.12, 2.9 + length * 0.15, length * 0.05);
+      add(unit, lit('#f2f4ff'), 0.4, 0.4, 0.4, 3 + length * 0.3, length * 0.05);
+      this.streak(boat, hex, 0, 0.26, 0, length * 2.5, beam * 0.9, 0.8);
+      boat.position.x = -(back + out + beam / 2);
+      boat.visible = false;
+      this.group.add(boat);
+      this.boats.push({ mesh: boat, offset });
+    }
+  }
+
   /** Tells the street which stretches of the road ahead are bridge ramps. */
   setBridge(onBridge: (metres: number) => boolean, starts: readonly number[]): void {
     this.onBridge = onBridge;
@@ -1077,6 +1151,13 @@ export class DocklandsStreet {
       lamp.position.set(i % 2 === 0 ? -LAMP_OUT : LAMP_OUT, heightAt(metres), -metres);
       lamp.visible = !this.onBridge(Math.max(metres, 0));
     });
+    for (const boat of this.boats) {
+      const metres = ((((boat.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      boat.mesh.visible = !this.onBridge(Math.max(metres, 0));
+      // Boats ride on the harbour water, level with the quay.
+      boat.mesh.position.y = heightAt(Math.max(metres, 0)) - 0.3;
+      boat.mesh.position.z = -metres;
+    }
     this.placePylon(heightAt);
     // The dock stands on the water beside the bridge in view, from the bridge's start.
     const start = this.bridgeStarts.find((m) => m > -520 && m < 300);
