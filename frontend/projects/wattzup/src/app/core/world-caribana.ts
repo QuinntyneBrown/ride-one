@@ -414,6 +414,7 @@ export class CaribanaStreet implements SceneStreet {
     for (const [name, at] of CROSS_STREETS) this.addIntersection(name, at);
     this.addGrandstand();
     this.addPavilion();
+    this.addFootbridge();
     this.addSpray();
     this.addCastings();
     this.addLitter();
@@ -2135,6 +2136,95 @@ export class CaribanaStreet implements SceneStreet {
       every: LOOP,
       x: 0,
     });
+  }
+
+  /**
+   * The footbridge that carries people from Parkdale over the Gardiner and Lake Shore to the
+   * beach: a steel Warren truss on round piers, its deck 6.5 m over the road, with spectators
+   * packed along its rail watching the parade pass beneath.
+   */
+  private addFootbridge(): void {
+    const bridge = new Group();
+    const truss = this.material({
+      map: this.track(trussTexture()),
+      alphaTest: 0.5,
+      side: DoubleSide,
+      color: 0x3f6f8f,
+      metalness: 0.6,
+      roughness: 0.45,
+    });
+    const steel = this.material({ color: 0x3f6f8f, metalness: 0.6, roughness: 0.45 });
+    const deckMat = this.material({ color: 0x8c8a86, roughness: 0.9 });
+    const pierMat = this.material({ color: 0xc9c4ba, roughness: 0.9 });
+    const from = GARDINER_FAR - 4;
+    const to = SHORE - 2;
+    const span = to - from;
+    const mid = (from + to) / 2;
+    const deckY = 6.5;
+    const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z: number) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y + h / 2, z);
+      bridge.add(mesh);
+      return mesh;
+    };
+    box(deckMat, span, 0.35, 3.2, mid, deckY, 0);
+    box(steel, span, 0.18, 3.4, mid, deckY - 0.18, 0);
+    for (const z of [-1.7, 1.7]) {
+      // The trusses either side, 2 m deep; the texture's lacing repeats every 2 m.
+      const side = new PlaneGeometry(span, 2.0);
+      // The texture's chords run along its height: turn it so they run along the span, top
+      // and bottom, with the lacing zigzagging between them every 2 m.
+      const uv = side.getAttribute('uv') as BufferAttribute;
+      for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getY(i), uv.getX(i) * (span / 2));
+      side.translate(mid, deckY + 1.35, z);
+      this.disposables.push(side);
+      bridge.add(new Mesh(side, truss));
+      box(steel, span, 0.12, 0.12, mid, deckY + 2.3, z);
+    }
+    for (const x of [from + 2, GARDINER_NEAR + 3, -PAVEMENT - 0.8, PAVEMENT + 0.8, to - 2]) {
+      const pier = new CylinderGeometry(0.45, 0.5, deckY, 12);
+      pier.translate(x, deckY / 2, 0);
+      this.disposables.push(pier);
+      bridge.add(new Mesh(pier, pierMat));
+    }
+    // Spectators along both rails over the road, leaning on the rail to watch.
+    const random = seeded(2903);
+    const skin = this.material({ roughness: 0.6 });
+    const cotton = this.material({ roughness: 0.9 });
+    const denim = this.material({ roughness: 0.9 });
+    const at: Matrix4[] = [];
+    for (let x = -CURB - 2; x < CURB + 2; x += 0.6) {
+      for (const z of [-1.2, 1.2]) {
+        if (random() < 0.15) continue;
+        const turn = new Quaternion().setFromAxisAngle(this.up, z < 0 ? 0 : Math.PI);
+        at.push(
+          new Matrix4().compose(
+            new Vector3(x + random() * 0.2, deckY + 0.35, z),
+            turn,
+            new Vector3(1, 1, 1).multiplyScalar(0.92 + random() * 0.15),
+          ),
+        );
+      }
+    }
+    const parts = spectatorParts(4, random() < 0.5);
+    for (const [geometry, material, list] of [
+      [parts.skin, skin, SKINS],
+      [parts.top, cotton, SHIRTS],
+      [parts.bottom, denim, TROUSERS],
+    ] as const) {
+      this.disposables.push(geometry);
+      const mesh = new InstancedMesh(geometry, material, at.length);
+      at.forEach((m, k) => {
+        mesh.setMatrixAt(k, m);
+        mesh.setColorAt(k, new Color(list[Math.floor(random() * list.length)]!));
+      });
+      this.disposables.push(mesh);
+      bridge.add(mesh);
+    }
+    bridge.traverse((o) => (o.castShadow = true));
+    this.group.add(bridge);
+    this.props.push({ mesh: bridge, offset: 58, every: LANDMARKS, x: 0, road: true });
   }
 
   /**
