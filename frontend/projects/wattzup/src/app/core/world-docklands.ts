@@ -3,6 +3,7 @@
 // neon sign down some of their faces. The towers repeat along a loop longer than the road in
 // view, so the street never ends.
 import {
+  AdditiveBlending,
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
@@ -13,6 +14,7 @@ import {
   Group,
   type Material,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
@@ -71,6 +73,9 @@ export class DocklandsStreet {
   private readonly random = seeded(41);
   private readonly skyline = new Group();
   private readonly lamps: Group[] = [];
+  private streakTexture: CanvasTexture | null = null;
+  private readonly streakMaterials = new Map<string, MeshBasicMaterial>();
+  private readonly streakPlane = new PlaneGeometry(1, 1);
   private readonly ribbons: { geometry: BufferGeometry; profile: [number, number][] }[] = [];
 
   constructor(
@@ -168,7 +173,8 @@ export class DocklandsStreet {
         mesh.add(lobby, canopy);
         if (this.random() < 0.45) {
           // A blade sign stands out from the façade over the canopy, read down the street.
-          const material = blades[Math.floor(this.random() * blades.length)]!;
+          const word = Math.floor(this.random() * blades.length);
+          const material = blades[word]!;
           const tall = Math.min(height * 0.4, 6 + this.random() * 10);
           this.random();
           const lift = this.random() * height * 0.15;
@@ -179,6 +185,17 @@ export class DocklandsStreet {
           const foot = street + LOBBY + 1.6 + lift;
           sign.position.set(out, foot + tall / 2, along);
           mesh.add(sign);
+          // Its colour reflects on the wet pavement below, towards the road.
+          this.streak(
+            mesh,
+            NEON[word % NEON.length]!,
+            out - side * 2.5,
+            street,
+            along - 1,
+            10,
+            2.2,
+            1.4,
+          );
           for (const y of [foot + 0.4, foot + tall - 0.4]) {
             const arm = new Mesh(bracket, canopyMaterial);
             arm.position.set(out, y, along);
@@ -330,6 +347,48 @@ export class DocklandsStreet {
     }
   }
 
+  /**
+   * A light's reflection on the wet ground (technique 14): a soft streak of its colour lying
+   * on the surface, brightest under the light and drawn out towards the rider, as lights smear
+   * on wet asphalt at night. Its far end is at (x, y, z) in `parent`'s frame.
+   */
+  private streak(
+    parent: Group | Mesh,
+    hex: string,
+    x: number,
+    y: number,
+    z: number,
+    length: number,
+    width: number,
+    strength: number,
+  ): void {
+    if (!this.streakTexture) {
+      this.streakTexture = this.track(streakTexture());
+      this.disposables.push(this.streakPlane);
+    }
+    const key = `${hex}/${strength}`;
+    let material = this.streakMaterials.get(key);
+    if (!material) {
+      material = new MeshBasicMaterial({
+        color: new Color(hex).multiplyScalar(strength),
+        map: this.streakTexture,
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+      });
+      this.streakMaterials.set(key, material);
+      this.disposables.push(material);
+    }
+    const mesh = new Mesh(this.streakPlane, material);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.scale.set(width, length, 1);
+    mesh.position.set(x, y + 0.015, z + length / 2);
+    mesh.renderOrder = 1;
+    parent.add(mesh);
+  }
+
   /** Slim dark poles with a glowing globe on top, as in the mock. */
   private addLamps(): void {
     const metal = new MeshStandardMaterial({ color: 0x15171d, metalness: 0.6, roughness: 0.4 });
@@ -355,6 +414,10 @@ export class DocklandsStreet {
       const light = new Mesh(head, globe);
       light.position.y = LAMP_HEIGHT;
       lamp.add(shaft, base, cup, light);
+      // Lamps stand on the left at even places: their light reflects on the road inside them.
+      const inward = i % 2 === 0 ? 1 : -1;
+      this.streak(lamp, '#ffd9a0', inward * 1.6, 0, -0.5, 14, 2.2, 2.6);
+      this.streak(lamp, '#ffd9a0', 0, KERB, -0.5, 6, 1.4, 1);
       this.lamps.push(lamp);
       this.group.add(lamp);
     }
@@ -468,6 +531,41 @@ function windowTexture(base: string, lit: string[], share: number, seed: number)
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * A reflection streak: white, brightest at its far (top) end and along its middle, fading to
+ * nothing at its sides and towards the rider.
+ */
+function streakTexture(): CanvasTexture {
+  const width = 64;
+  const height = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const image = ctx.createImageData(width, height);
+    for (let y = 0; y < height; y++) {
+      // v runs from the far end (0) to the near end (1).
+      const v = y / (height - 1);
+      const along = Math.pow(1 - v, 1.6) * Math.min(1, v * 12 + 0.3);
+      for (let x = 0; x < width; x++) {
+        const u = (x / (width - 1)) * 2 - 1;
+        const across = Math.exp(-u * u * 5);
+        const a = Math.round(255 * along * across);
+        const i = (y * width + x) * 4;
+        image.data[i] = a;
+        image.data[i + 1] = a;
+        image.data[i + 2] = a;
+        image.data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(image, 0, 0);
+  }
+  const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
