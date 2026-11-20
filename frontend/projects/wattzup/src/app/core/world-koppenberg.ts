@@ -57,6 +57,8 @@ const CROWD_FAR = 7.4;
 const HEDGE = 12;
 /** The hill the cobbles climb, its church on the crest ahead, hazed by hand. */
 const HILL_AHEAD = 560;
+/** Melden's church on its knoll just left of the cobbles, in front of the mist's mid curtain. */
+const CHURCH_AHEAD = 400;
 const MIST = 0xc9cec4;
 /**
  * The spring mist, the street's own since the physical sky takes no fog: curtains across the
@@ -65,8 +67,8 @@ const MIST = 0xc9cec4;
  */
 const CURTAINS: readonly { ahead: number; height: number; opacity: number }[] = [
   { ahead: 1100, height: 900, opacity: 1 },
-  { ahead: 470, height: 220, opacity: 0.7 },
-  { ahead: 240, height: 80, opacity: 0.45 },
+  { ahead: 520, height: 220, opacity: 0.7 },
+  { ahead: 290, height: 50, opacity: 0.3 },
 ];
 const MIST_BANKS = 10;
 
@@ -127,6 +129,7 @@ export class KoppenbergStreet implements SceneStreet {
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
   private readonly grazing: { mesh: Group; spot: Spot; heading: number }[] = [];
   private readonly hill = new Group();
+  private readonly church = new Group();
   private readonly curtains: Mesh[] = [];
   private readonly banks: { mesh: Mesh; offset: number; x: number }[] = [];
   private time = 0;
@@ -175,6 +178,7 @@ export class KoppenbergStreet implements SceneStreet {
     this.addCows();
     this.addTractor();
     this.addHill();
+    this.addChurch();
     this.addMist();
   }
 
@@ -205,6 +209,7 @@ export class KoppenbergStreet implements SceneStreet {
       cow.mesh.rotation.y = cow.heading + Math.sin(this.time * 0.03 + i) * 0.3;
     });
     this.hill.position.set(0, heightAt(HILL_AHEAD), -HILL_AHEAD);
+    this.church.position.set(0, heightAt(CHURCH_AHEAD), -CHURCH_AHEAD);
     this.curtains.forEach((curtain, i) => {
       const ahead = CURTAINS[i]!.ahead;
       curtain.position.set(0, heightAt(ahead) - 20, -ahead);
@@ -548,16 +553,11 @@ export class KoppenbergStreet implements SceneStreet {
     this.props.push({ mesh: tractor, offset: 250, every: LOOP, x: -15.5 });
   }
 
-  /**
-   * The hill ahead: a wooded crest above the mist, Melden's church tower and spire standing on
-   * it, hazed by hand so they read through the fog.
-   */
+  /** The hill ahead: a wooded crest above the mist, hazed by hand so it reads through the fog. */
   private addHill(): void {
     const haze = new Color(MIST);
     const woods = hazedMaterial(this.disposables, haze, 0x4f6a3e, 0.5);
     const field = hazedMaterial(this.disposables, haze, 0x7d9a52, 0.45);
-    const stone = hazedMaterial(this.disposables, haze, 0x8a8478, 0.35);
-    const slate = hazedMaterial(this.disposables, haze, 0x3a3e46, 0.35);
     const h = this.hill;
     const mound = new SphereGeometry(1, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2);
     this.disposables.push(mound);
@@ -578,38 +578,74 @@ export class KoppenbergStreet implements SceneStreet {
     add(field, 0, -6, -120, 420, 70, 160);
     add(woods, -60, 30, -150, 160, 48, 90);
     add(woods, 120, 26, -170, 140, 38, 80);
-    // The church: a square tower, its belfry and a slate spire, beside the nave.
-    const box = (
-      m: Material,
-      w: number,
-      height: number,
-      d: number,
-      x: number,
-      y: number,
-      z: number,
-    ) => {
-      const mesh = new Mesh(this.unit, m);
-      mesh.scale.set(w, height, d);
-      mesh.position.set(x, y + height / 2, z);
-      h.add(mesh);
-    };
-    const cx = -22;
-    const cz = -90;
-    const base = 52;
-    box(stone, 30, 14, 12, cx - 20, base, cz);
-    box(stone, 9, 30, 9, cx, base, cz);
-    box(slate, 9.6, 1, 9.6, cx, base + 30, cz);
-    const spire = new Mesh(new ConeGeometry(6.4, 26, 8), slate);
-    this.disposables.push(spire.geometry);
-    spire.position.set(cx, base + 31 + 13, cz);
-    h.add(spire);
-    const roof = new Mesh(new ConeGeometry(9, 8, 4), slate);
-    this.disposables.push(roof.geometry);
-    roof.rotation.y = Math.PI / 4;
-    roof.scale.set(1.8, 1, 0.75);
-    roof.position.set(cx - 20, base + 18, cz);
-    h.add(roof);
     this.group.add(h);
+  }
+
+  /**
+   * Melden's church, Sint-Martinus, on its knoll above the cobbles: a grey stone nave under a
+   * slate roof and, at its west end facing the riders, a buttressed tower with louvred belfry
+   * openings, a clock and a tall slate spire with a gilt cross, hazed lightly by hand.
+   */
+  private addChurch(): void {
+    const haze = new Color(MIST);
+    const grass = hazedMaterial(this.disposables, haze, 0x6f9248, 0.3);
+    const stone = hazedMaterial(this.disposables, haze, 0x9c968a, 0.18, {
+      map: this.track(stoneTexture()),
+    });
+    const slate = hazedMaterial(this.disposables, haze, 0x3a3e46, 0.18);
+    const louvre = hazedMaterial(this.disposables, haze, 0x24262a, 0.15);
+    const clock = hazedMaterial(this.disposables, haze, 0xffffff, 0.1, {
+      map: this.track(clockTexture()),
+    });
+    const gilt = hazedMaterial(this.disposables, haze, 0xd9b44a, 0.1, {
+      emissive: new Color(0xd9b44a),
+      emissiveIntensity: 0.3,
+      metalness: 0.6,
+    });
+    const c = this.church;
+    const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z: number) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y + h / 2, z);
+      c.add(mesh);
+      return mesh;
+    };
+    const knoll = new Mesh(new SphereGeometry(1, 32, 10, 0, Math.PI * 2, 0, Math.PI / 2), grass);
+    this.disposables.push(knoll.geometry);
+    knoll.scale.set(60, 10, 50);
+    knoll.position.set(-30, -2, -20);
+    c.add(knoll);
+    const x = -20;
+    const base = 6;
+    // The nave runs away from the riders behind the tower, its roof a steep slate prism.
+    box(stone, 14, 13, 34, x, base, -25);
+    const roof = new Mesh(new CylinderGeometry(1, 1, 1, 3, 1), slate);
+    this.disposables.push(roof.geometry);
+    roof.rotation.set(Math.PI / 2, 0, 0);
+    roof.rotation.z = Math.PI;
+    roof.scale.set(8.6, 34, 8.6);
+    roof.position.set(x, base + 13 + 4.3, -25);
+    c.add(roof);
+    // The tower, its buttresses stepping in, the belfry, the clock and the spire.
+    box(stone, 11, 36, 11, x, base, 0);
+    for (const bx of [-6, 6]) for (const bz of [-6, 6]) box(stone, 1.8, 18, 1.8, x + bx, base, bz);
+    for (const side of [-1, 1]) {
+      box(louvre, 0.4, 7, 2.4, x + side * 5.6, base + 25, -2.4);
+      box(louvre, 0.4, 7, 2.4, x + side * 5.6, base + 25, 2.4);
+    }
+    for (const bx of [-2.4, 2.4]) box(louvre, 2.4, 7, 0.4, x + bx, base + 25, 5.6);
+    const dial = new Mesh(new PlaneGeometry(4.6, 4.6), clock);
+    this.disposables.push(dial.geometry);
+    dial.position.set(x, base + 19.5, 5.55);
+    c.add(dial);
+    box(slate, 12, 1.2, 12, x, base + 36, 0);
+    const spire = new Mesh(new ConeGeometry(7.4, 34, 8), slate);
+    this.disposables.push(spire.geometry);
+    spire.position.set(x, base + 37.2 + 17, 0);
+    c.add(spire);
+    box(gilt, 0.35, 4, 0.35, x, base + 71, 0);
+    box(gilt, 2.2, 0.35, 0.35, x, base + 73, 0);
+    this.group.add(c);
   }
 
   /** The mist's curtains across the horizon and its banks over the fields. */
@@ -708,6 +744,51 @@ function mistTexture(curtain: boolean): CanvasTexture {
       g.fillStyle = blot;
       g.fillRect(0, 0, 256, 256);
     }
+  });
+}
+
+/** Grey Balegem stone in courses. */
+function stoneTexture(): CanvasTexture {
+  const texture = canvasTexture(128, 128, (g) => {
+    speckle(g, 128, 128, '#c9c3b6', 443);
+    g.fillStyle = 'rgba(60,55,50,0.3)';
+    for (let row = 0; row < 8; row++) {
+      g.fillRect(0, row * 16, 128, 1);
+      for (let x = (row % 2) * 20; x < 128; x += 40) g.fillRect(x, row * 16, 1, 16);
+    }
+  });
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.repeat.set(3, 6);
+  return texture;
+}
+
+/** The tower clock: a white dial, black numerals as bars and hands at ten past nine. */
+function clockTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.fillStyle = '#2a2c30';
+    g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#f4f1e8';
+    g.beginPath();
+    g.arc(64, 64, 56, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = '#1b1c1f';
+    g.lineCap = 'round';
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2;
+      g.lineWidth = 4;
+      g.beginPath();
+      g.moveTo(64 + Math.cos(a) * 44, 64 + Math.sin(a) * 44);
+      g.lineTo(64 + Math.cos(a) * 52, 64 + Math.sin(a) * 52);
+      g.stroke();
+    }
+    g.lineWidth = 6;
+    g.beginPath();
+    g.moveTo(64, 64);
+    g.lineTo(34, 64);
+    g.moveTo(64, 64);
+    g.lineTo(84, 52);
+    g.stroke();
   });
 }
 
