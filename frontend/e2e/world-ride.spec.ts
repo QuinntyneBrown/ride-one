@@ -567,6 +567,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Tremola, Gotthard Pass');
   });
 
+  test('rides Build Your FTP & Increase Muscle Mass above the clouds on Mount Teide', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Build Your FTP & Increase Muscle Mass',
+      'Mount Teide',
+      'build-your-ftp-and-increase-muscle-mass',
+    );
+    await expect(world.heading).toHaveText('Mount Teide');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Mount Teide');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
