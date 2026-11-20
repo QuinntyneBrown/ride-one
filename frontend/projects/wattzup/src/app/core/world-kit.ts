@@ -7,12 +7,19 @@ import {
   BufferGeometry,
   CanvasTexture,
   CapsuleGeometry,
+  Color,
   CylinderGeometry,
   type Group,
+  InstancedMesh,
   type Material,
+  Matrix4,
   Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  SphereGeometry,
   SRGBColorSpace,
   type Texture,
+  Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { StreetPoint } from './world-oldtown';
@@ -167,4 +174,75 @@ export function armPair(raise: number): BufferGeometry {
   const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
   return merged;
+}
+
+/** The colours a crowd of figures is dressed from. */
+export interface Wardrobe {
+  readonly tops: readonly string[];
+  readonly bottoms: readonly string[];
+  readonly skins: readonly string[];
+}
+
+/**
+ * `count` people drawn as three instanced meshes (legs, torso, head), the same build in every
+ * scene: a figure stands 1.72 m at scale 1, its feet at its origin, facing -z.
+ */
+export class Figures {
+  private readonly legs: InstancedMesh;
+  private readonly bodies: InstancedMesh;
+  private readonly heads: InstancedMesh;
+  private readonly matrix = new Matrix4();
+  private readonly spot = new Vector3();
+  private readonly turn = new Quaternion();
+  private readonly size = new Vector3();
+  private readonly up = new Vector3(0, 1, 0);
+
+  constructor(
+    group: Group,
+    disposables: { dispose(): void }[],
+    count: number,
+    wardrobe: Wardrobe,
+    seed: number,
+  ) {
+    const pair = legPair(0.08, 0.84);
+    const body = new CapsuleGeometry(0.19, 0.4, 4, 10);
+    const head = new SphereGeometry(0.115, 12, 10);
+    const make = (geometry: BufferGeometry, roughness: number) => {
+      const material = new MeshStandardMaterial({ roughness });
+      const mesh = new InstancedMesh(geometry, material, count);
+      mesh.frustumCulled = false;
+      mesh.castShadow = true;
+      group.add(mesh);
+      disposables.push(geometry, material, mesh);
+      return mesh;
+    };
+    this.legs = make(pair, 0.9);
+    this.bodies = make(body, 0.85);
+    this.heads = make(head, 0.7);
+    const random = seeded(seed);
+    const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
+    const c = new Color();
+    for (let i = 0; i < count; i++) {
+      this.bodies.setColorAt(i, c.set(pick(wardrobe.tops)));
+      this.legs.setColorAt(i, c.set(pick(wardrobe.bottoms)));
+      this.heads.setColorAt(i, c.set(pick(wardrobe.skins)));
+    }
+  }
+
+  /** Stands figure `i` at (x, y, z), turned `heading` radians, `scale` tall, lifted `bob`. */
+  set(i: number, x: number, y: number, z: number, heading: number, scale: number, bob = 0): void {
+    this.turn.setFromAxisAngle(this.up, heading);
+    this.size.setScalar(scale);
+    this.spot.set(x, y + bob, z);
+    this.legs.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+    this.spot.set(x, y + 1.15 * scale + bob, z);
+    this.bodies.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+    this.spot.set(x, y + 1.6 * scale + bob, z);
+    this.heads.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+  }
+
+  /** Uploads the figures set this frame. */
+  commit(): void {
+    for (const mesh of [this.legs, this.bodies, this.heads]) mesh.instanceMatrix.needsUpdate = true;
+  }
 }
