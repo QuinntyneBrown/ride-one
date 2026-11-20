@@ -101,6 +101,12 @@ const SCREENS: readonly string[] = [
   'RAMEN 24H  ·  NOODLE BAR  ·  ',
   'DOCKLANDS  ·  RIDE THE NIGHT  ·  ',
 ];
+/** Festoon lantern strings across the street, at these offsets round the loop. */
+const LANTERNS: readonly number[] = [30, 44, 58, 150, 164, 300, 314, 470, 484, 498, 590];
+const LANTERN_HEIGHT = 9;
+const LANTERN_SAG = 1.8;
+const LANTERN_EVERY = 1.1;
+const LANTERN_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347', '#9b6bff'];
 /** The bridges' lamps: DECK_LAMPS pairs every DECK_LAMP_EVERY metres, masts and arms in metres. */
 const DECK_LAMPS = 12;
 const DECK_LAMP_EVERY = 25;
@@ -226,6 +232,7 @@ export class DocklandsStreet {
     puffs: { mesh: Mesh; phase: number }[];
   }[] = [];
   private readonly train = new Group();
+  private readonly lanterns: { group: Group; offset: number }[] = [];
 
   /**
    * Runs the train along its viaduct for `seconds` of the ride: it crosses from the harbour
@@ -991,6 +998,7 @@ export class DocklandsStreet {
     this.addSkytrain(roadHalf);
     this.addDeckLamps(roadHalf);
     this.addVents(roadHalf);
+    this.addLanterns(roadHalf);
     this.addRain();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
@@ -1206,6 +1214,49 @@ export class DocklandsStreet {
    * Steam rising from grates at the road's edge: soft puffs that drift up, swell and thin out,
    * catching the street's light. Each vent stands `offset` metres along the loop.
    */
+  /**
+   * Strings of festoon lanterns slung across the street from the lamp line to the façades, sagging over the
+   * riders: a dark wire with a row of glowing bulbs in pink, cyan, amber and violet.
+   */
+  private addLanterns(roadHalf: number): void {
+    // From the lamp line on the quay side to the façades across the street.
+    const left = -LAMP_OUT;
+    const right = roadHalf + SETBACK;
+    const mid = (left + right) / 2;
+    const half = (right - left) / 2;
+    const bulbs = LANTERN_COLOURS.map(
+      (hex) =>
+        new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(1.6), toneMapped: false }),
+    );
+    const bulb = new SphereGeometry(0.16, 10, 8);
+    const wire = new LineBasicMaterial({ color: 0x0a0a12 });
+    this.disposables.push(...bulbs, bulb, wire);
+    const sagAt = (x: number) => LANTERN_SAG * (1 - ((x - mid) / half) ** 2);
+    LANTERNS.forEach((offset, n) => {
+      const group = new Group();
+      const vertices: number[] = [];
+      const steps = 24;
+      for (let k = 0; k < steps; k++) {
+        const a = left + (2 * half * k) / steps;
+        const b = left + (2 * half * (k + 1)) / steps;
+        vertices.push(a, -sagAt(a), 0, b, -sagAt(b), 0);
+      }
+      const geometry = new BufferGeometry();
+      geometry.setAttribute('position', new BufferAttribute(new Float32Array(vertices), 3));
+      this.disposables.push(geometry);
+      group.add(new LineSegments(geometry, wire));
+      let i = n;
+      for (let x = left + LANTERN_EVERY; x < right; x += LANTERN_EVERY) {
+        const mesh = new Mesh(bulb, bulbs[i++ % bulbs.length]!);
+        mesh.position.set(x, -sagAt(x) - 0.22, 0);
+        group.add(mesh);
+      }
+      group.position.y = LANTERN_HEIGHT;
+      this.group.add(group);
+      this.lanterns.push({ group, offset });
+    });
+  }
+
   private addVents(roadHalf: number): void {
     const texture = this.track(glowTexture());
     const grate = new MeshStandardMaterial({ color: 0x0c0d12, metalness: 0.6, roughness: 0.5 });
@@ -1699,6 +1750,11 @@ export class DocklandsStreet {
       // Boats ride on the harbour water, level with the quay.
       boat.mesh.position.y = heightAt(Math.max(metres, 0)) - 0.3;
       boat.mesh.position.z = -metres;
+    }
+    for (const lantern of this.lanterns) {
+      const metres = ((((lantern.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      lantern.group.visible = !this.onBridge(Math.max(metres, 0));
+      lantern.group.position.set(0, heightAt(Math.max(metres, 0)) + LANTERN_HEIGHT, -metres);
     }
     for (const vent of this.vents) {
       const metres = ((((vent.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
