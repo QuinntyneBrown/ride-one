@@ -635,6 +635,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 1.4, colour: 0xfff4e4 },
     fogRange: [300, 3200],
   },
+  // A bright Pyrenean summer afternoon: deep sky, the pasture vivid, the high rock pale.
+  tourmalet: {
+    sky: 0x5a9ae0,
+    fog: 0xc4d4e4,
+    ground: 0x5a8a3a,
+    road: 0x4f5058,
+    sun: 44,
+    wet: false,
+    haze: false,
+    turbidity: 2.8,
+    rayleigh: 1.6,
+    azimuth: -150,
+    light: { sun: 3, fill: 1.4, colour: 0xfff6ea },
+    fogRange: [250, 3200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

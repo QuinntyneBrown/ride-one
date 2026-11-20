@@ -393,6 +393,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Dutch Tulip Fields');
   });
 
+  test('rides Four Minute Devils in Col du Tourmalet with the devil', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Four Minute Devils', 'Col du Tourmalet', 'four-minute-devils');
+    await expect(world.heading).toHaveText('Col du Tourmalet');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Col du Tourmalet');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
