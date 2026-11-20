@@ -577,6 +577,15 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 1, work: 2.5, rest: 0, cooldown: -0.5, steady: 1.5 },
     roll: 1,
   },
+  {
+    id: 'skye',
+    name: 'Isle of Skye Fog',
+    route: 'the Glen Brittle road',
+    effortName: 'Into the mist',
+    description: 'Mist-shrouded Hebridean roads where the Cuillin appear and vanish.',
+    grade: { warmup: 1, work: 2, rest: 0, cooldown: -1, steady: 1 },
+    roll: 1,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

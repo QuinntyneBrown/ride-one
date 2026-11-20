@@ -613,6 +613,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Torres del Paine');
   });
 
+  test('rides Into the Unknown through the mist on the Isle of Skye', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Into the Unknown', 'Isle of Skye Fog', 'into-the-unknown');
+    await expect(world.heading).toHaveText('Isle of Skye Fog');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Isle of Skye Fog');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
