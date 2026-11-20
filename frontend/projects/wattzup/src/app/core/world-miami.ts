@@ -9,6 +9,7 @@
 import {
   AdditiveBlending,
   BoxGeometry,
+  Color,
   ConeGeometry,
   DoubleSide,
   type BufferAttribute,
@@ -52,6 +53,8 @@ const FRONT = 9;
 /** Side streets cross the boulevard on the right at these offsets, each STREET metres wide. */
 const CROSSINGS = [118, 286] as const;
 const STREET = 12;
+/** How many raindrop rings spread on the road at once. */
+const RIPPLES = 90;
 
 /** Whether `offset` falls within a side street, give or take `margin` metres. */
 function inCrossing(offset: number, margin = 0): boolean {
@@ -76,6 +79,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly props: { mesh: Group; offset: number; x: number }[] = [];
   private readonly traffic: { mesh: Group; offset: number; speed: number }[] = [];
   private trafficX = 0;
+  private roadWidth = 0;
   private readonly people: { offset: number; x: number; speed: number; phase: number }[] = [];
   private crowd: Figures | null = null;
   private chatting: Figures | null = null;
@@ -94,6 +98,9 @@ export class MiamiStreet implements SceneStreet {
   private readonly drops: { x: number; y: number; z: number; speed: number }[] = [];
   private rain: InstancedMesh | null = null;
   private readonly drop = new Matrix4();
+  private ripples: InstancedMesh | null = null;
+  private readonly landed: { cycle: number; offset: number; x: number }[] = [];
+  private readonly shade = new Color();
   /** The signals' red, amber and green lamps. */
   private readonly lights: MeshStandardMaterial[] = [];
   private readonly horizon = new Group();
@@ -110,6 +117,7 @@ export class MiamiStreet implements SceneStreet {
   }
 
   build(roadHalf: number, points: number): void {
+    this.roadWidth = roadHalf * 2 - 0.6;
     this.disposables.push(this.unit, this.flat);
     this.halo = new MeshBasicMaterial({
       map: this.track(haloTexture()),
@@ -220,6 +228,33 @@ export class MiamiStreet implements SceneStreet {
       chatting.commit();
     }
     this.horizon.position.set(0, heightAt(0), 0);
+    // Each ripple lives 0.8 s: it lands somewhere new on the road ahead, spreads and fades, and
+    // stays where it landed as the rider rolls over it.
+    const ripples = this.ripples;
+    if (ripples) {
+      for (let i = 0; i < RIPPLES; i++) {
+        const life = this.time / 0.8 + i / RIPPLES;
+        const cycle = Math.floor(life);
+        const age = life - cycle;
+        const spot = (this.landed[i] ??= { cycle: -1, offset: 0, x: 0 });
+        if (spot.cycle !== cycle) {
+          const h = Math.sin(i * 12.9898 + cycle * 78.233) * 43758.5453;
+          const u = h - Math.floor(h);
+          const v = (h * 7.13) % 1;
+          spot.cycle = cycle;
+          spot.offset = s + 2 + u * 30;
+          spot.x = (Math.abs(v) - 0.5) * this.roadWidth;
+        }
+        const metres = spot.offset - s;
+        const size = 0.08 + age * 0.5;
+        this.drop.makeScale(size, 1, size);
+        this.drop.setPosition(spot.x, heightAt(Math.max(metres, 0)) + 0.03, -metres);
+        ripples.setMatrixAt(i, this.drop);
+        ripples.setColorAt(i, this.shade.setScalar(0.7 * (1 - age)));
+      }
+      ripples.instanceMatrix.needsUpdate = true;
+      if (ripples.instanceColor) ripples.instanceColor.needsUpdate = true;
+    }
   }
 
   /**
@@ -1216,6 +1251,21 @@ export class MiamiStreet implements SceneStreet {
       });
     this.rain = rain;
     this.horizon.add(rain);
+    // Where drops land on the road, rings spread and fade on the puddles.
+    const ring = new PlaneGeometry(1, 1);
+    ring.rotateX(-Math.PI / 2);
+    const ripple = new MeshBasicMaterial({
+      map: this.track(rippleTexture()),
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    const ripples = new InstancedMesh(ring, ripple, RIPPLES);
+    ripples.frustumCulled = false;
+    ripples.renderOrder = 2;
+    this.disposables.push(ring, ripple, ripples);
+    this.ripples = ripples;
+    this.group.add(ripples);
   }
 
   /** Across the bay, the towers lit floor by floor, the moon path and the night sea. */
@@ -2067,5 +2117,21 @@ function auraTexture(): CanvasTexture {
     down.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = down;
     g.fillRect(0, 0, 64, 64);
+  });
+}
+
+/** A raindrop's ring on a puddle: a thin bright circle with a fainter one inside it. */
+function rippleTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    g.strokeStyle = 'rgba(220,230,255,0.9)';
+    g.lineWidth = 2.5;
+    g.beginPath();
+    g.arc(32, 32, 28, 0, Math.PI * 2);
+    g.stroke();
+    g.strokeStyle = 'rgba(220,230,255,0.4)';
+    g.lineWidth = 1.5;
+    g.beginPath();
+    g.arc(32, 32, 18, 0, Math.PI * 2);
+    g.stroke();
   });
 }
