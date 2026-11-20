@@ -160,6 +160,38 @@ const COSTUMES: readonly { feathers: readonly (readonly [string, string])[]; sui
     ],
     suit: '#6a1fd6',
   },
+  {
+    feathers: [
+      ['#b8860b', '#ffe066'],
+      ['#f5f0e6', '#ffffff'],
+      ['#d4a017', '#fff4c2'],
+    ],
+    suit: '#d4a017',
+  },
+  {
+    feathers: [
+      ['#4c8c00', '#c6ff3a'],
+      ['#111111', '#4a4a4a'],
+      ['#7ed321', '#eaffb0'],
+    ],
+    suit: '#7ed321',
+  },
+  {
+    feathers: [
+      ['#9e0b1f', '#ff4d4d'],
+      ['#f5f0e6', '#ffffff'],
+      ['#e8133c', '#ffd1d1'],
+    ],
+    suit: '#e8133c',
+  },
+  {
+    feathers: [
+      ['#7d8ea3', '#e8eef5'],
+      ['#2a6fb0', '#9fd3ff'],
+      ['#c0c8d0', '#ffffff'],
+    ],
+    suit: '#9fb6c8',
+  },
 ];
 const SKINS = ['#5a3a29', '#7a4b33', '#8d5a3b', '#a36d47', '#c48a5f', '#e2b48c', '#3f2a1f'];
 const TROUSERS = ['#2f3e5c', '#1e2530', '#3b5a7a', '#5b4a3a', '#d9d2c3', '#141414'];
@@ -949,8 +981,10 @@ export class CaribanaStreet implements SceneStreet {
     for (let offset = 0; offset < LOOP; offset += 1.9) {
       // The bands leave room round each music truck on the left, 60 m into its stretch.
       const fromTruck = (((offset - TRUCK_EVERY / 2) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
-      const section = Math.floor(offset / 40) % COSTUMES.length;
+      // Sections are 40 m long and change across the lanes: the left and right halves of the
+      // road carry neighbouring sections, so the colours mix as bands do on the road.
       for (const side of [-1, 1] as const) {
+        const section = (Math.floor(offset / 40) + (side > 0 ? 4 : 0)) % COSTUMES.length;
         if (side < 0 && (fromTruck < 11 || fromTruck > TRUCK_EVERY - 11)) continue;
         // And round each band's banner on the right.
         const fromBanner = (((offset - ROYAL_AT + 18) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
@@ -1626,7 +1660,16 @@ export class CaribanaStreet implements SceneStreet {
    * side to side as the bearer walks.
    */
   private addSectionFlags(): void {
-    const names = ['FLAMINGO', 'CORAL REEF', 'SUNFIRE', 'ORCHID'];
+    const names = [
+      'FLAMINGO',
+      'CORAL REEF',
+      'SUNFIRE',
+      'ORCHID',
+      'GOLD RUSH',
+      'LIME LIGHT',
+      'FIREBIRD',
+      'GLACIER',
+    ];
     const random = seeded(2609);
     const pole = new CylinderGeometry(0.025, 0.03, 4.5, 6);
     pole.translate(0, 2.25, 0);

@@ -62,6 +62,7 @@ export class LetrasStreet implements SceneStreet {
   private readonly clouds: { mesh: Mesh; x: number; speed: number }[] = [];
   private chiva: Group | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -107,12 +108,12 @@ export class LetrasStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     // The chiva grinds up the climb ahead of the riders, slower than they ride.
     if (this.chiva) {
       const metres = loopMetres(150 + this.time * 4, s, LOOP, BEHIND);
-      this.chiva.position.set(1.4, heightAt(Math.max(metres, 0)), -metres);
+      this.chiva.position.set(1.4, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -121,7 +122,7 @@ export class LetrasStreet implements SceneStreet {
         const jump = Math.max(0, Math.sin(this.time * 4 + p.phase)) * 0.1;
         const heading =
           (p.x < 0 ? -Math.PI / 2 : Math.PI / 2) + Math.sin(this.time * 0.6 + p.phase) * 0.5;
-        crowd.set(i, p.x, heightAt(Math.max(metres, 0)) + jump, -metres, heading, 0.95, 0);
+        crowd.set(i, p.x, heightAt(metres) + jump, -metres, heading, 0.95, 0);
       });
       crowd.commit();
     }
