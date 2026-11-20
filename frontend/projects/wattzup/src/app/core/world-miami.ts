@@ -533,55 +533,97 @@ export class MiamiStreet implements SceneStreet {
       }
   }
 
-  /** Convertibles parked at the kerb, chrome and candy paint, tail lights aglow. */
+  /**
+   * Classic convertibles parked at the kerb, nose to tail: a long candy-painted body with a
+   * lower bonnet and boot, flared fenders and tail fins, a cream bench seat in an open tub,
+   * a raked chrome-framed windscreen, white-wall tyres on chrome hubs, glowing tail lights and
+   * a pool of neon underglow on the wet road.
+   */
   private addCars(roadHalf: number): void {
     const random = seeded(8121);
-    const paints = [0xff3f8a, 0x2fc8e6, 0xf4f0e8, 0x1d1f24, 0xffd23f].map((c) =>
-      this.material({ color: c, roughness: 0.25, metalness: 0.5 }),
-    );
-    const chrome = this.material({ color: 0xd8dce4, roughness: 0.15, metalness: 1 });
+    const colours = [0xff3f8a, 0x2fc8e6, 0xf4f0e8, 0x1d1f24, 0xffd23f, 0x8a5aff];
+    const paints = colours.map((c) => this.material({ color: c, roughness: 0.2, metalness: 0.55 }));
+    const chrome = this.material({ color: 0xd8dce4, roughness: 0.12, metalness: 1 });
     const seat = this.material({ color: 0xf4e8d8, roughness: 0.7 });
-    const tyre = this.material({ color: 0x1d1f24, roughness: 0.8 });
+    const tyre = this.material({ color: 0x18181c, roughness: 0.85 });
+    const wall = this.material({ color: 0xf4f0ec, roughness: 0.6 });
+    const glass = this.material({
+      color: 0x8aa0c8,
+      roughness: 0.05,
+      metalness: 0.6,
+      transparent: true,
+      opacity: 0.45,
+    });
     const tail = this.material({ color: 0xff2030, emissive: 0xff2030, emissiveIntensity: 3 });
     const head = this.material({ color: 0xfff4d8, emissive: 0xfff4d8, emissiveIntensity: 2 });
-    for (let k = 0; k < 7; k++) {
-      const car = new Group();
+    const glows = [0xff3fb4, 0x2fe6ff, 0xb46bff].map(
+      (c) =>
+        new MeshBasicMaterial({
+          map: this.track(poolTexture()),
+          color: c,
+          transparent: true,
+          opacity: 0.8,
+          depthWrite: false,
+          blending: AdditiveBlending,
+        }),
+    );
+    this.disposables.push(...glows);
+    const wheel = new CylinderGeometry(0.36, 0.36, 0.24, 18);
+    wheel.rotateZ(Math.PI / 2);
+    const whitewall = new CylinderGeometry(0.25, 0.25, 0.25, 18);
+    whitewall.rotateZ(Math.PI / 2);
+    const hub = new CylinderGeometry(0.13, 0.13, 0.26, 12);
+    hub.rotateZ(Math.PI / 2);
+    this.disposables.push(wheel, whitewall, hub);
+    for (let k = 0; k < 8; k++) {
       const paint = paints[k % paints.length]!;
-      const body = new Mesh(this.unit, paint);
-      body.scale.set(1.9, 0.65, 4.6);
-      body.position.y = 0.6;
-      const tub = new Mesh(this.unit, seat);
-      tub.scale.set(1.6, 0.2, 1.8);
-      tub.position.set(0, 0.98, 0.3);
-      const screen = new Mesh(this.unit, chrome);
-      screen.scale.set(1.7, 0.45, 0.05);
-      screen.rotation.x = -0.4;
-      screen.position.set(0, 1.15, -0.75);
-      const bumper = new Mesh(this.unit, chrome);
-      bumper.scale.set(1.95, 0.15, 4.75);
-      bumper.position.y = 0.35;
-      car.add(body, tub, screen, bumper);
-      for (const x of [-0.7, 0.7]) {
+      const b = new BoxBuilder();
+      // The body: a waist-high hull, the bonnet and boot dropping lower, fenders and fins.
+      b.box(paint, [1.9, 0.5, 5], [0, 0.62, 0]);
+      b.box(paint, [1.84, 0.18, 1.7], [0, 0.94, -1.55]);
+      b.box(paint, [1.84, 0.18, 1.3], [0, 0.94, 1.75]);
+      b.box(paint, [1.86, 0.22, 1.5], [0, 0.95, 0.2]);
+      for (const x of [-0.82, 0.82]) {
+        b.box(paint, [0.24, 0.3, 0.9], [x, 1.1, 2.15], x > 0 ? -0.25 : 0.25);
+        b.box(chrome, [0.04, 0.05, 4.6], [x * 1.17, 0.78, 0]);
+      }
+      b.box(seat, [1.6, 0.12, 1.5], [0, 0.98, 0.35]);
+      b.box(seat, [1.6, 0.5, 0.18], [0, 1.2, 0.95]);
+      b.box(seat, [1.6, 0.4, 0.14], [0, 1.15, -0.3]);
+      b.box(chrome, [1.95, 0.14, 0.2], [0, 0.42, -2.55]);
+      b.box(chrome, [1.95, 0.14, 0.2], [0, 0.42, 2.55]);
+      b.box(chrome, [1.6, 0.06, 0.06], [0, 1.52, -0.7]);
+      b.box(glass, [1.56, 0.5, 0.03], [0, 1.27, -0.72]);
+      const car = b.build(this.disposables);
+      for (const x of [-0.62, 0.62]) {
         const t = new Mesh(this.unit, tail);
-        t.scale.set(0.3, 0.12, 0.05);
-        t.position.set(x, 0.75, 2.32);
+        t.scale.set(0.28, 0.12, 0.05);
+        t.position.set(x, 0.8, 2.52);
         const h = new Mesh(this.unit, head);
-        h.scale.set(0.3, 0.14, 0.05);
-        h.position.set(x, 0.72, -2.32);
+        h.scale.set(0.3, 0.16, 0.05);
+        h.position.set(x, 0.74, -2.52);
         car.add(t, h);
-        for (const z of [-1.5, 1.5]) {
-          const w = new Mesh(this.unit, tyre);
-          w.scale.set(0.3, 0.62, 0.62);
-          w.position.set(x * 1.3, 0.31, z);
-          car.add(w);
+        for (const z of [-1.6, 1.55]) {
+          const w = new Mesh(wheel, tyre);
+          const ww = new Mesh(whitewall, wall);
+          const hc = new Mesh(hub, chrome);
+          for (const m of [w, ww, hc]) {
+            m.position.set(x * 1.38, 0.36, z);
+            car.add(m);
+          }
         }
       }
-      car.children.forEach((m) => (m.castShadow = true));
+      const glow = new Mesh(this.flat, glows[k % glows.length]!);
+      glow.rotation.x = -Math.PI / 2;
+      glow.scale.set(3.4, 6.4, 1);
+      glow.position.y = 0.03;
+      glow.renderOrder = 1;
+      car.add(glow);
       car.rotation.y = (random() - 0.5) * 0.05;
       const holder = new Group();
       holder.add(car);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 40 + k * 52 + random() * 8, x: roadHalf - 1.1 });
+      this.props.push({ mesh: holder, offset: 40 + k * 46 + random() * 8, x: roadHalf - 1.1 });
     }
   }
 
