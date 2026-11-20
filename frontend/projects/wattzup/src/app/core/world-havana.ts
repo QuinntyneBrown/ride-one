@@ -122,6 +122,7 @@ export class HavanaStreet implements SceneStreet {
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly drop = new Matrix4();
+  private readonly tank = tankGeometry();
   private readonly crest = new Matrix4();
   private crests: InstancedMesh | null = null;
   private readonly crestList: { offset: number; delay: number; length: number }[] = [];
@@ -137,7 +138,7 @@ export class HavanaStreet implements SceneStreet {
 
   build(roadHalf: number, points: number): void {
     this.roadHalf = roadHalf;
-    this.disposables.push(this.unit);
+    this.disposables.push(this.unit, this.tank);
     this.addSeafront(roadHalf, points);
     this.addSpray(roadHalf);
     this.addFacades(roadHalf);
@@ -362,6 +363,7 @@ export class HavanaStreet implements SceneStreet {
     arcade.rotateY(-Math.PI / 2);
     this.disposables.push(arcade);
     const streets = seeded(1049);
+    const roofs = seeded(1051);
     let inBlock = 0;
     let block = 4;
     for (let offset = 0; offset < LOOP;) {
@@ -436,7 +438,11 @@ export class HavanaStreet implements SceneStreet {
       const band = new Mesh(this.unit, cornice);
       band.scale.set(0.4, 0.35, width - 0.1);
       band.position.set(-0.05, PORTAL + 0.1, -width / 2);
-      building.add(top, band);
+      building.add(
+        top,
+        band,
+        this.roofline(width, PORTAL + height + 0.5, plain, tint, cornice, roofs),
+      );
       // Wrought-iron balconies on stone slabs before the French windows of each storey: one to a
       // window, or one long balcony along the front.
       const tile = ((width - 0.3) * 8) / width;
@@ -489,6 +495,70 @@ export class HavanaStreet implements SceneStreet {
         block = 3 + Math.floor(streets() * 3);
       }
     }
+  }
+
+  /**
+   * A building's roofline above its cornice, one of four kinds: a stone balustrade, an art-deco
+   * parapet stepping up to a raised centre with fins, a pediment over a plain parapet, or a plain
+   * parapet; and on most roofs Havana's water tanks, black, blue or concrete, on their stands.
+   */
+  private roofline(
+    width: number,
+    y: number,
+    plaster: Texture,
+    tint: number,
+    cornice: MeshStandardMaterial,
+    random: () => number,
+  ): Group {
+    const roof = new Group();
+    const wall = this.material({ map: plaster, color: tint, roughness: 0.9 });
+    const span = width - 0.4;
+    const parts: BufferGeometry[] = [];
+    const block = (sx: number, sy: number, sz: number, x: number, by: number, z: number) => {
+      const g = new BoxGeometry(sx, sy, sz);
+      g.translate(x, by + sy / 2, z);
+      parts.push(g);
+    };
+    const kind = random();
+    if (kind < 0.3) {
+      block(0.4, 0.25, span, 0.1, 0, -width / 2);
+      for (let z = -0.4; z > -width + 0.4; z -= 0.45) block(0.18, 0.7, 0.18, 0.1, 0.25, z);
+      block(0.45, 0.18, span, 0.1, 0.95, -width / 2);
+    } else if (kind < 0.55) {
+      block(0.4, 0.8, span, 0.1, 0, -width / 2);
+      block(0.5, 1.6, span * 0.5, 0.05, 0, -width / 2);
+      block(0.6, 2.6, span * 0.22, 0, 0, -width / 2);
+      for (const f of [-0.08, 0, 0.08]) block(0.7, 3.2, 0.2, -0.05, 0, -width / 2 + f * span);
+    } else if (kind < 0.75) {
+      block(0.4, 0.9, span, 0.1, 0, -width / 2);
+      const half = span * 0.22;
+      const shape = new Shape([new Vector2(-half, 0), new Vector2(half, 0), new Vector2(0, 1.8)]);
+      const pediment = new ExtrudeGeometry(shape, { depth: 0.5, bevelEnabled: false });
+      pediment.rotateY(Math.PI / 2);
+      pediment.translate(-0.15, 0.9, -width / 2);
+      parts.push(pediment);
+    } else {
+      block(0.4, 0.9, span, 0.1, 0, -width / 2);
+    }
+    const merged = mergeGeometries(parts.map((g) => g.toNonIndexed()))!;
+    parts.forEach((g) => g.dispose());
+    this.disposables.push(merged);
+    const mesh = new Mesh(merged, kind < 0.3 ? cornice : wall);
+    mesh.castShadow = true;
+    mesh.position.y = y;
+    roof.add(mesh);
+    // Water tanks on their stands.
+    const tanks = Math.floor(random() * 4);
+    for (let i = 0; i < tanks; i++) {
+      const colour = [0x1d1f22, 0x2b5da8, 0x9a968c][Math.floor(random() * 3)]!;
+      const tank = new Mesh(this.tank, this.material({ color: colour, roughness: 0.7 }));
+      const r = 0.6 + random() * 0.3;
+      tank.scale.set(r, 1 + random() * 0.6, r);
+      tank.position.set(4 + random() * 8, y + 0.8, -1.5 - random() * (width - 3));
+      tank.castShadow = true;
+      roof.add(tank);
+    }
+    return roof;
   }
 
   /**
@@ -1306,4 +1376,26 @@ function foamTexture(): CanvasTexture {
       g.fill();
     }
   });
+}
+
+/** A rooftop water tank on a low stand of four legs, a metre and a half tall at unit scale. */
+function tankGeometry(): BufferGeometry {
+  const drum = new CylinderGeometry(1, 1, 1.1, 14);
+  drum.translate(0, 0.95, 0);
+  const lid = new CylinderGeometry(0.3, 1, 0.2, 14);
+  lid.translate(0, 1.6, 0);
+  const parts: BufferGeometry[] = [drum, lid];
+  for (const [x, z] of [
+    [-0.6, -0.6],
+    [0.6, -0.6],
+    [-0.6, 0.6],
+    [0.6, 0.6],
+  ] as const) {
+    const leg = new BoxGeometry(0.1, 0.4, 0.1);
+    leg.translate(x, 0.2, z);
+    parts.push(leg.toNonIndexed());
+  }
+  const merged = mergeGeometries(parts.map((g) => (g.index ? g.toNonIndexed() : g)))!;
+  parts.forEach((g) => g.dispose());
+  return merged;
 }
