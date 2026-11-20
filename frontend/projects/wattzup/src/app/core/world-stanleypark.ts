@@ -122,6 +122,19 @@ const FEATHERS: readonly FeatherWord[] = [
   ['WATTZUP', '#d7ff3a', '#1b1e24'],
 ];
 const FEATHER_EVERY = 16;
+/**
+ * The ride's village on the grass behind the right-hand crowd, either side of the totem poles'
+ * lawn: pop-up tents in the ride's colours, each named on its valance, and where it stands.
+ */
+const TENTS: readonly (readonly [string, string, string, number, number])[] = [
+  ['WATER', '#1f4e79', '#ffffff', 112, 9.6],
+  ['SEAWALL RIDE', '#2e8b57', '#ffffff', 122, 10.2],
+  ['WATTZUP', '#d7ff3a', '#1b1e24', 182, 9.8],
+  ['BIKE REPAIR', '#d8283a', '#ffffff', 192, 10.4],
+  ['VANCOUVER', '#4fa3c7', '#ffffff', 203, 9.7],
+  ['FIRST AID', '#f2efe6', '#d8283a', 330, 9.8],
+  ['WATER', '#1f4e79', '#ffffff', 420, 9.6],
+];
 /** What the fans paint on the path, its colour and how far off the centre line. */
 const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
   ['GO GO', '#ffffff', -1.8],
@@ -192,6 +205,7 @@ export class StanleyParkStreet implements SceneStreet {
     this.addTotems();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
+    this.addTents();
     this.addRoadPaint();
     this.addStencils();
     this.addBoats();
@@ -498,6 +512,77 @@ export class StanleyParkStreet implements SceneStreet {
       banner.add(c);
       this.group.add(banner);
       this.props.push({ mesh: banner, offset: 110 + i * 250, every: LOOP, x: 0 });
+    });
+  }
+
+  /**
+   * Pop-up tents of the ride's village: a 3 m square canopy peaked over four white legs, a
+   * printed valance on every side, and a trestle table under it laid with water bottles.
+   */
+  private addTents(): void {
+    const leg = new CylinderGeometry(0.03, 0.03, 2.3, 6);
+    leg.translate(0, 1.15, 0);
+    const roof = new ConeGeometry(2.12, 0.8, 4, 1, true);
+    roof.rotateY(Math.PI / 4);
+    const valance = new PlaneGeometry(3, 0.5);
+    const top = new BoxGeometry(1.9, 0.05, 0.7);
+    const bottle = new CylinderGeometry(0.035, 0.035, 0.22, 8);
+    this.disposables.push(leg, roof, valance, top, bottle);
+    const white = this.material({ color: 0xf2f2ee, metalness: 0.4, roughness: 0.4 });
+    const blue = this.material({
+      color: 0x4fa3d8,
+      roughness: 0.2,
+      transparent: true,
+      opacity: 0.85,
+    });
+    TENTS.forEach(([text, fill, ink, offset, x], i) => {
+      const tent = new Group();
+      for (const [lx, lz] of [
+        [-1.45, -1.45],
+        [1.45, -1.45],
+        [-1.45, 1.45],
+        [1.45, 1.45],
+      ] as const) {
+        const l = new Mesh(leg, white);
+        l.position.set(lx, 0, lz);
+        tent.add(l);
+      }
+      const canopy = new Mesh(
+        roof,
+        this.material({ color: fill, side: DoubleSide, roughness: 0.7 }),
+      );
+      canopy.position.y = 2.3 + 0.4;
+      canopy.castShadow = true;
+      tent.add(canopy);
+      const print = this.material({
+        map: this.track(clothBannerTexture(text, fill, ink)),
+        side: DoubleSide,
+        roughness: 0.7,
+      });
+      for (let k = 0; k < 4; k++) {
+        const v = new Mesh(valance, print);
+        const a = (k * Math.PI) / 2;
+        v.position.set(Math.sin(a) * 1.5, 2.05, Math.cos(a) * 1.5);
+        v.rotation.y = a;
+        tent.add(v);
+      }
+      const table = new Mesh(top, white);
+      table.position.y = 0.75;
+      tent.add(table);
+      for (const tx of [-0.75, -0.5, 0.75]) {
+        const tableLeg = new Mesh(leg, white);
+        tableLeg.scale.y = 0.32;
+        tableLeg.position.set(tx < 0 ? -0.85 : 0.85, 0, tx === -0.5 ? 0.3 : -0.3);
+        tent.add(tableLeg);
+      }
+      for (let b = 0; b < 8; b++) {
+        const m = new Mesh(bottle, blue);
+        m.position.set(-0.8 + b * 0.22, 0.88, (b % 2) * 0.14 - 0.07);
+        tent.add(m);
+      }
+      tent.rotation.y = (i % 3) * 0.12 - 0.12;
+      this.group.add(tent);
+      this.props.push({ mesh: tent, offset, every: LOOP, x });
     });
   }
 
