@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Intense High Tempo Bike Workout](http
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/intense-high-tempo-bike-workout?simulate`, click **Ride in Tempelhof Field**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [077 · The terminal and the Fernsehturm stand over the field](bend-077-terminal-stands.jpg) | Tempelhof's long terminal building and the Fernsehturm beyond it were bent vertex by vertex with the runway's bends, so the 1.2 km terminal curved and slewed with each turn. They now stand beyond the road unbent, as the panorama does, and the kite-fliers and props behind the rider stand on the runway there instead of at the height under the rider. |
