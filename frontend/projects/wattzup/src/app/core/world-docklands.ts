@@ -408,6 +408,15 @@ const SHOP_SIGN_LONG = 3.8;
 /** Bike racks: where round the loop, how far beyond the road's edge (m), the frames' colours. */
 const BIKE_RACKS = [44, 126, 232, 352, 470, 562];
 const BIKE_RACK_OUT = 1.9;
+/** Rows of delivery mopeds on the right-hand pavement: where round the loop (m), how far from
+ * the road's centre beyond its half-width (m), how many in a row, the gap between them (m),
+ * their angle to the kerb (rad), and their paints. */
+const MOPEDS = [64, 176, 336, 516];
+const MOPED_OUT = 1.5;
+const MOPED_ROW = 4;
+const MOPED_GAP = 0.9;
+const MOPED_ANGLE = 0.7;
+const MOPED_PAINTS = ['#ff4fb8', '#5ff2ff', '#ffd24a', '#9b6bff'];
 /** Taxi ranks on the right-hand pavement: where (loop metres), how far out (m), cabs in each. */
 /**
  * Glass skybridges over the street: where (loop metres) and how high (m) each runs. Along the
@@ -714,6 +723,8 @@ export class DocklandsStreet {
   private readonly shelters: { group: Group; offset: number }[] = [];
   /** Racks of parked bicycles at the kerb, at BIKE_RACKS round the loop. */
   private readonly bikeRacks: { group: Group; offset: number }[] = [];
+  /** Rows of parked mopeds on the right-hand pavement, at MOPEDS round the loop. */
+  private readonly mopeds: { group: Group; offset: number }[] = [];
   private readonly taxiRanks: { group: Group; offset: number }[] = [];
   private readonly puddles: { mesh: Mesh; offset: number }[] = [];
   /** Glass lift cars on the towers' street faces: where each rides between and its timing. */
@@ -2549,6 +2560,7 @@ export class DocklandsStreet {
     this.addTrees(roadHalf);
     this.addShelters(roadHalf);
     this.addBikeRacks(roadHalf);
+    this.addMopeds(roadHalf);
     this.addTaxiRanks(roadHalf);
     this.addPuddles(roadHalf);
     this.addSkybridges(roadHalf);
@@ -3603,6 +3615,81 @@ export class DocklandsStreet {
       this.group.add(group);
       this.bikeRacks.push({ group, offset });
     });
+  }
+
+  /**
+   * Delivery mopeds angle-parked on the right-hand pavement, noses to the road: a body in a neon
+   * paint, a seat, a leg shield and bars, a top box with a lit stripe, and a red tail-light.
+   */
+  private addMopeds(roadHalf: number): void {
+    const tyre = new MeshStandardMaterial({ color: 0x0c0c10, roughness: 0.7 });
+    const dark = new MeshStandardMaterial({ color: 0x15161c, roughness: 0.5 });
+    const chrome = new MeshStandardMaterial({ color: 0x9aa0ac, metalness: 0.8, roughness: 0.3 });
+    const paints = MOPED_PAINTS.map(
+      (hex) =>
+        new MeshStandardMaterial({
+          color: new Color(hex),
+          metalness: 0.3,
+          roughness: 0.35,
+          emissive: new Color(hex).multiplyScalar(0.2),
+        }),
+    );
+    const stripes = MOPED_PAINTS.map(
+      (hex) =>
+        new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(1.6), toneMapped: false }),
+    );
+    const tail = new MeshBasicMaterial({
+      color: new Color('#ff2a3a').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const wheel = new CylinderGeometry(0.22, 0.22, 0.12, 16);
+    wheel.rotateX(Math.PI / 2);
+    const unit = new BoxGeometry(1, 1, 1);
+    const tube = new CylinderGeometry(0.025, 0.025, 1, 6);
+    const dot = new SphereGeometry(0.05, 8, 6);
+    this.disposables.push(tyre, dark, chrome, ...paints, ...stripes, tail, wheel, unit, tube, dot);
+    const box = (material: Material, w: number, h: number, d: number, x: number, y: number) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, 0);
+      return mesh;
+    };
+    const random = seeded(653);
+    const x = roadHalf + MOPED_OUT;
+    for (const offset of MOPEDS) {
+      const group = new Group();
+      for (let k = 0; k < MOPED_ROW; k++) {
+        const pick = Math.floor(random() * paints.length);
+        const paint = paints[pick]!;
+        const moped = new Group();
+        for (const wx of [-0.55, 0.55]) {
+          const w = new Mesh(wheel, tyre);
+          w.position.set(wx, 0.22, 0);
+          moped.add(w);
+        }
+        const shield = box(paint, 0.1, 0.6, 0.4, 0.38, 0.62);
+        shield.rotation.z = -0.25;
+        moped.add(
+          box(dark, 0.75, 0.08, 0.3, 0, 0.3),
+          box(paint, 0.55, 0.35, 0.38, -0.3, 0.5),
+          box(dark, 0.5, 0.08, 0.3, -0.3, 0.72),
+          shield,
+          span(tube, chrome, new Vector3(0.45, 0.4, 0), new Vector3(0.5, 1, 0)),
+          box(chrome, 0.05, 0.04, 0.62, 0.5, 1),
+          box(paint, 0.4, 0.38, 0.42, -0.48, 0.97),
+          box(stripes[pick]!, 0.41, 0.06, 0.43, -0.48, 1.04),
+        );
+        const light = new Mesh(dot, tail);
+        light.position.set(-0.6, 0.6, 0);
+        moped.add(light);
+        moped.position.set(x, KERB, (k - (MOPED_ROW - 1) / 2) * MOPED_GAP);
+        // Nose towards the road, angled back the way the riders come.
+        moped.rotation.y = Math.PI - MOPED_ANGLE + (random() - 0.5) * 0.2;
+        group.add(moped);
+      }
+      this.group.add(group);
+      this.mopeds.push({ group, offset });
+    }
   }
 
   /**
@@ -5456,6 +5543,11 @@ export class DocklandsStreet {
       const metres = ((((rank.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       rank.group.visible = !this.onBridge(Math.max(metres, 0));
       rank.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
+    for (const row of this.mopeds) {
+      const metres = ((((row.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      row.group.visible = !this.onBridge(Math.max(metres, 0));
+      row.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
     for (const rack of this.bikeRacks) {
       const metres = ((((rack.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
