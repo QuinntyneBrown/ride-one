@@ -316,6 +316,27 @@ export class AmsterdamStreet implements SceneStreet {
       [-r - 0.02, KERB],
       [-r - 0.18, KERB],
     ]);
+    // The gutters along both kerbs, with a gully grate every 12 m, and May's papery elm seeds
+    // drifted against the kerbs and the house fronts.
+    const litter = (kerbFirst: boolean, grates: boolean) =>
+      this.material({
+        map: this.repeat(gutterTexture(kerbFirst, grates), 0.6, 12),
+        transparent: true,
+        depthWrite: false,
+        roughness: 0.9,
+      });
+    this.ribbons.add(points, litter(true, true), [
+      [r, 0.009],
+      [r - 0.6, 0.009],
+    ]);
+    this.ribbons.add(points, litter(false, true), [
+      [-r + 0.6, 0.009],
+      [-r, 0.009],
+    ]);
+    this.ribbons.add(points, litter(false, false), [
+      [r + PAVEMENT, KERB + 0.006],
+      [r + PAVEMENT - 0.6, KERB + 0.006],
+    ]);
   }
 
   /**
@@ -2375,6 +2396,44 @@ function pavementTexture(): CanvasTexture {
         }
       }
     }
+  });
+}
+
+/**
+ * A gutter's strip 0.6 m across and 12 m along: elm seeds, pale green-gold paper discs, drifted
+ * thickest against the kerb (at u 0, or at u 1 unless `kerbFirst`), and with `grates` a cast-iron
+ * gully grate at the kerb, on clear ground.
+ */
+function gutterTexture(kerbFirst: boolean, grates: boolean): CanvasTexture {
+  return canvasTexture(64, 1024, (g) => {
+    g.clearRect(0, 0, 64, 1024);
+    if (!kerbFirst) g.setTransform(-1, 0, 0, 1, 64, 0);
+    const random = seeded(grates ? 661 : 667);
+    const seeds = ['#e8e4b0', '#d8d8a0', '#c8c888', '#f0e8c0', '#b8b878'];
+    for (let i = 0; i < 4200; i++) {
+      const u = Math.pow(random(), 2.6) * 64;
+      g.fillStyle = seeds[Math.floor(random() * seeds.length)]!;
+      g.globalAlpha = 0.65 + random() * 0.35;
+      g.beginPath();
+      g.ellipse(
+        u,
+        random() * 1024,
+        1.6 + random(),
+        1.3 + random() * 0.8,
+        random() * 3,
+        0,
+        Math.PI * 2,
+      );
+      g.fill();
+    }
+    g.globalAlpha = 1;
+    if (grates) {
+      g.fillStyle = '#262422';
+      g.fillRect(2, 470, 26, 42);
+      g.fillStyle = '#0e0e0e';
+      for (let y = 474; y < 508; y += 6) g.fillRect(5, y, 20, 3);
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
   });
 }
 
