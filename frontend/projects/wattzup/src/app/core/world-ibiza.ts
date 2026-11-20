@@ -408,10 +408,12 @@ export class IbizaStreet implements SceneStreet {
     const deck = this.material({ color: 0x8a6440, roughness: 0.8 });
     const black = this.material({ color: 0x18181c, roughness: 0.6 });
     const white = this.material({ color: 0xf6f0e6, roughness: 0.8 });
-    b.box(deck, [12, 1.6, 30], [6, 0.8, 0]);
-    b.box(black, [2, 1.2, 5], [4, 2.2, 0]);
-    for (const z of [-5, 5]) b.box(black, [2.2, 4.4, 2.2], [4, 3.8, z]);
-    for (const z of [-14, 14]) b.box(white, [0.3, 7, 0.3], [11, 5, z]);
+    // A stage raised over the crowd's heads, so the decks show from the road.
+    b.box(deck, [12, 3.4, 30], [6, 1.7, 0]);
+    b.box(black, [2, 1.2, 6], [3, 4, 0]);
+    for (const z of [-6, 6]) b.box(black, [2.4, 6, 2.4], [3.4, 6.4, z]);
+    for (const z of [-14, 14]) b.box(white, [0.3, 12, 0.3], [11, 9.4, z]);
+    b.box(black, [0.6, 9, 19], [11, 9, 0]);
     const g = b.build(this.disposables);
     const sail = new Mesh(
       new PlaneGeometry(14, 30),
@@ -419,19 +421,28 @@ export class IbizaStreet implements SceneStreet {
     );
     this.disposables.push(sail.geometry);
     sail.rotation.set(-Math.PI / 2, -0.25, 0);
-    sail.position.set(6, 8, 0);
+    sail.position.set(6, 15, 0);
     g.add(sail);
     // The DJ, arms up.
     const dj = new Mesh(new SphereGeometry(0.4, 10, 8), this.material({ color: 0xd9a17c }));
     this.disposables.push(dj.geometry);
-    dj.position.set(5.6, 4.2, 0);
+    dj.position.set(4.6, 6, 0);
     const body = new Mesh(
       new CylinderGeometry(0.35, 0.3, 1.4, 8),
       this.material({ color: 0xff4a9a }),
     );
     this.disposables.push(body.geometry);
-    body.position.set(5.6, 3.2, 0);
+    body.position.set(4.6, 5, 0);
     g.add(dj, body);
+    // The screen behind the DJ, the session's name glowing over a pulse of colour.
+    const screen = new Mesh(
+      new PlaneGeometry(18, 8.4),
+      new MeshBasicMaterial({ map: this.track(screenTexture()), toneMapped: false }),
+    );
+    this.disposables.push(screen.geometry, screen.material as MeshBasicMaterial);
+    screen.rotation.y = -Math.PI / 2 + 0.55;
+    screen.position.set(10.6, 9, 0);
+    g.add(screen);
     // The beams: long open cones of coloured light, from the decks up into the sky.
     const cone = new ConeGeometry(3.2, 70, 16, 1, true);
     cone.translate(0, -35, 0);
@@ -449,7 +460,7 @@ export class IbizaStreet implements SceneStreet {
       });
       this.disposables.push(material);
       const beam = new Mesh(cone, material);
-      beam.position.set(4, 2.4, (i - 2) * 3);
+      beam.position.set(3, 4.6, (i - 2) * 3);
       g.add(beam);
       this.beams.push(beam);
     });
@@ -745,5 +756,30 @@ function glitterTexture(): CanvasTexture {
       g.fillStyle = `rgba(255,${190 + random() * 50},${100 + random() * 60},${0.15 + random() * 0.45})`;
       g.fillRect(x - 6, y, 4 + random() * 12, 1.5);
     }
+  });
+}
+
+/** The DJ's screen: SUNSET SESSIONS over a pulse of colour and the beat's waveform. */
+function screenTexture(): CanvasTexture {
+  return canvasTexture(512, 240, (g) => {
+    const sky = g.createLinearGradient(0, 0, 512, 240);
+    sky.addColorStop(0, '#ff3a9a');
+    sky.addColorStop(0.5, '#8a3aff');
+    sky.addColorStop(1, '#ff8a3a');
+    g.fillStyle = sky;
+    g.fillRect(0, 0, 512, 240);
+    g.fillStyle = 'rgba(255,255,255,0.9)';
+    for (let x = 8; x < 504; x += 8) {
+      const h = 8 + Math.abs(Math.sin(x * 0.07) * Math.cos(x * 0.023)) * 60;
+      g.fillRect(x, 200 - h / 2, 4, h);
+    }
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillStyle = '#ffffff';
+    g.font = 'bold italic 64px sans-serif';
+    g.fillText('SUNSET SESSIONS', 256, 70, 490);
+    g.fillStyle = '#d7ff3a';
+    g.font = 'bold 40px sans-serif';
+    g.fillText('WATTZUP · 128 BPM', 256, 128, 470);
   });
 }
