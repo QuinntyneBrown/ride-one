@@ -94,9 +94,15 @@ export class AmsterdamStreet implements SceneStreet {
   private readonly walkers: Walker[] = [];
   private cyclists: SeatedRiders | null = null;
   private pedestrians: Figures | null = null;
+  private dogs: InstancedMesh | null = null;
   private readonly boats: { mesh: Group; offset: number; speed: number }[] = [];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
+  private readonly matrix = new Matrix4();
+  private readonly spot = new Vector3();
+  private readonly turn = new Quaternion();
+  private readonly one = new Vector3(1, 1, 1);
+  private readonly up = new Vector3(0, 1, 0);
   private readonly tower = new Group();
   private readonly clouds = new Group();
   private waterMap: CanvasTexture | null = null;
@@ -178,8 +184,19 @@ export class AmsterdamStreet implements SceneStreet {
         const step = Math.abs(Math.sin(this.time * 4.5 + w.phase)) * 0.04;
         const y = heightAt(Math.max(metres, 0)) + KERB;
         pedestrians.set(i, w.x, y, -metres, w.speed > 0 ? 0 : Math.PI, w.scale, step);
+        // Every fifth walker has a dog trotting ahead on its lead.
+        if (this.dogs && i % 5 === 0) {
+          const ahead = w.speed > 0 ? 1 : -1;
+          this.matrix.compose(
+            this.spot.set(w.x + 0.3, y + step * 0.5, -metres - ahead * 1.1),
+            this.turn.setFromAxisAngle(this.up, w.speed > 0 ? 0 : Math.PI),
+            this.one,
+          );
+          this.dogs.setMatrixAt(i / 5, this.matrix);
+        }
       });
       pedestrians.commit();
+      if (this.dogs) this.dogs.instanceMatrix.needsUpdate = true;
     }
   }
 
@@ -392,6 +409,7 @@ export class AmsterdamStreet implements SceneStreet {
         stoop.add(new Mesh(steps, stone), new Mesh(railings, iron));
         stoop.position.z = turn > 0 ? -along : along;
         stoop.rotation.y = turn > 0 ? 0 : Math.PI;
+        stoop.scale.z = random() < 0.5 ? 1 : -1;
         stoop.children.forEach((m) => (m.castShadow = true));
         house.add(stoop);
         if (turn > 0) this.dress(house, GABLES[k]!, width, height, along / width, random, decor);
@@ -955,7 +973,9 @@ export class AmsterdamStreet implements SceneStreet {
       const nearSide = random() < 0.5;
       this.walkers.push({
         offset,
-        x: nearSide ? roadHalf + 0.6 + random() * (PAVEMENT - 1) : -roadHalf - 1 - random() * 2.2,
+        // On the pavement's open strip outside the stoops, or on the quay between the parked
+        // cars and the elms.
+        x: nearSide ? roadHalf + 0.6 + random() * 0.5 : -roadHalf - 2.5 - random() * 1.1,
         speed: (random() < 0.5 ? 1 : -1) * (1 + random() * 0.4),
         scale: 0.9 + random() * 0.15,
         phase: random() * 6.3,
@@ -968,6 +988,18 @@ export class AmsterdamStreet implements SceneStreet {
       COMMUTER_WEAR,
       461,
     );
+    const dog = dogGeometry();
+    const fur = new MeshStandardMaterial({ roughness: 0.95 });
+    this.dogs = new InstancedMesh(dog, fur, Math.ceil(this.walkers.length / 5));
+    this.dogs.frustumCulled = false;
+    this.dogs.castShadow = true;
+    const coats = ['#3a2a1e', '#1b1b1b', '#c89a5a', '#efe8dc', '#7a5a3a'];
+    const coat = new Color();
+    for (let i = 0; i < this.dogs.count; i++) {
+      this.dogs.setColorAt(i, coat.set(coats[Math.floor(random() * coats.length)]!));
+    }
+    this.group.add(this.dogs);
+    this.disposables.push(dog, fur, this.dogs);
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
@@ -985,41 +1017,45 @@ export class AmsterdamStreet implements SceneStreet {
 }
 
 /**
- * A stoop, its foot towards -x from a front at x 0, centred on z 0: a landing at the raised
- * ground floor's door, four stone steps down to the pavement, and black iron railings with
- * balusters either side.
+ * A stoop against a front at x 0, facing -x, its landing centred on z 0 before the raised ground
+ * floor's door: a stone landing 1 m deep and three steps running down sideways along the front
+ * towards +z, so the pavement stays clear, with a black iron railing round the landing's open
+ * end and down the outer edge of the steps.
  */
 function stoopGeometry(): { steps: BufferGeometry; railings: BufferGeometry } {
   const stone: BufferGeometry[] = [];
   const iron: BufferGeometry[] = [];
-  const width = 1.5;
   const rise = 0.28;
-  const landing = new BoxGeometry(0.7, 4 * rise, width);
-  landing.translate(-0.35, 2 * rise, 0);
+  const top = 4 * rise;
+  const landing = new BoxGeometry(1.0, top, 1.3);
+  landing.translate(-0.5, top / 2, 0);
   stone.push(landing);
-  for (let s = 0; s < 4; s++) {
-    const step = new BoxGeometry(0.28, (s + 1) * rise, width);
-    step.translate(-0.7 - (3 - s) * 0.28 - 0.14, ((s + 1) * rise) / 2, 0);
+  for (let i = 0; i < 3; i++) {
+    const height = (3 - i) * rise;
+    const step = new BoxGeometry(0.95, height, 0.3);
+    step.translate(-0.475, height / 2, 0.65 + i * 0.3 + 0.15);
     stone.push(step);
   }
-  for (const z of [-width / 2 + 0.04, width / 2 - 0.04]) {
-    const top = new BoxGeometry(0.7, 0.04, 0.04);
-    top.translate(-0.35, 4 * rise + 0.9, z);
-    iron.push(top);
-    const slope = new BoxGeometry(Math.hypot(1.12, 4 * rise), 0.04, 0.04);
-    slope.rotateZ(Math.atan2(4 * rise, 1.12));
-    slope.translate(-0.7 - 0.56, 2 * rise + 0.9, z);
-    iron.push(slope);
-    for (let x = 0.05; x < 1.85; x += 0.16) {
-      const foot = x < 0.7 ? 4 * rise : Math.max(rise, 4 * rise - ((x - 0.7) / 0.28) * rise);
-      const top = x < 0.7 ? 4 * rise + 0.9 : 4 * rise + 0.9 - ((x - 0.7) / 1.12) * 4 * rise;
-      const baluster = new BoxGeometry(0.02, top - foot, 0.02);
-      baluster.translate(-x, (top + foot) / 2, z);
-      iron.push(baluster);
-    }
+  const rail = (a: Vector3, b: Vector3) => iron.push(limb(a, b, 0.022));
+  const hand = top + 0.9;
+  const x = -0.97;
+  rail(new Vector3(0, hand, -0.63), new Vector3(x, hand, -0.63));
+  rail(new Vector3(x, hand, -0.63), new Vector3(x, hand, 0.65));
+  rail(new Vector3(x, hand, 0.65), new Vector3(x, rise + 0.9, 1.55));
+  for (let u = 0.05; u < 0.97; u += 0.14) {
+    const post = new BoxGeometry(0.02, 0.9, 0.02);
+    post.translate(-u, top + 0.45, -0.63);
+    iron.push(post);
+  }
+  for (let z = -0.6; z < 1.55; z += 0.14) {
+    const foot = z < 0.65 ? top : (3 - Math.min(2, Math.floor((z - 0.65) / 0.3))) * rise;
+    const head = z < 0.65 ? hand : hand - ((z - 0.65) / 0.9) * 3 * rise;
+    const post = new BoxGeometry(0.02, head - foot, 0.02);
+    post.translate(x, (head + foot) / 2, z);
+    iron.push(post);
   }
   const merge = (parts: BufferGeometry[]) => {
-    const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
+    const merged = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)))!;
     parts.forEach((p) => p.dispose());
     return merged;
   };
@@ -1111,6 +1147,33 @@ function amsterdammertje(): BufferGeometry {
     }
   }
   const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/** A dog of middling size, along z, its nose towards -z: body, head and muzzle, legs, ears and tail. */
+function dogGeometry(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const body = new CapsuleGeometry(0.13, 0.42, 4, 8);
+  body.rotateX(Math.PI / 2);
+  body.translate(0, 0.42, 0);
+  const head = new SphereGeometry(0.11, 8, 6);
+  head.translate(0, 0.58, -0.36);
+  const muzzle = new BoxGeometry(0.08, 0.07, 0.12);
+  muzzle.translate(0, 0.55, -0.47);
+  parts.push(body, head, muzzle);
+  for (const x of [-0.08, 0.08]) {
+    for (const z of [-0.2, 0.2]) {
+      const leg = new CylinderGeometry(0.03, 0.025, 0.36, 5);
+      leg.translate(x, 0.18, z);
+      parts.push(leg);
+    }
+    const ear = new BoxGeometry(0.04, 0.09, 0.05);
+    ear.translate(x * 0.9, 0.64, -0.33);
+    parts.push(ear);
+  }
+  parts.push(limb(new Vector3(0, 0.45, 0.33), new Vector3(0, 0.6, 0.5), 0.02));
+  const merged = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)))!;
   parts.forEach((p) => p.dispose());
   return merged;
 }
