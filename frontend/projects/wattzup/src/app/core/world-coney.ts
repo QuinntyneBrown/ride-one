@@ -597,21 +597,41 @@ export class ConeyStreet implements SceneStreet {
       }
     }
     h.add(legs.build(this.disposables));
-    // The Cyclone: a white wooden lattice under its track, climbing to its lift hill and
-    // dropping through its hills behind the shops on the right.
+    // The Cyclone: the white wooden lattice of its out-and-back track, beside the boardwalk on
+    // the right in front of the Wonder Wheel, broadside to the rider: climbing to its lift hill
+    // at the boardwalk's end and dropping through its hills toward the amusement park.
     const cyclone = new BoxBuilder();
-    const rails = hazedMaterial(this.disposables, haze, 0x3a3a40, 0.2);
-    const lattice = hazedMaterial(this.disposables, haze, 0xf0ece4, 0.18);
+    const rails = hazedMaterial(this.disposables, haze, 0x7a2a22, 0.1);
+    const lattice = hazedMaterial(this.disposables, haze, 0xf6f2ea, 0.08);
     const hills = (u: number) =>
-      2 + 24 * Math.max(0, Math.sin(u * Math.PI * 1.2)) ** 2 + 10 * Math.abs(Math.sin(u * 9));
-    for (let u = 0; u < 1; u += 0.012) {
-      const x = 95 + 70 * u;
-      const z = 20 - 30 * Math.sin(u * Math.PI);
-      const y = hills(u);
-      cyclone.box(lattice, [0.25, y, 0.25], [x, y / 2, z]);
-      cyclone.box(lattice, [0.25, y, 0.25], [x, y / 2, z - 3]);
-      for (let yy = 3; yy < y; yy += 3) cyclone.box(lattice, [0.9, 0.12, 3], [x, yy, z - 1.5]);
-      cyclone.box(rails, [1, 0.4, 3.4], [x, y, z - 1.5]);
+      3 +
+      25 * Math.exp(-(((u - 0.12) / 0.11) ** 2)) +
+      (u > 0.3 ? 6 + 12 * Math.abs(Math.sin(u * 8)) : 0);
+    for (const t of [0, 1]) {
+      const at = (u: number) =>
+        [6 + 40 * u, hills(t ? 1 - u : u) * (t ? 0.85 : 1), 75 - 15 * u - 5 * t] as const;
+      // The track: the rails sloping from one point of its line to the next, finely, so its
+      // hills read as curves.
+      for (let u = 0; u < 1; u += 0.007) {
+        const [x0, y0, z0] = at(u);
+        const [x1, y1, z1] = at(u + 0.007);
+        const run = Math.hypot(x1 - x0, y1 - y0);
+        cyclone.box(
+          rails,
+          [run + 0.1, 0.8, 2.2],
+          [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2],
+          Math.atan2(y1 - y0, x1 - x0),
+        );
+      }
+      for (let k = 0, u = 0; u < 1; k++, u += 0.035) {
+        const [x, y, z] = at(u);
+        for (const dz of [-0.7, 0.7]) cyclone.box(lattice, [0.4, y, 0.4], [x, y / 2, z + dz]);
+        for (let yy = 2.5; yy < y; yy += 3) {
+          cyclone.box(lattice, [1.4, 0.3, 1.9], [x, yy, z]);
+          // The cross-bracing between one bent and the next, leaning one way then the other.
+          cyclone.box(lattice, [0.2, 3.3, 0.2], [x + 0.7, yy + 1.5, z], k % 2 ? 0.42 : -0.42);
+        }
+      }
     }
     h.add(cyclone.build(this.disposables));
     // The Parachute Jump: a red tapering lattice tower, the ring of arms at its crown.
