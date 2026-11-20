@@ -790,6 +790,33 @@ export class MiamiStreet implements SceneStreet {
         side: DoubleSide,
       }),
     );
+    const flamingoParts: BufferGeometry[] = [];
+    const bodyPart = new SphereGeometry(0.16, 10, 8);
+    bodyPart.scale(1.5, 0.9, 0.9);
+    bodyPart.translate(0, 0.62, 0);
+    const neck = new CylinderGeometry(0.025, 0.03, 0.42, 6);
+    neck.rotateZ(-0.35);
+    neck.translate(0.24, 0.86, 0);
+    const head = new SphereGeometry(0.06, 8, 6);
+    head.translate(0.32, 1.06, 0);
+    const beak = new ConeGeometry(0.025, 0.12, 6);
+    beak.rotateZ(Math.PI * 0.6);
+    beak.translate(0.4, 1.02, 0);
+    flamingoParts.push(bodyPart, neck, head, beak);
+    for (const dz of [-0.04, 0.04]) {
+      const leg = new CylinderGeometry(0.012, 0.012, 0.6, 4);
+      leg.translate(0, 0.3, dz);
+      flamingoParts.push(leg);
+    }
+    const flamingoGeometry = mergeGeometries(flamingoParts)!;
+    flamingoParts.forEach((g) => g.dispose());
+    this.disposables.push(flamingoGeometry);
+    const flamingoPink = this.material({
+      color: 0xff6ab0,
+      roughness: 0.35,
+      emissive: 0x401028,
+      emissiveIntensity: 0.5,
+    });
     const planter = this.material({ color: 0xe8e0d8, roughness: 0.8 });
     const blossomBall = new SphereGeometry(0.7, 10, 8);
     this.disposables.push(blossomBall);
@@ -1275,6 +1302,13 @@ export class MiamiStreet implements SceneStreet {
           bush.scale.set(0.8, 0.75, 1);
           bush.position.set(-1.1 + (i - 1) * 0.15, 1.15 + (i % 2) * 0.2, z + (i - 1) * 0.6);
           hotel.add(bush);
+        }
+        // A pair of pink plastic flamingos standing in the planter's front edge.
+        for (const dz of [-0.55, 0.45]) {
+          const bird = new Mesh(flamingoGeometry, flamingoPink);
+          bird.position.set(-1.75, 0.85, z + dz);
+          bird.rotation.y = dz > 0 ? 0.6 : -2.4;
+          hotel.add(bird);
         }
       }
       // Every fourth hotel keeps a nightclub on its ground floor: a red rope on brass posts
