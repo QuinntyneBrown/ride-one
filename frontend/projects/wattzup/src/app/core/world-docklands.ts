@@ -54,6 +54,9 @@ const PYLON = 38;
 const PYLON_INTO = 46;
 const CABLES = 9;
 const CABLE_EVERY = 9;
+/** The dock water lies this far below the lowest road in view; the deck's girder is this deep. */
+const DOCK_DROP = 7;
+const GIRDER = 1.8;
 /** A blade sign stands out this far from its façade. */
 const BLADE = 2;
 /** The harbour skyline stands this far ahead, past the street's fog, and keeps its distance. */
@@ -100,9 +103,15 @@ export class DocklandsStreet {
     profile: [number, number][];
     /** The cross-section on a bridge, point for point; the quay's own where omitted. */
     bridge?: [number, number][];
+    /** On a bridge, heights are above the dock water rather than the road. */
+    sink?: boolean;
   }[] = [];
+  /** The dock water's height under the bridges in view, relative to the rider. */
+  private dockLevel = -DOCK_DROP;
   /** Whether the road `metres` ahead is on a bridge ramp; set by the renderer each frame. */
   private onBridge: (metres: number) => boolean = () => false;
+  /** Metres ahead of the rider to the start of each bridge; behind the rider is negative. */
+  private bridgeStarts: readonly number[] = [];
   private readonly pylon = new Group();
   private cables: LineSegments | null = null;
 
@@ -396,6 +405,20 @@ export class DocklandsStreet {
       side: DoubleSide,
     });
     this.disposables.push(pavement, kerb, neon, water, steel, rail);
+    // The open dock under a bridge, both sides; under the quay it lies hidden below the ground.
+    this.ribbon(
+      points,
+      water,
+      [
+        [-FAR_SHORE - 200, -0.6],
+        [FAR_SHORE + 200, -0.6],
+      ],
+      [
+        [-FAR_SHORE - 200, 0],
+        [FAR_SHORE + 200, 0],
+      ],
+      true,
+    );
     this.addPylon(roadHalf);
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
@@ -437,6 +460,19 @@ export class DocklandsStreet {
           [edge, KERB + PARAPET],
         ]),
       );
+      // The deck's steel girder, seen below the parapet over open water.
+      this.ribbon(
+        points,
+        steel,
+        across([
+          [edge, KERB],
+          [edge, KERB],
+        ]),
+        across([
+          [edge + 0.05, -GIRDER],
+          [edge + 0.05, KERB],
+        ]),
+      );
       this.ribbon(
         points,
         rail,
@@ -459,14 +495,29 @@ export class DocklandsStreet {
       );
       if (side < 0) {
         // The harbour water beyond the quay, and the quay's stone face down to it.
-        this.ribbon(points, water, [
-          [-FAR_SHORE - 200, -0.03],
-          [-back, -0.03],
-        ]);
-        this.ribbon(points, kerb, [
-          [-back, -0.03],
-          [-back, KERB],
-        ]);
+        this.ribbon(
+          points,
+          water,
+          [
+            [-FAR_SHORE - 200, -0.03],
+            [-back, -0.03],
+          ],
+          undefined,
+          true,
+        );
+        this.ribbon(
+          points,
+          kerb,
+          [
+            [-back, -0.03],
+            [-back, KERB],
+          ],
+          [
+            [-back, 0],
+            [-back, 0],
+          ],
+          true,
+        );
       }
     }
   }
@@ -597,23 +648,19 @@ export class DocklandsStreet {
   }
 
   /** Tells the street which stretches of the road ahead are bridge ramps. */
-  setBridge(onBridge: (metres: number) => boolean): void {
+  setBridge(onBridge: (metres: number) => boolean, starts: readonly number[]): void {
     this.onBridge = onBridge;
+    this.bridgeStarts = starts;
   }
 
-  /** Stands the pylon PYLON_INTO metres onto the first bridge in view, and hangs its stays. */
+  /** Stands the pylon PYLON_INTO metres onto the bridge in view, and hangs its stays. */
   private placePylon(heightAt: (metres: number) => number): void {
     const cables = this.cables;
     if (!cables) return;
-    let start: number | null = null;
-    for (let m = -40; m <= 300; m += 2) {
-      if (this.onBridge(Math.max(m, 0)) && (m <= -40 || !this.onBridge(Math.max(m - 2, 0)))) {
-        start = m;
-        break;
-      }
-    }
-    const at = start === null ? 0 : start + PYLON_INTO;
-    const visible = start !== null && this.onBridge(Math.max(at, 0));
+    // The first bridge whose pylon is still in view, behind the camera or ahead.
+    const start = this.bridgeStarts.find((m) => m + PYLON_INTO > -30 && m + PYLON_INTO < 300);
+    const at = start === undefined ? 0 : start + PYLON_INTO;
+    const visible = start !== undefined;
     this.pylon.visible = visible;
     cables.visible = visible;
     if (!visible) return;
@@ -640,6 +687,7 @@ export class DocklandsStreet {
     material: Material,
     profile: [number, number][],
     bridge?: [number, number][],
+    sink = false,
   ): void {
     const n = profile.length;
     const geometry = new BufferGeometry();
@@ -657,21 +705,23 @@ export class DocklandsStreet {
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;
     this.group.add(mesh);
-    this.ribbons.push({ geometry, profile, bridge });
+    this.ribbons.push({ geometry, profile, bridge, sink });
     this.disposables.push(geometry);
   }
 
   /** Lays the quay over the road's points; its slabs move with the rider's distance `s`. */
   lay(points: readonly { metres: number; height: number }[], s: number): void {
     const bridged = points.map((p) => this.onBridge(Math.max(p.metres, 0)));
-    for (const { geometry, profile, bridge } of this.ribbons) {
+    this.dockLevel = Math.min(...points.map((p) => p.height)) - DOCK_DROP;
+    for (const { geometry, profile, bridge, sink } of this.ribbons) {
       const position = geometry.getAttribute('position') as BufferAttribute;
       const uv = geometry.getAttribute('uv') as BufferAttribute;
       const n = profile.length;
       points.forEach((p, i) => {
         const section = bridge && bridged[i] ? bridge : profile;
+        const base = sink && bridged[i] ? this.dockLevel : p.height;
         section.forEach(([x, y], j) => {
-          position.setXYZ(i * n + j, x, p.height + y, -p.metres);
+          position.setXYZ(i * n + j, x, base + y, -p.metres);
           uv.setXY(i * n + j, x, p.metres + s);
         });
       });
@@ -680,6 +730,25 @@ export class DocklandsStreet {
       geometry.computeVertexNormals();
       geometry.computeBoundingSphere();
     }
+  }
+
+  /**
+   * Lowers the renderer's ground under each bridge below the dock water, so the deck stands
+   * over open water. `ground` is laid over `points`, two vertices to a point.
+   */
+  sink(ground: BufferGeometry, points: readonly { metres: number }[]): void {
+    const position = ground.getAttribute('position') as BufferAttribute;
+    let sunk = false;
+    points.forEach((p, i) => {
+      if (!this.onBridge(Math.max(p.metres, 0))) return;
+      position.setY(i * 2, this.dockLevel - 1.5);
+      position.setY(i * 2 + 1, this.dockLevel - 1.5);
+      sunk = true;
+    });
+    if (!sunk) return;
+    position.needsUpdate = true;
+    ground.computeVertexNormals();
+    ground.computeBoundingSphere();
   }
 
   /** Moves each tower to its place along the loop for the rider's distance `s`. */

@@ -300,11 +300,14 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (this.towers) {
       // The road over an effort is a bridge ramp, laid at the same speed as the road ahead.
       const v = Math.max(speed, MIN_SPEED);
-      this.towers.setBridge((metres) => {
-        const t = frame.elapsed + metres / v;
-        const at = frame.segments.find((g) => t >= g.start && t < g.start + g.duration);
-        return at?.kind === 'work';
-      });
+      const efforts = frame.segments.filter((g) => g.kind === 'work');
+      this.towers.setBridge(
+        (metres) => {
+          const t = frame.elapsed + metres / v;
+          return efforts.some((g) => t >= g.start && t < g.start + g.duration);
+        },
+        efforts.map((g) => (g.start - frame.elapsed) * v),
+      );
     }
     this.layRoad(ahead, frame.s);
     const texture = this.roadMaterial.map;
@@ -745,6 +748,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.street?.lay(points, s);
     this.towers?.lay(points, s);
     fillStrip(this.ground, points, GROUND_HALF, -0.05);
+    this.towers?.sink(this.ground, points);
   }
 }
 
