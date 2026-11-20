@@ -204,7 +204,14 @@ export class OldTownStreet {
   }
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly brick = new MeshStandardMaterial({ color: 0x8e4a37, roughness: 0.95 });
-  private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
+  /** Props along the street; one that `lies` on the road, as paint does, takes its slope. */
+  private readonly props: {
+    mesh: Group;
+    offset: number;
+    every: number;
+    x: number;
+    lies?: boolean;
+  }[] = [];
   private readonly crowd: Fan[] = [];
   /** The crowd's legs, torsos, heads, arms, hats, hand flags and hair. */
   private fans: InstancedMesh[] = [];
@@ -530,6 +537,11 @@ export class OldTownStreet {
     for (const prop of this.props) {
       const metres = ((((prop.offset - s) % prop.every) + prop.every) % prop.every) - BEHIND;
       prop.mesh.position.set(prop.x, heightAt(metres) + KERB, -metres);
+      // Paint and iron set in the setts lie along a ramp, not level through it, where half the
+      // writing would sink into the road and half float over it.
+      if (prop.lies) {
+        prop.mesh.rotation.x = Math.atan((heightAt(metres + 1) - heightAt(metres - 1)) / 2);
+      }
     }
     this.placeCrowd(s, heightAt);
     this.placeBunting(s, heightAt);
@@ -1032,7 +1044,7 @@ export class OldTownStreet {
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 38 + i * 97, every: LOOP, x });
+      this.props.push({ mesh: holder, offset: 38 + i * 97, every: LOOP, x, lies: true });
     });
     // Cast-iron covers set in the setts, a few to a lap.
     const plate = new CircleGeometry(0.4, 24);
@@ -1057,7 +1069,7 @@ export class OldTownStreet {
       const holder = new Group();
       holder.add(cover);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset, every: LOOP, x });
+      this.props.push({ mesh: holder, offset, every: LOOP, x, lies: true });
     }
   }
 
