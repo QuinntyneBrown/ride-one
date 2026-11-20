@@ -2,7 +2,7 @@
 
 ## Overview
 
-The resistance panel tells the rider the bike's current resistance level, and whether a requested change has taken effect yet. A level change is not instant. The backend sends a command, and the bike confirms the new level a moment later. During that gap the readout shows `Setting <n>…` and the requested level is marked in the level picker. Once the 2 values agree, the `Setting` text disappears.
+The resistance panel tells the rider the bike's current resistance level, and whether a requested change has taken effect yet. A level change is not instant. Wattzup sends a command, and the bike confirms the new level a moment later. During that gap the readout shows `Setting <n>…` and the requested level is marked in the level picker. Once the 2 values agree, the `Setting` text disappears.
 
 **resistance readout** — large numeral of the reported level with the caption `of 32`, in the `level-readout` element between the stepper buttons
 
@@ -12,7 +12,7 @@ The resistance panel tells the rider the bike's current resistance level, and wh
 
 **plan outline** — outline on the picker bar of the plan's level while a manual override is active (`is-plan`)
 
-This feature is display only. It reads the live `BikeState` signal that `live-state/stream-live-state` maintains and makes no HTTP calls. The buttons in the same panel, and the request they send, belong to `set-resistance`. The command list below them belongs to `log-resistance-commands`.
+This feature is display only. It reads the live `BikeState` signal that `LiveStateService` exposes (see `live-state/run-rides`) and calls no contract. The buttons in the same panel, and the request they send, belong to `set-resistance`. The command list below them belongs to `log-resistance-commands`.
 
 ## Description
 
@@ -24,7 +24,7 @@ This feature is display only. It reads the live `BikeState` signal that `live-st
   - **`planLevel`** — `workout.plan_level` when `workout.mode` is `manual`; otherwise `null` (L2-019).
 - **`LevelReadout`** (`wz-level-readout`) — OnPush component inside `LevelControl`, element `level-readout`. It renders `valueText` in a `numeral` span with `aria-live="polite"`, the caption `of 32`, and `settingText` in `level-readout__target` with `role="status"`.
 - **`LevelPicker`** (`wz-level-picker`, see `set-resistance`) — for each level n it sets the class `is-lit` when `n ≤ litUpTo`, the class `is-set` when `n === pressedLevel`, and the class `is-plan` when `n === planLevel`; the slider's `aria-valuenow` and `aria-valuetext` carry the pressed level, so assistive technology announces it. The plan outline is a shape cue, not a colour; the plan level is also named in the plan note (`Manual level. Plan was <plan_level>.` for `flat`). The class names `level-readout`, `level-readout__target`, `level-picker`, `is-lit` and `is-plan` are kept from the mocks because e2e locators depend on them.
-- **`LiveStateService.state`** — read-only `Signal<BikeState | null>` (see `live-state/stream-live-state`). The components derive their values with `computed(() => resistanceView(state()))`.
+- **`LiveStateService.state`** — read-only `Signal<BikeState | null>` (see `live-state/run-rides`). The components derive their values with `computed(() => resistanceView(state()))`.
 
 Worked values from the specification and the mocks (`docs/mocks/pages/ride/default.html`, `manual.html`):
 
@@ -38,7 +38,7 @@ Worked values from the specification and the mocks (`docs/mocks/pages/ride/defau
 Verification:
 
 - `frontend` unit tests for `resistanceView`, 1 case per row above and per criterion of L2-019.
-- Playwright — the `RidePage.resistance` page object reads the readout, the lit levels, the pressed level and the plan outline. A spec pushes 2 stubbed state messages (`resistance` 18 with target 22, then 22 with target 22) and checks that `Setting 22…` appears and then disappears.
+- Playwright — the `RidePage.resistance` page object reads the readout, the lit levels, the pressed level and the plan outline. A spec connects the fake bike, sets level 22 while the bike reports 18, checks that `Setting 22…` appears, then pushes the bike's `0xD2` frame for 22 and checks that it disappears.
 
 ## Requirements
 
@@ -56,7 +56,7 @@ The rider watches resistance that Wattzup reads from the bike.
 
 ### Containers
 
-Wattzup Web receives the state over SSE from the Wattzup API, which reads the bike over BLE.
+Wattzup Web reads the bike over Web Bluetooth and keeps the state in the page.
 
 ![C4 container view for showing resistance](diagrams/c4-container.png)
 

@@ -3,15 +3,16 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Ride along to a video
 
-Person(rider, "Rider", "Sets up and rides")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular", "Setup video switch, link and preview; dashboard tabs, player and plan strip")
-  Container(api, "Wattzup API", "ASP.NET Core (.NET)", "Validates plan.video, keeps the id and start point, streams the state, writes the CSP")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Setup video field, dashboard player and sync")
+  Container(webbt, "Web Bluetooth stack", "navigator.bluetooth", "GATT client")
 }
-System_Ext(player, "YouTube player", "iframe from www.youtube-nocookie.com, IFrame player API from www.youtube.com")
+System_Ext(bike, "Echelon bike", "BLE GATT")
+System_Ext(youtube, "YouTube", "IFrame player and thumbnails")
 
-Rel(rider, web, "Uses", "HTTPS, same origin")
-Rel(web, api, "POST /api/workout with video; reads plan.video and elapsed_seconds", "JSON / SSE")
-Rel(web, player, "Creates, seeks, plays and pauses", "IFrame player API")
-Rel(api, web, "Content-Security-Policy with two YouTube exceptions", "HTTP headers")
+Rel(rider, app, "Uses")
+Rel(app, webbt, "connect, notify, write")
+Rel(webbt, bike, "GATT", "BLE")
+Rel(app, youtube, "Embeds", "HTTPS, CSP-limited")
 @enduml

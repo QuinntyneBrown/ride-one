@@ -4,7 +4,7 @@
 
 The ride dashboard keeps the rider's eyes on the numbers, so anything that interrupts it is either a dialog the rider asked for or a short notification that gets out of the way. This feature covers 2 dialogs opened from the app bar and the toast region they share with the rest of the app.
 
-**diagnostics dialog** — dialog titled `Diagnostics` that lists what Wattzup sees right now and the latest raw packets, for troubleshooting (L2-023)
+**diagnostics dialog** — dialog titled `Diagnostics` that lists what Wattzup sees right now and offers the packet log, for troubleshooting (L2-023, L2-095)
 
 **end-ride dialog** — confirmation titled `End this ride?` that stops the running workout (L2-051)
 
@@ -16,7 +16,7 @@ Every dialog is an Angular CDK Dialog, never a hand-rolled modal. The CDK provid
 
 ## Description
 
-Shared building blocks (presentation components in `frontend/projects/components/src/lib/`, containers in `frontend/projects/wattzup/src/app/dashboard/`):
+Shared building blocks (`Dialog` and `Alert` in `frontend/projects/components/src/lib/`, `DialogLauncher` in `frontend/projects/wattzup/src/app/core/`; ADR 0013):
 
 - **`Dialog`** (`wz-dialog`, block `dialog`) — renders the mocks' `dialog__panel`, `dialog__header` with `dialog__icon` (`--info` or `--danger`), `dialog__title`, the description, `dialog__body` and `dialog__footer`.
   - It declares each `ng-content` slot once: `[slot=description]`, `[slot=body]` and `[slot=footer]`.
@@ -28,32 +28,17 @@ Shared building blocks (presentation components in `frontend/projects/components
 
 Diagnostics dialog (L2-023):
 
-- **`DiagnosticsDialog`** (`wz-diagnostics-dialog`, blocks `diag` and `diag-log`) — reads `LiveStateService` and `TraceRendererStatus`. It renders a `dl.diag` with 8 rows:
-
-| Row | Value |
-|---|---|
-| Server | `Connected · event stream open · <ui_clients> viewers` |
-| Bluetooth | `<ble> · <device> (<device_label>)`, or `<ble>` alone when `device` is `null` |
-| Transport | `transport` |
-| Packets | `packets` with thousands separators, for example `2,517` |
-| Live on screen | `displayed_seconds` as `<m> min <s> s`, for example `41 min 30 s` |
-| Last update | local time of `last_data_at` (`7:10:12 PM`), or `never` |
-| Trace renderer | `WebGL` or `Canvas 2D` (L2-028) |
-| Last error | `error`, or `None` |
-
-  While the stream is offline the Server row reads `Offline · retrying every 2 s` (L2-023).
-  - On open it calls `BIKE_API.diagnosticsPackets()` (`GET /api/diagnostics/packets`). It shows the `lines` under the heading `Latest packets (raw_packets.log)` in `pre.diag-log` with `tabindex="0"` and `aria-label="Latest raw packets"`, so the scrollable region is keyboard-reachable.
-  - `Copy details` calls `navigator.clipboard.writeText(diagnosticsReport(rows, lines))`. The pure helper `diagnosticsReport` returns plain text, one `Label: value` line per row, a blank line, then the packet lines.
+- **`DiagnosticsDialog`** (`wz-diagnostics-dialog`, block `diag`) — reads `LiveStateService`, `BIKE_PAIRING`, `PACKET_LOG` and `SESSION_ARCHIVE`, and renders the rows of L2-023 criterion 1 (Browser, Web Bluetooth, Page, Bike, Connection and Last command while a bike is picked, Rides stored) in a `dl.diag`, the note that nothing leaves the device, **Log every packet** and **Download packet log** with the log's count and size. The rows, the packet log and their helpers are described in `platform/diagnostics`.
   - `Done`, Escape and the close button close the dialog, and focus returns to the Diagnostics button (L2-023).
-  - Every value is bound with interpolation. Device names, the label and error strings render as text (L2-036).
+  - Every value is bound with interpolation. Device names, the label and error strings render as text (L2-097).
 
 End-ride dialog (L2-051):
 
 - **`EndRideDialog`** (`wz-end-ride-dialog`) — opened from End while a workout is active. It has 3 states, as in `default.html`, `busy.html` and `failed.html`:
   - **Default** — title `End this ride?`, description `You're <elapsed> into <total>. Wattzup stops changing the resistance and leaves the bike at level <resistance>.` and the body note `Your power trace and totals stay on the dashboard until you start a new ride.` Focus starts on `Keep riding`.
-  - **Busy** — after `End ride` it calls `BIKE_API.stopWorkout()` (`POST /api/workout/stop`). The button reads `Ending…` with `aria-busy="true"`, both buttons are disabled, and `disableClose` is set so Escape cannot close mid-request. On success the dialog closes and the router navigates to `/setup`.
-  - **Failed** — the body shows the danger `Alert` `Couldn't end the ride` / `The Wattzup server didn't answer. The ride is still running — try again.` The danger button reads `Try again`, and focus returns to `Keep riding`.
-  - Escape, the close button or `Keep riding` closes the dialog without a request. The ride continues, and focus returns to End (L2-051).
+  - **Busy** — after `End ride` it calls `WORKOUT_API.stop()`. The button reads `Ending…` with `aria-busy="true"`, both buttons are disabled, and `disableClose` is set so Escape cannot close mid-call. On success the dialog closes and the router navigates to `/classes` (L2-079, `classes/browse-classes`, L2-051 criterion 2); `history/review-session` adds the summary of a saved ride (L2-084).
+  - **Failed** — the body shows the danger `Alert` `Couldn't end the ride` / `The ride couldn't be ended. It is still running — try again.` The danger button reads `Try again`, and focus returns to `Keep riding`.
+  - Escape, the close button or `Keep riding` closes the dialog without a call. The ride continues, and focus returns to End (L2-051).
   - `<elapsed>` and `<total>` use the ride-clock format of `workouts/show-workout-countdown`.
 
 Toasts (L2-053):
@@ -72,11 +57,11 @@ Toasts (L2-053):
 
 Tests:
 
-- Unit tests cover `toastQueue` (expiry, pause and resume, eviction order, danger and warning persistence) and `diagnosticsReport`.
-- Playwright behaviour specs use the `DiagnosticsDialog`, `EndRideDialog` and `ToastRegion` page objects with stubbed `/api/**`, including `/api/diagnostics/packets` and `/api/workout/stop`, and a stubbed event stream. They assert:
-  - each diagnostics row, the packet lines and the clipboard text (with clipboard permission granted to the test context);
+- Unit tests cover `toastQueue` (expiry, pause and resume, eviction order, danger and warning persistence).
+- Playwright behaviour specs use the `DiagnosticsDialog`, `EndRideDialog` and `ToastRegion` page objects, with the bike driven through the fake `navigator.bluetooth`. They assert:
+  - the diagnostics rows (detailed in `platform/diagnostics`);
   - Escape and focus return for each dialog;
-  - the end-ride busy, failed and success states, with navigation to `/setup`;
+  - the end-ride busy, failed and success states, with navigation to `/classes`;
   - toast stacking, the 5 s expiry under Playwright's clock, and pause on hover.
 
 ## Requirements
@@ -84,7 +69,7 @@ Tests:
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-023` | `L1-008` | Diagnostics dialog. The Diagnostics button in the app bar must open a dialog titled `Diagnostics` describing what Wattzup sees. |
-| `L2-051` | `L1-007` | End-ride dialog. |
+| `L2-051` | `L1-007` | End-ride dialog. Criterion 2: on success the dialog closes and the rider is taken to `/classes` (L2-079). |
 | `L2-053` | `L1-006` | Toasts. |
 
 ## Diagrams
@@ -115,13 +100,13 @@ Both dialogs compose `Dialog`. The toast rules live in the pure `toastQueue` red
 
 ### Behaviour — diagnostics dialog
 
-The dialog opens with the live values, fetches the latest packets, copies the report and returns focus to the Diagnostics button on close (L2-023).
+The dialog opens with the live values, downloads the packet log on request and returns focus to the Diagnostics button on close (L2-023, L2-095).
 
 ![Sequence diagram for the diagnostics dialog](diagrams/sequence-diagnostics.png)
 
 ### Behaviour — end a ride
 
-The rider confirms, the stop request runs with the dialog busy, and success opens `/setup`. A failure keeps the ride running and offers `Try again` (L2-051).
+The rider confirms, the stop call runs with the dialog busy, and success opens `/classes`. A failure keeps the ride running and offers `Try again` (L2-051).
 
 ![Sequence diagram for ending a ride](diagrams/sequence-end-ride.png)
 

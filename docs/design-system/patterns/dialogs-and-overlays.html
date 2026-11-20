@@ -35,13 +35,11 @@
       <li><a href="../components/text-field.html">Text field</a></li>
       <li><a href="../components/form-field.html">Form field</a></li>
       <li><a href="../components/form-layout.html">Form layout</a></li>
-      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li>
-      <li><a href="../components/machine-card.html">Machine card</a></li>
-      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
+      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li><li><a href="../components/class-card.html">Class card and shelf</a></li><li><a href="../components/class-worlds.html">Class worlds</a></li><li><a href="../components/world-ride.html">World Ride HUD</a></li><li><a href="../components/level-row.html">Level row</a></li><li><a href="../components/session-traces.html">Session traces</a></li><li><a href="../components/dip-list.html">Dip list</a></li><li><a href="../components/week-strip.html">Week strip</a></li><li><a href="../components/stat-strip.html">Stat strip</a></li><li><a href="../components/best-chip.html">Personal-best chip and delta</a></li><li><a href="../components/trend-chart.html">Trend chart</a></li><li><a href="../components/session-list.html">Session list</a></li><li><a href="../components/streak-calendar.html">Streak calendar</a></li><li><a href="../components/achievement.html">Achievement badge</a></li>
       <li><a href="../components/slider.html">Slider</a></li>
       <li><a href="../components/number-stepper.html">Number stepper</a></li>
-      <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li>
-      <li><a href="../components/effort-row.html">Effort row</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
       <li><a href="../components/level-picker.html">Level picker</a></li>
       <li><a href="../components/app-bar.html">App bar</a></li>
       <li><a href="../components/lockup.html">Lockup</a></li>
@@ -95,7 +93,7 @@
 <p>Confirm with a <a href="../components/dialog.html">dialog</a> only when an action loses the ride (End, Replace). Show read-only detail (Diagnostics) in a dialog opened on request. When the bike state stops the ride use the <a href="../components/overlay-panel.html">overlay panel</a>, which keeps the bar and panel reachable. In Angular, dialogs are CDK Dialog; never hand-rolled.</p>
     </section>
     <section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
-<ul><li>End ride, Replace ride: dialog.</li><li>Diagnostics: read-only dialog.</li><li>Lost the bike, scanning, Bluetooth off, ended: overlay panel.</li><li>Editing anything: never a dialog with inline fields — navigate to setup.</li></ul>
+<ul><li>End ride, Replace ride: dialog.</li><li>Diagnostics: read-only dialog.</li><li>Lost the bike, connect your bike, Bluetooth off, ended: overlay panel.</li><li>Editing anything: never a dialog with inline fields — navigate to setup.</li></ul>
     </section>
     <section class="ds-section" id="structure"><h2><a href="#structure">Structure</a></h2>
 <div class="ds-example"><div class="ds-example__canvas "><div class="dialog dialog--static" role="dialog" aria-modal="false" aria-label="End this ride?"><div class="dialog__panel dialog__panel--sm"><div class="dialog__header"><div class="dialog__icon dialog__icon--danger" aria-hidden="true"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></div><div class="dialog__heading"><h3 class="dialog__title">End this ride?</h3><p class="dialog__desc">You're 7:07 into 12:40. Wattzup leaves the bike at level 18.</p></div><button class="btn btn--ghost btn--icon" type="button" aria-label="Close"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="dialog__body"></div><div class="dialog__footer"><button class="btn" type="button">Keep riding</button><button class="btn btn--danger" type="button">End ride</button></div></div></div></div><div class="ds-example__caption"><span>End this ride?</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="dialog dialog--static" role="dialog" aria-modal="false" aria-label="End this ride?"&gt;

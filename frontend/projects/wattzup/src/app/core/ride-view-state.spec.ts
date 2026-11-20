@@ -2,22 +2,13 @@ import { rideViewState } from './ride-view-state';
 import { testState, testWorkout } from './test-state';
 
 describe('rideViewState (L2-058)', () => {
-  it('1. a failed load wins', () => {
-    const v = rideViewState(testState(), 'open', true);
-    expect(v.view).toBe('load-failed');
-    expect(v.commandsEnabled).toBe(false);
-    expect(v.controlsNote).toBe('Controls return when Wattzup can read the bike again.');
-  });
-
   it('2. no state is loading with Pause and End disabled', () => {
-    const v = rideViewState(null, 'connecting', false);
+    const v = rideViewState(null);
     expect(v).toMatchObject({ view: 'loading', pauseEnabled: false, endEnabled: false });
   });
 
   it('3. adapter off shows the adapter-off overlay', () => {
-    expect(rideViewState(testState({ adapter: 'off', ble: 'error' }), 'open', false).overlay).toBe(
-      'adapter-off',
-    );
+    expect(rideViewState(testState({ adapter: 'off', ble: 'error' })).overlay).toBe('adapter-off');
   });
 
   it('4. a shut-off ride shows bike-shut-off', () => {
@@ -25,7 +16,16 @@ describe('rideViewState (L2-058)', () => {
       ble: 'scanning',
       workout: testWorkout({ status: 'ended: bike shut off' }),
     });
-    expect(rideViewState(s, 'open', false).overlay).toBe('bike-shut-off');
+    expect(rideViewState(s).overlay).toBe('bike-shut-off');
+  });
+
+  it('a plan ended and saved shows ride-complete; unsaved, nothing (L2-084)', () => {
+    const ended = (change: Parameters<typeof testWorkout>[0]) =>
+      testWorkout({ status: 'ended', ...change });
+    expect(
+      rideViewState(testState({ workout: ended({ session_id: 'abc123abc123' }) })).overlay,
+    ).toBe('ride-complete');
+    expect(rideViewState(testState({ workout: ended({}) })).overlay).toBeNull();
   });
 
   it('5. a disconnected ride is bike-lost, dimmed, End enabled', () => {
@@ -33,7 +33,7 @@ describe('rideViewState (L2-058)', () => {
       ble: 'scanning',
       workout: testWorkout({ status: 'paused: bike disconnected' }),
     });
-    expect(rideViewState(s, 'open', false)).toMatchObject({
+    expect(rideViewState(s)).toMatchObject({
       overlay: 'bike-lost',
       dimmed: true,
       endEnabled: true,
@@ -42,11 +42,22 @@ describe('rideViewState (L2-058)', () => {
   });
 
   it('6. scanning shows the scanning overlay', () => {
-    expect(rideViewState(testState({ ble: 'scanning' }), 'open', false).overlay).toBe('scanning');
+    expect(rideViewState(testState({ ble: 'scanning' })).overlay).toBe('scanning');
+  });
+
+  it('6a. no bike chosen yet shows Connect your bike (L2-090 AC1)', () => {
+    const s = testState({ ble: 'disconnected', device: null });
+    expect(rideViewState(s, true).overlay).toBe('connect-bike');
+    expect(rideViewState(s).overlay).toBeNull();
+  });
+
+  it('6b. Bluetooth off outranks Connect your bike', () => {
+    const s = testState({ adapter: 'off', ble: 'error' });
+    expect(rideViewState(s, true).overlay).toBe('adapter-off');
   });
 
   it('7. connected with no workout: no overlay, commands on, Pause and End off', () => {
-    expect(rideViewState(testState({ workout: null }), 'open', false)).toMatchObject({
+    expect(rideViewState(testState({ workout: null }))).toMatchObject({
       view: 'ride',
       overlay: null,
       commandsEnabled: true,
@@ -56,17 +67,8 @@ describe('rideViewState (L2-058)', () => {
     });
   });
 
-  it('disables commands and Pause while the stream is offline', () => {
-    expect(rideViewState(testState(), 'offline', false)).toMatchObject({
-      commandsEnabled: false,
-      pauseEnabled: false,
-      endEnabled: true,
-      dimmed: true,
-    });
-  });
-
   it('notes that controls wake up when the bike is not connected', () => {
-    expect(rideViewState(testState({ ble: 'connecting' }), 'open', false).controlsNote).toBe(
+    expect(rideViewState(testState({ ble: 'connecting' })).controlsNote).toBe(
       'Resistance controls wake up once the bike connects.',
     );
   });
@@ -78,66 +80,24 @@ describe('rideViewState (L2-058)', () => {
     ['ended', false],
     ['stopped', false],
   ] as const)('Pause/Resume enabled for %s: %s', (status, enabled) => {
-    expect(
-      rideViewState(testState({ workout: testWorkout({ status }) }), 'open', false).pauseEnabled,
-    ).toBe(enabled);
+    expect(rideViewState(testState({ workout: testWorkout({ status }) })).pauseEnabled).toBe(
+      enabled,
+    );
   });
-});
-
-describe('rideViewState on the treadmill (L2-071)', () => {
-  const treadmill = (status: Parameters<typeof testWorkout>[0], change = {}) =>
-    testState({ machine: 'treadmill', workout: testWorkout(status), ...change });
 
   it.each([
-    ['running', {}, true],
-    ['paused', {}, true],
-    ['paused: belt stopped', { belt: 'stopped' }, true],
-    ['starting belt', { belt: 'starting', belt_countdown: 2 }, false],
-    ['starting belt', { belt: 'starting' }, false],
-    ['running', { ble: 'disconnected' }, false],
-    ['running', { ble: 'scanning' }, false],
-  ] as const)('enables Pause under %s with %j: %s (L2-071 AC1)', (status, change, enabled) => {
-    const v = rideViewState(treadmill({ status }, change), 'open', false);
-    expect(v.pauseEnabled).toBe(enabled);
-  });
+    ['unsupported', 'browser-unsupported'],
+    ['insecure', 'browser-insecure'],
+  ] as const)(
+    'a browser that cannot reach Bluetooth (%s) wins over every other overlay (L2-089)',
+    (support, overlay) => {
+      const state = testState({ adapter: 'off', ble: 'disconnected', device: null });
+      expect(rideViewState(state, true, support).overlay).toBe(overlay);
+    },
+  );
 
-  it('keeps the bike Pause enabled while the bike is disconnected', () => {
-    const v = rideViewState(
-      testState({
-        ble: 'disconnected',
-        workout: testWorkout({ status: 'paused: bike disconnected' }),
-      }),
-      'open',
-      false,
-    );
-    expect(v.pauseEnabled).toBe(true);
-  });
-
-  it('shows the belt countdown while belt_countdown is set', () => {
-    const v = rideViewState(
-      treadmill({ status: 'starting belt' }, { belt: 'starting', belt_countdown: 2 }),
-      'open',
-      false,
-    );
-    expect(v.overlay).toBe('belt-countdown');
-  });
-
-  it('shows Starting the belt after the countdown', () => {
-    expect(
-      rideViewState(treadmill({ status: 'starting belt' }, { belt: 'starting' }), 'open', false)
-        .overlay,
-    ).toBe('belt-starting');
-  });
-
-  it('shows Belt stopped with Pause and Resume enabled', () => {
-    const v = rideViewState(treadmill({ status: 'paused: belt stopped' }), 'open', false);
-    expect(v).toMatchObject({ overlay: 'belt-stopped', pauseEnabled: true });
-  });
-
-  it('words the controls note for the treadmill', () => {
-    expect(
-      rideViewState(testState({ machine: 'treadmill', ble: 'scanning' }), 'open', false)
-        .controlsNote,
-    ).toBe('Speed and incline controls wake up once the treadmill connects.');
+  it('Bluetooth off wins over Connect bike (L2-089 AC2)', () => {
+    const state = testState({ adapter: 'off', ble: 'disconnected', device: null });
+    expect(rideViewState(state, true, 'ready').overlay).toBe('adapter-off');
   });
 });

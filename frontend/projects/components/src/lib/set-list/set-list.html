@@ -4,10 +4,8 @@
   [attr.aria-invalid]="error() ? 'true' : null"
   [attr.aria-describedby]="error() ? 'sets-error' : null"
 >
-  <ng-container
-    *ngTemplateOutlet="stretch; context: { $implicit: stretches().warmup }"
-  ></ng-container>
-  @for (row of rows(); track $index; let i = $index, first = $first, last = $last) {
+  <ng-container *ngTemplateOutlet="stretch; context: { $implicit: view().warmup }"></ng-container>
+  @for (row of view().sets; track $index; let i = $index, first = $first, last = $last) {
     <li class="set-row">
       <span class="set-row__head"
         ><b>Set {{ i + 1 }}</b></span
@@ -59,16 +57,14 @@
       </span>
     </li>
   }
-  <ng-container
-    *ngTemplateOutlet="stretch; context: { $implicit: stretches().cooldown }"
-  ></ng-container>
+  <ng-container *ngTemplateOutlet="stretch; context: { $implicit: view().cooldown }"></ng-container>
 </ol>
 <button
   class="btn set-list__add"
   type="button"
   id="add-set"
   data-focus="add"
-  [disabled]="disabled() || full()"
+  [disabled]="disabled() || view().full"
   (click)="add.emit()"
 >
   <wz-icon name="plus" size="sm" />Add set

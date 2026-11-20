@@ -35,13 +35,11 @@
       <li><a href="../components/text-field.html">Text field</a></li>
       <li><a href="../components/form-field.html">Form field</a></li>
       <li><a href="../components/form-layout.html">Form layout</a></li>
-      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li>
-      <li><a href="../components/machine-card.html">Machine card</a></li>
-      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
+      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li><li><a href="../components/class-card.html">Class card and shelf</a></li><li><a href="../components/class-worlds.html">Class worlds</a></li><li><a href="../components/world-ride.html">World Ride HUD</a></li><li><a href="../components/level-row.html">Level row</a></li><li><a href="../components/session-traces.html">Session traces</a></li><li><a href="../components/dip-list.html">Dip list</a></li><li><a href="../components/week-strip.html">Week strip</a></li><li><a href="../components/stat-strip.html">Stat strip</a></li><li><a href="../components/best-chip.html">Personal-best chip and delta</a></li><li><a href="../components/trend-chart.html">Trend chart</a></li><li><a href="../components/session-list.html">Session list</a></li><li><a href="../components/streak-calendar.html">Streak calendar</a></li><li><a href="../components/achievement.html">Achievement badge</a></li>
       <li><a href="../components/slider.html">Slider</a></li>
       <li><a href="../components/number-stepper.html">Number stepper</a></li>
-      <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li>
-      <li><a href="../components/effort-row.html">Effort row</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
       <li><a href="../components/level-picker.html">Level picker</a></li>
       <li><a href="../components/app-bar.html">App bar</a></li>
       <li><a href="../components/lockup.html">Lockup</a></li>
@@ -135,29 +133,6 @@
 &lt;/dd&gt;
 &lt;/div&gt;
 &lt;/dl&gt;</code></pre></details></div>
-    <h3>Treadmill</h3><div class="ds-example"><div class="ds-example__canvas "><dl class="metrics metrics--treadmill"><div><dt>Heart rate</dt><dd><span class="numeral is-heart">--</span><small>bpm</small></dd></div><div><dt>Distance</dt><dd><span class="numeral">0.92</span><small>km</small></dd></div><div><dt>Pace</dt><dd><span class="numeral">6:40</span><small>/km</small></dd></div></dl></div><div class="ds-example__caption"><span>Heart rate, distance and pace in three columns; no average power or energy (L2-071).</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;dl class=&quot;metrics metrics--treadmill&quot;&gt;
-&lt;div&gt;
-&lt;dt&gt;Heart rate&lt;/dt&gt;
-&lt;dd&gt;
-&lt;span class=&quot;numeral is-heart&quot;&gt;--&lt;/span&gt;
-&lt;small&gt;bpm&lt;/small&gt;
-&lt;/dd&gt;
-&lt;/div&gt;
-&lt;div&gt;
-&lt;dt&gt;Distance&lt;/dt&gt;
-&lt;dd&gt;
-&lt;span class=&quot;numeral&quot;&gt;0.92&lt;/span&gt;
-&lt;small&gt;km&lt;/small&gt;
-&lt;/dd&gt;
-&lt;/div&gt;
-&lt;div&gt;
-&lt;dt&gt;Pace&lt;/dt&gt;
-&lt;dd&gt;
-&lt;span class=&quot;numeral&quot;&gt;6:40&lt;/span&gt;
-&lt;small&gt;/km&lt;/small&gt;
-&lt;/dd&gt;
-&lt;/div&gt;
-&lt;/dl&gt;</code></pre></details></div>
     </section>
     <section class="ds-section" id="sizes" data-na="One size."><h2><a href="#sizes">Sizes</a></h2>
       <p class="ds-na">One size.</p>
@@ -184,10 +159,10 @@
 <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Part</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead><tbody><tr><td>Value</td><td><code>--font-size-numeral-sm</code></td><td colspan="2"><span data-token="--font-size-numeral-sm"></span></td></tr><tr><td>Heart</td><td><code>--color-fg-heart</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-fg-heart" data-swatch></i><span data-token="--color-fg-heart"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-fg-heart" data-swatch></i><span data-token="--color-fg-heart"></span></span></td></tr><tr><td>Unit</td><td><code>--color-fg-subtle</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-fg-subtle" data-swatch></i><span data-token="--color-fg-subtle"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-fg-subtle" data-swatch></i><span data-token="--color-fg-subtle"></span></span></td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
-<pre><code>&lt;dl class="metrics"&gt;&lt;div&gt;&lt;dt&gt;Heart rate&lt;/dt&gt;&lt;dd&gt;&lt;span class="numeral is-heart"&gt;156&lt;/span&gt;&lt;small&gt;bpm&lt;/small&gt;&lt;/dd&gt;&lt;/div&gt;&lt;d…</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.metrics</code></td><td>Grid of metrics.</td></tr><tr><td><code>.is-heart</code></td><td>Heart colour.</td></tr><tr><td><code>.metrics--treadmill</code></td><td>Three columns at every width: heart rate, distance, pace.</td></tr></tbody></table></div>
+<pre><code>&lt;dl class="metrics"&gt;&lt;div&gt;&lt;dt&gt;Heart rate&lt;/dt&gt;&lt;dd&gt;&lt;span class="numeral is-heart"&gt;156&lt;/span&gt;&lt;small&gt;bpm&lt;/small&gt;&lt;/dd&gt;&lt;/div&gt;&lt;d…</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.metrics</code></td><td>Grid of metrics.</td></tr><tr><td><code>.is-heart</code></td><td>Heart colour.</td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a> (metrics)</li><li><a href="../../mocks/pages/ride/edge.html">pages/ride/edge</a> (large values)</li><li><a href="../../mocks/pages/ride/treadmill.html">pages/ride/treadmill</a> (treadmill)</li></ul><p>Drift fixed during extraction: none.</p>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a> (metrics)</li><li><a href="../../mocks/pages/ride/edge.html">pages/ride/edge</a> (large values)</li></ul><p>Drift fixed during extraction: none.</p>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

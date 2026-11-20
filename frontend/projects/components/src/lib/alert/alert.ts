@@ -16,6 +16,8 @@ export class Alert {
   readonly text = input<string | null>(null);
   readonly banner = input(false);
   readonly actionLabel = input<string | null>(null);
+  /** Makes the action a link to this address instead of a button. */
+  readonly actionHref = input<string | null>(null);
   readonly dismissable = input(false);
   readonly action = output();
   readonly dismiss = output();

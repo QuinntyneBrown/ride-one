@@ -26,7 +26,7 @@ export class PowerTraceHistory {
     this.count = 0;
   }
 
-  /** Replaces the history with the samples from GET /api/workout/trace. */
+  /** Replaces the history with the samples from WORKOUT_API's trace. */
   restore(samples: readonly (readonly number[])[]): void {
     this.count = 0;
     const from = Math.max(0, samples.length - TRACE_CAPACITY);

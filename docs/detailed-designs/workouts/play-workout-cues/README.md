@@ -33,12 +33,12 @@ Pure helpers in `frontend/projects/wattzup/src/app/core/`, with unit tests:
 
 Services and components:
 
-- **`CueService`** (`projects/wattzup/src/app/core/cue.service.ts`, root-provided) — the only owner of the `AudioContext`.
+- **`CueService`** (`frontend/projects/wattzup/src/app/core/cue.service.ts`, root-provided) — the only owner of the `AudioContext`.
   - `enabled` is a signal, `false` at page load.
   - `toggle()` runs inside the click handler, so the browser allows audio. When off, it creates the `AudioContext`, sets `enabled`, plays `beep(880, 0.08)`, and shows the info toast `Beeps on` / `You'll hear a tone at each interval change and in the last 3 seconds.` (L2-053). When on, it closes the context and clears `enabled`; no toast is shown.
   - `beep(freq, seconds)` plays a sine oscillator with a gain envelope rising from 0.0001 to 0.3 in 10 ms and falling back to 0.0001 by `seconds`. It does nothing when disabled.
-- **`BeepsToggle`** (`src/app/dashboard/beeps-toggle/` in the first design, now the beeps button of `wz-app-bar` in `projects/components/src/lib/app-bar/`, selector `wz-beeps-toggle`) — the app bar icon button. Its accessible name is `Countdown beeps off` or `Countdown beeps on`, with `aria-pressed` bound to `enabled`, so the state is not carried by the icon alone (L2-027). It keeps the mock's `btn btn--quiet btn--icon` classes.
-- **`PhaseBanner`** (`projects/components/src/lib/phase-banner/`, selector `wz-phase-banner`, block `phase-banner`) — subscribes, through an `effect` on `LiveStateService.state()`, to `SegmentChangeDetector`. On a change it does the following:
+- **`BeepsToggle`** (`frontend/projects/wattzup/src/app/dashboard/beeps-toggle/`, selector `wz-beeps-toggle`) — the app bar icon button. Its accessible name is `Countdown beeps off` or `Countdown beeps on`, with `aria-pressed` bound to `enabled`, so the state is not carried by the icon alone (L2-027). It keeps the mock's `btn btn--quiet btn--icon` classes.
+- **`PhaseBanner`** (`frontend/projects/components/src/lib/phase-banner/`, selector `wz-phase-banner`, block `phase-banner`) — subscribes, through an `effect` on `LiveStateService.state()`, to `SegmentChangeDetector`. On a change it does the following:
   1. It shows the headline and, in `<small>`, the detail line for 1.8 s. The element is `aria-hidden`, as in the mocks. The modifier is `phase-banner--rest` for `rest`; `work` takes no modifier. `warmup` and `cooldown` are easy segments and take `phase-banner--rest`. `steady` is a flat plan's only segment, so it never causes a transition and needs no modifier.
   2. It writes `announcement(change)` to a visually hidden `role="status"` `aria-live="polite"` region.
   3. It calls `CueService.beep(990, 0.35)` for `work` and `beep(520, 0.35)` for any other kind (L2-027). The 520 Hz duration is not stated in L2-027 and follows the work tone.
@@ -48,7 +48,7 @@ With `prefers-reduced-motion: reduce`, the pulse and the banner animation are no
 
 ### Acceptance tests
 
-Playwright (`frontend/e2e/`), with `/api/**` answered by the shared fixture, `/api/events` served by the SSE fixture, and time controlled by `page.clock`. Tones are checked through a test double of `AudioContext` installed by the fixture with `page.addInitScript`, which records each oscillator's frequency and duration.
+Playwright (`frontend/e2e/`), with the fake `navigator.bluetooth` fixture driving the bike, and time controlled by `page.clock`. Tones are checked through a test double of `AudioContext` installed by the fixture with `page.addInitScript`, which records each oscillator's frequency and duration.
 
 - `e2e/pages/ride.page.ts` — the ride page object, which owns the beeps toggle, phase banner, live region and time-left locators.
 - `e2e/workout-cues.spec.ts`:
@@ -59,7 +59,7 @@ Playwright (`frontend/e2e/`), with `/api/**` answered by the shared fixture, `/a
   - `starts with beeps off and turns them on with a tone and a toast` (L2-027 AC4)
   - `plays no banner or tone for the first state of a running ride` (L2-027 AC5)
 
-Unit tests in `projects/wattzup/src/app/core/`: `segment-change-detector.spec.ts` (first state, unchanged, changed, to `null`, replaced ride), `cue-text.spec.ts` (one case per table row and per kind label), and `countdown-cue.spec.ts` (6 down to 0, running and not running).
+Unit tests in `frontend/projects/wattzup/src/app/core/`: `segment-change-detector.spec.ts` (first state, unchanged, changed, to `null`, replaced ride), `cue-text.spec.ts` (one case per table row and per kind label), and `countdown-cue.spec.ts` (6 down to 0, running and not running).
 
 ## Requirements
 

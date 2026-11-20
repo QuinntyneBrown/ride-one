@@ -23,11 +23,8 @@ Closes #
 - [ ] A behaviour change has a requirement, a detailed design and a mock.
 - [ ] Each acceptance test was written first and seen to fail for the expected reason.
 - [ ] The requirement, design, mock, tests and code agree.
-- [ ] The backend unit and acceptance tests pass, with no real bike or Bluetooth.
-- [ ] Frontend lint and format checks pass.
+- [ ] Lint, format and unit tests pass, with no real bike or Bluetooth.
 - [ ] The end-to-end type check and behaviour specs pass.
-- [ ] If the state contract or an endpoint's answer changed, the OpenAPI document, the generated
-      frontend types and the recorded e2e responses are updated.
 
 ## How it was tested
 

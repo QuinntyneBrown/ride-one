@@ -1,11 +1,11 @@
 // The Intervals draft's rules for the setup screen and its dialogs (L2-010 AC11-13, L2-029 AC11-15).
 import type { IntervalSet, IntervalsPlan } from '@wattzup/api';
+import type { SetListView } from '@wattzup/components';
 import { WARMUP_CADENCE, WORK_CADENCE, REST_CADENCE, COOLDOWN_CADENCE } from './plan-expansion';
 import { formatClock, parseClock, parseUnit } from './plan-form';
-import type { SetListView, StretchKind, StretchRow } from '@wattzup/components';
 
 export type IntervalPresetId = 'descending' | 'even';
-export type { StretchKind };
+export type StretchKind = 'warmup' | 'cooldown';
 
 /** A warm-up or cool-down; turning it off keeps its values for when it is turned on again. */
 export interface StretchDraft {
@@ -54,13 +54,13 @@ export const INTERVAL_PRESETS: readonly {
     id: 'descending',
     label: 'Descending recoveries',
     draft: {
-      warmup: { on: true, seconds: 300, level: 8, cadence: WARMUP_CADENCE },
+      warmup: { on: true, seconds: 300, level: 14, cadence: WARMUP_CADENCE },
       sets: [
-        set(1, 30, 28, 180, 8),
-        set(2, 30, 28, 150, 8),
-        set(2, 30, 28, 120, 8),
-        set(2, 30, 28, 90, 8),
-        set(1, 30, 28, 0, 8),
+        set(1, 30, 24, 180, 8),
+        set(2, 30, 24, 150, 8),
+        set(2, 30, 24, 120, 8),
+        set(2, 30, 24, 90, 8),
+        set(1, 30, 24, 0, 8),
       ],
       cooldown: { on: true, seconds: 360, level: 6, cadence: COOLDOWN_CADENCE },
     },
@@ -159,6 +159,22 @@ export function toIntervalsPlan(draft: IntervalsDraft): IntervalsPlan | null {
     warmup: stretch(draft.warmup),
     sets: draft.sets.map((s) => ({ ...s })),
     cooldown: stretch(draft.cooldown),
+  };
+}
+
+/** What the set list shows for a draft (L2-029 AC12). */
+export function setListView(draft: IntervalsDraft): SetListView {
+  const row = (kind: StretchKind) => ({
+    kind,
+    name: STRETCH_NAMES[kind],
+    line: stretchLine(draft[kind]),
+    on: draft[kind].on,
+  });
+  return {
+    sets: draft.sets.map((s) => setLines(s)),
+    warmup: row('warmup'),
+    cooldown: row('cooldown'),
+    full: draft.sets.length >= MAX_SETS,
   };
 }
 
@@ -363,20 +379,4 @@ export function stepStretchField(
   }
   const current = parseClock(fields.duration) ?? 60;
   return { ...fields, duration: formatClock(Math.min(1800, Math.max(60, current + dir * 30))) };
-}
-
-/** What the set list shows for a draft (L2-029 AC12). */
-export function setListView(d: IntervalsDraft): SetListView {
-  const row = (kind: StretchKind): StretchRow => ({
-    kind,
-    name: STRETCH_NAMES[kind],
-    line: stretchLine(d[kind]),
-    on: d[kind].on,
-  });
-  return {
-    warmup: row('warmup'),
-    cooldown: row('cooldown'),
-    sets: d.sets.map((s) => setLines(s)),
-    full: d.sets.length >= MAX_SETS,
-  };
 }

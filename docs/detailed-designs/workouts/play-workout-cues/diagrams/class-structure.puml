@@ -40,7 +40,7 @@ package "projects/wattzup/src/app/core" {
   }
 }
 
-package "projects/components/src/lib and projects/wattzup/src/app/dashboard" {
+package "projects/components/src/lib + projects/wattzup/src/app/dashboard" {
   class PhaseBanner <<component wz-phase-banner>> {
     +Signal<BannerText | null> text
     +Signal<'rest' | null> modifier

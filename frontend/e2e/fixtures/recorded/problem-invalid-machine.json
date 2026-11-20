@@ -1,8 +1,0 @@
-{
-  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
-  "title": "The machine is not valid.",
-  "status": 400,
-  "code": "invalid_machine",
-  "error": "machine must be bike or treadmill",
-  "trace_id": "00-774c095a7f6fa55ec5fff18c728dfe36-3769d7c02ce660c0-00"
-}

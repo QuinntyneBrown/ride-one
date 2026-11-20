@@ -4,24 +4,12 @@
 # Python caches (skill scripts)
 __pycache__/
 
-# Runtime output of the backend
-raw_packets.log
-raw_packets.log.*
-status.json
-server.log
-
-# .NET build output
-bin/
-obj/
-artifacts/
-# The dashboard build, copied in by `npm run build:api`
-backend/src/Wattzup.Api/wwwroot/
-TestResults/
-*.user
-.vs/
-
 # Node
 node_modules/
 
 # macOS
 .DS_Store
+
+# Video build intermediates (docs/videos/README.md)
+docs/videos/**/narration.wav
+docs/videos/**/*.partial.mp4

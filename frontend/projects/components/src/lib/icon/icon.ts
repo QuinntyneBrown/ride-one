@@ -10,6 +10,9 @@ export type IconName =
   | 'stop'
   | 'pause'
   | 'play'
+  | 'link'
+  | 'arrow-left'
+  | 'reset'
   | 'activity'
   | 'sliders'
   | 'close'
@@ -26,13 +29,20 @@ export type IconName =
   | 'key'
   | 'flag'
   | 'bike'
-  | 'treadmill'
-  | 'switch'
   | 'target'
   | 'edit'
   | 'chevron-up'
   | 'chevron-down'
-  | 'trash';
+  | 'trash'
+  | 'trophy'
+  | 'search'
+  | 'chevron-right'
+  | 'trending-up'
+  | 'grid'
+  | 'monitor-off'
+  | 'lock'
+  | 'download'
+  | 'upload';
 
 /** The mocks' stroke icons, always decorative (`aria-hidden`). */
 @Component({

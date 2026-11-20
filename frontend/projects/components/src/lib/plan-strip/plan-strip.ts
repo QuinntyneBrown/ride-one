@@ -7,6 +7,7 @@ export interface StripBar {
   tone: ProfileTone;
 }
 
+/** The plan as bars one unit per second, the playhead at the elapsed time, and its label. */
 export interface PlanStripView {
   total: number;
   bars: StripBar[];

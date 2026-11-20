@@ -1,0 +1,503 @@
+// A cyclist on a road bike, seen from the chase camera (L2-110): the rider's bike and the
+// simulated pacers are drawn from one kit. The bike points along -z; its rear axle is at +z.
+import {
+  CanvasTexture,
+  CapsuleGeometry,
+  CircleGeometry,
+  Color,
+  CylinderGeometry,
+  DoubleSide,
+  Group,
+  type Material,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  PlaneGeometry,
+  SphereGeometry,
+  SRGBColorSpace,
+  TorusGeometry,
+  Vector3,
+} from 'three/webgpu';
+
+const WHEEL = 0.34;
+const WHEELBASE = 0.5;
+/** The bottom bracket, the pedals' centre: just ahead of the middle, below the axles. */
+const BB = new Vector3(0, 0.3, 0.06);
+const CRANK = 0.17;
+const SEAT = new Vector3(0, 0.86, 0.24);
+const HEAD_TOP = new Vector3(0, 0.9, -0.36);
+const HEAD_BOTTOM = new Vector3(0, 0.76, -0.4);
+const HIP = new Vector3(0, 0.96, 0.22);
+const SHOULDER = new Vector3(0, 1.27, -0.27);
+const HANDS = new Vector3(0, 0.93, -0.5);
+const THIGH = 0.44;
+const SHIN = 0.44;
+const UPPER_ARM = 0.27;
+const FOREARM = 0.27;
+const UP = new Vector3(0, 1, 0);
+
+interface Limb {
+  readonly mesh: Mesh;
+  readonly length: number;
+}
+
+/** Geometry and materials shared by every cyclist in the scene. */
+export class CyclistKit {
+  private readonly tube = new CylinderGeometry(1, 1, 1, 8);
+  private readonly tyre = new TorusGeometry(WHEEL - 0.012, 0.016, 8, 40);
+  private readonly rim = new TorusGeometry(WHEEL - 0.04, 0.012, 6, 40);
+  private readonly disc = new CircleGeometry(WHEEL - 0.04, 32);
+  private readonly head = new SphereGeometry(0.09, 16, 12);
+  private readonly helmet = new SphereGeometry(0.13, 18, 10, 0, Math.PI * 2, 0, Math.PI / 1.65);
+  private readonly torso = new CapsuleGeometry(0.15, 0.3, 6, 12);
+  private readonly limbs = new Map<number, CapsuleGeometry>();
+  readonly rubber = new MeshStandardMaterial({ color: 0x18191c, roughness: 0.85 });
+  readonly metal = new MeshStandardMaterial({ color: 0xb8bcc2, metalness: 0.8, roughness: 0.3 });
+  readonly shorts = new MeshStandardMaterial({ color: 0x15161a, roughness: 0.75 });
+  readonly skin = new MeshStandardMaterial({ color: 0xc58c6a, roughness: 0.7 });
+  readonly shoe = new MeshStandardMaterial({ color: 0xf1f1ee, roughness: 0.5 });
+  readonly spokes = new MeshBasicMaterial({
+    color: 0x9aa0a6,
+    transparent: true,
+    opacity: 0.18,
+    depthWrite: false,
+    side: DoubleSide,
+  });
+
+  /** A soft dark ellipse on the road under each bike (technique 37). */
+  readonly contact = new MeshBasicMaterial({
+    alphaMap: contactTexture(),
+    transparent: true,
+    depthWrite: false,
+    color: 0x000000,
+    opacity: 0.55,
+  });
+  /** Thirty-two steel spokes laced from hub to rim, drawn as an alpha mask. */
+  readonly spokeLace = new MeshBasicMaterial({
+    color: 0x6f757c,
+    alphaMap: spokeTexture(),
+    alphaTest: 0.35,
+    side: DoubleSide,
+  });
+  readonly bottle = new MeshStandardMaterial({ color: 0x2f7bd0, roughness: 0.4 });
+  private readonly chainring = new TorusGeometry(0.1, 0.008, 6, 32);
+  private readonly bottleShape = new CylinderGeometry(0.034, 0.034, 0.2, 10);
+  private readonly contactPlane = new PlaneGeometry(1, 1);
+  private readonly bibPlane = new PlaneGeometry(0.21, 0.16);
+
+  /** The jersey's cut, tinted by each rider's colour: dark side panels and a pale hem band. */
+  private readonly kitTexture = jerseyTexture();
+  /** A road helmet's shell: vents running front to back over the crown. */
+  private readonly ventTexture = ventTexture();
+
+  constructor(private readonly frame: Material) {}
+
+  /** A rider in `jersey`, with race `number` pinned to their back, on a `frame` of their own. */
+  make(jersey: Color, number: number, frame: Material = this.frame): Cyclist {
+    const top = new MeshStandardMaterial({ color: jersey, roughness: 0.65, map: this.kitTexture });
+    const bib = new MeshStandardMaterial({ map: bibTexture(number), roughness: 0.8 });
+    const shell = new MeshStandardMaterial({
+      color: jersey,
+      map: this.ventTexture,
+      roughness: 0.35,
+    });
+    return new Cyclist(this, frame, top, bib, shell);
+  }
+
+  bibGeometry(): PlaneGeometry {
+    return this.bibPlane;
+  }
+
+  tubeGeometry(): CylinderGeometry {
+    return this.tube;
+  }
+
+  limb(radius: number, length: number): CapsuleGeometry {
+    const key = Math.round(radius * 1000) * 10000 + Math.round(length * 1000);
+    let geometry = this.limbs.get(key);
+    if (!geometry) {
+      geometry = new CapsuleGeometry(radius, length, 4, 10);
+      this.limbs.set(key, geometry);
+    }
+    return geometry;
+  }
+
+  contactGeometry(): PlaneGeometry {
+    return this.contactPlane;
+  }
+
+  parts(): {
+    tyre: TorusGeometry;
+    rim: TorusGeometry;
+    disc: CircleGeometry;
+    head: SphereGeometry;
+    helmet: SphereGeometry;
+    torso: CapsuleGeometry;
+    chainring: TorusGeometry;
+    bottle: CylinderGeometry;
+  } {
+    return {
+      chainring: this.chainring,
+      bottle: this.bottleShape,
+      tyre: this.tyre,
+      rim: this.rim,
+      disc: this.disc,
+      head: this.head,
+      helmet: this.helmet,
+      torso: this.torso,
+    };
+  }
+
+  dispose(): void {
+    for (const d of [this.tube, this.tyre, this.rim, this.disc, this.head, this.helmet])
+      d.dispose();
+    this.torso.dispose();
+    for (const g of this.limbs.values()) g.dispose();
+    this.kitTexture.dispose();
+    this.ventTexture.dispose();
+    this.contact.alphaMap?.dispose();
+    this.contact.dispose();
+    this.contactPlane.dispose();
+    this.bibPlane.dispose();
+    this.chainring.dispose();
+    this.bottleShape.dispose();
+    this.spokeLace.alphaMap?.dispose();
+    for (const m of [
+      this.spokeLace,
+      this.bottle,
+      this.rubber,
+      this.metal,
+      this.shorts,
+      this.skin,
+      this.shoe,
+      this.spokes,
+    ]) {
+      m.dispose();
+    }
+  }
+}
+
+export class Cyclist {
+  readonly group = new Group();
+  /** The discs that blur the spokes at speed (technique 34). */
+  readonly wheelBlur: Mesh[] = [];
+  private readonly legs: { thigh: Limb; shin: Limb; foot: Mesh; side: number }[] = [];
+  private readonly cranks: Mesh[] = [];
+  /** The contact shadow, shown from the tier that draws contact shadows. */
+  readonly contact: Mesh;
+
+  constructor(
+    private readonly kit: CyclistKit,
+    frame: Material,
+    readonly jersey: MeshStandardMaterial,
+    readonly bib: MeshStandardMaterial,
+    readonly shell: MeshStandardMaterial,
+  ) {
+    const parts = kit.parts();
+    this.contact = new Mesh(kit.contactGeometry(), kit.contact);
+    this.contact.rotation.x = -Math.PI / 2;
+    this.contact.scale.set(0.62, 2.3, 1);
+    this.contact.position.set(0.16, 0.012, -0.45);
+    this.contact.renderOrder = 1;
+    this.group.add(this.contact);
+    for (const z of [-WHEELBASE, WHEELBASE]) {
+      const tyre = new Mesh(parts.tyre, kit.rubber);
+      const rim = new Mesh(parts.rim, kit.metal);
+      const disc = new Mesh(parts.disc, kit.spokes);
+      const lace = new Mesh(parts.disc, kit.spokeLace);
+      for (const m of [tyre, rim, disc, lace]) {
+        m.rotation.y = Math.PI / 2;
+        m.position.set(0, WHEEL, z);
+        this.group.add(m);
+      }
+      tyre.castShadow = true;
+      this.wheelBlur.push(disc);
+    }
+    const front = new Vector3(0, WHEEL, -WHEELBASE);
+    const rear = new Vector3(0, WHEEL, WHEELBASE);
+    const tubes: [Vector3, Vector3, number][] = [
+      [BB, SEAT, 0.018],
+      [SEAT, HEAD_TOP, 0.016],
+      [BB, HEAD_BOTTOM, 0.022],
+      [HEAD_BOTTOM, HEAD_TOP, 0.02],
+      [HEAD_BOTTOM, front, 0.014],
+      [SEAT, SEAT.clone().add(new Vector3(0, 0.06, 0.02)), 0.012],
+      [HEAD_TOP, HANDS.clone().setY(HEAD_TOP.y + 0.03), 0.014],
+    ];
+    for (const x of [-0.045, 0.045]) {
+      tubes.push([BB.clone().setX(x), rear.clone().setX(x), 0.011]);
+      tubes.push([SEAT.clone().setX(x * 0.4), rear.clone().setX(x), 0.01]);
+    }
+    for (const [a, b, r] of tubes) this.group.add(this.stick(a, b, r, frame));
+    // The chainring on the drive side, and a bottle in its cage on the down tube.
+    const ring = new Mesh(parts.chainring, kit.metal);
+    ring.rotation.y = Math.PI / 2;
+    ring.position.copy(BB).setX(0.055);
+    const bottle = new Mesh(parts.bottle, kit.bottle);
+    const down = HEAD_BOTTOM.clone().sub(BB);
+    bottle.position
+      .copy(BB)
+      .addScaledVector(down, 0.45)
+      .add(new Vector3(0, 0.035, 0.02));
+    bottle.quaternion.setFromUnitVectors(UP, down.normalize());
+    this.group.add(ring, bottle);
+    // Drop bars: the tops across, and each drop curling down and back.
+    const bar = HANDS.clone().setY(HEAD_TOP.y + 0.03);
+    this.group.add(this.stick(bar.clone().setX(-0.21), bar.clone().setX(0.21), 0.012, frame));
+    for (const x of [-0.21, 0.21]) {
+      const hood = bar
+        .clone()
+        .setX(x)
+        .add(new Vector3(0, 0, -0.06));
+      this.group.add(this.stick(bar.clone().setX(x), hood, 0.012, frame));
+      this.group.add(this.stick(hood, hood.clone().add(new Vector3(0, -0.13, 0.05)), 0.012, frame));
+    }
+    const saddle = this.stick(
+      SEAT.clone().add(new Vector3(0, 0.07, 0.1)),
+      SEAT.clone().add(new Vector3(0, 0.07, -0.14)),
+      0.035,
+      kit.rubber,
+    );
+    saddle.scale.x *= 1.6;
+    this.group.add(saddle);
+    for (let i = 0; i < 2; i++) {
+      const crank = this.stick(BB, BB, 0.014, kit.metal);
+      this.cranks.push(crank);
+      this.group.add(crank);
+    }
+
+    // The rider: hips on the saddle, back bent towards the bars.
+    const torso = new Mesh(parts.torso, jersey);
+    torso.position.copy(HIP).lerp(SHOULDER, 0.5);
+    torso.quaternion.setFromUnitVectors(UP, SHOULDER.clone().sub(HIP).normalize());
+    torso.scale.set(1.15, 1, 0.85);
+    torso.castShadow = true;
+    this.group.add(torso);
+    // The race number, pinned low on the back.
+    const along = SHOULDER.clone().sub(HIP).normalize();
+    const back = new Vector3(0, -along.z, along.y);
+    const number = new Mesh(kit.bibGeometry(), bib);
+    number.position.copy(torso.position).addScaledVector(along, -0.07).addScaledVector(back, 0.135);
+    number.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), back);
+    this.group.add(number);
+    const seatPad = new Mesh(kit.limb(0.1, 0.1), kit.shorts);
+    seatPad.position.copy(HIP).add(new Vector3(0, 0.02, 0.04));
+    seatPad.rotation.z = Math.PI / 2;
+    seatPad.scale.set(1, 1, 0.9);
+    this.group.add(seatPad);
+    const head = new Mesh(parts.head, kit.skin);
+    const neck = SHOULDER.clone().add(new Vector3(0, 0.14, -0.1));
+    head.position.copy(neck);
+    const helmet = new Mesh(parts.helmet, shell);
+    helmet.position.copy(neck).add(new Vector3(0, 0.01, 0.015));
+    helmet.scale.set(1, 0.85, 1.3);
+    helmet.rotation.x = -0.25;
+    head.castShadow = helmet.castShadow = true;
+    this.group.add(head, helmet);
+    for (const side of [-1, 1]) {
+      const shoulder = SHOULDER.clone().setX(side * 0.19);
+      // Hands on the hoods, elbows bent out and down.
+      const hand = new Vector3(side * 0.21, HEAD_TOP.y + 0.04, HANDS.z - 0.06);
+      const elbow = bend(shoulder, hand, UPPER_ARM, FOREARM, new Vector3(side * 0.7, -0.45, 0.25));
+      const upper = this.limbMesh(0.05, UPPER_ARM, jersey);
+      const fore = this.limbMesh(0.04, FOREARM, kit.skin);
+      place(upper, shoulder, elbow);
+      place(fore, elbow, hand);
+      this.group.add(upper.mesh, fore.mesh);
+      const thigh = this.limbMesh(0.075, THIGH, kit.shorts);
+      const shin = this.limbMesh(0.055, SHIN, kit.skin);
+      // White race socks to mid-calf, carried on the shin.
+      const sock = new Mesh(kit.tubeGeometry(), kit.shoe);
+      sock.scale.set(0.06, 0.13, 0.06);
+      sock.position.y = SHIN / 2 - 0.1;
+      shin.mesh.add(sock);
+      const foot = new Mesh(kit.limb(0.04, 0.12), kit.shoe);
+      foot.rotation.x = Math.PI / 2;
+      this.group.add(thigh.mesh, shin.mesh, foot);
+      this.legs.push({ thigh, shin, foot, side });
+    }
+    this.pose(0);
+  }
+
+  /** Turns the cranks to `angle` radians and moves the legs with them. */
+  pose(angle: number): void {
+    // The bike rocks a little under each pedal stroke, about where the tyres meet the road.
+    this.group.rotation.z = Math.sin(angle) * 0.03;
+    this.legs.forEach((leg, i) => {
+      const a = angle + i * Math.PI;
+      const pedal = new Vector3(
+        leg.side * 0.1,
+        BB.y - Math.cos(a) * CRANK,
+        BB.z - Math.sin(a) * CRANK,
+      );
+      const crank = this.cranks[i]!;
+      place({ mesh: crank, length: CRANK }, BB.clone().setX(leg.side * 0.07), pedal, true);
+      const hip = HIP.clone().setX(leg.side * 0.1);
+      const ankle = pedal.clone().add(new Vector3(0, 0.06, 0.03));
+      const knee = bend(hip, ankle, THIGH, SHIN, new Vector3(leg.side * 0.08, 0.3, -1));
+      place(leg.thigh, hip, knee);
+      place(leg.shin, knee, ankle);
+      leg.foot.position.copy(pedal).add(new Vector3(0, 0.03, -0.02));
+    });
+  }
+
+  private stick(a: Vector3, b: Vector3, radius: number, material: Material): Mesh {
+    const mesh = new Mesh(this.kit.tubeGeometry(), material);
+    mesh.scale.set(radius, Math.max(a.distanceTo(b), 0.001), radius);
+    mesh.position.copy(a).lerp(b, 0.5);
+    if (a.distanceTo(b) > 0) {
+      mesh.quaternion.setFromUnitVectors(UP, b.clone().sub(a).normalize());
+    }
+    mesh.castShadow = true;
+    return mesh;
+  }
+
+  private limbMesh(radius: number, length: number, material: Material): Limb {
+    const mesh = new Mesh(this.kit.limb(radius, length - 2 * radius), material);
+    mesh.castShadow = true;
+    return { mesh, length };
+  }
+}
+
+/** A race number: black digits on white cloth, with a safety pin at each corner. */
+function bibTexture(n: number): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#f4f4f0';
+    ctx.fillRect(0, 0, 128, 96);
+    ctx.fillStyle = '#16171a';
+    ctx.font = 'bold 64px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(n), 64, 52);
+    ctx.fillStyle = '#9aa0a6';
+    for (const [x, y] of [
+      [8, 8],
+      [120, 8],
+      [8, 88],
+      [120, 88],
+    ]) {
+      ctx.fillRect(x - 3, y - 2, 6, 4);
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Spokes for a wheel disc: thirty-two lines from the hub to the rim, crossing in pairs. */
+function spokeTexture(): CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, size, size);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    const c = size / 2;
+    for (let i = 0; i < 32; i++) {
+      const a = (i / 32) * Math.PI * 2;
+      // Each spoke leaves the hub flange tangentially, as a laced wheel's do.
+      const hub = a + (i % 2 ? 0.5 : -0.5);
+      ctx.beginPath();
+      ctx.moveTo(c + Math.cos(hub) * 10, c + Math.sin(hub) * 10);
+      ctx.lineTo(c + Math.cos(a) * c, c + Math.sin(a) * c);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(c, c, 12, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return new CanvasTexture(canvas);
+}
+
+function ventTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 256, 128);
+    ctx.fillStyle = '#26282c';
+    for (let k = 0; k < 10; k++) {
+      const x = ((k + 0.5) / 10) * 256;
+      ctx.beginPath();
+      ctx.roundRect(x - 5, 18, 10, 70, 5);
+      ctx.fill();
+    }
+    // A dark rim where the shell meets the liner.
+    ctx.fillRect(0, 116, 256, 12);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function contactTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createRadialGradient(32, 32, 2, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.5, 'rgba(255,255,255,0.55)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 64, 64);
+  }
+  return new CanvasTexture(canvas);
+}
+
+function jerseyTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 128, 64);
+    ctx.fillStyle = '#3a3d44';
+    ctx.fillRect(56, 0, 16, 64);
+    ctx.fillRect(0, 0, 8, 64);
+    ctx.fillRect(120, 0, 8, 64);
+    ctx.fillStyle = '#d9dade';
+    ctx.fillRect(0, 50, 128, 6);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Puts a limb (or a unit tube, `stretch`) between two points. */
+function place(limb: Limb, a: Vector3, b: Vector3, stretch = false): void {
+  limb.mesh.position.copy(a).lerp(b, 0.5);
+  const d = b.clone().sub(a);
+  if (stretch) limb.mesh.scale.set(0.014, Math.max(d.length(), 0.001), 0.014);
+  if (d.lengthSq() > 0) limb.mesh.quaternion.setFromUnitVectors(UP, d.normalize());
+}
+
+/**
+ * The middle joint of a two-bone limb from `a` to `c` (a knee, an elbow), bent towards `hint`
+ * by the law of cosines. A reach too long straightens the limb.
+ */
+function bend(a: Vector3, c: Vector3, upper: number, lower: number, hint: Vector3): Vector3 {
+  const ac = c.clone().sub(a);
+  const d = Math.min(ac.length(), upper + lower - 1e-4);
+  const along = (upper * upper - lower * lower + d * d) / (2 * d);
+  const out = Math.sqrt(Math.max(upper * upper - along * along, 0));
+  const dir = ac.normalize();
+  const side = hint
+    .clone()
+    .sub(dir.clone().multiplyScalar(hint.dot(dir)))
+    .normalize();
+  return a.clone().add(dir.multiplyScalar(along)).add(side.multiplyScalar(out));
+}

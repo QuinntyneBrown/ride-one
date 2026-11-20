@@ -27,4 +27,4 @@ Pause and resume are endpoints (L2-046). A flat block may last up to 180 minutes
   helper in `frontend/src/app/core/` is tested against the same table.
 - The 90-second shut-off and the 5-second resend rules are kept unchanged.
 
-> **Note (2026-11-17):** the frontend paths named here moved with [ADR 0013](0013-angular-workspace-with-libraries.md): services and helpers that were in `frontend/src/app/core/` are now in `frontend/projects/wattzup/src/app/core/`, display formatting in `frontend/projects/components/src/lib/format/`. The decision is unchanged.
+> **Note (2026-11-17):** `frontend/src/app/core/` is now `frontend/projects/wattzup/src/app/core/`; the frontend became a workspace of three projects with ADR 0013. The decision above is unchanged.

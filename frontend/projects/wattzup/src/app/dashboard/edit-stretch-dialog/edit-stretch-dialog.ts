@@ -11,8 +11,7 @@ import {
   toStretch,
   validateStretch,
 } from '../../core/intervals-form';
-import { Dialog } from '@wattzup/components';
-import { Slider, NumberStepper } from '@wattzup/components';
+import { Dialog, Slider, NumberStepper } from '@wattzup/components';
 
 const DESCRIPTIONS = {
   warmup: 'An easy start before the first effort. 1:00 to 30:00.',

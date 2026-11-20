@@ -13,14 +13,32 @@ export const routes: Routes = [
     loadComponent: () => import('./dashboard/setup-page/setup-page').then((m) => m.SetupPage),
   },
   {
-    path: 'machine',
-    title: 'Choose machine · Wattzup',
-    loadComponent: () => import('./dashboard/machine-page/machine-page').then((m) => m.MachinePage),
+    path: 'classes',
+    title: 'Ride a class · Wattzup',
+    loadComponent: () =>
+      import('./dashboard/class-library-page/class-library-page').then((m) => m.ClassLibraryPage),
   },
   {
-    path: 'unlock',
-    title: 'Unlock · Wattzup',
-    loadComponent: () => import('./dashboard/unlock-page/unlock-page').then((m) => m.UnlockPage),
+    path: 'classes/:id/world',
+    title: 'World Ride · Wattzup',
+    loadComponent: () =>
+      import('./dashboard/world-ride-page/world-ride-page').then((m) => m.WorldRidePage),
+  },
+  {
+    path: 'classes/:id',
+    title: 'Class · Wattzup',
+    loadComponent: () => import('./dashboard/class-page/class-page').then((m) => m.ClassPage),
+  },
+  {
+    path: 'sessions/:id',
+    title: 'Your ride · Wattzup',
+    loadComponent: () => import('./dashboard/session-page/session-page').then((m) => m.SessionPage),
+  },
+  {
+    path: 'progress',
+    title: 'Progress · Wattzup',
+    loadComponent: () =>
+      import('./dashboard/progress-page/progress-page').then((m) => m.ProgressPage),
   },
   {
     path: '**',

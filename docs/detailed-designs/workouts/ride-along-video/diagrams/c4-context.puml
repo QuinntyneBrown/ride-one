@@ -3,12 +3,12 @@
 LAYOUT_WITH_LEGEND()
 title System Context — Ride along to a video
 
-Person(rider, "Rider", "Sets up a ride with a video and rides along to it")
-System(wattzup, "Wattzup", "Drives the Echelon machine, runs the workout and shows the dashboard")
-System_Ext(youtube, "YouTube", "Serves the embedded player and the video")
-System_Ext(machine, "Echelon bike or treadmill", "Proprietary BLE GATT service")
+Person(rider, "Rider", "Rides the bike and watches Wattzup")
+System(wattzup, "Wattzup", "Angular app running in Chrome or Edge; no server")
+System_Ext(bike, "Echelon bike", "Indoor bike exposing a proprietary BLE GATT service")
+System_Ext(youtube, "YouTube", "Player and thumbnails")
 
-Rel(rider, wattzup, "Pastes a link, sets the start point, rides", "Browser")
-Rel(wattzup, machine, "Sets resistance or speed and incline", "BLE")
-Rel(rider, youtube, "Watches the video in the embedded player", "Browser, HTTPS")
+Rel(rider, wattzup, "Uses", "Browser")
+Rel(wattzup, bike, "Notifications and commands", "Web Bluetooth GATT")
+Rel(wattzup, youtube, "Embeds the player; loads covers", "HTTPS")
 @enduml

@@ -3,7 +3,8 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "schematicCollections": ["angular-eslint"]
+    "schematicCollections": ["angular-eslint"],
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -29,6 +30,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "projects/wattzup/src",
+                "output": "/"
               }
             ],
             "styles": [
@@ -38,7 +44,8 @@
             ],
             "stylePreprocessorOptions": {
               "includePaths": ["projects/components/src/styles"]
-            }
+            },
+            "serviceWorker": "ngsw-config.json"
           },
           "configurations": {
             "production": {
@@ -82,10 +89,7 @@
               "buildTarget": "wattzup:build:development"
             }
           },
-          "defaultConfiguration": "development",
-          "options": {
-            "proxyConfig": "proxy.conf.json"
-          }
+          "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular/build:unit-test",
@@ -96,7 +100,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["projects/wattzup/**/*.ts", "projects/wattzup/**/*.html"]
+            "lintFilePatterns": ["projects/wattzup/src/**/*.ts", "projects/wattzup/src/**/*.html"]
           }
         }
       }
@@ -107,29 +111,31 @@
       "sourceRoot": "projects/api/src",
       "prefix": "wz",
       "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/api/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/api/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/api/**/*.ts", "projects/api/**/*.html"]
+          }
+        }
+      }
+    },
+    "browser": {
+      "projectType": "library",
+      "root": "projects/browser",
+      "sourceRoot": "projects/browser/src",
+      "prefix": "wz",
+      "architect": {
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "projects/api/tsconfig.spec.json"
+            "buildTarget": "wattzup:build:development",
+            "tsConfig": "projects/browser/tsconfig.spec.json"
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["projects/api/**/*.ts", "projects/api/**/*.html"],
-            "eslintConfig": "projects/api/eslint.config.js"
+            "lintFilePatterns": ["projects/browser/**/*.ts", "projects/browser/**/*.html"]
           }
         }
       }
@@ -140,29 +146,17 @@
       "sourceRoot": "projects/components/src",
       "prefix": "wz",
       "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/components/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/components/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
+            "buildTarget": "wattzup:build:development",
             "tsConfig": "projects/components/tsconfig.spec.json"
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["projects/components/**/*.ts", "projects/components/**/*.html"],
-            "eslintConfig": "projects/components/eslint.config.js"
+            "lintFilePatterns": ["projects/components/**/*.ts", "projects/components/**/*.html"]
           }
         }
       }

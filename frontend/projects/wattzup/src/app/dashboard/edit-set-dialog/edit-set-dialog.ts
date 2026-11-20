@@ -11,8 +11,7 @@ import {
   toSetDraft,
   validateSet,
 } from '../../core/intervals-form';
-import { Dialog } from '@wattzup/components';
-import { Slider, NumberStepper } from '@wattzup/components';
+import { Dialog, Slider, NumberStepper } from '@wattzup/components';
 
 /** Edit set <i> or Add set: the set's times, levels and cadence aims (L2-029 AC13, AC15). */
 @Component({

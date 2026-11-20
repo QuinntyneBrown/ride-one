@@ -446,24 +446,6 @@
       ]
     },
     {
-      "fg": "--color-selected-border",
-      "bg": "--color-bg-subtle",
-      "min": 3,
-      "note": "chosen machine option's edge on the segmented track (L2-072)"
-    },
-    {
-      "fg": "--color-fg-accent",
-      "bg": "--color-selected-bg",
-      "min": 3,
-      "note": "radio dot in the chosen machine option"
-    },
-    {
-      "fg": "--color-border-strong",
-      "bg": "--color-bg-subtle",
-      "min": 1.4,
-      "note": "unchecked radio ring in a machine option (decorative; the label and the checked dot carry the state)"
-    },
-    {
       "fg": "--color-video-fg",
       "bg": "--color-video-bg",
       "min": 4.5,
@@ -474,6 +456,42 @@
       "bg": "--color-video-scrim",
       "min": 4.5,
       "note": "text over the video scrim (L2-076)"
+    },
+    {
+      "fg": "--color-series-dip",
+      "bg": "--color-bg-canvas",
+      "min": 3,
+      "note": "cadence dip band on the session traces (L2-085)"
+    },
+    {
+      "fg": "--color-series-dip",
+      "bg": "--color-bg-surface",
+      "min": 3,
+      "note": "Under target key swatch (L2-085)"
+    },
+    {
+      "fg": "--color-fg-on-volt",
+      "bg": "--color-volt-fill",
+      "min": 4.5,
+      "note": "personal-best chip and unlocked achievement badge (L2-085, L2-086)"
+    },
+    {
+      "fg": "--color-fg-default",
+      "bg": "--color-bg-hud",
+      "min": 4.5,
+      "note": "World Ride HUD text and numerals (worst case over a white or black photo: 13.9:1 dark, 14.3:1 light)"
+    },
+    {
+      "fg": "--color-fg-muted",
+      "bg": "--color-bg-hud",
+      "min": 4.5,
+      "note": "World Ride HUD labels and units (worst case 4.9:1 dark, 5.4:1 light)"
+    },
+    {
+      "fg": "--color-fg-accent",
+      "bg": "--color-bg-hud",
+      "min": 4.5,
+      "note": "World Ride delta to target (worst case 13.5:1 dark, 4.65:1 light)"
     }
   ]
 }

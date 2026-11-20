@@ -6,23 +6,23 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "LiveStateService" as live
   participant "CommandLog" as log
   participant "CommandFeedbackService" as fb
   participant "ToastService" as toast
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "EventsEndpoints" as sse
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserStateSource" as src
 end box
 
-sse -> live : data: commands [{RES 22, manual, sending}, ...]
+src -> live : state commands [{RES 22, manual, sending}, ...]
 live -> log : state() changes
 log --> rider : 7:05 RES 22 · manual — sending [L2-048]
 live -> fb : effect(commands)
 fb -> fb : new manual entry sending: start 5 s timer
 alt acknowledged within 5 s
-  sse -> live : data: commands [{RES 22, manual, ack, ack_ms 38}, ...]
+  src -> live : state commands [{RES 22, manual, ack, ack_ms 38}, ...]
   live -> log : state() changes
   log --> rider : 7:05 RES 22 · manual — ack 38ms
   live -> fb : effect(commands)
@@ -30,7 +30,7 @@ alt acknowledged within 5 s
   fb -> toast : success "Resistance set to 22" / "<device_label> confirmed level 22 in 38 ms." [L2-048]
 else still sending after 5 s
   fb -> toast : warning "Bike is slow to confirm" (stays) [L2-048]
-  sse -> live : data: commands [{RES 22, manual, ack, ack_ms 6120}, ...]
+  src -> live : state commands [{RES 22, manual, ack, ack_ms 6120}, ...]
   live -> fb : effect(commands)
   fb -> toast : dismiss the warning toast
   fb -> toast : success "Resistance set to 22" / "... in 6120 ms."

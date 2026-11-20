@@ -3,12 +3,14 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Start and stop a workout
 
-Person(rider, "Rider", "Rides the bike and watches the dashboard")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular SPA", "Dashboard, countdown and controls in the browser")
-  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Setup, ride controls, workout contract and engine")
+  Container(webbt, "Web Bluetooth stack", "navigator.bluetooth", "GATT client")
 }
+System_Ext(bike, "Echelon bike", "BLE GATT")
 
-Rel(rider, web, "Uses", "HTTPS / localhost")
-Rel(web, api, "Calls REST and subscribes to SSE", "JSON/HTTP")
+Rel(rider, app, "Uses")
+Rel(app, webbt, "connect, notify, write")
+Rel(webbt, bike, "GATT", "BLE")
 @enduml

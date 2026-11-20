@@ -6,43 +6,36 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "RideControls" as ctl
-  participant "WorkoutApi" as api
   participant "LiveStateService" as live
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "WorkoutEndpoints" as ep
-end box
-box "Backend — Wattzup Core" #ECFDF3
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserWorkoutApi\n(WORKOUT_API)" as api
   participant "WorkoutEngine" as engine
   participant "BikeStateStore" as store
 end box
 
 rider -> ctl : Press Pause (status "running")
 ctl -> api : pause()
-api -> ep : POST /api/workout/pause
-ep -> engine : PauseAsync()
+api -> engine : pause()
 alt no active workout
-  engine --> ep : HadActiveWorkout = false
-  ep --> api : 409 ProblemDetails {code:"no_active_workout"} [L2-017]
+  engine --> api : null
+  api --> ctl : ContractError no_active_workout [L2-017]
 else active
-  engine -> engine : PausedByRider = true; status "paused"; ride clock frozen; nothing sent [L2-046]
-  engine -> store : Update(workout), broadcast
-  ep --> api : 200 {"workout": <workout>}
-  store -> live : data: workout.status "paused"
+  engine -> engine : paused by rider; status "paused"; ride clock frozen; nothing sent [L2-046]
+  engine -> store : update(workout)
+  store -> live : workout.status "paused"
   live -> ctl : state() changes
   ctl --> rider : Resume button, "Paused" badge [L2-046]
 end
 rider -> ctl : Press Resume
 ctl -> api : resume()
-api -> ep : POST /api/workout/resume
-ep -> engine : ResumeAsync()
+api -> engine : resume()
 alt bike connected
   engine -> engine : status "running"; next tick counts from the same point; plan level sent again [L2-046]
 else not connected
   engine -> engine : status "waiting for bike" or "paused: bike disconnected" [L2-046]
 end
-engine -> store : Update(workout), broadcast
-ep --> api : 200 {"workout": <workout>}
+engine -> store : update(workout)
 @enduml

@@ -1,6 +1,6 @@
 # 0010. The treadmill follows the Run design: the Stride's limits, estimates, and a machine page
 
-- **Status:** Accepted, amended by [0011](0011-treadmill-behind-a-flag.md) (treadmill support off by default)
+- **Status:** Superseded by [0016](0016-bike-only.md) (bike only); previously amended by [0011](0011-treadmill-behind-a-flag.md)
 - **Date:** 2026-11-16
 - **Amends:** [0009](0009-treadmill-as-a-second-machine.md)
 

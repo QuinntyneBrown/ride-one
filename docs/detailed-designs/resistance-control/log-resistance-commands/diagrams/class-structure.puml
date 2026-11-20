@@ -11,70 +11,61 @@ skinparam class {
 }
 title Class structure — Log resistance commands
 
-package "Wattzup.Core" {
-  class CommandEntry <<record>> {
-    +double At
-    +int? RideSeconds
-    +int Level
-    +CommandSource Source
-    +CommandStatus Status
-    +int? AckMs
-    ~long WrittenTimestamp
+package "@wattzup/api" {
+  interface CommandEntry {
+    +at: number
+    +ride_seconds: number | null
+    +level: number
+    +source: 'plan' | 'manual'
+    +status: 'sending' | 'ack' | 'failed'
+    +ack_ms: number | null
   }
-  enum CommandSource {
-    Plan
-    Manual
-  }
-  enum CommandStatus {
-    Sending
-    Ack
-    Failed
-  }
-  class CommandLog <<static>> {
-    +const int Capacity = 5
-    +Add(log: ImmutableArray<CommandEntry>, entry: CommandEntry): ImmutableArray<CommandEntry>
-    +Fail(log, entry: CommandEntry): ImmutableArray<CommandEntry>
-    +Acknowledge(log, level: int, now: long): ImmutableArray<CommandEntry>
-  }
-  class ResistanceCommander {
-    -ActiveConnectionRegistry registry
-    -BikeStateStore store
-    -TimeProvider time
-    +SendAsync(level: int, source: CommandSource, ct): Task<SendResult>
-  }
-  class TelemetryIngestor {
-    -BikeStateStore store
-    -TimeProvider time
-    +OnNotify(frame: ReadOnlyMemory<byte>): void
-  }
-  class BikeState <<record>> {
-    +ImmutableArray<CommandEntry> Commands
-    +string ConnectionId
+  interface BikeState {
+    +commands: CommandEntry[]
+    +connection_id: string
   }
 }
 
-package "frontend" {
+package "@wattzup/browser lib/engine" {
+  class "command-log" as CommandLogFns <<module>> {
+    +CAPACITY = 5
+    +add(log, entry): CommandEntry[]
+    +fail(log, entry): CommandEntry[]
+    +acknowledge(log, level, nowMs): CommandEntry[]
+  }
+  class ResistanceCommander {
+    -store: BikeStateStore
+    -link: BikeLink
+    -clock: Clock
+    +send(level, source, rideSeconds): Promise<SendResult>
+  }
+  class TelemetryIngestor {
+    -store: BikeStateStore
+    -clock: Clock
+    +onNotify(frame: Uint8Array): void
+  }
+}
+
+package "wattzup app and components" {
   class CommandLog <<component>> {
-    +Signal<CommandEntry[]> entries
-    +Signal<string> connectionId
+    +entries: Signal<CommandEntry[]>
+    +connectionId: Signal<string>
   }
   class "command-log-view.ts" as view <<pure>> {
     +formatRideTime(seconds: number): string
     +statusText(entry: CommandEntry): string
   }
   class CommandFeedbackService <<service>> {
-    -Map<number, Timer> slowTimers
+    -slowTimers: Map<number, Timer>
     -onCommands(entries: CommandEntry[]): void
   }
 }
 
-CommandEntry --> CommandSource
-CommandEntry --> CommandStatus
-CommandLog ..> CommandEntry : transforms
-ResistanceCommander ..> CommandLog : Add, Fail
-TelemetryIngestor ..> CommandLog : Acknowledge
+CommandLogFns ..> CommandEntry : transforms
+ResistanceCommander ..> CommandLogFns : add, fail
+TelemetryIngestor ..> CommandLogFns : acknowledge
 BikeState "1" *-- "0..5" CommandEntry
 CommandLog ..> view
-CommandLog ..> BikeState : reads over SSE
-CommandFeedbackService ..> BikeState : reads over SSE
+CommandLog ..> BikeState : reads the live state
+CommandFeedbackService ..> BikeState : reads the live state
 @enduml

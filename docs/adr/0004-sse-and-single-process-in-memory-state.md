@@ -1,6 +1,6 @@
 # 0004. Server-Sent Events and single-process in-memory state
 
-- **Status:** Accepted
+- **Status:** Superseded by [0019](0019-no-backend.md) (no backend); previously amended by [0015](0015-sessions-kept-in-a-file.md) and [0017](0017-browser-edition.md)
 - **Date:** 2026-11-15
 
 ## Context

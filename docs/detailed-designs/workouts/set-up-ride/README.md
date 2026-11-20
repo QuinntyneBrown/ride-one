@@ -8,19 +8,19 @@ Before a ride the rider opens the setup screen at `/setup`, picks HIIT intervals
 
 **preset** — named set of Rounds, Work and Recover values for a HIIT plan: Tabata 8 × 0:20 / 0:10, 40 / 20 8 × 0:40 / 0:20, Minute on 10 × 1:00 / 1:00, Long climbs 4 × 4:00 / 2:00
 
-**ride preview** — values derived from the plan draft by the same plan expansion as the backend (L2-045): total time, profile, structure, time under load, peak resistance, expected average power and expected energy
+**ride preview** — values derived from the plan draft by the same plan expansion as the workout engine (L2-045): total time, profile, structure, time under load, peak resistance, expected average power and expected energy
 
 **time under load** — rounds × work seconds of a HIIT plan; the sum of every effort's work seconds of an intervals plan
 
 **set** — one entry of an `intervals` plan: `rounds` efforts of `work_seconds` at `work_level` and `work_cadence`, each followed by a recover of `rest_seconds` at `rest_level` and `rest_cadence` (none when `rest_seconds` is 0)
 
-**Descending recoveries** — the intervals preset and first-use default: warm-up 5:00 at level 8 and 80 rpm; 8 × 0:30 efforts at level 28 and 100 rpm in sets of 1, 2, 2, 2 and 1 with recovers of 3:00, 2:30, 2:00, 1:30 and none at level 8 and 72 rpm; cool-down 6:00 at level 6 and 70 rpm; 30:00 in total
+**Descending recoveries** — the intervals preset and first-use default: warm-up 5:00 at level 14 and 80 rpm; 8 × 0:30 efforts at level 24 and 100 rpm in sets of 1, 2, 2, 2 and 1 with recovers of 3:00, 2:30, 2:00, 1:30 and none at level 8 and 72 rpm; cool-down 6:00 at level 6 and 70 rpm; 30:00 in total
 
 **replace-ride dialog** — confirmation shown when Start ride is pressed while a workout is active
 
 **default plan** — HIIT, 18 rounds, work 0:40 at level 26, recover 0:20 at level 18, warm-up (level 20) and cool-down (level 18) on; 22:40 in total
 
-The backend side of starting a ride, the validation of the plan and the `invalid_workout` answer belong to `start-and-stop-workout`. The setup screen repeats the validation in the browser so the rider sees each problem before submitting, with the same messages.
+Starting a ride through `WORKOUT_API`, the validation of the plan and the `invalid_workout` refusal belong to `start-and-stop-workout`. The setup screen repeats the validation in the browser so the rider sees each problem before submitting, with the same messages.
 
 ## Description
 
@@ -29,7 +29,7 @@ The backend side of starting a ride, the validation of the plan and the `invalid
 Each helper lives in `frontend/projects/wattzup/src/app/core/`, has its unit tests beside it, and has no Angular dependency.
 
 - **`plan-expansion.ts`** — the frontend's single implementation of the plan rules (L2-059):
-  - `expandPlan(plan)` returns the segments by the rules of L2-045, mirroring `PlanExpander` in `Wattzup.Core`.
+  - `expandPlan(plan)` returns the segments by the rules of L2-045, by the same rules as the engine's `expand` in `@wattzup/browser` (the app does not import that library, so the rule is written in both places).
   - `planSummary(plan)` returns the summary label by the rules of L2-060, mirroring `WorkoutSummary`.
   - `estimateWatts(cadence, level)` returns `max(0, round(cadence × (0.55 + level × 0.155)))` (ADR 0003).
 - **`ride-preview.ts`** — `previewOf(plan)` returns the *Your ride* values (L2-059):
@@ -45,14 +45,14 @@ Each helper lives in `frontend/projects/wattzup/src/app/core/`, has its unit tes
   - `PRESETS` holds the 4 presets. `applyPreset(draft, id)` fills Rounds, Work and Recover and marks the preset pressed. Editing any of those 3 fields clears the pressed preset.
   - `parseClock('0:40')` returns 40 and `formatClock(40)` returns `0:40`. `parseUnit('30 min')` and `parseUnit('85 rpm')` read the number before the unit. Text that does not parse is invalid.
   - `validateDraft(draft)` returns, for each failing field of the current mode, its message, which is the text of L2-010 (for example `Enter 1 to 30 rounds.` and `Recover must be at least 0:05.`), and its summary link text. The mocks give the link text `Rounds — enter 1 to 30` and `Recover — at least 0:05`; the link text for every field is listed in L2-029, criterion 4.
-  - `toPlan(draft)` returns the `WorkoutPlan` (generated type from `projects/api/src/generated/`) for a valid draft.
+  - `toPlan(draft)` returns the `WorkoutPlan` (contract type from `frontend/projects/api/src/contract/schema.d.ts`) for a valid draft.
 - **`PlanDraftStore`** (`plan-draft.store.ts`, root-provided) — reads and writes the last submitted draft under the `localStorage` key `wattzup.planDraft`, inside `try/catch`. Missing, unreadable or invalid data yields `DEFAULT_DRAFT` (L2-029).
 
-The backend and frontend expansions are written once per side and tested against the same rows: the L2-045 and L2-060 criteria and the default and flat preview figures of L2-059 (ADR 0002).
+The engine's expansion and the preview's are tested against the same rows: the L2-045 and L2-060 criteria and the default and flat preview figures of L2-059 (ADR 0002).
 
 ### Components
 
-Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` and `name.scss`, under `frontend/projects/components/src/lib/` (presentation components) or `frontend/projects/wattzup/src/app/dashboard/` (the page and its dialogs), as the AGENTS.md tree places them. Each component owns the BEM blocks in its row of the table below, and no block has two owners. The mocks' classes are kept, and the mocks' inline `style` attributes move into the owning stylesheet. Shared blocks (`btn`, `alert`, `legend`, `swatch`, `numeral`, `field__error`, `skeleton`, `app-bar`, `lockup`) belong to the design system and are not restyled here.
+Each component is standalone, `OnPush`, and split into `name.ts`, `name.html` and `name.scss`, with presentation components in `frontend/projects/components/src/lib/`, the rest in `frontend/projects/wattzup/src/app/dashboard/` (ADR 0013; mapping in `platform/host-and-structure`). Each component owns the BEM blocks in its row of the table below, and no block has two owners. The mocks' classes are kept, and the mocks' inline `style` attributes move into the owning stylesheet. Shared blocks (`btn`, `alert`, `legend`, `swatch`, `numeral`, `field__error`, `skeleton`, `app-bar`, `lockup`) belong to the design system and are not restyled here.
 
 | Component | Selector | Blocks | Role |
 |---|---|---|---|
@@ -85,7 +85,7 @@ The screen follows the six setup mocks (L2-029, L2-059):
   - Start ride is disabled and described by `Fix the <n> fields marked in red to start.`
   - Pressing Enter in a field moves focus to the summary, and each link focuses its field. With one field the summary reads `1 thing to fix before you start`.
 - **`submitting`** — after Start ride. Every control is disabled or read-only, and the button reads `Starting…` with `aria-busy="true"`.
-- **`error`** — `POST /api/workout` answered 400. An alert titled `Couldn't start the ride` shows above the form and says the settings are kept, and the button reads `Try again`. The alert body lists the messages from the ProblemDetails `errors` map. The `error` mock still quotes the prototype's steps message, which no longer exists (L2-010); the mock should be updated to an `errors`-map message. Any other failure reads `Couldn't start the ride` / `The Wattzup server didn't answer. Your settings are kept.` (L2-029). A 401 goes to `/unlock` (L2-055).
+- **`error`** — `WORKOUT_API.start` refused the plan with `invalid_workout`. An alert titled `Couldn't start the ride` shows above the form and says the settings are kept, and the button reads `Try again`. The alert body lists the messages from the `ContractError`'s `errors` map. Any other failure reads `Couldn't start the ride` / `The ride didn't start. Your settings are kept.` (L2-029).
 
 ### Start flow
 
@@ -102,12 +102,12 @@ The screen follows the six setup mocks (L2-029, L2-059):
 - `autoFocus` targets `Keep current ride`. `restoreFocus` returns focus to Start ride when the dialog closes.
 - `Replace ride` calls `WORKOUT_API.start(plan)`. While the request runs, the button reads `Starting…` with `aria-busy="true"`, and the close button and `Keep current ride` are disabled. `disableClose` also blocks Escape and backdrop clicks during the request.
 - On success the dialog closes with `{started: true}`, and the page navigates to `/`.
-- On failure the dialog body shows the alert `Couldn't start the new ride` / `The server didn't answer. Your current ride is still running and your new settings are kept.` The primary button reads `Try again`.
-- Escape, the close button and `Keep current ride` close the dialog without a request.
+- On failure the dialog body shows the alert `Couldn't start the new ride` / `The new ride didn't start. Your current ride is still running and your new settings are kept.` The primary button reads `Try again`.
+- Escape, the close button and `Keep current ride` close the dialog without a call.
 
 ### Acceptance tests
 
-Playwright (`frontend/e2e/`), with every `/api/**` request answered by the shared fixture and `/api/events` served by the SSE fixture. The responses for `POST /api/workout` (200 and 400) are recorded against the backend running with `--simulate`.
+Playwright (`frontend/e2e/`), with the fake `navigator.bluetooth` fixture driving the bike; a ride started from `/setup` runs in the page's workout engine.
 
 - Page objects: `e2e/pages/setup.page.ts` (mode cards, presets, steppers, sliders, switches, form summary, preview, Start ride, Close) and `e2e/pages/replace-ride.dialog.ts` (title, description, Keep current ride, Replace ride, close, alert).
 - `e2e/setup.spec.ts`:
@@ -127,9 +127,9 @@ Playwright (`frontend/e2e/`), with every `/api/**` request answered by the share
   - `keeps the current ride and the new settings when the request fails` (L2-052 AC3)
   - `Escape closes the dialog and returns focus to Start ride` (L2-052)
 
-Unit tests in `projects/wattzup/src/app/core/`:
+Unit tests in `frontend/projects/wattzup/src/app/core/`:
 
-- `plan-expansion.spec.ts` — the same rows as `PlanExpanderTests` and `WorkoutSummaryTests` in `Wattzup.Core.Tests` (L2-059 AC4).
+- `plan-expansion.spec.ts` — the same rows as the `expand` and `summaryFor` cases of `workout-rules.spec.ts` in `@wattzup/browser` (L2-059 AC4).
 - `ride-preview.spec.ts` — the default and flat figures, and the profile geometry of a warm-up, a work, a rest and a cool-down bar.
 - `plan-form.spec.ts` — one case per L2-010 range row, each preset, preset clearing, and clock and unit parsing.
 - `plan-draft.store.spec.ts` — restore, missing key, storage that throws, and invalid stored data.
@@ -146,7 +146,7 @@ The *Intervals* mode builds an `intervals` plan (L2-010, L2-029 criteria 10 to 1
   - `toIntervalsPlan(draft)`, which writes `null` for a stretch that is off.
 - **`plan-expansion.ts`** expands `intervals` as L2-045 criteria 7 and 8 and summarises it as L2-060 criterion 4; **`ride-preview.ts`** gives Structure `<sets> sets · <efforts> efforts` and time under load as L2-059 criterion 5. Both are tested against the same rows as `PlanExpanderTests` and `WorkoutSummaryTests`.
 - **`PlanDraftStore`** keeps the draft under `wattzup.intervalsDraft`; unreadable or invalid data yields `DEFAULT_INTERVALS`.
-- **Components** (presentation components under `frontend/projects/components/src/lib/`, dialogs under `frontend/projects/wattzup/src/app/dashboard/`):
+- **Components** (presentation components in `frontend/projects/components/src/lib/`, the rest in `frontend/projects/wattzup/src/app/dashboard/` (ADR 0013; mapping in `platform/host-and-structure`)):
 
 | Component | Selector | Blocks | Role |
 |---|---|---|---|
@@ -171,27 +171,32 @@ Playwright (`e2e/setup.spec.ts`, describe `Intervals plan`), with the page objec
 - `posts the intervals plan and goes to the dashboard` (L2-029 AC5)
 - `restores the last submitted intervals plan after a reload` (L2-029 AC16)
 
-### Machine and treadmill
+### Opened from a class
 
-The setup screen no longer chooses the machine; the machine page at `/machine` does (L2-073, `treadmill/choose-machine`). While treadmill support is off (L2-075, ADR 0011), `treadmill_enabled` is `false`, the `Switch to …` link is not rendered, and the screen is the bike's. The treadmill form is designed in `treadmill/treadmill-dashboard-and-setup`. In short:
+A class page (`classes/ride-a-class`) can open this screen through `Change intervals in full setup` (L2-080 criterion 12). The class page writes the drafts before it navigates:
+- a `PlanDraft` whose `mode` is the class's kind;
+- an `IntervalsDraft` for an `intervals` class;
+- a `VideoDraft` with the class's link and start point.
 
-- On both machines the header shows `wz-status-line` with `<device_label>`, a `Switch to treadmill` link (`Switch to bike` on the treadmill) that calls `RideActions.switchMachine` and so ends a running workout through the end dialog before opening `/machine`, and `Close` (`app-bar__close`) (L2-072 criterion 1). `MachineChoice` (`wz-machine-choice`) is removed.
-- With `machine` `bike`, everything above is unchanged, including the `localStorage` key `wattzup.planDraft`. A started bike plan is also recorded by `MachineHistoryStore.recordStart` as the bike's last session (L2-072 criterion 10).
-- With `machine` `treadmill`, the screen reads `Set up your run`, the form shows presets and the `Work`, `Recover` or `Hold` effort rows from `treadmill-plan-form.ts`, the draft is kept under `wattzup.treadmillPlanDraft`, and the *Your run* panel shows speed and incline profiles with expected distance, climb and energy from `treadmillPreviewOf`.
-- The start flow and the replace dialog are shared. On the treadmill the dialog reads `Replace the run in progress?` and adds `Wattzup stops the belt first, then counts down 3 seconds before starting it again.` (L2-071 criterion 15).
+These replace the drafts that were there. `SetupPage` needs no change for this, because it loads its mode, plan and video from `PlanDraftStore` on every visit, as after a reload.
+
+### Header
+
+The header shows `wz-status-line` with `<device_label>` and `Close` (`app-bar__close`), which returns to `/` without starting anything (L2-029 criterion 8). The setup screen offers no choice of machine: Wattzup drives the bike only (ADR 0016).
 
 ### Ride-along video
 
-Below the plan, in every mode on either machine, `VideoLink` (`wz-video-link`) adds the switch `Ride along to a video` / `Plays in sync on the dashboard`, off on first use. With the switch on, it shows the `YouTube link` field, and for an accepted link a preview with the start point `Ride 0:00 starts at` (L2-029 criteria 17 and 18). A link that is not YouTube shows its field error but does not block Start ride, which then sends `video: null` (L2-029 criterion 19). `SetupPage` adds `video` `{url, start_seconds}` or `null` to the plan it posts. `PlanDraftStore` keeps the video draft under `wattzup.videoDraft` and restores it on reload (L2-029 criterion 20). `ride-preview.ts` adds `Video` `Synced from <m:ss.s>` after Time under load (L2-059 criterion 6). The components, rules, tests and mocks (`setup/video`, `setup/video-invalid`) are described in `workouts/ride-along-video`.
+Below the plan, in every mode, `VideoLink` (`wz-video-link`) adds the switch `Ride along to a video` / `Plays in sync on the dashboard`, off on first use. With the switch on, it shows the `YouTube link` field, prefilled with the GCN 30 Minute HIIT Cardio link, and for an accepted link a preview with the start point `Ride 0:00 starts at` (L2-029 criteria 17 and 18). A link that is not YouTube shows its field error but does not block Start ride, which then sends `video: null` (L2-029 criterion 19). `SetupPage` adds `video` `{url, start_seconds}` or `null` to the plan it starts. `PlanDraftStore` keeps the video draft under `wattzup.videoDraft` and restores it on reload (L2-029 criterion 20). `ride-preview.ts` adds `Video` `Synced from <m:ss.s>` after Time under load (L2-059 criterion 6). The components, rules, tests and mocks (`setup/video`, `setup/video-invalid`) are described in `workouts/ride-along-video`.
 
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-029` | `L1-007` | Ride setup screen. The `/setup` screen must let the rider build a plan and start it; criteria 17 to 20 add the ride-along video. |
-| `L2-052` | `L1-007` | Replace-ride dialog. Given an active workout, when Start ride is pressed on `/setup`, then a dialog `Replace the ride in progress?` opens; `Replace ride` sends `POST /api/workout` and on success takes the rider to `/`; a failure keeps the current ride and the new settings. |
+| `L2-052` | `L1-007` | Replace-ride dialog. Given an active workout, when Start ride is pressed on `/setup`, then a dialog `Replace the ride in progress?` opens; `Replace ride` calls `WORKOUT_API.start` and on success takes the rider to `/`; a failure keeps the current ride and the new settings. |
 | `L2-010` | `L1-004` | Workout plan definition and validation, including the `intervals` kind and the optional `video`. |
-| `L2-059` | `L1-007` | Ride preview on setup. The `Your ride` panel shows the total time, a resistance profile of the plan's segments and a summary, computed by the same plan expansion as the backend (L2-045). |
+| `L2-059` | `L1-007` | Ride preview on setup. The `Your ride` panel shows the total time, a resistance profile of the plan's segments and a summary, computed by the same plan expansion as the workout engine (L2-045). |
+| `L2-080` | `L1-014` | Class page. Criterion 12: given `Change intervals in full setup`, then `/setup` opens in the plan's mode (`HIIT`, `Intervals` or `Flat`) with this page's plan and video in that mode's draft, replacing the draft that was there. |
 
 ## Diagrams
 
@@ -215,7 +220,7 @@ Wattzup Web builds and previews the plan in the browser and submits it to the Wa
 
 ### Class structure
 
-The form components take inputs and emit edits; the page holds the drafts in signals. The preview is a pure function of the plan, built on the same expansion the backend uses.
+The form components take inputs and emit edits; the page holds the drafts in signals. The preview is a pure function of the plan, built on the same expansion rules the workout engine uses.
 
 ![Class diagram for setting up a ride](diagrams/class-structure.png)
 

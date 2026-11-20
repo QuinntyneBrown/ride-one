@@ -1,8 +1,0 @@
-{
-  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
-  "title": "The level is not valid.",
-  "status": 400,
-  "code": "invalid_level",
-  "error": "level must be 1-32",
-  "trace_id": "00-248227a5716e4d872158a6568d579ce1-f76022462e6ae593-00"
-}

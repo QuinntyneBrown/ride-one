@@ -1,9 +1,8 @@
-// Keeps PowerTraceHistory in step with the stream and the trace endpoint (L2-026, L2-050).
+// Keeps PowerTraceHistory in step with the live state and the workout's trace (L2-026, L2-050).
 import { Injectable, effect, inject, signal, untracked } from '@angular/core';
-import type { BikeState } from '@wattzup/api';
+import { type BikeState, WORKOUT_API } from '@wattzup/api';
 import { LiveStateService } from './live-state.service';
 import { PowerTraceHistory } from './power-trace-history';
-import { WORKOUT_API } from '@wattzup/api';
 
 @Injectable({ providedIn: 'root' })
 export class PowerTraceStore {
@@ -15,19 +14,17 @@ export class PowerTraceStore {
   readonly version = this._version.asReadonly();
 
   private hadWorkout = false;
-  private epoch = -1;
   private loading = false;
   private pendingReload = false;
 
   constructor() {
     effect(() => {
       const state = this.live.state();
-      const epoch = this.live.streamEpoch();
-      untracked(() => this.observe(state, epoch));
+      untracked(() => this.observe(state));
     });
   }
 
-  private observe(state: BikeState | null, epoch: number): void {
+  private observe(state: BikeState | null): void {
     const w = state?.workout ?? null;
     if (!w) {
       if (this.hadWorkout || this.history.length) {
@@ -37,9 +34,7 @@ export class PowerTraceStore {
       this.hadWorkout = false;
       return;
     }
-    const reconnected = epoch !== this.epoch;
-    this.epoch = epoch;
-    if (!this.hadWorkout || reconnected) {
+    if (!this.hadWorkout) {
       this.hadWorkout = true;
       void this.reload();
       return;
@@ -63,7 +58,7 @@ export class PowerTraceStore {
       const trace = await this.workouts.trace();
       this.history.restore(trace.samples);
     } catch {
-      /* keep what we have; the next reconnect reloads */
+      /* keep what we have; the next gap reloads */
     } finally {
       this.loading = false;
       this.bump();

@@ -29,50 +29,42 @@ describe('rideOverlayText', () => {
       testState({ device_label: 'Echelon EX-5s', workout: testWorkout({ elapsed_seconds: 582 }) }),
     );
     expect(o.lines[0]).toContain('ended the workout at 9:42');
-  });
-});
-
-describe('rideOverlayText on the treadmill (L2-071)', () => {
-  const treadmill = (change: Parameters<typeof testState>[0] = {}) =>
-    testState({ machine: 'treadmill', device_label: 'STRIDE-8s22-000766', ...change });
-
-  it('counts down the belt', () => {
-    const o = rideOverlayText('belt-countdown', treadmill({ belt_countdown: 2 }));
-    expect(o).toMatchObject({ count: 2, title: 'Belt starting in 2', role: null });
-    expect(o.lines).toEqual([
-      'Stand on the side rails. The belt starts when the count reaches zero.',
-    ]);
+    expect(o.sessionId).toBeNull();
   });
 
-  it('says the belt is starting after the countdown', () => {
-    expect(rideOverlayText('belt-starting', treadmill()).title).toBe('Starting the belt…');
+  it('offers the saved ride: Ride complete with the summary and total (L2-084)', () => {
+    const s = testState({
+      workout: testWorkout({
+        status: 'ended',
+        summary: 'HIIT · 8 × 40s / 20s',
+        total_seconds: 760,
+        session_id: 'abc123abc123',
+      }),
+    });
+    const o = rideOverlayText('ride-complete', s);
+    expect(o).toMatchObject({ title: 'Ride complete', role: 'status', sessionId: 'abc123abc123' });
+    expect(o.lines).toEqual(['HIIT · 8 × 40s / 20s · 12:40. Your ride is saved.']);
+    expect(rideOverlayText('bike-shut-off', s).sessionId).toBe('abc123abc123');
   });
 
-  it('names the paused time when the belt stopped', () => {
-    expect(rideOverlayText('belt-stopped', treadmill()).lines).toEqual([
-      'The belt stopped, so Wattzup paused the run at 7:07. If you pulled the safety key, clip it back in, then press Resume — the belt starts after a 3-second countdown.',
-    ]);
-    expect(rideOverlayText('belt-stopped', treadmill()).icon).toBe('key');
-  });
+  describe('about the browser (L2-089)', () => {
+    const url = 'http://wattzup.example/ride';
 
-  it('reads Lost the Stride with the side rails when the treadmill is lost (AC17)', () => {
-    const o = rideOverlayText('bike-lost', treadmill());
-    expect(o.title).toBe('Lost the Stride');
-    expect(o.lines).toEqual([
-      'The Stride stopped answering and stopped its belt. Step onto the side rails, then reconnect — your run is saved at 7:07.',
-    ]);
-    expect(o.note).toBeNull();
-  });
+    it('offers the page address to copy where Web Bluetooth is missing', () => {
+      const o = rideOverlayText('browser-unsupported', testState(), url);
+      expect([o.title, o.link, o.role]).toEqual(['Open Wattzup in Chrome or Edge', url, 'alert']);
+    });
 
-  it('looks for the treadmill while scanning', () => {
-    const o = rideOverlayText(
-      'scanning',
-      treadmill({ ble: 'scanning', workout: testWorkout({ status: 'waiting for bike' }) }),
-    );
-    expect(o.title).toBe('Looking for your Stride');
-    expect(o.lines[0]).toBe(
-      'No Echelon treadmill found yet — switch it on and clip in the safety key. Wattzup scans again every 20 seconds.',
-    );
-    expect(o.lines[1]).toMatch(/^Your run starts as soon as the Stride connects: /);
+    it('offers the https address on a plain http page', () => {
+      const o = rideOverlayText('browser-insecure', testState(), url);
+      expect(o.title).toBe('Open the secure version of this page');
+      expect(o.lines[0]).toContain(url);
+      expect(o.link).toBe('https://wattzup.example/ride');
+    });
+
+    it('words Bluetooth off with Check again', () => {
+      const o = rideOverlayText('adapter-off', testState({ adapter: 'off' }), url);
+      expect([o.title, o.checkAgain]).toEqual(['Turn on Bluetooth', true]);
+    });
   });
 });

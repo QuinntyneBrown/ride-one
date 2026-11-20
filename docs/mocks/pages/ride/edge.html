@@ -7,7 +7,7 @@
 <meta name="mock:kind" content="page">
 <meta name="mock:screen" content="ride">
 <meta name="mock:state" content="edge">
-<meta name="mock:requirements" content="L2-018 L2-019 L2-020 L2-021 L2-023 L2-024 L2-025 L2-026 L2-027 L2-040 L2-041 L2-001 L2-013 L2-039 L2-064 L2-066 L2-068 L2-071 L2-076">
+<meta name="mock:requirements" content="L2-018 L2-019 L2-020 L2-021 L2-023 L2-024 L2-025 L2-026 L2-027 L2-040 L2-041 L2-013 L2-058 L2-076 L2-084 L2-079 L2-089 L2-090 L2-088">
 <meta name="description" content="Edge values: a long bike name, a 1:15:00 ride past the hour mark, 4-digit power and energy, and the top resistance level 32.">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
@@ -18,6 +18,7 @@
 <div class="app app--fixed">
 <header class="app-bar">
   <a class="lockup " href="../../pages/ride/default.html" aria-label="Wattzup dashboard"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></a>
+  <a class="btn btn--quiet btn--sm app-bar__library" href="../../pages/class-library/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Library</a>
   <span class="app-bar__divider" aria-hidden="true"></span>
   <div class="statusline"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg><span class="statusline__name">Echelon Connect Sport EX-8s Pro (Basement)</span><span class="statusline__state">Connected</span></div>
   <a class="btn btn--quiet btn--sm" href="../../pages/setup/default.html" aria-label="Edit workout: HIIT · 12 × 4:00 / 2:00"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>HIIT · 12 × 4:00 / 2:00</a>
@@ -146,7 +147,6 @@
 <li><time>1:00:00</time><span class="cmd-log__cmd">RES 10 <span>· plan</span></span><span class="cmd-log__ack">ack 47ms</span></li>
 <li><time>58:00</time><span class="cmd-log__cmd">RES 32 <span>· plan</span></span><span class="cmd-log__ack">ack 49ms</span></li></ol>
   </section>
-  <a class="btn btn--quiet btn--sm" href="../../pages/choose-machine/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>End and switch to treadmill</a>
   </div>
 </aside>
 </div>
@@ -155,31 +155,7 @@
 <nav class="mock-bar" aria-label="Mock navigation">
   <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
   <span class="mock-bar__screen">Ride dashboard</span>
-  <ul class="mock-bar__states">
-    <li><a href="default.html">default</a></li>
-    <li><a href="loading.html">loading</a></li>
-    <li><a href="empty.html">empty</a></li>
-    <li><a href="error.html">error</a></li>
-    <li><a href="paused.html">paused</a></li>
-    <li><a href="disconnected.html">disconnected</a></li>
-    <li><a href="scanning.html">scanning</a></li>
-    <li><a href="bluetooth-off.html">bluetooth-off</a></li>
-    <li><a href="offline.html">offline</a></li>
-    <li><a href="ended.html">ended</a></li>
-    <li><a href="flat.html">flat</a></li>
-    <li><a href="manual.html">manual</a></li>
-    <li><a href="edge.html" aria-current="page">edge</a></li>
-    <li><a href="video.html">video</a></li>
-    <li><a href="video-blocked.html">video-blocked</a></li>
-    <li><a href="treadmill.html">treadmill</a></li>
-    <li><a href="treadmill-paused.html">treadmill-paused</a></li>
-    <li><a href="treadmill-flat.html">treadmill-flat</a></li>
-    <li><a href="treadmill-manual.html">treadmill-manual</a></li>
-    <li><a href="treadmill-countdown.html">treadmill-countdown</a></li>
-    <li><a href="treadmill-belt-stopped.html">treadmill-belt-stopped</a></li>
-    <li><a href="treadmill-disconnected.html">treadmill-disconnected</a></li>
-    <li><a href="treadmill-scanning.html">treadmill-scanning</a></li>
-  </ul>
+  <ul class="mock-bar__states"><li><a href="default.html">default</a></li><li><a href="loading.html">loading</a></li><li><a href="empty.html">empty</a></li><li><a href="paused.html">paused</a></li><li><a href="disconnected.html">disconnected</a></li><li><a href="complete.html">complete</a></li><li><a href="ended.html">ended</a></li><li><a href="flat.html">flat</a></li><li><a href="manual.html">manual</a></li><li><a href="edge.html" aria-current="page">edge</a></li><li><a href="video.html">video</a></li><li><a href="video-blocked.html">video-blocked</a></li><li><a href="class-workout.html">class-workout</a></li><li><a href="unsupported.html">unsupported</a></li><li><a href="insecure.html">insecure</a></li><li><a href="bluetooth-off.html">bluetooth-off</a></li><li><a href="no-bike.html">no-bike</a></li></ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
 </nav>

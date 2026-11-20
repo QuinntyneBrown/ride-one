@@ -3,8 +3,6 @@ import { banners, isReconnect } from './connection-banners';
 import { testState, testWorkout } from './test-state';
 
 const base = {
-  connection: 'open' as const,
-  lastStateTime: '7:07 PM',
   reconnected: null,
   dismissed: new Set<never>(),
 };
@@ -14,27 +12,25 @@ describe('banners', () => {
     expect(banners({ ...base, state: testState() })).toEqual([]);
   });
 
-  it('warns when the stream is offline, with the time of the last state', () => {
-    const [b] = banners({ ...base, state: testState(), connection: 'offline' });
-    expect(b.id).toBe('offline');
-    expect(b.text).toBe(
-      'Retrying every 2 seconds. Numbers below are from 7:07 PM and controls are paused.',
-    );
-    expect(b.action?.kind).toBe('retry');
-  });
-
   it('shows Bluetooth is off with Open diagnostics', () => {
     const [b] = banners({ ...base, state: testState({ adapter: 'off' }) });
     expect(b.tone).toBe('danger');
     expect(b.action?.kind).toBe('diagnostics');
   });
 
-  it('shows the exposed and simulated banners until dismissed', () => {
-    const state = testState({ exposed: true, simulated: true, bind_address: '0.0.0.0:8787' });
-    expect(banners({ ...base, state }).map((b) => b.id)).toEqual(['exposed', 'simulated']);
+  it('names ?simulate (L2-099)', () => {
+    const state = testState({ simulated: true });
+    expect(banners({ ...base, state })[0].text).toBe(
+      'No hardware connected — Wattzup was opened with ?simulate and is generating cadence and resistance.',
+    );
+  });
+
+  it('shows the simulated banner until dismissed', () => {
+    const state = testState({ simulated: true });
+    expect(banners({ ...base, state }).map((b) => b.id)).toEqual(['simulated']);
     expect(
-      banners({ ...base, state, dismissed: new Set(['exposed' as const]) }).map((b) => b.id),
-    ).toEqual(['simulated']);
+      banners({ ...base, state, dismissed: new Set(['simulated' as const]) }).map((b) => b.id),
+    ).toEqual([]);
   });
 
   it('writes the reconnected banner with elapsed and level', () => {
@@ -65,35 +61,5 @@ describe('isReconnect', () => {
       isReconnect(testState({ ble: 'disconnected', workout: null }), testState({ workout: null })),
     ).toBe(false);
     expect(isReconnect(testState(), testState())).toBe(false);
-  });
-});
-
-describe('banners on the treadmill (L2-071 AC10, AC11)', () => {
-  it('reads Lost the Stride without Dismiss when the treadmill is lost mid-ride (AC17)', () => {
-    const [b] = banners({
-      ...base,
-      state: testState({
-        machine: 'treadmill',
-        ble: 'disconnected',
-        workout: testWorkout({ status: 'paused: bike disconnected' }),
-      }),
-    });
-    expect(b).toMatchObject({
-      id: 'treadmill-lost',
-      tone: 'danger',
-      title: 'Lost the Stride',
-      dismissable: false,
-    });
-    expect(b.text).toBe(
-      'Step onto the side rails. If the Stride stays off for 90 seconds, Wattzup ends the run.',
-    );
-  });
-
-  it('words the simulated treadmill', () => {
-    const [b] = banners({ ...base, state: testState({ machine: 'treadmill', simulated: true }) });
-    expect(b.title).toBe('Simulated treadmill');
-    expect(b.text).toBe(
-      'No hardware connected — Wattzup started with --simulate and is generating speed and incline.',
-    );
   });
 });

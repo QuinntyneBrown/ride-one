@@ -3,8 +3,11 @@
   class="statusline"
   [class.statusline--wait]="s.tone === 'wait'"
   [class.statusline--bad]="s.tone === 'bad'"
+  [class.statusline--quiet]="s.tone === 'quiet'"
 >
   <wz-icon [name]="s.icon" size="sm" [spin]="s.icon === 'bluetooth-scan' && !reducedMotion()" />
   <span class="statusline__name">{{ s.name }}</span>
-  <span class="statusline__state">{{ s.label }}</span>
+  @if (s.label) {
+    <span class="statusline__state">{{ s.label }}</span>
+  }
 </div>

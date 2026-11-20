@@ -3,22 +3,22 @@
 LAYOUT_WITH_LEGEND()
 title Components — Run an interval workout
 
-Container_Boundary(api, "Wattzup API") {
-  Component(engine, "WorkoutEngine", "BackgroundService, Wattzup.Core", "1 s tick loop and command channel over one WorkoutRun")
-  Component(exp, "PlanExpander", "Wattzup.Core", "Plan to ordered segments")
-  Component(sum, "WorkoutSummary", "Wattzup.Core", "Plan to summary label")
-  Component(reg, "ActiveConnectionRegistry", "Singleton", "Is the bike connected?")
-  Component(cmdr, "IResistanceCommander", "Wattzup.Core", "Sends set-resistance commands and logs them")
-  Component(store, "BikeStateStore", "Wattzup.Core", "workout, resistance, error; broadcasts")
-  Component(clock, "TimeProvider", ".NET", "Real time, or FakeTimeProvider in tests")
+Container_Boundary(app, "Wattzup Web") {
+  Component(engine, "WorkoutEngine", "@wattzup/browser lib/engine", "250 ms clock loop and command queue over one WorkoutRun")
+  Component(exp, "expand()", "lib/engine/plan-expander", "Plan to ordered segments")
+  Component(sum, "summaryFor()", "lib/engine/workout-summary", "Plan to summary label")
+  Component(link, "BikeLink", "lib/bluetooth", "Is the bike connected?")
+  Component(cmdr, "ResistanceCommander", "lib/engine", "Sends set-resistance commands and logs them")
+  Component(store, "BikeStateStore", "lib/engine", "workout, resistance, error")
+  Component(clock, "Clock", "lib/bluetooth, CLOCK", "Monotonic time, or FakeClock in tests")
 }
 System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
 
-Rel(engine, exp, "Expand(plan)")
-Rel(engine, sum, "For(plan)")
-Rel(engine, reg, "IsConnected")
-Rel(engine, cmdr, "SendAsync(level, plan)")
-Rel(engine, store, "Reads resistance; Update(workout)")
-Rel(engine, clock, "PeriodicTimer ticks and timestamps")
-Rel(cmdr, bike, "Write with response", "BLE GATT")
+Rel(engine, exp, "expand(plan)")
+Rel(engine, sum, "summaryFor(plan)")
+Rel(engine, link, "connection()")
+Rel(engine, cmdr, "send(level, plan)")
+Rel(engine, store, "Reads resistance; update(workout)")
+Rel(engine, clock, "now() and delay(250)")
+Rel(cmdr, bike, "Write with response", "Web Bluetooth GATT")
 @enduml

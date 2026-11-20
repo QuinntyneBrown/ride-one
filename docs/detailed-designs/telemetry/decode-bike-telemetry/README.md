@@ -12,27 +12,23 @@ Once connected, the Echelon bike pushes BLE notifications on its notify characte
 
 **cadence** — pedal revolutions per minute (rpm)
 
-The Echelon bike has no wheel-speed sensor. Speed is derived from cadence with the fixed factor 0.37497622 km/h per rpm, which matches the prototype. The decoding rules live in a pure library with no Bluetooth or HTTP dependency, so every rule is unit-testable from byte arrays alone.
+The Echelon bike has no wheel-speed sensor. Speed is derived from cadence with the fixed factor 0.37497622 km/h per rpm, which matches the prototype. The decoding rules live in pure functions of `@wattzup/browser`'s `lib/protocol/`, with no Bluetooth or Angular dependency, so every rule is unit-testable from byte arrays alone.
 
 ## Description
 
-- **`PacketDecoder`** (`Wattzup.Protocol`) — static `Decode(ReadOnlySpan<byte> frame)` returning a `TelemetryUpdate?`. It returns `null` for frames shorter than 4 bytes, frames not starting with `0xF0`, unknown frame types, and `0xD1` frames shorter than 13 bytes (L2-005).
-- **`TelemetryUpdate`** — abstract record with 2 cases. **`ResistanceUpdate(int Level)`** carries byte 3 of a `0xD2` frame (L2-006). **`CadenceUpdate(int Rpm, double SpeedKmh, double SpeedMph)`** carries `(frame[9] << 8) | frame[10]` and the derived speeds (L2-007).
-- **`SpeedCalculator`** (`Wattzup.Protocol`) — `KmhPerRpm = 0.37497622` and `KmPerMile = 1.609344`. `ToKmh(rpm)` returns `Math.Round(rpm × KmhPerRpm, 1, MidpointRounding.ToEven)`. `ToMph(rpm)` divides the **unrounded** km/h value by `KmPerMile` and then rounds to 1 decimal. Banker's rounding matches Python's `round` in the prototype.
-- **`TelemetryIngestor`** (`Wattzup.Core`) — notify handler registered by `BikeConnectionService`. For every frame it hands the bytes to `RawPacketLogger` and `RecentPacketBuffer` (see `log-raw-packets`), whether or not the frame decodes. It then calls `PacketDecoder` and applies the outcome in 1 `BikeStateStore.Update` call: `packets` increases by 1 (L2-005), and on a non-null update the metric fields are set, `last_data_at` is set to now and `first_data_at` is set if it is `null` (L2-006, L2-007). In the same call it recomputes `power` from the new cadence and resistance (see `estimate-power-and-totals`) and, on a `ResistanceUpdate`, acknowledges pending commands (see `resistance-control/log-resistance-commands`). 1 frame therefore produces 1 broadcast.
-- **`TimeProvider`** — injected time source. `GetUtcNow().ToUnixTimeMilliseconds() / 1000.0` gives the Unix epoch seconds stored in `last_data_at` and `first_data_at`, and tests control it with `FakeTimeProvider`.
+- **`decode(frame: Uint8Array)`** (`lib/protocol/packet-decoder.ts`) — returns a `TelemetryUpdate` or `null`. It returns `null` for frames shorter than 4 bytes, frames not starting with `0xF0`, unknown frame types, and `0xD1` frames shorter than 13 bytes (L2-005).
+- **`TelemetryUpdate`** — a union of 2 cases. **`ResistanceUpdate`** `{kind: 'resistance', level}` carries byte 3 of a `0xD2` frame (L2-006). **`CadenceUpdate`** `{kind: 'cadence', rpm, speedKmh, speedMph}` carries `(frame[9] << 8) | frame[10]` and the derived speeds (L2-007).
+- **`speed-calculator.ts`** (`lib/protocol/`) — `KMH_PER_RPM = 0.37497622` and `KM_PER_MILE = 1.609344`. `toKmh(rpm)` rounds `rpm × KMH_PER_RPM` to 1 decimal, halves to even. `toMph(rpm)` divides the **unrounded** km/h value by `KM_PER_MILE` and then rounds to 1 decimal the same way. Halves to even match Python's `round` in the prototype.
+- **`TelemetryIngestor`** (`lib/engine/`) — notify handler that `BikeLink` calls for every frame (see `bike-connectivity/connect-the-bike`; `BikeLink` also keeps the frame in the packet log while **Log every packet** is on, see `platform/diagnostics`). It calls `decode` and applies the outcome in 1 `BikeStateStore.update` call: `packets` increases by 1 (L2-005), and on a non-null update the metric fields are set, `last_data_at` is set to now and `first_data_at` is set if it is `null` (L2-006, L2-007). In the same call it recomputes `power` from the new cadence and resistance (see `estimate-power-and-totals`) and, on a resistance update, acknowledges pending commands (see `resistance-control/log-resistance-commands`). 1 frame therefore produces 1 state change.
+- **`Clock`** (`CLOCK`) — `epochMs() / 1000` gives the Unix epoch seconds stored in `last_data_at` and `first_data_at`; tests control it with `FakeClock`.
 
-Example frames from the specification decode as follows. `F0 D2 01 0C CF` → `ResistanceUpdate(12)`. `F0 D1 09 00 05 00 00 00 00 00 50 00 1F` → `CadenceUpdate(80, 30.0, 18.6)`. `F0 D0 01 01 C2` → `null`. The decoder does not validate the trailing checksum, which matches the prototype's behaviour.
+Example frames from the specification decode as follows. `F0 D2 01 0C CF` → `{kind: 'resistance', level: 12}`. `F0 D1 09 00 05 00 00 00 00 00 50 00 1F` → `{kind: 'cadence', rpm: 80, speedKmh: 30.0, speedMph: 18.6}`. `F0 D0 01 01 C2` → `null`. The decoder does not validate the trailing checksum, which matches the prototype's behaviour.
 
 Verification:
 
-- `Wattzup.Protocol.Tests` — 1 case per criterion of L2-005, L2-006 and L2-007: short frame, wrong marker, unknown type, 12-byte `0xD1`, resistance 12, cadence 80, cadence 256 and cadence 0.
-- `Wattzup.Core.Tests` — `TelemetryIngestor` against a test double of `IBikeConnection` and `FakeTimeProvider`: every frame counts, and timestamps follow the rules of L2-006.
-- `Wattzup.Api.AcceptanceTests` — with `SimulatedBikeTransport`, `GET /api/status` shows `packets` rising and `cadence` and `speed_kmh` set after the first `0xD1` frame.
-
-### The treadmill
-
-`TelemetryIngestor` is the notify handler for both machines. It chooses the decoder by `store.Current.Machine`: `PacketDecoder` on the bike, as above, and `TreadmillPacketDecoder` on the treadmill, where `D2` means incline rather than resistance (ADR 0009). Counting and raw packet logging are the same on both machines. On a `ResistanceUpdate` it acknowledges only `resistance` entries, through `CommandLog.Acknowledge(log, CommandKind.Resistance, level, nowMs)`. The treadmill's decoding, the `belt` derivation and the acknowledgement echo are described in `treadmill/decode-treadmill-telemetry` and `treadmill/choose-machine`.
+- `protocol.spec.ts` (`lib/protocol/`) — 1 case per criterion of L2-005, L2-006 and L2-007: short frame, wrong marker, unknown type, 12-byte `0xD1`, resistance 12, cadence 80, cadence 256 and cadence 0.
+- `telemetry-ingestor.spec.ts` — with `FakeClock`: every frame counts, and timestamps follow the rules of L2-006.
+- Playwright specs push `0xD1` and `0xD2` frames through the fake `navigator.bluetooth` and see the cadence, speed and resistance readouts change.
 
 ## Requirements
 
@@ -46,30 +42,30 @@ Verification:
 
 ### System context
 
-The bike is the only source of telemetry; it reaches Wattzup through the OS Bluetooth stack.
+The bike is the only source of telemetry; it reaches Wattzup through the browser's Web Bluetooth.
 
 ![C4 system context for decoding bike telemetry](diagrams/c4-context.png)
 
 ### Containers
 
-Decoding happens inside the Wattzup API container as notifications arrive.
+Decoding happens inside the Wattzup app in the rider's browser as notifications arrive.
 
 ![C4 container view for decoding bike telemetry](diagrams/c4-container.png)
 
 ### Components
 
-`TelemetryIngestor` receives each notification, logs it, asks `PacketDecoder` for a `TelemetryUpdate`, and applies the count, the metrics, the estimated power and any acknowledgement to `BikeStateStore` in 1 update.
+`TelemetryIngestor` receives each notification from `BikeLink`, asks `decode` for a `TelemetryUpdate`, and applies the count, the metrics, the estimated power and any acknowledgement to `BikeStateStore` in 1 update.
 
 ![C4 component view for decoding bike telemetry](diagrams/c4-component.png)
 
 ### Class structure
 
-`PacketDecoder` and `SpeedCalculator` are pure static types. `TelemetryUpdate` is a closed hierarchy with one case per decoded frame type.
+`packet-decoder` and `speed-calculator` are modules of pure functions. `TelemetryUpdate` is a union with one case per decoded frame type.
 
 ![Class diagram for decoding bike telemetry](diagrams/class-structure.png)
 
 ### Behaviour — ingest one notification
 
-Every frame is logged and counted (L2-005). Only well-formed `0xD2` and `0xD1` frames change metrics (L2-006, L2-007), and each change recomputes the estimated power (L2-049).
+Every frame is counted (L2-005). Only well-formed `0xD2` and `0xD1` frames change metrics (L2-006, L2-007), and each change recomputes the estimated power (L2-049).
 
 ![Sequence diagram for ingesting one notification](diagrams/sequence-ingest-notification.png)

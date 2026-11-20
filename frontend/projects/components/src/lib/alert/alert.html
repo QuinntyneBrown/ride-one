@@ -15,7 +15,11 @@
     <ng-content />
     @if (actionLabel(); as label) {
       <div class="alert__actions">
-        <button type="button" (click)="action.emit()">{{ label }}</button>
+        @if (actionHref(); as href) {
+          <a [href]="href">{{ label }}</a>
+        } @else {
+          <button type="button" (click)="action.emit()">{{ label }}</button>
+        }
       </div>
     }
   </div>

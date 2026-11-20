@@ -69,12 +69,11 @@ behaviour).
 
 ## Development setup
 
-Follow [Getting started](README.md#getting-started) in the README. In short, you need the .NET 10
-SDK and Node.js 24 with npm, and no bike:
+Follow [Getting started](README.md#getting-started) in the README. In short, you need Node.js 24
+with npm and Chrome or Edge, and no bike:
 
 ```shell
-dotnet run --project backend/src/Wattzup.Api -- --simulate   # the backend with the simulated bike
-cd frontend && npm ci && npm start                           # the dashboard on http://localhost:4200
+cd frontend && npm ci && npm start    # then open http://localhost:4200/?simulate
 ```
 
 The prototype the rewrite replaces is in `../wattzup-prototype/` beside this repository; read it
@@ -82,25 +81,18 @@ there as the reference for behaviour.
 
 ## Coding conventions
 
-### Backend
-
-- Keep the dependency direction: `Wattzup.Protocol` depends on nothing; `Wattzup.Ble.*`
-  transports depend only on `Wattzup.Ble.Abstractions`; `Wattzup.Core` depends on Protocol and
-  the abstractions; `Wattzup.Api` composes everything.
-- Protocol rules live in `Wattzup.Protocol`, business rules in `Wattzup.Core`; endpoints hold no
-  rules.
-- Only a transport touches a platform Bluetooth API.
-- Keep the JSON state contract (snake_case names, nulls written) stable; a change to it updates
-  the OpenAPI document and the frontend's generated types in the same change.
-- Listen on loopback by default; a non-loopback address requires an API key.
-- Errors are ProblemDetails, with a `code` extension where a client needs to branch on them.
-
-### Frontend
-
 - Prettier owns formatting and angular-eslint owns lint; CI fails on either.
 - Standalone components, signals and OnPush change detection.
 - One type per file, and no single-file components: `name.ts` + `name.html` + `name.scss`.
 - Selectors use `wz-*`; class, file and folder names omit the prefix.
+- Presentation components go in the `components` library, named as in the design system, and
+  take inputs and emit outputs; the contracts and their types go in the `api` library; their
+  in-browser implementations (protocol, Web Bluetooth, engine, storage) in the `browser` library;
+  everything else is the `wattzup` app (`frontend/projects/`, ADR 0013).
+- Only `@wattzup/browser`'s `lib/bluetooth/` touches `navigator.bluetooth`.
+- Keep the state and session shapes (snake_case names, nulls written) stable, so exported
+  histories keep importing.
+- A contract refuses with a `ContractError` whose `code` a screen branches on.
 - Read design tokens by role, never hex values.
 - Button-triggered editing opens a CDK Dialog or navigates to a screen; no inline forms.
 - Every interaction works with touch and with the keyboard, colour is never the only carrier of a
@@ -108,10 +100,8 @@ there as the reference for behaviour.
 
 ## Testing
 
-- **No automated test uses a real bike or Bluetooth.** Backend tests run against the simulated
-  transport or a test double of `IBikeTransport`, and use `FakeTimeProvider` instead of sleeping.
-- **End-to-end tests never reach the real backend.** Every `/api` request and the event stream
-  are stubbed. When an endpoint's answer changes, refresh the recording in the same change.
+- **No automated test uses a real bike or Bluetooth.** Unit tests advance a fake clock instead of
+  sleeping; behaviour specs run against a fake `navigator.bluetooth` that records every write.
 - Use the Page Object Model: selectors live in page objects, never in a spec.
 - Run frontend tests in Chromium only.
 - Do not run the visual, responsive or accessibility sweeps or update baselines unless the
@@ -119,8 +109,8 @@ there as the reference for behaviour.
 - Hardware smoke tests are run by hand with a real bike.
 
 The commands for each suite are in the README under
-[Building and testing](README.md#building-and-testing). A change is done when the backend tests,
-the dashboard's format, lint and unit tests, and the behaviour specs pass.
+[Build and test](README.md#build-and-test). A change is done when format, lint, unit tests, the
+production build and the behaviour specs pass (`node tools/verify/verify.mjs`).
 
 ## Commits and pull requests
 

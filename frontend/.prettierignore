@@ -6,4 +6,3 @@ test-results
 playwright-report
 public/fonts
 package-lock.json
-projects/api/src/generated

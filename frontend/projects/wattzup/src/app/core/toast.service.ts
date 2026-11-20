@@ -1,7 +1,7 @@
 // Holds the toasts the root ToastRegion renders; the rules live in toast-queue.ts (L2-053).
 import { Injectable, computed, signal } from '@angular/core';
 import {
-  type ToastMessage,
+  type Toast,
   type ToastInput,
   emptyQueue,
   expire,
@@ -10,12 +10,12 @@ import {
   push,
   remove,
   resume,
-} from '@wattzup/components';
+} from './toast-queue';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
   private readonly queue = signal(emptyQueue());
-  readonly visible = computed<readonly ToastMessage[]>(() => this.queue().visible);
+  readonly visible = computed<readonly Toast[]>(() => this.queue().visible);
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   /** Shows a toast and returns its id; a queued toast gets its id when it shows. */

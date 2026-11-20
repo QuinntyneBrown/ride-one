@@ -12,57 +12,38 @@ import { CommandFeedbackService } from '../../core/command-feedback.service';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { RideActions } from '../../core/ride-actions';
 import { rideOverlayText } from '../../core/ride-overlay-text';
+import { commandLogView } from '../../core/command-log-view';
 import { CueDirector } from '../../core/cue-director';
+import { epochClock } from '../../core/local-time';
+import { metricItems } from '../../core/metric-items';
+import { stripOf } from '../../core/plan-strip';
 import { CountdownService } from '../../core/countdown.service';
 import { LiveStateService } from '../../core/live-state.service';
-import { formatLive, formatPace } from '@wattzup/components';
+import { formatLive } from '../../core/metric-format';
 import { powerDelta } from '../../core/power-delta';
 import { estimateWatts } from '../../core/plan-expansion';
 import { ResistanceCommandService } from '../../core/resistance-command.service';
 import { controlsState, planNote, stepLevel } from '../../core/resistance-controls';
 import { resistanceView } from '../../core/resistance-view';
 import { rideViewState } from '../../core/ride-view-state';
-import { TreadmillCommandService } from '../../core/treadmill-command.service';
 import {
-  baseIncline,
-  baseSpeed,
-  QUICK_SPEEDS,
-  stepIncline,
-  stepSpeed,
-  treadmillControlsState,
-  treadmillPlanNote,
-} from '../../core/treadmill-controls';
-import { inclineView, speedView } from '../../core/treadmill-view';
-import { machineWords } from '../../core/machine-words';
-import { connectionStatus } from '../../core/connection-status';
-import { CueService } from '../../core/cue.service';
-import { MotionPreference } from '../../core/motion-preference';
-import { appBarBadge, intervalSegment } from '../../core/segment-labels';
-import { ThemeService } from '../../core/theme.service';
-import { stripOf } from '../../core/plan-strip';
-import {
-  InclineControl,
-  SpeedControl,
-  Icon,
   PlanNote,
-  EmptyState,
+  LevelPicker,
+  LevelControl,
   Readout,
   type MainView,
   MainViewTabs,
-} from '@wattzup/components';
-import {
-  QuickSpeeds,
   CommandLog,
-  LevelControl,
-  LevelPicker,
-  inclineView as pickerView,
-  OverlayPanel,
   MetricList,
+  PhaseBanner,
   PlanStrip,
 } from '@wattzup/components';
-import { AppBar, Interval, PhaseBanner } from '@wattzup/components';
+import { BIKE_PAIRING } from '@wattzup/api';
+import { AppBar } from '../app-bar/app-bar';
 import { ConnectionBanner } from '../connection-banner/connection-banner';
+import { RideOverlay } from '../ride-overlay/ride-overlay';
 import { RideTrace } from '../ride-trace/ride-trace';
+import { Interval } from '../interval/interval';
 import { VideoSync } from '../../core/video-sync.service';
 import { RideVideo } from '../ride-video/ride-video';
 
@@ -72,14 +53,9 @@ import { RideVideo } from '../ride-video/ride-video';
   imports: [
     AppBar,
     NgTemplateOutlet,
-    QuickSpeeds,
     CommandLog,
     ConnectionBanner,
-    Icon,
-    InclineControl,
-    SpeedControl,
-    EmptyState,
-    OverlayPanel,
+    RideOverlay,
     RideTrace,
     Interval,
     LevelControl,
@@ -99,6 +75,7 @@ import { RideVideo } from '../ride-video/ride-video';
 })
 export class RidePage {
   protected readonly live = inject(LiveStateService);
+  protected readonly pairing = inject(BIKE_PAIRING);
   protected readonly state = this.live.state;
   protected readonly workout = computed(() => this.state()?.workout ?? null);
   /** The ride-along video of the workout, or null (L2-076 AC1). */
@@ -114,7 +91,7 @@ export class RidePage {
     if (this.videoSync.failed()) untracked(() => this.mainView.set('chart'));
   });
   protected readonly view = computed(() =>
-    rideViewState(this.state(), this.live.connection(), this.live.loadFailed()),
+    rideViewState(this.state(), this.pairing.required(), this.pairing.support()),
   );
 
   protected readonly power = computed(() => {
@@ -143,19 +120,11 @@ export class RidePage {
 
   protected readonly commands = inject(ResistanceCommandService);
   protected readonly actions = inject(RideActions);
-  /** Switching machines is offered only with treadmill support on (L2-073 AC11, L2-075). */
-  protected readonly canSwitch = computed(() => this.state()?.treadmill_enabled === true);
-  /** `End and switch to bike` on the treadmill, `… to treadmill` on the bike (L2-071 AC12). */
-  protected readonly switchLabel = computed(() =>
-    this.state()?.machine === 'treadmill'
-      ? 'End and switch to bike'
-      : 'End and switch to treadmill',
-  );
   protected readonly dialogs = inject(DialogLauncher);
   protected readonly overlay = computed(() => {
     const kind = this.view().overlay;
     const s = this.state();
-    return kind && s ? rideOverlayText(kind, s) : null;
+    return kind && s ? rideOverlayText(kind, s, location.href) : null;
   });
   protected readonly resistance = computed(() => resistanceView(this.state()));
   protected readonly resistanceControls = computed(() =>
@@ -166,59 +135,15 @@ export class RidePage {
     return note ? { text: note, backToPlan: false } : planNote(this.state());
   });
 
-  protected readonly treadmill = computed(() => this.state()?.machine === 'treadmill');
-  protected readonly speed = computed(() => speedView(this.state()));
-  protected readonly incline = computed(() => inclineView(this.state()));
-  protected readonly treadmillControls = computed(() =>
-    treadmillControlsState(this.state(), this.view().commandsEnabled),
-  );
-  protected readonly treadmillNote = computed(() => {
-    const note = this.view().controlsNote ?? this.treadmillControls().note;
-    return note ? { text: note, backToPlan: false } : treadmillPlanNote(this.state());
-  });
-  /** The panel's target speed and incline, and the device tail for the log (L2-071 AC8, 9, 12). */
-  protected readonly treadmillTargets = computed(() => {
-    const s = this.state();
-    const speed = baseSpeed(s);
-    const incline = baseIncline(s);
-    return {
-      speedText: speed.toFixed(1),
-      speedNote: `km/h target · ${formatPace(speed)} /km`,
-      inclineText: String(incline),
-      inclinePicker: pickerView(incline),
-      deviceTail: s?.device ? s.device.slice(-6) : null,
-    };
-  });
-  protected readonly treadmillCommands = inject(TreadmillCommandService);
-  protected readonly quickSpeeds = QUICK_SPEEDS;
-  protected readonly countdown = inject(CountdownService);
   protected readonly cues = inject(CueDirector);
-  protected readonly beeps = inject(CueService);
-  protected readonly theme = inject(ThemeService);
-  protected readonly reducedMotion = inject(MotionPreference).reduced;
-  protected readonly status = computed(() =>
-    connectionStatus(this.live.state(), this.live.connection(), this.live.loadFailed()),
+  protected readonly metrics = computed(() => metricItems(this.state()));
+  protected readonly commandLog = computed(() =>
+    commandLogView(this.state()?.commands ?? [], epochClock),
   );
-  protected readonly badge = computed(() =>
-    appBarBadge(this.workout(), this.state()?.machine ?? 'bike'),
-  );
-  protected readonly segment = computed(() => intervalSegment(this.workout()));
-  protected readonly logTitle = {
-    bike: machineWords('bike').panelTitle,
-    treadmill: machineWords('treadmill').panelTitle,
-  };
-  protected readonly planStrip = computed(() => {
+  protected readonly strip = computed(() => {
     const w = this.workout();
     return w ? stripOf(w.segments, w.elapsed_seconds, w.total_seconds) : null;
   });
-
-  protected stepSpeed(dir: 1 | -1): void {
-    void this.treadmillCommands.setSpeed(stepSpeed(this.state(), dir));
-  }
-
-  protected stepIncline(dir: 1 | -1): void {
-    void this.treadmillCommands.setIncline(stepIncline(this.state(), dir));
-  }
 
   protected stepResistance(delta: 1 | -1): void {
     void this.commands.set(stepLevel(this.state(), delta));
@@ -227,10 +152,5 @@ export class RidePage {
   constructor() {
     inject(CommandFeedbackService).start();
     this.live.ensureStarted();
-  }
-
-  protected switchMachine(event: Event): void {
-    event.preventDefault();
-    this.actions.switchMachine();
   }
 }

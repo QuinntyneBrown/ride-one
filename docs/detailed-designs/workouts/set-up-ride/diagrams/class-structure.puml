@@ -56,11 +56,11 @@ package "projects/wattzup/src/app/core" {
     +save(draft: PlanDraft): void
   }
   interface WorkoutApi {
-    +start(plan): Observable<StartResponse>
+    +start(plan): Promise<WorkoutSnapshot>
   }
 }
 
-package "projects/components/src/lib and projects/wattzup/src/app/dashboard" {
+package "projects/components/src/lib + projects/wattzup/src/app/dashboard" {
   class SetupPage <<component wz-setup-page>> {
     +FormGroup<PlanDraftForm> form
     +Signal<FieldError[]> errors

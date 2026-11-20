@@ -9,6 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import type { PhaseBannerView } from '@wattzup/components';
 import { countdownCue } from './countdown-cue';
 import { CountdownService } from './countdown.service';
 import { CueService } from './cue.service';
@@ -17,8 +18,6 @@ import { LiveStateService } from './live-state.service';
 import { SegmentChangeDetector } from './segment-change-detector';
 
 export const BANNER_MS = 1800;
-
-import type { PhaseBannerView } from '@wattzup/components';
 
 export type { PhaseBannerView };
 

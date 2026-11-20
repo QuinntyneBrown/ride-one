@@ -6,17 +6,15 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "YOUTUBE_PLAYER handle" as player
   participant "VideoSync" as sync
   participant "video-sync.ts" as rules
   participant "RideActions" as actions
   participant "ToastService" as toasts
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "WorkoutEndpoints" as ep
-end box
-box "Backend — Wattzup Core" #ECFDF3
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserWorkoutApi" as ep
   participant "WorkoutEngine" as engine
 end box
 
@@ -28,14 +26,14 @@ alt cause is sync
 else status running, cause is rider
   rules --> sync : pause-ride
   sync -> actions : pause() [L2-076 AC5]
-  actions -> ep : POST /api/workout/pause
-  ep -> engine : Pause
-  alt request fails
+  actions -> ep : pause()
+  ep -> engine : pause()
+  alt call fails
     ep --> actions : error
     actions -> toasts : Couldn't pause the ride [L2-046 AC6]
   else paused
     engine --> ep : status paused
-    ep --> actions : 200
+    ep --> actions : resolves
   end
 end
 rider -> player : Play inside the player while status is paused
@@ -43,6 +41,6 @@ player -> sync : state playing
 sync -> rules : riderAction(paused, playing, rider)
 rules --> sync : resume-ride
 sync -> actions : resume()
-actions -> ep : POST /api/workout/resume
-ep --> actions : 200, or a failure with Couldn't resume the ride
+actions -> ep : resume()
+ep --> actions : resolves, or a failure with Couldn't resume the ride
 @enduml

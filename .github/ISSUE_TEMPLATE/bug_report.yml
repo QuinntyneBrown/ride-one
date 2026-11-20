@@ -35,8 +35,8 @@ body:
       label: Area
       options:
         - Bluetooth (finding, connecting, packets)
-        - Dashboard (frontend)
-        - API, workouts or resistance (backend)
+        - Dashboard
+        - Workouts or resistance
         - Prototype (echelon_server.py, index.html)
         - End-to-end tests
         - Documentation, mocks or design system

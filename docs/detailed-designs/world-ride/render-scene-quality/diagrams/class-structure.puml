@@ -1,0 +1,39 @@
+@startuml
+title Rendering quality — class structure
+hide empty members
+enum Tier {
+  low
+  medium
+  high
+  ultra
+}
+enum Backend {
+  webgpu
+  webgl2
+}
+class Technique <<interface>> {
+  id: number
+  name: string
+  from: Tier | null
+  reducedMotion: 'kept' | 'still' | 'off'
+}
+class "render-quality.ts" as RQ <<module>> {
+  TECHNIQUES: Technique[]
+  startTier(backend): Tier
+  techniquesAt(tier, backend, reducedMotion): Set<number>
+}
+class FrameBudget {
+  sample(now, frameMs): 'keep' | 'drop'
+}
+class WorldRenderer <<interface>> {
+  start(canvas, world): Promise<boolean>
+  resize(width, height, pixelRatio)
+  draw(frame)
+  dispose()
+}
+RQ --> Technique
+RQ ..> Tier
+RQ ..> Backend
+WorldRenderer ..> RQ : reads
+WorldRenderer --> FrameBudget : feeds
+@enduml

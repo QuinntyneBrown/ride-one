@@ -9,99 +9,36 @@ skinparam class {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-title Class structure — Host composition
+title Class structure — Composition root
 
-package "Wattzup.Api" {
-  class Program <<static>> {
-    +Main(args: string[]): Task
-  }
-  class WattzupOptions {
-    +string Urls = "http://127.0.0.1:8787"
-    +SecurityOptions Security
-    +CorsOptions Cors
-    +BleOptions Ble
-    +BikeOptions Bike
-    +RawPacketLogOptions RawPacketLog
-    +StatusSnapshotOptions StatusSnapshot
-  }
-  class BikeOptions {
-    +string? DisplayName
-  }
-  abstract class BackgroundService {
-    #ExecuteAsync(ct): Task
-  }
-  class BikeConnectionService
-  class WorkoutEngineHost
-  class RawPacketLogWriter
-  class StatusSnapshotWriter
-  class StateChangeLogger
-  class EndpointGroups <<static>> {
-    +MapStatus / MapEvents / MapResistance
-    +MapWorkout / MapDiagnostics / MapHealth
-  }
+class "app.config.ts" as root <<composition root>> {
+  +appConfig: ApplicationConfig
 }
-package "Wattzup.Core" {
-  class BikeStateStore <<singleton>>
-  class StateBroadcaster <<singleton>>
-  class ActiveConnectionRegistry <<singleton>>
+class "app.routes.ts" as routes {
+  +'' RidePage
+  +'setup' SetupPage
+  +'classes' ClassLibraryPage
+  +'classes/:id' ClassPage
+  +'sessions/:id' SessionPage (lazy)
+  +'progress' ProgressPage (lazy)
+  +'**' NotFoundPage
 }
-package "Wattzup.Mac" {
-  class AppDelegate {
-    +DidFinishLaunching(): void
-    +WillTerminate(): void
-  }
+class "provideBrowserContracts()" as provide <<@wattzup/browser>> {
+  +BIKE_API, WORKOUT_API, CLASS_API, SESSION_API
+  +LIVE_STATE_SOURCE, BIKE_PAIRING, SESSION_ARCHIVE, PACKET_LOG
+  +shared services, environment initializers
 }
-package "frontend/projects/wattzup" {
-  class appConfig <<ApplicationConfig>> {
-    +provideZonelessChangeDetection()
-    +provideRouter(routes)
-    +provideHttpClient(withInterceptors([apiKeyInterceptor]))
-    +BIKE_API -> HttpBikeApi
-    +WORKOUT_API -> HttpWorkoutApi
-    +MACHINE_API -> HttpMachineApi
-    +YOUTUBE_PLAYER -> IframeYouTubePlayer
-    +UNAUTHORIZED_HANDLER -> redirectToUnlock
-  }
-  class routes <<Routes>> {
-    + "" : RidePage
-    + "setup" : SetupPage
-    + "machine" : MachinePage
-    + "unlock" : UnlockPage
-    + "**" : NotFoundPage
-  }
-  class RidePage <<page>>
-}
-package "frontend/projects/api" {
-  interface BikeApi
-  class HttpBikeApi
-  class apiKeyInterceptor <<HttpInterceptorFn>>
-  class UNAUTHORIZED_HANDLER <<InjectionToken>>
-}
-package "frontend/projects/components" {
-  class AppBar <<presentation>>
-  class Readout <<presentation>>
+class IframeYouTubePlayer <<app core>>
+class "provideServiceWorker('ngsw-worker.js')" as sw
+class ThemeService <<app core>>
+class LiveStateService <<app core>> {
+  +state: Signal<BikeState | null>
 }
 
-BackgroundService <|-- BikeConnectionService
-BackgroundService <|-- WorkoutEngineHost
-BackgroundService <|-- RawPacketLogWriter
-BackgroundService <|-- StatusSnapshotWriter
-BackgroundService <|-- StateChangeLogger
-WattzupOptions *-- BikeOptions
-Program ..> WattzupOptions : binds json, env, args
-Program ..> BackgroundService : registers
-Program ..> BikeStateStore : registers
-Program ..> StateBroadcaster : registers
-Program ..> ActiveConnectionRegistry : registers
-Program ..> EndpointGroups : maps
-AppDelegate ..> Program : starts and stops the host
-appConfig --> routes
-BikeApi <|.. HttpBikeApi
-appConfig ..> HttpBikeApi : binds
-appConfig ..> UNAUTHORIZED_HANDLER : binds
-apiKeyInterceptor ..> UNAUTHORIZED_HANDLER : calls on 401
-routes --> RidePage
-RidePage ..> AppBar : inputs and outputs
-RidePage ..> Readout : inputs
-RidePage ..> BikeApi : via BIKE_API
+root ..> routes : provideRouter
+root ..> provide : calls
+root ..> IframeYouTubePlayer : YOUTUBE_PLAYER
+root ..> sw : registers
+root ..> ThemeService : app initializer
+LiveStateService ..> provide : reads LIVE_STATE_SOURCE
 @enduml

@@ -13,24 +13,23 @@ skinparam class {
 ' --------------------------
 title Class structure — Ride along to a video
 
-package "Wattzup.Core" {
-  abstract class WorkoutPlan {
-    +RideVideo? Video
+package "@wattzup/api" {
+  interface WorkoutPlan {
+    +video: RideVideo | null
   }
-  class HiitPlan
-  class FlatPlan
-  class IntervalsPlan
-  class RideVideo {
-    +string VideoId
-    +double StartSeconds
+  interface RideVideo {
+    +video_id: string
+    +start_seconds: number
   }
-  class YouTubeLink <<static>> {
-    +TryParseId(url: string, out id: string): bool
+}
+package "@wattzup/browser lib/engine" {
+  class "youtube-link" as YouTubeLink <<module>> {
+    +parseYouTubeId(url): string | null
   }
-  class WorkoutPlanValidator <<static>> {
-    +VideoLink: string
-    +VideoStart: string
-    +Validate(body, machine): PlanValidationResult
+  class "workout-plan-validator" as WorkoutPlanValidator <<module>> {
+    +VIDEO_LINK: string
+    +VIDEO_START: string
+    +validatePlan(body): PlanValidationResult
   }
 }
 
@@ -95,9 +94,6 @@ package "Wattzup Web — dashboard" {
   class SetupPage
 }
 
-WorkoutPlan <|-- HiitPlan
-WorkoutPlan <|-- FlatPlan
-WorkoutPlan <|-- IntervalsPlan
 WorkoutPlan "1" --> "0..1" RideVideo : video
 WorkoutPlanValidator ..> YouTubeLink : parses with
 WorkoutPlanValidator ..> RideVideo : creates

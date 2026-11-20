@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { Icon } from '../icon/icon';
 
 export type StatusIcon = 'bluetooth' | 'bluetooth-scan' | 'bluetooth-off' | 'wifi-off';
-export type StatusTone = 'ok' | 'wait' | 'bad';
+export type StatusTone = 'ok' | 'wait' | 'bad' | 'quiet';
 
-/** What the status line shows: the machine or server name and its state (L2-018). */
+/** The connection as the status line shows it: a name, a state label, an icon and a tone. */
 export interface ConnectionStatus {
   name: string;
   label: string;
@@ -22,6 +22,6 @@ export interface ConnectionStatus {
 })
 export class StatusLine {
   readonly status = input.required<ConnectionStatus>();
-  /** Stops the scanning icon from spinning (`prefers-reduced-motion`). */
+  /** Stops the scanning icon's spin. */
   readonly reducedMotion = input(false);
 }

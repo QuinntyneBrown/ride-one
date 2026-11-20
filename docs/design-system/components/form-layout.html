@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Form layout — Wattzup design system</title>
-<meta name="description" content="How setup and unlock arrange fields, the error summary and the submit action.">
+<meta name="description" content="How setup and its dialogs arrange fields, the error summary and the submit action.">
 <link rel="stylesheet" href="../tokens/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <link rel="stylesheet" href="../assets/ds.css">
@@ -35,13 +35,11 @@
       <li><a href="../components/text-field.html">Text field</a></li>
       <li><a href="../components/form-field.html">Form field</a></li>
       <li><a href="../components/form-layout.html">Form layout</a></li>
-      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li>
-      <li><a href="../components/machine-card.html">Machine card</a></li>
-      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
+      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li><li><a href="../components/class-card.html">Class card and shelf</a></li><li><a href="../components/class-worlds.html">Class worlds</a></li><li><a href="../components/world-ride.html">World Ride HUD</a></li><li><a href="../components/level-row.html">Level row</a></li><li><a href="../components/session-traces.html">Session traces</a></li><li><a href="../components/dip-list.html">Dip list</a></li><li><a href="../components/week-strip.html">Week strip</a></li><li><a href="../components/stat-strip.html">Stat strip</a></li><li><a href="../components/best-chip.html">Personal-best chip and delta</a></li><li><a href="../components/trend-chart.html">Trend chart</a></li><li><a href="../components/session-list.html">Session list</a></li><li><a href="../components/streak-calendar.html">Streak calendar</a></li><li><a href="../components/achievement.html">Achievement badge</a></li>
       <li><a href="../components/slider.html">Slider</a></li>
       <li><a href="../components/number-stepper.html">Number stepper</a></li>
-      <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li>
-      <li><a href="../components/effort-row.html">Effort row</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
       <li><a href="../components/level-picker.html">Level picker</a></li>
       <li><a href="../components/app-bar.html">App bar</a></li>
       <li><a href="../components/lockup.html">Lockup</a></li>
@@ -117,7 +115,7 @@
       <p class="ds-na">Layout has no sizes; columns change with the breakpoint.</p>
     </section>
     <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
-<div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Ready</th><th scope="col">Submitting</th><th scope="col">Invalid</th></tr></thead><tbody><tr><th scope="row">Submit</th><td><button class="btn btn--primary" type="button">Start ride</button></td><td><button class="btn btn--primary" type="button" aria-busy="true" disabled>Start ride</button></td><td><button class="btn btn--primary" type="button" disabled>Start ride</button></td></tr></tbody></table></div><h3>Both themes</h3><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas"><div class="alert alert--danger form-summary"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">2 things to fix before you start</span></div></div></div></div><div data-theme="dark"><div class="ds-example__canvas"><div class="alert alert--danger form-summary"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">2 things to fix before you start</span></div></div></div></div></div><ul><li><b>Submitting</b>: every control read-only, the button busy, nothing shifts.</li><li><b>Server error</b>: a danger alert beside the button; values kept.</li></ul>
+<div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Ready</th><th scope="col">Submitting</th><th scope="col">Invalid</th></tr></thead><tbody><tr><th scope="row">Submit</th><td><button class="btn btn--primary" type="button">Start ride</button></td><td><button class="btn btn--primary" type="button" aria-busy="true" disabled>Start ride</button></td><td><button class="btn btn--primary" type="button" disabled>Start ride</button></td></tr></tbody></table></div><h3>Both themes</h3><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas"><div class="alert alert--danger form-summary"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">2 things to fix before you start</span></div></div></div></div><div data-theme="dark"><div class="ds-example__canvas"><div class="alert alert--danger form-summary"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">2 things to fix before you start</span></div></div></div></div></div><ul><li><b>Submitting</b>: every control read-only, the button busy, nothing shifts.</li><li><b>Failed start</b>: a danger alert beside the button; values kept.</li></ul>
     </section>
     <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
 <ul><li>One column below 640px; steppers in three (or two) columns from 640px.</li><li>The submit button sits in the side panel from 1024px and below the form on smaller screens.</li></ul>
@@ -142,7 +140,7 @@
 &lt;div class="alert alert--danger form-summary" role="alert" tabindex="-1"&gt;…&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.field-grid</code></td><td>1 → 3 columns.</td></tr><tr><td><code>.field-grid--2</code></td><td>1 → 2 columns.</td></tr><tr><td><code>.form-summary</code></td><td>Error summary alert.</td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/setup/invalid.html">pages/setup/invalid</a> (summary)</li><li><a href="../../mocks/pages/setup/submitting.html">pages/setup/submitting</a> (busy)</li><li><a href="../../mocks/pages/setup/error.html">pages/setup/error</a> (server error)</li></ul><p>Drift fixed during extraction: the summary list used an inline <code>style</code> for its indent; it is now <code>.form-summary ul</code>.</p>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/setup/invalid.html">pages/setup/invalid</a> (summary)</li><li><a href="../../mocks/pages/setup/submitting.html">pages/setup/submitting</a> (busy)</li><li><a href="../../mocks/pages/setup/error.html">pages/setup/error</a> (failed start)</li></ul><p>Drift fixed during extraction: the summary list used an inline <code>style</code> for its indent; it is now <code>.form-summary ul</code>.</p>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

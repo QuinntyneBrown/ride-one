@@ -35,13 +35,11 @@
       <li><a href="../components/text-field.html">Text field</a></li>
       <li><a href="../components/form-field.html">Form field</a></li>
       <li><a href="../components/form-layout.html">Form layout</a></li>
-      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li>
-      <li><a href="../components/machine-card.html">Machine card</a></li>
-      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
+      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li><li><a href="../components/class-card.html">Class card and shelf</a></li><li><a href="../components/class-worlds.html">Class worlds</a></li><li><a href="../components/world-ride.html">World Ride HUD</a></li><li><a href="../components/level-row.html">Level row</a></li><li><a href="../components/session-traces.html">Session traces</a></li><li><a href="../components/dip-list.html">Dip list</a></li><li><a href="../components/week-strip.html">Week strip</a></li><li><a href="../components/stat-strip.html">Stat strip</a></li><li><a href="../components/best-chip.html">Personal-best chip and delta</a></li><li><a href="../components/trend-chart.html">Trend chart</a></li><li><a href="../components/session-list.html">Session list</a></li><li><a href="../components/streak-calendar.html">Streak calendar</a></li><li><a href="../components/achievement.html">Achievement badge</a></li>
       <li><a href="../components/slider.html">Slider</a></li>
       <li><a href="../components/number-stepper.html">Number stepper</a></li>
-      <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li>
-      <li><a href="../components/effort-row.html">Effort row</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
       <li><a href="../components/level-picker.html">Level picker</a></li>
       <li><a href="../components/app-bar.html">App bar</a></li>
       <li><a href="../components/lockup.html">Lockup</a></li>
@@ -95,7 +93,7 @@
 <p>See <a href="../components/toast.html">toast</a>, <a href="../components/alert.html">alert and banner</a> and <a href="../components/phase-banner.html">step-change banner</a>. There is no notification centre: the app is single-user and live.</p>
     </section>
     <section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
-<ul><li>Toast: result of a resistance command or a toggle.</li><li>Banner: server unreachable, Bluetooth off, simulated bike, reconnected, network exposure.</li><li>Step-change banner: each step change, with an optional tone.</li></ul>
+<ul><li>Toast: result of a resistance command or a toggle.</li><li>Banner: Bluetooth off, simulated bike, reconnected, a browser that cannot reach Bluetooth.</li><li>Step-change banner: each step change, with an optional tone.</li></ul>
     </section>
     <section class="ds-section" id="structure"><h2><a href="#structure">Structure</a></h2>
 <div class="ds-example"><div class="ds-example__canvas "><div class="toast toast--warning"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div class="toast__body"><div class="toast__title">Bike is slow to confirm</div><div class="toast__text">Still setting level 22 — Wattzup resends every 5 seconds.</div></div><button class="close" type="button" aria-label="Dismiss"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div></div><div class="ds-example__caption"><span>Warning toast.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="toast toast--warning"&gt;
@@ -130,7 +128,7 @@
 <div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><div class="toast toast--danger"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="toast__body"><div class="toast__title">Couldn&rsquo;t set resistance</div><div class="toast__text">The bike isn&rsquo;t connected.</div></div><button class="close" type="button" aria-label="Dismiss"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div></div><figcaption>Cause and outcome.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><div class="toast toast--danger"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="toast__body"><div class="toast__title">Error</div><div class="toast__text">Something went wrong.</div></div><button class="close" type="button" aria-label="Dismiss"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div></div><figcaption>Generic.</figcaption></figure></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from:</p><ul><li><a href="../../mocks/notifications/ride-toast/stacked.html">notifications/ride-toast/stacked</a></li><li><a href="../../mocks/notifications/connection-banner/warning.html">notifications/connection-banner/warning</a></li><li><a href="../../mocks/notifications/phase-banner/effort.html">notifications/phase-banner/effort</a></li></ul>
+<p>Extracted from:</p><ul><li><a href="../../mocks/notifications/ride-toast/stacked.html">notifications/ride-toast/stacked</a></li><li><a href="../../mocks/notifications/connection-banner/danger.html">notifications/connection-banner/danger</a></li><li><a href="../../mocks/notifications/phase-banner/effort.html">notifications/phase-banner/effort</a></li></ul>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

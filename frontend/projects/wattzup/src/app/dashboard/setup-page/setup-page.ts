@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,15 +9,20 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DialogLauncher } from '../../core/dialog-launcher';
-import { RideActions } from '../../core/ride-actions';
-import { formatDuration } from '@wattzup/components';
-import type { Machine, StartPlan } from '@wattzup/api';
+import { formatDuration } from '../../core/format-duration';
+import {
+  BIKE_PAIRING,
+  type ContractError,
+  isContractError,
+  type StartPlan,
+  WORKOUT_API,
+} from '@wattzup/api';
+import { supportNotice } from '../../core/support-notice';
+import { SupportBanner } from '../support-banner/support-banner';
 import { planVideo } from '../../core/video-link';
 import { LiveStateService } from '../../core/live-state.service';
-import { connectionStatus } from '../../core/connection-status';
+import { liveConnectionStatus } from '../../core/connection-status';
 import { MotionPreference } from '../../core/motion-preference';
-import { MachineHistoryStore } from '../../core/machine-history.store';
-import { setupLead } from '../../core/machine-words';
 import { planSummary } from '../../core/plan-expansion';
 import { PlanDraftStore } from '../../core/plan-draft.store';
 import {
@@ -32,8 +36,8 @@ import {
   replaceSet,
   setStretch,
   toIntervalsPlan,
-  validateIntervals,
   setListView,
+  validateIntervals,
 } from '../../core/intervals-form';
 import {
   type DraftField,
@@ -46,27 +50,8 @@ import {
   toPlan,
   validateDraft,
 } from '../../core/plan-form';
-import {
-  type RidePreview as Preview,
-  previewOf,
-  treadmillPreviewOf,
-  withVideoRow,
-} from '../../core/ride-preview';
-import {
-  type TreadmillField,
-  type TreadmillPlanDraft,
-  type TreadmillPresetId,
-  applyTreadmillPreset,
-  presetPressed,
-  presetsFor,
-  editTreadmillDraft,
-  stepTreadmillDraft,
-  toTreadmillPlan,
-  validateTreadmillDraft,
-  effortRowView,
-} from '../../core/treadmill-plan-form';
+import { type RidePreview as Preview, previewOf, withVideoRow } from '../../core/ride-preview';
 import { isActive } from '../../core/workout-status';
-import { WORKOUT_API } from '@wattzup/api';
 import {
   Alert,
   FormSummary,
@@ -77,10 +62,10 @@ import {
   type PresetChip,
   Presets,
   Switch,
+  SetList,
+  RideProfile,
+  StatusLine,
 } from '@wattzup/components';
-import { EffortRow, SetList } from '@wattzup/components';
-import { RideProfile } from '@wattzup/components';
-import { StatusLine } from '@wattzup/components';
 import { VideoLink } from '../video-link/video-link';
 
 /** The input id of each draft field; the form summary links to them. */
@@ -95,28 +80,14 @@ export const FIELD_IDS: Record<DraftField, string> = {
   cadence: 'cadence',
 };
 
-/** The input id of each treadmill draft field (L2-072 AC7). */
-export const TREADMILL_FIELD_IDS: Record<TreadmillField, string> = {
-  rounds: 'rounds',
-  work: 'work',
-  rest: 'rest',
-  workSpeed: 'work-speed',
-  restSpeed: 'rest-speed',
-  workIncline: 'work-incline',
-  restIncline: 'rest-incline',
-  speed: 'hold-speed',
-  incline: 'hold-incline',
-  minutes: 'duration',
-};
-
 type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
 
-/** Route `/setup`: build a plan for the chosen machine and start it (L2-029, L2-052, L2-059, L2-072). */
+/** Route `/setup`: build a plan and start it (L2-029, L2-052, L2-059). */
 @Component({
   selector: 'wz-setup-page',
   imports: [
+    SupportBanner,
     Alert,
-    EffortRow,
     FormSummary,
     Icon,
     Slider,
@@ -136,97 +107,50 @@ type StartError = { kind: 'invalid'; messages: string[] } | { kind: 'failed' };
 })
 export class SetupPage {
   private readonly live = inject(LiveStateService);
-  protected readonly reducedMotion = inject(MotionPreference).reduced;
-  protected readonly status = computed(() =>
-    connectionStatus(this.live.state(), this.live.connection(), this.live.loadFailed()),
-  );
   private readonly store = inject(PlanDraftStore);
-  private readonly history = inject(MachineHistoryStore);
   private readonly workouts = inject(WORKOUT_API);
   private readonly dialogs = inject(DialogLauncher);
-  private readonly actions = inject(RideActions);
   private readonly router = inject(Router);
+  protected readonly status = liveConnectionStatus();
+  protected readonly reducedMotion = inject(MotionPreference).reduced;
   private readonly summary = viewChild(FormSummary);
 
-  /** The machine the state reports; changes only when the value does. */
-  protected readonly machine = computed<Machine>(() => this.live.state()?.machine ?? 'bike');
-  /** `Switch to bike` on the treadmill, `Switch to treadmill` on the bike (L2-072 AC1). */
-  protected readonly switchLabel = computed(() =>
-    this.machine() === 'treadmill' ? 'Switch to bike' : 'Switch to treadmill',
-  );
-  protected readonly treadmill = computed(() => this.machine() === 'treadmill');
-  /** Switching machines is offered only with treadmill support on (L2-073 AC11, L2-075). */
-  protected readonly canSwitch = computed(() => this.live.state()?.treadmill_enabled === true);
-
   protected readonly ids = FIELD_IDS;
-  protected readonly tids = TREADMILL_FIELD_IDS;
   protected readonly draft = signal<PlanDraft>(this.store.load());
-  protected readonly tdraft = signal<TreadmillPlanDraft>(this.store.loadTreadmill());
-  protected readonly setList = computed(() => setListView(this.idraft()));
-  protected readonly workView = computed(() =>
-    effortRowView(this.tdraft().workSpeed, this.tdraft().workIncline),
-  );
-  protected readonly restView = computed(() =>
-    effortRowView(this.tdraft().restSpeed, this.tdraft().restIncline),
-  );
-  protected readonly holdView = computed(() =>
-    effortRowView(this.tdraft().speed, this.tdraft().incline),
-  );
   protected readonly idraft = signal(this.store.loadIntervals());
   protected readonly vdraft = signal(this.store.loadVideo());
-  /** The bike's Intervals mode (L2-029 AC10). */
-  protected readonly intervals = computed(
-    () => !this.treadmill() && this.draft().mode === 'intervals',
-  );
+  /** The Intervals mode (L2-029 AC10). */
+  protected readonly intervals = computed(() => this.draft().mode === 'intervals');
+  protected readonly setList = computed(() => setListView(this.idraft()));
   protected readonly ierrors = computed(() => validateIntervals(this.idraft()));
   protected readonly errors = computed(() => validateDraft(this.draft()));
-  protected readonly terrors = computed(() => validateTreadmillDraft(this.tdraft()));
   protected readonly errorFor = computed(() => {
     const map: Partial<Record<DraftField, string>> = {};
     for (const e of this.errors()) map[e.field] = e.message;
     return map;
   });
-  protected readonly terrorFor = computed(() => {
-    const map: Partial<Record<TreadmillField, string>> = {};
-    for (const e of this.terrors()) map[e.field] = e.message;
-    return map;
-  });
   protected readonly links = computed(() =>
-    this.treadmill()
-      ? this.terrors().map((e) => ({ fieldId: TREADMILL_FIELD_IDS[e.field], text: e.link }))
-      : this.intervals()
-        ? this.ierrors().map((e) => ({ fieldId: 'add-set', text: e.link }))
-        : this.errors().map((e) => ({ fieldId: FIELD_IDS[e.field], text: e.link })),
+    this.intervals()
+      ? this.ierrors().map((e) => ({ fieldId: 'add-set', text: e.link }))
+      : this.errors().map((e) => ({ fieldId: FIELD_IDS[e.field], text: e.link })),
   );
   private readonly plan = computed(() =>
-    this.treadmill()
-      ? toTreadmillPlan(this.tdraft())
-      : this.intervals()
-        ? toIntervalsPlan(this.idraft())
-        : toPlan(this.draft()),
+    this.intervals() ? toIntervalsPlan(this.idraft()) : toPlan(this.draft()),
   );
-  /** The preview of the last valid plan for this machine, kept while the form is invalid. */
+  /** The preview of the last valid plan, kept while the form is invalid. */
   private readonly preview = computed(() => {
     const plan = this.plan();
-    const preview = plan ? (this.treadmill() ? treadmillPreviewOf(plan) : previewOf(plan)) : null;
-    return { machine: this.machine(), preview };
+    return plan ? previewOf(plan) : null;
   });
-  protected readonly shownPreview = linkedSignal<
-    { machine: Machine; preview: Preview | null },
-    Preview | null
-  >({
+  protected readonly shownPreview = linkedSignal<Preview | null, Preview | null>({
     source: this.preview,
-    computation: (next, previous) =>
-      next.preview ??
-      (previous && previous.source.machine === next.machine ? previous.value : null),
+    computation: (next, previous) => next ?? previous?.value ?? null,
   });
 
   /** The shown preview with the `Video` row while the plan carries a video (L2-059 AC6). */
   protected readonly previewWithVideo = computed(() =>
     withVideoRow(this.shownPreview(), planVideo(this.vdraft())?.start_seconds ?? null),
   );
-
-  protected readonly lead = computed(() => setupLead(this.machine()));
 
   protected readonly bikeChips = computed<PresetChip[]>(() =>
     PRESETS.map((p) => ({ id: p.id, label: p.label, pressed: this.draft().preset === p.id })),
@@ -238,45 +162,28 @@ export class SetupPage {
       pressed: this.idraft().preset === p.id,
     })),
   );
-  /** The mode's presets, each pressed while its values still match (L2-072 AC3). */
-  protected readonly treadmillChips = computed<PresetChip[]>(() => {
-    const d = this.tdraft();
-    return presetsFor(d.mode).map((p) => ({
-      id: p.id,
-      label: p.label,
-      pressed: presetPressed(d, p.id),
-    }));
-  });
-
-  /** `Fix the field marked in red to start.` on the treadmill (L2-072 AC7), counted on the bike. */
+  /** `Fix the <n> fields marked in red to start.` */
   protected readonly startHint = computed(() => {
     const n = this.links().length;
-    if (this.treadmill()) {
-      return n === 1
-        ? 'Fix the field marked in red to start.'
-        : 'Fix the fields marked in red to start.';
-    }
     return `Fix the ${n} ${n === 1 ? 'field' : 'fields'} marked in red to start.`;
   });
 
-  protected readonly loading = computed(() => !this.live.state() && !this.live.loadFailed());
+  protected readonly loading = computed(() => !this.live.state());
   protected readonly busy = signal(false);
+  /** Why Start ride is disabled when the browser cannot reach Bluetooth (L2-089 AC1, AC3). */
+  protected readonly startBlocked = computed(
+    () => supportNotice(this.pairing.support(), '')?.startHint ?? null,
+  );
+  private readonly pairing = inject(BIKE_PAIRING);
+
   protected readonly startError = signal<StartError | null>(null);
 
   constructor() {
     this.live.ensureStarted();
   }
 
-  /** `Switch to …`: the end dialog first during a ride, then the machine page (L2-073 AC9). */
-  protected switchMachine(event: Event): void {
-    event.preventDefault();
-    this.actions.switchMachine();
-  }
-
   protected setMode(mode: 'hiit' | 'intervals' | 'flat'): void {
-    if (this.treadmill()) {
-      if (mode !== 'intervals') this.tdraft.update((d) => editTreadmillDraft(d, { mode }));
-    } else this.draft.update((d) => editDraft(d, { mode }));
+    this.draft.update((d) => editDraft(d, { mode }));
   }
 
   /** Edit set <i>: the dialog's saved set replaces it (L2-029 AC13). */
@@ -312,22 +219,12 @@ export class SetupPage {
     this.idraft.update((d) => removeSet(d, index));
   }
 
-  protected tedit(change: Partial<TreadmillPlanDraft>): void {
-    this.tdraft.update((d) => editTreadmillDraft(d, change));
-  }
-
-  protected tstep(field: TreadmillField, dir: 1 | -1): void {
-    this.tdraft.update((d) => stepTreadmillDraft(d, field, dir));
-  }
-
   protected edit(change: Partial<PlanDraft>): void {
     this.draft.update((d) => editDraft(d, change));
   }
 
   protected preset(id: string): void {
-    if (this.treadmill()) {
-      this.tdraft.update((d) => applyTreadmillPreset(d, id as TreadmillPresetId));
-    } else if (this.intervals()) {
+    if (this.intervals()) {
       this.idraft.update((d) => applyIntervalPreset(d, id as IntervalPresetId));
     } else this.draft.update((d) => applyPreset(d, id as PresetId));
   }
@@ -345,11 +242,8 @@ export class SetupPage {
     if (!shape || this.busy()) return;
     const plan: StartPlan = { ...shape, video: planVideo(this.vdraft()) };
     this.store.saveVideo(this.vdraft());
-    if (this.treadmill()) this.store.saveTreadmill(this.tdraft());
-    else {
-      this.store.save(this.draft());
-      if (this.intervals()) this.store.saveIntervals(this.idraft());
-    }
+    this.store.save(this.draft());
+    if (this.intervals()) this.store.saveIntervals(this.idraft());
     const workout = this.live.state()?.workout ?? null;
     if (isActive(workout) && workout) {
       const started = await this.dialogs.openReplaceRide({
@@ -358,21 +252,16 @@ export class SetupPage {
         currentSummary: workout.summary,
         newSummary: planSummary(shape),
       });
-      if (started) {
-        this.history.recordStart(this.machine(), planSummary(shape), new Date());
-        await this.router.navigateByUrl('/');
-      }
+      if (started) await this.router.navigateByUrl('/');
       return;
     }
     this.busy.set(true);
     this.startError.set(null);
     try {
-      const snapshot = await this.workouts.start(plan);
-      this.history.recordStart(this.machine(), snapshot.summary, new Date());
+      await this.workouts.start(plan);
       await this.router.navigateByUrl('/');
     } catch (e) {
-      if (e instanceof HttpErrorResponse && e.status === 401) return;
-      const errors = e instanceof HttpErrorResponse && e.status === 400 ? problemErrors(e) : null;
+      const errors = isContractError(e, 'invalid_workout') ? planErrors(e) : null;
       this.startError.set(errors ? { kind: 'invalid', messages: errors } : { kind: 'failed' });
     } finally {
       this.busy.set(false);
@@ -380,9 +269,8 @@ export class SetupPage {
   }
 }
 
-/** The messages of a ProblemDetails `errors` map, in order. */
-function problemErrors(e: HttpErrorResponse): string[] {
-  const body = e.error as { errors?: Record<string, string[]>; detail?: string } | null;
-  const messages = Object.values(body?.errors ?? {}).flat();
-  return messages.length ? messages : [body?.detail ?? 'The plan was not accepted.'];
+/** The messages for each field of a plan that is not valid, in order. */
+function planErrors(e: ContractError): string[] {
+  const messages = Object.values(e.errors).flat();
+  return messages.length ? messages : ['The plan was not accepted.'];
 }

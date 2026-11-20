@@ -1,16 +1,12 @@
-# `@wattzup/api`
+# api
 
-Everything the Wattzup app needs to talk to the backend (L2-044, ADR 0013):
+The `@wattzup/api` library: the contracts the app speaks (ADR 0013).
 
-- `src/generated/schema.d.ts`: types generated from `/openapi/v1.json` by `npm run generate:api`.
-  Never hand-edited; CI regenerates it and fails on a diff.
-- `src/lib/api-types.ts`: the names the app uses for the generated types.
-- The contracts `BikeApi`, `WorkoutApi` and `MachineApi` with their injection tokens, and their
-  HTTP implementations in `http-api.ts`.
-- `apiKeyInterceptor`, `ApiKeyStore`, `SafeStorage`, and `UNAUTHORIZED_HANDLER`, which the app
-  binds to its reaction to a 401.
-- `StreamConnection`, the browser's view of the event stream.
+- `src/contract/schema.d.ts` holds the data types (bike state, workouts and plans, classes,
+  sessions, progress), hand-maintained. `src/lib/api-types.ts` is the only module that names them.
+- The contracts `BikeApi`, `WorkoutApi`, `ClassApi`, `SessionApi`, `LiveStateSource`,
+  `BikePairing`, `SessionArchive` and `PacketLog`, each with its injection token.
+- `ContractError`, how a contract refuses, with a `code` a screen branches on.
 
-The library depends on nothing else in the workspace and knows no route. The app imports it as
-`@wattzup/api` through the path alias in `frontend/tsconfig.json`, which points at
-`src/public-api.ts`, so no library build is needed. Unit tests: `npx ng test api`.
+It depends on nothing else in the workspace. The app imports it through the `@wattzup/api` path
+alias; it is compiled from source and never built or published on its own.

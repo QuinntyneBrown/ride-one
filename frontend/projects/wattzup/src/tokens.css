@@ -299,6 +299,14 @@
   --color-bg-inverse: var(--palette-neutral-950);
   --color-bg-backdrop: rgb(11 12 14 / 0.55);
   --color-bg-veil: rgb(245 246 241 / 0.92);
+  --color-bg-hud: rgb(245 246 241 / 0.9); /* World Ride panels over the scene */
+  --color-rider-1: var(--palette-neutral-50);
+  --color-rider-2: var(--palette-heart-400);
+  --color-rider-3: var(--palette-cyan-300);
+  --color-rider-4: var(--palette-volt-300); /* you */
+  --color-rider-5: var(--palette-warn-400);
+  --color-rider-6: var(--palette-violet-400);
+  --color-rider-7: var(--palette-rest-300);
   /* Video surface: the same in both themes, like the picture it frames. */
   --color-video-bg: var(--palette-neutral-950);
   --color-video-fg: var(--palette-neutral-50);
@@ -320,7 +328,8 @@
   --color-accent-hover: var(--palette-volt-400);
   --color-accent-active: var(--palette-volt-500);
   --color-accent-edge: var(
-    --palette-volt-800
+    --palette-volt-800 --palette-cyan-300: #3ff0ff; /* World Ride jersey */
+      --palette-violet-400: #9b6bff; /* World Ride jersey */
   ); /* primary button border: volt fill alone is 1.1:1 on white */
   --color-accent-subtle: var(--palette-volt-50);
   --color-accent-subtle-hover: var(--palette-volt-100);
@@ -366,6 +375,7 @@
   --color-series-easy: var(--palette-neutral-300); /* warm-up, cool-down blocks */
   --color-series-actual: var(--palette-neutral-950); /* rider's actual power */
   --color-series-grid: var(--palette-neutral-200);
+  --color-series-dip: var(--palette-heart-600); /* cadence dip bands on the session traces */
   --color-fg-rest: var(--palette-rest-600);
   --color-fg-heart: var(--palette-heart-600);
   --color-fg-warn: var(--palette-warn-700);
@@ -395,6 +405,7 @@
   --color-bg-inverse: var(--palette-neutral-50);
   --color-bg-backdrop: rgb(11 12 14 / 0.7);
   --color-bg-veil: rgb(11 12 14 / 0.9);
+  --color-bg-hud: rgb(11 12 14 / 0.9);
 
   --color-fg-default: var(--palette-neutral-50);
   --color-fg-muted: var(--palette-neutral-400);
@@ -455,6 +466,7 @@
   --color-series-easy: var(--palette-neutral-650);
   --color-series-actual: var(--palette-neutral-50);
   --color-series-grid: var(--palette-neutral-800);
+  --color-series-dip: var(--palette-heart-400);
   --color-fg-rest: var(--palette-rest-300);
   --color-fg-heart: var(--palette-heart-400);
   --color-fg-warn: var(--palette-warn-400);
@@ -486,6 +498,7 @@
     --color-bg-inverse: var(--palette-neutral-50);
     --color-bg-backdrop: rgb(11 12 14 / 0.7);
     --color-bg-veil: rgb(11 12 14 / 0.9);
+    --color-bg-hud: rgb(11 12 14 / 0.9);
 
     --color-fg-default: var(--palette-neutral-50);
     --color-fg-muted: var(--palette-neutral-400);
@@ -546,6 +559,7 @@
     --color-series-easy: var(--palette-neutral-650);
     --color-series-actual: var(--palette-neutral-50);
     --color-series-grid: var(--palette-neutral-800);
+    --color-series-dip: var(--palette-heart-400);
     --color-fg-rest: var(--palette-rest-300);
     --color-fg-heart: var(--palette-heart-400);
     --color-fg-warn: var(--palette-warn-400);

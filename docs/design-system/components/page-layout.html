@@ -35,13 +35,11 @@
       <li><a href="../components/text-field.html">Text field</a></li>
       <li><a href="../components/form-field.html">Form field</a></li>
       <li><a href="../components/form-layout.html">Form layout</a></li>
-      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li><li><a href="../components/machine-choice.html">Machine choice</a></li>
-      <li><a href="../components/machine-card.html">Machine card</a></li>
-      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li>
+      <li><a href="../components/radio-group.html">Radio group (mode cards)</a></li>
+      <li><a href="../components/switch.html">Switch</a></li><li><a href="../components/set-list.html">Set list</a></li><li><a href="../components/video.html">Video ride-along</a></li><li><a href="../components/class-card.html">Class card and shelf</a></li><li><a href="../components/class-worlds.html">Class worlds</a></li><li><a href="../components/world-ride.html">World Ride HUD</a></li><li><a href="../components/level-row.html">Level row</a></li><li><a href="../components/session-traces.html">Session traces</a></li><li><a href="../components/dip-list.html">Dip list</a></li><li><a href="../components/week-strip.html">Week strip</a></li><li><a href="../components/stat-strip.html">Stat strip</a></li><li><a href="../components/best-chip.html">Personal-best chip and delta</a></li><li><a href="../components/trend-chart.html">Trend chart</a></li><li><a href="../components/session-list.html">Session list</a></li><li><a href="../components/streak-calendar.html">Streak calendar</a></li><li><a href="../components/achievement.html">Achievement badge</a></li>
       <li><a href="../components/slider.html">Slider</a></li>
       <li><a href="../components/number-stepper.html">Number stepper</a></li>
-      <li><a href="../components/level-control.html">Level control</a></li><li><a href="../components/speed-control.html">Speed and incline control</a></li>
-      <li><a href="../components/effort-row.html">Effort row</a></li>
+      <li><a href="../components/level-control.html">Level control</a></li>
       <li><a href="../components/level-picker.html">Level picker</a></li>
       <li><a href="../components/app-bar.html">App bar</a></li>
       <li><a href="../components/lockup.html">Lockup</a></li>
@@ -87,7 +85,7 @@
     <header class="ds-header">
       <p class="ds-kicker">Component · Shell</p>
       <h1>Page layout</h1>
-      <p class="ds-lead">Page layouts are the three shells Wattzup uses: ride (main + resistance panel), setup (form + ride preview) and centred card (unlock, 404).</p>
+      <p class="ds-lead">Page layouts are the three shells Wattzup uses: ride (main + resistance panel), setup (form + ride preview) and centred card (404).</p>
       <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span></div>
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
@@ -111,7 +109,7 @@
       <p class="ds-na">Layouts follow the breakpoints; see &lt;a href="../foundations/layout.html"&gt;layout&lt;/a&gt;.</p>
     </section>
     <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
-<div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Layout</th></tr></thead><tbody><tr><th scope="row">Auth card</th><td><div class="auth-card stack"><h2 class="auth-card__title">Unlock Wattzup</h2></div></td></tr></tbody></table></div><h3>Both themes</h3><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas"><div class="stack stack--sm"><span>One</span><span>Two</span></div></div></div><div data-theme="dark"><div class="ds-example__canvas"><div class="stack stack--sm"><span>One</span><span>Two</span></div></div></div></div>
+<div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Layout</th></tr></thead><tbody><tr><th scope="row">Auth card</th><td><div class="auth-card stack"><h2 class="auth-card__title">This page isn&rsquo;t part of your ride</h2></div></td></tr></tbody></table></div><h3>Both themes</h3><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas"><div class="stack stack--sm"><span>One</span><span>Two</span></div></div></div><div data-theme="dark"><div class="ds-example__canvas"><div class="stack stack--sm"><span>One</span><span>Two</span></div></div></div></div>
     </section>
     <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
 <ul><li>Under 1024px the panel follows the main column and the page scrolls as one.</li><li>From 1024px the shell is fixed to the viewport (<code>.app--fixed</code>) and each column scrolls.</li></ul>
@@ -134,10 +132,10 @@
     <section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
 <pre><code>&lt;div class="app app--fixed"&gt;&lt;header class="app-bar"&gt;…&lt;/header&gt;
   &lt;div class="ride-layout"&gt;&lt;main class="ride-main"&gt;…&lt;/main&gt;&lt;aside class="ride-aside" aria-label="Bike control"&gt;…&lt;/aside&gt;&lt;/div&gt;
-&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.app .app--fixed</code></td><td>Shell.</td></tr><tr><td><code>.ride-layout .setup-layout</code></td><td>Two-column from 1024px.</td></tr><tr><td><code>.auth-layout .auth-card</code></td><td>Centred card.</td></tr><tr><td><code>.stack .cluster</code></td><td>Spacing.</td></tr></tbody></table></div>
+&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.app .app--fixed</code></td><td>Shell.</td></tr><tr><td><code>.ride-layout .setup-layout</code></td><td>Two-column from 1024px.</td></tr><tr><td><code>.auth-layout .auth-card</code></td><td>Centred card.</td></tr><tr><td><code>.library .library__inner .library__head</code></td><td>Class library: one scrolling column up to <code>--layout-container-max</code>, heading and length filter on one row that wraps.</td></tr><tr><td><code>.setup-layout</code> + <code>.class-page</code></td><td>Video page: the video and its details (max 52rem) beside the plan in the setup aside; <code>.plan-head</code>, <code>.setup-aside__group</code>.</td></tr><tr><td><code>.stack .cluster</code></td><td>Spacing.</td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a> (ride)</li><li><a href="../../mocks/pages/setup/default.html">pages/setup/default</a> (setup)</li><li><a href="../../mocks/pages/unlock/default.html">pages/unlock/default</a> (auth)</li></ul><p>Drift fixed during extraction: the unlock and 404 headings and centring used inline styles; now <code>.auth-card__title</code> and <code>.auth-card--center</code>.</p>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a> (ride)</li><li><a href="../../mocks/pages/setup/default.html">pages/setup/default</a> (setup)</li><li><a href="../../mocks/pages/not-found/default.html">pages/not-found/default</a> (centred card)</li><li><a href="../../mocks/pages/class-library/default.html">pages/class-library/default</a> (library)</li><li><a href="../../mocks/pages/class/default.html">pages/class/default</a> (video page)</li></ul><p>Drift fixed during extraction: the 404 heading and centring used inline styles; now <code>.auth-card__title</code> and <code>.auth-card--center</code>.</p>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

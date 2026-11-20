@@ -13,10 +13,6 @@ export function testWorkout(change: Partial<WorkoutSnapshot> = {}): WorkoutSnaps
     rest_level: 6,
     warmup: true,
     cooldown: true,
-    work_speed: null,
-    rest_speed: null,
-    work_incline: null,
-    rest_incline: null,
   } as const;
   return {
     plan,
@@ -30,6 +26,8 @@ export function testWorkout(change: Partial<WorkoutSnapshot> = {}): WorkoutSnaps
     plan_level: 18,
     status: 'running',
     ended_reason: null,
+    session_id: null,
+    class_id: null,
     ...change,
   };
 }
@@ -49,14 +47,10 @@ export function testState(change: Partial<BikeState> = {}): BikeState {
     packets: 2517,
     first_data_at: 1794785000,
     last_data_at: 1794787812,
-    ui_clients: 1,
     displayed_since: 1794785322,
     displayed_seconds: 2490,
     adapter: 'on',
-    transport: 'Simulated',
     simulated: false,
-    exposed: false,
-    bind_address: '127.0.0.1:8787',
     connection_id: '0bf669f1',
     power: 317,
     target_power: 327,
@@ -65,15 +59,6 @@ export function testState(change: Partial<BikeState> = {}): BikeState {
     kcal: 89,
     heart_rate: null,
     commands: [],
-    machine: 'bike',
-    target_speed: null,
-    incline: null,
-    target_incline: null,
-    belt: null,
-    belt_countdown: null,
-    climb_m: null,
-    nearby: [],
-    treadmill_enabled: false,
     ...change,
   };
 }
@@ -83,11 +68,11 @@ export function testIntervalsPlan(): IntervalsPlan {
   return {
     kind: 'intervals',
     video: null,
-    warmup: { seconds: 300, level: 8, cadence: 80 },
+    warmup: { seconds: 300, level: 14, cadence: 80 },
     sets: [180, 150, 120, 90, 0].map((rest_seconds, i) => ({
       rounds: i === 0 || i === 4 ? 1 : 2,
       work_seconds: 30,
-      work_level: 28,
+      work_level: 24,
       work_cadence: 100,
       rest_seconds,
       rest_level: 8,

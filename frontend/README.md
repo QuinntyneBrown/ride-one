@@ -1,44 +1,48 @@
 # frontend
 
-The Wattzup dashboard: the Angular app that shows the bike's live state and runs workouts. Its
-production build is served by `Wattzup.Api` from the same origin. The repository
-[README](../README.md) covers running the whole product; this page covers the app alone.
+Wattzup: the Angular app that connects to the bike over Web Bluetooth, shows its live state and runs
+workouts, built as static files. The repository [README](../README.md) covers running and hosting
+it; this page covers the workspace.
 
 ## Scripts
 
-| Command                           | What it does                                                                                                                                                      |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm start`                       | `ng serve` on http://localhost:4200, proxying `/api` to the backend on `127.0.0.1:8787` (`proxy.conf.json`)                                                       |
-| `npm run build`                   | Production build, then checks the initial bundle against the 300 KB gzipped budget                                                                                |
-| `npm run build:api`               | Production build copied into `../backend/src/Wattzup.Api/wwwroot`                                                                                                 |
-| `npm test`                        | Unit tests (Vitest) of all three projects (`ng test` runs each project's `test` target)                                                                           |
-| `npm run lint`                    | angular-eslint, plus a type check of the Playwright code in `e2e/`                                                                                                |
-| `npm run format` / `format:check` | Prettier                                                                                                                                                          |
-| `npm run e2e`                     | Behaviour specs: Playwright, Chromium only, every `/api` request and the event stream stubbed                                                                     |
-| `npm run e2e:sweeps`              | Accessibility (axe-core), reduced-motion, touch-target and responsive sweeps; run only when a person asks                                                         |
-| `npm run generate:api`            | Regenerates `projects/api/src/generated/schema.d.ts` from `http://127.0.0.1:8787/openapi/v1.json` (start the backend with `--simulate` first)                     |
-| `npm run record:api`              | Records real responses into `e2e/fixtures/recorded/`, which the Playwright stub builders start from (backend running with `--simulate`; never part of a test run) |
+| Command                           | What it does                                                                                                                  |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `npm start`                       | `ng serve` on http://localhost:4200; `?simulate` in the address connects to the simulated bike                                |
+| `npm run build`                   | Production build into `dist/wattzup/browser`, with its service worker and manifest, checked against the 300 KB gzipped budget |
+| `npm test`                        | Unit tests (Vitest): `ng test` runs the `components`, `browser` and `wattzup` targets                                         |
+| `npm run lint`                    | angular-eslint, plus a type check of the Playwright code in `e2e/`                                                            |
+| `npm run format` / `format:check` | Prettier                                                                                                                      |
+| `npm run e2e`                     | Behaviour specs: Playwright, Chromium only, against the production build and a fake `navigator.bluetooth`                     |
+| `npm run e2e:sweeps`              | Accessibility (axe-core), reduced-motion, touch-target and responsive sweeps; run only when a person asks                     |
 
 Install the browser once with `npx playwright install chromium`.
 
 ## Layout
 
-One Angular workspace with three projects under `projects/` (ADR 0013). The app imports the
-libraries as `@wattzup/components` and `@wattzup/api`, path aliases in `tsconfig.json` that point
-at each library's source, so no library build is needed.
+One Angular workspace, four projects under `projects/` (ADR 0013, ADR 0017):
 
-- `projects/api/` (`@wattzup/api`): `src/generated/schema.d.ts` is generated; never edit it by
-  hand, and commit it exactly as generated (CI regenerates it and fails on a diff).
-  `src/lib/api-types.ts` is the only module that names its types. `src/lib/` also holds the API
-  contracts with their injection tokens and HTTP implementations, the API-key interceptor and
-  key store. It imports nothing else from the workspace and knows no route.
-- `projects/components/` (`@wattzup/components`): the presentation components, one folder each
-  (`name.ts`, `name.html`, `name.scss`), named as in the design system; `src/lib/format/` for
-  display formatting; `src/styles/design-system/` for the shared SCSS partials.
-- `projects/wattzup/` (the app): `src/app/core/` holds the services (`LiveStateService` owns the
-  event stream), stores and pure helpers, each with its unit tests; `src/app/dashboard/` holds
-  the routes' pages (`/`, `/setup`, `/machine`, `/unlock` and the not-found page), the dialogs
-  and the containers; `src/app/app.config.ts` is the composition root; `src/tokens.css` and
-  `src/styles.scss` are the global foundations.
-- `e2e/` holds the fixtures (`fixtures/wz-test.ts` stubs `/api/**` and the event stream),
-  the page objects (`pages/`), the behaviour specs and the sweeps (`sweeps/`).
+- `projects/components/` is the `@wattzup/components` library: the presentation components, one
+  folder each (`name.ts`, `name.html`, `name.scss`), named as the design-system component they
+  render, and the design-system SCSS partials in `src/styles/design-system/`. They take inputs,
+  emit outputs and inject no app service, API token or router.
+- `projects/api/` is the `@wattzup/api` library: the contracts (`BikeApi`, `WorkoutApi`,
+  `ClassApi`, `SessionApi`, `LiveStateSource`, `BikePairing`, `SessionArchive`, `PacketLog`) with
+  their injection tokens, `ContractError`, and the data types in `src/contract/schema.d.ts`,
+  named only through `src/lib/api-types.ts`.
+- `projects/browser/` is the `@wattzup/browser` library: the in-browser implementations of the
+  `api` contracts (the Echelon protocol, Web Bluetooth, the workout engine, IndexedDB), bound by
+  `provideBrowserContracts()`.
+- `projects/wattzup/` is the application: `src/app/core/` holds the services (`LiveStateService`
+  owns the live state) and the pure helpers, each with its unit tests; `src/app/dashboard/` holds
+  the routes' pages, the dialogs and the components that orchestrate; `app.config.ts` is the
+  composition root.
+- The libraries are compiled from source through the path aliases in `tsconfig.json`; they have
+  no build of their own. ESLint keeps the dependency direction: the app uses the libraries,
+  `components` names API types only, `browser` depends on `api` and is imported only by
+  `app.config.ts`, and `api` depends on nothing in the workspace.
+- `public/` holds the fonts, images and `classes.json`, the class catalogue shipped beside
+  `index.html`.
+- `e2e/` holds the fixtures (`fixtures/wz-test.ts` installs a fake `navigator.bluetooth` from
+  `fixtures/fake-bluetooth.ts`), the page objects (`pages/`), the behaviour specs and the sweeps
+  (`sweeps/`).

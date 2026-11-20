@@ -1,7 +1,7 @@
 // The plan strip under the ride-along video: the segments with a playhead at the elapsed time
 // (L2-076 AC1). Same scale as the setup preview: one unit per second.
 import type { Segment } from '@wattzup/api';
-import { formatDuration } from '@wattzup/components';
+import { formatDuration } from './format-duration';
 import type { PlanStripView, StripBar } from '@wattzup/components';
 import { profileTone } from './ride-preview';
 

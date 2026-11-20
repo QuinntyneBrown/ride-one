@@ -6,14 +6,12 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "PlanNote" as note
-  participant "BikeApi" as api
+  participant "ResistanceCommandService" as svc
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "WorkoutEndpoints" as wep
-end box
-box "Backend — Wattzup Core and Protocol" #ECFDF3
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserWorkoutApi" as wapi
   participant "WorkoutEngine" as eng
   participant "ResistanceCommander" as cmdr
   participant "BikeStateStore" as store
@@ -22,23 +20,23 @@ end box
 note over eng : hiit workout, mode = manual at 22, plan_level = 18
 alt next segment starts (hiit)
   eng -> eng : tick reaches the segment boundary
-  eng -> store : Update(segment + 1, mode = plan, plan_level = 6) [L2-047]
-  eng -> cmdr : SendAsync(6, plan) [L2-012]
-  cmdr --> eng : Sent
+  eng -> store : update(segment + 1, mode = plan, plan_level = 6) [L2-047]
+  eng -> cmdr : send(6, plan) [L2-012]
+  cmdr --> eng : sent
 else rider presses Back to plan
   rider -> note : Back to plan
-  note -> api : backToPlan()
-  api -> wep : POST /api/workout/back-to-plan
-  wep -> eng : Post(BackToPlan)
+  note -> svc : backToPlan()
+  svc -> wapi : backToPlan()
+  wapi -> eng : backToPlan()
   alt no active workout
-    eng --> wep : NoActiveWorkout
-    wep --> api : 409 code no_active_workout [L2-017]
+    eng --> wapi : null
+    wapi --> svc : ContractError no_active_workout [L2-017]
+    svc --> rider : danger toast "Couldn't go back to the plan"
   else active workout
-    eng -> store : Update(mode = plan) [L2-047]
-    eng -> cmdr : SendAsync(plan_level = 18, plan)
-    cmdr --> eng : Sent
-    eng --> wep : Done
-    wep --> api : 200
+    eng -> store : update(mode = plan) [L2-047]
+    eng -> cmdr : send(plan_level = 18, plan)
+    cmdr --> eng : sent
+    eng --> wapi : workout
   end
 end
 note over eng : flat workout: no next segment, so mode stays manual until Back to plan [L2-047]

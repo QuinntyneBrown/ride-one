@@ -1,8 +1,0 @@
-{
-  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
-  "title": "The speed is not valid.",
-  "status": 400,
-  "code": "invalid_speed",
-  "error": "speed must be 0.8-19.3",
-  "trace_id": "00-2e5335513db982c8fa45a9894d211ebf-62a1e27972380059-00"
-}

@@ -1,8 +1,0 @@
-{
-  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
-  "title": "The incline is not valid.",
-  "status": 400,
-  "code": "invalid_incline",
-  "error": "incline must be 0-10",
-  "trace_id": "00-84bf347a852e875bc7a51f99a159e9ab-24c7bba755841ed0-00"
-}

@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ConnectionBannerService } from '../../core/connection-banner.service';
 import type { Banner } from '../../core/connection-banners';
 import { DialogLauncher } from '../../core/dialog-launcher';
-import { LiveStateService } from '../../core/live-state.service';
 import { Alert } from '@wattzup/components';
 
 /** The banners between the app bar and the dashboard (L2-054). */
@@ -15,11 +14,9 @@ import { Alert } from '@wattzup/components';
 })
 export class ConnectionBanner {
   protected readonly service = inject(ConnectionBannerService);
-  private readonly live = inject(LiveStateService);
   private readonly dialogs = inject(DialogLauncher);
 
   protected act(banner: Banner): void {
-    if (banner.action?.kind === 'retry') this.live.retryNow();
-    else if (banner.action?.kind === 'diagnostics') this.dialogs.openDiagnostics();
+    if (banner.action?.kind === 'diagnostics') this.dialogs.openDiagnostics();
   }
 }

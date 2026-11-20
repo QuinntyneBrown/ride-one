@@ -1,8 +1,0 @@
-<Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
-  <PropertyGroup>
-    <!-- Test names read Given_..._when_..._then_...; underscores are the convention there. -->
-    <NoWarn>$(NoWarn);CA1707</NoWarn>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-</Project>

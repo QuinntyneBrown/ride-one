@@ -1,11 +1,17 @@
-// Which skeleton, overlay or error the ride dashboard shows, and which controls work (L2-058,
-// L2-071 criteria 8 and 9).
-import type { RideOverlayKind } from '@wattzup/components';
-import type { BikeState, StreamConnection } from '@wattzup/api';
+// Which skeleton, overlay or error the ride dashboard shows, and which controls work (L2-058).
+import type { BikeState, BluetoothSupport } from '@wattzup/api';
 import { isActive } from './workout-status';
 
-export type RideView = 'loading' | 'load-failed' | 'ride';
-export type { RideOverlayKind };
+export type RideView = 'loading' | 'ride';
+export type RideOverlayKind =
+  | 'browser-unsupported'
+  | 'browser-insecure'
+  | 'connect-bike'
+  | 'scanning'
+  | 'adapter-off'
+  | 'bike-lost'
+  | 'bike-shut-off'
+  | 'ride-complete';
 
 export interface RideViewState {
   view: RideView;
@@ -19,21 +25,11 @@ export interface RideViewState {
 
 export function rideViewState(
   state: BikeState | null,
-  connection: StreamConnection,
-  loadFailed: boolean,
+  /** No bike chosen yet (L2-090 AC1). */
+  pairingRequired = false,
+  /** The page cannot reach Bluetooth (L2-089 AC1, AC3). */
+  support: BluetoothSupport = 'ready',
 ): RideViewState {
-  const offline = connection === 'offline';
-  if (loadFailed) {
-    return {
-      view: 'load-failed',
-      overlay: null,
-      dimmed: false,
-      commandsEnabled: false,
-      pauseEnabled: false,
-      endEnabled: false,
-      controlsNote: 'Controls return when Wattzup can read the bike again.',
-    };
-  }
   if (!state) {
     return {
       view: 'loading',
@@ -47,12 +43,14 @@ export function rideViewState(
   }
   const status = state.workout?.status;
   let overlay: RideOverlayKind | null = null;
-  if (state.adapter === 'off') overlay = 'adapter-off';
+  if (support === 'unsupported') overlay = 'browser-unsupported';
+  else if (support === 'insecure') overlay = 'browser-insecure';
+  else if (state.adapter === 'off') overlay = 'adapter-off';
+  else if (pairingRequired) overlay = 'connect-bike';
   else if (status === 'ended: bike shut off') overlay = 'bike-shut-off';
+  // A plan ridden to its end and saved leads to its summary (L2-084 AC3).
+  else if (status === 'ended' && state.workout?.session_id) overlay = 'ride-complete';
   else if (status === 'paused: bike disconnected') overlay = 'bike-lost';
-  else if (state.belt_countdown !== null) overlay = 'belt-countdown';
-  else if (status === 'starting belt') overlay = 'belt-starting';
-  else if (status === 'paused: belt stopped') overlay = 'belt-stopped';
   else if (state.ble === 'scanning') overlay = 'scanning';
 
   const connected = state.ble === 'connected';
@@ -60,19 +58,10 @@ export function rideViewState(
   return {
     view: 'ride',
     overlay,
-    dimmed: overlay === 'bike-lost' || offline,
-    commandsEnabled: !offline && connected,
-    // The treadmill can't pause mid-countdown or while it is not connected (L2-071 criterion 1).
-    pauseEnabled:
-      !offline &&
-      active &&
-      (state.machine !== 'treadmill' ||
-        (connected && status !== 'starting belt' && state.belt_countdown === null)),
+    dimmed: overlay === 'bike-lost',
+    commandsEnabled: connected,
+    pauseEnabled: active,
     endEnabled: active,
-    controlsNote: connected
-      ? null
-      : state.machine === 'treadmill'
-        ? 'Speed and incline controls wake up once the treadmill connects.'
-        : 'Resistance controls wake up once the bike connects.',
+    controlsNote: connected ? null : 'Resistance controls wake up once the bike connects.',
   };
 }

@@ -7,7 +7,7 @@
 <meta name="mock:kind" content="notification">
 <meta name="mock:screen" content="ride-toast">
 <meta name="mock:state" content="with-action">
-<meta name="mock:requirements" content="L2-016 L2-020 L2-027 L2-069 L2-071">
+<meta name="mock:requirements" content="L2-016 L2-020 L2-027">
 <meta name="description" content="Ride toast, with-action: Couldn't set resistance.">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
@@ -127,7 +127,6 @@
 <li><time>6:40</time><span class="cmd-log__cmd">RES 6 <span>· plan</span></span><span class="cmd-log__ack">ack 34ms</span></li>
 <li><time>6:00</time><span class="cmd-log__cmd">RES 18 <span>· plan</span></span><span class="cmd-log__ack">ack 41ms</span></li></ol>
   </section>
-  <a class="btn btn--quiet btn--sm" href="../../pages/choose-machine/default.html"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>End and switch to treadmill</a>
   </div>
 </aside>
 </div>
@@ -135,7 +134,7 @@
 <div class="toast-region" role="status" aria-live="polite">
   <div class="toast toast--danger" role="alert">
     <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
-    <div class="toast__body"><div class="toast__title">Couldn't set resistance</div><div class="toast__text">The server didn't answer (timeout after 5 s). Level 22 was not sent.</div><button class="toast__action" type="button">Retry</button></div>
+    <div class="toast__body"><div class="toast__title">Couldn't set resistance</div><div class="toast__text">The bike didn't take it. Level 22 was not set.</div><button class="toast__action" type="button">Retry</button></div>
     <button class="close" type="button" aria-label="Dismiss"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     
   </div>
@@ -145,15 +144,7 @@
 <nav class="mock-bar" aria-label="Mock navigation">
   <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
   <span class="mock-bar__screen">Ride toast</span>
-  <ul class="mock-bar__states">
-    <li><a href="info.html">info</a></li>
-    <li><a href="success.html">success</a></li>
-    <li><a href="warning.html">warning</a></li>
-    <li><a href="danger.html">danger</a></li>
-    <li><a href="with-action.html" aria-current="page">with-action</a></li>
-    <li><a href="stacked.html">stacked</a></li>
-    <li><a href="treadmill-danger.html">treadmill-danger</a></li>
-  </ul>
+  <ul class="mock-bar__states"><li><a href="info.html">info</a></li><li><a href="success.html">success</a></li><li><a href="warning.html">warning</a></li><li><a href="danger.html">danger</a></li><li><a href="with-action.html" aria-current="page">with-action</a></li><li><a href="stacked.html">stacked</a></li></ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
 </nav>

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-/** One step-change banner; a new id replays its animation. */
+/** One step-change cue: a new `id` replays the banner's animation. */
 export interface PhaseBannerView {
   id: number;
   headline: string;

@@ -1,8 +1,8 @@
 // The ride-along video's rules on the setup screen (L2-029 criteria 17 to 20, ADR 0012). The link rule mirrors
-// YouTubeLink in Wattzup.Core: the same forms are accepted, every other link is refused, and only the id is used.
+// the YouTube link rule in @wattzup/browser: the same forms are accepted, every other link is refused, and only the id is used.
 import type { RideVideoLink } from '@wattzup/api';
 
-/** The video draft, one for every mode and both machines, kept with the plan drafts. */
+/** The video draft, one for every mode, kept with the plan drafts. */
 export interface VideoDraft {
   on: boolean;
   url: string;
@@ -10,7 +10,9 @@ export interface VideoDraft {
   start: number;
 }
 
-export const DEFAULT_VIDEO_DRAFT: VideoDraft = { on: false, url: '', start: 0 };
+/** The GCN 30 Minute HIIT Cardio video, prefilled so the rider never types a link (L2-029 AC17). */
+export const DEFAULT_VIDEO_URL = 'https://www.youtube.com/watch?v=QUoToFsMNig';
+export const DEFAULT_VIDEO_DRAFT: VideoDraft = { on: false, url: DEFAULT_VIDEO_URL, start: 0 };
 export const MAX_LINK_LENGTH = 2048;
 export const MAX_START_SECONDS = 43200;
 export const START_STEP = 0.5;
@@ -74,7 +76,10 @@ export function planVideo(draft: VideoDraft): RideVideoLink | null {
   return { url: draft.url.trim(), start_seconds: draft.start };
 }
 
-/** Accepts stored data only when every field has the right shape; otherwise the switch is off. */
+/**
+ * Accepts stored data only when every field has the right shape; otherwise the switch is off. An
+ * empty stored link gets the default link back.
+ */
 export function readVideoDraft(raw: string | null): VideoDraft {
   if (!raw) return DEFAULT_VIDEO_DRAFT;
   try {
@@ -86,7 +91,8 @@ export function readVideoDraft(raw: string | null): VideoDraft {
       typeof d.start === 'number' &&
       d.start >= 0 &&
       d.start <= MAX_START_SECONDS;
-    return ok ? { on: d.on!, url: d.url!, start: d.start! } : DEFAULT_VIDEO_DRAFT;
+    if (!ok) return DEFAULT_VIDEO_DRAFT;
+    return { on: d.on!, url: d.url!.trim() ? d.url! : DEFAULT_VIDEO_URL, start: d.start! };
   } catch {
     return DEFAULT_VIDEO_DRAFT;
   }

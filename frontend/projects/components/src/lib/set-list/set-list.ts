@@ -4,7 +4,6 @@ import {
   ElementRef,
   Injector,
   afterNextRender,
-  computed,
   inject,
   input,
   output,
@@ -14,7 +13,7 @@ import { Icon } from '../icon/icon';
 
 export type StretchKind = 'warmup' | 'cooldown';
 
-/** A warm-up or cool-down row. */
+/** One Warm-up or Cool-down row: its switch, name and summary line. */
 export interface StretchRow {
   kind: StretchKind;
   name: string;
@@ -22,11 +21,11 @@ export interface StretchRow {
   on: boolean;
 }
 
-/** What the list shows: the stretches, one row per set, and whether the plan is full. */
+/** What the set list shows: each set's two lines, the two stretch rows, and whether it is full. */
 export interface SetListView {
+  sets: readonly { work: string; rest: string }[];
   warmup: StretchRow;
   cooldown: StretchRow;
-  sets: { work: string; rest: string }[];
   full: boolean;
 }
 
@@ -54,13 +53,6 @@ export class SetList {
   readonly move = output<{ index: number; dir: 1 | -1 }>();
   readonly remove = output<number>();
   readonly add = output();
-
-  protected readonly rows = computed(() => this.view().sets);
-  protected readonly stretches = computed(() => ({
-    warmup: this.view().warmup,
-    cooldown: this.view().cooldown,
-  }));
-  protected readonly full = computed(() => this.view().full);
 
   protected moveSet(index: number, dir: 1 | -1): void {
     this.move.emit({ index, dir });

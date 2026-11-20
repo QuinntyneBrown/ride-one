@@ -1,6 +1,7 @@
 // What the resistance readout and level picker show (L2-019).
-import type { ResistanceView } from '@wattzup/components';
 import type { BikeState } from '@wattzup/api';
+
+import type { ResistanceView } from '@wattzup/components';
 
 export type { ResistanceView };
 

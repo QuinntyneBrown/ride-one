@@ -1,11 +1,6 @@
 // Labels for the interval card and the app bar badge (L2-025).
-import type { Machine, Segment, SegmentKind, WorkoutSnapshot, WorkoutStatus } from '@wattzup/api';
-import {
-  type AppBarBadge,
-  type IntervalSegment,
-  type NextLabel,
-  formatDuration,
-} from '@wattzup/components';
+import type { Segment, SegmentKind, WorkoutStatus } from '@wattzup/api';
+import { formatDuration } from './format-duration';
 
 export type Phase = 'effort' | 'easy';
 export type Tone = 'work' | 'rest' | 'easy';
@@ -41,7 +36,11 @@ export function roundLabel(segment: Segment, segments: readonly Segment[]): stri
   return `Round ${segment.round} of ${roundCount(segments)}`;
 }
 
-export type { NextLabel };
+export interface NextLabel {
+  kind: string;
+  duration: string;
+  level: number;
+}
 
 export function nextLabel(segments: readonly Segment[], index: number): NextLabel | null {
   const next = segments[index + 1];
@@ -50,8 +49,6 @@ export function nextLabel(segments: readonly Segment[], index: number): NextLabe
     kind: kindLabel(next.kind),
     duration: formatDuration(next.duration),
     level: next.level,
-    speed: next.speed === null ? null : next.speed.toFixed(1),
-    incline: next.incline ?? 0,
   };
 }
 
@@ -59,48 +56,12 @@ const BADGES: Record<WorkoutStatus, string | null> = {
   running: null,
   paused: 'Paused',
   'waiting for bike': 'Waiting for bike',
-  'starting belt': 'Starting belt',
   'paused: bike disconnected': 'Bike disconnected',
-  'paused: belt stopped': 'Belt stopped',
   ended: 'Ended',
   stopped: 'Ended',
   'ended: bike shut off': 'Bike shut off',
 };
 
-/** The treadmill's words for the statuses named after the bike (L2-071 criterion 11). */
-const TREADMILL_BADGES: Partial<Record<WorkoutStatus, string>> = {
-  'waiting for bike': 'Waiting for treadmill',
-  'paused: bike disconnected': 'Treadmill disconnected',
-  'ended: bike shut off': 'Treadmill shut off',
-};
-
-export type BadgeTone = 'info' | 'warning' | 'danger';
-
-export function statusBadge(status: WorkoutStatus, machine: Machine = 'bike'): string | null {
-  return (machine === 'treadmill' ? TREADMILL_BADGES[status] : undefined) ?? BADGES[status];
-}
-
-/** Starting belt is information; a lost treadmill is a danger; the rest warn. */
-export function badgeTone(status: WorkoutStatus, machine: Machine = 'bike'): BadgeTone {
-  if (status === 'starting belt') return 'info';
-  if (machine === 'treadmill' && status === 'paused: bike disconnected') return 'danger';
-  return 'warning';
-}
-
-/** The interval card's segment: label, tone, round and what comes next (L2-024, L2-025). */
-export function intervalSegment(w: WorkoutSnapshot | null): IntervalSegment | null {
-  const s = w?.segments[w.segment];
-  if (!w || !s) return null;
-  return {
-    label: kindLabel(s.kind),
-    tone: toneOf(s.kind),
-    round: roundLabel(s, w.segments),
-    next: nextLabel(w.segments, w.segment),
-  };
-}
-
-/** The app bar's badge for the workout's status, or null when the status has none. */
-export function appBarBadge(w: WorkoutSnapshot | null, machine: Machine): AppBarBadge | null {
-  const text = w ? statusBadge(w.status, machine) : null;
-  return w && text ? { text, tone: badgeTone(w.status, machine) } : null;
+export function statusBadge(status: WorkoutStatus): string | null {
+  return BADGES[status];
 }

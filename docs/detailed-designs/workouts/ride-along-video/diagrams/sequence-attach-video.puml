@@ -6,7 +6,7 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "VideoLink" as vl
   participant "video-link.ts" as rules
   participant "YOUTUBE_PLAYER" as player
@@ -14,12 +14,10 @@ box "Frontend — Wattzup Web application" #E0F2FE
   participant "PlanDraftStore" as store
   participant "WORKOUT_API" as client
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "WorkoutEndpoints" as ep
-end box
-box "Backend — Wattzup Core" #ECFDF3
-  participant "WorkoutPlanValidator" as val
-  participant "YouTubeLink" as link
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserWorkoutApi" as ep
+  participant "validatePlan" as val
+  participant "parseYouTubeId" as link
   participant "WorkoutEngine" as engine
 end box
 
@@ -42,21 +40,21 @@ end
 rider -> page : Start ride
 page -> store : save plan drafts and VideoDraft {on, url, start} [L2-029 AC20]
 page -> client : start(plan + video {url, start_seconds} or null)
-client -> ep : POST /api/workout
-ep -> val : Validate(body, machine)
-val -> link : TryParseId(video.url)
+client -> ep : start(plan)
+ep -> val : validatePlan(body)
+val -> link : parseYouTubeId(video.url)
 alt valid
   link --> val : QUoToFsMNig
   val -> val : Round start_seconds to 0.1, drop the link [L2-010 AC14, AC17]
-  val --> ep : Plan with RideVideo(QUoToFsMNig, 12.0)
-  ep -> engine : Start(plan)
+  val --> ep : plan with video {video_id: QUoToFsMNig, start_seconds: 12.0}
+  ep -> engine : startWorkout(plan)
   engine --> ep : WorkoutSnapshot, plan.video {video_id, start_seconds}
-  ep --> client : 200
+  ep --> client : the new workout
   client --> page : Navigate to /
 else invalid
-  link --> val : false
+  link --> val : null
   val --> ep : errors video.url or video.start_seconds [L2-010 AC16, AC17]
-  ep --> client : 400 ProblemDetails
+  ep --> client : ContractError invalid_workout
   client --> page : Couldn't start the ride
 end
 @enduml

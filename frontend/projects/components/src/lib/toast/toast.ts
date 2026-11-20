@@ -1,8 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import type { ToastMessage } from './toast-queue';
 import { Icon, type IconName } from '../icon/icon';
 
-const ICONS: Record<ToastMessage['tone'], IconName> = {
+export type ToastTone = 'info' | 'success' | 'warning' | 'danger';
+
+/** What one toast says, and its optional action. */
+export interface ToastMessage {
+  tone: ToastTone;
+  title: string;
+  text: string;
+  action?: { label: string; run: () => void };
+}
+
+const ICONS: Record<ToastTone, IconName> = {
   info: 'info',
   success: 'check-circle',
   warning: 'warning',

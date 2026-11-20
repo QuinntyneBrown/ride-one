@@ -50,6 +50,19 @@
   cursor: not-allowed;
   transform: none;
 }
+.btn--primary {
+  --btn-bg: var(--color-accent);
+  --btn-fg: var(--color-fg-on-accent);
+  --btn-border: var(--color-accent-edge);
+  --btn-bg-hover: var(--color-accent-hover);
+  --btn-bg-active: var(--color-accent-active);
+  font-weight: var(--font-weight-semibold);
+}
+.btn--subtle {
+  --btn-bg: var(--color-bg-subtle);
+  --btn-border: transparent;
+  --btn-bg-hover: var(--color-bg-subtle-hover);
+}
 .btn--danger {
   --btn-bg: var(--color-danger-solid);
   --btn-fg: var(--color-fg-on-danger);
@@ -71,14 +84,6 @@
 }
 .btn--end:hover {
   --btn-fg: var(--color-fg-heart);
-}
-/* The treadmill's End: danger-tinted, as stopping the belt is (L2-071 criterion 1). */
-.btn--stop-belt {
-  --btn-bg: var(--color-danger-bg);
-  --btn-fg: var(--color-danger-fg);
-  --btn-border: transparent;
-  --btn-bg-hover: var(--color-danger-border);
-  --btn-fg-hover: var(--color-danger-fg);
 }
 .btn--volt {
   --btn-bg: var(--color-volt-fill);
@@ -113,6 +118,32 @@
   width: 1.25em;
   height: 1.25em;
   flex: none;
+}
+// Collapsible: icon-only below 640px, label from 640px.
+.btn--collapsible {
+  padding-inline: 0;
+  width: var(--control-height-md);
+}
+.btn--collapsible .btn__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 40rem) {
+  .btn--collapsible {
+    padding-inline: var(--space-4);
+    width: auto;
+  }
+  .btn--collapsible .btn__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
 }
 .btn[aria-busy='true'] {
   color: transparent;

@@ -11,129 +11,98 @@ skinparam class {
 }
 title Class structure — Run an interval workout
 
-package "Wattzup.Core" {
-  abstract class WorkoutPlan <<record>> {
-    +string Kind
+package "@wattzup/api" {
+  interface WorkoutPlan <<union by kind>> {
+    +kind: 'hiit' | 'intervals' | 'flat'
   }
-  class HiitPlan <<record>> {
-    +int Rounds
-    +int WorkSeconds
-    +int RestSeconds
-    +int WorkLevel
-    +int RestLevel
-    +bool Warmup
-    +bool Cooldown
+  interface Segment {
+    +kind: 'warmup' | 'work' | 'rest' | 'cooldown' | 'steady'
+    +start: number
+    +duration: number
+    +level: number
+    +cadence: number
+    +round: number | null
   }
-  class FlatPlan <<record>> {
-    +int Level
-    +int Minutes
-    +int Cadence
+  interface WorkoutSnapshot {
+    +plan: WorkoutPlan
+    +summary: string
+    +segments: Segment[]
+    +segment: number
+    +remaining: number
+    +elapsed_seconds: number
+    +total_seconds: number
+    +mode: 'plan' | 'manual'
+    +plan_level: number
+    +status: WorkoutStatus
+    +ended_reason: string | null
+    +session_id: string | null
   }
-  enum SegmentKind {
-    warmup
-    work
-    rest
-    cooldown
-    steady
-  }
-  class Segment <<record>> {
-    +SegmentKind Kind
-    +int Start
-    +int Duration
-    +int Level
-    +int Cadence
-    +int? Round
-  }
-  class PlanExpander <<static>> {
-    +WarmupSeconds = 180
-    +CooldownSeconds = 120
-    +Expand(plan: WorkoutPlan): IReadOnlyList<Segment>
-  }
-  class WorkoutSummary <<static>> {
-    +For(plan: WorkoutPlan): string
-  }
-  class WorkoutEngine <<BackgroundService>> {
-    -WorkoutRun? run
-    -Channel<WorkoutCommand> commands
-    -TimeProvider time
-    +TimeSpan ShutOffGrace = 90 s
-    +StartAsync(plan): Task<WorkoutSnapshot>
-    +StopAsync(): Task
-    +PauseAsync(): Task<CommandResult>
-    +ResumeAsync(): Task<CommandResult>
-    +BackToPlanAsync(): Task<CommandResult>
-    #ExecuteAsync(ct): Task
-    -TickAsync(): Task
-    -DriveAsync(): Task
-  }
-  class WorkoutRun {
-    +WorkoutPlan Plan
-    +IReadOnlyList<Segment> Segments
-    +string Summary
-    +int TotalSeconds
-    +int Segment
-    +int Remaining
-    +int Elapsed
-    +string Status
-    +string? EndedReason
-    +string Mode
-    +int PlanLevel
-    +bool HasStarted
-    +bool PausedByRider
-    +int? SentForSegment
-    +int? LastSentLevel
-    +DateTimeOffset? DisconnectedSince
-    +bool IsActive
-    +Count(): void
-    +ToSnapshot(): WorkoutSnapshot
-  }
-  class WorkoutSnapshot <<record>> {
-    +WorkoutPlan Plan
-    +string Summary
-    +IReadOnlyList<Segment> Segments
-    +int Segment
-    +int Remaining
-    +int ElapsedSeconds
-    +int TotalSeconds
-    +string Mode
-    +int PlanLevel
-    +string Status
-    +string? EndedReason
-  }
-  class WorkoutStatus <<static>> {
-    +WaitingForBike = "waiting for bike"
-    +Running = "running"
-    +Paused = "paused"
-    +PausedBikeDisconnected = "paused: bike disconnected"
-    +Ended = "ended"
-    +EndedBikeShutOff = "ended: bike shut off"
-    +Stopped = "stopped"
-  }
-  interface IResistanceCommander {
-    +SendAsync(level: int, source: CommandSource, ct): Task<SendResult>
-  }
-  class BikeStateStore {
-    +BikeState Current
-    +Update(change: Func<BikeState, BikeState>): void
-  }
-}
-class ActiveConnectionRegistry {
-  +bool IsConnected
 }
 
-WorkoutPlan <|-- HiitPlan
-WorkoutPlan <|-- FlatPlan
+package "@wattzup/browser lib/engine" {
+  class "plan-expander" as PlanExpander <<module>> {
+    +expand(plan: WorkoutPlan): Segment[]
+  }
+  class "workout-summary" as WorkoutSummary <<module>> {
+    +summaryFor(plan: WorkoutPlan): string
+  }
+  class WorkoutEngine {
+    -run: WorkoutRun | null
+    -queue: Promise<unknown>
+    +TICK_MS = 250
+    +SHUT_OFF_GRACE_MS = 90000
+    +startWorkout(plan, origin): Promise<WorkoutSnapshot>
+    +stop(): Promise<WorkoutSnapshot | null>
+    +pause(): Promise<WorkoutSnapshot | null>
+    +resume(): Promise<WorkoutSnapshot | null>
+    +backToPlan(): Promise<WorkoutSnapshot | null>
+    +setManual(level): Promise<SendResult>
+    -tick(): Promise<void>
+    -step(run): Promise<void>
+    -drive(run): Promise<void>
+  }
+  class WorkoutRun {
+    +plan: WorkoutPlan
+    +segments: Segment[]
+    +summary: string
+    +totalSeconds: number
+    +segment: number
+    +remaining: number
+    +elapsed: number
+    +status: WorkoutStatus
+    +endedReason: string | null
+    +mode: 'plan' | 'manual'
+    +planLevel: number
+    +hasStarted: boolean
+    +pausedByRider: boolean
+    +sentForSegment: number | null
+    +lastSentLevel: number | null
+    +disconnectedSince: number | null
+    +anchor: number
+    +isActive: boolean
+    +toSnapshot(): WorkoutSnapshot
+  }
+  class ResistanceCommander {
+    +send(level, source, rideSeconds): Promise<SendResult>
+  }
+  class BikeStateStore {
+    +state: Signal<BikeState>
+    +update(change): void
+  }
+}
+class BikeLink <<lib/bluetooth>> {
+  +connection(): GattLink | null
+}
+
 PlanExpander ..> WorkoutPlan : reads
 PlanExpander ..> Segment : creates
-Segment --> SegmentKind
 WorkoutEngine *-- "0..1" WorkoutRun
 WorkoutEngine ..> PlanExpander
 WorkoutEngine ..> WorkoutSummary
 WorkoutRun --> WorkoutPlan
 WorkoutRun "1" *-- "1..*" Segment
 WorkoutRun ..> WorkoutSnapshot : projects
-WorkoutRun ..> WorkoutStatus
-WorkoutEngine --> IResistanceCommander
-WorkoutEngine --> ActiveConnectionRegistry
+WorkoutEngine --> ResistanceCommander
+WorkoutEngine --> BikeLink
 WorkoutEngine --> BikeStateStore
 @enduml

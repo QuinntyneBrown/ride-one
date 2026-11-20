@@ -6,17 +6,14 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "AppBar" as bar
   participant "DialogLauncher / CDK Dialog" as cdk
   participant "EndRideDialog" as dlg
-  participant "HttpBikeApi (BIKE_API)" as api
   participant "Router" as router
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "WorkoutEndpoints" as ep
-end box
-box "Backend — Wattzup Core and Protocol" #ECFDF3
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserWorkoutApi (WORKOUT_API)" as ep
   participant "WorkoutEngine" as engine
 end box
 
@@ -30,18 +27,15 @@ alt Keep riding, Escape or close button
 else End ride
   rider -> dlg : End ride
   dlg -> dlg : phase busy: "Ending…", aria-busy, buttons disabled, disableClose
-  dlg -> api : stopWorkout()
-  api -> ep : POST /api/workout/stop
+  dlg -> ep : stop()
   alt success
-    ep -> engine : stop (status stopped, bike left at its level)
-    ep --> api : 200 {"stopped":true}
-    api --> dlg : ok
+    ep -> engine : stop() (status stopped, bike left at its level)
+    ep --> dlg : session_id or null
     dlg -> cdk : close()
-    dlg -> router : navigate('/setup') [L2-051]
-  else request fails or times out
-    ep --[#red]x api : no answer
-    api --> dlg : error
-    dlg -> dlg : phase failed: Alert "Couldn't end the ride" / "The Wattzup server didn't\nanswer. The ride is still running — try again." with Try again [L2-051]
+    dlg -> router : navigate('/classes') [L2-051 AC2]
+  else the call fails
+    ep --> dlg : error
+    dlg -> dlg : phase failed: Alert "Couldn't end the ride" / "The ride couldn't be ended.\nIt is still running — try again." with Try again [L2-051]
     dlg -> dlg : focus Keep riding
   end
 end

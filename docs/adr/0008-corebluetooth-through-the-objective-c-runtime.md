@@ -1,6 +1,6 @@
 # 0008. CoreBluetooth through the Objective-C runtime, in a plain app bundle
 
-- **Status:** Accepted
+- **Status:** Superseded by [0019](0019-no-backend.md) (no backend, so no .NET Bluetooth transports)
 - **Date:** 2026-11-15
 - **Amends:** [0007](0007-corebluetooth-first.md)
 

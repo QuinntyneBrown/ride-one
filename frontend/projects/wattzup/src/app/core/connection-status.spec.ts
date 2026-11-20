@@ -23,41 +23,38 @@ describe('connectionStatus (L2-018)', () => {
       'bluetooth-off',
       'bad',
     ],
+    [
+      'no bike chosen yet (L2-090 AC1)',
+      { ble: 'disconnected', device: null, device_label: null },
+      'No bike connected',
+      '',
+      'bluetooth',
+      'quiet',
+    ],
     ['adapter off', { ble: 'error', adapter: 'off' }, 'Bluetooth', 'Off', 'bluetooth-off', 'bad'],
     ['error', { ble: 'error' }, 'Bike status', 'Error', 'bluetooth-off', 'bad'],
   ] as const)('%s', (_, change, name, label, icon, tone) => {
-    expect(connectionStatus(testState(change), 'open', false)).toEqual({ name, label, icon, tone });
+    expect(connectionStatus(testState(change))).toEqual({ name, label, icon, tone });
   });
 
-  it('reads Server offline while the stream is down', () => {
-    expect(connectionStatus(testState(), 'offline', false)).toEqual({
-      name: 'Server offline',
-      label: 'Retrying…',
-      icon: 'wifi-off',
-      tone: 'bad',
-    });
-  });
-
-  it.each([
-    [null, false],
-    [testState(), true],
-  ])('reads Unknown with no state or a failed load', (state, failed) => {
-    expect(connectionStatus(state, 'connecting', failed)).toEqual({
+  it('reads Unknown with no state', () => {
+    expect(connectionStatus(null)).toEqual({
       name: 'Bike status',
       label: 'Unknown',
       icon: 'bluetooth',
       tone: 'wait',
     });
   });
-});
 
-describe('connectionStatus on the treadmill (L2-071 AC11)', () => {
-  it('names the Echelon treadmill while scanning', () => {
-    const s = connectionStatus(
-      testState({ machine: 'treadmill', ble: 'scanning', device_label: null }),
-      'open',
-      false,
-    );
-    expect(s).toMatchObject({ name: 'Echelon treadmill', label: 'Scanning…' });
-  });
+  it.each(['unsupported', 'insecure'] as const)(
+    'reads Bluetooth · Unavailable in this browser when the page cannot reach it (%s, L2-089)',
+    (support) => {
+      expect(connectionStatus(testState(), support)).toEqual({
+        name: 'Bluetooth',
+        label: 'Unavailable in this browser',
+        icon: 'bluetooth-off',
+        tone: 'wait',
+      });
+    },
+  );
 });
