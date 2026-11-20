@@ -125,7 +125,8 @@ export interface components {
         | 'hardknott'
         | 'alpe'
         | 'saguaro'
-        | 'trollstigen';
+        | 'trollstigen'
+        | 'poggio';
     };
     ClassShelfResponse: {
       id: string;
