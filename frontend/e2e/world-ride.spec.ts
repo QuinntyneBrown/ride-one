@@ -244,6 +244,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Strade Bianche');
   });
 
+  test('rides Sprint Into the Effort along the marina walk of Dubai Marina', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Sprint Into the Effort', 'Dubai Marina', 'sprint-into-the-effort');
+    await expect(world.heading).toHaveText('Dubai Marina');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Dubai Marina');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

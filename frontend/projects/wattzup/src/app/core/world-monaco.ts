@@ -15,19 +15,17 @@ import {
   ConeGeometry,
   CylinderGeometry,
   DoubleSide,
-  ExtrudeGeometry,
   Group,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
-  Shape,
   SphereGeometry,
   type Texture,
 } from 'three/webgpu';
 import {
-  barrierBannerTexture,
   type BannerPanel,
+  barrierBannerTexture,
   BoxBuilder,
   canvasTexture,
   clothBannerTexture,
@@ -43,6 +41,7 @@ import {
   type SceneStreet,
   seeded,
   type Wardrobe,
+  Yachts,
 } from './world-kit';
 import type { StreetPoint } from './world-oldtown';
 
@@ -327,6 +326,7 @@ export class MonacoStreet implements SceneStreet {
    * the mast and its radar dome.
    */
   private addYachts(): void {
+    const yachts = new Yachts(this.disposables, HULLS);
     const random = seeded(6101);
     for (const [row, out, gap] of [
       [0, QUAY + 1, 5],
@@ -335,7 +335,7 @@ export class MonacoStreet implements SceneStreet {
     ] as const) {
       for (let offset = row * 11, k = 0; offset < LOOP - 20; k++) {
         const length = 30 + random() * 36;
-        const yacht = this.yacht(k + row * 3, length, random);
+        const yacht = yachts.make(k + row * 3, length, random);
         const holder = new Group();
         holder.add(yacht);
         this.group.add(holder);
@@ -344,87 +344,6 @@ export class MonacoStreet implements SceneStreet {
         offset += length + gap + random() * gap;
       }
     }
-  }
-
-  /** One superyacht, `length` long, its stern at +z toward the rider and its bow at -z. */
-  private yacht(k: number, length: number, random: () => number): Group {
-    const g = new Group();
-    const hull = this.material({
-      color: HULLS[k % HULLS.length]!,
-      roughness: 0.3,
-      metalness: 0.25,
-    });
-    const white = this.material({ color: 0xfbfbf8, roughness: 0.3 });
-    const glass = this.material({ color: 0x141c26, roughness: 0.08, metalness: 0.7 });
-    const beam = Math.max(6, length * 0.18);
-    const L = length;
-    // A side profile, `x` along the yacht (stern +), extruded `width` across and stood upright.
-    const prism = (
-      points: readonly (readonly [number, number])[],
-      width: number,
-      material: MeshStandardMaterial,
-    ) => {
-      const shape = new Shape();
-      shape.moveTo(points[0]![0], points[0]![1]);
-      for (const [x, y] of points.slice(1)) shape.lineTo(x, y);
-      shape.closePath();
-      const geometry = new ExtrudeGeometry(shape, { depth: width, bevelEnabled: false });
-      geometry.translate(0, 0, -width / 2);
-      geometry.rotateY(-Math.PI / 2);
-      this.disposables.push(geometry);
-      const mesh = new Mesh(geometry, material);
-      mesh.castShadow = true;
-      g.add(mesh);
-      return mesh;
-    };
-    // The hull: a square stern, the sheer rising to a raked bow.
-    prism(
-      [
-        [L / 2, -1.2],
-        [L / 2, 2.4],
-        [-L / 2, 3.4],
-        [-L / 2 + L * 0.2, -1.2],
-      ],
-      beam,
-      hull,
-    );
-    // The decks, stepping back, each with its sloping front and its band of glass.
-    const decks = 2 + Math.floor(random() * 3);
-    let y = 2.5;
-    let aft = L / 2 - L * 0.07;
-    let span = L * 0.64;
-    for (let d = 0; d < decks; d++) {
-      const width = beam * (0.88 - d * 0.1);
-      prism(
-        [
-          [aft, y],
-          [aft, y + 2.5],
-          [aft - span * 0.86, y + 2.5],
-          [aft - span, y],
-        ],
-        width,
-        white,
-      );
-      const band = new Mesh(this.unitBox(), glass);
-      band.scale.set(width + 0.08, 1.1, span * 0.7);
-      band.position.set(0, y + 1.35, aft - span * 0.47);
-      g.add(band);
-      y += 2.5;
-      aft -= L * 0.05;
-      span *= 0.72;
-    }
-    // The hardtop over the flybridge, the mast and the radar dome.
-    const top = new Mesh(this.unitBox(), white);
-    top.scale.set(beam * 0.6, 0.25, span * 1.1);
-    top.position.set(0, y + 1.6, aft - span * 0.5);
-    const mast = new Mesh(this.unitBox(), white);
-    mast.scale.set(0.3, 3.2, 0.3);
-    mast.position.set(0, y + 3.2, aft - span * 0.5);
-    const radar = new Mesh(new SphereGeometry(0.6, 12, 8), white);
-    this.disposables.push(radar.geometry);
-    radar.position.set(0, y + 5, aft - span * 0.5);
-    g.add(top, mast, radar);
-    return g;
   }
 
   /**

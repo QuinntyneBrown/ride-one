@@ -12,6 +12,7 @@ import {
   ConeGeometry,
   CylinderGeometry,
   DoubleSide,
+  ExtrudeGeometry,
   Group,
   InstancedMesh,
   type Material,
@@ -22,6 +23,7 @@ import {
   PlaneGeometry,
   Quaternion,
   RepeatWrapping,
+  Shape,
   SphereGeometry,
   SRGBColorSpace,
   type Texture,
@@ -1065,4 +1067,107 @@ export function paintedRows(
     }
   }
   return rows;
+}
+
+/**
+ * Superyachts, as Monaco and Dubai Marina moor them: sleek hulls in white, navy or graphite with
+ * raked bows, two to four white decks stepping back above them with sloping fronts and bands of
+ * dark glass, the hardtop, the mast and its radar dome. `make` returns one `length` long, its
+ * stern at +z and its bow at -z, side-on profiles extruded across its beam; the materials and the
+ * unit box are made once and shared by every yacht.
+ */
+export class Yachts {
+  private readonly hulls: MeshStandardMaterial[];
+  private readonly white = new MeshStandardMaterial({ color: 0xfbfbf8, roughness: 0.3 });
+  private readonly glass = new MeshStandardMaterial({
+    color: 0x141c26,
+    roughness: 0.08,
+    metalness: 0.7,
+  });
+  private readonly unit = new BoxGeometry(1, 1, 1);
+  private readonly radar = new SphereGeometry(0.6, 12, 8);
+
+  constructor(
+    private readonly disposables: { dispose(): void }[],
+    hulls: readonly number[],
+  ) {
+    this.hulls = hulls.map(
+      (colour) => new MeshStandardMaterial({ color: colour, roughness: 0.3, metalness: 0.25 }),
+    );
+    disposables.push(...this.hulls, this.white, this.glass, this.unit, this.radar);
+  }
+
+  /** The k-th yacht, in the k-th hull colour; `random` picks how many decks it has. */
+  make(k: number, length: number, random: () => number): Group {
+    const g = new Group();
+    const hull = this.hulls[k % this.hulls.length]!;
+    const beam = Math.max(6, length * 0.18);
+    const L = length;
+    // A side profile, `x` along the yacht (stern +), extruded `width` across and stood upright.
+    const prism = (
+      points: readonly (readonly [number, number])[],
+      width: number,
+      material: MeshStandardMaterial,
+    ) => {
+      const shape = new Shape();
+      shape.moveTo(points[0]![0], points[0]![1]);
+      for (const [x, y] of points.slice(1)) shape.lineTo(x, y);
+      shape.closePath();
+      const geometry = new ExtrudeGeometry(shape, { depth: width, bevelEnabled: false });
+      geometry.translate(0, 0, -width / 2);
+      geometry.rotateY(-Math.PI / 2);
+      this.disposables.push(geometry);
+      const mesh = new Mesh(geometry, material);
+      mesh.castShadow = true;
+      g.add(mesh);
+      return mesh;
+    };
+    // The hull: a square stern, the sheer rising to a raked bow.
+    prism(
+      [
+        [L / 2, -1.2],
+        [L / 2, 2.4],
+        [-L / 2, 3.4],
+        [-L / 2 + L * 0.2, -1.2],
+      ],
+      beam,
+      hull,
+    );
+    // The decks, stepping back, each with its sloping front and its band of glass.
+    const decks = 2 + Math.floor(random() * 3);
+    let y = 2.5;
+    let aft = L / 2 - L * 0.07;
+    let span = L * 0.64;
+    for (let d = 0; d < decks; d++) {
+      const width = beam * (0.88 - d * 0.1);
+      prism(
+        [
+          [aft, y],
+          [aft, y + 2.5],
+          [aft - span * 0.86, y + 2.5],
+          [aft - span, y],
+        ],
+        width,
+        this.white,
+      );
+      const band = new Mesh(this.unit, this.glass);
+      band.scale.set(width + 0.08, 1.1, span * 0.7);
+      band.position.set(0, y + 1.35, aft - span * 0.47);
+      g.add(band);
+      y += 2.5;
+      aft -= L * 0.05;
+      span *= 0.72;
+    }
+    // The hardtop over the flybridge, the mast and the radar dome.
+    const top = new Mesh(this.unit, this.white);
+    top.scale.set(beam * 0.6, 0.25, span * 1.1);
+    top.position.set(0, y + 1.6, aft - span * 0.5);
+    const mast = new Mesh(this.unit, this.white);
+    mast.scale.set(0.3, 3.2, 0.3);
+    mast.position.set(0, y + 3.2, aft - span * 0.5);
+    const radar = new Mesh(this.radar, this.white);
+    radar.position.set(0, y + 5, aft - span * 0.5);
+    g.add(top, mast, radar);
+    return g;
+  }
 }
