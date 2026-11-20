@@ -883,6 +883,20 @@ export class MiamiStreet implements SceneStreet {
         transparent: true,
       }),
     );
+    const loops: BufferGeometry[] = [];
+    for (let i = 0; i <= 48; i++) {
+      const u = i / 48;
+      const swag = Math.abs(Math.sin(u * Math.PI * 6));
+      const bulb = new SphereGeometry(0.06, 4, 3);
+      bulb.scale(1, 1, 0.04);
+      bulb.translate(0, 3.05 - (1 - swag) * 0.45, u - 0.5);
+      loops.push(bulb);
+    }
+    const cafeString = mergeGeometries(loops)!;
+    loops.forEach((g) => g.dispose());
+    this.disposables.push(cafeString);
+    const cafeBulb = new MeshBasicMaterial({ color: 0xffe8b0 });
+    this.disposables.push(cafeBulb);
     let offset = 0;
     let k = 0;
     while (offset < LOOP - 10) {
@@ -1241,6 +1255,11 @@ export class MiamiStreet implements SceneStreet {
         glow.position.set(x, 1.0, z);
         hotel.add(shade, flame, glow);
       }
+      // A string of café bulbs over the terrace, looping from umbrella to umbrella.
+      const string = new Mesh(cafeString, cafeBulb);
+      string.scale.set(1, 1, width * 0.8);
+      string.position.set(-4.8, 0, 0);
+      hotel.add(string);
       const tables = cafe.build(this.disposables);
       tables.position.y = 0.15;
       hotel.add(tables);
