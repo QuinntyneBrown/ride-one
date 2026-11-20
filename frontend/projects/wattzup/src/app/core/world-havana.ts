@@ -9,6 +9,8 @@
 import {
   type BufferAttribute,
   BoxGeometry,
+  CapsuleGeometry,
+  Color,
   type BufferGeometry,
   type CanvasTexture,
   CylinderGeometry,
@@ -22,6 +24,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
+  Quaternion,
   QuadraticBezierCurve3,
   RepeatWrapping,
   Shape,
@@ -102,6 +105,13 @@ interface Spray {
   readonly delay: number;
 }
 
+interface Sitter {
+  readonly offset: number;
+  /** Faces the sea, legs over the water, rather than the city. */
+  readonly sea: boolean;
+  readonly rod: boolean;
+}
+
 interface Stroller {
   readonly offset: number;
   readonly x: number;
@@ -118,6 +128,8 @@ export class HavanaStreet implements SceneStreet {
   private readonly sprays: Spray[] = [];
   private readonly strollers: Stroller[] = [];
   private people: Figures | null = null;
+  private seated: Sitters | null = null;
+  private readonly sitters: Sitter[] = [];
   private swell: Texture | null = null;
   private readonly horizon = new Group();
   private time = 0;
@@ -215,11 +227,25 @@ export class HavanaStreet implements SceneStreet {
       this.strollers.forEach((w, i) => {
         const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
         const step = w.speed ? Math.abs(Math.sin(this.time * 4 + w.phase)) * 0.04 : 0;
-        // Fishermen sit on the wall's top; strollers walk the promenade.
-        const y = heightAt(Math.max(metres, 0)) + (w.speed ? KERB : WALL - 0.45);
+        const y = heightAt(Math.max(metres, 0)) + KERB;
         people.set(i, w.x, y, -metres, w.heading, 0.95, step);
       });
       people.commit();
+    }
+    const seated = this.seated;
+    if (seated) {
+      const wall = -this.roadHalf - LANES - PROMENADE - 0.35;
+      this.sitters.forEach((p, i) => {
+        const metres = loopMetres(p.offset, s, LOOP, BEHIND);
+        seated.set(
+          i,
+          wall,
+          heightAt(Math.max(metres, 0)) + WALL,
+          -metres,
+          p.sea ? Math.PI / 2 : -Math.PI / 2,
+        );
+      });
+      seated.commit();
     }
     if (this.crests) {
       const wall = -this.roadHalf - LANES - PROMENADE - 0.7;
@@ -1018,13 +1044,8 @@ export class HavanaStreet implements SceneStreet {
     const promenade = -roadHalf - LANES;
     for (let offset = 0; offset < LOOP; offset += 3 + random() * 7) {
       if (random() < 0.3) {
-        this.strollers.push({
-          offset,
-          x: promenade - PROMENADE - 0.3,
-          speed: 0,
-          heading: Math.PI / 2,
-          phase: 0,
-        });
+        // A fisherman sits on the wall facing the sea, his rod out over the water.
+        this.sitters.push({ offset, sea: true, rod: true });
         continue;
       }
       const speed = (random() < 0.5 ? 1 : -1) * (0.8 + random() * 0.5);
@@ -1046,6 +1067,13 @@ export class HavanaStreet implements SceneStreet {
         phase: random() * 6.3,
       });
     }
+    // People sitting along the wall's top: some facing the sea, most facing the city.
+    const perch = seeded(1087);
+    for (let offset = 1; offset < LOOP; offset += 2 + perch() * 6) {
+      const sea = perch() < 0.35;
+      this.sitters.push({ offset, sea, rod: sea && perch() < 0.4 });
+    }
+    this.seated = new Sitters(this.group, this.disposables, this.sitters, STROLL_WEAR, 1091);
     this.people = new Figures(
       this.group,
       this.disposables,
@@ -1628,4 +1656,95 @@ function wearTexture(): CanvasTexture {
       }
     }
   });
+}
+
+/**
+ * People sitting on the Malecón's wall: thighs along its top, shins hanging over its face, a
+ * torso and a head; a fisherman also holds a rod reaching up and out over the water, its line
+ * falling to the sea. Each part is one instanced mesh, coloured per person.
+ */
+class Sitters {
+  private readonly legs: InstancedMesh;
+  private readonly bodies: InstancedMesh;
+  private readonly heads: InstancedMesh;
+  private readonly rods: InstancedMesh;
+  private readonly matrix = new Matrix4();
+  private readonly spot = new Vector3();
+  private readonly turn = new Quaternion();
+  private readonly one = new Vector3(1, 1, 1);
+  private readonly none = new Vector3(0, 0, 0);
+  private readonly up = new Vector3(0, 1, 0);
+
+  constructor(
+    group: Group,
+    disposables: { dispose(): void }[],
+    private readonly people: readonly Sitter[],
+    wardrobe: { tops: readonly string[]; bottoms: readonly string[]; skins: readonly string[] },
+    seed: number,
+  ) {
+    const parts: BufferGeometry[] = [];
+    for (const side of [-0.1, 0.1]) {
+      const thigh = new CapsuleGeometry(0.075, 0.36, 3, 8);
+      thigh.rotateX(Math.PI / 2);
+      thigh.translate(side, 0.08, -0.22);
+      const shin = new CapsuleGeometry(0.065, 0.36, 3, 8);
+      shin.translate(side, -0.16, -0.46);
+      parts.push(thigh, shin);
+    }
+    const legs = mergeGeometries(parts)!;
+    parts.forEach((g) => g.dispose());
+    const body = new CapsuleGeometry(0.19, 0.36, 4, 10);
+    body.translate(0, 0.48, 0.04);
+    const head = new SphereGeometry(0.115, 12, 10);
+    head.translate(0, 0.98, 0.0);
+    // The rod from the hands, up and out at forty degrees, and the line down from its tip.
+    const rod = new CylinderGeometry(0.012, 0.02, 3.6, 5);
+    rod.translate(0, 1.8, 0);
+    rod.rotateX(-0.85);
+    rod.translate(0, 0.55, -0.3);
+    const line = new CylinderGeometry(0.004, 0.004, 4.6, 3);
+    line.translate(0, -2.3 + 0.55 + 3.6 * Math.cos(0.85), -0.3 - 3.6 * Math.sin(0.85));
+    const tackle = mergeGeometries([rod, line])!;
+    rod.dispose();
+    line.dispose();
+    const make = (geometry: BufferGeometry, material: MeshStandardMaterial, count: number) => {
+      const mesh = new InstancedMesh(geometry, material, count);
+      mesh.frustumCulled = false;
+      mesh.castShadow = true;
+      group.add(mesh);
+      disposables.push(geometry, material, mesh);
+      return mesh;
+    };
+    const n = people.length;
+    this.legs = make(legs, new MeshStandardMaterial({ roughness: 0.9 }), n);
+    this.bodies = make(body, new MeshStandardMaterial({ roughness: 0.85 }), n);
+    this.heads = make(head, new MeshStandardMaterial({ roughness: 0.7 }), n);
+    this.rods = make(tackle, new MeshStandardMaterial({ color: 0x3a3226, roughness: 0.6 }), n);
+    const random = seeded(seed);
+    const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
+    const c = new Color();
+    for (let i = 0; i < n; i++) {
+      this.bodies.setColorAt(i, c.set(pick(wardrobe.tops)));
+      this.legs.setColorAt(i, c.set(pick(wardrobe.bottoms)));
+      this.heads.setColorAt(i, c.set(pick(wardrobe.skins)));
+    }
+  }
+
+  /** Seats person `i` on the wall's top at (x, y, z), facing `heading`. */
+  set(i: number, x: number, y: number, z: number, heading: number): void {
+    this.turn.setFromAxisAngle(this.up, heading);
+    this.spot.set(x, y, z);
+    this.matrix.compose(this.spot, this.turn, this.one);
+    this.legs.setMatrixAt(i, this.matrix);
+    this.bodies.setMatrixAt(i, this.matrix);
+    this.heads.setMatrixAt(i, this.matrix);
+    if (!this.people[i]!.rod) this.matrix.compose(this.spot, this.turn, this.none);
+    this.rods.setMatrixAt(i, this.matrix);
+  }
+
+  commit(): void {
+    for (const mesh of [this.legs, this.bodies, this.heads, this.rods]) {
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
 }
