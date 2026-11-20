@@ -504,7 +504,31 @@ export class MiamiStreet implements SceneStreet {
     halo.position.set(-900, 520, -1930);
     this.disposables.push(glow, band.geometry, moon.geometry, moon.material);
     this.disposables.push(halo.geometry, halo.material);
-    this.horizon.add(band, halo, moon);
+    // A sprinkling of stars above the glow, the brighter ones twinkling blue-white, and wisps
+    // of cloud lit from below by the city.
+    const stars = new Mesh(
+      new PlaneGeometry(6400, 1600),
+      new MeshBasicMaterial({
+        map: this.track(starsTexture()),
+        transparent: true,
+        depthWrite: false,
+        blending: AdditiveBlending,
+        fog: false,
+      }),
+    );
+    stars.position.set(0, 1100, -2100);
+    const clouds = new Mesh(
+      new PlaneGeometry(5200, 500),
+      new MeshBasicMaterial({
+        map: this.track(cloudTexture()),
+        transparent: true,
+        depthWrite: false,
+        fog: false,
+      }),
+    );
+    clouds.position.set(400, 620, -2000);
+    this.disposables.push(stars.geometry, stars.material, clouds.geometry, clouds.material);
+    this.horizon.add(stars, band, clouds, halo, moon);
     this.group.add(this.horizon);
   }
 
@@ -753,5 +777,49 @@ function moonHaloTexture(): CanvasTexture {
     halo.addColorStop(1, 'rgba(120,100,220,0)');
     g.fillStyle = halo;
     g.fillRect(0, 0, 128, 128);
+  });
+}
+
+/** The stars of a hazy city night: few, faint, a handful bright enough to show a cross. */
+function starsTexture(): CanvasTexture {
+  return canvasTexture(2048, 512, (g) => {
+    const random = seeded(8201);
+    for (let i = 0; i < 900; i++) {
+      const x = random() * 2048;
+      const y = random() * 512;
+      const fade = 0.25 + (1 - y / 512) * 0.6;
+      const bright = random();
+      g.fillStyle = `rgba(${bright < 0.2 ? '200,220,255' : '255,250,240'},${(fade * (0.3 + bright * 0.7)).toFixed(2)})`;
+      const r = bright > 0.97 ? 2 : 1;
+      g.fillRect(x, y, r, r);
+      if (bright > 0.985) {
+        g.fillRect(x - 3, y + 0.5, 7, 1);
+        g.fillRect(x + 0.5, y - 3, 1, 7);
+      }
+    }
+  });
+}
+
+/** Thin bands of cloud, violet underneath where the city lights them, dark above. */
+function cloudTexture(): CanvasTexture {
+  return canvasTexture(1024, 128, (g) => {
+    const random = seeded(8211);
+    for (let i = 0; i < 70; i++) {
+      const x = random() * 1024;
+      const y = 30 + random() * 70;
+      const w = 40 + random() * 160;
+      const h = 6 + random() * 14;
+      const puff = g.createRadialGradient(x, y, 0, x, y, w / 2);
+      puff.addColorStop(0, 'rgba(190,100,180,0.5)');
+      puff.addColorStop(0.6, 'rgba(100,55,140,0.28)');
+      puff.addColorStop(1, 'rgba(40,20,80,0)');
+      g.fillStyle = puff;
+      g.save();
+      g.translate(x, y);
+      g.scale(1, h / w);
+      g.translate(-x, -y);
+      g.fillRect(x - w / 2, y - w / 2, w, w);
+      g.restore();
+    }
   });
 }
