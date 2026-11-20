@@ -101,6 +101,10 @@ const SCREENS: readonly string[] = [
   'RAMEN 24H  ·  NOODLE BAR  ·  ',
   'DOCKLANDS  ·  RIDE THE NIGHT  ·  ',
 ];
+/** Night-market stalls on the quay promenade, at these offsets round the loop. */
+const STALLS: readonly number[] = [26, 33, 40, 140, 147, 290, 297, 304, 460, 467, 580];
+const STALL_X = -10;
+const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
 /** Festoon lantern strings across the street, at these offsets round the loop. */
 const LANTERNS: readonly number[] = [30, 44, 58, 150, 164, 300, 314, 470, 484, 498, 590];
 const LANTERN_HEIGHT = 9;
@@ -233,6 +237,7 @@ export class DocklandsStreet {
   }[] = [];
   private readonly train = new Group();
   private readonly lanterns: { group: Group; offset: number }[] = [];
+  private readonly stalls: { group: Group; offset: number }[] = [];
 
   /**
    * Runs the train along its viaduct for `seconds` of the ride: it crosses from the harbour
@@ -999,6 +1004,7 @@ export class DocklandsStreet {
     this.addDeckLamps(roadHalf);
     this.addVents(roadHalf);
     this.addLanterns(roadHalf);
+    this.addStalls();
     this.addRain();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
@@ -1254,6 +1260,67 @@ export class DocklandsStreet {
       group.position.y = LANTERN_HEIGHT;
       this.group.add(group);
       this.lanterns.push({ group, offset });
+    });
+  }
+
+  /**
+   * Night-market stalls on the quay promenade, facing the road: a dark booth with a warm lit
+   * serving hatch, a striped awning over it and a neon strip along its roof, throwing its
+   * light on the wet paving.
+   */
+  private addStalls(): void {
+    const body = new MeshStandardMaterial({ color: 0x15141c, roughness: 0.7 });
+    const hatch = new MeshBasicMaterial({
+      color: new Color('#ffcf8a').multiplyScalar(1.4),
+      toneMapped: false,
+    });
+    const unit = new BoxGeometry(1, 1, 1);
+    const awnings = STALL_COLOURS.map((hex) => {
+      const texture = this.track(awningTexture(hex));
+      return new MeshStandardMaterial({
+        map: texture,
+        emissiveMap: texture,
+        emissive: new Color(0xffffff),
+        emissiveIntensity: 0.4,
+      });
+    });
+    const strips = STALL_COLOURS.map(
+      (hex) =>
+        new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(1.5), toneMapped: false }),
+    );
+    this.disposables.push(body, hatch, unit, ...awnings, ...strips);
+    const box = (
+      material: Material,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      return mesh;
+    };
+    STALLS.forEach((offset, i) => {
+      const group = new Group();
+      const colour = i % STALL_COLOURS.length;
+      const x = STALL_X;
+      // The booth, its back to the harbour and its hatch to the road.
+      group.add(box(body, 2.2, 2.6, 3.2, x, KERB + 1.3, 0));
+      group.add(box(hatch, 0.05, 1, 2.6, x + 1.11, KERB + 1.45, 0));
+      group.add(box(body, 0.5, 0.12, 3, x + 1.3, KERB + 0.95, 0));
+      group.add(box(strips[colour]!, 0.12, 0.12, 3.2, x + 1.12, KERB + 2.62, 0));
+      // The awning slopes out over the counter.
+      const awning = new Mesh(unit, awnings[colour]!);
+      awning.scale.set(1.8, 0.05, 3.4);
+      awning.rotation.z = -0.4;
+      awning.position.set(x + 1.85, KERB + 2.35, 0);
+      group.add(awning);
+      this.streak(group, '#ffcf8a', x + 3, KERB, 0, 4, 3.5, 0.8);
+      this.group.add(group);
+      this.stalls.push({ group, offset });
     });
   }
 
@@ -1751,6 +1818,11 @@ export class DocklandsStreet {
       boat.mesh.position.y = heightAt(Math.max(metres, 0)) - 0.3;
       boat.mesh.position.z = -metres;
     }
+    for (const stall of this.stalls) {
+      const metres = ((((stall.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      stall.group.visible = !this.onBridge(Math.max(metres, 0));
+      stall.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
     for (const lantern of this.lanterns) {
       const metres = ((((lantern.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       lantern.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -1911,6 +1983,23 @@ function screenTexture(words: string, i: number): CanvasTexture {
     ctx.fillText(words, 16 + ctx.measureText(words).width, 120);
     ctx.fillStyle = 'rgba(0,0,0,0.22)';
     for (let y = 0; y < 232; y += 4) ctx.fillRect(0, y, 1024, 2);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A stall awning: broad stripes of its colour and white, across the slope. */
+function awningTexture(hex: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 16;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    for (let i = 0; i < 8; i++) {
+      ctx.fillStyle = i % 2 === 0 ? hex : '#e8e4f0';
+      ctx.fillRect(0, i * 16, 16, 16);
+    }
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
