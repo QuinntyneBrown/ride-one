@@ -199,6 +199,7 @@ const STRAWS = ['#e3c98f', '#d8b878', '#f0e2b8'];
 const UMBRELLAS = ['#c8102e', '#ffd23f', '#0f9d58', '#1b6ad8', '#111111', '#ff2d87', '#ffffff'];
 /** The T-shirt a flag is printed on, matched to the flag: red, black, blue, green. */
 const TEE_BASES = ['#ce1126', '#111111', '#00267f', '#009e49'];
+const BALLOONS = ['#e8133c', '#ffd23f', '#0f9d58', '#ff2d87', '#1b6ad8', '#ff8a00', '#ffffff'];
 const SHOES = ['#f2f2f2', '#111111', '#d6d0c4', '#8b5e3c', '#c8102e'];
 
 /** The parts of a spectator's body and clothes for one stance and one cut of bottoms. */
@@ -385,6 +386,8 @@ interface Spectator {
   readonly stance: number;
   /** Turned away from the road, for a selfie with the bands behind. */
   readonly turned?: boolean;
+  /** Holding a balloon on a string. */
+  readonly balloon?: boolean;
   readonly flag: number;
 }
 
@@ -458,7 +461,11 @@ export class Spectators {
     this.people.forEach((p, i) => {
       const front = Math.abs(p.x) < o.near + 0.3 && p.height > 0.9;
       const roll = habits();
-      if (front && p.stance === 0 && roll < 0.4) this.people[i] = { ...p, stance: LEAN_STANCE };
+      if (p.height < 0.9 && roll < 0.55) {
+        this.people[i] = { ...p, stance: 0, flag: -1, balloon: true };
+      } else if (p.stance === 0 && roll > 0.93) this.people[i] = { ...p, balloon: true };
+      else if (front && p.stance === 0 && roll < 0.4)
+        this.people[i] = { ...p, stance: LEAN_STANCE };
       else if (p.stance === 2 && p.height > 0.9 && roll < 0.3) {
         this.people[i] = { ...p, stance: PLACARD_STANCE };
       } else if (p.stance === 0 && roll > 0.4 && roll < 0.62) {
@@ -485,6 +492,14 @@ export class Spectators {
     const hairs = hairParts();
     const handset = new BoxGeometry(0.075, 0.14, 0.012);
     handset.translate(0, 1.56, -0.37);
+    // A balloon on a string from the right hand, floating over the head.
+    const balloon = ellipsoid(0.2, 1, 1.18, 1, 0.34, 2.42, -0.02, 14);
+    const string = merge(
+      limb(new Vector3(0.23, 0.8, -0.02), new Vector3(0.34, 2.2, -0.02), 0.004, 0.004, 3, false),
+    );
+    const latex = this.material({ roughness: 0.25, metalness: 0.05 });
+    const twine = this.material({ color: 0xf2f2f2, roughness: 0.9 });
+    this.disposables.push(balloon, string);
     const card = new PlaneGeometry(0.72, 0.48);
     card.rotateY(Math.PI);
     card.rotateX(0.12);
@@ -552,6 +567,10 @@ export class Spectators {
       else this.ensemble.put(i, `hair${style}`, hairs[style]!, hair, colour);
       if (p.stance === PHONE_STANCE) this.ensemble.put(i, 'phone', handset, phone, '#ffffff');
       if (p.stance === SELFIE_STANCE) this.ensemble.put(i, 'selfie', selfie, phone, '#ffffff');
+      if (p.balloon) {
+        this.ensemble.put(i, 'balloon', balloon, latex, any(BALLOONS));
+        this.ensemble.put(i, 'string', string, twine, '#ffffff');
+      }
       if (p.stance === PLACARD_STANCE) {
         const k = Math.floor(extra() * placards.length);
         this.ensemble.put(i, `placard${k}`, card, placards[k]!, '#ffffff');

@@ -135,6 +135,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly vents: Mesh[][] = [];
   private plane: Group | null = null;
   private blimp: Group | null = null;
+  private moonCloud: Mesh | null = null;
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
@@ -338,6 +339,8 @@ export class MiamiStreet implements SceneStreet {
     // The cabs' hazard lights blink.
     const blinking = seconds % 0.9 < 0.45;
     this.hazards.forEach((h) => (h.visible = blinking));
+    // The silvered cloud drifts slowly across the moon and back.
+    if (this.moonCloud) this.moonCloud.position.x = -880 + Math.sin(seconds * 0.02) * 90;
     // The blimp drifts slowly along the beach, 450 m ahead and 130 m up.
     if (this.blimp) {
       const drift = Math.sin(seconds * 0.01) * 120;
@@ -787,6 +790,33 @@ export class MiamiStreet implements SceneStreet {
         side: DoubleSide,
       }),
     );
+    const flamingoParts: BufferGeometry[] = [];
+    const bodyPart = new SphereGeometry(0.16, 10, 8);
+    bodyPart.scale(1.5, 0.9, 0.9);
+    bodyPart.translate(0, 0.62, 0);
+    const neck = new CylinderGeometry(0.025, 0.03, 0.42, 6);
+    neck.rotateZ(-0.35);
+    neck.translate(0.24, 0.86, 0);
+    const head = new SphereGeometry(0.06, 8, 6);
+    head.translate(0.32, 1.06, 0);
+    const beak = new ConeGeometry(0.025, 0.12, 6);
+    beak.rotateZ(Math.PI * 0.6);
+    beak.translate(0.4, 1.02, 0);
+    flamingoParts.push(bodyPart, neck, head, beak);
+    for (const dz of [-0.04, 0.04]) {
+      const leg = new CylinderGeometry(0.012, 0.012, 0.6, 4);
+      leg.translate(0, 0.3, dz);
+      flamingoParts.push(leg);
+    }
+    const flamingoGeometry = mergeGeometries(flamingoParts)!;
+    flamingoParts.forEach((g) => g.dispose());
+    this.disposables.push(flamingoGeometry);
+    const flamingoPink = this.material({
+      color: 0xff6ab0,
+      roughness: 0.35,
+      emissive: 0x401028,
+      emissiveIntensity: 0.5,
+    });
     const planter = this.material({ color: 0xe8e0d8, roughness: 0.8 });
     const blossomBall = new SphereGeometry(0.7, 10, 8);
     this.disposables.push(blossomBall);
@@ -1272,6 +1302,13 @@ export class MiamiStreet implements SceneStreet {
           bush.scale.set(0.8, 0.75, 1);
           bush.position.set(-1.1 + (i - 1) * 0.15, 1.15 + (i % 2) * 0.2, z + (i - 1) * 0.6);
           hotel.add(bush);
+        }
+        // A pair of pink plastic flamingos standing in the planter's front edge.
+        for (const dz of [-0.55, 0.45]) {
+          const bird = new Mesh(flamingoGeometry, flamingoPink);
+          bird.position.set(-1.75, 0.85, z + dz);
+          bird.rotation.y = dz > 0 ? 0.6 : -2.4;
+          hotel.add(bird);
         }
       }
       // Every fourth hotel keeps a nightclub on its ground floor: a red rope on brass posts
@@ -3650,6 +3687,20 @@ export class MiamiStreet implements SceneStreet {
     }
     this.blimp = blimp;
     this.horizon.add(blimp);
+    // Wisps of cloud passing over the moon, their edges silvered by it, drifting slowly.
+    const silver = new Mesh(
+      new PlaneGeometry(260, 90),
+      new MeshBasicMaterial({
+        map: this.track(silverCloudTexture()),
+        transparent: true,
+        depthWrite: false,
+        fog: false,
+      }),
+    );
+    silver.position.set(-880, 500, -1880);
+    this.disposables.push(silver.geometry, silver.material as MeshBasicMaterial);
+    this.moonCloud = silver;
+    this.horizon.add(silver);
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
@@ -5191,5 +5242,38 @@ function letterTexture(ch: string, colour: string): CanvasTexture {
     g.strokeText(ch, 64, 88, 124);
     g.fillStyle = colour;
     g.fillText(ch, 64, 88, 124);
+  });
+}
+
+/**
+ * Thin cloud across the moon, backlit: soft dark violet bodies, and round their outer edge a
+ * bright silver rim where the moonlight catches them (the rim drawn first, larger, and the
+ * bodies laid over it so only the outline shows).
+ */
+function silverCloudTexture(): CanvasTexture {
+  return canvasTexture(256, 96, (g) => {
+    const puffs: [number, number, number][] = [];
+    const random = seeded(8561);
+    for (let i = 0; i < 18; i++)
+      puffs.push([30 + random() * 196, 44 + (random() - 0.5) * 26, 12 + random() * 18]);
+    for (const [x, y, r] of puffs) {
+      const rim = g.createRadialGradient(x, y, r * 0.6, x, y, r + 5);
+      rim.addColorStop(0, 'rgba(230,232,255,0.7)');
+      rim.addColorStop(1, 'rgba(230,232,255,0)');
+      g.fillStyle = rim;
+      g.beginPath();
+      g.arc(x, y, r + 5, 0, Math.PI * 2);
+      g.fill();
+    }
+    for (const [x, y, r] of puffs) {
+      const body = g.createRadialGradient(x, y, 0, x, y, r);
+      body.addColorStop(0, 'rgba(46,34,76,0.9)');
+      body.addColorStop(0.8, 'rgba(56,42,90,0.75)');
+      body.addColorStop(1, 'rgba(70,56,110,0.35)');
+      g.fillStyle = body;
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.fill();
+    }
   });
 }
