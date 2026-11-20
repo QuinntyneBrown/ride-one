@@ -106,6 +106,7 @@ export class AmsterdamStreet implements SceneStreet {
   private readonly up = new Vector3(0, 1, 0);
   private readonly tower = new Group();
   private readonly clouds = new Group();
+  private readonly gulls: { mesh: Group; radius: number; height: number; phase: number }[] = [];
   private waterMap: CanvasTexture | null = null;
   private bikePaints: MeshStandardMaterial[] | null = null;
   private sitters: MeshStandardMaterial | null = null;
@@ -134,6 +135,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
     this.addWaterfowl(roadHalf);
+    this.addBirds(roadHalf);
     this.addWestertoren();
     this.addClouds();
   }
@@ -164,6 +166,19 @@ export class AmsterdamStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     this.tower.position.set(12, heightAt(0), -TOWER);
+    // Gulls wheel over the canal ahead, beating their wings now and then.
+    for (const gull of this.gulls) {
+      const a = this.time * 0.25 + gull.phase;
+      gull.mesh.position.set(
+        -14 + Math.cos(a) * gull.radius,
+        gull.height + Math.sin(a * 2) * 1.5,
+        -48 + Math.sin(a) * gull.radius,
+      );
+      gull.mesh.rotation.y = -a;
+      const flap = Math.sin(this.time * 7 + gull.phase) * 0.35 * (Math.sin(a * 3) > 0.4 ? 1 : 0.15);
+      gull.mesh.children[1]!.rotation.z = 0.15 + flap;
+      gull.mesh.children[2]!.rotation.z = -0.15 - flap;
+    }
     // The clouds drift slowly from the west across the sky and stay over the horizon.
     this.clouds.position.set(((this.time * 1.5 + 1200) % 2400) - 1200, 0, 0);
     for (const prop of this.props) {
@@ -1586,6 +1601,59 @@ export class AmsterdamStreet implements SceneStreet {
     }
     group.children.forEach((m) => (m.castShadow = true));
     return group;
+  }
+
+  /**
+   * Herring gulls wheeling over the canal ahead, white with grey backs and black wingtips, and
+   * a flock of grey pigeons pecking about the pavement by the café and the benches.
+   */
+  private addBirds(roadHalf: number): void {
+    const random = seeded(739);
+    const white = this.material({ color: 0xf2f2ee, roughness: 0.8 });
+    const grey = this.material({ color: 0x9aa0a8, roughness: 0.8 });
+    const body = new CapsuleGeometry(0.1, 0.35, 3, 8);
+    body.rotateX(Math.PI / 2);
+    const wing = new BoxGeometry(0.75, 0.02, 0.24);
+    wing.translate(0.38, 0, 0);
+    this.disposables.push(body, wing);
+    for (let i = 0; i < 6; i++) {
+      const gull = new Group();
+      const left = new Mesh(wing, grey);
+      left.rotation.y = Math.PI;
+      const leftWing = new Group();
+      leftWing.add(left);
+      const rightWing = new Group();
+      rightWing.add(new Mesh(wing, grey));
+      gull.add(new Mesh(body, white), leftWing, rightWing);
+      this.group.add(gull);
+      this.gulls.push({
+        mesh: gull,
+        radius: 8 + random() * 14,
+        height: 16 + random() * 12,
+        phase: random() * 6.3,
+      });
+    }
+    // Pigeons.
+    const plump = new SphereGeometry(0.1, 8, 6);
+    plump.scale(0.8, 0.8, 1.2);
+    plump.translate(0, 0.1, 0);
+    const head = new SphereGeometry(0.045, 6, 5);
+    head.translate(0, 0.2, -0.1);
+    const pigeon = mergeGeometries([plump.toNonIndexed(), head.toNonIndexed()])!;
+    plump.dispose();
+    head.dispose();
+    const slate = this.material({ color: 0x7a7e88, roughness: 0.85 });
+    this.disposables.push(pigeon);
+    const flock = new Group();
+    for (let i = 0; i < 9; i++) {
+      const bird = new Mesh(pigeon, slate);
+      bird.position.set((random() - 0.5) * 1.4, KERB, (random() - 0.5) * 3);
+      bird.rotation.set(random() < 0.5 ? 0.5 : 0, random() * Math.PI * 2, 0);
+      bird.castShadow = true;
+      flock.add(bird);
+    }
+    this.group.add(flock);
+    this.props.push({ mesh: flock, offset: START + BEHIND + 9, x: roadHalf + 0.6 });
   }
 
   /**
