@@ -519,19 +519,26 @@ export class BonnevilleStreet implements SceneStreet {
   private addMountains(): void {
     const haze = new Color(HAZE);
     const h = this.horizon;
+    // The Silver Island Mountains in two ridges, the near one rugged and brown, the far one
+    // taller and blue in the heat; Pilot Peak's range off to the right, lower hills to the left.
     const ranges = [
-      { from: -900, to: 1400, lift: 260, z: -2600, colour: 0x8a7a6a, amount: 0.38, seed: 4301 },
-      { from: -3800, to: -1100, lift: 150, z: -3600, colour: 0x8a8a92, amount: 0.55, seed: 4311 },
-      { from: 1700, to: 4200, lift: 190, z: -3300, colour: 0x8a8088, amount: 0.5, seed: 4321 },
+      { from: -2600, to: 1800, lift: 760, z: -3400, colour: 0x7a88a0, amount: 0.5, seed: 4331 },
+      { from: -1500, to: 1500, lift: 520, z: -2300, colour: 0x7a6656, amount: 0.3, seed: 4301 },
+      { from: -4600, to: -1700, lift: 220, z: -3800, colour: 0x8a8a92, amount: 0.55, seed: 4311 },
+      { from: 1900, to: 5200, lift: 420, z: -3900, colour: 0x8a8090, amount: 0.5, seed: 4321 },
     ];
     for (const range of ranges) {
       const random = seeded(range.seed);
       const ridge = new Shape();
       ridge.moveTo(range.from, 0);
-      for (let x = range.from; x <= range.to; x += 40) {
+      for (let x = range.from; x <= range.to; x += 25) {
         const t = (x - range.from) / (range.to - range.from);
         const swell = Math.sin(t * Math.PI) ** 0.6;
-        const peaks = 0.55 + 0.3 * Math.sin(x / 160 + range.seed) + 0.15 * Math.sin(x / 47);
+        const peaks =
+          0.5 +
+          0.28 * Math.sin(x / 210 + range.seed) +
+          0.14 * Math.sin(x / 73) +
+          0.08 * Math.sin(x / 23);
         ridge.lineTo(x, range.lift * swell * peaks * (0.9 + random() * 0.15));
       }
       ridge.lineTo(range.to, 0);
@@ -544,17 +551,17 @@ export class BonnevilleStreet implements SceneStreet {
       // Its reflection in the mirage, upside down and faint beneath it.
       const ghost = hazedMaterial(this.disposables, haze, range.colour, range.amount + 0.25, {
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.5,
         depthWrite: false,
       });
       const mirror = new Mesh(geometry, ghost);
-      mirror.scale.y = -0.35;
+      mirror.scale.y = -0.3;
       mirror.position.set(0, 2, range.z);
       h.add(mountains, mirror);
     }
     // The mirage: a bright band across the horizon, shimmering like water, hiding the ranges'
     // feet so they float.
-    const band = new PlaneGeometry(14000, 60);
+    const band = new PlaneGeometry(14000, 70);
     this.disposables.push(band);
     const shimmer = this.material({
       map: this.track(mirageTexture()),
@@ -562,10 +569,10 @@ export class BonnevilleStreet implements SceneStreet {
       depthWrite: false,
       fog: false,
       emissive: new Color(0xdfeaf4),
-      emissiveIntensity: 0.6,
+      emissiveIntensity: 0.9,
     });
     const mirage = new Mesh(band, shimmer);
-    mirage.position.set(0, 4, -2200);
+    mirage.position.set(0, 6, -2050);
     h.add(mirage);
   }
 
