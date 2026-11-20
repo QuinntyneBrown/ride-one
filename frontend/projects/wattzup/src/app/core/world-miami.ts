@@ -142,7 +142,7 @@ export class MiamiStreet implements SceneStreet {
   private addRoad(roadHalf: number, points: number): void {
     const r = roadHalf;
     const asphalt = this.material({
-      map: this.repeat(roadTexture(), r * 2, 8),
+      map: this.repeat(roadTexture(), r * 2, 16),
       roughness: 0.25,
       metalness: 0.2,
     });
@@ -632,19 +632,75 @@ export class MiamiStreet implements SceneStreet {
   }
 }
 
-/** The wet black asphalt, its dashed centre line and the neon smeared in its puddles. */
+/**
+ * The wet black asphalt across the whole road, 16 m of it: aggregate and tar seams, darker
+ * glossy puddles smeared with neon, a solid white edge line inside each gutter, the double
+ * yellow centre line and, once in the tile, a cast-iron manhole cover.
+ */
 function roadTexture(): CanvasTexture {
-  return canvasTexture(128, 256, (g) => {
-    speckle(g, 128, 256, '#26262c', 8151);
+  return canvasTexture(512, 1024, (g) => {
+    speckle(g, 512, 1024, '#26262c', 8151);
     const random = seeded(8153);
-    for (let i = 0; i < 26; i++) {
-      g.fillStyle = ['rgba(255,63,180,0.18)', 'rgba(47,230,255,0.16)', 'rgba(180,107,255,0.14)'][
+    // Aggregate: pale stones catching the light.
+    for (let i = 0; i < 2600; i++) {
+      g.fillStyle = `rgba(200,200,220,${(0.05 + random() * 0.12).toFixed(2)})`;
+      g.fillRect(random() * 512, random() * 1024, 1.5, 1.5);
+    }
+    // Puddles: darker, smoother patches.
+    for (let i = 0; i < 9; i++) {
+      const x = random() * 512;
+      const y = random() * 1024;
+      const r = 20 + random() * 50;
+      const puddle = g.createRadialGradient(x, y, 0, x, y, r);
+      puddle.addColorStop(0, 'rgba(8,8,16,0.6)');
+      puddle.addColorStop(1, 'rgba(8,8,16,0)');
+      g.fillStyle = puddle;
+      g.fillRect(x - r, y - r * 2, r * 2, r * 4);
+    }
+    for (let i = 0; i < 40; i++) {
+      g.fillStyle = ['rgba(255,63,180,0.14)', 'rgba(47,230,255,0.12)', 'rgba(180,107,255,0.12)'][
         i % 3
       ]!;
-      g.fillRect(random() * 128, random() * 256, 2 + random() * 6, 18 + random() * 40);
+      g.fillRect(random() * 512, random() * 1024, 2 + random() * 8, 30 + random() * 80);
     }
-    g.fillStyle = '#e8e0c8';
-    g.fillRect(62, 0, 4, 120);
+    // Tar seams and a crack or two.
+    g.strokeStyle = 'rgba(10,10,14,0.8)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(0, 300);
+    g.lineTo(512, 310);
+    for (let i = 0; i < 4; i++) {
+      let x = random() * 512;
+      let y = random() * 1024;
+      g.moveTo(x, y);
+      for (let j = 0; j < 8; j++) {
+        x += (random() - 0.5) * 30;
+        y += random() * 30;
+        g.lineTo(x, y);
+      }
+    }
+    g.stroke();
+    // Edge lines and the double yellow centre line, slightly worn.
+    g.fillStyle = 'rgba(236,232,220,0.85)';
+    g.fillRect(14, 0, 8, 1024);
+    g.fillRect(490, 0, 8, 1024);
+    g.fillStyle = 'rgba(240,196,40,0.9)';
+    g.fillRect(244, 0, 8, 1024);
+    g.fillRect(260, 0, 8, 1024);
+    g.fillStyle = 'rgba(38,38,44,0.5)';
+    for (let i = 0; i < 60; i++) g.fillRect(240 + random() * 30, random() * 1024, 4, 3);
+    // A manhole cover in the right lane.
+    g.fillStyle = '#1a1a1e';
+    g.beginPath();
+    g.arc(380, 700, 26, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = 'rgba(120,120,140,0.6)';
+    g.lineWidth = 2;
+    for (let r = 8; r < 26; r += 6) {
+      g.beginPath();
+      g.arc(380, 700, r, 0, Math.PI * 2);
+      g.stroke();
+    }
   });
 }
 
