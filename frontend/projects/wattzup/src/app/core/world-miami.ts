@@ -250,11 +250,25 @@ export class MiamiStreet implements SceneStreet {
       [-r - 0.25, 0.15],
       [-r - 5, 0.15],
     ]);
-    // The low promenade wall, lit along its top by the hotels.
-    this.ribbons.add(points, kerb, [
+    // The low sea wall: pastel stucco panels between pilasters under a pale stone coping that
+    // overhangs on the promenade side, with a strip of pink neon tucked under its lip.
+    const wall = this.material({ map: this.repeat(seaWallTexture(), 0.6, 4), roughness: 0.8 });
+    const coping = this.material({ color: 0xe8e2dc, roughness: 0.5 });
+    const strip = this.material({ color: 0xff4fb8, emissive: 0xff4fb8, emissiveIntensity: 2.6 });
+    this.ribbons.add(points, wall, [
       [-r - 5, 0.15],
-      [-r - 5, 0.75],
-      [-r - 5.5, 0.75],
+      [-r - 5, 0.72],
+    ]);
+    this.ribbons.add(points, strip, [
+      [-r - 4.94, 0.66],
+      [-r - 4.94, 0.72],
+    ]);
+    this.ribbons.add(points, coping, [
+      [-r - 4.86, 0.72],
+      [-r - 4.86, 0.84],
+      [-r - 5.64, 0.84],
+      [-r - 5.64, 0.72],
+      [-r - 5.5, 0.72],
       [-r - 5.5, -0.3],
     ]);
     this.ribbons.add(points, sand, [
@@ -1922,5 +1936,20 @@ function glitterTexture(): CanvasTexture {
       g.fillStyle = `rgba(255,255,255,${(edge * (0.3 + random() * 0.7)).toFixed(2)})`;
       g.fillRect(x - 4, random() * 512, 3 + random() * 10 * edge, 1 + random() * 3);
     }
+  });
+}
+
+/** The sea wall's face: pastel stucco panels framed by pilasters every 4 m. */
+function seaWallTexture(): CanvasTexture {
+  return canvasTexture(32, 128, (g) => {
+    speckle(g, 32, 128, '#c8b0c8', 8271);
+    g.fillStyle = 'rgba(255,255,255,0.35)';
+    g.fillRect(0, 0, 32, 10);
+    g.fillStyle = 'rgba(60,40,70,0.35)';
+    g.fillRect(0, 10, 32, 2);
+    g.fillRect(4, 18, 24, 2);
+    g.fillRect(4, 118, 24, 2);
+    g.fillStyle = 'rgba(255,255,255,0.2)';
+    g.fillRect(4, 20, 2, 98);
   });
 }
