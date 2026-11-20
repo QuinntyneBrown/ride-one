@@ -1,4 +1,13 @@
-import { BEND_SAMPLES, bendAhead, bendPoint, curvature, lean, racingLine } from './scene-bend';
+import {
+  APEX_MIN,
+  apexes,
+  BEND_SAMPLES,
+  bendAhead,
+  bendPoint,
+  curvature,
+  lean,
+  racingLine,
+} from './scene-bend';
 import { WORLDS, worldById, type World } from './worlds';
 
 const alpe = worldById('alpe');
@@ -136,6 +145,40 @@ describe('racingLine (L2-107 AC7, L2-110 AC9)', () => {
       for (const lane of [-2, 0, 2]) {
         expect(Math.abs(racingLine(alpe, s, lane, 3.5))).toBeLessThanOrEqual(2.6 + 1e-9);
       }
+    }
+  });
+});
+
+describe('apexes (L2-110 AC9)', () => {
+  const oldtown = worldById('oldtown');
+
+  it('finds no corner on a straight road', () => {
+    expect(apexes(straight, 0, 5000)).toEqual([]);
+  });
+
+  it('marks each bend where it turns hardest, and which way', () => {
+    const found = apexes(oldtown, 0, 3000);
+    expect(found.length).toBeGreaterThan(4);
+    for (const apex of found) {
+      const k = curvature(oldtown, apex.s);
+      expect(Math.abs(k)).toBeGreaterThanOrEqual(APEX_MIN);
+      expect(Math.abs(k)).toBeGreaterThanOrEqual(Math.abs(curvature(oldtown, apex.s - 2)));
+      expect(Math.abs(k)).toBeGreaterThanOrEqual(Math.abs(curvature(oldtown, apex.s + 2)));
+      expect(apex.turn).toBe(k > 0 ? 1 : -1);
+    }
+  });
+
+  it('lists them nearest first, within the stretch asked for', () => {
+    const found = apexes(oldtown, 400, 1600);
+    expect(found.every((a) => a.s >= 400 && a.s <= 1600)).toBe(true);
+    expect(found.map((a) => a.s)).toEqual([...found.map((a) => a.s)].sort((a, b) => a - b));
+  });
+
+  it('finds the same corner wherever the search starts', () => {
+    const whole = apexes(oldtown, 0, 3000).map((a) => a.s);
+    for (const from of [101, 555, 1234]) {
+      const part = apexes(oldtown, from, 3000).map((a) => a.s);
+      expect(part).toEqual(whole.filter((s) => s >= from));
     }
   });
 });

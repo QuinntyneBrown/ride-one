@@ -45,6 +45,36 @@ export function lean(world: World, s: number, speed: number): number {
   return Math.atan((speed * speed * curvature(world, s)) / 9.81);
 }
 
+/** A bend's apex: where along the road it turns hardest, and which way. */
+export interface Apex {
+  /** Metres along the road. */
+  readonly s: number;
+  /** 1 for a right-hander, −1 for a left-hander. */
+  readonly turn: 1 | -1;
+}
+
+/** A bend turning less than this, in radians per metre (0.15° a metre), has no corner to mark. */
+export const APEX_MIN = (0.15 * Math.PI) / 180;
+const APEX_STEP = 2;
+
+/** The apexes of the bends from `from` to `to` metres along the road, nearest first. */
+export function apexes(world: World, from: number, to: number): Apex[] {
+  const found: Apex[] = [];
+  const start = Math.floor(from / APEX_STEP) * APEX_STEP;
+  let before = Math.abs(curvature(world, start - APEX_STEP));
+  let here = Math.abs(curvature(world, start));
+  for (let s = start; s <= to; s += APEX_STEP) {
+    const k = curvature(world, s + APEX_STEP);
+    const after = Math.abs(k);
+    if (s >= from && here >= APEX_MIN && here > before && here >= after) {
+      found.push({ s, turn: curvature(world, s) > 0 ? 1 : -1 });
+    }
+    before = here;
+    here = after;
+  }
+  return found;
+}
+
 /** How far, in metres per radian-per-metre, a rider cuts to the inside of a bend, and at most. */
 const APEX_PULL = 180;
 const APEX_MOST = 1;
