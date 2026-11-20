@@ -60,7 +60,7 @@ const RAIL = 10;
 const SHOPS = 12;
 /** The beach lies this far below the planks, and runs out to the surf. */
 const SAND = -1.4;
-const SURF = 110;
+const SURF = 62;
 /** The horizon this far ahead. */
 const AHEAD = 220;
 const HAZE = 0xd8e2ea;
@@ -335,8 +335,9 @@ export class ConeyStreet implements SceneStreet {
       const holder = new Group();
       const b = new BoxBuilder();
       const people: [number, number][] = [];
-      for (let n = 0; n < 9; n++) {
-        const x = -RAIL - 6 - random() * (SURF - RAIL - 14);
+      // Packed thickest under the railing, thinning toward the water.
+      for (let n = 0; n < 26; n++) {
+        const x = -RAIL - 3 - random() ** 1.5 * (SURF - RAIL - 9);
         const z = -random() * CHUNK;
         const u = new Mesh(canopy, umbrellas[Math.floor(random() * umbrellas.length)]!);
         const p = new Mesh(pole, white);
@@ -347,9 +348,20 @@ export class ConeyStreet implements SceneStreet {
         b.box(towels[n % towels.length]!, [0.9, 0.03, 1.8], [x + 1.2, SAND + 0.02, z + 0.4]);
         people.push([x + 1.5, z - 0.6], [x - 1 + random() * 2, z + 1.5]);
       }
+      // Bathers wading in the surf, waist deep.
+      const wading: [number, number][] = [];
+      for (let n = 0; n < 10; n++) wading.push([-SURF - 1 - random() * 7, -random() * CHUNK]);
+      // Gulls wheeling over the sand.
+      for (let n = 0; n < 4; n++) {
+        const x = -RAIL - 6 - random() * 30;
+        const y = SAND + 7 + random() * 7;
+        const z = -random() * CHUNK;
+        b.box(white, [0.8, 0.05, 0.28], [x - 0.36, y + 0.12, z], 0.35);
+        b.box(white, [0.8, 0.05, 0.28], [x + 0.36, y + 0.12, z], -0.35);
+      }
       if (k % 2 === 0) {
         // A lifeguard chair: four white legs, the seat high up, a red rescue float.
-        const x = -RAIL - 30;
+        const x = -RAIL - 22;
         for (const [dx, dz] of [
           [-0.5, -0.5],
           [0.5, -0.5],
@@ -363,9 +375,13 @@ export class ConeyStreet implements SceneStreet {
         b.box(umbrellas[0]!, [0.25, 0.9, 0.12], [x + 0.7, SAND + 1.6, -19.4]);
       }
       holder.add(b.build(this.disposables));
-      const figures = new Figures(holder, this.disposables, people.length, SUMMER, 5831 + k);
+      const all = people.length + wading.length;
+      const figures = new Figures(holder, this.disposables, all, SUMMER, 5831 + k);
       people.forEach(([x, z], i) =>
         figures.set(i, x, SAND, z, random() * Math.PI * 2, 0.9 + random() * 0.15),
+      );
+      wading.forEach(([x, z], i) =>
+        figures.set(people.length + i, x, SAND - 1.3, z, random() * Math.PI * 2, 0.95),
       );
       figures.commit();
       this.group.add(holder);
@@ -597,21 +613,41 @@ export class ConeyStreet implements SceneStreet {
       }
     }
     h.add(legs.build(this.disposables));
-    // The Cyclone: a white wooden lattice under its track, climbing to its lift hill and
-    // dropping through its hills behind the shops on the right.
+    // The Cyclone: the white wooden lattice of its out-and-back track, beside the boardwalk on
+    // the right in front of the Wonder Wheel, broadside to the rider: climbing to its lift hill
+    // at the boardwalk's end and dropping through its hills toward the amusement park.
     const cyclone = new BoxBuilder();
-    const rails = hazedMaterial(this.disposables, haze, 0x3a3a40, 0.2);
-    const lattice = hazedMaterial(this.disposables, haze, 0xf0ece4, 0.18);
+    const rails = hazedMaterial(this.disposables, haze, 0x7a2a22, 0.1);
+    const lattice = hazedMaterial(this.disposables, haze, 0xf6f2ea, 0.08);
     const hills = (u: number) =>
-      2 + 24 * Math.max(0, Math.sin(u * Math.PI * 1.2)) ** 2 + 10 * Math.abs(Math.sin(u * 9));
-    for (let u = 0; u < 1; u += 0.012) {
-      const x = 95 + 70 * u;
-      const z = 20 - 30 * Math.sin(u * Math.PI);
-      const y = hills(u);
-      cyclone.box(lattice, [0.25, y, 0.25], [x, y / 2, z]);
-      cyclone.box(lattice, [0.25, y, 0.25], [x, y / 2, z - 3]);
-      for (let yy = 3; yy < y; yy += 3) cyclone.box(lattice, [0.9, 0.12, 3], [x, yy, z - 1.5]);
-      cyclone.box(rails, [1, 0.4, 3.4], [x, y, z - 1.5]);
+      3 +
+      25 * Math.exp(-(((u - 0.12) / 0.11) ** 2)) +
+      (u > 0.3 ? 6 + 12 * Math.abs(Math.sin(u * 8)) : 0);
+    for (const t of [0, 1]) {
+      const at = (u: number) =>
+        [6 + 40 * u, hills(t ? 1 - u : u) * (t ? 0.85 : 1), 75 - 15 * u - 5 * t] as const;
+      // The track: the rails sloping from one point of its line to the next, finely, so its
+      // hills read as curves.
+      for (let u = 0; u < 1; u += 0.007) {
+        const [x0, y0, z0] = at(u);
+        const [x1, y1, z1] = at(u + 0.007);
+        const run = Math.hypot(x1 - x0, y1 - y0);
+        cyclone.box(
+          rails,
+          [run + 0.1, 0.8, 2.2],
+          [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2],
+          Math.atan2(y1 - y0, x1 - x0),
+        );
+      }
+      for (let k = 0, u = 0; u < 1; k++, u += 0.035) {
+        const [x, y, z] = at(u);
+        for (const dz of [-0.7, 0.7]) cyclone.box(lattice, [0.4, y, 0.4], [x, y / 2, z + dz]);
+        for (let yy = 2.5; yy < y; yy += 3) {
+          cyclone.box(lattice, [1.4, 0.3, 1.9], [x, yy, z]);
+          // The cross-bracing between one bent and the next, leaning one way then the other.
+          cyclone.box(lattice, [0.2, 3.3, 0.2], [x + 0.7, yy + 1.5, z], k % 2 ? 0.42 : -0.42);
+        }
+      }
     }
     h.add(cyclone.build(this.disposables));
     // The Parachute Jump: a red tapering lattice tower, the ring of arms at its crown.
