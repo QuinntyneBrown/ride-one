@@ -30,6 +30,7 @@ import {
   canvasTexture,
   clothBannerTexture,
   Crowd,
+  Figures,
   loopMetres,
   paintTexture,
   Ribbons,
@@ -54,6 +55,8 @@ const PAVEMENT = 7;
 const WALL = 7.4;
 const SAND = 15;
 const SEA = 34;
+/** Joggers on the lawn path between the palms and the sand. */
+const JOGGERS = 14;
 /** Lifeguard towers stand on the sand every TOWER_EVERY metres. */
 const TOWER_EVERY = 40;
 /** The deco tower stands at the end of the drive, a little left, hazed by hand. */
@@ -140,6 +143,10 @@ export class SouthBeachStreet implements SceneStreet {
   private readonly tower = new Group();
   private readonly sea = new Group();
   private readonly pelicans: Group[] = [];
+  /** Joggers on the lawn path and beachgoers on the sand, built on the kit's figures. */
+  private joggers: Figures | null = null;
+  private beachgoers: Figures | null = null;
+  private readonly bathers: { x: number; offset: number; heading: number; scale: number }[] = [];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly flagMaterials = PENNANTS.map(
@@ -181,6 +188,7 @@ export class SouthBeachStreet implements SceneStreet {
     this.addSea();
     this.addTower();
     this.addPelicans();
+    this.addBeachLife();
   }
 
   /** The street's clock, in seconds; held at 0 for reduced motion. */
@@ -204,6 +212,26 @@ export class SouthBeachStreet implements SceneStreet {
     const far = heightAt(1e6);
     this.tower.position.set(TOWER_X, far - 2, -TOWER_AHEAD);
     this.sea.position.set(0, far, 0);
+    // Joggers run the lawn path towards the rider, a stride bobbing every half second.
+    const joggers = this.joggers;
+    if (joggers) {
+      for (let i = 0; i < JOGGERS; i++) {
+        const offset = i * (LOOP / JOGGERS) - this.time * (2.6 + (i % 3) * 0.4);
+        const metres = along(offset, LOOP);
+        const bob = Math.abs(Math.sin(this.time * 6 + i)) * 0.08;
+        const x = 11 + (i % 2) * 1.1;
+        joggers.set(i, x, heightAt(Math.max(metres, 0)) + 0.3, -metres, 0, 1, bob);
+      }
+      joggers.commit();
+    }
+    const beachgoers = this.beachgoers;
+    if (beachgoers) {
+      this.bathers.forEach((b, i) => {
+        const metres = along(b.offset, LOOP);
+        beachgoers.set(i, b.x, heightAt(Math.max(metres, 0)) + 0.3, -metres, b.heading, b.scale);
+      });
+      beachgoers.commit();
+    }
     // Pelicans glide in a line along the shore, overtaking the rider slowly.
     this.pelicans.forEach((bird, i) => {
       const glide = this.time * 1.5 + i * 7;
@@ -738,6 +766,58 @@ export class SouthBeachStreet implements SceneStreet {
     this.disposables.push(sign.geometry);
     t.add(sign);
     this.group.add(t);
+  }
+
+  /**
+   * South Beach's morning life: joggers on the lawn path, beachgoers strolling the sand and
+   * wading at the surf line, and striped beach umbrellas over towels.
+   */
+  private addBeachLife(): void {
+    const wardrobe = {
+      tops: ['#ff4fa8', '#2fd3cf', '#ffe14a', '#ffffff', '#ff7a3d', '#7ad0ff', '#3fe08a'],
+      bottoms: ['#1e2530', '#ff4fa8', '#2f3e5c', '#f2efe6', '#2fd3cf', '#111111'],
+      skins: SKINS,
+    };
+    this.joggers = new Figures(this.group, this.disposables, JOGGERS, wardrobe, 71);
+    const random = seeded(79);
+    for (let offset = 0; offset < LOOP; offset += 5) {
+      if (random() < 0.35) continue;
+      // Most stroll the sand; one in three wades at the surf line.
+      const wading = random() < 0.33;
+      this.bathers.push({
+        x: wading ? SEA - 1.5 + random() * 2.5 : SAND + 5 + random() * (SEA - SAND - 9),
+        offset: offset + random() * 4,
+        heading: random() * Math.PI * 2,
+        scale: 0.85 + random() * 0.2,
+      });
+    }
+    this.beachgoers = new Figures(this.group, this.disposables, this.bathers.length, wardrobe, 83);
+    const pole = new CylinderGeometry(0.035, 0.035, 2.2, 6);
+    pole.translate(0, 1.1, 0);
+    const canopy = new ConeGeometry(1.2, 0.5, 10, 1, true);
+    canopy.translate(0, 2.2, 0);
+    const towel = new PlaneGeometry(0.9, 1.9);
+    towel.rotateX(-Math.PI / 2);
+    towel.translate(0.9, 0.04, 0);
+    this.disposables.push(pole, canopy, towel);
+    const white = this.material({ color: 0xf6f3ea, roughness: 0.7 });
+    const shades = ['#ff4fa8', '#2fd3cf', '#ffb23f', '#7ad0ff'].map((c) =>
+      this.material({ map: this.track(umbrellaTexture(c)), side: DoubleSide, roughness: 0.8 }),
+    );
+    const towels = ['#ffe14a', '#ff7ab8', '#2fd3cf', '#ffffff'].map((c) =>
+      this.material({ color: c, roughness: 0.9 }),
+    );
+    for (let offset = 6, k = 0; offset < LOOP; offset += 14, k++) {
+      const spot = new Group();
+      const shade = new Mesh(canopy, shades[k % shades.length]!);
+      shade.castShadow = true;
+      spot.add(new Mesh(pole, white), shade, new Mesh(towel, towels[(k * 3) % towels.length]!));
+      spot.position.y = 0.3;
+      const holder = new Group();
+      holder.add(spot);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, every: LOOP, x: SAND + 7 + (k % 4) * 4 });
+    }
   }
 
   /** Brown pelicans gliding in a line along the shore. */
