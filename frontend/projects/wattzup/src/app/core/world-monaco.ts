@@ -40,6 +40,7 @@ import {
   scaleFaceUv,
   type SceneStreet,
   seeded,
+  slopeAt,
   type Wardrobe,
   Yachts,
 } from './world-kit';
@@ -128,6 +129,8 @@ interface Prop {
   readonly mesh: Group;
   readonly offset: number;
   readonly x: number;
+  /** Lies on the road, as paint does, and takes its slope. */
+  readonly lies?: boolean;
 }
 
 export class MonacoStreet implements SceneStreet {
@@ -197,7 +200,8 @@ export class MonacoStreet implements SceneStreet {
     for (const prop of this.props) {
       const metres = along(prop.offset, LOOP);
       prop.mesh.visible = metres < AHEAD - 12;
-      prop.mesh.position.set(prop.x, ground(metres) + KERB, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB, -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     // The fans in the stands, bouncing as the riders come by.
@@ -525,7 +529,7 @@ export class MonacoStreet implements SceneStreet {
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 12 + i * ROAD_PAINT_EVERY, x });
+      this.props.push({ mesh: holder, offset: 12 + i * ROAD_PAINT_EVERY, x, lies: true });
     }
   }
 
