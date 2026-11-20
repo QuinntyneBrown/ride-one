@@ -306,6 +306,11 @@ export class Cyclist {
       this.group.add(upper.mesh, fore.mesh);
       const thigh = this.limbMesh(0.075, THIGH, kit.shorts);
       const shin = this.limbMesh(0.055, SHIN, kit.skin);
+      // White race socks to mid-calf, carried on the shin.
+      const sock = new Mesh(kit.tubeGeometry(), kit.shoe);
+      sock.scale.set(0.06, 0.13, 0.06);
+      sock.position.y = SHIN / 2 - 0.1;
+      shin.mesh.add(sock);
       const foot = new Mesh(kit.limb(0.04, 0.12), kit.shoe);
       foot.rotation.x = Math.PI / 2;
       this.group.add(thigh.mesh, shin.mesh, foot);
