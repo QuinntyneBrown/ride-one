@@ -184,6 +184,7 @@ export class IbizaStreet implements SceneStreet {
       flagShare: 0.15,
       seeds: [7011, 7017],
       skip: (side, offset, x) => side < 0 && (Math.abs(x) > CROWD_NEAR + 0.6 || offset % 8 < 3),
+      armsUp: 0.4,
     });
     this.group.add(this.horizon, this.sea);
   }
