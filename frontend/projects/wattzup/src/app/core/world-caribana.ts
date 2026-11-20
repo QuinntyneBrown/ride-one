@@ -286,6 +286,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
   private readonly pannists: { figure: Group; phase: number }[] = [];
   private readonly bandBanners: { group: Group; phase: number }[] = [];
+  private engineRoom: Group | null = null;
   private readonly truckLights: MeshStandardMaterial[] = [];
   private readonly policeLights: MeshStandardMaterial[] = [];
   private readonly closed = new MeshStandardMaterial({
@@ -383,6 +384,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addOfficers();
     this.addBandBanners();
     this.addPress();
+    this.addEngineRoom();
     this.addLamps();
     this.addBunting();
     this.addTrees();
@@ -445,6 +447,10 @@ export class CaribanaStreet implements SceneStreet {
     this.truckLights.forEach((m, k) => {
       const beat = Math.max(0, Math.sin(this.time * Math.PI * 2.1 + k * 1.6));
       m.emissiveIntensity = 0.6 + Math.pow(beat, 4) * 3.2;
+    });
+    // The engine room bobs on every beat as it plays.
+    this.engineRoom?.children.forEach((p, k) => {
+      p.position.y = Math.abs(Math.sin(this.time * 4.2 + k * 0.3)) * 0.05;
     });
     for (const b of this.bandBanners) {
       // The bearers walk the banner up the road, swaying it on the beat.
@@ -946,7 +952,8 @@ export class CaribanaStreet implements SceneStreet {
         const fromRoyal = (((offset - ROYAL_AT) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
         if (side > 0 && (fromRoyal < 6 || fromRoyal > TRUCK_EVERY - 6)) continue;
         // And round the steel orchestra's float on the left.
-        if (side < 0 && offset > PAN_AT - 11 && offset < PAN_AT + 11) continue;
+        // And round its engine room walking ahead of it.
+        if (side < 0 && offset > PAN_AT - 11 && offset < PAN_AT + 19) continue;
         if (random() < 0.25) continue;
         this.dancers.push({
           side,
@@ -1603,6 +1610,79 @@ export class CaribanaStreet implements SceneStreet {
         road: true,
         marching: true,
       });
+    });
+  }
+
+  /**
+   * A rhythm section on foot, the engine room walking ahead of a band in the left lanes: iron
+   * men beating brake drums held up on a strap with steel rods, and drummers with snares and
+   * bass drums slung at the hip, in matching band T-shirts and caps, chipping along with the
+   * parade and bobbing on the beat.
+   */
+  private addEngineRoom(): void {
+    const random = seeded(2503);
+    const shirt = this.material({ color: 0xffd23f, roughness: 0.9 });
+    const cap = this.material({ color: 0x111111, roughness: 0.8 });
+    const shorts = this.material({ color: 0x1e2530, roughness: 0.9 });
+    const iron = this.material({ color: 0x6b6f74, roughness: 0.45, metalness: 0.85 });
+    const shell = this.material({ color: 0xc8102e, roughness: 0.35, metalness: 0.3 });
+    const head = this.material({ color: 0xf0ece2, roughness: 0.6 });
+    const chrome = this.material({ color: 0xdfe2e5, roughness: 0.2, metalness: 1 });
+    const brake = new CylinderGeometry(0.14, 0.16, 0.09, 14);
+    brake.rotateX(-0.6);
+    brake.translate(0, 1.32, -0.3);
+    const rod = new CylinderGeometry(0.008, 0.008, 0.32, 5);
+    rod.rotateZ(1.1);
+    rod.translate(0.1, 1.42, -0.3);
+    const snare = new CylinderGeometry(0.19, 0.19, 0.16, 16);
+    snare.rotateX(-0.25);
+    snare.translate(0, 0.98, -0.3);
+    const bass = new CylinderGeometry(0.3, 0.3, 0.32, 18);
+    bass.rotateZ(Math.PI / 2);
+    bass.translate(0, 1.05, -0.32);
+    const rim = new TorusGeometry(0.3, 0.015, 5, 22);
+    rim.rotateY(Math.PI / 2);
+    rim.translate(0.165, 1.05, -0.32);
+    const peak = new CylinderGeometry(0.115, 0.115, 0.09, 12);
+    peak.translate(0, 1.71, 0);
+    const brim = new BoxGeometry(0.16, 0.012, 0.12);
+    brim.translate(0, 1.67, -0.14);
+    this.disposables.push(brake, rod, snare, bass, rim, peak, brim);
+    const section = new Group();
+    for (let k = 0; k < 9; k++) {
+      const kind = k % 3; // 0 iron, 1 snare, 2 bass
+      const parts = spectatorParts(kind === 0 ? 3 : 6, random() < 0.6);
+      this.disposables.push(parts.skin, parts.top, parts.bottom);
+      const person = new Group();
+      const skin = this.material({
+        color: SKINS[Math.floor(random() * SKINS.length)],
+        roughness: 0.6,
+      });
+      person.add(
+        new Mesh(parts.skin, skin),
+        new Mesh(parts.top, shirt),
+        new Mesh(parts.bottom, shorts),
+      );
+      person.add(new Mesh(peak, cap), new Mesh(brim, cap));
+      if (kind === 0) person.add(new Mesh(brake, iron), new Mesh(rod, chrome));
+      else if (kind === 1) person.add(new Mesh(snare, shell), new Mesh(snare, head));
+      else person.add(new Mesh(bass, shell), new Mesh(rim, chrome));
+      person.position.set(-(k % 3) * 1.1, 0, Math.floor(k / 3) * 1.4);
+      person.rotation.y = (random() - 0.5) * 0.3;
+      section.add(person);
+    }
+    section.traverse((o) => (o.castShadow = true));
+    this.engineRoom = section;
+    const holder = new Group();
+    holder.add(section);
+    this.group.add(holder);
+    this.props.push({
+      mesh: holder,
+      offset: PAN_AT + 14,
+      every: LOOP,
+      x: -2.4,
+      road: true,
+      marching: true,
     });
   }
 
