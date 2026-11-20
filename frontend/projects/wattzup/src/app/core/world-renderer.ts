@@ -1044,6 +1044,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.6, fill: 1.6, colour: 0xffeccc },
     fogRange: [200, 1600],
   },
+  // A hot, clear spring morning over the Mediterranean: deep blue sky, hard light on limestone.
+  calobra: {
+    sky: 0x4a90e0,
+    fog: 0xd8e2ec,
+    ground: 0x8a8a5a,
+    road: 0x5a5a58,
+    sun: 46,
+    wet: false,
+    haze: false,
+    turbidity: 2.5,
+    rayleigh: 1.4,
+    azimuth: 160,
+    light: { sun: 3.0, fill: 1.5, colour: 0xfff4e4 },
+    fogRange: [2500, 16000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
