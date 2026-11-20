@@ -1600,7 +1600,7 @@ export class HavanaStreet implements SceneStreet {
     barrel.rotateX(Math.PI / 2);
     const neck = new CapsuleGeometry(0.16, 0.6, 3, 8);
     const muzzle = new CapsuleGeometry(0.12, 0.4, 3, 8);
-    const leg = new CylinderGeometry(0.06, 0.045, 0.95, 6);
+    const leg = new CylinderGeometry(0.085, 0.06, 0.95, 8);
     const tail = new CylinderGeometry(0.05, 0.02, 0.6, 5);
     const wheel = new TorusGeometry(0.62, 0.035, 6, 28);
     wheel.rotateY(Math.PI / 2);
@@ -1608,11 +1608,52 @@ export class HavanaStreet implements SceneStreet {
     const torso = new CapsuleGeometry(0.17, 0.4, 3, 8);
     const head = new SphereGeometry(0.11, 10, 8);
     const brim = new CylinderGeometry(0.22, 0.22, 0.02, 12);
-    this.disposables.push(barrel, neck, muzzle, leg, tail, wheel, spokes, torso, head, brim);
-    // The horse, facing -z.
+    const ear = new ConeGeometry(0.045, 0.14, 5);
+    const ring = new TorusGeometry(0.24, 0.06, 6, 14);
+    ring.rotateX(Math.PI / 2);
+    const hoof = new CylinderGeometry(0.065, 0.075, 0.1, 8);
+    this.disposables.push(
+      barrel,
+      neck,
+      muzzle,
+      leg,
+      tail,
+      wheel,
+      spokes,
+      torso,
+      head,
+      brim,
+      ear,
+      ring,
+      hoof,
+    );
+    // The horse, facing -z: barrel, deep chest and rounded haunches, a heavy neck with its dark
+    // mane, the long head angled down with its ears up, blinkers and the collar of its harness.
     add(barrel, bay, 0, 1.35, -2.4);
-    add(neck, bay, 0, 1.85, -3.15, -0.6);
-    add(muzzle, bay, 0, 2.05, -3.5, 1.1);
+    const chest = add(head, bay, 0, 1.38, -2.98);
+    chest.scale.setScalar(3.3);
+    const haunch = add(head, bay, 0, 1.45, -1.82);
+    haunch.scale.set(3.4, 3.4, 3.0);
+    add(neck, bay, 0, 1.9, -3.2, -0.6).scale.set(1.3, 1.1, 1.3);
+    const mane = add(this.unit, black, 0, 2.08, -3.08);
+    mane.scale.set(0.07, 0.75, 0.12);
+    mane.rotation.x = -0.6;
+    add(muzzle, bay, 0, 2.1, -3.58, 1.1);
+    for (const x of [-0.07, 0.07]) {
+      add(ear, bay, x, 2.34, -3.36);
+      const blinker = add(this.unit, black, x * 1.9, 2.22, -3.5);
+      blinker.scale.set(0.02, 0.1, 0.12);
+    }
+    const collar = add(ring, black, 0, 1.65, -2.95, -0.6);
+    collar.scale.setScalar(1);
+    for (const [x, z] of [
+      [-0.18, -2.95],
+      [0.18, -2.9],
+      [-0.18, -1.9],
+      [0.18, -1.85],
+    ] as const) {
+      add(hoof, black, x, 0.05, z);
+    }
     const strides = [0.35, -0.25, -0.3, 0.3];
     [
       [-0.18, -2.95],
