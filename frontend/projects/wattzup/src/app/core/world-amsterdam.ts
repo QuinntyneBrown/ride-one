@@ -113,6 +113,7 @@ export class AmsterdamStreet implements SceneStreet {
   private extra: (() => number) | null = null;
   private tilts: (() => number) | null = null;
   private foam: MeshStandardMaterial | null = null;
+  private lanes: (() => number) | null = null;
   private bikeShape: BufferGeometry | null = null;
 
   constructor(
@@ -497,6 +498,23 @@ export class AmsterdamStreet implements SceneStreet {
           end.rotation.y = turn;
           end.position.set(away * 42, 0, (away * CROSS) / 2 - (away * n * CROSS) / 2);
           cross.add(end);
+        }
+        // The cross street's own houses, facing each other across it from behind the corner
+        // houses to its far end.
+        const lane = (this.lanes ??= seeded(767));
+        for (const facing of [1, -1]) {
+          for (let start = 12.5; start < 40;) {
+            const k = Math.floor(lane() * 4);
+            const width = 5 + lane() * 2;
+            const side = new Mesh(shapes[k]!, [fronts[k]![Math.floor(lane() * 4)]!, sides]);
+            side.scale.set(width, 15 + lane() * 4, 8);
+            const flip = facing > 0 ? Math.PI : 0;
+            side.rotation.y = flip;
+            const near = away > 0 ? (flip ? start + width : start) : flip ? -start : -start - width;
+            side.position.set(near, 0, (-facing * CROSS) / 2);
+            cross.add(side);
+            start += width;
+          }
         }
         this.group.add(cross);
         this.props.push({ mesh: cross, offset: b + 2, x });
