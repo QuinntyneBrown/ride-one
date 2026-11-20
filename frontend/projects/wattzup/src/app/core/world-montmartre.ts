@@ -42,6 +42,7 @@ import {
   Ribbons,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
   type Wardrobe,
 } from './world-kit';
@@ -141,6 +142,8 @@ interface Prop {
   readonly mesh: Group;
   readonly offset: number;
   readonly x: number;
+  /** Lies on the road, as paint does, and takes its slope. */
+  readonly lies?: boolean;
 }
 
 /** A house's look: how wide and tall, its colours, its café and its roof. */
@@ -218,7 +221,8 @@ export class MontmartreStreet implements SceneStreet {
     for (const prop of this.props) {
       const metres = along(prop.offset, LOOP);
       prop.mesh.visible = metres < AHEAD - 8;
-      prop.mesh.position.set(prop.x, ground(metres) + KERB, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB, -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     // The painters at their easels, each leaning a little to the canvas as they work.
@@ -654,7 +658,7 @@ export class MontmartreStreet implements SceneStreet {
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 16 + i * ROAD_PAINT_EVERY, x });
+      this.props.push({ mesh: holder, offset: 16 + i * ROAD_PAINT_EVERY, x, lies: true });
     }
   }
 
