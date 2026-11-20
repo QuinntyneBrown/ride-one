@@ -179,6 +179,17 @@ const LIGHTHOUSE_BEAM_WIDE = 12;
 const LIGHTHOUSE_TURN = 12;
 const LIGHTHOUSE_FACING = Math.PI / 5;
 /**
+ * The laser show: where its emitter stands on a rooftop ahead (x, y, z in m), how many beams,
+ * their length and width (m), their colours, and how far (rad) and how fast they swing.
+ */
+const LASER_AT = [5, 118, -720] as const;
+const LASER_BEAMS = 9;
+const LASER_LONG = 900;
+const LASER_WIDE = 4;
+const LASER_COLOURS = ['#39ff6a', '#ff3df0'];
+const LASER_SWAY = 0.22;
+const LASER_SWING = 0.5;
+/**
  * The holographic globe over the city ahead: where it hovers (x, y, z in m), its radius (m),
  * its axis's lean (rad) and one turn (s).
  */
@@ -577,6 +588,7 @@ export class DocklandsStreet {
     this.drift(seconds, still);
     this.sail(seconds);
     this.swimKoi(seconds);
+    this.sweepLasers(seconds);
     if (this.holoGlobe) this.holoGlobe.rotation.y = (seconds / HOLO_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
@@ -627,6 +639,8 @@ export class DocklandsStreet {
   /** The ride's last whole second and when it came, to run smooth motion on through it. */
   private tick = 0;
   private tickAt: number | null = null;
+  /** The laser show's beams over the city ahead, each with its own place in the fan. */
+  private readonly lasers: { beam: Mesh; base: number; phase: number }[] = [];
   /** The holographic globe over the city ahead, turning. */
   private holoGlobe: Group | null = null;
   /** The blimp, drifting over the harbour, and its blinking navigation lights. */
@@ -1543,6 +1557,7 @@ export class DocklandsStreet {
     this.addLighthouse();
     this.addBlimp();
     this.addHoloGlobe();
+    this.addLasers();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
   }
@@ -1861,6 +1876,65 @@ export class DocklandsStreet {
       // Heading along the circle's tangent: +x is the nose.
       fish.rotation.y = -a - (speed > 0 ? Math.PI / 2 : -Math.PI / 2);
       tail.rotation.y = Math.sin(seconds * 5 + phase) * 0.45;
+    }
+  }
+
+  /**
+   * A laser show from a rooftop at the end of the street: a fan of thin green and magenta
+   * beams reaching up across the night sky, fading with distance. Light only, drawn additively.
+   */
+  private addLasers(): void {
+    const [x, y, z] = LASER_AT;
+    const source = new Group();
+    source.position.set(x, y, z);
+    const fade = this.track(laserTexture());
+    const plane = new PlaneGeometry(LASER_LONG, LASER_WIDE);
+    // From the source outwards along +x, so the beam turns about its own start.
+    plane.translate(LASER_LONG / 2, 0, 0);
+    this.disposables.push(plane);
+    const materials = LASER_COLOURS.map((hex) => {
+      const material = new MeshBasicMaterial({
+        map: fade,
+        color: new Color(hex).multiplyScalar(3.2),
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        side: DoubleSide,
+        fog: false,
+        toneMapped: false,
+      });
+      this.disposables.push(material);
+      return material;
+    });
+    for (let k = 0; k < LASER_BEAMS; k++) {
+      const beam = new Mesh(plane, materials[k % materials.length]!);
+      beam.frustumCulled = false;
+      // Spread evenly across the fan, from low on the left to low on the right.
+      const base = Math.PI * (0.18 + (0.64 * k) / (LASER_BEAMS - 1));
+      beam.rotation.z = base;
+      source.add(beam);
+      this.lasers.push({ beam, base, phase: k * 0.7 });
+    }
+    // The emitter: a bright point where the beams meet.
+    const halo = new SpriteMaterial({
+      map: this.track(glowTexture()),
+      color: new Color('#e8ffe8').multiplyScalar(1.4),
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+    });
+    this.disposables.push(halo);
+    const glow = new Sprite(halo);
+    glow.scale.setScalar(14);
+    source.add(glow);
+    this.farShore.add(source);
+  }
+
+  /** Swings the laser fan to and fro, each beam a little behind the last. */
+  private sweepLasers(seconds: number): void {
+    for (const { beam, base, phase } of this.lasers) {
+      beam.rotation.z = base + Math.sin(seconds * LASER_SWING + phase) * LASER_SWAY;
     }
   }
 
@@ -4751,6 +4825,25 @@ function koiTexture(ground: string, patch: string, random: () => number): Canvas
       );
       ctx.fill();
     }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A laser beam's fade along its length: bright at the emitter (u = 0), gone at its far end. */
+function laserTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 4;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 128, 0);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.4, 'rgba(255,255,255,0.5)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 4);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
