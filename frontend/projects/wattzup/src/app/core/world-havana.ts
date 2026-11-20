@@ -1771,7 +1771,66 @@ export class HavanaStreet implements SceneStreet {
     capitolio.position.set(-125, 0, -1350);
     capitolio.rotation.y = -0.3;
     city.add(capitolio);
+    city.add(this.laPunta());
     this.horizon.add(city);
+  }
+
+  /**
+   * La Punta, the little fortress at the Malecón's end, facing El Morro across the harbour
+   * mouth: a low, battered stone curtain on a bastioned plan, a parapet along its top, a domed
+   * sentry box on each salient, and the flag over its gate.
+   */
+  private laPunta(): Group {
+    const fort = new Group();
+    const stone = this.material({
+      map: this.repeat(wallTexture(), 8, 2),
+      color: 0xd8c49a,
+      roughness: 0.95,
+    });
+    // The plan: a square with an arrow-headed bastion on each corner.
+    const outline = new Shape();
+    const plan: [number, number][] = [];
+    for (let k = 0; k < 4; k++) {
+      const a = (k * Math.PI) / 2;
+      const c = Math.cos(a);
+      const n = Math.sin(a);
+      const corner = (u: number, v: number): [number, number] => [u * c - v * n, u * n + v * c];
+      plan.push(corner(22, -10), corner(22, 10), corner(34, 34), corner(10, 22));
+    }
+    plan.forEach(([x, y], i) => (i ? outline.lineTo(x, y) : outline.moveTo(x, y)));
+    const curtain = new ExtrudeGeometry(outline, { depth: 9, bevelEnabled: false });
+    curtain.rotateX(-Math.PI / 2);
+    const walls = new Mesh(curtain, stone);
+    walls.scale.set(1.08, 1, 1.08);
+    const parapet = new ExtrudeGeometry(outline, { depth: 1.4, bevelEnabled: false });
+    parapet.rotateX(-Math.PI / 2);
+    const lip = new Mesh(parapet, stone);
+    lip.position.y = 9;
+    this.disposables.push(curtain, parapet);
+    fort.add(walls, lip);
+    // A domed garita on each salient.
+    const box = new CylinderGeometry(1.4, 1.5, 3.4, 10);
+    const cap = new SphereGeometry(1.5, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    this.disposables.push(box, cap);
+    for (let k = 0; k < 4; k++) {
+      const a = (k * Math.PI) / 2 + Math.PI / 4;
+      const r = 34 * Math.SQRT2 * 0.98;
+      const garita = new Mesh(box, stone);
+      garita.position.set(Math.cos(a) * r, 11.8, -Math.sin(a) * r);
+      const top = new Mesh(cap, stone);
+      top.position.set(garita.position.x, 13.5, garita.position.z);
+      fort.add(garita, top);
+    }
+    const mast = new Mesh(this.unit, this.material({ color: 0xe8e8e2, roughness: 0.6 }));
+    mast.scale.set(0.3, 14, 0.3);
+    mast.position.set(0, 16, 0);
+    const flag = new Mesh(this.flagSheet, this.flag);
+    flag.scale.set(1, 2.8, 2.8);
+    flag.position.set(0, 21.5, -2.6);
+    fort.add(mast, flag);
+    fort.position.set(-215, -1, -960);
+    fort.rotation.y = 0.3;
+    return fort;
   }
 
   /**
