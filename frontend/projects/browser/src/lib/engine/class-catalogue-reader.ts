@@ -16,6 +16,7 @@ export const WORLDS: readonly WorldId[] = [
   'dolomites',
   'coast',
   'caribana',
+  'westminster',
 ];
 
 export interface Shelf {
@@ -85,7 +86,7 @@ function rule(field: string): string {
     case 'description':
       return 'A description is at most 280 characters.';
     case 'world':
-      return 'A world is one of docklands, granite, oldtown, prairie, dolomites, coast or caribana.';
+      return 'A world is one of the built-in scene ids.';
     default:
       return 'The field is not valid.';
   }

@@ -4,7 +4,7 @@
 
 World Ride (L1-017) is a way to ride a class inside a 3D world built for that class. This feature is the backend half of that link. Each class in the catalogue names its scene, and the API carries the scene, and the class a running workout came from, to the frontend (L2-100, L2-102 criterion 5).
 
-**scene** — one of the worlds built into the frontend (L2-101), named by its id: `docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast` or `caribana`
+**scene** — one of the worlds built into the frontend (L2-101), named by its id: `docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana` or `westminster`
 
 **class scene** — the scene a class names in the catalogue file through its optional `world` field, or `null` when it names none
 
@@ -27,7 +27,7 @@ Both fields are always written, never omitted. Both changes regenerate the OpenA
 **`Wattzup.Core/Classes/`**
 - **`ClassWorlds`** (new, static): the six scene ids in the order of L2-101, `IReadOnlyList<string> Ids`, and `bool IsWorld(string? id)`. It holds no other fact about a scene.
 - **`ClassEntry`** (changed): gains `string? World` after `Plan`.
-- **`ClassCatalogueReader`** (changed): reads `world` after `plan` in `ReadClass`. A missing `world` or a JSON `null` gives `World` `null`. A string that `ClassWorlds.IsWorld` accepts is kept. Any other value (an unknown id, a number, an object, the wrong case) returns `CatalogueEntryProblem(name, "world", "A world is one of docklands, granite, oldtown, prairie, dolomites, coast or caribana.")`. The class is then left out, and the others are kept with a warning, as L2-077 criterion 3 states (L2-100 criteria 1 and 2). Two classes may name the same scene: the reader does not check `world` for repeats (criterion 3).
+- **`ClassCatalogueReader`** (changed): reads `world` after `plan` in `ReadClass`. A missing `world` or a JSON `null` gives `World` `null`. A string that `ClassWorlds.IsWorld` accepts is kept. Any other value (an unknown id, a number, an object, the wrong case) returns `CatalogueEntryProblem(name, "world", "A world is one of the built-in scene ids.")`. The class is then left out, and the others are kept with a warning, as L2-077 criterion 3 states (L2-100 criteria 1 and 2). Two classes may name the same scene: the reader does not check `world` for repeats (criterion 3).
 
 **`Wattzup.Core/Workouts/`**
 - **`WorkoutSnapshot`** (changed): gains `string? ClassId`. `WorkoutRun.ToSnapshot` sets it from `Origin?.ClassId`. It is `null` for a ride from `/setup` (L2-102 criterion 5). It keeps its value after the ride ends or stops, as `SessionId` does.
@@ -49,6 +49,7 @@ Both fields are always written, never omitted. Both changes regenerate the OpenA
 | `60-min-dolomites-endurance` | `dolomites` |
 | `60-min-coastal-endurance-surges` | `coast` |
 | `intense-interval-blast` | `caribana` |
+| `time-is-of-the-essence` | `westminster` |
 
 `POST /api/workout` does not change. It already takes `class_id` beside the plan and passes a `RideOrigin` to `WorkoutEngine.StartAsync` (L2-081 criterion 7).
 
