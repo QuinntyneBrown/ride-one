@@ -550,6 +550,16 @@ export const WORLDS: readonly World[] = [
     roll: 0.8,
   },
   {
+    id: 'monaco',
+    name: 'Monaco Street Circuit',
+    route: 'the harbour straight',
+    effortName: 'Harbour sprint',
+    description:
+      "Port Hercule glitters under a Riviera sun on race weekend, superyachts moored along the quay beside the catch fences and packed grandstands of the street circuit while the pastel town climbs its hill to the Casino. The five-minute warm-up rolls along the harbour front, each sprint from fifteen seconds to a minute and a half bursts between the red and white kerbs past the yachts, and the recoveries spin easy with the Casino's copper towers ahead.",
+    grade: { warmup: 0, work: 2, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0.5,
+  },
+  {
     id: 'tempelhof',
     name: 'Tempelhof Field',
     route: 'the runway',

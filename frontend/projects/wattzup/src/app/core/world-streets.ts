@@ -15,6 +15,7 @@ import { MontmartreStreet } from './world-montmartre';
 import { BonnevilleStreet } from './world-bonneville';
 import type { StreetFactory } from './world-kit';
 import { TempelhofStreet } from './world-tempelhof';
+import { MonacoStreet } from './world-monaco';
 import { TeideStreet } from './world-teide';
 import { TremolaStreet } from './world-tremola';
 import { TimesSquareStreet } from './world-timessquare';
@@ -105,5 +106,6 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   timessquare: (track, disposables) => new TimesSquareStreet(track, disposables),
   tremola: (track, disposables) => new TremolaStreet(track, disposables),
   teide: (track, disposables) => new TeideStreet(track, disposables),
+  monaco: (track, disposables) => new MonacoStreet(track, disposables),
   tempelhof: (track, disposables) => new TempelhofStreet(track, disposables),
 };

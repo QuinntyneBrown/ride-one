@@ -137,6 +137,7 @@ export interface components {
         | 'timessquare'
         | 'tremola'
         | 'teide'
+        | 'monaco'
         | 'tempelhof';
     };
     ClassShelfResponse: {

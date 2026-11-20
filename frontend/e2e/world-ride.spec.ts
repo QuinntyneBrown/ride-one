@@ -213,6 +213,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText("Riders nearby · Times Square New Year's Eve");
   });
 
+  test('rides Non-Stop Sprinting round the Monaco harbour', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Non-Stop Sprinting', 'Monaco Street Circuit', 'non-stop-sprinting');
+    await expect(world.heading).toHaveText('Monaco Street Circuit');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Monaco Street Circuit');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

@@ -2847,6 +2847,7 @@
     },
     {
       "id": "non-stop-sprinting",
+      "world": "monaco",
       "title": "Non-Stop Sprinting",
       "channel": "GCN Training",
       "focus": "Sprints",
