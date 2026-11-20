@@ -70,6 +70,12 @@ const SEA = -84;
 const SKATERS = 20;
 const PERFORMERS = 4;
 const WATCHERS = 11;
+/**
+ * Where the first performer's ring and Muscle Beach stand along the loop: early, so the
+ * boardwalk's life and the outdoor gym are in view as the warm-up rolls out.
+ */
+const PERFORMER_FIRST = 118;
+const MUSCLE_BEACH = 165;
 /** The Santa Monica Pier stands out into the bay ahead, hazed by hand. */
 const PIER_AHEAD = 520;
 const HAZE = 0xd6dde0;
@@ -198,10 +204,10 @@ export class VeniceStreet implements SceneStreet {
       flags: this.flagMaterials,
       flagShare: 0.16,
       seeds: [211, 223],
-      // The boardwalk crowd stands in knots between the palms. On the beach side the fans stand
+      // The boardwalk crowd stands in knots, with the boardwalk's life showing between them. On the beach side the fans stand
       // one deep in clusters, so the sand and the courts show between them.
       skip: (side, offset, x) =>
-        side > 0 ? offset % 18 < 3 : x > -CROWD_NEAR - 0.5 || offset % 20 < 9,
+        side > 0 ? offset % 24 < 11 : x > -CROWD_NEAR - 0.5 || offset % 20 < 9,
     });
   }
 
@@ -275,7 +281,7 @@ export class VeniceStreet implements SceneStreet {
     const watchers = this.watchers;
     if (performers && watchers) {
       for (let p = 0; p < PERFORMERS; p++) {
-        const offset = 40 + p * (LOOP / PERFORMERS);
+        const offset = PERFORMER_FIRST + p * (LOOP / PERFORMERS);
         const metres = along(offset, LOOP);
         const y = ground(metres) + KERB;
         const cx = 10.6;
@@ -718,10 +724,10 @@ export class VeniceStreet implements SceneStreet {
     }
     for (const z of [3, 6.5]) box(bench, 0.5, 0.5, 1.8, -3, 0.1, z);
     box(steel, 2.5, 1.6, 0.1, 3, 0.1, 5);
-    // The sign over the entrance.
-    for (const z of [-3, 3]) box(steel, 0.18, 4.4, 0.18, 7.3, 0, z);
+    // The sign over the entrance at the end facing the riders as they come up the path.
+    for (const x of [-4.2, 4.2]) box(steel, 0.2, 5.6, 0.2, x, 0, 11.3);
     const sign = new Mesh(
-      new PlaneGeometry(6.4, 1.3),
+      new PlaneGeometry(8.4, 1.8),
       this.material({
         map: this.track(clothBannerTexture('MUSCLE BEACH', '#1b1e24', '#ffbf3c')),
         side: DoubleSide,
@@ -729,11 +735,10 @@ export class VeniceStreet implements SceneStreet {
       }),
     );
     this.disposables.push(sign.geometry);
-    sign.position.set(7.3, 3.9, 0);
-    sign.rotation.y = Math.PI / 2;
+    sign.position.set(0, 4.8, 11.35);
     gym.add(sign);
     this.group.add(gym);
-    this.props.push({ mesh: gym, offset: 150, every: LOOP, x: -17 });
+    this.props.push({ mesh: gym, offset: MUSCLE_BEACH, every: LOOP, x: -17 });
     // The lifters and their spotters.
     for (const [x, z] of [
       [-2, -7],
@@ -743,7 +748,12 @@ export class VeniceStreet implements SceneStreet {
       [-1, 0],
       [4.5, -6],
     ] as const) {
-      this.bathers.push({ x: -17 + x, offset: 150 - z, heading: Math.PI / 2, scale: 1.08 });
+      this.bathers.push({
+        x: -17 + x,
+        offset: MUSCLE_BEACH - z,
+        heading: Math.PI / 2,
+        scale: 1.08,
+      });
     }
   }
 
@@ -818,7 +828,7 @@ export class VeniceStreet implements SceneStreet {
     fun.position.set(0, 0.9, 0);
     park.add(fun);
     this.group.add(park);
-    this.props.push({ mesh: park, offset: 390, every: LOOP, x: -17 });
+    this.props.push({ mesh: park, offset: 215, every: LOOP, x: -17 });
   }
 
   /** LA County's lifeguard towers: pale blue huts on stilts, each with its ramp. */
