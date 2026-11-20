@@ -138,6 +138,11 @@ const MACHINE_WIDE = 1.4;
 const MACHINE_TALL = 2.4;
 const MACHINE_DEEP = 1;
 const MACHINE_COLOURS: readonly string[] = ['#ff3b5c', '#2f7dff', '#ffb347', '#2fd18a'];
+/** The giant neon cyclist: where it hangs over the street's far end, its length (m) and its
+ * cadence (radians a second, about 80 rpm). */
+const CYCLIST_AT = [0, 250, -640] as const;
+const CYCLIST_SIZE = 72;
+const CYCLIST_CADENCE = 8.4;
 /** The moon: where it hangs (beyond the clouds, inside the sky's dome) and how big it is (m). */
 const MOON_AT = [-820, 640, -1830] as const;
 const MOON_SIZE = 120;
@@ -415,6 +420,7 @@ export class DocklandsStreet {
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
     this.swim(still ? 0 : seconds);
+    this.pedal(still ? 0 : seconds);
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -449,6 +455,9 @@ export class DocklandsStreet {
   }
   private readonly searchlights: Group[] = [];
   private readonly wheel = new Group();
+  /** The giant neon cyclist's pedalling parts: cranks, and each leg's thigh and shin. */
+  private cyclist: { crank: Group; legs: { thigh: Mesh; shin: Mesh; side: number }[] } | null =
+    null;
   /** Rain splashes on the road ahead, in SPLASH_PHASES groups that land in turn. */
   /** Each splash lands at `at`, metres along the ride, so it stays put on the road as we pass. */
   private readonly splashes: { mesh: Mesh; phase: number; x: number; at: number }[] = [];
@@ -1484,6 +1493,7 @@ export class DocklandsStreet {
     this.addSky();
     this.addClouds();
     this.addMoon();
+    this.addCyclistSign();
     this.addBoats(roadHalf + SETBACK + 2);
     this.addSkytrain(roadHalf);
     this.addDeckLamps(roadHalf);
@@ -2880,6 +2890,107 @@ export class DocklandsStreet {
     glow.renderOrder = -1;
     moon.renderOrder = -1;
     this.group.add(glow, moon);
+  }
+
+  /**
+   * A giant neon sign high over the far end of the street: a cyclist drawn in glowing tubes,
+   * wheels and frame in cyan, rider in pink, pedalling as the ride goes on. Untouched by fog,
+   * it keeps its distance like the skyline it hangs on.
+   */
+  private addCyclistSign(): void {
+    const cyan = new MeshBasicMaterial({
+      color: new Color('#5ff2ff').multiplyScalar(1.8),
+      fog: false,
+      toneMapped: false,
+    });
+    const pink = new MeshBasicMaterial({
+      color: new Color('#ff4fd8').multiplyScalar(1.8),
+      fog: false,
+      toneMapped: false,
+    });
+    const ring = new TorusGeometry(1, 0.06, 6, 40);
+    const tube = new BoxGeometry(1, 0.12, 0.12);
+    const ball = new SphereGeometry(0.32, 12, 10);
+    this.disposables.push(cyan, pink, ring, tube, ball);
+    // A tube from (x1, y1) to (x2, y2), centred so it can be pivoted from its start.
+    const stroke = (material: Material, x1: number, y1: number, x2: number, y2: number) => {
+      const mesh = new Mesh(tube, material);
+      mesh.scale.x = Math.hypot(x2 - x1, y2 - y1);
+      mesh.position.set((x1 + x2) / 2, (y1 + y2) / 2, 0);
+      mesh.rotation.z = Math.atan2(y2 - y1, x2 - x1);
+      return mesh;
+    };
+    const sign = new Group();
+    for (const wx of [-2.1, 2.1]) {
+      const w = new Mesh(ring, cyan);
+      w.position.set(wx, 0, 0);
+      sign.add(w);
+    }
+    sign.add(
+      stroke(cyan, -2.1, 0, 0, 0),
+      stroke(cyan, 0, 0, -0.6, 1.9),
+      stroke(cyan, -0.6, 1.9, 1.5, 1.9),
+      stroke(cyan, 0, 0, 1.5, 1.9),
+      stroke(cyan, -2.1, 0, -0.6, 1.9),
+      stroke(cyan, 1.5, 1.9, 2.1, 0),
+      stroke(cyan, 1.5, 1.9, 1.7, 2.5),
+      // The rider: back, arm and head, leaning to the bars.
+      stroke(pink, -0.6, 2.2, 1.0, 3.5),
+      stroke(pink, 1.0, 3.5, 1.7, 2.5),
+    );
+    const head = new Mesh(ball, pink);
+    head.position.set(1.35, 4.0, 0);
+    sign.add(head);
+    // The cranks turn about the bottom bracket; each leg follows its pedal.
+    const crank = new Group();
+    const arm = stroke(cyan, -0.55, 0, 0.55, 0);
+    crank.add(arm);
+    sign.add(crank);
+    const legs: { thigh: Mesh; shin: Mesh; side: number }[] = [];
+    for (const side of [1, -1]) {
+      const thigh = new Mesh(tube, pink);
+      const shin = new Mesh(tube, pink);
+      sign.add(thigh, shin);
+      legs.push({ thigh, shin, side });
+    }
+    this.cyclist = { crank, legs };
+    this.pedal(0);
+    sign.scale.setScalar(CYCLIST_SIZE / 6);
+    const [x, y, z] = CYCLIST_AT;
+    sign.position.set(x, y, z);
+    this.farShore.add(sign);
+  }
+
+  /** Turns the neon cyclist's cranks and bends its legs to follow the pedals. */
+  private pedal(seconds: number): void {
+    if (!this.cyclist) return;
+    const angle = -seconds * CYCLIST_CADENCE;
+    this.cyclist.crank.rotation.z = angle;
+    const hip = { x: -0.6, y: 2.2 };
+    const thigh = 1.35;
+    const shin = 1.35;
+    const place = (mesh: Mesh, x1: number, y1: number, x2: number, y2: number) => {
+      mesh.scale.x = Math.hypot(x2 - x1, y2 - y1);
+      mesh.position.set((x1 + x2) / 2, (y1 + y2) / 2, 0);
+      mesh.rotation.z = Math.atan2(y2 - y1, x2 - x1);
+    };
+    for (const leg of this.cyclist.legs) {
+      const a = angle + (leg.side > 0 ? 0 : Math.PI);
+      const px = Math.cos(a) * 0.55;
+      const py = Math.sin(a) * 0.55;
+      // The knee, solved from the hip and the pedal, bending forward.
+      const dx = px - hip.x;
+      const dy = py - hip.y;
+      const d = Math.min(Math.hypot(dx, dy), thigh + shin - 0.01);
+      const along = (thigh * thigh - shin * shin + d * d) / (2 * d);
+      const up = Math.sqrt(Math.max(0, thigh * thigh - along * along));
+      const ux = dx / d;
+      const uy = dy / d;
+      const kx = hip.x + ux * along - uy * up;
+      const ky = hip.y + uy * along + ux * up;
+      place(leg.thigh, hip.x, hip.y, kx, ky);
+      place(leg.shin, kx, ky, px, py);
+    }
   }
 
   private addSky(): void {
