@@ -57,6 +57,8 @@ const FAR_QUAY = 5;
 const PAVEMENT = 2.2;
 /** A humpback bridge crosses the canal every BRIDGE metres. */
 const BRIDGE = 120;
+/** The ride sets off this far along the loop, so the opening view looks ahead to a bridge. */
+const START = 80;
 
 const COMMUTER_WEAR = {
   tops: ['#1d1f24', '#f5f5f0', '#2c7be5', '#ff7a00', '#7a8ca0', '#c8102e', '#3a6b4a', '#e8c9a0'],
@@ -135,18 +137,18 @@ export class AmsterdamStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
-      const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
+      const metres = loopMetres(prop.offset, s + START, LOOP, BEHIND);
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
     }
     for (const boat of this.boats) {
-      const metres = loopMetres(boat.offset + boat.speed * this.time, s, LOOP, BEHIND);
+      const metres = loopMetres(boat.offset + boat.speed * this.time, s + START, LOOP, BEHIND);
       boat.mesh.position.z = -metres;
       boat.mesh.position.y = heightAt(Math.max(metres, 0));
     }
     const cyclists = this.cyclists;
     if (cyclists) {
       this.riders.forEach((r, i) => {
-        const metres = loopMetres(r.offset + r.speed * this.time, s, LOOP, BEHIND);
+        const metres = loopMetres(r.offset + r.speed * this.time, s + START, LOOP, BEHIND);
         const y = heightAt(Math.max(metres, 0));
         const heading = r.speed > 0 ? 0 : Math.PI;
         r.bike.position.set(r.x, y, -metres);
@@ -157,7 +159,7 @@ export class AmsterdamStreet implements SceneStreet {
     const pedestrians = this.pedestrians;
     if (pedestrians) {
       this.walkers.forEach((w, i) => {
-        const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
+        const metres = loopMetres(w.offset + w.speed * this.time, s + START, LOOP, BEHIND);
         const step = Math.abs(Math.sin(this.time * 4.5 + w.phase)) * 0.04;
         const y = heightAt(Math.max(metres, 0)) + KERB;
         pedestrians.set(i, w.x, y, -metres, w.speed > 0 ? 0 : Math.PI, w.scale, step);
@@ -291,11 +293,48 @@ export class AmsterdamStreet implements SceneStreet {
       { x: roadHalf + PAVEMENT, turn: Math.PI / 2 },
       { x: -roadHalf - QUAY - CANAL - FAR_QUAY, turn: -Math.PI / 2 },
     ];
+    const street = this.material({
+      map: this.repeat(clinkerTexture('#8a4a36'), 2.4, 2.4),
+      roughness: 0.85,
+    });
+    const paving = new BoxGeometry(CROSS, 0.2, 60);
+    paving.translate(0, -0.1, 0);
+    paving.rotateY(Math.PI / 2);
+    this.disposables.push(paving);
     for (const { x, turn } of rows) {
+      const away = turn > 0 ? 1 : -1;
+      // A cross street runs off the gracht at each bridge, paved back between the houses, with
+      // the houses of the next canal closing its far end.
+      for (let b = 0; b < LOOP; b += BRIDGE) {
+        const cross = new Group();
+        const floor = new Mesh(paving, street);
+        floor.position.x = away * 30;
+        floor.receiveShadow = true;
+        cross.add(floor);
+        for (let n = 0; n < 2; n++) {
+          const k = Math.floor(random() * 4);
+          const end = new Mesh(shapes[k]!, [fronts[k]![Math.floor(random() * 4)]!, sides]);
+          end.scale.set(CROSS / 2, 16 + random() * 3, 8);
+          end.rotation.y = turn;
+          end.position.set(away * 42, 0, (away * CROSS) / 2 - (away * n * CROSS) / 2);
+          cross.add(end);
+        }
+        this.group.add(cross);
+        this.props.push({ mesh: cross, offset: b + 2, x });
+      }
       for (let offset = 0; offset < LOOP;) {
+        const gap = bridgeGap(offset);
+        if (gap !== null) {
+          offset = gap;
+          continue;
+        }
         const roll = random();
-        const k = roll < 0.22 ? 4 : Math.floor(random() * 4);
-        const width = k === 4 ? 11 + random() * 5 : 5.6 + random() * 2.4;
+        let k = roll < 0.22 ? 4 : Math.floor(random() * 4);
+        // A house too wide to fit before the next cross street is cut down to the room left.
+        const room = nextGap(offset) - offset;
+        let width = Math.min(room, k === 4 ? 11 + random() * 5 : 5.6 + random() * 2.4);
+        if (room - width < 3.5) width = room;
+        if (width < 9 && k === 4) k = Math.floor(random() * 4);
         const height = k === 4 ? 15 + random() * 3 : 17 + random() * 4;
         const house = new Group();
         const variant = Math.floor(random() * 4);
@@ -468,25 +507,34 @@ export class AmsterdamStreet implements SceneStreet {
   }
 
   /**
-   * Humpback bridges across the canal: a brick arch with its stone keystone band, low parapets
-   * either side, and lamps at the ends.
+   * Humpback bridges across the canal: a brick arch with an iron railing either side between
+   * stone piers.
    */
   private addBridges(roadHalf: number): void {
     const brick = this.material({ map: this.repeat(brickTexture(), 2, 2), roughness: 0.95 });
     const stone = this.material({ color: 0xd9d2c4, roughness: 0.85 });
-    const arch = bridgeGeometry(false);
-    const parapet = bridgeGeometry(true);
-    this.disposables.push(arch, parapet);
+    const iron = this.material({ color: 0x1c2a22, metalness: 0.5, roughness: 0.45 });
+    const arch = bridgeGeometry();
+    const railing = bridgeRailing();
+    this.disposables.push(arch, railing);
     for (let offset = 0; offset < LOOP; offset += BRIDGE) {
       const bridge = new Group();
       const deck = new Mesh(arch, brick);
       deck.castShadow = true;
       deck.receiveShadow = true;
       bridge.add(deck);
-      for (const z of [-3.6, 3.6]) {
-        const wall = new Mesh(parapet, stone);
-        wall.position.z = z;
-        bridge.add(wall);
+      for (const z of [-3.4, 3.4]) {
+        const rail = new Mesh(railing, iron);
+        rail.position.z = z;
+        rail.castShadow = true;
+        bridge.add(rail);
+        // Stone piers at each end of the railing.
+        for (const u of [0.3, CANAL - 0.3]) {
+          const pier = new Mesh(this.unit, stone);
+          pier.scale.set(0.5, 1.2, 0.5);
+          pier.position.set(u, KERB + 0.6 + 1.4 * Math.sin((Math.PI * u) / CANAL), z);
+          bridge.add(pier);
+        }
       }
       bridge.scale.x = -1;
       this.group.add(bridge);
@@ -802,34 +850,57 @@ function bikeGeometry(): BufferGeometry {
 
 /**
  * A humpback bridge's arch in the x-y plane, spanning the canal from the quay at x 0 to the far
- * quay at x CANAL, extruded 7 m along z; or, with `parapet`, the low wall along its top.
+ * quay at x CANAL, extruded 7 m along z.
  */
-function bridgeGeometry(parapet: boolean): BufferGeometry {
+function bridgeGeometry(): BufferGeometry {
   const steps = 24;
   const top = (u: number) => KERB + 1.4 * Math.sin((Math.PI * u) / CANAL);
   const shape = new Shape();
-  if (parapet) {
-    shape.moveTo(0, top(0));
-    for (let k = 1; k <= steps; k++) shape.lineTo((k / steps) * CANAL, top((k / steps) * CANAL));
-    for (let k = steps; k >= 0; k--)
-      shape.lineTo((k / steps) * CANAL, top((k / steps) * CANAL) + 0.8);
-    shape.closePath();
-  } else {
-    shape.moveTo(0, -WATER);
-    shape.lineTo(0, top(0));
-    for (let k = 1; k <= steps; k++) shape.lineTo((k / steps) * CANAL, top((k / steps) * CANAL));
-    shape.lineTo(CANAL, -WATER);
-    const span = CANAL - 8;
-    for (let k = 0; k <= steps; k++) {
-      const u = CANAL - 4 - (k / steps) * span;
-      shape.lineTo(u, -WATER + 2.9 * Math.sin((Math.PI * (CANAL - 4 - u)) / span));
-    }
-    shape.closePath();
+  shape.moveTo(0, -WATER);
+  shape.lineTo(0, top(0));
+  for (let k = 1; k <= steps; k++) shape.lineTo((k / steps) * CANAL, top((k / steps) * CANAL));
+  shape.lineTo(CANAL, -WATER);
+  const span = CANAL - 8;
+  for (let k = 0; k <= steps; k++) {
+    const u = CANAL - 4 - (k / steps) * span;
+    shape.lineTo(u, -WATER + 2.9 * Math.sin((Math.PI * (CANAL - 4 - u)) / span));
   }
-  const depth = parapet ? 0.35 : 7;
-  const geometry = new ExtrudeGeometry(shape, { depth, bevelEnabled: false });
-  geometry.translate(0, 0, -depth / 2);
+  shape.closePath();
+  const geometry = new ExtrudeGeometry(shape, { depth: 7, bevelEnabled: false });
+  geometry.translate(0, 0, -3.5);
   return geometry;
+}
+
+/**
+ * A bridge's iron railing along the arch's top, from x 0 to CANAL: a handrail and a bottom rail
+ * following the hump, with balusters between them and a ring in every bay.
+ */
+function bridgeRailing(): BufferGeometry {
+  const top = (u: number) => KERB + 1.4 * Math.sin((Math.PI * u) / CANAL);
+  const parts: BufferGeometry[] = [];
+  const steps = 40;
+  for (let k = 0; k < steps; k++) {
+    const u0 = (k / steps) * CANAL;
+    const u1 = ((k + 1) / steps) * CANAL;
+    for (const lift of [0.15, 1.0]) {
+      const a = new Vector3(u0, top(u0) + lift, 0);
+      const b = new Vector3(u1, top(u1) + lift, 0);
+      parts.push(limb(a, b, lift > 0.5 ? 0.04 : 0.025));
+    }
+  }
+  for (let u = 0.6; u < CANAL - 0.5; u += 0.22) {
+    const post = new BoxGeometry(0.022, 0.85, 0.022);
+    post.translate(u, top(u) + 0.575, 0);
+    parts.push(post.toNonIndexed());
+  }
+  for (let u = 1.2; u < CANAL - 1; u += 1.5) {
+    const ring = new TorusGeometry(0.2, 0.015, 4, 12);
+    ring.translate(u, top(u) + 0.58, 0);
+    parts.push(ring.toNonIndexed());
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
 }
 
 /**
@@ -977,6 +1048,25 @@ function cabinTexture(): CanvasTexture {
     g.fillStyle = '#2e3a46';
     for (let x = 14; x < 256; x += 48) g.fillRect(x, 18, 26, 22);
   });
+}
+
+/** The width of the cross street that runs off the gracht at each bridge. */
+const CROSS = 9;
+
+/** The metres along the loop at which the cross street at metre `m` ends, or null if none. */
+function bridgeGap(m: number): number | null {
+  for (let b = 0; b <= LOOP; b += BRIDGE) {
+    if (m >= b + 2 - CROSS / 2 && m < b + 2 + CROSS / 2) return b + 2 + CROSS / 2;
+  }
+  return null;
+}
+
+/** Where the next cross street after metre `m` begins (or the loop ends). */
+function nextGap(m: number): number {
+  for (let b = 0; b <= LOOP; b += BRIDGE) {
+    if (b + 2 - CROSS / 2 > m) return Math.min(b + 2 - CROSS / 2, LOOP);
+  }
+  return LOOP;
 }
 
 /** The house kinds: four gables, then the Herengracht's wide houses with a straight cornice. */
