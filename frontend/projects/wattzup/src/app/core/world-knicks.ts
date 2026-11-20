@@ -43,6 +43,7 @@ import {
   scaleFaceUv,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
 } from './world-kit';
 import type { StreetPoint } from './world-oldtown';
@@ -147,7 +148,14 @@ export class KnicksStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
   private readonly crowd: Crowd;
-  private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
+  /** Props along the road; one that `lies` on it, as paint does, takes its slope. */
+  private readonly props: {
+    mesh: Group;
+    offset: number;
+    every: number;
+    x: number;
+    lies?: boolean;
+  }[] = [];
   private readonly floats: Group[] = [];
   /** The players riding the floats, built on the kit's figures. */
   private crew: Figures | null = null;
@@ -214,7 +222,8 @@ export class KnicksStreet implements SceneStreet {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     const far = heightAt(1e6);
@@ -629,7 +638,13 @@ export class KnicksStreet implements SceneStreet {
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 30 + i * ROAD_PAINT_EVERY, every: LOOP, x });
+      this.props.push({
+        mesh: holder,
+        offset: 30 + i * ROAD_PAINT_EVERY,
+        every: LOOP,
+        x,
+        lies: true,
+      });
     });
   }
 
