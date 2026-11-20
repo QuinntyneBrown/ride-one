@@ -5,8 +5,11 @@ import {
   bendAhead,
   bendPoint,
   curvature,
+  EASE_FROM,
+  EASE_TO,
   lean,
   racingLine,
+  squeeze,
 } from './scene-bend';
 import { WORLDS, worldById, type World } from './worlds';
 
@@ -127,6 +130,44 @@ describe('lean (L2-110 AC9)', () => {
     expect(lean(alpe, s, 10)).toBeCloseTo(Math.atan((100 * k) / 9.81), 9);
   });
 });
+
+describe('squeeze (L2-110 AC9)', () => {
+  // A bend of radius 100 m: the inside keeps its distances to 50 m, then eases towards 85 m.
+  const k = 0.01;
+  const room = (EASE_TO - EASE_FROM) / k;
+  const cases: [string, number, number, number][] = [
+    ['on a straight road', 300, 0, 1],
+    ['on the outside of a bend', -300, k, 1],
+    ['on the inside, within half the radius', 40, k, 1],
+    ['on the inside, at half the radius', 50, k, 1],
+    ['on the inside, a room past half the radius', 50 + room, k, Math.exp(-1)],
+    ['on the inside of a left-hander, a room past half the radius', -50 - room, -k, Math.exp(-1)],
+  ];
+  for (const [where, x, curve, expected] of cases) {
+    it(`keeps ${expected === 1 ? 'the whole' : 'a share'} of the relief ${where}`, () => {
+      expect(squeeze(x, curve)).toBeCloseTo(expected, 9);
+    });
+  }
+
+  it('squeezes the relief as much as the ground, so no slope becomes a wall', () => {
+    // The squeeze is the slope of the eased distance across: d(eased)/dx.
+    const x = 70;
+    const a = bendPoint(flatAt(k), x - 0.001, -100);
+    const b = bendPoint(flatAt(k), x + 0.001, -100);
+    const across = Math.hypot(b.x - a.x, b.z - a.z) / 0.002;
+    expect(squeeze(x, k)).toBeCloseTo(across, 4);
+  });
+});
+
+/** Samples of a road bending at curvature `k` everywhere, heading straight ahead at 0. */
+function flatAt(k: number): Float32Array {
+  const samples = new Float32Array(BEND_SAMPLES * 4);
+  for (let i = 0; i < BEND_SAMPLES; i++) {
+    samples[i * 4 + 1] = 40 - i * 4;
+    samples[i * 4 + 3] = k;
+  }
+  return samples;
+}
 
 describe('racingLine (L2-107 AC7, L2-110 AC9)', () => {
   it('keeps a rider in their lane on a straight road', () => {

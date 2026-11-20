@@ -1008,12 +1008,24 @@ export class HavanaStreet implements SceneStreet {
    * with a pale lens beneath.
    */
   private addLamps(roadHalf: number): void {
-    const steel = this.material({ color: 0x8c9196, roughness: 0.55, metalness: 0.5 });
-    const lens = this.material({ color: 0xf6f0dc, emissive: 0xfff2c8, emissiveIntensity: 0.3 });
-    const pole = new CylinderGeometry(0.07, 0.13, 9, 10);
+    // Salt-weathered paint: grey-green, chipped, with rust running down from the joints.
+    const steel = this.material({
+      map: this.track(lampPostTexture()),
+      roughness: 0.6,
+      metalness: 0.35,
+    });
+    const lens = this.material({ color: 0xf6f0dc, emissive: 0xfff2c8, emissiveIntensity: 0.4 });
+    const pole = new CylinderGeometry(0.07, 0.13, 9, 12);
     pole.translate(0, 4.5, 0);
-    const base = new CylinderGeometry(0.2, 0.24, 0.9, 10);
+    const base = new CylinderGeometry(0.2, 0.24, 0.9, 12);
     base.translate(0, 0.45, 0);
+    // Collars where the pole's sections meet, and the hatch at its foot.
+    const collar = new CylinderGeometry(0.16, 0.16, 0.12, 12);
+    collar.translate(0, 0.96, 0);
+    const joint = new CylinderGeometry(0.12, 0.12, 0.1, 12);
+    joint.translate(0, 4.6, 0);
+    const hatch = new BoxGeometry(0.16, 0.36, 0.04);
+    hatch.translate(0, 0.5, 0.235);
     const arm = new TubeGeometry(
       new QuadraticBezierCurve3(
         new Vector3(0, 8.4, 0),
@@ -1024,12 +1036,20 @@ export class HavanaStreet implements SceneStreet {
       0.055,
       6,
     );
-    const head = new BoxGeometry(0.9, 0.22, 0.38);
-    head.translate(2.95, 9.35, 0);
-    const glow = new BoxGeometry(0.7, 0.04, 0.28);
-    glow.translate(2.95, 9.22, 0);
-    const lamp = mergeGeometries([pole, base, arm, head])!;
-    [pole, base, arm, head].forEach((g) => g.dispose());
+    // A cobra-head luminaire: a long, rounded shell over a shallow glass bowl.
+    const head = new SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    head.scale(0.55, 0.2, 0.24);
+    head.rotateZ(-0.08);
+    head.translate(2.95, 9.28, 0);
+    const glow = new SphereGeometry(1, 16, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    glow.scale(0.48, 0.09, 0.2);
+    glow.rotateZ(-0.08);
+    glow.translate(2.95, 9.28, 0);
+    const parts = [pole, base, collar, joint, hatch, arm, head].map((g) =>
+      g.index ? g.toNonIndexed() : g,
+    );
+    const lamp = mergeGeometries(parts)!;
+    [pole, base, collar, joint, hatch, arm, head, ...parts].forEach((g) => g.dispose());
     this.disposables.push(lamp, glow);
     const place = (offset: number, x: number, turn: number) => {
       const holder = new Group();
@@ -3171,6 +3191,31 @@ function whitecapTexture(): CanvasTexture {
       g.beginPath();
       g.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
       g.fill();
+    }
+  });
+}
+
+/**
+ * A Malecón lamp post's paint, wrapped round the pole and running up it: grey-green gloss gone
+ * chalky in the salt air, chipped to grey primer, and rust weeping down from the joints.
+ */
+function lampPostTexture(): CanvasTexture {
+  return canvasTexture(64, 512, (g) => {
+    speckle(g, 64, 512, '#8a9890', 1291);
+    const random = seeded(1297);
+    for (let i = 0; i < 40; i++) {
+      g.fillStyle = `rgba(190,190,180,${0.3 + random() * 0.4})`;
+      g.fillRect(random() * 64, random() * 512, 2 + random() * 5, 2 + random() * 4);
+    }
+    for (const top of [0, 250, 440]) {
+      for (let i = 0; i < 6; i++) {
+        const x = random() * 64;
+        const run = g.createLinearGradient(0, top, 0, top + 40 + random() * 80);
+        run.addColorStop(0, 'rgba(140,70,30,0.7)');
+        run.addColorStop(1, 'rgba(140,70,30,0)');
+        g.fillStyle = run;
+        g.fillRect(x, top, 1.5 + random() * 2.5, 120);
+      }
     }
   });
 }
