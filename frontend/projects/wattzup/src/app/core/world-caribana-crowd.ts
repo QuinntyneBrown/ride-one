@@ -3,6 +3,7 @@
 // barricades in summer clothes, waving flags, dancing and filming the bands on their phones.
 import {
   BoxGeometry,
+  BufferAttribute,
   CanvasTexture,
   type BufferGeometry,
   Color,
@@ -239,7 +240,9 @@ export function spectatorParts(stance: number, shorts: boolean, seated = false) 
   const neck = new CylinderGeometry(0.045, 0.05, 0.12, 6);
   neck.translate(0, 1.48 - drop, 0);
   skin.push(neck, ellipsoid(0.105, 0.9, 1.1, 1, 0, 1.6 - drop, -0.01, 10));
-  return { skin: merge(skin), top: merge(top), bottom: merge(bottom) };
+  const parts = { skin: merge(skin), top: merge(top), bottom: merge(bottom) };
+  for (const g of [parts.skin, parts.top, parts.bottom]) bakeOcclusion(g);
+  return parts;
 }
 
 /**
@@ -328,6 +331,30 @@ function placardTexture(top: string, bottom: string, fill: string, ink: string):
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+/**
+ * Bakes soft ambient occlusion into a figure's vertex colours, tinting its skin: undersides
+ * that face the ground darker, the creases where limbs meet the trunk and the space between
+ * the legs darker still, and the tops of the shoulders and head full bright.
+ */
+export function bakeOcclusion(body: BufferGeometry): void {
+  const position = body.getAttribute('position');
+  const normal = body.getAttribute('normal');
+  const shade = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const y = position.getY(i);
+    const up = normal.getY(i) * 0.5 + 0.5;
+    let ao = 0.72 + 0.28 * up;
+    // Between the thighs and under the arms, where little light reaches.
+    if (y < 0.92 && y > 0.45 && Math.abs(x) < 0.06) ao *= 0.78;
+    if (y > 1.2 && y < 1.36 && Math.abs(x) > 0.15 && Math.abs(x) < 0.22) ao *= 0.85;
+    // Under the chin and the bust.
+    if (y > 1.46 && y < 1.52) ao *= 0.88;
+    shade.set([ao, ao * 0.97, ao * 0.95], i * 3);
+  }
+  body.setAttribute('color', new BufferAttribute(shade, 3));
 }
 
 /** A pair of trainers. */
@@ -476,9 +503,9 @@ export class Spectators {
         this.people[i] = { ...p, stance: SELFIE_STANCE, turned: true };
       }
     });
-    const skinMaterial = this.material({ roughness: 0.6 });
-    const cotton = this.material({ roughness: 0.92 });
-    const denim = this.material({ roughness: 0.95 });
+    const skinMaterial = this.material({ roughness: 0.55, vertexColors: true });
+    const cotton = this.material({ roughness: 0.92, vertexColors: true });
+    const denim = this.material({ roughness: 0.95, vertexColors: true });
     const rubber = this.material({ roughness: 0.7 });
     const hair = this.material({ roughness: 0.95 });
     const phone = this.material({ color: 0x111317, roughness: 0.3, metalness: 0.4 });
