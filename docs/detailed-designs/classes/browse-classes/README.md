@@ -117,7 +117,7 @@ Unit tests: `class-library-view.spec.ts` covers `cardView` for `hiit`, `interval
 | `L2-079` | `L1-014` | Class library page. `/classes` shows the catalogue as shelves of cards, with a tab per shelf, covers from YouTube thumbnails or the bundled poster, and loading, empty, error and disconnected states. Criterion 15: the Ride Dashboard shall show a `Library` link after the lockup, opened by touch, click or Enter, that opens `/classes` and changes nothing about the workout. |
 | `L2-097` | `L1-009` | Security and privacy. Criterion 2: a Content-Security-Policy that allows only same-origin scripts, styles and connections, with three exceptions for YouTube (ADR 0012): `frame-src https://www.youtube-nocookie.com` and `script-src https://www.youtube.com` (the IFrame player API) for the ride-along video, and `img-src https://i.ytimg.com` for class covers (L2-079). |
 | `L2-040` | `L1-011` | Responsive layout. The library's grid, tabs and cards follow the breakpoints of L2-079 criterion 13. |
-| `L2-041` | `L1-011` | Accessibility. Tabs, cards and covers meet the keyboard, focus and text-alternative rules of L2-079 criteria 2, 5, 6 and 13. |
+| `L2-041` | `L1-011` | Accessibility. Tabs, cards and covers meet the keyboard, focus and text-alternative rules of L2-079 criteria 2, 5, 6 and 13; criterion 1 lists the dashboard's `Library` link, reached with Tab after the lockup (L2-079 criterion 15). |
 
 ## Diagrams
 

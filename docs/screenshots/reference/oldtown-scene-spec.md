@@ -1,7 +1,7 @@
 # Old Town Criterium: the scene, layer by layer
 
 This is the technical specification of Old Town Criterium's World Ride scene, the reference every
-other world is built to (`docs/worlds/reference/oldtown-final.png` is how it looks; it scores 80
+other world is built to (`docs/screenshots/reference/oldtown-final.png` is how it looks; it scores 80
 on the render-quality rubric). It records what Old Town draws, where, how big, in what material,
 and why, down to the pot plants by the front doors, so a new world can be built to the same
 standard with the same structure.
@@ -515,4 +515,4 @@ own equivalent of each line, at a similar count per 100 m of street:
 - **Mirror the left side's print:** barrier and banner textures on the left side need
   `repeat.x = −1`.
 - **One significant change per iteration.** Capture before and after the same way
-  (`docs/worlds/<slug>/NN-before.png`, `NN-after.png`), and keep only net gains.
+  (`docs/screenshots/<slug>/NN-before.png`, `NN-after.png`), and keep only net gains.

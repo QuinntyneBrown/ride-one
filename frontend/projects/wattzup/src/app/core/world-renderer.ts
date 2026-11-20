@@ -1685,21 +1685,6 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 1.8, fill: 1.8, colour: 0xe8ecf0 },
     fogRange: [120, 1400],
   },
-  // Passo Gardena: A clear alpine day, crisp light on the peaks.
-  gardena: {
-    sky: 0x6aa4e0,
-    fog: 0xd4e2ee,
-    ground: 0x5a7a3e,
-    road: 0x4c4c50,
-    sun: 40,
-    wet: false,
-    haze: false,
-    turbidity: 1.6,
-    rayleigh: 1.6,
-    azimuth: -80,
-    light: { sun: 3.4, fill: 1.1, colour: 0xfff4e8 },
-    fogRange: [500, 5000],
-  },
   // Han River Parks, Seoul: Night: moonlight from behind, the city glow above.
   hanriver: {
     sky: 0x0e1430,
@@ -2880,21 +2865,6 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 1.2, colour: 0xfff0d8 },
     fogRange: [200, 2400],
   },
-  // Mauna Kea: Thin, clear air high up: a deep blue sky and hard light.
-  maunakea: {
-    sky: 0x3a7ad8,
-    fog: 0xc8d8ea,
-    ground: 0x6a3a2a,
-    road: 0x4a4644,
-    sun: 46,
-    wet: false,
-    haze: false,
-    turbidity: 1.2,
-    rayleigh: 1.2,
-    azimuth: 110,
-    light: { sun: 3.8, fill: 0.9, colour: 0xffffff },
-    fogRange: [800, 7000],
-  },
   // Mont Royal: A crisp autumn day, the light warm on the leaves.
   montroyal: {
     sky: 0x88b0e0,
@@ -2924,21 +2894,6 @@ const LOOKS: Record<WorldId, Look> = {
     azimuth: -60,
     light: { sun: 3.2, fill: 1.2, colour: 0xfff0d8 },
     fogRange: [200, 2400],
-  },
-  // Col du Galibier: Thin, clear air high up: a deep blue sky and hard light.
-  galibier: {
-    sky: 0x3a7ad8,
-    fog: 0xc8d8ea,
-    ground: 0x5a6a5a,
-    road: 0x484a4c,
-    sun: 46,
-    wet: false,
-    haze: false,
-    turbidity: 1.2,
-    rayleigh: 1.2,
-    azimuth: 110,
-    light: { sun: 3.8, fill: 0.9, colour: 0xffffff },
-    fogRange: [800, 7000],
   },
   // Joshua Tree: Blazing desert sun, heat haze over the road.
   joshuatree: {
@@ -3029,6 +2984,52 @@ const LOOKS: Record<WorldId, Look> = {
     azimuth: -80,
     light: { sun: 3.4, fill: 1.1, colour: 0xfff4e8 },
     fogRange: [500, 5000],
+  },
+  // A bright summer morning on the pass: the sun well up in a clear blue sky, crisp light on the
+  // pale rock, and a light haze over the far peaks.
+  gardena: {
+    sky: 0x6aa4e4,
+    fog: 0xc8dcec,
+    ground: 0x7aa84a,
+    road: 0x4e4e52,
+    sun: 44,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.3,
+    azimuth: 130,
+    light: { sun: 3.2, fill: 1.0, colour: 0xfff4e4 },
+    fogRange: [400, 6000],
+  },
+  // Late afternoon four thousand metres up on Mauna Kea: a deep, thin-air blue and a low gold sun over the cloud sea.
+  maunakea: {
+    sky: 0x1a4ab8,
+    fog: 0xc8d4e8,
+    ground: 0x6a3a2a,
+    road: 0x3a3634,
+    sun: 18,
+    wet: false,
+    haze: false,
+    turbidity: 1.2,
+    rayleigh: 2.2,
+    azimuth: 250,
+    light: { sun: 3.0, fill: 1.5, colour: 0xffe4c0 },
+    fogRange: [3000, 20000],
+  },
+  // Early summer high on the Galibier: crisp mountain air, a clear blue sky and a bright midday sun on the snow.
+  galibier: {
+    sky: 0x3a78d8,
+    fog: 0xd8e2f0,
+    ground: 0x4a4a50,
+    road: 0x4a4a4c,
+    sun: 52,
+    wet: false,
+    haze: false,
+    turbidity: 1.6,
+    rayleigh: 1.4,
+    azimuth: 160,
+    light: { sun: 3.0, fill: 1.6, colour: 0xfff8f0 },
+    fogRange: [2500, 16000],
   },
   caribana: {
     sky: 0x8ec5ee,

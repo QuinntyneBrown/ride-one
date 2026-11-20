@@ -75,6 +75,7 @@ wattzup/
 │   ├── detailed-designs/                  # {subsystem}/{feature}/README.md + diagrams/
 │   ├── mocks/                             # HTML mocks, UI source of truth
 │   ├── design-system/                     # extracted from the mocks
+│   ├── screenshots/                       # World Ride captures, one folder per world (never docs/worlds/)
 │   ├── adr/                               # architecture decision records
 │   └── protocol/                          # Echelon BLE frame reference (echelon-ble-frames.md)
 ├── tools/                                 # verify (every CI check, locally); video-record, video-audio, video-build (the films)

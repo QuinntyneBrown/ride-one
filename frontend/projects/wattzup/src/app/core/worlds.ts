@@ -1006,15 +1006,6 @@ export const WORLDS: readonly World[] = [
     roll: 0.8,
   },
   {
-    id: 'gardena',
-    name: 'Passo Gardena',
-    route: 'the Gardena switchbacks',
-    effortName: 'Progressive build',
-    description: 'Switchbacks beneath the Sella towers, efforts building toward the pass.',
-    grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
-    roll: 0.6,
-  },
-  {
     id: 'hanriver',
     name: 'Han River Parks, Seoul',
     route: 'the riverside path',
@@ -1701,13 +1692,23 @@ export const WORLDS: readonly World[] = [
     roll: 0.8,
   },
   {
+    id: 'gardena',
+    name: 'Passo Gardena',
+    route: 'the road from Selva',
+    effortName: 'Sella step',
+    description:
+      'The road from Selva climbs through larch meadows to the Passo Gardena on a bright summer morning, closed to cars for the Sellaronda Bike Day, the sheer pale towers of the Sella rising on the right and the jagged spires of the Cir on the left above the hairpins to the saddle. The six-minute warm-up spins up the lower meadows past the grazing cows, the minute-and-a-half and three-minute efforts climb the hairpins beneath the Sella towers, and the four minute-and-a-half steps and the closing half-minute sprint build to the pass before the cool-down rolls over the top.',
+    grade: { warmup: 4, work: 7, rest: 5, cooldown: 2, steady: 6 },
+    roll: 1,
+  },
+  {
     id: 'maunakea',
     name: 'Mauna Kea',
     route: 'the summit road',
     effortName: 'Summit grind',
     description: "A brutal climb past observatories to Hawaii's highest summit.",
-    grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
-    roll: 0.8,
+    grade: { warmup: 5, work: 11, rest: 6, cooldown: 3, steady: 8 },
+    roll: 1,
   },
   {
     id: 'montroyal',
@@ -1730,11 +1731,11 @@ export const WORLDS: readonly World[] = [
   {
     id: 'galibier',
     name: 'Col du Galibier',
-    route: 'the Galibier road',
-    effortName: 'Threshold climb',
+    route: 'the pass road',
+    effortName: 'Threshold block',
     description: 'High alpine road climbing past snow banks to the Tour monument.',
-    grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
-    roll: 0.6,
+    grade: { warmup: 4, work: 8, rest: 5, cooldown: 2, steady: 6 },
+    roll: 1,
   },
   {
     id: 'joshuatree',
