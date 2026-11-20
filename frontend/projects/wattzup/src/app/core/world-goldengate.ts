@@ -60,7 +60,9 @@ const FENCE = -11;
 /** Spreckels Lake on the right, its middle at this offset. */
 const LAKE = 400;
 /** The Dutch Windmill stands above Ocean Beach ahead, hazed by hand. */
-const WINDMILL_AHEAD = 560;
+const WINDMILL_AHEAD = 420;
+/** The windmill's size against a real one, so it carries at the vanishing point. */
+const WINDMILL_SCALE = 1.9;
 const FOG = 0xc5ccd2;
 /** The fog rolling in off the ocean: thick behind the windmill, thinner over the park. */
 const CURTAINS: readonly MistCurtain[] = [
@@ -589,12 +591,12 @@ export class GoldenGateStreet implements SceneStreet {
    */
   private addWindmill(): void {
     const haze = new Color(FOG);
-    const shingle = hazedMaterial(this.disposables, haze, 0xe8e2d4, 0.18, {
+    const shingle = hazedMaterial(this.disposables, haze, 0xf2ecde, 0.08, {
       map: this.track(shingleTexture()),
     });
-    const cap = hazedMaterial(this.disposables, haze, 0x5a4a3c, 0.18);
-    const frame = hazedMaterial(this.disposables, haze, 0x3b2f26, 0.2);
-    const lattice = hazedMaterial(this.disposables, haze, 0xf4f1e8, 0.2, {
+    const cap = hazedMaterial(this.disposables, haze, 0x4a3a2e, 0.08);
+    const frame = hazedMaterial(this.disposables, haze, 0x2e241c, 0.08);
+    const lattice = hazedMaterial(this.disposables, haze, 0x6a5240, 0.08, {
       map: this.track(latticeTexture()),
       alphaTest: 0.4,
       side: DoubleSide,
@@ -602,7 +604,7 @@ export class GoldenGateStreet implements SceneStreet {
     const sand = hazedMaterial(this.disposables, haze, 0xd8c8a4, 0.4);
     const sea = hazedMaterial(this.disposables, haze, 0x6f8792, 0.55);
     const w = this.windmill;
-    const x = 16;
+    const x = 9;
     const z = 0;
     const tower = new Mesh(new CylinderGeometry(4.6, 7.4, 22, 8), shingle);
     tower.position.set(x, 11, z);
@@ -650,6 +652,14 @@ export class GoldenGateStreet implements SceneStreet {
     ocean.rotation.x = -Math.PI / 2;
     ocean.position.set(0, -0.5, -1600);
     w.add(dune, ocean);
+    // The mill and its tulips at their size; the dunes and the sea stay as laid.
+    for (const part of w.children) {
+      if (part === dune || part === ocean) continue;
+      part.position.x = x + (part.position.x - x) * WINDMILL_SCALE;
+      part.position.y *= WINDMILL_SCALE;
+      part.position.z *= WINDMILL_SCALE;
+      part.scale.multiplyScalar(WINDMILL_SCALE);
+    }
     this.group.add(w);
   }
 

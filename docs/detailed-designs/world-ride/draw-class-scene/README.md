@@ -210,7 +210,7 @@ None.
   - on the left the bison paddock: a dry meadow behind a post-and-rail fence with its sign at the gate, a feed shed and the herd grazing;
   - on the right Spreckels Lake with model yachts tacking across it, and the park path where roller skaters and joggers go both ways (the kit's `Figures`);
   - the shared crowd in knots along the barriers, the lawns showing between them;
-  - ahead the Dutch Windmill above Ocean Beach, its octagonal shingled tower, gallery and domed cap, its four lattice sails turning on the street's clock, tulip beds at its foot and the dunes and the Pacific behind, hazed by hand;
+  - 420 m ahead, just right of the drive and drawn at 1.9 times its size so it carries at the vanishing point, the Dutch Windmill above Ocean Beach, its octagonal shingled tower, gallery and domed cap, its four lattice sails turning on the street's clock, tulip beds at its foot and the dunes and the Pacific behind, hazed by hand;
   - the fog rolling in off the ocean, the kit's `Mist`: curtains across the horizon and banks drifting low over the lawns.
 
   `lay`, `place` and `setTime` recycle it along a 500 m loop.
