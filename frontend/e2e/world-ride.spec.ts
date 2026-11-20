@@ -141,6 +141,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Notting Hill Carnival');
   });
 
+  test('rides Quick HIIT Sprint Workout in Las Vegas Strip on the Boulevard', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Quick HIIT Sprint Workout',
+      'Las Vegas Strip',
+      'quick-hiit-sprint-workout',
+    );
+    await expect(world.heading).toHaveText('Las Vegas Strip');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Las Vegas Strip');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

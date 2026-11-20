@@ -287,6 +287,25 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.25, colour: 0xfff1dc },
     fogRange: [160, 1500],
   },
+  // The Strip after midnight: a desert night sky over the glow, the neon doing the lighting.
+  vegas: {
+    sky: 0x0a0b22,
+    fog: 0x261a3a,
+    ground: 0x23222b,
+    road: 0x3a3b44,
+    sun: -6,
+    wet: false,
+    haze: false,
+    moon: {
+      elevation: 40,
+      azimuth: -150,
+      strength: 1.2,
+      colour: 0xc8b8ff,
+      fill: 2.4,
+      fillSky: 0x7a5aa0,
+    },
+    fogRange: [60, 1500],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
