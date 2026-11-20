@@ -57,6 +57,7 @@ export class WinnatsStreet implements SceneStreet {
   private readonly sheep: { neck: Group; phase: number }[] = [];
   private readonly clouds: { mesh: Mesh; x: number; speed: number }[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -91,22 +92,14 @@ export class WinnatsStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.people.forEach((p, i) => {
         const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
         const step = Math.abs(Math.sin(this.time * 3.6 + p.phase)) * 0.04;
-        crowd.set(
-          i,
-          p.x,
-          heightAt(Math.max(metres, 0)) + step,
-          -metres,
-          p.speed >= 0 ? 0 : Math.PI,
-          0.95,
-          0,
-        );
+        crowd.set(i, p.x, heightAt(metres) + step, -metres, p.speed >= 0 ? 0 : Math.PI, 0.95, 0);
       });
       crowd.commit();
     }
