@@ -1316,12 +1316,36 @@ export class MiamiStreet implements SceneStreet {
       blending: AdditiveBlending,
     });
     this.disposables.push(halo, pool);
+    const banners = [
+      ['ART DECO', '#ff4fb8'],
+      ['OCEAN DR', '#2ab8b0'],
+      ['MIAMI BEACH', '#7a6ad8'],
+    ].map(([text, colour]) => {
+      const m = this.material({
+        map: this.track(lampBannerTexture(text!, colour!)),
+        roughness: 0.8,
+        side: DoubleSide,
+      });
+      return m;
+    });
     for (let offset = 6; offset < LOOP; offset += 24)
       for (const side of [-1, 1]) {
         if (side > 0 && inCrossing(offset + 12, 1)) continue;
         const lamp = new Group();
         lamp.add(new Mesh(post, white), new Mesh(collar, white), new Mesh(base, white));
         lamp.add(new Mesh(globe, lit));
+        // A pair of district banners on arms either side of the post, facing along the street.
+        const banner = banners[(Math.round(offset / 24) + (side > 0 ? 1 : 0)) % banners.length]!;
+        for (const dz of [-0.45, 0.45]) {
+          const flag = new Mesh(this.flat, banner);
+          flag.scale.set(0.55, 1.5, 1);
+          flag.position.set(0, 3.05, dz);
+          flag.rotation.y = Math.PI / 2;
+          const arm = new Mesh(this.unit, white);
+          arm.scale.set(0.04, 0.04, 0.5);
+          arm.position.set(0, 3.82, dz / 2);
+          lamp.add(flag, arm);
+        }
         const h = new Mesh(this.flat, halo);
         h.scale.set(2.6, 2.6, 1);
         h.position.y = 4.62;
@@ -4419,5 +4443,33 @@ function roofNameTexture(name: string, colour: string): CanvasTexture {
     g.shadowBlur = 0;
     g.fillStyle = 'rgba(255,255,255,0.8)';
     g.fillText(name, 256, 50, 500);
+  });
+}
+
+/** A lamp-post banner: a coloured pennant with white words down it and a palm at its foot. */
+function lampBannerTexture(text: string, colour: string): CanvasTexture {
+  return canvasTexture(64, 176, (g) => {
+    g.fillStyle = colour;
+    g.fillRect(0, 0, 64, 176);
+    g.fillStyle = 'rgba(255,255,255,0.9)';
+    g.fillRect(0, 0, 64, 6);
+    g.save();
+    g.translate(36, 88);
+    g.rotate(-Math.PI / 2);
+    g.font = 'bold 22px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(text, 0, 0, 160);
+    g.restore();
+    g.strokeStyle = 'rgba(255,255,255,0.85)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(14, 172);
+    g.quadraticCurveTo(12, 150, 18, 140);
+    for (const a of [-0.8, -0.2, 0.4, 1]) {
+      g.moveTo(18, 140);
+      g.lineTo(18 + Math.cos(a) * 12 * Math.sign(a + 0.01), 140 + Math.sin(a) * 6);
+    }
+    g.stroke();
   });
 }
