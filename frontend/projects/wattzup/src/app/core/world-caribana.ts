@@ -96,6 +96,8 @@ const GARDINER_DECK = 9.5;
 /** A King or Queen of the band leads each band on the right, this far into each truck's stretch. */
 const ROYAL_AT = 64;
 const ROYAL_X = 4.0;
+/** The grandstand's seats run along the right-hand pavement between these. */
+const GRANDSTAND = [64, 106] as const;
 /** The route crosses a signalised intersection this far into the loop. */
 const CROSSING_AT = 36;
 /** The steel orchestra's float rides the left lane ahead of the first music truck. */
@@ -304,6 +306,8 @@ export class CaribanaStreet implements SceneStreet {
       skins: SKINS,
       flags: this.flagMaterials,
       seed: 41,
+      // The grandstand takes the right-hand pavement by the judging point.
+      skip: (side, offset) => side > 0 && offset > GRANDSTAND[0] && offset < GRANDSTAND[1],
     });
   }
 
@@ -320,6 +324,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addPanFloat();
     this.addGantry();
     this.addIntersection();
+    this.addGrandstand();
     this.addConfetti();
     this.addOfficers();
     this.addBandBanners();
@@ -1549,6 +1554,103 @@ export class CaribanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: 31 + dz, every: LOOP, x: BARRIER - 0.9, road: true });
     }
+  }
+
+  /**
+   * The grandstand by the judging point on the right: aluminium bleachers of eight tiers along
+   * the pavement, a skirt printed with the carnival's name at the front, a rail along the top,
+   * and the seats filled with spectators, some on their feet dancing.
+   */
+  private addGrandstand(): void {
+    const stand = new Group();
+    const length = GRANDSTAND[1] - GRANDSTAND[0];
+    const aluminium = this.material({ color: 0xc3c8cc, metalness: 0.75, roughness: 0.35 });
+    const steel = this.material({ color: 0x7d838a, metalness: 0.7, roughness: 0.5 });
+    const rows = 8;
+    const front = BARRIER + 0.9;
+    const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z = 0) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y + h / 2, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      stand.add(mesh);
+    };
+    for (let r = 0; r < rows; r++) {
+      const x = front + 0.4 + r * 0.8;
+      box(aluminium, 0.36, 0.05, length, x + 0.2, r * 0.42 + 0.42);
+      box(aluminium, 0.4, 0.04, length, x - 0.2, r * 0.42);
+      box(steel, 0.05, 0.42, length, x - 0.02, r * 0.42);
+    }
+    for (let z = -length / 2; z <= length / 2; z += 4) {
+      const frame = new Mesh(this.unit, steel);
+      const run = rows * 0.8;
+      const rise = rows * 0.42;
+      frame.scale.set(Math.hypot(run, rise), 0.12, 0.08);
+      frame.rotation.z = Math.atan2(rise, run);
+      frame.position.set(front + run / 2, rise / 2, z);
+      stand.add(frame);
+      box(steel, 0.08, rise + 1.1, 0.08, front + run + 0.1, 0, z);
+    }
+    box(steel, 0.05, 0.05, length, front + rows * 0.8 + 0.1, rows * 0.42 + 1.05);
+    const skirt = this.material({
+      map: this.track(
+        clothBannerTexture('TORONTO CARIBBEAN CARNIVAL · GRANDSTAND', '#1b3f8a', '#ffd23f'),
+      ),
+      roughness: 0.7,
+    });
+    const panel = new PlaneGeometry(length, 0.42);
+    panel.rotateY(-Math.PI / 2);
+    panel.translate(front, 0.21, 0);
+    this.disposables.push(panel);
+    stand.add(new Mesh(panel, skirt));
+    // The seats filled: seated spectators, and one in six on their feet.
+    const random = seeded(1709);
+    const skin = this.material({ roughness: 0.6 });
+    const cotton = this.material({ roughness: 0.9 });
+    const denim = this.material({ roughness: 0.95 });
+    const sitters: Matrix4[] = [];
+    const standers: Matrix4[] = [];
+    const turn = new Quaternion().setFromAxisAngle(this.up, Math.PI / 2);
+    for (let r = 0; r < rows; r++) {
+      for (let z = -length / 2 + 0.4; z < length / 2; z += 0.62) {
+        if (random() < 0.12) continue;
+        const up = random() < 0.16;
+        const at = new Vector3(front + 0.4 + r * 0.8 + (up ? -0.05 : 0.15), r * 0.42, z);
+        const m = new Matrix4().compose(
+          at,
+          turn,
+          new Vector3(1, 1, 1).multiplyScalar(0.94 + random() * 0.12),
+        );
+        (up ? standers : sitters).push(m);
+      }
+    }
+    const people = (parts: ReturnType<typeof spectatorParts>, at: Matrix4[]) => {
+      for (const [geometry, material, list] of [
+        [parts.skin, skin, SKINS],
+        [parts.top, cotton, SHIRTS],
+        [parts.bottom, denim, TROUSERS],
+      ] as const) {
+        this.disposables.push(geometry);
+        const mesh = new InstancedMesh(geometry, material, at.length);
+        at.forEach((m, k) => {
+          mesh.setMatrixAt(k, m);
+          mesh.setColorAt(k, new Color(list[Math.floor(random() * list.length)]!));
+        });
+        mesh.castShadow = true;
+        this.disposables.push(mesh);
+        stand.add(mesh);
+      }
+    };
+    people(spectatorParts(0, true, true), sitters);
+    people(spectatorParts(2, false), standers);
+    this.group.add(stand);
+    this.props.push({
+      mesh: stand,
+      offset: (GRANDSTAND[0] + GRANDSTAND[1]) / 2,
+      every: LOOP,
+      x: 0,
+    });
   }
 
   /**

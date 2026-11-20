@@ -193,6 +193,7 @@ export class MiamiStreet implements SceneStreet {
     this.addTaxis(roadHalf);
     this.addRoadPaint();
     this.addTikiBars(roadHalf);
+    this.addPuddles(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -2362,6 +2363,60 @@ export class MiamiStreet implements SceneStreet {
     }
   }
 
+  /**
+   * Puddles left by the shower on the promenade and the sidewalk: dark mirror-smooth pools
+   * with ragged edges, the sky's violet and the neon's colours caught in them.
+   */
+  private addPuddles(roadHalf: number): void {
+    const random = seeded(8451);
+    const maps = [0, 1, 2].map((v) => this.track(puddleTexture(8451 + v)));
+    const materials = maps.map(
+      (map) =>
+        new MeshStandardMaterial({
+          map,
+          transparent: true,
+          roughness: 0.02,
+          metalness: 0.6,
+          depthWrite: false,
+          polygonOffset: true,
+          polygonOffsetFactor: -3,
+          emissive: 0xffffff,
+          emissiveMap: map,
+          emissiveIntensity: 0.35,
+        }),
+    );
+    this.disposables.push(...materials);
+    const spots: [number, number, number][] = [
+      [31, -roadHalf - 2.4, 3.4],
+      [36, roadHalf + 3.6, 3],
+    ];
+    for (const [offset, x, size] of spots) {
+      const mesh = new Mesh(this.flat, materials[0]!);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.scale.set(size * 0.7, size, 1);
+      mesh.position.y = 0.155;
+      mesh.renderOrder = 1;
+      const holder = new Group();
+      holder.add(mesh);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x });
+    }
+    for (let offset = 2; offset < LOOP; offset += 5 + random() * 7) {
+      const left = random() < 0.55;
+      const mesh = new Mesh(this.flat, materials[Math.floor(random() * 3)]!);
+      mesh.rotation.x = -Math.PI / 2;
+      const size = 1.2 + random() * 2.4;
+      mesh.scale.set(size * (0.5 + random() * 0.5), size, 1);
+      mesh.position.y = 0.155;
+      mesh.renderOrder = 1;
+      const holder = new Group();
+      holder.add(mesh);
+      this.group.add(holder);
+      const x = left ? -roadHalf - 0.8 - random() * 3.4 : roadHalf + 1 + random() * 6.5;
+      this.props.push({ mesh: holder, offset, x });
+    }
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -4192,5 +4247,39 @@ function cocktailBarTexture(): CanvasTexture {
     }
     g.fillStyle = '#1a1a22';
     for (let x = 0; x <= 512; x += 64) g.fillRect(x - 3, 0, 6, 128);
+  });
+}
+
+/** A puddle: a ragged dark pool, glossy, with the violet sky and a smear of neon in it. */
+function puddleTexture(seed: number): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    const random = seeded(seed);
+    g.beginPath();
+    for (let i = 0; i <= 24; i++) {
+      const a = (i / 24) * Math.PI * 2;
+      const r = 40 + random() * 20;
+      const x = 64 + Math.cos(a) * r;
+      const y = 64 + Math.sin(a) * r;
+      if (i) g.lineTo(x, y);
+      else g.moveTo(x, y);
+    }
+    g.closePath();
+    const pool = g.createLinearGradient(0, 0, 0, 128);
+    pool.addColorStop(0, 'rgba(60,40,110,0.85)');
+    pool.addColorStop(1, 'rgba(14,10,30,0.85)');
+    g.fillStyle = pool;
+    g.fill();
+    g.save();
+    g.clip();
+    for (let i = 0; i < 3; i++) {
+      g.fillStyle = ['rgba(255,63,180,0.45)', 'rgba(47,230,255,0.4)', 'rgba(255,220,160,0.4)'][
+        Math.floor(random() * 3)
+      ]!;
+      const x = random() * 100;
+      const w = 6 + random() * 12;
+      for (let y = 0; y < 128; y += 3)
+        g.fillRect(x + Math.sin(y * 0.4) * 2, y, w * (1 - y / 200), 2);
+    }
+    g.restore();
   });
 }
