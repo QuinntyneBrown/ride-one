@@ -118,6 +118,8 @@ export class MiamiStreet implements SceneStreet {
     scale: number;
     /** How far a seated figure sinks so it sits on its chair, its legs under the table. */
     seat?: number;
+    /** Whether the figure is dancing, arms up, bouncing on the beat. */
+    dance?: boolean;
   }[] = [];
   private readonly diners: { offset: number; x: number; heading: number }[] = [];
   private water: Texture | null = null;
@@ -205,6 +207,7 @@ export class MiamiStreet implements SceneStreet {
     this.addScooters(roadHalf);
     this.addPatrol(roadHalf);
     this.addCyclists(roadHalf);
+    this.addBeachParty(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -441,16 +444,19 @@ export class MiamiStreet implements SceneStreet {
       this.standers.forEach((p, i) => {
         const metres = loopMetres(p.offset, s, LOOP, BEHIND);
         const sway = Math.sin(this.time * 1.3 + p.phase) * 0.12;
-        const y = heightAt(Math.max(metres, 0)) + 0.15 - (p.seat ?? 0);
-        chatting.set(i, p.x, y, -metres, p.heading + sway * (p.seat ? 0.3 : 1), p.scale);
+        // Dancers bounce on the beat with their arms thrown up and swaying.
+        const bounce = p.dance ? Math.abs(Math.sin(this.time * 6.5 + p.phase)) * 0.12 : 0;
+        const y = heightAt(Math.max(metres, 0)) + 0.15 - (p.seat ?? 0) + bounce;
+        const turn = p.heading + (p.dance ? sway * 3 : sway * (p.seat ? 0.3 : 1));
+        chatting.set(i, p.x, y, -metres, turn, p.scale);
         this.dress(
           this.people.length + this.skaters.length + i,
           p.x,
           y,
           -metres,
-          p.heading + sway,
+          turn,
           p.scale,
-          sway,
+          p.dance ? Math.PI * 0.85 + sway : sway,
         );
       });
       chatting.commit();
@@ -2764,6 +2770,73 @@ export class MiamiStreet implements SceneStreet {
       });
     }
     this.riders = new Figures(this.group, this.disposables, this.cyclists.length, NIGHT_WEAR, 8483);
+  }
+
+  /**
+   * A DJ on the promenade: a booth under a light truss, speaker stacks either side, a ring of
+   * coloured par lamps, and a knot of dancers in front of it with their arms up.
+   */
+  private addBeachParty(roadHalf: number): void {
+    const black = this.material({ color: 0x141418, roughness: 0.6 });
+    const steel = this.material({ color: 0xa8acb4, roughness: 0.3, metalness: 0.9 });
+    const front = this.material({
+      map: this.track(neonWordTexture('MIAMI NIGHTS', '#2fe6ff')),
+      emissive: 0xffffff,
+      emissiveMap: this.track(neonWordTexture('MIAMI NIGHTS', '#2fe6ff')),
+      emissiveIntensity: 1.6,
+    });
+    const booth = new Group();
+    const b = new BoxBuilder();
+    b.box(black, [1.6, 1.1, 2.6], [0, 0.55, 0]);
+    for (const z of [-2.2, 2.2]) {
+      b.box(black, [0.9, 1.6, 0.9], [0, 0.8, z]);
+      b.box(steel, [0.12, 3.4, 0.12], [0.6, 1.7, z * 1.15]);
+    }
+    b.box(steel, [0.12, 0.12, 5.2], [0.6, 3.4, 0]);
+    booth.add(b.build(this.disposables));
+    const sign = new Mesh(this.unit, front);
+    sign.scale.set(0.05, 0.6, 2.4);
+    sign.position.set(0.82, 0.7, 0);
+    booth.add(sign);
+    for (let i = 0; i < 6; i++) {
+      const c = NEON[i % NEON.length]!;
+      const par = new Mesh(
+        this.unit,
+        this.material({ color: c, emissive: c, emissiveIntensity: 4 }),
+      );
+      par.scale.setScalar(0.25);
+      par.position.set(0.6, 3.25, -2.2 + i * 0.88);
+      const glow = new Mesh(
+        this.flat,
+        new MeshBasicMaterial({
+          map: this.track(haloTexture()),
+          color: c,
+          transparent: true,
+          depthWrite: false,
+          blending: AdditiveBlending,
+        }),
+      );
+      this.disposables.push(glow.material as MeshBasicMaterial);
+      glow.scale.set(2.2, 2.2, 1);
+      glow.position.set(0.7, 3.25, -2.2 + i * 0.88);
+      booth.add(par, glow);
+    }
+    booth.position.y = 0.15;
+    const holder = new Group();
+    holder.add(booth);
+    this.group.add(holder);
+    const at = 58;
+    this.props.push({ mesh: holder, offset: at, x: -roadHalf - 4.2 });
+    const random = seeded(8521);
+    for (let i = 0; i < 14; i++)
+      this.standers.push({
+        offset: at + (random() - 0.5) * 5,
+        x: -roadHalf - 1.2 - random() * 2,
+        heading: Math.PI / 2 + (random() - 0.5) * 0.8,
+        phase: random() * 6,
+        scale: 0.9 + random() * 0.14,
+        dance: true,
+      });
   }
 
   /** People out for the night on both sidewalks. */
