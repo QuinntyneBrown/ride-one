@@ -11,6 +11,10 @@
 // feather flags, pop-up tents, salt crust, road paint and box builder of world-kit.ts.
 import {
   AdditiveBlending,
+  BoxGeometry,
+  CapsuleGeometry,
+  ConeGeometry,
+  CylinderGeometry,
   BufferAttribute,
   type BufferGeometry,
   type CanvasTexture,
@@ -128,6 +132,7 @@ export class DeathValleyStreet implements SceneStreet {
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
   private mirage: MeshBasicMaterial | null = null;
+  private readonly ravens: Group[] = [];
   private time = 0;
   private readonly flagMaterials = ['#c8501a', '#ffffff', '#1b1e24', '#f2c230'].map(
     (colour) => new MeshStandardMaterial({ color: colour, side: DoubleSide, roughness: 0.8 }),
@@ -146,10 +151,10 @@ export class DeathValleyStreet implements SceneStreet {
       spacing: 0.75,
       wardrobe: DESERT,
       flags: this.flagMaterials,
-      flagShare: 0.18,
+      flagShare: 0.24,
       seeds: [6411, 6417],
-      skip: (_side, offset) => offset % 40 > 20,
-      armsUp: 0.1,
+      skip: (_side, offset) => offset % 40 > 31,
+      armsUp: 0.24,
     });
     this.group.add(this.horizon);
   }
@@ -159,6 +164,8 @@ export class DeathValleyStreet implements SceneStreet {
     this.addGround(roadHalf, points);
     this.crowd.build();
     this.addBrush();
+    this.addParasols();
+    this.addRavens();
     this.addAid();
     this.addThermometer();
     this.addParkSign();
@@ -198,6 +205,21 @@ export class DeathValleyStreet implements SceneStreet {
       prop.mesh.position.set(prop.x, ground(metres) + KERB, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
+    // Ravens wheel in slow circles over the road ahead, riding the heat, wings beating now and then.
+    this.ravens.forEach((bird, i) => {
+      const turn = this.time * (0.22 + (i % 3) * 0.05) + i * 1.9;
+      const radius = 9 + (i % 4) * 4;
+      const metres = 40 + (i % 3) * 22 + Math.sin(turn) * radius;
+      bird.position.set(
+        (i % 2 ? 6 : -8) + Math.cos(turn) * radius,
+        heightAt(metres) + 14 + (i % 4) * 4 + Math.sin(turn * 2) * 1.2,
+        -metres,
+      );
+      bird.rotation.y = -turn + Math.PI;
+      const beat = Math.max(0, Math.sin(this.time * 5 + i * 2)) * 0.5;
+      bird.children[1]!.rotation.z = 0.15 + beat;
+      bird.children[2]!.rotation.z = -0.15 - beat;
+    });
     this.horizon.position.set(0, heightAt(AHEAD), -AHEAD);
   }
 
@@ -305,6 +327,59 @@ export class DeathValleyStreet implements SceneStreet {
       holder.add(new Mesh(merged, scrub));
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: 0 });
+    }
+  }
+
+  /**
+   * Sun umbrellas over the knots of fans, white, orange and yellow, the only shade along the road.
+   */
+  private addParasols(): void {
+    const random = seeded(6471);
+    const pole = new CylinderGeometry(0.03, 0.03, 2.3, 5);
+    pole.translate(0, 1.15, 0);
+    const canopy = new ConeGeometry(1.1, 0.45, 8, 1, true);
+    canopy.translate(0, 2.3, 0);
+    this.disposables.push(pole, canopy);
+    const white = this.material({ color: 0xf4f4f0, roughness: 0.7 });
+    const cloths = ['#ffffff', '#ff8a1a', '#f2c230', '#c8501a', '#3ac8e8'].map((c) =>
+      this.material({ color: c, roughness: 0.8, side: DoubleSide }),
+    );
+    for (let offset = 0; offset < LOOP; offset += 40) {
+      const holder = new Group();
+      for (const side of [-1, 1]) {
+        for (let n = 0; n < 4; n++) {
+          const z = -random() * 30;
+          const x = side * (CROWD_NEAR + 0.6 + random() * (CROWD_FAR - CROWD_NEAR - 0.6));
+          const u = new Mesh(canopy, cloths[Math.floor(random() * cloths.length)]!);
+          u.rotation.z = (random() - 0.5) * 0.3;
+          const p = new Mesh(pole, white);
+          for (const m of [u, p]) {
+            m.position.set(x, 0, z);
+            holder.add(m);
+          }
+        }
+      }
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: 0 });
+    }
+  }
+
+  /** The valley's ravens: black, broad-winged, wheeling over the road. */
+  private addRavens(): void {
+    const body = new CapsuleGeometry(0.16, 0.6, 4, 8);
+    body.rotateX(Math.PI / 2);
+    const wing = new BoxGeometry(1.1, 0.04, 0.38);
+    wing.translate(0.55, 0, 0);
+    this.disposables.push(body, wing);
+    const feathers = this.material({ color: 0x141418, roughness: 0.6 });
+    for (let i = 0; i < 8; i++) {
+      const bird = new Group();
+      const left = new Mesh(wing, feathers);
+      left.rotation.y = Math.PI;
+      bird.add(new Mesh(body, feathers), left, new Mesh(wing, feathers));
+      bird.scale.setScalar(1.3);
+      this.ravens.push(bird);
+      this.group.add(bird);
     }
   }
 
