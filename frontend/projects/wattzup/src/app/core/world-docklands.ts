@@ -11,6 +11,7 @@ import {
   BufferGeometry,
   CanvasTexture,
   Color,
+  ConeGeometry,
   CylinderGeometry,
   DoubleSide,
   Group,
@@ -105,6 +106,9 @@ const SCREENS: readonly string[] = [
 const STALLS: readonly number[] = [26, 33, 40, 140, 147, 290, 297, 304, 460, 467, 580];
 const STALL_X = -10;
 const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
+/** People on the pavement across the street, scattered round the loop. */
+const WALKERS = 26;
+const WALKER_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347', '#9b6bff', '#d7ff3a'];
 /** Festoon lantern strings across the street, at these offsets round the loop. */
 const LANTERNS: readonly number[] = [30, 44, 58, 150, 164, 300, 314, 470, 484, 498, 590];
 const LANTERN_HEIGHT = 9;
@@ -238,6 +242,7 @@ export class DocklandsStreet {
   private readonly train = new Group();
   private readonly lanterns: { group: Group; offset: number }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
+  private readonly walkers: { group: Group; offset: number }[] = [];
 
   /**
    * Runs the train along its viaduct for `seconds` of the ride: it crosses from the harbour
@@ -1005,6 +1010,7 @@ export class DocklandsStreet {
     this.addVents(roadHalf);
     this.addLanterns(roadHalf);
     this.addStalls();
+    this.addWalkers(roadHalf);
     this.addRain();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
@@ -1322,6 +1328,69 @@ export class DocklandsStreet {
       this.group.add(group);
       this.stalls.push({ group, offset });
     });
+  }
+
+  /**
+   * People out in the rain: figures in dark coats under umbrellas in the city's neon colours,
+   * waiting at the stalls' counters and standing about on the pavement under the towers.
+   */
+  private addWalkers(roadHalf: number): void {
+    const coats = [0x1d1a26, 0x2a2233, 0x1a2430, 0x30241d].map(
+      (color) => new MeshStandardMaterial({ color, roughness: 0.8 }),
+    );
+    const skin = new MeshStandardMaterial({ color: 0xc89878, roughness: 0.7 });
+    const umbrellas = WALKER_COLOURS.map(
+      (hex) =>
+        new MeshStandardMaterial({
+          color: new Color(hex),
+          emissive: new Color(hex),
+          emissiveIntensity: 0.6,
+          roughness: 0.35,
+          side: DoubleSide,
+        }),
+    );
+    const shaft = new MeshStandardMaterial({ color: 0x111111 });
+    const body = new CylinderGeometry(0.2, 0.27, 1.25, 10);
+    const legs = new CylinderGeometry(0.17, 0.15, 0.6, 8);
+    const head = new SphereGeometry(0.13, 12, 10);
+    const canopy = new ConeGeometry(0.62, 0.28, 12, 1, true);
+    const pole = new CylinderGeometry(0.015, 0.015, 0.8, 4);
+    this.disposables.push(...coats, skin, ...umbrellas, shaft, body, legs, head, canopy, pole);
+    const random = seeded(281);
+    const person = (x: number, facing: number) => {
+      const group = new Group();
+      const coat = coats[Math.floor(random() * coats.length)]!;
+      const l = new Mesh(legs, coats[0]!);
+      l.position.y = KERB + 0.3;
+      const b = new Mesh(body, coat);
+      b.position.y = KERB + 0.6 + 0.62;
+      const h = new Mesh(head, skin);
+      h.position.y = KERB + 2.0;
+      const u = new Mesh(canopy, umbrellas[Math.floor(random() * umbrellas.length)]!);
+      u.position.set(0.1, KERB + 2.45, 0);
+      const p = new Mesh(pole, shaft);
+      p.position.set(0.1, KERB + 2.0, 0);
+      group.add(l, b, h, u, p);
+      group.position.x = x;
+      group.rotation.y = facing;
+      return group;
+    };
+    // At the stalls' counters, facing in to be served.
+    STALLS.forEach((offset) => {
+      if (random() < 0.35) return;
+      const group = new Group();
+      group.add(person(STALL_X + 2.3, -Math.PI / 2));
+      group.children[0]!.position.z = (random() - 0.5) * 1.6;
+      this.group.add(group);
+      this.walkers.push({ group, offset });
+    });
+    // On the pavement across the street, under the towers.
+    for (let i = 0; i < WALKERS; i++) {
+      const group = new Group();
+      group.add(person(roadHalf + 2.5 + random() * 6, random() * Math.PI * 2));
+      this.group.add(group);
+      this.walkers.push({ group, offset: random() * LOOP });
+    }
   }
 
   private addVents(roadHalf: number): void {
@@ -1817,6 +1886,11 @@ export class DocklandsStreet {
       // Boats ride on the harbour water, level with the quay.
       boat.mesh.position.y = heightAt(Math.max(metres, 0)) - 0.3;
       boat.mesh.position.z = -metres;
+    }
+    for (const walker of this.walkers) {
+      const metres = ((((walker.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      walker.group.visible = !this.onBridge(Math.max(metres, 0));
+      walker.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
     for (const stall of this.stalls) {
       const metres = ((((stall.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
