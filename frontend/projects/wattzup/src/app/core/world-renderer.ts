@@ -3242,7 +3242,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
       .multiplyScalar(80)
       .add(this.sun.target.position);
     this.sky.sunPosition.value.copy(this.sunDirection()).applyAxisAngle(UP, turn);
-    this.bend.update(this.bendSamples);
+    this.bend.update(this.bendSamples, (metres) => heightAt(ahead, metres));
     if (++this.drawn % BEND_SWEEP === 0) this.bend.apply(this.scene, this.unbent);
     if (this.towers) {
       // The road over an effort is a bridge ramp, laid at the same speed as the road ahead.
@@ -3676,6 +3676,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
     const street = make((t) => this.track(t), this.disposables);
     street.build(ROAD_HALF, AHEAD + BEHIND + 1);
     this.scene.add(street.group);
+    // The street's far scenery stands beyond the road and does not bend, as the panorama does.
+    for (const far of street.backdrop ?? []) far.traverse((part) => this.unbent.add(part));
     this.scenery = street;
   }
 

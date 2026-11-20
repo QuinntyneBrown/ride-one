@@ -160,6 +160,21 @@ export function bendPoint(samples: Float32Array, x: number, z: number): BendPoin
   return { x: cx + across * nx + dm * tx, z: cz + across * nz + dm * tz };
 }
 
+/**
+ * How much of its height above the road a point `x` across keeps on a bend of curvature `k`: as
+ * much as the ease keeps of its distance across there, the slope of `eased`. Squeezed across but
+ * not down, a fellside on the inside of a hairpin would stand up as a sheer wall; squeezed both
+ * ways, it keeps its shape, only smaller.
+ */
+export function squeeze(x: number, k: number): number {
+  const ak = Math.abs(k);
+  const inside = x * Math.sign(k);
+  const from = EASE_FROM / ak;
+  if (ak <= MIN_CURVATURE || inside <= from) return 1;
+  const room = (EASE_TO - EASE_FROM) / ak;
+  return Math.exp(-(inside - from) / room);
+}
+
 /** `x` across the road, eased on the inside of a bend of curvature `k` towards its centre. */
 function eased(x: number, k: number): number {
   const ak = Math.abs(k);
