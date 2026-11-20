@@ -115,22 +115,22 @@ const FEATHERS: readonly FeatherWord[] = [
 const FEATHER_EVERY = 18;
 /** The names and cries painted on the marina walk. */
 const ROAD_PAINT: readonly (readonly [string, string])[] = [
-  ['SPRINT', '#ffffff'],
-  ['YALLA', '#e8c060'],
-  ['GO MAYA', '#3ac8e8'],
-  ['ALLEZ JONAS', '#ffffff'],
-  ['ANA!', '#f2c230'],
-  ['SOPHIE', '#e8a0c0'],
-  ['KENJI', '#ffffff'],
-  ['RAVI!', '#d7ff3a'],
-  ['FAST', '#e8c060'],
-  ['DUBAI', '#3ac8e8'],
+  ['SPRINT', '#1b1e24'],
+  ['YALLA', '#c81e32'],
+  ['GO MAYA', '#1d3c8f'],
+  ['ALLEZ JONAS', '#1b1e24'],
+  ['ANA!', '#0e7a6a'],
+  ['SOPHIE', '#8a1e5a'],
+  ['KENJI', '#1b1e24'],
+  ['RAVI!', '#1f6a3a'],
+  ['FAST', '#c81e32'],
+  ['DUBAI', '#1d3c8f'],
 ];
 const ROAD_SLOGANS: readonly (readonly [string, string])[] = [
-  ['DUBAI MARINA', '#e8c060'],
-  ['SPRINT', '#ffffff'],
-  ['WATTZUP', '#d7ff3a'],
-  ['YALLA YALLA', '#3ac8e8'],
+  ['DUBAI MARINA', '#1d3c8f'],
+  ['SPRINT', '#c81e32'],
+  ['WATTZUP', '#1b1e24'],
+  ['YALLA YALLA', '#0e7a6a'],
 ];
 const ROAD_PAINT_EVERY = 7;
 /** The yachts' hull colours; most are white. */
@@ -254,6 +254,24 @@ export class DubaiStreet implements SceneStreet {
     const kerb = this.material({ color: 0xd8d4cc, roughness: 0.85 });
     const paving = this.material({ map: this.repeat(pavingTexture(), 2, 2), roughness: 0.6 });
     const edge = this.material({ color: 0xc8c2b8, roughness: 0.8 });
+    // The walk itself: sandstone pavers laid over the road, kerb to kerb.
+    const pavers = this.track(paverTexture());
+    pavers.wrapS = RepeatWrapping;
+    pavers.wrapT = RepeatWrapping;
+    pavers.repeat.set(1 / (2 * r), 1 / 4);
+    this.ribbons.add(
+      points,
+      this.material({
+        map: pavers,
+        roughness: 0.7,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+      }),
+      [
+        [r, 0.006],
+        [-r, 0.006],
+      ],
+    );
     for (const side of [1, -1] as const) {
       const at = (x: number, h: number): [number, number] => [side * x, h];
       const order = <T>(list: T[]) => (side > 0 ? list : list.reverse());
@@ -498,7 +516,7 @@ export class DubaiStreet implements SceneStreet {
     }
   }
 
-  /** Names and cries painted on the walk in gold, aqua, lime and white, slogans right across. */
+  /** Names and cries painted on the pavers in navy, red, teal and black, slogans right across. */
   private addRoadPaint(): void {
     const rows = paintedRows(
       {
@@ -703,6 +721,45 @@ function shopTexture(k: number): CanvasTexture {
     // The upper floor's windows.
     g.fillStyle = '#4a5a6a';
     for (let x = 12; x < 256; x += 32) g.fillRect(x, 8, 20, 24);
+  });
+}
+
+/**
+ * The marina walk's sandstone pavers, the road's width across and four metres along: rows of
+ * long pavers in running bond in two warm tones, a band of darker ones down each side, and the
+ * joints between them.
+ */
+function paverTexture(): CanvasTexture {
+  return canvasTexture(256, 128, (g) => {
+    speckle(g, 256, 128, '#dccbaa', 5285);
+    const random = seeded(5287);
+    const rows = 16;
+    const h = 128 / rows;
+    for (let row = 0; row < rows; row++) {
+      const w = 24;
+      for (let x = row % 2 ? -w / 2 : 0; x < 256; x += w) {
+        const edge = x < 40 || x > 216;
+        const tone = random();
+        g.fillStyle = edge
+          ? tone < 0.5
+            ? 'rgba(120,96,74,0.55)'
+            : 'rgba(104,84,66,0.6)'
+          : tone < 0.4
+            ? 'rgba(200,176,136,0.5)'
+            : tone < 0.7
+              ? 'rgba(232,214,182,0.4)'
+              : 'rgba(0,0,0,0)';
+        g.fillRect(x + 1, row * h + 1, w - 2, h - 2);
+      }
+    }
+    g.strokeStyle = 'rgba(110,90,70,0.35)';
+    g.lineWidth = 1;
+    for (let row = 0; row <= rows; row++) {
+      g.beginPath();
+      g.moveTo(0, row * h);
+      g.lineTo(256, row * h);
+      g.stroke();
+    }
   });
 }
 
