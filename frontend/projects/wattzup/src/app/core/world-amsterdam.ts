@@ -814,6 +814,7 @@ export class AmsterdamStreet implements SceneStreet {
       wisterias,
       bark: this.material({ color: 0x4a3e34, roughness: 1 }),
       lilac: this.material({ color: 0xa88ad8, roughness: 0.8 }),
+      whiteWisteria: this.material({ color: 0xeee8f4, roughness: 0.8 }),
       paints: [0x16181b, 0x16181b, 0x2a3a5c, 0x6a1a1a, 0x8fc0b0, 0xe8dcc0].map((hex) =>
         this.material({ color: hex, metalness: 0.35, roughness: 0.5 }),
       ),
@@ -944,16 +945,16 @@ export class AmsterdamStreet implements SceneStreet {
       sitter.castShadow = true;
       house.add(sitter);
     }
-    if (random() < 0.16 || featured) {
+    if (random() < 0.1 || featured) {
       // A wisteria trained up the front from a corner, its cascades of lilac in flower.
       const vine = decor.wisterias[Math.floor(random() * decor.wisterias.length)]!;
       const plant = new Group();
       plant.add(
         new Mesh(vine.stems, decor.bark),
         new Mesh(vine.leaves, decor.leaves),
-        new Mesh(vine.flowers, decor.lilac),
+        new Mesh(vine.flowers, extra() < 0.3 ? decor.whiteWisteria : decor.lilac),
       );
-      plant.scale.set(1, Math.min(1, (height * 0.55) / 9), Math.min(1.4, width / 6));
+      plant.scale.set(1, Math.min(1, (height * 0.55) / 9), Math.min(1, (width - 0.6) / 6));
       plant.position.set(-0.08, KERB, door > 0.5 ? -0.3 : -width + 0.3);
       if (door > 0.5) plant.scale.z *= -1;
       plant.children.forEach((m) => (m.castShadow = true));
@@ -4217,7 +4218,7 @@ function wisteriaGeometry(seed: number): {
         leaves.push(leaf);
       }
       for (let k = 0; k < 3; k++) {
-        const raceme = new ConeGeometry(0.08, 0.35 + random() * 0.25, 5);
+        const raceme = new ConeGeometry(0.06 + random() * 0.03, 0.22 + random() * 0.3, 6);
         raceme.rotateX(Math.PI);
         raceme.translate(-0.25, level - 0.2 - random() * 0.2, z + (random() - 0.5) * 0.5);
         flowers.push(raceme);
