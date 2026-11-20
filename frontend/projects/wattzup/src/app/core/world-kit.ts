@@ -398,6 +398,11 @@ export interface CrowdOptions {
   readonly seeds: readonly [number, number];
   /** Leaves a gap in the crowd where `skip(side, offset, x)` is true. */
   readonly skip?: (side: -1 | 1, offset: number, x: number) => boolean;
+  /**
+   * The share of fans without a flag who dance with both arms thrown up, swaying on the beat.
+   * Drawn from a seed of its own, so a crowd that leaves it out is laid out as before.
+   */
+  readonly armsUp?: number;
 }
 
 interface Fan {
@@ -408,6 +413,8 @@ interface Fan {
   readonly phase: number;
   /** Which flag, if any, this fan waves over their head. */
   readonly flag: number;
+  /** Whether this fan dances with both arms up. */
+  readonly armsUp: boolean;
 }
 
 /**
@@ -425,6 +432,8 @@ export class Crowd {
   private readonly wave = new Quaternion();
   private readonly size = new Vector3();
   private readonly up = new Vector3(0, 1, 0);
+  private readonly forward = new Vector3(0, 0, 1);
+  private readonly shoulder = new Vector3();
 
   constructor(
     private readonly group: Group,
@@ -448,10 +457,17 @@ export class Crowd {
             height: 0.92 + random() * 0.16,
             phase: random() * 6.3,
             flag: random() < o.flagShare ? Math.floor(random() * o.flags.length) : -1,
+            armsUp: false,
           };
           if (!o.skip?.(side, fan.offset, fan.x)) this.fans.push(fan);
         }
       }
+    }
+    if (o.armsUp) {
+      const dancing = seeded(o.seeds[0] + 2);
+      this.fans.forEach((fan, i) => {
+        if (fan.flag < 0 && dancing() < o.armsUp!) this.fans[i] = { ...fan, armsUp: true };
+      });
     }
     const n = this.fans.length;
     this.figures = new Figures(this.group, this.disposables, n, o.wardrobe, o.seeds[1]);
@@ -459,12 +475,26 @@ export class Crowd {
     const arm = new CylinderGeometry(0.045, 0.045, 0.7, 6);
     const skin = new MeshStandardMaterial({ roughness: 0.7 });
     this.disposables.push(arm, skin);
-    this.arms = this.instanced(arm, skin, n);
+    // Two arms a fan at most: one for a flag, or both thrown up to dance.
+    this.arms = this.instanced(arm, skin, 2 * n);
     const c = new Color();
     const tones = seeded(o.seeds[1] + 1);
-    for (let i = 0; i < n; i++) {
-      const tone = o.wardrobe.skins[Math.floor(tones() * o.wardrobe.skins.length)]!;
-      this.arms.setColorAt(i, c.set(tone));
+    const skins: string[] = [];
+    for (let i = 0; i < 2 * n; i++) {
+      skins.push(o.wardrobe.skins[Math.floor(tones() * o.wardrobe.skins.length)]!);
+    }
+    // Every fan is placed on every frame in the same order, so each raised arm keeps its slot:
+    // a flag's arm takes the next one, a dancer's two arms the next pair, in one skin tone.
+    let slot = 0;
+    for (const fan of this.fans) {
+      if (fan.armsUp) {
+        this.arms.setColorAt(slot, c.set(skins[slot]!));
+        this.arms.setColorAt(slot + 1, c);
+        slot += 2;
+      } else if (fan.flag >= 0) {
+        this.arms.setColorAt(slot, c.set(skins[slot]!));
+        slot++;
+      }
     }
     const flag = new PlaneGeometry(0.75, 0.5, 4, 1);
     this.disposables.push(flag);
@@ -493,6 +523,21 @@ export class Crowd {
       const bounce = Math.abs(Math.sin(time * 4.2 + fan.phase)) * 0.05;
       const h = fan.height;
       figures.set(i, fan.x, y, -metres, heading, h, bounce);
+      if (fan.armsUp) {
+        // Both arms thrown up in a V from the shoulders, swaying wider and narrower on the beat.
+        const open = 0.38 + Math.sin(time * 4.2 + fan.phase) * 0.14;
+        this.turn.setFromAxisAngle(this.up, heading);
+        this.size.setScalar(h);
+        for (const hand of [-1, 1]) {
+          this.wave.setFromAxisAngle(this.forward, hand * open);
+          this.wave.premultiply(this.turn);
+          this.shoulder.set(hand * (0.2 + Math.sin(open) * 0.3) * h, 0, 0);
+          this.shoulder.applyQuaternion(this.turn);
+          this.spot.set(fan.x + this.shoulder.x, y + 1.62 * h + bounce, -metres + this.shoulder.z);
+          arms.setMatrixAt(arm++, this.matrix.compose(this.spot, this.wave, this.size));
+        }
+        return;
+      }
       if (fan.flag < 0) return;
       // A flag held high on a short pole, waving from side to side.
       const sway = Math.sin(time * 3 + fan.phase) * 0.5;
