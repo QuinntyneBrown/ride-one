@@ -1565,6 +1565,94 @@ export class HavanaStreet implements SceneStreet {
     this.addBicitaxis(roadHalf, tyre, chrome);
     this.addBuses(roadHalf, tyre, glass);
     this.addSidecars(roadHalf, tyre, chrome);
+    this.addCarriage(roadHalf);
+  }
+
+  /**
+   * A coche, the horse-drawn carriage that takes visitors along the front: a bay horse in its
+   * harness between the shafts, legs mid-stride, and behind it an open black carriage on two tall
+   * spoked wheels, a fringed white canopy over its bench, the coachman up front in a straw hat.
+   */
+  private addCarriage(roadHalf: number): void {
+    const coche = new Group();
+    const bay = this.material({ color: 0x6a3e22, roughness: 0.75 });
+    const black = this.material({ color: 0x18181a, roughness: 0.45, metalness: 0.2 });
+    const canvas = this.material({ color: 0xf4f1ea, roughness: 0.85, side: DoubleSide });
+    const straw = this.material({ color: 0xe8d8a8, roughness: 0.9 });
+    const shirt = this.material({ color: 0xf2efe6, roughness: 0.85 });
+    const skin = this.material({ color: 0x7a4a2e, roughness: 0.8 });
+    const add = (
+      g: BufferGeometry,
+      m: MeshStandardMaterial,
+      x: number,
+      y: number,
+      z: number,
+      rx = 0,
+    ) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.rotation.x = rx;
+      mesh.castShadow = true;
+      coche.add(mesh);
+      return mesh;
+    };
+    const barrel = new CapsuleGeometry(0.34, 1.0, 4, 12);
+    barrel.rotateX(Math.PI / 2);
+    const neck = new CapsuleGeometry(0.16, 0.6, 3, 8);
+    const muzzle = new CapsuleGeometry(0.12, 0.4, 3, 8);
+    const leg = new CylinderGeometry(0.06, 0.045, 0.95, 6);
+    const tail = new CylinderGeometry(0.05, 0.02, 0.6, 5);
+    const wheel = new TorusGeometry(0.62, 0.035, 6, 28);
+    wheel.rotateY(Math.PI / 2);
+    const spokes = new CylinderGeometry(0.015, 0.015, 1.2, 4);
+    const torso = new CapsuleGeometry(0.17, 0.4, 3, 8);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const brim = new CylinderGeometry(0.22, 0.22, 0.02, 12);
+    this.disposables.push(barrel, neck, muzzle, leg, tail, wheel, spokes, torso, head, brim);
+    // The horse, facing -z.
+    add(barrel, bay, 0, 1.35, -2.4);
+    add(neck, bay, 0, 1.85, -3.15, -0.6);
+    add(muzzle, bay, 0, 2.05, -3.5, 1.1);
+    const strides = [0.35, -0.25, -0.3, 0.3];
+    [
+      [-0.18, -2.95],
+      [0.18, -2.9],
+      [-0.18, -1.9],
+      [0.18, -1.85],
+    ].forEach(([x, z], k) => add(leg, bay, x!, 0.5, z!, strides[k]!));
+    add(tail, black, 0, 1.2, -1.4, -0.5);
+    // Shafts and the carriage body, its bench and the canopy on posts.
+    for (const x of [-0.45, 0.45]) {
+      const shaft = add(this.unit, black, x, 1.15, -1.9);
+      shaft.scale.set(0.05, 0.05, 2.0);
+      add(wheel, black, x * 2.1, 0.62, 0.2);
+      for (let k = 0; k < 4; k++) {
+        const spoke = add(spokes, black, x * 2.1, 0.62, 0.2);
+        spoke.rotation.x = (k * Math.PI) / 4;
+      }
+    }
+    const body = add(this.unit, black, 0, 0.95, 0.15);
+    body.scale.set(1.3, 0.5, 1.7);
+    const bench = add(this.unit, this.material({ color: 0x8a2a2a, roughness: 0.8 }), 0, 1.35, 0.45);
+    bench.scale.set(1.2, 0.3, 0.6);
+    for (const x of [-0.6, 0.6]) {
+      for (const z of [-0.55, 0.8]) {
+        const post = add(this.unit, black, x, 1.95, z);
+        post.scale.set(0.03, 1.4, 0.03);
+      }
+    }
+    const roof = add(this.unit, canvas, 0, 2.66, 0.12);
+    roof.scale.set(1.4, 0.06, 1.6);
+    const fringe = add(this.unit, canvas, 0, 2.55, -0.68);
+    fringe.scale.set(1.4, 0.16, 0.02);
+    // The coachman on the box.
+    add(torso, shirt, 0, 1.6, -0.55);
+    add(head, skin, 0, 2.05, -0.58);
+    add(brim, straw, 0, 2.15, -0.58);
+    coche.rotation.y = Math.PI;
+    coche.position.x = -roadHalf - LANES + 1.6;
+    this.group.add(coche);
+    this.cars.push({ mesh: coche, offset: 34, speed: -3.2 });
   }
 
   /**
