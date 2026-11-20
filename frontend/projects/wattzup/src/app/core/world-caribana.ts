@@ -283,6 +283,10 @@ export class CaribanaStreet implements SceneStreet {
   private confetti: InstancedMesh | null = null;
   private spray: InstancedMesh | null = null;
   private distant: InstancedMesh | null = null;
+  private readonly litter: {
+    mesh: InstancedMesh;
+    items: { x: number; offset: number; turn: number; tip: number }[];
+  }[] = [];
   private distantPlumes: InstancedMesh | null = null;
   private readonly far: { x: number; offset: number; height: number; plume: boolean }[] = [];
   private readonly hose = new Group();
@@ -354,6 +358,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addGrandstand();
     this.addSpray();
     this.addCastings();
+    this.addLitter();
     this.addDistantParade();
     this.addConfetti();
     this.addOfficers();
@@ -401,6 +406,7 @@ export class CaribanaStreet implements SceneStreet {
     this.placeMokoJumbies(heightAt, along);
     this.placeConfetti(heightAt, along);
     this.placeDistantParade(heightAt, along);
+    this.placeLitter(heightAt, along);
     this.placeSpray(heightAt, along);
     // The signals run their cycle as usual though the road is closed: 20 s green, 3 amber, 20 red.
     const phase = this.time % 43;
@@ -1792,6 +1798,80 @@ export class CaribanaStreet implements SceneStreet {
     crossing.traverse((o) => (o.castShadow = o.type === 'Mesh' && o.parent !== crossing));
     this.group.add(crossing);
     this.props.push({ mesh: crossing, offset: at, every: LANDMARKS, x: 0, road: true });
+  }
+
+  /**
+   * What the parade leaves behind: clear plastic water bottles, crushed red and white cups,
+   * foam food containers and paper napkins, gathered thick along both gutters where the
+   * crowds threw them and scattered more thinly across the lanes.
+   */
+  private addLitter(): void {
+    const random = seeded(2111);
+    const bottle = mergeGeometries([
+      new CylinderGeometry(0.035, 0.035, 0.2, 8).toNonIndexed(),
+      new CylinderGeometry(0.015, 0.035, 0.05, 8).translate(0, 0.125, 0).toNonIndexed(),
+    ])!;
+    bottle.rotateZ(Math.PI / 2);
+    bottle.translate(0, 0.035, 0);
+    const cup = new CylinderGeometry(0.045, 0.032, 0.1, 8, 1, true);
+    cup.rotateZ(Math.PI / 2);
+    cup.scale(1, 0.6, 1);
+    cup.translate(0, 0.03, 0);
+    const box = new BoxGeometry(0.2, 0.06, 0.2);
+    box.translate(0, 0.03, 0);
+    const napkin = new PlaneGeometry(0.22, 0.22);
+    napkin.rotateX(-Math.PI / 2);
+    napkin.translate(0, 0.005, 0);
+    this.disposables.push(bottle, cup, box, napkin);
+    const kinds: [BufferGeometry, MeshStandardMaterial, number][] = [
+      [
+        bottle,
+        this.material({
+          color: 0xcfe6f2,
+          roughness: 0.1,
+          metalness: 0.1,
+          transparent: true,
+          opacity: 0.7,
+        }),
+        140,
+      ],
+      [cup, this.material({ color: 0xc8102e, roughness: 0.5, side: DoubleSide }), 90],
+      [cup, this.material({ color: 0xf2f2ee, roughness: 0.5, side: DoubleSide }), 60],
+      [box, this.material({ color: 0xf4f2ea, roughness: 0.7 }), 40],
+      [napkin, this.material({ color: 0xffffff, roughness: 0.9, side: DoubleSide }), 120],
+    ];
+    for (const [geometry, material, count] of kinds) {
+      const items = [];
+      for (let k = 0; k < count; k++) {
+        const gutter = random() < 0.75;
+        const side = random() < 0.5 ? -1 : 1;
+        items.push({
+          x: gutter ? side * (CURB - 0.15 - random() * 0.6) : (random() - 0.5) * 2 * (CURB - 1),
+          offset: random() * LOOP,
+          turn: random() * Math.PI * 2,
+          tip: (random() - 0.5) * 0.3,
+        });
+      }
+      const mesh = this.instanced(geometry, material, count);
+      mesh.castShadow = false;
+      this.litter.push({ mesh, items });
+    }
+  }
+
+  private placeLitter(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    for (const { mesh, items } of this.litter) {
+      items.forEach((it, k) => {
+        const metres = along(it.offset, LOOP);
+        this.spot.set(it.x, heightAt(Math.max(metres, 0)) + ASPHALT, -metres);
+        this.turn.setFromEuler(this.tumble.set(0, it.turn, it.tip));
+        this.size.setScalar(1);
+        mesh.setMatrixAt(k, this.matrix.compose(this.spot, this.turn, this.size));
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+    }
   }
 
   /** Stands a copy of `prop` one loop further on, `offset` metres in and `x` across. */
