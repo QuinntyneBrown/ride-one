@@ -642,8 +642,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
       emissiveIntensity: this.look.sun < 0 ? 2.5 : 0.4,
       roughness: 0.4,
     });
-    // Old Town's kerbs have iron bollards (world-oldtown.ts) in place of verge posts.
-    const posts = this.world?.id === 'oldtown' ? 0 : POSTS;
+    // Old Town's kerbs have iron bollards (world-oldtown.ts) and Docklands' quay a neon line
+    // (world-docklands.ts) in place of verge posts.
+    const posts = this.world?.id === 'oldtown' || this.world?.id === 'docklands' ? 0 : POSTS;
     for (let i = 0; i < posts; i++) {
       const mesh = new Mesh(post, reflector);
       mesh.visible = false;
@@ -662,7 +663,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
 
   private addTowers(): void {
     const towers = new DocklandsStreet((t) => this.track(t), this.disposables);
-    towers.build(ROAD_HALF);
+    towers.build(ROAD_HALF, AHEAD + BEHIND + 1);
     this.scene.add(towers.group);
     this.towers = towers;
   }
@@ -722,6 +723,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     const points = [...behind, ...ahead];
     fillStrip(this.road, points, ROAD_HALF, 0);
     this.street?.lay(points, s);
+    this.towers?.lay(points, s);
     fillStrip(this.ground, points, GROUND_HALF, -0.05);
   }
 }

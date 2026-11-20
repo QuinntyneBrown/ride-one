@@ -4,6 +4,10 @@
 // view, so the street never ends.
 import {
   BoxGeometry,
+  BufferAttribute,
+  BufferGeometry,
+  DoubleSide,
+  type Material,
   CanvasTexture,
   Color,
   Group,
@@ -27,6 +31,11 @@ const TILE = 24;
 const NEON = ['#ff4fb8', '#3fe0ff', '#d8ff3e', '#9b6bff'];
 /** The harbour skyline stands this far ahead, past the street's fog, and keeps its distance. */
 const SKYLINE_AHEAD = 700;
+/** The quay's kerb stands this high above the road, and is this wide. */
+const KERB = 0.2;
+const KERB_WIDTH = 0.3;
+/** The pavement's slabs: two to a texture tile, each this many metres square. */
+const SLAB = 1.5;
 
 interface Tower {
   readonly mesh: Mesh;
@@ -41,13 +50,15 @@ export class DocklandsStreet {
   private readonly towers: Tower[] = [];
   private readonly random = seeded(41);
   private readonly skyline = new Group();
+  private readonly ribbons: { geometry: BufferGeometry; profile: [number, number][] }[] = [];
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
     private readonly disposables: { dispose(): void }[],
   ) {}
 
-  build(roadHalf: number): void {
+  build(roadHalf: number, points: number): void {
+    this.addQuay(roadHalf, points);
     const roof = new MeshStandardMaterial({ color: 0x0c0e16, roughness: 0.9 });
     // Three façades: blue glass, grey concrete and dark curtain wall, each lit its own way.
     const facades = [
@@ -191,6 +202,103 @@ export class DocklandsStreet {
 
   private roadHalf = 3.5;
 
+  /**
+   * The quay along both sides: a granite kerb, wet concrete slabs back to the towers, and a
+   * neon line along the road's edge in the magenta of the mock.
+   */
+  private addQuay(roadHalf: number, points: number): void {
+    const slabs = this.track(slabTexture());
+    slabs.repeat.set(1 / (2 * SLAB), 1 / (2 * SLAB));
+    const pavement = new MeshStandardMaterial({
+      map: slabs,
+      color: 0x8a8fa6,
+      roughness: 0.42,
+      metalness: 0.1,
+      side: DoubleSide,
+    });
+    const kerb = new MeshStandardMaterial({ color: 0x6d7182, roughness: 0.6, side: DoubleSide });
+    const neon = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#ff5fc4'),
+      emissiveIntensity: 2.6,
+      side: DoubleSide,
+    });
+    this.disposables.push(pavement, kerb, neon);
+    const back = roadHalf + SETBACK + 2;
+    const edge = roadHalf + KERB_WIDTH;
+    for (const side of [-1, 1]) {
+      // Each cross-section runs from left to right, so every strip faces up.
+      const across = (profile: [number, number][]) =>
+        side < 0 ? profile.map(([x, y]) => [-x, y] as [number, number]).reverse() : profile;
+      this.ribbon(
+        points,
+        kerb,
+        across([
+          [roadHalf, -0.05],
+          [roadHalf, KERB],
+          [edge, KERB],
+        ]),
+      );
+      this.ribbon(
+        points,
+        pavement,
+        across([
+          [edge, KERB],
+          [back, KERB],
+        ]),
+      );
+      this.ribbon(
+        points,
+        neon,
+        across([
+          [roadHalf - 0.42, 0.012],
+          [roadHalf - 0.22, 0.012],
+        ]),
+      );
+    }
+  }
+
+  /** A strip along the road whose cross-section is `profile`: [x, height above the road]. */
+  private ribbon(points: number, material: Material, profile: [number, number][]): void {
+    const n = profile.length;
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(new Float32Array(points * n * 3), 3));
+    geometry.setAttribute('uv', new BufferAttribute(new Float32Array(points * n * 2), 2));
+    const index: number[] = [];
+    for (let i = 0; i < points - 1; i++) {
+      for (let j = 0; j < n - 1; j++) {
+        const a = i * n + j;
+        index.push(a, a + n, a + 1, a + 1, a + n, a + n + 1);
+      }
+    }
+    geometry.setIndex(index);
+    const mesh = new Mesh(geometry, material);
+    mesh.receiveShadow = true;
+    mesh.frustumCulled = false;
+    this.group.add(mesh);
+    this.ribbons.push({ geometry, profile });
+    this.disposables.push(geometry);
+  }
+
+  /** Lays the quay over the road's points; its slabs move with the rider's distance `s`. */
+  lay(points: readonly { metres: number; height: number }[], s: number): void {
+    for (const { geometry, profile } of this.ribbons) {
+      const position = geometry.getAttribute('position') as BufferAttribute;
+      const uv = geometry.getAttribute('uv') as BufferAttribute;
+      const n = profile.length;
+      points.forEach((p, i) => {
+        profile.forEach(([x, y], j) => {
+          position.setXYZ(i * n + j, x, p.height + y, -p.metres);
+          uv.setXY(i * n + j, x, p.metres + s);
+        });
+      });
+      position.needsUpdate = true;
+      uv.needsUpdate = true;
+      geometry.computeVertexNormals();
+      geometry.computeBoundingSphere();
+    }
+  }
+
   /** Moves each tower to its place along the loop for the rider's distance `s`. */
   place(s: number, heightAt: (metres: number) => number): void {
     for (const tower of this.towers) {
@@ -250,6 +358,40 @@ function windowTexture(base: string, lit: string[], share: number, seed: number)
       }
     }
     ctx.globalAlpha = 1;
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Wet concrete slabs at night: two by two, with dark joints and a little grit. */
+function slabTexture(): CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const random = seeded(19);
+    const slab = size / 2;
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 2; col++) {
+        const shade = 150 + Math.floor(random() * 30);
+        ctx.fillStyle = `rgb(${shade},${shade},${shade + 8})`;
+        ctx.fillRect(col * slab, row * slab, slab, slab);
+      }
+    }
+    for (let i = 0; i < 600; i++) {
+      ctx.fillStyle = random() < 0.5 ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)';
+      ctx.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
+    }
+    ctx.fillStyle = 'rgba(20,20,30,0.7)';
+    ctx.fillRect(0, 0, size, 2);
+    ctx.fillRect(0, slab, size, 2);
+    ctx.fillRect(0, 0, 2, size);
+    ctx.fillRect(slab, 0, 2, size);
   }
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
