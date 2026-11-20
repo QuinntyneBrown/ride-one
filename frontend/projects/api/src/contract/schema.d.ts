@@ -165,6 +165,7 @@ export interface components {
         | 'deathvalley'
         | 'atacama'
         | 'angkor'
+        | 'gardena'
         | 'maunakea';
     };
     ClassShelfResponse: {

@@ -810,6 +810,16 @@ export const WORLDS: readonly World[] = [
     roll: 0.2,
   },
   {
+    id: 'gardena',
+    name: 'Passo Gardena',
+    route: 'the road from Selva',
+    effortName: 'Sella step',
+    description:
+      'The road from Selva climbs through larch meadows to the Passo Gardena on a bright summer morning, closed to cars for the Sellaronda Bike Day, the sheer pale towers of the Sella rising on the right and the jagged spires of the Cir on the left above the hairpins to the saddle. The six-minute warm-up spins up the lower meadows past the grazing cows, the minute-and-a-half and three-minute efforts climb the hairpins beneath the Sella towers, and the four minute-and-a-half steps and the closing half-minute sprint build to the pass before the cool-down rolls over the top.',
+    grade: { warmup: 4, work: 7, rest: 5, cooldown: 2, steady: 6 },
+    roll: 1,
+  },
+  {
     id: 'maunakea',
     name: 'Mauna Kea',
     route: 'the summit road',
