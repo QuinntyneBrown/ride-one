@@ -127,22 +127,41 @@ const FEATHERS: readonly FeatherWord[] = [
   ['WATTZUP', '#d7ff3a', '#1b1e24'],
 ];
 const FEATHER_EVERY = 16;
-/** The names and cries the fans paint on the tarmac, their colours and where across the road. */
-const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
-  ['ALLEZ MAYA', '#ffffff', -1.8],
-  ['HUP JONAS', '#ff8c1a', 0],
-  ['VAS-Y', '#ffffff', 1.8],
-  ['GO KENJI', '#f2c230', -1.8],
-  ['ALLEZ', '#ffffff', 0.2],
-  ['FORZA ANA', '#ffffff', 1.8],
-  ['HUP HOLLAND', '#ff8c1a', -1.8],
-  ['RAVI!', '#f2c230', 0],
-  ['ALLEZ SOPHIE', '#ffffff', 1.8],
-  ['WATTZUP', '#d7ff3a', -1.8],
-  ['21', '#ffffff', 0],
-  ['DANSE!', '#ff8c1a', 1.8],
+/**
+ * The names and cries the fans paint on the tarmac, in their colours: the pacers' names, the
+ * nations' cries, and the hairpins counted.
+ */
+const ROAD_PAINT: readonly (readonly [string, string])[] = [
+  ['ALLEZ MAYA', '#ffffff'],
+  ['HUP JONAS', '#ff8c1a'],
+  ['VAS-Y', '#f2c230'],
+  ['GO KENJI', '#ffffff'],
+  ['FORZA ANA', '#d7ff3a'],
+  ['HUP HOLLAND', '#ff8c1a'],
+  ['RAVI!', '#ffffff'],
+  ['ALLEZ SOPHIE', '#f2c230'],
+  ['DANSE!', '#ffffff'],
+  ['OPPA!', '#ff6a3a'],
+  ['ALLEZ', '#ffffff'],
+  ['VAMOS', '#f2c230'],
+  ['SOPHIE', '#5ab4ff'],
+  ['JONAS!!', '#ffffff'],
+  ['ORANJE', '#ff8c1a'],
+  ['KENJI', '#d7ff3a'],
+  ['MAYA', '#ff6a3a'],
+  ['ALLEZ ALLEZ', '#ffffff'],
+  ['ANA', '#f2c230'],
+  ['ALLEZ RAVI', '#5ab4ff'],
 ];
-const ROAD_PAINT_EVERY = 13;
+/** Cries painted big, right across the road. */
+const ROAD_SLOGANS: readonly (readonly [string, string])[] = [
+  ['ALLEZ', '#ffffff'],
+  ['WATTZUP', '#d7ff3a'],
+  ['21 VIRAGES', '#f2c230'],
+  ['HUP HUP HUP', '#ff8c1a'],
+];
+/** A row of paint every few metres: two names in staggered lanes, every third a slogan across. */
+const ROAD_PAINT_EVERY = 6;
 /** The national flags the camper vans fly: three bands each, upright or across. */
 const FLAGS: readonly (readonly [string, string, string, boolean])[] = [
   ['#1d3c8f', '#ffffff', '#d8283a', true],
@@ -707,29 +726,60 @@ export class AlpeStreet implements SceneStreet {
     }
   }
 
-  /** The names and cries painted all over the tarmac. */
+  /**
+   * The names and cries painted all over the tarmac, as the fans leave it for days before a
+   * stage: a row every few metres of two names in staggered lanes, and every third row a cry
+   * painted big right across the road.
+   */
   private addRoadPaint(): void {
-    const plane = new PlaneGeometry(2.4, 8.5);
-    this.disposables.push(plane);
-    const count = Math.floor(LOOP / ROAD_PAINT_EVERY);
-    for (let i = 0; i < count; i++) {
-      const [text, colour, x] = ROAD_PAINT[i % ROAD_PAINT.length]!;
-      const mesh = new Mesh(
-        plane,
-        this.material({
+    const name = new PlaneGeometry(2.5, 8);
+    const slogan = new PlaneGeometry(5.6, 10);
+    this.disposables.push(name, slogan);
+    const materials = new Map<string, MeshStandardMaterial>();
+    const paint = (text: string, colour: string) => {
+      const key = `${text}|${colour}`;
+      let material = materials.get(key);
+      if (!material) {
+        material = this.material({
           map: this.track(paintTexture(text, colour)),
           alphaTest: 0.35,
           polygonOffset: true,
           polygonOffsetFactor: -4,
           roughness: 0.7,
-        }),
-      );
+        });
+        materials.set(key, material);
+      }
+      return material;
+    };
+    const lay = (
+      geometry: PlaneGeometry,
+      text: string,
+      colour: string,
+      offset: number,
+      x: number,
+    ) => {
+      const mesh = new Mesh(geometry, paint(text, colour));
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.y = 0.02 - KERB;
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 18 + i * ROAD_PAINT_EVERY, every: LOOP, x, rise: 0 });
+      this.props.push({ mesh: holder, offset, every: LOOP, x, rise: 0 });
+    };
+    const rows = Math.floor(LOOP / ROAD_PAINT_EVERY);
+    let k = 0;
+    for (let row = 0; row < rows; row++) {
+      const offset = 14 + row * ROAD_PAINT_EVERY;
+      if (row % 3 === 2) {
+        const [text, colour] = ROAD_SLOGANS[((row / 3) % ROAD_SLOGANS.length) | 0]!;
+        lay(slogan, text, colour, offset, 0);
+        continue;
+      }
+      const stagger = row % 2 ? 0.4 : -0.4;
+      for (const x of [-1.6 + stagger, 1.6 + stagger]) {
+        const [text, colour] = ROAD_PAINT[k++ % ROAD_PAINT.length]!;
+        lay(name, text, colour, offset, x);
+      }
     }
   }
 
