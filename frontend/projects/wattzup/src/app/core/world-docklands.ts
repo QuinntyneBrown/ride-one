@@ -187,6 +187,19 @@ const HOLO_RADIUS = 40;
 const HOLO_TILT = 0.4;
 const HOLO_TURN = 60;
 /**
+ * Holographic koi over the street: where each school swims round the loop (m), how many in a
+ * school, the height they swim at over the road (m), and their skins' ground and patch colours.
+ */
+const KOI_SCHOOLS = [62, 330, 520];
+const KOI_PER_SCHOOL = 7;
+const KOI_HEIGHT = 8.5;
+const KOI_SKINS: readonly (readonly [string, string])[] = [
+  ['#ffffff', '#ff5a1f'],
+  ['#ff7a1a', '#fff2d6'],
+  ['#ffd23a', '#ff7a1a'],
+  ['#ffffff', '#ff3d6e'],
+];
+/**
  * The blimp: where it hangs (x, y, z in m), its length and girth (m), how far it drifts either
  * way (m) and how long one drift there and back takes (s).
  */
@@ -523,6 +536,16 @@ export class DocklandsStreet {
   private readonly gates: { group: Group; offset: number }[] = [];
   private readonly machines: { group: Group; offset: number }[] = [];
   private readonly walkers: { group: Group; offset: number }[] = [];
+  /** Holographic koi schools over the street: each school's place round the loop, and its fish. */
+  private readonly koiSchools: { group: Group; offset: number }[] = [];
+  private readonly koi: {
+    fish: Group;
+    tail: Mesh;
+    radius: number;
+    height: number;
+    phase: number;
+    speed: number;
+  }[] = [];
   private readonly craft: { group: Group; strobe: Mesh; lane: (typeof SKYLANES)[number] }[] = [];
   /** The people walking the pavement: each strolls its own way at its own pace. */
   private readonly strollers: { person: Group; speed: number; phase: number }[] = [];
@@ -552,6 +575,7 @@ export class DocklandsStreet {
     this.sweep(smooth);
     this.drift(smooth, still);
     this.sail(smooth);
+    this.swimKoi(smooth);
     if (this.holoGlobe) this.holoGlobe.rotation.y = (smooth / HOLO_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
@@ -1750,6 +1774,95 @@ export class DocklandsStreet {
     this.holoGlobe = turning;
   }
 
+  /**
+   * Schools of holographic koi swimming in the air over the street: glowing bodies in orange,
+   * white and gold patched like koi, each with a fanned tail and fins of glowing light,
+   * circling and bobbing as they go, a little see-through like any hologram.
+   */
+  private addKoi(): void {
+    const random = seeded(449);
+    const skins = KOI_SKINS.map(([ground, patch]) => {
+      const material = new MeshBasicMaterial({
+        map: this.track(koiTexture(ground, patch, random)),
+        color: new Color(0xffffff).multiplyScalar(1.3),
+        transparent: true,
+        opacity: 0.88,
+        toneMapped: false,
+      });
+      this.disposables.push(material);
+      return material;
+    });
+    const fin = new MeshBasicMaterial({
+      color: new Color('#ff9a7a').multiplyScalar(1.2),
+      transparent: true,
+      opacity: 0.5,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      side: DoubleSide,
+      toneMapped: false,
+    });
+    const body = new SphereGeometry(1, 20, 12);
+    // The tail: a fan from the body's end, flat and upright.
+    const tailShape = new BufferGeometry();
+    tailShape.setAttribute(
+      'position',
+      new BufferAttribute(
+        new Float32Array([
+          0, 0, 0, -1.3, 0.75, 0, -1.3, -0.75, 0, 0, 0, 0, -1, 0.35, 0, -1, -0.35, 0,
+        ]),
+        3,
+      ),
+    );
+    this.disposables.push(fin, body, tailShape);
+    for (const offset of KOI_SCHOOLS) {
+      const group = new Group();
+      for (let k = 0; k < KOI_PER_SCHOOL; k++) {
+        const fish = new Group();
+        const length = 1.4 + random() * 0.9;
+        const shell = new Mesh(body, skins[k % skins.length]!);
+        shell.scale.set(length, length * 0.22, length * 0.28);
+        fish.add(shell);
+        const tail = new Mesh(tailShape, fin);
+        tail.scale.setScalar(length * 0.55);
+        tail.position.x = -length * 0.92;
+        fish.add(tail);
+        for (const side of [-1, 1]) {
+          const pectoral = new Mesh(tailShape, fin);
+          pectoral.scale.setScalar(length * 0.22);
+          pectoral.rotation.set(Math.PI / 2, 0, side * 2.2);
+          pectoral.position.set(length * 0.35, -length * 0.1, side * length * 0.25);
+          fish.add(pectoral);
+        }
+        group.add(fish);
+        this.koi.push({
+          fish,
+          tail,
+          radius: 2 + random() * 4,
+          height: KOI_HEIGHT + (random() - 0.5) * 4,
+          phase: random() * Math.PI * 2,
+          speed: (0.6 + random() * 0.5) * (random() < 0.5 ? -1 : 1),
+        });
+      }
+      this.group.add(group);
+      this.koiSchools.push({ group, offset });
+    }
+  }
+
+  /** Swims each koi round its circle, nose along its way, bobbing and beating its tail. */
+  private swimKoi(smooth: number): void {
+    for (const { fish, tail, radius, height, phase, speed } of this.koi) {
+      const a = phase + (smooth * speed) / radius;
+      fish.position.set(
+        Math.cos(a) * radius,
+        height + Math.sin(a * 2 + phase) * 0.6,
+        Math.sin(a) * radius * 1.8,
+      );
+      // Heading along the circle's tangent: +x is the nose.
+      fish.rotation.y = -a - (speed > 0 ? Math.PI / 2 : -Math.PI / 2);
+      tail.rotation.y = Math.sin(smooth * 5 + phase) * 0.45;
+    }
+  }
+
   /** Drifts the blimp slowly to and fro along the harbour, and blinks its lights. */
   private drift(smooth: number, still: boolean): void {
     if (!this.blimp) return;
@@ -2044,6 +2157,7 @@ export class DocklandsStreet {
     this.addGates(roadHalf);
     this.addMachines(roadHalf);
     this.addWalkers(roadHalf);
+    this.addKoi();
     this.addAirTraffic();
     this.addRain();
     this.addSplashes(roadHalf);
@@ -4326,6 +4440,11 @@ export class DocklandsStreet {
       boat.mesh.position.y = heightAt(Math.max(metres, 0)) - 0.3;
       boat.mesh.position.z = -metres;
     }
+    for (const school of this.koiSchools) {
+      const metres = ((((school.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      school.group.visible = !this.onBridge(Math.max(metres, 0));
+      school.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
     for (const walker of this.walkers) {
       const metres = ((((walker.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       walker.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -4603,6 +4722,35 @@ function holoRingTexture(): CanvasTexture {
     ctx.beginPath();
     ctx.arc(c, c, c - 4, 0, Math.PI * 2);
     ctx.stroke();
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A koi's skin, wrapped round its body: a ground colour with soft patches of another. */
+function koiTexture(ground: string, patch: string, random: () => number): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = ground;
+    ctx.fillRect(0, 0, 128, 64);
+    ctx.fillStyle = patch;
+    for (let k = 0; k < 5; k++) {
+      ctx.beginPath();
+      ctx.ellipse(
+        random() * 128,
+        14 + random() * 36,
+        10 + random() * 16,
+        8 + random() * 10,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
