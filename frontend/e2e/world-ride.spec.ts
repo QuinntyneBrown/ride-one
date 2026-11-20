@@ -81,6 +81,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Central Park Loop');
   });
 
+  test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');
+    await expect(world.heading).toHaveText('Ghent Six-Day');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Ghent Six-Day');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

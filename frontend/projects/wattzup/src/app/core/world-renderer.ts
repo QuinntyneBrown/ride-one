@@ -197,6 +197,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 1.0, colour: 0xffe7c4 },
     fogRange: [70, 1000],
   },
+  // Indoors under the floodlights: a high warm key from the roof, the far end lost in the haze.
+  ghent: {
+    sky: 0x1c1a19,
+    fog: 0x2b2622,
+    ground: 0x3b3f45,
+    road: 0xc9a06a,
+    sun: 72,
+    wet: false,
+    haze: false,
+    turbidity: 2,
+    rayleigh: 0.5,
+    azimuth: -160,
+    light: { sun: 2.4, fill: 1.3, colour: 0xfff0d8 },
+    fogRange: [30, 240],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

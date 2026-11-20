@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour and Central Park Loop have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop and Ghent Six-Day have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -20,7 +20,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 14 | 15 Minute Cardio HIIT | Central Park Loop | 65% | Early laps of Central Park past the reservoir and Bethesda Fountain, joggers and carriages sharing the drive. |
 | 15 | 15 Minute Strength Workout | Lisbon Tram Hills (concept) |  | Steep cobbled Alfama lanes beside yellow trams; grind each climb toward the castle above the Tagus. |
 | 16 | Low Cadence Strength Builder | Koppenberg Cobbles (concept) |  | Flemish farm lanes in spring mist; heavy gears over slick Koppenberg cobbles with crowds lining the bank. |
-| 17 | Level Up Your Cadence | Ghent Six-Day (concept) |  | Six-day racing under the Kuipke's wooden banking; cadence lifts with every lap the crowd counts. |
+| 17 | Level Up Your Cadence | Ghent Six-Day | 70% | Six-day racing under the Kuipke's wooden banking; cadence lifts with every lap the crowd counts. |
 | 18 | Nasty Pasty Sprint Session | Cornish Harbour (concept) |  | Fishing boats, pasty shops and slate cottages in a Cornwall harbour; sprint the quay between steep lanes. |
 | 19 | 15 Minutes HIIT Sprinting Efforts | Golden Gate Park (concept) |  | Eucalyptus and fog through San Francisco's park; sprint past the bison paddock toward Ocean Beach. |
 | 20 | In and Out, Shake It All About | Blackpool Illuminations (concept) |  | Seaside lights, piers and the tower; weave in and out of tram stops along the illuminated promenade. |
