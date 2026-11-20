@@ -20,6 +20,7 @@ import {
   Group,
   LatheGeometry,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
@@ -156,6 +157,8 @@ export class StradeStreet implements SceneStreet {
   private readonly dust: Mist;
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
+  /** The dust clouds raised over the gravel up the road, each billowing on its own phase. */
+  private readonly puffs: { mesh: Mesh; size: number; phase: number }[] = [];
   private time = 0;
   private readonly flagMaterials = ['#1f8a3a', '#ffffff', '#d22630', '#111111'].map(
     (colour) => new MeshStandardMaterial({ color: colour, side: DoubleSide, roughness: 0.8 }),
@@ -201,6 +204,7 @@ export class StradeStreet implements SceneStreet {
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
     this.addRoadPaint();
+    this.addDust();
     this.addHills();
     this.addSiena();
   }
@@ -208,6 +212,12 @@ export class StradeStreet implements SceneStreet {
   /** The street's clock, in seconds; held at 0 for reduced motion. */
   setTime(seconds: number): void {
     this.time = seconds;
+    // The dust billows and drifts a little downwind as it hangs.
+    for (const puff of this.puffs) {
+      const swell = 1 + Math.sin(seconds * 0.7 + puff.phase) * 0.12;
+      puff.mesh.scale.set(puff.size * swell, puff.size * 0.55 * swell, 1);
+      puff.mesh.position.x = puff.mesh.userData['x'] + Math.sin(seconds * 0.3 + puff.phase) * 0.6;
+    }
   }
 
   lay(points: readonly StreetPoint[], s: number): void {
@@ -493,6 +503,40 @@ export class StradeStreet implements SceneStreet {
       this.group.add(row.mesh);
       this.props.push(row);
     }
+  }
+
+  /**
+   * Clouds of pale dust over the gravel up the road, raised by the riders ahead: soft billows
+   * low over the white road and drifting onto the verges, hanging where a group has just passed.
+   */
+  private addDust(): void {
+    const material = new MeshBasicMaterial({
+      color: 0xf2e4c4,
+      map: this.track(dustTexture()),
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false,
+    });
+    const plane = new PlaneGeometry(1, 1);
+    plane.translate(0, 0.42, 0);
+    this.disposables.push(material, plane);
+    const random = seeded(5031);
+    for (const offset of [138, 156, 172, 205, 260, 320, 390, 450]) {
+      const cloud = new Group();
+      for (let k = 0; k < 7; k++) {
+        const puff = new Mesh(plane, material);
+        const size = 4 + random() * 6;
+        const x = (random() - 0.5) * 9;
+        puff.userData['x'] = x;
+        puff.position.set(x, 0, -random() * 14);
+        puff.renderOrder = 1;
+        cloud.add(puff);
+        this.puffs.push({ mesh: puff, size, phase: random() * 6.3 });
+      }
+      this.group.add(cloud);
+      this.props.push({ mesh: cloud, offset, x: 0 });
+    }
+    this.setTime(this.time);
   }
 
   /**
@@ -812,5 +856,24 @@ function stripeTexture(): CanvasTexture {
     g.fillRect(0, 0, 16, 64);
     g.fillStyle = '#22262a';
     g.fillRect(0, 32, 16, 32);
+  });
+}
+
+/** A billow of dust: a soft round cloud, densest low and fading at its rim, with lumps in it. */
+function dustTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.clearRect(0, 0, 128, 128);
+    const random = seeded(5033);
+    for (let i = 0; i < 26; i++) {
+      // Every billow stays inside the canvas, so no puff shows a straight edge.
+      const r = 12 + random() * 18;
+      const x = 64 + (random() - 0.5) * (124 - 2 * r);
+      const y = Math.min(124 - r, 54 + random() * 46);
+      const blob = g.createRadialGradient(x, y, 0, x, y, r);
+      blob.addColorStop(0, 'rgba(255,255,255,0.32)');
+      blob.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = blob;
+      g.fillRect(x - r, y - r, 2 * r, 2 * r);
+    }
   });
 }
