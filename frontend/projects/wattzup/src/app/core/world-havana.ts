@@ -3607,6 +3607,10 @@ class Walkers {
   private readonly hats: InstancedMesh;
   private readonly hatted: boolean[] = [];
   private readonly shades: InstancedMesh;
+  private readonly feet: InstancedMesh;
+  private readonly skirts: InstancedMesh;
+  private readonly skirted: boolean[] = [];
+  private readonly hands: InstancedMesh;
   private readonly shaded: boolean[] = [];
   private readonly base = new Matrix4();
   private readonly local = new Matrix4();
@@ -3657,6 +3661,18 @@ class Walkers {
       make(hair, 0.95),
     ];
     this.hats = make(hat, 0.9);
+    // Shoes at the foot of each leg and hands at the end of each arm, swinging with them.
+    const shoe = new BoxGeometry(0.11, 0.08, 0.26);
+    shoe.translate(0, -0.84, -0.05);
+    const hand = new SphereGeometry(0.05, 8, 6);
+    hand.scale(0.8, 1.2, 0.9);
+    hand.translate(0, -0.6, 0);
+    this.feet = make(shoe, 0.6, 2);
+    // A skirt or the lower half of a dress, flaring from the waist to the knee.
+    const skirt = new CylinderGeometry(0.17, 0.27, 0.55, 14, 1, true);
+    this.skirts = make(skirt, 0.9);
+    (this.skirts.material as MeshStandardMaterial).side = DoubleSide;
+    this.hands = make(hand, 0.75, 2);
     // A parasol held up against the sun: a shallow canopy on its shaft, in the right hand.
     const canopy = new ConeGeometry(0.55, 0.22, 10, 1, true);
     canopy.translate(0, 0.62, 0);
@@ -3670,14 +3686,22 @@ class Walkers {
     const random = seeded(seed);
     const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
     const c = new Color();
+    const wears = seeded(seed + 2);
+    const skirts = ['#2b2d42', '#e8d8b8', '#c8202f', '#1d70b8', '#f4f1ea', '#8e44ad'];
+    const shoes = ['#1a1a1a', '#5a3a22', '#f2f2ee', '#2a2a40', '#8a6a4a'];
     const hairs = ['#1a1410', '#2a1d14', '#4a3020', '#8a8580', '#1a1a1a'];
     for (let i = 0; i < count; i++) {
       const top = pick(wardrobe.tops);
       const bottom = pick(wardrobe.bottoms);
       const skin = pick(wardrobe.skins);
+      const dress = wears() < 0.4;
+      this.skirted.push(dress);
+      this.skirts.setColorAt(i, c.set(wears() < 0.5 ? top : pick(skirts)));
       for (const k of [0, 1]) {
-        this.parts[0]!.setColorAt(i * 2 + k, c.set(bottom));
+        this.parts[0]!.setColorAt(i * 2 + k, c.set(dress ? skin : bottom));
         this.parts[1]!.setColorAt(i * 2 + k, c.set(random() < 0.6 ? skin : top));
+        this.hands.setColorAt(i * 2 + k, c.set(skin));
+        this.feet.setColorAt(i * 2 + k, c.set(shoes[i % shoes.length]!));
       }
       this.parts[2]!.setColorAt(i, c.set(top));
       this.parts[3]!.setColorAt(i, c.set(skin));
@@ -3704,28 +3728,45 @@ class Walkers {
       [0, -1],
       [1, 1],
     ] as const) {
-      this.place(0, i * 2 + k, side * 0.1, 0.88 + lift, 0, side * swing);
-      this.place(1, i * 2 + k, side * 0.24, 1.42 + lift, 0, -side * swing * 0.8);
+      this.place(this.parts[0]!, i * 2 + k, side * 0.1, 0.88 + lift, 0, side * swing);
+      this.place(this.parts[1]!, i * 2 + k, side * 0.24, 1.42 + lift, 0, -side * swing * 0.8);
+      this.place(this.feet, i * 2 + k, side * 0.1, 0.88 + lift, 0, side * swing);
+      this.place(this.hands, i * 2 + k, side * 0.24, 1.42 + lift, 0, -side * swing * 0.8);
     }
-    this.place(2, i, 0, 1.18 + lift, 0, 0);
-    this.place(3, i, 0, 1.66 + lift, 0, 0);
-    this.place(4, i, 0, 1.67 + lift, 0, 0);
-    if (this.hatted[i]) this.place(5, i, 0, 1.75 + lift, 0, 0);
+    this.place(this.parts[2]!, i, 0, 1.18 + lift, 0, 0);
+    if (this.skirted[i]) this.place(this.skirts, i, 0, 0.78 + lift, 0, 0);
+    else this.skirts.setMatrixAt(i, this.out.compose(this.spot, this.turn, this.none));
+    this.place(this.parts[3]!, i, 0, 1.66 + lift, 0, 0);
+    this.place(this.parts[4]!, i, 0, 1.67 + lift, 0, 0);
+    if (this.hatted[i]) this.place(this.hats, i, 0, 1.75 + lift, 0, 0);
     else this.hats.setMatrixAt(i, this.out.compose(this.spot, this.turn, this.none));
-    if (this.shaded[i]) this.place(6, i, 0.24, 1.25 + lift, -0.12, 0);
+    if (this.shaded[i]) this.place(this.shades, i, 0.24, 1.25 + lift, -0.12, 0);
     else this.shades.setMatrixAt(i, this.out.compose(this.spot, this.turn, this.none));
   }
 
   /** Sets one part's instance at a local pivot (x, y, z), swung `swing` radians about x. */
-  private place(part: number, index: number, x: number, y: number, z: number, swing: number): void {
+  private place(
+    mesh: InstancedMesh,
+    index: number,
+    x: number,
+    y: number,
+    z: number,
+    swing: number,
+  ): void {
     this.local.makeRotationX(swing).setPosition(x, y, z);
     this.out.multiplyMatrices(this.base, this.local);
-    const mesh = part === 6 ? this.shades : part === 5 ? this.hats : this.parts[part]!;
     mesh.setMatrixAt(index, this.out);
   }
 
   commit(): void {
-    for (const mesh of [...this.parts, this.hats, this.shades]) {
+    for (const mesh of [
+      ...this.parts,
+      this.hats,
+      this.shades,
+      this.feet,
+      this.hands,
+      this.skirts,
+    ]) {
       mesh.instanceMatrix.needsUpdate = true;
     }
   }
