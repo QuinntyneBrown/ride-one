@@ -416,6 +416,28 @@ export class HavanaStreet implements SceneStreet {
       [lanes + 0.3, 0.008],
     ]);
     across.renderOrder = 1;
+    // Tar snakes: the glossy black crack sealant poured along the road's cracks, wandering down
+    // the lanes and across them, catching the sun where the matt asphalt does not.
+    const tar = this.track(tarTexture());
+    tar.wrapS = RepeatWrapping;
+    tar.wrapT = RepeatWrapping;
+    tar.repeat.set(1 / (2 * r + LANES), 1 / 60);
+    this.ribbons.add(
+      points,
+      this.material({
+        map: tar,
+        transparent: true,
+        depthWrite: false,
+        roughness: 0.25,
+        metalness: 0.1,
+        polygonOffset: true,
+        polygonOffsetFactor: -3,
+      }),
+      [
+        [r, 0.011],
+        [lanes + 0.3, 0.011],
+      ],
+    ).renderOrder = 2;
     this.ribbons.add(points, asphalt, [
       [-r, 0.004],
       [lanes, 0.004],
@@ -5127,5 +5149,55 @@ function grateTexture(): CanvasTexture {
     for (let y = 10; y < 102; y += 9) g.fillRect(8, y, 48, 5);
     g.fillStyle = 'rgba(140,80,40,0.35)';
     for (let i = 0; i < 20; i++) g.fillRect((i * 37) % 60, (i * 53) % 108, 6, 4);
+  });
+}
+
+/**
+ * Tar snakes over the whole road, its width across and 60 m along: sealant lines poured along
+ * the cracks, long wandering runs down the lanes, short ones across them, and branching forks,
+ * glossy black and a little ragged at the edges, on clear.
+ */
+function tarTexture(): CanvasTexture {
+  return canvasTexture(512, 2048, (g) => {
+    g.clearRect(0, 0, 512, 2048);
+    const random = seeded(1559);
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    const snake = (x: number, y: number, dx: number, dy: number, steps: number) => {
+      g.strokeStyle = `rgba(14,14,16,${0.75 + random() * 0.2})`;
+      g.lineWidth = 2.5 + random() * 2.5;
+      g.beginPath();
+      g.moveTo(x, y);
+      for (let k = 0; k < steps; k++) {
+        x += dx + (random() - 0.5) * 10;
+        y += dy + (random() - 0.5) * 10;
+        g.lineTo(x, y);
+        if (random() < 0.08) {
+          g.stroke();
+          snake(
+            x,
+            y,
+            dy * 0.3 * (random() < 0.5 ? 1 : -1),
+            dx + dy * 0.6,
+            3 + Math.floor(random() * 6),
+          );
+          g.strokeStyle = `rgba(14,14,16,${0.75 + random() * 0.2})`;
+          g.lineWidth = 2.5 + random() * 2.5;
+          g.beginPath();
+          g.moveTo(x, y);
+        }
+      }
+      g.stroke();
+    };
+    for (let i = 0; i < 9; i++)
+      snake(random() * 512, random() * 2048, 0, 14, 12 + Math.floor(random() * 30));
+    for (let i = 0; i < 14; i++)
+      snake(
+        random() * 200,
+        random() * 2048,
+        12,
+        (random() - 0.5) * 4,
+        6 + Math.floor(random() * 22),
+      );
   });
 }
