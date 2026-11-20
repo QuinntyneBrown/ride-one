@@ -109,6 +109,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
   private readonly searchlights: Mesh[] = [];
+  private readonly vents: Mesh[][] = [];
   private heli: { craft: Group; rotor: Mesh; lights: Mesh[] } | null = null;
   private readonly swaying: { palm: Group; phase: number; lean: number }[] = [];
   /** Where the nightclubs' doors are, in metres along the loop. */
@@ -158,6 +159,7 @@ export class MiamiStreet implements SceneStreet {
     this.addShelters(roadHalf);
     this.addGateway(roadHalf);
     this.addCollins(roadHalf);
+    this.addSteam();
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -200,6 +202,16 @@ export class MiamiStreet implements SceneStreet {
       const blink = seconds % 1.2 < 0.3;
       this.heli.lights.forEach((l) => (l.visible = blink));
     }
+    // Each puff of steam rises 3.5 m over 3.5 s, swelling and drifting with the breeze.
+    this.vents.forEach((puffs, v) =>
+      puffs.forEach((m, i) => {
+        const age = ((((seconds + v * 0.9) / 3.5 + i / puffs.length) % 1) + 1) % 1;
+        const size = 0.8 + age * 2.6;
+        m.scale.set(size, size, 1);
+        m.position.set(age * 1.2 + Math.sin(i * 2.3) * 0.2, 0.3 + age * 3.5, 0);
+        m.visible = age < 0.97;
+      }),
+    );
     // The searchlights sweep slowly to and fro, out of step with each other.
     this.searchlights.forEach((m, k) => {
       m.rotation.z = Math.sin(seconds * 0.25 + k * 2.1) * 0.5;
@@ -1738,6 +1750,40 @@ export class MiamiStreet implements SceneStreet {
     }
   }
 
+  /**
+   * Steam rising from manholes in the warm wet night: at three covers on the road, soft puffs
+   * well up, drift with the breeze, swell and fade, lit pink and blue by the neon.
+   */
+  private addSteam(): void {
+    const puff = new MeshBasicMaterial({
+      map: this.track(steamTexture()),
+      color: 0xe8d8f0,
+      transparent: true,
+      opacity: 0.6,
+      depthWrite: false,
+    });
+    this.disposables.push(puff);
+    for (const [offset, x] of [
+      [60, -1.9],
+      [150, -1.6],
+      [262, 0.8],
+    ] as const) {
+      const vent = new Group();
+      const puffs: Mesh[] = [];
+      for (let i = 0; i < 7; i++) {
+        const m = new Mesh(this.flat, puff);
+        m.renderOrder = 3;
+        vent.add(m);
+        puffs.push(m);
+      }
+      const holder = new Group();
+      holder.add(vent);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x });
+      this.vents.push(puffs);
+    }
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -3226,6 +3272,23 @@ function gatewayTexture(): CanvasTexture {
       g.shadowBlur = 0;
       g.fillStyle = 'rgba(255,255,255,0.8)';
       g.fillText(text, x, 34);
+    }
+  });
+}
+
+/** A soft puff of steam, densest at its heart and wisping out to nothing. */
+function steamTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    const random = seeded(8361);
+    for (let i = 0; i < 9; i++) {
+      const x = 22 + random() * 20;
+      const y = 22 + random() * 20;
+      const r = 10 + random() * 14;
+      const puff = g.createRadialGradient(x, y, 0, x, y, r);
+      puff.addColorStop(0, 'rgba(255,255,255,0.35)');
+      puff.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = puff;
+      g.fillRect(0, 0, 64, 64);
     }
   });
 }

@@ -3259,13 +3259,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.placeRoadside(frame.s, ahead);
     this.placePacers(world, frame, ahead);
 
-    this.you?.pose(frame.reducedMotion ? 0 : frame.crank);
-    // The bike sits on the road: nose up on a climb, down on a descent.
-    if (this.you) {
-      this.you.group.rotation.x = pitch(gradeAt(ahead, 0));
-      // and leans into a bend: right on a right-hander.
-      this.you.group.rotation.z = -lean(world, frame.s, speed);
-    }
+    // The bike rocks under the pedal strokes and leans into a bend: right on a right-hander.
+    this.you?.pose(frame.reducedMotion ? 0 : frame.crank, -lean(world, frame.s, speed));
+    // It sits on the road: nose up on a climb, down on a descent.
+    if (this.you) this.you.group.rotation.x = pitch(gradeAt(ahead, 0));
     const blur = this.on.has(34) ? Math.min(0.55, speed / 14) : 0;
     for (const disc of this.wheelBlur) {
       disc.visible = blur > 0.02;
@@ -3562,8 +3559,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
       rider.group.position.set(lane, heightAt(ahead, p.metres), -p.metres);
       rider.group.rotation.x = pitch(gradeAt(ahead, p.metres));
       // Each pacer leans into the bend it is riding through, as the rider does.
-      rider.group.rotation.z = -lean(world, frame.s + p.metres, frame.speedKmh / 3.6);
-      rider.pose(frame.reducedMotion ? 0 : frame.crank * (0.9 + p.jersey * 0.03) + p.jersey);
+      rider.pose(
+        frame.reducedMotion ? 0 : frame.crank * (0.9 + p.jersey * 0.03) + p.jersey,
+        -lean(world, frame.s + p.metres, frame.speedKmh / 3.6),
+      );
     }
   }
 
