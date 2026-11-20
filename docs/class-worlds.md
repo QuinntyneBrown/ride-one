@@ -10,7 +10,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 4 | 30 Min Tempo Paceline | Prairie Paceline | 35% | Open farmland at golden hour. Take long turns on the front, into the wind past the turbines. |
 | 5 | 60 Min Dolomites Endurance | Dolomites | 35% | A valley road under limestone peaks. Soft rollers, one steady level and long views. |
 | 6 | 60 Min Coastal Endurance + Surges | Cliffside Coast | 35% | A clifftop road at sunset with the sea on your right. Each tempo surge climbs a headland. |
-| 7 | Calorie Burning Workout | South Beach Sunrise | 74% | Pastel art deco hotels with neon fins face palms, lifeguard towers and the Atlantic along Miami Beach's Ocean Drive at sunrise. The two-minute opener and the six short efforts each chase the rising sun up a rise toward the deco tower at the end of the drive. |
+| 7 | Calorie Burning Workout | South Beach Sunrise | 76% | Pastel art deco hotels with neon fins face palms, lifeguard towers and the Atlantic along Miami Beach's Ocean Drive at sunrise. The two-minute opener and the six short efforts each chase the rising sun up a rise toward the deco tower at the end of the drive. |
 | 8 | Intense Interval Blast | Caribana Parade | 55% | Toronto's Lake Shore Boulevard at Caribbean Carnival; steel pans and feathered masqueraders, each interval a surge between bands. |
 | 9 | Quick But Brutal HIIT | Trinidad J'Ouvert (concept) |  | Port of Spain before dawn at Carnival, paint and mud flying; each sprint breaks through a soca crowd. |
 | 10 | Sprintavals | Knicks Championship Parade (concept) |  | Ticker tape over Manhattan's Canyon of Heroes for a Knicks NBA title; sprint between floats as orange-and-blue crowds roar. |

@@ -296,6 +296,12 @@ export class SouthBeachStreet implements SceneStreet {
     const facades = PALETTES.map((p) => this.track(facadeTexture(p.wall, p.trim)));
     const walls = PALETTES.map((p) => this.material({ color: p.wall, roughness: 0.85 }));
     const trims = PALETTES.map((p) => this.material({ color: p.trim, roughness: 0.6 }));
+    // The deco details draw from a sequence of their own, so the layout never reshuffles.
+    const deco = seeded(37);
+    const drum = new CylinderGeometry(1, 1, 1, 24);
+    drum.translate(0, 0.5, 0);
+    const ring = new CylinderGeometry(1, 1, 0.12, 24);
+    this.disposables.push(drum, ring);
     let offset = 0;
     let index = 0;
     let last = -1;
@@ -373,8 +379,44 @@ export class SouthBeachStreet implements SceneStreet {
         emissiveIntensity: 0.8,
       });
       box(band, 0.1, 0.12, width, 0.12, height - 0.3);
+      // A curved corner tower on the end facing the rider, wrapped by its eyebrows.
+      if (deco() < 0.6) {
+        const r = 2.2;
+        const tower = new Mesh(drum, walls[style]!);
+        tower.scale.set(r, height + 1.2, r);
+        tower.position.set(-r + 0.5, 0, width / 2 - r + 0.3);
+        tower.castShadow = true;
+        hotel.add(tower);
+        for (let k = 1; k <= storeys; k++) {
+          const band = new Mesh(ring, trim);
+          band.scale.set(r + 0.35, 1, r + 0.35);
+          band.position.set(-r + 0.5, k * STOREY - 0.55, width / 2 - r + 0.3);
+          hotel.add(band);
+        }
+        const cap = new Mesh(ring, trim);
+        cap.scale.set(r + 0.2, 2, r + 0.2);
+        cap.position.set(-r + 0.5, height + 1.2, width / 2 - r + 0.3);
+        hotel.add(cap);
+      }
+      // A stepped ziggurat finial over the entrance, a mast on top.
+      if (storeys >= 3 && deco() < 0.7) {
+        const top = height + 2.4;
+        box(walls[style]!, 2.4, 1.6, 3.6, -1.4, top);
+        box(trim, 2.6, 0.2, 3.8, -1.4, top + 1.6);
+        box(walls[style]!, 1.6, 1.4, 2.2, -1.4, top + 1.8);
+        box(trim, 1.8, 0.2, 2.4, -1.4, top + 3.2);
+        box(walls[style]!, 0.9, 1.2, 1.1, -1.4, top + 3.4);
+        box(trim, 0.12, 3.5, 0.12, -1.4, top + 4.6);
+      }
+      // Old frontages never quite line up: each hotel stands up to 1.5 m back.
+      const setback = deco() * 1.5;
       this.group.add(hotel);
-      this.props.push({ mesh: hotel, offset: offset + width / 2, every: LOOP, x: -FRONTAGE });
+      this.props.push({
+        mesh: hotel,
+        offset: offset + width / 2,
+        every: LOOP,
+        x: -FRONTAGE - setback,
+      });
       offset += width;
       index++;
       // A side street now and then: a gap between the hotels.
