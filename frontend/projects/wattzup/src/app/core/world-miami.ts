@@ -8,11 +8,11 @@
 // names are invented. Built on the shared kit (world-kit.ts) on the pattern of Old Town's street.
 import {
   AdditiveBlending,
+  BufferAttribute,
   BoxGeometry,
   Color,
   ConeGeometry,
   DoubleSide,
-  type BufferAttribute,
   type BufferGeometry,
   type CanvasTexture,
   CylinderGeometry,
@@ -40,6 +40,7 @@ import {
   seeded,
   speckle,
 } from './world-kit';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { StreetPoint } from './world-oldtown';
 
 /** The boulevard repeats every LOOP metres; its parts run from BEHIND metres behind the rider. */
@@ -65,6 +66,8 @@ function inCrossing(offset: number, margin = 0): boolean {
 /** The neon colours, each a tube's colour and how hard it glows. */
 const NEON = [0xff3fb4, 0x2fe6ff, 0xb46bff, 0x5aff8a, 0xffd23f, 0xff6a3f] as const;
 const PASTELS = [0xf4b8c8, 0xa8e0dc, 0xf8e0a8, 0xc8b8ec, 0xb8e4b0, 0xf6c8a4] as const;
+/** Trim colours painted over the pastel stucco, one per hotel. */
+const ACCENTS = ['#2ab8b0', '#ff6f8f', '#7a6ad8', '#f4a040', '#3aa0e0', '#e05aa0'] as const;
 const NAMES = ['AZURE', 'FLAMINGO', 'CORAL MOON', 'PALMETTO', 'SEABREEZE', 'STARLITE'] as const;
 
 const NIGHT_WEAR = {
@@ -150,6 +153,7 @@ export class MiamiStreet implements SceneStreet {
     this.addPromenade(roadHalf);
     this.addKerbside(roadHalf);
     this.addDunes(roadHalf);
+    this.addFestoons(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -559,7 +563,7 @@ export class MiamiStreet implements SceneStreet {
       const glow = NEON[k % NEON.length]!;
       const hotel = new Group();
       const facade = this.material({
-        map: this.track(facadeTexture(storeys, 8101 + k * 13)),
+        map: this.track(facadeTexture(storeys, 8101 + k * 13, ACCENTS[k % ACCENTS.length]!)),
         color: PASTELS[k % PASTELS.length],
         roughness: 0.8,
         emissive: 0xffffff,
@@ -1414,6 +1418,59 @@ export class MiamiStreet implements SceneStreet {
     }
   }
 
+  /**
+   * Festoons of party bulbs strung across the boulevard every 36 m from the promenade palms to
+   * the hotel side, sagging over the road, warm white with pink and cyan between.
+   */
+  private addFestoons(roadHalf: number): void {
+    const span = roadHalf * 2 + 4.6;
+    const parts: BufferGeometry[] = [];
+    const wire: BufferGeometry[] = [];
+    const colour = new Color();
+    for (let i = 0; i <= 30; i++) {
+      const u = i / 30;
+      const x = -span / 2 + u * span;
+      const y = 7 - 1.4 * (1 - (2 * u - 1) ** 2);
+      const bulb = new SphereGeometry(0.09, 6, 4);
+      bulb.translate(x, y - 0.12, 0);
+      colour.set(i % 3 === 0 ? 0xff5fc0 : i % 3 === 1 ? 0xffe0a0 : 0x5fe8ff);
+      const tint = new Float32Array(bulb.getAttribute('position').count * 3);
+      for (let v = 0; v < tint.length; v += 3) colour.toArray(tint, v);
+      bulb.setAttribute('color', new BufferAttribute(tint, 3));
+      parts.push(bulb);
+      if (i < 30) {
+        const nx = -span / 2 + ((i + 1) / 30) * span;
+        const ny = 7 - 1.4 * (1 - (2 * ((i + 1) / 30) - 1) ** 2);
+        const seg = new BoxGeometry(Math.hypot(nx - x, ny - y), 0.02, 0.02);
+        seg.rotateZ(Math.atan2(ny - y, nx - x));
+        seg.translate((x + nx) / 2, (y + ny) / 2, 0);
+        wire.push(seg);
+      }
+    }
+    const bulbs = mergeGeometries(parts)!;
+    const line = mergeGeometries(wire)!;
+    [...parts, ...wire].forEach((g) => g.dispose());
+    this.disposables.push(bulbs, line);
+    const lit = new MeshBasicMaterial({ vertexColors: true });
+    const dark = this.material({ color: 0x18181c, roughness: 0.8 });
+    this.disposables.push(lit);
+    for (let offset = 20; offset < LOOP; offset += 36) {
+      if (inCrossing(offset, 3)) continue;
+      const festoon = new Group();
+      festoon.add(new Mesh(bulbs, lit), new Mesh(line, dark));
+      const glow = new Mesh(this.flat, this.halo);
+      glow.scale.set(span * 1.05, 2.4, 1);
+      glow.position.y = 6.2;
+      (glow.material as MeshBasicMaterial).opacity = 1;
+      festoon.add(glow);
+      festoon.position.x = (roadHalf + 2 - (roadHalf + 2.6)) / 2;
+      const holder = new Group();
+      holder.add(festoon);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: 0 });
+    }
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -2052,10 +2109,17 @@ function windowBays(storeys: number): { x: number; y: number; w: number; h: numb
  * over each pair of windows, racing stripes at the corners and the window openings with
  * their mullions.
  */
-function facadeTexture(storeys: number, seed: number): CanvasTexture {
+function facadeTexture(storeys: number, seed: number, accent: string): CanvasTexture {
   return canvasTexture(512, 512, (g) => {
     speckle(g, 512, 512, '#f4f0ec', seed);
     const band = 512 / storeys;
+    // The hotel's accent colour: a band under each window row, the corner piers and a wide
+    // frieze under the roof, painted as Ocean Drive paints its trim.
+    g.fillStyle = accent;
+    g.fillRect(0, 0, 512, 16);
+    g.fillRect(0, 0, 18, 512);
+    g.fillRect(494, 0, 18, 512);
+    for (let f = 0; f < storeys; f++) g.fillRect(0, f * band + band * 0.82, 512, band * 0.08);
     // Fluted pilasters: pale ribs with a shadow line, rising the full height between bays.
     for (let x = 8; x < 512; x += 78) {
       g.fillStyle = 'rgba(255,255,255,0.55)';

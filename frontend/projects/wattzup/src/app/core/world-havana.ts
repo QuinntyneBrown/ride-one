@@ -117,6 +117,11 @@ export class HavanaStreet implements SceneStreet {
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly drop = new Matrix4();
+  private readonly crest = new Matrix4();
+  private crests: InstancedMesh | null = null;
+  private readonly crestList: { offset: number; delay: number; length: number }[] = [];
+  private foam: Texture | null = null;
+  private roadHalf = 0;
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -126,6 +131,7 @@ export class HavanaStreet implements SceneStreet {
   }
 
   build(roadHalf: number, points: number): void {
+    this.roadHalf = roadHalf;
     this.disposables.push(this.unit);
     this.addSeafront(roadHalf, points);
     this.addSpray(roadHalf);
@@ -134,11 +140,16 @@ export class HavanaStreet implements SceneStreet {
     this.addCars(roadHalf);
     this.addPeople(roadHalf);
     this.addMorro(roadHalf);
+    this.addReef(roadHalf, points);
   }
 
   setTime(seconds: number): void {
     this.time = seconds;
     if (this.swell) this.swell.offset.x = Math.sin(seconds * 0.5) * 0.02;
+    if (this.foam) {
+      this.foam.offset.x = Math.sin(seconds * 0.8) * 0.06;
+      this.foam.offset.y = seconds * 0.01;
+    }
     for (const spray of this.sprays) {
       // Each surge climbs over the wall, hangs and falls; then the sea is still till the next.
       const t = (((seconds + spray.delay) % CYCLE) + CYCLE) % CYCLE;
@@ -202,6 +213,19 @@ export class HavanaStreet implements SceneStreet {
       });
       people.commit();
     }
+    if (this.crests) {
+      const wall = -this.roadHalf - LANES - PROMENADE - 0.7;
+      this.crestList.forEach((c, i) => {
+        // Each crest rolls in from the open water to break at the wall's foot.
+        const metres = loopMetres(c.offset, s, LOOP, BEHIND);
+        const k = ((((this.time + c.delay) / CYCLE) % 1) + 1) % 1;
+        const out = 3 + (1 - k) * 70;
+        this.crest.makeScale(2.2 + k * 1.8, 1 + k * 1.5, c.length);
+        this.crest.setPosition(wall - out, heightAt(Math.max(metres, 0)) - SEA + 0.04, -metres);
+        this.crests!.setMatrixAt(i, this.crest);
+      });
+      this.crests.instanceMatrix.needsUpdate = true;
+    }
     this.horizon.position.set(0, heightAt(0), 0);
   }
 
@@ -216,7 +240,14 @@ export class HavanaStreet implements SceneStreet {
     const wall = this.material({ map: this.repeat(wallTexture(), 2, 2), roughness: 0.95 });
     const swell = this.repeat(seaTexture(), 30, 30);
     this.swell = swell;
-    const sea = this.material({ map: swell, roughness: 0.12, metalness: 0.25 });
+    const sea = this.material({
+      map: swell,
+      emissiveMap: swell,
+      emissive: 0x4f9cc8,
+      emissiveIntensity: 0.55,
+      roughness: 0.35,
+      metalness: 0.05,
+    });
     const lanes = -r - LANES;
     const promenade = lanes - PROMENADE;
     this.ribbons.add(points, asphalt, [
@@ -660,6 +691,76 @@ export class HavanaStreet implements SceneStreet {
     );
   }
 
+  /**
+   * The sea's side of the wall: the jagged dark reef rock (diente de perro) heaped at its foot,
+   * a band of churning foam against it, and swell crests rolling in from the Gulf to break there.
+   */
+  private addReef(roadHalf: number, points: number): void {
+    const wall = -roadHalf - LANES - PROMENADE - 0.7;
+    const foam = this.track(foamTexture());
+    foam.wrapS = RepeatWrapping;
+    foam.wrapT = RepeatWrapping;
+    foam.repeat.set(1 / 7, 1 / 14);
+    this.foam = foam;
+    this.ribbons.add(
+      points,
+      this.material({ map: foam, transparent: true, depthWrite: false, roughness: 0.6 }),
+      [
+        [wall, -SEA + 0.05],
+        [wall - 7, -SEA + 0.05],
+      ],
+    );
+    const random = seeded(1021);
+    const rock = this.material({ color: 0x4a443c, roughness: 1, flatShading: true });
+    const stone = new IcosahedronGeometry(1, 0);
+    this.disposables.push(stone);
+    for (let offset = 0; offset < LOOP; offset += 24) {
+      const parts: BufferGeometry[] = [];
+      for (let k = 0; k < 18; k++) {
+        const r = 0.4 + random() * 0.9;
+        const piece = stone.clone();
+        piece.scale(r * (1 + random()), r * 0.6, r * (1 + random()));
+        piece.rotateY(random() * Math.PI);
+        piece.translate(-0.4 - random() * 3.2, -SEA + r * 0.15 - 0.2, -random() * 24);
+        parts.push(piece);
+      }
+      const heap = mergeGeometries(parts)!;
+      parts.forEach((g) => g.dispose());
+      this.disposables.push(heap);
+      const holder = new Group();
+      const mesh = new Mesh(heap, rock);
+      mesh.receiveShadow = true;
+      holder.add(mesh);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: wall });
+    }
+    const ridge = new CylinderGeometry(0.5, 0.5, 1, 8, 1);
+    ridge.rotateX(Math.PI / 2);
+    ridge.scale(1, 0.2, 1);
+    this.disposables.push(ridge);
+    for (let offset = 0; offset < LOOP; offset += 3 + random() * 6) {
+      this.crestList.push({
+        offset,
+        delay: -offset / RUN + random() * 0.8,
+        length: 8 + random() * 14,
+      });
+    }
+    this.crests = new InstancedMesh(
+      ridge,
+      this.material({
+        color: 0xf4fafc,
+        emissive: 0x8aa0aa,
+        transparent: true,
+        opacity: 0.85,
+        roughness: 0.5,
+        depthWrite: false,
+      }),
+      this.crestList.length,
+    );
+    this.crests.frustumCulled = false;
+    this.group.add(this.crests);
+  }
+
   /** El Morro across the harbour mouth ahead: the castle's walls on its rock, and its lighthouse. */
   private addMorro(roadHalf: number): void {
     const stone = this.material({
@@ -756,7 +857,7 @@ function wallTexture(): CanvasTexture {
 /** The Gulf's deep blue water, flecked with whitecaps. */
 function seaTexture(): CanvasTexture {
   return canvasTexture(512, 512, (g) => {
-    g.fillStyle = '#1f6a96';
+    g.fillStyle = '#0f5f94';
     g.fillRect(0, 0, 512, 512);
     const random = seeded(971);
     for (let i = 0; i < 1400; i++) {
@@ -963,4 +1064,28 @@ function stretch(plane: PlaneGeometry, times: number): PlaneGeometry {
   const uv = plane.getAttribute('uv') as BufferAttribute;
   for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * times);
   return plane;
+}
+
+/** Foam churning at the wall's foot: dense white against the wall, breaking up seaward. */
+function foamTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    g.clearRect(0, 0, 256, 256);
+    const random = seeded(1031);
+    for (let i = 0; i < 2600; i++) {
+      const x = random() ** 2.2 * 256;
+      const a = (1 - x / 256) * (0.25 + random() * 0.5);
+      g.fillStyle = `rgba(245,250,252,${a})`;
+      g.beginPath();
+      g.ellipse(
+        x,
+        random() * 256,
+        2 + random() * 7,
+        2 + random() * 10,
+        random() * 3,
+        0,
+        Math.PI * 2,
+      );
+      g.fill();
+    }
+  });
 }
