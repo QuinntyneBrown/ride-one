@@ -364,7 +364,7 @@ const LOOKS: Record<WorldId, Look> = {
     turbidity: 4.5,
     rayleigh: 2,
     azimuth: -150,
-    light: { sun: 3.3, fill: 0.95, colour: 0xffe6c4 },
+    light: { sun: 3.3, fill: 1.2, colour: 0xffe6c4 },
     fogRange: [70, 950],
   },
   // Sunrise on the Giza plateau: a low gold sun behind the rider, warm dust in the air.
