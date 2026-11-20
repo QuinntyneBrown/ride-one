@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`, `atacama`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -604,6 +604,12 @@ None.
   - a timber pier with a varnished wooden runabout moored at it;
   - paddleboarders gliding over the shallows on their boards and walkers on the shoulder (`Figures`);
   - the deep blue lake, the far shore's forests, Fannette Island and the snow-streaked Sierra peaks, keeping their bearing.
+- **Atacama Desert (`core/world-atacama.ts`).** For `atacama`, the Salar de Atacama late on a cloudless afternoon:
+  - the dead-straight road across the salt crust cracked into white polygons, jagged salt boulders, and the rust-red ridges of the Valle de la Luna rising on the right;
+  - the still lagoon mirroring the sky on the left, the ground sunk below it (`sink`), and Andean flamingos wading and dipping their heads to feed on the ride's clock;
+  - a wooden boardwalk out to the lagoon with visitors on it (`Figures`), and vicuñas grazing the scrub;
+  - a white tour truck crossing the flat on the ride's clock with its plume of dust;
+  - Licancabur's snow-tipped cone, the line of volcanoes and the Cordillera de Sal, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -696,6 +702,7 @@ None.
 | `pages/world-ride/santamonica` | Santa Monica Pier at 2:53, warm-up, next `Pier sprint` |
 | `pages/world-ride/antwerp` | Antwerp Port Sprint at 4:50, warm-up, next `Bunch sprint` |
 | `pages/world-ride/tahoe` | Lake Tahoe at 4:50, warm-up, next `Shore effort` |
+| `pages/world-ride/atacama` | Atacama Desert at 4:50, warm-up, next `Salt-flat burn` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

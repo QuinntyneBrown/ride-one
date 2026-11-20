@@ -845,6 +845,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Lake Tahoe');
   });
 
+  test('rides Extreme Fat Burning Class across the salt flats of the Atacama Desert', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Extreme Fat Burning Class',
+      'Atacama Desert',
+      'extreme-fat-burning-class',
+    );
+    await expect(world.heading).toHaveText('Atacama Desert');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Atacama Desert');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

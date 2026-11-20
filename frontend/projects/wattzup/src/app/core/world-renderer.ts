@@ -1319,6 +1319,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.6, colour: 0xfff6e8 },
     fogRange: [2500, 16000],
   },
+  // Late on a cloudless afternoon on the Salar de Atacama: a deep high-altitude blue, the low sun turning the volcanoes pink.
+  atacama: {
+    sky: 0x2a6ad8,
+    fog: 0xe8dcd4,
+    ground: 0xece6da,
+    road: 0x6a6460,
+    sun: 22,
+    wet: false,
+    haze: false,
+    turbidity: 1.5,
+    rayleigh: 1.8,
+    azimuth: 250,
+    light: { sun: 2.8, fill: 1.4, colour: 0xffe0c0 },
+    fogRange: [3000, 18000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
