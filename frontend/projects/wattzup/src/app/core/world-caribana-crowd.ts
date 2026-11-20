@@ -3,6 +3,7 @@
 // barricades in summer clothes, waving flags, dancing and filming the bands on their phones.
 import {
   BoxGeometry,
+  CanvasTexture,
   type BufferGeometry,
   Color,
   ConeGeometry,
@@ -16,6 +17,7 @@ import {
   PlaneGeometry,
   Quaternion,
   SphereGeometry,
+  SRGBColorSpace,
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -193,6 +195,66 @@ export function spectatorParts(stance: number, shorts: boolean) {
   return { skin: merge(skin), top: merge(top), bottom: merge(bottom) };
 }
 
+/**
+ * A face: a patch of sphere wrapped round the front of the head (radius 0.105 at 1.6 m, as
+ * the bodies are built), for a face texture of eyes, brows, nose and lips; and dark glasses.
+ */
+export function faceParts(): { face: BufferGeometry; shades: BufferGeometry } {
+  const face = new SphereGeometry(
+    0.108,
+    12,
+    8,
+    Math.PI * 1.12,
+    Math.PI * 0.76,
+    Math.PI * 0.3,
+    Math.PI * 0.42,
+  );
+  face.scale(0.9, 1.1, 1);
+  face.translate(0, 1.6, -0.01);
+  const lenses = [-1, 1].map((side) => {
+    const lens = new BoxGeometry(0.06, 0.035, 0.012);
+    lens.translate(side * 0.036, 1.625, -0.112);
+    return lens;
+  });
+  const bridge = new BoxGeometry(0.17, 0.012, 0.012);
+  bridge.translate(0, 1.64, -0.11);
+  return { face, shades: merge([...lenses, bridge]) };
+}
+
+/** Eyes, brows, the shade of the nose and the lips, transparent round them. */
+export function faceTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const g = canvas.getContext('2d');
+  if (g) {
+    g.clearRect(0, 0, 128, 64);
+    for (const x of [48, 80]) {
+      g.fillStyle = 'rgba(20,14,10,0.85)';
+      g.fillRect(x - 9, 15, 18, 3);
+      g.fillStyle = '#f2ece4';
+      g.beginPath();
+      g.ellipse(x, 25, 6.5, 3.6, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#2a1a10';
+      g.beginPath();
+      g.arc(x, 25, 3, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.fillStyle = 'rgba(30,18,10,0.35)';
+    g.beginPath();
+    g.ellipse(64, 38, 5, 3, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = 'rgba(110,40,40,0.8)';
+    g.beginPath();
+    g.ellipse(64, 50, 9, 3.2, 0, 0, Math.PI * 2);
+    g.fill();
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 /** A pair of trainers. */
 export function shoeGeometry(): BufferGeometry {
   return merge(
@@ -206,13 +268,13 @@ export function shoeGeometry(): BufferGeometry {
 
 /** Hair and hats: a close crop, an afro, a baseball cap with its brim, or a headwrap. */
 export function hairParts(): BufferGeometry[] {
-  const crop = ellipsoid(0.112, 0.92, 0.72, 1.02, 0, 1.64, 0.0, 10);
-  const afro = ellipsoid(0.16, 1, 0.92, 1, 0, 1.68, 0.02, 10);
-  const crown = ellipsoid(0.115, 0.95, 0.6, 1.02, 0, 1.66, 0, 10);
+  const crop = ellipsoid(0.112, 0.94, 0.72, 0.95, 0, 1.655, 0.03, 10);
+  const afro = ellipsoid(0.16, 1, 0.9, 0.9, 0, 1.71, 0.07, 10);
+  const crown = ellipsoid(0.115, 0.95, 0.6, 1.0, 0, 1.675, 0.01, 10);
   const brim = new CylinderGeometry(0.09, 0.09, 0.012, 10);
   brim.scale(1, 1, 1.2);
   brim.translate(0, 1.64, -0.12);
-  const wrap = ellipsoid(0.13, 0.95, 0.95, 1.05, 0, 1.69, 0.03, 10);
+  const wrap = ellipsoid(0.13, 0.95, 0.9, 0.95, 0, 1.71, 0.06, 10);
   return [crop, afro, merge([crown, brim]), wrap];
 }
 
@@ -344,6 +406,16 @@ export class Spectators {
     const metal = this.material({ color: 0x2b2b2b, roughness: 0.5, metalness: 0.6 });
     this.disposables.push(canopy, shaft, strawHat, bucketHat, child.skin, child.top);
     this.disposables.push(child.bottom, childHair);
+    const { face, shades } = faceParts();
+    const features = this.material({
+      map: faceTexture(),
+      transparent: true,
+      alphaTest: 0.1,
+      roughness: 0.6,
+      depthWrite: false,
+    });
+    const glasses = this.material({ color: 0x0b0b0d, roughness: 0.15, metalness: 0.5 });
+    this.disposables.push(face, shades, features.map!);
     this.people.forEach((p, i) => {
       const shorts = dress() < 0.55;
       const parts = bodies[p.stance]![shorts ? 1 : 0]!;
@@ -359,6 +431,8 @@ export class Spectators {
       else if (roll < 0.11) this.ensemble.put(i, 'bucket', bucketHat, straw, any(o.tops));
       else this.ensemble.put(i, `hair${style}`, hairs[style]!, hair, colour);
       if (p.stance === PHONE_STANCE) this.ensemble.put(i, 'phone', handset, phone, '#ffffff');
+      this.ensemble.put(i, 'face', face, features, '#ffffff');
+      if (extra() < 0.3) this.ensemble.put(i, 'shades', shades, glasses, '#ffffff');
       const grown = p.height > 0.9;
       const back = Math.abs(p.x) > o.near + 0.6;
       if (p.stance === 0 && grown && extra() < 0.22) {
