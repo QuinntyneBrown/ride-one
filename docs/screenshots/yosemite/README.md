@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Full Effort VO2 Max Intervals](http:/
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/full-effort-vo2-max-intervals?simulate`, click **Ride in Yosemite Valley**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [055 · El Capitan and Half Dome stand still](bend-055-granite-walls-stand.jpg) | El Capitan, Half Dome and the granite walls of the valley were bent vertex by vertex with Northside Drive's bends, so the walls leaned and slewed with each turn. They now stand beyond the road unbent, as the panorama does, and the walkers and props behind the rider stand on the road there instead of at the height under the rider. |
