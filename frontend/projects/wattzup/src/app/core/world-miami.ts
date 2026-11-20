@@ -65,6 +65,8 @@ function inCrossing(offset: number, margin = 0): boolean {
 /** The neon colours, each a tube's colour and how hard it glows. */
 const NEON = [0xff3fb4, 0x2fe6ff, 0xb46bff, 0x5aff8a, 0xffd23f, 0xff6a3f] as const;
 const PASTELS = [0xf4b8c8, 0xa8e0dc, 0xf8e0a8, 0xc8b8ec, 0xb8e4b0, 0xf6c8a4] as const;
+/** Trim colours painted over the pastel stucco, one per hotel. */
+const ACCENTS = ['#2ab8b0', '#ff6f8f', '#7a6ad8', '#f4a040', '#3aa0e0', '#e05aa0'] as const;
 const NAMES = ['AZURE', 'FLAMINGO', 'CORAL MOON', 'PALMETTO', 'SEABREEZE', 'STARLITE'] as const;
 
 const NIGHT_WEAR = {
@@ -559,7 +561,7 @@ export class MiamiStreet implements SceneStreet {
       const glow = NEON[k % NEON.length]!;
       const hotel = new Group();
       const facade = this.material({
-        map: this.track(facadeTexture(storeys, 8101 + k * 13)),
+        map: this.track(facadeTexture(storeys, 8101 + k * 13, ACCENTS[k % ACCENTS.length]!)),
         color: PASTELS[k % PASTELS.length],
         roughness: 0.8,
         emissive: 0xffffff,
@@ -2052,10 +2054,17 @@ function windowBays(storeys: number): { x: number; y: number; w: number; h: numb
  * over each pair of windows, racing stripes at the corners and the window openings with
  * their mullions.
  */
-function facadeTexture(storeys: number, seed: number): CanvasTexture {
+function facadeTexture(storeys: number, seed: number, accent: string): CanvasTexture {
   return canvasTexture(512, 512, (g) => {
     speckle(g, 512, 512, '#f4f0ec', seed);
     const band = 512 / storeys;
+    // The hotel's accent colour: a band under each window row, the corner piers and a wide
+    // frieze under the roof, painted as Ocean Drive paints its trim.
+    g.fillStyle = accent;
+    g.fillRect(0, 0, 512, 16);
+    g.fillRect(0, 0, 18, 512);
+    g.fillRect(494, 0, 18, 512);
+    for (let f = 0; f < storeys; f++) g.fillRect(0, f * band + band * 0.82, 512, band * 0.08);
     // Fluted pilasters: pale ribs with a shadow line, rising the full height between bays.
     for (let x = 8; x < 512; x += 78) {
       g.fillStyle = 'rgba(255,255,255,0.55)';
