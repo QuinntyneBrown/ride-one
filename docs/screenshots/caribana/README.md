@@ -5,6 +5,7 @@ The live 3D world behind the ride HUD for [Intense Interval Blast](http://localh
 | Capture | Change and observed result | Render quality |
 | --- | --- | --- |
 | [001 · Parade](001-parade.jpg) | The first Caribana scene. Steel barricades hold back a crowd on both pavements, and one fan in five waves a Trinidad and Tobago, Jamaica, Barbados or Guyana flag. Mas bands in sequinned bodysuits with feathered backpieces and headdresses dance on both aprons between music trucks with speaker walls and band banners. Lamp standards fly flag banners, maples line the lakeshore park, Lake Ontario opens on the right, and downtown Toronto, the dome and the CN Tower close the road ahead. The sun sits behind the rider's left shoulder, as in Old Town: placed ahead, it left every face in blue shade. The figures are still simple capsules, and the feathers read pastel at a distance. | 55% |
+| [002 · Masqueraders](002-masqueraders.jpg) | The capsule dancers are rebuilt as masqueraders: legs with bent knees, hips, a waist, chest, neck and head in one of seven skin tones, and arms in one of three poses (both up in a V, one waving with a hand on the hip, or spread wide like wings). Over the skin each wears the section's sequinned costume, a bra, bikini, beaded belt and collar and knee boots, whose scales catch the sun. Half of each band now wines facing back up the road towards the riders, so the costumes show rather than only the backs of the feathers. | 57% |
 
 ## Reproducing a capture
 

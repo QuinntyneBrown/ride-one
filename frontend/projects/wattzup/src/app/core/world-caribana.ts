@@ -8,7 +8,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
-  CapsuleGeometry,
   Color,
   CylinderGeometry,
   DoubleSide,
@@ -24,14 +23,13 @@ import {
   RepeatWrapping,
   SphereGeometry,
   type Texture,
+  TorusGeometry,
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
-  armPair,
   canvasTexture,
   Crowd,
-  legPair,
   loopMetres,
   Ribbons,
   type SceneStreet,
@@ -91,7 +89,29 @@ interface Masquerader {
   readonly x: number;
   readonly costume: number;
   readonly phase: number;
+  /** Which way the dancer holds their arms: both up, one up and one on the hip, or spread wide. */
+  readonly pose: number;
+  readonly skin: string;
 }
+
+/** The poses a masquerader dances in, each its own body: [left arm, right arm] as elbow, hand. */
+const POSES: readonly (readonly [readonly number[], readonly number[]])[] = [
+  // Both arms thrown up in a V.
+  [
+    [-0.34, 1.62, -0.02, -0.42, 1.9, -0.06],
+    [0.34, 1.62, -0.02, 0.42, 1.9, -0.06],
+  ],
+  // The right hand waving high, the left on the hip.
+  [
+    [-0.3, 1.12, 0.02, -0.17, 0.98, -0.06],
+    [0.32, 1.64, -0.04, 0.3, 1.94, -0.1],
+  ],
+  // Both arms spread wide at the shoulders, wings to the backpiece.
+  [
+    [-0.44, 1.42, -0.04, -0.7, 1.5, -0.08],
+    [0.44, 1.42, -0.04, 0.7, 1.5, -0.08],
+  ],
+];
 
 export class CaribanaStreet implements SceneStreet {
   readonly group = new Group();
@@ -99,10 +119,8 @@ export class CaribanaStreet implements SceneStreet {
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
   private readonly crowd: Crowd;
   private readonly dancers: Masquerader[] = [];
-  private suits: InstancedMesh | null = null;
-  private legs: InstancedMesh | null = null;
-  private heads: InstancedMesh | null = null;
-  private arms: InstancedMesh | null = null;
+  private readonly bodies: InstancedMesh[] = [];
+  private costumes: InstancedMesh | null = null;
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
   private readonly downtown = new Group();
@@ -113,6 +131,8 @@ export class CaribanaStreet implements SceneStreet {
   private readonly turn = new Quaternion();
   private readonly size = new Vector3();
   private readonly up = new Vector3(0, 1, 0);
+  private readonly forward = new Vector3(0, 0, 1);
+  private readonly tilt = new Quaternion();
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly flagMaterials = FLAG_KINDS.map(
     (kind) =>
@@ -183,40 +203,45 @@ export class CaribanaStreet implements SceneStreet {
     heightAt: (metres: number) => number,
     along: (offset: number, every: number) => number,
   ): void {
-    const suits = this.suits;
-    const legs = this.legs;
-    const heads = this.heads;
-    const arms = this.arms;
-    if (!suits || !legs || !heads || !arms) return;
+    const costumes = this.costumes;
+    if (!costumes) return;
     const count = this.backpieces.map(() => 0);
+    const posed = this.bodies.map(() => 0);
     this.dancers.forEach((d, i) => {
       const metres = along(d.offset, LOOP);
       const y = heightAt(Math.max(metres, 0)) + KERB;
       const t = this.time + d.phase;
       // Chipping down the road: a bounce on every beat, a sway of the hips, a turn to the crowd.
-      const bounce = Math.abs(Math.sin(t * 4.2)) * 0.09;
+      const bounce = Math.abs(Math.sin(t * 4.2)) * 0.07;
       const sway = Math.sin(t * 2.1) * 0.35;
       const x = d.x + Math.sin(t * 0.7) * 0.4;
-      this.turn.setFromAxisAngle(this.up, d.side * 0.55 + sway);
+      this.tilt.setFromAxisAngle(this.forward, sway * 0.12);
+      // Half the band wines facing back up the road, to the riders and the crowd behind.
+      const facing = i % 2 ? Math.PI - d.side * 0.5 : d.side * 0.55;
+      this.turn.setFromAxisAngle(this.up, facing + sway).multiply(this.tilt);
       this.size.set(1, 1, 1);
       this.spot.set(x, y + bounce, -metres);
-      legs.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      this.spot.set(x, y + 1.12 + bounce, -metres);
-      suits.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      this.spot.set(x, y + 1.58 + bounce, -metres);
-      heads.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      this.spot.set(x, y + 1.36 + bounce, -metres);
-      arms.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+      this.matrix.compose(this.spot, this.turn, this.size);
+      this.bodies[d.pose]!.setMatrixAt(posed[d.pose]!++, this.matrix);
+      costumes.setMatrixAt(i, this.matrix);
       const k = d.costume;
-      const tilt = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), sway * 0.25);
-      const q = this.turn.clone().multiply(tilt);
       this.spot.set(x, y + 1.3 + bounce, -metres);
-      this.backpieces[k]!.setMatrixAt(count[k]!, this.matrix.compose(this.spot, q, this.size));
-      this.spot.set(x, y + 1.66 + bounce, -metres);
-      this.headdresses[k]!.setMatrixAt(count[k]!, this.matrix.compose(this.spot, q, this.size));
+      this.backpieces[k]!.setMatrixAt(
+        count[k]!,
+        this.matrix.compose(this.spot, this.turn, this.size),
+      );
+      this.spot.set(x, y + 1.7 + bounce, -metres);
+      this.headdresses[k]!.setMatrixAt(
+        count[k]!,
+        this.matrix.compose(this.spot, this.turn, this.size),
+      );
       count[k]!++;
     });
-    for (const mesh of [suits, legs, heads, arms]) mesh.instanceMatrix.needsUpdate = true;
+    costumes.instanceMatrix.needsUpdate = true;
+    this.bodies.forEach((mesh, p) => {
+      mesh.count = posed[p]!;
+      mesh.instanceMatrix.needsUpdate = true;
+    });
     this.backpieces.forEach((mesh, k) => {
       mesh.count = count[k]!;
       mesh.instanceMatrix.needsUpdate = true;
@@ -283,7 +308,10 @@ export class CaribanaStreet implements SceneStreet {
     ]);
   }
 
-  /** Mas bands on both aprons: bodysuits, feathered backpieces and headdresses, arms up. */
+  /**
+   * Mas bands on both aprons: dancers in sequinned bras, bikinis and boots with beaded belts and
+   * collars, feathered backpieces and headdresses, each in one of three poses.
+   */
   private addMasqueraders(roadHalf: number): void {
     const random = seeded(73);
     const near = roadHalf + 0.9;
@@ -300,30 +328,38 @@ export class CaribanaStreet implements SceneStreet {
           x: side * (near + random() * (BARRIER - near - 0.8)),
           costume: (section + (random() < 0.15 ? 1 : 0)) % COSTUMES.length,
           phase: random() * 6.3,
+          pose: 0,
+          skin: '',
         });
       }
     }
-    const n = this.dancers.length;
-    const suit = new CapsuleGeometry(0.16, 0.34, 4, 10);
-    const head = new SphereGeometry(0.115, 12, 10);
-    const arms = armPair(Math.PI - 0.55);
-    const pair = legPair(0.075, 0.84);
-    this.disposables.push(suit, head, arms, pair);
-    const sequins = this.material({ roughness: 0.3, metalness: 0.5 });
-    const skin = this.material({ roughness: 0.7 });
-    this.suits = this.instanced(suit, sequins, n);
-    this.legs = this.instanced(pair, skin, n);
-    this.heads = this.instanced(head, skin, n);
-    this.arms = this.instanced(arms, skin, n);
-    const c = new Color();
-    const random2 = seeded(131);
+    const posing = seeded(137);
     this.dancers.forEach((d, i) => {
-      this.suits!.setColorAt(i, c.set(COSTUMES[d.costume]!.suit));
-      const tone = c.set(SKINS[Math.floor(random2() * SKINS.length)]!);
-      this.heads!.setColorAt(i, tone);
-      this.arms!.setColorAt(i, tone);
-      this.legs!.setColorAt(i, tone);
+      const pose = Math.floor(posing() * POSES.length);
+      const skin = SKINS[Math.floor(posing() * SKINS.length)]!;
+      this.dancers[i] = { ...d, pose, skin };
     });
+    const n = this.dancers.length;
+    const skin = this.material({ roughness: 0.55 });
+    const c = new Color();
+    POSES.forEach((pose, p) => {
+      const body = masBody(pose);
+      this.disposables.push(body);
+      const mesh = this.instanced(body, skin, n);
+      let slot = 0;
+      for (const d of this.dancers) if (d.pose === p) mesh.setColorAt(slot++, c.set(d.skin));
+      mesh.count = slot;
+      this.bodies.push(mesh);
+    });
+    const costume = masCostume();
+    this.disposables.push(costume);
+    const sequins = this.material({
+      map: this.repeat(sequinTexture(), 0.25, 0.25),
+      roughness: 0.28,
+      metalness: 0.55,
+    });
+    this.costumes = this.instanced(costume, sequins, n);
+    this.dancers.forEach((d, i) => this.costumes!.setColorAt(i, c.set(COSTUMES[d.costume]!.suit)));
     const feather = this.track(featherTexture());
     const plumes = this.material({
       map: feather,
@@ -593,6 +629,124 @@ export class CaribanaStreet implements SceneStreet {
     this.group.add(mesh);
     return mesh;
   }
+}
+
+/** A limb from `a` to `b`, `r1` thick at `a` and `r2` at `b`, capped round at both ends. */
+function limb(a: Vector3, b: Vector3, r1: number, r2: number): BufferGeometry[] {
+  const length = a.distanceTo(b);
+  const bone = new CylinderGeometry(r2, r1, length, 8, 1, true);
+  bone.translate(0, length / 2, 0);
+  bone.applyQuaternion(
+    new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), b.clone().sub(a).normalize()),
+  );
+  bone.translate(a.x, a.y, a.z);
+  const joint = new SphereGeometry(r2, 8, 6);
+  joint.translate(b.x, b.y, b.z);
+  return [bone, joint];
+}
+
+function ellipsoid(r: number, sx: number, sy: number, sz: number, x: number, y: number, z: number) {
+  const ball = new SphereGeometry(r, 14, 10);
+  ball.scale(sx, sy, sz);
+  ball.translate(x, y, z);
+  return ball;
+}
+
+/**
+ * A dancer's body in skin, 1.7 m tall, feet at the origin, facing -z: legs with knees bent a
+ * little, hips, a waist, a chest, neck and head, and arms held as `pose` says.
+ */
+function masBody(pose: readonly (readonly number[])[]): BufferGeometry {
+  const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
+  const parts: BufferGeometry[] = [];
+  for (const side of [-1, 1]) {
+    const hip = v(side * 0.09, 0.92, 0);
+    const knee = v(side * 0.1, 0.5, -0.04);
+    const ankle = v(side * 0.1, 0.09, 0);
+    parts.push(...limb(hip, knee, 0.085, 0.058), ...limb(knee, ankle, 0.058, 0.038));
+    const shoulder = v(side * 0.17, 1.38, 0);
+    const [ex, ey, ez, hx, hy, hz] = pose[side < 0 ? 0 : 1]!;
+    const elbow = v(ex!, ey!, ez!);
+    const hand = v(hx!, hy!, hz!);
+    parts.push(...limb(shoulder, elbow, 0.05, 0.04), ...limb(elbow, hand, 0.04, 0.032));
+    parts.push(ellipsoid(0.045, 1, 1.3, 0.6, hand.x, hand.y + 0.03, hand.z));
+  }
+  parts.push(ellipsoid(0.15, 1.05, 0.72, 0.82, 0, 0.95, 0)); // pelvis
+  const waist = new CylinderGeometry(0.125, 0.14, 0.24, 12);
+  waist.scale(1, 1, 0.78);
+  waist.translate(0, 1.08, 0);
+  parts.push(waist);
+  parts.push(ellipsoid(0.15, 1.08, 0.9, 0.74, 0, 1.29, 0)); // chest
+  parts.push(ellipsoid(0.07, 2.6, 0.7, 1.2, 0, 1.38, 0)); // shoulders
+  const neck = new CylinderGeometry(0.045, 0.052, 0.12, 8);
+  neck.translate(0, 1.47, 0);
+  parts.push(neck);
+  parts.push(ellipsoid(0.105, 0.9, 1.1, 1, 0, 1.6, -0.01)); // head
+  const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/**
+ * The sequinned costume over the body: a bra, a bikini, a beaded belt and collar, and boots
+ * to the knee, all in the section's colour.
+ */
+function masCostume(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  for (const side of [-1, 1]) {
+    parts.push(ellipsoid(0.072, 1, 0.92, 0.75, side * 0.07, 1.3, -0.085)); // cups
+    const boot = new CylinderGeometry(0.068, 0.052, 0.36, 10);
+    boot.translate(side * 0.1, 0.26, -0.015);
+    parts.push(boot);
+    const foot = new BoxGeometry(0.1, 0.08, 0.24);
+    foot.translate(side * 0.1, 0.04, -0.05);
+    parts.push(foot);
+    const cuff = new CylinderGeometry(0.075, 0.07, 0.05, 10);
+    cuff.translate(side * 0.1, 0.45, -0.035);
+    parts.push(cuff);
+  }
+  const band = new CylinderGeometry(0.158, 0.16, 0.06, 14);
+  band.scale(1.06, 1, 0.78);
+  band.translate(0, 1.26, 0);
+  parts.push(band);
+  const bikini = new CylinderGeometry(0.152, 0.158, 0.13, 14);
+  bikini.scale(1.04, 1, 0.84);
+  bikini.translate(0, 0.93, 0);
+  parts.push(bikini);
+  const belt = new TorusGeometry(0.158, 0.018, 6, 20);
+  belt.rotateX(Math.PI / 2);
+  belt.scale(1.06, 1, 0.84);
+  belt.translate(0, 0.99, 0);
+  parts.push(belt);
+  const collar = new TorusGeometry(0.075, 0.022, 6, 16);
+  collar.rotateX(Math.PI / 2);
+  collar.translate(0, 1.42, 0);
+  parts.push(collar);
+  const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/** Sequins: rows of small round scales, each catching the light its own way. */
+function sequinTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.fillStyle = '#9a9a9a';
+    g.fillRect(0, 0, 128, 128);
+    const random = seeded(61);
+    for (let y = 0; y < 128; y += 8) {
+      for (let x = (y / 8) % 2 ? 4 : 0; x < 132; x += 8) {
+        const l = 62 + random() * 38;
+        g.fillStyle = `hsl(0,0%,${l}%)`;
+        g.beginPath();
+        g.arc(x, y + 4, 3.6, 0, Math.PI * 2);
+        g.fill();
+        if (random() < 0.12) {
+          g.fillStyle = '#ffffff';
+          g.fillRect(x - 1, y + 2, 2, 2);
+        }
+      }
+    }
+  });
 }
 
 /**
