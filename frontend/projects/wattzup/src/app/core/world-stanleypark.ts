@@ -40,6 +40,7 @@ import {
   loopMetres,
   paintTexture,
   Ribbons,
+  scaleFaceUv,
   type SceneStreet,
   seeded,
   speckle,
@@ -811,6 +812,7 @@ export class StanleyParkStreet implements SceneStreet {
       cap.position.set(x, height - 40 - height * 0.11 + 1, m.position.z + 2);
       h.add(cap);
     }
+    this.addNorthShore(haze);
     // Freighters at anchor in English Bay.
     const hullRed = hazedMaterial(this.disposables, haze, 0x8a2a22, 0.3);
     const hullBlack = hazedMaterial(this.disposables, haze, 0x2a2a2e, 0.3);
@@ -829,6 +831,92 @@ export class StanleyParkStreet implements SceneStreet {
       h.add(ship, bridge);
     }
     this.group.add(h);
+  }
+
+  /**
+   * The North Shore across the narrows, under the mountains: North Vancouver's waterfront behind
+   * the bridge, its apartment towers white and cream with bands of balconies, the
+   * shore wooded between them, and forested foothills rising in folds behind. Each layer is hazed
+   * a little more than the one in front, so the shore reads in depth.
+   */
+  private addNorthShore(haze: Color): void {
+    const h = this.horizon;
+    const random = seeded(709);
+    const hill = new SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+    this.disposables.push(hill);
+    // The shore itself: a low wooded strip along the water, with the land running back under it.
+    const land = hazedMaterial(this.disposables, haze, 0x2f4a36, 0.2);
+    const slab = new Mesh(this.unit, land);
+    slab.scale.set(4200, 4, 900);
+    slab.position.set(-300, 2 - SEA, -1400);
+    h.add(slab);
+    const shoreGreens = [0x2c4a32, 0x35573a, 0x2a4230].map((c) =>
+      hazedMaterial(this.disposables, haze, c, 0.2),
+    );
+    for (let x = -2400; x < 1400; x += 40 + random() * 50) {
+      const m = new Mesh(hill, shoreGreens[Math.floor(random() * 3)]!);
+      m.scale.set(50 + random() * 70, 14 + random() * 18, 30 + random() * 30);
+      m.position.set(x, -SEA, this.shoreZ(x) - 30 - random() * 60);
+      h.add(m);
+    }
+    // Foothills in folds behind the shore, darker and nearer than the snowy range.
+    const hillGreens = [0x2a5234, 0x30603c, 0x24482f, 0x3a6844].map((c, i) =>
+      hazedMaterial(this.disposables, haze, c, 0.12 + (i % 2) * 0.06),
+    );
+    for (let k = 0; k < 16; k++) {
+      const x = -3300 + k * 280 + random() * 160;
+      const m = new Mesh(hill, hillGreens[k % hillGreens.length]!);
+      m.scale.set(380 + random() * 420, 100 + random() * 120, 260 + random() * 120);
+      m.position.set(x, -SEA, this.shoreZ(x) - 420 - random() * 420);
+      h.add(m);
+    }
+    // West Vancouver's towers along the waterfront, and smaller blocks between them.
+    const bands = this.track(
+      canvasTexture(64, 64, (g) => {
+        g.fillStyle = '#ffffff';
+        g.fillRect(0, 0, 64, 64);
+        // A storey: a band of glass behind a balcony rail, the floor slab white above it.
+        g.fillStyle = '#5c6e78';
+        g.fillRect(0, 14, 64, 30);
+        g.fillStyle = '#8fa6b2';
+        g.fillRect(0, 14, 64, 8);
+        g.fillStyle = '#e8ecee';
+        g.fillRect(0, 38, 64, 6);
+        g.fillStyle = 'rgba(255,255,255,0.7)';
+        for (let x = 0; x < 64; x += 16) g.fillRect(x, 14, 3, 24);
+      }),
+    );
+    bands.wrapS = RepeatWrapping;
+    bands.wrapT = RepeatWrapping;
+    const facades = [0xf4f2ec, 0xe9dfca, 0xd6dade, 0xdcc8a6, 0xbfd2d6].map((c) =>
+      hazedMaterial(this.disposables, haze, c, 0.16, { map: bands }),
+    );
+    const roofs = hazedMaterial(this.disposables, haze, 0x6a6e72, 0.18);
+    for (let x = -1300; x < 900; x += 22 + random() * 45) {
+      const tower = random() < 0.55;
+      const w = tower ? 18 + random() * 12 : 14 + random() * 18;
+      const d = tower ? 16 + random() * 8 : 12 + random() * 10;
+      const height = tower ? 60 + random() * 50 : 12 + random() * 16;
+      const box = new BoxGeometry(w, height, d);
+      for (const face of [0, 1]) scaleFaceUv(box, face, d / 6, height / 3);
+      for (const face of [4, 5]) scaleFaceUv(box, face, w / 6, height / 3);
+      for (const face of [2, 3]) scaleFaceUv(box, face, 0, 0);
+      this.disposables.push(box);
+      const z = this.shoreZ(x) - 30 - random() * (tower ? 40 : 110);
+      const block = new Mesh(box, facades[Math.floor(random() * facades.length)]!);
+      block.position.set(x, height / 2 - SEA + 2, z);
+      block.rotation.y = (random() - 0.5) * 0.3;
+      h.add(block);
+      const roof = new Mesh(this.unit, roofs);
+      roof.scale.set(w * 0.5, 3, d * 0.5);
+      roof.position.set(x, height - SEA + 3.5, z);
+      h.add(roof);
+    }
+  }
+
+  /** Where the North Shore meets the water, in the horizon's frame: further off to the west. */
+  private shoreZ(x: number): number {
+    return -640 - Math.abs(x + 200) * 0.12;
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
