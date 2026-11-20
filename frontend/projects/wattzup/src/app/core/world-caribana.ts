@@ -180,6 +180,8 @@ export class CaribanaStreet implements SceneStreet {
   private readonly bodies: InstancedMesh[] = [];
   private costumes: InstancedMesh | null = null;
   private medallions: InstancedMesh | null = null;
+  private fringes: InstancedMesh | null = null;
+  private readonly legPlumes: InstancedMesh[] = [];
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
   private readonly downtown = new Group();
@@ -306,7 +308,9 @@ export class CaribanaStreet implements SceneStreet {
       this.matrix.compose(this.spot, this.turn, this.size);
       this.bodies[d.pose]!.setMatrixAt(posed[d.pose]!++, this.matrix);
       costumes.setMatrixAt(i, this.matrix);
+      this.fringes?.setMatrixAt(i, this.matrix);
       const k = d.costume;
+      this.legPlumes[k]!.setMatrixAt(count[k]!, this.matrix);
       this.spot.set(x, y + 1.3 + bounce, -metres);
       this.matrix.compose(this.spot, this.turn, this.size);
       this.backpieces[k]!.setMatrixAt(count[k]!, this.matrix);
@@ -320,6 +324,7 @@ export class CaribanaStreet implements SceneStreet {
     });
     costumes.instanceMatrix.needsUpdate = true;
     if (this.medallions) this.medallions.instanceMatrix.needsUpdate = true;
+    if (this.fringes) this.fringes.instanceMatrix.needsUpdate = true;
     this.bodies.forEach((mesh, p) => {
       mesh.count = posed[p]!;
       mesh.instanceMatrix.needsUpdate = true;
@@ -329,6 +334,8 @@ export class CaribanaStreet implements SceneStreet {
       mesh.instanceMatrix.needsUpdate = true;
       this.headdresses[k]!.count = count[k]!;
       this.headdresses[k]!.instanceMatrix.needsUpdate = true;
+      this.legPlumes[k]!.count = count[k]!;
+      this.legPlumes[k]!.instanceMatrix.needsUpdate = true;
     });
   }
 
@@ -628,7 +635,24 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(back, crown);
       this.backpieces.push(this.instanced(back, plumes, n));
       this.headdresses.push(this.instanced(crown, plumes, n));
+      const legs = legPlumeGeometry(inner!, mid!);
+      this.disposables.push(legs);
+      this.legPlumes.push(this.instanced(legs, plumes, n));
     }
+    // Strands of beads hanging from the belt over the hips, swinging as one skirt.
+    const fringe = new CylinderGeometry(0.17, 0.2, 0.26, 18, 1, true);
+    fringe.scale(1.05, 1, 0.86);
+    fringe.translate(0, 0.86, 0);
+    this.disposables.push(fringe);
+    const beads = this.material({
+      map: this.track(fringeTexture()),
+      alphaTest: 0.5,
+      side: DoubleSide,
+      roughness: 0.3,
+      metalness: 0.5,
+    });
+    this.fringes = this.instanced(fringe, beads, n);
+    this.dancers.forEach((d, i) => this.fringes!.setColorAt(i, c.set(COSTUMES[d.costume]!.suit)));
     // The backpiece's sequinned frame: a jewelled medallion at the hub in the section's colour.
     const medallion = medallionGeometry();
     this.disposables.push(medallion);
@@ -1389,6 +1413,44 @@ function featherFan(
   const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
   return merged;
+}
+
+/**
+ * Feathered leg pieces: a ring of short plumes round each calf below the knee, splayed out and
+ * up, coloured `inner` and `mid` in turn.
+ */
+function legPlumeGeometry(inner: readonly [string, string], mid: readonly [string, string]) {
+  const parts: BufferGeometry[] = [];
+  for (const side of [-1, 1]) {
+    for (let k = 0; k < 8; k++) {
+      const plume = featherFan(k % 2 ? inner : mid, 2, 0.34, 0.1, 0.25, 0.45);
+      plume.translate(0, 0, -0.16);
+      plume.rotateY((k / 8) * Math.PI * 2);
+      plume.translate(side * 0.1, 0.36, -0.02);
+      parts.push(plume);
+    }
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/** Bead fringe: strands of round beads on threads, cut out of the canvas. */
+function fringeTexture(): CanvasTexture {
+  return canvasTexture(256, 64, (g) => {
+    g.clearRect(0, 0, 256, 64);
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 256, 6);
+    const random = seeded(83);
+    for (let x = 3; x < 256; x += 6) {
+      const length = 40 + random() * 22;
+      for (let y = 8; y < length; y += 5) {
+        g.beginPath();
+        g.arc(x, y, 2.2, 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+  });
 }
 
 /** The hub of a backpiece: a sequinned disc in a raised ring, studded with rhinestones. */
