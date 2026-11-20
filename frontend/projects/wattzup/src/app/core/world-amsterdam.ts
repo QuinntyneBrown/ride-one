@@ -144,6 +144,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addShop(roadHalf);
     this.addCabinets(roadHalf);
     this.addFamily(roadHalf);
+    this.addFlowerStall(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1395,7 +1396,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.disposables.push(seat, back, ends);
     const edge = -roadHalf - QUAY;
     for (let b = 0; b < LOOP; b += BRIDGE) {
-      for (const along of [-7, -3.4]) {
+      for (const along of [-2.4]) {
         const bench = new Group();
         bench.add(new Mesh(seat, slats), new Mesh(back, slats), new Mesh(ends, iron));
         for (let p = 0; p < 2; p++) {
@@ -1803,6 +1804,73 @@ export class AmsterdamStreet implements SceneStreet {
     family.position.y = KERB;
     this.group.add(family);
     this.props.push({ mesh: family, offset: START + BEHIND + 21, x: roadHalf + 0.75 });
+  }
+
+  /**
+   * A flower stall on the quay before the first bridge: a green-painted cart under a striped
+   * awning, rows of zinc buckets packed with tulips in red, yellow, pink, orange and white, and
+   * the seller standing beside it.
+   */
+  private addFlowerStall(roadHalf: number): void {
+    const random = seeded(811);
+    const green = this.material({ color: 0x1f4a32, roughness: 0.7 });
+    const zinc = this.material({ color: 0x9a9ea2, metalness: 0.6, roughness: 0.4 });
+    const stems = this.material({ color: 0x4f8a34, roughness: 0.9 });
+    const canvas = this.material({
+      map: this.track(awningTexture()),
+      side: DoubleSide,
+      roughness: 0.9,
+    });
+    const blooms = [0xd8202a, 0xf2c418, 0xe86a9a, 0xf07a1a, 0xf6f2ee, 0x8a2a8a].map((hex) =>
+      this.material({ color: hex, roughness: 0.6 }),
+    );
+    const bucket = new CylinderGeometry(0.16, 0.12, 0.3, 10);
+    const bunch = new IcosahedronGeometry(0.15, 1);
+    bunch.scale(1, 0.7, 1);
+    const stalk = new CylinderGeometry(0.11, 0.08, 0.3, 8);
+    this.disposables.push(bucket, bunch, stalk);
+    const stall = new Group();
+    const cart = new Mesh(this.unit, green);
+    cart.scale.set(1.1, 0.8, 2.6);
+    cart.position.y = 0.4;
+    stall.add(cart);
+    for (const z of [-1.2, 1.2]) {
+      const pole = new Mesh(this.unit, green);
+      pole.scale.set(0.05, 1.6, 0.05);
+      pole.position.set(0.5, 1.6, z);
+      stall.add(pole);
+    }
+    const awning = new Mesh(this.unit, canvas);
+    awning.scale.set(1.5, 0.03, 2.8);
+    awning.position.set(0.1, 2.35, 0);
+    awning.rotation.z = -0.25;
+    stall.add(awning);
+    // Three tiers of buckets stepping down towards the street.
+    for (let tier = 0; tier < 3; tier++) {
+      for (let z = -1.1; z <= 1.1; z += 0.36) {
+        const x = -0.35 + tier * 0.3;
+        const y = 0.95 + tier * 0.12;
+        const pail = new Mesh(bucket, zinc);
+        pail.position.set(x - 0.6, y - 0.2 - tier * 0.25, z);
+        const green1 = new Mesh(stalk, stems);
+        green1.position.set(x - 0.6, y - 0.02 - tier * 0.25, z);
+        const flowers = new Mesh(bunch, blooms[Math.floor(random() * blooms.length)]!);
+        flowers.position.set(x - 0.6, y + 0.18 - tier * 0.25, z);
+        stall.add(pail, green1, flowers);
+      }
+    }
+    const seller = new Mesh(
+      standerGeometry(random, false),
+      this.material({ vertexColors: true, roughness: 0.85 }),
+    );
+    this.disposables.push(seller.geometry);
+    seller.rotation.y = -Math.PI / 2;
+    seller.position.set(0.2, 0, 1.8);
+    stall.add(seller);
+    stall.traverse((o) => (o.castShadow = true));
+    stall.position.y = KERB;
+    this.group.add(stall);
+    this.props.push({ mesh: stall, offset: BRIDGE - 6.2, x: -roadHalf - QUAY + 2.6 });
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
