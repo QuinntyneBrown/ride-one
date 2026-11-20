@@ -11,14 +11,21 @@ import {
   BoxGeometry,
   type BufferGeometry,
   type CanvasTexture,
-  ConeGeometry,
   CylinderGeometry,
+  DoubleSide,
+  ExtrudeGeometry,
   Group,
   IcosahedronGeometry,
+  InstancedMesh,
+  LatheGeometry,
+  Matrix4,
   Mesh,
   MeshStandardMaterial,
+  PlaneGeometry,
   RepeatWrapping,
+  Shape,
   type Texture,
+  Vector2,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
@@ -41,9 +48,16 @@ const LANES = 7;
 const PROMENADE = 5;
 const WALL = 0.85;
 const SEA = 1.6;
+/** The portales: the arcade's height and the depth of its walk under the upper floors. */
+const PORTAL = 4.6;
+const ARCADE = 3.6;
 /** The surges: each breaks over the wall for SURGE seconds of every CYCLE. */
 const CYCLE = 8;
 const SURGE = 3.2;
+/** The drops flung up by each surge. */
+const SPRAY_DROPS = 90;
+/** How fast each breaker runs along the wall, in metres a second. */
+const RUN = 12;
 
 const CARS = [
   ['#e8455a', '#f5f1e8'],
@@ -62,9 +76,21 @@ const STROLL_WEAR = {
   skins: ['#e2b48c', '#c48a5f', '#8d5a3b', '#5a3a29', '#f0c8a0'],
 };
 
+interface Drop {
+  readonly x: number;
+  readonly z: number;
+  readonly vx: number;
+  readonly vy: number;
+  readonly vz: number;
+  readonly size: number;
+  readonly lag: number;
+}
+
 interface Spray {
-  readonly mesh: Mesh;
+  readonly burst: InstancedMesh;
+  readonly sheet: Mesh;
   readonly material: MeshStandardMaterial;
+  readonly drops: readonly Drop[];
   readonly delay: number;
 }
 
@@ -88,6 +114,7 @@ export class HavanaStreet implements SceneStreet {
   private readonly horizon = new Group();
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
+  private readonly drop = new Matrix4();
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -113,10 +140,27 @@ export class HavanaStreet implements SceneStreet {
     for (const spray of this.sprays) {
       // Each surge climbs over the wall, hangs and falls; then the sea is still till the next.
       const t = (((seconds + spray.delay) % CYCLE) + CYCLE) % CYCLE;
-      const k = t < SURGE ? Math.sin((Math.PI * t) / SURGE) : 0;
-      spray.mesh.visible = k > 0.02;
-      spray.mesh.scale.set(1 + k * 0.6, 0.2 + k * 1.8, 1 + k * 0.4);
-      spray.material.opacity = 0.85 * k;
+      const live = t < SURGE;
+      spray.burst.visible = live;
+      spray.sheet.visible = live;
+      if (!live) continue;
+      // The sheet of white water slams up the wall's face; the drops fly on, spread and fall.
+      const slam = Math.sin(Math.PI * Math.min(t / 1.2, 1));
+      spray.sheet.scale.set(1, 0.2 + slam * 1.6, 1 + slam * 0.3);
+      spray.material.opacity = 0.9 * (1 - (t / SURGE) ** 2);
+      spray.drops.forEach((d, i) => {
+        const u = t - d.lag;
+        const y = d.vy * u - 4.9 * u * u;
+        if (u <= 0 || y < -0.5) {
+          this.drop.makeScale(0, 0, 0);
+        } else {
+          const r = d.size * (0.7 + u * 0.4);
+          this.drop.makeScale(r, r * 1.6, r);
+          this.drop.setPosition(d.x + d.vx * u, WALL - 0.2 + y, d.z + d.vz * u);
+        }
+        spray.burst.setMatrixAt(i, this.drop);
+      });
+      spray.burst.instanceMatrix.needsUpdate = true;
     }
   }
 
@@ -194,39 +238,65 @@ export class HavanaStreet implements SceneStreet {
       [promenade - 1400, -SEA],
     ]);
     this.ribbons.add(points, paving, [
-      [r + 4, KERB],
+      [r + 4 + ARCADE, KERB],
       [r + 0.05, KERB],
       [r, 0.004],
     ]);
   }
 
-  /** Spray thrown up over the seawall in surges, here and there along it. */
+  /**
+   * Spray thrown up over the seawall in surges, here and there along it: a sheet of white water
+   * slamming up the wall's face, and a burst of drops and spume flung high over the promenade.
+   */
   private addSpray(roadHalf: number): void {
     const random = seeded(901);
-    const plume = new IcosahedronGeometry(1, 2);
-    plume.scale(1.6, 2.4, 2.6);
-    plume.translate(0, 1.6, 0);
-    this.disposables.push(plume);
+    const blob = new IcosahedronGeometry(1, 1);
+    const sheet = new IcosahedronGeometry(1, 2);
+    sheet.scale(0.9, 2, 3.2);
+    sheet.translate(0, 1, 0);
+    this.disposables.push(blob, sheet);
     const x = -roadHalf - LANES - PROMENADE - 0.6;
-    for (let offset = 14; offset < LOOP; offset += 14 + random() * 16) {
+    for (let offset = 10; offset < LOOP; offset += 6 + random() * 6) {
       const material = this.material({
-        color: 0xf2f8fa,
+        color: 0xffffff,
+        emissive: 0xe4eef2,
+        emissiveIntensity: 0.75,
         transparent: true,
         opacity: 0,
-        roughness: 0.4,
+        roughness: 0.6,
         depthWrite: false,
       });
       const holder = new Group();
-      const mesh = new Mesh(plume, material);
-      mesh.position.y = WALL - 0.6;
-      holder.add(mesh);
+      const face = new Mesh(sheet, material);
+      face.position.set(-0.7, -SEA, 0);
+      const drops: Drop[] = [];
+      for (let i = 0; i < SPRAY_DROPS; i++) {
+        drops.push({
+          x: -0.6 + random() * 0.6,
+          z: (random() - 0.5) * 5,
+          vx: 0.4 + random() * 2.4,
+          vy: 3 + random() * 9,
+          vz: (random() - 0.5) * 2.4,
+          size: 0.05 + random() ** 3 * 0.5,
+          lag: random() * 0.6,
+        });
+      }
+      const burst = new InstancedMesh(blob, material, SPRAY_DROPS);
+      burst.frustumCulled = false;
+      holder.add(face, burst);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x });
-      this.sprays.push({ mesh, material, delay: random() * CYCLE });
+      // The swell meets the wall at a slant, so each set breaks along it, running toward the rider.
+      const delay = -offset / RUN + random() * 0.6;
+      this.sprays.push({ burst, sheet: face, material, drops, delay });
     }
   }
 
-  /** The façades: three and four storeys, pastel and peeling, colonnaded at the foot. */
+  /**
+   * The façades: three and four storeys, pastel and peeling, standing on their portales: an
+   * arcade of square piers and round arches at the foot, its walk set back under the upper floors
+   * with shopfronts and doorways deep in its shade.
+   */
   private addFacades(roadHalf: number): void {
     const random = seeded(907);
     const pastels = [
@@ -235,86 +305,228 @@ export class HavanaStreet implements SceneStreet {
     const fronts = this.track(facadeTexture());
     fronts.wrapS = RepeatWrapping;
     fronts.wrapT = RepeatWrapping;
+    const arches = this.track(archTexture());
+    arches.wrapS = RepeatWrapping;
+    const shops = this.track(shopTexture());
+    const plain = this.track(plasterTexture());
+    shops.wrapS = RepeatWrapping;
     const cornice = this.material({ color: 0xf5f1e8, roughness: 0.8 });
+    const soffit = this.material({ color: 0x8a8278, roughness: 0.95 });
+    const arcade = new PlaneGeometry(1, 1);
+    arcade.rotateY(-Math.PI / 2);
+    this.disposables.push(arcade);
     for (let offset = 0; offset < LOOP;) {
       const width = 12 + random() * 14;
-      const floors = 3 + Math.floor(random() * 2);
+      const floors = 2 + Math.floor(random() * 2);
       const height = floors * 4.2;
+      const tint = pastels[Math.floor(random() * pastels.length)]!;
       const map = fronts.clone();
       map.repeat.set(width / 8, floors / 4);
       map.offset.y = 1 - floors / 4;
       map.needsUpdate = true;
       this.track(map);
-      const facade = this.material({
-        map,
-        color: pastels[Math.floor(random() * pastels.length)]!,
-        roughness: 0.85,
-      });
+      const facade = this.material({ map, color: tint, roughness: 0.85 });
       const building = new Group();
       const body = new Mesh(this.unit, facade);
       body.scale.set(14, height, width - 0.3);
-      body.position.set(7, height / 2, -width / 2);
+      body.position.set(7, PORTAL + height / 2, -width / 2);
       body.castShadow = true;
+      // The arcade's ceiling, the shopfronts at its back and its arched front of piers.
+      const ceiling = new Mesh(this.unit, soffit);
+      ceiling.scale.set(ARCADE, 0.3, width - 0.3);
+      ceiling.position.set(ARCADE / 2, PORTAL - 0.15, -width / 2);
+      ceiling.castShadow = true;
+      const shopMap = shops.clone();
+      shopMap.repeat.set(width / 7, 1);
+      shopMap.needsUpdate = true;
+      this.track(shopMap);
+      const back = new Mesh(
+        this.unit,
+        this.material({ map: shopMap, color: 0x6a6460, roughness: 0.9 }),
+      );
+      back.receiveShadow = true;
+      back.scale.set(14 - ARCADE, PORTAL, width - 0.3);
+      back.position.set(ARCADE + (14 - ARCADE) / 2, PORTAL / 2, -width / 2);
+      const bays = Math.max(2, Math.round(width / 3.6));
+      const archMap = arches.clone();
+      archMap.repeat.set(bays, 1);
+      archMap.needsUpdate = true;
+      this.track(archMap);
+      const front = new Mesh(
+        arcade,
+        this.material({
+          map: archMap,
+          color: tint,
+          roughness: 0.85,
+          alphaTest: 0.5,
+          side: DoubleSide,
+        }),
+      );
+      front.scale.set(1, PORTAL, width - 0.3);
+      front.position.set(0, PORTAL / 2, -width / 2);
+      front.castShadow = true;
+      front.receiveShadow = true;
+      building.add(body, ceiling, back, front);
+      // Square piers between the arches, with a pale plinth at the foot of each.
+      const bay = (width - 0.3) / bays;
+      const plaster = this.material({ map: plain, color: tint, roughness: 0.9 });
+      for (let k = 0; k <= bays; k++) {
+        const pier = new Mesh(this.unit, plaster);
+        pier.scale.set(0.5, PORTAL, 0.5);
+        pier.position.set(0.25, PORTAL / 2, -0.15 - k * bay);
+        pier.castShadow = true;
+        pier.receiveShadow = true;
+        const plinth = new Mesh(this.unit, cornice);
+        plinth.scale.set(0.7, 0.5, 0.7);
+        plinth.position.set(0.25, 0.25, -0.15 - k * bay);
+        building.add(pier, plinth);
+      }
       const top = new Mesh(this.unit, cornice);
       top.scale.set(14.6, 0.5, width - 0.1);
-      top.position.set(7, height + 0.25, -width / 2);
-      building.add(body, top);
+      top.position.set(7, PORTAL + height + 0.25, -width / 2);
+      const band = new Mesh(this.unit, cornice);
+      band.scale.set(0.4, 0.35, width - 0.1);
+      band.position.set(-0.05, PORTAL + 0.1, -width / 2);
+      building.add(top, band);
       this.group.add(building);
       this.props.push({ mesh: building, offset, x: roadHalf + 4 });
       offset += width;
     }
   }
 
-  /** Royal palms standing along the pavement. */
+  /**
+   * Royal palms standing along the pavement: a smooth, pale grey trunk turned on a lathe, swelling
+   * low and again at mid-height like a column, a glossy green crownshaft at the top, and a crown
+   * of long pinnate fronds, the upper ones arching out and the lower ones hanging.
+   */
   private addPalms(roadHalf: number): void {
     const random = seeded(911);
-    const bark = this.material({ color: 0xbab0a0, roughness: 0.9 });
-    const fronds = this.material({ color: 0x4a7a34, roughness: 0.9 });
-    const trunk = new CylinderGeometry(0.22, 0.32, 11, 8);
-    trunk.translate(0, 5.5, 0);
+    const bark = this.material({ map: this.repeat(trunkTexture(), 1, 3), roughness: 0.85 });
+    const shaft = this.material({ color: 0x5f8f3a, roughness: 0.45 });
+    const leaves = this.material({
+      map: this.track(royalFrondTexture()),
+      alphaTest: 0.45,
+      side: DoubleSide,
+      roughness: 0.8,
+    });
+    const radius = (h: number) =>
+      0.3 -
+      0.1 * (h / 12) +
+      0.12 * Math.exp(-((h - 0.4) ** 2) / 0.6) +
+      0.05 * Math.sin((h / 12) * Math.PI);
+    const profilePoints: Vector2[] = [];
+    for (let h = 0; h <= 12; h += 0.5) profilePoints.push(new Vector2(radius(h), h));
+    const trunk = new LatheGeometry(profilePoints, 12);
+    const crownshaft = new CylinderGeometry(0.2, 0.26, 2.2, 12);
+    crownshaft.translate(0, 13.1, 0);
     const parts: BufferGeometry[] = [];
-    for (let k = 0; k < 10; k++) {
-      const frond = new ConeGeometry(0.35, 4, 4);
-      frond.scale(1, 1, 0.2);
-      frond.translate(0, 2, 0);
-      frond.rotateZ(1.2);
-      frond.rotateY((k / 10) * Math.PI * 2);
-      frond.translate(0, 11, 0);
+    for (let i = 0; i < 15; i++) {
+      const length = 4.2 + (i % 3) * 0.4;
+      const frond = new PlaneGeometry(1.3, length, 1, 10);
+      const position = frond.getAttribute('position') as BufferAttribute;
+      // Upper fronds rise and arch over; the lowest hang down beside the crownshaft.
+      const rise = 1.1 - (i / 15) * 1.6;
+      for (let v = 0; v < position.count; v++) {
+        const t = (position.getY(v) + length / 2) / length;
+        const angle = rise - t * t * 2.2;
+        const reach = length * t;
+        position.setXYZ(
+          v,
+          position.getX(v) * (1 - t * 0.6),
+          Math.sin(angle) * reach * 0.8,
+          reach * Math.cos(angle * 0.6),
+        );
+      }
+      frond.rotateY((i * 2.4) % (Math.PI * 2));
+      frond.translate(0, 14.1, 0);
       parts.push(frond);
     }
     const crown = mergeGeometries(parts)!;
     parts.forEach((p) => p.dispose());
-    this.disposables.push(trunk, crown);
-    for (let offset = 8; offset < LOOP; offset += 30 + random() * 20) {
+    crown.computeVertexNormals();
+    this.disposables.push(trunk, crownshaft, crown);
+    for (let offset = 8; offset < LOOP; offset += 22 + random() * 16) {
       const palm = new Group();
-      palm.add(new Mesh(trunk, bark), new Mesh(crown, fronds));
+      palm.add(new Mesh(trunk, bark), new Mesh(crownshaft, shaft), new Mesh(crown, leaves));
       palm.children.forEach((c) => (c.castShadow = true));
-      palm.scale.setScalar(0.85 + random() * 0.3);
+      palm.scale.setScalar(0.8 + random() * 0.3);
+      palm.rotation.y = random() * Math.PI * 2;
       this.group.add(palm);
       this.props.push({ mesh: palm, offset, x: roadHalf + 2.4 });
     }
   }
 
   /**
-   * Classic American cars cruising the oncoming lanes: long two-tone bodies with tail fins,
-   * chrome bumpers and whitewall tyres.
+   * Classic American cars cruising the oncoming lanes: long two-tone bodies drawn from a side
+   * profile, with a long bonnet, a rounded boot and tail fins, a glazed cabin with its roof in the
+   * second colour, a chrome grille, bumpers and side strip, round headlamps, red tail lamps and
+   * whitewall tyres with chrome hubcaps.
    */
   private addCars(roadHalf: number): void {
     const random = seeded(919);
     const chrome = this.material({ color: 0xe8ecf0, roughness: 0.15, metalness: 1 });
     const tyre = this.material({ color: 0x1b1b1f, roughness: 0.8 });
-    const glass = this.material({ color: 0x2a3640, roughness: 0.1, metalness: 0.4 });
-    const wheel = new CylinderGeometry(0.36, 0.36, 0.24, 14);
+    const whitewall = this.material({ color: 0xf2f0ea, roughness: 0.6 });
+    const glass = this.material({ color: 0x1e2a32, roughness: 0.05, metalness: 0.6 });
+    const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.4 });
+    const tail = this.material({ color: 0xc8102e, emissive: 0x800010, emissiveIntensity: 0.5 });
+    const body = profile(
+      [
+        [-2.75, 0.32],
+        [-2.8, 0.62],
+        [-2.7, 0.9],
+        [-2.2, 1.02],
+        [-1.4, 0.92],
+        [1.3, 0.92],
+        [2.45, 0.86],
+        [2.78, 0.72],
+        [2.8, 0.42],
+        [2.6, 0.3],
+      ],
+      1.86,
+      0.07,
+    );
+    const cabin = profile(
+      [
+        [-1.42, 0.9],
+        [-0.95, 1.46],
+        [0.55, 1.48],
+        [1.15, 0.9],
+      ],
+      1.56,
+      0.05,
+    );
+    const windows = profile(
+      [
+        [-1.52, 0.9],
+        [-1.0, 1.4],
+        [0.6, 1.42],
+        [1.27, 0.9],
+      ],
+      1.7,
+      0,
+    );
+    const wheel = new CylinderGeometry(0.37, 0.37, 0.24, 16);
     wheel.rotateZ(Math.PI / 2);
-    const fin = new BoxGeometry(0.08, 0.3, 1.2);
-    fin.translate(0, 0.15, 0);
-    fin.rotateX(-0.15);
-    this.disposables.push(wheel, fin);
-    CARS.forEach(([body, roof], k) => {
-      const paint = this.material({ color: body, roughness: 0.3, metalness: 0.3 });
+    const wall = new CylinderGeometry(0.27, 0.27, 0.25, 16);
+    wall.rotateZ(Math.PI / 2);
+    const hub = new CylinderGeometry(0.15, 0.15, 0.27, 12);
+    hub.rotateZ(Math.PI / 2);
+    const headlamp = new CylinderGeometry(0.13, 0.13, 0.08, 12);
+    headlamp.rotateX(Math.PI / 2);
+    this.disposables.push(body, cabin, windows, wheel, wall, hub, headlamp);
+    CARS.forEach(([colour, roof], k) => {
+      const paint = this.material({ color: colour, roughness: 0.3, metalness: 0.3 });
       const top = this.material({ color: roof, roughness: 0.35, metalness: 0.2 });
       const car = new Group();
-      const add = (
+      const put = (geometry: BufferGeometry, m: MeshStandardMaterial, x = 0, y = 0, z = 0) => {
+        const mesh = new Mesh(geometry, m);
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        car.add(mesh);
+        return mesh;
+      };
+      const box = (
         m: MeshStandardMaterial,
         sx: number,
         sy: number,
@@ -322,27 +534,24 @@ export class HavanaStreet implements SceneStreet {
         x: number,
         y: number,
         z: number,
-      ) => {
-        const mesh = new Mesh(this.unit, m);
-        mesh.scale.set(sx, sy, sz);
-        mesh.position.set(x, y, z);
-        mesh.castShadow = true;
-        car.add(mesh);
-      };
-      add(paint, 2, 0.62, 5.4, 0, 0.72, 0);
-      add(top, 1.7, 0.5, 2.2, 0, 1.28, 0.3);
-      add(glass, 1.74, 0.36, 2.0, 0, 1.24, 0.3);
-      add(chrome, 2.06, 0.18, 0.12, 0, 0.5, -2.72);
-      add(chrome, 2.06, 0.18, 0.12, 0, 0.5, 2.72);
-      add(chrome, 2.02, 0.05, 5.3, 0, 0.82, 0);
-      for (const x of [-0.92, 0.92]) {
-        const f = new Mesh(fin, paint);
-        f.position.set(x, 1.03, 2.1);
-        car.add(f);
-        for (const z of [-1.7, 1.7]) {
-          const w = new Mesh(wheel, tyre);
-          w.position.set(x, 0.36, z);
-          car.add(w);
+      ) => put(this.unit, m, x, y, z).scale.set(sx, sy, sz);
+      put(body, paint);
+      put(cabin, top);
+      put(windows, glass);
+      // Chrome: the bumpers, the grille, the side strip; the lamps at each end.
+      box(chrome, 2.0, 0.2, 0.16, 0, 0.42, -2.86);
+      box(chrome, 2.0, 0.2, 0.16, 0, 0.42, 2.86);
+      box(chrome, 1.2, 0.22, 0.06, 0, 0.6, -2.84);
+      box(chrome, 1.98, 0.04, 4.6, 0, 0.74, 0.1);
+      for (const x of [-0.7, 0.7]) {
+        put(headlamp, lamp, x, 0.64, -2.88);
+        box(tail, 0.16, 0.26, 0.06, x * 1.3, 0.78, 2.86);
+      }
+      for (const x of [-0.93, 0.93]) {
+        for (const z of [-1.72, 1.62]) {
+          put(wheel, tyre, x, 0.37, z);
+          put(wall, whitewall, x, 0.37, z);
+          put(hub, chrome, x, 0.37, z);
         }
       }
       // Oncoming in the far lanes, a few going the rider's way in the near one.
@@ -556,16 +765,119 @@ function facadeTexture(): CanvasTexture {
       g.fillStyle = 'rgba(255,255,255,0.7)';
       g.fillRect(0, y + 118, 256, 8);
     }
-    // The colonnade's arches at the foot, dark in their shade.
-    g.fillStyle = '#3a3430';
-    for (const x of [16, 144]) {
-      g.beginPath();
-      g.moveTo(x, 512);
-      g.lineTo(x, 430);
-      g.arc(x + 48, 430, 48, Math.PI, 0);
-      g.lineTo(x + 96, 512);
-      g.closePath();
-      g.fill();
+  });
+}
+
+/** One bay of the arcade's front: a round arch cut through the pale wall (transparent). */
+function archTexture(): CanvasTexture {
+  return canvasTexture(128, 160, (g) => {
+    speckle(g, 128, 160, '#efece6', 983);
+    g.fillStyle = 'rgba(150,110,90,0.25)';
+    g.fillRect(0, 130, 128, 30);
+    g.globalCompositeOperation = 'destination-out';
+    g.fillStyle = '#000';
+    g.beginPath();
+    g.moveTo(14, 160);
+    g.lineTo(14, 66);
+    g.arc(64, 66, 50, Math.PI, 0);
+    g.lineTo(114, 160);
+    g.closePath();
+    g.fill();
+    g.globalCompositeOperation = 'source-over';
+    g.strokeStyle = 'rgba(255,255,255,0.8)';
+    g.lineWidth = 5;
+    g.beginPath();
+    g.arc(64, 66, 52, Math.PI, 0);
+    g.stroke();
+  });
+}
+
+/** The shopfronts at the back of the arcade: doorways, shutters and dim windows. */
+function shopTexture(): CanvasTexture {
+  return canvasTexture(256, 160, (g) => {
+    speckle(g, 256, 160, '#9c9080', 991);
+    const random = seeded(997);
+    for (let x = 8; x < 256; x += 64) {
+      const kind = random();
+      g.fillStyle = kind < 0.4 ? '#2a2420' : kind < 0.7 ? '#5f6a6c' : '#3c5a4a';
+      g.fillRect(x, 40, 46, 120);
+      if (kind >= 0.4 && kind < 0.7) {
+        g.fillStyle = 'rgba(0,0,0,0.25)';
+        for (let y = 44; y < 160; y += 6) g.fillRect(x, y, 46, 2);
+      }
+      g.fillStyle = 'rgba(255,240,200,0.18)';
+      g.fillRect(x + 4, 50, 38, 40);
     }
+  });
+}
+
+/** Plain pale plaster, weathered at the foot. */
+function plasterTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    speckle(g, 64, 256, '#efece6', 1009);
+    g.fillStyle = 'rgba(150,110,90,0.25)';
+    g.fillRect(0, 210, 64, 46);
+  });
+}
+
+/**
+ * A car part drawn as a side profile (metres along the car from the boot to the bonnet, and
+ * height), its bonnet turned toward -z, and
+ * extruded across `width`, its edges rounded by `bevel`.
+ */
+function profile(
+  points: readonly [number, number][],
+  width: number,
+  bevel: number,
+): BufferGeometry {
+  const shape = new Shape(points.map(([z, y]) => new Vector2(z, y)));
+  const geometry = new ExtrudeGeometry(shape, {
+    depth: width - 2 * bevel,
+    bevelEnabled: bevel > 0,
+    bevelThickness: bevel,
+    bevelSize: bevel,
+    bevelSegments: 2,
+  });
+  geometry.translate(0, 0, -(width - 2 * bevel) / 2);
+  geometry.rotateY(Math.PI / 2);
+  return geometry;
+}
+
+/** A royal palm's trunk: smooth pale grey, faintly ringed, stained darker at the foot. */
+function trunkTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    speckle(g, 64, 256, '#c4beb4', 1013);
+    for (let y = 0; y < 256; y += 14) {
+      g.fillStyle = 'rgba(90,85,75,0.18)';
+      g.fillRect(0, y, 64, 2);
+    }
+    g.fillStyle = 'rgba(70,60,50,0.25)';
+    g.fillRect(0, 236, 64, 20);
+  });
+}
+
+/** A royal palm's frond: a pale midrib with fine drooping leaflets, transparent round it. */
+function royalFrondTexture(): CanvasTexture {
+  return canvasTexture(128, 512, (g) => {
+    g.clearRect(0, 0, 128, 512);
+    const random = seeded(1019);
+    for (let y = 6; y < 506; y += 5) {
+      const reach = 60 * Math.sin((Math.PI * (y + 40)) / 600);
+      g.strokeStyle = `hsl(${88 + random() * 22},${45 + random() * 15}%,${24 + random() * 14}%)`;
+      g.lineWidth = 2.5;
+      for (const side of [-1, 1]) {
+        g.beginPath();
+        g.moveTo(64, y);
+        g.quadraticCurveTo(
+          64 + side * reach * 0.6,
+          y + 4,
+          64 + side * reach,
+          y + 22 + random() * 8,
+        );
+        g.stroke();
+      }
+    }
+    g.fillStyle = '#9aa060';
+    g.fillRect(62, 0, 4, 512);
   });
 }

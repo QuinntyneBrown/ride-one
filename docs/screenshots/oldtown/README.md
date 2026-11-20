@@ -156,3 +156,12 @@ The panorama and every other asset are awaited before the first frame, because a
 Review the baseline, each numbered capture and the final live route. Confirm at least 100 distinct iterations plus the baseline. Run `node tools/verify/verify.mjs` from the repository root before pushing. Stage the renderer, intended assets, screenshots and accompanying changes, then commit, push, open the PR, check CI, merge and verify GitHub reports it merged. Include the baseline and final screenshot links in the PR so the visual change is easy to review.
 
 The work merged in [#46](https://github.com/QuinntyneBrown/wattzup/pull/46). [The final capture](final-merged.jpg) was taken from `main` after the merge, at the same camera position and ride state as the numbered captures. It matches [102 · Fan colours](102-fan-colours.jpg).
+
+## Bends and elevation
+
+A second pass of 100 iterations, each one fix to how the road bends and climbs (L2-101 AC6, L2-110 AC9), each merged on its own. Every capture is the same ride: Old Town Criterium, `?simulate`, the clock moved on to the first cobbled sprint, 1440 × 900.
+
+| Capture | Fix |
+| --- | --- |
+| [001 · Heights between road points](bend-001-smooth-heights.jpg) | Anything laid along the road (houses, lamps, pacers, the arch) took the height of the nearest 2 m road point, so on a 6% ramp it rose in 12 cm steps as it came towards the rider. It now takes the height between the two points either side. |
+| [002 · Heights behind the rider](bend-002-heights-behind.jpg) | Everything behind the rider took the height under the rider, so on a climb the crowd, lamps and barriers beside the camera floated above the road behind. Behind the rider the height now runs back down the grade, as the road there is laid. |

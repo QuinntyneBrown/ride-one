@@ -518,15 +518,11 @@ export class OldTownStreet {
     for (const house of this.houses) {
       const start = ((((house.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const middle = start + house.width / 2;
-      house.mesh.position.set(
-        house.side * (FRONTAGE + house.setback),
-        heightAt(Math.max(middle, 0)),
-        -middle,
-      );
+      house.mesh.position.set(house.side * (FRONTAGE + house.setback), heightAt(middle), -middle);
     }
     for (const prop of this.props) {
       const metres = ((((prop.offset - s) % prop.every) + prop.every) % prop.every) - BEHIND;
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + KERB, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB, -metres);
     }
     this.placeCrowd(s, heightAt);
     this.placeBunting(s, heightAt);
@@ -653,7 +649,7 @@ export class OldTownStreet {
     let i = 0;
     for (let line = 0; line < BUNTING_LINES; line++) {
       const metres = ((((line * BUNTING_EVERY + 14 - s) % LOOP) + LOOP) % LOOP) - BEHIND;
-      const y = heightAt(Math.max(metres, 0));
+      const y = heightAt(metres);
       for (let k = 0; k < BUNTING_FLAGS; k++) {
         const x = -FRONTAGE + ((k + 0.5) / BUNTING_FLAGS) * 2 * FRONTAGE;
         const sag = 1.6 * (1 - (x / FRONTAGE) ** 2);
@@ -709,7 +705,7 @@ export class OldTownStreet {
     if (!legs || !torsos || !heads || !arms || !hats || !waved || !hair) return;
     this.crowd.forEach((fan, i) => {
       const metres = ((((fan.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
-      const y = heightAt(Math.max(metres, 0)) + KERB;
+      const y = heightAt(metres) + KERB;
       const hip = fan.height * 0.47;
       const neck = fan.height - 0.21;
       this.turn.setFromAxisAngle(UP, fan.turn);

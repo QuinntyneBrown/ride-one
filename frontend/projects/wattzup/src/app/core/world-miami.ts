@@ -73,6 +73,12 @@ const NIGHT_WEAR = {
   skins: ['#f1c9a5', '#c48a5f', '#8d5a3b', '#5a3a2a', '#e0b08a'],
 };
 
+const SKATE_WEAR = {
+  tops: ['#ff3fb4', '#2fe6ff', '#5aff8a', '#ffd23f', '#f4f0e8'],
+  bottoms: ['#1d1f24', '#ff3fb4', '#2fe6ff', '#f4f0e8'],
+  skins: ['#f1c9a5', '#c48a5f', '#8d5a3b', '#5a3a2a'],
+};
+
 export class MiamiStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
@@ -83,6 +89,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly people: { offset: number; x: number; speed: number; phase: number }[] = [];
   private crowd: Figures | null = null;
   private chatting: Figures | null = null;
+  private skating: Figures | null = null;
+  private readonly skaters: { offset: number; x: number; speed: number; phase: number }[] = [];
   private readonly standers: {
     offset: number;
     x: number;
@@ -95,6 +103,10 @@ export class MiamiStreet implements SceneStreet {
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
+  private readonly searchlights: Mesh[] = [];
+  private readonly swaying: { palm: Group; phase: number; lean: number }[] = [];
+  /** Where the nightclubs' doors are, in metres along the loop. */
+  private readonly clubs: number[] = [];
   private readonly drops: { x: number; y: number; z: number; speed: number }[] = [];
   private rain: InstancedMesh | null = null;
   private readonly drop = new Matrix4();
@@ -133,6 +145,7 @@ export class MiamiStreet implements SceneStreet {
     this.addCars(roadHalf);
     this.addLifeguards(roadHalf);
     this.addCrossings(roadHalf);
+    this.addPromenade(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -160,6 +173,17 @@ export class MiamiStreet implements SceneStreet {
       });
       rain.instanceMatrix.needsUpdate = true;
     }
+    // The palms sway in the sea breeze, gusting now and then.
+    const gust = 0.6 + 0.4 * Math.sin(seconds * 0.23);
+    for (const { palm, phase } of this.swaying) {
+      palm.rotation.z = Math.sin(seconds * 0.9 + phase) * 0.018 * gust;
+      palm.rotation.x = Math.cos(seconds * 0.7 + phase) * 0.012 * gust;
+    }
+    // The searchlights sweep slowly to and fro, out of step with each other.
+    this.searchlights.forEach((m, k) => {
+      m.rotation.z = Math.sin(seconds * 0.25 + k * 2.1) * 0.5;
+      m.rotation.x = 0.3 + Math.cos(seconds * 0.19 + k) * 0.12;
+    });
     // The aircraft beacons on the spires blink, a second apart.
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
@@ -210,6 +234,22 @@ export class MiamiStreet implements SceneStreet {
         );
       });
       crowd.commit();
+    }
+    const skating = this.skating;
+    if (skating) {
+      this.skaters.forEach((p, i) => {
+        const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
+        const stride = Math.sin(this.time * 2.6 + p.phase);
+        skating.set(
+          i,
+          p.x + stride * 0.25,
+          heightAt(Math.max(metres, 0)) + 0.15,
+          -metres,
+          (p.speed >= 0 ? 0 : Math.PI) + stride * 0.3,
+          0.95,
+        );
+      });
+      skating.commit();
     }
     const chatting = this.chatting;
     if (chatting) {
@@ -458,6 +498,23 @@ export class MiamiStreet implements SceneStreet {
       this.disposables.push(m);
       return m;
     });
+    const blocks = this.material({
+      map: this.track(glassBlockTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(glassBlockTexture()),
+      emissiveIntensity: 0.9,
+      roughness: 0.2,
+    });
+    const brass = this.material({ color: 0xd8a848, roughness: 0.25, metalness: 0.9 });
+    const velvet = this.material({ color: 0xa01030, roughness: 0.9 });
+    const clubSign = this.material({
+      map: this.track(clubTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(clubTexture()),
+      emissiveIntensity: 2.4,
+      transparent: true,
+    });
+    this.signs.push(clubSign);
     const slab = this.material({ color: 0xf4f0ec, roughness: 0.7 });
     const rail = this.material({ color: 0xf8f8f8, roughness: 0.3, metalness: 0.4 });
     const signBox = this.material({ color: 0x14121c, roughness: 0.5, metalness: 0.6 });
@@ -732,6 +789,21 @@ export class MiamiStreet implements SceneStreet {
       dish.rotation.set(0, 0, -1.1);
       dish.position.set(7, height + 1.1, width * 0.1);
       hotel.add(roof.build(this.disposables), aerial, lamp, dish);
+      // A stair tower of glass block over the entrance on every hotel but the clubs: a tall
+      // panel of glowing blocks rising from the marquee to the roofline, framed by fins.
+      if (k % 4 !== 1) {
+        const glassBlock = new Mesh(this.unit, blocks);
+        glassBlock.scale.set(1.6, height - 6, 2.4);
+        glassBlock.position.set(-0.8, 4.6 + (height - 6) / 2, -width * 0.05);
+        const capping = new Mesh(this.unit, facade);
+        capping.scale.set(2, 0.5, 2.8);
+        capping.position.set(-0.9, height - 1.1, -width * 0.05);
+        capping.castShadow = true;
+        const edge = new Mesh(tube, line);
+        edge.scale.set(1, height - 6, 1);
+        edge.position.set(-1.62, 4.6 + (height - 6) / 2, -width * 0.05 + 1.22);
+        hotel.add(glassBlock, capping, edge);
+      }
       // The hotel's name again in flowing neon script across the façade over the marquee, and
       // a small VACANCY sign glowing in a ground-floor corner window.
       const script = this.material({
@@ -806,6 +878,23 @@ export class MiamiStreet implements SceneStreet {
       const holder = new Group();
       holder.add(hotel);
       this.group.add(holder);
+      // Every fourth hotel keeps a nightclub on its ground floor: a red rope on brass posts
+      // holds back the queue along the shopfront, and a neon arrow points at the door.
+      if (k % 4 === 1) {
+        const rope = new BoxBuilder();
+        for (let z = 1.5; z <= 9.6; z += 1.35) {
+          rope.box(brass, [0.07, 1, 0.07], [-2.1, 0.65, z]);
+          rope.box(brass, [0.3, 0.05, 0.3], [-2.1, 0.17, z]);
+          if (z + 1.35 <= 9.6) rope.box(velvet, [0.06, 0.06, 1.3], [-2.1, 1.0, z + 0.675]);
+        }
+        hotel.add(rope.build(this.disposables));
+        const arrow = new Mesh(this.flat, clubSign);
+        arrow.rotation.y = -Math.PI / 2;
+        arrow.scale.set(4.4, 1.5, 1);
+        arrow.position.set(-0.1, 4.9, 2.6);
+        hotel.add(arrow);
+        this.clubs.push(offset + width / 2);
+      }
       this.props.push({ mesh: holder, offset: offset + width / 2, x: roadHalf + FRONT });
       offset += width + 3 + random() * 4;
       k++;
@@ -841,12 +930,27 @@ export class MiamiStreet implements SceneStreet {
       return m;
     });
     const grate = this.material({ color: 0x18181c, roughness: 0.7, metalness: 0.6 });
+    const coconut = new SphereGeometry(0.15, 8, 6);
+    this.disposables.push(coconut);
+    const husk = this.material({ color: 0x5a3a20, roughness: 0.9 });
+    const greenNut = this.material({ color: 0x4a5a20, roughness: 0.8 });
     let n = 0;
     for (let offset = 0; offset < LOOP; offset += 14 + random() * 4)
       for (const side of [-1, 1]) {
         const p = palms.make(random);
         p.scale.multiplyScalar(1.2);
         if (side > 0 && inCrossing(offset, 1.5)) continue;
+        // A cluster of coconuts under the crown, and the whole palm swaying in the breeze.
+        for (let c = 0; c < 4; c++) {
+          const nut = new Mesh(coconut, c % 2 ? husk : greenNut);
+          nut.position.set(
+            0.5 + Math.cos(c * 1.7) * 0.22,
+            8.95 - (c % 2) * 0.15,
+            Math.sin(c * 1.7) * 0.22,
+          );
+          p.add(nut);
+        }
+        this.swaying.push({ palm: p, phase: random() * 6, lean: p.rotation.y });
         const lamp = new Mesh(this.unit, uplight);
         lamp.scale.set(0.3, 0.12, 0.3);
         lamp.position.set(0.5, 0.06, 0);
@@ -1173,6 +1277,38 @@ export class MiamiStreet implements SceneStreet {
     });
   }
 
+  /**
+   * The promenade's furniture along the sea wall: teak benches on curled iron ends facing the
+   * sea, a lidded bin beside every other one, and a pair of bollards at the kerb.
+   */
+  private addPromenade(roadHalf: number): void {
+    const teak = this.material({ color: 0x8a5a3a, roughness: 0.6 });
+    const iron = this.material({ color: 0x1e2226, roughness: 0.5, metalness: 0.7 });
+    const bin = this.material({ color: 0x2a6a6a, roughness: 0.5, metalness: 0.4 });
+    for (let offset = 10, n = 0; offset < LOOP; offset += 21, n++) {
+      const b = new BoxBuilder();
+      // The bench, its back to the road: three seat slats, two back slats and iron ends.
+      for (let i = 0; i < 3; i++) b.box(teak, [0.1, 0.05, 1.8], [-0.12 * i, 0.46, 0]);
+      for (let i = 0; i < 2; i++) b.box(teak, [0.05, 0.1, 1.8], [0.14, 0.62 + i * 0.16, 0], -0.15);
+      for (const z of [-0.85, 0.85]) {
+        b.box(iron, [0.5, 0.06, 0.06], [-0.1, 0.42, z]);
+        b.box(iron, [0.06, 0.44, 0.06], [-0.3, 0.22, z]);
+        b.box(iron, [0.06, 0.8, 0.06], [0.12, 0.4, z], -0.15);
+      }
+      if (n % 2 === 0) {
+        b.box(bin, [0.5, 0.85, 0.5], [0, 0.43, 1.6]);
+        b.box(iron, [0.56, 0.08, 0.56], [0, 0.9, 1.6]);
+      }
+      for (const z of [-3, 3]) b.box(iron, [0.16, 0.9, 0.16], [3.6, 0.45, z]);
+      const furniture = b.build(this.disposables);
+      furniture.position.y = 0.15;
+      const holder = new Group();
+      holder.add(furniture);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: -roadHalf - 4.2 });
+    }
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -1196,6 +1332,36 @@ export class MiamiStreet implements SceneStreet {
     this.crowd = new Figures(this.group, this.disposables, this.people.length, NIGHT_WEAR, 8137);
     // Knots of two to four people standing and talking: outside the lobbies and against the
     // promenade wall looking out to sea, each swaying a little as they chat.
+    // Skaters on the promenade in neon, gliding past at a skater's pace with a side-to-side
+    // stride.
+    const glide = seeded(8301);
+    for (let k = 0; k < 10; k++)
+      this.skaters.push({
+        offset: 16 + k * 39 + glide() * 8,
+        x: -roadHalf - 1.4 - glide() * 2.2,
+        speed: (glide() < 0.5 ? -1 : 1) * (3.5 + glide() * 2.5),
+        phase: glide() * 6,
+      });
+    this.skating = new Figures(this.group, this.disposables, this.skaters.length, SKATE_WEAR, 8303);
+    // The queue for each club, waiting in a line along its rope, and the doorman by the door.
+    const queue = seeded(8147);
+    for (const club of this.clubs) {
+      for (let i = 0; i < 9; i++)
+        this.standers.push({
+          offset: club - 2 - i * 0.85 - queue() * 0.2,
+          x: roadHalf + FRONT - 1.35 + (queue() - 0.5) * 0.25,
+          heading: queue() * 0.6 - 0.3,
+          phase: queue() * 6,
+          scale: 0.92 + queue() * 0.12,
+        });
+      this.standers.push({
+        offset: club - 0.6,
+        x: roadHalf + FRONT - 2.6,
+        heading: Math.PI / 2,
+        phase: 0,
+        scale: 1.12,
+      });
+    }
     const chat = seeded(8139);
     for (let g = 0; g < 18; g++) {
       const wall = g % 3 === 0;
@@ -1423,6 +1589,30 @@ export class MiamiStreet implements SceneStreet {
     ship.position.set(-760, -SEA, -1250);
     ship.rotation.y = 0.35;
     this.horizon.add(ship);
+    // Searchlights from the clubs down the drive, their beams sweeping the clouds.
+    const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
+    cone.translate(0, 350, 0);
+    this.disposables.push(cone);
+    const beamLight = new MeshBasicMaterial({
+      map: this.track(searchlightTexture()),
+      transparent: true,
+      opacity: 0.2,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      side: DoubleSide,
+      fog: false,
+    });
+    this.disposables.push(beamLight);
+    for (const [x, z] of [
+      [70, -520],
+      [150, -880],
+      [40, -1200],
+    ] as const) {
+      const sweep = new Mesh(cone, beamLight);
+      sweep.position.set(x, 30, z);
+      this.horizon.add(sweep);
+      this.searchlights.push(sweep);
+    }
     // The city's violet glow rising behind the towers, and the moon over the sea.
     const glow = new MeshBasicMaterial({
       map: this.track(glowTexture()),
@@ -1701,7 +1891,11 @@ function facadeTexture(storeys: number, seed: number): CanvasTexture {
   });
 }
 
-/** The same windows, lit warm, pink or blue, or dark behind drawn blinds. */
+/**
+ * The same windows at night: rooms lit warm, pink or blue, brighter under the ceiling lamp,
+ * some with drapes drawn to the sides, some with someone standing at the glass or the blue
+ * flicker of a television, some dark behind half-lowered blinds.
+ */
 function windowsTexture(storeys: number, seed: number): CanvasTexture {
   return canvasTexture(512, 512, (g) => {
     g.fillStyle = '#000';
@@ -1712,10 +1906,33 @@ function windowsTexture(storeys: number, seed: number): CanvasTexture {
       const lit = ['#ffd8a0', '#ffe8c8', '#ff9ec9', '#a8e8ff', '#ffc890'][
         Math.floor(random() * 5)
       ]!;
-      g.fillStyle = lit;
+      const room = g.createLinearGradient(0, b.y, 0, b.y + b.h);
+      room.addColorStop(0, lit);
+      room.addColorStop(1, 'rgba(90,60,50,1)');
+      g.fillStyle = room;
       g.fillRect(b.x, b.y, b.w, b.h);
-      // Some have their blinds half down, slatted.
-      if (random() < 0.4) {
+      const roll = random();
+      if (roll < 0.15) {
+        // A television's blue glow.
+        g.fillStyle = 'rgba(110,160,255,0.85)';
+        g.fillRect(b.x, b.y + b.h * 0.4, b.w, b.h * 0.6);
+      } else if (roll < 0.3) {
+        // Someone at the window.
+        g.fillStyle = 'rgba(20,14,20,0.9)';
+        const cx = b.x + b.w * (0.3 + random() * 0.4);
+        g.beginPath();
+        g.arc(cx, b.y + b.h * 0.42, b.w * 0.14, 0, Math.PI * 2);
+        g.fill();
+        g.fillRect(cx - b.w * 0.2, b.y + b.h * 0.55, b.w * 0.4, b.h * 0.45);
+      }
+      if (random() < 0.45) {
+        // Drapes drawn to the sides.
+        g.fillStyle = ['rgba(200,40,80,0.85)', 'rgba(240,200,140,0.85)', 'rgba(40,120,120,0.85)'][
+          Math.floor(random() * 3)
+        ]!;
+        g.fillRect(b.x, b.y, b.w * 0.22, b.h);
+        g.fillRect(b.x + b.w * 0.78, b.y, b.w * 0.22, b.h);
+      } else if (random() < 0.4) {
         g.fillStyle = 'rgba(0,0,0,0.55)';
         const down = b.h * (0.3 + random() * 0.4);
         for (let y = 0; y < down; y += 3) g.fillRect(b.x, b.y + y, b.w, 2);
@@ -2189,5 +2406,63 @@ function cabinTexture(lit: boolean): CanvasTexture {
     }
     g.fillStyle = lit ? '#000' : '#3a3a4a';
     g.fillRect(0, 26, 512, 2);
+  });
+}
+
+/** A searchlight's beam: brightest at the lamp and fading up into the haze. */
+function searchlightTexture(): CanvasTexture {
+  return canvasTexture(16, 256, (g) => {
+    const fade = g.createLinearGradient(0, 256, 0, 0);
+    fade.addColorStop(0, 'rgba(240,235,255,1)');
+    fade.addColorStop(0.15, 'rgba(220,200,255,0.55)');
+    fade.addColorStop(0.6, 'rgba(200,170,255,0.15)');
+    fade.addColorStop(1, 'rgba(190,160,255,0)');
+    g.fillStyle = fade;
+    g.fillRect(0, 0, 16, 256);
+  });
+}
+
+/** A nightclub's sign: CLUB in pink neon over an arrow of chasing bulbs pointing at the door. */
+function clubTexture(): CanvasTexture {
+  return canvasTexture(256, 96, (g) => {
+    g.font = 'bold 54px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.shadowColor = '#ff3fb4';
+    g.shadowBlur = 14;
+    g.fillStyle = '#ff3fb4';
+    g.fillText('CLUB', 112, 34);
+    g.shadowBlur = 0;
+    g.fillStyle = '#ffe0f0';
+    g.fillText('CLUB', 112, 34);
+    g.fillStyle = '#ffd060';
+    for (let x = 16; x < 220; x += 12) {
+      g.beginPath();
+      g.arc(x, 76, 3.5, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.beginPath();
+    g.moveTo(222, 62);
+    g.lineTo(246, 76);
+    g.lineTo(222, 90);
+    g.closePath();
+    g.fill();
+  });
+}
+
+/** Glass blocks lit from the stair behind: a grid of squares, each glowing at its heart. */
+function glassBlockTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    g.fillStyle = '#d8d0c8';
+    g.fillRect(0, 0, 64, 256);
+    for (let y = 0; y < 256; y += 16)
+      for (let x = 0; x < 64; x += 16) {
+        const glow = g.createRadialGradient(x + 8, y + 8, 0, x + 8, y + 8, 9);
+        glow.addColorStop(0, '#fff4dc');
+        glow.addColorStop(0.6, '#e8c8a0');
+        glow.addColorStop(1, '#8a7a7a');
+        g.fillStyle = glow;
+        g.fillRect(x + 1, y + 1, 14, 14);
+      }
   });
 }

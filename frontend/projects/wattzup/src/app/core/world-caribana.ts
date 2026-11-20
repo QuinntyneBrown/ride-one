@@ -14,6 +14,7 @@ import {
   Group,
   IcosahedronGeometry,
   InstancedMesh,
+  LatheGeometry,
   type Material,
   Matrix4,
   Mesh,
@@ -24,10 +25,20 @@ import {
   SphereGeometry,
   type Texture,
   TorusGeometry,
+  Vector2,
   Vector3,
 } from 'three/webgpu';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { canvasTexture, loopMetres, Ribbons, type SceneStreet, seeded, speckle } from './world-kit';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  canvasTexture,
+  clothBannerTexture,
+  loopMetres,
+  Ribbons,
+  scaleFaceUv,
+  type SceneStreet,
+  seeded,
+  speckle,
+} from './world-kit';
 import { ellipsoid, limb, Spectators, spectatorParts } from './world-caribana-crowd';
 import type { StreetPoint } from './world-oldtown';
 
@@ -39,7 +50,7 @@ const KERB = 0.15;
 const ASPHALT = 0.012;
 /** The kerb steps up to the pavement just behind the barricades. */
 const CURB = 6.75;
-/** The apron the masqueraders dance on runs from the kerb to the barricades. */
+/** The barricades stand on the road at the gutters; the masqueraders dance between them. */
 const BARRIER = 6.6;
 /** The crowd stands from just behind the barricades to the back of the pavement. */
 const CROWD_NEAR = 7.0;
@@ -53,6 +64,16 @@ const TRUCK_X = -5.1;
 /** Downtown and the CN Tower stand this far ahead, a little left, hazed by hand. */
 const DOWNTOWN_AHEAD = 1700;
 const HAZE = 0xcfe0ee;
+
+/** One barricade's length along the gutter. */
+const BARRICADE = 2.45;
+/** The banners zip-tied to the barricades. */
+const BARRICADE_BANNERS = [
+  { text: 'TORONTO CARIBBEAN CARNIVAL', fill: '#ffd23f', ink: '#c8102e' },
+  { text: 'GRAND PARADE', fill: '#111111', ink: '#ffd23f' },
+  { text: 'LAKE SHORE BLVD W', fill: '#0f9d58', ink: '#ffffff' },
+  { text: 'PLAY MAS', fill: '#c8102e', ink: '#ffffff' },
+] as const;
 
 /** Caribbean flags in the crowd and on the lamp banners: T&T, Jamaica, Barbados, Guyana. */
 const FLAG_KINDS = ['trinidad', 'jamaica', 'barbados', 'guyana'] as const;
@@ -160,7 +181,18 @@ export class CaribanaStreet implements SceneStreet {
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
   private readonly downtown = new Group();
+  private readonly barricades: { side: -1 | 1; offset: number; banner: number }[] = [];
+  private barricadeFrames: InstancedMesh | null = null;
+  private readonly barricadeBanners: InstancedMesh[] = [];
   private readonly boats: Group[] = [];
+  private readonly clouds = new Group();
+  private readonly mokos: {
+    figure: Group;
+    legs: [Group, Group];
+    offset: number;
+    x: number;
+    phase: number;
+  }[] = [];
   private time = 0;
   private readonly matrix = new Matrix4();
   private readonly spot = new Vector3();
@@ -194,16 +226,19 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   build(roadHalf: number, points: number): void {
-    this.disposables.push(this.unit, ...this.flagMaterials);
+    this.disposables.push(this.unit, this.satinWing, ...this.flagMaterials);
     for (const m of this.flagMaterials) if (m.map) this.track(m.map);
     this.addGround(points);
     this.crowd.build();
     this.addMasqueraders(roadHalf);
+    this.addBarricades();
+    this.addMokoJumbies();
     this.addTrucks();
     this.addLamps();
     this.addTrees();
     this.addDowntown();
     this.addBoats();
+    this.addClouds();
   }
 
   /** The parade's clock, in seconds; held at 0 for reduced motion. */
@@ -226,7 +261,11 @@ export class CaribanaStreet implements SceneStreet {
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     this.placeDancers(heightAt, along);
+    this.placeBarricades(heightAt, along);
+    this.placeMokoJumbies(heightAt, along);
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
+    // The cumulus drift slowly east with the lake breeze, a sky that never quite repeats.
+    this.clouds.position.set(((this.time * 1.5) % 1200) - 600, heightAt(1e6), 0);
     this.boats.forEach((boat, i) => {
       const drift = this.time * 0.6 + i * 37;
       boat.position.set(
@@ -288,6 +327,171 @@ export class CaribanaStreet implements SceneStreet {
     });
   }
 
+  /**
+   * Steel bike-rack barricades along both gutters, 2.4 m apiece: rails, pickets and end posts
+   * on splayed feet, linked end to end. Two in five carry a carnival banner zip-tied to the
+   * face towards the road.
+   */
+  private addBarricades(): void {
+    const random = seeded(421);
+    for (const side of [-1, 1] as const) {
+      for (let offset = 0; offset < LOOP; offset += BARRICADE) {
+        const roll = random();
+        const banner = roll < 0.4 ? Math.floor(random() * BARRICADE_BANNERS.length) : -1;
+        this.barricades.push({ side, offset: offset + BARRICADE / 2, banner });
+      }
+    }
+    const frame = barricadeGeometry();
+    const steel = this.material({ color: 0xb9bec4, metalness: 0.75, roughness: 0.42 });
+    this.disposables.push(frame);
+    this.barricadeFrames = this.instanced(frame, steel, this.barricades.length);
+    const cloth = new PlaneGeometry(2.3, 0.72);
+    cloth.rotateY(-Math.PI / 2);
+    cloth.translate(-0.035, 0.66, 0);
+    this.disposables.push(cloth);
+    BARRICADE_BANNERS.forEach(({ text, fill, ink }) => {
+      const material = this.material({
+        map: this.track(clothBannerTexture(text, fill, ink)),
+        roughness: 0.75,
+      });
+      this.barricadeBanners.push(this.instanced(cloth, material, this.barricades.length));
+    });
+  }
+
+  private placeBarricades(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    const frames = this.barricadeFrames;
+    if (!frames) return;
+    const counts = this.barricadeBanners.map(() => 0);
+    this.barricades.forEach((b, i) => {
+      const metres = along(b.offset, LOOP);
+      // The right side's road face looks along -x; the left side's is turned round to match.
+      this.turn.setFromAxisAngle(this.up, b.side > 0 ? 0 : Math.PI);
+      this.spot.set(b.side * BARRIER, heightAt(Math.max(metres, 0)) + ASPHALT, -metres);
+      this.size.set(1, 1, 1);
+      this.matrix.compose(this.spot, this.turn, this.size);
+      frames.setMatrixAt(i, this.matrix);
+      if (b.banner >= 0)
+        this.barricadeBanners[b.banner]!.setMatrixAt(counts[b.banner]!++, this.matrix);
+    });
+    frames.instanceMatrix.needsUpdate = true;
+    this.barricadeBanners.forEach((mesh, k) => {
+      mesh.count = counts[k]!;
+      mesh.instanceMatrix.needsUpdate = true;
+    });
+  }
+
+  /**
+   * Moko jumbies: stilt walkers 4 m tall striding among the bands, their stilts hidden in long
+   * striped trousers, in satin shirts and tall hats, with fans of satin spread from the wrists.
+   */
+  private addMokoJumbies(): void {
+    const looks = [
+      { stripes: ['#c8102e', '#ffffff'], shirt: '#ffd23f', hat: '#c8102e', wings: COSTUMES[2]! },
+      { stripes: ['#0f9d58', '#ffd23f'], shirt: '#111111', hat: '#0f9d58', wings: COSTUMES[1]! },
+      { stripes: ['#7b2ff7', '#ffd23f'], shirt: '#ffffff', hat: '#7b2ff7', wings: COSTUMES[3]! },
+      { stripes: ['#ff2d87', '#13c3c9'], shirt: '#13c3c9', hat: '#ffd23f', wings: COSTUMES[0]! },
+    ];
+    const leg = new CylinderGeometry(0.1, 0.13, 2.6, 10);
+    leg.translate(0, -1.3, 0);
+    const foot = new BoxGeometry(0.16, 0.08, 0.3);
+    foot.translate(0, -2.62, -0.04);
+    const hips = ellipsoid(0.17, 1.15, 0.7, 0.85, 0, 2.66, 0);
+    const torso = new CylinderGeometry(0.19, 0.16, 0.6, 12);
+    torso.scale(1, 1, 0.75);
+    torso.translate(0, 3.0, 0);
+    const arms = mergeGeometries(
+      [-1, 1].flatMap((side) =>
+        limb(
+          new Vector3(side * 0.2, 3.25, 0),
+          new Vector3(side * 0.85, 3.45, -0.05),
+          0.05,
+          0.04,
+        ).map((g) => g.toNonIndexed()),
+      ),
+    )!;
+    const head = ellipsoid(0.11, 0.9, 1.1, 1, 0, 3.47, -0.01);
+    const brim = new CylinderGeometry(0.22, 0.22, 0.02, 16);
+    brim.translate(0, 3.58, 0);
+    const crown = new CylinderGeometry(0.13, 0.14, 0.36, 14);
+    crown.translate(0, 3.77, 0);
+    const hat = mergeGeometries([brim, crown])!;
+    this.disposables.push(leg, foot, hips, torso, arms, head, brim, crown, hat);
+    const skin = this.material({ color: SKINS[1], roughness: 0.6 });
+    const dark = this.material({ color: 0x111111, roughness: 0.8 });
+    const random = seeded(733);
+    for (let k = 0; k < 6; k++) {
+      const look = looks[k % looks.length]!;
+      const stripes = this.material({
+        map: this.track(stripeTexture(look.stripes[0], look.stripes[1])),
+        roughness: 0.55,
+      });
+      const satin = this.material({ color: look.shirt, roughness: 0.35, metalness: 0.2 });
+      const hatMaterial = this.material({ color: look.hat, roughness: 0.4, metalness: 0.3 });
+      const figure = new Group();
+      const legs: Group[] = [];
+      for (const side of [-1, 1]) {
+        const pivot = new Group();
+        pivot.position.set(side * 0.1, 2.66, 0);
+        pivot.add(new Mesh(leg, stripes), new Mesh(foot, dark));
+        figure.add(pivot);
+        legs.push(pivot);
+      }
+      figure.add(new Mesh(hips, stripes), new Mesh(torso, satin), new Mesh(arms, satin));
+      figure.add(new Mesh(head, skin), new Mesh(hat, hatMaterial));
+      // Satin wings fanned from wrist to waist on both sides, in the band's colours.
+      const [outer, mid] = look.wings.feathers;
+      for (const side of [-1, 1]) {
+        const wing = featherFan(side < 0 ? outer! : mid!, 9, 0.95, 0.34, Math.PI * 0.55, 0);
+        wing.rotateZ(side * (Math.PI / 2 + 0.35));
+        wing.translate(side * 0.2, 3.1, -0.02);
+        this.disposables.push(wing);
+        figure.add(new Mesh(wing, this.satinWing));
+      }
+      figure.traverse((o) => (o.castShadow = true));
+      this.group.add(figure);
+      const side = k % 2 ? 1 : -1;
+      this.mokos.push({
+        figure,
+        legs: [legs[0]!, legs[1]!],
+        offset: 30 + k * 57 + random() * 10,
+        x: side * (3.2 + random() * 2.2),
+        phase: random() * 6.3,
+      });
+    }
+  }
+
+  private readonly satinWing = new MeshStandardMaterial({
+    vertexColors: true,
+    side: DoubleSide,
+    roughness: 0.35,
+    metalness: 0.2,
+  });
+
+  private placeMokoJumbies(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    for (const m of this.mokos) {
+      const t = this.time * 1.6 + m.phase;
+      // A slow, high stride: each stilt swings from the hip, the body rising over the step.
+      const swing = Math.sin(t) * 0.16;
+      m.legs[0].rotation.x = swing;
+      m.legs[1].rotation.x = -swing;
+      const metres = along(m.offset, LOOP);
+      const lift = Math.abs(Math.cos(t)) * 0.05 - 0.03;
+      m.figure.position.set(
+        m.x + Math.sin(t * 0.25) * 0.5,
+        heightAt(Math.max(metres, 0)) + ASPHALT + lift,
+        -metres,
+      );
+      m.figure.rotation.y = Math.sin(t * 0.3) * 0.5 + (m.phase > 3 ? Math.PI : 0);
+      m.figure.rotation.z = Math.sin(t) * 0.03;
+    }
+  }
+
   /** Concrete pavements to the barricades and the crowd, grass beyond, the lake on the right. */
   private addGround(points: number): void {
     const concrete = this.material({ map: this.repeat(concreteTexture(), 4, 4), roughness: 0.9 });
@@ -298,14 +502,6 @@ export class CaribanaStreet implements SceneStreet {
       color: 0x6fa6c4,
       roughness: 0.12,
       metalness: 0.1,
-    });
-    const barrier = this.material({
-      map: this.repeat(barrierTexture(), 1 / 0.95, 1 / 2.4),
-      alphaTest: 0.5,
-      side: DoubleSide,
-      metalness: 0.6,
-      roughness: 0.4,
-      color: 0xc9ced3,
     });
     const asphalt = this.material({
       map: this.repeat(roadTexture(), 2 * CURB, 18),
@@ -351,14 +547,6 @@ export class CaribanaStreet implements SceneStreet {
     this.ribbons.add(points, lake, [
       [600, 0.03],
       [SHORE + 0.4, 0.03],
-    ]);
-    this.ribbons.add(points, barrier, [
-      [BARRIER, ASPHALT + 1.1],
-      [BARRIER, ASPHALT],
-    ]);
-    this.ribbons.add(points, barrier, [
-      [-BARRIER, ASPHALT],
-      [-BARRIER, ASPHALT + 1.1],
     ]);
   }
 
@@ -659,41 +847,72 @@ export class CaribanaStreet implements SceneStreet {
     }
   }
 
-  /** Lakeshore park trees: mature maples on the left, a sparser row by the water on the right. */
+  /**
+   * Lakeshore park trees: a row of mature maples, lindens and honey locusts on the left and a
+   * sparser row by the water on the right. Each is one of four species, with a trunk that forks
+   * into limbs and a crown of irregular leaf clumps, lit yellow-green on top and shaded under.
+   */
   private addTrees(): void {
-    const trunk = new CylinderGeometry(0.18, 0.28, 4, 7);
-    trunk.translate(0, 2, 0);
-    const blobs = (
-      [
-        [0, 5.8, 0, 2.4],
-        [1.3, 5.0, 0.4, 1.7],
-        [-1.2, 5.2, -0.3, 1.8],
-        [0.2, 7.0, 0.2, 1.6],
-      ] as const
-    ).map(([x, y, z, r]) => {
-      const blob = new IcosahedronGeometry(r, 2);
-      blob.translate(x, y, z);
-      return blob;
+    const species = [
+      {
+        seed: 11,
+        clumps: 14,
+        radius: 3.0,
+        height: 6.4,
+        squash: 0.78,
+        light: '#7fae4a',
+        dark: '#24481f',
+      },
+      {
+        seed: 23,
+        clumps: 18,
+        radius: 3.4,
+        height: 7.2,
+        squash: 0.62,
+        light: '#9cbf55',
+        dark: '#2f5a23',
+      },
+      {
+        seed: 37,
+        clumps: 12,
+        radius: 2.5,
+        height: 6.8,
+        squash: 1.0,
+        light: '#6c9e45',
+        dark: '#1f421c',
+      },
+      {
+        seed: 53,
+        clumps: 16,
+        radius: 3.2,
+        height: 7.0,
+        squash: 0.85,
+        light: '#8db552',
+        dark: '#2a4f22',
+      },
+    ];
+    const leaves = this.material({
+      map: this.repeat(leafTexture(), 1.5, 1.5),
+      vertexColors: true,
+      roughness: 0.9,
     });
-    const crown = mergeGeometries(blobs)!;
-    blobs.forEach((b) => b.dispose());
-    this.disposables.push(trunk, crown);
-    const bark = this.material({ color: 0x4b3a2c, roughness: 1 });
+    const bark = this.material({
+      map: this.repeat(barkTexture(), 1, 2),
+      color: 0x8a7a68,
+      roughness: 1,
+    });
+    const shapes = species.map((sp) => treeGeometry(sp));
+    for (const { trunk, crown } of shapes) this.disposables.push(trunk, crown);
     const random = seeded(211);
-    const leafColours = [0x2f6a2c, 0x3b7a31, 0x285c27, 0x46863a];
     for (const side of [-1, 1] as const) {
       const every = side < 0 ? 11 : 23;
       for (let offset = 0; offset < LOOP; offset += every) {
         const tree = new Group();
-        const leaves = this.material({
-          color: leafColours[Math.floor(random() * leafColours.length)]!,
-          roughness: 0.95,
-        });
-        const t = new Mesh(trunk, bark);
-        const c = new Mesh(crown, leaves);
-        const scale = 0.8 + random() * 0.5;
-        tree.scale.setScalar(scale);
-        c.scale.set(1 + random() * 0.3, 0.85 + random() * 0.3, 1 + random() * 0.3);
+        const shape = shapes[Math.floor(random() * shapes.length)]!;
+        const t = new Mesh(shape.trunk, bark);
+        const c = new Mesh(shape.crown, leaves);
+        tree.scale.setScalar(0.85 + random() * 0.45);
+        tree.rotation.y = random() * Math.PI * 2;
         t.castShadow = true;
         c.castShadow = true;
         tree.add(t, c);
@@ -713,35 +932,9 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(material);
       return material;
     };
-    const windows = this.track(windowTexture());
-    windows.wrapS = RepeatWrapping;
-    windows.wrapT = RepeatWrapping;
-    const glass = [0x6f8aa3, 0x8b9fb0, 0x5d7488, 0xa3b2bd].map((hex) => hazed(hex, 0.45, windows));
-    const random = seeded(307);
-    for (let i = 0; i < 46; i++) {
-      const w = 25 + random() * 35;
-      const h = 60 + random() * random() * 260;
-      const tower = new Mesh(this.unit, glass[i % glass.length]!);
-      tower.scale.set(w, h, w);
-      tower.position.set(-520 + random() * 520, h / 2, -random() * 260);
-      this.downtown.add(tower);
-    }
-    const concrete = hazed(0xc9c4ba, 0.4);
-    const pod = hazed(0x8d9196, 0.4);
-    const cn = new Group();
-    const shaft = new CylinderGeometry(5, 11, 450, 3);
-    shaft.translate(0, 225, 0);
-    const skirt = new CylinderGeometry(24, 22, 26, 24);
-    skirt.translate(0, 345, 0);
-    const deck = new CylinderGeometry(17, 24, 10, 24);
-    deck.translate(0, 363, 0);
-    const skypod = new CylinderGeometry(7, 8, 10, 16);
-    skypod.translate(0, 450, 0);
-    const mast = new CylinderGeometry(0.8, 3, 100, 8);
-    mast.translate(0, 505, 0);
-    this.disposables.push(shaft, skirt, deck, skypod, mast);
-    cn.add(new Mesh(shaft, concrete), new Mesh(skirt, pod), new Mesh(deck, concrete));
-    cn.add(new Mesh(skypod, pod), new Mesh(mast, concrete));
+    this.addSkyline(hazed);
+    const cn = cnTower(hazed(0xd3cec4, 0.38), hazed(0x8d9196, 0.36), hazed(0x2c3640, 0.4));
+    this.disposables.push(...cn.children.map((m) => (m as Mesh).geometry));
     cn.position.set(-260, 0, 40);
     this.downtown.add(cn);
     const dome = new SphereGeometry(110, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2);
@@ -751,6 +944,158 @@ export class CaribanaStreet implements SceneStreet {
     rogers.position.set(-130, 0, 120);
     this.downtown.add(rogers);
     this.group.add(this.downtown);
+  }
+
+  /**
+   * Toronto's skyline as Lake Shore West sees it, east past Ontario Place: slender glass condos
+   * of CityPlace and South Core clustered round the CN Tower with Harbourfront's lower slabs
+   * to its right, and behind them, left of the tower, the Financial District's office towers:
+   * white First Canadian Place, the black TD towers, red Scotia Plaza and gold Royal Bank Plaza.
+   */
+  private addSkyline(
+    hazed: (hex: number, amount: number, map?: Texture | null) => MeshStandardMaterial,
+  ): void {
+    const skin = (texture: CanvasTexture) => {
+      texture.wrapS = RepeatWrapping;
+      texture.wrapT = RepeatWrapping;
+      return this.track(texture);
+    };
+    const balconies = skin(condoTexture());
+    const grid = skin(officeTexture('#2b3540', '#55687a'));
+    const pinstripe = skin(pinstripeTexture());
+    const condo = [0x7fa7a8, 0x6c95a8, 0x9bb7b8, 0x8aa3b5, 0x5f8f8c].map((hex) =>
+      hazed(hex, 0.4, balconies),
+    );
+    const office = [0x8b9aa8, 0x6f8193, 0xa7b2bb].map((hex) => hazed(hex, 0.42, grid));
+    const black = hazed(0x30343a, 0.42, grid);
+    const white = hazed(0xf0eee8, 0.36, pinstripe);
+    const red = hazed(0x9a4b3e, 0.4, pinstripe);
+    const gold = hazed(0xd4a548, 0.38, grid);
+    const tower = (
+      material: MeshStandardMaterial,
+      w: number,
+      d: number,
+      h: number,
+      x: number,
+      z: number,
+      crown = 0,
+    ) => {
+      const box = new BoxGeometry(w, h, d);
+      // Repeat the facade by storey (3.2 m) and bay (8 m) so every tower keeps its scale.
+      for (const face of [0, 1]) scaleFaceUv(box, face, d / 8, h / 38);
+      for (const face of [4, 5]) scaleFaceUv(box, face, w / 8, h / 38);
+      box.translate(x, h / 2, z);
+      this.disposables.push(box);
+      this.downtown.add(new Mesh(box, material));
+      if (crown) {
+        // A setback crown: a narrower top with a mechanical penthouse.
+        const top = new BoxGeometry(w * 0.7, crown, d * 0.7);
+        top.translate(x, h + crown / 2, z);
+        this.disposables.push(top);
+        this.downtown.add(new Mesh(top, material));
+      }
+    };
+    // The Financial District, a kilometre beyond the tower and left of it.
+    tower(white, 46, 46, 290, -470, -420, 8);
+    tower(black, 36, 58, 223, -400, -330);
+    tower(black, 34, 52, 190, -360, -400);
+    tower(red, 44, 44, 260, -540, -360, 15);
+    tower(gold, 30, 50, 180, -330, -270);
+    tower(office[2]!, 42, 42, 239, -430, -500, 6);
+    tower(office[0]!, 40, 40, 218, -580, -470, 10);
+    tower(office[1]!, 50, 36, 240, -300, -360, 6);
+    const random = seeded(307);
+    for (let i = 0; i < 14; i++) {
+      const h = 110 + random() * 110;
+      tower(
+        office[i % office.length]!,
+        28 + random() * 22,
+        28 + random() * 22,
+        h,
+        -700 + random() * 460,
+        -300 - random() * 320,
+        random() < 0.4 ? 6 : 0,
+      );
+    }
+    // CityPlace and South Core: slender glass condos crowding the tower's foot.
+    for (let i = 0; i < 30; i++) {
+      const h = 95 + random() * random() * 140;
+      const w = 20 + random() * 10;
+      let x = -420 + random() * 400;
+      const z = -60 + random() * 300;
+      // Keep the tower's foot and the stadium clear.
+      if (Math.abs(x + 260) < 45 && Math.abs(z - 40) < 70) x -= 90;
+      tower(condo[i % condo.length]!, w, w * (1 + random() * 0.6), h, x, z, random() < 0.5 ? 5 : 0);
+    }
+    // Harbourfront's lower slabs along the water, right of the tower.
+    for (let i = 0; i < 16; i++) {
+      const h = 50 + random() * 80;
+      tower(
+        condo[(i + 2) % condo.length]!,
+        24 + random() * 16,
+        22 + random() * 10,
+        h,
+        -60 + random() * 340,
+        120 + random() * 200,
+      );
+    }
+  }
+
+  /**
+   * Fair-weather cumulus of an August afternoon over the lake and the city: each a heap of
+   * puffs on a flat grey base, rising into a white dome lit by the sun.
+   */
+  private addClouds(): void {
+    const random = seeded(613);
+    const puffs: BufferGeometry[] = [];
+    const white = new Color(0xffffff);
+    const base = new Color(0xa7b3c2);
+    const c = new Color();
+    for (let k = 0; k < 14; k++) {
+      const a = -1.2 + (k / 13) * 2.4 + (random() - 0.5) * 0.15;
+      const far = 3400 + random() * 1800;
+      const cx = Math.sin(a) * far;
+      const cz = -Math.cos(a) * far;
+      const cy = 820 + random() * 520;
+      const size = 150 + random() * 170;
+      const count = 20 + Math.floor(random() * 12);
+      for (let p = 0; p < count; p++) {
+        const along = (random() - 0.5) * 3.4;
+        const r = size * (0.26 + random() * 0.3) * (1 - Math.abs(along) * 0.22);
+        const lift = Math.max(0, (1 - Math.abs(along) / 1.8) * size * 0.75 * random());
+        const puff = new SphereGeometry(r, 14, 9);
+        // Squash the underside flat: cumulus sit on a level base.
+        const position = puff.getAttribute('position') as BufferAttribute;
+        for (let i = 0; i < position.count; i++) {
+          const y = position.getY(i);
+          if (y < 0) position.setY(i, y * 0.25);
+        }
+        puff.translate(cx + along * size, cy + lift + r * 0.25, cz + (random() - 0.5) * size * 0.8);
+        const colour = new Float32Array(position.count * 3);
+        for (let i = 0; i < position.count; i++) {
+          const height = (position.getY(i) - cy) / (size * 1.6);
+          c.copy(base).lerp(white, Math.min(1, Math.max(0, height * 1.4 + 0.15)));
+          colour.set([c.r, c.g, c.b], i * 3);
+        }
+        puff.setAttribute('color', new BufferAttribute(colour, 3));
+        puffs.push(puff.toNonIndexed());
+        puff.dispose();
+      }
+    }
+    const heap = mergeGeometries(puffs)!;
+    puffs.forEach((p) => p.dispose());
+    const cloud = this.material({
+      vertexColors: true,
+      emissive: 0xdfe6f0,
+      emissiveIntensity: 0.22,
+      roughness: 1,
+      fog: false,
+    });
+    this.disposables.push(heap);
+    const mesh = new Mesh(heap, cloud);
+    mesh.frustumCulled = false;
+    this.clouds.add(mesh);
+    this.group.add(this.clouds);
   }
 
   /** Sailboats out on the lake, drifting slowly. */
@@ -1072,6 +1417,278 @@ function roadTexture(): CanvasTexture {
   });
 }
 
+/**
+ * The CN Tower, 553 m: a hexagonal core braced by three legs in a Y that taper into it below
+ * the main pod; the pod turned on a lathe, its two dark window bands under the white ring of
+ * the outdoor deck; the SkyPod at 447 m; and the antenna in tapering segments to the top.
+ */
+function cnTower(concrete: Material, grey: Material, glass: Material): Group {
+  const tower = new Group();
+  const core = new CylinderGeometry(4.6, 8.5, 452, 6);
+  core.translate(0, 226, 0);
+  tower.add(new Mesh(core, concrete));
+  for (let k = 0; k < 3; k++) {
+    const leg = new BoxGeometry(1, 1, 1, 1, 30, 1);
+    leg.translate(0.5, 0.5, 0);
+    const position = leg.getAttribute('position') as BufferAttribute;
+    for (let i = 0; i < position.count; i++) {
+      const u = position.getX(i);
+      const v = position.getY(i);
+      const height = v * 338;
+      const reach = 6 + 24 * Math.pow(1 - v, 1.6);
+      const width = 6.2 - 2.4 * v;
+      position.setXYZ(i, u * reach, height, position.getZ(i) * width);
+    }
+    leg.computeVertexNormals();
+    leg.rotateY((k * Math.PI * 2) / 3 + Math.PI / 2);
+    tower.add(new Mesh(leg, concrete));
+  }
+  const lathe = (profile: [number, number][], segments = 40) =>
+    new LatheGeometry(
+      profile.map(([r, y]) => new Vector2(r, y)),
+      segments,
+    );
+  // The main pod's shell, lower cone to upper cap.
+  tower.add(
+    new Mesh(
+      lathe([
+        [6, 318],
+        [14, 328],
+        [21, 336],
+        [23.5, 340],
+        [23.5, 352],
+        [20, 357],
+        [14, 361],
+        [8, 364],
+        [5, 366],
+      ]),
+      concrete,
+    ),
+  );
+  // Two bands of glazing, the restaurant and the indoor lookout.
+  for (const [y, h, r] of [
+    [341, 4.2, 24.2],
+    [348.5, 3.4, 23.9],
+  ] as const) {
+    const band = new CylinderGeometry(r, r - 0.6, h, 40, 1, true);
+    band.translate(0, y + h / 2, 0);
+    tower.add(new Mesh(band, glass));
+  }
+  // The outdoor deck: a white ring standing proud of the pod between the bands.
+  const deck = new CylinderGeometry(26.5, 26, 2.2, 40);
+  deck.translate(0, 346.2, 0);
+  tower.add(new Mesh(deck, grey));
+  // The SkyPod and its band of windows.
+  tower.add(
+    new Mesh(
+      lathe([
+        [4.5, 440],
+        [8, 444],
+        [8.4, 449],
+        [6.5, 453],
+        [3.8, 456],
+      ]),
+      concrete,
+    ),
+  );
+  const sky = new CylinderGeometry(8.6, 8.6, 2.2, 32, 1, true);
+  sky.translate(0, 446.5, 0);
+  tower.add(new Mesh(sky, glass));
+  // The antenna, in tapering segments with a collar at each joint.
+  let y = 452;
+  for (let k = 0; k < 6; k++) {
+    const h = 17 - k;
+    const bottom = 3.2 - k * 0.45;
+    const segment = new CylinderGeometry(bottom - 0.42, bottom, h, 10);
+    segment.translate(0, y + h / 2, 0);
+    tower.add(new Mesh(segment, k % 2 ? grey : concrete));
+    const collar = new CylinderGeometry(bottom + 0.3, bottom + 0.3, 0.8, 10);
+    collar.translate(0, y + 0.4, 0);
+    tower.add(new Mesh(collar, grey));
+    y += h;
+  }
+  return tower;
+}
+
+/** A tree species: its seed, how many leaf clumps, the crown's size and its two greens. */
+interface Species {
+  readonly seed: number;
+  readonly clumps: number;
+  readonly radius: number;
+  readonly height: number;
+  readonly squash: number;
+  readonly light: string;
+  readonly dark: string;
+}
+
+/**
+ * A park tree of `species`: a trunk forking into three or four limbs, and a crown of leaf
+ * clumps, each an icosahedron pushed out of round, set round the limbs' ends and shaded
+ * through vertex colours from a sunlit top to a dark underside.
+ */
+function treeGeometry(species: Species): { trunk: BufferGeometry; crown: BufferGeometry } {
+  const random = seeded(species.seed);
+  const { radius, height, squash } = species;
+  const base = new Vector3(0, 0, 0);
+  const fork = new Vector3(0, height * 0.42, 0);
+  const wood: BufferGeometry[] = limb(base, fork, 0.32, 0.22, 9);
+  const tips: Vector3[] = [];
+  const limbs = 3 + Math.floor(random() * 2);
+  for (let k = 0; k < limbs; k++) {
+    const a = (k / limbs) * Math.PI * 2 + random() * 0.6;
+    const out = radius * (0.45 + random() * 0.25);
+    const tip = new Vector3(
+      Math.cos(a) * out,
+      height * (0.78 + random() * 0.12),
+      Math.sin(a) * out,
+    );
+    wood.push(...limb(fork, tip, 0.17, 0.07, 7));
+    tips.push(tip);
+  }
+  const clumps: BufferGeometry[] = [];
+  const centre = new Vector3(0, height, 0);
+  for (let k = 0; k < species.clumps; k++) {
+    const r = radius * (0.4 + random() * 0.2);
+    const facets = new IcosahedronGeometry(r, 2);
+    facets.deleteAttribute('normal');
+    facets.deleteAttribute('uv');
+    const clump = mergeVertices(facets);
+    facets.dispose();
+    const position = clump.getAttribute('position') as BufferAttribute;
+    // Every copy of a corner moves together, by a hash of where it is, so the clump stays shut.
+    const salt = random() * 100;
+    for (let i = 0; i < position.count; i++) {
+      const x = position.getX(i);
+      const y = position.getY(i);
+      const z = position.getZ(i);
+      const hash = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719 + salt) * 43758.5453;
+      const bulge = 0.8 + (hash - Math.floor(hash)) * 0.4;
+      position.setXYZ(i, x * bulge, y * bulge, z * bulge);
+    }
+    const around = k < tips.length ? tips[k]!.clone() : centre.clone();
+    if (k >= tips.length) {
+      const a = random() * Math.PI * 2;
+      const up = random() * 2 - 0.6;
+      around.add(
+        new Vector3(
+          Math.cos(a) * radius * 0.62,
+          up * radius * squash * 0.55,
+          Math.sin(a) * radius * 0.62,
+        ),
+      );
+    }
+    clump.translate(around.x, around.y, around.z);
+    clump.computeVertexNormals();
+    // Leaves wrap the clump: planar texture coordinates from where each corner stands.
+    const uv = new Float32Array(position.count * 2);
+    for (let i = 0; i < position.count; i++) {
+      uv[i * 2] = (position.getX(i) + position.getZ(i)) * 0.35;
+      uv[i * 2 + 1] = position.getY(i) * 0.35;
+    }
+    clump.setAttribute('uv', new BufferAttribute(uv, 2));
+    clumps.push(clump);
+  }
+  const crown = mergeGeometries(clumps)!;
+  clumps.forEach((c) => c.dispose());
+  // Shade the crown: sunlit where it faces up and out, dark where it faces down or inward.
+  const position = crown.getAttribute('position') as BufferAttribute;
+  const normal = crown.getAttribute('normal') as BufferAttribute;
+  const colour = new Float32Array(position.count * 3);
+  const light = new Color(species.light);
+  const dark = new Color(species.dark);
+  const c = new Color();
+  const top = height + radius * squash;
+  const bottom = height - radius * squash;
+  for (let i = 0; i < position.count; i++) {
+    const rise = (position.getY(i) - bottom) / (top - bottom);
+    const facing = normal.getY(i) * 0.5 + 0.5;
+    const t = Math.min(1, Math.max(0, rise * 0.55 + facing * 0.45 + (random() - 0.5) * 0.12));
+    c.copy(dark).lerp(light, t);
+    colour.set([c.r, c.g, c.b], i * 3);
+  }
+  crown.setAttribute('color', new BufferAttribute(colour, 3));
+  const trunk = mergeGeometries(wood.map((w) => (w.index ? w.toNonIndexed() : w)))!;
+  wood.forEach((w) => w.dispose());
+  return { trunk, crown };
+}
+
+/** Leaves: overlapping small ovals in light and shadow, tinted by the crown's colours. */
+function leafTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    g.fillStyle = '#b8b8b8';
+    g.fillRect(0, 0, 256, 256);
+    const random = seeded(71);
+    for (let i = 0; i < 2600; i++) {
+      const l = 50 + random() * 50;
+      g.fillStyle = `hsl(80,12%,${l}%)`;
+      g.save();
+      g.translate(random() * 256, random() * 256);
+      g.rotate(random() * Math.PI);
+      g.beginPath();
+      g.ellipse(0, 0, 4 + random() * 3, 2 + random() * 1.5, 0, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+  });
+}
+
+/** Bark: grey-brown with long vertical fissures. */
+function barkTexture(): CanvasTexture {
+  return canvasTexture(128, 256, (g) => {
+    speckle(g, 128, 256, '#8e8378', 77);
+    const random = seeded(79);
+    g.strokeStyle = 'rgba(40,32,26,0.6)';
+    for (let i = 0; i < 40; i++) {
+      g.lineWidth = 1 + random() * 2;
+      let x = random() * 128;
+      let y = 0;
+      g.beginPath();
+      g.moveTo(x, y);
+      while (y < 256) {
+        x += (random() - 0.5) * 6;
+        y += 8 + random() * 10;
+        g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+  });
+}
+
+/**
+ * A steel bike-rack barricade, 2.4 m long along z and 1.1 m high: top and bottom rails, end
+ * posts, fourteen pickets and a flat foot splayed across each end, with a hook to the next.
+ */
+function barricadeGeometry(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const bar = (w: number, h: number, d: number, x: number, y: number, z: number) => {
+    const box = new BoxGeometry(w, h, d);
+    box.translate(x, y, z);
+    parts.push(box);
+  };
+  bar(0.045, 0.045, 2.4, 0, 1.08, 0);
+  bar(0.04, 0.04, 2.4, 0, 0.17, 0);
+  for (const z of [-1.18, 1.18]) {
+    bar(0.045, 1.04, 0.045, 0, 0.6, z);
+    bar(0.75, 0.03, 0.06, 0, 0.015, z);
+    bar(0.03, 0.12, 0.03, 0, 0.08, z);
+  }
+  for (let k = 1; k <= 14; k++) bar(0.02, 0.9, 0.02, 0, 0.62, -1.18 + (k * 2.36) / 15);
+  bar(0.03, 0.03, 0.14, 0, 0.95, 1.25);
+  const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/** Vertical stripes of `a` and `b`, for a moko jumbie's long trousers. */
+function stripeTexture(a: string, b: string): CanvasTexture {
+  return canvasTexture(128, 32, (g) => {
+    for (let x = 0; x < 128; x += 16) {
+      g.fillStyle = (x / 16) % 2 ? b : a;
+      g.fillRect(x, 0, 16, 32);
+    }
+  });
+}
+
 /** Pale concrete slabs, 1 m by 1 m (the texture covers 4 m), with dark joints. */
 function concreteTexture(): CanvasTexture {
   return canvasTexture(512, 512, (g) => {
@@ -1136,19 +1753,6 @@ function waterTexture(): CanvasTexture {
       g.fillStyle = `rgba(255,255,255,${0.05 + random() * 0.2})`;
       g.fillRect(random() * 512, random() * 512, 8 + random() * 22, 1.5);
     }
-  });
-}
-
-/** A steel crowd barricade, 2.4 m long and 0.95 m high, cut out of the canvas. */
-function barrierTexture(): CanvasTexture {
-  return canvasTexture(512, 256, (g) => {
-    g.clearRect(0, 0, 512, 256);
-    g.fillStyle = '#ffffff';
-    g.fillRect(0, 0, 512, 16);
-    g.fillRect(0, 232, 512, 18);
-    g.fillRect(0, 0, 10, 256);
-    g.fillRect(502, 0, 10, 256);
-    for (let x = 28; x < 500; x += 26) g.fillRect(x, 16, 6, 216);
   });
 }
 
@@ -1302,20 +1906,48 @@ function bannerTexture(name: string, colour: string): CanvasTexture {
   });
 }
 
-/** Office glazing: a grid of lit and unlit windows. */
-function windowTexture(): CanvasTexture {
-  const texture = canvasTexture(128, 256, (g) => {
-    g.fillStyle = '#2d3a46';
-    g.fillRect(0, 0, 128, 256);
-    const random = seeded(3);
-    for (let y = 0; y < 256; y += 8) {
-      for (let x = 0; x < 128; x += 8) {
-        const l = 45 + random() * 35;
-        g.fillStyle = `hsl(205,18%,${l}%)`;
-        g.fillRect(x + 1, y + 1, 6, 5);
+/** Condo glazing: tinted glass floor to ceiling, a white balcony slab at every storey. */
+function condoTexture(): CanvasTexture {
+  return canvasTexture(64, 128, (g) => {
+    g.fillStyle = '#5d7b86';
+    g.fillRect(0, 0, 64, 128);
+    const random = seeded(311);
+    for (let y = 0; y < 128; y += 4) {
+      for (let x = 0; x < 64; x += 8) {
+        g.fillStyle = `hsl(195,18%,${36 + random() * 22}%)`;
+        g.fillRect(x, y, 8, 3);
       }
+      g.fillStyle = 'rgba(238,240,238,0.9)';
+      g.fillRect(0, y + 3, 64, 1);
     }
   });
-  texture.repeat.set(3, 6);
-  return texture;
+}
+
+/** Office glazing in `frame` and `pane`: a curtain wall of mullions and spandrels. */
+function officeTexture(frame: string, pane: string): CanvasTexture {
+  return canvasTexture(64, 128, (g) => {
+    g.fillStyle = frame;
+    g.fillRect(0, 0, 64, 128);
+    const random = seeded(313);
+    for (let y = 0; y < 128; y += 4) {
+      for (let x = 0; x < 64; x += 4) {
+        g.globalAlpha = 0.6 + random() * 0.4;
+        g.fillStyle = pane;
+        g.fillRect(x + 1, y + 1, 3, 2);
+      }
+    }
+    g.globalAlpha = 1;
+  });
+}
+
+/** Stone or marble cladding with narrow vertical windows between the piers. */
+function pinstripeTexture(): CanvasTexture {
+  return canvasTexture(64, 128, (g) => {
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 64, 128);
+    g.fillStyle = 'rgba(40,48,58,0.55)';
+    for (let x = 2; x < 64; x += 5) g.fillRect(x, 0, 2, 128);
+    g.fillStyle = 'rgba(255,255,255,0.5)';
+    for (let y = 0; y < 128; y += 4) g.fillRect(0, y, 64, 1);
+  });
 }
