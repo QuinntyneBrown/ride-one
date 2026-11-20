@@ -516,47 +516,66 @@ export class DeathValleyStreet implements SceneStreet {
       shape.lineTo(to, -20);
       return new ShapeGeometry(shape);
     };
-    // The Black Mountains, running along the right from behind the rider to far ahead.
-    const strata = this.track(strataTexture());
-    strata.wrapS = RepeatWrapping;
-    strata.wrapT = RepeatWrapping;
-    strata.repeat.set(1 / 700, 1 / 420);
-    const black = range(-1200, 4200, 620, 420);
-    black.rotateY(Math.PI / 2);
-    black.translate(1100, -4, 800);
-    const near = hazedMaterial(this.disposables, haze, 0xd8ccc0, 0.3, {
-      map: strata,
-      emissiveMap: strata,
-      emissive: new Color(0x8a7a6a),
-      emissiveIntensity: 0.5,
-      side: DoubleSide,
-    });
+    // The Black Mountains along the right: a steep front climbing from the fans to ridges near
+    // 1,000 m, cut by canyons, its rock banded in charcoal, rust, ochre and the odd green.
+    const strata = [
+      '#3a3230',
+      '#5a3a2a',
+      '#7a5a3a',
+      '#4a4038',
+      '#8a6a48',
+      '#5a6a58',
+      '#6a4a34',
+    ].map((hex) => new Color(hex));
+    const black = this.massif(
+      [980, -1300],
+      [1600, 4200, 110, 210],
+      (x, z) => {
+        const front = smooth((x - 180) / 560);
+        const ridge = 0.62 + 0.22 * Math.sin(z / 410) + 0.16 * Math.sin(z / 137 + 1.3);
+        const canyon = (1 - Math.abs(Math.sin(z / 95 + Math.sin(x / 140) * 0.9))) ** 6;
+        const rough = 0.04 * Math.sin(x / 23 + z / 31) + 0.03 * Math.sin(z / 17 - x / 41);
+        return front * 1050 * (ridge - 0.45 * canyon * (1 - front * 0.5) + rough);
+      },
+      (y, z) => strata[Math.floor((y + 40 * Math.sin(z / 230) + 400) / 55) % strata.length]!,
+    );
     // A second, higher wall behind, paler for its distance.
     const back = range(-1200, 6200, 1300, 520);
     back.rotateY(Math.PI / 2);
-    back.translate(2200, -4, 800);
-    this.disposables.push(black, back);
-    h.add(new Mesh(black, near), new Mesh(back, this.distant(haze, 0x8a7a78, 0.5)));
-    // The Panamint Range across the basin on the left, Telescope Peak rising above it.
-    const panamint = range(-1200, 14000, 900, 500, 2000);
-    panamint.rotateY(Math.PI / 2);
-    panamint.translate(-2400, -4, 1200);
-    const snow = new Shape();
-    snow.moveTo(1640, 1500);
-    snow.lineTo(1860, 1880);
-    snow.lineTo(2000, 2050);
-    snow.lineTo(2140, 1880);
-    snow.lineTo(2380, 1500);
-    snow.lineTo(2160, 1640);
-    snow.lineTo(2000, 1560);
-    snow.lineTo(1840, 1640);
-    const cap = new ShapeGeometry(snow);
-    cap.rotateY(Math.PI / 2);
-    cap.translate(-2390, -4, 1200);
-    this.disposables.push(panamint, cap);
+    back.translate(2400, -4, 800);
+    this.disposables.push(back);
     h.add(
-      new Mesh(panamint, this.distant(haze, 0x9a8a9e, 0.45)),
-      new Mesh(cap, this.distant(haze, 0xffffff, 0.15)),
+      new Mesh(
+        black,
+        hazedMaterial(this.disposables, haze, 0xffffff, 0.12, { vertexColors: true }),
+      ),
+      new Mesh(back, this.distant(haze, 0x8a7a78, 0.5)),
+    );
+    // The Panamint Range across the basin on the left: fans rising to a long crest, Telescope
+    // Peak lifted above it, its summit snowfields white.
+    const rock = new Color(0x9a8a8e);
+    const scree = new Color(0xb8a48a);
+    const snow = new Color(0xffffff);
+    const panamint = this.massif(
+      [-4600, -2000],
+      [2600, 7000, 120, 220],
+      (x, z) => {
+        const rise = smooth((-x - 3000) / 1400);
+        const crest = 1050 + 200 * Math.sin(z / 620) + 90 * Math.sin(z / 210 + 2);
+        const peak = 700 * Math.exp(-(((z + 900) / 650) ** 2)) * smooth((-x - 3700) / 700);
+        const canyon = (1 - Math.abs(Math.sin(z / 160 + Math.sin(x / 210)))) ** 6;
+        return rise * (crest - 380 * canyon * (1 - rise * 0.6)) + peak;
+      },
+      (y, z) => {
+        if (y > 1480 + 50 * Math.sin(z / 47)) return snow;
+        return y < 260 ? scree : rock;
+      },
+    );
+    h.add(
+      new Mesh(
+        panamint,
+        hazedMaterial(this.disposables, haze, 0xffffff, 0.4, { vertexColors: true }),
+      ),
     );
     // The dunes ahead, rising out of the heat at the end of the road: transverse ridges driven by
     // the wind, each a long gentle windward slope up to a knife-edge crest and a steep slip face
@@ -611,6 +630,35 @@ export class DeathValleyStreet implements SceneStreet {
     h.add(new Mesh(sheen, this.mirage));
   }
 
+  /**
+   * A mountain block as a heightfield `width` by `depth` metres centred on (x, z), with `across`
+   * by `along` cells: `height` raises each vertex at its place beside the road, and `colour`
+   * paints it by its height, so the rock bands and the snow follow the terrain.
+   */
+  private massif(
+    [cx, cz]: readonly [number, number],
+    [width, depth, across, along]: readonly [number, number, number, number],
+    height: (x: number, z: number) => number,
+    colour: (y: number, z: number) => Color,
+  ): PlaneGeometry {
+    const field = new PlaneGeometry(width, depth, across, along);
+    field.rotateX(-Math.PI / 2);
+    field.translate(cx, 0, cz);
+    const position = field.getAttribute('position');
+    const paint = new Float32Array(position.count * 3);
+    for (let i = 0; i < position.count; i++) {
+      const x = position.getX(i);
+      const z = position.getZ(i);
+      const y = Math.max(0, height(x, z));
+      position.setY(i, y - 4);
+      colour(y, z).toArray(paint, i * 3);
+    }
+    field.setAttribute('color', new BufferAttribute(paint, 3));
+    field.computeVertexNormals();
+    this.disposables.push(field);
+    return field;
+  }
+
   /** A far range's silhouette: its colour hazed by distance, lit evenly so no face falls dark. */
   private distant(haze: Color, hex: number, amount: number): MeshStandardMaterial {
     const material = hazedMaterial(this.disposables, haze, hex, amount, { side: DoubleSide });
@@ -663,25 +711,6 @@ function gravelTexture(): CanvasTexture {
       g.fillStyle = random() < 0.5 ? 'rgba(70,50,36,0.55)' : 'rgba(240,226,200,0.6)';
       const r = 1 + random() * 2.5;
       g.fillRect(random() * 128, random() * 128, r, r * 0.8);
-    }
-  });
-}
-
-/** The Black Mountains' rock: bands of charcoal, rust, ochre and the odd green of Artist's Palette. */
-function strataTexture(): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    const bands = ['#3a3230', '#5a3a2a', '#7a5a3a', '#4a4038', '#8a6a48', '#5a6a58', '#3a2a24'];
-    const random = seeded(6461);
-    for (let y = 0; y < 256;) {
-      const tall = 8 + random() * 28;
-      g.fillStyle = bands[Math.floor(random() * bands.length)]!;
-      g.beginPath();
-      g.moveTo(0, y);
-      for (let x = 0; x <= 256; x += 32) g.lineTo(x, y + Math.sin(x / 40 + y) * 6);
-      g.lineTo(256, y + tall + 8);
-      g.lineTo(0, y + tall + 8);
-      g.fill();
-      y += tall;
     }
   });
 }
@@ -750,4 +779,10 @@ function mirageTexture(): CanvasTexture {
     g.fillStyle = along;
     g.fillRect(0, 0, 64, 256);
   });
+}
+
+/** Eases from 0 below t = 0 up to 1 above t = 1. */
+function smooth(t: number): number {
+  const u = Math.min(1, Math.max(0, t));
+  return u * u * (3 - 2 * u);
 }
