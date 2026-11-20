@@ -99,6 +99,7 @@ export class AmsterdamStreet implements SceneStreet {
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly tower = new Group();
   private readonly clouds = new Group();
+  private waterMap: CanvasTexture | null = null;
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -124,6 +125,8 @@ export class AmsterdamStreet implements SceneStreet {
 
   setTime(seconds: number): void {
     this.time = seconds;
+    // The canal's ripples drift with the breeze.
+    this.waterMap?.offset.set(seconds * 0.004, seconds * 0.011);
   }
 
   lay(points: readonly StreetPoint[], s: number): void {
@@ -195,9 +198,17 @@ export class AmsterdamStreet implements SceneStreet {
       roughness: 0.9,
     });
     const stone = this.material({ color: 0x8f8a82, roughness: 0.9 });
-    const wall = this.material({ map: this.repeat(brickTexture(), 2, 2), roughness: 0.95 });
+    const wall = this.material({
+      map: this.repeat(canalWallTexture(false), 1.3, 3),
+      roughness: 0.95,
+    });
+    const farWall = this.material({
+      map: this.repeat(canalWallTexture(true), WATER + KERB, 3),
+      roughness: 0.95,
+    });
+    this.waterMap = this.repeat(waterTexture(), 12, 12);
     const water = this.material({
-      map: this.repeat(waterTexture(), 12, 12),
+      map: this.waterMap,
       roughness: 0.08,
       metalness: 0.25,
       transparent: true,
@@ -248,7 +259,7 @@ export class AmsterdamStreet implements SceneStreet {
       [edge, -WATER],
       [far, -WATER],
     ]);
-    this.ribbons.add(points, wall, [
+    this.ribbons.add(points, farWall, [
       [far, -WATER],
       [far, KERB],
     ]);
@@ -1603,16 +1614,75 @@ function brickTexture(): CanvasTexture {
   });
 }
 
-/** The canal's still green-brown water with the sky in long ripples. */
+/**
+ * The canal's olive-green water, ruffled by the breeze: small wavelets catching the sky on their
+ * near faces and dark in their troughs, in patches calmer and rougher.
+ */
 function waterTexture(): CanvasTexture {
   return canvasTexture(512, 512, (g) => {
-    g.fillStyle = '#3d4a3e';
+    g.fillStyle = '#3a4636';
     g.fillRect(0, 0, 512, 512);
     const random = seeded(491);
-    for (let i = 0; i < 1400; i++) {
-      g.fillStyle = `rgba(200,220,235,${0.05 + random() * 0.14})`;
-      g.fillRect(random() * 512, random() * 512, 2, 12 + random() * 30);
+    for (let i = 0; i < 18; i++) {
+      g.fillStyle = `rgba(${random() < 0.5 ? '20,30,24' : '90,110,100'},0.12)`;
+      g.beginPath();
+      g.ellipse(
+        random() * 512,
+        random() * 512,
+        40 + random() * 90,
+        60 + random() * 120,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      g.fill();
     }
+    g.lineCap = 'round';
+    for (let i = 0; i < 2600; i++) {
+      const x = random() * 512;
+      const y = random() * 512;
+      const length = 4 + random() * 10;
+      g.strokeStyle = `rgba(205,222,236,${0.06 + random() * 0.2})`;
+      g.lineWidth = 1 + random();
+      g.beginPath();
+      g.moveTo(x, y);
+      g.quadraticCurveTo(x + 1.5, y + length / 2, x, y + length);
+      g.stroke();
+      g.strokeStyle = 'rgba(12,18,14,0.18)';
+      g.beginPath();
+      g.moveTo(x + 2, y);
+      g.lineTo(x + 2, y + length);
+      g.stroke();
+    }
+  });
+}
+
+/**
+ * A canal wall's face, across from the quay down to the water (or, with `waterFirst`, up from
+ * it): dark red-brown brick courses, wet and darkening downward into a band of green algae and
+ * black slime at the waterline, with lime streaks running down from the joints.
+ */
+function canalWallTexture(waterFirst: boolean): CanvasTexture {
+  return canvasTexture(128, 256, (g) => {
+    if (waterFirst) g.setTransform(-1, 0, 0, 1, 128, 0);
+    speckle(g, 128, 256, '#6a3a2a', 493);
+    const random = seeded(497);
+    g.fillStyle = 'rgba(40,30,24,0.55)';
+    for (let x = 0; x < 128; x += 10) {
+      g.fillRect(x, 0, 2, 256);
+      for (let y = (x / 10) % 2 ? 0 : 12; y < 256; y += 24) g.fillRect(x, y, 10, 2);
+    }
+    g.fillStyle = 'rgba(232,228,214,0.18)';
+    for (let i = 0; i < 14; i++) g.fillRect(random() * 60, random() * 256, 30 + random() * 40, 2);
+    const wet = g.createLinearGradient(0, 0, 128, 0);
+    wet.addColorStop(0, 'rgba(0,0,0,0)');
+    wet.addColorStop(0.55, 'rgba(10,12,8,0.25)');
+    wet.addColorStop(0.75, 'rgba(46,70,30,0.7)');
+    wet.addColorStop(0.9, 'rgba(30,44,20,0.85)');
+    wet.addColorStop(1, 'rgba(12,16,10,0.95)');
+    g.fillStyle = wet;
+    g.fillRect(0, 0, 128, 256);
+    g.setTransform(1, 0, 0, 1, 0, 0);
   });
 }
 
