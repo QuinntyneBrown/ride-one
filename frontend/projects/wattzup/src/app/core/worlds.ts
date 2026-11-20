@@ -726,6 +726,16 @@ export const WORLDS: readonly World[] = [
     roll: 1,
   },
   {
+    id: 'coney',
+    name: 'Coney Island Boardwalk',
+    route: 'the boardwalk',
+    effortName: 'Boardwalk push',
+    description:
+      'The weathered planks of the Riegelmann Boardwalk run along the Brooklyn shore under stars-and-stripes bunting, past the clam bars and arcades and above a beach crowded with umbrellas, toward the turning Wonder Wheel, the white lattice of the Cyclone and the red Parachute Jump. The three-minute warm-up rolls along the railing above the sand, the opening minute lifts the pace past the clam bars, and the long efforts of two and three minutes push for the Wonder Wheel before the quick-spinning minutes between them roll past the arcades.',
+    grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0,
+  },
+  {
     id: 'winterlude',
     name: 'Winterlude, Ottawa',
     route: 'the Rideau Canal',

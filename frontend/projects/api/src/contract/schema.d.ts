@@ -156,6 +156,7 @@ export interface components {
         | 'velodrome'
         | 'cinqueterre'
         | 'angels'
+        | 'coney'
         | 'winterlude';
     };
     ClassShelfResponse: {

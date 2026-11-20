@@ -264,6 +264,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Lee Valley Velodrome');
   });
 
+  test('rides Spin to Win along the boardwalk of Coney Island', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Spin to Win', 'Coney Island Boardwalk', 'spin-to-win');
+    await expect(world.heading).toHaveText('Coney Island Boardwalk');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Coney Island Boardwalk');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

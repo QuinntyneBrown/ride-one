@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `winterlude`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -565,6 +565,14 @@ None.
   - drystone walls, the white bend posts and painted kilometre stones, and a masia with the senyera stirring on the ride's clock;
   - a few locals watching from the bends, turning and clapping (`Figures`);
   - Girona's old town on the plain below, its coloured houses and the cathedral's façade and bell tower, the Gavarres hills and the snowy Pyrenees, and the Santuari dels Àngels on the summit ahead, keeping their bearing.
+- **Coney Island Boardwalk (`core/world-coney.ts`).** For `coney`, the Riegelmann Boardwalk on the Brooklyn shore on a summer afternoon:
+  - the weathered planks laid in chevrons from the railing to the shopfronts, grey-brown with sun and salt, names chalked on them every 8 m (GO MAYA, BROOKLYN, SPIN and more) and every third row a slogan right across (CONEY ISLAND, SPIN TO WIN, WATTZUP), laid by the kit's painted rows;
+  - the event's barriers (CONEY ISLAND, BROOKLYN, WATTZUP, BOARDWALK, SPIN TO WIN, NYC), the kit's feather flags along them, two banners across the boardwalk (CONEY ISLAND · SPIN TO WIN, WATTZUP · BROOKLYN), and iron lamp posts with white globes every 16 m on both sides, the kit's stars-and-stripes bunting strung between each pair;
+  - on the left the green iron railing, the crowd in knots along it so the beach shows, and below it the beach: umbrellas in stripes, towels, bathers standing and strolling (the kit's figures), a white lifeguard chair every 80 m, the surf 110 m out and the Atlantic beyond;
+  - on the right the crowd packed in front of the arcades and clam bars (CLAM BAR, ARCADE, HOT DOGS, ICE CREAM and more): one- and two-storey fronts in bright paint, each with its sign along the fascia, a striped awning over its counter and a sign on the roof of every third;
+  - ahead, on the right, the Wonder Wheel turning slowly over the amusement park, its white rims, spokes and coloured cars on A-frame legs, the white lattice of the Cyclone climbing behind the shops, and at the end of the beach the red Parachute Jump, its tapering lattice tower and ring of arms. Everything along the boardwalk is hidden past 208 m.
+
+  `lay`, `place` and `setTime` recycle it along a 480 m loop.
 - **Winterlude, Ottawa (`core/world-winterlude.ts`).** For `winterlude`, the festival on a bright, bitterly cold February afternoon:
   - the ploughed driveway with its snowbanks, the snowy park, and the frozen Rideau Canal below its embankment, the ground sunk under the ice (`sink`);
   - skaters gliding both ways on the ice, swaying on their blades, and walkers in the park (`Figures`);
@@ -657,6 +665,7 @@ None.
 | `pages/world-ride/velodrome` | Lee Valley Velodrome at 0:53, warm-up, next `Track spin` |
 | `pages/world-ride/cinqueterre` | Cinque Terre at 4:50, warm-up, next `Corniche effort` |
 | `pages/world-ride/angels` | Els Àngels, Girona at 4:50, warm-up, next `Attack on Els Àngels` |
+| `pages/world-ride/coney` | Coney Island Boardwalk at 2:53, warm-up, next `Boardwalk push` |
 | `pages/world-ride/winterlude` | Winterlude, Ottawa at 4:50, warm-up, next `Canal sprint` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
