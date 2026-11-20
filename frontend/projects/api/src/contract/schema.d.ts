@@ -100,7 +100,8 @@ export interface components {
         | 'route66'
         | 'venice'
         | 'amsterdam'
-        | 'giza';
+        | 'giza'
+        | 'daytona';
     };
     ClassShelfResponse: {
       id: string;
