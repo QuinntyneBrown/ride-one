@@ -120,6 +120,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly foam: MeshBasicMaterial[] = [];
   private readonly searchlights: Mesh[] = [];
   private readonly vents: Mesh[][] = [];
+  private plane: Group | null = null;
+  private readonly planeLights: Mesh[] = [];
   private heli: { craft: Group; rotor: Mesh; lights: Mesh[] } | null = null;
   private readonly swaying: { palm: Group; phase: number; lean: number }[] = [];
   /** Where the nightclubs' doors are, in metres along the loop. */
@@ -225,6 +227,13 @@ export class MiamiStreet implements SceneStreet {
         m.visible = age < 0.97;
       }),
     );
+    // The banner plane flies along the shore, 200 m out and 70 m up, every two minutes.
+    if (this.plane) {
+      const along = ((seconds * 14 + 1250) % 1700) - 850;
+      this.plane.position.set(-200, 70, -along);
+      this.plane.rotation.y = Math.PI / 2;
+      this.planeLights.forEach((l) => (l.visible = seconds % 1 < 0.5));
+    }
     // The searchlights sweep slowly to and fro, out of step with each other.
     this.searchlights.forEach((m, k) => {
       m.rotation.z = Math.sin(seconds * 0.25 + k * 2.1) * 0.5;
@@ -2358,6 +2367,49 @@ export class MiamiStreet implements SceneStreet {
     causeway.position.set(-820, -SEA, -820);
     causeway.rotation.y = 0.12;
     this.horizon.add(causeway);
+    // A small plane trawling the beach with an LED banner behind it, flying slowly along the
+    // shore, its nav lights blinking.
+    const plane = new Group();
+    const planeShell = this.material({ color: 0xd8d8e0, roughness: 0.5, fog: false });
+    const fuselage = new Mesh(this.unit, planeShell);
+    fuselage.scale.set(7, 1.2, 1.2);
+    const wing = new Mesh(this.unit, planeShell);
+    wing.scale.set(1.6, 0.15, 10);
+    wing.position.x = 0.8;
+    const tail = new Mesh(this.unit, planeShell);
+    tail.scale.set(1, 1.4, 0.15);
+    tail.position.set(-3.2, 0.8, 0);
+    plane.add(fuselage, wing, tail);
+    for (const [z, c] of [
+      [-5, 0xff2020],
+      [5, 0x20ff60],
+    ] as const) {
+      const nav = new Mesh(
+        this.unit,
+        this.material({ color: c, emissive: c, emissiveIntensity: 4, fog: false }),
+      );
+      nav.scale.setScalar(0.5);
+      nav.position.set(0.8, 0, z);
+      plane.add(nav);
+      this.planeLights.push(nav);
+    }
+    const banner = this.material({
+      map: this.track(ledBannerTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(ledBannerTexture()),
+      emissiveIntensity: 2,
+      side: DoubleSide,
+      fog: false,
+    });
+    const sign = new Mesh(new PlaneGeometry(36, 5), banner);
+    sign.position.set(-28, -1.5, 0);
+    const tow = new Mesh(this.unit, planeShell);
+    tow.scale.set(8, 0.05, 0.05);
+    tow.position.set(-7.5, -0.6, 0);
+    this.disposables.push(sign.geometry);
+    plane.add(sign, tow);
+    this.plane = plane;
+    this.horizon.add(plane);
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
@@ -3535,5 +3587,24 @@ function steamTexture(): CanvasTexture {
       g.fillStyle = puff;
       g.fillRect(0, 0, 64, 64);
     }
+  });
+}
+
+/** An LED banner towed behind a plane: MIAMI NIGHTS in bright pink and cyan dots. */
+function ledBannerTexture(): CanvasTexture {
+  return canvasTexture(512, 72, (g) => {
+    g.fillStyle = '#0a0612';
+    g.fillRect(0, 0, 512, 72);
+    g.font = 'bold 54px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillStyle = '#ff4fb8';
+    g.fillText('MIAMI', 150, 38);
+    g.fillStyle = '#2fe6ff';
+    g.fillText('NIGHTS', 360, 38);
+    // The LED grid over the letters.
+    g.fillStyle = 'rgba(10,6,18,0.55)';
+    for (let x = 0; x < 512; x += 4) g.fillRect(x, 0, 1, 72);
+    for (let y = 0; y < 72; y += 4) g.fillRect(0, y, 512, 1);
   });
 }
