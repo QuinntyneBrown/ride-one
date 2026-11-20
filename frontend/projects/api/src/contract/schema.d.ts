@@ -271,7 +271,8 @@ export interface components {
         | 'veleta'
         | 'bayofislands'
         | 'dales'
-        | 'engadin';
+        | 'engadin'
+        | 'miami';
     };
     ClassShelfResponse: {
       id: string;

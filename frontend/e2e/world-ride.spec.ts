@@ -54,7 +54,7 @@ const CLASS_WORLDS: readonly (readonly [string, string])[] = [
   ['sprint-sprint-sprint', 'San Fermín, Pamplona'],
   ['hold-your-intensity', 'Great Ocean Road'],
   ['max-effort-up-and-overs', 'San Francisco Hills'],
-  ['ride-to-the-beat', 'Mardi Gras, New Orleans'],
+  ['ride-to-the-beat', 'Miami Neon Nights'],
   ['high-cadence-sprints', 'Victoria Harbour'],
   ['short-20-minute-sprint-blitz', 'Holi in Jaipur'],
   ['time-to-spin-out', 'Overseas Highway'],
@@ -1045,6 +1045,15 @@ test.describe('World Ride (L2-102)', () => {
     );
     await expect(world.heading).toHaveText('Col du Galibier');
     await expect(world.boardTitle).toHaveText('Riders nearby · Col du Galibier');
+  });
+
+  test('rides Ride to the Beat along the neon-lit beachfront of Miami Neon Nights', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Ride to the Beat', 'Miami Neon Nights', 'ride-to-the-beat');
+    await expect(world.heading).toHaveText('Miami Neon Nights');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Miami Neon Nights');
   });
 
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
