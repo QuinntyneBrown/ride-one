@@ -71,8 +71,10 @@ const FAR_BANK = 130;
 const LAWN_PATH = 16;
 /** The boathouse and its jetty, once a lap on the lake side, in the opening view. */
 const BOATHOUSE = 150;
-/** The Serpentine Bridge stands this far ahead, the road passing under its last arch. */
+/** The gardens and the town beyond the lake stand this far ahead, hazed by hand. */
 const BRIDGE_AHEAD = 240;
+/** The Serpentine Bridge stands nearer, the road passing under its last arch. */
+const BRIDGE_AT = 175;
 const HAZE = 0xd6dde2;
 /** The morning mist off the water, warmed by the low sun. */
 const MIST = 0xeee6d6;
@@ -254,7 +256,7 @@ export class SerpentineStreet implements SceneStreet {
     const ground = (metres: number) => heightAt(Math.max(metres, 0));
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
-      prop.mesh.visible = !prop.near || metres < BRIDGE_AHEAD - 10;
+      prop.mesh.visible = !prop.near || metres < BRIDGE_AT - 10;
       prop.mesh.position.set(prop.x, ground(metres) + KERB, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
@@ -903,7 +905,10 @@ export class SerpentineStreet implements SceneStreet {
    */
   private addHorizon(): void {
     const haze = new Color(HAZE);
-    const h = this.horizon;
+    // The bridge stands nearer than the rest of the distance.
+    const h = new Group();
+    h.position.z = BRIDGE_AHEAD - BRIDGE_AT;
+    this.horizon.add(h);
     const stone = hazedMaterial(this.disposables, haze, 0xe2dccd, 0.1, {
       map: this.repeat(ashlarTexture(), 4, 2),
     });
@@ -988,6 +993,19 @@ export class SerpentineStreet implements SceneStreet {
       h.add(p);
     }
     box(trim, width + 1, 0.2, 0.5, (left + right) / 2, deck + 1.8, 7.2);
+    // Black lamp standards along both parapets, a lantern on each.
+    const iron = hazedMaterial(this.disposables, haze, 0x1a1c1e, 0.12);
+    const glow = hazedMaterial(this.disposables, haze, 0xfff1d0, 0.05, {
+      emissive: new Color(0xffd9a0),
+      emissiveIntensity: 0.3,
+    });
+    for (let x = left + 8; x < right - 4; x += 15) {
+      for (const z of [7.2, -7.2]) {
+        box(iron, 0.22, 4.2, 0.22, x, deck + 1.9 + 2.1, z);
+        box(glow, 0.55, 0.8, 0.55, x, deck + 6.4, z);
+        box(iron, 0.7, 0.18, 0.7, x, deck + 6.9, z);
+      }
+    }
     for (let i = 0; i <= 5; i++) {
       const x = left + pier / 2 + i * (span + pier);
       if (i < 5) {
