@@ -45,6 +45,8 @@ const SIGN_WORDS = ['HOTEL', 'NOODLES', 'BAR', 'DOCK 9', 'CLUB', 'OPEN', 'RAMEN'
  * quay looks over the water to the far shore, FAR_SHORE metres away.
  */
 const HARBOUR_FROM = 20;
+/** The harbour railing's height above the quay. */
+const RAILING = 1.1;
 const HARBOUR_TO = 250;
 const FAR_SHORE = 340;
 /**
@@ -558,7 +560,22 @@ export class DocklandsStreet {
       emissiveIntensity: 2.4,
       side: DoubleSide,
     });
-    this.disposables.push(pavement, kerb, neon, water, steel, rail);
+    // The harbour railing: dark glass panels under a warm lit handrail.
+    const glass = new MeshStandardMaterial({
+      color: 0x0c1220,
+      metalness: 0.6,
+      roughness: 0.15,
+      transparent: true,
+      opacity: 0.55,
+      side: DoubleSide,
+    });
+    const handrail = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#ffd49a'),
+      emissiveIntensity: 2.6,
+      side: DoubleSide,
+    });
+    this.disposables.push(pavement, kerb, neon, water, steel, rail, glass, handrail);
     // The open dock under a bridge, both sides; under the quay it lies hidden below the ground.
     this.ribbon(
       points,
@@ -673,6 +690,38 @@ export class DocklandsStreet {
             [-back, 0],
           ],
           true,
+        );
+        // A railing along the quay's edge where it meets the harbour, folded away on a bridge.
+        const fold = (n: number) =>
+          Array.from({ length: n }, () => [-edge, KERB] as [number, number]);
+        this.ribbon(
+          points,
+          glass,
+          [
+            [-back + 0.4, KERB + RAILING],
+            [-back + 0.4, KERB],
+          ],
+          fold(2),
+        );
+        this.ribbon(
+          points,
+          handrail,
+          // Its face turned to the road, so it reads as a solid line at a glance.
+          [
+            [-back + 0.4, KERB + RAILING - 0.14],
+            [-back + 0.3, KERB + RAILING],
+            [-back + 0.5, KERB + RAILING],
+          ],
+          fold(3),
+        );
+        this.ribbon(
+          points,
+          handrail,
+          [
+            [-back + 0.4, KERB + 0.18],
+            [-back + 0.4, KERB + 0.04],
+          ],
+          fold(2),
         );
       }
     }
