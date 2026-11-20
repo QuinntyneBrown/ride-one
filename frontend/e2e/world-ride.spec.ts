@@ -57,6 +57,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Caribana Parade');
   });
 
+  test('rides Time Is of the Essence in Westminster Rush Hour on Westminster Bridge', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Time Is of the Essence',
+      'Westminster Rush Hour',
+      'time-is-of-the-essence',
+    );
+    await expect(world.heading).toHaveText('Westminster Rush Hour');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Westminster Rush Hour');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

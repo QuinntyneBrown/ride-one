@@ -63,9 +63,10 @@ import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from '.
 import { MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 import { Cyclist, CyclistKit } from './world-cyclist';
-import { CaribanaStreet } from './world-caribana';
 import { DocklandsStreet } from './world-docklands';
+import type { SceneStreet, StreetFactory } from './world-kit';
 import { cobbleTextures, OldTownStreet } from './world-oldtown';
+import { STREETS } from './world-streets';
 import { targetGrade, type World } from './worlds';
 
 interface Look {
@@ -166,6 +167,21 @@ const LOOKS: Record<WorldId, Look> = {
     haze: false,
   },
   // A clear midsummer afternoon over Lake Ontario, the sun behind the rider's left shoulder.
+  // Dusk over the Thames: the sun low behind the rider, the sky rose and violet, the road wet.
+  westminster: {
+    sky: 0xb48aa0,
+    fog: 0x8f8597,
+    ground: 0x3a3a44,
+    road: 0x3c3d42,
+    sun: 3,
+    wet: true,
+    haze: false,
+    turbidity: 6,
+    rayleigh: 3,
+    azimuth: -155,
+    light: { sun: 2.6, fill: 1.25, colour: 0xffb27a },
+    fogRange: [70, 1100],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
@@ -248,7 +264,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private readonly lamps: PointLight[] = [];
   private street: OldTownStreet | null = null;
   private towers: DocklandsStreet | null = null;
-  private parade: CaribanaStreet | null = null;
+  /** The street of a scene built on the shared kit (world-streets.ts). */
+  private scenery: SceneStreet | null = null;
   private readonly posts: Mesh[] = [];
   private readonly textures: Texture[] = [];
   private readonly disposables: { dispose(): void }[] = [];
@@ -280,9 +297,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.buildScene(world, canvas);
     // Docklands' photographed distance is the mock's own still, riders and all: its towers are
     // built in 3D instead.
-    // Caribana's distance (the lake, downtown and the CN Tower) is built in 3D, like Docklands'.
-    if (world.id !== 'docklands' && world.id !== 'caribana') await this.addPanorama(world);
-    if (world.id === 'caribana') this.addParade();
+    // A kit-built street draws its own distance in 3D, as Docklands' towers do.
+    const street = STREETS[world.id];
+    if (world.id !== 'docklands' && !street) await this.addPanorama(world);
+    if (street) this.addScenery(street);
     if (world.id === 'oldtown') this.addStreet();
     if (world.id === 'docklands') this.addTowers();
     this.applyTier();
@@ -330,7 +348,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
         efforts.map((g) => (g.start - frame.elapsed) * v),
       );
     }
-    this.parade?.setTime(frame.reducedMotion ? 0 : frame.elapsed);
+    this.scenery?.setTime(frame.reducedMotion ? 0 : frame.elapsed);
     this.layRoad(ahead, frame.s);
     const texture = this.roadMaterial.map;
     if (texture) texture.offset.y = (frame.s / DASH) % 1;
@@ -691,7 +709,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
     });
     // Old Town's kerbs have iron bollards (world-oldtown.ts) and Docklands' quay a neon line
     // (world-docklands.ts) in place of verge posts.
-    const posts = ['oldtown', 'docklands', 'caribana'].includes(this.world?.id ?? '') ? 0 : POSTS;
+    const id = this.world?.id;
+    const posts = id === 'oldtown' || id === 'docklands' || (id && STREETS[id]) ? 0 : POSTS;
     for (let i = 0; i < posts; i++) {
       const mesh = new Mesh(post, reflector);
       mesh.visible = false;
@@ -708,11 +727,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.street = street;
   }
 
-  private addParade(): void {
-    const parade = new CaribanaStreet((t) => this.track(t), this.disposables);
-    parade.build(ROAD_HALF, AHEAD + BEHIND + 1);
-    this.scene.add(parade.group);
-    this.parade = parade;
+  private addScenery(make: StreetFactory): void {
+    const street = make((t) => this.track(t), this.disposables);
+    street.build(ROAD_HALF, AHEAD + BEHIND + 1);
+    this.scene.add(street.group);
+    this.scenery = street;
   }
 
   private addTowers(): void {
@@ -733,7 +752,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private placeRoadside(s: number, ahead: RoadPoint[]): void {
     this.street?.place(s, (metres) => heightAt(ahead, metres));
     this.towers?.place(s, (metres) => heightAt(ahead, metres));
-    this.parade?.place(s, (metres) => heightAt(ahead, metres));
+    this.scenery?.place(s, (metres) => heightAt(ahead, metres));
     this.lamps.forEach((lamp, i) => {
       const metres = i * LAMP_EVERY - (s % LAMP_EVERY) + 8;
       lamp.position.set(
@@ -787,9 +806,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
     fillStrip(this.road, points, ROAD_HALF, 0);
     this.street?.lay(points, s);
     this.towers?.lay(points, s);
-    this.parade?.lay(points, s);
+    this.scenery?.lay(points, s);
     fillStrip(this.ground, points, GROUND_HALF, -0.05);
     this.towers?.sink(this.ground, points);
+    this.scenery?.sink?.(this.ground, points);
   }
 }
 

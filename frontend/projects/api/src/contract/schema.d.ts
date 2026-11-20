@@ -80,7 +80,15 @@ export interface components {
       plan: components['schemas']['WorkoutPlan'];
       /** The World Ride scene the class is ridden in, or null. */
       world:
-        null | 'docklands' | 'granite' | 'oldtown' | 'prairie' | 'dolomites' | 'coast' | 'caribana';
+        | null
+        | 'docklands'
+        | 'granite'
+        | 'oldtown'
+        | 'prairie'
+        | 'dolomites'
+        | 'coast'
+        | 'caribana'
+        | 'westminster';
     };
     ClassShelfResponse: {
       id: string;

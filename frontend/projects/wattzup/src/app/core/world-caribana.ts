@@ -23,11 +23,20 @@ import {
   Quaternion,
   RepeatWrapping,
   SphereGeometry,
-  SRGBColorSpace,
   type Texture,
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import {
+  armPair,
+  canvasTexture,
+  legPair,
+  loopMetres,
+  Ribbons,
+  type SceneStreet,
+  seeded,
+  speckle,
+} from './world-kit';
 import type { StreetPoint } from './world-oldtown';
 
 /** The street repeats every LOOP metres; its parts run from BEHIND metres behind the rider. */
@@ -93,9 +102,9 @@ interface Masquerader {
   readonly phase: number;
 }
 
-export class CaribanaStreet {
+export class CaribanaStreet implements SceneStreet {
   readonly group = new Group();
-  private readonly ribbons: { geometry: BufferGeometry; profile: [number, number][] }[] = [];
+  private readonly ribbons: Ribbons;
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
   private readonly fans: Reveller[] = [];
   private readonly dancers: Masquerader[] = [];
@@ -127,7 +136,9 @@ export class CaribanaStreet {
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
     private readonly disposables: { dispose(): void }[],
-  ) {}
+  ) {
+    this.ribbons = new Ribbons(this.group, disposables);
+  }
 
   build(roadHalf: number, points: number): void {
     this.disposables.push(this.unit, ...this.flagMaterials);
@@ -149,29 +160,12 @@ export class CaribanaStreet {
 
   /** Lays the pavements, barricades, grass, armour stone and lake over the road's points. */
   lay(points: readonly StreetPoint[], s: number): void {
-    for (const { geometry, profile } of this.ribbons) {
-      const position = geometry.getAttribute('position') as BufferAttribute;
-      const uv = geometry.getAttribute('uv') as BufferAttribute;
-      const n = profile.length;
-      points.forEach((p, i) => {
-        let across = 0;
-        profile.forEach(([x, y], j) => {
-          position.setXYZ(i * n + j, x, p.height + y, -p.metres);
-          if (j > 0) across += Math.hypot(x - profile[j - 1]![0], y - profile[j - 1]![1]);
-          uv.setXY(i * n + j, across, p.metres + s);
-        });
-      });
-      position.needsUpdate = true;
-      uv.needsUpdate = true;
-      geometry.computeVertexNormals();
-      geometry.computeBoundingSphere();
-    }
+    this.ribbons.lay(points, s);
   }
 
   /** Moves the parade with the rider: `heightAt` gives the road's height `metres` ahead. */
   place(s: number, heightAt: (metres: number) => number): void {
-    const along = (offset: number, every: number) =>
-      ((((offset - s) % every) + every) % every) - BEHIND;
+    const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + KERB, -metres);
@@ -304,38 +298,38 @@ export class CaribanaStreet {
     });
     // Each profile runs from greater x to smaller, so its faces look up (or at the road).
     const r = roadHalf;
-    this.ribbon(points, concrete, [
+    this.ribbons.add(points, concrete, [
       [PAVEMENT, KERB + 0.01],
       [r + 0.18, KERB],
       [r, 0],
     ]);
-    this.ribbon(points, concrete, [
+    this.ribbons.add(points, concrete, [
       [-r, 0],
       [-r - 0.18, KERB],
       [-PAVEMENT, KERB + 0.01],
     ]);
-    this.ribbon(points, grass, [
+    this.ribbons.add(points, grass, [
       [SHORE - 3, 0.3],
       [PAVEMENT, KERB + 0.01],
     ]);
-    this.ribbon(points, grass, [
+    this.ribbons.add(points, grass, [
       [-PAVEMENT, KERB + 0.01],
       [-80, 0.1],
     ]);
-    this.ribbon(points, stone, [
+    this.ribbons.add(points, stone, [
       [SHORE + 0.4, 0.02],
       [SHORE - 1.2, 0.55],
       [SHORE - 3, 0.3],
     ]);
-    this.ribbon(points, lake, [
+    this.ribbons.add(points, lake, [
       [600, 0.03],
       [SHORE + 0.4, 0.03],
     ]);
-    this.ribbon(points, barrier, [
+    this.ribbons.add(points, barrier, [
       [BARRIER, KERB + 1.1],
       [BARRIER, KERB],
     ]);
-    this.ribbon(points, barrier, [
+    this.ribbons.add(points, barrier, [
       [-BARRIER, KERB],
       [-BARRIER, KERB + 1.1],
     ]);
@@ -412,7 +406,7 @@ export class CaribanaStreet {
     const n = this.dancers.length;
     const suit = new CapsuleGeometry(0.16, 0.34, 4, 10);
     const head = new SphereGeometry(0.115, 12, 10);
-    const arms = raisedArms();
+    const arms = armPair(Math.PI - 0.55);
     const pair = legPair(0.075, 0.84);
     this.disposables.push(suit, head, arms, pair);
     const sequins = this.material({ roughness: 0.3, metalness: 0.5 });
@@ -699,54 +693,6 @@ export class CaribanaStreet {
     this.group.add(mesh);
     return mesh;
   }
-
-  /** A strip along the road whose cross-section is `profile`: [x, height above the road]. */
-  private ribbon(points: number, material: Material, profile: [number, number][]): void {
-    const n = profile.length;
-    const geometry = new BufferGeometry();
-    geometry.setAttribute('position', new BufferAttribute(new Float32Array(points * n * 3), 3));
-    geometry.setAttribute('uv', new BufferAttribute(new Float32Array(points * n * 2), 2));
-    const index: number[] = [];
-    for (let i = 0; i < points - 1; i++) {
-      for (let j = 0; j < n - 1; j++) {
-        const a = i * n + j;
-        index.push(a, a + n, a + 1, a + 1, a + n, a + n + 1);
-      }
-    }
-    geometry.setIndex(index);
-    const mesh = new Mesh(geometry, material);
-    mesh.receiveShadow = true;
-    mesh.frustumCulled = false;
-    this.group.add(mesh);
-    this.ribbons.push({ geometry, profile });
-    this.disposables.push(geometry);
-  }
-}
-
-/** Two legs standing slightly apart, from the ground to the hips, as one geometry. */
-function legPair(radius: number, length: number): BufferGeometry {
-  const parts = [-1, 1].map((side) => {
-    const leg = new CapsuleGeometry(radius, length - 2 * radius, 3, 8);
-    leg.translate(side * 0.1, length / 2, 0);
-    return leg;
-  });
-  const merged = mergeGeometries(parts)!;
-  parts.forEach((p) => p.dispose());
-  return merged;
-}
-
-/** Two arms raised in a V from the shoulders, as one geometry. */
-function raisedArms(): BufferGeometry {
-  const parts = [-1, 1].map((side) => {
-    const arm = new CylinderGeometry(0.045, 0.04, 0.72, 6);
-    arm.translate(0, 0.36, 0);
-    arm.rotateZ(-side * 0.55);
-    arm.translate(side * 0.2, 0.15, 0);
-    return arm;
-  });
-  const merged = mergeGeometries(parts)!;
-  parts.forEach((p) => p.dispose());
-  return merged;
 }
 
 /**
@@ -784,28 +730,6 @@ function featherFan(
   const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
   return merged;
-}
-
-function canvasTexture(w: number, h: number, draw: (g: CanvasRenderingContext2D) => void) {
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  draw(canvas.getContext('2d')!);
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  texture.anisotropy = 8;
-  return texture;
-}
-
-function speckle(g: CanvasRenderingContext2D, w: number, h: number, base: string, seed: number) {
-  g.fillStyle = base;
-  g.fillRect(0, 0, w, h);
-  const random = seeded(seed);
-  for (let i = 0; i < w * h * 0.02; i++) {
-    const v = Math.floor(random() * 60) - 30;
-    g.fillStyle = `rgba(${v > 0 ? 255 : 0},${v > 0 ? 255 : 0},${v > 0 ? 255 : 0},${Math.abs(v) / 300})`;
-    g.fillRect(random() * w, random() * h, 2 + random() * 3, 2 + random() * 3);
-  }
 }
 
 /** Pale concrete slabs, 1 m by 1 m (the texture covers 4 m), with dark joints. */
@@ -1029,16 +953,4 @@ function windowTexture(): CanvasTexture {
   });
   texture.repeat.set(3, 6);
   return texture;
-}
-
-/** A small seeded generator (mulberry32), so the parade is the same on every ride. */
-function seeded(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }

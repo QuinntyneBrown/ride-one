@@ -187,14 +187,20 @@ describe('ClassCatalogueReader', () => {
     expect(r.catalogue!.shelves).toEqual([]);
   });
 
-  it.each(['docklands', 'granite', 'oldtown', 'prairie', 'dolomites', 'coast', 'caribana'])(
-    'a class keeps its world %s (World Ride)',
-    (world) => {
-      const r = readOneClass('world', world);
-      expect(r.problems).toEqual([]);
-      expect(r.catalogue!.classes[0].world).toBe(world);
-    },
-  );
+  it.each([
+    'docklands',
+    'granite',
+    'oldtown',
+    'prairie',
+    'dolomites',
+    'coast',
+    'caribana',
+    'westminster',
+  ])('a class keeps its world %s (World Ride)', (world) => {
+    const r = readOneClass('world', world);
+    expect(r.problems).toEqual([]);
+    expect(r.catalogue!.classes[0].world).toBe(world);
+  });
 
   it.each([undefined, null])('a class with world %s has no world', (value) => {
     const r = readOneClass('world', value);
@@ -211,8 +217,7 @@ describe('ClassCatalogueReader', () => {
         {
           entry: 'steady',
           field: 'world',
-          message:
-            'A world is one of docklands, granite, oldtown, prairie, dolomites, coast or caribana.',
+          message: 'A world is one of the built-in scene ids.',
         },
       ]);
     },

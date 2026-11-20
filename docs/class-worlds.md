@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town and Caribana Parade have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade and Westminster Rush Hour have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -14,7 +14,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 8 | Intense Interval Blast | Caribana Parade | 55% | Toronto's Lake Shore Boulevard at Caribbean Carnival; steel pans and feathered masqueraders, each interval a surge between bands. |
 | 9 | Quick But Brutal HIIT | Trinidad J'Ouvert (concept) |  | Port of Spain before dawn at Carnival, paint and mud flying; each sprint breaks through a soca crowd. |
 | 10 | Sprintavals | Knicks Championship Parade (concept) |  | Ticker tape over Manhattan's Canyon of Heroes for a Knicks NBA title; sprint between floats as orange-and-blue crowds roar. |
-| 11 | Time Is of the Essence | Westminster Rush Hour (concept) |  | London at dusk beneath Big Ben; race black cabs and red buses before the clock chimes. |
+| 11 | Time Is of the Essence | Westminster Rush Hour | 60% | London at dusk beneath Big Ben; race black cabs and red buses before the clock chimes. |
 | 12 | 15-Minute Smash Fest | Rio Sambadrome (concept) |  | Carnival night in Rio; glittering samba schools fill the runway and every smash rides the drum line. |
 | 13 | 10 On 20 Off Max Sprints | Venice Beach Boardwalk (concept) |  | Skaters, street performers and palm-lined sand; ten-second sprints, twenty seconds cruising the ocean breeze. |
 | 14 | 15 Minute Cardio HIIT | Central Park Loop (concept) |  | Early laps of Central Park past the reservoir and Bethesda Fountain, joggers and carriages sharing the drive. |
