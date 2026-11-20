@@ -818,6 +818,28 @@ export class AmsterdamStreet implements SceneStreet {
       cloud.renderOrder = -1;
       this.clouds.add(cloud);
     }
+    // High above, thin streaks of cirrus combed out by the wind, and a fading contrail.
+    const wisps = new MeshBasicMaterial({
+      map: this.track(cirrusTexture()),
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+      color: new Color(1.5, 1.5, 1.55),
+      side: DoubleSide,
+    });
+    this.disposables.push(wisps);
+    const streak = new PlaneGeometry(1, 0.18);
+    this.disposables.push(streak);
+    for (let i = 0; i < 7; i++) {
+      const cirrus = new Mesh(streak, wisps);
+      const far = 1400 + random() * 800;
+      const width = 500 + random() * 600;
+      cirrus.scale.set(width, width, 1);
+      cirrus.position.set((random() - 0.5) * 1600, 420 + random() * 380, -far);
+      cirrus.rotation.z = (random() - 0.5) * 0.5;
+      cirrus.renderOrder = -2;
+      this.clouds.add(cirrus);
+    }
     this.group.add(this.clouds);
   }
 
@@ -4374,6 +4396,35 @@ function flankTexture(): CanvasTexture {
       g.fillStyle = '#16181b';
       g.fillRect(14, 30 + row * 112, 6, 18);
       g.fillRect(492, 30 + row * 112, 6, 18);
+    }
+  });
+}
+
+/** Cirrus on clear ground: fine combed streaks, brightest along the middle, frayed at the ends. */
+function cirrusTexture(): CanvasTexture {
+  return canvasTexture(512, 96, (g) => {
+    g.clearRect(0, 0, 512, 96);
+    const random = seeded(877);
+    for (let i = 0; i < 160; i++) {
+      const y = 48 + (random() - 0.5) * 50;
+      const x = random() * 380;
+      const length = 60 + random() * 160;
+      const fade = 1 - Math.abs(y - 48) / 30;
+      const stroke = g.createLinearGradient(x, 0, x + length, 0);
+      stroke.addColorStop(0, 'rgba(255,255,255,0)');
+      stroke.addColorStop(0.5, `rgba(255,255,255,${0.18 * Math.max(0, fade)})`);
+      stroke.addColorStop(1, 'rgba(255,255,255,0)');
+      g.strokeStyle = stroke;
+      g.lineWidth = 1 + random() * 3;
+      g.beginPath();
+      g.moveTo(x, y);
+      g.quadraticCurveTo(
+        x + length / 2,
+        y - 6 + random() * 12,
+        x + length,
+        y + (random() - 0.5) * 10,
+      );
+      g.stroke();
     }
   });
 }
