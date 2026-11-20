@@ -13,10 +13,12 @@ import {
   type CanvasTexture,
   ConeGeometry,
   CylinderGeometry,
+  DoubleSide,
   Group,
   IcosahedronGeometry,
   Mesh,
   MeshStandardMaterial,
+  PlaneGeometry,
   RepeatWrapping,
   type Texture,
 } from 'three/webgpu';
@@ -41,6 +43,9 @@ const LANES = 7;
 const PROMENADE = 5;
 const WALL = 0.85;
 const SEA = 1.6;
+/** The portales: the arcade's height and the depth of its walk under the upper floors. */
+const PORTAL = 4.6;
+const ARCADE = 3.6;
 /** The surges: each breaks over the wall for SURGE seconds of every CYCLE. */
 const CYCLE = 8;
 const SURGE = 3.2;
@@ -194,7 +199,7 @@ export class HavanaStreet implements SceneStreet {
       [promenade - 1400, -SEA],
     ]);
     this.ribbons.add(points, paving, [
-      [r + 4, KERB],
+      [r + 4 + ARCADE, KERB],
       [r + 0.05, KERB],
       [r, 0.004],
     ]);
@@ -226,7 +231,11 @@ export class HavanaStreet implements SceneStreet {
     }
   }
 
-  /** The façades: three and four storeys, pastel and peeling, colonnaded at the foot. */
+  /**
+   * The façades: three and four storeys, pastel and peeling, standing on their portales: an
+   * arcade of square piers and round arches at the foot, its walk set back under the upper floors
+   * with shopfronts and doorways deep in its shade.
+   */
   private addFacades(roadHalf: number): void {
     const random = seeded(907);
     const pastels = [
@@ -235,30 +244,89 @@ export class HavanaStreet implements SceneStreet {
     const fronts = this.track(facadeTexture());
     fronts.wrapS = RepeatWrapping;
     fronts.wrapT = RepeatWrapping;
+    const arches = this.track(archTexture());
+    arches.wrapS = RepeatWrapping;
+    const shops = this.track(shopTexture());
+    const plain = this.track(plasterTexture());
+    shops.wrapS = RepeatWrapping;
     const cornice = this.material({ color: 0xf5f1e8, roughness: 0.8 });
+    const soffit = this.material({ color: 0x8a8278, roughness: 0.95 });
+    const arcade = new PlaneGeometry(1, 1);
+    arcade.rotateY(-Math.PI / 2);
+    this.disposables.push(arcade);
     for (let offset = 0; offset < LOOP;) {
       const width = 12 + random() * 14;
-      const floors = 3 + Math.floor(random() * 2);
+      const floors = 2 + Math.floor(random() * 2);
       const height = floors * 4.2;
+      const tint = pastels[Math.floor(random() * pastels.length)]!;
       const map = fronts.clone();
       map.repeat.set(width / 8, floors / 4);
       map.offset.y = 1 - floors / 4;
       map.needsUpdate = true;
       this.track(map);
-      const facade = this.material({
-        map,
-        color: pastels[Math.floor(random() * pastels.length)]!,
-        roughness: 0.85,
-      });
+      const facade = this.material({ map, color: tint, roughness: 0.85 });
       const building = new Group();
       const body = new Mesh(this.unit, facade);
       body.scale.set(14, height, width - 0.3);
-      body.position.set(7, height / 2, -width / 2);
+      body.position.set(7, PORTAL + height / 2, -width / 2);
       body.castShadow = true;
+      // The arcade's ceiling, the shopfronts at its back and its arched front of piers.
+      const ceiling = new Mesh(this.unit, soffit);
+      ceiling.scale.set(ARCADE, 0.3, width - 0.3);
+      ceiling.position.set(ARCADE / 2, PORTAL - 0.15, -width / 2);
+      ceiling.castShadow = true;
+      const shopMap = shops.clone();
+      shopMap.repeat.set(width / 7, 1);
+      shopMap.needsUpdate = true;
+      this.track(shopMap);
+      const back = new Mesh(
+        this.unit,
+        this.material({ map: shopMap, color: 0x6a6460, roughness: 0.9 }),
+      );
+      back.receiveShadow = true;
+      back.scale.set(14 - ARCADE, PORTAL, width - 0.3);
+      back.position.set(ARCADE + (14 - ARCADE) / 2, PORTAL / 2, -width / 2);
+      const bays = Math.max(2, Math.round(width / 3.6));
+      const archMap = arches.clone();
+      archMap.repeat.set(bays, 1);
+      archMap.needsUpdate = true;
+      this.track(archMap);
+      const front = new Mesh(
+        arcade,
+        this.material({
+          map: archMap,
+          color: tint,
+          roughness: 0.85,
+          alphaTest: 0.5,
+          side: DoubleSide,
+        }),
+      );
+      front.scale.set(1, PORTAL, width - 0.3);
+      front.position.set(0, PORTAL / 2, -width / 2);
+      front.castShadow = true;
+      front.receiveShadow = true;
+      building.add(body, ceiling, back, front);
+      // Square piers between the arches, with a pale plinth at the foot of each.
+      const bay = (width - 0.3) / bays;
+      const plaster = this.material({ map: plain, color: tint, roughness: 0.9 });
+      for (let k = 0; k <= bays; k++) {
+        const pier = new Mesh(this.unit, plaster);
+        pier.scale.set(0.5, PORTAL, 0.5);
+        pier.position.set(0.25, PORTAL / 2, -0.15 - k * bay);
+        pier.castShadow = true;
+        pier.receiveShadow = true;
+        const plinth = new Mesh(this.unit, cornice);
+        plinth.scale.set(0.7, 0.5, 0.7);
+        plinth.position.set(0.25, 0.25, -0.15 - k * bay);
+        building.add(pier, plinth);
+      }
       const top = new Mesh(this.unit, cornice);
       top.scale.set(14.6, 0.5, width - 0.1);
-      top.position.set(7, height + 0.25, -width / 2);
-      building.add(body, top);
+      top.position.set(7, PORTAL + height + 0.25, -width / 2);
+      const band = new Mesh(this.unit, cornice);
+      band.scale.set(0.4, 0.35, width - 0.1);
+      band.position.set(-0.05, PORTAL + 0.1, -width / 2);
+      building.add(top, band);
       this.group.add(building);
       this.props.push({ mesh: building, offset, x: roadHalf + 4 });
       offset += width;
@@ -556,16 +624,57 @@ function facadeTexture(): CanvasTexture {
       g.fillStyle = 'rgba(255,255,255,0.7)';
       g.fillRect(0, y + 118, 256, 8);
     }
-    // The colonnade's arches at the foot, dark in their shade.
-    g.fillStyle = '#3a3430';
-    for (const x of [16, 144]) {
-      g.beginPath();
-      g.moveTo(x, 512);
-      g.lineTo(x, 430);
-      g.arc(x + 48, 430, 48, Math.PI, 0);
-      g.lineTo(x + 96, 512);
-      g.closePath();
-      g.fill();
+  });
+}
+
+/** One bay of the arcade's front: a round arch cut through the pale wall (transparent). */
+function archTexture(): CanvasTexture {
+  return canvasTexture(128, 160, (g) => {
+    speckle(g, 128, 160, '#efece6', 983);
+    g.fillStyle = 'rgba(150,110,90,0.25)';
+    g.fillRect(0, 130, 128, 30);
+    g.globalCompositeOperation = 'destination-out';
+    g.fillStyle = '#000';
+    g.beginPath();
+    g.moveTo(14, 160);
+    g.lineTo(14, 66);
+    g.arc(64, 66, 50, Math.PI, 0);
+    g.lineTo(114, 160);
+    g.closePath();
+    g.fill();
+    g.globalCompositeOperation = 'source-over';
+    g.strokeStyle = 'rgba(255,255,255,0.8)';
+    g.lineWidth = 5;
+    g.beginPath();
+    g.arc(64, 66, 52, Math.PI, 0);
+    g.stroke();
+  });
+}
+
+/** The shopfronts at the back of the arcade: doorways, shutters and dim windows. */
+function shopTexture(): CanvasTexture {
+  return canvasTexture(256, 160, (g) => {
+    speckle(g, 256, 160, '#9c9080', 991);
+    const random = seeded(997);
+    for (let x = 8; x < 256; x += 64) {
+      const kind = random();
+      g.fillStyle = kind < 0.4 ? '#2a2420' : kind < 0.7 ? '#5f6a6c' : '#3c5a4a';
+      g.fillRect(x, 40, 46, 120);
+      if (kind >= 0.4 && kind < 0.7) {
+        g.fillStyle = 'rgba(0,0,0,0.25)';
+        for (let y = 44; y < 160; y += 6) g.fillRect(x, y, 46, 2);
+      }
+      g.fillStyle = 'rgba(255,240,200,0.18)';
+      g.fillRect(x + 4, 50, 38, 40);
     }
+  });
+}
+
+/** Plain pale plaster, weathered at the foot. */
+function plasterTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    speckle(g, 64, 256, '#efece6', 1009);
+    g.fillStyle = 'rgba(150,110,90,0.25)';
+    g.fillRect(0, 210, 64, 46);
   });
 }
