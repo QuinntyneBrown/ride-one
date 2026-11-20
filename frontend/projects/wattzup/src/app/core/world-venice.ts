@@ -384,7 +384,10 @@ export class VeniceStreet implements SceneStreet {
   /**
    * The shops along the boardwalk: low stucco blocks of one to three storeys in bright paint,
    * each with a shopfront, a sign board and a striped awning, murals on their upper fronts and
-   * on the end walls that face the rider, and alleys opening between them.
+   * on the end walls that face the rider, and alleys opening between them. Every fifth is a
+   * beach hotel of four or five storeys with its sign on the roof. Upper storeys have balconies,
+   * some parapets step up in the middle, and the roofs carry water tanks and air conditioners.
+   * Behind them a second row of taller apartment blocks breaks the skyline.
    */
   private addShops(): void {
     const layout = seeded(227);
@@ -410,7 +413,8 @@ export class VeniceStreet implements SceneStreet {
       let style = Math.floor(layout() * (PALETTES.length - 1));
       if (style >= last) style++;
       last = style;
-      const storeys = 1 + Math.floor(layout() * 3);
+      const hotel = index % 5 === 2;
+      const storeys = hotel ? 4 + Math.floor(layout() * 2) : 1 + Math.floor(layout() * 3);
       const height = storeys * STOREY + 1;
       const depth = 14;
       const shopRow = new Group();
@@ -458,8 +462,9 @@ export class VeniceStreet implements SceneStreet {
       const awning = box(awnings[index % awnings.length]!, 1.8, 0.12, width - 0.8, -1.1, 3.0);
       awning.rotation.z = -0.32;
       box(trims[style]!, 0.5, 0.35, width + 0.2, -0.1, height - 0.35);
+      this.addRoofline(shopRow, box, trims[style]!, width, height, storeys, index, hotel);
       // A mural across the upper front of every third shop of two storeys or more.
-      if (storeys > 1 && index % 3 === 1) {
+      if (!hotel && storeys > 1 && index % 3 === 1) {
         const plane = new Mesh(new PlaneGeometry(width - 0.6, height - 4.6), mural);
         this.disposables.push(plane.geometry);
         plane.position.set(-0.05, 4.3 + (height - 4.6) / 2, 0);
@@ -475,6 +480,111 @@ export class VeniceStreet implements SceneStreet {
       });
       offset += width + (layout() < 0.25 ? 5 : 0.2);
       index++;
+    }
+    this.addBackRow(fronts, walls, roof);
+  }
+
+  /**
+   * A block's balconies, parapet and rooftop: railed balconies on the upper storeys of every
+   * other block, a stepped parapet on some, a water tank or air conditioners on the roof and, on
+   * a hotel, its sign standing on a frame above the boardwalk.
+   */
+  private addRoofline(
+    row: Group,
+    box: (m: Material, w: number, h: number, d: number, x: number, y: number) => Mesh,
+    trim: Material,
+    width: number,
+    height: number,
+    storeys: number,
+    index: number,
+    hotel: boolean,
+  ): void {
+    const rooftop = this.rooftop();
+    if (storeys > 1 && (hotel || index % 2 === 0)) {
+      const span = hotel ? width - 1.2 : width * 0.6;
+      for (let f = 1; f < storeys; f++) {
+        box(trim, 1.2, 0.18, span, -0.6, f * STOREY + 0.5);
+        box(rooftop.rail, 0.06, 1.0, span, -1.15, f * STOREY + 0.68);
+      }
+    }
+    if (storeys > 1 && index % 3 === 0) box(trim, 0.6, 1.6, width * 0.4, -0.1, height);
+    if (index % 2 === 1) {
+      const tank = box(rooftop.tank, 2.2, 2.4, 2.2, 7 + (index % 3), height + 1.2);
+      tank.position.z = width / 4;
+      box(rooftop.steel, 0.15, 1.2, 0.15, 7 + (index % 3), height).position.z = width / 4;
+    } else {
+      for (const z of [-width / 5, width / 6]) {
+        box(rooftop.steel, 1.6, 1.0, 1.4, 5 + (index % 4), height).position.z = z;
+      }
+    }
+    if (hotel) {
+      for (const z of [-3.6, 3.6]) box(rooftop.steel, 0.15, 3.2, 0.15, 1.5, height).position.z = z;
+      const sign = new Mesh(rooftop.signPlane, rooftop.hotel);
+      sign.position.set(1.4, height + 2.1, 0);
+      sign.rotation.y = -Math.PI / 2;
+      box(rooftop.steel, 0.1, 0.12, 8.2, 1.5, height + 0.9);
+      row.add(sign);
+    }
+  }
+
+  private rooftopParts: {
+    rail: Material;
+    steel: Material;
+    tank: Material;
+    hotel: Material;
+    signPlane: PlaneGeometry;
+  } | null = null;
+
+  private rooftop() {
+    if (!this.rooftopParts) {
+      const signPlane = new PlaneGeometry(8, 2.2);
+      this.disposables.push(signPlane);
+      this.rooftopParts = {
+        rail: this.material({ color: 0xf4f1e8, metalness: 0.3, roughness: 0.5 }),
+        steel: this.material({ color: 0x9aa0a6, metalness: 0.5, roughness: 0.5 }),
+        tank: this.material({ color: 0x8a7a68, roughness: 0.9 }),
+        hotel: this.material({
+          map: this.track(letteringTexture('HOTEL')),
+          alphaTest: 0.5,
+          side: DoubleSide,
+          color: 0xff5d8f,
+          emissive: new Color(0xff5d8f),
+          emissiveIntensity: 0.6,
+        }),
+        signPlane,
+      };
+    }
+    return this.rooftopParts;
+  }
+
+  /** Taller apartment blocks in a second row behind the shops, in faded pastels. */
+  private addBackRow(fronts: Material[], walls: Material[], roof: Material): void {
+    const layout = seeded(331);
+    let offset = 6;
+    while (offset < LOOP - 10) {
+      const width = 12 + Math.floor(layout() * 3) * 4;
+      const storeys = 4 + Math.floor(layout() * 4);
+      const height = storeys * STOREY;
+      const style = Math.floor(layout() * walls.length);
+      const geometry = new BoxGeometry(16, height, width);
+      scaleFaceUv(geometry, 1, width / 4, storeys);
+      scaleFaceUv(geometry, 4, 4, storeys);
+      this.disposables.push(geometry);
+      const block = new Mesh(geometry, [
+        walls[style]!,
+        fronts[style]!,
+        roof,
+        roof,
+        fronts[style]!,
+        walls[style]!,
+      ]);
+      block.position.y = height / 2;
+      block.castShadow = true;
+      const holder = new Group();
+      holder.add(block);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: offset + width / 2, every: LOOP, x: FRONTAGE + 24 });
+      offset += width + 4 + layout() * 14;
     }
   }
 
