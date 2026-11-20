@@ -206,7 +206,7 @@ None.
   - fans leaning on the barriers, cheering (`Figures`).
 - **Golden Gate Park (`core/world-goldengate.ts`).** For `goldengate`, John F. Kennedy Drive through San Francisco's park on a foggy summer morning, closed to cars for the race:
   - the drive between low kerbs with the fans' writing every 25 m, race barriers hung with the race's banners (GOLDEN GATE PARK, JFK DRIVE, OCEAN BEACH, FOG CITY), cloth banners across it and the park's green lamp standards;
-  - lawns either side, then groves on a floor of fallen leaves: tall eucalyptus with pale peeling trunks and hanging blue-green crowns, wind-flattened Monterey cypress and Monterey pines;
+  - lawns either side, then groves on a floor of fallen leaves: tall eucalyptus with pale peeling trunks and hanging blue-green crowns, wind-flattened Monterey cypress and Monterey pines, each crown a dark core inside foliage cards (three crossed upright planes and a level one) cut out by their leaves so the sky shows through: drooping strands for the eucalyptus, dense clumps for the cypress, needle tufts for the pine;
   - on the left, from 70 to 230 m into the loop, the bison paddock: a dry meadow behind a post-and-rail fence 8.6 m off the centre line with its sign at the gate, a feed shed and a herd of twelve grazing near the fence, the crowd and the lamps standing back so the herd shows;
   - on the right, 150 m into the loop, Spreckels Lake with model yachts tacking across it, and the park path where roller skaters and joggers go both ways (the kit's `Figures`);
   - the shared crowd in knots along the barriers, the lawns showing between them;

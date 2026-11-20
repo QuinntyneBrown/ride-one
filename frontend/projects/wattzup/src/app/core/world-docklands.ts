@@ -278,6 +278,11 @@ const EDGE = 0.35;
 /** The centre line's dashes: DASH metres of line in every DASH_EVERY. */
 const DASH = 3;
 const DASH_EVERY = 9;
+/** Cat's eyes: how far in from the kerb (m), how wide and long each is, and their spacing. */
+const STUD_IN = 0.85;
+const STUD_WIDE = 0.24;
+const STUD_LONG = 0.45;
+const STUD_EVERY = 4;
 /** The harbour railing's height above the quay. */
 const RAILING = 1.1;
 const HARBOUR_TO = 250;
@@ -1597,6 +1602,27 @@ export class DocklandsStreet {
       [-0.08, 0.014],
       [0.08, 0.014],
     ]);
+    // Cat's eyes along both edges of the road: small lit studs that pick out the road's line
+    // into the rain and haze, like a runway's.
+    const studs = this.track(studTexture());
+    studs.repeat.set(1, 1 / STUD_EVERY);
+    const eyes = new MeshBasicMaterial({
+      color: new Color('#7ff4ff').multiplyScalar(2.4),
+      map: studs,
+      alphaTest: 0.5,
+      side: DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      toneMapped: false,
+    });
+    this.disposables.push(eyes);
+    for (const side of [-1, 1]) {
+      const x = side * (roadHalf - STUD_IN);
+      this.ribbon(points, eyes, [
+        [x - STUD_WIDE / 2, 0.016],
+        [x + STUD_WIDE / 2, 0.016],
+      ]);
+    }
     // The open dock under a bridge, both sides; under the quay it lies hidden below the ground.
     this.ribbon(
       points,
@@ -3893,6 +3919,22 @@ function dashTexture(): CanvasTexture {
   if (ctx) {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, 4, (90 * DASH) / DASH_EVERY);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  return texture;
+}
+
+/** One period of the cat's eyes along v: a stud STUD_LONG long, then road to STUD_EVERY. */
+function studTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 4;
+  canvas.height = 160;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 4, Math.max(2, (160 * STUD_LONG) / STUD_EVERY));
   }
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;

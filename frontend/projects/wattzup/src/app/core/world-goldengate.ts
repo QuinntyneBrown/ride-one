@@ -24,6 +24,7 @@ import {
   SphereGeometry,
   type Texture,
 } from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   barrierBannerTexture,
   type BannerPanel,
@@ -287,27 +288,42 @@ export class GoldenGateStreet implements SceneStreet {
     const random = seeded(461);
     const trunk = new CylinderGeometry(0.28, 0.5, 1, 8);
     trunk.translate(0, 0.5, 0);
+    // A crown is a dark core for its mass inside foliage cards: three crossed upright planes
+    // and a level one, cut out by their leaves so the sky shows through.
     const blob = new SphereGeometry(1, 10, 8);
-    this.disposables.push(trunk, blob);
+    const cards = mergeGeometries(
+      [0, Math.PI / 3, (2 * Math.PI) / 3]
+        .map((turn) => new PlaneGeometry(2, 2).rotateY(turn))
+        .concat(new PlaneGeometry(2, 2).rotateX(-Math.PI / 2)),
+    );
+    this.disposables.push(trunk, blob, cards);
     const gum = this.material({ map: this.track(barkTexture()), roughness: 1 });
     const bark = this.material({ color: 0x4a3f36, roughness: 1 });
-    const eucalyptus = this.material({ map: this.track(leafTexture('#7d9a86', 463)) });
-    const cypress = this.material({ map: this.track(leafTexture('#2f4a32', 467)) });
-    const pine = this.material({ map: this.track(leafTexture('#3d5a36', 479)) });
+    const foliage = (texture: CanvasTexture, core: number) => ({
+      leaves: this.material({ map: this.track(texture), alphaTest: 0.45, side: DoubleSide }),
+      core: this.material({ color: core, roughness: 1 }),
+    });
+    const eucalyptus = foliage(foliageTexture('gum', 463), 0x4f6a5c);
+    const cypress = foliage(foliageTexture('cypress', 467), 0x1f3324);
+    const pine = foliage(foliageTexture('pine', 479), 0x2a4228);
     const crown = (
       tree: Group,
-      m: Material,
+      m: { leaves: Material; core: Material },
       x: number,
       y: number,
       z: number,
       sx: number,
       sy: number,
     ) => {
-      const c = new Mesh(blob, m);
+      const core = new Mesh(blob, m.core);
+      core.position.set(x, y, z);
+      core.scale.set(sx * 0.55, sy * 0.55, sx * 0.5);
+      const c = new Mesh(cards, m.leaves);
       c.position.set(x, y, z);
       c.scale.set(sx, sy, sx * 0.9);
+      c.rotation.y = x * 1.7 + y;
       c.castShadow = true;
-      tree.add(c);
+      tree.add(core, c);
     };
     const plant = (x: number, offset: number) => {
       const tree = new Group();
@@ -731,16 +747,56 @@ function barkTexture(): CanvasTexture {
   return texture;
 }
 
-/** Foliage in clumps of `colour`. */
-function leafTexture(colour: string, seed: number): CanvasTexture {
-  return canvasTexture(128, 128, (g) => {
-    speckle(g, 128, 128, colour, seed);
-    const random = seeded(seed + 1);
-    for (let i = 0; i < 260; i++) {
-      g.fillStyle = `rgba(${random() < 0.5 ? '15,30,20' : '230,240,225'},${0.1 + random() * 0.15})`;
-      g.beginPath();
-      g.arc(random() * 128, random() * 128, 2 + random() * 4, 0, Math.PI * 2);
-      g.fill();
+/**
+ * A foliage card: leaves on a clear ground, thickest in the middle and thinning to ragged
+ * edges. Eucalyptus hangs in drooping blue-green strands of sickle leaves, Monterey cypress
+ * grows in dense dark clumps and pine in tufts of needles.
+ */
+function foliageTexture(kind: 'gum' | 'cypress' | 'pine', seed: number): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    const random = seeded(seed);
+    const greens = {
+      gum: ['#7d9a86', '#8fa894', '#6a8572', '#a3b59a', '#5d7766'],
+      cypress: ['#2f4a32', '#3a5a3c', '#26402a', '#456b46'],
+      pine: ['#3d5a36', '#4a6b40', '#33502e', '#5a7a48'],
+    }[kind];
+    const spot = () => {
+      // Denser towards the middle: the mean of two draws.
+      const r = ((random() + random()) / 2) * 118;
+      const a = random() * Math.PI * 2;
+      return [128 + Math.cos(a) * r, 128 + Math.sin(a) * r * 0.9] as const;
+    };
+    g.lineCap = 'round';
+    for (let i = 0; i < (kind === 'cypress' ? 520 : 380); i++) {
+      const [x, y] = spot();
+      g.strokeStyle = greens[Math.floor(random() * greens.length)]!;
+      g.fillStyle = g.strokeStyle;
+      if (kind === 'gum') {
+        // A drooping strand: a short stalk hanging down with leaves along it.
+        g.lineWidth = 3;
+        g.beginPath();
+        g.moveTo(x, y);
+        g.quadraticCurveTo(
+          x + (random() - 0.5) * 10,
+          y + 8,
+          x + (random() - 0.5) * 6,
+          y + 14 + random() * 10,
+        );
+        g.stroke();
+      } else if (kind === 'cypress') {
+        g.beginPath();
+        g.arc(x, y, 3 + random() * 4, 0, Math.PI * 2);
+        g.fill();
+      } else {
+        g.lineWidth = 1.6;
+        for (let n = 0; n < 6; n++) {
+          const a = random() * Math.PI * 2;
+          g.beginPath();
+          g.moveTo(x, y);
+          g.lineTo(x + Math.cos(a) * 7, y + Math.sin(a) * 7);
+          g.stroke();
+        }
+      }
     }
   });
 }
