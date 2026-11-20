@@ -194,6 +194,7 @@ export class MiamiStreet implements SceneStreet {
     this.addRoadPaint();
     this.addTikiBars(roadHalf);
     this.addPuddles(roadHalf);
+    this.addScooters(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -2470,6 +2471,54 @@ export class MiamiStreet implements SceneStreet {
       this.group.add(holder);
       const x = left ? -roadHalf - 0.8 - random() * 3.4 : roadHalf + 1 + random() * 6.5;
       this.props.push({ mesh: holder, offset, x });
+    }
+  }
+
+  /**
+   * Rows of retro scooters parked at an angle on the promenade by the kerb, in mint,
+   * cream, coral and sky blue, chrome mirrors up and a red rear lamp each.
+   */
+  private addScooters(roadHalf: number): void {
+    const parts: BufferGeometry[] = [];
+    const add = (g: BufferGeometry, x: number, y: number, z: number) => {
+      g.translate(x, y, z);
+      parts.push(g);
+    };
+    for (const z of [-0.6, 0.6]) {
+      const w = new TorusGeometry(0.2, 0.06, 6, 14);
+      w.rotateY(Math.PI / 2);
+      add(w, 0, 0.26, z);
+    }
+    add(new BoxGeometry(0.4, 0.42, 0.75), 0, 0.5, 0.35);
+    add(new BoxGeometry(0.28, 0.12, 0.6), 0, 0.78, 0.35);
+    add(new BoxGeometry(0.3, 0.7, 0.12), 0, 0.62, -0.5);
+    add(new BoxGeometry(0.12, 0.1, 0.5), 0, 0.3, -0.05);
+    add(new BoxGeometry(0.62, 0.05, 0.05), 0, 1.05, -0.55);
+    const body = mergeGeometries(parts)!;
+    parts.forEach((g) => g.dispose());
+    this.disposables.push(body);
+    const paints = [0x9ae8c8, 0xf4ecd8, 0xff8a7a, 0x8ac8f0].map((c) =>
+      this.material({ color: c, roughness: 0.25, metalness: 0.3 }),
+    );
+    const lamp = this.material({ color: 0xff2030, emissive: 0xff2030, emissiveIntensity: 2.5 });
+    for (const offset of [38, 166, 304]) {
+      const row = new Group();
+      for (let i = 0; i < 5; i++) {
+        const scooter = new Mesh(body, paints[(i + offset) % paints.length]!);
+        scooter.castShadow = true;
+        scooter.rotation.y = 0.6;
+        scooter.position.set(0, 0, i * 1.1);
+        const rear = new Mesh(this.unit, lamp);
+        rear.scale.set(0.12, 0.06, 0.04);
+        rear.position.set(0, 0.6, 0.74);
+        scooter.add(rear);
+        row.add(scooter);
+      }
+      row.position.y = 0.15;
+      const holder = new Group();
+      holder.add(row);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: -roadHalf - 1.2 });
     }
   }
 
