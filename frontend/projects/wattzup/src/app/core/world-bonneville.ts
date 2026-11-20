@@ -106,16 +106,30 @@ const FEATHERS: readonly FeatherWord[] = [
   ['SPEED WEEK', '#f2c230', '#1b1e24'],
 ];
 const FEATHER_EVERY = 20;
-/** What the teams paint on the salt, its colour and how far off the black line. */
-const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
-  ['TTT', '#1d3c8f', -1.8],
-  ['GO MAYA', '#d8283a', 1.8],
-  ['WATTZUP', '#1b1e24', -1.8],
-  ['HOLD THE WHEEL', '#1d3c8f', 1.8],
-  ['ALLEZ JONAS', '#d8283a', -1.8],
-  ['PULL!', '#1b1e24', 1.8],
+/** The names and cries the teams paint on the salt, in dark paint that reads on the white. */
+const ROAD_PAINT: readonly (readonly [string, string])[] = [
+  ['GO MAYA', '#d8283a'],
+  ['TTT', '#1d3c8f'],
+  ['HOLD THE WHEEL', '#1b1e24'],
+  ['ALLEZ JONAS', '#d8283a'],
+  ['PULL!', '#1d3c8f'],
+  ['KENJI', '#1b1e24'],
+  ['SALT', '#d8283a'],
+  ['FORZA ANA', '#1d3c8f'],
+  ['NO GAPS', '#1b1e24'],
+  ['GO SOPHIE', '#d8283a'],
+  ['RAVI!', '#1d3c8f'],
+  ['200 MPH', '#1b1e24'],
 ];
-const ROAD_PAINT_EVERY = 20;
+/** Cries painted big right across the course. */
+const ROAD_SLOGANS: readonly (readonly [string, string])[] = [
+  ['BONNEVILLE', '#1d3c8f'],
+  ['TEAM TIME TRIAL', '#d8283a'],
+  ['WATTZUP', '#1b1e24'],
+  ['SPEED WEEK', '#1d3c8f'],
+];
+/** A row of paint every few metres: two names either side of the line, every third a slogan. */
+const ROAD_PAINT_EVERY = 7;
 /** The pits' canopies: the team or sponsor on the valance, its fill and ink. */
 const CANOPIES: readonly (readonly [string, string, string])[] = [
   ['SALT TEAM', '#d8283a', '#ffffff'],
@@ -653,29 +667,59 @@ export class BonnevilleStreet implements SceneStreet {
     }
   }
 
-  /** Names and cries painted on the salt in dark paint. */
+  /**
+   * Names and cries painted all over the salt in dark paint: a row every few metres of two names
+   * in staggered lanes either side of the black line, and every third row a slogan painted big
+   * right across the course.
+   */
   private addRoadPaint(): void {
-    const plane = new PlaneGeometry(2.4, 8.5);
-    this.disposables.push(plane);
-    const count = Math.floor(LOOP / ROAD_PAINT_EVERY);
-    for (let i = 0; i < count; i++) {
-      const [text, colour, x] = ROAD_PAINT[i % ROAD_PAINT.length]!;
-      const mesh = new Mesh(
-        plane,
-        this.material({
+    const name = new PlaneGeometry(2.4, 8);
+    const slogan = new PlaneGeometry(6, 10);
+    this.disposables.push(name, slogan);
+    const materials = new Map<string, MeshStandardMaterial>();
+    const paint = (text: string, colour: string) => {
+      const key = `${text}|${colour}`;
+      let material = materials.get(key);
+      if (!material) {
+        material = this.material({
           map: this.track(paintTexture(text, colour)),
           alphaTest: 0.35,
           polygonOffset: true,
           polygonOffsetFactor: -4,
           roughness: 0.7,
-        }),
-      );
+        });
+        materials.set(key, material);
+      }
+      return material;
+    };
+    const lay = (
+      geometry: PlaneGeometry,
+      text: string,
+      colour: string,
+      offset: number,
+      x: number,
+    ) => {
+      const mesh = new Mesh(geometry, paint(text, colour));
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.y = 0.012 - KERB;
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 14 + i * ROAD_PAINT_EVERY, x });
+      this.props.push({ mesh: holder, offset, x });
+    };
+    let k = 0;
+    for (let row = 0; row < Math.floor(LOOP / ROAD_PAINT_EVERY); row++) {
+      const offset = 12 + row * ROAD_PAINT_EVERY;
+      if (row % 3 === 2) {
+        const [text, colour] = ROAD_SLOGANS[Math.floor(row / 3) % ROAD_SLOGANS.length]!;
+        lay(slogan, text, colour, offset, 0);
+        continue;
+      }
+      const stagger = row % 2 ? 0.3 : -0.3;
+      for (const x of [-1.7 + stagger, 1.7 + stagger]) {
+        const [text, colour] = ROAD_PAINT[k++ % ROAD_PAINT.length]!;
+        lay(name, text, colour, offset, x);
+      }
     }
   }
 
