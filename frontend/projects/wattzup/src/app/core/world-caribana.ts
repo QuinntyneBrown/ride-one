@@ -893,18 +893,22 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   /**
-   * Mas bands on both aprons: dancers in sequinned bras, bikinis and boots with beaded belts and
+   * Mas bands across the lanes: dancers in sequinned bras, bikinis and boots with beaded belts and
    * collars, feathered backpieces and headdresses, each in one of three poses.
    */
   private addMasqueraders(roadHalf: number): void {
     const random = seeded(73);
-    const near = roadHalf + 0.9;
-    for (let offset = 0; offset < LOOP; offset += 2.6) {
-      // The bands leave room round each music truck on the left.
-      const fromTruck = ((offset % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
+    // The bands fill the lanes from 2 m out to the barricades, leaving the riders' corridor.
+    const near = roadHalf - 1.5;
+    for (let offset = 0; offset < LOOP; offset += 1.9) {
+      // The bands leave room round each music truck on the left, 60 m into its stretch.
+      const fromTruck = (((offset - TRUCK_EVERY / 2) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
       const section = Math.floor(offset / 40) % COSTUMES.length;
       for (const side of [-1, 1] as const) {
-        if (side < 0 && (fromTruck < 4 || fromTruck > TRUCK_EVERY - 12)) continue;
+        if (side < 0 && (fromTruck < 11 || fromTruck > TRUCK_EVERY - 11)) continue;
+        // And round each band's banner on the right.
+        const fromBanner = (((offset - ROYAL_AT + 18) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
+        if (side > 0 && (fromBanner < 3 || fromBanner > TRUCK_EVERY - 3)) continue;
         // And room round each King or Queen on the right.
         const fromRoyal = (((offset - ROYAL_AT) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
         if (side > 0 && (fromRoyal < 6 || fromRoyal > TRUCK_EVERY - 6)) continue;
