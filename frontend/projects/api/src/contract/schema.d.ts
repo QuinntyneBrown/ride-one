@@ -116,7 +116,8 @@ export interface components {
         | 'campolongo'
         | 'marinabay'
         | 'serpentine'
-        | 'champs';
+        | 'champs'
+        | 'tulips';
     };
     ClassShelfResponse: {
       id: string;
