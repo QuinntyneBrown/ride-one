@@ -8,7 +8,6 @@
 // It follows Old Town's pattern (world-oldtown.ts): `build`, `lay` and `place`, seeded detail,
 // canvas textures and a loop that recycles the street, with the shared crowd, figures, barriers,
 // banners, feather flags and road paint of world-kit.ts. The cobbles are Old Town's road.
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   type BufferGeometry,
   type CanvasTexture,
@@ -19,7 +18,6 @@ import {
   DoubleSide,
   Group,
   LatheGeometry,
-  Matrix4,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
@@ -30,6 +28,7 @@ import {
 } from 'three/webgpu';
 import {
   barrierBannerTexture,
+  BoxBuilder,
   type BannerPanel,
   canvasTexture,
   clothBannerTexture,
@@ -153,43 +152,6 @@ interface House {
   readonly cafe: number;
   readonly mansard: boolean;
   readonly balconies: boolean;
-}
-
-/** Boxes collected per material, merged into one mesh each. */
-class Builder {
-  private readonly parts = new Map<MeshStandardMaterial, BufferGeometry[]>();
-  private readonly unit = new BoxGeometry(1, 1, 1);
-  private readonly matrix = new Matrix4();
-
-  box(
-    material: MeshStandardMaterial,
-    size: [number, number, number],
-    at: [number, number, number],
-    tilt = 0,
-  ): void {
-    const g = this.unit.clone();
-    g.scale(...size);
-    if (tilt) g.applyMatrix4(this.matrix.makeRotationZ(tilt));
-    g.translate(...at);
-    const list = this.parts.get(material) ?? [];
-    list.push(g);
-    this.parts.set(material, list);
-  }
-
-  build(disposables: { dispose(): void }[]): Group {
-    const group = new Group();
-    for (const [material, list] of this.parts) {
-      const merged = mergeGeometries(list);
-      for (const g of list) g.dispose();
-      disposables.push(merged);
-      const mesh = new Mesh(merged, material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      group.add(mesh);
-    }
-    this.unit.dispose();
-    return group;
-  }
 }
 
 export class MontmartreStreet implements SceneStreet {
@@ -374,7 +336,7 @@ export class MontmartreStreet implements SceneStreet {
    * and Paris lanterns on cast-iron posts either side.
    */
   private stairs(): Group {
-    const b = new Builder();
+    const b = new BoxBuilder();
     const stone = this.material({ color: 0xd8d2c4, roughness: 0.9 });
     const iron = this.material({ color: 0x1a1c1e, roughness: 0.6, metalness: 0.4 });
     const lamp = this.material({
@@ -417,7 +379,7 @@ export class MontmartreStreet implements SceneStreet {
 
   /** One house, its front at x = 0 facing +x, centred on z = 0. */
   private house(look: House): Group {
-    const b = new Builder();
+    const b = new BoxBuilder();
     const w = look.width;
     const d = 11;
     const floor = 3.1;

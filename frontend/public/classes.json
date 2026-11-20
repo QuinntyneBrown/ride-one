@@ -2405,6 +2405,7 @@
     },
     {
       "id": "team-time-trial",
+      "world": "bonneville",
       "title": "Team Time Trial",
       "channel": "GCN Training",
       "focus": "Time trial",
