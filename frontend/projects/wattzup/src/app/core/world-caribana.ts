@@ -279,6 +279,8 @@ export class CaribanaStreet implements SceneStreet {
     speed: number;
   }[] = [];
   private readonly plane = new Group();
+  private readonly helicopter = new Group();
+  private readonly rotorBlades = new Group();
   private readonly smoke: { mesh: Mesh; phase: number; material: MeshStandardMaterial }[] = [];
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
   private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
@@ -490,6 +492,16 @@ export class CaribanaStreet implements SceneStreet {
     // The turboprop on final approach over the lake, sinking towards the island airport.
     const u = (this.time * 0.012) % 1;
     this.plane.position.set(420 - u * 600, heightAt(1e6) + 260 - u * 170, -1400 + u * 200);
+    // The news helicopter holds over the route ahead, circling slowly, its rotor a blur.
+    const orbit = this.time * 0.05;
+    this.helicopter.position.set(
+      40 + Math.cos(orbit) * 60,
+      heightAt(1e6) + 95 + Math.sin(this.time * 0.4) * 2,
+      -330 + Math.sin(orbit) * 60,
+    );
+    this.helicopter.rotation.y = -orbit;
+    this.helicopter.rotation.z = 0.08;
+    this.rotorBlades.rotation.y = this.time * 40;
     // The turbine turns slowly in the lake breeze.
     this.rotor.rotation.z = this.time * 1.1;
     // The cumulus drift slowly east with the lake breeze, a sky that never quite repeats.
@@ -3101,6 +3113,7 @@ export class CaribanaStreet implements SceneStreet {
     this.plane.rotation.y = -Math.PI / 2 + 0.3;
     this.plane.rotation.z = 0.05;
     this.group.add(this.plane);
+    this.addHelicopter();
     // A jet's contrail, a long thin streak spreading as it ages.
     const trail = new CylinderGeometry(3, 0.6, 2600, 8, 1, true);
     trail.rotateZ(Math.PI / 2 - 0.08);
@@ -3118,6 +3131,63 @@ export class CaribanaStreet implements SceneStreet {
     const contrail = new Mesh(trail, vapour);
     contrail.frustumCulled = false;
     this.clouds.add(contrail);
+  }
+
+  /**
+   * A TV station's news helicopter over the parade: a white and blue body with a glazed nose,
+   * a tail boom and fin, skids, the camera ball under its chin and a four-bladed rotor.
+   */
+  private addHelicopter(): void {
+    const white = this.material({ color: 0xf2f3f4, roughness: 0.35, metalness: 0.3 });
+    const blue = this.material({ color: 0x1b4fa0, roughness: 0.4, metalness: 0.3 });
+    const glass = this.material({ color: 0x1a2630, roughness: 0.08, metalness: 0.6 });
+    const dark = this.material({ color: 0x222428, roughness: 0.5, metalness: 0.5 });
+    const h = this.helicopter;
+    const add = (g: BufferGeometry, m: Material, x = 0, y = 0, z = 0) => {
+      this.disposables.push(g);
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      h.add(mesh);
+      return mesh;
+    };
+    add(ellipsoid(1.2, 1, 1, 2.1, 0, 0, 0, 16), white);
+    add(ellipsoid(0.95, 1, 0.9, 1, 0, 0.12, -1.75, 14), glass);
+    add(new BoxGeometry(2.25, 0.22, 3.4), blue, 0, -0.45, 0.2);
+    const boom = new CylinderGeometry(0.16, 0.32, 5.2, 10);
+    boom.rotateX(Math.PI / 2);
+    add(boom, white, 0, 0.35, 4.6);
+    add(new BoxGeometry(0.12, 1.3, 0.9), blue, 0, 0.9, 7.1);
+    add(new BoxGeometry(1.4, 0.08, 0.5), white, 0, 0.4, 6.6);
+    for (const x of [-0.85, 0.85]) {
+      const skid = new CylinderGeometry(0.05, 0.05, 3.4, 6);
+      skid.rotateX(Math.PI / 2);
+      add(skid, dark, x, -1.45, 0);
+      for (const z of [-0.8, 0.9])
+        add(new CylinderGeometry(0.04, 0.04, 0.6, 5), dark, x * 0.85, -1.15, z);
+    }
+    add(new SphereGeometry(0.28, 10, 8), dark, 0, -0.9, -1.9);
+    add(new CylinderGeometry(0.14, 0.18, 0.4, 8), dark, 0, 1.3, 0);
+    for (let k = 0; k < 4; k++) {
+      const blade = new BoxGeometry(0.28, 0.04, 10.5);
+      blade.translate(0, 0, 0);
+      const m = new Mesh(blade, dark);
+      m.rotation.y = (k * Math.PI) / 4;
+      this.disposables.push(blade);
+      this.rotorBlades.add(m);
+    }
+    // The blur of the turning disc, faint against the sky.
+    const disc = new CylinderGeometry(5.3, 5.3, 0.02, 32);
+    this.disposables.push(disc);
+    this.rotorBlades.add(
+      new Mesh(
+        disc,
+        this.material({ color: 0x3a3c40, transparent: true, opacity: 0.18, depthWrite: false }),
+      ),
+    );
+    this.rotorBlades.position.y = 1.55;
+    h.add(this.rotorBlades);
+    h.scale.setScalar(1.6);
+    this.group.add(h);
   }
 
   /** Sailboats out on the lake, drifting slowly. */
