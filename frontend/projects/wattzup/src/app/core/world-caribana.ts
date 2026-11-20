@@ -2378,6 +2378,31 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(pier);
       bridge.add(new Mesh(pier, pierMat));
     }
+    // Banners and flags draped over the rail facing the oncoming parade.
+    const drape = new PlaneGeometry(1, 1);
+    this.disposables.push(drape);
+    const hang = (material: Material, w: number, h: number, x: number) => {
+      const cloth = new Mesh(drape, material);
+      cloth.scale.set(w, h, 1);
+      cloth.position.set(x, deckY + 1.95 - h / 2, 1.78);
+      bridge.add(cloth);
+    };
+    hang(
+      this.material({
+        map: this.track(clothBannerTexture('PARKDALE ♥ CARIBANA', '#ffd23f', '#c8102e')),
+        roughness: 0.75,
+      }),
+      7,
+      1.1,
+      0,
+    );
+    [-6.6, -4.7, 4.7, 6.6, 9.1, -9.1].forEach((x, k) => {
+      const material = this.material({
+        map: this.track(flagTexture(FLAG_KINDS[k % FLAG_KINDS.length]!)),
+        roughness: 0.8,
+      });
+      hang(material, 1.6, 1.05, x);
+    });
     // Spectators along both rails over the road, leaning on the rail to watch.
     const random = seeded(2903);
     const skin = this.material({ roughness: 0.6 });
