@@ -31,6 +31,7 @@ import {
   Ribbons,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
 } from './world-kit';
 import type { StreetPoint } from './world-oldtown';
@@ -121,6 +122,8 @@ export class EtnaStreet implements SceneStreet {
     for (const b of this.buses) {
       const metres = loopMetres(b.offset + b.speed * this.time, s, LOOP, BEHIND);
       b.mesh.position.set(b.mesh.position.x, heightAt(metres), -metres);
+      // Up or down, a bus sits on its four wheels on the ramp, not level through it.
+      b.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     const crowd = this.crowd;
     if (crowd) {

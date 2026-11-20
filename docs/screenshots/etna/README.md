@@ -17,3 +17,4 @@ Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the s
 | Capture | Fix |
 | --- | --- |
 | [041 · The smoking crater stands still](bend-041-crater-stands.jpg) | Etna's summit cone with its plume and the lava fields round it were bent vertex by vertex with the road's bends, so the cone slewed and squeezed with each turn of the Sapienza road. They now stand beyond the road unbent, as the panorama does, and the props behind the rider stand on the road there instead of at the height under the rider. |
+| [042 · The 4x4 buses sit on the ramp](bend-042-buses-on-the-ramp.jpg) | The white 4x4 buses grinding up and down the Sapienza road rode level through its ramps, so on a 6% stretch one end of each 6.5 m bus sank into the road and the other lifted its wheels off it. Each bus now pitches with the road under it, nose up climbing and nose down descending. |
