@@ -31,6 +31,7 @@ import {
   Ribbons,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
 } from './world-kit';
 import type { StreetPoint } from './world-oldtown';
@@ -74,7 +75,8 @@ interface Fan {
 export class VentouxStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
-  private readonly props: { mesh: Group; offset: number; x: number }[] = [];
+  /** Props along the road; one that `lies` on it, as paint does, takes its slope. */
+  private readonly props: { mesh: Group; offset: number; x: number; lies?: boolean }[] = [];
   private readonly climbers: Climber[] = [];
   private readonly fans: Fan[] = [];
   private readonly flags: { mesh: Mesh; phase: number }[] = [];
@@ -131,7 +133,8 @@ export class VentouxStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     const riders = this.riders;
     if (riders) {
@@ -297,7 +300,7 @@ export class VentouxStreet implements SceneStreet {
       mesh.rotation.y = (k % 2 ? 1 : -1) * 0.06;
       painted.add(mesh);
       this.group.add(painted);
-      this.props.push({ mesh: painted, offset: 35 + k * PAINT, x: (k % 3) - 1 });
+      this.props.push({ mesh: painted, offset: 35 + k * PAINT, x: (k % 3) - 1, lies: true });
     });
   }
 
