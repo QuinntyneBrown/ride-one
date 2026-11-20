@@ -733,6 +733,16 @@ export class AmsterdamStreet implements SceneStreet {
       opacity: 0.85,
     });
     const elms = [0, 1, 2].map((k) => elmGeometry(467 + k * 13));
+    const soil = this.material({ color: 0x3a3026, roughness: 1 });
+    const grass = this.material({ color: 0x4f7a32, roughness: 1 });
+    const tuft = tuftGeometry();
+    const guard = new TorusGeometry(0.75, 0.025, 4, 4, Math.PI * 2);
+    guard.rotateX(Math.PI / 2);
+    guard.rotateY(Math.PI / 4);
+    guard.translate(0, 0.4, 0);
+    const roots = new CylinderGeometry(0.3, 0.55, 0.35, 8);
+    roots.translate(0, KERB + 0.15, 0);
+    this.disposables.push(tuft, guard, roots);
     const { post, lantern } = canalLamp();
     this.disposables.push(...elms.flatMap((e) => [e.wood, e.leaves]), post, lantern);
     const quays = [-roadHalf - QUAY + 1.1, -roadHalf - QUAY - CANAL - 1.2];
@@ -744,6 +754,17 @@ export class AmsterdamStreet implements SceneStreet {
         const elm = elms[Math.floor(random() * 3)]!;
         tree.add(new Mesh(elm.wood, bark), new Mesh(elm.leaves, leaf));
         tree.children.forEach((m) => (m.castShadow = true));
+        // Its bed in the paving: a square of earth gone over to grass and weeds, edged in
+        // stone, a low iron hoop guarding it, and a root flare where the trunk meets the ground.
+        const bed = new Mesh(this.unit, soil);
+        bed.scale.set(1.6, 0.06, 1.6);
+        bed.position.y = KERB + 0.01;
+        const weeds = new Mesh(tuft, grass);
+        weeds.position.y = KERB;
+        const hoop = new Mesh(guard, iron);
+        hoop.position.y = KERB;
+        const flare = new Mesh(roots, bark);
+        tree.add(bed, weeds, hoop, flare);
         const size = 0.9 + random() * 0.3;
         if (x < quays[0]!) {
           // The far quay's elms hang upside down in the water.
@@ -1591,6 +1612,22 @@ function amsterdammertje(): BufferGeometry {
         parts.push(bar.toNonIndexed());
       }
     }
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/** Grass and weeds in a tree bed: clumps of blades over 1.5 m square. */
+function tuftGeometry(): BufferGeometry {
+  const random = seeded(673);
+  const parts: BufferGeometry[] = [];
+  for (let i = 0; i < 26; i++) {
+    const clump = new ConeGeometry(0.06 + random() * 0.08, 0.12 + random() * 0.25, 5);
+    const a = random() * Math.PI * 2;
+    const r = 0.35 + random() * 0.4;
+    clump.translate(Math.cos(a) * r, 0.08 + random() * 0.05, Math.sin(a) * r);
+    parts.push(clump.toNonIndexed());
   }
   const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
