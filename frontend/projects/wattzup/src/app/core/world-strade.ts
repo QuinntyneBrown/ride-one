@@ -69,6 +69,17 @@ const PROFILE: readonly (readonly [number, number])[] = [
   [60, 3.2],
   [420, 9],
 ];
+/**
+ * The farmhouses: how far along the loop, which side, and how far off the crown. One stands close
+ * to the road on the left in the opening view, its dovecote tower over the tifosi's heads.
+ */
+const FARMS: readonly (readonly [number, -1 | 1, number])[] = [
+  [30, 1, 40],
+  [178, -1, 25],
+  [255, 1, 44],
+  [340, -1, 38],
+  [430, 1, 46],
+];
 /** The horizon this far ahead. */
 const AHEAD = 280;
 const HAZE = 0xe6dcc4;
@@ -326,6 +337,10 @@ export class StradeStreet implements SceneStreet {
     for (const side of [-1, 1] as const) {
       for (let offset = 0; offset < LOOP; offset += CHUNK) {
         if ((offset / CHUNK + (side > 0 ? 1 : 0)) % 3 === 0) continue;
+        // No grove on a farmhouse's plot.
+        if (FARMS.some(([at, s]) => s === side && at > offset - 14 && at < offset + CHUNK + 14)) {
+          continue;
+        }
         const trunks: BufferGeometry[] = [];
         const crowns: BufferGeometry[] = [];
         for (let row = 0; row < 4; row++) {
@@ -371,14 +386,7 @@ export class StradeStreet implements SceneStreet {
     const stone = this.material({ map: this.track(stoneTexture()), roughness: 0.95 });
     const tiles = this.material({ color: 0xb4583a, roughness: 0.85 });
     const shutters = this.material({ color: 0x3a5a3a, roughness: 0.8 });
-    const spots: [number, number][] = [
-      [30, 1],
-      [150, -1],
-      [255, 1],
-      [340, -1],
-      [430, 1],
-    ];
-    for (const [offset, side] of spots) {
+    for (const [offset, side, off] of FARMS) {
       const house = new Group();
       const b = new BoxBuilder();
       const w = 12 + random() * 6;
@@ -413,7 +421,7 @@ export class StradeStreet implements SceneStreet {
       cap.position.set(0, tall + 4.8, w / 2 - 2);
       house.add(main, cap);
       house.children.forEach((c) => (c.castShadow = true));
-      const x = side * (34 + random() * 18);
+      const x = side * off;
       house.position.y = rise(x) - KERB - 0.3;
       house.rotation.y = (random() - 0.5) * 0.4;
       const holder = new Group();
@@ -424,8 +432,8 @@ export class StradeStreet implements SceneStreet {
       const geometry = cypressGeometry();
       this.disposables.push(geometry);
       const foliage = this.material({ map: this.track(cypressTexture()), roughness: 1 });
-      for (let k = 0; k < 4; k++) {
-        const tx = side * (16 + k * 4.5);
+      for (let k = 0; 14 + k * 4.5 < off - 7; k++) {
+        const tx = side * (14 + k * 4.5);
         const tree = new Mesh(geometry, foliage);
         tree.scale.setScalar(0.8 + random() * 0.2);
         tree.position.set(tx, rise(tx) - KERB - 0.2, 0);
@@ -562,8 +570,13 @@ export class StradeStreet implements SceneStreet {
       const crest: [number, number][] = [];
       for (let k = 0; k <= steps; k++) {
         const u = k / steps;
+        // Each ridge slopes down into the fields at its ends rather than stopping in a sheer wall.
+        const ends = Math.min(1, (u * (to - from)) / 120, ((1 - u) * (to - from)) / 120);
         const y =
-          high * (0.55 + 0.25 * Math.sin(5 * u + phase) + 0.2 * Math.sin(13 * u + 2 * phase));
+          high *
+            (0.55 + 0.25 * Math.sin(5 * u + phase) + 0.2 * Math.sin(13 * u + 2 * phase)) *
+            Math.sin((ends * Math.PI) / 2) -
+          (1 - ends) * 12;
         const x = from + (to - from) * u;
         shape.lineTo(x, y);
         crest.push([x, y]);
