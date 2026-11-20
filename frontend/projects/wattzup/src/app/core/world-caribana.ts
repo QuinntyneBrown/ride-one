@@ -3557,6 +3557,8 @@ export class CaribanaStreet implements SceneStreet {
   private addClouds(): void {
     const random = seeded(613);
     const puffs: BufferGeometry[] = [];
+    const halo: BufferGeometry[] = [];
+    const haze: BufferGeometry[] = [];
     const white = new Color(0xffffff);
     const base = new Color(0xa7b3c2);
     const c = new Color();
@@ -3587,12 +3589,49 @@ export class CaribanaStreet implements SceneStreet {
           colour.set([c.r, c.g, c.b], i * 3);
         }
         puff.setAttribute('color', new BufferAttribute(colour, 3));
+        // Two soft shells round each puff, larger and fainter, feather its edge into the sky.
+        for (const [grow, list] of [
+          [1.14, halo],
+          [1.3, haze],
+        ] as const) {
+          const shell = puff.clone();
+          shell.computeBoundingBox();
+          const centre = shell.boundingBox!.getCenter(new Vector3());
+          shell.translate(-centre.x, -centre.y, -centre.z);
+          shell.scale(grow, grow, grow);
+          shell.translate(centre.x, centre.y, centre.z);
+          list.push(shell.toNonIndexed());
+          shell.dispose();
+        }
         puffs.push(puff.toNonIndexed());
         puff.dispose();
       }
     }
     const heap = mergeGeometries(puffs)!;
     puffs.forEach((p) => p.dispose());
+    for (const [list, opacity] of [
+      [halo, 0.45],
+      [haze, 0.2],
+    ] as const) {
+      const soft = mergeGeometries(list)!;
+      list.forEach((p) => p.dispose());
+      this.disposables.push(soft);
+      const shell = new Mesh(
+        soft,
+        this.material({
+          vertexColors: true,
+          emissive: 0xdfe6f0,
+          emissiveIntensity: 0.3,
+          roughness: 1,
+          fog: false,
+          transparent: true,
+          opacity,
+          depthWrite: false,
+        }),
+      );
+      shell.frustumCulled = false;
+      this.clouds.add(shell);
+    }
     const cloud = this.material({
       vertexColors: true,
       emissive: 0xdfe6f0,
