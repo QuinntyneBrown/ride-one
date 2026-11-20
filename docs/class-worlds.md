@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade and Westminster Rush Hour have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour and Central Park Loop have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -17,7 +17,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 11 | Time Is of the Essence | Westminster Rush Hour | 60% | London at dusk beneath Big Ben; race black cabs and red buses before the clock chimes. |
 | 12 | 15-Minute Smash Fest | Rio Sambadrome (concept) |  | Carnival night in Rio; glittering samba schools fill the runway and every smash rides the drum line. |
 | 13 | 10 On 20 Off Max Sprints | Venice Beach Boardwalk (concept) |  | Skaters, street performers and palm-lined sand; ten-second sprints, twenty seconds cruising the ocean breeze. |
-| 14 | 15 Minute Cardio HIIT | Central Park Loop (concept) |  | Early laps of Central Park past the reservoir and Bethesda Fountain, joggers and carriages sharing the drive. |
+| 14 | 15 Minute Cardio HIIT | Central Park Loop | 65% | Early laps of Central Park past the reservoir and Bethesda Fountain, joggers and carriages sharing the drive. |
 | 15 | 15 Minute Strength Workout | Lisbon Tram Hills (concept) |  | Steep cobbled Alfama lanes beside yellow trams; grind each climb toward the castle above the Tagus. |
 | 16 | Low Cadence Strength Builder | Koppenberg Cobbles (concept) |  | Flemish farm lanes in spring mist; heavy gears over slick Koppenberg cobbles with crowds lining the bank. |
 | 17 | Level Up Your Cadence | Ghent Six-Day (concept) |  | Six-day racing under the Kuipke's wooden banking; cadence lifts with every lap the crowd counts. |

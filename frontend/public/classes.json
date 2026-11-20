@@ -579,6 +579,7 @@
     },
     {
       "id": "15-minute-cardio-hiit",
+      "world": "centralpark",
       "title": "15 Minute Cardio HIIT",
       "channel": "GCN Training",
       "focus": "HIIT",
