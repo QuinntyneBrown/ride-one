@@ -1365,6 +1365,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.8, fill: 1.9, colour: 0xffc890 },
     fogRange: [900, 7000],
   },
+  // A bright summer morning on the pass: the sun well up in a clear blue sky, crisp light on the
+  // pale rock, and a light haze over the far peaks.
+  gardena: {
+    sky: 0x6aa4e4,
+    fog: 0xc8dcec,
+    ground: 0x7aa84a,
+    road: 0x4e4e52,
+    sun: 44,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.3,
+    azimuth: 130,
+    light: { sun: 3.2, fill: 1.0, colour: 0xfff4e4 },
+    fogRange: [400, 6000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

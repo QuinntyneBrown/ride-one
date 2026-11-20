@@ -24,8 +24,10 @@ import {
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   canvasTexture,
+  dolomiteTexture,
   Figures,
   loopMetres,
+  meadowTexture,
   Ribbons,
   type SceneStreet,
   seeded,
@@ -493,18 +495,6 @@ function forestFloorTexture(): CanvasTexture {
   });
 }
 
-/** Alpine meadow: short grass with flowers. */
-function meadowTexture(): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    speckle(g, 256, 256, '#6a9a48', 1549);
-    const random = seeded(1553);
-    for (let i = 0; i < 140; i++) {
-      g.fillStyle = ['#e8e4dc', '#ffd23f', '#b088e0', '#ff6b5a'][Math.floor(random() * 4)]!;
-      g.fillRect(random() * 256, random() * 256, 2 + random() * 3, 2 + random() * 3);
-    }
-  });
-}
-
 /** A kilometre sign: white on brown, the distance to the pass and its height. */
 function signTexture(km: number): CanvasTexture {
   return canvasTexture(180, 110, (g) => {
@@ -521,19 +511,5 @@ function signTexture(km: number): CanvasTexture {
     g.fillText(`${km} km`, 90, 72);
     g.font = '13px sans-serif';
     g.fillText('1875 m', 90, 96);
-  });
-}
-
-/** The Dolomite rock: pale grey-gold, banded in layers, streaked by rain. */
-function dolomiteTexture(): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    speckle(g, 256, 256, '#c8c0b0', 1559);
-    const random = seeded(1567);
-    g.fillStyle = 'rgba(90,80,70,0.3)';
-    for (let y = 10; y < 256; y += 18 + random() * 12) g.fillRect(0, y, 256, 2 + random() * 3);
-    for (let i = 0; i < 60; i++) {
-      g.fillStyle = `rgba(70,64,58,${0.12 + random() * 0.2})`;
-      g.fillRect(random() * 256, random() * 256, 2 + random() * 4, 12 + random() * 40);
-    }
   });
 }

@@ -41,7 +41,9 @@ import {
   Crowd,
   FeatherFlags,
   type FeatherWord,
+  ease,
   hazedMaterial,
+  heightfield,
   loopMetres,
   paintedRows,
   PopupTents,
@@ -527,11 +529,12 @@ export class DeathValleyStreet implements SceneStreet {
       '#5a6a58',
       '#6a4a34',
     ].map((hex) => new Color(hex));
-    const black = this.massif(
+    const black = heightfield(
+      this.disposables,
       [980, -1300],
       [1600, 4200, 110, 210],
       (x, z) => {
-        const front = smooth((x - 180) / 560);
+        const front = ease((x - 180) / 560);
         const ridge = 0.62 + 0.22 * Math.sin(z / 410) + 0.16 * Math.sin(z / 137 + 1.3);
         const canyon = (1 - Math.abs(Math.sin(z / 95 + Math.sin(x / 140) * 0.9))) ** 6;
         const rough = 0.04 * Math.sin(x / 23 + z / 31) + 0.03 * Math.sin(z / 17 - x / 41);
@@ -556,13 +559,14 @@ export class DeathValleyStreet implements SceneStreet {
     const rock = new Color(0x9a8a8e);
     const scree = new Color(0xb8a48a);
     const snow = new Color(0xffffff);
-    const panamint = this.massif(
+    const panamint = heightfield(
+      this.disposables,
       [-4600, -2000],
       [2600, 7000, 120, 220],
       (x, z) => {
-        const rise = smooth((-x - 3000) / 1400);
+        const rise = ease((-x - 3000) / 1400);
         const crest = 1050 + 200 * Math.sin(z / 620) + 90 * Math.sin(z / 210 + 2);
-        const peak = 700 * Math.exp(-(((z + 900) / 650) ** 2)) * smooth((-x - 3700) / 700);
+        const peak = 700 * Math.exp(-(((z + 900) / 650) ** 2)) * ease((-x - 3700) / 700);
         const canyon = (1 - Math.abs(Math.sin(z / 160 + Math.sin(x / 210)))) ** 6;
         return rise * (crest - 380 * canyon * (1 - rise * 0.6)) + peak;
       },
@@ -628,35 +632,6 @@ export class DeathValleyStreet implements SceneStreet {
     });
     this.disposables.push(sheen, this.mirage);
     h.add(new Mesh(sheen, this.mirage));
-  }
-
-  /**
-   * A mountain block as a heightfield `width` by `depth` metres centred on (x, z), with `across`
-   * by `along` cells: `height` raises each vertex at its place beside the road, and `colour`
-   * paints it by its height, so the rock bands and the snow follow the terrain.
-   */
-  private massif(
-    [cx, cz]: readonly [number, number],
-    [width, depth, across, along]: readonly [number, number, number, number],
-    height: (x: number, z: number) => number,
-    colour: (y: number, z: number) => Color,
-  ): PlaneGeometry {
-    const field = new PlaneGeometry(width, depth, across, along);
-    field.rotateX(-Math.PI / 2);
-    field.translate(cx, 0, cz);
-    const position = field.getAttribute('position');
-    const paint = new Float32Array(position.count * 3);
-    for (let i = 0; i < position.count; i++) {
-      const x = position.getX(i);
-      const z = position.getZ(i);
-      const y = Math.max(0, height(x, z));
-      position.setY(i, y - 4);
-      colour(y, z).toArray(paint, i * 3);
-    }
-    field.setAttribute('color', new BufferAttribute(paint, 3));
-    field.computeVertexNormals();
-    this.disposables.push(field);
-    return field;
   }
 
   /** A far range's silhouette: its colour hazed by distance, lit evenly so no face falls dark. */
@@ -779,10 +754,4 @@ function mirageTexture(): CanvasTexture {
     g.fillStyle = along;
     g.fillRect(0, 0, 64, 256);
   });
-}
-
-/** Eases from 0 below t = 0 up to 1 above t = 1. */
-function smooth(t: number): number {
-  const u = Math.min(1, Math.max(0, t));
-  return u * u * (3 - 2 * u);
 }
