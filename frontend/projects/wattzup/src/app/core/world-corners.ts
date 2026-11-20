@@ -1,7 +1,15 @@
 // What a race puts out where the road bends (L2-110 AC9): the corners of the street are found
 // from the bend itself (`apexes`), so the furniture stands at each apex, on the outside of the
 // turn, wherever the rider meets it.
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three/webgpu';
+import {
+  BoxGeometry,
+  CanvasTexture,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  PlaneGeometry,
+  SRGBColorSpace,
+} from 'three/webgpu';
 import { apexes } from './scene-bend';
 import type { World } from './worlds';
 
@@ -13,6 +21,8 @@ const TO = 400;
 /** The foam mattresses strapped to the outside barrier: how many, each how long. */
 const PADS = 6;
 const PAD = 2;
+/** The chevron board stands this far before the apex, where the turn begins. */
+const CHEVRON_BEFORE = 14;
 
 export class Corners {
   readonly group = new Group();
@@ -22,7 +32,7 @@ export class Corners {
 
   /**
    * Builds the furniture of one corner: on the left of the road, as for a right-hander, and
-   * turned round for a left-hander. `kerb` is the pavement's height above the road and
+   * mirrored for a left-hander. `kerb` is the pavement's height above the road and
    * `barrier` how far from the centre line the crowd barriers stand.
    */
   build(roadHalf: number, kerb: number, barrier: number): void {
@@ -30,6 +40,11 @@ export class Corners {
     const red = new MeshStandardMaterial({ color: 0xc8242c, roughness: 0.7 });
     const white = new MeshStandardMaterial({ color: 0xf2f0ea, roughness: 0.7 });
     this.disposables.push(pad, red, white);
+    const boardGeometry = new PlaneGeometry(1.6, 0.6);
+    const postGeometry = new BoxGeometry(0.05, 1.8, 0.05);
+    const chevrons = new MeshStandardMaterial({ map: chevronTexture(), roughness: 0.6 });
+    const steel = new MeshStandardMaterial({ color: 0x8d939b, metalness: 0.6, roughness: 0.4 });
+    this.disposables.push(boardGeometry, postGeometry, chevrons, chevrons.map!, steel);
     for (let c = 0; c < POOL; c++) {
       const corner = new Group();
       // Foam padding along the outside barrier, red and white mattresses in turn, where a rider
@@ -44,6 +59,16 @@ export class Corners {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         corner.add(mesh);
+      }
+      // A chevron board on posts behind the padding, where the bend begins, pointing the way.
+      const board = new Mesh(boardGeometry, chevrons);
+      board.position.set(-barrier - 0.3, kerb + 1.75, CHEVRON_BEFORE);
+      board.castShadow = true;
+      corner.add(board);
+      for (const dx of [-0.6, 0.6]) {
+        const post = new Mesh(postGeometry, steel);
+        post.position.set(-barrier - 0.3 + dx, kerb + 0.9, CHEVRON_BEFORE - 0.04);
+        corner.add(post);
       }
       corner.visible = false;
       this.corners.push(corner);
@@ -60,8 +85,40 @@ export class Corners {
       if (!apex) return;
       const metres = apex.s - s;
       corner.position.set(0, heightAt(metres), -metres);
-      // The outside of a right-hander is the left of the road.
-      corner.rotation.y = apex.turn > 0 ? 0 : Math.PI;
+      // The outside of a right-hander is the left of the road; a left-hander's corner is its
+      // mirror image, chevrons and all.
+      corner.scale.x = apex.turn;
     });
   }
+}
+
+/** Three white chevrons on black, pointing right: the way a right-hander turns. */
+function chevronTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#16181c';
+    ctx.fillRect(0, 0, 256, 96);
+    ctx.fillStyle = '#f4f1e8';
+    for (let i = 0; i < 3; i++) {
+      const x = 40 + i * 70;
+      ctx.beginPath();
+      ctx.moveTo(x, 12);
+      ctx.lineTo(x + 36, 48);
+      ctx.lineTo(x, 84);
+      ctx.lineTo(x - 22, 84);
+      ctx.lineTo(x + 14, 48);
+      ctx.lineTo(x - 22, 12);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.strokeStyle = '#f4f1e8';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(3, 3, 250, 90);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
