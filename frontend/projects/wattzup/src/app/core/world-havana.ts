@@ -257,6 +257,32 @@ export class HavanaStreet implements SceneStreet {
     });
     const lanes = -r - LANES;
     const promenade = lanes - PROMENADE;
+    // The rider's lanes, worn: patches, cracks, oil down the lanes and manhole covers.
+    const wear = this.track(wearTexture());
+    wear.wrapS = RepeatWrapping;
+    wear.wrapT = RepeatWrapping;
+    wear.repeat.set(1 / (2 * r), 1 / 40);
+    const worn = this.ribbons.add(
+      points,
+      this.material({
+        map: wear,
+        transparent: true,
+        depthWrite: false,
+        roughness: 0.9,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+      }),
+      [
+        [r, 0.008],
+        [-r, 0.008],
+      ],
+    );
+    worn.renderOrder = 1;
+    const across = this.ribbons.add(points, worn.material as MeshStandardMaterial, [
+      [-r - 0.4, 0.008],
+      [lanes + 0.3, 0.008],
+    ]);
+    across.renderOrder = 1;
     this.ribbons.add(points, asphalt, [
       [-r, 0.004],
       [lanes, 0.004],
@@ -1398,4 +1424,62 @@ function tankGeometry(): BufferGeometry {
   const merged = mergeGeometries(parts.map((g) => (g.index ? g.toNonIndexed() : g)))!;
   parts.forEach((g) => g.dispose());
   return merged;
+}
+
+/**
+ * Forty metres of the rider's lanes, worn the Havana way, drawn over the road on a clear ground:
+ * darker and paler patches of repair, branching cracks, oil stained down the middle of each
+ * lane, and a manhole cover or two.
+ */
+function wearTexture(): CanvasTexture {
+  return canvasTexture(256, 1024, (g) => {
+    g.clearRect(0, 0, 256, 1024);
+    const random = seeded(1061);
+    for (let i = 0; i < 14; i++) {
+      const dark = random() < 0.6;
+      g.fillStyle = dark
+        ? `rgba(30,30,34,${0.25 + random() * 0.25})`
+        : `rgba(150,148,140,${0.15 + random() * 0.2})`;
+      const w = 30 + random() * 90;
+      const h = 30 + random() * 140;
+      g.fillRect(random() * (256 - w), random() * (1024 - h), w, h);
+    }
+    for (const x of [64, 192]) {
+      for (let y = 0; y < 1024; y += 8) {
+        g.fillStyle = `rgba(20,18,16,${0.05 + random() * 0.1})`;
+        g.fillRect(x - 14 + random() * 6, y, 18 + random() * 10, 8);
+      }
+    }
+    g.strokeStyle = 'rgba(25,25,28,0.55)';
+    g.lineWidth = 1.5;
+    for (let i = 0; i < 26; i++) {
+      let x = random() * 256;
+      let y = random() * 1024;
+      g.beginPath();
+      g.moveTo(x, y);
+      for (let k = 0; k < 8; k++) {
+        x += (random() - 0.5) * 18;
+        y += 4 + random() * 12;
+        g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    for (const [x, y] of [
+      [70, 300],
+      [190, 820],
+    ] as const) {
+      g.fillStyle = 'rgba(40,38,36,0.85)';
+      g.beginPath();
+      g.arc(x, y, 11, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = 'rgba(120,110,100,0.6)';
+      g.lineWidth = 1;
+      for (let k = -8; k <= 8; k += 4) {
+        g.beginPath();
+        g.moveTo(x - 9, y + k);
+        g.lineTo(x + 9, y + k);
+        g.stroke();
+      }
+    }
+  });
 }
