@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu, Passo Campolongo, Marina Bay Night, Serpentine, Hyde Park, Champs-Élysées Finale, Dutch Tulip Fields and Col du Tourmalet have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu, Passo Campolongo, Marina Bay Night, Serpentine, Hyde Park, Champs-Élysées Finale, Dutch Tulip Fields, Col du Tourmalet and Glastonbury Fields have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -86,7 +86,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 80 | Four Minute Devils | Col du Tourmalet | 76% | Pyrenean slopes where a costumed devil chases riders up every ramp. |
 | 81 | 30 Second Sprint Intervals | Tel Aviv Promenade (concept) |  | Mediterranean beach paths, volleyball courts and seafront cafés. |
 | 82 | Flat Out Efforts | Silverstone Track Day (concept) |  | Flat-out sweeps of the British circuit with the grandstands empty. |
-| 83 | Sprint to the Music | Glastonbury Fields (concept) |  | Tents, flags and the Pyramid Stage; sprint between music stages. |
+| 83 | Sprint to the Music | Glastonbury Fields | 78% | Tents, flags and the Pyramid Stage; sprint between music stages. |
 | 84 | Sprints for Climbing | Mur de Huy (concept) |  | The Ardennes' brutal wall, climbing past chapels toward the finish. |
 | 85 | Don't Get Dropped | Arenberg Forest (concept) |  | Paris-Roubaix cobbles through the trees; hold the wheel or lose it. |
 | 86 | Wake Up and Smell the Lactic | Pike Place at Dawn (concept) |  | Coffee steam and fish-market crowds at sunrise over Seattle's Elliott Bay. |

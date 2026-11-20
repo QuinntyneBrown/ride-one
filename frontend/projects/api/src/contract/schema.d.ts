@@ -118,7 +118,8 @@ export interface components {
         | 'serpentine'
         | 'champs'
         | 'tulips'
-        | 'tourmalet';
+        | 'tourmalet'
+        | 'glastonbury';
     };
     ClassShelfResponse: {
       id: string;
