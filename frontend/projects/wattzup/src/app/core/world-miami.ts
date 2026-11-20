@@ -9,6 +9,8 @@
 import {
   AdditiveBlending,
   BoxGeometry,
+  ConeGeometry,
+  DoubleSide,
   type BufferAttribute,
   type BufferGeometry,
   type CanvasTexture,
@@ -23,6 +25,7 @@ import {
   type Texture,
 } from 'three/webgpu';
 import {
+  BoxBuilder,
   canvasTexture,
   Figures,
   haloTexture,
@@ -239,6 +242,29 @@ export class MiamiStreet implements SceneStreet {
       emissiveMap: this.track(bulbTexture()),
       emissiveIntensity: 2.4,
     });
+    const tableTop = this.material({ color: 0xf4f0ec, roughness: 0.3 });
+    const metal = this.material({ color: 0x2a2a30, roughness: 0.4, metalness: 0.7 });
+    const chair = this.material({ color: 0xf4f0ec, roughness: 0.6 });
+    const umbrella = new ConeGeometry(1.5, 0.6, 8, 1, true);
+    umbrella.translate(0, 0.3, 0);
+    this.disposables.push(umbrella);
+    const shades = [0xf4f0e8, 0xff6fb4, 0x3fd8d0, 0xfff0b0].map((c) =>
+      this.material({
+        color: c,
+        roughness: 0.8,
+        side: DoubleSide,
+        emissive: c,
+        emissiveIntensity: 0.12,
+      }),
+    );
+    const candle = this.material({ color: 0xffd080, emissive: 0xffb050, emissiveIntensity: 4 });
+    const candleGlow = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(candleGlow);
     let offset = 0;
     let k = 0;
     while (offset < LOOP - 10) {
@@ -366,6 +392,42 @@ export class MiamiStreet implements SceneStreet {
       under.rotation.z = Math.PI / 2;
       under.position.set(-1.5, 3.51, 0);
       hotel.add(canopy, fascia, under);
+      // The sidewalk café: tables under umbrellas between the marquee and the palms, a
+      // candle glowing on each, the chairs drawn up round them.
+      const cafe = new BoxBuilder();
+      for (let z = -width * 0.4; z < width * 0.4; z += 3.2) {
+        if (Math.abs(z) < width * 0.17) continue;
+        const x = -4.2 - (Math.round(z) % 2) * 1.3;
+        cafe.box(tableTop, [0.8, 0.05, 0.8], [x, 0.9, z]);
+        cafe.box(metal, [0.06, 0.88, 0.06], [x, 0.45, z]);
+        cafe.box(metal, [0.5, 0.04, 0.5], [x, 0.02, z]);
+        for (const [dx, dz] of [
+          [0.7, 0],
+          [-0.7, 0],
+          [0, 0.7],
+          [0, -0.7],
+        ] as const) {
+          cafe.box(chair, [0.42, 0.05, 0.42], [x + dx, 0.48, z + dz]);
+          const bx = x + dx * 1.3;
+          const bz = z + dz * 1.3;
+          cafe.box(chair, [dx ? 0.05 : 0.42, 0.5, dz ? 0.05 : 0.42], [bx, 0.75, bz]);
+          cafe.box(metal, [0.04, 0.46, 0.04], [x + dx, 0.23, z + dz]);
+        }
+        cafe.box(metal, [0.05, 2.4, 0.05], [x, 1.2, z]);
+        const shade = new Mesh(umbrella, shades[(k + Math.round(z)) % shades.length]!);
+        shade.position.set(x, 2.45, z);
+        shade.castShadow = true;
+        const flame = new Mesh(this.unit, candle);
+        flame.scale.set(0.08, 0.12, 0.08);
+        flame.position.set(x, 0.98, z);
+        const glow = new Mesh(this.flat, candleGlow);
+        glow.scale.set(0.9, 0.9, 1);
+        glow.position.set(x, 1.0, z);
+        hotel.add(shade, flame, glow);
+      }
+      const tables = cafe.build(this.disposables);
+      tables.position.y = 0.15;
+      hotel.add(tables);
       // The sign and the hotel's neon mirrored in the wet street: long soft streaks of its
       // colour running towards the rider across the sidewalk and the near lane.
       const mirror = reflections[k % reflections.length]!;
