@@ -3992,6 +3992,7 @@
     },
     {
       "id": "conquer-the-climb",
+      "world": "stelvio",
       "title": "Conquer the Climb",
       "channel": "GCN Training",
       "focus": "Climbing",

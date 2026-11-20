@@ -108,7 +108,8 @@ export interface components {
         | 'goldengate'
         | 'havana'
         | 'seapoint'
-        | 'montreal';
+        | 'montreal'
+        | 'stelvio';
     };
     ClassShelfResponse: {
       id: string;

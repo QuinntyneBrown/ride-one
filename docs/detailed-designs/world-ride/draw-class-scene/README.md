@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stelvio`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -235,6 +235,12 @@ None.
   - food kiosks with striped awnings and glowing counters;
   - the main stage on the left once a lap and a smaller stage on the right: decks, truss, speaker stacks, a screen cycling the show's colours and lamps throwing coloured beams on the beat;
   - crowds packed along both pavements, thickest before the stages, and the bands on the decks, all bouncing on the beat (`Figures`).
+- **Stelvio Pass (`core/world-stelvio.ts`).** For `stelvio`, the eastern ramp's hairpins on a crisp morning:
+  - a grey cliff rising on the right and a stone parapet on the left, meadows above and falling away below it to the valley, with the ground sunk far below;
+  - red-and-white posts along the parapet and Tornante signs counting the hairpins down to the pass;
+  - larches below the parapet and patches of old snow on the slopes;
+  - fellow climbers rocking up and descenders sweeping down (`Figures` on a shared road bike);
+  - the wall ahead with the hairpins zigzagging up its face to the pass, its snowfields, and the Ortler's peaks above, all keeping their bearing as the road climbs.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -274,6 +280,7 @@ None.
 | `pages/world-ride/havana` | Havana Malecón at 4:50, warm-up, next `Surge` |
 | `pages/world-ride/seapoint` | Sea Point, Cape Town at 4:50, warm-up, next `20-second burst` |
 | `pages/world-ride/montreal` | Montreal Jazz Fest at 4:50, warm-up, next `Encore` |
+| `pages/world-ride/stelvio` | Stelvio Pass at 4:50, warm-up, next `Hairpin grind` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
