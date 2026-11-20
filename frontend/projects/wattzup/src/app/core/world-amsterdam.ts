@@ -11,7 +11,6 @@ import {
   type BufferGeometry,
   type CanvasTexture,
   CylinderGeometry,
-  DoubleSide,
   ExtrudeGeometry,
   Group,
   IcosahedronGeometry,

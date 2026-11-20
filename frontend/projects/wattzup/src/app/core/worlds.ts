@@ -186,6 +186,16 @@ export const WORLDS: readonly World[] = [
     roll: 1.2,
   },
   {
+    id: 'venice',
+    name: 'Venice Beach Boardwalk',
+    route: 'Ocean Front Walk',
+    effortName: 'Palm sprint',
+    description:
+      "Skaters glide past street performers, mural-painted shopfronts and towering palms along Venice Beach's Ocean Front Walk, the Santa Monica Pier's Ferris wheel turning over the bay ahead. The two one-minute efforts warm up past Muscle Beach, and the eighteen ten-second sprints each burst between the palms before twenty seconds cruising in the ocean breeze.",
+    grade: { warmup: 0, work: 1, rest: -0.5, cooldown: 0, steady: 0 },
+    roll: 0.4,
+  },
+  {
     id: 'amsterdam',
     name: 'Amsterdam Canals',
     route: 'Herengracht',

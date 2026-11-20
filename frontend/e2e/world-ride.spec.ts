@@ -101,6 +101,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Knicks Championship Parade');
   });
 
+  test('rides 10 On 20 Off Max Sprints in Venice Beach Boardwalk on Ocean Front Walk', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '10 On 20 Off Max Sprints',
+      'Venice Beach Boardwalk',
+      '10-on-20-off-max-sprints',
+    );
+    await expect(world.heading).toHaveText('Venice Beach Boardwalk');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Venice Beach Boardwalk');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

@@ -98,6 +98,7 @@ export interface components {
         | 'knicks'
         | 'vegas'
         | 'route66'
+        | 'venice'
         | 'amsterdam';
     };
     ClassShelfResponse: {

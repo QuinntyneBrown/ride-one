@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert and Amsterdam Canals have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk and Amsterdam Canals have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -16,7 +16,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 10 | Sprintavals | Knicks Championship Parade | 80% | Ticker tape and orange and blue streamers drift down between the towers of lower Broadway's Canyon of Heroes as fans pack the barricades for the Knicks' championship parade, the Woolworth Building's copper crown rising at the far end. The four long builds reel in the floats rolling up Broadway, and the five ten-second sprints each jump from one float to the next before the last surge toward the Woolworth. |
 | 11 | Time Is of the Essence | Westminster Rush Hour | 60% | London at dusk beneath Big Ben; race black cabs and red buses before the clock chimes. |
 | 12 | 15-Minute Smash Fest | Rio Sambadrome (concept) |  | Carnival night in Rio; glittering samba schools fill the runway and every smash rides the drum line. |
-| 13 | 10 On 20 Off Max Sprints | Venice Beach Boardwalk (concept) |  | Skaters, street performers and palm-lined sand; ten-second sprints, twenty seconds cruising the ocean breeze. |
+| 13 | 10 On 20 Off Max Sprints | Venice Beach Boardwalk | 72% | Skaters glide past street performers, mural-painted shopfronts and towering palms along Venice Beach's Ocean Front Walk, the Santa Monica Pier's Ferris wheel turning over the bay ahead. The two one-minute efforts warm up past Muscle Beach, and the eighteen ten-second sprints each burst between the palms before twenty seconds cruising in the ocean breeze. |
 | 14 | 15 Minute Cardio HIIT | Central Park Loop | 65% | Early laps of Central Park past the reservoir and Bethesda Fountain, joggers and carriages sharing the drive. |
 | 15 | 15 Minute Strength Workout | Lisbon Tram Hills (concept) |  | Steep cobbled Alfama lanes beside yellow trams; grind each climb toward the castle above the Tagus. |
 | 16 | Low Cadence Strength Builder | Koppenberg Cobbles (concept) |  | Flemish farm lanes in spring mist; heavy gears over slick Koppenberg cobbles with crowds lining the bank. |
