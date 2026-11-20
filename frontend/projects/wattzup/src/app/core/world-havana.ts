@@ -406,6 +406,31 @@ export class HavanaStreet implements SceneStreet {
       [promenade - 0.7, -SEA],
       [promenade - 1400, -SEA],
     ]);
+    // Over the rock shelf at the wall's foot the water runs turquoise, deepening to the Gulf's
+    // blue within forty metres; further out, whitecaps break on the swell.
+    const shallow = this.track(shallowsTexture());
+    shallow.repeat.set(1 / 44, 1);
+    const shallows = new MeshBasicMaterial({ map: shallow, transparent: true, depthWrite: false });
+    this.disposables.push(shallows);
+    this.ribbons.add(points, shallows, [
+      [promenade - 0.7, -SEA + 0.02],
+      [promenade - 44.7, -SEA + 0.02],
+    ]).renderOrder = 1;
+    const caps = this.track(whitecapTexture());
+    caps.wrapS = RepeatWrapping;
+    caps.wrapT = RepeatWrapping;
+    caps.repeat.set(1 / 50, 1 / 50);
+    const whitecaps = new MeshBasicMaterial({
+      map: caps,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0.85,
+    });
+    this.disposables.push(whitecaps);
+    this.ribbons.add(points, whitecaps, [
+      [promenade - 25, -SEA + 0.03],
+      [promenade - 1400, -SEA + 0.03],
+    ]).renderOrder = 1;
     this.ribbons.add(points, paving, [
       [r + 4 + ARCADE, KERB],
       [r + 0.35, KERB],
@@ -3113,5 +3138,39 @@ function pierTexture(): CanvasTexture {
     damp.addColorStop(1, 'rgba(70,60,50,0)');
     g.fillStyle = damp;
     g.fillRect(0, 380, 128, 132);
+  });
+}
+
+/** Shallow water over the rock shelf: turquoise at the wall, fading to clear forty metres out. */
+function shallowsTexture(): CanvasTexture {
+  return canvasTexture(256, 4, (g) => {
+    const fade = g.createLinearGradient(0, 0, 256, 0);
+    fade.addColorStop(0, 'rgba(70,200,195,0.8)');
+    fade.addColorStop(0.35, 'rgba(50,170,190,0.45)');
+    fade.addColorStop(1, 'rgba(40,120,180,0)');
+    g.clearRect(0, 0, 256, 4);
+    g.fillStyle = fade;
+    g.fillRect(0, 0, 256, 4);
+  });
+}
+
+/** Whitecaps on the swell: short white streaks lying along the wind, on a clear ground. */
+function whitecapTexture(): CanvasTexture {
+  return canvasTexture(512, 512, (g) => {
+    g.clearRect(0, 0, 512, 512);
+    const random = seeded(1289);
+    for (let i = 0; i < 46; i++) {
+      const x = random() * 512;
+      const y = random() * 512;
+      const w = 5 + random() * 9;
+      const h = 24 + random() * 50;
+      const cap = g.createRadialGradient(x, y, 0, x, y, h);
+      cap.addColorStop(0, 'rgba(255,255,255,0.95)');
+      cap.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = cap;
+      g.beginPath();
+      g.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
+      g.fill();
+    }
   });
 }
