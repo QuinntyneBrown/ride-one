@@ -135,6 +135,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly vents: Mesh[][] = [];
   private plane: Group | null = null;
   private blimp: Group | null = null;
+  private moonCloud: Mesh | null = null;
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
@@ -338,6 +339,8 @@ export class MiamiStreet implements SceneStreet {
     // The cabs' hazard lights blink.
     const blinking = seconds % 0.9 < 0.45;
     this.hazards.forEach((h) => (h.visible = blinking));
+    // The silvered cloud drifts slowly across the moon and back.
+    if (this.moonCloud) this.moonCloud.position.x = -880 + Math.sin(seconds * 0.02) * 90;
     // The blimp drifts slowly along the beach, 450 m ahead and 130 m up.
     if (this.blimp) {
       const drift = Math.sin(seconds * 0.01) * 120;
@@ -3650,6 +3653,20 @@ export class MiamiStreet implements SceneStreet {
     }
     this.blimp = blimp;
     this.horizon.add(blimp);
+    // Wisps of cloud passing over the moon, their edges silvered by it, drifting slowly.
+    const silver = new Mesh(
+      new PlaneGeometry(260, 90),
+      new MeshBasicMaterial({
+        map: this.track(silverCloudTexture()),
+        transparent: true,
+        depthWrite: false,
+        fog: false,
+      }),
+    );
+    silver.position.set(-880, 500, -1880);
+    this.disposables.push(silver.geometry, silver.material as MeshBasicMaterial);
+    this.moonCloud = silver;
+    this.horizon.add(silver);
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
@@ -5191,5 +5208,38 @@ function letterTexture(ch: string, colour: string): CanvasTexture {
     g.strokeText(ch, 64, 88, 124);
     g.fillStyle = colour;
     g.fillText(ch, 64, 88, 124);
+  });
+}
+
+/**
+ * Thin cloud across the moon, backlit: soft dark violet bodies, and round their outer edge a
+ * bright silver rim where the moonlight catches them (the rim drawn first, larger, and the
+ * bodies laid over it so only the outline shows).
+ */
+function silverCloudTexture(): CanvasTexture {
+  return canvasTexture(256, 96, (g) => {
+    const puffs: [number, number, number][] = [];
+    const random = seeded(8561);
+    for (let i = 0; i < 18; i++)
+      puffs.push([30 + random() * 196, 44 + (random() - 0.5) * 26, 12 + random() * 18]);
+    for (const [x, y, r] of puffs) {
+      const rim = g.createRadialGradient(x, y, r * 0.6, x, y, r + 5);
+      rim.addColorStop(0, 'rgba(230,232,255,0.7)');
+      rim.addColorStop(1, 'rgba(230,232,255,0)');
+      g.fillStyle = rim;
+      g.beginPath();
+      g.arc(x, y, r + 5, 0, Math.PI * 2);
+      g.fill();
+    }
+    for (const [x, y, r] of puffs) {
+      const body = g.createRadialGradient(x, y, 0, x, y, r);
+      body.addColorStop(0, 'rgba(46,34,76,0.9)');
+      body.addColorStop(0.8, 'rgba(56,42,90,0.75)');
+      body.addColorStop(1, 'rgba(70,56,110,0.35)');
+      g.fillStyle = body;
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.fill();
+    }
   });
 }
