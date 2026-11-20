@@ -1126,11 +1126,17 @@ export class AmsterdamStreet implements SceneStreet {
    */
   private addBollards(roadHalf: number): void {
     const iron = this.material({ color: 0x4f2219, metalness: 0.35, roughness: 0.55 });
-    const tile = (spacing: number, gaps: boolean) => {
+    const tile = (spacing: number, gaps: boolean, random: () => number) => {
       const parts: BufferGeometry[] = [];
       for (let z = 0; z < 30; z += spacing) {
         if (gaps && z % 10 > 8.4) continue;
+        // Now and then one has been knocked out by a van, or knocked askew.
+        if (random() < 0.07) continue;
         const bollard = amsterdammertje();
+        if (random() < 0.15) {
+          bollard.rotateZ((random() - 0.5) * 0.3);
+          bollard.rotateX((random() - 0.5) * 0.2);
+        }
         bollard.translate(0, 0, -z);
         parts.push(bollard);
       }
@@ -1139,12 +1145,13 @@ export class AmsterdamStreet implements SceneStreet {
       this.disposables.push(merged);
       return merged;
     };
-    const rows = [{ geometry: tile(2.4, true), x: roadHalf + 0.3 }];
-    for (const { geometry, x } of rows) {
+    const tiles = [0, 1, 2].map((k) => tile(2.4, true, seeded(881 + k)));
+    const rows = [{ x: roadHalf + 0.3 }];
+    for (const { x } of rows) {
       for (let offset = 0; offset < LOOP; offset += 30) {
         if (offset % BRIDGE < 8) continue;
         const run = new Group();
-        const mesh = new Mesh(geometry, iron);
+        const mesh = new Mesh(tiles[(offset / 30) % 3]!, iron);
         mesh.castShadow = true;
         mesh.position.y = KERB;
         run.add(mesh);
