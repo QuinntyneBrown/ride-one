@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Burn Fat Fast](http://localhost:4200/
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/burn-fat-fast?simulate`, click **Ride in Saguaro Desert**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [057 · The Rincons and the balloons stand still](bend-057-rincons-stand.jpg) | The Rincon Mountains glowing at dusk and the balloons drifting over the desert were bent vertex by vertex with the loop road's bends, swinging with each turn through the cactus forest. They now stand beyond the road unbent, as the panorama does, and the walkers and props behind the rider stand on the road there instead of at the height under the rider. |
