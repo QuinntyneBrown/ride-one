@@ -72,6 +72,7 @@ describe('targetGrade (L2-101)', () => {
     ['haleakala', { warmup: 4, work: 7, rest: 4, cooldown: 2, steady: 6 }, 7.147624],
     ['dubai', { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0 }, 1.055359],
     ['austin', { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0.5 }, 1.055359],
+    ['winnats', { warmup: 4, work: 9, rest: 4, cooldown: 2, steady: 6 }, 9.18453],
     ['coast', { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 }, 4.795247],
   ])('%s asks for its grade per kind at s 0, plus its roll at s 300', (id, grades, workAt300) => {
     const world = worldById(id);

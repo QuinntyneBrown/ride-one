@@ -1136,6 +1136,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 1.8, fill: 2.6, colour: 0xffa868 },
     fogRange: [200, 1600],
   },
+  // A bright, breezy English summer morning: blue sky, clouds sailing over the gorge's rim.
+  winnats: {
+    sky: 0x6a9ad8,
+    fog: 0xd0dae2,
+    ground: 0x6a8a3a,
+    road: 0x58585a,
+    sun: 42,
+    wet: false,
+    haze: false,
+    turbidity: 3.5,
+    rayleigh: 1.4,
+    azimuth: 200,
+    light: { sun: 2.7, fill: 1.8, colour: 0xfff4e4 },
+    fogRange: [600, 6000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

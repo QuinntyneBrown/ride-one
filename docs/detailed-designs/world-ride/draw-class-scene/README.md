@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -525,6 +525,13 @@ None.
   - a corner stage under the festival banner with its lights, amps and drums and the band playing, pedicabs at the kerb and a taco truck with its queue;
   - the crowd (`Figures`) on the sidewalks and spilling into the street, some dancing outside the bars;
   - ahead, downtown's towers with their windows lit and the Capitol's dome over the street, keeping their bearing.
+- **Winnats Pass (`core/world-winnats.ts`).** For `winnats`, the limestone gorge on a bright, breezy summer morning:
+  - the narrow road with its white edge lines, its verges, and the gorge's steep grassy walls rising either side;
+  - grey limestone crags and pinnacles with fans of pale scree, and loose rocks on the verges;
+  - a drystone wall along the foot of the left-hand slope with its five-bar field gate, and wind-bent hawthorns;
+  - the 20% gradient sign and a cattle grid across the road;
+  - sheep grazing the slopes on the ride's clock, a few on the road, and walkers with their packs (`Figures`);
+  - the moorland skyline at the gorge head and clouds sailing over the rim on the ride's clock, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -605,6 +612,7 @@ None.
 | `pages/world-ride/haleakala` | Haleakalā at 4:50, warm-up, next `Summit surge` |
 | `pages/world-ride/dubai` | Dubai Marina at 1:53, warm-up, next `Marina sprint` |
 | `pages/world-ride/austin` | Sixth Street, Austin at 4:50, warm-up, next `Encore surge` |
+| `pages/world-ride/winnats` | Winnats Pass at 4:50, warm-up, next `Gorge grind` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
