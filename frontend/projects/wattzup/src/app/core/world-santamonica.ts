@@ -58,7 +58,7 @@ const BARRIER = 3.9;
 const CROWD_NEAR = 4.4;
 const CROWD_FAR = 6.8;
 /** The surf this far out on the left, the palms and the front's houses on the right. */
-const SURF = 60;
+const SURF = 34;
 const PALMS = 11;
 const FRONT = 26;
 /** The horizon this far ahead. */
@@ -145,7 +145,8 @@ export class SantaMonicaStreet implements SceneStreet {
     private readonly disposables: { dispose(): void }[],
   ) {
     this.ribbons = new Ribbons(this.group, disposables);
-    // Along both sides on the sand, in knots so the beach and the palms show between them.
+    // Along the palms in long files, and on the beach side in short knots 60 m apart, so the
+    // beach, the breakers and the surfers show between them.
     this.crowd = new Crowd(this.group, disposables, {
       loop: LOOP,
       near: CROWD_NEAR,
@@ -155,7 +156,7 @@ export class SantaMonicaStreet implements SceneStreet {
       flags: this.flagMaterials,
       flagShare: 0.12,
       seeds: [6111, 6117],
-      skip: (side, offset) => offset % 36 < (side < 0 ? 14 : 8),
+      skip: (side, offset) => (side < 0 ? offset % 60 < 48 : offset % 36 < 8),
       armsUp: 0.15,
     });
     this.group.add(this.horizon, this.sea);
@@ -183,6 +184,17 @@ export class SantaMonicaStreet implements SceneStreet {
 
   lay(points: readonly StreetPoint[], s: number): void {
     this.ribbons.lay(points, s);
+  }
+
+  /** The ground plane drops below the sea, so the Pacific shows beyond the surf. */
+  sink(ground: BufferGeometry, points: readonly StreetPoint[]): void {
+    const position = ground.getAttribute('position');
+    points.forEach((p, i) => {
+      position.setY(i * 2, p.height - 3);
+      position.setY(i * 2 + 1, p.height - 3);
+    });
+    position.needsUpdate = true;
+    ground.computeBoundingSphere();
   }
 
   place(s: number, heightAt: (metres: number) => number): void {
@@ -302,13 +314,15 @@ export class SantaMonicaStreet implements SceneStreet {
     const boards = ['#ffffff', '#ffd23a', '#ff6a5a', '#2fc8d8', '#f4e4c8'].map((c) =>
       this.material({ color: c, roughness: 0.4 }),
     );
+    const crest = this.material({ color: 0xe8f2f4, roughness: 0.5 });
+    const face = this.material({ color: 0x3a7a98, roughness: 0.2, metalness: 0.2 });
     const CHUNK = 60;
     for (let offset = 0, k = 0; offset < LOOP; offset += CHUNK, k++) {
       const holder = new Group();
       const b = new BoxBuilder();
       const people: [number, number, number, number][] = [];
       for (let n = 0; n < 12; n++) {
-        const x = -BARRIER - 10 - random() ** 1.3 * (SURF - 18);
+        const x = -BARRIER - 7 - random() ** 1.3 * (SURF - 14);
         const z = -random() * CHUNK;
         const u = new Mesh(canopy, umbrellas[Math.floor(random() * umbrellas.length)]!);
         const p = new Mesh(pole, white);
@@ -320,12 +334,24 @@ export class SantaMonicaStreet implements SceneStreet {
         people.push([x + 1.5, -0.3, z - 0.6, 0.95], [x - 1 + random() * 2, -0.3, z + 1.5, 0.95]);
       }
       // The surfers: on their boards beyond the surf, a third standing to ride a breaker.
-      for (let n = 0; n < 9; n++) {
-        const x = -SURF - 8 - random() * 30;
+      // The breakers rolling in: a green-blue face under a white crest, a few to each stretch.
+      const breakers: [number, number][] = [];
+      for (let n = 0; n < 3; n++) {
+        const x = -SURF - 9 - n * 8 - random() * 3;
         const z = -random() * CHUNK;
+        const long = 10 + random() * 14;
+        b.box(face, [2.2, 0.9, long], [x, -0.55, z], -0.5);
+        b.box(crest, [1.2, 0.45, long - 1], [x + 0.6, -0.08, z], -0.2);
+        breakers.push([x, z]);
+      }
+      for (let n = 0; n < 9; n++) {
+        // A third standing to ride a breaker's face, the rest sitting astride waiting beyond.
+        const [bx, bz] = breakers[n % 3]!;
+        const riding = n % 3 === 0;
+        const x = riding ? bx + 1.6 : -SURF - 12 - random() * 24;
+        const z = riding ? bz + (random() - 0.5) * 6 : -random() * CHUNK;
         b.box(boards[n % boards.length]!, [0.55, 0.08, 2.2], [x, -0.66, z]);
-        const standing = n % 3 === 0;
-        people.push([x, standing ? -0.62 : -1.25, z, standing ? 0.9 : 0.95]);
+        people.push([x, riding ? -0.62 : -1.25, z, riding ? 0.9 : 0.95]);
       }
       holder.add(b.build(this.disposables));
       const figures = new Figures(holder, this.disposables, people.length, BEACH, 6131 + k);
@@ -336,7 +362,7 @@ export class SantaMonicaStreet implements SceneStreet {
       const tower = towers.make(k);
       // Ramp down toward the path, the hut looking out to sea.
       tower.rotation.y = Math.PI;
-      tower.position.set(-24 - (k % 2) * 8, -0.3, -30);
+      tower.position.set(-17 - (k % 2) * 6, -0.3, -30);
       holder.add(tower);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: 0 });
