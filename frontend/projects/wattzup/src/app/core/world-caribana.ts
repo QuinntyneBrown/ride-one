@@ -32,6 +32,7 @@ import {
 } from 'three/webgpu';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
+  buntingGeometry,
   canvasTexture,
   clothBannerTexture,
   loopMetres,
@@ -265,6 +266,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addRoyals();
     this.addTrucks();
     this.addPanFloat();
+    this.addGantry();
     this.addLamps();
     this.addTrees();
     this.addStalls();
@@ -1190,6 +1192,88 @@ export class CaribanaStreet implements SceneStreet {
         this.props.push({ mesh: tree, offset: offset + random() * 4, every: LOOP, x });
       }
     }
+  }
+
+  /**
+   * A gantry over the route where the bands are judged: two box-truss towers at the gutters
+   * carrying a truss across all three lanes, the carnival's name on a banner hung from it and
+   * the day on a second below, Caribbean flags along the top and strings of bunting either side.
+   */
+  private addGantry(): void {
+    const gantry = new Group();
+    const truss = this.material({
+      map: this.track(trussTexture()),
+      alphaTest: 0.5,
+      side: DoubleSide,
+      color: 0xd5d8db,
+      metalness: 0.8,
+      roughness: 0.35,
+    });
+    const span = 2 * CURB + 0.6;
+    const box = (w: number, h: number, d: number, x: number, y: number) => {
+      const mesh = new Mesh(this.unit, truss);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y + h / 2, 0);
+      gantry.add(mesh);
+    };
+    for (const x of [-span / 2, span / 2]) {
+      box(0.45, 7.4, 0.45, x, 0);
+      const foot = new Mesh(this.unit, this.material({ color: 0x2b2b2d, roughness: 0.8 }));
+      foot.scale.set(1.2, 0.2, 1.2);
+      foot.position.set(x, 0.1, 0);
+      gantry.add(foot);
+    }
+    box(span + 0.45, 0.45, 0.45, 0, 7.4);
+    box(span + 0.45, 0.45, 0.45, 0, 6.6);
+    const main = this.material({
+      map: this.track(clothBannerTexture('TORONTO CARIBBEAN CARNIVAL', '#c8102e', '#ffd23f')),
+      side: DoubleSide,
+      roughness: 0.7,
+    });
+    const day = this.material({
+      map: this.track(clothBannerTexture('GRAND PARADE · JUDGING POINT', '#111111', '#ffffff')),
+      side: DoubleSide,
+      roughness: 0.7,
+    });
+    const top = new PlaneGeometry(span - 1.2, 1.5);
+    const under = new PlaneGeometry(span * 0.55, 0.7);
+    this.disposables.push(top, under);
+    const a = new Mesh(top, main);
+    a.position.set(0, 5.85, 0.25);
+    const b = new Mesh(under, day);
+    b.position.set(0, 4.75, 0.25);
+    gantry.add(a, b);
+    // Flags along the top truss.
+    const flag = new PlaneGeometry(0.9, 0.6);
+    flag.translate(0.45, 0, 0);
+    const pole = new CylinderGeometry(0.02, 0.02, 1.4, 5);
+    this.disposables.push(flag, pole);
+    const steel = this.material({ color: 0xb9bec4, metalness: 0.7, roughness: 0.4 });
+    for (let k = 0; k < 8; k++) {
+      const x = -span / 2 + 0.8 + (k * (span - 1.6)) / 7;
+      const p = new Mesh(pole, steel);
+      p.position.set(x, 8.5, 0);
+      const f = new Mesh(flag, this.flagMaterials[k % this.flagMaterials.length]!);
+      f.position.set(x, 8.9, 0);
+      f.rotation.y = 0.3;
+      gantry.add(p, f);
+    }
+    // Bunting strung from the gantry back to the lamp standards either side.
+    const bunting = buntingGeometry(
+      span / 2,
+      ['#c8102e', '#ffd23f', '#0f9d58', '#111111', '#ffffff'],
+      [
+        [6.5, 2.4],
+        [6.5, -2.4],
+      ],
+      0.9,
+    );
+    this.disposables.push(bunting);
+    const pennants = this.material({ vertexColors: true, side: DoubleSide, roughness: 0.8 });
+    gantry.add(new Mesh(bunting, pennants));
+    gantry.traverse((o) => (o.castShadow = true));
+    this.group.add(gantry);
+    this.props.push({ mesh: gantry, offset: 84, every: LOOP, x: 0, road: true });
   }
 
   /**
