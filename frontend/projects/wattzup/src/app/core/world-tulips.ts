@@ -63,6 +63,7 @@ export class TulipsStreet implements SceneStreet {
   private riders: Figures | null = null;
   private readonly sails: Group[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -94,13 +95,13 @@ export class TulipsStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const riders = this.riders;
     if (riders) {
       this.cyclists.forEach((c, i) => {
         const metres = loopMetres(c.offset + c.speed * this.time, s, LOOP, BEHIND);
-        const y = heightAt(Math.max(metres, 0));
+        const y = heightAt(metres);
         const heading = c.speed > 0 ? 0 : Math.PI;
         c.bike.position.set(c.x, y, -metres);
         c.bike.rotation.set(0, heading, 0);

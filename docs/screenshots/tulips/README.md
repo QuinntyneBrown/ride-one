@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Easy Cadence Workout](http://localhos
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/easy-cadence-workout?simulate`, click **Ride in Dutch Tulip Fields**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [071 · The windmills stand over the bulb fields](bend-071-windmills-stand.jpg) | The windmills and farms on the flat horizon of the bulb country were bent vertex by vertex with the fietspad's bends, so the mills leaned and slewed with each turn between the fields. They now stand beyond the road unbent, as the panorama does, and the cyclists and props behind the rider stand on the path there instead of at the height under the rider. |
