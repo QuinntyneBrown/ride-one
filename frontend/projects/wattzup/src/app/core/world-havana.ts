@@ -222,6 +222,7 @@ export class HavanaStreet implements SceneStreet {
     this.addDivers(roadHalf);
     this.addTrio(roadHalf);
     this.addBusStop(roadHalf);
+    this.addPelicans(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -3027,6 +3028,78 @@ export class HavanaStreet implements SceneStreet {
     holder.add(stop);
     this.group.add(holder);
     this.props.push({ mesh: holder, offset: 46, x: roadHalf + 0.9 });
+  }
+
+  /**
+   * Brown pelicans perched on the seawall's cap in little groups, as they do along the Malecón:
+   * grey-brown bodies, white heads on long necks folded back, the long bill with its pouch laid
+   * along the neck, each turned its own way, now and then one with its wings half open to dry.
+   */
+  private addPelicans(roadHalf: number): void {
+    const random = seeded(1471);
+    const body = new SphereGeometry(0.22, 12, 8);
+    body.scale(1, 0.9, 1.9);
+    const neck = new CapsuleGeometry(0.06, 0.28, 3, 8);
+    const head = new SphereGeometry(0.075, 10, 8);
+    const bill = new ConeGeometry(0.04, 0.42, 6);
+    bill.rotateX(-Math.PI / 2);
+    const pouch = new SphereGeometry(0.05, 8, 6);
+    pouch.scale(0.8, 1, 3.4);
+    const wing = new SphereGeometry(0.2, 10, 6);
+    wing.scale(0.15, 0.6, 2.2);
+    const leg = new CylinderGeometry(0.018, 0.018, 0.12, 5);
+    this.disposables.push(body, neck, head, bill, pouch, wing, leg);
+    const plumage = this.material({ color: 0x6e6a62, roughness: 0.9 });
+    const back = this.material({ color: 0x4a4640, roughness: 0.9 });
+    const white = this.material({ color: 0xf0ece0, roughness: 0.85 });
+    const horn = this.material({ color: 0xc8a060, roughness: 0.6 });
+    const dark = this.material({ color: 0x2a2620, roughness: 0.8 });
+    const wall = -roadHalf - LANES - PROMENADE - 0.35;
+    for (const offset of [53, 62, 140, 236, 300]) {
+      const flock = new Group();
+      const count = 2 + Math.floor(random() * 3);
+      for (let k = 0; k < count; k++) {
+        const bird = new Group();
+        const part = (
+          g: BufferGeometry,
+          m: MeshStandardMaterial,
+          x: number,
+          y: number,
+          z: number,
+          rx = 0,
+        ) => {
+          const mesh = new Mesh(g, m);
+          mesh.position.set(x, y, z);
+          mesh.rotation.x = rx;
+          mesh.castShadow = true;
+          bird.add(mesh);
+          return mesh;
+        };
+        part(body, plumage, 0, 0.3, 0.05, -0.25);
+        part(neck, white, 0, 0.55, -0.22, 0.35);
+        part(head, white, 0, 0.74, -0.3);
+        part(bill, horn, 0, 0.66, -0.52, 0.5);
+        part(pouch, dark, 0, 0.6, -0.46, 0.5);
+        const open = random() < 0.25;
+        for (const side of [-1, 1]) {
+          const w = part(wing, back, side * 0.2, 0.36, 0.1, -0.2);
+          if (open) {
+            w.rotation.z = side * 1.1;
+            w.position.set(side * 0.42, 0.5, 0.05);
+          }
+          part(leg, dark, side * 0.07, 0.06, 0.05);
+        }
+        bird.position.set((random() - 0.5) * 0.25, 0, k * 0.9 + random() * 0.5);
+        bird.rotation.y = random() * Math.PI * 2;
+        bird.scale.setScalar(1.1 + random() * 0.2);
+        flock.add(bird);
+      }
+      flock.position.y = WALL;
+      const holder = new Group();
+      holder.add(flock);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: wall });
+    }
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
