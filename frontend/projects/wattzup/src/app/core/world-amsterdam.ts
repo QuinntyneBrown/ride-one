@@ -1504,6 +1504,8 @@ export class AmsterdamStreet implements SceneStreet {
     const glow = this.material({ color: 0xfff6e0, emissive: 0xfff0d0, emissiveIntensity: 0.4 });
     const geraniums = geraniumGeometry();
     const bulbs = archBulbs();
+    const voussoirs = archRing();
+    this.disposables.push(voussoirs);
     this.disposables.push(geraniums, bulbs);
     const railing = bridgeRailing();
     this.disposables.push(arch, railing);
@@ -1544,6 +1546,9 @@ export class AmsterdamStreet implements SceneStreet {
       }
       // A row of white bulbs along the arch's face, lit at dusk.
       bridge.add(new Mesh(bulbs, glow));
+      // The arch's ring of pale stone voussoirs with its keystone, on both faces, and a stone
+      // coping along the deck's edges.
+      bridge.add(new Mesh(voussoirs, stone));
       bridge.scale.x = -1;
       this.group.add(bridge);
       this.props.push({ mesh: bridge, offset: offset + 2, x: -roadHalf - QUAY });
@@ -2916,6 +2921,52 @@ function bridgeGeometry(): BufferGeometry {
   const geometry = new ExtrudeGeometry(shape, { depth: 7, bevelEnabled: false });
   geometry.translate(0, 0, -3.5);
   return geometry;
+}
+
+/**
+ * The stone ring round a bridge's arch on both faces: a band of voussoirs 0.45 m deep following
+ * the opening's curve, standing a little proud, with a taller keystone at the crown, and the
+ * coping along the deck's two edges.
+ */
+function archRing(): BufferGeometry {
+  const span = CANAL - 8;
+  const opening = (u: number) => -WATER + 2.9 * Math.sin((Math.PI * (u - 4)) / span);
+  const shape = new Shape();
+  const steps = 24;
+  shape.moveTo(4 - 0.45, -WATER);
+  for (let k = 0; k <= steps; k++) {
+    const u = 4 + (k / steps) * span;
+    const y = opening(u) + 0.45;
+    if (k === 0) shape.lineTo(4 - 0.45, y);
+    shape.lineTo(u, y);
+  }
+  shape.lineTo(CANAL - 4 + 0.45, -WATER);
+  shape.lineTo(CANAL - 4, -WATER);
+  for (let k = steps; k >= 0; k--) {
+    const u = 4 + (k / steps) * span;
+    shape.lineTo(u, opening(u));
+  }
+  shape.closePath();
+  const parts: BufferGeometry[] = [];
+  for (const z of [-3.62, 3.52]) {
+    const ring = new ExtrudeGeometry(shape, { depth: 0.1, bevelEnabled: false });
+    ring.translate(0, 0, z);
+    parts.push(ring.toNonIndexed());
+    const key = new BoxGeometry(0.5, 0.75, 0.14);
+    key.translate(CANAL / 2, opening(CANAL / 2) + 0.3, z + 0.05);
+    parts.push(key.toNonIndexed());
+  }
+  const top = (u: number) => KERB + 1.4 * Math.sin((Math.PI * u) / CANAL);
+  for (const z of [-3.5, 3.5]) {
+    for (let k = 0; k < 20; k++) {
+      const u0 = (k / 20) * CANAL;
+      const u1 = ((k + 1) / 20) * CANAL;
+      parts.push(limb(new Vector3(u0, top(u0), z), new Vector3(u1, top(u1), z), 0.12));
+    }
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
 }
 
 /** Bulbs along both faces of a bridge's arch, following the opening's curve. */
