@@ -110,6 +110,8 @@ export class AmsterdamStreet implements SceneStreet {
   private waterMap: CanvasTexture | null = null;
   private bikePaints: MeshStandardMaterial[] | null = null;
   private sitters: MeshStandardMaterial | null = null;
+  private extra: (() => number) | null = null;
+  private bikeShape: BufferGeometry | null = null;
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -558,6 +560,7 @@ export class AmsterdamStreet implements SceneStreet {
         stoop.position.z = turn > 0 ? -along : along;
         stoop.rotation.y = turn > 0 ? 0 : Math.PI;
         stoop.scale.z = random() < 0.5 ? 1 : -1;
+        const stoopSide = turn > 0 ? -stoop.scale.z : stoop.scale.z;
         stoop.children.forEach((m) => (m.castShadow = true));
         house.add(stoop);
         if (turn > 0) {
@@ -565,7 +568,17 @@ export class AmsterdamStreet implements SceneStreet {
           // view shows one.
           const featured = !wisteriaShown && offset > START + BEHIND + 22;
           if (featured) wisteriaShown = true;
-          this.dress(house, GABLES[k]!, width, height, along / width, random, decor, featured);
+          this.dress(
+            house,
+            GABLES[k]!,
+            width,
+            height,
+            along / width,
+            random,
+            decor,
+            featured,
+            -stoopSide,
+          );
         }
         if (random() < 0.16) {
           // A flag on a pole angled out from the first floor: Amsterdam's red-black-red with its
@@ -715,6 +728,10 @@ export class AmsterdamStreet implements SceneStreet {
       wisterias,
       bark: this.material({ color: 0x4a3e34, roughness: 1 }),
       lilac: this.material({ color: 0xa88ad8, roughness: 0.8 }),
+      paints: [0x16181b, 0x16181b, 0x2a3a5c, 0x6a1a1a, 0x8fc0b0, 0xe8dcc0].map((hex) =>
+        this.material({ color: hex, metalness: 0.35, roughness: 0.5 }),
+      ),
+      people: this.material({ vertexColors: true, roughness: 0.85 }),
     };
   }
 
@@ -732,6 +749,7 @@ export class AmsterdamStreet implements SceneStreet {
     random: () => number,
     decor: ReturnType<AmsterdamStreet['decor']>,
     featured = false,
+    stoopSide = 1,
   ): void {
     if (random() < 0.5) {
       const bloom = decor.blooms[Math.floor(random() * decor.blooms.length)]!;
@@ -756,6 +774,30 @@ export class AmsterdamStreet implements SceneStreet {
         flowers.position.set(-0.12, v * height, -u * width);
         house.add(box, flowers);
       }
+    }
+    // A bike or two leant against the front, out of the stoop's way, and on some stoops
+    // someone sitting on the steps in the sun with a coffee.
+    const extra = (this.extra ??= seeded(743));
+    for (let u = 0.12; u < 0.9; u += 0.35) {
+      if (Math.abs(u - door) < 0.22 || extra() < 0.55) continue;
+      if (!this.bikeShape) {
+        this.bikeShape = bikeGeometry();
+        this.disposables.push(this.bikeShape);
+      }
+      const paint = decor.paints[Math.floor(extra() * decor.paints.length)]!;
+      const leaning = new Mesh(this.bikeShape, paint);
+      leaning.position.set(-0.32, KERB, -u * width);
+      leaning.rotation.set(0.12, extra() < 0.5 ? 0 : Math.PI, 0, 'YXZ');
+      leaning.castShadow = true;
+      house.add(leaning);
+    }
+    if (extra() < 0.22) {
+      const sitter = new Mesh(sitterGeometry(extra), decor.people);
+      this.disposables.push(sitter.geometry);
+      sitter.rotation.y = Math.PI / 2;
+      sitter.position.set(-0.6, KERB + 0.56 - 0.42, -door * width + stoopSide * 1.05);
+      sitter.castShadow = true;
+      house.add(sitter);
     }
     if (random() < 0.16 || featured) {
       // A wisteria trained up the front from a corner, its cascades of lilac in flower.
