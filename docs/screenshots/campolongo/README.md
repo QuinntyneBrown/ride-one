@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Intense Climb: Passo Campolongo](http
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/intense-climb-passo-campolongo?simulate`, click **Ride in Passo Campolongo**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [032 · The Sella and the peaks stand still](bend-032-sella-stands.jpg) | The Sella massif and the Dolomite peaks above Corvara were bent vertex by vertex with the road's 50° bends, swinging and squeezing them with every forest hairpin. They now stand beyond the road unbent, as the panorama does, and the props behind the rider stand on the road there. |
