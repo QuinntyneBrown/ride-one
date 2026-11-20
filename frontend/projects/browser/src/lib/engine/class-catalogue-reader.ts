@@ -39,6 +39,7 @@ export const WORLDS: readonly WorldId[] = [
   'montreal',
   'stanleypark',
   'stelvio',
+  'edinburgh',
 ];
 
 export interface Shelf {

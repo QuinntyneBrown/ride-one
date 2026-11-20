@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -250,6 +250,14 @@ None.
   - larches below the parapet and patches of old snow on the slopes;
   - fellow climbers rocking up and descenders sweeping down (`Figures` on a shared road bike);
   - the wall ahead with the hairpins zigzagging up its face to the pass, its snowfields, and the Ortler's peaks above, all keeping their bearing as the road climbs.
+- **Edinburgh Fringe (`core/world-edinburgh.ts`).** For `edinburgh`, the Royal Mile in August:
+  - granite setts across the street and flagstone pavements both sides;
+  - tenements of six and seven storeys in dark rubble with sash windows, shopfronts with painted fascias, slate roofs and chimney stacks;
+  - poster columns and A-boards plastered with the Fringe's shows;
+  - bunting strung across the Mile and Saltires flying from the tenements on the ride's clock;
+  - St Giles' Cathedral on the left once a lap with its crown spire;
+  - jugglers in rings of spectators, flyerers at the kerbs and a crowd walking both ways (`Figures`);
+  - the Castle on its rock at the top of the Mile, keeping its bearing as the street climbs.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -291,6 +299,7 @@ None.
 | `pages/world-ride/montreal` | Montreal Jazz Fest at 4:50, warm-up, next `Encore` |
 | `pages/world-ride/stanleypark` | Stanley Park Seawall at 1:53, warm-up, next `Seawall push` |
 | `pages/world-ride/stelvio` | Stelvio Pass at 4:50, warm-up, next `Hairpin grind` |
+| `pages/world-ride/edinburgh` | Edinburgh Fringe at 4:50, warm-up, next `Close sprint` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
