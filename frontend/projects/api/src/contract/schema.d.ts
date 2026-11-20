@@ -138,7 +138,8 @@ export interface components {
         | 'tremola'
         | 'teide'
         | 'monaco'
-        | 'tempelhof';
+        | 'tempelhof'
+        | 'paine';
     };
     ClassShelfResponse: {
       id: string;

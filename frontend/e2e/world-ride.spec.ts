@@ -600,6 +600,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Tempelhof Field');
   });
 
+  test('rides 30 Minute VO2 Max Session beneath the granite towers of Torres del Paine', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '30 Minute VO2 Max Session',
+      'Torres del Paine',
+      '30-minute-vo2-max-session',
+    );
+    await expect(world.heading).toHaveText('Torres del Paine');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Torres del Paine');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

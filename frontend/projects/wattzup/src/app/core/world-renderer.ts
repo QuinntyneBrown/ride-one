@@ -968,6 +968,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.7, fill: 1.5, colour: 0xffe8c8 },
     fogRange: [600, 6000],
   },
+  // A bright, wild Patagonian afternoon: clean cold air, hard light, the wind off the ice.
+  paine: {
+    sky: 0x4a8ad8,
+    fog: 0xd8e4ec,
+    ground: 0xb89a58,
+    road: 0x8a7e6e,
+    sun: 34,
+    wet: false,
+    haze: false,
+    turbidity: 2,
+    rayleigh: 1.3,
+    azimuth: -130,
+    light: { sun: 3.0, fill: 1.6, colour: 0xfff4e4 },
+    fogRange: [2500, 22000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

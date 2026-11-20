@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -452,6 +452,11 @@ None.
   - low fences around the skylarks' meadows of long grass, the community gardens' raised beds and bright sheds, and the beer garden's parasols and benches;
   - skaters, joggers, walkers and picnickers (`Figures`), and kites in every colour dipping and swinging on the wind on the ride's clock;
   - around the field the curved limestone terminal, the radar tower, the trees and roofs at the edges, and the Fernsehturm far across the city, keeping their bearing.
+- **Torres del Paine (`core/world-paine.ts`).** For `paine`, the Patagonian park on a bright, wild afternoon:
+  - the gravel road's loose stones and ruts across its width, the steppe rolling up on the right, and the bank falling to the lake's shingle shore on the left; the ground sinks below the lake;
+  - golden tussocks streaming in the wind on the ride's clock, calafate bushes, boulders and lenga trees bent flat by the wind, and guanacos grazing, heads lifting and lowering;
+  - trekkers leaning into the wind (`Figures`);
+  - ahead Lago Pehoé's turquoise water whipped into white crests on the ride's clock, the Cuernos' granite horns capped in black slate, the three Torres, Paine Grande's glaciers, lenticular clouds stacked over the summits, and a condor wheeling, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -521,6 +526,7 @@ None.
 | `pages/world-ride/teide` | Mount Teide at 4:50, warm-up, next `Caldera climb` |
 | `pages/world-ride/monaco` | Monaco Street Circuit at 2:53, warm-up, next `Harbour sprint` |
 | `pages/world-ride/tempelhof` | Tempelhof Field at 4:50, warm-up, next `Runway tempo` |
+| `pages/world-ride/paine` | Torres del Paine at 4:50, warm-up, next `Patagonian VO2 effort` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
