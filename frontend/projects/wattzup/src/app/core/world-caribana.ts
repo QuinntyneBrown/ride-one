@@ -273,6 +273,7 @@ export class CaribanaStreet implements SceneStreet {
     marching?: boolean;
   }[] = [];
   private readonly crowd: Spectators;
+  private readonly backCrowd: Spectators;
   private readonly dancers: Masquerader[] = [];
   private readonly bodies: InstancedMesh[] = [];
   private costumes: InstancedMesh | null = null;
@@ -398,6 +399,19 @@ export class CaribanaStreet implements SceneStreet {
       // The grandstand takes the right-hand pavement by the judging point.
       skip: (side, offset) => side > 0 && offset > GRANDSTAND[0] && offset < GRANDSTAND[1],
     });
+    // The crowd carries on behind the pavement, standing on the grass, looser at the back.
+    this.backCrowd = new Spectators(this.group, disposables, {
+      loop: LOOP,
+      near: PAVEMENT + 0.5,
+      far: PAVEMENT + 2.4,
+      spacing: 0.8,
+      tops: SHIRTS,
+      bottoms: TROUSERS,
+      skins: SKINS,
+      flags: this.flagMaterials,
+      seed: 53,
+      skip: (side, offset) => side > 0 && offset > GRANDSTAND[0] - 2 && offset < GRANDSTAND[1] + 2,
+    });
   }
 
   build(roadHalf: number, points: number): void {
@@ -406,6 +420,7 @@ export class CaribanaStreet implements SceneStreet {
     for (const m of this.flagMaterials) if (m.map) this.track(m.map);
     this.addGround(points);
     this.crowd.build();
+    this.backCrowd.build();
     this.addMasqueraders(roadHalf);
     this.addBarricades();
     this.addMokoJumbies();
@@ -468,6 +483,7 @@ export class CaribanaStreet implements SceneStreet {
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + lift, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
+    this.backCrowd.place(this.time, heightAt, along, KERB + 0.04);
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
