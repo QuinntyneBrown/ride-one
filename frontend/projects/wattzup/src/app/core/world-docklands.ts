@@ -14,6 +14,7 @@ import {
   type Material,
   Mesh,
   MeshStandardMaterial,
+  PlaneGeometry,
   RepeatWrapping,
   SphereGeometry,
   SRGBColorSpace,
@@ -48,6 +49,9 @@ const LAMP_FIRST = 8;
 const LAMP_OUT = 5;
 const LAMP_HEIGHT = 6;
 const LAMPS = 10;
+/** The towers' street floor: glazing this high above the pavement, in bays this wide. */
+const LOBBY = 4.6;
+const LOBBY_BAY = 6;
 
 interface Tower {
   readonly mesh: Mesh;
@@ -98,6 +102,29 @@ export class DocklandsStreet {
           emissiveIntensity: 2.4,
         }),
     );
+    const lobbies = [
+      { glass: '#ffd9a6', frame: '#1a1b22', dark: 0.15 },
+      { glass: '#bfe6ff', frame: '#22242c', dark: 0.3 },
+      { glass: '#ffe9c9', frame: '#2a1f24', dark: 0.45 },
+    ].map(({ glass, frame, dark }, i) => {
+      const texture = this.track(lobbyTexture(glass, frame, dark, 211 + i * 31));
+      texture.wrapS = RepeatWrapping;
+      return new MeshStandardMaterial({
+        map: texture,
+        emissiveMap: texture,
+        emissive: new Color(0xffffff),
+        emissiveIntensity: 0.75,
+        roughness: 0.25,
+        metalness: 0.2,
+      });
+    });
+    const canopyMaterial = new MeshStandardMaterial({
+      color: 0x101218,
+      metalness: 0.5,
+      roughness: 0.45,
+    });
+    const lobbyRandom = seeded(97);
+    this.disposables.push(...lobbies, canopyMaterial);
     const strip = new BoxGeometry(0.5, 1, 0.5);
     this.disposables.push(roof, ...facades, ...neon, strip);
 
@@ -115,6 +142,21 @@ export class DocklandsStreet {
         mesh.castShadow = false;
         mesh.receiveShadow = true;
         mesh.userData['height'] = height;
+        // The street floor: lit glazing towards the road under a dark canopy.
+        const street = -(height - FOOTING) / 2 + KERB;
+        const length = depth - 2;
+        const glazing = new PlaneGeometry(length, LOBBY);
+        const uv = glazing.getAttribute('uv');
+        for (let v = 0; v < uv.count; v++) uv.setX(v, (uv.getX(v) * length) / LOBBY_BAY);
+        const lobby = new Mesh(glazing, lobbies[Math.floor(lobbyRandom() * lobbies.length)]!);
+        lobby.rotation.y = (-side * Math.PI) / 2;
+        lobby.position.set(-side * (width / 2 + 0.04), street + LOBBY / 2, 0);
+        const canopyBox = new BoxGeometry(1.8, 0.22, length);
+        const canopy = new Mesh(canopyBox, canopyMaterial);
+        canopy.position.set(-side * (width / 2 + 0.9), street + LOBBY + 0.2, 0);
+        canopy.castShadow = true;
+        this.disposables.push(glazing, canopyBox);
+        mesh.add(lobby, canopy);
         if (this.random() < 0.45) {
           // A neon sign runs down the face towards the road, part of the way up.
           const sign = new Mesh(strip, neon[Math.floor(this.random() * neon.length)]!);
@@ -410,6 +452,43 @@ function windowTexture(base: string, lit: string[], share: number, seed: number)
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * One bay of a tower's street floor at night: tall glass panels in a dark frame, lit from
+ * inside, with a darker transom above; some bays are dark. Six panels wide per tile.
+ */
+function lobbyTexture(glass: string, frame: string, dark: number, seed: number): CanvasTexture {
+  const width = 256;
+  const height = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const random = seeded(seed);
+    ctx.fillStyle = frame;
+    ctx.fillRect(0, 0, width, height);
+    const panels = 4;
+    const w = width / panels;
+    for (let i = 0; i < panels; i++) {
+      const lit = random() >= dark;
+      const g = ctx.createLinearGradient(0, 20, 0, height);
+      g.addColorStop(0, lit ? glass : '#1d2030');
+      g.addColorStop(1, lit ? '#ffffff' : '#2a2d3e');
+      ctx.globalAlpha = lit ? 0.75 + random() * 0.25 : 1;
+      ctx.fillStyle = g;
+      ctx.fillRect(i * w + 4, 24, w - 8, height - 30);
+      // A transom light over each panel.
+      ctx.fillStyle = lit ? glass : '#1d2030';
+      ctx.globalAlpha = lit ? 0.45 : 1;
+      ctx.fillRect(i * w + 4, 6, w - 8, 12);
+    }
+    ctx.globalAlpha = 1;
+  }
+  const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
