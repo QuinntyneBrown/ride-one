@@ -157,6 +157,7 @@ export class MiamiStreet implements SceneStreet {
     this.addFestoons(roadHalf);
     this.addShelters(roadHalf);
     this.addGateway(roadHalf);
+    this.addCollins(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1699,6 +1700,42 @@ export class MiamiStreet implements SceneStreet {
     holder.add(gate);
     this.group.add(holder);
     this.props.push({ mesh: holder, offset: 62, x: 0 });
+  }
+
+  /**
+   * Collins Avenue's towers behind the deco row: taller hotels and condos a block back,
+   * their floors lit in rows, a coloured crown light on each, rising over the deco roofs.
+   */
+  private addCollins(roadHalf: number): void {
+    const random = seeded(8351);
+    const glass = [0, 1, 2].map((v) =>
+      this.material({
+        map: this.track(towerTexture(8351 + v)),
+        emissive: 0xffffff,
+        emissiveMap: this.track(towerTexture(8351 + v)),
+        emissiveIntensity: 1,
+        roughness: 0.5,
+        metalness: 0.3,
+      }),
+    );
+    const tops = NEON.map((c) => this.material({ color: c, emissive: c, emissiveIntensity: 2.2 }));
+    for (let offset = 0; offset < LOOP; offset += 34 + random() * 16) {
+      const h = 50 + random() * 45;
+      const w = 18 + random() * 16;
+      const d = 16 + random() * 10;
+      const tower = new Group();
+      const body = new Mesh(this.unit, glass[Math.floor(random() * 3)]!);
+      body.scale.set(d, h, w);
+      body.position.y = h / 2;
+      const crown = new Mesh(this.unit, tops[Math.floor(random() * tops.length)]!);
+      crown.scale.set(d * 1.02, 1.2, w * 1.02);
+      crown.position.y = h - 1.5;
+      tower.add(body, crown);
+      const holder = new Group();
+      holder.add(tower);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: roadHalf + FRONT + 34 + random() * 12 });
+    }
   }
 
   /** People out for the night on both sidewalks. */
