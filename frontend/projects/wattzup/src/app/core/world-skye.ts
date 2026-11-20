@@ -62,6 +62,7 @@ export class SkyeStreet implements SceneStreet {
   private readonly banks: Bank[] = [];
   private cuillin: MeshStandardMaterial | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -110,22 +111,14 @@ export class SkyeStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.walkers.forEach((w, i) => {
         const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
         const step = Math.abs(Math.sin(this.time * 4 + w.phase)) * 0.04;
-        crowd.set(
-          i,
-          w.x,
-          heightAt(Math.max(metres, 0)) + step,
-          -metres,
-          w.speed >= 0 ? 0 : Math.PI,
-          0.95,
-          0,
-        );
+        crowd.set(i, w.x, heightAt(metres) + step, -metres, w.speed >= 0 ? 0 : Math.PI, 0.95, 0);
       });
       crowd.commit();
     }
