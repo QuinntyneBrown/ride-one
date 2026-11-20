@@ -468,6 +468,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addParkdale();
     this.addBoats();
     this.addClouds();
+    this.addCirrus();
     this.addSkyLife();
   }
 
@@ -2895,7 +2896,7 @@ export class CaribanaStreet implements SceneStreet {
       this.material({
         color: 0x16181c,
         transparent: true,
-        opacity: 0.16,
+        opacity: 0.3,
         roughness: 0.05,
         metalness: 0.3,
         depthWrite: false,
@@ -3919,6 +3920,59 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(body, top);
       this.ontarioPlace.add(new Mesh(body, hall), new Mesh(top, roof));
     }
+  }
+
+  /**
+   * High cirrus above the cumulus: long, thin streaks of ice cloud drawn across the upper sky,
+   * each a band of faint overlapping strands, brushed out at both ends.
+   */
+  private addCirrus(): void {
+    const random = seeded(3511);
+    const strands: BufferGeometry[] = [];
+    for (let k = 0; k < 9; k++) {
+      const cx = (random() - 0.5) * 6000;
+      const cz = -2400 - random() * 2000;
+      const cy = 1500 + random() * 600;
+      const tilt = (random() - 0.5) * 0.5;
+      for (let i = 0; i < 7; i++) {
+        const length = 900 + random() * 1400;
+        const width = 30 + random() * 60;
+        const strand = new PlaneGeometry(length, width, 8, 1);
+        // Brush out both ends: the strand narrows to nothing at its tips.
+        const position = strand.getAttribute('position') as BufferAttribute;
+        for (let v = 0; v < position.count; v++) {
+          const t = position.getX(v) / (length / 2);
+          position.setY(v, position.getY(v) * Math.max(0.05, 1 - t * t));
+        }
+        strand.rotateZ(tilt + (random() - 0.5) * 0.08);
+        strand.rotateX(Math.PI / 2.4);
+        strand.translate(
+          cx + (random() - 0.5) * 600,
+          cy + (random() - 0.5) * 120,
+          cz + (random() - 0.5) * 400,
+        );
+        strands.push(strand.toNonIndexed());
+        strand.dispose();
+      }
+    }
+    const sheet = mergeGeometries(strands)!;
+    strands.forEach((g) => g.dispose());
+    this.disposables.push(sheet);
+    const cirrus = new Mesh(
+      sheet,
+      this.material({
+        color: 0xffffff,
+        emissive: 0xf4f7fc,
+        emissiveIntensity: 1.15,
+        transparent: true,
+        opacity: 0.26,
+        depthWrite: false,
+        side: DoubleSide,
+        fog: false,
+      }),
+    );
+    cirrus.frustumCulled = false;
+    this.clouds.add(cirrus);
   }
 
   /**
