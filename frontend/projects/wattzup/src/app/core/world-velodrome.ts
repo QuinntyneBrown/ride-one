@@ -9,6 +9,8 @@
 // canvas textures and a loop that recycles the street, with the shared figures, barrier banners,
 // cloth banners, feather flags, road paint and box builder of world-kit.ts.
 import {
+  AdditiveBlending,
+  BoxGeometry,
   BufferAttribute,
   BufferGeometry,
   type CanvasTexture,
@@ -16,21 +18,24 @@ import {
   DoubleSide,
   Group,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
   type Texture,
   TorusGeometry,
 } from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
-  barrierBannerTexture,
   type BannerPanel,
+  barrierBannerTexture,
   BoxBuilder,
   canvasTexture,
   clothBannerTexture,
   FeatherFlags,
   type FeatherWord,
   Figures,
+  haloTexture,
   loopMetres,
   paintedRows,
   Ribbons,
@@ -57,6 +62,8 @@ const ROWS = 14;
 const ROW_DEPTH = 0.85;
 const ROW_RISE = 0.5;
 const STAND_CHUNK = 50;
+/** A gantry of arena lights crosses the hall every RIG metres. */
+const RIG = 25;
 /** The scoreboard hangs over the track's inner edge where the bend begins. */
 const SCORE_X = -INNER;
 /** The roof's height over the infield, and the hall's side walls. */
@@ -152,6 +159,7 @@ export class VelodromeStreet implements SceneStreet {
     this.addHanging();
     this.addRoadPaint();
     this.addHall();
+    this.addRigs();
     this.addBend();
   }
 
@@ -442,8 +450,7 @@ export class VelodromeStreet implements SceneStreet {
    */
   private addHall(): void {
     const length = AHEAD + 160;
-    const ceilingMap = this.slide(ceilingTexture(false), 1, length / 24, 24);
-    const ceilingLit = this.slide(ceilingTexture(true), 1, length / 24, 24);
+    const ceilingMap = this.slide(ceilingTexture(), 1, length / 24, 24);
     const span = WALL_RIGHT - WALL_LEFT;
     const roof = new PlaneGeometry(span, length, 40, 1);
     roof.rotateX(Math.PI / 2);
@@ -460,8 +467,8 @@ export class VelodromeStreet implements SceneStreet {
         this.material({
           map: ceilingMap,
           emissive: 0xffffff,
-          emissiveMap: ceilingLit,
-          emissiveIntensity: 1.4,
+          emissiveMap: ceilingMap,
+          emissiveIntensity: 0.4,
           roughness: 0.8,
           side: DoubleSide,
         }),
@@ -486,6 +493,76 @@ export class VelodromeStreet implements SceneStreet {
           }),
         ),
       );
+    }
+  }
+
+  /**
+   * The arena's lights: a steel gantry across the hall under the roof every RIG metres, a bright
+   * lamp every 5 m along it, each with its halo and a faint beam falling through the hall's haze
+   * onto the boards and the infield.
+   */
+  private addRigs(): void {
+    const steel = this.material({ color: 0x2a2c32, metalness: 0.5, roughness: 0.5 });
+    const lamp = new MeshBasicMaterial({ color: 0xfffaf0, toneMapped: false });
+    const glow = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      color: 0xfff0d8,
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      side: DoubleSide,
+      toneMapped: false,
+      fog: false,
+    });
+    const haze = new MeshBasicMaterial({
+      color: 0xfff0d8,
+      transparent: true,
+      opacity: 0.012,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      side: DoubleSide,
+      fog: false,
+    });
+    this.disposables.push(lamp, glow, haze);
+    const b = new BoxBuilder();
+    const halos: BufferGeometry[] = [];
+    const beams: BufferGeometry[] = [];
+    const lamps: BufferGeometry[] = [];
+    for (let x = WALL_LEFT + 6; x < WALL_RIGHT - 3; x += 5) {
+      const y = roofAt(x) - 1.6;
+      b.box(steel, [5, 0.5, 0.5], [x, y + 0.5, 0]);
+      const panel = new BoxGeometry(1.6, 0.2, 1);
+      panel.translate(x, y, 0);
+      lamps.push(panel);
+      const halo = new PlaneGeometry(5, 5);
+      halo.translate(x, y - 0.3, 0.6);
+      halos.push(halo);
+      if (x > 2 * BEND_X - OUTER && x < OUTER + 2 && halos.length % 2 === 0) {
+        const beam = new CylinderGeometry(0.7, 4.5, y, 12, 1, true);
+        beam.translate(x, y / 2, 0);
+        beams.push(beam);
+      }
+    }
+    const merge = (parts: BufferGeometry[]) => {
+      const g = mergeGeometries(parts)!;
+      parts.forEach((p) => p.dispose());
+      this.disposables.push(g);
+      return g;
+    };
+    const gantry = b.build(this.disposables).children as Mesh[];
+    const lampGeometry = merge(lamps);
+    const haloGeometry = merge(halos);
+    const beamGeometry = merge(beams);
+    for (let offset = 0; offset < LOOP; offset += RIG) {
+      const rig = new Group();
+      rig.add(
+        ...gantry.map((m) => new Mesh(m.geometry, m.material)),
+        new Mesh(lampGeometry, lamp),
+        new Mesh(haloGeometry, glow),
+        new Mesh(beamGeometry, haze),
+      );
+      this.group.add(rig);
+      this.props.push({ mesh: rig, offset, x: 0 });
     }
   }
 
@@ -716,26 +793,14 @@ function fenceTexture(): CanvasTexture {
   });
 }
 
-/**
- * The underside of the roof, 24 m along: timber slats running across the hall, and a row of
- * the arena's lights. With `lit`, only the lights, on black, for the emissive map.
- */
-function ceilingTexture(lit: boolean): CanvasTexture {
+/** The underside of the roof, 24 m along: timber slats running across the hall. */
+function ceilingTexture(): CanvasTexture {
   return canvasTexture(512, 128, (g) => {
-    g.fillStyle = lit ? '#000000' : '#8a6a48';
+    g.fillStyle = '#8a6a48';
     g.fillRect(0, 0, 512, 128);
-    if (!lit) {
-      for (let y = 0; y < 128; y += 6) {
-        g.fillStyle = y % 12 ? 'rgba(60,40,20,0.35)' : 'rgba(200,160,110,0.25)';
-        g.fillRect(0, y, 512, 2);
-      }
-    }
-    // The lights: a row across the hall, bright panels on a dark gantry.
-    g.fillStyle = lit ? '#000000' : '#2a2a2e';
-    g.fillRect(0, 56, 512, 16);
-    for (let x = 8; x < 512; x += 36) {
-      g.fillStyle = lit ? '#fff6e8' : '#fffaf0';
-      g.fillRect(x, 58, 22, 12);
+    for (let y = 0; y < 128; y += 6) {
+      g.fillStyle = y % 12 ? 'rgba(60,40,20,0.35)' : 'rgba(200,160,110,0.25)';
+      g.fillRect(0, y, 512, 2);
     }
   });
 }

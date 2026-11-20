@@ -31,14 +31,15 @@ import {
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
-  barrierBannerTexture,
   type BannerPanel,
+  barrierBannerTexture,
   BoxBuilder,
   canvasTexture,
   clothBannerTexture,
   Crowd,
   FeatherFlags,
   type FeatherWord,
+  haloTexture,
   hazedMaterial,
   loopMetres,
   paintedRows,
@@ -874,18 +875,5 @@ function screenTexture(): CanvasTexture {
     g.fillStyle = '#d7ff3a';
     g.font = 'bold 40px sans-serif';
     g.fillText('WATTZUP · 128 BPM', 256, 128, 470);
-  });
-}
-
-/** A bulb's halo: warm white at its heart, fading to nothing at the rim. */
-function haloTexture(): CanvasTexture {
-  return canvasTexture(64, 64, (g) => {
-    const glow = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-    glow.addColorStop(0, 'rgba(255,255,255,1)');
-    glow.addColorStop(0.2, 'rgba(255,235,190,0.7)');
-    glow.addColorStop(0.55, 'rgba(255,190,110,0.18)');
-    glow.addColorStop(1, 'rgba(255,170,80,0)');
-    g.fillStyle = glow;
-    g.fillRect(0, 0, 64, 64);
   });
 }
