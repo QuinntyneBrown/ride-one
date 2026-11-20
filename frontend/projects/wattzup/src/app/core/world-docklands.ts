@@ -155,6 +155,18 @@ const FIREWORKS: readonly { at: readonly [number, number, number]; hex: string; 
   { at: [-383, 140, -700], hex: '#ffd23a', from: 0.7 },
 ];
 /**
+ * The lighthouse in the harbour: where it stands (x, z in m), its tower's height (m), its
+ * beams' length and width at the mouth (m), one turn (s) and where they point at rest.
+ */
+const LIGHTHOUSE_AT = [-190, -400] as const;
+const LIGHTHOUSE_HEIGHT = 56;
+/** How much larger than life the lighthouse stands, so it reads from across the harbour. */
+const LIGHTHOUSE_SCALE = 1.5;
+const LIGHTHOUSE_BEAM_LONG = 260;
+const LIGHTHOUSE_BEAM_WIDE = 12;
+const LIGHTHOUSE_TURN = 12;
+const LIGHTHOUSE_FACING = Math.PI / 5;
+/**
  * Lightning over the far shore: where each bolt strikes (x, z in m), the top and foot of its
  * trunk (m), its width (m), how often one strikes (s) and how much it lights the sky.
  */
@@ -503,6 +515,7 @@ export class DocklandsStreet {
     this.ride(still ? 0 : seconds);
     this.burst(seconds, still);
     this.strike(seconds, still);
+    this.sweep(seconds, still);
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -547,6 +560,10 @@ export class DocklandsStreet {
   private readonly sparkDummy = new Object3D();
   /** The night sky's material, lit up by the lightning. */
   private skyMaterial: MeshBasicMaterial | null = null;
+  /** The lighthouse's turning beams, and the ride's last whole second and when it came. */
+  private lighthouseBeams: Group | null = null;
+  private sweepTick = 0;
+  private sweepAt = 0;
   /** The lightning's bolts, one striking at a time. */
   private readonly bolts: Mesh[] = [];
   /** The giant neon cyclist's pedalling parts: cranks, and each leg's thigh and shin. */
@@ -1456,8 +1473,110 @@ export class DocklandsStreet {
     this.addWheel();
     this.addWhale();
     this.addHarbourBridge();
+    this.addLighthouse();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
+  }
+
+  /**
+   * A lighthouse on a rock in the harbour: a tapering tower banded red and white, a gallery,
+   * a lantern room glowing warm under a dark cap, and two beams sweeping round from it.
+   */
+  private addLighthouse(): void {
+    const [x, z] = LIGHTHOUSE_AT;
+    const house = new Group();
+    house.position.set(x, 0, z);
+    house.scale.setScalar(LIGHTHOUSE_SCALE);
+    const rock = new MeshBasicMaterial({ color: new Color('#15131f'), fog: false });
+    const bands = this.track(lighthouseTexture());
+    const tower = new MeshBasicMaterial({
+      map: bands,
+      color: new Color(0xffffff).multiplyScalar(0.75),
+      fog: false,
+    });
+    const dark = new MeshBasicMaterial({ color: new Color('#0d0e16'), fog: false });
+    const lamp = new MeshBasicMaterial({
+      color: new Color('#ffe2a8').multiplyScalar(2.6),
+      fog: false,
+      toneMapped: false,
+    });
+    const rockGeometry = new CylinderGeometry(9, 14, 6, 9);
+    const towerGeometry = new CylinderGeometry(3.2, 5.2, LIGHTHOUSE_HEIGHT, 16, 1, true);
+    const galleryGeometry = new CylinderGeometry(5, 5, 1, 16);
+    const lanternGeometry = new CylinderGeometry(3, 3, 4.4, 12);
+    const capGeometry = new ConeGeometry(3.6, 3.4, 12);
+    this.disposables.push(rock, tower, dark, lamp, rockGeometry, towerGeometry);
+    this.disposables.push(galleryGeometry, lanternGeometry, capGeometry);
+    const base = new Mesh(rockGeometry, rock);
+    base.position.y = 1;
+    const shaft = new Mesh(towerGeometry, tower);
+    shaft.position.y = 4 + LIGHTHOUSE_HEIGHT / 2;
+    const top = 4 + LIGHTHOUSE_HEIGHT;
+    const gallery = new Mesh(galleryGeometry, dark);
+    gallery.position.y = top + 0.5;
+    const lantern = new Mesh(lanternGeometry, lamp);
+    lantern.position.y = top + 3.2;
+    const cap = new Mesh(capGeometry, dark);
+    cap.position.y = top + 7.1;
+    house.add(base, shaft, gallery, lantern, cap);
+    // The lantern's glow, seen from across the harbour.
+    const halo = new SpriteMaterial({
+      map: this.track(glowTexture()),
+      color: new Color('#ffd89a').multiplyScalar(1.6),
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+    });
+    this.disposables.push(halo);
+    const glow = new Sprite(halo);
+    glow.scale.setScalar(26);
+    glow.position.y = top + 3.2;
+    house.add(glow);
+    // Two beams back to back, each a long open cone fading away from the lantern.
+    const beam = new MeshBasicMaterial({
+      map: this.track(lighthouseBeamTexture()),
+      color: new Color('#ffe9c0').multiplyScalar(1.4),
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      side: DoubleSide,
+      fog: false,
+      toneMapped: false,
+    });
+    const cone = new ConeGeometry(LIGHTHOUSE_BEAM_WIDE, LIGHTHOUSE_BEAM_LONG, 24, 1, true);
+    this.disposables.push(beam, cone);
+    const turning = new Group();
+    turning.position.y = top + 3.2;
+    for (const turn of [0, Math.PI]) {
+      const arm = new Group();
+      arm.rotation.y = turn;
+      const ray = new Mesh(cone, beam);
+      // The cone's tip at the lantern, its mouth out along +x.
+      ray.rotation.z = Math.PI / 2;
+      ray.position.x = LIGHTHOUSE_BEAM_LONG / 2;
+      ray.frustumCulled = false;
+      arm.add(ray);
+      turning.add(arm);
+    }
+    house.add(turning);
+    this.lighthouseBeams = turning;
+    this.farShore.add(house);
+  }
+
+  /**
+   * Turns the lighthouse's beams. The ride's clock counts whole seconds, so the turn runs on
+   * through each second from when it last ticked, and stops a second after the clock does.
+   */
+  private sweep(seconds: number, still: boolean): void {
+    if (!this.lighthouseBeams) return;
+    const now = performance.now();
+    if (seconds !== this.sweepTick) {
+      this.sweepTick = seconds;
+      this.sweepAt = now;
+    }
+    const smooth = still ? 0 : seconds + Math.min((now - this.sweepAt) / 1000, 1);
+    this.lighthouseBeams.rotation.y = LIGHTHOUSE_FACING + (smooth / LIGHTHOUSE_TURN) * Math.PI * 2;
   }
 
   /**
@@ -4135,6 +4254,42 @@ function beamTexture(): CanvasTexture {
     ctx.fillRect(0, 0, 4, 128);
   }
   return new CanvasTexture(canvas);
+}
+
+/** A lighthouse tower's bands: red and white, two of each up its height. */
+function lighthouseTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 8;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    for (let k = 0; k < 4; k++) {
+      ctx.fillStyle = k % 2 ? '#f2eee6' : '#c8202e';
+      ctx.fillRect(0, k * 16, 8, 16);
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A lighthouse beam's fade: bright at the lantern (the cone's tip, v = 1), gone at its mouth. */
+function lighthouseBeamTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 4;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 0, 128);
+    g.addColorStop(0, 'rgba(255,255,255,0.75)');
+    g.addColorStop(0.35, 'rgba(255,255,255,0.3)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 4, 128);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
 
 /** A soft round glow, white at its heart and fading to nothing at its edge. */
