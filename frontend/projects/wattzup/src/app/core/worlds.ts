@@ -457,6 +457,16 @@ export const WORLDS: readonly World[] = [
     roll: 0.9,
   },
   {
+    id: 'montmartre',
+    name: 'Montmartre',
+    route: 'the lanes of the butte',
+    effortName: 'Butte kick',
+    description:
+      'Paris cobbles wind up the butte of Montmartre on a golden afternoon, between cream and pink houses with green shutters and café awnings, past the painters at their easels in the Place du Tertre, toward the white domes of Sacré-Cœur on the hilltop. The two-minute warm-up rolls over the cobbles of the lower lanes, the thirty-second kicks punch up the steep ramps past the cafés and painters, and the two- and three-minute blocks climb the winding streets to the basilica.',
+    grade: { warmup: 3, work: 8, rest: 4, cooldown: 2, steady: 5 },
+    roll: 1.6,
+  },
+  {
     id: 'brickyard',
     name: 'Indianapolis Brickyard',
     route: 'the front straight',

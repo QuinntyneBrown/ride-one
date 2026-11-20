@@ -184,6 +184,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText("Riders nearby · Alpe d'Huez");
   });
 
+  test('rides Short, Sharp & Hard Efforts up the cobbles of Montmartre', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Short, Sharp & Hard Efforts',
+      'Montmartre',
+      'short-sharp-and-hard-efforts',
+    );
+    await expect(world.heading).toHaveText('Montmartre');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Montmartre');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

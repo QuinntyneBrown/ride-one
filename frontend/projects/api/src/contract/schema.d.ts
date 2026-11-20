@@ -127,6 +127,7 @@ export interface components {
         | 'saguaro'
         | 'trollstigen'
         | 'poggio'
+        | 'montmartre'
         | 'brickyard';
     };
     ClassShelfResponse: {

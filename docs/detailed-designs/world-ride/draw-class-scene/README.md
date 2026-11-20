@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `brickyard`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -372,6 +372,14 @@ None.
   - on the left a low wall with palms over the maquis falling to the Mediterranean, its glitter shifting on the ride's clock; the ground sinks to the sea;
   - tifosi at the roadside bouncing as the riders pass, flags waving on the ride's clock (`Figures`), and a banner arch counting down to San Remo once a lap;
   - ahead the Poggio's village and church tower on its hill, San Remo along the shore, yachts at anchor and the green Ligurian Alps behind, keeping their bearing.
+- **Montmartre (`core/world-montmartre.ts`).** For `montmartre`, Paris cobbles winding up the butte on a golden afternoon, closed for the ride:
+  - Old Town's cobbles (the renderer's cobbled worlds), granite kerbs and grey pavements to the house fronts, race barriers hung with the ride's banners (MONTMARTRE, PARIS 18e, SACRÉ-CŒUR, WATTZUP, LA BUTTE, RUE LEPIC), the kit's feather flags every 18 m along both, cloth banners across the street (MONTMARTRE · LA BUTTE, SACRÉ-CŒUR · 500 m), tricolour pennants strung across between the upper floors every 24 m, and names chalked on the cobbles every 22 m;
+  - houses shoulder to shoulder either side, 7.2 m off the road's centre, built from fourteen looks and merged by material: lime-rendered fronts in cream, ivory, pale ochre, the pink of La Maison Rose and pale grey, four to six floors with string courses and a cornice, tall French windows with green, grey or blue shutters folded back, wrought-iron balconies along the second and top floors or at single windows, a café on the ground floor (CAFÉ DES ARTISTES, LE CONSULAT, BOULANGERIE, CRÊPERIE and more) with its name in gold over the window and a striped awning over the pavement, a wall lantern, and a zinc mansard with dormers or a pitched roof of red tiles, chimney stacks with their pots on the party walls;
+  - fans on both pavements behind the barriers (the shared crowd), in gaps every 60 m;
+  - halfway up, the Place du Tertre opening on the right, its far houses 30 m back across it: plane trees in two rows, red café umbrellas over tables and white chairs, and seven painters (the kit's figures) at their easels by the street, their canvases of rooftops and domes turned to it;
+  - 250 m ahead, where the street ends, rooftops at the foot of the butte, the green hill with its trees and the white stairs climbing its face, and on its crown Sacré-Cœur in white travertine, drawn twice life size so it reads from the street: the portico of three arches with a cupola either side, the nave and transepts, the tall drum with its windows and the ogive dome with its lantern, four smaller domes round it and the campanile behind, all hazed by hand. Everything along the street is hidden past its end.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 - **Indianapolis Brickyard (`core/world-brickyard.ts`).** For `brickyard`, the oval on race day in May:
   - the front straight with the white SAFER barrier, the catch fence and the walkway on the right, and the grandstands climbing tier on tier of crowd under their roof with flags along the top waving on the ride's clock;
   - on the left the apron, the pit wall, the pit lane with garages in team colours, crews at work (`Figures`) and the pace car with its lit light bar, and the infield's mown grass;
@@ -434,6 +442,7 @@ None.
 | `pages/world-ride/saguaro` | Saguaro Desert at 4:50, warm-up, next `Desert burn` |
 | `pages/world-ride/trollstigen` | Trollstigen at 4:50, warm-up, next `Threshold ladder` |
 | `pages/world-ride/poggio` | The Poggio at 4:50, warm-up, next `Poggio tempo` |
+| `pages/world-ride/montmartre` | Montmartre at 1:53, warm-up, next `Butte kick` |
 | `pages/world-ride/brickyard` | Indianapolis Brickyard at 4:50, warm-up, next `Straightaway acceleration` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
