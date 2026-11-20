@@ -113,7 +113,10 @@ export class MiamiStreet implements SceneStreet {
     heading: number;
     phase: number;
     scale: number;
+    /** How far a seated figure sinks so it sits on its chair, its legs under the table. */
+    seat?: number;
   }[] = [];
+  private readonly diners: { offset: number; x: number; heading: number }[] = [];
   private water: Texture | null = null;
   private glitter: Texture | null = null;
   private stream: Texture | null = null;
@@ -369,8 +372,8 @@ export class MiamiStreet implements SceneStreet {
       this.standers.forEach((p, i) => {
         const metres = loopMetres(p.offset, s, LOOP, BEHIND);
         const sway = Math.sin(this.time * 1.3 + p.phase) * 0.12;
-        const y = heightAt(Math.max(metres, 0)) + 0.15;
-        chatting.set(i, p.x, y, -metres, p.heading + sway, p.scale);
+        const y = heightAt(Math.max(metres, 0)) + 0.15 - (p.seat ?? 0);
+        chatting.set(i, p.x, y, -metres, p.heading + sway * (p.seat ? 0.3 : 1), p.scale);
         this.dress(
           this.people.length + this.skaters.length + i,
           p.x,
@@ -989,6 +992,13 @@ export class MiamiStreet implements SceneStreet {
       for (let z = -width * 0.4; z < width * 0.4; z += 3.2) {
         if (Math.abs(z) < width * 0.17) continue;
         const x = -4.2 - (Math.round(z) % 2) * 1.3;
+        // Diners at two tables in three, on facing chairs.
+        if (Math.round(z * 7) % 3 !== 0)
+          for (const [dx, dz, turn] of [
+            [0.75, 0, -Math.PI / 2],
+            [-0.75, 0, Math.PI / 2],
+          ] as const)
+            this.diners.push({ offset: offset + width / 2 - (z + dz), x: x + dx, heading: turn });
         cafe.box(tableTop, [0.8, 0.05, 0.8], [x, 0.9, z]);
         cafe.box(metal, [0.06, 0.88, 0.06], [x, 0.45, z]);
         cafe.box(metal, [0.5, 0.04, 0.5], [x, 0.02, z]);
@@ -2202,6 +2212,17 @@ export class MiamiStreet implements SceneStreet {
         scale: 0.86,
       });
     }
+    // The diners seated at the café tables, chatting over their candles.
+    const lean = seeded(8401);
+    for (const d of this.diners)
+      this.standers.push({
+        offset: d.offset,
+        x: roadHalf + FRONT + d.x,
+        heading: d.heading,
+        phase: lean() * 6,
+        scale: 0.92 + lean() * 0.1,
+        seat: 0.5,
+      });
     // The queue for each club, waiting in a line along its rope, and the doorman by the door.
     const queue = seeded(8147);
     for (const club of this.clubs) {
