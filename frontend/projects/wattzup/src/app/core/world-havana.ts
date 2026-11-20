@@ -25,6 +25,7 @@ import {
   QuadraticBezierCurve3,
   RepeatWrapping,
   Shape,
+  SphereGeometry,
   type Texture,
   TubeGeometry,
   Vector2,
@@ -853,16 +854,161 @@ export class HavanaStreet implements SceneStreet {
           put(hub, chrome, x, 0.37, z);
         }
       }
-      // Oncoming in the far lanes, a few going the rider's way in the near one.
-      const oncoming = k % 3 !== 2;
-      car.rotation.y = oncoming ? Math.PI : 0;
-      car.position.x = oncoming ? -roadHalf - (k % 2 ? 2 : 5.2) : -roadHalf - 1.8 + 0.4;
+      // Oncoming down the far carriageway, in its two lanes.
+      car.rotation.y = Math.PI;
+      car.position.x = -roadHalf - (k % 2 ? 1.9 : 5.2);
       this.group.add(car);
-      this.cars.push({
-        mesh: car,
-        offset: k * 45 + random() * 20,
-        speed: oncoming ? -(9 + random() * 4) : 6 + random() * 2,
-      });
+      this.cars.push({ mesh: car, offset: k * 45 + random() * 20, speed: -(9 + random() * 4) });
+    });
+    this.addTraffic(roadHalf, chrome, tyre, glass, wheel, hub);
+  }
+
+  /**
+   * The rest of the Malecón's traffic among the classic cars: yellow coco-taxis, the egg-shaped
+   * three-wheelers, puttering in the kerb lane; boxy Soviet Ladas; and open convertibles with
+   * their tops down, cream seats and a raked windscreen.
+   */
+  private addTraffic(
+    roadHalf: number,
+    chrome: MeshStandardMaterial,
+    tyre: MeshStandardMaterial,
+    glass: MeshStandardMaterial,
+    wheel: BufferGeometry,
+    hub: BufferGeometry,
+  ): void {
+    const random = seeded(1069);
+    const yellow = this.material({
+      color: 0xffd21a,
+      roughness: 0.35,
+      metalness: 0.1,
+      side: DoubleSide,
+    });
+    const black = this.material({ color: 0x1c1d20, roughness: 0.6 });
+    const seat = this.material({ color: 0xe9dcc0, roughness: 0.7 });
+    // The shell: the back half of the egg, and a band arching over the open sides to the front.
+    const back = new SphereGeometry(1, 18, 10, 0, Math.PI, 0, Math.PI / 2);
+    const hood = new SphereGeometry(1, 18, 4, Math.PI, Math.PI, 0, 0.55);
+    const shell = mergeGeometries([back, hood])!;
+    back.dispose();
+    hood.dispose();
+    shell.scale(0.8, 1.2, 1.2);
+    const small = new CylinderGeometry(0.22, 0.22, 0.16, 12);
+    small.rotateZ(Math.PI / 2);
+    const lada = profile(
+      [
+        [-2.05, 0.3],
+        [-2.1, 0.92],
+        [-1.2, 0.95],
+        [-0.95, 1.42],
+        [0.75, 1.42],
+        [1.15, 0.95],
+        [2.05, 0.9],
+        [2.1, 0.3],
+      ],
+      1.62,
+      0.03,
+    );
+    const ladaGlass = profile(
+      [
+        [-1.05, 0.98],
+        [-0.86, 1.36],
+        [0.68, 1.36],
+        [1.02, 0.98],
+      ],
+      1.66,
+      0,
+    );
+    const open = profile(
+      [
+        [-2.75, 0.32],
+        [-2.8, 0.62],
+        [-2.7, 0.9],
+        [-2.2, 1.0],
+        [-1.6, 0.9],
+        [1.3, 0.9],
+        [2.45, 0.86],
+        [2.78, 0.72],
+        [2.8, 0.42],
+        [2.6, 0.3],
+      ],
+      1.9,
+      0.07,
+    );
+    this.disposables.push(shell, small, lada, ladaGlass, open);
+    const vehicles: { group: Group; lane: number; speed: number }[] = [];
+    const box = (
+      car: Group,
+      m: MeshStandardMaterial,
+      sx: number,
+      sy: number,
+      sz: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(sx, sy, sz);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      car.add(mesh);
+    };
+    const put = (car: Group, g: BufferGeometry, m: MeshStandardMaterial, x = 0, y = 0, z = 0) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      car.add(mesh);
+    };
+    for (let i = 0; i < 4; i++) {
+      // A coco-taxi: the yellow egg shell over a black seat, on a scooter's three wheels.
+      const taxi = new Group();
+      put(taxi, shell, yellow, 0, 0.42, 0.15);
+      box(taxi, yellow, 1.3, 0.3, 2.3, 0, 0.35, 0.1);
+      box(taxi, black, 1.0, 0.5, 0.6, 0, 0.75, 0.6);
+      box(taxi, black, 0.5, 0.5, 0.5, 0, 0.75, -0.55);
+      put(taxi, small, tyre, 0, 0.22, -1.0);
+      for (const x of [-0.6, 0.6]) put(taxi, small, tyre, x, 0.22, 0.9);
+      vehicles.push({ group: taxi, lane: 1.4, speed: -(5 + random() * 2) });
+    }
+    for (const colour of [0xf2f0ea, 0x8fb8c8, 0xc0392b]) {
+      const car = new Group();
+      put(car, lada, this.material({ color: colour, roughness: 0.4, metalness: 0.2 }));
+      put(car, ladaGlass, glass);
+      box(car, chrome, 1.7, 0.16, 0.12, 0, 0.4, -2.12);
+      box(car, chrome, 1.7, 0.16, 0.12, 0, 0.4, 2.12);
+      for (const x of [-0.8, 0.8]) {
+        for (const z of [-1.3, 1.3]) {
+          put(car, wheel, tyre, x, 0.37, z);
+          put(car, hub, chrome, x, 0.37, z);
+        }
+      }
+      vehicles.push({ group: car, lane: random() < 0.5 ? 1.9 : 5.2, speed: -(8 + random() * 3) });
+    }
+    for (const colour of [0xd6336c, 0x2ec4b6]) {
+      const car = new Group();
+      put(car, open, this.material({ color: colour, roughness: 0.3, metalness: 0.3 }));
+      box(car, seat, 1.6, 0.5, 0.6, 0, 1.05, 0.4);
+      box(car, seat, 1.6, 0.5, 0.6, 0, 1.05, -0.6);
+      box(car, seat, 1.6, 0.7, 0.15, 0, 1.2, 0.75);
+      const screen = new Mesh(this.unit, glass);
+      screen.scale.set(1.7, 0.5, 0.04);
+      screen.position.set(0, 1.15, -1.25);
+      screen.rotation.x = -0.5;
+      car.add(screen);
+      box(car, chrome, 2.0, 0.2, 0.16, 0, 0.42, -2.86);
+      box(car, chrome, 2.0, 0.2, 0.16, 0, 0.42, 2.86);
+      for (const x of [-0.93, 0.93]) {
+        for (const z of [-1.72, 1.62]) {
+          put(car, wheel, tyre, x, 0.37, z);
+          put(car, hub, chrome, x, 0.37, z);
+        }
+      }
+      vehicles.push({ group: car, lane: 5.2, speed: -(7 + random() * 3) });
+    }
+    vehicles.forEach(({ group, lane, speed }, k) => {
+      group.rotation.y = Math.PI;
+      group.position.x = -roadHalf - lane;
+      this.group.add(group);
+      this.cars.push({ mesh: group, offset: 34 + k * 39 + random() * 12, speed });
     });
   }
 
