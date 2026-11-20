@@ -32,6 +32,19 @@ export function heading(world: World, s: number): number {
   return angle * Math.sin(s / length) * Math.cos(s / (2.7 * length) + 1);
 }
 
+/** How fast the road turns at `s`, in radians per metre, positive bending to the rider's right. */
+export function curvature(world: World, s: number): number {
+  return ((heading(world, s + 0.5) - heading(world, s - 0.5)) * Math.PI) / 180;
+}
+
+/**
+ * How far a rider at `speed` m/s leans into the bend at `s`, in radians, positive to the right:
+ * the bike tilts until gravity balances the turn, `atan(v² κ / g)`.
+ */
+export function lean(world: World, s: number, speed: number): number {
+  return Math.atan((speed * speed * curvature(world, s)) / 9.81);
+}
+
 /**
  * The road `m` metres ahead of the rider at `s`, as samples of four: the centre (x, z), the heading
  * in radians turned from the heading under the rider, and the curvature per metre.
