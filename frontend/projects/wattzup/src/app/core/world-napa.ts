@@ -40,6 +40,7 @@ import {
   type FeatherWord,
   hazedMaterial,
   loopMetres,
+  Mist,
   paintTexture,
   PopupTents,
   Ribbons,
@@ -73,6 +74,8 @@ const HORIZON_AHEAD = 300;
 const MISSION_AT = 190;
 const KNOLL_FOOT = MISSION_AT - 65;
 const HAZE = 0xe4d6b8;
+/** The warm dust in the afternoon air, lit by the low sun. */
+const DUST = 0xf0dcb2;
 
 /**
  * How high the ground stands above the road `x` metres off its centre: level to the vineyards,
@@ -201,6 +204,7 @@ export class NapaStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
   private readonly crowd: Crowd;
+  private readonly mist: Mist;
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
   private time = 0;
@@ -224,6 +228,18 @@ export class NapaStreet implements SceneStreet {
     private readonly disposables: { dispose(): void }[],
   ) {
     this.ribbons = new Ribbons(this.group, disposables);
+    // The afternoon's dusty golden haze: a veil between the knoll and the hills, and a thicker one
+    // before the Mayacamas, so the distance steps back in layers.
+    this.mist = new Mist(this.group, disposables, track, {
+      colour: DUST,
+      loop: LOOP,
+      curtains: [
+        { ahead: 420, height: 45, opacity: 0.28 },
+        { ahead: 1100, height: 140, opacity: 0.4 },
+      ],
+      banks: 0,
+      bankX: () => 0,
+    });
     this.crowd = new Crowd(this.group, disposables, {
       loop: LOOP,
       near: CROWD_NEAR,
@@ -249,6 +265,7 @@ export class NapaStreet implements SceneStreet {
     this.disposables.push(this.unit, this.ball, ...this.flagMaterials);
     this.addGround(roadHalf, points);
     this.crowd.build();
+    this.mist.build();
     this.prepareOaks();
     this.addVines();
     this.addWineries();
@@ -281,6 +298,7 @@ export class NapaStreet implements SceneStreet {
       prop.mesh.position.set(prop.x, ground(metres) + KERB + prop.rise, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
+    this.mist.place(this.time, heightAt, along, () => KERB);
     const t = this.time;
     // Guests linger at the terrace tables; the pickers stoop and straighten along the rows.
     for (const [people, spots, pace, depth] of [
