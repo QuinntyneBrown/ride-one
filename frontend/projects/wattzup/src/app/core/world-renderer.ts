@@ -351,20 +351,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.4, fill: 1.0, colour: 0xffc98c },
     fogRange: [110, 1300],
   },
-  // A spring morning on the Herengracht: soft sun behind the rider, a light haze over the water.
+  // A May morning on the Herengracht: a low, warm sun behind the rider throws the elms' long
+  // shadows across the street, and a pale golden haze hangs over the water.
   amsterdam: {
     sky: 0x9ec4e6,
-    fog: 0xd6dde3,
+    fog: 0xdcdcd6,
     ground: 0x3d4a3e,
     road: 0x6b4a3a,
-    sun: 28,
+    sun: 19,
     wet: false,
     haze: false,
-    turbidity: 4,
+    turbidity: 4.5,
     rayleigh: 2,
-    azimuth: -145,
-    light: { sun: 3.0, fill: 1.1, colour: 0xfff1dc },
-    fogRange: [60, 900],
+    azimuth: -150,
+    light: { sun: 3.3, fill: 0.95, colour: 0xffe6c4 },
+    fogRange: [70, 950],
   },
   // Sunrise on the Giza plateau: a low gold sun behind the rider, warm dust in the air.
   giza: {
