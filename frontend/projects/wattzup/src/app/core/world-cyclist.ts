@@ -92,8 +92,8 @@ export class CyclistKit {
 
   constructor(private readonly frame: Material) {}
 
-  /** A rider in `jersey`, with race `number` pinned to their back. */
-  make(jersey: Color, number: number): Cyclist {
+  /** A rider in `jersey`, with race `number` pinned to their back, on a `frame` of their own. */
+  make(jersey: Color, number: number, frame: Material = this.frame): Cyclist {
     const top = new MeshStandardMaterial({ color: jersey, roughness: 0.65, map: this.kitTexture });
     const bib = new MeshStandardMaterial({ map: bibTexture(number), roughness: 0.8 });
     const shell = new MeshStandardMaterial({
@@ -101,7 +101,7 @@ export class CyclistKit {
       map: this.ventTexture,
       roughness: 0.35,
     });
-    return new Cyclist(this, this.frame, top, bib, shell);
+    return new Cyclist(this, frame, top, bib, shell);
   }
 
   bibGeometry(): PlaneGeometry {

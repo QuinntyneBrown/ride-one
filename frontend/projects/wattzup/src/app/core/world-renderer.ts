@@ -198,6 +198,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
     metalness: 0.6,
     roughness: 0.35,
   });
+  /** Every bike's frame paint, given a clearcoat together at the tier that has one. */
+  private readonly frames: MeshPhysicalMaterial[] = [this.frameMaterial];
   private readonly arch = new Group();
   private you: Cyclist | null = null;
   private readonly pacers = new Map<number, Cyclist>();
@@ -346,9 +348,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.roadMaterial.color.set(look.road).multiplyScalar(wet ? 0.7 : 1);
     this.roadMaterial.needsUpdate = true;
 
-    this.frameMaterial.clearcoat = on.has(15) ? 1 : 0;
-    this.frameMaterial.clearcoatRoughness = 0.08;
-    this.frameMaterial.needsUpdate = true;
+    for (const frame of this.frames) {
+      frame.clearcoat = on.has(15) ? 1 : 0;
+      frame.clearcoatRoughness = 0.08;
+      frame.needsUpdate = true;
+    }
 
     const night = look.sun < 0;
     for (const lamp of this.lamps) lamp.visible = on.has(23) && night;
@@ -530,7 +534,12 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.disposables.push(kit, you.jersey, you.bib, you.shell, this.frameMaterial);
     // The simulated pacers ride with the rider, each in its board colour (L2-107 AC7).
     for (const pacer of PACERS) {
-      const rider = kit.make(riderColour(canvas, pacer.jersey), pacer.jersey);
+      // Each pacer rides a frame of their own paint.
+      const frame = this.frameMaterial.clone();
+      frame.color.set(FRAME_PAINT[pacer.jersey % FRAME_PAINT.length]!);
+      this.frames.push(frame);
+      this.disposables.push(frame);
+      const rider = kit.make(riderColour(canvas, pacer.jersey), pacer.jersey, frame);
       rider.group.visible = false;
       this.pacers.set(pacer.jersey, rider);
       this.scene.add(rider.group);
@@ -795,6 +804,9 @@ function riderColour(element: Element, n: number): Color {
   if (value) colour.setStyle(value);
   return colour;
 }
+
+/** Frame paints for the pacers' bikes: white, red, navy, silver and teal. */
+const FRAME_PAINT = [0xeeeeea, 0xb3262c, 0x1d2b4a, 0xa9aeb5, 0x2a7d7a];
 
 function labelTexture(text: string): CanvasTexture {
   const canvas = document.createElement('canvas');
