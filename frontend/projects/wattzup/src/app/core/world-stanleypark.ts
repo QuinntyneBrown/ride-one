@@ -40,6 +40,7 @@ import {
   loopMetres,
   paintTexture,
   Ribbons,
+  scaleFaceUv,
   type SceneStreet,
   seeded,
   speckle,
@@ -121,6 +122,19 @@ const FEATHERS: readonly FeatherWord[] = [
   ['WATTZUP', '#d7ff3a', '#1b1e24'],
 ];
 const FEATHER_EVERY = 16;
+/**
+ * The ride's village on the grass behind the right-hand crowd, either side of the totem poles'
+ * lawn: pop-up tents in the ride's colours, each named on its valance, and where it stands.
+ */
+const TENTS: readonly (readonly [string, string, string, number, number])[] = [
+  ['WATER', '#1f4e79', '#ffffff', 112, 9.6],
+  ['SEAWALL RIDE', '#2e8b57', '#ffffff', 122, 10.2],
+  ['WATTZUP', '#d7ff3a', '#1b1e24', 182, 9.8],
+  ['BIKE REPAIR', '#d8283a', '#ffffff', 192, 10.4],
+  ['VANCOUVER', '#4fa3c7', '#ffffff', 203, 9.7],
+  ['FIRST AID', '#f2efe6', '#d8283a', 330, 9.8],
+  ['WATER', '#1f4e79', '#ffffff', 420, 9.6],
+];
 /** What the fans paint on the path, its colour and how far off the centre line. */
 const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
   ['GO GO', '#ffffff', -1.8],
@@ -191,6 +205,7 @@ export class StanleyParkStreet implements SceneStreet {
     this.addTotems();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
+    this.addTents();
     this.addRoadPaint();
     this.addStencils();
     this.addBoats();
@@ -497,6 +512,77 @@ export class StanleyParkStreet implements SceneStreet {
       banner.add(c);
       this.group.add(banner);
       this.props.push({ mesh: banner, offset: 110 + i * 250, every: LOOP, x: 0 });
+    });
+  }
+
+  /**
+   * Pop-up tents of the ride's village: a 3 m square canopy peaked over four white legs, a
+   * printed valance on every side, and a trestle table under it laid with water bottles.
+   */
+  private addTents(): void {
+    const leg = new CylinderGeometry(0.03, 0.03, 2.3, 6);
+    leg.translate(0, 1.15, 0);
+    const roof = new ConeGeometry(2.12, 0.8, 4, 1, true);
+    roof.rotateY(Math.PI / 4);
+    const valance = new PlaneGeometry(3, 0.5);
+    const top = new BoxGeometry(1.9, 0.05, 0.7);
+    const bottle = new CylinderGeometry(0.035, 0.035, 0.22, 8);
+    this.disposables.push(leg, roof, valance, top, bottle);
+    const white = this.material({ color: 0xf2f2ee, metalness: 0.4, roughness: 0.4 });
+    const blue = this.material({
+      color: 0x4fa3d8,
+      roughness: 0.2,
+      transparent: true,
+      opacity: 0.85,
+    });
+    TENTS.forEach(([text, fill, ink, offset, x], i) => {
+      const tent = new Group();
+      for (const [lx, lz] of [
+        [-1.45, -1.45],
+        [1.45, -1.45],
+        [-1.45, 1.45],
+        [1.45, 1.45],
+      ] as const) {
+        const l = new Mesh(leg, white);
+        l.position.set(lx, 0, lz);
+        tent.add(l);
+      }
+      const canopy = new Mesh(
+        roof,
+        this.material({ color: fill, side: DoubleSide, roughness: 0.7 }),
+      );
+      canopy.position.y = 2.3 + 0.4;
+      canopy.castShadow = true;
+      tent.add(canopy);
+      const print = this.material({
+        map: this.track(clothBannerTexture(text, fill, ink)),
+        side: DoubleSide,
+        roughness: 0.7,
+      });
+      for (let k = 0; k < 4; k++) {
+        const v = new Mesh(valance, print);
+        const a = (k * Math.PI) / 2;
+        v.position.set(Math.sin(a) * 1.5, 2.05, Math.cos(a) * 1.5);
+        v.rotation.y = a;
+        tent.add(v);
+      }
+      const table = new Mesh(top, white);
+      table.position.y = 0.75;
+      tent.add(table);
+      for (const tx of [-0.75, -0.5, 0.75]) {
+        const tableLeg = new Mesh(leg, white);
+        tableLeg.scale.y = 0.32;
+        tableLeg.position.set(tx < 0 ? -0.85 : 0.85, 0, tx === -0.5 ? 0.3 : -0.3);
+        tent.add(tableLeg);
+      }
+      for (let b = 0; b < 8; b++) {
+        const m = new Mesh(bottle, blue);
+        m.position.set(-0.8 + b * 0.22, 0.88, (b % 2) * 0.14 - 0.07);
+        tent.add(m);
+      }
+      tent.rotation.y = (i % 3) * 0.12 - 0.12;
+      this.group.add(tent);
+      this.props.push({ mesh: tent, offset, every: LOOP, x });
     });
   }
 
@@ -811,6 +897,7 @@ export class StanleyParkStreet implements SceneStreet {
       cap.position.set(x, height - 40 - height * 0.11 + 1, m.position.z + 2);
       h.add(cap);
     }
+    this.addNorthShore(haze);
     // Freighters at anchor in English Bay.
     const hullRed = hazedMaterial(this.disposables, haze, 0x8a2a22, 0.3);
     const hullBlack = hazedMaterial(this.disposables, haze, 0x2a2a2e, 0.3);
@@ -829,6 +916,92 @@ export class StanleyParkStreet implements SceneStreet {
       h.add(ship, bridge);
     }
     this.group.add(h);
+  }
+
+  /**
+   * The North Shore across the narrows, under the mountains: North Vancouver's waterfront behind
+   * the bridge, its apartment towers white and cream with bands of balconies, the
+   * shore wooded between them, and forested foothills rising in folds behind. Each layer is hazed
+   * a little more than the one in front, so the shore reads in depth.
+   */
+  private addNorthShore(haze: Color): void {
+    const h = this.horizon;
+    const random = seeded(709);
+    const hill = new SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+    this.disposables.push(hill);
+    // The shore itself: a low wooded strip along the water, with the land running back under it.
+    const land = hazedMaterial(this.disposables, haze, 0x2f4a36, 0.2);
+    const slab = new Mesh(this.unit, land);
+    slab.scale.set(4200, 4, 900);
+    slab.position.set(-300, 2 - SEA, -1400);
+    h.add(slab);
+    const shoreGreens = [0x2c4a32, 0x35573a, 0x2a4230].map((c) =>
+      hazedMaterial(this.disposables, haze, c, 0.2),
+    );
+    for (let x = -2400; x < 1400; x += 40 + random() * 50) {
+      const m = new Mesh(hill, shoreGreens[Math.floor(random() * 3)]!);
+      m.scale.set(50 + random() * 70, 14 + random() * 18, 30 + random() * 30);
+      m.position.set(x, -SEA, this.shoreZ(x) - 30 - random() * 60);
+      h.add(m);
+    }
+    // Foothills in folds behind the shore, darker and nearer than the snowy range.
+    const hillGreens = [0x2a5234, 0x30603c, 0x24482f, 0x3a6844].map((c, i) =>
+      hazedMaterial(this.disposables, haze, c, 0.12 + (i % 2) * 0.06),
+    );
+    for (let k = 0; k < 16; k++) {
+      const x = -3300 + k * 280 + random() * 160;
+      const m = new Mesh(hill, hillGreens[k % hillGreens.length]!);
+      m.scale.set(380 + random() * 420, 100 + random() * 120, 260 + random() * 120);
+      m.position.set(x, -SEA, this.shoreZ(x) - 420 - random() * 420);
+      h.add(m);
+    }
+    // West Vancouver's towers along the waterfront, and smaller blocks between them.
+    const bands = this.track(
+      canvasTexture(64, 64, (g) => {
+        g.fillStyle = '#ffffff';
+        g.fillRect(0, 0, 64, 64);
+        // A storey: a band of glass behind a balcony rail, the floor slab white above it.
+        g.fillStyle = '#5c6e78';
+        g.fillRect(0, 14, 64, 30);
+        g.fillStyle = '#8fa6b2';
+        g.fillRect(0, 14, 64, 8);
+        g.fillStyle = '#e8ecee';
+        g.fillRect(0, 38, 64, 6);
+        g.fillStyle = 'rgba(255,255,255,0.7)';
+        for (let x = 0; x < 64; x += 16) g.fillRect(x, 14, 3, 24);
+      }),
+    );
+    bands.wrapS = RepeatWrapping;
+    bands.wrapT = RepeatWrapping;
+    const facades = [0xf4f2ec, 0xe9dfca, 0xd6dade, 0xdcc8a6, 0xbfd2d6].map((c) =>
+      hazedMaterial(this.disposables, haze, c, 0.16, { map: bands }),
+    );
+    const roofs = hazedMaterial(this.disposables, haze, 0x6a6e72, 0.18);
+    for (let x = -1300; x < 900; x += 22 + random() * 45) {
+      const tower = random() < 0.55;
+      const w = tower ? 18 + random() * 12 : 14 + random() * 18;
+      const d = tower ? 16 + random() * 8 : 12 + random() * 10;
+      const height = tower ? 60 + random() * 50 : 12 + random() * 16;
+      const box = new BoxGeometry(w, height, d);
+      for (const face of [0, 1]) scaleFaceUv(box, face, d / 6, height / 3);
+      for (const face of [4, 5]) scaleFaceUv(box, face, w / 6, height / 3);
+      for (const face of [2, 3]) scaleFaceUv(box, face, 0, 0);
+      this.disposables.push(box);
+      const z = this.shoreZ(x) - 30 - random() * (tower ? 40 : 110);
+      const block = new Mesh(box, facades[Math.floor(random() * facades.length)]!);
+      block.position.set(x, height / 2 - SEA + 2, z);
+      block.rotation.y = (random() - 0.5) * 0.3;
+      h.add(block);
+      const roof = new Mesh(this.unit, roofs);
+      roof.scale.set(w * 0.5, 3, d * 0.5);
+      roof.position.set(x, height - SEA + 3.5, z);
+      h.add(roof);
+    }
+  }
+
+  /** Where the North Shore meets the water, in the horizon's frame: further off to the west. */
+  private shoreZ(x: number): number {
+    return -640 - Math.abs(x + 200) * 0.12;
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
