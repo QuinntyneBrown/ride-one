@@ -144,7 +144,8 @@ export interface components {
         | 'skye'
         | 'toronto'
         | 'prospect'
-        | 'calobra';
+        | 'calobra'
+        | 'strade';
     };
     ClassShelfResponse: {
       id: string;
