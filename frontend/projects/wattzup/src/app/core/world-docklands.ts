@@ -218,6 +218,10 @@ const BOLLARD_HEIGHT = 0.95;
 const BOLLARD_EVERY = 8;
 /** Night-market stalls on the quay promenade, at these offsets round the loop. */
 const STALLS: readonly number[] = [26, 33, 40, 140, 147, 290, 297, 304, 460, 467, 580];
+/** Cooking steam over each stall: puffs, how long each takes to rise (s) and how high (m). */
+const STALL_PUFFS = 4;
+const STALL_STEAM_LIFE = 3.2;
+const STALL_STEAM_HEIGHT = 2.4;
 const STALL_X = -10;
 const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
 /** People on the pavement across the street, scattered round the loop. */
@@ -382,6 +386,8 @@ export class DocklandsStreet {
   private readonly train = new Group();
   private readonly lanterns: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
+  /** Cooking steam over the stalls: each puff and where it is in its rise. */
+  private readonly stallSteam: { mesh: Mesh; phase: number; drift: number }[] = [];
   /** Pairs of lit bollards along the kerbs, every BOLLARD_EVERY metres round the loop. */
   private readonly bollards: { group: Group; offset: number }[] = [];
   /** Street trees in lit planters along the far pavement, round the loop. */
@@ -2393,7 +2399,20 @@ export class DocklandsStreet {
       (hex) =>
         new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(1.5), toneMapped: false }),
     );
-    this.disposables.push(body, hatch, unit, ...awnings, ...strips);
+    // One shared steam material, added to what lies behind so the hatch-lit steam glows; each
+    // puff swells in and shrinks away rather than fading.
+    this.glow ??= this.track(glowTexture());
+    const steam = new MeshBasicMaterial({
+      color: new Color('#ffa860').multiplyScalar(1.8),
+      map: this.glow,
+      toneMapped: false,
+      transparent: true,
+      opacity: 0.75,
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    const puff = new PlaneGeometry(1, 1);
+    this.disposables.push(body, hatch, unit, ...awnings, ...strips, steam, puff);
     const box = (
       material: Material,
       w: number,
@@ -2424,6 +2443,17 @@ export class DocklandsStreet {
       awning.position.set(x + 1.85, KERB + 2.35, 0);
       group.add(awning);
       this.streak(group, '#ffcf8a', x + 3, KERB, 0, 4, 3.5, 0.8);
+      // Steam from the cooking rises off the booth's roof, lit warm by the hatch below.
+      for (let k = 0; k < STALL_PUFFS; k++) {
+        const mesh = new Mesh(puff, steam);
+        mesh.position.set(x + 0.4, 0, (k % 2 === 0 ? -0.5 : 0.6) + (i % 3) * 0.2);
+        group.add(mesh);
+        this.stallSteam.push({
+          mesh,
+          phase: (k + i * 0.37) / STALL_PUFFS,
+          drift: k % 2 === 0 ? 1 : -1,
+        });
+      }
       this.group.add(group);
       this.stalls.push({ group, offset });
     });
@@ -2721,6 +2751,14 @@ export class DocklandsStreet {
 
   /** Lets the steam rise for `seconds`: each puff climbs STEAM_HEIGHT, swelling as it thins. */
   private steam(seconds: number): void {
+    for (const { mesh, phase, drift } of this.stallSteam) {
+      const life = (phase + seconds / STALL_STEAM_LIFE) % 1;
+      // Rising and swelling, drifting a little towards the road; gone as it reaches the top.
+      mesh.position.y = KERB + 2.2 + life * STALL_STEAM_HEIGHT;
+      mesh.position.x = STALL_X + 0.4 + life * 0.9;
+      const size = (2 + life * 3.6) * Math.sin(Math.PI * (0.15 + life * 0.85)) + 0.01;
+      mesh.scale.set(size * (1 + drift * 0.1), size, 1);
+    }
     for (const vent of this.vents) {
       for (const { mesh, phase } of vent.puffs) {
         const life = (phase + seconds / STEAM_LIFE) % 1;
