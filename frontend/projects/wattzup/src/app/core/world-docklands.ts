@@ -167,6 +167,17 @@ const LIGHTHOUSE_BEAM_WIDE = 12;
 const LIGHTHOUSE_TURN = 12;
 const LIGHTHOUSE_FACING = Math.PI / 5;
 /**
+ * The blimp: where it hangs (x, y, z in m), its length and girth (m), how far it drifts either
+ * way (m) and how long one drift there and back takes (s).
+ */
+const BLIMP_AT = [-221, 243, -600] as const;
+const BLIMP_LONG = 70;
+const BLIMP_ROUND = 18;
+/** How much larger than life the blimp hangs, so its screen reads from the road. */
+const BLIMP_SCALE = 1.4;
+const BLIMP_DRIFT = 40;
+const BLIMP_PERIOD = 240;
+/**
  * Lightning over the far shore: where each bolt strikes (x, z in m), the top and foot of its
  * trunk (m), its width (m), how often one strikes (s) and how much it lights the sky.
  */
@@ -515,7 +526,9 @@ export class DocklandsStreet {
     this.ride(still ? 0 : seconds);
     this.burst(seconds, still);
     this.strike(seconds, still);
-    this.sweep(seconds, still);
+    const smooth = this.smooth(seconds, still);
+    this.sweep(smooth);
+    this.drift(smooth, still);
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -560,10 +573,13 @@ export class DocklandsStreet {
   private readonly sparkDummy = new Object3D();
   /** The night sky's material, lit up by the lightning. */
   private skyMaterial: MeshBasicMaterial | null = null;
-  /** The lighthouse's turning beams, and the ride's last whole second and when it came. */
+  /** The lighthouse's turning beams. */
   private lighthouseBeams: Group | null = null;
-  private sweepTick = 0;
-  private sweepAt = 0;
+  /** The ride's last whole second and when it came, to run smooth motion on through it. */
+  private tick = 0;
+  private tickAt = 0;
+  /** The blimp, drifting over the harbour, and its blinking navigation lights. */
+  private blimp: { body: Group; lights: MeshBasicMaterial[] } | null = null;
   /** The lightning's bolts, one striking at a time. */
   private readonly bolts: Mesh[] = [];
   /** The giant neon cyclist's pedalling parts: cranks, and each leg's thigh and shin. */
@@ -1474,6 +1490,7 @@ export class DocklandsStreet {
     this.addWhale();
     this.addHarbourBridge();
     this.addLighthouse();
+    this.addBlimp();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
   }
@@ -1565,18 +1582,107 @@ export class DocklandsStreet {
   }
 
   /**
-   * Turns the lighthouse's beams. The ride's clock counts whole seconds, so the turn runs on
-   * through each second from when it last ticked, and stops a second after the clock does.
+   * The ride's clock run smoothly: it counts whole seconds, so this runs on through each second
+   * from when it last ticked, and stops a second after the clock does. 0 when still.
    */
-  private sweep(seconds: number, still: boolean): void {
-    if (!this.lighthouseBeams) return;
+  private smooth(seconds: number, still: boolean): number {
     const now = performance.now();
-    if (seconds !== this.sweepTick) {
-      this.sweepTick = seconds;
-      this.sweepAt = now;
+    if (seconds !== this.tick) {
+      this.tick = seconds;
+      this.tickAt = now;
     }
-    const smooth = still ? 0 : seconds + Math.min((now - this.sweepAt) / 1000, 1);
+    return still ? 0 : seconds + Math.min((now - this.tickAt) / 1000, 1);
+  }
+
+  /** Turns the lighthouse's beams. */
+  private sweep(smooth: number): void {
+    if (!this.lighthouseBeams) return;
     this.lighthouseBeams.rotation.y = LIGHTHOUSE_FACING + (smooth / LIGHTHOUSE_TURN) * Math.PI * 2;
+  }
+
+  /**
+   * An advertising blimp over the harbour: a long grey-violet hull, tail fins, a lit gondola,
+   * a glowing screen along the side facing the road, and red and green lights at its ends.
+   */
+  private addBlimp(): void {
+    const [x, y, z] = BLIMP_AT;
+    const body = new Group();
+    body.position.set(x, y, z);
+    body.scale.setScalar(BLIMP_SCALE);
+    const hullMaterial = new MeshStandardMaterial({
+      color: new Color('#4a4466'),
+      emissive: new Color('#3a3358'),
+      emissiveIntensity: 0.9,
+      roughness: 0.5,
+      fog: false,
+    });
+    const darkMaterial = new MeshBasicMaterial({ color: new Color('#14121e'), fog: false });
+    const gondolaMaterial = new MeshBasicMaterial({
+      color: new Color('#ffd9a0').multiplyScalar(1.4),
+      fog: false,
+      toneMapped: false,
+    });
+    const screenMaterial = new MeshBasicMaterial({
+      map: this.track(blimpTexture()),
+      color: new Color(0xffffff).multiplyScalar(1.5),
+      fog: false,
+      toneMapped: false,
+    });
+    const hull = new SphereGeometry(1, 32, 16);
+    const fin = new BoxGeometry(1, 1, 1);
+    const screen = new PlaneGeometry(BLIMP_LONG * 0.56, BLIMP_ROUND * 0.62);
+    this.disposables.push(hullMaterial, darkMaterial, gondolaMaterial, screenMaterial);
+    this.disposables.push(hull, fin, screen);
+    const shell = new Mesh(hull, hullMaterial);
+    shell.scale.set(BLIMP_LONG / 2, BLIMP_ROUND / 2, BLIMP_ROUND / 2);
+    body.add(shell);
+    // The screen stands just off the hull's side, towards the road and the rider.
+    const side = new Mesh(screen, screenMaterial);
+    side.position.set(0, 0, BLIMP_ROUND / 2 + 0.3);
+    body.add(side);
+    // A vertical fin and two flat ones at the tail (+x), and the gondola underneath.
+    for (const [sx, sy, sz, py, pz] of [
+      [8, 9, 0.8, 5, 0],
+      [8, 0.8, 18, 0, 0],
+    ] as const) {
+      const vane = new Mesh(fin, darkMaterial);
+      vane.scale.set(sx, sy, sz);
+      vane.position.set(BLIMP_LONG / 2 - 6, py, pz);
+      body.add(vane);
+    }
+    const gondola = new Mesh(fin, gondolaMaterial);
+    gondola.scale.set(9, 2.4, 3.4);
+    gondola.position.set(-3, -BLIMP_ROUND / 2 - 0.8, 0);
+    body.add(gondola);
+    const lights: MeshBasicMaterial[] = [];
+    for (const [hex, at] of [
+      ['#ff3344', -BLIMP_LONG / 2 - 0.8],
+      ['#33ff77', BLIMP_LONG / 2 + 0.8],
+    ] as const) {
+      const light = new MeshBasicMaterial({
+        color: new Color(hex).multiplyScalar(3),
+        fog: false,
+        toneMapped: false,
+      });
+      this.disposables.push(light);
+      const bulb = new Mesh(hull, light);
+      bulb.scale.setScalar(1.3);
+      bulb.position.set(at, 0, 0);
+      body.add(bulb);
+      lights.push(light);
+    }
+    this.farShore.add(body);
+    this.blimp = { body, lights };
+  }
+
+  /** Drifts the blimp slowly to and fro along the harbour, and blinks its lights. */
+  private drift(smooth: number, still: boolean): void {
+    if (!this.blimp) return;
+    const { body, lights } = this.blimp;
+    const t = (smooth / BLIMP_PERIOD) * Math.PI * 2;
+    body.position.x = BLIMP_AT[0] + Math.sin(t) * BLIMP_DRIFT;
+    const lit = still || smooth % 1.5 < 0.4;
+    for (const light of lights) light.visible = lit;
   }
 
   /**
@@ -4254,6 +4360,38 @@ function beamTexture(): CanvasTexture {
     ctx.fillRect(0, 0, 4, 128);
   }
   return new CanvasTexture(canvas);
+}
+
+/** The blimp's side screen: an advert in bright type on a gradient, framed in light. */
+function blimpTexture(): CanvasTexture {
+  const w = 512;
+  const h = 96;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, w, 0);
+    g.addColorStop(0, '#2a0b4a');
+    g.addColorStop(0.5, '#7a1f8f');
+    g.addColorStop(1, '#2a0b4a');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#5ff2ff';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(3, 3, w - 6, h - 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ff4fd8';
+    ctx.shadowBlur = 14;
+    ctx.font = 'bold 52px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('HARBOUR NIGHTS', w / 2, h / 2 + 2, w - 40);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
 }
 
 /** A lighthouse tower's bands: red and white, two of each up its height. */
