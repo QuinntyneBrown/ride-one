@@ -90,6 +90,7 @@ export interface components {
         | 'caribana'
         | 'westminster'
         | 'centralpark'
+        | 'southbeach'
         | 'ghent';
     };
     ClassShelfResponse: {

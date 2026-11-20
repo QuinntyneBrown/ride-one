@@ -87,6 +87,7 @@
     },
     {
       "id": "calorie-burning-workout",
+      "world": "southbeach",
       "title": "Calorie Burning Workout",
       "channel": "GCN Training",
       "focus": "HIIT",

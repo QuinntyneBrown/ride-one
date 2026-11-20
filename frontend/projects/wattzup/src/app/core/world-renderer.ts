@@ -166,6 +166,21 @@ const LOOKS: Record<WorldId, Look> = {
     wet: false,
     haze: false,
   },
+  // Sunrise over the Atlantic: the sun low ahead on the right, a warm peach haze down the drive.
+  southbeach: {
+    sky: 0xf6b88a,
+    fog: 0xf3c9a6,
+    ground: 0xe6d3ad,
+    road: 0x5d5e66,
+    sun: 6,
+    wet: false,
+    haze: false,
+    turbidity: 6,
+    rayleigh: 2.8,
+    azimuth: 38,
+    light: { sun: 3.2, fill: 1.15, colour: 0xffc796 },
+    fogRange: [70, 900],
+  },
   // A clear midsummer afternoon over Lake Ontario, the sun behind the rider's left shoulder.
   // Dusk over the Thames: the sun low behind the rider, the sky rose and violet, the road wet.
   westminster: {
