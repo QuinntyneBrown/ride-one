@@ -152,6 +152,8 @@ interface Masquerader {
   readonly phase: number;
   /** Which way the dancer holds their arms: both up, one up and one on the hip, or spread wide. */
   readonly pose: number;
+  /** Frontline masqueraders carry a full backpiece; the rest of the section a collar of plumes. */
+  readonly frontline: boolean;
   readonly skin: string;
 }
 
@@ -192,6 +194,7 @@ export class CaribanaStreet implements SceneStreet {
   private medallions: InstancedMesh | null = null;
   private fringes: InstancedMesh | null = null;
   private readonly legPlumes: InstancedMesh[] = [];
+  private readonly collars: InstancedMesh[] = [];
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
   private readonly downtown = new Group();
@@ -329,6 +332,8 @@ export class CaribanaStreet implements SceneStreet {
     const costumes = this.costumes;
     if (!costumes) return;
     const count = this.backpieces.map(() => 0);
+    const backed = this.backpieces.map(() => 0);
+    const collared = this.backpieces.map(() => 0);
     const posed = this.bodies.map(() => 0);
     this.dancers.forEach((d, i) => {
       const metres = along(d.offset, LOOP);
@@ -351,9 +356,13 @@ export class CaribanaStreet implements SceneStreet {
       const k = d.costume;
       this.legPlumes[k]!.setMatrixAt(count[k]!, this.matrix);
       this.spot.set(x, y + 1.3 + bounce, -metres);
+      if (!d.frontline) this.size.setScalar(0);
       this.matrix.compose(this.spot, this.turn, this.size);
-      this.backpieces[k]!.setMatrixAt(count[k]!, this.matrix);
       this.medallions?.setMatrixAt(i, this.matrix);
+      this.size.setScalar(1);
+      this.matrix.compose(this.spot, this.turn, this.size);
+      if (d.frontline) this.backpieces[k]!.setMatrixAt(backed[k]!++, this.matrix);
+      else this.collars[k]!.setMatrixAt(collared[k]!++, this.matrix);
       this.spot.set(x, y + 1.7 + bounce, -metres);
       this.headdresses[k]!.setMatrixAt(
         count[k]!,
@@ -369,8 +378,10 @@ export class CaribanaStreet implements SceneStreet {
       mesh.instanceMatrix.needsUpdate = true;
     });
     this.backpieces.forEach((mesh, k) => {
-      mesh.count = count[k]!;
+      mesh.count = backed[k]!;
       mesh.instanceMatrix.needsUpdate = true;
+      this.collars[k]!.count = collared[k]!;
+      this.collars[k]!.instanceMatrix.needsUpdate = true;
       this.headdresses[k]!.count = count[k]!;
       this.headdresses[k]!.instanceMatrix.needsUpdate = true;
       this.legPlumes[k]!.count = count[k]!;
@@ -693,6 +704,7 @@ export class CaribanaStreet implements SceneStreet {
           phase: random() * 6.3,
           pose: 0,
           skin: '',
+          frontline: false,
         });
       }
     }
@@ -700,7 +712,7 @@ export class CaribanaStreet implements SceneStreet {
     this.dancers.forEach((d, i) => {
       const pose = Math.floor(posing() * POSES.length);
       const skin = SKINS[Math.floor(posing() * SKINS.length)]!;
-      this.dancers[i] = { ...d, pose, skin };
+      this.dancers[i] = { ...d, pose, skin, frontline: posing() < 0.34 };
     });
     const n = this.dancers.length;
     const skin = this.material({ roughness: 0.55 });
@@ -744,6 +756,14 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(back, crown);
       this.backpieces.push(this.instanced(back, plumes, n));
       this.headdresses.push(this.instanced(crown, plumes, n));
+      // The backline's collar: a short fan of plumes standing up off the shoulders.
+      const collar = mergeGeometries([
+        featherFan(mid!, 13, 0.62, 0.16, Math.PI * 0.95, 0.35),
+        featherFan(inner!, 9, 0.4, 0.15, Math.PI * 0.85, 0.25),
+      ])!;
+      collar.translate(0, 0.05, -0.02);
+      this.disposables.push(collar);
+      this.collars.push(this.instanced(collar, plumes, n));
       const legs = legPlumeGeometry(inner!, mid!);
       this.disposables.push(legs);
       this.legPlumes.push(this.instanced(legs, plumes, n));
