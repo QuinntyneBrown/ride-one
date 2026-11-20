@@ -404,6 +404,7 @@ export class AmsterdamStreet implements SceneStreet {
     const roof = this.material({ map: this.repeat(roofTexture(), 0.25, 0.25), roughness: 0.85 });
     this.disposables.push(steps, railings, gableRoof, hip);
     const decor = this.decor();
+    let wisteriaShown = false;
     const rows = [
       { x: roadHalf + PAVEMENT, turn: Math.PI / 2 },
       { x: -roadHalf - QUAY - CANAL - FAR_QUAY, turn: -Math.PI / 2 },
@@ -539,7 +540,13 @@ export class AmsterdamStreet implements SceneStreet {
         stoop.scale.z = random() < 0.5 ? 1 : -1;
         stoop.children.forEach((m) => (m.castShadow = true));
         house.add(stoop);
-        if (turn > 0) this.dress(house, GABLES[k]!, width, height, along / width, random, decor);
+        if (turn > 0) {
+          // One house just up the street from the start always has its wisteria, so the opening
+          // view shows one.
+          const featured = !wisteriaShown && offset > START + BEHIND + 22;
+          if (featured) wisteriaShown = true;
+          this.dress(house, GABLES[k]!, width, height, along / width, random, decor, featured);
+        }
         if (random() < 0.16) {
           // A flag on a pole angled out from the first floor: Amsterdam's red-black-red with its
           // three St Andrew's crosses, or now and then the Dutch tricolour.
@@ -649,7 +656,12 @@ export class AmsterdamStreet implements SceneStreet {
   private decor() {
     const gardens = [0, 1, 2].map((k) => gardenGeometry(521 + k * 5));
     const geraniums = geraniumGeometry();
-    this.disposables.push(...gardens.flatMap((g) => [g.leaves, g.flowers]), geraniums);
+    const wisterias = [0, 1].map((k) => wisteriaGeometry(709 + k * 6));
+    this.disposables.push(
+      ...gardens.flatMap((g) => [g.leaves, g.flowers]),
+      geraniums,
+      ...wisterias.flatMap((w) => [w.stems, w.leaves, w.flowers]),
+    );
     return {
       gardens,
       geraniums,
@@ -659,6 +671,9 @@ export class AmsterdamStreet implements SceneStreet {
         this.material({ color: hex, roughness: 0.8 }),
       ),
       geranium: this.material({ color: 0xd8282e, roughness: 0.8 }),
+      wisterias,
+      bark: this.material({ color: 0x4a3e34, roughness: 1 }),
+      lilac: this.material({ color: 0xa88ad8, roughness: 0.8 }),
     };
   }
 
@@ -675,6 +690,7 @@ export class AmsterdamStreet implements SceneStreet {
     door: number,
     random: () => number,
     decor: ReturnType<AmsterdamStreet['decor']>,
+    featured = false,
   ): void {
     if (random() < 0.5) {
       const bloom = decor.blooms[Math.floor(random() * decor.blooms.length)]!;
@@ -699,6 +715,21 @@ export class AmsterdamStreet implements SceneStreet {
         flowers.position.set(-0.12, v * height, -u * width);
         house.add(box, flowers);
       }
+    }
+    if (random() < 0.16 || featured) {
+      // A wisteria trained up the front from a corner, its cascades of lilac in flower.
+      const vine = decor.wisterias[Math.floor(random() * decor.wisterias.length)]!;
+      const plant = new Group();
+      plant.add(
+        new Mesh(vine.stems, decor.bark),
+        new Mesh(vine.leaves, decor.leaves),
+        new Mesh(vine.flowers, decor.lilac),
+      );
+      plant.scale.set(1, Math.min(1, (height * 0.55) / 9), Math.min(1.4, width / 6));
+      plant.position.set(-0.08, KERB, door > 0.5 ? -0.3 : -width + 0.3);
+      if (door > 0.5) plant.scale.z *= -1;
+      plant.children.forEach((m) => (m.castShadow = true));
+      house.add(plant);
     }
   }
 
@@ -2955,6 +2986,54 @@ function gardenGeometry(seed: number): { leaves: BufferGeometry; flowers: Buffer
     return merged;
   };
   return { leaves: merge(leaves), flowers: merge(flowers) };
+}
+
+/**
+ * A wisteria trained up a front at x 0 facing -x, from its foot at z 0 along -z: a twisting
+ * trunk rising 3 m, then trained branches running along the front under the windows, with
+ * leaves and hanging lilac racemes along them; 9 m tall and 6 m wide at full size.
+ */
+function wisteriaGeometry(seed: number): {
+  stems: BufferGeometry;
+  leaves: BufferGeometry;
+  flowers: BufferGeometry;
+} {
+  const random = seeded(seed);
+  const stems: BufferGeometry[] = [];
+  const leaves: BufferGeometry[] = [];
+  const flowers: BufferGeometry[] = [];
+  let at = new Vector3(-0.1, 0, 0);
+  for (let y = 0.6; y <= 3; y += 0.6) {
+    const next = new Vector3(-0.1, y, -(random() - 0.3) * 0.3);
+    stems.push(limb(at, next, 0.07));
+    at = next;
+  }
+  for (const level of [3, 5.6, 8.2]) {
+    let from = new Vector3(-0.08, level, at.z);
+    stems.push(limb(at, from, 0.05));
+    for (let z = -0.6; z > -6; z -= 0.6) {
+      const to = new Vector3(-0.08, level + (random() - 0.5) * 0.3, z);
+      stems.push(limb(from, to, 0.035));
+      from = to;
+      for (let k = 0; k < 2; k++) {
+        const leaf = new IcosahedronGeometry(0.22 + random() * 0.12, 0);
+        leaf.translate(-0.2, level + random() * 0.4, z + (random() - 0.5) * 0.5);
+        leaves.push(leaf);
+      }
+      for (let k = 0; k < 3; k++) {
+        const raceme = new ConeGeometry(0.08, 0.35 + random() * 0.25, 5);
+        raceme.rotateX(Math.PI);
+        raceme.translate(-0.25, level - 0.2 - random() * 0.2, z + (random() - 0.5) * 0.5);
+        flowers.push(raceme);
+      }
+    }
+  }
+  const merge = (parts: BufferGeometry[]) => {
+    const merged = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)))!;
+    parts.forEach((p) => p.dispose());
+    return merged;
+  };
+  return { stems: merge(stems), leaves: merge(leaves), flowers: merge(flowers) };
 }
 
 /** Geraniums along a window box 1 m long (scaled to the box), on z. */
