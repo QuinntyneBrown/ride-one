@@ -413,6 +413,29 @@ export class HavanaStreet implements SceneStreet {
       [r + 0.05, KERB],
       [r, 0.004],
     ]);
+    // Where the breakers come over, the promenade and the outer lane lie wet: dark, glossy
+    // patches and puddles that catch the sky.
+    const wet = this.track(wetTexture());
+    wet.wrapS = RepeatWrapping;
+    wet.wrapT = RepeatWrapping;
+    wet.repeat.set(1 / 9, 1 / 30);
+    const damp = this.material({
+      map: wet,
+      transparent: true,
+      depthWrite: false,
+      roughness: 0.08,
+      metalness: 0.2,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+    });
+    this.ribbons.add(points, damp, [
+      [lanes - 0.4, KERB + 0.004],
+      [promenade + 0.02, KERB + 0.004],
+    ]).renderOrder = 2;
+    this.ribbons.add(points, damp, [
+      [lanes + 3.4, 0.012],
+      [lanes + 0.05, 0.012],
+    ]).renderOrder = 2;
   }
 
   /**
@@ -2604,4 +2627,24 @@ class Walkers {
   commit(): void {
     for (const mesh of [...this.parts, this.hats]) mesh.instanceMatrix.needsUpdate = true;
   }
+}
+
+/**
+ * Spray-wet ground: dark, ragged patches and puddles on a clear ground, thickest toward the wall
+ * (the canvas's right) and thinning toward the road.
+ */
+function wetTexture(): CanvasTexture {
+  return canvasTexture(256, 512, (g) => {
+    g.clearRect(0, 0, 256, 512);
+    const random = seeded(1237);
+    for (let i = 0; i < 28; i++) {
+      const x = 256 - random() ** 1.8 * 256;
+      const y = random() * 512;
+      const a = 0.35 + random() * 0.3 * (x / 256);
+      g.fillStyle = `rgba(28,32,36,${a})`;
+      g.beginPath();
+      g.ellipse(x, y, 8 + random() * 30, 14 + random() * 60, random() * 0.4, 0, Math.PI * 2);
+      g.fill();
+    }
+  });
 }
