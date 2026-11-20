@@ -151,7 +151,8 @@ export interface components {
         | 'dubai'
         | 'austin'
         | 'winnats'
-        | 'redoute';
+        | 'redoute'
+        | 'angliru';
     };
     ClassShelfResponse: {
       id: string;
