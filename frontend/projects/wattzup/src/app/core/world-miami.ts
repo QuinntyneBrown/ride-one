@@ -130,6 +130,7 @@ export class MiamiStreet implements SceneStreet {
   private plane: Group | null = null;
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
+  private readonly flames: Mesh[] = [];
   private sparks: InstancedMesh | null = null;
   private readonly sparkDirs: Vector3[] = [];
   private heli: { craft: Group; rotor: Mesh; lights: Mesh[] } | null = null;
@@ -190,6 +191,7 @@ export class MiamiStreet implements SceneStreet {
     this.addCarts(roadHalf);
     this.addTaxis(roadHalf);
     this.addRoadPaint();
+    this.addTikiBars(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -280,6 +282,11 @@ export class MiamiStreet implements SceneStreet {
       sparks.instanceMatrix.needsUpdate = true;
       if (sparks.instanceColor) sparks.instanceColor.needsUpdate = true;
     }
+    // The tiki torches' flames flicker, each on its own.
+    this.flames.forEach((f, k) => {
+      const flick = 0.8 + 0.3 * Math.sin(seconds * 13 + k * 1.7) * Math.sin(seconds * 7.3 + k);
+      f.scale.set(1, flick, 1);
+    });
     // The cabs' hazard lights blink.
     const blinking = seconds % 0.9 < 0.45;
     this.hazards.forEach((h) => (h.visible = blinking));
@@ -2229,6 +2236,80 @@ export class MiamiStreet implements SceneStreet {
     }
   }
 
+  /**
+   * Beach bars on the sand: a thatched hut on poles over a lit bar, a ring of tiki torches
+   * whose flames flicker, and a few drinkers at the counter.
+   */
+  private addTikiBars(roadHalf: number): void {
+    const thatch = this.material({ map: this.track(thatchTexture()), roughness: 1 });
+    const bamboo = this.material({ color: 0x8a6a3a, roughness: 0.8 });
+    const bar = this.material({
+      color: 0x6a4a2a,
+      roughness: 0.7,
+      emissive: 0x402010,
+      emissiveIntensity: 0.6,
+    });
+    const flameMaterial = this.material({
+      color: 0xffa030,
+      emissive: 0xff7a10,
+      emissiveIntensity: 4,
+    });
+    const roof = new ConeGeometry(4.2, 2.2, 10);
+    const flameGeometry = new ConeGeometry(0.12, 0.45, 6);
+    this.disposables.push(roof, flameGeometry);
+    for (const offset of [64, 268]) {
+      const hut = new Group();
+      const b = new BoxBuilder();
+      for (const [x, z] of [
+        [-2.2, -2.2],
+        [2.2, -2.2],
+        [-2.2, 2.2],
+        [2.2, 2.2],
+      ] as const)
+        b.box(bamboo, [0.18, 3, 0.18], [x, 1.5, z]);
+      b.box(bar, [1, 1.1, 4], [1.8, 0.55, 0]);
+      b.box(bar, [1.3, 0.1, 4.2], [1.8, 1.15, 0]);
+      hut.add(b.build(this.disposables));
+      const top = new Mesh(roof, thatch);
+      top.position.y = 4;
+      top.castShadow = true;
+      hut.add(top);
+      const glow = new Mesh(this.flat, this.halo);
+      glow.scale.set(6, 3, 1);
+      glow.position.set(2, 2, 0);
+      hut.add(glow);
+      for (let t = 0; t < 6; t++) {
+        const a = (t / 6) * Math.PI * 2;
+        const x = Math.cos(a) * 6;
+        const z = Math.sin(a) * 6;
+        const pole = new Mesh(this.unit, bamboo);
+        pole.scale.set(0.08, 2.6, 0.08);
+        pole.position.set(x, 1.3, z);
+        const flame = new Mesh(flameGeometry, flameMaterial);
+        flame.position.set(x, 2.85, z);
+        const halo = new Mesh(this.flat, this.halo);
+        halo.scale.set(1.6, 1.6, 1);
+        halo.position.set(x, 2.85, z);
+        hut.add(pole, flame, halo);
+        this.flames.push(flame);
+      }
+      hut.position.y = -0.95;
+      const holder = new Group();
+      holder.add(hut);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: -roadHalf - 15 });
+      for (let i = 0; i < 3; i++)
+        this.standers.push({
+          offset: offset - 1.2 + i * 1.2,
+          x: -roadHalf - 15 + 3.0,
+          heading: -Math.PI / 2,
+          phase: i,
+          scale: 0.95,
+          seat: 0.95,
+        });
+    }
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -3958,5 +4039,18 @@ function strakeTexture(): CanvasTexture {
     g.fillRect(0, 0, 64, 32);
     g.fillStyle = '#101014';
     for (let y = 3; y < 32; y += 6) g.fillRect(0, y, 64, 3);
+  });
+}
+
+/** Palm thatch: layered straw in browns and golds, hanging in ragged fringes. */
+function thatchTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    g.fillStyle = '#8a6a3a';
+    g.fillRect(0, 0, 64, 64);
+    const random = seeded(8411);
+    for (let i = 0; i < 300; i++) {
+      g.fillStyle = ['#b08a4a', '#6a4a2a', '#c8a060', '#5a3a1a'][Math.floor(random() * 4)]!;
+      g.fillRect(random() * 64, random() * 64, 1, 4 + random() * 10);
+    }
   });
 }
