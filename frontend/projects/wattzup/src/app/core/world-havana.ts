@@ -222,6 +222,8 @@ export class HavanaStreet implements SceneStreet {
     this.addDivers(roadHalf);
     this.addTrio(roadHalf);
     this.addBusStop(roadHalf);
+    this.addPelicans(roadHalf);
+    this.addKerbside(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -1086,6 +1088,13 @@ export class HavanaStreet implements SceneStreet {
    * A zebra crossing painted over both carriageways at a side street's mouth: broad white bars
    * across the road, their paint worn through where the wheels run.
    */
+  private signals?: {
+    pole: MeshStandardMaterial;
+    head: MeshStandardMaterial;
+    lamps: MeshStandardMaterial[];
+    lamp: CylinderGeometry;
+  };
+
   private addZebra(offset: number, roadHalf: number): void {
     if (!this.zebra) {
       const map = this.track(zebraTexture());
@@ -1107,6 +1116,50 @@ export class HavanaStreet implements SceneStreet {
     crossing.renderOrder = 3;
     const holder = new Group();
     holder.add(crossing);
+    // A traffic light on each kerb, its head facing the traffic coming to the crossing: green lit
+    // for the road, red and amber dark, on a grey pole with a pedestrian box below.
+    if (!this.signals) {
+      const lens = (color: number, lit: boolean) =>
+        this.material({
+          color: lit ? color : 0x202020,
+          emissive: lit ? color : 0x000000,
+          emissiveIntensity: lit ? 2.4 : 0,
+          roughness: 0.3,
+        });
+      this.signals = {
+        pole: this.material({ color: 0x5a5e62, roughness: 0.6, metalness: 0.4 }),
+        head: this.material({ color: 0x1a1c1e, roughness: 0.5 }),
+        lamps: [lens(0xff2a1a, false), lens(0xffb020, false), lens(0x30ff70, true)],
+        lamp: new CylinderGeometry(0.1, 0.1, 0.06, 12).rotateX(Math.PI / 2),
+      };
+      this.disposables.push(this.signals.lamp);
+    }
+    const signals = this.signals;
+    for (const [x, z, turn] of [
+      [roadHalf + 0.35, -CROSS / 2 + 2.6, 0],
+      [-roadHalf - LANES - 0.35, -CROSS / 2 - 2.6, Math.PI],
+    ] as const) {
+      const signal = new Group();
+      const pole = new Mesh(this.unit, signals.pole);
+      pole.scale.set(0.12, 3.4, 0.12);
+      pole.position.y = 1.7;
+      const head = new Mesh(this.unit, signals.head);
+      head.scale.set(0.34, 0.9, 0.24);
+      head.position.set(0, 3.15, 0);
+      const box = new Mesh(this.unit, signals.head);
+      box.scale.set(0.25, 0.4, 0.2);
+      box.position.set(0, 1.3, 0.12);
+      signal.add(pole, head, box);
+      for (let k = 0; k < 3; k++) {
+        const lamp = new Mesh(signals.lamp, signals.lamps[k]!);
+        lamp.position.set(0, 3.42 - k * 0.27, 0.13);
+        signal.add(lamp);
+      }
+      for (const mesh of [pole, head, box]) mesh.castShadow = true;
+      signal.position.set(x, KERB, z);
+      signal.rotation.y = turn;
+      holder.add(signal);
+    }
     this.group.add(holder);
     this.props.push({ mesh: holder, offset, x: 0 });
   }
@@ -2976,6 +3029,160 @@ export class HavanaStreet implements SceneStreet {
     holder.add(stop);
     this.group.add(holder);
     this.props.push({ mesh: holder, offset: 46, x: roadHalf + 0.9 });
+  }
+
+  /**
+   * Brown pelicans perched on the seawall's cap in little groups, as they do along the Malecón:
+   * grey-brown bodies, white heads on long necks folded back, the long bill with its pouch laid
+   * along the neck, each turned its own way, now and then one with its wings half open to dry.
+   */
+  private addPelicans(roadHalf: number): void {
+    const random = seeded(1471);
+    const body = new SphereGeometry(0.22, 12, 8);
+    body.scale(1, 0.9, 1.9);
+    const neck = new CapsuleGeometry(0.06, 0.28, 3, 8);
+    const head = new SphereGeometry(0.075, 10, 8);
+    const bill = new ConeGeometry(0.04, 0.42, 6);
+    bill.rotateX(-Math.PI / 2);
+    const pouch = new SphereGeometry(0.05, 8, 6);
+    pouch.scale(0.8, 1, 3.4);
+    const wing = new SphereGeometry(0.2, 10, 6);
+    wing.scale(0.15, 0.6, 2.2);
+    const leg = new CylinderGeometry(0.018, 0.018, 0.12, 5);
+    this.disposables.push(body, neck, head, bill, pouch, wing, leg);
+    const plumage = this.material({ color: 0x6e6a62, roughness: 0.9 });
+    const back = this.material({ color: 0x4a4640, roughness: 0.9 });
+    const white = this.material({ color: 0xf0ece0, roughness: 0.85 });
+    const horn = this.material({ color: 0xc8a060, roughness: 0.6 });
+    const dark = this.material({ color: 0x2a2620, roughness: 0.8 });
+    const wall = -roadHalf - LANES - PROMENADE - 0.35;
+    for (const offset of [53, 62, 140, 236, 300]) {
+      const flock = new Group();
+      const count = 2 + Math.floor(random() * 3);
+      for (let k = 0; k < count; k++) {
+        const bird = new Group();
+        const part = (
+          g: BufferGeometry,
+          m: MeshStandardMaterial,
+          x: number,
+          y: number,
+          z: number,
+          rx = 0,
+        ) => {
+          const mesh = new Mesh(g, m);
+          mesh.position.set(x, y, z);
+          mesh.rotation.x = rx;
+          mesh.castShadow = true;
+          bird.add(mesh);
+          return mesh;
+        };
+        part(body, plumage, 0, 0.3, 0.05, -0.25);
+        part(neck, white, 0, 0.55, -0.22, 0.35);
+        part(head, white, 0, 0.74, -0.3);
+        part(bill, horn, 0, 0.66, -0.52, 0.5);
+        part(pouch, dark, 0, 0.6, -0.46, 0.5);
+        const open = random() < 0.25;
+        for (const side of [-1, 1]) {
+          const w = part(wing, back, side * 0.2, 0.36, 0.1, -0.2);
+          if (open) {
+            w.rotation.z = side * 1.1;
+            w.position.set(side * 0.42, 0.5, 0.05);
+          }
+          part(leg, dark, side * 0.07, 0.06, 0.05);
+        }
+        bird.position.set((random() - 0.5) * 0.25, 0, k * 0.9 + random() * 0.5);
+        bird.rotation.y = random() * Math.PI * 2;
+        bird.scale.setScalar(1.1 + random() * 0.2);
+        flock.add(bird);
+      }
+      flock.position.y = WALL;
+      const holder = new Group();
+      holder.add(flock);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: wall });
+    }
+  }
+
+  /**
+   * The street furniture of the inland kerb: squat red fire hydrants with their caps and chains,
+   * and the big green wheeled rubbish containers, lids half open and a bag or two beside them,
+   * standing at the pavement's edge every so often.
+   */
+  private addKerbside(roadHalf: number): void {
+    const random = seeded(1481);
+    const red = this.material({ color: 0xb8241c, roughness: 0.55, metalness: 0.2 });
+    const cap = this.material({ color: 0xd8d0b0, roughness: 0.5, metalness: 0.3 });
+    const green = this.material({ color: 0x2f6a3a, roughness: 0.7 });
+    const grime = this.material({ color: 0x3a4a34, roughness: 0.9 });
+    const black = this.material({ color: 0x1a1a1a, roughness: 0.8 });
+    const bags = [0x1a1a1a, 0x2a3a6a, 0xd8d8d0];
+    const barrel = new CylinderGeometry(0.13, 0.15, 0.62, 12);
+    const dome = new SphereGeometry(0.13, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    const nozzle = new CylinderGeometry(0.055, 0.055, 0.14, 8);
+    nozzle.rotateZ(Math.PI / 2);
+    const wheel = new CylinderGeometry(0.1, 0.1, 0.06, 10);
+    wheel.rotateZ(Math.PI / 2);
+    const bag = new SphereGeometry(0.28, 8, 6);
+    bag.scale(1, 0.8, 1);
+    this.disposables.push(barrel, dome, nozzle, wheel, bag);
+    const place = (thing: Group, offset: number, x: number) => {
+      thing.position.y = KERB;
+      const holder = new Group();
+      holder.add(thing);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x });
+    };
+    for (let offset = 31; offset < LOOP; offset += 40 + random() * 50) {
+      const hydrant = new Group();
+      const body = new Mesh(barrel, red);
+      body.position.y = 0.31;
+      const top = new Mesh(dome, red);
+      top.position.y = 0.62;
+      const nut = new Mesh(nozzle, cap);
+      nut.scale.set(0.5, 0.5, 0.5);
+      nut.rotation.z = Math.PI / 2;
+      nut.position.y = 0.76;
+      const base = new Mesh(this.unit, red);
+      base.scale.set(0.36, 0.06, 0.36);
+      base.position.y = 0.03;
+      hydrant.add(body, top, nut, base);
+      for (const side of [-1, 1]) {
+        const out = new Mesh(nozzle, cap);
+        out.position.set(side * 0.17, 0.45, 0);
+        hydrant.add(out);
+      }
+      hydrant.traverse((o) => (o.castShadow = true));
+      hydrant.rotation.y = random() * Math.PI;
+      place(hydrant, offset, roadHalf + 0.45);
+    }
+    for (let offset = 44; offset < LOOP; offset += 55 + random() * 70) {
+      const bin = new Group();
+      const box = new Mesh(this.unit, random() < 0.3 ? grime : green);
+      box.scale.set(1.3, 1.15, 1.0);
+      box.position.y = 0.72;
+      const lid = new Mesh(this.unit, green);
+      lid.scale.set(1.36, 0.06, 1.06);
+      const ajar = random() < 0.5;
+      lid.position.set(0, 1.32 + (ajar ? 0.2 : 0), ajar ? 0.25 : 0);
+      lid.rotation.x = ajar ? -0.45 : 0;
+      bin.add(box, lid);
+      for (const x of [-0.5, 0.5]) {
+        for (const z of [-0.38, 0.38]) {
+          const w = new Mesh(wheel, black);
+          w.position.set(x, 0.1, z);
+          bin.add(w);
+        }
+      }
+      const spill = Math.floor(random() * 3);
+      for (let k = 0; k < spill; k++) {
+        const b = new Mesh(bag, this.material({ color: bags[k % bags.length]!, roughness: 0.4 }));
+        b.position.set(-0.4 + k * 0.6, 0.22, 0.85);
+        bin.add(b);
+      }
+      bin.traverse((o) => (o.castShadow = true));
+      bin.rotation.y = Math.PI / 2 + (random() - 0.5) * 0.3;
+      place(bin, offset, roadHalf + 0.9);
+    }
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {

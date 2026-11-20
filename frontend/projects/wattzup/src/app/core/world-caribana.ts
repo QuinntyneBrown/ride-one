@@ -413,6 +413,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addGantry();
     for (const [name, at] of CROSS_STREETS) this.addIntersection(name, at);
     this.addGrandstand();
+    this.addPavilion();
     this.addSpray();
     this.addCastings();
     this.addLitter();
@@ -2137,6 +2138,44 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   /**
+   * The Sunnyside Bathing Pavilion on the lake side: a long cream stuccoed front of round-headed
+   * arches between square piers, a taller entrance block in the middle with its three great
+   * arches and pediment, and red clay-tiled hipped roofs, met once in the landmarks' cycle.
+   */
+  private addPavilion(): void {
+    const pavilion = new Group();
+    const stucco = this.material({
+      map: this.track(arcadeTexture()),
+      roughness: 0.9,
+    });
+    stucco.map!.wrapS = RepeatWrapping;
+    const plain = this.material({ color: 0xe9dfc8, roughness: 0.9 });
+    const tile = this.material({ color: 0xb0533a, roughness: 0.8 });
+    const block = (w: number, h: number, d: number, x: number, z: number, arches: number) => {
+      const body = new BoxGeometry(d, h, w);
+      // The arcade's face looks to the road (-x); it repeats an arch every 4.2 m.
+      scaleFaceUv(body, 1, arches, 1);
+      for (const face of [4, 5]) scaleFaceUv(body, face, Math.max(1, Math.round(d / 4.2)), 1);
+      body.translate(x, h / 2, z);
+      const roof = new ConeGeometry(1, 1, 4, 1);
+      roof.rotateY(Math.PI / 4);
+      roof.scale((d / 2) * 1.5, h * 0.35, (w / 2) * 1.5);
+      roof.translate(x, h + h * 0.175, z);
+      this.disposables.push(body, roof);
+      pavilion.add(
+        new Mesh(body, [plain, stucco, plain, plain, plain, plain]),
+        new Mesh(roof, tile),
+      );
+    };
+    block(64, 7, 10, 0, -40, 15);
+    block(64, 7, 10, 0, 40, 15);
+    block(16, 11, 13, -1.5, 0, 3);
+    pavilion.traverse((o) => (o.castShadow = true));
+    this.group.add(pavilion);
+    this.props.push({ mesh: pavilion, offset: 120, every: LANDMARKS, x: SHORE + 4 });
+  }
+
+  /**
    * A signalised intersection the route crosses, `street` on its signs, `at` metres into the
    * landmarks' cycle: ladder crosswalks across all three lanes,
    * signal poles at the far corners with mast arms over the road carrying signal heads in
@@ -2469,18 +2508,34 @@ export class CaribanaStreet implements SceneStreet {
       this.drops.length,
     );
     this.spray.castShadow = false;
-    // The wet patch: glossy and dark, ragged at the edge.
-    const wet = new PlaneGeometry(6, 7);
-    wet.rotateX(-Math.PI / 2);
-    wet.translate(0, 0.006, 0);
+    // The wet patch where the water lands: overlapping puddles, each a faint dark, glossy disc
+    // pushed out of round, so the patch is darkest in the middle and ragged at its edge.
+    const scatter = seeded(1813);
+    const puddles: BufferGeometry[] = [];
+    for (let k = 0; k < 16; k++) {
+      const r = 0.6 + scatter() * 1.3;
+      const puddle = new CircleGeometry(r, 18);
+      const ring = puddle.getAttribute('position') as BufferAttribute;
+      for (let i = 1; i < ring.count; i++) {
+        const wobble = 0.75 + scatter() * 0.5;
+        ring.setXY(i, ring.getX(i) * wobble, ring.getY(i) * wobble);
+      }
+      puddle.rotateX(-Math.PI / 2);
+      puddle.translate((scatter() - 0.5) * 3.6, 0.017 + k * 0.0004, (scatter() - 0.5) * 4.4);
+      puddles.push(puddle.toNonIndexed());
+      puddle.dispose();
+    }
+    const wet = mergeGeometries(puddles)!;
+    puddles.forEach((p) => p.dispose());
     this.disposables.push(wet);
     const patch = new Mesh(
       wet,
       this.material({
-        map: this.track(wetTexture()),
+        color: 0x16181c,
         transparent: true,
-        roughness: 0.08,
-        metalness: 0.25,
+        opacity: 0.16,
+        roughness: 0.05,
+        metalness: 0.3,
         depthWrite: false,
       }),
     );
@@ -4576,24 +4631,6 @@ function streetSignTexture(name: string): CanvasTexture {
   });
 }
 
-/** Wet asphalt: dark in the middle and ragged at the edge, puddled in places. */
-function wetTexture(): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    g.clearRect(0, 0, 256, 256);
-    const random = seeded(1811);
-    for (let i = 0; i < 70; i++) {
-      const x = 128 + (random() - 0.5) * 170;
-      const y = 128 + (random() - 0.5) * 190;
-      const r = 14 + random() * 36;
-      const blot = g.createRadialGradient(x, y, 0, x, y, r);
-      blot.addColorStop(0, 'rgba(18,20,24,0.5)');
-      blot.addColorStop(1, 'rgba(18,20,24,0)');
-      g.fillStyle = blot;
-      g.fillRect(x - r, y - r, 2 * r, 2 * r);
-    }
-  });
-}
-
 /** A cast-iron manhole cover: a raised grid of lugs in a rim, rust at the edge. */
 function manholeTexture(): CanvasTexture {
   return canvasTexture(128, 128, (g) => {
@@ -4792,6 +4829,29 @@ function roofTexture(): CanvasTexture {
     for (let x = 0; x < 512; x += 16) g.fillRect(x, 0, 1, 64);
     g.fillStyle = 'rgba(60,66,72,0.8)';
     for (let x = 0; x < 512; x += 128) g.fillRect(x, 0, 4, 64);
+  });
+}
+
+/** One bay of an arcade: a round-headed arch in shade between cream piers, under a cornice. */
+function arcadeTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.fillStyle = '#ece3cd';
+    g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#d8ccb0';
+    g.fillRect(0, 0, 128, 12);
+    g.fillRect(0, 118, 128, 10);
+    g.fillStyle = '#211c17';
+    g.beginPath();
+    g.moveTo(26, 118);
+    g.lineTo(26, 56);
+    g.arc(64, 56, 38, Math.PI, 0);
+    g.lineTo(102, 118);
+    g.fill();
+    g.strokeStyle = '#cbbd9e';
+    g.lineWidth = 5;
+    g.beginPath();
+    g.arc(64, 56, 41, Math.PI, 0);
+    g.stroke();
   });
 }
 

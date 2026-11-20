@@ -140,6 +140,7 @@ export class GardenaStreet implements SceneStreet {
   private readonly crowd: Crowd;
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly gliders: Group[] = [];
   private hikers: Figures | null = null;
@@ -193,7 +194,7 @@ export class GardenaStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
-    const ground = (metres: number) => heightAt(Math.max(metres, 0));
+    const ground = (metres: number) => heightAt(metres);
     for (const prop of this.props) {
       const metres = along(prop.offset, LOOP);
       prop.mesh.visible = metres < AHEAD - 12;
