@@ -1,8 +1,8 @@
 // Which skeleton, overlay or error the ride dashboard shows, and which controls work (L2-058).
-import type { BikeState, BluetoothSupport, StreamConnection } from '@wattzup/api';
+import type { BikeState, BluetoothSupport } from '@wattzup/api';
 import { isActive } from './workout-status';
 
-export type RideView = 'loading' | 'load-failed' | 'ride';
+export type RideView = 'loading' | 'ride';
 export type RideOverlayKind =
   | 'browser-unsupported'
   | 'browser-insecure'
@@ -25,25 +25,11 @@ export interface RideViewState {
 
 export function rideViewState(
   state: BikeState | null,
-  connection: StreamConnection,
-  loadFailed: boolean,
-  /** No bike chosen yet in the browser edition (L2-090 AC1). */
+  /** No bike chosen yet (L2-090 AC1). */
   pairingRequired = false,
-  /** The browser edition cannot reach Bluetooth on this page (L2-089 AC1, AC3). */
+  /** The page cannot reach Bluetooth (L2-089 AC1, AC3). */
   support: BluetoothSupport = 'ready',
 ): RideViewState {
-  const offline = connection === 'offline';
-  if (loadFailed) {
-    return {
-      view: 'load-failed',
-      overlay: null,
-      dimmed: false,
-      commandsEnabled: false,
-      pauseEnabled: false,
-      endEnabled: false,
-      controlsNote: 'Controls return when Wattzup can read the bike again.',
-    };
-  }
   if (!state) {
     return {
       view: 'loading',
@@ -72,9 +58,9 @@ export function rideViewState(
   return {
     view: 'ride',
     overlay,
-    dimmed: overlay === 'bike-lost' || offline,
-    commandsEnabled: !offline && connected,
-    pauseEnabled: !offline && active,
+    dimmed: overlay === 'bike-lost',
+    commandsEnabled: connected,
+    pauseEnabled: active,
     endEnabled: active,
     controlsNote: connected ? null : 'Resistance controls wake up once the bike connects.',
   };

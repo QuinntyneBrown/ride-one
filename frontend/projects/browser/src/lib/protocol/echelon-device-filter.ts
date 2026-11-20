@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Protocol/EchelonDeviceFilter.cs: an Echelon bike, never an Echelon treadmill
+// An Echelon bike, never an Echelon treadmill
 // (L2-001, L2-090 AC2).
 import { ECHELON_UUIDS } from './echelon-uuids';
 

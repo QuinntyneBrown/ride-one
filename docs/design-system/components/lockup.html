@@ -90,7 +90,7 @@
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
     <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
-<p>Use the standard size in the app bar (as the home link) and the large size on unlock and 404. Never recolour the mark; volt is a fill with ink stroke in both themes.</p>
+<p>Use the standard size in the app bar (as the home link) and the large size on the 404 page. Never recolour the mark; volt is a fill with ink stroke in both themes.</p>
     </section>
     <section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
 <div class="ds-anatomy"><figure class="ds-anatomy__figure"><span class="lockup lockup--lg"><svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12"/><path d="M8.5 16 L15.5 34 L23 21 L30.5 34 L39.5 10"/></svg><span class="lockup__word">wattzup</span></span><span class="ds-callout" style="left: 8%; top: 30%;" aria-hidden="true">1</span><span class="ds-callout" style="left: 60%; top: 30%;" aria-hidden="true">2</span></figure><ol class="ds-anatomy__list"><li><div><b>Mark</b><small>48-unit square, <code>rx 12</code>, 5.4 ink stroke.</small></div></li><li><div><b>Wordmark</b><small>Numeral family, expanded, heavy, −0.04em.</small></div></li></ol></div>
@@ -139,7 +139,7 @@
 <pre><code>&lt;a class="lockup" href="/" aria-label="Wattzup dashboard"&gt;&lt;svg class="lockup__mark" viewBox="0 0 48 48" aria-hidden="true"&gt;…&lt;/svg&gt;&lt;span class="lockup__word"&gt;wattzup&lt;/span&gt;&lt;/a&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.lockup</code></td><td>Standard.</td></tr><tr><td><code>.lockup--lg</code></td><td>Large.</td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a> (app bar)</li><li><a href="../../mocks/pages/unlock/default.html">pages/unlock/default</a> (large)</li></ul><p>Drift fixed during extraction: raw weight 800 and −0.04em are now <code>--font-weight-heavy</code> and <code>--letter-spacing-brand</code>; the 26px mark size is a component token.</p>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a> (app bar)</li><li><a href="../../mocks/pages/not-found/default.html">pages/not-found/default</a> (large)</li></ul><p>Drift fixed during extraction: raw weight 800 and −0.04em are now <code>--font-weight-heavy</code> and <code>--letter-spacing-brand</code>; the 26px mark size is a component token.</p>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

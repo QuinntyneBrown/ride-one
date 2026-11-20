@@ -1,5 +1,4 @@
-// The browser's link to the bike (L2-090, L2-091): the counterpart of the backend's
-// BikeConnectionService. It holds the bike the rider picked, keeps the link alive and recovers
+// The browser's link to the bike (L2-090, L2-091). It holds the bike the rider picked, keeps the link alive and recovers
 // it, writing `ble`, `device` and `error` through the BikeStateStore.
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { BikeStateStore } from '../engine/bike-state-store';
@@ -12,13 +11,13 @@ import { CLOCK } from './clock';
 import { messageOf, nameAndMessage } from './error-text';
 import { PacketLog } from './packet-log';
 
-/** The spacing of the init commands, as the backend's InitCommandSpacing (L2-002). */
+/** The spacing of the init commands (L2-002). */
 export const INIT_COMMAND_SPACING_MS = 300;
 /** The keepalive interval of L2-003. */
 export const KEEPALIVE_INTERVAL_MS = 1000;
 /** The wait before a connection is tried again (L2-091 AC2, AC3). */
 export const RETRY_DELAY_MS = 3000;
-/** How long a connection step may take, as the backend's StepTimeout: a bike that never answers
+/** How long a connection step may take: a bike that never answers
  * (asleep, out of range) fails the attempt and is retried rather than left connecting. */
 export const STEP_TIMEOUT_MS = 15_000;
 

@@ -6,7 +6,7 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "BeepsToggle" as toggle
   participant "CueService" as cue
   participant "Interval" as card
@@ -14,11 +14,11 @@ box "Frontend — Wattzup Web application" #E0F2FE
   participant "PhaseBanner" as banner
   participant "LiveStateService" as live
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "EventsEndpoints" as sse
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserStateSource" as src
 end box
 
-sse -> live : first state: workout {segment:9, status:"running"}
+src -> live : first state: workout {segment:9, status:"running"}
 live -> banner : state() changes
 banner -> det : observe(workout)
 det --> banner : null, first state never cues [L2-027]
@@ -36,7 +36,7 @@ loop whole seconds left change while running
     card -> cue : beep(660, 0.09) [L2-027]
   end
 end
-sse -> live : data: workout {segment:10, kind rest, level 6, round 5}
+src -> live : state workout {segment:10, kind rest, level 6, round 5}
 live -> banner : state() changes
 banner -> det : observe(workout)
 det --> banner : SegmentChange(rest, 6, 20 s, next Work at 18)

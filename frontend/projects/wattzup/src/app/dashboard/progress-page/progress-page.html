@@ -42,7 +42,7 @@
           <div class="empty empty--error" role="alert">
             <span class="empty__icon"><wz-icon name="alert-circle" size="lg" /></span>
             <h1 class="empty__title">Couldn't load your progress</h1>
-            <p class="empty__text">The Wattzup server didn't answer. Your rides are saved.</p>
+            <p class="empty__text">Your rides couldn't be loaded. They are still saved.</p>
             <div class="empty__actions">
               <button class="btn btn--primary" type="button" (click)="load()">Try again</button>
             </div>
@@ -59,15 +59,11 @@
               </p>
               <div class="empty__actions">
                 <a class="btn btn--primary" routerLink="/classes">Find a class</a>
-                @if (keepsHistory) {
-                  <wz-history-import describedBy="import-hint" (pick)="importHistory($event)" />
-                }
+                <wz-history-import describedBy="import-hint" (pick)="importHistory($event)" />
               </div>
-              @if (keepsHistory) {
-                <p class="history__hint" id="import-hint">
-                  Moving from another device? Import the history you exported there.
-                </p>
-              }
+              <p class="history__hint" id="import-hint">
+                Moving from another device? Import the history you exported there.
+              </p>
             </div>
           } @else {
             <div class="history__grid">

@@ -1,5 +1,4 @@
-// SESSION_ARCHIVE in the browser edition (L2-094 AC5, AC6): the history file both editions read,
-// `{"sessions":[…]}` newest first, as the backend's sessions.json. An import adds only valid
+// SESSION_ARCHIVE (L2-094 AC5, AC6): the history file, `{"sessions":[…]}` newest first. An import adds only valid
 // sessions with new ids and changes nothing already saved.
 import { inject, Injectable } from '@angular/core';
 import { type ImportReport, SafeStorage, type SessionArchive } from '@wattzup/api';
@@ -7,7 +6,7 @@ import { CLOCK } from '../bluetooth/clock';
 import { validSession } from '../storage/session-record-validator';
 import { SessionStore } from '../storage/session-store';
 
-/** The largest history file read, as the backend's SessionFile.MaxBytes. */
+/** The largest history file read. */
 export const MAX_FILE_BYTES = 16 * 1024 * 1024;
 export const LAST_EXPORTED_KEY = 'wattzup.lastExportedAt';
 

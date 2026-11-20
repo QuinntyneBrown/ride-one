@@ -1,14 +1,13 @@
-// The ride-history API contract (L2-083, ADR 0015). Components inject SESSION_API, never
-// HttpSessionApi.
+// The ride-history contract (L2-083, ADR 0015). Components inject SESSION_API.
 import { InjectionToken } from '@angular/core';
 import type { ProgressReport, SessionDetail, SessionList } from './api-types';
 
 export interface SessionApi {
-  /** GET /api/sessions: every saved session's summary, newest first. */
+  /** Every saved session's summary, newest first. */
   list(): Promise<SessionList>;
-  /** GET /api/sessions/{id}; 'not-found' for a 404 (session_not_found). */
+  /** One session; 'not-found' when there is none with this id. */
   get(id: string): Promise<SessionDetail | 'not-found'>;
-  /** GET /api/progress: streak, week, totals, classes and achievements (L2-087). */
+  /** Streak, week, totals, classes and achievements (L2-087). */
   progress(): Promise<ProgressReport>;
 }
 

@@ -1,6 +1,6 @@
 // Unit Test
 // Traces to: L2-049, L2-092
-// Description: Mirrors backend/tests/Wattzup.Core.Tests/PowerEstimatorTests.cs row for row.
+// Description: The power estimator, one case per table row.
 import { estimateWatts } from './power-estimator';
 
 describe('PowerEstimator', () => {

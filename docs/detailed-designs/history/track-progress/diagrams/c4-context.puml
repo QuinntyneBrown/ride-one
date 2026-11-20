@@ -3,8 +3,8 @@
 LAYOUT_WITH_LEGEND()
 title System Context — Track progress
 
-Person(rider, "Rider", "Wants to get stronger and keep the streak")
-System(wattzup, "Wattzup", "Live training display that keeps the ride history")
+Person(rider, "Rider", "Rides the bike and watches Wattzup")
+System(wattzup, "Wattzup", "Angular app running in Chrome or Edge; no server")
 
-Rel(rider, wattzup, "Checks progress and picks the next class in")
+Rel(rider, wattzup, "Uses", "Browser")
 @enduml

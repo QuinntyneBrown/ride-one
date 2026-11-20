@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Forms — Wattzup design system</title>
-<meta name="description" content="How setup and unlock collect, validate and submit values.">
+<meta name="description" content="How setup and its dialogs collect, validate and submit values.">
 <link rel="stylesheet" href="../tokens/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <link rel="stylesheet" href="../assets/ds.css">
@@ -85,7 +85,7 @@
     <header class="ds-header">
       <p class="ds-kicker">Pattern</p>
       <h1>Forms</h1>
-      <p class="ds-lead">Wattzup has two forms: ride setup and unlock. Both validate on submit, keep what the rider typed, and explain every error next to its field and in a summary.</p>
+      <p class="ds-lead">Wattzup has one form, ride setup, with its set and warm-up dialogs. They validate on submit, keep what the rider typed, and explain every error next to its field and in a summary.</p>
       <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span></div>
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#when">When to use</a></li><li><a href="#structure">Structure</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
@@ -93,7 +93,7 @@
 <p>Forms use <a href="../components/form-field.html">form fields</a>, <a href="../components/number-stepper.html">number steppers</a>, <a href="../components/slider.html">sliders</a>, <a href="../components/switch.html">switches</a> and <a href="../components/radio-group.html">mode cards</a>, arranged by <a href="../components/form-layout.html">form layout</a>. Button-triggered editing never happens inline: setup is its own screen (AGENTS.md).</p>
     </section>
     <section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
-<ul><li>Changing the plan before a ride: setup (<code>/setup</code>).</li><li>Entering the API key when the server requires one: unlock.</li><li>Never for a single value the rider nudges mid-ride — that is the level control.</li></ul>
+<ul><li>Changing the plan before a ride: setup (<code>/setup</code>).</li><li>Editing one set, the warm-up or the cool-down: a dialog over setup.</li><li>Never for a single value the rider nudges mid-ride — that is the level control.</li></ul>
     </section>
     <section class="ds-section" id="structure"><h2><a href="#structure">Structure</a></h2>
 <ol><li>Heading and one-line intro.</li><li>Error summary (only after a failed submit).</li><li>Fields in reading order: mode, presets, values, toggles.</li><li>Preview (setup) and the single submit action, with its disabled reason underneath.</li></ol><div class="ds-example"><div class="ds-example__canvas ds-example__canvas--stack"><div class="alert alert--danger form-summary" role="alert" tabindex="-1"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><div class="alert__body"><span class="alert__title">2 things to fix before you start</span><ul><li><a href="#structure">Rounds — enter 1 to 30</a></li><li><a href="#structure">Recover — at least 0:05</a></li></ul></div></div><div class="field-grid"><div class="num-stepper"><label class="num-stepper__label" for="pf-r">Rounds</label><div class="num-stepper__row"><input class="num-stepper__input" id="pf-r" value="0" aria-invalid="true" aria-describedby="pf-re"></div><p class="field__error" id="pf-re">Enter 1 to 30 rounds.</p></div></div><button class="btn btn--primary" type="button" disabled aria-describedby="pf-h">Start ride</button><p class="text-muted text-sm" id="pf-h">Fix the 2 fields marked in red to start.</p></div><div class="ds-example__caption"><span>Invalid setup, composed.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="alert alert--danger form-summary" role="alert" tabindex="-1"&gt;
@@ -126,13 +126,13 @@
 &lt;p class="text-muted text-sm" id="pf-h"&gt;Fix the 2 fields marked in red to start.&lt;/p&gt;</code></pre></details></div>
     </section>
     <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
-<ul><li><b>Default</b> — defaults or the saved draft; Start enabled.</li><li><b>Invalid</b> — inline errors, summary focused, Start disabled with the reason.</li><li><b>Submitting</b> — inputs read-only, button busy (Starting…).</li><li><b>Server error</b> — danger alert beside the button; values kept.</li><li><b>Loading</b> — skeleton of the same layout.</li></ul>
+<ul><li><b>Default</b> — defaults or the saved draft; Start enabled.</li><li><b>Invalid</b> — inline errors, summary focused, Start disabled with the reason.</li><li><b>Submitting</b> — inputs read-only, button busy (Starting…).</li><li><b>Failed start</b> — danger alert beside the button; values kept.</li><li><b>Loading</b> — skeleton of the same layout.</li></ul>
     </section>
     <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive</a></h2>
 <ul><li>Fields stack in one column below 640px; steppers sit in three columns from 640px.</li><li>From 1024px the setup preview is a side panel; below that it follows the form.</li></ul>
     </section>
     <section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
-<ul><li>Every control has a visible label; errors are in <code>aria-describedby</code> and set <code>aria-invalid</code>.</li><li>On a failed submit focus moves to the summary; each summary link focuses its field.</li><li>Nothing validates while typing, so the rider is never told off mid-entry (WCAG 3.3.1, 3.3.3).</li><li>Unlock uses <code>autocomplete="current-password"</code> (WCAG 3.3.7, 3.3.8).</li></ul>
+<ul><li>Every control has a visible label; errors are in <code>aria-describedby</code> and set <code>aria-invalid</code>.</li><li>On a failed submit focus moves to the summary; each summary link focuses its field.</li><li>Nothing validates while typing, so the rider is never told off mid-entry (WCAG 3.3.1, 3.3.3).</li><li>The YouTube link keeps what was typed across reloads, so it is never asked twice (WCAG 3.3.7).</li></ul>
     </section>
     <section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
 <ul><li>Errors give the rule and the fix: "Enter 1 to 30 rounds."</li><li>Summary title counts: "2 things to fix before you start".</li></ul>
@@ -141,7 +141,7 @@
 <div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><p class="field__error">Recover must be at least 0:05.</p></div><figcaption>Say how to fix it.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><p class="field__error">Invalid input.</p></div><figcaption>A generic error.</figcaption></figure><figure class="ds-do"><div class="ds-example__canvas"><button class="btn btn--primary" type="button" disabled>Start ride</button><p class="text-muted text-sm">Fix the 2 fields marked in red to start.</p></div><figcaption>Disabled with a reason.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><button class="btn btn--primary" type="button" disabled>Start ride</button></div><figcaption>Disabled silently.</figcaption></figure></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from:</p><ul><li><a href="../../mocks/pages/setup/default.html">pages/setup/default</a></li><li><a href="../../mocks/pages/setup/invalid.html">pages/setup/invalid</a></li><li><a href="../../mocks/pages/setup/submitting.html">pages/setup/submitting</a></li><li><a href="../../mocks/pages/setup/error.html">pages/setup/error</a></li><li><a href="../../mocks/pages/unlock/invalid.html">pages/unlock/invalid</a></li></ul>
+<p>Extracted from:</p><ul><li><a href="../../mocks/pages/setup/default.html">pages/setup/default</a></li><li><a href="../../mocks/pages/setup/invalid.html">pages/setup/invalid</a></li><li><a href="../../mocks/pages/setup/submitting.html">pages/setup/submitting</a></li><li><a href="../../mocks/pages/setup/error.html">pages/setup/error</a></li><li><a href="../../mocks/pages/setup/video-invalid.html">pages/setup/video-invalid</a></li></ul>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

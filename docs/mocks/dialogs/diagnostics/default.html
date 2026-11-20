@@ -7,8 +7,8 @@
 <meta name="mock:kind" content="dialog">
 <meta name="mock:screen" content="diagnostics">
 <meta name="mock:state" content="default">
-<meta name="mock:requirements" content="L2-023 L2-033 L2-095 L2-088 L2-089">
-<meta name="description" content="Diagnostics: server, Bluetooth, transport, packet count, live time, last update, renderer and the latest raw packets.">
+<meta name="mock:requirements" content="L2-023 L2-095 L2-089">
+<meta name="description" content="Only what the browser knows, with the commands-only packet log and its download (L2-095).">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
 <link rel="stylesheet" href="../../assets/mock.css">
@@ -141,45 +141,36 @@
       <div class="dialog__icon dialog__icon--info" aria-hidden="true"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
       <div class="dialog__heading">
         <h2 class="dialog__title" id="dlg-title">Diagnostics</h2>
-        <p id="dlg-desc" class="dialog__desc">What Wattzup sees right now. Copy this when reporting a problem.</p>
+        <p id="dlg-desc" class="dialog__desc">What this browser sees right now. Download the packet log when reporting a problem.</p>
       </div>
       <button class="btn btn--ghost btn--icon" type="button" aria-label="Close" autofocus><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     <div class="dialog__body">
       <dl class="dl dl--mono">
-        <dt>Server</dt><dd>Connected · event stream open · 2 viewers</dd>
-        <dt>Bluetooth</dt><dd>connected · ECHEX-3-141844 (Echelon EX-5s)</dd>
-        <dt>Transport</dt><dd>WinRT (Windows.Devices.Bluetooth)</dd>
-        <dt>Packets</dt><dd>2,517</dd>
-        <dt>Live on screen</dt><dd>41 min 30 s</dd>
-        <dt>Last update</dt><dd>7:10:12 PM</dd>
-        <dt>Trace renderer</dt><dd>WebGL</dd>
-        <dt>Last error</dt><dd>None</dd>
+        <dt>Browser</dt><dd>Chrome 126 · macOS 14.5</dd>
+        <dt>Web Bluetooth</dt><dd>Available</dd>
+        <dt>Page</dt><dd>https://wattzup.app/ride</dd>
+        <dt>Bike</dt><dd>Echelon EX-5s · 0bf669f1</dd>
+        <dt>Connection</dt><dd>Connected</dd>
+        <dt>Last command</dt><dd>RES 18 · plan · ack 40 ms</dd>
+        <dt>Rides stored</dt><dd>11 · 418 KB in this browser</dd>
       </dl>
-      <h3 class="label" style="margin-top: var(--space-6);">Latest packets (raw_packets.log)</h3>
-      <pre class="code-block" tabindex="0" aria-label="Latest raw packets">1794787812.127 f0 d1 09 00 1b 00 00 00 00 00 5f 00 ee
-1794787811.120 f0 d1 09 00 1a 00 00 00 00 00 5e 00 ec
-1794787810.902 f0 d2 01 12 d5
-1794787810.118 f0 d1 09 00 19 00 00 00 00 00 5d 00 ea
-1794787809.121 f0 d1 09 00 18 00 00 00 00 00 5c 00 e8</pre>
+      <p class="diag-footnote"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M22 12H2M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6zM6 16h.01M10 16h.01"/></svg>Everything here is read in your browser and stays on this device until you download it.</p>
+      <label class="toggle-row diag-split"><span class="toggle-row__label"><b>Log every packet</b><br><span class="text-muted">Records each Bluetooth message, not just the commands Wattzup sends. Turn on while reproducing a problem — it uses memory.</span></span><span class="switch"><input type="checkbox" role="switch"></span></label>
+      <div class="packet-log"><span class="packet-log__count"><b>212</b> commands · 20 KB</span><button class="btn" type="button"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Download packet log</button></div>
+      <p class="text-caption text-subtle">Saves wattzup-packets-2026-11-15T19-10.log as one line per message: time and bytes. Attach it to a bug report.</p>
     </div>
     <div class="dialog__footer">
-      <button class="btn" type="button"><svg class="icon icon--sm" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy details</button>
       <button class="btn btn--primary" type="button">Done</button>
     </div>
   </div>
 </div>
 
+<p class="mock-note" style="top: 6rem; left: 1rem;">Download packet log reads “Saved to Downloads” for 1.6 s. The log keeps the newest 2,000 entries. Nothing counts reconnects per ride, so there is no Reconnects row.</p>
 <nav class="mock-bar" aria-label="Mock navigation">
   <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
   <span class="mock-bar__screen">Diagnostics</span>
-  <ul class="mock-bar__states">
-    <li><a href="default.html" aria-current="page">default</a></li>
-    <li><a href="scroll.html">scroll</a></li>
-    <li><a href="browser.html">browser</a></li>
-    <li><a href="browser-packets.html">browser-packets</a></li>
-    <li><a href="browser-bluetooth-off.html">browser-bluetooth-off</a></li>
-  </ul>
+  <ul class="mock-bar__states"><li><a href="default.html" aria-current="page">default</a></li><li><a href="packets.html">packets</a></li><li><a href="bluetooth-off.html">bluetooth-off</a></li></ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
 </nav>

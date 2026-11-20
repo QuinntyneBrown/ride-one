@@ -4,26 +4,6 @@
 # Python caches (skill scripts)
 __pycache__/
 
-# Runtime output of the backend
-raw_packets.log
-raw_packets.log.*
-status.json
-sessions.json
-sessions.json.*
-# ...but not the recorded e2e answer of GET /api/sessions
-!frontend/e2e/fixtures/recorded/sessions.json
-server.log
-
-# .NET build output
-bin/
-obj/
-artifacts/
-# The dashboard build, copied in by `npm run build:api`
-backend/src/Wattzup.Api/wwwroot/
-TestResults/
-*.user
-.vs/
-
 # Node
 node_modules/
 

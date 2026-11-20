@@ -3,16 +3,16 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Ride a class
 
-Person(rider, "Rider", "Opens a class")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular", "Class page at /classes/:id")
-  Container(api, "Wattzup API", "ASP.NET Core", "Serves the class, starts the workout")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Class page; starts the class's ride")
+  Container(webbt, "Web Bluetooth stack", "navigator.bluetooth", "GATT client")
 }
-System_Ext(youtube, "YouTube player", "Embedded iframe")
-System_Ext(bike, "Echelon bike", "BLE")
+System_Ext(bike, "Echelon bike", "BLE GATT")
+System_Ext(youtube, "YouTube", "IFrame player and thumbnails")
 
-Rel(rider, web, "Uses", "Browser")
-Rel(web, api, "GET /api/classes/{id}; POST /api/workout", "JSON/HTTP")
-Rel(web, youtube, "Previews through", "IFrame player API")
-Rel(api, bike, "Drives", "BLE")
+Rel(rider, app, "Uses")
+Rel(app, webbt, "connect, notify, write")
+Rel(webbt, bike, "GATT", "BLE")
+Rel(app, youtube, "Embeds", "HTTPS, CSP-limited")
 @enduml

@@ -1,5 +1,4 @@
-// The packet log of the browser edition (L2-095), in place of the backend's raw_packets.log file
-// and RecentPacketBuffer: the newest 2,000 lines in memory, formatted as RawPacketFormatter does.
+// The packet log (L2-095): the newest 2,000 lines in memory, in the raw_packets.log format.
 import { computed, Injectable, signal } from '@angular/core';
 import type { PacketLog as PacketLogContract, PacketLogView } from '@wattzup/api';
 

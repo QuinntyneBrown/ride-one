@@ -5,38 +5,32 @@ skinparam shadowing false
 skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "SetupPage" as page
-  participant "WorkoutApi" as api
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "WorkoutEndpoints" as ep
-end box
-box "Backend — Wattzup Core" #ECFDF3
-  participant "WorkoutPlanValidator" as val
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserWorkoutApi\n(WORKOUT_API)" as api
+  participant "validatePlan" as val
   participant "WorkoutEngine" as engine
   participant "BikeStateStore" as store
 end box
 
 page -> api : start({kind:"hiit", rounds:8, work_seconds:40, rest_seconds:20, work_level:18, rest_level:6, warmup:true, cooldown:true})
-api -> ep : POST /api/workout
-ep -> val : Validate(body) [L2-010]
+api -> val : validatePlan(body) [L2-010]
 alt unknown kind, missing or mistyped field, or value out of range
-  val --> ep : Errors e.g. {"rounds":["Enter 1 to 30 rounds."]}
-  ep --> api : 400 ProblemDetails {code:"invalid_workout", errors} [L2-010, L2-017]
-  api --> page : error; no workout started
+  val --> api : errors e.g. {"rounds":["Enter 1 to 30 rounds."]}
+  api --> page : ContractError {code:"invalid_workout", errors} [L2-010, L2-017]
 else valid
-  val --> ep : HiitPlan
-  ep -> engine : StartAsync(plan)
+  val --> api : plan
+  api -> engine : startWorkout(plan, origin)
   engine -> engine : discard active run; expand to 17 segments, 760 s; reset ride totals [L2-013, L2-045]
   alt bike connected
     engine -> engine : status "running"; send segment 0 level [L2-012]
   else not connected
     engine -> engine : status "waiting for bike" [L2-013]
   end
-  engine -> store : Update(workout), broadcast
-  engine --> ep : WorkoutSnapshot
-  ep --> api : 200 {"started": <workout>} [L2-017]
-  api --> page : ok
+  engine -> store : update(workout)
+  engine --> api : WorkoutSnapshot
+  api --> page : the new workout [L2-017]
 end
 @enduml

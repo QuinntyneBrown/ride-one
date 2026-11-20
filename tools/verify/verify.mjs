@@ -1,12 +1,9 @@
 #!/usr/bin/env node
-// Builds and checks everything CI checks, as fast as this machine allows: the backend (build, unit and
-// acceptance tests) and the frontend (install, format, lint, unit tests, production build with its budget, then
-// the Playwright behaviour specs) run side by side, and within the frontend the checks that share no output run
-// at once. Prints each step's time and the total; exits non-zero on the first failure, with that step's output.
+// Builds and checks everything CI checks, as fast as this machine allows: install, then format, lint, unit tests
+// and the production build with its budget side by side, then the Playwright behaviour specs. Prints each step's
+// time and the total; exits non-zero on the first failure, with that step's output.
 //
-//   node tools/verify/verify.mjs            # everything
-//   node tools/verify/verify.mjs --backend  # only the backend
-//   node tools/verify/verify.mjs --frontend # only the frontend
+//   node tools/verify/verify.mjs
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -15,8 +12,6 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const frontend = join(root, 'frontend');
-const args = new Set(process.argv.slice(2));
-const only = args.has('--backend') ? 'backend' : args.has('--frontend') ? 'frontend' : null;
 const started = performance.now();
 const seconds = (from) => ((performance.now() - from) / 1000).toFixed(1).padStart(6) + 's';
 
@@ -52,11 +47,6 @@ async function install() {
   writeFileSync(stamp, hash);
 }
 
-const backend = async () => {
-  await step('dotnet build', 'dotnet build backend/Wattzup.sln');
-  await step('dotnet test', 'dotnet test backend/Wattzup.sln --no-build');
-};
-
 const web = async () => {
   await install();
   await Promise.all([
@@ -65,14 +55,13 @@ const web = async () => {
     step('unit tests', 'npm test', frontend),
     (async () => {
       await step('production build and budget', 'npm run build', frontend);
-      await step('browser edition build and budget', 'npm run build:browser', frontend);
       await step('behaviour specs', 'npm run e2e', frontend);
     })(),
   ]);
 };
 
 try {
-  await Promise.all([only !== 'frontend' && backend(), only !== 'backend' && web()].filter(Boolean));
+  await web();
   console.log(`${seconds(started)}  TOTAL — everything passed`);
 } catch {
   console.error(`${seconds(started)}  TOTAL — failed`);

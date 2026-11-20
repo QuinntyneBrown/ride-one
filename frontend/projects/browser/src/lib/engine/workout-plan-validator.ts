@@ -1,5 +1,5 @@
-// Mirrors Wattzup.Core/Workouts/WorkoutPlanValidator.cs: checks a plan as POST /api/workout takes
-// it, naming every failing field with the API's message (L2-010, L2-045, L2-097 AC6).
+// Checks a plan as WORKOUT_API's start takes
+// it, naming every failing field with its message (L2-010, L2-045, L2-097 AC6).
 import type { IntervalSet, RideVideo, Stretch, WorkoutPlan } from '@wattzup/api';
 import { roundAwayFromZero } from './rounding';
 import { parseYouTubeId } from './youtube-link';

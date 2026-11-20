@@ -1,6 +1,6 @@
 // Unit Test
 // Traces to: L2-048, L2-092
-// Description: Mirrors backend/tests/Wattzup.Core.Tests/CommandLogTests.cs: the log keeps the 5
+// Description: The command log keeps the 5
 // newest entries and acknowledges only matching, unblocked entries.
 import { acknowledge, add, type CommandEntry, fail } from './command-log';
 

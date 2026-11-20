@@ -1,5 +1,5 @@
-// Mirrors Wattzup.Core/Sessions/SessionRecord.cs: a saved ride as L2-081 defines it, in the
-// generated contract's shape, so both editions read and write the same history file (L2-094).
+// A saved ride as L2-081 defines it, in the
+// contract's shape, so an exported history file imports anywhere (L2-094).
 import type { SessionDetail, SessionSummary } from '@wattzup/api';
 
 /** A session as stored: the detail the API answers, without what it adds on reading. */

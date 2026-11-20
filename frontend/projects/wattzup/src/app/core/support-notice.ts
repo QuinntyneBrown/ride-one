@@ -1,4 +1,4 @@
-// What setup and a class page say when the browser edition cannot reach Bluetooth (L2-089 AC1,
+// What setup and a class page say when the page cannot reach Bluetooth (L2-089 AC1,
 // AC3): a banner over a page that stays usable, and why Start ride is disabled.
 import type { BluetoothSupport } from '@wattzup/api';
 

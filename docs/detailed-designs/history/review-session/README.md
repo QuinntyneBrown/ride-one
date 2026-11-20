@@ -14,37 +14,33 @@ After a ride, the rider wants to know how it went and whether it beat the last t
 
 **delta** — the change of average power from the previous attempt, written with its sign (`+12 W`, `−4 W`, `0 W`), so colour only adds to it
 
-The figures that compare sessions (previous attempt, bests, streak, weekly count) are computed in `Wattzup.Core` and served (ADR 0015); the page computes none of them. It only formats them and draws the traces.
+The figures that compare sessions (previous attempt, bests, streak, weekly count) are computed in `@wattzup/browser` and answered through `SESSION_API`; the page computes none of them. It only formats them and draws the traces.
 
 The feature extends these existing designs:
 - `dashboard/dialogs-and-notifications`: `End ride` on the bike goes to `/sessions/<session_id>`.
 - `dashboard/show-connection-status`: the bike-shut-off overlay offers `See your ride`, and a new `Ride complete` overlay appears when the plan ends.
-- `platform/host-and-structure`: gains the lazy route, the components and the endpoints.
+- `platform/host-and-structure`: gains the lazy route and the components.
 
 ## Description
 
-### Core (`Wattzup.Core/Sessions/ProgressCalculator.cs`, shared with `history/track-progress`)
+### Figures and contract (`@wattzup/browser`)
 
-- **`ProgressCalculator.PreviousAttempt(sessions, session)`** — the latest `completed` session with the same non-null `ClassId` and an earlier `EndedAt`, or `null` (L2-087).
-- **`ProgressCalculator.BestsSetBy(sessions, session)`** — the bests of the L2-087 table, in its order. The comparison uses only sessions that ended earlier, so a first ride sets no `Best 1-minute power`.
+- **`previousAttempt(sessions, session)`** (`lib/engine/progress-calculator.ts`, shared with `history/track-progress`) — the latest `completed` session with the same non-null `class_id` and an earlier `ended_at`, or `null` (L2-087).
+- **`bestsSetBy(sessions, session)`** — the bests of the L2-087 table, in its order. The comparison uses only sessions that ended earlier, so a first ride sets no `Best 1-minute power`.
+- **`BrowserSessionApi`** (`lib/contracts/`, implements `SESSION_API`; see `history/keep-sessions`):
+  - `list()` resolves `{sessions: [SessionSummary]}`, newest first (L2-083 criterion 1).
+  - `get(id)` resolves the record's fields plus `previous: SessionSummary | null` and `bests: string[]` (criterion 2). An id that does not match `^[a-f0-9]{12}$` or names no session answers `'not-found'` (criterion 3).
+  - `progress()` (`history/track-progress`) supplies the streak panel.
 
-### API (`Wattzup.Api/Endpoints/SessionEndpoints.cs`, new)
+### App and components
 
-These endpoints are mapped on the `/api` group, so the API key applies when one is set (L2-083 criterion 5). They are reads, so no control rate limit applies. Only `GET` is mapped, so any other method answers 405.
-- **`GET /api/sessions`** → `SessionListResponse { sessions: [SessionSummary] }`, newest first (L2-083 criterion 1).
-- **`GET /api/sessions/{id}`** → `SessionDetailResponse`, the record's fields plus `previous: SessionSummary | null` and `bests: string[]` (criterion 2).
-  - The id must match `^[a-f0-9]{12}$` and name a session in `SessionStore`. Otherwise the answer is `Problems.WithCode(404, "session_not_found", …)` (criterion 3).
-- Both declare `.Produces<…>()`, and the detail endpoint also `.ProducesProblem(404)`, so the OpenAPI document carries the shapes. `GET /api/progress` (`history/track-progress`) supplies the streak panel.
-
-### Frontend
-
-**API library.**
+**Contract (`@wattzup/api`).**
 - **`SessionApi`** (`src/lib/session-api.ts`, new) has three methods:
   - `list(): Promise<SessionSummary[]>`;
   - `get(id): Promise<SessionDetail | 'not-found'>`;
   - `progress(): Promise<Progress>`.
 
-  The token is `SESSION_API`, implemented by `HttpSessionApi`, and `app.config.ts` binds it. The types are generated.
+  The token is `SESSION_API`, implemented by `BrowserSessionApi`, and `app.config.ts` binds it. The types are in `src/contract/schema.d.ts`.
 
 **Presentation components (`projects/components/src/lib/`, new).** Each keeps the mock's BEM block and injects nothing.
 - **`SessionTraces`** (`session-traces/`, `wz-session-traces`) — two SVGs on one time axis:
@@ -94,16 +90,9 @@ These endpoints are mapped on the `/api` group, so the API key applies when one 
 
 ### Acceptance tests
 
-`Wattzup.Api.AcceptanceTests` (`SessionsApiTests`, shared with `history/track-progress`; the sessions file is seeded through `SessionFile.Write`):
-- `Given_no_sessions_then_the_list_is_empty` and `Given_sessions_then_the_list_has_their_summaries_newest_first` (L2-083 AC1)
-- `Given_a_session_id_then_the_whole_session_is_answered_with_its_previous_attempt_and_bests` and `Given_a_first_ride_then_previous_is_null_and_no_best_is_invented` (AC2, L2-087)
-- `Given_an_id_no_session_has_then_the_answer_is_404_session_not_found` (AC3)
-- `Given_another_method_then_the_answer_is_405` and `Given_an_api_key_then_a_request_without_it_answers_401` (AC5)
-- `The_three_endpoints_are_in_the_OpenAPI_document` (AC6)
+`@wattzup/browser` unit tests: `progress-calculator.spec.ts` has one case per row for the previous attempt and the bests (L2-087); the `BrowserSessionApi` tests, over an in-memory session database, cover an empty list, summaries newest first, a session with its previous attempt and bests, a first ride with `previous` `null` and no invented best, and not-found for an unknown or malformed id (L2-083 criteria 1 to 3).
 
-`Wattzup.Core.Tests` (`ProgressCalculatorTests`) has one case per row for the previous attempt and the bests (L2-087).
-
-Playwright (`e2e/session.spec.ts`, page object `e2e/pages/session-summary.page.ts`, stubs in `e2e/fixtures/sessions.ts` laid over the recorded answers), one test per behaviour of L2-085: the date line, title and delta (AC1, AC4); `All sessions` and `Ride this again` (AC2, AC3); the fall and `0 W` (AC4); the first ride (AC3, AC4, AC6); `Ended early` (AC5); the bests in order (AC6); the streak, week strip and weekly line (AC7); the traces' text alternative and dip bands (AC8); the dip rows and their highlight on hover and focus (AC9, AC10); no dips (AC9); the totals without heart rate (AC11); loading, not-found and error with `Try again` (AC12).
+Playwright (`e2e/session.spec.ts`, page object `e2e/pages/session-summary.page.ts`, sessions seeded into IndexedDB by `e2e/fixtures/sessions.ts` before the page loads), one test per behaviour of L2-085: the date line, title and delta (AC1, AC4); `All sessions` and `Ride this again` (AC2, AC3); the fall and `0 W` (AC4); the first ride (AC3, AC4, AC6); `Ended early` (AC5); the bests in order (AC6); the streak, week strip and weekly line (AC7); the traces' text alternative and dip bands (AC8); the dip rows and their highlight on hover and focus (AC9, AC10); no dips (AC9); the totals without heart rate (AC11); loading, not-found and error with `Try again` (AC12).
 
 L2-084 is proven where the ride ends: `e2e/dialogs.spec.ts` (`End ride with a saved ride opens its summary as just finished`, including the reload that reads `All sessions`) and `e2e/banners-and-states.spec.ts` (the `bike-shut-off` overlay with `See your ride`, `Ride complete` with it focused, no overlay without a session).
 
@@ -116,10 +105,10 @@ L2-084 is proven where the ride ends: `e2e/dialogs.spec.ts` (`End ride with a sa
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-083` | `L1-005` | Sessions API. `GET /api/sessions` (summaries, newest first), `GET /api/sessions/{id}` (the session with `previous` and `bests`, 404 `session_not_found`) and `GET /api/progress`, read-only, behind the API key, in the OpenAPI document. |
+| `L2-083` | `L1-005` | Session contract. `SESSION_API.list()` (summaries, newest first), `get(id)` (the session with `previous` and `bests`, or not found) and `progress()`. |
 | `L2-084` | `L1-015` | Ending a ride opens its summary. `End ride`, the bike-shut-off overlay and a new `Ride complete` overlay lead to `/sessions/<session_id>`. |
 | `L2-085` | `L1-015` | Session Summary page. The headline, delta, ended-early line, bests, streak panel, traces, dips with highlight and totals of one session, with `Done` / `All sessions`, `Ride this again`, and loading, not-found and error states. |
-| `L2-087` | `L1-015` | Streaks, weekly goal, previous attempt, bests and achievements, computed in Core in the backend's local time. |
+| `L2-087` | `L1-015` | Streaks, weekly goal, previous attempt, bests and achievements, computed in `@wattzup/browser` in the browser's time zone. |
 | `L2-051` | `L1-007` | End-ride dialog. Criterion 2: the bike goes to the saved session's summary. |
 | `L2-058` | `L1-006` | Ride dashboard states. Criterion 6: the bike-shut-off overlay offers `See your ride`. |
 
@@ -139,13 +128,13 @@ Wattzup Web asks the Wattzup API for one session and for the progress figures. T
 
 ### Components
 
-`SessionPage` calls `SESSION_API` and formats the result with `session-view.ts`. It renders `SessionTraces`, `DipList`, `WeekStrip` and `StatStrip`. On the backend, `SessionEndpoints` reads `SessionStore` and asks `ProgressCalculator` for the previous attempt, the bests and the figures.
+`SessionPage` calls `SESSION_API` and formats the result with `session-view.ts`. It renders `SessionTraces`, `DipList`, `WeekStrip` and `StatStrip`. `BrowserSessionApi` reads `SessionStore` and asks `progress-calculator` for the previous attempt, the bests and the figures.
 
 ![C4 component view for reviewing a session](diagrams/c4-component.png)
 
 ### Class structure
 
-The generated `SessionDetail` carries the record, `previous` and `bests`. The pure `session-view.ts` turns it into the views that the presentation components take.
+The contract's `SessionDetail` carries the record, `previous` and `bests`. The pure `session-view.ts` turns it into the views that the presentation components take.
 
 ![Class diagram for reviewing a session](diagrams/class-structure.png)
 

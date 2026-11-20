@@ -12,7 +12,6 @@ import {
   viewChild,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { BIKE_PAIRING, CLASS_API, type ClassEntry, WORKOUT_API } from '@wattzup/api';
 import { supportNotice } from '../../core/support-notice';
@@ -238,8 +237,7 @@ export class ClassPage {
     try {
       await this.workouts.start(plan);
       await this.router.navigateByUrl('/');
-    } catch (e) {
-      if (e instanceof HttpErrorResponse && e.status === 401) return;
+    } catch {
       this.startFailed.set(true);
     } finally {
       this.busy.set(false);

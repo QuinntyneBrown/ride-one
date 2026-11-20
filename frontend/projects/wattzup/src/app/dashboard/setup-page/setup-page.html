@@ -152,11 +152,7 @@
           tone="danger"
           icon="alert-circle"
           heading="Couldn't start the ride"
-          [text]="
-            e.kind === 'failed'
-              ? 'The Wattzup server didn\'t answer. Your settings are kept.'
-              : null
-          "
+          [text]="e.kind === 'failed' ? 'The ride didn\'t start. Your settings are kept.' : null"
         >
           @if (e.kind === 'invalid') {
             <ul class="setup-error__list">

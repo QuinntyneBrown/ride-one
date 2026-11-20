@@ -7,7 +7,7 @@
 <meta name="mock:kind" content="page">
 <meta name="mock:screen" content="ride">
 <meta name="mock:state" content="default">
-<meta name="mock:requirements" content="L2-018 L2-019 L2-020 L2-021 L2-023 L2-024 L2-025 L2-026 L2-027 L2-040 L2-041 L2-001 L2-013 L2-039 L2-076 L2-084 L2-079 L2-089 L2-090 L2-088">
+<meta name="mock:requirements" content="L2-018 L2-019 L2-020 L2-021 L2-023 L2-024 L2-025 L2-026 L2-027 L2-040 L2-041 L2-013 L2-058 L2-076 L2-084 L2-079 L2-089 L2-090 L2-088">
 <meta name="description" content="Mid-ride on the 8 × 40s / 20s HIIT plan: work round 5 of 8, on target at 317 W, resistance following the plan at 18.">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
@@ -134,34 +134,12 @@
 </div>
 <p class="mock-note" style="top: 15rem; left: 2rem;">The power trace is WebGL in the product (RideTrace) and redraws on every telemetry notification; this mock draws the same picture as static SVG.</p>
 <p class="mock-note" style="top: 4.5rem; left: 2rem;">Library is a plain link to /classes (L2-079 AC15): it sends nothing to the bike, so the ride keeps running and the dashboard picks it up again on return.</p>
-<p class="mock-note" style="top: 10rem; right: 24rem;">Interval time left counts down locally between the 1 Hz server updates (L2-024).</p>
+<p class="mock-note" style="top: 10rem; right: 24rem;">Interval time left counts down locally between the once-per-second state updates (L2-024).</p>
 
 <nav class="mock-bar" aria-label="Mock navigation">
   <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
   <span class="mock-bar__screen">Ride dashboard</span>
-  <ul class="mock-bar__states">
-    <li><a href="default.html" aria-current="page">default</a></li>
-    <li><a href="loading.html">loading</a></li>
-    <li><a href="empty.html">empty</a></li>
-    <li><a href="error.html">error</a></li>
-    <li><a href="paused.html">paused</a></li>
-    <li><a href="disconnected.html">disconnected</a></li>
-    <li><a href="scanning.html">scanning</a></li>
-    <li><a href="bluetooth-off.html">bluetooth-off</a></li>
-    <li><a href="offline.html">offline</a></li>
-    <li><a href="complete.html">complete</a></li>
-    <li><a href="ended.html">ended</a></li>
-    <li><a href="flat.html">flat</a></li>
-    <li><a href="manual.html">manual</a></li>
-    <li><a href="edge.html">edge</a></li>
-    <li><a href="video.html">video</a></li>
-    <li><a href="video-blocked.html">video-blocked</a></li>
-    <li><a href="class-workout.html">class-workout</a></li>
-    <li><a href="browser-unsupported.html">browser-unsupported</a></li>
-    <li><a href="browser-insecure.html">browser-insecure</a></li>
-    <li><a href="browser-bluetooth-off.html">browser-bluetooth-off</a></li>
-    <li><a href="browser-no-bike.html">browser-no-bike</a></li>
-  </ul>
+  <ul class="mock-bar__states"><li><a href="default.html" aria-current="page">default</a></li><li><a href="loading.html">loading</a></li><li><a href="empty.html">empty</a></li><li><a href="paused.html">paused</a></li><li><a href="disconnected.html">disconnected</a></li><li><a href="complete.html">complete</a></li><li><a href="ended.html">ended</a></li><li><a href="flat.html">flat</a></li><li><a href="manual.html">manual</a></li><li><a href="edge.html">edge</a></li><li><a href="video.html">video</a></li><li><a href="video-blocked.html">video-blocked</a></li><li><a href="class-workout.html">class-workout</a></li><li><a href="unsupported.html">unsupported</a></li><li><a href="insecure.html">insecure</a></li><li><a href="bluetooth-off.html">bluetooth-off</a></li><li><a href="no-bike.html">no-bike</a></li></ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
 </nav>

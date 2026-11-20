@@ -1,4 +1,4 @@
-// BIKE_PAIRING in the browser edition (L2-089, L2-090): Connect bike opens the browser's device
+// BIKE_PAIRING (L2-089, L2-090): Connect bike opens the browser's device
 // chooser. It also says whether the page can reach Bluetooth at all, and keeps the state's
 // `adapter` in step with getAvailability(), so the status line says when Bluetooth is off.
 import { inject, Injectable, signal } from '@angular/core';

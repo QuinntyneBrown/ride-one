@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Telemetry/PowerEstimator.cs: estimated power; the bike reports none
+// Estimated power; the bike reports none
 // (L2-049, ADR 0003).
 
 /** `max(0, round(cadence × (0.55 + level × 0.155)))`, halves away from zero, or null when either

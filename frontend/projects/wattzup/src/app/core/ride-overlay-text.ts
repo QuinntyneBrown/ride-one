@@ -1,5 +1,5 @@
 // The copy of the ride overlays (L2-058 AC3–AC6, L2-084).
-import type { BikeState, Edition } from '@wattzup/api';
+import type { BikeState } from '@wattzup/api';
 import { formatDuration } from './format-duration';
 import type { RideOverlayKind } from './ride-view-state';
 
@@ -14,27 +14,25 @@ export interface RideOverlayText {
   sessionId: string | null;
   /** The address to copy, or to open over HTTPS (L2-089). */
   link: string | null;
-  /** Bluetooth off in the browser edition: offer Check again (L2-089 AC2). */
+  /** Bluetooth off: offer Check again (L2-089 AC2). */
   checkAgain: boolean;
 }
 
 export function rideOverlayText(
   kind: RideOverlayKind,
   state: BikeState,
-  edition: Edition = 'backend',
   pageUrl = '',
 ): RideOverlayText {
   const base = { sessionId: state.workout?.session_id ?? null, link: null, checkAgain: false };
-  const browser = browserCopy(kind, edition, pageUrl);
+  const browser = browserCopy(kind, pageUrl);
   return browser ? { ...base, ...browser } : { ...base, ...overlayCopy(kind, state) };
 }
 
 type Copy = Omit<RideOverlayText, 'sessionId' | 'link' | 'checkAgain'>;
 
-/** The browser edition's overlays (L2-089): Web Bluetooth missing, not on HTTPS, or off. */
+/** The overlays about the browser (L2-089): Web Bluetooth missing, not on HTTPS, or off. */
 function browserCopy(
   kind: RideOverlayKind,
-  edition: Edition,
   pageUrl: string,
 ): (Copy & Partial<Pick<RideOverlayText, 'link' | 'checkAgain'>>) | null {
   switch (kind) {
@@ -61,19 +59,17 @@ function browserCopy(
         link: pageUrl.replace(/^http:/, 'https:'),
       };
     case 'adapter-off':
-      return edition === 'browser'
-        ? {
-            kind,
-            role: 'alert',
-            icon: 'bluetooth-off',
-            title: 'Turn on Bluetooth',
-            lines: [
-              'Your browser can’t see a Bluetooth radio. Switch it on in your computer’s settings — or, if this machine has none, plug in a USB Bluetooth adapter.',
-            ],
-            note: null,
-            checkAgain: true,
-          }
-        : null;
+      return {
+        kind,
+        role: 'alert',
+        icon: 'bluetooth-off',
+        title: 'Turn on Bluetooth',
+        lines: [
+          'Your browser can’t see a Bluetooth radio. Switch it on in your computer’s settings — or, if this machine has none, plug in a USB Bluetooth adapter.',
+        ],
+        note: null,
+        checkAgain: true,
+      };
     default:
       return null;
   }
@@ -83,9 +79,10 @@ function overlayCopy(kind: RideOverlayKind, state: BikeState): Copy {
   const bike = state.device_label ?? 'Your bike';
   const elapsed = formatDuration(state.workout?.elapsed_seconds ?? 0);
   switch (kind) {
-    // The browser-only kinds are worded by browserCopy and never reach here.
+    // browser-unsupported, browser-insecure and adapter-off are worded by browserCopy.
     case 'browser-unsupported':
     case 'browser-insecure':
+    case 'adapter-off':
     case 'connect-bike':
       return {
         kind,
@@ -113,17 +110,6 @@ function overlayCopy(kind: RideOverlayKind, state: BikeState): Copy {
         note: null,
       };
     }
-    case 'adapter-off':
-      return {
-        kind,
-        role: 'alert',
-        icon: 'bluetooth-off',
-        title: 'Bluetooth is off',
-        lines: [
-          "Wattzup can't reach this computer's Bluetooth adapter. Turn Bluetooth on — Wattzup retries every 3 seconds and connects on its own.",
-        ],
-        note: null,
-      };
     case 'bike-lost':
       return {
         kind,

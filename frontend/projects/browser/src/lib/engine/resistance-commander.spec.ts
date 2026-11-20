@@ -1,6 +1,6 @@
 // Unit Test
 // Traces to: L2-008, L2-048, L2-092
-// Description: ResistanceCommander, as Wattzup.Core's: writes set-resistance with response, sets
+// Description: ResistanceCommander writes set-resistance with response, sets
 // target_resistance and logs every attempt.
 import { TestBed } from '@angular/core/testing';
 import { BikeLink } from '../bluetooth/bike-link';
@@ -51,7 +51,7 @@ describe('ResistanceCommander', () => {
     warned.length = 0;
   });
 
-  it('a failed write is logged with the level and the reason, as the backend logs it', async () => {
+  it('a failed write is logged with the level and the reason', async () => {
     const { commander } = setUp(gatt(true));
     await commander.send(13, 'manual', null);
     expect(warned).toEqual(['Wattzup: set resistance 13 failed: GATT operation failed.']);

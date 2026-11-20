@@ -85,12 +85,12 @@
     <header class="ds-header">
       <p class="ds-kicker">Pattern</p>
       <h1>Live data</h1>
-      <p class="ds-lead">Live data is the heart of Wattzup: power, cadence, resistance and time, updating at 1 Hz from one event stream.</p>
+      <p class="ds-lead">Live data is the heart of Wattzup: power, cadence, resistance and time, updating once a second from one live state.</p>
       <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span></div>
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#when">When to use</a></li><li><a href="#structure">Structure</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
     <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
-<p>Replaces the kit's data-table pattern: Wattzup has no tables. Values come from <code>LiveStateService</code> (one <code>EventSource</code>). Readouts, interval, trace, metrics and the level control all read the same signal. Numerals are condensed and tabular so digits do not jump.</p>
+<p>Replaces the kit's data-table pattern: Wattzup has no tables. Values come from <code>LiveStateService</code> (one live state, read from the bike in the page). Readouts, interval, trace, metrics and the level control all read the same signal. Numerals are condensed and tabular so digits do not jump.</p>
     </section>
     <section class="ds-section" id="when"><h2><a href="#when">When to use</a></h2>
 <ul><li>Any value from the bike or the workout engine.</li></ul>
@@ -99,7 +99,7 @@
 <div class="ds-example"><div class="ds-example__canvas "><div class="readouts"><div class="readout readout--power"><span class="label">Power</span><div class="readout__value"><span class="numeral">317</span><span class="readout__unit">W</span></div><div class="readout__sub"><span>Target 327 W</span><span class="delta delta--on">On target</span></div></div><div class="readout readout--cadence"><span class="label">Cadence</span><div class="readout__value"><span class="numeral">95</span><span class="readout__unit">rpm</span></div><div class="readout__sub">Aim for 98</div></div></div></div><div class="ds-example__caption"><span>Readouts.</span></div></div>
     </section>
     <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
-<ul><li><b>Live</b> — full opacity.</li><li><b>Stale</b> — server or bike down: last values at <code>--opacity-stale</code>, a banner or overlay explains.</li><li><b>No data</b> — "--" while scanning or with Bluetooth off.</li><li><b>Requested vs reported</b> — target resistance shown separately until the bike confirms.</li></ul>
+<ul><li><b>Live</b> — full opacity.</li><li><b>Stale</b> — bike lost: last values at <code>--opacity-stale</code>, a banner or overlay explains.</li><li><b>No data</b> — "--" before a bike is connected or with Bluetooth off.</li><li><b>Requested vs reported</b> — target resistance shown separately until the bike confirms.</li></ul>
     </section>
     <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive</a></h2>
 <ul><li>Hero numbers shrink at 360px but never truncate; four-digit power fits.</li></ul>
@@ -114,7 +114,7 @@
 <div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><div class="readout readout--power is-stale"><span class="label">Power</span><div class="readout__value"><span class="numeral">317</span><span class="readout__unit">W</span></div><div class="readout__sub"><span>Target 327 W</span><span class="delta delta--on">On target</span></div></div></div><figcaption>Stale values dimmed and explained.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><div class="readout readout--power"><span class="label">Power</span><div class="readout__value"><span class="numeral">317</span><span class="readout__unit">W</span></div><div class="readout__sub"><span>Target 327 W</span><span class="delta delta--on">On target</span></div></div></div><figcaption>Showing old values as if live.</figcaption></figure></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a></li><li><a href="../../mocks/pages/ride/offline.html">pages/ride/offline</a></li><li><a href="../../mocks/pages/ride/scanning.html">pages/ride/scanning</a></li><li><a href="../../mocks/pages/ride/edge.html">pages/ride/edge</a></li></ul>
+<p>Extracted from:</p><ul><li><a href="../../mocks/pages/ride/default.html">pages/ride/default</a></li><li><a href="../../mocks/pages/ride/disconnected.html">pages/ride/disconnected</a></li><li><a href="../../mocks/pages/ride/no-bike.html">pages/ride/no-bike</a></li><li><a href="../../mocks/pages/ride/edge.html">pages/ride/edge</a></li></ul>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

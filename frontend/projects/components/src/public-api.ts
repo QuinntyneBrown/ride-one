@@ -14,7 +14,6 @@ export * from './lib/alert/alert';
 export * from './lib/auth-card/auth-card';
 export * from './lib/form-summary/form-summary';
 export * from './lib/dialog/dialog';
-export * from './lib/empty-state/empty-state';
 export * from './lib/readout/readout';
 export * from './lib/toast/toast';
 export * from './lib/main-view-tabs/main-view-tabs';

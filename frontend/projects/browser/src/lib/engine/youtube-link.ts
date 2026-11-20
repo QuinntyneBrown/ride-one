@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Workouts/YouTubeLink.cs: the video id of a YouTube link (L2-010 AC14).
+// The video id of a YouTube link (L2-010 AC14).
 export const MAX_LENGTH = 2048;
 
 const LINK =

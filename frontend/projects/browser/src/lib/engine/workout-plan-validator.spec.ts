@@ -1,7 +1,6 @@
 // Unit Test
 // Traces to: L2-010, L2-045, L2-092, L2-097
-// Description: Mirrors backend/tests/Wattzup.Core.Tests/WorkoutPlanValidatorTests.cs row for row,
-// with the same JSON bodies.
+// Description: The workout plan validator, one case per table row, on JSON bodies.
 import { validatePlan, VIDEO_LINK, VIDEO_START } from './workout-plan-validator';
 
 const HIIT =

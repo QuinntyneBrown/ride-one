@@ -85,7 +85,7 @@
     <header class="ds-header">
       <p class="ds-kicker">Component · Ride data</p>
       <h1>Code block</h1>
-      <p class="ds-lead">The code block shows raw text that must not wrap: the latest lines of raw_packets.log in diagnostics.</p>
+      <p class="ds-lead">The code block shows raw text that must not wrap, such as packet log lines. No screen shows one today: the packet log is downloaded from Diagnostics rather than listed (ADR 0019).</p>
       <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span></div>
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
@@ -138,7 +138,7 @@
 <pre><code>&lt;pre class="code-block" tabindex="0" aria-label="Latest raw packets"&gt;1794787812.…&lt;/pre&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.code-block</code></td><td>Scrollable block.</td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/dialogs/diagnostics/default.html">dialogs/diagnostics/default</a> (packets)</li><li><a href="../../mocks/dialogs/diagnostics/scroll.html">dialogs/diagnostics/scroll</a> (60 lines)</li></ul><p>Drift fixed during extraction: <code>.diag-log</code> renamed <code>.code-block</code>.</p>
+<p>Extracted from these mocks:</p><ul><li>The former server Diagnostics mocks (<code>dialogs/diagnostics/default</code> and <code>scroll</code>, removed with ADR 0019)</li></ul><p>Drift fixed during extraction: <code>.diag-log</code> renamed <code>.code-block</code>.</p>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

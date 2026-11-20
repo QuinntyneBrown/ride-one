@@ -1,5 +1,5 @@
 // Progress's text and drawing data (L2-086), and the class library's Progress link (L2-079
-// AC13), computed from what GET /api/progress and GET /api/sessions answer. Pure.
+// AC13), computed from what SESSION_API answers. Pure.
 import type {
   AchievementFigures,
   ClassAttempts,

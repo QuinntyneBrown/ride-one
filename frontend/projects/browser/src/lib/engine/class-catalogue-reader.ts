@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Classes/ClassCatalogueReader.cs: reads classes.json by the rules and limits
+// Reads classes.json by the rules and limits
 // of L2-077, keeping valid shelves and classes in file order and naming each one left out
 // (L2-096 AC2).
 import type { WorkoutPlan } from '@wattzup/api';

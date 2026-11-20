@@ -3,16 +3,14 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Estimate power and ride totals
 
-Person(rider, "Rider", "Rides the bike and watches the dashboard")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular SPA", "Power readout and ride totals strip")
-  Container(api, "Wattzup API", "ASP.NET Core (.NET LTS)", "Estimates in Wattzup.Core; state over SSE")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Estimates power and ride totals in the page")
+  Container(webbt, "Web Bluetooth stack", "navigator.bluetooth", "GATT client")
 }
-System_Ext(os, "OS Bluetooth stack", "WinRT / BlueZ / CoreBluetooth")
-System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+System_Ext(bike, "Echelon bike", "BLE GATT")
 
-Rel(rider, web, "Uses", "HTTPS / localhost")
-Rel(api, web, "Pushes power, target_power, avg_power, distance_km, kcal", "SSE")
-Rel(api, os, "Receives notifications", "IBikeTransport")
-Rel(os, bike, "Notifications", "BLE GATT")
+Rel(rider, app, "Uses")
+Rel(app, webbt, "connect, notify, write")
+Rel(webbt, bike, "GATT", "BLE")
 @enduml

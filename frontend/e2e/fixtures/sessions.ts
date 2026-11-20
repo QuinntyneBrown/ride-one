@@ -1,18 +1,29 @@
-// Stub sessions and progress in the L2-083 contract. Each builder starts from a response recorded
-// from the backend running with --simulate (a one-minute ride of 30 Minute HIIT Cardio) and lays
-// the mocks' cast on top: the class ridden to its end on Wednesday 18 Nov at 18:10, the day after
-// the previous attempt. A cast field the backend does not send fails the test.
-import recordedSession from './recorded/session.json';
-import recordedSessions from './recorded/sessions.json';
-import recordedProgress from './recorded/progress.json';
-import { fromRecording, type Json } from './states';
+// Sessions and progress in the L2-083 contract. Each builder starts from a sample in data/ (a
+// one-minute ride of 30 Minute HIIT Cardio) and lays the mocks' cast on top: the class ridden to
+// its end on Wednesday 18 Nov at 18:10, the day after the previous attempt. A cast field the sample
+// does not have fails the test.
+import recordedSession from './data/session.json';
+import recordedSessions from './data/sessions.json';
+import recordedProgress from './data/progress.json';
+
+export type Json = Record<string, unknown>;
+
+/** The sample with `cast` laid over it; throws on a field the sample lacks. */
+function fromRecording<T extends Json>(recorded: T, cast: Json, what: string): T {
+  for (const key of Object.keys(cast)) {
+    if (!(key in recorded)) {
+      throw new Error(`Stub ${what} sets "${key}", which the contract does not have.`);
+    }
+  }
+  return { ...recorded, ...cast };
+}
 
 const RECORDED_SESSION = recordedSession as unknown as Json;
 const RECORDED_SUMMARY = recordedSessions.sessions[0] as unknown as Json;
 const RECORDED_PROGRESS = recordedProgress as unknown as Json;
 const RECORDED_ACHIEVEMENT = recordedProgress.achievements[0] as unknown as Json;
 
-/** The 30 Minute HIIT Cardio segments, as the backend expands them: 30:00. */
+/** The 30 Minute HIIT Cardio segments, as the plan expander expands them: 30:00. */
 export const HIIT_SEGMENTS = recordedSession.segments;
 
 export const SESSION_ID = 'fa03e5b7c9d1';

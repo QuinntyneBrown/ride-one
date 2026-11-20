@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Telemetry/TelemetryIngestor.cs: the notify handler. It counts every frame,
+// The notify handler. It counts every frame,
 // decodes it and applies the result in one store update (L2-005 to L2-007, L2-049).
 import { inject, Injectable } from '@angular/core';
 import { CLOCK } from '../bluetooth/clock';

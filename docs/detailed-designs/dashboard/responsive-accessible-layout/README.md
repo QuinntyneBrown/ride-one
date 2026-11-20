@@ -49,7 +49,7 @@ Accessibility (L2-041):
 
 Tests:
 
-- Playwright behaviour specs, through the `RidePage` and `SetupPage` page objects with stubbed `/api/**` and a stubbed event stream, cover:
+- Playwright behaviour specs, through the `RidePage` and `SetupPage` page objects with the bike driven through the fake `navigator.bluetooth`, cover:
   - the Tab order through the app bar and the resistance panel;
   - the theme: dark by default under a light device preference, the toggle, and the choice kept across a reload;
   - the skip link;

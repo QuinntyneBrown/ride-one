@@ -1,8 +1,7 @@
 // Sends resistance commands and Back to plan from the dashboard, and turns failures into
 // danger toasts (L2-020, L2-047).
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { BIKE_API, RequestTimeoutError, WORKOUT_API } from '@wattzup/api';
+import { BIKE_API, isContractError, WORKOUT_API } from '@wattzup/api';
 import { ToastService } from './toast.service';
 
 const TITLE = "Couldn't set resistance";
@@ -17,8 +16,7 @@ export class ResistanceCommandService {
     try {
       await this.bike.setResistance(level);
     } catch (e) {
-      if (e instanceof HttpErrorResponse && e.status === 401) return;
-      if (e instanceof HttpErrorResponse && e.status === 503) {
+      if (isContractError(e, 'bike_not_connected')) {
         this.toasts.show({
           tone: 'danger',
           title: TITLE,
@@ -26,14 +24,10 @@ export class ResistanceCommandService {
         });
         return;
       }
-      const text =
-        e instanceof RequestTimeoutError
-          ? `The server didn't answer (timeout after 5 s). Level ${level} was not sent.`
-          : `The Wattzup server didn't answer. Level ${level} was not sent.`;
       const id = this.toasts.show({
         tone: 'danger',
         title: TITLE,
-        text,
+        text: `The bike didn't take it. Level ${level} was not set.`,
         action: {
           label: 'Retry',
           run: () => {
@@ -48,12 +42,11 @@ export class ResistanceCommandService {
   async backToPlan(): Promise<void> {
     try {
       await this.workouts.backToPlan();
-    } catch (e) {
-      if (e instanceof HttpErrorResponse && e.status === 401) return;
+    } catch {
       this.toasts.show({
         tone: 'danger',
         title: "Couldn't go back to the plan",
-        text: "The Wattzup server didn't answer. Try again.",
+        text: 'Something went wrong. Try again.',
       });
     }
   }

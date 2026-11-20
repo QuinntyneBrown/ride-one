@@ -3,24 +3,22 @@
 LAYOUT_WITH_LEGEND()
 title Components — Decode bike telemetry
 
-Container_Boundary(api, "Wattzup API") {
-  Component(conn, "IBikeConnection", "Wattzup.Ble.Abstractions", "Delivers notify payloads")
-  Component(ing, "TelemetryIngestor", "Wattzup.Core", "Logs, counts, decodes and applies frames")
-  Component(dec, "PacketDecoder", "Wattzup.Protocol", "Frame bytes to TelemetryUpdate")
-  Component(speed, "SpeedCalculator", "Wattzup.Protocol", "Cadence to km/h and mph")
-  Component(log, "RawPacketLogger and RecentPacketBuffer", "Wattzup.Core", "Raw frame log and last 60 lines")
-  Component(pow, "PowerEstimator", "Wattzup.Core", "Estimated power (estimate-power-and-totals)")
-  Component(cl, "CommandLog", "Wattzup.Core", "Acknowledges commands (log-resistance-commands)")
-  Component(store, "BikeStateStore", "Wattzup.Core", "Only writer of BikeState")
+Container_Boundary(app, "Wattzup Web") {
+  Component(link, "BikeLink", "@wattzup/browser lib/bluetooth", "Delivers notify payloads; logs packets")
+  Component(ing, "TelemetryIngestor", "lib/engine", "Counts, decodes and applies frames")
+  Component(dec, "decode()", "lib/protocol/packet-decoder", "Frame bytes to TelemetryUpdate")
+  Component(speed, "toKmh() / toMph()", "lib/protocol/speed-calculator", "Cadence to km/h and mph")
+  Component(pow, "estimateWatts()", "lib/engine/power-estimator", "Estimated power (estimate-power-and-totals)")
+  Component(cl, "acknowledge()", "lib/engine/command-log", "Acknowledges commands (log-resistance-commands)")
+  Component(store, "BikeStateStore", "lib/engine", "Only writer of BikeState")
 }
 System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
 
-Rel(bike, conn, "Notifications", "BLE GATT")
-Rel(conn, ing, "OnNotify(bytes)")
-Rel(ing, log, "Enqueue / Add(frame)")
-Rel(ing, dec, "Decode(frame)")
-Rel(dec, speed, "ToKmh / ToMph")
-Rel(ing, pow, "EstimateWatts(cadence, resistance)")
-Rel(ing, cl, "Acknowledge(level)")
-Rel(ing, store, "Update(packets, metrics, power, commands, timestamps)")
+Rel(bike, link, "Notifications", "Web Bluetooth GATT")
+Rel(link, ing, "onNotify(bytes)")
+Rel(ing, dec, "decode(frame)")
+Rel(dec, speed, "toKmh / toMph")
+Rel(ing, pow, "estimateWatts(cadence, resistance)")
+Rel(ing, cl, "acknowledge(commands, level, now)")
+Rel(ing, store, "update(packets, metrics, power, commands, timestamps)")
 @enduml

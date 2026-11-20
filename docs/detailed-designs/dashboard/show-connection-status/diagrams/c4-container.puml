@@ -3,16 +3,14 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Show connection status
 
-Person(rider, "Rider", "Rides the bike and watches the dashboard")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular SPA", "Status line, connection banners and ride overlays")
-  Container(api, "Wattzup API", "ASP.NET Core (net10.0)", "Hosted services, REST and SSE endpoints; includes Wattzup.Core and Wattzup.Protocol")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Status line, banners and ride overlays")
+  Container(webbt, "Web Bluetooth stack", "navigator.bluetooth", "GATT client")
 }
-System_Ext(os, "OS Bluetooth stack", "CoreBluetooth / BlueZ / WinRT")
-System_Ext(bike, "Echelon bike", "Proprietary BLE GATT service")
+System_Ext(bike, "Echelon bike", "BLE GATT")
 
-Rel(rider, web, "Uses", "HTTP / localhost")
-Rel(web, api, "Calls REST and subscribes to SSE", "JSON/HTTP, same origin")
-Rel(api, os, "Scans, connects, subscribes and writes", "IBikeTransport")
-Rel(os, bike, "Notifications and commands", "BLE GATT")
+Rel(rider, app, "Uses")
+Rel(app, webbt, "connect, notify, write")
+Rel(webbt, bike, "GATT", "BLE")
 @enduml

@@ -12,28 +12,22 @@ skinparam class {
 title Class structure — Show connection status
 
 class LiveStateService <<service>> {
-  +Signal<BikeState | null> state
-  +Signal<'connecting' | 'open' | 'offline'> connection
-  +Signal<Date | null> lastStateAt
-  +Signal<boolean> loadFailed
-  +RECONNECT_DELAY_MS = 2000
-  +retryNow(): void
-  +reload(): void
-  -connect(): void
+  +state: Signal<BikeState | null>
+  +lastStateAt: Signal<Date | null>
 }
 class ConnectionStatus <<value>> {
   +string name
   +string label
-  +'bluetooth' | 'bluetooth-off' | 'wifi-off' icon
-  +'ok' | 'wait' | 'bad' tone
+  +'bluetooth' | 'bluetooth-off' icon
+  +'ok' | 'wait' | 'bad' | 'quiet' tone
   +boolean scanning
 }
 class connectionStatus <<pure helper>> {
-  +connectionStatus(state, connection, loadFailed): ConnectionStatus
+  +connectionStatus(state, support, pairingRequired): ConnectionStatus
 }
 class RideViewState <<value>> {
-  +'loading' | 'load-failed' | 'ride' view
-  +'scanning' | 'adapter-off' | 'bike-lost' | 'bike-shut-off' | null overlay
+  +'loading' | 'ride' view
+  +'browser-unsupported' | 'browser-insecure' | 'adapter-off' | 'connect-bike' | 'bike-shut-off' | 'ride-complete' | 'bike-lost' | null overlay
   +boolean dimmed
   +boolean commandsEnabled
   +boolean pauseEnabled
@@ -41,11 +35,11 @@ class RideViewState <<value>> {
   +string | null controlsNote
 }
 class rideViewState <<pure helper>> {
-  +rideViewState(state, connection, loadFailed): RideViewState
+  +rideViewState(state, pairingRequired, support): RideViewState
 }
 class Banner <<value>> {
-  +'offline' | 'adapter-off' | 'reconnected' | 'simulated' | 'exposed' id
-  +'warning' | 'danger' | 'success' | 'info' tone
+  +'adapter-off' | 'reconnected' | 'simulated' id
+  +'danger' | 'success' | 'info' tone
   +string title
   +string text
   +string | null action

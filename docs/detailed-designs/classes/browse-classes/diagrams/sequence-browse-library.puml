@@ -6,28 +6,26 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "ClassLibraryPage" as page
   participant "class-library-view.ts" as view
   participant "ClassCard" as card
-  participant "CLASS_API" as client
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "ClassEndpoints" as ep
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserClassApi (CLASS_API)" as client
 end box
-box "Backend — Wattzup Core" #ECFDF3
-  participant "ClassCatalogueStore" as store
-end box
+participant "Static host" as ep
 participant "i.ytimg.com" as yt
 
 rider -> page : Open /classes
   page --> rider : Skeletons, tabs disabled [L2-079 AC8]
   page -> client : list()
-  client -> ep : GET /api/classes (X-Api-Key when set) [L2-078 AC6]
-  ep -> store : Current
-  store --> ep : Shelves and classes
-  ep --> client : 200 {shelves:[…]} in file order [L2-078 AC1]
-  alt request failed
+  opt first call on this page load
+    client -> ep : fetch classes.json (no-cache)
+    ep --> client : file; read and validated (classes/load-class-catalogue)
+  end
+  client -> client : shelves in file order [L2-078 AC1]
+  alt call failed
     client --> page : error
     page --> rider : Couldn't load the classes, Try again [L2-079 AC10]
   else shelves empty

@@ -1,6 +1,6 @@
 # 0018. A static Content-Security-Policy for the browser edition
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [0019](0019-no-backend.md) (no backend: the `<meta>` policy in `index.html` is the only policy)
 - **Date:** 2026-11-19
 - **Amends:** [0017](0017-browser-edition.md)
 

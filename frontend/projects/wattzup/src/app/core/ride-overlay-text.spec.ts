@@ -47,26 +47,24 @@ describe('rideOverlayText', () => {
     expect(rideOverlayText('bike-shut-off', s).sessionId).toBe('abc123abc123');
   });
 
-  describe('in the browser edition (L2-089)', () => {
+  describe('about the browser (L2-089)', () => {
     const url = 'http://wattzup.example/ride';
 
     it('offers the page address to copy where Web Bluetooth is missing', () => {
-      const o = rideOverlayText('browser-unsupported', testState(), 'browser', url);
+      const o = rideOverlayText('browser-unsupported', testState(), url);
       expect([o.title, o.link, o.role]).toEqual(['Open Wattzup in Chrome or Edge', url, 'alert']);
     });
 
     it('offers the https address on a plain http page', () => {
-      const o = rideOverlayText('browser-insecure', testState(), 'browser', url);
+      const o = rideOverlayText('browser-insecure', testState(), url);
       expect(o.title).toBe('Open the secure version of this page');
       expect(o.lines[0]).toContain(url);
       expect(o.link).toBe('https://wattzup.example/ride');
     });
 
-    it('words Bluetooth off for the browser, with Check again', () => {
-      const browser = rideOverlayText('adapter-off', testState({ adapter: 'off' }), 'browser', url);
-      const backend = rideOverlayText('adapter-off', testState({ adapter: 'off' }));
-      expect([browser.title, browser.checkAgain]).toEqual(['Turn on Bluetooth', true]);
-      expect([backend.title, backend.checkAgain]).toEqual(['Bluetooth is off', false]);
+    it('words Bluetooth off with Check again', () => {
+      const o = rideOverlayText('adapter-off', testState({ adapter: 'off' }), url);
+      expect([o.title, o.checkAgain]).toEqual(['Turn on Bluetooth', true]);
     });
   });
 });

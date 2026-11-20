@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Workouts/WorkoutSummary.cs: the one-line name of a plan (L2-017).
+// The one-line name of a plan (L2-017).
 import { expand, type PlanShape } from './plan-expander';
 
 export function summaryFor(plan: PlanShape): string {

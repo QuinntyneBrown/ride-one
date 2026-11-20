@@ -3,14 +3,12 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Track progress
 
-Person(rider, "Rider", "Checks progress")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular", "Progress at /progress; Progress link on /classes")
-  Container(api, "Wattzup API", "ASP.NET Core", "Computes streaks, goals, trends and achievements")
-  ContainerDb(file, "Sessions file", "JSON file", "sessions.json")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Progress page; figures computed in the browser")
+  ContainerDb(db, "IndexedDB", "Database wattzup", "Sessions and the ride journal")
 }
 
-Rel(rider, web, "Uses", "Browser")
-Rel(web, api, "GET /api/sessions, GET /api/progress", "JSON/HTTP")
-Rel(api, file, "Loaded at start", "File system")
+Rel(rider, app, "Uses")
+Rel(app, db, "Reads and writes")
 @enduml

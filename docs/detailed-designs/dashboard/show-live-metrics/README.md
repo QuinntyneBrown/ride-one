@@ -22,7 +22,7 @@ The trace and the totals strip replace the prototype's 150-sample sparklines, an
 
 Core helpers and services (`frontend/projects/wattzup/src/app/core/`, each with unit tests):
 
-- **`estimateWatts(cadence, level)`** — the design's formula, implemented once in the frontend and checked against the same table of cases as `Wattzup.Core` (L2-049, L2-059).
+- **`estimateWatts(cadence, level)`** — the design's formula, in the app's `core/`, checked against the same table of cases as the engine's `estimateWatts` in `@wattzup/browser` (L2-049, L2-059).
 - **`powerDelta(power, target, status)`** — returns `{text, tone}` (L2-021):
   - With no workout it returns `null`, and the sub-line reads `Free ride — no target`.
   - When `status` is not `running` it returns `Paused` with tone `low`.
@@ -41,8 +41,8 @@ Core helpers and services (`frontend/projects/wattzup/src/app/core/`, each with 
   - `ticks`: the smallest step of 2, 5, 10, 15, 30 or 60 minutes that gives 8 or fewer ticks from `0:00`. A 12:40 ride gets `0:00` to `12:00` every 2 minutes; the default 22:40 ride gets `0:00` to `20:00` every 5 minutes.
   - `planAverage`: the time-weighted mean target power, used in the text summary.
   - `legend`: Actual and Work target, plus Recover for `hiit`.
-- **`PowerTraceStore`** — root service holding the browser copy of `PowerTraceHistory` (`live-state/serve-power-trace`) as 2 `Int32Array`s of 10,800 entries (`platform/observability-and-resources`).
-  - On the first state with a workout, and after the stream reconnects, it loads `GET /api/workout/trace` through `BikeApi.getTrace()` (L2-026, L2-050).
+- **`PowerTraceStore`** — root service holding the dashboard's copy of the power trace history (`live-state/run-rides`) as 2 `Int32Array`s of 10,800 entries.
+  - On the first state with a workout, which is also the first state after the rider comes back to the dashboard mid-ride, it loads `WORKOUT_API.trace()` (L2-026, L2-050).
   - On each state message with `status` `running` it appends `[elapsed_seconds, power ?? 0]`. When `elapsed_seconds` skips ahead by more than 1, it reloads the history instead.
   - It resets when a new workout starts, which shows as `elapsed_seconds` going back or a workout appearing.
 - **`TraceRenderer`** — interface behind which both renderers sit (ADR 0006, L2-028):
@@ -53,7 +53,7 @@ Core helpers and services (`frontend/projects/wattzup/src/app/core/`, each with 
   - Colours are read from the role tokens `--color-series-work`, `--color-series-rest`, `--color-series-easy`, `--color-series-actual`, `--color-series-grid` and `--color-playhead` on the host element. They are read again when the colour scheme changes, never hard-coded.
 - **`createTraceRenderer(canvas)`** — factory bound to the `TRACE_RENDERER_FACTORY` token in `app.config.ts`. It requests a `webgl2` context and compiles both shaders. When the context is `null` or a shader fails to compile, it replaces the canvas with a fresh one and returns a `Canvas2dTraceRenderer`. A later `webglcontextlost` event falls back the same way (L2-028).
 - **`TraceRendererStatus`** — root signal holding the active `kind`, which the diagnostics dialog shows as `Trace renderer: WebGL` or `Canvas 2D` (`dialogs-and-notifications`).
-- **`FrameScheduler`** — the only `requestAnimationFrame` caller. It coalesces requests to one draw per frame and stops while the tab is hidden (`platform/observability-and-resources`).
+- **`FrameScheduler`** — the only `requestAnimationFrame` caller. It coalesces requests to one draw per frame and stops while the tab is hidden.
 
 Components (presentation components in `frontend/projects/components/src/lib/`, the rest in `frontend/projects/wattzup/src/app/dashboard/` (ADR 0013; mapping in `platform/host-and-structure`); OnPush, signals only):
 
@@ -64,7 +64,7 @@ Components (presentation components in `frontend/projects/components/src/lib/`, 
 - **`MetricList`** (`wz-metric-list`, block `metrics`) — a `dl` of Heart rate, Avg power, Speed, Distance and Energy (L2-022).
   - Heart rate always shows `--` `bpm`, because `heart_rate` is always `null` (ADR 0003).
   - Speed shows `speed_kmh` with `km/h · <speed_mph> mph`, for example `25.1` `km/h · 15.6 mph` (L2-021).
-  - Totals stay on screen after a ride ends or stops, because the backend keeps their final values until a new ride starts (L2-049).
+  - Totals stay on screen after a ride ends or stops, because the workout engine keeps their final values until a new ride starts (L2-049).
 - **`RideTrace`** (`wz-ride-trace`, block `trace`) — a `figure` with the `trace__head` caption `Power vs. plan` and the `trace__legend` list. `trace__plot` holds the canvas, and `trace__axis` holds the ticks.
 - **With a ride-along video** — when `workout.plan.video` is set, `RidePage` puts the `Main view` tab list above the main area, with `Video` selected and `Power vs. plan`. `Video` shows `wz-ride-video` and `wz-plan-strip` in place of `RideTrace`. `Power vs. plan` shows `RideTrace` as above, while the hidden player keeps following the ride. With `video` `null` nothing changes (L2-076 criteria 1 and 2; `workouts/ride-along-video`).
   - The canvas carries `aria-hidden="true"`. A visually hidden summary reads `Average <avg_power> W against a plan average of <planAverage> W` (L2-028).
@@ -78,10 +78,10 @@ Tests:
 
 - Unit tests cover `estimateWatts`, `powerDelta` (one case per row of L2-021 criteria 1–3), `metricFormat`, `traceGeometry` (y maximum and tick step cases, past flags, legend per kind) and `PowerTraceStore` (restore, append, gap reload, reset).
 - `createTraceRenderer` is tested with a stubbed `getContext` returning `null` and with a shader compile failure, and each case returns `Canvas 2D`.
-- Playwright behaviour specs use the `RidePage` page object with stubbed `/api/**` and a stubbed event stream. They assert:
+- Playwright behaviour specs use the `RidePage` page object and drive the bike through the fake `navigator.bluetooth`. They assert:
   - the readout text for the default, delta, paused and free-ride states;
   - `--` for `null` fields, the totals strip values and the heart-rate `--`;
-  - that a reload mid-ride requests `GET /api/workout/trace`;
+  - that the trace is restored when the rider leaves the dashboard mid-ride and comes back;
   - the empty trace, the legend, the axis ticks and the text summary;
   - `Trace renderer: Canvas 2D` when an init script makes `getContext('webgl2')` return `null`.
 - Pixel comparison of the 2 renderers belongs to the visual sweep, which runs only when a person asks.
@@ -106,7 +106,7 @@ The rider watches power, cadence, speed and totals that Wattzup derives and esti
 
 ### Containers
 
-Wattzup Web renders the values streamed by the Wattzup API, and restores the trace history from it after a reload.
+Wattzup Web renders the values of the live state, and restores the trace history from the workout engine when the dashboard is shown again.
 
 ![C4 container view for showing live metrics](diagrams/c4-container.png)
 
@@ -124,6 +124,6 @@ The 2 renderers realise one interface. The geometry and formatting rules are pur
 
 ### Behaviour — renderer choice, restore and draw
 
-On first render the factory picks WebGL or falls back to Canvas 2D. A reload mid-ride restores the history from the API, and each telemetry update is drawn on the next animation frame (L2-026, L2-028).
+On first render the factory picks WebGL or falls back to Canvas 2D. Returning to the dashboard mid-ride restores the history from `WORKOUT_API.trace()`, and each telemetry update is drawn on the next animation frame (L2-026, L2-028).
 
 ![Sequence diagram for choosing a renderer, restoring the trace and drawing](diagrams/sequence-restore-and-draw.png)

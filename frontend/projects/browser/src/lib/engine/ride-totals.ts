@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Workouts/RideTotals.cs: what a ride has added up over its running seconds
+// What a ride has added up over its running seconds
 // (L2-049).
 import { roundAwayFromZero } from './rounding';
 

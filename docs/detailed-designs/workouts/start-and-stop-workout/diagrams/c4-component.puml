@@ -8,13 +8,11 @@ Container_Boundary(web, "Wattzup Web") {
   Component(controls, "RideControls", "Angular component, wz-ride-controls", "Pause or Resume in the app bar")
   Component(setup, "SetupPage", "Angular component, wz-setup-page", "Builds the plan (set-up-ride)")
   Component(live, "LiveStateService", "Angular service", "Read-only state signal")
-  Component(wapi, "WorkoutApi", "Contract + WORKOUT_API token", "start, stop, pause, resume, backToPlan, trace")
-}
-Container_Boundary(be, "Wattzup API") {
-  Component(ep, "WorkoutEndpoints", "Minimal API", "/api/workout route group")
-  Component(val, "WorkoutPlanValidator", "Wattzup.Core", "JSON to WorkoutPlan or errors map")
-  Component(engine, "WorkoutEngine", "BackgroundService, Wattzup.Core", "Runs one workout at a time")
-  Component(trace, "PowerTraceHistory", "Wattzup.Core", "Running-second power samples (L2-050)")
+  Component(wapi, "WorkoutApi", "Contract + WORKOUT_API token, @wattzup/api", "start, stop, pause, resume, backToPlan, trace")
+  Component(impl, "BrowserWorkoutApi", "@wattzup/browser lib/contracts", "Validates and calls the engine")
+  Component(val, "validatePlan", "@wattzup/browser lib/engine", "Plan or errors map")
+  Component(engine, "WorkoutEngine", "@wattzup/browser lib/engine", "Runs one workout at a time")
+  Component(trace, "PowerTraceHistory", "@wattzup/browser lib/engine", "Running-second power samples (L2-050)")
 }
 
 Rel(rider, controls, "Presses Pause or Resume")
@@ -22,8 +20,8 @@ Rel(rider, setup, "Presses Start ride")
 Rel(controls, live, "Reads workout status")
 Rel(controls, wapi, "pause() / resume()")
 Rel(setup, wapi, "start(plan)")
-Rel(wapi, ep, "POST / GET", "JSON/HTTP")
-Rel(ep, val, "Validate(body)")
-Rel(ep, engine, "StartAsync / StopAsync / PauseAsync / ResumeAsync / BackToPlanAsync")
-Rel(ep, trace, "Samples()")
+Rel(impl, wapi, "Implements")
+Rel(impl, val, "validatePlan(body)")
+Rel(impl, engine, "startWorkout / stop / pause / resume / backToPlan / trace")
+Rel(engine, trace, "Adds a sample each running second")
 @enduml

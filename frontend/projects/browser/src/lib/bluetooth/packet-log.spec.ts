@@ -1,5 +1,5 @@
 // Unit Test
-// Traces to: L2-030, L2-095
+// Traces to: L2-095
 // Description: Mirrors RawPacketTests: the raw-log line format and the ring, here of 2,000 lines,
 // oldest first; commands are always kept, the bike's packets only while every packet is logged.
 import { TestBed } from '@angular/core/testing';

@@ -1,5 +1,5 @@
 // The Session Summary's text and drawing data (L2-085), computed from the session and progress
-// the backend answers. Pure: the page passes the time zone only in tests.
+// SESSION_API answers. Pure: the page passes the time zone only in tests.
 import type { Dip, ProgressReport, SessionDetail } from '@wattzup/api';
 import type {
   CalendarDay,

@@ -10,13 +10,7 @@
       [attr.aria-busy]="view().view === 'loading' ? 'true' : null"
     >
       <h1 class="visually-hidden">Ride dashboard</h1>
-      @if (view().view === 'load-failed') {
-        <wz-empty-state
-          [status]="live.loadStatus()"
-          (retry)="live.reload()"
-          (diagnostics)="dialogs.openDiagnostics()"
-        />
-      } @else if (view().view === 'loading') {
+      @if (view().view === 'loading') {
         <div class="readouts" aria-hidden="true">
           <div>
             <span class="label">Power</span>

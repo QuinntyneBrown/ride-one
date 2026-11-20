@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Sessions/SessionStore.cs: the saved sessions, newest first, the newest 500
+// The saved sessions, newest first, the newest 500
 // kept (L2-082, L2-094 AC3). It loads from the SessionDatabase once and writes each change; a
 // failed write keeps the session in memory for this page (L2-094 AC7).
 import { inject, Injectable } from '@angular/core';

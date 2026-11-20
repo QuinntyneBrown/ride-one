@@ -1,7 +1,10 @@
-// The Diagnostics dialog's rows in the browser edition (L2-095): only what the browser knows. The
-// backend's server, transport, snapshot and viewer rows have no counterpart here (AC3).
+// The Diagnostics dialog's rows (L2-095): only what the browser knows.
 import type { BikeState, BluetoothSupport, PacketLogView } from '@wattzup/api';
-import type { DiagnosticsRow } from './diagnostics-report';
+
+export interface DiagnosticsRow {
+  label: string;
+  value: string;
+}
 
 export interface BrowserDiagnosticsInput {
   state: BikeState | null;
@@ -73,15 +76,12 @@ export function browserDiagnosticsRows(input: BrowserDiagnosticsInput): Diagnost
   } else {
     rows.push({ label: 'Bike', value: 'None connected' });
   }
-  rows.push(
-    {
-      label: 'Rides stored',
-      value: stored
-        ? `${stored.rides}${stored.bytes === null ? '' : ` · ${kilobytes(stored.bytes)}`} in this browser`
-        : 'Counting…',
-    },
-    { label: 'Edition', value: 'Browser edition' },
-  );
+  rows.push({
+    label: 'Rides stored',
+    value: stored
+      ? `${stored.rides}${stored.bytes === null ? '' : ` · ${kilobytes(stored.bytes)}`} in this browser`
+      : 'Counting…',
+  });
   return rows;
 }
 

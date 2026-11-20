@@ -1,6 +1,5 @@
-// CLASS_API in the browser edition (L2-096): the catalogue is the classes.json beside index.html,
-// fetched once per page and read by the L2-077 rules. Answers match GET /api/classes and
-// GET /api/classes/{id} (L2-078), so the class library and class pages are unchanged.
+// CLASS_API (L2-096): the catalogue is the classes.json beside index.html, fetched once per page
+// and read by the L2-077 rules (L2-078).
 import { inject, Injectable, InjectionToken } from '@angular/core';
 import type { ClassApi, ClassCatalogue, ClassEntry } from '@wattzup/api';
 import {
@@ -17,7 +16,7 @@ export const CATALOGUE_FETCH = new InjectionToken<() => Promise<Response>>('CATA
   factory: () => () => fetch(new URL('classes.json', document.baseURI), { cache: 'no-cache' }),
 });
 
-/** Where the edition writes what it left out (L2-096 AC2); a seam for tests. */
+/** Where the reader writes what it left out (L2-096 AC2); a seam for tests. */
 export const CATALOGUE_LOG = new InjectionToken<Pick<Console, 'warn' | 'error'>>('CATALOGUE_LOG', {
   providedIn: 'root',
   factory: () => console,

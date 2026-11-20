@@ -1,6 +1,5 @@
-// SESSION_API in the browser edition (L2-094): sessions come from IndexedDB through SessionStore,
-// and Progress is computed in the page, in the browser's time zone (AC8). Answers have the shapes
-// of GET /api/sessions, /api/sessions/{id} and /api/progress.
+// SESSION_API (L2-094): sessions come from IndexedDB through SessionStore, and Progress is
+// computed in the page, in the browser's time zone (AC8).
 import { inject, Injectable } from '@angular/core';
 import type { ProgressReport, SessionApi, SessionDetail, SessionList } from '@wattzup/api';
 import { CLOCK } from '../bluetooth/clock';

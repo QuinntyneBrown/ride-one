@@ -36,7 +36,7 @@ describe('browser diagnostics (L2-095)', () => {
     stored: { rides: 11, bytes: 418 * 1024 },
   };
 
-  it('lists what the browser knows for a connected bike, and no backend rows', () => {
+  it('lists what the browser knows for a connected bike', () => {
     const state = testState({
       device: 'ECHEX-3',
       ble: 'connected',
@@ -52,7 +52,6 @@ describe('browser diagnostics (L2-095)', () => {
       'Connection: Connected',
       'Last command: RES 18 · plan · ack 40 ms',
       'Rides stored: 11 · 418 KB in this browser',
-      'Edition: Browser edition',
     ]);
   });
 
@@ -66,7 +65,6 @@ describe('browser diagnostics (L2-095)', () => {
       'Page',
       'Bike',
       'Rides stored',
-      'Edition',
     ]);
     expect(rows.find((r) => r.label === 'Bike')?.value).toBe('None connected');
   });

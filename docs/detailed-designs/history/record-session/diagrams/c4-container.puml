@@ -3,16 +3,16 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Record a session
 
-Person(rider, "Rider", "Ends a ride")
-System_Boundary(wattzup, "Wattzup") {
-  Container(web, "Wattzup Web", "Angular", "Ride dashboard, End ride dialog")
-  Container(api, "Wattzup API", "ASP.NET Core", "Workout engine; builds and saves sessions")
-  ContainerDb(file, "Sessions file", "JSON file", "sessions.json: the newest 500 sessions")
+Person(rider, "Rider", "Rides and watches")
+System_Boundary(browser, "Rider's browser (Chrome or Edge)") {
+  Container(app, "Wattzup Web", "Angular + @wattzup/browser", "Workout engine builds and keeps sessions")
+  ContainerDb(db, "IndexedDB", "Database wattzup", "Sessions and the ride journal")
+  Container(webbt, "Web Bluetooth stack", "navigator.bluetooth", "GATT client")
 }
-System_Ext(bike, "Echelon bike", "BLE")
+System_Ext(bike, "Echelon bike", "BLE GATT")
 
-Rel(rider, web, "Uses", "Browser")
-Rel(web, api, "POST /api/workout/stop; GET /api/events", "JSON/HTTP, SSE")
-Rel(api, bike, "Samples power and cadence each second", "BLE")
-Rel(api, file, "Reads at start, writes atomically after each save", "File system")
+Rel(rider, app, "Uses")
+Rel(app, db, "Reads and writes")
+Rel(app, webbt, "connect, notify, write")
+Rel(webbt, bike, "GATT", "BLE")
 @enduml

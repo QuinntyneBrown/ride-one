@@ -1,5 +1,5 @@
 // The frontend's single implementation of the plan rules (L2-045, L2-060, L2-049),
-// mirroring PlanExpander, WorkoutSummary and PowerEstimator in Wattzup.Core.
+// by the same rules as the plan expander, workout summary and power estimator in @wattzup/browser.
 import type { IntervalsPlan, Segment, WorkoutPlan } from '@wattzup/api';
 import { formatDuration } from './format-duration';
 

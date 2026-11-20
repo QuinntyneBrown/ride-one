@@ -9,24 +9,22 @@ box "Frontend — Wattzup Web" #E0F2FE
   participant "ProgressPage" as page
   participant "progress-view.ts" as view
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "SessionEndpoints" as ep
-end box
-box "Backend — Wattzup Core" #ECFDF3
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserSessionApi" as ep
   participant "SessionStore" as store
-  participant "ProgressCalculator" as calc
-  participant "TimeProvider" as time
+  participant "progress-calculator" as calc
+  participant "Clock and TimeZone" as time
 end box
 
 page -> page : phase = loading [L2-086 AC10]
 par
-  page -> ep : GET /api/sessions
-  ep -> store : All
+  page -> ep : list()
+  ep -> store : sessions
   ep --> page : summaries, newest first [L2-083 AC1]
 else
-  page -> ep : GET /api/progress
-  ep -> time : GetUtcNow, LocalTimeZone
-  ep -> calc : Report(sessions, now, zone) [L2-087]
+  page -> ep : progress()
+  ep -> time : epochMs(), BROWSER_TIME_ZONE
+  ep -> calc : report(sessions, now, zone) [L2-087]
   calc --> ep : streak, ride_days, week, totals, classes, achievements
   ep --> page : Progress [L2-083 AC4]
 end

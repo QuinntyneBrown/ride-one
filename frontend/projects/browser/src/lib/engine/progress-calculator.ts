@@ -1,4 +1,4 @@
-// Mirrors Wattzup.Core/Sessions/ProgressCalculator.cs: the streak, the week, bests and
+// The streak, the week, bests and
 // achievements of L2-087, in the rider's local days (L2-094 AC8).
 import type {
   AchievementFigures,

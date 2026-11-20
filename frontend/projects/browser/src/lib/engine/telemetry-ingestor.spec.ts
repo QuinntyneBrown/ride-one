@@ -1,6 +1,6 @@
 // Unit Test
 // Traces to: L2-005, L2-006, L2-007, L2-049, L2-092
-// Description: Mirrors backend/tests/Wattzup.Core.Tests/TelemetryIngestorTests.cs: every frame
+// Description: The telemetry ingestor: every frame
 // counts; decoded frames set metrics, power and timestamps; a resistance report acknowledges.
 import { TestBed } from '@angular/core/testing';
 import { CLOCK } from '../bluetooth/clock';

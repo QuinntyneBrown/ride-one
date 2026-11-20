@@ -6,7 +6,6 @@
 
 [![CI](https://github.com/QuinntyneBrown/wattzup/actions/workflows/ci.yml/badge.svg)](https://github.com/QuinntyneBrown/wattzup/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![.NET 10](https://img.shields.io/badge/.NET-10-512BD4.svg)
 ![Angular 22](https://img.shields.io/badge/Angular-22-DD0031.svg)
 
 Wattzup turns an Echelon bike into a live training display. It connects to the bike over Bluetooth
@@ -14,13 +13,9 @@ Low Energy, shows its metrics in real time (cadence, speed and resistance), and 
 workouts that set the bike's resistance for the rider, with a countdown clock and cues at every
 step.
 
-Wattzup comes in two editions of the same app ([ADR 0017](docs/adr/0017-browser-edition.md)):
-
-- The **backend edition** runs as a single process on the computer next to the bike: an ASP.NET
-  Core backend that talks to the bike and serves an Angular dashboard from the same origin.
-- The **browser edition** is that dashboard alone, served as static files. It talks to the bike
-  over Web Bluetooth and keeps everything in the browser. It needs Chrome or Edge; see
-  [Run in the browser](#run-in-the-browser).
+Wattzup is an Angular app served as static files. It talks to the bike over Web Bluetooth and
+keeps everything in the browser; there is nothing to install next to the bike. It needs Chrome or
+Edge.
 
 ## Contents
 
@@ -29,6 +24,7 @@ Wattzup comes in two editions of the same app ([ADR 0017](docs/adr/0017-browser-
 - [How it works](#how-it-works)
 - [Prerequisites](#prerequisites)
 - [Getting started](#getting-started)
+- [Host it](#host-it)
 - [Configuration](#configuration)
 - [Build and test](#build-and-test)
 - [Repository structure](#repository-structure)
@@ -49,25 +45,21 @@ Wattzup comes in two editions of the same app ([ADR 0017](docs/adr/0017-browser-
   resistance, with a countdown and audio cues. An `intervals` plan is built from sets, each with its
   own times, levels and cadence aims, plus a warm-up and cool-down of any length. Work efforts aim
   at 100 rpm.
-- **Connection status.** Scanning, connecting and reconnecting are shown as they happen, with
-  automatic retry after a Bluetooth error.
-- **Simulated bike.** Run every feature end to end without hardware (`--simulate`).
-- **Diagnostics.** A rolling raw packet log and a `status.json` snapshot of the live state.
-- **Secure by default.** Listens on loopback only; sharing on a network requires an API key.
-- **Browser edition.** The same dashboard with no backend to install: Web Bluetooth, rides kept in
-  the browser with export and import, installable and usable offline.
+- **Classes.** A library of classes, each a plan with the YouTube video it follows.
+- **Ride history.** Rides are kept in the browser (IndexedDB), with a summary of each, progress,
+  streaks and personal bests, and export and import of the history.
+- **Connection status.** Connecting and reconnecting are shown as they happen, with automatic
+  recovery when the link drops.
+- **Simulated bike.** Run every feature end to end without hardware (`?simulate` in a development
+  build).
+- **Diagnostics.** What the browser knows, and a packet log you can download.
+- **Installable and offline.** A service worker keeps the app, so it opens and rides without a
+  connection.
 
 ## Project status
 
-The .NET backend and the Angular dashboard are implemented and run end to end against the
-simulated bike.
-
-Bluetooth transports exist for macOS (CoreBluetooth), Linux (BlueZ) and Windows (WinRT). A transport
-is not listed as supported until its hardware smoke test (scan, connect, receive cadence, set
-resistance; L2-043) has been run by hand with a real bike. CoreBluetooth is the first transport to
-be verified ([ADR 0007](docs/adr/0007-corebluetooth-first.md)).
-
-Wattzup supports the Echelon bike only ([ADR 0016](docs/adr/0016-bike-only.md)).
+The app is implemented and runs end to end against the simulated bike. Wattzup supports the
+Echelon bike only ([ADR 0016](docs/adr/0016-bike-only.md)).
 
 The original Python prototype (`echelon_server.py` and `index.html`) is kept outside this
 repository, in `../wattzup-prototype/`, as the reference for behaviour.
@@ -75,146 +67,73 @@ repository, in `../wattzup-prototype/`, as the reference for behaviour.
 ## How it works
 
 ```
-Echelon bike ──BLE notify──▶ IBikeConnection ──▶ TelemetryIngestor ──▶ BikeStateStore
-                                                       │                    │
-                                                 PacketDecoder        StateBroadcaster
-                                                 (Wattzup.Protocol)         │
-                                                                   GET /api/events (SSE)
-                                                                            │
-                                                                   LiveStateService (Angular)
+Echelon bike ──BLE notify──▶ BikeLink (Web Bluetooth) ──▶ TelemetryIngestor ──▶ BikeStateStore
+                                                                │                    │
+                                                          packet decoder     LiveStateService
+                                                          (lib/protocol)     (read-only signal)
 ```
 
-1. `BikeConnectionService` (a hosted service in `Wattzup.Api`) scans for the bike through the
-   platform's `IBikeTransport`, connects and subscribes to the notify characteristic.
-2. Each notification arrives as one byte array holding one frame and is passed to
-   `TelemetryIngestor.OnNotify` (`Wattzup.Core`). It writes the frame to the raw packet log and
-   decodes it with `PacketDecoder` (`Wattzup.Protocol`) into a `ResistanceUpdate` or a
-   `CadenceUpdate`.
-3. `BikeStateStore`, the only writer of `BikeState`, applies the update and publishes the new state.
-4. `StateBroadcaster` pushes each state to every client of the Server-Sent Events stream,
-   `GET /api/events` ([ADR 0004](docs/adr/0004-sse-and-single-process-in-memory-state.md)).
-5. In the dashboard, `LiveStateService` owns the single `EventSource`, reconnects when the stream
-   drops, and exposes the live state as a read-only signal.
+1. **Connect bike** opens the browser's device chooser; `BikeLink` (`@wattzup/browser`) connects,
+   subscribes to the notify characteristic, keeps the link alive and recovers it.
+2. Each notification is one frame. `TelemetryIngestor` adds it to the packet log and decodes it
+   into a resistance or cadence update.
+3. `BikeStateStore`, the only writer of the bike state, applies the update and publishes the new
+   state, which `LiveStateService` exposes to every screen as a read-only signal.
+4. Commands go the other way: the dashboard calls a contract from `@wattzup/api` (for example
+   `BIKE_API` or `WORKOUT_API`), and its in-browser implementation writes command bytes to the bike.
 
-Commands go the other way: the API calls a Core service (for example `ResistanceCommander` or
-`WorkoutEngine`), which writes command bytes from `Wattzup.Protocol` to the bike.
+| Project | Responsibility |
+|---|---|
+| `frontend/projects/api` (`@wattzup/api`) | The contracts: data types, injection tokens, errors |
+| `frontend/projects/browser` (`@wattzup/browser`) | Their in-browser implementations: protocol, Web Bluetooth, workout engine, IndexedDB storage |
+| `frontend/projects/components` (`@wattzup/components`) | Presentation components, named as in the design system |
+| `frontend/projects/wattzup` | The app: pages, dialogs, services and the composition root |
 
-| Component | Technology | Responsibility |
-|---|---|---|
-| `Wattzup.Protocol` | .NET class library, no dependencies | Echelon command bytes, checksums, packet decoding, device matching, speed from cadence |
-| `Wattzup.Ble.Abstractions` | .NET class library | `IBikeTransport` and `IBikeConnection` |
-| `Wattzup.Ble.CoreBluetooth`, `.BlueZ`, `.Windows`, `.Simulated` | .NET class libraries | Bluetooth transports for macOS, Linux and Windows, and the simulated bike |
-| `Wattzup.Core` | .NET class library | Live state, broadcaster, telemetry ingestion, workout engine, raw packet log, status snapshot |
-| `Wattzup.Api` | ASP.NET Core minimal APIs | HTTP API, event stream, hosted services, security, and the dashboard in `wwwroot` |
-| `Wattzup.Mac` | Shell script and `Info.plist` | Builds `Wattzup.app`, a macOS app bundle that can request Bluetooth permission |
-| `frontend/` | Angular 22, standalone components, signals | The dashboard |
-
-Dependencies point inward: `Wattzup.Protocol` depends on nothing, the transports depend only on the
-Bluetooth abstractions, and `Wattzup.Api` composes everything. The full rules are in
-[`AGENTS.md`](AGENTS.md) and the
+The full rules are in [`AGENTS.md`](AGENTS.md) and the
 [host and structure design](docs/detailed-designs/platform/host-and-structure/README.md).
 
 ## Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org) 24 or later, with npm
-- To use real hardware: an Echelon bike and a computer with Bluetooth
-  Low Energy
-  - **macOS:** Bluetooth permission for the app running the server (System Settings → Privacy &
-    Security → Bluetooth).
-  - **Linux:** BlueZ 5.50 or later, with your user allowed to use it over D-Bus.
-  - **Windows:** Windows 10 version 2004 (build 19041) or later, with Bluetooth on.
+- Chrome or Edge on Windows, macOS, Linux, ChromeOS or Android
+- To use real hardware: an Echelon bike and a computer or phone with Bluetooth Low Energy turned on
 
-No bike, Xcode or extra .NET workload is needed to build and run with the simulated bike.
+Safari, Firefox and every browser on iOS have no Web Bluetooth; the dashboard says so instead of
+offering **Connect bike**.
 
 ## Getting started
 
-### Run with the simulated bike
-
 ```shell
 git clone https://github.com/QuinntyneBrown/wattzup.git
-cd wattzup
-(cd frontend && npm ci && npm run build:api)
-dotnet run --project backend/src/Wattzup.Api -- --simulate
+cd wattzup/frontend
+npm ci
+npm start                                 # http://localhost:4200
 ```
 
-Open `http://127.0.0.1:8787`. The simulated bike, `ECHSIM-0001`, connects immediately, pedals at a
-synthetic cadence and confirms every resistance change. The dashboard shows a **Simulated bike**
-banner.
+Open `http://localhost:4200/?simulate` to ride the simulated bike, `ECHSIM-0001`, which connects
+immediately, pedals at a synthetic cadence and confirms every resistance change. The dashboard
+shows a **Simulated bike** banner. A production build ignores `?simulate`.
 
-### Run with a bike
+With a real bike, open `http://localhost:4200`, press **Connect bike** and pick the bike in the
+browser's device list. The browser remembers it, and where it can, Wattzup reconnects to it on the
+next visit once the bike wakes.
+
+The class catalogue is `frontend/public/classes.json`, shipped beside `index.html`; edit it before
+building to change the classes. Rides are kept in this browser only. **Export history** on Progress
+saves them to a file that **Import history** reads back. **Download packet log** in Diagnostics
+saves the packets in the format of `raw_packets.log`.
+
+## Host it
 
 ```shell
-dotnet run --project backend/src/Wattzup.Api
+cd frontend && npm run build              # static files in dist/wattzup/browser
 ```
 
-The backend selects the transport for your operating system, scans for the bike and connects.
-Pedal to wake the bike; the status line shows **Connected** and the bike's name.
-
-### Build the macOS app
-
-```shell
-backend/src/Wattzup.Mac/bundle.sh             # on an Intel Mac: bundle.sh osx-x64
-open artifacts/Wattzup.app
-```
-
-`bundle.sh` builds the dashboard if needed, publishes the backend self-contained into
-`artifacts/Wattzup.app` and signs it ad hoc. Because the bundle is not notarized, open it the first
-time with right-click → **Open**. macOS asks once for Bluetooth permission. The app has no window:
-browse to `http://127.0.0.1:8787`, and quit it with `pkill -f Wattzup.app`. It writes its runtime
-output to `~/Library/Application Support/Wattzup/`.
-
-### Develop the dashboard
-
-```shell
-dotnet run --project backend/src/Wattzup.Api -- --simulate   # terminal 1
-cd frontend && npm ci && npm start                           # terminal 2: http://localhost:4200
-```
-
-`npm start` serves the dashboard with live reload and forwards `/api` to `127.0.0.1:8787`. After you
-change the API contract, keep the backend running with `--simulate` and run
-`npm run generate:api` to regenerate the TypeScript types and `npm run record:api` to re-record the
-responses the Playwright stubs use. See [`frontend/README.md`](frontend/README.md) for every script.
-
-### Share on your network
-
-By default the backend listens on loopback only. To reach it from a tablet or phone, set an API key
-and a non-loopback address. The backend refuses to start with a non-loopback address and no key.
-
-```shell
-dotnet run --project backend/src/Wattzup.Api -- --Wattzup:Urls=http://0.0.0.0:8787 --Wattzup:Security:ApiKey="a long random phrase"
-```
-
-The dashboard asks for the key once per browser session, and every `/api` request then requires it.
-
-### Run in the browser
-
-The browser edition needs Chrome or Edge on Windows, macOS, Linux, ChromeOS or Android, a page
-served over HTTPS or from `http://localhost`, and Bluetooth turned on. Safari, Firefox and every
-browser on iOS have no Web Bluetooth; the dashboard says so instead of offering **Connect bike**.
-
-```shell
-cd frontend && npm ci
-npm start -- --configuration browser      # development: http://localhost:4200
-npm run build:browser                     # production: dist/wattzup-browser/browser
-```
-
-Press **Connect bike** and pick the bike in the browser's device list; the browser remembers it,
-and where it can, Wattzup reconnects to it on the next visit once the bike wakes. In a development
-build, open `http://localhost:4200/?simulate` to ride the simulated bike, `ECHSIM-0001`, instead.
-A production build ignores `?simulate`.
-
-`npm run build:browser` copies `backend/src/Wattzup.Api/classes.json` beside `index.html`, so the
-browser edition offers the same classes; edit that file before building to change them. Rides are
-kept in this browser only (IndexedDB). **Export history** on Progress saves them to a file that
-**Import history** reads back, in either edition. **Download packet log** in Diagnostics saves the
-packets in the format of `raw_packets.log`.
-
-Serve `dist/wattzup-browser/browser` from any static host over HTTPS. The host must answer every
-path that is not a file with `index.html`, so links such as `/sessions/<id>` open. The page carries
-its Content-Security-Policy in a `<meta>` element; where the host can set headers, send it too,
-with the three that have no `<meta>` form ([ADR 0018](docs/adr/0018-static-content-security-policy.md)).
-For example, on Netlify:
+Serve `dist/wattzup/browser` from any static host over HTTPS (Web Bluetooth needs HTTPS, or
+`http://localhost`). The host must answer every path that is not a file with `index.html`, so
+links such as `/sessions/<id>` open. The page carries its Content-Security-Policy in a `<meta>`
+element; where the host can set headers, send it too, with the three that have no `<meta>` form
+([ADR 0018](docs/adr/0018-static-content-security-policy.md)). For example, on Netlify:
 
 ```text
 # _redirects
@@ -232,86 +151,40 @@ same headers.
 
 Once loaded, a service worker keeps the app, so it opens and rides without a connection; class
 videos and covers need one. A new version is fetched in the background and used from the next
-load, never in the middle of a ride. The browser can install the edition as an app.
+load, never in the middle of a ride. The browser can install Wattzup as an app.
 
 ## Configuration
 
-Settings are read from `backend/src/Wattzup.Api/appsettings.json`, then environment variables
-(`:` becomes `__`, for example `WATTZUP__SECURITY__APIKEY`), then the command line
-(`--Wattzup:Urls=...`). Durations use the `hh:mm:ss` format.
-
-| Setting | Default | Description |
-|---|---|---|
-| `--simulate` | Off | Use the simulated bike instead of Bluetooth. Same as `Wattzup:Ble:Transport=Simulated`. |
-| `Wattzup:Urls` | `http://127.0.0.1:8787` | Where the backend listens. A non-loopback address requires `Wattzup:Security:ApiKey`. |
-| `Wattzup:Security:ApiKey` | Empty | When set, every `/api` request requires it in `X-Api-Key`; the event stream takes a single-use token from `POST /api/events/token`. |
-| `Wattzup:Security:ControlPermits` | `20` | Control requests (resistance, workout, reconnect) allowed per client per window; further requests get `429`. |
-| `Wattzup:Security:ControlWindow` | `00:00:01` | The rate-limit window. |
-| `Wattzup:Cors:Origins` | Empty (`http://localhost:4200` in Development) | Origins allowed to call the API cross-origin. Set as `Wattzup:Cors:Origins:0`, `:1`, and so on. |
-| `Wattzup:Ble:Transport` | By operating system | `CoreBluetooth`, `BlueZ`, `WinRT` or `Simulated`. |
-| `Wattzup:Ble:ScanTimeout` | `00:00:20` | How long one scan looks for the bike before trying again. |
-| `Wattzup:Ble:InitCommandSpacing` | `00:00:00.300` | The gap between the start-up commands sent after connecting. |
-| `Wattzup:Ble:KeepaliveInterval` | `00:00:01` | How often the keepalive command is written while connected. |
-| `Wattzup:Ble:ErrorBackoff` | `00:00:03` | The wait before retrying after a Bluetooth error. |
-| `Wattzup:Bike:DisplayName` | Empty | A name to show for the bike instead of its advertised name. |
-| `Wattzup:RawPacketLog:Enabled` | `true` | Whether notifications are written to the raw packet log. |
-| `Wattzup:RawPacketLog:Path` | `raw_packets.log` | The log file. Relative paths resolve against the content root. |
-| `Wattzup:RawPacketLog:MaxBytes` | `10485760` | The size at which the log rotates. |
-| `Wattzup:RawPacketLog:RetainedFiles` | `5` | Rotated files kept (`.1` to `.5`). |
-| `Wattzup:StatusSnapshot:Enabled` | `true` | Whether the state is mirrored to the status file. |
-| `Wattzup:StatusSnapshot:Path` | `status.json` | The status file, written atomically. |
-| `Wattzup:Classes:Path` | `classes.json` | The class catalogue (L2-077, ADR 0014): a JSON file of shelves and classes, each class a bike plan with its YouTube video. A relative path resolves against the content root. A class that breaks a rule is left out with a warning; a missing or invalid file is an empty catalogue. A saved change is served within 2 s. A Wattzup update can replace the shipped `classes.json`, so keep an edited catalogue outside the app folder and point this setting at it. Environment variable `WATTZUP__CLASSES__PATH`. |
-| `Wattzup:Sessions:Path` | `sessions.json` | The saved rides (L2-082, ADR 0015): a ride of a minute or more is kept here when it ends, newest first, the newest 500. A relative path resolves against the content root. Each save writes a temporary file and moves it over the old one. A file that cannot be read at start is renamed to `<file>.unreadable` and Wattzup starts with no sessions; a failed write is logged and never stops a ride ending. Back the file up with the rest of your data; keep it outside the app folder if an update replaces that folder. Environment variable `WATTZUP__SESSIONS__PATH`. |
-| `Wattzup:StatusSnapshot:MinInterval` | `00:00:00.500` | The minimum time between two writes; the final state is always written. |
-
-The browser edition has none of these settings. Its one option is `?simulate` in the page address,
-which a development build (`npm start -- --configuration browser`) honours by connecting to the
-simulated bike; a production build ignores it.
-
-The raw packet log and the status snapshot are written to the content root
-(`backend/src/Wattzup.Api/` under `dotnet run`) unless configured otherwise. Both are git-ignored.
+Wattzup has no settings file. Its one option is `?simulate` in the page address, which a
+development build (`npm start`) honours by connecting to the simulated bike; a production build
+ignores it. The classes come from `frontend/public/classes.json`.
 
 ## Build and test
 
 | Task | Command | Scope |
 |---|---|---|
-| Build the backend | `dotnet build backend/Wattzup.sln` | Every project; warnings are errors |
-| Test the backend | `dotnet test backend/Wattzup.sln` | xUnit unit tests for protocol and core rules, and acceptance tests through the API with `WebApplicationFactory`, the simulated bike and `FakeTimeProvider` |
 | Check formatting and lint | `cd frontend && npm run format:check && npm run lint` | Prettier and angular-eslint |
-| Test the dashboard | `cd frontend && npm test` | Unit tests of all four frontend projects (`components`, `api`, `browser`, `wattzup`) |
-| Build the dashboard | `cd frontend && npm run build` | Production build and the 300 KB gzipped initial bundle budget |
-| Build the browser edition | `cd frontend && npm run build:browser` | Static files in `dist/wattzup-browser/browser`, with the same budget |
-| Run the behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium: the backend edition with every `/api` request and the event stream stubbed, and the browser edition against a fake `navigator.bluetooth` |
+| Unit tests | `cd frontend && npm test` | Unit tests of the `components`, `browser` and `wattzup` projects |
+| Build | `cd frontend && npm run build` | Production build in `dist/wattzup/browser` and the 300 KB gzipped initial bundle budget |
+| Behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium against a fake `navigator.bluetooth` |
+| Everything CI runs | `node tools/verify/verify.mjs` | All of the above, side by side |
 
-No automated test uses a real bike or Bluetooth. The accessibility, responsive and visual sweeps
+No automated test uses a real bike or Bluetooth. The accessibility and responsive sweeps
 (`npm run e2e:sweeps`) are maintained but run only on request.
 
-[Continuous integration](.github/workflows/ci.yml) runs on every pull request. It builds and tests
-the backend on Linux, macOS and Windows, runs every dashboard check above, and verifies that the
-generated API types match the backend.
+[Continuous integration](.github/workflows/ci.yml) runs every check above on every pull request.
 
 ## Repository structure
 
 ```
 wattzup/
-├── backend/                         All .NET code
-│   ├── Wattzup.sln
-│   ├── Directory.Build.props
-│   ├── src/
-│   │   ├── Wattzup.Protocol/          Commands, checksums, packet decoding (no dependencies)
-│   │   ├── Wattzup.Ble.Abstractions/  IBikeTransport, IBikeConnection
-│   │   ├── Wattzup.Ble.CoreBluetooth/ macOS transport (Objective-C runtime)
-│   │   ├── Wattzup.Ble.BlueZ/         Linux transport (D-Bus)
-│   │   ├── Wattzup.Ble.Windows/       Windows transport (WinRT)
-│   │   ├── Wattzup.Ble.Simulated/     Simulated bike (--simulate)
-│   │   ├── Wattzup.Core/              State, broadcaster, telemetry, workout engine, writers
-│   │   ├── Wattzup.Api/               Host, endpoints, event stream, security, wwwroot
-│   │   └── Wattzup.Mac/               macOS app bundle (bundle.sh, Info.plist)
-│   └── tests/
-│       ├── Wattzup.Protocol.Tests/
-│       ├── Wattzup.Core.Tests/
-│       └── Wattzup.Api.AcceptanceTests/
-├── frontend/                        The Angular dashboard, in both editions, and its Playwright specs
+├── frontend/                        The Angular workspace and its Playwright specs
+│   ├── projects/api/                  @wattzup/api: contracts, types, tokens
+│   ├── projects/browser/              @wattzup/browser: protocol, Web Bluetooth, engine, storage
+│   ├── projects/components/           @wattzup/components: presentation components
+│   ├── projects/wattzup/              The app
+│   ├── public/                        Fonts, images and classes.json
+│   └── e2e/                           Playwright behaviour specs, fixtures and page objects
 ├── docs/
 │   ├── journeys.md                  The user journeys, by value add
 │   ├── videos/                      A narrated film of each journey
@@ -321,7 +194,7 @@ wattzup/
 │   ├── design-system/               Tokens and components extracted from the mocks
 │   ├── adr/                         Architecture decision records
 │   └── protocol/                    Echelon Bluetooth message and frame reference
-├── tools/                           The video tools: screenshots, narration and music, the film
+├── tools/                           verify, and the video tools: screenshots, narration and music, the film
 └── .github/                         CI workflows, issue and pull request templates
 ```
 
@@ -335,7 +208,7 @@ wattzup/
 | [Architecture decisions](docs/adr/README.md) | Why the architecture is the way it is |
 | [Echelon protocol](docs/protocol/echelon-ble-messages.md) | The Bluetooth messages and their [frames](docs/protocol/echelon-ble-frames.md) |
 | [Design system](docs/design-system/) | Tokens and components extracted from the [mocks](docs/mocks/) |
-| [Frontend](frontend/README.md) | The dashboard's scripts and conventions |
+| [Frontend](frontend/README.md) | The app's scripts and conventions |
 | [AGENTS.md](AGENTS.md) | Repository layout, architecture rules and the required workflow |
 
 ## Contributing

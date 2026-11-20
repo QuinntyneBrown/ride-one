@@ -3,12 +3,12 @@
 LAYOUT_WITH_LEGEND()
 title System Context — Browse the class library
 
-Person(rider, "Rider", "Picks a class to ride on the Echelon bike")
-Person(owner, "Owner", "Edits the class catalogue")
-System(wattzup, "Wattzup", "Live training display that drives the bike")
-System_Ext(ytimg, "YouTube image host", "i.ytimg.com: video thumbnails")
+Person(rider, "Rider", "Rides the bike and watches Wattzup")
+System(wattzup, "Wattzup", "Angular app running in Chrome or Edge; no server")
+System_Ext(bike, "Echelon bike", "Indoor bike exposing a proprietary BLE GATT service")
+System_Ext(youtube, "YouTube", "Player and thumbnails")
 
-Rel(rider, wattzup, "Browses the class library in")
-Rel(owner, wattzup, "Edits classes.json for")
-Rel(rider, ytimg, "Browser loads class covers from", "HTTPS")
+Rel(rider, wattzup, "Uses", "Browser")
+Rel(wattzup, bike, "Notifications and commands", "Web Bluetooth GATT")
+Rel(wattzup, youtube, "Embeds the player; loads covers", "HTTPS")
 @enduml

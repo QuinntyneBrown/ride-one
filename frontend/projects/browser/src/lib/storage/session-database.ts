@@ -1,4 +1,4 @@
-// Where the browser edition keeps sessions (L2-094): IndexedDB database `wattzup`, object store
+// Where sessions are kept (L2-094): IndexedDB database `wattzup`, object store
 // `sessions` keyed by `id`, and object store `journal`, which holds the ride in progress so a
 // closed page loses at most 10 s of it (L2-092 AC5). SessionStore reads both once at start and
 // writes each change; tests pass an in-memory one.

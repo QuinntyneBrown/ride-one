@@ -6,7 +6,7 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "ClassPage" as page
   participant "class-draft.ts" as draft
   participant "PlanDraftStore" as store

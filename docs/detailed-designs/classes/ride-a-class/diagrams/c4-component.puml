@@ -10,19 +10,19 @@ Container_Boundary(web, "Wattzup Web") {
   Component(preview, "ride-preview.ts", "Pure helper", "previewOf: total, profile bars, power")
   Component(row, "LevelRow", "Presentation component", "Lower, value, Raise")
   Component(player, "YOUTUBE_PLAYER", "Injection token", "IframeYouTubePlayer")
-  Component(classapi, "CLASS_API", "Injection token", "HttpClassApi")
-  Component(workoutapi, "WORKOUT_API", "Injection token", "HttpWorkoutApi")
+  Component(classapi, "CLASS_API", "Injection token", "Bound to BrowserClassApi")
+  Component(workoutapi, "WORKOUT_API", "Injection token", "Bound to BrowserWorkoutApi")
   Component(dialog, "ReplaceRideDialog", "CDK dialog", "Asks before replacing a running ride")
   Component(drafts, "PlanDraftStore", "Angular service", "Setup drafts in local storage")
   Component(live, "LiveStateService", "Angular service", "Live state, active workout")
 }
-Container_Boundary(api, "Wattzup API") {
-  Component(classes, "ClassEndpoints", "Minimal API", "GET /api/classes/{id}")
-  Component(workouts, "WorkoutEndpoints", "Minimal API", "POST /api/workout")
+Container_Boundary(lib, "@wattzup/browser") {
+  Component(classes, "BrowserClassApi", "lib/contracts", "The catalogue read from classes.json")
+  Component(workouts, "BrowserWorkoutApi", "lib/contracts", "Validates and starts the ride")
 }
 
 Rel(page, classapi, "get(id)")
-Rel(classapi, classes, "GET /api/classes/{id}", "JSON")
+Rel(classes, classapi, "Implements")
 Rel(page, draft, "Applies")
 Rel(draft, link, "Reads links with")
 Rel(page, preview, "Computes the plan card with")
@@ -31,6 +31,6 @@ Rel(page, player, "Previews the cued video through")
 Rel(page, live, "Reads the active workout from")
 Rel(page, dialog, "Opens when a ride is running")
 Rel(page, workoutapi, "start(plan + video)")
-Rel(workoutapi, workouts, "POST /api/workout", "JSON")
+Rel(workouts, workoutapi, "Implements")
 Rel(page, drafts, "save, saveIntervals, saveVideo")
 @enduml

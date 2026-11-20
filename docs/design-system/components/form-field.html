@@ -93,20 +93,20 @@
 <p>The wrapper (<code>.field</code>) stacks label → control → help → error with 4px between. Number steppers and sliders use their own heads but the same help and error parts.</p>
     </section>
     <section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
-<div class="ds-anatomy"><figure class="ds-anatomy__figure"><label class="field"><span class="field__label">API key</span><input class="input" type="password" aria-invalid="true" aria-describedby="a1 a2"><span class="field__help" id="a1">In appsettings.json under Wattzup:Security:ApiKey.</span><span class="field__error" id="a2">The server answered 401 for this key.</span></label><span class="ds-callout" style="left: 2%; top: 2%;" aria-hidden="true">1</span><span class="ds-callout" style="left: 2%; top: 22%;" aria-hidden="true">2</span><span class="ds-callout" style="left: 2%; top: 52%;" aria-hidden="true">3</span><span class="ds-callout" style="left: 2%; top: 78%;" aria-hidden="true">4</span></figure><ol class="ds-anatomy__list"><li><div><b>Label</b><small><code>--text-label</code>.</small></div></li><li><div><b>Control</b><small>Text field, stepper, slider.</small></div></li><li><div><b>Help</b><small>Muted, body-sm.</small></div></li><li><div><b>Error</b><small>Danger text with ⚠, names the fix.</small></div></li></ol></div>
+<div class="ds-anatomy"><figure class="ds-anatomy__figure"><label class="field"><span class="field__label">YouTube link</span><input class="input" type="url" aria-invalid="true" aria-describedby="a1 a2"><span class="field__help" id="a1">A youtube.com or youtu.be link.</span><span class="field__error" id="a2">That doesn&rsquo;t look like a YouTube link.</span></label><span class="ds-callout" style="left: 2%; top: 2%;" aria-hidden="true">1</span><span class="ds-callout" style="left: 2%; top: 22%;" aria-hidden="true">2</span><span class="ds-callout" style="left: 2%; top: 52%;" aria-hidden="true">3</span><span class="ds-callout" style="left: 2%; top: 78%;" aria-hidden="true">4</span></figure><ol class="ds-anatomy__list"><li><div><b>Label</b><small><code>--text-label</code>.</small></div></li><li><div><b>Control</b><small>Text field, stepper, slider.</small></div></li><li><div><b>Help</b><small>Muted, body-sm.</small></div></li><li><div><b>Error</b><small>Danger text with ⚠, names the fix.</small></div></li></ol></div>
     </section>
     <section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
-<div class="ds-example"><div class="ds-example__canvas "><label class="field"><span class="field__label">API key</span><input class="input" type="password" aria-describedby="h1"><span class="field__help" id="h1">Find it under Wattzup:Security:ApiKey.</span></label></div><div class="ds-example__caption"><span>With help.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;label class="field"&gt;
-&lt;span class="field__label"&gt;API key&lt;/span&gt;
-&lt;input class="input" type="password" aria-describedby="h1"&gt;
-&lt;span class="field__help" id="h1"&gt;Find it under Wattzup:Security:ApiKey.&lt;/span&gt;
+<div class="ds-example"><div class="ds-example__canvas "><label class="field"><span class="field__label">YouTube link</span><input class="input" type="url" aria-describedby="h1"><span class="field__help" id="h1">Paste a youtube.com or youtu.be link.</span></label></div><div class="ds-example__caption"><span>With help.</span></div><details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;label class="field"&gt;
+&lt;span class="field__label"&gt;YouTube link&lt;/span&gt;
+&lt;input class="input" type="url" aria-describedby="h1"&gt;
+&lt;span class="field__help" id="h1"&gt;Paste a youtube.com or youtu.be link.&lt;/span&gt;
 &lt;/label&gt;</code></pre></details></div>
     </section>
     <section class="ds-section" id="sizes" data-na="The field takes the size of its control."><h2><a href="#sizes">Sizes</a></h2>
       <p class="ds-na">The field takes the size of its control.</p>
     </section>
     <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
-<div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Default</th><th scope="col">Invalid</th></tr></thead><tbody><tr><th scope="row">Field</th><td><input class="input" aria-label="API key"></td><td><input class="input" aria-label="API key" aria-invalid="true"></td></tr></tbody></table></div><h3>Both themes</h3><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas"><div class="field"><span class="field__error">The server answered 401 Unauthorized for this key.</span></div></div></div><div data-theme="dark"><div class="ds-example__canvas"><div class="field"><span class="field__error">The server answered 401 Unauthorized for this key.</span></div></div></div></div>
+<div class="ds-matrix"><table><thead><tr><th scope="col">Variant</th><th scope="col">Default</th><th scope="col">Invalid</th></tr></thead><tbody><tr><th scope="row">Field</th><td><input class="input" aria-label="YouTube link"></td><td><input class="input" aria-label="YouTube link" aria-invalid="true"></td></tr></tbody></table></div><h3>Both themes</h3><div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas"><div class="field"><span class="field__error">That doesn&rsquo;t look like a YouTube link.</span></div></div></div><div data-theme="dark"><div class="ds-example__canvas"><div class="field"><span class="field__error">That doesn&rsquo;t look like a YouTube link.</span></div></div></div></div>
     </section>
     <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
 <ul><li>Fields stack in one column below 640px; see <a href="form-layout.html">form layout</a>.</li></ul>
@@ -128,14 +128,14 @@
     </section>
     <section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
 <pre><code>&lt;label class="field"&gt;
-  &lt;span class="field__label"&gt;API key&lt;/span&gt;
+  &lt;span class="field__label"&gt;YouTube link&lt;/span&gt;
   &lt;input class="input" aria-describedby="key-help key-err" aria-invalid="true"&gt;
   &lt;span class="field__help" id="key-help"&gt;…&lt;/span&gt;
   &lt;span class="field__error" id="key-err"&gt;…&lt;/span&gt;
 &lt;/label&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody><tr><td><code>.field</code></td><td>Stack.</td></tr><tr><td><code>.field__label .field__help .field__error</code></td><td>Parts.</td></tr></tbody></table></div>
     </section>
     <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/unlock/invalid.html">pages/unlock/invalid</a> (help and error)</li><li><a href="../../mocks/pages/setup/invalid.html">pages/setup/invalid</a> (stepper errors)</li></ul><p>Drift fixed during extraction: none.</p>
+<p>Extracted from these mocks:</p><ul><li><a href="../../mocks/pages/setup/video-invalid.html">pages/setup/video-invalid</a> (help and error)</li><li><a href="../../mocks/pages/setup/invalid.html">pages/setup/invalid</a> (stepper errors)</li></ul><p>Drift fixed during extraction: none.</p>
     </section>
 
     <footer class="ds-footer"><span>Wattzup design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 2026-11-15</span><a href="#top">Back to top</a></footer>

@@ -1,7 +1,6 @@
-// Mirrors Wattzup.Core/Workouts/WorkoutEngine.cs and WorkoutRun.cs: owns at most one ride.
+// Owns at most one ride.
 // Commands and ticks run one at a time on one queue, so nothing else touches the run (L2-011 to
-// L2-013, L2-046, L2-047, L2-049, L2-050). Unlike the backend, which counts 1 s ticks, running
-// time comes from the monotonic clock (L2-092): a tick steps the run by every whole second the
+// L2-013, L2-046, L2-047, L2-049, L2-050). Running time comes from the monotonic clock (L2-092): a tick steps the run by every whole second the
 // clock says has passed, so a throttled tab catches up instead of stretching the ride.
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import type {
@@ -288,7 +287,7 @@ export class WorkoutEngine {
     this.publish(run);
   }
 
-  /** One running second, as the backend's tick without its drive (L2-011, L2-049, L2-050). */
+  /** One running second (L2-011, L2-049, L2-050). */
   private async step(run: WorkoutRun): Promise<void> {
     const state = this.store.state();
     run.hasStarted = true;

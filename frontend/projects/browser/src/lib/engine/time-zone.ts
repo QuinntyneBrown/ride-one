@@ -1,5 +1,5 @@
-// The rider's time zone, which Progress counts days in (L2-087, L2-094 AC8). The browser edition
-// uses the browser's zone; tests pass a fixed one.
+// The rider's time zone, which Progress counts days in (L2-087, L2-094 AC8). It is the browser's
+// zone; tests pass a fixed one.
 
 export interface TimeZone {
   /** The zone's offset from UTC, in milliseconds, at the instant `utcMs`. */

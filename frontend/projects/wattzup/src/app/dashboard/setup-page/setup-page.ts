@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,7 +10,13 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { DialogLauncher } from '../../core/dialog-launcher';
 import { formatDuration } from '../../core/format-duration';
-import { BIKE_PAIRING, type StartPlan, WORKOUT_API } from '@wattzup/api';
+import {
+  BIKE_PAIRING,
+  type ContractError,
+  isContractError,
+  type StartPlan,
+  WORKOUT_API,
+} from '@wattzup/api';
 import { supportNotice } from '../../core/support-notice';
 import { SupportBanner } from '../support-banner/support-banner';
 import { planVideo } from '../../core/video-link';
@@ -163,7 +168,7 @@ export class SetupPage {
     return `Fix the ${n} ${n === 1 ? 'field' : 'fields'} marked in red to start.`;
   });
 
-  protected readonly loading = computed(() => !this.live.state() && !this.live.loadFailed());
+  protected readonly loading = computed(() => !this.live.state());
   protected readonly busy = signal(false);
   /** Why Start ride is disabled when the browser cannot reach Bluetooth (L2-089 AC1, AC3). */
   protected readonly startBlocked = computed(
@@ -256,8 +261,7 @@ export class SetupPage {
       await this.workouts.start(plan);
       await this.router.navigateByUrl('/');
     } catch (e) {
-      if (e instanceof HttpErrorResponse && e.status === 401) return;
-      const errors = e instanceof HttpErrorResponse && e.status === 400 ? problemErrors(e) : null;
+      const errors = isContractError(e, 'invalid_workout') ? planErrors(e) : null;
       this.startError.set(errors ? { kind: 'invalid', messages: errors } : { kind: 'failed' });
     } finally {
       this.busy.set(false);
@@ -265,9 +269,8 @@ export class SetupPage {
   }
 }
 
-/** The messages of a ProblemDetails `errors` map, in order. */
-function problemErrors(e: HttpErrorResponse): string[] {
-  const body = e.error as { errors?: Record<string, string[]>; detail?: string } | null;
-  const messages = Object.values(body?.errors ?? {}).flat();
-  return messages.length ? messages : [body?.detail ?? 'The plan was not accepted.'];
+/** The messages for each field of a plan that is not valid, in order. */
+function planErrors(e: ContractError): string[] {
+  const messages = Object.values(e.errors).flat();
+  return messages.length ? messages : ['The plan was not accepted.'];
 }

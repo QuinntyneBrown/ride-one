@@ -45,9 +45,9 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 | Component | Summary |
 |---|---|
-| [Text field](components/text-field.html) | Single-line text input, used for the API key. |
+| [Text field](components/text-field.html) | Single-line text input, used for the YouTube link. |
 | [Form field](components/form-field.html) | Label, control, help and error stacked as one unit. |
-| [Form layout](components/form-layout.html) | How setup and unlock arrange fields, the error summary and the submit action. |
+| [Form layout](components/form-layout.html) | How setup and its dialogs arrange fields, the error summary and the submit action. |
 | [Radio group (mode cards)](components/radio-group.html) | Card-style radio group that picks the training mode. |
 | [Switch](components/switch.html) | On/off setting: warm-up and cool-down. |
 | [Set list](components/set-list.html) | The warm-up, sets and cool-down of an intervals plan, edited in a dialog. |
@@ -64,7 +64,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 |---|---|
 | [App bar](components/app-bar.html) | The ride's top bar: brand, bike status, workout, clock and ride actions. |
 | [Lockup](components/lockup.html) | The Wattzup mark and wordmark. |
-| [Status line](components/status-line.html) | Bike connection status: name plus Connected, Scanning…, Disconnected or Server offline. |
+| [Status line](components/status-line.html) | Bike connection status: name plus Connected, Connecting…, Disconnected, Off or Unavailable in this browser. |
 | [Ride clock](components/ride-clock.html) | Elapsed and total ride time. |
 | [Skip link](components/skip-link.html) | Jump past the header to the main content. |
 | [Page layout](components/page-layout.html) | Shells for the ride, setup and centred single-card pages, plus stack and cluster. |
@@ -159,7 +159,7 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 |---|---|---|
 | all | Raw weight 800, letter spacings −0.02/−0.04/0.04em, line heights 1/0.9 | `--font-weight-heavy`, `--letter-spacing-*`, `--line-height-none/numeral` |
 | all | Raw durations 0.8s / 1.4s / 1.6s | `--duration-spin`, `--duration-shimmer`, `--duration-banner` |
-| ride/offline | Inline `opacity: 0.45` on stale values | `.is-stale` with `--opacity-stale` |
+| ride/offline (removed with ADR 0019) | Inline `opacity: 0.45` on stale values | `.is-stale` with `--opacity-stale` |
 | ride, setup | Component CSS branching on `[data-theme="light"]` (playhead, lit bars, chosen mode card) | Roles `--color-playhead`, `--color-level-lit`, `--color-selected-*` |
 | ride, setup | `max-width` media queries (39.99rem, 47.99rem) | Mobile-first `min-width` queries |
 | setup | `.presets .chip`, `.plan-note .btn`, `.num-stepper__row .btn--icon` restyled other blocks | `chip--solid`, `btn--link btn--sm`, `btn--subtle` |

@@ -6,18 +6,18 @@ skinparam roundcorner 12
 skinparam defaultFontName Arial
 skinparam ArrowColor #344054
 actor "Rider" as rider
-box "Frontend — Wattzup Web application" #E0F2FE
+box "Frontend — Wattzup Web" #E0F2FE
   participant "LiveStateService" as live
   participant "Interval" as card
   participant "RideClock" as rc
   participant "CountdownClock" as model
   participant "segment-labels" as labels
 end box
-box "Backend — Wattzup API application" #D1FADF
-  participant "EventsEndpoints" as sse
+box "Frontend — @wattzup/browser" #ECFDF3
+  participant "BrowserStateSource" as src
 end box
 
-sse -> live : data: workout {segment:9, remaining:33, elapsed_seconds:427, total_seconds:760, status:"running"}
+src -> live : state workout {segment:9, remaining:33, elapsed_seconds:427, total_seconds:760, status:"running"}
 live -> card : state() changes
 card -> model : anchor(workout, now) [L2-024]
 card -> labels : kindLabel(work), roundLabel = "Round 5 of 8", toneOf = work [L2-025]
@@ -34,7 +34,7 @@ end
 opt no update for more than 1.25 s
   model --> card : drift stays at 1.25; numerals stop [L2-024]
 end
-sse -> live : data: workout {status:"paused"}
+src -> live : state workout {status:"paused"}
 live -> card : state() changes
 card -> model : anchor(workout, now), running = false
 model --> card : drift = 0; time held still [L2-024]

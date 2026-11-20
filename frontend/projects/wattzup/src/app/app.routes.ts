@@ -1,6 +1,4 @@
-import { inject } from '@angular/core';
 import type { Routes } from '@angular/router';
-import { EDITION } from '@wattzup/api';
 
 export const routes: Routes = [
   {
@@ -35,13 +33,6 @@ export const routes: Routes = [
     title: 'Progress · Wattzup',
     loadComponent: () =>
       import('./dashboard/progress-page/progress-page').then((m) => m.ProgressPage),
-  },
-  {
-    path: 'unlock',
-    title: 'Unlock · Wattzup',
-    // The browser edition has no API key, so no unlock page; /unlock is not found (L2-097 AC1).
-    canMatch: [() => inject(EDITION) === 'backend'],
-    loadComponent: () => import('./dashboard/unlock-page/unlock-page').then((m) => m.UnlockPage),
   },
   {
     path: '**',
