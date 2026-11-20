@@ -289,9 +289,11 @@ export class MiamiStreet implements SceneStreet {
     this.lasers.forEach((fan, k) => {
       fan.rotation.y = Math.sin(seconds * 0.6 + k) * 0.6;
       fan.rotation.x = Math.sin(beat / 4 + k) * 0.25;
-      fan.children.forEach(
-        (b, i) => (b.rotation.z = Math.PI / 2 + 0.2 + i * (0.06 + 0.04 * Math.sin(beat / 2))),
-      );
+      fan.children.forEach((b, i) => {
+        // The last child is the glow at the lasers' source, which stays put.
+        if (i < fan.children.length - 1)
+          b.rotation.z = Math.PI / 2 + 0.2 + i * (0.08 + 0.05 * Math.sin(beat / 2));
+      });
     });
     // The tiki torches' flames flicker, each on its own.
     this.flames.forEach((f, k) => {
@@ -717,17 +719,24 @@ export class MiamiStreet implements SceneStreet {
       emissiveIntensity: 0.4,
     });
     const foliage = this.material({ color: 0x2a5a30, roughness: 0.9 });
-    const laserGeometry = new BoxGeometry(0.12, 260, 0.12);
+    const laserGeometry = new BoxGeometry(0.07, 260, 0.07);
     laserGeometry.translate(0, 130, 0);
     this.disposables.push(laserGeometry);
     const laser = new MeshBasicMaterial({
       color: 0x40ff70,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.32,
       depthWrite: false,
       blending: AdditiveBlending,
     });
-    this.disposables.push(laser);
+    const laserGlow = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      color: 0x60ff90,
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(laser, laserGlow);
     const brass = this.material({ color: 0xd8a848, roughness: 0.25, metalness: 0.9 });
     const velvet = this.material({ color: 0xa01030, roughness: 0.9 });
     const clubSign = this.material({
@@ -1172,11 +1181,14 @@ export class MiamiStreet implements SceneStreet {
         // The club's lasers on its roof: a fan of green beams fanning out over the street and
         // the sea, sweeping to the beat.
         const fan = new Group();
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
           const beam = new Mesh(laserGeometry, laser);
           beam.rotation.z = Math.PI / 2 + 0.25 + i * 0.09;
           fan.add(beam);
         }
+        const source = new Mesh(this.flat, laserGlow);
+        source.scale.set(2.5, 2.5, 1);
+        fan.add(source);
         fan.position.set(4, height + 4, 0);
         hotel.add(fan);
         this.lasers.push(fan);
