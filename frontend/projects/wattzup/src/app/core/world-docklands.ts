@@ -78,6 +78,20 @@ const DROP = 0.7;
 const RAIN_SPEED = 9;
 const RAIN_BOX = 26;
 const RAIN_HEIGHT = 14;
+/** Steam grates at the road's edge: [metres along the loop, side]. */
+const VENTS: readonly [number, -1 | 1][] = [
+  [48, -1],
+  [62, 1],
+  [96, -1],
+  [210, 1],
+  [330, 1],
+  [410, -1],
+  [530, 1],
+];
+/** Each vent's PUFFS puffs climb STEAM_HEIGHT metres over STEAM_LIFE seconds. */
+const PUFFS = 6;
+const STEAM_HEIGHT = 5;
+const STEAM_LIFE = 4;
 /** The bridges' lamps: DECK_LAMPS pairs every DECK_LAMP_EVERY metres, masts and arms in metres. */
 const DECK_LAMPS = 12;
 const DECK_LAMP_EVERY = 25;
@@ -196,6 +210,11 @@ export class DocklandsStreet {
   private readonly boats: { mesh: Group; offset: number }[] = [];
   private readonly skytrain = new Group();
   private readonly deckLamps: Group[] = [];
+  private readonly vents: {
+    group: Group;
+    offset: number;
+    puffs: { mesh: Mesh; phase: number }[];
+  }[] = [];
   private readonly train = new Group();
 
   /**
@@ -204,6 +223,7 @@ export class DocklandsStreet {
    */
   setTime(seconds: number, still = false): void {
     this.fall(seconds, still);
+    this.steam(still ? 0 : seconds);
     // The landmark's searchlights sweep the haze, each its own way; held still for reduced motion.
     this.searchlights.forEach((pivot, i) => {
       const way = i % 2 === 0 ? 1 : -1;
@@ -901,6 +921,7 @@ export class DocklandsStreet {
     this.addBoats(roadHalf + SETBACK + 2);
     this.addSkytrain(roadHalf);
     this.addDeckLamps(roadHalf);
+    this.addVents(roadHalf);
     this.addRain();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
@@ -1109,6 +1130,58 @@ export class DocklandsStreet {
       this.streak(lamp, '#ffd9a0', 0, KERB, -0.5, 6, 1.4, 1);
       this.lamps.push(lamp);
       this.group.add(lamp);
+    }
+  }
+
+  /**
+   * Steam rising from grates at the road's edge: soft puffs that drift up, swell and thin out,
+   * catching the street's light. Each vent stands `offset` metres along the loop.
+   */
+  private addVents(roadHalf: number): void {
+    const texture = this.track(glowTexture());
+    const grate = new MeshStandardMaterial({ color: 0x0c0d12, metalness: 0.6, roughness: 0.5 });
+    const plate = new PlaneGeometry(1.4, 0.9);
+    const puff = new PlaneGeometry(1, 1);
+    this.disposables.push(grate, plate, puff);
+    const random = seeded(241);
+    for (const [offset, side] of VENTS) {
+      const group = new Group();
+      const x = side * (roadHalf - 0.9);
+      const floor = new Mesh(plate, grate);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.set(x, 0.02, 0);
+      group.add(floor);
+      const puffs: { mesh: Mesh; phase: number }[] = [];
+      for (let k = 0; k < PUFFS; k++) {
+        const material = new MeshBasicMaterial({
+          color: new Color('#c8c4e6'),
+          map: texture,
+          transparent: true,
+          depthWrite: false,
+        });
+        this.disposables.push(material);
+        const mesh = new Mesh(puff, material);
+        mesh.position.x = x + (random() - 0.5) * 0.6;
+        group.add(mesh);
+        puffs.push({ mesh, phase: k / PUFFS });
+      }
+      group.visible = false;
+      this.group.add(group);
+      this.vents.push({ group, offset, puffs });
+    }
+    this.steam(0);
+  }
+
+  /** Lets the steam rise for `seconds`: each puff climbs STEAM_HEIGHT, swelling as it thins. */
+  private steam(seconds: number): void {
+    for (const vent of this.vents) {
+      for (const { mesh, phase } of vent.puffs) {
+        const life = (phase + seconds / STEAM_LIFE) % 1;
+        mesh.position.y = 0.3 + life * STEAM_HEIGHT;
+        const size = 1.6 + life * 4.2;
+        mesh.scale.set(size, size, 1);
+        (mesh.material as MeshBasicMaterial).opacity = 0.9 * Math.sin(Math.PI * life) ** 1.2;
+      }
     }
   }
 
@@ -1557,6 +1630,11 @@ export class DocklandsStreet {
       // Boats ride on the harbour water, level with the quay.
       boat.mesh.position.y = heightAt(Math.max(metres, 0)) - 0.3;
       boat.mesh.position.z = -metres;
+    }
+    for (const vent of this.vents) {
+      const metres = ((((vent.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      vent.group.visible = !this.onBridge(Math.max(metres, 0));
+      vent.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
     this.deckLamps.forEach((pair, i) => {
       const metres = i * DECK_LAMP_EVERY - (s % DECK_LAMP_EVERY) + 4;
