@@ -20,6 +20,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  type Object3D,
   PlaneGeometry,
   Quaternion,
   RepeatWrapping,
@@ -35,6 +36,12 @@ import type { StreetPoint } from './world-oldtown';
 /** A scene's street: built once, then laid over the road and placed along it every frame. */
 export interface SceneStreet {
   readonly group: Group;
+  /**
+   * Scenery far beyond the road (fells, ranges, a skyline) that the bend leaves as it stands, as
+   * it does the photographed panorama: bent vertex by vertex, a mountain on the inside of a tight
+   * bend is squeezed towards the bend's centre into a sheer wall.
+   */
+  readonly backdrop?: readonly Object3D[];
   build(roadHalf: number, points: number): void;
   lay(points: readonly StreetPoint[], s: number): void;
   place(s: number, heightAt: (metres: number) => number): void;

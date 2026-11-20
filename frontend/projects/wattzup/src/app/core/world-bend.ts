@@ -48,12 +48,16 @@ type BentMaterial = Material & { positionNode?: unknown };
 export class RoadBend {
   private readonly vectors = Array.from({ length: BEND_SAMPLES }, () => new Vector4());
   private readonly samples = uniformArray(this.vectors, 'vec4');
+  /** The road's height at each sample, the ground the relief beside it stands on. */
+  private readonly levels: number[] = Array.from({ length: BEND_SAMPLES }, () => 0);
+  private readonly heights = uniformArray(this.levels, 'float');
   private readonly bent = new WeakSet<Material>();
   private readonly onMesh: unknown;
   private readonly onSprite: unknown;
 
   constructor() {
     const samples = this.samples;
+    const heights = this.heights;
     // The heading of the road at a world point, in radians.
     const headingAt = (p: Node<'vec3'>) => {
       const f = clamp(p.z.negate().sub(BEND_FROM).div(BEND_STEP), 0, BEND_SAMPLES - 1);
@@ -84,13 +88,16 @@ export class RoadBend {
       const eased = sign(k).mul(
         from.add(room.mul(float(1).sub(exp(inside.sub(from).div(room).negate())))),
       );
-      const across = select(
-        abs(k).greaterThan(MIN_CURVATURE).and(inside.greaterThan(from)),
-        eased,
-        x,
-      );
+      const easing = abs(k).greaterThan(MIN_CURVATURE).and(inside.greaterThan(from));
+      const across = select(easing, eased, x);
       const xz = at.xy.add(normal.mul(across)).add(ahead.mul(dm));
-      return vec3(xz.x, p.y, xz.y);
+      // The relief is squeezed down as much as the ground is squeezed across (`squeeze`), so a
+      // fellside on the inside of a hairpin keeps its slope instead of standing up as a wall.
+      const kept = select(easing, exp(inside.sub(from).div(room).negate()), float(1));
+      const ha = heights.element(i.toInt()) as unknown as Node<'float'>;
+      const hb = heights.element(i.toInt().add(1)) as unknown as Node<'float'>;
+      const road = ha.add(hb.sub(ha).mul(t));
+      return vec3(xz.x, road.add(p.y.sub(road).mul(kept)), xz.y);
     };
     // The velocity of motion blur and TRAA reads the previous position from the geometry: it gets
     // the bent one too, or every bent vertex would seem to fly by.
@@ -116,9 +123,10 @@ export class RoadBend {
     this.onSprite = modelWorldMatrixInverse.mul(vec4(bendWorld(centre), 1)).xyz;
   }
 
-  /** Loads the samples of `bendAhead` for this frame. */
-  update(samples: Float32Array): void {
+  /** Loads the samples of `bendAhead` for this frame, and the road's height `metres` ahead. */
+  update(samples: Float32Array, heightAt: (metres: number) => number): void {
     this.vectors.forEach((v, i) => v.fromArray(samples, i * 4));
+    for (let i = 0; i < BEND_SAMPLES; i++) this.levels[i] = heightAt(BEND_FROM + i * BEND_STEP);
   }
 
   /** Bends every mesh and sprite under `root`, except those in `keep`. */
