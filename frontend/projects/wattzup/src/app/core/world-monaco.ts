@@ -462,7 +462,7 @@ export class MonacoStreet implements SceneStreet {
     fascia.position.set(-0.85, ROWS * 0.8 + 4.2, 0);
     stand.add(fascia);
     const random = seeded(6201);
-    for (const offset of [60, 310]) {
+    for (const offset of [150, 400]) {
       const holder = new Group();
       holder.add(stand.clone());
       this.group.add(holder);
