@@ -214,8 +214,7 @@ export class AmsterdamStreet implements SceneStreet {
       [-r, 0.004],
     ]);
     this.ribbons.add(points, quay, [
-      [-r, 0.004],
-      [-r - 0.15, KERB],
+      [-r - 0.18, KERB],
       [edge + 0.4, KERB],
     ]);
     this.ribbons.add(points, stone, [
@@ -253,10 +252,21 @@ export class AmsterdamStreet implements SceneStreet {
       [far, KERB],
       [far - FAR_QUAY, KERB],
     ]);
-    this.ribbons.add(points, quay, [
+    const tiles = this.material({ map: this.repeat(pavementTexture(), 1.2, 1.2), roughness: 0.9 });
+    const granite = this.material({ map: this.repeat(kerbTexture(), 0.3, 1.5), roughness: 0.8 });
+    this.ribbons.add(points, tiles, [
       [r + PAVEMENT, KERB],
-      [r + 0.15, KERB],
+      [r + 0.18, KERB],
+    ]);
+    this.ribbons.add(points, granite, [
+      [r + 0.18, KERB],
+      [r + 0.02, KERB],
       [r, 0.004],
+    ]);
+    this.ribbons.add(points, granite, [
+      [-r, 0.004],
+      [-r - 0.02, KERB],
+      [-r - 0.18, KERB],
     ]);
   }
 
@@ -1402,6 +1412,60 @@ function clinkerTexture(base: string): CanvasTexture {
         g.stroke();
       }
     }
+  });
+}
+
+/**
+ * The pavement before the houses: grey concrete tiles 30 cm square, each its own shade, a few
+ * stained or cracked, in dark joints.
+ */
+function pavementTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    const random = seeded(541);
+    g.fillStyle = '#4a4a48';
+    g.fillRect(0, 0, 256, 256);
+    for (let y = 0; y < 256; y += 64) {
+      for (let x = 0; x < 256; x += 64) {
+        const v = 128 + Math.floor(random() * 30);
+        g.fillStyle = `rgb(${v},${v - 2},${v - 6})`;
+        g.fillRect(x + 2, y + 2, 60, 60);
+        for (let k = 0; k < 40; k++) {
+          g.fillStyle = `rgba(0,0,0,${random() * 0.08})`;
+          g.fillRect(x + 2 + random() * 58, y + 2 + random() * 58, 2, 2);
+        }
+        if (random() < 0.15) {
+          g.fillStyle = 'rgba(40,34,28,0.18)';
+          g.beginPath();
+          g.ellipse(
+            x + 32,
+            y + 32,
+            10 + random() * 14,
+            8 + random() * 10,
+            random(),
+            0,
+            Math.PI * 2,
+          );
+          g.fill();
+        }
+        if (random() < 0.1) {
+          g.strokeStyle = 'rgba(30,30,30,0.5)';
+          g.lineWidth = 1;
+          g.beginPath();
+          g.moveTo(x + 2, y + 10 + random() * 40);
+          g.lineTo(x + 62, y + 10 + random() * 40);
+          g.stroke();
+        }
+      }
+    }
+  });
+}
+
+/** Granite kerbstones: speckled grey, laid in lengths with fine joints. */
+function kerbTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    speckle(g, 64, 256, '#9a9894', 547);
+    g.fillStyle = 'rgba(30,30,30,0.5)';
+    for (let y = 0; y < 256; y += 128) g.fillRect(0, y, 64, 2);
   });
 }
 
