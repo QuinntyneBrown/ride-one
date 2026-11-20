@@ -2838,27 +2838,50 @@ function elmGeometry(seed: number): { wood: BufferGeometry; leaves: BufferGeomet
 
 /** A spray of spring elm leaves, fresh green with lighter tips, on clear ground. */
 function leafTexture(): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    g.clearRect(0, 0, 256, 256);
+  return canvasTexture(512, 512, (g) => {
+    g.clearRect(0, 0, 512, 512);
+    g.scale(2, 2);
     const random = seeded(471);
-    const greens = ['#4f7f34', '#5f9440', '#6ea84a', '#86b85a', '#3f6a2a', '#9cc66a'];
-    for (let i = 0; i < 700; i++) {
-      const a = random() * Math.PI * 2;
-      const r = Math.sqrt(random()) * 118;
-      const x = 128 + Math.cos(a) * r;
-      const y = 128 + Math.sin(a) * r * 0.9;
-      g.fillStyle = greens[Math.floor(random() * greens.length)]!;
-      g.beginPath();
-      g.ellipse(x, y, 5 + random() * 4, 3 + random() * 2, random() * Math.PI, 0, Math.PI * 2);
-      g.fill();
-    }
+    // The twigs first, so the leaves hide most of them.
     g.strokeStyle = '#3a3428';
-    g.lineWidth = 1.5;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 9; i++) {
+      g.lineWidth = 1 + random() * 1.5;
       g.beginPath();
-      g.moveTo(128, 250);
-      g.lineTo(128 + (random() - 0.5) * 200, 40 + random() * 120);
+      g.moveTo(128 + (random() - 0.5) * 30, 250);
+      g.quadraticCurveTo(
+        128 + (random() - 0.5) * 120,
+        150,
+        128 + (random() - 0.5) * 220,
+        30 + random() * 120,
+      );
       g.stroke();
+    }
+    // Leaves in clusters: shaded deep green where the spray turns in on itself, fresh yellow-
+    // green where it catches the light from above, each leaf a pointed oval with its midrib.
+    for (let c = 0; c < 34; c++) {
+      const a = random() * Math.PI * 2;
+      const r = Math.sqrt(random()) * 100;
+      const cx = 128 + Math.cos(a) * r;
+      const cy = 128 + Math.sin(a) * r * 0.9;
+      for (let i = 0; i < 26; i++) {
+        const x = cx + (random() - 0.5) * 34;
+        const y = cy + (random() - 0.5) * 30;
+        const lit = (cy - y) / 30 + 0.5 + (128 - y) / 300;
+        const light = Math.max(0, Math.min(1, lit + (random() - 0.5) * 0.5));
+        const shade = Math.round(70 + light * 90);
+        g.fillStyle = `rgb(${Math.round(shade * 0.62)},${shade + 20},${Math.round(shade * 0.38)})`;
+        const turn = random() * Math.PI;
+        const length = 6 + random() * 4;
+        g.beginPath();
+        g.ellipse(x, y, length, length * 0.5, turn, 0, Math.PI * 2);
+        g.fill();
+        g.strokeStyle = 'rgba(30,40,20,0.35)';
+        g.lineWidth = 0.6;
+        g.beginPath();
+        g.moveTo(x - Math.cos(turn) * length, y - Math.sin(turn) * length);
+        g.lineTo(x + Math.cos(turn) * length, y + Math.sin(turn) * length);
+        g.stroke();
+      }
     }
   });
 }
