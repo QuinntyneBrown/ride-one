@@ -195,6 +195,11 @@ export class CaribanaStreet implements SceneStreet {
   private fringes: InstancedMesh | null = null;
   private readonly legPlumes: InstancedMesh[] = [];
   private readonly collars: InstancedMesh[] = [];
+  private readonly heldFlags: InstancedMesh[] = [];
+  private rags: InstancedMesh | null = null;
+  private hair: InstancedMesh | null = null;
+  private readonly heldCounts = new Map<InstancedMesh, number>();
+  private readonly held = new Matrix4();
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
   private readonly downtown = new Group();
@@ -353,6 +358,8 @@ export class CaribanaStreet implements SceneStreet {
       this.bodies[d.pose]!.setMatrixAt(posed[d.pose]!++, this.matrix);
       costumes.setMatrixAt(i, this.matrix);
       this.fringes?.setMatrixAt(i, this.matrix);
+      this.hair?.setMatrixAt(i, this.matrix);
+      this.placeHeld(d, i, t);
       const k = d.costume;
       this.legPlumes[k]!.setMatrixAt(count[k]!, this.matrix);
       this.spot.set(x, y + 1.3 + bounce, -metres);
@@ -370,9 +377,15 @@ export class CaribanaStreet implements SceneStreet {
       );
       count[k]!++;
     });
+    for (const mesh of [...this.heldFlags, ...(this.rags ? [this.rags] : [])]) {
+      mesh.count = this.heldCounts.get(mesh) ?? 0;
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+    this.heldCounts.clear();
     costumes.instanceMatrix.needsUpdate = true;
     if (this.medallions) this.medallions.instanceMatrix.needsUpdate = true;
     if (this.fringes) this.fringes.instanceMatrix.needsUpdate = true;
+    if (this.hair) this.hair.instanceMatrix.needsUpdate = true;
     this.bodies.forEach((mesh, p) => {
       mesh.count = posed[p]!;
       mesh.instanceMatrix.needsUpdate = true;
@@ -387,6 +400,26 @@ export class CaribanaStreet implements SceneStreet {
       this.legPlumes[k]!.count = count[k]!;
       this.legPlumes[k]!.instanceMatrix.needsUpdate = true;
     });
+  }
+
+  /**
+   * What a dancer waves, carried in the body's matrix: a flag on a stick in the raised right
+   * hand of a dancer waving one hand, a rag in each hand of a dancer with both arms up.
+   */
+  private placeHeld(d: Masquerader, i: number, t: number): void {
+    const put = (mesh: InstancedMesh, x: number, y: number, z: number, wave: number) => {
+      this.held.makeRotationY(wave).setPosition(x, y, z).premultiply(this.matrix);
+      const slot = this.heldCounts.get(mesh) ?? 0;
+      mesh.setMatrixAt(slot, this.held);
+      this.heldCounts.set(mesh, slot + 1);
+    };
+    const wave = Math.sin(t * 6.3) * 0.9;
+    if (d.pose === 1) {
+      put(this.heldFlags[i % this.heldFlags.length]!, 0.3, 1.97, -0.1, wave);
+    } else if (d.pose === 0 && this.rags) {
+      put(this.rags, -0.42, 1.93, -0.06, wave);
+      put(this.rags, 0.42, 1.93, -0.06, -wave);
+    }
   }
 
   /**
@@ -767,6 +800,44 @@ export class CaribanaStreet implements SceneStreet {
       const legs = legPlumeGeometry(inner!, mid!);
       this.disposables.push(legs);
       this.legPlumes.push(this.instanced(legs, plumes, n));
+    }
+    // Hair under the headdress: a close cap, and braids falling down the back past the collar.
+    const locks: BufferGeometry[] = [ellipsoid(0.114, 0.93, 0.9, 1.04, 0, 1.62, 0.012)];
+    for (let b = 0; b < 7; b++) {
+      const a = -0.75 + (b / 6) * 1.5;
+      const top = new Vector3(Math.sin(a) * 0.1, 1.6, 0.06 + Math.cos(a) * 0.04);
+      const end = new Vector3(Math.sin(a) * 0.15, 1.22 + (b % 2) * 0.06, 0.12 + Math.cos(a) * 0.04);
+      locks.push(...limb(top, end, 0.022, 0.018, 5, true));
+    }
+    const hair = mergeGeometries(locks.map((g) => (g.index ? g.toNonIndexed() : g)))!;
+    locks.forEach((g) => g.dispose());
+    this.disposables.push(hair);
+    this.hair = this.instanced(hair, this.material({ roughness: 0.85 }), n);
+    const dyes = ['#120c08', '#1d130d', '#2c1d14', '#0a0a0a', '#5a2a1a', '#c79a4b', '#6b1f2a'];
+    const hairs = seeded(149);
+    this.dancers.forEach((_, i) =>
+      this.hair!.setColorAt(i, c.set(dyes[Math.floor(hairs() * dyes.length)]!)),
+    );
+    // Flags on sticks and rags to wave.
+    const flag = new PlaneGeometry(0.6, 0.4, 3, 1);
+    flag.translate(0.3, 0.32, 0);
+    const stick = new CylinderGeometry(0.01, 0.01, 0.75, 5);
+    stick.translate(0, 0.2, 0);
+    const flagOnStick = mergeGeometries([flag.toNonIndexed(), stick.toNonIndexed()])!;
+    const rag = new PlaneGeometry(0.34, 0.3, 2, 2);
+    rag.translate(0.15, 0.1, 0);
+    this.disposables.push(flag, stick, flagOnStick, rag);
+    for (const material of this.flagMaterials) {
+      this.heldFlags.push(this.instanced(flagOnStick, material, n));
+    }
+    const ragCloth = this.material({ side: DoubleSide, roughness: 0.7 });
+    this.rags = this.instanced(rag, ragCloth, 2 * n);
+    let slot = 0;
+    for (const d of this.dancers) {
+      if (d.pose !== 0) continue;
+      const [outer] = COSTUMES[d.costume]!.feathers;
+      this.rags.setColorAt(slot++, c.set(outer![1]));
+      this.rags.setColorAt(slot++, c.set(slot % 4 ? '#ffffff' : outer![0]));
     }
     // Strands of beads hanging from the belt over the hips, swinging as one skirt.
     const fringe = new CylinderGeometry(0.17, 0.2, 0.26, 18, 1, true);
