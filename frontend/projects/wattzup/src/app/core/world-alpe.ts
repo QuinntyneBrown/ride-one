@@ -739,33 +739,77 @@ export class AlpeStreet implements SceneStreet {
       r.position.set(p.x, p.y + tall - 4 + 3, p.z);
       h.add(r);
     }
-    // The Grandes Rousses behind: rock peaks with their snowfields and glaciers.
-    const peak = new ConeGeometry(1, 1, 7);
-    peak.translate(0, 0.5, 0);
-    this.disposables.push(peak);
-    const rockGrey = hazedMaterial(this.disposables, haze, 0x55585e, 0.3);
-    const snow = hazedMaterial(this.disposables, haze, 0xffffff, 0.04, {
-      emissive: new Color(0x9aa6b4),
-      emissiveIntensity: 0.35,
-    });
-    const pr = seeded(2311);
+    // The Grandes Rousses behind: two ridgelines of jagged rock peaks, the near one dark with
+    // snowfields draped down from its crests and glacier tongues filling its gullies, the far one
+    // paler in the haze, its snow catching the light.
     const top = upon(0, -FACE_DEPTH).y;
-    for (let k = 0; k < 11; k++) {
-      const x = -1500 + k * 300 + (pr() - 0.5) * 160;
-      const height = 520 + pr() * 420;
-      const width = 380 + pr() * 260;
-      const z = -FACE_DEPTH - 500 - pr() * 600;
-      const base = top - 140;
-      const r = new Mesh(peak, rockGrey);
-      r.scale.set(width, height, width * 0.8);
-      r.position.set(x, base, z);
-      r.rotation.y = pr() * 3;
-      const s = new Mesh(peak, snow);
-      const cap = 0.42 + pr() * 0.12;
-      s.scale.set(width * cap * 1.02, height * cap, width * 0.8 * cap * 1.02);
-      s.position.set(x, base + height * (1 - cap) + 1, z);
-      s.rotation.y = r.rotation.y;
-      h.add(r, s);
+    const ridges = [
+      {
+        z: -FACE_DEPTH - 1500,
+        base: top + 80,
+        lift: 1350,
+        rock: 0x8a909a,
+        snow: 0.26,
+        haze: 0.4,
+        seed: 2321,
+      },
+      {
+        z: -FACE_DEPTH - 700,
+        base: top - 40,
+        lift: 1050,
+        rock: 0x4c5058,
+        snow: 0.06,
+        haze: 0.2,
+        seed: 2311,
+      },
+    ];
+    for (const ridge of ridges) {
+      const pr = seeded(ridge.seed);
+      const crest: [number, number][] = [];
+      // Peaks at irregular spacing, cols between them, and small teeth along the crest.
+      for (let x = -2600; x <= 2600; x += 60) {
+        const peaks =
+          Math.sin(x / 430 + ridge.seed) * 0.5 + Math.sin(x / 170 + ridge.seed * 2) * 0.25;
+        const y = ridge.lift * (0.55 + 0.38 * peaks + (pr() - 0.5) * 0.08);
+        crest.push([x, Math.max(y, ridge.lift * 0.2)]);
+      }
+      const rock = new Shape();
+      rock.moveTo(-2600, -200);
+      for (const [x, y] of crest) rock.lineTo(x, y);
+      rock.lineTo(2600, -200);
+      rock.closePath();
+      const body = new ExtrudeGeometry(rock, { depth: 60, bevelEnabled: false, curveSegments: 1 });
+      this.disposables.push(body);
+      const r = new Mesh(body, hazedMaterial(this.disposables, haze, ridge.rock, ridge.haze));
+      r.position.set(0, ridge.base, ridge.z);
+      h.add(r);
+      // The snow: down from the crest, deeper on the high summits, ragged at its lower edge,
+      // and glacier tongues reaching far down the gullies under the cols.
+      const snow = new Shape();
+      snow.moveTo(crest[0]![0], crest[0]![1] + 2);
+      for (const [x, y] of crest) snow.lineTo(x, y + 2);
+      for (let i = crest.length - 1; i >= 0; i--) {
+        const [x, y] = crest[i]!;
+        const high = y / ridge.lift;
+        const gully = Math.max(0, Math.sin(x / 260 + ridge.seed * 3)) ** 6;
+        const depth =
+          ridge.lift *
+          (0.08 + high * 0.28 + gully * 0.3) *
+          (0.85 + 0.25 * Math.sin(x / 110 + ridge.seed));
+        snow.lineTo(x, y - depth);
+      }
+      snow.closePath();
+      const white = new ExtrudeGeometry(snow, { depth: 2, bevelEnabled: false, curveSegments: 1 });
+      this.disposables.push(white);
+      const s = new Mesh(
+        white,
+        hazedMaterial(this.disposables, haze, 0xffffff, ridge.snow, {
+          emissive: new Color(0xb4c0cc),
+          emissiveIntensity: 0.3,
+        }),
+      );
+      s.position.set(0, ridge.base, ridge.z + 61);
+      h.add(s);
     }
     // The valley's far side to the left, its slopes forested and its ridges bare.
     const ridge = new Shape();
