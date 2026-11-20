@@ -654,20 +654,36 @@ export class AmsterdamStreet implements SceneStreet {
     const hulls = [0x1f3a2c, 0x1d1f24, 0x3a1f1a, 0x24304a].map((hex) =>
       this.material({ color: hex, roughness: 0.6 }),
     );
-    const cabins = [0xe9e2d0, 0x9ab8a0, 0xd9a07a, 0x8aa0c0, 0xf2d27a].map((hex) =>
-      this.material({ map: this.track(cabinTexture()), color: hex, roughness: 0.7 }),
+    const cabinMap = this.track(cabinTexture());
+    const cabins = [0xf2efe6, 0x4a6a4a, 0x9a6a44, 0x5a7088, 0x2a2e33, 0xd8c8a0].map((hex) =>
+      this.material({ map: cabinMap, color: hex, roughness: 0.7 }),
     );
     const roofs = this.material({ color: 0x3a3a3a, roughness: 0.8 });
+    const concrete = this.material({ color: 0x8e8b84, roughness: 0.95 });
     const plants = this.material({ color: 0x4f7f34, roughness: 1 });
+    const rail = this.material({ color: 0x1b1b1f, metalness: 0.5, roughness: 0.5 });
     const glass = this.material({
       color: 0x9ab8c8,
       transparent: true,
       opacity: 0.55,
       roughness: 0.1,
     });
-    const pot = new SphereGeometry(0.4, 8, 6);
-    this.disposables.push(pot);
+    const bush = new IcosahedronGeometry(0.35, 1);
+    this.disposables.push(bush);
     const edge = -roadHalf - QUAY;
+    const box = (
+      material: MeshStandardMaterial,
+      w: number,
+      h: number,
+      l: number,
+      y: number,
+      z = 0,
+    ) => {
+      const mesh = new Mesh(this.unit, material);
+      mesh.scale.set(w, h, l);
+      mesh.position.set(0, y + h / 2, z);
+      return mesh;
+    };
     for (const [x, side] of [
       [edge - 2.6, 1],
       [edge - CANAL + 2.6, -1],
@@ -676,21 +692,52 @@ export class AmsterdamStreet implements SceneStreet {
         if ((offset + 10) % BRIDGE < 22) continue;
         const boat = new Group();
         const length = 16 + random() * 6;
-        const hull = new Mesh(this.unit, hulls[Math.floor(random() * 4)]!);
-        hull.scale.set(4.2, 1.2, length);
-        hull.position.y = -WATER + 0.4;
-        const cabin = new Mesh(this.unit, cabins[Math.floor(random() * 5)]!);
-        cabin.scale.set(3.6, 2.2, length - 4);
-        cabin.position.set(0, -WATER + 2.1, 0.5);
-        const roof = new Mesh(this.unit, roofs);
-        roof.scale.set(4, 0.2, length - 3.4);
-        roof.position.set(0, -WATER + 3.3, 0.5);
-        boat.add(hull, cabin, roof);
-        for (let z = -length / 2 + 1; z < length / 2; z += 3 + random() * 3) {
-          const p = new Mesh(pot, plants);
-          p.position.set(side * 1.3, -WATER + 3.7, z);
-          boat.add(p);
+        const cabin = cabins[Math.floor(random() * cabins.length)]!;
+        if (random() < 0.5) {
+          // An ark: a box house on a concrete pontoon, with a roof terrace behind a rail and a
+          // deck at one end.
+          boat.add(box(concrete, 4.6, 1.1, length, -WATER - 0.5));
+          boat.add(box(cabin, 4.2, 2.5, length - 3.5, -WATER + 0.6, -1.4));
+          boat.add(box(roofs, 4.4, 0.15, length - 3.3, -WATER + 3.1, -1.4));
+          for (const rx of [-2.1, 2.1]) {
+            const top = box(rail, 0.04, 0.04, length - 3.5, -WATER + 3.95, -1.4);
+            top.position.x = rx;
+            boat.add(top);
+          }
+          for (let z = -length / 2 + 2; z < length / 2 - 3; z += 1.4 + random() * 2) {
+            const p = new Mesh(bush, plants);
+            p.position.set((random() - 0.5) * 3, -WATER + 3.5, z);
+            boat.add(p);
+          }
+          // Chairs and a table on the end deck.
+          for (const cx of [-1, 0.9]) {
+            const chair = box(rail, 0.5, 0.9, 0.5, -WATER + 0.6, length / 2 - 1.2);
+            chair.position.x = cx;
+            boat.add(chair);
+          }
+          boat.add(box(cabin, 0.8, 0.75, 0.8, -WATER + 0.6, length / 2 - 1.1));
+        } else {
+          // A converted barge: a black steel hull with a pointed bow, a long cabin with a
+          // wheelhouse aft and a mast at the bow.
+          const hull = new Mesh(bargeHull(length), hulls[Math.floor(random() * hulls.length)]!);
+          hull.position.y = -WATER - 0.6;
+          boat.add(hull);
+          boat.add(box(concrete, 4.25, 0.12, length - 3, -WATER + 0.75));
+          boat.add(box(cabin, 3.4, 1.7, length - 7, -WATER + 0.85, 0.5));
+          boat.add(box(roofs, 3.6, 0.12, length - 6.8, -WATER + 2.55, 0.5));
+          boat.add(box(cabin, 2.4, 1.6, 2.2, -WATER + 2.6, length / 2 - 3));
+          boat.add(box(glass, 2.5, 0.7, 2.3, -WATER + 3.4, length / 2 - 3));
+          boat.add(box(roofs, 2.7, 0.1, 2.5, -WATER + 4.2, length / 2 - 3));
+          const mast = box(rail, 0.12, 4, 0.12, -WATER + 0.8, -length / 2 + 2.5);
+          boat.add(mast);
+          for (let z = -length / 2 + 4; z < length / 2 - 5; z += 2 + random() * 2.5) {
+            const p = new Mesh(bush, plants);
+            p.position.set(side * 1.2, -WATER + 2.8, z);
+            p.scale.setScalar(0.7);
+            boat.add(p);
+          }
         }
+        boat.rotation.y = random() < 0.5 ? 0 : Math.PI;
         boat.children.forEach((m) => (m.castShadow = true));
         this.group.add(boat);
         this.props.push({ mesh: boat, offset, x });
@@ -1263,16 +1310,43 @@ function waterTexture(): CanvasTexture {
   });
 }
 
-/** A houseboat cabin's planking and windows. */
+/**
+ * A houseboat cabin's side: weatherboarding, painted over by the material's colour, and a row of
+ * wide windows in white frames with the sky in their glass.
+ */
 function cabinTexture(): CanvasTexture {
-  return canvasTexture(256, 64, (g) => {
+  return canvasTexture(512, 128, (g) => {
     g.fillStyle = '#ffffff';
-    g.fillRect(0, 0, 256, 64);
-    g.fillStyle = 'rgba(0,0,0,0.12)';
-    for (let y = 0; y < 64; y += 8) g.fillRect(0, y, 256, 2);
-    g.fillStyle = '#2e3a46';
-    for (let x = 14; x < 256; x += 48) g.fillRect(x, 18, 26, 22);
+    g.fillRect(0, 0, 512, 128);
+    g.fillStyle = 'rgba(0,0,0,0.14)';
+    for (let y = 0; y < 128; y += 10) g.fillRect(0, y, 512, 2);
+    for (let x = 24; x < 512; x += 84) {
+      g.fillStyle = '#f6f4ee';
+      g.fillRect(x - 4, 26, 60, 60);
+      const glass = g.createLinearGradient(0, 30, 0, 82);
+      glass.addColorStop(0, '#9ab4c8');
+      glass.addColorStop(1, '#1e2830');
+      g.fillStyle = glass;
+      g.fillRect(x, 30, 52, 52);
+      g.fillStyle = '#f6f4ee';
+      g.fillRect(x + 25, 30, 3, 52);
+    }
   });
+}
+
+/** A barge's steel hull, 4.2 m wide and `length` long on z, its bow pointed towards -z. */
+function bargeHull(length: number): BufferGeometry {
+  const shape = new Shape();
+  shape.moveTo(-2.1, length / 2);
+  shape.lineTo(2.1, length / 2);
+  shape.lineTo(2.1, -length / 2 + 3);
+  shape.quadraticCurveTo(1.6, -length / 2 + 0.6, 0, -length / 2);
+  shape.quadraticCurveTo(-1.6, -length / 2 + 0.6, -2.1, -length / 2 + 3);
+  shape.closePath();
+  const hull = new ExtrudeGeometry(shape, { depth: 1.4, bevelEnabled: false });
+  hull.rotateX(Math.PI / 2);
+  hull.translate(0, 1.4, 0);
+  return hull;
 }
 
 /** The width of the cross street that runs off the gracht at each bridge. */
