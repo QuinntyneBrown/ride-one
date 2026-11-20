@@ -91,6 +91,7 @@ export const WORLDS: readonly WorldId[] = [
   'antwerp',
   'tahoe',
   'deathvalley',
+  'atacama',
 ];
 
 export interface Shelf {

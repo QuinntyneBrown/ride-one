@@ -162,7 +162,8 @@ export interface components {
         | 'santamonica'
         | 'antwerp'
         | 'tahoe'
-        | 'deathvalley';
+        | 'deathvalley'
+        | 'atacama';
     };
     ClassShelfResponse: {
       id: string;
