@@ -330,6 +330,12 @@ const LANE_SYMBOL_LONG = 6.4;
 const TREE_OUT = 3;
 const TREE_EVERY = 24;
 const TREE_HEIGHT = 4.2;
+/** A lead cab's indicators: their orange, their glow across (m) and flashes a second. */
+const BLINK_COLOUR = '#ff6a00';
+const BLINK_GLOW = 2;
+const BLINK_RATE = 1.5;
+/** Where in its flash the indicators start, so they are lit as the ride settles. */
+const BLINK_PHASE = 0.7;
 /** The glow round a tree's fairy light: across (m), its colour and how fast it twinkles (rad/s). */
 const TWINKLE_HALO = 0.55;
 const TWINKLE_COLOUR = '#ffd27a';
@@ -650,6 +656,7 @@ export class DocklandsStreet {
     this.chase(seconds, still);
     this.flicker(seconds, still);
     this.twinkle(seconds, still);
+    this.blinkTaxis(seconds, still);
     if (this.holoGlobe) this.holoGlobe.rotation.y = (seconds / HOLO_TURN) * Math.PI * 2;
     if (this.holoRing) this.holoRing.rotation.z = (seconds / HOLO_RING_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
@@ -703,6 +710,8 @@ export class DocklandsStreet {
   private tickAt: number | null = null;
   /** The laser show's beams over the city ahead, each with its own place in the fan. */
   private readonly lasers: { beam: Mesh; base: number; phase: number }[] = [];
+  /** The lead cabs' indicators and their glow. */
+  private blinkers: MeshBasicMaterial[] = [];
   /** The glows round each tree's fairy lights, and each light's twinkle phase. */
   private readonly treeGlows: { mesh: InstancedMesh; phases: number[] }[] = [];
   /** The blade signs' materials, one per word in SIGN_WORDS. */
@@ -2164,6 +2173,12 @@ export class DocklandsStreet {
     this.farShore.add(new LineSegments(lineGeometry, wire), lit);
   }
 
+  /** Flashes the lead cabs' indicators on and off. Lit steady for reduced motion. */
+  private blinkTaxis(seconds: number, still: boolean): void {
+    const on = still || (seconds * BLINK_RATE + BLINK_PHASE) % 1 < 0.55;
+    for (const material of this.blinkers) material.opacity = on ? 1 : 0.08;
+  }
+
   /**
    * Twinkles the trees' fairy lights: each glow swells and fades at its own pace and moment.
    * Steady for reduced motion.
@@ -3247,7 +3262,25 @@ export class DocklandsStreet {
     const rankTexture = this.track(rankSignTexture());
     const rank = new MeshBasicMaterial({ map: rankTexture, toneMapped: false });
     const board = new PlaneGeometry(1.4, 0.7);
+    // The lead cab's indicators, flashing amber, and their glow; shared so they blink as one.
+    const blink = new MeshBasicMaterial({
+      color: new Color(BLINK_COLOUR).multiplyScalar(3),
+      transparent: true,
+      toneMapped: false,
+    });
+    this.glow ??= this.track(glowTexture());
+    const blinkGlow = new MeshBasicMaterial({
+      color: new Color(BLINK_COLOUR).multiplyScalar(2.2),
+      map: this.glow,
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const blinkPlane = new PlaneGeometry(BLINK_GLOW, BLINK_GLOW);
+    this.blinkers = [blink, blinkGlow];
     this.disposables.push(paint, glass, tyre, sign, head, tail, unit, wheel, rank, board);
+    this.disposables.push(blink, blinkGlow, blinkPlane);
     const box = (
       group: Group,
       material: Material,
@@ -3282,6 +3315,17 @@ export class DocklandsStreet {
             w.rotation.z = Math.PI / 2;
             w.position.set(x + side * 0.85, y + 0.34, z + end * 1.35);
             group.add(w);
+          }
+        }
+        // The lead cab signals to pull out: indicators at its road-side corners, front and back.
+        if (k === 0) {
+          for (const end of [-1, 1]) {
+            const cz = z + end * (TAXI_LONG / 2 + 0.02);
+            box(group, blink, 0.3, 0.2, 0.08, x - 0.76, y + 0.92, cz);
+            box(group, blink, 0.06, 0.2, 0.4, x - 0.92, y + 0.92, z + end * (TAXI_LONG / 2 - 0.3));
+            const halo = new Mesh(blinkPlane, blinkGlow);
+            halo.position.set(x - 0.8, y + 0.92, cz + end * 0.3);
+            group.add(halo);
           }
         }
         // Headlight beams pooled on the paving ahead of each cab.
