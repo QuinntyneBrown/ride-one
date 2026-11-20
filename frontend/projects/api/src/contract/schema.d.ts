@@ -95,6 +95,7 @@ export interface components {
         | 'blackpool'
         | 'suburbia'
         | 'nottinghill'
+        | 'knicks'
         | 'vegas';
     };
     ClassShelfResponse: {

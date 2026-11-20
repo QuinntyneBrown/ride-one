@@ -23,6 +23,7 @@ export const WORLDS: readonly WorldId[] = [
   'blackpool',
   'suburbia',
   'nottinghill',
+  'knicks',
   'vegas',
 ];
 
