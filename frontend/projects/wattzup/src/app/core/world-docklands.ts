@@ -339,6 +339,10 @@ const TREE_EVERY = 24;
 const TREE_HEIGHT = 4.2;
 /** Leafy tufts round each crown and how far out from its middle (m), and the leaves' shades: colour and the glow they hold. */
 const TREE_CLUMPS = 8;
+/** Each planter's bed: shrubs round the trunk and flowers among them, in neon-bright hues. */
+const PLANTER_SHRUBS = 5;
+const PLANTER_BLOOMS = 12;
+const PLANTER_FLOWERS = ['#ff4fb8', '#ffd24a', '#ff7a3a', '#c06bff'];
 const TREE_CLUMP_OUT = 1.85;
 const LEAF_SHADES: readonly (readonly [string, string])[] = [
   ['#1d3a34', '#0c2a30'],
@@ -3029,6 +3033,14 @@ export class DocklandsStreet {
     this.disposables.push(planter, rim, bark, ...shades, bulb, unit, trunk, crown, clump, light);
     // The smaller clumps draw from their own sequence, so the trees' layout is unchanged.
     const clumpRandom = seeded(503);
+    // Low shrubs and flowers planted round each trunk, from their own sequence too.
+    const bedRandom = seeded(521);
+    const blooms = PLANTER_FLOWERS.map(
+      (hex) =>
+        new MeshStandardMaterial({ color: hex, emissive: new Color(hex), emissiveIntensity: 1.3 }),
+    );
+    const flower = new SphereGeometry(0.085, 6, 4);
+    this.disposables.push(...blooms, flower);
     // A soft glow round each fairy light, coloured per light so it can twinkle.
     this.glow ??= this.track(glowTexture());
     const halo = new MeshBasicMaterial({
@@ -3082,6 +3094,21 @@ export class DocklandsStreet {
       stem.scale.y = TREE_HEIGHT - 1.6;
       stem.position.set(x, KERB + 0.6 + (TREE_HEIGHT - 1.6) / 2, 0);
       group.add(box, band, stem);
+      for (let k = 0; k < PLANTER_SHRUBS; k++) {
+        const a = (k / PLANTER_SHRUBS) * Math.PI * 2 + bedRandom() * 0.6;
+        const shrub = new Mesh(clump, shades[k % 2 === 0 ? 1 : 0]!);
+        shrub.scale.set(0.32 + bedRandom() * 0.12, 0.22 + bedRandom() * 0.1, 0.32);
+        shrub.rotation.y = bedRandom() * 3;
+        shrub.position.set(x + Math.cos(a) * 0.48, KERB + 0.68, Math.sin(a) * 0.48);
+        group.add(shrub);
+      }
+      for (let k = 0; k < PLANTER_BLOOMS; k++) {
+        const a = bedRandom() * Math.PI * 2;
+        const r = 0.3 + bedRandom() * 0.42;
+        const bloom = new Mesh(flower, blooms[k % blooms.length]!);
+        bloom.position.set(x + Math.cos(a) * r, KERB + 0.9 + bedRandom() * 0.12, Math.sin(a) * r);
+        group.add(bloom);
+      }
       const up = new Mesh(upBeam, uplights[uplit++ % uplights.length]!);
       up.position.set(x, KERB + 0.6, 0);
       group.add(up);
