@@ -220,7 +220,8 @@ export class AmsterdamStreet implements SceneStreet {
     if (pedestrians) {
       this.walkers.forEach((w, i) => {
         const metres = loopMetres(w.offset + w.speed * this.time, s + START, LOOP, BEHIND);
-        const step = Math.abs(Math.sin(this.time * 4.5 + w.phase)) * 0.04;
+        const pace = Math.abs(w.speed) > 2 ? 2.4 : 1;
+        const step = Math.abs(Math.sin(this.time * 4.5 * pace + w.phase)) * 0.04 * pace;
         const y = heightAt(Math.max(metres, 0)) + KERB;
         pedestrians.set(
           i,
@@ -230,7 +231,7 @@ export class AmsterdamStreet implements SceneStreet {
           w.speed > 0 ? 0 : Math.PI,
           w.scale,
           step,
-          this.time * 4.5 + w.phase,
+          this.time * 4.5 * pace + w.phase,
         );
         // Every fifth walker has a dog trotting ahead on its lead.
         if (this.dogs && i % 5 === 0) {
@@ -2428,7 +2429,21 @@ export class AmsterdamStreet implements SceneStreet {
         phase: random() * 6.3,
       });
     }
+    // Joggers on the quay in running kit, at three times a walker's pace.
+    const joggers = this.walkers.length;
+    for (const [offset, speed, x] of [
+      [START + BEHIND + 18, -2.9, -roadHalf - 3.0],
+      [140, 3.1, -roadHalf - 3.3],
+      [230, -2.7, -roadHalf - QUAY - CANAL - 3.4],
+      [300, 2.8, -roadHalf - 2.9],
+    ] as const) {
+      this.walkers.push({ offset, x, speed, scale: 0.98, phase: offset });
+    }
     this.pedestrians = new Walkers(this.group, this.disposables, this.walkers.length, 461);
+    const kit = ['#ff3a7a', '#1d1f24', '#2c7be5', '#c8f040'];
+    for (let j = joggers; j < this.walkers.length; j++) {
+      this.pedestrians.kit(j, kit[j % kit.length]!, '#1d1f24');
+    }
     const dog = dogGeometry();
     const fur = new MeshStandardMaterial({ roughness: 0.95 });
     this.dogs = new InstancedMesh(dog, fur, Math.ceil(this.walkers.length / 5));
@@ -2746,6 +2761,16 @@ class Walkers {
     if (this.bags[i]) at(this.bag, 0.3, 1.0, 0.02, a * 0.5);
     else this.bag.setMatrixAt(i, this.part.makeScale(0, 0, 0));
     this.size.setScalar(scale);
+  }
+
+  /** Dresses walker `i` in running kit: a bright top and dark tights, with no bag. */
+  kit(i: number, top: string, tights: string): void {
+    const c = new Color(top);
+    this.body.setColorAt(i, c);
+    this.arms.forEach((a) => a.setColorAt(i, c));
+    c.set(tights);
+    this.legs.forEach((l) => l.setColorAt(i, c));
+    this.bags[i] = false;
   }
 
   /** Uploads the walkers set this frame. */
