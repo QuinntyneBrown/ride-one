@@ -7,8 +7,6 @@
 // banners and road paint of world-kit.ts.
 import {
   BoxGeometry,
-  BufferAttribute,
-  type BufferGeometry,
   CanvasTexture,
   CapsuleGeometry,
   Color,
@@ -24,7 +22,6 @@ import {
   SphereGeometry,
   type Texture,
 } from 'three/webgpu';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   barrierBannerTexture,
   type BannerPanel,
@@ -32,6 +29,7 @@ import {
   clothBannerTexture,
   Crowd,
   Figures,
+  Palms,
   hazedMaterial,
   loopMetres,
   paintTexture,
@@ -487,49 +485,10 @@ export class SouthBeachStreet implements SceneStreet {
 
   /** Royal palms along the lawn on the right, and a few by the side streets on the left. */
   private addPalms(): void {
-    const parts: BufferGeometry[] = [];
-    // A slightly curved trunk of stacked rings, wider at the foot.
-    for (let i = 0; i < 6; i++) {
-      const ring = new CylinderGeometry(0.2 - i * 0.012, 0.22 - i * 0.012, 1.6, 8);
-      ring.translate(i * i * 0.02, 0.8 + i * 1.55, 0);
-      parts.push(ring);
-    }
-    const trunk = mergeGeometries(parts)!;
-    parts.forEach((p) => p.dispose());
-    const fronds: BufferGeometry[] = [];
-    for (let i = 0; i < 11; i++) {
-      const frond = new PlaneGeometry(0.9, 3.6, 1, 6);
-      const position = frond.getAttribute('position') as BufferAttribute;
-      for (let v = 0; v < position.count; v++) {
-        const y = position.getY(v) + 1.8;
-        // Each frond arches out and droops at the tip.
-        position.setXYZ(v, position.getX(v), 0.4 * y - 0.11 * y * y, y);
-      }
-      frond.rotateY((i / 11) * Math.PI * 2 + (i % 2) * 0.2);
-      frond.translate(0.5, 9.4, 0);
-      fronds.push(frond);
-    }
-    const crown = mergeGeometries(fronds)!;
-    fronds.forEach((f) => f.dispose());
-    crown.computeVertexNormals();
-    this.disposables.push(trunk, crown);
-    const bark = this.material({ map: this.repeat(barkTexture(), 1, 1), roughness: 1 });
-    const leaves = this.material({
-      map: this.track(frondTexture()),
-      alphaTest: 0.45,
-      side: DoubleSide,
-      roughness: 0.85,
-    });
+    const palms = new Palms(this.disposables, this.track);
     const random = seeded(19);
     const plant = (x: number, offset: number) => {
-      const palm = new Group();
-      const t = new Mesh(trunk, bark);
-      const c = new Mesh(crown, leaves);
-      t.castShadow = true;
-      c.castShadow = true;
-      palm.add(t, c);
-      palm.scale.setScalar(0.85 + random() * 0.35);
-      palm.rotation.y = random() * Math.PI * 2;
+      const palm = palms.make(random);
       this.group.add(palm);
       this.props.push({ mesh: palm, offset, every: LOOP, x });
     };
@@ -1004,38 +963,6 @@ function seaTexture(): CanvasTexture {
       g.fillStyle = `rgba(255,${200 + random() * 40},${170 + random() * 40},${0.06 + random() * 0.2})`;
       g.fillRect(random() * 512, random() * 512, 10 + random() * 26, 1.5);
     }
-  });
-}
-
-/** Palm bark: grey rings. */
-function barkTexture(): CanvasTexture {
-  return canvasTexture(64, 256, (g) => {
-    g.fillStyle = '#9a8f80';
-    g.fillRect(0, 0, 64, 256);
-    for (let y = 0; y < 256; y += 10) {
-      g.fillStyle = 'rgba(60,50,40,0.35)';
-      g.fillRect(0, y, 64, 3);
-    }
-  });
-}
-
-/** A palm frond: a midrib with leaflets either side, transparent round it. */
-function frondTexture(): CanvasTexture {
-  return canvasTexture(128, 512, (g) => {
-    g.clearRect(0, 0, 128, 512);
-    for (let y = 20; y < 500; y += 9) {
-      const reach = 58 * Math.sin((Math.PI * y) / 512);
-      g.strokeStyle = `hsl(${100 + (y % 3) * 6},50%,${26 + (y % 5) * 3}%)`;
-      g.lineWidth = 5;
-      g.beginPath();
-      g.moveTo(64, y);
-      g.lineTo(64 - reach, y + 26);
-      g.moveTo(64, y);
-      g.lineTo(64 + reach, y + 26);
-      g.stroke();
-    }
-    g.fillStyle = '#5a6b2c';
-    g.fillRect(61, 0, 6, 512);
   });
 }
 

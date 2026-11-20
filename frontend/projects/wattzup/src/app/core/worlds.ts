@@ -577,6 +577,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 1, work: 2.5, rest: 0, cooldown: -0.5, steady: 1.5 },
     roll: 1,
   },
+  {
+    id: 'ibiza',
+    name: 'Ibiza Sunset Strip',
+    route: 'the sunset strip',
+    effortName: 'Bass drop',
+    description:
+      'The sun sinks into the sea off Sant Antoni beside the island of Conillera, whitewashed beach clubs lining the strip with their neon names, palms and pergola terraces as a DJ sweeps light beams over the dancing crowd under festoon lights. The warm-up cruises the waterfront under the opening set, each effort from fifteen seconds to a minute and a quarter drops with the bass past the clubs and the DJ terrace, and the recoveries float easy along the promenade toward the sunset.',
+    grade: { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0.3,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

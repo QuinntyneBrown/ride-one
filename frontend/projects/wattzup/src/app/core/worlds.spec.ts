@@ -62,6 +62,7 @@ describe('targetGrade (L2-101)', () => {
     ['monaco', { warmup: 0, work: 2, rest: 0, cooldown: 0, steady: 0 }, 2.092265],
     ['tempelhof', { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 }, 0.573812],
     ['paine', { warmup: 1, work: 2.5, rest: 0, cooldown: -0.5, steady: 1.5 }, 2.68453],
+    ['ibiza', { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0 }, 1.055359],
     ['coast', { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 }, 4.795247],
   ])('%s asks for its grade per kind at s 0, plus its roll at s 300', (id, grades, workAt300) => {
     const world = worldById(id);
