@@ -152,6 +152,10 @@ const CROSSING_DEPTH = 5;
 const BEACON_HEIGHT = 2.9;
 const BEACON_BLINK = 1.2;
 const BEACON_HALO_NEAR = 7;
+/** Bike-lane symbols: where round the loop, and their size on the road (m). */
+const LANE_SYMBOLS = [40, 130, 262, 360, 420, 500, 620];
+const LANE_SYMBOL_WIDE = 2.2;
+const LANE_SYMBOL_LONG = 6.4;
 /** Kerbside bollards: how high (m) and how far apart (m). */
 const BOLLARD_HEIGHT = 0.95;
 const BOLLARD_EVERY = 8;
@@ -315,6 +319,8 @@ export class DocklandsStreet {
   private readonly stalls: { group: Group; offset: number }[] = [];
   /** Pairs of lit bollards along the kerbs, every BOLLARD_EVERY metres round the loop. */
   private readonly bollards: { group: Group; offset: number }[] = [];
+  /** Bike-lane symbols painted on the road, in both lanes, at LANE_SYMBOLS round the loop. */
+  private readonly laneSymbols: { group: Group; offset: number }[] = [];
   /** Zebra crossings over the road, their beacons' globes and halos blinking together. */
   private readonly crossings: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private beaconMaterial: MeshBasicMaterial | null = null;
@@ -1294,6 +1300,7 @@ export class DocklandsStreet {
     this.addStalls();
     this.addCrossings(roadHalf);
     this.addBollards(roadHalf);
+    this.addLaneSymbols(roadHalf);
     this.addGates(roadHalf);
     this.addMachines(roadHalf);
     this.addWalkers(roadHalf);
@@ -1679,6 +1686,38 @@ export class DocklandsStreet {
       }
       this.group.add(group);
       this.bollards.push({ group, offset });
+    }
+  }
+
+  /**
+   * A bicycle and an arrow painted in each lane, in a pale cyan that glows faintly on the wet
+   * road, the arrow pointing the way the lane runs.
+   */
+  private addLaneSymbols(roadHalf: number): void {
+    const texture = this.track(laneSymbolTexture());
+    const material = new MeshBasicMaterial({
+      map: texture,
+      color: new Color('#bff6ff').multiplyScalar(1.3),
+      transparent: true,
+      depthWrite: false,
+      toneMapped: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    const plane = new PlaneGeometry(LANE_SYMBOL_WIDE, LANE_SYMBOL_LONG);
+    this.disposables.push(material, plane);
+    for (const offset of LANE_SYMBOLS) {
+      const group = new Group();
+      for (const side of [-1, 1]) {
+        const mesh = new Mesh(plane, material);
+        mesh.rotation.x = -Math.PI / 2;
+        // The far lane's symbol faces its own riders, coming the other way.
+        if (side < 0) mesh.rotation.z = Math.PI;
+        mesh.position.set((side * roadHalf) / 2, 0.016, 0);
+        group.add(mesh);
+      }
+      this.group.add(group);
+      this.laneSymbols.push({ group, offset });
     }
   }
 
@@ -2544,6 +2583,11 @@ export class DocklandsStreet {
       // Close up, a beacon's halo would swell to fill the view: it shows only further off.
       for (const bloom of crossing.blooms) bloom.visible = metres > BEACON_HALO_NEAR;
     }
+    for (const symbol of this.laneSymbols) {
+      const metres = ((((symbol.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      symbol.group.visible = !this.onBridge(Math.max(metres, 0));
+      symbol.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
     for (const bollard of this.bollards) {
       const metres = ((((bollard.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       bollard.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -2857,6 +2901,64 @@ function machineTexture(hex: string, i: number): CanvasTexture {
     ctx.fillRect(8, 6, 94, 14);
     ctx.fillStyle = '#14141c';
     ctx.fillRect(14, 140, 82, 26);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * A bicycle above an arrow, white on clear, drawn so the arrow points up the texture: laid on
+ * the road, that is away from the rider. Long, as road markings are, to read foreshortened.
+ */
+function laneSymbolTexture(): CanvasTexture {
+  const w = 128;
+  const h = 352;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.strokeStyle = '#ffffff';
+    ctx.fillStyle = '#ffffff';
+    ctx.lineWidth = 9;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // The arrow, nearest the top (furthest along the road).
+    ctx.beginPath();
+    ctx.moveTo(w / 2, 14);
+    ctx.lineTo(w - 22, 70);
+    ctx.lineTo(w / 2 + 14, 70);
+    ctx.lineTo(w / 2 + 14, 130);
+    ctx.lineTo(w / 2 - 14, 130);
+    ctx.lineTo(w / 2 - 14, 70);
+    ctx.lineTo(22, 70);
+    ctx.closePath();
+    ctx.fill();
+    // The bicycle below it, stretched along the road: wheels, frame, bars and saddle.
+    ctx.save();
+    ctx.translate(w / 2, 250);
+    ctx.scale(1, 1.6);
+    ctx.rotate(-Math.PI / 2);
+    ctx.beginPath();
+    ctx.arc(-30, 0, 22, 0, Math.PI * 2);
+    ctx.moveTo(52, 0);
+    ctx.arc(30, 0, 22, 0, Math.PI * 2);
+    ctx.moveTo(-30, 0);
+    ctx.lineTo(-6, -30);
+    ctx.lineTo(22, -30);
+    ctx.lineTo(30, 0);
+    ctx.moveTo(-30, 0);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(-6, -30);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(22, -30);
+    ctx.moveTo(-12, -38);
+    ctx.lineTo(2, -38);
+    ctx.moveTo(22, -30);
+    ctx.lineTo(26, -42);
+    ctx.stroke();
+    ctx.restore();
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
