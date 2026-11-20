@@ -317,6 +317,15 @@ export class MiamiStreet implements SceneStreet {
       blending: AdditiveBlending,
     });
     this.disposables.push(candleGlow);
+    const vacancies = ['VACANCY', 'NO VACANCY'].map((text) =>
+      this.material({
+        map: this.track(neonWordTexture(text, '#ff3048')),
+        emissive: 0xffffff,
+        emissiveMap: this.track(neonWordTexture(text, '#ff3048')),
+        emissiveIntensity: 2.4,
+        transparent: true,
+      }),
+    );
     let offset = 0;
     let k = 0;
     while (offset < LOOP - 10) {
@@ -444,6 +453,26 @@ export class MiamiStreet implements SceneStreet {
       under.rotation.z = Math.PI / 2;
       under.position.set(-1.5, 3.51, 0);
       hotel.add(canopy, fascia, under);
+      // The hotel's name again in flowing neon script across the façade over the marquee, and
+      // a small VACANCY sign glowing in a ground-floor corner window.
+      const script = this.material({
+        map: this.track(scriptTexture(NAMES[k % NAMES.length]!, glow)),
+        emissive: 0xffffff,
+        emissiveMap: this.track(scriptTexture(NAMES[k % NAMES.length]!, glow)),
+        emissiveIntensity: 2.2,
+        transparent: true,
+        depthWrite: false,
+      });
+      this.signs.push(script);
+      const word = new Mesh(this.flat, script);
+      word.rotation.y = -Math.PI / 2;
+      word.scale.set(width * 0.55, width * 0.55 * 0.25, 1);
+      word.position.set(-0.08, 5.9, 0);
+      const vacancy = new Mesh(this.flat, vacancies[k % 2]!);
+      vacancy.rotation.y = -Math.PI / 2;
+      vacancy.scale.set(2.2, 0.55, 1);
+      vacancy.position.set(-0.06, 2.6, -width * 0.36);
+      hotel.add(word, vacancy);
       // The sidewalk café: tables under umbrellas between the marquee and the palms, a
       // candle glowing on each, the chairs drawn up round them.
       const cafe = new BoxBuilder();
@@ -1429,5 +1458,50 @@ function foamTexture(): CanvasTexture {
       g.fillStyle = `rgba(255,255,255,${a.toFixed(2)})`;
       g.fillRect(x, random() * 256, 1 + random() * 3, 4 + random() * 20);
     }
+  });
+}
+
+/** A hotel's name in looping neon script, a tube of light with its glow, on clear glass. */
+function scriptTexture(name: string, glow: number): CanvasTexture {
+  const colour = `#${glow.toString(16).padStart(6, '0')}`;
+  const title = name.charAt(0) + name.slice(1).toLowerCase();
+  return canvasTexture(512, 128, (g) => {
+    g.font = 'italic bold 84px "Brush Script MT", "Segoe Script", cursive, serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.shadowColor = colour;
+    g.shadowBlur = 18;
+    g.lineWidth = 7;
+    g.strokeStyle = colour;
+    g.strokeText(title, 256, 66);
+    g.shadowBlur = 0;
+    g.lineWidth = 2.5;
+    g.strokeStyle = '#ffffff';
+    g.strokeText(title, 256, 66);
+    // The underline swash.
+    g.lineWidth = 5;
+    g.strokeStyle = colour;
+    g.beginPath();
+    g.moveTo(90, 112);
+    g.quadraticCurveTo(256, 96, 430, 110);
+    g.stroke();
+  });
+}
+
+/** Block capitals in neon tube on a dark sign box: VACANCY, OPEN and the like. */
+function neonWordTexture(text: string, colour: string): CanvasTexture {
+  return canvasTexture(256, 64, (g) => {
+    g.fillStyle = 'rgba(16,10,20,0.85)';
+    g.fillRect(0, 0, 256, 64);
+    g.font = 'bold 36px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.shadowColor = colour;
+    g.shadowBlur = 12;
+    g.fillStyle = colour;
+    g.fillText(text, 128, 34, 240);
+    g.shadowBlur = 0;
+    g.fillStyle = '#ffd8dc';
+    g.fillText(text, 128, 34, 240);
   });
 }
