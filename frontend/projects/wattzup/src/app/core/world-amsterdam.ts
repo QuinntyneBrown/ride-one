@@ -344,6 +344,9 @@ export class AmsterdamStreet implements SceneStreet {
     const stone = this.material({ color: 0xa39d92, roughness: 0.9 });
     const iron = this.material({ color: 0x15171a, metalness: 0.5, roughness: 0.5 });
     const { steps, railings } = stoopGeometry();
+    const timber = this.material({ color: 0x2a2420, roughness: 0.8 });
+    const hookGeometry = new TorusGeometry(0.1, 0.025, 4, 8, Math.PI * 1.5);
+    this.disposables.push(hookGeometry);
     const gableRoof = roofGeometry(false);
     const hip = roofGeometry(true);
     const roof = this.material({ map: this.repeat(roofTexture(), 0.25, 0.25), roughness: 0.85 });
@@ -417,6 +420,19 @@ export class AmsterdamStreet implements SceneStreet {
           pitch.scale.set(width, height * (k === 4 ? 0.2 : 0.95 - EAVES), 11.5);
           pitch.position.set(0, height * EAVES, 0.5);
           whole.add(screen, body, pitch);
+          // Canal houses lean forward over the street a little, built so on purpose to keep
+          // goods hoisted up the front clear of the windows.
+          const lean = -0.006 - random() * 0.01;
+          screen.rotation.x = lean;
+          if (k !== 4) {
+            // The hoist beam juts from the top of the gable, a hook hanging from its end.
+            const beam = new Mesh(this.unit, timber);
+            beam.scale.set(0.18, 0.24, 1.3);
+            beam.position.set(width / 2, height * 0.9, -0.55 + height * 0.9 * lean);
+            const hook = new Mesh(hookGeometry, iron);
+            hook.position.set(width / 2, height * 0.9 - 0.3, -1.1 + height * 0.9 * lean);
+            whole.add(beam, hook);
+          }
           whole.rotation.y = turn;
           whole.children.forEach((m) => {
             m.castShadow = true;
