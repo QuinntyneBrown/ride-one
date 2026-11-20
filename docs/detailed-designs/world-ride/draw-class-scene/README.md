@@ -515,7 +515,7 @@ None.
   - the evening crowd (the shared crowd) in white kandura, black abaya and bright summer colours, packed along the podium side and in a loose single row on the quay side so the marina shows, some with flags in the UAE's green, white, black and red, some with their arms up;
   - on the left the pale stone paving of the walk out to the quay's edge 10 m off the crown, its glass rail with a steel cap, the kit's palms in round stone planters, the marina's water below, superyachts (the kit's yachts, shared with Monaco) moored in two rows off the quay, and across the water the far side's towers, their glass alight;
   - on the right the podium: two floors of shops and cafés with lit fronts under awnings, and a glass tower rising from each block, set back, 60 to 210 m tall, its windows coming alight, a spire on every third;
-  - ahead the marina's skyline: the Cayan Tower twisting a quarter turn from foot to crown, its white floor slabs spiralling up its glass, among towers of every height, some with spires and some with flared crowns, all hazed by hand. Everything along the road is hidden past 280 m.
+  - ahead the marina's skyline: the Cayan Tower on the line of the walk at its end, 315 m tall and twisting a quarter turn from foot to crown, its white floor slabs and the white columns at its corners and across its faces spiralling up its blue glass, every floor's windows lit warm in its own pattern, the towers about it kept clear so its silhouette shows, among towers of every height, some with spires and some with flared crowns, all hazed by hand. Everything along the road is hidden past 280 m.
 
   `lay`, `place` and `setTime` recycle it along a 500 m loop, and `sink` drops the ground under the water.
 

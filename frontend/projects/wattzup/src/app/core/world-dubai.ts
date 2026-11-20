@@ -56,6 +56,24 @@ const CROWD_NEAR = 4.4;
 const CROWD_FAR = 6.6;
 /** The quay's edge on the left, the glass rail along it and the marina's water below. */
 const QUAY = 10;
+/**
+ * One floor of the Cayan Tower's glass around a face: ten bays of blue glass, some lit warm.
+ * With `lit`, only the lit bays, on black, for the emissive map.
+ */
+function cayanTexture(lit: boolean): CanvasTexture {
+  return canvasTexture(256, 16, (g) => {
+    g.fillStyle = lit ? '#000000' : '#34506c';
+    g.fillRect(0, 0, 256, 16);
+    const random = seeded(5275);
+    for (let bay = 0; bay < 20; bay++) {
+      const on = random() < 0.45;
+      if (lit && !on) continue;
+      g.fillStyle = lit ? '#ffcf96' : on ? '#e8c090' : '#4a6a88';
+      g.fillRect(bay * 12.8 + 1, 2, 10.8, 12);
+    }
+  });
+}
+
 /** The podium's shopfronts on the right, the towers rising behind them. */
 const PODIUM = 12;
 /** The horizon this far ahead. */
@@ -514,9 +532,14 @@ export class DubaiStreet implements SceneStreet {
     const STOREY = 4.2;
     const glassParts: BufferGeometry[] = [];
     const frameParts: BufferGeometry[] = [];
+    const lights = seeded(5273);
     for (let f = 0; f < FLOORS; f++) {
       const turn = (f / FLOORS) * (Math.PI / 2);
       const pane = new BoxGeometry(30, STOREY - 0.6, 30);
+      // Each floor's windows lit in their own pattern: its band of the texture slid along.
+      const uv = pane.getAttribute('uv') as BufferAttribute;
+      const slide = Math.floor(lights() * 10) / 10;
+      for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) + slide);
       pane.rotateY(turn);
       pane.translate(0, f * STOREY + STOREY / 2, 0);
       glassParts.push(pane);
@@ -524,7 +547,27 @@ export class DubaiStreet implements SceneStreet {
       slab.rotateY(turn);
       slab.translate(0, f * STOREY + 0.3, 0);
       frameParts.push(slab);
+      // The white columns at its corners and across each face, turned with the floor, so they
+      // spiral up the tower a quarter turn from its foot to its crown.
+      for (const [cx, cz, w] of [
+        [15.4, 15.4, 1.6],
+        [15.4, -15.4, 1.6],
+        [-15.4, 15.4, 1.6],
+        [-15.4, -15.4, 1.6],
+        [15.6, 0, 0.9],
+        [-15.6, 0, 0.9],
+        [0, 15.6, 0.9],
+        [0, -15.6, 0.9],
+      ] as const) {
+        const column = new BoxGeometry(w, STOREY, w);
+        column.translate(cx, f * STOREY + STOREY / 2, cz);
+        column.rotateY(turn);
+        frameParts.push(column);
+      }
     }
+    const cayanWindows = this.track(cayanTexture(false));
+    const cayanLit = this.track(cayanTexture(true));
+    for (const t of [cayanWindows, cayanLit]) t.wrapS = RepeatWrapping;
     const cayanGlass = mergeGeometries(glassParts)!;
     const cayanFrame = mergeGeometries(frameParts)!;
     [...glassParts, ...frameParts].forEach((g) => g.dispose());
@@ -533,16 +576,25 @@ export class DubaiStreet implements SceneStreet {
     cayan.add(
       new Mesh(
         cayanGlass,
-        hazedMaterial(this.disposables, haze, 0x3a5878, 0.18, {
-          emissive: new Color(0xffc890),
-          emissiveIntensity: 0.12,
-          metalness: 0.5,
+        hazedMaterial(this.disposables, haze, 0x3a5878, 0.12, {
+          map: cayanWindows,
+          emissive: new Color(0xffffff),
+          emissiveMap: cayanLit,
+          emissiveIntensity: 0.9,
+          metalness: 0.45,
           roughness: 0.2,
         }),
       ),
-      new Mesh(cayanFrame, hazedMaterial(this.disposables, haze, 0xf4f0ea, 0.2)),
+      new Mesh(
+        cayanFrame,
+        hazedMaterial(this.disposables, haze, 0xe8e2da, 0.15, {
+          emissive: new Color(0xffd8b0),
+          emissiveIntensity: 0.08,
+        }),
+      ),
     );
-    cayan.position.set(30, -2, -420);
+    // On the line of the walk, rising over everything at its end.
+    cayan.position.set(4, -2, -620);
     h.add(cayan);
     // The towers about it, of every height, glass alight, hazed with distance.
     const random = seeded(5271);
@@ -561,8 +613,8 @@ export class DubaiStreet implements SceneStreet {
     const crown = hazedMaterial(this.disposables, haze, 0xf0e8dc, 0.3);
     for (let k = 0; k < 34; k++) {
       const x = -520 + random() * 1000;
-      if (Math.abs(x - 30) < 40) continue;
       const z = -300 - random() * 500;
+      if (Math.abs(x - 4) < 60) continue;
       const tall = 80 + random() * 220;
       const w = 22 + random() * 20;
       const tower = new Mesh(box, tints[k % tints.length]!);
