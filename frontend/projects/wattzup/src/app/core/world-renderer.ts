@@ -983,6 +983,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.6, colour: 0xfff4e4 },
     fogRange: [2500, 22000],
   },
+  // Sunset over the sea off Ibiza: the sun just above the water ahead and left of the strip,
+  // the sky blazing orange and pink, warm low light raking the whitewashed clubs.
+  ibiza: {
+    sky: 0xf7a070,
+    fog: 0xf2a77a,
+    ground: 0xd8c4a4,
+    road: 0x4c4a52,
+    sun: 4,
+    wet: false,
+    haze: false,
+    turbidity: 8,
+    rayleigh: 3,
+    azimuth: -14,
+    light: { sun: 2.6, fill: 1.15, colour: 0xff9a5a },
+    fogRange: [150, 1900],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

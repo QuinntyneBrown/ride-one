@@ -139,7 +139,8 @@ export interface components {
         | 'teide'
         | 'monaco'
         | 'tempelhof'
-        | 'paine';
+        | 'paine'
+        | 'ibiza';
     };
     ClassShelfResponse: {
       id: string;
