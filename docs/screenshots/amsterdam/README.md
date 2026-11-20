@@ -90,6 +90,7 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 | [084 · Bridge crossers](084-bridge-crossers.jpg) | The bridges carry their own traffic: on each, two cyclists and someone on foot cross over the hump between the quays, going either way and rising and falling with the deck, so the first bridge in the opening view has people on it rather than standing empty. | 94% · 87/100 |
 | [085 · Far-quay cyclists](085-far-quay-cyclists.jpg) | Across the canal the far quay's street has its own cyclists, riding both ways under the elms on their own coloured bikes, some with passengers or backpacks, so the far side moves as the near one does. Small across the water in the opening view; the scores hold. | 94% · 87/100 |
 | [086 · Heron](086-heron.jpg) | A grey heron stands motionless on the quay's edge by the first bridge, just past the flower stall, as Amsterdam's herons wait by stalls and fishmongers for scraps: grey body hunched, white neck and head with its black crest, a long yellow bill and yellow legs. | 94% · 87/100 |
+| [087 · Cirrus](087-cirrus.jpg) | Above the cumulus the sky gets its high cloud: seven thin streaks of cirrus combed out by the wind, brightest along the middle and frayed at the ends, lying across the blue at 400 to 800 m, as a May sky over Holland often has; they show faintly in the gap of sky over the gracht. | 94% · 87/100 |
 
 ## Reproducing a capture
 
