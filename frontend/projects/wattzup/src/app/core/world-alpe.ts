@@ -180,6 +180,8 @@ interface Prop {
   readonly x: number;
   /** How far the ground under it stands above the road. */
   readonly rise: number;
+  /** Lies on the road, as paint does, and takes its slope. */
+  readonly lies?: boolean;
 }
 
 export class AlpeStreet implements SceneStreet {
@@ -270,11 +272,15 @@ export class AlpeStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
-    const ground = (metres: number) => heightAt(Math.max(metres, 0));
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
       prop.mesh.visible = metres < FACE_AHEAD - 10;
-      prop.mesh.position.set(prop.x, ground(metres) + KERB + prop.rise, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB + prop.rise, -metres);
+      // The fans' paint lies along the ramp, not level through it, where half of each word
+      // would sink into the tarmac and half float over it.
+      if (prop.lies) {
+        prop.mesh.rotation.x = Math.atan((heightAt(metres + 1) - heightAt(metres - 1)) / 2);
+      }
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     this.oranje.place(this.time, heightAt, along, KERB);
@@ -823,7 +829,7 @@ export class AlpeStreet implements SceneStreet {
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset, every: LOOP, x, rise: 0 });
+      this.props.push({ mesh: holder, offset, every: LOOP, x, rise: 0, lies: true });
     };
     const rows = Math.floor(LOOP / ROAD_PAINT_EVERY);
     let k = 0;
