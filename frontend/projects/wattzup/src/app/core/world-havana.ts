@@ -3314,6 +3314,8 @@ class Walkers {
   private readonly parts: InstancedMesh[];
   private readonly hats: InstancedMesh;
   private readonly hatted: boolean[] = [];
+  private readonly shades: InstancedMesh;
+  private readonly shaded: boolean[] = [];
   private readonly base = new Matrix4();
   private readonly local = new Matrix4();
   private readonly out = new Matrix4();
@@ -3363,6 +3365,16 @@ class Walkers {
       make(hair, 0.95),
     ];
     this.hats = make(hat, 0.9);
+    // A parasol held up against the sun: a shallow canopy on its shaft, in the right hand.
+    const canopy = new ConeGeometry(0.55, 0.22, 10, 1, true);
+    canopy.translate(0, 0.62, 0);
+    const shaft = new CylinderGeometry(0.01, 0.01, 0.7, 4);
+    shaft.translate(0, 0.3, 0);
+    const parasol = mergeGeometries([canopy.toNonIndexed(), shaft.toNonIndexed()])!;
+    canopy.dispose();
+    shaft.dispose();
+    this.shades = make(parasol, 0.8);
+    (this.shades.material as MeshStandardMaterial).side = DoubleSide;
     const random = seeded(seed);
     const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
     const c = new Color();
@@ -3380,6 +3392,12 @@ class Walkers {
       this.parts[4]!.setColorAt(i, c.set(pick(hairs)));
       this.hats.setColorAt(i, c.set(random() < 0.6 ? '#e8d8a8' : pick(wardrobe.tops)));
       this.hatted.push(random() < 0.35);
+    }
+    const parasols = ['#e63946', '#1d70b8', '#f1c40f', '#2b2d42', '#f0c8c0', '#ffffff'];
+    const choose = seeded(seed + 1);
+    for (let i = 0; i < count; i++) {
+      this.shades.setColorAt(i, c.set(parasols[Math.floor(choose() * parasols.length)]!));
+      this.shaded.push(!this.hatted[i] && choose() < 0.3);
     }
   }
 
@@ -3402,17 +3420,22 @@ class Walkers {
     this.place(4, i, 0, 1.67 + lift, 0, 0);
     if (this.hatted[i]) this.place(5, i, 0, 1.75 + lift, 0, 0);
     else this.hats.setMatrixAt(i, this.out.compose(this.spot, this.turn, this.none));
+    if (this.shaded[i]) this.place(6, i, 0.24, 1.25 + lift, -0.12, 0);
+    else this.shades.setMatrixAt(i, this.out.compose(this.spot, this.turn, this.none));
   }
 
   /** Sets one part's instance at a local pivot (x, y, z), swung `swing` radians about x. */
   private place(part: number, index: number, x: number, y: number, z: number, swing: number): void {
     this.local.makeRotationX(swing).setPosition(x, y, z);
     this.out.multiplyMatrices(this.base, this.local);
-    (part === 5 ? this.hats : this.parts[part]!).setMatrixAt(index, this.out);
+    const mesh = part === 6 ? this.shades : part === 5 ? this.hats : this.parts[part]!;
+    mesh.setMatrixAt(index, this.out);
   }
 
   commit(): void {
-    for (const mesh of [...this.parts, this.hats]) mesh.instanceMatrix.needsUpdate = true;
+    for (const mesh of [...this.parts, this.hats, this.shades]) {
+      mesh.instanceMatrix.needsUpdate = true;
+    }
   }
 }
 
