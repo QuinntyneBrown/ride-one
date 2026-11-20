@@ -147,6 +147,7 @@ export class MiamiStreet implements SceneStreet {
     this.addLifeguards(roadHalf);
     this.addCrossings(roadHalf);
     this.addPromenade(roadHalf);
+    this.addKerbside(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1308,6 +1309,41 @@ export class MiamiStreet implements SceneStreet {
       holder.add(furniture);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: -roadHalf - 4.2 });
+    }
+  }
+
+  /**
+   * The hotel side's kerb: parking meters every 7 m beside the parked cars, a yellow fire
+   * hydrant now and then, and a cluster of newspaper boxes in bright colours.
+   */
+  private addKerbside(roadHalf: number): void {
+    const steel = this.material({ color: 0x3a3e46, roughness: 0.4, metalness: 0.8 });
+    const glass = this.material({ color: 0xd8f0ff, emissive: 0x80c0ff, emissiveIntensity: 0.6 });
+    const hydrant = this.material({ color: 0xf0c020, roughness: 0.5 });
+    const boxes = [0xd02030, 0x2050c0, 0xf4f0e8, 0x20a060].map((c) =>
+      this.material({ color: c, roughness: 0.5 }),
+    );
+    for (let stretch = 0; stretch < LOOP; stretch += 42) {
+      if (inCrossing(stretch + 21, 14)) continue;
+      const b = new BoxBuilder();
+      for (let z = 0; z < 42; z += 7) {
+        b.box(steel, [0.08, 1.1, 0.08], [0, 0.55, -z]);
+        b.box(steel, [0.22, 0.3, 0.16], [0, 1.2, -z]);
+        b.box(glass, [0.23, 0.1, 0.12], [0, 1.25, -z]);
+      }
+      b.box(hydrant, [0.28, 0.6, 0.28], [0.2, 0.3, -17]);
+      b.box(hydrant, [0.36, 0.1, 0.36], [0.2, 0.62, -17]);
+      b.box(hydrant, [0.5, 0.1, 0.12], [0.2, 0.42, -17]);
+      boxes.forEach((m, i) => {
+        b.box(m, [0.5, 1.0, 0.45], [0.6, 0.5, -30 - i * 0.55]);
+        b.box(glass, [0.02, 0.25, 0.3], [0.34, 0.78, -30 - i * 0.55]);
+      });
+      const kerb = b.build(this.disposables);
+      kerb.position.y = 0.15;
+      const holder = new Group();
+      holder.add(kerb);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: stretch, x: roadHalf + 0.55 });
     }
   }
 
