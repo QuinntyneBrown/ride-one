@@ -1227,6 +1227,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.8, fill: 1.6, colour: 0xfff0dc },
     fogRange: [2500, 16000],
   },
+  // A bright, bitterly cold February afternoon in Ottawa: the low sun gold on the snow, the sky hard blue.
+  winterlude: {
+    sky: 0x5a90d8,
+    fog: 0xdae4f0,
+    ground: 0xeef2f8,
+    road: 0x4e5054,
+    sun: 18,
+    wet: false,
+    haze: false,
+    turbidity: 2,
+    rayleigh: 1.6,
+    azimuth: 215,
+    light: { sun: 2.4, fill: 1.5, colour: 0xffe8c8 },
+    fogRange: [1200, 9000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
