@@ -152,6 +152,11 @@ export class HavanaStreet implements SceneStreet {
     roughness: 0.85,
     side: DoubleSide,
   });
+  private readonly glow = new MeshStandardMaterial({
+    color: 0xfff0d0,
+    emissive: 0xffd590,
+    emissiveIntensity: 1.2,
+  });
   private readonly flagSheet = new PlaneGeometry(1.8, 0.9).rotateY(-Math.PI / 2);
   private readonly flag = new MeshStandardMaterial({
     map: cubanFlag(),
@@ -184,7 +189,14 @@ export class HavanaStreet implements SceneStreet {
 
   build(roadHalf: number, points: number): void {
     this.roadHalf = roadHalf;
-    this.disposables.push(this.unit, this.tank, this.dressing, this.flagSheet, this.flag);
+    this.disposables.push(
+      this.unit,
+      this.tank,
+      this.dressing,
+      this.glow,
+      this.flagSheet,
+      this.flag,
+    );
     this.track(this.flag.map!);
     this.addSeafront(roadHalf, points);
     this.addSpray(roadHalf);
@@ -501,6 +513,7 @@ export class HavanaStreet implements SceneStreet {
     const life = seeded(1117);
     const gear = seeded(1163);
     const ruins = seeded(1171);
+    const cafes = seeded(1229);
     const derelict = this.track(ruinTexture());
     derelict.wrapS = RepeatWrapping;
     derelict.wrapT = RepeatWrapping;
@@ -567,7 +580,7 @@ export class HavanaStreet implements SceneStreet {
       front.position.set(0, PORTAL / 2, -width / 2);
       front.castShadow = true;
       front.receiveShadow = true;
-      building.add(body, ceiling, back, front);
+      building.add(body, ceiling, back, front, ...this.portal(width, bays, cafes));
       // Square piers between the arches, with a pale plinth at the foot of each.
       const bay = (width - 0.3) / bays;
       const plaster = this.material({ map: plain, color: tint, roughness: 0.9 });
@@ -731,6 +744,50 @@ export class HavanaStreet implements SceneStreet {
         into.push(paint(cloth, LAUNDRY[Math.floor(random() * LAUNDRY.length)]!));
       }
     }
+  }
+
+  /**
+   * Life under a building's portales: a lamp hanging in every bay, glowing in the shade, and
+   * here and there a café's round tables and chairs set out on the arcade's walk.
+   */
+  private portal(width: number, bays: number, random: () => number): Mesh[] {
+    const bay = (width - 0.3) / bays;
+    const furniture: BufferGeometry[] = [];
+    const lamps: BufferGeometry[] = [];
+    const cafe = random() < 0.4;
+    const wood = random() < 0.5 ? 0x6b4a2e : 0xe8e4da;
+    for (let k = 0; k < bays; k++) {
+      const z = -0.15 - (k + 0.5) * bay;
+      const cord = new CylinderGeometry(0.01, 0.01, 0.6, 3).toNonIndexed();
+      cord.translate(ARCADE / 2, PORTAL - 0.6, z);
+      furniture.push(paint(cord, 0x222222));
+      const globe = new SphereGeometry(0.16, 8, 6).toNonIndexed();
+      globe.translate(ARCADE / 2, PORTAL - 1.0, z);
+      lamps.push(globe);
+      if (!cafe || random() < 0.3) continue;
+      const top = new CylinderGeometry(0.38, 0.38, 0.04, 12).toNonIndexed();
+      top.translate(ARCADE / 2, 0.92, z);
+      furniture.push(paint(top, wood));
+      const stem = new CylinderGeometry(0.04, 0.06, 0.9, 6).toNonIndexed();
+      stem.translate(ARCADE / 2, 0.45, z);
+      furniture.push(paint(stem, 0x2a2a2a));
+      for (const dz of [-0.6, 0.6]) {
+        const seat = new BoxGeometry(0.4, 0.05, 0.4).toNonIndexed();
+        seat.translate(ARCADE / 2, 0.47, z + dz);
+        furniture.push(paint(seat, wood));
+        const back = new BoxGeometry(0.4, 0.45, 0.04).toNonIndexed();
+        back.translate(ARCADE / 2, 0.72, z + dz * 1.3);
+        furniture.push(paint(back, wood));
+      }
+    }
+    const out: Mesh[] = [];
+    const things = mergeGeometries(furniture)!;
+    const glows = mergeGeometries(lamps)!;
+    [...furniture, ...lamps].forEach((g) => g.dispose());
+    this.disposables.push(things, glows);
+    out.push(new Mesh(things, this.dressing), new Mesh(glows, this.glow));
+    out[0]!.castShadow = true;
+    return out;
   }
 
   /**
