@@ -1090,6 +1090,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.6, fill: 1.7, colour: 0xfff4e0 },
     fogRange: [900, 9000],
   },
+  // Early morning high above the clouds: a deep, clear blue sky and low gold sunlight.
+  haleakala: {
+    sky: 0x3a7ad8,
+    fog: 0xe8e0d4,
+    ground: 0x6a3a2a,
+    road: 0x3e3c3c,
+    sun: 30,
+    wet: false,
+    haze: false,
+    turbidity: 1.8,
+    rayleigh: 1.1,
+    azimuth: 150,
+    light: { sun: 3.2, fill: 2.3, colour: 0xffe8c8 },
+    fogRange: [2500, 16000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

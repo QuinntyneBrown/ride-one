@@ -146,7 +146,8 @@ export interface components {
         | 'prospect'
         | 'calobra'
         | 'strade'
-        | 'wicklow';
+        | 'wicklow'
+        | 'haleakala';
     };
     ClassShelfResponse: {
       id: string;
