@@ -191,6 +191,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Amsterdam Canals');
   });
 
+  test('rides The Pyramid in Giza Plateau on the Plateau Road', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('The Pyramid', 'Giza Plateau', 'the-pyramid');
+    await expect(world.heading).toHaveText('Giza Plateau');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Giza Plateau');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
