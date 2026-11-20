@@ -944,3 +944,80 @@ function frondTexture(): CanvasTexture {
     g.fillRect(61, 0, 6, 512);
   });
 }
+
+/** What `paintedRows` lays: names either side of the crown, and slogans right across it. */
+export interface PaintedRowsOptions {
+  /** The loop the rows repeat along, and a row every this many metres from `start`. */
+  readonly loop: number;
+  readonly every: number;
+  readonly start: number;
+  /** The street's kerb height: the paint lies on the road, this far below the props' feet. */
+  readonly kerb: number;
+  /** Names and their colours, two to a row in staggered lanes. */
+  readonly names: readonly (readonly [string, string])[];
+  /** Slogans and their colours, painted big across the road on every third row. */
+  readonly slogans: readonly (readonly [string, string])[];
+}
+
+/**
+ * Names and cries painted all over the road, as Bonneville and Ibiza paint them: a row every few
+ * metres of two names in staggered lanes either side of the crown, and every third row a slogan
+ * painted big right across the road. One material per name, shared by every row that paints it.
+ * Returns each painting with its offset along the loop and its x, for the street to place.
+ */
+export function paintedRows(
+  options: PaintedRowsOptions,
+  disposables: { dispose(): void }[],
+  track: <T extends Texture>(texture: T) => T,
+): { mesh: Group; offset: number; x: number }[] {
+  const name = new PlaneGeometry(2.4, 8);
+  const slogan = new PlaneGeometry(6, 10);
+  disposables.push(name, slogan);
+  const materials = new Map<string, MeshStandardMaterial>();
+  const paint = (text: string, colour: string) => {
+    const key = `${text}|${colour}`;
+    let material = materials.get(key);
+    if (!material) {
+      material = new MeshStandardMaterial({
+        map: track(paintTexture(text, colour)),
+        alphaTest: 0.35,
+        polygonOffset: true,
+        polygonOffsetFactor: -4,
+        roughness: 0.7,
+      });
+      disposables.push(material);
+      materials.set(key, material);
+    }
+    return material;
+  };
+  const rows: { mesh: Group; offset: number; x: number }[] = [];
+  const lay = (
+    geometry: PlaneGeometry,
+    text: string,
+    colour: string,
+    offset: number,
+    x: number,
+  ) => {
+    const mesh = new Mesh(geometry, paint(text, colour));
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = 0.012 - options.kerb;
+    const holder = new Group();
+    holder.add(mesh);
+    rows.push({ mesh: holder, offset, x });
+  };
+  let k = 0;
+  for (let row = 0; row < Math.floor(options.loop / options.every); row++) {
+    const offset = options.start + row * options.every;
+    if (row % 3 === 2) {
+      const [text, colour] = options.slogans[Math.floor(row / 3) % options.slogans.length]!;
+      lay(slogan, text, colour, offset, 0);
+      continue;
+    }
+    const stagger = row % 2 ? 0.3 : -0.3;
+    for (const x of [-1.7 + stagger, 1.7 + stagger]) {
+      const [text, colour] = options.names[k++ % options.names.length]!;
+      lay(name, text, colour, offset, x);
+    }
+  }
+  return rows;
+}

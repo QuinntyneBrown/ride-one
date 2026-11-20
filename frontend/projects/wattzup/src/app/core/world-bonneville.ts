@@ -38,7 +38,7 @@ import {
   Figures,
   hazedMaterial,
   loopMetres,
-  paintTexture,
+  paintedRows,
   PopupTents,
   Ribbons,
   type SceneStreet,
@@ -673,53 +673,21 @@ export class BonnevilleStreet implements SceneStreet {
    * right across the course.
    */
   private addRoadPaint(): void {
-    const name = new PlaneGeometry(2.4, 8);
-    const slogan = new PlaneGeometry(6, 10);
-    this.disposables.push(name, slogan);
-    const materials = new Map<string, MeshStandardMaterial>();
-    const paint = (text: string, colour: string) => {
-      const key = `${text}|${colour}`;
-      let material = materials.get(key);
-      if (!material) {
-        material = this.material({
-          map: this.track(paintTexture(text, colour)),
-          alphaTest: 0.35,
-          polygonOffset: true,
-          polygonOffsetFactor: -4,
-          roughness: 0.7,
-        });
-        materials.set(key, material);
-      }
-      return material;
-    };
-    const lay = (
-      geometry: PlaneGeometry,
-      text: string,
-      colour: string,
-      offset: number,
-      x: number,
-    ) => {
-      const mesh = new Mesh(geometry, paint(text, colour));
-      mesh.rotation.x = -Math.PI / 2;
-      mesh.position.y = 0.012 - KERB;
-      const holder = new Group();
-      holder.add(mesh);
-      this.group.add(holder);
-      this.props.push({ mesh: holder, offset, x });
-    };
-    let k = 0;
-    for (let row = 0; row < Math.floor(LOOP / ROAD_PAINT_EVERY); row++) {
-      const offset = 12 + row * ROAD_PAINT_EVERY;
-      if (row % 3 === 2) {
-        const [text, colour] = ROAD_SLOGANS[Math.floor(row / 3) % ROAD_SLOGANS.length]!;
-        lay(slogan, text, colour, offset, 0);
-        continue;
-      }
-      const stagger = row % 2 ? 0.3 : -0.3;
-      for (const x of [-1.7 + stagger, 1.7 + stagger]) {
-        const [text, colour] = ROAD_PAINT[k++ % ROAD_PAINT.length]!;
-        lay(name, text, colour, offset, x);
-      }
+    const rows = paintedRows(
+      {
+        loop: LOOP,
+        every: ROAD_PAINT_EVERY,
+        start: 12,
+        kerb: KERB,
+        names: ROAD_PAINT,
+        slogans: ROAD_SLOGANS,
+      },
+      this.disposables,
+      this.track,
+    );
+    for (const row of rows) {
+      this.group.add(row.mesh);
+      this.props.push(row);
     }
   }
 
