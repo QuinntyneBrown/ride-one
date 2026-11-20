@@ -147,9 +147,21 @@ const STANCES: readonly (readonly [readonly number[], readonly number[]])[] = [
     [-0.2, 1.2, -0.18, -0.05, 1.5, -0.34],
     [0.2, 1.2, -0.18, 0.05, 1.5, -0.34],
   ],
+  // Leaning on the barricade, forearms along its top rail.
+  [
+    [-0.22, 0.98, -0.3, -0.12, 0.96, -0.52],
+    [0.22, 0.98, -0.3, 0.12, 0.96, -0.52],
+  ],
+  // A selfie: the right arm held up and out with the phone, the left on the hip.
+  [
+    [-0.3, 1.12, 0.02, -0.17, 0.98, -0.06],
+    [0.3, 1.52, -0.3, 0.3, 1.72, -0.56],
+  ],
 ];
 const FLAG_STANCE = 1;
 const PHONE_STANCE = 3;
+const LEAN_STANCE = 4;
+const SELFIE_STANCE = 5;
 
 const HAIRS = ['#14100d', '#1f1712', '#2e2018', '#3d2a1c', '#6b4a2b', '#0c0c0c'];
 const CAPS = ['#c8102e', '#111111', '#ffd23f', '#1b6ad8', '#ffffff', '#0f9d58'];
@@ -311,6 +323,8 @@ interface Spectator {
   readonly height: number;
   readonly phase: number;
   readonly stance: number;
+  /** Turned away from the road, for a selfie with the bands behind. */
+  readonly turned?: boolean;
   readonly flag: number;
 }
 
@@ -378,6 +392,17 @@ export class Spectators {
         }
       }
     }
+    // How people stand at the barricades, from a seed of its own: the front row leaning on
+    // the rail, and here and there someone turned round for a selfie.
+    const habits = seeded(o.seed + 5);
+    this.people.forEach((p, i) => {
+      const front = Math.abs(p.x) < o.near + 0.3 && p.height > 0.9;
+      const roll = habits();
+      if (front && p.stance === 0 && roll < 0.4) this.people[i] = { ...p, stance: LEAN_STANCE };
+      else if (p.height > 0.9 && (p.stance === 0 || p.stance === 2) && roll > 0.95) {
+        this.people[i] = { ...p, stance: SELFIE_STANCE, turned: true };
+      }
+    });
     const skinMaterial = this.material({ roughness: 0.6 });
     const cotton = this.material({ roughness: 0.92 });
     const denim = this.material({ roughness: 0.95 });
@@ -394,6 +419,10 @@ export class Spectators {
     const hairs = hairParts();
     const handset = new BoxGeometry(0.075, 0.14, 0.012);
     handset.translate(0, 1.56, -0.37);
+    const selfie = new BoxGeometry(0.075, 0.14, 0.012);
+    selfie.rotateX(0.5);
+    selfie.translate(0.3, 1.79, -0.58);
+    this.disposables.push(selfie);
     this.disposables.push(shoes, handset, ...hairs);
     const dress = seeded(o.seed + 1);
     const pick = (list: readonly string[]) => list[Math.floor(dress() * list.length)]!;
@@ -436,6 +465,7 @@ export class Spectators {
       else if (roll < 0.11) this.ensemble.put(i, 'bucket', bucketHat, straw, any(o.tops));
       else this.ensemble.put(i, `hair${style}`, hairs[style]!, hair, colour);
       if (p.stance === PHONE_STANCE) this.ensemble.put(i, 'phone', handset, phone, '#ffffff');
+      if (p.stance === SELFIE_STANCE) this.ensemble.put(i, 'selfie', selfie, phone, '#ffffff');
       this.ensemble.put(i, 'face', face, features, '#ffffff');
       if (extra() < 0.3) this.ensemble.put(i, 'shades', shades, glasses, '#ffffff');
       const grown = p.height > 0.9;
@@ -482,9 +512,11 @@ export class Spectators {
       const metres = along(p.offset, this.options.loop);
       const y = heightAt(Math.max(metres, 0)) + kerb;
       // Facing the road, turned a little towards the bands coming up it.
-      const heading = (p.side < 0 ? -Math.PI / 2 : Math.PI / 2) + p.side * 0.3;
+      const heading =
+        (p.side < 0 ? -Math.PI / 2 : Math.PI / 2) + p.side * 0.3 + (p.turned ? Math.PI : 0);
       const beat = Math.sin(time * 4.2 + p.phase);
-      const bounce = Math.abs(beat) * (p.stance === 0 ? 0.025 : 0.05);
+      const calm = p.stance === 0 || p.stance === LEAN_STANCE;
+      const bounce = Math.abs(beat) * (calm ? 0.02 : 0.05);
       this.turn.setFromAxisAngle(this.up, heading + beat * 0.05);
       this.size.setScalar(p.height);
       this.spot.set(p.x, y + bounce, -metres);
