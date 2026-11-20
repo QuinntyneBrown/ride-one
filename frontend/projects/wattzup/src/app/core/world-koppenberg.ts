@@ -55,6 +55,8 @@ const CROWD_NEAR = 4.3;
 const CROWD_FAR = 7.4;
 /** Hedges line the fields; farms and trees stand back in them. */
 const HEDGE = 12;
+/** A hamlet of brick houses lines the lane between these offsets, where the hedges stop. */
+const HAMLET: readonly [number, number] = [262, 318];
 /** The hill the cobbles climb, its church on the crest ahead, hazed by hand. */
 const HILL_AHEAD = 560;
 /** Melden's church on its knoll just left of the cobbles, in front of the mist's mid curtain. */
@@ -262,6 +264,8 @@ export class KoppenbergStreet implements SceneStreet {
     const hedge = this.material({ map: this.track(leafTexture('#4f7a3a', 349)), roughness: 1 });
     for (const side of [-1, 1] as const) {
       for (let offset = 0; offset < LOOP; offset += 30) {
+        const at = offset + (side > 0 ? 0 : 15);
+        if (at + 12 > HAMLET[0] && at - 12 < HAMLET[1]) continue;
         const holder = new Group();
         const mesh = new Mesh(this.unit, hedge);
         mesh.scale.set(1.4, 1.5, 24);
@@ -269,12 +273,7 @@ export class KoppenbergStreet implements SceneStreet {
         mesh.castShadow = true;
         holder.add(mesh);
         this.group.add(holder);
-        this.props.push({
-          mesh: holder,
-          offset: offset + (side > 0 ? 0 : 15),
-          every: LOOP,
-          x: side * HEDGE,
-        });
+        this.props.push({ mesh: holder, offset: at, every: LOOP, x: side * HEDGE });
       }
     }
   }
@@ -286,8 +285,9 @@ export class KoppenbergStreet implements SceneStreet {
   private addFarms(): void {
     const random = seeded(353);
     const prism = new CylinderGeometry(1, 1, 1, 3, 1);
+    // Its axis along x, then turned so one edge points up as the ridge.
     prism.rotateZ(Math.PI / 2);
-    prism.rotateX(Math.PI / 2);
+    prism.rotateX(-Math.PI / 2);
     this.disposables.push(prism);
     const looks = FARMS.map((f, i) => ({
       front: this.material({ map: this.track(farmFrontTexture(f.wall, f.shutter, 359 + i)) }),
@@ -349,6 +349,35 @@ export class KoppenbergStreet implements SceneStreet {
       farm.rotation.y = (side > 0 ? -Math.PI / 2 : Math.PI / 2) + (random() - 0.5) * 0.5;
       this.group.add(farm);
       this.props.push({ mesh: farm, offset, every: LOOP, x: side * (24 + random() * 30) });
+    }
+    // The hamlet: two-storey houses in a row on each side of the lane, fronts to the cobbles,
+    // in brick, whitewash and cream, their ridges stepping with each house's height.
+    for (const side of [-1, 1] as const) {
+      let offset = HAMLET[0] + (side > 0 ? 0 : 4);
+      let k = side > 0 ? 0 : 2;
+      while (offset < HAMLET[1] - 6) {
+        const width = 7 + random() * 3;
+        const look = looks[k % looks.length]!;
+        const height = 5.4 + random() * 1.6;
+        const brickFront = k % 3 === 1;
+        const { house, ridge } = building(
+          width,
+          height,
+          8,
+          brickFront ? brick : look.front,
+          brickFront ? brick : look.wall,
+          look.roof,
+        );
+        const chimney = new Mesh(this.unit, brick);
+        chimney.scale.set(0.6, 1.4, 0.6);
+        chimney.position.set(width / 2 - 1, ridge - 0.9, -1.5);
+        house.add(chimney);
+        house.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+        this.group.add(house);
+        this.props.push({ mesh: house, offset: offset + width / 2, every: LOOP, x: side * 13.5 });
+        offset += width + (random() < 0.25 ? 3 : 0.1);
+        k++;
+      }
     }
   }
 
