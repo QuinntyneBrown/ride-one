@@ -201,6 +201,7 @@ export class HavanaStreet implements SceneStreet {
     this.addClouds();
     this.addBoats(roadHalf);
     this.addBirds(roadHalf);
+    this.addBillboards(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -1918,6 +1919,47 @@ export class HavanaStreet implements SceneStreet {
     this.group.add(this.birds);
   }
 
+  /**
+   * The Malecón's painted hoardings: big boards on steel legs along the promenade, each a
+   * hand-painted message in the national colours, its paint faded by the sun and salt.
+   */
+  private addBillboards(roadHalf: number): void {
+    const x = -roadHalf - LANES - 1.4;
+    const steel = this.material({ color: 0x5a5e62, roughness: 0.7, metalness: 0.4 });
+    const leg = new BoxGeometry(0.16, 3.2, 0.16);
+    leg.translate(0, 1.6, 0);
+    const back = new BoxGeometry(7.4, 3.4, 0.12);
+    this.disposables.push(leg, back);
+    const boards = [
+      ['¡VIVA CUBA!', 'LIBRE'],
+      ['LA PATRIA', 'ES DE TODOS'],
+      ['HAVANA', 'MALECÓN'],
+    ] as const;
+    boards.forEach(([top, bottom], k) => {
+      const face = this.track(boardTexture(top, bottom, k));
+      const board = new Group();
+      const sheet = new Mesh(back, [
+        steel,
+        steel,
+        steel,
+        steel,
+        this.material({ map: face, roughness: 0.8 }),
+        steel,
+      ]);
+      sheet.position.y = 3.2 + 1.7;
+      sheet.castShadow = true;
+      for (const dx of [-2.6, 2.6]) {
+        const post = new Mesh(leg, steel);
+        post.position.x = dx;
+        board.add(post);
+      }
+      board.add(sheet);
+      board.rotation.y = 0.35;
+      this.group.add(board);
+      this.props.push({ mesh: board, offset: 60 + k * 120, x });
+    });
+  }
+
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial(options);
     this.disposables.push(material);
@@ -2813,5 +2855,48 @@ function wetTexture(): CanvasTexture {
       g.ellipse(x, y, 8 + random() * 30, 14 + random() * 60, random() * 0.4, 0, Math.PI * 2);
       g.fill();
     }
+  });
+}
+
+/**
+ * A hand-painted hoarding: a two-line message in heavy capitals over the flag's blue and white
+ * stripes and its red triangle, sun-faded and flaking at the edges.
+ */
+function boardTexture(top: string, bottom: string, look: number): CanvasTexture {
+  return canvasTexture(1024, 480, (g) => {
+    g.fillStyle = '#f2ede2';
+    g.fillRect(0, 0, 1024, 480);
+    for (let i = 0; i < 5; i++) {
+      g.fillStyle = i % 2 ? '#f2ede2' : '#1f4fa0';
+      g.fillRect(0, i * 96, 1024, 96);
+    }
+    g.fillStyle = '#c8202f';
+    g.beginPath();
+    g.moveTo(0, 0);
+    g.lineTo(look === 2 ? 300 : 360, 240);
+    g.lineTo(0, 480);
+    g.fill();
+    g.fillStyle = 'rgba(242,237,226,0.86)';
+    g.fillRect(360, 60, 640, 360);
+    g.fillStyle = look === 1 ? '#c8202f' : '#1b2e5c';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 110px sans-serif';
+    g.fillText(top, 680, 170, 600);
+    g.fillStyle = '#c8202f';
+    g.fillText(bottom, 680, 320, 600);
+    const random = seeded(1259 + look);
+    for (let i = 0; i < 120; i++) {
+      g.fillStyle = `rgba(230,225,215,${0.3 + random() * 0.5})`;
+      const edge = random() < 0.5;
+      g.fillRect(
+        edge ? random() * 1024 : random() < 0.5 ? random() * 60 : 964 + random() * 60,
+        edge ? (random() < 0.5 ? random() * 30 : 450 + random() * 30) : random() * 480,
+        4 + random() * 22,
+        3 + random() * 12,
+      );
+    }
+    g.fillStyle = 'rgba(255,250,235,0.18)';
+    g.fillRect(0, 0, 1024, 480);
   });
 }
