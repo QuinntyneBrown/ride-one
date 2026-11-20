@@ -34,6 +34,7 @@ describe('targetGrade (L2-101)', () => {
     ['stanleypark', { warmup: 0, work: 0.5, rest: -0.5, cooldown: 0, steady: 0 }, 0.610718],
     ['stelvio', { warmup: 4, work: 8, rest: 6, cooldown: 3, steady: 6 }, 8.276794],
     ['edinburgh', { warmup: 1.5, work: 2.5, rest: 1, cooldown: 0.5, steady: 1.5 }, 2.647624],
+    ['northshore', { warmup: 0.5, work: 1.5, rest: 0.5, cooldown: 0, steady: 1 }, 1.610718],
     ['coast', { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 }, 4.795247],
   ])('%s asks for its grade per kind at s 0, plus its roll at s 300', (id, grades, workAt300) => {
     const world = worldById(id);

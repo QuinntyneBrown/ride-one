@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass and Edinburgh Fringe have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe and North Shore, Oahu have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -68,7 +68,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 62 | 20 Minute HIIT | Edinburgh Fringe | 78% | The Royal Mile packed with street performers and posters in August festival season. |
 | 63 | 20 Min Cardio Spin Bike Workout | Lake Louise (concept) |  | Turquoise glacial lake beneath Rocky Mountain peaks; an easy shoreline road in Banff. |
 | 64 | Sufferfest 20 Minute Session | Death Valley (concept) |  | Badwater heat and salt below sea level, among shimmering dunes. |
-| 65 | 20 Minute Fat Burning Workout | North Shore, Oahu (concept) |  | Big-wave beaches and shrimp trucks along Kamehameha Highway. |
+| 65 | 20 Minute Fat Burning Workout | North Shore, Oahu | 72% | Big-wave beaches and shrimp trucks along Kamehameha Highway. |
 | 66 | 22 Minute Strength Intervals | Bealach na Bà (concept) |  | A single-track Highland road climbing above sea lochs through heather. |
 | 67 | Progressive Efforts on the Passo Gardena | Passo Gardena (concept) |  | Switchbacks beneath the Sella towers, efforts building toward the pass. |
 | 68 | Intense Climb: Passo Campolongo | Passo Campolongo (concept) |  | Forested hairpins from Corvara past ski lifts to a grassy saddle. |

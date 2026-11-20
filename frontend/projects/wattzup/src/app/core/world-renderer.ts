@@ -539,6 +539,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.9, fill: 1.4, colour: 0xfff4e4 },
     fogRange: [80, 900],
   },
+  // A bright winter morning on Oahu's North Shore: deep blue sky, trade-wind haze, the sun high.
+  northshore: {
+    sky: 0x5aa0e8,
+    fog: 0xbcd8e8,
+    ground: 0x6a8a3a,
+    road: 0x5a5a5e,
+    sun: 46,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.8,
+    azimuth: -140,
+    light: { sun: 3, fill: 1.4, colour: 0xfff6e4 },
+    fogRange: [400, 3200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
