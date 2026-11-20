@@ -80,6 +80,7 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 | [074 · Softer shade](074-softer-shade.jpg) | The fill light rises from 0.95 to 1.2 under the same low May sun, so the house fronts in shade on the right, the stoops and the scooters read in soft bounced light off the brick street and the sky instead of falling towards black, while the elms' long shadows across the street keep their edge. | 94% · 85/100 |
 | [075 · Utility cabinets](075-utility-cabinets.jpg) | The street's utility cabinets stand on the pavement's kerb and the quay every 60 m or so: grey-green steel boxes with their door seams and locks, plastered with stickers in every colour and the odd scrawled tag, as every Amsterdam street's are; the first stands beyond the cross street in the opening view. | 94% · 85/100 |
 | [076 · Joggers](076-joggers.jpg) | Joggers run the quays among the walkers: four runners in bright or black running tops and dark tights, without bags, at nearly three times a walker's pace and with a quicker, bouncier stride, one of them coming up the near quay past the benches in the opening view. | 94% · 85/100 |
+| [077 · Family](077-family.jpg) | A family is out on the near pavement just beyond the café: a parent pushing a navy pram with its deep carrycot under the hood on a four-wheeled frame, and a child scooting ahead on a red kick scooter, both keeping to the open strip outside the stoops. | 94% · 85/100 |
 
 ## Reproducing a capture
 
