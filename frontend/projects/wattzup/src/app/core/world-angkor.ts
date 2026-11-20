@@ -56,6 +56,7 @@ export class AngkorStreet implements SceneStreet {
   private water: Texture | null = null;
   private readonly mist: Mesh[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -101,22 +102,14 @@ export class AngkorStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.people.forEach((p, i) => {
         const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
         const bob = Math.abs(Math.sin(this.time * 3 + p.phase)) * 0.04;
-        crowd.set(
-          i,
-          p.x,
-          heightAt(Math.max(metres, 0)) + bob,
-          -metres,
-          p.speed >= 0 ? 0 : Math.PI,
-          0.95,
-          0,
-        );
+        crowd.set(i, p.x, heightAt(metres) + bob, -metres, p.speed >= 0 ? 0 : Math.PI, 0.95, 0);
       });
       crowd.commit();
     }
