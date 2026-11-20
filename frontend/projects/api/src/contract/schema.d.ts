@@ -150,7 +150,8 @@ export interface components {
         | 'haleakala'
         | 'dubai'
         | 'austin'
-        | 'winnats';
+        | 'winnats'
+        | 'redoute';
     };
     ClassShelfResponse: {
       id: string;
