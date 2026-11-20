@@ -550,7 +550,7 @@ None.
   - the stands above the fence: fourteen stepped rows of dark seats, a spectator (the kit's figures) in nearly every one in GB red, white and blue and club colours, facing the boards;
   - the infield: the teams' pens on blue floor behind a low rail, bikes and spare wheels, the staff, and the kit's feather flags in the teams' colours, and across it the back straight's banked boards, its fence and its own packed stands;
   - the hall: the curved timber roof sagging over the infield and rising to the side walls, rows of arena lights along it, the walls behind the stands with the concourse's glazed band, slid along as the rider rides;
-  - ahead, closing the hall, the bend: the boards sweeping round to the left and up from 1 m on the straight to 8 m at the apex, the blue band and the three lines round its foot, the fence and its boards round its top, twenty-two rows of packed stands rising behind it to the roof, and the scoreboard hung over the infield before it. Everything along the track is hidden past 170 m.
+  - ahead, 110 m off and closing the hall, the bend: the boards sweeping round to the left and up from 1 m on the straight to 10 m at the apex, near the real track's 42°, the blue band and the three lines round its foot, the fence and its boards round its top, twenty-two rows of packed stands rising behind it to the roof, and the scoreboard hung high over the track's inner edge where the bend begins, at the end of the straight. Everything along the track is hidden past 130 m.
 
   `lay`, `place` and `setTime` recycle it along a 250 m loop, the track's own length.
 

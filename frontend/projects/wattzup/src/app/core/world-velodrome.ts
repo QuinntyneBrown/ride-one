@@ -51,18 +51,20 @@ const RISE = 1;
 const R_IN = 22;
 const R_OUT = R_IN + OUTER + INNER;
 const BEND_X = -INNER - R_IN;
-const BANK = 8;
+const BANK = 10;
 /** The stands: rows deep, each row this deep and this much higher, from the walkway behind the fence. */
 const ROWS = 14;
 const ROW_DEPTH = 0.85;
 const ROW_RISE = 0.5;
 const STAND_CHUNK = 50;
+/** The scoreboard hangs over the track's inner edge where the bend begins. */
+const SCORE_X = -INNER;
 /** The roof's height over the infield, and the hall's side walls. */
 const ROOF = 24;
 const WALL_RIGHT = OUTER + 1.6 + ROWS * ROW_DEPTH + 2.5;
 const WALL_LEFT = 2 * BEND_X - WALL_RIGHT;
 /** The bend stands this far ahead, closing the hall. */
-const AHEAD = 150;
+const AHEAD = 110;
 /** The roof's height at x: highest at the side walls, sagging over the infield. */
 const roofAt = (x: number) => ROOF + 0.0035 * (x - BEND_X) ** 2;
 
@@ -623,8 +625,8 @@ export class VelodromeStreet implements SceneStreet {
     // The scoreboard hung over the infield before the bend.
     const b = new BoxBuilder();
     const steel = this.material({ color: 0x2a2e36, metalness: 0.5, roughness: 0.4 });
-    b.box(steel, [16, 6, 1.2], [BEND_X + 8, 15, -12]);
-    for (const dx of [-6, 6]) b.box(steel, [0.15, 9, 0.15], [BEND_X + 8 + dx, 22.5, -12]);
+    b.box(steel, [16, 6, 1.2], [SCORE_X, 18, -14]);
+    for (const dx of [-6, 6]) b.box(steel, [0.15, 6, 0.15], [SCORE_X + dx, 24, -14]);
     h.add(b.build(this.disposables));
     const screen = this.track(scoreboardTexture());
     const face = new Mesh(
@@ -632,7 +634,7 @@ export class VelodromeStreet implements SceneStreet {
       this.material({ map: screen, emissive: 0xffffff, emissiveMap: screen, emissiveIntensity: 1 }),
     );
     this.disposables.push(face.geometry);
-    face.position.set(BEND_X + 8, 15, -11.38);
+    face.position.set(SCORE_X, 18, -13.38);
     h.add(face);
   }
 
