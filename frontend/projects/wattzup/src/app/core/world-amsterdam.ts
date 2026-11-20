@@ -131,6 +131,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addScooters(roadHalf);
     this.addSigns(roadHalf);
     this.addBenches(roadHalf);
+    this.addContainers(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1210,6 +1211,48 @@ export class AmsterdamStreet implements SceneStreet {
       at.add(pair);
       this.group.add(at);
       this.props.push({ mesh: at, offset: b - 5.5, x: edge });
+    }
+  }
+
+  /**
+   * The underground waste containers' inlet columns, in a row on the quay just past every
+   * bridge: grey steel with a coloured band for what each takes (green for glass, blue for
+   * paper, orange for plastic, grey for the rest) and a dark mouth.
+   */
+  private addContainers(roadHalf: number): void {
+    const steel = this.material({ color: 0x6e7276, metalness: 0.5, roughness: 0.5 });
+    const mouth = this.material({ color: 0x111111, roughness: 0.9 });
+    const bands = [0x2f7a3a, 0x1d4f9c, 0xe07a1a, 0x5a5e62].map((hex) =>
+      this.material({ color: hex, roughness: 0.6 }),
+    );
+    const column = new BoxGeometry(0.62, 1.15, 0.62);
+    column.translate(0, 0.575, 0);
+    const band = new BoxGeometry(0.64, 0.14, 0.64);
+    band.translate(0, 1.0, 0);
+    const slot = new BoxGeometry(0.05, 0.16, 0.36);
+    slot.translate(-0.31, 0.82, 0);
+    const plate = new BoxGeometry(1.2, 0.04, 1.2);
+    plate.translate(0, 0.02, 0);
+    this.disposables.push(column, band, slot, plate);
+    for (let b = 0; b < LOOP; b += BRIDGE) {
+      const row = new Group();
+      bands.forEach((colour, i) => {
+        const bin = new Group();
+        bin.add(
+          new Mesh(plate, steel),
+          new Mesh(column, steel),
+          new Mesh(band, colour),
+          new Mesh(slot, mouth),
+        );
+        bin.position.z = -i * 1.3;
+        row.add(bin);
+      });
+      row.traverse((o) => (o.castShadow = true));
+      row.position.y = KERB;
+      const at = new Group();
+      at.add(row);
+      this.group.add(at);
+      this.props.push({ mesh: at, offset: b + 2 + CROSS / 2 + 12, x: -roadHalf - 2.7 });
     }
   }
 
