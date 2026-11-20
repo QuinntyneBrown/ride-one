@@ -291,11 +291,18 @@ export class Cyclist {
     seatPad.rotation.z = Math.PI / 2;
     seatPad.scale.set(1, 1, 0.9);
     this.body.add(seatPad);
+    // The neck rises from inside the top of the back, up and forward to the base of the skull,
+    // so the head sits on the shoulders instead of floating over them.
+    const skull = SHOULDER.clone().add(new Vector3(0, 0.15, -0.1));
+    const nape = SHOULDER.clone().addScaledVector(along, -0.06);
+    const throat = skull.clone().add(new Vector3(0, -0.04, 0.02));
+    const neck = this.limbMesh(0.055, nape.distanceTo(throat), kit.skin);
+    place(neck, nape, throat);
+    this.body.add(neck.mesh);
     const head = new Mesh(parts.head, kit.skin);
-    const neck = SHOULDER.clone().add(new Vector3(0, 0.14, -0.1));
-    head.position.copy(neck);
+    head.position.copy(skull);
     const helmet = new Mesh(parts.helmet, shell);
-    helmet.position.copy(neck).add(new Vector3(0, 0.01, 0.015));
+    helmet.position.copy(skull).add(new Vector3(0, 0.01, 0.015));
     helmet.scale.set(1, 0.85, 1.3);
     helmet.rotation.x = -0.25;
     head.castShadow = helmet.castShadow = true;
