@@ -59,6 +59,9 @@ const CROSSINGS = [118, 286] as const;
 const STREET = 12;
 /** How many raindrop rings spread on the road at once. */
 const RIPPLES = 90;
+/** Fireworks: how many bursts are in the air at once, and the sparks in each. */
+const BURSTS = 3;
+const SPARKS = 70;
 
 /** Whether `offset` falls within a side street, give or take `margin` metres. */
 function inCrossing(offset: number, margin = 0): boolean {
@@ -123,6 +126,8 @@ export class MiamiStreet implements SceneStreet {
   private plane: Group | null = null;
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
+  private sparks: InstancedMesh | null = null;
+  private readonly sparkDirs: Vector3[] = [];
   private heli: { craft: Group; rotor: Mesh; lights: Mesh[] } | null = null;
   private readonly swaying: { palm: Group; phase: number; lean: number }[] = [];
   /** Where the nightclubs' doors are, in metres along the loop. */
@@ -238,6 +243,37 @@ export class MiamiStreet implements SceneStreet {
       this.plane.position.set(-200, 70, -along);
       this.plane.rotation.y = Math.PI / 2;
       this.planeLights.forEach((l) => (l.visible = seconds % 1 < 0.5));
+    }
+    // Each burst lives 5 s, a burst every 1.7 s: it blooms to 60 m across, sags and fades.
+    const sparks = this.sparks;
+    if (sparks) {
+      const palette = [0xff4fb8, 0x2fe6ff, 0xffd23f, 0x5aff8a, 0xb46bff];
+      for (let b = 0; b < BURSTS; b++) {
+        const life = seconds / 5 + b / BURSTS;
+        const cycle = Math.floor(life);
+        const age = life - cycle;
+        const h = Math.sin(cycle * 91.7 + b * 13.1) * 43758.5453;
+        const u = h - Math.floor(h);
+        const cx = -500 + u * 1100;
+        const cy = 220 + ((((h * 3.1) % 1) + 1) % 1) * 140;
+        const spread = 75 * (1 - (1 - age) ** 3);
+        this.shade
+          .set(palette[cycle % palette.length]!)
+          .multiplyScalar(Math.max(0, 1 - age) ** 1.5);
+        for (let i = 0; i < SPARKS; i++) {
+          const d = this.sparkDirs[i]!;
+          this.drop.makeScale(1 - age * 0.6, 1 - age * 0.6, 1);
+          this.drop.setPosition(
+            cx + d.x * spread,
+            cy + d.y * spread - age * age * 60,
+            -1150 + d.z * spread,
+          );
+          sparks.setMatrixAt(b * SPARKS + i, this.drop);
+          sparks.setColorAt(b * SPARKS + i, this.shade);
+        }
+      }
+      sparks.instanceMatrix.needsUpdate = true;
+      if (sparks.instanceColor) sparks.instanceColor.needsUpdate = true;
     }
     // The cabs' hazard lights blink.
     const blinking = seconds % 0.9 < 0.45;
@@ -2564,6 +2600,30 @@ export class MiamiStreet implements SceneStreet {
     plane.add(sign, tow);
     this.plane = plane;
     this.horizon.add(plane);
+    // Fireworks over the bay: three bursts in turn, each a sphere of sparks blooming in its
+    // colour, falling and fading, a new one somewhere over the towers every few seconds.
+    const spark = new PlaneGeometry(11, 11);
+    const sparkMaterial = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      fog: false,
+    });
+    const sparks = new InstancedMesh(spark, sparkMaterial, BURSTS * SPARKS);
+    sparks.frustumCulled = false;
+    this.disposables.push(spark, sparkMaterial, sparks);
+    const fan = seeded(8391);
+    for (let i = 0; i < SPARKS; i++) {
+      const u = fan() * 2 - 1;
+      const a = fan() * Math.PI * 2;
+      const r = Math.sqrt(1 - u * u);
+      this.sparkDirs.push(
+        new Vector3(r * Math.cos(a), u, r * Math.sin(a) * 0.4).multiplyScalar(0.8 + fan() * 0.4),
+      );
+    }
+    this.sparks = sparks;
+    this.horizon.add(sparks);
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
