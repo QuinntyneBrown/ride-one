@@ -1400,7 +1400,7 @@ export class CaribanaStreet implements SceneStreet {
     const species = [
       {
         seed: 11,
-        clumps: 14,
+        clumps: 22,
         radius: 3.0,
         height: 6.4,
         squash: 0.78,
@@ -1409,7 +1409,7 @@ export class CaribanaStreet implements SceneStreet {
       },
       {
         seed: 23,
-        clumps: 18,
+        clumps: 26,
         radius: 3.4,
         height: 7.2,
         squash: 0.62,
@@ -1418,7 +1418,7 @@ export class CaribanaStreet implements SceneStreet {
       },
       {
         seed: 37,
-        clumps: 12,
+        clumps: 18,
         radius: 2.5,
         height: 6.8,
         squash: 1.0,
@@ -1427,7 +1427,7 @@ export class CaribanaStreet implements SceneStreet {
       },
       {
         seed: 53,
-        clumps: 16,
+        clumps: 24,
         radius: 3.2,
         height: 7.0,
         squash: 0.85,
@@ -1446,7 +1446,14 @@ export class CaribanaStreet implements SceneStreet {
       roughness: 1,
     });
     const shapes = species.map((sp) => treeGeometry(sp));
-    for (const { trunk, crown } of shapes) this.disposables.push(trunk, crown);
+    for (const { trunk, crown, sprigs } of shapes) this.disposables.push(trunk, crown, sprigs);
+    const cut = this.material({
+      map: this.track(sprigTexture()),
+      vertexColors: true,
+      alphaTest: 0.45,
+      side: DoubleSide,
+      roughness: 0.85,
+    });
     const random = seeded(211);
     for (const side of [-1, 1] as const) {
       const every = side < 0 ? 26 : 23;
@@ -1455,6 +1462,9 @@ export class CaribanaStreet implements SceneStreet {
         const shape = shapes[Math.floor(random() * shapes.length)]!;
         const t = new Mesh(shape.trunk, bark);
         const c = new Mesh(shape.crown, leaves);
+        const fringe = new Mesh(shape.sprigs, cut);
+        fringe.castShadow = true;
+        tree.add(fringe);
         tree.scale.setScalar(0.85 + random() * 0.45);
         tree.rotation.y = random() * Math.PI * 2;
         t.castShadow = true;
@@ -3589,7 +3599,11 @@ interface Species {
  * clumps, each an icosahedron pushed out of round, set round the limbs' ends and shaded
  * through vertex colours from a sunlit top to a dark underside.
  */
-function treeGeometry(species: Species): { trunk: BufferGeometry; crown: BufferGeometry } {
+function treeGeometry(species: Species): {
+  trunk: BufferGeometry;
+  crown: BufferGeometry;
+  sprigs: BufferGeometry;
+} {
   const random = seeded(species.seed);
   const { radius, height, squash } = species;
   const base = new Vector3(0, 0, 0);
@@ -3670,9 +3684,37 @@ function treeGeometry(species: Species): { trunk: BufferGeometry; crown: BufferG
     colour.set([c.r, c.g, c.b], i * 3);
   }
   crown.setAttribute('color', new BufferAttribute(colour, 3));
+  // Sprigs of leaves standing out of the crown's surface, so its edge is ragged, not smooth:
+  // each a card cut to a cluster of leaves, set on a corner of the crown facing out, shaded
+  // as the crown is there.
+  const cards: BufferGeometry[] = [];
+  const normals = crown.getAttribute('normal') as BufferAttribute;
+  const out = new Vector3();
+  for (let k = 0; k < 260; k++) {
+    const i = Math.floor(random() * position.count);
+    out.set(normals.getX(i), normals.getY(i), normals.getZ(i));
+    if (out.y < -0.5) continue;
+    const size = 1.2 + random() * 0.9;
+    const card = new PlaneGeometry(size, size);
+    card.rotateZ(random() * Math.PI);
+    card.lookAt(out);
+    card.rotateY((random() - 0.5) * 1.2);
+    card.translate(
+      position.getX(i) + out.x * size * 0.25,
+      position.getY(i) + out.y * size * 0.25,
+      position.getZ(i) + out.z * size * 0.25,
+    );
+    const shade = new Float32Array(4 * 3);
+    for (let v = 0; v < 4; v++)
+      shade.set([colour[i * 3]!, colour[i * 3 + 1]!, colour[i * 3 + 2]!], v * 3);
+    card.setAttribute('color', new BufferAttribute(shade, 3));
+    cards.push(card);
+  }
+  const sprigs = mergeGeometries(cards)!;
+  cards.forEach((c) => c.dispose());
   const trunk = mergeGeometries(wood.map((w) => (w.index ? w.toNonIndexed() : w)))!;
   wood.forEach((w) => w.dispose());
-  return { trunk, crown };
+  return { trunk, crown, sprigs };
 }
 
 /** Leaves: overlapping small ovals in light and shadow, tinted by the crown's colours. */
@@ -3689,6 +3731,31 @@ function leafTexture(): CanvasTexture {
       g.rotate(random() * Math.PI);
       g.beginPath();
       g.ellipse(0, 0, 4 + random() * 3, 2 + random() * 1.5, 0, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+  });
+}
+
+/** A sprig: a cluster of overlapping pointed leaves on twigs, cut out of the canvas. */
+function sprigTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.clearRect(0, 0, 128, 128);
+    const random = seeded(73);
+    for (let i = 0; i < 46; i++) {
+      const a = random() * Math.PI * 2;
+      const r = random() * 44;
+      const x = 64 + Math.cos(a) * r;
+      const y = 64 + Math.sin(a) * r;
+      const l = 55 + random() * 45;
+      g.fillStyle = `hsl(80,10%,${l}%)`;
+      g.save();
+      g.translate(x, y);
+      g.rotate(a + (random() - 0.5));
+      g.beginPath();
+      g.moveTo(-11, 0);
+      g.quadraticCurveTo(0, -7, 11, 0);
+      g.quadraticCurveTo(0, 7, -11, 0);
       g.fill();
       g.restore();
     }
