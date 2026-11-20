@@ -25,6 +25,7 @@ import {
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
+  buntingGeometry,
   canvasTexture,
   Figures,
   loopMetres,
@@ -234,33 +235,10 @@ export class NottingHillStreet implements SceneStreet {
   private addBunting(roadHalf: number): void {
     const span = roadHalf + PAVEMENT;
     const pennant = this.material({ vertexColors: true, side: DoubleSide, roughness: 0.8 });
-    const strings: BufferGeometry[] = [];
-    for (const [high, lean] of [
+    const geometry = buntingGeometry(span, ISLANDS, [
       [8.5, 0],
       [7.2, 3],
-    ] as const) {
-      const parts: BufferGeometry[] = [];
-      let k = 0;
-      for (let x = -span; x < span; x += 0.55, k++) {
-        const u = x / span;
-        const flag = new PlaneGeometry(0.42, 0.5);
-        // A pennant: the bottom edge pinched to a point.
-        const position = flag.getAttribute('position');
-        position.setX(2, 0);
-        position.setX(3, 0);
-        flag.translate(0, high - 1.4 * (1 - u * u) - 0.25, 0);
-        flag.translate(x, 0, lean);
-        const colour = new Color(ISLANDS[k % ISLANDS.length]!);
-        const colours = new Float32Array(position.count * 3);
-        for (let i = 0; i < position.count; i++) colour.toArray(colours, i * 3);
-        flag.setAttribute('color', new Float32BufferAttribute(colours, 3));
-        parts.push(flag);
-      }
-      strings.push(mergeGeometries(parts)!);
-      parts.forEach((p) => p.dispose());
-    }
-    const geometry = mergeGeometries(strings)!;
-    strings.forEach((s) => s.dispose());
+    ]);
     this.disposables.push(geometry);
     for (let offset = 0; offset < LOOP; offset += BUNTING) {
       if (Math.abs(offset - WESTWAY_AT) < 16) continue;
