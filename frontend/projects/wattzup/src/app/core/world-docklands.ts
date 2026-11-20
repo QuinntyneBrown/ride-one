@@ -101,6 +101,14 @@ const LAMPS = 10;
 const LOBBY = 4.6;
 const LOBBY_BAY = 6;
 
+/** What the rooftops are made of: crown band lights, a beacon, and a mast and lamp shape. */
+interface RoofKit {
+  readonly crowns: readonly MeshStandardMaterial[];
+  readonly beacon: MeshStandardMaterial;
+  readonly mast: CylinderGeometry;
+  readonly lamp: SphereGeometry;
+}
+
 interface Tower {
   readonly mesh: Mesh;
   readonly side: -1 | 1;
@@ -210,6 +218,10 @@ export class DocklandsStreet {
       roughness: 0.45,
     });
     const lobbyRandom = seeded(97);
+    // The rooftops draw from their own sequence too, so the street's layout is unchanged.
+    const roofRandom = seeded(151);
+    const kit = this.roofKit(true);
+
     const blade = new PlaneGeometry(BLADE, 1);
     const bracket = new BoxGeometry(BLADE + 0.3, 0.12, 0.12);
     this.disposables.push(...lobbies, canopyMaterial, blade, bracket);
@@ -233,6 +245,17 @@ export class DocklandsStreet {
         mesh.castShadow = false;
         mesh.receiveShadow = true;
         mesh.userData['height'] = height;
+        this.addRooftop(
+          mesh,
+          (height + FOOTING) / 2,
+          roofRandom,
+          width,
+          height,
+          depth,
+          facade,
+          roof,
+          kit,
+        );
         // The street floor: lit glazing towards the road under a dark canopy.
         const street = -(height - FOOTING) / 2 + KERB;
         const length = depth - 2;
@@ -291,6 +314,92 @@ export class DocklandsStreet {
   }
 
   /**
+   * A tower's top against the sky: a stepped setback in the same façade, a lit crown band
+   * round the top and, on the tallest, an antenna mast with a red beacon.
+   */
+  private addRooftop(
+    tower: Mesh,
+    roofline: number,
+    random: () => number,
+    width: number,
+    height: number,
+    depth: number,
+    facade: MeshStandardMaterial,
+    roof: MeshStandardMaterial,
+    kit: RoofKit,
+  ): void {
+    let top = roofline;
+    let w = width;
+    let d = depth;
+    if (random() < 0.55) {
+      // One or two setbacks, each narrower than the floor below.
+      const steps = random() < 0.4 ? 2 : 1;
+      for (let k = 0; k < steps; k++) {
+        w *= 0.62 + random() * 0.18;
+        d *= 0.62 + random() * 0.18;
+        const tall = 6 + random() * 14;
+        const geometry = towerGeometry(w, tall, d);
+        this.disposables.push(geometry);
+        const step = new Mesh(geometry, [facade, facade, roof, roof, facade, facade]);
+        step.position.y = top + tall / 2;
+        tower.add(step);
+        top += tall;
+      }
+    }
+    if (random() < 0.4) {
+      const crown = new Mesh(this.unitBox(), kit.crowns[Math.floor(random() * kit.crowns.length)]!);
+      crown.scale.set(w + 0.3, 0.6, d + 0.3);
+      crown.position.y = top - 1.2;
+      tower.add(crown);
+    }
+    if (height > 70 || random() < 0.25) {
+      const tall = 8 + random() * 18;
+      const pole = new Mesh(kit.mast, roof);
+      pole.scale.y = tall;
+      pole.position.y = top + tall / 2;
+      const light = new Mesh(kit.lamp, kit.beacon);
+      light.position.y = top + tall + 0.4;
+      tower.add(pole, light);
+    }
+  }
+
+  /** The rooftops' lights and shapes; `fog` is false for the distant skyline and far shore. */
+  private roofKit(fog: boolean): RoofKit {
+    const crowns = NEON.concat('#f2f4ff').map(
+      (hex) =>
+        new MeshStandardMaterial({
+          color: 0x000000,
+          emissive: new Color(hex),
+          emissiveIntensity: 2.2,
+          fog,
+        }),
+    );
+    const beacon = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#ff2a2a'),
+      emissiveIntensity: 3,
+      fog,
+    });
+    // Distant masts and lamps are drawn larger, or they would vanish at that range.
+    const scale = fog ? 1 : 2.5;
+    const mast = new CylinderGeometry(0.18 * scale, 0.35 * scale, 1, 6);
+    const lamp = new SphereGeometry(0.6 * scale, 10, 8);
+    this.disposables.push(...crowns, beacon, mast, lamp);
+    return { crowns, beacon, mast, lamp };
+  }
+
+  private unitGeometry: BoxGeometry | null = null;
+
+  /** One shared unit cube for the rooftops' crown bands. */
+  private unitBox(): BoxGeometry {
+    if (!this.unitGeometry) {
+      this.unitGeometry = new BoxGeometry(1, 1, 1);
+      this.disposables.push(this.unitGeometry);
+    }
+    return this.unitGeometry;
+  }
+
+  /**
    * The harbour city across the water at the end of the street: a band of towers in depth and
    * a landmark tower with a lit crown and spire. Like Old Town's cathedral it stands a fixed
    * distance ahead, out of the fog, which would hide it; its façades are dimmed by hand.
@@ -307,6 +416,8 @@ export class DocklandsStreet {
     const top = roof.clone();
     top.fog = false;
     this.disposables.push(...far, top);
+    const kit = this.roofKit(false);
+    const roofRandom = seeded(173);
     for (let i = 0; i < 46; i++) {
       // Taller towers gather towards the middle, as a business district does.
       const x = (random() * 2 - 1) ** 3 * 420;
@@ -319,6 +430,7 @@ export class DocklandsStreet {
       const facade = far[Math.floor(random() * far.length)]!;
       const mesh = new Mesh(geometry, [facade, facade, top, top, facade, facade]);
       mesh.position.set(x, height / 2, -random() * 260);
+      this.addRooftop(mesh, height / 2, roofRandom, width, height, depth, facade, top, kit);
       this.skyline.add(mesh);
     }
     this.addLandmark(far[0]!, top);
@@ -341,6 +453,8 @@ export class DocklandsStreet {
     const top = roof.clone();
     top.fog = false;
     this.disposables.push(...far, top);
+    const kit = this.roofKit(false);
+    const roofRandom = seeded(191);
     for (let z = 80; z > -760;) {
       const width = 16 + random() * 24;
       const depth = 16 + random() * 18;
@@ -351,6 +465,7 @@ export class DocklandsStreet {
       const facade = far[Math.floor(random() * far.length)]!;
       const mesh = new Mesh(geometry, [facade, facade, top, top, facade, facade]);
       mesh.position.set(x, height / 2, z - width / 2);
+      this.addRooftop(mesh, height / 2, roofRandom, width, height, depth, facade, top, kit);
       this.farShore.add(mesh);
       z -= width + 2 + random() * 10;
     }
