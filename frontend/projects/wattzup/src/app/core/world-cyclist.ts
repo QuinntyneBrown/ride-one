@@ -305,12 +305,20 @@ export class Cyclist {
     head.position.copy(skull).add(new Vector3(0, -0.01, -0.01));
     head.scale.set(0.82, 1.08, 1.02);
     head.rotation.x = 0.3;
+    // The helmet hugs the skull, a finger's width proud of it all round and down over the back of
+    // the head, held on by a strap from each side of the shell under the jaw.
     const helmet = new Mesh(parts.helmet, shell);
-    helmet.position.copy(skull).add(new Vector3(0, 0.01, 0.015));
-    helmet.scale.set(1, 0.85, 1.3);
-    helmet.rotation.x = -0.25;
+    helmet.position.copy(skull).add(new Vector3(0, 0, 0.01));
+    helmet.scale.set(0.86, 0.82, 1.15);
+    helmet.rotation.x = -0.15;
     head.castShadow = helmet.castShadow = true;
     this.body.add(head, helmet);
+    const chin = skull.clone().add(new Vector3(0, -0.1, -0.06));
+    for (const side of [-1, 1]) {
+      const strap = this.limbMesh(0.007, 0.1, kit.rubber);
+      place(strap, skull.clone().add(new Vector3(side * 0.085, -0.02, 0.01)), chin);
+      this.body.add(strap.mesh);
+    }
     for (const side of [-1, 1]) {
       const shoulder = SHOULDER.clone().setX(side * 0.19);
       // Hands on the hoods, elbows bent out and down.
