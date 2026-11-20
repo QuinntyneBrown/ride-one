@@ -525,6 +525,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Lake Como');
   });
 
+  test('rides Full Effort VO2 Max Intervals beneath El Capitan in Yosemite Valley', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Full Effort VO2 Max Intervals',
+      'Yosemite Valley',
+      'full-effort-vo2-max-intervals',
+    );
+    await expect(world.heading).toHaveText('Yosemite Valley');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Yosemite Valley');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

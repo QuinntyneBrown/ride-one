@@ -857,6 +857,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.7, fill: 1.5, colour: 0xfff6e8 },
     fogRange: [400, 4200],
   },
+  // A bright late-spring morning on the valley floor: clean mountain air, sun on the granite.
+  yosemite: {
+    sky: 0x6aa8e8,
+    fog: 0xd0dce8,
+    ground: 0x5a7a34,
+    road: 0x4a4c50,
+    sun: 40,
+    wet: false,
+    haze: false,
+    turbidity: 2.6,
+    rayleigh: 1.4,
+    azimuth: 150,
+    light: { sun: 2.9, fill: 1.5, colour: 0xfff4e4 },
+    fogRange: [600, 6000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
