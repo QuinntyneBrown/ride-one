@@ -1,6 +1,7 @@
 # Builds and tests the app. No job touches Bluetooth hardware: every test runs against a fake
 # navigator.bluetooth or the simulated bike (AGENTS.md). Visual, responsive and
 # accessibility sweeps are not run here; a person runs them on request.
+# A push to main that passes every check is then deployed to https://wattzup.telo.to.
 #
 # Kept fast: the checkout leaves out docs/ (the films alone are 170 MB), node_modules and the Playwright
 # browser are cached, and the behaviour specs run in two shards beside the other
@@ -48,6 +49,13 @@ jobs:
         run: npm test
       - name: Production build and 300 KB gzipped budget
         run: npm run build
+      - name: Keep the build for the deploy job
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wattzup-browser
+          path: frontend/dist/wattzup/browser/
+          retention-days: 7
 
   e2e:
     name: Behaviour specs (${{ matrix.shard }}/2)
@@ -91,3 +99,50 @@ jobs:
           name: playwright-traces-${{ matrix.shard }}
           path: frontend/test-results/
           retention-days: 7
+
+  # Every push to main that passes the checks above is published to Azure Static Web Apps and
+  # served at https://wattzup.telo.to. The job signs in to Azure with GitHub's OIDC token (no stored
+  # secret), reads the app's deployment token at run time, and uploads the build the Dashboard job
+  # made. The IDs below name the Azure identity and subscription; they are not secrets.
+  deploy:
+    name: Deploy to wattzup.telo.to
+    needs: [frontend, e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      AZURE_CLIENT_ID: 909f512a-bee0-436c-ab2b-4e1a3a6f4c6d
+      AZURE_TENANT_ID: c68758f6-70fb-41fe-8fb3-b3e35624a2a3
+      AZURE_SUBSCRIPTION_ID: 4a1b5113-89f9-4d27-acfe-581493385536
+      RESOURCE_GROUP: rg-wattzup
+      STATIC_WEB_APP: swa-wattzup
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wattzup-browser
+          path: site
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      - id: token
+        name: Read the deployment token
+        run: |
+          token=$(az staticwebapp secrets list --name "$STATIC_WEB_APP" --resource-group "$RESOURCE_GROUP" --query properties.apiKey -o tsv)
+          echo "::add-mask::$token"
+          echo "value=$token" >> "$GITHUB_OUTPUT"
+      - name: Upload to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.value }}
+          action: upload
+          app_location: site
+          output_location: ''
+          skip_app_build: true
+          skip_api_build: true
