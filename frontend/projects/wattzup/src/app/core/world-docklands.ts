@@ -202,6 +202,11 @@ const SHOP_SIGN_LONG = 3.8;
 /** Bike racks: where round the loop, how far beyond the road's edge (m), the frames' colours. */
 const BIKE_RACKS = [44, 126, 232, 352, 470, 562];
 const BIKE_RACK_OUT = 1.9;
+/** Taxi ranks on the right-hand pavement: where (loop metres), how far out (m), cabs in each. */
+const TAXI_RANKS = [40, 236, 400, 540];
+const TAXI_OUT = 5;
+const TAXIS_PER_RANK = 3;
+const TAXI_LONG = 4.4;
 const BIKE_COLOURS = ['#ff4f6d', '#3fd9ff', '#ffd84a', '#f2f2f2', '#2fd18a'];
 /** Bus shelters: where round the loop (between the trees), how far out (m), how long (m). */
 const SHELTERS = [48, 290, 506];
@@ -396,6 +401,7 @@ export class DocklandsStreet {
   private readonly shelters: { group: Group; offset: number }[] = [];
   /** Racks of parked bicycles at the kerb, at BIKE_RACKS round the loop. */
   private readonly bikeRacks: { group: Group; offset: number }[] = [];
+  private readonly taxiRanks: { group: Group; offset: number }[] = [];
   /** Delivery drones flying the street: each's loop position at time zero, speed and height. */
   private readonly drones: {
     group: Group;
@@ -1584,6 +1590,7 @@ export class DocklandsStreet {
     this.addTrees(roadHalf);
     this.addShelters(roadHalf);
     this.addBikeRacks(roadHalf);
+    this.addTaxiRanks(roadHalf);
     this.addDrones(roadHalf);
     this.addLaneSymbols(roadHalf);
     this.addGates(roadHalf);
@@ -2377,6 +2384,89 @@ export class DocklandsStreet {
       this.group.add(group);
       this.bikeRacks.push({ group, offset });
     });
+  }
+
+  /**
+   * Taxi ranks on the right-hand pavement: a row of yellow cabs nose towards the riders, roof
+   * signs lit, headlights on and tail-lights glowing, with a lit rank sign at its head.
+   */
+  private addTaxiRanks(roadHalf: number): void {
+    const paint = new MeshStandardMaterial({
+      color: 0xf2c21b,
+      metalness: 0.5,
+      roughness: 0.3,
+      emissive: new Color('#f2c21b').multiplyScalar(0.55),
+    });
+    const glass = new MeshStandardMaterial({ color: 0x10131c, metalness: 0.9, roughness: 0.1 });
+    const tyre = new MeshStandardMaterial({ color: 0x0b0b0f, roughness: 0.8 });
+    const sign = new MeshBasicMaterial({
+      color: new Color('#fff2a8').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const head = new MeshBasicMaterial({
+      color: new Color('#f4f7ff').multiplyScalar(2.6),
+      toneMapped: false,
+    });
+    const tail = new MeshBasicMaterial({
+      color: new Color('#ff2a3a').multiplyScalar(2.2),
+      toneMapped: false,
+    });
+    const unit = new BoxGeometry(1, 1, 1);
+    const wheel = new CylinderGeometry(0.34, 0.34, 0.22, 14);
+    const rankTexture = this.track(rankSignTexture());
+    const rank = new MeshBasicMaterial({ map: rankTexture, toneMapped: false });
+    const board = new PlaneGeometry(1.4, 0.7);
+    this.disposables.push(paint, glass, tyre, sign, head, tail, unit, wheel, rank, board);
+    const box = (
+      group: Group,
+      material: Material,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      group.add(mesh);
+    };
+    const x = roadHalf + TAXI_OUT;
+    for (const offset of TAXI_RANKS) {
+      const group = new Group();
+      for (let k = 0; k < TAXIS_PER_RANK; k++) {
+        // The first cab at the rank's head, nearest the riders; the rest queue behind it.
+        const z = -k * (TAXI_LONG + 1.2);
+        const y = KERB;
+        box(group, paint, 1.8, 0.62, TAXI_LONG, x, y + 0.62, z);
+        box(group, glass, 1.6, 0.5, 2.3, x, y + 1.18, z - 0.2);
+        box(group, paint, 1.62, 0.06, 2.1, x, y + 1.45, z - 0.2);
+        box(group, sign, 0.7, 0.24, 0.3, x, y + 1.6, z - 0.1);
+        for (const side of [-1, 1]) {
+          box(group, head, 0.34, 0.14, 0.05, x + side * 0.62, y + 0.72, z + TAXI_LONG / 2 + 0.01);
+          box(group, tail, 0.3, 0.14, 0.05, x + side * 0.66, y + 0.76, z - TAXI_LONG / 2 - 0.01);
+          for (const end of [-1, 1]) {
+            const w = new Mesh(wheel, tyre);
+            w.rotation.z = Math.PI / 2;
+            w.position.set(x + side * 0.85, y + 0.34, z + end * 1.35);
+            group.add(w);
+          }
+        }
+        // Headlight beams pooled on the paving ahead of each cab.
+        this.streak(group, '#f4f7ff', x, y + 0.02, z + TAXI_LONG / 2 + 2, 4, 1.6, 0.5);
+      }
+      // The rank sign on its post at the head of the row.
+      const post = new Mesh(unit, glass);
+      post.scale.set(0.1, 2.6, 0.1);
+      post.position.set(x - 1.3, KERB + 1.3, TAXI_LONG / 2 + 1);
+      group.add(post);
+      const plate = new Mesh(board, rank);
+      plate.position.set(x - 1.3, KERB + 2.6, TAXI_LONG / 2 + 1.06);
+      group.add(plate);
+      this.group.add(group);
+      this.taxiRanks.push({ group, offset });
+    }
   }
 
   private addStalls(): void {
@@ -3457,6 +3547,11 @@ export class DocklandsStreet {
       drone.group.position.y =
         (drone.group.userData['ground'] as number) + heightAt(Math.max(metres, 0));
     }
+    for (const rank of this.taxiRanks) {
+      const metres = ((((rank.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      rank.group.visible = !this.onBridge(Math.max(metres, 0));
+      rank.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
     for (const rack of this.bikeRacks) {
       const metres = ((((rack.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       rack.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -4007,6 +4102,33 @@ function lineSignTexture(): CanvasTexture {
     ctx.fillStyle = '#e8fbff';
     ctx.textAlign = 'center';
     ctx.fillText('HARBOUR LINE  ·  DOCKLANDS', (w + 70) / 2, h / 2 + 2, w - 90);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** The taxi rank's sign: TAXI in yellow over a dark plate with a lit border. */
+function rankSignTexture(): CanvasTexture {
+  const w = 256;
+  const h = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#0b0b16';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#ffd23a';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(6, 6, w - 12, h - 12);
+    ctx.font = 'bold 72px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ffd23a';
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = '#ffe36a';
+    ctx.fillText('TAXI', w / 2, h / 2 + 4);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
