@@ -670,6 +670,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Sa Calobra, Mallorca');
   });
 
+  test("rides Conor's Racing Bonanza over the Wicklow Gap", async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass("Conor's Racing Bonanza", 'Wicklow Gap', 'conors-racing-bonanza');
+    await expect(world.heading).toHaveText('Wicklow Gap');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Wicklow Gap');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
