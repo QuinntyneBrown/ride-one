@@ -3,7 +3,7 @@ import type { Segment } from '@wattzup/api';
 import { targetGrade, type World } from './worlds';
 
 /** The slowest speed the road is laid at, so a stopped rider still sees what is coming. */
-const MIN_SPEED = 3;
+export const MIN_SPEED = 3;
 const STEP = 2;
 /** The profile eases 0.12 of the way per second (L2-101 AC3). */
 const EASE_PER_SECOND = 0.12;
