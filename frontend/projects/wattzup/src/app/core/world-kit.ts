@@ -536,7 +536,7 @@ export class Crowd {
     let arm = 0;
     this.fans.forEach((fan, i) => {
       const metres = along(fan.offset, this.options.loop);
-      const y = heightAt(Math.max(metres, 0)) + kerb;
+      const y = heightAt(metres) + kerb;
       // Fans face the road, turned a little towards the rider coming up the street.
       const heading = fan.side < 0 ? Math.PI / 2 - 0.3 : -Math.PI / 2 + 0.3;
       const bounce = Math.abs(Math.sin(time * 4.2 + fan.phase)) * 0.05;
@@ -675,7 +675,7 @@ export class Mist {
     for (const c of this.curtains) c.mesh.position.set(0, heightAt(c.ahead) - 20, -c.ahead);
     for (const bank of this.banks) {
       const metres = along(bank.offset + time * 0.4, this.options.loop);
-      bank.mesh.position.set(bank.x, heightAt(Math.max(metres, 0)) + rise(bank.x) + 1.6, -metres);
+      bank.mesh.position.set(bank.x, heightAt(metres) + rise(bank.x) + 1.6, -metres);
     }
   }
 }
