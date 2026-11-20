@@ -1166,6 +1166,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.6, fill: 1.8, colour: 0xfff4e4 },
     fogRange: [400, 4000],
   },
+  // A Vuelta stage day in the Sierra del Aramo with the cloud down on the mountain: soft grey light.
+  angliru: {
+    sky: 0xa8b4c0,
+    fog: 0xc8ced4,
+    ground: 0x4a7a34,
+    road: 0xa8a49a,
+    sun: 30,
+    wet: false,
+    haze: false,
+    turbidity: 8,
+    rayleigh: 1,
+    azimuth: 210,
+    light: { sun: 1.9, fill: 2.2, colour: 0xf4f0ea },
+    fogRange: [120, 1400],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

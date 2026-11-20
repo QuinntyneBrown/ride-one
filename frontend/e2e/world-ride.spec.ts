@@ -743,6 +743,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · La Redoute');
   });
 
+  test('rides 5 Gruelling Minutes up the ramps of the Angliru', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('5 Gruelling Minutes', 'Angliru', '5-gruelling-minutes');
+    await expect(world.heading).toHaveText('Angliru');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Angliru');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
