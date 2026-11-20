@@ -140,7 +140,8 @@ export interface components {
         | 'monaco'
         | 'tempelhof'
         | 'paine'
-        | 'ibiza';
+        | 'ibiza'
+        | 'skye';
     };
     ClassShelfResponse: {
       id: string;

@@ -999,6 +999,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.6, fill: 1.15, colour: 0xff9a5a },
     fogRange: [150, 1900],
   },
+  // A soft, grey Hebridean morning with the mist down: flat pale light, the road wet and shining.
+  skye: {
+    sky: 0xa8b0b8,
+    fog: 0xc4cacf,
+    ground: 0x6a6a3e,
+    road: 0x3a3c40,
+    sun: 24,
+    wet: true,
+    haze: false,
+    turbidity: 8,
+    rayleigh: 0.6,
+    azimuth: 160,
+    light: { sun: 1.6, fill: 2.0, colour: 0xe8ecf0 },
+    fogRange: [60, 1300],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
