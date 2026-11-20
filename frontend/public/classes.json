@@ -4698,6 +4698,7 @@
     },
     {
       "id": "intense-climb-passo-campolongo",
+      "world": "campolongo",
       "title": "Intense Climb: Passo Campolongo",
       "channel": "GCN",
       "focus": "Climbing",

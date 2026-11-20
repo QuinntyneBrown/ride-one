@@ -112,7 +112,8 @@ export interface components {
         | 'stanleypark'
         | 'stelvio'
         | 'edinburgh'
-        | 'northshore';
+        | 'northshore'
+        | 'campolongo';
     };
     ClassShelfResponse: {
       id: string;

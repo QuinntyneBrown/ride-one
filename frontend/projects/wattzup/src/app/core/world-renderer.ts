@@ -554,6 +554,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 1.4, colour: 0xfff6e4 },
     fogRange: [400, 3200],
   },
+  // A clear summer morning in Alta Badia: deep blue sky, the forest dark, the Dolomites pale.
+  campolongo: {
+    sky: 0x5a9ae0,
+    fog: 0xc0d4e4,
+    ground: 0x3a5a34,
+    road: 0x55565c,
+    sun: 40,
+    wet: false,
+    haze: false,
+    turbidity: 2.6,
+    rayleigh: 1.6,
+    azimuth: -150,
+    light: { sun: 3, fill: 1.4, colour: 0xfff6ea },
+    fogRange: [250, 3200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
