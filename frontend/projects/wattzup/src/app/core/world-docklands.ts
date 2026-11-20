@@ -326,6 +326,8 @@ const GATE_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#9b6bff', '#ffb3
 const CROSSINGS = [56, 196, 316, 446, 586];
 const CROSSING_BAR = 0.55;
 const CROSSING_DEPTH = 5;
+/** At most this many people wait at each kerb of a crossing. */
+const CROSSING_WAITERS = 3;
 /** Their beacons: post height (m), blink period (s), and how near before the halo hides (m). */
 const BEACON_HEIGHT = 2.9;
 /** The traffic signals at each crossing: the mast's height (m), how far over the road its arm
@@ -4306,6 +4308,23 @@ export class DocklandsStreet {
       this.strollers.push({ person: walker, speed: way * (0.9 + random() * 0.6), phase: random() });
       this.group.add(group);
       this.walkers.push({ group, offset: random() * LOOP });
+    }
+    // Waiting at the kerb of each crossing, both sides, facing across the road for the lights.
+    // They draw from their own sequence, so the walkers above are unchanged.
+    const waitRandom = seeded(661);
+    for (const offset of CROSSINGS) {
+      const group = new Group();
+      for (const side of [-1, 1]) {
+        const count = 2 + Math.floor(waitRandom() * (CROSSING_WAITERS - 1));
+        for (let k = 0; k < count; k++) {
+          const x = side * (roadHalf + KERB_WIDTH + 0.7 + waitRandom() * 1.2);
+          const waiter = person(x, (-side * Math.PI) / 2 + (waitRandom() - 0.5) * 0.4);
+          waiter.position.z = (k - (count - 1) / 2) * 1.3 + (waitRandom() - 0.5) * 0.4;
+          group.add(waiter);
+        }
+      }
+      this.group.add(group);
+      this.walkers.push({ group, offset });
     }
   }
 
