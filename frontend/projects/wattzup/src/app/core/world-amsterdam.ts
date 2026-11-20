@@ -775,7 +775,10 @@ export class AmsterdamStreet implements SceneStreet {
     const geraniums = geraniumGeometry();
     const wisterias = [0, 1].map((k) => wisteriaGeometry(709 + k * 6));
     const lantern = wallLantern();
-    this.disposables.push(lantern.frame, lantern.glass);
+    const pot = new CylinderGeometry(0.2, 0.15, 0.36, 10);
+    pot.translate(0, 0.18, 0);
+    const ball = new IcosahedronGeometry(0.28, 1);
+    this.disposables.push(lantern.frame, lantern.glass, pot, ball);
     this.disposables.push(
       ...gardens.flatMap((g) => [g.leaves, g.flowers]),
       geraniums,
@@ -807,6 +810,10 @@ export class AmsterdamStreet implements SceneStreet {
         opacity: 0.85,
       }),
       plate: this.material({ color: 0x1d3f7c, roughness: 0.4 }),
+      pot,
+      ball,
+      terracotta: this.material({ color: 0xb0583a, roughness: 0.9 }),
+      bench: this.material({ color: 0x8a8a84, roughness: 0.85 }),
     };
   }
 
@@ -865,6 +872,37 @@ export class AmsterdamStreet implements SceneStreet {
       leaning.rotation.set(0.12, extra() < 0.5 ? 0 : Math.PI, 0, 'YXZ');
       leaning.castShadow = true;
       house.add(leaning);
+    }
+    if (extra() < 0.45) {
+      // Pots of box and bay on the stoop's landing, either side of the door.
+      for (const dz of [-0.45, 0.45]) {
+        const pot = new Mesh(decor.pot, decor.terracotta);
+        pot.position.set(-0.75, KERB + 1.12, -door * width + dz);
+        const shrub = new Mesh(decor.ball, decor.leaves);
+        shrub.position.set(-0.75, KERB + 1.12 + 0.55, -door * width + dz);
+        house.add(pot, shrub);
+      }
+    }
+    if (extra() < 0.18) {
+      // A bench put out against the front, a pot of herbs beside it.
+      const bench = new Group();
+      const seat = new Mesh(this.unit, decor.bench);
+      seat.scale.set(0.4, 0.05, 1.4);
+      seat.position.set(0, 0.45, 0);
+      const back = new Mesh(this.unit, decor.bench);
+      back.scale.set(0.05, 0.45, 1.4);
+      back.position.set(0.18, 0.72, 0);
+      bench.add(seat, back);
+      for (const z of [-0.6, 0.6]) {
+        const leg = new Mesh(this.unit, decor.bench);
+        leg.scale.set(0.38, 0.45, 0.05);
+        leg.position.set(0, 0.225, z);
+        bench.add(leg);
+      }
+      const side = door > 0.5 ? -1 : 1;
+      bench.position.set(-0.25, KERB, -door * width + side * 2.2 - width * 0.0);
+      bench.children.forEach((m) => (m.castShadow = true));
+      house.add(bench);
     }
     if (extra() < 0.6) {
       // A lantern on a bracket beside the door, and the house number on an enamel plate.
