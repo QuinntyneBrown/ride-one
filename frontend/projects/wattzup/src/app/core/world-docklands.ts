@@ -12,6 +12,8 @@ import {
   CylinderGeometry,
   DoubleSide,
   Group,
+  LineBasicMaterial,
+  LineSegments,
   type Material,
   Mesh,
   MeshBasicMaterial,
@@ -43,6 +45,15 @@ const SIGN_WORDS = ['HOTEL', 'NOODLES', 'BAR', 'DOCK 9', 'CLUB', 'OPEN', 'RAMEN'
 const HARBOUR_FROM = 20;
 const HARBOUR_TO = 250;
 const FAR_SHORE = 340;
+/**
+ * The bridge ramps: the road over an effort crosses open dock on a bridge with steel parapets
+ * PARAPET metres high, held by a pylon PYLON metres tall with CABLES stays each way.
+ */
+const PARAPET = 1.15;
+const PYLON = 38;
+const PYLON_INTO = 46;
+const CABLES = 9;
+const CABLE_EVERY = 9;
 /** A blade sign stands out this far from its façade. */
 const BLADE = 2;
 /** The harbour skyline stands this far ahead, past the street's fog, and keeps its distance. */
@@ -84,7 +95,16 @@ export class DocklandsStreet {
   private streakTexture: CanvasTexture | null = null;
   private readonly streakMaterials = new Map<string, MeshBasicMaterial>();
   private readonly streakPlane = new PlaneGeometry(1, 1);
-  private readonly ribbons: { geometry: BufferGeometry; profile: [number, number][] }[] = [];
+  private readonly ribbons: {
+    geometry: BufferGeometry;
+    profile: [number, number][];
+    /** The cross-section on a bridge, point for point; the quay's own where omitted. */
+    bridge?: [number, number][];
+  }[] = [];
+  /** Whether the road `metres` ahead is on a bridge ramp; set by the renderer each frame. */
+  private onBridge: (metres: number) => boolean = () => false;
+  private readonly pylon = new Group();
+  private cables: LineSegments | null = null;
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -363,7 +383,20 @@ export class DocklandsStreet {
       metalness: 0.85,
       side: DoubleSide,
     });
-    this.disposables.push(pavement, kerb, neon, water);
+    const steel = new MeshStandardMaterial({
+      color: 0x1c2030,
+      metalness: 0.7,
+      roughness: 0.35,
+      side: DoubleSide,
+    });
+    const rail = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#3fe0ff'),
+      emissiveIntensity: 2.4,
+      side: DoubleSide,
+    });
+    this.disposables.push(pavement, kerb, neon, water, steel, rail);
+    this.addPylon(roadHalf);
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -379,12 +412,41 @@ export class DocklandsStreet {
           [edge, KERB],
         ]),
       );
+      // On a bridge the pavement gives way to the parapet, and the dock is open beyond it.
       this.ribbon(
         points,
         pavement,
         across([
           [edge, KERB],
           [back, KERB],
+        ]),
+        across([
+          [edge, KERB],
+          [edge, KERB],
+        ]),
+      );
+      this.ribbon(
+        points,
+        steel,
+        across([
+          [edge, KERB],
+          [edge, KERB],
+        ]),
+        across([
+          [edge, KERB],
+          [edge, KERB + PARAPET],
+        ]),
+      );
+      this.ribbon(
+        points,
+        rail,
+        across([
+          [edge, KERB],
+          [edge, KERB],
+        ]),
+        across([
+          [edge - 0.08, KERB + PARAPET],
+          [edge + 0.08, KERB + PARAPET],
         ]),
       );
       this.ribbon(
@@ -485,8 +547,100 @@ export class DocklandsStreet {
     }
   }
 
+  /**
+   * The bridge's pylon: an A-frame over the road whose legs stand on the deck's edges, lit
+   * along its edges, with a beacon at the top. Its stays fan down to both parapets.
+   */
+  private addPylon(roadHalf: number): void {
+    const concrete = new MeshStandardMaterial({ color: 0x2a2e3c, roughness: 0.6 });
+    const edgeLight = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#3fe0ff'),
+      emissiveIntensity: 2,
+    });
+    const beacon = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#ff2a2a'),
+      emissiveIntensity: 3,
+    });
+    const foot = roadHalf + 1.2;
+    const leg = new BoxGeometry(1.2, Math.hypot(PYLON, foot), 1.6);
+    const strip = new BoxGeometry(0.14, Math.hypot(PYLON, foot), 0.14);
+    const lamp = new BoxGeometry(1, 1, 1);
+    const stays = new LineBasicMaterial({ color: 0x9fdcff });
+    this.disposables.push(concrete, edgeLight, beacon, leg, strip, lamp, stays);
+    const lean = Math.atan2(foot, PYLON);
+    for (const side of [-1, 1]) {
+      const mesh = new Mesh(leg, concrete);
+      mesh.position.set((side * foot) / 2, PYLON / 2, 0);
+      mesh.rotation.z = side * lean;
+      mesh.castShadow = true;
+      const light = new Mesh(strip, edgeLight);
+      light.position.set((side * foot) / 2, PYLON / 2, 0.85);
+      light.rotation.z = side * lean;
+      this.pylon.add(mesh, light);
+    }
+    const top = new Mesh(lamp, beacon);
+    top.position.y = PYLON + 0.6;
+    this.pylon.add(top);
+    const geometry = new BufferGeometry();
+    geometry.setAttribute(
+      'position',
+      new BufferAttribute(new Float32Array(2 * 2 * 2 * CABLES * 3), 3),
+    );
+    this.disposables.push(geometry);
+    this.cables = new LineSegments(geometry, stays);
+    this.cables.frustumCulled = false;
+    this.pylon.visible = false;
+    this.cables.visible = false;
+    this.group.add(this.pylon, this.cables);
+  }
+
+  /** Tells the street which stretches of the road ahead are bridge ramps. */
+  setBridge(onBridge: (metres: number) => boolean): void {
+    this.onBridge = onBridge;
+  }
+
+  /** Stands the pylon PYLON_INTO metres onto the first bridge in view, and hangs its stays. */
+  private placePylon(heightAt: (metres: number) => number): void {
+    const cables = this.cables;
+    if (!cables) return;
+    let start: number | null = null;
+    for (let m = -40; m <= 300; m += 2) {
+      if (this.onBridge(Math.max(m, 0)) && (m <= -40 || !this.onBridge(Math.max(m - 2, 0)))) {
+        start = m;
+        break;
+      }
+    }
+    const at = start === null ? 0 : start + PYLON_INTO;
+    const visible = start !== null && this.onBridge(Math.max(at, 0));
+    this.pylon.visible = visible;
+    cables.visible = visible;
+    if (!visible) return;
+    const base = heightAt(Math.max(at, 0));
+    this.pylon.position.set(0, base, -at);
+    const position = cables.geometry.getAttribute('position') as BufferAttribute;
+    const edge = this.roadHalf + KERB_WIDTH;
+    let v = 0;
+    for (const side of [-1, 1]) {
+      for (const way of [-1, 1]) {
+        for (let k = 1; k <= CABLES; k++) {
+          const m = at + way * k * CABLE_EVERY;
+          position.setXYZ(v++, (side * 0.6 * (PYLON - k)) / PYLON, base + PYLON - 1 - k * 0.6, -at);
+          position.setXYZ(v++, side * edge, heightAt(Math.max(m, 0)) + KERB + PARAPET, -m);
+        }
+      }
+    }
+    position.needsUpdate = true;
+  }
+
   /** A strip along the road whose cross-section is `profile`: [x, height above the road]. */
-  private ribbon(points: number, material: Material, profile: [number, number][]): void {
+  private ribbon(
+    points: number,
+    material: Material,
+    profile: [number, number][],
+    bridge?: [number, number][],
+  ): void {
     const n = profile.length;
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(new Float32Array(points * n * 3), 3));
@@ -503,18 +657,20 @@ export class DocklandsStreet {
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;
     this.group.add(mesh);
-    this.ribbons.push({ geometry, profile });
+    this.ribbons.push({ geometry, profile, bridge });
     this.disposables.push(geometry);
   }
 
   /** Lays the quay over the road's points; its slabs move with the rider's distance `s`. */
   lay(points: readonly { metres: number; height: number }[], s: number): void {
-    for (const { geometry, profile } of this.ribbons) {
+    const bridged = points.map((p) => this.onBridge(Math.max(p.metres, 0)));
+    for (const { geometry, profile, bridge } of this.ribbons) {
       const position = geometry.getAttribute('position') as BufferAttribute;
       const uv = geometry.getAttribute('uv') as BufferAttribute;
       const n = profile.length;
       points.forEach((p, i) => {
-        profile.forEach(([x, y], j) => {
+        const section = bridge && bridged[i] ? bridge : profile;
+        section.forEach(([x, y], j) => {
           position.setXYZ(i * n + j, x, p.height + y, -p.metres);
           uv.setXY(i * n + j, x, p.metres + s);
         });
@@ -531,6 +687,10 @@ export class DocklandsStreet {
     for (const tower of this.towers) {
       const metres = ((((tower.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const height = tower.mesh.userData['height'] as number;
+      // A bridge crosses open dock: no tower stands beside it.
+      tower.mesh.visible = ![-tower.depth / 2, 0, tower.depth / 2].some((d) =>
+        this.onBridge(Math.max(metres + d, 0)),
+      );
       tower.mesh.position.set(
         tower.side * (this.roadHalf + SETBACK + tower.width / 2),
         heightAt(Math.max(metres, 0)) + (height - FOOTING) / 2,
@@ -540,7 +700,9 @@ export class DocklandsStreet {
     this.lamps.forEach((lamp, i) => {
       const metres = i * LAMP_EVERY - (s % LAMP_EVERY) + LAMP_FIRST;
       lamp.position.set(i % 2 === 0 ? -LAMP_OUT : LAMP_OUT, heightAt(metres), -metres);
+      lamp.visible = !this.onBridge(Math.max(metres, 0));
     });
+    this.placePylon(heightAt);
     this.skyline.position.set(0, heightAt(1e6) - 4, -SKYLINE_AHEAD);
     this.farShore.position.set(0, heightAt(0), 0);
   }

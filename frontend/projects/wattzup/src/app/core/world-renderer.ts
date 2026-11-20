@@ -60,7 +60,7 @@ import {
 import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
-import { nextArch, roadAhead, type RoadPoint } from './scene-road';
+import { MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 import { Cyclist, CyclistKit } from './world-cyclist';
 import { DocklandsStreet } from './world-docklands';
@@ -297,6 +297,15 @@ export class ThreeWorldRenderer implements WorldRenderer {
       { t: frame.elapsed, s: frame.s, speed, grade: this.grade },
       AHEAD,
     );
+    if (this.towers) {
+      // The road over an effort is a bridge ramp, laid at the same speed as the road ahead.
+      const v = Math.max(speed, MIN_SPEED);
+      this.towers.setBridge((metres) => {
+        const t = frame.elapsed + metres / v;
+        const at = frame.segments.find((g) => t >= g.start && t < g.start + g.duration);
+        return at?.kind === 'work';
+      });
+    }
     this.layRoad(ahead, frame.s);
     const texture = this.roadMaterial.map;
     if (texture) texture.offset.y = (frame.s / DASH) % 1;
