@@ -156,6 +156,7 @@ export class MiamiStreet implements SceneStreet {
     this.addDunes(roadHalf);
     this.addFestoons(roadHalf);
     this.addShelters(roadHalf);
+    this.addGateway(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1642,6 +1643,64 @@ export class MiamiStreet implements SceneStreet {
     }
   }
 
+  /**
+   * The Ocean Drive gateway spanning the boulevard once a loop: two stepped deco pylons on the
+   * sidewalks, ringed with neon, carrying a sign beam that spells OCEAN DRIVE in pink and cyan
+   * neon, a sunburst crest above it.
+   */
+  private addGateway(roadHalf: number): void {
+    const span = roadHalf * 2 + 7;
+    const stucco = this.material({ color: 0xf4e8e0, roughness: 0.7 });
+    const pink = this.material({ color: 0xff3fb4, emissive: 0xff3fb4, emissiveIntensity: 2.6 });
+    const cyan = this.material({ color: 0x2fe6ff, emissive: 0x2fe6ff, emissiveIntensity: 2.6 });
+    const board = this.material({
+      map: this.track(gatewayTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(gatewayTexture()),
+      emissiveIntensity: 2.2,
+    });
+    this.signs.push(board);
+    const gate = new Group();
+    const b = new BoxBuilder();
+    for (const side of [-1, 1]) {
+      const x = (side * span) / 2;
+      b.box(stucco, [1.6, 9, 1.6], [x, 4.5, 0]);
+      b.box(stucco, [1.2, 1.6, 1.2], [x, 9.8, 0]);
+      b.box(stucco, [0.7, 1.4, 0.7], [x, 11.3, 0]);
+      for (const y of [3, 5, 7]) b.box(side < 0 ? pink : cyan, [1.7, 0.12, 1.7], [x, y, 0]);
+      b.box(side < 0 ? cyan : pink, [0.2, 2, 0.2], [x, 13, 0]);
+    }
+    b.box(stucco, [span, 0.35, 0.8], [0, 7.4, 0]);
+    b.box(stucco, [span, 0.35, 0.8], [0, 9.6, 0]);
+    b.box(pink, [span, 0.08, 0.86], [0, 7.2, 0]);
+    b.box(cyan, [span, 0.08, 0.86], [0, 9.8, 0]);
+    gate.add(b.build(this.disposables));
+    for (const turn of [0, Math.PI]) {
+      const face = new Mesh(this.flat, board);
+      face.rotation.y = turn;
+      face.scale.set(span * 0.82, 1.9, 1);
+      face.position.set(0, 8.5, turn ? -0.25 : 0.25);
+      gate.add(face);
+    }
+    for (let r = 0; r < 9; r++) {
+      const a = -Math.PI / 2 + (r / 8) * Math.PI;
+      const ray = new Mesh(this.unit, r % 2 ? pink : cyan);
+      ray.scale.set(0.12, 2.2, 0.12);
+      ray.rotation.z = -a;
+      ray.position.set(Math.sin(a) * 1.6, 10.2 + Math.cos(a) * 1.6, 0);
+      gate.add(ray);
+    }
+    const glow = new Mesh(this.flat, this.halo);
+    glow.scale.set(span * 1.1, 6, 1);
+    glow.position.set(0, 8.5, 0.4);
+    gate.add(glow);
+    gate.position.x = 0.4;
+    const holder = new Group();
+    holder.add(gate);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 62, x: 0 });
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -3109,5 +3168,27 @@ function iconTexture(kind: 'flamingo' | 'palm' | 'cocktail' | 'moon'): CanvasTex
           128 + 90 * Math.sin(Math.PI * 0.35),
         );
       });
+  });
+}
+
+/** The gateway's board: OCEAN in pink neon and DRIVE in cyan, glowing on dark enamel. */
+function gatewayTexture(): CanvasTexture {
+  return canvasTexture(512, 64, (g) => {
+    g.fillStyle = '#140c1c';
+    g.fillRect(0, 0, 512, 64);
+    g.font = 'bold 46px sans-serif';
+    g.textBaseline = 'middle';
+    for (const [text, x, colour] of [
+      ['OCEAN', 70, '#ff3fb4'],
+      ['DRIVE', 280, '#2fe6ff'],
+    ] as const) {
+      g.shadowColor = colour;
+      g.shadowBlur = 16;
+      g.fillStyle = colour;
+      g.fillText(text, x, 34);
+      g.shadowBlur = 0;
+      g.fillStyle = 'rgba(255,255,255,0.8)';
+      g.fillText(text, x, 34);
+    }
   });
 }
