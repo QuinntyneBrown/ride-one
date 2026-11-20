@@ -18,6 +18,7 @@ import {
   DoubleSide,
   Group,
   LineBasicMaterial,
+  LatheGeometry,
   LineSegments,
   type Material,
   Mesh,
@@ -32,6 +33,7 @@ import {
   Sprite,
   SpriteMaterial,
   SRGBColorSpace,
+  Vector2,
   type Texture,
 } from 'three/webgpu';
 
@@ -210,6 +212,18 @@ const HOLO_TURN = 60;
 const KOI_SCHOOLS = [62, 330, 520];
 const KOI_PER_SCHOOL = 7;
 const KOI_HEIGHT = 8.5;
+/** A koi's outline from head (+1) to tail (-1): its radius at each point along its length. */
+const KOI_PROFILE: readonly (readonly [number, number])[] = [
+  [0, -1],
+  [0.1, -0.92],
+  [0.2, -0.6],
+  [0.38, -0.2],
+  [0.5, 0.2],
+  [0.48, 0.55],
+  [0.34, 0.82],
+  [0.14, 0.97],
+  [0, 1],
+];
 const KOI_SKINS: readonly (readonly [string, string])[] = [
   ['#ffffff', '#ff5a1f'],
   ['#ff7a1a', '#fff2d6'],
@@ -1836,7 +1850,12 @@ export class DocklandsStreet {
       side: DoubleSide,
       toneMapped: false,
     });
-    const body = new SphereGeometry(1, 20, 12);
+    // A fish's outline turned round its length: a round head (+x) tapering to a slim tail.
+    const body = new LatheGeometry(
+      KOI_PROFILE.map(([r, y]) => new Vector2(r, y)),
+      20,
+    );
+    body.rotateZ(-Math.PI / 2);
     // The tail: a fan from the body's end, flat and upright.
     const tailShape = new BufferGeometry();
     tailShape.setAttribute(
@@ -1855,7 +1874,7 @@ export class DocklandsStreet {
         const fish = new Group();
         const length = 1.4 + random() * 0.9;
         const shell = new Mesh(body, skins[k % skins.length]!);
-        shell.scale.set(length, length * 0.22, length * 0.28);
+        shell.scale.set(length, length * 0.42, length * 0.52);
         fish.add(shell);
         const tail = new Mesh(tailShape, fin);
         tail.scale.setScalar(length * 0.55);
@@ -4830,19 +4849,31 @@ function koiTexture(ground: string, patch: string, random: () => number): Canvas
   if (ctx) {
     ctx.fillStyle = ground;
     ctx.fillRect(0, 0, 128, 64);
+    // Three bold blotches over the back, as on a kohaku or a sanke, and a few small ones.
     ctx.fillStyle = patch;
-    for (let k = 0; k < 5; k++) {
+    for (let k = 0; k < 6; k++) {
+      const big = k < 3;
       ctx.beginPath();
       ctx.ellipse(
         random() * 128,
-        14 + random() * 36,
-        10 + random() * 16,
-        8 + random() * 10,
+        8 + random() * 48,
+        big ? 22 + random() * 18 : 5 + random() * 5,
+        big ? 9 + random() * 8 : 4 + random() * 3,
         0,
         0,
         Math.PI * 2,
       );
       ctx.fill();
+    }
+    // Faint scales over it all.
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    for (let y = 4; y < 64; y += 6) {
+      for (let x = (y / 6) % 2 ? 0 : 3; x < 128; x += 6) {
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI);
+        ctx.stroke();
+      }
     }
   }
   const texture = new CanvasTexture(canvas);
