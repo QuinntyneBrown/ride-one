@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -180,6 +180,14 @@ None.
   - the Main Street Pier crossing the beach on its pilings once a lap, its span over the riders' line left clear;
   - a drag strip's start once a lap: a start line, a start tree whose ambers and green count down on the ride's clock, a timing board on its gantry, and vintage stock cars with their numbers;
   - beachgoers strolling along the water and the sand (`Figures`).
+- **Koppenberg Cobbles (`core/world-koppenberg.ts`).** For `koppenberg`, a Flemish farm lane on a misty spring morning that tips up into the Koppenberg:
+  - the lane ridden on Old Town's cobbles (`cobbleTextures`, chosen in `world-renderer.ts` for the cobbled scenes), wet and slick, with the fans' writing every 25 m, muddy edges and low barriers hung with the race's banners (KOPPENBERG, VLAANDEREN, KASSEIEN);
+  - grass banks rising from the barriers, packed with the shared crowd in Flanders' yellow and black, a third waving the lion flag, more lion flags on tall poles stuck in the banks, and a red-edged 22% warning sign and a red inflatable KOPPENBERG arch once a loop;
+  - hawthorn hedges along the fields, rows of Lombardy poplars, pollard willows and blossom by the lane, and fields in strips of young wheat, ploughed earth, pasture and rapeseed;
+  - farms in the fields: long whitewashed or brick houses with shuttered windows, steep red-tile or slate roofs and chimneys, brick barns with tarred roofs across their yards, black-and-white cows grazing and a tractor by a gate;
+  - ahead, the wooded hill the cobbles climb with Melden's church tower and slate spire on its crest, hazed by hand.
+
+  `lay`, `place` and `setTime` recycle it along a 480 m loop.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -212,6 +220,7 @@ None.
 | `pages/world-ride/amsterdam` | Amsterdam Canals at 4:50, warm-up, next `Bridge-hop push` |
 | `pages/world-ride/giza` | Giza Plateau at 4:50, warm-up, next `Pyramid step` |
 | `pages/world-ride/daytona` | Daytona Beach Sand at 4:50, warm-up, next `Quarter-mile drag` |
+| `pages/world-ride/koppenberg` | Koppenberg Cobbles at 0:53, warm-up, next `Cobbled climb` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

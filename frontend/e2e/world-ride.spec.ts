@@ -114,6 +114,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Venice Beach Boardwalk');
   });
 
+  test('rides Low Cadence Strength Builder in Koppenberg Cobbles up the Koppenberg', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Low Cadence Strength Builder',
+      'Koppenberg Cobbles',
+      'low-cadence-strength-builder',
+    );
+    await expect(world.heading).toHaveText('Koppenberg Cobbles');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Koppenberg Cobbles');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');
