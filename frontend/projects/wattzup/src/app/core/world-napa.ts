@@ -19,9 +19,11 @@ import {
   DoubleSide,
   ExtrudeGeometry,
   Group,
+  LatheGeometry,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
+  Vector2,
   RepeatWrapping,
   Shape,
   SphereGeometry,
@@ -33,6 +35,7 @@ import {
   canvasTexture,
   clothBannerTexture,
   Crowd,
+  Figures,
   FeatherFlags,
   type FeatherWord,
   hazedMaterial,
@@ -55,8 +58,9 @@ const KERB = 0.12;
 const BARRIER = 3.9;
 const CROWD_NEAR = 4.4;
 const CROWD_FAR = 6.4;
-/** The dusty shoulder ends where the vineyards begin. */
+/** The dusty shoulder ends where the vineyards begin, with a headland track along the rows' ends. */
 const VINES_FROM = 8;
+const HEADLAND = 4;
 /** The vine rows run out to here, climbing the valley's side. */
 const VINES_TO = 108;
 /** Each block of vine rows is this long along the road. */
@@ -132,11 +136,36 @@ const ROAD_PAINT_EVERY = 25;
  * The stone wineries beside the road: how far into the loop, which side, how far off the
  * road's centre, and whether barrels stand stacked by the door. The first is in the opening view.
  */
+/** Harvest crews in the vine rows: which side, the block's place in the loop, and how far out. */
+const CREWS: readonly (readonly [-1 | 1, number, number])[] = [
+  [-1, 125, 12.5],
+  [1, 175, 12.5],
+  [-1, 150, 13],
+  [1, 200, 13],
+  [-1, 325, 12.5],
+  [1, 375, 13],
+  [-1, 450, 12.5],
+];
+const PICKERS: Wardrobe = {
+  tops: ['#e8e0d0', '#3a5f8a', '#c9302c', '#f2f2ee', '#5a6a3a', '#d98a2a', '#7a8fa8'],
+  bottoms: ['#2a3140', '#3b4a5c', '#5a4a3a', '#20242b'],
+  skins: SKINS,
+};
+
 const WINERIES: readonly (readonly [number, -1 | 1, number, boolean])[] = [
   [140, 1, 27, false],
   [215, -1, 30, true],
   [400, 1, 29, true],
 ];
+
+/** Someone standing in the scene: where in the loop, how far out, how high, which way they face. */
+interface Spot {
+  readonly offset: number;
+  readonly x: number;
+  readonly rise: number;
+  readonly heading: number;
+  readonly phase: number;
+}
 
 interface Prop {
   readonly mesh: Group;
@@ -156,6 +185,11 @@ export class NapaStreet implements SceneStreet {
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
   private time = 0;
+  private readonly guests: Spot[] = [];
+  private readonly pickers: Spot[] = [];
+  private readonly balloons: { mesh: Group; x: number; y: number; z: number; phase: number }[] = [];
+  private guestFigures: Figures | null = null;
+  private pickerFigures: Figures | null = null;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly ball = new SphereGeometry(1, 12, 9);
   private readonly flagMaterials = ['#7a1f3d', '#3e5a2a', '#e8b04a', '#2f5d8a'].map(
@@ -182,7 +216,12 @@ export class NapaStreet implements SceneStreet {
       seeds: [1211, 1223],
       // A country crowd: knots along the barriers with open stretches between them, so the vine
       // rows show.
-      skip: (_side, offset, x) => offset % 45 > 24 || (x > CROWD_NEAR + 1.2 && offset % 12 > 7),
+      // The crowd also opens in front of a winery's terrace and wherever a harvest crew works.
+      skip: (side, offset, x) =>
+        offset % 45 > 24 ||
+        (x > CROWD_NEAR + 1.2 && offset % 12 > 7) ||
+        WINERIES.some(([at, s]) => s === side && Math.abs(offset - at) < 14) ||
+        CREWS.some(([s, at]) => s === side && Math.abs(offset - at) < 9),
     });
     this.group.add(this.horizon);
   }
@@ -195,10 +234,13 @@ export class NapaStreet implements SceneStreet {
     this.addVines();
     this.addWineries();
     this.addOaks();
+    this.addHarvest();
+    this.addPeople();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
     this.addRoadPaint();
     this.addHorizon();
+    this.addBalloons();
   }
 
   /** The street's clock, in seconds; held at 0 for reduced motion. */
@@ -219,7 +261,29 @@ export class NapaStreet implements SceneStreet {
       prop.mesh.position.set(prop.x, ground(metres) + KERB + prop.rise, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
+    const t = this.time;
+    // Guests linger at the terrace tables; the pickers stoop and straighten along the rows.
+    for (const [people, spots, pace, depth] of [
+      [this.guestFigures, this.guests, 0.6, 0.015],
+      [this.pickerFigures, this.pickers, 1.3, 0.05],
+    ] as const) {
+      if (!people) continue;
+      spots.forEach((p, i) => {
+        const metres = along(p.offset, LOOP);
+        const bob = Math.abs(Math.sin(t * pace + p.phase)) * depth;
+        people.set(i, p.x, ground(metres) + KERB + p.rise, -metres, p.heading, 0.95, bob);
+      });
+      people.commit();
+    }
     this.horizon.position.set(0, heightAt(HORIZON_AHEAD), -HORIZON_AHEAD);
+    // The balloons drift slowly up the valley, rising and sinking a little.
+    for (const b of this.balloons) {
+      b.mesh.position.set(
+        b.x + Math.sin(t * 0.02 + b.phase) * 12,
+        b.y + Math.sin(t * 0.15 + b.phase) * 2,
+        b.z - ((t * 0.8) % 400),
+      );
+    }
   }
 
   /** The kerbs, the road's lines, the dusty shoulders, the vineyards' soil and the hills. */
@@ -307,7 +371,7 @@ export class NapaStreet implements SceneStreet {
       const hedges: BufferGeometry[] = [];
       const stems: BufferGeometry[] = [];
       const posts: BufferGeometry[] = [];
-      const from = VINES_FROM + 1;
+      const from = VINES_FROM + HEADLAND;
       const length = VINES_TO - from;
       const middle = side * (from + length / 2);
       const slope = Math.atan(0.05) * side;
@@ -409,6 +473,237 @@ export class NapaStreet implements SceneStreet {
   }
 
   /**
+   * The harvest: crews of pickers in sun hats working down the gaps between the vine rows, yellow
+   * lug boxes at their feet and stacked full of grapes at the row ends, and with each crew a
+   * narrow vineyard tractor hauling a gondola heaped with dark grapes.
+   */
+  private addHarvest(): void {
+    const random = seeded(1701);
+    const brim = new CylinderGeometry(0.3, 0.3, 0.03, 14);
+    const crown = new CylinderGeometry(0.12, 0.14, 0.12, 12);
+    crown.translate(0, 0.07, 0);
+    const hat = mergeGeometries([brim, crown])!;
+    brim.dispose();
+    crown.dispose();
+    const lug = new BoxGeometry(0.55, 0.3, 0.38);
+    lug.translate(0, 0.15, 0);
+    const wheel = new CylinderGeometry(0.45, 0.45, 0.3, 14);
+    wheel.rotateX(Math.PI / 2);
+    const small = new CylinderGeometry(0.3, 0.3, 0.22, 12);
+    small.rotateX(Math.PI / 2);
+    this.disposables.push(hat, lug, wheel, small);
+    const straw = this.material({ color: 0xd8c48a, roughness: 1 });
+    const yellow = this.material({ color: 0xf2c230, roughness: 0.7 });
+    const grapes = this.material({ map: this.track(grapeTexture()), roughness: 0.6 });
+    const green = this.material({ color: 0x2f6a3a, roughness: 0.5, metalness: 0.2 });
+    const red = this.material({ color: 0xb8322a, roughness: 0.6 });
+    const tyre = this.material({ color: 0x1c1c1c, roughness: 0.95 });
+    const box = (
+      g: Group,
+      m: MeshStandardMaterial,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      g.add(mesh);
+    };
+    CREWS.forEach(([side, block, out], c) => {
+      // The gaps between the rows lie on the block's 2.5 m marks.
+      const gaps = [2, 4, 6, 7].map((k) => -BLOCK / 2 + k * ROW_EVERY);
+      for (let k = 0; k < 4 + (c % 3); k++) {
+        const z = gaps[k % gaps.length]!;
+        const x = side * (out + random() * 7);
+        const offset = block - z;
+        this.pickers.push({
+          offset,
+          x,
+          rise: rise(x),
+          heading: side > 0 ? Math.PI / 2 : -Math.PI / 2,
+          phase: random() * 6,
+        });
+        const h = new Group();
+        const top = new Mesh(hat, straw);
+        top.position.y = 1.62;
+        top.castShadow = true;
+        h.add(top);
+        // A lug box or two at their feet, one of them full.
+        const filled = new Group();
+        box(filled, yellow, 0.55, 0.3, 0.38, side * 0.7, 0.15, 0);
+        box(filled, grapes, 0.5, 0.06, 0.33, side * 0.7, 0.31, 0);
+        h.add(filled);
+        this.group.add(h);
+        this.props.push({ mesh: h, offset, every: LOOP, x, rise: rise(x), near: side > 0 });
+      }
+      // The tractor in the next gap, its gondola heaped with grapes, and full lugs at the row end.
+      const z = -BLOCK / 2 + 5 * ROW_EVERY;
+      // Two more carry full lugs along the headland to the tractor.
+      for (const dz of [2.6, -3.4]) {
+        const hx = side * (VINES_FROM + 1.2 + random());
+        this.pickers.push({
+          offset: block - dz,
+          x: hx,
+          rise: 0,
+          heading: dz > 0 ? 0 : Math.PI,
+          phase: random() * 6,
+        });
+        const h = new Group();
+        const top = new Mesh(hat, straw);
+        top.position.y = 1.62;
+        h.add(top);
+        box(h, yellow, 0.55, 0.3, 0.38, 0, 1.05, -0.32);
+        box(h, grapes, 0.5, 0.06, 0.33, 0, 1.21, -0.32);
+        this.group.add(h);
+        this.props.push({
+          mesh: h,
+          offset: block - dz,
+          every: LOOP,
+          x: hx,
+          rise: 0,
+          near: side > 0,
+        });
+      }
+      const x = side * (VINES_FROM + 2.2);
+      const tractor = new Group();
+      // It stands on the headland, pointing along the road.
+      tractor.rotation.y = Math.PI / 2;
+      const facing = side > 0 ? -1 : 1;
+      box(tractor, green, 1.9, 0.9, 1.1, 0, 0.95, 0);
+      box(tractor, green, 0.8, 0.5, 1.0, facing * 0.6, 1.6, 0);
+      box(tractor, tyre, 0.08, 1.3, 0.08, -facing * 0.35, 2.2, 0.45);
+      box(tractor, tyre, 0.08, 1.3, 0.08, -facing * 0.35, 2.2, -0.45);
+      box(tractor, tyre, 0.08, 0.08, 1.0, -facing * 0.35, 2.85, 0);
+      for (const [wx, w] of [
+        [-facing * 0.5, wheel],
+        [facing * 0.75, small],
+      ] as const) {
+        for (const wz of [-0.62, 0.62]) {
+          const m = new Mesh(w, tyre);
+          m.position.set(wx, w === wheel ? 0.45 : 0.3, wz);
+          tractor.add(m);
+        }
+      }
+      // The gondola behind it.
+      const gx = -facing * 2.9;
+      box(tractor, red, 2.8, 0.9, 1.25, gx, 1.0, 0);
+      box(tractor, grapes, 2.7, 0.2, 1.15, gx, 1.5, 0);
+      for (const wz of [-0.68, 0.68]) {
+        const m = new Mesh(small, tyre);
+        m.position.set(gx, 0.3, wz);
+        tractor.add(m);
+      }
+      this.group.add(tractor);
+      this.props.push({
+        mesh: tractor,
+        offset: block - z,
+        every: LOOP,
+        x,
+        rise: 0,
+        near: side > 0,
+      });
+      const stack = new Group();
+      for (let k = 0; k < 6; k++) {
+        box(stack, yellow, 0.55, 0.3, 0.38, (k % 3) * 0.6, 0.15 + Math.floor(k / 3) * 0.32, 0);
+        box(stack, grapes, 0.5, 0.04, 0.33, (k % 3) * 0.6, 0.3 + Math.floor(k / 3) * 0.32, 0);
+      }
+      this.group.add(stack);
+      const sx = side * (VINES_FROM + 0.5);
+      this.props.push({
+        mesh: stack,
+        offset: block - z - 1.2,
+        every: LOOP,
+        x: sx,
+        rise: 0,
+        near: side > 0,
+      });
+    });
+  }
+
+  /**
+   * Hot-air balloons over the valley, high in the view ahead: teardrop envelopes in bright
+   * striped gores, a burner frame under each and a wicker basket on its ropes. They drift slowly
+   * up the valley with the horizon, never nearer than 150 m.
+   */
+  private addBalloons(): void {
+    const profile: Vector2[] = [];
+    for (let i = 0; i <= 16; i++) {
+      const a = (i / 16) * Math.PI;
+      // A teardrop: full and round above, tapering to the mouth.
+      const r = Math.sin(a) * (a < Math.PI / 2 ? 1 : 0.55 + 0.45 * Math.sin(a));
+      profile.push(new Vector2(Math.max(r * 9, 1.6 * (i / 16)), 9 - (i / 16) * 20));
+    }
+    profile.reverse();
+    const envelope = new LatheGeometry(profile, 24);
+    const basket = new BoxGeometry(2, 1.4, 2);
+    const rope = new CylinderGeometry(0.05, 0.05, 3.6, 4);
+    this.disposables.push(envelope, basket, rope);
+    const wicker = this.material({ color: 0x8a6438, roughness: 1 });
+    const cord = this.material({ color: 0x3a3a3a });
+    const looks: readonly (readonly string[])[] = [
+      ['#d8283a', '#f2c230', '#2f5d8a'],
+      ['#f28a2a', '#ffffff', '#3e8a4a'],
+      ['#7a1f3d', '#f2e4c6'],
+      ['#2f9ad0', '#f2c230', '#d8283a', '#ffffff'],
+      ['#3e5a2a', '#e8b04a'],
+    ];
+    const places = [
+      [-48, 58, 110],
+      [55, 110, -180],
+      [-25, 140, -330],
+      [120, 90, -420],
+      [-150, 120, -260],
+    ] as const;
+    places.forEach(([x, y, z], i) => {
+      const g = new Group();
+      const e = new Mesh(
+        envelope,
+        this.material({
+          map: this.track(goresTexture(looks[i]!)),
+          side: DoubleSide,
+          roughness: 0.6,
+          fog: false,
+        }),
+      );
+      e.castShadow = true;
+      const b = new Mesh(basket, wicker);
+      b.position.y = -15.5;
+      g.add(e, b);
+      for (const [rx, rz] of [
+        [-0.9, -0.9],
+        [0.9, -0.9],
+        [-0.9, 0.9],
+        [0.9, 0.9],
+      ] as const) {
+        const r = new Mesh(rope, cord);
+        r.position.set(rx, -13, rz);
+        g.add(r);
+      }
+      g.rotation.y = i;
+      g.scale.setScalar(1.5);
+      this.horizon.add(g);
+      this.balloons.push({ mesh: g, x, y, z, phase: i * 1.7 });
+    });
+  }
+
+  /** The terrace guests and the pickers, drawn as the kit's figures. */
+  private addPeople(): void {
+    this.guestFigures = new Figures(this.group, this.disposables, this.guests.length, LOCALS, 1711);
+    this.pickerFigures = new Figures(
+      this.group,
+      this.disposables,
+      this.pickers.length,
+      PICKERS,
+      1721,
+    );
+  }
+
+  /**
    * The stone wineries beside the road: a long fieldstone hall under a terracotta gable, arched
    * doors and windows on the face to the road, a tasting terrace in front set with white
    * umbrellas and tables, spreading oaks either end, and in some a stack of oak barrels.
@@ -498,8 +793,21 @@ export class NapaStreet implements SceneStreet {
         const leg = new Mesh(pole, wood);
         leg.scale.set(2, 0.3, 2);
         spot.add(p, u, t, leg);
-        spot.position.set(face - side * (2.2 + (n % 2) * 2.4), 0.3, z);
+        const lx = face - side * (2.2 + (n % 2) * 2.4);
+        spot.position.set(lx, 0.3, z);
         g.add(spot);
+        // Two or three guests stand round each table.
+        const around = 2 + ((n + w) % 2);
+        for (let k = 0; k < around; k++) {
+          const a = (k / around) * Math.PI * 2 + n;
+          this.guests.push({
+            offset: offset - (z + Math.cos(a) * 0.75),
+            x: side * x + lx + Math.sin(a) * 0.75,
+            rise: 0.3,
+            heading: a + Math.PI,
+            phase: random() * 6,
+          });
+        }
       }
       if (barrels) {
         for (let k = 0; k < 9; k++) {
@@ -950,6 +1258,35 @@ function flagstoneTexture(): CanvasTexture {
     const random = seeded(1643);
     for (let i = 0; i < 10; i++) {
       g.strokeRect(random() * 100, random() * 100, 20 + random() * 30, 20 + random() * 30);
+    }
+  });
+}
+
+/** A balloon's envelope: vertical gores in its colours, a band round the equator. */
+function goresTexture(colours: readonly string[]): CanvasTexture {
+  return canvasTexture(256, 128, (g) => {
+    const gores = 24;
+    for (let i = 0; i < gores; i++) {
+      g.fillStyle = colours[i % colours.length]!;
+      g.fillRect((i / gores) * 256, 0, 256 / gores + 1, 128);
+    }
+    g.fillStyle = 'rgba(255,255,255,0.85)';
+    g.fillRect(0, 40, 256, 6);
+    g.fillStyle = 'rgba(0,0,0,0.12)';
+    for (let i = 0; i < gores; i++) g.fillRect((i / gores) * 256, 0, 1, 128);
+  });
+}
+
+/** Grapes heaped in a gondola or a lug: dark purple berries, some catching the light. */
+function grapeTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    speckle(g, 64, 64, '#3a1f3e', 1731);
+    const random = seeded(1733);
+    for (let i = 0; i < 120; i++) {
+      g.fillStyle = random() < 0.6 ? 'rgba(90,50,100,0.8)' : 'rgba(170,140,190,0.6)';
+      g.beginPath();
+      g.arc(random() * 64, random() * 64, 2 + random() * 2, 0, Math.PI * 2);
+      g.fill();
     }
   });
 }
