@@ -510,6 +510,7 @@ export class HavanaStreet implements SceneStreet {
     arches.wrapS = RepeatWrapping;
     const shops = this.track(shopTexture());
     const glows = this.track(shopTexture(true));
+    const piers = this.track(pierTexture());
     glows.wrapS = RepeatWrapping;
     const plain = this.track(plasterTexture());
     shops.wrapS = RepeatWrapping;
@@ -611,9 +612,14 @@ export class HavanaStreet implements SceneStreet {
       building.add(body, ceiling, back, front, ...this.portal(width, bays, cafes));
       // Square piers between the arches, with a pale plinth at the foot of each.
       const bay = (width - 0.3) / bays;
-      const plaster = this.material({ map: plain, color: tint, roughness: 0.9 });
+      const plaster = this.material({ map: piers, color: tint, roughness: 0.9 });
       for (let k = 0; k <= bays; k++) {
         const pier = new Mesh(this.unit, plaster);
+        // An impost moulding where the arches spring from the pier.
+        const impost = new Mesh(this.unit, cornice);
+        impost.scale.set(0.62, 0.18, 0.62);
+        impost.position.set(0.25, PORTAL - 1.45, -0.15 - k * bay);
+        building.add(impost);
         pier.scale.set(0.5, PORTAL, 0.5);
         pier.position.set(0.25, PORTAL / 2, -0.15 - k * bay);
         pier.castShadow = true;
@@ -2949,5 +2955,40 @@ function boardTexture(top: string, bottom: string, look: number): CanvasTexture 
     }
     g.fillStyle = 'rgba(255,250,235,0.18)';
     g.fillRect(0, 0, 1024, 480);
+  });
+}
+
+/**
+ * An arcade pier's face, 0.5 m by the portal's height: painted stucco with a little rustication
+ * toward the foot, the paint peeling in flakes to bare grey render, salt-damp and grime rising a
+ * metre from the pavement.
+ */
+function pierTexture(): CanvasTexture {
+  return canvasTexture(128, 512, (g) => {
+    speckle(g, 128, 512, '#f0ece4', 1277);
+    const random = seeded(1279);
+    // Rusticated joints over the lower third.
+    g.fillStyle = 'rgba(90,80,70,0.35)';
+    for (let y = 330; y < 512; y += 30) g.fillRect(0, y, 128, 3);
+    // Peeling paint to the grey render beneath.
+    for (let i = 0; i < 9; i++) {
+      const x = random() * 120;
+      const y = 40 + random() * 440;
+      const w = 10 + random() * 30;
+      const h = 6 + random() * 16;
+      g.fillStyle = 'rgba(170,165,155,0.5)';
+      g.beginPath();
+      g.ellipse(x, y, w / 2, h / 2, random() * 3, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = 'rgba(255,255,250,0.3)';
+      g.lineWidth = 1;
+      g.stroke();
+    }
+    // Damp and grime rising from the foot.
+    const damp = g.createLinearGradient(0, 512, 0, 380);
+    damp.addColorStop(0, 'rgba(70,60,50,0.55)');
+    damp.addColorStop(1, 'rgba(70,60,50,0)');
+    g.fillStyle = damp;
+    g.fillRect(0, 380, 128, 132);
   });
 }
