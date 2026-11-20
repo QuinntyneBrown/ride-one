@@ -157,7 +157,8 @@ export interface components {
         | 'cinqueterre'
         | 'angels'
         | 'coney'
-        | 'winterlude';
+        | 'winterlude'
+        | 'letras';
     };
     ClassShelfResponse: {
       id: string;

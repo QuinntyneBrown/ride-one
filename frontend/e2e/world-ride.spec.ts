@@ -801,6 +801,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Winterlude, Ottawa');
   });
 
+  test("rides Hank's Hardest Training Session up the Alto de Letras", async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      "Hank's Hardest Training Session",
+      'Alto de Letras',
+      'hanks-hardest-training-session',
+    );
+    await expect(world.heading).toHaveText('Alto de Letras');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Alto de Letras');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

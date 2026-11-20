@@ -1258,6 +1258,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.4, fill: 1.5, colour: 0xffe8c8 },
     fogRange: [1200, 9000],
   },
+  // A warm, bright morning in Colombia's coffee country: high sun, clear Andean air, cloud lying in the valley.
+  letras: {
+    sky: 0x4a90e0,
+    fog: 0xd4e2ee,
+    ground: 0x2e6a2a,
+    road: 0x555556,
+    sun: 52,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.5,
+    azimuth: 120,
+    light: { sun: 2.8, fill: 1.7, colour: 0xfff4e0 },
+    fogRange: [1500, 12000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
