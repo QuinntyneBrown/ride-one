@@ -105,7 +105,8 @@ interface Look {
 const LOOKS: Record<WorldId, Look> = {
   docklands: {
     sky: 0x0b1030,
-    fog: 0x1a1f45,
+    // The street fades into the city's violet haze, the colour of the sky's glow at the horizon.
+    fog: 0x2a2150,
     ground: 0x1c1e2b,
     road: 0x40434f,
     sun: -4,
