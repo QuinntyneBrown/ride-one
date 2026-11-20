@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [30 Minute Sprint and Threshold HIIT](
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/30-minute-sprint-and-threshold-hiit?simulate`, click **Ride in Toronto Waterfront Trail**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [072 · The CN Tower stands straight over the trail](bend-072-cn-tower-stands.jpg) | The CN Tower, the islands and the skyline beyond Queens Quay were bent vertex by vertex with the trail's bends, so the 550 m tower leaned and slewed with each turn along the lake. They now stand beyond the road unbent, as the panorama does, and the walkers and props behind the rider stand on the trail there instead of at the height under the rider. |
