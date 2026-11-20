@@ -10,6 +10,7 @@ import {
   BufferAttribute,
   BoxGeometry,
   CapsuleGeometry,
+  CircleGeometry,
   Color,
   BufferGeometry,
   type CanvasTexture,
@@ -229,6 +230,7 @@ export class HavanaStreet implements SceneStreet {
     this.addGrates(roadHalf);
     this.addRockers(roadHalf);
     this.addDominoes(roadHalf);
+    this.addSigns(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -3699,6 +3701,49 @@ export class HavanaStreet implements SceneStreet {
     this.props.push({ mesh: holder, offset: 39, x: roadHalf + 2.9 });
   }
 
+  /**
+   * Road signs on the inland kerb, facing the riders: round speed-limit 50s and no-parking
+   * discs, some faded by the sun, on grey posts, one or two to a post.
+   */
+  private addSigns(roadHalf: number): void {
+    const random = seeded(1571);
+    const faces = [this.track(signTexture('limit')), this.track(signTexture('parking'))];
+    const disc = new CircleGeometry(0.3, 24);
+    const back = new CircleGeometry(0.3, 24);
+    back.rotateY(Math.PI);
+    this.disposables.push(disc, back);
+    const grey = this.material({ color: 0x8a8e92, roughness: 0.5, metalness: 0.5 });
+    for (let offset = 36; offset < LOOP; offset += 60 + random() * 70) {
+      const post = new Group();
+      const pole = new Mesh(this.unit, grey);
+      pole.scale.set(0.06, 2.6, 0.06);
+      pole.position.y = 1.3;
+      pole.castShadow = true;
+      post.add(pole);
+      const two = random() < 0.35;
+      const first = Math.floor(random() * 2);
+      for (let k = 0; k < (two ? 2 : 1); k++) {
+        const kind = (first + k) % 2;
+        const faded = random() < 0.4;
+        const face = new Mesh(
+          disc,
+          this.material({ map: faces[kind]!, roughness: 0.6, color: faded ? 0xe8d8d0 : 0xffffff }),
+        );
+        face.position.set(0, 2.3 - k * 0.66, 0.05);
+        const rear = new Mesh(back, grey);
+        rear.position.set(0, 2.3 - k * 0.66, 0.04);
+        face.castShadow = true;
+        post.add(face, rear);
+      }
+      post.rotation.y = 0.15;
+      post.position.y = KERB;
+      const holder = new Group();
+      holder.add(post);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: roadHalf + 0.3 });
+    }
+  }
+
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial(options);
     this.disposables.push(material);
@@ -5287,5 +5332,35 @@ function tarTexture(): CanvasTexture {
         (random() - 0.5) * 4,
         6 + Math.floor(random() * 22),
       );
+  });
+}
+
+/** A round road sign's face: a speed limit of 50 in a red ring, or no parking, a red bar on blue. */
+function signTexture(kind: 'limit' | 'parking'): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.fillStyle = '#f4f2ec';
+    g.fillRect(0, 0, 128, 128);
+    g.beginPath();
+    g.arc(64, 64, 62, 0, Math.PI * 2);
+    g.fillStyle = '#c8202f';
+    g.fill();
+    g.beginPath();
+    g.arc(64, 64, 48, 0, Math.PI * 2);
+    g.fillStyle = kind === 'limit' ? '#f4f2ec' : '#1f4fa0';
+    g.fill();
+    if (kind === 'limit') {
+      g.fillStyle = '#1a1a1a';
+      g.font = 'bold 50px sans-serif';
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText('50', 64, 68);
+    } else {
+      g.save();
+      g.translate(64, 64);
+      g.rotate(-Math.PI / 4);
+      g.fillStyle = '#c8202f';
+      g.fillRect(-52, -7, 104, 14);
+      g.restore();
+    }
   });
 }
