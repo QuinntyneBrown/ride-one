@@ -398,8 +398,8 @@ export class AmsterdamStreet implements SceneStreet {
     const flagCloth = flagGeometry();
     this.disposables.push(flagPole, flagCloth);
     const ledge = this.material({ color: 0xece6d8, roughness: 0.75 });
-    const relief = GABLES.map((kind) => reliefGeometry(kind));
-    this.disposables.push(...relief);
+    const relief = GABLES.map((kind) => [false, true].map((right) => reliefGeometry(kind, right)));
+    this.disposables.push(...relief.flat());
     const hookGeometry = new TorusGeometry(0.1, 0.025, 4, 8, Math.PI * 1.5);
     this.disposables.push(hookGeometry);
     const gableRoof = roofGeometry(false);
@@ -470,7 +470,7 @@ export class AmsterdamStreet implements SceneStreet {
           const screen = new Mesh(shapes[k]!, [front, wall]);
           screen.scale.set(width, height, 0.5);
           // The stone sills, lintels and cornice standing proud of the front.
-          screen.add(new Mesh(relief[k]!, ledge));
+          screen.add(new Mesh(relief[k]![variant % 2]!, ledge));
           // The body's flanks, seen where a cross street opens beside it, have their own
           // windows; its back and top are plain.
           const flank = wall === sides ? flankWall : wall;
@@ -3276,7 +3276,7 @@ function geraniumGeometry(): BufferGeometry {
  * is drawn 0.5 m thick): a stone sill under and a lintel over every upper window, matching
  * facadeTexture, and the cornice along the eaves (and, on a mansion, along its top).
  */
-function reliefGeometry(kind: Gable): BufferGeometry {
+function reliefGeometry(kind: Gable, doorRight: boolean): BufferGeometry {
   const parts: BufferGeometry[] = [];
   const h = 640;
   const eaves = h * (1 - EAVES);
@@ -3299,7 +3299,26 @@ function reliefGeometry(kind: Gable): BufferGeometry {
   }
   ledge(0.5, EAVES + 0.004, 1.02, 0.016, 0.6);
   if (kind === 'cornice') ledge(0.5, EAVES + 0.07, 1.04, 0.012, 0.7);
-  const merged = mergeGeometries(parts)!;
+  // The doorway's surround: pilasters either side of the door and fanlight, a cornice over
+  // them, and on a mansion a pediment above that.
+  const door = doorAt(kind, doorRight);
+  const span = ((pane * 0.72) / 256) * 1.0;
+  const foot = 40 / h;
+  const head = 1 - (h - 175 + 6) / h;
+  for (const side of [-1, 1])
+    ledge(door + side * (span / 2 + 0.012), (foot + head) / 2, 0.022, head - foot, 0.24);
+  ledge(door, head + 0.006, span + 0.07, 0.012, 0.36);
+  if (kind === 'cornice') {
+    const pediment = new Shape();
+    pediment.moveTo(-span / 2 - 0.04, 0);
+    pediment.lineTo(span / 2 + 0.04, 0);
+    pediment.lineTo(0, 0.03);
+    pediment.closePath();
+    const gablet = new ExtrudeGeometry(pediment, { depth: 0.3, bevelEnabled: false });
+    gablet.translate(door, head + 0.012, -0.3);
+    parts.push(gablet.toNonIndexed());
+  }
+  const merged = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)))!;
   parts.forEach((p) => p.dispose());
   return merged;
 }
