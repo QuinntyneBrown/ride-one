@@ -6,7 +6,7 @@
 // commuters cycle by in both directions. Built on the shared kit (world-kit.ts) on the pattern
 // of Old Town's street.
 import {
-  type BufferAttribute,
+  BufferAttribute,
   BoxGeometry,
   type BufferGeometry,
   CapsuleGeometry,
@@ -695,31 +695,82 @@ export class AmsterdamStreet implements SceneStreet {
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
   private addParkedBikes(roadHalf: number): void {
-    const frames = [0x1d1f24, 0x2a3a5c, 0x6a1a1a, 0x3a3a3a].map((hex) =>
-      this.material({ color: hex, metalness: 0.4, roughness: 0.5 }),
-    );
+    const frames = this.material({ vertexColors: true, metalness: 0.35, roughness: 0.55 });
+    const steel = this.material({ color: 0x8a8e92, metalness: 0.7, roughness: 0.35 });
+    // Mostly black, with the odd blue, oxblood, mint, cream or green bike, and a crate up front
+    // on a few, in red, black or green plastic or pale wood.
+    const paints = [
+      '#16181b',
+      '#16181b',
+      '#16181b',
+      '#2a3a5c',
+      '#6a1a1a',
+      '#8fc0b0',
+      '#e8dcc0',
+      '#2f4a34',
+    ];
+    const crates = ['#b02a2a', '#1b1b1f', '#3a6a3a', '#c8a878'];
+    const colour = new Color();
+    const paint = (geometry: BufferGeometry, hex: string) => {
+      colour.set(hex);
+      const count = geometry.getAttribute('position').count;
+      const colours = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) colour.toArray(colours, i * 3);
+      geometry.setAttribute('color', new BufferAttribute(colours, 3));
+      return geometry;
+    };
     const tiles = [0, 1, 2, 3].map((k) => {
       const random = seeded(431 + k);
       const parts: BufferGeometry[] = [];
+      const hoops: BufferGeometry[] = [];
       for (let z = 0; z < 30; z += 0.7 + random() * 0.6) {
         if (random() < 0.25) continue;
-        const bike = bikeGeometry();
+        const bike = paint(bikeGeometry(), paints[Math.floor(random() * paints.length)]!);
+        if (random() < 0.3) {
+          const crate = new BoxGeometry(0.4, 0.28, 0.32).toNonIndexed();
+          crate.translate(0, 0.95, -0.62);
+          parts.push(paint(crate, crates[Math.floor(random() * crates.length)]!));
+          const both = mergeGeometries([bike, parts.pop()!])!;
+          bike.dispose();
+          both.rotateY(Math.PI / 2 + (random() - 0.5) * 0.4);
+          both.rotateZ((random() - 0.5) * 0.15);
+          both.translate(0, 0, -z);
+          parts.push(both);
+          continue;
+        }
         bike.rotateY(Math.PI / 2 + (random() - 0.5) * 0.4);
         bike.rotateZ((random() - 0.5) * 0.15);
         bike.translate(0, 0, -z);
         parts.push(bike);
       }
+      // Steel hoops (nietjes) to lock them to, every 1.6 m.
+      for (let z = 0.4; z < 30; z += 1.6) {
+        const hoop = new TorusGeometry(0.4, 0.03, 5, 12, Math.PI);
+        hoop.rotateY(Math.PI / 2);
+        hoop.translate(0.35, 0.35, -z);
+        hoops.push(hoop);
+        for (const dz of [-0.4, 0.4]) {
+          const leg = new CylinderGeometry(0.03, 0.03, 0.35, 5);
+          leg.translate(0.35, 0.175, -z + dz);
+          hoops.push(leg);
+        }
+      }
       const merged = mergeGeometries(parts)!;
+      const rack = mergeGeometries(hoops.map((h) => h.toNonIndexed()))!;
       parts.forEach((p) => p.dispose());
-      this.disposables.push(merged);
-      return merged;
+      hoops.forEach((p) => p.dispose());
+      this.disposables.push(merged, rack);
+      return { bikes: merged, rack };
     });
     for (let offset = 0, k = 0; offset < LOOP; offset += 30, k++) {
       if (offset % BRIDGE < 8) continue;
       const rack = new Group();
-      const mesh = new Mesh(tiles[k % 4]!, frames[k % 4]!);
-      mesh.position.y = KERB;
-      rack.add(mesh);
+      const tile = tiles[k % 4]!;
+      rack.add(new Mesh(tile.bikes, frames), new Mesh(tile.rack, steel));
+      rack.children.forEach((m) => {
+        m.position.y = KERB;
+        m.castShadow = true;
+      });
       this.group.add(rack);
       this.props.push({ mesh: rack, offset, x: -roadHalf - QUAY + 0.9 });
     }
