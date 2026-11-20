@@ -11,12 +11,13 @@ import {
   type BufferGeometry,
   type CanvasTexture,
   CylinderGeometry,
+  DoubleSide,
   ExtrudeGeometry,
   Group,
-  IcosahedronGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  PlaneGeometry,
   RepeatWrapping,
   Shape,
   SphereGeometry,
@@ -315,43 +316,57 @@ export class AmsterdamStreet implements SceneStreet {
   /** Elms along both quays and Amsterdam's dark green lamps between them. */
   private addElmsAndLamps(roadHalf: number): void {
     const random = seeded(419);
-    const bark = this.material({ color: 0x4a443c, roughness: 1 });
-    const leaves = [0x5a8a3a, 0x6a9a44, 0x4f7f34].map((hex) =>
-      this.material({ color: hex, roughness: 0.95 }),
+    const bark = this.material({ map: this.track(barkTexture()), roughness: 1 });
+    const foliage = this.track(leafTexture());
+    const leaves = [0xffffff, 0xe6f0c8, 0xd2e2b4].map((hex) =>
+      this.material({
+        map: foliage,
+        color: hex,
+        alphaTest: 0.45,
+        side: DoubleSide,
+        roughness: 0.9,
+      }),
     );
     const shadowed = new Map(
       leaves.map((m) => [
         m,
-        this.material({ color: m.color.clone().multiplyScalar(0.6), roughness: 1 }),
+        this.material({
+          map: foliage,
+          color: m.color.clone().multiplyScalar(0.55),
+          alphaTest: 0.45,
+          side: DoubleSide,
+          roughness: 1,
+        }),
       ]),
     );
     const iron = this.material({ color: 0x1f3a2c, metalness: 0.4, roughness: 0.5 });
     const glass = this.material({ color: 0xf2efe2, emissive: 0xfff0c8, emissiveIntensity: 0.3 });
-    const trunk = new CylinderGeometry(0.2, 0.3, 6, 8);
-    trunk.translate(0, 3, 0);
-    const crown = elmCrown();
+    const elms = [0, 1, 2].map((k) => elmGeometry(467 + k * 13));
     const post = new CylinderGeometry(0.07, 0.11, 4.2, 8);
     post.translate(0, 2.1, 0);
     const lantern = new CylinderGeometry(0.22, 0.12, 0.6, 6);
     lantern.translate(0, 4.5, 0);
-    this.disposables.push(trunk, crown, post, lantern);
+    this.disposables.push(...elms.flatMap((e) => [e.wood, e.leaves]), post, lantern);
     const quays = [-roadHalf - QUAY + 1.1, -roadHalf - QUAY - CANAL - 1.2];
     for (const x of quays) {
       for (let offset = 0; offset < LOOP; offset += 9) {
         if (offset % BRIDGE < 8) continue;
         const tree = new Group();
         const leaf = leaves[Math.floor(random() * 3)]!;
-        tree.add(new Mesh(trunk, bark), new Mesh(crown, leaf));
+        const elm = elms[Math.floor(random() * 3)]!;
+        tree.add(new Mesh(elm.wood, bark), new Mesh(elm.leaves, leaf));
         tree.children.forEach((m) => (m.castShadow = true));
+        const size = 0.9 + random() * 0.3;
         if (x < quays[0]!) {
           // The far quay's elms hang upside down in the water.
           const reflection = new Group();
-          reflection.add(new Mesh(trunk, bark), new Mesh(crown, shadowed.get(leaf)!));
+          reflection.add(new Mesh(elm.wood, bark), new Mesh(elm.leaves, shadowed.get(leaf)!));
           reflection.scale.y = -1;
-          reflection.position.y = -2 * WATER;
+          reflection.position.y = (-2 * WATER) / size;
           tree.add(reflection);
         }
-        tree.scale.setScalar(0.9 + random() * 0.3);
+        tree.scale.setScalar(size);
+        tree.rotation.y = random() * Math.PI * 2;
         this.group.add(tree);
         this.props.push({ mesh: tree, offset: offset + random() * 2, x });
       }
@@ -604,22 +619,96 @@ function bridgeGeometry(parapet: boolean): BufferGeometry {
   return geometry;
 }
 
-/** An elm's crown: rounded masses of leaves. */
-function elmCrown(): BufferGeometry {
-  const random = seeded(467);
-  const parts: BufferGeometry[] = [];
-  for (let k = 0; k < 7; k++) {
-    const a = (k / 7) * Math.PI * 2;
-    const blob = new IcosahedronGeometry(1.6 + random() * 0.6, 2);
-    blob.translate(Math.cos(a) * 1.6, 6.6 + random() * 1.2, Math.sin(a) * 1.6);
-    parts.push(blob);
+/**
+ * An elm: a grey-brown trunk forking at 3.5 m into limbs that arch up and out, and an airy,
+ * vase-shaped crown of leaf sprays, crossed cards of foliage, clustered at the limbs' ends.
+ */
+function elmGeometry(seed: number): { wood: BufferGeometry; leaves: BufferGeometry } {
+  const random = seeded(seed);
+  const wood: BufferGeometry[] = [];
+  const sprays: BufferGeometry[] = [];
+  const trunk = new CylinderGeometry(0.22, 0.32, 3.8, 8);
+  trunk.translate(0, 1.9, 0);
+  wood.push(trunk);
+  const limbs = 4 + Math.floor(random() * 2);
+  for (let l = 0; l < limbs; l++) {
+    const a = (l / limbs) * Math.PI * 2 + random() * 0.6;
+    const lean = 0.35 + random() * 0.3;
+    const length = 5 + random() * 1.5;
+    const limb = new CylinderGeometry(0.08, 0.17, length, 6);
+    limb.translate(0, length / 2, 0);
+    limb.rotateZ(lean);
+    limb.rotateY(a);
+    limb.translate(0, 3.5, 0);
+    wood.push(limb);
+    // The limb's end, where its spray of leaves gathers.
+    const reach = Math.sin(lean) * length;
+    const tipX = -Math.cos(a) * reach;
+    const tipZ = Math.sin(a) * reach;
+    const tipY = 3.5 + Math.cos(lean) * length;
+    for (let c = 0; c < 9; c++) {
+      const card = new PlaneGeometry(2.2, 2.2);
+      card.rotateY(random() * Math.PI);
+      card.rotateX((random() - 0.5) * 0.9);
+      card.translate(
+        tipX * (0.55 + random() * 0.6) + (random() - 0.5) * 2.2,
+        tipY - 1.2 + random() * 3,
+        tipZ * (0.55 + random() * 0.6) + (random() - 0.5) * 2.2,
+      );
+      sprays.push(card);
+    }
   }
-  const top = new IcosahedronGeometry(2.1, 2);
-  top.translate(0, 8.2, 0);
-  parts.push(top);
-  const merged = mergeGeometries(parts)!;
-  parts.forEach((p) => p.dispose());
-  return merged;
+  // The crown's top, filling in over the limbs.
+  for (let c = 0; c < 10; c++) {
+    const card = new PlaneGeometry(2.4, 2.4);
+    card.rotateY(random() * Math.PI);
+    card.rotateX((random() - 0.5) * 0.8);
+    card.translate((random() - 0.5) * 4, 9.5 + random() * 2, (random() - 0.5) * 4);
+    sprays.push(card);
+  }
+  const merge = (parts: BufferGeometry[]) => {
+    const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
+    parts.forEach((p) => p.dispose());
+    return merged;
+  };
+  return { wood: merge(wood), leaves: merge(sprays) };
+}
+
+/** A spray of spring elm leaves, fresh green with lighter tips, on clear ground. */
+function leafTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    g.clearRect(0, 0, 256, 256);
+    const random = seeded(471);
+    const greens = ['#4f7f34', '#5f9440', '#6ea84a', '#86b85a', '#3f6a2a', '#9cc66a'];
+    for (let i = 0; i < 700; i++) {
+      const a = random() * Math.PI * 2;
+      const r = Math.sqrt(random()) * 118;
+      const x = 128 + Math.cos(a) * r;
+      const y = 128 + Math.sin(a) * r * 0.9;
+      g.fillStyle = greens[Math.floor(random() * greens.length)]!;
+      g.beginPath();
+      g.ellipse(x, y, 5 + random() * 4, 3 + random() * 2, random() * Math.PI, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.strokeStyle = '#3a3428';
+    g.lineWidth = 1.5;
+    for (let i = 0; i < 6; i++) {
+      g.beginPath();
+      g.moveTo(128, 250);
+      g.lineTo(128 + (random() - 0.5) * 200, 40 + random() * 120);
+      g.stroke();
+    }
+  });
+}
+
+/** Elm bark: grey-brown, in long ridges. */
+function barkTexture(): CanvasTexture {
+  return canvasTexture(64, 128, (g) => {
+    speckle(g, 64, 128, '#4e463d', 473);
+    const random = seeded(477);
+    g.fillStyle = 'rgba(20,16,12,0.45)';
+    for (let i = 0; i < 18; i++) g.fillRect(random() * 64, 0, 1 + random() * 2, 128);
+  });
 }
 
 /** Clinker bricks laid in herringbone, in the given colour. */
