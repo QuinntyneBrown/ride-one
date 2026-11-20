@@ -186,6 +186,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly barricadeBanners: InstancedMesh[] = [];
   private readonly boats: Group[] = [];
   private readonly clouds = new Group();
+  private readonly ontarioPlace = new Group();
   private readonly mokos: {
     figure: Group;
     legs: [Group, Group];
@@ -237,6 +238,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addLamps();
     this.addTrees();
     this.addDowntown();
+    this.addOntarioPlace();
     this.addBoats();
     this.addClouds();
   }
@@ -264,6 +266,7 @@ export class CaribanaStreet implements SceneStreet {
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
+    this.ontarioPlace.position.set(0, heightAt(1e6), 0);
     // The cumulus drift slowly east with the lake breeze, a sky that never quite repeats.
     this.clouds.position.set(((this.time * 1.5) % 1200) - 600, heightAt(1e6), 0);
     this.boats.forEach((boat, i) => {
@@ -1098,6 +1101,75 @@ export class CaribanaStreet implements SceneStreet {
     this.group.add(this.clouds);
   }
 
+  /**
+   * Ontario Place, out on the lake ahead and to the right: the Cinesphere's white geodesic dome
+   * on its deck over the water, and the pods, steel-framed boxes held high on four-legged
+   * pylons, joined to each other by footbridges.
+   */
+  private addOntarioPlace(): void {
+    const white = this.material({ color: 0xf1f1ee, roughness: 0.5, metalness: 0.2 });
+    const panels = this.material({
+      map: this.track(geodesicTexture()),
+      color: 0xf6f6f4,
+      roughness: 0.45,
+      metalness: 0.25,
+      flatShading: true,
+    });
+    const glass = this.material({ color: 0x2a3640, roughness: 0.15, metalness: 0.5 });
+    const steel = this.material({ color: 0xd8dadc, roughness: 0.5, metalness: 0.6 });
+    const add = (geometry: BufferGeometry, material: Material, x: number, y: number, z: number) => {
+      geometry.translate(x, y, z);
+      this.disposables.push(geometry);
+      const mesh = new Mesh(geometry, material);
+      this.ontarioPlace.add(mesh);
+      return mesh;
+    };
+    // The Cinesphere: three quarters of a geodesic sphere on a deck, piers into the water.
+    const dome = new IcosahedronGeometry(17, 3);
+    const position = dome.getAttribute('position') as BufferAttribute;
+    for (let i = 0; i < position.count; i++) position.setY(i, Math.max(position.getY(i), -8));
+    add(dome, panels, 92, 9 + 8, -300);
+    add(new CylinderGeometry(24, 24, 1.2, 40), white, 92, 8.4, -300);
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2;
+      add(
+        new CylinderGeometry(0.7, 0.7, 8, 8),
+        white,
+        190 + Math.cos(a) * 18,
+        4,
+        -380 + Math.sin(a) * 18,
+      );
+    }
+    // The pods: boxes of dark glass in white steel frames, each on a four-legged pylon.
+    const pods = [
+      [135, -250],
+      [160, -290],
+      [140, -345],
+      [175, -390],
+      [130, -420],
+    ] as const;
+    for (const [x, z] of pods) {
+      add(new BoxGeometry(22, 7, 22), glass, x, 30, z);
+      add(new BoxGeometry(23, 1.2, 23), white, x, 34, z);
+      add(new BoxGeometry(23, 1.2, 23), white, x, 26.4, z);
+      for (const dx of [-7, 7]) {
+        for (const dz of [-7, 7]) add(new BoxGeometry(0.9, 26, 0.9), steel, x + dx, 13, z + dz);
+      }
+      add(new BoxGeometry(18, 0.5, 0.5), steel, x, 20, z - 7);
+      add(new BoxGeometry(18, 0.5, 0.5), steel, x, 20, z + 7);
+    }
+    for (let k = 0; k < pods.length - 1; k++) {
+      const [ax, az] = pods[k]!;
+      const [bx, bz] = pods[k + 1]!;
+      const length = Math.hypot(bx - ax, bz - az);
+      const bridge = add(new BoxGeometry(3, 2.2, length - 20), white, 0, 0, 0);
+      bridge.position.set((ax + bx) / 2, 29, (az + bz) / 2);
+      bridge.rotation.y = Math.atan2(bx - ax, bz - az);
+    }
+    this.ontarioPlace.traverse((o) => (o.castShadow = true));
+    this.group.add(this.ontarioPlace);
+  }
+
   /** Sailboats out on the lake, drifting slowly. */
   private addBoats(): void {
     const sail = new BufferGeometry();
@@ -1686,6 +1758,21 @@ function stripeTexture(a: string, b: string): CanvasTexture {
       g.fillStyle = (x / 16) % 2 ? b : a;
       g.fillRect(x, 0, 16, 32);
     }
+  });
+}
+
+/** The Cinesphere's aluminium panels: pale triangles with dark joints. */
+function geodesicTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.fillStyle = '#f2f2f0';
+    g.fillRect(0, 0, 128, 128);
+    g.strokeStyle = 'rgba(90,96,104,0.55)';
+    g.lineWidth = 2;
+    g.strokeRect(1, 1, 126, 126);
+    g.beginPath();
+    g.moveTo(0, 0);
+    g.lineTo(128, 128);
+    g.stroke();
   });
 }
 
