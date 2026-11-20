@@ -30,6 +30,7 @@ export const WORLDS: readonly WorldId[] = [
   'amsterdam',
   'giza',
   'daytona',
+  'koppenberg',
   'ventoux',
 ];
 

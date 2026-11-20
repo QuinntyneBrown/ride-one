@@ -225,6 +225,16 @@ export const WORLDS: readonly World[] = [
     roll: 0.1,
   },
   {
+    id: 'koppenberg',
+    name: 'Koppenberg Cobbles',
+    route: 'The Koppenberg',
+    effortName: 'Cobbled climb',
+    description:
+      "Spring mist hangs over the Flemish farm lanes below the Koppenberg, where fans waving Flanders' lion pack the grass banks and Melden's church tower watches from the wooded crest. The two one-minute openers roll over the lanes' first rises, and the three three-minute heavy-gear efforts grind up the slick Koppenberg cobbles past the crowds before each minute's recovery rolls back down among the poplars.",
+    grade: { warmup: 1, work: 9, rest: -3, cooldown: -2, steady: 1 },
+    roll: 0.8,
+  },
+  {
     id: 'ventoux',
     name: 'Mont Ventoux',
     route: 'Chalet Reynard',

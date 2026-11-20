@@ -103,6 +103,9 @@ interface Look {
   };
 }
 
+/** The scenes ridden on Old Town's cobbles rather than tarmac. */
+const COBBLED: ReadonlySet<WorldId> = new Set<WorldId>(['oldtown', 'koppenberg']);
+
 /** Until each scene's own look lands: sky, fog, ground, road, sun, wet and haze. */
 const LOOKS: Record<WorldId, Look> = {
   docklands: {
@@ -382,6 +385,22 @@ const LOOKS: Record<WorldId, Look> = {
     azimuth: -145,
     light: { sun: 3.2, fill: 1.2, colour: 0xfff4e0 },
     fogRange: [80, 1400],
+  },
+  // A misty spring morning in the Flemish Ardennes: a pale sun high behind the mist, the cobbles
+  // wet and slick, the fields fading into grey-green a few hundred metres off.
+  koppenberg: {
+    sky: 0xb9c4c6,
+    fog: 0xc9cec4,
+    ground: 0x5f8a3e,
+    road: 0x6d6a66,
+    sun: 22,
+    wet: true,
+    haze: false,
+    turbidity: 8,
+    rayleigh: 1.2,
+    azimuth: -130,
+    light: { sun: 2.2, fill: 1.5, colour: 0xf2f0e6 },
+    fogRange: [35, 520],
   },
   // A clear, windswept noon high on the Ventoux: hard light behind the rider, a pale sky scoured by the mistral.
   ventoux: {
@@ -769,7 +788,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.scene.add(this.sky);
 
     this.plainRoad = this.track(roadTexture(false));
-    const cobbles = world.id === 'oldtown' ? cobbleTextures() : null;
+    const cobbles = COBBLED.has(world.id) ? cobbleTextures() : null;
     this.layeredRoad = this.track(cobbles?.map ?? roadTexture(true));
     this.roadRelief = cobbles ? this.track(cobbles.relief) : null;
     this.roadMaterial.color.set(look.road);

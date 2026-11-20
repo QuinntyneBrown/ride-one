@@ -102,6 +102,7 @@ export interface components {
         | 'amsterdam'
         | 'giza'
         | 'daytona'
+        | 'koppenberg'
         | 'ventoux';
     };
     ClassShelfResponse: {
