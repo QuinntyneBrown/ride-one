@@ -74,6 +74,8 @@ function cayanTexture(lit: boolean): CanvasTexture {
   });
 }
 
+/** The marina's water, this far below the walk: a pontoon's step down from the quay. */
+const WATER = -0.75;
 /** The podium's shopfronts on the right, the towers rising behind them. */
 const PODIUM = 12;
 /** The horizon this far ahead. */
@@ -167,7 +169,7 @@ export class DubaiStreet implements SceneStreet {
     private readonly disposables: { dispose(): void }[],
   ) {
     this.ribbons = new Ribbons(this.group, disposables);
-    // The crowd packed along the podium, a single loose row on the quay so the marina shows.
+    // The crowd packed along the podium, in small knots along the quay with the marina open between.
     this.crowd = new Crowd(this.group, disposables, {
       loop: LOOP,
       near: CROWD_NEAR,
@@ -177,7 +179,7 @@ export class DubaiStreet implements SceneStreet {
       flags: this.flagMaterials,
       flagShare: 0.18,
       seeds: [5211, 5217],
-      skip: (side, offset, x) => side < 0 && (Math.abs(x) > CROWD_NEAR + 0.6 || offset % 9 < 3),
+      skip: (side, offset, x) => side < 0 && (Math.abs(x) > CROWD_NEAR + 0.6 || offset % 48 < 36),
       armsUp: 0.2,
     });
     this.group.add(this.horizon, this.water);
@@ -317,13 +319,16 @@ export class DubaiStreet implements SceneStreet {
   private addWater(): void {
     const water = this.material({
       map: this.repeat(waterTexture(), 24, 24),
-      color: 0x6a6a98,
-      roughness: 0.12,
-      metalness: 0.4,
+      color: 0x2a2a52,
+      emissive: 0xffffff,
+      emissiveMap: this.repeat(waterTexture(), 24, 24),
+      emissiveIntensity: 0.9,
+      roughness: 0.55,
+      metalness: 0,
     });
     const plane = new PlaneGeometry(6000, 6000);
     plane.rotateX(-Math.PI / 2);
-    plane.translate(-QUAY - 3000, -2.2, -2000);
+    plane.translate(-QUAY - 3000, WATER, -2000);
     this.disposables.push(plane);
     this.water.add(new Mesh(plane, water));
   }
@@ -354,19 +359,19 @@ export class DubaiStreet implements SceneStreet {
     const deck = new BoxGeometry(1, 0.4, 1);
     this.disposables.push(deck);
     for (const [row, out, gap] of [
-      [0, QUAY + 4, 6],
+      [0, QUAY + 4, 22],
       [1, QUAY + 30, 14],
     ] as const) {
       for (let offset = row * 9, k = 0; offset < LOOP - 20; k++) {
         const length = 24 + random() * 34;
         const yacht = yachts.make(k + row * 3, length, random);
-        yacht.position.y = -2.4;
+        yacht.position.y = WATER - 0.1;
         const holder = new Group();
         const beam = Math.max(6, length * 0.18);
         // The pontoon it lies alongside, on the quay's side.
         const walk = new Mesh(deck, pontoon);
         walk.scale.set(2.2, 1, length + gap);
-        walk.position.set(beam / 2 + 1.6, -1.6, 0);
+        walk.position.set(beam / 2 + 1.6, WATER + 0.25, 0);
         holder.add(yacht, walk);
         this.group.add(holder);
         this.props.push({ mesh: holder, offset: offset + length / 2, x: -(out + beam / 2) });
@@ -727,18 +732,19 @@ function pavingTexture(): CanvasTexture {
 /** The marina's water: ripples catching the dusk's orange and the towers' lights. */
 function waterTexture(): CanvasTexture {
   return canvasTexture(128, 128, (g) => {
-    g.fillStyle = '#4a4a78';
+    // The dusk sky in it: violet above the orange glow on the water.
+    g.fillStyle = '#26244a';
     g.fillRect(0, 0, 128, 128);
     const random = seeded(5291);
-    for (let i = 0; i < 260; i++) {
+    for (let i = 0; i < 110; i++) {
       const c = random();
       g.fillStyle =
         c < 0.4
-          ? 'rgba(255,190,140,0.5)'
+          ? 'rgba(255,150,90,0.8)'
           : c < 0.7
-            ? 'rgba(255,230,180,0.4)'
-            : 'rgba(30,30,70,0.6)';
-      g.fillRect(random() * 128, random() * 128, 4 + random() * 12, 1.5);
+            ? 'rgba(255,220,150,0.7)'
+            : 'rgba(120,100,170,0.6)';
+      g.fillRect(random() * 128, random() * 128, 6 + random() * 16, 2.5);
     }
   });
 }
