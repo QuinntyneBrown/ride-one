@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu and Passo Campolongo have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu, Passo Campolongo and Marina Bay Night have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -74,7 +74,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 68 | Intense Climb: Passo Campolongo | Passo Campolongo | 74% | Forested hairpins from Corvara past ski lifts to a grassy saddle. |
 | 69 | 20 Minute High Intensity Workout | Han River Parks, Seoul (concept) |  | Riverside parks and fountain-lit bridges at night. |
 | 70 | Calorie Crush | Oktoberfest, Munich (concept) |  | Beer tents, brass bands and dirndls on the Theresienwiese at festival time. |
-| 71 | Fast Paced Cadence Variations | Marina Bay Night (concept) |  | Singapore's night loop around the Supertrees and the bay's glowing skyline. |
+| 71 | Fast Paced Cadence Variations | Marina Bay Night | 74% | Singapore's night loop around the Supertrees and the bay's glowing skyline. |
 | 72 | Get to Work on Your Cycling Fitness | Brooklyn Bridge Commute (concept) |  | Morning rush across the bridge into lower Manhattan. |
 | 73 | Festive Spin With Surprise Sprints | Strasbourg Christmas Market (concept) |  | Lights, gingerbread stalls and carols; surprise sprints between market squares. |
 | 74 | Quick & Sharp Sprinting Efforts | Champs-Élysées Finale (concept) |  | Final-day cobbles toward the Arc de Triomphe; sharp sprints for the line. |

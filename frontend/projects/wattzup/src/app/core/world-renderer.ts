@@ -569,6 +569,25 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 1.4, colour: 0xfff6ea },
     fogRange: [250, 3200],
   },
+  // A warm Singapore night: the sky deep indigo over the city's glow, the bay black and lit.
+  marinabay: {
+    sky: 0x0c1030,
+    fog: 0x1a1a3a,
+    ground: 0x10141c,
+    road: 0x3a3b44,
+    sun: -8,
+    wet: false,
+    haze: false,
+    moon: {
+      elevation: 35,
+      azimuth: -150,
+      strength: 1.1,
+      colour: 0xc8d0ff,
+      fill: 2.4,
+      fillSky: 0x5a5aa0,
+    },
+    fogRange: [200, 2600],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
