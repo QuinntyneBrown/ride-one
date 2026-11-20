@@ -67,6 +67,7 @@ export class CampolongoStreet implements SceneStreet {
   private riders: Figures | null = null;
   private readonly chairs: Mesh[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -118,13 +119,13 @@ export class CampolongoStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const riders = this.riders;
     if (riders) {
       this.climbers.forEach((c, i) => {
         const metres = loopMetres(c.offset + c.speed * this.time, s, LOOP, BEHIND);
-        const y = heightAt(Math.max(metres, 0));
+        const y = heightAt(metres);
         const heading = c.speed > 0 ? 0 : Math.PI;
         const rock = c.speed > 0 ? Math.sin(this.time * 3.6 + c.phase) * 0.08 : 0;
         c.bike.position.set(c.x, y, -metres);
