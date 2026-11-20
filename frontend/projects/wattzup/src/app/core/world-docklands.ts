@@ -24,6 +24,7 @@ import {
   PlaneGeometry,
   RepeatWrapping,
   SphereGeometry,
+  TorusGeometry,
   Sprite,
   SpriteMaterial,
   SRGBColorSpace,
@@ -104,6 +105,12 @@ const SCREENS: readonly string[] = [
   'RAMEN 24H  ·  NOODLE BAR  ·  ',
   'DOCKLANDS  ·  RIDE THE NIGHT  ·  ',
 ];
+/** The big wheel on the far shore (FAR_SHORE is 340): where it stands (x, z), its size, cabins and turn (rad/s). */
+const WHEEL_AT = [-334, -560] as const;
+const WHEEL_RADIUS = 56;
+const WHEEL_HUB = 64;
+const WHEEL_CABINS = 18;
+const WHEEL_TURN = 0.04;
 /** Neon gates over the road, at these offsets round the loop. */
 const GATES: readonly number[] = [70, 230, 380, 540];
 const GATE_HEIGHT = 6.5;
@@ -280,6 +287,8 @@ export class DocklandsStreet {
     this.fall(seconds, still);
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
+    const turning = this.wheel.userData['turning'] as Group | undefined;
+    if (turning) turning.rotation.z = still ? 0 : seconds * WHEEL_TURN;
     this.fly(still ? 0 : seconds);
     // The screens' words scroll past; held still for reduced motion.
     this.screenTextures.forEach((texture, i) => {
@@ -298,6 +307,7 @@ export class DocklandsStreet {
     this.train.position.x = start + along;
   }
   private readonly searchlights: Group[] = [];
+  private readonly wheel = new Group();
 
   /**
    * Searchlight beams from the far shore's rooftops, leaning out and sweeping the violet haze
@@ -329,6 +339,64 @@ export class DocklandsStreet {
       this.searchlights.push(pivot);
     }
     this.setTime(0, true);
+  }
+
+  /**
+   * A big wheel on the far shore's waterfront, turned to face the road: twin neon rims in pink
+   * and cyan, lit spokes and a ring of glowing cabins, turning slowly on its A-frame legs.
+   */
+  private addWheel(): void {
+    const light = (hex: string, k = 1.6) =>
+      new MeshBasicMaterial({
+        color: new Color(hex).multiplyScalar(k),
+        toneMapped: false,
+        fog: false,
+      });
+    const pink = light('#ff4fb8');
+    const cyan = light('#3fe0ff');
+    const spoke = light('#c9c2ff', 0.9);
+    const cabins = ['#ffb347', '#ff4fb8', '#3fe0ff', '#9b6bff'].map((hex) => light(hex, 2));
+    const steel = new MeshStandardMaterial({
+      color: 0x1c1d28,
+      metalness: 0.6,
+      roughness: 0.5,
+      fog: false,
+    });
+    const outer = new TorusGeometry(WHEEL_RADIUS, 0.45, 6, 96);
+    const inner = new TorusGeometry(WHEEL_RADIUS * 0.82, 0.3, 6, 96);
+    const unit = new BoxGeometry(1, 1, 1);
+    const cabin = new SphereGeometry(1.3, 10, 8);
+    this.disposables.push(pink, cyan, spoke, ...cabins, steel, outer, inner, unit, cabin);
+    // The rims and spokes turn in the plane facing the road, about an axis across the harbour.
+    const turning = new Group();
+    turning.rotation.y = Math.PI / 2;
+    turning.add(new Mesh(outer, pink), new Mesh(inner, cyan));
+    for (let i = 0; i < WHEEL_CABINS; i++) {
+      const a = (i / WHEEL_CABINS) * Math.PI * 2;
+      const bar = new Mesh(unit, spoke);
+      bar.scale.set(0.18, WHEEL_RADIUS, 0.18);
+      bar.position.set((Math.cos(a) * WHEEL_RADIUS) / 2, (Math.sin(a) * WHEEL_RADIUS) / 2, 0);
+      bar.rotation.z = a - Math.PI / 2;
+      const car = new Mesh(cabin, cabins[i % cabins.length]!);
+      car.position.set(Math.cos(a) * WHEEL_RADIUS, Math.sin(a) * WHEEL_RADIUS - 1.6, 0);
+      turning.add(bar, car);
+    }
+    const hub = new Mesh(unit, steel);
+    hub.scale.set(6, 3, 3);
+    this.wheel.add(turning, hub);
+    // Its A-frame legs, splayed along the shore.
+    for (const way of [-1, 1]) {
+      const leg = new Mesh(unit, steel);
+      const foot = WHEEL_RADIUS * 0.55;
+      const length = Math.hypot(WHEEL_HUB, foot);
+      leg.scale.set(1.4, length, 1.4);
+      leg.position.set(0, -WHEEL_HUB / 2, (way * foot) / 2);
+      leg.rotation.x = -way * Math.atan2(foot, WHEEL_HUB);
+      this.wheel.add(leg);
+    }
+    this.wheel.userData['turning'] = turning;
+    this.wheel.position.set(WHEEL_AT[0], WHEEL_HUB, WHEEL_AT[1]);
+    this.farShore.add(this.wheel);
   }
 
   private rain: LineSegments | null = null;
@@ -892,6 +960,7 @@ export class DocklandsStreet {
     }
     // The haze over the water, before the far shore, turned to face the road.
     this.addSearchlights();
+    this.addWheel();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
   }
