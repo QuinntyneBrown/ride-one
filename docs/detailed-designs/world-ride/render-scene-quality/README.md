@@ -95,7 +95,7 @@ How each tier looks (AC2), and the fallback form of each technique when its asse
 |-------|--------------|-------------|
 | `L2-111` | `L1-017` | World Ride rendering quality. The scene draws with WebGPU or WebGL2 at a quality tier that turns on the techniques of the table, starts high and drops on a 16.7 ms frame budget, honours reduced motion, falls back when an asset is missing, and never blocks the HUD. |
 | `L2-110` | `L1-017` | World Ride scene rendering. The fallback notice, the hidden tab and reduced motion apply at every tier. |
-| `L2-101` | `L1-017` | The six scenes. Every captured or baked asset is bundled and served from the same origin. |
+| `L2-101` | `L1-017` | The scenes. Every captured or baked asset is bundled and served from the same origin. |
 
 ## Diagrams
 

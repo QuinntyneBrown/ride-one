@@ -130,6 +130,7 @@
     },
     {
       "id": "intense-interval-blast",
+      "world": "caribana",
       "title": "Intense Interval Blast",
       "channel": "GCN Training",
       "focus": "HIIT",

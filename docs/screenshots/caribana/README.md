@@ -1,0 +1,11 @@
+# Caribana Parade rendering
+
+The live 3D world behind the ride HUD for [Intense Interval Blast](http://localhost:4200/classes/intense-interval-blast?simulate), which rides Caribana Parade on Lake Shore Boulevard. The world follows its description: Toronto's Lake Shore Boulevard at Caribbean Carnival, steel pans and feathered masqueraders, each interval a surge between bands. It is built on the pattern of Old Town Criterium (`world-oldtown.ts`): one street module, `world-caribana.ts`, with `build`, `lay` and `place`, seeded detail, canvas textures and a loop that recycles the street. Each capture is the same opening frame of the ride at 1440 × 900 on Three.js's WebGL2 backend, and each iteration is merged in its own pull request.
+
+| Capture | Change and observed result | Render quality |
+| --- | --- | --- |
+| [001 · Parade](001-parade.jpg) | The first Caribana scene. Steel barricades hold back a crowd on both pavements, and one fan in five waves a Trinidad and Tobago, Jamaica, Barbados or Guyana flag. Mas bands in sequinned bodysuits with feathered backpieces and headdresses dance on both aprons between music trucks with speaker walls and band banners. Lamp standards fly flag banners, maples line the lakeshore park, Lake Ontario opens on the right, and downtown Toronto, the dome and the CN Tower close the road ahead. The sun sits behind the rider's left shoulder, as in Old Town: placed ahead, it left every face in blue shade. The figures are still simple capsules, and the feathers read pastel at a distance. | 55% |
+
+## Reproducing a capture
+
+Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/intense-interval-blast?simulate`, click **Ride in Caribana Parade**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.

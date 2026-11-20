@@ -79,7 +79,8 @@ export interface components {
       shelf: components['schemas']['ShelfRef'];
       plan: components['schemas']['WorkoutPlan'];
       /** The World Ride scene the class is ridden in, or null. */
-      world: null | 'docklands' | 'granite' | 'oldtown' | 'prairie' | 'dolomites' | 'coast';
+      world:
+        null | 'docklands' | 'granite' | 'oldtown' | 'prairie' | 'dolomites' | 'coast' | 'caribana';
     };
     ClassShelfResponse: {
       id: string;

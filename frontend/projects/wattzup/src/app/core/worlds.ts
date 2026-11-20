@@ -1,6 +1,6 @@
 import type { SegmentKind, WorldId } from '@wattzup/api';
 
-/** One of the six World Ride scenes built into the frontend (L2-101). */
+/** One of the World Ride scenes built into the frontend (L2-101). */
 export interface World {
   readonly id: WorldId;
   readonly name: string;
@@ -14,7 +14,7 @@ export interface World {
   readonly roll: number;
 }
 
-/** The six scenes, in the order of L2-101. */
+/** The scenes, in the order of L2-101. */
 export const WORLDS: readonly World[] = [
   {
     id: 'docklands',
@@ -75,9 +75,19 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 },
     roll: 1.6,
   },
+  {
+    id: 'caribana',
+    name: 'Caribana Parade',
+    route: 'Lake Shore Boulevard',
+    effortName: 'Mas band surge',
+    description:
+      "Toronto's Lake Shore Boulevard at Caribbean Carnival; steel pans and feathered masqueraders, each interval a surge between bands.",
+    grade: { warmup: 0.5, work: 3, rest: -0.5, cooldown: 0, steady: 0.5 },
+    roll: 0.4,
+  },
 ];
 
-/** The scene of `id`. The backend serves only the six ids (L2-100), so it is always found. */
+/** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
 export function worldById(id: WorldId): World {
   const world = WORLDS.find((w) => w.id === id);
   if (!world) throw new Error(`Unknown world ${id}`);
