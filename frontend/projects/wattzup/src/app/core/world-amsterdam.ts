@@ -635,6 +635,27 @@ export class AmsterdamStreet implements SceneStreet {
     add(new SphereGeometry(0.6, 10, 8), gold, 74.8);
     add(new CylinderGeometry(0.08, 0.12, 4, 6).translate(0, 2, 0), gold, 75.3);
     add(new BoxGeometry(1.4, 0.1, 0.1), gold, 78.6);
+    // The Westerkerk's nave stretching away behind the tower: brick walls with tall arched
+    // windows under a steep slate-blue roof, crossed by the transepts' gables.
+    const slate = hazedMaterial(this.disposables, haze, 0x3a4250, 0.3);
+    const nave = new Mesh(new BoxGeometry(26, 16, 58).translate(0, 8, -35), brick);
+    this.disposables.push(nave.geometry);
+    this.tower.add(nave);
+    const roof = new Shape();
+    roof.moveTo(-13.5, 0);
+    roof.lineTo(13.5, 0);
+    roof.lineTo(0, 14);
+    roof.closePath();
+    const pitch = new ExtrudeGeometry(roof, { depth: 58, bevelEnabled: false });
+    pitch.translate(0, 16, -64);
+    add(pitch, slate, 0);
+    for (const z of [-22, -46]) {
+      const transept = new ExtrudeGeometry(roof, { depth: 34, bevelEnabled: false });
+      transept.rotateY(Math.PI / 2);
+      transept.translate(-17, 16, z);
+      add(transept, slate, 0);
+      add(new BoxGeometry(34, 16, 26).translate(0, 8, z), brick, 0);
+    }
     this.group.add(this.tower);
   }
 
