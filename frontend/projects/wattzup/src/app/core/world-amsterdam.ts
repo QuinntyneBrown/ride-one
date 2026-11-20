@@ -1824,6 +1824,37 @@ function facadeTexture(
       g.fillStyle = '#1b1b1f';
       g.fillRect(w / 2 - 4, eaves - 108, 8, 30);
     }
+    // Sandstone scrolls in the shoulders of a neck or bell gable, and a stone crest on top.
+    if (kind === 'neck' || kind === 'bell') {
+      g.strokeStyle = '#e8dfc8';
+      g.fillStyle = '#e8dfc8';
+      g.lineWidth = 5;
+      for (const side of [-1, 1]) {
+        const cx = w / 2 + side * w * 0.3;
+        g.beginPath();
+        g.arc(
+          cx,
+          eaves - 14,
+          16,
+          side > 0 ? Math.PI : 0,
+          side > 0 ? Math.PI * 1.9 : Math.PI * 0.9,
+          side > 0,
+        );
+        g.stroke();
+        g.beginPath();
+        g.arc(cx + side * 10, eaves - 6, 5, 0, Math.PI * 2);
+        g.fill();
+      }
+      g.beginPath();
+      g.arc(w / 2, h * (1 - 0.985), 10, 0, Math.PI, true);
+      g.fill();
+    }
+    // Pilasters framing a mansion's front, in stone.
+    if (kind === 'cornice') {
+      g.fillStyle = 'rgba(232,223,200,0.85)';
+      g.fillRect(0, eaves, 10, h - eaves - 40);
+      g.fillRect(w - 10, eaves, 10, h - eaves - 40);
+    }
     // Four floors of sash windows over the ground floor.
     const columns = bays(kind);
     const pane = (w - 30) / columns;
@@ -1838,6 +1869,23 @@ function facadeTexture(
         const width = pane * 0.68;
         sashWindow(g, x, y, width, tall, random);
       }
+      // Iron wall anchors tying the floor's beams, at either end of the front.
+      g.fillStyle = '#16181b';
+      for (const ax of [6, w - 12]) {
+        const ay = y + floor - 22;
+        g.fillRect(ax, ay - 7, 5, 14);
+        g.fillRect(ax - 3, ay - 2, 11, 4);
+      }
+    }
+    // A carved gable stone over the door on some houses: a framed relief, painted.
+    if (random() < 0.45) {
+      const sx = doorRight ? 15 + (columns - 1) * pane + pane / 2 : 15 + pane / 2;
+      g.fillStyle = '#e8dfc8';
+      g.fillRect(sx - 18, h - 210, 36, 28);
+      g.fillStyle = ['#2a5a8a', '#8a2a2a', '#3a6a3a', '#c8a040'][Math.floor(random() * 4)]!;
+      g.beginPath();
+      g.ellipse(sx, h - 196, 11, 9, 0, 0, Math.PI * 2);
+      g.fill();
     }
     // The raised ground floor over a stone plinth: the door with its fanlight to one side at
     // the top of the stoop, tall windows beside it, and barred basement windows below them.
@@ -1846,6 +1894,16 @@ function facadeTexture(
     g.fillStyle = 'rgba(0,0,0,0.2)';
     g.fillRect(0, h - 40, w, 3);
     const door = doorRight ? columns - 1 : 0;
+    const shutters =
+      kind !== 'cornice' && random() < 0.4
+        ? (
+            [
+              ['#1f3a2c', '#f2efe6'],
+              ['#7a1f1f', '#f2efe6'],
+              ['#1b1b1f', '#c8a040'],
+            ] as const
+          )[Math.floor(random() * 3)]!
+        : null;
     for (let c = 0; c < columns; c++) {
       const x = 15 + c * pane + pane * 0.14;
       const width = pane * 0.72;
@@ -1869,6 +1927,21 @@ function facadeTexture(
         g.fillStyle = '#f6f4ee';
         g.fillRect(x + width / 2 - 1.5, ground + 10, 3, h - 40 - ground - 16);
         g.fillRect(x, ground + 10 + (h - 40 - ground - 16) / 2, width, 3);
+        if (shutters) {
+          // Folded-back shutters in the house's colours, with their diagonal bands.
+          for (const sx of [x - 4 - width * 0.3, x + width + 4]) {
+            g.fillStyle = shutters[0];
+            g.fillRect(sx, ground + 8, width * 0.3, h - 40 - ground - 12);
+            g.strokeStyle = shutters[1];
+            g.lineWidth = 3;
+            g.beginPath();
+            g.moveTo(sx, ground + 8);
+            g.lineTo(sx + width * 0.3, ground + 8 + width * 0.3);
+            g.moveTo(sx + width * 0.3, ground + 8 + width * 0.3);
+            g.lineTo(sx, ground + 8 + width * 0.6);
+            g.stroke();
+          }
+        }
         // The basement window under it, behind bars.
         g.fillStyle = '#1a1e22';
         g.fillRect(x + 4, h - 32, width - 8, 24);
