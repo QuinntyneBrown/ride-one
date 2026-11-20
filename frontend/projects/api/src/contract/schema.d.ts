@@ -78,6 +78,8 @@ export interface components {
       description: string;
       shelf: components['schemas']['ShelfRef'];
       plan: components['schemas']['WorkoutPlan'];
+      /** The World Ride scene the class is ridden in, or null. */
+      world: null | 'docklands' | 'granite' | 'oldtown' | 'prairie' | 'dolomites' | 'coast';
     };
     ClassShelfResponse: {
       id: string;
@@ -324,6 +326,8 @@ export interface components {
         | 'stopped';
       ended_reason: null | string;
       session_id: null | string;
+      /** The class the workout was started from, or null. */
+      class_id: null | string;
     };
   };
   responses: never;

@@ -59,6 +59,7 @@ function classOf(plan: WorkoutPlan): ClassEntry {
     description: '',
     shelf: { id: '30-min', title: '30 min', tagline: '' },
     plan,
+    world: null,
   };
 }
 

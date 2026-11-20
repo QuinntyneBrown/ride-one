@@ -213,6 +213,17 @@
             >
               {{ busy() ? 'Starting…' : startFailed() ? 'Try again' : 'Start ride' }}
             </button>
+            @if (world(); as w) {
+              <button
+                class="btn btn--subtle btn--block"
+                type="button"
+                [disabled]="busy() || startBlocked() !== null"
+                [attr.aria-describedby]="startBlocked() !== null ? 'start-blocked' : null"
+                (click)="start(true)"
+              >
+                Ride in {{ w.name }}
+              </button>
+            }
             @if (startBlocked(); as hint) {
               <p id="start-blocked" class="class-page__start-hint">{{ hint }}</p>
             }

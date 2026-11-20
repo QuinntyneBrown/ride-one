@@ -1,0 +1,356 @@
+// Acceptance Test
+// Traces to: L2-102 to L2-110, L2-101 AC4
+// Description: World Ride runs a class inside its world on the fake bike: Ride in <world name>
+// opens it from the class page; its app bar, live metrics, current segment, route profile,
+// simulated pacers and resistance follow the ride; pausing, losing the bike and the end show their
+// overlays; and the scene is drawn, or a notice says this screen can't draw 3D worlds. The page's
+// clock is fast-forwarded, so no spec waits out a ride.
+import { EndRideDialog } from './pages/end-ride.dialog';
+import { expect, test } from './fixtures/wz-test';
+import { ClassesPage } from './pages/classes.page';
+import { ReplaceRideDialog } from './pages/replace-ride.dialog';
+import { RidePage } from './pages/ride.page';
+import { SetupPage } from './pages/setup.page';
+import { WorldRidePage } from './pages/world-ride.page';
+
+/** 95 rpm at 35.6 km/h, then resistance 18, as main's live spec sends them. */
+const CADENCE_95 = 'F0 D1 09 00 05 00 00 00 00 00 5F 00 1F';
+/** A frame reporting resistance `level`: F0 D2 01 <level> <checksum>. */
+const resistance = (level: number): string => {
+  const sum = (0xf0 + 0xd2 + 0x01 + level) & 0xff;
+  return `F0 D2 01 ${level.toString(16).padStart(2, '0')} ${sum.toString(16).padStart(2, '0')}`.toUpperCase();
+};
+/** The command setting the bike to `level`: F0 B1 01 <level> <checksum>. */
+const setLevel = (level: number): string =>
+  `F0B101${level.toString(16).padStart(2, '0')}${((0xa2 + level) & 0xff).toString(16).padStart(2, '0')}`.toUpperCase();
+
+// The HUD is proven without the GPU: drawn in software, the scene's passes slow every step. The
+// scene's own tests (World Ride scene) draw it.
+test.beforeEach(async ({ webgl }, testInfo) => {
+  if (!testInfo.titlePath.some((title) => title.startsWith('World Ride scene'))) {
+    await webgl.disable();
+  }
+});
+
+test.describe('World Ride (L2-102)', () => {
+  test('shows Ride in Old Town Criterium on a class with a world, and not on one without', async ({
+    page,
+  }) => {
+    const classes = new ClassesPage(page);
+    await page.goto('/classes/30-minute-hiit-cardio');
+    await expect(classes.rideIn('Old Town Criterium')).toBeVisible();
+    await page.goto('/classes/calorie-burning-workout');
+    await expect(classes.heading).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Ride in / })).toHaveCount(0);
+  });
+
+  test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await expect(world.heading).toHaveText('Old Town Criterium');
+    await expect(page).toHaveTitle('Old Town Criterium');
+    await expect(page.getByRole('main', { name: 'Old Town Criterium' })).toBeVisible();
+    // The class's warm-up level goes to the bike.
+    await expect
+      .poll(async () => (await bluetooth.writes()).map((w) => w.args))
+      .toContain(setLevel(18));
+  });
+
+  test('asks to replace a ride in progress before opening World Ride', async ({ page }) => {
+    const ride = new RidePage(page);
+    await ride.open();
+    await ride.connect();
+    await expect(ride.statusState).toHaveText('Connected');
+    await new SetupPage(page).open();
+    await new SetupPage(page).startButton.click();
+    await page.waitForURL(/\/$/);
+
+    const classes = new ClassesPage(page);
+    await page.getByRole('banner').getByRole('link', { name: 'Library' }).click();
+    await classes.card('30 Minute HIIT Cardio').click();
+    await classes.rideIn('Old Town Criterium').click();
+    const replace = new ReplaceRideDialog(page);
+    await expect(replace.dialog).toBeVisible();
+    await replace.replaceButton.click();
+    await page.waitForURL(/\/classes\/30-minute-hiit-cardio\/world$/);
+  });
+});
+
+test.describe('World Ride access and app bar (L2-102, L2-103)', () => {
+  test('sends the rider to the class page when no ride of that class is in progress', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.open();
+    await expect(page).toHaveURL(/\/classes\/30-minute-hiit-cardio$/);
+  });
+
+  test('sends the rider to the class page for a class without a world', async ({ page }) => {
+    await new WorldRidePage(page).open('calorie-burning-workout');
+    await expect(page).toHaveURL(/\/classes\/calorie-burning-workout$/);
+  });
+
+  test('shows the class not-found page for an unknown class', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.open('no-such-class');
+    await expect(world.notFoundTitle).toBeVisible();
+  });
+
+  test('leads Class back to the class page and the lockup to the dashboard, the ride running on', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await expect(world.classLink).toHaveAttribute('href', '/classes/30-minute-hiit-cardio');
+    await expect(world.lockup).toHaveAttribute('href', '/');
+    await world.classLink.click();
+    await expect(page).toHaveURL(/\/classes\/30-minute-hiit-cardio$/);
+    await page.goBack();
+    await world.lockup.click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(new RidePage(page).pauseButton).toBeVisible();
+  });
+
+  test('opens the end-ride dialog from End', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await world.endButton.click();
+    await expect(new EndRideDialog(page).dialog).toBeVisible();
+  });
+
+  test('shows the world, route, class, bike and clock in the app bar', async ({ page }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(300_000);
+    await expect(world.heading).toHaveText('Old Town Criterium');
+    await expect(world.classLine).toHaveText('Cathedral Circuit · 30 Minute HIIT Cardio');
+    await expect(world.bike).toHaveText('ECHEX-3-141844');
+    await expect(world.clock).toHaveText('5:00 / 30:00');
+    expect(await world.barOrder()).toEqual(['Wattzup dashboard', 'Class', 'Pause', 'End']);
+  });
+
+  test('pauses and resumes the ride', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await world.pauseButton.click();
+    await expect(world.resumeButton).toBeVisible();
+    await world.resumeButton.click();
+    await expect(world.pauseButton).toBeVisible();
+  });
+});
+
+test.describe('World Ride live metrics (L2-104)', () => {
+  test('shows -- until the bike reports, then power against target, cadence and speed', async ({
+    page,
+    bluetooth,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await expect(world.power).toHaveText('--');
+    await expect(world.stat('Cadence')).toHaveText('-- rpm');
+    await expect(world.stat('Speed')).toHaveText('-- km/h');
+
+    await bluetooth.notify(CADENCE_95);
+    await bluetooth.notify(resistance(18));
+    await expect(world.power).toHaveText('317');
+    await expect(world.powerUnit).toHaveText('W est.');
+    await expect(world.powerUnit).toHaveAttribute('title', 'Estimated from cadence and resistance');
+    await expect(world.target).toContainText(/Target \d+ W/);
+    await expect(world.stat('Cadence')).toHaveText('95 rpm');
+    await expect(world.stat('Heart')).toHaveText('-- bpm');
+    await expect(world.stat('Speed')).toHaveText('35.6 km/h');
+  });
+});
+
+test.describe('World Ride current segment (L2-105)', () => {
+  test('counts down the warm-up and names the first effort by its world name', async ({ page }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await expect(world.segmentLabel).toHaveText('Warm-up');
+    await expect(world.next).toHaveText('Next: Cobbled sprint · 0:30 at level 24');
+    await page.clock.runFor(60_000);
+    await expect(world.segmentLeft).toHaveText('4:00');
+    await expect(world.segmentProgress).toHaveAttribute('aria-valuemax', '300');
+  });
+
+  test('steps to the first work segment and then recovers', async ({ page }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(315_000);
+    await expect(world.segmentLabel).toHaveText('Work · 1 of 8');
+    await expect(world.next).toHaveText('Next: Recover · 3:00 at level 10');
+    await page.clock.runFor(30_000);
+    await expect(world.segmentLabel).toHaveText('Recover · 1 of 8');
+  });
+
+  test('reads Last stretch to the finish arch on the last segment', async ({ page }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(1_750_000);
+    await expect(world.segmentLabel).toHaveText('Cool-down');
+    await expect(world.next).toHaveText('Last stretch to the finish arch');
+  });
+});
+
+test.describe('World Ride resistance (L2-108)', () => {
+  test('shows the bike level and steps it with - and +, in manual', async ({ page, bluetooth }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await bluetooth.notify(resistance(8));
+    await expect(world.level).toHaveText('8');
+    await expect(world.levelCaption).toHaveText('Resistance / 32');
+
+    await world.raise.click();
+    await expect
+      .poll(async () => (await bluetooth.writes()).map((w) => w.args))
+      .toContain(setLevel(9));
+    await expect(world.levelCaption).toHaveText('Manual');
+  });
+
+  test('disables - at 1 and + at 32', async ({ page, bluetooth }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await bluetooth.notify(resistance(1));
+    await expect(world.lower).toBeDisabled();
+    await expect(world.raise).toBeEnabled();
+    await bluetooth.notify(resistance(32));
+    await expect(world.lower).toBeEnabled();
+    await expect(world.raise).toBeDisabled();
+  });
+});
+
+test.describe('World Ride pause, lost bike and the end (L2-109)', () => {
+  test('holds the world still with Paused on <route>', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await expect(world.pausedOverlay).toHaveCount(0);
+    await world.pauseButton.click();
+    await expect(world.pausedOverlay).toContainText('Paused on Cathedral Circuit');
+    await expect(world.pausedOverlay).toContainText('The world holds still until you pedal again.');
+  });
+
+  test('shows Lost the bike when the bike drops, with Reconnect, and the HUD inert', async ({
+    page,
+    bluetooth,
+  }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(5_000);
+    await bluetooth.drop();
+    // The engine marks the ride lost on its next tick; the link retries only after 3 s.
+    await page.clock.runFor(1_000);
+    await expect(world.lostOverlay).toContainText('Lost the bike');
+    await expect(world.lostOverlay).toContainText('on Cathedral Circuit');
+    await expect(world.reconnectButton).toBeFocused();
+    await expect(world.hud).toHaveAttribute('inert', '');
+  });
+
+  test('shows Ride complete over the held world when the plan ends', async ({ page }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(1_805_000);
+    await expect(world.endedOverlay).toContainText('Ride complete');
+    await expect(world.seeYourRide).toBeFocused();
+    await world.seeYourRide.click();
+    await expect(page).toHaveURL(/\/sessions\/[a-f0-9]{12}$/);
+  });
+});
+
+test.describe('World Ride route profile (L2-106)', () => {
+  test('shows the grade, climbed and distance, and names the profile by its elevation', async ({
+    page,
+  }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(290_000);
+    await expect(world.profileGrade).toHaveText(/^[+−]\d+\.\d%$/);
+    await expect(world.profileClimbed).toHaveText(/^\d+ m climbed$/);
+    await expect(world.profileDistance).toHaveText(/^\d+\.\d\d km$/);
+    await expect(world.routeImage).toHaveAttribute(
+      'aria-label',
+      /^Route profile, \d+ m of elevation$/,
+    );
+  });
+
+  test('holds the grade and distance still while paused', async ({ page }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(120_000);
+    await world.pauseButton.click();
+    const grade = await world.profileGrade.textContent();
+    const distance = await world.profileDistance.textContent();
+    await page.clock.runFor(60_000);
+    await expect(world.profileGrade).toHaveText(grade ?? '');
+    await expect(world.profileDistance).toHaveText(distance ?? '');
+  });
+});
+
+test.describe('World Ride simulated pacers (L2-107)', () => {
+  test('labels the board and lists six pacers and You, You current', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await expect(world.boardTitle).toHaveText('Riders nearby · Old Town Criterium');
+    await expect(world.boardNote).toHaveText('Simulated pacers');
+    await expect(world.riders).toHaveCount(7);
+    await expect(world.you).toContainText('You');
+  });
+
+  test('keeps the gaps still while paused', async ({ page }) => {
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(120_000);
+    await world.pauseButton.click();
+    const board = await world.riders.allTextContents();
+    await page.clock.runFor(60_000);
+    expect(await world.riders.allTextContents()).toEqual(board);
+  });
+
+  test('keeps the pacers on the device and out of the saved ride', async ({ page }) => {
+    const sent: string[] = [];
+    page.on('request', (r) => sent.push(`${r.url()} ${r.postData() ?? ''}`));
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await page.clock.runFor(1_805_000);
+    await world.seeYourRide.click();
+    await expect(page).toHaveURL(/\/sessions\/[a-f0-9]{12}$/);
+    await expect(page.locator('main')).not.toContainText('Maya Okafor');
+    expect(sent.filter((s) => /Maya Okafor|Kenji Watanabe/.test(s))).toEqual([]);
+  });
+});
+
+test.describe('World Ride scene (L2-110, L2-101 AC4)', () => {
+  test("draws the scene of the class's world with its text alternative", async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await expect(world.scene).toBeVisible();
+    await expect(world.scene).toHaveAttribute('role', 'img');
+    await expect(world.scene).toHaveAttribute(
+      'aria-label',
+      'A cyclist on Cathedral Circuit in Old Town Criterium',
+    );
+    await expect(world.sceneNotice).toHaveCount(0);
+  });
+
+  test("shows This screen can't draw 3D worlds when WebGL is off, and the HUD still works", async ({
+    page,
+    webgl,
+  }) => {
+    await webgl.disable();
+    const world = new WorldRidePage(page);
+    await world.startFromClass();
+    await expect(world.sceneNotice).toContainText("This screen can't draw 3D worlds");
+    await expect(world.sceneNotice).toContainText('The ride still runs on the numbers.');
+    await world.pauseButton.click();
+    await expect(world.resumeButton).toBeVisible();
+  });
+});

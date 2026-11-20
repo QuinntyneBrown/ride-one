@@ -14,6 +14,8 @@ import { provideBrowserContracts } from '@wattzup/browser';
 import { routes } from './app.routes';
 import { ThemeService } from './core/theme.service';
 import { IframeYouTubePlayer } from './core/iframe-youtube-player';
+import { loadWorldRenderer } from './core/world-renderer-loader';
+import { WORLD_RENDERER } from './core/world-renderer-port';
 import { YOUTUBE_PLAYER } from './core/youtube-player';
 
 export const appConfig: ApplicationConfig = {
@@ -31,5 +33,6 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
+    { provide: WORLD_RENDERER, useValue: loadWorldRenderer },
   ],
 };

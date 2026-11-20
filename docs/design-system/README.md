@@ -83,6 +83,8 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | Component | Summary |
 |---|---|
 | [Class card and shelf](components/class-card.html) | One video of the library with its length, plan strip and peak, on a shelf the catalogue defines (proposed). |
+| [Class worlds](components/class-worlds.html) | Each class's world side by side, with a preview per theme; a design canvas (proposed). |
+| [World Ride HUD](components/world-ride.html) | Live metrics, riders nearby, segment, route profile and resistance on translucent panels over a scene (proposed). |
 | [Session traces](components/session-traces.html) | Cadence against its aim with each dip marked, and power beneath, over a saved ride. |
 | [Dip list](components/dip-list.html) | Every cadence dip of a ride as a row that highlights it on the traces. |
 | [Week strip](components/week-strip.html) | This week, Monday to Sunday, filled where the rider rode. |
@@ -138,6 +140,10 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 
 ## Changelog
 
+- **2026-11-19, World Ride (proposed; no requirement yet, see the mocks' open questions).** From the World Ride mocks and the *Class Worlds* canvas. New component pages [World Ride HUD](components/world-ride.html) and [Class worlds](components/class-worlds.html). The separate `assets/world-ride.css` is merged into `components.css` and deleted; the mocks link only the system's two stylesheets.
+  - New tokens: `--color-bg-hud` (canvas at 0.9 in both themes), `--color-rider-1` to `--color-rider-7` (jerseys, the same in both themes) on two new primitives `--palette-cyan-300` and `--palette-violet-400`, and `--theme-display-light` / `--theme-display-dark` for artwork drawn per theme. Three contrast pairs added (default, muted and accent text on the HUD).
+  - New blocks `.world-ride` (with `__scene`, `__hud`, `__bar`, `__class`, `__title`, `__bike`, `__actions`, `__clock`, `__total`, `__muted`, `__accent`, `__top`, `__bottom`, `__panel`, `__power`, `__stats`, `__board`, `__board-title`, `__riders`, `__rider--1…7`, `__interval`, `__row`, `__metric`, `__profile`, `__route`, `__resistance`, `__source`, `__source-title`, `__form`, `__credit`, `__overlay`, `__overlay--lost`, `__overlay-title`) and `.class-worlds` (with `__lead`, `__grid`, `__card`, `__link`, `__title`, `__blurb`, `__preview`, `__image--light`, `__image--dark`).
+  - `components.css` now declares the bundled Inter, Archivo and JetBrains Mono faces (`frontend/public/fonts/`) under the family names the tokens use, so every docs page and mock renders the real type. Before, only World Ride loaded them, under its own family names.
 - **2026-11-19, bike only (ADR 0016).** The components and variants added for the treadmill on 2026-11-16 are removed: the pages Machine choice, Machine card, Speed and incline control and Effort row, their blocks (`.machine-choice`, `.machine-card`, `.signal-bars`, `.speed-control`, `.incline-control`, `.effort-row`, `.quick-speeds`), and the variants `.readout--speed`, `.readout--incline`, `.metrics--treadmill` and `.overlay-panel--belt`. Their three contrast pairs are removed. No token changed.
 - **2026-11-19, Library link on the ride app bar (L2-079 criterion 15).** From the updated Magic Patterns *Ride Dashboard* frame. [App bar](components/app-bar.html) documents the bike-only `Library` link after the lockup (`.app-bar__library`, a `.btn--quiet.btn--sm` link with the grid icon), its place in the Tab order and on phones, and its accessible name. No token, contrast pair or `components.css` rule changed.
 - **2026-11-18, ride history (L2-081 to L2-087, ADR 0015).** From the Magic Patterns *Session Summary* and *Progress* frames. New token `--color-series-dip` (heart 600 light, heart 400 dark) with contrast pairs; new component pages [Session traces](components/session-traces.html), [Dip list](components/dip-list.html), [Week strip](components/week-strip.html), [Stat strip](components/stat-strip.html), [Personal-best chip and delta](components/best-chip.html), [Trend chart](components/trend-chart.html), [Session list](components/session-list.html), [Streak calendar](components/streak-calendar.html) and [Achievement badge](components/achievement.html); layout `.history` (with `__inner`, `__grid`, `--progress`, `__aside`), `.session-head`, `.streak-panel`, `.progress-head`, `.compare`, `.measure-tabs` and `.streak-badge` in `components.css`. Heart rate was dropped from the totals (ADR 0003).
@@ -179,6 +185,18 @@ Dark is the default theme (`<html data-theme="dark">`); light is fully supported
 | ride/video, ride/video-blocked | Level-picker bar heights recomputed (34.7 % instead of 34.8 %, …) | Copied from the other ride mocks |
 | setup/video, setup/intervals* | Mock notes pinned 40rem from the left scrolled the page sideways at 360 px | Anchored to the right edge |
 | Magic Patterns *Training Setup* (video) | Start-point stepper buttons 40 px | `btn--icon` at `--target-comfortable` (44 px) |
+| world-ride/* | A second stylesheet, `design-system/assets/world-ride.css`, outside `components.css` | Merged into `components.css`; file deleted |
+| world-ride/* | Jersey colours inline (`style="--jersey:#3ff0ff"`), two hues not in the palette | `__rider--1…7` on `--color-rider-*`; `--palette-cyan-300`, `--palette-violet-400` |
+| world-ride/* | Route profile fills raw (`#d7ff3a`, `#8fa3ff`, `#5b616a`, `rgba(242,243,239,…)`), the same in both themes | `is-work` / `is-rest` / `is-easy` / `is-done` / `is-playhead` on the series and playhead roles |
+| world-ride/* (light) | HUD panel at 0.88 opacity: olive accent text 4.44:1 over a black photo | `--color-bg-hud` at 0.9 (4.65:1 worst case) |
+| world-ride/* | `.world-ride .btn { min-height: var(--target-min) }` restyled the Button block and shrank HUD buttons to 24 px | Rule removed; Class, Pause and End are `btn--collapsible`, − and + are `btn--lg btn--icon` (48 px) |
+| world-ride/* | Resistance − / + hidden below 1024 px: no way to change resistance on a phone or tablet | Shown at every width; spans the bottom row below 1024 px |
+| world-ride/* | Native `<progress>` and a hand-styled key input | `.progress` (`--thin`, coloured by segment kind) and `.input` |
+| world-ride/* | Desktop-first `max-width` queries; mock-chrome rule (`[data-chrome]`) in component CSS | Mobile-first `min-width` queries; chrome rule moved to `mocks/assets/mock.css` |
+| world-ride/* | Generic selectors (`.world-ride strong`, `.world-ride__board h2`, `.world-ride__source form`) | BEM elements (`__board-title`, `__source-title`, `__form`); numerals scoped to `__panel` |
+| world-ride/* | Raw sizes and weights (`font-weight: bold`, `line-height: .95`, `4rem` power floor) | Weight and line-height tokens; power floor snapped to `--font-size-numeral-xl` (3.75rem); remaining sizes are named component tokens |
+| world-ride/*, class-worlds | Duplicate font families *World Ride Inter* / *World Ride Archivo* | The system's own `@font-face` for *Inter* and *Archivo* |
+| class-worlds | Component CSS branching on `[data-theme]` to swap previews; element selectors (`article`, `h2`, `p`) | `--theme-display-light/-dark`; BEM elements |
 
 Remaining differences between the mocks and this system are listed after the mocks were pointed at it (see *Verification*).
 
@@ -190,16 +208,16 @@ python3 .claude/skills/extracting-design-systems/scripts/check_contrast.py docs/
 python3 .claude/skills/writing-html-mocks/scripts/screenshot_mocks.py docs/design-system --out docs/design-system/.cache/shots
 ```
 
-Run on 2026-11-15, again on 2026-11-17 for the video ride-along and the class library, and on 2026-11-19 after the treadmill was removed (ADR 0016):
+Run on 2026-11-15, again on 2026-11-17 for the video ride-along and the class library, on 2026-11-19 after the treadmill was removed (ADR 0016), and on 2026-11-19 for World Ride:
 
 | Check | Result |
 |---|---|
-| `check_design_system.py` | 74 pages (53 components, 8 patterns), 0 errors, 0 warnings (2026-11-19, bike only) |
-| `check_contrast.py` | 154 passed, 0 failed, 0 unresolved (2026-11-19, bike only) |
-| `tokens_to_json.py` | `tokens.json` written, 337 tokens (2026-11-17) |
-| `check_mocks.py docs/mocks --write` with the mocks reading this system | 16 screens, 89 mocks, 0 errors, 0 warnings (2026-11-19, bike only) |
-| Horizontal overflow at 360px, all 46 mocks and 61 pages, both themes | none |
-| Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280; class card and level row pages and every class-library and class mock at 360, 768 and 1280, both themes (2026-11-17) |
+| `check_design_system.py` | 76 pages (55 components, 8 patterns), 0 errors, 0 warnings (2026-11-19, World Ride) |
+| `check_contrast.py` | 160 passed, 0 failed, 0 unresolved (2026-11-19, World Ride) |
+| `tokens_to_json.py` | `tokens.json` written, 354 tokens (2026-11-19, World Ride) |
+| `check_mocks.py docs/mocks --write` with the mocks reading this system | 18 screens, 103 mocks, 0 errors, 0 warnings (2026-11-19, World Ride) |
+| Horizontal overflow at 360px, all 103 mocks and 76 pages, both themes | none (2026-11-19, with the real fonts now loaded everywhere) |
+| Screenshots reviewed | index, button, dialog, readout, color (360 and 1280, both themes); ride and setup mocks at 360 and 1280; class card and level row pages and every class-library and class mock at 360, 768 and 1280, both themes (2026-11-17); World Ride default (before and after the merge), loading and disconnected at 360, 768 and 1280, the Class Worlds canvas, and the World Ride HUD and Class worlds pages, both themes (2026-11-19) |
 
 ### Closing the loop with the mocks
 

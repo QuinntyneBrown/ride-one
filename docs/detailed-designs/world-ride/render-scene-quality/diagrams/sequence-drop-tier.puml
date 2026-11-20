@@ -1,0 +1,22 @@
+@startuml
+title Drop a tier on the frame budget
+box "Frontend" #EEF
+participant FrameScheduler
+participant WorldScene
+participant WorldRenderer
+participant FrameBudget
+participant "render-quality.ts" as RQ
+end box
+FrameScheduler -> WorldScene : now()
+WorldScene -> WorldRenderer : draw(frame)
+WorldRenderer -> FrameBudget : sample(now, frameMs)
+alt second window in a row over 20 ms, tier above low
+  FrameBudget --> WorldRenderer : drop
+  WorldRenderer -> RQ : techniquesAt(lower tier, backend, reducedMotion)
+  RQ --> WorldRenderer : technique ids
+  WorldRenderer -> WorldRenderer : rebuild passes
+else otherwise
+  FrameBudget --> WorldRenderer : keep
+end
+WorldRenderer -> WorldRenderer : render
+@enduml

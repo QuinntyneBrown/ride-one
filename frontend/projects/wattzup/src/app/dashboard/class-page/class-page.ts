@@ -41,12 +41,13 @@ import { isActive } from '../../core/workout-status';
 import { MotionPreference } from '../../core/motion-preference';
 import { previewOf } from '../../core/ride-preview';
 import { formatStart, linkError, parseStart, stepStart, videoIdOf } from '../../core/video-link';
+import { worldById } from '../../core/worlds';
 import { type PlayerHandle, YOUTUBE_PLAYER } from '../../core/youtube-player';
 import { OnlineStatus } from '../../core/online-status';
 
 type Phase = 'loading' | 'ready' | 'not-found';
 
-/** Route `/classes/:id`: one class, its video and plan, and Start ride (L2-080). */
+/** Route `/classes/:id`: one class, its video and plan, Start ride (L2-080) and Ride in <world> (L2-102). */
 @Component({
   selector: 'wz-class-page',
   imports: [
@@ -125,6 +126,11 @@ export class ClassPage {
     const d = this.draft();
     const e = this.entry();
     return !!d && !!e && isEdited(d, e);
+  });
+  /** The class's World Ride scene, when it names one (L2-102 AC1). */
+  protected readonly world = computed(() => {
+    const id = this.entry()?.world;
+    return id ? worldById(id) : null;
   });
   protected readonly legendLabels = { work: 'Work', rest: 'Recover', steady: 'Steady' } as const;
 
@@ -214,8 +220,11 @@ export class ClassPage {
     this.player()?.seek(start);
   }
 
-  /** Start ride: replace-ride first with a workout active, else POST the plan as shown (L2-080 AC10, AC11). */
-  protected async start(): Promise<void> {
+  /**
+   * Start ride, or Ride in <world>: replace-ride first with a workout active, else POST the plan as
+   * shown, then open the dashboard or World Ride (L2-080 AC10, AC11; L2-102 AC2).
+   */
+  protected async start(inWorld = false): Promise<void> {
     const d = this.draft();
     if (!d || this.busy()) return;
     const plan = toStartRequest(d, this.id());
@@ -228,7 +237,7 @@ export class ClassPage {
         newSummary: planSummary(d.plan),
       });
       if (started) {
-        await this.router.navigateByUrl('/');
+        await this.router.navigateByUrl(this.destination(inWorld));
       }
       return;
     }
@@ -236,12 +245,16 @@ export class ClassPage {
     this.startFailed.set(false);
     try {
       await this.workouts.start(plan);
-      await this.router.navigateByUrl('/');
+      await this.router.navigateByUrl(this.destination(inWorld));
     } catch {
       this.startFailed.set(true);
     } finally {
       this.busy.set(false);
     }
+  }
+
+  private destination(inWorld: boolean): string {
+    return inWorld ? `/classes/${encodeURIComponent(this.id())}/world` : '/';
   }
 
   /** Writes this page's plan and video as setup's drafts, replacing them, and opens setup (L2-080 AC12). */

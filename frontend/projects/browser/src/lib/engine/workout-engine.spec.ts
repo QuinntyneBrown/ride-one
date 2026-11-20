@@ -132,6 +132,17 @@ describe('WorkoutEngine', () => {
     expect(unload()).toBe(false);
   });
 
+  it('carries the class a ride was started from as class_id, null without one (World Ride)', async () => {
+    const { engine } = setUp();
+    const snapshot = await engine.startWorkout(SHORT, {
+      classId: 'hill-climb',
+      title: 'Hill climb',
+    });
+    expect(snapshot.class_id).toBe('hill-climb');
+    await engine.stop();
+    expect((await engine.startWorkout(SHORT, null)).class_id).toBeNull();
+  });
+
   it('counts running seconds from the clock and steps to the next segment, sending its level', async () => {
     const { clock, levels, engine, workout } = setUp();
     await engine.startWorkout(SHORT, null);

@@ -27,6 +27,7 @@ export function testWorkout(change: Partial<WorkoutSnapshot> = {}): WorkoutSnaps
     status: 'running',
     ended_reason: null,
     session_id: null,
+    class_id: null,
     ...change,
   };
 }

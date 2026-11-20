@@ -12,6 +12,7 @@ function entry(plan: WorkoutPlan, change: Partial<ClassEntry> = {}): ClassEntry 
     description: '',
     shelf,
     plan,
+    world: null,
     ...change,
   };
 }

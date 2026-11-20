@@ -1,12 +1,21 @@
 // Reads classes.json by the rules and limits
 // of L2-077, keeping valid shelves and classes in file order and naming each one left out
 // (L2-096 AC2).
-import type { WorkoutPlan } from '@wattzup/api';
+import type { WorkoutPlan, WorldId } from '@wattzup/api';
 import { validatePlan } from './workout-plan-validator';
 
 export const MAX_BYTES = 1024 * 1024;
 export const MAX_SHELVES = 20;
 export const MAX_CLASSES = 200;
+/** The six scenes built into the app, as ClassWorlds.Ids in the backend (L2-100). */
+export const WORLDS: readonly WorldId[] = [
+  'docklands',
+  'granite',
+  'oldtown',
+  'prairie',
+  'dolomites',
+  'coast',
+];
 
 export interface Shelf {
   id: string;
@@ -22,6 +31,7 @@ export interface CatalogueClass {
   description: string;
   shelfId: string;
   plan: WorkoutPlan;
+  world: WorldId | null;
 }
 
 export interface Catalogue {
@@ -73,6 +83,8 @@ function rule(field: string): string {
       return 'A tagline is at most 280 characters.';
     case 'description':
       return 'A description is at most 280 characters.';
+    case 'world':
+      return 'A world is one of docklands, granite, oldtown, prairie, dolomites or coast.';
     default:
       return 'The field is not valid.';
   }
@@ -171,6 +183,7 @@ function readClasses(
       description: text(entry, 'description')!,
       shelfId: text(entry, 'shelf')!,
       plan: checked.plan,
+      world: checked.world,
     });
   });
   if (dropped > 0) {
@@ -188,7 +201,7 @@ function check(
   name: string,
   kept: CatalogueClass[],
   shelves: Shelf[],
-): { plan: WorkoutPlan } | { problem: CatalogueEntryProblem } {
+): { plan: WorkoutPlan; world: WorldId | null } | { problem: CatalogueEntryProblem } {
   const id = text(entry, 'id');
   if (!isClassId(id)) return { problem: { entry: name, field: 'id', message: rule('id') } };
   if (kept.some((c) => c.id === id)) {
@@ -219,5 +232,9 @@ function check(
       },
     };
   }
-  return { plan: result.plan };
+  const world = entry['world'] ?? null;
+  if (world !== null && !WORLDS.includes(world as WorldId)) {
+    return { problem: { entry: name, field: 'world', message: rule('world') } };
+  }
+  return { plan: result.plan, world: world as WorldId | null };
 }
