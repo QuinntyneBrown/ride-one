@@ -2273,6 +2273,23 @@ export class AmsterdamStreet implements SceneStreet {
       this.group.add(sloep);
       this.boats.push({ mesh: sloep, offset, speed, float: -WATER });
     }
+    // Visitors pedalling canal bikes, the bright twin-hulled pedalos hired by the hour, and an
+    // old varnished saloon boat with its white canopy rolled back.
+    const pedalo = this.pedalo();
+    pedalo.position.x = edge - 6.5;
+    this.group.add(pedalo);
+    this.boats.push({ mesh: pedalo, offset: 158, speed: 0.6, float: -WATER });
+    const second = this.pedalo();
+    second.position.x = edge - CANAL + 7;
+    second.rotation.y = Math.PI;
+    this.group.add(second);
+    this.boats.push({ mesh: second, offset: 248, speed: -0.5, float: -WATER });
+    const saloon = this.saloonBoat();
+    saloon.position.x = edge - CANAL / 2 + 3.5;
+    saloon.rotation.y = Math.PI;
+    saloon.add(this.wake(6, 0.03, 0.9));
+    this.group.add(saloon);
+    this.boats.push({ mesh: saloon, offset: 320, speed: -1.8, float: -WATER });
   }
 
   /**
@@ -2300,6 +2317,84 @@ export class AmsterdamStreet implements SceneStreet {
     churn.position.set(0, y, from + 2.5 * size);
     wake.add(churn);
     return wake;
+  }
+
+  /** A canal bike: two yellow floats under a white seat bench for two, a paddle wheel aft. */
+  private pedalo(): Group {
+    const boat = new Group();
+    const yellow = this.material({ color: 0xf2c418, roughness: 0.45 });
+    const white = this.material({ color: 0xf2f2ee, roughness: 0.5 });
+    for (const x of [-0.7, 0.7]) {
+      const float = new Mesh(new CapsuleGeometry(0.3, 2.6, 4, 10), yellow);
+      this.disposables.push(float.geometry);
+      float.rotation.x = Math.PI / 2;
+      float.position.set(x, 0.05, 0);
+      boat.add(float);
+    }
+    const deck = new Mesh(this.unit, white);
+    deck.scale.set(1.7, 0.1, 2.0);
+    deck.position.y = 0.35;
+    const bench = new Mesh(this.unit, white);
+    bench.scale.set(1.4, 0.4, 0.5);
+    bench.position.set(0, 0.6, 0.3);
+    boat.add(deck, bench);
+    const riders = this.material({ vertexColors: true, roughness: 0.85 });
+    const random = seeded(853);
+    for (const x of [-0.35, 0.35]) {
+      const rider = new Mesh(sitterGeometry(random), riders);
+      this.disposables.push(rider.geometry);
+      rider.position.set(x, 0.38, 0.25);
+      boat.add(rider);
+    }
+    boat.children.forEach((m) => (m.castShadow = true));
+    return boat;
+  }
+
+  /**
+   * An old saloon boat, 12 m with its bow towards -z: a varnished mahogany hull with a white
+   * strake, its white canopy rolled back on its hoops, passengers on the benches and the
+   * skipper at the wheel aft.
+   */
+  private saloonBoat(): Group {
+    const boat = new Group();
+    const mahogany = this.material({ color: 0x6a3418, roughness: 0.3, metalness: 0.1 });
+    const white = this.material({ color: 0xf2f2ee, roughness: 0.6 });
+    const brass = this.material({ color: 0xc8a040, metalness: 0.6, roughness: 0.35 });
+    const hull = new Mesh(bargeHull(12), mahogany);
+    hull.scale.set(0.62, 0.6, 1);
+    hull.position.y = -0.4;
+    const strake = new Mesh(this.unit, white);
+    strake.scale.set(2.7, 0.08, 9);
+    strake.position.set(0, 0.42, 0.8);
+    boat.add(hull, strake);
+    for (let z = -2; z <= 4; z += 1.5) {
+      const hoop = new Mesh(new TorusGeometry(1.15, 0.03, 4, 16, Math.PI), brass);
+      this.disposables.push(hoop.geometry);
+      hoop.position.set(0, 0.5, z);
+      boat.add(hoop);
+    }
+    const canopy = new Mesh(this.unit, white);
+    canopy.scale.set(2.3, 0.35, 1.2);
+    canopy.position.set(0, 1.5, 4.6);
+    boat.add(canopy);
+    const people = this.material({ vertexColors: true, roughness: 0.85 });
+    const random = seeded(857);
+    for (let z = -2.5; z < 4; z += 1.1) {
+      for (const x of [-0.8, 0.8]) {
+        if (random() < 0.3) continue;
+        const sitter = new Mesh(sitterGeometry(random), people);
+        this.disposables.push(sitter.geometry);
+        sitter.position.set(x, -0.05, z);
+        sitter.rotation.y = x > 0 ? Math.PI / 2 : -Math.PI / 2;
+        boat.add(sitter);
+      }
+    }
+    const skipper = new Mesh(standerGeometry(random, false), people);
+    this.disposables.push(skipper.geometry);
+    skipper.position.set(0, 0.1, 5.2);
+    boat.add(skipper);
+    boat.children.forEach((m) => (m.castShadow = true));
+    return boat;
   }
 
   /**
