@@ -8,6 +8,7 @@
 // canvas textures and a loop that recycles the street, with the shared crowd, barriers, banners,
 // feather flags, road paint and box builder of world-kit.ts.
 import {
+  AdditiveBlending,
   BoxGeometry,
   type CanvasTexture,
   Color,
@@ -144,6 +145,8 @@ const BALLOON_COLOURS = [
   '#d8283a',
   '#d7ff3a',
 ];
+/** The colours the screens throw onto the street. */
+const GLOW_COLOURS = [0xff3a8a, 0x3a8aff, 0xffc83a, 0x9a4aff, 0x3affd8, 0xff6a1a];
 const CONFETTI_COLOURS = [
   '#f2c230',
   '#ffffff',
@@ -375,6 +378,28 @@ export class TimesSquareStreet implements SceneStreet {
       }),
     );
     const frame = this.material({ color: 0x14141a, roughness: 0.6, metalness: 0.3 });
+    // The light the screens throw: a pool of their colour spilling from each front across the
+    // plaza, the crowd and the street, brightest under the boards and fading toward the crown.
+    const spill = this.track(spillTexture());
+    const pools = GLOW_COLOURS.map((colour) => {
+      const material = new MeshBasicMaterial({
+        map: spill,
+        color: colour,
+        transparent: true,
+        opacity: 0.42,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -6,
+      });
+      this.disposables.push(material);
+      return material;
+    });
+    const pool = new PlaneGeometry(1, 1);
+    pool.rotateX(-Math.PI / 2);
+    pool.translate(0.5, 0, 0);
+    this.disposables.push(pool);
     for (const side of [-1, 1] as const) {
       for (let block = 0; block < LOOP / BLOCK; block++) {
         let offset = block * BLOCK + 2;
@@ -391,6 +416,10 @@ export class TimesSquareStreet implements SceneStreet {
           this.disposables.push(shell);
           const body = new Mesh(shell, walls[Math.floor(random() * walls.length)]!);
           tower.add(body);
+          const glow = new Mesh(pool, pools[Math.floor(random() * pools.length)]!);
+          glow.scale.set(FRONT + 1, 1, width + 6);
+          glow.position.y = 0.03;
+          tower.add(glow);
           // Billboards along the front, stacked up the lower floors.
           let y = 5 + random() * 3;
           while (y < 34) {
@@ -468,7 +497,8 @@ export class TimesSquareStreet implements SceneStreet {
       new MeshBasicMaterial({ map: texture, toneMapped: false }),
     );
     this.disposables.push(face.geometry, face.material as MeshBasicMaterial);
-    face.position.z = 0.12;
+    // Well clear of the frame, so the two never fight for depth even 260 m off.
+    face.position.z = 0.4;
     const back = new Mesh(new BoxGeometry(w + 0.4, h + 0.4, 0.2), frame);
     this.disposables.push(back.geometry);
     g.add(back, face);
@@ -904,4 +934,25 @@ function drawCountdown(g: CanvasRenderingContext2D, left: number): void {
   g.fillRect(40, 220, 432, 16);
   g.fillStyle = '#ffd84a';
   g.fillRect(40, 220, 432 * (left / 60), 16);
+}
+
+/** A pool of light on the ground: brightest at one edge, fading across, soft at its ends. */
+function spillTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.clearRect(0, 0, 128, 128);
+    const across = g.createLinearGradient(0, 0, 128, 0);
+    across.addColorStop(0, 'rgba(255,255,255,1)');
+    across.addColorStop(0.45, 'rgba(255,255,255,0.45)');
+    across.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = across;
+    g.fillRect(0, 0, 128, 128);
+    g.globalCompositeOperation = 'destination-in';
+    const ends = g.createLinearGradient(0, 0, 0, 128);
+    ends.addColorStop(0, 'rgba(0,0,0,0)');
+    ends.addColorStop(0.25, 'rgba(0,0,0,1)');
+    ends.addColorStop(0.75, 'rgba(0,0,0,1)');
+    ends.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = ends;
+    g.fillRect(0, 0, 128, 128);
+  });
 }
