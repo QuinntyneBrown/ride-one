@@ -347,6 +347,7 @@ export class AmsterdamStreet implements SceneStreet {
   private addHouses(roadHalf: number): void {
     const random = seeded(401);
     const sides = this.material({ map: this.repeat(brickTexture(), 4, 4), roughness: 0.95 });
+    const flankWall = this.material({ map: this.track(flankTexture()), roughness: 0.92 });
     const shapes = GABLES.map((kind) => {
       const geometry = new ExtrudeGeometry(gableShape(kind), { depth: 1, bevelEnabled: false });
       this.disposables.push(geometry);
@@ -465,7 +466,10 @@ export class AmsterdamStreet implements SceneStreet {
           screen.scale.set(width, height, 0.5);
           // The stone sills, lintels and cornice standing proud of the front.
           screen.add(new Mesh(relief[k]!, ledge));
-          const body = new Mesh(this.unit, wall);
+          // The body's flanks, seen where a cross street opens beside it, have their own
+          // windows; its back and top are plain.
+          const flank = wall === sides ? flankWall : wall;
+          const body = new Mesh(this.unit, [flank, flank, wall, wall, wall, wall]);
           body.scale.set(width, height * EAVES, 11.5);
           body.position.set(width / 2, (height * EAVES) / 2, 6.25);
           const pitch = new Mesh(k === 4 ? hip : gableRoof, tiles);
@@ -2514,6 +2518,30 @@ function cloudTexture(seed: number): CanvasTexture {
     g.fillStyle = 'rgba(0,0,0,1)';
     g.fillRect(0, 212, 512, 44);
     g.globalCompositeOperation = 'source-over';
+  });
+}
+
+/**
+ * A canal house's flank, 11.5 m deep and up to its eaves, as a cross street sees it: dark brick
+ * courses with a few small-paned windows in white frames, staggered up the wall as the stairs
+ * and back rooms need them, and iron wall anchors.
+ */
+function flankTexture(): CanvasTexture {
+  return canvasTexture(512, 512, (g) => {
+    speckle(g, 512, 512, '#5a3326', 683);
+    g.fillStyle = 'rgba(0,0,0,0.18)';
+    for (let y = 0; y < 512; y += 5) g.fillRect(0, y, 512, 1);
+    const random = seeded(691);
+    for (let row = 0; row < 4; row++) {
+      for (const x of [70, 230, 390]) {
+        if (random() < 0.35) continue;
+        const y = 40 + row * 112 + (random() - 0.5) * 20;
+        sashWindow(g, x, y, 48, 70, random);
+      }
+      g.fillStyle = '#16181b';
+      g.fillRect(14, 30 + row * 112, 6, 18);
+      g.fillRect(492, 30 + row * 112, 6, 18);
+    }
   });
 }
 
