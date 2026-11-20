@@ -422,6 +422,13 @@ const STALL_STEAM_LIFE = 3.2;
 const STALL_STEAM_HEIGHT = 2.4;
 const STALL_X = -10;
 const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
+/**
+ * The tables out in front of the stalls: their plastic colours in turn, how far out from the
+ * booth's middle (m) and how far along it (m).
+ */
+const SEAT_COLOURS = ['#d8342a', '#2f6fd6', '#2fb36a'];
+const SEAT_OUT = 3.7;
+const SEAT_Z = 0.3;
 /** The stalls' paper lanterns, and the dishes on their menu boards, by stall in turn. */
 const STALL_LANTERN = '#f2261a';
 const STALL_MENUS: readonly (readonly string[])[] = [
@@ -3630,6 +3637,22 @@ export class DocklandsStreet {
     ).map((texture) => new MeshBasicMaterial({ map: texture, toneMapped: false }));
     const board = new PlaneGeometry(1.9, 1.15);
     this.disposables.push(paper, paperGlow, lantern, ...menus, board);
+    // Seating out front: a low plastic table and stools, with a diner hunched over a bowl.
+    const plastics = SEAT_COLOURS.map(
+      (hex) => new MeshStandardMaterial({ color: hex, roughness: 0.45, metalness: 0.05 }),
+    );
+    const coat = new MeshStandardMaterial({ color: 0x2a2233, roughness: 0.8 });
+    const skin = new MeshStandardMaterial({ color: 0xc89a7a, roughness: 0.7 });
+    const bowlLight = new MeshBasicMaterial({
+      color: new Color('#fff1d6').multiplyScalar(1.4),
+      toneMapped: false,
+    });
+    const seat = new CylinderGeometry(0.17, 0.15, 0.42, 10);
+    const top = new CylinderGeometry(0.34, 0.3, 0.05, 14);
+    const leg = new CylinderGeometry(0.05, 0.08, 0.5, 6);
+    const head = new SphereGeometry(0.12, 10, 8);
+    const bowl = new SphereGeometry(0.09, 10, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    this.disposables.push(...plastics, coat, skin, bowlLight, seat, top, leg, head, bowl);
     const box = (
       material: Material,
       w: number,
@@ -3672,6 +3695,29 @@ export class DocklandsStreet {
       const menu = new Mesh(board, menus[i % menus.length]!);
       menu.position.set(x + 0.1, KERB + 1.65, 1.61);
       group.add(menu);
+      // The table out front, a stool either side of it, and a diner on the near one.
+      const plastic = plastics[i % plastics.length]!;
+      const tx = x + SEAT_OUT;
+      const table = new Mesh(top, plastic);
+      table.position.set(tx, KERB + 0.52, SEAT_Z);
+      const stem = new Mesh(leg, plastic);
+      stem.position.set(tx, KERB + 0.25, SEAT_Z);
+      const dish = new Mesh(bowl, bowlLight);
+      dish.rotation.x = Math.PI;
+      dish.position.set(tx, KERB + 0.6, SEAT_Z + 0.12);
+      group.add(table, stem, dish);
+      for (const dz of [-0.62, 0.62]) {
+        const stool = new Mesh(seat, plastics[(i + 1) % plastics.length]!);
+        stool.position.set(tx, KERB + 0.21, SEAT_Z + dz);
+        group.add(stool);
+      }
+      const diner = new Mesh(unit, coat);
+      diner.scale.set(0.44, 0.52, 0.3);
+      diner.rotation.x = -0.25;
+      diner.position.set(tx, KERB + 0.7, SEAT_Z + 0.6);
+      const face = new Mesh(head, skin);
+      face.position.set(tx, KERB + 1.06, SEAT_Z + 0.48);
+      group.add(diner, face);
       // Steam from the cooking rises off the booth's roof, lit warm by the hatch below.
       for (let k = 0; k < STALL_PUFFS; k++) {
         const mesh = new Mesh(puff, steam);
