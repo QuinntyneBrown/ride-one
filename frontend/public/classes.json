@@ -263,6 +263,7 @@
     },
     {
       "id": "sprintavals",
+      "world": "knicks",
       "title": "Sprintavals",
       "channel": "GCN Training",
       "focus": "Sprints",

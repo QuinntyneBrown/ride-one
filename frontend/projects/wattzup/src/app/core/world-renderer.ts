@@ -271,6 +271,21 @@ const LOOKS: Record<WorldId, Look> = {
     azimuth: -140,
     light: { sun: 3.2, fill: 1.0, colour: 0xfff0dc },
     fogRange: [70, 1100],
+  }, // Late morning in lower Manhattan: a high sun behind the rider lights the towers' upper floors
+  // while the canyon floor sits in their shade, the sky a clean blue over the ticker tape.
+  knicks: {
+    sky: 0x8fbbe6,
+    fog: 0xbfcbd6,
+    ground: 0x8d8d8f,
+    road: 0x45464b,
+    sun: 38,
+    wet: false,
+    haze: false,
+    turbidity: 2.5,
+    rayleigh: 1.6,
+    azimuth: -160,
+    light: { sun: 3.0, fill: 1.25, colour: 0xfff1dc },
+    fogRange: [160, 1500],
   },
   caribana: {
     sky: 0x8ec5ee,

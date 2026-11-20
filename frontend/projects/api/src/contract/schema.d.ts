@@ -94,7 +94,8 @@ export interface components {
         | 'ghent'
         | 'blackpool'
         | 'suburbia'
-        | 'nottinghill';
+        | 'nottinghill'
+        | 'knicks';
     };
     ClassShelfResponse: {
       id: string;

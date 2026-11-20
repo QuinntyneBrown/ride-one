@@ -155,6 +155,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0.5, work: 2.5, rest: -0.5, cooldown: 0, steady: 0.5 },
     roll: 0.5,
   },
+  {
+    id: 'knicks',
+    name: 'Knicks Championship Parade',
+    route: 'Canyon of Heroes',
+    effortName: 'Float sprint',
+    description:
+      "Ticker tape and orange and blue streamers drift down between the towers of lower Broadway's Canyon of Heroes as fans pack the barricades for the Knicks' championship parade, the Woolworth Building's copper crown rising at the far end. The four long builds reel in the floats rolling up Broadway, and the five ten-second sprints each jump from one float to the next before the last surge toward the Woolworth.",
+    grade: { warmup: 0.5, work: 2.5, rest: -1, cooldown: 0, steady: 0.5 },
+    roll: 0.6,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

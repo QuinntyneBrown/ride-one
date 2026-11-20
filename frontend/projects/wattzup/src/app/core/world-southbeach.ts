@@ -32,9 +32,11 @@ import {
   clothBannerTexture,
   Crowd,
   Figures,
+  hazedMaterial,
   loopMetres,
   paintTexture,
   Ribbons,
+  scaleFaceUv,
   type SceneStreet,
   seeded,
 } from './world-kit';
@@ -705,13 +707,7 @@ export class SouthBeachStreet implements SceneStreet {
       hex: number | string,
       amount: number,
       extra: Partial<MeshStandardMaterial> = {},
-    ) => {
-      const material = new MeshStandardMaterial({ roughness: 0.7, fog: false });
-      material.color.set(hex).lerp(haze, amount);
-      Object.assign(material, extra);
-      this.disposables.push(material);
-      return material;
-    };
+    ) => hazedMaterial(this.disposables, haze, hex, amount, extra);
     const fins = this.track(towerTexture());
     fins.wrapS = RepeatWrapping;
     fins.wrapT = RepeatWrapping;
@@ -876,12 +872,6 @@ export class SouthBeachStreet implements SceneStreet {
     texture.repeat.set(1 / x, 1 / y);
     return this.track(texture);
   }
-}
-
-/** Scales the UVs of one face of a box (0 is +x) so its texture repeats `u` by `v` times. */
-function scaleFaceUv(box: BoxGeometry, face: number, u: number, v: number): void {
-  const uv = box.getAttribute('uv') as BufferAttribute;
-  for (let i = face * 4; i < face * 4 + 4; i++) uv.setXY(i, uv.getX(i) * u, uv.getY(i) * v);
 }
 
 /** One storey and one 3 m bay of a deco front: a ribbon window with a corner porthole. */
