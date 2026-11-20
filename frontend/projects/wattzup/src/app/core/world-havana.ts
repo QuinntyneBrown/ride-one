@@ -626,12 +626,22 @@ export class HavanaStreet implements SceneStreet {
         leaves.scale(1, 0.9 + random() * 0.8, 1);
         leaves.translate(-BALCONY + 0.25, y + 0.7, z);
         into.push(tint(leaves, random() < 0.5 ? 0x3f7a32 : 0x5a8a3a));
-        // Some spill over the railing: trailing green, or a bougainvillea's magenta.
+        // Some spill over the railing in a loose cascade of small clusters, thinning as it
+        // falls: trailing green, or a bougainvillea's magenta among its leaves.
         if (random() < 0.5) {
-          const trail = new IcosahedronGeometry(0.3, 1).toNonIndexed();
-          trail.scale(0.5, 1.6 + random(), 1.2);
-          trail.translate(-BALCONY - 0.12, y + 0.2, z);
-          into.push(tint(trail, random() < 0.4 ? 0xc2185b : 0x4a8a34));
+          const bloom = random() < 0.45;
+          const fall = 0.6 + random() * 1.4;
+          for (let k = 0; k < 14; k++) {
+            const t = k / 14;
+            const bit = new IcosahedronGeometry(0.07 + (1 - t) * 0.07, 0).toNonIndexed();
+            bit.translate(
+              -BALCONY - 0.08 - random() * 0.1,
+              y + 0.9 - t * fall,
+              z + (random() - 0.5) * (0.7 - t * 0.4),
+            );
+            const petal = bloom && random() < 0.7;
+            into.push(tint(bit, petal ? (random() < 0.5 ? 0xd6247a : 0xb5179e) : 0x3f7a32));
+          }
         }
       } else if (roll < 0.65) {
         const cloth = new PlaneGeometry(0.5 + random() * 0.5, 0.6 + random() * 0.6).toNonIndexed();
