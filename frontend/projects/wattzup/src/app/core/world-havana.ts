@@ -438,6 +438,24 @@ export class HavanaStreet implements SceneStreet {
       [promenade - 0.7, -SEA],
       [promenade - 1400, -SEA],
     ]);
+    // The wall's landward face carries what people leave on it: names and hearts in paint,
+    // sprayed tags, and old patches of whitewash over earlier ones.
+    const tags = this.track(graffitiTexture());
+    tags.wrapS = RepeatWrapping;
+    tags.wrapT = RepeatWrapping;
+    tags.repeat.set(1 / 0.64, 1 / 36);
+    const painted = this.material({
+      map: tags,
+      transparent: true,
+      depthWrite: false,
+      roughness: 0.9,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    this.ribbons.add(points, painted, [
+      [promenade + 0.004, KERB + 0.02],
+      [promenade + 0.004, WALL - 0.1],
+    ]).renderOrder = 1;
     // Over the rock shelf at the wall's foot the water runs turquoise, deepening to the Gulf's
     // blue within forty metres; further out, whitecaps break on the swell.
     const shallow = this.track(shallowsTexture());
@@ -4214,5 +4232,58 @@ function casaTexture(): CanvasTexture {
     g.fill();
     g.fillStyle = 'rgba(120,90,60,0.35)';
     g.fillRect(0, 88, 128, 8);
+  });
+}
+
+/**
+ * Paint on the seawall's landward face, 36 m of it along a 0.64 m height: names and hearts in
+ * brush paint, sprayed tags in two colours, and pale patches of whitewash over older ones, with
+ * long stretches of bare wall between.
+ */
+function graffitiTexture(): CanvasTexture {
+  return canvasTexture(64, 2048, (g) => {
+    g.clearRect(0, 0, 64, 2048);
+    const random = seeded(1451);
+    const colours = ['#c8202f', '#1d70b8', '#f1c40f', '#2a9d8f', '#f2f2ee', '#1a1a1a', '#e07a9a'];
+    for (let y = 30; y < 2000; y += 60 + random() * 140) {
+      const roll = random();
+      const h = 40 + random() * 90;
+      if (roll < 0.3) {
+        // A whitewash patch.
+        g.fillStyle = `rgba(235,232,222,${0.5 + random() * 0.3})`;
+        g.fillRect(4 + random() * 10, y, 44 + random() * 12, h);
+      }
+      // The tag: loops and strokes of spray along the wall.
+      g.strokeStyle = colours[Math.floor(random() * colours.length)]!;
+      g.lineWidth = 2 + random() * 3;
+      g.globalAlpha = 0.7 + random() * 0.3;
+      g.beginPath();
+      g.moveTo(20 + random() * 24, y);
+      for (let k = 0; k < 7; k++) {
+        g.quadraticCurveTo(
+          10 + random() * 44,
+          y + (k + 0.5) * (h / 7),
+          14 + random() * 36,
+          y + (k + 1) * (h / 7),
+        );
+      }
+      g.stroke();
+      if (random() < 0.35) {
+        // A heart.
+        const cx = 32;
+        const cy = y + h / 2;
+        g.fillStyle = '#c8202f';
+        g.beginPath();
+        g.arc(cx - 6, cy - 5, 6, 0, Math.PI * 2);
+        g.arc(cx + 6, cy - 5, 6, 0, Math.PI * 2);
+        g.fill();
+        g.beginPath();
+        g.moveTo(cx - 12, cy - 3);
+        g.lineTo(cx, cy + 12);
+        g.lineTo(cx + 12, cy - 3);
+        g.fill();
+      }
+      g.globalAlpha = 1;
+    }
   });
 }
