@@ -350,6 +350,8 @@ export class MiamiStreet implements SceneStreet {
       blending: AdditiveBlending,
     });
     this.disposables.push(candleGlow);
+    const signBox = this.material({ color: 0x14121c, roughness: 0.5, metalness: 0.6 });
+    const iron = this.material({ color: 0x202024, roughness: 0.6, metalness: 0.8 });
     const vacancies = ['VACANCY', 'NO VACANCY'].map((text) =>
       this.material({
         map: this.track(neonWordTexture(text, '#ff3048')),
@@ -449,10 +451,45 @@ export class MiamiStreet implements SceneStreet {
         roughness: 0.5,
       });
       this.signs.push(sign);
-      const blade = new Mesh(this.unit, sign);
-      blade.scale.set(3.2, Math.min(height + 2, 15), 0.5);
-      blade.position.set(-1.6, Math.min(height + 2, 15) / 2 + 2.4, width * 0.3);
+      // The blade is a dark sheet-metal box, its name on both faces, edged with a neon tube,
+      // held off the wall on three iron brackets and crowned with a sunburst of neon rays.
+      const tall = Math.min(height + 2, 15);
+      const bladeZ = width * 0.3;
+      const blade = new Mesh(this.unit, signBox);
+      blade.scale.set(3.2, tall, 0.5);
+      blade.position.set(-1.9, tall / 2 + 2.4, bladeZ);
       hotel.add(blade);
+      for (const side of [-1, 1]) {
+        const face = new Mesh(this.flat, sign);
+        face.scale.set(3.1, tall - 0.1, 1);
+        face.rotation.y = side > 0 ? 0 : Math.PI;
+        face.position.set(-1.9, tall / 2 + 2.4, bladeZ + side * 0.26);
+        hotel.add(face);
+      }
+      for (const [y, l] of [
+        [2.4, 3.2],
+        [2.4 + tall, 3.2],
+      ] as const) {
+        const t = new Mesh(tube, line);
+        t.rotation.z = Math.PI / 2;
+        t.scale.set(1.3, l, 1.3);
+        t.position.set(-1.9, y, bladeZ);
+        hotel.add(t);
+      }
+      for (const y of [3.4, 2.4 + tall / 2, 1.4 + tall]) {
+        const arm = new Mesh(this.unit, iron);
+        arm.scale.set(0.5, 0.12, 0.12);
+        arm.position.set(-0.25, y, bladeZ);
+        hotel.add(arm);
+      }
+      for (let r = 0; r < 7; r++) {
+        const a = -Math.PI / 2 + (r / 6) * Math.PI;
+        const ray = new Mesh(tube, line);
+        ray.scale.set(1.2, 1.6, 1.2);
+        ray.rotation.z = -a;
+        ray.position.set(-1.9 + Math.sin(a) * 1.1, 2.6 + tall + Math.cos(a) * 1.1, bladeZ);
+        hotel.add(ray);
+      }
       // A striped awning over the café terrace, and its tables' lamps.
       const awning = this.material({
         map: this.track(awningTexture(glow)),
@@ -1289,22 +1326,39 @@ function windowsTexture(storeys: number, seed: number): CanvasTexture {
   });
 }
 
-/** A blade sign: the hotel's name in neon letters down a dark panel. */
+/** A blade sign's face: the hotel's name in glowing neon capitals inside a border of bulbs. */
 function signTexture(name: string, glow: number): CanvasTexture {
   const colour = `#${glow.toString(16).padStart(6, '0')}`;
-  return canvasTexture(64, 512, (g) => {
-    g.fillStyle = '#101018';
-    g.fillRect(0, 0, 64, 512);
+  return canvasTexture(128, 1024, (g) => {
+    g.fillStyle = '#100c18';
+    g.fillRect(0, 0, 128, 1024);
+    for (let y = 10; y < 1024; y += 20)
+      for (const x of [10, 118]) {
+        g.fillStyle = (y / 20) % 2 < 1 ? '#fff4d0' : '#ffc860';
+        g.beginPath();
+        g.arc(x, y, 4, 0, Math.PI * 2);
+        g.fill();
+      }
     g.strokeStyle = colour;
-    g.lineWidth = 4;
-    g.strokeRect(4, 4, 56, 504);
-    g.fillStyle = colour;
-    g.font = 'bold 44px sans-serif';
+    g.lineWidth = 3;
+    g.strokeRect(22, 22, 84, 980);
+    g.font = 'bold 92px sans-serif';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     const letters = name.replace(/ /g, '').split('');
-    const step = 480 / letters.length;
-    letters.forEach((c, i) => g.fillText(c, 32, 22 + step * (i + 0.5)));
+    const step = 940 / letters.length;
+    letters.forEach((c, i) => {
+      const y = 46 + step * (i + 0.5);
+      g.shadowColor = colour;
+      g.shadowBlur = 16;
+      g.fillStyle = colour;
+      g.fillText(c, 64, y);
+      g.shadowBlur = 0;
+      g.fillStyle = 'rgba(255,255,255,0.75)';
+      g.font = 'bold 86px sans-serif';
+      g.fillText(c, 64, y);
+      g.font = 'bold 92px sans-serif';
+    });
   });
 }
 
