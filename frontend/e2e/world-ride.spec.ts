@@ -380,6 +380,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Champs-Élysées Finale');
   });
 
+  test('rides Easy Cadence Workout in Dutch Tulip Fields through the bulb fields', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Easy Cadence Workout',
+      'Dutch Tulip Fields',
+      'easy-cadence-workout',
+    );
+    await expect(world.heading).toHaveText('Dutch Tulip Fields');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Dutch Tulip Fields');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

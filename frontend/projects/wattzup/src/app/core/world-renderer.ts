@@ -620,6 +620,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 1.3, colour: 0xffe4c0 },
     fogRange: [300, 3200],
   },
+  // A bright April morning over the polder: big sky, scattered cloud, the colours vivid.
+  tulips: {
+    sky: 0x6aa8e8,
+    fog: 0xd0dce8,
+    ground: 0x5a8a3a,
+    road: 0x8a4a3a,
+    sun: 40,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.6,
+    azimuth: -140,
+    light: { sun: 3, fill: 1.4, colour: 0xfff4e4 },
+    fogRange: [300, 3200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
