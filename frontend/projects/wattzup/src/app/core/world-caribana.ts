@@ -83,6 +83,10 @@ const GARDINER_NEAR = -40;
 const GARDINER_FAR = -63;
 const GARDINER_DECK = 9.5;
 
+/** A King or Queen of the band leads each band on the right, this far into each truck's stretch. */
+const ROYAL_AT = 64;
+const ROYAL_X = 4.0;
+
 /** Caribbean flags in the crowd and on the lamp banners: T&T, Jamaica, Barbados, Guyana. */
 const FLAG_KINDS = ['trinidad', 'jamaica', 'barbados', 'guyana'] as const;
 type FlagKind = (typeof FLAG_KINDS)[number];
@@ -199,6 +203,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly ontarioPlace = new Group();
   private readonly smoke: { mesh: Mesh; phase: number; material: MeshStandardMaterial }[] = [];
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
+  private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
   private readonly mokos: {
     figure: Group;
     legs: [Group, Group];
@@ -246,6 +251,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addMasqueraders(roadHalf);
     this.addBarricades();
     this.addMokoJumbies();
+    this.addRoyals();
     this.addTrucks();
     this.addLamps();
     this.addTrees();
@@ -286,6 +292,18 @@ export class CaribanaStreet implements SceneStreet {
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
+    for (const r of this.royals) {
+      const metres = along(r.offset, LOOP);
+      const t = this.time + r.phase;
+      r.piece.position.set(
+        ROYAL_X + Math.sin(t * 0.5) * 0.3,
+        heightAt(Math.max(metres, 0)) + ASPHALT + Math.abs(Math.sin(t * 2.1)) * 0.04,
+        -metres,
+      );
+      // The whole frame rocks slowly as the masquerader wines inside it, turning to the crowds.
+      r.piece.rotation.z = Math.sin(t * 1.05) * 0.04;
+      r.piece.rotation.y = Math.PI + Math.sin(t * 0.35) * 0.35;
+    }
     for (const e of this.expressway) {
       const metres = along(e.offset + this.time * e.speed, LOOP);
       e.car.position.set(e.x, heightAt(Math.max(metres, 0)) + GARDINER_DECK, -metres);
@@ -496,6 +514,73 @@ export class CaribanaStreet implements SceneStreet {
     }
   }
 
+  /**
+   * A King or Queen of the band for each band: the showpiece costume on a wheeled frame, a
+   * towering fan of plumes in three layers 4 m high with wings of plumes either side, a great
+   * jewelled medallion at the hub, a sequinned skirt over the wheels and the masquerader at its
+   * heart, arms spread, facing back towards the riders.
+   */
+  private addRoyals(): void {
+    const plumes = this.material({
+      map: this.track(featherTexture()),
+      alphaTest: 0.4,
+      side: DoubleSide,
+      vertexColors: true,
+      roughness: 0.55,
+    });
+    const sequins = this.material({
+      map: this.repeat(sequinTexture(), 0.1, 0.1),
+      roughness: 0.25,
+      metalness: 0.65,
+    });
+    const skinMaterial = this.material({ color: SKINS[2], roughness: 0.55 });
+    const random = seeded(1009);
+    for (let i = 0; i < LOOP / TRUCK_EVERY; i++) {
+      const costume = COSTUMES[(i + 1) % COSTUMES.length]!;
+      const [outer, mid, inner] = costume.feathers;
+      const piece = new Group();
+      const fan = mergeGeometries([
+        featherFan(outer!, 31, 4.2, 0.55, Math.PI * 1.1, 0.18),
+        featherFan(mid!, 25, 3.0, 0.6, Math.PI * 1.04, 0.14),
+        featherFan(inner!, 19, 1.8, 0.5, Math.PI, 0.1),
+      ])!;
+      fan.translate(0, 1.9, 0.45);
+      const wings = mergeGeometries(
+        [-1, 1].map((side) => {
+          const wing = featherFan(side < 0 ? mid! : outer!, 13, 2.1, 0.42, Math.PI * 0.75, 0.05);
+          wing.rotateZ(side * -1.2);
+          wing.translate(side * 1.9, 1.3, 0.25);
+          return wing;
+        }),
+      )!;
+      const medallion = medallionGeometry();
+      medallion.scale(3.2, 3.2, 3.2);
+      medallion.translate(0, 1.85, -0.1);
+      const skirt = new CylinderGeometry(0.9, 1.7, 1.3, 28, 1, true);
+      skirt.translate(0, 0.65, 0.2);
+      const frame = new TorusGeometry(1.6, 0.06, 6, 36, Math.PI);
+      frame.translate(0, 1.95, 0.3);
+      const body = masBody(POSES[2]!);
+      const suit = masCostume();
+      const crown = featherFan(inner!, 15, 1.2, 0.18, Math.PI * 0.7, 0.1);
+      crown.translate(0, 1.7, 0);
+      this.disposables.push(fan, wings, medallion, skirt, frame, body, suit, crown);
+      const suitMaterial = this.material({
+        color: costume.suit,
+        map: sequins.map,
+        roughness: 0.25,
+        metalness: 0.65,
+      });
+      piece.add(new Mesh(fan, plumes), new Mesh(wings, plumes), new Mesh(crown, plumes));
+      piece.add(new Mesh(medallion, suitMaterial), new Mesh(skirt, suitMaterial));
+      piece.add(new Mesh(frame, suitMaterial));
+      piece.add(new Mesh(body, skinMaterial), new Mesh(suit, suitMaterial));
+      piece.traverse((o) => (o.castShadow = true));
+      this.group.add(piece);
+      this.royals.push({ piece, offset: i * TRUCK_EVERY + ROYAL_AT, phase: random() * 6.3 });
+    }
+  }
+
   private readonly satinWing = new MeshStandardMaterial({
     vertexColors: true,
     side: DoubleSide,
@@ -596,6 +681,9 @@ export class CaribanaStreet implements SceneStreet {
       const section = Math.floor(offset / 40) % COSTUMES.length;
       for (const side of [-1, 1] as const) {
         if (side < 0 && (fromTruck < 4 || fromTruck > TRUCK_EVERY - 12)) continue;
+        // And room round each King or Queen on the right.
+        const fromRoyal = (((offset - ROYAL_AT) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
+        if (side > 0 && (fromRoyal < 6 || fromRoyal > TRUCK_EVERY - 6)) continue;
         if (random() < 0.25) continue;
         this.dancers.push({
           side,
