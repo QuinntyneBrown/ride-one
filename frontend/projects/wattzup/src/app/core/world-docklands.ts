@@ -122,6 +122,12 @@ const WHALE_Z = -430;
 const WHALE_HEIGHT = 78;
 const WHALE_START = 300;
 const WHALE_SPEED = 3;
+/** Vending machines against the towers across the street, at these offsets round the loop. */
+const MACHINES: readonly number[] = [22, 64, 118, 176, 250, 330, 402, 455, 520, 610];
+const MACHINE_WIDE = 1.4;
+const MACHINE_TALL = 2.4;
+const MACHINE_DEEP = 1;
+const MACHINE_COLOURS: readonly string[] = ['#ff3b5c', '#2f7dff', '#ffb347', '#2fd18a'];
 /** Neon gates over the road, at these offsets round the loop. */
 const GATES: readonly number[] = [70, 230, 380, 540];
 const GATE_HEIGHT = 6.5;
@@ -285,6 +291,7 @@ export class DocklandsStreet {
   private readonly lanterns: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
   private readonly gates: { group: Group; offset: number }[] = [];
+  private readonly machines: { group: Group; offset: number }[] = [];
   private readonly walkers: { group: Group; offset: number }[] = [];
   private readonly craft: { group: Group; strobe: Mesh; lane: (typeof SKYLANES)[number] }[] = [];
   /** The people walking the pavement: each strolls its own way at its own pace. */
@@ -1178,6 +1185,7 @@ export class DocklandsStreet {
     this.addLanterns(roadHalf);
     this.addStalls();
     this.addGates(roadHalf);
+    this.addMachines(roadHalf);
     this.addWalkers(roadHalf);
     this.addAirTraffic();
     this.addRain();
@@ -1745,6 +1753,41 @@ export class DocklandsStreet {
     });
   }
 
+  /**
+   * Vending machines in twos and threes against the towers across the street, facing the road:
+   * white-lit fronts with rows of bright cans behind glass and a coloured header, throwing their
+   * light across the wet pavement.
+   */
+  private addMachines(roadHalf: number): void {
+    const fronts = MACHINE_COLOURS.map((hex, i) => {
+      const texture = this.track(machineTexture(hex, i));
+      return new MeshBasicMaterial({ map: texture, toneMapped: false });
+    });
+    const shell = new MeshStandardMaterial({ color: 0x1a1b24, metalness: 0.4, roughness: 0.5 });
+    const unit = new BoxGeometry(1, 1, 1);
+    const face = new PlaneGeometry(MACHINE_WIDE - 0.12, MACHINE_TALL - 0.12);
+    this.disposables.push(...fronts, shell, unit, face);
+    const random = seeded(293);
+    const x = roadHalf + SETBACK - MACHINE_DEEP / 2 - 0.1;
+    for (const offset of MACHINES) {
+      const group = new Group();
+      const count = 2 + Math.floor(random() * 2);
+      for (let k = 0; k < count; k++) {
+        const z = (k - (count - 1) / 2) * (MACHINE_WIDE + 0.08);
+        const body = new Mesh(unit, shell);
+        body.scale.set(MACHINE_DEEP, MACHINE_TALL, MACHINE_WIDE);
+        body.position.set(x, KERB + MACHINE_TALL / 2, z);
+        const front = new Mesh(face, fronts[Math.floor(random() * fronts.length)]!);
+        front.rotation.y = -Math.PI / 2;
+        front.position.set(x - MACHINE_DEEP / 2 - 0.01, KERB + MACHINE_TALL / 2, z);
+        group.add(body, front);
+      }
+      this.streak(group, '#e8f4ff', x - 4, KERB, 0, 8, count * MACHINE_WIDE + 1, 1.3);
+      this.group.add(group);
+      this.machines.push({ group, offset });
+    }
+  }
+
   private addVents(roadHalf: number): void {
     const texture = this.track(glowTexture());
     const grate = new MeshStandardMaterial({ color: 0x0c0d12, metalness: 0.6, roughness: 0.5 });
@@ -2246,6 +2289,11 @@ export class DocklandsStreet {
       walker.group.visible = !this.onBridge(Math.max(metres, 0));
       walker.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
+    for (const machine of this.machines) {
+      const metres = ((((machine.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      machine.group.visible = !this.onBridge(Math.max(metres, 0));
+      machine.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
     for (const gate of this.gates) {
       const metres = ((((gate.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       gate.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -2536,6 +2584,35 @@ function streakTexture(): CanvasTexture {
  * A blade sign at night: `word` in neon tube letters stacked top to bottom on a dark panel,
  * with the tube's glow around them and a thin neon border.
  */
+/** A vending machine's front: a coloured header, rows of bright cans behind glass, a slot below. */
+function machineTexture(hex: string, i: number): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 110;
+  canvas.height = 190;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = hex;
+    ctx.fillRect(0, 0, 110, 190);
+    ctx.fillStyle = '#f4f8ff';
+    ctx.fillRect(8, 28, 94, 92);
+    const cans = ['#ff3b5c', '#2f7dff', '#ffd23f', '#2fd18a', '#ff8a3d', '#b05cff'];
+    const random = seeded(301 + i);
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 6; col++) {
+        ctx.fillStyle = cans[Math.floor(random() * cans.length)]!;
+        ctx.fillRect(12 + col * 15, 32 + row * 22, 10, 16);
+      }
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(8, 6, 94, 14);
+    ctx.fillStyle = '#14141c';
+    ctx.fillRect(14, 140, 82, 26);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 /** A gate's name plate: `word` in neon tube letters across a dark panel. */
 function plateTexture(word: string, colour: string): CanvasTexture {
   const canvas = document.createElement('canvas');
