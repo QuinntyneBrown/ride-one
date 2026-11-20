@@ -211,7 +211,7 @@ None.
   - on the right, 150 m into the loop, Spreckels Lake with model yachts tacking across it, and the park path where roller skaters and joggers go both ways (the kit's `Figures`);
   - the shared crowd in knots along the barriers, the lawns showing between them;
   - 420 m ahead, just right of the drive and drawn at 1.9 times its size so it carries at the vanishing point, the Dutch Windmill above Ocean Beach, its octagonal shingled tower, gallery and domed cap, its four lattice sails turning on the street's clock, tulip beds at its foot and the dunes and the Pacific behind, hazed by hand;
-  - the fog rolling in off the ocean, the kit's `Mist`: curtains across the horizon and banks drifting low over the lawns.
+  - the fog rolling in off the ocean: scene fog closing in from 20 to 380 m so each row of the groves fades behind the last, and the kit's `Mist` with four curtains across the drive from 260 to 1200 m ahead and fourteen banks drifting low over the lawns.
 
   `lay`, `place` and `setTime` recycle it along a 500 m loop.
 - **Havana Malecón (`core/world-havana.ts`).** For `havana`, the seafront boulevard in the late afternoon:
