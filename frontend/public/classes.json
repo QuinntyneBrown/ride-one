@@ -4403,6 +4403,7 @@
     },
     {
       "id": "sufferfest-20-minute-session",
+      "world": "deathvalley",
       "title": "Sufferfest 20 Minute Session",
       "channel": "GCN",
       "focus": "HIIT",

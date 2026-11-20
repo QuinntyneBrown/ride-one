@@ -161,7 +161,8 @@ export interface components {
         | 'letras'
         | 'santamonica'
         | 'antwerp'
-        | 'tahoe';
+        | 'tahoe'
+        | 'deathvalley';
     };
     ClassShelfResponse: {
       id: string;
