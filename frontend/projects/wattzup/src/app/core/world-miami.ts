@@ -101,6 +101,8 @@ export class MiamiStreet implements SceneStreet {
   private chatting: Figures | null = null;
   private skating: Figures | null = null;
   private arms: InstancedMesh | null = null;
+  private dogs: InstancedMesh | null = null;
+  private dogWalkers: number[] = [];
   private hair: InstancedMesh | null = null;
   private readonly limb = new Matrix4();
   private readonly limbTurn = new Matrix4();
@@ -400,6 +402,19 @@ export class MiamiStreet implements SceneStreet {
         );
       });
       crowd.commit();
+    }
+    const dogs = this.dogs;
+    if (dogs) {
+      this.dogWalkers.forEach((w, i) => {
+        const p = this.people[w]!;
+        const metres =
+          loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND) + (p.speed >= 0 ? 1.1 : -1.1);
+        const trot = Math.abs(Math.sin(this.time * 9 + p.phase)) * 0.04;
+        this.limb.makeRotationY(p.speed >= 0 ? 0 : Math.PI);
+        this.limb.setPosition(p.x + 0.35, heightAt(Math.max(metres, 0)) + 0.15 + trot, -metres);
+        dogs.setMatrixAt(i, this.limb);
+      });
+      dogs.instanceMatrix.needsUpdate = true;
     }
     const skating = this.skating;
     if (skating) {
@@ -2863,6 +2878,41 @@ export class MiamiStreet implements SceneStreet {
       NIGHT_WEAR,
       8143,
     );
+    // Every fourth stroller walks a small dog on a lead a pace ahead of them.
+    const dogParts: BufferGeometry[] = [];
+    const piece = (w: number, h: number, d: number, x: number, y: number, z: number) => {
+      const g = new BoxGeometry(w, h, d);
+      g.translate(x, y, z);
+      dogParts.push(g);
+    };
+    piece(0.2, 0.18, 0.45, 0, 0.3, 0);
+    piece(0.16, 0.16, 0.18, 0, 0.42, -0.28);
+    piece(0.08, 0.06, 0.1, 0, 0.38, -0.4);
+    piece(0.04, 0.04, 0.18, 0, 0.42, 0.28);
+    for (const [x, z] of [
+      [-0.07, -0.16],
+      [0.07, -0.16],
+      [-0.07, 0.16],
+      [0.07, 0.16],
+    ] as const)
+      piece(0.05, 0.22, 0.05, x, 0.11, z);
+    const dogGeometry = mergeGeometries(dogParts)!;
+    dogParts.forEach((g) => g.dispose());
+    const dogMaterial = new MeshStandardMaterial({ roughness: 0.9 });
+    const walkers = this.people.map((_, i) => i).filter((i) => i % 4 === 0);
+    this.dogs = new InstancedMesh(dogGeometry, dogMaterial, walkers.length);
+    this.dogWalkers = walkers;
+    const coat = seeded(8501);
+    walkers.forEach((_, i) =>
+      this.dogs!.setColorAt(
+        i,
+        new Color(['#f4ecd8', '#3a2a1a', '#c8a070', '#1a1a1a', '#e8e0e0'][Math.floor(coat() * 5)]!),
+      ),
+    );
+    this.dogs.frustumCulled = false;
+    this.dogs.castShadow = true;
+    this.group.add(this.dogs);
+    this.disposables.push(dogGeometry, dogMaterial, this.dogs);
     // Everyone gets arms that swing as they walk, and hair or a hat.
     const count = this.people.length + this.skaters.length + this.standers.length;
     const arm = new CylinderGeometry(0.045, 0.04, 0.68, 6);
