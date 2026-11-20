@@ -3038,7 +3038,8 @@ const LOOKS: Record<WorldId, Look> = {
   // the city's glow, the road wet and catching the neon.
   miami: {
     sky: 0x1a1240,
-    fog: 0x3a2458,
+    // The street fades into a warm magenta haze of neon in the damp air.
+    fog: 0x4a2a64,
     ground: 0x2a2838,
     road: 0x2c2c34,
     sun: -6,
@@ -3047,12 +3048,12 @@ const LOOKS: Record<WorldId, Look> = {
     moon: {
       elevation: 28,
       azimuth: -130,
-      strength: 1.5,
-      colour: 0xb8c4ff,
-      fill: 2.4,
-      fillSky: 0x7a4a9e,
+      strength: 1.7,
+      colour: 0xc0c8ff,
+      fill: 2.6,
+      fillSky: 0x8a4aa8,
     },
-    fogRange: [60, 900],
+    fogRange: [45, 620],
   },
   caribana: {
     sky: 0x8ec5ee,
