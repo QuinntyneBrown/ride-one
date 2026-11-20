@@ -131,6 +131,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
+  private readonly lasers: Group[] = [];
   private sparks: InstancedMesh | null = null;
   private readonly sparkDirs: Vector3[] = [];
   private heli: { craft: Group; rotor: Mesh; lights: Mesh[] } | null = null;
@@ -282,6 +283,15 @@ export class MiamiStreet implements SceneStreet {
       sparks.instanceMatrix.needsUpdate = true;
       if (sparks.instanceColor) sparks.instanceColor.needsUpdate = true;
     }
+    // The clubs' lasers sweep to a 124 bpm beat, the fan opening and closing.
+    const beat = seconds * (124 / 60) * Math.PI;
+    this.lasers.forEach((fan, k) => {
+      fan.rotation.y = Math.sin(seconds * 0.6 + k) * 0.6;
+      fan.rotation.x = Math.sin(beat / 4 + k) * 0.25;
+      fan.children.forEach(
+        (b, i) => (b.rotation.z = Math.PI / 2 + 0.2 + i * (0.06 + 0.04 * Math.sin(beat / 2))),
+      );
+    });
     // The tiki torches' flames flicker, each on its own.
     this.flames.forEach((f, k) => {
       const flick = 0.8 + 0.3 * Math.sin(seconds * 13 + k * 1.7) * Math.sin(seconds * 7.3 + k);
@@ -693,6 +703,17 @@ export class MiamiStreet implements SceneStreet {
       emissiveIntensity: 0.4,
     });
     const foliage = this.material({ color: 0x2a5a30, roughness: 0.9 });
+    const laserGeometry = new BoxGeometry(0.12, 260, 0.12);
+    laserGeometry.translate(0, 130, 0);
+    this.disposables.push(laserGeometry);
+    const laser = new MeshBasicMaterial({
+      color: 0x40ff70,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(laser);
     const brass = this.material({ color: 0xd8a848, roughness: 0.25, metalness: 0.9 });
     const velvet = this.material({ color: 0xa01030, roughness: 0.9 });
     const clubSign = this.material({
@@ -1121,6 +1142,17 @@ export class MiamiStreet implements SceneStreet {
         arrow.position.set(-0.1, 4.9, 2.6);
         hotel.add(arrow);
         this.clubs.push(offset + width / 2);
+        // The club's lasers on its roof: a fan of green beams fanning out over the street and
+        // the sea, sweeping to the beat.
+        const fan = new Group();
+        for (let i = 0; i < 6; i++) {
+          const beam = new Mesh(laserGeometry, laser);
+          beam.rotation.z = Math.PI / 2 + 0.25 + i * 0.09;
+          fan.add(beam);
+        }
+        fan.position.set(4, height + 4, 0);
+        hotel.add(fan);
+        this.lasers.push(fan);
       }
       this.props.push({ mesh: holder, offset: offset + width / 2, x: roadHalf + FRONT });
       offset += width + 3 + random() * 4;
