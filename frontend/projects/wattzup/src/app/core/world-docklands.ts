@@ -1,0 +1,182 @@
+// Neon Docklands' street, drawn by world-renderer.ts (L2-101 AC1, L2-111 technique 1): glass
+// and concrete towers after dark on both sides of the road, their windows lit at random and a
+// neon sign down some of their faces. The towers repeat along a loop longer than the road in
+// view, so the street never ends.
+import {
+  BoxGeometry,
+  CanvasTexture,
+  Color,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  RepeatWrapping,
+  SRGBColorSpace,
+  type Texture,
+} from 'three/webgpu';
+
+/** Metres from the road's edge to the nearest tower face: the quay's pavement between. */
+const SETBACK = 11;
+/** The street repeats every LOOP metres; towers run from BEHIND metres behind the rider. */
+const LOOP = 640;
+const BEHIND = 30;
+/** Towers reach below the road, so a ramp never shows their footing. */
+const FOOTING = 6;
+/** One window texture tile covers this many metres of façade, across and up. */
+const TILE = 24;
+/** The neon colours of the signs: magenta, cyan, volt and violet. */
+const NEON = ['#ff4fb8', '#3fe0ff', '#d8ff3e', '#9b6bff'];
+
+interface Tower {
+  readonly mesh: Mesh;
+  readonly side: -1 | 1;
+  readonly offset: number;
+  readonly width: number;
+  readonly depth: number;
+}
+
+export class DocklandsStreet {
+  readonly group = new Group();
+  private readonly towers: Tower[] = [];
+  private readonly random = seeded(41);
+
+  constructor(
+    private readonly track: <T extends Texture>(texture: T) => T,
+    private readonly disposables: { dispose(): void }[],
+  ) {}
+
+  build(roadHalf: number): void {
+    const roof = new MeshStandardMaterial({ color: 0x0c0e16, roughness: 0.9 });
+    // Three façades: blue glass, grey concrete and dark curtain wall, each lit its own way.
+    const facades = [
+      { base: '#1b2033', lit: ['#ffd9a0', '#9fd8ff', '#ffffff'], share: 0.34 },
+      { base: '#272631', lit: ['#ffe2b0', '#ffc77a'], share: 0.22 },
+      { base: '#12151f', lit: ['#7fb8ff', '#c6e6ff', '#ff9ad5'], share: 0.18 },
+    ].map(({ base, lit, share }, i) => {
+      const texture = this.track(windowTexture(base, lit, share, 101 + i * 17));
+      return new MeshStandardMaterial({
+        map: texture,
+        emissiveMap: texture,
+        emissive: new Color(0xffffff),
+        emissiveIntensity: 0.9,
+        roughness: 0.35,
+        metalness: 0.3,
+      });
+    });
+    const neon = NEON.map(
+      (hex) =>
+        new MeshStandardMaterial({
+          color: 0x000000,
+          emissive: new Color(hex),
+          emissiveIntensity: 2.4,
+        }),
+    );
+    const strip = new BoxGeometry(0.5, 1, 0.5);
+    this.disposables.push(roof, ...facades, ...neon, strip);
+
+    for (const side of [-1, 1] as const) {
+      let offset = 0;
+      while (offset < LOOP) {
+        const width = 14 + this.random() * 16;
+        const depth = 14 + this.random() * 14;
+        const height = 24 + this.random() ** 2 * 120;
+        const facade = facades[Math.floor(this.random() * facades.length)]!;
+        const geometry = towerGeometry(width, height + FOOTING, depth);
+        this.disposables.push(geometry);
+        // Faces are +x, -x, top, bottom, +z, -z.
+        const mesh = new Mesh(geometry, [facade, facade, roof, roof, facade, facade]);
+        mesh.castShadow = false;
+        mesh.receiveShadow = true;
+        mesh.userData['height'] = height;
+        if (this.random() < 0.45) {
+          // A neon sign runs down the face towards the road, part of the way up.
+          const sign = new Mesh(strip, neon[Math.floor(this.random() * neon.length)]!);
+          const tall = Math.min(height * 0.5, 10 + this.random() * 22);
+          sign.scale.set(1, tall, 1 + this.random() * 1.5);
+          sign.position.set(
+            -side * (width / 2 + 0.25),
+            FOOTING / 2 + 6 + tall / 2 + this.random() * (height * 0.3),
+            (this.random() - 0.5) * depth * 0.5,
+          );
+          mesh.add(sign);
+        }
+        this.group.add(mesh);
+        this.towers.push({ mesh, side, offset: offset + depth / 2, width, depth });
+        // A lane or a plaza between some towers lets the distance through.
+        offset += depth + (this.random() < 0.3 ? 8 + this.random() * 18 : 1.5);
+      }
+    }
+    this.roadHalf = roadHalf;
+  }
+
+  private roadHalf = 3.5;
+
+  /** Moves each tower to its place along the loop for the rider's distance `s`. */
+  place(s: number, heightAt: (metres: number) => number): void {
+    for (const tower of this.towers) {
+      const metres = ((((tower.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      const height = tower.mesh.userData['height'] as number;
+      tower.mesh.position.set(
+        tower.side * (this.roadHalf + SETBACK + tower.width / 2),
+        heightAt(Math.max(metres, 0)) + (height - FOOTING) / 2,
+        -metres,
+      );
+    }
+  }
+}
+
+/** A box whose side faces repeat the window tile once every TILE metres. */
+function towerGeometry(width: number, height: number, depth: number): BoxGeometry {
+  const geometry = new BoxGeometry(width, height, depth);
+  const uv = geometry.getAttribute('uv');
+  // Four vertices per face, faces in the order +x, -x, +y, -y, +z, -z.
+  const across = [depth, depth, width, width, width, width];
+  for (let face = 0; face < 6; face++) {
+    for (let v = 0; v < 4; v++) {
+      const i = face * 4 + v;
+      uv.setXY(i, (uv.getX(i) * across[face]!) / TILE, (uv.getY(i) * height) / TILE);
+    }
+  }
+  uv.needsUpdate = true;
+  return geometry;
+}
+
+/**
+ * A façade at night: dark glazing in a grid of floors and bays, a `share` of the windows lit
+ * in one of the `lit` colours. The same texture is the emissive map, so only the lit windows
+ * glow.
+ */
+function windowTexture(base: string, lit: string[], share: number, seed: number): CanvasTexture {
+  const size = 256;
+  const cols = 16;
+  const rows = 7;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const random = seeded(seed);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, size, size);
+    const w = size / cols;
+    const h = size / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const on = random() < share;
+        ctx.fillStyle = on ? lit[Math.floor(random() * lit.length)]! : base;
+        ctx.globalAlpha = on ? 0.55 + random() * 0.45 : 1;
+        ctx.fillRect(c * w + 3, r * h + 6, w - 6, h - 16);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function seeded(seed: number): () => number {
+  let state = seed % 2147483647 || 1;
+  return () => (state = (state * 16807) % 2147483647) / 2147483647;
+}

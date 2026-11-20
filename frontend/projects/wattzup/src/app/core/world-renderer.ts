@@ -62,6 +62,7 @@ import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from '.
 import { nextArch, roadAhead, type RoadPoint } from './scene-road';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 import { Cyclist, CyclistKit } from './world-cyclist';
+import { DocklandsStreet } from './world-docklands';
 import { cobbleTextures, OldTownStreet } from './world-oldtown';
 import { targetGrade, type World } from './worlds';
 
@@ -204,6 +205,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private readonly wheelBlur: Mesh[] = [];
   private readonly lamps: PointLight[] = [];
   private street: OldTownStreet | null = null;
+  private towers: DocklandsStreet | null = null;
   private readonly posts: Mesh[] = [];
   private readonly textures: Texture[] = [];
   private readonly disposables: { dispose(): void }[] = [];
@@ -233,8 +235,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.budget = new FrameBudget(startTier(this.backend));
 
     this.buildScene(world, canvas);
-    await this.addPanorama(world);
+    // Docklands' photographed distance is the mock's own still, riders and all: its towers are
+    // built in 3D instead.
+    if (world.id !== 'docklands') await this.addPanorama(world);
     if (world.id === 'oldtown') this.addStreet();
+    if (world.id === 'docklands') this.addTowers();
     this.applyTier();
     (window as unknown as { __wz: unknown }).__wz = this; // DEBUG-REMOVE
     return true;
@@ -633,8 +638,16 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.street = street;
   }
 
+  private addTowers(): void {
+    const towers = new DocklandsStreet((t) => this.track(t), this.disposables);
+    towers.build(ROAD_HALF);
+    this.scene.add(towers.group);
+    this.towers = towers;
+  }
+
   private placeRoadside(s: number, ahead: RoadPoint[]): void {
     this.street?.place(s, (metres) => heightAt(ahead, metres));
+    this.towers?.place(s, (metres) => heightAt(ahead, metres));
     this.lamps.forEach((lamp, i) => {
       const metres = i * LAMP_EVERY - (s % LAMP_EVERY) + 8;
       lamp.position.set(
