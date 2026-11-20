@@ -267,6 +267,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addTrucks();
     this.addPanFloat();
     this.addGantry();
+    this.addOfficers();
     this.addLamps();
     this.addTrees();
     this.addStalls();
@@ -1191,6 +1192,89 @@ export class CaribanaStreet implements SceneStreet {
         const x = side < 0 ? -(19 + random() * 8) : 12 + random() * 2;
         this.props.push({ mesh: tree, offset: offset + random() * 4, every: LOOP, x });
       }
+    }
+  }
+
+  /**
+   * Toronto Police officers along the route, standing inside the barricades in navy uniforms,
+   * hi-vis yellow vests and peaked caps with the chequered band, and paramedics in pairs on
+   * their response bikes.
+   */
+  private addOfficers(): void {
+    const navy = this.material({ color: 0x1c2333, roughness: 0.85 });
+    const vest = this.material({ color: 0xd7f23a, roughness: 0.6, emissive: 0x3a4a00 });
+    const checks = this.material({ map: this.track(chequerTexture()), roughness: 0.7 });
+    const black = this.material({ color: 0x111111, roughness: 0.6 });
+    const green = this.material({ color: 0x1f6f43, roughness: 0.8 });
+    const random = seeded(1201);
+    const torso = new CylinderGeometry(0.175, 0.17, 0.4, 12);
+    torso.scale(1, 1, 0.78);
+    torso.translate(0, 1.17, 0);
+    const stripe = new CylinderGeometry(0.178, 0.178, 0.05, 12, 1, true);
+    stripe.scale(1, 1, 0.78);
+    stripe.translate(0, 1.08, 0);
+    const crown = new CylinderGeometry(0.12, 0.11, 0.09, 14);
+    crown.translate(0, 1.71, 0);
+    const band = new CylinderGeometry(0.112, 0.112, 0.05, 14, 1, true);
+    band.translate(0, 1.66, 0);
+    const peak = new CylinderGeometry(0.08, 0.08, 0.012, 10, 1, false, Math.PI / 2, Math.PI);
+    peak.translate(0, 1.645, -0.06);
+    this.disposables.push(torso, stripe, crown, band, peak);
+    const figure = (top: Material, cap: boolean) => {
+      const parts = spectatorParts(0, false);
+      const person = new Group();
+      const skin = this.material({
+        color: SKINS[Math.floor(random() * SKINS.length)],
+        roughness: 0.6,
+      });
+      this.disposables.push(parts.skin, parts.top, parts.bottom);
+      person.add(new Mesh(parts.skin, skin), new Mesh(parts.top, navy));
+      person.add(new Mesh(parts.bottom, navy), new Mesh(torso, top));
+      person.add(new Mesh(stripe, this.material({ color: 0xd8dde0, metalness: 0.6 })));
+      if (cap) person.add(new Mesh(crown, navy), new Mesh(band, checks), new Mesh(peak, black));
+      person.traverse((o) => (o.castShadow = true));
+      return person;
+    };
+    for (let k = 0; k < 8; k++) {
+      const side = k % 2 ? 1 : -1;
+      const officer = figure(vest, true);
+      officer.rotation.y = side < 0 ? -Math.PI / 2 + 0.6 : Math.PI / 2 - 0.6;
+      const holder = new Group();
+      holder.add(officer);
+      this.group.add(holder);
+      this.props.push({
+        mesh: holder,
+        offset: 20 + k * 45 + random() * 8,
+        every: LOOP,
+        x: side * (BARRIER - 0.5),
+        road: true,
+      });
+    }
+    // Paramedics on response bikes, a pair at the kerb.
+    const frame = new BoxGeometry(0.05, 0.05, 1.0);
+    frame.rotateX(-0.35);
+    frame.translate(0, 0.68, 0);
+    const wheel = new TorusGeometry(0.33, 0.035, 6, 20);
+    wheel.rotateY(Math.PI / 2);
+    const bag = new BoxGeometry(0.3, 0.3, 0.45);
+    bag.translate(0, 0.95, 0.42);
+    this.disposables.push(frame, wheel, bag);
+    for (const dz of [0, 1.7]) {
+      const medic = figure(green, false);
+      const bike = new Group();
+      bike.add(new Mesh(frame, black), new Mesh(bag, this.material({ color: 0xffd23f })));
+      for (const z of [-0.55, 0.55]) {
+        const w = new Mesh(wheel, black);
+        w.position.set(0, 0.33, z);
+        bike.add(w);
+      }
+      bike.position.set(0.55, 0, 0);
+      bike.rotation.y = 0.15;
+      const holder = new Group();
+      holder.add(medic, bike);
+      holder.rotation.y = -Math.PI / 2 + 0.5;
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: 31 + dz, every: LOOP, x: BARRIER - 0.9, road: true });
     }
   }
 
@@ -2686,6 +2770,18 @@ function panTexture(): CanvasTexture {
       g.beginPath();
       g.ellipse(64 + Math.cos(a) * 20, 64 + Math.sin(a) * 20, 8, 6, a, 0, Math.PI * 2);
       g.stroke();
+    }
+  });
+}
+
+/** The Toronto Police cap band: a chequer of black and white squares. */
+function chequerTexture(): CanvasTexture {
+  return canvasTexture(64, 8, (g) => {
+    for (let x = 0; x < 64; x += 4) {
+      for (let y = 0; y < 8; y += 4) {
+        g.fillStyle = (x + y) % 8 ? '#111111' : '#f2f2f2';
+        g.fillRect(x, y, 4, 4);
+      }
     }
   });
 }
