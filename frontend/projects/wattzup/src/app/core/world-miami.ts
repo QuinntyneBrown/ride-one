@@ -769,6 +769,18 @@ export class MiamiStreet implements SceneStreet {
       this.signs.push(m);
       return m;
     });
+    const chalkboards = [
+      ['HAPPY', 'HOUR', '2 x 1'],
+      ['MOJITOS', '$9', 'LIVE DJ'],
+      ['CUBAN', 'COFFEE', 'TAPAS'],
+      ['OCEAN', 'VIEW', 'TABLES'],
+    ].map((lines) =>
+      this.material({
+        map: this.track(chalkboardTexture(lines)),
+        roughness: 0.9,
+        side: DoubleSide,
+      }),
+    );
     const planter = this.material({ color: 0xe8e0d8, roughness: 0.8 });
     const blossomBall = new SphereGeometry(0.7, 10, 8);
     this.disposables.push(blossomBall);
@@ -1226,6 +1238,15 @@ export class MiamiStreet implements SceneStreet {
       bracket.scale.set(3.8, 0.1, 0.1);
       bracket.position.set(-1.9, 10, -width * 0.32);
       hotel.add(bracket);
+      // A chalkboard A-frame out on the sidewalk by the door, chalked with the night's offer.
+      for (const turn of [0.35, -0.35]) {
+        const board = new Mesh(this.flat, chalkboards[k % chalkboards.length]!);
+        board.scale.set(0.65, 1.0, 1);
+        board.rotation.set(turn, 0, 0);
+        board.position.set(-1.6, 0.62, -width * 0.3 + (turn > 0 ? 0.17 : -0.17));
+        board.rotation.y = turn > 0 ? 0 : Math.PI;
+        hotel.add(board);
+      }
       // A planter at each end of the frontage, spilling bougainvillea in magenta flower.
       for (const z of [-width / 2 + 1.4, width / 2 - 1.4]) {
         const box = new Mesh(this.unit, planter);
@@ -5034,5 +5055,21 @@ function rainbowTexture(): CanvasTexture {
       g.fillStyle = 'rgba(0,0,0,0.6)';
       g.fillRect(track + (random() - 0.5) * 50, random() * 64, 2 + random() * 4, 2 + random() * 4);
     }
+  });
+}
+
+/** A chalkboard A-frame: three lines chalked in white and pink inside a timber frame. */
+function chalkboardTexture(lines: readonly string[]): CanvasTexture {
+  return canvasTexture(96, 144, (g) => {
+    g.fillStyle = '#6a4a2a';
+    g.fillRect(0, 0, 96, 144);
+    g.fillStyle = '#1e2420';
+    g.fillRect(6, 6, 84, 132);
+    g.textAlign = 'center';
+    lines.forEach((line, i) => {
+      g.fillStyle = i === 2 ? '#ff9ad0' : '#f4f0e8';
+      g.font = `bold ${i === 2 ? 20 : 18}px sans-serif`;
+      g.fillText(line, 48, 40 + i * 36, 80);
+    });
   });
 }
