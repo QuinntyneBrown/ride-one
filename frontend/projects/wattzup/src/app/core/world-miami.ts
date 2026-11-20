@@ -131,6 +131,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
+  private readonly cyclists: { mesh: Group; offset: number; speed: number; x: number }[] = [];
+  private riders: Figures | null = null;
   /** The cruiser's red lamp, wash and flare, then its blue ones. */
   private patrol: Mesh[] = [];
   private storm: { flash: MeshBasicMaterial; bolt: MeshBasicMaterial } | null = null;
@@ -199,6 +201,7 @@ export class MiamiStreet implements SceneStreet {
     this.addPuddles(roadHalf);
     this.addScooters(roadHalf);
     this.addPatrol(roadHalf);
+    this.addCyclists(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -365,6 +368,14 @@ export class MiamiStreet implements SceneStreet {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
     }
+    const riders = this.riders;
+    this.cyclists.forEach((c, i) => {
+      const metres = loopMetres(c.offset - c.speed * this.time, s, LOOP, BEHIND);
+      const y = heightAt(Math.max(metres, 0));
+      c.mesh.position.set(c.x, y + 0.02, -metres);
+      riders?.set(i, c.x, y + 0.2, -metres + 0.15, Math.PI, 0.92);
+    });
+    riders?.commit();
     for (const car of this.traffic) {
       const metres = loopMetres(car.offset - car.speed * this.time, s, LOOP, BEHIND);
       car.mesh.position.set(this.trafficX, heightAt(Math.max(metres, 0)), -metres);
@@ -2165,32 +2176,7 @@ export class MiamiStreet implements SceneStreet {
    * a docking rail, each bike two spoked wheels, a step-through frame, a basket and a saddle.
    */
   private addBikeDocks(roadHalf: number): void {
-    const parts: BufferGeometry[] = [];
-    for (const z of [-0.55, 0.55]) {
-      const w = new TorusGeometry(0.33, 0.03, 6, 18);
-      w.rotateY(Math.PI / 2);
-      w.translate(0, 0.36, z);
-      parts.push(w);
-    }
-    const bar = (l: number, x: number, y: number, z: number, tilt: number) => {
-      const b = new BoxGeometry(0.05, l, 0.05);
-      b.rotateX(tilt);
-      b.translate(x, y, z);
-      parts.push(b);
-    };
-    bar(0.9, 0, 0.55, 0.05, 0.9);
-    bar(0.6, 0, 0.62, 0.45, -0.25);
-    bar(0.55, 0, 0.85, -0.45, 0.3);
-    const basket = new BoxGeometry(0.4, 0.25, 0.3);
-    basket.translate(0, 0.95, -0.7);
-    const saddle = new BoxGeometry(0.16, 0.06, 0.26);
-    saddle.translate(0, 0.98, 0.42);
-    const bars = new BoxGeometry(0.55, 0.04, 0.04);
-    bars.translate(0, 1.12, -0.5);
-    parts.push(basket, saddle, bars);
-    const bike = mergeGeometries(parts)!;
-    parts.forEach((g) => g.dispose());
-    this.disposables.push(bike);
+    const bike = this.bikeGeometry();
     const blue = this.material({ color: 0x2a6ad8, roughness: 0.4, metalness: 0.3 });
     const steel = this.material({ color: 0x8a8e98, roughness: 0.4, metalness: 0.8 });
     const screen = this.material({ color: 0x80d0ff, emissive: 0x60c0ff, emissiveIntensity: 1.6 });
@@ -2677,6 +2663,72 @@ export class MiamiStreet implements SceneStreet {
     this.group.add(holder);
     car.rotation.y = Math.PI / 2 + 0.15;
     this.props.push({ mesh: holder, offset: CROSSINGS[0] + 2, x: roadHalf + 5 });
+  }
+
+  /** A step-through town bike, its wheels in the y-z plane and its front towards -z. */
+  private bikeGeometry(): BufferGeometry {
+    const parts: BufferGeometry[] = [];
+    for (const z of [-0.55, 0.55]) {
+      const w = new TorusGeometry(0.33, 0.03, 6, 18);
+      w.rotateY(Math.PI / 2);
+      w.translate(0, 0.36, z);
+      parts.push(w);
+    }
+    const bar = (l: number, x: number, y: number, z: number, tilt: number) => {
+      const b = new BoxGeometry(0.05, l, 0.05);
+      b.rotateX(tilt);
+      b.translate(x, y, z);
+      parts.push(b);
+    };
+    bar(0.9, 0, 0.55, 0.05, 0.9);
+    bar(0.6, 0, 0.62, 0.45, -0.25);
+    bar(0.55, 0, 0.85, -0.45, 0.3);
+    const basket = new BoxGeometry(0.4, 0.25, 0.3);
+    basket.translate(0, 0.95, -0.7);
+    const saddle = new BoxGeometry(0.16, 0.06, 0.26);
+    saddle.translate(0, 0.98, 0.42);
+    const bars = new BoxGeometry(0.55, 0.04, 0.04);
+    bars.translate(0, 1.12, -0.5);
+    parts.push(basket, saddle, bars);
+    const bike = mergeGeometries(parts)!;
+    parts.forEach((g) => g.dispose());
+    this.disposables.push(bike);
+    return bike;
+  }
+
+  /**
+   * Cyclists out for the evening, riding the bike lane towards the rider on town bikes, an
+   * upright posture and a lamp glowing on each handlebar.
+   */
+  private addCyclists(roadHalf: number): void {
+    const bike = this.bikeGeometry();
+    const paints = [0xf4f0e8, 0x2fc8b0, 0xff8fb0, 0x1d1f24].map((c) =>
+      this.material({ color: c, roughness: 0.4, metalness: 0.3 }),
+    );
+    const lamp = this.material({ color: 0xfff4d8, emissive: 0xfff4d8, emissiveIntensity: 3 });
+    const random = seeded(8481);
+    for (let k = 0; k < 4; k++) {
+      const ride = new Group();
+      const frame = new Mesh(bike, paints[k]!);
+      frame.castShadow = true;
+      const light = new Mesh(this.unit, lamp);
+      light.scale.set(0.12, 0.12, 0.08);
+      light.position.set(0, 1.02, -0.72);
+      const flare = new Mesh(this.flat, this.halo);
+      flare.scale.set(1.2, 1.2, 1);
+      flare.position.set(0, 1.02, -0.8);
+      flare.rotation.y = Math.PI;
+      ride.add(frame, light, flare);
+      ride.rotation.y = Math.PI;
+      this.group.add(ride);
+      this.cyclists.push({
+        mesh: ride,
+        offset: 30 + k * 95 + random() * 30,
+        speed: 4.5 + random() * 1.5,
+        x: -roadHalf + 0.95,
+      });
+    }
+    this.riders = new Figures(this.group, this.disposables, this.cyclists.length, NIGHT_WEAR, 8483);
   }
 
   /** People out for the night on both sidewalks. */
