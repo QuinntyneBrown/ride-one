@@ -1,0 +1,12 @@
+# Miami Neon Nights rendering iterations
+
+The live 3D world behind the ride HUD for [Ride to the Beat](http://localhost:4200/classes/ride-to-the-beat?simulate), whose class rides Miami Neon Nights (the neon boulevard). The composition reference is [the Miami mock](../../mocks/pages/world-ride/miami.html): a beachfront boulevard on a wet Miami night, neon-traced art deco hotels, palms and convertibles on the right, the moonlit Atlantic on the left and the bay's towers ahead. The level of detail aimed for is Old Town's ([its iterations](../oldtown/README.md)). Each iteration is one significant change, captured from the same opening frame of the ride at 1440 × 900 on Three.js's WebGL2 backend, and merged in its own pull request.
+
+| Capture                                    | Change and observed result                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [000 · Initial](000-initial.png)           | Flat pastel boxes with a grid of dark windows, neon lines along the rooflines, a blade sign on each hotel, palms on both sidewalks, a row of towers across the bay and a grey disc for a moon.                                                                                                                                                     |
+| [001 · Deco façades](001-deco-facades.jpg) | The hotel fronts are drawn at twice the resolution as art deco stucco: fluted pilasters between the bays, a lit string course and shadow under each storey, racing stripes at the corners, and paired windows with mullions, transoms and a shadowed eyebrow over each. Lit windows glow warm, pink or blue, and some have their blinds half down. |
+
+## Reproducing a capture
+
+Start the app with `npm start` in `frontend/`. Open `/classes/ride-to-the-beat?simulate`, click **Ride in Miami Neon Nights**, wait for `/world`, let the scene settle for six seconds and capture the viewport at 1440 × 900.
