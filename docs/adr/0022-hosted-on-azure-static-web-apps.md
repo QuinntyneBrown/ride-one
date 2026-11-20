@@ -21,8 +21,10 @@ deployed.**
   `index.html` and the service worker files from being cached stale.
 - The `deploy` job in `.github/workflows/ci.yml` runs after the Dashboard and behaviour-spec jobs,
   uploads the build the Dashboard job made, and signs in to Azure with GitHub's OIDC token through
-  the `gh-wattzup-deploy` app registration (federated on `refs/heads/main`, Contributor on the
-  static web app only). It reads the deployment token at run time, so the repository stores no
+  the `gh-wattzup-deploy` app registration (Contributor on the static web app only). Its federated
+  credentials trust `refs/heads/main` under both subject forms GitHub may send:
+  `repo:QuinntyneBrown/wattzup:ref:refs/heads/main` and the ID-based
+  `repo:QuinntyneBrown@1749159/wattzup@1459369072:ref:refs/heads/main`. It reads the deployment token at run time, so the repository stores no
   secret.
 - `wattzup.telo.to` is a CNAME to the app's `azurestaticapps.net` host, kept in the `telo.to` zone
   at Namecheap; Azure issues and renews its certificate.
