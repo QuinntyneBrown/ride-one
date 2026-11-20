@@ -111,6 +111,23 @@ const WHEEL_RADIUS = 56;
 const WHEEL_HUB = 64;
 const WHEEL_CABINS = 18;
 const WHEEL_TURN = 0.04;
+/**
+ * The holographic whale: its length; its path across the sky ahead (from x, its length, its depth
+ * and height); where along it the ride starts; its speed.
+ */
+const WHALE_LENGTH = 70;
+const WHALE_FROM = -420;
+const WHALE_PATH = 640;
+const WHALE_Z = -430;
+const WHALE_HEIGHT = 78;
+const WHALE_START = 300;
+const WHALE_SPEED = 3;
+/** Vending machines against the towers across the street, at these offsets round the loop. */
+const MACHINES: readonly number[] = [22, 64, 118, 176, 250, 330, 402, 455, 520, 610];
+const MACHINE_WIDE = 1.4;
+const MACHINE_TALL = 2.4;
+const MACHINE_DEEP = 1;
+const MACHINE_COLOURS: readonly string[] = ['#ff3b5c', '#2f7dff', '#ffb347', '#2fd18a'];
 /** Neon gates over the road, at these offsets round the loop. */
 const GATES: readonly number[] = [70, 230, 380, 540];
 const GATE_HEIGHT = 6.5;
@@ -274,6 +291,7 @@ export class DocklandsStreet {
   private readonly lanterns: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
   private readonly gates: { group: Group; offset: number }[] = [];
+  private readonly machines: { group: Group; offset: number }[] = [];
   private readonly walkers: { group: Group; offset: number }[] = [];
   private readonly craft: { group: Group; strobe: Mesh; lane: (typeof SKYLANES)[number] }[] = [];
   /** The people walking the pavement: each strolls its own way at its own pace. */
@@ -287,6 +305,7 @@ export class DocklandsStreet {
     this.fall(seconds, still);
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
+    this.swim(still ? 0 : seconds);
     const turning = this.wheel.userData['turning'] as Group | undefined;
     if (turning) turning.rotation.z = still ? 0 : seconds * WHEEL_TURN;
     this.fly(still ? 0 : seconds);
@@ -308,6 +327,7 @@ export class DocklandsStreet {
   }
   private readonly searchlights: Group[] = [];
   private readonly wheel = new Group();
+  private readonly whale = new Group();
 
   /**
    * Searchlight beams from the far shore's rooftops, leaning out and sweeping the violet haze
@@ -397,6 +417,60 @@ export class DocklandsStreet {
     this.wheel.userData['turning'] = turning;
     this.wheel.position.set(WHEEL_AT[0], WHEEL_HUB, WHEEL_AT[1]);
     this.farShore.add(this.wheel);
+  }
+
+  /**
+   * A holographic whale swimming slowly through the sky over the harbour: a wireframe of light in
+   * cyan, a long body with a fluke and fins.
+   */
+  private addWhale(): void {
+    const wire = new MeshBasicMaterial({
+      color: new Color('#3fe0ff').multiplyScalar(0.9),
+      wireframe: true,
+      transparent: true,
+      opacity: 0.55,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+    });
+    const body = new SphereGeometry(1, 18, 10);
+    const fluke = new ConeGeometry(0.5, 1, 4, 1, true);
+    this.disposables.push(wire, body, fluke);
+    const trunk = new Mesh(body, wire);
+    trunk.scale.set(WHALE_LENGTH / 2, WHALE_LENGTH / 9, WHALE_LENGTH / 8);
+    // Its tail narrows behind it to a flat fluke.
+    const tail = new Mesh(body, wire);
+    tail.scale.set(WHALE_LENGTH / 4, WHALE_LENGTH / 16, WHALE_LENGTH / 14);
+    tail.position.x = -WHALE_LENGTH * 0.55;
+    const flukes = new Mesh(fluke, wire);
+    flukes.scale.set(WHALE_LENGTH / 5, WHALE_LENGTH / 9, WHALE_LENGTH / 3);
+    flukes.rotation.z = Math.PI / 2;
+    flukes.position.x = -WHALE_LENGTH * 0.82;
+    const fins = [-1, 1].map((side) => {
+      const fin = new Mesh(fluke, wire);
+      fin.scale.set(WHALE_LENGTH / 14, WHALE_LENGTH / 5, WHALE_LENGTH / 30);
+      fin.rotation.set(side * 1.1, 0, -0.5);
+      fin.position.set(WHALE_LENGTH * 0.12, -WHALE_LENGTH / 14, side * WHALE_LENGTH * 0.12);
+      return fin;
+    });
+    this.whale.add(trunk, tail, flukes, ...fins);
+    this.group.add(this.whale);
+    this.swim(0);
+  }
+
+  /**
+   * Swims the whale across the sky ahead, from over the harbour towards the towers, nose first
+   * and side on to the rider, rising and falling; it comes round again past the far side.
+   */
+  private swim(seconds: number): void {
+    const along = (seconds * WHALE_SPEED + WHALE_START) % WHALE_PATH;
+    this.whale.position.set(
+      WHALE_FROM + along,
+      WHALE_HEIGHT + Math.sin(seconds * 0.25) * 6,
+      WHALE_Z,
+    );
+    this.whale.rotation.set(0, 0, Math.sin(seconds * 0.25 + 1) * 0.08);
   }
 
   private rain: LineSegments | null = null;
@@ -961,6 +1035,7 @@ export class DocklandsStreet {
     // The haze over the water, before the far shore, turned to face the road.
     this.addSearchlights();
     this.addWheel();
+    this.addWhale();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
   }
@@ -1110,6 +1185,7 @@ export class DocklandsStreet {
     this.addLanterns(roadHalf);
     this.addStalls();
     this.addGates(roadHalf);
+    this.addMachines(roadHalf);
     this.addWalkers(roadHalf);
     this.addAirTraffic();
     this.addRain();
@@ -1677,6 +1753,41 @@ export class DocklandsStreet {
     });
   }
 
+  /**
+   * Vending machines in twos and threes against the towers across the street, facing the road:
+   * white-lit fronts with rows of bright cans behind glass and a coloured header, throwing their
+   * light across the wet pavement.
+   */
+  private addMachines(roadHalf: number): void {
+    const fronts = MACHINE_COLOURS.map((hex, i) => {
+      const texture = this.track(machineTexture(hex, i));
+      return new MeshBasicMaterial({ map: texture, toneMapped: false });
+    });
+    const shell = new MeshStandardMaterial({ color: 0x1a1b24, metalness: 0.4, roughness: 0.5 });
+    const unit = new BoxGeometry(1, 1, 1);
+    const face = new PlaneGeometry(MACHINE_WIDE - 0.12, MACHINE_TALL - 0.12);
+    this.disposables.push(...fronts, shell, unit, face);
+    const random = seeded(293);
+    const x = roadHalf + SETBACK - MACHINE_DEEP / 2 - 0.1;
+    for (const offset of MACHINES) {
+      const group = new Group();
+      const count = 2 + Math.floor(random() * 2);
+      for (let k = 0; k < count; k++) {
+        const z = (k - (count - 1) / 2) * (MACHINE_WIDE + 0.08);
+        const body = new Mesh(unit, shell);
+        body.scale.set(MACHINE_DEEP, MACHINE_TALL, MACHINE_WIDE);
+        body.position.set(x, KERB + MACHINE_TALL / 2, z);
+        const front = new Mesh(face, fronts[Math.floor(random() * fronts.length)]!);
+        front.rotation.y = -Math.PI / 2;
+        front.position.set(x - MACHINE_DEEP / 2 - 0.01, KERB + MACHINE_TALL / 2, z);
+        group.add(body, front);
+      }
+      this.streak(group, '#e8f4ff', x - 4, KERB, 0, 8, count * MACHINE_WIDE + 1, 1.3);
+      this.group.add(group);
+      this.machines.push({ group, offset });
+    }
+  }
+
   private addVents(roadHalf: number): void {
     const texture = this.track(glowTexture());
     const grate = new MeshStandardMaterial({ color: 0x0c0d12, metalness: 0.6, roughness: 0.5 });
@@ -2178,6 +2289,11 @@ export class DocklandsStreet {
       walker.group.visible = !this.onBridge(Math.max(metres, 0));
       walker.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
+    for (const machine of this.machines) {
+      const metres = ((((machine.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      machine.group.visible = !this.onBridge(Math.max(metres, 0));
+      machine.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
     for (const gate of this.gates) {
       const metres = ((((gate.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       gate.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -2468,6 +2584,35 @@ function streakTexture(): CanvasTexture {
  * A blade sign at night: `word` in neon tube letters stacked top to bottom on a dark panel,
  * with the tube's glow around them and a thin neon border.
  */
+/** A vending machine's front: a coloured header, rows of bright cans behind glass, a slot below. */
+function machineTexture(hex: string, i: number): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 110;
+  canvas.height = 190;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = hex;
+    ctx.fillRect(0, 0, 110, 190);
+    ctx.fillStyle = '#f4f8ff';
+    ctx.fillRect(8, 28, 94, 92);
+    const cans = ['#ff3b5c', '#2f7dff', '#ffd23f', '#2fd18a', '#ff8a3d', '#b05cff'];
+    const random = seeded(301 + i);
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 6; col++) {
+        ctx.fillStyle = cans[Math.floor(random() * cans.length)]!;
+        ctx.fillRect(12 + col * 15, 32 + row * 22, 10, 16);
+      }
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(8, 6, 94, 14);
+    ctx.fillStyle = '#14141c';
+    ctx.fillRect(14, 140, 82, 26);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 /** A gate's name plate: `word` in neon tube letters across a dark panel. */
 function plateTexture(word: string, colour: string): CanvasTexture {
   const canvas = document.createElement('canvas');
