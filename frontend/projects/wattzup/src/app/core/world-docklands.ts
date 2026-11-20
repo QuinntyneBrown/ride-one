@@ -63,6 +63,10 @@ const BOATS: readonly { offset: number; out: number; length: number; hex: string
  */
 const SKYTRAIN = 150;
 const RAIL_DECK = 15;
+/** The viaduct runs from RAIL_WEST (inside the far shore) to RAIL_EAST, across the road. */
+const RAIL_WEST = -360;
+const RAIL_EAST = 210;
+const TRAIN_SPEED = 16;
 /** The neon strips up the towers' corners are this thick. */
 const EDGE = 0.35;
 /** The centre line's dashes: DASH metres of line in every DASH_EVERY. */
@@ -170,6 +174,20 @@ export class DocklandsStreet {
   private readonly dock = new Group();
   private readonly boats: { mesh: Group; offset: number }[] = [];
   private readonly skytrain = new Group();
+  private readonly train = new Group();
+
+  /**
+   * Runs the train along its viaduct for `seconds` of the ride: it crosses from the harbour
+   * side to the far towers at TRAIN_SPEED and comes round again. Held still for reduced motion.
+   */
+  setTime(seconds: number): void {
+    // The whole train is out of sight inside the towers at either end of its run.
+    const start = RAIL_WEST - 40;
+    const run = RAIL_EAST + 40 - start;
+    // At the ride's start the train stands as built, its lead car over the road.
+    const along = (((seconds * TRAIN_SPEED - start) % run) + run) % run;
+    this.train.position.x = start + along;
+  }
   private skyReflection: CanvasTexture | null = null;
 
   /** The night sky as an environment map, for the water, the glass and the wet road to reflect. */
@@ -1214,29 +1232,44 @@ export class DocklandsStreet {
     const tail = glow('#ff2a2a', 3);
     const unit = new BoxGeometry(1, 1, 1);
     this.disposables.push(concrete, body, cyan, windows, head, tail, unit);
-    const box = (material: Material, w: number, h: number, d: number, x: number, y: number) => {
+    const box = (
+      material: Material,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      parent: Group = this.skytrain,
+    ) => {
       const mesh = new Mesh(unit, material);
       mesh.scale.set(w, h, d);
       mesh.position.set(x, y, 0);
-      this.skytrain.add(mesh);
+      parent.add(mesh);
     };
-    const span = 160;
-    box(concrete, span, 1.6, 7, 0, RAIL_DECK - 0.8);
-    box(cyan, span, 0.12, 0.25, 0, RAIL_DECK - 1.65);
-    box(concrete, span, 0.9, 0.3, 0, RAIL_DECK + 0.45);
-    for (const x of [-(roadHalf + 4), roadHalf + 4, -60, 60]) {
+    // The deck runs from inside the far shore's towers, over the harbour and the street, into
+    // the towers beyond the street, so the train comes and goes out of sight.
+    const span = RAIL_EAST - RAIL_WEST;
+    const middle = (RAIL_EAST + RAIL_WEST) / 2;
+    box(concrete, span, 1.6, 7, middle, RAIL_DECK - 0.8);
+    box(cyan, span, 0.12, 0.25, middle, RAIL_DECK - 1.65);
+    box(concrete, span, 0.9, 0.3, middle, RAIL_DECK + 0.45);
+    const piers = [-(roadHalf + 4), roadHalf + 4];
+    for (let x = -60; x > RAIL_WEST + 20; x -= 60) piers.push(x);
+    for (const x of piers) {
       box(concrete, 2.2, RAIL_DECK - 1.6, 2.2, x, (RAIL_DECK - 1.6) / 2);
     }
+    const train = this.train;
     // Three cars, nose to tail across the street, the lead car over the road's right half.
     const car = 19;
     for (let k = 0; k < 3; k++) {
       const x = 22 - k * (car + 1);
-      box(body, car, 3.4, 3.2, x, RAIL_DECK + 2.1);
-      box(windows, car - 2, 1.1, 3.25, x, RAIL_DECK + 2.6);
-      box(cyan, car, 0.18, 3.25, x, RAIL_DECK + 1.1);
+      box(body, car, 3.4, 3.2, x, RAIL_DECK + 2.1, train);
+      box(windows, car - 2, 1.1, 3.25, x, RAIL_DECK + 2.6, train);
+      box(cyan, car, 0.18, 3.25, x, RAIL_DECK + 1.1, train);
     }
-    box(head, 0.2, 0.5, 2.4, 22 + car / 2 + 0.1, RAIL_DECK + 1.6);
-    box(tail, 0.2, 0.5, 2.4, 22 - 2 * (car + 1) - car / 2 - 0.1, RAIL_DECK + 1.6);
+    box(head, 0.2, 0.5, 2.4, 22 + car / 2 + 0.1, RAIL_DECK + 1.6, train);
+    box(tail, 0.2, 0.5, 2.4, 22 - 2 * (car + 1) - car / 2 - 0.1, RAIL_DECK + 1.6, train);
+    this.skytrain.add(train);
     this.streak(this.skytrain, '#3fe0ff', 0, 0.02, -3, 10, 2 * roadHalf, 0.7);
     this.skytrain.visible = false;
     this.group.add(this.skytrain);
