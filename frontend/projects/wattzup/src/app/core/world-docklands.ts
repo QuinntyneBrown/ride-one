@@ -269,6 +269,14 @@ const SLAB = 1.5;
  * LAMP_HEIGHT metres above the road.
  */
 const LAMP_EVERY = 40;
+/** Festival banners on the lamp posts: their words and colour, and their size (m). */
+const BANNERS: readonly (readonly [string, string])[] = [
+  ['HARBOUR NIGHT RIDE', '#ff4fd8'],
+  ['DOCKLANDS LIGHT FEST', '#3fd9ff'],
+  ['RIDE THE BRIDGES', '#b06bff'],
+];
+const BANNER_WIDE = 0.9;
+const BANNER_TALL = 2.2;
 const LAMP_FIRST = 8;
 const LAMP_OUT = 5;
 const LAMP_HEIGHT = 6;
@@ -1554,6 +1562,18 @@ export class DocklandsStreet {
     // A soft halo round each globe, as its light blooms in the wet air.
     const halo = this.halo('#ffd9a0', 1.3);
     this.disposables.push(metal, globe, pole, foot, head, collar);
+    // Festival banners hang from a bracket on each pole, out over the pavement's edge.
+    const banners = BANNERS.map(([words, hex]) => {
+      const texture = this.track(bannerTexture(words, hex));
+      return new MeshBasicMaterial({ map: texture, side: DoubleSide, toneMapped: false });
+    });
+    const trims = BANNERS.map(
+      ([, hex]) =>
+        new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(1.8), toneMapped: false }),
+    );
+    const cloth = new PlaneGeometry(BANNER_WIDE, BANNER_TALL);
+    const bar = new BoxGeometry(1, 0.05, 0.05);
+    this.disposables.push(...banners, ...trims, cloth, bar);
     for (let i = 0; i < LAMPS; i++) {
       const lamp = new Group();
       const shaft = new Mesh(pole, metal);
@@ -1572,6 +1592,23 @@ export class DocklandsStreet {
       lamp.userData['bloom'] = bloom;
       // Lamps stand on the left at even places: their light reflects on the road inside them.
       const inward = i % 2 === 0 ? 1 : -1;
+      const pick = i % BANNERS.length;
+      const top = LAMP_HEIGHT - 1.2;
+      const centre = inward * (0.12 + BANNER_WIDE / 2);
+      for (const y of [top, top - BANNER_TALL]) {
+        const rod = new Mesh(bar, metal);
+        rod.scale.x = BANNER_WIDE + 0.15;
+        rod.position.set(centre, y, 0);
+        lamp.add(rod);
+      }
+      const banner = new Mesh(cloth, banners[pick]!);
+      banner.position.set(centre, top - BANNER_TALL / 2, 0);
+      lamp.add(banner);
+      // A lit trim down the banner's outer edge.
+      const trim = new Mesh(bar, trims[pick]!);
+      trim.scale.set(0.05, BANNER_TALL / 0.05, 1);
+      trim.position.set(centre + inward * (BANNER_WIDE / 2), top - BANNER_TALL / 2, 0);
+      lamp.add(trim);
       this.streak(lamp, '#ffd9a0', inward * 1.6, 0, -0.5, 14, 2.2, 2.6);
       this.streak(lamp, '#ffd9a0', 0, KERB, -0.5, 6, 1.4, 1);
       this.lamps.push(lamp);
@@ -3305,6 +3342,37 @@ function advertTexture(title: string, hex: string): CanvasTexture {
     ctx.strokeStyle = 'rgba(255,255,255,0.9)';
     ctx.lineWidth = 4;
     ctx.strokeRect(2, 2, w - 4, h - 4);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A festival banner: a coloured cloth fading to deep violet, its words stacked down it. */
+function bannerTexture(words: string, hex: string): CanvasTexture {
+  const w = 96;
+  const h = 236;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, hex);
+    g.addColorStop(1, '#1c0b33');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    words.split(' ').forEach((word, i) => ctx.fillText(word, w / 2, 40 + i * 30));
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.moveTo(w / 2, h - 46);
+    ctx.lineTo(w / 2 + 16, h - 22);
+    ctx.lineTo(w / 2 - 16, h - 22);
+    ctx.closePath();
+    ctx.fill();
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
