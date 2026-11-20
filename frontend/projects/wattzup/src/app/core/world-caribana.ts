@@ -2918,12 +2918,57 @@ export class CaribanaStreet implements SceneStreet {
     this.disposables.push(...cn.children.map((m) => (m as Mesh).geometry));
     cn.position.set(-260, 0, 40);
     this.downtown.add(cn);
-    const dome = new SphereGeometry(110, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2);
-    dome.scale(1, 0.38, 1);
-    this.disposables.push(dome);
-    const rogers = new Mesh(dome, hazed(0xdedcd5, 0.4));
+    // The Rogers Centre: a ring wall of arched bays under the retractable roof's four panels.
+    const rogers = new Group();
+    const ring = new CylinderGeometry(108, 110, 36, 48, 1, true);
+    ring.translate(0, 18, 0);
+    const bays = this.track(stadiumTexture());
+    bays.wrapS = RepeatWrapping;
+    bays.repeat.set(12, 1);
+    const roof = new SphereGeometry(112, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+    roof.scale(1, 0.32, 1);
+    roof.translate(0, 34, 0);
+    const panels = this.track(roofTexture());
+    panels.wrapS = RepeatWrapping;
+    this.disposables.push(ring, roof);
+    rogers.add(new Mesh(ring, hazed(0xe2dfd8, 0.38, bays)));
+    rogers.add(new Mesh(roof, hazed(0xe8e6e0, 0.38, panels)));
     rogers.position.set(-130, 0, 120);
     this.downtown.add(rogers);
+    // Pinnacle One Yonge on the waterfront, behind and right of the tower: three glass towers,
+    // the tallest 300 m, their corners chamfered.
+    const blue = hazed(0x7ea6bf, 0.42, this.track(condoTexture()));
+    for (const [x, z, h, w] of [
+      [-90, -700, 300, 34],
+      [-40, -680, 240, 30],
+      [-120, -640, 200, 28],
+    ] as const) {
+      const shaft = new CylinderGeometry(w * 0.62, w * 0.66, h, 8);
+      shaft.rotateY(Math.PI / 8);
+      shaft.translate(x, h / 2, z);
+      this.disposables.push(shaft);
+      this.downtown.add(new Mesh(shaft, blue));
+    }
+    // The One at Yonge and Bloor, far behind the Financial District: dark glass rising to 306 m
+    // inside a bronze exoskeleton of piers.
+    const one = new Group();
+    const core = new BoxGeometry(40, 306, 40);
+    core.translate(0, 153, 0);
+    this.disposables.push(core);
+    one.add(new Mesh(core, hazed(0x2c3440, 0.55)));
+    for (const [x, z] of [
+      [-21, -21],
+      [21, -21],
+      [-21, 21],
+      [21, 21],
+    ] as const) {
+      const pier = new BoxGeometry(5, 306, 5);
+      pier.translate(x, 153, z);
+      this.disposables.push(pier);
+      one.add(new Mesh(pier, hazed(0x8a6a3e, 0.55)));
+    }
+    one.position.set(-640, 0, -2600);
+    this.downtown.add(one);
     this.group.add(this.downtown);
   }
 
@@ -4554,6 +4599,41 @@ function sectionFlagTexture(name: string, colour: string): CanvasTexture {
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.fillText(name, 192, 196, 340);
+  });
+}
+
+/** The stadium's wall: arched bays between white piers, in three tiers. */
+function stadiumTexture(): CanvasTexture {
+  return canvasTexture(256, 128, (g) => {
+    g.fillStyle = '#e6e3dc';
+    g.fillRect(0, 0, 256, 128);
+    g.fillStyle = '#5a6670';
+    for (let x = 8; x < 256; x += 32) {
+      for (const [y, h] of [
+        [16, 26],
+        [56, 22],
+        [92, 26],
+      ] as const) {
+        g.beginPath();
+        g.moveTo(x, y + h);
+        g.lineTo(x, y + 8);
+        g.arc(x + 8, y + 8, 8, Math.PI, 0);
+        g.lineTo(x + 16, y + h);
+        g.fill();
+      }
+    }
+  });
+}
+
+/** The roof's panels: radial seams and the steps where the moving panels overlap. */
+function roofTexture(): CanvasTexture {
+  return canvasTexture(512, 64, (g) => {
+    g.fillStyle = '#ecebe6';
+    g.fillRect(0, 0, 512, 64);
+    g.fillStyle = 'rgba(90,96,104,0.5)';
+    for (let x = 0; x < 512; x += 16) g.fillRect(x, 0, 1, 64);
+    g.fillStyle = 'rgba(60,66,72,0.8)';
+    for (let x = 0; x < 512; x += 128) g.fillRect(x, 0, 4, 64);
   });
 }
 
