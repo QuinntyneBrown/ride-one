@@ -198,7 +198,16 @@ export class MiamiStreet implements SceneStreet {
       roughness: 0.25,
       metalness: 0.2,
     });
-    const paving = this.material({ map: this.repeat(pavingTexture(), 3, 3), roughness: 0.4 });
+    const paving = this.material({
+      map: this.repeat(pavingTexture(), 2.4, 2.4),
+      roughness: 0.28,
+      metalness: 0.12,
+    });
+    const promenade = this.material({
+      map: this.repeat(promenadeTexture(), 4.75, 6),
+      roughness: 0.3,
+      metalness: 0.1,
+    });
     const sand = this.material({ map: this.repeat(sandTexture(), 6, 6), roughness: 1 });
     const kerb = this.material({ color: 0xd8d4cc, roughness: 0.6 });
     this.ribbons.add(points, asphalt, [
@@ -219,7 +228,7 @@ export class MiamiStreet implements SceneStreet {
       [-r, 0.15],
       [-r - 0.25, 0.15],
     ]);
-    this.ribbons.add(points, paving, [
+    this.ribbons.add(points, promenade, [
       [-r - 0.25, 0.15],
       [-r - 5, 0.15],
     ]);
@@ -1119,14 +1128,63 @@ function roadTexture(): CanvasTexture {
   });
 }
 
-/** Pale sidewalk slabs. */
+/**
+ * Ocean Drive's sidewalk: hexagonal pavers in rose and grey, each its own shade, with dark
+ * sand joints and a wet sheen, 2.4 m to the tile.
+ */
 function pavingTexture(): CanvasTexture {
-  return canvasTexture(64, 64, (g) => {
-    speckle(g, 64, 64, '#9a96a0', 8161);
-    g.strokeStyle = 'rgba(40,40,50,0.4)';
-    g.strokeRect(0, 0, 64, 64);
-    g.strokeRect(0, 0, 32, 32);
-    g.strokeRect(32, 32, 32, 32);
+  return canvasTexture(256, 256, (g) => {
+    g.fillStyle = '#3a3440';
+    g.fillRect(0, 0, 256, 256);
+    const random = seeded(8161);
+    const r = 16;
+    const w = Math.sqrt(3) * r;
+    for (let row = -1; row < 256 / (r * 1.5) + 1; row++)
+      for (let col = -1; col < 256 / w + 1; col++) {
+        const cx = col * w + (row % 2 ? w / 2 : 0);
+        const cy = row * r * 1.5;
+        const rose = random() < 0.35;
+        const v = 140 + Math.floor(random() * 30);
+        g.fillStyle = rose ? `rgb(${v + 20},${v - 20},${v - 10})` : `rgb(${v},${v - 4},${v + 6})`;
+        g.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const a = Math.PI / 6 + (i * Math.PI) / 3;
+          const x = cx + Math.cos(a) * (r - 1.5);
+          const y = cy + Math.sin(a) * (r - 1.5);
+          if (i) g.lineTo(x, y);
+          else g.moveTo(x, y);
+        }
+        g.closePath();
+        g.fill();
+      }
+    // A wet sheen in patches.
+    for (let i = 0; i < 6; i++) {
+      const x = random() * 256;
+      const y = random() * 256;
+      const sheen = g.createRadialGradient(x, y, 0, x, y, 50);
+      sheen.addColorStop(0, 'rgba(20,16,30,0.35)');
+      sheen.addColorStop(1, 'rgba(20,16,30,0)');
+      g.fillStyle = sheen;
+      g.fillRect(x - 50, y - 50, 100, 100);
+    }
+  });
+}
+
+/** The promenade: deco waves of pale and dusk-pink stone running along the sea wall. */
+function promenadeTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    speckle(g, 256, 256, '#a8a0b0', 8163);
+    g.lineWidth = 18;
+    for (let band = 0; band < 6; band++) {
+      g.strokeStyle = band % 2 ? 'rgba(200,140,160,0.55)' : 'rgba(240,236,244,0.35)';
+      g.beginPath();
+      for (let y = 0; y <= 256; y += 4) {
+        const x = band * 51 + 20 + Math.sin((y / 256) * Math.PI * 4) * 16;
+        if (y) g.lineTo(x, y);
+        else g.moveTo(x, y);
+      }
+      g.stroke();
+    }
   });
 }
 
