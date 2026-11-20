@@ -1201,6 +1201,22 @@ export class HavanaStreet implements SceneStreet {
     shell.scale(0.8, 1.2, 1.2);
     const small = new CylinderGeometry(0.22, 0.22, 0.16, 12);
     small.rotateZ(Math.PI / 2);
+    // The tub the shell sits on, rounded at its ends, and the scooter's tapering nose.
+    const tub = new CapsuleGeometry(0.62, 1.0, 4, 14);
+    tub.rotateX(Math.PI / 2);
+    tub.scale(1, 0.32, 1);
+    const nose = new CapsuleGeometry(0.22, 0.35, 4, 10);
+    nose.rotateX(0.5);
+    const torso = new CapsuleGeometry(0.17, 0.34, 3, 8);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const headlamp = new CylinderGeometry(0.1, 0.1, 0.06, 12);
+    headlamp.rotateX(Math.PI / 2);
+    this.disposables.push(tub, nose, torso, head, headlamp);
+    const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.5 });
+    const skin = this.material({ color: 0x8d5a3b, roughness: 0.8 });
+    const drivers = [0xf2efe6, 0x3a86ff, 0xe63946].map((c) =>
+      this.material({ color: c, roughness: 0.85 }),
+    );
     const lada = profile(
       [
         [-2.05, 0.3],
@@ -1269,9 +1285,22 @@ export class HavanaStreet implements SceneStreet {
       // A coco-taxi: the yellow egg shell over a black seat, on a scooter's three wheels.
       const taxi = new Group();
       put(taxi, shell, yellow, 0, 0.42, 0.15);
-      box(taxi, yellow, 1.3, 0.3, 2.3, 0, 0.35, 0.1);
-      box(taxi, black, 1.0, 0.5, 0.6, 0, 0.75, 0.6);
-      box(taxi, black, 0.5, 0.5, 0.5, 0, 0.75, -0.55);
+      put(taxi, tub, yellow, 0, 0.42, 0.25);
+      // The passengers' bench at the back, and the driver up front on the scooter's saddle.
+      box(taxi, black, 1.1, 0.22, 0.55, 0, 0.7, 0.75);
+      box(taxi, black, 1.1, 0.5, 0.12, 0, 0.95, 1.02);
+      box(taxi, black, 0.36, 0.14, 0.5, 0, 0.78, -0.3);
+      put(taxi, torso, drivers[i % drivers.length]!, 0, 1.2, -0.3);
+      put(taxi, head, skin, 0, 1.62, -0.33);
+      // The scooter's nose: a yellow fairing with its round headlamp, the handlebars and screen.
+      put(taxi, nose, yellow, 0, 0.6, -0.95);
+      put(taxi, headlamp, lamp, 0, 0.85, -1.2);
+      box(taxi, chrome, 0.7, 0.04, 0.04, 0, 1.12, -0.85);
+      const screen = new Mesh(this.unit, glass);
+      screen.scale.set(0.55, 0.32, 0.02);
+      screen.position.set(0, 1.28, -0.95);
+      screen.rotation.x = -0.35;
+      taxi.add(screen);
       put(taxi, small, tyre, 0, 0.22, -1.0);
       for (const x of [-0.6, 0.6]) put(taxi, small, tyre, x, 0.22, 0.9);
       vehicles.push({ group: taxi, lane: 1.4, speed: -(5 + random() * 2) });
