@@ -99,6 +99,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Ghent Six-Day');
   });
 
+  test('rides In and Out, Shake It All About in Blackpool Illuminations on the Promenade', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'In and Out, Shake It All About',
+      'Blackpool Illuminations',
+      'in-and-out-shake-it-all-about',
+    );
+    await expect(world.heading).toHaveText('Blackpool Illuminations');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Blackpool Illuminations');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

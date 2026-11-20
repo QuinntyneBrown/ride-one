@@ -91,7 +91,8 @@ export interface components {
         | 'westminster'
         | 'centralpark'
         | 'southbeach'
-        | 'ghent';
+        | 'ghent'
+        | 'blackpool';
     };
     ClassShelfResponse: {
       id: string;
