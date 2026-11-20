@@ -337,6 +337,15 @@ const LANE_SYMBOL_LONG = 6.4;
 const TREE_OUT = 3;
 const TREE_EVERY = 24;
 const TREE_HEIGHT = 4.2;
+/** Leafy tufts round each crown and how far out from its middle (m), and the leaves' shades: colour and the glow they hold. */
+const TREE_CLUMPS = 8;
+const TREE_CLUMP_OUT = 1.85;
+const LEAF_SHADES: readonly (readonly [string, string])[] = [
+  ['#1d3a34', '#0c2a30'],
+  ['#28503f', '#0f3328'],
+  ['#1f3a4a', '#10283a'],
+  ['#3a3550', '#1c1834'],
+];
 /** The trees' uplights: their neon in turn, the beam's radius at the crown (m), its brightness. */
 const TREE_UPLIGHTS = ['#3fe0ff', '#ff4fd8'];
 const TREE_UPLIGHT_WIDE = 1.9;
@@ -2993,21 +3002,29 @@ export class DocklandsStreet {
       toneMapped: false,
     });
     const bark = new MeshStandardMaterial({ color: 0x2a2026, roughness: 0.9 });
-    const leaves = new MeshStandardMaterial({
-      color: 0x1d3a34,
-      roughness: 0.8,
-      flatShading: true,
-      emissive: new Color(0x0c2a30),
-    });
+    // A few shades of leaf, so the clumps of a crown read apart from one another.
+    const shades = LEAF_SHADES.map(
+      ([hex, glow]) =>
+        new MeshStandardMaterial({
+          color: hex,
+          roughness: 0.8,
+          flatShading: true,
+          emissive: new Color(glow),
+        }),
+    );
+    const leaves = shades[0]!;
     const bulb = new MeshBasicMaterial({
       color: new Color('#ffd27a').multiplyScalar(2),
       toneMapped: false,
     });
     const unit = new BoxGeometry(1, 1, 1);
     const trunk = new CylinderGeometry(0.12, 0.18, 1, 7);
-    const crown = new IcosahedronGeometry(1, 0);
+    const crown = new IcosahedronGeometry(1, 1);
+    const clump = new IcosahedronGeometry(1, 0);
     const light = new SphereGeometry(0.07, 6, 4);
-    this.disposables.push(planter, rim, bark, leaves, bulb, unit, trunk, crown, light);
+    this.disposables.push(planter, rim, bark, ...shades, bulb, unit, trunk, crown, clump, light);
+    // The smaller clumps draw from their own sequence, so the trees' layout is unchanged.
+    const clumpRandom = seeded(503);
     // A soft glow round each fairy light, coloured per light so it can twinkle.
     this.glow ??= this.track(glowTexture());
     const halo = new MeshBasicMaterial({
@@ -3076,6 +3093,19 @@ export class DocklandsStreet {
           (random() - 0.5) * 1.2,
         );
         group.add(lump);
+      }
+      // Smaller clumps round its edge break the outline into leafy tufts.
+      for (let k = 0; k < TREE_CLUMPS; k++) {
+        const a = (k / TREE_CLUMPS) * Math.PI * 2 + clumpRandom();
+        const tuft = new Mesh(clump, shades[1 + (k % (shades.length - 1))]!);
+        tuft.scale.setScalar(0.6 + clumpRandom() * 0.35);
+        tuft.rotation.set(clumpRandom() * 3, clumpRandom() * 3, 0);
+        tuft.position.set(
+          x + Math.cos(a) * TREE_CLUMP_OUT,
+          KERB + TREE_HEIGHT - 0.2 + (clumpRandom() - 0.3) * 1.1,
+          Math.sin(a) * TREE_CLUMP_OUT,
+        );
+        group.add(tuft);
       }
       // Fairy lights on the crown's surface, mostly on the side towards the road.
       const glows = new InstancedMesh(haloPlane, halo, 16);
