@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `como`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -391,6 +391,15 @@ None.
   - carved stelae and the tumbled platforms and columns of lesser temples, and vendors' frames hung with bright textiles;
   - visitors walking the causeway's edges (`Figures`), and scarlet and green parrots wheeling over the canopy, wings beating, on the ride's clock;
   - ahead the Great Plaza's grass and El Castillo in nine terraces with its four stairways, the temple on top and the serpents' heads at its foot, the canopy rolling away beyond with ceibas standing over it, keeping their bearing.
+- **Bonneville Salt Flats (`core/world-bonneville.ts`).** For `bonneville`, the speedway course across the endless white salt of Utah under a blazing summer sky, closed for a team time trial during Speed Week:
+  - the course is the salt itself, packed smooth and scored with tyre tracks, its black line down the middle; either side the white crust of the flats, cracked into polygons, out to the horizon; race barriers hung with the ride's banners (BONNEVILLE, SALT FLATS, TEAM TIME TRIAL, WATTZUP, SPEED WEEK, UTAH), the kit's feather flags every 20 m along both, and names painted on the salt in dark paint every 20 m;
+  - fans in clumps along the barriers in bright shirts and sun hats (the shared crowd), with open salt between;
+  - on the left, 17 to 31 m out, the pits every 13 to 20 m: motorhomes, box trucks with their trailers, and streamliners on open trailers in their liveries, each built with the kit's box builder; pop-up canopies (the kit's) with the teams' names beside every other one, the Stars and Stripes on tall poles, and thirty crew (the kit's figures) among them;
+  - on the right, 11 m out on the open salt, every 125 m a black mile board with its number in orange and a pair of timing lights;
+  - a timing gantry over the course 55 m ahead in the opening view: black truss towers, the beam with BONNEVILLE · TEAM TIME TRIAL, and the race clock above it;
+  - 300 m ahead the horizon, where the Silver Island Mountains, bare brown-grey ridges 2.6 km off, and lower ranges either side float on the bright, streaked band of a mirage with their faint reflections inverted beneath, all hazed by hand. Everything along the course is hidden past it.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 - **Lake Como (`core/world-como.ts`).** For `como`, the western shore road on an early-summer morning:
   - on the left the paved promenade with a white stone balustrade and iron lamps above the still green water, its ripples drifting on the ride's clock; the ground sinks under the lake;
   - on the right a stone retaining wall holding up terraced gardens of flowering azaleas, cypresses and magnolias, ochre and rose villas with loggias and terracotta roofs, and the wooded mountainside climbing steeply above;
@@ -456,6 +465,7 @@ None.
 | `pages/world-ride/montmartre` | Montmartre at 1:53, warm-up, next `Butte kick` |
 | `pages/world-ride/brickyard` | Indianapolis Brickyard at 4:50, warm-up, next `Straightaway acceleration` |
 | `pages/world-ride/chichen` | Chichén Itzá at 4:50, warm-up, next `Pyramid step` |
+| `pages/world-ride/bonneville` | Bonneville Salt Flats at 2:53, warm-up, next `Paceline turn` |
 | `pages/world-ride/como` | Lake Como at 4:50, warm-up, next `Lakeside surge` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |

@@ -485,6 +485,16 @@ export const WORLDS: readonly World[] = [
     roll: 0.8,
   },
   {
+    id: 'bonneville',
+    name: 'Bonneville Salt Flats',
+    route: 'the speedway course',
+    effortName: 'Paceline turn',
+    description:
+      'An endless white salt plain stretches away under a blazing Utah sky, the speedway course marked by its black line past the pits of Speed Week toward the Silver Island Mountains floating on a shimmering mirage. The three-minute warm-up rolls out past the motorhomes and the parked streamliners, each thirty-second and one-minute turn drives the paceline hard between the mile boards, and the recoveries sit in on the wheels with the mirage mountains still floating ahead.',
+    grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0,
+  },
+  {
     id: 'como',
     name: 'Lake Como',
     route: 'the shore road',

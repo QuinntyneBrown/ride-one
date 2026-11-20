@@ -826,6 +826,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.9, fill: 1.5, colour: 0xffeccc },
     fogRange: [300, 3200],
   },
+  // A blazing summer morning on the salt: a deep blue sky paling to white at the horizon, the sun
+  // high, hard shadows on the dazzling white, and the far ranges blue-grey in the heat.
+  bonneville: {
+    sky: 0x6aa6e0,
+    fog: 0xdfe8f2,
+    ground: 0xeeece4,
+    road: 0xe2e0d8,
+    sun: 52,
+    wet: false,
+    haze: false,
+    turbidity: 1.2,
+    rayleigh: 0.8,
+    azimuth: 40,
+    light: { sun: 3, fill: 0.9, colour: 0xfff6e8 },
+    fogRange: [400, 5200],
+  },
   // A clear early-summer morning on the lake: soft bright light, a faint haze over the water.
   como: {
     sky: 0x7ab0e0,

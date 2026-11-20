@@ -808,3 +808,44 @@ export function dashTexture(colour: string): CanvasTexture {
     g.fillRect(0, 0, 16, 128);
   });
 }
+
+/**
+ * Boxes collected per material and merged into one mesh each, so a building, a vehicle or any
+ * other thing made of many boxes costs one draw call per material. `box` takes its size, its
+ * centre and an optional tilt about z; `build` merges them into a group.
+ */
+export class BoxBuilder {
+  private readonly parts = new Map<MeshStandardMaterial, BufferGeometry[]>();
+  private readonly unit = new BoxGeometry(1, 1, 1);
+  private readonly matrix = new Matrix4();
+
+  box(
+    material: MeshStandardMaterial,
+    size: [number, number, number],
+    at: [number, number, number],
+    tilt = 0,
+  ): void {
+    const g = this.unit.clone();
+    g.scale(...size);
+    if (tilt) g.applyMatrix4(this.matrix.makeRotationZ(tilt));
+    g.translate(...at);
+    const list = this.parts.get(material) ?? [];
+    list.push(g);
+    this.parts.set(material, list);
+  }
+
+  build(disposables: { dispose(): void }[]): Group {
+    const group = new Group();
+    for (const [material, list] of this.parts) {
+      const merged = mergeGeometries(list);
+      for (const g of list) g.dispose();
+      disposables.push(merged);
+      const mesh = new Mesh(merged, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+    }
+    this.unit.dispose();
+    return group;
+  }
+}
