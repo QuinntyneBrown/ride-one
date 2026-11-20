@@ -10,7 +10,7 @@ export interface World {
   readonly description: string;
   /** The road's gradient, in percent, for each segment kind. */
   readonly grade: Readonly<Record<SegmentKind, number>>;
-  /** The rolling gradient laid over it, in percent. */
+  /** The rolling gradient laid over it, in percent; above 0 in every scene (L2-101 AC7). */
   readonly roll: number;
 }
 
@@ -492,7 +492,7 @@ export const WORLDS: readonly World[] = [
     description:
       'An endless white salt plain stretches away under a blazing Utah sky, the speedway course marked by its black line past the pits of Speed Week toward the Silver Island Mountains floating on a shimmering mirage. The three-minute warm-up rolls out past the motorhomes and the parked streamliners, each thirty-second and one-minute turn drives the paceline hard between the mile boards, and the recoveries sit in on the wheels with the mirage mountains still floating ahead.',
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
-    roll: 0,
+    roll: 0.3,
   },
   {
     id: 'como',
@@ -705,7 +705,7 @@ export const WORLDS: readonly World[] = [
     description:
       "The pale pine boards of London's Olympic velodrome sweep up into the steep banked bends under the bright arena lights and the curved timber roof, as the packed stands roar above the fence and the teams wait with their bikes in the infield. The minute's warm-up rolls round the black line, the one-minute efforts lift the cadence up the banking toward the stayers' line, and the long efforts of three and a half minutes hold the spin down the straights before the easy minutes drop back to the blue band.",
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
-    roll: 0,
+    roll: 0.4,
   },
   {
     id: 'cinqueterre',
@@ -733,7 +733,7 @@ export const WORLDS: readonly World[] = [
     description:
       'The weathered planks of the Riegelmann Boardwalk run along the Brooklyn shore under stars-and-stripes bunting, past the clam bars and arcades and above a beach crowded with umbrellas, toward the turning Wonder Wheel, the white lattice of the Cyclone and the red Parachute Jump. The three-minute warm-up rolls along the railing above the sand, the opening minute lifts the pace past the clam bars, and the long efforts of two and three minutes push for the Wonder Wheel before the quick-spinning minutes between them roll past the arcades.',
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
-    roll: 0,
+    roll: 0.3,
   },
   {
     id: 'winterlude',
@@ -761,7 +761,7 @@ export const WORLDS: readonly World[] = [
     description:
       'The beach bike path winds across the golden sand of Santa Monica toward the pier beneath a line of palms, past painted lifeguard towers and the surfers riding the breakers below the pilings, as the Pacific Park Ferris wheel turns over the pier in the late afternoon sun. The three-minute warm-up rolls past the first lifeguard towers, the long efforts of two and three minutes push along the sand under the palms, and the one-minute and half-minute surges sprint for the pier with the easy minutes spun beside the surf.',
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
-    roll: 0,
+    roll: 0.4,
   },
   {
     id: 'antwerp',
@@ -789,7 +789,7 @@ export const WORLDS: readonly World[] = [
     description:
       'Badwater Road runs below sea level across the floor of Death Valley in the blazing midday heat, the white salt flats of Badwater Basin glaring on the left beneath the Panamint Range and the dark Black Mountains rising on the right, toward golden dunes shimmering in the heat haze. The five-minute warm-up rolls past the salt pans at 282 feet below sea level, the half-minute and one-minute surges attack the shimmer over the flats, and the effort of two and a quarter minutes grinds toward the dunes before the two-minute cool-down spins out past the giant thermometer.',
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
-    roll: 0,
+    roll: 0.6,
   },
   {
     id: 'atacama',

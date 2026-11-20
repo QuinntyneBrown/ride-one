@@ -1291,6 +1291,24 @@ test.describe('World Ride route profile (L2-106)', () => {
     );
   });
 
+  test('shows a rising and falling road on the Bonneville salt', async ({ page }) => {
+    // L2-101 AC7: every scene's roll is above 0, so a once-flat class climbs too.
+    await page.clock.install();
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Team Time Trial', 'Bonneville Salt Flats', 'team-time-trial');
+    const grades = new Set<string>();
+    for (let minute = 0; minute < 10; minute++) {
+      await page.clock.runFor(60_000);
+      grades.add((await world.profileGrade.textContent()) ?? '');
+    }
+    expect([...grades].filter((g) => !/^[+−-]0\.0%$/.test(g))).not.toEqual([]);
+    await expect(world.profileClimbed).not.toHaveText('0 m climbed');
+    await expect(world.routeImage).not.toHaveAttribute(
+      'aria-label',
+      'Route profile, 0 m of elevation',
+    );
+  });
+
   test('holds the grade and distance still while paused', async ({ page }) => {
     await page.clock.install();
     const world = new WorldRidePage(page);

@@ -52,7 +52,7 @@ describe('targetGrade (L2-101)', () => {
     ['montmartre', { warmup: 3, work: 8, rest: 4, cooldown: 2, steady: 5 }, 8.295248],
     ['brickyard', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.036906],
     ['chichen', { warmup: 1, work: 4, rest: 0, cooldown: -1, steady: 2 }, 4.147624],
-    ['bonneville', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0],
+    ['bonneville', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.055359],
     ['como', { warmup: 0.5, work: 1.5, rest: 0, cooldown: -0.5, steady: 1 }, 1.68453],
     ['yosemite', { warmup: 0.5, work: 2, rest: 0, cooldown: -0.5, steady: 1 }, 2.147624],
     ['etna', { warmup: 3, work: 6, rest: 2, cooldown: 0, steady: 4 }, 6.147624],
@@ -75,16 +75,16 @@ describe('targetGrade (L2-101)', () => {
     ['winnats', { warmup: 4, work: 9, rest: 4, cooldown: 2, steady: 6 }, 9.18453],
     ['redoute', { warmup: 2, work: 10, rest: 3, cooldown: 1, steady: 5 }, 10.18453],
     ['angliru', { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 8 }, 12.18453],
-    ['velodrome', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.0],
+    ['velodrome', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.073812],
     ['cinqueterre', { warmup: 2, work: 7, rest: 1, cooldown: 0, steady: 3 }, 7.18453],
     ['angels', { warmup: 3, work: 7, rest: 3, cooldown: 1, steady: 5 }, 7.18453],
-    ['coney', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.0],
+    ['coney', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.055359],
     ['winterlude', { warmup: 0, work: 2, rest: 0, cooldown: 0, steady: 1 }, 2.18453],
     ['letras', { warmup: 4, work: 6, rest: 4, cooldown: 3, steady: 5 }, 6.18453],
-    ['santamonica', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.0],
+    ['santamonica', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.073812],
     ['antwerp', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.036906],
     ['tahoe', { warmup: 1, work: 3, rest: 0, cooldown: 0, steady: 1 }, 3.110718],
-    ['deathvalley', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.0],
+    ['deathvalley', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.110718],
     ['atacama', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.036906],
     ['angkor', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.036906],
     ['jouvert', { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 }, 0.555359],
@@ -202,5 +202,7 @@ describe('targetGrade (L2-101)', () => {
       expect(targetGrade(world, kind as SegmentKind, 0)).toBeCloseTo(grade, 9);
     }
     expect(targetGrade(world, 'work', 300)).toBeCloseTo(workAt300, 5);
+    // L2-101 AC7: every road rises and falls.
+    expect(world.roll).toBeGreaterThan(0);
   });
 });
