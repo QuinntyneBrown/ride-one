@@ -355,6 +355,7 @@ export class AmsterdamStreet implements SceneStreet {
     const iron = this.material({ color: 0x15171a, metalness: 0.5, roughness: 0.5 });
     const { steps, railings } = stoopGeometry();
     const timber = this.material({ color: 0x2a2420, roughness: 0.8 });
+    const dark = this.material({ color: 0x1e2830, roughness: 0.2, metalness: 0.3 });
     const white = this.material({ color: 0xf2f2ee, roughness: 0.5 });
     const amsterdam = this.material({
       map: this.track(flagTexture(true)),
@@ -450,6 +451,32 @@ export class AmsterdamStreet implements SceneStreet {
           pitch.scale.set(width, height * (k === 4 ? 0.2 : 0.95 - EAVES), 11.5);
           pitch.position.set(0, height * EAVES, 0.5);
           whole.add(screen, body, pitch);
+          // A brick chimney stack on the ridge of most roofs, and a dormer or two on the front
+          // slope of a mansion's hipped roof.
+          if (random() < 0.65) {
+            const stack = new Mesh(this.unit, wall);
+            const top = k === 4 ? height * (EAVES + 0.2) : height * 0.95;
+            stack.scale.set(0.7, 1.8, 0.7);
+            stack.position.set(width * (0.3 + random() * 0.4), top + 0.3, 4 + random() * 5);
+            const cap = new Mesh(this.unit, tiles);
+            cap.scale.set(0.9, 0.12, 0.9);
+            cap.position.set(stack.position.x, top + 1.26, stack.position.z);
+            whole.add(stack, cap);
+          }
+          if (k === 4) {
+            for (let d = 0; d < 2; d++) {
+              const dormer = new Mesh(this.unit, wall);
+              dormer.scale.set(1.3, 1.3, 1.4);
+              dormer.position.set(width * (0.3 + d * 0.4), height * EAVES + 0.9, 2.2);
+              const hood = new Mesh(gableRoof, tiles);
+              hood.scale.set(1.5, 0.7, 1.6);
+              hood.position.set(width * (0.3 + d * 0.4) - 0.75, height * EAVES + 1.55, 1.4);
+              const pane = new Mesh(this.unit, dark);
+              pane.scale.set(0.8, 0.8, 0.05);
+              pane.position.set(width * (0.3 + d * 0.4), height * EAVES + 0.9, 1.48);
+              whole.add(dormer, hood, pane);
+            }
+          }
           // Canal houses lean forward over the street a little, built so on purpose to keep
           // goods hoisted up the front clear of the windows.
           const lean = -0.006 - random() * 0.01;
