@@ -37,6 +37,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   canvasTexture,
   Figures,
+  hazedMaterial,
   loopMetres,
   Ribbons,
   type SceneStreet,
@@ -56,6 +57,8 @@ const WATER = 1.5;
 /** The far quay's width, and the narrow pavement before the houses on the rider's side. */
 const FAR_QUAY = 5;
 const PAVEMENT = 2.2;
+/** How far ahead the Westertoren stands over the end of the gracht. */
+const TOWER = 560;
 /** A humpback bridge crosses the canal every BRIDGE metres. */
 const BRIDGE = 120;
 /** The ride sets off this far along the loop, so the opening view looks ahead to a bridge. */
@@ -94,6 +97,7 @@ export class AmsterdamStreet implements SceneStreet {
   private readonly boats: { mesh: Group; offset: number; speed: number }[] = [];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
+  private readonly tower = new Group();
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -113,6 +117,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
+    this.addWestertoren();
   }
 
   setTime(seconds: number): void {
@@ -138,6 +143,7 @@ export class AmsterdamStreet implements SceneStreet {
   }
 
   place(s: number, heightAt: (metres: number) => number): void {
+    this.tower.position.set(12, heightAt(0), -TOWER);
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s + START, LOOP, BEHIND);
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
@@ -372,6 +378,55 @@ export class AmsterdamStreet implements SceneStreet {
         offset += width;
       }
     }
+  }
+
+  /**
+   * The Westertoren, rising over the rooftops at the end of the gracht and keeping its distance
+   * as the rider rides: a square brick base with stone bands, a stone clock stage, two
+   * octagonal stone stages, a lantern, and on top the blue imperial crown picked out in gold
+   * under an orb and weathervane. Hazed by hand, out of the fog, as far landmarks are.
+   */
+  private addWestertoren(): void {
+    const haze = new Color(0xd6dde3);
+    const brick = hazedMaterial(this.disposables, haze, 0x7a3a2a, 0.3);
+    const stone = hazedMaterial(this.disposables, haze, 0xd8cfb8, 0.3);
+    const dark = hazedMaterial(this.disposables, haze, 0x2a2a2a, 0.3);
+    const blue = hazedMaterial(this.disposables, haze, 0x2a4a8c, 0.22);
+    const gold = hazedMaterial(this.disposables, haze, 0xd9a830, 0.18, { metalness: 0.6 });
+    const add = (geometry: BufferGeometry, material: MeshStandardMaterial, y: number) => {
+      const mesh = new Mesh(geometry, material);
+      mesh.position.y = y;
+      this.tower.add(mesh);
+      this.disposables.push(geometry);
+    };
+    add(new BoxGeometry(11, 36, 11).translate(0, 18, 0), brick, 0);
+    for (const y of [12, 24, 35.5]) add(new BoxGeometry(11.4, 0.8, 11.4), stone, y);
+    add(new BoxGeometry(9.4, 10, 9.4).translate(0, 5, 0), stone, 36);
+    const clocks = new CylinderGeometry(1.6, 1.6, 9.6, 16).rotateZ(Math.PI / 2);
+    add(clocks, dark, 41);
+    add(clocks.clone().rotateY(Math.PI / 2), dark, 41);
+    add(new CylinderGeometry(4.2, 4.6, 10, 8).translate(0, 5, 0), stone, 46);
+    add(new CylinderGeometry(3.6, 4.4, 0.8, 8), dark, 56.4);
+    add(new CylinderGeometry(3, 3.2, 8, 8).translate(0, 4, 0), stone, 56.8);
+    add(new CylinderGeometry(2.6, 3.1, 0.6, 8), dark, 65);
+    add(new CylinderGeometry(2, 2.2, 5, 8).translate(0, 2.5, 0), stone, 65.3);
+    // The imperial crown: a blue cap swelling under gold arches, a gold band at its foot.
+    add(new CylinderGeometry(2.4, 2.4, 0.7, 12), gold, 70.6);
+    add(
+      new SphereGeometry(2.2, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 1.6, 1),
+      blue,
+      70.9,
+    );
+    for (let a = 0; a < 4; a++) {
+      const arch = new TorusGeometry(2.1, 0.16, 4, 16, Math.PI);
+      arch.scale(1, 1.6, 1);
+      arch.rotateY((a * Math.PI) / 4);
+      add(arch, gold, 70.9);
+    }
+    add(new SphereGeometry(0.6, 10, 8), gold, 74.8);
+    add(new CylinderGeometry(0.08, 0.12, 4, 6).translate(0, 2, 0), gold, 75.3);
+    add(new BoxGeometry(1.4, 0.1, 0.1), gold, 78.6);
+    this.group.add(this.tower);
   }
 
   /** The window boxes and façade gardens' materials and shapes. */
