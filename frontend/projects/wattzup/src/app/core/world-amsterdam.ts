@@ -3815,7 +3815,7 @@ function traceFront(pen: Pen, kind: Gable): void {
 /**
  * A tall sash window in its white frame: the sky and the street's far side caught in the upper
  * panes, the room behind showing through the lower ones (a lamp, a bookcase, a plant on the sill
- * or a half net curtain), and white glazing bars dividing it into twelve lights.
+ * or a half net curtain), and glazing bars in the frame's paint dividing it into twelve lights.
  */
 function sashWindow(
   g: CanvasRenderingContext2D,
@@ -3824,8 +3824,9 @@ function sashWindow(
   width: number,
   tall: number,
   random: () => number,
+  frame = '#f6f4ee',
 ): void {
-  g.fillStyle = '#f6f4ee';
+  g.fillStyle = frame;
   g.fillRect(x - 4, y - 4, width + 8, tall + 8);
   g.fillStyle = 'rgba(0,0,0,0.35)';
   g.fillRect(x - 4, y + tall + 4, width + 8, 3);
@@ -3864,7 +3865,7 @@ function sashWindow(
   g.fillStyle = sky;
   g.fillRect(x, y, width, tall);
   // The glazing bars: two sashes of six lights.
-  g.fillStyle = '#f6f4ee';
+  g.fillStyle = frame;
   g.fillRect(x, y + tall / 2 - 2, width, 4);
   g.fillRect(x + width / 2 - 1.2, y, 2.4, tall);
   g.fillRect(x, y + tall / 4 - 1, width, 2);
@@ -4194,6 +4195,8 @@ function facadeTexture(
     }
     // Four floors of sash windows over the ground floor.
     const columns = bays(kind);
+    // Most frames are painted white; older houses keep the dark canal green or a cream.
+    const frame = (['#f6f4ee', '#f6f4ee', '#f6f4ee', '#1f3a2c', '#e8dcc0'] as const)[seed % 5]!;
     const pane = (w - 30) / columns;
     const floors = 4;
     const ground = h - 175;
@@ -4204,7 +4207,7 @@ function facadeTexture(
       for (let c = 0; c < columns; c++) {
         const x = 15 + c * pane + pane * 0.16;
         const width = pane * 0.68;
-        sashWindow(g, x, y, width, tall, random);
+        sashWindow(g, x, y, width, tall, random, frame);
       }
       // Iron wall anchors tying the floor's beams, at either end of the front.
       g.fillStyle = '#16181b';
