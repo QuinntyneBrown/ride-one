@@ -179,6 +179,14 @@ const LIGHTHOUSE_BEAM_WIDE = 12;
 const LIGHTHOUSE_TURN = 12;
 const LIGHTHOUSE_FACING = Math.PI / 5;
 /**
+ * The holographic globe over the city ahead: where it hovers (x, y, z in m), its radius (m),
+ * its axis's lean (rad) and one turn (s).
+ */
+const HOLO_AT = [6, 205, -650] as const;
+const HOLO_RADIUS = 40;
+const HOLO_TILT = 0.4;
+const HOLO_TURN = 60;
+/**
  * The blimp: where it hangs (x, y, z in m), its length and girth (m), how far it drifts either
  * way (m) and how long one drift there and back takes (s).
  */
@@ -544,6 +552,7 @@ export class DocklandsStreet {
     this.sweep(smooth);
     this.drift(smooth, still);
     this.sail(smooth);
+    if (this.holoGlobe) this.holoGlobe.rotation.y = (smooth / HOLO_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -593,6 +602,8 @@ export class DocklandsStreet {
   /** The ride's last whole second and when it came, to run smooth motion on through it. */
   private tick = 0;
   private tickAt = 0;
+  /** The holographic globe over the city ahead, turning. */
+  private holoGlobe: Group | null = null;
   /** The blimp, drifting over the harbour, and its blinking navigation lights. */
   private blimp: { body: Group; lights: MeshBasicMaterial[] } | null = null;
   /** The lightning's bolts, one striking at a time. */
@@ -1506,6 +1517,7 @@ export class DocklandsStreet {
     this.addHarbourBridge();
     this.addLighthouse();
     this.addBlimp();
+    this.addHoloGlobe();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
   }
@@ -1688,6 +1700,54 @@ export class DocklandsStreet {
     }
     this.farShore.add(body);
     this.blimp = { body, lights };
+  }
+
+  /**
+   * A giant holographic globe hovering over the city at the end of the street: cyan meridians
+   * and parallels, continents in glowing pink dots, a tilted ring round it and a soft glow
+   * behind. Light only, drawn additively, so the sky shows through.
+   */
+  private addHoloGlobe(): void {
+    const [x, y, z] = HOLO_AT;
+    const holder = new Group();
+    holder.position.set(x, y, z);
+    holder.rotation.z = HOLO_TILT;
+    const light = (map: CanvasTexture, hex: string, strength: number) =>
+      new MeshBasicMaterial({
+        map,
+        color: new Color(hex).multiplyScalar(strength),
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        side: DoubleSide,
+        fog: false,
+        toneMapped: false,
+      });
+    const skin = light(this.track(holoGlobeTexture()), '#ffffff', 1.6);
+    const ringMaterial = light(this.track(holoRingTexture()), '#5ff2ff', 1.8);
+    const sphere = new SphereGeometry(HOLO_RADIUS, 48, 24);
+    const ring = new RingGeometry(HOLO_RADIUS * 1.3, HOLO_RADIUS * 1.55, 96, 1);
+    this.disposables.push(skin, ringMaterial, sphere, ring);
+    const turning = new Group();
+    turning.add(new Mesh(sphere, skin));
+    holder.add(turning);
+    const band = new Mesh(ring, ringMaterial);
+    band.rotation.x = -Math.PI / 2 + 0.32;
+    holder.add(band);
+    const halo = new SpriteMaterial({
+      map: this.track(glowTexture()),
+      color: new Color('#3fa8ff').multiplyScalar(0.5),
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+    });
+    this.disposables.push(halo);
+    const glow = new Sprite(halo);
+    glow.scale.setScalar(HOLO_RADIUS * 3.2);
+    holder.add(glow);
+    this.farShore.add(holder);
+    this.holoGlobe = turning;
   }
 
   /** Drifts the blimp slowly to and fro along the harbour, and blinks its lights. */
@@ -4460,6 +4520,93 @@ function beamTexture(): CanvasTexture {
     ctx.fillRect(0, 0, 4, 128);
   }
   return new CanvasTexture(canvas);
+}
+
+/**
+ * The holographic globe's skin, wrapped round it: faint cyan meridians and parallels, and
+ * continents in pink dots, on black that adds nothing.
+ */
+function holoGlobeTexture(): CanvasTexture {
+  const w = 1024;
+  const h = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(95,242,255,0.55)';
+    ctx.lineWidth = 3;
+    for (let k = 0; k <= 12; k++) {
+      ctx.beginPath();
+      ctx.moveTo((k * w) / 12, 0);
+      ctx.lineTo((k * w) / 12, h);
+      ctx.stroke();
+    }
+    for (let k = 1; k < 6; k++) {
+      ctx.beginPath();
+      ctx.moveTo(0, (k * h) / 6);
+      ctx.lineTo(w, (k * h) / 6);
+      ctx.stroke();
+    }
+    // Continents: clusters of dots scattered round a handful of centres, kept off the poles.
+    const random = seeded(443);
+    ctx.fillStyle = 'rgba(255,79,216,0.95)';
+    for (let c = 0; c < 9; c++) {
+      const cx = random() * w;
+      const cy = h * (0.22 + random() * 0.56);
+      const spread = 40 + random() * 70;
+      for (let d = 0; d < 260; d++) {
+        const a = random() * Math.PI * 2;
+        const r = Math.sqrt(random()) * spread;
+        const dx = Math.round((cx + Math.cos(a) * r * 1.6) / 8) * 8;
+        const dy = Math.round((cy + Math.sin(a) * r) / 8) * 8;
+        ctx.beginPath();
+        ctx.arc(((dx % w) + w) % w, dy, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** The ring round the holographic globe: a bright inner edge, dashes, and a faint outer edge. */
+function holoRingTexture(): CanvasTexture {
+  // RingGeometry's uv maps the ring onto a square; draw the rings concentric in it.
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, size, size);
+    const c = size / 2;
+    // The ring spans 1.3 to 1.55 radii, mapped so 1.55 meets the square's edge.
+    const inner = (c * 1.3) / 1.55;
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(c, c, inner + 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([14, 10]);
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.arc(c, c, (inner + c) / 2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(c, c, c - 4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
 
 /** The blimp's side screen: an advert in bright type on a gradient, framed in light. */
