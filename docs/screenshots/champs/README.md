@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Quick & Sharp Sprinting Efforts](http
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/quick-and-sharp-sprinting-efforts?simulate`, click **Ride in Champs-Élysées Finale**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [078 · The Arc stands square at the top of the avenue](bend-078-arc-stands.jpg) | The Arc de Triomphe at the top of the Champs-Élysées was bent vertex by vertex with the avenue's bends, so the arch skewed and slewed across the end of the avenue with each turn. It now stands beyond the road unbent, as the panorama does, and the crowd and props behind the rider stand on the cobbles there instead of at the height under the rider. |
