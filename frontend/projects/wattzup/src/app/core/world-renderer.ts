@@ -62,7 +62,7 @@ import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
 import { bendAhead, bendPoint } from './scene-bend';
-import { MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
+import { EASE_PER_SECOND, MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import { RoadBend } from './world-bend';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 import { Cyclist, CyclistKit } from './world-cyclist';
@@ -3107,7 +3107,6 @@ const POSTS = 14;
 /** How often, in frames, meshes made since the last look take the bend. */
 const BEND_SWEEP = 120;
 /** How far the gradient under the rider eases towards the target each frame. */
-const FRAME_EASE = 0.02;
 
 export class ThreeWorldRenderer implements WorldRenderer {
   private renderer: WebGPURenderer | null = null;
@@ -3151,6 +3150,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private world: World | null = null;
   private look: Look = LOOKS.oldtown;
   private grade = 0;
+  private lastS = 0;
   /** The road's bend, laid on every vertex but the sky's and the panorama's (ADR 0023). */
   private readonly bend = new RoadBend();
   private readonly unbent = new Set<Object3D>([this.sky]);
@@ -3209,7 +3209,13 @@ export class ThreeWorldRenderer implements WorldRenderer {
     const here = frame.segments.find(
       (s) => frame.elapsed >= s.start && frame.elapsed < s.start + s.duration,
     );
-    if (here) this.grade += FRAME_EASE * (targetGrade(world, here.kind, frame.s) - this.grade);
+    // The grade under the rider eases as the road ahead was laid: 0.12 of the way a second
+    // ridden, whatever the frame rate, so the rider rides onto the ramp the road showed.
+    const v = Math.max(speed, MIN_SPEED);
+    const dt = Math.min(Math.max(frame.s - this.lastS, 0) / v, 1);
+    this.lastS = frame.s;
+    const ease = 1 - Math.pow(1 - EASE_PER_SECOND, dt);
+    if (here) this.grade += ease * (targetGrade(world, here.kind, frame.s) - this.grade);
     const ahead = roadAhead(
       world,
       frame.segments,
@@ -3221,7 +3227,6 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (++this.drawn % BEND_SWEEP === 0) this.bend.apply(this.scene, this.unbent);
     if (this.towers) {
       // The road over an effort is a bridge ramp, laid at the same speed as the road ahead.
-      const v = Math.max(speed, MIN_SPEED);
       const efforts = frame.segments.filter((g) => g.kind === 'work');
       this.towers.setTime(frame.reducedMotion ? 0 : frame.elapsed, frame.reducedMotion);
       this.towers.setBridge(
