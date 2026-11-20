@@ -177,6 +177,10 @@ const SHOPS: readonly (readonly [string, string])[] = [
   ['TEA HOUSE', '#b06bff'],
 ];
 const SHOP_SIGN_LONG = 3.8;
+/** Bike racks: where round the loop, how far beyond the road's edge (m), the frames' colours. */
+const BIKE_RACKS = [44, 126, 232, 352, 470, 562];
+const BIKE_RACK_OUT = 1.9;
+const BIKE_COLOURS = ['#ff4f6d', '#3fd9ff', '#ffd84a', '#f2f2f2', '#2fd18a'];
 /** Bus shelters: where round the loop (between the trees), how far out (m), how long (m). */
 const SHELTERS = [48, 290, 506];
 const SHELTER_OUT = 2.6;
@@ -362,6 +366,8 @@ export class DocklandsStreet {
   private readonly trees: { group: Group; offset: number }[] = [];
   /** Bus shelters on the far pavement, at SHELTERS round the loop. */
   private readonly shelters: { group: Group; offset: number }[] = [];
+  /** Racks of parked bicycles at the kerb, at BIKE_RACKS round the loop. */
+  private readonly bikeRacks: { group: Group; offset: number }[] = [];
   /** Delivery drones flying the street: each's loop position at time zero, speed and height. */
   private readonly drones: {
     group: Group;
@@ -1386,6 +1392,7 @@ export class DocklandsStreet {
     this.addBollards(roadHalf);
     this.addTrees(roadHalf);
     this.addShelters(roadHalf);
+    this.addBikeRacks(roadHalf);
     this.addDrones(roadHalf);
     this.addLaneSymbols(roadHalf);
     this.addGates(roadHalf);
@@ -2091,6 +2098,93 @@ export class DocklandsStreet {
         strobes: [port, starboard],
       });
     }
+  }
+
+  /**
+   * Bicycles parked at steel hoop stands on the pavement, side on to the street: wheels, a frame
+   * in one of a few bright colours, saddle and bars, and a red rear light left on.
+   */
+  private addBikeRacks(roadHalf: number): void {
+    const steel = new MeshStandardMaterial({ color: 0x8a8f9c, metalness: 0.8, roughness: 0.3 });
+    const tyre = new MeshStandardMaterial({ color: 0x0c0c10, roughness: 0.7 });
+    const frames = BIKE_COLOURS.map(
+      (hex) =>
+        new MeshStandardMaterial({
+          color: new Color(hex),
+          metalness: 0.4,
+          roughness: 0.35,
+          emissive: new Color(hex).multiplyScalar(0.15),
+        }),
+    );
+    const tail = new MeshBasicMaterial({
+      color: new Color('#ff2a3a').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const wheel = new TorusGeometry(0.33, 0.03, 6, 22);
+    const hoop = new TorusGeometry(0.4, 0.03, 6, 16, Math.PI);
+    const tube = new BoxGeometry(1, 0.045, 0.045);
+    const dot = new SphereGeometry(0.045, 8, 6);
+    this.disposables.push(steel, tyre, ...frames, tail, wheel, hoop, tube, dot);
+    const bar = (
+      material: Material,
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+      z = 0,
+    ): Mesh => {
+      const mesh = new Mesh(tube, material);
+      mesh.scale.x = Math.hypot(x2 - x1, y2 - y1);
+      mesh.position.set((x1 + x2) / 2, (y1 + y2) / 2, z);
+      mesh.rotation.z = Math.atan2(y2 - y1, x2 - x1);
+      return mesh;
+    };
+    const random = seeded(367);
+    const x = roadHalf + BIKE_RACK_OUT;
+    BIKE_RACKS.forEach((offset) => {
+      const group = new Group();
+      const count = 3 + Math.floor(random() * 2);
+      for (let k = 0; k < count; k++) {
+        const z = (k - (count - 1) / 2) * 0.85;
+        // The stand: a hoop set into the paving.
+        const stand = new Mesh(hoop, steel);
+        stand.position.set(x, KERB + 0.35, z - 0.15);
+        group.add(stand);
+        if (random() < 0.15) continue;
+        // The bicycle, lying along x: front wheel towards the road.
+        const bike = new Group();
+        const frame = frames[Math.floor(random() * frames.length)]!;
+        const r = 0.33;
+        for (const wx of [-0.52, 0.52]) {
+          const w = new Mesh(wheel, tyre);
+          w.position.set(wx, r, 0);
+          bike.add(w);
+        }
+        bike.add(
+          bar(frame, -0.52, r, -0.08, r + 0.02),
+          bar(frame, -0.08, r + 0.02, -0.16, r + 0.5),
+          bar(frame, -0.16, r + 0.5, 0.36, r + 0.46),
+          bar(frame, -0.08, r + 0.02, 0.36, r + 0.46),
+          bar(frame, -0.52, r, -0.16, r + 0.5),
+          bar(frame, 0.36, r + 0.46, 0.52, r),
+          bar(frame, 0.36, r + 0.46, 0.4, r + 0.66),
+          bar(tyre, -0.28, r + 0.6, -0.08, r + 0.6),
+        );
+        const bars = new Mesh(tube, tyre);
+        bars.scale.x = 0.42;
+        bars.rotation.y = Math.PI / 2;
+        bars.position.set(0.4, r + 0.66, 0);
+        bike.add(bars);
+        const light = new Mesh(dot, tail);
+        light.position.set(-0.26, r + 0.5, 0);
+        bike.add(light);
+        bike.position.set(x - 0.05, KERB, z);
+        bike.rotation.y = Math.PI + (random() - 0.5) * 0.15;
+        group.add(bike);
+      }
+      this.group.add(group);
+      this.bikeRacks.push({ group, offset });
+    });
   }
 
   private addStalls(): void {
@@ -2967,6 +3061,11 @@ export class DocklandsStreet {
       drone.group.userData['ground'] ??= drone.group.position.y;
       drone.group.position.y =
         (drone.group.userData['ground'] as number) + heightAt(Math.max(metres, 0));
+    }
+    for (const rack of this.bikeRacks) {
+      const metres = ((((rack.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      rack.group.visible = !this.onBridge(Math.max(metres, 0));
+      rack.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
     for (const shelter of this.shelters) {
       const metres = ((((shelter.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
