@@ -126,6 +126,11 @@ jobs:
         with:
           name: wattzup-browser
           path: site
+      # A browser reinstalls a service worker only when its file changes, and a header change alone
+      # (its Content-Security-Policy, say) never reaches a worker already installed. Stamping the
+      # worker with the commit makes every deploy install a fresh one under the current headers.
+      - name: Stamp the service worker with the commit
+        run: echo "// ${GITHUB_SHA}" >> site/ngsw-worker.js
       - uses: azure/login@v2
         with:
           client-id: ${{ env.AZURE_CLIENT_ID }}

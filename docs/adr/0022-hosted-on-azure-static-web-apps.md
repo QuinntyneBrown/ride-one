@@ -22,7 +22,9 @@ deployed.**
   own policy: every request the page makes, the YouTube player script and the class covers on
   `i.ytimg.com` included, is fetched by the worker under the worker's policy, so its
   `connect-src` allows those two origins. With the page's `connect-src 'self'` there, the player
-  and the covers fail to load.
+  and the covers fail to load. The deploy job appends the commit to `ngsw-worker.js`: a browser
+  reinstalls a worker only when its bytes change, so without the stamp a header change never
+  reaches a worker already installed.
 - The `deploy` job in `.github/workflows/ci.yml` runs after the Dashboard and behaviour-spec jobs,
   uploads the build the Dashboard job made, and signs in to Azure with GitHub's OIDC token through
   the `gh-wattzup-deploy` app registration (Contributor on the static web app only). Its federated
