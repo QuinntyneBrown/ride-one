@@ -122,6 +122,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly vents: Mesh[][] = [];
   private plane: Group | null = null;
   private readonly planeLights: Mesh[] = [];
+  private readonly hazards: Mesh[] = [];
   private heli: { craft: Group; rotor: Mesh; lights: Mesh[] } | null = null;
   private readonly swaying: { palm: Group; phase: number; lean: number }[] = [];
   /** Where the nightclubs' doors are, in metres along the loop. */
@@ -178,6 +179,7 @@ export class MiamiStreet implements SceneStreet {
     this.addBikeDocks(roadHalf);
     this.addPier(roadHalf);
     this.addCarts(roadHalf);
+    this.addTaxis(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -237,6 +239,9 @@ export class MiamiStreet implements SceneStreet {
       this.plane.rotation.y = Math.PI / 2;
       this.planeLights.forEach((l) => (l.visible = seconds % 1 < 0.5));
     }
+    // The cabs' hazard lights blink.
+    const blinking = seconds % 0.9 < 0.45;
+    this.hazards.forEach((h) => (h.visible = blinking));
     // The searchlights sweep slowly to and fro, out of step with each other.
     this.searchlights.forEach((m, k) => {
       m.rotation.z = Math.sin(seconds * 0.25 + k * 2.1) * 0.5;
@@ -2038,6 +2043,71 @@ export class MiamiStreet implements SceneStreet {
     }
   }
 
+  /**
+   * Yellow cabs waiting at the clubs' doors: a closed sedan with a dark glasshouse, a lit TAXI
+   * sign on its roof, a chequered band along its flank and hazard lights blinking, and a valet
+   * podium with its lamp by the kerb.
+   */
+  private addTaxis(roadHalf: number): void {
+    const yellow = this.material({ color: 0xf4c020, roughness: 0.3, metalness: 0.4 });
+    const glass = this.material({ color: 0x141a24, roughness: 0.05, metalness: 0.8 });
+    const tyre = this.material({ color: 0x18181c, roughness: 0.85 });
+    const checks = this.material({ map: this.track(checkerTexture()), roughness: 0.4 });
+    const roofSign = this.material({
+      map: this.track(neonWordTexture('TAXI', '#ffe060')),
+      emissive: 0xffffff,
+      emissiveMap: this.track(neonWordTexture('TAXI', '#ffe060')),
+      emissiveIntensity: 1.6,
+    });
+    const hazard = this.material({ color: 0xffa020, emissive: 0xffa020, emissiveIntensity: 3 });
+    const podium = this.material({ color: 0x2a1a20, roughness: 0.5 });
+    const wheel = new CylinderGeometry(0.34, 0.34, 0.24, 14);
+    wheel.rotateZ(Math.PI / 2);
+    this.disposables.push(wheel);
+    for (const club of this.clubs) {
+      const taxi = new Group();
+      const b = new BoxBuilder();
+      b.box(yellow, [1.85, 0.6, 4.7], [0, 0.65, 0]);
+      b.box(glass, [1.6, 0.5, 2.3], [0, 1.2, 0.2]);
+      b.box(yellow, [1.62, 0.08, 2.1], [0, 1.48, 0.2]);
+      b.box(checks, [1.87, 0.14, 2.8], [0, 0.72, 0.1]);
+      taxi.add(b.build(this.disposables));
+      const sign = new Mesh(this.unit, roofSign);
+      sign.scale.set(0.9, 0.28, 0.3);
+      sign.position.set(0, 1.66, 0.2);
+      taxi.add(sign);
+      for (const x of [-0.75, 0.75])
+        for (const z of [-2.36, 2.36]) {
+          const light = new Mesh(this.unit, hazard);
+          light.scale.set(0.25, 0.1, 0.04);
+          light.position.set(x, 0.78, z);
+          taxi.add(light);
+          this.hazards.push(light);
+          const w = new Mesh(wheel, tyre);
+          w.position.set(x * 1.27, 0.34, z * 0.62);
+          taxi.add(w);
+        }
+      const stand = new Mesh(this.unit, podium);
+      stand.scale.set(0.6, 1.15, 0.5);
+      stand.position.set(3.2, 0.72, -2);
+      const lamp = new Mesh(this.flat, this.halo);
+      lamp.scale.set(1.4, 1.4, 1);
+      lamp.position.set(3.2, 1.45, -1.7);
+      taxi.add(stand, lamp);
+      const holder = new Group();
+      holder.add(taxi);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: club + 7, x: roadHalf - 1.1 });
+      this.standers.push({
+        offset: club + 5,
+        x: roadHalf + 2.4,
+        heading: -Math.PI / 2,
+        phase: 4,
+        scale: 1,
+      });
+    }
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -3711,5 +3781,16 @@ function menuTexture(): CanvasTexture {
     g.font = '18px sans-serif';
     g.fillStyle = '#f4f0e8';
     g.fillText('$3 · $5 · $2', 128, 106);
+  });
+}
+
+/** A cab's chequered band: two rows of black and white squares. */
+function checkerTexture(): CanvasTexture {
+  return canvasTexture(128, 16, (g) => {
+    for (let x = 0; x < 128; x += 8)
+      for (let y = 0; y < 16; y += 8) {
+        g.fillStyle = (x + y) % 16 === 0 ? '#111' : '#f4f4f0';
+        g.fillRect(x, y, 8, 8);
+      }
   });
 }
