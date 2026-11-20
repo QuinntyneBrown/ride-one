@@ -24,6 +24,8 @@ import {
   PlaneGeometry,
   RepeatWrapping,
   SphereGeometry,
+  Sprite,
+  SpriteMaterial,
   SRGBColorSpace,
   type Texture,
 } from 'three/webgpu';
@@ -195,6 +197,9 @@ const LAMP_EVERY = 40;
 const LAMP_FIRST = 8;
 const LAMP_OUT = 5;
 const LAMP_HEIGHT = 6;
+/** The halo round a lamp's globe, and round a lantern's bulb, this wide. */
+const LAMP_HALO = 4.6;
+const LANTERN_HALO = 0.9;
 const LAMPS = 10;
 /** The towers' street floor: glazing this high above the pavement, in bays this wide. */
 const LOBBY = 4.6;
@@ -1206,6 +1211,21 @@ export class DocklandsStreet {
     parent.add(mesh);
   }
 
+  /** An additive halo of `hex` light at `strength`, for a light seen through the rain. */
+  private halo(hex: string, strength: number): SpriteMaterial {
+    this.glow ??= this.track(glowTexture());
+    const material = new SpriteMaterial({
+      map: this.glow,
+      color: new Color(hex).multiplyScalar(strength),
+      blending: AdditiveBlending,
+      transparent: true,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    this.disposables.push(material);
+    return material;
+  }
+
   /** Slim dark poles with a glowing globe on top, as in the mock. */
   private addLamps(): void {
     const metal = new MeshStandardMaterial({ color: 0x15171d, metalness: 0.6, roughness: 0.4 });
@@ -1218,6 +1238,8 @@ export class DocklandsStreet {
     const foot = new CylinderGeometry(0.16, 0.2, 0.5, 10);
     const head = new SphereGeometry(0.26, 16, 12);
     const collar = new CylinderGeometry(0.12, 0.08, 0.16, 10);
+    // A soft halo round each globe, as its light blooms in the wet air.
+    const halo = this.halo('#ffd9a0', 1.3);
     this.disposables.push(metal, globe, pole, foot, head, collar);
     for (let i = 0; i < LAMPS; i++) {
       const lamp = new Group();
@@ -1230,7 +1252,10 @@ export class DocklandsStreet {
       cup.position.y = LAMP_HEIGHT - 0.28;
       const light = new Mesh(head, globe);
       light.position.y = LAMP_HEIGHT;
-      lamp.add(shaft, base, cup, light);
+      const bloom = new Sprite(halo);
+      bloom.position.y = LAMP_HEIGHT;
+      bloom.scale.setScalar(LAMP_HALO);
+      lamp.add(shaft, base, cup, light, bloom);
       // Lamps stand on the left at even places: their light reflects on the road inside them.
       const inward = i % 2 === 0 ? 1 : -1;
       this.streak(lamp, '#ffd9a0', inward * 1.6, 0, -0.5, 14, 2.2, 2.6);
@@ -1260,6 +1285,7 @@ export class DocklandsStreet {
     );
     const bulb = new SphereGeometry(0.16, 10, 8);
     const wire = new LineBasicMaterial({ color: 0x0a0a12 });
+    const halos = LANTERN_COLOURS.map((hex) => this.halo(hex, 0.6));
     this.disposables.push(...bulbs, bulb, wire);
     const sagAt = (x: number) => LANTERN_SAG * (1 - ((x - mid) / half) ** 2);
     LANTERNS.forEach((offset, n) => {
@@ -1277,9 +1303,13 @@ export class DocklandsStreet {
       group.add(new LineSegments(geometry, wire));
       let i = n;
       for (let x = left + LANTERN_EVERY; x < right; x += LANTERN_EVERY) {
-        const mesh = new Mesh(bulb, bulbs[i++ % bulbs.length]!);
+        const colour = i++ % bulbs.length;
+        const mesh = new Mesh(bulb, bulbs[colour]!);
         mesh.position.set(x, -sagAt(x) - 0.22, 0);
-        group.add(mesh);
+        const bloom = new Sprite(halos[colour]!);
+        bloom.position.copy(mesh.position);
+        bloom.scale.setScalar(LANTERN_HALO);
+        group.add(mesh, bloom);
       }
       group.position.y = LANTERN_HEIGHT;
       this.group.add(group);
