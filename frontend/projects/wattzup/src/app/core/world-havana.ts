@@ -169,6 +169,7 @@ export class HavanaStreet implements SceneStreet {
   private foam: Texture | null = null;
   private roadHalf = 0;
   private zebra: MeshStandardMaterial | null = null;
+  private readonly divers: { body: Group; phase: number }[] = [];
   private birds: InstancedMesh | null = null;
   private readonly birdList: {
     offset: number;
@@ -218,6 +219,7 @@ export class HavanaStreet implements SceneStreet {
     this.addDogs(roadHalf);
     this.addVendors(roadHalf);
     this.addPotholes(roadHalf);
+    this.addDivers(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -340,6 +342,20 @@ export class HavanaStreet implements SceneStreet {
         this.birds!.setMatrixAt(i, this.drop);
       });
       this.birds.instanceMatrix.needsUpdate = true;
+    }
+    for (const d of this.divers) {
+      // Up on the coping, then out in an arc and down into the sea, and a while under.
+      const t = (this.time * 0.22 + d.phase) % 1;
+      const body = d.body;
+      body.visible = t < 0.72;
+      if (t < 0.35) {
+        body.position.set(0, WALL, 0);
+        body.rotation.z = 0;
+      } else {
+        const f = Math.min((t - 0.35) / 0.3, 1);
+        body.position.set(-3.2 * f, WALL + 1.6 * f - (1.6 + WALL + SEA) * f * f, 0);
+        body.rotation.z = f * 2.2;
+      }
     }
     this.horizon.position.set(0, heightAt(0), 0);
   }
@@ -2498,6 +2514,60 @@ export class HavanaStreet implements SceneStreet {
       // Mostly in the wheel tracks and by the kerbs, either side of the road.
       const x =
         random() < 0.5 ? roadHalf - 0.6 - random() * 2 : -roadHalf - 0.8 - random() * (LANES - 1.6);
+      this.props.push({ mesh: holder, offset, x });
+    }
+  }
+
+  /**
+   * The young men who dive off the Malecón: in swim trunks on the coping, then out in an arc,
+   * arms up, head first into the sea, again and again. Each pair works its own stretch of wall.
+   */
+  private addDivers(roadHalf: number): void {
+    const x = -roadHalf - LANES - PROMENADE - 0.35;
+    const random = seeded(1439);
+    const skin = this.material({ color: 0x6b4128, roughness: 0.7 });
+    const torso = new CapsuleGeometry(0.16, 0.42, 3, 8);
+    torso.translate(0, 1.15, 0);
+    const head = new SphereGeometry(0.11, 10, 8);
+    head.translate(0, 1.62, 0);
+    const trunks = new CylinderGeometry(0.17, 0.16, 0.24, 10);
+    trunks.translate(0, 0.86, 0);
+    const legs: BufferGeometry[] = [];
+    const arms: BufferGeometry[] = [];
+    for (const side of [-0.09, 0.09]) {
+      const leg = new CapsuleGeometry(0.065, 0.66, 3, 6);
+      leg.translate(side, 0.42, 0);
+      legs.push(leg);
+      const arm = new CapsuleGeometry(0.045, 0.52, 3, 6);
+      arm.translate(side * 2.3, 1.75, 0);
+      arms.push(arm);
+    }
+    const bare = mergeGeometries([torso, head, ...legs, ...arms])!;
+    [torso, head, ...legs, ...arms].forEach((g) => g.dispose());
+    this.disposables.push(bare, trunks);
+    const suits = [0xe63946, 0x1d70b8, 0x2a2a2a, 0xf1c40f];
+    for (let k = 0, offset = 38; offset < LOOP; k++, offset += 110 + random() * 60) {
+      const holder = new Group();
+      for (const [dz, phase] of [
+        [0, 0.15],
+        [1.4, 0.55],
+      ] as const) {
+        const body = new Group();
+        const person = new Mesh(bare, skin);
+        person.castShadow = true;
+        const suit = new Mesh(
+          trunks,
+          this.material({ color: suits[((k + dz) % 4) | 0]!, roughness: 0.7 }),
+        );
+        body.add(person, suit);
+        body.position.z = -dz;
+        const lane = new Group();
+        lane.position.z = -dz;
+        lane.add(body);
+        holder.add(lane);
+        this.divers.push({ body, phase: (phase + k * 0.3) % 1 });
+      }
+      this.group.add(holder);
       this.props.push({ mesh: holder, offset, x });
     }
   }
