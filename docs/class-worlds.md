@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón and Sea Point, Cape Town have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town and Montreal Jazz Fest have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -59,7 +59,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 53 | 20/40 Interval Session | Sea Point, Cape Town | 74% | Promenade beneath Lion's Head and Table Mountain, Atlantic waves rolling in. |
 | 54 | Time to Spin Out | Overseas Highway (concept) |  | Turquoise water on both sides along the Florida Keys' Seven Mile Bridge. |
 | 55 | Spin to Win Cadence Session | Lee Valley Velodrome (concept) |  | Steep timber boards of London's Olympic track under bright arena lights. |
-| 56 | High Intensity, Short Rest | Montreal Jazz Fest (concept) |  | Downtown stages and street crowds in summer; short rests between sets. |
+| 56 | High Intensity, Short Rest | Montreal Jazz Fest | 72% | Downtown stages and street crowds in summer; short rests between sets. |
 | 57 | Full Gas Sprints | Isle of Man Mountain Course (concept) |  | Stone walls and Snaefell's mountain road on the famous motorcycle course. |
 | 58 | Spin to Win | Coney Island Boardwalk (concept) |  | Wooden boardwalk, roller coaster and Wonder Wheel on the Brooklyn shore. |
 | 59 | Conquer the Climb | Stelvio Pass (concept) |  | Forty-eight hairpins stacked up an Italian alpine wall to the snowfields. |

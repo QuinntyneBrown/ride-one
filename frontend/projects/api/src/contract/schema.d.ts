@@ -107,7 +107,8 @@ export interface components {
         | 'chicago'
         | 'goldengate'
         | 'havana'
-        | 'seapoint';
+        | 'seapoint'
+        | 'montreal';
     };
     ClassShelfResponse: {
       id: string;

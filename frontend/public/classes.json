@@ -3799,6 +3799,7 @@
     },
     {
       "id": "high-intensity-short-rest",
+      "world": "montreal",
       "title": "High Intensity, Short Rest",
       "channel": "GCN Training",
       "focus": "HIIT",

@@ -478,6 +478,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.1, fill: 1.2, colour: 0xfff6e8 },
     fogRange: [150, 5000],
   },
+  // A summer evening in the Quartier des Spectacles: the sun just down behind the rider, the sky violet, the festival lit.
+  montreal: {
+    sky: 0x6a5a9a,
+    fog: 0x4a4068,
+    ground: 0x55555a,
+    road: 0x5e5f68,
+    sun: 7,
+    wet: false,
+    haze: true,
+    turbidity: 6,
+    rayleigh: 2.6,
+    azimuth: -150,
+    light: { sun: 1.8, fill: 1.4, colour: 0xffb88a },
+    fogRange: [60, 700],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
