@@ -112,12 +112,12 @@ const LOOKS: Record<WorldId, Look> = {
     fog: 0xdcd8cf,
     ground: 0x6b6256,
     road: 0xd9d2c8,
-    sun: 55,
+    sun: 48,
     wet: false,
     haze: false,
     turbidity: 1.6,
     rayleigh: 2.6,
-    azimuth: -140,
+    azimuth: -162,
     light: { sun: 3.2, fill: 1.1, colour: 0xffeccc },
     fogRange: [30, 430],
   },
@@ -157,7 +157,7 @@ const LOOKS: Record<WorldId, Look> = {
 type ColorNode = ReturnType<typeof vec4>;
 
 /** How far each panorama turns, as a share of its width, to put its landmark down the road. */
-const PANORAMA_TURN: Partial<Record<WorldId, number>> = { oldtown: 0.16 };
+const PANORAMA_TURN: Partial<Record<WorldId, number>> = { oldtown: -0.12 };
 
 /** Anisotropic filtering per tier (technique 8). */
 const ANISOTROPY: Record<Tier, number> = { low: 4, medium: 8, high: 16, ultra: 16 };
@@ -331,6 +331,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
     // The WebGPU renderer has no PCFSoftShadowMap: soft shadows (37) widen the PCF filter instead.
     renderer.shadowMap.type = PCFShadowMap;
     this.sun.shadow.radius = on.has(37) ? 4 : 1;
+    for (const rider of [this.you, ...this.pacers.values()]) {
+      if (rider) rider.contact.visible = on.has(37);
+    }
     this.sun.castShadow = on.has(12);
 
     this.roadMaterial.map = on.has(9) ? this.layeredRoad : this.plainRoad;

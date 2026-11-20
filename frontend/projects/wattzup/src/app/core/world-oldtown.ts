@@ -6,14 +6,19 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
+  CapsuleGeometry,
+  Color,
   ConeGeometry,
   CylinderGeometry,
   DoubleSide,
   Group,
+  InstancedMesh,
   type Material,
+  Matrix4,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
+  Quaternion,
   RepeatWrapping,
   SphereGeometry,
   SRGBColorSpace,
@@ -55,6 +60,41 @@ const PALETTES: readonly Palette[] = [
 const AWNINGS = ['#b8322c', '#2f6b4f', '#2d4e7a', '#c9822b', '#6b2f4f'];
 const ROOFS = ['#9a4b33', '#7c3d2c', '#a85a3a', '#5a5c63'];
 
+/** A spectator on the pavement. */
+interface Fan {
+  readonly offset: number;
+  readonly x: number;
+  readonly height: number;
+  /** Which way they face, about the vertical: mostly towards the road. */
+  readonly turn: number;
+  readonly shirt: string;
+  readonly skin: string;
+  readonly trousers: string;
+}
+
+const SHIRTS = [
+  '#c9372c',
+  '#2f5d8a',
+  '#f2f0e8',
+  '#e2b23a',
+  '#3d7a4a',
+  '#7a3f8f',
+  '#1f2328',
+  '#e07b39',
+];
+const SKINS = ['#f1c7a5', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26'];
+const TROUSERS = ['#2b2f38', '#3b4a63', '#5a4a3a', '#1c1d20', '#8a8478'];
+const UP = new Vector3(0, 1, 0);
+/** The cathedral stands this far ahead, just right of the street's line. */
+const CATHEDRAL_AHEAD = 620;
+const CATHEDRAL_X = 6;
+/** Bunting crosses the street every 35 m, 8.5 m up at the houses, sagging in the middle. */
+const BUNTING_EVERY = 35;
+const BUNTING_LINES = LOOP / BUNTING_EVERY;
+const BUNTING_FLAGS = 30;
+const BUNTING_HEIGHT = 8.5;
+const PENNANTS = ['#d8283a', '#f2f0e8', '#2d4e7a', '#e2b23a', '#3d7a4a'];
+
 interface HouseLook {
   readonly upper: Material;
   /** The ground floor: a shop front per bay, or a home's door and window over two bays. */
@@ -92,6 +132,15 @@ export class OldTownStreet {
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly brick = new MeshStandardMaterial({ color: 0x8e4a37, roughness: 0.95 });
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
+  private readonly crowd: Fan[] = [];
+  /** The crowd's legs, torsos and heads. */
+  private fans: InstancedMesh[] = [];
+  private flags: InstancedMesh | null = null;
+  private readonly cathedral = new Group();
+  private readonly matrix = new Matrix4();
+  private readonly spot = new Vector3();
+  private readonly turn = new Quaternion();
+  private readonly size = new Vector3();
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -101,6 +150,9 @@ export class OldTownStreet {
   build(roadHalf: number, points: number): void {
     this.disposables.push(this.unit, this.brick);
     this.addFurniture(roadHalf);
+    this.addCrowd(roadHalf);
+    this.addBunting();
+    this.addCathedral();
     const kerb = this.material(null, '#9a9a96');
     const pavement = this.material(this.track(slabTexture()));
     // The left barriers are seen from the other face: their print runs the other way.
@@ -240,6 +292,205 @@ export class OldTownStreet {
     for (const prop of this.props) {
       const metres = ((((prop.offset - s) % prop.every) + prop.every) % prop.every) - BEHIND;
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + KERB, -metres);
+    }
+    this.placeCrowd(s, heightAt);
+    this.placeBunting(s, heightAt);
+    this.cathedral.position.set(CATHEDRAL_X, heightAt(1e6) - 2, -CATHEDRAL_AHEAD);
+  }
+
+  /**
+   * The cathedral at the end of the street: a west tower with its open spire between two
+   * pinnacled towers, a rose window and the long nave behind. It stands a fixed distance
+   * ahead, like the skyline, and is hazed by hand: the street's fog would hide it.
+   */
+  private addCathedral(): void {
+    const haze = new Color(0xdcd8cf);
+    const stone = (hex: number, amount: number, map: Texture | null = null) => {
+      const material = new MeshStandardMaterial({ roughness: 0.95, fog: false, map });
+      material.color.set(hex).lerp(haze, amount);
+      this.disposables.push(material);
+      return material;
+    };
+    const lancets = this.track(gothicTexture(false));
+    const openwork = this.track(gothicTexture(true));
+    const wall = stone(0xd6c197, 0.25);
+    const tracery = stone(0xd6c197, 0.25, lancets);
+    const spire = stone(0xd6c197, 0.25, openwork);
+    const shade = stone(0x9c8a6c, 0.3);
+    const roof = stone(0x55606a, 0.45);
+    const glass = stone(0x3b3f4a, 0.45);
+    const c = this.cathedral;
+    const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z: number) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y + h / 2, z);
+      c.add(mesh);
+      return mesh;
+    };
+    const cone = (m: Material, r: number, h: number, x: number, y: number, z: number, n = 8) => {
+      const geometry = new ConeGeometry(r, h, n);
+      this.disposables.push(geometry);
+      const mesh = new Mesh(geometry, m);
+      mesh.position.set(x, y + h / 2, z);
+      c.add(mesh);
+      return mesh;
+    };
+    // The nave and its steep roof, running away from the street.
+    box(wall, 30, 34, 110, 0, 0, -70);
+    const naveRoof = prism(30, 18, 110);
+    this.disposables.push(naveRoof);
+    const roofMesh = new Mesh(naveRoof, [roof, wall]);
+    roofMesh.position.set(0, 34, -70);
+    c.add(roofMesh);
+    // The west tower, its belfry stages narrowing, and the spire.
+    box(tracery, 24, 60, 22, 0, 0, 0);
+    box(tracery, 20, 22, 19, 0, 60, 0);
+    box(tracery, 16, 14, 15, 0, 82, 0);
+    cone(spire, 11, 62, 0, 96, 0);
+    for (const [x, z] of [
+      [-8, -7],
+      [8, -7],
+      [-8, 7],
+      [8, 7],
+    ] as const) {
+      cone(shade, 1.3, 14, x, 82, z, 6);
+      cone(shade, 1.6, 10, x * 1.25, 60, z * 1.25, 6);
+    }
+    // The two lower towers either side, each with a pinnacle.
+    for (const x of [-20, 20]) {
+      box(tracery, 14, 46, 16, x, 0, -4);
+      cone(shade, 6, 22, x, 46, -4);
+    }
+    // The portal and the rose window, facing the street.
+    box(glass, 7, 14, 1, 0, 0, 11.2);
+    const rose = new CylinderGeometry(5, 5, 1, 24);
+    this.disposables.push(rose);
+    const window = new Mesh(rose, glass);
+    window.rotation.x = Math.PI / 2;
+    window.position.set(0, 34, 11.2);
+    c.add(window);
+    for (let i = 0; i < 5; i++) box(glass, 1.4, 9, 1, -20 + (i % 2 ? 40 : 0), 20, 4.2);
+    this.group.add(c);
+  }
+
+  /** Strings of pennants across the street, moved with it. */
+  private placeBunting(s: number, heightAt: (metres: number) => number): void {
+    const flags = this.flags;
+    if (!flags) return;
+    let i = 0;
+    for (let line = 0; line < BUNTING_LINES; line++) {
+      const metres = ((((line * BUNTING_EVERY + 14 - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      const y = heightAt(Math.max(metres, 0));
+      for (let k = 0; k < BUNTING_FLAGS; k++) {
+        const x = -FRONTAGE + ((k + 0.5) / BUNTING_FLAGS) * 2 * FRONTAGE;
+        const sag = 1.6 * (1 - (x / FRONTAGE) ** 2);
+        this.matrix.compose(
+          this.spot.set(x, y + BUNTING_HEIGHT - sag, -metres),
+          this.turn.identity(),
+          this.size.set(1, 1, 1),
+        );
+        flags.setMatrixAt(i++, this.matrix);
+      }
+    }
+    flags.instanceMatrix.needsUpdate = true;
+    flags.computeBoundingSphere();
+  }
+
+  /** Pennants in the race's colours, hanging point down from a line between the houses. */
+  private addBunting(): void {
+    const pennant = new BufferGeometry();
+    pennant.setAttribute(
+      'position',
+      new BufferAttribute(new Float32Array([-0.2, 0, 0, 0.2, 0, 0, 0, -0.42, 0]), 3),
+    );
+    pennant.setAttribute(
+      'normal',
+      new BufferAttribute(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]), 3),
+    );
+    pennant.setAttribute('uv', new BufferAttribute(new Float32Array([0, 1, 1, 1, 0.5, 0]), 2));
+    const cloth = new MeshStandardMaterial({ roughness: 0.85, side: DoubleSide });
+    this.disposables.push(pennant, cloth);
+    this.flags = new InstancedMesh(pennant, cloth, BUNTING_LINES * BUNTING_FLAGS);
+    const colour = new Color();
+    for (let i = 0; i < BUNTING_LINES * BUNTING_FLAGS; i++) {
+      this.flags.setColorAt(i, colour.set(PENNANTS[i % PENNANTS.length]!));
+    }
+    this.flags.castShadow = true;
+    this.flags.frustumCulled = false;
+    this.group.add(this.flags);
+  }
+
+  /** The crowd, moved with the street: one instance per spectator's legs, torso and head. */
+  private placeCrowd(s: number, heightAt: (metres: number) => number): void {
+    const [legs, torsos, heads] = this.fans;
+    if (!legs || !torsos || !heads) return;
+    this.crowd.forEach((fan, i) => {
+      const metres = ((((fan.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      const y = heightAt(Math.max(metres, 0)) + KERB;
+      const hip = fan.height * 0.47;
+      const neck = fan.height - 0.21;
+      this.turn.setFromAxisAngle(UP, fan.turn);
+      const set = (mesh: InstancedMesh, at: number, sy: number) => {
+        this.matrix.compose(
+          this.spot.set(fan.x, y + at, -metres),
+          this.turn,
+          this.size.set(1, sy, 1),
+        );
+        mesh.setMatrixAt(i, this.matrix);
+      };
+      set(legs, hip / 2, hip / 0.9);
+      set(torsos, (hip + neck) / 2, (neck - hip + 0.08) / 0.75);
+      set(heads, fan.height - 0.11, 1);
+    });
+    for (const mesh of this.fans) {
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+    }
+  }
+
+  /**
+   * Spectators behind the barriers, in knots along both pavements: a body in a shirt of its
+   * own colour and a head, drawn as two instanced meshes.
+   */
+  private addCrowd(roadHalf: number): void {
+    const random = seeded(41);
+    let offset = 0;
+    while (offset < LOOP) {
+      offset += 1.5 + random() * 6;
+      const side = random() < 0.5 ? -1 : 1;
+      const knot = 2 + Math.floor(random() * 6);
+      for (let k = 0; k < knot && offset < LOOP; k++) {
+        this.crowd.push({
+          offset: offset + k * (0.5 + random() * 0.4),
+          x: side * (roadHalf + 0.9 + random() * 1.4),
+          height: 1.55 + random() * 0.35,
+          turn: side * (Math.PI / 2) + (random() - 0.5) * 1.2,
+          shirt: SHIRTS[Math.floor(random() * SHIRTS.length)]!,
+          skin: SKINS[Math.floor(random() * SKINS.length)]!,
+          trousers: TROUSERS[Math.floor(random() * TROUSERS.length)]!,
+        });
+      }
+    }
+    // Unit parts, scaled per spectator: legs 0.9 m and a torso 0.75 m long before scaling.
+    const legs = new CapsuleGeometry(0.13, 0.64, 4, 8);
+    legs.scale(1.25, 1, 0.8);
+    const torso = new CapsuleGeometry(0.17, 0.41, 4, 10);
+    torso.scale(1.1, 1, 0.7);
+    const head = new SphereGeometry(0.105, 12, 8);
+    const material = new MeshStandardMaterial({ roughness: 0.8 });
+    this.disposables.push(legs, torso, head, material);
+    const n = this.crowd.length;
+    this.fans = [legs, torso, head].map((g) => new InstancedMesh(g, material, n));
+    const colour = new Color();
+    this.crowd.forEach((fan, i) => {
+      this.fans[0]!.setColorAt(i, colour.set(fan.trousers));
+      this.fans[1]!.setColorAt(i, colour.set(fan.shirt));
+      this.fans[2]!.setColorAt(i, colour.set(fan.skin));
+    });
+    for (const mesh of this.fans) {
+      mesh.castShadow = true;
+      mesh.frustumCulled = false;
+      this.group.add(mesh);
     }
   }
 
@@ -700,7 +951,7 @@ export function cobbleTexture(): CanvasTexture {
   canvas.height = h;
   const ctx = canvas.getContext('2d');
   if (ctx) {
-    ctx.fillStyle = '#5d5853';
+    ctx.fillStyle = '#76706a';
     ctx.fillRect(0, 0, w, h);
     const random = seeded(23);
     const sett = 0.13;
@@ -710,23 +961,43 @@ export function cobbleTexture(): CanvasTexture {
       let x = row % 2 ? -0.5 * sett * pxX : 0;
       while (x < w) {
         const sw = (0.11 + random() * 0.06) * pxX;
-        const tone = 150 + random() * 70;
-        const warm = random() * 18;
+        // Setts in the wheel tracks are polished by the traffic: a shade lighter, less varied.
+        const centre = Math.abs(x / w - 0.5);
+        const worn = centre < 0.18 ? 14 : 0;
+        const tone = 165 + worn + random() * (worn ? 34 : 50);
+        const warm = random() * 16;
         ctx.fillStyle = `rgb(${tone + warm},${tone + warm * 0.6},${tone})`;
         const y = row * rowH;
         roundRect(ctx, x + 1.5, y + 1.5, sw - 3, rowH - 3, 4);
         const g = ctx.createLinearGradient(0, y, 0, y + rowH);
-        g.addColorStop(0, 'rgba(255,255,255,0.22)');
+        g.addColorStop(0, 'rgba(255,255,255,0.16)');
         g.addColorStop(0.5, 'rgba(255,255,255,0)');
-        g.addColorStop(1, 'rgba(0,0,0,0.25)');
+        g.addColorStop(1, 'rgba(0,0,0,0.18)');
         ctx.fillStyle = g;
         roundRect(ctx, x + 1.5, y + 1.5, sw - 3, rowH - 3, 4);
         x += sw;
       }
     }
+    // The gutters: a channel of long granite slabs along each kerb, dished and darker.
+    const gutter = 0.32 * pxX;
+    for (const gx of [0, w - gutter]) {
+      ctx.fillStyle = '#6f6a63';
+      ctx.fillRect(gx, 0, gutter, h);
+      for (let y = 0; y < h; y += 0.6 * (h / 10)) {
+        const tone = 120 + random() * 30;
+        ctx.fillStyle = `rgb(${tone},${tone - 4},${tone - 10})`;
+        ctx.fillRect(gx + 2, y + 2, gutter - 4, 0.6 * (h / 10) - 4);
+      }
+      const dish = ctx.createLinearGradient(gx, 0, gx + gutter, 0);
+      const dark = gx === 0 ? 1 : 0;
+      dish.addColorStop(dark, 'rgba(30,25,20,0.35)');
+      dish.addColorStop(1 - dark, 'rgba(30,25,20,0)');
+      ctx.fillStyle = dish;
+      ctx.fillRect(gx, 0, gutter, h);
+    }
     ctx.fillStyle = '#f1f0ea';
-    ctx.fillRect(0.3 * pxX, 0, 0.12 * pxX, h);
-    ctx.fillRect(w - 0.42 * pxX, 0, 0.12 * pxX, h);
+    ctx.fillRect(0.42 * pxX, 0, 0.1 * pxX, h);
+    ctx.fillRect(w - 0.52 * pxX, 0, 0.1 * pxX, h);
   }
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
@@ -789,6 +1060,60 @@ function bannerTexture(): CanvasTexture {
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
   texture.repeat.set(1, 1 / 24);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * Cathedral stone: lancet windows with tracery, three to a face; or a spire's openwork, rows
+ * of quatrefoils diminishing towards the tip.
+ */
+function gothicTexture(open: boolean): CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    const random = seeded(open ? 61 : 59);
+    for (let i = 0; i < 1400; i++) {
+      ctx.fillStyle = `rgba(90,75,55,${random() * 0.12})`;
+      ctx.fillRect(random() * size, random() * size, 2 + random() * 5, 1 + random() * 3);
+    }
+    ctx.fillStyle = 'rgba(60,50,40,0.12)';
+    for (let y = 0; y < size; y += 8) ctx.fillRect(0, y, size, 1);
+    ctx.fillStyle = '#3a3c44';
+    if (open) {
+      for (let row = 0; row < 10; row++) {
+        const y = 12 + row * 24;
+        for (let col = 0; col < 8; col++) {
+          const x = 16 + col * 32;
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } else {
+      for (let col = 0; col < 3; col++) {
+        const x = 30 + col * 80;
+        const w = 36;
+        ctx.beginPath();
+        ctx.moveTo(x, 230);
+        ctx.lineTo(x, 70);
+        ctx.quadraticCurveTo(x, 34, x + w / 2, 22);
+        ctx.quadraticCurveTo(x + w, 34, x + w, 70);
+        ctx.lineTo(x + w, 230);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(220,205,175,0.9)';
+        ctx.fillRect(x + w / 2 - 2, 40, 4, 190);
+        ctx.fillRect(x, 120, w, 4);
+        ctx.fillStyle = '#3a3c44';
+      }
+    }
+  }
+  const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }

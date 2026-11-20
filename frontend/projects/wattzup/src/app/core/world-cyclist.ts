@@ -12,6 +12,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  PlaneGeometry,
   SphereGeometry,
   SRGBColorSpace,
   TorusGeometry,
@@ -63,6 +64,16 @@ export class CyclistKit {
     side: DoubleSide,
   });
 
+  /** A soft dark ellipse on the road under each bike (technique 37). */
+  readonly contact = new MeshBasicMaterial({
+    alphaMap: contactTexture(),
+    transparent: true,
+    depthWrite: false,
+    color: 0x000000,
+    opacity: 0.55,
+  });
+  private readonly contactPlane = new PlaneGeometry(1, 1);
+
   /** The jersey's cut, tinted by each rider's colour: dark side panels and a pale hem band. */
   private readonly kitTexture = jerseyTexture();
 
@@ -85,6 +96,10 @@ export class CyclistKit {
       this.limbs.set(key, geometry);
     }
     return geometry;
+  }
+
+  contactGeometry(): PlaneGeometry {
+    return this.contactPlane;
   }
 
   parts(): {
@@ -111,6 +126,9 @@ export class CyclistKit {
     this.torso.dispose();
     for (const g of this.limbs.values()) g.dispose();
     this.kitTexture.dispose();
+    this.contact.alphaMap?.dispose();
+    this.contact.dispose();
+    this.contactPlane.dispose();
     for (const m of [this.rubber, this.metal, this.shorts, this.skin, this.shoe, this.spokes]) {
       m.dispose();
     }
@@ -123,6 +141,8 @@ export class Cyclist {
   readonly wheelBlur: Mesh[] = [];
   private readonly legs: { thigh: Limb; shin: Limb; foot: Mesh; side: number }[] = [];
   private readonly cranks: Mesh[] = [];
+  /** The contact shadow, shown from the tier that draws contact shadows. */
+  readonly contact: Mesh;
 
   constructor(
     private readonly kit: CyclistKit,
@@ -130,6 +150,12 @@ export class Cyclist {
     readonly jersey: MeshStandardMaterial,
   ) {
     const parts = kit.parts();
+    this.contact = new Mesh(kit.contactGeometry(), kit.contact);
+    this.contact.rotation.x = -Math.PI / 2;
+    this.contact.scale.set(0.62, 2.3, 1);
+    this.contact.position.set(0.16, 0.012, -0.45);
+    this.contact.renderOrder = 1;
+    this.group.add(this.contact);
     for (const z of [-WHEELBASE, WHEELBASE]) {
       const tyre = new Mesh(parts.tyre, kit.rubber);
       const rim = new Mesh(parts.rim, kit.metal);
@@ -260,6 +286,22 @@ export class Cyclist {
     mesh.castShadow = true;
     return { mesh, length };
   }
+}
+
+function contactTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createRadialGradient(32, 32, 2, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.5, 'rgba(255,255,255,0.55)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 64, 64);
+  }
+  return new CanvasTexture(canvas);
 }
 
 function jerseyTexture(): CanvasTexture {
