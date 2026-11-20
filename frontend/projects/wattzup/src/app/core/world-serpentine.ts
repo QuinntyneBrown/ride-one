@@ -36,6 +36,7 @@ import {
   canvasTexture,
   clothBannerTexture,
   Crowd,
+  dashTexture,
   FeatherFlags,
   type FeatherWord,
   Figures,
@@ -207,6 +208,7 @@ export class SerpentineStreet implements SceneStreet {
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
     this.addRoadPaint();
+    this.addCrossing(roadHalf);
     this.addHorizon();
   }
 
@@ -321,6 +323,17 @@ export class SerpentineStreet implements SceneStreet {
     this.ribbons.add(points, lawn, [
       [LAWN_PATH - 1.5, KERB],
       [r + 0.3, KERB],
+    ]);
+    // The road's white centre line, in short dashes.
+    const centre = this.material({
+      map: this.repeat(dashTexture('#f2f2ee'), 0.12, 6),
+      alphaTest: 0.5,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    this.ribbons.add(points, centre, [
+      [0.06, 0.006],
+      [-0.06, 0.006],
     ]);
     for (const side of [-1, 1]) {
       const texture = this.track(barrierBannerTexture(BARRIER_PANELS));
@@ -780,6 +793,65 @@ export class SerpentineStreet implements SceneStreet {
     }
   }
 
+  /**
+   * The zebra crossing to the boathouse: black-and-white stripes across the road, a broken give-
+   * way line either side, the white zig-zags along the kerbs and the centre on each approach, and
+   * a Belisha beacon at each kerb, its amber globe on a black-and-white pole.
+   */
+  private addCrossing(roadHalf: number): void {
+    const crossing = new Group();
+    const road = 0.02 - KERB;
+    const white = this.material({
+      color: 0xf4f4f0,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      roughness: 0.6,
+    });
+    const flat = (w: number, d: number, x: number, z: number, m: Material = white) => {
+      const mesh = new Mesh(new PlaneGeometry(w, d), m);
+      this.disposables.push(mesh.geometry);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(x, road, z);
+      crossing.add(mesh);
+    };
+    for (let x = -roadHalf + 0.5; x < roadHalf; x += 1) flat(0.5, 3, x, 0);
+    for (const z of [-2.1, 2.1]) {
+      for (let x = -roadHalf + 0.3; x < roadHalf - 0.2; x += 0.9) flat(0.6, 0.2, x + 0.3, z);
+    }
+    const zigzag = this.material({
+      map: this.track(zigzagTexture()),
+      alphaTest: 0.5,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      roughness: 0.6,
+    });
+    for (const z of [-8, 8]) {
+      for (const x of [-roadHalf + 0.35, 0, roadHalf - 0.35]) flat(0.45, 11, x, z, zigzag);
+    }
+    const bands = this.material({ map: this.track(beaconPoleTexture()), roughness: 0.5 });
+    const globe = this.material({
+      color: 0xffb020,
+      emissive: new Color(0xff9a10),
+      emissiveIntensity: 0.6,
+      roughness: 0.3,
+    });
+    const pole = new CylinderGeometry(0.05, 0.05, 2.6, 10);
+    pole.translate(0, 1.3, 0);
+    this.disposables.push(pole);
+    for (const side of [-1, 1]) {
+      const p = new Mesh(pole, bands);
+      p.position.set(side * (roadHalf + 0.15), 0, 1.8);
+      const g = new Mesh(this.ball, globe);
+      g.scale.setScalar(0.17);
+      g.position.set(side * (roadHalf + 0.15), 2.75, 1.8);
+      p.castShadow = true;
+      crossing.add(p, g);
+    }
+    this.group.add(crossing);
+    // Short of the boathouse, close enough in the opening view to read.
+    this.props.push({ mesh: crossing, offset: BOATHOUSE - 28, every: LOOP, x: 0 });
+  }
+
   /** What the fans have painted on the road. */
   private addRoadPaint(): void {
     const plane = new PlaneGeometry(2.4, 8.5);
@@ -1237,6 +1309,27 @@ function facadeTexture(wall: string, dressing: string): CanvasTexture {
     g.fillStyle = dressing;
     g.fillRect(20, 30, 24, 2);
     g.fillRect(31, 14, 2, 36);
+  });
+}
+
+/** A zebra crossing's approach markings: a white zig-zag down an 11 m strip. */
+function zigzagTexture(): CanvasTexture {
+  return canvasTexture(32, 512, (g) => {
+    g.strokeStyle = '#f4f4f0';
+    g.lineWidth = 6;
+    g.beginPath();
+    for (let k = 0; k <= 8; k++) g.lineTo(k % 2 ? 26 : 6, k * 64);
+    g.stroke();
+  });
+}
+
+/** A Belisha beacon's pole: black and white bands. */
+function beaconPoleTexture(): CanvasTexture {
+  return canvasTexture(8, 128, (g) => {
+    for (let y = 0; y < 128; y += 16) {
+      g.fillStyle = (y / 16) % 2 ? '#f4f4f0' : '#141414';
+      g.fillRect(0, y, 8, 16);
+    }
   });
 }
 
