@@ -154,3 +154,5 @@ The panorama and every other asset are awaited before the first frame, because a
 ## Delivery
 
 Review the baseline, each numbered capture and the final live route. Confirm at least 100 distinct iterations plus the baseline. Run `node tools/verify/verify.mjs` from the repository root before pushing. Stage the renderer, intended assets, screenshots and accompanying changes, then commit, push, open the PR, check CI, merge and verify GitHub reports it merged. Include the baseline and final screenshot links in the PR so the visual change is easy to review.
+
+The work merged in [#46](https://github.com/QuinntyneBrown/wattzup/pull/46). [The final capture](final-merged.jpg) was taken from `main` after the merge, at the same camera position and ride state as the numbered captures. It matches [102 · Fan colours](102-fan-colours.jpg).

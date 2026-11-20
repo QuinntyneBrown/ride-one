@@ -20,6 +20,9 @@ export const RETRY_DELAY_MS = 3000;
 /** How long a connection step may take: a bike that never answers
  * (asleep, out of range) fails the attempt and is retried rather than left connecting. */
 export const STEP_TIMEOUT_MS = 15_000;
+/** Consecutive failed keepalive writes tolerated before the link is treated as lost. A real drop
+ * still arrives as `gattserverdisconnected`; one flaky write must not tear down a ride. */
+export const KEEPALIVE_FAILURES_TOLERATED = 3;
 
 export type ReconnectResult = 'connecting' | 'already-connected' | 'no-bike';
 
@@ -178,14 +181,21 @@ export class BikeLink {
 
   /** One keepalive per second while this connection lasts (L2-091 AC1). */
   private async keepAlive(gatt: GattLink, attempt: number): Promise<void> {
+    let failures = 0;
     for (;;) {
       await this.clock.delay(KEEPALIVE_INTERVAL_MS);
       if (attempt !== this.generation || this.gatt !== gatt) return;
       try {
         await gatt.write(KEEPALIVE);
+        failures = 0;
       } catch (e) {
+        if (attempt !== this.generation || this.gatt !== gatt) return;
+        if (++failures < KEEPALIVE_FAILURES_TOLERATED) {
+          this.log.warn(`Wattzup: keepalive write failed (${failures}): ${nameAndMessage(e)}`);
+          continue;
+        }
         const device = this._device();
-        if (attempt === this.generation && device) this.fail(device, e);
+        if (device) this.fail(device, e);
         return;
       }
     }

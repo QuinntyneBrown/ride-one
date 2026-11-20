@@ -24,56 +24,6 @@
   ],
   "classes": [
     {
-      "id": "20-minute-power-intervals",
-      "world": "docklands",
-      "title": "20 Minute Power Intervals",
-      "channel": "Wattzup Studio",
-      "focus": "VO₂ max",
-      "description": "Six one-minute efforts with equal recovery. Short enough to go properly hard on every one.",
-      "shelf": "20-min",
-      "plan": {
-        "kind": "intervals",
-        "warmup": { "seconds": 300, "level": 9, "cadence": 80 },
-        "sets": [
-          {
-            "rounds": 6,
-            "work_seconds": 60,
-            "work_level": 22,
-            "work_cadence": 100,
-            "rest_seconds": 60,
-            "rest_level": 7,
-            "rest_cadence": 72
-          }
-        ],
-        "cooldown": { "seconds": 180, "level": 7, "cadence": 70 }
-      }
-    },
-    {
-      "id": "20-min-threshold-builder",
-      "world": "granite",
-      "title": "20 Min Threshold Builder",
-      "channel": "Wattzup Studio",
-      "focus": "Threshold",
-      "description": "Four two-minute blocks just under your limit, with a minute to reset between them.",
-      "shelf": "20-min",
-      "plan": {
-        "kind": "intervals",
-        "warmup": { "seconds": 300, "level": 12, "cadence": 82 },
-        "sets": [
-          {
-            "rounds": 4,
-            "work_seconds": 120,
-            "work_level": 19,
-            "work_cadence": 92,
-            "rest_seconds": 60,
-            "rest_level": 10,
-            "rest_cadence": 75
-          }
-        ],
-        "cooldown": { "seconds": 180, "level": 10, "cadence": 70 }
-      }
-    },
-    {
       "id": "30-minute-hiit-cardio",
       "world": "oldtown",
       "title": "30 Minute HIIT Cardio",
@@ -133,66 +83,6 @@
         ],
         "cooldown": { "seconds": 360, "level": 6, "cadence": 70 },
         "video": { "url": "https://www.youtube.com/watch?v=QUoToFsMNig", "start_seconds": 3 }
-      }
-    },
-    {
-      "id": "30-min-tempo-paceline",
-      "world": "prairie",
-      "title": "30 Min Tempo Paceline",
-      "channel": "Wattzup Studio",
-      "focus": "Tempo",
-      "description": "Four six-minute turns on the front at tempo, sitting in for two between them.",
-      "shelf": "30-min",
-      "plan": {
-        "kind": "intervals",
-        "warmup": { "seconds": 240, "level": 13, "cadence": 85 },
-        "sets": [
-          {
-            "rounds": 4,
-            "work_seconds": 360,
-            "work_level": 17,
-            "work_cadence": 90,
-            "rest_seconds": 120,
-            "rest_level": 11,
-            "rest_cadence": 80
-          }
-        ],
-        "cooldown": null
-      }
-    },
-    {
-      "id": "60-min-dolomites-endurance",
-      "world": "dolomites",
-      "title": "60 Min Dolomites Endurance",
-      "channel": "Wattzup Scenic",
-      "focus": "Zone 2",
-      "description": "An hour of valley roads at one steady level. Conversational pace — the base everything else sits on.",
-      "shelf": "60-min-endurance",
-      "plan": { "kind": "flat", "level": 12, "minutes": 60, "cadence": 85 }
-    },
-    {
-      "id": "60-min-coastal-endurance-surges",
-      "world": "coast",
-      "title": "60 Min Coastal Endurance + Surges",
-      "channel": "Wattzup Scenic",
-      "focus": "Endurance",
-      "description": "Steady coastal miles broken by five six-minute surges to keep the legs honest.",
-      "shelf": "60-min-endurance",
-      "plan": {
-        "kind": "intervals",
-        "warmup": { "seconds": 300, "level": 13, "cadence": 85 },
-        "sets": [
-          {
-            "rounds": 5,
-            "work_seconds": 360,
-            "work_level": 15,
-            "work_cadence": 90,
-            "rest_seconds": 300,
-            "rest_level": 11,
-            "rest_cadence": 82
-          }
-        ],
-        "cooldown": null
       }
     },
     {
