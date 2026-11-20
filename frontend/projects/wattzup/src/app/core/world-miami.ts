@@ -1,11 +1,12 @@
-// Miami Neon Nights, drawn by world-renderer.ts (L2-101 AC1, L2-111 technique 1): the beachfront
-// boulevard of a Miami night, the road still wet from a passing shower. On the right a row of
-// pastel art deco hotels, their eyebrow ledges and rooflines traced in neon tubes of pink, cyan,
-// violet and green, a tall blade sign on each spelling the hotel's name; royal palms line the
-// sidewalk and convertibles wait at the kerb, tail lights glowing. On the left a low wall, the
-// sand and the dark Atlantic, a moon path shimmering on it; ahead, across the bay, a skyline of
-// towers lit floor by floor. People stroll the sidewalks between the clubs. The hotels and their
-// names are invented. Built on the shared kit (world-kit.ts) on the pattern of Old Town's street.
+// Miami Neon Nights, drawn by world-renderer.ts (L2-101 AC1, L2-111 technique 1): Ocean Drive on
+// a Miami night, the road wet from a passing shower that still drizzles. On the right a row of
+// pastel art deco hotels in full detail (neon-traced crowns, blade and roof signs, balconies,
+// lobbies, clubs and cafés) with Collins Avenue's towers behind; palms, lamps, festoons and a
+// neon gateway over the boulevard; parked and passing cars and people on both sidewalks. On the
+// left the promenade, the sea wall, the dune and the beach, and the moonlit Atlantic with its
+// ships, pier and causeway; ahead, across the bay, the skyline under a sky of moon, cloud,
+// searchlights and fireworks. The hotels and their names are invented. Built on the shared kit
+// (world-kit.ts) on the pattern of Old Town's street; docs/screenshots/miami records each step.
 import {
   AdditiveBlending,
   BufferAttribute,
@@ -139,6 +140,7 @@ export class MiamiStreet implements SceneStreet {
   private blimp: Group | null = null;
   private moonCloud: Mesh | null = null;
   private meteor: Mesh | null = null;
+  private readonly clockHands: { pivot: Group; minute: boolean }[] = [];
   private starMaterial: MeshBasicMaterial | null = null;
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
@@ -217,6 +219,7 @@ export class MiamiStreet implements SceneStreet {
     this.addCyclists(roadHalf);
     this.addBeachParty(roadHalf);
     this.addLetters(roadHalf);
+    this.addClock(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -353,6 +356,15 @@ export class MiamiStreet implements SceneStreet {
       const cycle = Math.floor((seconds + 0.4) / 23);
       this.meteor.position.set(-300 + (cycle % 4) * 260 + t * 160, 900 - t * 70, -2050);
     }
+    // The street clock keeps the night's time from ten past eleven, a minute a second slowed
+    // to real time: its hands turn clockwise as seen on each face.
+    const minutes = 11 * 60 + 10 + seconds / 60;
+    for (const { pivot, minute } of this.clockHands)
+      pivot.rotation.z = -(
+        (minute ? (minutes % 60) / 60 : ((minutes / 60) % 12) / 12) *
+        Math.PI *
+        2
+      );
     // The silvered cloud drifts slowly across the moon and back.
     if (this.moonCloud) this.moonCloud.position.x = -880 + Math.sin(seconds * 0.02) * 90;
     // The blimp drifts slowly along the beach, 450 m ahead and 130 m up.
@@ -3090,6 +3102,69 @@ export class MiamiStreet implements SceneStreet {
     this.props.push({ mesh: holder, offset: 62, x: -roadHalf - 7 });
   }
 
+  /**
+   * A deco street clock on the promenade: a fluted pillar rising to a stepped head with a lit
+   * face on each side, its hands turning with the night, ten past eleven at the start.
+   */
+  private addClock(roadHalf: number): void {
+    const stone = this.material({ color: 0xece4dc, roughness: 0.6 });
+    const face = this.material({
+      map: this.track(clockFaceTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(clockFaceTexture()),
+      emissiveIntensity: 1.1,
+    });
+    const hand = this.material({ color: 0x141018, roughness: 0.5 });
+    const clock = new Group();
+    const b = new BoxBuilder();
+    b.box(stone, [0.9, 0.4, 0.9], [0, 0.2, 0]);
+    b.box(stone, [0.45, 4, 0.45], [0, 2.4, 0]);
+    for (const [dx, dz] of [
+      [0.24, 0],
+      [-0.24, 0],
+      [0, 0.24],
+      [0, -0.24],
+    ] as const)
+      b.box(stone, [0.06, 3.6, 0.06], [dx, 2.4, dz]);
+    b.box(stone, [1.3, 1.3, 1.3], [0, 4.95, 0]);
+    b.box(stone, [1.0, 0.3, 1.0], [0, 5.75, 0]);
+    b.box(stone, [0.6, 0.3, 0.6], [0, 6.05, 0]);
+    clock.add(b.build(this.disposables));
+    const glow = new Mesh(this.flat, this.halo);
+    glow.scale.set(3, 3, 1);
+    glow.position.set(0, 4.95, 0.9);
+    clock.add(glow);
+    for (const turn of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+      const side = new Group();
+      side.rotation.y = turn;
+      const dial = new Mesh(this.flat, face);
+      dial.scale.set(1.1, 1.1, 1);
+      dial.position.set(0, 4.95, 0.66);
+      const hour = new Mesh(this.unit, hand);
+      hour.scale.set(0.05, 0.3, 0.02);
+      const minute = new Mesh(this.unit, hand);
+      minute.scale.set(0.035, 0.44, 0.02);
+      for (const [m, len] of [
+        [hour, 0.3],
+        [minute, 0.44],
+      ] as const) {
+        const pivot = new Group();
+        pivot.position.set(0, 4.95, 0.68);
+        m.position.y = len / 2;
+        pivot.add(m);
+        side.add(pivot);
+        this.clockHands.push({ pivot, minute: m === minute });
+      }
+      side.add(dial);
+      clock.add(side);
+    }
+    clock.position.y = 0.15;
+    const holder = new Group();
+    holder.add(clock);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 49, x: -roadHalf - 3.6 });
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -5457,5 +5532,36 @@ function meteorTexture(): CanvasTexture {
     tail.addColorStop(1, 'rgba(255,255,255,1)');
     g.fillStyle = tail;
     g.fillRect(0, 2, 256, 4);
+  });
+}
+
+/** A clock face: cream enamel, bold deco numerals at the quarters and ticks between, a ring. */
+function clockFaceTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.fillStyle = 'rgba(0,0,0,0)';
+    g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#f4ecd8';
+    g.beginPath();
+    g.arc(64, 64, 60, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = '#2a2030';
+    g.lineWidth = 5;
+    g.stroke();
+    g.fillStyle = '#2a2030';
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      g.save();
+      g.translate(64 + Math.sin(a) * 48, 64 - Math.cos(a) * 48);
+      g.rotate(a);
+      g.fillRect(-2, -6, 4, 12);
+      g.restore();
+    }
+    g.font = 'bold 18px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('XII', 64, 30);
+    g.fillText('VI', 64, 100);
+    g.fillText('III', 98, 64);
+    g.fillText('IX', 30, 64);
   });
 }
