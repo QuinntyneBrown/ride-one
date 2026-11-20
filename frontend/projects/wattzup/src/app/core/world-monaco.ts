@@ -631,7 +631,8 @@ export class MonacoStreet implements SceneStreet {
     for (let row = 0; row < 5; row++) {
       for (let k = 0; k < 16; k++) {
         const x = -150 + k * 22 + random() * 10;
-        if (Math.abs(x) < 34 && row >= 3) continue;
+        // The Casino's place on the hill is kept clear of blocks in front and behind.
+        if (Math.abs(x) < 82 && row >= 2) continue;
         const tall = 12 + random() * 18;
         const block = new Mesh(this.unitBox(), walls[Math.floor(random() * walls.length)]!);
         const y = row * 9;
@@ -668,11 +669,11 @@ export class MonacoStreet implements SceneStreet {
    */
   private addCasino(h: Group, haze: Color): void {
     const casino = new Group();
-    const cream = hazedMaterial(this.disposables, haze, 0xf0e2c0, 0.1);
-    const front = hazedMaterial(this.disposables, haze, 0xffffff, 0.08, {
+    const cream = hazedMaterial(this.disposables, haze, 0xf2e0b8, 0.04);
+    const front = hazedMaterial(this.disposables, haze, 0xffffff, 0.03, {
       map: this.track(casinoTexture()),
     });
-    const copper = hazedMaterial(this.disposables, haze, 0x5aa08a, 0.12);
+    const copper = hazedMaterial(this.disposables, haze, 0x4a9a80, 0.05);
     const body = new Mesh(new BoxGeometry(64, 18, 30), [cream, cream, cream, cream, front, cream]);
     this.disposables.push(body.geometry);
     body.position.set(0, 9, 0);
@@ -705,13 +706,13 @@ export class MonacoStreet implements SceneStreet {
     dome.position.set(0, 26, 12);
     casino.add(dome);
     // The gardens in front: a lawn falling away with its palms.
-    const lawn = hazedMaterial(this.disposables, haze, 0x4a8a3a, 0.18);
+    const lawn = hazedMaterial(this.disposables, haze, 0x3a8a34, 0.08);
     const garden = new Mesh(this.unitBox(), lawn);
     garden.scale.set(90, 2, 50);
     garden.position.set(0, -1, 40);
     casino.add(garden);
-    casino.scale.setScalar(1.4);
-    casino.position.set(0, 44, -190);
+    casino.scale.setScalar(2.3);
+    casino.position.set(0, 30, -118);
     h.add(casino);
   }
 
