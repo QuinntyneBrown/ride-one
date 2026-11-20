@@ -54,6 +54,18 @@ const SIGN_WORDS = ['HOTEL', 'NOODLES', 'BAR', 'DOCK 9', 'CLUB', 'OPEN', 'RAMEN'
  */
 const HARBOUR_FROM = 20;
 /**
+ * The harbour ferry: where it crosses on the loop (m), the middle and reach of its crossing
+ * from the road's centre (m), one crossing there and back (s) and where it starts in it, its
+ * length and its wake's length (m).
+ */
+const FERRY_OFFSET = 190;
+const FERRY_MID = -170;
+const FERRY_REACH = 130;
+const FERRY_PERIOD = 150;
+const FERRY_PHASE = 1.09;
+const FERRY_LONG = 34;
+const FERRY_WAKE = 46;
+/**
  * Boats moored in the harbour, `offset` metres along the loop and `out` metres beyond the
  * quay's edge, `length` metres long; `hex` lights the cabin.
  */
@@ -459,6 +471,8 @@ export class DocklandsStreet {
   private readonly pylon = new Group();
   private readonly dock = new Group();
   private readonly boats: { mesh: Group; offset: number }[] = [];
+  /** The harbour ferry: its place on the loop, and the hull that sails out and back, with its wake. */
+  private ferry: { placed: Group; sailing: Group; wake: Mesh } | null = null;
   private readonly skytrain = new Group();
   private readonly deckLamps: Group[] = [];
   private readonly screenTextures: CanvasTexture[] = [];
@@ -529,6 +543,7 @@ export class DocklandsStreet {
     const smooth = this.smooth(seconds, still);
     this.sweep(smooth);
     this.drift(smooth, still);
+    this.sail(smooth);
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -1950,6 +1965,7 @@ export class DocklandsStreet {
     this.addFireworks();
     this.addLightning();
     this.addBoats(roadHalf + SETBACK + 2);
+    this.addFerry();
     this.addSkytrain(roadHalf);
     this.addDeckLamps(roadHalf);
     this.addVents(roadHalf);
@@ -3867,6 +3883,85 @@ export class DocklandsStreet {
   }
 
   /**
+   * A harbour ferry crossing the water: a dark hull with a lit stripe, two decks of warm lit
+   * windows, a funnel, a mast light, and a pale wake trailing behind it.
+   */
+  private addFerry(): void {
+    const hull = new MeshStandardMaterial({ color: 0x141826, roughness: 0.5 });
+    const white = new MeshBasicMaterial({ color: new Color('#e8e6f0').multiplyScalar(0.8) });
+    const stripe = new MeshBasicMaterial({
+      color: new Color('#5ff2ff').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const windows = new MeshBasicMaterial({
+      map: this.track(ferryWindowTexture()),
+      color: new Color(0xffffff).multiplyScalar(1.6),
+      toneMapped: false,
+    });
+    const lamp = new MeshBasicMaterial({
+      color: new Color('#ffffff').multiplyScalar(3),
+      toneMapped: false,
+    });
+    const wakeMaterial = new MeshBasicMaterial({
+      map: this.track(wakeTexture()),
+      color: new Color('#cfe8ff').multiplyScalar(0.9),
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const unit = new BoxGeometry(1, 1, 1);
+    const wakePlane = new PlaneGeometry(1, 1);
+    this.disposables.push(hull, white, stripe, windows, lamp, wakeMaterial, unit, wakePlane);
+    const sailing = new Group();
+    const part = (
+      material: MeshBasicMaterial | MeshStandardMaterial,
+      size: number[],
+      at: number[],
+    ) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(size[0]!, size[1]!, size[2]!);
+      mesh.position.set(at[0]!, at[1]!, at[2]!);
+      sailing.add(mesh);
+    };
+    const long = FERRY_LONG;
+    part(hull, [long, 2.6, 9], [0, 0.9, 0]);
+    part(stripe, [long + 0.1, 0.3, 9.1], [0, 1.9, 0]);
+    part(windows, [long * 0.8, 2.6, 7.6], [-1, 3.5, 0]);
+    part(white, [long * 0.82, 0.3, 8], [-1, 4.9, 0]);
+    part(windows, [long * 0.5, 2.2, 6.4], [-3, 6.1, 0]);
+    part(white, [long * 0.52, 0.3, 6.8], [-3, 7.3, 0]);
+    part(hull, [2.2, 3.4, 2.2], [-long * 0.28, 9, 0]);
+    part(stripe, [2.3, 0.5, 2.3], [-long * 0.28, 10.2, 0]);
+    part(white, [0.25, 6, 0.25], [long * 0.12, 10.3, 0]);
+    part(lamp, [0.7, 0.7, 0.7], [long * 0.12, 13.4, 0]);
+    const wake = new Mesh(wakePlane, wakeMaterial);
+    wake.rotation.x = -Math.PI / 2;
+    wake.scale.set(FERRY_WAKE, 8, 1);
+    wake.position.y = 0.35;
+    sailing.add(wake);
+    const placed = new Group();
+    placed.add(sailing);
+    this.group.add(placed);
+    this.ferry = { placed, sailing, wake };
+  }
+
+  /**
+   * Sails the ferry out across the harbour and back, its bow and wake turning with it. At rest
+   * it holds mid-crossing, near the quay.
+   */
+  private sail(smooth: number): void {
+    if (!this.ferry) return;
+    const { sailing, wake } = this.ferry;
+    const t = (smooth / FERRY_PERIOD) * Math.PI * 2 + FERRY_PHASE;
+    sailing.position.x = FERRY_MID + Math.sin(t) * FERRY_REACH;
+    // Heading towards the road while the sine rises, out to sea while it falls.
+    const way = Math.cos(t) >= 0 ? 1 : -1;
+    sailing.scale.x = way;
+    wake.position.x = -(FERRY_LONG + FERRY_WAKE) / 2 + 2;
+  }
+
+  /**
    * Boats moored along the harbour quay: white hulls, cabins lit in warm or neon light, a mast
    * lamp, and their light lying on the water. `back` is the quay's edge from the road's centre.
    */
@@ -4159,6 +4254,11 @@ export class DocklandsStreet {
     this.skytrain.visible = !this.onBridge(Math.max(rail, 0));
     this.skytrain.position.set(0, heightAt(Math.max(rail, 0)), -rail);
     this.rain?.position.set(0, heightAt(0), 0);
+    if (this.ferry) {
+      const metres = ((((FERRY_OFFSET - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      this.ferry.placed.visible = !this.onBridge(Math.max(metres, 0));
+      this.ferry.placed.position.set(0, heightAt(Math.max(metres, 0)) - 0.3, -metres);
+    }
     for (const boat of this.boats) {
       const metres = ((((boat.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       boat.mesh.visible = !this.onBridge(Math.max(metres, 0));
@@ -4391,6 +4491,52 @@ function blimpTexture(): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = 8;
+  return texture;
+}
+
+/** A ferry deck's windows: a row of warm lit panes between dark frames. */
+function ferryWindowTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#1a1726';
+    ctx.fillRect(0, 0, 256, 32);
+    for (let x = 4; x < 256; x += 16) {
+      ctx.fillStyle = (x / 16) % 5 === 2 ? '#ffb86a' : '#ffe2b0';
+      ctx.fillRect(x, 7, 11, 18);
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
+}
+
+/** A wake on the water: bright foam at the stern (right) thinning to nothing (left). */
+function wakeTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const along = ctx.createLinearGradient(0, 0, 128, 0);
+    along.addColorStop(0, 'rgba(255,255,255,0)');
+    along.addColorStop(1, 'rgba(255,255,255,0.9)');
+    ctx.fillStyle = along;
+    ctx.fillRect(0, 0, 128, 32);
+    // Narrow towards the far end, as the wake spreads and fades.
+    ctx.globalCompositeOperation = 'destination-in';
+    const across = ctx.createLinearGradient(0, 0, 0, 32);
+    across.addColorStop(0, 'rgba(0,0,0,0)');
+    across.addColorStop(0.5, 'rgba(0,0,0,1)');
+    across.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = across;
+    ctx.fillRect(0, 0, 128, 32);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
   return texture;
 }
 
