@@ -164,3 +164,4 @@ A second pass of 100 iterations, each one fix to how the road bends and climbs (
 | Capture | Fix |
 | --- | --- |
 | [001 · Heights between road points](bend-001-smooth-heights.jpg) | Anything laid along the road (houses, lamps, pacers, the arch) took the height of the nearest 2 m road point, so on a 6% ramp it rose in 12 cm steps as it came towards the rider. It now takes the height between the two points either side. |
+| [002 · Heights behind the rider](bend-002-heights-behind.jpg) | Everything behind the rider took the height under the rider, so on a climb the crowd, lamps and barriers beside the camera floated above the road behind. Behind the rider the height now runs back down the grade, as the road there is laid. |

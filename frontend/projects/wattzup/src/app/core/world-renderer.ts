@@ -3755,8 +3755,13 @@ function direction(elevationDegrees: number, azimuthDegrees: number): Vector3 {
   ).normalize();
 }
 
-/** The road's height `metres` ahead, between the two points either side of it. */
+/**
+ * The road's height `metres` ahead, between the two points either side of it. Behind the rider it
+ * runs back at the grade under the rider, as the road behind is laid (`layRoad`).
+ */
 function heightAt(points: RoadPoint[], metres: number): number {
+  const first = points[0];
+  if (metres < 0) return (first?.height ?? 0) + ((first?.grade ?? 0) / 100) * metres;
   const f = Math.min(Math.max(metres / STEP, 0), points.length - 1);
   const i = Math.min(Math.floor(f), Math.max(points.length - 2, 0));
   const a = points[i]?.height ?? 0;
