@@ -1638,6 +1638,7 @@ export class HavanaStreet implements SceneStreet {
     this.addBicitaxis(roadHalf, tyre, chrome);
     this.addBuses(roadHalf, tyre, glass);
     this.addSidecars(roadHalf, tyre, chrome);
+    this.addMotorinas(roadHalf, tyre, chrome);
     this.addCarriage(roadHalf);
   }
 
@@ -1857,6 +1858,85 @@ export class HavanaStreet implements SceneStreet {
         mesh: bike,
         offset: 45 + k * 120 + random() * 10,
         speed: -(9 + random() * 3),
+      });
+    }
+  }
+
+  /**
+   * Motorinas, the small mopeds and electric scooters that buzz along every Havana street: a
+   * step-through body with its leg shield and cowl in a bright colour, small wheels, a rider sat
+   * upright in a helmet, and every other one with a passenger perched behind.
+   */
+  private addMotorinas(
+    roadHalf: number,
+    tyre: MeshStandardMaterial,
+    chrome: MeshStandardMaterial,
+  ): void {
+    const random = seeded(1489);
+    const wheel = new TorusGeometry(0.2, 0.07, 8, 16);
+    wheel.rotateY(Math.PI / 2);
+    const cowl = new CapsuleGeometry(0.2, 0.4, 4, 10);
+    cowl.rotateX(Math.PI / 2);
+    const torso = new CapsuleGeometry(0.16, 0.38, 3, 8);
+    const head = new SphereGeometry(0.13, 10, 8);
+    const limb = new CapsuleGeometry(0.055, 0.45, 3, 6);
+    this.disposables.push(wheel, cowl, torso, head, limb);
+    const paints = [0xd62828, 0x1d70b8, 0xf1f1ec, 0x2a9d8f, 0xf4a261, 0x1a1a1a];
+    const shirts = [0xf2efe6, 0xe63946, 0x3a86ff, 0xffd166, 0x8e44ad, 0x2a9d8f];
+    const helmets = [0xf2f2ee, 0x1a1a1a, 0xc8202f, 0x1d70b8];
+    const skins = [0x8d5a3b, 0x6b4128, 0xc68b5e, 0x4a2c1c];
+    const dark = this.material({ color: 0x2b2d42, roughness: 0.9 });
+    for (let k = 0; k < 6; k++) {
+      const moped = new Group();
+      const pick = (list: number[], roughness = 0.85) =>
+        this.material({ color: list[Math.floor(random() * list.length)]!, roughness });
+      const paint = pick(paints, 0.4);
+      const add = (
+        g: BufferGeometry,
+        m: MeshStandardMaterial,
+        x: number,
+        y: number,
+        z: number,
+        rx = 0,
+      ) => {
+        const mesh = new Mesh(g, m);
+        mesh.position.set(x, y, z);
+        mesh.rotation.x = rx;
+        mesh.castShadow = true;
+        moped.add(mesh);
+        return mesh;
+      };
+      add(wheel, tyre, 0, 0.27, -0.6);
+      add(wheel, tyre, 0, 0.27, 0.6);
+      add(cowl, paint, 0, 0.55, 0.38);
+      add(this.unit, paint, 0, 0.32, -0.05).scale.set(0.34, 0.1, 0.7);
+      add(this.unit, paint, 0, 0.62, -0.5, -0.25).scale.set(0.38, 0.62, 0.1);
+      add(this.unit, this.material({ color: 0x1a1a1a, roughness: 0.8 }), 0, 0.78, 0.35).scale.set(
+        0.28,
+        0.08,
+        0.6,
+      );
+      add(this.unit, chrome, 0, 1.02, -0.55).scale.set(0.6, 0.04, 0.04);
+      // The rider, sat upright, hands on the bars, feet on the floor.
+      const skin = pick(skins, 0.8);
+      add(torso, pick(shirts), 0, 1.15, 0.2, -0.1);
+      add(head, pick(helmets, 0.35), 0, 1.6, 0.15);
+      for (const side of [-0.22, 0.22]) {
+        add(limb, skin, side, 1.12, -0.18, -1.0);
+        add(limb, dark, side * 0.6, 0.62, -0.05, 1.3);
+      }
+      if (k % 2 === 0) {
+        add(torso, pick(shirts), 0, 1.15, 0.6, 0.05);
+        add(head, skin, 0, 1.58, 0.62);
+        for (const side of [-0.14, 0.14]) add(limb, dark, side, 0.65, 0.5, 0.9);
+      }
+      moped.rotation.y = Math.PI;
+      moped.position.x = -roadHalf - (k % 3 === 0 ? 3.5 : k % 3 === 1 ? 0.8 : 6.0);
+      this.group.add(moped);
+      this.cars.push({
+        mesh: moped,
+        offset: 40 + k * 55 + random() * 12,
+        speed: -(8 + random() * 5),
       });
     }
   }
