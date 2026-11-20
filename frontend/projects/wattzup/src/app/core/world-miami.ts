@@ -154,6 +154,7 @@ export class MiamiStreet implements SceneStreet {
     this.addKerbside(roadHalf);
     this.addDunes(roadHalf);
     this.addFestoons(roadHalf);
+    this.addShelters(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -341,6 +342,19 @@ export class MiamiStreet implements SceneStreet {
     this.ribbons.add(points, asphalt, [
       [r, 0.012],
       [-r, 0.012],
+    ]);
+    // A green-painted bike lane along the promenade side, a white bicycle on it every 20 m.
+    const lane = this.material({
+      map: this.repeat(bikeLaneTexture(), 1.3, 20),
+      roughness: 0.3,
+      metalness: 0.1,
+      transparent: true,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+    });
+    this.ribbons.add(points, lane, [
+      [-r + 1.6, 0.016],
+      [-r + 0.28, 0.016],
     ]);
     this.ribbons.add(points, kerb, [
       [r + 0.25, 0.15],
@@ -1184,6 +1198,51 @@ export class MiamiStreet implements SceneStreet {
       });
     }
     this.trafficX = -roadHalf * 0.5;
+    // The trolley, coming the other way: a boxy bus in green and orange livery with a row of
+    // lit windows, a glowing destination board and its headlights on.
+    const trolley = new Group();
+    const livery = this.material({
+      map: this.track(trolleyTexture(false)),
+      emissive: 0xffffff,
+      emissiveMap: this.track(trolleyTexture(true)),
+      emissiveIntensity: 1.2,
+      roughness: 0.4,
+      metalness: 0.2,
+    });
+    const roofPaint = this.material({ color: 0xf4f0e8, roughness: 0.5 });
+    const shell = new Mesh(this.unit, livery);
+    shell.scale.set(2.5, 2.7, 10);
+    shell.position.y = 1.75;
+    const roofTop = new Mesh(this.unit, roofPaint);
+    roofTop.scale.set(2.4, 0.25, 9.6);
+    roofTop.position.y = 3.2;
+    trolley.add(shell, roofTop);
+    for (const x of [-1.2, 1.2])
+      for (const z of [-3.4, 3.4]) {
+        const w = new Mesh(wheel, tyre);
+        w.scale.setScalar(1.3);
+        w.position.set(x, 0.47, z);
+        trolley.add(w);
+      }
+    for (const x of [-0.8, 0.8]) {
+      const f = new Mesh(this.flat, flare);
+      f.scale.set(1.6, 1.6, 1);
+      f.rotation.y = Math.PI;
+      f.position.set(x, 0.9, -5.1);
+      trolley.add(f);
+    }
+    const b = new Mesh(this.flat, beam);
+    b.rotation.x = -Math.PI / 2;
+    b.scale.set(4, 18, 1);
+    b.position.set(0, 0.04, -14);
+    b.renderOrder = 1;
+    trolley.add(b);
+    trolley.rotation.y = Math.PI;
+    trolley.children.forEach((m) => (m.castShadow = true));
+    const holder = new Group();
+    holder.add(trolley);
+    this.group.add(holder);
+    this.traffic.push({ mesh: holder, offset: 85, speed: 7 });
   }
 
   /**
@@ -1468,6 +1527,55 @@ export class MiamiStreet implements SceneStreet {
       holder.add(festoon);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: 0 });
+    }
+  }
+
+  /**
+   * Trolley stops on the hotel side: a shelter of glass under a curved roof, a bench, a lit
+   * advertising panel at its end showing a sunset poster, and the stop's sign on a post.
+   */
+  private addShelters(roadHalf: number): void {
+    const frame = this.material({ color: 0xe8e8ec, roughness: 0.3, metalness: 0.6 });
+    const pane = this.material({
+      color: 0x9ab0d0,
+      roughness: 0.05,
+      metalness: 0.3,
+      transparent: true,
+      opacity: 0.25,
+    });
+    const poster = this.material({
+      map: this.track(posterTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(posterTexture()),
+      emissiveIntensity: 1.6,
+    });
+    const stop = this.material({
+      map: this.track(neonWordTexture('TROLLEY', '#ffd23f')),
+      emissive: 0xffffff,
+      emissiveMap: this.track(neonWordTexture('TROLLEY', '#ffd23f')),
+      emissiveIntensity: 1.2,
+    });
+    for (const offset of [34, 175, 330]) {
+      const b = new BoxBuilder();
+      b.box(frame, [1.9, 0.12, 4.2], [0.5, 2.6, 0]);
+      for (const z of [-2, 2]) b.box(frame, [0.08, 2.6, 0.08], [1.35, 1.3, z]);
+      b.box(frame, [0.4, 0.05, 3.4], [1.1, 0.48, 0]);
+      b.box(pane, [0.03, 2.2, 4], [1.42, 1.3, 0]);
+      b.box(pane, [1.5, 2.2, 0.03], [0.7, 1.3, -2.02]);
+      b.box(frame, [0.06, 2.6, 0.06], [-0.8, 1.3, 3.2]);
+      const shelter = b.build(this.disposables);
+      const ad = new Mesh(this.unit, poster);
+      ad.scale.set(1.3, 1.9, 0.12);
+      ad.position.set(0.7, 1.3, 2.05);
+      const sign = new Mesh(this.flat, stop);
+      sign.scale.set(1.2, 0.3, 1);
+      sign.position.set(-0.8, 2.75, 3.2);
+      shelter.add(ad, sign);
+      shelter.position.y = 0.15;
+      const holder = new Group();
+      holder.add(shelter);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: roadHalf + 0.9 });
     }
   }
 
@@ -2752,5 +2860,102 @@ function trafficStreamTexture(): CanvasTexture {
       g.fillRect(x, 10, 3, 4);
       g.fillRect(x + 5, 10, 3, 4);
     }
+  });
+}
+
+/** The bike lane: worn green paint with a white bicycle and arrow, and a white line inside. */
+function bikeLaneTexture(): CanvasTexture {
+  return canvasTexture(64, 1024, (g) => {
+    g.fillStyle = 'rgba(40,150,90,0.75)';
+    g.fillRect(0, 0, 64, 1024);
+    const random = seeded(8331);
+    g.fillStyle = 'rgba(20,20,26,0.5)';
+    for (let i = 0; i < 400; i++) g.fillRect(random() * 64, random() * 1024, 2, 2);
+    g.fillStyle = 'rgba(240,240,236,0.9)';
+    g.fillRect(0, 0, 4, 1024);
+    // The bicycle, drawn long down the lane so it reads from a rider's low eye.
+    g.strokeStyle = 'rgba(240,240,236,0.9)';
+    g.lineWidth = 3;
+    for (const cy of [420, 560]) {
+      g.save();
+      g.translate(32, cy);
+      g.scale(1, 3);
+      g.beginPath();
+      g.arc(0, 0, 11, 0, Math.PI * 2);
+      g.stroke();
+      g.restore();
+    }
+    g.beginPath();
+    g.moveTo(32, 420);
+    g.lineTo(32, 560);
+    g.moveTo(22, 470);
+    g.lineTo(42, 470);
+    g.stroke();
+    // The arrow ahead of it.
+    g.beginPath();
+    g.moveTo(32, 330);
+    g.lineTo(32, 230);
+    g.moveTo(20, 270);
+    g.lineTo(32, 230);
+    g.lineTo(44, 270);
+    g.stroke();
+  });
+}
+
+/** A backlit poster: a striped retro sunset over the sea, a palm and the words MIAMI NIGHTS. */
+function posterTexture(): CanvasTexture {
+  return canvasTexture(128, 192, (g) => {
+    const sky = g.createLinearGradient(0, 0, 0, 120);
+    sky.addColorStop(0, '#2a0a4a');
+    sky.addColorStop(1, '#ff4f8a');
+    g.fillStyle = sky;
+    g.fillRect(0, 0, 128, 192);
+    g.fillStyle = '#ffd040';
+    g.beginPath();
+    g.arc(64, 100, 34, Math.PI, 0);
+    g.fill();
+    g.fillStyle = '#ff4f8a';
+    for (let y = 76; y < 100; y += 7) g.fillRect(28, y, 72, 2);
+    g.fillStyle = '#1a1040';
+    g.fillRect(0, 100, 128, 92);
+    g.fillStyle = '#2fe6ff';
+    for (let y = 106; y < 140; y += 6) g.fillRect(64 - (y - 100), y, (y - 100) * 2, 1);
+    g.fillStyle = '#100820';
+    g.fillRect(96, 40, 4, 62);
+    g.beginPath();
+    g.ellipse(98, 40, 18, 5, 0.3, 0, Math.PI * 2);
+    g.fill();
+    g.font = 'bold 20px sans-serif';
+    g.textAlign = 'center';
+    g.fillStyle = '#ffffff';
+    g.fillText('MIAMI', 64, 165);
+    g.fillStyle = '#2fe6ff';
+    g.font = 'bold 14px sans-serif';
+    g.fillText('NIGHTS', 64, 182);
+  });
+}
+
+/**
+ * The trolley's sides: green below and orange above with a cream stripe, a row of windows
+ * along the top half (lit inside, for the emissive map) and TROLLEY lettered on its flank.
+ */
+function trolleyTexture(lit: boolean): CanvasTexture {
+  return canvasTexture(256, 64, (g) => {
+    g.fillStyle = lit ? '#000' : '#2a8a4a';
+    g.fillRect(0, 0, 256, 64);
+    if (!lit) {
+      g.fillStyle = '#f08a20';
+      g.fillRect(0, 0, 256, 30);
+      g.fillStyle = '#f4f0e0';
+      g.fillRect(0, 30, 256, 4);
+    }
+    for (let x = 8; x < 248; x += 20) {
+      g.fillStyle = lit ? '#ffe8b8' : '#3a3a40';
+      g.fillRect(x, 6, 16, 20);
+    }
+    g.fillStyle = lit ? '#000' : '#f4f0e0';
+    g.font = 'bold 16px sans-serif';
+    g.textAlign = 'center';
+    g.fillText('TROLLEY', 128, 54);
   });
 }

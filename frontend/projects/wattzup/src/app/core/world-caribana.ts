@@ -35,6 +35,7 @@ import {
   canvasTexture,
   clothBannerTexture,
   loopMetres,
+  PopupTents,
   Ribbons,
   scaleFaceUv,
   type SceneStreet,
@@ -81,6 +82,10 @@ const BARRICADE_BANNERS = [
 const GARDINER_NEAR = -40;
 const GARDINER_FAR = -63;
 const GARDINER_DECK = 9.5;
+
+/** A King or Queen of the band leads each band on the right, this far into each truck's stretch. */
+const ROYAL_AT = 64;
+const ROYAL_X = 4.0;
 
 /** Caribbean flags in the crowd and on the lamp banners: T&T, Jamaica, Barbados, Guyana. */
 const FLAG_KINDS = ['trinidad', 'jamaica', 'barbados', 'guyana'] as const;
@@ -147,6 +152,8 @@ interface Masquerader {
   readonly phase: number;
   /** Which way the dancer holds their arms: both up, one up and one on the hip, or spread wide. */
   readonly pose: number;
+  /** Frontline masqueraders carry a full backpiece; the rest of the section a collar of plumes. */
+  readonly frontline: boolean;
   readonly skin: string;
 }
 
@@ -187,6 +194,7 @@ export class CaribanaStreet implements SceneStreet {
   private medallions: InstancedMesh | null = null;
   private fringes: InstancedMesh | null = null;
   private readonly legPlumes: InstancedMesh[] = [];
+  private readonly collars: InstancedMesh[] = [];
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
   private readonly downtown = new Group();
@@ -196,7 +204,9 @@ export class CaribanaStreet implements SceneStreet {
   private readonly boats: Group[] = [];
   private readonly clouds = new Group();
   private readonly ontarioPlace = new Group();
+  private readonly smoke: { mesh: Mesh; phase: number; material: MeshStandardMaterial }[] = [];
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
+  private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
   private readonly mokos: {
     figure: Group;
     legs: [Group, Group];
@@ -244,9 +254,11 @@ export class CaribanaStreet implements SceneStreet {
     this.addMasqueraders(roadHalf);
     this.addBarricades();
     this.addMokoJumbies();
+    this.addRoyals();
     this.addTrucks();
     this.addLamps();
     this.addTrees();
+    this.addStalls();
     this.addGardiner(points);
     this.addDowntown();
     this.addOntarioPlace();
@@ -257,6 +269,13 @@ export class CaribanaStreet implements SceneStreet {
   /** The parade's clock, in seconds; held at 0 for reduced motion. */
   setTime(seconds: number): void {
     this.time = seconds;
+    // Smoke off the jerk drums: each puff rises, swells, drifts on the lake breeze and thins.
+    for (const puff of this.smoke) {
+      const u = (seconds * 0.22 + puff.phase) % 1;
+      puff.mesh.position.set(0.9 + u * 2.2, 1.5 + u * 5.5, u * 1.2);
+      puff.mesh.scale.setScalar(0.35 + u * 1.7);
+      puff.material.opacity = 0.42 * (1 - u) * Math.min(1, u * 6);
+    }
   }
 
   /** Lays the pavements, barricades, grass, armour stone and lake over the road's points. */
@@ -276,6 +295,18 @@ export class CaribanaStreet implements SceneStreet {
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
+    for (const r of this.royals) {
+      const metres = along(r.offset, LOOP);
+      const t = this.time + r.phase;
+      r.piece.position.set(
+        ROYAL_X + Math.sin(t * 0.5) * 0.3,
+        heightAt(Math.max(metres, 0)) + ASPHALT + Math.abs(Math.sin(t * 2.1)) * 0.04,
+        -metres,
+      );
+      // The whole frame rocks slowly as the masquerader wines inside it, turning to the crowds.
+      r.piece.rotation.z = Math.sin(t * 1.05) * 0.04;
+      r.piece.rotation.y = Math.PI + Math.sin(t * 0.35) * 0.35;
+    }
     for (const e of this.expressway) {
       const metres = along(e.offset + this.time * e.speed, LOOP);
       e.car.position.set(e.x, heightAt(Math.max(metres, 0)) + GARDINER_DECK, -metres);
@@ -301,6 +332,8 @@ export class CaribanaStreet implements SceneStreet {
     const costumes = this.costumes;
     if (!costumes) return;
     const count = this.backpieces.map(() => 0);
+    const backed = this.backpieces.map(() => 0);
+    const collared = this.backpieces.map(() => 0);
     const posed = this.bodies.map(() => 0);
     this.dancers.forEach((d, i) => {
       const metres = along(d.offset, LOOP);
@@ -323,9 +356,13 @@ export class CaribanaStreet implements SceneStreet {
       const k = d.costume;
       this.legPlumes[k]!.setMatrixAt(count[k]!, this.matrix);
       this.spot.set(x, y + 1.3 + bounce, -metres);
+      if (!d.frontline) this.size.setScalar(0);
       this.matrix.compose(this.spot, this.turn, this.size);
-      this.backpieces[k]!.setMatrixAt(count[k]!, this.matrix);
       this.medallions?.setMatrixAt(i, this.matrix);
+      this.size.setScalar(1);
+      this.matrix.compose(this.spot, this.turn, this.size);
+      if (d.frontline) this.backpieces[k]!.setMatrixAt(backed[k]!++, this.matrix);
+      else this.collars[k]!.setMatrixAt(collared[k]!++, this.matrix);
       this.spot.set(x, y + 1.7 + bounce, -metres);
       this.headdresses[k]!.setMatrixAt(
         count[k]!,
@@ -341,8 +378,10 @@ export class CaribanaStreet implements SceneStreet {
       mesh.instanceMatrix.needsUpdate = true;
     });
     this.backpieces.forEach((mesh, k) => {
-      mesh.count = count[k]!;
+      mesh.count = backed[k]!;
       mesh.instanceMatrix.needsUpdate = true;
+      this.collars[k]!.count = collared[k]!;
+      this.collars[k]!.instanceMatrix.needsUpdate = true;
       this.headdresses[k]!.count = count[k]!;
       this.headdresses[k]!.instanceMatrix.needsUpdate = true;
       this.legPlumes[k]!.count = count[k]!;
@@ -486,6 +525,73 @@ export class CaribanaStreet implements SceneStreet {
     }
   }
 
+  /**
+   * A King or Queen of the band for each band: the showpiece costume on a wheeled frame, a
+   * towering fan of plumes in three layers 4 m high with wings of plumes either side, a great
+   * jewelled medallion at the hub, a sequinned skirt over the wheels and the masquerader at its
+   * heart, arms spread, facing back towards the riders.
+   */
+  private addRoyals(): void {
+    const plumes = this.material({
+      map: this.track(featherTexture()),
+      alphaTest: 0.4,
+      side: DoubleSide,
+      vertexColors: true,
+      roughness: 0.55,
+    });
+    const sequins = this.material({
+      map: this.repeat(sequinTexture(), 0.1, 0.1),
+      roughness: 0.25,
+      metalness: 0.65,
+    });
+    const skinMaterial = this.material({ color: SKINS[2], roughness: 0.55 });
+    const random = seeded(1009);
+    for (let i = 0; i < LOOP / TRUCK_EVERY; i++) {
+      const costume = COSTUMES[(i + 1) % COSTUMES.length]!;
+      const [outer, mid, inner] = costume.feathers;
+      const piece = new Group();
+      const fan = mergeGeometries([
+        featherFan(outer!, 31, 4.2, 0.55, Math.PI * 1.1, 0.18),
+        featherFan(mid!, 25, 3.0, 0.6, Math.PI * 1.04, 0.14),
+        featherFan(inner!, 19, 1.8, 0.5, Math.PI, 0.1),
+      ])!;
+      fan.translate(0, 1.9, 0.45);
+      const wings = mergeGeometries(
+        [-1, 1].map((side) => {
+          const wing = featherFan(side < 0 ? mid! : outer!, 13, 2.1, 0.42, Math.PI * 0.75, 0.05);
+          wing.rotateZ(side * -1.2);
+          wing.translate(side * 1.9, 1.3, 0.25);
+          return wing;
+        }),
+      )!;
+      const medallion = medallionGeometry();
+      medallion.scale(3.2, 3.2, 3.2);
+      medallion.translate(0, 1.85, -0.1);
+      const skirt = new CylinderGeometry(0.9, 1.7, 1.3, 28, 1, true);
+      skirt.translate(0, 0.65, 0.2);
+      const frame = new TorusGeometry(1.6, 0.06, 6, 36, Math.PI);
+      frame.translate(0, 1.95, 0.3);
+      const body = masBody(POSES[2]!);
+      const suit = masCostume();
+      const crown = featherFan(inner!, 15, 1.2, 0.18, Math.PI * 0.7, 0.1);
+      crown.translate(0, 1.7, 0);
+      this.disposables.push(fan, wings, medallion, skirt, frame, body, suit, crown);
+      const suitMaterial = this.material({
+        color: costume.suit,
+        map: sequins.map,
+        roughness: 0.25,
+        metalness: 0.65,
+      });
+      piece.add(new Mesh(fan, plumes), new Mesh(wings, plumes), new Mesh(crown, plumes));
+      piece.add(new Mesh(medallion, suitMaterial), new Mesh(skirt, suitMaterial));
+      piece.add(new Mesh(frame, suitMaterial));
+      piece.add(new Mesh(body, skinMaterial), new Mesh(suit, suitMaterial));
+      piece.traverse((o) => (o.castShadow = true));
+      this.group.add(piece);
+      this.royals.push({ piece, offset: i * TRUCK_EVERY + ROYAL_AT, phase: random() * 6.3 });
+    }
+  }
+
   private readonly satinWing = new MeshStandardMaterial({
     vertexColors: true,
     side: DoubleSide,
@@ -586,6 +692,9 @@ export class CaribanaStreet implements SceneStreet {
       const section = Math.floor(offset / 40) % COSTUMES.length;
       for (const side of [-1, 1] as const) {
         if (side < 0 && (fromTruck < 4 || fromTruck > TRUCK_EVERY - 12)) continue;
+        // And room round each King or Queen on the right.
+        const fromRoyal = (((offset - ROYAL_AT) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
+        if (side > 0 && (fromRoyal < 6 || fromRoyal > TRUCK_EVERY - 6)) continue;
         if (random() < 0.25) continue;
         this.dancers.push({
           side,
@@ -595,6 +704,7 @@ export class CaribanaStreet implements SceneStreet {
           phase: random() * 6.3,
           pose: 0,
           skin: '',
+          frontline: false,
         });
       }
     }
@@ -602,7 +712,7 @@ export class CaribanaStreet implements SceneStreet {
     this.dancers.forEach((d, i) => {
       const pose = Math.floor(posing() * POSES.length);
       const skin = SKINS[Math.floor(posing() * SKINS.length)]!;
-      this.dancers[i] = { ...d, pose, skin };
+      this.dancers[i] = { ...d, pose, skin, frontline: posing() < 0.34 };
     });
     const n = this.dancers.length;
     const skin = this.material({ roughness: 0.55 });
@@ -646,6 +756,14 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(back, crown);
       this.backpieces.push(this.instanced(back, plumes, n));
       this.headdresses.push(this.instanced(crown, plumes, n));
+      // The backline's collar: a short fan of plumes standing up off the shoulders.
+      const collar = mergeGeometries([
+        featherFan(mid!, 13, 0.62, 0.16, Math.PI * 0.95, 0.35),
+        featherFan(inner!, 9, 0.4, 0.15, Math.PI * 0.85, 0.25),
+      ])!;
+      collar.translate(0, 0.05, -0.02);
+      this.disposables.push(collar);
+      this.collars.push(this.instanced(collar, plumes, n));
       const legs = legPlumeGeometry(inner!, mid!);
       this.disposables.push(legs);
       this.legPlumes.push(this.instanced(legs, plumes, n));
@@ -986,8 +1104,117 @@ export class CaribanaStreet implements SceneStreet {
         c.castShadow = true;
         tree.add(t, c);
         this.group.add(tree);
-        const x = side < 0 ? -(12 + random() * 7) : 12 + random() * 2;
+        const x = side < 0 ? -(19 + random() * 8) : 12 + random() * 2;
         this.props.push({ mesh: tree, offset: offset + random() * 4, every: LOOP, x });
+      }
+    }
+  }
+
+  /**
+   * Food stalls on the grass behind both crowds: white pop-up tents with the vendor's name on
+   * the valance, a jerk drum on angle-iron legs with its lid propped open over glowing coals
+   * and chicken, smoke pouring off it, a cooler, and the vendor at the table.
+   */
+  private addStalls(): void {
+    const tents = new PopupTents(this.disposables, this.track);
+    const names = [
+      ['JERK CHICKEN', '#c8102e', '#ffd23f'],
+      ['DOUBLES & ROTI', '#ffd23f', '#0f5132'],
+      ['PATTIES', '#0f9d58', '#ffffff'],
+      ['COCONUT WATER', '#ffffff', '#0f9d58'],
+      ['BAKE & SALTFISH', '#1b6ad8', '#ffffff'],
+      ['JERK PORK', '#111111', '#ffd23f'],
+    ] as const;
+    const drum = this.material({ color: 0x2b2b2d, metalness: 0.55, roughness: 0.6 });
+    const rust = this.material({ color: 0x6b3b22, roughness: 0.9 });
+    const ember = this.material({ color: 0xff5a14, emissive: 0xff4a0a, emissiveIntensity: 2.5 });
+    const meat = this.material({ color: 0x6a2e15, roughness: 0.7 });
+    const cooler = this.material({ color: 0x1b6ad8, roughness: 0.5 });
+    const lid = this.material({ color: 0xf2f2ee, roughness: 0.5 });
+    const half = new CylinderGeometry(0.42, 0.42, 0.95, 16, 1, false, Math.PI / 2, Math.PI);
+    half.rotateZ(Math.PI / 2);
+    const cap = new CylinderGeometry(0.42, 0.42, 0.95, 16, 1, false, -Math.PI / 2, Math.PI);
+    cap.rotateZ(Math.PI / 2);
+    cap.translate(0, -0.0, 0);
+    const puff = new SphereGeometry(0.7, 10, 8);
+    this.disposables.push(half, cap, puff);
+    const random = seeded(919);
+    let k = 0;
+    for (const side of [-1, 1] as const) {
+      for (let offset = side < 0 ? 14 : 44; offset < LOOP; offset += 58) {
+        const [text, fill, ink] = names[k++ % names.length]!;
+        const stall = tents.make(text, fill, ink);
+        // The jerk drum beside the table, its lid hinged back.
+        const grill = new Group();
+        const body = new Mesh(half, drum);
+        body.position.y = 0.95;
+        const top = new Mesh(cap, drum);
+        top.position.set(0, 0.95, 0.42);
+        top.rotation.x = -1.9;
+        top.position.y = 1.0;
+        grill.add(body, top);
+        for (const [x, z] of [
+          [-0.4, -0.3],
+          [0.4, -0.3],
+          [-0.4, 0.3],
+          [0.4, 0.3],
+        ] as const) {
+          const leg = new Mesh(this.unit, rust);
+          leg.scale.set(0.04, 0.8, 0.04);
+          leg.position.set(x, 0.4, z);
+          grill.add(leg);
+        }
+        const coals = new Mesh(this.unit, ember);
+        coals.scale.set(0.8, 0.03, 0.55);
+        coals.position.y = 0.98;
+        grill.add(coals);
+        for (let p = 0; p < 6; p++) {
+          const piece = new Mesh(this.unit, meat);
+          piece.scale.set(0.13, 0.05, 0.1);
+          piece.position.set(-0.3 + p * 0.12, 1.02, (p % 2) * 0.16 - 0.08);
+          grill.add(piece);
+        }
+        grill.position.set(-side * 1.9, 0, 0.6);
+        stall.add(grill);
+        for (let p = 0; p < 6; p++) {
+          const material = this.material({
+            color: 0xd8d5cf,
+            transparent: true,
+            opacity: 0.3,
+            depthWrite: false,
+            roughness: 1,
+          });
+          const m = new Mesh(puff, material);
+          const holder = new Group();
+          holder.position.set(-side * 1.9 - 0.9, 0, 0.6);
+          holder.add(m);
+          stall.add(holder);
+          this.smoke.push({ mesh: m, phase: p / 6 + random() * 0.05, material });
+        }
+        const box = new Mesh(this.unit, cooler);
+        box.scale.set(0.7, 0.45, 0.45);
+        box.position.set(side * 1.1, 0.225, -1.0);
+        const boxLid = new Mesh(this.unit, lid);
+        boxLid.scale.set(0.72, 0.06, 0.47);
+        boxLid.position.set(side * 1.1, 0.47, -1.0);
+        stall.add(box, boxLid);
+        // The vendor behind the table, facing the crowd's backs and the road.
+        const vendor = spectatorParts(0, false);
+        const figure = new Group();
+        const tones = [SKINS[Math.floor(random() * SKINS.length)]!, '#f5f0e6', '#1e2530'];
+        [vendor.skin, vendor.top, vendor.bottom].forEach((geometry, i) => {
+          const m = this.material({ color: tones[i], roughness: 0.8 });
+          this.disposables.push(geometry);
+          figure.add(new Mesh(geometry, m));
+        });
+        figure.position.set(side * 0.2, 0, -0.9);
+        figure.rotation.y = Math.PI;
+        stall.add(figure);
+        stall.traverse((o) => (o.castShadow = true));
+        // Turn the stall's front, its table and vendor, towards the road.
+        stall.rotation.y = side < 0 ? -Math.PI / 2 : Math.PI / 2;
+        this.group.add(stall);
+        this.props.push({ mesh: stall, offset, every: LOOP, x: side * 13.6 });
       }
     }
   }
