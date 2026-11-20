@@ -185,6 +185,7 @@ export class CaribanaStreet implements SceneStreet {
   private barricadeFrames: InstancedMesh | null = null;
   private readonly barricadeBanners: InstancedMesh[] = [];
   private readonly boats: Group[] = [];
+  private readonly clouds = new Group();
   private time = 0;
   private readonly matrix = new Matrix4();
   private readonly spot = new Vector3();
@@ -229,6 +230,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addTrees();
     this.addDowntown();
     this.addBoats();
+    this.addClouds();
   }
 
   /** The parade's clock, in seconds; held at 0 for reduced motion. */
@@ -253,6 +255,8 @@ export class CaribanaStreet implements SceneStreet {
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
+    // The cumulus drift slowly east with the lake breeze, a sky that never quite repeats.
+    this.clouds.position.set(((this.time * 1.5) % 1200) - 600, heightAt(1e6), 0);
     this.boats.forEach((boat, i) => {
       const drift = this.time * 0.6 + i * 37;
       boat.position.set(
@@ -917,6 +921,63 @@ export class CaribanaStreet implements SceneStreet {
         120 + random() * 200,
       );
     }
+  }
+
+  /**
+   * Fair-weather cumulus of an August afternoon over the lake and the city: each a heap of
+   * puffs on a flat grey base, rising into a white dome lit by the sun.
+   */
+  private addClouds(): void {
+    const random = seeded(613);
+    const puffs: BufferGeometry[] = [];
+    const white = new Color(0xffffff);
+    const base = new Color(0xa7b3c2);
+    const c = new Color();
+    for (let k = 0; k < 14; k++) {
+      const a = -1.2 + (k / 13) * 2.4 + (random() - 0.5) * 0.15;
+      const far = 3400 + random() * 1800;
+      const cx = Math.sin(a) * far;
+      const cz = -Math.cos(a) * far;
+      const cy = 820 + random() * 520;
+      const size = 150 + random() * 170;
+      const count = 20 + Math.floor(random() * 12);
+      for (let p = 0; p < count; p++) {
+        const along = (random() - 0.5) * 3.4;
+        const r = size * (0.26 + random() * 0.3) * (1 - Math.abs(along) * 0.22);
+        const lift = Math.max(0, (1 - Math.abs(along) / 1.8) * size * 0.75 * random());
+        const puff = new SphereGeometry(r, 14, 9);
+        // Squash the underside flat: cumulus sit on a level base.
+        const position = puff.getAttribute('position') as BufferAttribute;
+        for (let i = 0; i < position.count; i++) {
+          const y = position.getY(i);
+          if (y < 0) position.setY(i, y * 0.25);
+        }
+        puff.translate(cx + along * size, cy + lift + r * 0.25, cz + (random() - 0.5) * size * 0.8);
+        const colour = new Float32Array(position.count * 3);
+        for (let i = 0; i < position.count; i++) {
+          const height = (position.getY(i) - cy) / (size * 1.6);
+          c.copy(base).lerp(white, Math.min(1, Math.max(0, height * 1.4 + 0.15)));
+          colour.set([c.r, c.g, c.b], i * 3);
+        }
+        puff.setAttribute('color', new BufferAttribute(colour, 3));
+        puffs.push(puff.toNonIndexed());
+        puff.dispose();
+      }
+    }
+    const heap = mergeGeometries(puffs)!;
+    puffs.forEach((p) => p.dispose());
+    const cloud = this.material({
+      vertexColors: true,
+      emissive: 0xdfe6f0,
+      emissiveIntensity: 0.22,
+      roughness: 1,
+      fog: false,
+    });
+    this.disposables.push(heap);
+    const mesh = new Mesh(heap, cloud);
+    mesh.frustumCulled = false;
+    this.clouds.add(mesh);
+    this.group.add(this.clouds);
   }
 
   /** Sailboats out on the lake, drifting slowly. */
