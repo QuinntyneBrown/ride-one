@@ -511,6 +511,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Chichén Itzá');
   });
 
+  test('rides Seated Surges along the shore of Lake Como', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Seated Surges', 'Lake Como', 'seated-surges');
+    await expect(world.heading).toHaveText('Lake Como');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Lake Como');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
