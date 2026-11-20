@@ -7,6 +7,7 @@
 // towers lit floor by floor. People stroll the sidewalks between the clubs. The hotels and their
 // names are invented. Built on the shared kit (world-kit.ts) on the pattern of Old Town's street.
 import {
+  AdditiveBlending,
   BoxGeometry,
   type BufferAttribute,
   type BufferGeometry,
@@ -483,13 +484,27 @@ export class MiamiStreet implements SceneStreet {
     });
     const band = new Mesh(new PlaneGeometry(4200, 700), glow);
     band.position.set(0, 300, -1950);
+    // The full moon, its seas and craters, wrapped in a pale halo in the humid air.
     const moon = new Mesh(
-      new SphereGeometry(28, 24, 16),
-      new MeshBasicMaterial({ color: 0xf4f0ff, fog: false }),
+      new SphereGeometry(28, 32, 20),
+      new MeshBasicMaterial({ map: this.track(moonTexture()), fog: false }),
     );
+    moon.rotation.y = -Math.PI / 2;
     moon.position.set(-900, 520, -1900);
+    const halo = new Mesh(
+      new PlaneGeometry(420, 420),
+      new MeshBasicMaterial({
+        map: this.track(moonHaloTexture()),
+        transparent: true,
+        depthWrite: false,
+        blending: AdditiveBlending,
+        fog: false,
+      }),
+    );
+    halo.position.set(-900, 520, -1930);
     this.disposables.push(glow, band.geometry, moon.geometry, moon.material);
-    this.horizon.add(band, moon);
+    this.disposables.push(halo.geometry, halo.material);
+    this.horizon.add(band, halo, moon);
     this.group.add(this.horizon);
   }
 
@@ -691,5 +706,52 @@ function glowTexture(): CanvasTexture {
     glow.addColorStop(1, 'rgba(40,20,90,0)');
     g.fillStyle = glow;
     g.fillRect(0, 0, 16, 256);
+  });
+}
+
+/** The moon's face: pale grey-white with its darker seas and a scatter of bright craters. */
+function moonTexture(): CanvasTexture {
+  return canvasTexture(256, 128, (g) => {
+    g.fillStyle = '#f2f0f8';
+    g.fillRect(0, 0, 256, 128);
+    const random = seeded(8191);
+    const seas: [number, number, number][] = [
+      [150, 40, 18],
+      [170, 62, 14],
+      [132, 70, 20],
+      [112, 46, 12],
+      [160, 88, 10],
+      [190, 48, 9],
+    ];
+    for (const [x, y, r] of seas) {
+      const sea = g.createRadialGradient(x, y, 0, x, y, r);
+      sea.addColorStop(0, 'rgba(120,120,140,0.6)');
+      sea.addColorStop(1, 'rgba(120,120,140,0)');
+      g.fillStyle = sea;
+      g.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    for (let i = 0; i < 60; i++) {
+      const x = random() * 256;
+      const y = random() * 128;
+      g.fillStyle = 'rgba(140,140,160,0.35)';
+      g.beginPath();
+      g.arc(x, y, 1 + random() * 2.5, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.5)';
+      g.fillRect(x - 0.5, y - 1.5, 1, 1);
+    }
+  });
+}
+
+/** A soft cool halo round the moon, brightest at its rim and fading out into the night. */
+function moonHaloTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    const halo = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    halo.addColorStop(0, 'rgba(220,228,255,0.9)');
+    halo.addColorStop(0.14, 'rgba(200,210,255,0.55)');
+    halo.addColorStop(0.35, 'rgba(160,160,240,0.18)');
+    halo.addColorStop(1, 'rgba(120,100,220,0)');
+    g.fillStyle = halo;
+    g.fillRect(0, 0, 128, 128);
   });
 }
