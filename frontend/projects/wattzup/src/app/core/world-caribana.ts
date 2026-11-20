@@ -30,6 +30,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   armPair,
   canvasTexture,
+  Crowd,
   legPair,
   loopMetres,
   Ribbons,
@@ -84,16 +85,6 @@ const SHIRTS = [
   '#f5f0e6',
 ];
 
-interface Reveller {
-  readonly side: -1 | 1;
-  readonly offset: number;
-  readonly x: number;
-  readonly height: number;
-  readonly phase: number;
-  /** Which flag, if any, this fan waves over their head. */
-  readonly flag: number;
-}
-
 interface Masquerader {
   readonly side: -1 | 1;
   readonly offset: number;
@@ -106,13 +97,8 @@ export class CaribanaStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
-  private readonly fans: Reveller[] = [];
+  private readonly crowd: Crowd;
   private readonly dancers: Masquerader[] = [];
-  private fanBodies: InstancedMesh | null = null;
-  private fanLegs: InstancedMesh | null = null;
-  private fanHeads: InstancedMesh | null = null;
-  private fanArms: InstancedMesh | null = null;
-  private readonly fanFlags: InstancedMesh[] = [];
   private suits: InstancedMesh | null = null;
   private legs: InstancedMesh | null = null;
   private heads: InstancedMesh | null = null;
@@ -138,13 +124,23 @@ export class CaribanaStreet implements SceneStreet {
     private readonly disposables: { dispose(): void }[],
   ) {
     this.ribbons = new Ribbons(this.group, disposables);
+    this.crowd = new Crowd(this.group, disposables, {
+      loop: LOOP,
+      near: CROWD_NEAR,
+      far: CROWD_FAR,
+      spacing: 0.55,
+      wardrobe: { tops: SHIRTS, bottoms: TROUSERS, skins: SKINS },
+      flags: this.flagMaterials,
+      flagShare: 0.22,
+      seeds: [41, 97],
+    });
   }
 
   build(roadHalf: number, points: number): void {
     this.disposables.push(this.unit, ...this.flagMaterials);
     for (const m of this.flagMaterials) if (m.map) this.track(m.map);
     this.addGround(roadHalf, points);
-    this.addCrowd();
+    this.crowd.build();
     this.addMasqueraders(roadHalf);
     this.addTrucks();
     this.addLamps();
@@ -170,7 +166,7 @@ export class CaribanaStreet implements SceneStreet {
       const metres = along(prop.offset, prop.every);
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + KERB, -metres);
     }
-    this.placeFans(heightAt, along);
+    this.crowd.place(this.time, heightAt, along, KERB);
     this.placeDancers(heightAt, along);
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
     this.boats.forEach((boat, i) => {
@@ -180,54 +176,6 @@ export class CaribanaStreet implements SceneStreet {
         heightAt(1e6) - 0.2,
         -(((i * 173 + drift - s * 0.15) % 700) + 120),
       );
-    });
-  }
-
-  private placeFans(
-    heightAt: (metres: number) => number,
-    along: (offset: number, every: number) => number,
-  ): void {
-    const bodies = this.fanBodies;
-    const legs = this.fanLegs;
-    const heads = this.fanHeads;
-    const arms = this.fanArms;
-    if (!bodies || !legs || !heads || !arms) return;
-    const flagCount = this.fanFlags.map(() => 0);
-    let arm = 0;
-    this.fans.forEach((fan, i) => {
-      const metres = along(fan.offset, LOOP);
-      const y = heightAt(Math.max(metres, 0)) + KERB;
-      // Fans face the road, turned a little towards the rider coming up the street.
-      this.turn.setFromAxisAngle(this.up, fan.side < 0 ? Math.PI / 2 - 0.3 : -Math.PI / 2 + 0.3);
-      const bounce = Math.abs(Math.sin(this.time * 4.2 + fan.phase)) * 0.05;
-      const h = fan.height;
-      this.size.setScalar(h);
-      this.spot.set(fan.x, y + bounce, -metres);
-      legs.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      this.spot.set(fan.x, y + 1.15 * h + bounce, -metres);
-      bodies.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      this.spot.set(fan.x, y + 1.6 * h + bounce, -metres);
-      heads.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      if (fan.flag >= 0) {
-        // A flag held high on a short pole, waving from side to side.
-        const wave = Math.sin(this.time * 3 + fan.phase) * 0.5;
-        const k = fan.flag;
-        this.spot.set(fan.x + Math.sin(wave) * 0.25, y + 2.2 * h + bounce, -metres);
-        const q = new Quaternion().setFromAxisAngle(this.up, fan.side * 0.4 + wave * 0.6);
-        this.fanFlags[k]!.setMatrixAt(flagCount[k]!, this.matrix.compose(this.spot, q, this.size));
-        flagCount[k]!++;
-        this.spot.set(fan.x, y + 1.4 * h + bounce, -metres);
-        arms.setMatrixAt(arm++, this.matrix.compose(this.spot, this.turn, this.size));
-      }
-    });
-    bodies.instanceMatrix.needsUpdate = true;
-    legs.instanceMatrix.needsUpdate = true;
-    heads.instanceMatrix.needsUpdate = true;
-    arms.count = arm;
-    arms.instanceMatrix.needsUpdate = true;
-    this.fanFlags.forEach((flags, k) => {
-      flags.count = flagCount[k]!;
-      flags.instanceMatrix.needsUpdate = true;
     });
   }
 
@@ -333,54 +281,6 @@ export class CaribanaStreet implements SceneStreet {
       [-BARRIER, KERB],
       [-BARRIER, KERB + 1.1],
     ]);
-  }
-
-  /** The crowd behind the barricades on both sides, a fan in four waving a flag. */
-  private addCrowd(): void {
-    const random = seeded(41);
-    for (const side of [-1, 1] as const) {
-      for (let offset = 0; offset < LOOP; offset += 0.55) {
-        const rows = 1 + Math.floor(random() * 3);
-        for (let row = 0; row < rows; row++) {
-          const x = side * (CROWD_NEAR + row * 0.75 + random() * 0.35);
-          if (Math.abs(x) > CROWD_FAR) continue;
-          this.fans.push({
-            side,
-            offset: offset + random() * 0.4,
-            x,
-            height: 0.92 + random() * 0.16,
-            phase: random() * 6.3,
-            flag: random() < 0.22 ? Math.floor(random() * FLAG_KINDS.length) : -1,
-          });
-        }
-      }
-    }
-    const n = this.fans.length;
-    const body = new CapsuleGeometry(0.19, 0.36, 4, 10);
-    const head = new SphereGeometry(0.115, 12, 10);
-    const arm = new CylinderGeometry(0.045, 0.045, 0.7, 6);
-    const pair = legPair(0.085, 0.82);
-    this.disposables.push(body, head, arm, pair);
-    const cloth = this.material({ roughness: 0.85 });
-    const skin = this.material({ roughness: 0.7 });
-    const denim = this.material({ roughness: 0.9 });
-    this.fanBodies = this.instanced(body, cloth, n);
-    this.fanLegs = this.instanced(pair, denim, n);
-    this.fanHeads = this.instanced(head, skin, n);
-    this.fanArms = this.instanced(arm, skin, n);
-    const random2 = seeded(97);
-    const c = new Color();
-    for (let i = 0; i < n; i++) {
-      this.fanBodies.setColorAt(i, c.set(SHIRTS[Math.floor(random2() * SHIRTS.length)]!));
-      this.fanLegs.setColorAt(i, c.set(TROUSERS[Math.floor(random2() * TROUSERS.length)]!));
-      const tone = c.set(SKINS[Math.floor(random2() * SKINS.length)]!);
-      this.fanHeads.setColorAt(i, tone);
-      this.fanArms.setColorAt(i, tone);
-    }
-    const flag = new PlaneGeometry(0.75, 0.5, 4, 1);
-    this.disposables.push(flag);
-    for (const material of this.flagMaterials)
-      this.fanFlags.push(this.instanced(flag, material, n));
   }
 
   /** Mas bands on both aprons: bodysuits, feathered backpieces and headdresses, arms up. */

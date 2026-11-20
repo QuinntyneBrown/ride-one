@@ -39,7 +39,7 @@ test.describe('World Ride (L2-102)', () => {
     const classes = new ClassesPage(page);
     await page.goto('/classes/30-minute-hiit-cardio');
     await expect(classes.rideIn('Old Town Criterium')).toBeVisible();
-    await page.goto('/classes/calorie-burning-workout');
+    await page.goto('/classes/60-minute-turbo-trainer-class');
     await expect(classes.heading).toBeVisible();
     await expect(page.getByRole('button', { name: /^Ride in / })).toHaveCount(0);
   });
@@ -79,6 +79,17 @@ test.describe('World Ride (L2-102)', () => {
     );
     await expect(world.heading).toHaveText('Central Park Loop');
     await expect(world.boardTitle).toHaveText('Riders nearby · Central Park Loop');
+  });
+
+  test('rides Calorie Burning Workout in South Beach Sunrise on Ocean Drive', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Calorie Burning Workout',
+      'South Beach Sunrise',
+      'calorie-burning-workout',
+    );
+    await expect(world.heading).toHaveText('South Beach Sunrise');
+    await expect(world.boardTitle).toHaveText('Riders nearby · South Beach Sunrise');
   });
 
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {

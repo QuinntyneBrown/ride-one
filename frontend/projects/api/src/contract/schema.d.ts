@@ -89,7 +89,8 @@ export interface components {
         | 'coast'
         | 'caribana'
         | 'westminster'
-        | 'centralpark';
+        | 'centralpark'
+        | 'southbeach';
     };
     ClassShelfResponse: {
       id: string;
