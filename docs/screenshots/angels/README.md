@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Drop Ollie at All Costs](http://local
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/drop-ollie-at-all-costs?simulate`, click **Ride in Els Àngels, Girona**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [047 · The Pyrenees stand beyond the Àngels](bend-047-pyrenees-stand.jpg) | The snow-tipped Pyrenees and the Gavarres hills seen from the climb to Els Àngels were bent vertex by vertex with the road's 40° bends, swinging with each turn through the cork oaks. They now stand beyond the road unbent, as the panorama does, and the bollards and props behind the rider stand on the road there instead of at the height under the rider. |
