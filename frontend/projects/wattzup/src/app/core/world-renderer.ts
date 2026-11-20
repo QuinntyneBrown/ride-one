@@ -65,6 +65,7 @@ import { bendAhead, bendPoint, heading, lean, racingLine } from './scene-bend';
 import { EASE_PER_SECOND, MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import { RoadBend } from './world-bend';
 import { Corners } from './world-corners';
+import { RampSign } from './world-ramps';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 import { Cyclist, CyclistKit } from './world-cyclist';
 import { DocklandsStreet } from './world-docklands';
@@ -3145,6 +3146,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private readonly lamps: PointLight[] = [];
   private street: OldTownStreet | null = null;
   private corners: Corners | null = null;
+  private ramp: RampSign | null = null;
   private towers: DocklandsStreet | null = null;
   /** The street of a scene built on the shared kit (world-streets.ts). */
   private scenery: SceneStreet | null = null;
@@ -3663,6 +3665,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     corners.build(ROAD_HALF, 0.15, ROAD_HALF + 0.4);
     this.scene.add(corners.group);
     this.corners = corners;
+    // A gradient sign at the foot of each ramp, on the right-hand pavement behind the barrier.
+    const ramp = new RampSign(this.disposables);
+    this.disposables.push(ramp);
+    this.scene.add(ramp.group);
+    this.ramp = ramp;
   }
 
   private addScenery(make: StreetFactory): void {
@@ -3690,6 +3697,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private placeRoadside(s: number, ahead: RoadPoint[]): void {
     this.street?.place(s, (metres) => heightAt(ahead, metres));
     if (this.world) this.corners?.place(this.world, s, (metres) => heightAt(ahead, metres));
+    this.ramp?.place(ahead, ROAD_HALF + 1, 0.15);
     this.towers?.place(s, (metres) => heightAt(ahead, metres));
     this.scenery?.place(s, (metres) => heightAt(ahead, metres));
     this.lamps.forEach((lamp, i) => {
