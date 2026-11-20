@@ -11,7 +11,7 @@ import {
   BoxGeometry,
   CapsuleGeometry,
   Color,
-  type BufferGeometry,
+  BufferGeometry,
   type CanvasTexture,
   ConeGeometry,
   CylinderGeometry,
@@ -163,6 +163,17 @@ export class HavanaStreet implements SceneStreet {
   private readonly crestList: { offset: number; delay: number; length: number }[] = [];
   private foam: Texture | null = null;
   private roadHalf = 0;
+  private birds: InstancedMesh | null = null;
+  private readonly birdList: {
+    offset: number;
+    x: number;
+    height: number;
+    radius: number;
+    turn: number;
+    phase: number;
+    size: number;
+    glide: boolean;
+  }[] = [];
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -185,6 +196,7 @@ export class HavanaStreet implements SceneStreet {
     this.addSkyline();
     this.addClouds();
     this.addBoats(roadHalf);
+    this.addBirds(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -290,6 +302,24 @@ export class HavanaStreet implements SceneStreet {
         this.crests!.setMatrixAt(i, this.crest);
       });
       this.crests.instanceMatrix.needsUpdate = true;
+    }
+    if (this.birds) {
+      this.birdList.forEach((b, i) => {
+        // Each bird circles slowly, flapping, or holds its wings out to glide.
+        const a = b.phase + this.time * b.turn;
+        const metres = loopMetres(b.offset + Math.sin(a) * b.radius, s, LOOP, BEHIND);
+        const flap = b.glide ? 0.15 : Math.sin(this.time * 9 + b.phase) * 0.5;
+        this.spin.setFromAxisAngle(this.upward, a + Math.PI / 2);
+        this.stretch.set(b.size, b.size * (1 + flap), b.size);
+        this.at.set(
+          b.x + Math.cos(a) * b.radius,
+          heightAt(Math.max(metres, 0)) + b.height,
+          -metres,
+        );
+        this.drop.compose(this.at, this.spin, this.stretch);
+        this.birds!.setMatrixAt(i, this.drop);
+      });
+      this.birds.instanceMatrix.needsUpdate = true;
     }
     this.horizon.position.set(0, heightAt(0), 0);
   }
@@ -1649,6 +1679,57 @@ export class HavanaStreet implements SceneStreet {
       ship.position.set(x, 0, z);
       this.horizon.add(ship);
     }
+  }
+
+  /**
+   * Seabirds over the water: gulls wheeling low along the wall, and frigatebirds, long-winged and
+   * dark, soaring high over the Gulf on still wings. Each is a bent pair of wings, instanced.
+   */
+  private addBirds(roadHalf: number): void {
+    const random = seeded(1223);
+    const wall = -roadHalf - LANES - PROMENADE;
+    for (let i = 0; i < 26; i++) {
+      const high = i % 3 === 0;
+      this.birdList.push({
+        offset: random() * LOOP,
+        x: wall - 6 - random() * (high ? 120 : 40),
+        height: high ? 30 + random() * 40 : 5 + random() * 10,
+        radius: 6 + random() * 18,
+        turn: (random() < 0.5 ? 1 : -1) * (0.15 + random() * 0.2),
+        phase: random() * Math.PI * 2,
+        size: high ? 1.6 : 0.7,
+        glide: high || random() < 0.4,
+      });
+    }
+    // A gull's wings: two slim triangles from the body, raised and bent at the wrist.
+    const wing = new BufferGeometry();
+    const v = [
+      [0, 0, 0.25],
+      [0, 0, -0.2],
+      [0.5, 0.15, 0.05],
+      [0.5, 0.15, 0.05],
+      [0, 0, -0.2],
+      [1, -0.05, -0.15],
+      [0, 0, 0.25],
+      [-0.5, 0.15, 0.05],
+      [0, 0, -0.2],
+      [-0.5, 0.15, 0.05],
+      [-1, -0.05, -0.15],
+      [0, 0, -0.2],
+    ].flat();
+    wing.setAttribute('position', new BufferAttribute(new Float32Array(v), 3));
+    wing.computeVertexNormals();
+    this.disposables.push(wing);
+    this.birds = new InstancedMesh(
+      wing,
+      this.material({ color: 0xe8e6e0, roughness: 0.8, side: DoubleSide }),
+      this.birdList.length,
+    );
+    const dark = new Color(0x2a2a2e);
+    const pale = new Color(0xf0eee8);
+    this.birdList.forEach((b, i) => this.birds!.setColorAt(i, b.size > 1 ? dark : pale));
+    this.birds.frustumCulled = false;
+    this.group.add(this.birds);
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
