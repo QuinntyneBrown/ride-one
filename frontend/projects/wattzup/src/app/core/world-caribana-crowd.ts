@@ -158,15 +158,17 @@ const UMBRELLAS = ['#c8102e', '#ffd23f', '#0f9d58', '#1b6ad8', '#111111', '#ff2d
 const SHOES = ['#f2f2f2', '#111111', '#d6d0c4', '#8b5e3c', '#c8102e'];
 
 /** The parts of a spectator's body and clothes for one stance and one cut of bottoms. */
-export function spectatorParts(stance: number, shorts: boolean) {
-  const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
+export function spectatorParts(stance: number, shorts: boolean, seated = false) {
+  // Sitting lowers everything above the hips onto a seat 0.45 m up, the thighs forward.
+  const drop = seated ? 0.42 : 0;
+  const v = (x: number, y: number, z: number) => new Vector3(x, y > 0.7 ? y - drop : y, z);
   const skin: BufferGeometry[] = [];
   const top: BufferGeometry[] = [];
   const bottom: BufferGeometry[] = [];
   for (const side of [-1, 1]) {
     const hip = v(side * 0.095, 0.9, 0);
-    const knee = v(side * 0.1, 0.49, -0.02);
-    const ankle = v(side * 0.1, 0.08, 0);
+    const knee = seated ? new Vector3(side * 0.1, 0.5, -0.42) : v(side * 0.1, 0.49, -0.02);
+    const ankle = seated ? new Vector3(side * 0.1, 0.08, -0.46) : v(side * 0.1, 0.08, 0);
     const mid = hip.clone().lerp(knee, 0.8);
     bottom.push(...limb(hip, shorts ? mid : knee, 0.095, shorts ? 0.08 : 0.065, 7, !shorts));
     if (shorts) {
@@ -183,15 +185,15 @@ export function spectatorParts(stance: number, shorts: boolean) {
     skin.push(...limb(sleeve, elbow, 0.046, 0.042, 6), ...limb(elbow, hand, 0.042, 0.034, 6));
     skin.push(ellipsoid(0.045, 1, 1.25, 0.6, hand.x, hand.y, hand.z, 6));
   }
-  bottom.push(ellipsoid(0.16, 1.05, 0.6, 0.8, 0, 0.94, 0, 9));
+  bottom.push(ellipsoid(0.16, 1.05, 0.6, 0.8, 0, 0.94 - drop, 0, 9));
   const torso = new CylinderGeometry(0.16, 0.155, 0.42, 10);
   torso.scale(1, 1, 0.72);
-  torso.translate(0, 1.16, 0);
+  torso.translate(0, 1.16 - drop, 0);
   top.push(torso);
-  top.push(ellipsoid(0.08, 2.4, 0.75, 1.3, 0, 1.38, 0, 8));
+  top.push(ellipsoid(0.08, 2.4, 0.75, 1.3, 0, 1.38 - drop, 0, 8));
   const neck = new CylinderGeometry(0.045, 0.05, 0.12, 6);
-  neck.translate(0, 1.48, 0);
-  skin.push(neck, ellipsoid(0.105, 0.9, 1.1, 1, 0, 1.6, -0.01, 10));
+  neck.translate(0, 1.48 - drop, 0);
+  skin.push(neck, ellipsoid(0.105, 0.9, 1.1, 1, 0, 1.6 - drop, -0.01, 10));
   return { skin: merge(skin), top: merge(top), bottom: merge(bottom) };
 }
 
@@ -323,6 +325,8 @@ export interface SpectatorOptions {
   readonly skins: readonly string[];
   readonly flags: readonly Material[];
   readonly seed: number;
+  /** Leaves out anyone standing where `skip(side, offset)` is true. */
+  readonly skip?: (side: -1 | 1, offset: number) => boolean;
 }
 
 /**
@@ -361,7 +365,7 @@ export class Spectators {
           const child = row === 0 && random() < 0.07;
           const roll = random();
           const stance = roll < 0.22 ? FLAG_STANCE : roll < 0.4 ? 2 : roll < 0.5 ? PHONE_STANCE : 0;
-          this.people.push({
+          const person: Spectator = {
             side,
             offset: offset + random() * 0.35,
             x,
@@ -369,7 +373,8 @@ export class Spectators {
             phase: random() * 6.3,
             stance,
             flag: stance === FLAG_STANCE ? Math.floor(random() * o.flags.length) : -1,
-          });
+          };
+          if (!o.skip?.(side, person.offset)) this.people.push(person);
         }
       }
     }
