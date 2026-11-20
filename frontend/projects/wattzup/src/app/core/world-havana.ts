@@ -297,7 +297,6 @@ export class HavanaStreet implements SceneStreet {
     const asphalt = this.material({ map: this.repeat(lanesTexture(), LANES, 12), roughness: 0.85 });
     const paving = this.material({ map: this.repeat(slabTexture(), 6, 6), roughness: 0.92 });
     const kerbStone = this.material({ map: this.repeat(kerbTexture(), 1, 3), roughness: 0.85 });
-    const wall = this.material({ map: this.repeat(wallTexture(), 2, 2), roughness: 0.95 });
     const swell = this.repeat(seaTexture(), 30, 30);
     this.swell = swell;
     const sea = this.material({
@@ -350,10 +349,16 @@ export class HavanaStreet implements SceneStreet {
       [promenade, KERB],
     ]);
     // The seawall: its face to the promenade, its broad top, and its face down to the sea.
-    this.ribbons.add(points, wall, [
+    // Its coping is rounded at both edges, where generations have sat.
+    const seawall = this.material({ map: this.repeat(seawallTexture(), 4, 6), roughness: 0.95 });
+    this.ribbons.add(points, seawall, [
       [promenade, KERB],
-      [promenade, WALL],
-      [promenade - 0.7, WALL],
+      [promenade, WALL - 0.08],
+      [promenade - 0.03, WALL - 0.02],
+      [promenade - 0.1, WALL],
+      [promenade - 0.6, WALL],
+      [promenade - 0.67, WALL - 0.02],
+      [promenade - 0.7, WALL - 0.08],
       [promenade - 0.7, -SEA],
     ]);
     this.ribbons.add(points, sea, [
@@ -2001,5 +2006,45 @@ function cubanFlag(): CanvasTexture {
     }
     g.closePath();
     g.fill();
+  });
+}
+
+/**
+ * Six metres of the seawall, unrolled across its profile (four metres: the face to the
+ * promenade, the coping, and the long face down to the sea): weathered pale concrete with an
+ * expansion joint, grime at the promenade's foot, salt bloom on the coping, and the sea face
+ * darkened by spray and green with algae toward the water.
+ */
+function seawallTexture(): CanvasTexture {
+  return canvasTexture(256, 384, (g) => {
+    speckle(g, 256, 384, '#d8d0c0', 1123);
+    const random = seeded(1129);
+    const m = 64;
+    const grime = g.createLinearGradient(0, 0, 0.3 * m, 0);
+    grime.addColorStop(0, 'rgba(60,55,45,0.35)');
+    grime.addColorStop(1, 'rgba(60,55,45,0)');
+    g.fillStyle = grime;
+    g.fillRect(0, 0, 0.3 * m, 384);
+    for (let i = 0; i < 160; i++) {
+      g.fillStyle = `rgba(255,255,250,${0.1 + random() * 0.25})`;
+      g.fillRect(
+        0.75 * m + random() * 0.55 * m,
+        random() * 384,
+        1 + random() * 3,
+        1 + random() * 3,
+      );
+    }
+    const sea = g.createLinearGradient(1.4 * m, 0, 4 * m, 0);
+    sea.addColorStop(0, 'rgba(90,95,85,0.15)');
+    sea.addColorStop(0.6, 'rgba(70,85,60,0.4)');
+    sea.addColorStop(1, 'rgba(40,70,40,0.75)');
+    g.fillStyle = sea;
+    g.fillRect(1.4 * m, 0, 2.6 * m, 384);
+    for (let i = 0; i < 70; i++) {
+      g.fillStyle = `rgba(60,70,55,${0.06 + random() * 0.12})`;
+      g.fillRect(random() * 1.4 * m, random() * 384, 2 + random() * 4, 20 + random() * 60);
+    }
+    g.fillStyle = 'rgba(50,45,40,0.6)';
+    g.fillRect(0, 0, 256, 3);
   });
 }
