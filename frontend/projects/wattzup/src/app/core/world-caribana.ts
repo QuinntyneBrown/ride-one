@@ -29,7 +29,15 @@ import {
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { canvasTexture, loopMetres, Ribbons, type SceneStreet, seeded, speckle } from './world-kit';
+import {
+  canvasTexture,
+  loopMetres,
+  Ribbons,
+  scaleFaceUv,
+  type SceneStreet,
+  seeded,
+  speckle,
+} from './world-kit';
 import { ellipsoid, limb, Spectators, spectatorParts } from './world-caribana-crowd';
 import type { StreetPoint } from './world-oldtown';
 
@@ -41,7 +49,7 @@ const KERB = 0.15;
 const ASPHALT = 0.012;
 /** The kerb steps up to the pavement just behind the barricades. */
 const CURB = 6.75;
-/** The apron the masqueraders dance on runs from the kerb to the barricades. */
+/** The barricades stand on the road at the gutters; the masqueraders dance between them. */
 const BARRIER = 6.6;
 /** The crowd stands from just behind the barricades to the back of the pavement. */
 const CROWD_NEAR = 7.0;
@@ -715,19 +723,7 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(material);
       return material;
     };
-    const windows = this.track(windowTexture());
-    windows.wrapS = RepeatWrapping;
-    windows.wrapT = RepeatWrapping;
-    const glass = [0x6f8aa3, 0x8b9fb0, 0x5d7488, 0xa3b2bd].map((hex) => hazed(hex, 0.45, windows));
-    const random = seeded(307);
-    for (let i = 0; i < 46; i++) {
-      const w = 25 + random() * 35;
-      const h = 60 + random() * random() * 260;
-      const tower = new Mesh(this.unit, glass[i % glass.length]!);
-      tower.scale.set(w, h, w);
-      tower.position.set(-520 + random() * 520, h / 2, -random() * 260);
-      this.downtown.add(tower);
-    }
+    this.addSkyline(hazed);
     const cn = cnTower(hazed(0xd3cec4, 0.38), hazed(0x8d9196, 0.36), hazed(0x2c3640, 0.4));
     this.disposables.push(...cn.children.map((m) => (m as Mesh).geometry));
     cn.position.set(-260, 0, 40);
@@ -739,6 +735,101 @@ export class CaribanaStreet implements SceneStreet {
     rogers.position.set(-130, 0, 120);
     this.downtown.add(rogers);
     this.group.add(this.downtown);
+  }
+
+  /**
+   * Toronto's skyline as Lake Shore West sees it, east past Ontario Place: slender glass condos
+   * of CityPlace and South Core clustered round the CN Tower with Harbourfront's lower slabs
+   * to its right, and behind them, left of the tower, the Financial District's office towers:
+   * white First Canadian Place, the black TD towers, red Scotia Plaza and gold Royal Bank Plaza.
+   */
+  private addSkyline(
+    hazed: (hex: number, amount: number, map?: Texture | null) => MeshStandardMaterial,
+  ): void {
+    const skin = (texture: CanvasTexture) => {
+      texture.wrapS = RepeatWrapping;
+      texture.wrapT = RepeatWrapping;
+      return this.track(texture);
+    };
+    const balconies = skin(condoTexture());
+    const grid = skin(officeTexture('#2b3540', '#55687a'));
+    const pinstripe = skin(pinstripeTexture());
+    const condo = [0x7fa7a8, 0x6c95a8, 0x9bb7b8, 0x8aa3b5, 0x5f8f8c].map((hex) =>
+      hazed(hex, 0.4, balconies),
+    );
+    const office = [0x8b9aa8, 0x6f8193, 0xa7b2bb].map((hex) => hazed(hex, 0.42, grid));
+    const black = hazed(0x30343a, 0.42, grid);
+    const white = hazed(0xf0eee8, 0.36, pinstripe);
+    const red = hazed(0x9a4b3e, 0.4, pinstripe);
+    const gold = hazed(0xd4a548, 0.38, grid);
+    const tower = (
+      material: MeshStandardMaterial,
+      w: number,
+      d: number,
+      h: number,
+      x: number,
+      z: number,
+      crown = 0,
+    ) => {
+      const box = new BoxGeometry(w, h, d);
+      // Repeat the facade by storey (3.2 m) and bay (8 m) so every tower keeps its scale.
+      for (const face of [0, 1]) scaleFaceUv(box, face, d / 8, h / 38);
+      for (const face of [4, 5]) scaleFaceUv(box, face, w / 8, h / 38);
+      box.translate(x, h / 2, z);
+      this.disposables.push(box);
+      this.downtown.add(new Mesh(box, material));
+      if (crown) {
+        // A setback crown: a narrower top with a mechanical penthouse.
+        const top = new BoxGeometry(w * 0.7, crown, d * 0.7);
+        top.translate(x, h + crown / 2, z);
+        this.disposables.push(top);
+        this.downtown.add(new Mesh(top, material));
+      }
+    };
+    // The Financial District, a kilometre beyond the tower and left of it.
+    tower(white, 46, 46, 290, -470, -420, 8);
+    tower(black, 36, 58, 223, -400, -330);
+    tower(black, 34, 52, 190, -360, -400);
+    tower(red, 44, 44, 260, -540, -360, 15);
+    tower(gold, 30, 50, 180, -330, -270);
+    tower(office[2]!, 42, 42, 239, -430, -500, 6);
+    tower(office[0]!, 40, 40, 218, -580, -470, 10);
+    tower(office[1]!, 50, 36, 240, -300, -360, 6);
+    const random = seeded(307);
+    for (let i = 0; i < 14; i++) {
+      const h = 110 + random() * 110;
+      tower(
+        office[i % office.length]!,
+        28 + random() * 22,
+        28 + random() * 22,
+        h,
+        -700 + random() * 460,
+        -300 - random() * 320,
+        random() < 0.4 ? 6 : 0,
+      );
+    }
+    // CityPlace and South Core: slender glass condos crowding the tower's foot.
+    for (let i = 0; i < 30; i++) {
+      const h = 95 + random() * random() * 140;
+      const w = 20 + random() * 10;
+      let x = -420 + random() * 400;
+      const z = -60 + random() * 300;
+      // Keep the tower's foot and the stadium clear.
+      if (Math.abs(x + 260) < 45 && Math.abs(z - 40) < 70) x -= 90;
+      tower(condo[i % condo.length]!, w, w * (1 + random() * 0.6), h, x, z, random() < 0.5 ? 5 : 0);
+    }
+    // Harbourfront's lower slabs along the water, right of the tower.
+    for (let i = 0; i < 16; i++) {
+      const h = 50 + random() * 80;
+      tower(
+        condo[(i + 2) % condo.length]!,
+        24 + random() * 16,
+        22 + random() * 10,
+        h,
+        -60 + random() * 340,
+        120 + random() * 200,
+      );
+    }
   }
 
   /** Sailboats out on the lake, drifting slowly. */
@@ -1383,20 +1474,48 @@ function bannerTexture(name: string, colour: string): CanvasTexture {
   });
 }
 
-/** Office glazing: a grid of lit and unlit windows. */
-function windowTexture(): CanvasTexture {
-  const texture = canvasTexture(128, 256, (g) => {
-    g.fillStyle = '#2d3a46';
-    g.fillRect(0, 0, 128, 256);
-    const random = seeded(3);
-    for (let y = 0; y < 256; y += 8) {
-      for (let x = 0; x < 128; x += 8) {
-        const l = 45 + random() * 35;
-        g.fillStyle = `hsl(205,18%,${l}%)`;
-        g.fillRect(x + 1, y + 1, 6, 5);
+/** Condo glazing: tinted glass floor to ceiling, a white balcony slab at every storey. */
+function condoTexture(): CanvasTexture {
+  return canvasTexture(64, 128, (g) => {
+    g.fillStyle = '#5d7b86';
+    g.fillRect(0, 0, 64, 128);
+    const random = seeded(311);
+    for (let y = 0; y < 128; y += 4) {
+      for (let x = 0; x < 64; x += 8) {
+        g.fillStyle = `hsl(195,18%,${36 + random() * 22}%)`;
+        g.fillRect(x, y, 8, 3);
       }
+      g.fillStyle = 'rgba(238,240,238,0.9)';
+      g.fillRect(0, y + 3, 64, 1);
     }
   });
-  texture.repeat.set(3, 6);
-  return texture;
+}
+
+/** Office glazing in `frame` and `pane`: a curtain wall of mullions and spandrels. */
+function officeTexture(frame: string, pane: string): CanvasTexture {
+  return canvasTexture(64, 128, (g) => {
+    g.fillStyle = frame;
+    g.fillRect(0, 0, 64, 128);
+    const random = seeded(313);
+    for (let y = 0; y < 128; y += 4) {
+      for (let x = 0; x < 64; x += 4) {
+        g.globalAlpha = 0.6 + random() * 0.4;
+        g.fillStyle = pane;
+        g.fillRect(x + 1, y + 1, 3, 2);
+      }
+    }
+    g.globalAlpha = 1;
+  });
+}
+
+/** Stone or marble cladding with narrow vertical windows between the piers. */
+function pinstripeTexture(): CanvasTexture {
+  return canvasTexture(64, 128, (g) => {
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 64, 128);
+    g.fillStyle = 'rgba(40,48,58,0.55)';
+    for (let x = 2; x < 64; x += 5) g.fillRect(x, 0, 2, 128);
+    g.fillStyle = 'rgba(255,255,255,0.5)';
+    for (let y = 0; y < 128; y += 4) g.fillRect(0, y, 64, 1);
+  });
 }
