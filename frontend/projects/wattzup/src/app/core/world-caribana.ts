@@ -280,6 +280,8 @@ export class CaribanaStreet implements SceneStreet {
   private fringes: InstancedMesh | null = null;
   private readonly legPlumes: InstancedMesh[] = [];
   private readonly collars: InstancedMesh[] = [];
+  private readonly armbands: InstancedMesh[] = [];
+  private readonly cuffs: InstancedMesh[] = [];
   private readonly heldFlags: InstancedMesh[] = [];
   private rags: InstancedMesh | null = null;
   private hair: InstancedMesh | null = null;
@@ -589,6 +591,8 @@ export class CaribanaStreet implements SceneStreet {
       this.spot.set(x, y + bounce, -metres);
       this.matrix.compose(this.spot, this.turn, this.size);
       const body = d.pose + (d.male ? POSES.length : 0);
+      this.armbands[body]?.setMatrixAt(posed[body]!, this.matrix);
+      this.cuffs[body]?.setMatrixAt(posed[body]!, this.matrix);
       this.bodies[body]!.setMatrixAt(posed[body]!++, this.matrix);
       if (d.male) this.trunks?.setMatrixAt(men++, this.matrix);
       else costumes.setMatrixAt(women++, this.matrix);
@@ -635,6 +639,11 @@ export class CaribanaStreet implements SceneStreet {
     this.bodies.forEach((mesh, p) => {
       mesh.count = posed[p]!;
       mesh.instanceMatrix.needsUpdate = true;
+      for (const arm of [this.armbands[p], this.cuffs[p]]) {
+        if (!arm) continue;
+        arm.count = posed[p]!;
+        arm.instanceMatrix.needsUpdate = true;
+      }
     });
     this.backpieces.forEach((mesh, k) => {
       mesh.count = backed[k]!;
@@ -1034,6 +1043,29 @@ export class CaribanaStreet implements SceneStreet {
         }
         mesh.count = slot;
         this.bodies.push(mesh);
+      });
+    }
+    // Sequinned armbands round the upper arms in the section's colour, and gold cuffs at the
+    // wrists, built for each pose so they sit on its arms.
+    const bands = this.material({
+      map: this.repeat(sequinTexture(), 0.1, 0.1),
+      roughness: 0.28,
+      metalness: 0.55,
+    });
+    const gold = this.material({ color: 0xe8b830, roughness: 0.25, metalness: 0.85 });
+    for (const male of [false, true]) {
+      POSES.forEach((pose, p) => {
+        const { band, cuff } = armPieces(pose, male);
+        this.disposables.push(band, cuff);
+        const armband = this.instanced(band, bands, n);
+        let slot = 0;
+        for (const d of this.dancers) {
+          if (d.pose === p && d.male === male) {
+            armband.setColorAt(slot++, c.set(COSTUMES[d.costume]!.suit));
+          }
+        }
+        this.armbands.push(armband);
+        this.cuffs.push(this.instanced(cuff, gold, n));
       });
     }
     const costume = masCostume(false);
@@ -3584,6 +3616,40 @@ function masCostume(male: boolean): BufferGeometry {
   const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
   parts.forEach((p) => p.dispose());
   return merged;
+}
+
+/**
+ * The arm pieces for a pose: a sequinned band round each upper arm and a gold cuff round each
+ * wrist, set square to the arm where the body (`masBody`) puts it.
+ */
+function armPieces(
+  pose: readonly (readonly number[])[],
+  male: boolean,
+): { band: BufferGeometry; cuff: BufferGeometry } {
+  const bands: BufferGeometry[] = [];
+  const cuffs: BufferGeometry[] = [];
+  const z = new Vector3(0, 0, 1);
+  const ring = (a: Vector3, b: Vector3, at: number, radius: number, tube: number, wide: number) => {
+    const torus = new TorusGeometry(radius, tube, 6, 14);
+    torus.scale(1, 1, wide);
+    torus.applyQuaternion(new Quaternion().setFromUnitVectors(z, b.clone().sub(a).normalize()));
+    const spot = a.clone().lerp(b, at);
+    torus.translate(spot.x, spot.y, spot.z);
+    return torus.toNonIndexed();
+  };
+  const arm = male ? 1.2 : 1;
+  for (const side of [-1, 1]) {
+    const shoulder = new Vector3(side * (male ? 0.2 : 0.17), 1.38, 0);
+    const [ex, ey, ez, hx, hy, hz] = pose[side < 0 ? 0 : 1]!;
+    const elbow = new Vector3(ex! * (male ? 1.08 : 1), ey!, ez!);
+    const hand = new Vector3(hx! * (male ? 1.06 : 1), hy!, hz!);
+    bands.push(ring(shoulder, elbow, 0.5, 0.046 * arm, 0.016, 2.2));
+    cuffs.push(ring(elbow, hand, 0.86, 0.036 * arm, 0.012, 2.6));
+  }
+  const band = mergeGeometries(bands)!;
+  const cuff = mergeGeometries(cuffs)!;
+  [...bands, ...cuffs].forEach((g) => g.dispose());
+  return { band, cuff };
 }
 
 /** The gold trims: a beaded cuff at the top of each boot, standing proud of the shaft. */
