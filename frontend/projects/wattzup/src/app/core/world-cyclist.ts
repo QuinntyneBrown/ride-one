@@ -1,6 +1,7 @@
 // A cyclist on a road bike, seen from the chase camera (L2-110): the rider's bike and the
 // simulated pacers are drawn from one kit. The bike points along -z; its rear axle is at +z.
 import {
+  CanvasTexture,
   CapsuleGeometry,
   CircleGeometry,
   Color,
@@ -12,6 +13,7 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   SphereGeometry,
+  SRGBColorSpace,
   TorusGeometry,
   Vector3,
 } from 'three/webgpu';
@@ -25,7 +27,7 @@ const SEAT = new Vector3(0, 0.86, 0.24);
 const HEAD_TOP = new Vector3(0, 0.9, -0.36);
 const HEAD_BOTTOM = new Vector3(0, 0.76, -0.4);
 const HIP = new Vector3(0, 0.96, 0.22);
-const SHOULDER = new Vector3(0, 1.32, -0.2);
+const SHOULDER = new Vector3(0, 1.27, -0.27);
 const HANDS = new Vector3(0, 0.93, -0.5);
 const THIGH = 0.44;
 const SHIN = 0.44;
@@ -44,8 +46,8 @@ export class CyclistKit {
   private readonly tyre = new TorusGeometry(WHEEL - 0.012, 0.016, 8, 40);
   private readonly rim = new TorusGeometry(WHEEL - 0.04, 0.012, 6, 40);
   private readonly disc = new CircleGeometry(WHEEL - 0.04, 32);
-  private readonly head = new SphereGeometry(0.1, 16, 12);
-  private readonly helmet = new SphereGeometry(0.125, 16, 10, 0, Math.PI * 2, 0, Math.PI / 1.9);
+  private readonly head = new SphereGeometry(0.09, 16, 12);
+  private readonly helmet = new SphereGeometry(0.13, 18, 10, 0, Math.PI * 2, 0, Math.PI / 1.65);
   private readonly torso = new CapsuleGeometry(0.15, 0.3, 6, 12);
   private readonly limbs = new Map<number, CapsuleGeometry>();
   readonly rubber = new MeshStandardMaterial({ color: 0x18191c, roughness: 0.85 });
@@ -61,10 +63,13 @@ export class CyclistKit {
     side: DoubleSide,
   });
 
+  /** The jersey's cut, tinted by each rider's colour: dark side panels and a pale hem band. */
+  private readonly kitTexture = jerseyTexture();
+
   constructor(private readonly frame: Material) {}
 
   make(jersey: Color): Cyclist {
-    const top = new MeshStandardMaterial({ color: jersey, roughness: 0.65 });
+    const top = new MeshStandardMaterial({ color: jersey, roughness: 0.65, map: this.kitTexture });
     return new Cyclist(this, this.frame, top);
   }
 
@@ -105,6 +110,7 @@ export class CyclistKit {
       d.dispose();
     this.torso.dispose();
     for (const g of this.limbs.values()) g.dispose();
+    this.kitTexture.dispose();
     for (const m of [this.rubber, this.metal, this.shorts, this.skin, this.shoe, this.spokes]) {
       m.dispose();
     }
@@ -184,26 +190,25 @@ export class Cyclist {
     torso.scale.set(1.15, 1, 0.85);
     torso.castShadow = true;
     this.group.add(torso);
-    const seatPad = new Mesh(kit.limb(0.13, 0.08), kit.shorts);
-    seatPad.position.copy(HIP).add(new Vector3(0, 0.02, 0.02));
+    const seatPad = new Mesh(kit.limb(0.1, 0.1), kit.shorts);
+    seatPad.position.copy(HIP).add(new Vector3(0, 0.02, 0.04));
     seatPad.rotation.z = Math.PI / 2;
-    seatPad.scale.set(1, 1.2, 1);
+    seatPad.scale.set(1, 1, 0.9);
     this.group.add(seatPad);
     const head = new Mesh(parts.head, kit.skin);
     const neck = SHOULDER.clone().add(new Vector3(0, 0.14, -0.1));
     head.position.copy(neck);
     const helmet = new Mesh(parts.helmet, jersey);
-    helmet.position.copy(neck).add(new Vector3(0, 0.025, 0.01));
-    helmet.scale.set(1, 0.9, 1.25);
-    helmet.rotation.x = -0.35;
+    helmet.position.copy(neck).add(new Vector3(0, 0.01, 0.015));
+    helmet.scale.set(1, 0.85, 1.3);
+    helmet.rotation.x = -0.25;
     head.castShadow = helmet.castShadow = true;
     this.group.add(head, helmet);
     for (const side of [-1, 1]) {
       const shoulder = SHOULDER.clone().setX(side * 0.19);
-      const hand = HANDS.clone()
-        .setX(side * 0.2)
-        .setY(HEAD_TOP.y + 0.02);
-      const elbow = bend(shoulder, hand, UPPER_ARM, FOREARM, new Vector3(side * 0.6, 0.2, 1));
+      // Hands on the hoods, elbows bent out and down.
+      const hand = new Vector3(side * 0.21, HEAD_TOP.y + 0.04, HANDS.z - 0.06);
+      const elbow = bend(shoulder, hand, UPPER_ARM, FOREARM, new Vector3(side * 0.7, -0.45, 0.25));
       const upper = this.limbMesh(0.05, UPPER_ARM, jersey);
       const fore = this.limbMesh(0.04, FOREARM, kit.skin);
       place(upper, shoulder, elbow);
@@ -255,6 +260,26 @@ export class Cyclist {
     mesh.castShadow = true;
     return { mesh, length };
   }
+}
+
+function jerseyTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 128, 64);
+    ctx.fillStyle = '#3a3d44';
+    ctx.fillRect(56, 0, 16, 64);
+    ctx.fillRect(0, 0, 8, 64);
+    ctx.fillRect(120, 0, 8, 64);
+    ctx.fillStyle = '#d9dade';
+    ctx.fillRect(0, 50, 128, 6);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
 
 /** Puts a limb (or a unit tube, `stretch`) between two points. */

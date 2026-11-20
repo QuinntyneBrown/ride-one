@@ -79,6 +79,12 @@ interface Look {
   /** The physical sky's haze and its blue (technique 11). */
   readonly turbidity?: number;
   readonly rayleigh?: number;
+  /** Where the sun stands, in degrees from straight ahead; negative is left. */
+  readonly azimuth?: number;
+  /** The sun's strength and colour, and the sky's fill, where a scene sets its own. */
+  readonly light?: { readonly sun: number; readonly fill: number; readonly colour: number };
+  /** Where the fog starts and where it hides everything, in metres. */
+  readonly fogRange?: readonly [number, number];
 }
 
 /** Until each scene's own look lands: sky, fog, ground, road, sun, wet and haze. */
@@ -103,14 +109,17 @@ const LOOKS: Record<WorldId, Look> = {
   },
   oldtown: {
     sky: 0xa9c7e8,
-    fog: 0xd8dfe6,
+    fog: 0xdcd8cf,
     ground: 0x6b6256,
     road: 0xd9d2c8,
-    sun: 35,
+    sun: 55,
     wet: false,
     haze: false,
     turbidity: 1.6,
     rayleigh: 2.6,
+    azimuth: -140,
+    light: { sun: 3.2, fill: 1.1, colour: 0xffeccc },
+    fogRange: [30, 430],
   },
   prairie: {
     sky: 0xf0c27b,
@@ -258,7 +267,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
       { t: frame.elapsed, s: frame.s, speed, grade: this.grade },
       AHEAD,
     );
-    this.layRoad(ahead);
+    this.layRoad(ahead, frame.s);
     const texture = this.roadMaterial.map;
     if (texture) texture.offset.y = (frame.s / DASH) % 1;
     this.placeArch(world, frame, speed, ahead);
@@ -408,26 +417,39 @@ export class ThreeWorldRenderer implements WorldRenderer {
 
   private sunDirection(): Vector3 {
     const elevation = (this.look.sun * Math.PI) / 180;
-    return new Vector3(-0.5, Math.sin(elevation), -Math.cos(elevation)).normalize();
+    // Azimuth 0 is straight down the road ahead; positive turns the sun to the rider's right.
+    const azimuth = ((this.look.azimuth ?? -27) * Math.PI) / 180;
+    const level = Math.cos(elevation);
+    return new Vector3(
+      Math.sin(azimuth) * level,
+      Math.sin(elevation),
+      -Math.cos(azimuth) * level,
+    ).normalize();
   }
 
   private buildScene(world: World, canvas: HTMLCanvasElement): void {
     const look = this.look;
-    this.scene.fog = new Fog(look.fog, 60, 650);
-    this.scene.add(new HemisphereLight(look.sky, look.ground, look.sun < 0 ? 0.5 : 1.4));
+    this.scene.fog = new Fog(look.fog, look.fogRange?.[0] ?? 60, look.fogRange?.[1] ?? 650);
+    this.scene.add(
+      new HemisphereLight(look.sky, look.ground, look.sun < 0 ? 0.5 : (look.light?.fill ?? 1.4)),
+    );
 
     const sunDir = this.sunDirection();
-    this.sun.intensity = look.sun < 0 ? 0.15 : 2.2;
-    this.sun.position.copy(sunDir).multiplyScalar(60);
+    this.sun.intensity = look.sun < 0 ? 0.15 : (look.light?.sun ?? 2.2);
+    this.sun.color.set(look.light?.colour ?? 0xffffff);
+    // The shadow box reaches further down a street of houses than over open country.
+    const reach = world.id === 'oldtown' ? 45 : 25;
+    this.sun.target.position.set(0, 0, 25 - reach);
+    this.sun.position.copy(sunDir).multiplyScalar(80).add(this.sun.target.position);
     this.sun.shadow.mapSize.set(2048, 2048);
     // A tight box around the rider: the shadow stays sharp and steady as the road moves.
     const cam = this.sun.shadow.camera;
-    cam.left = -25;
-    cam.right = 25;
-    cam.top = 25;
-    cam.bottom = -25;
+    cam.left = -reach;
+    cam.right = reach;
+    cam.top = reach;
+    cam.bottom = -reach;
     cam.near = 1;
-    cam.far = 200;
+    cam.far = 240;
     this.sun.shadow.bias = -0.0005;
     this.scene.add(this.sun, this.sun.target);
 
@@ -552,7 +574,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
       emissiveIntensity: this.look.sun < 0 ? 2.5 : 0.4,
       roughness: 0.4,
     });
-    for (let i = 0; i < POSTS; i++) {
+    // Old Town's kerbs have iron bollards (world-oldtown.ts) in place of verge posts.
+    const posts = this.world?.id === 'oldtown' ? 0 : POSTS;
+    for (let i = 0; i < posts; i++) {
       const mesh = new Mesh(post, reflector);
       mesh.visible = false;
       this.posts.push(mesh);
@@ -612,7 +636,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   }
 
   /** Lays the road and the ground beside it over the points ahead, and a short run behind. */
-  private layRoad(ahead: RoadPoint[]): void {
+  private layRoad(ahead: RoadPoint[], s: number): void {
     const first = ahead[0]!;
     const behind: RoadPoint[] = [];
     for (let i = BEHIND; i >= 1; i--) {
@@ -621,7 +645,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     }
     const points = [...behind, ...ahead];
     fillStrip(this.road, points, ROAD_HALF, 0);
-    this.street?.lay(points);
+    this.street?.lay(points, s);
     fillStrip(this.ground, points, GROUND_HALF, -0.05);
   }
 }
