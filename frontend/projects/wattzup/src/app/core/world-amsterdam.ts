@@ -992,9 +992,13 @@ export class AmsterdamStreet implements SceneStreet {
     );
     const glass = this.material({ color: 0x1a2028, metalness: 0.6, roughness: 0.1 });
     const rubber = this.material({ color: 0x141414, roughness: 0.9 });
+    // Dutch number plates are yellow; the lamps are glass over chrome.
+    const yellow = this.material({ color: 0xf2c418, roughness: 0.4 });
+    const lamp = this.material({ color: 0xf4f6f8, metalness: 0.6, roughness: 0.15 });
+    const red = this.material({ color: 0xa8141a, roughness: 0.25 });
     const kinds = (['hatch', 'city', 'van'] as const).map((kind) => {
       const car = carGeometry(kind);
-      this.disposables.push(car.body, car.glass, car.wheels);
+      this.disposables.push(car.body, car.glass, car.wheels, car.plates, car.heads, car.tails);
       return car;
     });
     // Along the near kerb, and along the far quay's water's edge, facing the other way.
@@ -1025,6 +1029,9 @@ export class AmsterdamStreet implements SceneStreet {
           new Mesh(car.body, paint),
           new Mesh(car.glass, glass),
           new Mesh(car.wheels, rubber),
+          new Mesh(car.plates, yellow),
+          new Mesh(car.heads, lamp),
+          new Mesh(car.tails, red),
         );
         parked.children.forEach((m) => (m.castShadow = true));
         parked.children.forEach((m) => (m.position.y = KERB));
@@ -2355,6 +2362,9 @@ function carGeometry(kind: 'hatch' | 'city' | 'van'): {
   body: BufferGeometry;
   glass: BufferGeometry;
   wheels: BufferGeometry;
+  plates: BufferGeometry;
+  heads: BufferGeometry;
+  tails: BufferGeometry;
   length: number;
 } {
   const profiles = {
@@ -2462,7 +2472,38 @@ function carGeometry(kind: 'hatch' | 'city' | 'van'): {
   }
   const wheels = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
-  return { body, glass, wheels, length };
+  const pair = (make: (z: number, side: number) => BufferGeometry | null) => {
+    const pieces: BufferGeometry[] = [];
+    for (const z of [-1, 1]) {
+      for (const side of [-1, 1]) {
+        const piece = make(z, side);
+        if (piece) pieces.push(piece);
+      }
+    }
+    const merged = mergeGeometries(pieces)!;
+    pieces.forEach((p) => p.dispose());
+    return merged;
+  };
+  const half = length / 2 + 0.07;
+  const plates = pair((z, side) => {
+    if (side > 0) return null;
+    const plate = new BoxGeometry(0.52, 0.11, 0.02);
+    plate.translate(0, z < 0 ? 0.42 : 0.55, z * half);
+    return plate;
+  });
+  const heads = pair((z, side) => {
+    if (z > 0) return null;
+    const head = new BoxGeometry(0.26, 0.12, 0.03);
+    head.translate(side * (profiles.width / 2 - 0.2), kind === 'van' ? 0.8 : 0.7, -half);
+    return head;
+  });
+  const tails = pair((z, side) => {
+    if (z < 0) return null;
+    const tail = new BoxGeometry(0.16, kind === 'van' ? 0.4 : 0.18, 0.03);
+    tail.translate(side * (profiles.width / 2 - 0.1), kind === 'van' ? 1.0 : 0.82, half);
+    return tail;
+  });
+  return { body, glass, wheels, plates, heads, tails, length };
 }
 
 /**
