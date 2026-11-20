@@ -141,7 +141,8 @@ export interface components {
         | 'tempelhof'
         | 'paine'
         | 'ibiza'
-        | 'skye';
+        | 'skye'
+        | 'toronto';
     };
     ClassShelfResponse: {
       id: string;
