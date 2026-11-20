@@ -10,6 +10,7 @@ import {
   EquirectangularReflectionMapping,
   BufferGeometry,
   CanvasTexture,
+  CircleGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
@@ -3821,7 +3822,13 @@ export class DocklandsStreet {
       color: new Color('#fff1d6').multiplyScalar(1.4),
       toneMapped: false,
     });
-    const seat = new CylinderGeometry(0.17, 0.15, 0.42, 10);
+    // A street-food stool: a round moulded seat with a grip hole, four splayed legs and a brace.
+    const seat = new CylinderGeometry(0.19, 0.18, 0.04, 16);
+    const stoolLeg = new CylinderGeometry(0.022, 0.022, 1, 6);
+    const brace = new TorusGeometry(0.15, 0.012, 4, 20).rotateX(Math.PI / 2);
+    const grip = new CircleGeometry(0.04, 10).rotateX(-Math.PI / 2);
+    const gripShadow = new MeshBasicMaterial({ color: 0x0a0a10 });
+    this.disposables.push(stoolLeg, brace, grip, gripShadow);
     const top = new CylinderGeometry(0.34, 0.3, 0.05, 14);
     const leg = new CylinderGeometry(0.05, 0.08, 0.5, 6);
     const head = new SphereGeometry(0.12, 10, 8);
@@ -3902,8 +3909,25 @@ export class DocklandsStreet {
       dish.position.set(tx, KERB + 0.6, SEAT_Z + 0.12);
       group.add(table, stem, dish);
       for (const dz of [-0.62, 0.62]) {
-        const stool = new Mesh(seat, plastics[(i + 1) % plastics.length]!);
-        stool.position.set(tx, KERB + 0.21, SEAT_Z + dz);
+        const tint = plastics[(i + 1) % plastics.length]!;
+        const stool = new Group();
+        const top = new Mesh(seat, tint);
+        top.position.y = 0.4;
+        const hole = new Mesh(grip, gripShadow);
+        hole.position.y = 0.421;
+        const ring = new Mesh(brace, tint);
+        ring.position.y = 0.14;
+        stool.add(top, hole, ring);
+        for (const [lx, lz] of [
+          [-1, -1],
+          [-1, 1],
+          [1, -1],
+          [1, 1],
+        ] as const) {
+          const foot = new Vector3(lx * 0.17, 0, lz * 0.17);
+          stool.add(span(stoolLeg, tint, new Vector3(lx * 0.11, 0.39, lz * 0.11), foot));
+        }
+        stool.position.set(tx, KERB, SEAT_Z + dz);
         group.add(stool);
       }
       // The diner sits hunched over the bowl, chopsticks raised from it to their mouth.
