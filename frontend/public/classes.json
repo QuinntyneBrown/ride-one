@@ -10504,6 +10504,7 @@
     },
     {
       "id": "maximum-intensity-hill-climb-efforts",
+      "world": "haleakala",
       "title": "Maximum Intensity Hill Climb Efforts",
       "channel": "GCN Training",
       "focus": "Climbing",
