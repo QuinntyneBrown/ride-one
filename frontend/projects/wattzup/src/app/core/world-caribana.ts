@@ -1091,7 +1091,7 @@ export class CaribanaStreet implements SceneStreet {
       this.dancers[i] = { ...d, pose, skin, frontline, male, build };
     });
     const n = this.dancers.length;
-    const skin = this.material({ roughness: 0.55 });
+    const skin = this.material({ roughness: 0.5, vertexColors: true });
     const c = new Color();
     for (const male of [false, true]) {
       POSES.forEach((pose, p) => {
@@ -4033,7 +4033,32 @@ function masBody(pose: readonly (readonly number[])[], male = false): BufferGeom
   parts.push(ellipsoid(0.105, 0.9, 1.1, 1, 0, 1.6, -0.01)); // head
   const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
   parts.forEach((p) => p.dispose());
+  bakeOcclusion(merged);
   return merged;
+}
+
+/**
+ * Bakes soft ambient occlusion into a figure's vertex colours, tinting its skin: undersides
+ * that face the ground darker, the creases where limbs meet the trunk and the space between
+ * the legs darker still, and the tops of the shoulders and head full bright.
+ */
+function bakeOcclusion(body: BufferGeometry): void {
+  const position = body.getAttribute('position') as BufferAttribute;
+  const normal = body.getAttribute('normal') as BufferAttribute;
+  const shade = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const y = position.getY(i);
+    const up = normal.getY(i) * 0.5 + 0.5;
+    let ao = 0.72 + 0.28 * up;
+    // Between the thighs and under the arms, where little light reaches.
+    if (y < 0.92 && y > 0.45 && Math.abs(x) < 0.06) ao *= 0.78;
+    if (y > 1.2 && y < 1.36 && Math.abs(x) > 0.15 && Math.abs(x) < 0.22) ao *= 0.85;
+    // Under the chin and the bust.
+    if (y > 1.46 && y < 1.52) ao *= 0.88;
+    shade.set([ao, ao * 0.97, ao * 0.95], i * 3);
+  }
+  body.setAttribute('color', new BufferAttribute(shade, 3));
 }
 
 /**
