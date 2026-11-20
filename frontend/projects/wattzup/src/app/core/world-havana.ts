@@ -56,6 +56,8 @@ const PORTAL = 4.6;
 const ARCADE = 3.6;
 /** How far the balconies stand out from the upper floors. */
 const BALCONY = 0.8;
+/** The width of a side street, from façade to façade. */
+const CROSS = 12;
 /** The surges: each breaks over the wall for SURGE seconds of every CYCLE. */
 const CYCLE = 8;
 const SURGE = 3.2;
@@ -359,6 +361,9 @@ export class HavanaStreet implements SceneStreet {
     const arcade = new PlaneGeometry(1, 1);
     arcade.rotateY(-Math.PI / 2);
     this.disposables.push(arcade);
+    const streets = seeded(1049);
+    let inBlock = 0;
+    let block = 4;
     for (let offset = 0; offset < LOOP;) {
       const width = 12 + random() * 14;
       const floors = 2 + Math.floor(random() * 2);
@@ -476,7 +481,75 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(building);
       this.props.push({ mesh: building, offset, x: roadHalf + 4 });
       offset += width;
+      // Every few buildings a side street opens off the Malecón into the city.
+      if (++inBlock >= block && offset < LOOP - CROSS - 12) {
+        this.addCrossStreet(offset, roadHalf + 4, fronts, pastels, streets);
+        offset += CROSS;
+        inBlock = 0;
+        block = 3 + Math.floor(streets() * 3);
+      }
     }
+  }
+
+  /**
+   * A side street opening off the Malecón: its asphalt and narrow pavements running inland
+   * between the flanks of the corner buildings, older and plainer houses lining it further in,
+   * and a façade closing the view at its end.
+   */
+  private addCrossStreet(
+    offset: number,
+    x: number,
+    fronts: Texture,
+    pastels: readonly number[],
+    random: () => number,
+  ): void {
+    const street = new Group();
+    const asphalt = this.material({ color: 0x55565c, roughness: 0.9 });
+    const kerb = this.material({ map: this.repeat(pavingTexture(), 2, 2), roughness: 0.9 });
+    const road = new Mesh(this.unit, asphalt);
+    road.scale.set(80, 0.2, CROSS);
+    road.position.set(40, -0.1, -CROSS / 2);
+    road.receiveShadow = true;
+    street.add(road);
+    for (const z of [-0.8, -CROSS + 0.8]) {
+      const side = new Mesh(this.unit, kerb);
+      side.scale.set(80, 0.3, 1.6);
+      side.position.set(40, 0, z);
+      side.receiveShadow = true;
+      street.add(side);
+    }
+    const house = (x0: number, x1: number, z0: number, z1: number) => {
+      const floors = 2 + Math.floor(random() * 3);
+      const height = floors * 4.2;
+      const map = fronts.clone();
+      map.repeat.set(Math.abs(x1 - x0) / 8, floors / 4);
+      map.offset.y = 1 - floors / 4;
+      map.needsUpdate = true;
+      this.track(map);
+      const body = new Mesh(
+        this.unit,
+        this.material({
+          map,
+          color: pastels[Math.floor(random() * pastels.length)]!,
+          roughness: 0.9,
+        }),
+      );
+      body.scale.set(Math.abs(x1 - x0), height, Math.abs(z1 - z0));
+      body.position.set((x0 + x1) / 2, height / 2, (z0 + z1) / 2);
+      body.castShadow = true;
+      body.receiveShadow = true;
+      street.add(body);
+    };
+    // The houses lining the street beyond the corner buildings, then the one closing it.
+    for (let x0 = 14; x0 < 60;) {
+      const length = 8 + random() * 10;
+      house(x0, x0 + length, 12, 0);
+      house(x0, x0 + length, -CROSS, -CROSS - 12);
+      x0 += length;
+    }
+    house(62, 76, 14, -CROSS - 14);
+    this.group.add(street);
+    this.props.push({ mesh: street, offset, x });
   }
 
   /**
