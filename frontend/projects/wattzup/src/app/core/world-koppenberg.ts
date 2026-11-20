@@ -40,6 +40,7 @@ import {
   scaleFaceUv,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
   type Wardrobe,
 } from './world-kit';
@@ -129,7 +130,14 @@ export class KoppenbergStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
   private readonly crowd: Crowd;
-  private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
+  /** Props along the road; one that `lies` on it, as paint does, takes its slope. */
+  private readonly props: {
+    mesh: Group;
+    offset: number;
+    every: number;
+    x: number;
+    lies?: boolean;
+  }[] = [];
   private readonly grazing: { mesh: Group; spot: Spot; heading: number }[] = [];
   private readonly hill = new Group();
   private readonly church = new Group();
@@ -204,17 +212,17 @@ export class KoppenbergStreet implements SceneStreet {
   /** Moves the street with the rider: `heightAt` gives the road's height `metres` ahead. */
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
-    const ground = (metres: number) => heightAt(Math.max(metres, 0));
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
-      prop.mesh.position.set(prop.x, ground(metres) + bankAt(prop.x), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + bankAt(prop.x), -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     // Cows graze slowly round their spot, heads down.
     this.grazing.forEach((cow, i) => {
       const metres = along(cow.spot.offset, LOOP);
       const drift = Math.sin(this.time * 0.05 + i) * 1.5;
-      cow.mesh.position.set(cow.spot.x + drift, ground(metres) + bankAt(cow.spot.x), -metres);
+      cow.mesh.position.set(cow.spot.x + drift, heightAt(metres) + bankAt(cow.spot.x), -metres);
       cow.mesh.rotation.y = cow.heading + Math.sin(this.time * 0.03 + i) * 0.3;
     });
     this.hill.position.set(0, heightAt(HILL_AHEAD), -HILL_AHEAD);
@@ -509,7 +517,13 @@ export class KoppenbergStreet implements SceneStreet {
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 22 + i * ROAD_PAINT_EVERY, every: LOOP, x });
+      this.props.push({
+        mesh: holder,
+        offset: 22 + i * ROAD_PAINT_EVERY,
+        every: LOOP,
+        x,
+        lies: true,
+      });
     });
   }
 
