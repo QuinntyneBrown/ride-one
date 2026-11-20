@@ -2504,6 +2504,7 @@
     },
     {
       "id": "the-pyramid",
+      "world": "giza",
       "title": "The Pyramid",
       "channel": "GCN Training",
       "focus": "Pyramid",

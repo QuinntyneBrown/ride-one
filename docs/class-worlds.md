@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk and Amsterdam Canals have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals and Giza Plateau have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 35 | Beginner Training Session | Amsterdam Canals | 74% | Flat canal-side streets, humpback bridges and houseboats among friendly commuters. |
 | 36 | Sprint Sprint Sprint | San Fermín, Pamplona (concept) |  | Red scarves and white shirts fill old Pamplona; sprint the bull-run streets at festival dawn. |
 | 37 | Team Time Trial | Bonneville Salt Flats (concept) |  | An endless white plain; ride a tight paceline toward mirage mountains. |
-| 38 | The Pyramid | Giza Plateau (concept) |  | Desert road around the pyramids at sunrise; efforts build and fall like the stones. |
+| 38 | The Pyramid | Giza Plateau | 72% | Desert road around the pyramids at sunrise; efforts build and fall like the stones. |
 | 39 | Hold Your Intensity | Great Ocean Road (concept) |  | Australian sea cliffs and the Twelve Apostles; hold steady through winding, spray-dashed bends. |
 | 40 | Give Me One Minute | Times Square New Year's Eve (concept) |  | Confetti and countdown screens; every one-minute effort counts down to the ball drop. |
 | 41 | Drag Race | Daytona Beach Sand (concept) |  | Hard-packed sand where stock cars once raced; drag-race along the tide line. |
