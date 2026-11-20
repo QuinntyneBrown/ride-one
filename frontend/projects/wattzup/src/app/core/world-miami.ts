@@ -2009,6 +2009,20 @@ export class MiamiStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: -roadHalf - 7.2 - random() * 1.5 });
     }
+    // Coconut palms on the dune, leaning out over the sand towards the sea as beach palms do.
+    const palms = new Palms(this.disposables, this.track);
+    for (let offset = 8; offset < LOOP; offset += 22 + random() * 18) {
+      const palm = palms.make(random);
+      palm.scale.multiplyScalar(1.25);
+      palm.rotation.z = 0.18 + random() * 0.2;
+      const holder = new Group();
+      holder.add(palm);
+      holder.position.y = -0.45;
+      const outer = new Group();
+      outer.add(holder);
+      this.group.add(outer);
+      this.props.push({ mesh: outer, offset, x: -roadHalf - 9 - random() * 3 });
+    }
     for (let row = 0; row < 4; row++) {
       const stand = new Group();
       for (let i = 0; i < 6; i++) {
