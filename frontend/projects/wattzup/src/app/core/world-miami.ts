@@ -16,6 +16,8 @@ import {
   type CanvasTexture,
   CylinderGeometry,
   Group,
+  InstancedMesh,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -89,6 +91,9 @@ export class MiamiStreet implements SceneStreet {
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
+  private readonly drops: { x: number; y: number; z: number; speed: number }[] = [];
+  private rain: InstancedMesh | null = null;
+  private readonly drop = new Matrix4();
   /** The signals' red, amber and green lamps. */
   private readonly lights: MeshStandardMaterial[] = [];
   private readonly horizon = new Group();
@@ -122,6 +127,7 @@ export class MiamiStreet implements SceneStreet {
     this.addCrossings(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
+    this.addDrizzle();
   }
 
   setTime(seconds: number): void {
@@ -135,6 +141,17 @@ export class MiamiStreet implements SceneStreet {
     const cycle = seconds % 30;
     const lit = cycle < 14 ? 2 : cycle < 17 ? 1 : 0;
     this.lights.forEach((m, i) => (m.emissiveIntensity = i === lit ? 3.5 : 0.08));
+    // The drizzle falls and slants, each drop wrapping back to the top of its 14 m column.
+    const rain = this.rain;
+    if (rain) {
+      this.drops.forEach((d, i) => {
+        const y = (((d.y - seconds * d.speed) % 14) + 14) % 14;
+        this.drop.makeRotationZ(0.12);
+        this.drop.setPosition(d.x + y * 0.12, y, d.z);
+        rain.setMatrixAt(i, this.drop);
+      });
+      rain.instanceMatrix.needsUpdate = true;
+    }
     // The aircraft beacons on the spires blink, a second apart.
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
@@ -1170,6 +1187,35 @@ export class MiamiStreet implements SceneStreet {
       NIGHT_WEAR,
       8143,
     );
+  }
+
+  /**
+   * The tail of the shower: a light drizzle of streaks falling round the rider, slanting a
+   * little in the sea breeze and catching the neon, held still for reduced motion.
+   */
+  private addDrizzle(): void {
+    const random = seeded(8281);
+    const streak = new PlaneGeometry(0.018, 0.55);
+    const material = new MeshBasicMaterial({
+      color: 0xc8d8ff,
+      transparent: true,
+      opacity: 0.32,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    const count = 700;
+    const rain = new InstancedMesh(streak, material, count);
+    rain.frustumCulled = false;
+    this.disposables.push(streak, material, rain);
+    for (let i = 0; i < count; i++)
+      this.drops.push({
+        x: (random() - 0.5) * 34,
+        y: random() * 14,
+        z: 6 - random() * 50,
+        speed: 7 + random() * 3,
+      });
+    this.rain = rain;
+    this.horizon.add(rain);
   }
 
   /** Across the bay, the towers lit floor by floor, the moon path and the night sea. */
