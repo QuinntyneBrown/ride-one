@@ -104,6 +104,10 @@ const SCREENS: readonly string[] = [
   'RAMEN 24H  ·  NOODLE BAR  ·  ',
   'DOCKLANDS  ·  RIDE THE NIGHT  ·  ',
 ];
+/** Neon gates over the road, at these offsets round the loop. */
+const GATES: readonly number[] = [70, 230, 380, 540];
+const GATE_HEIGHT = 6.5;
+const GATE_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#9b6bff', '#ffb347'];
 /** Night-market stalls on the quay promenade, at these offsets round the loop. */
 const STALLS: readonly number[] = [26, 33, 40, 140, 147, 290, 297, 304, 460, 467, 580];
 const STALL_X = -10;
@@ -198,8 +202,11 @@ const LAMP_FIRST = 8;
 const LAMP_OUT = 5;
 const LAMP_HEIGHT = 6;
 /** The halo round a lamp's globe, and round a lantern's bulb, this wide. */
-const LAMP_HALO = 4.6;
+const LAMP_HALO = 2.6;
 const LANTERN_HALO = 0.9;
+/** Lamp halos show only beyond this many metres ahead, and lantern halos beyond the next. */
+const LAMP_HALO_NEAR = 6;
+const LANTERN_HALO_NEAR = 8;
 const LAMPS = 10;
 /** The towers' street floor: glazing this high above the pavement, in bays this wide. */
 const LOBBY = 4.6;
@@ -257,8 +264,9 @@ export class DocklandsStreet {
     puffs: { mesh: Mesh; phase: number }[];
   }[] = [];
   private readonly train = new Group();
-  private readonly lanterns: { group: Group; offset: number }[] = [];
+  private readonly lanterns: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
+  private readonly gates: { group: Group; offset: number }[] = [];
   private readonly walkers: { group: Group; offset: number }[] = [];
   private readonly craft: { group: Group; strobe: Mesh; lane: (typeof SKYLANES)[number] }[] = [];
   /** The people walking the pavement: each strolls its own way at its own pace. */
@@ -1032,6 +1040,7 @@ export class DocklandsStreet {
     this.addVents(roadHalf);
     this.addLanterns(roadHalf);
     this.addStalls();
+    this.addGates(roadHalf);
     this.addWalkers(roadHalf);
     this.addAirTraffic();
     this.addRain();
@@ -1256,6 +1265,7 @@ export class DocklandsStreet {
       bloom.position.y = LAMP_HEIGHT;
       bloom.scale.setScalar(LAMP_HALO);
       lamp.add(shaft, base, cup, light, bloom);
+      lamp.userData['bloom'] = bloom;
       // Lamps stand on the left at even places: their light reflects on the road inside them.
       const inward = i % 2 === 0 ? 1 : -1;
       this.streak(lamp, '#ffd9a0', inward * 1.6, 0, -0.5, 14, 2.2, 2.6);
@@ -1290,6 +1300,7 @@ export class DocklandsStreet {
     const sagAt = (x: number) => LANTERN_SAG * (1 - ((x - mid) / half) ** 2);
     LANTERNS.forEach((offset, n) => {
       const group = new Group();
+      const blooms: Sprite[] = [];
       const vertices: number[] = [];
       const steps = 24;
       for (let k = 0; k < steps; k++) {
@@ -1310,10 +1321,11 @@ export class DocklandsStreet {
         bloom.position.copy(mesh.position);
         bloom.scale.setScalar(LANTERN_HALO);
         group.add(mesh, bloom);
+        blooms.push(bloom);
       }
       group.position.y = LANTERN_HEIGHT;
       this.group.add(group);
-      this.lanterns.push({ group, offset });
+      this.lanterns.push({ group, offset, blooms });
     });
   }
 
@@ -1526,6 +1538,74 @@ export class DocklandsStreet {
       group.position.set(x, lane.y, lane.z);
       strobe.visible = (seconds + lane.phase * 3) % 1.4 < 0.12;
     }
+  }
+
+  /**
+   * Neon gates over the road, ridden under: two dark steel posts at the kerbs and a beam across,
+   * outlined in glowing tubes of the gate's colour, with a lit name plate in the middle. Their
+   * light falls on the wet road either side.
+   */
+  private addGates(roadHalf: number): void {
+    const steel = new MeshStandardMaterial({ color: 0x15161e, metalness: 0.7, roughness: 0.4 });
+    const unit = new BoxGeometry(1, 1, 1);
+    const tubes = GATE_COLOURS.map(
+      (hex) =>
+        new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(1.6), toneMapped: false }),
+    );
+    const plates = GATE_COLOURS.map((hex) => {
+      const texture = this.track(plateTexture('DOCKLANDS', hex));
+      return new MeshBasicMaterial({ map: texture, toneMapped: false });
+    });
+    this.disposables.push(steel, unit, ...tubes, ...plates);
+    const half = roadHalf + 0.9;
+    const box = (
+      material: Material,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z = 0,
+    ) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      return mesh;
+    };
+    GATES.forEach((offset, i) => {
+      const group = new Group();
+      const tube = tubes[i % tubes.length]!;
+      for (const side of [-1, 1]) {
+        group.add(box(steel, 0.6, GATE_HEIGHT, 0.6, side * half, GATE_HEIGHT / 2));
+        // A tube up the inner face of each post.
+        group.add(
+          box(tube, 0.1, GATE_HEIGHT - 0.4, 0.1, side * (half - 0.32), GATE_HEIGHT / 2, 0.2),
+        );
+        group.add(
+          box(tube, 0.1, GATE_HEIGHT - 0.4, 0.1, side * (half - 0.32), GATE_HEIGHT / 2, -0.2),
+        );
+        this.streak(
+          group,
+          GATE_COLOURS[i % GATE_COLOURS.length]!,
+          side * (half - 1),
+          0.02,
+          0,
+          10,
+          1.4,
+          1.4,
+        );
+      }
+      group.add(box(steel, half * 2 + 0.6, 0.8, 0.6, 0, GATE_HEIGHT));
+      group.add(box(tube, half * 2 - 0.4, 0.1, 0.1, 0, GATE_HEIGHT - 0.42, 0.2));
+      group.add(box(tube, half * 2 - 0.4, 0.1, 0.1, 0, GATE_HEIGHT + 0.42, 0.2));
+      // The name plate, centred over the road and facing the riders.
+      const plate = new Mesh(new PlaneGeometry(5, 1.1), plates[i % plates.length]!);
+      this.disposables.push(plate.geometry);
+      plate.position.set(0, GATE_HEIGHT + 1.05, 0.05);
+      group.add(plate, box(steel, 5.3, 1.3, 0.3, 0, GATE_HEIGHT + 1.05, -0.12));
+      this.group.add(group);
+      this.gates.push({ group, offset });
+    });
   }
 
   private addVents(roadHalf: number): void {
@@ -2010,6 +2090,8 @@ export class DocklandsStreet {
       const metres = i * LAMP_EVERY - (s % LAMP_EVERY) + LAMP_FIRST;
       lamp.position.set(i % 2 === 0 ? -LAMP_OUT : LAMP_OUT, heightAt(metres), -metres);
       lamp.visible = !this.onBridge(Math.max(metres, 0));
+      // Close by, the globe is above the view and its halo would swell across the sky.
+      (lamp.userData['bloom'] as Sprite).visible = metres > LAMP_HALO_NEAR;
     });
     const rail = ((((SKYTRAIN - s) % LOOP) + LOOP) % LOOP) - BEHIND;
     this.skytrain.visible = !this.onBridge(Math.max(rail, 0));
@@ -2027,6 +2109,11 @@ export class DocklandsStreet {
       walker.group.visible = !this.onBridge(Math.max(metres, 0));
       walker.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
+    for (const gate of this.gates) {
+      const metres = ((((gate.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      gate.group.visible = !this.onBridge(Math.max(metres, 0));
+      gate.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
     for (const stall of this.stalls) {
       const metres = ((((stall.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       stall.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -2036,6 +2123,9 @@ export class DocklandsStreet {
       const metres = ((((lantern.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       lantern.group.visible = !this.onBridge(Math.max(metres, 0));
       lantern.group.position.set(0, heightAt(Math.max(metres, 0)) + LANTERN_HEIGHT, -metres);
+      // Overhead and close, a bulb's halo would swell to fill the sky: it shows only further off.
+      const far = metres > LANTERN_HALO_NEAR;
+      for (const bloom of lantern.blooms) bloom.visible = far;
     }
     for (const vent of this.vents) {
       const metres = ((((vent.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
@@ -2309,6 +2399,32 @@ function streakTexture(): CanvasTexture {
  * A blade sign at night: `word` in neon tube letters stacked top to bottom on a dark panel,
  * with the tube's glow around them and a thin neon border.
  */
+/** A gate's name plate: `word` in neon tube letters across a dark panel. */
+function plateTexture(word: string, colour: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 112;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#0b0c12';
+    ctx.fillRect(0, 0, 512, 112);
+    ctx.font = 'bold 72px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = colour;
+    ctx.shadowBlur = 14;
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = colour;
+    ctx.strokeText(word, 256, 60);
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = 0.85;
+    ctx.fillText(word, 256, 60);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 function bladeTexture(word: string, colour: string): CanvasTexture {
   const width = 96;
   const height = 512;
