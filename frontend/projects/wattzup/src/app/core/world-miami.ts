@@ -47,6 +47,15 @@ const SEA = 1.4;
 const BEACH = 26;
 /** The hotels stand back FRONT metres from the road's edge. */
 const FRONT = 9;
+/** Side streets cross the boulevard on the right at these offsets, each STREET metres wide. */
+const CROSSINGS = [118, 286] as const;
+const STREET = 12;
+
+/** Whether `offset` falls within a side street, give or take `margin` metres. */
+function inCrossing(offset: number, margin = 0): boolean {
+  const o = ((offset % LOOP) + LOOP) % LOOP;
+  return CROSSINGS.some((c) => Math.abs(o - c) < STREET / 2 + margin);
+}
 
 /** The neon colours, each a tube's colour and how hard it glows. */
 const NEON = [0xff3fb4, 0x2fe6ff, 0xb46bff, 0x5aff8a, 0xffd23f, 0xff6a3f] as const;
@@ -79,6 +88,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
+  /** The signals' red, amber and green lamps. */
+  private readonly lights: MeshStandardMaterial[] = [];
   private readonly horizon = new Group();
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
@@ -107,6 +118,7 @@ export class MiamiStreet implements SceneStreet {
     this.addLamps(roadHalf);
     this.addCars(roadHalf);
     this.addLifeguards(roadHalf);
+    this.addCrossings(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
   }
@@ -118,6 +130,10 @@ export class MiamiStreet implements SceneStreet {
       const phase = (((seconds / 7.8 + k / 3) % 1) + 1) % 1;
       m.opacity = 0.15 + 0.65 * Math.sin(phase * Math.PI) ** 2;
     });
+    // The signals cycle: green 14 s, amber 3 s, red 13 s.
+    const cycle = seconds % 30;
+    const lit = cycle < 14 ? 2 : cycle < 17 ? 1 : 0;
+    this.lights.forEach((m, i) => (m.emissiveIntensity = i === lit ? 3.5 : 0.08));
     // The aircraft beacons on the spires blink, a second apart.
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
@@ -365,6 +381,13 @@ export class MiamiStreet implements SceneStreet {
     let k = 0;
     while (offset < LOOP - 10) {
       const width = 22 + random() * 14;
+      const blocked = CROSSINGS.find(
+        (c) => offset < c + STREET / 2 && offset + width > c - STREET / 2,
+      );
+      if (blocked !== undefined) {
+        offset = blocked + STREET / 2 + 1;
+        continue;
+      }
       const storeys = 3 + Math.floor(random() * 4);
       const height = storeys * 3.6 + 1.6;
       const depth = 18;
@@ -637,6 +660,7 @@ export class MiamiStreet implements SceneStreet {
       for (const side of [-1, 1]) {
         const p = palms.make(random);
         p.scale.multiplyScalar(1.2);
+        if (side > 0 && inCrossing(offset, 1.5)) continue;
         const lamp = new Mesh(this.unit, uplight);
         lamp.scale.set(0.3, 0.12, 0.3);
         lamp.position.set(0.5, 0.06, 0);
@@ -687,6 +711,7 @@ export class MiamiStreet implements SceneStreet {
     this.disposables.push(halo, pool);
     for (let offset = 6; offset < LOOP; offset += 24)
       for (const side of [-1, 1]) {
+        if (side > 0 && inCrossing(offset + 12, 1)) continue;
         const lamp = new Group();
         lamp.add(new Mesh(post, white), new Mesh(collar, white), new Mesh(base, white));
         lamp.add(new Mesh(globe, lit));
@@ -833,7 +858,9 @@ export class MiamiStreet implements SceneStreet {
       const holder = new Group();
       holder.add(car);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 40 + k * 46 + random() * 8, x: roadHalf - 1.1 });
+      let at = 40 + k * 46 + random() * 8;
+      if (inCrossing(at, 4)) at += STREET + 8;
+      this.props.push({ mesh: holder, offset: at, x: roadHalf - 1.1 });
     }
     // Cruising traffic in the far lane, headlights on, rolling towards the rider.
     for (let k = 0; k < 5; k++) {
@@ -888,6 +915,76 @@ export class MiamiStreet implements SceneStreet {
       this.group.add(outer);
       this.props.push({ mesh: outer, offset: 20 + i * 80, x: -roadHalf - across });
     }
+  }
+
+  /**
+   * The side streets: asphalt running off between the hotels, a zebra crossing over the
+   * boulevard, a signal on a mast arm reaching over the road with its lights cycling, and a
+   * green street-name sign.
+   */
+  private addCrossings(roadHalf: number): void {
+    const r = roadHalf;
+    const asphalt = this.material({
+      map: this.repeat(roadTexture(), r * 2, 16),
+      roughness: 0.25,
+      metalness: 0.2,
+    });
+    const zebra = this.material({ color: 0xece8e0, roughness: 0.5 });
+    const steel = this.material({ color: 0x3a3c44, roughness: 0.5, metalness: 0.7 });
+    const housing = this.material({ color: 0x1a1a14, roughness: 0.6 });
+    const nameplate = this.material({
+      map: this.track(streetSignTexture()),
+      roughness: 0.5,
+      emissive: 0xffffff,
+      emissiveMap: this.track(streetSignTexture()),
+      emissiveIntensity: 0.25,
+    });
+    const lamps = [0xff2a2a, 0xffb020, 0x30ff80].map((c) =>
+      this.material({ color: c, emissive: c, emissiveIntensity: 0 }),
+    );
+    this.lights.push(...lamps);
+    CROSSINGS.forEach((c) => {
+      const crossing = new Group();
+      const side = new Mesh(this.unit, asphalt);
+      side.scale.set(FRONT + 40, 0.1, STREET);
+      side.position.set(r + (FRONT + 40) / 2, 0.02, 0);
+      side.receiveShadow = true;
+      crossing.add(side);
+      for (let x = -r + 0.4; x < r; x += 1.1) {
+        const bar = new Mesh(this.unit, zebra);
+        bar.scale.set(0.55, 0.02, 3.2);
+        bar.position.set(x, 0.025, STREET / 2 - 2);
+        crossing.add(bar);
+      }
+      // The signal: a pole on the near corner, its mast arm out over the boulevard.
+      const pole = new Mesh(this.unit, steel);
+      pole.scale.set(0.22, 6.4, 0.22);
+      pole.position.set(r + 0.8, 3.35, STREET / 2 + 0.6);
+      const arm = new Mesh(this.unit, steel);
+      arm.scale.set(r + 1.2, 0.14, 0.14);
+      arm.position.set(r * 0.5 + 0.2, 6.2, STREET / 2 + 0.6);
+      crossing.add(pole, arm);
+      for (const x of [r * 0.5, -r * 0.1]) {
+        const head = new Mesh(this.unit, housing);
+        head.scale.set(0.42, 1.25, 0.32);
+        head.position.set(x, 5.45, STREET / 2 + 0.6);
+        crossing.add(head);
+        lamps.forEach((m, i) => {
+          const bulb = new Mesh(this.flat, m);
+          bulb.scale.set(0.26, 0.26, 1);
+          bulb.position.set(x, 5.85 - i * 0.4, STREET / 2 + 0.77);
+          crossing.add(bulb);
+        });
+      }
+      const name = new Mesh(this.unit, nameplate);
+      name.scale.set(0.05, 0.3, 1.6);
+      name.position.set(r + 0.8, 4.2, STREET / 2 + 0.6 - 0.9);
+      crossing.add(name);
+      const holder = new Group();
+      holder.add(crossing);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: c, x: 0 });
+    });
   }
 
   /** People out for the night on both sidewalks. */
@@ -1714,5 +1811,21 @@ function uplightTexture(): CanvasTexture {
     g.fillRect(0, 0, 16, 128);
     g.fillStyle = 'rgba(0,0,0,0.35)';
     for (let y = 0; y < 128; y += 9) g.fillRect(0, y, 16, 2);
+  });
+}
+
+/** A green street-name sign with a white border: OCEAN DR one side, a numbered street the other. */
+function streetSignTexture(): CanvasTexture {
+  return canvasTexture(256, 48, (g) => {
+    g.fillStyle = '#0f6a3a';
+    g.fillRect(0, 0, 256, 48);
+    g.strokeStyle = '#f4f4f0';
+    g.lineWidth = 3;
+    g.strokeRect(4, 4, 248, 40);
+    g.fillStyle = '#f4f4f0';
+    g.font = 'bold 28px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('OCEAN DR', 128, 26);
   });
 }
