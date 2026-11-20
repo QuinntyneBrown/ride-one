@@ -3145,8 +3145,18 @@ function featherFan(
   const random = seeded(count * 7 + Math.round(length * 100));
   for (let i = 0; i < count; i++) {
     const long = length * (0.88 + random() * 0.2);
-    const feather = new PlaneGeometry(width, long, 1, 4);
+    const feather = new PlaneGeometry(width, long, 2, 8);
     feather.translate(0, long / 2, 0);
+    // Each plume arches: its shaft curls forward along its length and the tip nods over,
+    // the vane cupped a little either side of the quill.
+    const bend = feather.getAttribute('position') as BufferAttribute;
+    const curl = 0.22 + random() * 0.12;
+    for (let v = 0; v < bend.count; v++) {
+      const t = bend.getY(v) / long;
+      const across = bend.getX(v) / (width / 2);
+      bend.setY(v, bend.getY(v) - curl * long * t * t * 0.35);
+      bend.setZ(v, bend.getZ(v) - curl * long * t * t + across * across * width * 0.18);
+    }
     // Each plume droops a little more the further it leans from upright.
     const a = -spread / 2 + (spread * i) / (count - 1) + (random() - 0.5) * 0.05;
     feather.rotateX(-lean - Math.abs(a) * 0.08);
@@ -3162,6 +3172,7 @@ function featherFan(
       colour.set([c.r, c.g, c.b], v * 3);
     }
     feather.setAttribute('color', new BufferAttribute(colour, 3));
+    feather.computeVertexNormals();
     parts.push(feather);
   }
   const merged = mergeGeometries(parts)!;
