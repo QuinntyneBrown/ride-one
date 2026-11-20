@@ -1551,6 +1551,17 @@ export class CaribanaStreet implements SceneStreet {
     const banners = FLAG_KINDS.map((kind) =>
       this.material({ map: this.track(flagTexture(kind, true)), side: DoubleSide, roughness: 0.8 }),
     );
+    const festivals = [
+      ['#c8102e', '#ffd23f'],
+      ['#111111', '#ff2d87'],
+      ['#0f9d58', '#ffffff'],
+    ].map(([fill, ink]) =>
+      this.material({
+        map: this.track(festivalBannerTexture(fill!, ink!)),
+        side: DoubleSide,
+        roughness: 0.8,
+      }),
+    );
     let k = 0;
     for (const side of [-1, 1] as const) {
       for (let offset = 0; offset < LOOP; offset += 36) {
@@ -1560,11 +1571,17 @@ export class CaribanaStreet implements SceneStreet {
         arm.add(new Mesh(pole, steel), new Mesh(plate, steel), new Mesh(skirt, steel));
         arm.add(new Mesh(davit, steel), new Mesh(head, housing), new Mesh(lens, glass));
         arm.add(new Mesh(brackets, steel));
-        for (const dx of [-0.48, 0.48]) {
-          const b = new Mesh(cloth, banners[k++ % banners.length]!);
-          b.position.set(dx, 5.15, 0);
-          arm.add(b);
+        // One festival banner and one island flag on each standard.
+        const festival = new Mesh(cloth, festivals[(k >> 1) % festivals.length]!);
+        festival.position.set(-0.48, 5.15, 0);
+        const flag = new Mesh(cloth, banners[k++ % banners.length]!);
+        flag.position.set(0.48, 5.15, 0);
+        // The left side's lamps are turned round; turn their cloths back to face the riders.
+        if (side < 0) {
+          festival.rotation.y = Math.PI;
+          flag.rotation.y = Math.PI;
         }
+        arm.add(festival, flag);
         arm.rotation.y = side > 0 ? 0 : Math.PI;
         arm.traverse((o) => (o.castShadow = true));
         lamp.add(arm);
@@ -5009,6 +5026,40 @@ function arcadeTexture(): CanvasTexture {
     g.beginPath();
     g.arc(64, 56, 41, Math.PI, 0);
     g.stroke();
+  });
+}
+
+/**
+ * A city street banner for the festival, hung vertically: TORONTO CARIBBEAN CARNIVAL down it
+ * in `ink` on `fill`, over a dancer's plume fan in the festival's colours and the year.
+ */
+function festivalBannerTexture(fill: string, ink: string): CanvasTexture {
+  return canvasTexture(200, 600, (g) => {
+    g.fillStyle = fill;
+    g.fillRect(0, 0, 200, 600);
+    // A fan of plumes, the festival's mark.
+    const colours = ['#ff2d87', '#ffd23f', '#13c3c9', '#ff8a00', '#7b2ff7', '#0f9d58', '#ffffff'];
+    for (let k = 0; k < 13; k++) {
+      const a = -Math.PI * 0.85 + (k / 12) * Math.PI * 0.7;
+      g.strokeStyle = colours[k % colours.length]!;
+      g.lineWidth = 12;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(100, 430);
+      g.lineTo(100 + Math.cos(a) * 92, 430 + Math.sin(a) * 92);
+      g.stroke();
+    }
+    g.fillStyle = ink;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 38px system-ui, sans-serif';
+    g.fillText('TORONTO', 100, 52, 186);
+    g.font = 'bold 32px system-ui, sans-serif';
+    g.fillText('CARIBBEAN', 100, 100, 186);
+    g.font = 'bold 34px system-ui, sans-serif';
+    g.fillText('CARNIVAL', 100, 146, 186);
+    g.font = 'bold 46px system-ui, sans-serif';
+    g.fillText('2026', 100, 530, 186);
   });
 }
 
