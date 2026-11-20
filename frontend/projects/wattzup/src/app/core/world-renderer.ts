@@ -306,6 +306,21 @@ const LOOKS: Record<WorldId, Look> = {
     },
     fogRange: [60, 1500],
   },
+  // A golden afternoon in the high desert: the sun behind the rider, a clear deep sky, warm haze far off.
+  route66: {
+    sky: 0x6fa8dc,
+    fog: 0xe6c7a2,
+    ground: 0xb9744a,
+    road: 0x5a5651,
+    sun: 24,
+    wet: false,
+    haze: false,
+    turbidity: 2.2,
+    rayleigh: 1.3,
+    azimuth: -140,
+    light: { sun: 3.4, fill: 1.0, colour: 0xffe2b8 },
+    fogRange: [150, 2600],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
