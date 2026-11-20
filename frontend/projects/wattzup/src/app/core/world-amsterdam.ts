@@ -9,22 +9,28 @@ import {
   type BufferAttribute,
   BoxGeometry,
   type BufferGeometry,
+  CapsuleGeometry,
+  Color,
   type CanvasTexture,
   CylinderGeometry,
   DoubleSide,
   ExtrudeGeometry,
   Group,
+  InstancedMesh,
   LatheGeometry,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
+  Quaternion,
   RepeatWrapping,
   Shape,
   SphereGeometry,
   type Texture,
   TorusGeometry,
   Vector2,
+  Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
@@ -80,7 +86,7 @@ export class AmsterdamStreet implements SceneStreet {
   private readonly props: { mesh: Group; offset: number; x: number }[] = [];
   private readonly riders: Rider[] = [];
   private readonly walkers: Walker[] = [];
-  private cyclists: Figures | null = null;
+  private cyclists: SeatedRiders | null = null;
   private pedestrians: Figures | null = null;
   private readonly boats: { mesh: Group; offset: number; speed: number }[] = [];
   private time = 0;
@@ -145,17 +151,8 @@ export class AmsterdamStreet implements SceneStreet {
         const heading = r.speed > 0 ? 0 : Math.PI;
         r.bike.position.set(r.x, y, -metres);
         r.bike.rotation.y = heading;
-        cyclists.set(
-          i,
-          r.x,
-          y + 0.18,
-          -metres,
-          heading,
-          0.95,
-          Math.abs(Math.sin(this.time * 5 + r.phase)) * 0.03,
-        );
+        cyclists.set(i, r.x, y, -metres, heading, Math.sin(this.time * 5 + r.phase) * 0.015);
       });
-      cyclists.commit();
     }
     const pedestrians = this.pedestrians;
     if (pedestrians) {
@@ -577,13 +574,7 @@ export class AmsterdamStreet implements SceneStreet {
         phase: random() * 6.3,
       });
     }
-    this.cyclists = new Figures(
-      this.group,
-      this.disposables,
-      this.riders.length,
-      COMMUTER_WEAR,
-      457,
-    );
+    this.cyclists = new SeatedRiders(this.group, this.disposables, this.riders.length, 457);
     for (let offset = 0; offset < LOOP; offset += 6 + random() * 10) {
       const nearSide = random() < 0.5;
       this.walkers.push({
@@ -692,6 +683,92 @@ function amsterdammertje(): BufferGeometry {
   const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
   return merged;
+}
+
+/** A limb from `a` to `b`, `radius` thick. */
+function limb(a: Vector3, b: Vector3, radius: number): BufferGeometry {
+  const length = a.distanceTo(b);
+  const geometry = new CylinderGeometry(radius, radius * 0.85, length, 6);
+  geometry.translate(0, length / 2, 0);
+  geometry.applyQuaternion(
+    new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), b.clone().sub(a).normalize()),
+  );
+  geometry.translate(a.x, a.y, a.z);
+  return geometry.toNonIndexed();
+}
+
+/**
+ * Commuters sitting up on their Dutch bikes, as three instanced meshes: their tops (a torso held
+ * upright and arms reaching to the swept-back bars), their trousers (one leg up, one down on the
+ * pedals) and their skin (head and hands), each rider dressed from the commuters' wardrobe.
+ */
+class SeatedRiders {
+  private readonly meshes: InstancedMesh[];
+  private readonly matrix = new Matrix4();
+  private readonly spot = new Vector3();
+  private readonly turn = new Quaternion();
+  private readonly one = new Vector3(1, 1, 1);
+  private readonly up = new Vector3(0, 1, 0);
+
+  constructor(group: Group, disposables: { dispose(): void }[], count: number, seed: number) {
+    const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
+    const torso = new CapsuleGeometry(0.17, 0.42, 4, 8);
+    torso.rotateX(-0.12);
+    torso.translate(0, 1.38, 0.2);
+    const tops = [torso.toNonIndexed()];
+    const legs: BufferGeometry[] = [];
+    const skin: BufferGeometry[] = [];
+    for (const side of [-1, 1]) {
+      const shoulder = v(side * 0.19, 1.6, 0.15);
+      const hand = v(side * 0.25, 1.06, -0.46);
+      const elbow = v(side * 0.24, 1.3, -0.12);
+      tops.push(limb(shoulder, elbow, 0.05), limb(elbow, hand, 0.045));
+      const palm = new SphereGeometry(0.045, 6, 4);
+      palm.translate(hand.x, hand.y, hand.z);
+      skin.push(palm.toNonIndexed());
+      const hip = v(side * 0.1, 1.02, 0.22);
+      const pedal = side < 0 ? v(-0.1, 0.52, -0.08) : v(0.1, 0.2, 0.08);
+      const knee = side < 0 ? v(-0.11, 0.98, -0.2) : v(0.11, 0.66, -0.12);
+      legs.push(limb(hip, knee, 0.075), limb(knee, pedal, 0.06));
+      const shoe = new BoxGeometry(0.09, 0.07, 0.24);
+      shoe.translate(pedal.x, pedal.y - 0.02, pedal.z - 0.05);
+      legs.push(shoe.toNonIndexed());
+    }
+    const head = new SphereGeometry(0.115, 12, 10);
+    head.translate(0, 1.82, 0.12);
+    skin.push(head.toNonIndexed());
+    const merge = (parts: BufferGeometry[]) => {
+      const merged = mergeGeometries(parts)!;
+      parts.forEach((p) => p.dispose());
+      return merged;
+    };
+    this.meshes = [merge(tops), merge(legs), merge(skin)].map((geometry) => {
+      const material = new MeshStandardMaterial({ roughness: 0.85 });
+      const mesh = new InstancedMesh(geometry, material, count);
+      mesh.frustumCulled = false;
+      mesh.castShadow = true;
+      group.add(mesh);
+      disposables.push(geometry, material, mesh);
+      return mesh;
+    });
+    const random = seeded(seed);
+    const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
+    const c = new Color();
+    for (let i = 0; i < count; i++) {
+      this.meshes[0]!.setColorAt(i, c.set(pick(COMMUTER_WEAR.tops)));
+      this.meshes[1]!.setColorAt(i, c.set(pick(COMMUTER_WEAR.bottoms)));
+      this.meshes[2]!.setColorAt(i, c.set(pick(COMMUTER_WEAR.skins)));
+    }
+  }
+
+  /** Seats rider `i` on a bike at (x, y, z), turned `heading` radians, lifted `bob`. */
+  set(i: number, x: number, y: number, z: number, heading: number, bob: number): void {
+    this.turn.setFromAxisAngle(this.up, heading);
+    this.spot.set(x, y + bob, z);
+    this.matrix.compose(this.spot, this.turn, this.one);
+    for (const mesh of this.meshes) mesh.setMatrixAt(i, this.matrix);
+    for (const mesh of this.meshes) mesh.instanceMatrix.needsUpdate = true;
+  }
 }
 
 /** An upright Dutch bike, along z: two wheels, its frame, saddle and swept-back bars. */
