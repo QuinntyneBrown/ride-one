@@ -907,6 +907,7 @@ export const WORLDS: readonly World[] = [
       'Port of Spain before dawn at Carnival, paint and mud flying; each sprint breaks through a soca crowd.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 10, length: 150 },
   },
   {
     id: 'sambadrome',
@@ -917,6 +918,7 @@ export const WORLDS: readonly World[] = [
       'Carnival night in Rio; glittering samba schools fill the runway and every smash rides the drum line.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 3, length: 400 },
   },
   {
     id: 'lisbon',
@@ -927,6 +929,7 @@ export const WORLDS: readonly World[] = [
       'Steep cobbled Alfama lanes beside yellow trams; grind each climb toward the castle above the Tagus.',
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 35, length: 55 },
   },
   {
     id: 'cornwall',
@@ -937,6 +940,7 @@ export const WORLDS: readonly World[] = [
       'Fishing boats, pasty shops and slate cottages in a Cornwall harbour; sprint the quay between steep lanes.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 20, length: 80 },
   },
   {
     id: 'copacabana',
@@ -947,6 +951,7 @@ export const WORLDS: readonly World[] = [
       "Rio's wave-patterned beachfront at sunset; sprint between volleyball nets with Sugarloaf on the horizon.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 6, length: 250 },
   },
   {
     id: 'bondi',
@@ -957,6 +962,7 @@ export const WORLDS: readonly World[] = [
       "Sydney's clifftop coast path; surf breaking below and an ocean pool at every headland.",
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 25, length: 90 },
   },
   {
     id: 'kilauea',
@@ -967,6 +973,7 @@ export const WORLDS: readonly World[] = [
       'Hawaiian lava fields and glowing steam vents; each effort climbs toward the crater rim.',
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 25, length: 110 },
   },
   {
     id: 'shibuya',
@@ -977,6 +984,7 @@ export const WORLDS: readonly World[] = [
       'Tokyo in neon rain; spin fast through the scramble beneath towering video screens.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 5, length: 200 },
   },
   {
     id: 'muertos',
@@ -987,6 +995,7 @@ export const WORLDS: readonly World[] = [
       "Marigolds, sugar skulls and giant skeletons along Mexico City's Paseo de la Reforma.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 4, length: 300 },
   },
   {
     id: 'pamplona',
@@ -997,6 +1006,7 @@ export const WORLDS: readonly World[] = [
       'Red scarves and white shirts fill old Pamplona; sprint the bull-run streets at festival dawn.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 18, length: 70 },
   },
   {
     id: 'greatocean',
@@ -1007,6 +1017,7 @@ export const WORLDS: readonly World[] = [
       'Australian sea cliffs and the Twelve Apostles; hold steady through winding, spray-dashed bends.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 35, length: 80 },
   },
   {
     id: 'sfhills',
@@ -1017,6 +1028,7 @@ export const WORLDS: readonly World[] = [
       "Steep streets and Lombard's crooked bends; up and over each crest as cable cars clang.",
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 30, length: 55 },
   },
   {
     id: 'mardigras',
@@ -1027,6 +1039,7 @@ export const WORLDS: readonly World[] = [
       "Brass bands and bead-throwing floats on St. Charles Avenue; pedal to the parade's beat.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 6, length: 250 },
   },
   {
     id: 'victoria',
@@ -1037,6 +1050,7 @@ export const WORLDS: readonly World[] = [
       "Hong Kong's neon skyline and Star Ferries; spin fast along the harbourfront promenade.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 8, length: 200 },
   },
   {
     id: 'jaipur',
@@ -1047,6 +1061,7 @@ export const WORLDS: readonly World[] = [
       "Colour-powder clouds in the Pink City's streets; sprint through every burst of festival colour.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 10, length: 150 },
   },
   {
     id: 'overseas',
@@ -1056,6 +1071,7 @@ export const WORLDS: readonly World[] = [
     description: "Turquoise water on both sides along the Florida Keys' Seven Mile Bridge.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 4, length: 500 },
   },
   {
     id: 'isleofman',
@@ -1065,6 +1081,7 @@ export const WORLDS: readonly World[] = [
     description: "Stone walls and Snaefell's mountain road on the famous motorcycle course.",
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 30, length: 90 },
   },
   {
     id: 'artmuseum',
@@ -1074,6 +1091,7 @@ export const WORLDS: readonly World[] = [
     description: 'Down the Parkway to the famous steps; every effort ends at the top, arms raised.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 5, length: 250 },
   },
   {
     id: 'lakelouise',
@@ -1084,6 +1102,7 @@ export const WORLDS: readonly World[] = [
       'Turquoise glacial lake beneath Rocky Mountain peaks; an easy shoreline road in Banff.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 20, length: 110 },
   },
   {
     id: 'bealach',
@@ -1093,6 +1112,7 @@ export const WORLDS: readonly World[] = [
     description: 'A single-track Highland road climbing above sea lochs through heather.',
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 60, length: 48 },
   },
   {
     id: 'hanriver',
@@ -1102,6 +1122,7 @@ export const WORLDS: readonly World[] = [
     description: 'Riverside parks and fountain-lit bridges at night.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 12, length: 180 },
   },
   {
     id: 'oktoberfest',
@@ -1111,6 +1132,7 @@ export const WORLDS: readonly World[] = [
     description: 'Beer tents, brass bands and dirndls on the Theresienwiese at festival time.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 8, length: 150 },
   },
   {
     id: 'brooklyn',
@@ -1120,6 +1142,7 @@ export const WORLDS: readonly World[] = [
     description: 'Morning rush across the bridge into lower Manhattan.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 3, length: 400 },
   },
   {
     id: 'strasbourg',
@@ -1129,6 +1152,7 @@ export const WORLDS: readonly World[] = [
     description: 'Lights, gingerbread stalls and carols; surprise sprints between market squares.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 16, length: 90 },
   },
   {
     id: 'kyoto',
@@ -1138,6 +1162,7 @@ export const WORLDS: readonly World[] = [
     description: "The Philosopher's Path under pink sakura petals during cherry-blossom season.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 14, length: 110 },
   },
   {
     id: 'bathsheba',
@@ -1147,6 +1172,7 @@ export const WORLDS: readonly World[] = [
     description: 'A calm coast road past rum shacks, palms and white sand.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 20, length: 110 },
   },
   {
     id: 'machupicchu',
@@ -1156,6 +1182,7 @@ export const WORLDS: readonly World[] = [
     description: 'Switchbacks climbing through cloud to the Inca citadel.',
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 60, length: 48 },
   },
   {
     id: 'outback',
@@ -1165,6 +1192,7 @@ export const WORLDS: readonly World[] = [
     description: 'Endless red earth and road trains toward Uluru, fuel stops far apart.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 2, length: 700 },
   },
   {
     id: 'telaviv',
@@ -1174,6 +1202,7 @@ export const WORLDS: readonly World[] = [
     description: 'Mediterranean beach paths, volleyball courts and seafront cafés.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 8, length: 220 },
   },
   {
     id: 'silverstone',
@@ -1183,6 +1212,7 @@ export const WORLDS: readonly World[] = [
     description: 'Flat-out sweeps of the British circuit with the grandstands empty.',
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.1,
+    bend: { angle: 30, length: 110 },
   },
   {
     id: 'murdehuy',
@@ -1192,6 +1222,7 @@ export const WORLDS: readonly World[] = [
     description: "The Ardennes' brutal wall, climbing past chapels toward the finish.",
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 45, length: 55 },
   },
   {
     id: 'arenberg',
@@ -1201,6 +1232,7 @@ export const WORLDS: readonly World[] = [
     description: 'Paris-Roubaix cobbles through the trees; hold the wheel or lose it.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 2, length: 600 },
   },
   {
     id: 'lakefront',
@@ -1210,6 +1242,7 @@ export const WORLDS: readonly World[] = [
     description: 'Lake Michigan beaches and the skyline along the waterfront trail.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 12, length: 180 },
   },
   {
     id: 'diwali',
@@ -1219,6 +1252,7 @@ export const WORLDS: readonly World[] = [
     description: "Mumbai's Queen's Necklace lit with lamps and fireworks over the Arabian Sea.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 14, length: 250 },
   },
   {
     id: 'sella',
@@ -1228,6 +1262,7 @@ export const WORLDS: readonly World[] = [
     description: "A steady climb beneath the Sassolungo's walls to the summit meadows.",
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 50, length: 52 },
   },
   {
     id: 'kona',
@@ -1237,6 +1272,7 @@ export const WORLDS: readonly World[] = [
     description: 'The Queen K highway through lava fields on Ironman race day.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 5, length: 400 },
   },
   {
     id: 'sevensisters',
@@ -1246,6 +1282,7 @@ export const WORLDS: readonly World[] = [
     description: 'Rolling chalk cliffs on the Sussex coast; seven summits, seven efforts.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 20, length: 110 },
   },
   {
     id: 'brighton',
@@ -1255,6 +1292,7 @@ export const WORLDS: readonly World[] = [
     description: 'Rainbow flags along the seafront as the Pride parade passes the pier.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 6, length: 250 },
   },
   {
     id: 'iceland',
@@ -1264,6 +1302,7 @@ export const WORLDS: readonly World[] = [
     description: 'Black sand, glaciers and waterfalls under the midnight sun.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 15, length: 180 },
   },
   {
     id: 'sydneyharbour',
@@ -1273,6 +1312,7 @@ export const WORLDS: readonly World[] = [
     description: "New Year's fireworks over the Harbour Bridge and Opera House.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 8, length: 200 },
   },
   {
     id: 'zoncolan',
@@ -1282,6 +1322,7 @@ export const WORLDS: readonly World[] = [
     description: 'A brutal Friulian climb, steep and walled in by forest.',
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 45, length: 55 },
   },
   {
     id: 'valais',
@@ -1291,6 +1332,7 @@ export const WORLDS: readonly World[] = [
     description: 'Swiss mountain roads linking ski villages in summer, at an easy zone 2 pace.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 50, length: 52 },
   },
   {
     id: 'loire',
@@ -1300,6 +1342,7 @@ export const WORLDS: readonly World[] = [
     description: 'Riverside lanes past turreted châteaux and vineyards.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 16, length: 130 },
   },
   {
     id: 'copenhagen',
@@ -1309,6 +1352,7 @@ export const WORLDS: readonly World[] = [
     description: 'Green-wave bike lanes, harbour baths and colourful Nyhavn.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 8, length: 180 },
   },
   {
     id: 'surfers',
@@ -1318,6 +1362,7 @@ export const WORLDS: readonly World[] = [
     description: 'Gold Coast high-rises above golden surf beaches.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 6, length: 250 },
   },
   {
     id: 'moab',
@@ -1327,6 +1372,7 @@ export const WORLDS: readonly World[] = [
     description: 'Red sandstone canyons and arches under a fierce desert sun.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 25, length: 100 },
   },
   {
     id: 'glasgow',
@@ -1336,6 +1382,7 @@ export const WORLDS: readonly World[] = [
     description: 'A rain-slick city circuit through Glasgow streets on championship day.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 25, length: 70 },
   },
   {
     id: 'mountwashington',
@@ -1345,6 +1392,7 @@ export const WORLDS: readonly World[] = [
     description: "New Hampshire's relentless climb above the treeline into the clouds.",
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 45, length: 60 },
   },
   {
     id: 'grandcanyon',
@@ -1354,6 +1402,7 @@ export const WORLDS: readonly World[] = [
     description: 'A rim road with canyon views falling away at every bend.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 25, length: 100 },
   },
   {
     id: 'stampede',
@@ -1363,6 +1412,7 @@ export const WORLDS: readonly World[] = [
     description: 'Rodeo grounds, chuckwagons and parade crowds in white hats.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 4, length: 300 },
   },
   {
     id: 'merce',
@@ -1372,6 +1422,7 @@ export const WORLDS: readonly World[] = [
     description: 'Human towers, giants and fire runs fill the Gothic Quarter at festival time.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 12, length: 120 },
   },
   {
     id: 'stpatricks',
@@ -1381,6 +1432,7 @@ export const WORLDS: readonly World[] = [
     description: "Green-clad crowds and pipe bands along O'Connell Street.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 3, length: 400 },
   },
   {
     id: 'bigsur',
@@ -1390,6 +1442,7 @@ export const WORLDS: readonly World[] = [
     description: 'Highway 1 clinging to Pacific cliffs over Bixby Bridge.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 40, length: 75 },
   },
   {
     id: 'songkran',
@@ -1400,6 +1453,7 @@ export const WORLDS: readonly World[] = [
       'Thai New Year water fights; sprint the soaked streets between buckets and water guns.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 6, length: 200 },
   },
   {
     id: 'playground',
@@ -1410,6 +1464,7 @@ export const WORLDS: readonly World[] = [
       'A city park with playgrounds, splash pads and strollers; quick laps between pick-ups.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 20, length: 90 },
   },
   {
     id: 'hoover',
@@ -1419,6 +1474,7 @@ export const WORLDS: readonly World[] = [
     description: 'Desert switchbacks down to the dam and along Lake Mead.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 50, length: 55 },
   },
   {
     id: 'aguascalientes',
@@ -1428,6 +1484,7 @@ export const WORLDS: readonly World[] = [
     description: 'A high-altitude Mexican track where pursuit records fall.',
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.1,
+    bend: { angle: 4, length: 300 },
   },
   {
     id: 'atlanticroad',
@@ -1437,6 +1494,7 @@ export const WORLDS: readonly World[] = [
     description: "Norway's bridges hopping between islets as waves break alongside.",
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 30, length: 90 },
   },
   {
     id: 'fishhill',
@@ -1446,6 +1504,7 @@ export const WORLDS: readonly World[] = [
     description: 'Honey-stone villages and a steep climb up the Cotswold escarpment.',
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 30, length: 60 },
   },
   {
     id: 'junkanoo',
@@ -1455,6 +1514,7 @@ export const WORLDS: readonly World[] = [
     description: 'Bahamian Boxing Day parade of cowbells, goatskin drums and crepe-paper costumes.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 5, length: 250 },
   },
   {
     id: 'quebec',
@@ -1464,6 +1524,7 @@ export const WORLDS: readonly World[] = [
     description: 'Ramparts and steep lanes of the walled city above the St. Lawrence.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 30, length: 60 },
   },
   {
     id: 'fuji',
@@ -1473,6 +1534,7 @@ export const WORLDS: readonly World[] = [
     description: "A ramping climb through forest toward Fuji's fifth station.",
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 45, length: 60 },
   },
   {
     id: 'bund',
@@ -1482,6 +1544,7 @@ export const WORLDS: readonly World[] = [
     description: "Riverside promenade facing Pudong's glittering towers.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 6, length: 250 },
   },
   {
     id: 'comuna13',
@@ -1491,6 +1554,7 @@ export const WORLDS: readonly World[] = [
     description: 'Colourful hillside murals beside outdoor escalators climbing the barrio.',
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 35, length: 50 },
   },
   {
     id: 'adelaide',
@@ -1500,6 +1564,7 @@ export const WORLDS: readonly World[] = [
     description: 'Summer race roads through vineyards and gum trees, Tour Down Under style.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 25, length: 90 },
   },
   {
     id: 'sellaronda',
@@ -1509,6 +1574,7 @@ export const WORLDS: readonly World[] = [
     description: 'A loop over four Dolomite passes circling the Sella massif.',
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 55, length: 47 },
   },
   {
     id: 'marrakech',
@@ -1518,6 +1584,7 @@ export const WORLDS: readonly World[] = [
     description: 'Dusk in Jemaa el-Fnaa; spin past spice stalls, lanterns and snake charmers.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 14, length: 100 },
   },
   {
     id: 'tamalpais',
@@ -1527,6 +1594,7 @@ export const WORLDS: readonly World[] = [
     description: "Marin's climb through redwoods to views of the Golden Gate.",
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 45, length: 60 },
   },
   {
     id: 'independence',
@@ -1536,6 +1604,7 @@ export const WORLDS: readonly World[] = [
     description: "Colorado's climb over the Continental Divide among aspens.",
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 50, length: 55 },
   },
   {
     id: 'fens',
@@ -1545,6 +1614,7 @@ export const WORLDS: readonly World[] = [
     description: 'Dead-flat English fens, crosswinds and long straight drove roads.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 2, length: 600 },
   },
   {
     id: 'vienna',
@@ -1554,6 +1624,7 @@ export const WORLDS: readonly World[] = [
     description: 'Grand boulevard past palaces, opera house and trams.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 15, length: 200 },
   },
   {
     id: 'bluemountains',
@@ -1563,6 +1634,7 @@ export const WORLDS: readonly World[] = [
     description: 'Coffee-farm switchbacks with reggae drifting up from roadside sound systems.',
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 55, length: 47 },
   },
   {
     id: 'aubisque',
@@ -1572,6 +1644,7 @@ export const WORLDS: readonly World[] = [
     description: 'Pyrenean cliff road with cows and giant bike sculptures.',
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 45, length: 60 },
   },
   {
     id: 'rome',
@@ -1581,6 +1654,7 @@ export const WORLDS: readonly World[] = [
     description: 'Ancient ruins, umbrella pines and sampietrini cobbles.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 12, length: 140 },
   },
   {
     id: 'stbernard',
@@ -1590,6 +1664,7 @@ export const WORLDS: readonly World[] = [
     description: 'An alpine border climb to a hospice and a frozen lake.',
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 55, length: 48 },
   },
   {
     id: 'nuevedejulio',
@@ -1599,6 +1674,7 @@ export const WORLDS: readonly World[] = [
     description: "Buenos Aires' vast boulevard sprinting past the Obelisco.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 2, length: 600 },
   },
   {
     id: 'okinawa',
@@ -1608,6 +1684,7 @@ export const WORLDS: readonly World[] = [
     description: 'Coral beaches and turquoise shallows along a subtropical island road.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 20, length: 120 },
   },
   {
     id: 'algarve',
@@ -1617,6 +1694,7 @@ export const WORLDS: readonly World[] = [
     description: "Golden sea cliffs, coves and fishing villages on Portugal's south coast.",
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 30, length: 85 },
   },
   {
     id: 'mulholland',
@@ -1626,6 +1704,7 @@ export const WORLDS: readonly World[] = [
     description: 'Hollywood Hills ridge road with city views on repeat.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 35, length: 70 },
   },
   {
     id: 'provence',
@@ -1635,6 +1714,7 @@ export const WORLDS: readonly World[] = [
     description: 'Purple lavender rows and stone farmhouses on the Valensole plateau.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 8, length: 220 },
   },
   {
     id: 'cherryblossom',
@@ -1644,6 +1724,7 @@ export const WORLDS: readonly World[] = [
     description: 'The National Mall and Tidal Basin under pink blossoms and kites.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 16, length: 130 },
   },
   {
     id: 'kwaremont',
@@ -1653,6 +1734,7 @@ export const WORLDS: readonly World[] = [
     description: 'Tour of Flanders cobbles, beer tents and roaring Flemish fans.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 10, length: 120 },
   },
   {
     id: 'oregon',
@@ -1662,6 +1744,7 @@ export const WORLDS: readonly World[] = [
     description: 'Highway 101 past sea stacks, lighthouses and misty spruce.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 30, length: 90 },
   },
   {
     id: 'cypress',
@@ -1671,6 +1754,7 @@ export const WORLDS: readonly World[] = [
     description: "Vancouver's ski-hill road ramping above the city and ocean.",
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 40, length: 60 },
   },
   {
     id: 'iten',
@@ -1680,6 +1764,7 @@ export const WORLDS: readonly World[] = [
     description: 'High-altitude red-dirt roads where champions train.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 15, length: 140 },
   },
   {
     id: 'palouse',
@@ -1689,6 +1774,7 @@ export const WORLDS: readonly World[] = [
     description: 'Rolling wheat hills of eastern Washington in green and gold.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 22, length: 130 },
   },
   {
     id: 'prague',
@@ -1698,6 +1784,7 @@ export const WORLDS: readonly World[] = [
     description: 'Cobbles, spires and Charles Bridge ramping up to the castle.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 22, length: 70 },
   },
   {
     id: 'penllech',
@@ -1707,6 +1794,7 @@ export const WORLDS: readonly World[] = [
     description: "A Welsh street in Harlech, once ranked the world's steepest.",
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 15, length: 60 },
   },
   {
     id: 'pueblos',
@@ -1716,6 +1804,7 @@ export const WORLDS: readonly World[] = [
     description: 'Whitewashed hill towns and olive groves in southern Spain.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 35, length: 70 },
   },
   {
     id: 'steppe',
@@ -1725,6 +1814,7 @@ export const WORLDS: readonly World[] = [
     description: 'Endless grassland, yurts and wild horses, no markers in sight.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 6, length: 400 },
   },
   {
     id: 'teotihuacan',
@@ -1734,6 +1824,7 @@ export const WORLDS: readonly World[] = [
     description: 'The Avenue of the Dead between the Sun and Moon pyramids.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 2, length: 600 },
   },
   {
     id: 'furka',
@@ -1743,6 +1834,7 @@ export const WORLDS: readonly World[] = [
     description: 'Swiss hairpins beside the Rhône Glacier.',
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 60, length: 47 },
   },
   {
     id: 'beachroad',
@@ -1752,6 +1844,7 @@ export const WORLDS: readonly World[] = [
     description: 'Bayside bunch-ride route past beach boxes and piers.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 10, length: 220 },
   },
   {
     id: 'blueridge',
@@ -1761,6 +1854,7 @@ export const WORLDS: readonly World[] = [
     description: 'Appalachian ridgeline road in blazing autumn colour.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 30, length: 100 },
   },
   {
     id: 'verona',
@@ -1770,6 +1864,7 @@ export const WORLDS: readonly World[] = [
     description: 'A grand tour finale circling into the Roman arena.',
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 20, length: 90 },
   },
   {
     id: 'valparaiso',
@@ -1779,6 +1874,7 @@ export const WORLDS: readonly World[] = [
     description: 'Colourful hillside stairways and funiculars above the Chilean port.',
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 9 },
     roll: 0.8,
+    bend: { angle: 35, length: 50 },
   },
   {
     id: 'gardena',
@@ -1809,6 +1905,7 @@ export const WORLDS: readonly World[] = [
     description: "Montreal's mountain park climb to the lookout over the city.",
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 40, length: 60 },
   },
   {
     id: 'utrecht',
@@ -1818,6 +1915,7 @@ export const WORLDS: readonly World[] = [
     description: "Canal wharves and the world's largest bike park.",
     grade: { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.3,
+    bend: { angle: 10, length: 140 },
   },
   {
     id: 'galibier',
@@ -1837,6 +1935,7 @@ export const WORLDS: readonly World[] = [
     description: 'Desert road through twisted Joshua trees and boulder piles.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 8, length: 250 },
   },
   {
     id: 'cabot',
@@ -1846,6 +1945,7 @@ export const WORLDS: readonly World[] = [
     description: "Nova Scotia's coastal highlands with ocean views and moose.",
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 35, length: 90 },
   },
   {
     id: 'veleta',
@@ -1855,6 +1955,7 @@ export const WORLDS: readonly World[] = [
     description: "Spain's highest paved road above Granada in the Sierra Nevada.",
     grade: { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 5 },
     roll: 0.6,
+    bend: { angle: 50, length: 55 },
   },
   {
     id: 'bayofislands',
@@ -1864,6 +1965,7 @@ export const WORLDS: readonly World[] = [
     description: 'A New Zealand bunch ride past sheltered bays and green hills.',
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 25, length: 100 },
   },
   {
     id: 'dales',
@@ -1873,6 +1975,7 @@ export const WORLDS: readonly World[] = [
     description: 'Stone walls, moors and race-day crowds on the Buttertubs climb.',
     grade: { warmup: 1, work: 5, rest: -1, cooldown: -1, steady: 2 },
     roll: 1,
+    bend: { angle: 30, length: 80 },
   },
   {
     id: 'engadin',
@@ -1882,6 +1985,7 @@ export const WORLDS: readonly World[] = [
     description: "A Swiss high valley road along St. Moritz's chain of lakes.",
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
+    bend: { angle: 18, length: 140 },
   },
   {
     id: 'miami',
@@ -1892,6 +1996,7 @@ export const WORLDS: readonly World[] = [
       "A beachfront boulevard on a Miami night, still wet from a shower: neon-traced art deco hotels, palms and convertibles on one side, the moonlit Atlantic on the other, and the bay's towers lit up ahead.",
     grade: { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0.5 },
     roll: 0.3,
+    bend: { angle: 5, length: 250 },
   },
 ];
 

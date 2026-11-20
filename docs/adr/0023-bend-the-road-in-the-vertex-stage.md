@@ -10,7 +10,8 @@ L2-101 criterion 6 and L2-110 criterion 9 make the road in every World Ride scen
 right, and everything laid along it follow: kerbs and ribbons, roadside lamps and posts, each
 scene's props and crowds, the ground, terrain and mist, the pacers, the arch and the camera.
 
-The scene is 87 street modules (`core/world-*.ts`, some over 7,000 lines) and the renderer's own
+The scene is over 80 street modules (`core/world-*.ts`, some over 7,000 lines), 192 scenes in all,
+and the renderer's own
 parts. Every one of them places what it draws at `x` across a straight road and `-metres` along
 it, and lays ribbons, terrain and instanced crowds as geometry along `-z`. Bending them at the
 source would mean rewriting each module by hand, and every new scene would have to repeat it.
