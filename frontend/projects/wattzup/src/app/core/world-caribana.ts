@@ -51,9 +51,12 @@ import {
 } from './world-kit';
 import {
   ellipsoid,
+  Ensemble,
   faceParts,
   faceTexture,
+  hairParts,
   limb,
+  shoeGeometry,
   Spectators,
   spectatorParts,
 } from './world-caribana-crowd';
@@ -325,6 +328,8 @@ export class CaribanaStreet implements SceneStreet {
   private readonly smoke: { mesh: Mesh; phase: number; material: MeshStandardMaterial }[] = [];
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
   private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
+  private teeShirts: Ensemble | null = null;
+  private readonly revellers: { x: number; offset: number; phase: number; facing: number }[] = [];
   private readonly pannists: { figure: Group; phase: number }[] = [];
   private readonly bandBanners: { group: Group; phase: number }[] = [];
   private engineRoom: Group | null = null;
@@ -428,6 +433,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addMasqueraders(roadHalf);
     this.addBarricades();
     this.addMokoJumbies();
+    this.addTeeShirtMas();
     this.addRoyals();
     this.addTrucks();
     this.addPanFloat();
@@ -494,6 +500,7 @@ export class CaribanaStreet implements SceneStreet {
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
+    this.placeTeeShirtMas(heightAt, along);
     this.placeConfetti(heightAt, along);
     this.placeDistantParade(heightAt, along);
     this.placeLitter(heightAt, along);
@@ -788,6 +795,74 @@ export class CaribanaStreet implements SceneStreet {
       mesh.count = counts[k]!;
       mesh.instanceMatrix.needsUpdate = true;
     });
+  }
+
+  /**
+   * T-shirt mas: band members in the band's T-shirts and shorts dancing among the costumed
+   * sections, as every big band carries, arms up or waving rags, with caps, bandanas and hair.
+   */
+  private addTeeShirtMas(): void {
+    const random = seeded(3307);
+    // From 10 m ahead of the start, so no one stands in the riders' faces as they set off.
+    for (let offset = BEHIND + 10; offset < LOOP; offset += 3.4) {
+      if (offset > PAN_AT - 11 && offset < PAN_AT + 19) continue;
+      if (random() < 0.4) continue;
+      const side = random() < 0.5 ? -1 : 1;
+      this.revellers.push({
+        x: side * (2.3 + random() * 3.6),
+        offset: offset + random() * 2,
+        phase: random() * 6.3,
+        facing: random() < 0.5 ? Math.PI : side * 0.6,
+      });
+    }
+    const ensemble = new Ensemble(this.group, this.disposables);
+    const skin = this.material({ roughness: 0.6 });
+    const cotton = this.material({ roughness: 0.9 });
+    const denim = this.material({ roughness: 0.9 });
+    const rubber = this.material({ roughness: 0.7 });
+    const hair = this.material({ roughness: 0.95 });
+    const bodies = [2, 1, 6].map((stance) => spectatorParts(stance, true));
+    for (const b of bodies) this.disposables.push(b.skin, b.top, b.bottom);
+    const shoes = shoeGeometry();
+    const hairs = hairParts();
+    this.disposables.push(shoes, ...hairs);
+    // Each band's T-shirt colour, by the section the reveller dances in.
+    const tees = ['#ffd23f', '#ffffff', '#ff2d87', '#13c3c9', '#ff8a00', '#111111'];
+    this.revellers.forEach((r, i) => {
+      const pose = Math.floor(random() * bodies.length);
+      const body = bodies[pose]!;
+      const tee = tees[Math.floor(r.offset / 40) % tees.length]!;
+      ensemble.put(i, `skin${pose}`, body.skin, skin, SKINS[Math.floor(random() * SKINS.length)]!);
+      ensemble.put(i, `top${pose}`, body.top, cotton, tee);
+      ensemble.put(i, `bottom${pose}`, body.bottom, denim, TROUSERS[Math.floor(random() * 4)]!);
+      ensemble.put(i, 'shoes', shoes, rubber, random() < 0.6 ? '#f2f2f2' : '#111111');
+      const style = Math.floor(random() * hairs.length);
+      ensemble.put(i, `hair${style}`, hairs[style]!, hair, style === 3 ? tee : '#1a1410');
+    });
+    ensemble.build();
+    this.teeShirts = ensemble;
+  }
+
+  private placeTeeShirtMas(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    const ensemble = this.teeShirts;
+    if (!ensemble) return;
+    this.revellers.forEach((r, i) => {
+      const t = this.time + r.phase;
+      const metres = along(r.offset + this.march, LOOP);
+      const bounce = Math.abs(Math.sin(t * 4.2)) * 0.08;
+      this.turn.setFromAxisAngle(this.up, r.facing + Math.sin(t * 2.1) * 0.3);
+      this.spot.set(
+        r.x + Math.sin(t * 0.6) * 0.3,
+        heightAt(Math.max(metres, 0)) + ASPHALT + bounce,
+        -metres,
+      );
+      this.size.setScalar(0.96);
+      ensemble.set(i, this.matrix.compose(this.spot, this.turn, this.size));
+    });
+    ensemble.commit();
   }
 
   /**
