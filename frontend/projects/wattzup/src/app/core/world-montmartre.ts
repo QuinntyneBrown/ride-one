@@ -59,8 +59,8 @@ const CROWD_FAR = 6.4;
 /** The house fronts stand this far off the road's centre. */
 const FRONT = 7.2;
 /** The Place du Tertre opens on the right between these offsets, its far side set back. */
-const SQUARE_FROM = 150;
-const SQUARE_TO = 186;
+const SQUARE_FROM = 126;
+const SQUARE_TO = 168;
 const SQUARE_BACK = 30;
 /** The street ends this far ahead, at the foot of the butte with Sacré-Cœur on its crown. */
 const AHEAD = 250;
@@ -206,7 +206,8 @@ export class MontmartreStreet implements SceneStreet {
     private readonly disposables: { dispose(): void }[],
   ) {
     this.ribbons = new Ribbons(this.group, disposables);
-    const square = (offset: number) => offset > SQUARE_FROM - 2 && offset < SQUARE_TO + 2;
+    // The fans stand back where the square opens, and just short of it, so the painters show.
+    const square = (offset: number) => offset > SQUARE_FROM - 14 && offset < SQUARE_TO + 2;
     this.crowd = new Crowd(this.group, disposables, {
       loop: LOOP,
       near: CROWD_NEAR,
@@ -465,7 +466,7 @@ export class MontmartreStreet implements SceneStreet {
     table.translate(0, 0.75, 0);
     const leg = new BoxGeometry(0.05, 1.7, 0.05);
     leg.translate(0, 0.85, 0);
-    const canvas = new BoxGeometry(0.04, 0.8, 1.0);
+    const canvas = new BoxGeometry(0.05, 1.1, 1.4);
     this.disposables.push(trunk, crown, umbrella, pole, table, leg, canvas);
     const bark = this.material({ map: this.track(barkTexture()), roughness: 1 });
     const leaves = ['#5a7a3a', '#6a8a42', '#4a6a32'].map((c) =>
@@ -510,9 +511,9 @@ export class MontmartreStreet implements SceneStreet {
         terrace.add(chair);
       }
     }
-    // The easels near the street, canvases turned to it.
+    // The painters' easels along the square's front on the pavement, canvases turned to the street.
     for (let k = 0; k < 7; k++) {
-      const x = 8.6 + (k % 3) * 1.6 + random();
+      const x = 5.4 + (k % 2) * 1.3 + random() * 0.3;
       const zLocal = -2 - k * ((depth - 6) / 7);
       const turn = 0.4 + (random() - 0.5) * 0.3;
       const easel = new Group();
@@ -528,7 +529,7 @@ export class MontmartreStreet implements SceneStreet {
         easel.add(l);
       }
       const c = new Mesh(canvas, paintings[k]!);
-      c.position.set(0.3, 1.45, 0);
+      c.position.set(0.3, 1.7, 0);
       c.rotation.z = -0.12;
       easel.add(c);
       // The canvas turned to the street and a little toward the rider coming up it.
