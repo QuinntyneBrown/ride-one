@@ -962,6 +962,7 @@
     },
     {
       "id": "15-minutes-hiit-sprinting-efforts",
+      "world": "goldengate",
       "title": "15 Minutes HIIT Sprinting Efforts",
       "channel": "GCN Training",
       "focus": "Sprints",

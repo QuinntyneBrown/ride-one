@@ -253,6 +253,16 @@ export const WORLDS: readonly World[] = [
     roll: 0.1,
   },
   {
+    id: 'goldengate',
+    name: 'Golden Gate Park',
+    route: 'JFK Drive',
+    effortName: 'Paddock sprint',
+    description:
+      "Fog drifts through the eucalyptus and Monterey cypress along John F. Kennedy Drive in San Francisco's Golden Gate Park, past roller skaters, Spreckels Lake and the bison grazing in their paddock toward the Dutch Windmill above Ocean Beach. The one-minute opener rolls through the eucalyptus groves, and the seven thirty-second sprints each fly past the bison paddock before a minute's recovery coasts on toward the windmill.",
+    grade: { warmup: 0.5, work: 1, rest: -1, cooldown: -0.5, steady: 0 },
+    roll: 1.2,
+  },
+  {
     id: 'havana',
     name: 'Havana Malecón',
     route: 'Malecón',

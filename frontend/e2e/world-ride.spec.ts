@@ -127,6 +127,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Koppenberg Cobbles');
   });
 
+  test('rides 15 Minutes HIIT Sprinting Efforts in Golden Gate Park along JFK Drive', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '15 Minutes HIIT Sprinting Efforts',
+      'Golden Gate Park',
+      '15-minutes-hiit-sprinting-efforts',
+    );
+    await expect(world.heading).toHaveText('Golden Gate Park');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Golden Gate Park');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

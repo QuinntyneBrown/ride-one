@@ -105,6 +105,7 @@ export interface components {
         | 'koppenberg'
         | 'ventoux'
         | 'chicago'
+        | 'goldengate'
         | 'havana';
     };
     ClassShelfResponse: {
