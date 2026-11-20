@@ -162,6 +162,7 @@ export class HavanaStreet implements SceneStreet {
   private readonly crestList: { offset: number; delay: number; length: number }[] = [];
   private foam: Texture | null = null;
   private roadHalf = 0;
+  private zebra: MeshStandardMaterial | null = null;
   private birds: InstancedMesh | null = null;
   private readonly birdList: {
     offset: number;
@@ -760,6 +761,7 @@ export class HavanaStreet implements SceneStreet {
       // Every few buildings a side street opens off the Malecón into the city.
       if (++inBlock >= block && offset < LOOP - CROSS - 12) {
         this.addCrossStreet(offset, roadHalf + 4, fronts, pastels, streets);
+        this.addZebra(offset, roadHalf);
         offset += CROSS;
         inBlock = 0;
         block = 3 + Math.floor(streets() * 3);
@@ -1005,6 +1007,35 @@ export class HavanaStreet implements SceneStreet {
       roof.add(tank);
     }
     return roof;
+  }
+
+  /**
+   * A zebra crossing painted over both carriageways at a side street's mouth: broad white bars
+   * across the road, their paint worn through where the wheels run.
+   */
+  private addZebra(offset: number, roadHalf: number): void {
+    if (!this.zebra) {
+      const map = this.track(zebraTexture());
+      this.zebra = this.material({
+        map,
+        transparent: true,
+        depthWrite: false,
+        roughness: 0.7,
+        polygonOffset: true,
+        polygonOffsetFactor: -4,
+      });
+    }
+    const span = 2 * roadHalf + LANES;
+    const sheet = new PlaneGeometry(span, 4);
+    sheet.rotateX(-Math.PI / 2);
+    sheet.translate(roadHalf - span / 2, 0.016, -CROSS / 2);
+    this.disposables.push(sheet);
+    const crossing = new Mesh(sheet, this.zebra);
+    crossing.renderOrder = 3;
+    const holder = new Group();
+    holder.add(crossing);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset, x: 0 });
   }
 
   /**
@@ -3368,5 +3399,28 @@ function lampPostTexture(): CanvasTexture {
         g.fillRect(x, top, 1.5 + random() * 2.5, 120);
       }
     }
+  });
+}
+
+/**
+ * A zebra crossing's bars: white bars half a metre wide every metre across a 2048-pixel road,
+ * on a clear ground, the paint scuffed and worn thin in the wheel tracks.
+ */
+function zebraTexture(): CanvasTexture {
+  return canvasTexture(2048, 128, (g) => {
+    g.clearRect(0, 0, 2048, 128);
+    const random = seeded(1321);
+    const bars = 22;
+    const pitch = 2048 / bars;
+    for (let i = 0; i < bars; i++) {
+      g.fillStyle = `rgba(240,238,230,${0.75 + random() * 0.2})`;
+      g.fillRect(i * pitch + pitch * 0.25, 4, pitch * 0.5, 120);
+    }
+    g.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i < 900; i++) {
+      g.fillStyle = `rgba(0,0,0,${0.3 + random() * 0.6})`;
+      g.fillRect(random() * 2048, random() * 128, 2 + random() * 10, 1 + random() * 4);
+    }
+    g.globalCompositeOperation = 'source-over';
   });
 }
