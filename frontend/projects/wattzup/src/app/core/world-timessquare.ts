@@ -21,6 +21,7 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
+  SphereGeometry,
   Quaternion,
   RepeatWrapping,
   type Texture,
@@ -129,6 +130,20 @@ const BOARDS: readonly (readonly [string, string, string, string])[] = [
   ['NEON NIGHTS', '#2a0a3a', '#4affd8', 'burst'],
   ['MIDNIGHT', '#0a1a3a', '#ffffff', 'marquee'],
 ];
+/** Bunches of balloons held up over the party, this often along each side. */
+const BUNCH_EVERY = 7;
+const BUNCH = 5;
+/** Balloons let go, rising into the night over the street ahead. */
+const RELEASED = 140;
+const BALLOON_COLOURS = [
+  '#f2c230',
+  '#e8e8f0',
+  '#8a3ad8',
+  '#ff4a9a',
+  '#3a8aff',
+  '#d8283a',
+  '#d7ff3a',
+];
 const CONFETTI_COLOURS = [
   '#f2c230',
   '#ffffff',
@@ -153,6 +168,10 @@ export class TimesSquareStreet implements SceneStreet {
   private readonly horizon = new Group();
   private time = 0;
   private confetti?: InstancedMesh;
+  private balloons?: InstancedMesh;
+  private released?: InstancedMesh;
+  private readonly bunches: { offset: number; x: number; lift: number }[] = [];
+  private readonly drifts: { x: number; z: number; phase: number; rise: number }[] = [];
   private readonly flakes: { x: number; z: number; phase: number; spin: number }[] = [];
   private readonly matrix = new Matrix4();
   private readonly spot = new Vector3();
@@ -197,6 +216,7 @@ export class TimesSquareStreet implements SceneStreet {
     this.addFeatherFlags();
     this.addRoadPaint();
     this.addConfetti();
+    this.addBalloons();
     this.addOneTimesSquare();
   }
 
@@ -221,6 +241,19 @@ export class TimesSquareStreet implements SceneStreet {
       drawCountdown((this.countdown.image as HTMLCanvasElement).getContext('2d')!, left);
       this.countdown.needsUpdate = true;
     }
+    // The balloons let go rise slowly into the night, swaying, round again from the crowd.
+    if (this.released) {
+      this.turn.identity();
+      this.drifts.forEach((drift, i) => {
+        const u = (seconds * drift.rise + drift.phase) % 1;
+        const sway = Math.sin(seconds * 0.8 + i) * 0.8;
+        this.spot.set(drift.x + sway, 4 + u * 70, drift.z);
+        this.size.set(1, 1.2, 1);
+        this.released!.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+      });
+      this.size.set(1, 1, 1);
+      this.released.instanceMatrix.needsUpdate = true;
+    }
     // The ball's facets sparkle as it turns through its colours.
     this.ballMaterials.forEach((material, i) => {
       material.emissiveIntensity = 1.6 + 0.8 * Math.sin(seconds * 2.2 + i * 1.3);
@@ -241,6 +274,29 @@ export class TimesSquareStreet implements SceneStreet {
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     if (this.confetti) this.confetti.position.y = ground(0);
+    // The held balloons ride with their bunches along the loop, bobbing on their strings.
+    if (this.balloons) {
+      this.bunches.forEach((bunch, b) => {
+        const metres = along(bunch.offset, LOOP);
+        const shown = metres < AHEAD - 12;
+        for (let k = 0; k < BUNCH; k++) {
+          const i = b * BUNCH + k;
+          const angle = (k / BUNCH) * Math.PI * 2 + b;
+          const bob = Math.sin(this.time * 1.6 + i) * 0.1;
+          this.spot.set(
+            bunch.x + Math.cos(angle) * 0.38,
+            ground(metres) + KERB + bunch.lift + (k % 2) * 0.35 + bob,
+            -metres + Math.sin(angle) * 0.38,
+          );
+          this.size.set(1, 1.2, 1).multiplyScalar(shown ? 1 : 0);
+          this.turn.identity();
+          this.balloons!.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+        }
+      });
+      this.size.set(1, 1, 1);
+      this.balloons.instanceMatrix.needsUpdate = true;
+    }
+    if (this.released) this.released.position.y = ground(0);
     this.horizon.position.set(0, heightAt(AHEAD), -AHEAD);
   }
 
@@ -525,6 +581,55 @@ export class TimesSquareStreet implements SceneStreet {
     }
     this.confetti = mesh;
     this.group.add(mesh);
+    this.setTime(this.time);
+  }
+
+  /**
+   * The party's balloons: bunches of five held up on strings over the crowd every few metres
+   * along both sides, and more let go, rising into the night over the street ahead.
+   */
+  private addBalloons(): void {
+    const random = seeded(5601);
+    const balloon = new SphereGeometry(0.34, 12, 10);
+    const material = this.material({
+      roughness: 0.3,
+      metalness: 0.15,
+      emissive: new Color(0x2a2030),
+    });
+    this.disposables.push(balloon);
+    const c = new Color();
+    for (const side of [-1, 1] as const) {
+      for (let offset = 3; offset < LOOP; offset += BUNCH_EVERY) {
+        if (offset % BLOCK > BLOCK - CROSS_STREET + 2) continue;
+        this.bunches.push({
+          offset: offset + (side > 0 ? BUNCH_EVERY / 2 : 0) + random() * 2,
+          x: side * (CROWD_NEAR + 0.6 + random() * (CROWD_FAR - CROWD_NEAR - 1)),
+          lift: 2.9 + random() * 0.9,
+        });
+      }
+    }
+    const held = new InstancedMesh(balloon, material, this.bunches.length * BUNCH);
+    held.frustumCulled = false;
+    for (let i = 0; i < held.count; i++) {
+      held.setColorAt(i, c.set(BALLOON_COLOURS[Math.floor(random() * BALLOON_COLOURS.length)]!));
+    }
+    this.disposables.push(held);
+    this.balloons = held;
+    this.group.add(held);
+    const free = new InstancedMesh(balloon, material, RELEASED);
+    free.frustumCulled = false;
+    for (let i = 0; i < RELEASED; i++) {
+      free.setColorAt(i, c.set(BALLOON_COLOURS[i % BALLOON_COLOURS.length]!));
+      this.drifts.push({
+        x: (random() < 0.5 ? -1 : 1) * (3 + random() * 14),
+        z: -10 - random() * 150,
+        phase: random(),
+        rise: 0.006 + random() * 0.01,
+      });
+    }
+    this.disposables.push(free);
+    this.released = free;
+    this.group.add(free);
     this.setTime(this.time);
   }
 
