@@ -71,6 +71,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [065 · Cirrus](065-cirrus.jpg) | High above the cumulus, cirrus now streaks the upper sky: thin, fibrous strands of ice cloud combed out by the wind aloft, hooked at one end and fading along their length. From the saddle, the wisps fill the sky above the billboard and the palms, giving it the layered depth of a tropical afternoon. | 94% · 92/100 |
 | [066 · Gutter](066-gutter.jpg) | A grimy gutter now runs along the inland kerb's foot: dark against the kerb, with drifts of pale sand, dry leaves and scraps of litter, and cast-iron drain grates set into it every 25 to 45 m. From the saddle, the sand and grime line the kerb on the right, where the asphalt used to meet it cleanly. | 94% · 92/100 |
 | [067 · Faces](067-faces.jpg) | The walkers' heads stop being bare spheres: each now has a nose and ears in the walker's skin and dark eyes with brows. From the saddle, the near walkers are heading away, so their ears show under the hair; faces show on the walkers coming toward the rider, small at this distance. | 94% · 92/100 |
+| [068 · Parked cars](068-parked-cars.jpg) | Almendrones, the classic 1950s American cars, now stand parked along the inland kerb in ones and nose-to-tail pairs: two-tone like the oncoming cars, or about one in three in faded grey, khaki or primer under a pale roof. From the saddle, a faded almendrón sits at the right kerb just ahead of the riders, by the bus stop, with more down the street. | 94% · 92/100 |
 
 ## Reproducing a capture
 

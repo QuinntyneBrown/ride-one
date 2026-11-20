@@ -1433,7 +1433,7 @@ export class HavanaStreet implements SceneStreet {
     const headlamp = new CylinderGeometry(0.13, 0.13, 0.08, 12);
     headlamp.rotateX(Math.PI / 2);
     this.disposables.push(body, cabin, windows, wheel, wall, hub, headlamp);
-    CARS.forEach(([colour, roof], k) => {
+    const build = (colour: string | number, roof: string | number) => {
       const paint = this.material({ color: colour, roughness: 0.3, metalness: 0.3 });
       const top = this.material({ color: roof, roughness: 0.35, metalness: 0.2 });
       const car = new Group();
@@ -1472,12 +1472,33 @@ export class HavanaStreet implements SceneStreet {
           put(hub, chrome, x, 0.37, z);
         }
       }
+      return car;
+    };
+    CARS.forEach(([colour, roof], k) => {
+      const car = build(colour, roof);
       // Oncoming down the far carriageway, in its two lanes.
       car.rotation.y = Math.PI;
       car.position.x = -roadHalf - (k % 2 ? 1.9 : 5.2);
       this.group.add(car);
       this.cars.push({ mesh: car, offset: k * 45 + random() * 20, speed: -(9 + random() * 4) });
     });
+    // Almendrones parked nose to tail along the inland kerb, as they are all along the
+    // Malecón, in ones and twos with gaps between, a few in faded or primer paint.
+    const parking = seeded(1511);
+    const faded = ['#8a8a7a', '#9a8a6a', '#6a7a7a', '#b0a890'];
+    for (let offset = 42; offset < LOOP - 20; offset += 26 + parking() * 60) {
+      const run = parking() < 0.4 ? 2 : 1;
+      for (let n = 0; n < run; n++) {
+        const [colour, roof] = CARS[Math.floor(parking() * CARS.length)]!;
+        const tired = parking() < 0.3;
+        const car = build(tired ? faded[n % faded.length]! : colour, tired ? '#d8d4c8' : roof);
+        car.rotation.y = (parking() - 0.5) * 0.04;
+        const holder = new Group();
+        holder.add(car);
+        this.group.add(holder);
+        this.props.push({ mesh: holder, offset: offset + n * 6.4, x: roadHalf - 1.15 });
+      }
+    }
     this.addTraffic(roadHalf, chrome, tyre, glass, wheel, hub);
   }
 
