@@ -98,6 +98,7 @@ export class AmsterdamStreet implements SceneStreet {
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly tower = new Group();
+  private readonly clouds = new Group();
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -118,6 +119,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
     this.addWestertoren();
+    this.addClouds();
   }
 
   setTime(seconds: number): void {
@@ -144,6 +146,8 @@ export class AmsterdamStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     this.tower.position.set(12, heightAt(0), -TOWER);
+    // The clouds drift slowly from the west across the sky and stay over the horizon.
+    this.clouds.position.set(((this.time * 1.5 + 1200) % 2400) - 1200, 0, 0);
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s + START, LOOP, BEHIND);
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
@@ -437,6 +441,39 @@ export class AmsterdamStreet implements SceneStreet {
     add(new CylinderGeometry(0.08, 0.12, 4, 6).translate(0, 2, 0), gold, 75.3);
     add(new BoxGeometry(1.4, 0.1, 0.1), gold, 78.6);
     this.group.add(this.tower);
+  }
+
+  /**
+   * A Dutch sky: banks of fair-weather cumulus over the far end of the gracht, white and piled
+   * up on top with grey, flat bases, drawn as soft cards out of the fog.
+   */
+  private addClouds(): void {
+    const random = seeded(557);
+    const maps = [0, 1, 2].map((k) => this.track(cloudTexture(561 + k * 4)));
+    const materials = maps.map((map) => {
+      const material = new MeshBasicMaterial({
+        map,
+        transparent: true,
+        depthWrite: false,
+        fog: false,
+        // Brighter than white, so the heads stay white through the tone mapping.
+        color: new Color(1.7, 1.7, 1.75),
+      });
+      this.disposables.push(material);
+      return material;
+    });
+    const card = new PlaneGeometry(1, 0.5);
+    this.disposables.push(card);
+    for (let i = 0; i < 22; i++) {
+      const cloud = new Mesh(card, materials[i % 3]!);
+      const far = 900 + random() * 900;
+      const width = 260 + random() * 320;
+      cloud.scale.set(width, width, 1);
+      cloud.position.set((random() - 0.5) * 1800, 120 + random() * 320 + far * 0.06, -far);
+      cloud.renderOrder = -1;
+      this.clouds.add(cloud);
+    }
+    this.group.add(this.clouds);
   }
 
   /** The window boxes and façade gardens' materials and shapes. */
@@ -1466,6 +1503,40 @@ function kerbTexture(): CanvasTexture {
     speckle(g, 64, 256, '#9a9894', 547);
     g.fillStyle = 'rgba(30,30,30,0.5)';
     for (let y = 0; y < 256; y += 128) g.fillRect(0, y, 64, 2);
+  });
+}
+
+/** A cumulus cloud on clear ground: billowing white heads over a flat, grey-shaded base. */
+function cloudTexture(seed: number): CanvasTexture {
+  return canvasTexture(512, 256, (g) => {
+    g.clearRect(0, 0, 512, 256);
+    const random = seeded(seed);
+    for (let i = 0; i < 90; i++) {
+      const x = 60 + random() * 392;
+      const rise = Math.sin(((x - 60) / 392) * Math.PI);
+      const y = 190 - random() * 120 * rise;
+      const r = 18 + random() * 34 * (0.5 + rise);
+      const puff = g.createRadialGradient(x, y - r * 0.3, r * 0.1, x, y, r);
+      const shade = Math.min(250, Math.round(228 + (190 - y) * 0.25));
+      puff.addColorStop(0, 'rgba(255,255,255,0.95)');
+      puff.addColorStop(0.6, `rgba(${shade},${shade},${Math.min(255, shade + 6)},0.7)`);
+      puff.addColorStop(1, 'rgba(220,226,234,0)');
+      g.fillStyle = puff;
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.fill();
+    }
+    // The flat base, shaded grey.
+    const base = g.createLinearGradient(0, 170, 0, 215);
+    base.addColorStop(0, 'rgba(170,180,194,0)');
+    base.addColorStop(1, 'rgba(160,170,186,0.35)');
+    g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = base;
+    g.fillRect(0, 170, 512, 50);
+    g.globalCompositeOperation = 'destination-out';
+    g.fillStyle = 'rgba(0,0,0,1)';
+    g.fillRect(0, 212, 512, 44);
+    g.globalCompositeOperation = 'source-over';
   });
 }
 
