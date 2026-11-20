@@ -187,6 +187,8 @@ export class SerpentineStreet implements SceneStreet {
       skip: (side, offset, x) =>
         (side < 0 && Math.abs(offset - BOATHOUSE) < 12) ||
         offset % 40 > 26 ||
+        // Thinner on the lake side, so the water shows between the knots.
+        (side < 0 && offset % 40 > 15) ||
         (x > CROWD_NEAR + 1.2 && offset % 12 > 7),
     });
   }
@@ -659,8 +661,12 @@ export class SerpentineStreet implements SceneStreet {
       this.boats.push({
         mesh: boat,
         oars,
-        offset: k % 2 ? 120 + random() * 220 : random() * LOOP,
-        x: -EDGE - 14 - random() * (FAR_BANK - EDGE - 30),
+        // Half of them out on the water in the stretch the rider first sees.
+        offset: k < BOATS / 2 ? 128 + k * 16 + random() * 6 : random() * LOOP,
+        x:
+          k < BOATS / 2
+            ? -EDGE - 13 - random() * 24
+            : -EDGE - 14 - random() * (FAR_BANK - EDGE - 30),
         phase: random() * 6,
         speed: (boat.rotation.y === 0 ? 1 : -1) * (0.5 + random() * 0.5),
       });
@@ -696,13 +702,13 @@ export class SerpentineStreet implements SceneStreet {
       knob.position.set(0, 0.77, -0.52);
       swan.add(body, tail, neck, head, bill, knob);
       for (const m of swan.children) m.castShadow = true;
-      swan.scale.setScalar(1.5);
+      swan.scale.setScalar(1.8);
       this.group.add(swan);
       const flock = Math.floor(k / 3);
       this.swans.push({
         mesh: swan,
-        offset: (flock < 3 ? 110 + flock * 30 : flock * 85) + random() * 6,
-        x: -EDGE - 2 - random() * (flock < 3 ? 8 : 40),
+        offset: (flock < 3 ? 118 + flock * 24 : flock * 85) + random() * 6,
+        x: -EDGE - (flock < 3 ? 7 + random() * 10 : 2 + random() * 40),
         phase: random() * 6,
         speed: 0,
       });
