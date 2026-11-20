@@ -1228,3 +1228,19 @@ export function buntingGeometry(
   lines.forEach((s) => s.dispose());
   return geometry;
 }
+
+/**
+ * A soft round glow, white at its heart fading warm to nothing at its edge, for the halo an
+ * additive quad draws round a light: Ibiza's festoon bulbs, Lee Valley's arena lights.
+ */
+export function haloTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    const glow = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    glow.addColorStop(0, 'rgba(255,255,255,1)');
+    glow.addColorStop(0.2, 'rgba(255,235,190,0.7)');
+    glow.addColorStop(0.55, 'rgba(255,190,110,0.18)');
+    glow.addColorStop(1, 'rgba(255,170,80,0)');
+    g.fillStyle = glow;
+    g.fillRect(0, 0, 64, 64);
+  });
+}
