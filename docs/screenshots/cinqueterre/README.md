@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [3 Mins On, 2 Mins Off](http://localho
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/3-mins-on-2-mins-off?simulate`, click **Ride in Cinque Terre**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [046 · The coast and its villages stand still](bend-046-coast-stands.jpg) | The Ligurian sea, the headlands and the villages on them were bent vertex by vertex with the corniche's 40° bends, so the coast swung and squeezed with each turn above it. It now stands beyond the road unbent, as the panorama does, and the props behind the rider stand on the road there instead of at the height under the rider. |
