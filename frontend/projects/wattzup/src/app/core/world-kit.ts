@@ -1371,3 +1371,66 @@ export function saltCrustTexture(): CanvasTexture {
     }
   });
 }
+
+/** Alpine meadow: short grass with flowers. */
+export function meadowTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    speckle(g, 256, 256, '#6a9a48', 1549);
+    const random = seeded(1553);
+    for (let i = 0; i < 140; i++) {
+      g.fillStyle = ['#e8e4dc', '#ffd23f', '#b088e0', '#ff6b5a'][Math.floor(random() * 4)]!;
+      g.fillRect(random() * 256, random() * 256, 2 + random() * 3, 2 + random() * 3);
+    }
+  });
+}
+
+/** The Dolomite rock: pale grey-gold, banded in layers, streaked by rain. */
+export function dolomiteTexture(): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    speckle(g, 256, 256, '#c8c0b0', 1559);
+    const random = seeded(1567);
+    g.fillStyle = 'rgba(90,80,70,0.3)';
+    for (let y = 10; y < 256; y += 18 + random() * 12) g.fillRect(0, y, 256, 2 + random() * 3);
+    for (let i = 0; i < 60; i++) {
+      g.fillStyle = `rgba(70,64,58,${0.12 + random() * 0.2})`;
+      g.fillRect(random() * 256, random() * 256, 2 + random() * 4, 12 + random() * 40);
+    }
+  });
+}
+
+/** Eases from 0 below t = 0 up to 1 above t = 1. */
+export function ease(t: number): number {
+  const u = Math.min(1, Math.max(0, t));
+  return u * u * (3 - 2 * u);
+}
+
+/**
+ * Terrain as a heightfield `width` by `depth` metres centred on (x, z), with `across` by `along`
+ * cells: `height` raises each vertex at its place beside the road, and `colour` paints it by its
+ * height, so rock bands, scree and snow follow the terrain. A vertex never dips below 0, and the
+ * whole field sits 4 m down so its foot meets the ground.
+ */
+export function heightfield(
+  disposables: { dispose(): void }[],
+  [cx, cz]: readonly [number, number],
+  [width, depth, across, along]: readonly [number, number, number, number],
+  height: (x: number, z: number) => number,
+  colour: (y: number, z: number) => Color,
+): PlaneGeometry {
+  const field = new PlaneGeometry(width, depth, across, along);
+  field.rotateX(-Math.PI / 2);
+  field.translate(cx, 0, cz);
+  const position = field.getAttribute('position');
+  const paint = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const z = position.getZ(i);
+    const y = Math.max(0, height(x, z));
+    position.setY(i, y - 4);
+    colour(y, z).toArray(paint, i * 3);
+  }
+  field.setAttribute('color', new BufferAttribute(paint, 3));
+  field.computeVertexNormals();
+  disposables.push(field);
+  return field;
+}

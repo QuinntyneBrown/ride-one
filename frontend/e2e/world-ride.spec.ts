@@ -297,6 +297,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Death Valley');
   });
 
+  test('rides Progressive Efforts on the Passo Gardena along Badwater Road through Death Valley', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Progressive Efforts on the Passo Gardena',
+      'Passo Gardena',
+      'progressive-efforts-on-the-passo-gardena',
+    );
+    await expect(world.heading).toHaveText('Passo Gardena');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Passo Gardena');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');
