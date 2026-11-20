@@ -28,7 +28,7 @@ import {
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { canvasTexture, loopMetres, Ribbons, type SceneStreet, seeded, speckle } from './world-kit';
-import { ellipsoid, limb, Spectators } from './world-caribana-crowd';
+import { ellipsoid, limb, Spectators, spectatorParts } from './world-caribana-crowd';
 import type { StreetPoint } from './world-oldtown';
 
 /** The street repeats every LOOP metres; its parts run from BEHIND metres behind the rider. */
@@ -445,17 +445,58 @@ export class CaribanaStreet implements SceneStreet {
     );
   }
 
-  /** Music trucks on the left apron: a flatbed of speaker stacks under a canopy, the band's name. */
+  /**
+   * The bands' music trucks in the left lane: a long-nosed tractor with chrome stacks hauling a
+   * flatbed. On the deck four truss towers carry a tarp roof, line arrays hang from the rear
+   * corners over a wall of subs facing the band behind, coloured lights line the top truss,
+   * and a DJ and crew dance at the booth under the band's name.
+   */
   private addTrucks(): void {
     const names = ['SOCA KINGDOM', 'ISLAND PEOPLE', 'TROPICAL FUSION'];
+    const dark = this.material({ color: 0x1b1c1f, roughness: 0.6 });
+    const glass = this.material({ color: 0x1d2a33, roughness: 0.08, metalness: 0.6 });
+    const chrome = this.material({ color: 0xe6e8ea, roughness: 0.15, metalness: 1 });
+    const rubber = this.material({ color: 0x151515, roughness: 0.9 });
+    const hub = this.material({ color: 0xb8bcc0, roughness: 0.3, metalness: 0.9 });
+    const deckWood = this.material({ color: 0x6b5138, roughness: 0.9 });
+    const truss = this.material({
+      map: this.track(trussTexture()),
+      alphaTest: 0.5,
+      side: DoubleSide,
+      color: 0xd5d8db,
+      metalness: 0.8,
+      roughness: 0.35,
+    });
+    const speakers = this.material({ map: this.track(speakerTexture()), roughness: 0.7 });
+    const cabinet = [dark, dark, dark, dark, speakers, dark];
+    const lights = ['#ff2d87', '#ffd23f', '#13c3c9', '#7b2ff7'].map((c) =>
+      this.material({ color: c, emissive: c, emissiveIntensity: 2.2 }),
+    );
+    const skin = this.material({ roughness: 0.6 });
+    const cloth = this.material({ roughness: 0.9 });
+    const tyre = new CylinderGeometry(0.52, 0.52, 0.3, 16);
+    tyre.rotateZ(Math.PI / 2);
+    const rim = new CylinderGeometry(0.3, 0.3, 0.32, 12);
+    rim.rotateZ(Math.PI / 2);
+    const stack = new CylinderGeometry(0.08, 0.08, 2.8, 10);
+    const tank = new CylinderGeometry(0.32, 0.32, 1.3, 14);
+    tank.rotateX(Math.PI / 2);
+    const can = new CylinderGeometry(0.1, 0.12, 0.22, 10);
+    this.disposables.push(tyre, rim, stack, tank, can);
+    const crew = [
+      [0, 2, 1.55],
+      [2, 1, 1.55],
+      [3, 0.5, 4.2],
+      [2, -0.7, 5.5],
+    ] as const;
     for (let i = 0; i < LOOP / TRUCK_EVERY; i++) {
       const truck = new Group();
       const paint = ['#c8102e', '#ffb000', '#0f9d58'][i % 3]!;
-      const body = this.material({ color: paint, roughness: 0.4, metalness: 0.3 });
-      const dark = this.material({ color: 0x1b1c1f, roughness: 0.6 });
-      const speakers = this.material({ map: this.track(speakerTexture()), roughness: 0.7 });
+      const name = names[i % names.length]!;
+      const body = this.material({ color: paint, roughness: 0.3, metalness: 0.4 });
+      const tarp = this.material({ color: paint, roughness: 0.8, side: DoubleSide });
       const banner = this.material({
-        map: this.track(bannerTexture(names[i % names.length]!, paint)),
+        map: this.track(bannerTexture(name, paint)),
         side: DoubleSide,
         roughness: 0.6,
       });
@@ -475,44 +516,98 @@ export class CaribanaStreet implements SceneStreet {
         truck.add(mesh);
         return mesh;
       };
-      box(body, 2.4, 2.2, 2.2, 0, 0.6, -4.4); // cab
-      box(dark, 2.4, 0.9, 0.05, 0, 1.7, -3.28); // windscreen, read from behind as the cab's back
-      box(dark, 2.5, 0.6, 9, 0, 0.35, 1); // chassis
-      box(body, 2.5, 0.25, 9, 0, 0.95, 1); // deck
-      // The speaker wall faces back, towards the band that follows the truck.
-      const cabinet = [dark, dark, dark, dark, speakers, dark];
-      box(cabinet, 2.3, 2.6, 1.2, 0, 1.2, 4.6);
-      box(cabinet, 0.9, 1.6, 0.9, -0.7, 1.2, 0.5);
-      box(cabinet, 0.9, 1.6, 0.9, 0.7, 1.2, 0.5);
-      for (const [x, z] of [
-        [-1.15, -2.6],
-        [1.15, -2.6],
-        [-1.15, 5.2],
-        [1.15, 5.2],
-      ] as const) {
-        box(dark, 0.08, 3.4, 0.08, x, 1.2, z);
+      const part = (geometry: BufferGeometry, m: Material, x: number, y: number, z: number) => {
+        const mesh = new Mesh(geometry, m);
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        truck.add(mesh);
+        return mesh;
+      };
+      // The tractor: a long bonnet, the cab and a sleeper, chrome grille, stacks and tanks.
+      box(body, 2.2, 1.3, 2.2, 0, 1.05, -8.3); // bonnet
+      box(chrome, 1.3, 1.1, 0.08, 0, 1.1, -9.42); // grille
+      box(chrome, 2.5, 0.3, 0.3, 0, 0.6, -9.45); // bumper
+      box(body, 2.5, 2.1, 1.9, 0, 1.05, -6.3); // cab
+      box(glass, 2.3, 0.85, 0.05, 0, 2.15, -7.27); // windscreen
+      box(glass, 2.52, 0.7, 1.2, 0, 2.2, -6.35); // side windows
+      box(body, 2.5, 2.6, 1.6, 0, 1.05, -4.6); // sleeper
+      for (const x of [-1.32, 1.32]) {
+        part(stack, chrome, x, 3.2, -5.45);
+        part(tank, chrome, x * 0.95, 0.85, -5.8);
       }
-      box(body, 2.7, 0.12, 8.2, 0, 4.6, 1.3); // canopy
-      const sign = new Mesh(new PlaneGeometry(7.6, 0.9), banner);
-      sign.position.set(1.27, 1.8, 1.2);
-      sign.rotation.y = Math.PI / 2;
-      truck.add(sign);
-      const back = new Mesh(new PlaneGeometry(2.5, 0.75), banner);
-      back.position.set(0, 4.15, 5.45);
-      truck.add(back);
-      this.disposables.push(sign.geometry, back.geometry, body, dark, speakers, banner);
-      for (const [x, z] of [
-        [-1.25, -4.4],
-        [1.25, -4.4],
-        [-1.25, 3.8],
-        [1.25, 3.8],
-        [-1.25, 2.4],
-        [1.25, 2.4],
-      ] as const) {
-        const wheel = new Mesh(this.wheel, dark);
-        wheel.rotation.z = Math.PI / 2;
-        wheel.position.set(x, 0.5, z);
-        truck.add(wheel);
+      box(dark, 1.2, 0.5, 9.4, 0, 0.6, -4.6); // tractor frame
+      // The flatbed: chassis, a timber deck, and the band's name along the skirt.
+      box(dark, 1.2, 0.5, 12.4, 0, 0.9, 3.4);
+      box(body, 2.6, 0.12, 12.4, 0, 1.4, 3.4);
+      box(deckWood, 2.5, 0.04, 12.3, 0, 1.52, 3.4);
+      for (const side of [-1, 1]) {
+        const skirt = new Mesh(new PlaneGeometry(11.6, 0.62), banner);
+        skirt.position.set(side * 1.31, 1.1, 3.6);
+        skirt.rotation.y = side * (Math.PI / 2);
+        truck.add(skirt);
+        this.disposables.push(skirt.geometry);
+      }
+      // Four truss towers, the top truss and a tarp roof in the band's colour.
+      for (const x of [-1.15, 1.15]) {
+        for (const z of [-2.5, 9.2]) box(truss, 0.3, 4, 0.3, x, 1.55, z);
+        box(truss, 0.3, 0.3, 11.7, x, 5.55, 3.35);
+      }
+      for (const z of [-2.5, 9.2]) box(truss, 2.6, 0.3, 0.3, 0, 5.55, z);
+      box(tarp, 2.9, 0.06, 12.2, 0, 5.95, 3.35);
+      const valance = new Mesh(new PlaneGeometry(2.9, 0.7), banner);
+      valance.position.set(0, 5.5, 9.42);
+      truck.add(valance);
+      this.disposables.push(valance.geometry);
+      // Line arrays curving down from the rear corners, and the subs between them.
+      for (const x of [-1.0, 1.0]) {
+        for (let k = 0; k < 7; k++) {
+          const cab = box(cabinet, 0.62, 0.3, 0.5, x, 5.15 - k * 0.31, 9.0 + k * 0.015);
+          cab.rotation.x = -0.02 - k * k * 0.008;
+        }
+      }
+      box(cabinet, 2.3, 0.9, 1.0, 0, 1.55, 8.3);
+      box(cabinet, 2.3, 0.9, 1.0, 0, 2.45, 8.3);
+      // Coloured lights along the rear top truss, pointing at the band.
+      for (let k = 0; k < 6; k++) {
+        const light = part(can, lights[k % lights.length]!, -1.0 + k * 0.4, 5.25, 9.2);
+        light.rotation.x = Math.PI / 2 + 0.5;
+      }
+      // The DJ booth, a generator, and the DJ and crew dancing on the deck.
+      box(dark, 1.8, 1.0, 0.7, 0, 1.55, 2.6);
+      const front = new Mesh(new PlaneGeometry(1.8, 0.6), banner);
+      front.position.set(0, 2.15, 2.96);
+      truck.add(front);
+      this.disposables.push(front.geometry);
+      box(dark, 1.0, 1.1, 1.6, 0, 1.55, -1.4);
+      const random = seeded(500 + i);
+      for (const [stance, x, z] of crew) {
+        const person = spectatorParts(stance, random() < 0.5);
+        const figure = new Group();
+        const tone = SKINS[Math.floor(random() * SKINS.length)]!;
+        const shirt = SHIRTS[Math.floor(random() * SHIRTS.length)]!;
+        const pairs: [BufferGeometry, string][] = [
+          [person.skin, tone],
+          [person.top, shirt],
+          [person.bottom, TROUSERS[Math.floor(random() * TROUSERS.length)]!],
+        ];
+        for (const [geometry, colour] of pairs) {
+          const m = (geometry === person.skin ? skin : cloth).clone();
+          m.color.set(colour);
+          this.disposables.push(geometry, m);
+          figure.add(new Mesh(geometry, m));
+        }
+        // The DJ (stance 0) works the decks facing the band behind; the crew face the crowds.
+        figure.rotation.y = stance === 0 ? Math.PI : x < 0 ? Math.PI / 2 : -Math.PI / 2;
+        figure.position.set(x, 1.55, z);
+        figure.traverse((o) => (o.castShadow = true));
+        truck.add(figure);
+      }
+      // Tractor wheels (a steer axle and a tandem) and the trailer's tandem at the rear.
+      for (const z of [-8.2, -5.0, -3.8, 6.4, 7.6]) {
+        for (const x of [-1.12, 1.12]) {
+          part(tyre, rubber, x, 0.52, z);
+          part(rim, hub, x, 0.52, z);
+        }
       }
       this.group.add(truck);
       this.props.push({
@@ -525,15 +620,13 @@ export class CaribanaStreet implements SceneStreet {
     }
   }
 
-  private readonly wheel = new CylinderGeometry(0.5, 0.5, 0.35, 14);
-
   /** Lamp standards behind the barricades, each flying two banner flags. */
   private addLamps(): void {
     const pole = new CylinderGeometry(0.07, 0.1, 8, 8);
     const arm = new BoxGeometry(1.6, 0.08, 0.08);
     const head = new BoxGeometry(0.6, 0.15, 0.3);
     const cloth = new PlaneGeometry(0.6, 1.4);
-    this.disposables.push(pole, arm, head, cloth, this.wheel);
+    this.disposables.push(pole, arm, head, cloth);
     const iron = this.material({ color: 0x3b4148, metalness: 0.6, roughness: 0.4 });
     const banners = FLAG_KINDS.map((kind) =>
       this.material({ map: this.track(flagTexture(kind, true)), side: DoubleSide, roughness: 0.8 }),
@@ -1146,6 +1239,25 @@ function featherTexture(): CanvasTexture {
     }
     g.fillStyle = 'rgba(255,255,255,0.95)';
     g.fillRect(31, 0, 2, 256);
+  });
+}
+
+/** A box truss face: two chords and the zigzag lacing between them, cut out of the canvas. */
+function trussTexture(): CanvasTexture {
+  return canvasTexture(64, 512, (g) => {
+    g.clearRect(0, 0, 64, 512);
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 8, 512);
+    g.fillRect(56, 0, 8, 512);
+    g.strokeStyle = '#ffffff';
+    g.lineWidth = 5;
+    g.beginPath();
+    for (let y = 0; y <= 512; y += 64) {
+      g.moveTo(4, y);
+      g.lineTo(60, y + 32);
+      g.lineTo(4, y + 64);
+    }
+    g.stroke();
   });
 }
 

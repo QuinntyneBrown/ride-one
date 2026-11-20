@@ -152,7 +152,7 @@ const CAPS = ['#c8102e', '#111111', '#ffd23f', '#1b6ad8', '#ffffff', '#0f9d58'];
 const SHOES = ['#f2f2f2', '#111111', '#d6d0c4', '#8b5e3c', '#c8102e'];
 
 /** The parts of a spectator's body and clothes for one stance and one cut of bottoms. */
-function spectatorParts(stance: number, shorts: boolean) {
+export function spectatorParts(stance: number, shorts: boolean) {
   const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
   const skin: BufferGeometry[] = [];
   const top: BufferGeometry[] = [];
@@ -190,7 +190,7 @@ function spectatorParts(stance: number, shorts: boolean) {
 }
 
 /** A pair of trainers. */
-function shoeGeometry(): BufferGeometry {
+export function shoeGeometry(): BufferGeometry {
   return merge(
     [-1, 1].map((side) => {
       const shoe = new BoxGeometry(0.11, 0.09, 0.27);
@@ -201,7 +201,7 @@ function shoeGeometry(): BufferGeometry {
 }
 
 /** Hair and hats: a close crop, an afro, a baseball cap with its brim, or a headwrap. */
-function hairParts(): BufferGeometry[] {
+export function hairParts(): BufferGeometry[] {
   const crop = ellipsoid(0.112, 0.92, 0.72, 1.02, 0, 1.64, 0.0, 10);
   const afro = ellipsoid(0.16, 1, 0.92, 1, 0, 1.68, 0.02, 10);
   const crown = ellipsoid(0.115, 0.95, 0.6, 1.02, 0, 1.66, 0, 10);
