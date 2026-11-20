@@ -329,6 +329,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addIntersection();
     this.addGrandstand();
     this.addSpray();
+    this.addCastings();
     this.addConfetti();
     this.addOfficers();
     this.addBandBanners();
@@ -1738,6 +1739,50 @@ export class CaribanaStreet implements SceneStreet {
     crossing.traverse((o) => (o.castShadow = o.type === 'Mesh' && o.parent !== crossing));
     this.group.add(crossing);
     this.props.push({ mesh: crossing, offset: CROSSING_AT, every: LOOP, x: 0, road: true });
+  }
+
+  /**
+   * What is set into the asphalt: round cast-iron manhole covers in the lanes, rectangular
+   * utility cuts patched in darker, newer tar, and the odd oil stain, scattered along the loop
+   * so the road does not repeat its 18 m texture so evenly.
+   */
+  private addCastings(): void {
+    const random = seeded(1903);
+    const kinds = [manholeTexture(), patchTexture(), stainTexture()].map((t) =>
+      this.material({
+        map: this.track(t),
+        transparent: true,
+        alphaTest: 0.05,
+        roughness: 0.75,
+        metalness: 0,
+        depthWrite: false,
+      }),
+    );
+    const sizes = [
+      [0.9, 0.9],
+      [2.4, 1.6],
+      [1.4, 1.1],
+    ] as const;
+    for (let k = 0; k < 26; k++) {
+      const kind = k % 3;
+      const [w, d] = sizes[kind]!;
+      const plane = new PlaneGeometry(w * (0.8 + random() * 0.6), d * (0.8 + random() * 0.6));
+      plane.rotateX(-Math.PI / 2);
+      plane.rotateY(kind === 0 ? 0 : (random() - 0.5) * 0.3);
+      plane.translate(0, 0.004, 0);
+      this.disposables.push(plane);
+      const holder = new Group();
+      holder.add(new Mesh(plane, kinds[kind]!));
+      this.group.add(holder);
+      const lane = [-4.4, -2.2, 0, 2.2, 4.4][Math.floor(random() * 5)]!;
+      this.props.push({
+        mesh: holder,
+        offset: random() * LOOP,
+        every: LOOP,
+        x: lane + (random() - 0.5) * 1.2,
+        road: true,
+      });
+    }
   }
 
   /**
@@ -3586,9 +3631,19 @@ function ladderTexture(): CanvasTexture {
     g.fillRect(0, 0, 1024, 10);
     g.fillRect(0, 118, 1024, 10);
     for (let x = 8; x < 1024; x += 48) g.fillRect(x, 10, 26, 108);
+    // Worn where the wheels run: soft scuffs thinning the paint, not holes through it.
     g.globalCompositeOperation = 'destination-out';
     const random = seeded(1601);
-    for (let i = 0; i < 900; i++) g.fillRect(random() * 1024, random() * 128, 2 + random() * 4, 2);
+    for (let i = 0; i < 60; i++) {
+      const x = random() * 1024;
+      const y = random() * 128;
+      const r = 6 + random() * 18;
+      const scuff = g.createRadialGradient(x, y, 0, x, y, r);
+      scuff.addColorStop(0, 'rgba(0,0,0,0.45)');
+      scuff.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = scuff;
+      g.fillRect(x - r, y - r, 2 * r, 2 * r);
+    }
   });
 }
 
@@ -3623,6 +3678,55 @@ function wetTexture(): CanvasTexture {
       g.fillStyle = blot;
       g.fillRect(x - r, y - r, 2 * r, 2 * r);
     }
+  });
+}
+
+/** A cast-iron manhole cover: a raised grid of lugs in a rim, rust at the edge. */
+function manholeTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.clearRect(0, 0, 128, 128);
+    g.fillStyle = '#3a3836';
+    g.beginPath();
+    g.arc(64, 64, 62, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = '#6b5a48';
+    g.lineWidth = 4;
+    g.stroke();
+    g.fillStyle = '#55524e';
+    for (let y = 22; y < 110; y += 12) {
+      for (let x = 22; x < 110; x += 12) {
+        if (Math.hypot(x - 64, y - 64) < 46) g.fillRect(x - 3, y - 3, 6, 6);
+      }
+    }
+    g.strokeStyle = '#2a2826';
+    g.lineWidth = 3;
+    g.beginPath();
+    g.arc(64, 64, 52, 0, Math.PI * 2);
+    g.stroke();
+  });
+}
+
+/** A utility cut: a rectangle of newer, darker tar with sealed seams. */
+function patchTexture(): CanvasTexture {
+  return canvasTexture(128, 96, (g) => {
+    g.clearRect(0, 0, 128, 96);
+    speckle(g, 128, 96, '#3c3e42', 1907);
+    g.strokeStyle = 'rgba(20,20,22,0.9)';
+    g.lineWidth = 3;
+    g.strokeRect(2, 2, 124, 92);
+  });
+}
+
+/** An oil stain: a soft dark blot with a faint sheen ring. */
+function stainTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.clearRect(0, 0, 128, 128);
+    const blot = g.createRadialGradient(64, 64, 4, 64, 64, 60);
+    blot.addColorStop(0, 'rgba(20,18,22,0.55)');
+    blot.addColorStop(0.7, 'rgba(40,30,50,0.25)');
+    blot.addColorStop(1, 'rgba(20,18,22,0)');
+    g.fillStyle = blot;
+    g.fillRect(0, 0, 128, 128);
   });
 }
 
