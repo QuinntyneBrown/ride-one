@@ -783,6 +783,25 @@ export class MontmartreStreet implements SceneStreet {
       emissiveIntensity: 0.25,
     });
     const shade = hazedMaterial(this.disposables, haze, 0x6a645a, 0.14);
+    const bronze = hazedMaterial(this.disposables, haze, 0x3a3a32, 0.14);
+    const ribbed = hazedMaterial(this.disposables, haze, 0xfbf8f0, 0.1, {
+      side: DoubleSide,
+      map: this.track(domeTexture()),
+      emissive: new Color(0x6a6458),
+      emissiveIntensity: 0.25,
+    });
+    // A box with one carved face toward the street, white travertine on the rest.
+    const faced = (texture: CanvasTexture, w: number, hh: number, d: number, z: number) => {
+      const front = hazedMaterial(this.disposables, haze, 0xffffff, 0.1, {
+        map: this.track(texture),
+        emissive: new Color(0x6a6458),
+        emissiveIntensity: 0.25,
+      });
+      const mesh = new Mesh(this.unit, [white, white, white, white, front, white]);
+      mesh.scale.set(w, hh, d);
+      mesh.position.set(0, hh / 2, z);
+      g.add(mesh);
+    };
     const add = (
       geometry: BufferGeometry,
       material: MeshStandardMaterial,
@@ -819,7 +838,7 @@ export class MontmartreStreet implements SceneStreet {
     this.disposables.push(ogive, drum);
     const dome = (r: number, drumHeight: number, x: number, y: number, z: number) => {
       add(drum, white, x, y, z).scale.set(r, drumHeight, r);
-      add(ogive, white, x, y + drumHeight, z).scale.set(r * 1.08, r * 1.08, r * 1.08);
+      add(ogive, ribbed, x, y + drumHeight, z).scale.set(r * 1.08, r * 1.08, r * 1.08);
       // The lantern on top, and its little cap.
       const top = y + drumHeight + r * 1.08 * 1.4;
       add(drum, white, x, top - r * 0.1, z).scale.set(r * 0.18, r * 0.42, r * 0.18);
@@ -843,9 +862,16 @@ export class MontmartreStreet implements SceneStreet {
     g.scale.setScalar(2);
     // The nave and transepts, the portico of three arches with its terrace, the corner domes.
     box(32, 24, 64, 0, 0, -6);
-    box(52, 20, 18, 0, 0, -10);
-    box(34, 18, 10, 0, 0, 30);
-    for (const x of [-9, 0, 9]) box(6, 10, 0.6, x, 2, 35.2, shade);
+    faced(transeptTexture(), 52, 20, 18, -10);
+    faced(porticoTexture(), 34, 18, 10, 30);
+    // The two bronze horsemen on the portico's corners, Saint Louis and Joan of Arc.
+    for (const x of [-14.5, 14.5]) {
+      box(1.6, 1.2, 1.6, x, 18, 33);
+      box(1.1, 1.5, 3.2, x, 19.2, 33, bronze);
+      box(0.5, 0.5, 0.9, x, 20.4, 34.6, bronze);
+      for (const lz of [-1.2, 1.2]) box(0.9, 1.4, 0.3, x, 18.9 - 1.1, 33 + lz, bronze);
+      box(0.6, 1.8, 0.6, x, 20.7, 32.8, bronze);
+    }
     box(40, 2, 16, 0, -2, 38);
     dome(11, 18, 0, 24, -6);
     for (const [x, z] of [
@@ -981,6 +1007,111 @@ function buntingTexture(): CanvasTexture {
       g.lineTo(x + 10.5, 30);
       g.closePath();
       g.fill();
+    }
+  });
+}
+
+/** A dome's skin: white travertine with its ribs running up to the lantern. */
+function domeTexture(): CanvasTexture {
+  return canvasTexture(256, 64, (g) => {
+    g.fillStyle = '#fbf8f0';
+    g.fillRect(0, 0, 256, 64);
+    g.fillStyle = 'rgba(120,112,98,0.45)';
+    for (let x = 0; x < 256; x += 16) g.fillRect(x, 0, 3, 64);
+  });
+}
+
+/**
+ * The portico's face: three tall round arches between paired columns, a small arched window
+ * over each, and the arcaded cornice along its top.
+ */
+function porticoTexture(): CanvasTexture {
+  return canvasTexture(512, 272, (g) => {
+    g.fillStyle = '#f6f2e8';
+    g.fillRect(0, 0, 512, 272);
+    // The arcaded cornice.
+    g.fillStyle = '#d8d0c0';
+    g.fillRect(0, 26, 512, 8);
+    g.fillStyle = '#8a8274';
+    for (let x = 6; x < 512; x += 20) {
+      g.beginPath();
+      g.arc(x + 7, 14, 6, Math.PI, 0);
+      g.lineTo(x + 13, 24);
+      g.lineTo(x + 1, 24);
+      g.closePath();
+      g.fill();
+    }
+    for (const cx of [104, 256, 408]) {
+      // The deep arch, its moulding and the bronze doors far back in it.
+      g.fillStyle = '#cfc6b4';
+      g.beginPath();
+      g.arc(cx, 128, 56, Math.PI, 0);
+      g.lineTo(cx + 56, 272);
+      g.lineTo(cx - 56, 272);
+      g.closePath();
+      g.fill();
+      g.fillStyle = '#4a4438';
+      g.beginPath();
+      g.arc(cx, 132, 46, Math.PI, 0);
+      g.lineTo(cx + 46, 272);
+      g.lineTo(cx - 46, 272);
+      g.closePath();
+      g.fill();
+      g.fillStyle = '#5e4a32';
+      g.fillRect(cx - 26, 196, 52, 76);
+      // A small arched window over it.
+      g.fillStyle = '#5a544a';
+      g.beginPath();
+      g.arc(cx, 54, 9, Math.PI, 0);
+      g.lineTo(cx + 9, 70);
+      g.lineTo(cx - 9, 70);
+      g.closePath();
+      g.fill();
+    }
+    // Paired columns between and beside the arches.
+    for (const cx of [26, 180, 332, 486]) {
+      for (const dx of [-9, 9]) {
+        g.fillStyle = '#e4ddcf';
+        g.fillRect(cx + dx - 5, 80, 10, 192);
+        g.fillStyle = 'rgba(110,100,86,0.4)';
+        g.fillRect(cx + dx + 3, 80, 2, 192);
+        g.fillStyle = '#d0c8b8';
+        g.fillRect(cx + dx - 7, 76, 14, 6);
+      }
+    }
+  });
+}
+
+/** The transepts' faces either side of the portico: rose windows over rows of arched windows. */
+function transeptTexture(): CanvasTexture {
+  return canvasTexture(512, 196, (g) => {
+    g.fillStyle = '#f6f2e8';
+    g.fillRect(0, 0, 512, 196);
+    g.fillStyle = '#d8d0c0';
+    g.fillRect(0, 18, 512, 6);
+    for (const cx of [80, 432]) {
+      g.fillStyle = '#5a544a';
+      g.beginPath();
+      g.arc(cx, 70, 26, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = '#cfc6b4';
+      g.lineWidth = 3;
+      for (let a = 0; a < 8; a++) {
+        g.beginPath();
+        g.moveTo(cx, 70);
+        g.lineTo(cx + Math.cos((a * Math.PI) / 4) * 26, 70 + Math.sin((a * Math.PI) / 4) * 26);
+        g.stroke();
+      }
+      for (let k = -2; k <= 2; k++) {
+        const x = cx + k * 22;
+        g.fillStyle = '#5a544a';
+        g.beginPath();
+        g.arc(x, 128, 7, Math.PI, 0);
+        g.lineTo(x + 7, 160);
+        g.lineTo(x - 7, 160);
+        g.closePath();
+        g.fill();
+      }
     }
   });
 }
