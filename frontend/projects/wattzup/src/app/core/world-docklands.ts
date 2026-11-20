@@ -221,6 +221,10 @@ const SHOP_SIGN_LONG = 3.8;
 const BIKE_RACKS = [44, 126, 232, 352, 470, 562];
 const BIKE_RACK_OUT = 1.9;
 /** Taxi ranks on the right-hand pavement: where (loop metres), how far out (m), cabs in each. */
+/** Rain puddles on the pavements: how many round the loop, and how far out they lie (m). */
+const PUDDLES = 70;
+const PUDDLE_NEAR = 1.2;
+const PUDDLE_FAR = 8;
 const TAXI_RANKS = [40, 236, 400, 540];
 const TAXI_OUT = 5;
 const TAXIS_PER_RANK = 3;
@@ -425,6 +429,7 @@ export class DocklandsStreet {
   /** Racks of parked bicycles at the kerb, at BIKE_RACKS round the loop. */
   private readonly bikeRacks: { group: Group; offset: number }[] = [];
   private readonly taxiRanks: { group: Group; offset: number }[] = [];
+  private readonly puddles: { mesh: Mesh; offset: number }[] = [];
   /** Delivery drones flying the street: each's loop position at time zero, speed and height. */
   private readonly drones: {
     group: Group;
@@ -1656,6 +1661,7 @@ export class DocklandsStreet {
     this.addShelters(roadHalf);
     this.addBikeRacks(roadHalf);
     this.addTaxiRanks(roadHalf);
+    this.addPuddles(roadHalf);
     this.addDrones(roadHalf);
     this.addLaneSymbols(roadHalf);
     this.addGates(roadHalf);
@@ -2531,6 +2537,45 @@ export class DocklandsStreet {
       group.add(plate);
       this.group.add(group);
       this.taxiRanks.push({ group, offset });
+    }
+  }
+
+  /**
+   * Rain puddles on both pavements: shallow pools of water holding the neon above, smeared
+   * pink, cyan and amber reflections inside a soft, uneven rim.
+   */
+  private addPuddles(roadHalf: number): void {
+    const random = seeded(397);
+    const geometry = new PlaneGeometry(1, 1);
+    this.disposables.push(geometry);
+    const materials = [0, 1, 2, 3].map((k) => {
+      const material = new MeshBasicMaterial({
+        // Brightened, as the water's sheen is lit by the signs above.
+        color: new Color(0xffffff).multiplyScalar(2.2),
+        map: this.track(puddleTexture(seeded(401 + k))),
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -3,
+        toneMapped: false,
+      });
+      this.disposables.push(material);
+      return material;
+    });
+    for (let i = 0; i < PUDDLES; i++) {
+      const side = random() < 0.5 ? -1 : 1;
+      const mesh = new Mesh(geometry, materials[i % materials.length]!);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.rotation.z = (random() - 0.5) * 0.8;
+      mesh.scale.set(2 + random() * 2.6, 3.5 + random() * 4.5, 1);
+      mesh.position.set(
+        side * (roadHalf + PUDDLE_NEAR + random() * (PUDDLE_FAR - PUDDLE_NEAR)),
+        KERB + 0.012,
+        0,
+      );
+      this.group.add(mesh);
+      this.puddles.push({ mesh, offset: random() * LOOP });
     }
   }
 
@@ -3694,6 +3739,14 @@ export class DocklandsStreet {
       drone.group.position.y =
         (drone.group.userData['ground'] as number) + heightAt(Math.max(metres, 0));
     }
+    for (const puddle of this.puddles) {
+      const metres = ((((puddle.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      puddle.mesh.visible = !this.onBridge(Math.max(metres, 0));
+      puddle.mesh.position.z = -metres;
+      puddle.mesh.userData['y'] ??= puddle.mesh.position.y;
+      puddle.mesh.position.y =
+        (puddle.mesh.userData['y'] as number) + heightAt(Math.max(metres, 0));
+    }
     for (const rank of this.taxiRanks) {
       const metres = ((((rank.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       rank.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -4268,6 +4321,67 @@ function lineSignTexture(): CanvasTexture {
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * A puddle as the rider sees it: the neon above reflected in streaks that run towards the
+ * viewer, inside a soft, uneven rim; clear beyond it.
+ */
+function puddleTexture(random: () => number): CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, size, size);
+    // The water's own sheen, then smeared reflections of the signs.
+    ctx.fillStyle = 'rgba(90, 80, 150, 0.95)';
+    ctx.fillRect(0, 0, size, size);
+    const hues = ['#ff4fd8', '#3fe0ff', '#ffb347', '#b06bff'];
+    for (let k = 0; k < 6; k++) {
+      const x = random() * size;
+      const w = 6 + random() * 18;
+      const g = ctx.createLinearGradient(0, 0, 0, size);
+      const hue = hues[Math.floor(random() * hues.length)]!;
+      g.addColorStop(0, hue);
+      g.addColorStop(0.6 + random() * 0.3, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.globalAlpha = 0.75 + random() * 0.25;
+      ctx.fillRect(x - w / 2, 0, w, size);
+    }
+    ctx.globalAlpha = 1;
+    // The rim: an uneven blob, soft at its edge, cut out of everything else.
+    ctx.globalCompositeOperation = 'destination-in';
+    const mask = ctx.createRadialGradient(
+      size / 2,
+      size / 2,
+      size * 0.18,
+      size / 2,
+      size / 2,
+      size / 2,
+    );
+    mask.addColorStop(0, 'rgba(0,0,0,1)');
+    mask.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = mask;
+    ctx.beginPath();
+    for (let a = 0; a <= 16; a++) {
+      const angle = (a / 16) * Math.PI * 2;
+      const r = size * (0.36 + random() * 0.14);
+      const px = size / 2 + Math.cos(angle) * r;
+      const py = size / 2 + Math.sin(angle) * r;
+      if (a === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  // Seen almost edge-on from the saddle, so it keeps its detail at a low angle.
+  texture.anisotropy = 8;
   return texture;
 }
 
