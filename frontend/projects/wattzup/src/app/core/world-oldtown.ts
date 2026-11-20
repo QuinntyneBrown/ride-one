@@ -53,12 +53,12 @@ interface Palette {
 
 const PALETTES: readonly Palette[] = [
   { wall: '#c96f55', trim: '#efe2c9', shutter: '#5a6e4c', flowers: '#f2f0e8' },
-  { wall: '#e2b86f', trim: '#f6ecd6', shutter: '#4d6a73' },
+  { wall: '#e2b86f', trim: '#f6ecd6', shutter: '#4d6a73', flowers: '#e8607a' },
   { wall: '#efe4cc', trim: '#ffffff', shutter: '#5f7a52', flowers: '#d8283a' },
   { wall: '#de9474', trim: '#f4e6cf', shutter: null },
   { wall: '#ead27f', trim: '#fbf3dc', shutter: '#6b4d36', flowers: '#e0457b' },
-  { wall: '#b9c2a0', trim: '#f1efe4', shutter: '#4f5f45' },
-  { wall: '#d99d91', trim: '#f7ebe3', shutter: '#53627a' },
+  { wall: '#b9c2a0', trim: '#f1efe4', shutter: '#4f5f45', flowers: '#f2d24a' },
+  { wall: '#d99d91', trim: '#f7ebe3', shutter: '#53627a', flowers: '#f2f0e8' },
   { wall: '#aebdc8', trim: '#f2f2ee', shutter: null, flowers: '#d8283a' },
 ];
 const AWNINGS = ['#b8322c', '#2f6b4f', '#2d4e7a', '#c9822b', '#6b2f4f'];
@@ -694,7 +694,7 @@ export class OldTownStreet {
     const random = seeded(41);
     let offset = 0;
     while (offset < LOOP) {
-      offset += 1.5 + random() * 6;
+      offset += 1 + random() * 4;
       const side = random() < 0.5 ? -1 : 1;
       const knot = 2 + Math.floor(random() * 6);
       for (let k = 0; k < knot && offset < LOOP; k++) {

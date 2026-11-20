@@ -112,12 +112,12 @@ const LOOKS: Record<WorldId, Look> = {
     fog: 0xdcd8cf,
     ground: 0x6b6256,
     road: 0xd9d2c8,
-    sun: 48,
+    sun: 42,
     wet: false,
     haze: false,
     turbidity: 1.6,
     rayleigh: 2.6,
-    azimuth: -162,
+    azimuth: -150,
     light: { sun: 3.2, fill: 1.1, colour: 0xffeccc },
     fogRange: [30, 430],
   },
@@ -540,6 +540,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
       this.frames.push(frame);
       this.disposables.push(frame);
       const rider = kit.make(riderColour(canvas, pacer.jersey), pacer.jersey, frame);
+      // Half the pacers wear a white helmet rather than one in their colour.
+      if (pacer.jersey % 2 === 0) rider.shell.color.set(0xf2f2ee);
       rider.group.visible = false;
       this.pacers.set(pacer.jersey, rider);
       this.scene.add(rider.group);
