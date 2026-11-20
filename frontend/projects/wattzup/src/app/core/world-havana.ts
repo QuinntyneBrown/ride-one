@@ -509,6 +509,8 @@ export class HavanaStreet implements SceneStreet {
     const arches = this.track(archTexture());
     arches.wrapS = RepeatWrapping;
     const shops = this.track(shopTexture());
+    const glows = this.track(shopTexture(true));
+    glows.wrapS = RepeatWrapping;
     const plain = this.track(plasterTexture());
     shops.wrapS = RepeatWrapping;
     const cornice = this.material({ color: 0xf5f1e8, roughness: 0.8 });
@@ -569,9 +571,20 @@ export class HavanaStreet implements SceneStreet {
       shopMap.repeat.set(width / 7, 1);
       shopMap.needsUpdate = true;
       this.track(shopMap);
+      const glowMap = glows.clone();
+      glowMap.repeat.set(width / 7, 1);
+      glowMap.needsUpdate = true;
+      this.track(glowMap);
       const back = new Mesh(
         this.unit,
-        this.material({ map: shopMap, color: 0x6a6460, roughness: 0.9 }),
+        this.material({
+          map: shopMap,
+          color: 0xa09890,
+          roughness: 0.9,
+          emissive: 0xffc890,
+          emissiveMap: glowMap,
+          emissiveIntensity: 0.6,
+        }),
       );
       back.receiveShadow = true;
       back.scale.set(14 - ARCADE, PORTAL, width - 0.3);
@@ -2152,20 +2165,58 @@ function archTexture(): CanvasTexture {
 }
 
 /** The shopfronts at the back of the arcade: doorways, shutters and dim windows. */
-function shopTexture(): CanvasTexture {
-  return canvasTexture(256, 160, (g) => {
-    speckle(g, 256, 160, '#9c9080', 991);
+function shopTexture(lit = false): CanvasTexture {
+  // Two shopfronts per 7 m tile: a painted sign over each, a shop window lit from within, and a
+  // doorway, open and dark or shut behind a roller grille; `lit` draws only what glows.
+  const names = ['CAFETERÍA', 'BODEGA', 'BARBERÍA', 'PALADAR', 'FARMACIA', 'DULCERÍA'];
+  const signs = ['#1f4fa0', '#c8202f', '#2a7a5a', '#e0a020', '#6a3a8a', '#1b2e5c'];
+  return canvasTexture(512, 320, (g) => {
+    if (lit) {
+      g.fillStyle = '#000';
+      g.fillRect(0, 0, 512, 320);
+    } else speckle(g, 512, 320, '#b4a894', 991);
     const random = seeded(997);
-    for (let x = 8; x < 256; x += 64) {
-      const kind = random();
-      g.fillStyle = kind < 0.4 ? '#2a2420' : kind < 0.7 ? '#5f6a6c' : '#3c5a4a';
-      g.fillRect(x, 40, 46, 120);
-      if (kind >= 0.4 && kind < 0.7) {
-        g.fillStyle = 'rgba(0,0,0,0.25)';
-        for (let y = 44; y < 160; y += 6) g.fillRect(x, y, 46, 2);
+    for (let k = 0; k < 2; k++) {
+      const x = k * 256;
+      const n = Math.floor(random() * names.length);
+      const shut = random() < 0.3;
+      // The sign board across the top of the front.
+      if (!lit) {
+        g.fillStyle = signs[n]!;
+        g.fillRect(x + 16, 36, 224, 44);
+        g.fillStyle = '#f5efe0';
+        g.font = 'bold 30px sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(names[n]!, x + 128, 59, 210);
       }
-      g.fillStyle = 'rgba(255,240,200,0.18)';
-      g.fillRect(x + 4, 50, 38, 40);
+      // The shop window, glowing warm, with goods on shelves against the light.
+      g.fillStyle = lit ? (shut ? '#000' : '#ffd9a0') : shut ? '#3a3632' : '#e8c890';
+      g.fillRect(x + 22, 100, 120, 150);
+      if (!shut) {
+        g.fillStyle = lit ? '#6a5030' : 'rgba(80,50,30,0.7)';
+        for (let y = 140; y < 250; y += 36) g.fillRect(x + 22, y, 120, 5);
+        for (let i = 0; i < 12; i++) {
+          g.fillRect(x + 28 + random() * 105, 118 + Math.floor(random() * 3) * 36, 8, 16);
+        }
+      }
+      if (!lit) {
+        g.fillStyle = '#4a4440';
+        g.fillRect(x + 80, 100, 4, 150);
+        g.fillRect(x + 22, 172, 120, 3);
+      }
+      // The doorway: dark and open, or shut behind a ribbed roller grille.
+      g.fillStyle = lit ? '#000' : '#1e1a17';
+      g.fillRect(x + 160, 96, 76, 224);
+      if (shut && !lit) {
+        g.fillStyle = '#6a6a66';
+        g.fillRect(x + 160, 96, 76, 224);
+        g.fillStyle = 'rgba(0,0,0,0.3)';
+        for (let y = 98; y < 320; y += 7) g.fillRect(x + 160, y, 76, 2);
+      } else if (!lit) {
+        g.fillStyle = 'rgba(255,220,160,0.12)';
+        g.fillRect(x + 166, 110, 64, 210);
+      }
     }
   });
 }
