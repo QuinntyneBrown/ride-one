@@ -202,6 +202,7 @@ export class HavanaStreet implements SceneStreet {
     this.addBoats(roadHalf);
     this.addBirds(roadHalf);
     this.addBillboards(roadHalf);
+    this.addDogs(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -1977,6 +1978,69 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(board);
       this.props.push({ mesh: board, offset: 60 + k * 120, x });
     });
+  }
+
+  /**
+   * Havana's street dogs, short-coated and lean, tan, black, brindle or white with patches: some
+   * stand about on the pavement and the promenade, head up or nosing the ground, and some doze
+   * stretched out in the shade, legs folded under them.
+   */
+  private addDogs(roadHalf: number): void {
+    const random = seeded(1283);
+    const coats = [0xb98a55, 0x2a2420, 0xd8c8a8, 0x7a5a3a, 0xe8e2d6];
+    const body = new CapsuleGeometry(0.16, 0.5, 4, 10);
+    body.rotateX(Math.PI / 2);
+    const head = new SphereGeometry(0.12, 10, 8);
+    const snout = new CapsuleGeometry(0.06, 0.1, 3, 8);
+    snout.rotateX(Math.PI / 2);
+    const ear = new ConeGeometry(0.045, 0.1, 4);
+    const leg = new CylinderGeometry(0.035, 0.03, 0.4, 6);
+    const tail = new CylinderGeometry(0.025, 0.012, 0.32, 5);
+    this.disposables.push(body, head, snout, ear, leg, tail);
+    for (let offset = 11; offset < LOOP; offset += 14 + random() * 22) {
+      const dog = new Group();
+      const coat = this.material({
+        color: coats[Math.floor(random() * coats.length)]!,
+        roughness: 0.95,
+      });
+      const lying = random() < 0.4;
+      const nosing = !lying && random() < 0.4;
+      const add = (g: BufferGeometry, x: number, y: number, z: number, rx = 0) => {
+        const mesh = new Mesh(g, coat);
+        mesh.position.set(x, y, z);
+        mesh.rotation.x = rx;
+        mesh.castShadow = true;
+        dog.add(mesh);
+      };
+      const hip = lying ? 0.16 : 0.5;
+      add(body, 0, hip, 0);
+      const hy = lying ? 0.22 : nosing ? 0.35 : 0.68;
+      add(head, 0, hy, -0.5);
+      add(snout, 0, hy - 0.03, -0.64, nosing ? 0.5 : 0);
+      for (const x of [-0.07, 0.07]) add(ear, x, hy + 0.1, -0.48);
+      if (!lying) {
+        for (const x of [-0.09, 0.09]) for (const z of [-0.28, 0.28]) add(leg, x, 0.2, z);
+        add(tail, 0, 0.58, 0.48, 0.9);
+      } else {
+        for (const x of [-0.12, 0.12]) {
+          const paw = new Mesh(leg, coat);
+          paw.rotation.x = Math.PI / 2;
+          paw.position.set(x, 0.05, -0.55);
+          dog.add(paw);
+        }
+        add(tail, 0.12, 0.06, 0.5, 1.5);
+      }
+      dog.rotation.y = random() * Math.PI * 2;
+      const holder = new Group();
+      dog.position.y = KERB;
+      holder.add(dog);
+      this.group.add(holder);
+      const promenade = offset > 15 && random() < 0.4;
+      const x = promenade
+        ? -roadHalf - LANES - 1.2 - random() * 2.5
+        : roadHalf + 0.8 + random() * (lying ? 5 : 3);
+      this.props.push({ mesh: holder, offset, x });
+    }
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
