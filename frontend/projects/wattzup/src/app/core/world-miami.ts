@@ -29,6 +29,7 @@ import {
   canvasTexture,
   Figures,
   haloTexture,
+  LifeguardTowers,
   loopMetres,
   Palms,
   Ribbons,
@@ -72,6 +73,7 @@ export class MiamiStreet implements SceneStreet {
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly flat = new PlaneGeometry(1, 1);
+  private halo!: MeshBasicMaterial;
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -82,11 +84,19 @@ export class MiamiStreet implements SceneStreet {
 
   build(roadHalf: number, points: number): void {
     this.disposables.push(this.unit, this.flat);
+    this.halo = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(this.halo);
     this.addRoad(roadHalf, points);
     this.addHotels(roadHalf);
     this.addPalms(roadHalf);
     this.addLamps(roadHalf);
     this.addCars(roadHalf);
+    this.addLifeguards(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
   }
@@ -679,6 +689,45 @@ export class MiamiStreet implements SceneStreet {
       });
     }
     this.trafficX = -roadHalf * 0.5;
+  }
+
+  /**
+   * South Beach's painted lifeguard towers on the sand, closed for the night, their ramps
+   * towards the promenade, each with a neon band round its deck and a lamp-lit hut.
+   */
+  private addLifeguards(roadHalf: number): void {
+    const towers = new LifeguardTowers(this.disposables, this.track);
+    const bands = NEON.map((c) =>
+      this.material({ color: c, emissive: c, emissiveIntensity: 2.4, roughness: 0.4 }),
+    );
+    for (let i = 0; i < 5; i++) {
+      const tower = towers.make(i + 1);
+      tower.rotation.y = Math.PI + (i % 2 ? 0.2 : -0.15);
+      for (const [w, d, x, z] of [
+        [3.3, 0.08, 0, 1.62],
+        [3.3, 0.08, 0, -1.62],
+        [0.08, 3.3, 1.62, 0],
+        [0.08, 3.3, -1.62, 0],
+      ] as const) {
+        const band = new Mesh(this.unit, bands[(i * 2) % bands.length]!);
+        band.scale.set(w, 0.08, d);
+        band.position.set(x, 1.82, z);
+        tower.add(band);
+      }
+      const glow = new Mesh(this.flat, this.halo);
+      glow.scale.set(5, 5, 1);
+      glow.position.set(0, 2.9, 1.4);
+      tower.add(glow);
+      const holder = new Group();
+      const across = 12 + (i % 2) * 5;
+      holder.add(tower);
+      holder.position.y = -0.3 - ((across - 5.5) / (BEACH - 5.5)) * (SEA - 0.2);
+      tower.position.y = 0;
+      const outer = new Group();
+      outer.add(holder);
+      this.group.add(outer);
+      this.props.push({ mesh: outer, offset: 20 + i * 80, x: -roadHalf - across });
+    }
   }
 
   /** People out for the night on both sidewalks. */
