@@ -231,6 +231,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Ibiza Sunset Strip');
   });
 
+  test('rides 20 Minutes to Work on Your Cadence along the white roads of Strade Bianche', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '20 Minutes to Work on Your Cadence',
+      'Strade Bianche',
+      '20-minutes-to-work-on-your-cadence',
+    );
+    await expect(world.heading).toHaveText('Strade Bianche');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Strade Bianche');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

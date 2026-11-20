@@ -624,6 +624,16 @@ export const WORLDS: readonly World[] = [
     roll: 1,
   },
   {
+    id: 'strade',
+    name: 'Strade Bianche',
+    route: 'the white roads',
+    effortName: 'Gravel spin',
+    description:
+      "White gravel roads wind between lines of dark cypresses across the golden Crete Senesi toward Siena, the Torre del Mangia and the Duomo's striped campanile on the ridge ahead, as tifosi line the dusty banks under the sector banners and stone farmhouses watch from the olive groves. The minute's warm-up rolls out over the first white sector, the efforts from half a minute to a minute spin up the cadence on the gravel rises between the cypresses, and the easy minutes coast the dust down past the farmhouses toward the hill town.",
+    grade: { warmup: 0.5, work: 3.5, rest: -2, cooldown: 0, steady: 1 },
+    roll: 0.9,
+  },
+  {
     id: 'wicklow',
     name: 'Wicklow Gap',
     route: 'the Wicklow Gap road',

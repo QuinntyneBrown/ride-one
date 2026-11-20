@@ -252,6 +252,7 @@ describe('ClassCatalogueReader', () => {
     'toronto',
     'prospect',
     'calobra',
+    'strade',
     'wicklow',
   ])('a class keeps its world %s (World Ride)', (world) => {
     const r = readOneClass('world', world);

@@ -1059,6 +1059,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.5, colour: 0xfff4e4 },
     fogRange: [2500, 16000],
   },
+  // A late spring afternoon in the Crete Senesi: the sun high and warm ahead and right, the
+  // hills golden, dust from the gravel hazing the distance toward Siena.
+  strade: {
+    sky: 0x8ec0e8,
+    fog: 0xe6dcc4,
+    ground: 0xc0aa6c,
+    road: 0xe8e0d0,
+    sun: 24,
+    wet: false,
+    haze: false,
+    turbidity: 6,
+    rayleigh: 1.4,
+    azimuth: 38,
+    light: { sun: 3, fill: 1.1, colour: 0xffe2b4 },
+    fogRange: [160, 2600],
+  },
   // A bright, blustery Irish spring afternoon: blue sky between fast clouds, clean light on the bog.
   wicklow: {
     sky: 0x5a94d8,
