@@ -425,6 +425,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Pike Place at Dawn');
   });
 
+  test('rides 25 Minute Hill Training up Hardknott Pass through the fells', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '25 Minute Hill Training',
+      'Hardknott Pass',
+      '25-minute-hill-training',
+    );
+    await expect(world.heading).toHaveText('Hardknott Pass');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Hardknott Pass');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

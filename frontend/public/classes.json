@@ -6411,6 +6411,7 @@
     },
     {
       "id": "25-minute-hill-training",
+      "world": "hardknott",
       "title": "25 Minute Hill Training",
       "channel": "GCN",
       "focus": "Climbing",

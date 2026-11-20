@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -339,6 +339,12 @@ None.
   - coffee carts on the right whose steam rises and thins on the ride's clock, the early crowd strolling and stopping (`Figures`);
   - the railing and lamps at the bluff's edge, the ground sinking to the waterfront;
   - Elliott Bay below with a ferry crossing on the ride's clock, the Olympic Mountains lit pink beyond, and downtown's towers and the Space Needle ahead, keeping their bearing.
+- **Hardknott Pass (`core/world-hardknott.ts`).** For `hardknott`, England's steepest road on a grey Lake District day:
+  - the narrow lane between dry-stone walls, bracken climbing the fell on the right, the ground falling left to Hardknott Gill and scree rising beyond;
+  - the 30% warning sign and its plate at the foot of the ramp, and a cattle grid across the lane once a lap;
+  - lichened boulders and Herdwick sheep with grey fleeces and white faces on the fellside;
+  - walkers in bright waterproofs plodding up the verges (`Figures`);
+  - ahead the lane's hairpins up the head of the pass, low cloud dragging over the crags on the ride's clock, the Scafells beyond, ridges both sides and the Roman fort's ruined walls on the shoulder, keeping their bearing; the ground sinks into the gill.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -391,6 +397,7 @@ None.
 | `pages/world-ride/napa` | Napa Vineyards at 2:53, warm-up, next `Vineyard rise` |
 | `pages/world-ride/glastonbury` | Glastonbury Fields at 4:50, warm-up, next `Stage-to-stage sprint` |
 | `pages/world-ride/pikeplace` | Pike Place at Dawn at 4:50, warm-up, next `Espresso surge` |
+| `pages/world-ride/hardknott` | Hardknott Pass at 4:50, warm-up, next `One-in-three ramp` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

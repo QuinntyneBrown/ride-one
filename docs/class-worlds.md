@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu, Passo Campolongo, Marina Bay Night, Serpentine, Hyde Park, Champs-Élysées Finale, Dutch Tulip Fields, Col du Tourmalet, Napa Vineyards, Glastonbury Fields and Pike Place at Dawn have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu, Passo Campolongo, Marina Bay Night, Serpentine, Hyde Park, Champs-Élysées Finale, Dutch Tulip Fields, Col du Tourmalet, Napa Vineyards, Glastonbury Fields, Pike Place at Dawn and Hardknott Pass have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -92,7 +92,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 86 | Wake Up and Smell the Lactic | Pike Place at Dawn | 77% | Coffee steam and fish-market crowds at sunrise over Seattle's Elliott Bay. |
 | 87 | 25 Minute Sprint Intervals | Chicago Lakefront Trail (concept) |  | Lake Michigan beaches and the skyline along the waterfront trail. |
 | 88 | 25 Minute High Intensity Intervals | Diwali, Marine Drive (concept) |  | Mumbai's Queen's Necklace lit with lamps and fireworks over the Arabian Sea. |
-| 89 | 25 Minute Hill Training | Hardknott Pass (concept) |  | England's steepest road twisting through the Cumbrian fells. |
+| 89 | 25 Minute Hill Training | Hardknott Pass | 75% | England's steepest road twisting through the Cumbrian fells. |
 | 90 | Fat Burning Climb: Passo Sella | Passo Sella (concept) |  | A steady climb beneath the Sassolungo's walls to the summit meadows. |
 | 91 | High Intensity Race Day Effort | Kona Ironman (concept) |  | The Queen K highway through lava fields on Ironman race day. |
 | 92 | Burn Fat Fast | Saguaro Desert (concept) |  | A road through a saguaro cactus forest at Arizona sunrise. |

@@ -697,6 +697,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.4, fill: 1.3, colour: 0xffc8a0 },
     fogRange: [300, 3600],
   },
+  // A grey, blustery Lake District day: flat light under low cloud, the fells muted and damp.
+  hardknott: {
+    sky: 0x9aa8b4,
+    fog: 0xb8c0c4,
+    ground: 0x5a6a3a,
+    road: 0x55565a,
+    sun: 30,
+    wet: true,
+    haze: false,
+    turbidity: 8,
+    rayleigh: 0.8,
+    azimuth: -130,
+    light: { sun: 1.6, fill: 1.8, colour: 0xeef0f2 },
+    fogRange: [400, 4200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
