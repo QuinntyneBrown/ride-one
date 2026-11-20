@@ -35,6 +35,9 @@ const SHIN = 0.44;
 const UPPER_ARM = 0.27;
 const FOREARM = 0.27;
 const UP = new Vector3(0, 1, 0);
+const ACROSS = new Vector3(1, 0, 0);
+/** Where the hands hold the hoods, the pivot of a rider standing on the pedals. */
+const HOODS = new Vector3(0, HEAD_TOP.y + 0.04, HANDS.z - 0.06);
 
 interface Limb {
   readonly mesh: Mesh;
@@ -185,6 +188,9 @@ export class Cyclist {
   private readonly cranks: Mesh[] = [];
   /** The contact shadow, shown from the tier that draws contact shadows. */
   readonly contact: Mesh;
+  /** Torso, head and arms: they pivot about the hands when the rider stands on the pedals. */
+  private readonly body = new Group();
+  private readonly hip = HIP.clone();
 
   constructor(
     private readonly kit: CyclistKit,
@@ -272,19 +278,19 @@ export class Cyclist {
     torso.quaternion.setFromUnitVectors(UP, SHOULDER.clone().sub(HIP).normalize());
     torso.scale.set(1.15, 1, 0.85);
     torso.castShadow = true;
-    this.group.add(torso);
+    this.body.add(torso);
     // The race number, pinned low on the back.
     const along = SHOULDER.clone().sub(HIP).normalize();
     const back = new Vector3(0, -along.z, along.y);
     const number = new Mesh(kit.bibGeometry(), bib);
     number.position.copy(torso.position).addScaledVector(along, -0.07).addScaledVector(back, 0.135);
     number.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), back);
-    this.group.add(number);
+    this.body.add(number);
     const seatPad = new Mesh(kit.limb(0.1, 0.1), kit.shorts);
     seatPad.position.copy(HIP).add(new Vector3(0, 0.02, 0.04));
     seatPad.rotation.z = Math.PI / 2;
     seatPad.scale.set(1, 1, 0.9);
-    this.group.add(seatPad);
+    this.body.add(seatPad);
     const head = new Mesh(parts.head, kit.skin);
     const neck = SHOULDER.clone().add(new Vector3(0, 0.14, -0.1));
     head.position.copy(neck);
@@ -293,7 +299,7 @@ export class Cyclist {
     helmet.scale.set(1, 0.85, 1.3);
     helmet.rotation.x = -0.25;
     head.castShadow = helmet.castShadow = true;
-    this.group.add(head, helmet);
+    this.body.add(head, helmet);
     for (const side of [-1, 1]) {
       const shoulder = SHOULDER.clone().setX(side * 0.19);
       // Hands on the hoods, elbows bent out and down.
@@ -303,7 +309,7 @@ export class Cyclist {
       const fore = this.limbMesh(0.04, FOREARM, kit.skin);
       place(upper, shoulder, elbow);
       place(fore, elbow, hand);
-      this.group.add(upper.mesh, fore.mesh);
+      this.body.add(upper.mesh, fore.mesh);
       const thigh = this.limbMesh(0.075, THIGH, kit.shorts);
       const shin = this.limbMesh(0.055, SHIN, kit.skin);
       // White race socks to mid-calf, carried on the shin.
@@ -316,6 +322,7 @@ export class Cyclist {
       this.group.add(thigh.mesh, shin.mesh, foot);
       this.legs.push({ thigh, shin, foot, side });
     }
+    this.group.add(this.body);
     this.pose(0);
   }
 
@@ -323,9 +330,15 @@ export class Cyclist {
    * Turns the cranks to `angle` radians and moves the legs with them, the bike leaning `lean`
    * radians into a bend (positive to the left, as a rotation about the way ahead).
    */
-  pose(angle: number, lean = 0): void {
-    // The bike rocks a little under each pedal stroke, about where the tyres meet the road.
-    this.group.rotation.z = lean + Math.sin(angle) * 0.03;
+  pose(angle: number, lean = 0, standing = 0): void {
+    // The bike rocks a little under each pedal stroke, about where the tyres meet the road, and
+    // swings side to side when the rider stands on the pedals.
+    this.group.rotation.z = lean + Math.sin(angle) * (0.03 + 0.09 * standing);
+    // Out of the saddle the body pivots forward about the hands on the hoods, lifting the hips.
+    const tilt = -0.14 * standing;
+    this.body.rotation.x = tilt;
+    this.body.position.copy(HOODS).sub(this.hip.copy(HOODS).applyAxisAngle(ACROSS, tilt));
+    this.hip.copy(HIP).applyAxisAngle(ACROSS, tilt).add(this.body.position);
     this.legs.forEach((leg, i) => {
       const a = angle + i * Math.PI;
       const pedal = new Vector3(
@@ -335,7 +348,7 @@ export class Cyclist {
       );
       const crank = this.cranks[i]!;
       place({ mesh: crank, length: CRANK }, BB.clone().setX(leg.side * 0.07), pedal, true);
-      const hip = HIP.clone().setX(leg.side * 0.1);
+      const hip = this.hip.clone().setX(leg.side * 0.1);
       const ankle = pedal.clone().add(new Vector3(0, 0.06, 0.03));
       const knee = bend(hip, ankle, THIGH, SHIN, new Vector3(leg.side * 0.08, 0.3, -1));
       place(leg.thigh, hip, knee);
