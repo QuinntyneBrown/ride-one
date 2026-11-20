@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall and Stelvio Pass have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass and Edinburgh Fringe have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -65,7 +65,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 59 | Conquer the Climb | Stelvio Pass | 76% | Forty-eight hairpins stacked up an Italian alpine wall to the snowfields. |
 | 60 | HIIT Leg Buster | Philadelphia Art Museum Steps (concept) |  | Down the Parkway to the famous steps; every effort ends at the top, arms raised. |
 | 61 | 20 Minute Cardio: Lose Weight Fast | Santa Monica Pier (concept) |  | Ferris wheel, beach bike path and surfers below the pier. |
-| 62 | 20 Minute HIIT | Edinburgh Fringe (concept) |  | The Royal Mile packed with street performers and posters in August festival season. |
+| 62 | 20 Minute HIIT | Edinburgh Fringe | 78% | The Royal Mile packed with street performers and posters in August festival season. |
 | 63 | 20 Min Cardio Spin Bike Workout | Lake Louise (concept) |  | Turquoise glacial lake beneath Rocky Mountain peaks; an easy shoreline road in Banff. |
 | 64 | Sufferfest 20 Minute Session | Death Valley (concept) |  | Badwater heat and salt below sea level, among shimmering dunes. |
 | 65 | 20 Minute Fat Burning Workout | North Shore, Oahu (concept) |  | Big-wave beaches and shrimp trucks along Kamehameha Highway. |

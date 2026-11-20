@@ -524,6 +524,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 1.2, colour: 0xfffaf0 },
     fogRange: [200, 3600],
   },
+  // A bright August afternoon in Edinburgh: broken cloud, the sun behind the rider, the stone dark.
+  edinburgh: {
+    sky: 0x8ab4dc,
+    fog: 0xc8d0d8,
+    ground: 0x6a6a6e,
+    road: 0x5a5a60,
+    sun: 34,
+    wet: false,
+    haze: false,
+    turbidity: 3.5,
+    rayleigh: 1.6,
+    azimuth: -150,
+    light: { sun: 2.9, fill: 1.4, colour: 0xfff4e4 },
+    fogRange: [80, 900],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
