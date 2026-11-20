@@ -107,6 +107,8 @@ export class AmsterdamStreet implements SceneStreet {
   private readonly tower = new Group();
   private readonly clouds = new Group();
   private waterMap: CanvasTexture | null = null;
+  private bikePaints: MeshStandardMaterial[] | null = null;
+  private sitters: MeshStandardMaterial | null = null;
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -1442,6 +1444,45 @@ export class AmsterdamStreet implements SceneStreet {
   }
 
   /**
+   * A commuter's own bike: an upright frame in its own colour with a rear rack, and now and then
+   * a passenger riding side-saddle on the rack, the Amsterdam way, or a backpack on the rider.
+   */
+  private commuterBike(bike: BufferGeometry, random: () => number): Group {
+    this.bikePaints ??= [0x16181b, 0x16181b, 0x2a3a5c, 0x6a1a1a, 0x8fc0b0, 0xe8dcc0, 0x2f4a34].map(
+      (hex) => this.material({ color: hex, metalness: 0.35, roughness: 0.5 }),
+    );
+    this.sitters ??= this.material({ vertexColors: true, roughness: 0.85 });
+    const group = new Group();
+    const paint = this.bikePaints[Math.floor(random() * this.bikePaints.length)]!;
+    const rack = new Mesh(this.unit, paint);
+    rack.scale.set(0.3, 0.03, 0.42);
+    rack.position.set(0, 0.82, 0.5);
+    group.add(new Mesh(bike, paint), rack);
+    const roll = random();
+    if (roll < 0.2) {
+      const passenger = new Mesh(sitterGeometry(random), this.sitters);
+      this.disposables.push(passenger.geometry);
+      passenger.rotation.y = random() < 0.5 ? Math.PI / 2 : -Math.PI / 2;
+      passenger.position.set(0, 0.36, 0.52);
+      group.add(passenger);
+    } else if (roll < 0.45) {
+      const pack = new Mesh(
+        this.unit,
+        this.material({
+          color: [0x1d1f24, 0x2c7be5, 0xc8102e, 0x6a6e70][Math.floor(random() * 4)]!,
+          roughness: 0.85,
+        }),
+      );
+      pack.scale.set(0.3, 0.4, 0.16);
+      pack.position.set(0, 1.42, 0.42);
+      pack.rotation.x = -0.12;
+      group.add(pack);
+    }
+    group.children.forEach((m) => (m.castShadow = true));
+    return group;
+  }
+
+  /**
    * Waterfowl on the canal: pairs of mute swans, mallards (the drakes' heads bottle green) and
    * black coots with their white bills, paddling slowly along near the walls and the boats.
    */
@@ -1562,9 +1603,10 @@ export class AmsterdamStreet implements SceneStreet {
       this.group.add(parked);
       this.props.push({ mesh: parked, offset: START + BEHIND + along, x });
     }
+    const extras = seeded(727);
     for (let offset = 10; offset < LOOP; offset += 14 + random() * 18) {
       const towards = random() < 0.5;
-      const mesh = random() < 0.25 ? bakfiets() : new Mesh(bike, frame);
+      const mesh = random() < 0.25 ? bakfiets() : this.commuterBike(bike, extras);
       this.group.add(mesh);
       this.riders.push({
         bike: mesh,
