@@ -126,6 +126,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly swaying: { palm: Group; phase: number; lean: number }[] = [];
   /** Where the nightclubs' doors are, in metres along the loop. */
   private readonly clubs: number[] = [];
+  /** Where the vendors' carts stand on the promenade. */
+  private readonly carts: number[] = [];
   private readonly drops: { x: number; y: number; z: number; speed: number }[] = [];
   private rain: InstancedMesh | null = null;
   private readonly drop = new Matrix4();
@@ -175,6 +177,7 @@ export class MiamiStreet implements SceneStreet {
     this.addYachts(roadHalf);
     this.addBikeDocks(roadHalf);
     this.addPier(roadHalf);
+    this.addCarts(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1978,6 +1981,63 @@ export class MiamiStreet implements SceneStreet {
     this.props.push({ mesh: holder, offset: 175, x: -roadHalf - 6 });
   }
 
+  /**
+   * Street vendors on the promenade: a cart with a striped umbrella, a lit menu board, a
+   * cool-box of drinks and a string of bulbs round its canopy, a vendor behind it and two
+   * customers waiting.
+   */
+  private addCarts(roadHalf: number): void {
+    const body = this.material({ color: 0xf4f0e8, roughness: 0.5, metalness: 0.2 });
+    const steel = this.material({ color: 0xa8acb4, roughness: 0.3, metalness: 0.9 });
+    const menu = this.material({
+      map: this.track(menuTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(menuTexture()),
+      emissiveIntensity: 1.4,
+    });
+    const canopy = this.material({
+      map: this.track(awningTexture(0xff6a3f)),
+      roughness: 0.8,
+      side: DoubleSide,
+    });
+    const shade = new ConeGeometry(1.7, 0.7, 12, 1, true);
+    shade.translate(0, 2.7, 0);
+    this.disposables.push(shade);
+    const bulb = this.material({ color: 0xffe8b0, emissive: 0xffd890, emissiveIntensity: 3 });
+    for (const offset of [42, 232]) {
+      const cart = new Group();
+      const b = new BoxBuilder();
+      b.box(body, [1, 0.9, 1.9], [0, 0.85, 0]);
+      b.box(steel, [1.05, 0.06, 1.95], [0, 1.32, 0]);
+      b.box(steel, [0.05, 2.1, 0.05], [0, 1.35, 0]);
+      for (const z of [-0.7, 0.7]) b.box(steel, [0.5, 0.5, 0.06], [0, 0.25, z]);
+      b.box(body, [0.6, 0.5, 0.5], [0.85, 0.25, 0.4]);
+      cart.add(b.build(this.disposables));
+      const board = new Mesh(this.flat, menu);
+      board.scale.set(1.6, 0.75, 1);
+      board.position.set(0, 1.85, 0.97);
+      const umbrella = new Mesh(shade, canopy);
+      cart.add(board, umbrella);
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2;
+        const light = new Mesh(this.unit, bulb);
+        light.scale.setScalar(0.08);
+        light.position.set(Math.cos(a) * 1.65, 2.37, Math.sin(a) * 1.65);
+        cart.add(light);
+      }
+      const glow = new Mesh(this.flat, this.halo);
+      glow.scale.set(4, 3, 1);
+      glow.position.set(0, 2, 1.2);
+      cart.add(glow);
+      cart.position.y = 0.15;
+      const holder = new Group();
+      holder.add(cart);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: -roadHalf - 3.3 });
+      this.carts.push(offset);
+    }
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -2012,6 +2072,30 @@ export class MiamiStreet implements SceneStreet {
         phase: glide() * 6,
       });
     this.skating = new Figures(this.group, this.disposables, this.skaters.length, SKATE_WEAR, 8303);
+    // The vendor behind each cart and the customers at its counter.
+    for (const cart of this.carts) {
+      this.standers.push({
+        offset: cart,
+        x: -roadHalf - 4.3,
+        heading: -Math.PI / 2,
+        phase: 1,
+        scale: 0.95,
+      });
+      this.standers.push({
+        offset: cart - 0.4,
+        x: -roadHalf - 2.2,
+        heading: Math.PI / 2,
+        phase: 2,
+        scale: 0.97,
+      });
+      this.standers.push({
+        offset: cart + 0.6,
+        x: -roadHalf - 2.0,
+        heading: Math.PI / 2 + 0.3,
+        phase: 3,
+        scale: 0.86,
+      });
+    }
     // The queue for each club, waiting in a line along its rope, and the doorman by the door.
     const queue = seeded(8147);
     for (const club of this.clubs) {
@@ -3606,5 +3690,26 @@ function ledBannerTexture(): CanvasTexture {
     g.fillStyle = 'rgba(10,6,18,0.55)';
     for (let x = 0; x < 512; x += 4) g.fillRect(x, 0, 1, 72);
     for (let y = 0; y < 72; y += 4) g.fillRect(0, y, 512, 1);
+  });
+}
+
+/** A cart's lit menu board: HELADOS and TACOS in bright lettering with prices. */
+function menuTexture(): CanvasTexture {
+  return canvasTexture(256, 120, (g) => {
+    g.fillStyle = '#1a1028';
+    g.fillRect(0, 0, 256, 120);
+    g.strokeStyle = '#ffd23f';
+    g.lineWidth = 4;
+    g.strokeRect(4, 4, 248, 112);
+    g.font = 'bold 36px sans-serif';
+    g.textAlign = 'center';
+    g.fillStyle = '#ff4fb8';
+    g.fillText('HELADOS', 128, 46);
+    g.font = 'bold 26px sans-serif';
+    g.fillStyle = '#2fe6ff';
+    g.fillText('TACOS · AGUA', 128, 82);
+    g.font = '18px sans-serif';
+    g.fillStyle = '#f4f0e8';
+    g.fillText('$3 · $5 · $2', 128, 106);
   });
 }
