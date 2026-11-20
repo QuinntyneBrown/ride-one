@@ -134,6 +134,7 @@ export interface components {
         | 'como'
         | 'yosemite'
         | 'etna'
+        | 'timessquare'
         | 'tremola';
     };
     ClassShelfResponse: {

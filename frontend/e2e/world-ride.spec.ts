@@ -202,6 +202,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Bonneville Salt Flats');
   });
 
+  test('rides Give Me One Minute through Times Square', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Give Me One Minute',
+      "Times Square New Year's Eve",
+      'give-me-one-minute',
+    );
+    await expect(world.heading).toHaveText("Times Square New Year's Eve");
+    await expect(world.boardTitle).toHaveText("Riders nearby · Times Square New Year's Eve");
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

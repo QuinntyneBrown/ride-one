@@ -887,6 +887,25 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.6, colour: 0xfff2e0 },
     fogRange: [800, 9000],
   },
+  // New Year's Eve in Times Square: a night sky over the glow, the screens doing the lighting.
+  timessquare: {
+    sky: 0x0b0a20,
+    fog: 0x1a1430,
+    ground: 0x2a2a30,
+    road: 0x34353c,
+    sun: -6,
+    wet: false,
+    haze: false,
+    moon: {
+      elevation: 40,
+      azimuth: -150,
+      strength: 1.0,
+      colour: 0xc8c0ff,
+      fill: 2.6,
+      fillSky: 0x8a6ab0,
+    },
+    fogRange: [60, 1400],
+  },
   // A bright, cool summer morning high in the Alps: clear air, crisp light on granite and grass.
   tremola: {
     sky: 0x5a98e0,
