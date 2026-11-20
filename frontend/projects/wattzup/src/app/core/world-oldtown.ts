@@ -17,6 +17,7 @@ import {
   type Material,
   Matrix4,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   Quaternion,
@@ -200,6 +201,7 @@ export class OldTownStreet {
   });
   private readonly clockFace = new CylinderGeometry(4, 4, 0.5, 28);
   private readonly doorLeaf = new PlaneGeometry(1.1, 2.5);
+  private readonly geraniums = new MeshStandardMaterial({ map: bloomTexture(), roughness: 0.9 });
   /** Glazed shop doors in painted wood, a brass handle and a bell over each. */
   private readonly shopDoors = ['#2d4e3f', '#5a2730', '#1f2b44', '#3a3a3a'].map(
     (paint) => new MeshStandardMaterial({ map: shopDoorTexture(paint), roughness: 0.6 }),
@@ -285,6 +287,15 @@ export class OldTownStreet {
       material.alphaTest = 0.5;
       return material;
     });
+    const foot = new MeshBasicMaterial({
+      color: 0x1a1612,
+      alphaMap: this.track(cornerTexture()),
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+    });
+    this.disposables.push(foot);
     const rail = this.material(null, '#b9bdc2');
     rail.metalness = 0.7;
     rail.roughness = 0.35;
@@ -298,6 +309,11 @@ export class OldTownStreet {
       this.ribbon(points, pavement, [
         [x(roadHalf + KERB_TOP), KERB],
         [x(FRONTAGE + 0.5), KERB],
+      ]);
+      // Shade where the pavement meets the houses, as ambient light fails into the corner.
+      this.ribbon(points, foot, [
+        [x(FRONTAGE - 0.9), KERB + 0.004],
+        [x(FRONTAGE + 0.5), KERB + 0.004],
       ]);
       // Race-day crowd barriers along the kerb, hung with the race's banners.
       this.ribbon(points, banners[side === -1 ? 0 : 1]!, [
@@ -1023,6 +1039,29 @@ export class OldTownStreet {
     if (width <= 9 && this.chance(6) < 0.35) group.add(this.stepGable(width, SHOP + height, look));
     // The cornice under the eaves, and the string course over the shop floor.
     group.add(this.trim(trim, width + 0.3, 0.45, 0.42, SHOP + height - 0.22));
+    // A stone sill under every upper window, a lintel and keystone over it.
+    for (let k = 0; k < storeys; k++) {
+      for (let bay = 0; bay < Math.round(width / BAY); bay++) {
+        const sill = new Mesh(this.unit, trim);
+        sill.scale.set(0.2, 0.09, 1.2);
+        sill.position.set(0.08, SHOP + k * STOREY + 0.62, -width / 2 + (bay + 0.5) * BAY);
+        // And over it a lintel with its keystone.
+        const lintel = new Mesh(this.unit, trim);
+        lintel.scale.set(0.1, 0.16, 1.22);
+        lintel.position.set(0.05, SHOP + k * STOREY + 2.62, sill.position.z);
+        const key = new Mesh(this.unit, trim);
+        key.scale.set(0.14, 0.26, 0.2);
+        key.position.set(0.07, SHOP + k * STOREY + 2.64, sill.position.z);
+        group.add(sill, lintel, key);
+      }
+    }
+    // A row of dentils under the cornice.
+    for (let z = -width / 2 + 0.2; z < width / 2 - 0.1; z += 0.3) {
+      const dentil = new Mesh(this.unit, trim);
+      dentil.scale.set(0.18, 0.14, 0.14);
+      dentil.position.set(0.09, SHOP + height - 0.52, z);
+      group.add(dentil);
+    }
     group.add(this.trim(trim, width, 0.2, 0.24, SHOP));
     this.disposables.push(shopBox, upperBox, roofGeometry);
     this.flatten(group);
@@ -1211,6 +1250,24 @@ export class OldTownStreet {
       const side = new Mesh(end, this.railing);
       side.position.set(deep / 2, floor + 0.55, (z * (width - 0.8)) / 2);
       group.add(side);
+    }
+    // Geraniums in pots along the railing, and now and then a bistro table.
+    const pots = 2 + Math.floor(this.chance(11) * 3);
+    for (let i = 0; i < pots; i++) {
+      const z = ((i + 0.5) / pots - 0.5) * (width - 1.6);
+      const pot = new Mesh(this.pot, this.terracotta);
+      pot.scale.setScalar(0.7);
+      pot.position.set(deep - 0.22, floor + 0.25, z);
+      const bloom = new Mesh(this.bush, this.geraniums);
+      bloom.scale.set(0.75, 0.6, 0.75);
+      bloom.position.set(deep - 0.22, floor + 0.62, z);
+      group.add(pot, bloom);
+    }
+    if (this.chance(12) < 0.4) {
+      const table = new Mesh(this.pot, this.iron);
+      table.scale.set(1.2, 1.4, 1.2);
+      table.position.set(0.4, floor + 0.4, 0.3);
+      group.add(table);
     }
     for (const m of group.children) m.castShadow = true;
     return group;
@@ -1969,6 +2026,26 @@ function shopDoorTexture(paint: string): CanvasTexture {
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Corner shade across 1.4 m of pavement: clear at the outer edge, darkest at the wall. */
+function cornerTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 4;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const shade = ctx.createLinearGradient(0, 0, 64, 0);
+    shade.addColorStop(0, '#000');
+    shade.addColorStop(0.45, '#2a2a2a');
+    shade.addColorStop(0.64, '#707070');
+    shade.addColorStop(1, '#808080');
+    ctx.fillStyle = shade;
+    ctx.fillRect(0, 0, 64, 4);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.repeat.set(1 / 1.4, 1);
   return texture;
 }
 
