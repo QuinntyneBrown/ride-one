@@ -92,8 +92,8 @@ const BARRIER_PANELS: readonly BannerPanel[] = [
   { fill: '#2fc8d8', ink: '#1b1e24', text: 'LA' },
 ];
 const STREET_BANNERS: readonly (readonly [string, string, string, number])[] = [
-  ['SANTA MONICA · PIER RIDE', '#1d4f8f', '#ffffff', 170],
-  ['WATTZUP · CARDIO 20', '#ff6a5a', '#ffffff', 400],
+  ['SANTA MONICA · PIER RIDE', '#1d4f8f', '#ffffff', 300],
+  ['WATTZUP · CARDIO 20', '#ff6a5a', '#ffffff', 440],
 ];
 const FEATHERS: readonly FeatherWord[] = [
   ['SANTA MONICA', '#1d4f8f', '#ffffff'],
@@ -522,15 +522,51 @@ export class SantaMonicaStreet implements SceneStreet {
     const teal = hazedMaterial(this.disposables, haze, 0x2a9aa8, 0.15);
     const coral = hazedMaterial(this.disposables, haze, 0xf27a5a, 0.15);
     for (const [x, w, tall, m] of [
-      [18, 16, 6, white],
-      [-2, 12, 5, teal],
       [-70, 18, 5.5, coral],
       [-96, 14, 4.5, white],
       [-140, 20, 5, teal],
     ] as const) {
       pier.box(m, [w, tall, 8], [x, DECK + 0.6 + tall / 2, -3]);
     }
+    // The Looff Hippodrome below the entrance, between the arch and Pacific Park: the carousel's cream house, its row of arched
+    // windows, and its hipped roof in pale green under a cupola.
+    const cream = hazedMaterial(this.disposables, haze, 0xf4e8d0, 0.12);
+    const green = hazedMaterial(this.disposables, haze, 0x8ab8a0, 0.15);
+    const dark = hazedMaterial(this.disposables, haze, 0x3a4a5a, 0.15);
+    pier.box(cream, [18, 7, 14], [-9, DECK + 4.1, -2]);
+    for (let x = -16.5; x < -1; x += 2.5) pier.box(dark, [1.4, 2.6, 0.2], [x, DECK + 4.2, 5.05]);
+    pier.box(cream, [3, 2.2, 3], [-9, DECK + 12.3, -2]);
     h.add(pier.build(this.disposables));
+    const hip = new CylinderGeometry(0, 1, 1, 4, 1);
+    hip.rotateY(Math.PI / 4);
+    hip.scale(14, 3.6, 11);
+    hip.translate(-9, DECK + 9.4, -2);
+    const cap = new CylinderGeometry(0, 1, 1, 8, 1);
+    cap.scale(2.4, 2, 2.4);
+    cap.translate(-9, DECK + 14.4, -2);
+    this.disposables.push(hip, cap);
+    h.add(new Mesh(hip, green), new Mesh(cap, green));
+    // The neon arch over the pier's entrance, its sign glowing blue and white in the late sun.
+    const sign = this.track(archTexture());
+    const archBoard = new PlaneGeometry(22, 6.9);
+    archBoard.translate(13, DECK + 9.2, 9.6);
+    this.disposables.push(archBoard);
+    h.add(
+      new Mesh(
+        archBoard,
+        hazedMaterial(this.disposables, haze, 0xffffff, 0, {
+          map: sign,
+          emissiveMap: sign,
+          emissive: new Color(0xffffff),
+          emissiveIntensity: 0.55,
+          alphaTest: 0.5,
+          side: DoubleSide,
+        }),
+      ),
+    );
+    const archPosts = new BoxBuilder();
+    for (const x of [3, 23]) archPosts.box(white, [0.5, 7, 0.5], [x, DECK + 4.1, 9.6]);
+    h.add(archPosts.build(this.disposables));
     // The Pacific Wheel: its rim, spokes and hub, its gondolas hung round it, on two A-frames.
     const R = 13;
     const HUB = DECK + R + 3;
@@ -565,6 +601,33 @@ export class SantaMonicaStreet implements SceneStreet {
       m.position.set(R * Math.cos(a), R * Math.sin(a) - 1, 0);
       wheel.add(m);
     }
+    // Its lights round the rim, already lit in the low sun.
+    const bulbs: BufferGeometry[] = [];
+    for (let k = 0; k < 72; k++) {
+      const a = (k / 72) * Math.PI * 2;
+      const bulb = new BoxGeometry(0.45, 0.45, 0.45);
+      bulb.translate((R + 0.1) * Math.cos(a), (R + 0.1) * Math.sin(a), 1.4);
+      bulbs.push(bulb);
+      if (k % 6 === 0) {
+        for (let r = 3; r < R; r += 2.5) {
+          const spokeBulb = new BoxGeometry(0.35, 0.35, 0.35);
+          spokeBulb.translate(r * Math.cos(a), r * Math.sin(a), 1.4);
+          bulbs.push(spokeBulb);
+        }
+      }
+    }
+    const lights = mergeGeometries(bulbs)!;
+    bulbs.forEach((b) => b.dispose());
+    this.disposables.push(lights);
+    wheel.add(
+      new Mesh(
+        lights,
+        hazedMaterial(this.disposables, haze, 0xfff2c8, 0, {
+          emissive: new Color(0xffe2a0),
+          emissiveIntensity: 1.6,
+        }),
+      ),
+    );
     wheel.position.set(-38, HUB, -2);
     h.add(wheel);
     this.wheel = wheel;
@@ -638,6 +701,39 @@ export class SantaMonicaStreet implements SceneStreet {
     texture.repeat.set(1 / x, 1 / y);
     return this.track(texture);
   }
+}
+
+/**
+ * The pier's neon arch: a navy board with a curved top and a white border, SANTA MONICA along
+ * its crown, YACHT HARBOR across its middle and SPORT FISHING · BOATING · CAFES below, in white
+ * neon. Clear outside the arch.
+ */
+function archTexture(): CanvasTexture {
+  return canvasTexture(640, 200, (g) => {
+    g.clearRect(0, 0, 640, 200);
+    g.beginPath();
+    g.moveTo(10, 196);
+    g.lineTo(10, 70);
+    g.quadraticCurveTo(320, -40, 630, 70);
+    g.lineTo(630, 196);
+    g.closePath();
+    g.fillStyle = '#14306a';
+    g.fill();
+    g.lineWidth = 8;
+    g.strokeStyle = '#ffffff';
+    g.stroke();
+    g.fillStyle = '#ffffff';
+    g.shadowColor = '#9ad8ff';
+    g.shadowBlur = 10;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 46px sans-serif';
+    g.fillText('SANTA MONICA', 320, 62, 520);
+    g.font = 'bold 40px sans-serif';
+    g.fillText('YACHT HARBOR', 320, 116, 560);
+    g.font = 'bold 24px sans-serif';
+    g.fillText('SPORT FISHING · BOATING · CAFES', 320, 164, 580);
+  });
 }
 
 /** Four metres of the path's pale concrete: its expansion joints and the sand blown over it. */
