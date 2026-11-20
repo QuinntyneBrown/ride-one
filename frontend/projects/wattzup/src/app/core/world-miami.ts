@@ -1382,6 +1382,47 @@ export class MiamiStreet implements SceneStreet {
     road.rotation.y = moonward;
     road.position.set(-Math.sin(moonward) * 980, -SEA + 0.05, -Math.cos(moonward) * 980);
     this.horizon.add(road);
+    // A cruise ship lying offshore, broadside on: a white hull and four decks of
+    // superstructure lit cabin by cabin, a raked funnel with the line's neon band, and its
+    // masthead and deck lights.
+    const ship = new Group();
+    const decks = this.material({
+      map: this.track(cabinTexture(false)),
+      emissive: 0xffffff,
+      emissiveMap: this.track(cabinTexture(true)),
+      emissiveIntensity: 1.3,
+      roughness: 0.5,
+      fog: false,
+    });
+    const hullPaint = this.material({ color: 0x3a3e58, roughness: 0.5, fog: false });
+    const hull = new Mesh(this.unit, hullPaint);
+    hull.scale.set(260, 14, 34);
+    hull.position.set(0, 3, 0);
+    ship.add(hull);
+    for (let d = 0; d < 4; d++) {
+      const deck = new Mesh(this.unit, decks);
+      deck.scale.set(230 - d * 26, 6, 30 - d * 2);
+      deck.position.set(-10 + d * 4, 13 + d * 6, 0);
+      ship.add(deck);
+    }
+    const funnel = new Mesh(this.unit, hullPaint);
+    funnel.scale.set(16, 18, 10);
+    funnel.rotation.z = 0.18;
+    funnel.position.set(50, 44, 0);
+    const livery = new Mesh(this.unit, crowns[0]!);
+    livery.scale.set(16.5, 3, 10.5);
+    livery.rotation.z = 0.18;
+    livery.position.set(51.5, 50, 0);
+    ship.add(funnel, livery);
+    for (const x of [-110, 110]) {
+      const light = new Mesh(this.unit, beacon);
+      light.scale.set(3, 3, 3);
+      light.position.set(x, 40, 0);
+      ship.add(light);
+    }
+    ship.position.set(-760, -SEA, -1250);
+    ship.rotation.y = 0.35;
+    this.horizon.add(ship);
     // The city's violet glow rising behind the towers, and the moon over the sea.
     const glow = new MeshBasicMaterial({
       map: this.track(glowTexture()),
@@ -2133,5 +2174,20 @@ function rippleTexture(): CanvasTexture {
     g.beginPath();
     g.arc(32, 32, 18, 0, Math.PI * 2);
     g.stroke();
+  });
+}
+
+/** A cruise ship's decks at night: rows of cabin windows and balconies, most of them lit. */
+function cabinTexture(lit: boolean): CanvasTexture {
+  return canvasTexture(512, 32, (g) => {
+    g.fillStyle = lit ? '#000' : '#9a9aa8';
+    g.fillRect(0, 0, 512, 32);
+    const random = seeded(8291);
+    for (let x = 2; x < 512; x += 5) {
+      g.fillStyle = random() < 0.7 ? (random() < 0.8 ? '#ffe0a8' : '#a8d8ff') : '#2a2a3a';
+      g.fillRect(x, 8, 3, 14);
+    }
+    g.fillStyle = lit ? '#000' : '#3a3a4a';
+    g.fillRect(0, 26, 512, 2);
   });
 }
