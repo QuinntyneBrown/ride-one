@@ -436,13 +436,22 @@ export class ConeyStreet implements SceneStreet {
 
   /**
    * The arcades and clam bars on the right: one- and two-storey fronts in bright paint, each
-   * with its sign along the fascia, a striped awning over its open counter, and a sign on the
-   * roof of every third.
+   * with its sign along the fascia, a striped awning on white posts over its open counter, a
+   * white cornice and a stepped false front over its roofline. The two-storey ones have a row of
+   * windows upstairs and a sign up on the roof, and every fourth stall a timber water tank.
    */
   private addStalls(): void {
     const random = seeded(5841);
     const counter = this.material({ color: 0x2a2a2e, roughness: 0.6 });
     const roofs = this.material({ color: 0x8a8e96, roughness: 0.8 });
+    const trim = this.material({ color: 0xf6f2ea, roughness: 0.6 });
+    const glass = this.material({ color: 0x1e2a36, roughness: 0.2, metalness: 0.3 });
+    const timber = this.material({ color: 0x6a4a32, roughness: 0.9 });
+    const tank = new CylinderGeometry(1.3, 1.3, 2.4, 12);
+    tank.translate(0, 1.2, 0);
+    const lid = new ConeGeometry(1.45, 0.9, 12);
+    lid.translate(0, 2.85, 0);
+    this.disposables.push(tank, lid);
     let k = 0;
     for (let offset = 0; offset < LOOP; k++) {
       const [name, paint, ink] = STALLS[k % STALLS.length]!;
@@ -454,7 +463,47 @@ export class ConeyStreet implements SceneStreet {
       b.box(wall, [8, tall, width], [4, tall / 2, 0]);
       b.box(roofs, [8.2, 0.3, width + 0.2], [4, tall + 0.15, 0]);
       b.box(counter, [0.1, 2.2, width - 2], [-0.02, 1.4, 0]);
+      // The cornice, and the false front stepped up over the roofline.
+      b.box(trim, [0.5, 0.3, width + 0.1], [-0.05, tall, 0]);
+      const step = 0.7 + random() * 0.5;
+      b.box(wall, [0.35, step, width * 0.7], [0.15, tall + step / 2, 0]);
+      b.box(trim, [0.45, 0.2, width * 0.7 + 0.1], [0.15, tall + step + 0.1, 0]);
+      b.box(wall, [0.35, step, width * 0.3], [0.15, tall + step * 1.5, 0]);
+      b.box(trim, [0.45, 0.2, width * 0.3 + 0.1], [0.15, tall + step * 2 + 0.1, 0]);
+      // The awning's white posts along the counter.
+      const posts = Math.max(2, Math.round(width / 3.5));
+      for (let i = 0; i <= posts; i++) {
+        b.box(trim, [0.14, 2.2, 0.14], [-1.3, 1.1, -width / 2 + 0.3 + (i * (width - 0.6)) / posts]);
+      }
+      if (k % 3 === 2) {
+        // Upstairs: a row of windows with white frames.
+        for (let z = -width / 2 + 1.6; z < width / 2 - 1; z += 2.4) {
+          b.box(trim, [0.06, 1.7, 1.4], [-0.03, tall - 2.6, z]);
+          b.box(glass, [0.1, 1.4, 1.1], [-0.04, tall - 2.6, z]);
+        }
+        // The roof sign's frame.
+        for (const z of [-width * 0.3, width * 0.3]) {
+          b.box(counter, [0.15, 2.4, 0.15], [2.1, tall + 1.2, z]);
+        }
+      }
       holder.add(b.build(this.disposables));
+      if (k % 4 === 1) {
+        // A timber water tank on four legs on the roof.
+        const water = new Group();
+        water.add(new Mesh(tank, timber), new Mesh(lid, roofs));
+        water.position.set(5, tall + 1.6, (random() - 0.5) * (width - 4));
+        for (const [dx, dz] of [
+          [-0.8, -0.8],
+          [0.8, -0.8],
+          [-0.8, 0.8],
+          [0.8, 0.8],
+        ] as const) {
+          const leg = new BoxBuilder();
+          leg.box(counter, [0.14, 1.6, 0.14], [dx, -0.8, dz]);
+          water.add(leg.build(this.disposables));
+        }
+        holder.add(water);
+      }
       const sign = this.track(signTexture(name, paint, ink));
       const fascia = new Mesh(
         new PlaneGeometry(width - 0.6, 1.1),
@@ -482,7 +531,7 @@ export class ConeyStreet implements SceneStreet {
         );
         this.disposables.push(roofSign.geometry);
         roofSign.rotation.y = -Math.PI / 2;
-        roofSign.position.set(2, tall + 1.3, 0);
+        roofSign.position.set(2, tall + 2.6, 0);
         holder.add(roofSign);
       }
       this.group.add(holder);
