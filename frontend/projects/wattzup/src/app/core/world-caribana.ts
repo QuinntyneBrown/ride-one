@@ -27,15 +27,8 @@ import {
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import {
-  canvasTexture,
-  Crowd,
-  loopMetres,
-  Ribbons,
-  type SceneStreet,
-  seeded,
-  speckle,
-} from './world-kit';
+import { canvasTexture, loopMetres, Ribbons, type SceneStreet, seeded, speckle } from './world-kit';
+import { ellipsoid, limb, Spectators } from './world-caribana-crowd';
 import type { StreetPoint } from './world-oldtown';
 
 /** The street repeats every LOOP metres; its parts run from BEHIND metres behind the rider. */
@@ -159,7 +152,7 @@ export class CaribanaStreet implements SceneStreet {
     /** Standing on the road rather than up on the pavement. */
     road?: boolean;
   }[] = [];
-  private readonly crowd: Crowd;
+  private readonly crowd: Spectators;
   private readonly dancers: Masquerader[] = [];
   private readonly bodies: InstancedMesh[] = [];
   private costumes: InstancedMesh | null = null;
@@ -187,15 +180,16 @@ export class CaribanaStreet implements SceneStreet {
     private readonly disposables: { dispose(): void }[],
   ) {
     this.ribbons = new Ribbons(this.group, disposables);
-    this.crowd = new Crowd(this.group, disposables, {
+    this.crowd = new Spectators(this.group, disposables, {
       loop: LOOP,
       near: CROWD_NEAR,
       far: CROWD_FAR,
       spacing: 0.55,
-      wardrobe: { tops: SHIRTS, bottoms: TROUSERS, skins: SKINS },
+      tops: SHIRTS,
+      bottoms: TROUSERS,
+      skins: SKINS,
       flags: this.flagMaterials,
-      flagShare: 0.22,
-      seeds: [41, 97],
+      seed: 41,
     });
   }
 
@@ -709,27 +703,6 @@ export class CaribanaStreet implements SceneStreet {
     this.group.add(mesh);
     return mesh;
   }
-}
-
-/** A limb from `a` to `b`, `r1` thick at `a` and `r2` at `b`, capped round at both ends. */
-function limb(a: Vector3, b: Vector3, r1: number, r2: number): BufferGeometry[] {
-  const length = a.distanceTo(b);
-  const bone = new CylinderGeometry(r2, r1, length, 8, 1, true);
-  bone.translate(0, length / 2, 0);
-  bone.applyQuaternion(
-    new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), b.clone().sub(a).normalize()),
-  );
-  bone.translate(a.x, a.y, a.z);
-  const joint = new SphereGeometry(r2, 8, 6);
-  joint.translate(b.x, b.y, b.z);
-  return [bone, joint];
-}
-
-function ellipsoid(r: number, sx: number, sy: number, sz: number, x: number, y: number, z: number) {
-  const ball = new SphereGeometry(r, 14, 10);
-  ball.scale(sx, sy, sz);
-  ball.translate(x, y, z);
-  return ball;
 }
 
 /**
