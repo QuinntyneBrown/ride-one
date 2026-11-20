@@ -42,6 +42,10 @@ import type { StreetPoint } from './world-oldtown';
 const LOOP = 360;
 const BEHIND = 24;
 const KERB = 0.15;
+/** The parade lanes' asphalt, laid a hair over the renderer's road from barricade to barricade. */
+const ASPHALT = 0.012;
+/** The kerb steps up to the pavement just behind the barricades. */
+const CURB = 6.75;
 /** The apron the masqueraders dance on runs from the kerb to the barricades. */
 const BARRIER = 6.6;
 /** The crowd stands from just behind the barricades to the back of the pavement. */
@@ -147,7 +151,14 @@ const POSES: readonly (readonly [readonly number[], readonly number[]])[] = [
 export class CaribanaStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
-  private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
+  private readonly props: {
+    mesh: Group;
+    offset: number;
+    every: number;
+    x: number;
+    /** Standing on the road rather than up on the pavement. */
+    road?: boolean;
+  }[] = [];
   private readonly crowd: Crowd;
   private readonly dancers: Masquerader[] = [];
   private readonly bodies: InstancedMesh[] = [];
@@ -191,7 +202,7 @@ export class CaribanaStreet implements SceneStreet {
   build(roadHalf: number, points: number): void {
     this.disposables.push(this.unit, ...this.flagMaterials);
     for (const m of this.flagMaterials) if (m.map) this.track(m.map);
-    this.addGround(roadHalf, points);
+    this.addGround(points);
     this.crowd.build();
     this.addMasqueraders(roadHalf);
     this.addTrucks();
@@ -216,7 +227,8 @@ export class CaribanaStreet implements SceneStreet {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + KERB, -metres);
+      const lift = prop.road ? ASPHALT : KERB;
+      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + lift, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     this.placeDancers(heightAt, along);
@@ -241,7 +253,7 @@ export class CaribanaStreet implements SceneStreet {
     const posed = this.bodies.map(() => 0);
     this.dancers.forEach((d, i) => {
       const metres = along(d.offset, LOOP);
-      const y = heightAt(Math.max(metres, 0)) + KERB;
+      const y = heightAt(Math.max(metres, 0)) + ASPHALT;
       const t = this.time + d.phase;
       // Chipping down the road: a bounce on every beat, a sway of the hips, a turn to the crowd.
       const bounce = Math.abs(Math.sin(t * 4.2)) * 0.07;
@@ -283,7 +295,7 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   /** Concrete pavements to the barricades and the crowd, grass beyond, the lake on the right. */
-  private addGround(roadHalf: number, points: number): void {
+  private addGround(points: number): void {
     const concrete = this.material({ map: this.repeat(concreteTexture(), 4, 4), roughness: 0.9 });
     const grass = this.material({ map: this.repeat(grassTexture(), 6, 6), roughness: 1 });
     const stone = this.material({ map: this.repeat(stoneTexture(), 3, 3), roughness: 0.95 });
@@ -301,16 +313,32 @@ export class CaribanaStreet implements SceneStreet {
       roughness: 0.4,
       color: 0xc9ced3,
     });
+    const asphalt = this.material({
+      map: this.repeat(roadTexture(), 2 * CURB, 18),
+      roughness: 0.85,
+    });
+    const kerb = this.material({ color: 0xc4c0b8, roughness: 0.8 });
     // Each profile runs from greater x to smaller, so its faces look up (or at the road).
-    const r = roadHalf;
-    this.ribbons.add(points, concrete, [
-      [PAVEMENT, KERB + 0.01],
-      [r + 0.18, KERB],
-      [r, 0],
+    this.ribbons.add(points, asphalt, [
+      [CURB, ASPHALT],
+      [-CURB, ASPHALT],
+    ]);
+    this.ribbons.add(points, kerb, [
+      [CURB + 0.2, KERB],
+      [CURB, KERB],
+      [CURB, ASPHALT],
+    ]);
+    this.ribbons.add(points, kerb, [
+      [-CURB, ASPHALT],
+      [-CURB, KERB],
+      [-CURB - 0.2, KERB],
     ]);
     this.ribbons.add(points, concrete, [
-      [-r, 0],
-      [-r - 0.18, KERB],
+      [PAVEMENT, KERB + 0.01],
+      [CURB + 0.2, KERB],
+    ]);
+    this.ribbons.add(points, concrete, [
+      [-CURB - 0.2, KERB],
       [-PAVEMENT, KERB + 0.01],
     ]);
     this.ribbons.add(points, grass, [
@@ -331,12 +359,12 @@ export class CaribanaStreet implements SceneStreet {
       [SHORE + 0.4, 0.03],
     ]);
     this.ribbons.add(points, barrier, [
-      [BARRIER, KERB + 1.1],
-      [BARRIER, KERB],
+      [BARRIER, ASPHALT + 1.1],
+      [BARRIER, ASPHALT],
     ]);
     this.ribbons.add(points, barrier, [
-      [-BARRIER, KERB],
-      [-BARRIER, KERB + 1.1],
+      [-BARRIER, ASPHALT],
+      [-BARRIER, ASPHALT + 1.1],
     ]);
   }
 
@@ -489,11 +517,17 @@ export class CaribanaStreet implements SceneStreet {
       ] as const) {
         const wheel = new Mesh(this.wheel, dark);
         wheel.rotation.z = Math.PI / 2;
-        wheel.position.set(x, 0.45 - KERB, z);
+        wheel.position.set(x, 0.5, z);
         truck.add(wheel);
       }
       this.group.add(truck);
-      this.props.push({ mesh: truck, offset: i * TRUCK_EVERY + 60, every: LOOP, x: TRUCK_X });
+      this.props.push({
+        mesh: truck,
+        offset: i * TRUCK_EVERY + 60,
+        every: LOOP,
+        x: TRUCK_X,
+        road: true,
+      });
     }
   }
 
@@ -862,6 +896,114 @@ function medallionGeometry(): BufferGeometry {
   const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
   parts.forEach((p) => p.dispose());
   return merged;
+}
+
+/**
+ * Lake Shore's parade lanes, kerb to kerb across 13.5 m (u) and 18 m along (v): grey asphalt
+ * with stone in it, a concrete gutter at each kerb, solid edge lines, two dashed lane lines,
+ * patched seams and catch basins, and the parade's litter of confetti, glitter and dropped
+ * feathers in the bands' colours.
+ */
+function roadTexture(): CanvasTexture {
+  const w = 1024;
+  const h = 2048;
+  const px = w / (2 * CURB);
+  const py = h / 18;
+  return canvasTexture(w, h, (g) => {
+    speckle(g, w, h, '#4d4f54', 4211);
+    const random = seeded(4213);
+    for (let i = 0; i < 16000; i++) {
+      const l = random() < 0.5 ? 20 + random() * 15 : 55 + random() * 20;
+      g.fillStyle = `hsla(220,4%,${l}%,${(0.25 + random() * 0.35).toFixed(2)})`;
+      g.fillRect(random() * w, random() * h, 1.5, 1.5);
+    }
+    // Wheel tracks: smoother, darker bands where the traffic runs the rest of the year.
+    for (const lane of [-4.4, 0, 4.4]) {
+      for (const track of [-0.9, 0.9]) {
+        const x = (CURB + lane + track) * px;
+        const band = g.createLinearGradient(x - 30, 0, x + 30, 0);
+        band.addColorStop(0, 'rgba(30,30,34,0)');
+        band.addColorStop(0.5, 'rgba(30,30,34,0.16)');
+        band.addColorStop(1, 'rgba(30,30,34,0)');
+        g.fillStyle = band;
+        g.fillRect(x - 30, 0, 60, h);
+      }
+    }
+    // Patches and sealed cracks.
+    for (let i = 0; i < 5; i++) {
+      g.fillStyle = `rgba(40,41,45,${(0.3 + random() * 0.25).toFixed(2)})`;
+      g.fillRect(random() * w, random() * h, 60 + random() * 160, 40 + random() * 200);
+    }
+    g.strokeStyle = 'rgba(22,22,24,0.7)';
+    g.lineWidth = 3;
+    for (let i = 0; i < 7; i++) {
+      let x = random() * w;
+      let y = random() * h;
+      g.beginPath();
+      g.moveTo(x, y);
+      for (let j = 0; j < 10; j++) {
+        x += (random() - 0.5) * 40;
+        y += random() * 40;
+        g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    // Concrete gutters at the kerbs, with a catch basin in each.
+    const gutter = 0.4 * px;
+    g.fillStyle = '#8f8b84';
+    g.fillRect(0, 0, gutter, h);
+    g.fillRect(w - gutter, 0, gutter, h);
+    g.fillStyle = 'rgba(60,58,55,0.6)';
+    for (let y = 0; y < h; y += 1.5 * py) g.fillRect(0, y, gutter, 2);
+    for (let y = 0; y < h; y += 1.5 * py) g.fillRect(w - gutter, y, gutter, 2);
+    for (const [x, y] of [
+      [0, 6 * py],
+      [w - gutter, 14 * py],
+    ] as const) {
+      g.fillStyle = '#26272a';
+      g.fillRect(x + 4, y, gutter - 8, 0.9 * py);
+      g.fillStyle = '#5b5d60';
+      for (let k = 0; k < 7; k++) g.fillRect(x + 8, y + 6 + k * 14, gutter - 16, 5);
+    }
+    // Solid edge lines and two dashed lane lines, 3 m dashes and 6 m gaps, a little worn.
+    g.fillStyle = 'rgba(238,236,228,0.88)';
+    g.fillRect(gutter + 0.25 * px, 0, 0.12 * px, h);
+    g.fillRect(w - gutter - 0.37 * px, 0, 0.12 * px, h);
+    for (const lane of [-2.2, 2.2]) {
+      const x = (CURB + lane) * px - 0.06 * px;
+      for (let y = 0; y < h; y += 9 * py) g.fillRect(x, y, 0.12 * px, 3 * py);
+    }
+    g.fillStyle = 'rgba(77,79,84,0.55)';
+    for (let i = 0; i < 900; i++) g.fillRect(random() * w, random() * h, 3, 2);
+    // The parade's litter: confetti, glitter and feathers dropped from the costumes.
+    const colours = ['#ff2d87', '#ffd23f', '#13c3c9', '#ff8a00', '#7b2ff7', '#ffffff', '#4de0a8'];
+    for (let i = 0; i < 1400; i++) {
+      g.fillStyle = colours[Math.floor(random() * colours.length)]!;
+      g.save();
+      g.translate(random() * w, random() * h);
+      g.rotate(random() * Math.PI);
+      g.fillRect(-2, -1.5, 4 + random() * 3, 3);
+      g.restore();
+    }
+    for (let i = 0; i < 26; i++) {
+      const x = gutter + random() * (w - 2 * gutter);
+      const y = random() * h;
+      const a = random() * Math.PI * 2;
+      const len = 18 + random() * 26;
+      g.strokeStyle = colours[Math.floor(random() * 5)]!;
+      g.lineWidth = 5 + random() * 4;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(x, y);
+      g.quadraticCurveTo(
+        x + Math.cos(a) * len * 0.5 + 6,
+        y + Math.sin(a) * len * 0.5,
+        x + Math.cos(a) * len,
+        y + Math.sin(a) * len,
+      );
+      g.stroke();
+    }
+  });
 }
 
 /** Pale concrete slabs, 1 m by 1 m (the texture covers 4 m), with dark joints. */
