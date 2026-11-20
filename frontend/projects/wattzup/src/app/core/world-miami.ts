@@ -2420,6 +2420,22 @@ export class MiamiStreet implements SceneStreet {
         scale: 0.86,
       });
     }
+    // People sitting along the sea wall's coping, facing the sea in ones and twos, and a
+    // couple just ahead at the start.
+    const perch = seeded(8441);
+    for (let k = 0; k < 16; k++) {
+      const offset = k === 0 ? 39 : perch() * LOOP;
+      const pair = k === 0 || perch() < 0.5;
+      for (let i = 0; i < (pair ? 2 : 1); i++)
+        this.standers.push({
+          offset: offset + i * 0.6,
+          x: -roadHalf - 5.15,
+          heading: Math.PI / 2 + (perch() - 0.5) * 0.4,
+          phase: perch() * 6,
+          scale: 0.92 + perch() * 0.1,
+          seat: -0.27,
+        });
+    }
     // The diners seated at the café tables, chatting over their candles.
     const lean = seeded(8401);
     for (const d of this.diners)
