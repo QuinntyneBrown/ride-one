@@ -537,6 +537,18 @@ export class MiamiStreet implements SceneStreet {
       emissiveIntensity: 0.9,
       roughness: 0.2,
     });
+    const icons = (['flamingo', 'palm', 'cocktail', 'moon'] as const).map((kind) => {
+      const m = this.material({
+        map: this.track(iconTexture(kind)),
+        emissive: 0xffffff,
+        emissiveMap: this.track(iconTexture(kind)),
+        emissiveIntensity: 2.4,
+        transparent: true,
+        depthWrite: false,
+      });
+      this.signs.push(m);
+      return m;
+    });
     const planter = this.material({ color: 0xe8e0d8, roughness: 0.8 });
     const blossomBall = new SphereGeometry(0.7, 10, 8);
     this.disposables.push(blossomBall);
@@ -920,6 +932,21 @@ export class MiamiStreet implements SceneStreet {
       const holder = new Group();
       holder.add(hotel);
       this.group.add(holder);
+      // A neon figure over the sidewalk at first-floor height: a flamingo, a palm, a
+      // cocktail glass or a crescent moon, in tubes of light.
+      // It hangs out from the wall on an iron bracket, side on to the street, so it faces
+      // the riders coming down the drive.
+      for (const turn of [0, Math.PI]) {
+        const figure = new Mesh(this.flat, icons[k % icons.length]!);
+        figure.rotation.y = turn;
+        figure.scale.set(3.4, 3.4, 1);
+        figure.position.set(-2.1, 8.2, -width * 0.32 + (turn ? -0.02 : 0.02));
+        hotel.add(figure);
+      }
+      const bracket = new Mesh(this.unit, iron);
+      bracket.scale.set(3.8, 0.1, 0.1);
+      bracket.position.set(-1.9, 10, -width * 0.32);
+      hotel.add(bracket);
       // A planter at each end of the frontage, spilling bougainvillea in magenta flower.
       for (const z of [-width / 2 + 1.4, width / 2 - 1.4]) {
         const box = new Mesh(this.unit, planter);
@@ -2996,5 +3023,79 @@ function blossomTexture(): CanvasTexture {
       g.arc(random() * 64, random() * 64, 1.5 + random() * 2, 0, Math.PI * 2);
       g.fill();
     }
+  });
+}
+
+/** A neon figure in tubes of light with their glow: a flamingo, palm, cocktail or moon. */
+function iconTexture(kind: 'flamingo' | 'palm' | 'cocktail' | 'moon'): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    const tube = (colour: string, draw: () => void) => {
+      for (const [w, c, blur] of [
+        [10, colour, 22],
+        [3.5, '#ffffff', 0],
+      ] as const) {
+        g.lineWidth = w;
+        g.strokeStyle = c;
+        g.shadowColor = colour;
+        g.shadowBlur = blur;
+        g.lineCap = 'round';
+        g.lineJoin = 'round';
+        g.beginPath();
+        draw();
+        g.stroke();
+      }
+    };
+    if (kind === 'flamingo')
+      tube('#ff4fb8', () => {
+        g.moveTo(150, 60);
+        g.bezierCurveTo(120, 40, 100, 70, 130, 100);
+        g.bezierCurveTo(160, 130, 90, 150, 90, 170);
+        g.bezierCurveTo(90, 200, 170, 200, 180, 170);
+        g.bezierCurveTo(185, 150, 150, 150, 130, 165);
+        g.moveTo(140, 195);
+        g.lineTo(140, 245);
+        g.moveTo(150, 60);
+        g.lineTo(172, 72);
+      });
+    if (kind === 'palm')
+      tube('#5aff8a', () => {
+        g.moveTo(128, 245);
+        g.quadraticCurveTo(120, 160, 140, 90);
+        for (const [x, y] of [
+          [60, 110],
+          [80, 60],
+          [140, 40],
+          [200, 70],
+          [215, 120],
+        ]) {
+          g.moveTo(140, 90);
+          g.quadraticCurveTo((140 + x) / 2, y - 25, x, y);
+        }
+      });
+    if (kind === 'cocktail')
+      tube('#2fe6ff', () => {
+        g.moveTo(60, 70);
+        g.lineTo(196, 70);
+        g.lineTo(128, 150);
+        g.closePath();
+        g.moveTo(128, 150);
+        g.lineTo(128, 220);
+        g.moveTo(88, 225);
+        g.lineTo(168, 225);
+        g.moveTo(150, 90);
+        g.lineTo(190, 30);
+      });
+    if (kind === 'moon')
+      tube('#ffd23f', () => {
+        g.arc(128, 128, 90, Math.PI * 0.35, Math.PI * 1.65);
+        g.bezierCurveTo(
+          120,
+          230,
+          120,
+          30,
+          128 + 90 * Math.cos(Math.PI * 0.35),
+          128 + 90 * Math.sin(Math.PI * 0.35),
+        );
+      });
   });
 }
