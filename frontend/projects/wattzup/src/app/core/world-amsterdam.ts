@@ -143,6 +143,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addMovingLift(roadHalf);
     this.addShop(roadHalf);
     this.addCabinets(roadHalf);
+    this.addFamily(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1747,6 +1748,61 @@ export class AmsterdamStreet implements SceneStreet {
       this.group.add(spot);
       this.props.push({ mesh: spot, offset: at, x: nearSide ? roadHalf + 0.75 : -roadHalf - 2.4 });
     }
+  }
+
+  /**
+   * A family out on the near pavement up ahead: a parent pushing a pram, and a child scooting
+   * ahead of them on a kick scooter, all keeping to the open strip outside the stoops.
+   */
+  private addFamily(roadHalf: number): void {
+    const random = seeded(809);
+    const people = this.material({ vertexColors: true, roughness: 0.85 });
+    const navy = this.material({ color: 0x24304a, roughness: 0.7 });
+    const black = this.material({ color: 0x1b1b1f, roughness: 0.6, metalness: 0.3 });
+    const red = this.material({ color: 0xd8282e, roughness: 0.5 });
+    const family = new Group();
+    const parent = new Mesh(standerGeometry(random, false), people);
+    this.disposables.push(parent.geometry);
+    family.add(parent);
+    // The pram: a deep carrycot under its hood on a four-wheeled frame with a handle.
+    const cot = new Mesh(this.unit, navy);
+    cot.scale.set(0.45, 0.32, 0.8);
+    cot.position.set(0, 0.72, -1.05);
+    const hood = new Mesh(new SphereGeometry(0.28, 10, 6, 0, Math.PI, 0, Math.PI / 2), navy);
+    this.disposables.push(hood.geometry);
+    hood.rotation.y = Math.PI / 2;
+    hood.scale.set(1, 1, 0.8);
+    hood.position.set(0, 0.88, -0.75);
+    const handle = new Mesh(this.unit, black);
+    handle.scale.set(0.5, 0.03, 0.03);
+    handle.position.set(0, 1.0, -0.42);
+    family.add(cot, hood, handle);
+    for (const z of [-1.35, -0.75]) {
+      for (const x of [-0.2, 0.2]) {
+        const wheel = new Mesh(new TorusGeometry(0.11, 0.025, 4, 12), black);
+        this.disposables.push(wheel.geometry);
+        wheel.rotation.y = Math.PI / 2;
+        wheel.position.set(x, 0.12, z);
+        family.add(wheel);
+      }
+    }
+    // The child on a kick scooter a few steps ahead.
+    const child = new Mesh(standerGeometry(random, false), people);
+    this.disposables.push(child.geometry);
+    child.scale.setScalar(0.62);
+    child.position.set(0.1, 0.06, -3.2);
+    const deck = new Mesh(this.unit, red);
+    deck.scale.set(0.12, 0.04, 0.5);
+    deck.position.set(0.1, 0.06, -3.25);
+    const stem = new Mesh(this.unit, red);
+    stem.scale.set(0.03, 0.7, 0.03);
+    stem.position.set(0.1, 0.4, -3.5);
+    family.add(child, deck, stem);
+    family.children.forEach((m) => (m.castShadow = true));
+    family.rotation.y = Math.PI;
+    family.position.y = KERB;
+    this.group.add(family);
+    this.props.push({ mesh: family, offset: START + BEHIND + 21, x: roadHalf + 0.75 });
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
