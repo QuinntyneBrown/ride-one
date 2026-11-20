@@ -54,6 +54,7 @@ export class GalibierStreet implements SceneStreet {
   private crowd: Figures | null = null;
   private readonly flags: { mesh: Mesh; phase: number }[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -98,7 +99,7 @@ export class GalibierStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -106,7 +107,7 @@ export class GalibierStreet implements SceneStreet {
         const metres = loopMetres(p.offset, s, LOOP, BEHIND);
         const jump = Math.max(0, Math.sin(this.time * 4 + p.phase)) * 0.12;
         const heading = p.x > 0 ? -Math.PI / 2 : Math.PI / 2;
-        crowd.set(i, p.x, heightAt(Math.max(metres, 0)) + p.y + jump, -metres, heading, 0.95, 0);
+        crowd.set(i, p.x, heightAt(metres) + p.y + jump, -metres, heading, 0.95, 0);
       });
       crowd.commit();
     }
