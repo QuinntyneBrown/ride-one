@@ -346,9 +346,13 @@ const TWINKLE_COLOUR = '#ffd27a';
 const TWINKLE_RATE = 2.4;
 /** How far out from the crown the lights and their glow sit (m), clear of the leaves. */
 const TWINKLE_OUT = 0.55;
-/** Delivery drones: how many, their lowest height over the road (m), how far ahead they show. */
+/**
+ * Delivery drones: how many, their lowest height over the road (m), how far ahead they show.
+ * They fly clear over the gates' name plates, their slung parcels and all, rather than through
+ * them.
+ */
 const DRONES = 8;
-const DRONE_HEIGHT = 6.5;
+const DRONE_HEIGHT = GATE_HEIGHT + 3.2;
 const DRONE_REACH = 260;
 const DRONE_FIRST = 48;
 /** Shop signs hung under the towers' canopies: their names and neon colour, and length (m). */
