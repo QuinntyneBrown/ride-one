@@ -60,7 +60,7 @@ const RAIL = 10;
 const SHOPS = 12;
 /** The beach lies this far below the planks, and runs out to the surf. */
 const SAND = -1.4;
-const SURF = 110;
+const SURF = 62;
 /** The horizon this far ahead. */
 const AHEAD = 220;
 const HAZE = 0xd8e2ea;
@@ -335,8 +335,9 @@ export class ConeyStreet implements SceneStreet {
       const holder = new Group();
       const b = new BoxBuilder();
       const people: [number, number][] = [];
-      for (let n = 0; n < 9; n++) {
-        const x = -RAIL - 6 - random() * (SURF - RAIL - 14);
+      // Packed thickest under the railing, thinning toward the water.
+      for (let n = 0; n < 26; n++) {
+        const x = -RAIL - 3 - random() ** 1.5 * (SURF - RAIL - 9);
         const z = -random() * CHUNK;
         const u = new Mesh(canopy, umbrellas[Math.floor(random() * umbrellas.length)]!);
         const p = new Mesh(pole, white);
@@ -347,9 +348,20 @@ export class ConeyStreet implements SceneStreet {
         b.box(towels[n % towels.length]!, [0.9, 0.03, 1.8], [x + 1.2, SAND + 0.02, z + 0.4]);
         people.push([x + 1.5, z - 0.6], [x - 1 + random() * 2, z + 1.5]);
       }
+      // Bathers wading in the surf, waist deep.
+      const wading: [number, number][] = [];
+      for (let n = 0; n < 10; n++) wading.push([-SURF - 1 - random() * 7, -random() * CHUNK]);
+      // Gulls wheeling over the sand.
+      for (let n = 0; n < 4; n++) {
+        const x = -RAIL - 6 - random() * 30;
+        const y = SAND + 7 + random() * 7;
+        const z = -random() * CHUNK;
+        b.box(white, [0.8, 0.05, 0.28], [x - 0.36, y + 0.12, z], 0.35);
+        b.box(white, [0.8, 0.05, 0.28], [x + 0.36, y + 0.12, z], -0.35);
+      }
       if (k % 2 === 0) {
         // A lifeguard chair: four white legs, the seat high up, a red rescue float.
-        const x = -RAIL - 30;
+        const x = -RAIL - 22;
         for (const [dx, dz] of [
           [-0.5, -0.5],
           [0.5, -0.5],
@@ -363,9 +375,13 @@ export class ConeyStreet implements SceneStreet {
         b.box(umbrellas[0]!, [0.25, 0.9, 0.12], [x + 0.7, SAND + 1.6, -19.4]);
       }
       holder.add(b.build(this.disposables));
-      const figures = new Figures(holder, this.disposables, people.length, SUMMER, 5831 + k);
+      const all = people.length + wading.length;
+      const figures = new Figures(holder, this.disposables, all, SUMMER, 5831 + k);
       people.forEach(([x, z], i) =>
         figures.set(i, x, SAND, z, random() * Math.PI * 2, 0.9 + random() * 0.15),
+      );
+      wading.forEach(([x, z], i) =>
+        figures.set(people.length + i, x, SAND - 1.3, z, random() * Math.PI * 2, 0.95),
       );
       figures.commit();
       this.group.add(holder);
