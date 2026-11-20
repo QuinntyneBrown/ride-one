@@ -291,7 +291,8 @@ export class StradeStreet implements SceneStreet {
     const random = seeded(4921);
     for (const side of [-1, 1] as const) {
       for (let offset = side > 0 ? 4 : 0; offset < LOOP; offset += CYPRESS_EVERY) {
-        if (offset % 160 > 140) continue;
+        // Avenues of cypresses with open stretches between, where the hills show.
+        if ((offset + (side > 0 ? 40 : 0)) % 160 > 75) continue;
         const tree = new Mesh(geometry, foliage);
         tree.castShadow = true;
         tree.scale.set(1 + random() * 0.2, 0.85 + random() * 0.35, 1 + random() * 0.2);
@@ -536,12 +537,12 @@ export class StradeStreet implements SceneStreet {
     this.disposables.push(cone);
     const dark = hazedMaterial(this.disposables, haze, 0x2a3a22, 0.35);
     const layers: [number, number, number, number, number, number][] = [
-      [-1600, 1600, 70, -1500, 0x9aa0a8, 0.6],
-      [-1500, 1500, 55, -1050, 0xb0a888, 0.5],
-      [-1400, -60, 48, -620, 0xc8b070, 0.35],
-      [160, 1400, 52, -560, 0xb8b068, 0.35],
-      [-900, -120, 30, -260, 0xd0b468, 0.25],
-      [120, 900, 26, -220, 0xa8a860, 0.25],
+      [-1600, 1600, 190, -1500, 0x9aa0a8, 0.6],
+      [-1500, 1500, 150, -1050, 0xb0a888, 0.5],
+      [-1400, -60, 140, -620, 0xc8b070, 0.3],
+      [160, 1400, 150, -560, 0xb8b068, 0.3],
+      [-900, -120, 90, -260, 0xd0b468, 0.2],
+      [120, 900, 80, -220, 0xa8a860, 0.2],
     ];
     for (const [from, to, high, z, colour, amount] of layers) {
       const crest = ridge(from, to, high, z, colour, amount);
