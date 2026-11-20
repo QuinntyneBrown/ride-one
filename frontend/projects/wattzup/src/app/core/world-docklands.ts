@@ -108,6 +108,8 @@ const STALL_X = -10;
 const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
 /** People on the pavement across the street, scattered round the loop. */
 const WALKERS = 26;
+/** Each stroller walks a stretch of pavement this long before coming round again. */
+const STROLL = 30;
 const WALKER_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347', '#9b6bff', '#d7ff3a'];
 /** Festoon lantern strings across the street, at these offsets round the loop. */
 const LANTERNS: readonly number[] = [30, 44, 58, 150, 164, 300, 314, 470, 484, 498, 590];
@@ -243,6 +245,8 @@ export class DocklandsStreet {
   private readonly lanterns: { group: Group; offset: number }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
   private readonly walkers: { group: Group; offset: number }[] = [];
+  /** The people walking the pavement: each strolls its own way at its own pace. */
+  private readonly strollers: { person: Group; speed: number; phase: number }[] = [];
 
   /**
    * Runs the train along its viaduct for `seconds` of the ride: it crosses from the harbour
@@ -251,6 +255,7 @@ export class DocklandsStreet {
   setTime(seconds: number, still = false): void {
     this.fall(seconds, still);
     this.steam(still ? 0 : seconds);
+    this.stroll(still ? 0 : seconds);
     // The screens' words scroll past; held still for reduced motion.
     this.screenTextures.forEach((texture, i) => {
       texture.offset.x = still ? 0 : (seconds * (0.05 + i * 0.012)) % 1;
@@ -1384,12 +1389,27 @@ export class DocklandsStreet {
       this.group.add(group);
       this.walkers.push({ group, offset });
     });
-    // On the pavement across the street, under the towers.
+    // On the pavement across the street, under the towers, strolling up or down it.
     for (let i = 0; i < WALKERS; i++) {
       const group = new Group();
-      group.add(person(roadHalf + 2.5 + random() * 6, random() * Math.PI * 2));
+      const way = random() < 0.5 ? -1 : 1;
+      const walker = person(roadHalf + 2.5 + random() * 6, way < 0 ? 0 : Math.PI);
+      group.add(walker);
+      this.strollers.push({ person: walker, speed: way * (0.9 + random() * 0.6), phase: random() });
       this.group.add(group);
       this.walkers.push({ group, offset: random() * LOOP });
+    }
+  }
+
+  /**
+   * Walks each stroller along its stretch of pavement, STROLL metres long, round again at its
+   * end, with a slight bob in its step.
+   */
+  private stroll(seconds: number): void {
+    for (const { person, speed, phase } of this.strollers) {
+      const along = (((phase * STROLL + seconds * speed) % STROLL) + STROLL) % STROLL;
+      person.position.z = along - STROLL / 2;
+      person.position.y = Math.abs(Math.sin(seconds * 5.5 + phase * 9)) * 0.05;
     }
   }
 
