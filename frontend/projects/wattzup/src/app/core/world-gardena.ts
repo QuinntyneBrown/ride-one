@@ -329,7 +329,7 @@ export class GardenaStreet implements SceneStreet {
     );
     const dark = this.material({ color: 0x2a2220, roughness: 0.9 });
     const brass = this.material({ color: 0xc8a040, metalness: 0.6, roughness: 0.4 });
-    for (let k = 0; k < 9; k++) {
+    for (let k = 0; k < 16; k++) {
       const b = new BoxBuilder();
       const hide = hides[k % hides.length]!;
       b.box(hide, [0.75, 0.75, 1.7], [0, 0.95, 0]);
@@ -345,15 +345,17 @@ export class GardenaStreet implements SceneStreet {
         b.box(dark, [0.14, 0.6, 0.14], [lx, 0.3, lz]);
       const cow = b.build(this.disposables);
       cow.rotation.y = random() * Math.PI * 2;
+      cow.scale.setScalar(1.8);
       const holder = new Group();
       holder.add(cow);
       this.group.add(holder);
-      const x = 18 + random() * 36;
+      // The herd grazes in knots of four up the meadow, where it rises clear of the crowd's heads.
+      const x = 22 + random() * 20;
       this.props.push({
         mesh: holder,
-        offset: k * 53 + random() * 20,
+        offset: Math.floor(k / 4) * 120 + 190 + random() * 40,
         x,
-        lift: ((x - 16) / 44) * 12 - 0.3,
+        lift: (x < 16 ? ((x - 4) / 12) * 2 : 2 + ((x - 16) / 44) * 12) - 0.2,
       });
     }
   }
@@ -437,7 +439,7 @@ export class GardenaStreet implements SceneStreet {
     // The slope to the saddle, its hairpins painted on: the saddle 260 m up, 900 m ahead, rising
     // on either hand to the feet of the towers and the spires.
     const slope = (x: number, z: number) => {
-      const up = ease(-z / 900) * 260;
+      const up = Math.min(1, Math.max(0, -z / 900)) ** 1.6 * 260;
       const sides = ease((Math.abs(x) - 250) / 500) * (x > 0 ? 420 : 300) * ease(-z / 600);
       const roll = 10 * Math.sin(x / 70 + z / 90) + 6 * Math.sin(z / 47 - x / 130);
       return up + sides + roll * ease(-z / 200);
@@ -485,10 +487,10 @@ export class GardenaStreet implements SceneStreet {
     gable.rotateY(Math.PI / 4);
     this.disposables.push(gable);
     for (const [x, w, d, tall] of [
-      [-90, 34, 22, 16],
-      [-30, 26, 18, 12],
-      [40, 40, 24, 18],
-      [110, 22, 16, 10],
+      [-120, 50, 30, 24],
+      [-45, 38, 26, 18],
+      [45, 60, 34, 27],
+      [140, 34, 24, 15],
     ] as const) {
       const b = new BoxBuilder();
       b.box(white, [w, tall * 0.55, d], [0, (tall * 0.55) / 2, 0]);
