@@ -3,12 +3,13 @@
 // figures' limbs. A street built on them follows Old Town's pattern (world-oldtown.ts): `build`
 // once, then `lay` and `place` each frame, recycling its parts along a loop.
 import {
-  type BoxGeometry,
+  BoxGeometry,
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
   CapsuleGeometry,
   Color,
+  ConeGeometry,
   CylinderGeometry,
   DoubleSide,
   Group,
@@ -643,6 +644,92 @@ function mistTexture(curtain: boolean): CanvasTexture {
       g.fillRect(0, 0, 256, 256);
     }
   });
+}
+
+/**
+ * Pop-up tents for a ride's village: a 3 m square canopy peaked over four white legs, a printed
+ * valance on every side naming the tent, and a trestle table under it laid with water bottles.
+ */
+export class PopupTents {
+  private readonly leg = new CylinderGeometry(0.03, 0.03, 2.3, 6).translate(0, 1.15, 0);
+  private readonly roof = new ConeGeometry(2.12, 0.8, 4, 1, true).rotateY(Math.PI / 4);
+  private readonly valance = new PlaneGeometry(3, 0.5);
+  private readonly top = new BoxGeometry(1.9, 0.05, 0.7);
+  private readonly bottle = new CylinderGeometry(0.035, 0.035, 0.22, 8);
+  private readonly white = new MeshStandardMaterial({
+    color: 0xf2f2ee,
+    metalness: 0.4,
+    roughness: 0.4,
+  });
+  private readonly water = new MeshStandardMaterial({
+    color: 0x4fa3d8,
+    roughness: 0.2,
+    transparent: true,
+    opacity: 0.85,
+  });
+
+  constructor(
+    private readonly disposables: { dispose(): void }[],
+    private readonly track: <T extends Texture>(texture: T) => T,
+  ) {
+    disposables.push(
+      this.leg,
+      this.roof,
+      this.valance,
+      this.top,
+      this.bottle,
+      this.white,
+      this.water,
+    );
+  }
+
+  /** A tent with `text` on its valance, in `fill` with `ink` lettering. */
+  make(text: string, fill: string, ink: string): Group {
+    const tent = new Group();
+    for (const [lx, lz] of [
+      [-1.45, -1.45],
+      [1.45, -1.45],
+      [-1.45, 1.45],
+      [1.45, 1.45],
+    ] as const) {
+      const l = new Mesh(this.leg, this.white);
+      l.position.set(lx, 0, lz);
+      tent.add(l);
+    }
+    const cloth = new MeshStandardMaterial({ color: fill, side: DoubleSide, roughness: 0.7 });
+    const print = new MeshStandardMaterial({
+      map: this.track(clothBannerTexture(text, fill, ink)),
+      side: DoubleSide,
+      roughness: 0.7,
+    });
+    this.disposables.push(cloth, print);
+    const canopy = new Mesh(this.roof, cloth);
+    canopy.position.y = 2.3 + 0.4;
+    canopy.castShadow = true;
+    tent.add(canopy);
+    for (let k = 0; k < 4; k++) {
+      const v = new Mesh(this.valance, print);
+      const a = (k * Math.PI) / 2;
+      v.position.set(Math.sin(a) * 1.5, 2.05, Math.cos(a) * 1.5);
+      v.rotation.y = a;
+      tent.add(v);
+    }
+    const table = new Mesh(this.top, this.white);
+    table.position.y = 0.75;
+    tent.add(table);
+    for (const tx of [-0.75, -0.5, 0.75]) {
+      const tableLeg = new Mesh(this.leg, this.white);
+      tableLeg.scale.y = 0.32;
+      tableLeg.position.set(tx < 0 ? -0.85 : 0.85, 0, tx === -0.5 ? 0.3 : -0.3);
+      tent.add(tableLeg);
+    }
+    for (let b = 0; b < 8; b++) {
+      const m = new Mesh(this.bottle, this.water);
+      m.position.set(-0.8 + b * 0.22, 0.88, (b % 2) * 0.14 - 0.07);
+      tent.add(m);
+    }
+    return tent;
+  }
 }
 
 /** A feather flag's colour and the word down it: the word, the cloth's fill and the ink. */
