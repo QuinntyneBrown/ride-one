@@ -1227,6 +1227,18 @@ export class MiamiStreet implements SceneStreet {
       this.disposables.push(m);
       return m;
     });
+    const crownGlows = [0xffe8c0, 0xff4fb8, 0x3fe0ff, 0xffe8c0, 0xb46bff].map((c) => {
+      const m = new MeshBasicMaterial({
+        map: this.track(haloTexture()),
+        color: c,
+        transparent: true,
+        opacity: 0.45,
+        depthWrite: false,
+        blending: AdditiveBlending,
+      });
+      this.disposables.push(m);
+      return m;
+    });
     const grate = this.material({ color: 0x18181c, roughness: 0.7, metalness: 0.6 });
     const coconut = new SphereGeometry(0.15, 8, 6);
     this.disposables.push(coconut);
@@ -1252,7 +1264,13 @@ export class MiamiStreet implements SceneStreet {
         const lamp = new Mesh(this.unit, uplight);
         lamp.scale.set(0.3, 0.12, 0.3);
         lamp.position.set(0.5, 0.06, 0);
-        const lit = new Mesh(shell, washes[n % 3 === 2 ? 1 + (((n / 3) % 3) | 0) : 0]!);
+        const tint = n % 3 === 2 ? 1 + (((n / 3) % 3) | 0) : 0;
+        const lit = new Mesh(shell, washes[tint]!);
+        // The uplight reaches the crown: a soft glow of its colour under the fronds.
+        const crownGlow = new Mesh(this.flat, crownGlows[tint]!);
+        crownGlow.scale.set(5.5, 3.5, 1);
+        crownGlow.position.set(0.5, 8.6, 0);
+        p.add(crownGlow);
         const bed = new Mesh(this.unit, grate);
         bed.scale.set(1.5, 0.03, 1.5);
         bed.position.y = 0.01;
