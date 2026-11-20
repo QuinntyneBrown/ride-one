@@ -96,6 +96,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
   private readonly searchlights: Mesh[] = [];
+  private readonly swaying: { palm: Group; phase: number; lean: number }[] = [];
   /** Where the nightclubs' doors are, in metres along the loop. */
   private readonly clubs: number[] = [];
   private readonly drops: { x: number; y: number; z: number; speed: number }[] = [];
@@ -163,6 +164,12 @@ export class MiamiStreet implements SceneStreet {
         rain.setMatrixAt(i, this.drop);
       });
       rain.instanceMatrix.needsUpdate = true;
+    }
+    // The palms sway in the sea breeze, gusting now and then.
+    const gust = 0.6 + 0.4 * Math.sin(seconds * 0.23);
+    for (const { palm, phase } of this.swaying) {
+      palm.rotation.z = Math.sin(seconds * 0.9 + phase) * 0.018 * gust;
+      palm.rotation.x = Math.cos(seconds * 0.7 + phase) * 0.012 * gust;
     }
     // The searchlights sweep slowly to and fro, out of step with each other.
     this.searchlights.forEach((m, k) => {
@@ -899,12 +906,27 @@ export class MiamiStreet implements SceneStreet {
       return m;
     });
     const grate = this.material({ color: 0x18181c, roughness: 0.7, metalness: 0.6 });
+    const coconut = new SphereGeometry(0.15, 8, 6);
+    this.disposables.push(coconut);
+    const husk = this.material({ color: 0x5a3a20, roughness: 0.9 });
+    const greenNut = this.material({ color: 0x4a5a20, roughness: 0.8 });
     let n = 0;
     for (let offset = 0; offset < LOOP; offset += 14 + random() * 4)
       for (const side of [-1, 1]) {
         const p = palms.make(random);
         p.scale.multiplyScalar(1.2);
         if (side > 0 && inCrossing(offset, 1.5)) continue;
+        // A cluster of coconuts under the crown, and the whole palm swaying in the breeze.
+        for (let c = 0; c < 4; c++) {
+          const nut = new Mesh(coconut, c % 2 ? husk : greenNut);
+          nut.position.set(
+            0.5 + Math.cos(c * 1.7) * 0.22,
+            8.95 - (c % 2) * 0.15,
+            Math.sin(c * 1.7) * 0.22,
+          );
+          p.add(nut);
+        }
+        this.swaying.push({ palm: p, phase: random() * 6, lean: p.rotation.y });
         const lamp = new Mesh(this.unit, uplight);
         lamp.scale.set(0.3, 0.12, 0.3);
         lamp.position.set(0.5, 0.06, 0);
