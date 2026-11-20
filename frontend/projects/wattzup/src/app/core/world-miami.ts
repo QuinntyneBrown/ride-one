@@ -138,6 +138,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
+  private gateBulbs: Mesh[][] = [];
   private readonly cyclists: { mesh: Group; offset: number; speed: number; x: number }[] = [];
   private riders: Figures | null = null;
   /** The cruiser's red lamp, wash and flare, then its blue ones. */
@@ -326,6 +327,9 @@ export class MiamiStreet implements SceneStreet {
       const flick = phase % 1 < 0.18 || (phase % 1 > 0.3 && phase % 1 < 0.48);
       this.patrol.forEach((m, i) => (m.visible = flick && (i < 3 ? phase < 1 : phase >= 1)));
     }
+    // The gateway's bulbs chase: two in three lit, the gap stepping along four times a second.
+    const step = Math.floor(seconds * 4) % 3;
+    this.gateBulbs.forEach((row, i) => row.forEach((b) => (b.visible = i !== step)));
     // The tiki torches' flames flicker, each on its own.
     this.flames.forEach((f, k) => {
       const flick = 0.8 + 0.3 * Math.sin(seconds * 13 + k * 1.7) * Math.sin(seconds * 7.3 + k);
@@ -2124,6 +2128,27 @@ export class MiamiStreet implements SceneStreet {
       ray.position.set(Math.sin(a) * 1.6, 10.2 + Math.cos(a) * 1.6, 0);
       gate.add(ray);
     }
+    // Rows of marquee bulbs along both beams and up the pylons' faces, chasing in threes.
+    const bulbOn = this.material({ color: 0xfff0c8, emissive: 0xffe0a0, emissiveIntensity: 4 });
+    const chasers: Mesh[][] = [[], [], []];
+    let n = 0;
+    for (const y of [7.62, 9.38])
+      for (let x = -span / 2 + 0.8; x <= span / 2 - 0.8; x += 0.45, n++) {
+        const bulb = new Mesh(this.unit, bulbOn);
+        bulb.scale.setScalar(0.26);
+        bulb.position.set(x, y, 0.42);
+        gate.add(bulb);
+        chasers[n % 3]!.push(bulb);
+      }
+    for (const side of [-1, 1])
+      for (let y = 0.6; y < 9; y += 0.45, n++) {
+        const bulb = new Mesh(this.unit, bulbOn);
+        bulb.scale.setScalar(0.26);
+        bulb.position.set((side * span) / 2 - side * 0.5, y, 0.82);
+        gate.add(bulb);
+        chasers[n % 3]!.push(bulb);
+      }
+    this.gateBulbs = chasers;
     const glow = new Mesh(this.flat, this.halo);
     glow.scale.set(span * 1.1, 6, 1);
     glow.position.set(0, 8.5, 0.4);
