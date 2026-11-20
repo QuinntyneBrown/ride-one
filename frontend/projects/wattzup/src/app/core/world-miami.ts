@@ -250,11 +250,25 @@ export class MiamiStreet implements SceneStreet {
       [-r - 0.25, 0.15],
       [-r - 5, 0.15],
     ]);
-    // The low promenade wall, lit along its top by the hotels.
-    this.ribbons.add(points, kerb, [
+    // The low sea wall: pastel stucco panels between pilasters under a pale stone coping that
+    // overhangs on the promenade side, with a strip of pink neon tucked under its lip.
+    const wall = this.material({ map: this.repeat(seaWallTexture(), 0.6, 4), roughness: 0.8 });
+    const coping = this.material({ color: 0xe8e2dc, roughness: 0.5 });
+    const strip = this.material({ color: 0xff4fb8, emissive: 0xff4fb8, emissiveIntensity: 2.6 });
+    this.ribbons.add(points, wall, [
       [-r - 5, 0.15],
-      [-r - 5, 0.75],
-      [-r - 5.5, 0.75],
+      [-r - 5, 0.72],
+    ]);
+    this.ribbons.add(points, strip, [
+      [-r - 4.94, 0.66],
+      [-r - 4.94, 0.72],
+    ]);
+    this.ribbons.add(points, coping, [
+      [-r - 4.86, 0.72],
+      [-r - 4.86, 0.84],
+      [-r - 5.64, 0.84],
+      [-r - 5.64, 0.72],
+      [-r - 5.5, 0.72],
       [-r - 5.5, -0.3],
     ]);
     this.ribbons.add(points, sand, [
@@ -368,6 +382,13 @@ export class MiamiStreet implements SceneStreet {
       blending: AdditiveBlending,
     });
     this.disposables.push(candleGlow);
+    const plant = this.material({ color: 0x8a8890, roughness: 0.8, metalness: 0.3 });
+    const plantDish = this.material({ color: 0xd0d0d8, roughness: 0.5, side: DoubleSide });
+    const timber = this.material({ color: 0x5a4a3a, roughness: 0.9 });
+    const warning = this.material({ color: 0xff2020, emissive: 0xff2020, emissiveIntensity: 4 });
+    const drum = new CylinderGeometry(1.4, 1.4, 2.6, 14);
+    const saucer = new SphereGeometry(0.7, 12, 6, 0, Math.PI * 2, 0, Math.PI / 3);
+    this.disposables.push(drum, saucer);
     const slab = this.material({ color: 0xf4f0ec, roughness: 0.7 });
     const rail = this.material({ color: 0xf8f8f8, roughness: 0.3, metalness: 0.4 });
     const signBox = this.material({ color: 0x14121c, roughness: 0.5, metalness: 0.6 });
@@ -571,6 +592,44 @@ export class MiamiStreet implements SceneStreet {
           }
         hotel.add(decks.build(this.disposables));
       }
+      // The roof's clutter behind the crown: air-conditioning units, a water tank on its legs,
+      // a stair-and-lift house, a dish or two and a radio mast with its red lamp.
+      const roof = new BoxBuilder();
+      const rnd = seeded(8261 + k);
+      roof.box(plant, [5, 3, 4.5], [11 + rnd() * 3, height + 1.5, -width * 0.25]);
+      for (let i = 0; i < 3 + Math.floor(rnd() * 4); i++)
+        roof.box(
+          plant,
+          [1.6, 1.1, 1.2],
+          [5 + rnd() * 11, height + 0.55, (rnd() - 0.5) * width * 0.8],
+        );
+      roof.box(plant, [0.2, 0.6, width], [0.1, height + 0.3, 0]);
+      if (rnd() < 0.6) {
+        const tx = 12 + rnd() * 3;
+        const tz = width * 0.28;
+        for (const [dx, dz] of [
+          [-0.9, -0.9],
+          [0.9, -0.9],
+          [-0.9, 0.9],
+          [0.9, 0.9],
+        ] as const)
+          roof.box(iron, [0.15, 2.4, 0.15], [tx + dx, height + 1.2, tz + dz]);
+        const tank = new Mesh(drum, timber);
+        tank.position.set(tx, height + 3.6, tz);
+        tank.castShadow = true;
+        hotel.add(tank);
+      }
+      const aerial = new Mesh(this.unit, iron);
+      aerial.scale.set(0.12, 7, 0.12);
+      aerial.position.set(14, height + 3.5, -width * 0.38);
+      const lamp = new Mesh(this.unit, warning);
+      lamp.scale.set(0.35, 0.35, 0.35);
+      lamp.position.set(14, height + 7.1, -width * 0.38);
+      this.beacons.push(lamp);
+      const dish = new Mesh(saucer, plantDish);
+      dish.rotation.set(0, 0, -1.1);
+      dish.position.set(7, height + 1.1, width * 0.1);
+      hotel.add(roof.build(this.disposables), aerial, lamp, dish);
       // The hotel's name again in flowing neon script across the façade over the marquee, and
       // a small VACANCY sign glowing in a ground-floor corner window.
       const script = this.material({
@@ -1877,5 +1936,20 @@ function glitterTexture(): CanvasTexture {
       g.fillStyle = `rgba(255,255,255,${(edge * (0.3 + random() * 0.7)).toFixed(2)})`;
       g.fillRect(x - 4, random() * 512, 3 + random() * 10 * edge, 1 + random() * 3);
     }
+  });
+}
+
+/** The sea wall's face: pastel stucco panels framed by pilasters every 4 m. */
+function seaWallTexture(): CanvasTexture {
+  return canvasTexture(32, 128, (g) => {
+    speckle(g, 32, 128, '#c8b0c8', 8271);
+    g.fillStyle = 'rgba(255,255,255,0.35)';
+    g.fillRect(0, 0, 32, 10);
+    g.fillStyle = 'rgba(60,40,70,0.35)';
+    g.fillRect(0, 10, 32, 2);
+    g.fillRect(4, 18, 24, 2);
+    g.fillRect(4, 118, 24, 2);
+    g.fillStyle = 'rgba(255,255,255,0.2)';
+    g.fillRect(4, 20, 2, 98);
   });
 }
