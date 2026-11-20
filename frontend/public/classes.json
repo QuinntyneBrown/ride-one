@@ -8602,6 +8602,7 @@
     },
     {
       "id": "low-cadence-workout",
+      "world": "tremola",
       "title": "Low Cadence Workout",
       "channel": "GCN Training",
       "focus": "Cadence",

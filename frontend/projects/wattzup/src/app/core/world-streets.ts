@@ -14,6 +14,7 @@ import { AlpeStreet } from './world-alpe';
 import { MontmartreStreet } from './world-montmartre';
 import { BonnevilleStreet } from './world-bonneville';
 import type { StreetFactory } from './world-kit';
+import { TremolaStreet } from './world-tremola';
 import { TimesSquareStreet } from './world-timessquare';
 import { EtnaStreet } from './world-etna';
 import { YosemiteStreet } from './world-yosemite';
@@ -100,4 +101,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   yosemite: (track, disposables) => new YosemiteStreet(track, disposables),
   etna: (track, disposables) => new EtnaStreet(track, disposables),
   timessquare: (track, disposables) => new TimesSquareStreet(track, disposables),
+  tremola: (track, disposables) => new TremolaStreet(track, disposables),
 };

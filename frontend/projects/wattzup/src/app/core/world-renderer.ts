@@ -906,6 +906,21 @@ const LOOKS: Record<WorldId, Look> = {
     },
     fogRange: [60, 1400],
   },
+  // A bright, cool summer morning high in the Alps: clear air, crisp light on granite and grass.
+  tremola: {
+    sky: 0x5a98e0,
+    fog: 0xd0dce8,
+    ground: 0x5a7a34,
+    road: 0x7a7670,
+    sun: 38,
+    wet: false,
+    haze: false,
+    turbidity: 2.2,
+    rayleigh: 1.3,
+    azimuth: 140,
+    light: { sun: 2.9, fill: 1.6, colour: 0xfff6ea },
+    fogRange: [700, 8000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
