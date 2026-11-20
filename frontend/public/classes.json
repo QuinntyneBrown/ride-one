@@ -529,6 +529,7 @@
     },
     {
       "id": "10-on-20-off-max-sprints",
+      "world": "venice",
       "title": "10 On 20 Off Max Sprints",
       "channel": "GCN Training",
       "focus": "Sprints",

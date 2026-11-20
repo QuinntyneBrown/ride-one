@@ -185,6 +185,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0.5, work: 3, rest: -1, cooldown: 0, steady: 1 },
     roll: 1.2,
   },
+  {
+    id: 'venice',
+    name: 'Venice Beach Boardwalk',
+    route: 'Ocean Front Walk',
+    effortName: 'Palm sprint',
+    description:
+      "Skaters glide past street performers, mural-painted shopfronts and towering palms along Venice Beach's Ocean Front Walk, the Santa Monica Pier's Ferris wheel turning over the bay ahead. The two one-minute efforts warm up past Muscle Beach, and the eighteen ten-second sprints each burst between the palms before twenty seconds cruising in the ocean breeze.",
+    grade: { warmup: 0, work: 1, rest: -0.5, cooldown: 0, steady: 0 },
+    roll: 0.4,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

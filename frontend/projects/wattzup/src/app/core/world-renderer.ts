@@ -321,6 +321,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.4, fill: 1.0, colour: 0xffe2b8 },
     fogRange: [150, 2600],
   },
+  // A clear late afternoon on the Santa Monica Bay: the sun low over the ocean on the rider's
+  // left, a thin marine haze softening the pier and the mountains ahead.
+  venice: {
+    sky: 0x86bde6,
+    fog: 0xd6dde0,
+    ground: 0xe3cfa5,
+    road: 0x55565b,
+    sun: 16,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 1.9,
+    azimuth: -70,
+    light: { sun: 3.1, fill: 1.2, colour: 0xffe2b8 },
+    fogRange: [140, 1600],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
