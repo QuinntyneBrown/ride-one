@@ -61,7 +61,7 @@ import {
 import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
-import { bendAhead, bendPoint, lean } from './scene-bend';
+import { bendAhead, bendPoint, heading, lean } from './scene-bend';
 import { EASE_PER_SECOND, MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import { RoadBend } from './world-bend';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
@@ -3094,6 +3094,7 @@ const ANISOTROPY: Record<Tier, number> = { low: 4, medium: 8, high: 16, ultra: 1
 
 /** 2 m steps ahead of the rider, and behind for the camera. */
 const AHEAD = 150;
+const UP = new Vector3(0, 1, 0);
 const BEHIND = 10;
 const STEP = 2;
 const ROAD_HALF = 3.5;
@@ -3120,6 +3121,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private readonly scene = new Scene();
   private readonly camera = new PerspectiveCamera(60, 16 / 9, 0.1, 6000);
   private readonly sun = new DirectionalLight(0xffffff, 1.4);
+  /** The key light's direction where the ride starts, before the road has turned. */
+  private readonly keyLight = new Vector3(0, 1, 0);
   private readonly sky = new SkyMesh();
   private readonly road = stripGeometry();
   private readonly ground = stripGeometry();
@@ -3223,6 +3226,15 @@ export class ThreeWorldRenderer implements WorldRenderer {
       AHEAD,
     );
     this.bendSamples = bendAhead(world, frame.s);
+    // The sun stays where it is in the sky as the road turns: ride round a right-hander and it
+    // swings left across the view, and the houses' shadows swing with it.
+    const turn = (heading(world, frame.s) * Math.PI) / 180;
+    this.sun.position
+      .copy(this.keyLight)
+      .applyAxisAngle(UP, turn)
+      .multiplyScalar(80)
+      .add(this.sun.target.position);
+    this.sky.sunPosition.value.copy(this.sunDirection()).applyAxisAngle(UP, turn);
     this.bend.update(this.bendSamples);
     if (++this.drawn % BEND_SWEEP === 0) this.bend.apply(this.scene, this.unbent);
     if (this.towers) {
@@ -3432,6 +3444,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     // The shadow box reaches further down a street of houses than over open country.
     const reach = world.id === 'oldtown' ? 45 : 25;
     this.sun.target.position.set(0, 0, 25 - reach);
+    this.keyLight.copy(sunDir);
     this.sun.position.copy(sunDir).multiplyScalar(80).add(this.sun.target.position);
     this.sun.shadow.mapSize.set(2048, 2048);
     // A tight box around the rider: the shadow stays sharp and steady as the road moves.
