@@ -14,6 +14,7 @@ import {
   BufferGeometry,
   type CanvasTexture,
   ConeGeometry,
+  CatmullRomCurve3,
   CylinderGeometry,
   DoubleSide,
   ExtrudeGeometry,
@@ -144,6 +145,7 @@ export class HavanaStreet implements SceneStreet {
     roughness: 0.85,
     side: DoubleSide,
   });
+  private readonly wire = new MeshStandardMaterial({ color: 0x141414, roughness: 0.6 });
   private readonly glow = new MeshStandardMaterial({
     color: 0xfff0d0,
     emissive: 0xffd590,
@@ -186,6 +188,7 @@ export class HavanaStreet implements SceneStreet {
       this.tank,
       this.dressing,
       this.glow,
+      this.wire,
       this.flagSheet,
       this.flag,
     );
@@ -558,6 +561,7 @@ export class HavanaStreet implements SceneStreet {
     const gear = seeded(1163);
     const ruins = seeded(1171);
     const cafes = seeded(1229);
+    const wires = seeded(1301);
     const derelict = this.track(ruinTexture());
     derelict.wrapS = RepeatWrapping;
     derelict.wrapT = RepeatWrapping;
@@ -744,6 +748,7 @@ export class HavanaStreet implements SceneStreet {
       slabMesh.castShadow = true;
       const railMesh = new Mesh(railGeometry, iron);
       railMesh.castShadow = true;
+      building.add(this.cables(width, wires));
       if (ruin) building.add(this.shoring(width, timber));
       else building.add(slabMesh, railMesh);
       this.group.add(building);
@@ -848,6 +853,36 @@ export class HavanaStreet implements SceneStreet {
     out.push(new Mesh(things, this.dressing), new Mesh(glows, this.glow));
     out[0]!.castShadow = true;
     return out;
+  }
+
+  /**
+   * The overhead tangle Havana's fronts carry: two to four black cables strung along the front
+   * over the arcade, each sagging between iron brackets at the building's ends, with now and then
+   * one dropping in a loop to a bracket lower down.
+   */
+  private cables(width: number, random: () => number): Mesh {
+    const lines: BufferGeometry[] = [];
+    const count = 2 + Math.floor(random() * 3);
+    for (let i = 0; i < count; i++) {
+      const y = PORTAL + 0.5 + random() * 1.4;
+      const sag = 0.25 + random() * 0.6;
+      const out = -0.25 - random() * 0.35;
+      const end = random() < 0.25 ? y - 1 - random() : y + (random() - 0.5) * 0.4;
+      const points: Vector3[] = [];
+      for (let k = 0; k <= 8; k++) {
+        const t = k / 8;
+        points.push(new Vector3(out, y + (end - y) * t - sag * 4 * t * (1 - t), -t * width));
+      }
+      lines.push(new TubeGeometry(new CatmullRomCurve3(points), 16, 0.012, 3));
+      const bracket = new BoxGeometry(0.3, 0.05, 0.05);
+      bracket.translate(out / 2, y, -0.02);
+      lines.push(bracket.toNonIndexed());
+    }
+    const parts = lines.map((g) => (g.index ? g.toNonIndexed() : g));
+    const merged = mergeGeometries(parts)!;
+    [...lines, ...parts].forEach((g) => g.dispose());
+    this.disposables.push(merged);
+    return new Mesh(merged, this.wire);
   }
 
   /**
