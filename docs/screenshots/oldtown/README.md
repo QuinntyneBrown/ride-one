@@ -18,17 +18,121 @@ Use [the local Old Town mock](../../mocks/pages/world-ride/oldtown.html) for com
 
 ## Work in the branch
 
-Continue in the existing worktree on `improve/old-town-criterium`, based on `11dee85`. At handoff the renderer and assets are local changes, including an untracked façade texture. There is no feature commit or PR yet. The pre-existing analytics edit in `frontend/angular.json` belongs to separate work. Stage the intended paths explicitly so that edit stays with its owner.
+The work is on `improve/old-town-criterium`. It began from `11dee85` and is delivered as one pull request. The pre-existing analytics edit in `frontend/angular.json` belongs to separate work and stays out of the commits.
 
-| Capture | Change and observed result |
-| --- | --- |
-| [000 · Initial](000-initial.png) | The running WebGL2 ride showed a road, roadside posts, a gray horizon and a rectangular cyclist torso. |
-| [001 · Frontages](001-frontages.jpg) | The street now has textured storefronts on both sides, with identifiable doors, windows, balconies and shutters. The distant panorama showed two oversized cyclists floating above the road. |
-| [002 · Skyline](002-skyline.jpg) | The floating cyclists are gone and the sky and distant hills read clearly. The cathedral spires are obscured from the initial camera position. Aligning them with the street opening is the first outstanding visual adjustment. |
+| Capture | Change and observed result | Keep or revise |
+| --- | --- | --- |
+| [000 · Initial](000-initial.png) | The running WebGL2 ride showed a road, roadside posts, a gray horizon and a rectangular cyclist torso. | Baseline. |
+| [001 · Frontages](001-frontages.jpg) | The street now has textured storefronts on both sides, with identifiable doors, windows, balconies and shutters. The distant panorama showed two oversized cyclists floating above the road. | Replaced by 3D houses in 003. |
+| [002 · Skyline](002-skyline.jpg) | The floating cyclists are gone and the sky and distant hills read clearly. The cathedral spires are obscured from the initial camera position. Aligning them with the street opening is the first outstanding visual adjustment. | Spires aligned in 004. A 3D cathedral was added in 031. |
+| [003 · Town houses](003-town-houses.jpg) | 3D houses (procedural stucco bay textures, shop floor, pitched roofs) replace flat photo frontage; parallax + roof silhouettes; sky grey between roofs. | Keep. The grey sky between the roofs was fixed in 004 and 005. |
+| [004 · Tiled roofs](004-tiled-roofs.jpg) | Clay-tile roof texture with UVs and wall-coloured gables; panorama turned 0.16 so the cathedral sits at the end of the street; panorama now awaited before the first frame (a stationary ride never redrew once it loaded, leaving grey sky). | Keep. |
+| [005 · Blue sky](005-blue-sky.jpg) | Oldtown sky turbidity 1.6 / rayleigh 2.6 / mie 0.003 and the panorama's top fifth fades out through an alpha map, so no hard edge above the skyline. | Keep. |
+| [006 · Pavements](006-pavements.jpg) | 15 cm granite kerbs and flagstone pavements laid over the road profile on both sides (ribbons that follow the grade). | Keep. |
+| [007 · Cobbles](007-cobbles.jpg) | 1024px canvas of granite setts (13 cm rows, own shade each, dark joints) with white race edge lines replaces the asphalt tile in oldtown; road colour lifted to pale stone. | Keep. |
+| [008 · Cyclist](008-cyclist.jpg) | The box torso becomes a modelled rider and road bike from one kit: tyres and rims, diamond frame, drop bars, saddle, helmet, bent arms, legs on the pedals through two-bone IK driven by the crank. | Keep. |
+| [009 · Pacers](009-pacers.jpg) | The six simulated pacers ride in the scene at their board gaps and lanes, in their rider colours (L2-107 AC7); Ana alongside, Jonas, Maya and Sophie up the street. | Keep. |
+| [010 · Sun behind](010-sun-behind.jpg) | Looks gain a sun azimuth; Old Town's sun moves behind-left so the rider's back and the right-hand façades are lit (it had backlit the rider). | Revised by 011, 012, 027 and finally 083. |
+| [011 · High sun](011-high-sun.jpg) | Sun raised to 55° and the shadow box stretched 90 m down the street, so the right half of the road is sunlit and house shadows reach the vanishing point. | Revised by 027 and 083: lower, from behind the rider. |
+| [012 · Warm light](012-warm-light.jpg) | Old Town's sun becomes warm (#ffeccc) and stronger (3.2) with less sky fill (1.1), so sun and shade separate. | Keep. |
+| [013 · Cornices](013-cornices.jpg) | A projecting cornice under each roof and a string course over the shop floor, in the house's trim colour, catch the sun and cast a line of shadow. | Keep. |
+| [014 · Shopfronts](014-shopfronts.jpg) | Shop floors redrawn as painted wooden shop fronts with a warm lit interior, shelves of goods, reflections and a panelled stall riser instead of black glass. | Keep. |
+| [015 · Homes](015-homes.jpg) | Half the houses get a home's ground floor (panelled door under a fanlight, barred window, rusticated base) over a two-bay tile, so the street mixes homes and shops. | Keep. |
+| [016 · Lamps bollards](016-lamps-bollards.jpg) | Iron lamp posts with lanterns every 28 m on alternate pavements and black iron bollards at the kerb; the pink verge posts are not built in Old Town. | The bollards went in 087: they stood behind the barriers. |
+| [017 · Awnings](017-awnings.jpg) | Two-thirds of shop fronts get a striped canvas awning (five colourways) sloping 1.5 m over the pavement with a valance, casting shade on the flagstones. | Keep. |
+| [018 · Window boxes](018-window-boxes.jpg) | Half the palettes put a window box of geraniums (red, pink or white) under every upper window. | More palettes in 082 and real boxes in 093. |
+| [019 · Varied neighbours](019-varied-neighbours.jpg) | The layout draws from its own seeded sequence (details no longer reshuffle the street) and next-door houses never share a palette. | Keep. |
+| [020 · Rider posture](020-rider-posture.jpg) | Shoulders lower and forward, hands on the hoods, elbows bent out, slimmer seat, larger helmet over a smaller head: the riders read as racing, not sitting upright. | Keep. |
+| [021 · Jersey kit](021-jersey-kit.jpg) | Jerseys and helmets carry a kit texture, tinted by each rider colour: dark side panels and a pale hem band. | Keep. |
+| [022 · Chimneys](022-chimneys.jpg) | One or two brick chimney stacks with clay pots on each roof, standing on the slope where it meets them. | Pots added in 095. |
+| [023 · Street haze](023-street-haze.jpg) | Old Town's fog becomes a warm haze from 30 m that hides everything by 430 m: houses at the far end of the loop fade in instead of popping, while the panorama's cathedral stays clear. | Keep. |
+| [024 · Race barriers](024-race-barriers.jpg) | Race-day crowd barriers run along both kerbs, hung with printed banners (Old Town Criterium, Cathedral Circuit, Cobbled sprint, Race day) and a steel top rail, open every 24 m for a crossing; ribbons are now textured in street metres so kerbs, slabs and banners pass the rider instead of riding along. | Keep. |
+| [025 · Gutters](025-gutters.jpg) | A dished gutter of long granite slabs along each kerb, darker towards the kerb, with the race lines moved just inside it. | Keep. |
+| [026 · Worn setts](026-worn-setts.jpg) | Lighter joints and gentler sett shading calm the road; the setts down the middle are polished lighter by the traffic. | Relief added in 041. |
+| [027 · Sun down street](027-sun-down-street.jpg) | The sun swings round almost behind the rider (azimuth −162°, 48° up), so the road is sunlit and the house shadows lie along the left pavement. | Superseded by the raking sun of 083. |
+| [028 · Contact shadows](028-contact-shadows.jpg) | A soft contact shadow under each bike (technique 37, from the high tier) grounds the riders; the sun's own shadow of them is too soft at the street's shadow reach. | Keep. |
+| [029 · Crowd](029-crowd.jpg) | Spectators in knots behind both barriers, each with trousers, a shirt of their own colour and a head, facing the road (three instanced meshes, one draw each). | Arms 044, children 054, hats 055, density 084, hair 090, colours 102. |
+| [030 · Bunting](030-bunting.jpg) | Strings of pennants in the race colours cross the street every 35 m, 8.5 m up at the houses and sagging 1.6 m in the middle (one instanced mesh). | Keep. |
+| [031 · Cathedral](031-cathedral.jpg) | A 3D minster stands 620 m down the road like the skyline (west tower and 62 m open spire with pinnacles, two lower towers, rose window, portal, nave and steep roof), hazed by hand; the panorama turns its own cathedral aside. | Brought to 500 m in 086. |
+| [032 · Cathedral stone](032-cathedral-stone.jpg) | The cathedral's towers carry lancet windows with tracery and the spire an openwork of quatrefoils, on dressed stone; less haze so it reads as stone in sunlight. | Keep. |
+| [033 · Balconies](033-balconies.jpg) | Two houses in five get a first-floor balcony across their front: a stone slab and a wrought-iron railing of balusters and scrolls, cut out with alpha. | Keep. |
+| [034 · Shop signs](034-shop-signs.jpg) | Three shops in five hang a painted sign from an iron bracket over the pavement: a gilt cup, key, loaf or wheel on a coloured board, read from either side. | Keep. |
+| [035 · Dormers](035-dormers.jpg) | Up to two dormers on the street side of each roof, a window under its own small tiled gable. | Keep. |
+| [036 · Weathering](036-weathering.jpg) | Façades weathered: grime splashed up the shop floors from the street, rain streaks under every sill; each house now draws its details from its own seeded sequence, chosen for a shop and home mix at the start line. | Keep. |
+| [037 · Closed shutters](037-closed-shutters.jpg) | A third of the shuttered houses close both leaves of every upper window against the sun; per-house choices now each draw from a sequence of their own. | Keep. |
+| [038 · Effort arch](038-effort-arch.jpg) | The effort arch follows the mock: dark lettering on a volt banner with a keyline, a deeper beam on steel truss legs with weighted feet, and a white line across the road where the effort starts (captured with the arch drawn 35 m ahead through the debug hook). | Seen only during efforts; check it again in a ride that reaches one. |
+| [039 · Race numbers](039-race-numbers.jpg) | Every rider wears a race number on the lower back (black digits on white cloth with safety pins): You 4, each pacer its jersey number. | Keep. |
+| [040 · House flags](040-house-flags.jpg) | A third of the houses fly a civic flag in two or three bands from a pole angled out over the street at the first floor. | Keep. |
+| [041 · Sett relief](041-sett-relief.jpg) | The cobbles gain relief: a normal map computed from a height field of domed setts and sunk joints (technique 3, from the medium tier), so each sett catches the light on its edge. | Relief strength raised from 2.2 to 9 after the first capture. |
+| [042 · Door pots](042-door-pots.jpg) | Homes set clipped bay trees in terracotta pots either side of most of their doors, the first green at street level. | Keep. |
+| [043 · Ridges gutters](043-ridges-gutters.jpg) | Ridge tiles cap every roof, a zinc gutter runs along each eave and a downpipe drops at one end of every house, marking where one house ends and the next begins. | Keep. |
+| [044 · Cheering crowd](044-cheering-crowd.jpg) | Spectators gain arms: most hang at their sides, a quarter reach up and out cheering the riders on. | Keep. |
+| [045 · Spokes chainring](045-spokes-chainring.jpg) | Every bike gains laced spokes (an alpha-masked disc under the speed blur), a chainring on the drive side and a blue bottle in its cage on the down tube. | Keep. |
+| [046 · Pedal rock](046-pedal-rock.jpg) | Each bike rocks a little under every pedal stroke, about its tyres' line on the road (still with reduced motion); captured riding at 31.9 km/h. | Keep. |
+| [047 · Drain grates](047-drain-grates.jpg) | A cast-iron drain grate sits in each gutter, the two sides out of step, sunk in the relief map. | Subtle. Keep. |
+| [048 · Window glass](048-window-glass.jpg) | Upper windows mirror the sky above and the sunlit houses across the street below, with a diagonal glint and a curtain drawn to one side. | Hard to see past the closed shutters. Keep. |
+| [049 · Hanging baskets](049-hanging-baskets.jpg) | Every lamp holds out an iron arm with a hanging basket of red and pink geraniums over the barrier. | Keep. |
+| [050 · Merged houses](050-merged-houses.jpg) | No visible change: each house, lamp, bollard and the cathedral merge their parts that share a material into one mesh, taking the street from 2190 meshes in view to 1357 so the higher tiers keep their frame budget. | No visible change. Keep it for the frame budget. |
+| [051 · Stepped gables](051-stepped-gables.jpg) | A third of the narrow houses raise a stepped Flemish gable over their front, five coped courses with an oculus, giving the distant rooflines a stepped silhouette. | Keep. |
+| [052 · Quoins](052-quoins.jpg) | Half the houses dress both front corners with stone quoins, long and short in turn, in their trim colour. | Keep. |
+| [053 · Marshals](053-marshals.jpg) | A race marshal in a hi-vis vest stands at the barrier every forty metres or so, facing the road. | Keep. |
+| [054 · Children](054-children.jpg) | One spectator in six is a child, a metre or so tall, at the front against the barrier. | Keep. |
+| [055 · Sun hats](055-sun-hats.jpg) | A fifth of the crowd wear a sun hat or cap, cream, navy, red, white or volt. | Keep. |
+| [056 · Helmet vents](056-helmet-vents.jpg) | Every helmet gets its own shell: the rider's colour with ten dark vents running front to back and a dark rim, glossier than the jersey. | Keep. |
+| [057 · Road paint](057-road-paint.jpg) | Fans' slogans painted on the setts (ALLEZ ALLEZ, HUP HUP, VAMOS, GO ANA) in worn white and yellow road paint, stretched along the road as road writing is so it reads from the rider's low eye. | At 1.1 m deep the paint was invisible from the saddle, so it was stretched to 7 m. |
+| [058 · Shop trades](058-shop-trades.jpg) | Each shop keeps a trade by its palette: a bookshop's shelves, a bakery's loaves, a florist's buckets banked up the window, or a boutique's rail and two dressed mannequins. | Keep. |
+| [059 · Doorsteps](059-doorsteps.jpg) | A worn stone step up to each home's door (mostly behind the barriers from the saddle). | Mostly hidden by the barriers. |
+| [060 · Leaf texture](060-leaf-texture.jpg) | The clipped bay trees take a leaf texture, a dense mass of small leaves each lit a shade apart, so they read as foliage instead of green balls. | Keep. |
+| [061 · Setbacks](061-setbacks.jpg) | Old frontages never quite line up: each house stands up to 45 cm back from its neighbour, breaking the façade line into steps. | Keep. |
+| [062 · Worn pavement](062-worn-pavement.jpg) | The pavement slabs vary more from one to the next, with old gum, a damp stain and a crack. | Keep. |
+| [063 · Tv moto](063-tv-moto.jpg) | The television motorbike rides 30 m ahead by the left gutter, a white bike with its pilot and a cameraman sat backwards on the pillion, camera on his shoulder, mast behind. | Moved from 46 m to 30 m so it reads as a motorbike. |
+| [064 · Scalloped awnings](064-scalloped-awnings.jpg) | Each awning's valance ends in a scalloped hem, half-discs every 30 cm. | Keep. |
+| [065 · Race socks](065-race-socks.jpg) | Every rider wears white race socks to mid-calf, carried on the shin as the legs turn. | Keep. |
+| [066 · Hand flags](066-hand-flags.jpg) | Two in three of the cheering fans hold up a hand flag, flown square to the street so the riders see it coming. | Turned square to the street after a first version showed edge-on. |
+| [067 · Alleys](067-alleys.jpg) | Now and then an alley runs off between two houses (one in view of the start on each side): setts running back to a far wall, a room bridging it on an arch, the sky over it. | One alley is placed in view of the start. At this angle most alleys hide behind their neighbours. |
+| [068 · Cathedral clock](068-cathedral-clock.jpg) | The cathedral gains a pointed gable over its portal, pinnacles along both nave walls, a clock on the belfry face and a gilded cross on the spire (small at 620 m). | Small at 620 m. It reads better after 086. |
+| [069 · Shop doors](069-shop-doors.jpg) | Every shop gains a glazed door in painted wood in one of its bays, a brass handle and kick plate, the lit shop showing through. | Keep. |
+| [070 · Street banners](070-street-banners.jpg) | Cloth banners strung across the street between the houses every 140 m (OLD TOWN CRITERIUM, WELKOM · BIENVENUE, CATHEDRAL CIRCUIT), folds in the cloth, on a rope. | Keep. |
+| [071 · Balcony plants](071-balcony-plants.jpg) | Balconies hold two to four pots of geraniums along the railing, and now and then a bistro table. | Keep. |
+| [072 · Dentils](072-dentils.jpg) | A row of dentils runs under every cornice, white teeth catching the light along the eaves. | Keep. |
+| [073 · Window sills](073-window-sills.jpg) | A stone sill stands proud under every upper window, lined up with the painted windows bay by bay. | Keep. |
+| [074 · Lintels](074-lintels.jpg) | A lintel with a raised keystone crowns every upper window. | Keep. |
+| [075 · Corner shade](075-corner-shade.jpg) | The pavement darkens softly over its last metre into the foot of the houses, as ambient light fails into the corner. | The left side showed only after 094. |
+| [076 · Fascias](076-fascias.jpg) | Every shop front carries a dark fascia over its window, its trade lettered in gilt: BOEKEN, BAKKERIJ, BLOEMEN or MODE, matching the window below. | Keep. |
+| [077 · Barrier panels](077-barrier-panels.jpg) | The barriers carry six panel designs instead of four, adding a volt WATTZUP and an ALLEZ ! panel to break the repeat. | Keep. |
+| [078 · Swifts](078-swifts.jpg) | A dozen swifts wheel high over the street ahead, dark crescents on swept wings, a turn for every 60 m ridden. | Keep. |
+| [079 · Frame paint](079-frame-paint.jpg) | Each pacer rides a frame of their own paint (white, red, navy, silver or teal), all clearcoated together at the tier that has it; You keep the black frame. | Keep. |
+| [080 · Granite kerbs](080-granite-kerbs.jpg) | The kerbs become speckled granite stones a metre long, each a shade apart, butted at fine joints. | Keep. |
+| [081 · Lamp pennants](081-lamp-pennants.jpg) | Every lamp post flies a swallow-tailed race pennant, OTC down it in volt on black or white on red, square to the street below the basket. | Keep. |
+| [082 · More window boxes](082-more-window-boxes.jpg) | Three more palettes plant window boxes (pink, yellow and white), so most upper floors carry flowers. | Keep. |
+| [083 · Raking sun](083-raking-sun.jpg) | The sun drops to 42° and swings round behind the right shoulder (azimuth −150°): the right-hand houses throw their shade across the road in a diagonal line, the left façades and pavement stay in sun, and the riders' backs stay lit (a lower 36°/−138° trial put the whole road in shade and was rejected). | Keep. |
+| [084 · Fuller crowd](084-fuller-crowd.jpg) | The crowd closes up, knots of fans every one to five metres instead of up to seven and a half, so the barriers are lined from the start. | Keep. |
+| [085 · White helmets](085-white-helmets.jpg) | Half the pacers wear a white helmet rather than one in their colour; captured riding at 31.9 km/h with the motion blur. | Keep. |
+| [086 · Nearer cathedral](086-nearer-cathedral.jpg) | The cathedral comes 120 m nearer (500 m ahead), so its spire rises well clear of the bunting and closes the street as a landmark. | Keep. |
+| [087 · No hidden bollards](087-no-hidden-bollards.jpg) | No visible change: the bollards stood behind the race barriers where no rider could see them, so they go (and a trial gilt band on them with them), about a hundred meshes fewer. | No visible change. |
+| [088 · Bunting cords](088-bunting-cords.jpg) | The pennants hang from a visible cord, and each pennant tilts with the cord's sag instead of hanging square. | Keep. |
+| [089 · Trailing baskets](089-trailing-baskets.jpg) | Ivy trails out over each hanging basket's rim and down (a first, pointed cone read as a strawberry and was flattened). | The first cone read as a strawberry, so it was flattened. |
+| [090 · Spectator hair](090-spectator-hair.jpg) | Every bare-headed spectator gets hair, from black and browns to fair, grey and auburn. | Keep. |
+| [091 · Lit shops](091-lit-shops.jpg) | Shop windows glow from inside: an emissive map lights only the glass, warmest low down where the shop's lamps fall. | Keep. |
+| [092 · Gable finials](092-gable-finials.jpg) | Each step of a stepped gable carries stone balls on its outer corners. | Keep. |
+| [093 · Window boxes 3d](093-window-boxes-3d.jpg) | Houses that keep flowers set a real terracotta window box on every upper sill, geraniums spilling over its front. | Keep. |
+| [094 · Damp gutters](094-damp-gutters.jpg) | A damp line darkens the setts against each kerb, glossier than the dry road, broken where the water has run off; drawing both faces of the ribbon also brings the corner shade of 075 to the left-hand pavement, which had been culled. | Subtle. It also fixed 075. |
+| [095 · Chimney pots](095-chimney-pots.jpg) | Each chimney stack carries two clay pots on its cap (seen on the distant roofs; the near ones hide behind their cornices). | The near pots hide behind their cornices. |
+| [096 · Iron covers](096-iron-covers.jpg) | Cast-iron covers lie in the setts a few times a lap, a raised ring round a cross-hatched field lettered EAU. | Keep. |
+| [097 · Belfry](097-belfry.jpg) | A parish church's brick belfry rises over the roofs to the left 260 m ahead, a louvred bell stage under a slate spire, so the skyline has two spires (first placed to the right, where the near roofs hid it). | Moved left, where the roofs no longer hide it. |
+| [098 · Golden light](098-golden-light.jpg) | The sun warms to a golden 0xffe2b6 and strengthens a little against a softer fill, deepening the contrast between the sunlit and shaded sides of the street. | Keep. |
+| [099 · Tv board](099-tv-board.jpg) | The TV moto carries a blue TV board on its back, facing the riders, and an amber beacon on its mast. | Keep. |
+| [100 · Vinyl banners](100-vinyl-banners.jpg) | The barrier banners take a printed-vinyl sheen that catches the low sun (subtle from the saddle). | Subtle. |
+| [101 · Awning colours](101-awning-colours.jpg) | Shop awnings come in seven colours instead of five, adding teal and ochre; the far shops on the right change from red to ochre. | Keep. |
+| [102 · Fan colours](102-fan-colours.jpg) | The crowd's shirts add the race's volt and two club colours, sky blue and pink, livening the barriers. | Keep. |
 
-Two rendering iterations have been captured. Continue at 003, with at least 98 further iterations required.
+The baseline is followed by 102 captured iterations (001 to 102). Iterations 050 and 087 change performance and leave the frame unchanged. That leaves 100 distinct visual iterations.
 
-The main edit is in [ThreeWorldRenderer](../../../frontend/projects/wattzup/src/app/core/world-renderer.ts). Old Town loads [one façade atlas](../../../frontend/public/worlds/oldtown/facades.webp) and shares a material and plane geometry across 12 pairs of 24 m street sections. Each section follows the road height and recycles with distance. Awaiting texture load before the first draw matters because the ride can be stationary. An earlier assignment of an unloaded texture produced a black scene and a Three.js WebGL2 texture error. A later asynchronous assignment alone left the first frame showing blank walls. The current code also supplies a warm stone fallback when the atlas fails to load.
+Old Town is now built in 3D. The street is [OldTownStreet](../../../frontend/projects/wattzup/src/app/core/world-oldtown.ts). Its houses are procedural, from seeded palettes, canvas textures and per-house detail sequences. Each house's parts are merged into one mesh per material (050). The street furniture, crowd, bunting, cathedral, belfry and TV motorbike recycle along a 420 m loop, following the road's height.
+
+The riders are built by [CyclistKit](../../../frontend/projects/wattzup/src/app/core/world-cyclist.ts), with crank-driven two-bone legs. [ThreeWorldRenderer](../../../frontend/projects/wattzup/src/app/core/world-renderer.ts) adds Old Town's look and lighting, the setts' relief (technique 3), the pacers at their gaps (L2-107 AC7, `pacersOnRoad` in [pacers.ts](../../../frontend/projects/wattzup/src/app/core/pacers.ts)) and contact shadows (technique 37). The photo façade atlas is no longer used and has been removed.
+
+The panorama and every other asset are awaited before the first frame, because a stationary ride does not redraw.
 
 ## Reproducing the captures
 
@@ -36,17 +140,16 @@ The main edit is in [ThreeWorldRenderer](../../../frontend/projects/wattzup/src/
 2. Open `http://localhost:4200/classes/30-minute-hiit-cardio?simulate`. Click **Ride in Old Town Criterium** and wait for the URL to end in `/world`. Direct navigation without an active ride redirects to the class page.
 3. Keep the initial camera and ride position comparable across passes. Wait for the scene to draw with its assets, inspect the browser console for errors, then save a full-page viewport capture. This machine used Three.js’s WebGL2 fallback. A successful texture request alone previously produced a screenshot with an empty scene.
 4. Use consecutive filenames beginning with the iteration number. Keep an entry here stating what changed, what the frame showed, and what to keep or revise. Capture each distinct rendering change. Reloads, camera motion over unchanged geometry and repeated screenshots do not establish additional design iterations.
-5. If still available on this machine, `/tmp/wz-facade-check.cjs` contains the Playwright navigation used for the initial façade check. It has a fixed output path for iteration 001. Copy it and change that path before running another pass. Run the copy with `frontend/` as the working directory.
+5. Headless Chromium captures a WebGPU canvas as black. Launch it with `--enable-gpu --ignore-gpu-blocklist` and hide `navigator.gpu` in an init script to capture the WebGL2 path at the high tier, as captures 003 onwards were. To see the ultra tier, copy the WebGPU canvas into a 2D canvas.
+6. If still available on this machine, `/tmp/wz-facade-check.cjs` contains the Playwright navigation used for the initial façade check. It has a fixed output path for iteration 001. Copy it and change that path before running another pass. Run the copy with `frontend/` as the working directory.
 
-## Strategy for the next passes
+## Possible next passes
 
-Work from the horizon toward the rider, checking each layer in the real ride. Start with the replacement [cathedral panorama](../../../frontend/public/worlds/oldtown/panorama.webp). It contains distant buildings and sky. Inspect the spires from the chase camera, particularly where the façades meet at the vanishing point. Tune the panorama orientation, elevation and extent there. The skyline should still read when the bike is stopped.
-
-Give the street measurable depth next. Break up the continuous flat cornice with roof profiles, stepped heights, setbacks and occasional gaps. Add raised pavements and curbs, then tune the scale of cobbles and gutters against the wheel. Place lamps, trees or awnings where their silhouettes and shadows mark progress along the street. Check the grade and recycled block boundaries while riding, as a still image can hide seams and jumps.
-
-Refine the rider and bicycle at chase-camera distance. Model the helmet, shoulders, bent arms, hips, legs and shoes around the existing wheelbase and cadence-driven crank. Inspect the near silhouette over light and dark paving. Balance sunlight, ambient fill and fog after the materials and shapes are visible. Compare with both references throughout. Keep the HUD legible and the scene tied to the real ride state.
-
-Follow the repo's incremental ATDD workflow, requirements L1-017 and L2-110/111, the [scene design](../../detailed-designs/world-ride/draw-class-scene/README.md), the [quality-tier design](../../detailed-designs/world-ride/render-scene-quality/README.md), and ADRs 0020/0021. Preserve reduced motion, pause, hidden-tab handling, quality tiers, missing-asset fallbacks, the lazy Three.js chunk and same-origin asset loading. Verify the simulator can advance through the improved scene as well as enter it. Full regression and performance checks for these edits are pending.
+- Ride to the first effort and review the arch from 038 in motion.
+- Ride a full lap of the 420 m loop to check the recycled house boundaries and the far fade.
+- Barrier feet, spectators' hands and faces, and tree-lined squares would add detail at chase distance.
+- The street draws about 1,500 meshes. Instancing the lamps and riders' static parts would leave more frame budget for the ultra tier.
+- Visual sweeps and baselines were not run or updated (AGENTS.md: a person asks for them).
 
 ## Delivery
 

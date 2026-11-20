@@ -7,6 +7,7 @@ import {
   BufferGeometry,
   CanvasTexture,
   CapsuleGeometry,
+  CircleGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
@@ -16,15 +17,18 @@ import {
   type Material,
   Matrix4,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   Quaternion,
   RepeatWrapping,
   SphereGeometry,
   SRGBColorSpace,
+  TorusGeometry,
   type Texture,
   Vector3,
 } from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /** Metres from the road's centre to the house fronts. */
 export const FRONTAGE = 6.5;
@@ -49,15 +53,15 @@ interface Palette {
 
 const PALETTES: readonly Palette[] = [
   { wall: '#c96f55', trim: '#efe2c9', shutter: '#5a6e4c', flowers: '#f2f0e8' },
-  { wall: '#e2b86f', trim: '#f6ecd6', shutter: '#4d6a73' },
+  { wall: '#e2b86f', trim: '#f6ecd6', shutter: '#4d6a73', flowers: '#e8607a' },
   { wall: '#efe4cc', trim: '#ffffff', shutter: '#5f7a52', flowers: '#d8283a' },
   { wall: '#de9474', trim: '#f4e6cf', shutter: null },
   { wall: '#ead27f', trim: '#fbf3dc', shutter: '#6b4d36', flowers: '#e0457b' },
-  { wall: '#b9c2a0', trim: '#f1efe4', shutter: '#4f5f45' },
-  { wall: '#d99d91', trim: '#f7ebe3', shutter: '#53627a' },
+  { wall: '#b9c2a0', trim: '#f1efe4', shutter: '#4f5f45', flowers: '#f2d24a' },
+  { wall: '#d99d91', trim: '#f7ebe3', shutter: '#53627a', flowers: '#f2f0e8' },
   { wall: '#aebdc8', trim: '#f2f2ee', shutter: null, flowers: '#d8283a' },
 ];
-const AWNINGS = ['#b8322c', '#2f6b4f', '#2d4e7a', '#c9822b', '#6b2f4f'];
+const AWNINGS = ['#b8322c', '#2f6b4f', '#2d4e7a', '#c9822b', '#6b2f4f', '#2a7d7a', '#d9a62e'];
 const SIGNS: readonly { ground: string; emblem: 'cup' | 'key' | 'loaf' | 'wheel' }[] = [
   { ground: '#2f5d4a', emblem: 'cup' },
   { ground: '#7a2b2b', emblem: 'key' },
@@ -70,6 +74,28 @@ const FLAGS: readonly (readonly string[])[] = [
   ['#2f5d4a', '#f2f0e8', '#c9372c'],
   ['#1f2328', '#e2b23a'],
 ];
+/** What the fans paint on the road, its colour and how far off the centre line. */
+const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
+  ['ALLEZ ALLEZ', '#f4f2ea', -0.6],
+  ['HUP HUP', '#ffe14a', 0.8],
+  ['VAMOS', '#f4f2ea', 0.2],
+  ['GO ANA', '#ffe14a', -0.9],
+];
+/** The banners across the street: their words, cloth and ink. */
+const STREET_BANNERS: readonly (readonly [string, string, string])[] = [
+  ['OLD TOWN CRITERIUM', '#1b1e24', '#d7ff3a'],
+  ['WELKOM · BIENVENUE', '#b8322c', '#ffffff'],
+  ['CATHEDRAL CIRCUIT', '#f2efe6', '#2d4e7a'],
+];
+/** How wide an alley between two houses is. */
+const ALLEY = 3.2;
+const BELFRY_AHEAD = 260;
+const BELFRY_X = -13;
+const MOTO_AHEAD = 30;
+const MOTO_X = -2.3;
+const FORWARD = new Vector3(0, 0, 1);
+const HAIR = ['#2a1d14', '#4a3222', '#7a5434', '#b08a5a', '#1a1a1a', '#9a9a96', '#5a2e1c'];
+const HATS = ['#efe6cf', '#1f2b44', '#c9372c', '#f2f0e8', '#d8ff3e'];
 const ROOFS = ['#9a4b33', '#7c3d2c', '#a85a3a', '#5a5c63'];
 
 /** A spectator on the pavement. */
@@ -82,6 +108,8 @@ interface Fan {
   readonly shirt: string;
   readonly skin: string;
   readonly trousers: string;
+  /** Arms raised, cheering the riders on; otherwise at their sides. */
+  readonly cheer: boolean;
 }
 
 const SHIRTS = [
@@ -93,12 +121,16 @@ const SHIRTS = [
   '#7a3f8f',
   '#1f2328',
   '#e07b39',
+  // Fans in the race's volt, and in club jerseys.
+  '#d7ff3a',
+  '#2a9fd6',
+  '#e8467c',
 ];
 const SKINS = ['#f1c7a5', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26'];
 const TROUSERS = ['#2b2f38', '#3b4a63', '#5a4a3a', '#1c1d20', '#8a8478'];
 const UP = new Vector3(0, 1, 0);
 /** The cathedral stands this far ahead, just right of the street's line. */
-const CATHEDRAL_AHEAD = 620;
+const CATHEDRAL_AHEAD = 500;
 const CATHEDRAL_X = 6;
 /** Bunting crosses the street every 35 m, 8.5 m up at the houses, sagging in the middle. */
 const BUNTING_EVERY = 35;
@@ -116,6 +148,10 @@ interface HouseLook {
   readonly roof: Material[];
   readonly trim: Material;
   readonly awning: Material | null;
+  /** What a shop sells, as its window shows: books, bread, flowers or clothes. */
+  readonly trade: number;
+  /** Whether the upper windows keep window boxes of flowers. */
+  readonly flowers: boolean;
 }
 
 interface House {
@@ -124,6 +160,7 @@ interface House {
   /** Where the house starts along the loop, in metres. */
   readonly offset: number;
   readonly width: number;
+  readonly setback: number;
 }
 
 /** A point of the road: metres ahead of the rider and the height there. */
@@ -152,20 +189,58 @@ export class OldTownStreet {
   private readonly brick = new MeshStandardMaterial({ color: 0x8e4a37, roughness: 0.95 });
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
   private readonly crowd: Fan[] = [];
-  /** The crowd's legs, torsos and heads. */
+  /** The crowd's legs, torsos, heads, arms, hats, hand flags and hair. */
   private fans: InstancedMesh[] = [];
+  private readonly hatted: boolean[] = [];
+  private readonly reach = new Vector3();
+  private readonly shoulder = new Vector3();
+  private readonly lean = new Quaternion();
+  private readonly armTurn = new Quaternion();
   private flags: InstancedMesh | null = null;
+  private cords: InstancedMesh | null = null;
   private readonly cathedral = new Group();
+  /** The television motorbike, riding ahead of the rider with its camera turned on them. */
+  private readonly moto = new Group();
+  private readonly swifts: Group[] = [];
+  /** A parish church's brick belfry over the roofs to the left, short of the cathedral. */
+  private readonly belfry = new Group();
   private readonly iron = new MeshStandardMaterial({
     color: 0x1e2023,
     metalness: 0.5,
     roughness: 0.5,
   });
   private readonly signBoard = new PlaneGeometry(0.7, 0.55);
+  private readonly zinc = new MeshStandardMaterial({
+    color: 0x8a9096,
+    metalness: 0.5,
+    roughness: 0.45,
+  });
+  private readonly clockFace = new CylinderGeometry(4, 4, 0.5, 28);
+  private readonly doorLeaf = new PlaneGeometry(1.1, 2.5);
+  private readonly fasciaBoard = new PlaneGeometry(5.2, 0.42);
+  private readonly fascias = ['BOEKEN', 'BAKKERIJ', 'BLOEMEN', 'MODE'].map(
+    (trade) => new MeshStandardMaterial({ map: fasciaTexture(trade), roughness: 0.5 }),
+  );
+  private readonly geraniums = new MeshStandardMaterial({ map: bloomTexture(), roughness: 0.9 });
+  /** Glazed shop doors in painted wood, a brass handle and a bell over each. */
+  private readonly shopDoors = ['#2d4e3f', '#5a2730', '#1f2b44', '#3a3a3a'].map(
+    (paint) => new MeshStandardMaterial({ map: shopDoorTexture(paint), roughness: 0.6 }),
+  );
+  private readonly stone = new MeshStandardMaterial({ color: 0xbdb5a6, roughness: 0.95 });
+  private readonly alleyFloor = new MeshStandardMaterial({ color: 0x8a837a, roughness: 0.95 });
+  /** Half a disc, its flat edge up: one scallop of an awning's hem. */
+  private readonly scallop = new CircleGeometry(0.15, 10, Math.PI, Math.PI);
+  private readonly finial = new SphereGeometry(0.16, 8, 6);
+  private readonly chimneyPot = new CylinderGeometry(0.1, 0.13, 0.4, 8);
+  private readonly oculus = new CylinderGeometry(0.4, 0.4, 0.04, 16);
   private readonly pot = new CylinderGeometry(0.24, 0.18, 0.5, 10);
   private readonly bush = new SphereGeometry(0.42, 10, 8);
   private readonly terracotta = new MeshStandardMaterial({ color: 0xb4603f, roughness: 0.9 });
-  private readonly leaves = new MeshStandardMaterial({ color: 0x3f6b35, roughness: 0.95 });
+  /** Clipped bay: a dense mass of small leaves, lit and shaded leaf by leaf. */
+  private readonly leaves = new MeshStandardMaterial({
+    map: leafTexture(),
+    roughness: 0.9,
+  });
   private readonly flagCloth = new PlaneGeometry(2.0, 1.35, 6, 1);
   /** Civic flags in two or three bands, read from either side. */
   private readonly houseFlags = FLAGS.map(
@@ -207,14 +282,26 @@ export class OldTownStreet {
     if (this.railing.map) this.track(this.railing.map);
     this.disposables.push(this.iron, this.signBoard, this.dormer, this.dormerRoof, ...this.signs);
     this.disposables.push(this.flagCloth, ...this.houseFlags);
-    this.disposables.push(this.pot, this.bush, this.terracotta, this.leaves);
+    this.disposables.push(
+      this.oculus,
+      this.pot,
+      this.bush,
+      this.terracotta,
+      this.leaves,
+      this.zinc,
+    );
     for (const flag of this.houseFlags) if (flag.map) this.track(flag.map);
     for (const sign of this.signs) if (sign.map) this.track(sign.map);
     this.addFurniture(roadHalf);
+    this.addRoadPaint();
+    this.addStreetBanners();
     this.addCrowd(roadHalf);
     this.addBunting();
     this.addCathedral();
-    const kerb = this.material(null, '#9a9a96');
+    this.addMoto();
+    this.addBelfry();
+    this.addSwifts();
+    const kerb = this.material(this.track(kerbTexture()));
     const pavement = this.material(this.track(slabTexture()));
     // The left barriers are seen from the other face: their print runs the other way.
     const banners = [-1, 1].map((side) => {
@@ -222,8 +309,34 @@ export class OldTownStreet {
       texture.repeat.set(-1, -side / 24);
       const material = this.material(texture);
       material.alphaTest = 0.5;
+      // Printed vinyl: a soft sheen that catches the low sun along the barriers.
+      material.roughness = 0.5;
+      material.metalness = 0.05;
       return material;
     });
+    const damp = new MeshStandardMaterial({
+      color: 0x2a2622,
+      roughness: 0.2,
+      metalness: 0.1,
+      // The ribbons on the two sides wind opposite ways: both faces must draw.
+      side: DoubleSide,
+      alphaMap: this.track(dampTexture()),
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+    });
+    this.disposables.push(damp);
+    const foot = new MeshBasicMaterial({
+      color: 0x1a1612,
+      alphaMap: this.track(cornerTexture()),
+      side: DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+    });
+    this.disposables.push(foot);
     const rail = this.material(null, '#b9bdc2');
     rail.metalness = 0.7;
     rail.roughness = 0.35;
@@ -237,6 +350,16 @@ export class OldTownStreet {
       this.ribbon(points, pavement, [
         [x(roadHalf + KERB_TOP), KERB],
         [x(FRONTAGE + 0.5), KERB],
+      ]);
+      // A damp line along the gutter, darker and glossier than the dry setts beside it.
+      this.ribbon(points, damp, [
+        [x(roadHalf - 0.4), 0.004],
+        [x(roadHalf), 0.004],
+      ]);
+      // Shade where the pavement meets the houses, as ambient light fails into the corner.
+      this.ribbon(points, foot, [
+        [x(FRONTAGE - 0.9), KERB + 0.004],
+        [x(FRONTAGE + 0.5), KERB + 0.004],
       ]);
       // Race-day crowd barriers along the kerb, hung with the race's banners.
       this.ribbon(points, banners[side === -1 ? 0 : 1]!, [
@@ -254,15 +377,27 @@ export class OldTownStreet {
     const shut = PALETTES.map((p, i) =>
       p.shutter ? this.material(this.track(bayTexture(p, false, true))) : upper[i]!,
     );
-    const shop = PALETTES.map((p) => this.material(this.track(bayTexture(p, true))));
+    // Shops light their windows from inside: a warm glow that only the glass gives off.
+    const glow = this.track(shopGlowTexture());
+    const shop = PALETTES.map((p) => {
+      const material = this.material(this.track(bayTexture(p, true)));
+      material.emissiveMap = glow;
+      material.emissive.set(0xffc58a);
+      material.emissiveIntensity = 0.32;
+      return material;
+    });
     const roofs = ROOFS.map((color) => this.material(this.track(tileTexture(color))));
     const gables = PALETTES.map((p) => this.material(null, p.wall));
     const trims = PALETTES.map((p) => this.material(null, p.trim));
     const homes = PALETTES.map((p) => this.material(this.track(homeTexture(p))));
     const awnings = AWNINGS.map((colour) => this.material(this.track(stripeTexture(colour))));
     const layout = seeded(3);
+    // Alleys draw from a sequence of their own, so the houses keep their looks.
+    const alleys = seeded(71);
+    let built = 0;
     for (const side of [-1, 1] as const) {
       let offset = side === 1 ? 5 : 0;
+      let near = false;
       let last = -1;
       while (offset < LOOP) {
         // The layout draws from its own sequence, so a new detail never reshuffles the street.
@@ -275,8 +410,8 @@ export class OldTownStreet {
         if (style >= last) style++;
         last = style;
         const roof = roofs[Math.floor(layout() * roofs.length)]!;
-        this.houseIndex = this.houses.length;
-        this.random = seeded(7919 * (this.houses.length + 1) + 2);
+        this.houseIndex = built++;
+        this.random = seeded(7919 * this.houseIndex + 7921);
         const mesh = this.house(width, storeys, {
           upper: (this.chance(1) < 0.3 ? shut : upper)[style]!,
           ...(this.random() < 0.5
@@ -291,11 +426,25 @@ export class OldTownStreet {
             : { shop: homes[style]!, groundBay: 2 * BAY, awning: null }),
           roof: [roof, gables[style]!],
           trim: trims[style]!,
+          trade: style % 4,
+          flowers: !!PALETTES[style]!.flowers,
         });
         mesh.rotation.y = side === 1 ? Math.PI : 0;
         this.group.add(mesh);
-        this.houses.push({ mesh, side, offset, width });
+        // Old frontages never quite line up: each house stands up to 45 cm back.
+        this.houses.push({ mesh, side, offset, width, setback: this.chance(8) * 0.45 });
         offset += width;
+        // Now and then an alley runs off between two houses; one opens in view of the start.
+        const roll = alleys();
+        const opening: boolean = !near && offset > 40 && offset < 75;
+        if (opening || (roll < 0.14 && offset + ALLEY < LOOP && offset > 8)) {
+          const alley = this.alley(gables[style]!);
+          alley.rotation.y = side === 1 ? Math.PI : 0;
+          this.group.add(alley);
+          this.houses.push({ mesh: alley, side, offset, width: ALLEY, setback: 0 });
+          offset += ALLEY;
+          if (opening) near = true;
+        }
       }
     }
   }
@@ -353,7 +502,11 @@ export class OldTownStreet {
     for (const house of this.houses) {
       const start = ((((house.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const middle = start + house.width / 2;
-      house.mesh.position.set(house.side * FRONTAGE, heightAt(Math.max(middle, 0)), -middle);
+      house.mesh.position.set(
+        house.side * (FRONTAGE + house.setback),
+        heightAt(Math.max(middle, 0)),
+        -middle,
+      );
     }
     for (const prop of this.props) {
       const metres = ((((prop.offset - s) % prop.every) + prop.every) % prop.every) - BEHIND;
@@ -362,6 +515,19 @@ export class OldTownStreet {
     this.placeCrowd(s, heightAt);
     this.placeBunting(s, heightAt);
     this.cathedral.position.set(CATHEDRAL_X, heightAt(1e6) - 2, -CATHEDRAL_AHEAD);
+    this.moto.position.set(MOTO_X, heightAt(MOTO_AHEAD), -MOTO_AHEAD);
+    this.belfry.position.set(BELFRY_X, heightAt(1e6) - 2, -BELFRY_AHEAD);
+    // The swifts wheel over the roofs, a turn for every 60 m ridden.
+    this.swifts.forEach((bird, i) => {
+      const a = s / 60 + i * 2.4;
+      const r = 6 + (i % 4) * 3;
+      bird.position.set(
+        Math.cos(a) * r,
+        heightAt(80) + 24 + (i % 5) * 2.5,
+        -70 - (i % 3) * 25 + Math.sin(a) * r,
+      );
+      bird.rotation.y = -a;
+    });
   }
 
   /**
@@ -436,6 +602,31 @@ export class OldTownStreet {
     window.position.set(0, 34, 11.2);
     c.add(window);
     for (let i = 0; i < 5; i++) box(glass, 1.4, 9, 1, -20 + (i % 2 ? 40 : 0), 20, 4.2);
+    // A pointed gable over the portal, and pinnacles along the nave's walls.
+    const gable = box(shade, 7, 7, 1.4, 0, 12, 11.4);
+    gable.rotation.z = Math.PI / 4;
+    gable.position.y = 14.5;
+    for (let z = -20; z > -125; z -= 12) {
+      for (const x of [-15.5, 15.5]) cone(shade, 1.1, 9, x, 34, z, 6);
+    }
+    // A clock on the tower's face, and a gilded cross on the spire.
+    const gilt = stone(0xd9a640, 0.1);
+    const face = new Mesh(this.clockFace, stone(0xf2ede0, 0.3));
+    face.rotation.x = Math.PI / 2;
+    face.position.set(0, 71, 9.6);
+    c.add(face);
+    box(gilt, 0.5, 5.5, 0.5, 0, 157.5, 0);
+    box(gilt, 3, 0.5, 0.5, 0, 161, 0);
+    for (const [w, h, angle] of [
+      [0.35, 3.6, 0.3],
+      [0.35, 2.6, -1.9],
+    ] as const) {
+      const hand = box(gilt, w, h, 0.3, 0, 71, 10.2);
+      hand.geometry = this.unit;
+      hand.position.set(Math.sin(-angle) * (h / 2), 71 + Math.cos(angle) * (h / 2), 10.2);
+      hand.rotation.z = angle;
+    }
+    this.flatten(c);
     this.group.add(c);
   }
 
@@ -450,16 +641,20 @@ export class OldTownStreet {
       for (let k = 0; k < BUNTING_FLAGS; k++) {
         const x = -FRONTAGE + ((k + 0.5) / BUNTING_FLAGS) * 2 * FRONTAGE;
         const sag = 1.6 * (1 - (x / FRONTAGE) ** 2);
+        // The cord's slope here, which each pennant and its length of cord follow.
+        this.turn.setFromAxisAngle(FORWARD, Math.atan((3.2 * x) / FRONTAGE ** 2));
         this.matrix.compose(
           this.spot.set(x, y + BUNTING_HEIGHT - sag, -metres),
-          this.turn.identity(),
+          this.turn,
           this.size.set(1, 1, 1),
         );
-        flags.setMatrixAt(i++, this.matrix);
+        flags.setMatrixAt(i, this.matrix);
+        this.cords?.setMatrixAt(i++, this.matrix);
       }
     }
     flags.instanceMatrix.needsUpdate = true;
     flags.computeBoundingSphere();
+    if (this.cords) this.cords.instanceMatrix.needsUpdate = true;
   }
 
   /** Pennants in the race's colours, hanging point down from a line between the houses. */
@@ -484,12 +679,18 @@ export class OldTownStreet {
     this.flags.castShadow = true;
     this.flags.frustumCulled = false;
     this.group.add(this.flags);
+    // The cord the pennants hang from, a length per pennant.
+    const length = new BoxGeometry((2 * FRONTAGE) / BUNTING_FLAGS + 0.04, 0.015, 0.015);
+    this.disposables.push(length);
+    this.cords = new InstancedMesh(length, this.iron, BUNTING_LINES * BUNTING_FLAGS);
+    this.cords.frustumCulled = false;
+    this.group.add(this.cords);
   }
 
   /** The crowd, moved with the street: one instance per spectator's legs, torso and head. */
   private placeCrowd(s: number, heightAt: (metres: number) => number): void {
-    const [legs, torsos, heads] = this.fans;
-    if (!legs || !torsos || !heads) return;
+    const [legs, torsos, heads, arms, hats, waved, hair] = this.fans;
+    if (!legs || !torsos || !heads || !arms || !hats || !waved || !hair) return;
     this.crowd.forEach((fan, i) => {
       const metres = ((((fan.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const y = heightAt(Math.max(metres, 0)) + KERB;
@@ -507,6 +708,36 @@ export class OldTownStreet {
       set(legs, hip / 2, hip / 0.9);
       set(torsos, (hip + neck) / 2, (neck - hip + 0.08) / 0.75);
       set(heads, fan.height - 0.11, 1);
+      set(hats, fan.height - 0.02, this.hatted[i] ? 1 : 0);
+      set(hair, fan.height - 0.1, this.hatted[i] ? 0 : 1);
+      // Each arm hangs from its shoulder, or reaches up and out to cheer.
+      for (const side of [-1, 1]) {
+        this.reach.set(side * (fan.cheer ? 0.35 : 0.1), fan.cheer ? 1 : -1, 0.08).normalize();
+        this.shoulder.set(side * 0.21, 0, 0).applyQuaternion(this.turn);
+        this.shoulder.y = y + neck - 0.06;
+        this.shoulder.x += fan.x;
+        this.shoulder.z -= metres;
+        this.lean.setFromUnitVectors(UP, this.reach);
+        this.armTurn.copy(this.turn).multiply(this.lean);
+        this.reach.applyQuaternion(this.turn);
+        this.matrix.compose(
+          this.spot.copy(this.shoulder).addScaledVector(this.reach, 0.3),
+          this.armTurn,
+          this.size.set(1, 1, 1),
+        );
+        arms.setMatrixAt(2 * i + (side > 0 ? 1 : 0), this.matrix);
+        if (side > 0) {
+          // The flag on its stick, at the raised right hand.
+          // Flown square to the street, so the riders see it coming.
+          const flying = fan.cheer && i % 3 !== 0;
+          this.matrix.compose(
+            this.spot.copy(this.shoulder).addScaledVector(this.reach, 0.62),
+            this.lean.identity(),
+            this.size.setScalar(flying ? 1 : 0),
+          );
+          waved.setMatrixAt(i, this.matrix);
+        }
+      }
     });
     for (const mesh of this.fans) {
       mesh.instanceMatrix.needsUpdate = true;
@@ -522,7 +753,7 @@ export class OldTownStreet {
     const random = seeded(41);
     let offset = 0;
     while (offset < LOOP) {
-      offset += 1.5 + random() * 6;
+      offset += 1 + random() * 4;
       const side = random() < 0.5 ? -1 : 1;
       const knot = 2 + Math.floor(random() * 6);
       for (let k = 0; k < knot && offset < LOOP; k++) {
@@ -534,8 +765,38 @@ export class OldTownStreet {
           shirt: SHIRTS[Math.floor(random() * SHIRTS.length)]!,
           skin: SKINS[Math.floor(random() * SKINS.length)]!,
           trousers: TROUSERS[Math.floor(random() * TROUSERS.length)]!,
+          cheer: false,
         });
       }
+    }
+    // A quarter of the crowd cheer, drawn from a sequence of their own.
+    const cheers = seeded(43);
+    this.crowd.forEach((fan, i) => {
+      const cheer = cheers() < 0.25;
+      // One in six is a child, at the front by the barrier.
+      const child = cheers() < 0.16;
+      this.crowd[i] = child
+        ? {
+            ...fan,
+            cheer,
+            height: 1.05 + cheers() * 0.3,
+            x: Math.sign(fan.x) * (roadHalf + 0.7),
+          }
+        : { ...fan, cheer };
+    });
+    // A race marshal in a hi-vis vest every forty metres or so, at the barrier, facing the road.
+    for (let at = 12; at < LOOP; at += 38 + (at % 7)) {
+      const side = (at / 38) % 2 < 1 ? -1 : 1;
+      this.crowd.push({
+        offset: at,
+        x: side * (roadHalf + 0.75),
+        height: 1.8,
+        turn: side * (Math.PI / 2),
+        shirt: '#e8f021',
+        skin: SKINS[at % SKINS.length]!,
+        trousers: '#20242c',
+        cheer: false,
+      });
     }
     // Unit parts, scaled per spectator: legs 0.9 m and a torso 0.75 m long before scaling.
     const legs = new CapsuleGeometry(0.13, 0.64, 4, 8);
@@ -543,15 +804,39 @@ export class OldTownStreet {
     const torso = new CapsuleGeometry(0.17, 0.41, 4, 10);
     torso.scale(1.1, 1, 0.7);
     const head = new SphereGeometry(0.105, 12, 8);
+    // An arm 0.6 m long, its middle at the origin.
+    const arm = new CapsuleGeometry(0.05, 0.5, 4, 6);
     const material = new MeshStandardMaterial({ roughness: 0.8 });
-    this.disposables.push(legs, torso, head, material);
+    this.disposables.push(legs, torso, head, arm, material);
     const n = this.crowd.length;
     this.fans = [legs, torso, head].map((g) => new InstancedMesh(g, material, n));
+    this.fans.push(new InstancedMesh(arm, material, 2 * n));
+    // Sun hats and caps on a fifth of the crowd: a brim and a crown.
+    const hat = new CylinderGeometry(0.1, 0.17, 0.09, 12);
+    this.disposables.push(hat);
+    this.fans.push(new InstancedMesh(hat, material, n));
+    // Hand flags, held up by two in three of those cheering.
+    const pennant = new PlaneGeometry(0.4, 0.28);
+    pennant.translate(0.2, 0, 0);
+    const cloth = new MeshStandardMaterial({ roughness: 0.85, side: DoubleSide });
+    this.disposables.push(pennant, cloth);
+    this.fans.push(new InstancedMesh(pennant, cloth, n));
+    // Hair on every bare head, in a natural range of shades.
+    const hair = new SphereGeometry(0.112, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2.1);
+    this.disposables.push(hair);
+    this.fans.push(new InstancedMesh(hair, material, n));
+    const hats = seeded(47);
     const colour = new Color();
     this.crowd.forEach((fan, i) => {
       this.fans[0]!.setColorAt(i, colour.set(fan.trousers));
       this.fans[1]!.setColorAt(i, colour.set(fan.shirt));
       this.fans[2]!.setColorAt(i, colour.set(fan.skin));
+      this.fans[3]!.setColorAt(2 * i, colour.set(fan.shirt));
+      this.fans[3]!.setColorAt(2 * i + 1, colour.set(fan.shirt));
+      this.hatted.push(hats() < 0.2);
+      this.fans[4]!.setColorAt(i, colour.set(HATS[Math.floor(hats() * HATS.length)]!));
+      this.fans[5]!.setColorAt(i, colour.set(PENNANTS[i % PENNANTS.length]!));
+      this.fans[6]!.setColorAt(i, colour.set(HAIR[Math.floor(hats() * HAIR.length)]!));
     });
     for (const mesh of this.fans) {
       mesh.castShadow = true;
@@ -560,7 +845,202 @@ export class OldTownStreet {
     }
   }
 
-  /** Iron lamp posts along both pavements, and bollards at the kerb between them. */
+  /** The belfry: a square brick tower, its louvred stage and a slate spire, hazed by distance. */
+  private addBelfry(): void {
+    const haze = new Color(0xdcd8cf);
+    const tone = (hex: number) => {
+      const material = new MeshStandardMaterial({ roughness: 0.95, fog: false });
+      material.color.set(hex).lerp(haze, 0.32);
+      this.disposables.push(material);
+      return material;
+    };
+    const brick = tone(0xa0563e);
+    const stone = tone(0xd9cfb8);
+    const slate = tone(0x4b545e);
+    const b = this.belfry;
+    const block = (m: Material, w: number, h: number, y: number) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, w);
+      mesh.position.y = y + h / 2;
+      b.add(mesh);
+    };
+    block(brick, 9, 34, 0);
+    block(stone, 9.6, 0.8, 34);
+    block(brick, 8, 9, 34.8);
+    block(stone, 8.6, 0.8, 43.8);
+    const spire = new ConeGeometry(6, 22, 8);
+    this.disposables.push(spire);
+    const top = new Mesh(spire, slate);
+    top.position.y = 44.6 + 11;
+    b.add(top);
+    // The louvred openings of the bell stage, dark on each face.
+    for (const [x, z] of [
+      [4.05, 0],
+      [-4.05, 0],
+      [0, 4.05],
+      [0, -4.05],
+    ] as const) {
+      const louvre = new Mesh(this.unit, this.iron);
+      louvre.scale.set(x ? 0.1 : 2.4, 5, z ? 0.1 : 2.4);
+      louvre.position.set(x, 39.5, z);
+      b.add(louvre);
+    }
+    this.flatten(b);
+    this.group.add(b);
+  }
+
+  /** A dozen swifts: dark crescents on swept wings, high over the street ahead. */
+  private addSwifts(): void {
+    const wing = new BoxGeometry(0.42, 0.02, 0.1);
+    const black = new MeshBasicMaterial({ color: 0x2a2a30, fog: false });
+    this.disposables.push(wing, black);
+    for (let i = 0; i < 12; i++) {
+      const bird = new Group();
+      for (const side of [-1, 1]) {
+        const w = new Mesh(wing, black);
+        w.position.x = side * 0.2;
+        w.rotation.y = side * 0.5;
+        w.rotation.z = side * 0.15;
+        bird.add(w);
+      }
+      this.swifts.push(bird);
+      this.group.add(bird);
+    }
+  }
+
+  /** The TV moto: a white motorbike, its pilot, and a cameraman sat backwards on the pillion. */
+  private addMoto(): void {
+    const m = this.moto;
+    const black = new MeshStandardMaterial({ color: 0x17181b, roughness: 0.6 });
+    const white = new MeshStandardMaterial({ color: 0xeef0f2, roughness: 0.35, metalness: 0.2 });
+    const blue = new MeshStandardMaterial({ color: 0x2456a6, roughness: 0.5 });
+    const tyre = new TorusGeometry(0.28, 0.08, 8, 24);
+    const torso = new CapsuleGeometry(0.18, 0.4, 4, 8);
+    const helmet = new SphereGeometry(0.15, 12, 8);
+    this.disposables.push(black, white, blue, tyre, torso, helmet);
+    const add = (geometry: BufferGeometry, material: Material, x: number, y: number, z: number) => {
+      const mesh = new Mesh(geometry, material);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      m.add(mesh);
+      return mesh;
+    };
+    const box = (material: Material, w: number, h: number, d: number, y: number, z: number) => {
+      const mesh = add(this.unit, material, 0, y, z);
+      mesh.scale.set(w, h, d);
+      return mesh;
+    };
+    for (const z of [-0.72, 0.72]) add(tyre, black, 0, 0.36, z).rotation.y = Math.PI / 2;
+    box(white, 0.42, 0.42, 1.2, 0.72, 0);
+    box(blue, 0.44, 0.12, 1.22, 0.62, 0);
+    box(black, 0.34, 0.1, 0.9, 0.97, 0.15);
+    box(white, 0.5, 0.35, 0.3, 1.0, -0.62);
+    // The pilot, leaning to the bars.
+    const pilot = add(torso, black, 0, 1.35, -0.12);
+    pilot.rotation.x = -0.5;
+    add(helmet, white, 0, 1.78, -0.32);
+    // The cameraman, facing back down the road with the camera on his shoulder.
+    add(torso, blue, 0, 1.4, 0.42);
+    add(helmet, white, 0, 1.86, 0.44);
+    box(black, 0.2, 0.24, 0.5, 1.82, 0.62).position.x = 0.2;
+    box(black, 0.1, 0.1, 0.06, 1.82, 0.9).position.x = 0.2;
+    // A mast with the camera's transmitter.
+    box(black, 0.03, 1.3, 0.03, 1.6, 0.85).position.x = -0.2;
+    box(white, 0.18, 0.18, 0.18, 2.3, 0.85).position.x = -0.2;
+    // The board on the back, facing the riders, and an amber beacon on the mast.
+    const board = new MeshStandardMaterial({ map: this.track(tvBoardTexture()), roughness: 0.5 });
+    const amber = new MeshStandardMaterial({
+      color: 0xffa21a,
+      emissive: 0xff8a00,
+      emissiveIntensity: 0.8,
+    });
+    const plate = new PlaneGeometry(0.5, 0.36);
+    const beacon = new SphereGeometry(0.07, 10, 6);
+    this.disposables.push(board, amber, plate, beacon);
+    const back = new Mesh(plate, board);
+    back.position.set(0, 0.95, 0.66);
+    m.add(back);
+    add(beacon, amber, -0.2, 2.45, 0.85);
+    this.flatten(m);
+    this.group.add(m);
+  }
+
+  /** Cloth banners strung across the street between the houses, with their ropes. */
+  private addStreetBanners(): void {
+    const cloth = new PlaneGeometry(7, 1.3);
+    const rope = new BoxGeometry(2 * FRONTAGE, 0.03, 0.03);
+    this.disposables.push(cloth, rope);
+    STREET_BANNERS.forEach(([text, fill, ink], i) => {
+      const material = new MeshStandardMaterial({
+        map: this.track(clothBannerTexture(text, fill, ink)),
+        side: DoubleSide,
+        roughness: 0.85,
+      });
+      this.disposables.push(material);
+      const holder = new Group();
+      const banner = new Mesh(cloth, material);
+      banner.position.y = 7.2 - KERB;
+      banner.castShadow = true;
+      const line = new Mesh(rope, this.iron);
+      line.position.y = 7.85 - KERB;
+      holder.add(banner, line);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: 70 + i * 140, every: LOOP, x: 0 });
+    });
+  }
+
+  /** Fans' slogans painted on the setts, read upright as the rider rolls over them. */
+  private addRoadPaint(): void {
+    // Stretched along the road, as road writing is, so it reads from a rider's low eye.
+    const plane = new PlaneGeometry(3.2, 7);
+    this.disposables.push(plane);
+    ROAD_PAINT.forEach(([text, colour, x], i) => {
+      const material = new MeshStandardMaterial({
+        map: this.track(paintTexture(text, colour)),
+        transparent: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        roughness: 0.7,
+      });
+      this.disposables.push(material);
+      const mesh = new Mesh(plane, material);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.y = -KERB + 0.01;
+      mesh.receiveShadow = true;
+      const holder = new Group();
+      holder.add(mesh);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: 38 + i * 97, every: LOOP, x });
+    });
+    // Cast-iron covers set in the setts, a few to a lap.
+    const plate = new CircleGeometry(0.4, 24);
+    const iron = new MeshStandardMaterial({
+      map: this.track(coverTexture()),
+      roughness: 0.55,
+      metalness: 0.5,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    this.disposables.push(plate, iron);
+    for (const [offset, x] of [
+      [33, 1.4],
+      [150, -1.1],
+      [290, 0.6],
+    ] as const) {
+      const cover = new Mesh(plate, iron);
+      cover.rotation.x = -Math.PI / 2;
+      cover.scale.y = 1;
+      cover.position.y = -KERB + 0.008;
+      cover.receiveShadow = true;
+      const holder = new Group();
+      holder.add(cover);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, every: LOOP, x });
+    }
+  }
+
+  /** Iron lamp posts along both pavements, each with a hanging basket and a pennant. */
   private addFurniture(roadHalf: number): void {
     const iron = this.material(null, '#1f2124');
     iron.metalness = 0.6;
@@ -577,7 +1057,31 @@ export class OldTownStreet {
     const cap = new ConeGeometry(0.28, 0.3, 6);
     const bollard = new CylinderGeometry(0.09, 0.11, 0.9, 10);
     const knob = new SphereGeometry(0.11, 10, 6);
+    // A hanging basket of geraniums on an arm from each lamp, out over the barrier.
+    const arm = new BoxGeometry(0.9, 0.04, 0.04);
+    const basket = new SphereGeometry(0.3, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    const bloom = new SphereGeometry(0.36, 12, 8);
+    const wicker = new MeshStandardMaterial({ color: 0x5a3e26, roughness: 0.95 });
+    const flowers = new MeshStandardMaterial({ map: this.track(bloomTexture()), roughness: 0.9 });
     this.disposables.push(glass, pole, foot, lantern, cap, bollard, knob);
+    this.disposables.push(arm, basket, bloom, wicker, flowers);
+    const trailing = new ConeGeometry(0.4, 0.34, 12, 1, true);
+    this.disposables.push(trailing);
+    const pennantCloth = new PlaneGeometry(0.5, 1.1);
+    const pennants = [
+      ['#1b1e24', '#d7ff3a'],
+      ['#b8322c', '#ffffff'],
+    ].map(([fill, ink]) => {
+      const material = new MeshStandardMaterial({
+        map: this.track(pennantTexture(fill!, ink!)),
+        alphaTest: 0.5,
+        side: DoubleSide,
+        roughness: 0.85,
+      });
+      this.disposables.push(material);
+      return material;
+    });
+    this.disposables.push(pennantCloth);
     const lampEvery = 28;
     for (let i = 0; i < LOOP / lampEvery; i++) {
       const lamp = new Group();
@@ -593,6 +1097,25 @@ export class OldTownStreet {
         lamp.add(mesh);
       }
       const side = i % 2 ? 1 : -1;
+      const reach = new Mesh(arm, iron);
+      reach.position.set(-side * 0.45, 3.6, 0);
+      const hang = new Mesh(basket, wicker);
+      hang.position.set(-side * 0.8, 3.2, 0);
+      const blooms = new Mesh(bloom, flowers);
+      blooms.position.set(-side * 0.8, 3.25, 0);
+      blooms.scale.set(1, 0.8, 1);
+      // Ivy and lobelia trailing out of the basket and down.
+      const trail = new Mesh(trailing, this.leaves);
+      trail.rotation.x = Math.PI;
+      trail.position.set(-side * 0.8, 3.02, 0);
+      hang.castShadow = blooms.castShadow = trail.castShadow = true;
+      lamp.add(trail);
+      // A race pennant on the post, square to the street, below the basket.
+      const pennant = new Mesh(pennantCloth, pennants[i % pennants.length]!);
+      pennant.position.set(-side * 0.32, 2.4, 0);
+      pennant.castShadow = true;
+      lamp.add(reach, hang, blooms, pennant);
+      this.flatten(lamp);
       this.group.add(lamp);
       this.props.push({
         mesh: lamp,
@@ -600,26 +1123,6 @@ export class OldTownStreet {
         every: LOOP,
         x: side * (roadHalf + 0.7),
       });
-    }
-    const bollardEvery = 7;
-    for (let i = 0; i < LOOP / bollardEvery; i++) {
-      if (i % 4 === 0) continue;
-      for (const side of [-1, 1]) {
-        const b = new Group();
-        const body = new Mesh(bollard, iron);
-        body.position.y = 0.45;
-        const top = new Mesh(knob, iron);
-        top.position.y = 0.92;
-        body.castShadow = top.castShadow = true;
-        b.add(body, top);
-        this.group.add(b);
-        this.props.push({
-          mesh: b,
-          offset: i * bollardEvery,
-          every: LOOP,
-          x: side * (roadHalf + 0.45),
-        });
-      }
     }
   }
 
@@ -674,9 +1177,29 @@ export class OldTownStreet {
       const pot = new Mesh(this.unit, this.brick);
       pot.scale.set(0.82, 0.14, 1.02);
       pot.position.set(x, base + 1.2, z);
+      // Two clay chimney pots on each stack's cap.
+      for (const dz of [-0.22, 0.22]) {
+        const clay = new Mesh(this.chimneyPot, this.terracotta);
+        clay.position.set(x, base + 1.45, z + dz);
+        clay.castShadow = true;
+        group.add(clay);
+      }
       stack.castShadow = true;
       group.add(stack, pot);
     }
+    // Ridge tiles capping the roof, a zinc gutter along the eaves and a downpipe at one end.
+    const ridge = new Mesh(this.unit, roof[0]!);
+    ridge.scale.set(0.28, 0.16, width + 0.3);
+    ridge.position.set(-DEPTH / 2, SHOP + height + rise + 0.02, 0);
+    const gutter = new Mesh(this.unit, this.zinc);
+    gutter.scale.set(0.16, 0.14, width + 0.2);
+    gutter.position.set(0.36, SHOP + height + 0.02, 0);
+    const pipe = new Mesh(this.unit, this.zinc);
+    const end = (this.chance(5) < 0.5 ? -1 : 1) * (width / 2 - 0.12);
+    pipe.scale.set(0.09, SHOP + height, 0.09);
+    pipe.position.set(0.1, (SHOP + height) / 2, end);
+    ridge.castShadow = gutter.castShadow = pipe.castShadow = true;
+    group.add(ridge, gutter, pipe);
     for (const m of [shopMesh, upperMesh, roofMesh]) {
       m.castShadow = true;
       m.receiveShadow = true;
@@ -685,21 +1208,193 @@ export class OldTownStreet {
     if (look.awning) group.add(this.awning(look.awning, width));
     if (this.random() < 0.4) group.add(this.balcony(look.trim, width));
     if (look.groundBay === BAY && this.random() < 0.6) group.add(this.sign(width));
+    if (look.groundBay === BAY) {
+      // The fascia over the shop front, its trade lettered in gilt.
+      const fascia = new Mesh(this.fasciaBoard, this.fascias[look.trade]!);
+      fascia.rotation.y = Math.PI / 2;
+      fascia.scale.x = Math.min(1, (width - 0.8) / 5.2);
+      fascia.position.set(0.05, SHOP - 0.15, 0);
+      group.add(fascia);
+      // The shop door, in one of its bays.
+      const door = new Mesh(
+        this.doorLeaf,
+        this.shopDoors[this.houseIndex % this.shopDoors.length]!,
+      );
+      const bay = Math.floor(this.chance(9) * (width / BAY));
+      door.rotation.y = Math.PI / 2;
+      door.position.set(0.04, 1.25, -width / 2 + (bay + 0.5) * BAY);
+      group.add(door);
+    }
     if (this.chance(2) < 0.32) group.add(this.flag(width));
     if (look.groundBay === 2 * BAY) group.add(this.pots(width));
+    // Stone quoins up both front corners of half the houses, long and short in turn.
+    if (this.chance(7) < 0.5) {
+      for (const end of [-1, 1]) {
+        for (let k = 0, y = SHOP + 0.2; y < SHOP + height - 0.6; k++, y += 0.5) {
+          const quoin = new Mesh(this.unit, trim);
+          const long = k % 2 === 0 ? 0.75 : 0.45;
+          quoin.scale.set(0.08, 0.42, long);
+          quoin.position.set(0.04, y + 0.21, end * (width / 2 - long / 2));
+          group.add(quoin);
+        }
+      }
+    }
+    // A narrow house may raise a stepped gable over its front, as Flemish town houses do.
+    if (width <= 9 && this.chance(6) < 0.35) group.add(this.stepGable(width, SHOP + height, look));
     // The cornice under the eaves, and the string course over the shop floor.
     group.add(this.trim(trim, width + 0.3, 0.45, 0.42, SHOP + height - 0.22));
+    // A stone sill under every upper window, a lintel and keystone over it.
+    for (let k = 0; k < storeys; k++) {
+      for (let bay = 0; bay < Math.round(width / BAY); bay++) {
+        const sill = new Mesh(this.unit, trim);
+        sill.scale.set(0.2, 0.09, 1.2);
+        sill.position.set(0.08, SHOP + k * STOREY + 0.62, -width / 2 + (bay + 0.5) * BAY);
+        // And over it a lintel with its keystone.
+        const lintel = new Mesh(this.unit, trim);
+        lintel.scale.set(0.1, 0.16, 1.22);
+        lintel.position.set(0.05, SHOP + k * STOREY + 2.62, sill.position.z);
+        const key = new Mesh(this.unit, trim);
+        key.scale.set(0.14, 0.26, 0.2);
+        key.position.set(0.07, SHOP + k * STOREY + 2.64, sill.position.z);
+        group.add(sill, lintel, key);
+        if (look.flowers) {
+          // A window box on the sill, geraniums spilling over its front.
+          const planter = new Mesh(this.unit, this.terracotta);
+          planter.scale.set(0.24, 0.2, 1.05);
+          planter.position.set(0.16, SHOP + k * STOREY + 0.76, sill.position.z);
+          const blooms = new Mesh(this.bush, this.geraniums);
+          blooms.scale.set(0.4, 0.3, 1.25);
+          blooms.position.set(0.18, SHOP + k * STOREY + 0.9, sill.position.z);
+          group.add(planter, blooms);
+        }
+      }
+    }
+    // A row of dentils under the cornice.
+    for (let z = -width / 2 + 0.2; z < width / 2 - 0.1; z += 0.3) {
+      const dentil = new Mesh(this.unit, trim);
+      dentil.scale.set(0.18, 0.14, 0.14);
+      dentil.position.set(0.09, SHOP + height - 0.52, z);
+      group.add(dentil);
+    }
     group.add(this.trim(trim, width, 0.2, 0.24, SHOP));
     this.disposables.push(shopBox, upperBox, roofGeometry);
+    this.flatten(group);
     return group;
   }
 
-  /** Bay trees in terracotta pots either side of a home's doors. */
+  /**
+   * Merges a house's parts that share a material into one mesh: a draw per material rather
+   * than per part, so the street fits the frame budget at the higher tiers.
+   */
+  private flatten(house: Group): void {
+    house.updateMatrixWorld(true);
+    // Each part's place relative to the house, whatever the house's own place.
+    const local = new Matrix4().copy(house.matrixWorld).invert();
+    const buckets = new Map<
+      string,
+      { material: Material; parts: BufferGeometry[]; meshes: Mesh[] }
+    >();
+    house.traverse((o) => {
+      if (!(o instanceof Mesh) || Array.isArray(o.material)) return;
+      const geometry = o.geometry as BufferGeometry;
+      const key = [
+        (o.material as Material).uuid,
+        geometry.index ? 'indexed' : 'flat',
+        Object.keys(geometry.attributes).sort().join(),
+      ].join('|');
+      const bucket = buckets.get(key) ?? {
+        material: o.material as Material,
+        parts: [],
+        meshes: [],
+      };
+      bucket.parts.push(
+        geometry.clone().applyMatrix4(new Matrix4().multiplyMatrices(local, o.matrixWorld)),
+      );
+      bucket.meshes.push(o);
+      buckets.set(key, bucket);
+    });
+    for (const { material, parts, meshes } of buckets.values()) {
+      const merged = meshes.length > 1 ? mergeGeometries(parts) : null;
+      for (const part of parts) part.dispose();
+      if (!merged) continue;
+      for (const mesh of meshes) mesh.removeFromParent();
+      const mesh = new Mesh(merged, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      house.add(mesh);
+      this.disposables.push(merged);
+    }
+  }
+
+  /** A stepped gable front: five courses narrowing to a capstone, each step coped in stone. */
+  private stepGable(width: number, top: number, look: HouseLook): Group {
+    const group = new Group();
+    const steps = 5;
+    for (let k = 0; k < steps; k++) {
+      const w = width * (1 - k / steps);
+      const course = new Mesh(this.unit, look.roof[1]!);
+      course.scale.set(0.45, 0.8, w);
+      course.position.set(0.05, top + 0.4 + k * 0.8, 0);
+      const coping = new Mesh(this.unit, look.trim);
+      coping.scale.set(0.55, 0.12, w + 0.1);
+      coping.position.set(0.05, top + 0.86 + k * 0.8, 0);
+      // A stone ball on each step's outer corners.
+      for (const end of [-1, 1]) {
+        const finial = new Mesh(this.finial, look.trim);
+        finial.position.set(0.05, top + 1.04 + k * 0.8, (end * w) / 2 - end * 0.15);
+        group.add(finial);
+      }
+      course.castShadow = coping.castShadow = true;
+      group.add(course, coping);
+    }
+    // A round window in the second course.
+    const oculus = new Mesh(this.oculus, this.iron);
+    oculus.rotation.z = Math.PI / 2;
+    oculus.position.set(0.29, top + 1.6, 0);
+    group.add(oculus);
+    return group;
+  }
+
+  /**
+   * An alley between two houses: setts running back into shade, to a wall lit at the far end
+   * under an arch, with the sky over it.
+   */
+  private alley(wall: Material): Group {
+    const group = new Group();
+    const deep = 16;
+    const floor = new Mesh(this.unit, this.alleyFloor);
+    floor.scale.set(deep, 0.1, ALLEY);
+    floor.position.set(-deep / 2, -0.05, 0);
+    floor.receiveShadow = true;
+    const back = new Mesh(this.unit, wall);
+    back.scale.set(0.4, 11, ALLEY + 1);
+    back.position.set(-deep, 5.5, 0);
+    back.receiveShadow = true;
+    // An arch spanning the alley a few metres in, carrying a room over it.
+    const bridge = new Mesh(this.unit, wall);
+    bridge.scale.set(3, 3.4, ALLEY + 0.2);
+    bridge.position.set(-6, SHOP + 2.4, 0);
+    bridge.castShadow = bridge.receiveShadow = true;
+    const window = new Mesh(this.unit, this.iron);
+    window.scale.set(0.05, 1.2, 0.9);
+    window.position.set(-4.48, SHOP + 2.5, 0);
+    group.add(floor, back, bridge, window);
+    this.flatten(group);
+    return group;
+  }
+
+  /** A stone step up to each of a home's doors, with bay trees in pots either side. */
   private pots(width: number): Group {
     const group = new Group();
     for (let bay = 0; bay < Math.round(width / (2 * BAY)); bay++) {
       // The door sits in the first third of each two-bay tile.
       const door = -width / 2 + bay * 2 * BAY + 1.25;
+      // A worn stone step up to the door.
+      const step = new Mesh(this.unit, this.stone);
+      step.scale.set(0.45, 0.16, 1.3);
+      step.position.set(0.22, 0.08, door);
+      step.receiveShadow = true;
+      group.add(step);
       for (const dz of [-0.85, 0.85]) {
         if (this.chance(10 + bay * 2 + (dz > 0 ? 1 : 0)) < 0.35) continue;
         const pot = new Mesh(this.pot, this.terracotta);
@@ -776,6 +1471,24 @@ export class OldTownStreet {
       side.position.set(deep / 2, floor + 0.55, (z * (width - 0.8)) / 2);
       group.add(side);
     }
+    // Geraniums in pots along the railing, and now and then a bistro table.
+    const pots = 2 + Math.floor(this.chance(11) * 3);
+    for (let i = 0; i < pots; i++) {
+      const z = ((i + 0.5) / pots - 0.5) * (width - 1.6);
+      const pot = new Mesh(this.pot, this.terracotta);
+      pot.scale.setScalar(0.7);
+      pot.position.set(deep - 0.22, floor + 0.25, z);
+      const bloom = new Mesh(this.bush, this.geraniums);
+      bloom.scale.set(0.75, 0.6, 0.75);
+      bloom.position.set(deep - 0.22, floor + 0.62, z);
+      group.add(pot, bloom);
+    }
+    if (this.chance(12) < 0.4) {
+      const table = new Mesh(this.pot, this.iron);
+      table.scale.set(1.2, 1.4, 1.2);
+      table.position.set(0.4, floor + 0.4, 0.3);
+      group.add(table);
+    }
     for (const m of group.children) m.castShadow = true;
     return group;
   }
@@ -791,14 +1504,22 @@ export class OldTownStreet {
     sheet.rotation.set(-Math.PI / 2, 0, 0);
     sheet.rotateOnWorldAxis(new Vector3(0, 0, 1), -Math.atan2(drop, out));
     sheet.position.set(out / 2, SHOP - 0.35 - drop / 2, 0);
-    const valance = new Mesh(new PlaneGeometry(0.28, width - 0.6), material);
+    const valance = new Mesh(new PlaneGeometry(0.16, width - 0.6), material);
     valance.rotation.set(0, Math.PI / 2, Math.PI / 2);
-    valance.position.set(out, SHOP - 0.35 - drop - 0.14, 0);
+    valance.position.set(out, SHOP - 0.35 - drop - 0.08, 0);
     for (const m of [sheet, valance]) {
       m.castShadow = true;
       m.receiveShadow = true;
     }
     group.add(sheet, valance);
+    // The valance's scalloped hem.
+    const scallops = Math.floor((width - 0.6) / 0.3);
+    for (let i = 0; i < scallops; i++) {
+      const scallop = new Mesh(this.scallop, material);
+      scallop.rotation.y = Math.PI / 2;
+      scallop.position.set(out, SHOP - 0.35 - drop - 0.16, (i + 0.5 - scallops / 2) * 0.3);
+      group.add(scallop);
+    }
     this.disposables.push(canvas, valance.geometry);
     return group;
   }
@@ -1027,16 +1748,72 @@ function bayTexture(palette: Palette, shop: boolean, closed = false): CanvasText
       inside.addColorStop(1, '#b98a55');
       ctx.fillStyle = inside;
       ctx.fillRect(x, top, ww, bottom - top - 40);
-      for (let shelf = top + 34; shelf < bottom - 50; shelf += 34) {
-        ctx.fillStyle = 'rgba(40,25,15,0.7)';
-        ctx.fillRect(x, shelf, ww, 4);
-        for (let gx = x + 4; gx < x + ww - 8; gx += 9 + random() * 8) {
-          const tone = ['#d9c39a', '#a8453a', '#e8e1cf', '#5b7a52', '#c98a3a'][
+      // Each palette keeps a trade: books, bread, flowers or clothes.
+      const trade = Math.max(0, PALETTES.indexOf(palette)) % 4;
+      const floor = bottom - 40;
+      if (trade === 0 || trade === 1) {
+        for (let shelf = top + 34; shelf < floor - 10; shelf += 34) {
+          ctx.fillStyle = 'rgba(40,25,15,0.7)';
+          ctx.fillRect(x, shelf, ww, 4);
+          for (
+            let gx = x + 4;
+            gx < x + ww - 8;
+            gx += trade ? 16 + random() * 6 : 9 + random() * 8
+          ) {
+            if (trade === 0) {
+              ctx.fillStyle = ['#d9c39a', '#a8453a', '#e8e1cf', '#5b7a52', '#c98a3a'][
+                Math.floor(random() * 5)
+              ]!;
+              const gh = 8 + random() * 16;
+              ctx.fillRect(gx, shelf - gh, 6, gh);
+            } else {
+              // Loaves: round cobs and long batons, crusted gold to brown.
+              ctx.fillStyle = ['#c98a3a', '#a5652a', '#e0b066'][Math.floor(random() * 3)]!;
+              ctx.beginPath();
+              ctx.ellipse(gx + 6, shelf - 6, random() < 0.5 ? 7 : 11, 6, 0, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      } else if (trade === 2) {
+        // Buckets of cut flowers banked up the window.
+        for (let row = 0; row < 3; row++) {
+          for (let gx = x + 6 + row * 6; gx < x + ww - 10; gx += 18) {
+            const by = floor - 8 - row * 26;
+            ctx.fillStyle = '#6e7378';
+            ctx.fillRect(gx, by, 12, 10);
+            ctx.fillStyle = '#4f7d3d';
+            ctx.fillRect(gx + 2, by - 10, 8, 10);
+            ctx.fillStyle = ['#e8607a', '#f2d24a', '#f4f2ea', '#c41e3a', '#a67fd0'][
+              Math.floor(random() * 5)
+            ]!;
+            ctx.beginPath();
+            ctx.arc(gx + 6, by - 12, 7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else {
+        // A rail of clothes, and two dressed mannequins in the window.
+        ctx.fillStyle = 'rgba(40,25,15,0.8)';
+        ctx.fillRect(x + 6, top + 16, ww - 12, 3);
+        for (let gx = x + 10; gx < x + ww - 14; gx += 7) {
+          ctx.fillStyle = ['#2d3b55', '#c9372c', '#e8e1cf', '#2f5d4a', '#1f2328'][
             Math.floor(random() * 5)
           ]!;
-          ctx.fillStyle = tone;
-          const gh = 8 + random() * 16;
-          ctx.fillRect(gx, shelf - gh, 6, gh);
+          ctx.fillRect(gx, top + 19, 6, 34);
+        }
+        for (const mx of [x + ww * 0.28, x + ww * 0.72]) {
+          ctx.fillStyle = '#e9dccb';
+          ctx.beginPath();
+          ctx.arc(mx, top + 70, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = ['#c9372c', '#2d3b55', '#e2b23a'][Math.floor(random() * 3)]!;
+          ctx.beginPath();
+          ctx.moveTo(mx - 12, top + 80);
+          ctx.lineTo(mx + 12, top + 80);
+          ctx.lineTo(mx + 18, floor - 6);
+          ctx.lineTo(mx - 18, floor - 6);
+          ctx.fill();
         }
       }
       // Sky and street mirrored in the glass.
@@ -1075,10 +1852,22 @@ function bayTexture(palette: Palette, shop: boolean, closed = false): CanvasText
       ctx.fillRect(x - 6, y - 8, ww + 12, wh + 18);
       ctx.fillStyle = '#2b3138';
       ctx.fillRect(x, y, ww, wh);
-      const glass = ctx.createLinearGradient(x, y, x + ww, y + wh);
-      glass.addColorStop(0, 'rgba(170,200,220,0.55)');
-      glass.addColorStop(0.6, 'rgba(70,80,90,0.1)');
+      // The glass mirrors the sky above and the sunlit houses across the street below.
+      const glass = ctx.createLinearGradient(x, y, x, y + wh);
+      glass.addColorStop(0, 'rgba(178,208,232,0.75)');
+      glass.addColorStop(0.45, 'rgba(120,150,175,0.35)');
+      glass.addColorStop(0.55, 'rgba(196,160,120,0.3)');
+      glass.addColorStop(1, 'rgba(90,70,55,0.25)');
       ctx.fillStyle = glass;
+      ctx.fillRect(x, y, ww, wh);
+      // A curtain drawn to one side inside.
+      ctx.fillStyle = 'rgba(236,228,212,0.55)';
+      ctx.fillRect(random() < 0.5 ? x + 2 : x + ww - 12, y + 2, 10, wh - 4);
+      const glint = ctx.createLinearGradient(x, y, x + ww, y + wh);
+      glint.addColorStop(0.2, 'rgba(255,255,255,0)');
+      glint.addColorStop(0.3, 'rgba(255,255,255,0.28)');
+      glint.addColorStop(0.4, 'rgba(255,255,255,0)');
+      ctx.fillStyle = glint;
       ctx.fillRect(x, y, ww, wh);
       ctx.fillStyle = palette.trim;
       ctx.fillRect(x + ww / 2 - 2, y, 4, wh);
@@ -1207,6 +1996,17 @@ export function cobbleTextures(): { map: CanvasTexture; relief: CanvasTexture } 
       dish.addColorStop(1 - dark, 'rgba(30,25,20,0)');
       ctx.fillStyle = dish;
       ctx.fillRect(gx, 0, gutter, h);
+      // A cast-iron drain grate in each gutter, the two sides out of step.
+      const gy = (gx === 0 ? 0.22 : 0.68) * h;
+      const gl = 0.55 * (h / 10);
+      ctx.fillStyle = '#3b3d40';
+      ctx.fillRect(gx + 4, gy, gutter - 8, gl);
+      ctx.fillStyle = '#17181a';
+      for (let sy = gy + 6; sy < gy + gl - 6; sy += 9) ctx.fillRect(gx + 9, sy, gutter - 18, 4);
+      hctx.fillStyle = '#6a6a6a';
+      hctx.fillRect(gx + 4, gy, gutter - 8, gl);
+      hctx.fillStyle = '#303030';
+      for (let sy = gy + 6; sy < gy + gl - 6; sy += 9) hctx.fillRect(gx + 9, sy, gutter - 18, 4);
     }
     ctx.fillStyle = '#f1f0ea';
     ctx.fillRect(0.42 * pxX, 0, 0.1 * pxX, h);
@@ -1282,6 +2082,8 @@ function bannerTexture(): CanvasTexture {
       { fill: '#f2efe6', ink: '#b8322c', text: 'CATHEDRAL CIRCUIT' },
       { fill: '#2d4e7a', ink: '#ffffff', text: 'COBBLED SPRINT' },
       { fill: '#b8322c', ink: '#ffffff', text: 'RACE DAY' },
+      { fill: '#d7ff3a', ink: '#1b1e24', text: 'WATTZUP' },
+      { fill: '#f2efe6', ink: '#1b1e24', text: 'ALLEZ !' },
     ];
     const panel = h / 10;
     for (let i = 0; i < 9; i++) {
@@ -1359,6 +2161,339 @@ function gothicTexture(open: boolean): CanvasTexture {
         ctx.fillRect(x, 120, w, 4);
         ctx.fillStyle = '#3a3c44';
       }
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** The TV moto's back board: white letters on the broadcaster's blue. */
+function tvBoardTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 100;
+  canvas.height = 72;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#2456a6';
+    ctx.fillRect(0, 0, 100, 72);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 44px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TV', 50, 38);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A cast-iron cover: a raised ring, a cross-hatched field and the water board's letters. */
+function coverTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#3c3a38';
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.strokeStyle = '#6a6762';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(64, 64, 58, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#55524e';
+    for (let i = -64; i < 64; i += 10) {
+      ctx.beginPath();
+      ctx.moveTo(64 + i, 8);
+      ctx.lineTo(64 + i + 40, 120);
+      ctx.moveTo(64 + i + 40, 8);
+      ctx.lineTo(64 + i, 120);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#3c3a38';
+    ctx.fillRect(34, 52, 60, 24);
+    ctx.fillStyle = '#77736c';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('EAU', 64, 65);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A slogan in road paint: rough-edged capitals, worn by the tyres that have crossed it. */
+function paintTexture(text: string, colour: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 1120;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = colour;
+    ctx.font = 'bold 120px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.setTransform(1, 0, 0, 7, 0, 0);
+    ctx.fillText(text, 256, 80, 490);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // Worn: specks of road showing through the paint.
+    ctx.globalCompositeOperation = 'destination-out';
+    const random = seeded(text.length * 31);
+    for (let i = 0; i < 2400; i++) {
+      ctx.fillRect(random() * 512, random() * 1120, 1 + random() * 4, 2 + random() * 8);
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function clothBannerTexture(text: string, fill: string, ink: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 700;
+  canvas.height = 130;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, 700, 130);
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 5;
+    ctx.strokeRect(10, 10, 680, 110);
+    ctx.fillStyle = ink;
+    ctx.font = 'bold 72px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 350, 68, 640);
+    // Folds in the cloth.
+    const folds = ctx.createLinearGradient(0, 0, 700, 0);
+    for (let i = 0; i <= 6; i++) {
+      folds.addColorStop(i / 6, i % 2 ? 'rgba(0,0,0,0.14)' : 'rgba(255,255,255,0.06)');
+    }
+    ctx.fillStyle = folds;
+    ctx.fillRect(0, 0, 700, 130);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Where a shop bay glows: its window's interior, brightest low down where the lamps fall. */
+function shopGlowTexture(): CanvasTexture {
+  const w = 192;
+  const h = 268;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, w, h);
+    // The window as bayTexture draws it: inset 22 px, from 54 px down to 66 px off the foot.
+    const glow = ctx.createLinearGradient(0, 54, 0, h - 66);
+    glow.addColorStop(0, '#202020');
+    glow.addColorStop(1, '#ffffff');
+    ctx.fillStyle = glow;
+    ctx.fillRect(22, 54, w - 44, h - 26 - 54 - 40);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function fasciaTexture(trade: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 520;
+  canvas.height = 42;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#1c2a24';
+    ctx.fillRect(0, 0, 520, 42);
+    ctx.strokeStyle = '#c9a24a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(4, 4, 512, 34);
+    ctx.fillStyle = '#d9b45a';
+    ctx.font = 'bold 26px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(trade.split('').join(' '), 260, 23);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function shopDoorTexture(paint: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 88;
+  canvas.height = 200;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = paint;
+    ctx.fillRect(0, 0, 88, 200);
+    // The glazed upper panel, showing the lit shop inside.
+    const inside = ctx.createLinearGradient(0, 14, 0, 120);
+    inside.addColorStop(0, '#4a3a2c');
+    inside.addColorStop(1, '#c79a62');
+    ctx.fillStyle = inside;
+    ctx.fillRect(12, 14, 64, 106);
+    ctx.fillStyle = 'rgba(210,230,245,0.3)';
+    ctx.fillRect(12, 14, 64, 40);
+    // The lower panel, the kick plate and the brass handle.
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(14, 134, 60, 44);
+    ctx.fillStyle = '#b08d3a';
+    ctx.fillRect(70, 112, 5, 22);
+    ctx.fillRect(10, 186, 68, 8);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A lamp-post pennant: the race's initials down a swallow-tailed cloth. */
+function pennantTexture(fill: string, ink: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 50;
+  canvas.height = 110;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(50, 0);
+    ctx.lineTo(50, 110);
+    ctx.lineTo(25, 92);
+    ctx.lineTo(0, 110);
+    ctx.fill();
+    ctx.fillStyle = ink;
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ['O', 'T', 'C'].forEach((letter, i) => ctx.fillText(letter, 25, 20 + i * 24));
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Granite kerbstones a metre long: speckled grey, each a shade apart, butted at fine joints. */
+function kerbTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 32;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const random = seeded(83);
+    for (let stone = 0; stone < 4; stone++) {
+      const tone = 140 + random() * 30;
+      ctx.fillStyle = `rgb(${tone},${tone},${tone - 4})`;
+      ctx.fillRect(0, stone * 64, 32, 64);
+      ctx.fillStyle = 'rgba(50,50,50,0.6)';
+      ctx.fillRect(0, stone * 64, 32, 2);
+    }
+    for (let i = 0; i < 500; i++) {
+      ctx.fillStyle = random() < 0.5 ? 'rgba(30,30,30,0.25)' : 'rgba(255,255,255,0.25)';
+      ctx.fillRect(random() * 32, random() * 256, 1, 1);
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  // A metre of kerb across its face and top, four stones along every four metres.
+  texture.repeat.set(1 / 0.4, 1 / 4);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A gutter's damp line across 40 cm: clear on the road side, wettest against the kerb. */
+function dampTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const wet = ctx.createLinearGradient(0, 0, 64, 0);
+    wet.addColorStop(0, '#000');
+    wet.addColorStop(0.4, '#5a5a5a');
+    wet.addColorStop(1, '#d0d0d0');
+    ctx.fillStyle = wet;
+    ctx.fillRect(0, 0, 64, 64);
+    // Dry breaks along it, where the water has run off.
+    const random = seeded(89);
+    ctx.fillStyle = '#000';
+    for (let i = 0; i < 6; i++) ctx.fillRect(0, random() * 64, 64, 2 + random() * 6);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.repeat.set(1 / 0.4, 1 / 6);
+  return texture;
+}
+
+/** Corner shade across 1.4 m of pavement: clear at the outer edge, darkest at the wall. */
+function cornerTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 4;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const shade = ctx.createLinearGradient(0, 0, 64, 0);
+    shade.addColorStop(0, '#000');
+    shade.addColorStop(0.45, '#2a2a2a');
+    shade.addColorStop(0.64, '#707070');
+    shade.addColorStop(1, '#808080');
+    ctx.fillStyle = shade;
+    ctx.fillRect(0, 0, 64, 4);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.repeat.set(1 / 1.4, 1);
+  return texture;
+}
+
+function leafTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#2f5528';
+    ctx.fillRect(0, 0, 256, 128);
+    const random = seeded(67);
+    for (let i = 0; i < 1400; i++) {
+      const g = 70 + random() * 70;
+      ctx.fillStyle = `rgb(${g * 0.45},${g},${g * 0.38})`;
+      ctx.beginPath();
+      ctx.ellipse(random() * 256, random() * 128, 3, 1.6, random() * Math.PI, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Geraniums: a trailing green mass dotted with red and pink heads. */
+function bloomTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#3d6a32';
+    ctx.fillRect(0, 0, 128, 64);
+    const random = seeded(61);
+    for (let i = 0; i < 160; i++) {
+      ctx.fillStyle = ['#2f5528', '#4f8040', '#d8323a', '#e8607a', '#c41e3a'][
+        Math.floor(random() * 5)
+      ]!;
+      ctx.beginPath();
+      ctx.arc(random() * 128, random() * 64, 2 + random() * 3, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
   const texture = new CanvasTexture(canvas);
@@ -1499,15 +2634,36 @@ function slabTexture(): CanvasTexture {
     for (let row = 0; row < 2; row++) {
       for (let col = 0; col < 3; col++) {
         const x = col * slab - (row % 2 ? slab / 2 : 0);
-        const shade = random() * 0.16 - 0.08;
+        const shade = random() * 0.3 - 0.15;
         ctx.fillStyle = shade < 0 ? `rgba(60,50,40,${-shade})` : `rgba(255,250,240,${shade})`;
         ctx.fillRect(x, row * slab, slab, slab);
       }
     }
     for (let i = 0; i < 700; i++) {
-      ctx.fillStyle = random() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)';
+      ctx.fillStyle = random() < 0.5 ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)';
       ctx.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
     }
+    // Old chewing gum and a damp stain or two, the wear of a busy pavement.
+    for (let i = 0; i < 7; i++) {
+      ctx.fillStyle = 'rgba(40,35,30,0.22)';
+      ctx.beginPath();
+      ctx.arc(random() * size, random() * size, 1.5 + random() * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    const damp = ctx.createRadialGradient(40, 90, 2, 40, 90, 22);
+    damp.addColorStop(0, 'rgba(60,55,45,0.18)');
+    damp.addColorStop(1, 'rgba(60,55,45,0)');
+    ctx.fillStyle = damp;
+    ctx.fillRect(0, 0, size, size);
+    // A crack across one slab.
+    ctx.strokeStyle = 'rgba(60,50,40,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(70, 8);
+    ctx.lineTo(78, 22);
+    ctx.lineTo(74, 34);
+    ctx.lineTo(86, 52);
+    ctx.stroke();
     ctx.fillStyle = 'rgba(70,60,50,0.45)';
     ctx.fillRect(0, 0, size, 2);
     ctx.fillRect(0, slab, size, 2);

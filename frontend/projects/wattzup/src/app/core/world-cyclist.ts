@@ -72,19 +72,36 @@ export class CyclistKit {
     color: 0x000000,
     opacity: 0.55,
   });
+  /** Thirty-two steel spokes laced from hub to rim, drawn as an alpha mask. */
+  readonly spokeLace = new MeshBasicMaterial({
+    color: 0x6f757c,
+    alphaMap: spokeTexture(),
+    alphaTest: 0.35,
+    side: DoubleSide,
+  });
+  readonly bottle = new MeshStandardMaterial({ color: 0x2f7bd0, roughness: 0.4 });
+  private readonly chainring = new TorusGeometry(0.1, 0.008, 6, 32);
+  private readonly bottleShape = new CylinderGeometry(0.034, 0.034, 0.2, 10);
   private readonly contactPlane = new PlaneGeometry(1, 1);
   private readonly bibPlane = new PlaneGeometry(0.21, 0.16);
 
   /** The jersey's cut, tinted by each rider's colour: dark side panels and a pale hem band. */
   private readonly kitTexture = jerseyTexture();
+  /** A road helmet's shell: vents running front to back over the crown. */
+  private readonly ventTexture = ventTexture();
 
   constructor(private readonly frame: Material) {}
 
-  /** A rider in `jersey`, with race `number` pinned to their back. */
-  make(jersey: Color, number: number): Cyclist {
+  /** A rider in `jersey`, with race `number` pinned to their back, on a `frame` of their own. */
+  make(jersey: Color, number: number, frame: Material = this.frame): Cyclist {
     const top = new MeshStandardMaterial({ color: jersey, roughness: 0.65, map: this.kitTexture });
     const bib = new MeshStandardMaterial({ map: bibTexture(number), roughness: 0.8 });
-    return new Cyclist(this, this.frame, top, bib);
+    const shell = new MeshStandardMaterial({
+      color: jersey,
+      map: this.ventTexture,
+      roughness: 0.35,
+    });
+    return new Cyclist(this, frame, top, bib, shell);
   }
 
   bibGeometry(): PlaneGeometry {
@@ -116,8 +133,12 @@ export class CyclistKit {
     head: SphereGeometry;
     helmet: SphereGeometry;
     torso: CapsuleGeometry;
+    chainring: TorusGeometry;
+    bottle: CylinderGeometry;
   } {
     return {
+      chainring: this.chainring,
+      bottle: this.bottleShape,
       tyre: this.tyre,
       rim: this.rim,
       disc: this.disc,
@@ -133,11 +154,24 @@ export class CyclistKit {
     this.torso.dispose();
     for (const g of this.limbs.values()) g.dispose();
     this.kitTexture.dispose();
+    this.ventTexture.dispose();
     this.contact.alphaMap?.dispose();
     this.contact.dispose();
     this.contactPlane.dispose();
     this.bibPlane.dispose();
-    for (const m of [this.rubber, this.metal, this.shorts, this.skin, this.shoe, this.spokes]) {
+    this.chainring.dispose();
+    this.bottleShape.dispose();
+    this.spokeLace.alphaMap?.dispose();
+    for (const m of [
+      this.spokeLace,
+      this.bottle,
+      this.rubber,
+      this.metal,
+      this.shorts,
+      this.skin,
+      this.shoe,
+      this.spokes,
+    ]) {
       m.dispose();
     }
   }
@@ -157,6 +191,7 @@ export class Cyclist {
     frame: Material,
     readonly jersey: MeshStandardMaterial,
     readonly bib: MeshStandardMaterial,
+    readonly shell: MeshStandardMaterial,
   ) {
     const parts = kit.parts();
     this.contact = new Mesh(kit.contactGeometry(), kit.contact);
@@ -169,7 +204,8 @@ export class Cyclist {
       const tyre = new Mesh(parts.tyre, kit.rubber);
       const rim = new Mesh(parts.rim, kit.metal);
       const disc = new Mesh(parts.disc, kit.spokes);
-      for (const m of [tyre, rim, disc]) {
+      const lace = new Mesh(parts.disc, kit.spokeLace);
+      for (const m of [tyre, rim, disc, lace]) {
         m.rotation.y = Math.PI / 2;
         m.position.set(0, WHEEL, z);
         this.group.add(m);
@@ -193,6 +229,18 @@ export class Cyclist {
       tubes.push([SEAT.clone().setX(x * 0.4), rear.clone().setX(x), 0.01]);
     }
     for (const [a, b, r] of tubes) this.group.add(this.stick(a, b, r, frame));
+    // The chainring on the drive side, and a bottle in its cage on the down tube.
+    const ring = new Mesh(parts.chainring, kit.metal);
+    ring.rotation.y = Math.PI / 2;
+    ring.position.copy(BB).setX(0.055);
+    const bottle = new Mesh(parts.bottle, kit.bottle);
+    const down = HEAD_BOTTOM.clone().sub(BB);
+    bottle.position
+      .copy(BB)
+      .addScaledVector(down, 0.45)
+      .add(new Vector3(0, 0.035, 0.02));
+    bottle.quaternion.setFromUnitVectors(UP, down.normalize());
+    this.group.add(ring, bottle);
     // Drop bars: the tops across, and each drop curling down and back.
     const bar = HANDS.clone().setY(HEAD_TOP.y + 0.03);
     this.group.add(this.stick(bar.clone().setX(-0.21), bar.clone().setX(0.21), 0.012, frame));
@@ -240,7 +288,7 @@ export class Cyclist {
     const head = new Mesh(parts.head, kit.skin);
     const neck = SHOULDER.clone().add(new Vector3(0, 0.14, -0.1));
     head.position.copy(neck);
-    const helmet = new Mesh(parts.helmet, jersey);
+    const helmet = new Mesh(parts.helmet, shell);
     helmet.position.copy(neck).add(new Vector3(0, 0.01, 0.015));
     helmet.scale.set(1, 0.85, 1.3);
     helmet.rotation.x = -0.25;
@@ -258,6 +306,11 @@ export class Cyclist {
       this.group.add(upper.mesh, fore.mesh);
       const thigh = this.limbMesh(0.075, THIGH, kit.shorts);
       const shin = this.limbMesh(0.055, SHIN, kit.skin);
+      // White race socks to mid-calf, carried on the shin.
+      const sock = new Mesh(kit.tubeGeometry(), kit.shoe);
+      sock.scale.set(0.06, 0.13, 0.06);
+      sock.position.y = SHIN / 2 - 0.1;
+      shin.mesh.add(sock);
       const foot = new Mesh(kit.limb(0.04, 0.12), kit.shoe);
       foot.rotation.x = Math.PI / 2;
       this.group.add(thigh.mesh, shin.mesh, foot);
@@ -268,6 +321,8 @@ export class Cyclist {
 
   /** Turns the cranks to `angle` radians and moves the legs with them. */
   pose(angle: number): void {
+    // The bike rocks a little under each pedal stroke, about where the tyres meet the road.
+    this.group.rotation.z = Math.sin(angle) * 0.03;
     this.legs.forEach((leg, i) => {
       const a = angle + i * Math.PI;
       const pedal = new Vector3(
@@ -327,6 +382,59 @@ function bibTexture(n: number): CanvasTexture {
     ]) {
       ctx.fillRect(x - 3, y - 2, 6, 4);
     }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Spokes for a wheel disc: thirty-two lines from the hub to the rim, crossing in pairs. */
+function spokeTexture(): CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, size, size);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    const c = size / 2;
+    for (let i = 0; i < 32; i++) {
+      const a = (i / 32) * Math.PI * 2;
+      // Each spoke leaves the hub flange tangentially, as a laced wheel's do.
+      const hub = a + (i % 2 ? 0.5 : -0.5);
+      ctx.beginPath();
+      ctx.moveTo(c + Math.cos(hub) * 10, c + Math.sin(hub) * 10);
+      ctx.lineTo(c + Math.cos(a) * c, c + Math.sin(a) * c);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(c, c, 12, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return new CanvasTexture(canvas);
+}
+
+function ventTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 256, 128);
+    ctx.fillStyle = '#26282c';
+    for (let k = 0; k < 10; k++) {
+      const x = ((k + 0.5) / 10) * 256;
+      ctx.beginPath();
+      ctx.roundRect(x - 5, 18, 10, 70, 5);
+      ctx.fill();
+    }
+    // A dark rim where the shell meets the liner.
+    ctx.fillRect(0, 116, 256, 12);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;

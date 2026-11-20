@@ -1,6 +1,7 @@
 // The World Ride scene drawn with Three.js's WebGPU renderer, on WebGPU or its WebGL2 backend
-// (ADRs 0020, 0021). This is the only file that imports Three.js; it is loaded on demand through
-// world-renderer-loader.ts. Which techniques are drawn is decided by render-quality.ts (L2-111).
+// (ADRs 0020, 0021). It and the scene parts it builds (world-oldtown.ts, world-cyclist.ts) are the
+// only files that import Three.js; they are loaded on demand through world-renderer-loader.ts.
+// Which techniques are drawn is decided by render-quality.ts (L2-111).
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { ao } from 'three/addons/tsl/display/GTAONode.js';
@@ -135,13 +136,13 @@ const LOOKS: Record<WorldId, Look> = {
     fog: 0xdcd8cf,
     ground: 0x6b6256,
     road: 0xd9d2c8,
-    sun: 48,
+    sun: 42,
     wet: false,
     haze: false,
     turbidity: 1.6,
     rayleigh: 2.6,
-    azimuth: -162,
-    light: { sun: 3.2, fill: 1.1, colour: 0xffeccc },
+    azimuth: -150,
+    light: { sun: 3.5, fill: 1.0, colour: 0xffe2b6 },
     fogRange: [30, 430],
   },
   prairie: {
@@ -221,6 +222,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
     metalness: 0.6,
     roughness: 0.35,
   });
+  /** Every bike's frame paint, given a clearcoat together at the tier that has one. */
+  private readonly frames: MeshPhysicalMaterial[] = [this.frameMaterial];
   private readonly arch = new Group();
   private you: Cyclist | null = null;
   private readonly pacers = new Map<number, Cyclist>();
@@ -263,7 +266,6 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (world.id === 'oldtown') this.addStreet();
     if (world.id === 'docklands') this.addTowers();
     this.applyTier();
-    (window as unknown as { __wz: unknown }).__wz = this; // DEBUG-REMOVE
     return true;
   }
 
@@ -373,9 +375,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.roadMaterial.color.set(look.road).multiplyScalar(wet ? 0.7 : 1);
     this.roadMaterial.needsUpdate = true;
 
-    this.frameMaterial.clearcoat = on.has(15) ? 1 : 0;
-    this.frameMaterial.clearcoatRoughness = 0.08;
-    this.frameMaterial.needsUpdate = true;
+    for (const frame of this.frames) {
+      frame.clearcoat = on.has(15) ? 1 : 0;
+      frame.clearcoatRoughness = 0.08;
+      frame.needsUpdate = true;
+    }
 
     const night = look.sun < 0;
     for (const lamp of this.lamps) lamp.visible = on.has(23) && night;
@@ -554,14 +558,21 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.you = you;
     this.wheelBlur.push(...you.wheelBlur);
     this.scene.add(you.group);
-    this.disposables.push(kit, you.jersey, you.bib, this.frameMaterial);
+    this.disposables.push(kit, you.jersey, you.bib, you.shell, this.frameMaterial);
     // The simulated pacers ride with the rider, each in its board colour (L2-107 AC7).
     for (const pacer of PACERS) {
-      const rider = kit.make(riderColour(canvas, pacer.jersey), pacer.jersey);
+      // Each pacer rides a frame of their own paint.
+      const frame = this.frameMaterial.clone();
+      frame.color.set(FRAME_PAINT[pacer.jersey % FRAME_PAINT.length]!);
+      this.frames.push(frame);
+      this.disposables.push(frame);
+      const rider = kit.make(riderColour(canvas, pacer.jersey), pacer.jersey, frame);
+      // Half the pacers wear a white helmet rather than one in their colour.
+      if (pacer.jersey % 2 === 0) rider.shell.color.set(0xf2f2ee);
       rider.group.visible = false;
       this.pacers.set(pacer.jersey, rider);
       this.scene.add(rider.group);
-      this.disposables.push(rider.jersey, rider.bib);
+      this.disposables.push(rider.jersey, rider.bib, rider.shell);
     }
   }
 
@@ -844,6 +855,9 @@ function riderColour(element: Element, n: number): Color {
   if (value) colour.setStyle(value);
   return colour;
 }
+
+/** Frame paints for the pacers' bikes: white, red, navy, silver and teal. */
+const FRAME_PAINT = [0xeeeeea, 0xb3262c, 0x1d2b4a, 0xa9aeb5, 0x2a7d7a];
 
 function labelTexture(text: string): CanvasTexture {
   const canvas = document.createElement('canvas');
