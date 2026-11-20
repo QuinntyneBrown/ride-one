@@ -8,6 +8,7 @@ import { VeniceStreet } from './world-venice';
 import { KoppenbergStreet } from './world-koppenberg';
 import { GoldenGateStreet } from './world-goldengate';
 import type { StreetFactory } from './world-kit';
+import { SeaPointStreet } from './world-seapoint';
 import { HavanaStreet } from './world-havana';
 import { ChicagoStreet } from './world-chicago';
 import { VentouxStreet } from './world-ventoux';
@@ -44,4 +45,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   chicago: (track, disposables) => new ChicagoStreet(track, disposables),
   goldengate: (track, disposables) => new GoldenGateStreet(track, disposables),
   havana: (track, disposables) => new HavanaStreet(track, disposables),
+  seapoint: (track, disposables) => new SeaPointStreet(track, disposables),
 };

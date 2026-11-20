@@ -3561,6 +3561,7 @@
     },
     {
       "id": "20-40-interval-session",
+      "world": "seapoint",
       "title": "20/40 Interval Session",
       "channel": "GCN Training",
       "focus": "HIIT",

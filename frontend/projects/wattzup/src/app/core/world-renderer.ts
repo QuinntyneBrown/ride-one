@@ -463,6 +463,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.1, fill: 1.2, colour: 0xffe8c8 },
     fogRange: [90, 1800],
   },
+  // A clear Cape morning: the sun behind the rider, the Atlantic glittering, the mountain sharp.
+  seapoint: {
+    sky: 0x7fb8ea,
+    fog: 0xd2e0ea,
+    ground: 0x1e5a78,
+    road: 0x8a7a64,
+    sun: 30,
+    wet: false,
+    haze: false,
+    turbidity: 2.4,
+    rayleigh: 1.5,
+    azimuth: -145,
+    light: { sun: 3.1, fill: 1.2, colour: 0xfff6e8 },
+    fogRange: [150, 5000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

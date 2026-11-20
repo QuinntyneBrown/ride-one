@@ -264,6 +264,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Havana Malecón');
   });
 
+  test('rides 20/40 Interval Session in Sea Point, Cape Town along the promenade', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '20/40 Interval Session',
+      'Sea Point, Cape Town',
+      '20-40-interval-session',
+    );
+    await expect(world.heading).toHaveText('Sea Point, Cape Town');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Sea Point, Cape Town');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

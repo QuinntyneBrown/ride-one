@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -221,6 +221,14 @@ None.
   - classic American cars, two-tone with tail fins, chrome bumpers and whitewalls, cruising the lanes;
   - couples strolling the promenade and fishermen sitting on the wall (`Figures`);
   - El Morro's castle and lighthouse across the harbour mouth ahead.
+- **Sea Point, Cape Town (`core/world-seapoint.ts`).** For `seapoint`, the promenade on a clear morning:
+  - the promenade's paving, a lawn and a low wall on the sea side, granite rocks running down to the surf (its white water rolling in on the ride's clock) and the Atlantic beyond, with the ground sunk below the sea;
+  - dark boulders heaped along the shore with kelp lying in the swell;
+  - a lawn with palms on the land side, Beach Road, and white apartment blocks balconied towards the sea;
+  - benches facing the sea and slim lamps along the promenade;
+  - the Green Point lighthouse's diagonal red and white stripes on the shore once a lap;
+  - joggers, walkers and their dogs both ways (`Figures`);
+  - Lion's Head over the blocks, Signal Hill's shoulder, and Table Mountain's flat top and cliffs beyond.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -258,6 +266,7 @@ None.
 | `pages/world-ride/chicago` | Chicago Loop Crit at 4:50, warm-up, next `Corner sprint` |
 | `pages/world-ride/goldengate` | Golden Gate Park at 1:53, warm-up, next `Paddock sprint` |
 | `pages/world-ride/havana` | Havana Malecón at 4:50, warm-up, next `Surge` |
+| `pages/world-ride/seapoint` | Sea Point, Cape Town at 4:50, warm-up, next `20-second burst` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

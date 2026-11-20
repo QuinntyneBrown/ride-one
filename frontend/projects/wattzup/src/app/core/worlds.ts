@@ -271,6 +271,15 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0, work: 0.3, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.1,
   },
+  {
+    id: 'seapoint',
+    name: 'Sea Point, Cape Town',
+    route: 'Sea Point Promenade',
+    effortName: '20-second burst',
+    description: "Promenade beneath Lion's Head and Table Mountain, Atlantic waves rolling in.",
+    grade: { warmup: 0.2, work: 0.4, rest: -0.2, cooldown: 0, steady: 0.2 },
+    roll: 0.2,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
