@@ -1319,6 +1319,71 @@ export class AmsterdamStreet implements SceneStreet {
       this.group.add(tour);
       this.boats.push({ mesh: tour, offset, speed });
     }
+    // Open sloepen out for the afternoon, friends sitting round the gunwales with drinks, one
+    // at the tiller: two under way and three moored against the far wall's houseboats.
+    for (const [x, offset, speed] of [
+      [edge - CANAL / 2 - 0.6, 175, -1.4],
+      [edge - CANAL / 2 + 1.2, 228, 1.1],
+      [edge - CANAL + 5.6, 96, 0],
+      [edge - CANAL + 5.6, 188, 0],
+      [edge - 5.6, 140, 0],
+    ] as const) {
+      const sloep = this.sloep(seeded(719 + offset));
+      sloep.position.x = x;
+      sloep.rotation.y = speed < 0 ? Math.PI : 0;
+      this.group.add(sloep);
+      this.boats.push({ mesh: sloep, offset, speed, float: -WATER });
+    }
+  }
+
+  /**
+   * A sloep, 6.5 m long with its bow towards -z: a varnished or white open hull, cushioned
+   * benches round the gunwales, four to six people sitting on them with a drink in hand, one at
+   * the outboard's tiller, and a small flag at the stern.
+   */
+  private sloep(random: () => number): Group {
+    const boat = new Group();
+    const hullColour = random() < 0.5 ? 0x8a5a2e : 0xf2f2ee;
+    const hull = new Mesh(bargeHull(6.5), this.material({ color: hullColour, roughness: 0.4 }));
+    hull.scale.set(0.5, 0.55, 1);
+    hull.position.y = -0.35;
+    const floor = new Mesh(this.unit, this.material({ color: 0x6a4a2e, roughness: 0.8 }));
+    floor.scale.set(1.8, 0.05, 5.2);
+    floor.position.set(0, 0.35, 0.4);
+    const cushion = this.material({
+      color: [0x2a3a5c, 0xe8dcc0, 0xb8242a][Math.floor(random() * 3)]!,
+      roughness: 0.9,
+    });
+    boat.add(hull, floor);
+    for (const x of [-0.75, 0.75]) {
+      const bench = new Mesh(this.unit, cushion);
+      bench.scale.set(0.4, 0.12, 4.2);
+      bench.position.set(x, 0.45, 0.6);
+      boat.add(bench);
+    }
+    const people = 4 + Math.floor(random() * 3);
+    const sitters = this.material({ vertexColors: true, roughness: 0.85 });
+    for (let p = 0; p < people; p++) {
+      const side = p % 2 ? 1 : -1;
+      const person = new Mesh(sitterGeometry(random), sitters);
+      this.disposables.push(person.geometry);
+      person.position.set(side * 0.75, -0.02, -1 + Math.floor(p / 2) * 1.2);
+      person.rotation.y = side > 0 ? Math.PI / 2 : -Math.PI / 2;
+      boat.add(person);
+    }
+    const skipper = new Mesh(sitterGeometry(random), sitters);
+    this.disposables.push(skipper.geometry);
+    skipper.position.set(0, -0.02, 2.9);
+    boat.add(skipper);
+    const motor = new Mesh(this.unit, this.material({ color: 0x1b1b1f, roughness: 0.5 }));
+    motor.scale.set(0.3, 0.6, 0.35);
+    motor.position.set(0, 0.55, 3.35);
+    const flag = new Mesh(this.unit, this.material({ color: 0xd2191e, roughness: 0.9 }));
+    flag.scale.set(0.02, 0.3, 0.45);
+    flag.position.set(0.5, 1.3, 3.4);
+    boat.add(motor, flag);
+    boat.children.forEach((m) => (m.castShadow = true));
+    return boat;
   }
 
   /**
