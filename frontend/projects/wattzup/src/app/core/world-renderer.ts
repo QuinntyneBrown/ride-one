@@ -588,21 +588,22 @@ const LOOKS: Record<WorldId, Look> = {
     },
     fogRange: [200, 2600],
   },
-  // A summer morning on the Serpentine: the sun low behind the rider over Park Lane, a soft
-  // blue sky, the lake bright and Kensington Gardens a little hazy beyond the bridge.
+  // An early summer morning on the Serpentine: the sun low behind the rider's left shoulder over
+  // Park Lane, raking warm light and long shadows across the lawns, mist on the lake, and
+  // Kensington Gardens soft in the haze beyond the bridge.
   serpentine: {
     sky: 0x9ec4e8,
-    fog: 0xd6dde2,
+    fog: 0xe2ddd0,
     ground: 0x4f7a3a,
     road: 0x6a6a6c,
-    sun: 30,
+    sun: 16,
     wet: false,
     haze: false,
-    turbidity: 3.2,
-    rayleigh: 1.6,
-    azimuth: -150,
-    light: { sun: 2.7, fill: 1.2, colour: 0xfff0d8 },
-    fogRange: [150, 1800],
+    turbidity: 3.6,
+    rayleigh: 1.8,
+    azimuth: -128,
+    light: { sun: 3.0, fill: 1.0, colour: 0xffd9a8 },
+    fogRange: [120, 1500],
   },
   // A golden summer evening in Paris: warm low sun behind the riders, the stone glowing.
   champs: {

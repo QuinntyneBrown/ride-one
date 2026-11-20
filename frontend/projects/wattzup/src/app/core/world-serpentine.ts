@@ -42,6 +42,7 @@ import {
   Figures,
   hazedMaterial,
   loopMetres,
+  Mist,
   paintTexture,
   Ribbons,
   scaleFaceUv,
@@ -73,6 +74,8 @@ const BOATHOUSE = 150;
 /** The Serpentine Bridge stands this far ahead, the road passing under its last arch. */
 const BRIDGE_AHEAD = 240;
 const HAZE = 0xd6dde2;
+/** The morning mist off the water, warmed by the low sun. */
+const MIST = 0xeee6d6;
 const JOGGERS = 22;
 const SWANS = 18;
 const BOATS = 12;
@@ -156,6 +159,7 @@ export class SerpentineStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
   private readonly crowd: Crowd;
+  private readonly mist: Mist;
   private readonly props: Prop[] = [];
   private readonly boats: (Mover & { oars: Group[] })[] = [];
   private readonly swans: Mover[] = [];
@@ -174,6 +178,18 @@ export class SerpentineStreet implements SceneStreet {
     private readonly disposables: { dispose(): void }[],
   ) {
     this.ribbons = new Ribbons(this.group, disposables);
+    // Early-morning mist lying on the lake, and a veil over the gardens and the town beyond the
+    // bridge.
+    this.mist = new Mist(this.group, disposables, track, {
+      colour: MIST,
+      loop: LOOP,
+      curtains: [
+        { ahead: 330, height: 36, opacity: 0.32 },
+        { ahead: 560, height: 70, opacity: 0.42 },
+      ],
+      banks: 12,
+      bankX: (k) => -EDGE - 14 - (k % 4) * 26,
+    });
     this.crowd = new Crowd(this.group, disposables, {
       loop: LOOP,
       near: CROWD_NEAR,
@@ -198,6 +214,7 @@ export class SerpentineStreet implements SceneStreet {
     this.disposables.push(this.unit, this.ball, ...this.flagMaterials);
     this.addGround(roadHalf, points);
     this.crowd.build();
+    this.mist.build();
     this.addTrees();
     this.addDeckchairs();
     this.addLamps();
@@ -241,6 +258,8 @@ export class SerpentineStreet implements SceneStreet {
       prop.mesh.position.set(prop.x, ground(metres) + KERB, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
+    // The banks float just over the water.
+    this.mist.place(this.time, heightAt, along, (x) => (x < -EDGE ? -WATER - 1.2 : KERB));
     const t = this.time;
     // The rowing boats pull slowly along the lake, their oars sweeping.
     for (const b of this.boats) {
