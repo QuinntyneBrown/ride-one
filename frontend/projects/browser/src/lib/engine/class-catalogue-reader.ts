@@ -32,6 +32,7 @@ export const WORLDS: readonly WorldId[] = [
   'daytona',
   'koppenberg',
   'ventoux',
+  'chicago',
 ];
 
 export interface Shelf {

@@ -103,7 +103,8 @@ export interface components {
         | 'giza'
         | 'daytona'
         | 'koppenberg'
-        | 'ventoux';
+        | 'ventoux'
+        | 'chicago';
     };
     ClassShelfResponse: {
       id: string;

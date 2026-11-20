@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles and Mont Ventoux have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux and Chicago Loop Crit have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -50,7 +50,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 44 | In & Out of the Saddle Hill Climb Reps | Mont Ventoux | 70% | Bare white limestone in the mistral; stand and sit up the Giant of Provence. |
 | 45 | Ride to the Beat | Mardi Gras, New Orleans (concept) |  | Brass bands and bead-throwing floats on St. Charles Avenue; pedal to the parade's beat. |
 | 46 | Intervals to the Beat | Ibiza Sunset Strip (concept) |  | Beach clubs and DJ sets as the sun sinks; intervals drop with the bass. |
-| 47 | 20 Minute Crit Sprints | Chicago Loop Crit (concept) |  | Downtown streets beneath the L tracks; sprint every corner of a city criterium. |
+| 47 | 20 Minute Crit Sprints | Chicago Loop Crit | 76% | Downtown streets beneath the L tracks; sprint every corner of a city criterium. |
 | 48 | High Cadence Sprints | Victoria Harbour (concept) |  | Hong Kong's neon skyline and Star Ferries; spin fast along the harbourfront promenade. |
 | 49 | 20 Minutes to Work on Your Cadence | Strade Bianche (concept) |  | White gravel roads between cypresses and Tuscan hill towns near Siena. |
 | 50 | 30 Sec On, 2 Min Off | Havana Malecón (concept) |  | Waves crash over the seawall; classic cars and pastel façades between surges. |
