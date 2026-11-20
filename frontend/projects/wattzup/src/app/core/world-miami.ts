@@ -1352,6 +1352,44 @@ export class MiamiStreet implements SceneStreet {
       if (inCrossing(at, 4)) at += STREET + 8;
       this.props.push({ mesh: holder, offset: at, x: roadHalf - 1.1 });
     }
+    // Two wedge-shaped Italian sports cars in white and black among them, low and wide, with
+    // their side strakes, pop-up headlights and a full-width bar of tail lights.
+    const strakes = this.material({
+      map: this.track(strakeTexture()),
+      roughness: 0.3,
+      metalness: 0.5,
+    });
+    const glassTop = this.material({ color: 0x101820, roughness: 0.05, metalness: 0.8 });
+    for (const [k, paintColour, at] of [
+      [0, 0xf8f8f4, 33],
+      [1, 0x14141a, 330],
+    ] as const) {
+      const b = new BoxBuilder();
+      const paint = this.material({ color: paintColour, roughness: 0.15, metalness: 0.6 });
+      b.box(paint, [2.0, 0.5, 4.5], [0, 0.55, 0]);
+      b.box(paint, [1.96, 0.3, 1.6], [0, 0.78, -1.4], 0);
+      b.box(glassTop, [1.5, 0.38, 1.7], [0, 0.98, 0.2]);
+      b.box(paint, [1.6, 0.08, 1.4], [0, 1.18, 0.5]);
+      b.box(strakes, [2.02, 0.32, 1.6], [0, 0.6, 0.9]);
+      b.box(paint, [0.5, 0.18, 0.4], [-0.55, 0.92, -1.9]);
+      b.box(paint, [0.5, 0.18, 0.4], [0.55, 0.92, -1.9]);
+      const wedge = b.build(this.disposables);
+      const bar = new Mesh(this.unit, tail);
+      bar.scale.set(1.8, 0.1, 0.05);
+      bar.position.set(0, 0.68, 2.27);
+      wedge.add(bar);
+      for (const x of [-0.82, 0.82])
+        for (const z of [-1.45, 1.4]) {
+          const w = new Mesh(wheel, tyre);
+          w.position.set(x * 1.2, 0.36, z);
+          wedge.add(w);
+        }
+      wedge.rotation.y = (k - 0.5) * 0.03;
+      const holder = new Group();
+      holder.add(wedge);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: at, x: roadHalf - 1.1 });
+    }
     // Cruising traffic in the far lane, headlights on, rolling towards the rider.
     for (let k = 0; k < 5; k++) {
       const car = make(k + 3, false);
@@ -3910,5 +3948,15 @@ function checkerTexture(): CanvasTexture {
         g.fillStyle = (x + y) % 16 === 0 ? '#111' : '#f4f4f0';
         g.fillRect(x, y, 8, 8);
       }
+  });
+}
+
+/** A wedge sports car's side strakes: horizontal black slats over its intakes. */
+function strakeTexture(): CanvasTexture {
+  return canvasTexture(64, 32, (g) => {
+    g.fillStyle = '#d8d8d4';
+    g.fillRect(0, 0, 64, 32);
+    g.fillStyle = '#101014';
+    for (let y = 3; y < 32; y += 6) g.fillRect(0, y, 64, 3);
   });
 }

@@ -459,6 +459,7 @@ export class HavanaStreet implements SceneStreet {
     const streets = seeded(1049);
     const roofs = seeded(1051);
     const life = seeded(1117);
+    const gear = seeded(1163);
     let inBlock = 0;
     let block = 4;
     for (let offset = 0; offset < LOOP;) {
@@ -571,6 +572,24 @@ export class HavanaStreet implements SceneStreet {
           }
           this.dress(life, y, z0, z1, things);
         }
+        // Air conditioners boxed into the transoms over the windows, and the odd satellite dish.
+        for (let u = 2; u < width - 1.6; u += 4) {
+          const z = -width + 0.15 + (u * tile) / 8;
+          const roll = gear();
+          if (roll < 0.38) {
+            const unit = new BoxGeometry(0.5, 0.45, 0.7).toNonIndexed();
+            unit.translate(-0.22, y + 3.55, z + (gear() - 0.5) * 0.4);
+            things.push(paint(unit, gear() < 0.7 ? 0xe8e4da : 0xa8a49a));
+            const grille = new BoxGeometry(0.02, 0.3, 0.55).toNonIndexed();
+            grille.translate(-0.48, y + 3.55, z);
+            things.push(paint(grille, 0x4a4a48));
+          } else if (roll < 0.46) {
+            const dish = new SphereGeometry(0.4, 10, 4, 0, Math.PI * 2, 0, 0.9).toNonIndexed();
+            dish.rotateZ(Math.PI / 2 + 0.5);
+            dish.translate(-0.35, y + 3.3, z + 1.3);
+            things.push(paint(dish, 0xd8d8d4));
+          }
+        }
       }
       if (things.length) {
         const merged = mergeGeometries(things)!;
@@ -628,11 +647,11 @@ export class HavanaStreet implements SceneStreet {
       if (roll < 0.35) {
         const pot = new CylinderGeometry(0.16, 0.12, 0.3, 8).toNonIndexed();
         pot.translate(-BALCONY + 0.25, y + 0.31, z);
-        into.push(tint(pot, 0xb5603a));
+        into.push(paint(pot, 0xb5603a));
         const leaves = new IcosahedronGeometry(0.28 + random() * 0.2, 0).toNonIndexed();
         leaves.scale(1, 0.9 + random() * 0.8, 1);
         leaves.translate(-BALCONY + 0.25, y + 0.7, z);
-        into.push(tint(leaves, random() < 0.5 ? 0x3f7a32 : 0x5a8a3a));
+        into.push(paint(leaves, random() < 0.5 ? 0x3f7a32 : 0x5a8a3a));
         // Some spill over the railing in a loose cascade of small clusters, thinning as it
         // falls: trailing green, or a bougainvillea's magenta among its leaves.
         if (random() < 0.5) {
@@ -647,14 +666,14 @@ export class HavanaStreet implements SceneStreet {
               z + (random() - 0.5) * (0.7 - t * 0.4),
             );
             const petal = bloom && random() < 0.7;
-            into.push(tint(bit, petal ? (random() < 0.5 ? 0xd6247a : 0xb5179e) : 0x3f7a32));
+            into.push(paint(bit, petal ? (random() < 0.5 ? 0xd6247a : 0xb5179e) : 0x3f7a32));
           }
         }
       } else if (roll < 0.65) {
         const cloth = new PlaneGeometry(0.5 + random() * 0.5, 0.6 + random() * 0.6).toNonIndexed();
         cloth.rotateY(-Math.PI / 2);
         cloth.translate(-BALCONY - 0.03, y + 0.6, z);
-        into.push(tint(cloth, LAUNDRY[Math.floor(random() * LAUNDRY.length)]!));
+        into.push(paint(cloth, LAUNDRY[Math.floor(random() * LAUNDRY.length)]!));
       }
     }
   }
@@ -2038,7 +2057,7 @@ function kerbTexture(): CanvasTexture {
 }
 
 /** Paints every vertex of a non-indexed geometry one colour, for a vertex-coloured mesh. */
-function tint(geometry: BufferGeometry, hex: number): BufferGeometry {
+function paint(geometry: BufferGeometry, hex: number): BufferGeometry {
   const c = new Color(hex);
   const n = geometry.getAttribute('position').count;
   const colours = new Float32Array(n * 3);

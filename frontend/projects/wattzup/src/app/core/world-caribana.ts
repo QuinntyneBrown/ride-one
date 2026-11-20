@@ -12,6 +12,7 @@ import {
   CubicBezierCurve3,
   CylinderGeometry,
   DoubleSide,
+  Euler,
   Group,
   IcosahedronGeometry,
   InstancedMesh,
@@ -243,6 +244,16 @@ export class CaribanaStreet implements SceneStreet {
   private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
   private readonly pannists: { figure: Group; phase: number }[] = [];
   private readonly bandBanners: { group: Group; phase: number }[] = [];
+  private readonly truckLights: MeshStandardMaterial[] = [];
+  private confetti: InstancedMesh | null = null;
+  private readonly flakes: {
+    x: number;
+    offset: number;
+    top: number;
+    fall: number;
+    spin: number;
+    phase: number;
+  }[] = [];
   private readonly mokos: {
     figure: Group;
     legs: [Group, Group];
@@ -258,6 +269,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly up = new Vector3(0, 1, 0);
   private readonly forward = new Vector3(0, 0, 1);
   private readonly tilt = new Quaternion();
+  private readonly tumble = new Euler();
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly flagMaterials = FLAG_KINDS.map(
     (kind) =>
@@ -294,6 +306,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addTrucks();
     this.addPanFloat();
     this.addGantry();
+    this.addConfetti();
     this.addOfficers();
     this.addBandBanners();
     this.addLamps();
@@ -337,6 +350,12 @@ export class CaribanaStreet implements SceneStreet {
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
+    this.placeConfetti(heightAt, along);
+    // The trucks' lights pulse with the bass, each colour on its own count.
+    this.truckLights.forEach((m, k) => {
+      const beat = Math.max(0, Math.sin(this.time * Math.PI * 2.1 + k * 1.6));
+      m.emissiveIntensity = 0.6 + Math.pow(beat, 4) * 3.2;
+    });
     for (const b of this.bandBanners) {
       // The bearers walk the banner up the road, swaying it on the beat.
       b.group.rotation.z = Math.sin(this.time * 2.1 + b.phase) * 0.025;
@@ -1013,6 +1032,7 @@ export class CaribanaStreet implements SceneStreet {
     const lights = ['#ff2d87', '#ffd23f', '#13c3c9', '#7b2ff7'].map((c) =>
       this.material({ color: c, emissive: c, emissiveIntensity: 2.2 }),
     );
+    this.truckLights.push(...lights);
     const skin = this.material({ roughness: 0.6 });
     const cloth = this.material({ roughness: 0.9 });
     const tyre = new CylinderGeometry(0.52, 0.52, 0.3, 16);
@@ -1458,6 +1478,55 @@ export class CaribanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: 31 + dz, every: LOOP, x: BARRIER - 0.9, road: true });
     }
+  }
+
+  /**
+   * Confetti and streamers in the air over the lanes, blown from the trucks' cannons: 1,600
+   * flakes in the bands' colours, each tumbling as it flutters down and drifting on the
+   * breeze, falling from 9 m to the road again and again on the ride's clock.
+   */
+  private addConfetti(): void {
+    const random = seeded(1511);
+    const n = 1600;
+    for (let k = 0; k < n; k++) {
+      this.flakes.push({
+        x: (random() - 0.5) * 2 * (CURB + 1),
+        offset: random() * LOOP,
+        top: 4 + random() * 6,
+        fall: 0.45 + random() * 0.5,
+        spin: 2 + random() * 5,
+        phase: random() * 40,
+      });
+    }
+    const flake = new PlaneGeometry(0.05, 0.08);
+    this.disposables.push(flake);
+    this.confetti = this.instanced(
+      flake,
+      this.material({ side: DoubleSide, roughness: 0.4, metalness: 0.3 }),
+      n,
+    );
+    this.confetti.castShadow = false;
+    const colours = ['#ff2d87', '#ffd23f', '#13c3c9', '#ff8a00', '#7b2ff7', '#ffffff', '#4de0a8'];
+    const c = new Color();
+    for (let k = 0; k < n; k++) this.confetti.setColorAt(k, c.set(colours[k % colours.length]!));
+  }
+
+  private placeConfetti(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    const confetti = this.confetti;
+    if (!confetti) return;
+    this.flakes.forEach((f, k) => {
+      const t = this.time + f.phase;
+      const height = f.top - ((t * f.fall) % f.top);
+      const metres = along(f.offset + Math.sin(t * 0.3) * 0.8, LOOP);
+      this.spot.set(f.x + Math.sin(t * 1.3) * 0.4, heightAt(Math.max(metres, 0)) + height, -metres);
+      this.turn.setFromEuler(this.tumble.set(t * f.spin, t * f.spin * 0.7, 0));
+      this.size.setScalar(1);
+      confetti.setMatrixAt(k, this.matrix.compose(this.spot, this.turn, this.size));
+    });
+    confetti.instanceMatrix.needsUpdate = true;
   }
 
   /**
