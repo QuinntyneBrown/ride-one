@@ -4633,6 +4633,7 @@
     },
     {
       "id": "progressive-efforts-on-the-passo-gardena",
+      "world": "gardena",
       "title": "Progressive Efforts on the Passo Gardena",
       "channel": "GCN",
       "focus": "Climbing",
@@ -13464,6 +13465,7 @@
     },
     {
       "id": "60-minute-reverse-pyramid",
+      "world": "angkor",
       "title": "60 Minute Reverse Pyramid",
       "channel": "GCN Training",
       "focus": "Pyramid",
@@ -13764,6 +13766,7 @@
     },
     {
       "id": "60-minutes-of-brutal-power",
+      "world": "maunakea",
       "title": "60 Minutes of Brutal Power",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -14055,6 +14058,7 @@
     },
     {
       "id": "increase-your-threshold-power",
+      "world": "galibier",
       "title": "Increase Your Threshold Power",
       "channel": "GCN Training",
       "focus": "Threshold",

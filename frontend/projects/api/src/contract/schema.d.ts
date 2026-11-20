@@ -163,7 +163,11 @@ export interface components {
         | 'antwerp'
         | 'tahoe'
         | 'deathvalley'
-        | 'atacama';
+        | 'atacama'
+        | 'angkor'
+        | 'gardena'
+        | 'maunakea'
+        | 'galibier';
     };
     ClassShelfResponse: {
       id: string;

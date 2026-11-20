@@ -1350,6 +1350,67 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.8, fill: 1.4, colour: 0xffe0c0 },
     fogRange: [3000, 18000],
   },
+  // Dawn at Angkor: the sky warming from violet to gold, the sun just clear of the jungle, mist on the moat.
+  angkor: {
+    sky: 0x8a6aa8,
+    fog: 0xf0c8a8,
+    ground: 0x5a5a2a,
+    road: 0x9a4a2a,
+    sun: 9,
+    wet: false,
+    haze: false,
+    turbidity: 6,
+    rayleigh: 2.6,
+    azimuth: 95,
+    light: { sun: 2.8, fill: 1.9, colour: 0xffc890 },
+    fogRange: [900, 7000],
+  },
+  // A bright summer morning on the pass: the sun well up in a clear blue sky, crisp light on the
+  // pale rock, and a light haze over the far peaks.
+  gardena: {
+    sky: 0x6aa4e4,
+    fog: 0xc8dcec,
+    ground: 0x7aa84a,
+    road: 0x4e4e52,
+    sun: 44,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.3,
+    azimuth: 130,
+    light: { sun: 3.2, fill: 1.0, colour: 0xfff4e4 },
+    fogRange: [400, 6000],
+  },
+  // Late afternoon four thousand metres up on Mauna Kea: a deep, thin-air blue and a low gold sun over the cloud sea.
+  maunakea: {
+    sky: 0x1a4ab8,
+    fog: 0xc8d4e8,
+    ground: 0x6a3a2a,
+    road: 0x3a3634,
+    sun: 18,
+    wet: false,
+    haze: false,
+    turbidity: 1.2,
+    rayleigh: 2.2,
+    azimuth: 250,
+    light: { sun: 3.0, fill: 1.5, colour: 0xffe4c0 },
+    fogRange: [3000, 20000],
+  },
+  // Early summer high on the Galibier: crisp mountain air, a clear blue sky and a bright midday sun on the snow.
+  galibier: {
+    sky: 0x3a78d8,
+    fog: 0xd8e2f0,
+    ground: 0x4a4a50,
+    road: 0x4a4a4c,
+    sun: 52,
+    wet: false,
+    haze: false,
+    turbidity: 1.6,
+    rayleigh: 1.4,
+    azimuth: 160,
+    light: { sun: 3.0, fill: 1.6, colour: 0xfff8f0 },
+    fogRange: [2500, 16000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
@@ -1722,7 +1783,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
 
     this.plainRoad = this.track(roadTexture(false));
     const cobbles = COBBLED.has(world.id) ? cobbleTextures() : null;
-    this.layeredRoad = this.track(cobbles?.map ?? roadTexture(true));
+    const layered = world.id === 'docklands' ? wetAsphaltTexture() : roadTexture(true);
+    this.layeredRoad = this.track(cobbles?.map ?? layered);
     this.roadRelief = cobbles ? this.track(cobbles.relief) : null;
     this.roadMaterial.color.set(look.road);
     const groundMesh = this.addMesh(
@@ -2072,6 +2134,61 @@ function roadTexture(layered: boolean): CanvasTexture {
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
+
+/**
+ * Neon Docklands' road: rain-dark asphalt. Coarse aggregate grain, two darker tyre tracks
+ * worn into each lane, a tar seam, and pale wet patches where the road holds standing water.
+ */
+function wetAsphaltTexture(): CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#e4e4e4';
+    ctx.fillRect(0, 0, size, size);
+    let seed = 11;
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 14000; i++) {
+      const shade = 110 + Math.floor(random() * 145);
+      ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+      ctx.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
+    }
+    // Tyre tracks: two in each lane, darker where the wheels keep to them.
+    ctx.fillStyle = 'rgba(30,30,40,0.45)';
+    for (const at of ASPHALT_TRACKS) ctx.fillRect(size * at - 9, 0, 18, size);
+    // A tar seam across the road.
+    ctx.fillStyle = 'rgba(20,20,26,0.5)';
+    ctx.fillRect(0, size * 0.62, size, 3);
+    // Standing water: soft pale patches that catch the reflected neon.
+    for (let i = 0; i < 6; i++) {
+      const x = size * (0.1 + random() * 0.8);
+      const y = random() * size;
+      const r = 14 + random() * 22;
+      const pool = ctx.createRadialGradient(x, y, 0, x, y, r);
+      pool.addColorStop(0, 'rgba(255,255,255,0.8)');
+      pool.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = pool;
+      ctx.beginPath();
+      ctx.ellipse(x, y, r, r * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#f2f3ef';
+    ctx.fillRect(size / 2 - 4, 0, 8, size * 0.56);
+    ctx.fillStyle = '#e6e6e6';
+    ctx.fillRect(4, 0, 6, size);
+    ctx.fillRect(size - 10, 0, 6, size);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Where the tyre tracks run across the road tile, as fractions of its width: two per lane. */
+const ASPHALT_TRACKS = [0.17, 0.36, 0.64, 0.83];
 
 /** Opaque below, fading out over the top fifth: the panorama's sky melts into the sky above. */
 function fadeTexture(): CanvasTexture {

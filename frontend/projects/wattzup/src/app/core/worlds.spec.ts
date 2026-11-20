@@ -86,6 +86,10 @@ describe('targetGrade (L2-101)', () => {
     ['tahoe', { warmup: 1, work: 3, rest: 0, cooldown: 0, steady: 1 }, 3.110718],
     ['deathvalley', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.0],
     ['atacama', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.036906],
+    ['angkor', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.036906],
+    ['gardena', { warmup: 4, work: 7, rest: 5, cooldown: 2, steady: 6 }, 7.18453],
+    ['maunakea', { warmup: 5, work: 11, rest: 6, cooldown: 3, steady: 8 }, 11.18453],
+    ['galibier', { warmup: 4, work: 8, rest: 5, cooldown: 2, steady: 6 }, 8.18453],
     ['coast', { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 }, 4.795247],
   ])('%s asks for its grade per kind at s 0, plus its roll at s 300', (id, grades, workAt300) => {
     const world = worldById(id);

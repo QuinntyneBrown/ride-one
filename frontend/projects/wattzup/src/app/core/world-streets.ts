@@ -14,6 +14,10 @@ import { AlpeStreet } from './world-alpe';
 import { MontmartreStreet } from './world-montmartre';
 import { BonnevilleStreet } from './world-bonneville';
 import type { StreetFactory } from './world-kit';
+import { GalibierStreet } from './world-galibier';
+import { MaunaKeaStreet } from './world-maunakea';
+import { GardenaStreet } from './world-gardena';
+import { AngkorStreet } from './world-angkor';
 import { AtacamaStreet } from './world-atacama';
 import { DeathValleyStreet } from './world-deathvalley';
 import { TahoeStreet } from './world-tahoe';
@@ -158,4 +162,8 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   tahoe: (track, disposables) => new TahoeStreet(track, disposables),
   deathvalley: (track, disposables) => new DeathValleyStreet(track, disposables),
   atacama: (track, disposables) => new AtacamaStreet(track, disposables),
+  angkor: (track, disposables) => new AngkorStreet(track, disposables),
+  gardena: (track, disposables) => new GardenaStreet(track, disposables),
+  maunakea: (track, disposables) => new MaunaKeaStreet(track, disposables),
+  galibier: (track, disposables) => new GalibierStreet(track, disposables),
 };

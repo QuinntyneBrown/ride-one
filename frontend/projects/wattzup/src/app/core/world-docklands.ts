@@ -326,8 +326,17 @@ const GATE_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#9b6bff', '#ffb3
 const CROSSINGS = [56, 196, 316, 446, 586];
 const CROSSING_BAR = 0.55;
 const CROSSING_DEPTH = 5;
+/** At most this many people wait at each kerb of a crossing. */
+const CROSSING_WAITERS = 3;
 /** Their beacons: post height (m), blink period (s), and how near before the halo hides (m). */
 const BEACON_HEIGHT = 2.9;
+/** The traffic signals at each crossing: the mast's height (m), how far over the road its arm
+ * reaches (a fraction of the road's half-width past the centre), where along the arm the heads
+ * hang (fractions of its length), and the lamps' colours, top to bottom. */
+const SIGNAL_HEIGHT = 5.6;
+const SIGNAL_REACH = 0.3;
+const SIGNAL_HEADS = [0.45, 0.95];
+const SIGNAL_LAMPS = ['#ff3045', '#ffa81f', '#35ff8a'] as const;
 const BEACON_BLINK = 1.2;
 const BEACON_HALO_NEAR = 7;
 /** Bike-lane symbols: where round the loop, and their size on the road (m). */
@@ -401,6 +410,15 @@ const SHOP_SIGN_LONG = 3.8;
 /** Bike racks: where round the loop, how far beyond the road's edge (m), the frames' colours. */
 const BIKE_RACKS = [44, 126, 232, 352, 470, 562];
 const BIKE_RACK_OUT = 1.9;
+/** Rows of delivery mopeds on the right-hand pavement: where round the loop (m), how far from
+ * the road's centre beyond its half-width (m), how many in a row, the gap between them (m),
+ * their angle to the kerb (rad), and their paints. */
+const MOPEDS = [64, 176, 336, 516];
+const MOPED_OUT = 1.5;
+const MOPED_ROW = 4;
+const MOPED_GAP = 0.9;
+const MOPED_ANGLE = 0.7;
+const MOPED_PAINTS = ['#ff4fb8', '#5ff2ff', '#ffd24a', '#9b6bff'];
 /** Taxi ranks on the right-hand pavement: where (loop metres), how far out (m), cabs in each. */
 /**
  * Glass skybridges over the street: where (loop metres) and how high (m) each runs. Along the
@@ -707,6 +725,8 @@ export class DocklandsStreet {
   private readonly shelters: { group: Group; offset: number }[] = [];
   /** Racks of parked bicycles at the kerb, at BIKE_RACKS round the loop. */
   private readonly bikeRacks: { group: Group; offset: number }[] = [];
+  /** Rows of parked mopeds on the right-hand pavement, at MOPEDS round the loop. */
+  private readonly mopeds: { group: Group; offset: number }[] = [];
   private readonly taxiRanks: { group: Group; offset: number }[] = [];
   private readonly puddles: { mesh: Mesh; offset: number }[] = [];
   /** Glass lift cars on the towers' street faces: where each rides between and its timing. */
@@ -2542,6 +2562,7 @@ export class DocklandsStreet {
     this.addTrees(roadHalf);
     this.addShelters(roadHalf);
     this.addBikeRacks(roadHalf);
+    this.addMopeds(roadHalf);
     this.addTaxiRanks(roadHalf);
     this.addPuddles(roadHalf);
     this.addSkybridges(roadHalf);
@@ -2974,6 +2995,22 @@ export class DocklandsStreet {
     const stripe = new BoxGeometry(0.18, 0.3, 0.18);
     const ball = new SphereGeometry(0.32, 14, 10);
     this.disposables.push(paint, pole, band, globe, bar, post, stripe, ball);
+    // Traffic signals on a mast arm reaching out over the road at the near side of each crossing:
+    // dark heads with red, amber and green lamps, the green lit for the riders.
+    const mast = new CylinderGeometry(0.12, 0.15, SIGNAL_HEIGHT, 10);
+    const arm = new CylinderGeometry(0.07, 0.07, 1, 8);
+    const housing = new BoxGeometry(0.42, 1.15, 0.3);
+    const visor = new BoxGeometry(0.34, 0.04, 0.22);
+    const lamp = new CircleGeometry(0.12, 16);
+    const unlit = SIGNAL_LAMPS.map(
+      (hex) => new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(0.18) }),
+    );
+    const go = new MeshBasicMaterial({
+      color: new Color(SIGNAL_LAMPS[2]).multiplyScalar(2),
+      toneMapped: false,
+    });
+    const goHalo = this.halo(SIGNAL_LAMPS[2], 0.9);
+    this.disposables.push(mast, arm, housing, visor, lamp, ...unlit, go);
     const across = roadHalf * 2;
     const count = Math.floor(across / (CROSSING_BAR * 2));
     const start = -((count - 1) * CROSSING_BAR * 2) / 2;
@@ -3005,6 +3042,31 @@ export class DocklandsStreet {
         group.add(light, bloom);
         blooms.push(bloom);
         this.streak(group, '#ffa81f', x - side * 1.5, 0, z, 6, 1.2, 0.9);
+      }
+      const mx = roadHalf + KERB_WIDTH + 1;
+      const mz = CROSSING_DEPTH / 2 + 1.2;
+      const standard = new Mesh(mast, pole);
+      standard.position.set(mx, KERB + SIGNAL_HEIGHT / 2, mz);
+      const reach = new Vector3(-roadHalf * SIGNAL_REACH, KERB + SIGNAL_HEIGHT - 0.25, mz);
+      group.add(standard, span(arm, pole, new Vector3(mx, reach.y, mz), reach));
+      for (const at of SIGNAL_HEADS) {
+        const x = mx + (reach.x - mx) * at;
+        const y = reach.y - 0.75;
+        const head = new Mesh(housing, pole);
+        head.position.set(x, y, mz);
+        group.add(head, span(arm, pole, new Vector3(x, reach.y, mz), new Vector3(x, y + 0.5, mz)));
+        for (let k = 0; k < 3; k++) {
+          const ly = y + 0.36 - k * 0.36;
+          const disc = new Mesh(lamp, k === 2 ? go : unlit[k]!);
+          disc.position.set(x, ly, mz + 0.152);
+          const hood = new Mesh(visor, pole);
+          hood.position.set(x, ly + 0.15, mz + 0.26);
+          group.add(disc, hood);
+        }
+        const bloom = new Sprite(goHalo);
+        bloom.scale.setScalar(1.1);
+        bloom.position.set(x, y - 0.36, mz + 0.2);
+        group.add(bloom);
       }
       this.group.add(group);
       this.crossings.push({ group, offset, blooms });
@@ -3555,6 +3617,81 @@ export class DocklandsStreet {
       this.group.add(group);
       this.bikeRacks.push({ group, offset });
     });
+  }
+
+  /**
+   * Delivery mopeds angle-parked on the right-hand pavement, noses to the road: a body in a neon
+   * paint, a seat, a leg shield and bars, a top box with a lit stripe, and a red tail-light.
+   */
+  private addMopeds(roadHalf: number): void {
+    const tyre = new MeshStandardMaterial({ color: 0x0c0c10, roughness: 0.7 });
+    const dark = new MeshStandardMaterial({ color: 0x15161c, roughness: 0.5 });
+    const chrome = new MeshStandardMaterial({ color: 0x9aa0ac, metalness: 0.8, roughness: 0.3 });
+    const paints = MOPED_PAINTS.map(
+      (hex) =>
+        new MeshStandardMaterial({
+          color: new Color(hex),
+          metalness: 0.3,
+          roughness: 0.35,
+          emissive: new Color(hex).multiplyScalar(0.2),
+        }),
+    );
+    const stripes = MOPED_PAINTS.map(
+      (hex) =>
+        new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(1.6), toneMapped: false }),
+    );
+    const tail = new MeshBasicMaterial({
+      color: new Color('#ff2a3a').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const wheel = new CylinderGeometry(0.22, 0.22, 0.12, 16);
+    wheel.rotateX(Math.PI / 2);
+    const unit = new BoxGeometry(1, 1, 1);
+    const tube = new CylinderGeometry(0.025, 0.025, 1, 6);
+    const dot = new SphereGeometry(0.05, 8, 6);
+    this.disposables.push(tyre, dark, chrome, ...paints, ...stripes, tail, wheel, unit, tube, dot);
+    const box = (material: Material, w: number, h: number, d: number, x: number, y: number) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, 0);
+      return mesh;
+    };
+    const random = seeded(653);
+    const x = roadHalf + MOPED_OUT;
+    for (const offset of MOPEDS) {
+      const group = new Group();
+      for (let k = 0; k < MOPED_ROW; k++) {
+        const pick = Math.floor(random() * paints.length);
+        const paint = paints[pick]!;
+        const moped = new Group();
+        for (const wx of [-0.55, 0.55]) {
+          const w = new Mesh(wheel, tyre);
+          w.position.set(wx, 0.22, 0);
+          moped.add(w);
+        }
+        const shield = box(paint, 0.1, 0.6, 0.4, 0.38, 0.62);
+        shield.rotation.z = -0.25;
+        moped.add(
+          box(dark, 0.75, 0.08, 0.3, 0, 0.3),
+          box(paint, 0.55, 0.35, 0.38, -0.3, 0.5),
+          box(dark, 0.5, 0.08, 0.3, -0.3, 0.72),
+          shield,
+          span(tube, chrome, new Vector3(0.45, 0.4, 0), new Vector3(0.5, 1, 0)),
+          box(chrome, 0.05, 0.04, 0.62, 0.5, 1),
+          box(paint, 0.4, 0.38, 0.42, -0.48, 0.97),
+          box(stripes[pick]!, 0.41, 0.06, 0.43, -0.48, 1.04),
+        );
+        const light = new Mesh(dot, tail);
+        light.position.set(-0.6, 0.6, 0);
+        moped.add(light);
+        moped.position.set(x, KERB, (k - (MOPED_ROW - 1) / 2) * MOPED_GAP);
+        // Nose towards the road, angled back the way the riders come.
+        moped.rotation.y = Math.PI - MOPED_ANGLE + (random() - 0.5) * 0.2;
+        group.add(moped);
+      }
+      this.group.add(group);
+      this.mopeds.push({ group, offset });
+    }
   }
 
   /**
@@ -4171,6 +4308,23 @@ export class DocklandsStreet {
       this.strollers.push({ person: walker, speed: way * (0.9 + random() * 0.6), phase: random() });
       this.group.add(group);
       this.walkers.push({ group, offset: random() * LOOP });
+    }
+    // Waiting at the kerb of each crossing, both sides, facing across the road for the lights.
+    // They draw from their own sequence, so the walkers above are unchanged.
+    const waitRandom = seeded(661);
+    for (const offset of CROSSINGS) {
+      const group = new Group();
+      for (const side of [-1, 1]) {
+        const count = 2 + Math.floor(waitRandom() * (CROSSING_WAITERS - 1));
+        for (let k = 0; k < count; k++) {
+          const x = side * (roadHalf + KERB_WIDTH + 0.7 + waitRandom() * 1.2);
+          const waiter = person(x, (-side * Math.PI) / 2 + (waitRandom() - 0.5) * 0.4);
+          waiter.position.z = (k - (count - 1) / 2) * 1.3 + (waitRandom() - 0.5) * 0.4;
+          group.add(waiter);
+        }
+      }
+      this.group.add(group);
+      this.walkers.push({ group, offset });
     }
   }
 
@@ -5408,6 +5562,11 @@ export class DocklandsStreet {
       const metres = ((((rank.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       rank.group.visible = !this.onBridge(Math.max(metres, 0));
       rank.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
+    for (const row of this.mopeds) {
+      const metres = ((((row.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      row.group.visible = !this.onBridge(Math.max(metres, 0));
+      row.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
     for (const rack of this.bikeRacks) {
       const metres = ((((rack.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;

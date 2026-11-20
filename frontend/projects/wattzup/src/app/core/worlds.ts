@@ -800,6 +800,43 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.2,
   },
+  {
+    id: 'angkor',
+    name: 'Angkor Temples',
+    route: 'the temple road',
+    effortName: 'Pyramid step',
+    description: 'Jungle roads between Khmer temples and moats at dawn.',
+    grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0.2,
+  },
+  {
+    id: 'gardena',
+    name: 'Passo Gardena',
+    route: 'the road from Selva',
+    effortName: 'Sella step',
+    description:
+      'The road from Selva climbs through larch meadows to the Passo Gardena on a bright summer morning, closed to cars for the Sellaronda Bike Day, the sheer pale towers of the Sella rising on the right and the jagged spires of the Cir on the left above the hairpins to the saddle. The six-minute warm-up spins up the lower meadows past the grazing cows, the minute-and-a-half and three-minute efforts climb the hairpins beneath the Sella towers, and the four minute-and-a-half steps and the closing half-minute sprint build to the pass before the cool-down rolls over the top.',
+    grade: { warmup: 4, work: 7, rest: 5, cooldown: 2, steady: 6 },
+    roll: 1,
+  },
+  {
+    id: 'maunakea',
+    name: 'Mauna Kea',
+    route: 'the summit road',
+    effortName: 'Summit grind',
+    description: "A brutal climb past observatories to Hawaii's highest summit.",
+    grade: { warmup: 5, work: 11, rest: 6, cooldown: 3, steady: 8 },
+    roll: 1,
+  },
+  {
+    id: 'galibier',
+    name: 'Col du Galibier',
+    route: 'the pass road',
+    effortName: 'Threshold block',
+    description: 'High alpine road climbing past snow banks to the Tour monument.',
+    grade: { warmup: 4, work: 8, rest: 5, cooldown: 2, steady: 6 },
+    roll: 1,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

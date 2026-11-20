@@ -297,6 +297,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Death Valley');
   });
 
+  test('rides Progressive Efforts on the Passo Gardena along Badwater Road through Death Valley', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Progressive Efforts on the Passo Gardena',
+      'Passo Gardena',
+      'progressive-efforts-on-the-passo-gardena',
+    );
+    await expect(world.heading).toHaveText('Passo Gardena');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Passo Gardena');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');
@@ -869,6 +882,41 @@ test.describe('World Ride (L2-102)', () => {
     );
     await expect(world.heading).toHaveText('Atacama Desert');
     await expect(world.boardTitle).toHaveText('Riders nearby · Atacama Desert');
+  });
+
+  test('rides 60 Minute Reverse Pyramid between the temples of Angkor', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '60 Minute Reverse Pyramid',
+      'Angkor Temples',
+      '60-minute-reverse-pyramid',
+    );
+    await expect(world.heading).toHaveText('Angkor Temples');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Angkor Temples');
+  });
+
+  test('rides 60 Minutes of Brutal Power up Mauna Kea past the observatories', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '60 Minutes of Brutal Power',
+      'Mauna Kea',
+      '60-minutes-of-brutal-power',
+    );
+    await expect(world.heading).toHaveText('Mauna Kea');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Mauna Kea');
+  });
+
+  test('rides Increase Your Threshold Power up the Col du Galibier between the snow banks', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Increase Your Threshold Power',
+      'Col du Galibier',
+      'increase-your-threshold-power',
+    );
+    await expect(world.heading).toHaveText('Col du Galibier');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Col du Galibier');
   });
 
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
