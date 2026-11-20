@@ -122,6 +122,7 @@ export class MiamiStreet implements SceneStreet {
     dance?: boolean;
   }[] = [];
   private readonly diners: { offset: number; x: number; heading: number }[] = [];
+  private readonly balconyGuests: { offset: number; x: number; y: number }[] = [];
   private water: Texture | null = null;
   private glitter: Texture | null = null;
   private stream: Texture | null = null;
@@ -1068,6 +1069,13 @@ export class MiamiStreet implements SceneStreet {
             const y = 1.6 + f * 3.6 - 1.2;
             if (Math.abs(z - width * 0.3) < 2.5) continue;
             decks.box(slab, [1.2, 0.16, bayW * 1.25], [-0.6, y, z]);
+            // A guest out on one balcony in three, leaning on the rail to watch the street.
+            if ((b * 7 + f * 3 + k) % 2 === 0)
+              this.balconyGuests.push({
+                offset: offset + width / 2 - z,
+                x: roadHalf + FRONT - 0.65,
+                y: y + 0.08,
+              });
             for (const h of [0.35, 0.65, 0.95])
               decks.box(rail, [0.05, 0.05, bayW * 1.25], [-1.18, y + h, z]);
             for (const dz of [-0.5, 0.5]) {
@@ -3006,6 +3014,17 @@ export class MiamiStreet implements SceneStreet {
           seat: -0.27,
         });
     }
+    // The guests out on the balconies, facing the street.
+    const guest = seeded(8541);
+    for (const g of this.balconyGuests)
+      this.standers.push({
+        offset: g.offset,
+        x: g.x,
+        heading: Math.PI / 2 + (guest() - 0.5) * 0.6,
+        phase: guest() * 6,
+        scale: 0.92 + guest() * 0.1,
+        seat: 0.15 - g.y,
+      });
     // The diners seated at the café tables, chatting over their candles.
     const lean = seeded(8401);
     for (const d of this.diners)
