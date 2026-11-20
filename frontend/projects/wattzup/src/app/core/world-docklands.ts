@@ -595,6 +595,8 @@ const LIFT_SHARE = 0.3;
 const LIFT_MIN_HEIGHT = 36;
 const LIFT_PERIOD = 26;
 const LOBBY_BAY = 6;
+/** The goods on the shelves seen through the shops' glass. */
+const SHOP_GOODS = ['#ff4fb8', '#3fe0ff', '#ffb347', '#2fb36a', '#d8342a', '#9b6bff'];
 
 /** What the rooftops are made of: crown band lights, a beacon, and a mast and lamp shape. */
 interface RoofKit {
@@ -6587,7 +6589,8 @@ function bladeTexture(word: string, colour: string): CanvasTexture {
 
 /**
  * One bay of a tower's street floor at night: tall glass panels in a dark frame, lit from
- * inside, with a darker transom above; some bays are dark. Six panels wide per tile.
+ * inside, with a darker transom above; some bays are dark. Through a lit panel the shop inside
+ * shows: pendant lamps, shelves of goods along the back wall, and now and then a customer.
  */
 function lobbyTexture(glass: string, frame: string, dark: number, seed: number): CanvasTexture {
   const width = 256;
@@ -6598,6 +6601,8 @@ function lobbyTexture(glass: string, frame: string, dark: number, seed: number):
   const ctx = canvas.getContext('2d');
   if (ctx) {
     const random = seeded(seed);
+    // The interiors draw from their own sequence, so which panels are lit is unchanged.
+    const inside = seeded(seed + 7);
     ctx.fillStyle = frame;
     ctx.fillRect(0, 0, width, height);
     const panels = 4;
@@ -6606,10 +6611,43 @@ function lobbyTexture(glass: string, frame: string, dark: number, seed: number):
       const lit = random() >= dark;
       const g = ctx.createLinearGradient(0, 20, 0, height);
       g.addColorStop(0, lit ? glass : '#1d2030');
-      g.addColorStop(1, lit ? '#ffffff' : '#2a2d3e');
+      g.addColorStop(1, lit ? '#c99a7a' : '#2a2d3e');
       ctx.globalAlpha = lit ? 0.75 + random() * 0.25 : 1;
       ctx.fillStyle = g;
       ctx.fillRect(i * w + 4, 24, w - 8, height - 30);
+      if (lit) {
+        ctx.globalAlpha = 1;
+        const left = i * w + 4;
+        // Shelves along the back wall, stocked with goods in bright packaging.
+        for (const shelf of [58, 80]) {
+          ctx.fillStyle = 'rgba(40,30,40,0.55)';
+          ctx.fillRect(left + 3, shelf, w - 14, 3);
+          for (let gx = left + 4; gx < left + w - 14; gx += 5) {
+            ctx.fillStyle = SHOP_GOODS[Math.floor(inside() * SHOP_GOODS.length)]!;
+            ctx.fillRect(gx, shelf - 6 - Math.floor(inside() * 4), 4, 6);
+          }
+        }
+        // Pendant lamps hung from the ceiling, glowing.
+        for (const lx of [0.3, 0.7]) {
+          ctx.fillStyle = 'rgba(30,24,30,0.6)';
+          ctx.fillRect(left + (w - 8) * lx - 0.5, 24, 1, 8);
+          ctx.fillStyle = '#fff6d8';
+          ctx.beginPath();
+          ctx.arc(left + (w - 8) * lx, 34, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // A counter across the front, and sometimes a customer at it.
+        ctx.fillStyle = 'rgba(30,22,34,0.7)';
+        ctx.fillRect(left, height - 26, w - 8, 20);
+        if (inside() < 0.45) {
+          const px = left + 8 + inside() * (w - 30);
+          ctx.fillStyle = 'rgba(20,16,26,0.85)';
+          ctx.beginPath();
+          ctx.arc(px + 6, 70, 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillRect(px, 76, 12, 30);
+        }
+      }
       // A transom light over each panel.
       ctx.fillStyle = lit ? glass : '#1d2030';
       ctx.globalAlpha = lit ? 0.45 : 1;
