@@ -78,3 +78,24 @@ export function roadAhead(
   }
   return road;
 }
+
+/** A ramp begins where the gradient rises through this, in percent. */
+export const RAMP_FROM = 3;
+/** The sign gives the steepest gradient within this many metres of the ramp's foot. */
+const RAMP_READ = 150;
+
+/** The foot of the first ramp ahead, and its steepest gradient in whole percent. */
+export function nextRamp(points: readonly RoadPoint[]): { metres: number; grade: number } | null {
+  for (let i = 1; i < points.length; i++) {
+    const before = points[i - 1]!;
+    const here = points[i]!;
+    if (before.grade < RAMP_FROM && here.grade >= RAMP_FROM) {
+      let steepest = here.grade;
+      for (let j = i; j < points.length && points[j]!.metres - here.metres <= RAMP_READ; j++) {
+        steepest = Math.max(steepest, points[j]!.grade);
+      }
+      return { metres: here.metres, grade: Math.round(steepest) };
+    }
+  }
+  return null;
+}

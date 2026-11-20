@@ -1,5 +1,5 @@
 import type { Segment } from '@wattzup/api';
-import { nextArch, roadAhead } from './scene-road';
+import { nextArch, nextRamp, RAMP_FROM, roadAhead, type RoadPoint } from './scene-road';
 import { targetGrade, worldById } from './worlds';
 
 const seg = (kind: Segment['kind'], start: number, duration: number): Segment => ({
@@ -55,5 +55,24 @@ describe('roadAhead (L2-110 AC1)', () => {
     for (let i = 1; i < road.length; i++) {
       expect(road[i]!.height - road[i - 1]!.height).toBeCloseTo((road[i]!.grade / 100) * 2, 9);
     }
+  });
+});
+
+describe('nextRamp (L2-110 AC9)', () => {
+  const road = (grades: number[]): RoadPoint[] =>
+    grades.map((grade, i) => ({ metres: i * 2, height: 0, grade }));
+
+  it('finds no ramp on a road that never rises through the threshold', () => {
+    expect(nextRamp(road([0.5, 1, 2, 2.9, 2, 0]))).toBeNull();
+    expect(nextRamp(road([4, 5, 6, 5]))).toBeNull();
+  });
+
+  it('stands at the foot of the first ramp, where the gradient rises through the threshold', () => {
+    const ramp = nextRamp(road([0.5, 1, 2, RAMP_FROM, 4.4, 5.6, 6, 5.8, 1, 0, 2, 4, 9]));
+    expect(ramp?.metres).toBe(6);
+  });
+
+  it('gives the steepest gradient of the ramp, in whole percent', () => {
+    expect(nextRamp(road([1, 3.2, 4.4, 5.6, 6.3, 5.8]))?.grade).toBe(6);
   });
 });
