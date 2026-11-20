@@ -302,6 +302,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
       // The road over an effort is a bridge ramp, laid at the same speed as the road ahead.
       const v = Math.max(speed, MIN_SPEED);
       const efforts = frame.segments.filter((g) => g.kind === 'work');
+      this.towers.setTime(frame.reducedMotion ? 0 : frame.elapsed);
       this.towers.setBridge(
         (metres) => {
           const t = frame.elapsed + metres / v;
