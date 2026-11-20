@@ -227,6 +227,7 @@ export class HavanaStreet implements SceneStreet {
     this.addPelicans(roadHalf);
     this.addKerbside(roadHalf);
     this.addGrates(roadHalf);
+    this.addRockers(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -3359,6 +3360,104 @@ export class HavanaStreet implements SceneStreet {
       holder.add(grate);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: roadHalf });
+    }
+  }
+
+  /**
+   * Older Habaneros sitting out under the arcade in wooden rocking chairs (sillones), as they do
+   * through the afternoon: a chair of dark turned wood with its cane seat and back on curved
+   * rockers, and its sitter, grey-haired, leaning back with hands in the lap; some chairs empty.
+   */
+  private addRockers(roadHalf: number): void {
+    const random = seeded(1549);
+    const wood = this.material({ color: 0x4a2a18, roughness: 0.6 });
+    const cane = this.material({ color: 0xc8a870, roughness: 0.9 });
+    const rocker = new TorusGeometry(0.6, 0.025, 4, 16, 0.9);
+    rocker.rotateY(Math.PI / 2);
+    rocker.rotateX(Math.PI / 2 - 0.45);
+    const torso = new CapsuleGeometry(0.17, 0.38, 3, 8);
+    const limb = new CapsuleGeometry(0.065, 0.4, 3, 6);
+    const head = new SphereGeometry(0.11, 10, 8);
+    this.disposables.push(rocker, torso, limb, head);
+    const tops = [0xf2efe6, 0xd8e8f0, 0xe8c8b0, 0x8ab0c8, 0xf0e0a0];
+    const skins = [0x8d5a3b, 0x6b4128, 0xc68b5e, 0x4a2c1c];
+    const greys = [0xd8d8d4, 0xb8b8b4, 0xe8e8e4];
+    for (let offset = 34; offset < LOOP; offset += 9 + random() * 22) {
+      const chair = new Group();
+      const box = (
+        m: MeshStandardMaterial,
+        sx: number,
+        sy: number,
+        sz: number,
+        x: number,
+        y: number,
+        z: number,
+        rx = 0,
+      ) => {
+        const mesh = new Mesh(this.unit, m);
+        mesh.scale.set(sx, sy, sz);
+        mesh.position.set(x, y, z);
+        mesh.rotation.x = rx;
+        mesh.castShadow = true;
+        chair.add(mesh);
+        return mesh;
+      };
+      for (const x of [-0.26, 0.26]) {
+        const r = new Mesh(rocker, wood);
+        r.position.set(x, 0.6, 0.05);
+        chair.add(r);
+        box(wood, 0.04, 0.45, 0.04, x, 0.28, -0.22);
+        box(wood, 0.04, 1.05, 0.04, x, 0.55, 0.22, 0.25);
+        box(wood, 0.04, 0.04, 0.5, x, 0.68, -0.02);
+      }
+      box(cane, 0.5, 0.04, 0.46, 0, 0.47, 0);
+      box(cane, 0.5, 0.6, 0.03, 0, 0.82, 0.3, 0.25);
+      if (random() < 0.75) {
+        const skin = this.material({
+          color: skins[Math.floor(random() * skins.length)]!,
+          roughness: 0.8,
+        });
+        const top = this.material({
+          color: tops[Math.floor(random() * tops.length)]!,
+          roughness: 0.85,
+        });
+        const trousers = this.material({
+          color: random() < 0.5 ? 0x5a5a5a : 0xc8b89a,
+          roughness: 0.9,
+        });
+        const t = new Mesh(torso, top);
+        t.position.set(0, 0.82, 0.1);
+        t.rotation.x = 0.22;
+        const h = new Mesh(head, skin);
+        h.position.set(0, 1.28, 0.2);
+        const hair = new Mesh(
+          head,
+          this.material({ color: greys[Math.floor(random() * greys.length)]!, roughness: 0.95 }),
+        );
+        hair.scale.set(1.05, 0.6, 1.05);
+        hair.position.set(0, 1.33, 0.22);
+        chair.add(t, h, hair);
+        for (const side of [-0.1, 0.1]) {
+          const thigh = new Mesh(limb, trousers);
+          thigh.rotation.x = Math.PI / 2;
+          thigh.position.set(side, 0.55, -0.18);
+          const shin = new Mesh(limb, trousers);
+          shin.position.set(side, 0.28, -0.42);
+          const arm = new Mesh(limb, skin);
+          arm.scale.setScalar(0.8);
+          arm.rotation.x = 0.9;
+          arm.position.set(side * 2.2, 0.75, -0.05);
+          for (const m of [thigh, shin, arm]) m.castShadow = true;
+          chair.add(thigh, shin, arm);
+        }
+      }
+      // Facing the street, turned a little this way or that.
+      chair.rotation.y = -Math.PI / 2 + (random() - 0.5) * 0.8;
+      chair.position.set(0, KERB, 0);
+      const holder = new Group();
+      holder.add(chair);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: roadHalf + 4 + ARCADE * (0.45 + random() * 0.3) });
     }
   }
 
