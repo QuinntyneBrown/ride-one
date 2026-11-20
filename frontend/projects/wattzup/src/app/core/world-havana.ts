@@ -22,10 +22,13 @@ import {
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
+  QuadraticBezierCurve3,
   RepeatWrapping,
   Shape,
   type Texture,
+  TubeGeometry,
   Vector2,
+  Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
@@ -141,6 +144,7 @@ export class HavanaStreet implements SceneStreet {
     this.addPeople(roadHalf);
     this.addMorro(roadHalf);
     this.addReef(roadHalf, points);
+    this.addLamps(roadHalf);
   }
 
   setTime(seconds: number): void {
@@ -472,6 +476,51 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(building);
       this.props.push({ mesh: building, offset, x: roadHalf + 4 });
       offset += width;
+    }
+  }
+
+  /**
+   * The Malecón's street lamps: tall, tapering grey poles, on the promenade's kerb and on the
+   * pavement before the façades, each with a long arm curving out over the lanes to a lamp head
+   * with a pale lens beneath.
+   */
+  private addLamps(roadHalf: number): void {
+    const steel = this.material({ color: 0x8c9196, roughness: 0.55, metalness: 0.5 });
+    const lens = this.material({ color: 0xf6f0dc, emissive: 0xfff2c8, emissiveIntensity: 0.3 });
+    const pole = new CylinderGeometry(0.07, 0.13, 9, 10);
+    pole.translate(0, 4.5, 0);
+    const base = new CylinderGeometry(0.2, 0.24, 0.9, 10);
+    base.translate(0, 0.45, 0);
+    const arm = new TubeGeometry(
+      new QuadraticBezierCurve3(
+        new Vector3(0, 8.4, 0),
+        new Vector3(0, 9.6, 0),
+        new Vector3(2.6, 9.4, 0),
+      ),
+      12,
+      0.055,
+      6,
+    );
+    const head = new BoxGeometry(0.9, 0.22, 0.38);
+    head.translate(2.95, 9.35, 0);
+    const glow = new BoxGeometry(0.7, 0.04, 0.28);
+    glow.translate(2.95, 9.22, 0);
+    const lamp = mergeGeometries([pole, base, arm, head])!;
+    [pole, base, arm, head].forEach((g) => g.dispose());
+    this.disposables.push(lamp, glow);
+    const place = (offset: number, x: number, turn: number) => {
+      const holder = new Group();
+      const post = new Mesh(lamp, steel);
+      post.castShadow = true;
+      holder.add(post, new Mesh(glow, lens));
+      holder.rotation.y = turn;
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x });
+    };
+    for (let offset = 4; offset < LOOP; offset += 30) {
+      // Seaward lamps reach over the oncoming lanes; the inland ones over the rider's.
+      place(offset, -roadHalf - LANES - 0.6, 0);
+      place(offset + 15, roadHalf + 1.0, Math.PI);
     }
   }
 
