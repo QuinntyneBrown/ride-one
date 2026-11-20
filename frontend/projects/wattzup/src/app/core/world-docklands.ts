@@ -140,7 +140,9 @@ const SPLASH_LIFE = 0.45;
 const SPLASH_REACH = 26;
 /** Neon gates over the road, at these offsets round the loop. */
 const GATES: readonly number[] = [70, 230, 380, 540];
-const GATE_HEIGHT = 6.5;
+const GATE_HEIGHT = 7.5;
+/** A gate's posts stand this far beyond the road's edge. */
+const GATE_OUT = 2.8;
 const GATE_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#9b6bff', '#ffb347'];
 /** Night-market stalls on the quay promenade, at these offsets round the loop. */
 const STALLS: readonly number[] = [26, 33, 40, 140, 147, 290, 297, 304, 460, 467, 580];
@@ -319,7 +321,13 @@ export class DocklandsStreet {
     this.swim(still ? 0 : seconds);
     if (this.cloudTexture) this.cloudTexture.offset.set(still ? 0 : seconds * CLOUD_DRIFT, 0);
     const turning = this.wheel.userData['turning'] as Group | undefined;
-    if (turning) turning.rotation.z = still ? 0 : seconds * WHEEL_TURN;
+    const turn = still ? 0 : seconds * WHEEL_TURN;
+    if (turning) turning.rotation.z = turn;
+    const hanging = this.wheel.userData['hanging'] as Group | undefined;
+    for (const car of hanging?.children ?? []) {
+      const a = (car.userData['angle'] as number) + turn;
+      car.position.set(Math.cos(a) * WHEEL_RADIUS, Math.sin(a) * WHEEL_RADIUS - 1.8, 0);
+    }
     this.fly(still ? 0 : seconds);
     // The screens' words scroll past; held still for reduced motion.
     this.screenTextures.forEach((texture, i) => {
@@ -406,25 +414,30 @@ export class DocklandsStreet {
     const outer = new TorusGeometry(WHEEL_RADIUS, 0.45, 6, 96);
     const inner = new TorusGeometry(WHEEL_RADIUS * 0.82, 0.3, 6, 96);
     const unit = new BoxGeometry(1, 1, 1);
-    const cabin = new SphereGeometry(1.3, 10, 8);
-    this.disposables.push(pink, cyan, spoke, ...cabins, steel, outer, inner, unit, cabin);
+    this.disposables.push(pink, cyan, spoke, ...cabins, steel, outer, inner, unit);
     // The rims and spokes turn in the plane facing the road, about an axis across the harbour.
     const turning = new Group();
     turning.rotation.y = Math.PI / 2;
     turning.add(new Mesh(outer, pink), new Mesh(inner, cyan));
+    // The cabins hang level from the rim as it turns, in a plane of their own that does not.
+    const hanging = new Group();
+    hanging.rotation.y = Math.PI / 2;
     for (let i = 0; i < WHEEL_CABINS; i++) {
       const a = (i / WHEEL_CABINS) * Math.PI * 2;
       const bar = new Mesh(unit, spoke);
       bar.scale.set(0.18, WHEEL_RADIUS, 0.18);
       bar.position.set((Math.cos(a) * WHEEL_RADIUS) / 2, (Math.sin(a) * WHEEL_RADIUS) / 2, 0);
       bar.rotation.z = a - Math.PI / 2;
-      const car = new Mesh(cabin, cabins[i % cabins.length]!);
-      car.position.set(Math.cos(a) * WHEEL_RADIUS, Math.sin(a) * WHEEL_RADIUS - 1.6, 0);
-      turning.add(bar, car);
+      const car = new Mesh(unit, cabins[i % cabins.length]!);
+      car.scale.set(3, 2.4, 2);
+      car.userData['angle'] = a;
+      turning.add(bar);
+      hanging.add(car);
     }
     const hub = new Mesh(unit, steel);
     hub.scale.set(6, 3, 3);
-    this.wheel.add(turning, hub);
+    this.wheel.add(turning, hanging, hub);
+    this.wheel.userData['hanging'] = hanging;
     // Its A-frame legs, splayed along the shore.
     for (const way of [-1, 1]) {
       const leg = new Mesh(unit, steel);
@@ -1776,7 +1789,9 @@ export class DocklandsStreet {
       return new MeshBasicMaterial({ map: texture, toneMapped: false });
     });
     this.disposables.push(steel, unit, ...tubes, ...plates);
-    const half = roadHalf + 0.9;
+    // The posts stand out on the pavements, clear of the road, so riding under a gate frames
+    // the street rather than filling the view.
+    const half = roadHalf + GATE_OUT;
     const box = (
       material: Material,
       w: number,
