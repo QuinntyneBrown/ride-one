@@ -513,13 +513,31 @@ export class GardenaStreet implements SceneStreet {
       flatShading: true,
     });
     const crag = seeded(6751);
+    // A tower of Dolomite: fluted by buttresses and gullies running up its walls, stepped back at
+    // a ledge band partway up, its crown broken into ragged teeth.
     const tower = (x: number, z: number, wide: number, tall: number, sides: number) => {
-      const geometry = new CylinderGeometry(wide * 0.62, wide, tall, sides, 8);
+      const flutes = sides;
+      const phase = crag() * 6.3;
+      const ledge = 0.38 + crag() * 0.12;
+      const geometry = new CylinderGeometry(1, 1, tall, 22, 14);
       const position = geometry.getAttribute('position');
+      const teeth = Array.from({ length: 23 }, () => crag());
       for (let i = 0; i < position.count; i++) {
-        const k = 1 + (crag() - 0.5) * 0.28;
-        position.setX(i, position.getX(i) * k);
-        position.setZ(i, position.getZ(i) * k);
+        const px = position.getX(i);
+        const pz = position.getZ(i);
+        const t = position.getY(i) / tall + 0.5;
+        const angle = Math.atan2(pz, px);
+        const flute =
+          1 + 0.16 * Math.sin(flutes * angle + phase) + 0.07 * Math.sin(flutes * 2.3 * angle);
+        // Sheer below the ledge, set back above it, narrowing into the crown.
+        const step = t < ledge ? 1 : 0.8 - (t - ledge) * 0.25;
+        const k = wide * flute * step * (1 + (crag() - 0.5) * 0.08);
+        position.setX(i, px * k);
+        position.setZ(i, pz * k);
+        if (t > 0.99) {
+          const tooth = teeth[Math.round(((angle + Math.PI) / (2 * Math.PI)) * 22)]!;
+          position.setY(i, position.getY(i) - tooth * tall * 0.12);
+        }
       }
       geometry.computeVertexNormals();
       geometry.translate(x, slope(x, z) - 10 + tall / 2, z);
@@ -542,6 +560,27 @@ export class GardenaStreet implements SceneStreet {
         [-760, -1350, 48, 210],
       ].map(([x, z, w, t]) => tower(x!, z!, w!, t!, 5)),
     ];
+    // The Sella's plateau behind the towers: a great table of rock, walled in layered tiers.
+    const sella = heightfield(
+      this.disposables,
+      [760, -1950],
+      [1300, 700, 90, 50],
+      (x, z) => {
+        const wall = ease((x - 230) / 90) * ease((-z - 1650) / 70) * ease((1380 - x) / 120);
+        const tiers = 330 + 40 * Math.round(Math.sin(x / 160 + z / 230) * 2);
+        return wall * (tiers + 30 * Math.sin(x / 37) * Math.sin(z / 29));
+      },
+      (y) => (y > 340 ? new Color(0xeae4d6) : y > 200 ? new Color(0xd8cebc) : new Color(0xc4b8a4)),
+    );
+    h.add(
+      new Mesh(
+        sella,
+        hazedMaterial(this.disposables, haze, 0xffffff, 0.3, {
+          vertexColors: true,
+          flatShading: true,
+        }),
+      ),
+    );
     const towers = mergeGeometries(rocks.map((r) => (r.index ? r.toNonIndexed() : r)))!;
     rocks.forEach((r) => r.dispose());
     this.disposables.push(towers);
