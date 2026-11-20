@@ -34,6 +34,7 @@ import {
   SpriteMaterial,
   SRGBColorSpace,
   Vector2,
+  Vector3,
   type Texture,
 } from 'three/webgpu';
 
@@ -329,6 +330,12 @@ const LANE_SYMBOL_LONG = 6.4;
 const TREE_OUT = 3;
 const TREE_EVERY = 24;
 const TREE_HEIGHT = 4.2;
+/** The glow round a tree's fairy light: across (m), its colour and how fast it twinkles (rad/s). */
+const TWINKLE_HALO = 0.55;
+const TWINKLE_COLOUR = '#ffd27a';
+const TWINKLE_RATE = 2.4;
+/** How far out from the crown the lights and their glow sit (m), clear of the leaves. */
+const TWINKLE_OUT = 0.55;
 /** Delivery drones: how many, their lowest height over the road (m), how far ahead they show. */
 const DRONES = 8;
 const DRONE_HEIGHT = 6.5;
@@ -642,6 +649,7 @@ export class DocklandsStreet {
     this.sweepLasers(seconds);
     this.chase(seconds, still);
     this.flicker(seconds, still);
+    this.twinkle(seconds, still);
     if (this.holoGlobe) this.holoGlobe.rotation.y = (seconds / HOLO_TURN) * Math.PI * 2;
     if (this.holoRing) this.holoRing.rotation.z = (seconds / HOLO_RING_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
@@ -695,6 +703,8 @@ export class DocklandsStreet {
   private tickAt: number | null = null;
   /** The laser show's beams over the city ahead, each with its own place in the fan. */
   private readonly lasers: { beam: Mesh; base: number; phase: number }[] = [];
+  /** The glows round each tree's fairy lights, and each light's twinkle phase. */
+  private readonly treeGlows: { mesh: InstancedMesh; phases: number[] }[] = [];
   /** The blade signs' materials, one per word in SIGN_WORDS. */
   private blades: MeshStandardMaterial[] = [];
   /** The harbour bridge's bulbs, and where each hangs across the harbour (x, m). */
@@ -2155,6 +2165,22 @@ export class DocklandsStreet {
   }
 
   /**
+   * Twinkles the trees' fairy lights: each glow swells and fades at its own pace and moment.
+   * Steady for reduced motion.
+   */
+  private twinkle(seconds: number, still: boolean): void {
+    const colour = new Color();
+    for (const { mesh, phases } of this.treeGlows) {
+      phases.forEach((phase, k) => {
+        const wave = Math.sin(seconds * TWINKLE_RATE * (0.6 + phase) + phase * Math.PI * 2);
+        const bright = still ? 0.8 : 0.25 + 0.75 * (0.5 + 0.5 * wave) ** 2;
+        mesh.setColorAt(k, colour.set(TWINKLE_COLOUR).multiplyScalar(bright));
+      });
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    }
+  }
+
+  /**
    * Stutters the failing blade signs: once a round each drops dark and catches again a few
    * times, then holds lit. Steady for reduced motion.
    */
@@ -2843,6 +2869,20 @@ export class DocklandsStreet {
     const crown = new IcosahedronGeometry(1, 0);
     const light = new SphereGeometry(0.07, 6, 4);
     this.disposables.push(planter, rim, bark, leaves, bulb, unit, trunk, crown, light);
+    // A soft glow round each fairy light, coloured per light so it can twinkle.
+    this.glow ??= this.track(glowTexture());
+    const halo = new MeshBasicMaterial({
+      color: new Color(0xffffff).multiplyScalar(2.4),
+      map: this.glow,
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const haloPlane = new PlaneGeometry(TWINKLE_HALO, TWINKLE_HALO);
+    this.disposables.push(halo, haloPlane);
+    // The twinkle's phases draw from their own sequence, so the trees' layout is unchanged.
+    const twinkleRandom = seeded(461);
     const random = seeded(347);
     const x = roadHalf + TREE_OUT;
     for (let offset = 14; offset < LOOP; offset += TREE_EVERY) {
@@ -2874,6 +2914,9 @@ export class DocklandsStreet {
         group.add(lump);
       }
       // Fairy lights on the crown's surface, mostly on the side towards the road.
+      const glows = new InstancedMesh(haloPlane, halo, 16);
+      const dummy = new Object3D();
+      const phases: number[] = [];
       for (let k = 0; k < 16; k++) {
         const a = random() * Math.PI * 2;
         const y = (random() - 0.4) * 1.6;
@@ -2881,7 +2924,21 @@ export class DocklandsStreet {
         const dot = new Mesh(light, bulb);
         dot.position.set(x - Math.abs(Math.cos(a)) * r, KERB + TREE_HEIGHT + y, Math.sin(a) * r);
         group.add(dot);
+        // Light and glow out from the crown along the light's direction, clear of the leaves.
+        dummy.position
+          .set(dot.position.x - x, dot.position.y - KERB - TREE_HEIGHT, dot.position.z)
+          .multiplyScalar(1 + TWINKLE_OUT / 1.6)
+          .add(new Vector3(x, KERB + TREE_HEIGHT, 0));
+        dot.position.copy(dummy.position);
+        dummy.updateMatrix();
+        glows.setMatrixAt(k, dummy.matrix);
+        glows.setColorAt(k, new Color(TWINKLE_COLOUR));
+        phases.push(twinkleRandom());
       }
+      // Its bounds are the plane's at the origin, not its lights'; never cull it on those.
+      glows.frustumCulled = false;
+      group.add(glows);
+      this.treeGlows.push({ mesh: glows, phases });
       this.group.add(group);
       this.trees.push({ group, offset });
     }
