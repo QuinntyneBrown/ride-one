@@ -94,7 +94,7 @@ const BARRIER_PANELS: readonly BannerPanel[] = [
   { fill: '#111111', ink: '#ffffff', text: 'NYC' },
 ];
 const STREET_BANNERS: readonly (readonly [string, string, string, number])[] = [
-  ['HAPPY NEW YEAR · 2027', '#6a2a9a', '#f2c230', 132],
+  ['HAPPY NEW YEAR · 2027', '#6a2a9a', '#f2c230', 240],
   ['TIMES SQUARE · COUNTDOWN', '#1d3c8f', '#ffffff', 382],
 ];
 const FEATHERS: readonly FeatherWord[] = [
@@ -161,6 +161,9 @@ export class TimesSquareStreet implements SceneStreet {
   private readonly axis = new Vector3(0.6, 0.8, 0.2).normalize();
   private readonly ballMaterials: MeshStandardMaterial[] = [];
   private readonly boardTextures = new Map<number, CanvasTexture>();
+  /** The countdown screens: every one shows the same clock, counting down each minute to zero. */
+  private countdown?: CanvasTexture;
+  private shown = -1;
   private readonly flagMaterials = ['#f2c230', '#6a2a9a', '#ffffff', '#c8283a'].map(
     (colour) => new MeshStandardMaterial({ color: colour, side: DoubleSide, roughness: 0.8 }),
   );
@@ -210,6 +213,13 @@ export class TimesSquareStreet implements SceneStreet {
         this.confetti!.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
       });
       this.confetti.instanceMatrix.needsUpdate = true;
+    }
+    // The countdown screens tick down each minute, redrawn only when the second changes.
+    const left = 60 - (Math.floor(seconds) % 60);
+    if (this.countdown && left !== this.shown) {
+      this.shown = left;
+      drawCountdown((this.countdown.image as HTMLCanvasElement).getContext('2d')!, left);
+      this.countdown.needsUpdate = true;
     }
     // The ball's facets sparkle as it turns through its colours.
     this.ballMaterials.forEach((material, i) => {
@@ -352,9 +362,10 @@ export class TimesSquareStreet implements SceneStreet {
             const h = 6 + random() * 10;
             const w = Math.min(depth - 4, 10 + random() * 14);
             const angle = near > 0 ? 0 : Math.PI;
+            const kind = random() < 0.22 ? -1 : Math.floor(random() * BOARDS.length);
             tower.add(
               this.board(
-                Math.floor(random() * BOARDS.length),
+                kind,
                 w,
                 h,
                 -w / 2 - 1,
@@ -390,7 +401,7 @@ export class TimesSquareStreet implements SceneStreet {
     frame: MeshStandardMaterial,
   ): Group {
     const g = new Group();
-    let texture = this.boardTextures.get(kind);
+    let texture = kind < 0 ? this.clock() : this.boardTextures.get(kind);
     if (!texture) {
       const [text, fill, ink, look] = BOARDS[kind]!;
       texture = this.track(boardTexture(text, fill, ink, look, kind));
@@ -408,6 +419,14 @@ export class TimesSquareStreet implements SceneStreet {
     g.position.set(x, y, z);
     g.rotation.y = angle;
     return g;
+  }
+
+  /** The shared countdown screen's texture, made on first use. */
+  private clock(): CanvasTexture {
+    if (!this.countdown) {
+      this.countdown = this.track(canvasTexture(512, 256, (g) => drawCountdown(g, 60)));
+    }
+    return this.countdown;
   }
 
   private addStreetBanners(roadHalf: number): void {
@@ -527,7 +546,7 @@ export class TimesSquareStreet implements SceneStreet {
       [4, 12, 8],
       [10, 21, 9],
       [3, 31, 9],
-      [7, 42, 11],
+      [-1, 42, 11],
       [1, 54, 10],
       [9, 67, 12],
     ];
@@ -750,4 +769,34 @@ function yearTexture(): CanvasTexture {
     g.font = 'bold 190px sans-serif';
     g.fillText('2027', 256, 108, 500);
   });
+}
+
+/**
+ * A countdown screen: the seconds left in the minute as a big red clock on black, the words
+ * COUNTDOWN TO 2027 over it and a bar running out under it.
+ */
+function drawCountdown(g: CanvasRenderingContext2D, left: number): void {
+  g.fillStyle = '#07070d';
+  g.fillRect(0, 0, 512, 256);
+  g.strokeStyle = 'rgba(255,74,74,0.16)';
+  g.lineWidth = 2;
+  for (let y = 6; y < 256; y += 8) {
+    g.beginPath();
+    g.moveTo(0, y);
+    g.lineTo(512, y);
+    g.stroke();
+  }
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillStyle = '#ffffff';
+  g.font = 'bold 40px sans-serif';
+  g.fillText('COUNTDOWN TO 2027', 256, 34, 470);
+  g.fillStyle = '#ff3a3a';
+  g.font = 'bold 150px sans-serif';
+  const text = left === 60 ? '1:00' : `0:${String(left).padStart(2, '0')}`;
+  g.fillText(text, 256, 140, 480);
+  g.fillStyle = '#3a1a1a';
+  g.fillRect(40, 220, 432, 16);
+  g.fillStyle = '#ffd84a';
+  g.fillRect(40, 220, 432 * (left / 60), 16);
 }
