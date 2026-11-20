@@ -73,6 +73,12 @@ const NIGHT_WEAR = {
   skins: ['#f1c9a5', '#c48a5f', '#8d5a3b', '#5a3a2a', '#e0b08a'],
 };
 
+const SKATE_WEAR = {
+  tops: ['#ff3fb4', '#2fe6ff', '#5aff8a', '#ffd23f', '#f4f0e8'],
+  bottoms: ['#1d1f24', '#ff3fb4', '#2fe6ff', '#f4f0e8'],
+  skins: ['#f1c9a5', '#c48a5f', '#8d5a3b', '#5a3a2a'],
+};
+
 export class MiamiStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
@@ -83,6 +89,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly people: { offset: number; x: number; speed: number; phase: number }[] = [];
   private crowd: Figures | null = null;
   private chatting: Figures | null = null;
+  private skating: Figures | null = null;
+  private readonly skaters: { offset: number; x: number; speed: number; phase: number }[] = [];
   private readonly standers: {
     offset: number;
     x: number;
@@ -226,6 +234,22 @@ export class MiamiStreet implements SceneStreet {
         );
       });
       crowd.commit();
+    }
+    const skating = this.skating;
+    if (skating) {
+      this.skaters.forEach((p, i) => {
+        const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
+        const stride = Math.sin(this.time * 2.6 + p.phase);
+        skating.set(
+          i,
+          p.x + stride * 0.25,
+          heightAt(Math.max(metres, 0)) + 0.15,
+          -metres,
+          (p.speed >= 0 ? 0 : Math.PI) + stride * 0.3,
+          0.95,
+        );
+      });
+      skating.commit();
     }
     const chatting = this.chatting;
     if (chatting) {
@@ -1308,6 +1332,17 @@ export class MiamiStreet implements SceneStreet {
     this.crowd = new Figures(this.group, this.disposables, this.people.length, NIGHT_WEAR, 8137);
     // Knots of two to four people standing and talking: outside the lobbies and against the
     // promenade wall looking out to sea, each swaying a little as they chat.
+    // Skaters on the promenade in neon, gliding past at a skater's pace with a side-to-side
+    // stride.
+    const glide = seeded(8301);
+    for (let k = 0; k < 10; k++)
+      this.skaters.push({
+        offset: 16 + k * 39 + glide() * 8,
+        x: -roadHalf - 1.4 - glide() * 2.2,
+        speed: (glide() < 0.5 ? -1 : 1) * (3.5 + glide() * 2.5),
+        phase: glide() * 6,
+      });
+    this.skating = new Figures(this.group, this.disposables, this.skaters.length, SKATE_WEAR, 8303);
     // The queue for each club, waiting in a line along its rope, and the doorman by the door.
     const queue = seeded(8147);
     for (const club of this.clubs) {
