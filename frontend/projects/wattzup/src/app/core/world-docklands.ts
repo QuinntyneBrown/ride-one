@@ -18,6 +18,8 @@ import {
   Group,
   LineBasicMaterial,
   LineSegments,
+  Points,
+  PointsMaterial,
   type Material,
   Mesh,
   MeshBasicMaterial,
@@ -109,6 +111,12 @@ const SCREENS: readonly string[] = [
 ];
 /** The big wheel on the far shore (FAR_SHORE is 340): where it stands (x, z), its size, cabins and turn (rad/s). */
 const WHEEL_AT = [-334, -560] as const;
+/** The harbour bridge: from and to across the harbour (x, m), how far ahead (z), its deck and
+ * pylon heights (m). FAR_SHORE is declared below, so its span is written out. */
+const BRIDGE_SPAN = [-20, -320] as const;
+const BRIDGE_Z = -640;
+const BRIDGE_DECK = 30;
+const BRIDGE_PYLON = 110;
 const WHEEL_RADIUS = 56;
 const WHEEL_HUB = 64;
 const WHEEL_CABINS = 18;
@@ -1239,8 +1247,98 @@ export class DocklandsStreet {
     this.addSearchlights();
     this.addWheel();
     this.addWhale();
+    this.addHarbourBridge();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
+  }
+
+  /**
+   * A suspension bridge across the harbour mouth, far ahead: two tall pylons outlined in
+   * light, a dark deck with a lit edge, and main cables and hangers strung with white bulbs.
+   * Untouched by fog, like the far shore it reaches.
+   */
+  private addHarbourBridge(): void {
+    const [from, to] = BRIDGE_SPAN;
+    const z = BRIDGE_Z;
+    const steel = new MeshBasicMaterial({ color: new Color('#11121a'), fog: false });
+    const edge = new MeshBasicMaterial({
+      color: new Color('#5ff2ff').multiplyScalar(1.4),
+      fog: false,
+      toneMapped: false,
+    });
+    const wire = new LineBasicMaterial({
+      color: new Color('#7fe8ff').multiplyScalar(1.2),
+      fog: false,
+      toneMapped: false,
+    });
+    const bulbs = new PointsMaterial({
+      color: new Color('#fff4dc').multiplyScalar(1.6),
+      size: 4,
+      sizeAttenuation: false,
+      fog: false,
+      toneMapped: false,
+    });
+    const unit = new BoxGeometry(1, 1, 1);
+    this.disposables.push(steel, edge, wire, bulbs, unit);
+    const box = (material: Material, w: number, h: number, d: number, x: number, y: number) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      this.farShore.add(mesh);
+    };
+    // The deck and its lit edge on the side towards the rider.
+    const deckLong = to - from;
+    box(steel, deckLong, 2.4, 10, (from + to) / 2, BRIDGE_DECK);
+    box(edge, deckLong, 0.5, 0.3, (from + to) / 2, BRIDGE_DECK - 0.4);
+    // Two pylons, each two legs joined by cross-beams, their outer edges lit.
+    const pylons = [from + deckLong * 0.22, to - deckLong * 0.22];
+    for (const px of pylons) {
+      for (const dz of [-1, 1]) {
+        const leg = new Mesh(unit, steel);
+        leg.scale.set(4, BRIDGE_PYLON, 3);
+        leg.position.set(px, BRIDGE_PYLON / 2, z + dz * 5);
+        this.farShore.add(leg);
+        const line = new Mesh(unit, edge);
+        line.scale.set(0.5, BRIDGE_PYLON, 0.5);
+        line.position.set(px, BRIDGE_PYLON / 2, z + dz * 5 + dz * 1.6);
+        this.farShore.add(line);
+      }
+      for (const y of [BRIDGE_DECK + 18, BRIDGE_PYLON - 6]) {
+        const beam = new Mesh(unit, steel);
+        beam.scale.set(3, 3, 10);
+        beam.position.set(px, y, z);
+        this.farShore.add(beam);
+      }
+    }
+    // The main cable on the near side: back-stays from each end up to its pylon, and the main
+    // span sagging between the pylons, with hangers down to the deck and bulbs along it.
+    const top = BRIDGE_PYLON - 1;
+    const cable = (x: number): number => {
+      const [a, b] = pylons as [number, number];
+      if (x <= a) return BRIDGE_DECK + 2 + ((top - BRIDGE_DECK - 2) * (x - from)) / (a - from);
+      if (x >= b) return BRIDGE_DECK + 2 + ((top - BRIDGE_DECK - 2) * (to - x)) / (to - b);
+      const t = (x - a) / (b - a);
+      return top - (top - BRIDGE_DECK - 4) * 4 * t * (1 - t);
+    };
+    const near = z + 5.5;
+    const lines: number[] = [];
+    const lights: number[] = [];
+    const steps = 120;
+    for (let k = 0; k < steps; k++) {
+      const a = from + (deckLong * k) / steps;
+      const b = from + (deckLong * (k + 1)) / steps;
+      lines.push(a, cable(a), near, b, cable(b), near);
+      lights.push(a, cable(a), near);
+      // A row of bulbs along the deck's edge too.
+      if (k % 2 === 0) lights.push(a, BRIDGE_DECK + 1.4, near);
+      if (k % 4 === 0) lines.push(a, cable(a), near, a, BRIDGE_DECK + 1.2, near);
+    }
+    const lineGeometry = new BufferGeometry();
+    lineGeometry.setAttribute('position', new BufferAttribute(new Float32Array(lines), 3));
+    const lightGeometry = new BufferGeometry();
+    lightGeometry.setAttribute('position', new BufferAttribute(new Float32Array(lights), 3));
+    this.disposables.push(lineGeometry, lightGeometry);
+    this.farShore.add(new LineSegments(lineGeometry, wire), new Points(lightGeometry, bulbs));
   }
 
   /** The tallest tower on the skyline: stepped, with a magenta crown and a lit spire. */
