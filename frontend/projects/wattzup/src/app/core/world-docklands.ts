@@ -7,6 +7,7 @@ import {
   BackSide,
   BoxGeometry,
   BufferAttribute,
+  EquirectangularReflectionMapping,
   BufferGeometry,
   CanvasTexture,
   Color,
@@ -134,6 +135,17 @@ export class DocklandsStreet {
   private bridgeStarts: readonly number[] = [];
   private readonly pylon = new Group();
   private readonly dock = new Group();
+  private skyReflection: CanvasTexture | null = null;
+
+  /** The night sky as an environment map, for the water and glass to reflect. */
+  private skyEnv(): CanvasTexture {
+    if (!this.skyReflection) {
+      const texture = this.track(nightSkyTexture());
+      texture.mapping = EquirectangularReflectionMapping;
+      this.skyReflection = texture;
+    }
+    return this.skyReflection;
+  }
   private cables: LineSegments | null = null;
 
   constructor(
@@ -159,6 +171,9 @@ export class DocklandsStreet {
         emissiveIntensity: 0.9,
         roughness: 0.35,
         metalness: 0.3,
+        // The glass catches a little of the night sky's glow.
+        envMap: this.skyEnv(),
+        envMapIntensity: 0.35,
       });
     });
     // One blade sign material for each word, in a neon colour of its own.
@@ -407,10 +422,13 @@ export class DocklandsStreet {
       emissiveIntensity: 2.6,
       side: DoubleSide,
     });
+    // Still water mirrors the sky's violet glow, strongest at the grazing angle it is seen at.
     const water = new MeshStandardMaterial({
-      color: 0x060a16,
-      roughness: 0.12,
-      metalness: 0.85,
+      color: 0x04060d,
+      roughness: 0.06,
+      metalness: 0,
+      envMap: this.skyEnv(),
+      envMapIntensity: 1.6,
       side: DoubleSide,
     });
     const steel = new MeshStandardMaterial({
