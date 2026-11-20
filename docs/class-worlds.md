@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu, Passo Campolongo, Marina Bay Night, Serpentine, Hyde Park, Champs-Élysées Finale, Dutch Tulip Fields, Col du Tourmalet, Napa Vineyards and Glastonbury Fields have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand, Koppenberg Cobbles, Mont Ventoux, Chicago Loop Crit, Golden Gate Park, Havana Malecón, Sea Point, Cape Town, Montreal Jazz Fest, Stanley Park Seawall, Stelvio Pass, Edinburgh Fringe, North Shore, Oahu, Passo Campolongo, Marina Bay Night, Serpentine, Hyde Park, Champs-Élysées Finale, Dutch Tulip Fields, Col du Tourmalet, Napa Vineyards, Glastonbury Fields and Pike Place at Dawn have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -89,7 +89,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 83 | Sprint to the Music | Glastonbury Fields | 78% | Tents, flags and the Pyramid Stage; sprint between music stages. |
 | 84 | Sprints for Climbing | Mur de Huy (concept) |  | The Ardennes' brutal wall, climbing past chapels toward the finish. |
 | 85 | Don't Get Dropped | Arenberg Forest (concept) |  | Paris-Roubaix cobbles through the trees; hold the wheel or lose it. |
-| 86 | Wake Up and Smell the Lactic | Pike Place at Dawn (concept) |  | Coffee steam and fish-market crowds at sunrise over Seattle's Elliott Bay. |
+| 86 | Wake Up and Smell the Lactic | Pike Place at Dawn | 77% | Coffee steam and fish-market crowds at sunrise over Seattle's Elliott Bay. |
 | 87 | 25 Minute Sprint Intervals | Chicago Lakefront Trail (concept) |  | Lake Michigan beaches and the skyline along the waterfront trail. |
 | 88 | 25 Minute High Intensity Intervals | Diwali, Marine Drive (concept) |  | Mumbai's Queen's Necklace lit with lamps and fireworks over the Arabian Sea. |
 | 89 | 25 Minute Hill Training | Hardknott Pass (concept) |  | England's steepest road twisting through the Cumbrian fells. |

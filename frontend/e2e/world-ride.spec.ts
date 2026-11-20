@@ -414,6 +414,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Glastonbury Fields');
   });
 
+  test('rides Wake Up and Smell the Lactic past Pike Place at Dawn', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Wake Up and Smell the Lactic',
+      'Pike Place at Dawn',
+      'wake-up-and-smell-the-lactic',
+    );
+    await expect(world.heading).toHaveText('Pike Place at Dawn');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Pike Place at Dawn');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

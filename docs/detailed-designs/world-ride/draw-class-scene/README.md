@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -330,6 +330,13 @@ None.
   - food stalls and the cider bus once a lap with lit signs;
   - festival-goers wandering the trackway's edges and groups standing, swaying (`Figures`);
   - ahead the Pyramid Stage's frame with beams and screens sweeping through the colours on the ride's clock, the Ribbon Tower, and Glastonbury Tor with St Michael's tower, keeping their bearing.
+- **Pike Place at Dawn (`core/world-pikeplace.ts`).** For `pikeplace`, Seattle's market opening at sunrise:
+  - the brick street with paved pavements, the market's brick and timber fronts on the left with lit shop windows and an arcade roof on posts;
+  - stalls under the arcade with fish on crushed ice, flowers, fruit and vegetables, and a salmon thrown back and forth over the fish counter on the ride's clock;
+  - the red PUBLIC MARKET CENTER sign glowing over the corner with the clock beside it;
+  - coffee carts on the right whose steam rises and thins on the ride's clock, the early crowd strolling and stopping (`Figures`);
+  - the railing and lamps at the bluff's edge, the ground sinking to the waterfront;
+  - Elliott Bay below with a ferry crossing on the ride's clock, the Olympic Mountains lit pink beyond, and downtown's towers and the Space Needle ahead, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -381,6 +388,7 @@ None.
 | `pages/world-ride/tourmalet` | Col du Tourmalet at 4:50, warm-up, next `Devil’s ramp` |
 | `pages/world-ride/napa` | Napa Vineyards at 2:53, warm-up, next `Vineyard rise` |
 | `pages/world-ride/glastonbury` | Glastonbury Fields at 4:50, warm-up, next `Stage-to-stage sprint` |
+| `pages/world-ride/pikeplace` | Pike Place at Dawn at 4:50, warm-up, next `Espresso surge` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
