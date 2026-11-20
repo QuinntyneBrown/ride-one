@@ -43,7 +43,14 @@ import {
   seeded,
   speckle,
 } from './world-kit';
-import { ellipsoid, limb, Spectators, spectatorParts } from './world-caribana-crowd';
+import {
+  ellipsoid,
+  faceParts,
+  faceTexture,
+  limb,
+  Spectators,
+  spectatorParts,
+} from './world-caribana-crowd';
 import type { StreetPoint } from './world-oldtown';
 
 /** The street repeats every LOOP metres; its parts run from BEHIND metres behind the rider. */
@@ -157,6 +164,8 @@ interface Masquerader {
   readonly pose: number;
   /** Frontline masqueraders carry a full backpiece; the rest of the section a collar of plumes. */
   readonly frontline: boolean;
+  /** This dancer's slot among those in dark glasses, or -1. */
+  readonly shaded: number;
   readonly skin: string;
 }
 
@@ -201,6 +210,8 @@ export class CaribanaStreet implements SceneStreet {
   private readonly heldFlags: InstancedMesh[] = [];
   private rags: InstancedMesh | null = null;
   private hair: InstancedMesh | null = null;
+  private faces: InstancedMesh | null = null;
+  private shades: InstancedMesh | null = null;
   private readonly heldCounts = new Map<InstancedMesh, number>();
   private readonly held = new Matrix4();
   private readonly backpieces: InstancedMesh[] = [];
@@ -403,6 +414,8 @@ export class CaribanaStreet implements SceneStreet {
       costumes.setMatrixAt(i, this.matrix);
       this.fringes?.setMatrixAt(i, this.matrix);
       this.hair?.setMatrixAt(i, this.matrix);
+      this.faces?.setMatrixAt(i, this.matrix);
+      if (this.shades && d.shaded >= 0) this.shades.setMatrixAt(d.shaded, this.matrix);
       this.placeHeld(d, i, t);
       const k = d.costume;
       this.legPlumes[k]!.setMatrixAt(count[k]!, this.matrix);
@@ -430,6 +443,8 @@ export class CaribanaStreet implements SceneStreet {
     if (this.medallions) this.medallions.instanceMatrix.needsUpdate = true;
     if (this.fringes) this.fringes.instanceMatrix.needsUpdate = true;
     if (this.hair) this.hair.instanceMatrix.needsUpdate = true;
+    if (this.faces) this.faces.instanceMatrix.needsUpdate = true;
+    if (this.shades) this.shades.instanceMatrix.needsUpdate = true;
     this.bodies.forEach((mesh, p) => {
       mesh.count = posed[p]!;
       mesh.instanceMatrix.needsUpdate = true;
@@ -784,6 +799,7 @@ export class CaribanaStreet implements SceneStreet {
           pose: 0,
           skin: '',
           frontline: false,
+          shaded: -1,
         });
       }
     }
@@ -848,7 +864,7 @@ export class CaribanaStreet implements SceneStreet {
       this.legPlumes.push(this.instanced(legs, plumes, n));
     }
     // Hair under the headdress: a close cap, and braids falling down the back past the collar.
-    const locks: BufferGeometry[] = [ellipsoid(0.114, 0.93, 0.9, 1.04, 0, 1.62, 0.012)];
+    const locks: BufferGeometry[] = [ellipsoid(0.112, 0.95, 0.86, 0.96, 0, 1.645, 0.034)];
     for (let b = 0; b < 7; b++) {
       const a = -0.75 + (b / 6) * 1.5;
       const top = new Vector3(Math.sin(a) * 0.1, 1.6, 0.06 + Math.cos(a) * 0.04);
@@ -863,6 +879,30 @@ export class CaribanaStreet implements SceneStreet {
     const hairs = seeded(149);
     this.dancers.forEach((_, i) =>
       this.hair!.setColorAt(i, c.set(dyes[Math.floor(hairs() * dyes.length)]!)),
+    );
+    // Faces, and dark glasses on one dancer in five.
+    const { face, shades } = faceParts();
+    this.disposables.push(face, shades);
+    this.faces = this.instanced(
+      face,
+      this.material({
+        map: this.track(faceTexture()),
+        transparent: true,
+        alphaTest: 0.1,
+        roughness: 0.6,
+        depthWrite: false,
+      }),
+      n,
+    );
+    const shading = seeded(151);
+    let worn = 0;
+    this.dancers.forEach((d, i) => {
+      if (shading() < 0.2) this.dancers[i] = { ...d, shaded: worn++ };
+    });
+    this.shades = this.instanced(
+      shades,
+      this.material({ color: 0x0b0b0d, roughness: 0.15, metalness: 0.5 }),
+      worn,
     );
     // Flags on sticks and rags to wave.
     const flag = new PlaneGeometry(0.6, 0.4, 3, 1);
