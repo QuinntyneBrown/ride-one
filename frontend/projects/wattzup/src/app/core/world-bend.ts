@@ -12,7 +12,9 @@ import {
   max,
   min,
   modelWorldMatrix,
+  modelNormalMatrix,
   modelWorldMatrixInverse,
+  normalLocal,
   positionLocal,
   positionPrevious,
   select,
@@ -52,6 +54,14 @@ export class RoadBend {
 
   constructor() {
     const samples = this.samples;
+    // The heading of the road at a world point, in radians.
+    const headingAt = (p: Node<'vec3'>) => {
+      const f = clamp(p.z.negate().sub(BEND_FROM).div(BEND_STEP), 0, BEND_SAMPLES - 1);
+      const i = min(floor(f), BEND_SAMPLES - 2);
+      const a = samples.element(i.toInt()) as unknown as Node<'vec4'>;
+      const b = samples.element(i.toInt().add(1)) as unknown as Node<'vec4'>;
+      return a.z.add(b.z.sub(a.z).mul(f.sub(i)));
+    };
     const bendWorld = (p: Node<'vec3'>) => {
       const m = p.z.negate();
       const f = clamp(m.sub(BEND_FROM).div(BEND_STEP), 0, BEND_SAMPLES - 1);
@@ -88,6 +98,17 @@ export class RoadBend {
       const toWorld = modelWorldMatrix.mul(vec4(positionLocal, 1)).xyz;
       const local = modelWorldMatrixInverse.mul(vec4(bendWorld(toWorld), 1)).xyz;
       positionPrevious.assign(local);
+      // The surface turns with the road, so a façade on a bend is lit as it faces, not as it
+      // would face on the straight road: the world normal turns by the heading, about the up axis,
+      // and goes back to local space through the transpose of the model matrix.
+      const phi = headingAt(toWorld);
+      const n = modelNormalMatrix.mul(normalLocal);
+      const turned = vec3(
+        n.x.mul(cos(phi)).sub(n.z.mul(sin(phi))),
+        n.y,
+        n.x.mul(sin(phi)).add(n.z.mul(cos(phi))),
+      );
+      normalLocal.assign(vec4(turned, 0).mul(modelWorldMatrix).xyz);
       return local;
     })();
     // A sprite's position node is its centre in local space.
