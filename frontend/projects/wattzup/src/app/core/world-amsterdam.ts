@@ -382,7 +382,7 @@ export class AmsterdamStreet implements SceneStreet {
           map: this.track(
             facadeTexture(
               kind,
-              FRONTS[(k * 3 + v * 5) % FRONTS.length]!,
+              kind === 'cornice' ? STONE[v]! : FRONTS[(k * 3 + v * 5) % FRONTS.length]!,
               503 + k * 7 + v,
               v % 2 === 1,
             ),
@@ -3319,6 +3319,8 @@ const FRONTS = [
   '#2f3a34',
   '#7a4a36',
 ];
+/** The sandstone and limestone of the Herengracht's mansions, and one in grey render. */
+const STONE = ['#d9cfb8', '#cfc4a8', '#e6dccb', '#b8b4ac'];
 /** Where the front's eaves (or cornice) line sits, as a share of the house's height. */
 const EAVES = 0.74;
 
@@ -3693,9 +3695,17 @@ function facadeTexture(
         }
       }
     } else {
-      // Painted render, faintly lined out as ashlar.
-      g.fillStyle = 'rgba(0,0,0,0.06)';
-      for (let y = 0; y < h; y += 14) g.fillRect(0, y, w, 0.8);
+      // Stone or render, lined out as ashlar: courses with staggered joints, and on a mansion
+      // the ground floor rusticated in deep-cut bands.
+      g.fillStyle = 'rgba(0,0,0,0.08)';
+      for (let y = 0, row = 0; y < h; y += 14, row++) {
+        g.fillRect(0, y, w, 0.8);
+        for (let x = row % 2 ? 0 : 18; x < w; x += 36) g.fillRect(x, y, 0.8, 14);
+      }
+      if (kind === 'cornice') {
+        g.fillStyle = 'rgba(0,0,0,0.22)';
+        for (let y = h - 175; y < h - 40; y += 12) g.fillRect(0, y, w, 2.5);
+      }
     }
     // The outline, trimmed in sandstone.
     g.save();
