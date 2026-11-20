@@ -116,6 +116,9 @@ const VENTS: readonly [number, -1 | 1][] = [
 const PUFFS = 6;
 const STEAM_HEIGHT = 5;
 const STEAM_LIFE = 4;
+/** The neon lights under the vents, in turn, and the haze their steam fades to as it rises. */
+const VENT_LIGHTS = ['#ff4fd8', '#3fe0ff', '#a070ff'];
+const STEAM_HAZE = '#c8c4e6';
 /** What the towers' screens scroll, each on its own neon ground. */
 const SCREEN_WIDE = 8;
 /** The colour each screen's light throws on the pavement, as its gradient's leading colour. */
@@ -542,7 +545,11 @@ export class DocklandsStreet {
     group: Group;
     offset: number;
     puffs: { mesh: Mesh; phase: number }[];
+    /** The neon under its grate. */
+    hue: Color;
   }[] = [];
+  /** The haze vent steam fades to as it rises. */
+  private readonly steamHaze = new Color(STEAM_HAZE);
   private readonly train = new Group();
   private readonly lanterns: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
@@ -3651,20 +3658,39 @@ export class DocklandsStreet {
     const puff = new PlaneGeometry(1, 1);
     this.disposables.push(grate, plate, puff);
     const random = seeded(241);
-    for (const [offset, side] of VENTS) {
+    for (const [i, [offset, side]] of VENTS.entries()) {
       const group = new Group();
       const x = side * (roadHalf - 0.9);
       const floor = new Mesh(plate, grate);
       floor.rotation.x = -Math.PI / 2;
       floor.position.set(x, 0.02, 0);
       group.add(floor);
+      // A neon light under the grate, glowing up through it and colouring the steam.
+      const hue = new Color(VENT_LIGHTS[i % VENT_LIGHTS.length]!);
+      const under = new MeshBasicMaterial({
+        color: hue.clone().multiplyScalar(1.6),
+        map: texture,
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        toneMapped: false,
+      });
+      this.disposables.push(under);
+      const pool = new Mesh(puff, under);
+      pool.rotation.x = -Math.PI / 2;
+      pool.scale.set(3.4, 2.6, 1);
+      pool.position.set(x, 0.03, 0);
+      group.add(pool);
       const puffs: { mesh: Mesh; phase: number }[] = [];
       for (let k = 0; k < PUFFS; k++) {
         const material = new MeshBasicMaterial({
-          color: new Color('#c8c4e6'),
+          color: new Color(STEAM_HAZE),
           map: texture,
           transparent: true,
           depthWrite: false,
+          toneMapped: false,
         });
         this.disposables.push(material);
         const mesh = new Mesh(puff, material);
@@ -3674,7 +3700,7 @@ export class DocklandsStreet {
       }
       group.visible = false;
       this.group.add(group);
-      this.vents.push({ group, offset, puffs });
+      this.vents.push({ group, offset, puffs, hue });
     }
     this.steam(0);
   }
@@ -3695,7 +3721,13 @@ export class DocklandsStreet {
         mesh.position.y = 0.3 + life * STEAM_HEIGHT;
         const size = 1.6 + life * 4.2;
         mesh.scale.set(size, size, 1);
-        (mesh.material as MeshBasicMaterial).opacity = 0.9 * Math.sin(Math.PI * life) ** 1.2;
+        const material = mesh.material as MeshBasicMaterial;
+        material.opacity = 0.9 * Math.sin(Math.PI * life) ** 1.2;
+        // Lit in the vent's neon low down, fading to the city's haze as it climbs.
+        material.color
+          .copy(vent.hue)
+          .multiplyScalar(1.8)
+          .lerp(this.steamHaze, Math.min(life * 1.6, 1));
       }
     }
   }
