@@ -399,6 +399,17 @@ const SHELTER_ADVERTS: readonly (readonly [string, string])[] = [
 /** Kerbside bollards: how high (m) and how far apart (m). */
 const BOLLARD_HEIGHT = 0.95;
 const BOLLARD_EVERY = 8;
+/**
+ * The bollards' light rings and the pulses racing away down them: the ring's cyan, its flare
+ * across (m), how far apart the pulses run (m), how fast (m/s) and how long each is (m).
+ */
+const BOLLARD_RING = '#5ff2ff';
+const BOLLARD_FLARE = 1.1;
+const BOLLARD_PULSE_GAP = 56;
+const BOLLARD_PULSE_SPEED = 28;
+const BOLLARD_PULSE_WIDE = 6;
+/** Where the pulses start (m), so one is passing the nearest bollards as the ride settles. */
+const BOLLARD_PULSE_PHASE = 12;
 /** Night-market stalls on the quay promenade, at these offsets round the loop. */
 const STALLS: readonly number[] = [26, 33, 40, 140, 147, 290, 297, 304, 460, 467, 580];
 /** Cooking steam over each stall: puffs, how long each takes to rise (s) and how high (m). */
@@ -597,7 +608,14 @@ export class DocklandsStreet {
   /** Cooking steam over the stalls: each puff and where it is in its rise. */
   private readonly stallSteam: { mesh: Mesh; phase: number; drift: number }[] = [];
   /** Pairs of lit bollards along the kerbs, every BOLLARD_EVERY metres round the loop. */
-  private readonly bollards: { group: Group; offset: number }[] = [];
+  private readonly bollards: {
+    group: Group;
+    offset: number;
+    ring: MeshBasicMaterial;
+    glow: MeshBasicMaterial;
+    /** How far ahead of the rider it stood when last placed (m). */
+    metres: number;
+  }[] = [];
   /** Street trees in lit planters along the far pavement, round the loop. */
   private readonly trees: { group: Group; offset: number }[] = [];
   /** Bus shelters on the far pavement, at SHELTERS round the loop. */
@@ -671,6 +689,7 @@ export class DocklandsStreet {
     this.flicker(seconds, still);
     this.twinkle(seconds, still);
     this.blinkTaxis(seconds, still);
+    this.pulseBollards(seconds, still);
     if (this.holoGlobe) this.holoGlobe.rotation.y = (seconds / HOLO_TURN) * Math.PI * 2;
     if (this.holoRing) this.holoRing.rotation.z = (seconds / HOLO_RING_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
@@ -2187,6 +2206,24 @@ export class DocklandsStreet {
     this.farShore.add(new LineSegments(lineGeometry, wire), lit);
   }
 
+  /**
+   * Races pulses of light away down the bollards, like runway lights leading the riders on:
+   * every BOLLARD_PULSE_GAP metres a pulse lights the pairs it passes. Steady for reduced
+   * motion.
+   */
+  private pulseBollards(seconds: number, still: boolean): void {
+    for (const { ring, glow, metres } of this.bollards) {
+      const gap = BOLLARD_PULSE_GAP;
+      const along =
+        (((metres - seconds * BOLLARD_PULSE_SPEED + BOLLARD_PULSE_PHASE) % gap) + gap) % gap;
+      const near = Math.min(along, gap - along) / BOLLARD_PULSE_WIDE;
+      const pulse = still ? 0 : Math.exp(-near * near);
+      ring.color.set(BOLLARD_RING).multiplyScalar(1.6 + pulse * 2.4);
+      glow.opacity = pulse;
+      glow.color.set(BOLLARD_RING).multiplyScalar(1.4 + pulse);
+    }
+  }
+
   /** Flashes the lead cabs' indicators on and off. Lit steady for reduced motion. */
   private blinkTaxis(seconds: number, still: boolean): void {
     const on = still || (seconds * BLINK_RATE + BLINK_PHASE) % 1 < 0.55;
@@ -2833,27 +2870,39 @@ export class DocklandsStreet {
    */
   private addBollards(roadHalf: number): void {
     const steel = new MeshStandardMaterial({ color: 0x1b1d26, metalness: 0.6, roughness: 0.35 });
-    const ring = new MeshBasicMaterial({
-      color: new Color('#5ff2ff').multiplyScalar(1.6),
-      toneMapped: false,
-    });
     const post = new CylinderGeometry(0.11, 0.13, BOLLARD_HEIGHT, 10);
     const band = new CylinderGeometry(0.125, 0.125, 0.09, 10);
-    this.disposables.push(steel, ring, post, band);
+    const flare = new PlaneGeometry(BOLLARD_FLARE, BOLLARD_FLARE);
+    this.glow ??= this.track(glowTexture());
+    this.disposables.push(steel, post, band, flare);
     const x = roadHalf + KERB_WIDTH + 0.35;
     for (let offset = 0; offset < LOOP; offset += BOLLARD_EVERY) {
       // Clear of the crossings, whose beacons stand at the kerbs.
       if (CROSSINGS.some((c) => Math.abs(c - offset) < 4)) continue;
       const group = new Group();
+      // Each pair its own ring and flare, so the pulse can light them pair by pair.
+      const ring = new MeshBasicMaterial({ color: new Color(BOLLARD_RING), toneMapped: false });
+      const glow = new MeshBasicMaterial({
+        color: new Color(BOLLARD_RING),
+        map: this.glow,
+        transparent: true,
+        opacity: 0,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false,
+      });
+      this.disposables.push(ring, glow);
       for (const side of [-1, 1]) {
         const stand = new Mesh(post, steel);
         stand.position.set(side * x, KERB + BOLLARD_HEIGHT / 2, 0);
         const light = new Mesh(band, ring);
         light.position.set(side * x, KERB + BOLLARD_HEIGHT - 0.12, 0);
-        group.add(stand, light);
+        const halo = new Mesh(flare, glow);
+        halo.position.set(side * x, KERB + BOLLARD_HEIGHT - 0.12, 0.2);
+        group.add(stand, light, halo);
       }
       this.group.add(group);
-      this.bollards.push({ group, offset });
+      this.bollards.push({ group, offset, ring, glow, metres: 0 });
     }
   }
 
@@ -4940,6 +4989,7 @@ export class DocklandsStreet {
     }
     for (const bollard of this.bollards) {
       const metres = ((((bollard.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      bollard.metres = metres;
       bollard.group.visible = !this.onBridge(Math.max(metres, 0));
       bollard.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
