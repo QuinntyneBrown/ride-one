@@ -26,6 +26,9 @@ const PADS = 6;
 const PAD = 2;
 /** The chevron board stands this far before the apex, where the turn begins. */
 const CHEVRON_BEFORE = 14;
+/** The fans gathered at each corner, and their shirts. */
+const KNOT = 6;
+const SHIRTS = [0xd8283a, 0x2456a6, 0xf2f0e8, 0x2f8f4e, 0xf29c1f, 0x6b3fa0, 0x1b1e24];
 
 export class Corners {
   readonly group = new Group();
@@ -61,8 +64,10 @@ export class Corners {
       vest: new MeshStandardMaterial({ color: 0xe8f021, roughness: 0.6 }),
       skin: new MeshStandardMaterial({ color: 0xc58c64, roughness: 0.8 }),
       yellow: new MeshStandardMaterial({ color: 0xf5d000, roughness: 0.7, side: DoubleSide }),
+      shirts: SHIRTS.map((color) => new MeshStandardMaterial({ color, roughness: 0.8 })),
     };
-    this.disposables.push(...Object.values(parts));
+    const { shirts, ...rest } = parts;
+    this.disposables.push(...Object.values(rest), ...shirts);
     for (let c = 0; c < POOL; c++) {
       const corner = new Group();
       // Foam padding along the outside barrier, red and white mattresses in turn, where a rider
@@ -89,10 +94,46 @@ export class Corners {
         corner.add(post);
       }
       corner.add(this.marshal(barrier, kerb, parts));
+      corner.add(this.knot(barrier, kerb, parts, c));
       corner.visible = false;
       this.corners.push(corner);
       this.group.add(corner);
     }
+  }
+
+  /**
+   * The fans who come to watch the riders lean through the corner: a knot of them along the
+   * outside barrier either side of the marshal, some with both arms up.
+   */
+  private knot(barrier: number, kerb: number, parts: MarshalParts, seed: number): Group {
+    const knot = new Group();
+    for (let i = 0; i < KNOT; i++) {
+      const fan = new Group();
+      const along = (i - (KNOT - 1) / 2) * 0.75 + (i >= KNOT / 2 ? 0.9 : -0.9);
+      const tall = 0.88 + ((i * 7 + seed * 3) % 5) * 0.04;
+      fan.position.set(-barrier - 0.5 - (i % 2) * 0.45, kerb, along);
+      fan.scale.setScalar(tall);
+      const shirt = parts.shirts[(i + seed * 2) % parts.shirts.length]!;
+      const legs = new Mesh(parts.legs, parts.trousers);
+      legs.position.y = 0.45;
+      const torso = new Mesh(parts.torso, shirt);
+      torso.position.y = 1.22;
+      const head = new Mesh(parts.head, parts.skin);
+      head.position.y = 1.72;
+      fan.add(legs, torso, head);
+      // Every other fan cheers, both arms up.
+      if (i % 2 === 0) {
+        for (const side of [-1, 1]) {
+          const arm = new Mesh(parts.arm, shirt);
+          arm.position.set(0, 1.78, side * 0.22);
+          arm.rotation.x = side * 0.35;
+          fan.add(arm);
+        }
+      }
+      for (const mesh of fan.children) mesh.castShadow = true;
+      knot.add(fan);
+    }
+    return knot;
   }
 
   /**
@@ -190,4 +231,5 @@ interface MarshalParts {
   readonly vest: MeshStandardMaterial;
   readonly skin: MeshStandardMaterial;
   readonly yellow: MeshStandardMaterial;
+  readonly shirts: readonly MeshStandardMaterial[];
 }

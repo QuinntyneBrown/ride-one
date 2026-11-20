@@ -11,7 +11,7 @@ import {
   BoxGeometry,
   CapsuleGeometry,
   Color,
-  type BufferGeometry,
+  BufferGeometry,
   type CanvasTexture,
   ConeGeometry,
   CylinderGeometry,
@@ -32,6 +32,7 @@ import {
   Shape,
   SphereGeometry,
   type Texture,
+  TorusGeometry,
   TubeGeometry,
   Vector2,
   Vector3,
@@ -162,6 +163,17 @@ export class HavanaStreet implements SceneStreet {
   private readonly crestList: { offset: number; delay: number; length: number }[] = [];
   private foam: Texture | null = null;
   private roadHalf = 0;
+  private birds: InstancedMesh | null = null;
+  private readonly birdList: {
+    offset: number;
+    x: number;
+    height: number;
+    radius: number;
+    turn: number;
+    phase: number;
+    size: number;
+    glide: boolean;
+  }[] = [];
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -183,6 +195,8 @@ export class HavanaStreet implements SceneStreet {
     this.addMorro(roadHalf);
     this.addSkyline();
     this.addClouds();
+    this.addBoats(roadHalf);
+    this.addBirds(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -288,6 +302,24 @@ export class HavanaStreet implements SceneStreet {
         this.crests!.setMatrixAt(i, this.crest);
       });
       this.crests.instanceMatrix.needsUpdate = true;
+    }
+    if (this.birds) {
+      this.birdList.forEach((b, i) => {
+        // Each bird circles slowly, flapping, or holds its wings out to glide.
+        const a = b.phase + this.time * b.turn;
+        const metres = loopMetres(b.offset + Math.sin(a) * b.radius, s, LOOP, BEHIND);
+        const flap = b.glide ? 0.15 : Math.sin(this.time * 9 + b.phase) * 0.5;
+        this.spin.setFromAxisAngle(this.upward, a + Math.PI / 2);
+        this.stretch.set(b.size, b.size * (1 + flap), b.size);
+        this.at.set(
+          b.x + Math.cos(a) * b.radius,
+          heightAt(Math.max(metres, 0)) + b.height,
+          -metres,
+        );
+        this.drop.compose(this.at, this.spin, this.stretch);
+        this.birds!.setMatrixAt(i, this.drop);
+      });
+      this.birds.instanceMatrix.needsUpdate = true;
     }
     this.horizon.position.set(0, heightAt(0), 0);
   }
@@ -1564,6 +1596,140 @@ export class HavanaStreet implements SceneStreet {
       cloud.renderOrder = -1;
       this.horizon.add(cloud);
     }
+  }
+
+  /**
+   * Life on the Gulf: fishermen afloat in black inner tubes (neumáticos) just off the wall, small
+   * wooden skiffs further out, each with its fisherman, and freighters on the horizon.
+   */
+  private addBoats(roadHalf: number): void {
+    const random = seeded(1213);
+    const wall = -roadHalf - LANES - PROMENADE - 0.7;
+    const rubber = this.material({ color: 0x18191b, roughness: 0.7 });
+    const skin = this.material({ color: 0x8d5a3b, roughness: 0.8 });
+    const shirt = this.material({ color: 0xf2efe6, roughness: 0.85 });
+    const tube = new TorusGeometry(0.45, 0.17, 8, 16);
+    tube.rotateX(Math.PI / 2);
+    const torso = new CapsuleGeometry(0.17, 0.3, 3, 8);
+    const head = new SphereGeometry(0.11, 10, 8);
+    this.disposables.push(tube, torso, head);
+    const water = -SEA;
+    for (let offset = 12; offset < LOOP; offset += 40 + random() * 50) {
+      const float = new Group();
+      const ring = new Mesh(tube, rubber);
+      ring.position.y = water + 0.05;
+      const body = new Mesh(torso, shirt);
+      body.position.y = water + 0.3;
+      const face = new Mesh(head, skin);
+      face.position.y = water + 0.62;
+      float.add(ring, body, face);
+      this.group.add(float);
+      this.props.push({ mesh: float, offset, x: wall - 18 - random() * 40 });
+    }
+    // Wooden skiffs: a planked hull drawn as a side profile, painted, with a fisherman aboard.
+    const hull = profile(
+      [
+        [-2.2, 0.75],
+        [-2.0, 0.1],
+        [1.6, 0.0],
+        [2.5, 0.55],
+        [2.7, 0.95],
+      ],
+      1.5,
+      0.04,
+    );
+    this.disposables.push(hull);
+    const paints = [0x2b6cb0, 0xe9e4d8, 0xc0392b, 0x2a9d8f];
+    for (let offset = 30; offset < LOOP; offset += 90 + random() * 60) {
+      const boat = new Group();
+      const shell = new Mesh(
+        hull,
+        this.material({ color: paints[Math.floor(random() * 4)]!, roughness: 0.7 }),
+      );
+      shell.position.y = water - 0.25;
+      const body = new Mesh(torso, shirt);
+      body.position.set(0, water + 0.75, 0.6);
+      const face = new Mesh(head, skin);
+      face.position.set(0, water + 1.08, 0.6);
+      boat.add(shell, body, face);
+      boat.rotation.y = random() * Math.PI * 2;
+      this.group.add(boat);
+      this.props.push({ mesh: boat, offset, x: wall - 90 - random() * 160 });
+    }
+    // Freighters on the horizon: a long dark hull, a white bridge house aft, a funnel.
+    const steel = this.material({ color: 0x3a3f46, roughness: 0.8 });
+    const white = this.material({ color: 0xe8e8e2, roughness: 0.7 });
+    for (const [x, z, k] of [
+      [-1500, -1900, 1],
+      [-900, -2600, 0.8],
+    ] as const) {
+      const ship = new Group();
+      const hullBox = new Mesh(this.unit, steel);
+      hullBox.scale.set(14, 9, 120);
+      hullBox.position.y = water + 3;
+      const bridge = new Mesh(this.unit, white);
+      bridge.scale.set(12, 12, 14);
+      bridge.position.set(0, water + 13, 45);
+      const funnel = new Mesh(this.unit, steel);
+      funnel.scale.set(4, 8, 5);
+      funnel.position.set(0, water + 22, 52);
+      ship.add(hullBox, bridge, funnel);
+      ship.scale.setScalar(k);
+      ship.rotation.y = 1.3;
+      ship.position.set(x, 0, z);
+      this.horizon.add(ship);
+    }
+  }
+
+  /**
+   * Seabirds over the water: gulls wheeling low along the wall, and frigatebirds, long-winged and
+   * dark, soaring high over the Gulf on still wings. Each is a bent pair of wings, instanced.
+   */
+  private addBirds(roadHalf: number): void {
+    const random = seeded(1223);
+    const wall = -roadHalf - LANES - PROMENADE;
+    for (let i = 0; i < 26; i++) {
+      const high = i % 3 === 0;
+      this.birdList.push({
+        offset: random() * LOOP,
+        x: wall - 6 - random() * (high ? 120 : 40),
+        height: high ? 30 + random() * 40 : 5 + random() * 10,
+        radius: 6 + random() * 18,
+        turn: (random() < 0.5 ? 1 : -1) * (0.15 + random() * 0.2),
+        phase: random() * Math.PI * 2,
+        size: high ? 1.6 : 0.7,
+        glide: high || random() < 0.4,
+      });
+    }
+    // A gull's wings: two slim triangles from the body, raised and bent at the wrist.
+    const wing = new BufferGeometry();
+    const v = [
+      [0, 0, 0.25],
+      [0, 0, -0.2],
+      [0.5, 0.15, 0.05],
+      [0.5, 0.15, 0.05],
+      [0, 0, -0.2],
+      [1, -0.05, -0.15],
+      [0, 0, 0.25],
+      [-0.5, 0.15, 0.05],
+      [0, 0, -0.2],
+      [-0.5, 0.15, 0.05],
+      [-1, -0.05, -0.15],
+      [0, 0, -0.2],
+    ].flat();
+    wing.setAttribute('position', new BufferAttribute(new Float32Array(v), 3));
+    wing.computeVertexNormals();
+    this.disposables.push(wing);
+    this.birds = new InstancedMesh(
+      wing,
+      this.material({ color: 0xe8e6e0, roughness: 0.8, side: DoubleSide }),
+      this.birdList.length,
+    );
+    const dark = new Color(0x2a2a2e);
+    const pale = new Color(0xf0eee8);
+    this.birdList.forEach((b, i) => this.birds!.setColorAt(i, b.size > 1 ? dark : pale));
+    this.birds.frustumCulled = false;
+    this.group.add(this.birds);
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
