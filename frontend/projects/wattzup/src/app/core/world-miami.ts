@@ -36,6 +36,7 @@ import {
   loopMetres,
   Palms,
   Ribbons,
+  Yachts,
   type SceneStreet,
   seeded,
   speckle,
@@ -160,6 +161,7 @@ export class MiamiStreet implements SceneStreet {
     this.addGateway(roadHalf);
     this.addCollins(roadHalf);
     this.addSteam();
+    this.addYachts(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1781,6 +1783,49 @@ export class MiamiStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x });
       this.vents.push(puffs);
+    }
+  }
+
+  /**
+   * Yachts riding at anchor offshore, lengthwise to the beach, their decks lit and a
+   * white anchor light at each masthead, slowly passed as the rider rolls along.
+   */
+  private addYachts(roadHalf: number): void {
+    const random = seeded(8371);
+    const yachts = new Yachts(this.disposables, [0xf8f8f4, 0x1a1e2a, 0xe8e4dc, 0x2a3a5a]);
+    const deckLight = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      color: 0xffe0b0,
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(deckLight);
+    for (let k = 0; k < 6; k++) {
+      const length = 22 + random() * 26;
+      const yacht = yachts.make(k, length, random);
+      yacht.rotation.y = (random() - 0.5) * 0.4;
+      const holder = new Group();
+      holder.add(yacht);
+      for (let i = 0; i < 4; i++) {
+        const lamp = new Mesh(this.flat, deckLight);
+        lamp.scale.set(3, 3, 1);
+        lamp.position.set(0, 3 + (i % 2) * 2.4, (i - 1.5) * length * 0.22);
+        holder.add(lamp);
+      }
+      const anchor = new Mesh(this.flat, this.halo);
+      anchor.scale.set(2, 2, 1);
+      anchor.position.y = 9 + length * 0.1;
+      holder.add(anchor);
+      holder.position.y = -SEA - 0.1;
+      const outer = new Group();
+      outer.add(holder);
+      this.group.add(outer);
+      this.props.push({
+        mesh: outer,
+        offset: 30 + k * 66 + random() * 20,
+        x: -roadHalf - 70 - random() * 90,
+      });
     }
   }
 
