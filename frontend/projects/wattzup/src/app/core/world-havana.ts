@@ -220,6 +220,7 @@ export class HavanaStreet implements SceneStreet {
     this.addVendors(roadHalf);
     this.addPotholes(roadHalf);
     this.addDivers(roadHalf);
+    this.addTrio(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -2792,6 +2793,91 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x });
     }
+  }
+
+  /**
+   * A son trio playing for the passers-by on the promenade, in white guayaberas and straw hats:
+   * a guitarist, a man shaking maracas, and a bongo player on a stool, the guitar's case open on
+   * the ground before them for coins.
+   */
+  private addTrio(roadHalf: number): void {
+    const trio = new Group();
+    const white = this.material({ color: 0xf4f1ea, roughness: 0.85 });
+    const slacks = this.material({ color: 0x2b2d42, roughness: 0.9 });
+    const skin = this.material({ color: 0x6b4128, roughness: 0.8 });
+    const straw = this.material({ color: 0xe8d8a8, roughness: 0.9 });
+    const wood = this.material({ color: 0x9a5a2a, roughness: 0.5 });
+    const dark = this.material({ color: 0x2a1a10, roughness: 0.6 });
+    const torso = new CapsuleGeometry(0.18, 0.42, 3, 8);
+    const leg = new CapsuleGeometry(0.075, 0.75, 3, 6);
+    const arm = new CapsuleGeometry(0.05, 0.45, 3, 6);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const brim = new CylinderGeometry(0.22, 0.22, 0.02, 12);
+    const crown = new CylinderGeometry(0.1, 0.12, 0.1, 10);
+    const ball = new SphereGeometry(0.06, 8, 6);
+    const drum = new CylinderGeometry(0.11, 0.09, 0.22, 12);
+    this.disposables.push(torso, leg, arm, head, brim, crown, ball, drum);
+    const add = (
+      g: BufferGeometry,
+      m: MeshStandardMaterial,
+      x: number,
+      y: number,
+      z: number,
+      rx = 0,
+      rz = 0,
+    ) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.rotation.set(rx, 0, rz);
+      mesh.castShadow = true;
+      trio.add(mesh);
+      return mesh;
+    };
+    const player = (x: number, z: number, seated: boolean) => {
+      const hip = seated ? 0.5 : 0.88;
+      for (const side of [-0.1, 0.1]) {
+        if (seated) {
+          add(leg, slacks, x + side, 0.48, z + 0.22, Math.PI / 2);
+          add(leg, slacks, x + side, 0.25, z + 0.45);
+        } else add(leg, slacks, x + side, 0.45, z);
+      }
+      add(torso, white, x, hip + 0.32, z);
+      add(head, skin, x, hip + 0.8, z);
+      add(brim, straw, x, hip + 0.9, z);
+      add(crown, straw, x, hip + 0.96, z);
+      return hip;
+    };
+    // The guitarist, the guitar across his body.
+    const g = player(-0.9, 0, false);
+    const guitar = add(head, wood, -0.85, g + 0.2, 0.2);
+    guitar.scale.set(2.6, 3.4, 0.9);
+    const neck = add(this.unit, dark, -0.6, g + 0.38, 0.22, 0, -1.0);
+    neck.scale.set(0.05, 0.7, 0.04);
+    add(arm, skin, -0.75, g + 0.25, 0.2, 1.2);
+    add(arm, white, -1.08, g + 0.35, 0.12, 0.6);
+    // The maraca player, both maracas up.
+    const m = player(0, -0.2, false);
+    for (const side of [-0.28, 0.28]) {
+      add(arm, white, side, m + 0.62, -0.1, 0, side > 0 ? -0.5 : 0.5);
+      add(ball, this.material({ color: 0xc8202f, roughness: 0.5 }), side * 1.5, m + 0.95, -0.1);
+    }
+    // The bongo player on his stool, the drums between his knees.
+    const b = player(0.9, 0.1, true);
+    const stool = add(drum, wood, 0.9, 0.22, 0.1);
+    stool.scale.set(1.4, 2, 1.4);
+    for (const side of [-0.1, 0.1]) add(drum, wood, 0.9 + side * 1.2, b + 0.08, 0.5);
+    for (const side of [-0.22, 0.22]) add(arm, white, 0.9 + side, b + 0.3, 0.32, 0.9);
+    // The open guitar case on the ground before them.
+    const lid = add(this.unit, dark, 0, 0.06, 1.0);
+    lid.scale.set(1.0, 0.1, 0.38);
+    const lining = add(this.unit, this.material({ color: 0x8a1a2a, roughness: 0.9 }), 0, 0.1, 1.0);
+    lining.scale.set(0.9, 0.04, 0.3);
+    trio.rotation.y = -Math.PI / 2;
+    trio.position.y = KERB;
+    const holder = new Group();
+    holder.add(trio);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 57, x: -roadHalf - LANES - 2.6 });
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
