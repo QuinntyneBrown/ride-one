@@ -1198,6 +1198,51 @@ export class MiamiStreet implements SceneStreet {
       });
     }
     this.trafficX = -roadHalf * 0.5;
+    // The trolley, coming the other way: a boxy bus in green and orange livery with a row of
+    // lit windows, a glowing destination board and its headlights on.
+    const trolley = new Group();
+    const livery = this.material({
+      map: this.track(trolleyTexture(false)),
+      emissive: 0xffffff,
+      emissiveMap: this.track(trolleyTexture(true)),
+      emissiveIntensity: 1.2,
+      roughness: 0.4,
+      metalness: 0.2,
+    });
+    const roofPaint = this.material({ color: 0xf4f0e8, roughness: 0.5 });
+    const shell = new Mesh(this.unit, livery);
+    shell.scale.set(2.5, 2.7, 10);
+    shell.position.y = 1.75;
+    const roofTop = new Mesh(this.unit, roofPaint);
+    roofTop.scale.set(2.4, 0.25, 9.6);
+    roofTop.position.y = 3.2;
+    trolley.add(shell, roofTop);
+    for (const x of [-1.2, 1.2])
+      for (const z of [-3.4, 3.4]) {
+        const w = new Mesh(wheel, tyre);
+        w.scale.setScalar(1.3);
+        w.position.set(x, 0.47, z);
+        trolley.add(w);
+      }
+    for (const x of [-0.8, 0.8]) {
+      const f = new Mesh(this.flat, flare);
+      f.scale.set(1.6, 1.6, 1);
+      f.rotation.y = Math.PI;
+      f.position.set(x, 0.9, -5.1);
+      trolley.add(f);
+    }
+    const b = new Mesh(this.flat, beam);
+    b.rotation.x = -Math.PI / 2;
+    b.scale.set(4, 18, 1);
+    b.position.set(0, 0.04, -14);
+    b.renderOrder = 1;
+    trolley.add(b);
+    trolley.rotation.y = Math.PI;
+    trolley.children.forEach((m) => (m.castShadow = true));
+    const holder = new Group();
+    holder.add(trolley);
+    this.group.add(holder);
+    this.traffic.push({ mesh: holder, offset: 85, speed: 7 });
   }
 
   /**
@@ -2887,5 +2932,30 @@ function posterTexture(): CanvasTexture {
     g.fillStyle = '#2fe6ff';
     g.font = 'bold 14px sans-serif';
     g.fillText('NIGHTS', 64, 182);
+  });
+}
+
+/**
+ * The trolley's sides: green below and orange above with a cream stripe, a row of windows
+ * along the top half (lit inside, for the emissive map) and TROLLEY lettered on its flank.
+ */
+function trolleyTexture(lit: boolean): CanvasTexture {
+  return canvasTexture(256, 64, (g) => {
+    g.fillStyle = lit ? '#000' : '#2a8a4a';
+    g.fillRect(0, 0, 256, 64);
+    if (!lit) {
+      g.fillStyle = '#f08a20';
+      g.fillRect(0, 0, 256, 30);
+      g.fillStyle = '#f4f0e0';
+      g.fillRect(0, 30, 256, 4);
+    }
+    for (let x = 8; x < 248; x += 20) {
+      g.fillStyle = lit ? '#ffe8b8' : '#3a3a40';
+      g.fillRect(x, 6, 16, 20);
+    }
+    g.fillStyle = lit ? '#000' : '#f4f0e0';
+    g.font = 'bold 16px sans-serif';
+    g.textAlign = 'center';
+    g.fillText('TROLLEY', 128, 54);
   });
 }
