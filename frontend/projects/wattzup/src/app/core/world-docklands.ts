@@ -108,7 +108,7 @@ const STALL_X = -10;
 const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
 /** People on the pavement across the street, scattered round the loop. */
 const WALKERS = 26;
-/** Each stroller walks a stretch of pavement this long before coming round again. */
+/** Each stroller walks up and down a stretch of pavement this long. */
 const STROLL = 30;
 const WALKER_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347', '#9b6bff', '#d7ff3a'];
 /** Festoon lantern strings across the street, at these offsets round the loop. */
@@ -1356,7 +1356,8 @@ export class DocklandsStreet {
     );
     const shaft = new MeshStandardMaterial({ color: 0x111111 });
     const body = new CylinderGeometry(0.2, 0.27, 1.25, 10);
-    const legs = new CylinderGeometry(0.17, 0.15, 0.6, 8);
+    // A leg hangs from its hip, so it swings about the top.
+    const legs = new CylinderGeometry(0.085, 0.07, 0.6, 8).translate(0, -0.3, 0);
     const head = new SphereGeometry(0.13, 12, 10);
     const canopy = new ConeGeometry(0.62, 0.28, 12, 1, true);
     const pole = new CylinderGeometry(0.015, 0.015, 0.8, 4);
@@ -1365,8 +1366,11 @@ export class DocklandsStreet {
     const person = (x: number, facing: number) => {
       const group = new Group();
       const coat = coats[Math.floor(random() * coats.length)]!;
-      const l = new Mesh(legs, coats[0]!);
-      l.position.y = KERB + 0.3;
+      const hips = [-0.09, 0.09].map((x) => {
+        const leg = new Mesh(legs, coats[0]!);
+        leg.position.set(x, KERB + 0.6, 0);
+        return leg;
+      });
       const b = new Mesh(body, coat);
       b.position.y = KERB + 0.6 + 0.62;
       const h = new Mesh(head, skin);
@@ -1375,7 +1379,8 @@ export class DocklandsStreet {
       u.position.set(0.1, KERB + 2.45, 0);
       const p = new Mesh(pole, shaft);
       p.position.set(0.1, KERB + 2.0, 0);
-      group.add(l, b, h, u, p);
+      group.add(...hips, b, h, u, p);
+      group.userData['legs'] = hips;
       group.position.x = x;
       group.rotation.y = facing;
       return group;
@@ -1393,7 +1398,7 @@ export class DocklandsStreet {
     for (let i = 0; i < WALKERS; i++) {
       const group = new Group();
       const way = random() < 0.5 ? -1 : 1;
-      const walker = person(roadHalf + 2.5 + random() * 6, way < 0 ? 0 : Math.PI);
+      const walker = person(roadHalf + 2.5 + random() * 6, 0);
       group.add(walker);
       this.strollers.push({ person: walker, speed: way * (0.9 + random() * 0.6), phase: random() });
       this.group.add(group);
@@ -1402,14 +1407,22 @@ export class DocklandsStreet {
   }
 
   /**
-   * Walks each stroller along its stretch of pavement, STROLL metres long, round again at its
-   * end, with a slight bob in its step.
+   * Walks each stroller up and down its stretch of pavement, STROLL metres long, turning round
+   * at either end, its legs swinging and a slight bob in its step.
    */
   private stroll(seconds: number): void {
     for (const { person, speed, phase } of this.strollers) {
-      const along = (((phase * STROLL + seconds * speed) % STROLL) + STROLL) % STROLL;
-      person.position.z = along - STROLL / 2;
-      person.position.y = Math.abs(Math.sin(seconds * 5.5 + phase * 9)) * 0.05;
+      const lap = (((phase * 2 + (seconds * speed) / STROLL) % 2) + 2) % 2;
+      const along = lap < 1 ? lap : 2 - lap;
+      const forward = lap < 1 === speed > 0;
+      person.position.z = (along - 0.5) * STROLL;
+      // It faces the way it walks: a positive speed walks towards +z first.
+      person.rotation.y = forward ? 0 : Math.PI;
+      const step = seconds * 5.5 + phase * 9;
+      person.position.y = Math.abs(Math.sin(step)) * 0.05;
+      const [left, right] = person.userData['legs'] as Mesh[];
+      left!.rotation.x = Math.sin(step) * 0.45;
+      right!.rotation.x = -Math.sin(step) * 0.45;
     }
   }
 
