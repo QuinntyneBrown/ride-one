@@ -1381,6 +1381,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 1.0, colour: 0xfff4e4 },
     fogRange: [400, 6000],
   },
+  // Late afternoon four thousand metres up on Mauna Kea: a deep, thin-air blue and a low gold sun over the cloud sea.
+  maunakea: {
+    sky: 0x1a4ab8,
+    fog: 0xc8d4e8,
+    ground: 0x6a3a2a,
+    road: 0x3a3634,
+    sun: 18,
+    wet: false,
+    haze: false,
+    turbidity: 1.2,
+    rayleigh: 2.2,
+    azimuth: 250,
+    light: { sun: 3.0, fill: 1.5, colour: 0xffe4c0 },
+    fogRange: [3000, 20000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
