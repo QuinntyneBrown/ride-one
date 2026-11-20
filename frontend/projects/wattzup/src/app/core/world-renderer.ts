@@ -493,6 +493,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 1.8, fill: 1.4, colour: 0xffb88a },
     fogRange: [60, 700],
   },
+  // A clear Vancouver morning on the seawall: low sun over the park, a blue sky, the bay bright
+  // and the North Shore mountains soft in the distance.
+  stanleypark: {
+    sky: 0x86b9e6,
+    fog: 0xcfdde8,
+    ground: 0x3e5a34,
+    road: 0x55565a,
+    sun: 28,
+    wet: false,
+    haze: false,
+    turbidity: 2.8,
+    rayleigh: 1.4,
+    azimuth: 120,
+    light: { sun: 2.8, fill: 1.2, colour: 0xfff4e4 },
+    fogRange: [180, 5000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

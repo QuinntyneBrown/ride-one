@@ -289,6 +289,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0, work: 0.3, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.1,
   },
+  {
+    id: 'stanleypark',
+    name: 'Stanley Park Seawall',
+    route: 'The Seawall',
+    effortName: 'Seawall push',
+    description:
+      "The seawall path curls around Vancouver's Stanley Park between the cedars and the sea, past the totem poles at Brockton Point and sailboats on English Bay toward the green towers of the Lions Gate Bridge under the North Shore mountains. The easy warm-up rolls past the totem poles, the one- and two-minute pushes follow the seawall's curve under the cedars, and the single thirty-second sprint races toward the bridge.",
+    grade: { warmup: 0, work: 0.5, rest: -0.5, cooldown: 0, steady: 0 },
+    roll: 0.6,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
