@@ -504,6 +504,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Indianapolis Brickyard');
   });
 
+  test('rides The Full Pyramid through the jungle to Chichén Itzá', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('The Full Pyramid', 'Chichén Itzá', 'the-full-pyramid');
+    await expect(world.heading).toHaveText('Chichén Itzá');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Chichén Itzá');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
