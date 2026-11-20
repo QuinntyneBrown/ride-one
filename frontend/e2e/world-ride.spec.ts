@@ -251,6 +251,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Dubai Marina');
   });
 
+  test('rides Spin to Win Cadence Session round the boards of Lee Valley Velodrome', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Spin to Win Cadence Session',
+      'Lee Valley Velodrome',
+      'spin-to-win-cadence-session',
+    );
+    await expect(world.heading).toHaveText('Lee Valley Velodrome');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Lee Valley Velodrome');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

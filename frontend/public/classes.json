@@ -3740,6 +3740,7 @@
     },
     {
       "id": "spin-to-win-cadence-session",
+      "world": "velodrome",
       "title": "Spin to Win Cadence Session",
       "channel": "GCN Training",
       "focus": "Cadence",

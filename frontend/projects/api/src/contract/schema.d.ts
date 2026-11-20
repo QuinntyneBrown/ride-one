@@ -153,6 +153,7 @@ export interface components {
         | 'winnats'
         | 'redoute'
         | 'angliru'
+        | 'velodrome'
         | 'cinqueterre';
     };
     ClassShelfResponse: {

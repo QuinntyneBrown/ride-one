@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `cinqueterre`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -544,6 +544,15 @@ None.
   - drystone walls, chestnut trees over the road, and brown Asturian cows grazing on the ride's clock;
   - a farm with its hórreo on stone stilts, and kilometre markers giving the gradient;
   - the green ridges and the summit ahead, and banks of low cloud drifting up the mountain on the ride's clock, keeping their bearing.
+- **Lee Valley Velodrome (`core/world-velodrome.ts`).** For `velodrome`, London's Olympic track indoors under the arena lights:
+  - the home straight's pale Siberian pine boards laid along the track, flat where the riders ride and rising 1 m to the fence 8 m off the crown, the black measurement line, the red sprinters' line and the blue stayers' line underfoot, the blue côte d'azur and the safety zone inside them, names and sponsors painted on the boards every 9 m (GO MAYA, SPIN, LONDON and more), every third row a slogan right across (LEE VALLEY, SPIN TO WIN, WATTZUP), laid by the kit's painted rows;
+  - the fence along the top of the banking hung with the event's boards (LEE VALLEY VELOPARK, SPIN TO WIN, WATTZUP, LONDON, TRACK CYCLING, GB) under a white rail, and banners hung from the roof over the infield (LEE VALLEY VELOPARK, SPIN TO WIN · WATTZUP, LONDON 2012 · TRACK);
+  - the stands above the fence: fourteen stepped rows of dark seats, a spectator (the kit's figures) in nearly every one in GB red, white and blue and club colours, facing the boards;
+  - the infield: the teams' pens on blue floor behind a low rail, bikes and spare wheels, the staff, and the kit's feather flags in the teams' colours, and across it the back straight's banked boards, its fence and its own packed stands;
+  - the hall: the curved timber roof sagging over the infield and rising to the side walls, rows of arena lights along it, the walls behind the stands with the concourse's glazed band, slid along as the rider rides;
+  - ahead, 110 m off and closing the hall, the bend: the boards sweeping round to the left and up from 1 m on the straight to 10 m at the apex, near the real track's 42°, the blue band and the three lines round its foot, the fence and its boards round its top, twenty-two rows of packed stands rising behind it to the roof, and the scoreboard hung high over the track's inner edge where the bend begins, at the end of the straight. Everything along the track is hidden past 130 m.
+
+  `lay`, `place` and `setTime` recycle it along a 250 m loop, the track's own length.
 - **Cinque Terre (`core/world-cinqueterre.ts`).** For `cinqueterre`, the corniche above the Ligurian Sea on a warm afternoon at the grape harvest:
   - the narrow road cut into the cliff, its verges, the cliff falling to the sea on the left, and the ground sunk below the water (`sink`);
   - vineyard terraces on drystone walls stepping up the hillside, rows of vines with grapes, the harvest's monorail, and bougainvillea on the bank;
@@ -633,6 +642,7 @@ None.
 | `pages/world-ride/winnats` | Winnats Pass at 4:50, warm-up, next `Gorge grind` |
 | `pages/world-ride/redoute` | La Redoute at 4:50, warm-up, next `Wall punch` |
 | `pages/world-ride/angliru` | Angliru at 4:50, warm-up, next `Cueña les Cabres` |
+| `pages/world-ride/velodrome` | Lee Valley Velodrome at 0:53, warm-up, next `Track spin` |
 | `pages/world-ride/cinqueterre` | Cinque Terre at 4:50, warm-up, next `Corniche effort` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |

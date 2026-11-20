@@ -75,6 +75,7 @@ describe('targetGrade (L2-101)', () => {
     ['winnats', { warmup: 4, work: 9, rest: 4, cooldown: 2, steady: 6 }, 9.18453],
     ['redoute', { warmup: 2, work: 10, rest: 3, cooldown: 1, steady: 5 }, 10.18453],
     ['angliru', { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 8 }, 12.18453],
+    ['velodrome', { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 }, 0.0],
     ['cinqueterre', { warmup: 2, work: 7, rest: 1, cooldown: 0, steady: 3 }, 7.18453],
     ['coast', { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 }, 4.795247],
   ])('%s asks for its grade per kind at s 0, plus its roll at s 300', (id, grades, workAt300) => {
