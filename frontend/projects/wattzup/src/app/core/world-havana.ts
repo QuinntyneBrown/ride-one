@@ -1527,6 +1527,99 @@ export class HavanaStreet implements SceneStreet {
       this.cars.push({ mesh: group, offset: 34 + k * 39 + random() * 12, speed });
     });
     this.addBicitaxis(roadHalf, tyre, chrome);
+    this.addBuses(roadHalf, tyre, glass);
+  }
+
+  /**
+   * Havana's buses: a camello, the humped trailer bus hauled by a truck's cab, its body painted
+   * pink with a blue band and its two humps glazed along their sides; and a modern blue and white
+   * city bus, long and square, with its dark windscreen and a band of windows.
+   */
+  private addBuses(
+    roadHalf: number,
+    tyre: MeshStandardMaterial,
+    glass: MeshStandardMaterial,
+  ): void {
+    const random = seeded(1381);
+    const trailer = profile(
+      [
+        [-6.5, 0.7],
+        [-6.5, 3.5],
+        [-6.2, 3.75],
+        [-2.8, 3.75],
+        [-2.2, 3.0],
+        [2.2, 3.0],
+        [2.8, 3.75],
+        [6.2, 3.75],
+        [6.5, 3.5],
+        [6.5, 0.7],
+      ],
+      2.6,
+      0.06,
+    );
+    const big = new CylinderGeometry(0.5, 0.5, 0.35, 16);
+    big.rotateZ(Math.PI / 2);
+    this.disposables.push(trailer, big);
+    const box = (
+      group: Group,
+      m: MeshStandardMaterial,
+      sx: number,
+      sy: number,
+      sz: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(sx, sy, sz);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      group.add(mesh);
+    };
+    const wheels = (group: Group, zs: number[], half: number) => {
+      for (const z of zs) {
+        for (const x of [-half, half]) {
+          const w = new Mesh(big, tyre);
+          w.position.set(x, 0.5, z);
+          group.add(w);
+        }
+      }
+    };
+    // The camello: the cab up front, the humped trailer behind.
+    const camello = new Group();
+    const pink = this.material({ color: 0xd9708f, roughness: 0.6, metalness: 0.1 });
+    const blue = this.material({ color: 0x2b5fa8, roughness: 0.6 });
+    const cab = this.material({ color: 0xc8202f, roughness: 0.5, metalness: 0.2 });
+    const body = new Mesh(trailer, pink);
+    body.castShadow = true;
+    body.position.z = 1.5;
+    camello.add(body);
+    box(camello, blue, 2.64, 0.35, 13, 0, 1.3, 1.5);
+    box(camello, glass, 2.66, 0.6, 3.2, 0, 3.0, -2.8);
+    box(camello, glass, 2.66, 0.6, 3.2, 0, 3.0, 5.8);
+    box(camello, glass, 2.66, 0.55, 4.2, 0, 2.3, 1.5);
+    box(camello, cab, 2.4, 1.6, 2.4, 0, 1.6, -7.2);
+    box(camello, cab, 2.3, 1.1, 1.8, 0, 2.9, -6.8);
+    box(camello, glass, 2.2, 0.7, 0.05, 0, 3.0, -7.72);
+    wheels(camello, [-7.4, -5.5, 4.5, 6.0], 1.1);
+    // The city bus.
+    const bus = new Group();
+    const white = this.material({ color: 0xf0f0ec, roughness: 0.45, metalness: 0.1 });
+    const navy = this.material({ color: 0x1d4f9c, roughness: 0.45, metalness: 0.1 });
+    box(bus, white, 2.55, 3.0, 12, 0, 1.85, 0);
+    box(bus, navy, 2.57, 0.9, 12.02, 0, 0.85, 0);
+    box(bus, glass, 2.58, 1.0, 10.6, 0, 2.35, 0.4);
+    box(bus, glass, 2.3, 1.5, 0.05, 0, 2.2, -6.02);
+    wheels(bus, [-3.9, 3.8], 1.12);
+    for (const [vehicle, lane, offset] of [
+      [camello, 5.2, 62],
+      [bus, 1.9, 250],
+    ] as const) {
+      vehicle.rotation.y = Math.PI;
+      vehicle.position.x = -roadHalf - lane;
+      this.group.add(vehicle);
+      this.cars.push({ mesh: vehicle, offset: offset + random() * 20, speed: -(7 + random() * 2) });
+    }
   }
 
   /**
