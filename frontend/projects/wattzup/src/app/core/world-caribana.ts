@@ -95,6 +95,8 @@ const GARDINER_DECK = 9.5;
 /** A King or Queen of the band leads each band on the right, this far into each truck's stretch. */
 const ROYAL_AT = 64;
 const ROYAL_X = 4.0;
+/** The route crosses a signalised intersection this far into the loop. */
+const CROSSING_AT = 36;
 /** The steel orchestra's float rides the left lane ahead of the first music truck. */
 const PAN_AT = 44;
 
@@ -246,6 +248,11 @@ export class CaribanaStreet implements SceneStreet {
   private readonly pannists: { figure: Group; phase: number }[] = [];
   private readonly bandBanners: { group: Group; phase: number }[] = [];
   private readonly truckLights: MeshStandardMaterial[] = [];
+  private readonly signalLamps: {
+    red: MeshStandardMaterial;
+    amber: MeshStandardMaterial;
+    green: MeshStandardMaterial;
+  }[] = [];
   private confetti: InstancedMesh | null = null;
   private readonly flakes: {
     x: number;
@@ -307,6 +314,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addTrucks();
     this.addPanFloat();
     this.addGantry();
+    this.addIntersection();
     this.addConfetti();
     this.addOfficers();
     this.addBandBanners();
@@ -352,6 +360,13 @@ export class CaribanaStreet implements SceneStreet {
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
     this.placeConfetti(heightAt, along);
+    // The signals run their cycle as usual though the road is closed: 20 s green, 3 amber, 20 red.
+    const phase = this.time % 43;
+    for (const lamp of this.signalLamps) {
+      lamp.green.emissiveIntensity = phase < 20 ? 3 : 0.05;
+      lamp.amber.emissiveIntensity = phase >= 20 && phase < 23 ? 3 : 0.05;
+      lamp.red.emissiveIntensity = phase >= 23 ? 3 : 0.05;
+    }
     // The trucks' lights pulse with the bass, each colour on its own count.
     this.truckLights.forEach((m, k) => {
       const beat = Math.max(0, Math.sin(this.time * Math.PI * 2.1 + k * 1.6));
@@ -1488,6 +1503,88 @@ export class CaribanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: 31 + dz, every: LOOP, x: BARRIER - 0.9, road: true });
     }
+  }
+
+  /**
+   * A signalised intersection the route crosses: ladder crosswalks across all three lanes,
+   * signal poles at the far corners with mast arms over the road carrying signal heads in
+   * black with yellow-bordered backplates, pedestrian signals, and the cross street's name on
+   * blue signs.
+   */
+  private addIntersection(): void {
+    const crossing = new Group();
+    const paint = this.material({
+      map: this.track(ladderTexture()),
+      transparent: true,
+      alphaTest: 0.3,
+      roughness: 0.6,
+    });
+    // Each crosswalk is placed on the road by itself, so it follows the grade.
+    const stripe = new PlaneGeometry(2 * CURB, 3.2);
+    stripe.rotateX(-Math.PI / 2);
+    stripe.translate(0, 0.01, 0);
+    this.disposables.push(stripe);
+    for (const dz of [-9, 9]) {
+      const walk = new Group();
+      walk.add(new Mesh(stripe, paint));
+      this.group.add(walk);
+      this.props.push({ mesh: walk, offset: CROSSING_AT + dz, every: LOOP, x: 0, road: true });
+    }
+    const steel = this.material({ color: 0x9da3a8, metalness: 0.7, roughness: 0.45 });
+    const black = this.material({ color: 0x15171a, roughness: 0.5 });
+    const yellow = this.material({ color: 0xf2c200, roughness: 0.5 });
+    const lamp = (hex: number) =>
+      this.material({ color: hex, emissive: hex, emissiveIntensity: 0.05, roughness: 0.3 });
+    const lamps = { red: lamp(0xff2a1a), amber: lamp(0xffa200), green: lamp(0x2aff7a) };
+    this.signalLamps.push(lamps);
+    const sign = this.material({
+      map: this.track(streetSignTexture('PARKSIDE DR')),
+      roughness: 0.5,
+    });
+    const pole = new CylinderGeometry(0.13, 0.17, 7.2, 10);
+    pole.translate(0, 3.6, 0);
+    const arm = new CylinderGeometry(0.07, 0.1, 8.5, 8);
+    arm.rotateZ(Math.PI / 2);
+    arm.translate(-4.25, 6.9, 0);
+    const head = new BoxGeometry(0.36, 1.05, 0.3);
+    const back = new BoxGeometry(0.62, 1.3, 0.03);
+    const lens = new CylinderGeometry(0.11, 0.11, 0.04, 12);
+    lens.rotateX(Math.PI / 2);
+    const plate = new PlaneGeometry(1.6, 0.32);
+    this.disposables.push(pole, arm, head, back, lens, plate);
+    for (const side of [-1, 1]) {
+      const post = new Group();
+      post.add(new Mesh(pole, steel), new Mesh(arm, steel));
+      for (const x of [-2.6, -6.2]) {
+        const unit = new Group();
+        unit.add(new Mesh(back, yellow));
+        const housing = new Mesh(head, black);
+        housing.position.z = 0.17;
+        unit.add(housing);
+        [lamps.red, lamps.amber, lamps.green].forEach((m, k) => {
+          const l = new Mesh(lens, m);
+          l.position.set(0, 0.33 - k * 0.33, 0.34);
+          unit.add(l);
+        });
+        unit.position.set(x, 6.1, 0);
+        post.add(unit);
+      }
+      const name = new Mesh(plate, sign);
+      name.position.set(-4.4, 7.35, 0.05);
+      post.add(name);
+      // A pedestrian signal on the pole, facing across the road.
+      const walk = new Mesh(head, black);
+      walk.scale.set(1.1, 0.45, 1.1);
+      walk.position.set(0.2, 2.8, 0.2);
+      post.add(walk);
+      // The mast reaches in over the road from each kerb; both face the oncoming bands.
+      post.rotation.y = side > 0 ? 0 : Math.PI;
+      post.position.set(side * (PAVEMENT - 0.6), 0.14, side > 0 ? -10 : 10);
+      crossing.add(post);
+    }
+    crossing.traverse((o) => (o.castShadow = o.type === 'Mesh' && o.parent !== crossing));
+    this.group.add(crossing);
+    this.props.push({ mesh: crossing, offset: CROSSING_AT, every: LOOP, x: 0, road: true });
   }
 
   /**
@@ -3246,6 +3343,36 @@ function bandBannerTexture(name: string, theme: string, fill: string, ink: strin
     g.fillText(`presents ${theme}`, 256, 126, 440);
     g.fillStyle = '#ffd23f';
     for (let x = 4; x < 512; x += 8) g.fillRect(x, 168, 4, 18 + (x % 3) * 2);
+  });
+}
+
+/** A ladder crosswalk: wide white bars across the road, worn, transparent between. */
+function ladderTexture(): CanvasTexture {
+  return canvasTexture(1024, 128, (g) => {
+    g.clearRect(0, 0, 1024, 128);
+    g.fillStyle = 'rgba(240,238,230,0.92)';
+    g.fillRect(0, 0, 1024, 10);
+    g.fillRect(0, 118, 1024, 10);
+    for (let x = 8; x < 1024; x += 48) g.fillRect(x, 10, 26, 108);
+    g.globalCompositeOperation = 'destination-out';
+    const random = seeded(1601);
+    for (let i = 0; i < 900; i++) g.fillRect(random() * 1024, random() * 128, 2 + random() * 4, 2);
+  });
+}
+
+/** A Toronto street-name sign: white capitals on blue with a white border. */
+function streetSignTexture(name: string): CanvasTexture {
+  return canvasTexture(512, 104, (g) => {
+    g.fillStyle = '#1d4e9e';
+    g.fillRect(0, 0, 512, 104);
+    g.strokeStyle = '#ffffff';
+    g.lineWidth = 5;
+    g.strokeRect(6, 6, 500, 92);
+    g.fillStyle = '#ffffff';
+    g.font = 'bold 60px system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(name, 256, 56, 470);
   });
 }
 
