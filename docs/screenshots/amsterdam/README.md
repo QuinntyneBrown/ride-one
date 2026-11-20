@@ -84,6 +84,7 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 | [078 · Flower stall](078-flower-stall.jpg) | A flower stall stands on the quay before the first bridge in the opening view: a green-painted cart under a striped awning, three tiers of zinc buckets stepping down towards the street packed with tulips in red, yellow, pink, orange, purple and white, and the seller standing beside it. The benches move up to the bridge to make room. | 94% · 86/100 |
 | [079 · Taxi](079-taxi.jpg) | A taxi waits at the canal-side kerb among the parked cars up the street: painted black, with its lit yellow TAXI sign on the roof. It sits beyond the van in the opening view, a small yellow mark down the row; the scores hold. | 94% · 86/100 |
 | [080 · Ivy](080-ivy.jpg) | Ivy climbs the trunks of about one elm in three along the quays, clumps of dark leaves wrapped round the trunk from the tree bed to about 3 m, thick at the foot and thinning as it climbs, as it does on many of the canals' old elms; the trunk behind the flower stall carries it in the opening view. | 94% · 86/100 |
+| [081 · Café life](081-cafe-life.jpg) | The café's terrace comes to life: a waiter in a long black apron brings a tray out to the tables, a chalkboard in a wooden frame stands at the terrace's near end with the day's menu (VANDAAG: erwtensoep, appeltaart, koffie, bier van de tap), and a brown dog lies under a table at its owner's feet. | 94% · 86/100 |
 
 ## Reproducing a capture
 
