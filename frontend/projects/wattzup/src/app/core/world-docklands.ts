@@ -57,6 +57,23 @@ const CABLE_EVERY = 9;
 /** The dock water lies this far below the lowest road in view; the deck's girder is this deep. */
 const DOCK_DROP = 7;
 const GIRDER = 1.8;
+/**
+ * The working dock beside each bridge: container cranes and moored barges, each `along` metres
+ * from the bridge's start and `x` metres across from the road's centre.
+ */
+const CRANES: readonly { along: number; x: number }[] = [
+  { along: 70, x: -72 },
+  { along: 190, x: 68 },
+  { along: 320, x: -88 },
+  { along: 450, x: 80 },
+];
+const BARGES: readonly { along: number; x: number; length: number }[] = [
+  { along: 120, x: 38, length: 54 },
+  { along: 260, x: -42, length: 66 },
+  { along: 400, x: 44, length: 48 },
+];
+const CRANE_HEIGHT = 34;
+const BOOM = 64;
 /** A blade sign stands out this far from its façade. */
 const BLADE = 2;
 /** The harbour skyline stands this far ahead, past the street's fog, and keeps its distance. */
@@ -113,6 +130,7 @@ export class DocklandsStreet {
   /** Metres ahead of the rider to the start of each bridge; behind the rider is negative. */
   private bridgeStarts: readonly number[] = [];
   private readonly pylon = new Group();
+  private readonly dock = new Group();
   private cables: LineSegments | null = null;
 
   constructor(
@@ -420,6 +438,7 @@ export class DocklandsStreet {
       true,
     );
     this.addPylon(roadHalf);
+    this.addDock();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -647,6 +666,85 @@ export class DocklandsStreet {
     this.group.add(this.pylon, this.cables);
   }
 
+  /**
+   * The working dock under the bridges: gantry cranes in rust-red steel with amber lamps along
+   * their booms and red beacons on top, and barges moored with lit decks. Their lamps reflect
+   * on the dock water. The group stands on the water at the bridge's start.
+   */
+  private addDock(): void {
+    const steel = new MeshStandardMaterial({ color: 0x5a2c22, metalness: 0.5, roughness: 0.55 });
+    const hull = new MeshStandardMaterial({ color: 0x14161e, metalness: 0.3, roughness: 0.7 });
+    const amber = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#ffb347'),
+      emissiveIntensity: 3,
+    });
+    const red = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#ff2a2a'),
+      emissiveIntensity: 3.2,
+    });
+    const deck = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#ffe2b0'),
+      emissiveIntensity: 2,
+    });
+    const unit = new BoxGeometry(1, 1, 1);
+    this.disposables.push(steel, hull, amber, red, deck, unit);
+    const box = (
+      material: Material,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      return mesh;
+    };
+    for (const { along, x } of CRANES) {
+      const crane = new Group();
+      // The boom reaches out over the water towards the road.
+      const out = -Math.sign(x);
+      for (const lx of [-7, 7]) {
+        for (const lz of [-6, 6]) {
+          crane.add(box(steel, 1.2, CRANE_HEIGHT, 1.2, lx, CRANE_HEIGHT / 2, lz));
+        }
+        crane.add(box(steel, 1, 1, 12, lx, 12, 0));
+      }
+      crane.add(box(steel, 16, 1.2, 1.2, 0, CRANE_HEIGHT - 4, -6));
+      crane.add(box(steel, 16, 1.2, 1.2, 0, CRANE_HEIGHT - 4, 6));
+      crane.add(box(steel, BOOM, 2.4, 3, out * (BOOM / 2 - 12), CRANE_HEIGHT, 0));
+      crane.add(box(steel, 3, 10, 3, 0, CRANE_HEIGHT + 6, 0));
+      crane.add(box(red, 1.2, 1.2, 1.2, 0, CRANE_HEIGHT + 11.6, 0));
+      crane.add(box(red, 1, 1, 1, out * (BOOM - 12), CRANE_HEIGHT + 1.8, 0));
+      for (let b = -8; b < BOOM - 12; b += 8) {
+        crane.add(box(amber, 0.6, 0.6, 0.6, out * b, CRANE_HEIGHT - 1.6, 1.6));
+      }
+      crane.position.set(x, 0, -along);
+      this.dock.add(crane);
+      this.streak(this.dock, '#ffb347', x + out * 20, 0.05, -along, 60, 10, 0.9);
+    }
+    for (const { along, x, length } of BARGES) {
+      const barge = new Group();
+      barge.add(box(hull, 12, 3, length, 0, 1, 0));
+      barge.add(box(hull, 9, 4, 8, 0, 4.5, length / 2 - 6));
+      for (let z = -length / 2 + 4; z < length / 2 - 10; z += 6) {
+        barge.add(box(deck, 0.5, 0.5, 0.5, 5.6, 2.8, z));
+        barge.add(box(deck, 0.5, 0.5, 0.5, -5.6, 2.8, z));
+      }
+      barge.add(box(deck, 7, 1, 0.3, 0, 5, length / 2 - 10.1));
+      barge.position.set(x, 0, -along);
+      this.dock.add(barge);
+      this.streak(this.dock, '#ffe2b0', x, 0.05, -along - length / 2, length + 30, 9, 0.7);
+    }
+    this.dock.visible = false;
+    this.group.add(this.dock);
+  }
+
   /** Tells the street which stretches of the road ahead are bridge ramps. */
   setBridge(onBridge: (metres: number) => boolean, starts: readonly number[]): void {
     this.onBridge = onBridge;
@@ -772,6 +870,10 @@ export class DocklandsStreet {
       lamp.visible = !this.onBridge(Math.max(metres, 0));
     });
     this.placePylon(heightAt);
+    // The dock stands on the water beside the bridge in view, from the bridge's start.
+    const start = this.bridgeStarts.find((m) => m > -520 && m < 300);
+    this.dock.visible = start !== undefined;
+    if (start !== undefined) this.dock.position.set(0, this.dockLevel, -start);
     this.skyline.position.set(0, heightAt(1e6) - 4, -SKYLINE_AHEAD);
     this.farShore.position.set(0, heightAt(0), 0);
   }
