@@ -31,6 +31,7 @@ import {
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   canvasTexture,
+  clothBannerTexture,
   loopMetres,
   Ribbons,
   scaleFaceUv,
@@ -63,6 +64,16 @@ const TRUCK_X = -5.1;
 /** Downtown and the CN Tower stand this far ahead, a little left, hazed by hand. */
 const DOWNTOWN_AHEAD = 1700;
 const HAZE = 0xcfe0ee;
+
+/** One barricade's length along the gutter. */
+const BARRICADE = 2.45;
+/** The banners zip-tied to the barricades. */
+const BARRICADE_BANNERS = [
+  { text: 'TORONTO CARIBBEAN CARNIVAL', fill: '#ffd23f', ink: '#c8102e' },
+  { text: 'GRAND PARADE', fill: '#111111', ink: '#ffd23f' },
+  { text: 'LAKE SHORE BLVD W', fill: '#0f9d58', ink: '#ffffff' },
+  { text: 'PLAY MAS', fill: '#c8102e', ink: '#ffffff' },
+] as const;
 
 /** Caribbean flags in the crowd and on the lamp banners: T&T, Jamaica, Barbados, Guyana. */
 const FLAG_KINDS = ['trinidad', 'jamaica', 'barbados', 'guyana'] as const;
@@ -170,6 +181,9 @@ export class CaribanaStreet implements SceneStreet {
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
   private readonly downtown = new Group();
+  private readonly barricades: { side: -1 | 1; offset: number; banner: number }[] = [];
+  private barricadeFrames: InstancedMesh | null = null;
+  private readonly barricadeBanners: InstancedMesh[] = [];
   private readonly boats: Group[] = [];
   private time = 0;
   private readonly matrix = new Matrix4();
@@ -209,6 +223,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addGround(points);
     this.crowd.build();
     this.addMasqueraders(roadHalf);
+    this.addBarricades();
     this.addTrucks();
     this.addLamps();
     this.addTrees();
@@ -236,6 +251,7 @@ export class CaribanaStreet implements SceneStreet {
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     this.placeDancers(heightAt, along);
+    this.placeBarricades(heightAt, along);
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
     this.boats.forEach((boat, i) => {
       const drift = this.time * 0.6 + i * 37;
@@ -298,6 +314,62 @@ export class CaribanaStreet implements SceneStreet {
     });
   }
 
+  /**
+   * Steel bike-rack barricades along both gutters, 2.4 m apiece: rails, pickets and end posts
+   * on splayed feet, linked end to end. Two in five carry a carnival banner zip-tied to the
+   * face towards the road.
+   */
+  private addBarricades(): void {
+    const random = seeded(421);
+    for (const side of [-1, 1] as const) {
+      for (let offset = 0; offset < LOOP; offset += BARRICADE) {
+        const roll = random();
+        const banner = roll < 0.4 ? Math.floor(random() * BARRICADE_BANNERS.length) : -1;
+        this.barricades.push({ side, offset: offset + BARRICADE / 2, banner });
+      }
+    }
+    const frame = barricadeGeometry();
+    const steel = this.material({ color: 0xb9bec4, metalness: 0.75, roughness: 0.42 });
+    this.disposables.push(frame);
+    this.barricadeFrames = this.instanced(frame, steel, this.barricades.length);
+    const cloth = new PlaneGeometry(2.3, 0.72);
+    cloth.rotateY(-Math.PI / 2);
+    cloth.translate(-0.035, 0.66, 0);
+    this.disposables.push(cloth);
+    BARRICADE_BANNERS.forEach(({ text, fill, ink }) => {
+      const material = this.material({
+        map: this.track(clothBannerTexture(text, fill, ink)),
+        roughness: 0.75,
+      });
+      this.barricadeBanners.push(this.instanced(cloth, material, this.barricades.length));
+    });
+  }
+
+  private placeBarricades(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    const frames = this.barricadeFrames;
+    if (!frames) return;
+    const counts = this.barricadeBanners.map(() => 0);
+    this.barricades.forEach((b, i) => {
+      const metres = along(b.offset, LOOP);
+      // The right side's road face looks along -x; the left side's is turned round to match.
+      this.turn.setFromAxisAngle(this.up, b.side > 0 ? 0 : Math.PI);
+      this.spot.set(b.side * BARRIER, heightAt(Math.max(metres, 0)) + ASPHALT, -metres);
+      this.size.set(1, 1, 1);
+      this.matrix.compose(this.spot, this.turn, this.size);
+      frames.setMatrixAt(i, this.matrix);
+      if (b.banner >= 0)
+        this.barricadeBanners[b.banner]!.setMatrixAt(counts[b.banner]!++, this.matrix);
+    });
+    frames.instanceMatrix.needsUpdate = true;
+    this.barricadeBanners.forEach((mesh, k) => {
+      mesh.count = counts[k]!;
+      mesh.instanceMatrix.needsUpdate = true;
+    });
+  }
+
   /** Concrete pavements to the barricades and the crowd, grass beyond, the lake on the right. */
   private addGround(points: number): void {
     const concrete = this.material({ map: this.repeat(concreteTexture(), 4, 4), roughness: 0.9 });
@@ -308,14 +380,6 @@ export class CaribanaStreet implements SceneStreet {
       color: 0x6fa6c4,
       roughness: 0.12,
       metalness: 0.1,
-    });
-    const barrier = this.material({
-      map: this.repeat(barrierTexture(), 1 / 0.95, 1 / 2.4),
-      alphaTest: 0.5,
-      side: DoubleSide,
-      metalness: 0.6,
-      roughness: 0.4,
-      color: 0xc9ced3,
     });
     const asphalt = this.material({
       map: this.repeat(roadTexture(), 2 * CURB, 18),
@@ -361,14 +425,6 @@ export class CaribanaStreet implements SceneStreet {
     this.ribbons.add(points, lake, [
       [600, 0.03],
       [SHORE + 0.4, 0.03],
-    ]);
-    this.ribbons.add(points, barrier, [
-      [BARRIER, ASPHALT + 1.1],
-      [BARRIER, ASPHALT],
-    ]);
-    this.ribbons.add(points, barrier, [
-      [-BARRIER, ASPHALT],
-      [-BARRIER, ASPHALT + 1.1],
     ]);
   }
 
@@ -1419,6 +1475,31 @@ function barkTexture(): CanvasTexture {
   });
 }
 
+/**
+ * A steel bike-rack barricade, 2.4 m long along z and 1.1 m high: top and bottom rails, end
+ * posts, fourteen pickets and a flat foot splayed across each end, with a hook to the next.
+ */
+function barricadeGeometry(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const bar = (w: number, h: number, d: number, x: number, y: number, z: number) => {
+    const box = new BoxGeometry(w, h, d);
+    box.translate(x, y, z);
+    parts.push(box);
+  };
+  bar(0.045, 0.045, 2.4, 0, 1.08, 0);
+  bar(0.04, 0.04, 2.4, 0, 0.17, 0);
+  for (const z of [-1.18, 1.18]) {
+    bar(0.045, 1.04, 0.045, 0, 0.6, z);
+    bar(0.75, 0.03, 0.06, 0, 0.015, z);
+    bar(0.03, 0.12, 0.03, 0, 0.08, z);
+  }
+  for (let k = 1; k <= 14; k++) bar(0.02, 0.9, 0.02, 0, 0.62, -1.18 + (k * 2.36) / 15);
+  bar(0.03, 0.03, 0.14, 0, 0.95, 1.25);
+  const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
 /** Pale concrete slabs, 1 m by 1 m (the texture covers 4 m), with dark joints. */
 function concreteTexture(): CanvasTexture {
   return canvasTexture(512, 512, (g) => {
@@ -1483,19 +1564,6 @@ function waterTexture(): CanvasTexture {
       g.fillStyle = `rgba(255,255,255,${0.05 + random() * 0.2})`;
       g.fillRect(random() * 512, random() * 512, 8 + random() * 22, 1.5);
     }
-  });
-}
-
-/** A steel crowd barricade, 2.4 m long and 0.95 m high, cut out of the canvas. */
-function barrierTexture(): CanvasTexture {
-  return canvasTexture(512, 256, (g) => {
-    g.clearRect(0, 0, 512, 256);
-    g.fillStyle = '#ffffff';
-    g.fillRect(0, 0, 512, 16);
-    g.fillRect(0, 232, 512, 18);
-    g.fillRect(0, 0, 10, 256);
-    g.fillRect(502, 0, 10, 256);
-    for (let x = 28; x < 500; x += 26) g.fillRect(x, 16, 6, 216);
   });
 }
 
