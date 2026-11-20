@@ -25,9 +25,10 @@ import {
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
-  barrierBannerTexture,
   type BannerPanel,
+  barrierBannerTexture,
   BoxBuilder,
+  buntingGeometry,
   canvasTexture,
   clothBannerTexture,
   Crowd,
@@ -113,6 +114,9 @@ const FEATHERS: readonly FeatherWord[] = [
   ['SPRINT', '#d8283a', '#ffffff'],
 ];
 const FEATHER_EVERY = 18;
+/** Bunting in the UAE's colours crosses the walk every BUNTING metres. */
+const BUNTING = 14;
+const UAE = ['#00843d', '#ffffff', '#111111', '#ef3340'];
 /** The names and cries painted on the marina walk. */
 const ROAD_PAINT: readonly (readonly [string, string])[] = [
   ['SPRINT', '#1b1e24'],
@@ -208,6 +212,7 @@ export class DubaiStreet implements SceneStreet {
     this.addFarSide();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
+    this.addBunting();
     this.addRoadPaint();
     this.addSkyline();
   }
@@ -496,6 +501,32 @@ export class DubaiStreet implements SceneStreet {
       banner.add(c);
       this.group.add(banner);
       this.props.push({ mesh: banner, offset, x: 0 });
+    }
+  }
+
+  /**
+   * Bunting in the UAE's green, white, black and red strung across the walk every BUNTING metres,
+   * from the palms on the quay to the podium's awnings, two strings to each crossing.
+   */
+  private addBunting(): void {
+    const geometry = buntingGeometry(
+      9,
+      UAE,
+      [
+        [7.4, 0],
+        [6.6, 2.5],
+      ],
+      1.6,
+    );
+    this.disposables.push(geometry);
+    const pennant = this.material({ vertexColors: true, side: DoubleSide, roughness: 0.8 });
+    for (let offset = 20; offset < LOOP; offset += BUNTING) {
+      // None in front of a banner over the road.
+      if (STREET_BANNERS.some(([, , , at]) => Math.abs(offset - at) < 8)) continue;
+      const holder = new Group();
+      holder.add(new Mesh(geometry, pennant));
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: 0 });
     }
   }
 
