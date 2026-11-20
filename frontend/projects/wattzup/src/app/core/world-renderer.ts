@@ -872,6 +872,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.9, fill: 1.5, colour: 0xfff4e4 },
     fogRange: [600, 6000],
   },
+  // A clear, windy afternoon high on the volcano: thin bright air, hard light on the black rock.
+  etna: {
+    sky: 0x5a96d8,
+    fog: 0xc8d4e0,
+    ground: 0x2e2c2c,
+    road: 0x3e4044,
+    sun: 42,
+    wet: false,
+    haze: false,
+    turbidity: 2.4,
+    rayleigh: 1.3,
+    azimuth: -140,
+    light: { sun: 3.0, fill: 1.6, colour: 0xfff2e0 },
+    fogRange: [800, 9000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

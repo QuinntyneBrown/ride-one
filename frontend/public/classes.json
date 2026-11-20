@@ -8390,6 +8390,7 @@
     },
     {
       "id": "go-until-you-blow",
+      "world": "etna",
       "title": "Go Until You Blow",
       "channel": "GCN Training",
       "focus": "HIIT",

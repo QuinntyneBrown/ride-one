@@ -538,6 +538,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Yosemite Valley');
   });
 
+  test('rides Go Until You Blow up the black slopes of Mount Etna', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Go Until You Blow', 'Mount Etna', 'go-until-you-blow');
+    await expect(world.heading).toHaveText('Mount Etna');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Mount Etna');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
