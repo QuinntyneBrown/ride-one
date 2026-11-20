@@ -777,6 +777,7 @@
     },
     {
       "id": "low-cadence-strength-builder",
+      "world": "koppenberg",
       "title": "Low Cadence Strength Builder",
       "channel": "GCN Training",
       "focus": "Cadence",
