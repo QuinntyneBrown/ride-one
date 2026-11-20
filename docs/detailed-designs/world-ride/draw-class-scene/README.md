@@ -397,7 +397,7 @@ None.
   - on the left, 17 to 31 m out, the pits every 13 to 20 m: motorhomes, box trucks with their trailers, and streamliners on open trailers in their liveries, each built with the kit's box builder; pop-up canopies (the kit's) with the teams' names beside every other one, the Stars and Stripes on tall poles, and thirty crew (the kit's figures) among them;
   - on the right, 11 m out on the open salt, every 125 m a black mile board with its number in orange and a pair of timing lights;
   - a timing gantry over the course 55 m ahead in the opening view: black truss towers, the beam with BONNEVILLE · TEAM TIME TRIAL, and the race clock above it;
-  - 300 m ahead the horizon, where the Silver Island Mountains, bare brown-grey ridges 2.6 km off, and lower ranges either side float on the bright, streaked band of a mirage with their faint reflections inverted beneath, all hazed by hand. Everything along the course is hidden past it.
+  - 300 m ahead the horizon, where the Silver Island Mountains rise in two rugged ridges, the near one brown 2.6 km off and up to 520 m high, the far one bluer and up to 760 m behind it, with Pilot Peak's range to the right and lower hills to the left, all floating on the bright, streaked band of a mirage with their reflections inverted faintly beneath, all hazed by hand. Everything along the course is hidden past it.
 
   `lay`, `place` and `setTime` recycle it along a 500 m loop.
 
