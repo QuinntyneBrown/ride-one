@@ -136,6 +136,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addBenches(roadHalf);
     this.addContainers(roadHalf);
     this.addTour(roadHalf);
+    this.addScaffold(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1424,6 +1425,71 @@ export class AmsterdamStreet implements SceneStreet {
     group.position.y = KERB;
     this.group.add(group);
     this.props.push({ mesh: group, offset: BRIDGE + 2 + CROSS / 2 + 3, x: -roadHalf - 2.9 });
+  }
+
+  /**
+   * A house up the street under renovation: a scaffold of galvanised tubes standing on the
+   * pavement before its front, boarded at every lift, toe boards at the edges, and a fine green
+   * safety net hung over the top half, with a builder's board at the foot.
+   */
+  private addScaffold(roadHalf: number): void {
+    const tube = this.material({ color: 0xa8acb0, metalness: 0.7, roughness: 0.35 });
+    const board = this.material({ color: 0xb08a58, roughness: 0.9 });
+    const net = this.material({
+      color: 0x3a8a4a,
+      transparent: true,
+      opacity: 0.55,
+      side: DoubleSide,
+      roughness: 0.9,
+      depthWrite: false,
+    });
+    const parts: BufferGeometry[] = [];
+    const planks: BufferGeometry[] = [];
+    const length = 9;
+    const tall = 15;
+    for (const x of [0.2, 1.3]) {
+      for (let z = 0; z <= length; z += 1.8) {
+        const post = new CylinderGeometry(0.024, 0.024, tall, 5);
+        post.translate(-x, tall / 2, -z);
+        parts.push(post);
+      }
+      for (let y = 2; y <= tall; y += 2) {
+        const ledger = new CylinderGeometry(0.024, 0.024, length, 5);
+        ledger.rotateX(Math.PI / 2);
+        ledger.translate(-x, y, -length / 2);
+        parts.push(ledger);
+      }
+    }
+    for (let y = 2; y <= tall; y += 2) {
+      const deck = new BoxGeometry(1.1, 0.05, length);
+      deck.translate(-0.75, y, -length / 2);
+      planks.push(deck);
+      const toe = new BoxGeometry(0.03, 0.15, length);
+      toe.translate(-1.32, y + 0.1, -length / 2);
+      planks.push(toe);
+      const rail = new CylinderGeometry(0.024, 0.024, length, 5);
+      rail.rotateX(Math.PI / 2);
+      rail.translate(-1.3, y + 1, -length / 2);
+      parts.push(rail);
+    }
+    for (let z = 0; z < length; z += 1.8) {
+      const brace = limb(new Vector3(-1.3, 0, -z), new Vector3(-1.3, 4, -z - 1.8), 0.024);
+      parts.push(brace);
+    }
+    const frame = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)))!;
+    const decks = mergeGeometries(planks.map((p) => p.toNonIndexed()))!;
+    parts.forEach((p) => p.dispose());
+    planks.forEach((p) => p.dispose());
+    const sheet = new PlaneGeometry(length, tall / 2);
+    sheet.rotateY(Math.PI / 2);
+    sheet.translate(-1.36, tall * 0.75, -length / 2);
+    this.disposables.push(frame, decks, sheet);
+    const scaffold = new Group();
+    scaffold.add(new Mesh(frame, tube), new Mesh(decks, board), new Mesh(sheet, net));
+    scaffold.children.forEach((m) => (m.castShadow = true));
+    scaffold.position.y = KERB;
+    this.group.add(scaffold);
+    this.props.push({ mesh: scaffold, offset: START + BEHIND + 44, x: roadHalf + PAVEMENT });
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
