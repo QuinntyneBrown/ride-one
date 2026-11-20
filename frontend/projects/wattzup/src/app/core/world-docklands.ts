@@ -67,6 +67,11 @@ const RAIL_DECK = 15;
 const RAIL_WEST = -360;
 const RAIL_EAST = 210;
 const TRAIN_SPEED = 16;
+/** The landmark's searchlights: cones BEAM_LENGTH long, leaning BEAM_LEAN, sweeping at SWEEP. */
+const BEAM_LENGTH = 900;
+const BEAM_WIDTH = 34;
+const BEAM_LEAN = 0.42;
+const SWEEP = 0.25;
 /** The drizzle: DROPS streaks DROP metres long, falling at RAIN_SPEED m/s round the rider. */
 const DROPS = 1100;
 const DROP = 0.7;
@@ -82,6 +87,11 @@ const DASH_EVERY = 9;
 const RAILING = 1.1;
 const HARBOUR_TO = 250;
 const FAR_SHORE = 340;
+/** Where the far shore's searchlights stand: x, height and z. */
+const SEARCHLIGHTS: readonly [number, number, number][] = [
+  [-FAR_SHORE - 20, 70, -600],
+  [-FAR_SHORE - 40, 95, -740],
+];
 /**
  * The bridge ramps: the road over an effort crosses open dock on a bridge with steel parapets
  * PARAPET metres high, held by a pylon PYLON metres tall with CABLES stays each way.
@@ -188,6 +198,11 @@ export class DocklandsStreet {
    */
   setTime(seconds: number, still = false): void {
     this.fall(seconds, still);
+    // The landmark's searchlights sweep the haze, each its own way; held still for reduced motion.
+    this.searchlights.forEach((pivot, i) => {
+      const way = i % 2 === 0 ? 1 : -1;
+      pivot.rotation.y = (i * Math.PI) / 1.7 + (still ? 0 : way * seconds * SWEEP);
+    });
     // The whole train is out of sight inside the towers at either end of its run.
     const start = RAIL_WEST - 40;
     const run = RAIL_EAST + 40 - start;
@@ -195,6 +210,40 @@ export class DocklandsStreet {
     const along = (((seconds * TRAIN_SPEED - start) % run) + run) % run;
     this.train.position.x = start + along;
   }
+  private readonly searchlights: Group[] = [];
+
+  /**
+   * Searchlight beams from the far shore's rooftops, leaning out and sweeping the violet haze
+   * over the harbour: soft cones of light, brightest at the lamp and fading into the sky.
+   */
+  private addSearchlights(): void {
+    const texture = this.track(beamTexture());
+    const material = new MeshBasicMaterial({
+      color: new Color('#c9c2ff').multiplyScalar(0.9),
+      map: texture,
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+      side: DoubleSide,
+    });
+    const cone = new CylinderGeometry(BEAM_WIDTH, 1.2, BEAM_LENGTH, 24, 1, true);
+    cone.translate(0, BEAM_LENGTH / 2, 0);
+    this.disposables.push(material, cone);
+    for (const [x, y, z] of SEARCHLIGHTS) {
+      const pivot = new Group();
+      pivot.position.set(x, y, z);
+      const lean = new Group();
+      lean.rotation.z = BEAM_LEAN;
+      lean.add(new Mesh(cone, material));
+      pivot.add(lean);
+      this.farShore.add(pivot);
+      this.searchlights.push(pivot);
+    }
+    this.setTime(0, true);
+  }
+
   private rain: LineSegments | null = null;
   private readonly drops: { x: number; z: number; phase: number }[] = [];
 
@@ -700,6 +749,7 @@ export class DocklandsStreet {
       z -= width + 2 + random() * 10;
     }
     // The haze over the water, before the far shore, turned to face the road.
+    this.addSearchlights();
     this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
   }
@@ -1543,6 +1593,24 @@ function hazeTexture(): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+/** Along a beam (v from the lamp to its far end): bright at the lamp, fading out into the sky. */
+function beamTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 4;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    // Canvas y runs from the far end (top) down to the lamp (bottom).
+    const g = ctx.createLinearGradient(0, 128, 0, 0);
+    g.addColorStop(0, 'rgba(255,255,255,0.9)');
+    g.addColorStop(0.2, 'rgba(255,255,255,0.35)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 4, 128);
+  }
+  return new CanvasTexture(canvas);
 }
 
 /** A soft round glow, white at its heart and fading to nothing at its edge. */
