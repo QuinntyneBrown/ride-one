@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Conquer the Climb](http://localhost:4
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/conquer-the-climb?simulate`, click **Ride in Stelvio Pass**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [028 · The wall of hairpins stands as it is](bend-028-hairpin-wall-stands.jpg) | The Stelvio's famous face of hairpins and the peaks above it were bent vertex by vertex with the road, on the tightest bends of any world (60° over 47 m), so they slewed across the view and folded on the inside of each bend. The horizon now stands beyond the road unbent, as the panorama does, and the props behind the rider stand on the road there. |

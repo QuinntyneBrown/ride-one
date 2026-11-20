@@ -101,6 +101,8 @@ export class MiamiStreet implements SceneStreet {
   private chatting: Figures | null = null;
   private skating: Figures | null = null;
   private arms: InstancedMesh | null = null;
+  private dogs: InstancedMesh | null = null;
+  private dogWalkers: number[] = [];
   private hair: InstancedMesh | null = null;
   private readonly limb = new Matrix4();
   private readonly limbTurn = new Matrix4();
@@ -122,6 +124,7 @@ export class MiamiStreet implements SceneStreet {
   private glitter: Texture | null = null;
   private stream: Texture | null = null;
   private chase: Texture | null = null;
+  private mist: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
@@ -334,6 +337,7 @@ export class MiamiStreet implements SceneStreet {
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
     if (this.stream) this.stream.offset.x = seconds * 0.02;
+    if (this.mist) this.mist.offset.x = seconds * 0.003;
     if (this.glitter) this.glitter.offset.set(Math.sin(seconds * 0.7) * 0.01, seconds * 0.05);
     // The blade signs pulse, each on its own beat, as neon on a timer does; every seventh sign
     // has a failing transformer and stutters, dropping out for a few frames now and then.
@@ -398,6 +402,19 @@ export class MiamiStreet implements SceneStreet {
         );
       });
       crowd.commit();
+    }
+    const dogs = this.dogs;
+    if (dogs) {
+      this.dogWalkers.forEach((w, i) => {
+        const p = this.people[w]!;
+        const metres =
+          loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND) + (p.speed >= 0 ? 1.1 : -1.1);
+        const trot = Math.abs(Math.sin(this.time * 9 + p.phase)) * 0.04;
+        this.limb.makeRotationY(p.speed >= 0 ? 0 : Math.PI);
+        this.limb.setPosition(p.x + 0.35, heightAt(Math.max(metres, 0)) + 0.15 + trot, -metres);
+        dogs.setMatrixAt(i, this.limb);
+      });
+      dogs.instanceMatrix.needsUpdate = true;
     }
     const skating = this.skating;
     if (skating) {
@@ -2861,6 +2878,41 @@ export class MiamiStreet implements SceneStreet {
       NIGHT_WEAR,
       8143,
     );
+    // Every fourth stroller walks a small dog on a lead a pace ahead of them.
+    const dogParts: BufferGeometry[] = [];
+    const piece = (w: number, h: number, d: number, x: number, y: number, z: number) => {
+      const g = new BoxGeometry(w, h, d);
+      g.translate(x, y, z);
+      dogParts.push(g);
+    };
+    piece(0.2, 0.18, 0.45, 0, 0.3, 0);
+    piece(0.16, 0.16, 0.18, 0, 0.42, -0.28);
+    piece(0.08, 0.06, 0.1, 0, 0.38, -0.4);
+    piece(0.04, 0.04, 0.18, 0, 0.42, 0.28);
+    for (const [x, z] of [
+      [-0.07, -0.16],
+      [0.07, -0.16],
+      [-0.07, 0.16],
+      [0.07, 0.16],
+    ] as const)
+      piece(0.05, 0.22, 0.05, x, 0.11, z);
+    const dogGeometry = mergeGeometries(dogParts)!;
+    dogParts.forEach((g) => g.dispose());
+    const dogMaterial = new MeshStandardMaterial({ roughness: 0.9 });
+    const walkers = this.people.map((_, i) => i).filter((i) => i % 4 === 0);
+    this.dogs = new InstancedMesh(dogGeometry, dogMaterial, walkers.length);
+    this.dogWalkers = walkers;
+    const coat = seeded(8501);
+    walkers.forEach((_, i) =>
+      this.dogs!.setColorAt(
+        i,
+        new Color(['#f4ecd8', '#3a2a1a', '#c8a070', '#1a1a1a', '#e8e0e0'][Math.floor(coat() * 5)]!),
+      ),
+    );
+    this.dogs.frustumCulled = false;
+    this.dogs.castShadow = true;
+    this.group.add(this.dogs);
+    this.disposables.push(dogGeometry, dogMaterial, this.dogs);
     // Everyone gets arms that swing as they walk, and hair or a hat.
     const count = this.people.length + this.skaters.length + this.standers.length;
     const arm = new CylinderGeometry(0.045, 0.04, 0.68, 6);
@@ -3278,6 +3330,30 @@ export class MiamiStreet implements SceneStreet {
       bolt: bolt.material as MeshBasicMaterial,
     };
     this.horizon.add(flash, bolt);
+    // Sea mist lying low over the water after the rain: long soft banks drifting slowly in
+    // front of the causeway and the ships, lit pale violet by the moon and the city.
+    const mistMap = this.track(seaMistTexture());
+    mistMap.wrapS = RepeatWrapping;
+    this.mist = mistMap;
+    const mist = new MeshBasicMaterial({
+      map: mistMap,
+      color: 0xb8a8e0,
+      transparent: true,
+      opacity: 0.4,
+      depthWrite: false,
+      fog: false,
+    });
+    this.disposables.push(mist);
+    for (const [x, y, z, w, h] of [
+      [-700, 6, -500, 1400, 18],
+      [-900, 9, -900, 2000, 26],
+      [-600, 12, -1350, 2400, 34],
+    ] as const) {
+      const bank = new Mesh(new PlaneGeometry(w, h), mist);
+      bank.position.set(x, y - SEA, z);
+      this.disposables.push(bank.geometry);
+      this.horizon.add(bank);
+    }
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
@@ -4754,5 +4830,22 @@ function policeDoorTexture(): CanvasTexture {
     g.font = 'bold 30px sans-serif';
     g.textAlign = 'center';
     g.fillText('POLICE', 128, 38);
+  });
+}
+
+/** A bank of sea mist: soft lumpy bands, thickest along their middle, wisping out above. */
+function seaMistTexture(): CanvasTexture {
+  return canvasTexture(512, 64, (g) => {
+    const random = seeded(8491);
+    for (let i = 0; i < 70; i++) {
+      const x = random() * 512;
+      const y = 28 + (random() - 0.5) * 24;
+      const r = 14 + random() * 30;
+      const puff = g.createRadialGradient(x, y, 0, x, y, r);
+      puff.addColorStop(0, 'rgba(255,255,255,0.32)');
+      puff.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = puff;
+      g.fillRect(x - r, 0, r * 2, 64);
+    }
   });
 }
