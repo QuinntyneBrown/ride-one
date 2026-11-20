@@ -91,6 +91,7 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 | [085 · Far-quay cyclists](085-far-quay-cyclists.jpg) | Across the canal the far quay's street has its own cyclists, riding both ways under the elms on their own coloured bikes, some with passengers or backpacks, so the far side moves as the near one does. Small across the water in the opening view; the scores hold. | 94% · 87/100 |
 | [086 · Heron](086-heron.jpg) | A grey heron stands motionless on the quay's edge by the first bridge, just past the flower stall, as Amsterdam's herons wait by stalls and fishmongers for scraps: grey body hunched, white neck and head with its black crest, a long yellow bill and yellow legs. | 94% · 87/100 |
 | [087 · Cirrus](087-cirrus.jpg) | Above the cumulus the sky gets its high cloud: seven thin streaks of cirrus combed out by the wind, brightest along the middle and frayed at the ends, lying across the blue at 400 to 800 m, as a May sky over Holland often has; they show faintly in the gap of sky over the gracht. | 94% · 87/100 |
+| [088 · Child seats](088-child-seats.jpg) | About one commuter in seven carries a toddler in a moulded child seat on the front tube between their arms, in blue, red or green, as Dutch parents ride to the crèche; the riders up the street in the opening view and the [mid-lap view](088-child-seats-detail.jpg) show the street's traffic as it now runs. The scores hold. | 94% · 87/100 |
 
 ## Reproducing a capture
 
