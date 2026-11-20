@@ -9,6 +9,7 @@ import {
   BufferGeometry,
   CanvasTexture,
   CapsuleGeometry,
+  CircleGeometry,
   Color,
   ConeGeometry,
   CubicBezierCurve3,
@@ -286,6 +287,7 @@ export class CaribanaStreet implements SceneStreet {
   private rags: InstancedMesh | null = null;
   private hair: InstancedMesh | null = null;
   private trims: InstancedMesh | null = null;
+  private contact: InstancedMesh | null = null;
   private glints: InstancedMesh | null = null;
   /** Where on the costume each glint sits, three to a dancer, and when it flashes. */
   private readonly sparks: { at: Vector3; phase: number; rate: number }[] = [];
@@ -599,6 +601,13 @@ export class CaribanaStreet implements SceneStreet {
       // Men wear trunks, not the bead fringe.
       if (d.male) this.held.makeScale(0, 0, 0);
       this.fringes?.setMatrixAt(i, d.male ? this.held : this.matrix);
+      if (this.contact) {
+        // The contact shadow stays on the road as the dancer bounces, a little smaller when up.
+        const lift = 1 - bounce * 3;
+        this.spot.set(x, y + 0.016, -metres);
+        this.size.set(d.build * lift, 1, lift);
+        this.contact.setMatrixAt(i, this.held.compose(this.spot, this.turn, this.size));
+      }
       this.hair?.setMatrixAt(i, this.matrix);
       this.trims?.setMatrixAt(i, this.matrix);
       this.placeGlints(i, t);
@@ -633,6 +642,7 @@ export class CaribanaStreet implements SceneStreet {
     if (this.fringes) this.fringes.instanceMatrix.needsUpdate = true;
     if (this.hair) this.hair.instanceMatrix.needsUpdate = true;
     if (this.trims) this.trims.instanceMatrix.needsUpdate = true;
+    if (this.contact) this.contact.instanceMatrix.needsUpdate = true;
     if (this.glints) this.glints.instanceMatrix.needsUpdate = true;
     if (this.faces) this.faces.instanceMatrix.needsUpdate = true;
     if (this.shades) this.shades.instanceMatrix.needsUpdate = true;
@@ -960,6 +970,22 @@ export class CaribanaStreet implements SceneStreet {
       [-CURB - 0.2, KERB],
       [-PAVEMENT, KERB + 0.01],
     ]);
+    // The crowds' feet darken the pavement where they stand packed together.
+    const trodden = this.material({
+      color: 0x0e0e10,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+      roughness: 1,
+    });
+    this.ribbons.add(points, trodden, [
+      [PAVEMENT, KERB + 0.02],
+      [CROWD_NEAR - 0.6, KERB + 0.02],
+    ]);
+    this.ribbons.add(points, trodden, [
+      [-CROWD_NEAR + 0.6, KERB + 0.02],
+      [-PAVEMENT, KERB + 0.02],
+    ]);
     this.ribbons.add(points, grass, [
       [SHORE - 3, 0.3],
       [PAVEMENT, KERB + 0.01],
@@ -1171,6 +1197,29 @@ export class CaribanaStreet implements SceneStreet {
     this.dancers.forEach((_, i) =>
       this.hair!.setColorAt(i, c.set(dyes[Math.floor(hairs() * dyes.length)]!)),
     );
+    // A soft contact shadow under each dancer's feet, grounding them on the asphalt.
+    // Three nested discs, each faint, so the shadow is darkest under the feet and fades out.
+    const discs = [0.56, 0.4, 0.26].map((r) => {
+      const disc = new CircleGeometry(r, 20);
+      disc.scale(1, 0.78, 1);
+      disc.rotateX(-Math.PI / 2);
+      return disc.toNonIndexed();
+    });
+    const blob = mergeGeometries(discs)!;
+    discs.forEach((d) => d.dispose());
+    this.disposables.push(blob);
+    this.contact = this.instanced(
+      blob,
+      this.material({
+        color: 0x0e0e10,
+        transparent: true,
+        opacity: 0.26,
+        depthWrite: false,
+        roughness: 1,
+      }),
+      n,
+    );
+    this.contact.castShadow = false;
     // Faces, and dark glasses on one dancer in five.
     const { face, shades } = faceParts();
     this.disposables.push(face, shades);
