@@ -156,7 +156,7 @@ None.
   - tall Mexican fan palms in rows on both sides, each a thin ringed trunk, a skirt of dead fronds and a crown of fans;
   - on the left the sand out to the surf and the Pacific, with Muscle Beach's fenced outdoor gym, its sign over the entrance facing the riders 165 m into the loop, two basketball courts with a game on, the skate park's bowls and fun box, and LA County's pale blue lifeguard towers;
   - the shared crowd behind the barriers, in loose knots on the boardwalk so its life shows between them and one deep in clusters on the beach side; skaters on their boards rolling the boardwalk both ways, street performers dancing and juggling in rings of watchers (the first just ahead as the warm-up rolls out), lifters at Muscle Beach, players on the courts and people on the sand and at the surf line (the kit's `Figures`);
-  - the Santa Monica Pier out in the bay ahead: its deck on piles, a pavilion, a coaster's loop and the Ferris wheel turning on the street's clock, ringed with gold lights, with the Santa Monica Mountains along the horizon behind, all hazed by hand.
+  - the Santa Monica Pier 440 m ahead, its deck on piles coming ashore across the path under a SANTA MONICA PIER sign and running out into the bay, a pavilion, a coaster's loop and the red Ferris wheel turning on the street's clock just left of the vanishing point, ringed with gold lights, with the Santa Monica Mountains along the horizon behind, all hazed by hand.
 
   `lay`, `place` and `setTime` recycle it along a 500 m loop.
 - **Amsterdam Canals (`core/world-amsterdam.ts`).** For `amsterdam`, the Herengracht on a spring morning:

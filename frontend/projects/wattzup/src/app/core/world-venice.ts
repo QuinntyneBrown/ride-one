@@ -77,7 +77,9 @@ const WATCHERS = 11;
 const PERFORMER_FIRST = 118;
 const MUSCLE_BEACH = 165;
 /** The Santa Monica Pier stands out into the bay ahead, hazed by hand. */
-const PIER_AHEAD = 520;
+const PIER_AHEAD = 440;
+/** The pier's deck reaches across the path from the land, so the wheel stands by the vanishing point. */
+const PIER_SHORE = 70;
 const HAZE = 0xd6dde0;
 
 const SKINS = ['#f1c7a5', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26', '#e2b48c'];
@@ -941,14 +943,21 @@ export class VeniceStreet implements SceneStreet {
   private addPier(): void {
     const haze = new Color(HAZE);
     const wood = hazedMaterial(this.disposables, haze, 0x8a6a4a, 0.25);
-    const white = hazedMaterial(this.disposables, haze, 0xf4f1e8, 0.15);
-    const red = hazedMaterial(this.disposables, haze, 0xd8283a, 0.15);
-    const blue = hazedMaterial(this.disposables, haze, 0x4f86c6, 0.15);
-    const yellow = hazedMaterial(this.disposables, haze, 0xffbf3c, 0.1, {
-      emissive: new Color(0xffbf3c),
-      emissiveIntensity: 1.1,
+    const white = hazedMaterial(this.disposables, haze, 0xf4f1e8, 0.08);
+    const red = hazedMaterial(this.disposables, haze, 0xd8283a, 0.06, {
+      emissive: new Color(0xd8283a),
+      emissiveIntensity: 0.25,
     });
-    const p = this.pier;
+    const blue = hazedMaterial(this.disposables, haze, 0x4f86c6, 0.08);
+    const yellow = hazedMaterial(this.disposables, haze, 0xffbf3c, 0.04, {
+      emissive: new Color(0xffbf3c),
+      emissiveIntensity: 1.4,
+    });
+    // Everything on the pier stands on its deck, which comes ashore PIER_SHORE metres to the
+    // right of the path and runs out west over the path and the sand into the bay.
+    const p = new Group();
+    p.position.x = PIER_SHORE;
+    this.pier.add(p);
     const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z: number) => {
       const mesh = new Mesh(this.unit, m);
       mesh.scale.set(w, h, d);
@@ -957,12 +966,24 @@ export class VeniceStreet implements SceneStreet {
       return mesh;
     };
     // The deck runs out west from the sand, on rows of piles.
-    box(wood, 260, 1.2, 22, -150, 6, 0);
-    for (let x = -30; x > -280; x -= 10)
+    box(wood, 340, 1.2, 22, -170, 6, 0);
+    for (let x = -4; x > -340; x -= 10)
       for (const z of [-9, 9]) box(wood, 0.8, 6.5, 0.8, x, -0.5, z);
     box(white, 40, 9, 16, -60, 7.2, 4);
     box(blue, 40.4, 1, 16.4, -60, 16.2, 4);
     box(white, 24, 6, 14, -210, 7.2, 2);
+    // Its sign over the path where the deck crosses it, facing the riders.
+    const sign = new Mesh(
+      new PlaneGeometry(26, 4.2),
+      hazedMaterial(this.disposables, haze, 0xffffff, 0.04, {
+        map: this.track(clothBannerTexture('SANTA MONICA PIER', '#2f6db3', '#fff6e0')),
+        side: DoubleSide,
+      }),
+    );
+    this.disposables.push(sign.geometry);
+    sign.position.set(-PIER_SHORE, 9.6, 11.2);
+    p.add(sign);
+    box(blue, 27, 0.5, 0.6, -PIER_SHORE, 11.7, 11.2);
     // The coaster's track loops over the deck.
     const curve = new CatmullRomCurve3(
       [
@@ -981,9 +1002,9 @@ export class VeniceStreet implements SceneStreet {
     // The Ferris wheel: two rims and their spokes, gondolas round the rim, on an A-frame.
     const radius = 36;
     const hub = 7.2 + radius + 4;
-    const rim = new TorusGeometry(radius, 0.45, 8, 96);
-    const spoke = new BoxGeometry(0.25, radius * 2, 0.25);
-    const gondola = new BoxGeometry(1.8, 2, 1.8);
+    const rim = new TorusGeometry(radius, 0.8, 8, 96);
+    const spoke = new BoxGeometry(0.45, radius * 2, 0.45);
+    const gondola = new BoxGeometry(2.6, 2.8, 2.6);
     this.disposables.push(rim, spoke, gondola);
     for (const z of [-1.2, 1.2]) {
       const r = new Mesh(rim, red);
@@ -1029,8 +1050,8 @@ export class VeniceStreet implements SceneStreet {
     this.disposables.push(ridge);
     const hills = new Mesh(ridge, hazedMaterial(this.disposables, haze, 0x7d8d9b, 0.68));
     hills.position.set(-600, 0, -2600);
-    p.add(hills);
-    this.group.add(p);
+    this.pier.add(hills);
+    this.group.add(this.pier);
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
