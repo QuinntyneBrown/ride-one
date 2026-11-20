@@ -386,6 +386,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     const wet = on.has(14) && look.wet;
     this.roadMaterial.roughness = wet ? 0.28 : 0.9;
     this.roadMaterial.color.set(look.road).multiplyScalar(wet ? 0.7 : 1);
+    this.wetSky(wet);
     this.roadMaterial.needsUpdate = true;
 
     for (const frame of this.frames) {
@@ -690,6 +691,14 @@ export class ThreeWorldRenderer implements WorldRenderer {
     towers.build(ROAD_HALF, AHEAD + BEHIND + 1);
     this.scene.add(towers.group);
     this.towers = towers;
+    this.wetSky(this.look.wet === true);
+  }
+
+  /** A wet Docklands road mirrors its night sky's violet glow, as the mock's road does. */
+  private wetSky(wet: boolean): void {
+    this.roadMaterial.envMap = wet && this.towers ? this.towers.skyEnv() : null;
+    this.roadMaterial.envMapIntensity = 1.4;
+    this.roadMaterial.needsUpdate = true;
   }
 
   private placeRoadside(s: number, ahead: RoadPoint[]): void {

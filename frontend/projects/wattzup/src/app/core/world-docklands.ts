@@ -163,8 +163,8 @@ export class DocklandsStreet {
   private readonly boats: { mesh: Group; offset: number }[] = [];
   private skyReflection: CanvasTexture | null = null;
 
-  /** The night sky as an environment map, for the water and glass to reflect. */
-  private skyEnv(): CanvasTexture {
+  /** The night sky as an environment map, for the water, the glass and the wet road to reflect. */
+  skyEnv(): CanvasTexture {
     if (!this.skyReflection) {
       const texture = this.track(nightSkyTexture());
       texture.mapping = EquirectangularReflectionMapping;
@@ -611,6 +611,9 @@ export class DocklandsStreet {
       color: 0x8a8fa6,
       roughness: 0.42,
       metalness: 0.1,
+      // The wet slabs catch a soft sheen of the sky's glow.
+      envMap: this.skyEnv(),
+      envMapIntensity: 0.6,
       side: DoubleSide,
     });
     const kerb = new MeshStandardMaterial({ color: 0x6d7182, roughness: 0.6, side: DoubleSide });
