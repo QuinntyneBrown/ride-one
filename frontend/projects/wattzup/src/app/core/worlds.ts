@@ -651,6 +651,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 4, work: 7, rest: 4, cooldown: 2, steady: 6 },
     roll: 0.8,
   },
+  {
+    id: 'dubai',
+    name: 'Dubai Marina',
+    route: 'the marina walk',
+    effortName: 'Marina sprint',
+    description:
+      "The marina walk runs along the water at dusk between the glass towers of Dubai Marina, superyachts moored at the pontoons and palms in their planters, as a crowd in white kandura and bright summer colours lines the barriers and the twisting Cayan Tower glows against the orange and violet sky ahead. The two minutes' warm-up rolls out under the first sprint banner, the half-minute sprints flash past the yachts at full gas, and the three-minute efforts hold the pace past the lit cafés of the podium before the easy minutes spin beneath the towers.",
+    grade: { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0.3,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
