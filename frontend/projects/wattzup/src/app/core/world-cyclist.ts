@@ -73,15 +73,22 @@ export class CyclistKit {
     opacity: 0.55,
   });
   private readonly contactPlane = new PlaneGeometry(1, 1);
+  private readonly bibPlane = new PlaneGeometry(0.21, 0.16);
 
   /** The jersey's cut, tinted by each rider's colour: dark side panels and a pale hem band. */
   private readonly kitTexture = jerseyTexture();
 
   constructor(private readonly frame: Material) {}
 
-  make(jersey: Color): Cyclist {
+  /** A rider in `jersey`, with race `number` pinned to their back. */
+  make(jersey: Color, number: number): Cyclist {
     const top = new MeshStandardMaterial({ color: jersey, roughness: 0.65, map: this.kitTexture });
-    return new Cyclist(this, this.frame, top);
+    const bib = new MeshStandardMaterial({ map: bibTexture(number), roughness: 0.8 });
+    return new Cyclist(this, this.frame, top, bib);
+  }
+
+  bibGeometry(): PlaneGeometry {
+    return this.bibPlane;
   }
 
   tubeGeometry(): CylinderGeometry {
@@ -129,6 +136,7 @@ export class CyclistKit {
     this.contact.alphaMap?.dispose();
     this.contact.dispose();
     this.contactPlane.dispose();
+    this.bibPlane.dispose();
     for (const m of [this.rubber, this.metal, this.shorts, this.skin, this.shoe, this.spokes]) {
       m.dispose();
     }
@@ -148,6 +156,7 @@ export class Cyclist {
     private readonly kit: CyclistKit,
     frame: Material,
     readonly jersey: MeshStandardMaterial,
+    readonly bib: MeshStandardMaterial,
   ) {
     const parts = kit.parts();
     this.contact = new Mesh(kit.contactGeometry(), kit.contact);
@@ -216,6 +225,13 @@ export class Cyclist {
     torso.scale.set(1.15, 1, 0.85);
     torso.castShadow = true;
     this.group.add(torso);
+    // The race number, pinned low on the back.
+    const along = SHOULDER.clone().sub(HIP).normalize();
+    const back = new Vector3(0, -along.z, along.y);
+    const number = new Mesh(kit.bibGeometry(), bib);
+    number.position.copy(torso.position).addScaledVector(along, -0.07).addScaledVector(back, 0.135);
+    number.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), back);
+    this.group.add(number);
     const seatPad = new Mesh(kit.limb(0.1, 0.1), kit.shorts);
     seatPad.position.copy(HIP).add(new Vector3(0, 0.02, 0.04));
     seatPad.rotation.z = Math.PI / 2;
@@ -286,6 +302,35 @@ export class Cyclist {
     mesh.castShadow = true;
     return { mesh, length };
   }
+}
+
+/** A race number: black digits on white cloth, with a safety pin at each corner. */
+function bibTexture(n: number): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#f4f4f0';
+    ctx.fillRect(0, 0, 128, 96);
+    ctx.fillStyle = '#16171a';
+    ctx.font = 'bold 64px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(n), 64, 52);
+    ctx.fillStyle = '#9aa0a6';
+    for (const [x, y] of [
+      [8, 8],
+      [120, 8],
+      [8, 88],
+      [120, 88],
+    ]) {
+      ctx.fillRect(x - 3, y - 2, 6, 4);
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
 
 function contactTexture(): CanvasTexture {

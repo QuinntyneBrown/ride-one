@@ -62,7 +62,7 @@ import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from '.
 import { nextArch, roadAhead, type RoadPoint } from './scene-road';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 import { Cyclist, CyclistKit } from './world-cyclist';
-import { cobbleTexture, OldTownStreet } from './world-oldtown';
+import { cobbleTextures, OldTownStreet } from './world-oldtown';
 import { targetGrade, type World } from './worlds';
 
 interface Look {
@@ -209,6 +209,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private readonly disposables: { dispose(): void }[] = [];
   private plainRoad: CanvasTexture | null = null;
   private layeredRoad: CanvasTexture | null = null;
+  private roadRelief: CanvasTexture | null = null;
   private archLabel: { text: string; texture: CanvasTexture; mesh: Mesh } | null = null;
   private world: World | null = null;
   private look: Look = LOOKS.oldtown;
@@ -270,6 +271,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.layRoad(ahead, frame.s);
     const texture = this.roadMaterial.map;
     if (texture) texture.offset.y = (frame.s / DASH) % 1;
+    if (this.roadRelief) this.roadRelief.offset.y = (frame.s / DASH) % 1;
     this.placeArch(world, frame, speed, ahead);
     this.placeRoadside(frame.s, ahead);
     this.placePacers(frame, ahead);
@@ -337,6 +339,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.sun.castShadow = on.has(12);
 
     this.roadMaterial.map = on.has(9) ? this.layeredRoad : this.plainRoad;
+    // The setts' relief comes with the photometric-stereo materials (technique 3).
+    this.roadMaterial.normalMap = on.has(3) ? this.roadRelief : null;
     const wet = on.has(14) && look.wet;
     this.roadMaterial.roughness = wet ? 0.28 : 0.9;
     this.roadMaterial.color.set(look.road).multiplyScalar(wet ? 0.7 : 1);
@@ -464,7 +468,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.scene.add(this.sky);
 
     this.plainRoad = this.track(roadTexture(false));
-    this.layeredRoad = this.track(world.id === 'oldtown' ? cobbleTexture() : roadTexture(true));
+    const cobbles = world.id === 'oldtown' ? cobbleTextures() : null;
+    this.layeredRoad = this.track(cobbles?.map ?? roadTexture(true));
+    this.roadRelief = cobbles ? this.track(cobbles.relief) : null;
     this.roadMaterial.color.set(look.road);
     const groundMesh = this.addMesh(
       this.ground,
@@ -517,18 +523,18 @@ export class ThreeWorldRenderer implements WorldRenderer {
   /** The rider on their bike, from behind, in the You colour of the rider board. */
   private addRider(canvas: HTMLCanvasElement): void {
     const kit = new CyclistKit(this.frameMaterial);
-    const you = kit.make(riderColour(canvas, 4));
+    const you = kit.make(riderColour(canvas, 4), 4);
     this.you = you;
     this.wheelBlur.push(...you.wheelBlur);
     this.scene.add(you.group);
-    this.disposables.push(kit, you.jersey, this.frameMaterial);
+    this.disposables.push(kit, you.jersey, you.bib, this.frameMaterial);
     // The simulated pacers ride with the rider, each in its board colour (L2-107 AC7).
     for (const pacer of PACERS) {
-      const rider = kit.make(riderColour(canvas, pacer.jersey));
+      const rider = kit.make(riderColour(canvas, pacer.jersey), pacer.jersey);
       rider.group.visible = false;
       this.pacers.set(pacer.jersey, rider);
       this.scene.add(rider.group);
-      this.disposables.push(rider.jersey);
+      this.disposables.push(rider.jersey, rider.bib);
     }
   }
 
@@ -581,7 +587,15 @@ export class ThreeWorldRenderer implements WorldRenderer {
     line.position.y = 0.02;
     line.receiveShadow = true;
     this.arch.add(line);
-    this.disposables.push(material, steel, chord, foot, beam.geometry, line.geometry, line.material as Material);
+    this.disposables.push(
+      material,
+      steel,
+      chord,
+      foot,
+      beam.geometry,
+      line.geometry,
+      line.material as Material,
+    );
     this.arch.visible = false;
     this.scene.add(this.arch);
   }

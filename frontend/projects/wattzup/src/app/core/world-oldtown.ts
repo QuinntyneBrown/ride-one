@@ -64,6 +64,12 @@ const SIGNS: readonly { ground: string; emblem: 'cup' | 'key' | 'loaf' | 'wheel'
   { ground: '#2d4e7a', emblem: 'loaf' },
   { ground: '#1f2328', emblem: 'wheel' },
 ];
+const FLAGS: readonly (readonly string[])[] = [
+  ['#c9372c', '#f2f0e8'],
+  ['#e2b23a', '#2d4e7a'],
+  ['#2f5d4a', '#f2f0e8', '#c9372c'],
+  ['#1f2328', '#e2b23a'],
+];
 const ROOFS = ['#9a4b33', '#7c3d2c', '#a85a3a', '#5a5c63'];
 
 /** A spectator on the pavement. */
@@ -150,14 +156,32 @@ export class OldTownStreet {
   private fans: InstancedMesh[] = [];
   private flags: InstancedMesh | null = null;
   private readonly cathedral = new Group();
-  private readonly iron = new MeshStandardMaterial({ color: 0x1e2023, metalness: 0.5, roughness: 0.5 });
+  private readonly iron = new MeshStandardMaterial({
+    color: 0x1e2023,
+    metalness: 0.5,
+    roughness: 0.5,
+  });
   private readonly signBoard = new PlaneGeometry(0.7, 0.55);
+  private readonly pot = new CylinderGeometry(0.24, 0.18, 0.5, 10);
+  private readonly bush = new SphereGeometry(0.42, 10, 8);
+  private readonly terracotta = new MeshStandardMaterial({ color: 0xb4603f, roughness: 0.9 });
+  private readonly leaves = new MeshStandardMaterial({ color: 0x3f6b35, roughness: 0.95 });
+  private readonly flagCloth = new PlaneGeometry(2.0, 1.35, 6, 1);
+  /** Civic flags in two or three bands, read from either side. */
+  private readonly houseFlags = FLAGS.map(
+    (bands) =>
+      new MeshStandardMaterial({ map: flagTexture(bands), side: DoubleSide, roughness: 0.85 }),
+  );
   private readonly dormer = tiledBox(1.6, 1.6, 1.5, 1.6, 0.25);
   private readonly dormerRoof = prism(1.9, 0.8, 1.8);
   /** The shop signs: a gilt emblem on a painted board, read from either side. */
   private readonly signs = SIGNS.map(
     (sign) =>
-      new MeshStandardMaterial({ map: signTexture(sign.ground, sign.emblem), side: DoubleSide, roughness: 0.6 }),
+      new MeshStandardMaterial({
+        map: signTexture(sign.ground, sign.emblem),
+        side: DoubleSide,
+        roughness: 0.6,
+      }),
   );
   /** Wrought iron: balusters and a scroll, cut out of the canvas. */
   private readonly railing = new MeshStandardMaterial({
@@ -182,6 +206,9 @@ export class OldTownStreet {
     this.disposables.push(this.unit, this.brick, this.railing);
     if (this.railing.map) this.track(this.railing.map);
     this.disposables.push(this.iron, this.signBoard, this.dormer, this.dormerRoof, ...this.signs);
+    this.disposables.push(this.flagCloth, ...this.houseFlags);
+    this.disposables.push(this.pot, this.bush, this.terracotta, this.leaves);
+    for (const flag of this.houseFlags) if (flag.map) this.track(flag.map);
     for (const sign of this.signs) if (sign.map) this.track(sign.map);
     this.addFurniture(roadHalf);
     this.addCrowd(roadHalf);
@@ -658,10 +685,53 @@ export class OldTownStreet {
     if (look.awning) group.add(this.awning(look.awning, width));
     if (this.random() < 0.4) group.add(this.balcony(look.trim, width));
     if (look.groundBay === BAY && this.random() < 0.6) group.add(this.sign(width));
+    if (this.chance(2) < 0.32) group.add(this.flag(width));
+    if (look.groundBay === 2 * BAY) group.add(this.pots(width));
     // The cornice under the eaves, and the string course over the shop floor.
     group.add(this.trim(trim, width + 0.3, 0.45, 0.42, SHOP + height - 0.22));
     group.add(this.trim(trim, width, 0.2, 0.24, SHOP));
     this.disposables.push(shopBox, upperBox, roofGeometry);
+    return group;
+  }
+
+  /** Bay trees in terracotta pots either side of a home's doors. */
+  private pots(width: number): Group {
+    const group = new Group();
+    for (let bay = 0; bay < Math.round(width / (2 * BAY)); bay++) {
+      // The door sits in the first third of each two-bay tile.
+      const door = -width / 2 + bay * 2 * BAY + 1.25;
+      for (const dz of [-0.85, 0.85]) {
+        if (this.chance(10 + bay * 2 + (dz > 0 ? 1 : 0)) < 0.35) continue;
+        const pot = new Mesh(this.pot, this.terracotta);
+        pot.position.set(0.35, 0.25, door + dz);
+        const bush = new Mesh(this.bush, this.leaves);
+        bush.position.set(0.35, 0.95, door + dz);
+        bush.scale.set(1, 1.25, 1);
+        pot.castShadow = bush.castShadow = true;
+        group.add(pot, bush);
+      }
+    }
+    return group;
+  }
+
+  /** A flag on a pole angled out from the first floor over the street. */
+  private flag(width: number): Group {
+    const group = new Group();
+    const z = (this.chance(3) - 0.5) * (width - 2);
+    const y = SHOP + STOREY + 0.2;
+    const pole = new Mesh(this.unit, this.iron);
+    pole.scale.set(2.4, 0.05, 0.05);
+    pole.position.set(1.0, y + 0.55, z);
+    pole.rotation.z = 0.5;
+    const cloth = new Mesh(
+      this.flagCloth,
+      this.houseFlags[Math.floor(this.chance(4) * this.houseFlags.length)]!,
+    );
+    cloth.rotation.y = Math.PI / 2;
+    cloth.position.set(1.7, y - 0.05, z);
+    cloth.rotateZ(0.5);
+    cloth.castShadow = pole.castShadow = true;
+    group.add(pole, cloth);
     return group;
   }
 
@@ -672,7 +742,10 @@ export class OldTownStreet {
     const arm = new Mesh(this.unit, this.iron);
     arm.scale.set(1.1, 0.05, 0.05);
     arm.position.set(0.55, SHOP + 0.9, z);
-    const board = new Mesh(this.signBoard, this.signs[Math.floor(this.random() * this.signs.length)]!);
+    const board = new Mesh(
+      this.signBoard,
+      this.signs[Math.floor(this.random() * this.signs.length)]!,
+    );
     board.rotation.y = Math.PI / 2;
     board.rotateY(Math.PI / 2);
     board.position.set(0.75, SHOP + 0.5, z);
@@ -1061,7 +1134,7 @@ function bayTexture(palette: Palette, shop: boolean, closed = false): CanvasText
  * The cobbled road, one 10 m tile 7 m across (L2-111 technique 9): rows of setts across the
  * road, each its own shade of granite, with dark joints, and white edge lines for the race.
  */
-export function cobbleTexture(): CanvasTexture {
+export function cobbleTextures(): { map: CanvasTexture; relief: CanvasTexture } {
   const w = 1024;
   const h = 1024;
   const pxX = w / 7;
@@ -1069,7 +1142,14 @@ export function cobbleTexture(): CanvasTexture {
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d');
-  if (ctx) {
+  // The height of the road: each sett domed, the joints sunk between them.
+  const heights = document.createElement('canvas');
+  heights.width = w;
+  heights.height = h;
+  const hctx = heights.getContext('2d');
+  if (ctx && hctx) {
+    hctx.fillStyle = '#000';
+    hctx.fillRect(0, 0, w, h);
     ctx.fillStyle = '#76706a';
     ctx.fillRect(0, 0, w, h);
     const random = seeded(23);
@@ -1094,6 +1174,18 @@ export function cobbleTexture(): CanvasTexture {
         g.addColorStop(1, 'rgba(0,0,0,0.18)');
         ctx.fillStyle = g;
         roundRect(ctx, x + 1.5, y + 1.5, sw - 3, rowH - 3, 4);
+        const dome = hctx.createRadialGradient(
+          x + sw / 2,
+          y + rowH / 2,
+          1,
+          x + sw / 2,
+          y + rowH / 2,
+          Math.max(sw, rowH) * 0.62,
+        );
+        dome.addColorStop(0, '#fff');
+        dome.addColorStop(1, '#5a5a5a');
+        hctx.fillStyle = dome;
+        roundRect(hctx, x + 1.5, y + 1.5, sw - 3, rowH - 3, 4);
         x += sw;
       }
     }
@@ -1102,6 +1194,8 @@ export function cobbleTexture(): CanvasTexture {
     for (const gx of [0, w - gutter]) {
       ctx.fillStyle = '#6f6a63';
       ctx.fillRect(gx, 0, gutter, h);
+      hctx.fillStyle = '#9a9a9a';
+      hctx.fillRect(gx, 0, gutter, h);
       for (let y = 0; y < h; y += 0.6 * (h / 10)) {
         const tone = 120 + random() * 30;
         ctx.fillStyle = `rgb(${tone},${tone - 4},${tone - 10})`;
@@ -1118,11 +1212,46 @@ export function cobbleTexture(): CanvasTexture {
     ctx.fillRect(0.42 * pxX, 0, 0.1 * pxX, h);
     ctx.fillRect(w - 0.52 * pxX, 0, 0.1 * pxX, h);
   }
-  const texture = new CanvasTexture(canvas);
-  texture.wrapS = RepeatWrapping;
-  texture.wrapT = RepeatWrapping;
-  texture.colorSpace = SRGBColorSpace;
-  return texture;
+  const map = new CanvasTexture(canvas);
+  map.colorSpace = SRGBColorSpace;
+  const relief = new CanvasTexture(hctx ? normalsFrom(hctx, w, h, 9) : heights);
+  for (const t of [map, relief]) {
+    t.wrapS = RepeatWrapping;
+    t.wrapT = RepeatWrapping;
+  }
+  return { map, relief };
+}
+
+/** A tangent-space normal map from a height canvas, `strength` steepening its slopes. */
+function normalsFrom(
+  heights: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  strength: number,
+): HTMLCanvasElement {
+  const source = heights.getImageData(0, 0, w, h).data;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
+  const out = ctx.createImageData(w, h);
+  const at = (x: number, y: number) => source[(((y + h) % h) * w + ((x + w) % w)) * 4]! / 255;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = (at(x + 1, y) - at(x - 1, y)) * strength;
+      // The canvas runs down the texture's v: a rise down the canvas tips the normal to +v.
+      const dy = (at(x, y + 1) - at(x, y - 1)) * strength;
+      const len = Math.hypot(dx, dy, 1);
+      const i = (y * w + x) * 4;
+      out.data[i] = ((-dx / len) * 0.5 + 0.5) * 255;
+      out.data[i + 1] = ((dy / len) * 0.5 + 0.5) * 255;
+      out.data[i + 2] = ((1 / len) * 0.5 + 0.5) * 255;
+      out.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(out, 0, 0);
+  return canvas;
 }
 
 function roundRect(
@@ -1231,6 +1360,29 @@ function gothicTexture(open: boolean): CanvasTexture {
         ctx.fillStyle = '#3a3c44';
       }
     }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A flag in horizontal bands, its cloth creased by a soft shade across it. */
+function flagTexture(bands: readonly string[]): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 96;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    bands.forEach((band, i) => {
+      ctx.fillStyle = band;
+      ctx.fillRect(0, (i * 64) / bands.length, 96, 64 / bands.length + 1);
+    });
+    const crease = ctx.createLinearGradient(0, 0, 96, 0);
+    for (let i = 0; i <= 4; i++) {
+      crease.addColorStop(i / 4, i % 2 ? 'rgba(0,0,0,0.16)' : 'rgba(255,255,255,0.08)');
+    }
+    ctx.fillStyle = crease;
+    ctx.fillRect(0, 0, 96, 64);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
