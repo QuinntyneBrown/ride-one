@@ -78,6 +78,11 @@ const DROP = 0.7;
 const RAIN_SPEED = 9;
 const RAIN_BOX = 26;
 const RAIN_HEIGHT = 14;
+/** The bridges' lamps: DECK_LAMPS pairs every DECK_LAMP_EVERY metres, masts and arms in metres. */
+const DECK_LAMPS = 12;
+const DECK_LAMP_EVERY = 25;
+const DECK_LAMP_HEIGHT = 7;
+const DECK_LAMP_ARM = 2.2;
 /** The neon strips up the towers' corners are this thick. */
 const EDGE = 0.35;
 /** The centre line's dashes: DASH metres of line in every DASH_EVERY. */
@@ -190,6 +195,7 @@ export class DocklandsStreet {
   private readonly dock = new Group();
   private readonly boats: { mesh: Group; offset: number }[] = [];
   private readonly skytrain = new Group();
+  private readonly deckLamps: Group[] = [];
   private readonly train = new Group();
 
   /**
@@ -894,6 +900,7 @@ export class DocklandsStreet {
     this.addSky();
     this.addBoats(roadHalf + SETBACK + 2);
     this.addSkytrain(roadHalf);
+    this.addDeckLamps(roadHalf);
     this.addRain();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
@@ -1102,6 +1109,44 @@ export class DocklandsStreet {
       this.streak(lamp, '#ffd9a0', 0, KERB, -0.5, 6, 1.4, 1);
       this.lamps.push(lamp);
       this.group.add(lamp);
+    }
+  }
+
+  /**
+   * The bridges' own lamps, in pairs on both parapets every DECK_LAMP_EVERY metres: slim masts
+   * whose arms reach over the road with cool white heads, their light pooling on the deck.
+   */
+  private addDeckLamps(roadHalf: number): void {
+    const metal = new MeshStandardMaterial({ color: 0x1c2030, metalness: 0.7, roughness: 0.35 });
+    const lamp = new MeshStandardMaterial({
+      color: 0x000000,
+      emissive: new Color('#e8f0ff'),
+      emissiveIntensity: 3,
+    });
+    const mast = new BoxGeometry(0.16, DECK_LAMP_HEIGHT, 0.16);
+    const arm = new BoxGeometry(DECK_LAMP_ARM, 0.12, 0.12);
+    const head = new BoxGeometry(0.9, 0.14, 0.32);
+    this.disposables.push(metal, lamp, mast, arm, head);
+    const edge = roadHalf + KERB_WIDTH;
+    for (let i = 0; i < DECK_LAMPS; i++) {
+      const pair = new Group();
+      for (const side of [-1, 1]) {
+        const pole = new Mesh(mast, metal);
+        pole.position.set(side * (edge + 0.1), KERB + DECK_LAMP_HEIGHT / 2, 0);
+        const reach = new Mesh(arm, metal);
+        reach.position.set(side * (edge + 0.1 - DECK_LAMP_ARM / 2), KERB + DECK_LAMP_HEIGHT, 0);
+        const light = new Mesh(head, lamp);
+        light.position.set(
+          side * (edge + 0.1 - DECK_LAMP_ARM + 0.45),
+          KERB + DECK_LAMP_HEIGHT - 0.12,
+          0,
+        );
+        pair.add(pole, reach, light);
+        this.streak(pair, '#dfe8ff', side * (edge - DECK_LAMP_ARM + 0.6), 0, -1, 12, 2.4, 1.8);
+      }
+      pair.visible = false;
+      this.deckLamps.push(pair);
+      this.group.add(pair);
     }
   }
 
@@ -1513,6 +1558,11 @@ export class DocklandsStreet {
       boat.mesh.position.y = heightAt(Math.max(metres, 0)) - 0.3;
       boat.mesh.position.z = -metres;
     }
+    this.deckLamps.forEach((pair, i) => {
+      const metres = i * DECK_LAMP_EVERY - (s % DECK_LAMP_EVERY) + 4;
+      pair.visible = this.onBridge(Math.max(metres, 0));
+      pair.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    });
     this.placePylon(heightAt);
     // The dock stands on the water beside the bridge in view, from the bridge's start.
     const start = this.bridgeStarts.find((m) => m > -520 && m < 300);
