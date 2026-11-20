@@ -466,6 +466,11 @@ export class HavanaStreet implements SceneStreet {
     const roofs = seeded(1051);
     const life = seeded(1117);
     const gear = seeded(1163);
+    const ruins = seeded(1171);
+    const derelict = this.track(ruinTexture());
+    derelict.wrapS = RepeatWrapping;
+    derelict.wrapT = RepeatWrapping;
+    const timber = this.material({ color: 0x6b5238, roughness: 1 });
     let inBlock = 0;
     let block = 4;
     for (let offset = 0; offset < LOOP;) {
@@ -479,12 +484,15 @@ export class HavanaStreet implements SceneStreet {
         .set(pastels[pick]!)
         .lerp(bleach, random() * 0.45)
         .getHex();
-      const map = fronts.clone();
+      // About one building in seven is a ruin: its paint long gone, its windows gaping, its
+      // balconies fallen, and its front propped from the pavement with timber shores.
+      const ruin = ruins() < 0.15;
+      const map = (ruin ? derelict : fronts).clone();
       map.repeat.set(width / 8, floors / 4);
       map.offset.y = 1 - floors / 4;
       map.needsUpdate = true;
       this.track(map);
-      const facade = this.material({ map, color: tint, roughness: 0.85 });
+      const facade = this.material({ map, color: ruin ? 0xc4bcb0 : tint, roughness: 0.95 });
       const building = new Group();
       const body = new Mesh(this.unit, facade);
       body.scale.set(14, height, width - 0.3);
@@ -603,7 +611,7 @@ export class HavanaStreet implements SceneStreet {
           }
         }
       }
-      if (things.length) {
+      if (things.length && !ruin) {
         const merged = mergeGeometries(things)!;
         things.forEach((g) => g.dispose());
         this.disposables.push(merged);
@@ -612,7 +620,7 @@ export class HavanaStreet implements SceneStreet {
         building.add(mesh);
       }
       // Now and then a Cuban flag hangs over the top balcony's railing.
-      if (life() < 0.2) {
+      if (life() < 0.2 && !ruin) {
         const flag = new Mesh(this.flagSheet, this.flag);
         flag.position.set(
           -BALCONY - 0.04,
@@ -629,7 +637,8 @@ export class HavanaStreet implements SceneStreet {
       slabMesh.castShadow = true;
       const railMesh = new Mesh(railGeometry, iron);
       railMesh.castShadow = true;
-      building.add(slabMesh, railMesh);
+      if (ruin) building.add(this.shoring(width, timber));
+      else building.add(slabMesh, railMesh);
       this.group.add(building);
       this.props.push({ mesh: building, offset, x: roadHalf + 4 });
       offset += width;
@@ -688,6 +697,33 @@ export class HavanaStreet implements SceneStreet {
         into.push(paint(cloth, LAUNDRY[Math.floor(random() * LAUNDRY.length)]!));
       }
     }
+  }
+
+  /**
+   * Timber shores propping a ruin's front: raking beams from sole plates on the pavement up to
+   * a waling piece across the first floor, braced between.
+   */
+  private shoring(width: number, timber: MeshStandardMaterial): Mesh {
+    const parts: BufferGeometry[] = [];
+    for (let z = -2; z > -width + 1.5; z -= 3.2) {
+      const raker = new BoxGeometry(0.22, 7.6, 0.22);
+      raker.translate(0, 3.8, 0);
+      raker.rotateZ(0.42);
+      raker.translate(-0.1, 0, z);
+      parts.push(raker);
+      const sole = new BoxGeometry(1.2, 0.2, 0.4);
+      sole.translate(-3.0, 0.1, z);
+      parts.push(sole);
+    }
+    const waling = new BoxGeometry(0.25, 0.3, width - 1.5);
+    waling.translate(-0.15, PORTAL + 2.2, -width / 2);
+    parts.push(waling);
+    const merged = mergeGeometries(parts)!;
+    parts.forEach((g) => g.dispose());
+    this.disposables.push(merged);
+    const mesh = new Mesh(merged, timber);
+    mesh.castShadow = true;
+    return mesh;
   }
 
   /**
@@ -2141,5 +2177,36 @@ function seawallTexture(): CanvasTexture {
     }
     g.fillStyle = 'rgba(50,45,40,0.6)';
     g.fillRect(0, 0, 256, 3);
+  });
+}
+
+/**
+ * A ruined front, on the same 8 m × four-storey grid as the painted ones: bare, stained grey
+ * plaster and stone, the windows gaping black and empty of their shutters, a fallen balcony's
+ * stub at each floor, and the brick showing where the render has come away.
+ */
+function ruinTexture(): CanvasTexture {
+  return canvasTexture(512, 1024, (g) => {
+    g.scale(2, 2);
+    speckle(g, 256, 512, '#b8b2a6', 1181);
+    const random = seeded(1187);
+    for (let i = 0; i < 16; i++) {
+      g.fillStyle = `rgba(140,85,60,${0.4 + random() * 0.4})`;
+      g.fillRect(random() * 230, random() * 490, 14 + random() * 40, 10 + random() * 30);
+    }
+    for (let x = 0; x < 256; x += 2 + random() * 4) {
+      g.fillStyle = `rgba(50,48,42,${0.1 + random() * 0.2})`;
+      g.fillRect(x, random() * 512, 2, 30 + random() * 120);
+    }
+    for (let y = 0; y < 512; y += 128) {
+      for (const x of [26, 154]) {
+        g.fillStyle = '#121212';
+        g.fillRect(x + 16, y + 24, 44, 100);
+        g.fillStyle = 'rgba(90,70,50,0.8)';
+        if (random() < 0.4) g.fillRect(x + 16, y + 24 + random() * 60, 44, 4);
+      }
+      g.fillStyle = 'rgba(80,76,70,0.8)';
+      g.fillRect(0, y + 122, 256, 6);
+    }
   });
 }
