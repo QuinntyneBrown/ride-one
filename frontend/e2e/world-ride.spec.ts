@@ -24,6 +24,133 @@ const resistance = (level: number): string => {
 const setLevel = (level: number): string =>
   `F0B101${level.toString(16).padStart(2, '0')}${((0xa2 + level) & 0xff).toString(16).padStart(2, '0')}`.toUpperCase();
 
+/** A catalogue whose one class names no world, as a catalogue file may (L2-100 AC1). */
+const WORLDLESS_CATALOGUE = JSON.stringify({
+  shelves: [{ id: 'short', title: '20 min', tagline: 'Short and sharp.' }],
+  classes: [
+    {
+      id: 'no-world',
+      title: 'No world',
+      channel: 'Wattzup Studio',
+      focus: 'Zone 2',
+      description: 'One level, held.',
+      shelf: 'short',
+      plan: { kind: 'flat', level: 12, minutes: 20, cadence: 85 },
+    },
+  ],
+});
+
+/** The classes given their world last, each with its world's name (L2-100 AC4). */
+const CLASS_WORLDS: readonly (readonly [string, string])[] = [
+  ['quick-but-brutal-hiit', "Trinidad J'Ouvert"],
+  ['15-minute-smash-fest', 'Rio Sambadrome'],
+  ['15-minute-strength-workout', 'Lisbon Tram Hills'],
+  ['nasty-pasty-sprint-session', 'Cornish Harbour'],
+  ['quick-sprint-session', 'Copacabana Promenade'],
+  ['15-min-hiit-cardio-belly-fat-loss', 'Bondi to Bronte'],
+  ['instant-inferno', 'Kīlauea Lava Road'],
+  ['super-high-cadence-sprints', 'Shibuya Crossing'],
+  ['spicy-maximum-minute-efforts', 'Día de Muertos Parade'],
+  ['sprint-sprint-sprint', 'San Fermín, Pamplona'],
+  ['hold-your-intensity', 'Great Ocean Road'],
+  ['max-effort-up-and-overs', 'San Francisco Hills'],
+  ['ride-to-the-beat', 'Miami Neon Nights'],
+  ['high-cadence-sprints', 'Victoria Harbour'],
+  ['short-20-minute-sprint-blitz', 'Holi in Jaipur'],
+  ['time-to-spin-out', 'Overseas Highway'],
+  ['full-gas-sprints', 'Isle of Man Mountain Course'],
+  ['hiit-leg-buster', 'Philadelphia Art Museum Steps'],
+  ['20-min-cardio-spin-bike-workout', 'Lake Louise'],
+  ['22-minute-strength-intervals', 'Bealach na Bà'],
+  ['progressive-efforts-on-the-passo-gardena', 'Passo Gardena'],
+  ['20-minute-high-intensity-workout', 'Han River Parks, Seoul'],
+  ['calorie-crush', 'Oktoberfest, Munich'],
+  ['get-to-work-on-your-cycling-fitness', 'Brooklyn Bridge Commute'],
+  ['festive-spin-with-surprise-sprints', 'Strasbourg Christmas Market'],
+  ['cadence-training-to-improve-pedalling', 'Kyoto Hanami'],
+  ['take-it-easy', 'Bathsheba, Barbados'],
+  ['step-it-up', 'Machu Picchu Road'],
+  ['running-on-empty', 'Outback Highway'],
+  ['30-second-sprint-intervals', 'Tel Aviv Promenade'],
+  ['flat-out-efforts', 'Silverstone Track Day'],
+  ['sprints-for-climbing', 'Mur de Huy'],
+  ['dont-get-dropped', 'Arenberg Forest'],
+  ['25-minute-sprint-intervals', 'Chicago Lakefront Trail'],
+  ['25-minute-high-intensity-intervals', 'Diwali, Marine Drive'],
+  ['fat-burning-climb-passo-sella', 'Passo Sella'],
+  ['high-intensity-race-day-effort', 'Kona Ironman'],
+  ['sevens-build-your-vo2-max', 'Seven Sisters Cliffs'],
+  ['emilys-short-mix', 'Brighton Pride'],
+  ['intense-vo2-cycling-efforts', 'Iceland Ring Road'],
+  ['new-year-spin-get-back-to-cycling', 'Sydney Harbour Fireworks'],
+  ['strength-builder-and-quad-burner', 'Monte Zoncolan'],
+  ['ollies-zone-2-tour-des-stations-training', 'Valais Ski Stations'],
+  ['sweet-spot-endurance-training', 'Loire Châteaux'],
+  ['1-minute-vo2-max-surges', 'Copenhagen Cycle Superhighway'],
+  ['sprint-surges', 'Surfers Paradise'],
+  ['the-hurt-locker', 'Moab Slickrock'],
+  ['vo2-max-race-simulation', 'Glasgow World Championships'],
+  ['the-climb', 'Mount Washington Auto Road'],
+  ['vo2-max-booster', 'Grand Canyon South Rim'],
+  ['start-hard-finish-hard', 'Calgary Stampede'],
+  ['90-on-30-off-intervals', 'La Mercè, Barcelona'],
+  ['30-second-sprints', "St. Patrick's Day, Dublin"],
+  ['under-over-power-blocks', 'Big Sur'],
+  ['30-second-sprints-hiit-sandwich', 'Songkran, Bangkok'],
+  ['hiit-for-time-crunched-parents', 'Playground Park Loop'],
+  ['30-minutes-of-threshold-power', 'Hoover Dam'],
+  ['olympic-pursuit-efforts', 'Aguascalientes Velodrome'],
+  ['ftp-hiit-booster-for-longer-efforts', 'Atlantic Ocean Road'],
+  ['leg-burner', 'Fish Hill, Cotswolds'],
+  ['the-smash-fest', 'Junkanoo, Nassau'],
+  ['30-minute-short-sharp-efforts', 'Old Québec'],
+  ['30-minute-hiit-ramp-session', 'Mount Fuji Road'],
+  ['30-minute-high-cadence-hiit', 'The Bund, Shanghai'],
+  ['sufferfest-ramp-session-the-escalator', 'Comuna 13, Medellín'],
+  ['hiit-fat-burn-with-mitchelton-scott', 'Adelaide Hills'],
+  ['over-under-intervals-on-the-passo-sella', 'Sella Ronda'],
+  ['fast-fitness-high-cadence-30', 'Marrakech Medina'],
+  ['30-minute-hill-climb-training', 'Mount Tamalpais'],
+  ['over-under-threshold-efforts', 'Independence Pass'],
+  ['tough-time-trial-efforts', 'Fenland Time Trial'],
+  ['35-minute-threshold-hiit', 'Vienna Ringstrasse'],
+  ['climb-and-sprint-to-the-beat', 'Blue Mountains, Jamaica'],
+  ['35-minute-torque-power-intervals', "Col d'Aubisque"],
+  ['fast-fitness-high-intensity-35', 'Rome Colosseum Loop'],
+  ['climb-time-boost-your-climbing-power', 'Great St Bernard Pass'],
+  ['high-power-anaerobic-sprints', 'Avenida 9 de Julio'],
+  ['spin-those-legs', 'Okinawa Coast Road'],
+  ['get-fit-in-40', 'Algarve Cliffs'],
+  ['repeat-your-max', 'Mulholland Drive'],
+  ['get-fit-fast-40-minute-sweet-spot', 'Provence Lavender'],
+  ['a-little-bit-of-everything', 'Cherry Blossom Festival, D.C.'],
+  ['cobbled-mayhem', 'Oude Kwaremont'],
+  ['ftp-builder', 'Oregon Coast'],
+  ['ramp-workout-from-threshold-to-sprints', 'Cypress Mountain'],
+  ['40-minute-hiit', 'Iten, Kenya'],
+  ['rolling-with-the-hills', 'The Palouse'],
+  ['ramp-it-up-50-minute-hiit', 'Prague Old Town'],
+  ['steepest-climb-in-the-world', 'Ffordd Pen Llech'],
+  ['aerobic-efforts-drop-ollie-like-a-boss', 'Andalusian White Villages'],
+  ['un-paced-efforts', 'Mongolian Steppe'],
+  ['threshold-pyramid', 'Teotihuacán'],
+  ['45-minute-vo2-max-intervals', 'Furka Pass'],
+  ['45-minute-sprint-training', 'Beach Road, Melbourne'],
+  ['ftp-booster-extended-efforts', 'Blue Ridge Parkway'],
+  ['reverse-hiit-race-winning-intervals', 'Verona Arena Finale'],
+  ['reverse-steps', 'Valparaíso Stairways'],
+  ['60-minutes-of-brutal-power', 'Mauna Kea'],
+  ['progressive-intervals-steps-to-glory', 'Mont Royal'],
+  ['cadence-drills-for-strength-and-speed', 'Utrecht Bike City'],
+  ['increase-your-threshold-power', 'Col du Galibier'],
+  ['ramp-session-dialling-in-your-training-zones', 'Joshua Tree'],
+  ['60-minute-endurance-intervals', 'Cabot Trail'],
+  ['55-minute-ftp-threshold-intervals', 'Pico Veleta'],
+  ['zwift-group-workout-hiit-intervals', 'Bay of Islands Group Ride'],
+  ['race-winning-intervals', 'Yorkshire Dales'],
+  ['60-minute-turbo-trainer-class', 'Engadin Lakes'],
+];
+
 // The HUD is proven without the GPU: drawn in software, the scene's passes slow every step. The
 // scene's own tests (World Ride scene) draw it.
 test.beforeEach(async ({ webgl }, testInfo) => {
@@ -39,8 +166,9 @@ test.describe('World Ride (L2-102)', () => {
     const classes = new ClassesPage(page);
     await page.goto('/classes/30-minute-hiit-cardio');
     await expect(classes.rideIn('Old Town Criterium')).toBeVisible();
-    await page.goto('/classes/60-minute-turbo-trainer-class');
-    await expect(classes.heading).toBeVisible();
+    await classes.serveCatalogue(WORLDLESS_CATALOGUE);
+    await page.goto('/classes/no-world');
+    await expect(classes.heading).toHaveText('No world');
     await expect(page.getByRole('button', { name: /^Ride in / })).toHaveCount(0);
   });
 
@@ -919,6 +1047,15 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Col du Galibier');
   });
 
+  test('rides Ride to the Beat along the neon-lit beachfront of Miami Neon Nights', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Ride to the Beat', 'Miami Neon Nights', 'ride-to-the-beat');
+    await expect(world.heading).toHaveText('Miami Neon Nights');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Miami Neon Nights');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
@@ -1228,4 +1365,14 @@ test.describe('World Ride scene (L2-110, L2-101 AC4)', () => {
     await world.pauseButton.click();
     await expect(world.resumeButton).toBeVisible();
   });
+});
+
+test.describe('World Ride for every class (L2-100 AC4)', () => {
+  for (const [id, worldName] of CLASS_WORLDS) {
+    test(`offers Ride in ${worldName} on ${id}`, async ({ page }) => {
+      const classes = new ClassesPage(page);
+      await page.goto(`/classes/${id}`);
+      await expect(classes.rideIn(worldName)).toBeVisible();
+    });
+  }
 });

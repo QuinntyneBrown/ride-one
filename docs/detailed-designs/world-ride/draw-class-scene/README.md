@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`, `deathvalley`, `atacama`, `angkor`, `gardena`, `maunakea`, `galibier`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`, `deathvalley`, `atacama`, `angkor`, `jouvert`, `sambadrome`, `lisbon`, `cornwall`, `copacabana`, `bondi`, `kilauea`, `shibuya`, `muertos`, `pamplona`, `greatocean`, `sfhills`, `mardigras`, `victoria`, `jaipur`, `overseas`, `isleofman`, `artmuseum`, `lakelouise`, `bealach`, `gardena`, `hanriver`, `oktoberfest`, `brooklyn`, `strasbourg`, `kyoto`, `bathsheba`, `machupicchu`, `outback`, `telaviv`, `silverstone`, `murdehuy`, `arenberg`, `lakefront`, `diwali`, `sella`, `kona`, `sevensisters`, `brighton`, `iceland`, `sydneyharbour`, `zoncolan`, `valais`, `loire`, `copenhagen`, `surfers`, `moab`, `glasgow`, `mountwashington`, `grandcanyon`, `stampede`, `merce`, `stpatricks`, `bigsur`, `songkran`, `playground`, `hoover`, `aguascalientes`, `atlanticroad`, `fishhill`, `junkanoo`, `quebec`, `fuji`, `bund`, `comuna13`, `adelaide`, `sellaronda`, `marrakech`, `tamalpais`, `independence`, `fens`, `vienna`, `bluemountains`, `aubisque`, `rome`, `stbernard`, `nuevedejulio`, `okinawa`, `algarve`, `mulholland`, `provence`, `cherryblossom`, `kwaremont`, `oregon`, `cypress`, `iten`, `palouse`, `prague`, `penllech`, `pueblos`, `steppe`, `teotihuacan`, `furka`, `beachroad`, `blueridge`, `verona`, `valparaiso`, `maunakea`, `montroyal`, `utrecht`, `galibier`, `joshuatree`, `cabot`, `veleta`, `bayofislands`, `dales`, `engadin`, `miami`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -643,6 +643,15 @@ None.
   - the stone monument to Henri Desgrange with its bronze plaque;
   - the pass's shattered ridge ahead and La Meije's glaciers across the valley, keeping their bearing.
 
+- **Miami Neon Nights (`core/world-miami.ts`).** For `miami`, a beachfront boulevard on a Miami night, the road wet from a shower:
+  - wet black asphalt catching the neon, a dashed centre line, pale kerbs and sidewalks both sides;
+  - on the right a row of pastel art deco hotels (invented names: Azure, Flamingo, Coral Moon, Palmetto, Seabreeze, Starlite), their windows lit, their rooflines, crowns and eyebrow ledges traced in neon tubes, a blade sign down each, pulsing on the ride's clock, and a striped awning over its terrace;
+  - royal palms on both sidewalks with uplights at their feet, and convertibles parked at the kerb, tail and head lights aglow;
+  - people strolling both sidewalks (`Figures`);
+  - on the left a low promenade wall, the sand falling to the Atlantic (`sink`), the water moving on the ride's clock and a moon path laid across it;
+  - ahead across the bay, towers lit floor by floor, some crowned in neon, under a violet city glow and the moon, keeping their bearing.
+- **Placeholder worlds (no street module).** `jouvert`, `sambadrome`, `lisbon`, `cornwall`, `copacabana`, `bondi`, `kilauea`, `shibuya`, `muertos`, `pamplona`, `greatocean`, `sfhills`, `mardigras`, `victoria`, `jaipur`, `overseas`, `isleofman`, `artmuseum`, `lakelouise`, `bealach`, `gardena`, `hanriver`, `oktoberfest`, `brooklyn`, `strasbourg`, `kyoto`, `bathsheba`, `machupicchu`, `outback`, `telaviv`, `silverstone`, `murdehuy`, `arenberg`, `lakefront`, `diwali`, `sella`, `kona`, `sevensisters`, `brighton`, `iceland`, `sydneyharbour`, `zoncolan`, `valais`, `loire`, `copenhagen`, `surfers`, `moab`, `glasgow`, `mountwashington`, `grandcanyon`, `stampede`, `merce`, `stpatricks`, `bigsur`, `songkran`, `playground`, `hoover`, `aguascalientes`, `atlanticroad`, `fishhill`, `junkanoo`, `quebec`, `fuji`, `bund`, `comuna13`, `adelaide`, `sellaronda`, `marrakech`, `tamalpais`, `independence`, `fens`, `vienna`, `bluemountains`, `aubisque`, `rome`, `stbernard`, `nuevedejulio`, `okinawa`, `algarve`, `mulholland`, `provence`, `cherryblossom`, `kwaremont`, `oregon`, `cypress`, `iten`, `palouse`, `prague`, `penllech`, `pueblos`, `steppe`, `teotihuacan`, `furka`, `beachroad`, `blueridge`, `verona`, `valparaiso`, `maunakea`, `montroyal`, `utrecht`, `galibier`, `joshuatree`, `cabot`, `veleta`, `bayofislands`, `dales`, `engadin` have no module in `STREETS` yet. Each is drawn from its own entry in `LOOKS`: its sky, fog and fog range, sun or moon, light colour, ground and road, wet or dry, with the renderer's generic reflective posts. Its panorama is loaded from `/worlds/<id>/panorama.webp`; while none is bundled, the load fails and the panorama is hidden. Like `granite`, `prairie`, `dolomites` and `coast`, each later gets its own street module.
+
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
 **Assets (`frontend/public/worlds/<id>/`, new).** Each scene's panorama and its ground and road textures are bundled as `.webp` files and copied into the build. They are served from the same origin (L2-101 criterion 4). The design references them on the Magic Patterns CDN. The CDN copies are never loaded.
@@ -737,9 +746,114 @@ None.
 | `pages/world-ride/deathvalley` | Death Valley at 4:53, warm-up, next `Heat surge` |
 | `pages/world-ride/atacama` | Atacama Desert at 4:50, warm-up, next `Salt-flat burn` |
 | `pages/world-ride/angkor` | Angkor Temples at 4:50, warm-up, next `Pyramid step` |
+| `pages/world-ride/jouvert` | Trinidad J'Ouvert in its placeholder look, at 4:50, warm-up, next `Mud-mas sprint` |
+| `pages/world-ride/sambadrome` | Rio Sambadrome in its placeholder look, at 4:50, warm-up, next `Samba smash` |
+| `pages/world-ride/lisbon` | Lisbon Tram Hills in its placeholder look, at 4:50, warm-up, next `Tram-hill grind` |
+| `pages/world-ride/cornwall` | Cornish Harbour in its placeholder look, at 4:50, warm-up, next `Quay sprint` |
+| `pages/world-ride/copacabana` | Copacabana Promenade in its placeholder look, at 4:50, warm-up, next `Promenade sprint` |
+| `pages/world-ride/bondi` | Bondi to Bronte in its placeholder look, at 4:50, warm-up, next `Headland surge` |
+| `pages/world-ride/kilauea` | Kīlauea Lava Road in its placeholder look, at 4:50, warm-up, next `Crater climb` |
+| `pages/world-ride/shibuya` | Shibuya Crossing in its placeholder look, at 4:50, warm-up, next `Scramble spin` |
+| `pages/world-ride/muertos` | Día de Muertos Parade in its placeholder look, at 4:50, warm-up, next `Marigold minute` |
+| `pages/world-ride/pamplona` | San Fermín, Pamplona in its placeholder look, at 4:50, warm-up, next `Encierro sprint` |
+| `pages/world-ride/greatocean` | Great Ocean Road in its placeholder look, at 4:50, warm-up, next `Apostle hold` |
+| `pages/world-ride/sfhills` | San Francisco Hills in its placeholder look, at 4:50, warm-up, next `Up and over` |
+| `pages/world-ride/mardigras` | Mardi Gras, New Orleans in its placeholder look, at 4:50, warm-up, next `Parade beat` |
+| `pages/world-ride/victoria` | Victoria Harbour in its placeholder look, at 4:50, warm-up, next `Harbour spin` |
+| `pages/world-ride/jaipur` | Holi in Jaipur in its placeholder look, at 4:50, warm-up, next `Colour burst` |
+| `pages/world-ride/overseas` | Overseas Highway in its placeholder look, at 4:50, warm-up, next `Bridge spin` |
+| `pages/world-ride/isleofman` | Isle of Man Mountain Course in its placeholder look, at 4:50, warm-up, next `Snaefell sprint` |
+| `pages/world-ride/artmuseum` | Philadelphia Art Museum Steps in its placeholder look, at 4:50, warm-up, next `Steps effort` |
+| `pages/world-ride/lakelouise` | Lake Louise in its placeholder look, at 4:50, warm-up, next `Glacier spin` |
+| `pages/world-ride/bealach` | Bealach na Bà in its placeholder look, at 4:50, warm-up, next `Highland ramp` |
 | `pages/world-ride/gardena` | Passo Gardena at 5:53, warm-up, next `Sella step` |
+| `pages/world-ride/hanriver` | Han River Parks, Seoul in its placeholder look, at 4:50, warm-up, next `River surge` |
+| `pages/world-ride/oktoberfest` | Oktoberfest, Munich in its placeholder look, at 4:50, warm-up, next `Tent sprint` |
+| `pages/world-ride/brooklyn` | Brooklyn Bridge Commute in its placeholder look, at 4:50, warm-up, next `Commute push` |
+| `pages/world-ride/strasbourg` | Strasbourg Christmas Market in its placeholder look, at 4:50, warm-up, next `Market sprint` |
+| `pages/world-ride/kyoto` | Kyoto Hanami in its placeholder look, at 4:50, warm-up, next `Petal spin` |
+| `pages/world-ride/bathsheba` | Bathsheba, Barbados in its placeholder look, at 4:50, warm-up, next `Easy cruise` |
+| `pages/world-ride/machupicchu` | Machu Picchu Road in its placeholder look, at 4:50, warm-up, next `Inca switchback` |
+| `pages/world-ride/outback` | Outback Highway in its placeholder look, at 4:50, warm-up, next `Long haul` |
+| `pages/world-ride/telaviv` | Tel Aviv Promenade in its placeholder look, at 4:50, warm-up, next `Seafront sprint` |
+| `pages/world-ride/silverstone` | Silverstone Track Day in its placeholder look, at 4:50, warm-up, next `Flat-out lap` |
+| `pages/world-ride/murdehuy` | Mur de Huy in its placeholder look, at 4:50, warm-up, next `Wall sprint` |
+| `pages/world-ride/arenberg` | Arenberg Forest in its placeholder look, at 4:50, warm-up, next `Hold the wheel` |
+| `pages/world-ride/lakefront` | Chicago Lakefront Trail in its placeholder look, at 4:50, warm-up, next `Lakefront sprint` |
+| `pages/world-ride/diwali` | Diwali, Marine Drive in its placeholder look, at 4:50, warm-up, next `Lamp-lit surge` |
+| `pages/world-ride/sella` | Passo Sella in its placeholder look, at 4:50, warm-up, next `Sassolungo climb` |
+| `pages/world-ride/kona` | Kona Ironman in its placeholder look, at 4:50, warm-up, next `Race-day surge` |
+| `pages/world-ride/sevensisters` | Seven Sisters Cliffs in its placeholder look, at 4:50, warm-up, next `Chalk summit` |
+| `pages/world-ride/brighton` | Brighton Pride in its placeholder look, at 4:50, warm-up, next `Pride mix` |
+| `pages/world-ride/iceland` | Iceland Ring Road in its placeholder look, at 4:50, warm-up, next `Glacier effort` |
+| `pages/world-ride/sydneyharbour` | Sydney Harbour Fireworks in its placeholder look, at 4:50, warm-up, next `Countdown spin` |
+| `pages/world-ride/zoncolan` | Monte Zoncolan in its placeholder look, at 4:50, warm-up, next `Quad burner` |
+| `pages/world-ride/valais` | Valais Ski Stations in its placeholder look, at 4:50, warm-up, next `Zone 2 cruise` |
+| `pages/world-ride/loire` | Loire Châteaux in its placeholder look, at 4:50, warm-up, next `Sweet-spot block` |
+| `pages/world-ride/copenhagen` | Copenhagen Cycle Superhighway in its placeholder look, at 4:50, warm-up, next `Green-wave surge` |
+| `pages/world-ride/surfers` | Surfers Paradise in its placeholder look, at 4:50, warm-up, next `Surf sprint` |
+| `pages/world-ride/moab` | Moab Slickrock in its placeholder look, at 4:50, warm-up, next `Hurt-locker effort` |
+| `pages/world-ride/glasgow` | Glasgow World Championships in its placeholder look, at 4:50, warm-up, next `Championship attack` |
+| `pages/world-ride/mountwashington` | Mount Washington Auto Road in its placeholder look, at 4:50, warm-up, next `Above-treeline grind` |
+| `pages/world-ride/grandcanyon` | Grand Canyon South Rim in its placeholder look, at 4:50, warm-up, next `Rim surge` |
+| `pages/world-ride/stampede` | Calgary Stampede in its placeholder look, at 4:50, warm-up, next `Chuckwagon dash` |
+| `pages/world-ride/merce` | La Mercè, Barcelona in its placeholder look, at 4:50, warm-up, next `Correfoc surge` |
+| `pages/world-ride/stpatricks` | St. Patrick's Day, Dublin in its placeholder look, at 4:50, warm-up, next `Pipe-band sprint` |
+| `pages/world-ride/bigsur` | Big Sur in its placeholder look, at 4:50, warm-up, next `Cliff block` |
+| `pages/world-ride/songkran` | Songkran, Bangkok in its placeholder look, at 4:50, warm-up, next `Soaked sprint` |
+| `pages/world-ride/playground` | Playground Park Loop in its placeholder look, at 4:50, warm-up, next `School-run lap` |
+| `pages/world-ride/hoover` | Hoover Dam in its placeholder look, at 4:50, warm-up, next `Threshold block` |
+| `pages/world-ride/aguascalientes` | Aguascalientes Velodrome in its placeholder look, at 4:50, warm-up, next `Pursuit lap` |
+| `pages/world-ride/atlanticroad` | Atlantic Ocean Road in its placeholder look, at 4:50, warm-up, next `Bridge effort` |
+| `pages/world-ride/fishhill` | Fish Hill, Cotswolds in its placeholder look, at 4:50, warm-up, next `Escarpment burn` |
+| `pages/world-ride/junkanoo` | Junkanoo, Nassau in its placeholder look, at 4:50, warm-up, next `Cowbell smash` |
+| `pages/world-ride/quebec` | Old Québec in its placeholder look, at 4:50, warm-up, next `Rampart kick` |
+| `pages/world-ride/fuji` | Mount Fuji Road in its placeholder look, at 4:50, warm-up, next `Fifth-station ramp` |
+| `pages/world-ride/bund` | The Bund, Shanghai in its placeholder look, at 4:50, warm-up, next `Riverside spin` |
+| `pages/world-ride/comuna13` | Comuna 13, Medellín in its placeholder look, at 4:50, warm-up, next `Escalator ramp` |
+| `pages/world-ride/adelaide` | Adelaide Hills in its placeholder look, at 4:50, warm-up, next `Down Under surge` |
+| `pages/world-ride/sellaronda` | Sella Ronda in its placeholder look, at 4:50, warm-up, next `Over-under block` |
+| `pages/world-ride/marrakech` | Marrakech Medina in its placeholder look, at 4:50, warm-up, next `Medina spin` |
+| `pages/world-ride/tamalpais` | Mount Tamalpais in its placeholder look, at 4:50, warm-up, next `Redwood climb` |
+| `pages/world-ride/independence` | Independence Pass in its placeholder look, at 4:50, warm-up, next `Divide over-under` |
+| `pages/world-ride/fens` | Fenland Time Trial in its placeholder look, at 4:50, warm-up, next `Fenland effort` |
+| `pages/world-ride/vienna` | Vienna Ringstrasse in its placeholder look, at 4:50, warm-up, next `Ring block` |
+| `pages/world-ride/bluemountains` | Blue Mountains, Jamaica in its placeholder look, at 4:50, warm-up, next `Reggae climb` |
+| `pages/world-ride/aubisque` | Col d'Aubisque in its placeholder look, at 4:50, warm-up, next `Torque block` |
+| `pages/world-ride/rome` | Rome Colosseum Loop in its placeholder look, at 4:50, warm-up, next `Forum surge` |
+| `pages/world-ride/stbernard` | Great St Bernard Pass in its placeholder look, at 4:50, warm-up, next `Hospice climb` |
+| `pages/world-ride/nuevedejulio` | Avenida 9 de Julio in its placeholder look, at 4:50, warm-up, next `Obelisco sprint` |
+| `pages/world-ride/okinawa` | Okinawa Coast Road in its placeholder look, at 4:50, warm-up, next `Coral spin` |
+| `pages/world-ride/algarve` | Algarve Cliffs in its placeholder look, at 4:50, warm-up, next `Cove effort` |
+| `pages/world-ride/mulholland` | Mulholland Drive in its placeholder look, at 4:50, warm-up, next `Ridge repeat` |
+| `pages/world-ride/provence` | Provence Lavender in its placeholder look, at 4:50, warm-up, next `Lavender block` |
+| `pages/world-ride/cherryblossom` | Cherry Blossom Festival, D.C. in its placeholder look, at 4:50, warm-up, next `Blossom surge` |
+| `pages/world-ride/kwaremont` | Oude Kwaremont in its placeholder look, at 4:50, warm-up, next `Cobbled surge` |
+| `pages/world-ride/oregon` | Oregon Coast in its placeholder look, at 4:50, warm-up, next `Sea-stack block` |
+| `pages/world-ride/cypress` | Cypress Mountain in its placeholder look, at 4:50, warm-up, next `Ski-hill ramp` |
+| `pages/world-ride/iten` | Iten, Kenya in its placeholder look, at 4:50, warm-up, next `Altitude surge` |
+| `pages/world-ride/palouse` | The Palouse in its placeholder look, at 4:50, warm-up, next `Palouse roller` |
+| `pages/world-ride/prague` | Prague Old Town in its placeholder look, at 4:50, warm-up, next `Castle ramp` |
+| `pages/world-ride/penllech` | Ffordd Pen Llech in its placeholder look, at 4:50, warm-up, next `Steepest ramp` |
+| `pages/world-ride/pueblos` | Andalusian White Villages in its placeholder look, at 4:50, warm-up, next `Hill-town effort` |
+| `pages/world-ride/steppe` | Mongolian Steppe in its placeholder look, at 4:50, warm-up, next `Un-paced effort` |
+| `pages/world-ride/teotihuacan` | Teotihuacán in its placeholder look, at 4:50, warm-up, next `Pyramid step` |
+| `pages/world-ride/furka` | Furka Pass in its placeholder look, at 4:50, warm-up, next `Glacier VO2` |
+| `pages/world-ride/beachroad` | Beach Road, Melbourne in its placeholder look, at 4:50, warm-up, next `Bunch sprint` |
+| `pages/world-ride/blueridge` | Blue Ridge Parkway in its placeholder look, at 4:50, warm-up, next `Ridgeline block` |
+| `pages/world-ride/verona` | Verona Arena Finale in its placeholder look, at 4:50, warm-up, next `Arena surge` |
+| `pages/world-ride/valparaiso` | Valparaíso Stairways in its placeholder look, at 4:50, warm-up, next `Stairway step` |
 | `pages/world-ride/maunakea` | Mauna Kea at 4:50, warm-up, next `Summit grind` |
+| `pages/world-ride/montroyal` | Mont Royal in its placeholder look, at 4:50, warm-up, next `Lookout step` |
+| `pages/world-ride/utrecht` | Utrecht Bike City in its placeholder look, at 4:50, warm-up, next `Cadence drill` |
 | `pages/world-ride/galibier` | Col du Galibier at 4:50, warm-up, next `Threshold block` |
+| `pages/world-ride/joshuatree` | Joshua Tree in its placeholder look, at 4:50, warm-up, next `Zone ramp` |
+| `pages/world-ride/cabot` | Cabot Trail in its placeholder look, at 4:50, warm-up, next `Highland block` |
+| `pages/world-ride/veleta` | Pico Veleta in its placeholder look, at 4:50, warm-up, next `Veleta threshold` |
+| `pages/world-ride/bayofislands` | Bay of Islands Group Ride in its placeholder look, at 4:50, warm-up, next `Group-ride surge` |
+| `pages/world-ride/dales` | Yorkshire Dales in its placeholder look, at 4:50, warm-up, next `Race-winning attack` |
+| `pages/world-ride/engadin` | Engadin Lakes in its placeholder look, at 4:50, warm-up, next `Turbo block` |
+| `pages/world-ride/miami` | Miami Neon Nights at 4:50, warm-up, next `Neon surge` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

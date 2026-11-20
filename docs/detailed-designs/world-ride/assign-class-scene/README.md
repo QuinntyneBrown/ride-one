@@ -4,7 +4,7 @@
 
 World Ride (L1-017) is a way to ride a class inside a 3D world built for that class. This feature is the backend half of that link. Each class in the catalogue names its scene, and the API carries the scene, and the class a running workout came from, to the frontend (L2-100, L2-102 criterion 5).
 
-**scene** — one of the worlds built into the frontend (L2-101), named by its id: `docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`, `deathvalley`, `atacama`, `angkor`, `gardena`, `maunakea` or `galibier`
+**scene** — one of the worlds built into the frontend (L2-101), named by its id: `docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`, `winnats`, `redoute`, `angliru`, `velodrome`, `cinqueterre`, `angels`, `coney`, `winterlude`, `letras`, `santamonica`, `antwerp`, `tahoe`, `deathvalley`, `atacama`, `angkor`, `jouvert`, `sambadrome`, `lisbon`, `cornwall`, `copacabana`, `bondi`, `kilauea`, `shibuya`, `muertos`, `pamplona`, `greatocean`, `sfhills`, `mardigras`, `victoria`, `jaipur`, `overseas`, `isleofman`, `artmuseum`, `lakelouise`, `bealach`, `gardena`, `hanriver`, `oktoberfest`, `brooklyn`, `strasbourg`, `kyoto`, `bathsheba`, `machupicchu`, `outback`, `telaviv`, `silverstone`, `murdehuy`, `arenberg`, `lakefront`, `diwali`, `sella`, `kona`, `sevensisters`, `brighton`, `iceland`, `sydneyharbour`, `zoncolan`, `valais`, `loire`, `copenhagen`, `surfers`, `moab`, `glasgow`, `mountwashington`, `grandcanyon`, `stampede`, `merce`, `stpatricks`, `bigsur`, `songkran`, `playground`, `hoover`, `aguascalientes`, `atlanticroad`, `fishhill`, `junkanoo`, `quebec`, `fuji`, `bund`, `comuna13`, `adelaide`, `sellaronda`, `marrakech`, `tamalpais`, `independence`, `fens`, `vienna`, `bluemountains`, `aubisque`, `rome`, `stbernard`, `nuevedejulio`, `okinawa`, `algarve`, `mulholland`, `provence`, `cherryblossom`, `kwaremont`, `oregon`, `cypress`, `iten`, `palouse`, `prague`, `penllech`, `pueblos`, `steppe`, `teotihuacan`, `furka`, `beachroad`, `blueridge`, `verona`, `valparaiso`, `maunakea`, `montroyal`, `utrecht`, `galibier`, `joshuatree`, `cabot`, `veleta`, `bayofislands`, `dales`, `engadin` or `miami`
 
 **class scene** — the scene a class names in the catalogue file through its optional `world` field, or `null` when it names none
 
@@ -126,9 +126,113 @@ Both fields are always written, never omitted. Both changes regenerate the OpenA
 | `sufferfest-20-minute-session` | `deathvalley` |
 | `extreme-fat-burning-class` | `atacama` |
 | `60-minute-reverse-pyramid` | `angkor` |
+| `quick-but-brutal-hiit` | `jouvert` |
+| `15-minute-smash-fest` | `sambadrome` |
+| `15-minute-strength-workout` | `lisbon` |
+| `nasty-pasty-sprint-session` | `cornwall` |
+| `quick-sprint-session` | `copacabana` |
+| `15-min-hiit-cardio-belly-fat-loss` | `bondi` |
+| `instant-inferno` | `kilauea` |
+| `super-high-cadence-sprints` | `shibuya` |
+| `spicy-maximum-minute-efforts` | `muertos` |
+| `sprint-sprint-sprint` | `pamplona` |
+| `hold-your-intensity` | `greatocean` |
+| `max-effort-up-and-overs` | `sfhills` |
+| `ride-to-the-beat` | `miami` |
+| `high-cadence-sprints` | `victoria` |
+| `short-20-minute-sprint-blitz` | `jaipur` |
+| `time-to-spin-out` | `overseas` |
+| `full-gas-sprints` | `isleofman` |
+| `hiit-leg-buster` | `artmuseum` |
+| `20-min-cardio-spin-bike-workout` | `lakelouise` |
+| `22-minute-strength-intervals` | `bealach` |
 | `progressive-efforts-on-the-passo-gardena` | `gardena` |
+| `20-minute-high-intensity-workout` | `hanriver` |
+| `calorie-crush` | `oktoberfest` |
+| `get-to-work-on-your-cycling-fitness` | `brooklyn` |
+| `festive-spin-with-surprise-sprints` | `strasbourg` |
+| `cadence-training-to-improve-pedalling` | `kyoto` |
+| `take-it-easy` | `bathsheba` |
+| `step-it-up` | `machupicchu` |
+| `running-on-empty` | `outback` |
+| `30-second-sprint-intervals` | `telaviv` |
+| `flat-out-efforts` | `silverstone` |
+| `sprints-for-climbing` | `murdehuy` |
+| `dont-get-dropped` | `arenberg` |
+| `25-minute-sprint-intervals` | `lakefront` |
+| `25-minute-high-intensity-intervals` | `diwali` |
+| `fat-burning-climb-passo-sella` | `sella` |
+| `high-intensity-race-day-effort` | `kona` |
+| `sevens-build-your-vo2-max` | `sevensisters` |
+| `emilys-short-mix` | `brighton` |
+| `intense-vo2-cycling-efforts` | `iceland` |
+| `new-year-spin-get-back-to-cycling` | `sydneyharbour` |
+| `strength-builder-and-quad-burner` | `zoncolan` |
+| `ollies-zone-2-tour-des-stations-training` | `valais` |
+| `sweet-spot-endurance-training` | `loire` |
+| `1-minute-vo2-max-surges` | `copenhagen` |
+| `sprint-surges` | `surfers` |
+| `the-hurt-locker` | `moab` |
+| `vo2-max-race-simulation` | `glasgow` |
+| `the-climb` | `mountwashington` |
+| `vo2-max-booster` | `grandcanyon` |
+| `start-hard-finish-hard` | `stampede` |
+| `90-on-30-off-intervals` | `merce` |
+| `30-second-sprints` | `stpatricks` |
+| `under-over-power-blocks` | `bigsur` |
+| `30-second-sprints-hiit-sandwich` | `songkran` |
+| `hiit-for-time-crunched-parents` | `playground` |
+| `30-minutes-of-threshold-power` | `hoover` |
+| `olympic-pursuit-efforts` | `aguascalientes` |
+| `ftp-hiit-booster-for-longer-efforts` | `atlanticroad` |
+| `leg-burner` | `fishhill` |
+| `the-smash-fest` | `junkanoo` |
+| `30-minute-short-sharp-efforts` | `quebec` |
+| `30-minute-hiit-ramp-session` | `fuji` |
+| `30-minute-high-cadence-hiit` | `bund` |
+| `sufferfest-ramp-session-the-escalator` | `comuna13` |
+| `hiit-fat-burn-with-mitchelton-scott` | `adelaide` |
+| `over-under-intervals-on-the-passo-sella` | `sellaronda` |
+| `fast-fitness-high-cadence-30` | `marrakech` |
+| `30-minute-hill-climb-training` | `tamalpais` |
+| `over-under-threshold-efforts` | `independence` |
+| `tough-time-trial-efforts` | `fens` |
+| `35-minute-threshold-hiit` | `vienna` |
+| `climb-and-sprint-to-the-beat` | `bluemountains` |
+| `35-minute-torque-power-intervals` | `aubisque` |
+| `fast-fitness-high-intensity-35` | `rome` |
+| `climb-time-boost-your-climbing-power` | `stbernard` |
+| `high-power-anaerobic-sprints` | `nuevedejulio` |
+| `spin-those-legs` | `okinawa` |
+| `get-fit-in-40` | `algarve` |
+| `repeat-your-max` | `mulholland` |
+| `get-fit-fast-40-minute-sweet-spot` | `provence` |
+| `a-little-bit-of-everything` | `cherryblossom` |
+| `cobbled-mayhem` | `kwaremont` |
+| `ftp-builder` | `oregon` |
+| `ramp-workout-from-threshold-to-sprints` | `cypress` |
+| `40-minute-hiit` | `iten` |
+| `rolling-with-the-hills` | `palouse` |
+| `ramp-it-up-50-minute-hiit` | `prague` |
+| `steepest-climb-in-the-world` | `penllech` |
+| `aerobic-efforts-drop-ollie-like-a-boss` | `pueblos` |
+| `un-paced-efforts` | `steppe` |
+| `threshold-pyramid` | `teotihuacan` |
+| `45-minute-vo2-max-intervals` | `furka` |
+| `45-minute-sprint-training` | `beachroad` |
+| `ftp-booster-extended-efforts` | `blueridge` |
+| `reverse-hiit-race-winning-intervals` | `verona` |
+| `reverse-steps` | `valparaiso` |
 | `60-minutes-of-brutal-power` | `maunakea` |
+| `progressive-intervals-steps-to-glory` | `montroyal` |
+| `cadence-drills-for-strength-and-speed` | `utrecht` |
 | `increase-your-threshold-power` | `galibier` |
+| `ramp-session-dialling-in-your-training-zones` | `joshuatree` |
+| `60-minute-endurance-intervals` | `cabot` |
+| `55-minute-ftp-threshold-intervals` | `veleta` |
+| `zwift-group-workout-hiit-intervals` | `bayofislands` |
+| `race-winning-intervals` | `dales` |
+| `60-minute-turbo-trainer-class` | `engadin` |
 
 `POST /api/workout` does not change. It already takes `class_id` beside the plan and passes a `RideOrigin` to `WorkoutEngine.StartAsync` (L2-081 criterion 7).
 

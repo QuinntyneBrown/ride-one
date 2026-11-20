@@ -18,6 +18,7 @@ import { GalibierStreet } from './world-galibier';
 import { MaunaKeaStreet } from './world-maunakea';
 import { GardenaStreet } from './world-gardena';
 import { AngkorStreet } from './world-angkor';
+import { MiamiStreet } from './world-miami';
 import { AtacamaStreet } from './world-atacama';
 import { DeathValleyStreet } from './world-deathvalley';
 import { TahoeStreet } from './world-tahoe';
@@ -166,4 +167,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   gardena: (track, disposables) => new GardenaStreet(track, disposables),
   maunakea: (track, disposables) => new MaunaKeaStreet(track, disposables),
   galibier: (track, disposables) => new GalibierStreet(track, disposables),
+  miami: (track, disposables) => new MiamiStreet(track, disposables),
 };

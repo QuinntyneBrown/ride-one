@@ -193,6 +193,7 @@
     },
     {
       "id": "quick-but-brutal-hiit",
+      "world": "jouvert",
       "title": "Quick But Brutal HIIT",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -441,6 +442,7 @@
     },
     {
       "id": "15-minute-smash-fest",
+      "world": "sambadrome",
       "title": "15-Minute Smash Fest",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -689,6 +691,7 @@
     },
     {
       "id": "15-minute-strength-workout",
+      "world": "lisbon",
       "title": "15 Minute Strength Workout",
       "channel": "GCN Training",
       "focus": "Strength",
@@ -910,6 +913,7 @@
     },
     {
       "id": "nasty-pasty-sprint-session",
+      "world": "cornwall",
       "title": "Nasty Pasty Sprint Session",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -1059,6 +1063,7 @@
     },
     {
       "id": "quick-sprint-session",
+      "world": "copacabana",
       "title": "Quick Sprint Session",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -1325,6 +1330,7 @@
     },
     {
       "id": "15-min-hiit-cardio-belly-fat-loss",
+      "world": "bondi",
       "title": "15 Min HIIT Cardio: Belly Fat Loss",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -1528,6 +1534,7 @@
     },
     {
       "id": "instant-inferno",
+      "world": "kilauea",
       "title": "Instant Inferno",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -1785,6 +1792,7 @@
     },
     {
       "id": "super-high-cadence-sprints",
+      "world": "shibuya",
       "title": "Super High Cadence Sprints",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -2069,6 +2077,7 @@
     },
     {
       "id": "spicy-maximum-minute-efforts",
+      "world": "muertos",
       "title": "Spicy Maximum Minute Efforts",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -2299,6 +2308,7 @@
     },
     {
       "id": "sprint-sprint-sprint",
+      "world": "pamplona",
       "title": "Sprint Sprint Sprint",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -2574,6 +2584,7 @@
     },
     {
       "id": "hold-your-intensity",
+      "world": "greatocean",
       "title": "Hold Your Intensity",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -2795,6 +2806,7 @@
     },
     {
       "id": "max-effort-up-and-overs",
+      "world": "sfhills",
       "title": "Max Effort Up & Overs",
       "channel": "GCN Training",
       "focus": "Over-unders",
@@ -2998,6 +3010,7 @@
     },
     {
       "id": "ride-to-the-beat",
+      "world": "miami",
       "title": "Ride to the Beat",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -3255,6 +3268,7 @@
     },
     {
       "id": "high-cadence-sprints",
+      "world": "victoria",
       "title": "High Cadence Sprints",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -3395,6 +3409,7 @@
     },
     {
       "id": "short-20-minute-sprint-blitz",
+      "world": "jaipur",
       "title": "Short 20 Minute Sprint Blitz",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -3634,6 +3649,7 @@
     },
     {
       "id": "time-to-spin-out",
+      "world": "overseas",
       "title": "Time to Spin Out",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -3891,6 +3907,7 @@
     },
     {
       "id": "full-gas-sprints",
+      "world": "isleofman",
       "title": "Full Gas Sprints",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -4112,6 +4129,7 @@
     },
     {
       "id": "hiit-leg-buster",
+      "world": "artmuseum",
       "title": "HIIT Leg Buster",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -4360,6 +4378,7 @@
     },
     {
       "id": "20-min-cardio-spin-bike-workout",
+      "world": "lakelouise",
       "title": "20 Min Cardio Spin Bike Workout",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -4536,6 +4555,7 @@
     },
     {
       "id": "22-minute-strength-intervals",
+      "world": "bealach",
       "title": "22 Minute Strength Intervals",
       "channel": "GCN",
       "focus": "Strength",
@@ -4793,6 +4813,7 @@
     },
     {
       "id": "20-minute-high-intensity-workout",
+      "world": "hanriver",
       "title": "20 Minute High Intensity Workout",
       "channel": "GCN",
       "focus": "HIIT",
@@ -4872,6 +4893,7 @@
     },
     {
       "id": "calorie-crush",
+      "world": "oktoberfest",
       "title": "Calorie Crush",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -4977,6 +4999,7 @@
     },
     {
       "id": "get-to-work-on-your-cycling-fitness",
+      "world": "brooklyn",
       "title": "Get to Work on Your Cycling Fitness",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -5083,6 +5106,7 @@
     },
     {
       "id": "festive-spin-with-surprise-sprints",
+      "world": "strasbourg",
       "title": "Festive Spin With Surprise Sprints",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -5296,6 +5320,7 @@
     },
     {
       "id": "cadence-training-to-improve-pedalling",
+      "world": "kyoto",
       "title": "Cadence Training to Improve Pedalling",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -5348,6 +5373,7 @@
     },
     {
       "id": "take-it-easy",
+      "world": "bathsheba",
       "title": "Take It Easy",
       "channel": "GCN Training",
       "focus": "Endurance",
@@ -5480,6 +5506,7 @@
     },
     {
       "id": "step-it-up",
+      "world": "machupicchu",
       "title": "Step It Up",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -5586,6 +5613,7 @@
     },
     {
       "id": "running-on-empty",
+      "world": "outback",
       "title": "Running on Empty",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -5754,6 +5782,7 @@
     },
     {
       "id": "30-second-sprint-intervals",
+      "world": "telaviv",
       "title": "30 Second Sprint Intervals",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -5815,6 +5844,7 @@
     },
     {
       "id": "flat-out-efforts",
+      "world": "silverstone",
       "title": "Flat Out Efforts",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -5974,6 +6004,7 @@
     },
     {
       "id": "sprints-for-climbing",
+      "world": "murdehuy",
       "title": "Sprints for Climbing",
       "channel": "GCN Training",
       "focus": "Climbing",
@@ -6080,6 +6111,7 @@
     },
     {
       "id": "dont-get-dropped",
+      "world": "arenberg",
       "title": "Don't Get Dropped",
       "channel": "GCN Training",
       "focus": "Race efforts",
@@ -6266,6 +6298,7 @@
     },
     {
       "id": "25-minute-sprint-intervals",
+      "world": "lakefront",
       "title": "25 Minute Sprint Intervals",
       "channel": "GCN",
       "focus": "Sprints",
@@ -6327,6 +6360,7 @@
     },
     {
       "id": "25-minute-high-intensity-intervals",
+      "world": "diwali",
       "title": "25 Minute High Intensity Intervals",
       "channel": "GCN",
       "focus": "HIIT",
@@ -6477,6 +6511,7 @@
     },
     {
       "id": "fat-burning-climb-passo-sella",
+      "world": "sella",
       "title": "Fat Burning Climb: Passo Sella",
       "channel": "GCN",
       "focus": "Climbing",
@@ -6565,6 +6600,7 @@
     },
     {
       "id": "high-intensity-race-day-effort",
+      "world": "kona",
       "title": "High Intensity Race Day Effort",
       "channel": "GCN",
       "focus": "Race efforts",
@@ -6715,6 +6751,7 @@
     },
     {
       "id": "sevens-build-your-vo2-max",
+      "world": "sevensisters",
       "title": "Sevens: Build Your VO2 Max",
       "channel": "GCN Training",
       "focus": "VO₂ max",
@@ -6776,6 +6813,7 @@
     },
     {
       "id": "emilys-short-mix",
+      "world": "brighton",
       "title": "Emily's Short Mix",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -6971,6 +7009,7 @@
     },
     {
       "id": "intense-vo2-cycling-efforts",
+      "world": "iceland",
       "title": "Intense VO2 Cycling Efforts",
       "channel": "GCN Training",
       "focus": "VO₂ max",
@@ -7059,6 +7098,7 @@
     },
     {
       "id": "new-year-spin-get-back-to-cycling",
+      "world": "sydneyharbour",
       "title": "New Year Spin: Get Back to Cycling",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -7254,6 +7294,7 @@
     },
     {
       "id": "strength-builder-and-quad-burner",
+      "world": "zoncolan",
       "title": "Strength Builder & Quad Burner",
       "channel": "GCN Training",
       "focus": "Strength",
@@ -7333,6 +7374,7 @@
     },
     {
       "id": "ollies-zone-2-tour-des-stations-training",
+      "world": "valais",
       "title": "Ollie's Zone 2 Tour des Stations Training",
       "channel": "GCN Training",
       "focus": "Endurance",
@@ -7474,6 +7516,7 @@
     },
     {
       "id": "sweet-spot-endurance-training",
+      "world": "loire",
       "title": "Sweet Spot Endurance Training",
       "channel": "GCN Training",
       "focus": "Sweet spot",
@@ -7571,6 +7614,7 @@
     },
     {
       "id": "1-minute-vo2-max-surges",
+      "world": "copenhagen",
       "title": "1 Minute VO2 Max Surges",
       "channel": "GCN Training",
       "focus": "VO₂ max",
@@ -7784,6 +7828,7 @@
     },
     {
       "id": "sprint-surges",
+      "world": "surfers",
       "title": "Sprint Surges",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -7863,6 +7908,7 @@
     },
     {
       "id": "the-hurt-locker",
+      "world": "moab",
       "title": "The Hurt Locker",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -7986,6 +8032,7 @@
     },
     {
       "id": "vo2-max-race-simulation",
+      "world": "glasgow",
       "title": "VO2 Max Race Simulation",
       "channel": "GCN Training",
       "focus": "VO₂ max",
@@ -8083,6 +8130,7 @@
     },
     {
       "id": "the-climb",
+      "world": "mountwashington",
       "title": "The Climb",
       "channel": "GCN Training",
       "focus": "Climbing",
@@ -8251,6 +8299,7 @@
     },
     {
       "id": "vo2-max-booster",
+      "world": "grandcanyon",
       "title": "VO2 Max Booster",
       "channel": "GCN Training",
       "focus": "VO₂ max",
@@ -8330,6 +8379,7 @@
     },
     {
       "id": "start-hard-finish-hard",
+      "world": "stampede",
       "title": "Start Hard, Finish Hard",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -8462,6 +8512,7 @@
     },
     {
       "id": "90-on-30-off-intervals",
+      "world": "merce",
       "title": "90 On 30 Off Intervals",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -8550,6 +8601,7 @@
     },
     {
       "id": "30-second-sprints",
+      "world": "stpatricks",
       "title": "30 Second Sprints",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -8646,6 +8698,7 @@
     },
     {
       "id": "under-over-power-blocks",
+      "world": "bigsur",
       "title": "Under Over Power Blocks",
       "channel": "GCN Training",
       "focus": "Over-unders",
@@ -8716,6 +8769,7 @@
     },
     {
       "id": "30-second-sprints-hiit-sandwich",
+      "world": "songkran",
       "title": "30 Second Sprints HIIT Sandwich",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -8857,6 +8911,7 @@
     },
     {
       "id": "hiit-for-time-crunched-parents",
+      "world": "playground",
       "title": "HIIT for Time-Crunched Parents",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -8909,6 +8964,7 @@
     },
     {
       "id": "30-minutes-of-threshold-power",
+      "world": "hoover",
       "title": "30 Minutes of Threshold Power",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -9077,6 +9133,7 @@
     },
     {
       "id": "olympic-pursuit-efforts",
+      "world": "aguascalientes",
       "title": "Olympic Pursuit Efforts",
       "channel": "GCN Training",
       "focus": "Time trial",
@@ -9147,6 +9204,7 @@
     },
     {
       "id": "ftp-hiit-booster-for-longer-efforts",
+      "world": "atlanticroad",
       "title": "FTP HIIT Booster for Longer Efforts",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -9270,6 +9328,7 @@
     },
     {
       "id": "leg-burner",
+      "world": "fishhill",
       "title": "Leg Burner",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -9367,6 +9426,7 @@
     },
     {
       "id": "the-smash-fest",
+      "world": "junkanoo",
       "title": "The Smash Fest",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -9571,6 +9631,7 @@
     },
     {
       "id": "30-minute-short-sharp-efforts",
+      "world": "quebec",
       "title": "30 Minute Short Sharp Efforts",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -9614,6 +9675,7 @@
     },
     {
       "id": "30-minute-hiit-ramp-session",
+      "world": "fuji",
       "title": "30 Minute HIIT Ramp Session",
       "channel": "GCN Training",
       "focus": "Ramps",
@@ -9737,6 +9799,7 @@
     },
     {
       "id": "30-minute-high-cadence-hiit",
+      "world": "bund",
       "title": "30 Minute High Cadence HIIT",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -9816,6 +9879,7 @@
     },
     {
       "id": "sufferfest-ramp-session-the-escalator",
+      "world": "comuna13",
       "title": "Sufferfest Ramp Session: The Escalator",
       "channel": "GCN",
       "focus": "Ramps",
@@ -9984,6 +10048,7 @@
     },
     {
       "id": "hiit-fat-burn-with-mitchelton-scott",
+      "world": "adelaide",
       "title": "HIIT Fat Burn With Mitchelton-Scott",
       "channel": "GCN",
       "focus": "HIIT",
@@ -10054,6 +10119,7 @@
     },
     {
       "id": "over-under-intervals-on-the-passo-sella",
+      "world": "sellaronda",
       "title": "Over/Under Intervals on the Passo Sella",
       "channel": "GCN",
       "focus": "Over-unders",
@@ -10123,6 +10189,7 @@
     },
     {
       "id": "fast-fitness-high-cadence-30",
+      "world": "marrakech",
       "title": "Fast Fitness: High Cadence 30",
       "channel": "GCN",
       "focus": "Cadence",
@@ -10220,6 +10287,7 @@
     },
     {
       "id": "30-minute-hill-climb-training",
+      "world": "tamalpais",
       "title": "30 Minute Hill Climb Training",
       "channel": "GCN",
       "focus": "Climbing",
@@ -10397,6 +10465,7 @@
     },
     {
       "id": "over-under-threshold-efforts",
+      "world": "independence",
       "title": "Over/Under Threshold Efforts",
       "channel": "GCN Training",
       "focus": "Over-unders",
@@ -10458,6 +10527,7 @@
     },
     {
       "id": "tough-time-trial-efforts",
+      "world": "fens",
       "title": "Tough Time Trial Efforts",
       "channel": "GCN Training",
       "focus": "Time trial",
@@ -10590,6 +10660,7 @@
     },
     {
       "id": "35-minute-threshold-hiit",
+      "world": "vienna",
       "title": "35 Minute Threshold HIIT",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -10633,6 +10704,7 @@
     },
     {
       "id": "climb-and-sprint-to-the-beat",
+      "world": "bluemountains",
       "title": "Climb & Sprint to the Beat",
       "channel": "GCN Training",
       "focus": "Climbing",
@@ -10774,6 +10846,7 @@
     },
     {
       "id": "35-minute-torque-power-intervals",
+      "world": "aubisque",
       "title": "35 Minute Torque Power Intervals",
       "channel": "GCN",
       "focus": "Strength",
@@ -10880,6 +10953,7 @@
     },
     {
       "id": "fast-fitness-high-intensity-35",
+      "world": "rome",
       "title": "Fast Fitness: High Intensity 35",
       "channel": "GCN",
       "focus": "HIIT",
@@ -11066,6 +11140,7 @@
     },
     {
       "id": "climb-time-boost-your-climbing-power",
+      "world": "stbernard",
       "title": "Climb Time: Boost Your Climbing Power",
       "channel": "GCN Training",
       "focus": "Climbing",
@@ -11172,6 +11247,7 @@
     },
     {
       "id": "high-power-anaerobic-sprints",
+      "world": "nuevedejulio",
       "title": "High Power Anaerobic Sprints",
       "channel": "GCN Training",
       "focus": "Sprints",
@@ -11385,6 +11461,7 @@
     },
     {
       "id": "spin-those-legs",
+      "world": "okinawa",
       "title": "Spin Those Legs",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -11464,6 +11541,7 @@
     },
     {
       "id": "get-fit-in-40",
+      "world": "algarve",
       "title": "Get Fit in 40",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -11641,6 +11719,7 @@
     },
     {
       "id": "repeat-your-max",
+      "world": "mulholland",
       "title": "Repeat Your Max",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -11747,6 +11826,7 @@
     },
     {
       "id": "get-fit-fast-40-minute-sweet-spot",
+      "world": "provence",
       "title": "Get Fit Fast: 40 Minute Sweet Spot",
       "channel": "GCN Training",
       "focus": "Sweet spot",
@@ -11852,6 +11932,7 @@
     },
     {
       "id": "a-little-bit-of-everything",
+      "world": "cherryblossom",
       "title": "A Little Bit of Everything",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -11949,6 +12030,7 @@
     },
     {
       "id": "cobbled-mayhem",
+      "world": "kwaremont",
       "title": "Cobbled Mayhem",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -12117,6 +12199,7 @@
     },
     {
       "id": "ftp-builder",
+      "world": "oregon",
       "title": "FTP Builder",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -12160,6 +12243,7 @@
     },
     {
       "id": "ramp-workout-from-threshold-to-sprints",
+      "world": "cypress",
       "title": "Ramp Workout: From Threshold to Sprints",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -12346,6 +12430,7 @@
     },
     {
       "id": "40-minute-hiit",
+      "world": "iten",
       "title": "40 Minute HIIT",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -12434,6 +12519,7 @@
     },
     {
       "id": "rolling-with-the-hills",
+      "world": "palouse",
       "title": "Rolling With the Hills",
       "channel": "GCN Training",
       "focus": "Climbing",
@@ -12638,6 +12724,7 @@
     },
     {
       "id": "ramp-it-up-50-minute-hiit",
+      "world": "prague",
       "title": "Ramp It Up: 50 Minute HIIT",
       "channel": "GCN Training",
       "focus": "Ramps",
@@ -12744,6 +12831,7 @@
     },
     {
       "id": "steepest-climb-in-the-world",
+      "world": "penllech",
       "title": "Steepest Climb in the World",
       "channel": "GCN Training",
       "focus": "Climbing",
@@ -12876,6 +12964,7 @@
     },
     {
       "id": "aerobic-efforts-drop-ollie-like-a-boss",
+      "world": "pueblos",
       "title": "Aerobic Efforts: Drop Ollie Like a Boss",
       "channel": "GCN Training",
       "focus": "Endurance",
@@ -12982,6 +13071,7 @@
     },
     {
       "id": "un-paced-efforts",
+      "world": "steppe",
       "title": "Un-Paced Efforts",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -13168,6 +13258,7 @@
     },
     {
       "id": "threshold-pyramid",
+      "world": "teotihuacan",
       "title": "Threshold Pyramid",
       "channel": "GCN Training",
       "focus": "Pyramid",
@@ -13256,6 +13347,7 @@
     },
     {
       "id": "45-minute-vo2-max-intervals",
+      "world": "furka",
       "title": "45 Minute VO2 Max Intervals",
       "channel": "GCN",
       "focus": "VO₂ max",
@@ -13334,6 +13426,7 @@
     },
     {
       "id": "45-minute-sprint-training",
+      "world": "beachroad",
       "title": "45 Minute Sprint Training",
       "channel": "GCN",
       "focus": "Sprints",
@@ -13431,6 +13524,7 @@
     },
     {
       "id": "ftp-booster-extended-efforts",
+      "world": "blueridge",
       "title": "FTP Booster Extended Efforts",
       "channel": "GCN Training",
       "focus": "Threshold",
@@ -13554,6 +13648,7 @@
     },
     {
       "id": "reverse-hiit-race-winning-intervals",
+      "world": "verona",
       "title": "Reverse HIIT Race Winning Intervals",
       "channel": "GCN Training",
       "focus": "Race efforts",
@@ -13660,6 +13755,7 @@
     },
     {
       "id": "reverse-steps",
+      "world": "valparaiso",
       "title": "Reverse Steps",
       "channel": "GCN Training",
       "focus": "Ramps",
@@ -13846,6 +13942,7 @@
     },
     {
       "id": "progressive-intervals-steps-to-glory",
+      "world": "montroyal",
       "title": "Progressive Intervals: Steps to Glory",
       "channel": "GCN Training",
       "focus": "Ramps",
@@ -13952,6 +14049,7 @@
     },
     {
       "id": "cadence-drills-for-strength-and-speed",
+      "world": "utrecht",
       "title": "Cadence Drills for Strength & Speed",
       "channel": "GCN Training",
       "focus": "Cadence",
@@ -14165,6 +14263,7 @@
     },
     {
       "id": "ramp-session-dialling-in-your-training-zones",
+      "world": "joshuatree",
       "title": "Ramp Session: Dialling In Your Training Zones",
       "channel": "GCN Training",
       "focus": "Ramps",
@@ -14235,6 +14334,7 @@
     },
     {
       "id": "60-minute-endurance-intervals",
+      "world": "cabot",
       "title": "60 Minute Endurance Intervals",
       "channel": "GCN",
       "focus": "Endurance",
@@ -14287,6 +14387,7 @@
     },
     {
       "id": "55-minute-ftp-threshold-intervals",
+      "world": "veleta",
       "title": "55 Minute FTP Threshold Intervals",
       "channel": "GCN",
       "focus": "Threshold",
@@ -14348,6 +14449,7 @@
     },
     {
       "id": "zwift-group-workout-hiit-intervals",
+      "world": "bayofislands",
       "title": "Zwift Group Workout: HIIT Intervals",
       "channel": "GCN",
       "focus": "HIIT",
@@ -14454,6 +14556,7 @@
     },
     {
       "id": "race-winning-intervals",
+      "world": "dales",
       "title": "Race Winning Intervals",
       "channel": "GCN",
       "focus": "Race efforts",
@@ -14560,6 +14663,7 @@
     },
     {
       "id": "60-minute-turbo-trainer-class",
+      "world": "engadin",
       "title": "60 Minute Turbo Trainer Class",
       "channel": "GCN",
       "focus": "Threshold",
