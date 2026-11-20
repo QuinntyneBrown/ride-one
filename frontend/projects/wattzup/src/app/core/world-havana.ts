@@ -228,6 +228,7 @@ export class HavanaStreet implements SceneStreet {
     this.addKerbside(roadHalf);
     this.addGrates(roadHalf);
     this.addRockers(roadHalf);
+    this.addDominoes(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -3459,6 +3460,133 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: roadHalf + 4 + ARCADE * (0.45 + random() * 0.3) });
     }
+  }
+
+  /**
+   * A domino game on the pavement at the arcade's edge: four men on stools round a square
+   * folding table, the white tiles laid out in their snaking line and each player's hand stood on
+   * edge before him, one slapping a tile down, and a couple of onlookers standing over them.
+   */
+  private addDominoes(roadHalf: number): void {
+    const random = seeded(1553);
+    const game = new Group();
+    const wood = this.material({ color: 0x7a5a3a, roughness: 0.7 });
+    const top = this.material({ color: 0x2a5a3a, roughness: 0.8 });
+    const ivory = this.material({ color: 0xf4f0e4, roughness: 0.4 });
+    const torso = new CapsuleGeometry(0.18, 0.4, 3, 8);
+    const limb = new CapsuleGeometry(0.065, 0.42, 3, 6);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const stool = new CylinderGeometry(0.18, 0.16, 0.45, 10);
+    const cap = new CylinderGeometry(0.12, 0.12, 0.06, 10);
+    this.disposables.push(torso, limb, head, stool, cap);
+    const shirts = [0xf2efe6, 0xe63946, 0x3a86ff, 0x2a9d8f, 0xf4a261, 0x8ab0c8];
+    const skins = [0x8d5a3b, 0x6b4128, 0xc68b5e, 0x4a2c1c];
+    const box = (
+      m: MeshStandardMaterial,
+      sx: number,
+      sy: number,
+      sz: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(sx, sy, sz);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      game.add(mesh);
+      return mesh;
+    };
+    // The table, its legs and the green baize-painted top.
+    box(top, 0.9, 0.04, 0.9, 0, 0.74, 0);
+    for (const x of [-0.38, 0.38])
+      for (const z of [-0.38, 0.38]) box(wood, 0.05, 0.72, 0.05, x, 0.36, z);
+    // The line of play snaking across the table.
+    let x = -0.3;
+    let z = -0.05;
+    for (let k = 0; k < 11; k++) {
+      const tile = box(
+        ivory,
+        k % 4 === 3 ? 0.05 : 0.1,
+        0.018,
+        k % 4 === 3 ? 0.1 : 0.05,
+        x,
+        0.77,
+        z,
+      );
+      tile.castShadow = false;
+      if (k % 4 === 3) z += 0.08;
+      else x += k < 6 ? 0.1 : -0.1;
+    }
+    // The four players, each on his stool facing the table, his tiles stood before him.
+    const pick = (list: number[], roughness = 0.85) =>
+      this.material({ color: list[Math.floor(random() * list.length)]!, roughness });
+    for (let p = 0; p < 4; p++) {
+      const turn = (p * Math.PI) / 2;
+      const seat = new Group();
+      const skin = pick(skins, 0.8);
+      const add = (
+        g: BufferGeometry,
+        m: MeshStandardMaterial,
+        px: number,
+        py: number,
+        pz: number,
+        rx = 0,
+      ) => {
+        const mesh = new Mesh(g, m);
+        mesh.position.set(px, py, pz);
+        mesh.rotation.x = rx;
+        mesh.castShadow = true;
+        seat.add(mesh);
+        return mesh;
+      };
+      add(stool, wood, 0, 0.22, 0.75);
+      const trousers = pick([0x2b2d42, 0x5a5a5a, 0xc8b89a]);
+      for (const side of [-0.1, 0.1]) {
+        add(limb, trousers, side, 0.5, 0.55, Math.PI / 2);
+        add(limb, trousers, side, 0.25, 0.32);
+      }
+      add(torso, pick(shirts), 0, 0.92, 0.7, -0.2);
+      add(head, skin, 0, 1.38, 0.62);
+      if (random() < 0.5) add(cap, pick([0xe8d8a8, 0x1a1a1a, 0xf2f2ee]), 0, 1.48, 0.62);
+      const slap = p === 1;
+      add(limb, skin, -0.24, 0.92, 0.42, slap ? 1.9 : 1.2);
+      add(limb, skin, 0.24, 0.92, 0.42, 1.2);
+      for (let t = 0; t < 4; t++) {
+        const tile = new Mesh(this.unit, ivory);
+        tile.scale.set(0.05, 0.1, 0.018);
+        tile.position.set(-0.11 + t * 0.07, 0.81, 0.32);
+        seat.add(tile);
+      }
+      seat.rotation.y = turn;
+      game.add(seat);
+    }
+    // Onlookers standing over the game.
+    for (const [ox, oz] of [
+      [0.95, 0.9],
+      [-0.9, 1.1],
+    ] as const) {
+      const skin = pick(skins, 0.8);
+      const legs = pick([0x2b2d42, 0x3a5a8a, 0xc8b89a]);
+      for (const side of [-0.09, 0.09]) {
+        const leg = new Mesh(limb, legs);
+        leg.scale.y = 1.6;
+        leg.position.set(ox + side, 0.46, oz);
+        game.add(leg);
+      }
+      const body = new Mesh(torso, pick(shirts));
+      body.position.set(ox, 1.2, oz);
+      const face = new Mesh(head, skin);
+      face.position.set(ox, 1.68, oz - 0.04);
+      for (const m of [body, face]) m.castShadow = true;
+      game.add(body, face);
+    }
+    game.rotation.y = 0.3;
+    game.position.y = KERB;
+    const holder = new Group();
+    holder.add(game);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 39, x: roadHalf + 2.9 });
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
