@@ -117,6 +117,8 @@ interface Stroller {
   readonly speed: number;
   readonly heading: number;
   readonly phase: number;
+  /** A child's height as a fraction of an adult's; absent for an adult. */
+  readonly child?: number;
 }
 
 export class HavanaStreet implements SceneStreet {
@@ -298,7 +300,7 @@ export class HavanaStreet implements SceneStreet {
       this.strollers.forEach((w, i) => {
         const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
         const y = heightAt(Math.max(metres, 0)) + KERB;
-        people.set(i, w.x, y, -metres, w.heading, this.time * 4 + w.phase);
+        people.set(i, w.x, y, -metres, w.heading, this.time * (w.child ? 6 : 4) + w.phase);
       });
       people.commit();
     }
@@ -2190,6 +2192,20 @@ export class HavanaStreet implements SceneStreet {
         phase: random() * 6.3,
       });
     }
+    // Children walking beside a parent on the inland pavement, at the parent's pace with
+    // quicker steps, on the side away from the kerb.
+    const family = seeded(1537);
+    for (const adult of this.strollers.filter((w) => w.x > 0)) {
+      if (family() > 0.28) continue;
+      this.strollers.push({
+        offset: adult.offset + (family() - 0.5) * 0.4,
+        x: adult.x + 0.55,
+        speed: adult.speed,
+        heading: adult.heading,
+        phase: adult.phase + 1.3,
+        child: 0.52 + family() * 0.2,
+      });
+    }
     // People sitting along the wall's top: some facing the sea, most facing the city.
     const perch = seeded(1087);
     for (let offset = 1; offset < LOOP; offset += 2 + perch() * 6) {
@@ -2203,6 +2219,7 @@ export class HavanaStreet implements SceneStreet {
       this.strollers.length,
       STROLL_WEAR,
       937,
+      this.strollers.map((w) => w.child ?? 1),
     );
   }
 
@@ -4165,6 +4182,7 @@ class Walkers {
   private readonly faces: InstancedMesh;
   private readonly eyes: InstancedMesh;
   private readonly shaded: boolean[] = [];
+  private readonly size = new Vector3();
   private readonly base = new Matrix4();
   private readonly local = new Matrix4();
   private readonly out = new Matrix4();
@@ -4180,6 +4198,7 @@ class Walkers {
     count: number,
     wardrobe: { tops: readonly string[]; bottoms: readonly string[]; skins: readonly string[] },
     seed: number,
+    private readonly sizes: readonly number[],
   ) {
     // Each limb hangs from its pivot at the origin, so it can swing there.
     const leg = new CapsuleGeometry(0.075, 0.72, 3, 8);
@@ -4299,7 +4318,7 @@ class Walkers {
   set(i: number, x: number, y: number, z: number, heading: number, stride: number): void {
     this.turn.setFromAxisAngle(this.up, heading);
     this.spot.set(x, y, z);
-    this.base.compose(this.spot, this.turn, this.one);
+    this.base.compose(this.spot, this.turn, this.size.setScalar(this.sizes[i]!));
     const swing = Math.sin(stride) * 0.45;
     const lift = Math.abs(Math.cos(stride)) * 0.03;
     for (const [k, side] of [

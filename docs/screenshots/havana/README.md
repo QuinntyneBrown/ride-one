@@ -72,6 +72,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [066 · Gutter](066-gutter.jpg) | A grimy gutter now runs along the inland kerb's foot: dark against the kerb, with drifts of pale sand, dry leaves and scraps of litter, and cast-iron drain grates set into it every 25 to 45 m. From the saddle, the sand and grime line the kerb on the right, where the asphalt used to meet it cleanly. | 94% · 92/100 |
 | [067 · Faces](067-faces.jpg) | The walkers' heads stop being bare spheres: each now has a nose and ears in the walker's skin and dark eyes with brows. From the saddle, the near walkers are heading away, so their ears show under the hair; faces show on the walkers coming toward the rider, small at this distance. | 94% · 92/100 |
 | [068 · Parked cars](068-parked-cars.jpg) | Almendrones, the classic 1950s American cars, now stand parked along the inland kerb in ones and nose-to-tail pairs: two-tone like the oncoming cars, or about one in three in faded grey, khaki or primer under a pale roof. From the saddle, a faded almendrón sits at the right kerb just ahead of the riders, by the bus stop, with more down the street. | 94% · 92/100 |
+| [069 · Children](069-children.jpg) | About one in four walkers on the inland pavement now has a child at their side, from a toddler's height to a ten-year-old's, keeping pace with quicker steps. From the saddle, a child in a sunhat walks beside a woman in a white skirt by the bus stop; others walk with their parents further along. | 94% · 92/100 |
 
 ## Reproducing a capture
 
