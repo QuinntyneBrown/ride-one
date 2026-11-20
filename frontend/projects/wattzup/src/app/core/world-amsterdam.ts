@@ -1133,6 +1133,13 @@ export class AmsterdamStreet implements SceneStreet {
     const yellow = this.material({ color: 0xf2c418, roughness: 0.4 });
     const lamp = this.material({ color: 0xf4f6f8, metalness: 0.6, roughness: 0.15 });
     const red = this.material({ color: 0xa8141a, roughness: 0.25 });
+    const taxiSign = this.material({
+      map: this.track(taxiTexture()),
+      emissive: 0xffe080,
+      emissiveIntensity: 0.2,
+      roughness: 0.4,
+    });
+    let taxied = false;
     const kinds = (['hatch', 'city', 'van'] as const).map((kind) => {
       const car = carGeometry(kind);
       this.disposables.push(car.body, car.glass, car.wheels, car.plates, car.heads, car.tails);
@@ -1174,6 +1181,16 @@ export class AmsterdamStreet implements SceneStreet {
         parked.children.forEach((m) => (m.position.y = KERB));
         this.group.add(parked);
         parked.children.forEach((m) => (m.rotation.y = row.turn));
+        if (!taxied && row.turn === 0 && car !== kinds[2] && offset > START + BEHIND + 30) {
+          // A taxi waiting at the kerb: black, its lit roof sign on top.
+          taxied = true;
+          (parked.children[0] as Mesh).material = bodies[0]!;
+          const sign = new Mesh(this.unit, taxiSign);
+          sign.scale.set(0.75, 0.2, 0.18);
+          sign.rotation.y = Math.PI / 2;
+          sign.position.set(0, KERB + (car === kinds[1] ? 1.62 : 1.58), 0.2);
+          parked.add(sign);
+        }
         this.props.push({ mesh: parked, offset: offset + car.length / 2, x: row.x });
         offset += car.length + 0.6 + random() * 1.2;
       }
@@ -3965,6 +3982,19 @@ function cabinetTexture(): CanvasTexture {
     g.moveTo(20, 130);
     g.bezierCurveTo(40, 100, 60, 150, 90, 118);
     g.stroke();
+  });
+}
+
+/** A taxi's roof sign: TAXI in black on yellow. */
+function taxiTexture(): CanvasTexture {
+  return canvasTexture(128, 32, (g) => {
+    g.fillStyle = '#f2c418';
+    g.fillRect(0, 0, 128, 32);
+    g.fillStyle = '#111111';
+    g.font = 'bold 24px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('TAXI', 64, 17);
   });
 }
 
