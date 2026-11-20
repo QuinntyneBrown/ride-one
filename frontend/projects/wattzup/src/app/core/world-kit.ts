@@ -713,3 +713,11 @@ function featherTexture(word: string, fill: string, ink: string): CanvasTexture 
     g.restore();
   });
 }
+
+/** A dash of `colour` and a gap of the same: a centre line, 8 m to the texture. */
+export function dashTexture(colour: string): CanvasTexture {
+  return canvasTexture(16, 256, (g) => {
+    g.fillStyle = colour;
+    g.fillRect(0, 0, 16, 128);
+  });
+}
