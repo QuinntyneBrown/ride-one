@@ -4,10 +4,13 @@
 import {
   BoxGeometry,
   CanvasTexture,
+  CapsuleGeometry,
+  DoubleSide,
   Group,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
+  SphereGeometry,
   SRGBColorSpace,
 } from 'three/webgpu';
 import { apexes } from './scene-bend';
@@ -27,6 +30,8 @@ const CHEVRON_BEFORE = 14;
 export class Corners {
   readonly group = new Group();
   private readonly corners: Group[] = [];
+  /** Each corner marshal's flag arm, waved as the rider rides. */
+  private readonly flags: Group[] = [];
 
   constructor(private readonly disposables: { dispose(): void }[]) {}
 
@@ -45,6 +50,19 @@ export class Corners {
     const chevrons = new MeshStandardMaterial({ map: chevronTexture(), roughness: 0.6 });
     const steel = new MeshStandardMaterial({ color: 0x8d939b, metalness: 0.6, roughness: 0.4 });
     this.disposables.push(boardGeometry, postGeometry, chevrons, chevrons.map!, steel);
+    const parts = {
+      legs: new CapsuleGeometry(0.13, 0.64, 4, 8),
+      torso: new CapsuleGeometry(0.18, 0.42, 4, 10),
+      head: new SphereGeometry(0.105, 12, 8),
+      arm: new CapsuleGeometry(0.05, 0.5, 4, 6),
+      stick: new BoxGeometry(0.025, 0.9, 0.025),
+      cloth: new PlaneGeometry(0.7, 0.5),
+      trousers: new MeshStandardMaterial({ color: 0x20242c, roughness: 0.8 }),
+      vest: new MeshStandardMaterial({ color: 0xe8f021, roughness: 0.6 }),
+      skin: new MeshStandardMaterial({ color: 0xc58c64, roughness: 0.8 }),
+      yellow: new MeshStandardMaterial({ color: 0xf5d000, roughness: 0.7, side: DoubleSide }),
+    };
+    this.disposables.push(...Object.values(parts));
     for (let c = 0; c < POOL; c++) {
       const corner = new Group();
       // Foam padding along the outside barrier, red and white mattresses in turn, where a rider
@@ -70,10 +88,44 @@ export class Corners {
         post.position.set(-barrier - 0.3 + dx, kerb + 0.9, CHEVRON_BEFORE - 0.04);
         corner.add(post);
       }
+      corner.add(this.marshal(barrier, kerb, parts));
       corner.visible = false;
       this.corners.push(corner);
       this.group.add(corner);
     }
+  }
+
+  /**
+   * A marshal in a hi-vis vest on the pavement at the apex, behind the barrier, facing the road,
+   * a yellow flag raised over the corner.
+   */
+  private marshal(barrier: number, kerb: number, parts: MarshalParts): Group {
+    const marshal = new Group();
+    marshal.position.set(-barrier - 0.6, kerb, 0);
+    const legs = new Mesh(parts.legs, parts.trousers);
+    legs.position.y = 0.45;
+    const torso = new Mesh(parts.torso, parts.vest);
+    torso.position.y = 1.22;
+    const head = new Mesh(parts.head, parts.skin);
+    head.position.y = 1.72;
+    for (const mesh of [legs, torso, head]) mesh.castShadow = true;
+    marshal.add(legs, torso, head);
+    // The flag arm, from the shoulder on the road side: raised, and waved about the shoulder.
+    const flag = new Group();
+    flag.position.set(0.2, 1.5, 0);
+    const arm = new Mesh(parts.arm, parts.vest);
+    arm.position.set(0.12, 0.27, 0);
+    arm.rotation.z = -0.45;
+    const stick = new Mesh(parts.stick, parts.trousers);
+    stick.position.set(0.27, 0.95, 0);
+    const cloth = new Mesh(parts.cloth, parts.yellow);
+    // Flown square to the street, out over the road, so the riders see it coming.
+    cloth.position.set(0.57, 1.18, 0);
+    cloth.castShadow = true;
+    flag.add(arm, stick, cloth);
+    marshal.add(flag);
+    this.flags.push(flag);
+    return marshal;
   }
 
   /** Puts the furniture at the corners ahead of the rider at `s`, on the road's height. */
@@ -88,6 +140,10 @@ export class Corners {
       // The outside of a right-hander is the left of the road; a left-hander's corner is its
       // mirror image, chevrons and all.
       corner.scale.x = apex.turn;
+      // The flag waves to and fro as the rider rides on; under reduced motion it still moves
+      // only as the rider does.
+      const flag = this.flags[i];
+      if (flag) flag.rotation.z = -0.35 * Math.sin(s / 1.6 + i);
     });
   }
 }
@@ -121,4 +177,17 @@ function chevronTexture(): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+interface MarshalParts {
+  readonly legs: CapsuleGeometry;
+  readonly torso: CapsuleGeometry;
+  readonly head: SphereGeometry;
+  readonly arm: CapsuleGeometry;
+  readonly stick: BoxGeometry;
+  readonly cloth: PlaneGeometry;
+  readonly trousers: MeshStandardMaterial;
+  readonly vest: MeshStandardMaterial;
+  readonly skin: MeshStandardMaterial;
+  readonly yellow: MeshStandardMaterial;
 }
