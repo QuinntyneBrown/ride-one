@@ -45,7 +45,6 @@ const WATER = 2.3;
 /** The far quay's width, and the narrow pavement before the houses on the rider's side. */
 const FAR_QUAY = 5;
 const PAVEMENT = 2.2;
-const HOUSES = 16;
 /** A humpback bridge crosses the canal every BRIDGE metres. */
 const BRIDGE = 120;
 
@@ -93,7 +92,7 @@ export class AmsterdamStreet implements SceneStreet {
   build(roadHalf: number, points: number): void {
     this.disposables.push(this.unit);
     this.addGround(roadHalf, points);
-    this.addHouses(roadHalf, points);
+    this.addHouses(roadHalf);
     this.addElmsAndLamps(roadHalf);
     this.addParkedBikes(roadHalf);
     this.addBridges(roadHalf);
@@ -222,28 +221,54 @@ export class AmsterdamStreet implements SceneStreet {
     ]);
   }
 
-  /** The canal houses on the rider's side and across the water, their gables cut out of the sky. */
-  private addHouses(roadHalf: number, points: number): void {
-    const near = this.material({
-      map: this.repeat(canalHousesTexture(true, 401), HOUSES, 24),
-      alphaTest: 0.5,
-      roughness: 0.85,
+  /**
+   * The canal houses on the rider's side and across the water: each its own block, narrow
+   * gabled houses (step, bell, neck and spout) among the wider cornice-topped mansions of the
+   * Herengracht, set back or forward a little from its neighbours, its front drawn on it.
+   */
+  private addHouses(roadHalf: number): void {
+    const random = seeded(401);
+    const sides = this.material({ map: this.repeat(brickTexture(), 4, 4), roughness: 0.95 });
+    const shapes = GABLES.map((kind) => {
+      const geometry = new ExtrudeGeometry(gableShape(kind), { depth: 1, bevelEnabled: false });
+      this.disposables.push(geometry);
+      return geometry;
     });
-    const across = this.material({
-      map: this.repeat(canalHousesTexture(false, 409), HOUSES, 24),
-      alphaTest: 0.5,
-      roughness: 0.85,
-    });
-    const x = roadHalf + PAVEMENT;
-    this.ribbons.add(points, near, [
-      [x, HOUSES],
-      [x, KERB],
-    ]);
-    const farX = -roadHalf - QUAY - CANAL - FAR_QUAY;
-    this.ribbons.add(points, across, [
-      [farX, KERB],
-      [farX, HOUSES],
-    ]);
+    const fronts = GABLES.map((kind, k) =>
+      [0, 1, 2, 3].map((v) =>
+        this.material({
+          map: this.track(
+            facadeTexture(kind, FRONTS[(k * 3 + v * 5) % FRONTS.length]!, 503 + k * 7 + v),
+          ),
+          roughness: 0.85,
+        }),
+      ),
+    );
+    const rows = [
+      { x: roadHalf + PAVEMENT, turn: Math.PI / 2 },
+      { x: -roadHalf - QUAY - CANAL - FAR_QUAY, turn: -Math.PI / 2 },
+    ];
+    for (const { x, turn } of rows) {
+      for (let offset = 0; offset < LOOP;) {
+        const roll = random();
+        const k = roll < 0.22 ? 4 : Math.floor(random() * 4);
+        const width = k === 4 ? 11 + random() * 5 : 5.6 + random() * 2.4;
+        const height = k === 4 ? 15 + random() * 3 : 17 + random() * 4;
+        const house = new Group();
+        const mesh = new Mesh(shapes[k]!, [fronts[k]![Math.floor(random() * 4)]!, sides]);
+        mesh.scale.set(width, height, 12);
+        mesh.rotation.y = turn;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        house.add(mesh);
+        this.group.add(house);
+        // The house's front runs from `offset` to `offset + width` along the gracht.
+        const setback = random() * 0.35;
+        const front = turn > 0 ? x + setback : x - setback;
+        this.props.push({ mesh: house, offset: turn > 0 ? offset : offset + width, x: front });
+        offset += width;
+      }
+    }
   }
 
   /** Elms along both quays and Amsterdam's dark green lamps between them. */
@@ -596,110 +621,180 @@ function cabinTexture(): CanvasTexture {
   });
 }
 
+/** The house kinds: four gables, then the Herengracht's wide houses with a straight cornice. */
+const GABLES = ['step', 'bell', 'neck', 'spout', 'cornice'] as const;
+type Gable = (typeof GABLES)[number];
+/** Dark brick, oxblood, soot-black, red-brown, painted render, sandstone and green-grey fronts. */
+const FRONTS = [
+  '#3a2a24',
+  '#5a3326',
+  '#2a2a2e',
+  '#6b4030',
+  '#e8e2d4',
+  '#4a3a30',
+  '#c9b79a',
+  '#2f3a34',
+  '#7a4a36',
+];
+/** Where the front's eaves (or cornice) line sits, as a share of the house's height. */
+const EAVES = 0.74;
+
+/** Anything that can trace an outline: a Shape or a canvas. */
+interface Pen {
+  moveTo(x: number, y: number): void;
+  lineTo(x: number, y: number): void;
+  quadraticCurveTo(cx: number, cy: number, x: number, y: number): void;
+  bezierCurveTo(c1x: number, c1y: number, c2x: number, c2y: number, x: number, y: number): void;
+}
+
 /**
- * Canal houses, 16 m tall over 24 m of gracht: four narrow houses in dark brick or painted
- * render, tall white-framed windows, a door at the foot, a hoist beam, and a gable: stepped,
- * bell, neck or spout. Everything above the gables is cut out. The picture is drawn upright and
- * turned onto the ribbon, whose across runs from its first profile point: `topFirst` when that
- * is the top of the wall.
+ * Traces a house's front, 1 wide and 1 tall with y up, up its left side, over its gable and down
+ * its right side; the caller closes it along the ground.
  */
-function canalHousesTexture(topFirst: boolean, seed: number): CanvasTexture {
-  const fronts = [
-    '#3a2a24',
-    '#5a3326',
-    '#2a2a2e',
-    '#6b4030',
-    '#e8e2d4',
-    '#4a3a30',
-    '#2f3a34',
-    '#7a4a36',
-  ];
-  return canvasTexture(512, 1024, (g) => {
-    g.clearRect(0, 0, 512, 1024);
-    // Picture space: x along the gracht (1024 px), y down the wall (512 px, 16 m).
-    if (topFirst) g.setTransform(0, 1, 1, 0, 0, 0);
-    else g.setTransform(0, 1, -1, 0, 512, 0);
-    const random = seeded(seed);
-    const width = 256;
-    for (let h = 0; h < 4; h++) {
-      const left = h * width;
-      const right = left + width - 4;
-      const mid = (left + right) / 2;
-      const eaves = 70 + Math.floor(random() * 50);
-      const front = fronts[Math.floor(random() * fronts.length)]!;
-      g.fillStyle = front;
-      // The gable's outline, then the body below it.
-      g.beginPath();
-      const kind = Math.floor(random() * 4);
-      g.moveTo(left, 512);
-      g.lineTo(left, eaves + 40);
-      if (kind === 0) {
-        // Stepped gable.
-        let x = left;
-        let y = eaves + 40;
-        for (let s = 0; s < 4; s++) {
-          g.lineTo(x, y - 22);
-          x += 24;
-          y -= 22;
-          g.lineTo(x, y);
-        }
-        g.lineTo(x, y - 20);
-        g.lineTo(right - (x - left), y - 20);
-        let rx = right - (x - left);
-        let ry = y;
-        g.lineTo(rx, ry);
-        for (let s = 0; s < 4; s++) {
-          rx += 24;
-          g.lineTo(rx, ry);
-          ry += 22;
-          g.lineTo(rx, ry);
-        }
-        g.lineTo(right, eaves + 40);
-      } else if (kind === 1) {
-        // Bell gable.
-        g.bezierCurveTo(left + 10, eaves - 10, mid - 70, eaves - 10, mid - 50, eaves - 50);
-        g.quadraticCurveTo(mid, eaves - 80, mid + 50, eaves - 50);
-        g.bezierCurveTo(mid + 70, eaves - 10, right - 10, eaves - 10, right, eaves + 40);
-      } else if (kind === 2) {
-        // Neck gable with its shoulders.
-        g.lineTo(left + 40, eaves + 10);
-        g.lineTo(mid - 45, eaves + 10);
-        g.lineTo(mid - 45, eaves - 60);
-        g.quadraticCurveTo(mid, eaves - 90, mid + 45, eaves - 60);
-        g.lineTo(mid + 45, eaves + 10);
-        g.lineTo(right - 40, eaves + 10);
-        g.lineTo(right, eaves + 40);
-      } else {
-        // Spout gable.
-        g.lineTo(mid, eaves - 50);
-        g.lineTo(right, eaves + 40);
-      }
-      g.lineTo(right, 512);
-      g.closePath();
-      g.fill();
-      // A white cornice band where the gable meets the front.
-      g.fillStyle = '#f2efe6';
-      g.fillRect(left, eaves + 38, width - 4, 5);
-      // The hoist beam high in the gable.
-      g.fillStyle = '#1b1b1f';
-      g.fillRect(mid - 4, eaves + 4, 8, 14);
-      // Windows: three across, four floors, white frames, dark glass; the door at the foot.
-      for (let y = eaves + 60; y < 440; y += 88) {
-        for (const x of [left + 30, mid - 22, right - 74]) {
-          g.fillStyle = '#f6f4ee';
-          g.fillRect(x - 4, y - 4, 52, 72);
-          g.fillStyle = random() < 0.2 ? '#6a5a40' : '#22303c';
-          g.fillRect(x, y, 44, 64);
-          g.fillStyle = '#f6f4ee';
-          g.fillRect(x, y + 30, 44, 4);
-          g.fillRect(x + 20, y, 4, 64);
-        }
-      }
-      g.fillStyle = '#f6f4ee';
-      g.fillRect(mid - 26, 438, 52, 74);
-      g.fillStyle = ['#1f3a2c', '#1b1b1f', '#6a1a1a', '#1b3a5c'][h % 4]!;
-      g.fillRect(mid - 20, 444, 40, 68);
+function traceFront(pen: Pen, kind: Gable): void {
+  const e = EAVES;
+  pen.moveTo(0, 0);
+  pen.lineTo(0, e);
+  if (kind === 'step') {
+    const rise = (1 - e) / 5;
+    let x = 0;
+    let y = e;
+    for (let s = 0; s < 4; s++) {
+      pen.lineTo(x, y + rise);
+      x += 0.085;
+      y += rise;
+      pen.lineTo(x, y);
     }
-    g.setTransform(1, 0, 0, 1, 0, 0);
+    pen.lineTo(x, 1);
+    pen.lineTo(1 - x, 1);
+    for (let s = 0; s < 4; s++) {
+      pen.lineTo(1 - x, y);
+      y -= rise;
+      x -= 0.085;
+      pen.lineTo(1 - x, y + rise);
+    }
+    pen.lineTo(1, e);
+  } else if (kind === 'bell') {
+    pen.bezierCurveTo(0.08, e + 0.02, 0.24, e + 0.06, 0.26, e + 0.13);
+    pen.bezierCurveTo(0.27, e + 0.22, 0.38, 0.99, 0.5, 1);
+    pen.bezierCurveTo(0.62, 0.99, 0.73, e + 0.22, 0.74, e + 0.13);
+    pen.bezierCurveTo(0.76, e + 0.06, 0.92, e + 0.02, 1, e);
+  } else if (kind === 'neck') {
+    pen.quadraticCurveTo(0.2, e + 0.01, 0.28, e + 0.08);
+    pen.lineTo(0.3, 0.95);
+    pen.quadraticCurveTo(0.5, 1.04, 0.7, 0.95);
+    pen.lineTo(0.72, e + 0.08);
+    pen.quadraticCurveTo(0.8, e + 0.01, 1, e);
+  } else if (kind === 'spout') {
+    pen.lineTo(0.42, 0.97);
+    pen.lineTo(0.5, 1);
+    pen.lineTo(0.58, 0.97);
+    pen.lineTo(1, e);
+  } else {
+    const top = e + 0.07;
+    pen.lineTo(0, top);
+    pen.lineTo(0.36, top);
+    pen.quadraticCurveTo(0.5, top + 0.1, 0.64, top);
+    pen.lineTo(1, top);
+  }
+  pen.lineTo(1, 0);
+}
+
+/** A house's front as a shape to extrude, 1 wide and 1 tall. */
+function gableShape(kind: Gable): Shape {
+  const shape = new Shape();
+  traceFront(shape, kind);
+  shape.closePath();
+  return shape;
+}
+
+/**
+ * A house's front, drawn to fit its 1 × 1 outline: brick or painted render, a white cornice at
+ * the eaves, tall white-framed sash windows on four floors, the door with its fanlight at the
+ * foot, and in the gable a hoist beam over a loft window, trimmed in sandstone.
+ */
+function facadeTexture(kind: Gable, front: string, seed: number): CanvasTexture {
+  const w = 256;
+  const h = 640;
+  return canvasTexture(w, h, (g) => {
+    const random = seeded(seed);
+    speckle(g, w, h, front, seed);
+    const light = parseInt(front.slice(1, 3), 16) > 0x90;
+    if (!light) {
+      // Brick courses.
+      g.fillStyle = 'rgba(0,0,0,0.18)';
+      for (let y = 0; y < h; y += 4) g.fillRect(0, y, w, 1);
+    }
+    // The outline, trimmed in sandstone.
+    g.save();
+    g.setTransform(w, 0, 0, -h, 0, h);
+    g.beginPath();
+    traceFront(g, kind);
+    g.strokeStyle = '#efe8d8';
+    g.lineWidth = 0.035;
+    g.stroke();
+    g.restore();
+    const eaves = h * (1 - EAVES);
+    g.fillStyle = '#f2efe6';
+    g.fillRect(0, eaves - 6, w, 10);
+    g.fillStyle = 'rgba(0,0,0,0.25)';
+    g.fillRect(0, eaves + 4, w, 3);
+    // The hoist beam and loft window in the gable, or a balustrade over a cornice.
+    if (kind === 'cornice') {
+      g.fillStyle = '#efe8d8';
+      for (let x = 10; x < w - 10; x += 14) g.fillRect(x, eaves - 34, 6, 26);
+      g.fillRect(0, eaves - 40, w, 6);
+    } else {
+      g.fillStyle = '#f6f4ee';
+      g.fillRect(w / 2 - 22, eaves - 70, 44, 52);
+      g.fillStyle = '#22303c';
+      g.fillRect(w / 2 - 17, eaves - 65, 34, 42);
+      g.fillStyle = '#1b1b1f';
+      g.fillRect(w / 2 - 4, eaves - 108, 8, 30);
+    }
+    // Four floors of sash windows over the ground floor.
+    const columns = kind === 'cornice' ? 5 : 3;
+    const pane = (w - 30) / columns;
+    const floors = 4;
+    const ground = h - 120;
+    const floor = (ground - eaves - 20) / floors;
+    for (let f = 0; f < floors; f++) {
+      const y = eaves + 24 + f * floor;
+      const tall = floor - 26 - f * 4;
+      for (let c = 0; c < columns; c++) {
+        const x = 15 + c * pane + pane * 0.16;
+        const width = pane * 0.68;
+        g.fillStyle = '#f6f4ee';
+        g.fillRect(x - 4, y - 4, width + 8, tall + 8);
+        g.fillStyle = random() < 0.2 ? '#6a5a40' : '#22303c';
+        g.fillRect(x, y, width, tall);
+        g.fillStyle = 'rgba(160,190,210,0.25)';
+        g.fillRect(x, y, width, tall * 0.4);
+        g.fillStyle = '#f6f4ee';
+        g.fillRect(x, y + tall / 2 - 2, width, 4);
+        g.fillRect(x + width / 2 - 1.5, y, 3, tall);
+        g.fillRect(x, y + tall / 4, width, 2);
+        g.fillRect(x, y + (tall * 3) / 4, width, 2);
+      }
+    }
+    // The ground floor: the door with its fanlight to one side, windows beside it.
+    const door = random() < 0.5 ? 0 : columns - 1;
+    for (let c = 0; c < columns; c++) {
+      const x = 15 + c * pane + pane * 0.14;
+      const width = pane * 0.72;
+      g.fillStyle = '#f6f4ee';
+      g.fillRect(x - 4, ground - 4, width + 8, 124);
+      if (c === door) {
+        g.fillStyle = '#c9d6dc';
+        g.fillRect(x, ground, width, 26);
+        g.fillStyle = ['#1f3a2c', '#1b1b1f', '#6a1a1a', '#1b3a5c'][Math.floor(random() * 4)]!;
+        g.fillRect(x, ground + 30, width, 90);
+      } else {
+        g.fillStyle = '#22303c';
+        g.fillRect(x, ground, width, 80);
+        g.fillStyle = '#f6f4ee';
+        g.fillRect(x + width / 2 - 1.5, ground, 3, 80);
+      }
+    }
   });
 }
