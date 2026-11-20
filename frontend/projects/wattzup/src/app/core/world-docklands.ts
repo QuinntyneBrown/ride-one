@@ -385,6 +385,8 @@ const DRONE_CLEARANCE = 1.8;
 const DRONE_CLIMB = 16;
 const DRONE_REACH = 260;
 const DRONE_FIRST = 48;
+/** The colour of the LED band round each drone's hull. */
+const DRONE_LEDS = '#5ff2ff';
 /** Shop signs hung under the towers' canopies: their names and neon colour, and length (m). */
 const SHOPS: readonly (readonly [string, string])[] = [
   ['RAMEN', '#ff4f6d'],
@@ -3355,7 +3357,21 @@ export class DocklandsStreet {
       color: new Color('#5ff2ff').multiplyScalar(1.6),
       toneMapped: false,
     });
-    const parcel = new MeshStandardMaterial({ color: 0xc89a5c, roughness: 0.8 });
+    // A cardboard parcel, taped and labelled, lit a little by the drone's own glow.
+    const cardboard = this.track(parcelTexture());
+    const parcel = new MeshStandardMaterial({
+      map: cardboard,
+      emissiveMap: cardboard,
+      emissive: new Color(0xffffff),
+      emissiveIntensity: 0.3,
+      roughness: 0.8,
+    });
+    // A band of LEDs round the hull's waist, so the drone reads against the night sky.
+    const leds = new MeshBasicMaterial({
+      color: new Color(DRONE_LEDS).multiplyScalar(1.8),
+      toneMapped: false,
+    });
+    this.disposables.push(leds);
     const red = new MeshBasicMaterial({
       color: new Color('#ff3045').multiplyScalar(2),
       toneMapped: false,
@@ -3398,6 +3414,9 @@ export class DocklandsStreet {
       const hull = new Mesh(unit, body);
       hull.scale.set(0.7, 0.22, 0.9);
       group.add(hull);
+      const band = new Mesh(unit, leds);
+      band.scale.set(0.72, 0.05, 0.92);
+      group.add(band);
       const glow = new Mesh(unit, belly);
       glow.scale.set(0.5, 0.04, 0.6);
       glow.position.y = -0.12;
@@ -6226,6 +6245,29 @@ function hubcapTexture(): CanvasTexture {
   ctx.beginPath();
   ctx.arc(c, c, 6, 0, Math.PI * 2);
   ctx.fill();
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A delivery parcel's side: brown cardboard, a strip of packing tape and a shipping label. */
+function parcelTexture(): CanvasTexture {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#c89a5c';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = 'rgba(120,80,40,0.35)';
+  ctx.fillRect(0, 0, size, 3);
+  ctx.fillRect(0, size - 3, size, 3);
+  ctx.fillStyle = '#e8d8b0';
+  ctx.fillRect(size / 2 - 6, 0, 12, size);
+  ctx.fillStyle = '#f6f4ee';
+  ctx.fillRect(8, 36, 22, 16);
+  ctx.fillStyle = '#2a2a30';
+  for (let k = 0; k < 3; k++) ctx.fillRect(11, 39 + k * 4, 16 - k * 3, 2);
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
