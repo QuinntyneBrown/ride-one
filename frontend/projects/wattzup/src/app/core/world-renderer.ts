@@ -1181,6 +1181,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 1.9, fill: 2.2, colour: 0xf4f0ea },
     fogRange: [120, 1400],
   },
+  // Indoors under the arena lights: bright, even, warm-white light from the roof's rigs high
+  // overhead, and a faint haze in the hall's far end.
+  velodrome: {
+    sky: 0x2a2c32,
+    fog: 0x6a625a,
+    ground: 0x8a8e96,
+    road: 0xdcae74,
+    sun: 72,
+    wet: false,
+    haze: false,
+    turbidity: 2,
+    rayleigh: 0.5,
+    azimuth: 10,
+    light: { sun: 2.4, fill: 1.7, colour: 0xfff4e6 },
+    fogRange: [200, 1400],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
