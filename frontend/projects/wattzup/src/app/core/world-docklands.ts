@@ -353,6 +353,15 @@ const TWINKLE_OUT = 0.55;
  */
 const DRONES = 8;
 const DRONE_HEIGHT = GATE_HEIGHT + 3.2;
+/**
+ * The drones climb over the skybridges: the bridge's roof above its walkway (m) and half its
+ * depth along the street (m), the room a drone leaves above it, parcel and all (m), and how far
+ * before a bridge it starts to climb (m).
+ */
+const SKYBRIDGE_TOP = 3.7;
+const SKYBRIDGE_HALF = 3.5;
+const DRONE_CLEARANCE = 1.8;
+const DRONE_CLIMB = 16;
 const DRONE_REACH = 260;
 const DRONE_FIRST = 48;
 /** Shop signs hung under the towers' canopies: their names and neon colour, and length (m). */
@@ -5023,8 +5032,8 @@ export class DocklandsStreet {
       drone.group.visible = metres < DRONE_REACH;
       drone.group.position.z = -metres;
       drone.group.userData['ground'] ??= drone.group.position.y;
-      drone.group.position.y =
-        (drone.group.userData['ground'] as number) + heightAt(Math.max(metres, 0));
+      const cruise = drone.group.userData['ground'] as number;
+      drone.group.position.y = cruise + climb(drone.at, cruise) + heightAt(Math.max(metres, 0));
     }
     for (const bridge of this.skybridges) {
       const metres = ((((bridge.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
@@ -5634,6 +5643,26 @@ function hatchTexture(): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+/**
+ * How far a drone cruising at `cruise` metres climbs to clear the skybridges when it is at
+ * `at` round the loop: over any bridge in its path by DRONE_CLEARANCE, easing up as it nears
+ * and back down once past.
+ */
+function climb(at: number, cruise: number): number {
+  const here = ((at % LOOP) + LOOP) % LOOP;
+  let lift = 0;
+  for (const [offset, height] of SKYBRIDGES) {
+    const top = height + SKYBRIDGE_TOP + DRONE_CLEARANCE;
+    if (top <= cruise) continue;
+    const apart = Math.abs(here - offset);
+    const gap = Math.min(apart, LOOP - apart);
+    const near = Math.min(Math.max((DRONE_CLIMB - gap) / (DRONE_CLIMB - SKYBRIDGE_HALF), 0), 1);
+    const eased = near * near * (3 - 2 * near);
+    lift = Math.max(lift, (top - cruise) * eased);
+  }
+  return lift;
 }
 
 /** A stall's lit menu board: its dishes in white on a dark board, framed in its own neon. */
