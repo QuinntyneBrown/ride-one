@@ -40,7 +40,9 @@ import {
   type FeatherWord,
   hazedMaterial,
   loopMetres,
+  Mist,
   paintTexture,
+  PopupTents,
   Ribbons,
   scaleFaceUv,
   type SceneStreet,
@@ -72,6 +74,8 @@ const HORIZON_AHEAD = 300;
 const MISSION_AT = 190;
 const KNOLL_FOOT = MISSION_AT - 65;
 const HAZE = 0xe4d6b8;
+/** The warm dust in the afternoon air, lit by the low sun. */
+const DUST = 0xf0dcb2;
 
 /**
  * How high the ground stands above the road `x` metres off its centre: level to the vineyards,
@@ -123,6 +127,21 @@ const FEATHERS: readonly FeatherWord[] = [
   ['WATTZUP', '#d7ff3a', '#1b1e24'],
 ];
 const FEATHER_EVERY = 16;
+/**
+ * The ride's village on the headland track: each tent's valance, canopy, ink, where in the loop
+ * and which side. The first stand in the opening view, clear of the harvest crews.
+ */
+const TENTS: readonly (readonly [string, string, string, number, -1 | 1])[] = [
+  ['WINE TASTING', '#7a1f3d', '#ffffff', 112, 1],
+  ['WATER', '#2f5d8a', '#ffffff', 119, 1],
+  ['WINE TASTING', '#7a1f3d', '#ffffff', 135, -1],
+  ['WATER', '#2f5d8a', '#ffffff', 142, -1],
+  ['WATTZUP', '#d7ff3a', '#1b1e24', 162, 1],
+  ['GRAPE JUICE', '#5a2a6a', '#f4e8c8', 160, -1],
+  ['BIKE REPAIR', '#c8202f', '#ffffff', 190, 1],
+  ['FIRST AID', '#f2efe6', '#c8202f', 260, -1],
+];
+
 /** What the fans paint on the road, its colour and how far off the centre line. */
 const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
   ['ALLEZ', '#ffffff', -1.8],
@@ -185,6 +204,7 @@ export class NapaStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
   private readonly crowd: Crowd;
+  private readonly mist: Mist;
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
   private time = 0;
@@ -208,6 +228,18 @@ export class NapaStreet implements SceneStreet {
     private readonly disposables: { dispose(): void }[],
   ) {
     this.ribbons = new Ribbons(this.group, disposables);
+    // The afternoon's dusty golden haze: a veil between the knoll and the hills, and a thicker one
+    // before the Mayacamas, so the distance steps back in layers.
+    this.mist = new Mist(this.group, disposables, track, {
+      colour: DUST,
+      loop: LOOP,
+      curtains: [
+        { ahead: 420, height: 45, opacity: 0.28 },
+        { ahead: 1100, height: 140, opacity: 0.4 },
+      ],
+      banks: 0,
+      bankX: () => 0,
+    });
     this.crowd = new Crowd(this.group, disposables, {
       loop: LOOP,
       near: CROWD_NEAR,
@@ -233,6 +265,7 @@ export class NapaStreet implements SceneStreet {
     this.disposables.push(this.unit, this.ball, ...this.flagMaterials);
     this.addGround(roadHalf, points);
     this.crowd.build();
+    this.mist.build();
     this.prepareOaks();
     this.addVines();
     this.addWineries();
@@ -241,6 +274,7 @@ export class NapaStreet implements SceneStreet {
     this.addPeople();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
+    this.addTents();
     this.addRoadPaint();
     this.addHorizon();
     this.addBalloons();
@@ -264,6 +298,7 @@ export class NapaStreet implements SceneStreet {
       prop.mesh.position.set(prop.x, ground(metres) + KERB + prop.rise, -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
+    this.mist.place(this.time, heightAt, along, () => KERB);
     const t = this.time;
     // Guests linger at the terrace tables; the pickers stoop and straighten along the rows.
     for (const [people, spots, pace, depth] of [
@@ -882,6 +917,24 @@ export class NapaStreet implements SceneStreet {
         });
       }
     }
+  }
+
+  /** The ride's village: pop-up tents on the headland, each turned a little to the road. */
+  private addTents(): void {
+    const tents = new PopupTents(this.disposables, this.track);
+    TENTS.forEach(([text, fill, ink, offset, side], i) => {
+      const tent = tents.make(text, fill, ink);
+      tent.rotation.y = (i % 3) * 0.1 - 0.1;
+      this.group.add(tent);
+      this.props.push({
+        mesh: tent,
+        offset,
+        every: LOOP,
+        x: side * (VINES_FROM + HEADLAND / 2),
+        rise: 0,
+        near: side > 0,
+      });
+    });
   }
 
   /** What the fans have painted on the road. */
