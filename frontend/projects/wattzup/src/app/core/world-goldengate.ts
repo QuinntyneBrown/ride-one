@@ -23,6 +23,7 @@ import {
   RepeatWrapping,
   SphereGeometry,
   type Texture,
+  TorusGeometry,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
@@ -515,40 +516,97 @@ export class GoldenGateStreet implements SceneStreet {
       every: LOOP,
       x: FENCE,
     });
-    // The herd: shaggy dark-brown bison, the hump high over the shoulders, heads low to graze.
-    const coat = this.material({ map: this.track(coatTexture()), roughness: 1 });
-    const dark = this.material({ color: 0x2a1f18, roughness: 1 });
-    const horn = this.material({ color: 0xd8cdb8, roughness: 0.6 });
+    // The herd: dark woolly forequarters and the hump high over the shoulders, a leaner, paler
+    // rump, the heavy head carried low with its beard and short curved horns, on slim legs.
+    // Some graze, some look up; a few are tawny calves.
+    const ball = new SphereGeometry(1, 14, 10);
+    const leg = new CylinderGeometry(0.09, 0.13, 1, 6);
+    leg.translate(0, -0.5, 0);
+    const hook = new TorusGeometry(0.16, 0.05, 5, 8, Math.PI * 0.7);
+    this.disposables.push(ball, leg, hook);
+    const wool = this.material({ map: this.track(coatTexture()), roughness: 1 });
+    const hide = this.material({ color: 0x5a4030, roughness: 1 });
+    const dark = this.material({ color: 0x241a14, roughness: 1 });
+    const horn = this.material({ color: 0x2e2a26, roughness: 0.6 });
+    const tawny = this.material({ color: 0xa8713e, roughness: 1 });
     const random = seeded(487);
     for (let k = 0; k < BISON; k++) {
       const b = new Group();
-      const part = (
+      const calf = k % 5 === 4;
+      const grazing = k % 3 !== 0;
+      const blob = (
         m: Material,
-        w: number,
-        h: number,
-        d: number,
+        sx: number,
+        sy: number,
+        sz: number,
         x: number,
         y: number,
         z: number,
       ) => {
-        const mesh = new Mesh(this.unit, m);
-        mesh.scale.set(w, h, d);
+        const mesh = new Mesh(ball, calf ? tawny : m);
+        mesh.scale.set(sx, sy, sz);
         mesh.position.set(x, y, z);
         mesh.castShadow = true;
         b.add(mesh);
+        return mesh;
       };
-      part(coat, 1.1, 1.1, 2.0, 0, 1.15, 0.3);
-      part(coat, 1.4, 1.6, 1.3, 0, 1.4, -0.9);
-      part(dark, 0.8, 0.8, 0.9, 0, 0.7, -1.85);
-      part(horn, 1.0, 0.12, 0.12, 0, 1.05, -1.8);
-      for (const x of [-0.35, 0.35])
-        for (const z of [-0.9, 0.9]) part(dark, 0.2, 0.75, 0.2, x, 0.38, z);
-      b.scale.setScalar(1.2);
+      blob(hide, 0.5, 0.55, 0.85, 0, 1.15, 0.55);
+      blob(wool, 0.68, 0.85, 0.8, 0, 1.4, -0.35);
+      blob(wool, 0.5, 0.45, 0.5, 0, 1.95, -0.25);
+      const head = new Group();
+      head.position.set(0, grazing ? 0.95 : 1.3, -1.05);
+      head.rotation.x = grazing ? 0.9 : 0.2;
+      b.add(head);
+      const part = (
+        m: Material,
+        sx: number,
+        sy: number,
+        sz: number,
+        x: number,
+        y: number,
+        z: number,
+      ) => {
+        const mesh = new Mesh(ball, calf ? tawny : m);
+        mesh.scale.set(sx, sy, sz);
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        head.add(mesh);
+      };
+      part(wool, 0.42, 0.45, 0.42, 0, 0, 0);
+      part(dark, 0.26, 0.3, 0.32, 0, -0.18, -0.36);
+      part(wool, 0.16, 0.3, 0.16, 0, -0.42, -0.2);
+      if (!calf) {
+        for (const side of [-1, 1]) {
+          const h = new Mesh(hook, horn);
+          h.position.set(side * 0.36, 0.18, -0.05);
+          h.rotation.set(0, side > 0 ? 0 : Math.PI, 0.3);
+          head.add(h);
+        }
+      }
+      for (const [x, z, front] of [
+        [-0.28, -0.55, true],
+        [0.28, -0.55, true],
+        [-0.25, 0.85, false],
+        [0.25, 0.85, false],
+      ] as const) {
+        const l = new Mesh(leg, calf ? tawny : dark);
+        l.position.set(x, front ? 0.85 : 0.9, z);
+        l.scale.y = front ? 0.85 : 0.9;
+        l.castShadow = true;
+        b.add(l);
+      }
+      const tail = new Mesh(leg, dark);
+      tail.position.set(0, 1.45, 1.3);
+      tail.rotation.x = -0.25;
+      tail.scale.set(0.4, 0.7, 0.4);
+      b.add(tail);
+      b.scale.setScalar(calf ? 0.7 : 1.25);
       this.group.add(b);
       this.bison.push({
         mesh: b,
-        x: FENCE - 3 - random() * 26,
-        offset: PADDOCK[0] + 10 + random() * (PADDOCK[1] - PADDOCK[0] - 20),
+        // Bunched toward the paddock's near end and the fence, where the fog still shows them.
+        x: FENCE - 2.5 - random() * 14,
+        offset: PADDOCK[0] + 6 + random() ** 2 * (PADDOCK[1] - PADDOCK[0] - 20),
         heading: random() * Math.PI * 2,
       });
     }
@@ -804,7 +862,14 @@ function foliageTexture(kind: 'gum' | 'cypress' | 'pine', seed: number): CanvasT
 
 /** A bison's shaggy brown coat. */
 function coatTexture(): CanvasTexture {
-  return canvasTexture(64, 64, (g) => speckle(g, 64, 64, '#4a3424', 557));
+  return canvasTexture(64, 64, (g) => {
+    speckle(g, 64, 64, '#3e2a1c', 557);
+    const random = seeded(569);
+    for (let i = 0; i < 120; i++) {
+      g.fillStyle = random() < 0.5 ? 'rgba(20,12,8,0.45)' : 'rgba(120,85,55,0.35)';
+      g.fillRect(random() * 64, random() * 64, 2, 4 + random() * 4);
+    }
+  });
 }
 
 /** The windmill's cream shingles in courses. */
