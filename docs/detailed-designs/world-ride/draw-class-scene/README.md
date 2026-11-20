@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -362,6 +362,11 @@ None.
   - the park's carved sign on its stone base once a lap, and hikers on the shoulders (`Figures`);
   - a roadrunner dashing across the road and back on the ride's clock;
   - the Rincon and Tucson Mountains glowing warm above violet shadow, and hot-air balloons rising and drifting on the ride's clock, keeping their bearing.
+- **Trollstigen (`core/world-trollstigen.ts`).** For `trollstigen`, the Troll’s Ladder in Romsdal on a summer morning:
+  - the cliff rising sheer on the right in wet granite, the turf verge, and on the left the drop past granite guard stones into Isterdalen with its meadows, river and far walls; the ground sinks into the valley;
+  - white waterfalls leaning down the cliff face, their water scrolling on the ride's clock;
+  - the red-bordered troll warning sign once a lap, fallen boulders at the cliff's foot, and visitors stopped at the guard stones (`Figures`);
+  - ahead the headwall with the ladder's hairpins beside Stigfossen, the snow-streaked peaks above and mist drifting along the ledges on the ride's clock, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -417,6 +422,7 @@ None.
 | `pages/world-ride/hardknott` | Hardknott Pass at 4:50, warm-up, next `One-in-three ramp` |
 | `pages/world-ride/alpe` | Alpe d'Huez at 1:53, warm-up, next `Hairpin attack` |
 | `pages/world-ride/saguaro` | Saguaro Desert at 4:50, warm-up, next `Desert burn` |
+| `pages/world-ride/trollstigen` | Trollstigen at 4:50, warm-up, next `Threshold ladder` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

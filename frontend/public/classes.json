@@ -6852,6 +6852,7 @@
     },
     {
       "id": "gradual-threshold-effort-builds",
+      "world": "trollstigen",
       "title": "Gradual Threshold Effort Builds",
       "channel": "GCN Training",
       "focus": "Threshold",

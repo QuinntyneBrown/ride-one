@@ -47,6 +47,7 @@ describe('targetGrade (L2-101)', () => {
     ['hardknott', { warmup: 5, work: 12, rest: 7, cooldown: 3, steady: 9 }, 12.295247],
     ['alpe', { warmup: 4, work: 9, rest: 7, cooldown: 3, steady: 7 }, 9.221436],
     ['saguaro', { warmup: 1, work: 2, rest: 0, cooldown: -1, steady: 1.5 }, 2.18453],
+    ['trollstigen', { warmup: 3, work: 7, rest: 4, cooldown: 2, steady: 6 }, 7.221436],
     ['coast', { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 }, 4.795247],
   ])('%s asks for its grade per kind at s 0, plus its roll at s 300', (id, grades, workAt300) => {
     const world = worldById(id);

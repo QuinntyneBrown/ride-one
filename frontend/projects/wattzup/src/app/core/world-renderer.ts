@@ -743,6 +743,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 1.2, colour: 0xffc890 },
     fogRange: [400, 4200],
   },
+  // A cool, bright Romsdal summer morning: clear northern light, crisp shadows, mist on the ledges.
+  trollstigen: {
+    sky: 0x7aa8d8,
+    fog: 0xd0dce4,
+    ground: 0x4a7a3a,
+    road: 0x4f5054,
+    sun: 34,
+    wet: true,
+    haze: false,
+    turbidity: 2.6,
+    rayleigh: 1.4,
+    azimuth: 150,
+    light: { sun: 2.6, fill: 1.5, colour: 0xf4f6ff },
+    fogRange: [400, 3800],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
