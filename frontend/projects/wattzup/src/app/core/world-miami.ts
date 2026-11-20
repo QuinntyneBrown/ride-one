@@ -2068,6 +2068,24 @@ export class MiamiStreet implements SceneStreet {
     glow.scale.set(span * 1.1, 6, 1);
     glow.position.set(0, 8.5, 0.4);
     gate.add(glow);
+    // Ahead of the gateway the boulevard's rainbow crossing, as Ocean Drive paints them: bars in
+    // the six colours across the road, worn by the traffic.
+    const rainbow = this.material({
+      map: this.track(rainbowTexture()),
+      transparent: true,
+      roughness: 0.35,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    const crossing = new Mesh(this.flat, rainbow);
+    crossing.rotation.x = -Math.PI / 2;
+    crossing.scale.set(roadHalf * 2 - 0.4, 4, 1);
+    crossing.position.y = 0.025;
+    crossing.renderOrder = 1;
+    const crossingHolder = new Group();
+    crossingHolder.add(crossing);
+    this.group.add(crossingHolder);
+    this.props.push({ mesh: crossingHolder, offset: 47, x: 0 });
     gate.position.x = 0.4;
     const holder = new Group();
     holder.add(gate);
@@ -4846,6 +4864,24 @@ function seaMistTexture(): CanvasTexture {
       puff.addColorStop(1, 'rgba(255,255,255,0)');
       g.fillStyle = puff;
       g.fillRect(x - r, 0, r * 2, 64);
+    }
+  });
+}
+
+/** A rainbow crossing: bars of red, orange, yellow, green, blue and violet, worn in the wheel tracks. */
+function rainbowTexture(): CanvasTexture {
+  return canvasTexture(512, 64, (g) => {
+    const colours = ['#e8303a', '#f08a30', '#f4d040', '#3ab060', '#3060d0', '#8040b0'];
+    for (let x = 0, i = 0; x < 512; x += 40, i++) {
+      g.fillStyle = colours[i % colours.length]!;
+      g.fillRect(x + 4, 0, 30, 64);
+    }
+    g.globalCompositeOperation = 'destination-out';
+    const random = seeded(8511);
+    for (let i = 0; i < 900; i++) {
+      const track = [120, 170, 340, 390][i % 4]!;
+      g.fillStyle = 'rgba(0,0,0,0.6)';
+      g.fillRect(track + (random() - 0.5) * 50, random() * 64, 2 + random() * 4, 2 + random() * 4);
     }
   });
 }
