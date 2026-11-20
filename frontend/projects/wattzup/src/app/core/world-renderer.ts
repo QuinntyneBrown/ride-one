@@ -3242,6 +3242,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.placePacers(frame, ahead);
 
     this.you?.pose(frame.reducedMotion ? 0 : frame.crank);
+    // The bike sits on the road: nose up on a climb, down on a descent.
+    if (this.you) this.you.group.rotation.x = pitch(gradeAt(ahead, 0));
     const blur = this.on.has(34) ? Math.min(0.55, speed / 14) : 0;
     for (const disc of this.wheelBlur) {
       disc.visible = blur > 0.02;
@@ -3529,6 +3531,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
       if (!rider) continue;
       rider.group.visible = true;
       rider.group.position.set(p.lane, heightAt(ahead, p.metres), -p.metres);
+      rider.group.rotation.x = pitch(gradeAt(ahead, p.metres));
       rider.pose(frame.reducedMotion ? 0 : frame.crank * (0.9 + p.jersey * 0.03) + p.jersey);
     }
   }
@@ -3753,6 +3756,20 @@ function direction(elevationDegrees: number, azimuthDegrees: number): Vector3 {
     Math.sin(elevation),
     -Math.cos(azimuth) * level,
   ).normalize();
+}
+
+/** The road's gradient `metres` ahead, in percent, between the two points either side of it. */
+function gradeAt(points: RoadPoint[], metres: number): number {
+  const f = Math.min(Math.max(metres / STEP, 0), points.length - 1);
+  const i = Math.min(Math.floor(f), Math.max(points.length - 2, 0));
+  const a = points[i]?.grade ?? 0;
+  const b = points[i + 1]?.grade ?? a;
+  return a + (b - a) * (f - i);
+}
+
+/** The pitch, in radians about the x axis, of something standing on a gradient: nose up uphill. */
+function pitch(grade: number): number {
+  return Math.atan(grade / 100);
 }
 
 /**
