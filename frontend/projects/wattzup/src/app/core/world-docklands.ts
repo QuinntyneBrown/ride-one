@@ -57,6 +57,12 @@ const BOATS: readonly { offset: number; out: number; length: number; hex: string
   { offset: 186, out: 9, length: 18, hex: '#9b6bff' },
   { offset: 222, out: 18, length: 15, hex: '#ffd49a' },
 ];
+/**
+ * The elevated railway crosses the street SKYTRAIN metres along the loop, its deck RAIL_DECK
+ * metres above the road, with a train standing on it.
+ */
+const SKYTRAIN = 150;
+const RAIL_DECK = 15;
 /** The neon strips up the towers' corners are this thick. */
 const EDGE = 0.35;
 /** The centre line's dashes: DASH metres of line in every DASH_EVERY. */
@@ -163,6 +169,7 @@ export class DocklandsStreet {
   private readonly pylon = new Group();
   private readonly dock = new Group();
   private readonly boats: { mesh: Group; offset: number }[] = [];
+  private readonly skytrain = new Group();
   private skyReflection: CanvasTexture | null = null;
 
   /** The night sky as an environment map, for the water, the glass and the wet road to reflect. */
@@ -766,6 +773,7 @@ export class DocklandsStreet {
     this.addDock();
     this.addSky();
     this.addBoats(roadHalf + SETBACK + 2);
+    this.addSkytrain(roadHalf);
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -1186,6 +1194,54 @@ export class DocklandsStreet {
     }
   }
 
+  /**
+   * An elevated railway across the street: a concrete deck on piers between the road and the
+   * towers, lit cyan along its underside, with a train standing on it, its windows lit warm
+   * and its ends lit with headlamps and tail lamps.
+   */
+  private addSkytrain(roadHalf: number): void {
+    const concrete = new MeshStandardMaterial({ color: 0x2a2d3a, roughness: 0.7 });
+    const body = new MeshStandardMaterial({ color: 0xb8bcc8, metalness: 0.5, roughness: 0.35 });
+    const glow = (hex: string, intensity: number) =>
+      new MeshStandardMaterial({
+        color: 0x000000,
+        emissive: new Color(hex),
+        emissiveIntensity: intensity,
+      });
+    const cyan = glow('#3fe0ff', 2.6);
+    const windows = glow('#ffe2b0', 2.2);
+    const head = glow('#f2f4ff', 3.2);
+    const tail = glow('#ff2a2a', 3);
+    const unit = new BoxGeometry(1, 1, 1);
+    this.disposables.push(concrete, body, cyan, windows, head, tail, unit);
+    const box = (material: Material, w: number, h: number, d: number, x: number, y: number) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, 0);
+      this.skytrain.add(mesh);
+    };
+    const span = 160;
+    box(concrete, span, 1.6, 7, 0, RAIL_DECK - 0.8);
+    box(cyan, span, 0.12, 0.25, 0, RAIL_DECK - 1.65);
+    box(concrete, span, 0.9, 0.3, 0, RAIL_DECK + 0.45);
+    for (const x of [-(roadHalf + 4), roadHalf + 4, -60, 60]) {
+      box(concrete, 2.2, RAIL_DECK - 1.6, 2.2, x, (RAIL_DECK - 1.6) / 2);
+    }
+    // Three cars, nose to tail across the street, the lead car over the road's right half.
+    const car = 19;
+    for (let k = 0; k < 3; k++) {
+      const x = 22 - k * (car + 1);
+      box(body, car, 3.4, 3.2, x, RAIL_DECK + 2.1);
+      box(windows, car - 2, 1.1, 3.25, x, RAIL_DECK + 2.6);
+      box(cyan, car, 0.18, 3.25, x, RAIL_DECK + 1.1);
+    }
+    box(head, 0.2, 0.5, 2.4, 22 + car / 2 + 0.1, RAIL_DECK + 1.6);
+    box(tail, 0.2, 0.5, 2.4, 22 - 2 * (car + 1) - car / 2 - 0.1, RAIL_DECK + 1.6);
+    this.streak(this.skytrain, '#3fe0ff', 0, 0.02, -3, 10, 2 * roadHalf, 0.7);
+    this.skytrain.visible = false;
+    this.group.add(this.skytrain);
+  }
+
   /** Tells the street which stretches of the road ahead are bridge ramps. */
   setBridge(onBridge: (metres: number) => boolean, starts: readonly number[]): void {
     this.onBridge = onBridge;
@@ -1310,6 +1366,9 @@ export class DocklandsStreet {
       lamp.position.set(i % 2 === 0 ? -LAMP_OUT : LAMP_OUT, heightAt(metres), -metres);
       lamp.visible = !this.onBridge(Math.max(metres, 0));
     });
+    const rail = ((((SKYTRAIN - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+    this.skytrain.visible = !this.onBridge(Math.max(rail, 0));
+    this.skytrain.position.set(0, heightAt(Math.max(rail, 0)), -rail);
     for (const boat of this.boats) {
       const metres = ((((boat.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       boat.mesh.visible = !this.onBridge(Math.max(metres, 0));
