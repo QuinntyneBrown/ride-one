@@ -1317,6 +1317,92 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(group);
       this.cars.push({ mesh: group, offset: 34 + k * 39 + random() * 12, speed });
     });
+    this.addBicitaxis(roadHalf, tyre, chrome);
+  }
+
+  /**
+   * Bicitaxis, Havana's pedal rickshaws, working the oncoming kerb lane: a rider standing on the
+   * pedals of a bicycle's front half, and behind him a two-seat bench under a fringed canopy on
+   * four posts, its side panels painted bright, on two spoked wheels; one carries a passenger.
+   */
+  private addBicitaxis(
+    roadHalf: number,
+    tyre: MeshStandardMaterial,
+    metal: MeshStandardMaterial,
+  ): void {
+    const random = seeded(1249);
+    const spoked = new TorusGeometry(0.33, 0.025, 6, 24);
+    spoked.rotateY(Math.PI / 2);
+    const torso = new CapsuleGeometry(0.15, 0.36, 3, 8);
+    const limb = new CapsuleGeometry(0.06, 0.6, 3, 6);
+    const head = new SphereGeometry(0.11, 10, 8);
+    this.disposables.push(spoked, torso, limb, head);
+    const skin = this.material({ color: 0x7a4a2e, roughness: 0.8 });
+    const cloth = this.material({ color: 0x24262b, roughness: 0.9 });
+    const panels = [0xd62828, 0x1d70b8, 0x2a9d8f, 0xf4a261];
+    const canopies = [0xf1c40f, 0xe63946, 0x2b2d42, 0x3a86ff];
+    const tops = [0xf2efe6, 0xe63946, 0x3a86ff, 0x2a9d8f];
+    for (let i = 0; i < 4; i++) {
+      const bike = new Group();
+      const part = (
+        g: BufferGeometry,
+        m: MeshStandardMaterial,
+        x: number,
+        y: number,
+        z: number,
+        rx = 0,
+      ) => {
+        const mesh = new Mesh(g, m);
+        mesh.position.set(x, y, z);
+        mesh.rotation.x = rx;
+        mesh.castShadow = true;
+        bike.add(mesh);
+        return mesh;
+      };
+      const box = (
+        m: MeshStandardMaterial,
+        sx: number,
+        sy: number,
+        sz: number,
+        x: number,
+        y: number,
+        z: number,
+      ) => part(this.unit, m, x, y, z).scale.set(sx, sy, sz);
+      const panel = this.material({ color: panels[i % 4]!, roughness: 0.5 });
+      const canopy = this.material({ color: canopies[i % 4]!, roughness: 0.8, side: DoubleSide });
+      // The front: wheel, frame and the rider up on the pedals.
+      part(spoked, tyre, 0, 0.35, -1.5);
+      box(metal, 0.05, 0.05, 1.1, 0, 0.62, -1.0);
+      box(metal, 0.05, 0.6, 0.05, 0, 0.6, -1.5);
+      box(metal, 0.5, 0.04, 0.04, 0, 1.0, -1.45);
+      part(torso, this.material({ color: tops[i % 4]!, roughness: 0.85 }), 0, 1.35, -0.95, -0.35);
+      part(head, skin, 0, 1.8, -1.1);
+      for (const x of [-0.1, 0.1]) part(limb, cloth, x, 0.72, -0.85 + x, 0.2);
+      for (const x of [-0.18, 0.18])
+        part(limb, skin, x * 1.4, 1.3, -1.25, -0.9).scale.setScalar(0.8);
+      // The carriage: the bench, its painted panels, the canopy on four posts and two wheels.
+      box(panel, 1.15, 0.45, 0.9, 0, 0.75, 0.2);
+      box(cloth, 1.0, 0.12, 0.6, 0, 1.02, 0.25);
+      box(panel, 1.05, 0.55, 0.1, 0, 1.3, 0.6);
+      for (const x of [-0.55, 0.55]) {
+        for (const z of [-0.2, 0.62]) box(metal, 0.04, 1.1, 0.04, x, 1.55, z);
+        part(spoked, tyre, x * 1.05, 0.35, 0.25);
+      }
+      box(canopy, 1.25, 0.06, 1.05, 0, 2.12, 0.2);
+      box(canopy, 1.25, 0.18, 0.02, 0, 2.0, -0.32);
+      if (random() < 0.5) {
+        part(torso, this.material({ color: tops[(i + 2) % 4]!, roughness: 0.85 }), 0.2, 1.38, 0.3);
+        part(head, skin, 0.2, 1.82, 0.28);
+      }
+      bike.rotation.y = Math.PI;
+      bike.position.x = -roadHalf - LANES + 1.2;
+      this.group.add(bike);
+      this.cars.push({
+        mesh: bike,
+        offset: 20 + i * 85 + random() * 30,
+        speed: -(3 + random() * 1.5),
+      });
+    }
   }
 
   /** Couples strolling the promenade, and fishermen sitting on the wall facing the sea. */
