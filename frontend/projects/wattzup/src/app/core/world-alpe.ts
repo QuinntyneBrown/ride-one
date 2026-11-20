@@ -23,6 +23,7 @@ import {
   PlaneGeometry,
   RepeatWrapping,
   Shape,
+  SphereGeometry,
   type Texture,
 } from 'three/webgpu';
 import {
@@ -189,6 +190,8 @@ export class AlpeStreet implements SceneStreet {
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
   private time = 0;
+  /** The flares' smoke: each puff, the side it drifts to and where it is in its rise. */
+  private readonly smoke: { mesh: Mesh; side: number; phase: number }[] = [];
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly flagMaterials = ['#1d3c8f', '#ffffff', '#d8283a', '#f2c230'].map(
     (colour) => new MeshStandardMaterial({ color: colour, side: DoubleSide, roughness: 0.8 }),
@@ -240,6 +243,7 @@ export class AlpeStreet implements SceneStreet {
     this.addVans();
     this.addBendSigns();
     this.addChurch();
+    this.addFlares();
     this.addVillage();
     this.addLarches();
     this.addStreetBanners(roadHalf);
@@ -251,6 +255,13 @@ export class AlpeStreet implements SceneStreet {
   /** The street's clock, in seconds; held at 0 for reduced motion. */
   setTime(seconds: number): void {
     this.time = seconds;
+    // Each puff rises from its flare, swells and thins, drifting away from the road.
+    for (const puff of this.smoke) {
+      const u = (seconds * 0.16 + puff.phase) % 1;
+      puff.mesh.position.set(puff.side * u * 2.2, 2.3 + u * 9, -u * 1.2);
+      puff.mesh.scale.setScalar(0.35 + u * 1.9);
+      (puff.mesh.material as MeshStandardMaterial).opacity = 0.42 * (1 - u) ** 1.5;
+    }
   }
 
   lay(points: readonly StreetPoint[], s: number): void {
@@ -644,6 +655,54 @@ export class AlpeStreet implements SceneStreet {
       this.group.add(g);
       this.props.push({ mesh: g, offset, every: LOOP, x, rise: x < 0 ? rise(x) : rise(x) });
     });
+  }
+
+  /**
+   * Dutch Corner's flares: fans in the orange crowd holding burning flares up over their heads,
+   * each pouring a plume of orange or red smoke that rises over the bend and drifts away.
+   */
+  private addFlares(): void {
+    const random = seeded(2601);
+    const puff = new SphereGeometry(1, 10, 8);
+    const stick = new CylinderGeometry(0.04, 0.04, 0.4, 6);
+    this.disposables.push(puff, stick);
+    const glow = this.material({
+      color: 0xff3a1a,
+      emissive: new Color(0xff5a1a),
+      emissiveIntensity: 2,
+    });
+    const colours = [0xff6a1a, 0xff8a2a, 0xe8401e];
+    for (let k = 0; k < 8; k++) {
+      const side = k % 2 ? 1 : -1;
+      const flare = new Group();
+      const held = new Mesh(stick, glow);
+      held.position.y = 2.1;
+      flare.add(held);
+      const colour = colours[k % colours.length]!;
+      for (let p = 0; p < 14; p++) {
+        const material = this.material({
+          color: colour,
+          emissive: new Color(colour),
+          emissiveIntensity: 0.7,
+          transparent: true,
+          opacity: 0.5,
+          depthWrite: false,
+          roughness: 1,
+        });
+        const mesh = new Mesh(puff, material);
+        flare.add(mesh);
+        this.smoke.push({ mesh, side, phase: p / 14 + random() * 0.02 });
+      }
+      this.group.add(flare);
+      this.props.push({
+        mesh: flare,
+        offset: DUTCH - 36 + k * 10 + random() * 4,
+        every: LOOP,
+        x: side * (CROWD_NEAR + 0.6 + random() * 1.2),
+        rise: 0,
+      });
+    }
+    this.setTime(this.time);
   }
 
   /** Larches and spruces dotted up the meadow on the right and down the slope on the left. */
