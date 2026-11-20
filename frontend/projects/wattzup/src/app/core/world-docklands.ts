@@ -25,6 +25,8 @@ const FOOTING = 6;
 const TILE = 24;
 /** The neon colours of the signs: magenta, cyan, volt and violet. */
 const NEON = ['#ff4fb8', '#3fe0ff', '#d8ff3e', '#9b6bff'];
+/** The harbour skyline stands this far ahead, past the street's fog, and keeps its distance. */
+const SKYLINE_AHEAD = 700;
 
 interface Tower {
   readonly mesh: Mesh;
@@ -38,6 +40,7 @@ export class DocklandsStreet {
   readonly group = new Group();
   private readonly towers: Tower[] = [];
   private readonly random = seeded(41);
+  private readonly skyline = new Group();
 
   constructor(
     private readonly track: <T extends Texture>(texture: T) => T,
@@ -106,6 +109,84 @@ export class DocklandsStreet {
       }
     }
     this.roadHalf = roadHalf;
+    this.addSkyline(facades, roof);
+  }
+
+  /**
+   * The harbour city across the water at the end of the street: a band of towers in depth and
+   * a landmark tower with a lit crown and spire. Like Old Town's cathedral it stands a fixed
+   * distance ahead, out of the fog, which would hide it; its façades are dimmed by hand.
+   */
+  private addSkyline(facades: MeshStandardMaterial[], roof: MeshStandardMaterial): void {
+    const random = seeded(73);
+    const far = facades.map((facade) => {
+      const material = facade.clone();
+      material.fog = false;
+      material.emissiveIntensity = 0.75;
+      material.color.multiplyScalar(0.6);
+      return material;
+    });
+    const top = roof.clone();
+    top.fog = false;
+    this.disposables.push(...far, top);
+    for (let i = 0; i < 46; i++) {
+      // Taller towers gather towards the middle, as a business district does.
+      const x = (random() * 2 - 1) ** 3 * 420;
+      const centre = 1 - Math.min(Math.abs(x) / 420, 1);
+      const height = 40 + random() * 70 + centre * random() * 160;
+      const width = 18 + random() * 26;
+      const depth = 18 + random() * 20;
+      const geometry = towerGeometry(width, height, depth);
+      this.disposables.push(geometry);
+      const facade = far[Math.floor(random() * far.length)]!;
+      const mesh = new Mesh(geometry, [facade, facade, top, top, facade, facade]);
+      mesh.position.set(x, height / 2, -random() * 260);
+      this.skyline.add(mesh);
+    }
+    this.addLandmark(far[0]!, top);
+    this.group.add(this.skyline);
+  }
+
+  /** The tallest tower on the skyline: stepped, with a magenta crown and a lit spire. */
+  private addLandmark(facade: MeshStandardMaterial, top: MeshStandardMaterial): void {
+    const glow = (hex: string, strength: number) =>
+      new MeshStandardMaterial({
+        color: 0x000000,
+        emissive: new Color(hex),
+        emissiveIntensity: strength,
+        fog: false,
+      });
+    const crown = glow('#ff4fb8', 2.2);
+    const spire = glow('#ffe7f6', 2.6);
+    const beacon = glow('#ff2a2a', 3);
+    this.disposables.push(crown, spire, beacon);
+    const landmark = new Group();
+    let y = 0;
+    for (const [width, height] of [
+      [46, 190],
+      [36, 70],
+      [26, 46],
+    ] as const) {
+      const geometry = towerGeometry(width, height, width);
+      this.disposables.push(geometry);
+      const mesh = new Mesh(geometry, [facade, facade, top, top, facade, facade]);
+      mesh.position.y = y + height / 2;
+      landmark.add(mesh);
+      y += height;
+    }
+    const band = new BoxGeometry(27, 6, 27);
+    const needle = new BoxGeometry(1.4, 60, 1.4);
+    const lamp = new BoxGeometry(3, 3, 3);
+    this.disposables.push(band, needle, lamp);
+    const ring = new Mesh(band, crown);
+    ring.position.y = y - 10;
+    const mast = new Mesh(needle, spire);
+    mast.position.y = y + 30;
+    const light = new Mesh(lamp, beacon);
+    light.position.y = y + 61;
+    landmark.add(ring, mast, light);
+    landmark.position.set(-24, 0, -60);
+    this.skyline.add(landmark);
   }
 
   private roadHalf = 3.5;
@@ -121,6 +202,7 @@ export class DocklandsStreet {
         -metres,
       );
     }
+    this.skyline.position.set(0, heightAt(1e6) - 4, -SKYLINE_AHEAD);
   }
 }
 
