@@ -86,6 +86,18 @@ interface Look {
   readonly light?: { readonly sun: number; readonly fill: number; readonly colour: number };
   /** Where the fog starts and where it hides everything, in metres. */
   readonly fogRange?: readonly [number, number];
+  /**
+   * A night scene's key light, the moon over the city glow: its elevation and azimuth in
+   * degrees, strength and colour, and the sky's fill with the colour it comes down in.
+   */
+  readonly moon?: {
+    readonly elevation: number;
+    readonly azimuth: number;
+    readonly strength: number;
+    readonly colour: number;
+    readonly fill: number;
+    readonly fillSky: number;
+  };
 }
 
 /** Until each scene's own look lands: sky, fog, ground, road, sun, wet and haze. */
@@ -93,11 +105,21 @@ const LOOKS: Record<WorldId, Look> = {
   docklands: {
     sky: 0x0b1030,
     fog: 0x1a1f45,
-    ground: 0x11131c,
-    road: 0x22252e,
+    ground: 0x1c1e2b,
+    road: 0x40434f,
     sun: -4,
     wet: true,
     haze: false,
+    // Moonlight from behind the rider's left shoulder, and the violet glow of the city above.
+    moon: {
+      elevation: 34,
+      azimuth: -150,
+      strength: 1.6,
+      colour: 0xaab8ff,
+      fill: 2.2,
+      fillSky: 0x6a5f9e,
+    },
+    fogRange: [40, 520],
   },
   granite: {
     sky: 0x8fb6d9,
@@ -428,27 +450,27 @@ export class ThreeWorldRenderer implements WorldRenderer {
   }
 
   private sunDirection(): Vector3 {
-    const elevation = (this.look.sun * Math.PI) / 180;
-    // Azimuth 0 is straight down the road ahead; positive turns the sun to the rider's right.
-    const azimuth = ((this.look.azimuth ?? -27) * Math.PI) / 180;
-    const level = Math.cos(elevation);
-    return new Vector3(
-      Math.sin(azimuth) * level,
-      Math.sin(elevation),
-      -Math.cos(azimuth) * level,
-    ).normalize();
+    return direction(this.look.sun, this.look.azimuth ?? -27);
   }
 
   private buildScene(world: World, canvas: HTMLCanvasElement): void {
     const look = this.look;
     this.scene.fog = new Fog(look.fog, look.fogRange?.[0] ?? 60, look.fogRange?.[1] ?? 650);
+    const moon = look.sun < 0 ? look.moon : undefined;
     this.scene.add(
-      new HemisphereLight(look.sky, look.ground, look.sun < 0 ? 0.5 : (look.light?.fill ?? 1.4)),
+      moon
+        ? new HemisphereLight(moon.fillSky, look.ground, moon.fill)
+        : new HemisphereLight(
+            look.sky,
+            look.ground,
+            look.sun < 0 ? 0.5 : (look.light?.fill ?? 1.4),
+          ),
     );
 
-    const sunDir = this.sunDirection();
-    this.sun.intensity = look.sun < 0 ? 0.15 : (look.light?.sun ?? 2.2);
-    this.sun.color.set(look.light?.colour ?? 0xffffff);
+    // At night the key light is the moon, where the look has one; the sky keeps the sun.
+    const sunDir = moon ? direction(moon.elevation, moon.azimuth) : this.sunDirection();
+    this.sun.intensity = moon ? moon.strength : look.sun < 0 ? 0.15 : (look.light?.sun ?? 2.2);
+    this.sun.color.set(moon?.colour ?? look.light?.colour ?? 0xffffff);
     // The shadow box reaches further down a street of houses than over open country.
     const reach = world.id === 'oldtown' ? 45 : 25;
     this.sun.target.position.set(0, 0, 25 - reach);
@@ -469,7 +491,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.sky.turbidity.value = look.turbidity ?? 4;
     this.sky.rayleigh.value = look.sun < 0 ? 0.3 : (look.rayleigh ?? 1.6);
     this.sky.mieCoefficient.value = 0.003;
-    this.sky.sunPosition.value.copy(sunDir);
+    this.sky.sunPosition.value.copy(this.sunDirection());
     this.scene.add(this.sky);
 
     this.plainRoad = this.track(roadTexture(false));
@@ -738,6 +760,18 @@ function fillStrip(
   uv.needsUpdate = true;
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
+}
+
+/** A direction in the sky: azimuth 0 is straight down the road, positive to the rider's right. */
+function direction(elevationDegrees: number, azimuthDegrees: number): Vector3 {
+  const elevation = (elevationDegrees * Math.PI) / 180;
+  const azimuth = (azimuthDegrees * Math.PI) / 180;
+  const level = Math.cos(elevation);
+  return new Vector3(
+    Math.sin(azimuth) * level,
+    Math.sin(elevation),
+    -Math.cos(azimuth) * level,
+  ).normalize();
 }
 
 function heightAt(points: RoadPoint[], metres: number): number {
