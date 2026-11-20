@@ -1227,6 +1227,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.8, fill: 1.6, colour: 0xfff0dc },
     fogRange: [2500, 16000],
   },
+  // A clear midsummer afternoon on the Brooklyn shore, the sun high behind the rider's left
+  // shoulder and a sea haze over the Atlantic.
+  coney: {
+    sky: 0x8ec4ea,
+    fog: 0xd8e2ea,
+    ground: 0xe8d8b4,
+    road: 0xa8927a,
+    sun: 48,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.2,
+    azimuth: 200,
+    light: { sun: 3.0, fill: 1.3, colour: 0xfff2dc },
+    fogRange: [160, 1500],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
