@@ -521,6 +521,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 3, work: 6, rest: 2, cooldown: 0, steady: 4 },
     roll: 0.8,
   },
+  {
+    id: 'timessquare',
+    name: "Times Square New Year's Eve",
+    route: 'Broadway',
+    effortName: 'Countdown minute',
+    description:
+      'Broadway through Times Square glows on the last night of the year, its towers wrapped in billboards and countdown screens above a party packed behind police barriers, confetti drifting down toward One Times Square and the crystal ball on its pole. The two-minute warm-up rolls in under the screens, each one-minute effort races the countdown between the billboards toward the ball drop, and the recoveries coast through the confetti with the glowing 2027 still ahead.',
+    grade: { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0.3,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
