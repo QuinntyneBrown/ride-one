@@ -106,6 +106,8 @@ const LINE_SIGN_WIDE = 16;
 const RAIL_WEST = -360;
 const RAIL_EAST = 210;
 const TRAIN_SPEED = 16;
+/** The top of a train's cars above the deck (m): the drones climb over it. */
+const TRAIN_TOP = 3.7;
 /** The landmark's searchlights: cones BEAM_LENGTH long, leaning BEAM_LEAN, sweeping at SWEEP. */
 const BEAM_LENGTH = 900;
 const BEAM_WIDTH = 34;
@@ -5651,15 +5653,19 @@ function hatchTexture(): CanvasTexture {
 }
 
 /**
- * How far a drone cruising at `cruise` metres climbs to clear the skybridges when it is at
- * `at` round the loop: over any bridge in its path by DRONE_CLEARANCE, easing up as it nears
- * and back down once past.
+ * How far a drone cruising at `cruise` metres climbs to clear the skybridges and the railway
+ * viaduct when it is at `at` round the loop: over any of them in its path by DRONE_CLEARANCE,
+ * easing up as it nears and back down once past.
  */
 function climb(at: number, cruise: number): number {
   const here = ((at % LOOP) + LOOP) % LOOP;
   let lift = 0;
-  for (const [offset, height] of SKYBRIDGES) {
-    const top = height + SKYBRIDGE_TOP + DRONE_CLEARANCE;
+  const overhead: [number, number][] = [
+    ...SKYBRIDGES.map(([offset, height]): [number, number] => [offset, height + SKYBRIDGE_TOP]),
+    [SKYTRAIN, RAIL_DECK + TRAIN_TOP],
+  ];
+  for (const [offset, roof] of overhead) {
+    const top = roof + DRONE_CLEARANCE;
     if (top <= cruise) continue;
     const apart = Math.abs(here - offset);
     const gap = Math.min(apart, LOOP - apart);
