@@ -842,6 +842,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 0.9, colour: 0xfff6e8 },
     fogRange: [400, 5200],
   },
+  // A clear early-summer morning on the lake: soft bright light, a faint haze over the water.
+  como: {
+    sky: 0x7ab0e0,
+    fog: 0xd4e2e8,
+    ground: 0x3a6a3a,
+    road: 0x4f5156,
+    sun: 32,
+    wet: false,
+    haze: false,
+    turbidity: 3.2,
+    rayleigh: 1.5,
+    azimuth: 120,
+    light: { sun: 2.7, fill: 1.5, colour: 0xfff6e8 },
+    fogRange: [400, 4200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

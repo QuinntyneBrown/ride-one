@@ -130,7 +130,8 @@ export interface components {
         | 'montmartre'
         | 'brickyard'
         | 'chichen'
-        | 'bonneville';
+        | 'bonneville'
+        | 'como';
     };
     ClassShelfResponse: {
       id: string;
