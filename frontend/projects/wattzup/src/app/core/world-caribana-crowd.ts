@@ -5,7 +5,9 @@ import {
   BoxGeometry,
   type BufferGeometry,
   Color,
+  ConeGeometry,
   CylinderGeometry,
+  DoubleSide,
   Group,
   InstancedMesh,
   type Material,
@@ -149,6 +151,8 @@ const PHONE_STANCE = 3;
 
 const HAIRS = ['#14100d', '#1f1712', '#2e2018', '#3d2a1c', '#6b4a2b', '#0c0c0c'];
 const CAPS = ['#c8102e', '#111111', '#ffd23f', '#1b6ad8', '#ffffff', '#0f9d58'];
+const STRAWS = ['#e3c98f', '#d8b878', '#f0e2b8'];
+const UMBRELLAS = ['#c8102e', '#ffd23f', '#0f9d58', '#1b6ad8', '#111111', '#ff2d87', '#ffffff'];
 const SHOES = ['#f2f2f2', '#111111', '#d6d0c4', '#8b5e3c', '#c8102e'];
 
 /** The parts of a spectator's body and clothes for one stance and one cut of bottoms. */
@@ -210,6 +214,29 @@ export function hairParts(): BufferGeometry[] {
   brim.translate(0, 1.64, -0.12);
   const wrap = ellipsoid(0.13, 0.95, 0.95, 1.05, 0, 1.69, 0.03, 10);
   return [crop, afro, merge([crown, brim]), wrap];
+}
+
+/** An umbrella held up over the head: an eight-panel canopy and its shaft from the hand. */
+function umbrellaParts(): { canopy: BufferGeometry; shaft: BufferGeometry } {
+  const canopy = new ConeGeometry(0.6, 0.28, 8, 1, true);
+  canopy.translate(0.05, 2.24, -0.02);
+  const shaft = merge(
+    limb(new Vector3(0.23, 0.95, -0.04), new Vector3(0.05, 2.36, -0.02), 0.012, 0.012, 5),
+  );
+  return { canopy, shaft };
+}
+
+/** A wide-brimmed straw sun hat, and a soft bucket hat. */
+function sunHatParts(): BufferGeometry[] {
+  const crown = new CylinderGeometry(0.1, 0.115, 0.12, 12);
+  crown.translate(0, 1.73, 0);
+  const brim = new CylinderGeometry(0.26, 0.26, 0.012, 16);
+  brim.translate(0, 1.68, 0);
+  const bucket = new CylinderGeometry(0.11, 0.17, 0.14, 12, 1, true);
+  bucket.translate(0, 1.7, 0);
+  const top = new CylinderGeometry(0.11, 0.11, 0.01, 12);
+  top.translate(0, 1.77, 0);
+  return [merge([crown, brim]), merge([bucket, top])];
 }
 
 /** Who stands where, and how. */
@@ -303,6 +330,20 @@ export class Spectators {
     this.disposables.push(shoes, handset, ...hairs);
     const dress = seeded(o.seed + 1);
     const pick = (list: readonly string[]) => list[Math.floor(dress() * list.length)]!;
+    // Summer extras from a seed of their own, so the crowd's clothes stay as they were.
+    const extra = seeded(o.seed + 3);
+    const any = (list: readonly string[]) => list[Math.floor(extra() * list.length)]!;
+    const { canopy, shaft } = umbrellaParts();
+    const [strawHat, bucketHat] = sunHatParts();
+    const child = spectatorParts(2, true);
+    const lift = (g: BufferGeometry) => g.scale(0.52, 0.52, 0.52).translate(0, 1.38, 0.08);
+    for (const g of [child.skin, child.top, child.bottom]) lift(g);
+    const childHair = lift(hairParts()[0]!);
+    const cloth = this.material({ roughness: 0.8, side: DoubleSide });
+    const straw = this.material({ roughness: 0.95 });
+    const metal = this.material({ color: 0x2b2b2b, roughness: 0.5, metalness: 0.6 });
+    this.disposables.push(canopy, shaft, strawHat, bucketHat, child.skin, child.top);
+    this.disposables.push(child.bottom, childHair);
     this.people.forEach((p, i) => {
       const shorts = dress() < 0.55;
       const parts = bodies[p.stance]![shorts ? 1 : 0]!;
@@ -313,8 +354,24 @@ export class Spectators {
       this.ensemble.put(i, 'shoes', shoes, rubber, pick(SHOES));
       const style = Math.floor(dress() * hairs.length);
       const colour = style === 2 ? pick(CAPS) : style === 3 ? pick(o.tops) : pick(HAIRS);
-      this.ensemble.put(i, `hair${style}`, hairs[style]!, hair, colour);
+      const roll = extra();
+      if (roll < 0.06) this.ensemble.put(i, 'straw', strawHat, straw, any(STRAWS));
+      else if (roll < 0.11) this.ensemble.put(i, 'bucket', bucketHat, straw, any(o.tops));
+      else this.ensemble.put(i, `hair${style}`, hairs[style]!, hair, colour);
       if (p.stance === PHONE_STANCE) this.ensemble.put(i, 'phone', handset, phone, '#ffffff');
+      const grown = p.height > 0.9;
+      const back = Math.abs(p.x) > o.near + 0.6;
+      if (p.stance === 0 && grown && extra() < 0.22) {
+        // An umbrella against the August sun.
+        this.ensemble.put(i, 'canopy', canopy, cloth, any(UMBRELLAS));
+        this.ensemble.put(i, 'shaft', shaft, metal, '#ffffff');
+      } else if (p.stance !== FLAG_STANCE && grown && back && extra() < 0.12) {
+        // A child up on the shoulders, arms in the air.
+        this.ensemble.put(i, 'childSkin', child.skin, skinMaterial, any(o.skins));
+        this.ensemble.put(i, 'childTop', child.top, cotton, any(o.tops));
+        this.ensemble.put(i, 'childBottom', child.bottom, denim, any(o.bottoms));
+        this.ensemble.put(i, 'childHair', childHair, hair, any(HAIRS));
+      }
     });
     this.ensemble.build();
     const flag = new PlaneGeometry(0.75, 0.5, 4, 1);
