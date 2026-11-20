@@ -367,7 +367,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
       t.needsUpdate = true;
     }
 
-    this.sky.visible = on.has(11);
+    // Docklands draws its own night sky (world-docklands.ts); the physical sky is black at night.
+    this.sky.visible = on.has(11) && this.world?.id !== 'docklands';
     this.scene.background = on.has(11) ? null : new Color(look.sky);
 
     renderer.shadowMap.enabled = on.has(12);
