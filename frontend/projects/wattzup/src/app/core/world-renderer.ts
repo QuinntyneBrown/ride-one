@@ -936,8 +936,9 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.1, fill: 1.6, colour: 0xfff4e4 },
     fogRange: [1200, 14000],
   },
-  // Race weekend on the Riviera: a clear deep blue sky, the sun high behind the rider, the sea
-  // glittering and the far mountains blue-grey in the heat haze.
+  // Race weekend on the Riviera: a clear deep blue sky, the sun high behind the rider over the
+  // harbour so the yachts shine white, the sea glittering and the far mountains blue-grey in the
+  // heat haze.
   monaco: {
     sky: 0x5a9ad8,
     fog: 0xc8dcea,
@@ -948,7 +949,7 @@ const LOOKS: Record<WorldId, Look> = {
     haze: false,
     turbidity: 2.2,
     rayleigh: 1.2,
-    azimuth: -150,
+    azimuth: 150,
     light: { sun: 3.2, fill: 1.2, colour: 0xfff2dc },
     fogRange: [300, 2400],
   },
