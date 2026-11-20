@@ -810,6 +810,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 1.4, colour: 0xfffaf0 },
     fogRange: [400, 4000],
   },
+  // A hot, golden Yucatán afternoon: high humid haze, warm light on the white stone.
+  chichen: {
+    sky: 0x6aa0d8,
+    fog: 0xd8e0c8,
+    ground: 0x3a6a2a,
+    road: 0xc8bea8,
+    sun: 36,
+    wet: false,
+    haze: false,
+    turbidity: 5,
+    rayleigh: 1.6,
+    azimuth: -150,
+    light: { sun: 2.9, fill: 1.5, colour: 0xffeccc },
+    fogRange: [300, 3200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

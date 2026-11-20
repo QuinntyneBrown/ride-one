@@ -128,7 +128,8 @@ export interface components {
         | 'trollstigen'
         | 'poggio'
         | 'montmartre'
-        | 'brickyard';
+        | 'brickyard'
+        | 'chichen';
     };
     ClassShelfResponse: {
       id: string;

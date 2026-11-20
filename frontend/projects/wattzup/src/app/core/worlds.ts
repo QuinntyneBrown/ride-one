@@ -475,6 +475,15 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
     roll: 0.2,
   },
+  {
+    id: 'chichen',
+    name: 'Chichén Itzá',
+    route: 'the sacbé',
+    effortName: 'Pyramid step',
+    description: 'A jungle road to the Mayan pyramid of El Castillo.',
+    grade: { warmup: 1, work: 4, rest: 0, cooldown: -1, steady: 2 },
+    roll: 0.8,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
