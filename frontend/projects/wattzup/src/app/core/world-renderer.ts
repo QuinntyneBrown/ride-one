@@ -44,7 +44,6 @@ import {
   type Node,
   NoToneMapping,
   PCFShadowMap,
-  PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
   PMREMGenerator,
@@ -305,7 +304,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.scene.background = on.has(11) ? null : new Color(look.sky);
 
     renderer.shadowMap.enabled = on.has(12);
-    renderer.shadowMap.type = on.has(37) ? PCFSoftShadowMap : PCFShadowMap;
+    // The WebGPU renderer has no PCFSoftShadowMap: soft shadows (37) widen the PCF filter instead.
+    renderer.shadowMap.type = PCFShadowMap;
+    this.sun.shadow.radius = on.has(37) ? 4 : 1;
     this.sun.castShadow = on.has(12);
 
     this.roadMaterial.map = on.has(9) ? this.layeredRoad : this.plainRoad;
