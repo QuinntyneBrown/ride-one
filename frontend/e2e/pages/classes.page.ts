@@ -43,7 +43,7 @@ export class ClassesPage {
     });
   }
 
-  /** The class page's `Ride in <world name>` action (L2-090 AC1). */
+  /** The class page's `Ride in <world name>` action (L2-102 AC1). */
   rideIn(worldName: string): Locator {
     return this.page.getByRole('button', { name: `Ride in ${worldName}`, exact: true });
   }

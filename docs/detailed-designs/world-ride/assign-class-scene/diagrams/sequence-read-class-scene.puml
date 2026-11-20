@@ -28,18 +28,18 @@ file --> service : JSON
 service -> reader : Read(stream)
 loop each class
   alt "world" missing or null
-    reader -> reader : World = null [L2-088 AC1]
+    reader -> reader : World = null [L2-100 AC1]
   else "world" is a string
     reader -> worlds : IsWorld(value)
     alt one of the six ids
       worlds --> reader : true
-      reader -> reader : World = value [L2-088 AC1]
+      reader -> reader : World = value [L2-100 AC1]
     else anything else
       worlds --> reader : false
-      reader -> reader : Leave the class out; problem (id, "world") [L2-088 AC2, L2-077 AC3]
+      reader -> reader : Leave the class out; problem (id, "world") [L2-100 AC2, L2-077 AC3]
     end
   else any other JSON value
-    reader -> reader : Leave the class out; problem (id, "world") [L2-088 AC2]
+    reader -> reader : Leave the class out; problem (id, "world") [L2-100 AC2]
   end
 end
 reader --> service : CatalogueLoadResult
@@ -48,5 +48,5 @@ service -> store : Replace(catalogue)
 client -> ep : GET /api/classes/{id}
 ep -> store : Current.Find(id)
 store --> ep : ClassEntry
-ep --> client : 200 {…, plan, world} [L2-078, L2-088 AC5]
+ep --> client : 200 {…, plan, world} [L2-078, L2-100 AC5]
 @enduml

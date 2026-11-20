@@ -30,7 +30,7 @@ const input = (change: Partial<SceneInput> = {}): SceneInput => ({
   ...change,
 });
 
-describe('SceneDriver (L2-098)', () => {
+describe('SceneDriver (L2-110)', () => {
   it('moves the rider at speed_kmh while running', () => {
     const renderer = new FakeRenderer();
     const driver = new SceneDriver(renderer);

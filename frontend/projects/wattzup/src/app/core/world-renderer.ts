@@ -1,6 +1,6 @@
 // The World Ride scene drawn with Three.js's WebGPU renderer, on WebGPU or its WebGL2 backend
-// (ADRs 0017, 0018). This is the only file that imports Three.js; it is loaded on demand through
-// world-renderer-loader.ts. Which techniques are drawn is decided by render-quality.ts (L2-099).
+// (ADRs 0020, 0021). This is the only file that imports Three.js; it is loaded on demand through
+// world-renderer-loader.ts. Which techniques are drawn is decided by render-quality.ts (L2-111).
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { ao } from 'three/addons/tsl/display/GTAONode.js';
@@ -283,7 +283,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (this.budget.sample(now, now - last) === 'drop') this.applyTier();
   }
 
-  /** Turns the tier's techniques on and off, and rebuilds the pass chain (L2-099 AC2, AC5). */
+  /** Turns the tier's techniques on and off, and rebuilds the pass chain (L2-111 AC2, AC5). */
   private applyTier(): void {
     const renderer = this.renderer;
     if (!renderer || !this.budget) return;

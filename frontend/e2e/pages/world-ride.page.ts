@@ -3,7 +3,7 @@ import oldTown from '../fixtures/recorded/class-30-minute-hiit-cardio.json';
 import type { ApiStub, EventStreamStub, StubResponse } from '../fixtures/wz-test';
 import { classRide, type Json } from '../fixtures/states';
 
-/** World Ride at `/classes/:id/world` (L2-090 to L2-098). Owns every World Ride selector. */
+/** World Ride at `/classes/:id/world` (L2-102 to L2-110). Owns every World Ride selector. */
 export class WorldRidePage {
   readonly main: Locator;
   readonly heading: Locator;

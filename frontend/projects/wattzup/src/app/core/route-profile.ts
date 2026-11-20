@@ -1,4 +1,4 @@
-// The class drawn as terrain: the route profile and its panel (L2-089 AC3, L2-094).
+// The class drawn as terrain: the route profile and its panel (L2-101 AC3, L2-106).
 import type { Segment } from '@wattzup/api';
 import type { WorldRideProfile } from '@wattzup/components';
 import { estimateWatts } from './plan-expansion';
@@ -61,7 +61,7 @@ const LOW = 88;
 const SPAN = 78;
 const STEP = 6;
 
-/** What the route-profile panel draws at second `t` (L2-094 AC1–3). */
+/** What the route-profile panel draws at second `t` (L2-106 AC1–3). */
 export function routeProfileView(
   profile: RouteProfile,
   segments: readonly Segment[],

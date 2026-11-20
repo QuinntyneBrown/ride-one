@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-090, L2-091, L2-092, L2-093, L2-094, L2-095, L2-096, L2-097, L2-098
+// Traces to: L2-102, L2-103, L2-104, L2-105, L2-106, L2-107, L2-108, L2-109, L2-110
 // Description: World Ride at /classes/:id/world: opened from the class page with Ride in <world
 // name>, which starts the class ride exactly as Start ride does; shown only for that class's ride in
 // progress; its app bar.
@@ -24,7 +24,7 @@ test.beforeEach(async ({ webgl }, testInfo) => {
   }
 });
 
-test.describe('World Ride (L2-090)', () => {
+test.describe('World Ride (L2-102)', () => {
   test('shows Ride in Old Town Criterium on a class with a world, and not on one without', async ({
     page,
     api,
@@ -76,7 +76,7 @@ test.describe('World Ride (L2-090)', () => {
   });
 });
 
-test.describe('World Ride access and app bar (L2-090, L2-091)', () => {
+test.describe('World Ride access and app bar (L2-102, L2-103)', () => {
   test("shows the running class in its world, titled by the world's name", async ({
     page,
     api,
@@ -194,7 +194,7 @@ test.describe('World Ride access and app bar (L2-090, L2-091)', () => {
   });
 });
 
-test.describe('World Ride live metrics (L2-092)', () => {
+test.describe('World Ride live metrics (L2-104)', () => {
   test('shows power against target, cadence, heart as -- and speed', async ({
     page,
     api,
@@ -230,7 +230,7 @@ test.describe('World Ride live metrics (L2-092)', () => {
   });
 });
 
-test.describe('World Ride current segment (L2-093)', () => {
+test.describe('World Ride current segment (L2-105)', () => {
   test('shows the segment, countdown and next segment', async ({ page, api, events }) => {
     const world = new WorldRidePage(page, api, events);
     await world.open(undefined, undefined, classRide({}, { status: 'paused', remaining: 15 }));
@@ -274,7 +274,7 @@ test.describe('World Ride current segment (L2-093)', () => {
   });
 });
 
-test.describe('World Ride resistance (L2-096)', () => {
+test.describe('World Ride resistance (L2-108)', () => {
   test('shows the level and steps it with - and +', async ({ page, api, events }) => {
     api.on('POST', '/api/resistance', { json: { level: 25 } });
     const world = new WorldRidePage(page, api, events);
@@ -312,7 +312,7 @@ test.describe('World Ride resistance (L2-096)', () => {
   });
 });
 
-test.describe('World Ride pause, lost bike and the end (L2-097)', () => {
+test.describe('World Ride pause, lost bike and the end (L2-109)', () => {
   test('holds the world still with Paused on <route>', async ({ page, api, events }) => {
     const world = new WorldRidePage(page, api, events);
     await world.open();
@@ -382,7 +382,7 @@ test.describe('World Ride pause, lost bike and the end (L2-097)', () => {
   });
 });
 
-test.describe('World Ride route profile (L2-094)', () => {
+test.describe('World Ride route profile (L2-106)', () => {
   const at290 = (status = 'running') =>
     classRide({ distance_km: 1.56 }, { status, segment: 0, remaining: 10, elapsed_seconds: 290 });
 
@@ -418,7 +418,7 @@ test.describe('World Ride route profile (L2-094)', () => {
   });
 });
 
-test.describe('World Ride simulated pacers (L2-095)', () => {
+test.describe('World Ride simulated pacers (L2-107)', () => {
   const board = [
     'Sophie Dubois +0:17',
     'Maya Okafor +0:12',
@@ -479,7 +479,7 @@ test.describe('World Ride simulated pacers (L2-095)', () => {
   });
 });
 
-test.describe('World Ride scene (L2-098, L2-089 AC4)', () => {
+test.describe('World Ride scene (L2-110, L2-101 AC4)', () => {
   test("draws the scene of the class's world with its text alternative", async ({
     page,
     api,

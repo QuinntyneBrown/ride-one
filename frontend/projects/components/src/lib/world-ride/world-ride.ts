@@ -21,21 +21,21 @@ export interface WorldRideView {
   readonly bike: string | null;
   /** True while the ride is paused: the button reads Resume. */
   readonly paused: boolean;
-  /** The live readouts, `--` when missing (L2-092). */
+  /** The live readouts, `--` when missing (L2-104). */
   readonly metrics: WorldRideMetrics;
-  /** The current segment; null with no workout (L2-093). */
+  /** The current segment; null with no workout (L2-105). */
   readonly segment: WorldRideSegment | null;
-  /** The resistance panel (L2-096). */
+  /** The resistance panel (L2-108). */
   readonly resistance: WorldRideResistance;
-  /** The Riders nearby board's rows, furthest ahead first (L2-095). */
+  /** The Riders nearby board's rows, furthest ahead first (L2-107). */
   readonly pacers: readonly WorldRidePacer[];
-  /** The route profile; null with no workout (L2-094). */
+  /** The route profile; null with no workout (L2-106). */
   readonly profile: WorldRideProfile | null;
-  /** Paused, the lost bike or the saved ride's end, over the HUD (L2-097). */
+  /** Paused, the lost bike or the saved ride's end, over the HUD (L2-109). */
   readonly overlay: WorldRideOverlay | null;
 }
 
-/** An overlay over the scene: paused (a status), the lost bike or the ride's end (L2-097). */
+/** An overlay over the scene: paused (a status), the lost bike or the ride's end (L2-109). */
 export interface WorldRideOverlay {
   readonly kind: 'paused' | 'lost' | 'ended';
   readonly title: string;
@@ -44,7 +44,7 @@ export interface WorldRideOverlay {
   readonly sessionHref: string | null;
 }
 
-/** A row of the Riders nearby board: a simulated pacer, or You (L2-095). */
+/** A row of the Riders nearby board: a simulated pacer, or You (L2-107). */
 export interface WorldRidePacer {
   readonly name: string;
   /** The rider colour, `--color-rider-<n>`. */
@@ -54,7 +54,7 @@ export interface WorldRidePacer {
   readonly you: boolean;
 }
 
-/** The route-profile panel: the class drawn as terrain at the ride's moment (L2-094). */
+/** The route-profile panel: the class drawn as terrain at the ride's moment (L2-106). */
 export interface WorldRideProfile {
   /** `+0.5%`. */
   readonly gradeText: string;
@@ -74,7 +74,7 @@ export interface WorldRideProfile {
   readonly playhead: { readonly x: number; readonly y: number };
 }
 
-/** The resistance panel: the level, its caption and which steps are allowed (L2-096). */
+/** The resistance panel: the level, its caption and which steps are allowed (L2-108). */
 export interface WorldRideResistance {
   readonly level: string;
   /** `Resistance / 32`, or `Manual` in manual mode. */
@@ -83,7 +83,7 @@ export interface WorldRideResistance {
   readonly raiseDisabled: boolean;
 }
 
-/** The current-segment panel's words (L2-093). */
+/** The current-segment panel's words (L2-105). */
 export interface WorldRideSegment {
   /** `Work · 1 of 8`, `Recover · 1 of 8`, `Warm-up`, `Cool-down` or `Steady`. */
   readonly label: string;
@@ -92,7 +92,7 @@ export interface WorldRideSegment {
   readonly next: string;
 }
 
-/** The metrics panel: estimated power against target, cadence, heart and speed (L2-092). */
+/** The metrics panel: estimated power against target, cadence, heart and speed (L2-104). */
 export interface WorldRideMetrics {
   readonly power: string;
   readonly target: string;
@@ -121,7 +121,7 @@ export interface WorldRideClock {
 }
 
 /**
- * The World Ride block: the HUD drawn over a class's scene (L2-090 to L2-097). The scene is
+ * The World Ride block: the HUD drawn over a class's scene (L2-102 to L2-109). The scene is
  * projected into `[slot=scene]`. Links carry real `href`s; a plain click is emitted as `navigate`
  * so the page routes without the component knowing the router.
  */
@@ -153,10 +153,10 @@ export class WorldRide {
   readonly reconnected = output<void>();
   /** True while a reconnect is in flight. */
   readonly reconnecting = input(false);
-  /** True when this screen can't draw the scene: the notice shows instead (L2-098 AC4). */
+  /** True when this screen can't draw the scene: the notice shows instead (L2-110 AC4). */
   readonly sceneUnavailable = input(false);
 
-  /** The HUD is inert under the lost-bike and end overlays (L2-097 AC2, AC5). */
+  /** The HUD is inert under the lost-bike and end overlays (L2-109 AC2, AC5). */
   protected readonly inert = computed(() => {
     const kind = this.view().overlay?.kind;
     return kind === 'lost' || kind === 'ended';
@@ -169,7 +169,7 @@ export class WorldRide {
 
   constructor() {
     // Focus moves to the overlay's action, and back to the app bar once the bike returns
-    // (L2-097 AC4; L2-084 AC3).
+    // (L2-109 AC4; L2-084 AC3).
     afterRenderEffect(() => {
       const kind = this.view().overlay?.kind ?? null;
       const reconnect = this.reconnectButton();

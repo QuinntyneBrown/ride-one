@@ -2,7 +2,7 @@ import type { WorkoutSnapshot } from '@wattzup/api';
 import { testWorkout } from './test-state';
 import { worldRideAccess } from './world-ride-access';
 
-describe('worldRideAccess (L2-090 AC3, AC4)', () => {
+describe('worldRideAccess (L2-102 AC3, AC4)', () => {
   const ride = (change: Partial<WorkoutSnapshot> = {}): WorkoutSnapshot =>
     testWorkout({ class_id: 'old-town', ...change });
 

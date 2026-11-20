@@ -1,4 +1,4 @@
-// The simulated pacers of the Riders nearby board (L2-095). Computed here only: never sent to
+// The simulated pacers of the Riders nearby board (L2-107). Computed here only: never sent to
 // the backend, never kept in a session (L1-015).
 import type { WorldRidePacer } from '@wattzup/components';
 
@@ -14,7 +14,7 @@ export interface Pacer {
   readonly phase: number;
 }
 
-/** The six pacers, in the order of L2-095. */
+/** The six pacers, in the order of L2-107. */
 export const PACERS: readonly Pacer[] = [
   { name: 'Maya Okafor', jersey: 2, base: 46, amp: 28, period: 140, phase: 0.3 },
   { name: 'Jonas Lindqvist', jersey: 3, base: 18, amp: 14, period: 95, phase: 2.1 },
@@ -40,7 +40,7 @@ export function formatGap(seconds: number): string {
   return whole < 0 ? `−${text}` : `+${text}`;
 }
 
-/** The pacers and You, from furthest ahead to furthest behind (L2-095 AC2, AC3). */
+/** The pacers and You, from furthest ahead to furthest behind (L2-107 AC2, AC3). */
 export function pacerBoard(t: number, speedKmh: number | null): WorldRidePacer[] {
   const speed = Math.max((speedKmh ?? 0) / 3.6, MIN_SPEED);
   const rows = PACERS.map((p) => ({ gap: pacerGap(p, t), pacer: p }));

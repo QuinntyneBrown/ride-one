@@ -6,7 +6,7 @@ import { worldById } from './worlds';
 const oldTown = worldById('oldtown');
 const entry = { title: '30 Minute HIIT Cardio', world: 'oldtown' } as ClassEntry;
 
-describe('worldRideView app bar (L2-091)', () => {
+describe('worldRideView app bar (L2-103)', () => {
   it("names the world, its route and the class, and the bike's name", () => {
     const view = worldRideView(testState(), entry, oldTown);
 
@@ -25,7 +25,7 @@ describe('worldRideView app bar (L2-091)', () => {
   });
 });
 
-describe('worldRideView metrics (L2-092)', () => {
+describe('worldRideView metrics (L2-104)', () => {
   it('shows estimated power against target, cadence, heart and speed', () => {
     const state = testState({
       power: 142,
@@ -67,7 +67,7 @@ describe('worldRideView metrics (L2-092)', () => {
   });
 });
 
-describe('worldRideView segment (L2-093)', () => {
+describe('worldRideView segment (L2-105)', () => {
   const at = (segment: number) => {
     const workout = testWorkout({ segment });
     return worldRideView(testState({ workout }), entry, oldTown).segment;
@@ -98,7 +98,7 @@ describe('worldRideView segment (L2-093)', () => {
   });
 });
 
-describe('worldRideView resistance (L2-096)', () => {
+describe('worldRideView resistance (L2-108)', () => {
   const resistance = (change: Parameters<typeof testState>[0]) =>
     worldRideView(testState(change), entry, oldTown).resistance;
 
@@ -130,7 +130,7 @@ describe('worldRideView resistance (L2-096)', () => {
   );
 });
 
-describe('worldRideView overlay (L2-097)', () => {
+describe('worldRideView overlay (L2-109)', () => {
   const overlay = (
     change: Parameters<typeof testWorkout>[0],
     state: Parameters<typeof testState>[0] = {},

@@ -28,7 +28,7 @@ type Phase = 'loading' | 'ready' | 'not-found';
 
 /**
  * Route `/classes/:id/world`: the ride in progress of class `:id` in that class's scene. It reads
- * the class and the live state, and drives the ride through the dashboard's commands (L2-090).
+ * the class and the live state, and drives the ride through the dashboard's commands (L2-102).
  */
 @Component({
   selector: 'wz-world-ride-page',
@@ -52,10 +52,10 @@ export class WorldRidePage {
 
   protected readonly phase = signal<Phase>('loading');
   private readonly entry = signal<ClassEntry | null>(null);
-  /** Decided once, when the class and the first state are both in (L2-090 AC3, AC4). */
+  /** Decided once, when the class and the first state are both in (L2-102 AC3, AC4). */
   private readonly shown = signal(false);
 
-  /** Set once the scene reports it cannot draw (L2-098 AC4). */
+  /** Set once the scene reports it cannot draw (L2-110 AC4). */
   protected readonly sceneUnavailable = signal(false);
 
   private readonly world = computed(() => {
@@ -70,7 +70,7 @@ export class WorldRidePage {
     return this.shown() && state && entry && world ? worldRideView(state, entry, world) : null;
   });
 
-  /** What the scene draws; null once it reports it cannot (L2-098 AC4). */
+  /** What the scene draws; null once it reports it cannot (L2-110 AC4). */
   protected readonly scene = computed(() => {
     const world = this.world();
     if (!world || this.sceneUnavailable()) return null;
@@ -126,7 +126,7 @@ export class WorldRidePage {
         void this.router.navigateByUrl(untracked(this.classHref), { replaceUrl: true });
       }
     });
-    // A ride too short to save leaves for the dashboard when it ends (L2-097 AC5).
+    // A ride too short to save leaves for the dashboard when it ends (L2-109 AC5).
     effect(() => {
       const w = this.live.state()?.workout;
       if (!this.shown() || !w || w.session_id) return;
@@ -157,7 +157,7 @@ export class WorldRidePage {
     void (this.view()?.paused ? this.actions.resume() : this.actions.pause());
   }
 
-  /** − or + sends the level one lower or higher (L2-096 AC2, L2-047). */
+  /** − or + sends the level one lower or higher (L2-108 AC2, L2-047). */
   protected step(delta: -1 | 1): void {
     void this.resistance.set(stepLevel(this.live.state(), delta));
   }

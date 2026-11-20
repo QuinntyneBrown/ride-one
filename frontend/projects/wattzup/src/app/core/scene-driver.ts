@@ -1,4 +1,4 @@
-// Steps the rider through the scene each frame and hands the frame to the renderer (L2-098).
+// Steps the rider through the scene each frame and hands the frame to the renderer (L2-110).
 import type { Segment } from '@wattzup/api';
 import type { WorldRenderer } from './world-renderer-port';
 
@@ -22,7 +22,7 @@ export class SceneDriver {
 
   constructor(private readonly renderer: WorldRenderer) {}
 
-  /** Draws the frame at `now` (ms); the rider moves only while the ride runs (L2-097 AC1). */
+  /** Draws the frame at `now` (ms); the rider moves only while the ride runs (L2-109 AC1). */
   frame(now: number, input: SceneInput): void {
     const dt = this.last === null ? 0 : Math.min(Math.max((now - this.last) / 1000, 0), MAX_STEP);
     this.last = now;

@@ -7,7 +7,7 @@ import { validatePlan } from './workout-plan-validator';
 export const MAX_BYTES = 1024 * 1024;
 export const MAX_SHELVES = 20;
 export const MAX_CLASSES = 200;
-/** The six scenes built into the app, as ClassWorlds.Ids in the backend (L2-088). */
+/** The six scenes built into the app, as ClassWorlds.Ids in the backend (L2-100). */
 export const WORLDS: readonly WorldId[] = [
   'docklands',
   'granite',

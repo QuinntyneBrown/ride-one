@@ -1,8 +1,8 @@
 import type { SegmentKind, WorldId } from '@wattzup/api';
 import { targetGrade, worldById } from './worlds';
 
-// L2-089 AC2: grade[k] + roll × sin(s ÷ 310) × cos(s ÷ 870 + 1), one row per scene.
-describe('targetGrade (L2-089)', () => {
+// L2-101 AC2: grade[k] + roll × sin(s ÷ 310) × cos(s ÷ 870 + 1), one row per scene.
+describe('targetGrade (L2-101)', () => {
   it.each<[WorldId, Record<SegmentKind, number>, number]>([
     ['docklands', { warmup: 0.5, work: 5.5, rest: -2, cooldown: 0, steady: 0 }, 5.610718],
     ['granite', { warmup: 3, work: 8, rest: 3.5, cooldown: -5, steady: 5 }, 8.147624],

@@ -1,11 +1,11 @@
-# 0017. Three.js draws the World Ride scene, in its own lazy chunk
+# 0020. Three.js draws the World Ride scene, in its own lazy chunk
 
-- **Status:** Accepted, amended by [0018](0018-webgpu-renderer-with-webgl2-fallback.md)
+- **Status:** Accepted, amended by [0021](0021-webgpu-renderer-with-webgl2-fallback.md)
 - **Date:** 2026-11-19
 
 ## Context
 
-World Ride (L1-016, L2-098) draws a 3D road, terrain, sky, roadside props and an effort arch
+World Ride (L1-017, L2-110) draws a 3D road, terrain, sky, roadside props and an effort arch
 behind the HUD, for six scenes. The Magic Patterns design the scenes come from (`shared/components/
 WorldScene.tsx`) draws them with Three.js. The frontend has no 3D library today: its only GPU code
 is the power trace, drawn with raw WebGL behind a canvas fallback (ADR 0006).
@@ -16,7 +16,7 @@ library is for, and Three.js is the established, maintained choice on the web, w
 WebGL2 renderer and a WebGPU renderer.
 
 The initial bundle has a 300 KB gzipped budget (AGENTS.md), and the scene must load only when
-World Ride opens (L2-090 criterion 8). Every asset must come from the same origin (L1-009, the CSP).
+World Ride opens (L2-102 criterion 8). Every asset must come from the same origin (L1-009, the CSP).
 
 ## Decision
 
@@ -32,7 +32,7 @@ World Ride opens (L2-090 criterion 8). Every asset must come from the same origi
   `frontend/public/worlds/<id>/` and are fetched from the app's own origin. No loader, decoder or
   asset is fetched from a CDN; Three.js addons that would (e.g. a Draco decoder from a CDN path)
   are served locally or not used.
-- When the renderer cannot start, the page falls back to the notice of L2-098 criterion 4, as the
+- When the renderer cannot start, the page falls back to the notice of L2-110 criterion 4, as the
   power trace does under ADR 0006.
 
 ## Consequences

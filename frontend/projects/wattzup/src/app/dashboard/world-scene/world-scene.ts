@@ -21,7 +21,7 @@ import { WORLD_RENDERER, type WorldRenderer } from '../../core/world-renderer-po
 import type { World } from '../../core/worlds';
 
 /**
- * The class's world drawn under the World Ride HUD (L2-098). It loads the renderer on first
+ * The class's world drawn under the World Ride HUD (L2-110). It loads the renderer on first
  * render, draws on the app's frame loop, and emits `unavailable` once when it cannot draw.
  */
 @Component({
@@ -36,7 +36,7 @@ export class WorldScene {
   readonly elapsed = input.required<number>();
   readonly speedKmh = input.required<number | null>();
   readonly running = input.required<boolean>();
-  /** Emitted once when WebGL is unavailable or the renderer fails to start (L2-098 AC4). */
+  /** Emitted once when WebGL is unavailable or the renderer fails to start (L2-110 AC4). */
   readonly unavailable = output<void>();
 
   private readonly load = inject(WORLD_RENDERER);
@@ -45,7 +45,7 @@ export class WorldScene {
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly driver = signal<SceneDriver | null>(null);
 
-  /** The scene's text alternative (L2-098 AC3). */
+  /** The scene's text alternative (L2-110 AC3). */
   protected readonly label = computed(
     () => `A cyclist on ${this.world().route} in ${this.world().name}`,
   );
@@ -95,8 +95,8 @@ export class WorldScene {
         );
     });
 
-    // The loop runs only while the ride runs: a paused world holds still (L2-097 AC1), and the
-    // app's loop requests no frame while the tab is hidden (L2-098 AC5).
+    // The loop runs only while the ride runs: a paused world holds still (L2-109 AC1), and the
+    // app's loop requests no frame while the tab is hidden (L2-110 AC5).
     effect(() => {
       const running = this.driver() !== null && this.running();
       if (running && !stop) stop = this.frames.startLoop();

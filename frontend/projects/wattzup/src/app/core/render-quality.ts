@@ -1,11 +1,11 @@
-// The World Ride scene's quality tiers, its techniques and its frame budget (L2-099, ADR 0018).
+// The World Ride scene's quality tiers, its techniques and its frame budget (L2-111, ADR 0021).
 // Pure: the renderer asks which techniques are in force and holds no rule of its own.
 
 export type Tier = 'low' | 'medium' | 'high' | 'ultra';
 export type Backend = 'webgpu' | 'webgl2';
 
 export interface Technique {
-  /** The number of the technique in L2-099. */
+  /** The number of the technique in L2-111. */
   readonly id: number;
   readonly name: string;
   /** The lowest tier that draws it; null when it is not built. */
@@ -23,7 +23,7 @@ const t = (
   reducedMotion: Technique['reducedMotion'] = 'kept',
 ): Technique => ({ id, name, from, reducedMotion });
 
-/** The table of L2-099, in its order. */
+/** The table of L2-111, in its order. */
 export const TECHNIQUES: readonly Technique[] = [
   t(1, 'Photogrammetric environment', 'high'),
   t(2, 'Scanned road surface', 'high'),
@@ -79,12 +79,12 @@ export const TECHNIQUES: readonly Technique[] = [
 
 const rank = (tier: Tier) => TIERS.indexOf(tier);
 
-/** The tier the scene opens at (L2-099 AC3). */
+/** The tier the scene opens at (L2-111 AC3). */
 export function startTier(backend: Backend): Tier {
   return backend === 'webgpu' ? 'ultra' : 'high';
 }
 
-/** The ids of the techniques drawn (L2-099 AC2, AC5). */
+/** The ids of the techniques drawn (L2-111 AC2, AC5). */
 export function techniquesAt(tier: Tier, backend: Backend, reducedMotion: boolean): Set<number> {
   const top = backend === 'webgl2' ? Math.min(rank(tier), rank('high')) : rank(tier);
   return new Set(

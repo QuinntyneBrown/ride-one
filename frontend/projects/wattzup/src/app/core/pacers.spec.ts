@@ -2,8 +2,8 @@ import { formatGap, PACERS, pacerBoard, pacerGap } from './pacers';
 
 const byName = (name: string) => PACERS.find((p) => p.name === name)!;
 
-// L2-095 AC2: base + amp × sin(t ÷ period + phase), one case per row, at t 300.
-describe('pacerGap (L2-095)', () => {
+// L2-107 AC2: base + amp × sin(t ÷ period + phase), one case per row, at t 300.
+describe('pacerGap (L2-107)', () => {
   it.each([
     ['Maya Okafor', 64.011],
     ['Jonas Lindqvist', 6.0319],
@@ -28,7 +28,7 @@ describe('formatGap', () => {
   });
 });
 
-describe('pacerBoard (L2-095)', () => {
+describe('pacerBoard (L2-107)', () => {
   it('lists the pacers and You from furthest ahead, as the default mock', () => {
     expect(pacerBoard(300, 19.2)).toEqual([
       { name: 'Sophie Dubois', jersey: 1, timeGap: '+0:17', you: false },

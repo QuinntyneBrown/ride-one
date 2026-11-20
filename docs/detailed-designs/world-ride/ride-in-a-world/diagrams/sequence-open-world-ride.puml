@@ -18,19 +18,19 @@ box "Backend — Wattzup API application" #D1FADF
   participant "Class and workout endpoints" as ep
 end box
 
-rider -> classpage : Ride in Old Town Criterium [L2-090 AC1]
+rider -> classpage : Ride in Old Town Criterium [L2-102 AC1]
 classpage -> classpage : start('/classes/<id>/world'); replace-ride dialog first if a ride is active [L2-052]
 classpage -> workouts : start(plan + video + class_id)
 workouts -> ep : POST /api/workout
 ep --> workouts : 200
 workouts --> classpage : started
-classpage -> page : Navigate to /classes/<id>/world [L2-090 AC2]
+classpage -> page : Navigate to /classes/<id>/world [L2-102 AC2]
 page -> classes : get(id)
 classes -> ep : GET /api/classes/{id}
 alt 404
   ep --> classes : class_not_found
   classes --> page : not found
-  page --> rider : We can't find that class [L2-090 AC4, L2-080 AC13]
+  page --> rider : We can't find that class [L2-102 AC4, L2-080 AC13]
 else class
   ep --> classes : 200 {…, world}
   classes --> page : entry
@@ -39,10 +39,10 @@ else class
   page -> access : worldRideAccess(id, entry, workout)
   alt show
     access --> page : show
-    page --> rider : World Ride in the class's world, titled by its name [L2-090 AC3]
+    page --> rider : World Ride in the class's world, titled by its name [L2-102 AC3]
   else class-page
     access --> page : class-page
-    page --> rider : Replace URL with /classes/<id> [L2-090 AC4]
+    page --> rider : Replace URL with /classes/<id> [L2-102 AC4]
   end
 end
 @enduml

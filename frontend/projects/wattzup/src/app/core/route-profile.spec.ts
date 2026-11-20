@@ -47,7 +47,7 @@ const flat: Segment[] = [seg('steady', 0, 120, 12, 85)];
 
 const oldTown = worldById('oldtown');
 
-describe('expectedSpeed (L2-089 AC3)', () => {
+describe('expectedSpeed (L2-101 AC3)', () => {
   it('is 10 × ∛(estimate ÷ 20) ÷ 3.6 m/s', () => {
     // estimate = round(80 × (0.55 + 18 × 0.155)) = 267 W
     expect(expectedSpeed(seg('warmup', 0, 1, 18, 80))).toBeCloseTo(
@@ -61,7 +61,7 @@ describe('expectedSpeed (L2-089 AC3)', () => {
   });
 });
 
-describe('routeProfile (L2-089 AC3)', () => {
+describe('routeProfile (L2-101 AC3)', () => {
   it('walks a flat plan at one speed, easing its grade from steady', () => {
     const world = worldById('dolomites');
     const profile = routeProfile(world, flat);
@@ -115,12 +115,12 @@ describe('profileAt', () => {
   });
 });
 
-describe('routeProfileView (L2-094)', () => {
+describe('routeProfileView (L2-106)', () => {
   const view = (t: number) => routeProfileView(routeProfile(oldTown, oldTownMock), oldTownMock, t);
 
   it('reads the climbed and label of the Old Town mock at 4:50', () => {
     const v = view(290);
-    // The gradient at second 290 by L2-089 AC3; the mock's still reads +0.5 %.
+    // The gradient at second 290 by L2-101 AC3; the mock's still reads +0.5 %.
     expect(v.gradeText).toBe('+0.9%');
     expect(v.climbedText).toBe('9 m climbed');
     expect(v.label).toBe('Route profile, 43 m of elevation');

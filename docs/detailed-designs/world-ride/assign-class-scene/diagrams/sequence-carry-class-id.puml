@@ -27,7 +27,7 @@ ep -> engine : StartAsync(plan, RideOrigin(id, title))
 engine -> run : new run with Origin
 loop each tick and change
   engine -> run : ToSnapshot()
-  run --> engine : WorkoutSnapshot {ClassId = Origin?.ClassId} [L2-090 AC5]
+  run --> engine : WorkoutSnapshot {ClassId = Origin?.ClassId} [L2-102 AC5]
   engine -> state : Apply(workout)
   state -> broadcaster : Publish
   broadcaster --> live : state message {workout: {…, class_id}} [L2-014]

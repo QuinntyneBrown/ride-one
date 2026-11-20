@@ -19,7 +19,7 @@ const plan: Segment[] = [
 ];
 const oldTown = worldById('oldtown');
 
-describe('nextArch (L2-098 AC2)', () => {
+describe('nextArch (L2-110 AC2)', () => {
   it("stands where the next work segment starts, with the world's effort name", () => {
     // 10 s to go at 5 m/s.
     expect(nextArch(oldTown, plan, 290, 5)).toEqual({ label: 'Cobbled sprint', metres: 50 });
@@ -38,7 +38,7 @@ describe('nextArch (L2-098 AC2)', () => {
   });
 });
 
-describe('roadAhead (L2-098 AC1)', () => {
+describe('roadAhead (L2-110 AC1)', () => {
   it('eases towards the target grade of the segment the rider will be in', () => {
     // 2 m steps at 5 m/s: step 30 (60 m) is reached at 302 s, inside the work segment.
     const road = roadAhead(oldTown, plan, { t: 290, s: 1000, speed: 5, grade: 0.5 }, 40);

@@ -1,6 +1,6 @@
 import type { SegmentKind, WorldId } from '@wattzup/api';
 
-/** One of the six World Ride scenes built into the frontend (L2-089). */
+/** One of the six World Ride scenes built into the frontend (L2-101). */
 export interface World {
   readonly id: WorldId;
   readonly name: string;
@@ -14,7 +14,7 @@ export interface World {
   readonly roll: number;
 }
 
-/** The six scenes, in the order of L2-089. */
+/** The six scenes, in the order of L2-101. */
 export const WORLDS: readonly World[] = [
   {
     id: 'docklands',
@@ -77,14 +77,14 @@ export const WORLDS: readonly World[] = [
   },
 ];
 
-/** The scene of `id`. The backend serves only the six ids (L2-088), so it is always found. */
+/** The scene of `id`. The backend serves only the six ids (L2-100), so it is always found. */
 export function worldById(id: WorldId): World {
   const world = WORLDS.find((w) => w.id === id);
   if (!world) throw new Error(`Unknown world ${id}`);
   return world;
 }
 
-/** The gradient, in percent, the scene asks for at `s` metres in a segment of `kind` (L2-089 AC2). */
+/** The gradient, in percent, the scene asks for at `s` metres in a segment of `kind` (L2-101 AC2). */
 export function targetGrade(world: World, kind: SegmentKind, s: number): number {
   return world.grade[kind] + world.roll * Math.sin(s / 310) * Math.cos(s / 870 + 1);
 }

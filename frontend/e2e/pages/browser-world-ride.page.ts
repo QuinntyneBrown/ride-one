@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
-/** World Ride at `/classes/:id/world` in the browser edition (L2-090). Owns its selectors. */
+/** World Ride at `/classes/:id/world` in the browser edition (L2-102). Owns its selectors. */
 export class BrowserWorldRidePage {
   readonly heading: Locator;
   readonly scene: Locator;

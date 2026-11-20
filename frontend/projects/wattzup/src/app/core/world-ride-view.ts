@@ -10,7 +10,7 @@ import { routeProfile, routeProfileView } from './route-profile';
 import { kindLabel, roundCount, toneOf } from './segment-labels';
 import type { World } from './worlds';
 
-/** What the World Ride HUD shows for a state, a class and its world (L2-091 to L2-097). */
+/** What the World Ride HUD shows for a state, a class and its world (L2-103 to L2-109). */
 export function worldRideView(state: BikeState, entry: ClassEntry, world: World): WorldRideView {
   return {
     title: world.name,
@@ -44,7 +44,7 @@ export function worldRideView(state: BikeState, entry: ClassEntry, world: World)
   };
 }
 
-/** `Work · 1 of 8`, and the next segment in the world's words (L2-093). */
+/** `Work · 1 of 8`, and the next segment in the world's words (L2-105). */
 function segmentView(workout: WorkoutSnapshot, world: World): WorldRideSegment | null {
   const { segments } = workout;
   const current = segments[workout.segment];
@@ -64,7 +64,7 @@ function segmentView(workout: WorkoutSnapshot, world: World): WorldRideSegment |
   };
 }
 
-/** − and + step the bike's level, only while it is connected (L2-096). */
+/** − and + step the bike's level, only while it is connected (L2-108). */
 function resistanceView(state: BikeState): WorldRideView['resistance'] {
   const controls = controlsState(state, state.ble === 'connected');
   return {
@@ -75,7 +75,7 @@ function resistanceView(state: BikeState): WorldRideView['resistance'] {
   };
 }
 
-/** Paused, the lost bike, or the saved ride's end; none while riding (L2-097). */
+/** Paused, the lost bike, or the saved ride's end; none while riding (L2-109). */
 function overlayView(state: BikeState, world: World): WorldRideView['overlay'] {
   const workout = state.workout;
   switch (workout?.status) {

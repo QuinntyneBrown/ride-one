@@ -47,7 +47,7 @@ import { OnlineStatus } from '../../core/online-status';
 
 type Phase = 'loading' | 'ready' | 'not-found';
 
-/** Route `/classes/:id`: one class, its video and plan, Start ride (L2-080) and Ride in <world> (L2-090). */
+/** Route `/classes/:id`: one class, its video and plan, Start ride (L2-080) and Ride in <world> (L2-102). */
 @Component({
   selector: 'wz-class-page',
   imports: [
@@ -127,7 +127,7 @@ export class ClassPage {
     const e = this.entry();
     return !!d && !!e && isEdited(d, e);
   });
-  /** The class's World Ride scene, when it names one (L2-090 AC1). */
+  /** The class's World Ride scene, when it names one (L2-102 AC1). */
   protected readonly world = computed(() => {
     const id = this.entry()?.world;
     return id ? worldById(id) : null;
@@ -222,7 +222,7 @@ export class ClassPage {
 
   /**
    * Start ride, or Ride in <world>: replace-ride first with a workout active, else POST the plan as
-   * shown, then open the dashboard or World Ride (L2-080 AC10, AC11; L2-090 AC2).
+   * shown, then open the dashboard or World Ride (L2-080 AC10, AC11; L2-102 AC2).
    */
   protected async start(inWorld = false): Promise<void> {
     const d = this.draft();

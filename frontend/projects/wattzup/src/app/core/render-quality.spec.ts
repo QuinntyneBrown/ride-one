@@ -5,7 +5,7 @@ const ids = (from: Tier[]) =>
     .map((t) => t.id)
     .sort((a, b) => a - b);
 
-describe('the technique table (L2-099)', () => {
+describe('the technique table (L2-111)', () => {
   it('holds the fifty techniques, numbered 1 to 50', () => {
     expect(TECHNIQUES.map((t) => t.id)).toEqual(Array.from({ length: 50 }, (_, i) => i + 1));
   });
@@ -15,7 +15,7 @@ describe('the technique table (L2-099)', () => {
   });
 });
 
-describe('startTier (L2-099 AC3)', () => {
+describe('startTier (L2-111 AC3)', () => {
   it.each([
     ['webgpu', 'ultra'],
     ['webgl2', 'high'],
@@ -24,7 +24,7 @@ describe('startTier (L2-099 AC3)', () => {
   });
 });
 
-describe('techniquesAt (L2-099 AC2, AC5)', () => {
+describe('techniquesAt (L2-111 AC2, AC5)', () => {
   const at = (tier: Tier, backend: 'webgpu' | 'webgl2' = 'webgpu', reduced = false) =>
     [...techniquesAt(tier, backend, reduced)].sort((a, b) => a - b);
 
@@ -53,7 +53,7 @@ describe('techniquesAt (L2-099 AC2, AC5)', () => {
   });
 });
 
-describe('FrameBudget (L2-099 AC4)', () => {
+describe('FrameBudget (L2-111 AC4)', () => {
   /** Feeds one 2 s window of 60 frames at `ms` each, starting at `start` ms. */
   const window = (budget: FrameBudget, start: number, ms: number) => {
     const verdicts: string[] = [];
