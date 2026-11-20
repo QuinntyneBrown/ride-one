@@ -22,6 +22,7 @@ import {
   PlaneGeometry,
   RepeatWrapping,
   Shape,
+  SphereGeometry,
   type Texture,
 } from 'three/webgpu';
 import {
@@ -55,6 +56,12 @@ const CROWD_NEAR = 4.4;
 const CROWD_FAR = 6.2;
 /** The timing gantry over the course, in the opening view. */
 const GANTRY = 150;
+/** A streamliner makes its speed run along its own course this far out on the right. */
+const RUN_X = 30;
+/** How fast it runs, in metres a second, and how far along its course it starts and ends. */
+const RUN_SPEED = 70;
+const RUN_FROM = 40;
+const RUN_LENGTH = 520;
 /** The mountains float on the mirage this far ahead. */
 const AHEAD = 300;
 const HAZE = 0xdfe8f2;
@@ -135,6 +142,9 @@ export class BonnevilleStreet implements SceneStreet {
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
   private time = 0;
+  /** The streamliner on its run, its rooster tail of salt behind it. */
+  private readonly runner = new Group();
+  private readonly spray: { mesh: Mesh; k: number }[] = [];
   private readonly flagMaterials = ['#b22234', '#ffffff', '#3c3b6e', '#1d3c8f'].map(
     (colour) => new MeshStandardMaterial({ color: colour, side: DoubleSide, roughness: 0.8 }),
   );
@@ -166,6 +176,7 @@ export class BonnevilleStreet implements SceneStreet {
     this.crowd.build();
     this.addPits();
     this.addTiming();
+    this.addSpeedRun(points);
     this.addGantry(roadHalf);
     this.addFeatherFlags();
     this.addRoadPaint();
@@ -175,6 +186,11 @@ export class BonnevilleStreet implements SceneStreet {
   /** The course's clock, in seconds; held at 0 for reduced motion. */
   setTime(seconds: number): void {
     this.time = seconds;
+    // The spray boils as the car tears through the salt.
+    for (const puff of this.spray) {
+      const boil = 1 + 0.12 * Math.sin(seconds * 9 + puff.k * 1.9);
+      puff.mesh.scale.setScalar((1.2 + puff.k * 0.55) * boil);
+    }
   }
 
   lay(points: readonly StreetPoint[], s: number): void {
@@ -198,6 +214,10 @@ export class BonnevilleStreet implements SceneStreet {
       this.crews.set(i, spot.x, ground(metres) + KERB + hidden, -metres, spot.turn + sway, 1);
     });
     this.crews.commit();
+    // The streamliner tears down its course toward the rider, round again when it passes.
+    const run = RUN_FROM + RUN_LENGTH - ((this.time * RUN_SPEED + 480) % RUN_LENGTH);
+    this.runner.visible = run < AHEAD - 10;
+    this.runner.position.set(RUN_X, ground(run) + KERB, -run);
     this.horizon.position.set(0, heightAt(AHEAD), -AHEAD);
   }
 
@@ -360,15 +380,21 @@ export class BonnevilleStreet implements SceneStreet {
    * A streamliner on its open trailer: a long slender body tapering to a point, its canopy
    * bubble, a tail fin, in its livery with a white race number roundel.
    */
-  private streamliner(k: number): Group {
+  private streamliner(k: number, onTrailer = true): Group {
     const g = new Group();
     const b = new BoxBuilder();
     const deck = this.material({ color: 0x5a5e64, metalness: 0.4, roughness: 0.5 });
     const tyre = this.material({ color: 0x1c1c1c, roughness: 0.95 });
-    b.box(deck, [2.3, 0.2, 8.4], [0, 0.75, 0]);
-    b.box(deck, [0.15, 0.15, 2], [0, 0.6, 5.2]);
-    for (const z of [-1.4, -0.4]) {
-      for (const x of [-1.1, 1.1]) b.box(tyre, [0.3, 0.7, 0.7], [x, 0.35, z]);
+    // Off its trailer the car sits low on its own small wheels.
+    const lift = onTrailer ? 0 : -0.85;
+    if (onTrailer) {
+      b.box(deck, [2.3, 0.2, 8.4], [0, 0.75, 0]);
+      b.box(deck, [0.15, 0.15, 2], [0, 0.6, 5.2]);
+      for (const z of [-1.4, -0.4]) {
+        for (const x of [-1.1, 1.1]) b.box(tyre, [0.3, 0.7, 0.7], [x, 0.35, z]);
+      }
+    } else {
+      for (const z of [-2.6, 2.6]) b.box(tyre, [1.2, 0.36, 0.36], [0, 0.18, z]);
     }
     const livery = this.material({
       color: LIVERIES[k % LIVERIES.length]!,
@@ -377,8 +403,8 @@ export class BonnevilleStreet implements SceneStreet {
     });
     const glass = this.material({ color: 0x1a2028, roughness: 0.1, metalness: 0.5 });
     const roundel = this.material({ color: 0xffffff, roughness: 0.5 });
-    b.box(livery, [0.08, 1.2, 1.1], [0, 1.95, -3.2]);
-    b.box(roundel, [1.42, 0.5, 0.6], [0, 1.45, 0.6]);
+    b.box(livery, [0.08, 1.2, 1.1], [0, 1.95 + lift, -3.2]);
+    b.box(roundel, [1.42, 0.5, 0.6], [0, 1.45 + lift, 0.6]);
     g.add(b.build(this.disposables));
     const body = new CapsuleGeometry(0.7, 6.4, 6, 14);
     body.rotateX(Math.PI / 2);
@@ -387,12 +413,47 @@ export class BonnevilleStreet implements SceneStreet {
     bubble.rotateX(Math.PI / 2);
     this.disposables.push(body, bubble);
     const hull = new Mesh(body, livery);
-    hull.position.set(0, 1.4, 0);
+    hull.position.set(0, 1.4 + lift, 0);
     hull.castShadow = true;
     const canopy = new Mesh(bubble, glass);
-    canopy.position.set(0, 1.85, 1.4);
+    canopy.position.set(0, 1.85 + lift, -1.4);
     g.add(hull, canopy);
     return g;
+  }
+
+  /**
+   * Speed Week's run on the right: a streamliner tearing down its own course toward the rider, marked by a
+   * black line on the salt, a rooster tail of salt spray boiling up and spreading behind it.
+   */
+  private addSpeedRun(points: number): void {
+    const line = this.material({ color: 0x18181a, roughness: 0.6 });
+    this.ribbons.add(points, line, [
+      [RUN_X + 0.15, 0.004],
+      [RUN_X - 0.15, 0.004],
+    ]);
+    const car = this.streamliner(0, false);
+    this.runner.add(car);
+    // Nose toward the rider, its spray streaming away behind it.
+    this.runner.rotation.y = Math.PI;
+    const puff = new SphereGeometry(1, 10, 8);
+    this.disposables.push(puff);
+    for (let k = 0; k < 22; k++) {
+      const material = this.material({
+        color: 0xffffff,
+        emissive: new Color(0xf4f2ee),
+        emissiveIntensity: 0.55,
+        transparent: true,
+        opacity: 0.92 * (1 - k / 24),
+        depthWrite: false,
+        roughness: 1,
+      });
+      const mesh = new Mesh(puff, material);
+      mesh.position.set((k % 2 ? 0.3 : -0.3) * k * 0.3, 0.8 + k * 0.6, 4 + k * 3.6);
+      this.runner.add(mesh);
+      this.spray.push({ mesh, k });
+    }
+    this.group.add(this.runner);
+    this.setTime(this.time);
   }
 
   /**
