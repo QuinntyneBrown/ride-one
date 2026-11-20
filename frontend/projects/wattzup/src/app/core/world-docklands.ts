@@ -92,6 +92,13 @@ const VENTS: readonly [number, -1 | 1][] = [
 const PUFFS = 6;
 const STEAM_HEIGHT = 5;
 const STEAM_LIFE = 4;
+/** What the towers' screens scroll, each on its own neon ground. */
+const SCREEN_WIDE = 8;
+const SCREENS: readonly string[] = [
+  'HARBOUR NIGHTS  ·  OPEN LATE  ·  ',
+  'RAMEN 24H  ·  NOODLE BAR  ·  ',
+  'DOCKLANDS  ·  RIDE THE NIGHT  ·  ',
+];
 /** The bridges' lamps: DECK_LAMPS pairs every DECK_LAMP_EVERY metres, masts and arms in metres. */
 const DECK_LAMPS = 12;
 const DECK_LAMP_EVERY = 25;
@@ -210,6 +217,7 @@ export class DocklandsStreet {
   private readonly boats: { mesh: Group; offset: number }[] = [];
   private readonly skytrain = new Group();
   private readonly deckLamps: Group[] = [];
+  private readonly screenTextures: CanvasTexture[] = [];
   private readonly vents: {
     group: Group;
     offset: number;
@@ -224,6 +232,10 @@ export class DocklandsStreet {
   setTime(seconds: number, still = false): void {
     this.fall(seconds, still);
     this.steam(still ? 0 : seconds);
+    // The screens' words scroll past; held still for reduced motion.
+    this.screenTextures.forEach((texture, i) => {
+      texture.offset.x = still ? 0 : (seconds * (0.05 + i * 0.012)) % 1;
+    });
     // The landmark's searchlights sweep the haze, each its own way; held still for reduced motion.
     this.searchlights.forEach((pivot, i) => {
       const way = i % 2 === 0 ? 1 : -1;
@@ -395,6 +407,17 @@ export class DocklandsStreet {
     const kit = this.roofKit(true);
     // Neon strips up the towers' edges, from their own sequence so nothing else moves.
     const edgeRandom = seeded(211);
+    // Big scrolling screens high on some towers, from their own sequence too.
+    const screenRandom = seeded(263);
+    const screens = SCREENS.map((words, i) => {
+      const texture = this.track(screenTexture(words, i));
+      texture.wrapS = RepeatWrapping;
+      texture.repeat.set(0.5, 1);
+      this.screenTextures.push(texture);
+      return new MeshBasicMaterial({ map: texture, toneMapped: false });
+    });
+    const screenPlane = new PlaneGeometry(1, 1);
+    this.disposables.push(...screens, screenPlane);
     const edges = NEON.map(
       (hex) =>
         new MeshStandardMaterial({
@@ -442,6 +465,21 @@ export class DocklandsStreet {
         );
         // The street floor: lit glazing towards the road under a dark canopy.
         const street = -(height - FOOTING) / 2 + KERB;
+        if (screenRandom() < 0.3) {
+          // A screen standing out from the façade over the pavement, turned to face the
+          // riders coming up the street, high above the canopy.
+          const pick = Math.floor(screenRandom() * screens.length);
+          const wide = SCREEN_WIDE;
+          const tall = wide * 0.5;
+          const screen = new Mesh(screenPlane, screens[pick]!);
+          screen.scale.set(wide, tall, 1);
+          screen.position.set(
+            -side * (width / 2 + wide / 2 + 0.6),
+            street + LOBBY + 6 + screenRandom() * 8 + tall / 2,
+            depth / 2 - 1,
+          );
+          mesh.add(screen);
+        }
         if (edgeRandom() < 0.4) {
           // A neon strip runs up each of the tower's corners on the road, above the canopy.
           const colour = Math.floor(edgeRandom() * edges.length);
@@ -1757,6 +1795,39 @@ function glowTexture(): CanvasTexture {
     ctx.fillRect(0, 0, size, size);
   }
   return new CanvasTexture(canvas);
+}
+
+/**
+ * A screen's face, twice as wide as it shows so it can scroll: bold words over a neon gradient
+ * with scan lines, read from the street.
+ */
+function screenTexture(words: string, i: number): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 232;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const [from, to] = [
+      ['#ff4fb8', '#5b2bd6'],
+      ['#3fe0ff', '#1b3fd0'],
+      ['#9b6bff', '#ff4fb8'],
+    ][i % 3]!;
+    const g = ctx.createLinearGradient(0, 0, 1024, 232);
+    g.addColorStop(0, from);
+    g.addColorStop(1, to);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 1024, 232);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 96px sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(words, 16, 120);
+    ctx.fillText(words, 16 + ctx.measureText(words).width, 120);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    for (let y = 0; y < 232; y += 4) ctx.fillRect(0, y, 1024, 2);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
 
 /** One period of the centre line along v: DASH of line, then a gap to DASH_EVERY. */
