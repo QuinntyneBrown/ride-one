@@ -130,7 +130,12 @@ const CAFES: readonly (readonly [string, string])[] = [
   ['BISTROT', '#1d2a6a'],
 ];
 /** House renders: cream, ivory, pale ochre, the pink of La Maison Rose, pale grey. */
-const RENDERS = [0xf0e6d2, 0xe8dcc0, 0xe6cfa0, 0xe8b8b0, 0xd8d4cc, 0xf2ead8, 0xdcc8a8];
+const RENDERS = [
+  0xf0e6d2, 0xe8dcc0, 0xe6cfa0, 0xe8b8b0, 0xd8d4cc, 0xf2ead8, 0xdcc8a8, 0xd0dcd4, 0xc8d0dc,
+];
+/** A stair passage climbs away from the street on the left about this often. */
+const STAIRS_EVERY = 70;
+const STAIRS_WIDTH = 5;
 const SHUTTERS = [0x3a6a4a, 0x8a9a9a, 0x2f4a6a, 0x5a7a5a, 0xe8e2d4];
 
 interface Prop {
@@ -315,7 +320,7 @@ export class MontmartreStreet implements SceneStreet {
     for (let k = 0; k < 14; k++) {
       looks.push({
         width: 8 + Math.floor(random() * 4) * 2,
-        floors: 3 + Math.floor(random() * 3),
+        floors: 2 + Math.floor(random() * 5),
         render: RENDERS[k % RENDERS.length]!,
         shutters: SHUTTERS[(k * 3) % SHUTTERS.length]!,
         cafe: k % CAFES.length,
@@ -324,10 +329,22 @@ export class MontmartreStreet implements SceneStreet {
       });
     }
     const built = looks.map((look) => this.house(look));
+    const stairs = this.stairs();
     for (const side of [-1, 1] as const) {
       let offset = side > 0 ? 4 : 0;
       let k = side > 0 ? 3 : 0;
+      let nextStairs = 40;
       while (offset < LOOP - 6) {
+        // Between the houses on the left, now and then, a stair passage climbs the butte.
+        if (side < 0 && offset >= nextStairs) {
+          const holder = new Group();
+          holder.add(stairs.clone());
+          this.group.add(holder);
+          this.props.push({ mesh: holder, offset: offset + STAIRS_WIDTH / 2, x: -FRONT });
+          offset += STAIRS_WIDTH;
+          nextStairs += STAIRS_EVERY;
+          continue;
+        }
         const i = Math.floor(random() * looks.length);
         const look = looks[(i + k++) % looks.length]!;
         const width = look.width;
@@ -344,10 +361,58 @@ export class MontmartreStreet implements SceneStreet {
         this.props.push({
           mesh: holder,
           offset: centre,
-          x: side * (inSquare ? SQUARE_BACK : FRONT),
+          // Each front stands a little further back or forward than its neighbours.
+          x: side * (inSquare ? SQUARE_BACK : FRONT + random() * 1.4),
         });
       }
     }
+  }
+
+  /**
+   * A stair passage, its mouth at x = 0 facing +x: flights of stone steps climbing away from the
+   * street between the houses' side walls, a landing between them, an iron handrail up the middle
+   * and Paris lanterns on cast-iron posts either side.
+   */
+  private stairs(): Group {
+    const b = new Builder();
+    const stone = this.material({ color: 0xd8d2c4, roughness: 0.9 });
+    const iron = this.material({ color: 0x1a1c1e, roughness: 0.6, metalness: 0.4 });
+    const lamp = this.material({
+      color: 0xffe2a0,
+      emissive: new Color(0xffc870),
+      emissiveIntensity: 0.6,
+    });
+    const w = STAIRS_WIDTH - 0.4;
+    let y = 0;
+    let x = -0.2;
+    for (let k = 0; k < 34; k++) {
+      // A landing halfway up.
+      const tread = k === 16 ? 2.4 : 0.38;
+      y += 0.17;
+      b.box(stone, [tread, y, w], [x - tread / 2, y / 2, 0]);
+      x -= tread;
+    }
+    // The handrail up the middle on its posts.
+    const run = -x;
+    const slope = Math.atan2(y, run);
+    b.box(iron, [Math.hypot(run, y), 0.06, 0.06], [x / 2, y / 2 + 0.95, 0], -slope);
+    for (let k = 1; k < 8; k++) {
+      const px = (x * k) / 8;
+      b.box(iron, [0.05, 0.95, 0.05], [px, (y * k) / 8 + 0.47, 0]);
+    }
+    // Lanterns on cast-iron posts either side, at the foot and at the landing.
+    for (const [px, py] of [
+      [-0.6, 0.17],
+      [x * 0.48, y * 0.5],
+    ] as const) {
+      for (const pz of [-w / 2 + 0.3, w / 2 - 0.3]) {
+        b.box(iron, [0.14, 3.6, 0.14], [px, py + 1.8, pz]);
+        b.box(iron, [0.42, 0.1, 0.42], [px, py + 3.65, pz]);
+        b.box(lamp, [0.34, 0.5, 0.34], [px, py + 3.95, pz]);
+        b.box(iron, [0.46, 0.1, 0.46], [px, py + 4.25, pz]);
+      }
+    }
+    return b.build(this.disposables);
   }
 
   /** One house, its front at x = 0 facing +x, centred on z = 0. */
