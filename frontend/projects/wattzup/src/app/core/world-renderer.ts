@@ -1,6 +1,7 @@
 // The World Ride scene drawn with Three.js's WebGPU renderer, on WebGPU or its WebGL2 backend
-// (ADRs 0020, 0021). This is the only file that imports Three.js; it is loaded on demand through
-// world-renderer-loader.ts. Which techniques are drawn is decided by render-quality.ts (L2-111).
+// (ADRs 0020, 0021). It and the scene parts it builds (world-oldtown.ts, world-cyclist.ts) are the
+// only files that import Three.js; they are loaded on demand through world-renderer-loader.ts.
+// Which techniques are drawn is decided by render-quality.ts (L2-111).
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { ao } from 'three/addons/tsl/display/GTAONode.js';
@@ -118,7 +119,7 @@ const LOOKS: Record<WorldId, Look> = {
     turbidity: 1.6,
     rayleigh: 2.6,
     azimuth: -150,
-    light: { sun: 3.2, fill: 1.1, colour: 0xffeccc },
+    light: { sun: 3.5, fill: 1.0, colour: 0xffe2b6 },
     fogRange: [30, 430],
   },
   prairie: {
@@ -238,7 +239,6 @@ export class ThreeWorldRenderer implements WorldRenderer {
     await this.addPanorama(world);
     if (world.id === 'oldtown') this.addStreet();
     this.applyTier();
-    (window as unknown as { __wz: unknown }).__wz = this; // DEBUG-REMOVE
     return true;
   }
 

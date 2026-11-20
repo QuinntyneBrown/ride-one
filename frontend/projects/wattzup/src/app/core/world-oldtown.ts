@@ -61,7 +61,7 @@ const PALETTES: readonly Palette[] = [
   { wall: '#d99d91', trim: '#f7ebe3', shutter: '#53627a', flowers: '#f2f0e8' },
   { wall: '#aebdc8', trim: '#f2f2ee', shutter: null, flowers: '#d8283a' },
 ];
-const AWNINGS = ['#b8322c', '#2f6b4f', '#2d4e7a', '#c9822b', '#6b2f4f'];
+const AWNINGS = ['#b8322c', '#2f6b4f', '#2d4e7a', '#c9822b', '#6b2f4f', '#2a7d7a', '#d9a62e'];
 const SIGNS: readonly { ground: string; emblem: 'cup' | 'key' | 'loaf' | 'wheel' }[] = [
   { ground: '#2f5d4a', emblem: 'cup' },
   { ground: '#7a2b2b', emblem: 'key' },
@@ -89,6 +89,8 @@ const STREET_BANNERS: readonly (readonly [string, string, string])[] = [
 ];
 /** How wide an alley between two houses is. */
 const ALLEY = 3.2;
+const BELFRY_AHEAD = 260;
+const BELFRY_X = -13;
 const MOTO_AHEAD = 30;
 const MOTO_X = -2.3;
 const FORWARD = new Vector3(0, 0, 1);
@@ -119,6 +121,10 @@ const SHIRTS = [
   '#7a3f8f',
   '#1f2328',
   '#e07b39',
+  // Fans in the race's volt, and in club jerseys.
+  '#d7ff3a',
+  '#2a9fd6',
+  '#e8467c',
 ];
 const SKINS = ['#f1c7a5', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26'];
 const TROUSERS = ['#2b2f38', '#3b4a63', '#5a4a3a', '#1c1d20', '#8a8478'];
@@ -196,6 +202,8 @@ export class OldTownStreet {
   /** The television motorbike, riding ahead of the rider with its camera turned on them. */
   private readonly moto = new Group();
   private readonly swifts: Group[] = [];
+  /** A parish church's brick belfry over the roofs to the left, short of the cathedral. */
+  private readonly belfry = new Group();
   private readonly iron = new MeshStandardMaterial({
     color: 0x1e2023,
     metalness: 0.5,
@@ -291,6 +299,7 @@ export class OldTownStreet {
     this.addBunting();
     this.addCathedral();
     this.addMoto();
+    this.addBelfry();
     this.addSwifts();
     const kerb = this.material(this.track(kerbTexture()));
     const pavement = this.material(this.track(slabTexture()));
@@ -300,6 +309,9 @@ export class OldTownStreet {
       texture.repeat.set(-1, -side / 24);
       const material = this.material(texture);
       material.alphaTest = 0.5;
+      // Printed vinyl: a soft sheen that catches the low sun along the barriers.
+      material.roughness = 0.5;
+      material.metalness = 0.05;
       return material;
     });
     const damp = new MeshStandardMaterial({
@@ -504,6 +516,7 @@ export class OldTownStreet {
     this.placeBunting(s, heightAt);
     this.cathedral.position.set(CATHEDRAL_X, heightAt(1e6) - 2, -CATHEDRAL_AHEAD);
     this.moto.position.set(MOTO_X, heightAt(MOTO_AHEAD), -MOTO_AHEAD);
+    this.belfry.position.set(BELFRY_X, heightAt(1e6) - 2, -BELFRY_AHEAD);
     // The swifts wheel over the roofs, a turn for every 60 m ridden.
     this.swifts.forEach((bird, i) => {
       const a = s / 60 + i * 2.4;
@@ -832,6 +845,50 @@ export class OldTownStreet {
     }
   }
 
+  /** The belfry: a square brick tower, its louvred stage and a slate spire, hazed by distance. */
+  private addBelfry(): void {
+    const haze = new Color(0xdcd8cf);
+    const tone = (hex: number) => {
+      const material = new MeshStandardMaterial({ roughness: 0.95, fog: false });
+      material.color.set(hex).lerp(haze, 0.32);
+      this.disposables.push(material);
+      return material;
+    };
+    const brick = tone(0xa0563e);
+    const stone = tone(0xd9cfb8);
+    const slate = tone(0x4b545e);
+    const b = this.belfry;
+    const block = (m: Material, w: number, h: number, y: number) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, w);
+      mesh.position.y = y + h / 2;
+      b.add(mesh);
+    };
+    block(brick, 9, 34, 0);
+    block(stone, 9.6, 0.8, 34);
+    block(brick, 8, 9, 34.8);
+    block(stone, 8.6, 0.8, 43.8);
+    const spire = new ConeGeometry(6, 22, 8);
+    this.disposables.push(spire);
+    const top = new Mesh(spire, slate);
+    top.position.y = 44.6 + 11;
+    b.add(top);
+    // The louvred openings of the bell stage, dark on each face.
+    for (const [x, z] of [
+      [4.05, 0],
+      [-4.05, 0],
+      [0, 4.05],
+      [0, -4.05],
+    ] as const) {
+      const louvre = new Mesh(this.unit, this.iron);
+      louvre.scale.set(x ? 0.1 : 2.4, 5, z ? 0.1 : 2.4);
+      louvre.position.set(x, 39.5, z);
+      b.add(louvre);
+    }
+    this.flatten(b);
+    this.group.add(b);
+  }
+
   /** A dozen swifts: dark crescents on swept wings, high over the street ahead. */
   private addSwifts(): void {
     const wing = new BoxGeometry(0.42, 0.02, 0.1);
@@ -890,6 +947,20 @@ export class OldTownStreet {
     // A mast with the camera's transmitter.
     box(black, 0.03, 1.3, 0.03, 1.6, 0.85).position.x = -0.2;
     box(white, 0.18, 0.18, 0.18, 2.3, 0.85).position.x = -0.2;
+    // The board on the back, facing the riders, and an amber beacon on the mast.
+    const board = new MeshStandardMaterial({ map: this.track(tvBoardTexture()), roughness: 0.5 });
+    const amber = new MeshStandardMaterial({
+      color: 0xffa21a,
+      emissive: 0xff8a00,
+      emissiveIntensity: 0.8,
+    });
+    const plate = new PlaneGeometry(0.5, 0.36);
+    const beacon = new SphereGeometry(0.07, 10, 6);
+    this.disposables.push(board, amber, plate, beacon);
+    const back = new Mesh(plate, board);
+    back.position.set(0, 0.95, 0.66);
+    m.add(back);
+    add(beacon, amber, -0.2, 2.45, 0.85);
     this.flatten(m);
     this.group.add(m);
   }
@@ -2091,6 +2162,26 @@ function gothicTexture(open: boolean): CanvasTexture {
         ctx.fillStyle = '#3a3c44';
       }
     }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** The TV moto's back board: white letters on the broadcaster's blue. */
+function tvBoardTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 100;
+  canvas.height = 72;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#2456a6';
+    ctx.fillRect(0, 0, 100, 72);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 44px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TV', 50, 38);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
