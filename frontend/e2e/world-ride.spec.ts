@@ -732,6 +732,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Winnats Pass');
   });
 
+  test('rides Ramp It Up: Punchy Intervals up the painted wall of La Redoute', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Ramp It Up: Punchy Intervals',
+      'La Redoute',
+      'ramp-it-up-punchy-intervals',
+    );
+    await expect(world.heading).toHaveText('La Redoute');
+    await expect(world.boardTitle).toHaveText('Riders nearby · La Redoute');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

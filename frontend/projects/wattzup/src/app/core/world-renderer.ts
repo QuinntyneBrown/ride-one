@@ -1151,6 +1151,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.7, fill: 1.8, colour: 0xfff4e4 },
     fogRange: [600, 6000],
   },
+  // Race day in April in the Ardennes: a bright, broken spring sky over woods just coming into leaf.
+  redoute: {
+    sky: 0x7aa4d8,
+    fog: 0xd4dce0,
+    ground: 0x6a6a44,
+    road: 0x5a5a5c,
+    sun: 38,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 1.4,
+    azimuth: 160,
+    light: { sun: 2.6, fill: 1.8, colour: 0xfff4e4 },
+    fogRange: [400, 4000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
