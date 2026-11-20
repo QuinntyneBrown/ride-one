@@ -2225,7 +2225,11 @@ class Sitters {
   private readonly bodies: InstancedMesh;
   private readonly heads: InstancedMesh;
   private readonly rods: InstancedMesh;
+  private readonly hair: InstancedMesh;
+  private readonly hats: InstancedMesh;
+  private readonly hatted: boolean[] = [];
   private readonly matrix = new Matrix4();
+  private readonly hidden = new Matrix4();
   private readonly spot = new Vector3();
   private readonly turn = new Quaternion();
   private readonly one = new Vector3(1, 1, 1);
@@ -2250,10 +2254,49 @@ class Sitters {
     }
     const legs = mergeGeometries(parts)!;
     parts.forEach((g) => g.dispose());
-    const body = new CapsuleGeometry(0.19, 0.36, 4, 10);
-    body.translate(0, 0.48, 0.04);
-    const head = new SphereGeometry(0.115, 12, 10);
-    head.translate(0, 0.98, 0.0);
+    // A torso with shoulders, leaning a little forward, and both arms reaching down and out to
+    // hold the rod (or rest on the knees), sleeved in the shirt's colour.
+    const torso = new CapsuleGeometry(0.16, 0.34, 4, 10);
+    torso.scale(1.18, 1, 0.8);
+    torso.rotateX(-0.12);
+    torso.translate(0, 0.48, 0.04);
+    const arms: BufferGeometry[] = [torso];
+    for (const side of [-1, 1]) {
+      const upper = new CapsuleGeometry(0.05, 0.26, 3, 6);
+      upper.rotateX(0.5);
+      upper.rotateZ(side * 0.15);
+      upper.translate(side * 0.23, 0.6, -0.08);
+      const fore = new CapsuleGeometry(0.045, 0.24, 3, 6);
+      fore.rotateX(1.3);
+      fore.translate(side * 0.18, 0.45, -0.3);
+      arms.push(upper, fore);
+    }
+    const body = mergeGeometries(arms)!;
+    arms.forEach((g) => g.dispose());
+    // The head and neck, and the hands at the rod's butt, all in skin.
+    const skin: BufferGeometry[] = [];
+    const face = new SphereGeometry(0.11, 12, 10);
+    face.scale(0.92, 1.05, 1);
+    face.translate(0, 0.98, -0.02);
+    const neck = new CylinderGeometry(0.05, 0.055, 0.1, 8);
+    neck.translate(0, 0.86, 0.01);
+    skin.push(face, neck);
+    for (const side of [-1, 1]) {
+      const hand = new SphereGeometry(0.05, 8, 6);
+      hand.translate(side * 0.12, 0.42, -0.43);
+      skin.push(hand);
+    }
+    const head = mergeGeometries(skin)!;
+    skin.forEach((g) => g.dispose());
+    const cap = new SphereGeometry(0.118, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    cap.translate(0, 0.99, 0);
+    const brim = new CylinderGeometry(0.22, 0.22, 0.02, 14);
+    const crown = new CylinderGeometry(0.1, 0.12, 0.1, 12);
+    crown.translate(0, 0.06, 0);
+    const hat = mergeGeometries([brim, crown])!;
+    brim.dispose();
+    crown.dispose();
+    hat.translate(0, 1.07, -0.01);
     // The rod from the hands, up and out at forty degrees, and the line down from its tip.
     const rod = new CylinderGeometry(0.012, 0.02, 3.6, 5);
     rod.translate(0, 1.8, 0);
@@ -2277,6 +2320,9 @@ class Sitters {
     this.bodies = make(body, new MeshStandardMaterial({ roughness: 0.85 }), n);
     this.heads = make(head, new MeshStandardMaterial({ roughness: 0.7 }), n);
     this.rods = make(tackle, new MeshStandardMaterial({ color: 0x3a3226, roughness: 0.6 }), n);
+    this.hair = make(cap, new MeshStandardMaterial({ roughness: 0.95 }), n);
+    this.hats = make(hat, new MeshStandardMaterial({ roughness: 0.9 }), n);
+    const hairs = ['#1a1410', '#2a1d14', '#4a3020', '#8a8580', '#1a1a1a'];
     const random = seeded(seed);
     const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
     const c = new Color();
@@ -2284,6 +2330,9 @@ class Sitters {
       this.bodies.setColorAt(i, c.set(pick(wardrobe.tops)));
       this.legs.setColorAt(i, c.set(pick(wardrobe.bottoms)));
       this.heads.setColorAt(i, c.set(pick(wardrobe.skins)));
+      this.hair.setColorAt(i, c.set(pick(hairs)));
+      this.hats.setColorAt(i, c.set(random() < 0.7 ? '#e8d8a8' : pick(wardrobe.tops)));
+      this.hatted.push(random() < 0.5);
     }
   }
 
@@ -2295,12 +2344,15 @@ class Sitters {
     this.legs.setMatrixAt(i, this.matrix);
     this.bodies.setMatrixAt(i, this.matrix);
     this.heads.setMatrixAt(i, this.matrix);
+    this.hair.setMatrixAt(i, this.matrix);
+    if (this.hatted[i]) this.hats.setMatrixAt(i, this.matrix);
+    else this.hats.setMatrixAt(i, this.hidden.compose(this.spot, this.turn, this.none));
     if (!this.people[i]!.rod) this.matrix.compose(this.spot, this.turn, this.none);
     this.rods.setMatrixAt(i, this.matrix);
   }
 
   commit(): void {
-    for (const mesh of [this.legs, this.bodies, this.heads, this.rods]) {
+    for (const mesh of [this.legs, this.bodies, this.heads, this.rods, this.hair, this.hats]) {
       mesh.instanceMatrix.needsUpdate = true;
     }
   }
