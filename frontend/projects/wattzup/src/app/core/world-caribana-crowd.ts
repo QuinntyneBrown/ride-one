@@ -167,6 +167,11 @@ const STANCES: readonly (readonly [readonly number[], readonly number[]])[] = [
     [-0.2, 1.1, -0.14, 0.12, 1.18, -0.2],
     [0.2, 1.1, -0.14, -0.12, 1.22, -0.21],
   ],
+  // A placard held up over the head in both hands.
+  [
+    [-0.3, 1.6, -0.08, -0.26, 1.93, -0.14],
+    [0.3, 1.6, -0.08, 0.26, 1.93, -0.14],
+  ],
 ];
 const FLAG_STANCE = 1;
 const PHONE_STANCE = 3;
@@ -174,6 +179,19 @@ const LEAN_STANCE = 4;
 const SELFIE_STANCE = 5;
 const CLAP_STANCE = 6;
 const FOLDED_STANCE = 7;
+const PLACARD_STANCE = 8;
+
+/** What the crowd writes on its placards, and the card it is written on. */
+const PLACARDS = [
+  ['TRINI TO', 'DE BONE!', '#ffffff', '#ce1126'],
+  ['BIG UP', 'JAMAICA', '#fed100', '#009b3a'],
+  ['BAJAN &', 'PROUD', '#ffffff', '#00267f'],
+  ['GUYANA IN', 'DE HOUSE', '#fcd116', '#009e49'],
+  ['VINCY', 'POWER!', '#ffffff', '#0072c6'],
+  ['HAPPY', 'CARIBANA!', '#ff7ab8', '#111111'],
+  ['WE LIKE', 'IT!!', '#ffffff', '#111111'],
+  ['GRENADA', 'SPICE!', '#fcd116', '#ce1126'],
+] as const;
 
 const HAIRS = ['#14100d', '#1f1712', '#2e2018', '#3d2a1c', '#6b4a2b', '#0c0c0c'];
 const CAPS = ['#c8102e', '#111111', '#ffd23f', '#1b6ad8', '#ffffff', '#0f9d58'];
@@ -277,6 +295,34 @@ export function faceTexture(): CanvasTexture {
     g.beginPath();
     g.ellipse(64, 50, 9, 3.2, 0, 0, Math.PI * 2);
     g.fill();
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A hand-made placard: two lines in marker on a card, a little crooked. */
+function placardTexture(top: string, bottom: string, fill: string, ink: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 172;
+  const g = canvas.getContext('2d');
+  if (g) {
+    g.fillStyle = fill;
+    g.fillRect(0, 0, 256, 172);
+    g.strokeStyle = 'rgba(0,0,0,0.25)';
+    g.lineWidth = 3;
+    g.strokeRect(2, 2, 252, 168);
+    g.save();
+    g.translate(128, 86);
+    g.rotate(-0.05);
+    g.fillStyle = ink;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 50px "Comic Sans MS", "Marker Felt", system-ui, sans-serif';
+    g.fillText(top, 0, -34, 236);
+    g.fillText(bottom, 4, 30, 236);
+    g.restore();
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -413,7 +459,9 @@ export class Spectators {
       const front = Math.abs(p.x) < o.near + 0.3 && p.height > 0.9;
       const roll = habits();
       if (front && p.stance === 0 && roll < 0.4) this.people[i] = { ...p, stance: LEAN_STANCE };
-      else if (p.stance === 0 && roll > 0.4 && roll < 0.62) {
+      else if (p.stance === 2 && p.height > 0.9 && roll < 0.3) {
+        this.people[i] = { ...p, stance: PLACARD_STANCE };
+      } else if (p.stance === 0 && roll > 0.4 && roll < 0.62) {
         this.people[i] = { ...p, stance: CLAP_STANCE };
       } else if (p.stance === 0 && p.height > 0.9 && roll > 0.62 && roll < 0.72) {
         this.people[i] = { ...p, stance: FOLDED_STANCE };
@@ -437,6 +485,14 @@ export class Spectators {
     const hairs = hairParts();
     const handset = new BoxGeometry(0.075, 0.14, 0.012);
     handset.translate(0, 1.56, -0.37);
+    const card = new PlaneGeometry(0.72, 0.48);
+    card.rotateY(Math.PI);
+    card.rotateX(0.12);
+    card.translate(0, 2.12, -0.16);
+    const placards = PLACARDS.map(([a, b, fill, ink]) =>
+      this.material({ map: placardTexture(a, b, fill, ink), roughness: 0.8, side: DoubleSide }),
+    );
+    this.disposables.push(card, ...placards.map((m) => m.map!));
     const selfie = new BoxGeometry(0.075, 0.14, 0.012);
     selfie.rotateX(0.5);
     selfie.translate(0.3, 1.79, -0.58);
@@ -496,6 +552,10 @@ export class Spectators {
       else this.ensemble.put(i, `hair${style}`, hairs[style]!, hair, colour);
       if (p.stance === PHONE_STANCE) this.ensemble.put(i, 'phone', handset, phone, '#ffffff');
       if (p.stance === SELFIE_STANCE) this.ensemble.put(i, 'selfie', selfie, phone, '#ffffff');
+      if (p.stance === PLACARD_STANCE) {
+        const k = Math.floor(extra() * placards.length);
+        this.ensemble.put(i, `placard${k}`, card, placards[k]!, '#ffffff');
+      }
       this.ensemble.put(i, 'face', face, features, '#ffffff');
       if (extra() < 0.3) this.ensemble.put(i, 'shades', shades, glasses, '#ffffff');
       const grown = p.height > 0.9;
