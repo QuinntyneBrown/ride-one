@@ -11,6 +11,7 @@
 // feather flags, pop-up tents, salt crust, road paint and box builder of world-kit.ts.
 import {
   AdditiveBlending,
+  BufferAttribute,
   type BufferGeometry,
   type CanvasTexture,
   Color,
@@ -482,22 +483,42 @@ export class DeathValleyStreet implements SceneStreet {
       new Mesh(panamint, this.distant(haze, 0x9a8a9e, 0.45)),
       new Mesh(cap, this.distant(haze, 0xffffff, 0.15)),
     );
-    // The dunes ahead: rippled sand, crest behind crest, sharp on their lee sides.
-    const dunes = new PlaneGeometry(1600, 800, 160, 80);
+    // The dunes ahead, rising out of the heat at the end of the road: transverse ridges driven by
+    // the wind, each a long gentle windward slope up to a knife-edge crest and a steep slip face
+    // falling away beyond it, heaped into great mounds. The slip faces lie in shade, the crests
+    // catch the light, so the field reads ridge behind ridge.
+    const dunes = new PlaneGeometry(1000, 800, 200, 160);
     dunes.rotateX(-Math.PI / 2);
     const position = dunes.getAttribute('position');
+    const shade = new Float32Array(position.count * 3);
+    const sand = new Color(0xffffff);
     for (let i = 0; i < position.count; i++) {
       const x = position.getX(i);
       const z = position.getZ(i);
-      const ridge = Math.abs(Math.sin(x / 70 + z / 90 + Math.sin(z / 55) * 0.8));
-      const swell = 0.5 + 0.5 * Math.sin(x / 210 - z / 160);
-      const edge = Math.min(1, (z + 400) / 220, (360 - Math.abs(x)) / 220);
-      position.setY(i, Math.max(0, edge) * (10 + 75 * swell * ridge ** 1.6) - 3);
+      const wave = (x * 0.8 + z * 0.6) / 70 + 0.7 * Math.sin(z / 130) + 0.4 * Math.sin(x / 85);
+      const u = wave - Math.floor(wave);
+      const slip = u > 0.78;
+      const profile = slip ? (1 - u) / 0.22 : u / 0.78;
+      const mound = 0.5 + 0.5 * Math.sin(x / 190 - z / 230 + 1.2);
+      const edge = Math.max(0, Math.min(1, (z + 400) / 200, (300 - Math.abs(x)) / 140));
+      position.setY(i, edge * (8 + 100 * mound * (0.3 + 0.7 * profile)) - 3);
+      const tone = slip ? 0.66 : 0.88 + 0.16 * profile;
+      sand.setRGB(tone, tone * 0.97, tone * 0.93);
+      sand.toArray(shade, i * 3);
     }
+    dunes.setAttribute('color', new BufferAttribute(shade, 3));
     dunes.computeVertexNormals();
-    dunes.translate(-20, 0, -720);
+    dunes.translate(-10, 0, -520);
     this.disposables.push(dunes);
-    h.add(new Mesh(dunes, hazedMaterial(this.disposables, haze, 0xe8b878, 0.18, { roughness: 1 })));
+    h.add(
+      new Mesh(
+        dunes,
+        hazedMaterial(this.disposables, haze, 0xf0be7a, 0.12, {
+          roughness: 1,
+          vertexColors: true,
+        }),
+      ),
+    );
     // The mirage on the road ahead: a pale sheen of the sky lying on the asphalt, wavering.
     const sheen = new PlaneGeometry(26, 150);
     sheen.rotateX(-Math.PI / 2);

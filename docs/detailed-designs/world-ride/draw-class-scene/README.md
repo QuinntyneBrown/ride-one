@@ -609,7 +609,7 @@ None.
   - the event's barriers (DEATH VALLEY, SUFFERFEST, WATTZUP, BADWATER, -282 FT, FEEL THE HEAT), the kit's feather flags along them, two banners across the road (SUFFERFEST · DEATH VALLEY, WATTZUP · BADWATER -282 FT), and knots of fans in white, khaki and hi-vis braving the heat;
   - on the left the white salt crust of Badwater Basin cracked into polygons (the kit's salt crust, moved from Bonneville), glaring in the overhead sun out across the valley with the ground plane sunk 2 m below it (`sink`), the aid tents (the kit's pop-up tents: WATER, ICE, SUFFERFEST, WATTZUP) every 120 m, and the park's brown sign, BADWATER BASIN · ELEVATION −282 FEET;
   - on the right the gravel fans climbing toward the mountains, scattered with creosote bushes, and the giant thermometer, a white pillar 12 m tall reading 120°F;
-  - beyond, hazed by hand: the dark, banded walls of the Black Mountains along the right, a paler wall behind them, the Panamint Range across the salt on the left with Telescope Peak capped in snow, the golden dunes rising crest behind crest ahead, and a mirage wavering on the road before them. Everything along the road is hidden past 218 m.
+  - beyond, hazed by hand: the dark, banded walls of the Black Mountains along the right, a paler wall behind them, the Panamint Range across the salt on the left with Telescope Peak capped in snow, the golden dunes rising ahead, transverse ridges up to 100 m tall, each a long sunlit windward slope to a knife-edge crest and a steep slip face in shade (vertex-coloured), heaped into great mounds, and a mirage wavering on the road before them. Everything along the road is hidden past 218 m.
 
   `lay`, `place` and `setTime` recycle it along a 480 m loop.
 
