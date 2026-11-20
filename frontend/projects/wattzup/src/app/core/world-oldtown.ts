@@ -223,6 +223,7 @@ export class OldTownStreet {
   /** Half a disc, its flat edge up: one scallop of an awning's hem. */
   private readonly scallop = new CircleGeometry(0.15, 10, Math.PI, Math.PI);
   private readonly finial = new SphereGeometry(0.16, 8, 6);
+  private readonly chimneyPot = new CylinderGeometry(0.1, 0.13, 0.4, 8);
   private readonly oculus = new CylinderGeometry(0.4, 0.4, 0.04, 16);
   private readonly pot = new CylinderGeometry(0.24, 0.18, 0.5, 10);
   private readonly bush = new SphereGeometry(0.42, 10, 8);
@@ -301,9 +302,23 @@ export class OldTownStreet {
       material.alphaTest = 0.5;
       return material;
     });
+    const damp = new MeshStandardMaterial({
+      color: 0x2a2622,
+      roughness: 0.2,
+      metalness: 0.1,
+      // The ribbons on the two sides wind opposite ways: both faces must draw.
+      side: DoubleSide,
+      alphaMap: this.track(dampTexture()),
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+    });
+    this.disposables.push(damp);
     const foot = new MeshBasicMaterial({
       color: 0x1a1612,
       alphaMap: this.track(cornerTexture()),
+      side: DoubleSide,
       transparent: true,
       depthWrite: false,
       polygonOffset: true,
@@ -323,6 +338,11 @@ export class OldTownStreet {
       this.ribbon(points, pavement, [
         [x(roadHalf + KERB_TOP), KERB],
         [x(FRONTAGE + 0.5), KERB],
+      ]);
+      // A damp line along the gutter, darker and glossier than the dry setts beside it.
+      this.ribbon(points, damp, [
+        [x(roadHalf - 0.4), 0.004],
+        [x(roadHalf), 0.004],
       ]);
       // Shade where the pavement meets the houses, as ambient light fails into the corner.
       this.ribbon(points, foot, [
@@ -922,6 +942,31 @@ export class OldTownStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: 38 + i * 97, every: LOOP, x });
     });
+    // Cast-iron covers set in the setts, a few to a lap.
+    const plate = new CircleGeometry(0.4, 24);
+    const iron = new MeshStandardMaterial({
+      map: this.track(coverTexture()),
+      roughness: 0.55,
+      metalness: 0.5,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    this.disposables.push(plate, iron);
+    for (const [offset, x] of [
+      [33, 1.4],
+      [150, -1.1],
+      [290, 0.6],
+    ] as const) {
+      const cover = new Mesh(plate, iron);
+      cover.rotation.x = -Math.PI / 2;
+      cover.scale.y = 1;
+      cover.position.y = -KERB + 0.008;
+      cover.receiveShadow = true;
+      const holder = new Group();
+      holder.add(cover);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, every: LOOP, x });
+    }
   }
 
   /** Iron lamp posts along both pavements, each with a hanging basket and a pennant. */
@@ -1061,6 +1106,13 @@ export class OldTownStreet {
       const pot = new Mesh(this.unit, this.brick);
       pot.scale.set(0.82, 0.14, 1.02);
       pot.position.set(x, base + 1.2, z);
+      // Two clay chimney pots on each stack's cap.
+      for (const dz of [-0.22, 0.22]) {
+        const clay = new Mesh(this.chimneyPot, this.terracotta);
+        clay.position.set(x, base + 1.45, z + dz);
+        clay.castShadow = true;
+        group.add(clay);
+      }
       stack.castShadow = true;
       group.add(stack, pot);
     }
@@ -2045,6 +2097,43 @@ function gothicTexture(open: boolean): CanvasTexture {
   return texture;
 }
 
+/** A cast-iron cover: a raised ring, a cross-hatched field and the water board's letters. */
+function coverTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#3c3a38';
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.strokeStyle = '#6a6762';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(64, 64, 58, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#55524e';
+    for (let i = -64; i < 64; i += 10) {
+      ctx.beginPath();
+      ctx.moveTo(64 + i, 8);
+      ctx.lineTo(64 + i + 40, 120);
+      ctx.moveTo(64 + i + 40, 8);
+      ctx.lineTo(64 + i, 120);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#3c3a38';
+    ctx.fillRect(34, 52, 60, 24);
+    ctx.fillStyle = '#77736c';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('EAU', 64, 65);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 /** A slogan in road paint: rough-edged capitals, worn by the tyres that have crossed it. */
 function paintTexture(text: string, colour: string): CanvasTexture {
   const canvas = document.createElement('canvas');
@@ -2227,6 +2316,31 @@ function kerbTexture(): CanvasTexture {
   // A metre of kerb across its face and top, four stones along every four metres.
   texture.repeat.set(1 / 0.4, 1 / 4);
   texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A gutter's damp line across 40 cm: clear on the road side, wettest against the kerb. */
+function dampTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const wet = ctx.createLinearGradient(0, 0, 64, 0);
+    wet.addColorStop(0, '#000');
+    wet.addColorStop(0.4, '#5a5a5a');
+    wet.addColorStop(1, '#d0d0d0');
+    ctx.fillStyle = wet;
+    ctx.fillRect(0, 0, 64, 64);
+    // Dry breaks along it, where the water has run off.
+    const random = seeded(89);
+    ctx.fillStyle = '#000';
+    for (let i = 0; i < 6; i++) ctx.fillRect(0, random() * 64, 64, 2 + random() * 6);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.repeat.set(1 / 0.4, 1 / 6);
   return texture;
 }
 
