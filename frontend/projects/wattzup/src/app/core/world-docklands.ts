@@ -14,6 +14,7 @@ import {
   ConeGeometry,
   CylinderGeometry,
   IcosahedronGeometry,
+  InstancedMesh,
   DoubleSide,
   Group,
   LineBasicMaterial,
@@ -24,6 +25,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  Object3D,
   PlaneGeometry,
   RepeatWrapping,
   RingGeometry,
@@ -143,6 +145,22 @@ const MACHINE_COLOURS: readonly string[] = ['#ff3b5c', '#2f7dff', '#ffb347', '#2
 /** The giant neon cyclist: where it hangs over the street's far end, its length (m) and its
  * cadence (radians a second, about 80 rpm). */
 const CYCLIST_AT = [0, 250, -640] as const;
+/**
+ * Fireworks over the harbour, on the far shore's side: where each bursts (m), its colour and
+ * how far through the show it starts.
+ */
+const FIREWORKS: readonly { at: readonly [number, number, number]; hex: string; from: number }[] = [
+  { at: [-196, 283, -700], hex: '#ff4fd8', from: 0 },
+  { at: [-374, 230, -700], hex: '#5ff2ff', from: 0.38 },
+  { at: [-383, 140, -700], hex: '#ffd23a', from: 0.7 },
+];
+/** Sparks in each burst, the show's length (s), the part spent climbing and the burst's reach (m). */
+const FIREWORK_SPARKS = 240;
+const FIREWORK_PERIOD = 5.5;
+const FIREWORK_RISE = 0.2;
+const FIREWORK_REACH = 60;
+/** Each spark's glow, across (m). */
+const FIREWORK_SPARK = 9;
 const CYCLIST_SIZE = 72;
 const CYCLIST_CADENCE = 8.4;
 /** The moon: where it hangs (beyond the clouds, inside the sky's dome) and how big it is (m). */
@@ -440,6 +458,7 @@ export class DocklandsStreet {
     this.stroll(still ? 0 : seconds);
     this.swim(still ? 0 : seconds);
     this.pedal(still ? 0 : seconds);
+    this.burst(seconds, still);
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -474,6 +493,14 @@ export class DocklandsStreet {
   }
   private readonly searchlights: Group[] = [];
   private readonly wheel = new Group();
+  /** The fireworks over the harbour: each burst's sparks, centre, start and spark directions. */
+  private readonly fireworks: {
+    sparks: InstancedMesh;
+    at: readonly [number, number, number];
+    from: number;
+    directions: number[];
+  }[] = [];
+  private readonly sparkDummy = new Object3D();
   /** The giant neon cyclist's pedalling parts: cranks, and each leg's thigh and shin. */
   private cyclist: { crank: Group; legs: { thigh: Mesh; shin: Mesh; side: number }[] } | null =
     null;
@@ -1579,6 +1606,7 @@ export class DocklandsStreet {
     this.addClouds();
     this.addMoon();
     this.addCyclistSign();
+    this.addFireworks();
     this.addBoats(roadHalf + SETBACK + 2);
     this.addSkytrain(roadHalf);
     this.addDeckLamps(roadHalf);
@@ -3161,6 +3189,88 @@ export class DocklandsStreet {
     const [x, y, z] = CYCLIST_AT;
     sign.position.set(x, y, z);
     this.farShore.add(sign);
+  }
+
+  /**
+   * Fireworks over the harbour: each shell climbs from the far shore, bursts into a sphere of
+   * glowing sparks that spreads, sags and fades, then the next goes up. Held mid-burst when the
+   * clock is still, as for reduced motion.
+   */
+  private addFireworks(): void {
+    const random = seeded(389);
+    this.glow ??= this.track(glowTexture());
+    const glow = this.glow;
+    const spark = new PlaneGeometry(FIREWORK_SPARK, FIREWORK_SPARK);
+    this.disposables.push(spark);
+    for (const { at, hex, from } of FIREWORKS) {
+      const directions: number[] = [];
+      for (let k = 0; k < FIREWORK_SPARKS; k++) {
+        // Evenly over a sphere, each spark a little faster or slower than the rest.
+        const y = random() * 2 - 1;
+        const around = random() * Math.PI * 2;
+        const flat = Math.sqrt(1 - y * y);
+        const speed = 0.75 + random() * 0.25;
+        directions.push(
+          flat * Math.cos(around) * speed,
+          y * speed,
+          flat * Math.sin(around) * speed,
+        );
+      }
+      // Each spark a small glowing quad facing the rider: point sizes are not honoured by every
+      // renderer backend, so points would shrink to single pixels.
+      const material = new MeshBasicMaterial({
+        color: new Color(hex).multiplyScalar(3),
+        map: glow,
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        fog: false,
+        toneMapped: false,
+      });
+      this.disposables.push(material);
+      const sparks = new InstancedMesh(spark, material, FIREWORK_SPARKS);
+      sparks.frustumCulled = false;
+      this.farShore.add(sparks);
+      this.fireworks.push({ sparks, at, from, directions });
+    }
+    this.burst(0, true);
+  }
+
+  /** Moves each firework's sparks to where they are `seconds` into the show. */
+  private burst(seconds: number, still: boolean): void {
+    const dummy = this.sparkDummy;
+    for (const { sparks, at, from, directions } of this.fireworks) {
+      const t = still ? 0.45 : (seconds / FIREWORK_PERIOD + from) % 1;
+      const material = sparks.material as MeshBasicMaterial;
+      const put = (k: number, px: number, py: number, pz: number) => {
+        dummy.position.set(px, py, pz);
+        dummy.updateMatrix();
+        sparks.setMatrixAt(k, dummy.matrix);
+      };
+      const [x, y, z] = at;
+      if (t < FIREWORK_RISE) {
+        // The shell climbing: its sparks bunched in a short trail beneath it.
+        const top = y - (1 - t / FIREWORK_RISE) * 110;
+        for (let k = 0; k < FIREWORK_SPARKS; k++) {
+          put(k, x, top - (k % 14) * 0.9, z);
+        }
+        material.opacity = 0.8;
+      } else {
+        const u = (t - FIREWORK_RISE) / (1 - FIREWORK_RISE);
+        const reach = FIREWORK_REACH * (1 - (1 - u) ** 3);
+        const sag = 50 * u * u;
+        for (let k = 0; k < FIREWORK_SPARKS; k++) {
+          put(
+            k,
+            x + directions[k * 3]! * reach,
+            y + directions[k * 3 + 1]! * reach - sag,
+            z + directions[k * 3 + 2]! * reach,
+          );
+        }
+        material.opacity = (1 - u) ** 1.4;
+      }
+      sparks.instanceMatrix.needsUpdate = true;
+    }
   }
 
   /** Turns the neon cyclist's cranks and bends its legs to follow the pedals. */
