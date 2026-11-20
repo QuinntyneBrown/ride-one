@@ -36,6 +36,8 @@ import {
   type BannerPanel,
   canvasTexture,
   clothBannerTexture,
+  FeatherFlags,
+  type FeatherWord,
   Crowd,
   Figures,
   hazedMaterial,
@@ -139,7 +141,7 @@ const STREET_BANNERS: readonly (readonly [string, string, string])[] = [
   ['10 ON · 20 OFF', '#ffbf3c', '#1b1e24'],
 ];
 /** Feather flags along the barriers: their colour and the word down them. */
-const FEATHERS: readonly (readonly [string, string, string])[] = [
+const FEATHERS: readonly FeatherWord[] = [
   ['SPRINT', '#ff5d8f', '#ffffff'],
   ['VENICE', '#2ec4b6', '#ffffff'],
   ['GO', '#ffbf3c', '#1b1e24'],
@@ -684,27 +686,11 @@ export class VeniceStreet implements SceneStreet {
 
   /** Feather flags on the barriers, a word down each. */
   private addFeatherFlags(): void {
-    const pole = new CylinderGeometry(0.025, 0.025, 4, 6);
-    pole.translate(0, 2, 0);
-    const cloth = new PlaneGeometry(0.75, 3);
-    cloth.translate(0.38, 2.4, 0);
-    this.disposables.push(pole, cloth);
-    const steel = this.material({ color: 0x9aa0a6, metalness: 0.5, roughness: 0.4 });
-    const cloths = FEATHERS.map(([word, fill, ink]) =>
-      this.material({
-        map: this.track(featherTexture(word, fill, ink)),
-        alphaTest: 0.5,
-        side: DoubleSide,
-        roughness: 0.8,
-      }),
-    );
+    const feathers = new FeatherFlags(this.disposables, this.track, FEATHERS);
     let k = 0;
     for (const side of [-1, 1] as const) {
       for (let offset = 6; offset < LOOP; offset += 16) {
-        const flag = new Group();
-        const c = new Mesh(cloth, cloths[k++ % cloths.length]!);
-        c.rotation.y = Math.PI / 2;
-        flag.add(new Mesh(pole, steel), c);
+        const flag = feathers.make(k++);
         flag.position.y = side > 0 ? KERB : 0.1;
         const holder = new Group();
         holder.add(flag);
@@ -1327,30 +1313,6 @@ function fanTexture(): CanvasTexture {
       g.lineTo(128 - Math.cos(a) * 125, 250 - Math.sin(a) * 240);
       g.stroke();
     }
-  });
-}
-
-/** A feather flag's teardrop, `word` down it, on a clear ground. */
-function featherTexture(word: string, fill: string, ink: string): CanvasTexture {
-  return canvasTexture(128, 512, (g) => {
-    g.fillStyle = fill;
-    g.beginPath();
-    g.moveTo(4, 508);
-    g.lineTo(4, 40);
-    g.quadraticCurveTo(10, 4, 70, 8);
-    g.quadraticCurveTo(124, 20, 124, 120);
-    g.lineTo(100, 508);
-    g.closePath();
-    g.fill();
-    g.save();
-    g.translate(64, 280);
-    g.rotate(-Math.PI / 2);
-    g.fillStyle = ink;
-    g.font = 'bold 64px sans-serif';
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.fillText(word, 0, 0, 400);
-    g.restore();
   });
 }
 

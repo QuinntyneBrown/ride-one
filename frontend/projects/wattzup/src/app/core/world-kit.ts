@@ -10,7 +10,8 @@ import {
   CapsuleGeometry,
   Color,
   CylinderGeometry,
-  type Group,
+  DoubleSide,
+  Group,
   InstancedMesh,
   type Material,
   Matrix4,
@@ -641,5 +642,74 @@ function mistTexture(curtain: boolean): CanvasTexture {
       g.fillStyle = blot;
       g.fillRect(0, 0, 256, 256);
     }
+  });
+}
+
+/** A feather flag's colour and the word down it: the word, the cloth's fill and the ink. */
+export type FeatherWord = readonly [string, string, string];
+
+/**
+ * Feather flags, the race's tall teardrop flags on slim steel poles, a word down each. `make(k)`
+ * returns the k-th flag standing at its group's origin, cycling through the words; the street
+ * places it.
+ */
+export class FeatherFlags {
+  private readonly pole = new CylinderGeometry(0.025, 0.025, 4, 6).translate(0, 2, 0);
+  private readonly cloth = new PlaneGeometry(0.75, 3).translate(0.38, 2.4, 0);
+  private readonly steel = new MeshStandardMaterial({
+    color: 0x9aa0a6,
+    metalness: 0.5,
+    roughness: 0.4,
+  });
+  private readonly cloths: MeshStandardMaterial[];
+
+  constructor(
+    disposables: { dispose(): void }[],
+    track: <T extends Texture>(texture: T) => T,
+    words: readonly FeatherWord[],
+  ) {
+    this.cloths = words.map(
+      ([word, fill, ink]) =>
+        new MeshStandardMaterial({
+          map: track(featherTexture(word, fill, ink)),
+          alphaTest: 0.5,
+          side: DoubleSide,
+          roughness: 0.8,
+        }),
+    );
+    disposables.push(this.pole, this.cloth, this.steel, ...this.cloths);
+  }
+
+  /** The k-th flag, its cloth flying across the road's direction. */
+  make(k: number): Group {
+    const flag = new Group();
+    const c = new Mesh(this.cloth, this.cloths[k % this.cloths.length]!);
+    c.rotation.y = Math.PI / 2;
+    flag.add(new Mesh(this.pole, this.steel), c);
+    return flag;
+  }
+}
+
+/** A feather flag's teardrop, `word` down it, on a clear ground. */
+function featherTexture(word: string, fill: string, ink: string): CanvasTexture {
+  return canvasTexture(128, 512, (g) => {
+    g.fillStyle = fill;
+    g.beginPath();
+    g.moveTo(4, 508);
+    g.lineTo(4, 40);
+    g.quadraticCurveTo(10, 4, 70, 8);
+    g.quadraticCurveTo(124, 20, 124, 120);
+    g.lineTo(100, 508);
+    g.closePath();
+    g.fill();
+    g.save();
+    g.translate(64, 280);
+    g.rotate(-Math.PI / 2);
+    g.fillStyle = ink;
+    g.font = 'bold 64px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(word, 0, 0, 400);
+    g.restore();
   });
 }
