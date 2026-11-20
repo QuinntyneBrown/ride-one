@@ -69,6 +69,7 @@ export class MiamiStreet implements SceneStreet {
   private crowd: Figures | null = null;
   private water: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
+  private readonly beacons: Mesh[] = [];
   private readonly horizon = new Group();
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
@@ -103,6 +104,8 @@ export class MiamiStreet implements SceneStreet {
 
   setTime(seconds: number): void {
     this.time = seconds;
+    // The aircraft beacons on the spires blink, a second apart.
+    this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
     // The blade signs pulse, each on its own beat, as neon on a timer does.
     this.signs.forEach((m, k) => {
@@ -762,20 +765,66 @@ export class MiamiStreet implements SceneStreet {
     const crowns = NEON.map((c) =>
       this.material({ color: c, emissive: c, emissiveIntensity: 3, fog: false }),
     );
-    for (let k = 0; k < 26; k++) {
-      const h = 60 + random() * 180;
-      const t = new Mesh(this.unit, towers[k % towers.length]!);
-      t.scale.set(30 + random() * 30, h, 30 + random() * 20);
-      const x = -900 + k * 70 + random() * 30;
-      t.position.set(x, h / 2 - SEA, -1500 - random() * 300);
-      this.horizon.add(t);
-      if (random() < 0.5) {
-        const c = new Mesh(this.unit, crowns[k % crowns.length]!);
-        c.scale.set(t.scale.x * 1.02, 2, t.scale.z * 1.02);
-        c.position.set(x, h - SEA, t.position.z);
-        this.horizon.add(c);
+    const beacon = this.material({
+      color: 0xff2020,
+      emissive: 0xff2020,
+      emissiveIntensity: 4,
+      fog: false,
+    });
+    const edge = NEON.map((c) =>
+      this.material({ color: c, emissive: c, emissiveIntensity: 2.4, fog: false }),
+    );
+    // Two ranks of towers: the nearer, taller ones with setbacks, crowns and spires, and a
+    // lower rank behind them filling the gaps.
+    for (let rank = 0; rank < 2; rank++)
+      for (let k = 0; k < (rank ? 30 : 24); k++) {
+        const h = rank ? 40 + random() * 90 : 70 + random() * 190;
+        const w = 26 + random() * 30;
+        const d = 26 + random() * 20;
+        const x = -1000 + k * (rank ? 64 : 82) + random() * 30;
+        const z = rank ? -1950 - random() * 200 : -1500 - random() * 300;
+        const shaft = towers[(k + rank) % towers.length]!;
+        let top = -SEA;
+        let width = w;
+        let depth = d;
+        const tiers = rank ? 1 : 1 + Math.floor(random() * 3);
+        for (let t = 0; t < tiers; t++) {
+          const th = (t === 0 ? 0.7 : 0.18) * h;
+          const m = new Mesh(this.unit, shaft);
+          m.scale.set(width, th, depth);
+          m.position.set(x, top + th / 2, z);
+          this.horizon.add(m);
+          top += th;
+          if (!rank && random() < 0.6) {
+            // Lit edges up the tower's corners.
+            for (const side of [-1, 1]) {
+              const e = new Mesh(this.unit, edge[(k + t) % edge.length]!);
+              e.scale.set(1.2, th, 1.2);
+              e.position.set(x + (side * width) / 2, top - th / 2, z + depth / 2);
+              this.horizon.add(e);
+            }
+          }
+          width *= 0.72;
+          depth *= 0.72;
+        }
+        if (!rank && random() < 0.55) {
+          const c = new Mesh(this.unit, crowns[k % crowns.length]!);
+          c.scale.set(width * 1.4, 3, depth * 1.4);
+          c.position.set(x, top + 1.5, z);
+          this.horizon.add(c);
+        }
+        if (!rank && random() < 0.5) {
+          const spire = 18 + random() * 40;
+          const m = new Mesh(this.unit, shaft);
+          m.scale.set(2, spire, 2);
+          m.position.set(x, top + spire / 2, z);
+          const b = new Mesh(this.unit, beacon);
+          b.scale.set(3.5, 3.5, 3.5);
+          b.position.set(x, top + spire + 1, z);
+          this.horizon.add(m, b);
+          this.beacons.push(b);
+        }
       }
-    }
     // The open sea to the horizon on the left, the moon's path laid across it.
     const water = this.material({
       color: 0x1a2048,
