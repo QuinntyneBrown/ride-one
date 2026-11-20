@@ -115,6 +115,7 @@ export class AmsterdamStreet implements SceneStreet {
   private foam: MeshStandardMaterial | null = null;
   private lanes: (() => number) | null = null;
   private farDress: (() => number) | null = null;
+  private ivyRoll: (() => number) | null = null;
   private bikeShape: BufferGeometry | null = null;
 
   constructor(
@@ -1029,7 +1030,9 @@ export class AmsterdamStreet implements SceneStreet {
     guard.translate(0, 0.4, 0);
     const roots = new CylinderGeometry(0.3, 0.55, 0.35, 8);
     roots.translate(0, KERB + 0.15, 0);
-    this.disposables.push(tuft, guard, roots);
+    const ivy = ivyGeometry();
+    const ivyLeaf = this.material({ color: 0x24401e, roughness: 0.85 });
+    this.disposables.push(tuft, guard, roots, ivy);
     const { post, lantern } = canalLamp();
     this.disposables.push(...elms.flatMap((e) => [e.wood, e.leaves]), post, lantern);
     const quays = [-roadHalf - QUAY + 1.1, -roadHalf - QUAY - CANAL - 1.2];
@@ -1052,6 +1055,8 @@ export class AmsterdamStreet implements SceneStreet {
         hoop.position.y = KERB;
         const flare = new Mesh(roots, bark);
         tree.add(bed, weeds, hoop, flare);
+        // Ivy climbing the trunk of about one elm in three.
+        if ((this.ivyRoll ??= seeded(821))() < 0.35) tree.add(new Mesh(ivy, ivyLeaf));
         const size = 0.9 + random() * 0.3;
         if (x < quays[0]!) {
           // The far quay's elms hang upside down in the water.
@@ -2742,6 +2747,26 @@ function amsterdammertje(): BufferGeometry {
         parts.push(bar.toNonIndexed());
       }
     }
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/**
+ * Ivy up an elm's trunk: clumps of dark leaves wrapped round it from the ground to 3 m, thick at
+ * the foot and thinning upward.
+ */
+function ivyGeometry(): BufferGeometry {
+  const random = seeded(823);
+  const parts: BufferGeometry[] = [];
+  for (let i = 0; i < 70; i++) {
+    const y = Math.pow(random(), 1.6) * 3.2;
+    const a = random() * Math.PI * 2;
+    const r = 0.3 - y * 0.025 + random() * 0.05;
+    const clump = new IcosahedronGeometry(0.09 + random() * 0.07, 0);
+    clump.translate(Math.cos(a) * r, KERB + 0.1 + y, Math.sin(a) * r);
+    parts.push(clump);
   }
   const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
