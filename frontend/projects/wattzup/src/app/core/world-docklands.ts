@@ -23,6 +23,7 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
+  RingGeometry,
   SphereGeometry,
   TorusGeometry,
   Sprite,
@@ -132,6 +133,11 @@ const MACHINE_COLOURS: readonly string[] = ['#ff3b5c', '#2f7dff', '#ffb347', '#2
 const CLOUD_HEIGHT = 260;
 const CLOUD_SPAN = 4000;
 const CLOUD_DRIFT = 0.002;
+/** Rain splashes: how many, in how many groups, how long each lasts (s), how far ahead (m). */
+const SPLASHES = 140;
+const SPLASH_PHASES = 10;
+const SPLASH_LIFE = 0.45;
+const SPLASH_REACH = 26;
 /** Neon gates over the road, at these offsets round the loop. */
 const GATES: readonly number[] = [70, 230, 380, 540];
 const GATE_HEIGHT = 6.5;
@@ -307,6 +313,7 @@ export class DocklandsStreet {
    */
   setTime(seconds: number, still = false): void {
     this.fall(seconds, still);
+    this.splash(seconds, still);
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
     this.swim(still ? 0 : seconds);
@@ -332,6 +339,14 @@ export class DocklandsStreet {
   }
   private readonly searchlights: Group[] = [];
   private readonly wheel = new Group();
+  /** Rain splashes on the road ahead, in SPLASH_PHASES groups that land in turn. */
+  /** Each splash lands at `at`, metres along the ride, so it stays put on the road as we pass. */
+  private readonly splashes: { mesh: Mesh; phase: number; x: number; at: number }[] = [];
+  /** The rider's distance at the last place(), where new splashes land ahead of. */
+  private riderS = 0;
+  private readonly splashMaterials: MeshBasicMaterial[] = [];
+  private readonly splashLife: number[] = [];
+  private readonly splashRandom = seeded(331);
   private cloudTexture: CanvasTexture | null = null;
   private readonly whale = new Group();
 
@@ -510,6 +525,57 @@ export class DocklandsStreet {
   }
 
   /** Lets the drizzle fall for `seconds`; for reduced motion there is none. */
+  /**
+   * Raindrops landing on the road ahead: thin rings that spread and fade where each drop hits,
+   * in groups that land in turn, each group somewhere new each time.
+   */
+  private addSplashes(roadHalf: number): void {
+    const ring = new RingGeometry(0.8, 1, 20);
+    this.disposables.push(ring);
+    for (let k = 0; k < SPLASH_PHASES; k++) {
+      const material = new MeshBasicMaterial({
+        color: new Color('#cfd8ff'),
+        transparent: true,
+        opacity: 0,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -3,
+      });
+      this.disposables.push(material);
+      this.splashMaterials.push(material);
+      this.splashLife.push(1);
+    }
+    for (let i = 0; i < SPLASHES; i++) {
+      const mesh = new Mesh(ring, this.splashMaterials[i % SPLASH_PHASES]!);
+      mesh.rotation.x = -Math.PI / 2;
+      this.group.add(mesh);
+      this.splashes.push({ mesh, phase: i % SPLASH_PHASES, x: 0, at: 0 });
+    }
+    this.splashHalf = roadHalf + 1.5;
+  }
+
+  private splashHalf = 4;
+
+  /** Spreads and fades each group of splashes, landing it somewhere new as it starts again. */
+  private splash(seconds: number, still: boolean): void {
+    for (let k = 0; k < SPLASH_PHASES; k++) {
+      const life = (seconds / SPLASH_LIFE + k / SPLASH_PHASES) % 1;
+      const landed = life < this.splashLife[k]!;
+      this.splashLife[k] = life;
+      // Held still for reduced motion: no splashes at all, rather than frozen rings.
+      this.splashMaterials[k]!.opacity = still ? 0 : (1 - life) * 0.55;
+      for (const drop of this.splashes) {
+        if (drop.phase !== k) continue;
+        if (landed) {
+          drop.x = (this.splashRandom() * 2 - 1) * this.splashHalf;
+          drop.at = this.riderS + 2 + this.splashRandom() * SPLASH_REACH;
+        }
+        drop.mesh.scale.setScalar(0.05 + life * 0.2);
+      }
+    }
+  }
+
   private fall(seconds: number, still: boolean): void {
     const rain = this.rain;
     if (!rain) return;
@@ -1196,6 +1262,7 @@ export class DocklandsStreet {
     this.addWalkers(roadHalf);
     this.addAirTraffic();
     this.addRain();
+    this.addSplashes(roadHalf);
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -2288,6 +2355,11 @@ export class DocklandsStreet {
 
   /** Moves each tower to its place along the loop for the rider's distance `s`. */
   place(s: number, heightAt: (metres: number) => number): void {
+    this.riderS = s;
+    for (const drop of this.splashes) {
+      const metres = drop.at - s;
+      drop.mesh.position.set(drop.x, heightAt(Math.max(metres, 0)) + 0.02, -metres);
+    }
     for (const tower of this.towers) {
       const metres = ((((tower.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const height = tower.mesh.userData['height'] as number;
