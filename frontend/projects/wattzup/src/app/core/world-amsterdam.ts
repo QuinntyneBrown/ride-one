@@ -128,6 +128,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addStreetFurniture(roadHalf);
     this.addCafe(roadHalf);
     this.addScooters(roadHalf);
+    this.addSigns(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1068,6 +1069,50 @@ export class AmsterdamStreet implements SceneStreet {
       at.add(parked);
       this.group.add(at);
       this.props.push({ mesh: at, offset, x });
+    }
+  }
+
+  /**
+   * Traffic signs on grey posts at the corners of every cross street: the street's one-way
+   * sign with its plate excepting cyclists, a 30 zone sign, and on the quay the blue parking
+   * sign for permit holders.
+   */
+  private addSigns(roadHalf: number): void {
+    const grey = this.material({ color: 0x8a8e90, metalness: 0.6, roughness: 0.4 });
+    const faces = (['oneway', 'thirty', 'parking'] as const).map((kind) =>
+      this.material({ map: this.track(signTexture(kind)), roughness: 0.5 }),
+    );
+    const post = new CylinderGeometry(0.04, 0.04, 2.9, 8);
+    post.translate(0, 1.45, 0);
+    this.disposables.push(post);
+    const sign = (face: MeshStandardMaterial, y: number, w: number, h: number) => {
+      const plate = new Mesh(this.unit, [grey, face, grey, grey, grey, grey]);
+      plate.scale.set(0.02, h, w);
+      plate.position.set(-0.04, y, 0);
+      return plate;
+    };
+    for (let b = 0; b < LOOP; b += BRIDGE) {
+      const near = new Group();
+      near.add(
+        new Mesh(post, grey),
+        sign(faces[0]!, 2.55, 0.6, 0.6),
+        sign(faces[1]!, 1.95, 0.5, 0.5),
+      );
+      near.position.y = KERB;
+      const quay = new Group();
+      quay.add(new Mesh(post, grey), sign(faces[2]!, 2.4, 0.5, 0.75));
+      quay.position.y = KERB;
+      for (const [group, x, along] of [
+        [near, roadHalf + 0.35, b + 2 + CROSS / 2 + 0.6],
+        [quay, -roadHalf - 2.6, b + 2 + CROSS / 2 + 2],
+      ] as const) {
+        group.children.forEach((m) => (m.castShadow = true));
+        const at = new Group();
+        at.add(group);
+        group.rotation.y = Math.PI / 2;
+        this.group.add(at);
+        this.props.push({ mesh: at, offset: along, x });
+      }
     }
   }
 
@@ -2694,6 +2739,75 @@ function gutterTexture(kerbFirst: boolean, grates: boolean): CanvasTexture {
       for (let y = 474; y < 508; y += 6) g.fillRect(5, y, 20, 3);
     }
     g.setTransform(1, 0, 0, 1, 0, 0);
+  });
+}
+
+/**
+ * A Dutch traffic sign's face: the blue one-way sign with its white arrow over the plate
+ * excepting cyclists, the zone sign for 30 km/h, or the blue parking sign for permit holders.
+ */
+function signTexture(kind: 'oneway' | 'thirty' | 'parking'): CanvasTexture {
+  return canvasTexture(128, kind === 'parking' ? 192 : 128, (g) => {
+    const h = kind === 'parking' ? 192 : 128;
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 128, h);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    if (kind === 'oneway') {
+      g.fillStyle = '#1d4f9c';
+      g.fillRect(6, 6, 116, 80);
+      g.fillStyle = '#ffffff';
+      g.beginPath();
+      g.moveTo(20, 40);
+      g.lineTo(80, 40);
+      g.lineTo(80, 26);
+      g.lineTo(108, 46);
+      g.lineTo(80, 66);
+      g.lineTo(80, 52);
+      g.lineTo(20, 52);
+      g.closePath();
+      g.fill();
+      g.fillStyle = '#111111';
+      g.font = 'bold 15px sans-serif';
+      g.fillText('uitgezonderd', 64, 100);
+      // A bicycle, drawn as the plate shows it.
+      g.strokeStyle = '#111111';
+      g.lineWidth = 2.5;
+      g.beginPath();
+      g.arc(50, 117, 6, 0, Math.PI * 2);
+      g.arc(78, 117, 6, 0, Math.PI * 2);
+      g.moveTo(50, 117);
+      g.lineTo(60, 108);
+      g.lineTo(72, 108);
+      g.lineTo(78, 117);
+      g.moveTo(60, 108);
+      g.lineTo(64, 117);
+      g.lineTo(72, 108);
+      g.stroke();
+    } else if (kind === 'thirty') {
+      g.fillStyle = '#ffffff';
+      g.beginPath();
+      g.arc(64, 64, 58, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = '#d2191e';
+      g.lineWidth = 12;
+      g.beginPath();
+      g.arc(64, 64, 52, 0, Math.PI * 2);
+      g.stroke();
+      g.fillStyle = '#111111';
+      g.font = 'bold 54px sans-serif';
+      g.fillText('30', 64, 68);
+    } else {
+      g.fillStyle = '#1d4f9c';
+      g.fillRect(6, 6, 116, 110);
+      g.fillStyle = '#ffffff';
+      g.font = 'bold 84px sans-serif';
+      g.fillText('P', 64, 66);
+      g.fillStyle = '#111111';
+      g.font = 'bold 15px sans-serif';
+      g.fillText('vergunning-', 64, 140);
+      g.fillText('houders', 64, 162);
+    }
   });
 }
 
