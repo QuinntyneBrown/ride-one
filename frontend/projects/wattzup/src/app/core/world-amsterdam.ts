@@ -711,6 +711,8 @@ export class AmsterdamStreet implements SceneStreet {
     const gardens = [0, 1, 2].map((k) => gardenGeometry(521 + k * 5));
     const geraniums = geraniumGeometry();
     const wisterias = [0, 1].map((k) => wisteriaGeometry(709 + k * 6));
+    const lantern = wallLantern();
+    this.disposables.push(lantern.frame, lantern.glass);
     this.disposables.push(
       ...gardens.flatMap((g) => [g.leaves, g.flowers]),
       geraniums,
@@ -732,6 +734,16 @@ export class AmsterdamStreet implements SceneStreet {
         this.material({ color: hex, metalness: 0.35, roughness: 0.5 }),
       ),
       people: this.material({ vertexColors: true, roughness: 0.85 }),
+      lantern,
+      black: this.material({ color: 0x1b1b1f, metalness: 0.5, roughness: 0.45 }),
+      glow: this.material({
+        color: 0xfff2d8,
+        emissive: 0xffd890,
+        emissiveIntensity: 0.35,
+        transparent: true,
+        opacity: 0.85,
+      }),
+      plate: this.material({ color: 0x1d3f7c, roughness: 0.4 }),
     };
   }
 
@@ -790,6 +802,20 @@ export class AmsterdamStreet implements SceneStreet {
       leaning.rotation.set(0.12, extra() < 0.5 ? 0 : Math.PI, 0, 'YXZ');
       leaning.castShadow = true;
       house.add(leaning);
+    }
+    if (extra() < 0.6) {
+      // A lantern on a bracket beside the door, and the house number on an enamel plate.
+      const lantern = new Group();
+      lantern.add(
+        new Mesh(decor.lantern.frame, decor.black),
+        new Mesh(decor.lantern.glass, decor.glow),
+      );
+      lantern.position.set(0, height * 0.19, -door * width + (door > 0.5 ? 1 : -1) * 1.0);
+      house.add(lantern);
+      const number = new Mesh(this.unit, decor.plate);
+      number.scale.set(0.02, 0.16, 0.24);
+      number.position.set(-0.05, height * 0.17, -door * width + (door > 0.5 ? -1 : 1) * 0.75);
+      house.add(number);
     }
     if (extra() < 0.22) {
       const sitter = new Mesh(sitterGeometry(extra), decor.people);
@@ -3490,6 +3516,36 @@ function wisteriaGeometry(seed: number): {
     return merged;
   };
   return { stems: merge(stems), leaves: merge(leaves), flowers: merge(flowers) };
+}
+
+/**
+ * A wall lantern on a front at x 0 facing -x: a scrolled iron bracket holding a four-sided
+ * glazed lantern under a little roof, 0.5 m out from the wall.
+ */
+function wallLantern(): { frame: BufferGeometry; glass: BufferGeometry } {
+  const parts: BufferGeometry[] = [];
+  const arm = new BoxGeometry(0.5, 0.03, 0.03);
+  arm.translate(-0.25, 0.35, 0);
+  const brace = limb(new Vector3(0, 0.05, 0), new Vector3(-0.35, 0.35, 0), 0.015);
+  const back = new BoxGeometry(0.02, 0.4, 0.1);
+  back.translate(-0.01, 0.2, 0);
+  const roof = new ConeGeometry(0.15, 0.14, 4);
+  roof.rotateY(Math.PI / 4);
+  roof.translate(-0.45, 0.22, 0);
+  const base = new BoxGeometry(0.16, 0.03, 0.16);
+  base.translate(-0.45, -0.12, 0);
+  parts.push(
+    arm.toNonIndexed(),
+    brace,
+    back.toNonIndexed(),
+    roof.toNonIndexed(),
+    base.toNonIndexed(),
+  );
+  const frame = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  const glass = new BoxGeometry(0.14, 0.26, 0.14);
+  glass.translate(-0.45, 0.02, 0);
+  return { frame, glass };
 }
 
 /** Geraniums along a window box 1 m long (scaled to the box), on z. */
