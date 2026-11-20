@@ -131,6 +131,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
+  private storm: { flash: MeshBasicMaterial; bolt: MeshBasicMaterial } | null = null;
   private readonly lasers: Group[] = [];
   private sparks: InstancedMesh | null = null;
   private readonly sparkDirs: Vector3[] = [];
@@ -296,6 +297,14 @@ export class MiamiStreet implements SceneStreet {
           b.rotation.z = Math.PI / 2 + 0.2 + i * (0.08 + 0.05 * Math.sin(beat / 2));
       });
     });
+    // The storm out to sea flashes every 11 s or so, a double flicker, with a bolt every third.
+    if (this.storm) {
+      const t = seconds % 11;
+      const lit =
+        (t > 3 && t < 3.12) || (t > 3.25 && t < 3.4) ? 1 : t > 3.4 && t < 3.9 ? (3.9 - t) * 1.2 : 0;
+      this.storm.flash.opacity = lit * 0.9;
+      this.storm.bolt.opacity = Math.floor(seconds / 11) % 3 === 0 && t > 3.25 && t < 3.4 ? 1 : 0;
+    }
     // The tiki torches' flames flicker, each on its own.
     this.flames.forEach((f, k) => {
       const flick = 0.8 + 0.3 * Math.sin(seconds * 13 + k * 1.7) * Math.sin(seconds * 7.3 + k);
@@ -748,6 +757,12 @@ export class MiamiStreet implements SceneStreet {
       transparent: true,
     });
     this.signs.push(clubSign);
+    const trim = this.material({
+      color: 0xf8f4f0,
+      roughness: 0.6,
+      emissive: 0x302838,
+      emissiveIntensity: 0.5,
+    });
     const slab = this.material({ color: 0xf4f0ec, roughness: 0.7 });
     const rail = this.material({ color: 0xf8f8f8, roughness: 0.3, metalness: 0.4 });
     const signBox = this.material({ color: 0x14121c, roughness: 0.5, metalness: 0.6 });
@@ -966,6 +981,18 @@ export class MiamiStreet implements SceneStreet {
         cap.position.set(1.2, height + 3, -width / 2 + 2.6);
         hotel.add(cap);
       }
+      // A deco eyebrow over every pair of upper windows: a thin slab of stucco standing 0.6 m
+      // proud of the façade, lit along its edge, its shadow on the glass below.
+      const brows = new BoxBuilder();
+      const bays = windowBays(storeys);
+      for (let i = 0; i < bays.length; i += 2) {
+        const b = bays[i]!;
+        const top = height * (1 - b.y / 512);
+        if (top < 5.5) continue;
+        const z = -width / 2 + ((b.x + 28) / 512) * width;
+        brows.box(trim, [0.6, 0.1, (60 / 512) * width], [-0.3, top + 0.12, z]);
+      }
+      hotel.add(brows.build(this.disposables));
       // Streamline balconies on two hotels in three: a slab on each upper floor in front of
       // alternate bays, rounded off by its pipe railing of three white rails.
       if (k % 3 !== 2) {
@@ -3080,6 +3107,46 @@ export class MiamiStreet implements SceneStreet {
     }
     this.sparks = sparks;
     this.horizon.add(sparks);
+    // The shower's storm moving off over the sea: now and then its clouds light from within,
+    // a flicker or two, and once in a while a fork of lightning stabs down to the horizon.
+    const flash = new Mesh(
+      new PlaneGeometry(900, 360),
+      new MeshBasicMaterial({
+        map: this.track(stormCloudTexture()),
+        color: 0xc8b8ff,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        blending: AdditiveBlending,
+        fog: false,
+      }),
+    );
+    flash.position.set(-1000, 330, -1900);
+    flash.rotation.y = 0.6;
+    const bolt = new Mesh(
+      new PlaneGeometry(60, 300),
+      new MeshBasicMaterial({
+        map: this.track(boltTexture()),
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        blending: AdditiveBlending,
+        fog: false,
+      }),
+    );
+    bolt.position.set(-960, 150, -1890);
+    bolt.rotation.y = 0.6;
+    this.disposables.push(
+      flash.geometry,
+      flash.material as MeshBasicMaterial,
+      bolt.geometry,
+      bolt.material as MeshBasicMaterial,
+    );
+    this.storm = {
+      flash: flash.material as MeshBasicMaterial,
+      bolt: bolt.material as MeshBasicMaterial,
+    };
+    this.horizon.add(flash, bolt);
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
@@ -4498,5 +4565,50 @@ function lampBannerTexture(text: string, colour: string): CanvasTexture {
       g.lineTo(18 + Math.cos(a) * 12 * Math.sign(a + 0.01), 140 + Math.sin(a) * 6);
     }
     g.stroke();
+  });
+}
+
+/** A storm cloud's underside lit from within: a soft lumpy glow, brightest at its heart. */
+function stormCloudTexture(): CanvasTexture {
+  return canvasTexture(256, 128, (g) => {
+    const random = seeded(8461);
+    for (let i = 0; i < 24; i++) {
+      const x = 40 + random() * 176;
+      const y = 30 + random() * 70;
+      const r = 20 + random() * 40;
+      const puff = g.createRadialGradient(x, y, 0, x, y, r);
+      puff.addColorStop(0, 'rgba(255,255,255,0.35)');
+      puff.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = puff;
+      g.fillRect(0, 0, 256, 128);
+    }
+  });
+}
+
+/** A fork of lightning: a jagged white-hot stroke with a branch, in a violet glow. */
+function boltTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    const random = seeded(8471);
+    const stroke = (width: number, colour: string, blur: number) => {
+      g.strokeStyle = colour;
+      g.lineWidth = width;
+      g.shadowColor = '#b8a0ff';
+      g.shadowBlur = blur;
+      g.beginPath();
+      let x = 32;
+      g.moveTo(x, 0);
+      const rand = seeded(8473);
+      for (let y = 0; y < 256; y += 18) {
+        x += (rand() - 0.5) * 18;
+        g.lineTo(x, y);
+      }
+      g.moveTo(30, 90);
+      g.lineTo(14, 130);
+      g.lineTo(18, 170);
+      g.stroke();
+    };
+    stroke(6, 'rgba(200,180,255,0.6)', 12);
+    stroke(2, '#ffffff', 0);
+    void random;
   });
 }

@@ -102,6 +102,17 @@ const ROYAL_X = 4.0;
 const GRANDSTAND = [64, 106] as const;
 /** The route crosses a signalised intersection this far into the loop. */
 const CROSSING_AT = 36;
+/**
+ * The landmarks met once in a while rather than every loop come round every this many metres:
+ * three loops, so a ride meets three different cross streets and the judging point once.
+ */
+const LANDMARKS = 3 * 360;
+/** The cross streets along the Sunnyside stretch, and how far into the landmarks' cycle. */
+const CROSS_STREETS = [
+  ['PARKSIDE DR', CROSSING_AT],
+  ['COLBORNE LODGE DR', 360 + 150],
+  ['ELLIS AVE', 720 + 250],
+] as const;
 /** The steel orchestra's float rides the left lane ahead of the first music truck. */
 const PAN_AT = 44;
 
@@ -259,6 +270,11 @@ export class CaribanaStreet implements SceneStreet {
   private readonly pannists: { figure: Group; phase: number }[] = [];
   private readonly bandBanners: { group: Group; phase: number }[] = [];
   private readonly truckLights: MeshStandardMaterial[] = [];
+  private readonly policeLights: MeshStandardMaterial[] = [];
+  private readonly closed = new MeshStandardMaterial({
+    map: clothBannerTexture('ROAD CLOSED', '#ffffff', '#c8102e'),
+    roughness: 0.6,
+  });
   private readonly signalLamps: {
     red: MeshStandardMaterial;
     amber: MeshStandardMaterial;
@@ -322,7 +338,8 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   build(roadHalf: number, points: number): void {
-    this.disposables.push(this.unit, this.satinWing, ...this.flagMaterials);
+    this.disposables.push(this.unit, this.satinWing, this.closed, ...this.flagMaterials);
+    if (this.closed.map) this.track(this.closed.map);
     for (const m of this.flagMaterials) if (m.map) this.track(m.map);
     this.addGround(points);
     this.crowd.build();
@@ -333,7 +350,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addTrucks();
     this.addPanFloat();
     this.addGantry();
-    this.addIntersection();
+    for (const [name, at] of CROSS_STREETS) this.addIntersection(name, at);
     this.addGrandstand();
     this.addSpray();
     this.addCastings();
@@ -392,6 +409,9 @@ export class CaribanaStreet implements SceneStreet {
       lamp.amber.emissiveIntensity = phase >= 20 && phase < 23 ? 3 : 0.05;
       lamp.red.emissiveIntensity = phase >= 23 ? 3 : 0.05;
     }
+    // The cruisers' roof lights flash red and blue in turn.
+    const flash = Math.floor(this.time * 6) % 2;
+    this.policeLights.forEach((m, k) => (m.emissiveIntensity = k % 2 === flash ? 4 : 0.1));
     // The trucks' lights pulse with the bass, each colour on its own count.
     this.truckLights.forEach((m, k) => {
       const beat = Math.max(0, Math.sin(this.time * Math.PI * 2.1 + k * 1.6));
@@ -1672,12 +1692,13 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   /**
-   * A signalised intersection the route crosses: ladder crosswalks across all three lanes,
+   * A signalised intersection the route crosses, `street` on its signs, `at` metres into the
+   * landmarks' cycle: ladder crosswalks across all three lanes,
    * signal poles at the far corners with mast arms over the road carrying signal heads in
    * black with yellow-bordered backplates, pedestrian signals, and the cross street's name on
    * blue signs.
    */
-  private addIntersection(): void {
+  private addIntersection(street: string, at: number): void {
     const crossing = new Group();
     const paint = this.material({
       map: this.track(ladderTexture()),
@@ -1694,7 +1715,7 @@ export class CaribanaStreet implements SceneStreet {
       const walk = new Group();
       walk.add(new Mesh(stripe, paint));
       this.group.add(walk);
-      this.props.push({ mesh: walk, offset: CROSSING_AT + dz, every: LOOP, x: 0, road: true });
+      this.props.push({ mesh: walk, offset: at + dz, every: LANDMARKS, x: 0, road: true });
     }
     const steel = this.material({ color: 0x9da3a8, metalness: 0.7, roughness: 0.45 });
     const black = this.material({ color: 0x15171a, roughness: 0.5 });
@@ -1704,7 +1725,7 @@ export class CaribanaStreet implements SceneStreet {
     const lamps = { red: lamp(0xff2a1a), amber: lamp(0xffa200), green: lamp(0x2aff7a) };
     this.signalLamps.push(lamps);
     const sign = this.material({
-      map: this.track(streetSignTexture('PARKSIDE DR')),
+      map: this.track(streetSignTexture(street)),
       roughness: 0.5,
     });
     const pole = new CylinderGeometry(0.13, 0.17, 7.2, 10);
@@ -1748,9 +1769,29 @@ export class CaribanaStreet implements SceneStreet {
       post.position.set(side * (PAVEMENT - 0.6), 0.14, side > 0 ? -10 : 10);
       crossing.add(post);
     }
+    // The cross street runs off on both sides behind the crowds, closed with barriers and a
+    // police cruiser parked across it, its roof lights flashing.
+    const side = this.material({ map: this.repeat(roadTexture(), 2 * CURB, 18), roughness: 0.85 });
+    const crossRoad = new PlaneGeometry(40, 2 * CURB);
+    crossRoad.rotateX(-Math.PI / 2);
+    crossRoad.rotateY(Math.PI / 2);
+    this.disposables.push(crossRoad);
+    for (const dir of [-1, 1]) {
+      const run = new Mesh(crossRoad, side);
+      run.position.set(dir * (PAVEMENT + 20), 0.135, 0);
+      crossing.add(run);
+      const cruiser = policeCruiser(this.material.bind(this), this.unit, this.policeLights);
+      cruiser.position.set(dir * (PAVEMENT + 7), 0.15, 0);
+      cruiser.rotation.y = Math.PI / 2;
+      crossing.add(cruiser);
+      const board = new Mesh(this.unit, this.closed);
+      board.scale.set(0.08, 0.5, 3.2);
+      board.position.set(dir * (PAVEMENT + 4.5), 0.85, -3.5);
+      crossing.add(board);
+    }
     crossing.traverse((o) => (o.castShadow = o.type === 'Mesh' && o.parent !== crossing));
     this.group.add(crossing);
-    this.props.push({ mesh: crossing, offset: CROSSING_AT, every: LOOP, x: 0, road: true });
+    this.props.push({ mesh: crossing, offset: at, every: LANDMARKS, x: 0, road: true });
   }
 
   /** Stands a copy of `prop` one loop further on, `offset` metres in and `x` across. */
@@ -2083,7 +2124,7 @@ export class CaribanaStreet implements SceneStreet {
     gantry.add(new Mesh(bunting, pennants));
     gantry.traverse((o) => (o.castShadow = true));
     this.group.add(gantry);
-    this.props.push({ mesh: gantry, offset: 84, every: LOOP, x: 0, road: true });
+    this.props.push({ mesh: gantry, offset: 84, every: LANDMARKS, x: 0, road: true });
   }
 
   /**
@@ -3819,6 +3860,48 @@ function stainTexture(): CanvasTexture {
     g.fillStyle = blot;
     g.fillRect(0, 0, 128, 128);
   });
+}
+
+/**
+ * A Toronto Police cruiser: a white sedan with the blue and red stripe along its flank, dark
+ * glass, black wheels and a light bar on the roof whose red and blue go into `lights`.
+ */
+function policeCruiser(
+  material: (o: ConstructorParameters<typeof MeshStandardMaterial>[0]) => MeshStandardMaterial,
+  unit: BoxGeometry,
+  lights: MeshStandardMaterial[],
+): Group {
+  const car = new Group();
+  const box = (m: MeshStandardMaterial, w: number, h: number, d: number, y: number, z = 0) => {
+    const mesh = new Mesh(unit, m);
+    mesh.scale.set(w, h, d);
+    mesh.position.set(0, y + h / 2, z);
+    car.add(mesh);
+  };
+  const white = material({ color: 0xf4f4f2, roughness: 0.3, metalness: 0.3 });
+  const glass = material({ color: 0x1a222a, roughness: 0.1, metalness: 0.5 });
+  const black = material({ color: 0x111111, roughness: 0.8 });
+  const blue = material({ color: 0x1c3f94, roughness: 0.4 });
+  const red = material({ color: 0xc8102e, roughness: 0.4 });
+  box(black, 1.84, 0.62, 3.1, 0.06);
+  box(white, 1.9, 0.6, 4.9, 0.32);
+  box(blue, 1.92, 0.12, 3.6, 0.55);
+  box(red, 1.92, 0.05, 3.6, 0.68);
+  box(glass, 1.6, 0.48, 2.3, 0.92, 0.2);
+  box(white, 1.56, 0.06, 1.8, 1.4, 0.25);
+  const bar = [0xff2a1a, 0x2a5aff].map((hex) => {
+    const m = material({ color: hex, emissive: hex, emissiveIntensity: 0.1 });
+    lights.push(m);
+    return m;
+  });
+  bar.forEach((m, k) => {
+    const half = new Mesh(unit, m);
+    half.scale.set(0.6, 0.12, 0.25);
+    half.position.set(k ? 0.32 : -0.32, 1.52, 0.25);
+    car.add(half);
+  });
+  car.traverse((o) => (o.castShadow = true));
+  return car;
 }
 
 /** A wall of speaker cabinets: black boxes with round cones. */
