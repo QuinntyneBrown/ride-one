@@ -36,7 +36,11 @@ export class Corners {
       // who runs wide at the apex would meet the barrier.
       for (let i = 0; i < PADS; i++) {
         const mesh = new Mesh(pad, i % 2 === 0 ? red : white);
-        mesh.position.set(-(roadHalf + barrier) / 2 - 0.04, kerb + 0.45, (i - (PADS - 1) / 2) * PAD);
+        mesh.position.set(
+          -(roadHalf + barrier) / 2 - 0.04,
+          kerb + 0.45,
+          (i - (PADS - 1) / 2) * PAD,
+        );
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         corner.add(mesh);
