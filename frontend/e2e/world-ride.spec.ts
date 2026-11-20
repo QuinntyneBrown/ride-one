@@ -178,6 +178,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Route 66 Desert');
   });
 
+  test('rides Beginner Training Session in Amsterdam Canals along the Herengracht', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Beginner Training Session',
+      'Amsterdam Canals',
+      'beginner-training-session',
+    );
+    await expect(world.heading).toHaveText('Amsterdam Canals');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Amsterdam Canals');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

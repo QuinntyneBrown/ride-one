@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert and Venice Beach Boardwalk have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk and Amsterdam Canals have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -38,7 +38,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 32 | High Power Tempo With Short Sprints | Route 66 Desert | 72% | Arizona's open highway, red mesas and chrome diners; hold tempo, then sprint for each roadside sign. |
 | 33 | Spicy Maximum Minute Efforts | Día de Muertos Parade (concept) |  | Marigolds, sugar skulls and giant skeletons along Mexico City's Paseo de la Reforma. |
 | 34 | Short, Sharp & Hard Efforts | Montmartre (concept) |  | Paris cobbles winding up to Sacré-Cœur; short, sharp kicks past cafés and painters. |
-| 35 | Beginner Training Session | Amsterdam Canals (concept) |  | Flat canal-side streets, humpback bridges and houseboats among friendly commuters. |
+| 35 | Beginner Training Session | Amsterdam Canals | 74% | Flat canal-side streets, humpback bridges and houseboats among friendly commuters. |
 | 36 | Sprint Sprint Sprint | San Fermín, Pamplona (concept) |  | Red scarves and white shirts fill old Pamplona; sprint the bull-run streets at festival dawn. |
 | 37 | Team Time Trial | Bonneville Salt Flats (concept) |  | An endless white plain; ride a tight paceline toward mirage mountains. |
 | 38 | The Pyramid | Giza Plateau (concept) |  | Desert road around the pyramids at sunrise; efforts build and fall like the stones. |

@@ -337,6 +337,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.1, fill: 1.2, colour: 0xffe2b8 },
     fogRange: [140, 1600],
   },
+  // A spring morning on the Herengracht: soft sun behind the rider, a light haze over the water.
+  amsterdam: {
+    sky: 0x9ec4e6,
+    fog: 0xd6dde3,
+    ground: 0x3d4a3e,
+    road: 0x6b4a3a,
+    sun: 28,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 2,
+    azimuth: -145,
+    light: { sun: 3.0, fill: 1.1, colour: 0xfff1dc },
+    fogRange: [60, 900],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
