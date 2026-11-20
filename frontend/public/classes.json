@@ -12236,6 +12236,7 @@
     },
     {
       "id": "aerobic-efforts-with-max-sprints",
+      "world": "winterlude",
       "title": "Aerobic Efforts With Max Sprints",
       "channel": "GCN Training",
       "focus": "Sprints",

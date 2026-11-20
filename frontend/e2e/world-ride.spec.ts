@@ -788,6 +788,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Els Àngels, Girona');
   });
 
+  test('rides Aerobic Efforts With Max Sprints along the frozen canal at Winterlude', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Aerobic Efforts With Max Sprints',
+      'Winterlude, Ottawa',
+      'aerobic-efforts-with-max-sprints',
+    );
+    await expect(world.heading).toHaveText('Winterlude, Ottawa');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Winterlude, Ottawa');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
