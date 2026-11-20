@@ -35,6 +35,7 @@ import {
   canvasTexture,
   clothBannerTexture,
   loopMetres,
+  PopupTents,
   Ribbons,
   scaleFaceUv,
   type SceneStreet,
@@ -196,6 +197,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly boats: Group[] = [];
   private readonly clouds = new Group();
   private readonly ontarioPlace = new Group();
+  private readonly smoke: { mesh: Mesh; phase: number; material: MeshStandardMaterial }[] = [];
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
   private readonly mokos: {
     figure: Group;
@@ -247,6 +249,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addTrucks();
     this.addLamps();
     this.addTrees();
+    this.addStalls();
     this.addGardiner(points);
     this.addDowntown();
     this.addOntarioPlace();
@@ -257,6 +260,13 @@ export class CaribanaStreet implements SceneStreet {
   /** The parade's clock, in seconds; held at 0 for reduced motion. */
   setTime(seconds: number): void {
     this.time = seconds;
+    // Smoke off the jerk drums: each puff rises, swells, drifts on the lake breeze and thins.
+    for (const puff of this.smoke) {
+      const u = (seconds * 0.22 + puff.phase) % 1;
+      puff.mesh.position.set(0.9 + u * 2.2, 1.5 + u * 5.5, u * 1.2);
+      puff.mesh.scale.setScalar(0.35 + u * 1.7);
+      puff.material.opacity = 0.42 * (1 - u) * Math.min(1, u * 6);
+    }
   }
 
   /** Lays the pavements, barricades, grass, armour stone and lake over the road's points. */
@@ -986,8 +996,117 @@ export class CaribanaStreet implements SceneStreet {
         c.castShadow = true;
         tree.add(t, c);
         this.group.add(tree);
-        const x = side < 0 ? -(12 + random() * 7) : 12 + random() * 2;
+        const x = side < 0 ? -(19 + random() * 8) : 12 + random() * 2;
         this.props.push({ mesh: tree, offset: offset + random() * 4, every: LOOP, x });
+      }
+    }
+  }
+
+  /**
+   * Food stalls on the grass behind both crowds: white pop-up tents with the vendor's name on
+   * the valance, a jerk drum on angle-iron legs with its lid propped open over glowing coals
+   * and chicken, smoke pouring off it, a cooler, and the vendor at the table.
+   */
+  private addStalls(): void {
+    const tents = new PopupTents(this.disposables, this.track);
+    const names = [
+      ['JERK CHICKEN', '#c8102e', '#ffd23f'],
+      ['DOUBLES & ROTI', '#ffd23f', '#0f5132'],
+      ['PATTIES', '#0f9d58', '#ffffff'],
+      ['COCONUT WATER', '#ffffff', '#0f9d58'],
+      ['BAKE & SALTFISH', '#1b6ad8', '#ffffff'],
+      ['JERK PORK', '#111111', '#ffd23f'],
+    ] as const;
+    const drum = this.material({ color: 0x2b2b2d, metalness: 0.55, roughness: 0.6 });
+    const rust = this.material({ color: 0x6b3b22, roughness: 0.9 });
+    const ember = this.material({ color: 0xff5a14, emissive: 0xff4a0a, emissiveIntensity: 2.5 });
+    const meat = this.material({ color: 0x6a2e15, roughness: 0.7 });
+    const cooler = this.material({ color: 0x1b6ad8, roughness: 0.5 });
+    const lid = this.material({ color: 0xf2f2ee, roughness: 0.5 });
+    const half = new CylinderGeometry(0.42, 0.42, 0.95, 16, 1, false, Math.PI / 2, Math.PI);
+    half.rotateZ(Math.PI / 2);
+    const cap = new CylinderGeometry(0.42, 0.42, 0.95, 16, 1, false, -Math.PI / 2, Math.PI);
+    cap.rotateZ(Math.PI / 2);
+    cap.translate(0, -0.0, 0);
+    const puff = new SphereGeometry(0.7, 10, 8);
+    this.disposables.push(half, cap, puff);
+    const random = seeded(919);
+    let k = 0;
+    for (const side of [-1, 1] as const) {
+      for (let offset = side < 0 ? 14 : 44; offset < LOOP; offset += 58) {
+        const [text, fill, ink] = names[k++ % names.length]!;
+        const stall = tents.make(text, fill, ink);
+        // The jerk drum beside the table, its lid hinged back.
+        const grill = new Group();
+        const body = new Mesh(half, drum);
+        body.position.y = 0.95;
+        const top = new Mesh(cap, drum);
+        top.position.set(0, 0.95, 0.42);
+        top.rotation.x = -1.9;
+        top.position.y = 1.0;
+        grill.add(body, top);
+        for (const [x, z] of [
+          [-0.4, -0.3],
+          [0.4, -0.3],
+          [-0.4, 0.3],
+          [0.4, 0.3],
+        ] as const) {
+          const leg = new Mesh(this.unit, rust);
+          leg.scale.set(0.04, 0.8, 0.04);
+          leg.position.set(x, 0.4, z);
+          grill.add(leg);
+        }
+        const coals = new Mesh(this.unit, ember);
+        coals.scale.set(0.8, 0.03, 0.55);
+        coals.position.y = 0.98;
+        grill.add(coals);
+        for (let p = 0; p < 6; p++) {
+          const piece = new Mesh(this.unit, meat);
+          piece.scale.set(0.13, 0.05, 0.1);
+          piece.position.set(-0.3 + p * 0.12, 1.02, (p % 2) * 0.16 - 0.08);
+          grill.add(piece);
+        }
+        grill.position.set(-side * 1.9, 0, 0.6);
+        stall.add(grill);
+        for (let p = 0; p < 6; p++) {
+          const material = this.material({
+            color: 0xd8d5cf,
+            transparent: true,
+            opacity: 0.3,
+            depthWrite: false,
+            roughness: 1,
+          });
+          const m = new Mesh(puff, material);
+          const holder = new Group();
+          holder.position.set(-side * 1.9 - 0.9, 0, 0.6);
+          holder.add(m);
+          stall.add(holder);
+          this.smoke.push({ mesh: m, phase: p / 6 + random() * 0.05, material });
+        }
+        const box = new Mesh(this.unit, cooler);
+        box.scale.set(0.7, 0.45, 0.45);
+        box.position.set(side * 1.1, 0.225, -1.0);
+        const boxLid = new Mesh(this.unit, lid);
+        boxLid.scale.set(0.72, 0.06, 0.47);
+        boxLid.position.set(side * 1.1, 0.47, -1.0);
+        stall.add(box, boxLid);
+        // The vendor behind the table, facing the crowd's backs and the road.
+        const vendor = spectatorParts(0, false);
+        const figure = new Group();
+        const tones = [SKINS[Math.floor(random() * SKINS.length)]!, '#f5f0e6', '#1e2530'];
+        [vendor.skin, vendor.top, vendor.bottom].forEach((geometry, i) => {
+          const m = this.material({ color: tones[i], roughness: 0.8 });
+          this.disposables.push(geometry);
+          figure.add(new Mesh(geometry, m));
+        });
+        figure.position.set(side * 0.2, 0, -0.9);
+        figure.rotation.y = Math.PI;
+        stall.add(figure);
+        stall.traverse((o) => (o.castShadow = true));
+        // Turn the stall's front, its table and vendor, towards the road.
+        stall.rotation.y = side < 0 ? -Math.PI / 2 : Math.PI / 2;
+        this.group.add(stall);
+        this.props.push({ mesh: stall, offset, every: LOOP, x: side * 13.6 });
       }
     }
   }
