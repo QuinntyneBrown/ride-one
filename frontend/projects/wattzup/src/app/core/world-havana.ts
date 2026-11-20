@@ -206,6 +206,7 @@ export class HavanaStreet implements SceneStreet {
     this.addBirds(roadHalf);
     this.addBillboards(roadHalf);
     this.addDogs(roadHalf);
+    this.addVendors(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -2209,6 +2210,91 @@ export class HavanaStreet implements SceneStreet {
         ? -roadHalf - LANES - 1.2 - random() * 2.5
         : roadHalf + 0.8 + random() * (lying ? 5 : 3);
       this.props.push({ mesh: holder, offset, x });
+    }
+  }
+
+  /**
+   * Street vendors working the promenade: a wooden pushcart on two spoked wheels, its box painted
+   * bright with a glass case of churros, peanuts or coconut sweets on top, a striped parasol
+   * on a pole above it, and the vendor standing at its handles.
+   */
+  private addVendors(roadHalf: number): void {
+    const random = seeded(1319);
+    const x = -roadHalf - LANES - 2.2;
+    const wheel = new TorusGeometry(0.32, 0.03, 6, 20);
+    wheel.rotateY(Math.PI / 2);
+    const shade = new ConeGeometry(1.3, 0.45, 8, 1, true);
+    const torso = new CapsuleGeometry(0.17, 0.4, 3, 8);
+    const leg = new CapsuleGeometry(0.07, 0.75, 3, 6);
+    const head = new SphereGeometry(0.11, 10, 8);
+    this.disposables.push(wheel, shade, torso, leg, head);
+    const boxes = [0x2a9d8f, 0xe63946, 0x1d70b8, 0xf4a261];
+    const shades = [0xf1c40f, 0xffffff, 0xe63946, 0x3a86ff];
+    const dark = this.material({ color: 0x2a2620, roughness: 0.8 });
+    const glass = this.material({
+      color: 0xdfe8ea,
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0.45,
+    });
+    const goods = this.material({ color: 0xc8883a, roughness: 0.8 });
+    const skin = this.material({ color: 0x7a4a2e, roughness: 0.8 });
+    const trousers = this.material({ color: 0x2b2d42, roughness: 0.9 });
+    for (let k = 0, offset = 34; offset < LOOP; k++, offset += 50 + random() * 45) {
+      const cart = new Group();
+      const part = (
+        g: BufferGeometry,
+        m: MeshStandardMaterial,
+        px: number,
+        py: number,
+        pz: number,
+      ) => {
+        const mesh = new Mesh(g, m);
+        mesh.position.set(px, py, pz);
+        mesh.castShadow = true;
+        cart.add(mesh);
+        return mesh;
+      };
+      const box = (
+        m: MeshStandardMaterial,
+        sx: number,
+        sy: number,
+        sz: number,
+        px: number,
+        py: number,
+        pz: number,
+      ) => part(this.unit, m, px, py, pz).scale.set(sx, sy, sz);
+      const paint = this.material({ color: boxes[k % boxes.length]!, roughness: 0.6 });
+      box(paint, 0.9, 0.7, 1.5, 0, 0.75, 0);
+      box(glass, 0.8, 0.4, 1.3, 0, 1.3, 0);
+      box(goods, 0.7, 0.12, 1.2, 0, 1.16, 0);
+      for (const side of [-0.48, 0.48]) part(wheel, dark, side, 0.32, 0.2);
+      box(dark, 0.6, 0.04, 0.04, 0, 1.0, -0.95);
+      box(dark, 0.04, 2.1, 0.04, 0.3, 2.05, 0.55);
+      const top = part(
+        shade,
+        this.material({ color: shades[k % shades.length]!, roughness: 0.8, side: DoubleSide }),
+        0.3,
+        3.0,
+        0.55,
+      );
+      top.castShadow = true;
+      // The vendor at the handles.
+      part(
+        torso,
+        this.material({ color: boxes[(k + 2) % boxes.length]!, roughness: 0.85 }),
+        0,
+        1.25,
+        -1.3,
+      );
+      for (const side of [-0.09, 0.09]) part(leg, trousers, side, 0.45, -1.3);
+      part(head, skin, 0, 1.72, -1.3);
+      cart.position.y = KERB;
+      cart.rotation.y = (random() - 0.5) * 0.8;
+      const holder = new Group();
+      holder.add(cart);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: x - random() * 1.5 });
     }
   }
 
