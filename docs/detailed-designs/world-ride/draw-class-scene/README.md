@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -487,6 +487,15 @@ None.
   - fluted grey and ochre limestone crags and boulders on the right, holm oaks and Aleppo pines, and wild goats browsing on the ride's clock;
   - a team car on the verge with spare bikes on its roof, and fans and riders stopped at the parapet (`Figures`);
   - ahead the knotted hairpins stacked up the mountainside on their walls and the Nus de sa Corbata looping under its own bridge, the Tramuntana's peaks behind, and far below the deep blue Mediterranean rippling on the ride's clock, the cove's turquoise shallows, a headland and boats crossing, keeping their bearing.
+- **Strade Bianche (`core/world-strade.ts`).** For `strade`, a white gravel road of the Crete Senesi on race day, closed for the ride:
+  - the white gravel laid over the road, its two compacted wheel tracks a shade darker and pebbles everywhere, painted with the tifosi's names and cries in dark paint every 8 m (FORZA, VAI ANA, DAI DAI and more), every third row a slogan right across it (STRADE BIANCHE, FORZA, WATTZUP, SETTORE 8), laid by the kit's painted rows; barriers hung with the race's banners (STRADE BIANCHE, SIENA, WATTZUP, TOSCANA, SETTORE 8, FORZA!) under a white rail, the kit's feather flags every 18 m along both, and two banners over the road in the opening view (SETTORE 8 · MONTE SANTE MARIE ★★★★★, STRADE BIANCHE · WATTZUP);
+  - the tifosi (the shared crowd) in club jerseys, Giro pink and summer shirts, in knots along the barriers with gaps so the banks show between them, some with the tricolore's colours and Siena's black and white on flags, some with their arms up;
+  - either side the dusty verge out to 8 m, a grass bank with poppies rising to the Tuscan cypresses on its top 12.5 m off the crown every 9 m (tall dark spindles widest a third of the way up, with a gap where a farm track turns off), and the golden and green fields beyond, rising gently to the hills;
+  - olive groves in loose rows on the fields, and stone farmhouses (casali) of two floors under low terracotta roofs with green shutters and a square dovecote tower, a short avenue of cypresses up the track to each;
+  - dust from the race drifting low over the gravel and hazing the distance (the kit's mist);
+  - ahead the Crete Senesi folding away in layers of rolling ridges, golden and green near and paling to blue-grey far off, lines of cypresses along their crests, and Siena on its ridge at the end of the road: the brick town packed along the crest under terracotta roofs, the Palazzo Pubblico with its crenellations and the slender Torre del Mangia rising over it to its white stone crown, and the Duomo's dome beside its black-and-white striped campanile, all hazed by hand. Everything along the road is hidden past 280 m.
+
+  `lay`, `place` and `setTime` recycle it along a 480 m loop.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -562,6 +571,7 @@ None.
 | `pages/world-ride/toronto` | Toronto Waterfront Trail at 4:50, warm-up, next `Harbourfront sprint` |
 | `pages/world-ride/prospect` | Prospect Park at 4:50, warm-up, next `Park loop interval` |
 | `pages/world-ride/calobra` | Sa Calobra, Mallorca at 4:50, warm-up, next `Hairpin tempo` |
+| `pages/world-ride/strade` | Strade Bianche at 2:53, warm-up, next `Gravel spin` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
