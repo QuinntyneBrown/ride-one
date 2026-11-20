@@ -452,6 +452,9 @@ const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
 const SEAT_COLOURS = ['#d8342a', '#2f6fd6', '#2fb36a'];
 const SEAT_OUT = 3.7;
 const SEAT_Z = 0.3;
+/** The diners' coats and their bright beanies, a set per stall. */
+const DINER_COATS = ['#3b2f5c', '#5c2f3f', '#2f4a5c'];
+const DINER_HATS = ['#ff4fb8', '#ffb347', '#3fe0ff'];
 /** The stalls' paper lanterns, and the dishes on their menu boards, by stall in turn. */
 const STALL_LANTERN = '#f2261a';
 /** The paper lanterns' ribs, and the gold of their bands and tassels. */
@@ -3681,7 +3684,29 @@ export class DocklandsStreet {
     const plastics = SEAT_COLOURS.map(
       (hex) => new MeshStandardMaterial({ color: hex, roughness: 0.45, metalness: 0.05 }),
     );
-    const coat = new MeshStandardMaterial({ color: 0x2a2233, roughness: 0.8 });
+    const coats = DINER_COATS.map(
+      (hex) => new MeshStandardMaterial({ color: hex, roughness: 0.8 }),
+    );
+    const hats = DINER_HATS.map(
+      (hex) =>
+        new MeshStandardMaterial({ color: hex, emissive: new Color(hex), emissiveIntensity: 0.35 }),
+    );
+    const jeans = new MeshStandardMaterial({ color: 0x1c2233, roughness: 0.8 });
+    const wood = new MeshStandardMaterial({ color: 0xd9b27a, roughness: 0.6 });
+    const torso = new CylinderGeometry(0.15, 0.2, 1, 10);
+    const limb = new CylinderGeometry(0.05, 0.05, 1, 6);
+    const stick = new CylinderGeometry(0.008, 0.008, 1, 4);
+    const beanie = new SphereGeometry(0.13, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    this.disposables.push(...coats, ...hats, jeans, wood, torso, limb, stick, beanie);
+    // A part stretched from one point to another, as a sleeve, a leg or a chopstick is.
+    const span = (geometry: BufferGeometry, material: Material, from: Vector3, to: Vector3) => {
+      const mesh = new Mesh(geometry, material);
+      const along = to.clone().sub(from);
+      mesh.scale.y = along.length();
+      mesh.position.copy(from).add(to).multiplyScalar(0.5);
+      mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), along.normalize());
+      return mesh;
+    };
     const skin = new MeshStandardMaterial({ color: 0xc89a7a, roughness: 0.7 });
     const bowlLight = new MeshBasicMaterial({
       color: new Color('#fff1d6').multiplyScalar(1.4),
@@ -3692,7 +3717,7 @@ export class DocklandsStreet {
     const leg = new CylinderGeometry(0.05, 0.08, 0.5, 6);
     const head = new SphereGeometry(0.12, 10, 8);
     const bowl = new SphereGeometry(0.09, 10, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
-    this.disposables.push(...plastics, coat, skin, bowlLight, seat, top, leg, head, bowl);
+    this.disposables.push(...plastics, skin, bowlLight, seat, top, leg, head, bowl);
     const box = (
       material: Material,
       w: number,
@@ -3762,13 +3787,27 @@ export class DocklandsStreet {
         stool.position.set(tx, KERB + 0.21, SEAT_Z + dz);
         group.add(stool);
       }
-      const diner = new Mesh(unit, coat);
-      diner.scale.set(0.44, 0.52, 0.3);
-      diner.rotation.x = -0.25;
-      diner.position.set(tx, KERB + 0.7, SEAT_Z + 0.6);
+      // The diner sits hunched over the bowl, chopsticks raised from it to their mouth.
+      const at = (dx: number, dy: number, dz: number) =>
+        new Vector3(tx + dx, KERB + dy, SEAT_Z + dz);
+      const coat = coats[i % coats.length]!;
+      const neck = at(0, 0.98, 0.42);
+      group.add(span(torso, coat, at(0, 0.44, 0.66), neck));
+      for (const side of [-1, 1]) {
+        const knee = at(side * 0.1, 0.48, 0.3);
+        group.add(span(limb, jeans, at(side * 0.1, 0.46, 0.64), knee));
+        group.add(span(limb, jeans, knee, at(side * 0.1, 0.03, 0.26)));
+        const hand = at(side * 0.09, 0.74, 0.16);
+        group.add(span(limb, coat, at(side * 0.2, 0.9, 0.44), hand));
+      }
       const face = new Mesh(head, skin);
-      face.position.set(tx, KERB + 1.06, SEAT_Z + 0.48);
-      group.add(diner, face);
+      face.position.copy(neck).add(new Vector3(0, 0.14, -0.06));
+      const hat = new Mesh(beanie, hats[i % hats.length]!);
+      hat.position.copy(face.position).add(new Vector3(0, 0.03, 0.01));
+      group.add(face, hat);
+      for (const dx of [0.07, 0.1]) {
+        group.add(span(stick, wood, at(dx - 0.03, 0.62, 0.1), at(dx, 0.98, 0.3)));
+      }
       // Steam from the cooking rises off the booth's roof, lit warm by the hatch below.
       for (let k = 0; k < STALL_PUFFS; k++) {
         const mesh = new Mesh(puff, steam);
