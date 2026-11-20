@@ -242,6 +242,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
   private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
   private readonly pannists: { figure: Group; phase: number }[] = [];
+  private readonly bandBanners: { group: Group; phase: number }[] = [];
   private readonly mokos: {
     figure: Group;
     legs: [Group, Group];
@@ -294,6 +295,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addPanFloat();
     this.addGantry();
     this.addOfficers();
+    this.addBandBanners();
     this.addLamps();
     this.addTrees();
     this.addStalls();
@@ -335,6 +337,11 @@ export class CaribanaStreet implements SceneStreet {
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
+    for (const b of this.bandBanners) {
+      // The bearers walk the banner up the road, swaying it on the beat.
+      b.group.rotation.z = Math.sin(this.time * 2.1 + b.phase) * 0.025;
+      b.group.position.y = Math.abs(Math.sin(this.time * 4.2 + b.phase)) * 0.04;
+    }
     for (const p of this.pannists) {
       // Pannists bounce on the beat as they play.
       p.figure.position.y = 1.55 + Math.abs(Math.sin(this.time * 4.2 + p.phase)) * 0.06;
@@ -1296,6 +1303,78 @@ export class CaribanaStreet implements SceneStreet {
         this.props.push({ mesh: tree, offset: offset + random() * 4, every: LOOP, x });
       }
     }
+  }
+
+  /**
+   * Each band's banner at its head: the band's name and the year's theme on a fringed cloth
+   * in the band's colours, carried high on two poles by bearers in the band's T-shirts, with
+   * two marshals in neon shirts walking ahead to keep the road clear.
+   */
+  private addBandBanners(): void {
+    const bands: readonly (readonly [string, string, string, string])[] = [
+      // In the colours of the King or Queen each band brings behind its banner.
+      ['SOCA KINGDOM', 'Coral Reef', COSTUMES[1]!.suit, '#ffffff'],
+      ['ISLAND PEOPLE', 'Sunfire', COSTUMES[2]!.suit, '#111111'],
+      ['TROPICAL FUSION', 'Midnight Orchid', COSTUMES[3]!.suit, '#ffffff'],
+    ];
+    const pole = new CylinderGeometry(0.025, 0.025, 3.4, 6);
+    pole.translate(0, 1.7, 0);
+    const cloth = new PlaneGeometry(4.2, 1.5, 8, 2);
+    cloth.translate(0, 2.65, 0);
+    this.disposables.push(pole, cloth);
+    const wood = this.material({ color: 0x8a6a45, roughness: 0.8 });
+    const neon = this.material({ color: 0xff6a00, roughness: 0.7, emissive: 0x401800 });
+    const random = seeded(1409);
+    bands.forEach(([name, theme, fill, ink], i) => {
+      const banner = new Group();
+      const material = this.material({
+        map: this.track(bandBannerTexture(name, theme, fill, ink)),
+        side: DoubleSide,
+        roughness: 0.7,
+        alphaTest: 0.5,
+      });
+      banner.add(new Mesh(cloth, material));
+      const shirt = this.material({ color: fill, roughness: 0.9 });
+      for (const x of [-2.1, 2.1]) {
+        const p = new Mesh(pole, wood);
+        p.position.set(x, 0, 0);
+        banner.add(p);
+        const parts = spectatorParts(0, random() < 0.5);
+        this.disposables.push(parts.skin, parts.top, parts.bottom);
+        const bearer = new Group();
+        const skin = this.material({ color: SKINS[Math.floor(random() * SKINS.length)] });
+        bearer.add(new Mesh(parts.skin, skin), new Mesh(parts.top, shirt));
+        bearer.add(new Mesh(parts.bottom, this.material({ color: 0x1e2530, roughness: 0.9 })));
+        bearer.position.set(x - Math.sign(x) * 0.25, 0, 0.15);
+        banner.add(bearer);
+      }
+      // Two marshals in neon shirts a few metres ahead of the banner.
+      for (const x of [-1.6, 1.4]) {
+        const parts = spectatorParts(random() < 0.5 ? 0 : 1, false);
+        this.disposables.push(parts.skin, parts.top, parts.bottom);
+        const marshal = new Group();
+        const skin = this.material({ color: SKINS[Math.floor(random() * SKINS.length)] });
+        marshal.add(new Mesh(parts.skin, skin), new Mesh(parts.top, neon));
+        marshal.add(new Mesh(parts.bottom, this.material({ color: 0x111111, roughness: 0.9 })));
+        marshal.position.set(x, 0, -4 - random() * 2);
+        marshal.rotation.y = Math.PI + (random() - 0.5) * 0.8;
+        banner.add(marshal);
+      }
+      banner.traverse((o) => (o.castShadow = true));
+      const holder = new Group();
+      holder.add(banner);
+      // The cloth faces back down the road, to the riders and the band behind it; the bearers
+      // walk on up the road with it.
+      this.group.add(holder);
+      this.bandBanners.push({ group: banner, phase: random() * 6 });
+      this.props.push({
+        mesh: holder,
+        offset: i * TRUCK_EVERY + ROYAL_AT - 18,
+        every: LOOP,
+        x: 2.9,
+        road: true,
+      });
+    });
   }
 
   /**
@@ -3041,6 +3120,27 @@ function chequerTexture(): CanvasTexture {
         g.fillRect(x, y, 4, 4);
       }
     }
+  });
+}
+
+/** A band's banner: its name and theme on its colours, a gold border and a fringed hem. */
+function bandBannerTexture(name: string, theme: string, fill: string, ink: string): CanvasTexture {
+  return canvasTexture(512, 192, (g) => {
+    g.clearRect(0, 0, 512, 192);
+    g.fillStyle = fill;
+    g.fillRect(0, 0, 512, 168);
+    g.strokeStyle = '#ffd23f';
+    g.lineWidth = 8;
+    g.strokeRect(8, 8, 496, 152);
+    g.fillStyle = ink;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 64px system-ui, sans-serif';
+    g.fillText(name, 256, 66, 470);
+    g.font = 'italic 34px system-ui, sans-serif';
+    g.fillText(`presents ${theme}`, 256, 126, 440);
+    g.fillStyle = '#ffd23f';
+    for (let x = 4; x < 512; x += 8) g.fillRect(x, 168, 4, 18 + (x % 3) * 2);
   });
 }
 
