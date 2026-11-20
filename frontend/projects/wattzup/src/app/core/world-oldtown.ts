@@ -162,6 +162,10 @@ export class OldTownStreet {
     roughness: 0.5,
   });
   private readonly signBoard = new PlaneGeometry(0.7, 0.55);
+  private readonly pot = new CylinderGeometry(0.24, 0.18, 0.5, 10);
+  private readonly bush = new SphereGeometry(0.42, 10, 8);
+  private readonly terracotta = new MeshStandardMaterial({ color: 0xb4603f, roughness: 0.9 });
+  private readonly leaves = new MeshStandardMaterial({ color: 0x3f6b35, roughness: 0.95 });
   private readonly flagCloth = new PlaneGeometry(2.0, 1.35, 6, 1);
   /** Civic flags in two or three bands, read from either side. */
   private readonly houseFlags = FLAGS.map(
@@ -203,6 +207,7 @@ export class OldTownStreet {
     if (this.railing.map) this.track(this.railing.map);
     this.disposables.push(this.iron, this.signBoard, this.dormer, this.dormerRoof, ...this.signs);
     this.disposables.push(this.flagCloth, ...this.houseFlags);
+    this.disposables.push(this.pot, this.bush, this.terracotta, this.leaves);
     for (const flag of this.houseFlags) if (flag.map) this.track(flag.map);
     for (const sign of this.signs) if (sign.map) this.track(sign.map);
     this.addFurniture(roadHalf);
@@ -681,10 +686,31 @@ export class OldTownStreet {
     if (this.random() < 0.4) group.add(this.balcony(look.trim, width));
     if (look.groundBay === BAY && this.random() < 0.6) group.add(this.sign(width));
     if (this.chance(2) < 0.32) group.add(this.flag(width));
+    if (look.groundBay === 2 * BAY) group.add(this.pots(width));
     // The cornice under the eaves, and the string course over the shop floor.
     group.add(this.trim(trim, width + 0.3, 0.45, 0.42, SHOP + height - 0.22));
     group.add(this.trim(trim, width, 0.2, 0.24, SHOP));
     this.disposables.push(shopBox, upperBox, roofGeometry);
+    return group;
+  }
+
+  /** Bay trees in terracotta pots either side of a home's doors. */
+  private pots(width: number): Group {
+    const group = new Group();
+    for (let bay = 0; bay < Math.round(width / (2 * BAY)); bay++) {
+      // The door sits in the first third of each two-bay tile.
+      const door = -width / 2 + bay * 2 * BAY + 1.25;
+      for (const dz of [-0.85, 0.85]) {
+        if (this.chance(10 + bay * 2 + (dz > 0 ? 1 : 0)) < 0.35) continue;
+        const pot = new Mesh(this.pot, this.terracotta);
+        pot.position.set(0.35, 0.25, door + dz);
+        const bush = new Mesh(this.bush, this.leaves);
+        bush.position.set(0.35, 0.95, door + dz);
+        bush.scale.set(1, 1.25, 1);
+        pot.castShadow = bush.castShadow = true;
+        group.add(pot, bush);
+      }
+    }
     return group;
   }
 
