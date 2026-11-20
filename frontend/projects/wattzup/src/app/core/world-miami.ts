@@ -36,6 +36,7 @@ import {
   haloTexture,
   LifeguardTowers,
   loopMetres,
+  paintTexture,
   Palms,
   Ribbons,
   Yachts,
@@ -188,6 +189,7 @@ export class MiamiStreet implements SceneStreet {
     this.addPier(roadHalf);
     this.addCarts(roadHalf);
     this.addTaxis(roadHalf);
+    this.addRoadPaint();
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -2151,6 +2153,41 @@ export class MiamiStreet implements SceneStreet {
         phase: 4,
         scale: 1,
       });
+    }
+  }
+
+  /**
+   * Words painted on the road, stretched along it so they read from a rider's low eye: OCEAN
+   * DR at the start of each block, SLOW before the crossings and the bike lane's own word.
+   */
+  private addRoadPaint(): void {
+    const plane = new PlaneGeometry(2.6, 7);
+    this.disposables.push(plane);
+    for (const [text, colour, offset, x] of [
+      ['OCEAN DR', '#f4f0e4', 52, 1.6],
+      ['SLOW', '#f4f0e4', CROSSINGS[0] - 18, 1.6],
+      ['BIKE', '#f4f0e4', 44, -2.55],
+      ['OCEAN DR', '#f4f0e4', 210, 1.6],
+      ['SLOW', '#f4f0e4', CROSSINGS[1] - 18, 1.6],
+    ] as const) {
+      const material = new MeshStandardMaterial({
+        map: this.track(paintTexture(text, colour)),
+        transparent: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        roughness: 0.4,
+      });
+      this.disposables.push(material);
+      const mesh = new Mesh(plane, material);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.y = 0.02;
+      mesh.receiveShadow = true;
+      if (text === 'BIKE') mesh.scale.set(0.45, 0.7, 1);
+      const holder = new Group();
+      holder.add(mesh);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x });
     }
   }
 
