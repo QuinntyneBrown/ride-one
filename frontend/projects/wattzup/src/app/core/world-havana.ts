@@ -224,6 +224,7 @@ export class HavanaStreet implements SceneStreet {
     this.addBusStop(roadHalf);
     this.addPelicans(roadHalf);
     this.addKerbside(roadHalf);
+    this.addGrates(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -493,6 +494,27 @@ export class HavanaStreet implements SceneStreet {
       [r + 0.05, KERB],
       [r, 0.004],
     ]);
+    // The inland gutter: a grimy channel along the kerb where sand, leaves and litter collect,
+    // darkest at the kerb's foot, with cast-iron drain grates every so often.
+    const silt = this.track(gutterTexture());
+    silt.wrapS = RepeatWrapping;
+    silt.wrapT = RepeatWrapping;
+    silt.repeat.set(1 / 0.6, 1 / 24);
+    this.ribbons.add(
+      points,
+      this.material({
+        map: silt,
+        transparent: true,
+        depthWrite: false,
+        roughness: 0.95,
+        polygonOffset: true,
+        polygonOffsetFactor: -3,
+      }),
+      [
+        [r, 0.013],
+        [r - 0.6, 0.013],
+      ],
+    ).renderOrder = 2;
     // Where the breakers come over, the promenade and the outer lane lie wet: dark, glossy
     // patches and puddles that catch the sky.
     const wet = this.track(wetTexture());
@@ -3284,6 +3306,24 @@ export class HavanaStreet implements SceneStreet {
     }
   }
 
+  /** Cast-iron drain grates set into the gutter at the kerb's foot, every 25 to 45 m. */
+  private addGrates(roadHalf: number): void {
+    const random = seeded(1499);
+    const iron = this.material({ map: this.track(grateTexture()), roughness: 0.7, metalness: 0.4 });
+    const sheet = new PlaneGeometry(0.5, 0.9);
+    sheet.rotateX(-Math.PI / 2);
+    this.disposables.push(sheet);
+    for (let offset = 33; offset < LOOP; offset += 25 + random() * 20) {
+      const grate = new Mesh(sheet, iron);
+      grate.position.set(-0.26, 0.018, 0);
+      grate.renderOrder = 3;
+      const holder = new Group();
+      holder.add(grate);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: roadHalf });
+    }
+  }
+
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial(options);
     this.disposables.push(material);
@@ -4732,5 +4772,64 @@ function cirrusTexture(): CanvasTexture {
         g.stroke();
       }
     }
+  });
+}
+
+/**
+ * The inland gutter, 0.6 m across (u from the kerb) and 24 m along: a grime band darkest at the
+ * kerb's foot, drifts of pale sand, scattered dry leaves and the odd scrap of litter, on clear.
+ */
+function gutterTexture(): CanvasTexture {
+  return canvasTexture(64, 1024, (g) => {
+    g.clearRect(0, 0, 64, 1024);
+    const band = g.createLinearGradient(0, 0, 64, 0);
+    band.addColorStop(0, 'rgba(30,28,24,0.75)');
+    band.addColorStop(0.4, 'rgba(40,36,30,0.4)');
+    band.addColorStop(1, 'rgba(40,36,30,0)');
+    g.fillStyle = band;
+    g.fillRect(0, 0, 64, 1024);
+    const random = seeded(1487);
+    for (let i = 0; i < 26; i++) {
+      g.fillStyle = `rgba(210,190,145,${0.5 + random() * 0.35})`;
+      g.beginPath();
+      g.ellipse(
+        random() * 22,
+        random() * 1024,
+        4 + random() * 10,
+        20 + random() * 60,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      g.fill();
+    }
+    const leaves = ['#7a5a2a', '#a07a3a', '#5a4a2a', '#8a6a3a'];
+    for (let i = 0; i < 90; i++) {
+      g.fillStyle = leaves[i % leaves.length]!;
+      g.save();
+      g.translate(random() * 30, random() * 1024);
+      g.rotate(random() * Math.PI);
+      g.beginPath();
+      g.ellipse(0, 0, 2.5, 6, 0, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+    const litter = ['#f2f2ee', '#c8202f', '#1d70b8', '#e8d8a8'];
+    for (let i = 0; i < 12; i++) {
+      g.fillStyle = litter[i % litter.length]!;
+      g.fillRect(random() * 26, random() * 1024, 3 + random() * 4, 4 + random() * 6);
+    }
+  });
+}
+
+/** A cast-iron drain grate: a dark frame and rusty bars across slots open to black. */
+function grateTexture(): CanvasTexture {
+  return canvasTexture(64, 112, (g) => {
+    g.fillStyle = '#3a3634';
+    g.fillRect(0, 0, 64, 112);
+    g.fillStyle = '#0a0a0a';
+    for (let y = 10; y < 102; y += 9) g.fillRect(8, y, 48, 5);
+    g.fillStyle = 'rgba(140,80,40,0.35)';
+    for (let i = 0; i < 20; i++) g.fillRect((i * 37) % 60, (i * 53) % 108, 6, 4);
   });
 }
