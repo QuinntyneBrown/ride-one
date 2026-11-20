@@ -1029,6 +1029,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.9, fill: 1.5, colour: 0xfff6ea },
     fogRange: [600, 6000],
   },
+  // A golden early-autumn weekend morning in the park: low warm sun, soft haze through the trees.
+  prospect: {
+    sky: 0x8ab4e0,
+    fog: 0xe0dcc8,
+    ground: 0x5a8a3a,
+    road: 0x4a4c50,
+    sun: 28,
+    wet: false,
+    haze: false,
+    turbidity: 5,
+    rayleigh: 1.2,
+    azimuth: 120,
+    light: { sun: 2.6, fill: 1.6, colour: 0xffeccc },
+    fogRange: [200, 1600],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

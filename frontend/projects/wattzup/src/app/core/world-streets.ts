@@ -14,6 +14,7 @@ import { AlpeStreet } from './world-alpe';
 import { MontmartreStreet } from './world-montmartre';
 import { BonnevilleStreet } from './world-bonneville';
 import type { StreetFactory } from './world-kit';
+import { ProspectStreet } from './world-prospect';
 import { TorontoStreet } from './world-toronto';
 import { SkyeStreet } from './world-skye';
 import { IbizaStreet } from './world-ibiza';
@@ -116,4 +117,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   ibiza: (track, disposables) => new IbizaStreet(track, disposables),
   skye: (track, disposables) => new SkyeStreet(track, disposables),
   toronto: (track, disposables) => new TorontoStreet(track, disposables),
+  prospect: (track, disposables) => new ProspectStreet(track, disposables),
 };

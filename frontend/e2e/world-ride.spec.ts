@@ -644,6 +644,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Toronto Waterfront Trail');
   });
 
+  test('rides 30 Minute Intervals: Fitness Training round the loop of Prospect Park', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '30 Minute Intervals: Fitness Training',
+      'Prospect Park',
+      '30-minute-intervals-fitness-training',
+    );
+    await expect(world.heading).toHaveText('Prospect Park');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Prospect Park');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
