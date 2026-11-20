@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -320,6 +320,13 @@ None.
   - 300 m ahead, to the right of the road, a knoll striped with vines and on it the mission-style winery: a cream stucco hall under red tiles with an arcade of nine arches along its front, its bell tower with an open belfry, a bronze bell and a tiled pyramid roof under a cross, cypresses lining the drive up from the road and oaks round its foot; rounded golden hills either side and two blue ridges of the Mayacamas beyond, all hazed by hand. Vines, oaks and wineries on the right are hidden near the knoll so none stands in front of it.
 
   `lay`, `place` and `setTime` recycle it along a 500 m loop.
+- **Glastonbury Fields (`core/world-glastonbury.ts`).** For `glastonbury`, Worthy Farm in festival week:
+  - the metal trackway across trampled grass, the campsites' fields rising gently both sides;
+  - dome and tunnel tents packed close in every colour, merged by colour into tiles that recycle;
+  - tall poles flying festival flags in six designs that stir on the ride's clock;
+  - food stalls and the cider bus once a lap with lit signs;
+  - festival-goers wandering the trackway's edges and groups standing, swaying (`Figures`);
+  - ahead the Pyramid Stage's frame with beams and screens sweeping through the colours on the ride's clock, the Ribbon Tower, and Glastonbury Tor with St Michael's tower, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -370,6 +377,7 @@ None.
 | `pages/world-ride/tulips` | Dutch Tulip Fields at 4:50, warm-up, next `Polder spin` |
 | `pages/world-ride/tourmalet` | Col du Tourmalet at 4:50, warm-up, next `Devil’s ramp` |
 | `pages/world-ride/napa` | Napa Vineyards at 2:53, warm-up, next `Vineyard rise` |
+| `pages/world-ride/glastonbury` | Glastonbury Fields at 4:50, warm-up, next `Stage-to-stage sprint` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

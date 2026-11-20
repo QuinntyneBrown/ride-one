@@ -407,6 +407,13 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Col du Tourmalet');
   });
 
+  test('rides Sprint to the Music in Glastonbury Fields to the Pyramid Stage', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Sprint to the Music', 'Glastonbury Fields', 'sprint-to-the-music');
+    await expect(world.heading).toHaveText('Glastonbury Fields');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Glastonbury Fields');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

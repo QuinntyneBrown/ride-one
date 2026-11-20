@@ -48,6 +48,7 @@ export const WORLDS: readonly WorldId[] = [
   'tulips',
   'tourmalet',
   'napa',
+  'glastonbury',
 ];
 
 export interface Shelf {
