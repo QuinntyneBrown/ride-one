@@ -108,6 +108,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addElmsAndLamps(roadHalf);
     this.addParkedBikes(roadHalf);
     this.addBollards(roadHalf);
+    this.addParkedCars(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -438,8 +439,7 @@ export class AmsterdamStreet implements SceneStreet {
 
   /**
    * Amsterdammertjes: the city's red-brown cast-iron bollards, each with its three St Andrew's
-   * crosses, standing in a line along the street's canal-side edge and along the kerb before the
-   * houses, cast as tiles of the gracht.
+   * crosses, standing in a line along the kerb before the houses, cast as tiles of the gracht.
    */
   private addBollards(roadHalf: number): void {
     const iron = this.material({ color: 0x4f2219, metalness: 0.35, roughness: 0.55 });
@@ -456,10 +456,7 @@ export class AmsterdamStreet implements SceneStreet {
       this.disposables.push(merged);
       return merged;
     };
-    const rows = [
-      { geometry: tile(1.6, false), x: -roadHalf - 0.35 },
-      { geometry: tile(2.4, true), x: roadHalf + 0.3 },
-    ];
+    const rows = [{ geometry: tile(2.4, true), x: roadHalf + 0.3 }];
     for (const { geometry, x } of rows) {
       for (let offset = 0; offset < LOOP; offset += 30) {
         if (offset % BRIDGE < 8) continue;
@@ -471,6 +468,55 @@ export class AmsterdamStreet implements SceneStreet {
         this.group.add(run);
         this.props.push({ mesh: run, offset, x });
       }
+    }
+  }
+
+  /**
+   * Small cars parked nose to tail along the canal side of the street, as they are all along the
+   * Herengracht: hatchbacks, a few city cars and the odd delivery van, in the greys, blacks,
+   * whites and dark blues of a Dutch street, with gaps between them.
+   */
+  private addParkedCars(roadHalf: number): void {
+    const random = seeded(509);
+    const paints = [0x2a2c30, 0xd9dcdf, 0x8a9096, 0x1f2d4a, 0x5a6066, 0xf2f2ee, 0x7a1f1f, 0x3a4a3a];
+    const bodies = paints.map((hex) =>
+      this.material({ color: hex, metalness: 0.55, roughness: 0.35 }),
+    );
+    const glass = this.material({ color: 0x1a2028, metalness: 0.6, roughness: 0.1 });
+    const rubber = this.material({ color: 0x141414, roughness: 0.9 });
+    const kinds = (['hatch', 'city', 'van'] as const).map((kind) => {
+      const car = carGeometry(kind);
+      this.disposables.push(car.body, car.glass, car.wheels);
+      return car;
+    });
+    for (let offset = 0; offset < LOOP;) {
+      const gap = bridgeGap(offset);
+      if (gap !== null) {
+        offset = gap + 1;
+        continue;
+      }
+      const roll = random();
+      const car = kinds[roll < 0.55 ? 0 : roll < 0.88 ? 1 : 2]!;
+      if (offset + car.length > nextGap(offset)) {
+        offset = nextGap(offset);
+        continue;
+      }
+      if (random() < 0.2) {
+        offset += 3 + random() * 4;
+        continue;
+      }
+      const parked = new Group();
+      const paint = car === kinds[2] ? bodies[5]! : bodies[Math.floor(random() * bodies.length)]!;
+      parked.add(
+        new Mesh(car.body, paint),
+        new Mesh(car.glass, glass),
+        new Mesh(car.wheels, rubber),
+      );
+      parked.children.forEach((m) => (m.castShadow = true));
+      parked.children.forEach((m) => (m.position.y = KERB));
+      this.group.add(parked);
+      this.props.push({ mesh: parked, offset: offset + car.length / 2, x: -roadHalf - 1.25 });
+      offset += car.length + 0.6 + random() * 1.2;
     }
   }
 
@@ -817,6 +863,125 @@ class SeatedRiders {
     for (const mesh of this.meshes) mesh.setMatrixAt(i, this.matrix);
     for (const mesh of this.meshes) mesh.instanceMatrix.needsUpdate = true;
   }
+}
+
+/**
+ * A parked car along z, its nose towards -z, centred on z 0: the body extruded from its side
+ * profile, a band of dark glass round the cabin and four wheels. A hatchback, a rounded city car
+ * or a tall delivery van.
+ */
+function carGeometry(kind: 'hatch' | 'city' | 'van'): {
+  body: BufferGeometry;
+  glass: BufferGeometry;
+  wheels: BufferGeometry;
+  length: number;
+} {
+  const profiles = {
+    hatch: {
+      body: [
+        [0, 0.28],
+        [0, 0.72],
+        [0.15, 0.86],
+        [0.95, 0.94],
+        [1.6, 1.42],
+        [3.2, 1.45],
+        [3.75, 1.0],
+        [3.92, 0.88],
+        [3.95, 0.28],
+      ],
+      glass: [
+        [1.05, 0.96],
+        [1.62, 1.38],
+        [3.15, 1.4],
+        [3.62, 1.0],
+      ],
+      wheels: [0.72, 3.25],
+      width: 1.76,
+    },
+    city: {
+      body: [
+        [0, 0.28],
+        [0, 0.7],
+        [0.2, 0.86],
+        [0.75, 0.96],
+        [1.2, 1.42],
+        [2.6, 1.48],
+        [3.3, 1.05],
+        [3.5, 0.8],
+        [3.52, 0.28],
+      ],
+      glass: [
+        [0.85, 0.98],
+        [1.25, 1.38],
+        [2.58, 1.42],
+        [3.18, 1.04],
+      ],
+      wheels: [0.62, 2.9],
+      width: 1.62,
+    },
+    van: {
+      body: [
+        [0, 0.3],
+        [0, 0.82],
+        [0.25, 1.0],
+        [0.9, 1.25],
+        [1.25, 1.98],
+        [4.8, 2.02],
+        [4.85, 0.3],
+      ],
+      glass: [
+        [1.0, 1.3],
+        [1.3, 1.9],
+        [2.0, 1.92],
+        [2.0, 1.28],
+      ],
+      wheels: [0.85, 3.9],
+      width: 1.9,
+    },
+  }[kind];
+  const shape = (points: number[][]) => {
+    const outline = new Shape();
+    outline.moveTo(points[0]![0]!, points[0]![1]!);
+    for (const [x, y] of points.slice(1)) outline.lineTo(x!, y!);
+    outline.closePath();
+    return outline;
+  };
+  const length = profiles.body.at(-1)![0]!;
+  const place = (geometry: BufferGeometry, width: number) => {
+    geometry.translate(-length / 2, 0, -width / 2);
+    geometry.rotateY(Math.PI / 2);
+    return geometry;
+  };
+  const body = place(
+    new ExtrudeGeometry(shape(profiles.body), {
+      depth: profiles.width,
+      bevelEnabled: true,
+      bevelSize: 0.06,
+      bevelThickness: 0.06,
+      bevelSegments: 2,
+    }),
+    profiles.width,
+  );
+  const glass = place(
+    new ExtrudeGeometry(shape(profiles.glass), {
+      depth: profiles.width + 0.1,
+      bevelEnabled: false,
+    }),
+    profiles.width + 0.1,
+  );
+  const parts: BufferGeometry[] = [];
+  for (const x of profiles.wheels) {
+    for (const side of [-1, 1]) {
+      const wheel = new CylinderGeometry(0.31, 0.31, 0.22, 14);
+      wheel.rotateX(Math.PI / 2);
+      wheel.translate(x - length / 2, 0.31, side * (profiles.width / 2 - 0.02));
+      wheel.rotateY(Math.PI / 2);
+      parts.push(wheel);
+    }
+  }
+  const wheels = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return { body, glass, wheels, length };
 }
 
 /** An upright Dutch bike, along z: two wheels, its frame, saddle and swept-back bars. */
