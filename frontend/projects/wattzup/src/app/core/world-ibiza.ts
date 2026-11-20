@@ -39,7 +39,7 @@ import {
   type FeatherWord,
   hazedMaterial,
   loopMetres,
-  paintTexture,
+  paintedRows,
   Palms,
   Ribbons,
   scaleFaceUv,
@@ -108,16 +108,30 @@ const FEATHERS: readonly FeatherWord[] = [
   ['128 BPM', '#8a5ae8', '#ffffff'],
 ];
 const FEATHER_EVERY = 18;
-/** What the crowd chalks on the strip, its colour and how far off the crown. */
-const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
-  ['DROP IT', '#ff4a9a', -1.6],
-  ['128 BPM', '#ffffff', 1.6],
-  ['GO ANA', '#f2c230', 1.6],
-  ['IBIZA', '#3ac8e8', -1.6],
-  ['ON THE BEAT', '#ffffff', -1.6],
-  ['VAMOS', '#d7ff3a', 1.6],
+/** The names and cries the crowd paints on the strip, bright against the dusk. */
+const ROAD_PAINT: readonly (readonly [string, string])[] = [
+  ['DROP IT', '#ff4a9a'],
+  ['128 BPM', '#ffffff'],
+  ['GO ANA', '#f2c230'],
+  ['ON THE BEAT', '#3ae8ff'],
+  ['VAMOS', '#d7ff3a'],
+  ['SOPHIE!', '#ff7a3a'],
+  ['BASS', '#b88aff'],
+  ['GO MAYA', '#ffffff'],
+  ['SUNSET', '#ff4a9a'],
+  ['KENJI', '#f2c230'],
+  ['ALLEZ JONAS', '#3ae8ff'],
+  ['RAVI!', '#d7ff3a'],
 ];
-const ROAD_PAINT_EVERY = 17;
+/** Slogans painted big across the strip. */
+const ROAD_SLOGANS: readonly (readonly [string, string])[] = [
+  ['IBIZA', '#ff4a9a'],
+  ['DROP THE BASS', '#f2c230'],
+  ['WATTZUP', '#d7ff3a'],
+  ['SUNSET STRIP', '#3ae8ff'],
+];
+/** A row of paint every few metres: two names either side of the crown, every third a slogan. */
+const ROAD_PAINT_EVERY = 7;
 /** The beach clubs: their names and their neon. */
 const CLUB_NAMES: readonly (readonly [string, string])[] = [
   ['SOL Y MAR', '#ff4a9a'],
@@ -543,27 +557,26 @@ export class IbizaStreet implements SceneStreet {
     }
   }
 
+  /**
+   * Names and cries painted all over the strip in bright pink, gold, aqua, lime and white: a row
+   * every few metres of two names either side of the crown, every third a slogan right across.
+   */
   private addRoadPaint(): void {
-    const plane = new PlaneGeometry(2.4, 8.5);
-    this.disposables.push(plane);
-    const count = Math.floor(LOOP / ROAD_PAINT_EVERY);
-    for (let i = 0; i < count; i++) {
-      const [text, colour, x] = ROAD_PAINT[i % ROAD_PAINT.length]!;
-      const mesh = new Mesh(
-        plane,
-        this.material({
-          map: this.track(paintTexture(text, colour)),
-          alphaTest: 0.35,
-          polygonOffset: true,
-          polygonOffsetFactor: -4,
-        }),
-      );
-      mesh.rotation.x = -Math.PI / 2;
-      mesh.position.y = 0.02 - KERB;
-      const holder = new Group();
-      holder.add(mesh);
-      this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 12 + i * ROAD_PAINT_EVERY, x });
+    const rows = paintedRows(
+      {
+        loop: LOOP,
+        every: ROAD_PAINT_EVERY,
+        start: 12,
+        kerb: KERB,
+        names: ROAD_PAINT,
+        slogans: ROAD_SLOGANS,
+      },
+      this.disposables,
+      this.track,
+    );
+    for (const row of rows) {
+      this.group.add(row.mesh);
+      this.props.push(row);
     }
   }
 
