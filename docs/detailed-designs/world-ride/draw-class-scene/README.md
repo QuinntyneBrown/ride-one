@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -434,6 +434,11 @@ None.
   - the alpine pasture climbing on the right, with boulders, larches and brown cows grazing with their bells, heads lifting and lowering;
   - the yellow Gotthard post coach drawn by four horses climbing at a walk, legs swinging, and walkers (`Figures`);
   - ahead the mountainside with the hairpins stacked up it, each on its stone wall, the grey peaks streaked with snow and clouds hung round them, keeping their bearing.
+- **Mount Teide (`core/world-teide.ts`).** For `teide`, Tenerife's volcano on a cloudless high-altitude morning:
+  - pale pumice verges and black lava, the caldera's cliffs rising in bands of ochre, rust and cream on the right, and the slope falling on the left to the sea of clouds; the ground sinks below it;
+  - blocks of black lava and red scoria, round retama bushes, the red spires of tajinaste and Canary pines;
+  - the Roques de García with the Cinchado on its narrow neck, and visitors walking and looking out (`Figures`);
+  - ahead Teide's cone with its pale summit and Pico Viejo's dark shoulder, the cable car's cabins climbing on the ride's clock, the caldera's walls, and the sea of clouds drifting with La Palma's peaks breaking through it, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -500,6 +505,7 @@ None.
 | `pages/world-ride/etna` | Mount Etna at 4:50, warm-up, next `Volcano push` |
 | `pages/world-ride/timessquare` | Times Square New Year's Eve at 2:53, warm-up, next `Countdown minute` |
 | `pages/world-ride/tremola` | Tremola, Gotthard Pass at 4:50, warm-up, next `Cobbled grind` |
+| `pages/world-ride/teide` | Mount Teide at 4:50, warm-up, next `Caldera climb` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

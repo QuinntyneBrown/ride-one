@@ -64,6 +64,7 @@ export const WORLDS: readonly WorldId[] = [
   'etna',
   'timessquare',
   'tremola',
+  'teide',
 ];
 
 export interface Shelf {

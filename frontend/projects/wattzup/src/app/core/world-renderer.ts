@@ -921,6 +921,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.9, fill: 1.6, colour: 0xfff6ea },
     fogRange: [700, 8000],
   },
+  // A cloudless morning high above the sea of clouds: thin air, a deep blue sky, hard bright light.
+  teide: {
+    sky: 0x3a7ad8,
+    fog: 0xd8e4f0,
+    ground: 0x5a4a3e,
+    road: 0x3e4044,
+    sun: 46,
+    wet: false,
+    haze: false,
+    turbidity: 1.8,
+    rayleigh: 1.1,
+    azimuth: 130,
+    light: { sun: 3.1, fill: 1.6, colour: 0xfff4e4 },
+    fogRange: [1200, 14000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
