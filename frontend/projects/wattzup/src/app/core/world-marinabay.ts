@@ -68,6 +68,7 @@ export class MarinaBayStreet implements SceneStreet {
   private people: Figures | null = null;
   private readonly canopies: MeshStandardMaterial[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private wheel: Group | null = null;
   private ripples: Texture | null = null;
   private time = 0;
@@ -120,7 +121,7 @@ export class MarinaBayStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const people = this.people;
     if (people) {
@@ -128,7 +129,7 @@ export class MarinaBayStreet implements SceneStreet {
         const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
         const step = Math.abs(Math.sin(this.time * 4 + w.phase)) * 0.04;
         const heading = w.speed > 0 ? 0 : Math.PI;
-        people.set(i, w.x, heightAt(Math.max(metres, 0)) + KERB, -metres, heading, 0.95, step);
+        people.set(i, w.x, heightAt(metres) + KERB, -metres, heading, 0.95, step);
       });
       people.commit();
     }
