@@ -975,7 +975,85 @@ export class SerpentineStreet implements SceneStreet {
     barracks.position.set(-200, 47, -150);
     barracks.rotation.y = 0.3;
     h.add(barracks);
+    this.addKnightsbridge(haze);
     this.group.add(h);
+  }
+
+  /**
+   * Knightsbridge over the far bank's trees: Victorian and Edwardian mansion blocks in red brick
+   * and Portland stone, five to nine storeys under grey slate mansards with dormers and chimney
+   * stacks, and the turreted red-brick hotel by the park with its green copper cupolas.
+   */
+  private addKnightsbridge(haze: Color): void {
+    const h = this.horizon;
+    const random = seeded(971);
+    const brick = this.repeat(facadeTexture('#9a4a38', '#efe7d6'), 1, 1);
+    const stone = this.repeat(facadeTexture('#e0d8c6', '#bfb39a'), 1, 1);
+    const fronts = [
+      hazedMaterial(this.disposables, haze, 0xffffff, 0.22, { map: brick }),
+      hazedMaterial(this.disposables, haze, 0xffffff, 0.22, { map: stone }),
+      hazedMaterial(this.disposables, haze, 0xf0d8c8, 0.22, { map: brick }),
+    ];
+    const slate = hazedMaterial(this.disposables, haze, 0x5a5f66, 0.25);
+    const chimney = hazedMaterial(this.disposables, haze, 0x8a4434, 0.25);
+    const copper = hazedMaterial(this.disposables, haze, 0x5f9e8a, 0.2, { roughness: 0.5 });
+    const mansard = new ConeGeometry(Math.SQRT1_2, 1, 4, 1);
+    mansard.rotateY(Math.PI / 4);
+    this.disposables.push(mansard);
+    const block = (
+      x: number,
+      z: number,
+      w: number,
+      d: number,
+      storeys: number,
+      front: Material,
+    ) => {
+      const height = storeys * 3.4;
+      const box = new BoxGeometry(w, height, d);
+      for (const face of [4, 5]) scaleFaceUv(box, face, w / 4, storeys);
+      for (const face of [0, 1]) scaleFaceUv(box, face, d / 4, storeys);
+      for (const face of [2, 3]) scaleFaceUv(box, face, 0, 0);
+      this.disposables.push(box);
+      const body = new Mesh(box, front);
+      body.position.set(x, height / 2, z);
+      // A steep slate mansard, cut flat at its top.
+      const roof = new Mesh(mansard, slate);
+      roof.scale.set(w * 1.02, 5, d * 1.02);
+      roof.position.set(x, height + 2.5, z);
+      h.add(body, roof);
+      for (let k = 0; k < 2; k++) {
+        const stack = new Mesh(this.unit, chimney);
+        stack.scale.set(1.4, 4, 2.4);
+        stack.position.set(x + (k ? 1 : -1) * w * 0.32, height + 4.5, z);
+        h.add(stack);
+      }
+    };
+    // A street of mansion blocks, shoulder to shoulder, stepping back from the park.
+    let z = 30;
+    for (let k = 0; z > -300; k++) {
+      const w = 18 + random() * 22;
+      const storeys = 6 + Math.floor(random() * 4);
+      block(-185 - random() * 40, z - w / 2, 16, w, storeys, fronts[k % 3]!);
+      z -= w + 2 + random() * 8;
+    }
+    // The hotel by the park: a long red-brick front, a corner tower and copper cupolas.
+    const hotel = { x: -165, z: -60 };
+    block(hotel.x, hotel.z, 20, 46, 9, fronts[0]!);
+    for (const dz of [-23, 23]) {
+      const tower = new Mesh(new CylinderGeometry(4.5, 4.5, 38, 14), fronts[0]!);
+      this.disposables.push(tower.geometry);
+      tower.position.set(hotel.x + 8, 19, hotel.z + dz);
+      const drum = new Mesh(new CylinderGeometry(3.6, 3.8, 4, 14), fronts[1]!);
+      this.disposables.push(drum.geometry);
+      drum.position.set(hotel.x + 8, 40, hotel.z + dz);
+      const dome = new Mesh(this.ball, copper);
+      dome.scale.set(4, 5.5, 4);
+      dome.position.set(hotel.x + 8, 42, hotel.z + dz);
+      const lantern = new Mesh(this.unit, copper);
+      lantern.scale.set(0.8, 4, 0.8);
+      lantern.position.set(hotel.x + 8, 49, hotel.z + dz);
+      h.add(tower, drum, dome, lantern);
+    }
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
@@ -1133,6 +1211,26 @@ function balustradeTexture(): CanvasTexture {
       g.fill();
       g.fillRect(x - 5, 18, 10, 94);
     }
+  });
+}
+
+/**
+ * A mansion block's face, one 4 m bay by one storey per repeat: `wall` with a tall sash window
+ * in a `dressing` surround, its sill and a string course under the floor above.
+ */
+function facadeTexture(wall: string, dressing: string): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    speckle(g, 64, 64, wall, 977);
+    g.fillStyle = dressing;
+    g.fillRect(16, 10, 32, 44);
+    g.fillRect(0, 60, 64, 4);
+    g.fillStyle = '#2f3a44';
+    g.fillRect(20, 14, 24, 36);
+    g.fillStyle = 'rgba(200,220,235,0.35)';
+    g.fillRect(20, 14, 24, 12);
+    g.fillStyle = dressing;
+    g.fillRect(20, 30, 24, 2);
+    g.fillRect(31, 14, 2, 36);
   });
 }
 
