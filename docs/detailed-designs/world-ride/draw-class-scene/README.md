@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -128,6 +128,15 @@ None.
   - sound systems at the kerb (speaker stacks whose cones pulse on the beat, a gazebo and the system's banner) and jerk chicken stalls with their smoke rising, all on the ride's clock;
   - three mas bands dancing up the road in feathered backpieces, slower than the rider;
   - the Westway crossing overhead once a lap and Trellick Tower on the skyline ahead.
+- **The Canyon of Heroes (`core/world-knicks.ts`).** For `knicks`, lower Broadway on a Knicks championship parade morning:
+  - a wide street: the race lane in the middle and an outer lane each side behind dashed lane lines, scattered with fallen ticker tape, the fans' writing every 25 m, granite kerbs and grey sidewalk slabs;
+  - towers of limestone, granite, brick and glass on both sides, six to thirteen storeys at the base with a shopfront at the foot and a cornice over it, many with a tower set back above under a copper roof or a mast, wooden water tanks on the roofs, and cross streets opening between some of them; every other tower hangs the parade's drapes (`KNICKS`, `CHAMPS`, `NY`) down its front;
+  - blue-railed barricades hung with the parade's banners, packed behind with the shared crowd in orange and blue waving orange, blue and white flags; street lamps carrying banner pairs, banners slung across the canyon on wires and strings of orange, blue and white pennants;
+  - six parade floats rolling up the outer lanes at 2.2 m/s, so the riders reel them in one after another: a blue tractor unit pulling a flatbed skirted in the parade's colours, carrying a giant basketball, a gold trophy or a champions' board, with balloons tied above and five players (`Figures`) jumping on the deck;
+  - ticker tape (2,800 scraps) and streamers (320) falling, fluttering and tumbling through the canyon on the street's clock, held still under reduced motion;
+  - the canyon running on into the haze past the loop, and the Woolworth Building closing it ahead: its cream terra-cotta base, the tower stepping back with Gothic pinnacles at every corner, and its copper pyramid crown with a lantern and spire, hazed by hand.
+
+  `lay`, `place` and `setTime` recycle it along a 480 m loop. Its far landmark is hazed with the kit's `hazedMaterial`, and its fronts are tiled with the kit's `scaleFaceUv`, both shared with South Beach.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -153,6 +162,7 @@ None.
 | `pages/world-ride/blackpool` | Blackpool Illuminations at 4:50, warm-up, next `Tower sprint` |
 | `pages/world-ride/suburbia` | Suburban Sunrise at 4:50, warm-up, next `Cul-de-sac kick` |
 | `pages/world-ride/nottinghill` | Notting Hill Carnival at 4:50, warm-up, next `Sound system surge` |
+| `pages/world-ride/knicks` | Knicks Championship Parade at 1:53, warm-up, next `Float sprint` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

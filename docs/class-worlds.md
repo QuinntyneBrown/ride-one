@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise and Notting Hill Carnival have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival and Knicks Championship Parade have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -13,7 +13,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 7 | Calorie Burning Workout | South Beach Sunrise | 80% | Pastel art deco hotels with neon fins face palms, lifeguard towers and the Atlantic along Miami Beach's Ocean Drive at sunrise. The two-minute opener and the six short efforts each chase the rising sun up a rise toward the deco tower at the end of the drive. |
 | 8 | Intense Interval Blast | Caribana Parade | 55% | Toronto's Lake Shore Boulevard at Caribbean Carnival; steel pans and feathered masqueraders, each interval a surge between bands. |
 | 9 | Quick But Brutal HIIT | Trinidad J'Ouvert (concept) |  | Port of Spain before dawn at Carnival, paint and mud flying; each sprint breaks through a soca crowd. |
-| 10 | Sprintavals | Knicks Championship Parade (concept) |  | Ticker tape over Manhattan's Canyon of Heroes for a Knicks NBA title; sprint between floats as orange-and-blue crowds roar. |
+| 10 | Sprintavals | Knicks Championship Parade | 76% | Ticker tape and orange and blue streamers drift down between the towers of lower Broadway's Canyon of Heroes as fans pack the barricades for the Knicks' championship parade, the Woolworth Building's copper crown rising at the far end. The four long builds reel in the floats rolling up Broadway, and the five ten-second sprints each jump from one float to the next before the last surge toward the Woolworth. |
 | 11 | Time Is of the Essence | Westminster Rush Hour | 60% | London at dusk beneath Big Ben; race black cabs and red buses before the clock chimes. |
 | 12 | 15-Minute Smash Fest | Rio Sambadrome (concept) |  | Carnival night in Rio; glittering samba schools fill the runway and every smash rides the drum line. |
 | 13 | 10 On 20 Off Max Sprints | Venice Beach Boardwalk (concept) |  | Skaters, street performers and palm-lined sand; ten-second sprints, twenty seconds cruising the ocean breeze. |

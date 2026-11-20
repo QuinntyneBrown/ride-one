@@ -3,6 +3,7 @@
 // figures' limbs. A street built on them follows Old Town's pattern (world-oldtown.ts): `build`
 // once, then `lay` and `place` each frame, recycling its parts along a loop.
 import {
+  type BoxGeometry,
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
@@ -103,6 +104,30 @@ export class Ribbons {
       geometry.computeBoundingSphere();
     }
   }
+}
+
+/** Scales the UVs of one face of a box (0 is +x) so its texture repeats `u` by `v` times. */
+export function scaleFaceUv(box: BoxGeometry, face: number, u: number, v: number): void {
+  const uv = box.getAttribute('uv') as BufferAttribute;
+  for (let i = face * 4; i < face * 4 + 4; i++) uv.setXY(i, uv.getX(i) * u, uv.getY(i) * v);
+}
+
+/**
+ * A material for a far landmark that the fog would wash out: kept out of the fog and hazed by
+ * hand instead, its colour moved `amount` of the way towards `haze`.
+ */
+export function hazedMaterial(
+  disposables: { dispose(): void }[],
+  haze: Color,
+  hex: number | string,
+  amount: number,
+  extra: Partial<MeshStandardMaterial> = {},
+): MeshStandardMaterial {
+  const material = new MeshStandardMaterial({ roughness: 0.7, fog: false });
+  material.color.set(hex).lerp(haze, amount);
+  Object.assign(material, extra);
+  disposables.push(material);
+  return material;
 }
 
 /** A small seeded generator (mulberry32), so a street is the same on every ride. */

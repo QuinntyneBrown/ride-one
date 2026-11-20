@@ -92,6 +92,15 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · South Beach Sunrise');
   });
 
+  test('rides Sprintavals in Knicks Championship Parade up the Canyon of Heroes', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass('Sprintavals', 'Knicks Championship Parade', 'sprintavals');
+    await expect(world.heading).toHaveText('Knicks Championship Parade');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Knicks Championship Parade');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');
