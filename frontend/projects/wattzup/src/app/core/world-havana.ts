@@ -14,6 +14,7 @@ import {
   ConeGeometry,
   CylinderGeometry,
   DoubleSide,
+  ExtrudeGeometry,
   Group,
   IcosahedronGeometry,
   InstancedMesh,
@@ -22,7 +23,9 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
+  Shape,
   type Texture,
+  Vector2,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
@@ -422,25 +425,76 @@ export class HavanaStreet implements SceneStreet {
   }
 
   /**
-   * Classic American cars cruising the oncoming lanes: long two-tone bodies with tail fins,
-   * chrome bumpers and whitewall tyres.
+   * Classic American cars cruising the oncoming lanes: long two-tone bodies drawn from a side
+   * profile, with a long bonnet, a rounded boot and tail fins, a glazed cabin with its roof in the
+   * second colour, a chrome grille, bumpers and side strip, round headlamps, red tail lamps and
+   * whitewall tyres with chrome hubcaps.
    */
   private addCars(roadHalf: number): void {
     const random = seeded(919);
     const chrome = this.material({ color: 0xe8ecf0, roughness: 0.15, metalness: 1 });
     const tyre = this.material({ color: 0x1b1b1f, roughness: 0.8 });
-    const glass = this.material({ color: 0x2a3640, roughness: 0.1, metalness: 0.4 });
-    const wheel = new CylinderGeometry(0.36, 0.36, 0.24, 14);
+    const whitewall = this.material({ color: 0xf2f0ea, roughness: 0.6 });
+    const glass = this.material({ color: 0x1e2a32, roughness: 0.05, metalness: 0.6 });
+    const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.4 });
+    const tail = this.material({ color: 0xc8102e, emissive: 0x800010, emissiveIntensity: 0.5 });
+    const body = profile(
+      [
+        [-2.75, 0.32],
+        [-2.8, 0.62],
+        [-2.7, 0.9],
+        [-2.2, 1.02],
+        [-1.4, 0.92],
+        [1.3, 0.92],
+        [2.45, 0.86],
+        [2.78, 0.72],
+        [2.8, 0.42],
+        [2.6, 0.3],
+      ],
+      1.86,
+      0.07,
+    );
+    const cabin = profile(
+      [
+        [-1.42, 0.9],
+        [-0.95, 1.46],
+        [0.55, 1.48],
+        [1.15, 0.9],
+      ],
+      1.56,
+      0.05,
+    );
+    const windows = profile(
+      [
+        [-1.52, 0.9],
+        [-1.0, 1.4],
+        [0.6, 1.42],
+        [1.27, 0.9],
+      ],
+      1.7,
+      0,
+    );
+    const wheel = new CylinderGeometry(0.37, 0.37, 0.24, 16);
     wheel.rotateZ(Math.PI / 2);
-    const fin = new BoxGeometry(0.08, 0.3, 1.2);
-    fin.translate(0, 0.15, 0);
-    fin.rotateX(-0.15);
-    this.disposables.push(wheel, fin);
-    CARS.forEach(([body, roof], k) => {
-      const paint = this.material({ color: body, roughness: 0.3, metalness: 0.3 });
+    const wall = new CylinderGeometry(0.27, 0.27, 0.25, 16);
+    wall.rotateZ(Math.PI / 2);
+    const hub = new CylinderGeometry(0.15, 0.15, 0.27, 12);
+    hub.rotateZ(Math.PI / 2);
+    const headlamp = new CylinderGeometry(0.13, 0.13, 0.08, 12);
+    headlamp.rotateX(Math.PI / 2);
+    this.disposables.push(body, cabin, windows, wheel, wall, hub, headlamp);
+    CARS.forEach(([colour, roof], k) => {
+      const paint = this.material({ color: colour, roughness: 0.3, metalness: 0.3 });
       const top = this.material({ color: roof, roughness: 0.35, metalness: 0.2 });
       const car = new Group();
-      const add = (
+      const put = (geometry: BufferGeometry, m: MeshStandardMaterial, x = 0, y = 0, z = 0) => {
+        const mesh = new Mesh(geometry, m);
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        car.add(mesh);
+        return mesh;
+      };
+      const box = (
         m: MeshStandardMaterial,
         sx: number,
         sy: number,
@@ -448,27 +502,24 @@ export class HavanaStreet implements SceneStreet {
         x: number,
         y: number,
         z: number,
-      ) => {
-        const mesh = new Mesh(this.unit, m);
-        mesh.scale.set(sx, sy, sz);
-        mesh.position.set(x, y, z);
-        mesh.castShadow = true;
-        car.add(mesh);
-      };
-      add(paint, 2, 0.62, 5.4, 0, 0.72, 0);
-      add(top, 1.7, 0.5, 2.2, 0, 1.28, 0.3);
-      add(glass, 1.74, 0.36, 2.0, 0, 1.24, 0.3);
-      add(chrome, 2.06, 0.18, 0.12, 0, 0.5, -2.72);
-      add(chrome, 2.06, 0.18, 0.12, 0, 0.5, 2.72);
-      add(chrome, 2.02, 0.05, 5.3, 0, 0.82, 0);
-      for (const x of [-0.92, 0.92]) {
-        const f = new Mesh(fin, paint);
-        f.position.set(x, 1.03, 2.1);
-        car.add(f);
-        for (const z of [-1.7, 1.7]) {
-          const w = new Mesh(wheel, tyre);
-          w.position.set(x, 0.36, z);
-          car.add(w);
+      ) => put(this.unit, m, x, y, z).scale.set(sx, sy, sz);
+      put(body, paint);
+      put(cabin, top);
+      put(windows, glass);
+      // Chrome: the bumpers, the grille, the side strip; the lamps at each end.
+      box(chrome, 2.0, 0.2, 0.16, 0, 0.42, -2.86);
+      box(chrome, 2.0, 0.2, 0.16, 0, 0.42, 2.86);
+      box(chrome, 1.2, 0.22, 0.06, 0, 0.6, -2.84);
+      box(chrome, 1.98, 0.04, 4.6, 0, 0.74, 0.1);
+      for (const x of [-0.7, 0.7]) {
+        put(headlamp, lamp, x, 0.64, -2.88);
+        box(tail, 0.16, 0.26, 0.06, x * 1.3, 0.78, 2.86);
+      }
+      for (const x of [-0.93, 0.93]) {
+        for (const z of [-1.72, 1.62]) {
+          put(wheel, tyre, x, 0.37, z);
+          put(wall, whitewall, x, 0.37, z);
+          put(hub, chrome, x, 0.37, z);
         }
       }
       // Oncoming in the far lanes, a few going the rider's way in the near one.
@@ -735,4 +786,27 @@ function plasterTexture(): CanvasTexture {
     g.fillStyle = 'rgba(150,110,90,0.25)';
     g.fillRect(0, 210, 64, 46);
   });
+}
+
+/**
+ * A car part drawn as a side profile (metres along the car from the boot to the bonnet, and
+ * height), its bonnet turned toward -z, and
+ * extruded across `width`, its edges rounded by `bevel`.
+ */
+function profile(
+  points: readonly [number, number][],
+  width: number,
+  bevel: number,
+): BufferGeometry {
+  const shape = new Shape(points.map(([z, y]) => new Vector2(z, y)));
+  const geometry = new ExtrudeGeometry(shape, {
+    depth: width - 2 * bevel,
+    bevelEnabled: bevel > 0,
+    bevelThickness: bevel,
+    bevelSize: bevel,
+    bevelSegments: 2,
+  });
+  geometry.translate(0, 0, -(width - 2 * bevel) / 2);
+  geometry.rotateY(Math.PI / 2);
+  return geometry;
 }
