@@ -757,6 +757,12 @@ export class MiamiStreet implements SceneStreet {
       transparent: true,
     });
     this.signs.push(clubSign);
+    const trim = this.material({
+      color: 0xf8f4f0,
+      roughness: 0.6,
+      emissive: 0x302838,
+      emissiveIntensity: 0.5,
+    });
     const slab = this.material({ color: 0xf4f0ec, roughness: 0.7 });
     const rail = this.material({ color: 0xf8f8f8, roughness: 0.3, metalness: 0.4 });
     const signBox = this.material({ color: 0x14121c, roughness: 0.5, metalness: 0.6 });
@@ -975,6 +981,18 @@ export class MiamiStreet implements SceneStreet {
         cap.position.set(1.2, height + 3, -width / 2 + 2.6);
         hotel.add(cap);
       }
+      // A deco eyebrow over every pair of upper windows: a thin slab of stucco standing 0.6 m
+      // proud of the façade, lit along its edge, its shadow on the glass below.
+      const brows = new BoxBuilder();
+      const bays = windowBays(storeys);
+      for (let i = 0; i < bays.length; i += 2) {
+        const b = bays[i]!;
+        const top = height * (1 - b.y / 512);
+        if (top < 5.5) continue;
+        const z = -width / 2 + ((b.x + 28) / 512) * width;
+        brows.box(trim, [0.6, 0.1, (60 / 512) * width], [-0.3, top + 0.12, z]);
+      }
+      hotel.add(brows.build(this.disposables));
       // Streamline balconies on two hotels in three: a slab on each upper floor in front of
       // alternate bays, rounded off by its pipe railing of three white rails.
       if (k % 3 !== 2) {
