@@ -25,6 +25,7 @@ import {
   MeshStandardMaterial,
   OctahedronGeometry,
   PlaneGeometry,
+  QuadraticBezierCurve3,
   Quaternion,
   RepeatWrapping,
   SphereGeometry,
@@ -381,6 +382,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addBandBanners();
     this.addPress();
     this.addLamps();
+    this.addBunting();
     this.addTrees();
     this.addStalls();
     this.addGardiner(points);
@@ -1387,6 +1389,46 @@ export class CaribanaStreet implements SceneStreet {
           x: side * (PAVEMENT + 0.3),
         });
         this.beyond(lamp, offset + (side > 0 ? 18 : 0), side * (PAVEMENT + 0.3));
+      }
+    }
+  }
+
+  /**
+   * Bunting strung across the road from each lamp standard on the left to the next one on
+   * the right, 18 m on: pennants in the islands' colours sagging over the lanes.
+   */
+  private addBunting(): void {
+    const across = 2 * (PAVEMENT + 0.3);
+    const along = 18;
+    const span = Math.hypot(across, along) / 2;
+    const colours = ['#ce1126', '#fcd116', '#009e49', '#111111', '#ffffff', '#00267f', '#009b3a'];
+    const pennants = this.material({ vertexColors: true, side: DoubleSide, roughness: 0.75 });
+    const rope = this.material({ color: 0xeeeeee, roughness: 0.8 });
+    for (let k = 0; k < 2; k++) {
+      const flags = buntingGeometry(span, colours, [[7.7, 0]], 1.6);
+      // Turn the string from across the road to run from the left lamp to the right one ahead.
+      flags.rotateY(Math.atan2(along, across));
+      // Thin cloth glows with the light through it: light every pennant as if it faced the sky.
+      const normal = flags.getAttribute('normal') as BufferAttribute;
+      for (let i = 0; i < normal.count; i++) normal.setXYZ(i, 0, 1, 0.35);
+      const line = new TubeGeometry(
+        new QuadraticBezierCurve3(
+          new Vector3(-across / 2, 7.7, along / 2),
+          new Vector3(0, 7.7 - 3.2, 0),
+          new Vector3(across / 2, 7.7, -along / 2),
+        ),
+        24,
+        0.01,
+        4,
+      );
+      this.disposables.push(flags, line);
+      for (let offset = 0; offset < LOOP; offset += 72) {
+        const string = new Group();
+        string.add(new Mesh(flags, pennants), new Mesh(line, rope));
+        this.group.add(string);
+        const at = offset + k * 36 + along / 2;
+        this.props.push({ mesh: string, offset: at, every: LOOP, x: 0 });
+        this.beyond(string, at, 0);
       }
     }
   }
