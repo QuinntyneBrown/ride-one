@@ -10,6 +10,7 @@
 // canvas textures and a loop that recycles the course, with the shared crowd, figures, barriers,
 // banners, canopies, feather flags, road paint and box builder of world-kit.ts.
 import {
+  BoxGeometry,
   type CanvasTexture,
   CapsuleGeometry,
   Color,
@@ -124,6 +125,16 @@ const CANOPIES: readonly (readonly [string, string, string])[] = [
   ['TIMING', '#111111', '#f2c230'],
   ['PIT 12', '#2a8a4a', '#ffffff'],
 ];
+/** The race teams' haulers: the name down the trailer's side, its colour and its ink. */
+const HAULERS: readonly (readonly [string, string, string])[] = [
+  ['SALT DEMONS RACING', '#d8283a', '#ffffff'],
+  ['200 MPH CLUB', '#1d3c8f', '#f2c230'],
+  ['WATTZUP SPEED', '#1b1e24', '#d7ff3a'],
+  ['LAND SPEED RACING', '#f2c230', '#1b1e24'],
+  ['BONNEVILLE BOYS', '#2a8a4a', '#ffffff'],
+];
+/** The timing tower stands on the right, in the opening view. */
+const TOWER = 185;
 /** The streamliners' liveries. */
 const LIVERIES = [0xd8283a, 0x1d3c8f, 0xf2c230, 0xf4f4f0, 0x2a8a4a, 0xf08a2a];
 
@@ -176,6 +187,7 @@ export class BonnevilleStreet implements SceneStreet {
     this.crowd.build();
     this.addPits();
     this.addTiming();
+    this.addTimingTower();
     this.addSpeedRun(points);
     this.addGantry(roadHalf);
     this.addFeatherFlags();
@@ -288,9 +300,18 @@ export class BonnevilleStreet implements SceneStreet {
     const make = {
       motorhome: (k: number) => this.motorhome(k),
       truck: (k: number) => this.truck(k),
+      hauler: (k: number) => this.hauler(k),
       streamliner: (k: number) => this.streamliner(k),
     };
-    const kinds = ['motorhome', 'streamliner', 'truck', 'motorhome', 'streamliner'] as const;
+    const kinds = [
+      'hauler',
+      'motorhome',
+      'streamliner',
+      'hauler',
+      'truck',
+      'motorhome',
+      'streamliner',
+    ] as const;
     const built = kinds.map((kind, k) => make[kind](k));
     const pole = new CylinderGeometry(0.04, 0.05, 7, 6);
     pole.translate(0, 3.5, 0);
@@ -300,7 +321,7 @@ export class BonnevilleStreet implements SceneStreet {
     const steel = this.material({ color: 0xc8ccd0, metalness: 0.5, roughness: 0.4 });
     const stars = this.material({ map: this.track(starsAndStripes()), side: DoubleSide });
     let k = 0;
-    for (let offset = 8; offset < LOOP; offset += 13 + random() * 7) {
+    for (let offset = 8; offset < LOOP; offset += 16 + random() * 8) {
       const x = -(17 + random() * 14);
       const holder = new Group();
       const vehicle = built[k % built.length]!.clone();
@@ -374,6 +395,36 @@ export class BonnevilleStreet implements SceneStreet {
       for (const x of [-1.15, 1.15]) b.box(tyre, [0.32, 0.9, 0.9], [x, 0.45, z]);
     }
     return b.build(this.disposables);
+  }
+
+  /**
+   * A race team's hauler: an articulated cab and a 16 m box trailer 4 m high, the team's livery
+   * and name painted down both its sides, with its wheels and the cab's glass.
+   */
+  private hauler(k: number): Group {
+    const [name, fill, ink] = HAULERS[k % HAULERS.length]!;
+    const b = new BoxBuilder();
+    const cab = this.material({ color: fill, metalness: 0.3, roughness: 0.4 });
+    const chrome = this.material({ color: 0xd8dce0, metalness: 0.8, roughness: 0.25 });
+    const glass = this.material({ color: 0x24303a, roughness: 0.2, metalness: 0.3 });
+    const tyre = this.material({ color: 0x1c1c1c, roughness: 0.95 });
+    b.box(cab, [2.5, 3.1, 3], [0, 2.05, 9.6]);
+    b.box(cab, [2.5, 1.2, 2], [0, 1.1, 11.6]);
+    b.box(glass, [2.4, 1.0, 0.1], [0, 2.7, 11.12]);
+    b.box(chrome, [2.3, 0.9, 0.12], [0, 1.2, 12.62]);
+    for (const x of [-1.35, 1.35]) b.box(chrome, [0.18, 3.2, 0.18], [x, 2.6, 8.2]);
+    for (const z of [11, 8.6, 7.4, -4.6, -5.8, -7]) {
+      for (const x of [-1.1, 1.1]) b.box(tyre, [0.35, 1, 1], [x, 0.5, z]);
+    }
+    const g = b.build(this.disposables);
+    const white = this.material({ color: 0xf4f4f0, roughness: 0.55 });
+    const side = this.material({ map: this.track(haulerTexture(name, fill, ink)), roughness: 0.5 });
+    const trailer = new Mesh(new BoxGeometry(2.6, 4, 16), [side, side, white, white, white, white]);
+    this.disposables.push(trailer.geometry);
+    trailer.position.set(0, 2.6, 0);
+    trailer.castShadow = true;
+    g.add(trailer);
+    return g;
   }
 
   /**
@@ -454,6 +505,62 @@ export class BonnevilleStreet implements SceneStreet {
     }
     this.group.add(this.runner);
     this.setTime(this.time);
+  }
+
+  /**
+   * The timing tower on the right: a three-level scaffold with stairs zigzagging up it, the
+   * glazed booth on top under its roof, the TIMING banner round its rail and a flag over it.
+   */
+  private addTimingTower(): void {
+    const b = new BoxBuilder();
+    const steel = this.material({ color: 0xc0c4c8, metalness: 0.6, roughness: 0.35 });
+    const deck = this.material({ color: 0x6a6e74, metalness: 0.4, roughness: 0.6 });
+    const booth = this.material({ color: 0xf4f4f0, roughness: 0.5 });
+    const glass = this.material({ color: 0x2a3a48, roughness: 0.15, metalness: 0.4 });
+    const roof = this.material({ color: 0xd8283a, roughness: 0.6 });
+    for (const x of [-2, 2]) for (const z of [-2, 2]) b.box(steel, [0.16, 9, 0.16], [x, 4.5, z]);
+    for (const y of [3, 6, 9]) {
+      b.box(deck, [4.4, 0.18, 4.4], [0, y, 0]);
+      for (const z of [-2, 2]) b.box(steel, [4.2, 0.06, 0.06], [0, y - 1.5, z]);
+    }
+    // The stairs, a flight to each level, alternating sides.
+    for (let level = 0; level < 3; level++) {
+      const z = level % 2 ? -2.6 : 2.6;
+      b.box(steel, [4.4, 0.1, 0.9], [0, level * 3 + 1.5, z], level % 2 ? -0.6 : 0.6);
+    }
+    b.box(booth, [4.2, 1.1, 4.2], [0, 9.65, 0]);
+    b.box(glass, [4.3, 1.2, 4.3], [0, 10.8, 0]);
+    b.box(booth, [4.2, 0.3, 4.2], [0, 11.55, 0]);
+    b.box(roof, [5, 0.25, 5], [0, 11.8, 0]);
+    b.box(steel, [0.06, 4, 0.06], [0, 13.9, 0]);
+    const tower = b.build(this.disposables);
+    const banner = new PlaneGeometry(4.2, 1.1);
+    const cloth = new PlaneGeometry(2.2, 1.3);
+    cloth.translate(1.12, 15, 0);
+    this.disposables.push(banner, cloth);
+    const timing = this.material({
+      map: this.track(clothBannerTexture('SCTA TIMING', '#1b1e24', '#f2c230')),
+      side: DoubleSide,
+    });
+    for (const [x, ry] of [
+      [-2.12, -Math.PI / 2],
+      [0, 0],
+    ] as const) {
+      const face = new Mesh(banner, timing);
+      face.position.set(x, 9.65, x ? 0 : 2.12);
+      face.rotation.y = ry;
+      tower.add(face);
+    }
+    const flag = new Mesh(
+      cloth,
+      this.material({ map: this.track(starsAndStripes()), side: DoubleSide }),
+    );
+    flag.rotation.y = 0.6;
+    tower.add(flag);
+    const holder = new Group();
+    holder.add(tower);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: TOWER, x: 15 });
   }
 
   /**
@@ -761,5 +868,25 @@ function mirageTexture(): CanvasTexture {
       g.fillStyle = random() < 0.5 ? 'rgba(170,196,220,0.35)' : 'rgba(255,255,255,0.6)';
       g.fillRect(random() * 256, 18 + random() * 30, 20 + random() * 60, 1 + random() * 2);
     }
+  });
+}
+
+/** A hauler's side: the team's colour, a sweep of ink, the name large along it. */
+function haulerTexture(name: string, fill: string, ink: string): CanvasTexture {
+  return canvasTexture(640, 160, (g) => {
+    g.fillStyle = fill;
+    g.fillRect(0, 0, 640, 160);
+    g.fillStyle = ink;
+    g.beginPath();
+    g.moveTo(0, 120);
+    g.lineTo(640, 92);
+    g.lineTo(640, 106);
+    g.lineTo(0, 136);
+    g.closePath();
+    g.fill();
+    g.font = 'bold italic 62px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(name, 320, 62, 600);
   });
 }
