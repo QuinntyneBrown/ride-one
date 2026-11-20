@@ -72,7 +72,7 @@ const STREAMERS = 320;
 const TAPE_SPAN = 170;
 const TAPE_TOP = 44;
 /** The Woolworth Building closes the canyon ahead, hazed by hand. */
-const WOOLWORTH_AHEAD = 820;
+const WOOLWORTH_AHEAD = 600;
 const HAZE = 0xbfcbd6;
 const ORANGE = '#f58426';
 const BLUE = '#1d4f9c';
@@ -819,9 +819,14 @@ export class KnicksStreet implements SceneStreet {
     const terra = this.track(terracottaTexture());
     terra.wrapS = RepeatWrapping;
     terra.wrapT = RepeatWrapping;
-    const cream = hazedMaterial(this.disposables, haze, 0xf1ead9, 0.28, { map: terra });
-    const plain = hazedMaterial(this.disposables, haze, 0xe9e1cd, 0.3);
-    const copper = hazedMaterial(this.disposables, haze, 0x5f9e86, 0.22, { metalness: 0.2 });
+    const cream = hazedMaterial(this.disposables, haze, 0xf1ead9, 0.14, { map: terra });
+    const plain = hazedMaterial(this.disposables, haze, 0xe9e1cd, 0.16);
+    // The verdigris crown catches the high sun, so it reads green against the sky.
+    const copper = hazedMaterial(this.disposables, haze, 0x5fae8e, 0.1, {
+      metalness: 0.2,
+      emissive: new Color(0x3f8a6c),
+      emissiveIntensity: 0.35,
+    });
     const w = this.woolworth;
     const stage = (width: number, height: number, depth: number, y: number) => {
       const geometry = new BoxGeometry(width, height, depth);
@@ -879,6 +884,7 @@ export class KnicksStreet implements SceneStreet {
     spire.scale.set(1.4, 2.8, 1.4);
     spire.position.y = 202;
     w.add(lantern, spire);
+    w.scale.setScalar(1.25);
     this.group.add(w);
   }
 

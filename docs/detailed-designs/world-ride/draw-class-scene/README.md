@@ -134,7 +134,7 @@ None.
   - blue-railed barricades hung with the parade's banners, packed behind with the shared crowd in orange and blue waving orange, blue and white flags; street lamps carrying banner pairs, banners slung across the canyon on wires and strings of orange, blue and white pennants;
   - six parade floats rolling up the outer lanes at 2.2 m/s, so the riders reel them in one after another: a blue tractor unit pulling a flatbed skirted in the parade's colours, carrying a giant basketball, a gold trophy or a champions' board, with balloons tied above and five players (`Figures`) jumping on the deck;
   - ticker tape (2,800 scraps) and streamers (320) falling, fluttering and tumbling through the canyon on the street's clock, held still under reduced motion;
-  - the canyon running on into the haze past the loop, and the Woolworth Building closing it ahead: its cream terra-cotta base, the tower stepping back with Gothic pinnacles at every corner, and its copper pyramid crown with a lantern and spire, hazed by hand.
+  - the canyon running on into the haze past the loop, and the Woolworth Building closing it 600 m ahead, about 300 m to the tip: its cream terra-cotta base, the tower stepping back with Gothic pinnacles at every corner, and its verdigris copper pyramid crown with a lantern and spire, lifted so it reads green against the sky, hazed lightly by hand.
 
   `lay`, `place` and `setTime` recycle it along a 480 m loop. Its far landmark is hazed with the kit's `hazedMaterial`, and its fronts are tiled with the kit's `scaleFaceUv`, both shared with South Beach.
 
