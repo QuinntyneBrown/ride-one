@@ -11,6 +11,7 @@ import {
   type BufferGeometry,
   CapsuleGeometry,
   Color,
+  ConeGeometry,
   type CanvasTexture,
   CylinderGeometry,
   DoubleSide,
@@ -95,7 +96,7 @@ export class AmsterdamStreet implements SceneStreet {
   private cyclists: SeatedRiders | null = null;
   private pedestrians: Figures | null = null;
   private dogs: InstancedMesh | null = null;
-  private readonly boats: { mesh: Group; offset: number; speed: number }[] = [];
+  private readonly boats: { mesh: Group; offset: number; speed: number; float?: number }[] = [];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly matrix = new Matrix4();
@@ -125,6 +126,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
+    this.addWaterfowl(roadHalf);
     this.addWestertoren();
     this.addClouds();
   }
@@ -164,7 +166,10 @@ export class AmsterdamStreet implements SceneStreet {
     for (const boat of this.boats) {
       const metres = loopMetres(boat.offset + boat.speed * this.time, s + START, LOOP, BEHIND);
       boat.mesh.position.z = -metres;
-      boat.mesh.position.y = heightAt(Math.max(metres, 0));
+      boat.mesh.position.y =
+        heightAt(Math.max(metres, 0)) +
+        (boat.float ?? 0) +
+        Math.sin(this.time * 1.3 + boat.offset) * 0.02;
     }
     const cyclists = this.cyclists;
     if (cyclists) {
@@ -1003,6 +1008,89 @@ export class AmsterdamStreet implements SceneStreet {
     boat.add(skipper, cap);
     boat.children.forEach((m) => (m.castShadow = true));
     return boat;
+  }
+
+  /**
+   * Waterfowl on the canal: pairs of mute swans, mallards (the drakes' heads bottle green) and
+   * black coots with their white bills, paddling slowly along near the walls and the boats.
+   */
+  private addWaterfowl(roadHalf: number): void {
+    const random = seeded(631);
+    const edge = -roadHalf - QUAY;
+    const mat = (hex: number) => this.material({ color: hex, roughness: 0.8 });
+    const kinds = [
+      { body: mat(0xf4f2ec), head: mat(0xf4f2ec), bill: mat(0xe0782a), size: 1.0, neck: true },
+      { body: mat(0x8a6a4a), head: mat(0x1f5a32), bill: mat(0xd8b030), size: 0.45, neck: false },
+      { body: mat(0x6a5038), head: mat(0x6a5038), bill: mat(0xc08a30), size: 0.42, neck: false },
+      { body: mat(0x1b1b1d), head: mat(0x1b1b1d), bill: mat(0xf2f2ee), size: 0.36, neck: false },
+    ];
+    const body = new SphereGeometry(0.5, 10, 8);
+    body.scale(0.55, 0.42, 1);
+    const neck = new TorusGeometry(0.28, 0.06, 5, 10, Math.PI * 0.9);
+    neck.rotateY(Math.PI / 2);
+    neck.translate(0, 0.32, -0.3);
+    const head = new SphereGeometry(0.11, 8, 6);
+    const bill = new ConeGeometry(0.04, 0.14, 5);
+    bill.rotateX(-Math.PI / 2);
+    this.disposables.push(body, neck, head, bill);
+    for (let i = 0; i < 16; i++) {
+      const k = i < 4 ? 0 : i < 8 ? 1 : i < 11 ? 2 : 3;
+      const kind = kinds[k]!;
+      const bird = new Group();
+      const torso = new Mesh(body, kind.body);
+      torso.position.y = 0.08;
+      bird.add(torso);
+      const headY = kind.neck ? 0.78 : 0.32;
+      const headZ = kind.neck ? -0.42 : -0.42;
+      if (kind.neck) bird.add(new Mesh(neck, kind.body));
+      const face = new Mesh(head, kind.head);
+      face.position.set(0, headY, headZ);
+      const beak = new Mesh(bill, kind.bill);
+      beak.position.set(0, headY - 0.02, headZ - 0.13);
+      bird.add(face, beak);
+      bird.scale.setScalar(kind.size);
+      bird.children.forEach((m) => (m.castShadow = true));
+      const pair = Math.floor(i / 2);
+      const nearWall = pair % 2 === 0;
+      const swim = new Group();
+      swim.add(bird);
+      bird.position.set((random() - 0.5) * 1.2, 0, (i % 2) * 1.4);
+      const speed = (random() < 0.5 ? 1 : -1) * (0.2 + random() * 0.3);
+      bird.rotation.y = speed < 0 ? Math.PI : 0;
+      swim.position.x = nearWall ? edge - 6 - random() * 3 : edge - CANAL + 6 + random() * 3;
+      this.group.add(swim);
+      this.boats.push({ mesh: swim, offset: 95 + pair * 41 + random() * 20, speed, float: -WATER });
+    }
+    // A mallard pair and a coot waddling along the quay among the bikes.
+    for (const [k, along, across] of [
+      [1, 9, -3.0],
+      [2, 9.8, -3.3],
+      [3, 14, -2.8],
+    ] as const) {
+      const kind = kinds[k]!;
+      const bird = new Group();
+      const torso = new Mesh(body, kind.body);
+      torso.position.y = 0.32;
+      const face = new Mesh(head, kind.head);
+      face.position.set(0, 0.6, -0.42);
+      const beak = new Mesh(bill, kind.bill);
+      beak.position.set(0, 0.58, -0.55);
+      bird.add(torso, face, beak);
+      for (const x of [-0.12, 0.12]) {
+        const leg = new Mesh(this.unit, kind.bill);
+        leg.scale.set(0.04, 0.22, 0.04);
+        leg.position.set(x, 0.11, 0);
+        bird.add(leg);
+      }
+      bird.scale.setScalar(kind.size);
+      bird.rotation.y = 0.6;
+      bird.children.forEach((m) => (m.castShadow = true));
+      const walk = new Group();
+      walk.add(bird);
+      walk.position.x = -roadHalf + across;
+      this.group.add(walk);
+      this.boats.push({ mesh: walk, offset: START + BEHIND + along, speed: 0.05, float: KERB });
+    }
   }
 
   /** Commuters cycling the street both ways on upright bikes, and people on the pavements. */
