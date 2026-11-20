@@ -1404,6 +1404,21 @@ export class MiamiStreet implements SceneStreet {
       return m;
     });
     const grate = this.material({ color: 0x18181c, roughness: 0.7, metalness: 0.6 });
+    const twinkles: BufferGeometry[] = [];
+    for (let i = 0; i < 90; i++) {
+      const t = i / 90;
+      const y = 0.6 + t * 7.4;
+      const a = t * Math.PI * 2 * 9;
+      const r = 0.27 - t * 0.06;
+      const bulb = new SphereGeometry(0.045, 4, 3);
+      bulb.translate(Math.cos(a) * r + ((y - 0.8) / 1.55) ** 2 * 0.02, y, Math.sin(a) * r);
+      twinkles.push(bulb);
+    }
+    const spiral = mergeGeometries(twinkles)!;
+    twinkles.forEach((g) => g.dispose());
+    this.disposables.push(spiral);
+    const fairy = new MeshBasicMaterial({ color: 0xfff0c0 });
+    this.disposables.push(fairy);
     const coconut = new SphereGeometry(0.15, 8, 6);
     this.disposables.push(coconut);
     const husk = this.material({ color: 0x5a3a20, roughness: 0.9 });
@@ -1425,6 +1440,8 @@ export class MiamiStreet implements SceneStreet {
           p.add(nut);
         }
         this.swaying.push({ palm: p, phase: random() * 6, lean: p.rotation.y });
+        // Every other palm on the promenade side is wrapped in a spiral of fairy lights.
+        if (side < 0 && n % 2 === 0) p.add(new Mesh(spiral, fairy));
         const lamp = new Mesh(this.unit, uplight);
         lamp.scale.set(0.3, 0.12, 0.3);
         lamp.position.set(0.5, 0.06, 0);
