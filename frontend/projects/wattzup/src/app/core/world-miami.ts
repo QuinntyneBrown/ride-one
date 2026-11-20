@@ -133,6 +133,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly searchlights: Mesh[] = [];
   private readonly vents: Mesh[][] = [];
   private plane: Group | null = null;
+  private blimp: Group | null = null;
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
@@ -331,6 +332,12 @@ export class MiamiStreet implements SceneStreet {
     // The cabs' hazard lights blink.
     const blinking = seconds % 0.9 < 0.45;
     this.hazards.forEach((h) => (h.visible = blinking));
+    // The blimp drifts slowly along the beach, 450 m ahead and 130 m up.
+    if (this.blimp) {
+      const drift = Math.sin(seconds * 0.01) * 120;
+      this.blimp.position.set(-80 + drift, 130 + Math.sin(seconds * 0.2) * 2, -460);
+      this.blimp.rotation.y = 0.15;
+    }
     // The searchlights sweep slowly to and fro, out of step with each other.
     this.searchlights.forEach((m, k) => {
       m.rotation.z = Math.sin(seconds * 0.25 + k * 2.1) * 0.5;
@@ -3445,6 +3452,60 @@ export class MiamiStreet implements SceneStreet {
       this.disposables.push(bank.geometry);
       this.horizon.add(bank);
     }
+    // A blimp drifting high over the beach, its envelope lit faintly by the city and an LED
+    // screen along its flank cycling MIAMI NIGHTS, nav lights at nose and tail.
+    const blimp = new Group();
+    const envelope = new Mesh(
+      new SphereGeometry(1, 24, 16),
+      this.material({
+        color: 0x9a98a8,
+        roughness: 0.6,
+        metalness: 0.2,
+        emissive: 0x2a2040,
+        emissiveIntensity: 0.6,
+        fog: false,
+      }),
+    );
+    envelope.scale.set(28, 8, 8);
+    this.disposables.push(envelope.geometry);
+    const screenMaterial = this.material({
+      map: this.track(ledBannerTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(ledBannerTexture()),
+      emissiveIntensity: 1.8,
+      fog: false,
+    });
+    const screen = new Mesh(new PlaneGeometry(30, 4.2), screenMaterial);
+    screen.position.set(0, 0, 7.6);
+    const gondola = new Mesh(
+      this.unit,
+      this.material({ color: 0x20222a, roughness: 0.5, fog: false }),
+    );
+    gondola.scale.set(7, 1.8, 2.4);
+    gondola.position.y = -8.4;
+    const rudder = new Mesh(
+      this.unit,
+      this.material({ color: 0x8a889a, roughness: 0.6, fog: false }),
+    );
+    rudder.scale.set(5, 7, 0.4);
+    rudder.position.set(-25, 0, 0);
+    this.disposables.push(screen.geometry);
+    blimp.add(envelope, screen, gondola, rudder);
+    for (const [x, c] of [
+      [28, 0xffffff],
+      [-27, 0xff2020],
+    ] as const) {
+      const nav = new Mesh(
+        this.unit,
+        this.material({ color: c, emissive: c, emissiveIntensity: 4, fog: false }),
+      );
+      nav.scale.setScalar(0.9);
+      nav.position.set(x, 0, 0);
+      blimp.add(nav);
+      this.planeLights.push(nav);
+    }
+    this.blimp = blimp;
+    this.horizon.add(blimp);
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
