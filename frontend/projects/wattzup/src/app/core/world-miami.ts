@@ -148,6 +148,7 @@ export class MiamiStreet implements SceneStreet {
     this.addCrossings(roadHalf);
     this.addPromenade(roadHalf);
     this.addKerbside(roadHalf);
+    this.addDunes(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1344,6 +1345,62 @@ export class MiamiStreet implements SceneStreet {
       holder.add(kerb);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: stretch, x: roadHalf + 0.55 });
+    }
+  }
+
+  /**
+   * The dune between the sea wall and the sand: mounds of sea grape whose round leaves peek
+   * over the wall, and rows of beach umbrellas furled for the night with stacked loungers.
+   */
+  private addDunes(roadHalf: number): void {
+    const random = seeded(8321);
+    const leaf = new SphereGeometry(1, 8, 6);
+    const pole = new CylinderGeometry(0.035, 0.035, 2.6, 6);
+    pole.translate(0, 1.3, 0);
+    const furled = new ConeGeometry(0.22, 1.6, 8);
+    furled.translate(0, 2.2, 0);
+    this.disposables.push(leaf, pole, furled);
+    const greens = [0x1e3a22, 0x2a4a26, 0x243e2a].map((c) =>
+      this.material({ color: c, roughness: 0.9 }),
+    );
+    const wood = this.material({ color: 0xd8c8b0, roughness: 0.8 });
+    const canvases = [0xff6fb4, 0x3fd8d0, 0xf4f0e8, 0xffd060].map((c) =>
+      this.material({ color: c, roughness: 0.9 }),
+    );
+    for (let offset = 0; offset < LOOP; offset += 9 + random() * 6) {
+      const shrub = new Group();
+      for (let i = 0; i < 4; i++) {
+        const m = new Mesh(leaf, greens[i % greens.length]!);
+        const r = 0.8 + random() * 0.9;
+        m.scale.set(r * 1.3, r, r);
+        m.position.set((random() - 0.5) * 2.2, -0.6 + r * 0.7, (random() - 0.5) * 3);
+        m.castShadow = true;
+        shrub.add(m);
+      }
+      const holder = new Group();
+      holder.add(shrub);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: -roadHalf - 7.2 - random() * 1.5 });
+    }
+    for (let row = 0; row < 4; row++) {
+      const stand = new Group();
+      for (let i = 0; i < 6; i++) {
+        const p = new Mesh(pole, wood);
+        const f = new Mesh(furled, canvases[(row + i) % canvases.length]!);
+        for (const m of [p, f]) {
+          m.position.set(0, 0, i * 3.2);
+          stand.add(m);
+        }
+        const lounger = new Mesh(this.unit, wood);
+        lounger.scale.set(0.7, 0.5, 1.9);
+        lounger.position.set(1.2, 0.25, i * 3.2);
+        stand.add(lounger);
+      }
+      stand.position.y = -0.95;
+      const holder = new Group();
+      holder.add(stand);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: 55 + row * 100, x: -roadHalf - 19 });
     }
   }
 
