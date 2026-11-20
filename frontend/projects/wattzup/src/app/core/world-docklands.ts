@@ -381,6 +381,8 @@ const SKYBRIDGES: readonly [number, number][] = [
 const PUDDLES = 70;
 const PUDDLE_NEAR = 1.2;
 const PUDDLE_FAR = 8;
+/** Puddles out on the road, in the lanes, round the loop. */
+const ROAD_PUDDLES = 46;
 const TAXI_RANKS = [40, 236, 400, 540];
 const TAXI_OUT = 5;
 const TAXIS_PER_RANK = 3;
@@ -3485,6 +3487,18 @@ export class DocklandsStreet {
       );
       this.group.add(mesh);
       this.puddles.push({ mesh, offset: random() * LOOP });
+    }
+    // Puddles out on the road too, in the lanes the riders pass over, from their own sequence
+    // so the pavements' puddles stay where they were.
+    const road = seeded(479);
+    for (let i = 0; i < ROAD_PUDDLES; i++) {
+      const mesh = new Mesh(geometry, materials[i % materials.length]!);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.rotation.z = (road() - 0.5) * 0.6;
+      mesh.scale.set(1.6 + road() * 2.2, 3 + road() * 4, 1);
+      mesh.position.set((road() * 2 - 1) * (roadHalf - 1.4), 0.014, 0);
+      this.group.add(mesh);
+      this.puddles.push({ mesh, offset: road() * LOOP });
     }
   }
 
