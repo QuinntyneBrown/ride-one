@@ -95,6 +95,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
+  private readonly searchlights: Mesh[] = [];
   private readonly drops: { x: number; y: number; z: number; speed: number }[] = [];
   private rain: InstancedMesh | null = null;
   private readonly drop = new Matrix4();
@@ -160,6 +161,11 @@ export class MiamiStreet implements SceneStreet {
       });
       rain.instanceMatrix.needsUpdate = true;
     }
+    // The searchlights sweep slowly to and fro, out of step with each other.
+    this.searchlights.forEach((m, k) => {
+      m.rotation.z = Math.sin(seconds * 0.25 + k * 2.1) * 0.5;
+      m.rotation.x = 0.3 + Math.cos(seconds * 0.19 + k) * 0.12;
+    });
     // The aircraft beacons on the spires blink, a second apart.
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
@@ -1423,6 +1429,30 @@ export class MiamiStreet implements SceneStreet {
     ship.position.set(-760, -SEA, -1250);
     ship.rotation.y = 0.35;
     this.horizon.add(ship);
+    // Searchlights from the clubs down the drive, their beams sweeping the clouds.
+    const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
+    cone.translate(0, 350, 0);
+    this.disposables.push(cone);
+    const beamLight = new MeshBasicMaterial({
+      map: this.track(searchlightTexture()),
+      transparent: true,
+      opacity: 0.2,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      side: DoubleSide,
+      fog: false,
+    });
+    this.disposables.push(beamLight);
+    for (const [x, z] of [
+      [70, -520],
+      [150, -880],
+      [40, -1200],
+    ] as const) {
+      const sweep = new Mesh(cone, beamLight);
+      sweep.position.set(x, 30, z);
+      this.horizon.add(sweep);
+      this.searchlights.push(sweep);
+    }
     // The city's violet glow rising behind the towers, and the moon over the sea.
     const glow = new MeshBasicMaterial({
       map: this.track(glowTexture()),
@@ -2189,5 +2219,18 @@ function cabinTexture(lit: boolean): CanvasTexture {
     }
     g.fillStyle = lit ? '#000' : '#3a3a4a';
     g.fillRect(0, 26, 512, 2);
+  });
+}
+
+/** A searchlight's beam: brightest at the lamp and fading up into the haze. */
+function searchlightTexture(): CanvasTexture {
+  return canvasTexture(16, 256, (g) => {
+    const fade = g.createLinearGradient(0, 256, 0, 0);
+    fade.addColorStop(0, 'rgba(240,235,255,1)');
+    fade.addColorStop(0.15, 'rgba(220,200,255,0.55)');
+    fade.addColorStop(0.6, 'rgba(200,170,255,0.15)');
+    fade.addColorStop(1, 'rgba(190,160,255,0)');
+    g.fillStyle = fade;
+    g.fillRect(0, 0, 16, 256);
   });
 }
