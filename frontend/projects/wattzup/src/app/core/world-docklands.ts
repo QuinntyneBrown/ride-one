@@ -406,6 +406,35 @@ export class DocklandsStreet {
     return { crowns, beacon, mast, lamp };
   }
 
+  private hazeMaterial: MeshBasicMaterial | null = null;
+
+  /**
+   * A curtain of the city's violet haze, `width` by `height` metres, standing on the water at
+   * (x, 0, z) and turned by `turn` about the vertical: thick at its foot, clear at its top. It
+   * softens the distant towers' feet into the glow, as the mock's skyline sits in haze.
+   */
+  private haze(width: number, height: number, x: number, z: number, along: number, turn = 0): Mesh {
+    if (!this.hazeMaterial) {
+      this.hazeMaterial = new MeshBasicMaterial({
+        color: new Color('#5b4288'),
+        map: this.track(hazeTexture()),
+        transparent: true,
+        depthWrite: false,
+        fog: false,
+        toneMapped: false,
+        side: DoubleSide,
+      });
+      this.disposables.push(this.hazeMaterial);
+    }
+    const plane = new PlaneGeometry(width, height);
+    this.disposables.push(plane);
+    const mesh = new Mesh(plane, this.hazeMaterial);
+    mesh.rotation.y = turn;
+    mesh.position.set(x, height / 2 - 2, z + along);
+    mesh.renderOrder = 2;
+    return mesh;
+  }
+
   private glow: CanvasTexture | null = null;
   private readonly billboardMaterials = new Map<string, [MeshBasicMaterial, MeshBasicMaterial]>();
 
@@ -515,6 +544,8 @@ export class DocklandsStreet {
       this.skyline.add(mesh);
     }
     this.addLandmark(far[0]!, top);
+    // The city's haze, thickest at the waterline, in front of the skyline.
+    this.skyline.add(this.haze(2400, 150, 0, 30, 0));
     this.group.add(this.skyline);
   }
 
@@ -552,6 +583,8 @@ export class DocklandsStreet {
       this.farShore.add(mesh);
       z -= width + 2 + random() * 10;
     }
+    // The haze over the water, before the far shore, turned to face the road.
+    this.farShore.add(this.haze(1100, 110, -FAR_SHORE + 20, 0, -320, Math.PI / 2));
     this.group.add(this.farShore);
   }
 
@@ -1303,6 +1336,26 @@ function windowTexture(base: string, lit: string[], share: number, seed: number)
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** The haze's alpha up its height: dense at the foot, gone by the top. */
+function hazeTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 4;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 128, 0, 0);
+    g.addColorStop(0, 'rgba(255,255,255,0.8)');
+    g.addColorStop(0.25, 'rgba(255,255,255,0.45)');
+    g.addColorStop(0.6, 'rgba(255,255,255,0.12)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 4, 128);
+  }
+  const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
 }
