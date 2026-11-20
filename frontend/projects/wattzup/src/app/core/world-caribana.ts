@@ -186,6 +186,13 @@ export class CaribanaStreet implements SceneStreet {
   private readonly barricadeBanners: InstancedMesh[] = [];
   private readonly boats: Group[] = [];
   private readonly clouds = new Group();
+  private readonly mokos: {
+    figure: Group;
+    legs: [Group, Group];
+    offset: number;
+    x: number;
+    phase: number;
+  }[] = [];
   private time = 0;
   private readonly matrix = new Matrix4();
   private readonly spot = new Vector3();
@@ -219,12 +226,13 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   build(roadHalf: number, points: number): void {
-    this.disposables.push(this.unit, ...this.flagMaterials);
+    this.disposables.push(this.unit, this.satinWing, ...this.flagMaterials);
     for (const m of this.flagMaterials) if (m.map) this.track(m.map);
     this.addGround(points);
     this.crowd.build();
     this.addMasqueraders(roadHalf);
     this.addBarricades();
+    this.addMokoJumbies();
     this.addTrucks();
     this.addLamps();
     this.addTrees();
@@ -254,6 +262,7 @@ export class CaribanaStreet implements SceneStreet {
     this.crowd.place(this.time, heightAt, along, KERB);
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
+    this.placeMokoJumbies(heightAt, along);
     this.downtown.position.set(0, heightAt(1e6) - 4, -DOWNTOWN_AHEAD);
     // The cumulus drift slowly east with the lake breeze, a sky that never quite repeats.
     this.clouds.position.set(((this.time * 1.5) % 1200) - 600, heightAt(1e6), 0);
@@ -372,6 +381,115 @@ export class CaribanaStreet implements SceneStreet {
       mesh.count = counts[k]!;
       mesh.instanceMatrix.needsUpdate = true;
     });
+  }
+
+  /**
+   * Moko jumbies: stilt walkers 4 m tall striding among the bands, their stilts hidden in long
+   * striped trousers, in satin shirts and tall hats, with fans of satin spread from the wrists.
+   */
+  private addMokoJumbies(): void {
+    const looks = [
+      { stripes: ['#c8102e', '#ffffff'], shirt: '#ffd23f', hat: '#c8102e', wings: COSTUMES[2]! },
+      { stripes: ['#0f9d58', '#ffd23f'], shirt: '#111111', hat: '#0f9d58', wings: COSTUMES[1]! },
+      { stripes: ['#7b2ff7', '#ffd23f'], shirt: '#ffffff', hat: '#7b2ff7', wings: COSTUMES[3]! },
+      { stripes: ['#ff2d87', '#13c3c9'], shirt: '#13c3c9', hat: '#ffd23f', wings: COSTUMES[0]! },
+    ];
+    const leg = new CylinderGeometry(0.1, 0.13, 2.6, 10);
+    leg.translate(0, -1.3, 0);
+    const foot = new BoxGeometry(0.16, 0.08, 0.3);
+    foot.translate(0, -2.62, -0.04);
+    const hips = ellipsoid(0.17, 1.15, 0.7, 0.85, 0, 2.66, 0);
+    const torso = new CylinderGeometry(0.19, 0.16, 0.6, 12);
+    torso.scale(1, 1, 0.75);
+    torso.translate(0, 3.0, 0);
+    const arms = mergeGeometries(
+      [-1, 1].flatMap((side) =>
+        limb(
+          new Vector3(side * 0.2, 3.25, 0),
+          new Vector3(side * 0.85, 3.45, -0.05),
+          0.05,
+          0.04,
+        ).map((g) => g.toNonIndexed()),
+      ),
+    )!;
+    const head = ellipsoid(0.11, 0.9, 1.1, 1, 0, 3.47, -0.01);
+    const brim = new CylinderGeometry(0.22, 0.22, 0.02, 16);
+    brim.translate(0, 3.58, 0);
+    const crown = new CylinderGeometry(0.13, 0.14, 0.36, 14);
+    crown.translate(0, 3.77, 0);
+    const hat = mergeGeometries([brim, crown])!;
+    this.disposables.push(leg, foot, hips, torso, arms, head, brim, crown, hat);
+    const skin = this.material({ color: SKINS[1], roughness: 0.6 });
+    const dark = this.material({ color: 0x111111, roughness: 0.8 });
+    const random = seeded(733);
+    for (let k = 0; k < 6; k++) {
+      const look = looks[k % looks.length]!;
+      const stripes = this.material({
+        map: this.track(stripeTexture(look.stripes[0], look.stripes[1])),
+        roughness: 0.55,
+      });
+      const satin = this.material({ color: look.shirt, roughness: 0.35, metalness: 0.2 });
+      const hatMaterial = this.material({ color: look.hat, roughness: 0.4, metalness: 0.3 });
+      const figure = new Group();
+      const legs: Group[] = [];
+      for (const side of [-1, 1]) {
+        const pivot = new Group();
+        pivot.position.set(side * 0.1, 2.66, 0);
+        pivot.add(new Mesh(leg, stripes), new Mesh(foot, dark));
+        figure.add(pivot);
+        legs.push(pivot);
+      }
+      figure.add(new Mesh(hips, stripes), new Mesh(torso, satin), new Mesh(arms, satin));
+      figure.add(new Mesh(head, skin), new Mesh(hat, hatMaterial));
+      // Satin wings fanned from wrist to waist on both sides, in the band's colours.
+      const [outer, mid] = look.wings.feathers;
+      for (const side of [-1, 1]) {
+        const wing = featherFan(side < 0 ? outer! : mid!, 9, 0.95, 0.34, Math.PI * 0.55, 0);
+        wing.rotateZ(side * (Math.PI / 2 + 0.35));
+        wing.translate(side * 0.2, 3.1, -0.02);
+        this.disposables.push(wing);
+        figure.add(new Mesh(wing, this.satinWing));
+      }
+      figure.traverse((o) => (o.castShadow = true));
+      this.group.add(figure);
+      const side = k % 2 ? 1 : -1;
+      this.mokos.push({
+        figure,
+        legs: [legs[0]!, legs[1]!],
+        offset: 30 + k * 57 + random() * 10,
+        x: side * (3.2 + random() * 2.2),
+        phase: random() * 6.3,
+      });
+    }
+  }
+
+  private readonly satinWing = new MeshStandardMaterial({
+    vertexColors: true,
+    side: DoubleSide,
+    roughness: 0.35,
+    metalness: 0.2,
+  });
+
+  private placeMokoJumbies(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    for (const m of this.mokos) {
+      const t = this.time * 1.6 + m.phase;
+      // A slow, high stride: each stilt swings from the hip, the body rising over the step.
+      const swing = Math.sin(t) * 0.16;
+      m.legs[0].rotation.x = swing;
+      m.legs[1].rotation.x = -swing;
+      const metres = along(m.offset, LOOP);
+      const lift = Math.abs(Math.cos(t)) * 0.05 - 0.03;
+      m.figure.position.set(
+        m.x + Math.sin(t * 0.25) * 0.5,
+        heightAt(Math.max(metres, 0)) + ASPHALT + lift,
+        -metres,
+      );
+      m.figure.rotation.y = Math.sin(t * 0.3) * 0.5 + (m.phase > 3 ? Math.PI : 0);
+      m.figure.rotation.z = Math.sin(t) * 0.03;
+    }
   }
 
   /** Concrete pavements to the barricades and the crowd, grass beyond, the lake on the right. */
@@ -1559,6 +1677,16 @@ function barricadeGeometry(): BufferGeometry {
   const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
   parts.forEach((p) => p.dispose());
   return merged;
+}
+
+/** Vertical stripes of `a` and `b`, for a moko jumbie's long trousers. */
+function stripeTexture(a: string, b: string): CanvasTexture {
+  return canvasTexture(128, 32, (g) => {
+    for (let x = 0; x < 128; x += 16) {
+      g.fillStyle = (x / 16) % 2 ? b : a;
+      g.fillRect(x, 0, 16, 32);
+    }
+  });
 }
 
 /** Pale concrete slabs, 1 m by 1 m (the texture covers 4 m), with dark joints. */
