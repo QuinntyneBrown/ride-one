@@ -59,6 +59,7 @@ export class HaleakalaStreet implements SceneStreet {
   private readonly puffs: { mesh: Mesh; x: number; speed: number }[] = [];
   private cloudSea: Texture | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -112,7 +113,7 @@ export class HaleakalaStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -121,7 +122,7 @@ export class HaleakalaStreet implements SceneStreet {
         crowd.set(
           i,
           p.x,
-          heightAt(Math.max(metres, 0)),
+          heightAt(metres),
           -metres,
           -Math.PI / 2 + Math.sin(this.time * 0.2 + p.phase) * 0.3,
           0.95,

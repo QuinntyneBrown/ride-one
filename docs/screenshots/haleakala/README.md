@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Maximum Intensity Hill Climb Efforts]
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/maximum-intensity-hill-climb-efforts?simulate`, click **Ride in Haleakalā**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [035 · The observatories stand on the summit](bend-035-observatories-stand.jpg) | Science City's white domes on the summit and the crater rim were bent vertex by vertex with the road's 50° bends, so the domes slewed and squeezed with each switchback up the cinder slopes. They now stand beyond the road unbent, as the panorama does, and the props behind the rider stand on the road there. |
