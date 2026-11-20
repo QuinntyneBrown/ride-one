@@ -190,7 +190,7 @@ test.describe('World Ride current segment (L2-105)', () => {
     await page.clock.install();
     const world = new WorldRidePage(page);
     await world.startFromClass();
-    await page.clock.runFor(1_750_000);
+    await page.clock.fastForward(1_750_000);
     await expect(world.segmentLabel).toHaveText('Cool-down');
     await expect(world.next).toHaveText('Last stretch to the finish arch');
   });
@@ -254,7 +254,7 @@ test.describe('World Ride pause, lost bike and the end (L2-109)', () => {
     await page.clock.install();
     const world = new WorldRidePage(page);
     await world.startFromClass();
-    await page.clock.runFor(1_805_000);
+    await page.clock.fastForward(1_805_000);
     await expect(world.endedOverlay).toContainText('Ride complete');
     await expect(world.seeYourRide).toBeFocused();
     await world.seeYourRide.click();
@@ -320,7 +320,7 @@ test.describe('World Ride simulated pacers (L2-107)', () => {
     await page.clock.install();
     const world = new WorldRidePage(page);
     await world.startFromClass();
-    await page.clock.runFor(1_805_000);
+    await page.clock.fastForward(1_805_000);
     await world.seeYourRide.click();
     await expect(page).toHaveURL(/\/sessions\/[a-f0-9]{12}$/);
     await expect(page.locator('main')).not.toContainText('Maya Okafor');
