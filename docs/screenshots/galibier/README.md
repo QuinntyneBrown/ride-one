@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Increase Your Threshold Power](http:/
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/increase-your-threshold-power?simulate`, click **Ride in Col du Galibier**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [033 · The snowy peaks stand over the pass](bend-033-snowy-peaks-stand.jpg) | The Galibier's snow-capped peaks and the ridge round the pass were bent vertex by vertex with the road's 50° bends, so they slewed and squeezed with each turn. They now stand beyond the road unbent, as the panorama does, and the snowbanks and props behind the rider stand on the road there. |
