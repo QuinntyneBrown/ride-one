@@ -1708,6 +1708,7 @@ export class HavanaStreet implements SceneStreet {
     this.addBuses(roadHalf, tyre, glass);
     this.addSidecars(roadHalf, tyre, chrome);
     this.addMotorinas(roadHalf, tyre, chrome);
+    this.addCyclists(roadHalf, tyre, chrome);
     this.addCarriage(roadHalf);
   }
 
@@ -1927,6 +1928,93 @@ export class HavanaStreet implements SceneStreet {
         mesh: bike,
         offset: 45 + k * 120 + random() * 10,
         speed: -(9 + random() * 3),
+      });
+    }
+  }
+
+  /**
+   * Local cyclists on Havana's heavy upright bicycles, riding slowly the riders' way outside the
+   * parked cars: a black roadster frame on tall wheels, a wire basket on the front or a child
+   * perched on a seat behind, the rider sitting bolt upright in a straw hat or a cap.
+   */
+  private addCyclists(
+    roadHalf: number,
+    tyre: MeshStandardMaterial,
+    chrome: MeshStandardMaterial,
+  ): void {
+    const random = seeded(1567);
+    const wheel = new TorusGeometry(0.33, 0.025, 6, 24);
+    wheel.rotateY(Math.PI / 2);
+    const torso = new CapsuleGeometry(0.16, 0.4, 3, 8);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const limb = new CapsuleGeometry(0.055, 0.42, 3, 6);
+    const brim = new CylinderGeometry(0.22, 0.22, 0.02, 12);
+    this.disposables.push(wheel, torso, head, limb, brim);
+    const frame = this.material({ color: 0x1a1a1c, roughness: 0.4, metalness: 0.3 });
+    const straw = this.material({ color: 0xe8d8a8, roughness: 0.9 });
+    const shirts = [0xf2efe6, 0xe63946, 0x3a86ff, 0x2a9d8f, 0xffd166, 0x8ab0c8];
+    const skins = [0x8d5a3b, 0x6b4128, 0xc68b5e, 0x4a2c1c];
+    for (let k = 0; k < 4; k++) {
+      const bike = new Group();
+      const pick = (list: number[], roughness = 0.85) =>
+        this.material({ color: list[Math.floor(random() * list.length)]!, roughness });
+      const add = (
+        g: BufferGeometry,
+        m: MeshStandardMaterial,
+        x: number,
+        y: number,
+        z: number,
+        rx = 0,
+      ) => {
+        const mesh = new Mesh(g, m);
+        mesh.position.set(x, y, z);
+        mesh.rotation.x = rx;
+        mesh.castShadow = true;
+        bike.add(mesh);
+        return mesh;
+      };
+      const tube = (y: number, z: number, length: number, rx: number) =>
+        add(this.unit, frame, 0, y, z, rx).scale.set(0.04, length, 0.04);
+      add(wheel, tyre, 0, 0.34, -0.55);
+      add(wheel, tyre, 0, 0.34, 0.55);
+      tube(0.62, 0, 1.0, Math.PI / 2 - 0.1);
+      tube(0.55, 0.18, 0.62, -0.35);
+      tube(0.6, -0.48, 0.6, 0.3);
+      add(this.unit, chrome, 0, 0.98, -0.5).scale.set(0.55, 0.03, 0.03);
+      add(this.unit, this.material({ color: 0x3a2a1a, roughness: 0.8 }), 0, 0.88, 0.2).scale.set(
+        0.16,
+        0.06,
+        0.26,
+      );
+      // The rider, bolt upright, hands on the bars, one foot down on its pedal.
+      const skin = pick(skins, 0.8);
+      add(torso, pick(shirts), 0, 1.3, 0.12, -0.12);
+      add(head, skin, 0, 1.78, 0.05);
+      if (random() < 0.6) add(brim, straw, 0, 1.87, 0.05);
+      for (const side of [-0.2, 0.2]) add(limb, skin, side, 1.26, -0.22, -0.9);
+      const trousers = pick([0x2b2d42, 0x3a5a8a, 0xc8b89a]);
+      add(limb, trousers, -0.1, 0.62, 0.0, 0.5);
+      add(limb, trousers, 0.1, 0.62, 0.1, -0.2);
+      if (k % 2 === 0) {
+        // A wire basket on the front with the shopping in it.
+        add(this.unit, chrome, 0, 0.92, -0.78).scale.set(0.34, 0.24, 0.3);
+        add(this.unit, pick([0xf4a261, 0x3f7a32, 0xf2efe6]), 0, 1.06, -0.78).scale.set(
+          0.26,
+          0.1,
+          0.22,
+        );
+      } else {
+        // A child on a seat behind.
+        add(this.unit, frame, 0, 0.88, 0.55).scale.set(0.3, 0.05, 0.3);
+        add(torso, pick(shirts), 0, 1.12, 0.58).scale.setScalar(0.62);
+        add(head, skin, 0, 1.42, 0.58).scale.setScalar(0.8);
+      }
+      bike.position.x = roadHalf - 2.7;
+      this.group.add(bike);
+      this.cars.push({
+        mesh: bike,
+        offset: 44 + k * 85 + random() * 15,
+        speed: 3.6 + random() * 1.2,
       });
     }
   }
