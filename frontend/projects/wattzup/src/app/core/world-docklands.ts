@@ -393,11 +393,13 @@ const SHELTERS = [48, 290, 506];
 const SHELTER_OUT = 2.6;
 const SHELTER_LONG = 4.2;
 /** The shelters' backlit adverts: a headline and its colour. */
-const SHELTER_ADVERTS: readonly (readonly [string, string])[] = [
-  ['NOODLE BAR', '#ff4fd8'],
-  ['NIGHT FERRY', '#3fd9ff'],
-  ['SYNTH COLA', '#ffb347'],
+const SHELTER_ADVERTS: readonly (readonly [string, string, AdvertPicture])[] = [
+  ['NOODLE BAR', '#ff4fd8', 'bowl'],
+  ['NIGHT FERRY', '#3fd9ff', 'ferry'],
+  ['SYNTH COLA', '#ffb347', 'bottle'],
 ];
+/** What an advert pictures above its headline. */
+type AdvertPicture = 'bowl' | 'ferry' | 'bottle';
 /** Kerbside bollards: how high (m) and how far apart (m). */
 const BOLLARD_HEIGHT = 0.95;
 const BOLLARD_EVERY = 8;
@@ -3083,8 +3085,8 @@ export class DocklandsStreet {
       color: new Color('#ff4fd8').multiplyScalar(1.5),
       toneMapped: false,
     });
-    const adverts = SHELTER_ADVERTS.map(([title, hex]) => {
-      const texture = this.track(advertTexture(title, hex));
+    const adverts = SHELTER_ADVERTS.map(([title, hex, picture]) => {
+      const texture = this.track(advertTexture(title, hex, picture));
       return new MeshBasicMaterial({ map: texture, toneMapped: false });
     });
     const unit = new BoxGeometry(1, 1, 1);
@@ -5679,8 +5681,8 @@ function laneSymbolTexture(): CanvasTexture {
   return texture;
 }
 
-/** A backlit advert: a deep glowing gradient, a bright disc and a stacked headline. */
-function advertTexture(title: string, hex: string): CanvasTexture {
+/** A backlit advert: a deep glowing gradient, its picture and a stacked headline. */
+function advertTexture(title: string, hex: string, picture: AdvertPicture): CanvasTexture {
   const w = 128;
   const h = 192;
   const canvas = document.createElement('canvas');
@@ -5693,10 +5695,7 @@ function advertTexture(title: string, hex: string): CanvasTexture {
     g.addColorStop(1, '#14082a');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.beginPath();
-    ctx.arc(w / 2, 62, 30, 0, Math.PI * 2);
-    ctx.fill();
+    drawAdvertPicture(ctx, picture, w / 2, 62);
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 20px sans-serif';
     ctx.textAlign = 'center';
@@ -5708,6 +5707,88 @@ function advertTexture(title: string, hex: string): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+/** Draws an advert's picture in white, centred on (x, y): a steaming bowl, a ferry or a bottle. */
+function drawAdvertPicture(
+  ctx: CanvasRenderingContext2D,
+  picture: AdvertPicture,
+  x: number,
+  y: number,
+): void {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+  ctx.lineCap = 'round';
+  if (picture === 'bowl') {
+    // The bowl, chopsticks lifting noodles, and steam curling up.
+    ctx.beginPath();
+    ctx.moveTo(x - 34, y + 2);
+    ctx.lineTo(x + 34, y + 2);
+    ctx.arc(x, y + 2, 34, 0, Math.PI);
+    ctx.fill();
+    ctx.fillRect(x - 12, y + 34, 24, 5);
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x + 6, y - 2);
+    ctx.lineTo(x + 30, y - 34);
+    ctx.moveTo(x + 14, y);
+    ctx.lineTo(x + 40, y - 28);
+    ctx.stroke();
+    ctx.lineWidth = 3;
+    for (const dx of [-20, -6]) {
+      ctx.beginPath();
+      ctx.moveTo(x + dx, y - 6);
+      ctx.bezierCurveTo(x + dx - 8, y - 16, x + dx + 8, y - 22, x + dx, y - 32);
+      ctx.stroke();
+    }
+  } else if (picture === 'ferry') {
+    // A hull with a lit deckhouse and funnel, riding two waves.
+    ctx.beginPath();
+    ctx.moveTo(x - 40, y);
+    ctx.lineTo(x + 40, y);
+    ctx.lineTo(x + 30, y + 16);
+    ctx.lineTo(x - 32, y + 16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(x - 22, y - 16, 40, 14);
+    ctx.fillRect(x + 4, y - 32, 10, 16);
+    ctx.lineWidth = 3;
+    for (const dy of [24, 33]) {
+      ctx.beginPath();
+      for (let k = -4; k < 4; k++) {
+        ctx.moveTo(x + k * 12, y + dy);
+        ctx.quadraticCurveTo(x + k * 12 + 6, y + dy - 6, x + k * 12 + 12, y + dy);
+      }
+      ctx.stroke();
+    }
+  } else {
+    // A tall bottle with a label band, fizz rising beside it.
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y - 38);
+    ctx.lineTo(x + 6, y - 38);
+    ctx.lineTo(x + 6, y - 20);
+    ctx.quadraticCurveTo(x + 16, y - 12, x + 16, y);
+    ctx.lineTo(x + 16, y + 36);
+    ctx.lineTo(x - 16, y + 36);
+    ctx.lineTo(x - 16, y);
+    ctx.quadraticCurveTo(x - 16, y - 12, x - 6, y - 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(20,8,42,0.6)';
+    ctx.fillRect(x - 16, y + 4, 32, 14);
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    for (const [dx, dy, r] of [
+      [26, -10, 3],
+      [32, -22, 2.5],
+      [24, -32, 2],
+    ] as const) {
+      ctx.beginPath();
+      ctx.arc(x + dx, y + dy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
 }
 
 /** A festival banner: a coloured cloth fading to deep violet, its words stacked down it. */
