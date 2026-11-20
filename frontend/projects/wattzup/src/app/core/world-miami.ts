@@ -27,6 +27,7 @@ import {
   SphereGeometry,
   TorusGeometry,
   type Texture,
+  Vector3,
 } from 'three/webgpu';
 import {
   BoxBuilder,
@@ -95,6 +96,13 @@ export class MiamiStreet implements SceneStreet {
   private crowd: Figures | null = null;
   private chatting: Figures | null = null;
   private skating: Figures | null = null;
+  private arms: InstancedMesh | null = null;
+  private hair: InstancedMesh | null = null;
+  private readonly limb = new Matrix4();
+  private readonly limbTurn = new Matrix4();
+  private readonly limbScale = new Vector3();
+  private readonly limbSpot = new Vector3();
+  private readonly up = new Vector3(0, 1, 0);
   private readonly skaters: { offset: number; x: number; speed: number; phase: number }[] = [];
   private readonly standers: {
     offset: number;
@@ -268,14 +276,16 @@ export class MiamiStreet implements SceneStreet {
       this.people.forEach((p, i) => {
         const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
         const bob = Math.abs(Math.sin(this.time * 3 + p.phase)) * 0.04;
-        crowd.set(
+        const y = heightAt(Math.max(metres, 0)) + 0.15 + bob;
+        crowd.set(i, p.x, y, -metres, p.speed >= 0 ? 0 : Math.PI, 0.98, 0);
+        this.dress(
           i,
           p.x,
-          heightAt(Math.max(metres, 0)) + 0.15 + bob,
+          y,
           -metres,
           p.speed >= 0 ? 0 : Math.PI,
           0.98,
-          0,
+          Math.sin(this.time * 6 + p.phase) * 0.35,
         );
       });
       crowd.commit();
@@ -285,13 +295,17 @@ export class MiamiStreet implements SceneStreet {
       this.skaters.forEach((p, i) => {
         const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
         const stride = Math.sin(this.time * 2.6 + p.phase);
-        skating.set(
-          i,
+        const y = heightAt(Math.max(metres, 0)) + 0.15;
+        const turn = (p.speed >= 0 ? 0 : Math.PI) + stride * 0.3;
+        skating.set(i, p.x + stride * 0.25, y, -metres, turn, 0.95);
+        this.dress(
+          this.people.length + i,
           p.x + stride * 0.25,
-          heightAt(Math.max(metres, 0)) + 0.15,
+          y,
           -metres,
-          (p.speed >= 0 ? 0 : Math.PI) + stride * 0.3,
+          turn,
           0.95,
+          stride * 0.6,
         );
       });
       skating.commit();
@@ -301,16 +315,23 @@ export class MiamiStreet implements SceneStreet {
       this.standers.forEach((p, i) => {
         const metres = loopMetres(p.offset, s, LOOP, BEHIND);
         const sway = Math.sin(this.time * 1.3 + p.phase) * 0.12;
-        chatting.set(
-          i,
+        const y = heightAt(Math.max(metres, 0)) + 0.15;
+        chatting.set(i, p.x, y, -metres, p.heading + sway, p.scale);
+        this.dress(
+          this.people.length + this.skaters.length + i,
           p.x,
-          heightAt(Math.max(metres, 0)) + 0.15,
+          y,
           -metres,
           p.heading + sway,
           p.scale,
+          sway,
         );
       });
       chatting.commit();
+    }
+    if (this.arms && this.hair) {
+      this.arms.instanceMatrix.needsUpdate = true;
+      this.hair.instanceMatrix.needsUpdate = true;
     }
     this.horizon.position.set(0, heightAt(0), 0);
     // Each ripple lives 0.8 s: it lands somewhere new on the road ahead, spreads and fades, and
@@ -1972,6 +1993,66 @@ export class MiamiStreet implements SceneStreet {
       NIGHT_WEAR,
       8143,
     );
+    // Everyone gets arms that swing as they walk, and hair or a hat.
+    const count = this.people.length + this.skaters.length + this.standers.length;
+    const arm = new CylinderGeometry(0.045, 0.04, 0.68, 6);
+    arm.translate(0, -0.34, 0);
+    const scalp = new SphereGeometry(0.125, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    const armMaterial = new MeshStandardMaterial({ roughness: 0.8 });
+    const hairMaterial = new MeshStandardMaterial({ roughness: 0.9 });
+    this.arms = new InstancedMesh(arm, armMaterial, count * 2);
+    this.hair = new InstancedMesh(scalp, hairMaterial, count);
+    const tint = seeded(8381);
+    const colour = new Color();
+    for (let i = 0; i < count; i++) {
+      const skin = NIGHT_WEAR.skins[Math.floor(tint() * NIGHT_WEAR.skins.length)]!;
+      this.arms.setColorAt(i * 2, colour.set(skin));
+      this.arms.setColorAt(i * 2 + 1, colour.set(skin));
+      this.hair.setColorAt(
+        i,
+        colour.set(
+          ['#1a120c', '#3a2416', '#6a4a2a', '#c8a060', '#101010', '#f4f0e8'][
+            Math.floor(tint() * 6)
+          ]!,
+        ),
+      );
+    }
+    for (const m of [this.arms, this.hair]) {
+      m.frustumCulled = false;
+      m.castShadow = true;
+      this.group.add(m);
+    }
+    this.disposables.push(arm, scalp, armMaterial, hairMaterial, this.arms, this.hair);
+  }
+
+  /** Sets figure `i`'s arms, swung `swing` radians, and its hair, to follow its body. */
+  private dress(
+    i: number,
+    x: number,
+    y: number,
+    z: number,
+    heading: number,
+    scale: number,
+    swing: number,
+  ): void {
+    const arms = this.arms;
+    const hair = this.hair;
+    if (!arms || !hair) return;
+    for (const side of [-1, 1]) {
+      this.limb.makeRotationY(heading);
+      this.limbTurn.makeRotationX(side * swing);
+      this.limb.multiply(this.limbTurn);
+      this.limbTurn.makeRotationZ(side * 0.1);
+      this.limb.multiply(this.limbTurn);
+      this.limb.scale(this.limbScale.setScalar(scale));
+      this.limbSpot.set(side * 0.24 * scale, 0, 0).applyAxisAngle(this.up, heading);
+      this.limb.setPosition(x + this.limbSpot.x, y + 1.38 * scale, z + this.limbSpot.z);
+      arms.setMatrixAt(i * 2 + (side > 0 ? 1 : 0), this.limb);
+    }
+    this.limb.makeRotationY(heading);
+    this.limb.scale(this.limbScale.setScalar(scale));
+    this.limb.setPosition(x, y + 1.63 * scale, z);
+    hair.setMatrixAt(i, this.limb);
   }
 
   /**
