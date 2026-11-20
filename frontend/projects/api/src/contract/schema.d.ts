@@ -120,7 +120,8 @@ export interface components {
         | 'tulips'
         | 'tourmalet'
         | 'napa'
-        | 'glastonbury';
+        | 'glastonbury'
+        | 'pikeplace';
     };
     ClassShelfResponse: {
       id: string;

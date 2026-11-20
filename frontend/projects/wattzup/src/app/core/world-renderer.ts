@@ -681,6 +681,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.8, fill: 1.4, colour: 0xffe4b8 },
     fogRange: [250, 2800],
   },
+  // Sunrise over Elliott Bay: the sun just up, pink and gold light, cold blue shadows.
+  pikeplace: {
+    sky: 0x9ab0d0,
+    fog: 0xe8c8c0,
+    ground: 0x3a5a3a,
+    road: 0x6a5a50,
+    sun: 7,
+    wet: true,
+    haze: false,
+    turbidity: 5,
+    rayleigh: 2.4,
+    azimuth: 70,
+    light: { sun: 2.4, fill: 1.3, colour: 0xffc8a0 },
+    fogRange: [300, 3600],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
