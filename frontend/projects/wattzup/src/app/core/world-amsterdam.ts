@@ -153,6 +153,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addCommuters(roadHalf);
     this.addWaterfowl(roadHalf);
     this.addBirds(roadHalf);
+    this.addHeron(roadHalf);
     this.addWestertoren();
     this.addClouds();
   }
@@ -2631,6 +2632,49 @@ export class AmsterdamStreet implements SceneStreet {
     }
     this.group.add(flock);
     this.props.push({ mesh: flock, offset: START + BEHIND + 9, x: roadHalf + 0.6 });
+  }
+
+  /**
+   * A grey heron standing motionless on the quay's edge by the flower stall, as Amsterdam's
+   * herons wait by stalls and fishmongers, and gulls perched on the tops of a few lamps.
+   */
+  private addHeron(roadHalf: number): void {
+    const grey = this.material({ color: 0x9aa0a6, roughness: 0.8 });
+    const white = this.material({ color: 0xeeeeea, roughness: 0.8 });
+    const black = this.material({ color: 0x1b1b1f, roughness: 0.7 });
+    const yellow = this.material({ color: 0xd8b030, roughness: 0.6 });
+    const heron = new Group();
+    const body = new Mesh(new CapsuleGeometry(0.16, 0.45, 4, 8), grey);
+    body.rotation.x = Math.PI / 2 - 0.5;
+    body.position.set(0, 0.95, 0);
+    const neck = new Mesh(new CylinderGeometry(0.045, 0.06, 0.6, 6), white);
+    neck.position.set(0, 1.35, -0.22);
+    neck.rotation.x = -0.35;
+    const head = new Mesh(new SphereGeometry(0.075, 8, 6), white);
+    head.position.set(0, 1.66, -0.33);
+    const crest = new Mesh(this.unit, black);
+    crest.scale.set(0.03, 0.03, 0.18);
+    crest.position.set(0, 1.7, -0.24);
+    const bill = new Mesh(new ConeGeometry(0.03, 0.26, 6), yellow);
+    bill.rotation.x = -Math.PI / 2;
+    bill.position.set(0, 1.64, -0.5);
+    heron.add(body, neck, head, crest, bill);
+    for (const x of [-0.06, 0.06]) {
+      const leg = new Mesh(this.unit, yellow);
+      leg.scale.set(0.025, 0.72, 0.025);
+      leg.position.set(x, 0.36, 0.05);
+      heron.add(leg);
+    }
+    heron.children.forEach((m) => {
+      m.castShadow = true;
+      if (m instanceof Mesh && m.geometry !== this.unit) this.disposables.push(m.geometry);
+    });
+    heron.rotation.y = 0.9;
+    heron.position.y = KERB;
+    const spot = new Group();
+    spot.add(heron);
+    this.group.add(spot);
+    this.props.push({ mesh: spot, offset: BRIDGE - 1.2, x: -roadHalf - QUAY + 0.6 });
   }
 
   /**
