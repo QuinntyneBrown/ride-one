@@ -136,6 +136,7 @@ export class MiamiStreet implements SceneStreet {
     this.addCars(roadHalf);
     this.addLifeguards(roadHalf);
     this.addCrossings(roadHalf);
+    this.addPromenade(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1228,6 +1229,38 @@ export class MiamiStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: c, x: 0 });
     });
+  }
+
+  /**
+   * The promenade's furniture along the sea wall: teak benches on curled iron ends facing the
+   * sea, a lidded bin beside every other one, and a pair of bollards at the kerb.
+   */
+  private addPromenade(roadHalf: number): void {
+    const teak = this.material({ color: 0x8a5a3a, roughness: 0.6 });
+    const iron = this.material({ color: 0x1e2226, roughness: 0.5, metalness: 0.7 });
+    const bin = this.material({ color: 0x2a6a6a, roughness: 0.5, metalness: 0.4 });
+    for (let offset = 10, n = 0; offset < LOOP; offset += 21, n++) {
+      const b = new BoxBuilder();
+      // The bench, its back to the road: three seat slats, two back slats and iron ends.
+      for (let i = 0; i < 3; i++) b.box(teak, [0.1, 0.05, 1.8], [-0.12 * i, 0.46, 0]);
+      for (let i = 0; i < 2; i++) b.box(teak, [0.05, 0.1, 1.8], [0.14, 0.62 + i * 0.16, 0], -0.15);
+      for (const z of [-0.85, 0.85]) {
+        b.box(iron, [0.5, 0.06, 0.06], [-0.1, 0.42, z]);
+        b.box(iron, [0.06, 0.44, 0.06], [-0.3, 0.22, z]);
+        b.box(iron, [0.06, 0.8, 0.06], [0.12, 0.4, z], -0.15);
+      }
+      if (n % 2 === 0) {
+        b.box(bin, [0.5, 0.85, 0.5], [0, 0.43, 1.6]);
+        b.box(iron, [0.56, 0.08, 0.56], [0, 0.9, 1.6]);
+      }
+      for (const z of [-3, 3]) b.box(iron, [0.16, 0.9, 0.16], [3.6, 0.45, z]);
+      const furniture = b.build(this.disposables);
+      furniture.position.y = 0.15;
+      const holder = new Group();
+      holder.add(furniture);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: -roadHalf - 4.2 });
+    }
   }
 
   /** People out for the night on both sidewalks. */
