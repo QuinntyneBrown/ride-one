@@ -4045,12 +4045,42 @@ function sashWindow(
   sky.addColorStop(1, 'rgba(160,184,204,0)');
   g.fillStyle = sky;
   g.fillRect(x, y, width, tall);
-  // The glazing bars: two sashes of six lights.
+  // The glazing bars: two sashes of six lights. Now and then the lower sash is pushed up to
+  // let the spring in, the opening dark and a white curtain blowing out of it.
+  const open = random() < 0.1;
   g.fillStyle = frame;
+  if (open) {
+    g.fillStyle = '#0e1114';
+    g.fillRect(x, y + tall * 0.62, width, tall * 0.38);
+    g.fillStyle = 'rgba(244,244,238,0.85)';
+    g.beginPath();
+    g.moveTo(x + 2, y + tall * 0.62);
+    g.quadraticCurveTo(x + width * 0.3, y + tall * 0.85, x + width * 0.15, y + tall);
+    g.lineTo(x + 2, y + tall);
+    g.closePath();
+    g.fill();
+    g.fillStyle = frame;
+    g.fillRect(x, y + tall * 0.6, width, 4);
+  }
   g.fillRect(x, y + tall / 2 - 2, width, 4);
-  g.fillRect(x + width / 2 - 1.2, y, 2.4, tall);
+  g.fillRect(x + width / 2 - 1.2, y, 2.4, open ? tall * 0.62 : tall);
   g.fillRect(x, y + tall / 4 - 1, width, 2);
-  g.fillRect(x, y + (tall * 3) / 4 - 1, width, 2);
+  if (!open) g.fillRect(x, y + (tall * 3) / 4 - 1, width, 2);
+  // A cat sitting on the sill inside, watching the street.
+  if (!open && random() < 0.05) {
+    g.fillStyle = '#16120f';
+    g.beginPath();
+    g.ellipse(x + width * 0.7, y + tall - 7, 6, 8, 0, 0, Math.PI * 2);
+    g.ellipse(x + width * 0.7, y + tall - 17, 4.5, 4.5, 0, 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.moveTo(x + width * 0.7 - 4, y + tall - 19);
+    g.lineTo(x + width * 0.7 - 3, y + tall - 25);
+    g.lineTo(x + width * 0.7, y + tall - 20);
+    g.lineTo(x + width * 0.7 + 3, y + tall - 25);
+    g.lineTo(x + width * 0.7 + 4, y + tall - 19);
+    g.fill();
+  }
 }
 
 /**
