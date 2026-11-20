@@ -354,6 +354,21 @@ export class AmsterdamStreet implements SceneStreet {
     const iron = this.material({ color: 0x15171a, metalness: 0.5, roughness: 0.5 });
     const { steps, railings } = stoopGeometry();
     const timber = this.material({ color: 0x2a2420, roughness: 0.8 });
+    const white = this.material({ color: 0xf2f2ee, roughness: 0.5 });
+    const amsterdam = this.material({
+      map: this.track(flagTexture(true)),
+      side: DoubleSide,
+      roughness: 0.9,
+    });
+    const dutch = this.material({
+      map: this.track(flagTexture(false)),
+      side: DoubleSide,
+      roughness: 0.9,
+    });
+    const flagPole = new CylinderGeometry(0.025, 0.03, 2.4, 6);
+    flagPole.translate(0, 1.2, 0);
+    const flagCloth = flagGeometry();
+    this.disposables.push(flagPole, flagCloth);
     const ledge = this.material({ color: 0xece6d8, roughness: 0.75 });
     const relief = GABLES.map((kind) => reliefGeometry(kind));
     this.disposables.push(...relief);
@@ -471,6 +486,19 @@ export class AmsterdamStreet implements SceneStreet {
         stoop.children.forEach((m) => (m.castShadow = true));
         house.add(stoop);
         if (turn > 0) this.dress(house, GABLES[k]!, width, height, along / width, random, decor);
+        if (random() < 0.16) {
+          // A flag on a pole angled out from the first floor: Amsterdam's red-black-red with its
+          // three St Andrew's crosses, or now and then the Dutch tricolour.
+          const flag = new Group();
+          const pole = new Mesh(flagPole, white);
+          const cloth = new Mesh(flagCloth, random() < 0.75 ? amsterdam : dutch);
+          flag.add(pole, cloth);
+          flag.rotation.y = turn > 0 ? 0 : Math.PI;
+          flag.rotateZ(0.6);
+          flag.position.set(0, height * 0.32, turn > 0 ? -width * 0.5 : width * 0.5);
+          flag.children.forEach((m) => (m.castShadow = true));
+          house.add(flag);
+        }
         this.group.add(house);
         // The house's front runs from `offset` to `offset + width` along the gracht.
         const setback = random() * 0.35;
@@ -1855,6 +1883,48 @@ function roofTexture(): CanvasTexture {
       for (let x = (y / 8) % 2 ? 0 : 6; x < 128; x += 12) {
         g.fillStyle = `rgba(${random() < 0.5 ? '255,255,255' : '0,0,0'},${random() * 0.1})`;
         g.fillRect(x, y + 2, 11, 6);
+      }
+    }
+  });
+}
+
+/**
+ * A flag's cloth for a pole up the y axis from its bracket: 1.5 m by 1 m, its hoist along the
+ * pole's top metre, flying out towards -x in soft folds and drooping a little.
+ */
+function flagGeometry(): BufferGeometry {
+  const cloth = new PlaneGeometry(1.5, 1, 12, 4);
+  const position = cloth.getAttribute('position') as BufferAttribute;
+  for (let i = 0; i < position.count; i++) {
+    const fly = position.getX(i) + 0.75;
+    position.setXYZ(i, -fly, position.getY(i) + 1.9 - fly * 0.12, Math.sin(fly * 4.2) * 0.08 * fly);
+  }
+  cloth.computeVertexNormals();
+  return cloth;
+}
+
+/** Amsterdam's flag (red, black, red, three white crosses on the black) or the Dutch tricolour. */
+function flagTexture(amsterdam: boolean): CanvasTexture {
+  return canvasTexture(192, 128, (g) => {
+    if (amsterdam) {
+      g.fillStyle = '#d2191e';
+      g.fillRect(0, 0, 192, 128);
+      g.fillStyle = '#111111';
+      g.fillRect(0, 43, 192, 42);
+      g.strokeStyle = '#ffffff';
+      g.lineWidth = 6;
+      for (const x of [56, 96, 136]) {
+        g.beginPath();
+        g.moveTo(x - 13, 51);
+        g.lineTo(x + 13, 77);
+        g.moveTo(x + 13, 51);
+        g.lineTo(x - 13, 77);
+        g.stroke();
+      }
+    } else {
+      for (const [i, colour] of ['#ae1c28', '#ffffff', '#21468b'].entries()) {
+        g.fillStyle = colour;
+        g.fillRect(0, i * 43, 192, 43);
       }
     }
   });
