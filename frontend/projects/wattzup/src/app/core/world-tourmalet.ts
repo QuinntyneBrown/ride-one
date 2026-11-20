@@ -94,6 +94,7 @@ export class TourmaletStreet implements SceneStreet {
   private readonly limbs: Mesh[] = [];
   private roadHalf = 0;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -143,13 +144,13 @@ export class TourmaletStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.climbers.forEach((c, i) => {
         const metres = loopMetres(c.offset + c.speed * this.time, s, LOOP, BEHIND);
-        const y = heightAt(Math.max(metres, 0));
+        const y = heightAt(metres);
         c.bike.position.set(c.x, y, -metres);
         c.bike.rotation.set(0, 0, Math.sin(this.time * 3.6 + c.phase) * 0.08);
         crowd.set(
@@ -166,7 +167,7 @@ export class TourmaletStreet implements SceneStreet {
       this.fans.forEach((f, i) => {
         const metres = loopMetres(f.offset, s, LOOP, BEHIND);
         const jump = Math.max(0, Math.sin(this.time * 6 + f.phase)) * 0.1;
-        crowd.set(n + i, f.x, heightAt(Math.max(metres, 0)) + jump, -metres, f.heading, 0.95, 0);
+        crowd.set(n + i, f.x, heightAt(metres) + jump, -metres, f.heading, 0.95, 0);
       });
       crowd.commit();
     }
