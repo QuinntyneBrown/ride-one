@@ -343,6 +343,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Passo Campolongo');
   });
 
+  test('rides Fast Paced Cadence Variations in Marina Bay Night round the bay', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Fast Paced Cadence Variations',
+      'Marina Bay Night',
+      'fast-paced-cadence-variations',
+    );
+    await expect(world.heading).toHaveText('Marina Bay Night');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Marina Bay Night');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

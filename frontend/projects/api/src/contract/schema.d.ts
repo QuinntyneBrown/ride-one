@@ -113,7 +113,8 @@ export interface components {
         | 'stelvio'
         | 'edinburgh'
         | 'northshore'
-        | 'campolongo';
+        | 'campolongo'
+        | 'marinabay';
     };
     ClassShelfResponse: {
       id: string;

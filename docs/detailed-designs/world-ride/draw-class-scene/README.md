@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -274,6 +274,12 @@ None.
   - brown signs counting the kilometres to the pass at 1875 m;
   - climbers grinding up and others sweeping down to Corvara (`Figures`);
   - ahead the forest opening onto the pass's grassy saddle with its hay barns and rifugio, the Sella's pale layered walls and the Sassongher's spire, keeping their bearing as the road climbs; the ground sinks below the valley.
+- **Marina Bay Night (`core/world-marinabay.ts`).** For `marinabay`, Singapore's bayfront at night:
+  - the boulevard between a granite promenade with a glass railing over the bay and a pavement before the dark gardens;
+  - black water streaked with the skyline's reflections, drifting on the ride's clock;
+  - the Supertrees of Gardens by the Bay with lattice canopies glowing and changing colour slowly, and the lit skyway between the tallest;
+  - warm lamps and palms along both kerbs, strollers on the promenade (`Figures`), and the Merlion spouting into the bay once a lap;
+  - across the bay the city's towers lit window by window, Marina Bay Sands' towers and SkyPark, the ArtScience Museum's lotus and the Singapore Flyer turning, keeping their bearing; the ground sinks below the bay.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -318,6 +324,7 @@ None.
 | `pages/world-ride/edinburgh` | Edinburgh Fringe at 4:50, warm-up, next `Close sprint` |
 | `pages/world-ride/northshore` | North Shore, Oahu at 4:50, warm-up, next `Big-wave push` |
 | `pages/world-ride/campolongo` | Passo Campolongo at 4:50, warm-up, next `Forest hairpins` |
+| `pages/world-ride/marinabay` | Marina Bay Night at 4:50, warm-up, next `Bayfront spin-up` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
