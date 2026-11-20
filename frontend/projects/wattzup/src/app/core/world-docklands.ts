@@ -13,6 +13,7 @@ import {
   Color,
   ConeGeometry,
   CylinderGeometry,
+  IcosahedronGeometry,
   DoubleSide,
   Group,
   LineBasicMaterial,
@@ -156,6 +157,10 @@ const BEACON_HALO_NEAR = 7;
 const LANE_SYMBOLS = [40, 130, 262, 360, 420, 500, 620];
 const LANE_SYMBOL_WIDE = 2.2;
 const LANE_SYMBOL_LONG = 6.4;
+/** Street trees: how far beyond the road's edge (m), how far apart (m), and how tall (m). */
+const TREE_OUT = 3;
+const TREE_EVERY = 24;
+const TREE_HEIGHT = 4.2;
 /** Kerbside bollards: how high (m) and how far apart (m). */
 const BOLLARD_HEIGHT = 0.95;
 const BOLLARD_EVERY = 8;
@@ -319,6 +324,8 @@ export class DocklandsStreet {
   private readonly stalls: { group: Group; offset: number }[] = [];
   /** Pairs of lit bollards along the kerbs, every BOLLARD_EVERY metres round the loop. */
   private readonly bollards: { group: Group; offset: number }[] = [];
+  /** Street trees in lit planters along the far pavement, round the loop. */
+  private readonly trees: { group: Group; offset: number }[] = [];
   /** Bike-lane symbols painted on the road, in both lanes, at LANE_SYMBOLS round the loop. */
   private readonly laneSymbols: { group: Group; offset: number }[] = [];
   /** Zebra crossings over the road, their beacons' globes and halos blinking together. */
@@ -1300,6 +1307,7 @@ export class DocklandsStreet {
     this.addStalls();
     this.addCrossings(roadHalf);
     this.addBollards(roadHalf);
+    this.addTrees(roadHalf);
     this.addLaneSymbols(roadHalf);
     this.addGates(roadHalf);
     this.addMachines(roadHalf);
@@ -1718,6 +1726,76 @@ export class DocklandsStreet {
       }
       this.group.add(group);
       this.laneSymbols.push({ group, offset });
+    }
+  }
+
+  /**
+   * Street trees along the pavement under the towers: a dark planter with a lit cyan rim, a slim
+   * trunk and a rounded crown of dark leaves, warm fairy lights wound through it.
+   */
+  private addTrees(roadHalf: number): void {
+    const planter = new MeshStandardMaterial({ color: 0x17161f, roughness: 0.6 });
+    const rim = new MeshBasicMaterial({
+      color: new Color('#5ff2ff').multiplyScalar(1.4),
+      toneMapped: false,
+    });
+    const bark = new MeshStandardMaterial({ color: 0x2a2026, roughness: 0.9 });
+    const leaves = new MeshStandardMaterial({
+      color: 0x1d3a34,
+      roughness: 0.8,
+      flatShading: true,
+      emissive: new Color(0x0c2a30),
+    });
+    const bulb = new MeshBasicMaterial({
+      color: new Color('#ffd27a').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const unit = new BoxGeometry(1, 1, 1);
+    const trunk = new CylinderGeometry(0.12, 0.18, 1, 7);
+    const crown = new IcosahedronGeometry(1, 0);
+    const light = new SphereGeometry(0.07, 6, 4);
+    this.disposables.push(planter, rim, bark, leaves, bulb, unit, trunk, crown, light);
+    const random = seeded(347);
+    const x = roadHalf + TREE_OUT;
+    for (let offset = 14; offset < LOOP; offset += TREE_EVERY) {
+      // Clear of the crossings and the vending machines.
+      if (CROSSINGS.some((c) => Math.abs(c - offset) < 6)) continue;
+      if (MACHINES.some((m) => Math.abs(m - offset) < 5)) continue;
+      const group = new Group();
+      const box = new Mesh(unit, planter);
+      box.scale.set(1.6, 0.6, 1.6);
+      box.position.set(x, KERB + 0.3, 0);
+      const band = new Mesh(unit, rim);
+      band.scale.set(1.66, 0.06, 1.66);
+      band.position.set(x, KERB + 0.6, 0);
+      const stem = new Mesh(trunk, bark);
+      stem.scale.y = TREE_HEIGHT - 1.6;
+      stem.position.set(x, KERB + 0.6 + (TREE_HEIGHT - 1.6) / 2, 0);
+      group.add(box, band, stem);
+      // Three overlapping lumps make a rounded, uneven crown.
+      for (let k = 0; k < 3; k++) {
+        const lump = new Mesh(crown, leaves);
+        const size = 1.1 + random() * 0.5;
+        lump.scale.setScalar(size);
+        lump.rotation.set(random() * 3, random() * 3, 0);
+        lump.position.set(
+          x + (random() - 0.5) * 1.2,
+          KERB + TREE_HEIGHT - 0.3 + random() * 0.8,
+          (random() - 0.5) * 1.2,
+        );
+        group.add(lump);
+      }
+      // Fairy lights on the crown's surface, mostly on the side towards the road.
+      for (let k = 0; k < 16; k++) {
+        const a = random() * Math.PI * 2;
+        const y = (random() - 0.4) * 1.6;
+        const r = Math.sqrt(Math.max(0, 1.6 * 1.6 - y * y)) * 0.98;
+        const dot = new Mesh(light, bulb);
+        dot.position.set(x - Math.abs(Math.cos(a)) * r, KERB + TREE_HEIGHT + y, Math.sin(a) * r);
+        group.add(dot);
+      }
+      this.group.add(group);
+      this.trees.push({ group, offset });
     }
   }
 
@@ -2587,6 +2665,11 @@ export class DocklandsStreet {
       const metres = ((((symbol.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       symbol.group.visible = !this.onBridge(Math.max(metres, 0));
       symbol.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
+    for (const tree of this.trees) {
+      const metres = ((((tree.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      tree.group.visible = !this.onBridge(Math.max(metres, 0));
+      tree.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
     for (const bollard of this.bollards) {
       const metres = ((((bollard.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
