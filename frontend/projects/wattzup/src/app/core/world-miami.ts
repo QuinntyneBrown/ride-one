@@ -1421,6 +1421,15 @@ export class MiamiStreet implements SceneStreet {
       blending: AdditiveBlending,
     });
     this.disposables.push(beam, flare);
+    const tailGlint = new MeshBasicMaterial({
+      map: this.track(reflectionTexture()),
+      color: 0xff2030,
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(tailGlint);
     const make = (k: number, parked: boolean): Group => {
       const paint = paints[k % paints.length]!;
       const b = new BoxBuilder();
@@ -1465,6 +1474,17 @@ export class MiamiStreet implements SceneStreet {
       glow.position.y = 0.03;
       glow.renderOrder = 1;
       car.add(glow);
+      // The tail lights mirrored in the wet road behind the car, and for moving cars their
+      // headlights mirrored ahead of them.
+      for (const x of [-0.62, 0.62]) {
+        const glint = new Mesh(this.flat, tailGlint);
+        glint.rotation.x = -Math.PI / 2;
+        glint.rotation.z = Math.PI;
+        glint.scale.set(0.5, 3.2, 1);
+        glint.position.set(x, 0.03, 4.1);
+        glint.renderOrder = 1;
+        car.add(glint);
+      }
       if (!parked) {
         // Headlights on: a flare at each lamp and their beams thrown ahead on the wet road.
         for (const x of [-0.62, 0.62]) {
@@ -1519,6 +1539,13 @@ export class MiamiStreet implements SceneStreet {
       bar.scale.set(1.8, 0.1, 0.05);
       bar.position.set(0, 0.68, 2.27);
       wedge.add(bar);
+      const glint = new Mesh(this.flat, tailGlint);
+      glint.rotation.x = -Math.PI / 2;
+      glint.rotation.z = Math.PI;
+      glint.scale.set(1.8, 3.4, 1);
+      glint.position.set(0, 0.03, 4);
+      glint.renderOrder = 1;
+      wedge.add(glint);
       for (const x of [-0.82, 0.82])
         for (const z of [-1.45, 1.4]) {
           const w = new Mesh(wheel, tyre);
