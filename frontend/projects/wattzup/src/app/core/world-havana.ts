@@ -66,7 +66,7 @@ const CROSS = 12;
 const CYCLE = 8;
 const SURGE = 3.2;
 /** The drops flung up by each surge. */
-const SPRAY_DROPS = 90;
+const SPRAY_DROPS = 140;
 /** How fast each breaker runs along the wall, in metres a second. */
 const RUN = 12;
 
@@ -135,6 +135,11 @@ export class HavanaStreet implements SceneStreet {
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly drop = new Matrix4();
+  private readonly flight = new Vector3();
+  private readonly upward = new Vector3(0, 1, 0);
+  private readonly spin = new Quaternion();
+  private readonly stretch = new Vector3();
+  private readonly at = new Vector3();
   private readonly tank = tankGeometry();
   private readonly crest = new Matrix4();
   private crests: InstancedMesh | null = null;
@@ -187,9 +192,14 @@ export class HavanaStreet implements SceneStreet {
         if (u <= 0 || y < -0.5) {
           this.drop.makeScale(0, 0, 0);
         } else {
+          // Each drop is drawn out along its flight, a streak while it is fast, a bead as it slows.
           const r = d.size * (0.7 + u * 0.4);
-          this.drop.makeScale(r, r * 1.6, r);
-          this.drop.setPosition(d.x + d.vx * u, WALL - 0.2 + y, d.z + d.vz * u);
+          this.flight.set(d.vx, d.vy - 9.8 * u, d.vz);
+          const speed = this.flight.length();
+          this.spin.setFromUnitVectors(this.upward, this.flight.divideScalar(speed));
+          this.stretch.set(r, r * (1 + speed * 0.35), r);
+          this.at.set(d.x + d.vx * u, WALL - 0.2 + y, d.z + d.vz * u);
+          this.drop.compose(this.at, this.spin, this.stretch);
         }
         spray.burst.setMatrixAt(i, this.drop);
       });
@@ -361,8 +371,8 @@ export class HavanaStreet implements SceneStreet {
     for (let offset = 10; offset < LOOP; offset += 6 + random() * 6) {
       const material = this.material({
         color: 0xffffff,
-        emissive: 0xe4eef2,
-        emissiveIntensity: 0.75,
+        emissive: 0xf2f8fa,
+        emissiveIntensity: 0.9,
         transparent: true,
         opacity: 0,
         roughness: 0.6,
@@ -379,7 +389,7 @@ export class HavanaStreet implements SceneStreet {
           vx: 0.4 + random() * 2.4,
           vy: 3 + random() * 9,
           vz: (random() - 0.5) * 2.4,
-          size: 0.05 + random() ** 3 * 0.5,
+          size: 0.04 + random() ** 3 * 0.32,
           lag: random() * 0.6,
         });
       }

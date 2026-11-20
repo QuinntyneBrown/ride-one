@@ -3056,19 +3056,21 @@ const LOOKS: Record<WorldId, Look> = {
     },
     fogRange: [45, 620],
   },
+  // Caribana Parade: a hot, clear August mid-afternoon, the sun low enough behind the rider's
+  // left shoulder to throw long shadows across the lanes, the sky a deep summer blue.
   caribana: {
-    sky: 0x8ec5ee,
-    fog: 0xcfe0ee,
+    sky: 0x7fb8ea,
+    fog: 0xd3e2ef,
     ground: 0x4f8a3a,
     road: 0x55575c,
-    sun: 48,
+    sun: 40,
     wet: false,
-    haze: false,
-    turbidity: 2.2,
-    rayleigh: 1.4,
-    azimuth: -140,
-    light: { sun: 3.4, fill: 0.9, colour: 0xfff1d8 },
-    fogRange: [80, 900],
+    haze: true,
+    turbidity: 2.8,
+    rayleigh: 1.9,
+    azimuth: -145,
+    light: { sun: 3.9, fill: 0.7, colour: 0xffe7c4 },
+    fogRange: [130, 1200],
   },
   coast: {
     sky: 0xf29b6b,
@@ -3260,7 +3262,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.placePacers(world, frame, ahead);
 
     // The bike rocks under the pedal strokes and leans into a bend: right on a right-hander.
-    this.you?.pose(frame.reducedMotion ? 0 : frame.crank, -lean(world, frame.s, speed));
+    this.you?.pose(
+      frame.reducedMotion ? 0 : frame.crank,
+      -lean(world, frame.s, speed),
+      standing(gradeAt(ahead, 0)),
+    );
     // It sits on the road: nose up on a climb, down on a descent.
     if (this.you) this.you.group.rotation.x = pitch(gradeAt(ahead, 0));
     const blur = this.on.has(34) ? Math.min(0.55, speed / 14) : 0;
@@ -3562,6 +3568,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
       rider.pose(
         frame.reducedMotion ? 0 : frame.crank * (0.9 + p.jersey * 0.03) + p.jersey,
         -lean(world, frame.s + p.metres, frame.speedKmh / 3.6),
+        standing(gradeAt(ahead, p.metres)),
       );
     }
   }
@@ -3795,6 +3802,12 @@ function gradeAt(points: RoadPoint[], metres: number): number {
   const a = points[i]?.grade ?? 0;
   const b = points[i + 1]?.grade ?? a;
   return a + (b - a) * (f - i);
+}
+
+/** How far out of the saddle a rider climbs a gradient: seated to 4%, standing from 7%. */
+function standing(grade: number): number {
+  const u = Math.min(Math.max((grade - 4) / 3, 0), 1);
+  return u * u * (3 - 2 * u);
 }
 
 /** The pitch, in radians about the x axis, of something standing on a gradient: nose up uphill. */
