@@ -2525,6 +2525,25 @@ export class HavanaStreet implements SceneStreet {
       cloud.renderOrder = -1;
       this.horizon.add(cloud);
     }
+    // High above them, cirrus: thin streaks of ice cloud combed out by the wind aloft, faint and
+    // fibrous, drawn behind the cumulus.
+    const cirrus = new MeshBasicMaterial({
+      map: this.track(cirrusTexture()),
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+      opacity: 0.75,
+    });
+    this.disposables.push(cirrus);
+    for (let i = 0; i < 4; i++) {
+      const streak = new Mesh(sheet, cirrus);
+      const w = 2200 + random() * 1600;
+      streak.scale.set(w, w * 0.32, 1);
+      streak.rotation.z = (random() - 0.5) * 0.3;
+      streak.position.set(-2400 + i * 1500 + random() * 400, 1150 + random() * 500, -3600);
+      streak.renderOrder = -2;
+      this.horizon.add(streak);
+    }
   }
 
   /**
@@ -4674,5 +4693,44 @@ function paradaTexture(): CanvasTexture {
     g.font = 'bold 22px sans-serif';
     g.textAlign = 'center';
     g.fillText('PARADA', 64, 66, 116);
+  });
+}
+
+/**
+ * Cirrus: a band of fibrous ice-cloud streaks on transparency, each a bundle of fine strands drawn
+ * along a gentle curve and hooked at one end, fading out along their length.
+ */
+function cirrusTexture(): CanvasTexture {
+  return canvasTexture(1024, 320, (g) => {
+    g.clearRect(0, 0, 1024, 320);
+    const random = seeded(1493);
+    g.lineCap = 'round';
+    for (let k = 0; k < 26; k++) {
+      const x0 = random() * 760;
+      const y0 = 60 + random() * 200;
+      const length = 160 + random() * 260;
+      const rise = (random() - 0.5) * 60;
+      const hook = 12 + random() * 26;
+      for (let f = 0; f < 18; f++) {
+        const dy = (random() - 0.5) * 16;
+        const fade = g.createLinearGradient(x0, 0, x0 + length, 0);
+        const a = 0.1 + random() * 0.14;
+        fade.addColorStop(0, `rgba(255,255,255,0)`);
+        fade.addColorStop(0.2, `rgba(255,255,255,${a})`);
+        fade.addColorStop(0.75, `rgba(255,255,255,${a * 0.8})`);
+        fade.addColorStop(1, `rgba(255,255,255,0)`);
+        g.strokeStyle = fade;
+        g.lineWidth = 1 + random() * 3;
+        g.beginPath();
+        g.moveTo(x0, y0 + dy);
+        g.quadraticCurveTo(
+          x0 + length * 0.5,
+          y0 + dy + rise,
+          x0 + length,
+          y0 + dy + rise * 0.4 - hook,
+        );
+        g.stroke();
+      }
+    }
   });
 }
