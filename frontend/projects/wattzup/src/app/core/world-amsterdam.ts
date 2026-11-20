@@ -1501,6 +1501,8 @@ export class AmsterdamStreet implements SceneStreet {
     });
     const bush = new IcosahedronGeometry(0.35, 1);
     this.disposables.push(bush);
+    const deck = this.material({ color: 0x7a6a58, roughness: 0.9 });
+    const letterbox = this.material({ color: 0xd8282e, roughness: 0.5 });
     const edge = -roadHalf - QUAY;
     const box = (
       material: MeshStandardMaterial,
@@ -1572,6 +1574,35 @@ export class AmsterdamStreet implements SceneStreet {
         boat.children.forEach((m) => (m.castShadow = true));
         this.group.add(boat);
         this.props.push({ mesh: boat, offset, x });
+        // Its landing on the quay: a gangway down to the deck, a little gate in a low fence,
+        // the letterbox on its post and a pot or two of plants.
+        const landing = new Group();
+        const edgeX = side * 2.6;
+        const plank = new Mesh(this.unit, deck);
+        plank.scale.set(0.7, 0.06, 2.6);
+        plank.position.set(edgeX - side * 0.45, (KERB - WATER + 0.9) / 2, 1.2);
+        plank.rotation.x = Math.atan2(KERB + WATER - 0.9, 2.6);
+        landing.add(plank);
+        const mail = new Mesh(this.unit, letterbox);
+        mail.scale.set(0.3, 0.38, 0.22);
+        mail.position.set(edgeX + side * 0.35, KERB + 1.0, 0);
+        const post = new Mesh(this.unit, rail);
+        post.scale.set(0.06, 0.85, 0.06);
+        post.position.set(edgeX + side * 0.35, KERB + 0.42, 0);
+        landing.add(mail, post);
+        for (const dz of [-0.6, 2.8]) {
+          const fence = new Mesh(this.unit, rail);
+          fence.scale.set(0.04, 0.7, 1.2);
+          fence.position.set(edgeX + side * 0.15, KERB + 0.35, dz);
+          landing.add(fence);
+        }
+        const pot = new Mesh(bush, plants);
+        pot.scale.setScalar(0.8);
+        pot.position.set(edgeX + side * 0.5, KERB + 0.3, 1.2);
+        landing.add(pot);
+        landing.children.forEach((m) => (m.castShadow = true));
+        this.group.add(landing);
+        this.props.push({ mesh: landing, offset, x });
       }
     }
     // Glass-roofed canal cruisers gliding along mid-canal, one coming towards the rider and one
