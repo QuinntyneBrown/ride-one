@@ -96,27 +96,19 @@ export class ChicagoStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     for (const train of this.trains) {
       const metres = loopMetres(train.offset + train.speed * this.time, s, LOOP, BEHIND + 60);
       train.mesh.position.z = -metres;
-      train.mesh.position.y = heightAt(Math.max(metres, 0)) + DECK + 0.9;
+      train.mesh.position.y = heightAt(metres) + DECK + 0.9;
     }
     const crowd = this.crowd;
     if (crowd) {
       this.fans.forEach((f, i) => {
         const metres = loopMetres(f.offset, s, LOOP, BEHIND);
         const cheer = Math.max(0, Math.sin(this.time * 5 + f.phase)) * 0.1;
-        crowd.set(
-          i,
-          f.x,
-          heightAt(Math.max(metres, 0)) + KERB + cheer,
-          -metres,
-          f.heading,
-          0.95,
-          0,
-        );
+        crowd.set(i, f.x, heightAt(metres) + KERB + cheer, -metres, f.heading, 0.95, 0);
       });
       crowd.commit();
     }
