@@ -9,7 +9,7 @@ export const BEND_SAMPLES = 128;
 export const BEND_FROM = -40;
 export const BEND_STEP = 4;
 /** Where the road strip ends; past it the heading eases to 0 by the last sample. */
-const ROAD_END = 300;
+export const ROAD_END = 300;
 const FADE_END = BEND_FROM + (BEND_SAMPLES - 2) * BEND_STEP;
 /**
  * On the inside of a bend, a point keeps its distance from the centre line out to this share of
