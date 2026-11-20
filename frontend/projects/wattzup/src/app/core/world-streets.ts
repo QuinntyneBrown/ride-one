@@ -12,6 +12,7 @@ import { SerpentineStreet } from './world-serpentine';
 import { NapaStreet } from './world-napa';
 import { AlpeStreet } from './world-alpe';
 import type { StreetFactory } from './world-kit';
+import { BrickyardStreet } from './world-brickyard';
 import { PoggioStreet } from './world-poggio';
 import { TrollstigenStreet } from './world-trollstigen';
 import { SaguaroStreet } from './world-saguaro';
@@ -84,4 +85,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   saguaro: (track, disposables) => new SaguaroStreet(track, disposables),
   trollstigen: (track, disposables) => new TrollstigenStreet(track, disposables),
   poggio: (track, disposables) => new PoggioStreet(track, disposables),
+  brickyard: (track, disposables) => new BrickyardStreet(track, disposables),
 };
