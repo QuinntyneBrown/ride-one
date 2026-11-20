@@ -64,6 +64,7 @@ import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from '.
 import { bendAhead, bendPoint, heading, lean, racingLine } from './scene-bend';
 import { EASE_PER_SECOND, MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import { RoadBend } from './world-bend';
+import { Corners } from './world-corners';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 import { Cyclist, CyclistKit } from './world-cyclist';
 import { DocklandsStreet } from './world-docklands';
@@ -3143,6 +3144,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private readonly wheelBlur: Mesh[] = [];
   private readonly lamps: PointLight[] = [];
   private street: OldTownStreet | null = null;
+  private corners: Corners | null = null;
   private towers: DocklandsStreet | null = null;
   /** The street of a scene built on the shared kit (world-streets.ts). */
   private scenery: SceneStreet | null = null;
@@ -3656,6 +3658,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     street.build(ROAD_HALF, AHEAD + BEHIND + 1);
     this.scene.add(street.group);
     this.street = street;
+    // Padding, signs and marshals at each corner of the circuit, on the kerb and at the barriers.
+    const corners = new Corners(this.disposables);
+    corners.build(ROAD_HALF, 0.15, ROAD_HALF + 0.4);
+    this.scene.add(corners.group);
+    this.corners = corners;
   }
 
   private addScenery(make: StreetFactory): void {
@@ -3682,6 +3689,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
 
   private placeRoadside(s: number, ahead: RoadPoint[]): void {
     this.street?.place(s, (metres) => heightAt(ahead, metres));
+    if (this.world) this.corners?.place(this.world, s, (metres) => heightAt(ahead, metres));
     this.towers?.place(s, (metres) => heightAt(ahead, metres));
     this.scenery?.place(s, (metres) => heightAt(ahead, metres));
     this.lamps.forEach((lamp, i) => {
