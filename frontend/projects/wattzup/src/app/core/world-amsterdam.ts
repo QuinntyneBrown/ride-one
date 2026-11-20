@@ -137,6 +137,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addContainers(roadHalf);
     this.addTour(roadHalf);
     this.addScaffold(roadHalf);
+    this.addMovingLift(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1490,6 +1491,79 @@ export class AmsterdamStreet implements SceneStreet {
     scaffold.position.y = KERB;
     this.group.add(scaffold);
     this.props.push({ mesh: scaffold, offset: START + BEHIND + 44, x: roadHalf + PAVEMENT });
+  }
+
+  /**
+   * Someone moving house across the canal: a removal lift on the far quay, a small white truck
+   * with its long orange ladder raised to a third-floor window, the platform halfway up it
+   * carrying a sofa, since nothing fits up a canal house's stairs.
+   */
+  private addMovingLift(roadHalf: number): void {
+    const white = this.material({ color: 0xf2f2ee, metalness: 0.3, roughness: 0.45 });
+    const orange = this.material({ color: 0xe07a1a, metalness: 0.3, roughness: 0.5 });
+    const dark = this.material({ color: 0x1b1b1f, roughness: 0.6 });
+    const sofa = this.material({ color: 0x5a6a7a, roughness: 0.9 });
+    const lift = new Group();
+    const box = (
+      material: MeshStandardMaterial,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      lift.add(mesh);
+      return mesh;
+    };
+    box(white, 2.0, 1.9, 1.8, 0, 1.25, -2.4);
+    box(dark, 1.9, 0.7, 0.05, 0, 1.6, -3.31);
+    box(white, 2.0, 0.5, 4.2, 0, 0.6, 0.6);
+    for (const z of [-2.3, 1.6]) {
+      for (const x of [-0.95, 0.95]) {
+        const wheel = new Mesh(this.unit, dark);
+        wheel.scale.set(0.25, 0.7, 0.7);
+        wheel.position.set(x, 0.35, z);
+        lift.add(wheel);
+      }
+    }
+    // The ladder, raised from the truck's bed to the window, leaning in against the front.
+    const ladder = new Group();
+    for (const x of [-0.35, 0.35]) {
+      const rail = new Mesh(this.unit, orange);
+      rail.scale.set(0.1, 14, 0.16);
+      rail.position.set(x, 7, 0);
+      ladder.add(rail);
+    }
+    for (let y = 0.6; y < 14; y += 0.9) {
+      const rung = new Mesh(this.unit, orange);
+      rung.scale.set(0.7, 0.05, 0.05);
+      rung.position.set(0, y, 0);
+      ladder.add(rung);
+    }
+    const platform = new Mesh(this.unit, orange);
+    platform.scale.set(1.1, 0.08, 1.4);
+    platform.position.set(0, 7.5, 0.6);
+    const couch = new Mesh(this.unit, sofa);
+    couch.scale.set(0.95, 0.7, 1.3);
+    couch.position.set(0, 7.9, 0.6);
+    ladder.add(platform, couch);
+    ladder.position.set(0, 0.9, 1.6);
+    ladder.rotation.x = 0;
+    ladder.rotation.z = -0.42;
+    lift.add(ladder);
+    lift.traverse((o) => (o.castShadow = true));
+    lift.rotation.y = Math.PI;
+    lift.position.y = KERB;
+    this.group.add(lift);
+    this.props.push({
+      mesh: lift,
+      offset: START + BEHIND + 52,
+      x: -roadHalf - QUAY - CANAL - 2.6,
+    });
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
