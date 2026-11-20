@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Ramp It Up: Punchy Intervals](http://
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/ramp-it-up-punchy-intervals?simulate`, click **Ride in La Redoute**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [037 · The Ardennes stand round the Redoute](bend-037-ardennes-stand.jpg) | The wooded Ardennes ridges round the Redoute were bent vertex by vertex with the road's bends, swinging with each turn. They now stand beyond the road unbent, as the panorama does, and the fans, barriers and camper vans behind the rider stand on the 10% road there instead of floating at the height under the rider. |

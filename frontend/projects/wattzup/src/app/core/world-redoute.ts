@@ -60,6 +60,7 @@ export class RedouteStreet implements SceneStreet {
   private crowd: Figures | null = null;
   private readonly flags: Mesh[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -94,7 +95,7 @@ export class RedouteStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -104,7 +105,7 @@ export class RedouteStreet implements SceneStreet {
         const jump = Math.max(0, Math.sin(this.time * 5 + p.phase)) * 0.12;
         const heading =
           (p.x < 0 ? -Math.PI / 2 : Math.PI / 2) + Math.sin(this.time * 0.7 + p.phase) * 0.4;
-        crowd.set(i, p.x, heightAt(Math.max(metres, 0)) + jump, -metres, heading, 0.95, 0);
+        crowd.set(i, p.x, heightAt(metres) + jump, -metres, heading, 0.95, 0);
       });
       crowd.commit();
     }
