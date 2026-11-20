@@ -61,7 +61,7 @@ import {
 import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
-import { bendAhead, bendPoint } from './scene-bend';
+import { bendAhead, bendPoint, lean } from './scene-bend';
 import { EASE_PER_SECOND, MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import { RoadBend } from './world-bend';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
@@ -3244,11 +3244,15 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (this.roadRelief) this.roadRelief.offset.y = (frame.s / DASH) % 1;
     this.placeArch(world, frame, speed, ahead);
     this.placeRoadside(frame.s, ahead);
-    this.placePacers(frame, ahead);
+    this.placePacers(world, frame, ahead);
 
     this.you?.pose(frame.reducedMotion ? 0 : frame.crank);
     // The bike sits on the road: nose up on a climb, down on a descent.
-    if (this.you) this.you.group.rotation.x = pitch(gradeAt(ahead, 0));
+    if (this.you) {
+      this.you.group.rotation.x = pitch(gradeAt(ahead, 0));
+      // and leans into a bend: right on a right-hander.
+      this.you.group.rotation.z = -lean(world, frame.s, speed);
+    }
     const blur = this.on.has(34) ? Math.min(0.55, speed / 14) : 0;
     for (const disc of this.wheelBlur) {
       disc.visible = blur > 0.02;
@@ -3529,7 +3533,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
   }
 
   /** Puts each pacer in view at its gap, and hides the rest (L2-107 AC7). */
-  private placePacers(frame: SceneFrame, ahead: RoadPoint[]): void {
+  private placePacers(world: World, frame: SceneFrame, ahead: RoadPoint[]): void {
     for (const rider of this.pacers.values()) rider.group.visible = false;
     for (const p of pacersOnRoad(frame.elapsed, AHEAD * STEP)) {
       const rider = this.pacers.get(p.jersey);
@@ -3537,6 +3541,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
       rider.group.visible = true;
       rider.group.position.set(p.lane, heightAt(ahead, p.metres), -p.metres);
       rider.group.rotation.x = pitch(gradeAt(ahead, p.metres));
+      // Each pacer leans into the bend it is riding through, as the rider does.
+      rider.group.rotation.z = -lean(world, frame.s + p.metres, frame.speedKmh / 3.6);
       rider.pose(frame.reducedMotion ? 0 : frame.crank * (0.9 + p.jersey * 0.03) + p.jersey);
     }
   }

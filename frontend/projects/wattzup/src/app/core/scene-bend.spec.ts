@@ -1,4 +1,4 @@
-import { BEND_SAMPLES, bendAhead, bendPoint } from './scene-bend';
+import { BEND_SAMPLES, bendAhead, bendPoint, curvature, lean } from './scene-bend';
 import { WORLDS, worldById, type World } from './worlds';
 
 const alpe = worldById('alpe');
@@ -97,6 +97,26 @@ describe('bendAhead and bendPoint (L2-101 AC6, L2-110 AC9)', () => {
       }
     },
   );
+});
+
+describe('lean (L2-110 AC9)', () => {
+  it('stands a rider upright on a straight road and when stopped', () => {
+    expect(lean(straight, 1234, 12)).toBe(0);
+    expect(lean(alpe, 1234, 0)).toBe(0);
+  });
+
+  it('leans into the bend: right on a right-hander, left on a left-hander', () => {
+    for (const s of [100, 450, 1700, 3300]) {
+      const k = curvature(alpe, s);
+      expect(Math.sign(lean(alpe, s, 9))).toBe(Math.sign(k));
+    }
+  });
+
+  it('balances gravity against the turn, atan(v² κ / g)', () => {
+    const s = 1500;
+    const k = ((alpeHeading(s + 0.5) - alpeHeading(s - 0.5)) * Math.PI) / 180;
+    expect(lean(alpe, s, 10)).toBeCloseTo(Math.atan((100 * k) / 9.81), 9);
+  });
 });
 
 function alpeHeading(s: number): number {
