@@ -319,10 +319,13 @@ export class Cyclist {
     this.pose(0);
   }
 
-  /** Turns the cranks to `angle` radians and moves the legs with them. */
-  pose(angle: number): void {
+  /**
+   * Turns the cranks to `angle` radians and moves the legs with them, the bike leaning `lean`
+   * radians into a bend (positive to the left, as a rotation about the way ahead).
+   */
+  pose(angle: number, lean = 0): void {
     // The bike rocks a little under each pedal stroke, about where the tyres meet the road.
-    this.group.rotation.z = Math.sin(angle) * 0.03;
+    this.group.rotation.z = lean + Math.sin(angle) * 0.03;
     this.legs.forEach((leg, i) => {
       const a = angle + i * Math.PI;
       const pedal = new Vector3(
