@@ -167,6 +167,8 @@ const HAIRS = ['#14100d', '#1f1712', '#2e2018', '#3d2a1c', '#6b4a2b', '#0c0c0c']
 const CAPS = ['#c8102e', '#111111', '#ffd23f', '#1b6ad8', '#ffffff', '#0f9d58'];
 const STRAWS = ['#e3c98f', '#d8b878', '#f0e2b8'];
 const UMBRELLAS = ['#c8102e', '#ffd23f', '#0f9d58', '#1b6ad8', '#111111', '#ff2d87', '#ffffff'];
+/** The T-shirt a flag is printed on, matched to the flag: red, black, blue, green. */
+const TEE_BASES = ['#ce1126', '#111111', '#00267f', '#009e49'];
 const SHOES = ['#f2f2f2', '#111111', '#d6d0c4', '#8b5e3c', '#c8102e'];
 
 /** The parts of a spectator's body and clothes for one stance and one cut of bottoms. */
@@ -425,6 +427,12 @@ export class Spectators {
     this.disposables.push(selfie);
     this.disposables.push(shoes, handset, ...hairs);
     const dress = seeded(o.seed + 1);
+    const tees = seeded(o.seed + 7);
+    // The print across the front of a T-shirt: the front half of the torso, a hair proud of it.
+    const teeFront = new CylinderGeometry(0.163, 0.158, 0.36, 12, 1, true, Math.PI / 2, Math.PI);
+    teeFront.scale(1, 1, 0.74);
+    teeFront.translate(0, 1.17, 0);
+    this.disposables.push(teeFront);
     const pick = (list: readonly string[]) => list[Math.floor(dress() * list.length)]!;
     // Summer extras from a seed of their own, so the crowd's clothes stay as they were.
     const extra = seeded(o.seed + 3);
@@ -455,7 +463,13 @@ export class Spectators {
       const parts = bodies[p.stance]![shorts ? 1 : 0]!;
       const key = `${p.stance}${shorts ? 's' : 't'}`;
       this.ensemble.put(i, `skin${key}`, parts.skin, skinMaterial, pick(o.skins));
-      this.ensemble.put(i, `top${key}`, parts.top, cotton, pick(o.tops));
+      const top = pick(o.tops);
+      // One in six wears their island's flag printed across the front of the T-shirt.
+      const flagTee = tees() < 0.17 ? Math.floor(tees() * o.flags.length) : -1;
+      const shirt = flagTee >= 0 ? TEE_BASES[flagTee % TEE_BASES.length]! : top;
+      this.ensemble.put(i, `top${key}`, parts.top, cotton, shirt);
+      if (flagTee >= 0)
+        this.ensemble.put(i, `tee${flagTee}`, teeFront, o.flags[flagTee]!, '#ffffff');
       this.ensemble.put(i, `bottom${key}`, parts.bottom, denim, pick(o.bottoms));
       this.ensemble.put(i, 'shoes', shoes, rubber, pick(SHOES));
       const style = Math.floor(dress() * hairs.length);
