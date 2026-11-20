@@ -171,6 +171,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Napa Vineyards');
   });
 
+  test('rides Elevate Your Climbing Power up the twenty-one hairpins of the Alpe', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Elevate Your Climbing Power',
+      "Alpe d'Huez",
+      'elevate-your-climbing-power',
+    );
+    await expect(world.heading).toHaveText("Alpe d'Huez");
+    await expect(world.boardTitle).toHaveText("Riders nearby · Alpe d'Huez");
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

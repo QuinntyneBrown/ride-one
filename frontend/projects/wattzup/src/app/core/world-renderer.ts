@@ -712,6 +712,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 1.6, fill: 1.8, colour: 0xeef0f2 },
     fogRange: [400, 4200],
   },
+  // A blazing July afternoon on the Alpe: a deep blue sky, the sun high and a little behind the
+  // rider's left shoulder, sharp shadows, and the peaks crisp in clear mountain air.
+  alpe: {
+    sky: 0x5f9fe0,
+    fog: 0xc9d8ea,
+    ground: 0x5a8a3a,
+    road: 0x4e4f54,
+    sun: 48,
+    wet: false,
+    haze: false,
+    turbidity: 2.2,
+    rayleigh: 1.5,
+    azimuth: -140,
+    light: { sun: 3.3, fill: 1.2, colour: 0xfff4e0 },
+    fogRange: [260, 4200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
