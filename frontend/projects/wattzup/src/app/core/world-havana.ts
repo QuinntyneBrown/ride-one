@@ -208,6 +208,7 @@ export class HavanaStreet implements SceneStreet {
     this.addBillboards(roadHalf);
     this.addDogs(roadHalf);
     this.addVendors(roadHalf);
+    this.addPotholes(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -2439,6 +2440,49 @@ export class HavanaStreet implements SceneStreet {
     }
   }
 
+  /**
+   * Potholes in both carriageways, as Havana's roads have them: ragged dark hollows with broken
+   * edges and loose grit, some filled with water that mirrors the sky, decals laid on the road.
+   */
+  private addPotholes(roadHalf: number): void {
+    const random = seeded(1399);
+    const dry = this.material({
+      map: this.track(potholeTexture(false)),
+      transparent: true,
+      depthWrite: false,
+      roughness: 0.95,
+      polygonOffset: true,
+      polygonOffsetFactor: -5,
+    });
+    const wet = this.material({
+      map: this.track(potholeTexture(true)),
+      transparent: true,
+      depthWrite: false,
+      roughness: 0.05,
+      metalness: 0.4,
+      polygonOffset: true,
+      polygonOffsetFactor: -5,
+    });
+    const sheet = new PlaneGeometry(1, 1);
+    sheet.rotateX(-Math.PI / 2);
+    this.disposables.push(sheet);
+    for (let offset = 9; offset < LOOP; offset += 12 + random() * 26) {
+      const size = 1.2 + random() * 1.6;
+      const hole = new Mesh(sheet, random() < 0.45 ? wet : dry);
+      hole.scale.set(size * (0.8 + random() * 0.6), 1, size);
+      hole.rotation.y = random() * Math.PI;
+      hole.position.y = 0.02;
+      hole.renderOrder = 4;
+      const holder = new Group();
+      holder.add(hole);
+      this.group.add(holder);
+      // Mostly in the wheel tracks and by the kerbs, either side of the road.
+      const x =
+        random() < 0.5 ? roadHalf - 0.6 - random() * 2 : -roadHalf - 0.8 - random() * (LANES - 1.6);
+      this.props.push({ mesh: holder, offset, x });
+    }
+  }
+
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial(options);
     this.disposables.push(material);
@@ -3631,4 +3675,53 @@ function frenchWindow(
     g.fillStyle = 'rgba(0,0,0,0.35)';
     if (both) g.fillRect(x + 37, y + 24, 2, 100);
   }
+}
+
+/**
+ * A pothole on a clear ground: a ragged hollow, dark at its heart, its rim of broken asphalt
+ * lighter and crumbled into grit around it; or the same hollow brimming with water, which takes
+ * the sky's pale blue.
+ */
+function potholeTexture(water: boolean): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    g.clearRect(0, 0, 256, 256);
+    const random = seeded(water ? 1409 : 1403);
+    const rim: [number, number][] = [];
+    for (let k = 0; k < 28; k++) {
+      const a = (k / 28) * Math.PI * 2;
+      const r = 70 + random() * 40;
+      rim.push([128 + Math.cos(a) * r, 128 + Math.sin(a) * r]);
+    }
+    const outline = (scale: number) => {
+      g.beginPath();
+      rim.forEach(([x, y], k) => {
+        const px = 128 + (x - 128) * scale;
+        const py = 128 + (y - 128) * scale;
+        if (k) g.lineTo(px, py);
+        else g.moveTo(px, py);
+      });
+      g.closePath();
+    };
+    g.fillStyle = 'rgba(120,118,112,0.8)';
+    outline(1.08);
+    g.fill();
+    g.fillStyle = water ? 'rgba(150,185,210,0.92)' : 'rgba(34,32,30,0.92)';
+    outline(0.95);
+    g.fill();
+    if (water) {
+      g.fillStyle = 'rgba(255,255,255,0.25)';
+      outline(0.6);
+      g.fill();
+    } else {
+      g.fillStyle = 'rgba(20,18,16,0.6)';
+      outline(0.6);
+      g.fill();
+    }
+    for (let i = 0; i < 140; i++) {
+      const a = random() * Math.PI * 2;
+      const r = 90 + random() * 36;
+      g.fillStyle = `rgba(${90 + random() * 60},${88 + random() * 60},${84 + random() * 60},0.85)`;
+      g.fillRect(128 + Math.cos(a) * r, 128 + Math.sin(a) * r, 2 + random() * 4, 2 + random() * 4);
+    }
+  });
 }
