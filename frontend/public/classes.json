@@ -13464,6 +13464,7 @@
     },
     {
       "id": "60-minute-reverse-pyramid",
+      "world": "angkor",
       "title": "60 Minute Reverse Pyramid",
       "channel": "GCN Training",
       "focus": "Pyramid",

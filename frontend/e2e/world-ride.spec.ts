@@ -871,6 +871,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Atacama Desert');
   });
 
+  test('rides 60 Minute Reverse Pyramid between the temples of Angkor', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '60 Minute Reverse Pyramid',
+      'Angkor Temples',
+      '60-minute-reverse-pyramid',
+    );
+    await expect(world.heading).toHaveText('Angkor Temples');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Angkor Temples');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

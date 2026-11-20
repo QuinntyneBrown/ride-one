@@ -163,7 +163,8 @@ export interface components {
         | 'antwerp'
         | 'tahoe'
         | 'deathvalley'
-        | 'atacama';
+        | 'atacama'
+        | 'angkor';
     };
     ClassShelfResponse: {
       id: string;
