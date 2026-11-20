@@ -98,6 +98,8 @@ const GARDINER_DECK = 9.5;
 /** A King or Queen of the band leads each band on the right, this far into each truck's stretch. */
 const ROYAL_AT = 64;
 const ROYAL_X = 4.0;
+/** The bands chip up the road at a slow walk, in metres a second. */
+const PARADE_SPEED = 0.6;
 /** The grandstand's seats run along the right-hand pavement between these. */
 const GRANDSTAND = [64, 106] as const;
 /** The route crosses a signalised intersection this far into the loop. */
@@ -223,6 +225,8 @@ export class CaribanaStreet implements SceneStreet {
     road?: boolean;
     /** A copy standing one loop further on, beyond the parts in full detail. */
     beyond?: boolean;
+    /** Part of the parade, chipping up the road with it. */
+    marching?: boolean;
   }[] = [];
   private readonly crowd: Spectators;
   private readonly dancers: Masquerader[] = [];
@@ -307,6 +311,8 @@ export class CaribanaStreet implements SceneStreet {
     phase: number;
   }[] = [];
   private time = 0;
+  /** How far the parade has chipped up the road since the ride began, in metres. */
+  private march = 0;
   private readonly matrix = new Matrix4();
   private readonly spot = new Vector3();
   private readonly turn = new Quaternion();
@@ -378,6 +384,7 @@ export class CaribanaStreet implements SceneStreet {
   /** The parade's clock, in seconds; held at 0 for reduced motion. */
   setTime(seconds: number): void {
     this.time = seconds;
+    this.march = seconds * PARADE_SPEED;
     // Smoke off the jerk drums: each puff rises, swells, drifts on the lake breeze and thins.
     for (const puff of this.smoke) {
       const u = (seconds * 0.22 + puff.phase) % 1;
@@ -396,7 +403,8 @@ export class CaribanaStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
     for (const prop of this.props) {
-      const metres = along(prop.offset, prop.every) + (prop.beyond ? LOOP : 0);
+      const march = prop.marching ? this.march : 0;
+      const metres = along(prop.offset + march, prop.every) + (prop.beyond ? LOOP : 0);
       const lift = prop.road ? ASPHALT : KERB;
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + lift, -metres);
     }
@@ -434,7 +442,7 @@ export class CaribanaStreet implements SceneStreet {
       p.figure.rotation.z = Math.sin(this.time * 2.1 + p.phase) * 0.05;
     }
     for (const r of this.royals) {
-      const metres = along(r.offset, LOOP);
+      const metres = along(r.offset + this.march, LOOP);
       const t = this.time + r.phase;
       r.piece.position.set(
         ROYAL_X + Math.sin(t * 0.5) * 0.3,
@@ -496,7 +504,7 @@ export class CaribanaStreet implements SceneStreet {
     let women = 0;
     let men = 0;
     this.dancers.forEach((d, i) => {
-      const metres = along(d.offset, LOOP);
+      const metres = along(d.offset + this.march, LOOP);
       const y = heightAt(Math.max(metres, 0)) + ASPHALT;
       const t = this.time + d.phase;
       // Chipping down the road: a bounce on every beat, a sway of the hips, a turn to the crowd.
@@ -822,7 +830,7 @@ export class CaribanaStreet implements SceneStreet {
       const swing = Math.sin(t) * 0.16;
       m.legs[0].rotation.x = swing;
       m.legs[1].rotation.x = -swing;
-      const metres = along(m.offset, LOOP);
+      const metres = along(m.offset + this.march, LOOP);
       const lift = Math.abs(Math.cos(t)) * 0.05 - 0.03;
       m.figure.position.set(
         m.x + Math.sin(t * 0.25) * 0.5,
@@ -1298,6 +1306,7 @@ export class CaribanaStreet implements SceneStreet {
         every: LOOP,
         x: TRUCK_X,
         road: true,
+        marching: true,
       });
     }
   }
@@ -1517,6 +1526,7 @@ export class CaribanaStreet implements SceneStreet {
         every: LOOP,
         x: 2.9,
         road: true,
+        marching: true,
       });
     });
   }
@@ -1944,9 +1954,10 @@ export class CaribanaStreet implements SceneStreet {
     let k = 0;
     this.turn.identity();
     this.far.forEach((f, i) => {
-      const metres = along(f.offset, LOOP) + LOOP;
+      const dancing = Math.abs(f.x) < BARRIER;
+      const metres = along(f.offset + (dancing ? this.march : 0), LOOP) + LOOP;
       const bounce = Math.abs(Math.sin(this.time * 4.2 + i)) * 0.05;
-      const lift = Math.abs(f.x) > BARRIER ? KERB : ASPHALT;
+      const lift = dancing ? ASPHALT : KERB;
       this.spot.set(f.x, heightAt(metres) + lift + bounce, -metres);
       this.size.setScalar(f.height);
       this.matrix.compose(this.spot, this.turn, this.size);
@@ -2060,7 +2071,7 @@ export class CaribanaStreet implements SceneStreet {
     if (!spray) return;
     // The nozzle at the rear rail of the steel orchestra's deck, 2.6 m up, aimed back over the
     // band following it and swept slowly from side to side.
-    const metres = along(PAN_AT - 7.9, LOOP);
+    const metres = along(PAN_AT - 7.9 + this.march, LOOP);
     const base = heightAt(Math.max(metres, 0)) + ASPHALT;
     const sweep = Math.sin(this.time * 0.8) * 0.35;
     this.hose.position.set(TRUCK_X + Math.sin(sweep) * 2, base, -metres + 5.2);
@@ -2325,7 +2336,14 @@ export class CaribanaStreet implements SceneStreet {
     }
     float.traverse((o) => (o.castShadow = true));
     this.group.add(float);
-    this.props.push({ mesh: float, offset: PAN_AT, every: LOOP, x: TRUCK_X + 0.3, road: true });
+    this.props.push({
+      mesh: float,
+      offset: PAN_AT,
+      every: LOOP,
+      x: TRUCK_X + 0.3,
+      road: true,
+      marching: true,
+    });
   }
 
   /**
