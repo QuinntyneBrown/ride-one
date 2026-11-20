@@ -15,11 +15,13 @@ import {
   ConeGeometry,
   CylinderGeometry,
   DoubleSide,
+  ExtrudeGeometry,
   Group,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
+  Shape,
   SphereGeometry,
   type Texture,
 } from 'three/webgpu';
@@ -158,6 +160,8 @@ export class MonacoStreet implements SceneStreet {
       flags: this.flagMaterials,
       flagShare: 0.2,
       seeds: [6011, 6017],
+      // On the quay a single loose row, so the harbour shows between the fans.
+      skip: (side, offset, x) => side < 0 && (Math.abs(x) > CROWD_NEAR + 0.6 || offset % 9 < 3),
     });
     this.fans = new Figures(this.group, disposables, 900, FANS, 6021);
     this.group.add(this.horizon, this.harbour);
@@ -317,67 +321,109 @@ export class MonacoStreet implements SceneStreet {
   }
 
   /**
-   * The superyachts moored stern-to along the quay, bows out into the harbour: long hulls in
-   * white or navy, three or four decks stepping back above them with their dark glass, the
-   * flybridge, the mast and its radar, and a second row moored further out.
+   * The superyachts moored along the quay in three rows, side-on to the track so their long
+   * profiles read: sleek hulls in white, navy or graphite with raked bows, two to four white
+   * decks stepping back above them with sloping fronts and bands of dark glass, the hardtop,
+   * the mast and its radar dome.
    */
   private addYachts(): void {
     const random = seeded(6101);
-    for (let offset = 6, k = 0; offset < LOOP; offset += 16 + random() * 10, k++) {
-      for (const row of [0, 1]) {
-        if (row === 1 && random() < 0.4) continue;
-        const length = 28 + random() * 34;
-        const yacht = this.yacht(k * 2 + row, length, random);
-        // Bow out: the yacht's length runs along -x from the stern at the quay.
-        yacht.rotation.y = Math.PI / 2;
+    for (const [row, out, gap] of [
+      [0, QUAY + 1, 5],
+      [1, QUAY + 24, 12],
+      [2, QUAY + 52, 20],
+    ] as const) {
+      for (let offset = row * 11, k = 0; offset < LOOP - 20; k++) {
+        const length = 30 + random() * 36;
+        const yacht = this.yacht(k + row * 3, length, random);
         const holder = new Group();
         holder.add(yacht);
         this.group.add(holder);
-        const stern = QUAY + 2 + row * 70;
-        this.props.push({
-          mesh: holder,
-          offset: offset + row * 9,
-          x: -(stern + length / 2),
-        });
+        const beam = Math.max(6, length * 0.18);
+        this.props.push({ mesh: holder, offset: offset + length / 2, x: -(out + beam / 2) });
+        offset += length + gap + random() * gap;
       }
     }
   }
 
-  /** One superyacht, `length` long, its stern at +z, bow at -z. */
+  /** One superyacht, `length` long, its stern at +z toward the rider and its bow at -z. */
   private yacht(k: number, length: number, random: () => number): Group {
-    const hullColour = HULLS[k % HULLS.length]!;
-    const b = new BoxBuilder();
-    const hull = this.material({ color: hullColour, roughness: 0.35, metalness: 0.2 });
-    const white = this.material({ color: 0xf8f8f4, roughness: 0.35 });
-    const glass = this.material({ color: 0x1a2430, roughness: 0.1, metalness: 0.6 });
-    const teak = this.material({ color: 0xa87848, roughness: 0.7 });
-    const beam = Math.max(6, length * 0.19);
-    // The hull, in three stepped pieces narrowing toward the bow.
-    b.box(hull, [beam, 3.4, length * 0.62], [0, 0.5, length * 0.19]);
-    b.box(hull, [beam * 0.82, 3.2, length * 0.22], [0, 0.6, -length * 0.23]);
-    b.box(hull, [beam * 0.5, 3, length * 0.14], [0, 0.7, -length * 0.41]);
-    b.box(teak, [beam * 0.95, 0.12, length * 0.15], [0, 2.26, length * 0.42]);
-    // The decks, stepping back.
+    const g = new Group();
+    const hull = this.material({
+      color: HULLS[k % HULLS.length]!,
+      roughness: 0.3,
+      metalness: 0.25,
+    });
+    const white = this.material({ color: 0xfbfbf8, roughness: 0.3 });
+    const glass = this.material({ color: 0x141c26, roughness: 0.08, metalness: 0.7 });
+    const beam = Math.max(6, length * 0.18);
+    const L = length;
+    // A side profile, `x` along the yacht (stern +), extruded `width` across and stood upright.
+    const prism = (
+      points: readonly (readonly [number, number])[],
+      width: number,
+      material: MeshStandardMaterial,
+    ) => {
+      const shape = new Shape();
+      shape.moveTo(points[0]![0], points[0]![1]);
+      for (const [x, y] of points.slice(1)) shape.lineTo(x, y);
+      shape.closePath();
+      const geometry = new ExtrudeGeometry(shape, { depth: width, bevelEnabled: false });
+      geometry.translate(0, 0, -width / 2);
+      geometry.rotateY(-Math.PI / 2);
+      this.disposables.push(geometry);
+      const mesh = new Mesh(geometry, material);
+      mesh.castShadow = true;
+      g.add(mesh);
+      return mesh;
+    };
+    // The hull: a square stern, the sheer rising to a raked bow.
+    prism(
+      [
+        [L / 2, -1.2],
+        [L / 2, 2.4],
+        [-L / 2, 3.4],
+        [-L / 2 + L * 0.2, -1.2],
+      ],
+      beam,
+      hull,
+    );
+    // The decks, stepping back, each with its sloping front and its band of glass.
     const decks = 2 + Math.floor(random() * 3);
-    let y = 2.2;
-    let deck = length * 0.6;
-    let at = length * 0.08;
+    let y = 2.5;
+    let aft = L / 2 - L * 0.07;
+    let span = L * 0.64;
     for (let d = 0; d < decks; d++) {
-      const width = beam * (0.9 - d * 0.08);
-      b.box(white, [width, 2.6, deck], [0, y + 1.3, at]);
-      b.box(glass, [width + 0.04, 1.2, deck * 0.92], [0, y + 1.4, at]);
-      y += 2.6;
-      deck *= 0.72;
-      at -= length * 0.04;
+      const width = beam * (0.88 - d * 0.1);
+      prism(
+        [
+          [aft, y],
+          [aft, y + 2.5],
+          [aft - span * 0.86, y + 2.5],
+          [aft - span, y],
+        ],
+        width,
+        white,
+      );
+      const band = new Mesh(this.unitBox(), glass);
+      band.scale.set(width + 0.08, 1.1, span * 0.7);
+      band.position.set(0, y + 1.35, aft - span * 0.47);
+      g.add(band);
+      y += 2.5;
+      aft -= L * 0.05;
+      span *= 0.72;
     }
-    // The flybridge's hardtop, the mast and the radar dome.
-    b.box(white, [beam * 0.7, 0.25, deck * 1.1], [0, y + 0.9, at]);
-    b.box(white, [0.3, 3.4, 0.3], [0, y + 2.5, at]);
-    const g = b.build(this.disposables);
+    // The hardtop over the flybridge, the mast and the radar dome.
+    const top = new Mesh(this.unitBox(), white);
+    top.scale.set(beam * 0.6, 0.25, span * 1.1);
+    top.position.set(0, y + 1.6, aft - span * 0.5);
+    const mast = new Mesh(this.unitBox(), white);
+    mast.scale.set(0.3, 3.2, 0.3);
+    mast.position.set(0, y + 3.2, aft - span * 0.5);
     const radar = new Mesh(new SphereGeometry(0.6, 12, 8), white);
     this.disposables.push(radar.geometry);
-    radar.position.set(0, y + 4.3, at);
-    g.add(radar);
+    radar.position.set(0, y + 5, aft - span * 0.5);
+    g.add(top, mast, radar);
     return g;
   }
 
