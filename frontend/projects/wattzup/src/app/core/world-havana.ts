@@ -562,6 +562,11 @@ export class HavanaStreet implements SceneStreet {
     const life = seeded(1117);
     const gear = seeded(1163);
     const ruins = seeded(1171);
+    const towers = seeded(1361);
+    const blocks = this.track(towerTexture());
+    blocks.wrapS = RepeatWrapping;
+    blocks.wrapT = RepeatWrapping;
+    const concrete = new Color();
     const cafes = seeded(1229);
     const wires = seeded(1301);
     const folk = seeded(1307);
@@ -571,10 +576,18 @@ export class HavanaStreet implements SceneStreet {
     const timber = this.material({ color: 0x6b5238, roughness: 1 });
     let inBlock = 0;
     let block = 4;
+    let built = 0;
     for (let offset = 0; offset < LOOP;) {
       const width = 12 + random() * 14;
       const floors = 2 + Math.floor(random() * 2);
-      const height = floors * 4.2;
+      // About one building in seven is a ruin: its paint long gone, its windows gaping, its
+      // balconies fallen, and its front propped from the pavement with timber shores. Now and
+      // then a 1950s apartment block rises among the old fronts, nine to twelve storeys of
+      // concrete banded with balconies and glass.
+      const ruin = ruins() < 0.15;
+      const tower = !ruin && (built++ === 5 || towers() < 0.1);
+      const storeys = 9 + Math.floor(towers() * 4);
+      const height = tower ? storeys * 3.1 : floors * 4.2;
       let pick = Math.floor(random() * pastels.length);
       if (pick === previous) pick = (pick + 1 + Math.floor(random() * 3)) % pastels.length;
       previous = pick;
@@ -582,15 +595,19 @@ export class HavanaStreet implements SceneStreet {
         .set(pastels[pick]!)
         .lerp(bleach, random() * 0.45)
         .getHex();
-      // About one building in seven is a ruin: its paint long gone, its windows gaping, its
-      // balconies fallen, and its front propped from the pavement with timber shores.
-      const ruin = ruins() < 0.15;
-      const map = (ruin ? derelict : fronts).clone();
-      map.repeat.set(width / 8, floors / 4);
-      map.offset.y = 1 - floors / 4;
+      const map = (ruin ? derelict : tower ? blocks : fronts).clone();
+      if (tower) map.repeat.set(width / 6, storeys / 4);
+      else {
+        map.repeat.set(width / 8, floors / 4);
+        map.offset.y = 1 - floors / 4;
+      }
       map.needsUpdate = true;
       this.track(map);
-      const facade = this.material({ map, color: ruin ? 0xc4bcb0 : tint, roughness: 0.95 });
+      const facade = this.material({
+        map,
+        color: ruin ? 0xc4bcb0 : tower ? concrete.set(tint).lerp(bleach, 0.7).getHex() : tint,
+        roughness: 0.95,
+      });
       const building = new Group();
       const body = new Mesh(this.unit, facade);
       body.scale.set(14, height, width - 0.3);
@@ -726,7 +743,7 @@ export class HavanaStreet implements SceneStreet {
           }
         }
       }
-      if (things.length && !ruin) {
+      if (things.length && !ruin && !tower) {
         const merged = mergeGeometries(things)!;
         things.forEach((g) => g.dispose());
         this.disposables.push(merged);
@@ -754,7 +771,7 @@ export class HavanaStreet implements SceneStreet {
       railMesh.castShadow = true;
       building.add(this.cables(width, wires));
       if (ruin) building.add(this.shoring(width, timber));
-      else building.add(slabMesh, railMesh);
+      else if (!tower) building.add(slabMesh, railMesh);
       this.group.add(building);
       this.props.push({ mesh: building, offset, x: roadHalf + 4 });
       offset += width;
@@ -3422,5 +3439,38 @@ function zebraTexture(): CanvasTexture {
       g.fillRect(random() * 2048, random() * 128, 2 + random() * 10, 1 + random() * 4);
     }
     g.globalCompositeOperation = 'source-over';
+  });
+}
+
+/**
+ * A modernist tower's front, six metres by four storeys: a band of concrete balcony parapet
+ * and a band of glass and shadow behind it on each floor, the parapets streaked dark by rain,
+ * and here and there washing or a screen of blinds.
+ */
+function towerTexture(): CanvasTexture {
+  return canvasTexture(256, 512, (g) => {
+    speckle(g, 256, 512, '#e4e0d8', 1331);
+    const random = seeded(1337);
+    for (let y = 0; y < 512; y += 128) {
+      g.fillStyle = '#2a3236';
+      g.fillRect(0, y + 10, 256, 66);
+      g.fillStyle = 'rgba(160,190,200,0.35)';
+      for (let x = 0; x < 256; x += 32) g.fillRect(x + 2, y + 12, 26, 30);
+      g.fillStyle = '#efece6';
+      g.fillRect(0, y + 76, 256, 52);
+      g.fillStyle = 'rgba(0,0,0,0.25)';
+      g.fillRect(0, y + 76, 256, 3);
+      for (let i = 0; i < 6; i++) {
+        g.fillStyle = 'rgba(70,70,65,0.18)';
+        g.fillRect(random() * 256, y + 78, 2 + random() * 3, 30 + random() * 40);
+      }
+      if (random() < 0.5) {
+        const colours = ['#e63946', '#f1c40f', '#3a86ff', '#ffffff'];
+        for (let i = 0; i < 5; i++) {
+          g.fillStyle = colours[Math.floor(random() * 4)]!;
+          g.fillRect(40 + i * 14 + random() * 60, y + 60, 10, 18);
+        }
+      }
+    }
   });
 }
