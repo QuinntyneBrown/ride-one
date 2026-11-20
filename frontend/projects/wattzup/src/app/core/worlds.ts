@@ -383,6 +383,16 @@ export const WORLDS: readonly World[] = [
     roll: 1.4,
   },
   {
+    id: 'napa',
+    name: 'Napa Vineyards',
+    route: 'the Silverado Trail',
+    effortName: 'Vineyard rise',
+    description:
+      'Rows of vines climb the golden hills either side of the valley road on a warm Californian afternoon, past oak-shaded stone wineries and their tasting terraces toward a mission-style winery with a bell tower on a knoll ahead. The three-minute warm-up rolls between the vine rows, the short vineyard rises climb past the stone wineries under the oaks, and the two-minute pushes ride on toward the bell tower.',
+    grade: { warmup: 0, work: 1.2, rest: -0.6, cooldown: 0, steady: 0 },
+    roll: 0.6,
+  },
+  {
     id: 'glastonbury',
     name: 'Glastonbury Fields',
     route: 'the trackway',

@@ -119,6 +119,7 @@ export interface components {
         | 'champs'
         | 'tulips'
         | 'tourmalet'
+        | 'napa'
         | 'glastonbury';
     };
     ClassShelfResponse: {

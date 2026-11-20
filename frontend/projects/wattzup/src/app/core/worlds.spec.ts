@@ -41,6 +41,7 @@ describe('targetGrade (L2-101)', () => {
     ['champs', { warmup: 0.5, work: 1.5, rest: 0.5, cooldown: 0, steady: 1 }, 1.592265],
     ['tulips', { warmup: 0, work: 0.5, rest: 0, cooldown: 0, steady: 0 }, 0.555359],
     ['tourmalet', { warmup: 4, work: 9, rest: 6, cooldown: 3, steady: 7 }, 9.258342],
+    ['napa', { warmup: 0, work: 1.2, rest: -0.6, cooldown: 0, steady: 0 }, 1.310718],
     ['glastonbury', { warmup: 0.5, work: 1, rest: 0, cooldown: 0, steady: 0.5 }, 1.110718],
     ['coast', { warmup: 0.5, work: 4.5, rest: -1.5, cooldown: -0.5, steady: 0.5 }, 4.795247],
   ])('%s asks for its grade per kind at s 0, plus its roll at s 300', (id, grades, workAt300) => {
