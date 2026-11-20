@@ -112,6 +112,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Blackpool Illuminations');
   });
 
+  test('rides 15 Minute Cardio Workout at Home in Suburban Sunrise on Maple Avenue', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '15 Minute Cardio Workout at Home',
+      'Suburban Sunrise',
+      '15-minute-cardio-workout-at-home',
+    );
+    await expect(world.heading).toHaveText('Suburban Sunrise');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Suburban Sunrise');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
