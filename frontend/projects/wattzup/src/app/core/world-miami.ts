@@ -3039,6 +3039,20 @@ export class MiamiStreet implements SceneStreet {
           seat: -0.27,
         });
     }
+    // A crowd gathered under the gateway on both sidewalks, facing the road, some with their
+    // arms up cheering the riders through.
+    const cheer = seeded(8551);
+    for (let i = 0; i < 26; i++) {
+      const right = i % 2 === 0;
+      this.standers.push({
+        offset: 58 + cheer() * 10,
+        x: right ? roadHalf + 0.9 + cheer() * 2.2 : -roadHalf - 0.9 - cheer() * 2.4,
+        heading: right ? Math.PI / 2 + (cheer() - 0.5) * 0.5 : -Math.PI / 2 + (cheer() - 0.5) * 0.5,
+        phase: cheer() * 6,
+        scale: 0.88 + cheer() * 0.16,
+        dance: cheer() < 0.45,
+      });
+    }
     // The guests out on the balconies, facing the street.
     const guest = seeded(8541);
     for (const g of this.balconyGuests)
