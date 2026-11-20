@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Gradual Threshold Effort Builds](http
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/gradual-threshold-effort-builds?simulate`, click **Ride in Trollstigen**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [029 · The Troll's Ladder stands up the valley](bend-029-ladder-stands.jpg) | The valley head, the Troll's Ladder zigzagging up it, the waterfall and the peaks were bent vertex by vertex with the road's 60° bends, slewing them across the view as the road turned. They now stand beyond the road unbent, as the panorama does, and the props behind the rider stand on the road there. |

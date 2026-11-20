@@ -53,6 +53,7 @@ export class TrollstigenStreet implements SceneStreet {
   private crowd: Figures | null = null;
   private readonly mists: Mesh[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private readonly unit = new BoxGeometry(1, 1, 1);
 
   constructor(
@@ -98,13 +99,13 @@ export class TrollstigenStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.visitors.forEach((v, i) => {
         const metres = loopMetres(v.offset, s, LOOP, BEHIND);
-        crowd.set(i, v.x, heightAt(Math.max(metres, 0)), -metres, v.heading, 0.95, 0);
+        crowd.set(i, v.x, heightAt(metres), -metres, v.heading, 0.95, 0);
       });
       crowd.commit();
     }
