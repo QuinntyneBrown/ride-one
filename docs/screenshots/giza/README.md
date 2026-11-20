@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [The Pyramid](http://localhost:4200/cl
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/the-pyramid?simulate`, click **Ride in Giza Plateau**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [081 · The Pyramids and the Sphinx stand on the plateau](bend-081-pyramids-stand.jpg) | The Pyramids of Khufu and Khafre and the Sphinx were bent vertex by vertex with the plateau road's bends, so their faces skewed and slewed with each turn through the sand. They now stand beyond the road unbent, as the panorama does, and the walkers and props behind the rider stand on the road there instead of at the height under the rider. |
