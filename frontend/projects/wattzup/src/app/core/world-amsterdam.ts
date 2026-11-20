@@ -16,6 +16,7 @@ import {
   DoubleSide,
   ExtrudeGeometry,
   Group,
+  IcosahedronGeometry,
   InstancedMesh,
   LatheGeometry,
   Matrix4,
@@ -290,6 +291,7 @@ export class AmsterdamStreet implements SceneStreet {
     const iron = this.material({ color: 0x15171a, metalness: 0.5, roughness: 0.5 });
     const { steps, railings } = stoopGeometry();
     this.disposables.push(steps, railings);
+    const decor = this.decor();
     const rows = [
       { x: roadHalf + PAVEMENT, turn: Math.PI / 2 },
       { x: -roadHalf - QUAY - CANAL - FAR_QUAY, turn: -Math.PI / 2 },
@@ -361,12 +363,70 @@ export class AmsterdamStreet implements SceneStreet {
         stoop.rotation.y = turn > 0 ? 0 : Math.PI;
         stoop.children.forEach((m) => (m.castShadow = true));
         house.add(stoop);
+        if (turn > 0) this.dress(house, GABLES[k]!, width, height, along / width, random, decor);
         this.group.add(house);
         // The house's front runs from `offset` to `offset + width` along the gracht.
         const setback = random() * 0.35;
         const front = turn > 0 ? x + setback : x - setback;
         this.props.push({ mesh: house, offset: turn > 0 ? offset : offset + width, x: front });
         offset += width;
+      }
+    }
+  }
+
+  /** The window boxes and façade gardens' materials and shapes. */
+  private decor() {
+    const gardens = [0, 1, 2].map((k) => gardenGeometry(521 + k * 5));
+    const geraniums = geraniumGeometry();
+    this.disposables.push(...gardens.flatMap((g) => [g.leaves, g.flowers]), geraniums);
+    return {
+      gardens,
+      geraniums,
+      box: this.material({ color: 0x3a2a20, roughness: 0.9 }),
+      leaves: this.material({ color: 0x3f6a2a, roughness: 0.95 }),
+      blooms: [0xd23a5a, 0xf2f0f2, 0xe86a9a, 0x8a3ab0].map((hex) =>
+        this.material({ color: hex, roughness: 0.8 }),
+      ),
+      geranium: this.material({ color: 0xd8282e, roughness: 0.8 }),
+    };
+  }
+
+  /**
+   * Dresses a house on the rider's side: a façade garden of hollyhocks and roses along its foot
+   * on half the houses, and window boxes of red geraniums under the first-floor windows on a
+   * third. Built against a front at x 0 facing -x, running along -z.
+   */
+  private dress(
+    house: Group,
+    kind: Gable,
+    width: number,
+    height: number,
+    door: number,
+    random: () => number,
+    decor: ReturnType<AmsterdamStreet['decor']>,
+  ): void {
+    if (random() < 0.5) {
+      const bloom = decor.blooms[Math.floor(random() * decor.blooms.length)]!;
+      for (let u = 0.08; u < 0.95; u += 0.18 + random() * 0.2) {
+        if (Math.abs(u - door) < 0.16) continue;
+        const garden = decor.gardens[Math.floor(random() * 3)]!;
+        const clump = new Group();
+        clump.add(new Mesh(garden.leaves, decor.leaves), new Mesh(garden.flowers, bloom));
+        clump.position.set(-0.3, KERB, -u * width);
+        clump.rotation.y = random() * Math.PI * 2;
+        clump.children.forEach((m) => (m.castShadow = true));
+        house.add(clump);
+      }
+    }
+    if (random() < 0.35) {
+      for (const { u, v, span } of sills(kind)) {
+        const box = new Mesh(this.unit, decor.box);
+        box.scale.set(0.24, 0.22, span * width);
+        box.position.set(-0.12, v * height - 0.11, -u * width);
+        const flowers = new Mesh(decor.geraniums, decor.geranium);
+        flowers.scale.set(1, 1, span * width);
+        flowers.position.set(-0.12, v * height, -u * width);
+        house.add(box, flowers);
       }
     }
   }
@@ -1372,6 +1432,71 @@ function sashWindow(
   g.fillRect(x, y + (tall * 3) / 4 - 1, width, 2);
 }
 
+/**
+ * The first-floor windows' sills, as shares of a front's width (`u`, the window's middle) and
+ * height (`v`), with each window's width (`span`), matching facadeTexture.
+ */
+function sills(kind: Gable): { u: number; v: number; span: number }[] {
+  const h = 640;
+  const eaves = h * (1 - EAVES);
+  const floor = (h - 175 - eaves - 20) / 4;
+  const y = eaves + 24 + 3 * floor + (floor - 18) + 4;
+  const pane = (256 - 30) / bays(kind);
+  return Array.from({ length: bays(kind) }, (_, c) => ({
+    u: (15 + c * pane + pane / 2) / 256,
+    v: 1 - y / h,
+    span: (pane * 0.76) / 256,
+  }));
+}
+
+/**
+ * A clump of a façade garden, 1.8 m tall at most: a mound of leaves, a hollyhock's stalks and a
+ * climbing rose, with its flowers apart so they take their own colour.
+ */
+function gardenGeometry(seed: number): { leaves: BufferGeometry; flowers: BufferGeometry } {
+  const random = seeded(seed);
+  const leaves: BufferGeometry[] = [];
+  const flowers: BufferGeometry[] = [];
+  for (let b = 0; b < 3; b++) {
+    const mound = new IcosahedronGeometry(0.22 + random() * 0.1, 1);
+    mound.translate((random() - 0.5) * 0.3, 0.18, (random() - 0.5) * 0.4);
+    leaves.push(mound);
+  }
+  for (let t = 0; t < 2 + Math.floor(random() * 2); t++) {
+    const x = (random() - 0.5) * 0.25;
+    const z = (random() - 0.5) * 0.4;
+    const tall = 1.2 + random() * 0.7;
+    const stalk = new CylinderGeometry(0.015, 0.02, tall, 4);
+    stalk.translate(x, tall / 2, z);
+    leaves.push(stalk.toNonIndexed());
+    for (let y = tall * 0.45; y < tall; y += 0.09) {
+      const flower = new SphereGeometry(0.045 + (tall - y) * 0.02, 5, 4);
+      flower.translate(x + (random() - 0.5) * 0.06, y, z + (random() - 0.5) * 0.06);
+      flowers.push(flower.toNonIndexed());
+    }
+  }
+  const merge = (parts: BufferGeometry[]) => {
+    const merged = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)))!;
+    parts.forEach((p) => p.dispose());
+    return merged;
+  };
+  return { leaves: merge(leaves), flowers: merge(flowers) };
+}
+
+/** Geraniums along a window box 1 m long (scaled to the box), on z. */
+function geraniumGeometry(): BufferGeometry {
+  const random = seeded(527);
+  const parts: BufferGeometry[] = [];
+  for (let i = 0; i < 9; i++) {
+    const bloom = new IcosahedronGeometry(0.07 + random() * 0.03, 0);
+    bloom.translate((random() - 0.5) * 0.12, 0.06 + random() * 0.08, -0.45 + (i / 8) * 0.9);
+    parts.push(bloom);
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
 /** How many window bays a house of this kind has across its front. */
 function bays(kind: Gable): number {
   return kind === 'cornice' ? 5 : 3;
@@ -1449,7 +1574,7 @@ function facadeTexture(
     const floor = (ground - eaves - 20) / floors;
     for (let f = 0; f < floors; f++) {
       const y = eaves + 24 + f * floor;
-      const tall = floor - 26 - f * 4;
+      const tall = floor - 18 - (3 - f) * 5;
       for (let c = 0; c < columns; c++) {
         const x = 15 + c * pane + pane * 0.16;
         const width = pane * 0.68;
