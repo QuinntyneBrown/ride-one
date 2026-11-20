@@ -2598,6 +2598,23 @@ export class AmsterdamStreet implements SceneStreet {
       pack.position.set(0, 1.42, 0.42);
       pack.rotation.x = -0.12;
       group.add(pack);
+    } else if (roll < 0.6) {
+      // A child in a moulded seat on the front tube, between the rider's arms, as Dutch
+      // parents carry their toddlers.
+      const seat = new Mesh(
+        this.unit,
+        this.material({
+          color: [0x2c7be5, 0xd8282e, 0x3a6b4a][Math.floor(random() * 3)]!,
+          roughness: 0.5,
+        }),
+      );
+      seat.scale.set(0.3, 0.32, 0.28);
+      seat.position.set(0, 1.0, -0.18);
+      const child = new Mesh(sitterGeometry(random), this.sitters);
+      this.disposables.push(child.geometry);
+      child.scale.setScalar(0.5);
+      child.position.set(0, 0.82, -0.12);
+      group.add(seat, child);
     }
     group.children.forEach((m) => (m.castShadow = true));
     return group;
