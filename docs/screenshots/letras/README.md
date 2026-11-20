@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Hank's Hardest Training Session](http
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/hanks-hardest-training-session?simulate`, click **Ride in Alto de Letras**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [040 · The valley under the cloud stands still](bend-040-valley-stands.jpg) | The Magdalena valley's 9 km floor under its sea of cloud, the blue ridges beyond and the páramo ahead were bent vertex by vertex with the road's bends, so the valley floor and the ridges slewed and squeezed with each turn. They now stand beyond the road unbent, as the panorama does, and the props and fans behind the rider stand on the road there instead of at the height under the rider. |
