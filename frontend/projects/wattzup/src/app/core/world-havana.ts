@@ -11,13 +11,13 @@ import {
   BoxGeometry,
   type BufferGeometry,
   type CanvasTexture,
-  ConeGeometry,
   CylinderGeometry,
   DoubleSide,
   ExtrudeGeometry,
   Group,
   IcosahedronGeometry,
   InstancedMesh,
+  LatheGeometry,
   Matrix4,
   Mesh,
   MeshStandardMaterial,
@@ -394,31 +394,63 @@ export class HavanaStreet implements SceneStreet {
     }
   }
 
-  /** Royal palms standing along the pavement. */
+  /**
+   * Royal palms standing along the pavement: a smooth, pale grey trunk turned on a lathe, swelling
+   * low and again at mid-height like a column, a glossy green crownshaft at the top, and a crown
+   * of long pinnate fronds, the upper ones arching out and the lower ones hanging.
+   */
   private addPalms(roadHalf: number): void {
     const random = seeded(911);
-    const bark = this.material({ color: 0xbab0a0, roughness: 0.9 });
-    const fronds = this.material({ color: 0x4a7a34, roughness: 0.9 });
-    const trunk = new CylinderGeometry(0.22, 0.32, 11, 8);
-    trunk.translate(0, 5.5, 0);
+    const bark = this.material({ map: this.repeat(trunkTexture(), 1, 3), roughness: 0.85 });
+    const shaft = this.material({ color: 0x5f8f3a, roughness: 0.45 });
+    const leaves = this.material({
+      map: this.track(royalFrondTexture()),
+      alphaTest: 0.45,
+      side: DoubleSide,
+      roughness: 0.8,
+    });
+    const radius = (h: number) =>
+      0.3 -
+      0.1 * (h / 12) +
+      0.12 * Math.exp(-((h - 0.4) ** 2) / 0.6) +
+      0.05 * Math.sin((h / 12) * Math.PI);
+    const profilePoints: Vector2[] = [];
+    for (let h = 0; h <= 12; h += 0.5) profilePoints.push(new Vector2(radius(h), h));
+    const trunk = new LatheGeometry(profilePoints, 12);
+    const crownshaft = new CylinderGeometry(0.2, 0.26, 2.2, 12);
+    crownshaft.translate(0, 13.1, 0);
     const parts: BufferGeometry[] = [];
-    for (let k = 0; k < 10; k++) {
-      const frond = new ConeGeometry(0.35, 4, 4);
-      frond.scale(1, 1, 0.2);
-      frond.translate(0, 2, 0);
-      frond.rotateZ(1.2);
-      frond.rotateY((k / 10) * Math.PI * 2);
-      frond.translate(0, 11, 0);
+    for (let i = 0; i < 15; i++) {
+      const length = 4.2 + (i % 3) * 0.4;
+      const frond = new PlaneGeometry(1.3, length, 1, 10);
+      const position = frond.getAttribute('position') as BufferAttribute;
+      // Upper fronds rise and arch over; the lowest hang down beside the crownshaft.
+      const rise = 1.1 - (i / 15) * 1.6;
+      for (let v = 0; v < position.count; v++) {
+        const t = (position.getY(v) + length / 2) / length;
+        const angle = rise - t * t * 2.2;
+        const reach = length * t;
+        position.setXYZ(
+          v,
+          position.getX(v) * (1 - t * 0.6),
+          Math.sin(angle) * reach * 0.8,
+          reach * Math.cos(angle * 0.6),
+        );
+      }
+      frond.rotateY((i * 2.4) % (Math.PI * 2));
+      frond.translate(0, 14.1, 0);
       parts.push(frond);
     }
     const crown = mergeGeometries(parts)!;
     parts.forEach((p) => p.dispose());
-    this.disposables.push(trunk, crown);
-    for (let offset = 8; offset < LOOP; offset += 30 + random() * 20) {
+    crown.computeVertexNormals();
+    this.disposables.push(trunk, crownshaft, crown);
+    for (let offset = 8; offset < LOOP; offset += 22 + random() * 16) {
       const palm = new Group();
-      palm.add(new Mesh(trunk, bark), new Mesh(crown, fronds));
+      palm.add(new Mesh(trunk, bark), new Mesh(crownshaft, shaft), new Mesh(crown, leaves));
       palm.children.forEach((c) => (c.castShadow = true));
-      palm.scale.setScalar(0.85 + random() * 0.3);
+      palm.scale.setScalar(0.8 + random() * 0.3);
+      palm.rotation.y = random() * Math.PI * 2;
       this.group.add(palm);
       this.props.push({ mesh: palm, offset, x: roadHalf + 2.4 });
     }
@@ -809,4 +841,43 @@ function profile(
   geometry.translate(0, 0, -(width - 2 * bevel) / 2);
   geometry.rotateY(Math.PI / 2);
   return geometry;
+}
+
+/** A royal palm's trunk: smooth pale grey, faintly ringed, stained darker at the foot. */
+function trunkTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    speckle(g, 64, 256, '#c4beb4', 1013);
+    for (let y = 0; y < 256; y += 14) {
+      g.fillStyle = 'rgba(90,85,75,0.18)';
+      g.fillRect(0, y, 64, 2);
+    }
+    g.fillStyle = 'rgba(70,60,50,0.25)';
+    g.fillRect(0, 236, 64, 20);
+  });
+}
+
+/** A royal palm's frond: a pale midrib with fine drooping leaflets, transparent round it. */
+function royalFrondTexture(): CanvasTexture {
+  return canvasTexture(128, 512, (g) => {
+    g.clearRect(0, 0, 128, 512);
+    const random = seeded(1019);
+    for (let y = 6; y < 506; y += 5) {
+      const reach = 60 * Math.sin((Math.PI * (y + 40)) / 600);
+      g.strokeStyle = `hsl(${88 + random() * 22},${45 + random() * 15}%,${24 + random() * 14}%)`;
+      g.lineWidth = 2.5;
+      for (const side of [-1, 1]) {
+        g.beginPath();
+        g.moveTo(64, y);
+        g.quadraticCurveTo(
+          64 + side * reach * 0.6,
+          y + 4,
+          64 + side * reach,
+          y + 22 + random() * 8,
+        );
+        g.stroke();
+      }
+    }
+    g.fillStyle = '#9aa060';
+    g.fillRect(62, 0, 4, 512);
+  });
 }
