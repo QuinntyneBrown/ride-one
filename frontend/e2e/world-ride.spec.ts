@@ -469,6 +469,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Trollstigen');
   });
 
+  test('rides Tempo Efforts With Sprint Finishes over the Poggio to San Remo', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Tempo Efforts With Sprint Finishes',
+      'The Poggio',
+      'tempo-efforts-with-sprint-finishes',
+    );
+    await expect(world.heading).toHaveText('The Poggio');
+    await expect(world.boardTitle).toHaveText('Riders nearby · The Poggio');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

@@ -7153,6 +7153,7 @@
     },
     {
       "id": "tempo-efforts-with-sprint-finishes",
+      "world": "poggio",
       "title": "Tempo Efforts With Sprint Finishes",
       "channel": "GCN Training",
       "focus": "Tempo",

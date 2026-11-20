@@ -759,6 +759,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.6, fill: 1.5, colour: 0xf4f6ff },
     fogRange: [400, 3800],
   },
+  // A bright Riviera spring afternoon: deep blue sky and sea, warm light on the terraces.
+  poggio: {
+    sky: 0x5a9ae8,
+    fog: 0xd0e0ec,
+    ground: 0x6a8a4a,
+    road: 0x555860,
+    sun: 40,
+    wet: false,
+    haze: false,
+    turbidity: 2.6,
+    rayleigh: 1.4,
+    azimuth: -120,
+    light: { sun: 3, fill: 1.4, colour: 0xfff4e0 },
+    fogRange: [400, 4400],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
