@@ -418,6 +418,21 @@ export class AmsterdamStreet implements SceneStreet {
     const flagCloth = flagGeometry();
     this.disposables.push(flagPole, flagCloth);
     const ledge = this.material({ color: 0xece6d8, roughness: 0.75 });
+    const ball = new SphereGeometry(0.16, 8, 6);
+    ball.translate(0, 0.16, 0);
+    const vase = new LatheGeometry(
+      [
+        [0, 0],
+        [0.14, 0],
+        [0.08, 0.1],
+        [0.18, 0.3],
+        [0.1, 0.5],
+        [0.14, 0.56],
+        [0, 0.62],
+      ].map(([x, y]) => new Vector2(x, y)),
+      10,
+    );
+    this.disposables.push(ball, vase);
     const relief = GABLES.map((kind) => [false, true].map((right) => reliefGeometry(kind, right)));
     this.disposables.push(...relief.flat());
     const hookGeometry = new TorusGeometry(0.1, 0.025, 4, 8, Math.PI * 1.5);
@@ -531,6 +546,13 @@ export class AmsterdamStreet implements SceneStreet {
           // goods hoisted up the front clear of the windows.
           const lean = -0.006 - random() * 0.01;
           screen.rotation.x = lean;
+          // Sandstone ornaments on the gable's outline: ball finials on a stepped gable's steps,
+          // urns on a neck gable's shoulders, and a crowning piece on top.
+          for (const [u, v, urn] of FINIALS[GABLES[k]!]) {
+            const piece = new Mesh(urn ? vase : ball, front === face ? ledge : wall);
+            piece.position.set(u * width, v * height + 0.05, 0.25 + v * height * lean);
+            whole.add(piece);
+          }
           if (k !== 4) {
             // The hoist beam juts from the top of the gable, a hook hanging from its end.
             const beam = new Mesh(this.unit, timber);
@@ -3400,6 +3422,36 @@ const FRONTS = [
 const STONE = ['#d9cfb8', '#cfc4a8', '#e6dccb', '#b8b4ac'];
 /** Where the front's eaves (or cornice) line sits, as a share of the house's height. */
 const EAVES = 0.74;
+
+/**
+ * Where a gable's sandstone ornaments sit on its 1 × 1 outline (matching traceFront), and
+ * whether each is an urn rather than a ball finial.
+ */
+const FINIALS: Record<Gable, readonly (readonly [number, number, boolean])[]> = {
+  step: [0, 1, 2, 3].flatMap((s) => {
+    const y = EAVES + ((s + 1) * (1 - EAVES)) / 5;
+    return [
+      [s * 0.085, y, false],
+      [1 - s * 0.085, y, false],
+    ] as const;
+  }),
+  bell: [
+    [0.5, 1, true],
+    [0.03, EAVES, false],
+    [0.97, EAVES, false],
+  ],
+  neck: [
+    [0.18, EAVES + 0.035, true],
+    [0.82, EAVES + 0.035, true],
+    [0.5, 0.99, true],
+  ],
+  spout: [[0.5, 1, false]],
+  cornice: [
+    [0.08, EAVES + 0.07, true],
+    [0.92, EAVES + 0.07, true],
+    [0.5, EAVES + 0.105, true],
+  ],
+};
 
 /** Anything that can trace an outline: a Shape or a canvas. */
 interface Pen {
