@@ -91,6 +91,7 @@ const STREET_BANNERS: readonly (readonly [string, string, string])[] = [
 const ALLEY = 3.2;
 const MOTO_AHEAD = 30;
 const MOTO_X = -2.3;
+const FORWARD = new Vector3(0, 0, 1);
 const HATS = ['#efe6cf', '#1f2b44', '#c9372c', '#f2f0e8', '#d8ff3e'];
 const ROOFS = ['#9a4b33', '#7c3d2c', '#a85a3a', '#5a5c63'];
 
@@ -122,7 +123,7 @@ const SKINS = ['#f1c7a5', '#d9a17c', '#b67a55', '#8a5a3c', '#5e3b26'];
 const TROUSERS = ['#2b2f38', '#3b4a63', '#5a4a3a', '#1c1d20', '#8a8478'];
 const UP = new Vector3(0, 1, 0);
 /** The cathedral stands this far ahead, just right of the street's line. */
-const CATHEDRAL_AHEAD = 620;
+const CATHEDRAL_AHEAD = 500;
 const CATHEDRAL_X = 6;
 /** Bunting crosses the street every 35 m, 8.5 m up at the houses, sagging in the middle. */
 const BUNTING_EVERY = 35;
@@ -187,6 +188,7 @@ export class OldTownStreet {
   private readonly lean = new Quaternion();
   private readonly armTurn = new Quaternion();
   private flags: InstancedMesh | null = null;
+  private cords: InstancedMesh | null = null;
   private readonly cathedral = new Group();
   /** The television motorbike, riding ahead of the rider with its camera turned on them. */
   private readonly moto = new Group();
@@ -593,16 +595,20 @@ export class OldTownStreet {
       for (let k = 0; k < BUNTING_FLAGS; k++) {
         const x = -FRONTAGE + ((k + 0.5) / BUNTING_FLAGS) * 2 * FRONTAGE;
         const sag = 1.6 * (1 - (x / FRONTAGE) ** 2);
+        // The cord's slope here, which each pennant and its length of cord follow.
+        this.turn.setFromAxisAngle(FORWARD, Math.atan((3.2 * x) / FRONTAGE ** 2));
         this.matrix.compose(
           this.spot.set(x, y + BUNTING_HEIGHT - sag, -metres),
-          this.turn.identity(),
+          this.turn,
           this.size.set(1, 1, 1),
         );
-        flags.setMatrixAt(i++, this.matrix);
+        flags.setMatrixAt(i, this.matrix);
+        this.cords?.setMatrixAt(i++, this.matrix);
       }
     }
     flags.instanceMatrix.needsUpdate = true;
     flags.computeBoundingSphere();
+    if (this.cords) this.cords.instanceMatrix.needsUpdate = true;
   }
 
   /** Pennants in the race's colours, hanging point down from a line between the houses. */
@@ -627,6 +633,12 @@ export class OldTownStreet {
     this.flags.castShadow = true;
     this.flags.frustumCulled = false;
     this.group.add(this.flags);
+    // The cord the pennants hang from, a length per pennant.
+    const length = new BoxGeometry((2 * FRONTAGE) / BUNTING_FLAGS + 0.04, 0.015, 0.015);
+    this.disposables.push(length);
+    this.cords = new InstancedMesh(length, this.iron, BUNTING_LINES * BUNTING_FLAGS);
+    this.cords.frustumCulled = false;
+    this.group.add(this.cords);
   }
 
   /** The crowd, moved with the street: one instance per spectator's legs, torso and head. */
@@ -893,7 +905,7 @@ export class OldTownStreet {
     });
   }
 
-  /** Iron lamp posts along both pavements, and bollards at the kerb between them. */
+  /** Iron lamp posts along both pavements, each with a hanging basket and a pennant. */
   private addFurniture(roadHalf: number): void {
     const iron = this.material(null, '#1f2124');
     iron.metalness = 0.6;
@@ -918,6 +930,8 @@ export class OldTownStreet {
     const flowers = new MeshStandardMaterial({ map: this.track(bloomTexture()), roughness: 0.9 });
     this.disposables.push(glass, pole, foot, lantern, cap, bollard, knob);
     this.disposables.push(arm, basket, bloom, wicker, flowers);
+    const trailing = new ConeGeometry(0.4, 0.34, 12, 1, true);
+    this.disposables.push(trailing);
     const pennantCloth = new PlaneGeometry(0.5, 1.1);
     const pennants = [
       ['#1b1e24', '#d7ff3a'],
@@ -955,7 +969,12 @@ export class OldTownStreet {
       const blooms = new Mesh(bloom, flowers);
       blooms.position.set(-side * 0.8, 3.25, 0);
       blooms.scale.set(1, 0.8, 1);
-      hang.castShadow = blooms.castShadow = true;
+      // Ivy and lobelia trailing out of the basket and down.
+      const trail = new Mesh(trailing, this.leaves);
+      trail.rotation.x = Math.PI;
+      trail.position.set(-side * 0.8, 3.02, 0);
+      hang.castShadow = blooms.castShadow = trail.castShadow = true;
+      lamp.add(trail);
       // A race pennant on the post, square to the street, below the basket.
       const pennant = new Mesh(pennantCloth, pennants[i % pennants.length]!);
       pennant.position.set(-side * 0.32, 2.4, 0);
@@ -969,27 +988,6 @@ export class OldTownStreet {
         every: LOOP,
         x: side * (roadHalf + 0.7),
       });
-    }
-    const bollardEvery = 7;
-    for (let i = 0; i < LOOP / bollardEvery; i++) {
-      if (i % 4 === 0) continue;
-      for (const side of [-1, 1]) {
-        const b = new Group();
-        const body = new Mesh(bollard, iron);
-        body.position.y = 0.45;
-        const top = new Mesh(knob, iron);
-        top.position.y = 0.92;
-        body.castShadow = top.castShadow = true;
-        b.add(body, top);
-        this.flatten(b);
-        this.group.add(b);
-        this.props.push({
-          mesh: b,
-          offset: i * bollardEvery,
-          every: LOOP,
-          x: side * (roadHalf + 0.45),
-        });
-      }
     }
   }
 
