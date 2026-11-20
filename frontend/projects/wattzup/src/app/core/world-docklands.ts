@@ -94,6 +94,8 @@ const STEAM_HEIGHT = 5;
 const STEAM_LIFE = 4;
 /** What the towers' screens scroll, each on its own neon ground. */
 const SCREEN_WIDE = 8;
+/** The colour each screen's light throws on the pavement, as its gradient's leading colour. */
+const SCREEN_GLOW: readonly string[] = ['#ff4fb8', '#3fe0ff', '#9b6bff'];
 const SCREENS: readonly string[] = [
   'HARBOUR NIGHTS  ·  OPEN LATE  ·  ',
   'RAMEN 24H  ·  NOODLE BAR  ·  ',
@@ -417,7 +419,12 @@ export class DocklandsStreet {
       return new MeshBasicMaterial({ map: texture, toneMapped: false });
     });
     const screenPlane = new PlaneGeometry(1, 1);
-    this.disposables.push(...screens, screenPlane);
+    const screenBox = new BoxGeometry(1, 1, 1);
+    const frames = SCREEN_GLOW.map(
+      (hex) =>
+        new MeshBasicMaterial({ color: new Color(hex).multiplyScalar(1.3), toneMapped: false }),
+    );
+    this.disposables.push(...screens, screenPlane, screenBox, ...frames);
     const edges = NEON.map(
       (hex) =>
         new MeshStandardMaterial({
@@ -473,12 +480,36 @@ export class DocklandsStreet {
           const tall = wide * 0.5;
           const screen = new Mesh(screenPlane, screens[pick]!);
           screen.scale.set(wide, tall, 1);
-          screen.position.set(
-            -side * (width / 2 + wide / 2 + 0.6),
-            street + LOBBY + 6 + screenRandom() * 8 + tall / 2,
-            depth / 2 - 1,
-          );
+          const across = -side * (width / 2 + wide / 2 + 0.6);
+          const up = street + LOBBY + 6 + screenRandom() * 8 + tall / 2;
+          const front = depth / 2 - 1;
+          screen.position.set(across, up, front);
           mesh.add(screen);
+          // Its dark housing, and two steel arms that carry it out from the façade.
+          const housing = new Mesh(screenBox, canopyMaterial);
+          housing.scale.set(wide + 0.5, tall + 0.5, 0.45);
+          housing.position.set(across, up, front - 0.25);
+          mesh.add(housing);
+          // A lit frame in the screen's own colour.
+          for (const [w, h, dx, dy] of [
+            [wide + 0.5, 0.22, 0, tall / 2 + 0.14],
+            [wide + 0.5, 0.22, 0, -tall / 2 - 0.14],
+            [0.22, tall + 0.5, wide / 2 + 0.14, 0],
+            [0.22, tall + 0.5, -wide / 2 - 0.14, 0],
+          ] as const) {
+            const bar = new Mesh(screenBox, frames[pick]!);
+            bar.scale.set(w, h, 0.12);
+            bar.position.set(across + dx, up + dy, front + 0.02);
+            mesh.add(bar);
+          }
+          for (const y of [up + tall / 2 - 0.4, up - tall / 2 + 0.4]) {
+            const arm = new Mesh(screenBox, canopyMaterial);
+            arm.scale.set(wide + 0.8, 0.18, 0.18);
+            arm.position.set(-side * (width / 2 + (wide + 0.8) / 2), y, front - 0.5);
+            mesh.add(arm);
+          }
+          // Its glow falls on the wet pavement below.
+          this.streak(mesh, SCREEN_GLOW[pick]!, across, street, front - 2, 14, wide * 0.8, 1.1);
         }
         if (edgeRandom() < 0.4) {
           // A neon strip runs up each of the tower's corners on the road, above the canopy.
@@ -1808,9 +1839,9 @@ function screenTexture(words: string, i: number): CanvasTexture {
   const ctx = canvas.getContext('2d');
   if (ctx) {
     const [from, to] = [
-      ['#ff4fb8', '#5b2bd6'],
-      ['#3fe0ff', '#1b3fd0'],
-      ['#9b6bff', '#ff4fb8'],
+      ['#ff2d95', '#3a0ca3'],
+      ['#00c8ff', '#0b2fa8'],
+      ['#7a2dff', '#ff2d95'],
     ][i % 3]!;
     const g = ctx.createLinearGradient(0, 0, 1024, 232);
     g.addColorStop(0, from);
