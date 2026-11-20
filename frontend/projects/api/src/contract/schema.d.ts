@@ -158,7 +158,8 @@ export interface components {
         | 'angels'
         | 'coney'
         | 'winterlude'
-        | 'letras';
+        | 'letras'
+        | 'antwerp';
     };
     ClassShelfResponse: {
       id: string;

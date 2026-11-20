@@ -812,6 +812,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Alto de Letras');
   });
 
+  test('rides Lead Out Efforts Into Full Sprints along the docks of the Antwerp Port Sprint', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Lead Out Efforts Into Full Sprints',
+      'Antwerp Port Sprint',
+      'lead-out-efforts-into-full-sprints',
+    );
+    await expect(world.heading).toHaveText('Antwerp Port Sprint');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Antwerp Port Sprint');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
