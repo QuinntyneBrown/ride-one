@@ -2540,14 +2540,20 @@ export class CaribanaStreet implements SceneStreet {
       color: 0xc8c3ba,
       roughness: 0.95,
     });
-    const shade = this.material({ color: 0x7e7a74, roughness: 1 });
+    // The fascia: weathered concrete in 20 m spans between expansion joints, streaked under
+    // each scupper with water and rust.
+    const fascia = this.material({ map: this.repeat(fasciaTexture(), 2.3, 20), roughness: 0.95 });
+    const shade = this.material({ map: this.repeat(soffitTexture(), 23, 6), roughness: 1 });
     const deck = this.material({ color: 0x5d5f63, roughness: 0.9 });
     const n = GARDINER_NEAR;
     const f = GARDINER_FAR;
     const d = GARDINER_DECK;
     // The parapet facing the boulevard, the deck, and the far parapet.
-    this.ribbons.add(points, concrete, [
+    this.ribbons.add(points, fascia, [
       [n, d - 1.4],
+      [n, d + 0.9],
+    ]);
+    this.ribbons.add(points, concrete, [
       [n, d + 0.9],
       [n - 0.4, d + 0.9],
       [n - 0.5, d],
@@ -2594,6 +2600,49 @@ export class CaribanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, every: LOOP, x: centre, road: true });
     }
+    // Overhead guide signs over the eastbound lanes, facing the traffic coming towards the city.
+    const signs = [
+      ['GARDINER EXPY', 'EAST  Downtown  1 km'],
+      ['SPADINA AVE', 'Exit  Right Lane'],
+    ] as const;
+    signs.forEach(([top, bottom], k) => {
+      const board = new PlaneGeometry(7.5, 2.6);
+      this.disposables.push(board);
+      const face = new Mesh(
+        board,
+        this.material({ map: this.track(guideSignTexture(top, bottom)), roughness: 0.5 }),
+      );
+      const sign = new Group();
+      face.position.set(0, d + 5.6, 0.12);
+      face.rotation.y = 0;
+      const truss = new Mesh(this.unit, steel);
+      truss.scale.set(n - f + 1, 0.5, 0.5);
+      truss.position.set(0, d + 7.1, 0);
+      const back = new Mesh(this.unit, steel);
+      back.scale.set(7.5, 2.6, 0.08);
+      back.position.set(0, d + 5.6, 0.04);
+      sign.add(face, truss, back);
+      for (const x of [-(n - f) / 2, (n - f) / 2]) {
+        const leg = new Mesh(this.unit, steel);
+        leg.scale.set(0.3, 7.2, 0.3);
+        leg.position.set(x, d + 3.6, 0);
+        sign.add(leg);
+      }
+      face.position.x = (n - f) / 2 - 5;
+      back.position.x = face.position.x;
+      sign.position.x = (n + f) / 2;
+      // The face is turned to look back down the road, at the eastbound traffic.
+      sign.rotation.y = Math.PI;
+      sign.traverse((o) => (o.castShadow = true));
+      this.group.add(sign);
+      this.props.push({
+        mesh: sign,
+        offset: 70 + k * 180,
+        every: LOOP,
+        x: (n + f) / 2,
+        road: true,
+      });
+    });
     // Traffic: eastbound in the near lanes, westbound in the far ones.
     const paints = [0xf2f2f2, 0x1c1c1e, 0x8e9499, 0xb3121f, 0x23466e, 0xd9d4c7];
     const random = seeded(887);
@@ -4089,6 +4138,57 @@ function policeCruiser(
   });
   car.traverse((o) => (o.castShadow = true));
   return car;
+}
+
+/** The Gardiner's fascia, 2.3 m tall and 20 m along: weathered concrete, joints, streaks. */
+function fasciaTexture(): CanvasTexture {
+  return canvasTexture(128, 1024, (g) => {
+    speckle(g, 128, 1024, '#b8b2a8', 2411);
+    const random = seeded(2413);
+    // Water and rust streaks running down from the scuppers along the top.
+    for (let k = 0; k < 7; k++) {
+      const y = random() * 1024;
+      const w = 10 + random() * 30;
+      const streak = g.createLinearGradient(0, 0, 128, 0);
+      streak.addColorStop(0, random() < 0.4 ? 'rgba(120,72,40,0.45)' : 'rgba(60,60,58,0.4)');
+      streak.addColorStop(1, 'rgba(60,60,58,0)');
+      g.fillStyle = streak;
+      g.fillRect(0, y, 128 - random() * 40, w);
+    }
+    // A darker band along the top lip, and the expansion joint between spans.
+    g.fillStyle = 'rgba(70,68,64,0.4)';
+    g.fillRect(0, 0, 10, 1024);
+    g.fillStyle = 'rgba(30,30,30,0.85)';
+    g.fillRect(0, 1018, 128, 6);
+  });
+}
+
+/** The deck's underside: girders every 1.5 m in shadow, darker between. */
+function soffitTexture(): CanvasTexture {
+  return canvasTexture(256, 64, (g) => {
+    g.fillStyle = '#5e5b56';
+    g.fillRect(0, 0, 256, 64);
+    g.fillStyle = '#7c7872';
+    for (let x = 0; x < 256; x += 16) g.fillRect(x, 0, 6, 64);
+  });
+}
+
+/** An Ontario guide sign: white words on green, with a white border. */
+function guideSignTexture(top: string, bottom: string): CanvasTexture {
+  return canvasTexture(512, 176, (g) => {
+    g.fillStyle = '#0f6b3c';
+    g.fillRect(0, 0, 512, 176);
+    g.strokeStyle = '#ffffff';
+    g.lineWidth = 6;
+    g.strokeRect(8, 8, 496, 160);
+    g.fillStyle = '#ffffff';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 56px system-ui, sans-serif';
+    g.fillText(top, 256, 62, 470);
+    g.font = '40px system-ui, sans-serif';
+    g.fillText(bottom, 256, 124, 470);
+  });
 }
 
 /** A wall of speaker cabinets: black boxes with round cones. */
