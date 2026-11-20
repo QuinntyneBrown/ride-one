@@ -166,6 +166,17 @@ const DRONES = 8;
 const DRONE_HEIGHT = 6.5;
 const DRONE_REACH = 260;
 const DRONE_FIRST = 48;
+/** Shop signs hung under the towers' canopies: their names and neon colour, and length (m). */
+const SHOPS: readonly (readonly [string, string])[] = [
+  ['RAMEN', '#ff4f6d'],
+  ['ARCADE', '#3fd9ff'],
+  ['24H MART', '#2fd18a'],
+  ['KARAOKE', '#ff4fd8'],
+  ['BIKE REPAIR', '#ffb347'],
+  ['NOODLES', '#ffd84a'],
+  ['TEA HOUSE', '#b06bff'],
+];
+const SHOP_SIGN_LONG = 3.8;
 /** Bus shelters: where round the loop (between the trees), how far out (m), how long (m). */
 const SHELTERS = [48, 290, 506];
 const SHELTER_OUT = 2.6;
@@ -788,6 +799,14 @@ export class DocklandsStreet {
     const bracket = new BoxGeometry(BLADE + 0.3, 0.12, 0.12);
     this.disposables.push(...lobbies, canopyMaterial, blade, bracket);
     this.disposables.push(roof, ...facades, ...blades);
+    // Shop signs along the canopies' road edges, from their own sequence so the layout holds.
+    const shopRandom = seeded(359);
+    const shopSigns = SHOPS.map(([name, hex]) => {
+      const texture = this.track(shopSignTexture(name, hex));
+      return new MeshBasicMaterial({ map: texture, toneMapped: false });
+    });
+    const signPlane = new PlaneGeometry(1, 1);
+    this.disposables.push(...shopSigns, signPlane);
 
     for (const side of [-1, 1] as const) {
       let offset = 0;
@@ -891,6 +910,25 @@ export class DocklandsStreet {
         const lobby = new Mesh(glazing, lobbies[Math.floor(lobbyRandom() * lobbies.length)]!);
         lobby.rotation.y = (-side * Math.PI) / 2;
         lobby.position.set(-side * (width / 2 + 0.04), street + LOBBY / 2, 0);
+        if (shopRandom() < 0.85) {
+          // A lit shop sign hangs under the canopy, out over the pavement, facing the riders
+          // coming up the street.
+          const pick = Math.floor(shopRandom() * shopSigns.length);
+          const sign = new Mesh(signPlane, shopSigns[pick]!);
+          sign.scale.set(SHOP_SIGN_LONG, SHOP_SIGN_LONG / 6, 1);
+          const z = (shopRandom() - 0.3) * (length - 2);
+          sign.position.set(
+            -side * (width / 2 + SHOP_SIGN_LONG / 2 + 0.2),
+            street + LOBBY - SHOP_SIGN_LONG / 12 - 0.15,
+            z,
+          );
+          mesh.add(sign);
+          const hanger = new Mesh(signPlane, canopyMaterial);
+          hanger.scale.set(SHOP_SIGN_LONG + 0.2, 0.08, 1);
+          hanger.position.set(sign.position.x, street + LOBBY - 0.08, z);
+          mesh.add(hanger);
+          this.streak(mesh, SHOPS[pick]![1], -side * (width / 2 + 2), street, z - 2, 6, 2, 0.9);
+        }
         const canopyBox = new BoxGeometry(1.8, 0.22, length);
         const canopy = new Mesh(canopyBox, canopyMaterial);
         canopy.position.set(-side * (width / 2 + 0.9), street + LOBBY + 0.2, 0);
@@ -3373,6 +3411,39 @@ function bannerTexture(words: string, hex: string): CanvasTexture {
     ctx.lineTo(w / 2 - 16, h - 22);
     ctx.closePath();
     ctx.fill();
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A shop sign: neon letters in the shop's colour, glowing on a dark panel with a lit border. */
+function shopSignTexture(name: string, hex: string): CanvasTexture {
+  const w = 384;
+  const h = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#0c0a14';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = hex;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(3, 3, w - 6, h - 6);
+    ctx.font = 'bold 40px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = hex;
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = hex;
+    ctx.fillText(name, w / 2, h / 2 + 2);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.fillText(name, w / 2, h / 2 + 2);
+    ctx.fillStyle = hex;
+    ctx.globalAlpha = 0.55;
+    ctx.fillText(name, w / 2, h / 2 + 2);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
