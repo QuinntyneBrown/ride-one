@@ -7,7 +7,7 @@ import { validatePlan } from './workout-plan-validator';
 export const MAX_BYTES = 1024 * 1024;
 export const MAX_SHELVES = 20;
 export const MAX_CLASSES = 200;
-/** The six scenes built into the app, as ClassWorlds.Ids in the backend (L2-100). */
+/** The scenes built into the app, as ClassWorlds.Ids in the backend (L2-100). */
 export const WORLDS: readonly WorldId[] = [
   'docklands',
   'granite',
@@ -15,6 +15,7 @@ export const WORLDS: readonly WorldId[] = [
   'prairie',
   'dolomites',
   'coast',
+  'caribana',
 ];
 
 export interface Shelf {
@@ -84,7 +85,7 @@ function rule(field: string): string {
     case 'description':
       return 'A description is at most 280 characters.';
     case 'world':
-      return 'A world is one of docklands, granite, oldtown, prairie, dolomites or coast.';
+      return 'A world is one of docklands, granite, oldtown, prairie, dolomites, coast or caribana.';
     default:
       return 'The field is not valid.';
   }

@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the six built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -74,6 +74,15 @@ None.
 
   `lay(points, s)` and `place(s, heightAt)` recycle all of it along a 420 m loop at the road's height. The road is cobbled (`cobbleTextures()`), with a normal map of the setts from the tier that has technique 3. Every texture is drawn on a canvas, so the street loads no assets beyond the panorama.
 
+- **Caribana's parade (`core/world-caribana.ts`).** For `caribana`, the renderer builds `CaribanaStreet` in place of the generic roadside props and the panorama, on the pattern of Old Town's street. Its parts are:
+  - concrete pavements, steel crowd barricades, lakeshore grass, armour stone and Lake Ontario on the right, laid as ribbons over the road's points;
+  - an instanced crowd behind the barricades (legs, torso, head), a fan in five waving a Caribbean flag;
+  - mas bands on both aprons: instanced masqueraders in sequinned bodysuits with feathered backpieces and headdresses, chipping on the parade's clock and still for reduced motion;
+  - music trucks with speaker walls and band banners, lamp standards flying flag banners, lakeshore maples and sailboats;
+  - downtown Toronto ahead: glass towers, the dome and the CN Tower, hazed by hand.
+
+  `lay`, `place` and `setTime` recycle it along a 360 m loop. Every texture is drawn on a canvas, so the scene loads no assets.
+
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
 **Assets (`frontend/public/worlds/<id>/`, new).** Each scene's panorama and its ground and road textures are bundled as `.webp` files and copied into the build. They are served from the same origin (L2-101 criterion 4). The design references them on the Magic Patterns CDN. The CDN copies are never loaded.
@@ -90,6 +99,7 @@ None.
 | `pages/world-ride/prairie` | Prairie Paceline at 4:10, work 1 of 4, `+0.0%`, `4 m climbed` |
 | `pages/world-ride/dolomites` | Dolomites at 15:00, `Steady`, `+0.8%`, `57 m climbed`, `Last stretch to the finish arch` |
 | `pages/world-ride/coast` | Cliffside Coast at 4:50, warm-up, next `Headland surge` |
+| `pages/world-ride/caribana` | Caribana Parade at 4:50, warm-up, next `Mas band surge` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
@@ -123,7 +133,7 @@ That no two scenes look the same (L2-101 AC1) and that the HUD stays readable ov
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-101` | `L1-017` | The six scenes. Each scene has a name, a route, an effort name, a description and a road gradient per segment kind, with a rolling gradient laid over it. Each draws its own place; the target gradient and the route profile follow the stated formulas; assets are bundled and served from the same origin. |
+| `L2-101` | `L1-017` | The scenes. Each scene has a name, a route, an effort name, a description and a road gradient per segment kind, with a rolling gradient laid over it. Each draws its own place; the target gradient and the route profile follow the stated formulas; assets are bundled and served from the same origin. |
 | `L2-106` | `L1-017` | World Ride route profile. The panel shows the gradient, the metres climbed and the distance, draws the whole class as terrain with the ridden part shaded, and stops while the ride is not running. |
 | `L2-110` | `L1-017` | World Ride scene rendering. The scene is a WebGL view from behind the rider's bike. The road follows the plan, with an effort arch ahead. It falls back to a notice when WebGL is unavailable, stops when the tab is hidden, respects reduced motion, and keeps the HUD readable at every width. |
 | `L2-049` | `L1-002` | Power and ride-total estimates. The expected speed of a segment uses the estimate `max(0, round(cadence × (0.55 + level × 0.155)))`. |

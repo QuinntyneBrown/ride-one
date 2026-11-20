@@ -44,6 +44,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(page.getByRole('button', { name: /^Ride in / })).toHaveCount(0);
   });
 
+  test('rides Intense Interval Blast in Caribana Parade on Lake Shore Boulevard', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Intense Interval Blast',
+      'Caribana Parade',
+      'intense-interval-blast',
+    );
+    await expect(world.heading).toHaveText('Caribana Parade');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Caribana Parade');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

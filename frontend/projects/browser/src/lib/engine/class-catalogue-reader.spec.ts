@@ -187,7 +187,7 @@ describe('ClassCatalogueReader', () => {
     expect(r.catalogue!.shelves).toEqual([]);
   });
 
-  it.each(['docklands', 'granite', 'oldtown', 'prairie', 'dolomites', 'coast'])(
+  it.each(['docklands', 'granite', 'oldtown', 'prairie', 'dolomites', 'coast', 'caribana'])(
     'a class keeps its world %s (World Ride)',
     (world) => {
       const r = readOneClass('world', world);
@@ -211,7 +211,8 @@ describe('ClassCatalogueReader', () => {
         {
           entry: 'steady',
           field: 'world',
-          message: 'A world is one of docklands, granite, oldtown, prairie, dolomites or coast.',
+          message:
+            'A world is one of docklands, granite, oldtown, prairie, dolomites, coast or caribana.',
         },
       ]);
     },
