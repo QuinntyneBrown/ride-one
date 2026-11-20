@@ -96,6 +96,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
   private readonly searchlights: Mesh[] = [];
+  /** Where the nightclubs' doors are, in metres along the loop. */
+  private readonly clubs: number[] = [];
   private readonly drops: { x: number; y: number; z: number; speed: number }[] = [];
   private rain: InstancedMesh | null = null;
   private readonly drop = new Matrix4();
@@ -464,6 +466,16 @@ export class MiamiStreet implements SceneStreet {
       this.disposables.push(m);
       return m;
     });
+    const brass = this.material({ color: 0xd8a848, roughness: 0.25, metalness: 0.9 });
+    const velvet = this.material({ color: 0xa01030, roughness: 0.9 });
+    const clubSign = this.material({
+      map: this.track(clubTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(clubTexture()),
+      emissiveIntensity: 2.4,
+      transparent: true,
+    });
+    this.signs.push(clubSign);
     const slab = this.material({ color: 0xf4f0ec, roughness: 0.7 });
     const rail = this.material({ color: 0xf8f8f8, roughness: 0.3, metalness: 0.4 });
     const signBox = this.material({ color: 0x14121c, roughness: 0.5, metalness: 0.6 });
@@ -812,6 +824,23 @@ export class MiamiStreet implements SceneStreet {
       const holder = new Group();
       holder.add(hotel);
       this.group.add(holder);
+      // Every fourth hotel keeps a nightclub on its ground floor: a red rope on brass posts
+      // holds back the queue along the shopfront, and a neon arrow points at the door.
+      if (k % 4 === 1) {
+        const rope = new BoxBuilder();
+        for (let z = 1.5; z <= 9.6; z += 1.35) {
+          rope.box(brass, [0.07, 1, 0.07], [-2.1, 0.65, z]);
+          rope.box(brass, [0.3, 0.05, 0.3], [-2.1, 0.17, z]);
+          if (z + 1.35 <= 9.6) rope.box(velvet, [0.06, 0.06, 1.3], [-2.1, 1.0, z + 0.675]);
+        }
+        hotel.add(rope.build(this.disposables));
+        const arrow = new Mesh(this.flat, clubSign);
+        arrow.rotation.y = -Math.PI / 2;
+        arrow.scale.set(4.4, 1.5, 1);
+        arrow.position.set(-0.1, 4.9, 2.6);
+        hotel.add(arrow);
+        this.clubs.push(offset + width / 2);
+      }
       this.props.push({ mesh: holder, offset: offset + width / 2, x: roadHalf + FRONT });
       offset += width + 3 + random() * 4;
       k++;
@@ -1202,6 +1231,25 @@ export class MiamiStreet implements SceneStreet {
     this.crowd = new Figures(this.group, this.disposables, this.people.length, NIGHT_WEAR, 8137);
     // Knots of two to four people standing and talking: outside the lobbies and against the
     // promenade wall looking out to sea, each swaying a little as they chat.
+    // The queue for each club, waiting in a line along its rope, and the doorman by the door.
+    const queue = seeded(8147);
+    for (const club of this.clubs) {
+      for (let i = 0; i < 9; i++)
+        this.standers.push({
+          offset: club - 2 - i * 0.85 - queue() * 0.2,
+          x: roadHalf + FRONT - 1.35 + (queue() - 0.5) * 0.25,
+          heading: queue() * 0.6 - 0.3,
+          phase: queue() * 6,
+          scale: 0.92 + queue() * 0.12,
+        });
+      this.standers.push({
+        offset: club - 0.6,
+        x: roadHalf + FRONT - 2.6,
+        heading: Math.PI / 2,
+        phase: 0,
+        scale: 1.12,
+      });
+    }
     const chat = seeded(8139);
     for (let g = 0; g < 18; g++) {
       const wall = g % 3 === 0;
@@ -2232,5 +2280,33 @@ function searchlightTexture(): CanvasTexture {
     fade.addColorStop(1, 'rgba(190,160,255,0)');
     g.fillStyle = fade;
     g.fillRect(0, 0, 16, 256);
+  });
+}
+
+/** A nightclub's sign: CLUB in pink neon over an arrow of chasing bulbs pointing at the door. */
+function clubTexture(): CanvasTexture {
+  return canvasTexture(256, 96, (g) => {
+    g.font = 'bold 54px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.shadowColor = '#ff3fb4';
+    g.shadowBlur = 14;
+    g.fillStyle = '#ff3fb4';
+    g.fillText('CLUB', 112, 34);
+    g.shadowBlur = 0;
+    g.fillStyle = '#ffe0f0';
+    g.fillText('CLUB', 112, 34);
+    g.fillStyle = '#ffd060';
+    for (let x = 16; x < 220; x += 12) {
+      g.beginPath();
+      g.arc(x, 76, 3.5, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.beginPath();
+    g.moveTo(222, 62);
+    g.lineTo(246, 76);
+    g.lineTo(222, 90);
+    g.closePath();
+    g.fill();
   });
 }
