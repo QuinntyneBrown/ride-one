@@ -116,6 +116,7 @@ export class AmsterdamStreet implements SceneStreet {
   private lanes: (() => number) | null = null;
   private farDress: (() => number) | null = null;
   private ivyRoll: (() => number) | null = null;
+  private readonly crossers: { mesh: Group; phase: number; speed: number }[] = [];
   private bikeShape: BufferGeometry | null = null;
 
   constructor(
@@ -182,6 +183,14 @@ export class AmsterdamStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     this.tower.position.set(12, heightAt(0), -TOWER);
+    // The people crossing the bridges go over the hump and back.
+    for (const c of this.crossers) {
+      const u = (((c.phase + c.speed * this.time) % CANAL) + CANAL) % CANAL;
+      const rise = 1.4 * Math.sin((Math.PI * u) / CANAL);
+      c.mesh.position.set(u, KERB + rise, c.mesh.position.z);
+      c.mesh.rotation.y = c.speed > 0 ? -Math.PI / 2 : Math.PI / 2;
+      c.mesh.rotation.x = 0;
+    }
     // Gulls wheel over the canal ahead, beating their wings now and then.
     for (const gull of this.gulls) {
       const a = this.time * 0.25 + gull.phase;
@@ -2062,6 +2071,10 @@ export class AmsterdamStreet implements SceneStreet {
     const stone = this.material({ color: 0xd9d2c4, roughness: 0.85 });
     const iron = this.material({ color: 0x1c2a22, metalness: 0.5, roughness: 0.45 });
     const arch = bridgeGeometry();
+    const crossing = seeded(859);
+    const crossBike = bikeGeometry();
+    this.disposables.push(crossBike);
+    const people = this.material({ vertexColors: true, roughness: 0.85 });
     const box = this.material({ color: 0x2a2a24, roughness: 0.8 });
     const bloom = this.material({ color: 0xd8283e, roughness: 0.8 });
     const glow = this.material({ color: 0xfff6e0, emissive: 0xfff0d0, emissiveIntensity: 0.4 });
@@ -2112,6 +2125,32 @@ export class AmsterdamStreet implements SceneStreet {
       // The arch's ring of pale stone voussoirs with its keystone, on both faces, and a stone
       // coping along the deck's edges.
       bridge.add(new Mesh(voussoirs, stone));
+      // People crossing the bridge: a cyclist or two and someone on foot, going either way
+      // over the hump.
+      for (let c = 0; c < 3; c++) {
+        const cycling = c < 2;
+        const crosser = new Group();
+        if (cycling) {
+          crosser.add(new Mesh(crossBike, iron));
+          const rider = new Mesh(sitterGeometry(crossing), people);
+          this.disposables.push(rider.geometry);
+          rider.position.set(0, 0.42, 0.22);
+          crosser.add(rider);
+        } else {
+          const walker = new Mesh(standerGeometry(crossing, crossing() < 0.5), people);
+          this.disposables.push(walker.geometry);
+          crosser.add(walker);
+        }
+        crosser.children.forEach((m) => (m.castShadow = true));
+        const lane = c === 1 ? 1.2 : -1.4;
+        crosser.position.z = lane;
+        bridge.add(crosser);
+        this.crossers.push({
+          mesh: crosser,
+          phase: crossing() * CANAL,
+          speed: (lane > 0 ? 1 : -1) * (cycling ? 3.2 : 1.2),
+        });
+      }
       bridge.scale.x = -1;
       this.group.add(bridge);
       this.props.push({ mesh: bridge, offset: offset + 2, x: -roadHalf - QUAY });
