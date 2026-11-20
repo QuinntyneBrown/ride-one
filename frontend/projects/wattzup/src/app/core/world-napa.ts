@@ -162,7 +162,6 @@ const ROAD_PAINT_EVERY = 25;
 const CREWS: readonly (readonly [-1 | 1, number, number])[] = [
   [-1, 125, 12.5],
   [1, 175, 12.5],
-  [-1, 150, 13],
   [1, 200, 13],
   [-1, 325, 12.5],
   [1, 375, 13],
@@ -173,6 +172,10 @@ const PICKERS: Wardrobe = {
   bottoms: ['#2a3140', '#3b4a5c', '#5a4a3a', '#20242b'],
   skins: SKINS,
 };
+
+/** The farmstead on the left: how far into the loop and how far off the road's centre. */
+const FARM = 165;
+const FARM_X = -27;
 
 const WINERIES: readonly (readonly [number, -1 | 1, number, boolean])[] = [
   [140, 1, 27, false],
@@ -269,6 +272,7 @@ export class NapaStreet implements SceneStreet {
     this.prepareOaks();
     this.addVines();
     this.addWineries();
+    this.addFarmstead();
     this.addOaks();
     this.addHarvest();
     this.addPeople();
@@ -436,7 +440,9 @@ export class NapaStreet implements SceneStreet {
       for (const g of [...hedges, ...stems, ...posts]) g.dispose();
       this.disposables.push(hedge, stem, ends);
       for (let offset = 0; offset < LOOP; offset += BLOCK) {
-        const winery = WINERIES.some(([at, s]) => s === side && Math.abs(offset - at) < 20);
+        const winery =
+          WINERIES.some(([at, s]) => s === side && Math.abs(offset - at) < 20) ||
+          (side < 0 && Math.abs(offset - FARM) < 20);
         if (winery) continue;
         const block = new Group();
         const h = new Mesh(hedge, leaves);
@@ -508,6 +514,177 @@ export class NapaStreet implements SceneStreet {
         this.props.push({ mesh: tree, offset, every: LOOP, x, rise: rise(x), near: side > 0 });
       }
     }
+  }
+
+  /**
+   * The farmstead on the left: a red barn under a grey metal gambrel roof, its board walls
+   * trimmed in white, a sliding door crossed in white and a hay-loft door over it; a white
+   * clapboard farmhouse under a dark gable with a deep porch on posts; a lattice farm windmill
+   * with its fan and tail vane; a water tank on stilts; and oaks round them.
+   */
+  private addFarmstead(): void {
+    const g = new Group();
+    const boards = this.material({ map: this.track(barnTexture()), roughness: 0.95 });
+    boards.map!.wrapS = RepeatWrapping;
+    boards.map!.wrapT = RepeatWrapping;
+    const clapboard = this.material({ map: this.track(clapboardTexture()), roughness: 0.9 });
+    clapboard.map!.wrapS = RepeatWrapping;
+    clapboard.map!.wrapT = RepeatWrapping;
+    const metal = this.material({ color: 0x6e7276, roughness: 0.5, metalness: 0.5 });
+    const slate = this.material({ color: 0x3a3c40, roughness: 0.8 });
+    const white = this.material({ color: 0xf2efe6, roughness: 0.8 });
+    const glass = this.material({ color: 0x26323a, roughness: 0.3 });
+    const steel = this.material({ color: 0x9aa0a6, roughness: 0.5, metalness: 0.6 });
+    const box = (
+      m: MeshStandardMaterial,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      g.add(mesh);
+      return mesh;
+    };
+    const walls = (
+      w: number,
+      h: number,
+      d: number,
+      m: MeshStandardMaterial,
+      x: number,
+      z: number,
+    ) => {
+      const wall = new BoxGeometry(w, h, d);
+      for (const f of [0, 1]) scaleFaceUv(wall, f, d / 4, h / 4);
+      for (const f of [4, 5]) scaleFaceUv(wall, f, w / 4, h / 4);
+      wall.translate(x, h / 2, z);
+      this.disposables.push(wall);
+      const mesh = new Mesh(wall, m);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      g.add(mesh);
+    };
+    // The barn, its long side to the road, and its gambrel roof.
+    const barnW = 11;
+    const barnL = 18;
+    const barnH = 6.5;
+    walls(barnW, barnH, barnL, boards, 0, 0);
+    const gambrel = new Shape();
+    const half = barnW / 2 + 0.5;
+    gambrel.moveTo(-half, 0);
+    gambrel.lineTo(half, 0);
+    gambrel.lineTo(half * 0.62, 2.6);
+    gambrel.lineTo(0, 4.4);
+    gambrel.lineTo(-half * 0.62, 2.6);
+    gambrel.closePath();
+    const roof = new ExtrudeGeometry(gambrel, { depth: barnL + 1, bevelEnabled: false });
+    roof.translate(0, barnH, -(barnL + 1) / 2);
+    this.disposables.push(roof);
+    const r = new Mesh(roof, metal);
+    r.castShadow = true;
+    g.add(r);
+    // Its gable ends in red boards too, trimmed white.
+    const end = new ExtrudeGeometry(gambrel, { depth: barnL - 0.2, bevelEnabled: false });
+    end.scale(0.92, 0.92, 1);
+    end.translate(0, barnH, -(barnL - 0.2) / 2);
+    this.disposables.push(end);
+    g.add(new Mesh(end, boards));
+    // The face to the road: a sliding door crossed in white, a hay-loft door, corner trim.
+    const face = barnW / 2 + 0.06;
+    box(white, 0.1, 4.6, 5.2, face, 2.3, 0);
+    box(boards, 0.12, 4.3, 4.9, face + 0.02, 2.2, 0);
+    for (const sign of [1, -1]) {
+      const brace = box(white, 0.06, 6.4, 0.22, face + 0.1, 2.2, 0);
+      brace.rotation.x = sign * Math.atan(4.9 / 4.3);
+    }
+    box(white, 0.1, 2, 2.2, face, barnH + 1.4, 0);
+    box(glass, 0.12, 1.7, 1.9, face + 0.02, barnH + 1.4, 0);
+    for (const z of [-barnL / 2, barnL / 2]) box(white, 0.3, barnH, 0.3, face - 0.1, barnH / 2, z);
+    // The farmhouse, nearer the road, its porch facing it.
+    const hx = 3;
+    const hz = barnL / 2 + 11;
+    walls(8, 6, 11, clapboard, hx, hz);
+    const gable = new Shape();
+    gable.moveTo(-4.6, 0);
+    gable.lineTo(4.6, 0);
+    gable.lineTo(0, 3);
+    gable.closePath();
+    const house = new ExtrudeGeometry(gable, { depth: 12, bevelEnabled: false });
+    house.translate(hx, 6, hz - 6);
+    this.disposables.push(house);
+    g.add(new Mesh(house, slate));
+    box(white, 2.6, 0.25, 10, hx + 4 + 1.3, 3, hz);
+    box(white, 2.6, 0.3, 10, hx + 4 + 1.3, 0.15, hz);
+    for (const z of [-4.8, -1.6, 1.6, 4.8]) box(white, 0.18, 2.8, 0.18, hx + 6.4, 1.5, hz + z);
+    for (const z of [-3.2, 0, 3.2]) {
+      box(white, 0.08, 1.6, 1.2, hx + 4.04, 1.5, hz + z);
+      box(glass, 0.1, 1.4, 1.0, hx + 4.06, 1.5, hz + z);
+      box(white, 0.08, 1.4, 1.1, hx + 4.04, 4.4, hz + z);
+      box(glass, 0.1, 1.2, 0.9, hx + 4.06, 4.4, hz + z);
+    }
+    box(slate, 0.7, 1.8, 0.7, hx - 2, 9, hz + 2.5);
+    // The windmill behind the barn: four legs leaning in to a platform, its fan and tail vane.
+    const wx = -6;
+    const wz = -barnL / 2 - 6;
+    const tall = 13;
+    for (const [lx, lz] of [
+      [-1.4, -1.4],
+      [1.4, -1.4],
+      [-1.4, 1.4],
+      [1.4, 1.4],
+    ] as const) {
+      const leg = box(steel, 0.12, tall + 0.3, 0.12, wx + lx / 2, tall / 2, wz + lz / 2);
+      leg.rotation.z = -lx * 0.05;
+      leg.rotation.x = lz * 0.05;
+    }
+    for (let y = 2; y < tall; y += 3) box(steel, 2.8 - y * 0.16, 0.06, 0.06, wx, y, wz);
+    const fan = new Group();
+    for (let k = 0; k < 18; k++) {
+      const blade = new Mesh(this.unit, steel);
+      blade.scale.set(0.05, 1.5, 0.35);
+      blade.position.y = 0.95;
+      const arm = new Group();
+      arm.add(blade);
+      arm.rotation.x = (k / 18) * Math.PI * 2;
+      fan.add(arm);
+    }
+    fan.position.set(wx + 0.6, tall + 0.4, wz);
+    g.add(fan);
+    box(steel, 0.05, 1.1, 1.6, wx - 1.7, tall + 0.4, wz);
+    box(steel, 2.2, 0.08, 0.08, wx - 0.6, tall + 0.4, wz);
+    // The water tank on its stilts beside the barn.
+    const tank = new CylinderGeometry(1.6, 1.6, 3.2, 18);
+    this.disposables.push(tank);
+    const t = new Mesh(tank, steel);
+    t.position.set(-3, 5.6, barnL / 2 + 3);
+    t.castShadow = true;
+    g.add(t);
+    for (const [lx, lz] of [
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ] as const) {
+      box(steel, 0.12, 4, 0.12, -3 + lx * 1.1, 2, barnL / 2 + 3 + lz * 1.1);
+    }
+    // Oaks round the farmstead.
+    for (const [ox, oz, size] of [
+      [-12, 6, 17],
+      [9, -barnL / 2 - 4, 15],
+      [-4, hz + 9, 14],
+    ] as const) {
+      const tree = this.oak(size, Math.round(ox * 3 + oz));
+      tree.position.set(ox, 0, oz);
+      g.add(tree);
+    }
+    this.group.add(g);
+    this.props.push({ mesh: g, offset: FARM, every: LOOP, x: FARM_X, rise: 0 });
   }
 
   /**
@@ -1349,6 +1526,28 @@ function grapeTexture(): CanvasTexture {
       g.arc(random() * 64, random() * 64, 2 + random() * 2, 0, Math.PI * 2);
       g.fill();
     }
+  });
+}
+
+/** A barn's red vertical boards, weathered, with dark gaps between them. */
+function barnTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    speckle(g, 128, 128, '#9a2a22', 1801);
+    for (let x = 0; x < 128; x += 16) {
+      g.fillStyle = 'rgba(40,10,8,0.55)';
+      g.fillRect(x, 0, 2, 128);
+      g.fillStyle = 'rgba(255,190,170,0.08)';
+      g.fillRect(x + 3, 0, 5, 128);
+    }
+  });
+}
+
+/** A farmhouse's white clapboard, a shadow line under each board. */
+function clapboardTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    speckle(g, 128, 128, '#f0ece2', 1811);
+    g.fillStyle = 'rgba(90,80,70,0.3)';
+    for (let y = 0; y < 128; y += 10) g.fillRect(0, y, 128, 2);
   });
 }
 
