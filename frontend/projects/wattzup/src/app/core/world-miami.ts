@@ -122,6 +122,7 @@ export class MiamiStreet implements SceneStreet {
   private glitter: Texture | null = null;
   private stream: Texture | null = null;
   private chase: Texture | null = null;
+  private mist: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
@@ -334,6 +335,7 @@ export class MiamiStreet implements SceneStreet {
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
     if (this.stream) this.stream.offset.x = seconds * 0.02;
+    if (this.mist) this.mist.offset.x = seconds * 0.003;
     if (this.glitter) this.glitter.offset.set(Math.sin(seconds * 0.7) * 0.01, seconds * 0.05);
     // The blade signs pulse, each on its own beat, as neon on a timer does; every seventh sign
     // has a failing transformer and stutters, dropping out for a few frames now and then.
@@ -3278,6 +3280,30 @@ export class MiamiStreet implements SceneStreet {
       bolt: bolt.material as MeshBasicMaterial,
     };
     this.horizon.add(flash, bolt);
+    // Sea mist lying low over the water after the rain: long soft banks drifting slowly in
+    // front of the causeway and the ships, lit pale violet by the moon and the city.
+    const mistMap = this.track(seaMistTexture());
+    mistMap.wrapS = RepeatWrapping;
+    this.mist = mistMap;
+    const mist = new MeshBasicMaterial({
+      map: mistMap,
+      color: 0xb8a8e0,
+      transparent: true,
+      opacity: 0.4,
+      depthWrite: false,
+      fog: false,
+    });
+    this.disposables.push(mist);
+    for (const [x, y, z, w, h] of [
+      [-700, 6, -500, 1400, 18],
+      [-900, 9, -900, 2000, 26],
+      [-600, 12, -1350, 2400, 34],
+    ] as const) {
+      const bank = new Mesh(new PlaneGeometry(w, h), mist);
+      bank.position.set(x, y - SEA, z);
+      this.disposables.push(bank.geometry);
+      this.horizon.add(bank);
+    }
     // Searchlights from the clubs down the drive, their beams sweeping the clouds.
     const cone = new CylinderGeometry(46, 0.8, 700, 24, 1, true);
     cone.translate(0, 350, 0);
@@ -4754,5 +4780,22 @@ function policeDoorTexture(): CanvasTexture {
     g.font = 'bold 30px sans-serif';
     g.textAlign = 'center';
     g.fillText('POLICE', 128, 38);
+  });
+}
+
+/** A bank of sea mist: soft lumpy bands, thickest along their middle, wisping out above. */
+function seaMistTexture(): CanvasTexture {
+  return canvasTexture(512, 64, (g) => {
+    const random = seeded(8491);
+    for (let i = 0; i < 70; i++) {
+      const x = random() * 512;
+      const y = 28 + (random() - 0.5) * 24;
+      const r = 14 + random() * 30;
+      const puff = g.createRadialGradient(x, y, 0, x, y, r);
+      puff.addColorStop(0, 'rgba(255,255,255,0.32)');
+      puff.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = puff;
+      g.fillRect(x - r, 0, r * 2, 64);
+    }
   });
 }
