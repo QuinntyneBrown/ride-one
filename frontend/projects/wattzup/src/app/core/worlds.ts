@@ -578,6 +578,16 @@ export const WORLDS: readonly World[] = [
     roll: 1,
   },
   {
+    id: 'ibiza',
+    name: 'Ibiza Sunset Strip',
+    route: 'the sunset strip',
+    effortName: 'Bass drop',
+    description:
+      'The sun sinks into the sea off Sant Antoni beside the island of Conillera, whitewashed beach clubs lining the strip with their neon names, palms and pergola terraces as a DJ sweeps light beams over the dancing crowd under festoon lights. The warm-up cruises the waterfront under the opening set, each effort from fifteen seconds to a minute and a quarter drops with the bass past the clubs and the DJ terrace, and the recoveries float easy along the promenade toward the sunset.',
+    grade: { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0.3,
+  },
+  {
     id: 'skye',
     name: 'Isle of Skye Fog',
     route: 'the Glen Brittle road',

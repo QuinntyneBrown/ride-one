@@ -3059,6 +3059,7 @@
     },
     {
       "id": "intervals-to-the-beat",
+      "world": "ibiza",
       "title": "Intervals to the Beat",
       "channel": "GCN Training",
       "focus": "HIIT",

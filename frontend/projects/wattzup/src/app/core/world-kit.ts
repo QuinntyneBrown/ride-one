@@ -849,3 +849,98 @@ export class BoxBuilder {
     return group;
   }
 }
+
+/**
+ * Palms, as South Beach and Ibiza plant them: a slightly curved trunk of stacked rings, wider at
+ * the foot, under a crown of eleven fronds arching out and drooping at their tips. The trunk and
+ * the crown are made once and shared by every palm.
+ */
+export class Palms {
+  private readonly trunk: BufferGeometry;
+  private readonly crown: BufferGeometry;
+  private readonly bark: MeshStandardMaterial;
+  private readonly leaves: MeshStandardMaterial;
+
+  constructor(disposables: { dispose(): void }[], track: <T extends Texture>(texture: T) => T) {
+    const parts: BufferGeometry[] = [];
+    for (let i = 0; i < 6; i++) {
+      const ring = new CylinderGeometry(0.2 - i * 0.012, 0.22 - i * 0.012, 1.6, 8);
+      ring.translate(i * i * 0.02, 0.8 + i * 1.55, 0);
+      parts.push(ring);
+    }
+    this.trunk = mergeGeometries(parts)!;
+    parts.forEach((p) => p.dispose());
+    const fronds: BufferGeometry[] = [];
+    for (let i = 0; i < 11; i++) {
+      const frond = new PlaneGeometry(0.9, 3.6, 1, 6);
+      const position = frond.getAttribute('position') as BufferAttribute;
+      for (let v = 0; v < position.count; v++) {
+        const y = position.getY(v) + 1.8;
+        // Each frond arches out and droops at the tip.
+        position.setXYZ(v, position.getX(v), 0.4 * y - 0.11 * y * y, y);
+      }
+      frond.rotateY((i / 11) * Math.PI * 2 + (i % 2) * 0.2);
+      frond.translate(0.5, 9.4, 0);
+      fronds.push(frond);
+    }
+    this.crown = mergeGeometries(fronds)!;
+    fronds.forEach((f) => f.dispose());
+    this.crown.computeVertexNormals();
+    const bark = track(barkTexture());
+    bark.wrapS = RepeatWrapping;
+    bark.wrapT = RepeatWrapping;
+    this.bark = new MeshStandardMaterial({ map: bark, roughness: 1 });
+    this.leaves = new MeshStandardMaterial({
+      map: track(frondTexture()),
+      alphaTest: 0.45,
+      side: DoubleSide,
+      roughness: 0.85,
+    });
+    disposables.push(this.trunk, this.crown, this.bark, this.leaves);
+  }
+
+  /** A palm, sized and turned by `random`, its foot at the origin. */
+  make(random: () => number): Group {
+    const palm = new Group();
+    const t = new Mesh(this.trunk, this.bark);
+    const c = new Mesh(this.crown, this.leaves);
+    t.castShadow = true;
+    c.castShadow = true;
+    palm.add(t, c);
+    palm.scale.setScalar(0.85 + random() * 0.35);
+    palm.rotation.y = random() * Math.PI * 2;
+    return palm;
+  }
+}
+
+/** Palm bark: grey rings. */
+function barkTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    g.fillStyle = '#9a8f80';
+    g.fillRect(0, 0, 64, 256);
+    for (let y = 0; y < 256; y += 10) {
+      g.fillStyle = 'rgba(60,50,40,0.35)';
+      g.fillRect(0, y, 64, 3);
+    }
+  });
+}
+
+/** A palm frond: a midrib with leaflets either side, transparent round it. */
+function frondTexture(): CanvasTexture {
+  return canvasTexture(128, 512, (g) => {
+    g.clearRect(0, 0, 128, 512);
+    for (let y = 20; y < 500; y += 9) {
+      const reach = 58 * Math.sin((Math.PI * y) / 512);
+      g.strokeStyle = `hsl(${100 + (y % 3) * 6},50%,${26 + (y % 5) * 3}%)`;
+      g.lineWidth = 5;
+      g.beginPath();
+      g.moveTo(64, y);
+      g.lineTo(64 - reach, y + 26);
+      g.moveTo(64, y);
+      g.lineTo(64 + reach, y + 26);
+      g.stroke();
+    }
+    g.fillStyle = '#5a6b2c';
+    g.fillRect(61, 0, 6, 512);
+  });
+}

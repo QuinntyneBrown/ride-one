@@ -220,6 +220,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Monaco Street Circuit');
   });
 
+  test('rides Intervals to the Beat along the Ibiza sunset strip', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Intervals to the Beat',
+      'Ibiza Sunset Strip',
+      'intervals-to-the-beat',
+    );
+    await expect(world.heading).toHaveText('Ibiza Sunset Strip');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Ibiza Sunset Strip');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

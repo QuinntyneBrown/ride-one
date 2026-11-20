@@ -1202,8 +1202,10 @@ export class DocklandsStreet {
     this.disposables.push(roof, ...facades, ...blades);
     // Glass lifts up some towers' street faces, from their own sequence so the layout holds.
     const liftRandom = seeded(421);
+    // The cab's glass: warm light behind glazing bars, a handrail, and riders inside.
     const liftGlass = new MeshBasicMaterial({
-      color: new Color('#ffe0b8').multiplyScalar(1.5),
+      color: new Color(0xffffff).multiplyScalar(1.15),
+      map: this.track(liftCabTexture()),
       toneMapped: false,
     });
     const liftRim = new MeshBasicMaterial({
@@ -5447,6 +5449,55 @@ function screenTexture(words: string, i: number): CanvasTexture {
 }
 
 /** A stall awning: broad stripes of its colour and white, across the slope. */
+/**
+ * A glass lift cab's walls: warm light behind a grid of dark glazing bars, a rail across at
+ * waist height, and two riders standing inside as silhouettes.
+ */
+function liftCabTexture(): CanvasTexture {
+  const w = 96;
+  const h = 112;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#fff3dc');
+    g.addColorStop(1, '#f2b872');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    // Two riders, one a little taller, standing side by side.
+    ctx.fillStyle = '#2a2230';
+    for (const [x, top] of [
+      [32, 34],
+      [62, 40],
+    ] as const) {
+      ctx.beginPath();
+      ctx.arc(x, top, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x - 12, h);
+      ctx.lineTo(x - 11, top + 14);
+      ctx.quadraticCurveTo(x, top + 8, x + 11, top + 14);
+      ctx.lineTo(x + 12, h);
+      ctx.closePath();
+      ctx.fill();
+    }
+    // The handrail, then the glazing bars and the frame.
+    ctx.fillStyle = '#5a4a3c';
+    ctx.fillRect(0, 70, w, 4);
+    ctx.fillStyle = '#1a1820';
+    ctx.fillRect(w / 2 - 2, 0, 4, h);
+    ctx.fillRect(0, h / 2 - 2 - 20, w, 3);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#1a1820';
+    ctx.strokeRect(3, 3, w - 6, h - 6);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 /**
  * A stall's open hatch, seen from the road: a warm-lit kitchen with shelves of jars and bottles,
  * pans steaming on the hob along the counter and a cook in a white cap behind it. Drawn on its
