@@ -1086,6 +1086,13 @@ export class HavanaStreet implements SceneStreet {
    * A zebra crossing painted over both carriageways at a side street's mouth: broad white bars
    * across the road, their paint worn through where the wheels run.
    */
+  private signals?: {
+    pole: MeshStandardMaterial;
+    head: MeshStandardMaterial;
+    lamps: MeshStandardMaterial[];
+    lamp: CylinderGeometry;
+  };
+
   private addZebra(offset: number, roadHalf: number): void {
     if (!this.zebra) {
       const map = this.track(zebraTexture());
@@ -1107,6 +1114,50 @@ export class HavanaStreet implements SceneStreet {
     crossing.renderOrder = 3;
     const holder = new Group();
     holder.add(crossing);
+    // A traffic light on each kerb, its head facing the traffic coming to the crossing: green lit
+    // for the road, red and amber dark, on a grey pole with a pedestrian box below.
+    if (!this.signals) {
+      const lens = (color: number, lit: boolean) =>
+        this.material({
+          color: lit ? color : 0x202020,
+          emissive: lit ? color : 0x000000,
+          emissiveIntensity: lit ? 2.4 : 0,
+          roughness: 0.3,
+        });
+      this.signals = {
+        pole: this.material({ color: 0x5a5e62, roughness: 0.6, metalness: 0.4 }),
+        head: this.material({ color: 0x1a1c1e, roughness: 0.5 }),
+        lamps: [lens(0xff2a1a, false), lens(0xffb020, false), lens(0x30ff70, true)],
+        lamp: new CylinderGeometry(0.1, 0.1, 0.06, 12).rotateX(Math.PI / 2),
+      };
+      this.disposables.push(this.signals.lamp);
+    }
+    const signals = this.signals;
+    for (const [x, z, turn] of [
+      [roadHalf + 0.35, -CROSS / 2 + 2.6, 0],
+      [-roadHalf - LANES - 0.35, -CROSS / 2 - 2.6, Math.PI],
+    ] as const) {
+      const signal = new Group();
+      const pole = new Mesh(this.unit, signals.pole);
+      pole.scale.set(0.12, 3.4, 0.12);
+      pole.position.y = 1.7;
+      const head = new Mesh(this.unit, signals.head);
+      head.scale.set(0.34, 0.9, 0.24);
+      head.position.set(0, 3.15, 0);
+      const box = new Mesh(this.unit, signals.head);
+      box.scale.set(0.25, 0.4, 0.2);
+      box.position.set(0, 1.3, 0.12);
+      signal.add(pole, head, box);
+      for (let k = 0; k < 3; k++) {
+        const lamp = new Mesh(signals.lamp, signals.lamps[k]!);
+        lamp.position.set(0, 3.42 - k * 0.27, 0.13);
+        signal.add(lamp);
+      }
+      for (const mesh of [pole, head, box]) mesh.castShadow = true;
+      signal.position.set(x, KERB, z);
+      signal.rotation.y = turn;
+      holder.add(signal);
+    }
     this.group.add(holder);
     this.props.push({ mesh: holder, offset, x: 0 });
   }
