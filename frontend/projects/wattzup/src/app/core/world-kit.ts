@@ -1188,3 +1188,43 @@ export class Yachts {
     return g;
   }
 }
+
+/**
+ * Bunting strung across a street from -`span` to `span`, as Notting Hill and Dubai Marina hang
+ * it: a pennant every 0.55 m, its bottom edge pinched to a point, coloured in turn from
+ * `colours`, along each string of `strings`, a [height, lean] pair: the string `high` metres up
+ * at its ends, sagging `sag` metres at the middle, `lean` metres along the street. One merged
+ * geometry with vertex colours, for a material with `vertexColors`.
+ */
+export function buntingGeometry(
+  span: number,
+  colours: readonly string[],
+  strings: readonly (readonly [number, number])[],
+  sag = 1.4,
+): BufferGeometry {
+  const lines: BufferGeometry[] = [];
+  for (const [high, lean] of strings) {
+    const parts: BufferGeometry[] = [];
+    let k = 0;
+    for (let x = -span; x < span; x += 0.55, k++) {
+      const u = x / span;
+      const flag = new PlaneGeometry(0.42, 0.5);
+      // A pennant: the bottom edge pinched to a point.
+      const position = flag.getAttribute('position');
+      position.setX(2, 0);
+      position.setX(3, 0);
+      flag.translate(0, high - sag * (1 - u * u) - 0.25, 0);
+      flag.translate(x, 0, lean);
+      const colour = new Color(colours[k % colours.length]!);
+      const tint = new Float32Array(position.count * 3);
+      for (let i = 0; i < position.count; i++) colour.toArray(tint, i * 3);
+      flag.setAttribute('color', new BufferAttribute(tint, 3));
+      parts.push(flag);
+    }
+    lines.push(mergeGeometries(parts)!);
+    parts.forEach((p) => p.dispose());
+  }
+  const geometry = mergeGeometries(lines)!;
+  lines.forEach((s) => s.dispose());
+  return geometry;
+}
