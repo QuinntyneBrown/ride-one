@@ -150,6 +150,10 @@ const MOON_SIZE = 120;
 const CLOUD_HEIGHT = 260;
 const CLOUD_SPAN = 4000;
 const CLOUD_DRIFT = 0.002;
+/** Canopy drips: how many streams, how long each takes to fall (s), how far ahead (m). */
+const DRIPS = 650;
+const DRIP_FALL = 0.55;
+const DRIP_REACH = 60;
 /** Rain splashes: how many, in how many groups, how long each lasts (s), how far ahead (m). */
 const SPLASHES = 140;
 const SPLASH_PHASES = 10;
@@ -411,6 +415,7 @@ export class DocklandsStreet {
   setTime(seconds: number, still = false): void {
     this.fall(seconds, still);
     this.splash(seconds, still);
+    this.drip(seconds, still);
     // The beacons blink together, on for most of each second; lit and still for reduced motion.
     if (this.beaconMaterial) {
       const lit = still || (seconds % BEACON_BLINK) / BEACON_BLINK < 0.6;
@@ -463,6 +468,11 @@ export class DocklandsStreet {
   private readonly splashes: { mesh: Mesh; phase: number; x: number; at: number }[] = [];
   /** The rider's distance at the last place(), where new splashes land ahead of. */
   private riderS = 0;
+  /** Water running off the towers' canopies: each stream's place round the loop, its side,
+   * how far through its fall it is, and the segments that draw them all. */
+  private readonly drips: { at: number; side: number; life: number; phase: number }[] = [];
+  private dripLines: LineSegments | null = null;
+  private readonly dripRandom = seeded(379);
   private readonly splashMaterials: MeshBasicMaterial[] = [];
   private readonly splashLife: number[] = [];
   private readonly splashRandom = seeded(331);
@@ -682,6 +692,67 @@ export class DocklandsStreet {
   private splashHalf = 4;
 
   /** Spreads and fades each group of splashes, landing it somewhere new as it starts again. */
+  /**
+   * Rain running off the edges of the towers' canopies in thin streams, a curtain of falling
+   * water along the pavement that catches the street's light.
+   */
+  private addDrips(): void {
+    for (let i = 0; i < DRIPS; i++) {
+      this.drips.push({ at: 0, side: 1, life: 1, phase: this.dripRandom() });
+    }
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(new Float32Array(DRIPS * 6), 3));
+    const material = new LineBasicMaterial({
+      color: new Color('#cfe6ff'),
+      transparent: true,
+      opacity: 0.6,
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    this.disposables.push(geometry, material);
+    this.dripLines = new LineSegments(geometry, material);
+    this.dripLines.frustumCulled = false;
+    this.group.add(this.dripLines);
+  }
+
+  /** Lets each stream fall from its canopy, starting somewhere new along the street each time. */
+  private drip(seconds: number, still: boolean): void {
+    if (!this.dripLines) return;
+    // For reduced motion there are none, rather than streams frozen in mid-air.
+    this.dripLines.visible = !still;
+    for (const stream of this.drips) {
+      const life = (seconds / DRIP_FALL + stream.phase) % 1;
+      if (life < stream.life) {
+        stream.at = this.riderS + BEHIND + 2 + this.dripRandom() * DRIP_REACH;
+        const loop = ((stream.at % LOOP) + LOOP) % LOOP;
+        // No towers stand along the harbour, so the left has none there.
+        const harbour = loop >= HARBOUR_FROM && loop < HARBOUR_TO;
+        stream.side = harbour || this.dripRandom() < 0.5 ? 1 : -1;
+      }
+      stream.life = life;
+    }
+  }
+
+  /** Draws each stream where it falls, against the canopy edge it runs off. */
+  private placeDrips(s: number, heightAt: (metres: number) => number): void {
+    if (!this.dripLines) return;
+    const position = this.dripLines.geometry.getAttribute('position') as BufferAttribute;
+    const edge = this.roadHalf + SETBACK - 1.85;
+    this.drips.forEach((stream, i) => {
+      const metres = ((((stream.at - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      const ground = heightAt(Math.max(metres, 0));
+      const hidden = metres < 0 || this.onBridge(Math.max(metres, 0));
+      const top = ground + KERB + LOBBY + 0.1;
+      const y = top - stream.life * (LOBBY - 0.1);
+      const x = stream.side * (edge + (i % 7) * 0.02);
+      const z = -metres;
+      const length = hidden ? 0 : 1.4;
+      position.setXYZ(i * 2, x, y, z);
+      position.setXYZ(i * 2 + 1, x, y - length, z);
+    });
+    position.needsUpdate = true;
+  }
+
   private splash(seconds: number, still: boolean): void {
     for (let k = 0; k < SPLASH_PHASES; k++) {
       const life = (seconds / SPLASH_LIFE + k / SPLASH_PHASES) % 1;
@@ -1513,6 +1584,7 @@ export class DocklandsStreet {
     this.addAirTraffic();
     this.addRain();
     this.addSplashes(roadHalf);
+    this.addDrips();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -3240,6 +3312,7 @@ export class DocklandsStreet {
   /** Moves each tower to its place along the loop for the rider's distance `s`. */
   place(s: number, heightAt: (metres: number) => number): void {
     this.riderS = s;
+    this.placeDrips(s, heightAt);
     for (const drop of this.splashes) {
       const metres = drop.at - s;
       drop.mesh.position.set(drop.x, heightAt(Math.max(metres, 0)) + 0.02, -metres);
