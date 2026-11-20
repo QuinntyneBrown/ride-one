@@ -3943,6 +3943,7 @@
     },
     {
       "id": "spin-to-win",
+      "world": "coney",
       "title": "Spin to Win",
       "channel": "GCN Training",
       "focus": "Cadence",
