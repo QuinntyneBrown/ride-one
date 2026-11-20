@@ -23,6 +23,7 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
+  type Object3D,
   MeshStandardMaterial,
   PlaneGeometry,
   Quaternion,
@@ -72,7 +73,7 @@ const COMMUTER_WEAR = {
 };
 
 interface Rider {
-  readonly bike: Mesh;
+  readonly bike: Object3D;
   readonly offset: number;
   readonly x: number;
   readonly speed: number;
@@ -1098,10 +1099,42 @@ export class AmsterdamStreet implements SceneStreet {
     const random = seeded(449);
     const frame = this.material({ color: 0x1d1f24, metalness: 0.4, roughness: 0.5 });
     const bike = bikeGeometry();
-    this.disposables.push(bike);
+    const cargo = bakfietsGeometry();
+    this.disposables.push(bike, cargo.frame, cargo.box);
+    const wood = this.material({ color: 0x9a6a3a, roughness: 0.8 });
+    const kids = [0xf0c8a0, 0xc48a5f, 0x8d5a3b].map((hex) =>
+      this.material({ color: hex, roughness: 0.7 }),
+    );
+    const head = new SphereGeometry(0.09, 8, 6);
+    this.disposables.push(head);
+    // A bakfiets: the cargo bike, its wooden box up front carrying a child or two.
+    const bakfiets = () => {
+      const group = new Group();
+      group.add(new Mesh(cargo.frame, frame), new Mesh(cargo.box, wood));
+      const children = 1 + Math.floor(random() * 2);
+      for (let c = 0; c < children; c++) {
+        const child = new Mesh(head, kids[Math.floor(random() * kids.length)]!);
+        child.position.set(c === 0 ? 0 : 0.18, 0.98, -0.75 - c * 0.3);
+        group.add(child);
+      }
+      group.children.forEach((m) => (m.castShadow = true));
+      return group;
+    };
+    for (const [along, x] of [
+      [6, roadHalf + 1.2],
+      [19, roadHalf + 1.1],
+    ] as const) {
+      const parked = new Group();
+      const cargoBike = bakfiets();
+      cargoBike.rotation.y = 0.15;
+      parked.add(cargoBike);
+      parked.position.y = KERB;
+      this.group.add(parked);
+      this.props.push({ mesh: parked, offset: START + BEHIND + along, x });
+    }
     for (let offset = 10; offset < LOOP; offset += 14 + random() * 18) {
       const towards = random() < 0.5;
-      const mesh = new Mesh(bike, frame);
+      const mesh = random() < 0.25 ? bakfiets() : new Mesh(bike, frame);
       this.group.add(mesh);
       this.riders.push({
         bike: mesh,
@@ -1524,6 +1557,49 @@ function carGeometry(kind: 'hatch' | 'city' | 'van'): {
   const wheels = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
   return { body, glass, wheels, length };
+}
+
+/**
+ * A bakfiets along z, its box towards -z: the rider's half of an upright bike (rear wheel,
+ * saddle and swept-back bars) on a long low frame running forward to a small front wheel, with
+ * a varnished wooden box slung between, open at the top.
+ */
+function bakfietsGeometry(): { frame: BufferGeometry; box: BufferGeometry } {
+  const parts: BufferGeometry[] = [];
+  const wheel = (z: number, radius: number) => {
+    const ring = new TorusGeometry(radius, 0.025, 4, 18);
+    ring.rotateY(Math.PI / 2);
+    ring.translate(0, radius + 0.02, z);
+    parts.push(ring.toNonIndexed());
+  };
+  wheel(0.55, 0.34);
+  wheel(-1.55, 0.25);
+  parts.push(limb(new Vector3(0, 0.36, 0.55), new Vector3(0, 0.95, 0.25), 0.025));
+  parts.push(limb(new Vector3(0, 0.36, 0.55), new Vector3(0, 0.3, -0.35), 0.03));
+  parts.push(limb(new Vector3(0, 0.3, -0.35), new Vector3(0, 0.28, -1.55), 0.03));
+  parts.push(limb(new Vector3(0, 0.95, 0.25), new Vector3(0, 0.3, -0.35), 0.025));
+  parts.push(limb(new Vector3(0, 0.3, -0.35), new Vector3(0, 1.0, -0.42), 0.025));
+  const saddle = new BoxGeometry(0.14, 0.05, 0.26);
+  saddle.translate(0, 0.98, 0.25);
+  const bars = new BoxGeometry(0.5, 0.03, 0.03);
+  bars.translate(0, 1.05, -0.48);
+  parts.push(saddle.toNonIndexed(), bars.toNonIndexed());
+  const frame = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  const sides: BufferGeometry[] = [];
+  const panel = (w: number, h: number, d: number, x: number, y: number, z: number) => {
+    const board = new BoxGeometry(w, h, d);
+    board.translate(x, y, z);
+    sides.push(board.toNonIndexed());
+  };
+  panel(0.62, 0.04, 0.9, 0, 0.36, -0.95);
+  panel(0.03, 0.5, 0.9, -0.3, 0.6, -0.95);
+  panel(0.03, 0.5, 0.9, 0.3, 0.6, -0.95);
+  panel(0.62, 0.5, 0.03, 0, 0.6, -1.4);
+  panel(0.62, 0.42, 0.03, 0, 0.56, -0.5);
+  const box = mergeGeometries(sides)!;
+  sides.forEach((p) => p.dispose());
+  return { frame, box };
 }
 
 /** An upright Dutch bike, along z: two wheels, its frame, saddle and swept-back bars. */
