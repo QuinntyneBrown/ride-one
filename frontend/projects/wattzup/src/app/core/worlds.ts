@@ -549,6 +549,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 3, work: 5, rest: 2, cooldown: 0, steady: 4 },
     roll: 0.8,
   },
+  {
+    id: 'monaco',
+    name: 'Monaco Street Circuit',
+    route: 'the harbour straight',
+    effortName: 'Harbour sprint',
+    description:
+      "Port Hercule glitters under a Riviera sun on race weekend, superyachts moored along the quay beside the catch fences and packed grandstands of the street circuit while the pastel town climbs its hill to the Casino. The five-minute warm-up rolls along the harbour front, each sprint from fifteen seconds to a minute and a half bursts between the red and white kerbs past the yachts, and the recoveries spin easy with the Casino's copper towers ahead.",
+    grade: { warmup: 0, work: 2, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0.5,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
