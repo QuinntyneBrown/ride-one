@@ -126,7 +126,8 @@ export interface components {
         | 'alpe'
         | 'saguaro'
         | 'trollstigen'
-        | 'poggio';
+        | 'poggio'
+        | 'montmartre';
     };
     ClassShelfResponse: {
       id: string;
