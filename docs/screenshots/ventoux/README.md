@@ -17,3 +17,4 @@ Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the s
 | Capture | Fix |
 | --- | --- |
 | [025 · The paint lies on the Giant of Provence](bend-025-paint-on-the-giant.jpg) | The words the fans paint on Ventoux's road (ALLEZ, VENTOUX, COURAGE) were laid level, so on its steady 7% each 7 m word sank into the tarmac but for its near end. They now lie along the slope, and the road's props behind the rider stand on the road there instead of at the height under the rider. |
+| [054 · The summit and its tower stand over the scree](bend-054-summit-tower-stands.jpg) | Ventoux's bald summit with the weather tower on top was bent vertex by vertex with the road's 40° bends, so the summit swung across the sky with each turn up through the white scree. It now stands beyond the road unbent, as the panorama does. |
