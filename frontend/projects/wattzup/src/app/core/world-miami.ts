@@ -172,6 +172,7 @@ export class MiamiStreet implements SceneStreet {
     this.addSteam();
     this.addYachts(roadHalf);
     this.addBikeDocks(roadHalf);
+    this.addPier(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1912,6 +1913,60 @@ export class MiamiStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: -roadHalf - 1.6 });
     }
+  }
+
+  /**
+   * A fishing pier running out to sea from the beach once a loop: a concrete deck on piles
+   * 160 m long, railed both sides, lamps every 12 m throwing pools on it and their glow on the
+   * water, and a lit shelter at its head.
+   */
+  private addPier(roadHalf: number): void {
+    const length = 160;
+    const concrete = this.material({ color: 0xb8b0b8, roughness: 0.8 });
+    const rail = this.material({ color: 0xe8e8ec, roughness: 0.4, metalness: 0.5 });
+    const b = new BoxBuilder();
+    b.box(concrete, [length, 0.5, 6], [-length / 2, 1.2, 0]);
+    for (let x = -4; x > -length; x -= 8) {
+      for (const z of [-2.6, 2.6]) b.box(concrete, [0.6, 4, 0.6], [x, -0.8, z]);
+    }
+    for (const z of [-2.95, 2.95]) {
+      b.box(rail, [length, 0.08, 0.08], [-length / 2, 2.45, z]);
+      b.box(rail, [length, 0.06, 0.06], [-length / 2, 1.95, z]);
+      for (let x = 0; x > -length; x -= 3) b.box(rail, [0.06, 1.0, 0.06], [x, 1.95, z]);
+    }
+    b.box(concrete, [8, 0.3, 9], [-length - 2, 4.8, 0]);
+    for (const [x, z] of [
+      [-length + 1, -4],
+      [-length + 1, 4],
+      [-length - 5, -4],
+      [-length - 5, 4],
+    ] as const)
+      b.box(rail, [0.2, 3.4, 0.2], [x, 3.1, z]);
+    b.box(concrete, [8, 0.5, 9], [-length - 2, 1.2, 0]);
+    const pier = b.build(this.disposables);
+    const globe = this.material({ color: 0xfff0d0, emissive: 0xffe0b0, emissiveIntensity: 3.2 });
+    for (let x = -6; x > -length; x -= 12)
+      for (const z of [-2.9, 2.9]) {
+        const lamp = new Mesh(this.unit, globe);
+        lamp.scale.set(0.3, 0.3, 0.3);
+        lamp.position.set(x, 4.2, z);
+        const post = new Mesh(this.unit, rail);
+        post.scale.set(0.1, 2.8, 0.1);
+        post.position.set(x, 2.8, z);
+        const halo = new Mesh(this.flat, this.halo);
+        halo.scale.set(3.5, 3.5, 1);
+        halo.position.set(x, 4.2, z);
+        const shine = new Mesh(this.flat, this.halo);
+        shine.rotation.x = -Math.PI / 2;
+        shine.scale.set(2.5, 9, 1);
+        shine.position.set(x, -0.15, z * 2.4);
+        pier.add(lamp, post, halo, shine);
+      }
+    pier.position.set(-BEACH + 4, -SEA - 0.3, 0);
+    const holder = new Group();
+    holder.add(pier);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 175, x: -roadHalf - 6 });
   }
 
   /** People out for the night on both sidewalks. */
