@@ -71,6 +71,8 @@ const BOATS: readonly { offset: number; out: number; length: number; hex: string
  */
 const SKYTRAIN = 150;
 const RAIL_DECK = 15;
+/** The line's name on the deck over the street: its width (m). */
+const LINE_SIGN_WIDE = 16;
 /** The viaduct runs from RAIL_WEST (inside the far shore) to RAIL_EAST, across the road. */
 const RAIL_WEST = -360;
 const RAIL_EAST = 210;
@@ -3188,6 +3190,40 @@ export class DocklandsStreet {
     for (const x of piers) {
       box(concrete, 2.2, RAIL_DECK - 1.6, 2.2, x, (RAIL_DECK - 1.6) / 2);
     }
+    // Where the line crosses the street: light bars under the deck, neon bands round the two
+    // piers at the kerbs, and the line's lit name on the deck's face towards the riders.
+    const pink = glow('#ff4fd8', 2.6);
+    this.disposables.push(pink);
+    for (let k = 0; k < 5; k++) {
+      const bar = new Mesh(unit, k % 2 === 0 ? cyan : pink);
+      bar.scale.set(2 * roadHalf + 4, 0.1, 0.22);
+      bar.position.set(0, RAIL_DECK - 1.66, -2.8 + k * 1.4);
+      this.skytrain.add(bar);
+    }
+    for (const x of piers.slice(0, 2)) {
+      for (let k = 0; k < 3; k++) {
+        const band = new Mesh(unit, k === 1 ? pink : cyan);
+        band.scale.set(2.3, 0.18, 2.3);
+        band.position.set(x, 2 + k * 3.2, 0);
+        this.skytrain.add(band);
+      }
+    }
+    const nameTexture = this.track(lineSignTexture());
+    // Bright enough to read through the rain and haze at a hundred metres and more.
+    const name = new MeshBasicMaterial({
+      map: nameTexture,
+      color: new Color(0xffffff).multiplyScalar(2.2),
+      toneMapped: false,
+    });
+    const plate = new PlaneGeometry(LINE_SIGN_WIDE, LINE_SIGN_WIDE / 10);
+    this.disposables.push(name, plate);
+    for (const way of [1, -1]) {
+      const sign = new Mesh(plate, name);
+      sign.position.set(0, RAIL_DECK - 0.8, way * 3.52);
+      if (way < 0) sign.rotation.y = Math.PI;
+      this.skytrain.add(sign);
+    }
+    this.streak(this.skytrain, '#ff4fd8', 0, 0.02, 3, 8, 2 * roadHalf, 0.6);
     const train = this.train;
     // Three cars, nose to tail across the street, the lead car over the road's right half.
     const car = 19;
@@ -3902,6 +3938,37 @@ function moonTexture(): CanvasTexture {
       ctx.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
     }
     ctx.restore();
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** The elevated line's name board: a cyan roundel and the line's name on a dark panel. */
+function lineSignTexture(): CanvasTexture {
+  const w = 640;
+  const h = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#0b0b16';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#3fe0ff';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.arc(40, h / 2, 20, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#ff4fd8';
+    ctx.fillRect(14, h / 2 - 5, 52, 10);
+    ctx.font = 'bold 30px sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#3fe0ff';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#e8fbff';
+    ctx.textAlign = 'center';
+    ctx.fillText('HARBOUR LINE  ·  DOCKLANDS', (w + 70) / 2, h / 2 + 2, w - 90);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
