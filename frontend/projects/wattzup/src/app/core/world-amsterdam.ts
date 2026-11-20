@@ -142,6 +142,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addScaffold(roadHalf);
     this.addMovingLift(roadHalf);
     this.addShop(roadHalf);
+    this.addCabinets(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1714,6 +1715,37 @@ export class AmsterdamStreet implements SceneStreet {
       offset: BRIDGE + 2 + CROSS / 2 + 0.2,
       x: roadHalf + PAVEMENT,
     });
+  }
+
+  /**
+   * The street's utility cabinets: grey-green steel boxes on the pavement's kerb and the quay,
+   * plastered with stickers and the odd tag, every 60 m or so.
+   */
+  private addCabinets(roadHalf: number): void {
+    const random = seeded(787);
+    const skin = this.material({
+      map: this.track(cabinetTexture()),
+      roughness: 0.6,
+      metalness: 0.2,
+    });
+    const plain = this.material({ color: 0x6e7a72, roughness: 0.6, metalness: 0.2 });
+    for (
+      let offset = START + BEHIND + 30;
+      offset < START + BEHIND + 30 + LOOP;
+      offset += 55 + random() * 20
+    ) {
+      const at = offset % LOOP;
+      if (bridgeGap(at) !== null) continue;
+      const nearSide = random() < 0.6;
+      const box = new Mesh(this.unit, [skin, skin, plain, plain, skin, skin]);
+      box.scale.set(0.45, 1.25, 0.9);
+      box.position.y = KERB + 0.625;
+      box.castShadow = true;
+      const spot = new Group();
+      spot.add(box);
+      this.group.add(spot);
+      this.props.push({ mesh: spot, offset: at, x: nearSide ? roadHalf + 0.75 : -roadHalf - 2.4 });
+    }
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
@@ -3754,6 +3786,36 @@ function foamTexture(): CanvasTexture {
       g.ellipse(random() * 64, y, 1 + random() * 3, 1 + random() * 5, 0, 0, Math.PI * 2);
       g.fill();
     }
+  });
+}
+
+/** A utility cabinet's door: grey-green steel, its seams and lock, and stickers slapped on. */
+function cabinetTexture(): CanvasTexture {
+  return canvasTexture(128, 160, (g) => {
+    speckle(g, 128, 160, '#6e7a72', 791);
+    g.fillStyle = 'rgba(0,0,0,0.35)';
+    g.fillRect(63, 0, 2, 160);
+    g.fillRect(4, 4, 120, 2);
+    g.fillStyle = '#2a2a2a';
+    g.fillRect(70, 76, 6, 10);
+    const random = seeded(797);
+    const colours = ['#f2f2ee', '#e8c820', '#d8282e', '#2c7be5', '#1b1b1f', '#7ac04a'];
+    for (let i = 0; i < 14; i++) {
+      g.fillStyle = colours[Math.floor(random() * colours.length)]!;
+      const w = 10 + random() * 22;
+      const h = 8 + random() * 16;
+      g.save();
+      g.translate(10 + random() * 100, 20 + random() * 120);
+      g.rotate((random() - 0.5) * 0.6);
+      g.fillRect(-w / 2, -h / 2, w, h);
+      g.restore();
+    }
+    g.strokeStyle = 'rgba(20,20,20,0.7)';
+    g.lineWidth = 3;
+    g.beginPath();
+    g.moveTo(20, 130);
+    g.bezierCurveTo(40, 100, 60, 150, 90, 118);
+    g.stroke();
   });
 }
 
