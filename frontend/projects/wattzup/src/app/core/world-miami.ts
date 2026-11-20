@@ -104,6 +104,7 @@ export class MiamiStreet implements SceneStreet {
   private water: Texture | null = null;
   private glitter: Texture | null = null;
   private stream: Texture | null = null;
+  private chase: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
@@ -207,10 +208,17 @@ export class MiamiStreet implements SceneStreet {
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
     if (this.stream) this.stream.offset.x = seconds * 0.02;
     if (this.glitter) this.glitter.offset.set(Math.sin(seconds * 0.7) * 0.01, seconds * 0.05);
-    // The blade signs pulse, each on its own beat, as neon on a timer does.
+    // The blade signs pulse, each on its own beat, as neon on a timer does; every seventh sign
+    // has a failing transformer and stutters, dropping out for a few frames now and then.
     this.signs.forEach((m, k) => {
       m.emissiveIntensity = 2.2 + Math.max(0, Math.sin(seconds * (0.9 + k * 0.23) + k)) * 1.2;
+      if (k % 7 === 3) {
+        const t = (seconds * 1.7 + k) % 6;
+        if (t < 0.6 && Math.sin(seconds * 47 + k) > 0) m.emissiveIntensity = 0.15;
+      }
     });
+    // The bulbs step along the marquee, a bulb every eighth of a second.
+    if (this.chase) this.chase.offset.x = Math.floor(seconds * 8) / 32;
   }
 
   lay(points: readonly StreetPoint[], s: number): void {
@@ -477,11 +485,15 @@ export class MiamiStreet implements SceneStreet {
         metalness: 0.3,
       }),
     );
+    // The marquee bulbs chase round the fascia: the lit pattern slides along it.
+    const chase = this.track(bulbTexture());
+    chase.wrapS = RepeatWrapping;
+    this.chase = chase;
     const bulbs = this.material({
-      map: this.track(bulbTexture()),
+      map: chase,
       emissive: 0xffffff,
-      emissiveMap: this.track(bulbTexture()),
-      emissiveIntensity: 2.4,
+      emissiveMap: chase,
+      emissiveIntensity: 3,
     });
     const tableTop = this.material({ color: 0xf4f0ec, roughness: 0.3 });
     const metal = this.material({ color: 0x2a2a30, roughness: 0.4, metalness: 0.7 });
@@ -2639,7 +2651,7 @@ function bulbTexture(): CanvasTexture {
     g.fillRect(0, 0, 256, 16);
     for (let x = 4; x < 256; x += 8)
       for (const y of [4, 12]) {
-        g.fillStyle = (x / 8 + y) % 3 === 0 ? '#fff0c0' : '#ffd070';
+        g.fillStyle = Math.floor(x / 8) % 3 === 0 ? '#fffbe8' : '#7a5020';
         g.beginPath();
         g.arc(x, y, 2.4, 0, Math.PI * 2);
         g.fill();
