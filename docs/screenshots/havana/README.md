@@ -78,6 +78,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [072 · Tar snakes](072-tar-snakes.jpg) | The road now carries tar snakes, black crack sealant poured along its cracks: long wandering runs down the lanes, short ones across them and branching forks, a little glossy over the matt asphalt. From the saddle, the dark lines wander across the road around the riders' wheels, as on a much-patched road. | 94% · 93/100 |
 | [073 · Local cyclists](073-local-cyclists.jpg) | Local cyclists now ride heavy upright bicycles slowly the riders' way, outside the parked cars: a black roadster on tall wheels, the rider bolt upright, most in straw hats, with a basket of shopping on the front or a child perched behind. From the saddle, one in a blue shirt rides ahead of the pacers by the parked almendrón, to be overtaken. | 94% · 93/100 |
 | [074 · Road signs](074-road-signs.jpg) | Round road signs now stand on the inland kerb on grey posts, facing the riders: a 50 speed limit in a red ring or a no-parking disc, one or two to a post, some faded by the sun. From the saddle, a 50 sign stands at the right kerb ahead, over the domino players. | 94% · 93/100 |
+| [075 · Crossing](075-crossing.jpg) | The zebra crossings now get used: one to three people at each walk from kerb to kerb over both carriageways and back, at their own pace, some starting from the sea side. From the saddle, a woman in a blue dress is halfway over the crossing ahead, in front of the oncoming coco-taxis. | 94% · 93/100 |
 
 ## Reproducing a capture
 
