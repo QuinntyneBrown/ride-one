@@ -146,6 +146,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addCabinets(roadHalf);
     this.addFamily(roadHalf);
     this.addFlowerStall(roadHalf);
+    this.addChatter(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1917,6 +1918,56 @@ export class AmsterdamStreet implements SceneStreet {
     stall.position.y = KERB;
     this.group.add(stall);
     this.props.push({ mesh: stall, offset: BRIDGE - 6.2, x: -roadHalf - QUAY + 2.6 });
+  }
+
+  /**
+   * Neighbours stopped to talk: pairs and threes standing turned to one another on the
+   * pavement and the quay, one holding a bike by its bars, and a parking meter on the quay with
+   * someone at it.
+   */
+  private addChatter(roadHalf: number): void {
+    const random = seeded(839);
+    const people = this.material({ vertexColors: true, roughness: 0.85 });
+    const grey = this.material({ color: 0x5a6066, metalness: 0.4, roughness: 0.5 });
+    const blue = this.material({ color: 0x1d4f9c, roughness: 0.5 });
+    const groups: [number, number, number][] = [
+      [START + BEHIND + 33, roadHalf + 0.9, 2],
+      [START + BEHIND + 62, -roadHalf - 3.0, 3],
+      [200, roadHalf + 0.9, 2],
+      [290, -roadHalf - 3.1, 2],
+    ];
+    for (const [offset, x, count] of groups) {
+      const knot = new Group();
+      for (let p = 0; p < count; p++) {
+        const a = (p / count) * Math.PI * 2;
+        const person = new Mesh(standerGeometry(random, false), people);
+        this.disposables.push(person.geometry);
+        person.position.set(Math.cos(a) * 0.45, 0, Math.sin(a) * 0.45);
+        person.rotation.y = Math.atan2(Math.cos(a), Math.sin(a)) + Math.PI;
+        knot.add(person);
+      }
+      knot.children.forEach((m) => (m.castShadow = true));
+      knot.position.y = KERB;
+      this.group.add(knot);
+      this.props.push({ mesh: knot, offset, x });
+    }
+    // The parking meter: a grey column with its blue P panel, and someone paying at it.
+    const meter = new Group();
+    const column = new Mesh(this.unit, grey);
+    column.scale.set(0.35, 1.5, 0.3);
+    column.position.y = 0.75;
+    const panel = new Mesh(this.unit, blue);
+    panel.scale.set(0.02, 0.3, 0.26);
+    panel.position.set(0.18, 1.3, 0);
+    const payer = new Mesh(standerGeometry(random, true), people);
+    this.disposables.push(payer.geometry);
+    payer.rotation.y = -Math.PI / 2;
+    payer.position.set(0.7, 0, 0);
+    meter.add(column, panel, payer);
+    meter.children.forEach((m) => (m.castShadow = true));
+    meter.position.y = KERB;
+    this.group.add(meter);
+    this.props.push({ mesh: meter, offset: BRIDGE + 2 + CROSS / 2 + 8.5, x: -roadHalf - 2.2 });
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
