@@ -239,7 +239,12 @@ const HOLO_RING_TURN = -24;
  */
 const KOI_SCHOOLS = [62, 330, 520];
 const KOI_PER_SCHOOL = 7;
-const KOI_HEIGHT = 8.5;
+const KOI_HEIGHT = 12;
+/**
+ * How deep a school swims about KOI_HEIGHT (m): together with the fishes' bob it keeps them
+ * above the gates' name plates and the lantern strings, which they used to swim through.
+ */
+const KOI_DEPTH = 3;
 /** A koi's outline from head (+1) to tail (-1): its radius at each point along its length. */
 const KOI_PROFILE: readonly (readonly [number, number])[] = [
   [0, -1],
@@ -2032,7 +2037,7 @@ export class DocklandsStreet {
           fish,
           tail,
           radius: 2 + random() * 4,
-          height: KOI_HEIGHT + (random() - 0.5) * 4,
+          height: KOI_HEIGHT + (random() - 0.5) * KOI_DEPTH,
           phase: random() * Math.PI * 2,
           speed: (0.6 + random() * 0.5) * (random() < 0.5 ? -1 : 1),
         });
