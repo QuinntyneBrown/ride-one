@@ -779,20 +779,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 1.4, colour: 0xfff4e0 },
     fogRange: [400, 4400],
   },
-  // A golden Parisian afternoon on the butte: the sun low in the west, warm light raking the
-  // cream fronts and the white domes, a soft haze over the rooftops.
+  // A golden Parisian afternoon on the butte: the sun sinking in the west, its warm light raking
+  // down the street onto the fronts on the left while the right stays in shade, a shadow line
+  // across the cobbles, and a soft golden haze over the rooftops.
   montmartre: {
     sky: 0x8ab8e0,
-    fog: 0xe6dccb,
+    fog: 0xecd6b0,
     ground: 0x8a8478,
     road: 0x6a6660,
-    sun: 26,
+    sun: 32,
     wet: false,
     haze: false,
-    turbidity: 3.2,
+    turbidity: 4.5,
     rayleigh: 1.2,
-    azimuth: -125,
-    light: { sun: 3.1, fill: 1.15, colour: 0xffdcae },
+    azimuth: 40,
+    light: { sun: 4.2, fill: 1.0, colour: 0xffc380 },
     fogRange: [200, 2600],
   },
   // Race day in May: a hot, clear blue sky and hard midday light over the oval.
