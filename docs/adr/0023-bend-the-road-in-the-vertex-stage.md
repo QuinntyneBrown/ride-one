@@ -38,8 +38,8 @@ Three ways were weighed:
   vertex stage follows line for line. Unit tests prove it per scene; the lamps and the camera use
   it on the CPU.
 - The road under the rider always points down the view, and the bend is turned from the heading
-  under the rider. Points on the inside of a bend are eased towards its centre, and points far
-  off the road are sheared rather than turned, so nothing folds over the road.
+  under the rider. Points on the inside of a bend are eased towards its centre and never reach
+  it, so nothing folds over the road.
 - Bent meshes are drawn without frustum culling, because their bounding spheres are those of the
   straight road.
 - Normals are not turned: shading on a bend is that of the straight road. A `normalNode` would

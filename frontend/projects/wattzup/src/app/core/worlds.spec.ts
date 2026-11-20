@@ -1,4 +1,5 @@
 import type { SegmentKind, WorldId } from '@wattzup/api';
+import { heading } from './scene-bend';
 import { targetGrade, worldById } from './worlds';
 
 // L2-101 AC2: grade[k] + roll × sin(s ÷ 310) × cos(s ÷ 870 + 1), one row per scene.
@@ -204,5 +205,110 @@ describe('targetGrade (L2-101)', () => {
     expect(targetGrade(world, 'work', 300)).toBeCloseTo(workAt300, 5);
     // L2-101 AC7: every road rises and falls.
     expect(world.roll).toBeGreaterThan(0);
+  });
+});
+
+// L2-101 AC6: heading = bend × sin(s ÷ bend length) × cos(s ÷ (2.7 × bend length) + 1), one row per
+// scene, and its tightest bend has a radius of at least 25 m.
+describe('heading (L2-101 AC6)', () => {
+  it.each<[WorldId, number, number, number]>([
+    ['docklands', 12, 150, 1.408889],
+    ['granite', 50, 55, -5.54731],
+    ['oldtown', 25, 70, -16.586405],
+    ['prairie', 3, 500, 0.502577],
+    ['dolomites', 25, 110, 22.11076],
+    ['coast', 35, 90, 23.196515],
+    ['caribana', 6, 220, -1.226266],
+    ['westminster', 10, 160, -0.091843],
+    ['centralpark', 18, 120, 12.712273],
+    ['southbeach', 5, 250, -0.768936],
+    ['ghent', 4, 300, -0.18503],
+    ['blackpool', 8, 220, -1.635021],
+    ['suburbia', 12, 140, 3.41579],
+    ['nottinghill', 10, 150, 1.174074],
+    ['knicks', 4, 300, -0.18503],
+    ['vegas', 4, 300, -0.18503],
+    ['route66', 6, 400, 0.612804],
+    ['venice', 8, 200, -1.664767],
+    ['amsterdam', 14, 130, 6.834583],
+    ['giza', 10, 200, -2.080959],
+    ['daytona', 3, 500, 0.502577],
+    ['koppenberg', 8, 120, 5.649899],
+    ['ventoux', 40, 70, -26.538248],
+    ['chicago', 3, 400, 0.306402],
+    ['goldengate', 20, 100, 18.379087],
+    ['havana', 12, 200, -2.49715],
+    ['seapoint', 10, 180, -1.573406],
+    ['montreal', 4, 300, -0.18503],
+    ['stanleypark', 18, 150, 2.113333],
+    ['stelvio', 60, 47, -12.690137],
+    ['edinburgh', 6, 200, -1.248575],
+    ['northshore', 14, 180, -2.202769],
+    ['campolongo', 50, 50, 0.236246],
+    ['marinabay', 16, 150, 1.878518],
+    ['serpentine', 12, 150, 1.408889],
+    ['champs', 3, 400, 0.306402],
+    ['tulips', 6, 250, -0.922724],
+    ['tourmalet', 50, 52, 1.426221],
+    ['napa', 18, 130, 8.78732],
+    ['glastonbury', 12, 120, 8.474848],
+    ['pikeplace', 6, 200, -1.248575],
+    ['hardknott', 40, 55, -4.437848],
+    ['alpe', 60, 47, -12.690137],
+    ['saguaro', 10, 220, -2.043776],
+    ['trollstigen', 60, 48, -7.288528],
+    ['poggio', 45, 55, -4.992579],
+    ['montmartre', 30, 60, -15.595516],
+    ['brickyard', 2, 600, 0.383651],
+    ['chichen', 15, 150, 1.761111],
+    ['bonneville', 1.5, 900, 0.282417],
+    ['como', 30, 80, 0.98048],
+    ['yosemite', 15, 160, -0.137765],
+    ['etna', 35, 70, -23.220967],
+    ['timessquare', 3, 400, 0.306402],
+    ['tremola', 55, 46, -16.820524],
+    ['teide', 30, 90, 19.882727],
+    ['monaco', 30, 60, -15.595516],
+    ['tempelhof', 2, 500, 0.335051],
+    ['paine', 25, 120, 17.655934],
+    ['ibiza', 14, 150, 1.643704],
+    ['skye', 25, 100, 22.973859],
+    ['toronto', 8, 200, -1.664767],
+    ['prospect', 18, 120, 12.712273],
+    ['calobra', 60, 48, -7.288528],
+    ['strade', 22, 110, 19.457469],
+    ['wicklow', 30, 90, 19.882727],
+    ['haleakala', 50, 55, -5.54731],
+    ['dubai', 12, 160, -0.110212],
+    ['austin', 10, 180, -1.573406],
+    ['winnats', 20, 90, 13.255151],
+    ['redoute', 15, 100, 13.784315],
+    ['angliru', 45, 55, -4.992579],
+    ['velodrome', 4, 300, -0.18503],
+    ['cinqueterre', 40, 70, -26.538248],
+    ['angels', 40, 60, -20.794022],
+    ['coney', 3, 400, 0.306402],
+    ['winterlude', 10, 200, -2.080959],
+    ['letras', 40, 70, -26.538248],
+    ['santamonica', 20, 110, 17.688608],
+    ['antwerp', 6, 250, -0.922724],
+    ['tahoe', 25, 120, 17.655934],
+    ['deathvalley', 4, 400, 0.408536],
+    ['atacama', 6, 350, 0.247577],
+    ['angkor', 12, 180, -1.888088],
+    ['gardena', 55, 46, -16.820524],
+    ['maunakea', 35, 80, 1.143894],
+    ['galibier', 50, 50, 0.236246],
+  ])('%s bends by %s° over %s m', (id, angle, length, at500) => {
+    const world = worldById(id);
+    expect(world.bend).toEqual({ angle, length });
+    expect(heading(world, 0)).toBe(0);
+    expect(heading(world, 500)).toBeCloseTo(at500, 5);
+    let tightest = Infinity;
+    for (let s = 0; s < 20_000; s += 1) {
+      const turn = ((heading(world, s + 0.5) - heading(world, s - 0.5)) * Math.PI) / 180;
+      if (turn !== 0) tightest = Math.min(tightest, 1 / Math.abs(turn));
+    }
+    expect(tightest).toBeGreaterThanOrEqual(25);
   });
 });
