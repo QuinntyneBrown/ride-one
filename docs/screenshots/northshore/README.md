@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [20 Minute Fat Burning Workout](http:/
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/20-minute-fat-burning-workout?simulate`, click **Ride in North Shore, Oahu**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [063 · The Ko'olau ridge stands over the highway](bend-063-koolau-stands.jpg) | The green Ko'olau ridge and the ocean beyond the beach were bent vertex by vertex with Kamehameha Highway's bends, swinging with each turn along the shore. They now stand beyond the road unbent, as the panorama does, and the surfers and props behind the rider stand on the road there instead of at the height under the rider. |
