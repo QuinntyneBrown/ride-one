@@ -535,6 +535,8 @@ export class OldTownStreet {
     this.placeBunting(s, heightAt);
     this.cathedral.position.set(CATHEDRAL_X, end - 2, -CATHEDRAL_AHEAD);
     this.moto.position.set(MOTO_X, heightAt(MOTO_AHEAD), -MOTO_AHEAD);
+    // The moto rides on the ramp, not level through it: nose up as the street climbs.
+    this.moto.rotation.x = Math.atan((heightAt(MOTO_AHEAD + 1) - heightAt(MOTO_AHEAD - 1)) / 2);
     this.belfry.position.set(BELFRY_X, end - 2, -BELFRY_AHEAD);
     // The swifts wheel over the roofs, a turn for every 60 m ridden.
     this.swifts.forEach((bird, i) => {
