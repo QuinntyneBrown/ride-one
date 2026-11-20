@@ -270,7 +270,8 @@ export class HavanaStreet implements SceneStreet {
   private addSeafront(roadHalf: number, points: number): void {
     const r = roadHalf;
     const asphalt = this.material({ map: this.repeat(lanesTexture(), LANES, 12), roughness: 0.85 });
-    const paving = this.material({ map: this.repeat(pavingTexture(), 2, 2), roughness: 0.9 });
+    const paving = this.material({ map: this.repeat(slabTexture(), 6, 6), roughness: 0.92 });
+    const kerbStone = this.material({ map: this.repeat(kerbTexture(), 1, 3), roughness: 0.85 });
     const wall = this.material({ map: this.repeat(wallTexture(), 2, 2), roughness: 0.95 });
     const swell = this.repeat(seaTexture(), 30, 30);
     this.swell = swell;
@@ -314,9 +315,13 @@ export class HavanaStreet implements SceneStreet {
       [-r, 0.004],
       [lanes, 0.004],
     ]);
-    this.ribbons.add(points, paving, [
+    this.ribbons.add(points, kerbStone, [
       [lanes, 0.004],
       [lanes - 0.05, KERB],
+      [lanes - 0.35, KERB],
+    ]);
+    this.ribbons.add(points, paving, [
+      [lanes - 0.35, KERB],
       [promenade, KERB],
     ]);
     // The seawall: its face to the promenade, its broad top, and its face down to the sea.
@@ -332,6 +337,10 @@ export class HavanaStreet implements SceneStreet {
     ]);
     this.ribbons.add(points, paving, [
       [r + 4 + ARCADE, KERB],
+      [r + 0.35, KERB],
+    ]);
+    this.ribbons.add(points, kerbStone, [
+      [r + 0.35, KERB],
       [r + 0.05, KERB],
       [r, 0.004],
     ]);
@@ -1747,4 +1756,72 @@ class Sitters {
       mesh.instanceMatrix.needsUpdate = true;
     }
   }
+}
+
+/**
+ * Six metres square of Havana pavement: pale concrete slabs a metre and a half across with dark
+ * joints, each a slightly different shade, cracked and patched, stained and chipped at the edges.
+ */
+function slabTexture(): CanvasTexture {
+  return canvasTexture(512, 512, (g) => {
+    speckle(g, 512, 512, '#cbc2b0', 1097);
+    const random = seeded(1103);
+    const slab = 128;
+    for (let x = 0; x < 512; x += slab) {
+      for (let y = 0; y < 512; y += slab) {
+        const v = random();
+        g.fillStyle =
+          v < 0.5 ? `rgba(255,250,240,${v * 0.25})` : `rgba(70,60,50,${(v - 0.5) * 0.22})`;
+        g.fillRect(x, y, slab, slab);
+        if (random() < 0.3) {
+          g.fillStyle = `rgba(110,105,95,${0.25 + random() * 0.2})`;
+          g.fillRect(x + random() * 60, y + random() * 60, 30 + random() * 60, 30 + random() * 60);
+        }
+      }
+    }
+    for (let i = 0; i < 18; i++) {
+      g.fillStyle = `rgba(60,50,40,${0.08 + random() * 0.12})`;
+      g.beginPath();
+      g.ellipse(
+        random() * 512,
+        random() * 512,
+        8 + random() * 30,
+        6 + random() * 20,
+        random() * 3,
+        0,
+        Math.PI * 2,
+      );
+      g.fill();
+    }
+    g.strokeStyle = 'rgba(50,45,40,0.5)';
+    g.lineWidth = 1.2;
+    for (let i = 0; i < 22; i++) {
+      let x = random() * 512;
+      let y = random() * 512;
+      g.beginPath();
+      g.moveTo(x, y);
+      for (let k = 0; k < 6; k++) {
+        x += (random() - 0.5) * 30;
+        y += (random() - 0.5) * 30;
+        g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    g.fillStyle = 'rgba(55,48,40,0.55)';
+    for (let k = 0; k < 512; k += slab) {
+      g.fillRect(k, 0, 3, 512);
+      g.fillRect(0, k, 512, 3);
+    }
+  });
+}
+
+/** The kerb stones: pale, worn grey blocks with a dark joint every metre and grime at the foot. */
+function kerbTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    speckle(g, 64, 256, '#d6d0c4', 1109);
+    g.fillStyle = 'rgba(40,38,34,0.5)';
+    for (let y = 0; y < 256; y += 85) g.fillRect(0, y, 64, 3);
+    g.fillStyle = 'rgba(40,36,30,0.3)';
+    g.fillRect(0, 0, 10, 256);
+  });
 }
