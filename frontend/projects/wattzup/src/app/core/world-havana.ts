@@ -433,9 +433,15 @@ export class HavanaStreet implements SceneStreet {
    */
   private addFacades(roadHalf: number): void {
     const random = seeded(907);
+    // Havana's colours: salmon, turquoise, yolk yellow, periwinkle, pink, lime, cream,
+    // terracotta, sky blue, lilac and ochre, each bleached by the sun and salt by its own amount.
     const pastels = [
-      0xf2b5a0, 0x9ad4c8, 0xf5d77a, 0xa8c8f0, 0xf0a8c8, 0xc8e0a0, 0xf5e6d0, 0xe89a6a,
+      0xeea383, 0x6cc4bb, 0xf3cf5e, 0x93b2e0, 0xe59ac2, 0xb5d98e, 0xf1e2c2, 0xd77c5b, 0x98d0e4,
+      0xc29ad8, 0xe0b25c,
     ];
+    const bleach = new Color(0xe8e4dc);
+    const shade = new Color();
+    let previous = -1;
     const fronts = this.track(facadeTexture());
     fronts.wrapS = RepeatWrapping;
     fronts.wrapT = RepeatWrapping;
@@ -466,7 +472,13 @@ export class HavanaStreet implements SceneStreet {
       const width = 12 + random() * 14;
       const floors = 2 + Math.floor(random() * 2);
       const height = floors * 4.2;
-      const tint = pastels[Math.floor(random() * pastels.length)]!;
+      let pick = Math.floor(random() * pastels.length);
+      if (pick === previous) pick = (pick + 1 + Math.floor(random() * 3)) % pastels.length;
+      previous = pick;
+      const tint = shade
+        .set(pastels[pick]!)
+        .lerp(bleach, random() * 0.45)
+        .getHex();
       const map = fronts.clone();
       map.repeat.set(width / 8, floors / 4);
       map.offset.y = 1 - floors / 4;
