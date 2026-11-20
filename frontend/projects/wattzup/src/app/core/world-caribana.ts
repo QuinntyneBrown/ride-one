@@ -8,7 +8,9 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
+  CapsuleGeometry,
   Color,
+  ConeGeometry,
   CubicBezierCurve3,
   CylinderGeometry,
   DoubleSide,
@@ -208,6 +210,8 @@ export class CaribanaStreet implements SceneStreet {
     x: number;
     /** Standing on the road rather than up on the pavement. */
     road?: boolean;
+    /** A copy standing one loop further on, beyond the parts in full detail. */
+    beyond?: boolean;
   }[] = [];
   private readonly crowd: Spectators;
   private readonly dancers: Masquerader[] = [];
@@ -262,6 +266,9 @@ export class CaribanaStreet implements SceneStreet {
   }[] = [];
   private confetti: InstancedMesh | null = null;
   private spray: InstancedMesh | null = null;
+  private distant: InstancedMesh | null = null;
+  private distantPlumes: InstancedMesh | null = null;
+  private readonly far: { x: number; offset: number; height: number; plume: boolean }[] = [];
   private readonly hose = new Group();
   private readonly drops: { speed: number; spread: number; phase: number; size: number }[] = [];
   private readonly flakes: {
@@ -330,6 +337,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addGrandstand();
     this.addSpray();
     this.addCastings();
+    this.addDistantParade();
     this.addConfetti();
     this.addOfficers();
     this.addBandBanners();
@@ -366,7 +374,7 @@ export class CaribanaStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
     for (const prop of this.props) {
-      const metres = along(prop.offset, prop.every);
+      const metres = along(prop.offset, prop.every) + (prop.beyond ? LOOP : 0);
       const lift = prop.road ? ASPHALT : KERB;
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + lift, -metres);
     }
@@ -375,6 +383,7 @@ export class CaribanaStreet implements SceneStreet {
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
     this.placeConfetti(heightAt, along);
+    this.placeDistantParade(heightAt, along);
     this.placeSpray(heightAt, along);
     // The signals run their cycle as usual though the road is closed: 20 s green, 3 amber, 20 red.
     const phase = this.time % 43;
@@ -1327,6 +1336,7 @@ export class CaribanaStreet implements SceneStreet {
           every: LOOP,
           x: side * (PAVEMENT + 0.3),
         });
+        this.beyond(lamp, offset + (side > 0 ? 18 : 0), side * (PAVEMENT + 0.3));
       }
     }
   }
@@ -1402,7 +1412,9 @@ export class CaribanaStreet implements SceneStreet {
         tree.add(t, c);
         this.group.add(tree);
         const x = side < 0 ? -(19 + random() * 8) : 12 + random() * 2;
-        this.props.push({ mesh: tree, offset: offset + random() * 4, every: LOOP, x });
+        const at = offset + random() * 4;
+        this.props.push({ mesh: tree, offset: at, every: LOOP, x });
+        this.beyond(tree, at, x);
       }
     }
   }
@@ -1739,6 +1751,85 @@ export class CaribanaStreet implements SceneStreet {
     crossing.traverse((o) => (o.castShadow = o.type === 'Mesh' && o.parent !== crossing));
     this.group.add(crossing);
     this.props.push({ mesh: crossing, offset: CROSSING_AT, every: LOOP, x: 0, road: true });
+  }
+
+  /** Stands a copy of `prop` one loop further on, `offset` metres in and `x` across. */
+  private beyond(prop: Group, offset: number, x: number): void {
+    const copy = prop.clone();
+    this.group.add(copy);
+    this.props.push({ mesh: copy, offset, every: LOOP, x, beyond: true });
+  }
+
+  /**
+   * The parade carrying on beyond the parts drawn in full, one loop further, to about 700 m:
+   * the crowds along both pavements and the bands on the road as simple figures in their
+   * colours, the frontline's plumes over them, all hazed by distance.
+   */
+  private addDistantParade(): void {
+    const random = seeded(2003);
+    const tops: string[] = [];
+    for (const side of [-1, 1] as const) {
+      for (let offset = 0; offset < LOOP; offset += 0.7) {
+        for (let row = 0; row < 2; row++) {
+          this.far.push({
+            x: side * (CROWD_NEAR + row * 0.9 + random() * 0.4),
+            offset: offset + random() * 0.5,
+            height: 0.92 + random() * 0.15,
+            plume: false,
+          });
+          tops.push(SHIRTS[Math.floor(random() * SHIRTS.length)]!);
+        }
+        if (random() < 0.45) {
+          const costume = COSTUMES[Math.floor(offset / 40) % COSTUMES.length]!;
+          this.far.push({
+            x: side * (2.2 + random() * 3.8),
+            offset: offset + random() * 0.5,
+            height: 0.95 + random() * 0.1,
+            plume: random() < 0.35,
+          });
+          tops.push(costume.suit);
+        }
+      }
+    }
+    const figure = new CapsuleGeometry(0.2, 1.3, 2, 6);
+    figure.translate(0, 0.85, 0);
+    const plume = new ConeGeometry(0.75, 1.6, 7);
+    plume.translate(0, 2.1, 0.15);
+    this.disposables.push(figure, plume);
+    this.distant = this.instanced(figure, this.material({ roughness: 0.9 }), this.far.length);
+    const plumes = this.far.filter((f) => f.plume).length;
+    this.distantPlumes = this.instanced(plume, this.material({ roughness: 0.7 }), plumes);
+    this.distant.castShadow = false;
+    this.distantPlumes.castShadow = false;
+    const c = new Color();
+    let k = 0;
+    this.far.forEach((f, i) => {
+      this.distant!.setColorAt(i, c.set(tops[i]!));
+      if (f.plume) this.distantPlumes!.setColorAt(k++, c.set(tops[i]!).offsetHSL(0, 0, 0.15));
+    });
+  }
+
+  private placeDistantParade(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    const distant = this.distant;
+    const plumes = this.distantPlumes;
+    if (!distant || !plumes) return;
+    let k = 0;
+    this.turn.identity();
+    this.far.forEach((f, i) => {
+      const metres = along(f.offset, LOOP) + LOOP;
+      const bounce = Math.abs(Math.sin(this.time * 4.2 + i)) * 0.05;
+      const lift = Math.abs(f.x) > BARRIER ? KERB : ASPHALT;
+      this.spot.set(f.x, heightAt(metres) + lift + bounce, -metres);
+      this.size.setScalar(f.height);
+      this.matrix.compose(this.spot, this.turn, this.size);
+      distant.setMatrixAt(i, this.matrix);
+      if (f.plume) plumes.setMatrixAt(k++, this.matrix);
+    });
+    distant.instanceMatrix.needsUpdate = true;
+    plumes.instanceMatrix.needsUpdate = true;
   }
 
   /**
