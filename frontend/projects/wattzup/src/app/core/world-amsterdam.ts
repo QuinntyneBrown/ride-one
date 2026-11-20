@@ -1058,6 +1058,65 @@ function traceFront(pen: Pen, kind: Gable): void {
   pen.lineTo(1, 0);
 }
 
+/**
+ * A tall sash window in its white frame: the sky and the street's far side caught in the upper
+ * panes, the room behind showing through the lower ones (a lamp, a bookcase, a plant on the sill
+ * or a half net curtain), and white glazing bars dividing it into twelve lights.
+ */
+function sashWindow(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  tall: number,
+  random: () => number,
+): void {
+  g.fillStyle = '#f6f4ee';
+  g.fillRect(x - 4, y - 4, width + 8, tall + 8);
+  g.fillStyle = 'rgba(0,0,0,0.35)';
+  g.fillRect(x - 4, y + tall + 4, width + 8, 3);
+  // The room behind.
+  const room = g.createLinearGradient(0, y, 0, y + tall);
+  room.addColorStop(0, '#2a3138');
+  room.addColorStop(1, '#161a1e');
+  g.fillStyle = room;
+  g.fillRect(x, y, width, tall);
+  const inside = random();
+  if (inside < 0.2) {
+    g.fillStyle = 'rgba(255,214,150,0.55)';
+    g.beginPath();
+    g.arc(x + width * (0.3 + random() * 0.4), y + tall * 0.45, width * 0.16, 0, Math.PI * 2);
+    g.fill();
+  } else if (inside < 0.4) {
+    for (let b = 0; b < 4; b++) {
+      g.fillStyle = ['#5a3a2a', '#3a4a5a', '#6a5a3a', '#4a2a2a'][b]!;
+      g.fillRect(x + 3 + b * (width / 4), y + tall * 0.55, width / 5, tall * 0.4);
+    }
+  } else if (inside < 0.6) {
+    g.fillStyle = 'rgba(240,240,236,0.75)';
+    g.fillRect(x, y + tall * 0.5, width, tall * 0.5);
+  }
+  if (random() < 0.35) {
+    g.fillStyle = '#3f6a2a';
+    g.beginPath();
+    g.ellipse(x + width * (0.25 + random() * 0.5), y + tall - 6, 7, 7, 0, 0, Math.PI * 2);
+    g.fill();
+  }
+  // The sky and the far side, caught in the glass, strongest high up.
+  const sky = g.createLinearGradient(x, y, x + width * 0.6, y + tall * 0.7);
+  sky.addColorStop(0, 'rgba(200,220,236,0.75)');
+  sky.addColorStop(0.55, 'rgba(160,184,204,0.3)');
+  sky.addColorStop(1, 'rgba(160,184,204,0)');
+  g.fillStyle = sky;
+  g.fillRect(x, y, width, tall);
+  // The glazing bars: two sashes of six lights.
+  g.fillStyle = '#f6f4ee';
+  g.fillRect(x, y + tall / 2 - 2, width, 4);
+  g.fillRect(x + width / 2 - 1.2, y, 2.4, tall);
+  g.fillRect(x, y + tall / 4 - 1, width, 2);
+  g.fillRect(x, y + (tall * 3) / 4 - 1, width, 2);
+}
+
 /** How many window bays a house of this kind has across its front. */
 function bays(kind: Gable): number {
   return kind === 'cornice' ? 5 : 3;
@@ -1090,7 +1149,8 @@ function facadeTexture(
 ): CanvasTexture {
   const w = 256;
   const h = 640;
-  return canvasTexture(w, h, (g) => {
+  return canvasTexture(w * 2, h * 2, (g) => {
+    g.scale(2, 2);
     const random = seeded(seed);
     speckle(g, w, h, front, seed);
     const light = parseInt(front.slice(1, 3), 16) > 0x90;
@@ -1138,17 +1198,7 @@ function facadeTexture(
       for (let c = 0; c < columns; c++) {
         const x = 15 + c * pane + pane * 0.16;
         const width = pane * 0.68;
-        g.fillStyle = '#f6f4ee';
-        g.fillRect(x - 4, y - 4, width + 8, tall + 8);
-        g.fillStyle = random() < 0.2 ? '#6a5a40' : '#22303c';
-        g.fillRect(x, y, width, tall);
-        g.fillStyle = 'rgba(160,190,210,0.25)';
-        g.fillRect(x, y, width, tall * 0.4);
-        g.fillStyle = '#f6f4ee';
-        g.fillRect(x, y + tall / 2 - 2, width, 4);
-        g.fillRect(x + width / 2 - 1.5, y, 3, tall);
-        g.fillRect(x, y + tall / 4, width, 2);
-        g.fillRect(x, y + (tall * 3) / 4, width, 2);
+        sashWindow(g, x, y, width, tall, random);
       }
     }
     // The raised ground floor over a stone plinth: the door with its fanlight to one side at
