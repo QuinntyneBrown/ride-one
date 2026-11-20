@@ -62,6 +62,8 @@ export class MiamiStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
   private readonly props: { mesh: Group; offset: number; x: number }[] = [];
+  private readonly traffic: { mesh: Group; offset: number; speed: number }[] = [];
+  private trafficX = 0;
   private readonly people: { offset: number; x: number; speed: number; phase: number }[] = [];
   private crowd: Figures | null = null;
   private water: Texture | null = null;
@@ -117,6 +119,10 @@ export class MiamiStreet implements SceneStreet {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
       prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+    }
+    for (const car of this.traffic) {
+      const metres = loopMetres(car.offset - car.speed * this.time, s, LOOP, BEHIND);
+      car.mesh.position.set(this.trafficX, heightAt(Math.max(metres, 0)), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -575,7 +581,21 @@ export class MiamiStreet implements SceneStreet {
     const hub = new CylinderGeometry(0.13, 0.13, 0.26, 12);
     hub.rotateZ(Math.PI / 2);
     this.disposables.push(wheel, whitewall, hub);
-    for (let k = 0; k < 8; k++) {
+    const beam = new MeshBasicMaterial({
+      map: this.track(beamTexture()),
+      transparent: true,
+      opacity: 0.7,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    const flare = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(beam, flare);
+    const make = (k: number, parked: boolean): Group => {
       const paint = paints[k % paints.length]!;
       const b = new BoxBuilder();
       // The body: a waist-high hull, the bonnet and boot dropping lower, fenders and fins.
@@ -619,12 +639,46 @@ export class MiamiStreet implements SceneStreet {
       glow.position.y = 0.03;
       glow.renderOrder = 1;
       car.add(glow);
+      if (!parked) {
+        // Headlights on: a flare at each lamp and their beams thrown ahead on the wet road.
+        for (const x of [-0.62, 0.62]) {
+          const f = new Mesh(this.flat, flare);
+          f.scale.set(1.4, 1.4, 1);
+          f.rotation.y = Math.PI;
+          f.position.set(x, 0.74, -2.6);
+          car.add(f);
+        }
+        const b = new Mesh(this.flat, beam);
+        b.rotation.x = -Math.PI / 2;
+        b.scale.set(3.6, 16, 1);
+        b.position.set(0, 0.04, -10.5);
+        b.renderOrder = 1;
+        car.add(b);
+      }
+      return car;
+    };
+    for (let k = 0; k < 8; k++) {
+      const car = make(k, true);
       car.rotation.y = (random() - 0.5) * 0.05;
       const holder = new Group();
       holder.add(car);
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: 40 + k * 46 + random() * 8, x: roadHalf - 1.1 });
     }
+    // Cruising traffic in the far lane, headlights on, rolling towards the rider.
+    for (let k = 0; k < 5; k++) {
+      const car = make(k + 3, false);
+      car.rotation.y = Math.PI;
+      const holder = new Group();
+      holder.add(car);
+      this.group.add(holder);
+      this.traffic.push({
+        mesh: holder,
+        offset: 45 + k * 75 + random() * 20,
+        speed: 8 + random() * 3,
+      });
+    }
+    this.trafficX = -roadHalf * 0.5;
   }
 
   /** People out for the night on both sidewalks. */
@@ -1212,5 +1266,24 @@ function bulbTexture(): CanvasTexture {
         g.arc(x, y, 2.4, 0, Math.PI * 2);
         g.fill();
       }
+  });
+}
+
+/** Headlight beams on a wet road: two warm cones spreading and fading ahead of the car. */
+function beamTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    for (const cx of [22, 42]) {
+      const fall = g.createLinearGradient(0, 256, 0, 0);
+      fall.addColorStop(0, 'rgba(255,240,210,0.7)');
+      fall.addColorStop(1, 'rgba(255,240,210,0)');
+      g.fillStyle = fall;
+      g.beginPath();
+      g.moveTo(cx - 3, 256);
+      g.lineTo(cx + 3, 256);
+      g.lineTo(cx + 14, 0);
+      g.lineTo(cx - 14, 0);
+      g.closePath();
+      g.fill();
+    }
   });
 }
