@@ -128,6 +128,10 @@ const MACHINE_WIDE = 1.4;
 const MACHINE_TALL = 2.4;
 const MACHINE_DEEP = 1;
 const MACHINE_COLOURS: readonly string[] = ['#ff3b5c', '#2f7dff', '#ffb347', '#2fd18a'];
+/** The cloud ceiling: its height, its breadth and how fast it drifts (texture repeats per second). */
+const CLOUD_HEIGHT = 260;
+const CLOUD_SPAN = 4000;
+const CLOUD_DRIFT = 0.002;
 /** Neon gates over the road, at these offsets round the loop. */
 const GATES: readonly number[] = [70, 230, 380, 540];
 const GATE_HEIGHT = 6.5;
@@ -306,6 +310,7 @@ export class DocklandsStreet {
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
     this.swim(still ? 0 : seconds);
+    if (this.cloudTexture) this.cloudTexture.offset.set(still ? 0 : seconds * CLOUD_DRIFT, 0);
     const turning = this.wheel.userData['turning'] as Group | undefined;
     if (turning) turning.rotation.z = still ? 0 : seconds * WHEEL_TURN;
     this.fly(still ? 0 : seconds);
@@ -327,6 +332,7 @@ export class DocklandsStreet {
   }
   private readonly searchlights: Group[] = [];
   private readonly wheel = new Group();
+  private cloudTexture: CanvasTexture | null = null;
   private readonly whale = new Group();
 
   /**
@@ -1178,6 +1184,7 @@ export class DocklandsStreet {
     this.addPylon(roadHalf);
     this.addDock();
     this.addSky();
+    this.addClouds();
     this.addBoats(roadHalf + SETBACK + 2);
     this.addSkytrain(roadHalf);
     this.addDeckLamps(roadHalf);
@@ -2007,6 +2014,34 @@ export class DocklandsStreet {
    * the city's violet glow along the horizon fading to deep navy overhead, with faint stars.
    * It is drawn first, behind everything, untouched by fog or tone mapping.
    */
+  /**
+   * Storm clouds low over the city: a broad ceiling of torn cloud, lit violet from beneath by the
+   * city's glow, drifting slowly inland. It thins the stars and hangs fog-free over everything.
+   */
+  private addClouds(): void {
+    const texture = this.track(cloudsTexture());
+    texture.wrapS = RepeatWrapping;
+    texture.wrapT = RepeatWrapping;
+    texture.repeat.set(4, 4);
+    this.cloudTexture = texture;
+    const material = new MeshBasicMaterial({
+      color: new Color('#8a6cc0'),
+      alphaMap: texture,
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+      side: DoubleSide,
+    });
+    const plane = new PlaneGeometry(CLOUD_SPAN, CLOUD_SPAN);
+    this.disposables.push(material, plane);
+    const ceiling = new Mesh(plane, material);
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.set(0, CLOUD_HEIGHT, -CLOUD_SPAN / 4);
+    ceiling.renderOrder = -1;
+    this.group.add(ceiling);
+  }
+
   private addSky(): void {
     const texture = this.track(nightSkyTexture());
     const material = new MeshBasicMaterial({
@@ -2611,6 +2646,41 @@ function machineTexture(hex: string, i: number): CanvasTexture {
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+/** Torn cloud in alpha: soft overlapping puffs, tiling so the ceiling can drift. */
+function cloudsTexture(): CanvasTexture {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, size, size);
+    const random = seeded(317);
+    // Clumps of puffs with clear sky between them.
+    for (let i = 0; i < 260; i++) {
+      const clump = Math.floor(random() * 9);
+      const cx = ((clump * 197) % size) + (random() - 0.5) * 120;
+      const cy = ((clump * 311) % size) + (random() - 0.5) * 70;
+      const x = cx;
+      const y = cy;
+      const r = 14 + random() * 40;
+      const a = 0.18 + random() * 0.3;
+      // Each puff drawn at its wrapped copies so the texture tiles.
+      for (const dx of [-size, 0, size]) {
+        for (const dy of [-size, 0, size]) {
+          const g = ctx.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, r);
+          g.addColorStop(0, `rgba(255,255,255,${a})`);
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(x + dx - r, y + dy - r, r * 2, r * 2);
+        }
+      }
+    }
+  }
+  return new CanvasTexture(canvas);
 }
 
 /** A gate's name plate: `word` in neon tube letters across a dark panel. */
