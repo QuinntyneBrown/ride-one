@@ -68,8 +68,9 @@ const FOG = 0xc5ccd2;
 /** The fog rolling in off the ocean: thick behind the windmill, thinner over the park. */
 const CURTAINS: readonly MistCurtain[] = [
   { ahead: 1200, height: 800, opacity: 1 },
-  { ahead: 700, height: 180, opacity: 0.6 },
-  { ahead: 320, height: 50, opacity: 0.25 },
+  { ahead: 700, height: 220, opacity: 0.75 },
+  { ahead: 480, height: 120, opacity: 0.5 },
+  { ahead: 260, height: 45, opacity: 0.3 },
 ];
 const BISON = 12;
 const SKATERS = 14;
@@ -172,8 +173,8 @@ export class GoldenGateStreet implements SceneStreet {
       colour: FOG,
       loop: LOOP,
       curtains: CURTAINS,
-      banks: 8,
-      bankX: (k) => (k % 2 ? 1 : -1) * (55 + (k % 3) * 30),
+      banks: 14,
+      bankX: (k) => (k % 2 ? 1 : -1) * (30 + (k % 4) * 22),
     });
   }
 

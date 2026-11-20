@@ -435,18 +435,18 @@ const LOOKS: Record<WorldId, Look> = {
   // A foggy summer morning in Golden Gate Park: the marine layer rolling in off the Pacific, the
   // sun a pale glow high behind it, soft light under the eucalyptus and the windmill grey ahead.
   goldengate: {
-    sky: 0xaab8c4,
+    sky: 0xb4bec6,
     fog: 0xc5ccd2,
     ground: 0x5f8048,
     road: 0x4b4c50,
     sun: 34,
     wet: false,
     haze: false,
-    turbidity: 5,
-    rayleigh: 1.2,
+    turbidity: 8,
+    rayleigh: 0.8,
     azimuth: -100,
-    light: { sun: 2.0, fill: 1.6, colour: 0xf4f2ec },
-    fogRange: [50, 700],
+    light: { sun: 1.5, fill: 1.9, colour: 0xeef0ee },
+    fogRange: [20, 380],
   },
   // Late afternoon on the Malecón: a warm sun behind the rider, salt haze over the Gulf.
   havana: {
