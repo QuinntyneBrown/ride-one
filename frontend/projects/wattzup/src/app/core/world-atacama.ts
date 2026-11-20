@@ -55,6 +55,7 @@ export class AtacamaStreet implements SceneStreet {
   private truck: Group | null = null;
   private readonly dust: Mesh[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -107,23 +108,19 @@ export class AtacamaStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     // The tour truck bumps along its track across the flat, ahead of the riders.
     if (this.truck) {
       const metres = loopMetres(120 + this.time * 7, s, LOOP, BEHIND);
-      this.truck.position.set(
-        40,
-        heightAt(Math.max(metres, 0)) + Math.sin(this.time * 9) * 0.03,
-        -metres,
-      );
+      this.truck.position.set(40, heightAt(metres) + Math.sin(this.time * 9) * 0.03, -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.people.forEach((p, i) => {
         const metres = loopMetres(p.offset, s, LOOP, BEHIND);
         const heading = -Math.PI / 2 + Math.sin(this.time * 0.4 + p.phase) * 0.7;
-        crowd.set(i, p.x, heightAt(Math.max(metres, 0)) + p.y, -metres, heading, 0.95, 0);
+        crowd.set(i, p.x, heightAt(metres) + p.y, -metres, heading, 0.95, 0);
       });
       crowd.commit();
     }
