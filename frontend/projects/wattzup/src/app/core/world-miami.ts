@@ -70,6 +70,7 @@ export class MiamiStreet implements SceneStreet {
   private water: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
+  private readonly foam: MeshBasicMaterial[] = [];
   private readonly horizon = new Group();
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
@@ -104,6 +105,11 @@ export class MiamiStreet implements SceneStreet {
 
   setTime(seconds: number): void {
     this.time = seconds;
+    // Each line of surf swells as its wave breaks and fades as it runs out, 2.6 s apart.
+    this.foam.forEach((m, k) => {
+      const phase = (((seconds / 7.8 + k / 3) % 1) + 1) % 1;
+      m.opacity = 0.15 + 0.65 * Math.sin(phase * Math.PI) ** 2;
+    });
     // The aircraft beacons on the spires blink, a second apart.
     this.beacons.forEach((b, k) => (b.visible = (seconds + k * 0.37) % 1.6 < 0.9));
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
@@ -222,6 +228,33 @@ export class MiamiStreet implements SceneStreet {
       [-r - BEACH - 2, -SEA],
       [-r - 600, -SEA],
     ]);
+    // The surf: three lines of foam rolling in, one after another, the nearest washing up
+    // the wet sand; each brightens as its wave breaks and fades as it sinks back.
+    const foamMap = this.track(foamTexture());
+    foamMap.wrapS = RepeatWrapping;
+    foamMap.wrapT = RepeatWrapping;
+    foamMap.repeat.set(1 / 3, 1 / 24);
+    for (const [near, far] of [
+      [-r - BEACH - 1.2, -r - BEACH - 4],
+      [-r - BEACH - 6, -r - BEACH - 8.5],
+      [-r - BEACH - 13, -r - BEACH - 15],
+    ] as const) {
+      const foam = new MeshBasicMaterial({
+        map: foamMap,
+        color: 0xd8e0ff,
+        transparent: true,
+        opacity: 0.6,
+        depthWrite: false,
+      });
+      this.disposables.push(foam);
+      this.foam.push(foam);
+      const mesh = this.ribbons.add(points, foam, [
+        [near, -SEA + 0.03],
+        [far, -SEA + 0.03],
+      ]);
+      mesh.renderOrder = 1;
+      mesh.receiveShadow = false;
+    }
   }
 
   /** The deco hotels, their neon-traced ledges and rooflines, and a blade sign on each. */
@@ -1382,6 +1415,19 @@ function beamTexture(): CanvasTexture {
       g.lineTo(cx - 14, 0);
       g.closePath();
       g.fill();
+    }
+  });
+}
+
+/** Broken lines of foam, bright where the wave curls and lacy behind it. */
+function foamTexture(): CanvasTexture {
+  return canvasTexture(64, 256, (g) => {
+    const random = seeded(8241);
+    for (let i = 0; i < 260; i++) {
+      const x = Math.abs(random() - random()) * 64;
+      const a = 0.25 + (1 - x / 64) * 0.6 * random();
+      g.fillStyle = `rgba(255,255,255,${a.toFixed(2)})`;
+      g.fillRect(x, random() * 256, 1 + random() * 3, 4 + random() * 20);
     }
   });
 }
