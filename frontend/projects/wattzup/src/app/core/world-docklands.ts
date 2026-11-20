@@ -138,6 +138,9 @@ const MACHINE_WIDE = 1.4;
 const MACHINE_TALL = 2.4;
 const MACHINE_DEEP = 1;
 const MACHINE_COLOURS: readonly string[] = ['#ff3b5c', '#2f7dff', '#ffb347', '#2fd18a'];
+/** The moon: where it hangs (beyond the clouds, inside the sky's dome) and how big it is (m). */
+const MOON_AT = [-820, 640, -1830] as const;
+const MOON_SIZE = 120;
 /** The cloud ceiling: its height, its breadth and how fast it drifts (texture repeats per second). */
 const CLOUD_HEIGHT = 260;
 const CLOUD_SPAN = 4000;
@@ -1480,6 +1483,7 @@ export class DocklandsStreet {
     this.addDock();
     this.addSky();
     this.addClouds();
+    this.addMoon();
     this.addBoats(roadHalf + SETBACK + 2);
     this.addSkytrain(roadHalf);
     this.addDeckLamps(roadHalf);
@@ -2843,6 +2847,41 @@ export class DocklandsStreet {
     this.group.add(ceiling);
   }
 
+  /**
+   * A pale moon over the harbour, high on the left, beyond the storm clouds that veil it as
+   * they drift past, with a wide soft halo of moonlight in the wet air around it.
+   */
+  private addMoon(): void {
+    const disc = new SpriteMaterial({
+      map: this.track(moonTexture()),
+      color: new Color('#f4f1ff').multiplyScalar(1.3),
+      fog: false,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    this.glow ??= this.track(glowTexture());
+    const halo = new SpriteMaterial({
+      map: this.glow,
+      color: new Color('#9a8ad8').multiplyScalar(0.55),
+      blending: AdditiveBlending,
+      fog: false,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    this.disposables.push(disc, halo);
+    const [x, y, z] = MOON_AT;
+    const glow = new Sprite(halo);
+    glow.scale.setScalar(MOON_SIZE * 7);
+    glow.position.set(x, y, z);
+    const moon = new Sprite(disc);
+    moon.scale.setScalar(MOON_SIZE);
+    moon.position.set(x, y, z);
+    // Drawn just after the sky, before the clouds that pass in front of it.
+    glow.renderOrder = -1;
+    moon.renderOrder = -1;
+    this.group.add(glow, moon);
+  }
+
   private addSky(): void {
     const texture = this.track(nightSkyTexture());
     const material = new MeshBasicMaterial({
@@ -3641,6 +3680,44 @@ function shopSignTexture(name: string, hex: string): CanvasTexture {
     ctx.fillStyle = hex;
     ctx.globalAlpha = 0.55;
     ctx.fillText(name, w / 2, h / 2 + 2);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** The moon's face: a pale disc with soft grey seas, fading at its rim. */
+function moonTexture(): CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const c = size / 2;
+    const r = size / 2 - 6;
+    const g = ctx.createRadialGradient(c - 20, c - 20, 10, c, c, r);
+    g.addColorStop(0, '#ffffff');
+    g.addColorStop(0.85, '#e4e2f2');
+    g.addColorStop(1, '#c8c4e0');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(c, c, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.save();
+    ctx.clip();
+    const random = seeded(373);
+    for (let i = 0; i < 9; i++) {
+      const sx = c + (random() - 0.5) * r * 1.3;
+      const sy = c + (random() - 0.5) * r * 1.3;
+      const sr = 12 + random() * 30;
+      const sea = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
+      sea.addColorStop(0, 'rgba(120,118,150,0.45)');
+      sea.addColorStop(1, 'rgba(120,118,150,0)');
+      ctx.fillStyle = sea;
+      ctx.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
+    }
+    ctx.restore();
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
