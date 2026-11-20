@@ -166,7 +166,8 @@ export interface components {
         | 'atacama'
         | 'angkor'
         | 'gardena'
-        | 'maunakea';
+        | 'maunakea'
+        | 'galibier';
     };
     ClassShelfResponse: {
       id: string;

@@ -906,6 +906,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Mauna Kea');
   });
 
+  test('rides Increase Your Threshold Power up the Col du Galibier between the snow banks', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Increase Your Threshold Power',
+      'Col du Galibier',
+      'increase-your-threshold-power',
+    );
+    await expect(world.heading).toHaveText('Col du Galibier');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Col du Galibier');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

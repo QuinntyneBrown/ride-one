@@ -1396,6 +1396,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.5, colour: 0xffe4c0 },
     fogRange: [3000, 20000],
   },
+  // Early summer high on the Galibier: crisp mountain air, a clear blue sky and a bright midday sun on the snow.
+  galibier: {
+    sky: 0x3a78d8,
+    fog: 0xd8e2f0,
+    ground: 0x4a4a50,
+    road: 0x4a4a4c,
+    sun: 52,
+    wet: false,
+    haze: false,
+    turbidity: 1.6,
+    rayleigh: 1.4,
+    azimuth: 160,
+    light: { sun: 3.0, fill: 1.6, colour: 0xfff8f0 },
+    fogRange: [2500, 16000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

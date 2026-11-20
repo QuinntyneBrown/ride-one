@@ -95,6 +95,7 @@ export const WORLDS: readonly WorldId[] = [
   'angkor',
   'gardena',
   'maunakea',
+  'galibier',
 ];
 
 export interface Shelf {
