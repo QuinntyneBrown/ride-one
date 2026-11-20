@@ -95,6 +95,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly props: { mesh: Group; offset: number; x: number }[] = [];
   private readonly traffic: { mesh: Group; offset: number; speed: number }[] = [];
   private trafficX = 0;
+  /** The drivers and passengers in the open cars cruising the far lane. */
+  private occupants: Figures | null = null;
   private roadWidth = 0;
   private readonly people: { offset: number; x: number; speed: number; phase: number }[] = [];
   private crowd: Figures | null = null;
@@ -411,10 +413,18 @@ export class MiamiStreet implements SceneStreet {
       riders?.set(i, c.x, y + 0.2, -metres + 0.15, Math.PI, 0.92);
     });
     riders?.commit();
-    for (const car of this.traffic) {
+    const occupants = this.occupants;
+    this.traffic.forEach((car, c) => {
       const metres = loopMetres(car.offset - car.speed * this.time, s, LOOP, BEHIND);
-      car.mesh.position.set(this.trafficX, heightAt(Math.max(metres, 0)), -metres);
-    }
+      const y = heightAt(Math.max(metres, 0));
+      car.mesh.position.set(this.trafficX, y, -metres);
+      // The driver and a passenger sit up in each open car, heads above the windscreen.
+      if (occupants && c < 5)
+        [0.42, -0.42].forEach((side, i) =>
+          occupants.set(c * 2 + i, this.trafficX - side, y - 0.38, -metres - 0.35, Math.PI, 0.9),
+        );
+    });
+    occupants?.commit();
     const crowd = this.crowd;
     if (crowd) {
       this.people.forEach((p, i) => {
@@ -1800,6 +1810,7 @@ export class MiamiStreet implements SceneStreet {
       });
     }
     this.trafficX = -roadHalf * 0.5;
+    this.occupants = new Figures(this.group, this.disposables, 10, NIGHT_WEAR, 8581);
     // The trolley, coming the other way: a boxy bus in green and orange livery with a row of
     // lit windows, a glowing destination board and its headlights on.
     const trolley = new Group();
