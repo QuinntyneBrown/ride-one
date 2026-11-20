@@ -936,18 +936,73 @@ export class AmsterdamStreet implements SceneStreet {
         this.props.push({ mesh: boat, offset, x });
       }
     }
-    // A glass-roofed canal boat gliding along mid-canal.
-    const tour = new Group();
-    const hull = new Mesh(this.unit, hulls[3]!);
-    hull.scale.set(4, 0.9, 22);
-    hull.position.y = -WATER + 0.3;
-    const top = new Mesh(this.unit, glass);
-    top.scale.set(3.6, 1.4, 18);
-    top.position.y = -WATER + 1.4;
-    tour.add(hull, top);
-    tour.position.x = edge - CANAL / 2;
-    this.group.add(tour);
-    this.boats.push({ mesh: tour, offset: 60, speed: -2.4 });
+    // Glass-roofed canal cruisers gliding along mid-canal, one coming towards the rider and one
+    // going the same way, each keeping to its own side of the water.
+    for (const [lane, offset, speed] of [
+      [-CANAL / 2 + 2.6, 150, -2.4],
+      [-CANAL / 2 - 2.6, 262, 1.6],
+    ] as const) {
+      const tour = this.tourBoat(glass, seeded(613 + offset));
+      tour.position.x = edge + lane;
+      tour.rotation.y = speed < 0 ? Math.PI : 0;
+      this.group.add(tour);
+      this.boats.push({ mesh: tour, offset, speed });
+    }
+  }
+
+  /**
+   * A rondvaartboot, 20 m long with its bow towards -z: a low dark-blue steel hull with a white
+   * rubbing strake and a rounded bow, a glass-sided saloon under a curved glass roof with rows
+   * of passengers seated inside, and the skipper standing at the open stern.
+   */
+  private tourBoat(glass: MeshStandardMaterial, random: () => number): Group {
+    const boat = new Group();
+    const length = 20;
+    const blue = this.material({ color: 0x1c2a4a, metalness: 0.3, roughness: 0.5 });
+    const white = this.material({ color: 0xf2f2ee, roughness: 0.6 });
+    const hull = new Mesh(bargeHull(length), blue);
+    hull.scale.set(1, 0.75, 1);
+    hull.position.y = -WATER - 0.5;
+    const strake = new Mesh(this.unit, white);
+    strake.scale.set(4.3, 0.12, length - 3);
+    strake.position.set(0, -WATER + 0.5, 1.2);
+    const sides = new Mesh(this.unit, glass);
+    sides.scale.set(3.9, 0.9, length - 6);
+    sides.position.set(0, -WATER + 1.0, 0.6);
+    const roof = new Mesh(
+      new CylinderGeometry(1.95, 1.95, length - 6, 16, 1, true, -Math.PI / 2, Math.PI),
+      glass,
+    );
+    roof.geometry.rotateX(Math.PI / 2);
+    roof.scale.set(1, 0.35, 1);
+    roof.position.set(0, -WATER + 1.45, 0.6);
+    this.disposables.push(roof.geometry);
+    boat.add(hull, strake, sides, roof);
+    // Passengers in rows of four, seen through the glass.
+    const seat = new CapsuleGeometry(0.16, 0.3, 3, 6);
+    const head = new SphereGeometry(0.11, 8, 6);
+    this.disposables.push(seat, head);
+    const skin = [0xf0c8a0, 0xc48a5f, 0x8d5a3b, 0xf5d3b5].map((hex) =>
+      this.material({ color: hex, roughness: 0.7 }),
+    );
+    const tops = COMMUTER_WEAR.tops.map((hex) => this.material({ color: hex, roughness: 0.85 }));
+    for (let z = -length / 2 + 4.5; z < length / 2 - 3; z += 1.1) {
+      for (const x of [-1.3, -0.5, 0.5, 1.3]) {
+        if (random() < 0.25) continue;
+        const body = new Mesh(seat, tops[Math.floor(random() * tops.length)]!);
+        body.position.set(x, -WATER + 0.95, z);
+        const face = new Mesh(head, skin[Math.floor(random() * skin.length)]!);
+        face.position.set(x, -WATER + 1.38, z);
+        boat.add(body, face);
+      }
+    }
+    const skipper = new Mesh(seat, tops[1]!);
+    skipper.position.set(0, -WATER + 1.1, length / 2 - 1.6);
+    const cap = new Mesh(head, skin[0]!);
+    cap.position.set(0, -WATER + 1.6, length / 2 - 1.6);
+    boat.add(skipper, cap);
+    boat.children.forEach((m) => (m.castShadow = true));
+    return boat;
   }
 
   /** Commuters cycling the street both ways on upright bikes, and people on the pavements. */
