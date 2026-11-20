@@ -198,6 +198,7 @@ describe('ClassCatalogueReader', () => {
     'westminster',
     'centralpark',
     'southbeach',
+    'ghent',
   ])('a class keeps its world %s (World Ride)', (world) => {
     const r = readOneClass('world', world);
     expect(r.problems).toEqual([]);

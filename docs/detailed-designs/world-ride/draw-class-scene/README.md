@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -104,6 +104,13 @@ None.
   - the stepped deco tower at the end of the drive, its setbacks ringed in neon, hazed by hand.
 
   `lay`, `place` and `setTime` recycle it along a 400 m loop. Every texture is drawn on a canvas, so the scene loads no assets. The shared kit (`core/world-kit.ts`) also holds the crowd behind the barriers, the painted road writing and the race's cloth and barrier banners, which Old Town, Caribana and South Beach draw from it.
+- **The Kuipke (`core/world-ghent.ts`).** For `ghent`, the first indoor scene:
+  - the home straight's pine boards over the road, with the measurement, sprinters' and stayers' lines, the côte d'azur inside them and the banking sweeping up on the right to the sponsors' boards; the back straight mirrored across the infield;
+  - steep tiers behind both bankings packed with a standing crowd (`Figures`) bouncing on the ride's clock, and more fans on the infield;
+  - the infield's riders' cabins, its rail and bar, and a lap board that counts the rider's laps of the 166 m track (`floor(s ÷ 166) + 1`);
+  - a closed roof: tie beams and lattice every 8 m, rows of floodlights and the six-day's banners. The physical sky is hidden by the ceiling.
+
+  The straight repeats once a lap (166 m).
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -125,6 +132,7 @@ None.
 | `pages/world-ride/westminster` | Westminster Rush Hour at 4:50, warm-up, next `Chime sprint` |
 | `pages/world-ride/centralpark` | Central Park Loop at 4:50, warm-up, next `Harlem Hill surge` |
 | `pages/world-ride/southbeach` | South Beach Sunrise at 2:53, warm-up, next `Sunrise chase` |
+| `pages/world-ride/ghent` | Ghent Six-Day at 4:50, warm-up, next `Bell-lap sprint` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
