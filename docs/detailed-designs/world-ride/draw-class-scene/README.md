@@ -239,7 +239,7 @@ None.
   - the path between low kerbs with the fans' writing every 25 m, race barriers hung with the ride's banners (STANLEY PARK, SEAWALL, VANCOUVER, ENGLISH BAY, LIONS GATE), the kit's feather flags every 16 m along both and cloth banners across it;
   - on the left a concrete walkway where walkers and joggers go both ways (the kit's `Figures`), then the seawall's granite face dropping to English Bay, sailboats tacking on it; `sink` drops the ground below the water;
   - on the right a grass verge, a mossy rock bank rising 7 m and the forest on and above it: western red cedars with drooping tiers on fluted reddish trunks and tall dark Douglas firs;
-  - once a lap, 60 m in, the totem poles of Brockton Point on their lawn: carved cedar poles of stacked figures painted black, red and blue-green, some with wings outstretched;
+  - once a lap, 140 m into the loop and so in the opening view, the totem poles of Brockton Point on their lawn 6.2 m off the centre line, the crowd and the trees standing back from them: carved cedar poles of four stacked figures painted black, red and blue-green, each turned so its faces and beaks look out over the path toward the oncoming riders, some with wings outstretched;
   - the shared crowd in knots along the barriers;
   - 640 m ahead the Lions Gate Bridge across the narrows, its green towers, sagging cables and high deck, freighters at anchor in the bay and the North Shore mountains about 4 km off, forested ridges with snow on their tops, all hazed by hand.
 

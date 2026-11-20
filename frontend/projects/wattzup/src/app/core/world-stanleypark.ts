@@ -62,7 +62,9 @@ const BANK_FOOT = 13;
 const BANK_TOP = 24;
 const BANK_RISE = 7;
 /** The totem poles at Brockton Point, once a lap, on the park-side lawn. */
-const TOTEMS = 60;
+const TOTEMS = 140;
+/** The totem poles stand this far off the centre line, just behind the barrier. */
+const TOTEMS_X = 6.2;
 /** The Lions Gate Bridge stands this far ahead across the narrows, hazed by hand. */
 const BRIDGE_AHEAD = 640;
 const HAZE = 0xcfdde8;
@@ -160,8 +162,12 @@ export class StanleyParkStreet implements SceneStreet {
       flags: this.flagMaterials,
       flagShare: 0.18,
       seeds: [601, 607],
-      // A Sunday crowd: knots along the barriers, open stretches between them.
-      skip: (_side, offset, x) => offset % 40 > 24 || (x > CROWD_NEAR + 1.4 && offset % 12 > 7),
+      // A Sunday crowd: knots along the barriers, open stretches between them, and none in front
+      // of the totem poles.
+      skip: (side, offset, x) =>
+        (side > 0 && offset > TOTEMS - 12 && offset < TOTEMS + 36) ||
+        offset % 40 > 24 ||
+        (x > CROWD_NEAR + 1.4 && offset % 12 > 7),
     });
   }
 
@@ -371,7 +377,7 @@ export class StanleyParkStreet implements SceneStreet {
     const poles = 7;
     for (let k = 0; k < poles; k++) {
       const pole = new Group();
-      const height = 8 + random() * 5;
+      const height = 10 + random() * 5;
       const p = new Mesh(wood, carvings[k % carvings.length]!);
       p.scale.set(1, height, 1);
       p.castShadow = true;
@@ -390,27 +396,29 @@ export class StanleyParkStreet implements SceneStreet {
         beak.position.set(0, height - 0.3, -0.6);
         pole.add(wings, beak);
       }
-      // Noses and beaks jut from the carved faces.
-      for (let y = 1.6; y < height - 1.5; y += 2.2) {
+      // Noses and beaks jut from the carved faces, one under each pair of eyes (the carving's
+      // four figures, top to bottom).
+      for (let j = 0; j < 4; j++) {
         const nose = new Mesh(this.unit, k % 2 ? red : black);
-        nose.scale.set(0.25, 0.4, 0.45);
-        nose.position.set(0, y, -0.55);
+        nose.scale.set(0.28, 0.5, 0.5);
+        nose.position.set(0, height * (1 - (j * 128 + 72) / 512), -0.55);
         pole.add(nose);
       }
-      pole.position.set((k % 2) * 3.5 + random(), 0, -k * 4.2);
-      pole.rotation.y = (random() - 0.5) * 0.4;
+      pole.position.set((k % 2) * 3 + random() * 0.6, 0, -k * 4.2);
+      // The faces look out over the path and toward the oncoming riders.
+      pole.rotation.y = (2 * Math.PI) / 3 + (random() - 0.5) * 0.3;
       group.add(pole);
     }
     const lawn = new Mesh(
-      new PlaneGeometry(16, 40),
+      new PlaneGeometry(10, 34),
       this.material({ map: this.repeat(grassTexture(), 3, 6), roughness: 1 }),
     );
     this.disposables.push(lawn.geometry);
     lawn.rotation.x = -Math.PI / 2;
-    lawn.position.set(2, 0.01, -12);
+    lawn.position.set(4.5, 0.01, -12);
     group.add(lawn);
     this.group.add(group);
-    this.props.push({ mesh: group, offset: TOTEMS, every: LOOP, x: 7.5 });
+    this.props.push({ mesh: group, offset: TOTEMS, every: LOOP, x: TOTEMS_X });
   }
 
   /** Cloth banners on poles across the path, the ride's name on each. */
@@ -758,33 +766,41 @@ function boughTexture(colour: string, seed: number): CanvasTexture {
 }
 
 /**
- * A totem pole's carved and painted figures, stacked: faces with ovoid eyes and brows in black,
- * mouths and cheeks in red, and blue-green inner shapes, on weathered cedar.
+ * A totem pole's carved and painted figures, four stacked: each a face with ovoid eyes under
+ * heavy black brows, blue-green and white within, a red mouth, and formline shapes at its sides,
+ * on weathered cedar. The faces are centred on the texture so they look the way the pole turns.
  */
 function carvingTexture(seed: number): CanvasTexture {
-  const texture = canvasTexture(256, 512, (g) => {
-    speckle(g, 256, 512, '#8a5a3a', seed);
+  return canvasTexture(256, 512, (g) => {
+    speckle(g, 256, 512, '#a87850', seed);
     const random = seeded(seed + 3);
     for (let y = 0; y < 512; y += 128) {
-      g.fillStyle = 'rgba(40,24,16,0.5)';
-      g.fillRect(0, y, 256, 4);
-      for (const x of [80, 176]) {
+      g.fillStyle = 'rgba(40,24,16,0.55)';
+      g.fillRect(0, y, 256, 5);
+      const inner = random() < 0.5 ? '#2f8a7a' : '#f2efe6';
+      for (const x of [98, 158]) {
         g.fillStyle = '#1a1614';
+        g.fillRect(x - 30, y + 18, 60, 9);
         g.beginPath();
-        g.ellipse(x, y + 40, 30, 18, 0, 0, Math.PI * 2);
+        g.ellipse(x, y + 46, 26, 16, 0, 0, Math.PI * 2);
         g.fill();
-        g.fillStyle = random() < 0.5 ? '#2f8a7a' : '#f2efe6';
+        g.fillStyle = inner;
         g.beginPath();
-        g.ellipse(x, y + 40, 16, 9, 0, 0, Math.PI * 2);
+        g.ellipse(x, y + 46, 14, 8, 0, 0, Math.PI * 2);
         g.fill();
-        g.fillStyle = '#1a1614';
-        g.fillRect(x - 32, y + 12, 64, 7);
       }
-      g.fillStyle = '#b02a22';
-      g.fillRect(84, y + 86, 88, 18);
+      g.fillStyle = '#c0302a';
+      g.fillRect(92, y + 92, 72, 20);
       g.fillStyle = '#1a1614';
-      g.fillRect(92, y + 92, 72, 5);
+      g.fillRect(100, y + 99, 56, 6);
+      // Formline ovoids and U-shapes at the figure's sides.
+      for (const x of [30, 226]) {
+        g.strokeStyle = random() < 0.5 ? '#1a1614' : '#c0302a';
+        g.lineWidth = 7;
+        g.beginPath();
+        g.ellipse(x, y + 64, 18, 30, 0, 0, Math.PI * 2);
+        g.stroke();
+      }
     }
   });
-  return texture;
 }
