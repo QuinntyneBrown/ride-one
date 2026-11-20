@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -189,6 +189,14 @@ None.
   - the spring mist, drawn by the street since the physical sky takes no fog: soft curtains across the horizon (one behind the hill, veiling the lower sky so the church rises out of it, and thinner ones in front of the hill) and banks of mist lying low over the fields, drifting on the street's clock.
 
   `lay`, `place` and `setTime` recycle it along a 480 m loop.
+- **Mont Ventoux (`core/world-ventoux.ts`).** For `ventoux`, the bare upper slopes above Chalet Reynard in the mistral:
+  - white limestone scree rising on the right and falling away on the left behind a low dry-stone wall, with loose blocks littering both slopes;
+  - red-capped bornes with the distance to the summit every 100 m, and fans' words painted across the road;
+  - stunted cedars and box shrubs bent by the wind;
+  - the Simpson memorial once a lap, a granite stele on its steps with bidons at its foot;
+  - fans at the roadside, some with flags the mistral snaps on the ride's clock;
+  - fellow climbers rocking out of the saddle and descenders sweeping down (`Figures` on a shared road bike);
+  - the summit's white cone and its red-and-white weather tower ahead, and Provence's hills far below in the haze, all keeping their bearing as the road climbs.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -222,6 +230,7 @@ None.
 | `pages/world-ride/giza` | Giza Plateau at 4:50, warm-up, next `Pyramid step` |
 | `pages/world-ride/daytona` | Daytona Beach Sand at 4:50, warm-up, next `Quarter-mile drag` |
 | `pages/world-ride/koppenberg` | Koppenberg Cobbles at 0:53, warm-up, next `Cobbled climb` |
+| `pages/world-ride/ventoux` | Mont Ventoux at 4:50, warm-up, next `Out of the saddle` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
