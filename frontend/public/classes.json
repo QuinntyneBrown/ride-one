@@ -13068,6 +13068,7 @@
     },
     {
       "id": "sandwich-max-efforts",
+      "world": "tahoe",
       "title": "Sandwich Max Efforts",
       "channel": "GCN Training",
       "focus": "Threshold",

@@ -1304,6 +1304,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.6, fill: 1.8, colour: 0xfff4e6 },
     fogRange: [1500, 9000],
   },
+  // A clear, still summer morning at Lake Tahoe: sharp high-Sierra light and a deep blue sky.
+  tahoe: {
+    sky: 0x3a80e0,
+    fog: 0xd4e2f0,
+    ground: 0xa08a6a,
+    road: 0x58585a,
+    sun: 44,
+    wet: false,
+    haze: false,
+    turbidity: 2,
+    rayleigh: 1.6,
+    azimuth: 120,
+    light: { sun: 3.0, fill: 1.6, colour: 0xfff6e8 },
+    fogRange: [2500, 16000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

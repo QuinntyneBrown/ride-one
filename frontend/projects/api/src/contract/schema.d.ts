@@ -160,7 +160,8 @@ export interface components {
         | 'winterlude'
         | 'letras'
         | 'santamonica'
-        | 'antwerp';
+        | 'antwerp'
+        | 'tahoe';
     };
     ClassShelfResponse: {
       id: string;
