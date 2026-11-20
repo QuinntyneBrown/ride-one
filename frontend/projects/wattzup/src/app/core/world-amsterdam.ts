@@ -112,6 +112,7 @@ export class AmsterdamStreet implements SceneStreet {
   private sitters: MeshStandardMaterial | null = null;
   private extra: (() => number) | null = null;
   private tilts: (() => number) | null = null;
+  private foam: MeshStandardMaterial | null = null;
   private bikeShape: BufferGeometry | null = null;
 
   constructor(
@@ -1849,6 +1850,7 @@ export class AmsterdamStreet implements SceneStreet {
       const tour = this.tourBoat(glass, seeded(613 + offset));
       tour.position.x = edge + lane;
       tour.rotation.y = speed < 0 ? Math.PI : 0;
+      tour.add(this.wake(10, -WATER + 0.03, 1.4));
       this.group.add(tour);
       this.boats.push({ mesh: tour, offset, speed });
     }
@@ -1864,9 +1866,37 @@ export class AmsterdamStreet implements SceneStreet {
       const sloep = this.sloep(seeded(719 + offset));
       sloep.position.x = x;
       sloep.rotation.y = speed < 0 ? Math.PI : 0;
+      if (speed !== 0) sloep.add(this.wake(3.25, 0.03, 0.8));
       this.group.add(sloep);
       this.boats.push({ mesh: sloep, offset, speed, float: -WATER });
     }
+  }
+
+  /**
+   * A boat's wake: two arms of white foam spreading back from its stern at `from` metres along
+   * +z, at height `y`, fading as they widen, and a churned patch behind the stern; `size` scales
+   * it to the boat.
+   */
+  private wake(from: number, y: number, size: number): Group {
+    this.foam ??= this.material({
+      map: this.track(foamTexture()),
+      transparent: true,
+      depthWrite: false,
+      roughness: 0.6,
+    });
+    const wake = new Group();
+    for (const side of [-1, 1]) {
+      const arm = new Mesh(this.unit, this.foam);
+      arm.scale.set(0.9 * size, 0.01, 12 * size);
+      arm.position.set(side * 3 * size, y, from + 6 * size);
+      arm.rotation.y = side * 0.42;
+      wake.add(arm);
+    }
+    const churn = new Mesh(this.unit, this.foam);
+    churn.scale.set(2.2 * size, 0.01, 5 * size);
+    churn.position.set(0, y, from + 2.5 * size);
+    wake.add(churn);
+    return wake;
   }
 
   /**
@@ -3488,6 +3518,22 @@ function signTexture(kind: 'oneway' | 'thirty' | 'parking'): CanvasTexture {
       g.font = 'bold 15px sans-serif';
       g.fillText('vergunning-', 64, 140);
       g.fillText('houders', 64, 162);
+    }
+  });
+}
+
+/** Foam on clear ground, thick at one end and breaking up and fading towards the other. */
+function foamTexture(): CanvasTexture {
+  return canvasTexture(64, 512, (g) => {
+    g.clearRect(0, 0, 64, 512);
+    const random = seeded(761);
+    for (let i = 0; i < 1600; i++) {
+      const y = Math.pow(random(), 1.6) * 512;
+      const fade = 1 - y / 512;
+      g.fillStyle = `rgba(240,246,248,${(0.25 + random() * 0.5) * fade})`;
+      g.beginPath();
+      g.ellipse(random() * 64, y, 1 + random() * 3, 1 + random() * 5, 0, 0, Math.PI * 2);
+      g.fill();
     }
   });
 }
