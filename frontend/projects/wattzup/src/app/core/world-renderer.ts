@@ -3030,6 +3030,26 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.4, fill: 1.1, colour: 0xfff4e8 },
     fogRange: [500, 5000],
   },
+  // Miami at night: moonlight over the sea behind the rider's left shoulder, the sky violet with
+  // the city's glow, the road wet and catching the neon.
+  miami: {
+    sky: 0x1a1240,
+    fog: 0x3a2458,
+    ground: 0x2a2838,
+    road: 0x2c2c34,
+    sun: -6,
+    wet: true,
+    haze: false,
+    moon: {
+      elevation: 28,
+      azimuth: -130,
+      strength: 1.5,
+      colour: 0xb8c4ff,
+      fill: 2.4,
+      fillSky: 0x7a4a9e,
+    },
+    fogRange: [60, 900],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

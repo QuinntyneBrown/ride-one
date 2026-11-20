@@ -200,6 +200,7 @@ export const WORLDS: readonly WorldId[] = [
   'bayofislands',
   'dales',
   'engadin',
+  'miami',
 ];
 
 export interface Shelf {

@@ -1790,6 +1790,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0.5, work: 2, rest: -0.5, cooldown: 0, steady: 1 },
     roll: 1.2,
   },
+  {
+    id: 'miami',
+    name: 'Miami Neon Nights',
+    route: 'the neon boulevard',
+    effortName: 'Neon surge',
+    description:
+      "A beachfront boulevard on a Miami night, still wet from a shower: neon-traced art deco hotels, palms and convertibles on one side, the moonlit Atlantic on the other, and the bay's towers lit up ahead.",
+    grade: { warmup: 0, work: 1, rest: 0, cooldown: 0, steady: 0.5 },
+    roll: 0.3,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
