@@ -7,7 +7,7 @@
 // Morro's castle and lighthouse guard the harbour mouth ahead across the water. Built on the
 // shared kit (world-kit.ts) on the pattern of Old Town's street.
 import {
-  type BufferAttribute,
+  BufferAttribute,
   BoxGeometry,
   CapsuleGeometry,
   Color,
@@ -81,6 +81,9 @@ const CARS = [
   ['#b0b8c0', '#c8102e'],
 ] as const;
 
+/** The colours of the washing hung over the balconies. */
+const LAUNDRY = [0xf5f5f0, 0xe63946, 0x457b9d, 0xffb703, 0xf1faee, 0x2a9d8f, 0xe76f51, 0x8ecae6];
+
 const STROLL_WEAR = {
   tops: ['#ffffff', '#f5f1e8', '#ff6b5a', '#2ec4b6', '#ffd23f', '#3a86ff', '#f15bb5'],
   bottoms: ['#1b3a5c', '#e8c9a0', '#2f3e5c', '#f5f1e8', '#5a5f69'],
@@ -141,6 +144,17 @@ export class HavanaStreet implements SceneStreet {
   private readonly stretch = new Vector3();
   private readonly at = new Vector3();
   private readonly tank = tankGeometry();
+  private readonly dressing = new MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.85,
+    side: DoubleSide,
+  });
+  private readonly flagSheet = new PlaneGeometry(1.8, 0.9).rotateY(-Math.PI / 2);
+  private readonly flag = new MeshStandardMaterial({
+    map: cubanFlag(),
+    roughness: 0.8,
+    side: DoubleSide,
+  });
   private readonly crest = new Matrix4();
   private crests: InstancedMesh | null = null;
   private readonly crestList: { offset: number; delay: number; length: number }[] = [];
@@ -156,7 +170,8 @@ export class HavanaStreet implements SceneStreet {
 
   build(roadHalf: number, points: number): void {
     this.roadHalf = roadHalf;
-    this.disposables.push(this.unit, this.tank);
+    this.disposables.push(this.unit, this.tank, this.dressing, this.flagSheet, this.flag);
+    this.track(this.flag.map!);
     this.addSeafront(roadHalf, points);
     this.addSpray(roadHalf);
     this.addFacades(roadHalf);
@@ -436,6 +451,7 @@ export class HavanaStreet implements SceneStreet {
     this.disposables.push(arcade);
     const streets = seeded(1049);
     const roofs = seeded(1051);
+    const life = seeded(1117);
     let inBlock = 0;
     let block = 4;
     for (let offset = 0; offset < LOOP;) {
@@ -521,6 +537,7 @@ export class HavanaStreet implements SceneStreet {
       const long = random() < 0.35;
       const slabs: BufferGeometry[] = [];
       const rails: BufferGeometry[] = [];
+      const things: BufferGeometry[] = [];
       for (let i = 0; i < floors; i++) {
         const y = PORTAL + i * 4.2;
         const spans: [number, number][] = [];
@@ -545,7 +562,26 @@ export class HavanaStreet implements SceneStreet {
             side.translate(-BALCONY / 2, y + 0.66, z);
             rails.push(side);
           }
+          this.dress(life, y, z0, z1, things);
         }
+      }
+      if (things.length) {
+        const merged = mergeGeometries(things)!;
+        things.forEach((g) => g.dispose());
+        this.disposables.push(merged);
+        const mesh = new Mesh(merged, this.dressing);
+        mesh.castShadow = true;
+        building.add(mesh);
+      }
+      // Now and then a Cuban flag hangs over the top balcony's railing.
+      if (life() < 0.2) {
+        const flag = new Mesh(this.flagSheet, this.flag);
+        flag.position.set(
+          -BALCONY - 0.04,
+          PORTAL + (floors - 1) * 4.2 + 0.25,
+          -width * (0.3 + life() * 0.4),
+        );
+        building.add(flag);
       }
       const slabGeometry = mergeGeometries(slabs)!;
       const railGeometry = mergeGeometries(rails)!;
@@ -565,6 +601,43 @@ export class HavanaStreet implements SceneStreet {
         offset += CROSS;
         inBlock = 0;
         block = 3 + Math.floor(streets() * 3);
+      }
+    }
+  }
+
+  /**
+   * What lives on a balcony between `z0` and `z1` at height `y`: terracotta pots of greenery
+   * along its edge, and washing hung over the railing to dry, in vertex colours.
+   */
+  private dress(
+    random: () => number,
+    y: number,
+    z0: number,
+    z1: number,
+    into: BufferGeometry[],
+  ): void {
+    for (let z = z0 + 0.3; z < z1 - 0.3; z += 0.6 + random() * 1.2) {
+      const roll = random();
+      if (roll < 0.35) {
+        const pot = new CylinderGeometry(0.16, 0.12, 0.3, 8).toNonIndexed();
+        pot.translate(-BALCONY + 0.25, y + 0.31, z);
+        into.push(tint(pot, 0xb5603a));
+        const leaves = new IcosahedronGeometry(0.28 + random() * 0.2, 0).toNonIndexed();
+        leaves.scale(1, 0.9 + random() * 0.8, 1);
+        leaves.translate(-BALCONY + 0.25, y + 0.7, z);
+        into.push(tint(leaves, random() < 0.5 ? 0x3f7a32 : 0x5a8a3a));
+        // Some spill over the railing: trailing green, or a bougainvillea's magenta.
+        if (random() < 0.5) {
+          const trail = new IcosahedronGeometry(0.3, 1).toNonIndexed();
+          trail.scale(0.5, 1.6 + random(), 1.2);
+          trail.translate(-BALCONY - 0.12, y + 0.2, z);
+          into.push(tint(trail, random() < 0.4 ? 0xc2185b : 0x4a8a34));
+        }
+      } else if (roll < 0.65) {
+        const cloth = new PlaneGeometry(0.5 + random() * 0.5, 0.6 + random() * 0.6).toNonIndexed();
+        cloth.rotateY(-Math.PI / 2);
+        cloth.translate(-BALCONY - 0.03, y + 0.6, z);
+        into.push(tint(cloth, LAUNDRY[Math.floor(random() * LAUNDRY.length)]!));
       }
     }
   }
@@ -1882,5 +1955,41 @@ function kerbTexture(): CanvasTexture {
     for (let y = 0; y < 256; y += 85) g.fillRect(0, y, 64, 3);
     g.fillStyle = 'rgba(40,36,30,0.3)';
     g.fillRect(0, 0, 10, 256);
+  });
+}
+
+/** Paints every vertex of a non-indexed geometry one colour, for a vertex-coloured mesh. */
+function tint(geometry: BufferGeometry, hex: number): BufferGeometry {
+  const c = new Color(hex);
+  const n = geometry.getAttribute('position').count;
+  const colours = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) colours.set([c.r, c.g, c.b], i * 3);
+  geometry.setAttribute('color', new BufferAttribute(colours, 3));
+  return geometry;
+}
+
+/** Cuba's flag: five blue and white stripes, and the red triangle with its white star. */
+function cubanFlag(): CanvasTexture {
+  return canvasTexture(256, 128, (g) => {
+    for (let k = 0; k < 5; k++) {
+      g.fillStyle = k % 2 ? '#ffffff' : '#002a8f';
+      g.fillRect(0, (k * 128) / 5, 256, 128 / 5 + 1);
+    }
+    g.fillStyle = '#cf142b';
+    g.beginPath();
+    g.moveTo(0, 0);
+    g.lineTo(111, 64);
+    g.lineTo(0, 128);
+    g.closePath();
+    g.fill();
+    g.fillStyle = '#ffffff';
+    g.beginPath();
+    for (let k = 0; k < 10; k++) {
+      const r = k % 2 ? 9 : 22;
+      const a = -Math.PI / 2 + (k * Math.PI) / 5;
+      g.lineTo(38 + Math.cos(a) * r, 64 + Math.sin(a) * r);
+    }
+    g.closePath();
+    g.fill();
   });
 }
