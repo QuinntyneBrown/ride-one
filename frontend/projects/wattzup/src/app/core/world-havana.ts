@@ -130,6 +130,16 @@ export class HavanaStreet implements SceneStreet {
   private readonly sprays: Spray[] = [];
   private readonly strollers: Stroller[] = [];
   private people: Walkers | null = null;
+  /** Where each zebra crossing lies, and the people walking over them. */
+  private readonly crossings: number[] = [];
+  private readonly crossers: {
+    offset: number;
+    phase: number;
+    period: number;
+    from: number;
+    to: number;
+  }[] = [];
+  private crowd: Walkers | null = null;
   private seated: Sitters | null = null;
   private readonly sitters: Sitter[] = [];
   private swell: Texture | null = null;
@@ -231,6 +241,7 @@ export class HavanaStreet implements SceneStreet {
     this.addRockers(roadHalf);
     this.addDominoes(roadHalf);
     this.addSigns(roadHalf);
+    this.addCrossers(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -307,6 +318,28 @@ export class HavanaStreet implements SceneStreet {
         people.set(i, w.x, y, -metres, w.heading, this.time * (w.child ? 6 : 4) + w.phase);
       });
       people.commit();
+    }
+    const crowd = this.crowd;
+    if (crowd) {
+      this.crossers.forEach((c, i) => {
+        // Over the road and back: out for half the period, home for the other half.
+        const k = (((this.time / c.period + c.phase) % 1) + 1) % 1;
+        const out = k < 0.5;
+        const t = out ? k * 2 : (1 - k) * 2;
+        const x = c.from + (c.to - c.from) * t;
+        const metres = loopMetres(c.offset, s, LOOP, BEHIND);
+        const kerb = x > this.roadHalf || x < -this.roadHalf - LANES ? KERB : 0;
+        const heading = out === c.to < c.from ? Math.PI / 2 : -Math.PI / 2;
+        crowd.set(
+          i,
+          x,
+          heightAt(Math.max(metres, 0)) + kerb,
+          -metres,
+          heading,
+          this.time * 4 + c.phase * 9,
+        );
+      });
+      crowd.commit();
     }
     const seated = this.seated;
     if (seated) {
@@ -1146,6 +1179,7 @@ export class HavanaStreet implements SceneStreet {
   };
 
   private addZebra(offset: number, roadHalf: number): void {
+    this.crossings.push(offset);
     if (!this.zebra) {
       const map = this.track(zebraTexture());
       this.zebra = this.material({
@@ -3742,6 +3776,37 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x: roadHalf + 0.3 });
     }
+  }
+
+  /**
+   * People crossing at the zebra crossings: one to three at each, walking from one kerb over both
+   * carriageways to the other and back, each at their own pace, some from the sea side.
+   */
+  private addCrossers(roadHalf: number): void {
+    const random = seeded(1579);
+    for (const offset of this.crossings) {
+      const count = 1 + Math.floor(random() * 3);
+      for (let k = 0; k < count; k++) {
+        const inland = random() < 0.6;
+        const near = roadHalf + 0.6;
+        const far = -roadHalf - LANES - 0.6;
+        this.crossers.push({
+          offset: offset + CROSS / 2 + (random() - 0.5) * 2.6,
+          phase: random(),
+          period: 26 + random() * 14,
+          from: inland ? near : far,
+          to: inland ? far : near,
+        });
+      }
+    }
+    this.crowd = new Walkers(
+      this.group,
+      this.disposables,
+      this.crossers.length,
+      STROLL_WEAR,
+      1583,
+      this.crossers.map(() => 1),
+    );
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
