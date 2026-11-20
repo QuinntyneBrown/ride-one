@@ -33,6 +33,7 @@ import {
   dolomiteTexture,
   ease,
   FeatherFlags,
+  Figures,
   type FeatherWord,
   hazedMaterial,
   heightfield,
@@ -107,6 +108,21 @@ const SIGNS: readonly (readonly [number, number])[] = [
   [1, 380],
 ];
 
+/** Hikers on the meadow path, in summer walking clothes. */
+const HIKERS = 15;
+const HIKING: Wardrobe = {
+  tops: ['#d8283a', '#1d4f8f', '#f2c230', '#2a8a4a', '#ff8a1a', '#3ac8e8', '#6a3a8a'],
+  bottoms: ['#3a3a40', '#5a4a3a', '#6a5a48', '#2a3a5a'],
+  skins: SKINS,
+};
+/** The paragliders' canopies. */
+const GLIDERS = ['#ff3a3a', '#f2c230', '#3ac8e8', '#ff8a1a', '#8a3ad8', '#2a8a4a', '#ffffff'];
+
+/** How high the meadow on the right stands x metres out from the road's centre. */
+function meadow(x: number): number {
+  return x < 16 ? ((x - 4) / 12) * 2 : 2 + ((x - 16) / 44) * 12;
+}
+
 interface Prop {
   readonly mesh: Group;
   readonly offset: number;
@@ -122,6 +138,8 @@ export class GardenaStreet implements SceneStreet {
   private readonly props: Prop[] = [];
   private readonly horizon = new Group();
   private time = 0;
+  private readonly gliders: Group[] = [];
+  private hikers: Figures | null = null;
   private readonly flagMaterials = ['#1d4f8f', '#ffffff', '#2a8a4a', '#d8283a'].map(
     (colour) => new MeshStandardMaterial({ color: colour, side: DoubleSide, roughness: 0.8 }),
   );
@@ -153,6 +171,8 @@ export class GardenaStreet implements SceneStreet {
     this.crowd.build();
     this.addTrees();
     this.addCows();
+    this.addHikers();
+    this.addGliders();
     this.addSigns();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
@@ -177,6 +197,30 @@ export class GardenaStreet implements SceneStreet {
       prop.mesh.position.set(prop.x, ground(metres) + KERB + (prop.lift ?? 0), -metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
+    // Hikers file up the meadow's path in twos and threes, a step every second.
+    const hikers = this.hikers;
+    if (hikers) {
+      for (let i = 0; i < HIKERS; i++) {
+        const offset = Math.floor(i / 3) * 80 + 30 + (i % 3) * 2.2 + this.time * 1.1;
+        const metres = along(offset, LOOP);
+        const x = 15 + (Math.floor(i / 3) % 3) * 4 + (i % 3) * 0.6;
+        const bob = Math.abs(Math.sin(this.time * 3.2 + i)) * 0.05;
+        hikers.set(i, x, ground(metres) + meadow(x) - 0.1, -metres, 0, 1, bob);
+      }
+      hikers.commit();
+    }
+    // Paragliders drift in wide, slow circles over the meadows below the pass, banking as they turn.
+    this.gliders.forEach((glider, i) => {
+      const turn = this.time * (0.05 + (i % 3) * 0.015) + i * 2.1;
+      const radius = 30 + (i % 4) * 14;
+      const metres = 90 + (i % 4) * 45 + Math.sin(turn) * radius;
+      glider.position.set(
+        (i % 2 ? 40 : -50) + (i % 3) * 25 + Math.cos(turn) * radius,
+        heightAt(Math.min(metres, AHEAD)) + 45 + (i % 4) * 22 + Math.sin(turn * 0.7) * 4,
+        -metres,
+      );
+      glider.rotation.set(0, -turn, Math.sin(turn) * 0.25);
+    });
     this.horizon.position.set(0, heightAt(AHEAD), -AHEAD);
   }
 
@@ -355,9 +399,41 @@ export class GardenaStreet implements SceneStreet {
         mesh: holder,
         offset: Math.floor(k / 4) * 120 + 190 + random() * 40,
         x,
-        lift: (x < 16 ? ((x - 4) / 12) * 2 : 2 + ((x - 16) / 44) * 12) - 0.2,
+        lift: meadow(x) - 0.2,
       });
     }
+  }
+
+  /** Hikers in twos and threes on the meadow path, packs on their backs. */
+  private addHikers(): void {
+    this.hikers = new Figures(this.group, this.disposables, HIKERS, HIKING, 6771);
+  }
+
+  /** Paragliders off the high meadows, their canopies bright against the sky. */
+  private addGliders(): void {
+    const canopy = new CylinderGeometry(6, 6, 2.6, 18, 1, true, Math.PI - 0.85, 1.7);
+    canopy.rotateX(Math.PI / 2);
+    canopy.translate(0, -6, 0);
+    const pilot = new CylinderGeometry(0.3, 0.3, 1.1, 6);
+    pilot.translate(0, -7.2, 0);
+    const line = new CylinderGeometry(0.02, 0.02, 6.4, 3);
+    this.disposables.push(canopy, pilot, line);
+    const harness = this.material({ color: 0x2a2a30, roughness: 0.8 });
+    const cord = this.material({ color: 0xe8e8e8, roughness: 0.8 });
+    GLIDERS.forEach((hex) => {
+      const glider = new Group();
+      const cloth = this.material({ color: hex, roughness: 0.7, side: DoubleSide });
+      glider.add(new Mesh(canopy, cloth), new Mesh(pilot, harness));
+      for (const side of [-1, 1]) {
+        const l = new Mesh(line, cord);
+        l.position.set(side * 2.4, -3.6, 0);
+        l.rotation.z = side * 0.62;
+        glider.add(l);
+      }
+      glider.scale.setScalar(1.4);
+      this.gliders.push(glider);
+      this.group.add(glider);
+    });
   }
 
   /** The brown kilometre signs counting down to the pass. */
