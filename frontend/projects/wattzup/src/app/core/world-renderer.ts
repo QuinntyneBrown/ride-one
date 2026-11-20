@@ -650,21 +650,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3, fill: 1.4, colour: 0xfff6ea },
     fogRange: [250, 3200],
   },
-  // A warm Californian afternoon in the Napa Valley: a clear high sky, the sun behind the rider's
-  // left shoulder, golden light on the vines and a dusty warm haze over the hills and the ridges.
+  // A warm Californian afternoon in the Napa Valley, the sun lower now behind the rider's left
+  // shoulder: golden light raking across the vine rows with long shadows, and a dusty warm haze
+  // laying the hills and the ridges back in layers.
   napa: {
     sky: 0x8cbce8,
-    fog: 0xe4d6b8,
+    fog: 0xead8b4,
     ground: 0xb59a5a,
     road: 0x5c5c5e,
-    sun: 36,
+    sun: 22,
     wet: false,
     haze: false,
-    turbidity: 4.4,
-    rayleigh: 1.4,
-    azimuth: -135,
-    light: { sun: 3.1, fill: 1.2, colour: 0xffe2b8 },
-    fogRange: [220, 2600],
+    turbidity: 5.2,
+    rayleigh: 1.3,
+    azimuth: -122,
+    light: { sun: 3.3, fill: 1.05, colour: 0xffd49c },
+    fogRange: [180, 2300],
   },
   // A warm June evening on Worthy Farm: the sun low and golden, a soft haze over the fields.
   glastonbury: {
