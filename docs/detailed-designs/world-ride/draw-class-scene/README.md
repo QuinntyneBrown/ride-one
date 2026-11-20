@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -150,6 +150,15 @@ None.
   - a chrome diner with its DINER sign and gas pumps under a canopy once a lap on the right, and a motel with its MOTEL and flickering VACANCY neon on the left;
   - classic cars with tail fins and a big rig coming the other way, tumbleweeds rolling across, all on the ride's clock;
   - red mesas with banded cliffs and talus slopes standing round the horizon, keeping their distance.
+- **Ocean Front Walk (`core/world-venice.ts`).** For `venice`, the bike path beside Venice Beach's boardwalk on a late afternoon:
+  - the path's dashed yellow centre line and white edges with the fans' writing every 25 m, race barriers hung with the race's banners on both sides, feather flags along them, cloth banners across the path and Venice's sign, VENICE in white letters on a steel frame, once a loop;
+  - on the right the boardwalk's pale concrete, vendors' stalls under pop-up canopies and low stucco shops of one to three storeys in bright paint, each with a shopfront, a sign board and a striped awning, murals on some upper fronts and on the end walls facing the rider, and alleys between them;
+  - tall Mexican fan palms in rows on both sides, each a thin ringed trunk, a skirt of dead fronds and a crown of fans;
+  - on the left the sand out to the surf and the Pacific, with Muscle Beach's fenced outdoor gym and its sign, two basketball courts with a game on, the skate park's bowls and fun box, and LA County's pale blue lifeguard towers;
+  - the shared crowd behind the barriers, in knots on the boardwalk and one deep in clusters on the beach side; skaters on their boards rolling the boardwalk both ways, street performers dancing and juggling in rings of watchers, lifters at Muscle Beach, players on the courts and people on the sand and at the surf line (the kit's `Figures`);
+  - the Santa Monica Pier out in the bay ahead: its deck on piles, a pavilion, a coaster's loop and the Ferris wheel turning on the street's clock, ringed with gold lights, with the Santa Monica Mountains along the horizon behind, all hazed by hand.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -178,6 +187,7 @@ None.
 | `pages/world-ride/knicks` | Knicks Championship Parade at 1:53, warm-up, next `Float sprint` |
 | `pages/world-ride/vegas` | Las Vegas Strip at 4:50, warm-up, next `Green-light sprint` |
 | `pages/world-ride/route66` | Route 66 Desert at 4:50, warm-up, next `Signpost sprint` |
+| `pages/world-ride/venice` | Venice Beach Boardwalk at 1:53, warm-up, next `Palm sprint` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
