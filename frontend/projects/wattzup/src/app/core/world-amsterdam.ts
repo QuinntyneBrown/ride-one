@@ -135,6 +135,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addSigns(roadHalf);
     this.addBenches(roadHalf);
     this.addContainers(roadHalf);
+    this.addTour(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1368,6 +1369,42 @@ export class AmsterdamStreet implements SceneStreet {
       this.group.add(at);
       this.props.push({ mesh: at, offset: b + 2 + CROSS / 2 + 12, x: -roadHalf - 2.7 });
     }
+  }
+
+  /**
+   * A walking tour gathered on the quay at the far end of the first bridge: a dozen visitors
+   * standing round their guide, who holds up a red umbrella, some of them turned to the canal
+   * with their phones up.
+   */
+  private addTour(roadHalf: number): void {
+    const random = seeded(757);
+    const people = this.material({ vertexColors: true, roughness: 0.85 });
+    const red = this.material({ color: 0xc8202a, roughness: 0.7, side: DoubleSide });
+    const black = this.material({ color: 0x1b1b1f, roughness: 0.6 });
+    const group = new Group();
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 1.6 - Math.PI * 0.3;
+      const r = 1.4 + random() * 0.9;
+      const person = new Mesh(standerGeometry(random, random() < 0.4), people);
+      this.disposables.push(person.geometry);
+      person.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+      person.rotation.y = Math.atan2(Math.cos(a), Math.sin(a)) + (random() - 0.5) * 0.6;
+      group.add(person);
+    }
+    const guide = new Mesh(standerGeometry(random, true), people);
+    this.disposables.push(guide.geometry);
+    guide.rotation.y = -Math.PI / 2;
+    const shaft = new Mesh(this.unit, black);
+    shaft.scale.set(0.025, 1.1, 0.025);
+    shaft.position.set(0.25, 2.0, -0.2);
+    const canopy = new Mesh(new ConeGeometry(0.55, 0.28, 8, 1, true), red);
+    this.disposables.push(canopy.geometry);
+    canopy.position.set(0.25, 2.62, -0.2);
+    group.add(guide, shaft, canopy);
+    group.children.forEach((m) => (m.castShadow = true));
+    group.position.y = KERB;
+    this.group.add(group);
+    this.props.push({ mesh: group, offset: BRIDGE + 2 + CROSS / 2 + 3, x: -roadHalf - 2.9 });
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
@@ -2718,6 +2755,45 @@ function sitterGeometry(random: () => number): BufferGeometry {
   const head = new SphereGeometry(0.11, 10, 8);
   head.translate(0, 1.36, 0.02);
   parts.push([torso.toNonIndexed(), top], [head.toNonIndexed(), skin]);
+  const painted = parts.map(([geometry, colour]) => {
+    const count = geometry.getAttribute('position').count;
+    const colours = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) colour.toArray(colours, i * 3);
+    geometry.setAttribute('color', new BufferAttribute(colours, 3));
+    return geometry;
+  });
+  const merged = mergeGeometries(painted)!;
+  painted.forEach((p) => p.dispose());
+  return merged;
+}
+
+/**
+ * Someone standing, facing -z, dressed at random from the commuters' wardrobe in vertex
+ * colours, arms hanging or, with `phone`, one forearm raised holding a phone up.
+ */
+function standerGeometry(random: () => number, phone: boolean): BufferGeometry {
+  const pick = (list: readonly string[]) => new Color(list[Math.floor(random() * list.length)]!);
+  const top = pick(COMMUTER_WEAR.tops);
+  const bottom = pick(COMMUTER_WEAR.bottoms);
+  const skin = pick(COMMUTER_WEAR.skins);
+  const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
+  const parts: [BufferGeometry, Color][] = [];
+  for (const side of [-0.1, 0.1]) parts.push([limb(v(side, 0, 0), v(side, 0.9, 0), 0.075), bottom]);
+  const torso = new CapsuleGeometry(0.19, 0.42, 4, 8);
+  torso.translate(0, 1.15, 0);
+  const head = new SphereGeometry(0.115, 10, 8);
+  head.translate(0, 1.6, 0);
+  parts.push([torso.toNonIndexed(), top], [head.toNonIndexed(), skin]);
+  parts.push([limb(v(-0.24, 1.4, 0), v(-0.27, 0.85, 0.02), 0.045), top]);
+  if (phone) {
+    parts.push([limb(v(0.24, 1.4, 0), v(0.26, 1.18, -0.12), 0.045), top]);
+    parts.push([limb(v(0.26, 1.18, -0.12), v(0.12, 1.45, -0.38), 0.04), top]);
+    const handset = new BoxGeometry(0.08, 0.15, 0.015);
+    handset.translate(0.1, 1.5, -0.4);
+    parts.push([handset.toNonIndexed(), new Color('#1b1b1f')]);
+  } else {
+    parts.push([limb(v(0.24, 1.4, 0), v(0.27, 0.85, 0.02), 0.045), top]);
+  }
   const painted = parts.map(([geometry, colour]) => {
     const count = geometry.getAttribute('position').count;
     const colours = new Float32Array(count * 3);
