@@ -697,6 +697,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 5, work: 12, rest: 6, cooldown: 3, steady: 8 },
     roll: 1,
   },
+  {
+    id: 'velodrome',
+    name: 'Lee Valley Velodrome',
+    route: 'the boards',
+    effortName: 'Track spin',
+    description:
+      "The pale pine boards of London's Olympic velodrome sweep up into the steep banked bends under the bright arena lights and the curved timber roof, as the packed stands roar above the fence and the teams wait with their bikes in the infield. The minute's warm-up rolls round the black line, the one-minute efforts lift the cadence up the banking toward the stayers' line, and the long efforts of three and a half minutes hold the spin down the straights before the easy minutes drop back to the blue band.",
+    grade: { warmup: 0, work: 0, rest: 0, cooldown: 0, steady: 0 },
+    roll: 0,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
