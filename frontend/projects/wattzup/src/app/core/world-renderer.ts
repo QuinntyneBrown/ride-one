@@ -1014,6 +1014,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 1.6, fill: 2.0, colour: 0xe8ecf0 },
     fogRange: [60, 1300],
   },
+  // A bright summer morning on the harbour: clear sky, sparkling water, crisp light on glass.
+  toronto: {
+    sky: 0x5a9ae0,
+    fog: 0xd8e4ee,
+    ground: 0x5a8a3a,
+    road: 0x3e4044,
+    sun: 40,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.5,
+    azimuth: 150,
+    light: { sun: 2.9, fill: 1.5, colour: 0xfff6ea },
+    fogRange: [600, 6000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -471,6 +471,11 @@ None.
   - a burn tumbling over its rocks in little falls on the ride's clock to a still lochan, and a white croft and its byre with peat smoke rising from the chimney;
   - blackface sheep grazing, heads lifting and lowering, a shaggy Highland cow, and walkers in bright waterproofs (`Figures`);
   - the moorland hills and the Cuillin's black jagged ridge, fading in and out behind mist banks drifting across the glen on the ride's clock, keeping their bearing.
+- **Toronto Waterfront Trail (`core/world-toronto.ts`).** For `toronto`, Queens Quay on a bright summer morning:
+  - on the left the granite kerb, the wooden boardwalk and the dock's edge above Lake Ontario, with Sugar Beach's pink umbrellas and HTO Park's yellow ones on their sand; the ground sinks below the lake;
+  - on the right the granite promenade under rows of maples, the streetcar's grassy track and overhead wire with the red streetcar gliding along it, the quay's road, and glass condo towers on their podiums;
+  - runners, cyclists, strollers and people watching the boats (`Figures`);
+  - the lake rippling on the ride's clock, the island ferry and sailboats crossing it, the Toronto Islands' wooded shore, and ahead the CN Tower with its pod and mast, the Rogers Centre's dome and the downtown towers, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -543,6 +548,7 @@ None.
 | `pages/world-ride/paine` | Torres del Paine at 4:50, warm-up, next `Patagonian VO2 effort` |
 | `pages/world-ride/ibiza` | Ibiza Sunset Strip at 2:53, warm-up, next `Bass drop` |
 | `pages/world-ride/skye` | Isle of Skye Fog at 4:50, warm-up, next `Into the mist` |
+| `pages/world-ride/toronto` | Toronto Waterfront Trail at 4:50, warm-up, next `Harbourfront sprint` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

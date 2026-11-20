@@ -631,6 +631,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Isle of Skye Fog');
   });
 
+  test('rides 30 Minute Sprint and Threshold HIIT along the Toronto Waterfront Trail', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '30 Minute Sprint and Threshold HIIT',
+      'Toronto Waterfront Trail',
+      '30-minute-sprint-and-threshold-hiit',
+    );
+    await expect(world.heading).toHaveText('Toronto Waterfront Trail');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Toronto Waterfront Trail');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
