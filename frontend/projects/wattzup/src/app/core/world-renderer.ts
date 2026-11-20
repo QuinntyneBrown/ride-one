@@ -3263,7 +3263,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
     // AC9), and both depend only on s, so under reduced motion it turns only as the rider rides.
     const eye = bendPoint(this.bendSamples, sway, 5.5);
     const look = bendPoint(this.bendSamples, 0, -24);
-    this.camera.position.set(eye.x, 2.1, eye.z);
+    // The eye rides 2.1 m over the road under it, 5.5 m behind the rider: lower on a climb.
+    this.camera.position.set(eye.x, heightAt(ahead, -5.5) + 2.1, eye.z);
     this.camera.lookAt(look.x, 1.2 + heightAt(ahead, 24), look.z);
 
     if (this.pipeline) this.pipeline.render();
