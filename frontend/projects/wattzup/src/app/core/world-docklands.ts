@@ -6,14 +6,16 @@ import {
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
-  DoubleSide,
-  type Material,
   CanvasTexture,
   Color,
+  CylinderGeometry,
+  DoubleSide,
   Group,
+  type Material,
   Mesh,
   MeshStandardMaterial,
   RepeatWrapping,
+  SphereGeometry,
   SRGBColorSpace,
   type Texture,
 } from 'three/webgpu';
@@ -36,6 +38,16 @@ const KERB = 0.2;
 const KERB_WIDTH = 0.3;
 /** The pavement's slabs: two to a texture tile, each this many metres square. */
 const SLAB = 1.5;
+/**
+ * Street lamps stand on alternate sides every LAMP_EVERY metres, LAMP_OUT metres from the
+ * road's centre, where world-renderer.ts puts the night's point lights; their heads are
+ * LAMP_HEIGHT metres above the road.
+ */
+const LAMP_EVERY = 40;
+const LAMP_FIRST = 8;
+const LAMP_OUT = 5;
+const LAMP_HEIGHT = 6;
+const LAMPS = 10;
 
 interface Tower {
   readonly mesh: Mesh;
@@ -50,6 +62,7 @@ export class DocklandsStreet {
   private readonly towers: Tower[] = [];
   private readonly random = seeded(41);
   private readonly skyline = new Group();
+  private readonly lamps: Group[] = [];
   private readonly ribbons: { geometry: BufferGeometry; profile: [number, number][] }[] = [];
 
   constructor(
@@ -59,6 +72,7 @@ export class DocklandsStreet {
 
   build(roadHalf: number, points: number): void {
     this.addQuay(roadHalf, points);
+    this.addLamps();
     const roof = new MeshStandardMaterial({ color: 0x0c0e16, roughness: 0.9 });
     // Three façades: blue glass, grey concrete and dark curtain wall, each lit its own way.
     const facades = [
@@ -258,6 +272,36 @@ export class DocklandsStreet {
     }
   }
 
+  /** Slim dark poles with a glowing globe on top, as in the mock. */
+  private addLamps(): void {
+    const metal = new MeshStandardMaterial({ color: 0x15171d, metalness: 0.6, roughness: 0.4 });
+    const globe = new MeshStandardMaterial({
+      color: 0xfff1d6,
+      emissive: new Color(0xffe2b0),
+      emissiveIntensity: 3,
+    });
+    const pole = new CylinderGeometry(0.06, 0.09, LAMP_HEIGHT - KERB, 8);
+    const foot = new CylinderGeometry(0.16, 0.2, 0.5, 10);
+    const head = new SphereGeometry(0.26, 16, 12);
+    const collar = new CylinderGeometry(0.12, 0.08, 0.16, 10);
+    this.disposables.push(metal, globe, pole, foot, head, collar);
+    for (let i = 0; i < LAMPS; i++) {
+      const lamp = new Group();
+      const shaft = new Mesh(pole, metal);
+      shaft.position.y = KERB + (LAMP_HEIGHT - KERB) / 2 - 0.3;
+      shaft.castShadow = true;
+      const base = new Mesh(foot, metal);
+      base.position.y = KERB + 0.25;
+      const cup = new Mesh(collar, metal);
+      cup.position.y = LAMP_HEIGHT - 0.28;
+      const light = new Mesh(head, globe);
+      light.position.y = LAMP_HEIGHT;
+      lamp.add(shaft, base, cup, light);
+      this.lamps.push(lamp);
+      this.group.add(lamp);
+    }
+  }
+
   /** A strip along the road whose cross-section is `profile`: [x, height above the road]. */
   private ribbon(points: number, material: Material, profile: [number, number][]): void {
     const n = profile.length;
@@ -310,6 +354,10 @@ export class DocklandsStreet {
         -metres,
       );
     }
+    this.lamps.forEach((lamp, i) => {
+      const metres = i * LAMP_EVERY - (s % LAMP_EVERY) + LAMP_FIRST;
+      lamp.position.set(i % 2 === 0 ? -LAMP_OUT : LAMP_OUT, heightAt(metres), -metres);
+    });
     this.skyline.position.set(0, heightAt(1e6) - 4, -SKYLINE_AHEAD);
   }
 }
