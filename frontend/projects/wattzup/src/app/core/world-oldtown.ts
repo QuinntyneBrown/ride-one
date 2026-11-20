@@ -25,6 +25,7 @@ import {
   type Texture,
   Vector3,
 } from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /** Metres from the road's centre to the house fronts. */
 export const FRONTAGE = 6.5;
@@ -82,6 +83,8 @@ interface Fan {
   readonly shirt: string;
   readonly skin: string;
   readonly trousers: string;
+  /** Arms raised, cheering the riders on; otherwise at their sides. */
+  readonly cheer: boolean;
 }
 
 const SHIRTS = [
@@ -152,8 +155,12 @@ export class OldTownStreet {
   private readonly brick = new MeshStandardMaterial({ color: 0x8e4a37, roughness: 0.95 });
   private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
   private readonly crowd: Fan[] = [];
-  /** The crowd's legs, torsos and heads. */
+  /** The crowd's legs, torsos, heads and arms. */
   private fans: InstancedMesh[] = [];
+  private readonly reach = new Vector3();
+  private readonly shoulder = new Vector3();
+  private readonly lean = new Quaternion();
+  private readonly armTurn = new Quaternion();
   private flags: InstancedMesh | null = null;
   private readonly cathedral = new Group();
   private readonly iron = new MeshStandardMaterial({
@@ -162,6 +169,11 @@ export class OldTownStreet {
     roughness: 0.5,
   });
   private readonly signBoard = new PlaneGeometry(0.7, 0.55);
+  private readonly zinc = new MeshStandardMaterial({
+    color: 0x8a9096,
+    metalness: 0.5,
+    roughness: 0.45,
+  });
   private readonly pot = new CylinderGeometry(0.24, 0.18, 0.5, 10);
   private readonly bush = new SphereGeometry(0.42, 10, 8);
   private readonly terracotta = new MeshStandardMaterial({ color: 0xb4603f, roughness: 0.9 });
@@ -207,7 +219,7 @@ export class OldTownStreet {
     if (this.railing.map) this.track(this.railing.map);
     this.disposables.push(this.iron, this.signBoard, this.dormer, this.dormerRoof, ...this.signs);
     this.disposables.push(this.flagCloth, ...this.houseFlags);
-    this.disposables.push(this.pot, this.bush, this.terracotta, this.leaves);
+    this.disposables.push(this.pot, this.bush, this.terracotta, this.leaves, this.zinc);
     for (const flag of this.houseFlags) if (flag.map) this.track(flag.map);
     for (const sign of this.signs) if (sign.map) this.track(sign.map);
     this.addFurniture(roadHalf);
@@ -436,6 +448,7 @@ export class OldTownStreet {
     window.position.set(0, 34, 11.2);
     c.add(window);
     for (let i = 0; i < 5; i++) box(glass, 1.4, 9, 1, -20 + (i % 2 ? 40 : 0), 20, 4.2);
+    this.flatten(c);
     this.group.add(c);
   }
 
@@ -488,8 +501,8 @@ export class OldTownStreet {
 
   /** The crowd, moved with the street: one instance per spectator's legs, torso and head. */
   private placeCrowd(s: number, heightAt: (metres: number) => number): void {
-    const [legs, torsos, heads] = this.fans;
-    if (!legs || !torsos || !heads) return;
+    const [legs, torsos, heads, arms] = this.fans;
+    if (!legs || !torsos || !heads || !arms) return;
     this.crowd.forEach((fan, i) => {
       const metres = ((((fan.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const y = heightAt(Math.max(metres, 0)) + KERB;
@@ -507,6 +520,23 @@ export class OldTownStreet {
       set(legs, hip / 2, hip / 0.9);
       set(torsos, (hip + neck) / 2, (neck - hip + 0.08) / 0.75);
       set(heads, fan.height - 0.11, 1);
+      // Each arm hangs from its shoulder, or reaches up and out to cheer.
+      for (const side of [-1, 1]) {
+        this.reach.set(side * (fan.cheer ? 0.35 : 0.1), fan.cheer ? 1 : -1, 0.08).normalize();
+        this.shoulder.set(side * 0.21, 0, 0).applyQuaternion(this.turn);
+        this.shoulder.y = y + neck - 0.06;
+        this.shoulder.x += fan.x;
+        this.shoulder.z -= metres;
+        this.lean.setFromUnitVectors(UP, this.reach);
+        this.armTurn.copy(this.turn).multiply(this.lean);
+        this.reach.applyQuaternion(this.turn);
+        this.matrix.compose(
+          this.spot.copy(this.shoulder).addScaledVector(this.reach, 0.3),
+          this.armTurn,
+          this.size.set(1, 1, 1),
+        );
+        arms.setMatrixAt(2 * i + (side > 0 ? 1 : 0), this.matrix);
+      }
     });
     for (const mesh of this.fans) {
       mesh.instanceMatrix.needsUpdate = true;
@@ -534,24 +564,35 @@ export class OldTownStreet {
           shirt: SHIRTS[Math.floor(random() * SHIRTS.length)]!,
           skin: SKINS[Math.floor(random() * SKINS.length)]!,
           trousers: TROUSERS[Math.floor(random() * TROUSERS.length)]!,
+          cheer: false,
         });
       }
     }
+    // A quarter of the crowd cheer, drawn from a sequence of their own.
+    const cheers = seeded(43);
+    this.crowd.forEach((fan, i) => {
+      this.crowd[i] = { ...fan, cheer: cheers() < 0.25 };
+    });
     // Unit parts, scaled per spectator: legs 0.9 m and a torso 0.75 m long before scaling.
     const legs = new CapsuleGeometry(0.13, 0.64, 4, 8);
     legs.scale(1.25, 1, 0.8);
     const torso = new CapsuleGeometry(0.17, 0.41, 4, 10);
     torso.scale(1.1, 1, 0.7);
     const head = new SphereGeometry(0.105, 12, 8);
+    // An arm 0.6 m long, its middle at the origin.
+    const arm = new CapsuleGeometry(0.05, 0.5, 4, 6);
     const material = new MeshStandardMaterial({ roughness: 0.8 });
-    this.disposables.push(legs, torso, head, material);
+    this.disposables.push(legs, torso, head, arm, material);
     const n = this.crowd.length;
     this.fans = [legs, torso, head].map((g) => new InstancedMesh(g, material, n));
+    this.fans.push(new InstancedMesh(arm, material, 2 * n));
     const colour = new Color();
     this.crowd.forEach((fan, i) => {
       this.fans[0]!.setColorAt(i, colour.set(fan.trousers));
       this.fans[1]!.setColorAt(i, colour.set(fan.shirt));
       this.fans[2]!.setColorAt(i, colour.set(fan.skin));
+      this.fans[3]!.setColorAt(2 * i, colour.set(fan.shirt));
+      this.fans[3]!.setColorAt(2 * i + 1, colour.set(fan.shirt));
     });
     for (const mesh of this.fans) {
       mesh.castShadow = true;
@@ -577,7 +618,14 @@ export class OldTownStreet {
     const cap = new ConeGeometry(0.28, 0.3, 6);
     const bollard = new CylinderGeometry(0.09, 0.11, 0.9, 10);
     const knob = new SphereGeometry(0.11, 10, 6);
+    // A hanging basket of geraniums on an arm from each lamp, out over the barrier.
+    const arm = new BoxGeometry(0.9, 0.04, 0.04);
+    const basket = new SphereGeometry(0.3, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    const bloom = new SphereGeometry(0.36, 12, 8);
+    const wicker = new MeshStandardMaterial({ color: 0x5a3e26, roughness: 0.95 });
+    const flowers = new MeshStandardMaterial({ map: this.track(bloomTexture()), roughness: 0.9 });
     this.disposables.push(glass, pole, foot, lantern, cap, bollard, knob);
+    this.disposables.push(arm, basket, bloom, wicker, flowers);
     const lampEvery = 28;
     for (let i = 0; i < LOOP / lampEvery; i++) {
       const lamp = new Group();
@@ -593,6 +641,16 @@ export class OldTownStreet {
         lamp.add(mesh);
       }
       const side = i % 2 ? 1 : -1;
+      const reach = new Mesh(arm, iron);
+      reach.position.set(-side * 0.45, 3.6, 0);
+      const hang = new Mesh(basket, wicker);
+      hang.position.set(-side * 0.8, 3.2, 0);
+      const blooms = new Mesh(bloom, flowers);
+      blooms.position.set(-side * 0.8, 3.25, 0);
+      blooms.scale.set(1, 0.8, 1);
+      hang.castShadow = blooms.castShadow = true;
+      lamp.add(reach, hang, blooms);
+      this.flatten(lamp);
       this.group.add(lamp);
       this.props.push({
         mesh: lamp,
@@ -612,6 +670,7 @@ export class OldTownStreet {
         top.position.y = 0.92;
         body.castShadow = top.castShadow = true;
         b.add(body, top);
+        this.flatten(b);
         this.group.add(b);
         this.props.push({
           mesh: b,
@@ -677,6 +736,19 @@ export class OldTownStreet {
       stack.castShadow = true;
       group.add(stack, pot);
     }
+    // Ridge tiles capping the roof, a zinc gutter along the eaves and a downpipe at one end.
+    const ridge = new Mesh(this.unit, roof[0]!);
+    ridge.scale.set(0.28, 0.16, width + 0.3);
+    ridge.position.set(-DEPTH / 2, SHOP + height + rise + 0.02, 0);
+    const gutter = new Mesh(this.unit, this.zinc);
+    gutter.scale.set(0.16, 0.14, width + 0.2);
+    gutter.position.set(0.36, SHOP + height + 0.02, 0);
+    const pipe = new Mesh(this.unit, this.zinc);
+    const end = (this.chance(5) < 0.5 ? -1 : 1) * (width / 2 - 0.12);
+    pipe.scale.set(0.09, SHOP + height, 0.09);
+    pipe.position.set(0.1, (SHOP + height) / 2, end);
+    ridge.castShadow = gutter.castShadow = pipe.castShadow = true;
+    group.add(ridge, gutter, pipe);
     for (const m of [shopMesh, upperMesh, roofMesh]) {
       m.castShadow = true;
       m.receiveShadow = true;
@@ -691,7 +763,52 @@ export class OldTownStreet {
     group.add(this.trim(trim, width + 0.3, 0.45, 0.42, SHOP + height - 0.22));
     group.add(this.trim(trim, width, 0.2, 0.24, SHOP));
     this.disposables.push(shopBox, upperBox, roofGeometry);
+    this.flatten(group);
     return group;
+  }
+
+  /**
+   * Merges a house's parts that share a material into one mesh: a draw per material rather
+   * than per part, so the street fits the frame budget at the higher tiers.
+   */
+  private flatten(house: Group): void {
+    house.updateMatrixWorld(true);
+    // Each part's place relative to the house, whatever the house's own place.
+    const local = new Matrix4().copy(house.matrixWorld).invert();
+    const buckets = new Map<
+      string,
+      { material: Material; parts: BufferGeometry[]; meshes: Mesh[] }
+    >();
+    house.traverse((o) => {
+      if (!(o instanceof Mesh) || Array.isArray(o.material)) return;
+      const geometry = o.geometry as BufferGeometry;
+      const key = [
+        (o.material as Material).uuid,
+        geometry.index ? 'indexed' : 'flat',
+        Object.keys(geometry.attributes).sort().join(),
+      ].join('|');
+      const bucket = buckets.get(key) ?? {
+        material: o.material as Material,
+        parts: [],
+        meshes: [],
+      };
+      bucket.parts.push(
+        geometry.clone().applyMatrix4(new Matrix4().multiplyMatrices(local, o.matrixWorld)),
+      );
+      bucket.meshes.push(o);
+      buckets.set(key, bucket);
+    });
+    for (const { material, parts, meshes } of buckets.values()) {
+      const merged = meshes.length > 1 ? mergeGeometries(parts) : null;
+      for (const part of parts) part.dispose();
+      if (!merged) continue;
+      for (const mesh of meshes) mesh.removeFromParent();
+      const mesh = new Mesh(merged, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      house.add(mesh);
+      this.disposables.push(merged);
+    }
   }
 
   /** Bay trees in terracotta pots either side of a home's doors. */
@@ -1075,10 +1192,22 @@ function bayTexture(palette: Palette, shop: boolean, closed = false): CanvasText
       ctx.fillRect(x - 6, y - 8, ww + 12, wh + 18);
       ctx.fillStyle = '#2b3138';
       ctx.fillRect(x, y, ww, wh);
-      const glass = ctx.createLinearGradient(x, y, x + ww, y + wh);
-      glass.addColorStop(0, 'rgba(170,200,220,0.55)');
-      glass.addColorStop(0.6, 'rgba(70,80,90,0.1)');
+      // The glass mirrors the sky above and the sunlit houses across the street below.
+      const glass = ctx.createLinearGradient(x, y, x, y + wh);
+      glass.addColorStop(0, 'rgba(178,208,232,0.75)');
+      glass.addColorStop(0.45, 'rgba(120,150,175,0.35)');
+      glass.addColorStop(0.55, 'rgba(196,160,120,0.3)');
+      glass.addColorStop(1, 'rgba(90,70,55,0.25)');
       ctx.fillStyle = glass;
+      ctx.fillRect(x, y, ww, wh);
+      // A curtain drawn to one side inside.
+      ctx.fillStyle = 'rgba(236,228,212,0.55)';
+      ctx.fillRect(random() < 0.5 ? x + 2 : x + ww - 12, y + 2, 10, wh - 4);
+      const glint = ctx.createLinearGradient(x, y, x + ww, y + wh);
+      glint.addColorStop(0.2, 'rgba(255,255,255,0)');
+      glint.addColorStop(0.3, 'rgba(255,255,255,0.28)');
+      glint.addColorStop(0.4, 'rgba(255,255,255,0)');
+      ctx.fillStyle = glint;
       ctx.fillRect(x, y, ww, wh);
       ctx.fillStyle = palette.trim;
       ctx.fillRect(x + ww / 2 - 2, y, 4, wh);
@@ -1207,6 +1336,17 @@ export function cobbleTextures(): { map: CanvasTexture; relief: CanvasTexture } 
       dish.addColorStop(1 - dark, 'rgba(30,25,20,0)');
       ctx.fillStyle = dish;
       ctx.fillRect(gx, 0, gutter, h);
+      // A cast-iron drain grate in each gutter, the two sides out of step.
+      const gy = (gx === 0 ? 0.22 : 0.68) * h;
+      const gl = 0.55 * (h / 10);
+      ctx.fillStyle = '#3b3d40';
+      ctx.fillRect(gx + 4, gy, gutter - 8, gl);
+      ctx.fillStyle = '#17181a';
+      for (let sy = gy + 6; sy < gy + gl - 6; sy += 9) ctx.fillRect(gx + 9, sy, gutter - 18, 4);
+      hctx.fillStyle = '#6a6a6a';
+      hctx.fillRect(gx + 4, gy, gutter - 8, gl);
+      hctx.fillStyle = '#303030';
+      for (let sy = gy + 6; sy < gy + gl - 6; sy += 9) hctx.fillRect(gx + 9, sy, gutter - 18, 4);
     }
     ctx.fillStyle = '#f1f0ea';
     ctx.fillRect(0.42 * pxX, 0, 0.1 * pxX, h);
@@ -1359,6 +1499,30 @@ function gothicTexture(open: boolean): CanvasTexture {
         ctx.fillRect(x, 120, w, 4);
         ctx.fillStyle = '#3a3c44';
       }
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** Geraniums: a trailing green mass dotted with red and pink heads. */
+function bloomTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#3d6a32';
+    ctx.fillRect(0, 0, 128, 64);
+    const random = seeded(61);
+    for (let i = 0; i < 160; i++) {
+      ctx.fillStyle = ['#2f5528', '#4f8040', '#d8323a', '#e8607a', '#c41e3a'][
+        Math.floor(random() * 5)
+      ]!;
+      ctx.beginPath();
+      ctx.arc(random() * 128, random() * 64, 2 + random() * 3, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
   const texture = new CanvasTexture(canvas);
