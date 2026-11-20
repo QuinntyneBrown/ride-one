@@ -505,6 +505,9 @@ const BANNER_TALL = 2.2;
 const LAMP_FIRST = 8;
 const LAMP_OUT = 5;
 const LAMP_HEIGHT = 6;
+/** The cone of light under each lamp: its radius on the paving (m) and its brightness. */
+const LAMP_CONE_WIDE = 2.6;
+const LAMP_CONE_STRENGTH = 0.55;
 /** The halo round a lamp's globe, and round a lantern's bulb, this wide. */
 const LAMP_HALO = 2.6;
 const LANTERN_HALO = 0.9;
@@ -2621,6 +2624,21 @@ export class DocklandsStreet {
     // A soft halo round each globe, as its light blooms in the wet air.
     const halo = this.halo('#ffd9a0', 1.3);
     this.disposables.push(metal, globe, pole, foot, head, collar);
+    // A cone of light falling from each globe through the rain, brightest under the globe and
+    // fading out before the paving.
+    const fall = new MeshBasicMaterial({
+      color: new Color('#ffd9a0').multiplyScalar(LAMP_CONE_STRENGTH),
+      map: this.track(lighthouseBeamTexture()),
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      side: DoubleSide,
+      toneMapped: false,
+    });
+    const cone = new ConeGeometry(LAMP_CONE_WIDE, LAMP_HEIGHT - 0.3, 24, 1, true);
+    // Its tip at the globe, its open end on the paving.
+    cone.translate(0, -(LAMP_HEIGHT - 0.3) / 2, 0);
+    this.disposables.push(fall, cone);
     // Festival banners hang from a bracket on each pole, out over the pavement's edge.
     const banners = BANNERS.map(([words, hex]) => {
       const texture = this.track(bannerTexture(words, hex));
@@ -2647,7 +2665,9 @@ export class DocklandsStreet {
       const bloom = new Sprite(halo);
       bloom.position.y = LAMP_HEIGHT;
       bloom.scale.setScalar(LAMP_HALO);
-      lamp.add(shaft, base, cup, light, bloom);
+      const pool = new Mesh(cone, fall);
+      pool.position.y = LAMP_HEIGHT - 0.1;
+      lamp.add(shaft, base, cup, light, bloom, pool);
       lamp.userData['bloom'] = bloom;
       // Lamps stand on the left at even places: their light reflects on the road inside them.
       const inward = i % 2 === 0 ? 1 : -1;
