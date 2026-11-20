@@ -90,3 +90,11 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 ## Reproducing a capture
 
 Serve a development build (`npm start` in `frontend/`; the simulated bike answers only in a development build), open `/classes/30-sec-on-2-min-off?simulate`, click **Ride in Havana Malecón**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900. From iteration 002 on, the Render quality and Realism scores each capture was given are listed beside it; the current ones are in [the class list](../../class-worlds.md).
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [069 · El Morro stands across the harbour mouth](bend-069-morro-stands.jpg) | El Morro's walls and lighthouse across the harbour mouth were bent vertex by vertex with the Malecón's bends, swinging over the sea with each turn of the sea wall. They now stand beyond the road unbent, as the panorama does, and the walkers and props behind the rider stand on the road there instead of at the height under the rider. |

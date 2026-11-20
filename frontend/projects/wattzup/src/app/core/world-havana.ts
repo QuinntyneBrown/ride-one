@@ -144,6 +144,7 @@ export class HavanaStreet implements SceneStreet {
   private readonly sitters: Sitter[] = [];
   private swell: Texture | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly drop = new Matrix4();
@@ -305,18 +306,18 @@ export class HavanaStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     for (const car of this.cars) {
       const metres = loopMetres(car.offset + car.speed * this.time, s, LOOP, BEHIND);
       car.mesh.position.z = -metres;
-      car.mesh.position.y = heightAt(Math.max(metres, 0));
+      car.mesh.position.y = heightAt(metres);
     }
     const people = this.people;
     if (people) {
       this.strollers.forEach((w, i) => {
         const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
-        const y = heightAt(Math.max(metres, 0)) + KERB;
+        const y = heightAt(metres) + KERB;
         people.set(i, w.x, y, -metres, w.heading, this.time * (w.child ? 6 : 4) + w.phase);
       });
       people.commit();
@@ -332,14 +333,7 @@ export class HavanaStreet implements SceneStreet {
         const metres = loopMetres(c.offset, s, LOOP, BEHIND);
         const kerb = x > this.roadHalf || x < -this.roadHalf - LANES ? KERB : 0;
         const heading = out === c.to < c.from ? Math.PI / 2 : -Math.PI / 2;
-        crowd.set(
-          i,
-          x,
-          heightAt(Math.max(metres, 0)) + kerb,
-          -metres,
-          heading,
-          this.time * 4 + c.phase * 9,
-        );
+        crowd.set(i, x, heightAt(metres) + kerb, -metres, heading, this.time * 4 + c.phase * 9);
       });
       crowd.commit();
     }
@@ -348,13 +342,7 @@ export class HavanaStreet implements SceneStreet {
       const wall = -this.roadHalf - LANES - PROMENADE - 0.35;
       this.sitters.forEach((p, i) => {
         const metres = loopMetres(p.offset, s, LOOP, BEHIND);
-        seated.set(
-          i,
-          wall,
-          heightAt(Math.max(metres, 0)) + WALL,
-          -metres,
-          p.sea ? Math.PI / 2 : -Math.PI / 2,
-        );
+        seated.set(i, wall, heightAt(metres) + WALL, -metres, p.sea ? Math.PI / 2 : -Math.PI / 2);
       });
       seated.commit();
     }
@@ -366,7 +354,7 @@ export class HavanaStreet implements SceneStreet {
         const k = ((((this.time + c.delay) / CYCLE) % 1) + 1) % 1;
         const out = 3 + (1 - k) * 70;
         this.crest.makeScale(2.2 + k * 1.8, 1 + k * 1.5, c.length);
-        this.crest.setPosition(wall - out, heightAt(Math.max(metres, 0)) - SEA + 0.04, -metres);
+        this.crest.setPosition(wall - out, heightAt(metres) - SEA + 0.04, -metres);
         this.crests!.setMatrixAt(i, this.crest);
       });
       this.crests.instanceMatrix.needsUpdate = true;
@@ -379,11 +367,7 @@ export class HavanaStreet implements SceneStreet {
         const flap = b.glide ? 0.15 : Math.sin(this.time * 9 + b.phase) * 0.5;
         this.spin.setFromAxisAngle(this.upward, a + Math.PI / 2);
         this.stretch.set(b.size, b.size * (1 + flap), b.size);
-        this.at.set(
-          b.x + Math.cos(a) * b.radius,
-          heightAt(Math.max(metres, 0)) + b.height,
-          -metres,
-        );
+        this.at.set(b.x + Math.cos(a) * b.radius, heightAt(metres) + b.height, -metres);
         this.drop.compose(this.at, this.spin, this.stretch);
         this.birds!.setMatrixAt(i, this.drop);
       });
