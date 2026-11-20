@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -258,6 +258,14 @@ None.
   - St Giles' Cathedral on the left once a lap with its crown spire;
   - jugglers in rings of spectators, flyerers at the kerbs and a crowd walking both ways (`Figures`);
   - the Castle on its rock at the top of the Mile, keeping its bearing as the street climbs.
+- **North Shore, Oahu (`core/world-northshore.ts`).** For `northshore`, the Kamehameha Highway when the big swell runs:
+  - the two-lane highway with its double yellow line, sandy verges and ironwoods;
+  - the golden beach running down to the surf, and big waves standing up and breaking white in sets on the ride's clock, surfers riding their faces;
+  - a lifeguard tower once a lap with boards stuck in the sand;
+  - shrimp trucks in red-dirt lots with awnings, picnic tables, umbrellas and hand-painted boards;
+  - surf shacks and plantation cottages with tin roofs, lanais and racked boards, among leaning coconut palms;
+  - beachgoers, diners at the trucks and walkers on the verge (`Figures`);
+  - the Ko'olau's green fluted ridges inland, keeping their bearing as the road runs; the ground sinks below the sea.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -300,6 +308,7 @@ None.
 | `pages/world-ride/stanleypark` | Stanley Park Seawall at 1:53, warm-up, next `Seawall push` |
 | `pages/world-ride/stelvio` | Stelvio Pass at 4:50, warm-up, next `Hairpin grind` |
 | `pages/world-ride/edinburgh` | Edinburgh Fringe at 4:50, warm-up, next `Close sprint` |
+| `pages/world-ride/northshore` | North Shore, Oahu at 4:50, warm-up, next `Big-wave push` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
