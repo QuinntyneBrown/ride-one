@@ -1955,6 +1955,7 @@
     },
     {
       "id": "high-power-tempo-with-short-sprints",
+      "world": "route66",
       "title": "High Power Tempo With Short Sprints",
       "channel": "GCN Training",
       "focus": "Tempo",

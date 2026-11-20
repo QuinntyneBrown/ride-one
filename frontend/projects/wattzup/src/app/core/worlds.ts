@@ -175,6 +175,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0, work: 1.5, rest: -0.5, cooldown: 0, steady: 0.5 },
     roll: 0.2,
   },
+  {
+    id: 'route66',
+    name: 'Route 66 Desert',
+    route: 'Route 66',
+    effortName: 'Signpost sprint',
+    description:
+      "Arizona's open highway, red mesas and chrome diners; hold tempo, then sprint for each roadside sign.",
+    grade: { warmup: 0.5, work: 3, rest: -1, cooldown: 0, steady: 1 },
+    roll: 1.2,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */

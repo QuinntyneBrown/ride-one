@@ -5,6 +5,7 @@ import { CaribanaStreet } from './world-caribana';
 import { SouthBeachStreet } from './world-southbeach';
 import { KnicksStreet } from './world-knicks';
 import type { StreetFactory } from './world-kit';
+import { Route66Street } from './world-route66';
 import { VegasStreet } from './world-vegas';
 import { NottingHillStreet } from './world-nottinghill';
 import { SuburbiaStreet } from './world-suburbia';
@@ -24,4 +25,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   nottinghill: (track, disposables) => new NottingHillStreet(track, disposables),
   knicks: (track, disposables) => new KnicksStreet(track, disposables),
   vegas: (track, disposables) => new VegasStreet(track, disposables),
+  route66: (track, disposables) => new Route66Street(track, disposables),
 };

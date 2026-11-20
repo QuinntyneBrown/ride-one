@@ -152,6 +152,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Las Vegas Strip');
   });
 
+  test('rides High Power Tempo With Short Sprints in Route 66 Desert on Route 66', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'High Power Tempo With Short Sprints',
+      'Route 66 Desert',
+      'high-power-tempo-with-short-sprints',
+    );
+    await expect(world.heading).toHaveText('Route 66 Desert');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Route 66 Desert');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

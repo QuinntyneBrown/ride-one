@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade and Las Vegas Strip have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip and Route 66 Desert have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -35,7 +35,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 29 | Quick HIIT Sprint Workout | Las Vegas Strip | 70% | Neon casinos and dancing fountains after midnight; sprint from light to light down the boulevard. |
 | 30 | Super High Cadence Sprints | Shibuya Crossing (concept) |  | Tokyo in neon rain; spin fast through the scramble beneath towering video screens. |
 | 31 | Elevate Your Climbing Power | Alpe d'Huez (concept) |  | Twenty-one hairpins above the valley, painted names on the tarmac and fans at every bend. |
-| 32 | High Power Tempo With Short Sprints | Route 66 Desert (concept) |  | Arizona's open highway, red mesas and chrome diners; hold tempo, then sprint for each roadside sign. |
+| 32 | High Power Tempo With Short Sprints | Route 66 Desert | 72% | Arizona's open highway, red mesas and chrome diners; hold tempo, then sprint for each roadside sign. |
 | 33 | Spicy Maximum Minute Efforts | Día de Muertos Parade (concept) |  | Marigolds, sugar skulls and giant skeletons along Mexico City's Paseo de la Reforma. |
 | 34 | Short, Sharp & Hard Efforts | Montmartre (concept) |  | Paris cobbles winding up to Sacré-Cœur; short, sharp kicks past cafés and painters. |
 | 35 | Beginner Training Session | Amsterdam Canals (concept) |  | Flat canal-side streets, humpback bridges and houseboats among friendly commuters. |
