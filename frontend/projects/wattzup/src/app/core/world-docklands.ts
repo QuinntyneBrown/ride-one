@@ -161,6 +161,16 @@ const LANE_SYMBOL_LONG = 6.4;
 const TREE_OUT = 3;
 const TREE_EVERY = 24;
 const TREE_HEIGHT = 4.2;
+/** Bus shelters: where round the loop (between the trees), how far out (m), how long (m). */
+const SHELTERS = [48, 290, 506];
+const SHELTER_OUT = 2.6;
+const SHELTER_LONG = 4.2;
+/** The shelters' backlit adverts: a headline and its colour. */
+const SHELTER_ADVERTS: readonly (readonly [string, string])[] = [
+  ['NOODLE BAR', '#ff4fd8'],
+  ['NIGHT FERRY', '#3fd9ff'],
+  ['SYNTH COLA', '#ffb347'],
+];
 /** Kerbside bollards: how high (m) and how far apart (m). */
 const BOLLARD_HEIGHT = 0.95;
 const BOLLARD_EVERY = 8;
@@ -326,6 +336,8 @@ export class DocklandsStreet {
   private readonly bollards: { group: Group; offset: number }[] = [];
   /** Street trees in lit planters along the far pavement, round the loop. */
   private readonly trees: { group: Group; offset: number }[] = [];
+  /** Bus shelters on the far pavement, at SHELTERS round the loop. */
+  private readonly shelters: { group: Group; offset: number }[] = [];
   /** Bike-lane symbols painted on the road, in both lanes, at LANE_SYMBOLS round the loop. */
   private readonly laneSymbols: { group: Group; offset: number }[] = [];
   /** Zebra crossings over the road, their beacons' globes and halos blinking together. */
@@ -1308,6 +1320,7 @@ export class DocklandsStreet {
     this.addCrossings(roadHalf);
     this.addBollards(roadHalf);
     this.addTrees(roadHalf);
+    this.addShelters(roadHalf);
     this.addLaneSymbols(roadHalf);
     this.addGates(roadHalf);
     this.addMachines(roadHalf);
@@ -1797,6 +1810,78 @@ export class DocklandsStreet {
       this.group.add(group);
       this.trees.push({ group, offset });
     }
+  }
+
+  /**
+   * Bus shelters on the pavement, open to the road: a dark frame, a tinted glass back, a roof
+   * with a lit edge, a bench, and at the near end a backlit advert that lights the wet paving.
+   */
+  private addShelters(roadHalf: number): void {
+    const frame = new MeshStandardMaterial({ color: 0x14151c, metalness: 0.5, roughness: 0.4 });
+    const glass = new MeshStandardMaterial({
+      color: 0x6fa8c8,
+      transparent: true,
+      opacity: 0.22,
+      roughness: 0.1,
+      depthWrite: false,
+    });
+    const edge = new MeshBasicMaterial({
+      color: new Color('#ff4fd8').multiplyScalar(1.5),
+      toneMapped: false,
+    });
+    const adverts = SHELTER_ADVERTS.map(([title, hex]) => {
+      const texture = this.track(advertTexture(title, hex));
+      return new MeshBasicMaterial({ map: texture, toneMapped: false });
+    });
+    const unit = new BoxGeometry(1, 1, 1);
+    this.disposables.push(frame, glass, edge, unit, ...adverts);
+    const box = (
+      material: Material,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      return mesh;
+    };
+    const x = roadHalf + SHELTER_OUT;
+    const long = SHELTER_LONG;
+    SHELTERS.forEach((offset, i) => {
+      const group = new Group();
+      const back = x + 0.8;
+      // Four posts, the roof over them and its lit edge towards the road.
+      for (const px of [x - 0.7, back]) {
+        for (const pz of [-long / 2, long / 2]) {
+          group.add(box(frame, 0.1, 2.5, 0.1, px, KERB + 1.25, pz));
+        }
+      }
+      group.add(box(frame, 1.9, 0.12, long + 0.3, x + 0.05, KERB + 2.56, 0));
+      group.add(box(edge, 0.06, 0.08, long + 0.3, x - 0.92, KERB + 2.56, 0));
+      group.add(box(glass, 0.04, 2.2, long, back, KERB + 1.2, 0));
+      group.add(box(frame, 0.45, 0.08, long - 1, back - 0.3, KERB + 0.48, 0));
+      // The advert closes the near end, facing the oncoming rider.
+      const advert = new Mesh(unit, adverts[i % adverts.length]!);
+      advert.scale.set(1.3, 1.9, 0.08);
+      advert.position.set(x + 0.05, KERB + 1.25, long / 2);
+      group.add(advert);
+      this.streak(
+        group,
+        SHELTER_ADVERTS[i % SHELTER_ADVERTS.length]![1],
+        x - 1.5,
+        KERB,
+        long / 2,
+        6,
+        2,
+        1,
+      );
+      this.group.add(group);
+      this.shelters.push({ group, offset });
+    });
   }
 
   private addStalls(): void {
@@ -2666,6 +2751,11 @@ export class DocklandsStreet {
       symbol.group.visible = !this.onBridge(Math.max(metres, 0));
       symbol.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
+    for (const shelter of this.shelters) {
+      const metres = ((((shelter.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      shelter.group.visible = !this.onBridge(Math.max(metres, 0));
+      shelter.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
     for (const tree of this.trees) {
       const metres = ((((tree.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       tree.group.visible = !this.onBridge(Math.max(metres, 0));
@@ -3042,6 +3132,37 @@ function laneSymbolTexture(): CanvasTexture {
     ctx.lineTo(26, -42);
     ctx.stroke();
     ctx.restore();
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A backlit advert: a deep glowing gradient, a bright disc and a stacked headline. */
+function advertTexture(title: string, hex: string): CanvasTexture {
+  const w = 128;
+  const h = 192;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, hex);
+    g.addColorStop(1, '#14082a');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(w / 2, 62, 30, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'center';
+    title.split(' ').forEach((word, i) => ctx.fillText(word, w / 2, 130 + i * 24));
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(2, 2, w - 4, h - 4);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
