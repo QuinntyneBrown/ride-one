@@ -342,6 +342,19 @@ export class MiamiStreet implements SceneStreet {
       [r, 0.012],
       [-r, 0.012],
     ]);
+    // A green-painted bike lane along the promenade side, a white bicycle on it every 20 m.
+    const lane = this.material({
+      map: this.repeat(bikeLaneTexture(), 1.3, 20),
+      roughness: 0.3,
+      metalness: 0.1,
+      transparent: true,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+    });
+    this.ribbons.add(points, lane, [
+      [-r + 1.6, 0.016],
+      [-r + 0.28, 0.016],
+    ]);
     this.ribbons.add(points, kerb, [
       [r + 0.25, 0.15],
       [r, 0.15],
@@ -2752,5 +2765,44 @@ function trafficStreamTexture(): CanvasTexture {
       g.fillRect(x, 10, 3, 4);
       g.fillRect(x + 5, 10, 3, 4);
     }
+  });
+}
+
+/** The bike lane: worn green paint with a white bicycle and arrow, and a white line inside. */
+function bikeLaneTexture(): CanvasTexture {
+  return canvasTexture(64, 1024, (g) => {
+    g.fillStyle = 'rgba(40,150,90,0.75)';
+    g.fillRect(0, 0, 64, 1024);
+    const random = seeded(8331);
+    g.fillStyle = 'rgba(20,20,26,0.5)';
+    for (let i = 0; i < 400; i++) g.fillRect(random() * 64, random() * 1024, 2, 2);
+    g.fillStyle = 'rgba(240,240,236,0.9)';
+    g.fillRect(0, 0, 4, 1024);
+    // The bicycle, drawn long down the lane so it reads from a rider's low eye.
+    g.strokeStyle = 'rgba(240,240,236,0.9)';
+    g.lineWidth = 3;
+    for (const cy of [420, 560]) {
+      g.save();
+      g.translate(32, cy);
+      g.scale(1, 3);
+      g.beginPath();
+      g.arc(0, 0, 11, 0, Math.PI * 2);
+      g.stroke();
+      g.restore();
+    }
+    g.beginPath();
+    g.moveTo(32, 420);
+    g.lineTo(32, 560);
+    g.moveTo(22, 470);
+    g.lineTo(42, 470);
+    g.stroke();
+    // The arrow ahead of it.
+    g.beginPath();
+    g.moveTo(32, 330);
+    g.lineTo(32, 230);
+    g.moveTo(20, 270);
+    g.lineTo(32, 230);
+    g.lineTo(44, 270);
+    g.stroke();
   });
 }
