@@ -4075,7 +4075,19 @@ function facadeTexture(storeys: number, seed: number, accent: string): CanvasTex
         g.fillRect(498, top + band * 0.18 + i * 6, 14, 2);
       }
     }
+    const shutters = seeded(seed + 5);
     for (const b of windowBays(storeys)) {
+      // Louvred storm shutters folded back beside some of the windows, in the trim colour.
+      if (shutters() < 0.3) {
+        g.fillStyle = accent;
+        g.fillRect(b.x - 9, b.y, 7, b.h);
+        g.fillRect(b.x + b.w + 2, b.y, 7, b.h);
+        g.fillStyle = 'rgba(20,16,30,0.35)';
+        for (let y = b.y + 2; y < b.y + b.h; y += 4) {
+          g.fillRect(b.x - 9, y, 7, 1);
+          g.fillRect(b.x + b.w + 2, y, 7, 1);
+        }
+      }
       g.fillStyle = '#20202e';
       g.fillRect(b.x, b.y, b.w, b.h);
       // The mullion and transom, and a pale reveal down one side.
