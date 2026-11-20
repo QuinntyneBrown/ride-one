@@ -520,35 +520,89 @@ function seaTexture(): CanvasTexture {
   });
 }
 
-/** A hotel's stucco front: storey bands, deco eyebrows and its window openings. */
+/** Where a façade's windows fall: per storey, paired windows between deco pilasters. */
+function windowBays(storeys: number): { x: number; y: number; w: number; h: number }[] {
+  const bays: { x: number; y: number; w: number; h: number }[] = [];
+  const band = 512 / storeys;
+  for (let f = 0; f < storeys; f++)
+    for (let x = 22; x < 490; x += 78)
+      for (const dx of [0, 30])
+        bays.push({ x: x + dx, y: f * band + band * 0.3, w: 26, h: band * 0.48 });
+  return bays;
+}
+
+/**
+ * A hotel's stucco front: storey bands, fluted pilasters between the bays, a shadowed eyebrow
+ * over each pair of windows, racing stripes at the corners and the window openings with
+ * their mullions.
+ */
 function facadeTexture(storeys: number, seed: number): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
-    speckle(g, 256, 256, '#f4f0ec', seed);
-    const band = 256 / storeys;
+  return canvasTexture(512, 512, (g) => {
+    speckle(g, 512, 512, '#f4f0ec', seed);
+    const band = 512 / storeys;
+    // Fluted pilasters: pale ribs with a shadow line, rising the full height between bays.
+    for (let x = 8; x < 512; x += 78) {
+      g.fillStyle = 'rgba(255,255,255,0.55)';
+      g.fillRect(x, 0, 10, 512);
+      g.fillStyle = 'rgba(70,60,80,0.28)';
+      g.fillRect(x + 10, 0, 3, 512);
+      g.fillRect(x + 4, 0, 1, 512);
+    }
     for (let f = 0; f < storeys; f++) {
-      g.fillStyle = 'rgba(80,70,90,0.25)';
-      g.fillRect(0, f * band, 256, 4);
-      for (let x = 14; x < 250; x += 38) {
-        g.fillStyle = '#2a2a3a';
-        g.fillRect(x, f * band + band * 0.3, 22, band * 0.5);
+      const top = f * band;
+      // The string course between storeys, lit from above.
+      g.fillStyle = 'rgba(255,255,255,0.6)';
+      g.fillRect(0, top, 512, 3);
+      g.fillStyle = 'rgba(70,60,90,0.35)';
+      g.fillRect(0, top + 3, 512, 4);
+      // Three racing stripes at each corner, the deco speed lines.
+      g.fillStyle = 'rgba(60,50,80,0.3)';
+      for (let i = 0; i < 3; i++) {
+        g.fillRect(0, top + band * 0.18 + i * 6, 14, 2);
+        g.fillRect(498, top + band * 0.18 + i * 6, 14, 2);
       }
+    }
+    for (const b of windowBays(storeys)) {
+      g.fillStyle = '#20202e';
+      g.fillRect(b.x, b.y, b.w, b.h);
+      // The mullion and transom, and a pale reveal down one side.
+      g.fillStyle = 'rgba(230,230,240,0.85)';
+      g.fillRect(b.x + b.w / 2 - 1, b.y, 2, b.h);
+      g.fillRect(b.x, b.y + b.h * 0.3, b.w, 2);
+      g.fillStyle = 'rgba(255,255,255,0.4)';
+      g.fillRect(b.x - 2, b.y, 2, b.h);
+      // The eyebrow's shadow falling across the window head.
+      g.fillStyle = 'rgba(30,25,45,0.45)';
+      g.fillRect(b.x - 3, b.y - 2, b.w + 6, 6);
+      g.fillStyle = 'rgba(255,255,255,0.7)';
+      g.fillRect(b.x - 4, b.y - 5, b.w + 8, 3);
     }
   });
 }
 
-/** The same windows, lit warm or dark, glowing through the night. */
+/** The same windows, lit warm, pink or blue, or dark behind drawn blinds. */
 function windowsTexture(storeys: number, seed: number): CanvasTexture {
-  return canvasTexture(256, 256, (g) => {
+  return canvasTexture(512, 512, (g) => {
     g.fillStyle = '#000';
-    g.fillRect(0, 0, 256, 256);
+    g.fillRect(0, 0, 512, 512);
     const random = seeded(seed + 1);
-    const band = 256 / storeys;
-    for (let f = 0; f < storeys; f++)
-      for (let x = 14; x < 250; x += 38) {
-        if (random() < 0.45) continue;
-        g.fillStyle = ['#ffd8a0', '#ffe8c8', '#ff9ec9', '#a8e8ff'][Math.floor(random() * 4)]!;
-        g.fillRect(x, f * band + band * 0.3, 22, band * 0.5);
+    for (const b of windowBays(storeys)) {
+      if (random() < 0.4) continue;
+      const lit = ['#ffd8a0', '#ffe8c8', '#ff9ec9', '#a8e8ff', '#ffc890'][
+        Math.floor(random() * 5)
+      ]!;
+      g.fillStyle = lit;
+      g.fillRect(b.x, b.y, b.w, b.h);
+      // Some have their blinds half down, slatted.
+      if (random() < 0.4) {
+        g.fillStyle = 'rgba(0,0,0,0.55)';
+        const down = b.h * (0.3 + random() * 0.4);
+        for (let y = 0; y < down; y += 3) g.fillRect(b.x, b.y + y, b.w, 2);
       }
+      g.fillStyle = '#000';
+      g.fillRect(b.x + b.w / 2 - 1, b.y, 2, b.h);
+      g.fillRect(b.x, b.y + b.h * 0.3, b.w, 2);
+    }
   });
 }
 
