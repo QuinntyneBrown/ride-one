@@ -1,6 +1,6 @@
 // The parts every built-in street shares, drawn by world-renderer.ts (L2-101 AC1): the contract a
 // street module keeps, the ribbons laid along the road, seeded detail, canvas textures and the
-// figures' limbs, painted road writing, the race's banners and the crowd behind the barriers. A street built on them follows Old Town's pattern (world-oldtown.ts): `build`
+// figures' limbs. A street built on them follows Old Town's pattern (world-oldtown.ts): `build`
 // once, then `lay` and `place` each frame, recycling its parts along a loop.
 import {
   BufferAttribute,
@@ -178,6 +178,77 @@ export function armPair(raise: number): BufferGeometry {
   return merged;
 }
 
+/** The colours a crowd of figures is dressed from. */
+export interface Wardrobe {
+  readonly tops: readonly string[];
+  readonly bottoms: readonly string[];
+  readonly skins: readonly string[];
+}
+
+/**
+ * `count` people drawn as three instanced meshes (legs, torso, head), the same build in every
+ * scene: a figure stands 1.72 m at scale 1, its feet at its origin, facing -z.
+ */
+export class Figures {
+  private readonly legs: InstancedMesh;
+  private readonly bodies: InstancedMesh;
+  private readonly heads: InstancedMesh;
+  private readonly matrix = new Matrix4();
+  private readonly spot = new Vector3();
+  private readonly turn = new Quaternion();
+  private readonly size = new Vector3();
+  private readonly up = new Vector3(0, 1, 0);
+
+  constructor(
+    group: Group,
+    disposables: { dispose(): void }[],
+    count: number,
+    wardrobe: Wardrobe,
+    seed: number,
+  ) {
+    const pair = legPair(0.08, 0.84);
+    const body = new CapsuleGeometry(0.19, 0.4, 4, 10);
+    const head = new SphereGeometry(0.115, 12, 10);
+    const make = (geometry: BufferGeometry, roughness: number) => {
+      const material = new MeshStandardMaterial({ roughness });
+      const mesh = new InstancedMesh(geometry, material, count);
+      mesh.frustumCulled = false;
+      mesh.castShadow = true;
+      group.add(mesh);
+      disposables.push(geometry, material, mesh);
+      return mesh;
+    };
+    this.legs = make(pair, 0.9);
+    this.bodies = make(body, 0.85);
+    this.heads = make(head, 0.7);
+    const random = seeded(seed);
+    const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
+    const c = new Color();
+    for (let i = 0; i < count; i++) {
+      this.bodies.setColorAt(i, c.set(pick(wardrobe.tops)));
+      this.legs.setColorAt(i, c.set(pick(wardrobe.bottoms)));
+      this.heads.setColorAt(i, c.set(pick(wardrobe.skins)));
+    }
+  }
+
+  /** Stands figure `i` at (x, y, z), turned `heading` radians, `scale` tall, lifted `bob`. */
+  set(i: number, x: number, y: number, z: number, heading: number, scale: number, bob = 0): void {
+    this.turn.setFromAxisAngle(this.up, heading);
+    this.size.setScalar(scale);
+    this.spot.set(x, y + bob, z);
+    this.legs.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+    this.spot.set(x, y + 1.15 * scale + bob, z);
+    this.bodies.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+    this.spot.set(x, y + 1.6 * scale + bob, z);
+    this.heads.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
+  }
+
+  /** Uploads the figures set this frame. */
+  commit(): void {
+    for (const mesh of [this.legs, this.bodies, this.heads]) mesh.instanceMatrix.needsUpdate = true;
+  }
+}
+
 /** Writing painted on the road, stretched along it so it reads from a rider's low eye, worn. */
 export function paintTexture(text: string, colour: string): CanvasTexture {
   const canvas = document.createElement('canvas');
@@ -282,7 +353,6 @@ export function barrierBannerTexture(panels: readonly BannerPanel[]): CanvasText
   return texture;
 }
 
-/** Two legs standing slightly apart, from the ground to the hips, as one geometry. */
 /** Who stands in a crowd and how it is laid out along a loop of the street. */
 export interface CrowdOptions {
   /** The street repeats every `loop` metres. */
@@ -292,13 +362,11 @@ export interface CrowdOptions {
   readonly far: number;
   /** Metres between one file of the crowd and the next. */
   readonly spacing: number;
-  readonly shirts: readonly string[];
-  readonly trousers: readonly string[];
-  readonly skins: readonly string[];
+  readonly wardrobe: Wardrobe;
   /** Flags a fan in the crowd may wave over their head, and the share who do. */
   readonly flags: readonly Material[];
   readonly flagShare: number;
-  /** Seeds for the layout and for the colours, so a crowd is the same on every ride. */
+  /** Seeds for the layout and for the clothes, so a crowd is the same on every ride. */
   readonly seeds: readonly [number, number];
   /** Leaves a gap in the crowd where `skip(side, offset)` is true. */
   readonly skip?: (side: -1 | 1, offset: number) => boolean;
@@ -315,14 +383,12 @@ interface Fan {
 }
 
 /**
- * The crowd behind the barriers on both sides of the road: instanced legs, bodies, heads and
- * arms, bouncing on their toes, some waving a flag on a short pole.
+ * The crowd behind the barriers on both sides of the road: figures (`Figures`) bouncing on
+ * their toes, facing the road, some holding a flag high on a short pole.
  */
 export class Crowd {
   private readonly fans: Fan[] = [];
-  private bodies: InstancedMesh | null = null;
-  private legs: InstancedMesh | null = null;
-  private heads: InstancedMesh | null = null;
+  private figures: Figures | null = null;
   private arms: InstancedMesh | null = null;
   private readonly flags: InstancedMesh[] = [];
   private readonly matrix = new Matrix4();
@@ -360,27 +426,17 @@ export class Crowd {
       }
     }
     const n = this.fans.length;
-    const body = new CapsuleGeometry(0.19, 0.36, 4, 10);
-    const head = new SphereGeometry(0.115, 12, 10);
+    this.figures = new Figures(this.group, this.disposables, n, o.wardrobe, o.seeds[1]);
+    // The raised arm of a fan holding a flag, in a skin tone of the wardrobe.
     const arm = new CylinderGeometry(0.045, 0.045, 0.7, 6);
-    const pair = legPair(0.085, 0.82);
-    const cloth = new MeshStandardMaterial({ roughness: 0.85 });
     const skin = new MeshStandardMaterial({ roughness: 0.7 });
-    const denim = new MeshStandardMaterial({ roughness: 0.9 });
-    this.disposables.push(body, head, arm, pair, cloth, skin, denim);
-    this.bodies = this.instanced(body, cloth, n);
-    this.legs = this.instanced(pair, denim, n);
-    this.heads = this.instanced(head, skin, n);
+    this.disposables.push(arm, skin);
     this.arms = this.instanced(arm, skin, n);
-    const random2 = seeded(o.seeds[1]);
     const c = new Color();
-    const pick = (list: readonly string[]) => list[Math.floor(random2() * list.length)]!;
+    const tones = seeded(o.seeds[1] + 1);
     for (let i = 0; i < n; i++) {
-      this.bodies.setColorAt(i, c.set(pick(o.shirts)));
-      this.legs.setColorAt(i, c.set(pick(o.trousers)));
-      const tone = c.set(pick(o.skins));
-      this.heads.setColorAt(i, tone);
-      this.arms.setColorAt(i, tone);
+      const tone = o.wardrobe.skins[Math.floor(tones() * o.wardrobe.skins.length)]!;
+      this.arms.setColorAt(i, c.set(tone));
     }
     const flag = new PlaneGeometry(0.75, 0.5, 4, 1);
     this.disposables.push(flag);
@@ -397,42 +453,35 @@ export class Crowd {
     along: (offset: number, every: number) => number,
     kerb: number,
   ): void {
-    const { bodies, legs, heads, arms } = this;
-    if (!bodies || !legs || !heads || !arms) return;
+    const { figures, arms } = this;
+    if (!figures || !arms) return;
     const flagCount = this.flags.map(() => 0);
     let arm = 0;
     this.fans.forEach((fan, i) => {
       const metres = along(fan.offset, this.options.loop);
       const y = heightAt(Math.max(metres, 0)) + kerb;
       // Fans face the road, turned a little towards the rider coming up the street.
-      this.turn.setFromAxisAngle(this.up, fan.side < 0 ? Math.PI / 2 - 0.3 : -Math.PI / 2 + 0.3);
+      const heading = fan.side < 0 ? Math.PI / 2 - 0.3 : -Math.PI / 2 + 0.3;
       const bounce = Math.abs(Math.sin(time * 4.2 + fan.phase)) * 0.05;
       const h = fan.height;
+      figures.set(i, fan.x, y, -metres, heading, h, bounce);
+      if (fan.flag < 0) return;
+      // A flag held high on a short pole, waving from side to side.
+      const sway = Math.sin(time * 3 + fan.phase) * 0.5;
+      const k = fan.flag;
       this.size.setScalar(h);
-      this.spot.set(fan.x, y + bounce, -metres);
-      legs.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      this.spot.set(fan.x, y + 1.15 * h + bounce, -metres);
-      bodies.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      this.spot.set(fan.x, y + 1.6 * h + bounce, -metres);
-      heads.setMatrixAt(i, this.matrix.compose(this.spot, this.turn, this.size));
-      if (fan.flag >= 0) {
-        // A flag held high on a short pole, waving from side to side.
-        const sway = Math.sin(time * 3 + fan.phase) * 0.5;
-        const k = fan.flag;
-        this.spot.set(fan.x + Math.sin(sway) * 0.25, y + 2.2 * h + bounce, -metres);
-        this.wave.setFromAxisAngle(this.up, fan.side * 0.4 + sway * 0.6);
-        this.flags[k]!.setMatrixAt(
-          flagCount[k]!,
-          this.matrix.compose(this.spot, this.wave, this.size),
-        );
-        flagCount[k]!++;
-        this.spot.set(fan.x, y + 1.4 * h + bounce, -metres);
-        arms.setMatrixAt(arm++, this.matrix.compose(this.spot, this.turn, this.size));
-      }
+      this.spot.set(fan.x + Math.sin(sway) * 0.25, y + 2.2 * h + bounce, -metres);
+      this.wave.setFromAxisAngle(this.up, fan.side * 0.4 + sway * 0.6);
+      this.flags[k]!.setMatrixAt(
+        flagCount[k]!,
+        this.matrix.compose(this.spot, this.wave, this.size),
+      );
+      flagCount[k]!++;
+      this.turn.setFromAxisAngle(this.up, heading);
+      this.spot.set(fan.x, y + 1.4 * h + bounce, -metres);
+      arms.setMatrixAt(arm++, this.matrix.compose(this.spot, this.turn, this.size));
     });
-    bodies.instanceMatrix.needsUpdate = true;
-    legs.instanceMatrix.needsUpdate = true;
-    heads.instanceMatrix.needsUpdate = true;
+    figures.commit();
     arms.count = arm;
     arms.instanceMatrix.needsUpdate = true;
     this.flags.forEach((flags, k) => {

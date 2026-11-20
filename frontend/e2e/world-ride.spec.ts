@@ -70,6 +70,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Westminster Rush Hour');
   });
 
+  test('rides 15 Minute Cardio HIIT in Central Park Loop on Park Drive', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '15 Minute Cardio HIIT',
+      'Central Park Loop',
+      '15-minute-cardio-hiit',
+    );
+    await expect(world.heading).toHaveText('Central Park Loop');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Central Park Loop');
+  });
+
   test('rides Calorie Burning Workout in South Beach Sunrise on Ocean Drive', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass(

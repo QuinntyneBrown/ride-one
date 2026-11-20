@@ -96,6 +96,16 @@ export const WORLDS: readonly World[] = [
     roll: 0.5,
   },
   {
+    id: 'centralpark',
+    name: 'Central Park Loop',
+    route: 'Park Drive',
+    effortName: 'Harlem Hill surge',
+    description:
+      'Early laps of Central Park past the reservoir and Bethesda Fountain, joggers and carriages sharing the drive.',
+    grade: { warmup: 0.5, work: 4, rest: -1.5, cooldown: 0, steady: 0.5 },
+    roll: 0.8,
+  },
+  {
     id: 'southbeach',
     name: 'South Beach Sunrise',
     route: 'Ocean Drive',

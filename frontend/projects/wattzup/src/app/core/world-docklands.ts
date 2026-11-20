@@ -144,6 +144,14 @@ const GATE_HEIGHT = 7.5;
 /** A gate's posts stand this far beyond the road's edge. */
 const GATE_OUT = 2.8;
 const GATE_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#9b6bff', '#ffb347'];
+/** Zebra crossings, at these offsets round the loop: bar width and depth across the road (m). */
+const CROSSINGS = [56, 196, 316, 446, 586];
+const CROSSING_BAR = 0.55;
+const CROSSING_DEPTH = 5;
+/** Their beacons: post height (m), blink period (s), and how near before the halo hides (m). */
+const BEACON_HEIGHT = 2.9;
+const BEACON_BLINK = 1.2;
+const BEACON_HALO_NEAR = 7;
 /** Night-market stalls on the quay promenade, at these offsets round the loop. */
 const STALLS: readonly number[] = [26, 33, 40, 140, 147, 290, 297, 304, 460, 467, 580];
 const STALL_X = -10;
@@ -302,6 +310,9 @@ export class DocklandsStreet {
   private readonly train = new Group();
   private readonly lanterns: { group: Group; offset: number; blooms: Sprite[] }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
+  /** Zebra crossings over the road, their beacons' globes and halos blinking together. */
+  private readonly crossings: { group: Group; offset: number; blooms: Sprite[] }[] = [];
+  private beaconMaterial: MeshBasicMaterial | null = null;
   private readonly gates: { group: Group; offset: number }[] = [];
   private readonly machines: { group: Group; offset: number }[] = [];
   private readonly walkers: { group: Group; offset: number }[] = [];
@@ -316,6 +327,12 @@ export class DocklandsStreet {
   setTime(seconds: number, still = false): void {
     this.fall(seconds, still);
     this.splash(seconds, still);
+    // The beacons blink together, on for most of each second; lit and still for reduced motion.
+    if (this.beaconMaterial) {
+      const lit = still || (seconds % BEACON_BLINK) / BEACON_BLINK < 0.6;
+      this.beaconMaterial.color.set(lit ? '#ffa81f' : '#3a2408');
+      if (lit) this.beaconMaterial.color.multiplyScalar(1.8);
+    }
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
     this.swim(still ? 0 : seconds);
@@ -1270,6 +1287,7 @@ export class DocklandsStreet {
     this.addVents(roadHalf);
     this.addLanterns(roadHalf);
     this.addStalls();
+    this.addCrossings(roadHalf);
     this.addGates(roadHalf);
     this.addMachines(roadHalf);
     this.addWalkers(roadHalf);
@@ -1566,6 +1584,68 @@ export class DocklandsStreet {
    * serving hatch, a striped awning over it and a neon strip along its roof, throwing its
    * light on the wet paving.
    */
+  /**
+   * Zebra crossings over the road: broad white bars, wet and catching the light, with a striped
+   * post at each kerb carrying an amber globe that blinks, throwing its glow on the road.
+   */
+  private addCrossings(roadHalf: number): void {
+    const paint = new MeshStandardMaterial({
+      color: 0xe8ecf4,
+      roughness: 0.35,
+      emissive: new Color(0xb8c4e0),
+      emissiveIntensity: 0.55,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    const pole = new MeshStandardMaterial({ color: 0x20202a, roughness: 0.5 });
+    const band = new MeshBasicMaterial({ color: new Color('#f2f2f2'), toneMapped: false });
+    const globe = new MeshBasicMaterial({
+      color: new Color('#ffa81f').multiplyScalar(1.8),
+      toneMapped: false,
+    });
+    this.beaconMaterial = globe;
+    const bar = new PlaneGeometry(CROSSING_BAR, CROSSING_DEPTH);
+    const post = new BoxGeometry(0.16, BEACON_HEIGHT, 0.16);
+    const stripe = new BoxGeometry(0.18, 0.3, 0.18);
+    const ball = new SphereGeometry(0.32, 14, 10);
+    this.disposables.push(paint, pole, band, globe, bar, post, stripe, ball);
+    const across = roadHalf * 2;
+    const count = Math.floor(across / (CROSSING_BAR * 2));
+    const start = -((count - 1) * CROSSING_BAR * 2) / 2;
+    for (const offset of CROSSINGS) {
+      const group = new Group();
+      for (let i = 0; i < count; i++) {
+        const mesh = new Mesh(bar, paint);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.position.set(start + i * CROSSING_BAR * 2, 0.015, 0);
+        group.add(mesh);
+      }
+      const blooms: Sprite[] = [];
+      for (const side of [-1, 1]) {
+        const x = side * (roadHalf + KERB_WIDTH + 0.5);
+        const z = (side * CROSSING_DEPTH) / 2 + side * 0.4;
+        const stand = new Mesh(post, pole);
+        stand.position.set(x, KERB + BEACON_HEIGHT / 2, z);
+        group.add(stand);
+        for (let k = 0; k < 4; k++) {
+          const ring = new Mesh(stripe, band);
+          ring.position.set(x, KERB + BEACON_HEIGHT - 0.9 - k * 0.6, z);
+          group.add(ring);
+        }
+        const light = new Mesh(ball, globe);
+        light.position.set(x, KERB + BEACON_HEIGHT + 0.3, z);
+        const bloom = new Sprite(this.halo('#ffa81f', 0.9));
+        bloom.scale.setScalar(2.2);
+        bloom.position.copy(light.position);
+        group.add(light, bloom);
+        blooms.push(bloom);
+        this.streak(group, '#ffa81f', x - side * 1.5, 0, z, 6, 1.2, 0.9);
+      }
+      this.group.add(group);
+      this.crossings.push({ group, offset, blooms });
+    }
+  }
+
   private addStalls(): void {
     const body = new MeshStandardMaterial({ color: 0x15141c, roughness: 0.7 });
     const hatch = new MeshBasicMaterial({
@@ -2420,6 +2500,13 @@ export class DocklandsStreet {
       const metres = ((((gate.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       gate.group.visible = !this.onBridge(Math.max(metres, 0));
       gate.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
+    for (const crossing of this.crossings) {
+      const metres = ((((crossing.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      crossing.group.visible = !this.onBridge(Math.max(metres, 0));
+      crossing.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+      // Close up, a beacon's halo would swell to fill the view: it shows only further off.
+      for (const bloom of crossing.blooms) bloom.visible = metres > BEACON_HALO_NEAR;
     }
     for (const stall of this.stalls) {
       const metres = ((((stall.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;

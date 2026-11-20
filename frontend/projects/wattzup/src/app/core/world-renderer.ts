@@ -181,6 +181,7 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 1.15, colour: 0xffc796 },
     fogRange: [70, 900],
   },
+  // A clear midsummer afternoon over Lake Ontario, the sun behind the rider's left shoulder.
   // Dusk over the Thames: the sun low behind the rider, the sky rose and violet, the road wet.
   westminster: {
     sky: 0xb48aa0,
@@ -196,7 +197,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.6, fill: 1.25, colour: 0xffb27a },
     fogRange: [70, 1100],
   },
-  // A clear midsummer afternoon over Lake Ontario, the sun behind the rider's left shoulder.
+  // An early summer morning in the park: the sun low behind the rider, a soft haze over Midtown.
+  centralpark: {
+    sky: 0x9cc8ea,
+    fog: 0xc9d6df,
+    ground: 0x4e8a3a,
+    road: 0x4a4c51,
+    sun: 16,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.8,
+    azimuth: -150,
+    light: { sun: 3.2, fill: 1.0, colour: 0xffe7c4 },
+    fogRange: [70, 1000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

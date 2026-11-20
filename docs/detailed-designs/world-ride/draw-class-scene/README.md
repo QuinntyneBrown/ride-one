@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `southbeach`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -89,6 +89,12 @@ None.
   - rush-hour traffic on the ride's clock: red double-deckers and black cabs racing the rider in the bus lane and streaming towards them, lamps lit;
   - green triple-lantern standards on both parapets and commuters walking both pavements;
   - the Palace of Westminster ahead on the right bank, floodlit gold, with Elizabeth Tower's four lit dials and gilded spire, the Victoria Tower and lit Portland-stone blocks on both banks, hazed by hand.
+- **Central Park (`core/world-centralpark.ts`).** For `centralpark`:
+  - Park Drive: the rider's cyclists' lane between a runners' lane on the left and a horse lane on the right, lawns, and on the left the Reservoir's cinder track, granite wall, iron fence and water;
+  - American elms arching over the drive, cast-iron lamps and green slatted benches;
+  - joggers running both ways in the runners' lane (`Figures`, the kit's instanced people) and horse carriages trotting along the horse lane, all on the ride's clock;
+  - Bethesda Terrace once a lap on the right, its fountain topped by the Angel of the Waters;
+  - Midtown's towers over the trees ahead and Fifth Avenue across the Reservoir, hazed by hand.
 
 - **South Beach's drive (`core/world-southbeach.ts`).** For `southbeach`:
   - pale pavements, race barriers hung with the race's banners, a coral-stone wall, the palm lawn, the sand, the surf line and the Atlantic out to the horizon on the right;
@@ -117,6 +123,7 @@ None.
 | `pages/world-ride/coast` | Cliffside Coast at 4:50, warm-up, next `Headland surge` |
 | `pages/world-ride/caribana` | Caribana Parade at 4:50, warm-up, next `Mas band surge` |
 | `pages/world-ride/westminster` | Westminster Rush Hour at 4:50, warm-up, next `Chime sprint` |
+| `pages/world-ride/centralpark` | Central Park Loop at 4:50, warm-up, next `Harlem Hill surge` |
 | `pages/world-ride/southbeach` | South Beach Sunrise at 2:53, warm-up, next `Sunrise chase` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
