@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `tremola`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -417,6 +417,11 @@ None.
   - old flows heaped in jagged black blocks with snow in the hollows, yellow broom and stunted birches, and a house half-swallowed by a flow;
   - the rust-red Silvestri craters beside the road, white 4x4 buses grinding up and down it, and walkers on the verges (`Figures`);
   - ahead the upper slopes streaked with snow, the summit cone with its plume of steam and ash rising and drifting on the ride's clock, lesser cones on its flanks, and the Ionian Sea far below, keeping their bearing.
+- **Tremola, Gotthard Pass (`core/world-tremola.ts`).** For `tremola`, the old pass road on a bright, cool summer morning:
+  - granite setts laid in fans across the road, a granite kerb, and squat guard stones along the drop on the left, where the slope falls to the valley; the ground sinks below it;
+  - the alpine pasture climbing on the right, with boulders, larches and brown cows grazing with their bells, heads lifting and lowering;
+  - the yellow Gotthard post coach drawn by four horses climbing at a walk, legs swinging, and walkers (`Figures`);
+  - ahead the mountainside with the hairpins stacked up it, each on its stone wall, the grey peaks streaked with snow and clouds hung round them, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -481,6 +486,7 @@ None.
 | `pages/world-ride/como` | Lake Como at 4:50, warm-up, next `Lakeside surge` |
 | `pages/world-ride/yosemite` | Yosemite Valley at 4:50, warm-up, next `Valley VO2 effort` |
 | `pages/world-ride/etna` | Mount Etna at 4:50, warm-up, next `Volcano push` |
+| `pages/world-ride/tremola` | Tremola, Gotthard Pass at 4:50, warm-up, next `Cobbled grind` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 

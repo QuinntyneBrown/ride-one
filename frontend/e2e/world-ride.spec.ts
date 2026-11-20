@@ -545,6 +545,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Mount Etna');
   });
 
+  test('rides Low Cadence Workout up the cobbled Tremola', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Low Cadence Workout',
+      'Tremola, Gotthard Pass',
+      'low-cadence-workout',
+    );
+    await expect(world.heading).toHaveText('Tremola, Gotthard Pass');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Tremola, Gotthard Pass');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
