@@ -795,6 +795,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.1, fill: 1.15, colour: 0xffdcae },
     fogRange: [200, 2600],
   },
+  // Race day in May: a hot, clear blue sky and hard midday light over the oval.
+  brickyard: {
+    sky: 0x4a8ae0,
+    fog: 0xd4e0ec,
+    ground: 0x4a8a3a,
+    road: 0x45474c,
+    sun: 58,
+    wet: false,
+    haze: false,
+    turbidity: 3,
+    rayleigh: 1.3,
+    azimuth: -140,
+    light: { sun: 3.2, fill: 1.4, colour: 0xfffaf0 },
+    fogRange: [400, 4000],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

@@ -491,6 +491,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · The Poggio');
   });
 
+  test('rides 90-Second Extended Accelerations down the Indianapolis Brickyard straight', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '90-Second Extended Accelerations',
+      'Indianapolis Brickyard',
+      '90-second-extended-accelerations',
+    );
+    await expect(world.heading).toHaveText('Indianapolis Brickyard');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Indianapolis Brickyard');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
