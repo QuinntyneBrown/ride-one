@@ -67,6 +67,14 @@ export class MiamiStreet implements SceneStreet {
   private trafficX = 0;
   private readonly people: { offset: number; x: number; speed: number; phase: number }[] = [];
   private crowd: Figures | null = null;
+  private chatting: Figures | null = null;
+  private readonly standers: {
+    offset: number;
+    x: number;
+    heading: number;
+    phase: number;
+    scale: number;
+  }[] = [];
   private water: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
@@ -151,7 +159,7 @@ export class MiamiStreet implements SceneStreet {
         crowd.set(
           i,
           p.x,
-          heightAt(Math.max(metres, 0)) + bob,
+          heightAt(Math.max(metres, 0)) + 0.15 + bob,
           -metres,
           p.speed >= 0 ? 0 : Math.PI,
           0.98,
@@ -159,6 +167,22 @@ export class MiamiStreet implements SceneStreet {
         );
       });
       crowd.commit();
+    }
+    const chatting = this.chatting;
+    if (chatting) {
+      this.standers.forEach((p, i) => {
+        const metres = loopMetres(p.offset, s, LOOP, BEHIND);
+        const sway = Math.sin(this.time * 1.3 + p.phase) * 0.12;
+        chatting.set(
+          i,
+          p.x,
+          heightAt(Math.max(metres, 0)) + 0.15,
+          -metres,
+          p.heading + sway,
+          p.scale,
+        );
+      });
+      chatting.commit();
     }
     this.horizon.position.set(0, heightAt(0), 0);
   }
@@ -798,16 +822,52 @@ export class MiamiStreet implements SceneStreet {
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
-    for (let k = 0; k < 30; k++) {
-      const right = k % 3 !== 0;
+    // Strollers keep to the clear lanes: the kerb side and the shopfronts on the right, between
+    // the palms and the café tables, and the promenade on the left.
+    for (let k = 0; k < 44; k++) {
+      const lane = k % 3;
+      const x =
+        lane === 0
+          ? -roadHalf - 1 - random() * 2.6
+          : lane === 1
+            ? roadHalf + 1.1 + random() * 1.2
+            : roadHalf + FRONT - 1.6 + random() * 1.1;
       this.people.push({
         offset: random() * LOOP,
-        x: right ? roadHalf + 1 + random() * 5 : -roadHalf - 1 - random() * 3,
+        x,
         speed: (random() < 0.5 ? -1 : 1) * (0.7 + random() * 0.6),
         phase: random() * 6,
       });
     }
     this.crowd = new Figures(this.group, this.disposables, this.people.length, NIGHT_WEAR, 8137);
+    // Knots of two to four people standing and talking: outside the lobbies and against the
+    // promenade wall looking out to sea, each swaying a little as they chat.
+    const chat = seeded(8139);
+    for (let g = 0; g < 18; g++) {
+      const wall = g % 3 === 0;
+      const offset = chat() * LOOP;
+      const cx = wall ? -roadHalf - 4.3 : roadHalf + FRONT - 2.2 - chat() * 1.5;
+      const size = 2 + Math.floor(chat() * 3);
+      for (let i = 0; i < size; i++) {
+        const angle = (i / size) * Math.PI * 2 + chat();
+        const x = wall ? cx + 0.2 : cx + Math.cos(angle) * 0.55;
+        const z = wall ? i * 0.65 : Math.sin(angle) * 0.55;
+        this.standers.push({
+          offset: offset + z,
+          x,
+          heading: wall ? Math.PI / 2 : Math.atan2(cx - x, -z) + Math.PI,
+          phase: chat() * 6,
+          scale: 0.92 + chat() * 0.14,
+        });
+      }
+    }
+    this.chatting = new Figures(
+      this.group,
+      this.disposables,
+      this.standers.length,
+      NIGHT_WEAR,
+      8143,
+    );
   }
 
   /** Across the bay, the towers lit floor by floor, the moon path and the night sea. */
