@@ -23,6 +23,7 @@ import {
   LatheGeometry,
   Matrix4,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
   Quaternion,
@@ -181,6 +182,7 @@ export class HavanaStreet implements SceneStreet {
     this.addPeople(roadHalf);
     this.addMorro(roadHalf);
     this.addSkyline();
+    this.addClouds();
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -1533,6 +1535,37 @@ export class HavanaStreet implements SceneStreet {
     this.horizon.add(city);
   }
 
+  /**
+   * Tropical cumulus over the Gulf in the late afternoon: heaped white towers with sunlit tops
+   * and flat, grey-blue bases, standing far out over the sea and the city.
+   */
+  private addClouds(): void {
+    const random = seeded(1193);
+    const sheet = new PlaneGeometry(1, 1);
+    this.disposables.push(sheet);
+    const looks = [0, 1, 2].map((k) => this.track(cumulusTexture(1201 + k * 7)));
+    for (let i = 0; i < 9; i++) {
+      const material = new MeshBasicMaterial({
+        map: looks[i % looks.length]!,
+        transparent: true,
+        depthWrite: false,
+        fog: false,
+        opacity: 0.92,
+      });
+      this.disposables.push(material);
+      const cloud = new Mesh(sheet, material);
+      const w = 380 + random() * 520;
+      cloud.scale.set(w, w * (0.6 + random() * 0.25), 1);
+      cloud.position.set(
+        -2600 + random() * 3000,
+        260 + random() * 260 + w * 0.3,
+        -2000 - random() * 1400,
+      );
+      cloud.renderOrder = -1;
+      this.horizon.add(cloud);
+    }
+  }
+
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial(options);
     this.disposables.push(material);
@@ -2208,5 +2241,41 @@ function ruinTexture(): CanvasTexture {
       g.fillStyle = 'rgba(80,76,70,0.8)';
       g.fillRect(0, y + 122, 256, 6);
     }
+  });
+}
+
+/**
+ * A cumulus cloud: heaped puffs, bright where the low sun catches their tops, shading to a flat,
+ * grey-blue base, on a clear ground.
+ */
+function cumulusTexture(seed: number): CanvasTexture {
+  return canvasTexture(512, 256, (g) => {
+    g.clearRect(0, 0, 512, 256);
+    const random = seeded(seed);
+    const base = 200;
+    for (let i = 0; i < 70; i++) {
+      const t = i / 70;
+      const x = 80 + random() * 350;
+      const spread = Math.sin(((x - 60) / 390) * Math.PI);
+      const r = 18 + random() * 40 * spread;
+      const y = base - r * 0.4 - random() * 120 * spread * (0.4 + t * 0.6);
+      const glow = g.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r);
+      glow.addColorStop(0, 'rgba(255,250,240,0.95)');
+      glow.addColorStop(0.7, 'rgba(240,236,232,0.85)');
+      glow.addColorStop(1, 'rgba(200,205,215,0)');
+      g.fillStyle = glow;
+      g.beginPath();
+      g.arc(x, y, r, 0, Math.PI * 2);
+      g.fill();
+    }
+    const shadow = g.createLinearGradient(0, base - 50, 0, base + 6);
+    shadow.addColorStop(0, 'rgba(150,160,180,0)');
+    shadow.addColorStop(1, 'rgba(150,160,180,0.55)');
+    g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = shadow;
+    g.fillRect(0, base - 50, 512, 60);
+    g.globalCompositeOperation = 'destination-out';
+    g.fillStyle = '#000';
+    g.fillRect(0, base + 4, 512, 256 - base);
   });
 }
