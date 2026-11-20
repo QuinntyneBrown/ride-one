@@ -403,6 +403,13 @@ const STALL_STEAM_LIFE = 3.2;
 const STALL_STEAM_HEIGHT = 2.4;
 const STALL_X = -10;
 const STALL_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347'];
+/** The stalls' paper lanterns, and the dishes on their menu boards, by stall in turn. */
+const STALL_LANTERN = '#f2261a';
+const STALL_MENUS: readonly (readonly string[])[] = [
+  ['DUMPLINGS', 'BAO', 'TEA'],
+  ['RAMEN', 'GYOZA', 'SODA'],
+  ['SKEWERS', 'NOODLES', 'COFFEE'],
+];
 /** People on the pavement across the street, scattered round the loop. */
 const WALKERS = 26;
 /** Each stroller walks up and down a stretch of pavement this long. */
@@ -3503,6 +3510,26 @@ export class DocklandsStreet {
     });
     const puff = new PlaneGeometry(1, 1);
     this.disposables.push(body, hatch, unit, ...awnings, ...strips, steam, puff);
+    // Red paper lanterns hung from the awning's edge, each in a soft glow.
+    const paper = new MeshBasicMaterial({
+      color: new Color(STALL_LANTERN).multiplyScalar(1.1),
+      toneMapped: false,
+    });
+    const paperGlow = new MeshBasicMaterial({
+      color: new Color(STALL_LANTERN).multiplyScalar(1.6),
+      map: this.glow,
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const lantern = new SphereGeometry(0.22, 12, 8);
+    // A lit menu board on the booth's end, facing the riders as they come.
+    const menus = STALL_MENUS.map((dishes, k) =>
+      this.track(menuTexture(dishes, STALL_COLOURS[k % STALL_COLOURS.length]!)),
+    ).map((texture) => new MeshBasicMaterial({ map: texture, toneMapped: false }));
+    const board = new PlaneGeometry(1.9, 1.15);
+    this.disposables.push(paper, paperGlow, lantern, ...menus, board);
     const box = (
       material: Material,
       w: number,
@@ -3533,6 +3560,18 @@ export class DocklandsStreet {
       awning.position.set(x + 1.85, KERB + 2.35, 0);
       group.add(awning);
       this.streak(group, '#ffcf8a', x + 3, KERB, 0, 4, 3.5, 0.8);
+      for (const z of [-1.15, 0, 1.15]) {
+        const ball = new Mesh(lantern, paper);
+        ball.scale.y = 1.25;
+        ball.position.set(x + 2.55, KERB + 1.72, z);
+        const glow = new Mesh(puff, paperGlow);
+        glow.scale.setScalar(1.1);
+        glow.position.set(x + 2.55, KERB + 1.72, z + 0.25);
+        group.add(ball, glow);
+      }
+      const menu = new Mesh(board, menus[i % menus.length]!);
+      menu.position.set(x + 0.1, KERB + 1.65, 1.61);
+      group.add(menu);
       // Steam from the cooking rises off the booth's roof, lit warm by the hatch below.
       for (let k = 0; k < STALL_PUFFS; k++) {
         const mesh = new Mesh(puff, steam);
@@ -5311,6 +5350,29 @@ function screenTexture(words: string, i: number): CanvasTexture {
 }
 
 /** A stall awning: broad stripes of its colour and white, across the slope. */
+/** A stall's lit menu board: its dishes in white on a dark board, framed in its own neon. */
+function menuTexture(dishes: readonly string[], hex: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 156;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#0d0c14';
+    ctx.fillRect(0, 0, 256, 156);
+    ctx.strokeStyle = hex;
+    ctx.lineWidth = 8;
+    ctx.strokeRect(6, 6, 244, 144);
+    ctx.fillStyle = '#fff4e0';
+    ctx.font = 'bold 30px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    dishes.forEach((dish, k) => ctx.fillText(dish, 128, 38 + k * 40));
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 function awningTexture(hex: string): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 16;
