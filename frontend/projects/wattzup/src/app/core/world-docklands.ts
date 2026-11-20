@@ -429,6 +429,9 @@ const BOLLARD_EVERY = 8;
  */
 const BOLLARD_RING = '#5ff2ff';
 const BOLLARD_FLARE = 1.1;
+/** A bollard's flare shows in full from BOLLARD_FLARE_NEAR on and is gone by BOLLARD_FLARE_GONE (m). */
+const BOLLARD_FLARE_NEAR = 22;
+const BOLLARD_FLARE_GONE = 8;
 const BOLLARD_PULSE_GAP = 56;
 const BOLLARD_PULSE_SPEED = 28;
 const BOLLARD_PULSE_WIDE = 6;
@@ -2252,7 +2255,9 @@ export class DocklandsStreet {
       const near = Math.min(along, gap - along) / BOLLARD_PULSE_WIDE;
       const pulse = still ? 0 : Math.exp(-near * near);
       ring.color.set(BOLLARD_RING).multiplyScalar(1.6 + pulse * 2.4);
-      glow.opacity = pulse;
+      // Close to the rider a flare would swell into a ghostly ball, so it fades out there.
+      const fade = (metres - BOLLARD_FLARE_GONE) / (BOLLARD_FLARE_NEAR - BOLLARD_FLARE_GONE);
+      glow.opacity = pulse * Math.min(Math.max(fade, 0), 1);
       glow.color.set(BOLLARD_RING).multiplyScalar(1.4 + pulse);
     }
   }
