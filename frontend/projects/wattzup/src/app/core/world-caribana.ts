@@ -102,6 +102,8 @@ const ROYAL_AT = 64;
 const ROYAL_X = 4.0;
 /** The bands chip up the road at a slow walk, in metres a second. */
 const PARADE_SPEED = 0.6;
+/** Where the flag sellers stand along the loop, alternating sides from the left. */
+const SELLERS = [38, 62, 128, 188, 247, 301] as const;
 /** The grandstand's seats run along the right-hand pavement between these. */
 const GRANDSTAND = [64, 106] as const;
 /** The route crosses a signalised intersection this far into the loop. */
@@ -397,7 +399,9 @@ export class CaribanaStreet implements SceneStreet {
       flags: this.flagMaterials,
       seed: 41,
       // The grandstand takes the right-hand pavement by the judging point.
-      skip: (side, offset) => side > 0 && offset > GRANDSTAND[0] && offset < GRANDSTAND[1],
+      skip: (side, offset) =>
+        (side > 0 && offset > GRANDSTAND[0] && offset < GRANDSTAND[1]) ||
+        SELLERS.some((at, k) => (k % 2 ? 1 : -1) === side && Math.abs(offset - at) < 1.2),
     });
     // The crowd carries on behind the pavement, standing on the grass, looser at the back.
     this.backCrowd = new Spectators(this.group, disposables, {
@@ -447,6 +451,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addBunting();
     this.addTrees();
     this.addStalls();
+    this.addFlagSellers();
     this.addGardiner(points);
     this.addDowntown();
     this.addOntarioPlace();
@@ -3033,6 +3038,96 @@ export class CaribanaStreet implements SceneStreet {
       road: true,
       marching: true,
     });
+  }
+
+  /**
+   * Flag sellers working the crowd from the pavement: a pole cart bristling with dozens of
+   * island flags on sticks, bandanas and scarves hung from a rail beneath, and the seller in a
+   * cap and apron beside it, holding a flag up to the crowd.
+   */
+  private addFlagSellers(): void {
+    const random = seeded(3103);
+    const flag = new PlaneGeometry(0.36, 0.24);
+    flag.translate(0.18, 0, 0);
+    const stick = new CylinderGeometry(0.006, 0.006, 0.5, 4);
+    stick.translate(0, -0.12, 0);
+    const scarf = new PlaneGeometry(0.3, 0.42);
+    this.disposables.push(flag, stick, scarf);
+    const wood = this.material({ color: 0x8a6a45, roughness: 0.8 });
+    const steel = this.material({ color: 0x9da3a8, metalness: 0.6, roughness: 0.4 });
+    const apron = this.material({ color: 0xf4f2ea, roughness: 0.9 });
+    const scarves = this.flagMaterials;
+    for (let k = 0; k < SELLERS.length; k++) {
+      const cart = new Group();
+      // The cart: two wheels, a box, and a pole up the middle.
+      const box = new Mesh(this.unit, wood);
+      box.scale.set(0.7, 0.5, 0.5);
+      box.position.y = 0.55;
+      const pole = new Mesh(this.unit, steel);
+      pole.scale.set(0.05, 2.4, 0.05);
+      pole.position.y = 1.2;
+      const rail = new Mesh(this.unit, steel);
+      rail.scale.set(1.2, 0.03, 0.03);
+      rail.position.y = 1.35;
+      cart.add(box, pole, rail);
+      for (const x of [-0.3, 0.3]) {
+        const wheel = new Mesh(new CylinderGeometry(0.2, 0.2, 0.05, 12), steel);
+        wheel.geometry.rotateZ(Math.PI / 2);
+        this.disposables.push(wheel.geometry);
+        wheel.position.set(x, 0.2, 0);
+        cart.add(wheel);
+      }
+      // A head of flags fanned out from the top of the pole.
+      for (let f = 0; f < 28; f++) {
+        const a = (f / 28) * Math.PI * 2;
+        const up = 1.9 + (f % 4) * 0.16;
+        const holder = new Group();
+        holder.add(
+          new Mesh(flag, this.flagMaterials[(f + k) % this.flagMaterials.length]!),
+          new Mesh(stick, wood),
+        );
+        holder.position.set(Math.cos(a) * 0.15, up, Math.sin(a) * 0.15);
+        holder.rotation.set(0, -a, 0.5 + (f % 3) * 0.15);
+        cart.add(holder);
+      }
+      // Bandanas and scarves hung from the rail.
+      for (let f = 0; f < 4; f++) {
+        const hang = new Mesh(scarf, scarves[(f + k + 1) % scarves.length]!);
+        hang.position.set(-0.45 + f * 0.3, 1.12, 0.03);
+        cart.add(hang);
+      }
+      // The seller beside the cart, holding a flag up.
+      const parts = spectatorParts(1, random() < 0.5);
+      this.disposables.push(parts.skin, parts.top, parts.bottom);
+      const seller = new Group();
+      const skin = this.material({
+        color: SKINS[Math.floor(random() * SKINS.length)],
+        roughness: 0.6,
+      });
+      seller.add(new Mesh(parts.skin, skin), new Mesh(parts.top, apron));
+      seller.add(new Mesh(parts.bottom, this.material({ color: 0x1e2530, roughness: 0.9 })));
+      const held = new Group();
+      held.add(
+        new Mesh(flag, this.flagMaterials[k % this.flagMaterials.length]!),
+        new Mesh(stick, wood),
+      );
+      held.position.set(0.3, 2.1, -0.06);
+      held.scale.setScalar(1.6);
+      seller.add(held);
+      seller.position.set(0.8, 0, 0.2);
+      cart.add(seller);
+      cart.traverse((o) => (o.castShadow = true));
+      const side = k % 2 ? 1 : -1;
+      // Facing the road from the back of the pavement.
+      cart.rotation.y = side < 0 ? -Math.PI / 2 : Math.PI / 2;
+      this.group.add(cart);
+      this.props.push({
+        mesh: cart,
+        offset: SELLERS[k]!,
+        every: LOOP,
+        x: side * (CROWD_NEAR + 0.3),
+      });
+    }
   }
 
   /**
