@@ -111,6 +111,7 @@ export class AmsterdamStreet implements SceneStreet {
   private bikePaints: MeshStandardMaterial[] | null = null;
   private sitters: MeshStandardMaterial | null = null;
   private extra: (() => number) | null = null;
+  private tilts: (() => number) | null = null;
   private bikeShape: BufferGeometry | null = null;
 
   constructor(
@@ -540,12 +541,16 @@ export class AmsterdamStreet implements SceneStreet {
             whole.add(beam, hook);
           }
           whole.rotation.y = turn;
+          // Some fronts have settled on their piles and lean sideways against a neighbour.
+          whole.rotation.z = settle;
           whole.children.forEach((m) => {
             m.castShadow = true;
             m.receiveShadow = true;
           });
           return whole;
         };
+        const tilt = (this.tilts ??= seeded(751))();
+        const settle = tilt < 0.18 ? (tilt < 0.09 ? 1 : -1) * (0.006 + tilt * 0.06) : 0;
         house.add(block(face, sides, roof));
         if (turn < 0) {
           const reflection = block(mirrored.get(face)!, mirroredSides, mirroredSides);
