@@ -53,9 +53,9 @@ const STOREY = 3.4;
 const PAVEMENT = 7;
 const WALL = 7.4;
 const SAND = 15;
-const SEA = 62;
+const SEA = 34;
 /** Lifeguard towers stand on the sand every TOWER_EVERY metres. */
-const TOWER_EVERY = 80;
+const TOWER_EVERY = 40;
 /** The deco tower stands at the end of the drive, a little left, hazed by hand. */
 const TOWER_AHEAD = 640;
 const TOWER_X = -5;
@@ -148,8 +148,10 @@ export class SouthBeachStreet implements SceneStreet {
       flags: this.flagMaterials,
       flagShare: 0.18,
       seeds: [53, 59],
-      // The café terraces leave a gap on the left where their umbrellas stand.
-      skip: (side, offset) => side < 0 && offset % 50 < 6,
+      // The café terraces leave a gap on the left where their umbrellas stand. On the beach
+      // side the fans stand one deep in clusters, so the sand and the sea show between them.
+      skip: (side, offset, x) =>
+        side < 0 ? offset % 50 < 6 : x > CROWD_NEAR + 0.5 || offset % 16 < 7,
     });
   }
 
@@ -450,8 +452,9 @@ export class SouthBeachStreet implements SceneStreet {
     this.disposables.push(roof);
     const white = this.material({ color: 0xf6f3ea, roughness: 0.7 });
     const red = this.material({ color: 0xd8283a, side: DoubleSide, roughness: 0.8 });
-    paints.forEach(([wall, trim], i) => {
+    [...paints, ...paints].forEach(([wall, trim], i) => {
       const tower = new Group();
+      tower.scale.setScalar(1.3);
       const body = this.material({ map: this.track(hutTexture(wall!, trim!)), roughness: 0.7 });
       const accent = this.material({ color: trim, roughness: 0.7 });
       const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z = 0) => {
@@ -491,7 +494,7 @@ export class SouthBeachStreet implements SceneStreet {
         mesh: tower,
         offset: i * TOWER_EVERY + 30,
         every: LOOP,
-        x: 28 + (i % 2) * 8,
+        x: 20 + (i % 2) * 5,
       });
     });
   }
@@ -582,7 +585,7 @@ export class SouthBeachStreet implements SceneStreet {
   private addSea(): void {
     const water = this.material({
       map: this.repeat(seaTexture(), 30, 30),
-      color: 0x7fb4c8,
+      color: 0x3f86a8,
       roughness: 0.15,
       metalness: 0.2,
     });
