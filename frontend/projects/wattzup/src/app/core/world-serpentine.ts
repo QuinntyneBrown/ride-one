@@ -44,6 +44,7 @@ import {
   loopMetres,
   Mist,
   paintTexture,
+  PopupTents,
   Ribbons,
   scaleFaceUv,
   type SceneStreet,
@@ -125,6 +126,20 @@ const FEATHERS: readonly FeatherWord[] = [
   ['WATTZUP', '#d7ff3a', '#1b1e24'],
 ];
 const FEATHER_EVERY = 16;
+/**
+ * The ride village's pop-up tents on the lawn: the valance's words, the canopy's fill and the
+ * ink, how far into the loop and how far off the road's centre. The first stand in the opening
+ * view.
+ */
+const TENTS: readonly (readonly [string, string, string, number, number])[] = [
+  ['WATER', '#1f4e79', '#ffffff', 108, 9.8],
+  ['LAKESIDE RIDE', '#2c5e3a', '#ffffff', 118, 10.4],
+  ['ICE CREAMS', '#f2a7c3', '#5a1f33', 128, 9.9],
+  ['WATTZUP', '#d7ff3a', '#1b1e24', 210, 9.8],
+  ['BIKE REPAIR', '#c8202f', '#ffffff', 220, 10.3],
+  ['FIRST AID', '#f2efe6', '#c8202f', 340, 9.8],
+  ['WATER', '#1f4e79', '#ffffff', 430, 9.6],
+];
 /** What the fans paint on the road, its colour and how far off the centre line. */
 const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
   ['COME ON', '#ffffff', -1.8],
@@ -226,6 +241,7 @@ export class SerpentineStreet implements SceneStreet {
     this.addJoggers();
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
+    this.addTents();
     this.addRoadPaint();
     this.addCrossing(roadHalf);
     this.addHorizon();
@@ -474,7 +490,9 @@ export class SerpentineStreet implements SceneStreet {
     let placed = 0;
     for (let offset = 2; placed < DECKCHAIRS; offset += 6 + random() * 10) {
       const group = 2 + Math.floor(random() * 2);
-      const x = 6.8 + random() * 7;
+      // Set back behind the village's tents where they stand.
+      const tent = TENTS.some(([, , , at]) => Math.abs(offset - at) < 6);
+      const x = 6.8 + random() * 7 + (tent ? 6 : 0);
       for (let k = 0; k < group && placed < DECKCHAIRS; k++, placed++) {
         const chair = new Group();
         const canvas = new Mesh(sling, stripes);
@@ -871,6 +889,17 @@ export class SerpentineStreet implements SceneStreet {
     this.group.add(crossing);
     // Short of the boathouse, close enough in the opening view to read.
     this.props.push({ mesh: crossing, offset: BOATHOUSE - 28, every: LOOP, x: 0 });
+  }
+
+  /** The ride village: pop-up tents on the lawn, each turned a little to the road. */
+  private addTents(): void {
+    const tents = new PopupTents(this.disposables, this.track);
+    TENTS.forEach(([text, fill, ink, offset, x], i) => {
+      const tent = tents.make(text, fill, ink);
+      tent.rotation.y = (i % 3) * 0.12 - 0.12;
+      this.group.add(tent);
+      this.props.push({ mesh: tent, offset, every: LOOP, x, near: true });
+    });
   }
 
   /** What the fans have painted on the road. */
