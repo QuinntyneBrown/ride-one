@@ -3513,6 +3513,14 @@ export class DocklandsStreet {
     });
     const unit = new BoxGeometry(1, 1, 1);
     const wheel = new CylinderGeometry(0.34, 0.34, 0.22, 14);
+    // A silver hubcap on each wheel's outer face, five spokes round a centre badge.
+    const hubcap = new MeshBasicMaterial({
+      map: this.track(hubcapTexture()),
+      transparent: true,
+      color: new Color(0xffffff).multiplyScalar(0.85),
+    });
+    const hubDisc = new CircleGeometry(0.25, 20);
+    this.disposables.push(hubcap, hubDisc);
     const rankTexture = this.track(rankSignTexture());
     const rank = new MeshBasicMaterial({ map: rankTexture, toneMapped: false });
     const board = new PlaneGeometry(1.4, 0.7);
@@ -3577,7 +3585,10 @@ export class DocklandsStreet {
             const w = new Mesh(wheel, tyre);
             w.rotation.z = Math.PI / 2;
             w.position.set(x + side * 0.85, y + 0.34, z + end * 1.35);
-            group.add(w);
+            const cap = new Mesh(hubDisc, hubcap);
+            cap.rotation.y = (side * Math.PI) / 2;
+            cap.position.set(x + side * 0.965, y + 0.34, z + end * 1.35);
+            group.add(w, cap);
           }
         }
         // The lead cab signals to pull out: indicators at its road-side corners, front and back.
@@ -6118,6 +6129,38 @@ function chalkboardTexture(dish: string, price: string): CanvasTexture {
   }
   ctx.closePath();
   ctx.stroke();
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A cab's hubcap: a silver rim and dish, five dark spoke slots and a centre badge. */
+function hubcapTexture(): CanvasTexture {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const c = size / 2;
+  const dish = ctx.createRadialGradient(c - 6, c - 6, 2, c, c, c);
+  dish.addColorStop(0, '#f4f6fa');
+  dish.addColorStop(1, '#8a909c');
+  ctx.fillStyle = dish;
+  ctx.beginPath();
+  ctx.arc(c, c, c - 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2a2d36';
+  for (let k = 0; k < 5; k++) {
+    const a = (k * 2 * Math.PI) / 5;
+    ctx.beginPath();
+    ctx.arc(c, c, c - 8, a + 0.25, a + 0.95);
+    ctx.arc(c, c, 12, a + 0.95, a + 0.25, true);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#f2c21b';
+  ctx.beginPath();
+  ctx.arc(c, c, 6, 0, Math.PI * 2);
+  ctx.fill();
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
