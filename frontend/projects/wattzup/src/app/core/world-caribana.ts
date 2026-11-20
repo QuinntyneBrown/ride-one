@@ -413,6 +413,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addGantry();
     for (const [name, at] of CROSS_STREETS) this.addIntersection(name, at);
     this.addGrandstand();
+    this.addPavilion();
     this.addSpray();
     this.addCastings();
     this.addLitter();
@@ -2134,6 +2135,44 @@ export class CaribanaStreet implements SceneStreet {
       every: LOOP,
       x: 0,
     });
+  }
+
+  /**
+   * The Sunnyside Bathing Pavilion on the lake side: a long cream stuccoed front of round-headed
+   * arches between square piers, a taller entrance block in the middle with its three great
+   * arches and pediment, and red clay-tiled hipped roofs, met once in the landmarks' cycle.
+   */
+  private addPavilion(): void {
+    const pavilion = new Group();
+    const stucco = this.material({
+      map: this.track(arcadeTexture()),
+      roughness: 0.9,
+    });
+    stucco.map!.wrapS = RepeatWrapping;
+    const plain = this.material({ color: 0xe9dfc8, roughness: 0.9 });
+    const tile = this.material({ color: 0xb0533a, roughness: 0.8 });
+    const block = (w: number, h: number, d: number, x: number, z: number, arches: number) => {
+      const body = new BoxGeometry(d, h, w);
+      // The arcade's face looks to the road (-x); it repeats an arch every 4.2 m.
+      scaleFaceUv(body, 1, arches, 1);
+      for (const face of [4, 5]) scaleFaceUv(body, face, Math.max(1, Math.round(d / 4.2)), 1);
+      body.translate(x, h / 2, z);
+      const roof = new ConeGeometry(1, 1, 4, 1);
+      roof.rotateY(Math.PI / 4);
+      roof.scale((d / 2) * 1.5, h * 0.35, (w / 2) * 1.5);
+      roof.translate(x, h + h * 0.175, z);
+      this.disposables.push(body, roof);
+      pavilion.add(
+        new Mesh(body, [plain, stucco, plain, plain, plain, plain]),
+        new Mesh(roof, tile),
+      );
+    };
+    block(64, 7, 10, 0, -40, 15);
+    block(64, 7, 10, 0, 40, 15);
+    block(16, 11, 13, -1.5, 0, 3);
+    pavilion.traverse((o) => (o.castShadow = true));
+    this.group.add(pavilion);
+    this.props.push({ mesh: pavilion, offset: 120, every: LANDMARKS, x: SHORE + 4 });
   }
 
   /**
@@ -4790,6 +4829,29 @@ function roofTexture(): CanvasTexture {
     for (let x = 0; x < 512; x += 16) g.fillRect(x, 0, 1, 64);
     g.fillStyle = 'rgba(60,66,72,0.8)';
     for (let x = 0; x < 512; x += 128) g.fillRect(x, 0, 4, 64);
+  });
+}
+
+/** One bay of an arcade: a round-headed arch in shade between cream piers, under a cornice. */
+function arcadeTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.fillStyle = '#ece3cd';
+    g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#d8ccb0';
+    g.fillRect(0, 0, 128, 12);
+    g.fillRect(0, 118, 128, 10);
+    g.fillStyle = '#211c17';
+    g.beginPath();
+    g.moveTo(26, 118);
+    g.lineTo(26, 56);
+    g.arc(64, 56, 38, Math.PI, 0);
+    g.lineTo(102, 118);
+    g.fill();
+    g.strokeStyle = '#cbbd9e';
+    g.lineWidth = 5;
+    g.beginPath();
+    g.arc(64, 56, 41, Math.PI, 0);
+    g.stroke();
   });
 }
 
