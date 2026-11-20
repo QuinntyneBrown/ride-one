@@ -13,7 +13,7 @@ import {
   Color,
   ConeGeometry,
   DoubleSide,
-  type BufferGeometry,
+  BufferGeometry,
   type CanvasTexture,
   CylinderGeometry,
   Group,
@@ -25,6 +25,7 @@ import {
   PlaneGeometry,
   RepeatWrapping,
   SphereGeometry,
+  TorusGeometry,
   type Texture,
 } from 'three/webgpu';
 import {
@@ -36,6 +37,7 @@ import {
   loopMetres,
   Palms,
   Ribbons,
+  Yachts,
   type SceneStreet,
   seeded,
   speckle,
@@ -160,6 +162,8 @@ export class MiamiStreet implements SceneStreet {
     this.addGateway(roadHalf);
     this.addCollins(roadHalf);
     this.addSteam();
+    this.addYachts(roadHalf);
+    this.addBikeDocks(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -1781,6 +1785,111 @@ export class MiamiStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset, x });
       this.vents.push(puffs);
+    }
+  }
+
+  /**
+   * Yachts riding at anchor offshore, lengthwise to the beach, their decks lit and a
+   * white anchor light at each masthead, slowly passed as the rider rolls along.
+   */
+  private addYachts(roadHalf: number): void {
+    const random = seeded(8371);
+    const yachts = new Yachts(this.disposables, [0xf8f8f4, 0x1a1e2a, 0xe8e4dc, 0x2a3a5a]);
+    const deckLight = new MeshBasicMaterial({
+      map: this.track(haloTexture()),
+      color: 0xffe0b0,
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    this.disposables.push(deckLight);
+    for (let k = 0; k < 6; k++) {
+      const length = 22 + random() * 26;
+      const yacht = yachts.make(k, length, random);
+      yacht.rotation.y = (random() - 0.5) * 0.4;
+      const holder = new Group();
+      holder.add(yacht);
+      for (let i = 0; i < 4; i++) {
+        const lamp = new Mesh(this.flat, deckLight);
+        lamp.scale.set(3, 3, 1);
+        lamp.position.set(0, 3 + (i % 2) * 2.4, (i - 1.5) * length * 0.22);
+        holder.add(lamp);
+      }
+      const anchor = new Mesh(this.flat, this.halo);
+      anchor.scale.set(2, 2, 1);
+      anchor.position.y = 9 + length * 0.1;
+      holder.add(anchor);
+      holder.position.y = -SEA - 0.1;
+      const outer = new Group();
+      outer.add(holder);
+      this.group.add(outer);
+      this.props.push({
+        mesh: outer,
+        offset: 30 + k * 66 + random() * 20,
+        x: -roadHalf - 70 - random() * 90,
+      });
+    }
+  }
+
+  /**
+   * Bike-share docks on the promenade: a lit payment kiosk and a row of blue bikes nose-in to
+   * a docking rail, each bike two spoked wheels, a step-through frame, a basket and a saddle.
+   */
+  private addBikeDocks(roadHalf: number): void {
+    const parts: BufferGeometry[] = [];
+    for (const z of [-0.55, 0.55]) {
+      const w = new TorusGeometry(0.33, 0.03, 6, 18);
+      w.rotateY(Math.PI / 2);
+      w.translate(0, 0.36, z);
+      parts.push(w);
+    }
+    const bar = (l: number, x: number, y: number, z: number, tilt: number) => {
+      const b = new BoxGeometry(0.05, l, 0.05);
+      b.rotateX(tilt);
+      b.translate(x, y, z);
+      parts.push(b);
+    };
+    bar(0.9, 0, 0.55, 0.05, 0.9);
+    bar(0.6, 0, 0.62, 0.45, -0.25);
+    bar(0.55, 0, 0.85, -0.45, 0.3);
+    const basket = new BoxGeometry(0.4, 0.25, 0.3);
+    basket.translate(0, 0.95, -0.7);
+    const saddle = new BoxGeometry(0.16, 0.06, 0.26);
+    saddle.translate(0, 0.98, 0.42);
+    const bars = new BoxGeometry(0.55, 0.04, 0.04);
+    bars.translate(0, 1.12, -0.5);
+    parts.push(basket, saddle, bars);
+    const bike = mergeGeometries(parts)!;
+    parts.forEach((g) => g.dispose());
+    this.disposables.push(bike);
+    const blue = this.material({ color: 0x2a6ad8, roughness: 0.4, metalness: 0.3 });
+    const steel = this.material({ color: 0x8a8e98, roughness: 0.4, metalness: 0.8 });
+    const screen = this.material({ color: 0x80d0ff, emissive: 0x60c0ff, emissiveIntensity: 1.6 });
+    for (const offset of [46, 190, 318]) {
+      const dock = new Group();
+      const rail = new Mesh(this.unit, steel);
+      rail.scale.set(0.12, 0.6, 9);
+      rail.position.set(0.9, 0.3, 0);
+      const kiosk = new Mesh(this.unit, blue);
+      kiosk.scale.set(0.5, 1.9, 0.6);
+      kiosk.position.set(0.9, 0.95, 5.2);
+      const panel = new Mesh(this.unit, screen);
+      panel.scale.set(0.52, 0.5, 0.4);
+      panel.position.set(0.9, 1.4, 5.2);
+      dock.add(rail, kiosk, panel);
+      for (let i = 0; i < 9; i++) {
+        if (i === 3 || i === 7) continue;
+        const b = new Mesh(bike, blue);
+        b.rotation.y = Math.PI / 2;
+        b.position.set(0.1, 0, -4 + i * 1);
+        b.castShadow = true;
+        dock.add(b);
+      }
+      dock.position.y = 0.15;
+      const holder = new Group();
+      holder.add(dock);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: -roadHalf - 1.6 });
     }
   }
 
