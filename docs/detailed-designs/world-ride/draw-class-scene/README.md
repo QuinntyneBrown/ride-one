@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `austin`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`, `etna`, `timessquare`, `tremola`, `teide`, `monaco`, `tempelhof`, `paine`, `ibiza`, `skye`, `toronto`, `prospect`, `calobra`, `strade`, `wicklow`, `haleakala`, `dubai`, `austin`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -510,6 +510,14 @@ None.
   - pull-outs with parked cars, and visitors (`Figures`) looking out over the clouds;
   - the summit massif and crater rim's cinder cones, and the observatories' white domes;
   - the sea of clouds to the horizon with billows drifting on the ride's clock, and the Big Island's Mauna Kea, snow on its summit, and Mauna Loa above it, keeping their bearing.
+- **Dubai Marina (`core/world-dubai.ts`).** For `dubai`, the marina walk at dusk, closed for the ride:
+  - the dark asphalt of the walk painted with names and cries in gold, aqua, lime and white every 7 m (SPRINT, YALLA, GO MAYA and more), every third row a slogan right across it (DUBAI MARINA, SPRINT, WATTZUP, YALLA YALLA), laid by the kit's painted rows; barriers hung with the race's banners (DUBAI MARINA, MARINA SPRINT, WATTZUP, DUBAI, SPRINT, MARINA WALK) under a white rail, the kit's feather flags every 18 m along both, and two lit banners over the road (DUBAI MARINA SPRINT, WATTZUP · SPRINT INTO THE EFFORT);
+  - the evening crowd (the shared crowd) in white kandura, black abaya and bright summer colours, packed along the podium side and in a loose single row on the quay side so the marina shows, some with flags in the UAE's green, white, black and red, some with their arms up;
+  - on the left the pale stone paving of the walk out to the quay's edge 10 m off the crown, its glass rail with a steel cap, the kit's palms in round stone planters, the marina's water below, superyachts (the kit's yachts, shared with Monaco) moored in two rows off the quay, and across the water the far side's towers, their glass alight;
+  - on the right the podium: two floors of shops and cafés with lit fronts under awnings, and a glass tower rising from each block, set back, 60 to 210 m tall, its windows coming alight, a spire on every third;
+  - ahead the marina's skyline: the Cayan Tower twisting a quarter turn from foot to crown, its white floor slabs spiralling up its glass, among towers of every height, some with spires and some with flared crowns, all hazed by hand. Everything along the road is hidden past 280 m.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop, and `sink` drops the ground under the water.
 - **Sixth Street, Austin (`core/world-austin.ts`).** For `austin`, the historic entertainment block at dusk on a festival night, closed to traffic:
   - the worn asphalt and the brick-banded sidewalks;
   - the old two- and three-storey limestone and brick fronts with iron balconies and cornices, upstairs windows and doorways lit, bar names in neon and blade signs flickering on the ride's clock, and Texas flags stirring from the balconies;
@@ -595,6 +603,7 @@ None.
 | `pages/world-ride/strade` | Strade Bianche at 2:53, warm-up, next `Gravel spin` |
 | `pages/world-ride/wicklow` | Wicklow Gap at 4:50, warm-up, next `Gap attack` |
 | `pages/world-ride/haleakala` | Haleakalā at 4:50, warm-up, next `Summit surge` |
+| `pages/world-ride/dubai` | Dubai Marina at 1:53, warm-up, next `Marina sprint` |
 | `pages/world-ride/austin` | Sixth Street, Austin at 4:50, warm-up, next `Encore surge` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |

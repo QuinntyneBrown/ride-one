@@ -148,6 +148,7 @@ export interface components {
         | 'strade'
         | 'wicklow'
         | 'haleakala'
+        | 'dubai'
         | 'austin';
     };
     ClassShelfResponse: {

@@ -1105,6 +1105,22 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 2.3, colour: 0xffe8c8 },
     fogRange: [2500, 16000],
   },
+  // Dusk over Dubai Marina: the sun just down ahead and left, the sky burning orange low and
+  // violet above, the towers' windows coming alight and the haze warm and rosy.
+  dubai: {
+    sky: 0x8a78b0,
+    fog: 0xc89aa0,
+    ground: 0xd8ccb8,
+    road: 0x3e3c44,
+    sun: 1.5,
+    wet: false,
+    haze: false,
+    turbidity: 9,
+    rayleigh: 3.2,
+    azimuth: -20,
+    light: { sun: 1.8, fill: 1.25, colour: 0xff9060 },
+    fogRange: [180, 2200],
+  },
   // Dusk on a festival night: the sky going orange and violet behind the Capitol, neon coming on.
   austin: {
     sky: 0x4a3a6a,
