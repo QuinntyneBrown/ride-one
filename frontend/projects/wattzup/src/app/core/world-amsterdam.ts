@@ -267,7 +267,12 @@ export class AmsterdamStreet implements SceneStreet {
       [0, 1, 2, 3].map((v) =>
         this.material({
           map: this.track(
-            facadeTexture(kind, FRONTS[(k * 3 + v * 5) % FRONTS.length]!, 503 + k * 7 + v),
+            facadeTexture(
+              kind,
+              FRONTS[(k * 3 + v * 5) % FRONTS.length]!,
+              503 + k * 7 + v,
+              v % 2 === 1,
+            ),
           ),
           roughness: 0.85,
         }),
@@ -278,6 +283,10 @@ export class AmsterdamStreet implements SceneStreet {
       fronts.flat().map((m) => [m, this.material({ map: m.map, color: 0x6f7a78, roughness: 1 })]),
     );
     const mirroredSides = this.material({ color: 0x3a3634, roughness: 1 });
+    const stone = this.material({ color: 0xa39d92, roughness: 0.9 });
+    const iron = this.material({ color: 0x15171a, metalness: 0.5, roughness: 0.5 });
+    const { steps, railings } = stoopGeometry();
+    this.disposables.push(steps, railings);
     const rows = [
       { x: roadHalf + PAVEMENT, turn: Math.PI / 2 },
       { x: -roadHalf - QUAY - CANAL - FAR_QUAY, turn: -Math.PI / 2 },
@@ -289,7 +298,8 @@ export class AmsterdamStreet implements SceneStreet {
         const width = k === 4 ? 11 + random() * 5 : 5.6 + random() * 2.4;
         const height = k === 4 ? 15 + random() * 3 : 17 + random() * 4;
         const house = new Group();
-        const face = fronts[k]![Math.floor(random() * 4)]!;
+        const variant = Math.floor(random() * 4);
+        const face = fronts[k]![variant]!;
         const mesh = new Mesh(shapes[k]!, [face, sides]);
         mesh.scale.set(width, height, 12);
         mesh.rotation.y = turn;
@@ -303,6 +313,14 @@ export class AmsterdamStreet implements SceneStreet {
           reflection.rotation.y = turn;
           house.add(reflection);
         }
+        // The stoop up to the door, its steps running out onto the pavement.
+        const along = doorAt(GABLES[k]!, variant % 2 === 1) * width;
+        const stoop = new Group();
+        stoop.add(new Mesh(steps, stone), new Mesh(railings, iron));
+        stoop.position.z = turn > 0 ? -along : along;
+        stoop.rotation.y = turn > 0 ? 0 : Math.PI;
+        stoop.children.forEach((m) => (m.castShadow = true));
+        house.add(stoop);
         this.group.add(house);
         // The house's front runs from `offset` to `offset + width` along the gracht.
         const setback = random() * 0.35;
@@ -556,6 +574,48 @@ export class AmsterdamStreet implements SceneStreet {
     texture.repeat.set(1 / x, 1 / y);
     return this.track(texture);
   }
+}
+
+/**
+ * A stoop, its foot towards -x from a front at x 0, centred on z 0: a landing at the raised
+ * ground floor's door, four stone steps down to the pavement, and black iron railings with
+ * balusters either side.
+ */
+function stoopGeometry(): { steps: BufferGeometry; railings: BufferGeometry } {
+  const stone: BufferGeometry[] = [];
+  const iron: BufferGeometry[] = [];
+  const width = 1.5;
+  const rise = 0.28;
+  const landing = new BoxGeometry(0.7, 4 * rise, width);
+  landing.translate(-0.35, 2 * rise, 0);
+  stone.push(landing);
+  for (let s = 0; s < 4; s++) {
+    const step = new BoxGeometry(0.28, (s + 1) * rise, width);
+    step.translate(-0.7 - (3 - s) * 0.28 - 0.14, ((s + 1) * rise) / 2, 0);
+    stone.push(step);
+  }
+  for (const z of [-width / 2 + 0.04, width / 2 - 0.04]) {
+    const top = new BoxGeometry(0.7, 0.04, 0.04);
+    top.translate(-0.35, 4 * rise + 0.9, z);
+    iron.push(top);
+    const slope = new BoxGeometry(Math.hypot(1.12, 4 * rise), 0.04, 0.04);
+    slope.rotateZ(Math.atan2(4 * rise, 1.12));
+    slope.translate(-0.7 - 0.56, 2 * rise + 0.9, z);
+    iron.push(slope);
+    for (let x = 0.05; x < 1.85; x += 0.16) {
+      const foot = x < 0.7 ? 4 * rise : Math.max(rise, 4 * rise - ((x - 0.7) / 0.28) * rise);
+      const top = x < 0.7 ? 4 * rise + 0.9 : 4 * rise + 0.9 - ((x - 0.7) / 1.12) * 4 * rise;
+      const baluster = new BoxGeometry(0.02, top - foot, 0.02);
+      baluster.translate(-x, (top + foot) / 2, z);
+      iron.push(baluster);
+    }
+  }
+  const merge = (parts: BufferGeometry[]) => {
+    const merged = mergeGeometries(parts.map((p) => p.toNonIndexed()))!;
+    parts.forEach((p) => p.dispose());
+    return merged;
+  };
+  return { steps: merge(stone), railings: merge(iron) };
 }
 
 /** An upright Dutch bike, along z: two wheels, its frame, saddle and swept-back bars. */
@@ -845,6 +905,17 @@ function traceFront(pen: Pen, kind: Gable): void {
   pen.lineTo(1, 0);
 }
 
+/** How many window bays a house of this kind has across its front. */
+function bays(kind: Gable): number {
+  return kind === 'cornice' ? 5 : 3;
+}
+
+/** Where a house's door stands across its front, as a share of its width. */
+function doorAt(kind: Gable, doorRight: boolean): number {
+  const pane = (256 - 30) / bays(kind);
+  return (15 + (doorRight ? bays(kind) - 1 : 0) * pane + pane / 2) / 256;
+}
+
 /** A house's front as a shape to extrude, 1 wide and 1 tall. */
 function gableShape(kind: Gable): Shape {
   const shape = new Shape();
@@ -858,7 +929,12 @@ function gableShape(kind: Gable): Shape {
  * the eaves, tall white-framed sash windows on four floors, the door with its fanlight at the
  * foot, and in the gable a hoist beam over a loft window, trimmed in sandstone.
  */
-function facadeTexture(kind: Gable, front: string, seed: number): CanvasTexture {
+function facadeTexture(
+  kind: Gable,
+  front: string,
+  seed: number,
+  doorRight: boolean,
+): CanvasTexture {
   const w = 256;
   const h = 640;
   return canvasTexture(w, h, (g) => {
@@ -898,10 +974,10 @@ function facadeTexture(kind: Gable, front: string, seed: number): CanvasTexture 
       g.fillRect(w / 2 - 4, eaves - 108, 8, 30);
     }
     // Four floors of sash windows over the ground floor.
-    const columns = kind === 'cornice' ? 5 : 3;
+    const columns = bays(kind);
     const pane = (w - 30) / columns;
     const floors = 4;
-    const ground = h - 120;
+    const ground = h - 175;
     const floor = (ground - eaves - 20) / floors;
     for (let f = 0; f < floors; f++) {
       const y = eaves + 24 + f * floor;
@@ -922,23 +998,41 @@ function facadeTexture(kind: Gable, front: string, seed: number): CanvasTexture 
         g.fillRect(x, y + (tall * 3) / 4, width, 2);
       }
     }
-    // The ground floor: the door with its fanlight to one side, windows beside it.
-    const door = random() < 0.5 ? 0 : columns - 1;
+    // The raised ground floor over a stone plinth: the door with its fanlight to one side at
+    // the top of the stoop, tall windows beside it, and barred basement windows below them.
+    g.fillStyle = '#8f8a82';
+    g.fillRect(0, h - 40, w, 40);
+    g.fillStyle = 'rgba(0,0,0,0.2)';
+    g.fillRect(0, h - 40, w, 3);
+    const door = doorRight ? columns - 1 : 0;
     for (let c = 0; c < columns; c++) {
       const x = 15 + c * pane + pane * 0.14;
       const width = pane * 0.72;
       g.fillStyle = '#f6f4ee';
-      g.fillRect(x - 4, ground - 4, width + 8, 124);
+      g.fillRect(x - 4, ground + 6, width + 8, h - 40 - ground - 4);
       if (c === door) {
         g.fillStyle = '#c9d6dc';
-        g.fillRect(x, ground, width, 26);
+        g.fillRect(x, ground + 10, width, 24);
+        g.fillStyle = '#f6f4ee';
+        for (let r = 1; r < 4; r++) g.fillRect(x + (width * r) / 4 - 1, ground + 10, 2, 24);
         g.fillStyle = ['#1f3a2c', '#1b1b1f', '#6a1a1a', '#1b3a5c'][Math.floor(random() * 4)]!;
-        g.fillRect(x, ground + 30, width, 90);
+        g.fillRect(x, ground + 38, width, h - 40 - ground - 38);
+        g.fillStyle = 'rgba(255,255,255,0.12)';
+        g.fillRect(x + 4, ground + 44, width / 2 - 6, 34);
+        g.fillRect(x + width / 2 + 2, ground + 44, width / 2 - 6, 34);
+        g.fillStyle = '#c8a040';
+        g.fillRect(x + width / 2 - 2, ground + 90, 4, 4);
       } else {
         g.fillStyle = '#22303c';
-        g.fillRect(x, ground, width, 80);
+        g.fillRect(x, ground + 10, width, h - 40 - ground - 16);
         g.fillStyle = '#f6f4ee';
-        g.fillRect(x + width / 2 - 1.5, ground, 3, 80);
+        g.fillRect(x + width / 2 - 1.5, ground + 10, 3, h - 40 - ground - 16);
+        g.fillRect(x, ground + 10 + (h - 40 - ground - 16) / 2, width, 3);
+        // The basement window under it, behind bars.
+        g.fillStyle = '#1a1e22';
+        g.fillRect(x + 4, h - 32, width - 8, 24);
+        g.fillStyle = '#3a3a3a';
+        for (let b = x + 8; b < x + width - 6; b += 7) g.fillRect(b, h - 32, 2, 24);
       }
     }
   });
