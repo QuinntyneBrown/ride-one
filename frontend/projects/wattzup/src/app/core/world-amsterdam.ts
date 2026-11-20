@@ -129,6 +129,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addCafe(roadHalf);
     this.addScooters(roadHalf);
     this.addSigns(roadHalf);
+    this.addBenches(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -1113,6 +1114,66 @@ export class AmsterdamStreet implements SceneStreet {
         this.group.add(at);
         this.props.push({ mesh: at, offset: along, x });
       }
+    }
+  }
+
+  /**
+   * Benches on the quay before every bridge, facing the water: green slats on cast-iron ends,
+   * with people sitting on them in the sun, and at each a pair sitting on the quay's edge with
+   * their legs over the water.
+   */
+  private addBenches(roadHalf: number): void {
+    const random = seeded(733);
+    const slats = this.material({ color: 0x2f5a3a, roughness: 0.8 });
+    const iron = this.material({ color: 0x1b1b1f, metalness: 0.5, roughness: 0.5 });
+    const people = this.material({ vertexColors: true, roughness: 0.85 });
+    const seat = new BoxGeometry(0.45, 0.05, 1.8);
+    seat.translate(0, 0.45, 0);
+    const back = new BoxGeometry(0.05, 0.4, 1.8);
+    back.rotateZ(-0.15);
+    back.translate(0.24, 0.72, 0);
+    const ends = mergeGeometries(
+      [-0.8, 0.8].map((z) => {
+        const end = new BoxGeometry(0.5, 0.45, 0.06);
+        end.translate(0.02, 0.225, z);
+        return end;
+      }),
+    )!;
+    this.disposables.push(seat, back, ends);
+    const edge = -roadHalf - QUAY;
+    for (let b = 0; b < LOOP; b += BRIDGE) {
+      for (const along of [-7, -3.4]) {
+        const bench = new Group();
+        bench.add(new Mesh(seat, slats), new Mesh(back, slats), new Mesh(ends, iron));
+        for (let p = 0; p < 2; p++) {
+          if (random() < 0.3) continue;
+          const sitter = new Mesh(sitterGeometry(random), people);
+          this.disposables.push(sitter.geometry);
+          sitter.rotation.y = Math.PI / 2;
+          sitter.position.set(0.05, -0.02, (p - 0.5) * 0.9);
+          bench.add(sitter);
+        }
+        bench.children.forEach((m) => (m.castShadow = true));
+        bench.position.y = KERB;
+        const at = new Group();
+        at.add(bench);
+        this.group.add(at);
+        this.props.push({ mesh: at, offset: b + along, x: edge + 2.2 });
+      }
+      // Two friends on the quay's edge, legs dangling over the water.
+      const pair = new Group();
+      for (const z of [0, 0.7]) {
+        const sitter = new Mesh(sitterGeometry(random), people);
+        this.disposables.push(sitter.geometry);
+        sitter.rotation.y = Math.PI / 2;
+        sitter.position.set(0.25, KERB - 0.48, z);
+        pair.add(sitter);
+      }
+      pair.children.forEach((m) => (m.castShadow = true));
+      const at = new Group();
+      at.add(pair);
+      this.group.add(at);
+      this.props.push({ mesh: at, offset: b - 5.5, x: edge });
     }
   }
 
