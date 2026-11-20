@@ -67,6 +67,12 @@ const RAIL_DECK = 15;
 const RAIL_WEST = -360;
 const RAIL_EAST = 210;
 const TRAIN_SPEED = 16;
+/** The drizzle: DROPS streaks DROP metres long, falling at RAIN_SPEED m/s round the rider. */
+const DROPS = 1100;
+const DROP = 0.7;
+const RAIN_SPEED = 9;
+const RAIN_BOX = 26;
+const RAIN_HEIGHT = 14;
 /** The neon strips up the towers' corners are this thick. */
 const EDGE = 0.35;
 /** The centre line's dashes: DASH metres of line in every DASH_EVERY. */
@@ -180,7 +186,8 @@ export class DocklandsStreet {
    * Runs the train along its viaduct for `seconds` of the ride: it crosses from the harbour
    * side to the far towers at TRAIN_SPEED and comes round again. Held still for reduced motion.
    */
-  setTime(seconds: number): void {
+  setTime(seconds: number, still = false): void {
+    this.fall(seconds, still);
     // The whole train is out of sight inside the towers at either end of its run.
     const start = RAIL_WEST - 40;
     const run = RAIL_EAST + 40 - start;
@@ -188,6 +195,51 @@ export class DocklandsStreet {
     const along = (((seconds * TRAIN_SPEED - start) % run) + run) % run;
     this.train.position.x = start + along;
   }
+  private rain: LineSegments | null = null;
+  private readonly drops: { x: number; z: number; phase: number }[] = [];
+
+  /**
+   * A fine drizzle round the rider: DROPS short streaks falling at RAIN_SPEED through a box
+   * RAIN_BOX metres on a side, slanting a little with the wind. Wet streets need rain.
+   */
+  private addRain(): void {
+    const random = seeded(229);
+    for (let i = 0; i < DROPS; i++) {
+      this.drops.push({
+        x: (random() - 0.5) * RAIN_BOX,
+        z: 6 - random() * RAIN_BOX * 1.6,
+        phase: random() * RAIN_HEIGHT,
+      });
+    }
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(new Float32Array(DROPS * 6), 3));
+    const material = new LineBasicMaterial({
+      color: 0xb8c4ff,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+    });
+    this.disposables.push(geometry, material);
+    this.rain = new LineSegments(geometry, material);
+    this.rain.frustumCulled = false;
+    this.group.add(this.rain);
+  }
+
+  /** Lets the drizzle fall for `seconds`; for reduced motion there is none. */
+  private fall(seconds: number, still: boolean): void {
+    const rain = this.rain;
+    if (!rain) return;
+    rain.visible = !still;
+    if (still) return;
+    const position = rain.geometry.getAttribute('position') as BufferAttribute;
+    this.drops.forEach((drop, i) => {
+      const y = RAIN_HEIGHT - ((drop.phase + seconds * RAIN_SPEED) % RAIN_HEIGHT);
+      position.setXYZ(i * 2, drop.x, y, drop.z);
+      position.setXYZ(i * 2 + 1, drop.x - DROP * 0.12, y - DROP, drop.z + DROP * 0.05);
+    });
+    position.needsUpdate = true;
+  }
+
   private skyReflection: CanvasTexture | null = null;
 
   /** The night sky as an environment map, for the water, the glass and the wet road to reflect. */
@@ -792,6 +844,7 @@ export class DocklandsStreet {
     this.addSky();
     this.addBoats(roadHalf + SETBACK + 2);
     this.addSkytrain(roadHalf);
+    this.addRain();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
     for (const side of [-1, 1]) {
@@ -1402,6 +1455,7 @@ export class DocklandsStreet {
     const rail = ((((SKYTRAIN - s) % LOOP) + LOOP) % LOOP) - BEHIND;
     this.skytrain.visible = !this.onBridge(Math.max(rail, 0));
     this.skytrain.position.set(0, heightAt(Math.max(rail, 0)), -rail);
+    this.rain?.position.set(0, heightAt(0), 0);
     for (const boat of this.boats) {
       const metres = ((((boat.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       boat.mesh.visible = !this.onBridge(Math.max(metres, 0));
