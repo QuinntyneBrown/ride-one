@@ -146,6 +146,12 @@ export class HavanaStreet implements SceneStreet {
     side: DoubleSide,
   });
   private readonly wire = new MeshStandardMaterial({ color: 0x141414, roughness: 0.6 });
+  private readonly signSheet = new PlaneGeometry(0.55, 0.4);
+  private readonly casaSign = new MeshStandardMaterial({
+    map: casaTexture(),
+    side: DoubleSide,
+    roughness: 0.6,
+  });
   private readonly glow = new MeshStandardMaterial({
     color: 0xfff0d0,
     emissive: 0xffd590,
@@ -190,6 +196,9 @@ export class HavanaStreet implements SceneStreet {
       this.dressing,
       this.glow,
       this.wire,
+      this.signSheet,
+      this.casaSign,
+      this.casaSign.map!,
       this.flagSheet,
       this.flag,
     );
@@ -570,6 +579,7 @@ export class HavanaStreet implements SceneStreet {
     const concrete = new Color();
     const cafes = seeded(1229);
     const wires = seeded(1301);
+    const signs = seeded(1433);
     const folk = seeded(1307);
     const derelict = this.track(ruinTexture());
     derelict.wrapS = RepeatWrapping;
@@ -671,6 +681,15 @@ export class HavanaStreet implements SceneStreet {
         impost.scale.set(0.62, 0.18, 0.62);
         impost.position.set(0.25, PORTAL - 1.45, -0.15 - k * bay);
         building.add(impost);
+        // Now and then a casa particular's sign hangs out from the pier on an iron bracket.
+        if (!ruin && !tower && signs() < 0.18) {
+          const sign = new Mesh(this.signSheet, this.casaSign);
+          sign.position.set(-0.45, 2.75, -0.15 - k * bay);
+          const arm = new Mesh(this.unit, this.wire);
+          arm.scale.set(0.7, 0.04, 0.04);
+          arm.position.set(-0.3, 3.05, -0.15 - k * bay);
+          building.add(sign, arm);
+        }
         pier.scale.set(0.5, PORTAL, 0.5);
         pier.position.set(0.25, PORTAL / 2, -0.15 - k * bay);
         pier.castShadow = true;
@@ -3723,5 +3742,35 @@ function potholeTexture(water: boolean): CanvasTexture {
       g.fillStyle = `rgba(${90 + random() * 60},${88 + random() * 60},${84 + random() * 60},0.85)`;
       g.fillRect(128 + Math.cos(a) * r, 128 + Math.sin(a) * r, 2 + random() * 4, 2 + random() * 4);
     }
+  });
+}
+
+/**
+ * The sign of a casa particular, a licensed room to let: a white enamel plate with a blue
+ * border and the blue roof-and-arch mark of the trade, worn at its edges.
+ */
+function casaTexture(): CanvasTexture {
+  return canvasTexture(128, 96, (g) => {
+    g.fillStyle = '#f4f2ec';
+    g.fillRect(0, 0, 128, 96);
+    g.strokeStyle = '#1f4fa0';
+    g.lineWidth = 6;
+    g.strokeRect(4, 4, 120, 88);
+    g.fillStyle = '#1f4fa0';
+    g.beginPath();
+    g.moveTo(30, 52);
+    g.lineTo(64, 20);
+    g.lineTo(98, 52);
+    g.lineTo(86, 52);
+    g.lineTo(64, 32);
+    g.lineTo(42, 52);
+    g.fill();
+    g.beginPath();
+    g.arc(64, 70, 18, Math.PI, 0);
+    g.lineTo(74, 70);
+    g.arc(64, 70, 10, 0, Math.PI, true);
+    g.fill();
+    g.fillStyle = 'rgba(120,90,60,0.35)';
+    g.fillRect(0, 88, 128, 8);
   });
 }

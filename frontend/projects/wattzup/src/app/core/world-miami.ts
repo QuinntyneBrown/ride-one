@@ -209,6 +209,7 @@ export class MiamiStreet implements SceneStreet {
     this.addPatrol(roadHalf);
     this.addCyclists(roadHalf);
     this.addBeachParty(roadHalf);
+    this.addLetters(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -2884,6 +2885,53 @@ export class MiamiStreet implements SceneStreet {
       });
   }
 
+  /**
+   * Giant letters on the dune spelling MIAMI BEACH across the view, each a 2.4 m block letter in its own
+   * bright colour standing on a low plinth facing the riders coming down the drive, lit from below.
+   */
+  private addLetters(roadHalf: number): void {
+    const word = 'MIAMI BEACH';
+    const colours = ['#ff4fb8', '#ffd23f', '#2fe6ff', '#5aff8a', '#b46bff', '#ff6a3f'];
+    const plinth = this.material({ color: 0xe8e2dc, roughness: 0.7 });
+    const sign = new Group();
+    let z = 0;
+    // Laid from the right-hand end leftwards, so the word reads left to right from the road.
+    [...word].reverse().forEach((ch, i) => {
+      if (ch === ' ') {
+        z += 0.6;
+        return;
+      }
+      const m = this.material({
+        map: this.track(letterTexture(ch, colours[i % colours.length]!)),
+        transparent: true,
+        alphaTest: 0.4,
+        side: DoubleSide,
+        emissive: 0xffffff,
+        emissiveMap: this.track(letterTexture(ch, colours[i % colours.length]!)),
+        emissiveIntensity: 0.6,
+      });
+      for (const dz of [0, -0.08, -0.16, -0.24]) {
+        const letter = new Mesh(this.flat, m);
+        letter.scale.set(1.9, 2.4, 1);
+        letter.position.set(-z, 1.7, dz);
+        sign.add(letter);
+      }
+      z += 1.9;
+    });
+    const base = new Mesh(this.unit, plinth);
+    base.scale.set(z + 0.4, 0.5, 1);
+    base.position.set(-z / 2 + 0.9, 0.25, -0.12);
+    const wash = new Mesh(this.flat, this.halo);
+    wash.scale.set(z + 3, 4, 1);
+    wash.position.set(-z / 2 + 0.9, 1.7, 0.3);
+    sign.add(base, wash);
+    sign.position.y = -0.2;
+    const holder = new Group();
+    holder.add(sign);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 62, x: -roadHalf - 7 });
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -5071,5 +5119,19 @@ function chalkboardTexture(lines: readonly string[]): CanvasTexture {
       g.font = `bold ${i === 2 ? 20 : 18}px sans-serif`;
       g.fillText(line, 48, 40 + i * 36, 80);
     });
+  });
+}
+
+/** One giant block letter in a bright colour with a darker outline, on clear ground. */
+function letterTexture(ch: string, colour: string): CanvasTexture {
+  return canvasTexture(128, 160, (g) => {
+    g.font = 'bold 170px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.lineWidth = 8;
+    g.strokeStyle = 'rgba(20,10,30,0.8)';
+    g.strokeText(ch, 64, 88, 124);
+    g.fillStyle = colour;
+    g.fillText(ch, 64, 88, 124);
   });
 }
