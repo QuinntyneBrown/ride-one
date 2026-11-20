@@ -111,18 +111,18 @@ export class Route66Street implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     for (const car of this.traffic) {
       const metres = loopMetres(car.offset + car.speed * this.time, s, LOOP, BEHIND);
-      car.mesh.position.set(car.x, heightAt(Math.max(metres, 0)), -metres);
+      car.mesh.position.set(car.x, heightAt(metres), -metres);
     }
     // A tumbleweed blows across the road from the right, bounding as it rolls.
     for (const weed of this.tumbleweeds) {
       const metres = loopMetres(weed.offset, s, LOOP, BEHIND);
       const across = ((this.time * 3.2 + weed.phase * 90) % 90) - 45;
       const bound = Math.abs(Math.sin(this.time * 3 + weed.phase * 6)) * 0.5;
-      weed.mesh.position.set(-across, heightAt(Math.max(metres, 0)) + 0.45 + bound, -metres);
+      weed.mesh.position.set(-across, heightAt(metres) + 0.45 + bound, -metres);
       weed.mesh.rotation.z = this.time * 2.6;
     }
     // The mesas stand round the horizon and keep their distance as the rider rides.
