@@ -153,6 +153,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Stanley Park Seawall');
   });
 
+  test('rides 15 Minute HIIT Cardio round the Serpentine in Hyde Park', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '15 Minute HIIT Cardio',
+      'Serpentine, Hyde Park',
+      '15-minute-hiit-cardio',
+    );
+    await expect(world.heading).toHaveText('Serpentine, Hyde Park');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Serpentine, Hyde Park');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');

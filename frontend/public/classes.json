@@ -1395,6 +1395,7 @@
     },
     {
       "id": "15-minute-hiit-cardio",
+      "world": "serpentine",
       "title": "15 Minute HIIT Cardio",
       "channel": "GCN Training",
       "focus": "HIIT",

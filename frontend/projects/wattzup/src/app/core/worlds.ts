@@ -345,6 +345,16 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0.5, work: 1, rest: 0, cooldown: 0, steady: 0.5 },
     roll: 0.5,
   },
+  {
+    id: 'serpentine',
+    name: 'Serpentine, Hyde Park',
+    route: 'Serpentine Road',
+    effortName: 'Lakeside surge',
+    description:
+      "Rowing boats and white swans glide on the Serpentine as the lakeside road runs west through Hyde Park past the boathouse and the striped deckchairs under the plane trees toward the five stone arches of the Serpentine Bridge. The two-minute warm-up rolls past the boathouse, the three-minute tempo blocks sweep along the lake under the planes, and each thirty-second sprint races for the bridge's arches.",
+    grade: { warmup: 0, work: 0.4, rest: -0.3, cooldown: 0, steady: 0 },
+    roll: 0.3,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
