@@ -716,6 +716,15 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 2, work: 7, rest: 1, cooldown: 0, steady: 3 },
     roll: 1,
   },
+  {
+    id: 'angels',
+    name: 'Els Àngels, Girona',
+    route: 'Els Àngels',
+    effortName: 'Attack on Els Àngels',
+    description: "A favourite pro training climb above Girona's old town.",
+    grade: { warmup: 3, work: 7, rest: 3, cooldown: 1, steady: 5 },
+    roll: 1,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
