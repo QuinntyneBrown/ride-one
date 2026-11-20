@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `champs`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -280,6 +280,15 @@ None.
   - the Supertrees of Gardens by the Bay with lattice canopies glowing and changing colour slowly, and the lit skyway between the tallest;
   - warm lamps and palms along both kerbs, strollers on the promenade (`Figures`), and the Merlion spouting into the bay once a lap;
   - across the bay the city's towers lit window by window, Marina Bay Sands' towers and SkyPark, the ArtScience Museum's lotus and the Singapore Flyer turning, keeping their bearing; the ground sinks below the bay.
+- **Serpentine, Hyde Park (`core/world-serpentine.ts`).** For `serpentine`, the road along the north bank of the Serpentine in Hyde Park on a summer morning, closed for the ride:
+  - the road between low kerbs, the fans' writing every 25 m, race barriers hung with the ride's banners (HYDE PARK, SERPENTINE, LONDON, LAKESIDE, WATTZUP, KENSINGTON), the kit's feather flags every 16 m along both and cloth banners across it;
+  - on the left a buff gravel footpath with black cast-iron lamp posts every 30 m and a green park bench between each pair facing the water, the lake's stone edge, and the lake 0.6 m below the road out to its far bank 130 m off, where more plane trees stand; `sink` drops the ground below the water;
+  - once a lap, 150 m into the loop and so in the opening view, the boathouse on its timber jetty: a white weatherboarded hut under a green hipped roof, a BOATS FOR HIRE sign over the footpath, blue rowing boats and yellow and blue pedalos moored beside it;
+  - on the right the lawns under London plane trees in loose rows, their bark mottled cream, olive and grey and their crowns broad and rounded, green-and-white striped deckchairs in twos and threes facing the lake with someone in nearly half of them, and a gravel path 16 m off where joggers and walkers go both ways (the kit's `Figures`);
+  - the shared crowd in knots along the barriers, rowing boats pulled along the lake with their oars sweeping, and mute swans drifting near the bank;
+  - 240 m ahead the Serpentine Bridge across the lake, the road passing under the last of its five shallow arches: Portland stone with a proud ring of voussoirs to each arch, pilasters up the piers, cutwaters, a cornice and a balustrade, and a grassed embankment carrying the road on to it; beyond it Kensington Gardens' trees, the Albert Memorial's gilded Gothic spire rising over them and the barracks tower over Knightsbridge to the left, all hazed by hand. Trees, deckchairs and banners on the lawns are hidden past the bridge so none stands in front of its arches.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 - **Champs-Élysées Finale (`core/world-champs.ts`).** For `champs`, the avenue on the last day of the great Tour:
   - the avenue's cobbles (the renderer's cobbled road) between wide pavements of stone flags and gravel;
   - double rows of clipped plane trees and Haussmann's cream ashlar façades with shopfront awnings, iron balconies and zinc mansards with dormers;
@@ -331,6 +340,7 @@ None.
 | `pages/world-ride/northshore` | North Shore, Oahu at 4:50, warm-up, next `Big-wave push` |
 | `pages/world-ride/campolongo` | Passo Campolongo at 4:50, warm-up, next `Forest hairpins` |
 | `pages/world-ride/marinabay` | Marina Bay Night at 4:50, warm-up, next `Bayfront spin-up` |
+| `pages/world-ride/serpentine` | Serpentine, Hyde Park at 1:53, warm-up, next `Lakeside surge` |
 | `pages/world-ride/champs` | Champs-Élysées Finale at 4:50, warm-up, next `Sprint for the line` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |

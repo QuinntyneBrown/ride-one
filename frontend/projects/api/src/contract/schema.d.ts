@@ -115,6 +115,7 @@ export interface components {
         | 'northshore'
         | 'campolongo'
         | 'marinabay'
+        | 'serpentine'
         | 'champs';
     };
     ClassShelfResponse: {
