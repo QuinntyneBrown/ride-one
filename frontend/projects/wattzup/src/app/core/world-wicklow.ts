@@ -57,6 +57,7 @@ export class WicklowStreet implements SceneStreet {
   private readonly clouds: { mesh: Mesh; x: number; z: number; speed: number }[] = [];
   private lough: Texture | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -108,7 +109,7 @@ export class WicklowStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -118,7 +119,7 @@ export class WicklowStreet implements SceneStreet {
         crowd.set(
           i,
           p.x,
-          heightAt(Math.max(metres, 0)) + jump,
+          heightAt(metres) + jump,
           -metres,
           p.x < 0 ? -Math.PI / 2 : Math.PI / 2,
           0.95,
