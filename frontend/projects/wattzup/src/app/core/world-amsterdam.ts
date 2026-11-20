@@ -2767,6 +2767,20 @@ export class AmsterdamStreet implements SceneStreet {
         phase: random() * 6.3,
       });
     }
+    // Across the canal, cyclists ride the far quay's street both ways too.
+    const farLane = seeded(863);
+    for (let offset = 20; offset < LOOP; offset += 40 + farLane() * 30) {
+      const towards = farLane() < 0.5;
+      const mesh = this.commuterBike(bike, extras);
+      this.group.add(mesh);
+      this.riders.push({
+        bike: mesh,
+        offset,
+        x: -roadHalf - QUAY - CANAL - (towards ? 1.6 : 3.4),
+        speed: towards ? -(3.4 + farLane()) : 3.2 + farLane(),
+        phase: farLane() * 6.3,
+      });
+    }
     this.cyclists = new SeatedRiders(this.group, this.disposables, this.riders.length, 457);
     for (let offset = 0; offset < LOOP; offset += 6 + random() * 10) {
       const nearSide = random() < 0.5;
