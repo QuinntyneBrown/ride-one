@@ -1059,20 +1059,20 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.0, fill: 1.5, colour: 0xfff4e4 },
     fogRange: [2500, 16000],
   },
-  // A late spring afternoon in the Crete Senesi: the sun high and warm ahead and right, the
-  // hills golden, dust from the gravel hazing the distance toward Siena.
+  // Late afternoon in the Crete Senesi: the sun low and golden ahead and right, long shadows of
+  // the cypresses across the gravel, the hills glowing and dust hazing the distance toward Siena.
   strade: {
-    sky: 0x8ec0e8,
-    fog: 0xe6dcc4,
+    sky: 0x9cc0e0,
+    fog: 0xecd4a8,
     ground: 0xc0aa6c,
     road: 0xe8e0d0,
-    sun: 24,
+    sun: 12,
     wet: false,
     haze: false,
-    turbidity: 6,
-    rayleigh: 1.4,
-    azimuth: 38,
-    light: { sun: 3, fill: 1.1, colour: 0xffe2b4 },
+    turbidity: 7.5,
+    rayleigh: 1.9,
+    azimuth: 60,
+    light: { sun: 3.4, fill: 0.95, colour: 0xffc27a },
     fogRange: [160, 2600],
   },
   caribana: {
