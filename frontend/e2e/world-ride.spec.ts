@@ -277,6 +277,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Sea Point, Cape Town');
   });
 
+  test('rides High Intensity, Short Rest in Montreal Jazz Fest along Rue Sainte-Catherine', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'High Intensity, Short Rest',
+      'Montreal Jazz Fest',
+      'high-intensity-short-rest',
+    );
+    await expect(world.heading).toHaveText('Montreal Jazz Fest');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Montreal Jazz Fest');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();
