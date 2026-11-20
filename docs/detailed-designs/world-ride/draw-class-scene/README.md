@@ -65,6 +65,14 @@ None.
 - Terrain, props, the panorama and the sea follow the camera, which sits just behind and above the rider's bike.
 - The effort arch stands where the rider will be when the next segment starts. It reads the scene's effort name before a `work` segment, and `Finish` before the end (L2-110 criterion 2).
 - With `reducedMotion`, the camera does not sway and the pedals do not turn. The world still moves as the rider rides (L2-110 criterion 6).
+- **Riders (`core/world-cyclist.ts`).** `CyclistKit` shares the geometry and materials of every rider in the scene. `make(jersey, number, frame?)` builds a `Cyclist`: a road bike with spokes, chainring and bottle, and a rider in the jersey's colour with a race number, a vented helmet and socks. The legs follow the crank through two-bone IK, and `pose(angle)` also rocks the bike with each stroke. The rider is You; the simulated pacers ride beside them (`show-simulated-pacers`). Under each bike lies a contact shadow, drawn from the tier that has technique 37.
+- **Old Town's street (`core/world-oldtown.ts`).** For `oldtown`, the renderer builds `OldTownStreet` in place of the generic roadside props. Its parts are:
+  - procedural houses from seeded palettes, with shop or home ground floors, trades, roofs, gables, dormers, balconies, signs and flags. Each house draws its details from its own seeded sequence, so adding a detail reshuffles no other house, and its parts are merged into one mesh per material;
+  - granite kerbs, flagstone pavements and race barriers, laid as ribbons over the road's points with textures fixed to the street;
+  - lamps, a crowd (instanced), bunting, cloth banners, road paint and the TV motorbike;
+  - a cathedral and a belfry, hazed by hand and closing the street.
+
+  `lay(points, s)` and `place(s, heightAt)` recycle all of it along a 420 m loop at the road's height. The road is cobbled (`cobbleTextures()`), with a normal map of the setts from the tier that has technique 3. Every texture is drawn on a canvas, so the street loads no assets beyond the panorama.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 

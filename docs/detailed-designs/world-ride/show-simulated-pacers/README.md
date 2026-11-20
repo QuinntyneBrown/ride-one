@@ -33,6 +33,9 @@ None. No endpoint, state field or session field carries a pacer (L2-107 criterio
 
   A `null` `speed_kmh` counts as 0, so the 3 m/s floor applies.
 - **`PacerRow`**: `{ name, jersey, timeGap: string | null, you: boolean }`.
+- **`pacersOnRoad(t, far)`** returns `PacerOnRoad[]` (`{ jersey, metres, lane }`) for the pacers from 4 m behind the rider to `far` metres ahead, furthest first. Each pacer keeps its own lane, at least 0.8 m from the next (L2-107 criterion 7).
+
+**In the scene.** The renderer (`draw-class-scene`) draws each pacer from `pacersOnRoad` as a cyclist at its gap, on its lane and in its jersey colour, with its jersey number as its race number. It hides pacers that are out of range. Each pacer rides a frame of its own paint, and half wear a white helmet.
 
 **Board.** It is the `world-ride__board` element of `WorldRide` (`world-ride/ride-in-a-world`). It renders:
 - the heading `Riders nearby · <world name>`, with `Simulated pacers` directly under it (L2-107 criterion 1);
