@@ -242,6 +242,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.2, fill: 2.0, colour: 0xffa878 },
     fogRange: [80, 1400],
   },
+  // Dawn over the suburb: the sun just up behind the rider, a pink-gold sky, long shadows.
+  suburbia: {
+    sky: 0xf2c9b0,
+    fog: 0xecd8cc,
+    ground: 0x5a9440,
+    road: 0x55565c,
+    sun: 7,
+    wet: false,
+    haze: false,
+    turbidity: 4,
+    rayleigh: 2.4,
+    azimuth: -150,
+    light: { sun: 3.0, fill: 1.2, colour: 0xffc89a },
+    fogRange: [70, 1100],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,
