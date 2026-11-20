@@ -58,6 +58,7 @@ export class PaineStreet implements SceneStreet {
   private condor: Group | null = null;
   private lake: Texture | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -117,22 +118,14 @@ export class PaineStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.trekkers.forEach((t, i) => {
         const metres = loopMetres(t.offset + t.speed * this.time, s, LOOP, BEHIND);
         const step = Math.abs(Math.sin(this.time * 4 + t.phase)) * 0.04;
-        crowd.set(
-          i,
-          t.x,
-          heightAt(Math.max(metres, 0)) + step,
-          -metres,
-          t.speed >= 0 ? 0 : Math.PI,
-          0.95,
-          0,
-        );
+        crowd.set(i, t.x, heightAt(metres) + step, -metres, t.speed >= 0 ? 0 : Math.PI, 0.95, 0);
       });
       crowd.commit();
     }
