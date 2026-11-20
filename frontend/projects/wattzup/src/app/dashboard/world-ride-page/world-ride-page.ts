@@ -112,17 +112,15 @@ export class WorldRidePage {
       const id = this.id();
       untracked(() => void this.load(id));
     });
-    // The state held when the page opens may predate the ride just started from the class page, so
-    // it can show the ride but only a state that arrives after opening sends the rider away.
-    const openedAt = untracked(this.live.lastStateAt);
+    // The in-browser engine publishes a ride's state before the class page navigates here, so the
+    // state held when the page opens is current: it shows the ride or sends the rider away.
     effect(() => {
       const entry = this.entry();
       const state = this.live.state();
-      const fresh = this.live.lastStateAt() !== openedAt;
       if (!entry || !state || untracked(this.shown)) return;
       if (worldRideAccess(this.id(), entry, state.workout) === 'show') {
         this.shown.set(true);
-      } else if (fresh) {
+      } else {
         void this.router.navigateByUrl(untracked(this.classHref), { replaceUrl: true });
       }
     });

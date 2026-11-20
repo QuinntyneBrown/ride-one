@@ -84,6 +84,22 @@ export class RidePage {
       undefined,
       { polling: 250 },
     );
+    // The worker serves the app offline only once every file it prefetches is in its cache; the
+    // manifest arriving is not enough while large chunks are still downloading.
+    await this.page.waitForFunction(
+      async () => {
+        const manifest = (await (await fetch('/ngsw.json')).json()) as {
+          assetGroups: { installMode: string; urls: string[] }[];
+        };
+        const urls = manifest.assetGroups
+          .filter((g) => g.installMode === 'prefetch')
+          .flatMap((g) => g.urls);
+        const cached = await Promise.all(urls.map((u) => caches.match(u)));
+        return cached.every(Boolean);
+      },
+      undefined,
+      { polling: 250 },
+    );
     // Going offline while the worker checks for an update leaves it serving nothing.
     await this.page.waitForLoadState('networkidle');
   }

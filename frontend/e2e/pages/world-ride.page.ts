@@ -1,7 +1,6 @@
-import type { Locator, Page } from '@playwright/test';
-import oldTown from '../fixtures/recorded/class-30-minute-hiit-cardio.json';
-import type { ApiStub, EventStreamStub, StubResponse } from '../fixtures/wz-test';
-import { classRide, type Json } from '../fixtures/states';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { ClassesPage } from './classes.page';
+import { RidePage } from './ride.page';
 
 /** World Ride at `/classes/:id/world` (L2-102 to L2-110). Owns every World Ride selector. */
 export class WorldRidePage {
@@ -51,11 +50,7 @@ export class WorldRidePage {
   readonly seeYourRide: Locator;
   readonly rideAnotherClass: Locator;
 
-  constructor(
-    readonly page: Page,
-    private readonly api: ApiStub,
-    private readonly events: EventStreamStub,
-  ) {
+  constructor(readonly page: Page) {
     this.main = page.locator('main.world-ride');
     this.heading = this.main.getByRole('heading', { level: 1 });
     this.bar = this.main.locator('.world-ride__bar');
@@ -119,19 +114,30 @@ export class WorldRidePage {
       );
   }
 
-  async push(live: Json): Promise<void> {
-    await this.events.push(live);
+  /** Loads `/classes/<id>/world` straight away. */
+  async open(id = '30-minute-hiit-cardio'): Promise<void> {
+    await this.page.goto(`/classes/${id}/world`);
   }
 
-  /** Loads `/classes/<id>/world` with `answer` as GET /api/classes/<id> and `live` as the state. */
-  async open(
+  /**
+   * Connects the fake bike, then goes through the app's own links (a reload would drop the bike)
+   * to the class page and presses `Ride in <world name>`, so the ride runs in its world
+   * (L2-102 AC1-3).
+   */
+  async startFromClass(
+    title = '30 Minute HIIT Cardio',
+    worldName = 'Old Town Criterium',
     id = '30-minute-hiit-cardio',
-    answer: StubResponse = { json: oldTown },
-    live: Json = classRide(),
   ): Promise<void> {
-    this.api.on('GET', `/api/classes/${id}`, answer);
-    this.api.on('GET', '/api/status', { json: live });
-    await this.page.goto(`/classes/${id}/world`);
-    await this.events.push(live);
+    const ride = new RidePage(this.page);
+    await ride.open();
+    await ride.connect();
+    await expect(ride.statusState).toHaveText('Connected');
+    const classes = new ClassesPage(this.page);
+    await this.page.getByRole('banner').getByRole('link', { name: 'Library' }).click();
+    await this.page.waitForURL(/\/classes$/);
+    await classes.card(title).click();
+    await classes.rideIn(worldName).click();
+    await this.page.waitForURL(new RegExp(`/classes/${id}/world$`));
   }
 }

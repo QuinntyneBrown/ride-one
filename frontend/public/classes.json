@@ -25,6 +25,7 @@
   "classes": [
     {
       "id": "20-minute-power-intervals",
+      "world": "docklands",
       "title": "20 Minute Power Intervals",
       "channel": "Wattzup Studio",
       "focus": "VO₂ max",
@@ -49,6 +50,7 @@
     },
     {
       "id": "20-min-threshold-builder",
+      "world": "granite",
       "title": "20 Min Threshold Builder",
       "channel": "Wattzup Studio",
       "focus": "Threshold",
@@ -73,6 +75,7 @@
     },
     {
       "id": "30-minute-hiit-cardio",
+      "world": "oldtown",
       "title": "30 Minute HIIT Cardio",
       "channel": "GCN Training",
       "focus": "HIIT",
@@ -134,6 +137,7 @@
     },
     {
       "id": "30-min-tempo-paceline",
+      "world": "prairie",
       "title": "30 Min Tempo Paceline",
       "channel": "Wattzup Studio",
       "focus": "Tempo",
@@ -158,6 +162,7 @@
     },
     {
       "id": "60-min-dolomites-endurance",
+      "world": "dolomites",
       "title": "60 Min Dolomites Endurance",
       "channel": "Wattzup Scenic",
       "focus": "Zone 2",
@@ -167,6 +172,7 @@
     },
     {
       "id": "60-min-coastal-endurance-surges",
+      "world": "coast",
       "title": "60 Min Coastal Endurance + Surges",
       "channel": "Wattzup Scenic",
       "focus": "Endurance",
