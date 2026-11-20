@@ -31,6 +31,8 @@ import {
   type BannerPanel,
   canvasTexture,
   clothBannerTexture,
+  FeatherFlags,
+  type FeatherWord,
   Crowd,
   Figures,
   hazedMaterial,
@@ -107,6 +109,16 @@ const BARRIER_PANELS: readonly BannerPanel[] = [
   { fill: '#d7ff3a', ink: '#1b1e24', text: 'WATTZUP' },
   { fill: '#4f86c6', ink: '#ffffff', text: 'FOG CITY' },
 ];
+/** Feather flags along the barriers: the word down each and its colours. */
+const FEATHERS: readonly FeatherWord[] = [
+  ['SPRINT', '#c0362c', '#ffffff'],
+  ['GOLDEN GATE', '#2f3b4c', '#ffbf3c'],
+  ['GO', '#ffbf3c', '#2f3b4c'],
+  ['FOG CITY', '#4f86c6', '#ffffff'],
+  ['WATTZUP', '#d7ff3a', '#1b1e24'],
+];
+/** A feather flag every so many metres along each barrier, the sides staggered. */
+const FEATHER_EVERY = 14;
 const STREET_BANNERS: readonly (readonly [string, string, string])[] = [
   ['GOLDEN GATE PARK SPRINTS', '#c0362c', '#ffffff'],
   ['JFK DRIVE · TO OCEAN BEACH', '#2f3b4c', '#ffbf3c'],
@@ -186,6 +198,7 @@ export class GoldenGateStreet implements SceneStreet {
     this.addGroves();
     this.addLamps();
     this.addStreetBanners(roadHalf);
+    this.addFeatherFlags();
     this.addRoadPaint();
     this.addPaddock();
     this.addLake();
@@ -412,6 +425,25 @@ export class GoldenGateStreet implements SceneStreet {
         lamp.add(new Mesh(post, green), lit);
         this.group.add(lamp);
         this.props.push({ mesh: lamp, offset, every: LOOP, x: side * 8 });
+      }
+    }
+  }
+
+  /** The race's feather flags along both barriers, a word down each. */
+  private addFeatherFlags(): void {
+    const feathers = new FeatherFlags(this.disposables, this.track, FEATHERS);
+    let k = 0;
+    for (const side of [-1, 1] as const) {
+      for (let offset = 4; offset < LOOP; offset += FEATHER_EVERY) {
+        const holder = new Group();
+        holder.add(feathers.make(k++));
+        this.group.add(holder);
+        this.props.push({
+          mesh: holder,
+          offset: offset + (side > 0 ? FEATHER_EVERY / 2 : 0),
+          every: LOOP,
+          x: side * (BARRIER + 0.15),
+        });
       }
     }
   }
