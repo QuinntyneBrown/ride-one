@@ -284,6 +284,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Santa Monica Pier');
   });
 
+  test('rides Sufferfest 20 Minute Session along Badwater Road through Death Valley', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'Sufferfest 20 Minute Session',
+      'Death Valley',
+      'sufferfest-20-minute-session',
+    );
+    await expect(world.heading).toHaveText('Death Valley');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Death Valley');
+  });
+
   test('rides Level Up Your Cadence in Ghent Six-Day round the Kuipke', async ({ page }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass('Level Up Your Cadence', 'Ghent Six-Day', 'level-up-your-cadence');
