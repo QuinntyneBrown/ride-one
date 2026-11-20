@@ -131,6 +131,8 @@ export class MiamiStreet implements SceneStreet {
   private readonly planeLights: Mesh[] = [];
   private readonly hazards: Mesh[] = [];
   private readonly flames: Mesh[] = [];
+  /** The cruiser's red lamp, wash and flare, then its blue ones. */
+  private patrol: Mesh[] = [];
   private storm: { flash: MeshBasicMaterial; bolt: MeshBasicMaterial } | null = null;
   private readonly lasers: Group[] = [];
   private sparks: InstancedMesh | null = null;
@@ -196,6 +198,7 @@ export class MiamiStreet implements SceneStreet {
     this.addTikiBars(roadHalf);
     this.addPuddles(roadHalf);
     this.addScooters(roadHalf);
+    this.addPatrol(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -304,6 +307,12 @@ export class MiamiStreet implements SceneStreet {
         (t > 3 && t < 3.12) || (t > 3.25 && t < 3.4) ? 1 : t > 3.4 && t < 3.9 ? (3.9 - t) * 1.2 : 0;
       this.storm.flash.opacity = lit * 0.9;
       this.storm.bolt.opacity = Math.floor(seconds / 11) % 3 === 0 && t > 3.25 && t < 3.4 ? 1 : 0;
+    }
+    // The cruiser's light bar: red and blue in turn, each a double flash.
+    if (this.patrol.length) {
+      const phase = (seconds * 2.2) % 2;
+      const flick = phase % 1 < 0.18 || (phase % 1 > 0.3 && phase % 1 < 0.48);
+      this.patrol.forEach((m, i) => (m.visible = flick && (i < 3 ? phase < 1 : phase >= 1)));
     }
     // The tiki torches' flames flicker, each on its own.
     this.flames.forEach((f, k) => {
@@ -2600,6 +2609,76 @@ export class MiamiStreet implements SceneStreet {
     }
   }
 
+  /**
+   * A police cruiser nosed out of the first side street to the boulevard, its light bar going: black and white, POLICE on
+   * its doors, red and blue lamps flashing in turn and washing the wet road and the sidewalk
+   * round it in their colours.
+   */
+  private addPatrol(roadHalf: number): void {
+    const black = this.material({ color: 0x101014, roughness: 0.25, metalness: 0.5 });
+    const white = this.material({
+      map: this.track(policeDoorTexture()),
+      roughness: 0.3,
+      metalness: 0.3,
+    });
+    const glass = this.material({ color: 0x141a24, roughness: 0.05, metalness: 0.8 });
+    const tyre = this.material({ color: 0x18181c, roughness: 0.85 });
+    const red = this.material({ color: 0xff1020, emissive: 0xff1020, emissiveIntensity: 5 });
+    const blue = this.material({ color: 0x2040ff, emissive: 0x2040ff, emissiveIntensity: 5 });
+    const car = new Group();
+    const b = new BoxBuilder();
+    b.box(black, [1.9, 0.55, 1.4], [0, 0.65, -1.7]);
+    b.box(black, [1.9, 0.55, 1.2], [0, 0.65, 1.85]);
+    b.box(white, [1.92, 0.6, 2.3], [0, 0.66, 0.1]);
+    b.box(glass, [1.65, 0.5, 2.3], [0, 1.2, 0.2]);
+    b.box(white, [1.66, 0.08, 2.1], [0, 1.48, 0.2]);
+    car.add(b.build(this.disposables));
+    const wheel = new CylinderGeometry(0.34, 0.34, 0.24, 14);
+    wheel.rotateZ(Math.PI / 2);
+    this.disposables.push(wheel);
+    for (const x of [-0.95, 0.95])
+      for (const z of [-1.45, 1.45]) {
+        const w = new Mesh(wheel, tyre);
+        w.position.set(x, 0.34, z);
+        car.add(w);
+      }
+    const washes: Mesh[] = [];
+    for (const [x, m, c] of [
+      [-0.4, red, 0xff1030],
+      [0.4, blue, 0x2050ff],
+    ] as const) {
+      const lamp = new Mesh(this.unit, m);
+      lamp.scale.set(0.7, 0.14, 0.3);
+      lamp.position.set(x, 1.6, 0.2);
+      const glow = new Mesh(
+        this.flat,
+        new MeshBasicMaterial({
+          map: this.track(poolTexture()),
+          color: c,
+          transparent: true,
+          depthWrite: false,
+          blending: AdditiveBlending,
+        }),
+      );
+      glow.rotation.x = -Math.PI / 2;
+      glow.scale.set(14, 14, 1);
+      glow.position.set(x * 6, 0.05, 0);
+      glow.renderOrder = 1;
+      const flare = new Mesh(this.flat, this.halo);
+      flare.scale.set(2.4, 2.4, 1);
+      flare.position.set(x, 1.6, 0.6);
+      car.add(lamp, glow, flare);
+      washes.push(lamp, glow, flare);
+      this.disposables.push(glow.material as MeshBasicMaterial);
+    }
+    this.patrol = washes;
+    const holder = new Group();
+    holder.add(car);
+    this.group.add(holder);
+    car.rotation.y = Math.PI / 2 + 0.15;
+    this.props.push({ mesh: holder, offset: CROSSINGS[0] + 2, x: roadHalf + 5 });
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -4610,5 +4689,18 @@ function boltTexture(): CanvasTexture {
     stroke(6, 'rgba(200,180,255,0.6)', 12);
     stroke(2, '#ffffff', 0);
     void random;
+  });
+}
+
+/** A cruiser's white doors: POLICE in blue capitals with a thin blue stripe under it. */
+function policeDoorTexture(): CanvasTexture {
+  return canvasTexture(256, 64, (g) => {
+    g.fillStyle = '#f4f4f0';
+    g.fillRect(0, 0, 256, 64);
+    g.fillStyle = '#1a3a9a';
+    g.fillRect(0, 48, 256, 5);
+    g.font = 'bold 30px sans-serif';
+    g.textAlign = 'center';
+    g.fillText('POLICE', 128, 38);
   });
 }
