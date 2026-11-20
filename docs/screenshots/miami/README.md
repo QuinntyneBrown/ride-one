@@ -109,3 +109,11 @@ The live 3D world behind the ride HUD for [Ride to the Beat](http://localhost:42
 ## Reproducing a capture
 
 Start the app with `npm start` in `frontend/`. For the opening frame, open `/classes/ride-to-the-beat?simulate`, click **Ride in Miami Neon Nights**, wait for `/world`, let the scene settle for six seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [080 · The skyline stands across Biscayne Bay](bend-080-skyline-across-biscayne.jpg) | The towers across Biscayne Bay and the causeway in front of them were bent vertex by vertex with the neon boulevard's bends, so the lit skyline leaned and slewed with each turn. They now stand beyond the road unbent, as the panorama does, and the cars, the rain's ripples and the props behind the rider sit on the road there instead of at the height under the rider. |
