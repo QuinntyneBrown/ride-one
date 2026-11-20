@@ -458,12 +458,16 @@ export class AmsterdamStreet implements SceneStreet {
       ]),
     );
     const iron = this.material({ color: 0x1f3a2c, metalness: 0.4, roughness: 0.5 });
-    const glass = this.material({ color: 0xf2efe2, emissive: 0xfff0c8, emissiveIntensity: 0.3 });
+    const glass = this.material({
+      color: 0xf6f1e0,
+      emissive: 0xffe6b0,
+      emissiveIntensity: 0.25,
+      roughness: 0.15,
+      transparent: true,
+      opacity: 0.85,
+    });
     const elms = [0, 1, 2].map((k) => elmGeometry(467 + k * 13));
-    const post = new CylinderGeometry(0.07, 0.11, 4.2, 8);
-    post.translate(0, 2.1, 0);
-    const lantern = new CylinderGeometry(0.22, 0.12, 0.6, 6);
-    lantern.translate(0, 4.5, 0);
+    const { post, lantern } = canalLamp();
     this.disposables.push(...elms.flatMap((e) => [e.wood, e.leaves]), post, lantern);
     const quays = [-roadHalf - QUAY + 1.1, -roadHalf - QUAY - CANAL - 1.2];
     for (const x of quays) {
@@ -488,9 +492,16 @@ export class AmsterdamStreet implements SceneStreet {
         this.group.add(tree);
         this.props.push({ mesh: tree, offset: offset + random() * 2, x });
       }
-      for (let offset = 4.5; offset < LOOP; offset += 27) {
+      // A lamp every 27 m along the quay, and one at each end of every bridge.
+      const spots: number[] = [];
+      for (let offset = 13.5; offset < LOOP; offset += 27) {
+        if (bridgeGap(offset) === null && bridgeGap(offset + 4) === null) spots.push(offset);
+      }
+      for (let b = 0; b < LOOP; b += BRIDGE) spots.push(b - 4 + (b === 0 ? LOOP : 0), b + 8);
+      for (const offset of spots) {
         const lamp = new Group();
         lamp.add(new Mesh(post, iron), new Mesh(lantern, glass));
+        lamp.children.forEach((m) => (m.castShadow = true));
         this.group.add(lamp);
         this.props.push({ mesh: lamp, offset, x: x + 0.6 });
       }
@@ -849,6 +860,60 @@ function stoopGeometry(): { steps: BufferGeometry; railings: BufferGeometry } {
     return merged;
   };
   return { steps: merge(stone), railings: merge(iron) };
+}
+
+/**
+ * One of the canals' cast-iron lamps, 4.6 m tall: a fluted post on a stepped, flared base with
+ * collars up its shaft and the lamplighter's ladder bar under the head, carrying a four-sided
+ * lantern that widens upward under a crowned cap with a finial.
+ */
+function canalLamp(): { post: BufferGeometry; lantern: BufferGeometry } {
+  const profile = [
+    [0, 0],
+    [0.2, 0],
+    [0.2, 0.12],
+    [0.16, 0.16],
+    [0.16, 0.3],
+    [0.11, 0.5],
+    [0.09, 0.9],
+    [0.11, 0.95],
+    [0.08, 1.0],
+    [0.065, 2.6],
+    [0.085, 2.65],
+    [0.06, 2.7],
+    [0.05, 3.85],
+    [0.075, 3.9],
+    [0.05, 3.95],
+    [0.05, 4.0],
+    [0.13, 4.05],
+    [0, 4.06],
+  ].map(([x, y]) => new Vector2(x, y));
+  const parts: BufferGeometry[] = [new LatheGeometry(profile, 12).toNonIndexed()];
+  const bar = new BoxGeometry(0.7, 0.04, 0.04);
+  bar.translate(0, 3.7, 0);
+  parts.push(bar.toNonIndexed());
+  for (const x of [-0.35, 0.35]) {
+    const knob = new SphereGeometry(0.035, 6, 4);
+    knob.translate(x, 3.7, 0);
+    parts.push(knob.toNonIndexed());
+  }
+  const cap = new CylinderGeometry(0.05, 0.3, 0.22, 4);
+  cap.rotateY(Math.PI / 4);
+  cap.translate(0, 4.71, 0);
+  const crown = new CylinderGeometry(0.02, 0.06, 0.28, 6);
+  crown.translate(0, 4.95, 0);
+  const finial = new SphereGeometry(0.04, 6, 4);
+  finial.translate(0, 5.1, 0);
+  const frame = new CylinderGeometry(0.26, 0.15, 0.06, 4);
+  frame.rotateY(Math.PI / 4);
+  frame.translate(0, 4.08, 0);
+  parts.push(cap.toNonIndexed(), crown.toNonIndexed(), finial.toNonIndexed(), frame.toNonIndexed());
+  const post = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  const lantern = new CylinderGeometry(0.25, 0.15, 0.5, 4);
+  lantern.rotateY(Math.PI / 4);
+  lantern.translate(0, 4.36, 0);
+  return { post, lantern };
 }
 
 /**
