@@ -161,6 +161,11 @@ const LANE_SYMBOL_LONG = 6.4;
 const TREE_OUT = 3;
 const TREE_EVERY = 24;
 const TREE_HEIGHT = 4.2;
+/** Delivery drones: how many, their lowest height over the road (m), how far ahead they show. */
+const DRONES = 8;
+const DRONE_HEIGHT = 6.5;
+const DRONE_REACH = 260;
+const DRONE_FIRST = 48;
 /** Bus shelters: where round the loop (between the trees), how far out (m), how long (m). */
 const SHELTERS = [48, 290, 506];
 const SHELTER_OUT = 2.6;
@@ -338,6 +343,14 @@ export class DocklandsStreet {
   private readonly trees: { group: Group; offset: number }[] = [];
   /** Bus shelters on the far pavement, at SHELTERS round the loop. */
   private readonly shelters: { group: Group; offset: number }[] = [];
+  /** Delivery drones flying the street: each's loop position at time zero, speed and height. */
+  private readonly drones: {
+    group: Group;
+    offset: number;
+    speed: number;
+    at: number;
+    strobes: Mesh[];
+  }[] = [];
   /** Bike-lane symbols painted on the road, in both lanes, at LANE_SYMBOLS round the loop. */
   private readonly laneSymbols: { group: Group; offset: number }[] = [];
   /** Zebra crossings over the road, their beacons' globes and halos blinking together. */
@@ -366,6 +379,12 @@ export class DocklandsStreet {
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
     this.swim(still ? 0 : seconds);
+    for (const [i, drone] of this.drones.entries()) {
+      drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
+      // Their lights blink out of step with each other; steady for reduced motion.
+      const lit = still || (seconds * 1.3 + i * 0.37) % 1 < 0.5;
+      for (const strobe of drone.strobes) strobe.visible = lit;
+    }
     if (this.cloudTexture) this.cloudTexture.offset.set(still ? 0 : seconds * CLOUD_DRIFT, 0);
     const turning = this.wheel.userData['turning'] as Group | undefined;
     const turn = still ? 0 : seconds * WHEEL_TURN;
@@ -1321,6 +1340,7 @@ export class DocklandsStreet {
     this.addBollards(roadHalf);
     this.addTrees(roadHalf);
     this.addShelters(roadHalf);
+    this.addDrones(roadHalf);
     this.addLaneSymbols(roadHalf);
     this.addGates(roadHalf);
     this.addMachines(roadHalf);
@@ -1882,6 +1902,120 @@ export class DocklandsStreet {
       this.group.add(group);
       this.shelters.push({ group, offset });
     });
+  }
+
+  /**
+   * Delivery drones flying the length of the street above the riders, some up it and some down:
+   * a dark body on four arms, each arm ending in a rotor disc, a cyan glow beneath, a parcel
+   * slung below and red and green lights that blink.
+   */
+  private addDrones(roadHalf: number): void {
+    const body = new MeshStandardMaterial({ color: 0x1a1b24, metalness: 0.5, roughness: 0.4 });
+    const rotor = new MeshBasicMaterial({
+      color: new Color('#8fe9ff'),
+      transparent: true,
+      opacity: 0.35,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const belly = new MeshBasicMaterial({
+      color: new Color('#5ff2ff').multiplyScalar(1.6),
+      toneMapped: false,
+    });
+    const parcel = new MeshStandardMaterial({ color: 0xc89a5c, roughness: 0.8 });
+    const red = new MeshBasicMaterial({
+      color: new Color('#ff3045').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const green = new MeshBasicMaterial({
+      color: new Color('#35ff8a').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const unit = new BoxGeometry(1, 1, 1);
+    const disc = new CylinderGeometry(0.42, 0.42, 0.02, 16);
+    const dot = new SphereGeometry(0.09, 8, 6);
+    // A faint beam from the belly down to the road: open-ended, apex at the drone.
+    const beamMaterial = new MeshBasicMaterial({
+      color: new Color('#5ff2ff'),
+      transparent: true,
+      opacity: 0.07,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      side: DoubleSide,
+      toneMapped: false,
+    });
+    const beam = new ConeGeometry(1, 1, 20, 1, true);
+    beam.translate(0, -0.5, 0);
+    this.disposables.push(
+      body,
+      rotor,
+      belly,
+      parcel,
+      red,
+      green,
+      unit,
+      disc,
+      dot,
+      beamMaterial,
+      beam,
+    );
+    const random = seeded(353);
+    for (let i = 0; i < DRONES; i++) {
+      const group = new Group();
+      const hull = new Mesh(unit, body);
+      hull.scale.set(0.7, 0.22, 0.9);
+      group.add(hull);
+      const glow = new Mesh(unit, belly);
+      glow.scale.set(0.5, 0.04, 0.6);
+      glow.position.y = -0.12;
+      group.add(glow);
+      for (const ax of [-1, 1]) {
+        for (const az of [-1, 1]) {
+          const arm = new Mesh(unit, body);
+          arm.scale.set(0.08, 0.06, 0.08);
+          arm.scale.x = 0.75;
+          arm.position.set(ax * 0.45, 0.04, az * 0.5);
+          group.add(arm);
+          const blades = new Mesh(disc, rotor);
+          blades.position.set(ax * 0.8, 0.1, az * 0.55);
+          group.add(blades);
+        }
+      }
+      const box = new Mesh(unit, parcel);
+      box.scale.set(0.45, 0.4, 0.45);
+      box.position.y = -0.55;
+      group.add(box);
+      const port = new Mesh(dot, red);
+      port.position.set(-0.4, 0, -0.5);
+      const starboard = new Mesh(dot, green);
+      starboard.position.set(0.4, 0, -0.5);
+      group.add(port, starboard);
+      // Up the street on the rider's side, down it on the far side.
+      const up = i % 2 === 0;
+      const speed = (up ? 1 : -1) * (5 + random() * 4);
+      if (!up) group.rotation.y = Math.PI;
+      group.scale.setScalar(2.4);
+      const cone = new Mesh(beam, beamMaterial);
+      group.add(cone);
+      group.position.set(
+        (up ? 1 : -1) * roadHalf * (0.3 + random() * 0.8),
+        DRONE_HEIGHT + random() * 4,
+        0,
+      );
+      // The beam reaches the road, in the group's scaled units, a pool 3 m across.
+      cone.position.y = -0.15;
+      cone.scale.set(1.5 / 2.4, group.position.y / 2.4, 1.5 / 2.4);
+      this.group.add(group);
+      // Spread evenly round the loop, the first just ahead of the start.
+      const offset = DRONE_FIRST + (i * LOOP) / DRONES + random() * 20;
+      this.drones.push({
+        group,
+        offset,
+        speed,
+        at: offset,
+        strobes: [port, starboard],
+      });
+    }
   }
 
   private addStalls(): void {
@@ -2750,6 +2884,14 @@ export class DocklandsStreet {
       const metres = ((((symbol.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       symbol.group.visible = !this.onBridge(Math.max(metres, 0));
       symbol.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
+    }
+    for (const drone of this.drones) {
+      const metres = ((((drone.at - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      drone.group.visible = metres < DRONE_REACH;
+      drone.group.position.z = -metres;
+      drone.group.userData['ground'] ??= drone.group.position.y;
+      drone.group.position.y =
+        (drone.group.userData['ground'] as number) + heightAt(Math.max(metres, 0));
     }
     for (const shelter of this.shelters) {
       const metres = ((((shelter.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
