@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [15 Minute Cardio HIIT](http://localho
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/15-minute-cardio-hiit?simulate`, click **Ride in Central Park Loop**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [095 · The carriages behind the rider stand on the climb](bend-095-carriages-on-harlem-hill.jpg) | The horse carriages, the runners and the props between the camera and the rider were set at the height under the rider wherever they were behind it, so on the 3% climb to Harlem Hill the carriage alongside floated above the drive. They now stand on the road where they are. |

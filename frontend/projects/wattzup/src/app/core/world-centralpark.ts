@@ -112,28 +112,20 @@ export class CentralParkStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const figures = this.figures;
     if (figures) {
       this.joggers.forEach((j, i) => {
         const metres = loopMetres(j.offset + j.speed * this.time, s, LOOP, BEHIND);
         const stride = Math.abs(Math.sin(this.time * 8 + j.phase)) * 0.07;
-        figures.set(
-          i,
-          j.x,
-          heightAt(Math.max(metres, 0)),
-          -metres,
-          j.speed > 0 ? 0 : Math.PI,
-          j.scale,
-          stride,
-        );
+        figures.set(i, j.x, heightAt(metres), -metres, j.speed > 0 ? 0 : Math.PI, j.scale, stride);
       });
       figures.commit();
     }
     for (const c of this.carriages) {
       const metres = loopMetres(c.offset + c.speed * this.time, s, LOOP, BEHIND);
-      c.mesh.position.set(c.mesh.position.x, heightAt(Math.max(metres, 0)), -metres);
+      c.mesh.position.set(c.mesh.position.x, heightAt(metres), -metres);
       // A trot: diagonal pairs of legs swing together.
       c.legs.forEach((leg, k) => {
         leg.rotation.x = Math.sin(this.time * 9 + (k === 0 || k === 3 ? 0 : Math.PI)) * 0.45;
