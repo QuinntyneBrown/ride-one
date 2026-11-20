@@ -38,15 +38,7 @@ import {
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import {
-  canvasTexture,
-  Figures,
-  loopMetres,
-  Ribbons,
-  type SceneStreet,
-  seeded,
-  speckle,
-} from './world-kit';
+import { canvasTexture, loopMetres, Ribbons, type SceneStreet, seeded, speckle } from './world-kit';
 import type { StreetPoint } from './world-oldtown';
 
 /** The Malecón repeats every LOOP metres; its parts run from BEHIND metres behind the rider. */
@@ -133,7 +125,7 @@ export class HavanaStreet implements SceneStreet {
   private readonly cars: { mesh: Group; offset: number; speed: number }[] = [];
   private readonly sprays: Spray[] = [];
   private readonly strollers: Stroller[] = [];
-  private people: Figures | null = null;
+  private people: Walkers | null = null;
   private seated: Sitters | null = null;
   private readonly sitters: Sitter[] = [];
   private swell: Texture | null = null;
@@ -281,9 +273,8 @@ export class HavanaStreet implements SceneStreet {
     if (people) {
       this.strollers.forEach((w, i) => {
         const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
-        const step = w.speed ? Math.abs(Math.sin(this.time * 4 + w.phase)) * 0.04 : 0;
         const y = heightAt(Math.max(metres, 0)) + KERB;
-        people.set(i, w.x, y, -metres, w.heading, 0.95, step);
+        people.set(i, w.x, y, -metres, w.heading, this.time * 4 + w.phase);
       });
       people.commit();
     }
@@ -1341,7 +1332,7 @@ export class HavanaStreet implements SceneStreet {
       this.sitters.push({ offset, sea, rod: sea && perch() < 0.4 });
     }
     this.seated = new Sitters(this.group, this.disposables, this.sitters, STROLL_WEAR, 1091);
-    this.people = new Figures(
+    this.people = new Walkers(
       this.group,
       this.disposables,
       this.strollers.length,
@@ -2501,4 +2492,116 @@ function cumulusTexture(seed: number): CanvasTexture {
     g.fillStyle = '#000';
     g.fillRect(0, base + 4, 512, 256 - base);
   });
+}
+
+/**
+ * Havana's walkers: each a person in parts, so they read as people up close: two legs swinging
+ * from the hips in stride, a torso with shoulders, two arms swinging against the legs, a head
+ * with hair, and for some a straw hat or a cap. Each part is one instanced mesh, coloured per
+ * person from the wardrobe.
+ */
+class Walkers {
+  private readonly parts: InstancedMesh[];
+  private readonly hats: InstancedMesh;
+  private readonly hatted: boolean[] = [];
+  private readonly base = new Matrix4();
+  private readonly local = new Matrix4();
+  private readonly out = new Matrix4();
+  private readonly spot = new Vector3();
+  private readonly turn = new Quaternion();
+  private readonly one = new Vector3(1, 1, 1);
+  private readonly none = new Vector3(0, 0, 0);
+  private readonly up = new Vector3(0, 1, 0);
+
+  constructor(
+    group: Group,
+    disposables: { dispose(): void }[],
+    count: number,
+    wardrobe: { tops: readonly string[]; bottoms: readonly string[]; skins: readonly string[] },
+    seed: number,
+  ) {
+    // Each limb hangs from its pivot at the origin, so it can swing there.
+    const leg = new CapsuleGeometry(0.075, 0.72, 3, 8);
+    leg.translate(0, -0.43, 0);
+    const arm = new CapsuleGeometry(0.05, 0.5, 3, 6);
+    arm.translate(0, -0.3, 0);
+    const torso = new CapsuleGeometry(0.17, 0.36, 4, 10);
+    torso.scale(1.15, 1, 0.8);
+    const head = new SphereGeometry(0.11, 12, 10);
+    const hair = new SphereGeometry(0.118, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    const brim = new CylinderGeometry(0.22, 0.22, 0.02, 14);
+    const crown = new CylinderGeometry(0.1, 0.12, 0.1, 12);
+    crown.translate(0, 0.06, 0);
+    const hat = mergeGeometries([brim, crown])!;
+    brim.dispose();
+    crown.dispose();
+    const make = (geometry: BufferGeometry, roughness: number, per = 1) => {
+      const material = new MeshStandardMaterial({ roughness });
+      const mesh = new InstancedMesh(geometry, material, count * per);
+      mesh.frustumCulled = false;
+      mesh.castShadow = true;
+      group.add(mesh);
+      disposables.push(geometry, material, mesh);
+      return mesh;
+    };
+    // legs, arms, torsos, heads, hair (legs and arms hold two instances per person).
+    this.parts = [
+      make(leg, 0.9, 2),
+      make(arm, 0.85, 2),
+      make(torso, 0.85),
+      make(head, 0.7),
+      make(hair, 0.95),
+    ];
+    this.hats = make(hat, 0.9);
+    const random = seeded(seed);
+    const pick = (list: readonly string[]) => list[Math.floor(random() * list.length)]!;
+    const c = new Color();
+    const hairs = ['#1a1410', '#2a1d14', '#4a3020', '#8a8580', '#1a1a1a'];
+    for (let i = 0; i < count; i++) {
+      const top = pick(wardrobe.tops);
+      const bottom = pick(wardrobe.bottoms);
+      const skin = pick(wardrobe.skins);
+      for (const k of [0, 1]) {
+        this.parts[0]!.setColorAt(i * 2 + k, c.set(bottom));
+        this.parts[1]!.setColorAt(i * 2 + k, c.set(random() < 0.6 ? skin : top));
+      }
+      this.parts[2]!.setColorAt(i, c.set(top));
+      this.parts[3]!.setColorAt(i, c.set(skin));
+      this.parts[4]!.setColorAt(i, c.set(pick(hairs)));
+      this.hats.setColorAt(i, c.set(random() < 0.6 ? '#e8d8a8' : pick(wardrobe.tops)));
+      this.hatted.push(random() < 0.35);
+    }
+  }
+
+  /** Places walker `i` at (x, y, z), facing `heading`, `stride` radians into its step cycle. */
+  set(i: number, x: number, y: number, z: number, heading: number, stride: number): void {
+    this.turn.setFromAxisAngle(this.up, heading);
+    this.spot.set(x, y, z);
+    this.base.compose(this.spot, this.turn, this.one);
+    const swing = Math.sin(stride) * 0.45;
+    const lift = Math.abs(Math.cos(stride)) * 0.03;
+    for (const [k, side] of [
+      [0, -1],
+      [1, 1],
+    ] as const) {
+      this.place(0, i * 2 + k, side * 0.1, 0.88 + lift, 0, side * swing);
+      this.place(1, i * 2 + k, side * 0.24, 1.42 + lift, 0, -side * swing * 0.8);
+    }
+    this.place(2, i, 0, 1.18 + lift, 0, 0);
+    this.place(3, i, 0, 1.66 + lift, 0, 0);
+    this.place(4, i, 0, 1.67 + lift, 0, 0);
+    if (this.hatted[i]) this.place(5, i, 0, 1.75 + lift, 0, 0);
+    else this.hats.setMatrixAt(i, this.out.compose(this.spot, this.turn, this.none));
+  }
+
+  /** Sets one part's instance at a local pivot (x, y, z), swung `swing` radians about x. */
+  private place(part: number, index: number, x: number, y: number, z: number, swing: number): void {
+    this.local.makeRotationX(swing).setPosition(x, y, z);
+    this.out.multiplyMatrices(this.base, this.local);
+    (part === 5 ? this.hats : this.parts[part]!).setMatrixAt(index, this.out);
+  }
+
+  commit(): void {
+    for (const mesh of [...this.parts, this.hats]) mesh.instanceMatrix.needsUpdate = true;
+  }
 }
