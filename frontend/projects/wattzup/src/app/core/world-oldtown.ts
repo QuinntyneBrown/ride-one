@@ -80,6 +80,14 @@ const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
   ['VAMOS', '#f4f2ea', 0.2],
   ['GO ANA', '#ffe14a', -0.9],
 ];
+/** The banners across the street: their words, cloth and ink. */
+const STREET_BANNERS: readonly (readonly [string, string, string])[] = [
+  ['OLD TOWN CRITERIUM', '#1b1e24', '#d7ff3a'],
+  ['WELKOM · BIENVENUE', '#b8322c', '#ffffff'],
+  ['CATHEDRAL CIRCUIT', '#f2efe6', '#2d4e7a'],
+];
+/** How wide an alley between two houses is. */
+const ALLEY = 3.2;
 const MOTO_AHEAD = 30;
 const MOTO_X = -2.3;
 const HATS = ['#efe6cf', '#1f2b44', '#c9372c', '#f2f0e8', '#d8ff3e'];
@@ -190,7 +198,14 @@ export class OldTownStreet {
     metalness: 0.5,
     roughness: 0.45,
   });
+  private readonly clockFace = new CylinderGeometry(4, 4, 0.5, 28);
+  private readonly doorLeaf = new PlaneGeometry(1.1, 2.5);
+  /** Glazed shop doors in painted wood, a brass handle and a bell over each. */
+  private readonly shopDoors = ['#2d4e3f', '#5a2730', '#1f2b44', '#3a3a3a'].map(
+    (paint) => new MeshStandardMaterial({ map: shopDoorTexture(paint), roughness: 0.6 }),
+  );
   private readonly stone = new MeshStandardMaterial({ color: 0xbdb5a6, roughness: 0.95 });
+  private readonly alleyFloor = new MeshStandardMaterial({ color: 0x8a837a, roughness: 0.95 });
   /** Half a disc, its flat edge up: one scallop of an awning's hem. */
   private readonly scallop = new CircleGeometry(0.15, 10, Math.PI, Math.PI);
   private readonly oculus = new CylinderGeometry(0.4, 0.4, 0.04, 16);
@@ -255,6 +270,7 @@ export class OldTownStreet {
     for (const sign of this.signs) if (sign.map) this.track(sign.map);
     this.addFurniture(roadHalf);
     this.addRoadPaint();
+    this.addStreetBanners();
     this.addCrowd(roadHalf);
     this.addBunting();
     this.addCathedral();
@@ -306,8 +322,12 @@ export class OldTownStreet {
     const homes = PALETTES.map((p) => this.material(this.track(homeTexture(p))));
     const awnings = AWNINGS.map((colour) => this.material(this.track(stripeTexture(colour))));
     const layout = seeded(3);
+    // Alleys draw from a sequence of their own, so the houses keep their looks.
+    const alleys = seeded(71);
+    let built = 0;
     for (const side of [-1, 1] as const) {
       let offset = side === 1 ? 5 : 0;
+      let near = false;
       let last = -1;
       while (offset < LOOP) {
         // The layout draws from its own sequence, so a new detail never reshuffles the street.
@@ -320,8 +340,8 @@ export class OldTownStreet {
         if (style >= last) style++;
         last = style;
         const roof = roofs[Math.floor(layout() * roofs.length)]!;
-        this.houseIndex = this.houses.length;
-        this.random = seeded(7919 * (this.houses.length + 1) + 2);
+        this.houseIndex = built++;
+        this.random = seeded(7919 * this.houseIndex + 7921);
         const mesh = this.house(width, storeys, {
           upper: (this.chance(1) < 0.3 ? shut : upper)[style]!,
           ...(this.random() < 0.5
@@ -342,6 +362,17 @@ export class OldTownStreet {
         // Old frontages never quite line up: each house stands up to 45 cm back.
         this.houses.push({ mesh, side, offset, width, setback: this.chance(8) * 0.45 });
         offset += width;
+        // Now and then an alley runs off between two houses; one opens in view of the start.
+        const roll = alleys();
+        const opening: boolean = !near && offset > 40 && offset < 75;
+        if (opening || (roll < 0.14 && offset + ALLEY < LOOP && offset > 8)) {
+          const alley = this.alley(gables[style]!);
+          alley.rotation.y = side === 1 ? Math.PI : 0;
+          this.group.add(alley);
+          this.houses.push({ mesh: alley, side, offset, width: ALLEY, setback: 0 });
+          offset += ALLEY;
+          if (opening) near = true;
+        }
       }
     }
   }
@@ -487,6 +518,30 @@ export class OldTownStreet {
     window.position.set(0, 34, 11.2);
     c.add(window);
     for (let i = 0; i < 5; i++) box(glass, 1.4, 9, 1, -20 + (i % 2 ? 40 : 0), 20, 4.2);
+    // A pointed gable over the portal, and pinnacles along the nave's walls.
+    const gable = box(shade, 7, 7, 1.4, 0, 12, 11.4);
+    gable.rotation.z = Math.PI / 4;
+    gable.position.y = 14.5;
+    for (let z = -20; z > -125; z -= 12) {
+      for (const x of [-15.5, 15.5]) cone(shade, 1.1, 9, x, 34, z, 6);
+    }
+    // A clock on the tower's face, and a gilded cross on the spire.
+    const gilt = stone(0xd9a640, 0.1);
+    const face = new Mesh(this.clockFace, stone(0xf2ede0, 0.3));
+    face.rotation.x = Math.PI / 2;
+    face.position.set(0, 71, 9.6);
+    c.add(face);
+    box(gilt, 0.5, 5.5, 0.5, 0, 157.5, 0);
+    box(gilt, 3, 0.5, 0.5, 0, 161, 0);
+    for (const [w, h, angle] of [
+      [0.35, 3.6, 0.3],
+      [0.35, 2.6, -1.9],
+    ] as const) {
+      const hand = box(gilt, w, h, 0.3, 0, 71, 10.2);
+      hand.geometry = this.unit;
+      hand.position.set(Math.sin(-angle) * (h / 2), 71 + Math.cos(angle) * (h / 2), 10.2);
+      hand.rotation.z = angle;
+    }
     this.flatten(c);
     this.group.add(c);
   }
@@ -733,6 +788,30 @@ export class OldTownStreet {
     this.group.add(m);
   }
 
+  /** Cloth banners strung across the street between the houses, with their ropes. */
+  private addStreetBanners(): void {
+    const cloth = new PlaneGeometry(7, 1.3);
+    const rope = new BoxGeometry(2 * FRONTAGE, 0.03, 0.03);
+    this.disposables.push(cloth, rope);
+    STREET_BANNERS.forEach(([text, fill, ink], i) => {
+      const material = new MeshStandardMaterial({
+        map: this.track(clothBannerTexture(text, fill, ink)),
+        side: DoubleSide,
+        roughness: 0.85,
+      });
+      this.disposables.push(material);
+      const holder = new Group();
+      const banner = new Mesh(cloth, material);
+      banner.position.y = 7.2 - KERB;
+      banner.castShadow = true;
+      const line = new Mesh(rope, this.iron);
+      line.position.y = 7.85 - KERB;
+      holder.add(banner, line);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: 70 + i * 140, every: LOOP, x: 0 });
+    });
+  }
+
   /** Fans' slogans painted on the setts, read upright as the rider rolls over them. */
   private addRoadPaint(): void {
     // Stretched along the road, as road writing is, so it reads from a rider's low eye.
@@ -915,6 +994,17 @@ export class OldTownStreet {
     if (look.awning) group.add(this.awning(look.awning, width));
     if (this.random() < 0.4) group.add(this.balcony(look.trim, width));
     if (look.groundBay === BAY && this.random() < 0.6) group.add(this.sign(width));
+    if (look.groundBay === BAY) {
+      // The shop door, in one of its bays.
+      const door = new Mesh(
+        this.doorLeaf,
+        this.shopDoors[this.houseIndex % this.shopDoors.length]!,
+      );
+      const bay = Math.floor(this.chance(9) * (width / BAY));
+      door.rotation.y = Math.PI / 2;
+      door.position.set(0.04, 1.25, -width / 2 + (bay + 0.5) * BAY);
+      group.add(door);
+    }
     if (this.chance(2) < 0.32) group.add(this.flag(width));
     if (look.groundBay === 2 * BAY) group.add(this.pots(width));
     // Stone quoins up both front corners of half the houses, long and short in turn.
@@ -1003,6 +1093,34 @@ export class OldTownStreet {
     oculus.rotation.z = Math.PI / 2;
     oculus.position.set(0.29, top + 1.6, 0);
     group.add(oculus);
+    return group;
+  }
+
+  /**
+   * An alley between two houses: setts running back into shade, to a wall lit at the far end
+   * under an arch, with the sky over it.
+   */
+  private alley(wall: Material): Group {
+    const group = new Group();
+    const deep = 16;
+    const floor = new Mesh(this.unit, this.alleyFloor);
+    floor.scale.set(deep, 0.1, ALLEY);
+    floor.position.set(-deep / 2, -0.05, 0);
+    floor.receiveShadow = true;
+    const back = new Mesh(this.unit, wall);
+    back.scale.set(0.4, 11, ALLEY + 1);
+    back.position.set(-deep, 5.5, 0);
+    back.receiveShadow = true;
+    // An arch spanning the alley a few metres in, carrying a room over it.
+    const bridge = new Mesh(this.unit, wall);
+    bridge.scale.set(3, 3.4, ALLEY + 0.2);
+    bridge.position.set(-6, SHOP + 2.4, 0);
+    bridge.castShadow = bridge.receiveShadow = true;
+    const window = new Mesh(this.unit, this.iron);
+    window.scale.set(0.05, 1.2, 0.9);
+    window.position.set(-4.48, SHOP + 2.5, 0);
+    group.add(floor, back, bridge, window);
+    this.flatten(group);
     return group;
   }
 
@@ -1791,6 +1909,63 @@ function paintTexture(text: string, colour: string): CanvasTexture {
     for (let i = 0; i < 2400; i++) {
       ctx.fillRect(random() * 512, random() * 1120, 1 + random() * 4, 2 + random() * 8);
     }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function clothBannerTexture(text: string, fill: string, ink: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 700;
+  canvas.height = 130;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, 700, 130);
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 5;
+    ctx.strokeRect(10, 10, 680, 110);
+    ctx.fillStyle = ink;
+    ctx.font = 'bold 72px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 350, 68, 640);
+    // Folds in the cloth.
+    const folds = ctx.createLinearGradient(0, 0, 700, 0);
+    for (let i = 0; i <= 6; i++) {
+      folds.addColorStop(i / 6, i % 2 ? 'rgba(0,0,0,0.14)' : 'rgba(255,255,255,0.06)');
+    }
+    ctx.fillStyle = folds;
+    ctx.fillRect(0, 0, 700, 130);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function shopDoorTexture(paint: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 88;
+  canvas.height = 200;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = paint;
+    ctx.fillRect(0, 0, 88, 200);
+    // The glazed upper panel, showing the lit shop inside.
+    const inside = ctx.createLinearGradient(0, 14, 0, 120);
+    inside.addColorStop(0, '#4a3a2c');
+    inside.addColorStop(1, '#c79a62');
+    ctx.fillStyle = inside;
+    ctx.fillRect(12, 14, 64, 106);
+    ctx.fillStyle = 'rgba(210,230,245,0.3)';
+    ctx.fillRect(12, 14, 64, 40);
+    // The lower panel, the kick plate and the brass handle.
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(14, 134, 60, 44);
+    ctx.fillStyle = '#b08d3a';
+    ctx.fillRect(70, 112, 5, 22);
+    ctx.fillRect(10, 186, 68, 8);
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
