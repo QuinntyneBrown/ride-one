@@ -43,6 +43,7 @@ import {
   MeshStandardMaterial,
   type Node,
   NoToneMapping,
+  type Object3D,
   PCFShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
@@ -60,7 +61,9 @@ import {
 import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
+import { bendAhead, bendPoint } from './scene-bend';
 import { MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
+import { RoadBend } from './world-bend';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
 import { Cyclist, CyclistKit } from './world-cyclist';
 import { DocklandsStreet } from './world-docklands';
@@ -3100,6 +3103,8 @@ const LAMP_EVERY = 40;
 const LAMPS = 6;
 const POST_EVERY = 20;
 const POSTS = 14;
+/** How often, in frames, meshes made since the last look take the bend. */
+const BEND_SWEEP = 120;
 /** How far the gradient under the rider eases towards the target each frame. */
 const FRAME_EASE = 0.02;
 
@@ -3145,6 +3150,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private world: World | null = null;
   private look: Look = LOOKS.oldtown;
   private grade = 0;
+  /** The road's bend, laid on every vertex but the sky's and the panorama's (ADR 0023). */
+  private readonly bend = new RoadBend();
+  private readonly unbent = new Set<Object3D>([this.sky]);
+  private bendSamples: Float32Array = new Float32Array(0);
+  private drawn = 0;
 
   async start(canvas: HTMLCanvasElement, world: World): Promise<boolean> {
     try {
@@ -3173,6 +3183,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (world.id === 'oldtown') this.addStreet();
     if (world.id === 'docklands') this.addTowers();
     this.applyTier();
+    this.bend.apply(this.scene, this.unbent);
     return true;
   }
 
@@ -3204,6 +3215,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
       { t: frame.elapsed, s: frame.s, speed, grade: this.grade },
       AHEAD,
     );
+    this.bendSamples = bendAhead(world, frame.s);
+    this.bend.update(this.bendSamples);
+    if (++this.drawn % BEND_SWEEP === 0) this.bend.apply(this.scene, this.unbent);
     if (this.towers) {
       // The road over an effort is a bridge ramp, laid at the same speed as the road ahead.
       const v = Math.max(speed, MIN_SPEED);
@@ -3233,8 +3247,12 @@ export class ThreeWorldRenderer implements WorldRenderer {
       (disc.material as MeshBasicMaterial).opacity = blur;
     }
     const sway = frame.reducedMotion ? 0 : Math.sin(frame.s / 3) * 0.04;
-    this.camera.position.set(sway, 2.1, 5.5);
-    this.camera.lookAt(0, 1.2 + heightAt(ahead, 24), -24);
+    // The camera rides the bend: its eye and the point it looks at both follow the road (L2-110
+    // AC9), and both depend only on s, so under reduced motion it turns only as the rider rides.
+    const eye = bendPoint(this.bendSamples, sway, 5.5);
+    const look = bendPoint(this.bendSamples, 0, -24);
+    this.camera.position.set(eye.x, 2.1, eye.z);
+    this.camera.lookAt(look.x, 1.2 + heightAt(ahead, 24), look.z);
 
     if (this.pipeline) this.pipeline.render();
     else this.renderer.render(this.scene, this.camera);
@@ -3461,6 +3479,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
     const material = new MeshBasicMaterial({ side: BackSide, fog: false, transparent: true });
     const mesh = this.addMesh(geometry, material);
     mesh.position.y = 160;
+    // The photographed distance stands beyond the road and does not bend (L2-110 AC9).
+    this.unbent.add(mesh);
     try {
       const texture = await new TextureLoader().loadAsync(`/worlds/${world.id}/panorama.webp`);
       texture.colorSpace = SRGBColorSpace;
@@ -3625,11 +3645,13 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.scenery?.place(s, (metres) => heightAt(ahead, metres));
     this.lamps.forEach((lamp, i) => {
       const metres = i * LAMP_EVERY - (s % LAMP_EVERY) + 8;
-      lamp.position.set(
+      // A light is no vertex, so it takes the bend here.
+      const at = bendPoint(
+        this.bendSamples,
         i % 2 === 0 ? -ROAD_HALF - 1.5 : ROAD_HALF + 1.5,
-        heightAt(ahead, metres) + 6,
         -metres,
       );
+      lamp.position.set(at.x, heightAt(ahead, metres) + 6, at.z);
     });
     this.posts.forEach((post, i) => {
       const metres = Math.floor(i / 2) * POST_EVERY - (s % POST_EVERY) + 4;
@@ -3661,6 +3683,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     );
     mesh.position.set(0, 5.6, 0.24);
     this.arch.add(mesh);
+    this.bend.apply(this.arch);
     this.archLabel = { text: arch.label, texture, mesh };
   }
 
