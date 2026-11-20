@@ -57,6 +57,9 @@ const BOATS: readonly { offset: number; out: number; length: number; hex: string
   { offset: 186, out: 9, length: 18, hex: '#9b6bff' },
   { offset: 222, out: 18, length: 15, hex: '#ffd49a' },
 ];
+/** The centre line's dashes: DASH metres of line in every DASH_EVERY. */
+const DASH = 3;
+const DASH_EVERY = 9;
 /** The harbour railing's height above the quay. */
 const RAILING = 1.1;
 const HARBOUR_TO = 250;
@@ -589,6 +592,22 @@ export class DocklandsStreet {
       side: DoubleSide,
     });
     this.disposables.push(pavement, kerb, neon, water, steel, rail, glass, handrail);
+    // The volt dashed centre line of the mock, glowing on the dark wet road.
+    const dashes = this.track(dashTexture());
+    dashes.repeat.set(1, 1 / DASH_EVERY);
+    const centre = new MeshBasicMaterial({
+      color: new Color('#d8ff3e').multiplyScalar(1.4),
+      map: dashes,
+      alphaTest: 0.5,
+      side: DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    this.disposables.push(centre);
+    this.ribbon(points, centre, [
+      [-0.08, 0.014],
+      [0.08, 0.014],
+    ]);
     // The open dock under a bridge, both sides; under the quay it lies hidden below the ground.
     this.ribbon(
       points,
@@ -1217,6 +1236,22 @@ function windowTexture(base: string, lit: string[], share: number, seed: number)
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
   texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** One period of the centre line along v: DASH of line, then a gap to DASH_EVERY. */
+function dashTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 4;
+  canvas.height = 90;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 4, (90 * DASH) / DASH_EVERY);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
   return texture;
 }
 
