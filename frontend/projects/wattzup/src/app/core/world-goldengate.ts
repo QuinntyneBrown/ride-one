@@ -55,10 +55,10 @@ const CROWD_FAR = 6.8;
 /** The park path on the right, where the skaters and joggers go. */
 const PATH = 9;
 /** The bison paddock on the left, between these offsets, behind its fence. */
-const PADDOCK: readonly [number, number] = [140, 300];
-const FENCE = -11;
+const PADDOCK: readonly [number, number] = [70, 230];
+const FENCE = -8.6;
 /** Spreckels Lake on the right, its middle at this offset. */
-const LAKE = 400;
+const LAKE = 150;
 /** The Dutch Windmill stands above Ocean Beach ahead, hazed by hand. */
 const WINDMILL_AHEAD = 420;
 /** The windmill's size against a real one, so it carries at the vanishing point. */
@@ -70,7 +70,7 @@ const CURTAINS: readonly MistCurtain[] = [
   { ahead: 700, height: 180, opacity: 0.6 },
   { ahead: 320, height: 50, opacity: 0.25 },
 ];
-const BISON = 9;
+const BISON = 12;
 const SKATERS = 14;
 const YACHTS = 6;
 
@@ -160,8 +160,12 @@ export class GoldenGateStreet implements SceneStreet {
       flags: this.flagMaterials,
       flagShare: 0.15,
       seeds: [449, 457],
-      // A park crowd: knots along the barriers, the lawns showing between them.
-      skip: (_side, offset, x) => offset % 36 > 22 || (x > CROWD_NEAR + 1.4 && offset % 12 > 7),
+      // A park crowd: knots along the barriers, the lawns showing between them, and none in front
+      // of the bison paddock so the herd shows over its fence.
+      skip: (side, offset, x) =>
+        (side < 0 && offset > PADDOCK[0] - 4 && offset < PADDOCK[1] + 4) ||
+        offset % 36 > 22 ||
+        (x > CROWD_NEAR + 1.4 && offset % 12 > 7),
     });
     this.mist = new Mist(this.group, disposables, track, {
       colour: FOG,
@@ -383,6 +387,7 @@ export class GoldenGateStreet implements SceneStreet {
     });
     for (const side of [-1, 1] as const) {
       for (let offset = side > 0 ? 10 : 30; offset < LOOP; offset += 40) {
+        if (side < 0 && offset > PADDOCK[0] - 4 && offset < PADDOCK[1] + 4) continue;
         const lamp = new Group();
         const lit = new Mesh(lantern, glass);
         lit.position.y = 4.4;
@@ -521,10 +526,11 @@ export class GoldenGateStreet implements SceneStreet {
       part(horn, 1.0, 0.12, 0.12, 0, 1.05, -1.8);
       for (const x of [-0.35, 0.35])
         for (const z of [-0.9, 0.9]) part(dark, 0.2, 0.75, 0.2, x, 0.38, z);
+      b.scale.setScalar(1.2);
       this.group.add(b);
       this.bison.push({
         mesh: b,
-        x: FENCE - 6 - random() * 40,
+        x: FENCE - 3 - random() * 26,
         offset: PADDOCK[0] + 10 + random() * (PADDOCK[1] - PADDOCK[0] - 20),
         heading: random() * Math.PI * 2,
       });

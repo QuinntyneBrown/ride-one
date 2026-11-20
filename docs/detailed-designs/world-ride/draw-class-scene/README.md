@@ -207,8 +207,8 @@ None.
 - **Golden Gate Park (`core/world-goldengate.ts`).** For `goldengate`, John F. Kennedy Drive through San Francisco's park on a foggy summer morning, closed to cars for the race:
   - the drive between low kerbs with the fans' writing every 25 m, race barriers hung with the race's banners (GOLDEN GATE PARK, JFK DRIVE, OCEAN BEACH, FOG CITY), cloth banners across it and the park's green lamp standards;
   - lawns either side, then groves on a floor of fallen leaves: tall eucalyptus with pale peeling trunks and hanging blue-green crowns, wind-flattened Monterey cypress and Monterey pines;
-  - on the left the bison paddock: a dry meadow behind a post-and-rail fence with its sign at the gate, a feed shed and the herd grazing;
-  - on the right Spreckels Lake with model yachts tacking across it, and the park path where roller skaters and joggers go both ways (the kit's `Figures`);
+  - on the left, from 70 to 230 m into the loop, the bison paddock: a dry meadow behind a post-and-rail fence 8.6 m off the centre line with its sign at the gate, a feed shed and a herd of twelve grazing near the fence, the crowd and the lamps standing back so the herd shows;
+  - on the right, 150 m into the loop, Spreckels Lake with model yachts tacking across it, and the park path where roller skaters and joggers go both ways (the kit's `Figures`);
   - the shared crowd in knots along the barriers, the lawns showing between them;
   - 420 m ahead, just right of the drive and drawn at 1.9 times its size so it carries at the vanishing point, the Dutch Windmill above Ocean Beach, its octagonal shingled tower, gallery and domed cap, its four lattice sails turning on the street's clock, tulip beds at its foot and the dunes and the Pacific behind, hazed by hand;
   - the fog rolling in off the ocean, the kit's `Mist`: curtains across the horizon and banks drifting low over the lawns.
