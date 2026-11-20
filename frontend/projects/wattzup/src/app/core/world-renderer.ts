@@ -383,6 +383,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 3.2, fill: 1.2, colour: 0xfff4e0 },
     fogRange: [80, 1400],
   },
+  // A clear, windswept noon high on the Ventoux: hard light behind the rider, a pale sky scoured by the mistral.
+  ventoux: {
+    sky: 0x7fb2e6,
+    fog: 0xc9d6e2,
+    ground: 0x8a9aa8,
+    road: 0x55565c,
+    sun: 42,
+    wet: false,
+    haze: false,
+    turbidity: 2,
+    rayleigh: 1.4,
+    azimuth: -150,
+    light: { sun: 3.2, fill: 1.1, colour: 0xfffaf0 },
+    fogRange: [150, 3200],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

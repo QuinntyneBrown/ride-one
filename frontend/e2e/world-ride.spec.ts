@@ -205,6 +205,19 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Daytona Beach Sand');
   });
 
+  test('rides In & Out of the Saddle Hill Climb Reps in Mont Ventoux up from Chalet Reynard', async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      'In & Out of the Saddle Hill Climb Reps',
+      'Mont Ventoux',
+      'in-and-out-of-the-saddle-hill-climb-reps',
+    );
+    await expect(world.heading).toHaveText('Mont Ventoux');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Mont Ventoux');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

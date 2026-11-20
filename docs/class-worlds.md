@@ -1,6 +1,6 @@
 # Classes and worlds
 
-Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau and Daytona Beach Sand have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
+Every class in `frontend/public/classes.json`, with its World Ride scene. Render quality is a judgement: Neon Docklands, Old Town, Caribana Parade, Westminster Rush Hour, Central Park Loop, South Beach Sunrise, Ghent Six-Day, Blackpool Illuminations, Suburban Sunrise, Notting Hill Carnival, Knicks Championship Parade, Las Vegas Strip, Route 66 Desert, Venice Beach Boardwalk, Amsterdam Canals, Giza Plateau, Daytona Beach Sand and Mont Ventoux have their own scene modules; the other four still use the shared placeholder look (sky, fog, ground and road colours only). Worlds marked (concept) are proposals, not built yet, so they have no render quality.
 
 | # | Class | World | Render quality | Description |
 | --- | --- | --- | --- | --- |
@@ -47,7 +47,7 @@ Every class in `frontend/public/classes.json`, with its World Ride scene. Render
 | 41 | Drag Race | Daytona Beach Sand | 74% | Hard-packed sand where stock cars once raced; drag-race along the tide line. |
 | 42 | Max Effort Up & Overs | San Francisco Hills (concept) |  | Steep streets and Lombard's crooked bends; up and over each crest as cable cars clang. |
 | 43 | Non-Stop Sprinting | Monaco Street Circuit (concept) |  | Superyachts, the casino and the tunnel; sprint the harbour circuit on race weekend. |
-| 44 | In & Out of the Saddle Hill Climb Reps | Mont Ventoux (concept) |  | Bare white limestone in the mistral; stand and sit up the Giant of Provence. |
+| 44 | In & Out of the Saddle Hill Climb Reps | Mont Ventoux | 70% | Bare white limestone in the mistral; stand and sit up the Giant of Provence. |
 | 45 | Ride to the Beat | Mardi Gras, New Orleans (concept) |  | Brass bands and bead-throwing floats on St. Charles Avenue; pedal to the parade's beat. |
 | 46 | Intervals to the Beat | Ibiza Sunset Strip (concept) |  | Beach clubs and DJ sets as the sun sinks; intervals drop with the bass. |
 | 47 | 20 Minute Crit Sprints | Chicago Loop Crit (concept) |  | Downtown streets beneath the L tracks; sprint every corner of a city criterium. |
