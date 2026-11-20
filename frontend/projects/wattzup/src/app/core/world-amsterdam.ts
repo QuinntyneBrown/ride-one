@@ -457,6 +457,25 @@ export class AmsterdamStreet implements SceneStreet {
     paving.translate(0, -0.1, 0);
     paving.rotateY(Math.PI / 2);
     this.disposables.push(paving);
+    // Far up the gracht the canal bends, so the view closes on the houses of its outer bank:
+    // a row of fronts turned towards the rider, standing with the Westertoren's distance.
+    {
+      const bend = new Group();
+      let along = -46;
+      while (along < 22) {
+        const k = Math.floor(random() * 5);
+        const width = k === 4 ? 12 : 6 + random() * 2;
+        const height = k === 4 ? 16 : 17 + random() * 4;
+        const end = new Mesh(shapes[k]!, [fronts[k]![Math.floor(random() * 4)]!, sides]);
+        end.scale.set(width, height, 10);
+        end.position.set(along, 0, 0);
+        bend.add(end);
+        along += width;
+      }
+      bend.rotation.y = -0.35;
+      bend.position.set(-4, 0, 212);
+      this.tower.add(bend);
+    }
     for (const { x, turn } of rows) {
       const away = turn > 0 ? 1 : -1;
       // A cross street runs off the gracht at each bridge, paved back between the houses, with
