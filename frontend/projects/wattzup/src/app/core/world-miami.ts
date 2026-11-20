@@ -228,11 +228,41 @@ export class MiamiStreet implements SceneStreet {
       body.position.set(depth / 2, height / 2, 0);
       body.castShadow = true;
       hotel.add(body);
-      // The stepped deco crown at the centre of the roofline.
-      const crown = new Mesh(this.unit, facade);
-      crown.scale.set(4, 3.2, width * 0.3);
-      crown.position.set(2, height + 1.6, 0);
-      hotel.add(crown);
+      // The deco crown at the centre of the roofline: a stepped ziggurat of three tiers, or a
+      // tower of fins rising to a finial, each tier's edge traced in neon.
+      const line0 = neon[k % neon.length]!;
+      const tiers = k % 2 === 0 ? 3 : 2;
+      let top = height;
+      for (let t = 0; t < tiers; t++) {
+        const w = width * (0.42 - t * 0.11);
+        const h = 2 + (k % 2 === 0 ? 1.2 : 3.6);
+        const tier = new Mesh(this.unit, facade);
+        tier.scale.set(4.5 - t * 0.8, h, w);
+        tier.position.set(2.25 + t * 0.4, top + h / 2, 0);
+        tier.castShadow = true;
+        hotel.add(tier);
+        top += h;
+        const edge = new Mesh(tube, line0);
+        edge.rotation.x = Math.PI / 2;
+        edge.scale.set(1, w, 1);
+        edge.position.set(0.02 + t * 0.8, top, 0);
+        hotel.add(edge);
+        if (k % 2 === 1)
+          for (const z of [-w / 2 + 0.3, 0, w / 2 - 0.3]) {
+            const fin = new Mesh(this.unit, facade);
+            fin.scale.set(0.5, h, 0.35);
+            fin.position.set(0.05 + t * 0.4, top - h / 2, z);
+            hotel.add(fin);
+          }
+      }
+      const mast = new Mesh(tube, line0);
+      mast.scale.set(1.4, 4.5, 1.4);
+      mast.position.set(2.5, top + 2.25, 0);
+      const finial = new Mesh(this.unit, line0);
+      finial.scale.set(0.5, 0.5, 0.5);
+      finial.rotation.set(0.6, 0.6, 0);
+      finial.position.set(2.5, top + 4.7, 0);
+      hotel.add(mast, finial);
       // Neon along the roofline, the crown and every eyebrow ledge, facing the street.
       const line = neon[k % neon.length]!;
       const run = (y: number, length: number, x = -0.05) => {
@@ -243,7 +273,6 @@ export class MiamiStreet implements SceneStreet {
         hotel.add(t);
       };
       run(height, width);
-      run(height + 3.2, width * 0.3, 1.95);
       for (let f = 1; f < storeys; f++) {
         if (random() < 0.5) run(1.6 + f * 3.6, width * (0.6 + random() * 0.3));
         const ledge = new Mesh(this.unit, facade);
