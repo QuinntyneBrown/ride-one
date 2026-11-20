@@ -3394,6 +3394,17 @@ export class DocklandsStreet {
     });
     const glass = new MeshStandardMaterial({ color: 0x10131c, metalness: 0.9, roughness: 0.1 });
     const tyre = new MeshStandardMaterial({ color: 0x0b0b0f, roughness: 0.8 });
+    // The cabin's windows: tinted panes between their pillars, the driver and a fare inside.
+    const cabin = new MeshBasicMaterial({
+      map: this.track(taxiCabinTexture()),
+      color: new Color(0xffffff).multiplyScalar(1.1),
+      toneMapped: false,
+    });
+    // The checker band along each flank, below the windows.
+    const checkerTexture = this.track(checkerBandTexture());
+    const checker = new MeshBasicMaterial({ map: checkerTexture, toneMapped: false });
+    const band = new PlaneGeometry(TAXI_LONG - 0.4, 0.14);
+    this.disposables.push(cabin, checker, band);
     // The roof sign, lettered TAXI over a checker band on both faces.
     const sign = new MeshBasicMaterial({
       color: new Color(0xffffff).multiplyScalar(1.5),
@@ -3455,7 +3466,16 @@ export class DocklandsStreet {
         const z = -k * (TAXI_LONG + 1.2);
         const y = KERB;
         box(group, paint, 1.8, 0.62, TAXI_LONG, x, y + 0.62, z);
-        box(group, glass, 1.6, 0.5, 2.3, x, y + 1.18, z - 0.2);
+        const cab = new Mesh(unit, [cabin, cabin, glass, glass, cabin, cabin]);
+        cab.scale.set(1.6, 0.5, 2.3);
+        cab.position.set(x, y + 1.18, z - 0.2);
+        group.add(cab);
+        for (const side of [-1, 1]) {
+          const stripe = new Mesh(band, checker);
+          stripe.rotation.y = (side * Math.PI) / 2;
+          stripe.position.set(x + side * 0.91, y + 0.82, z);
+          group.add(stripe);
+        }
         box(group, paint, 1.62, 0.06, 2.1, x, y + 1.45, z - 0.2);
         box(group, sign, 0.7, 0.3, 0.3, x, y + 1.63, z - 0.1);
         for (const side of [-1, 1]) {
@@ -5776,6 +5796,56 @@ function paperLanternTexture(): CanvasTexture {
   ctx.fillStyle = LANTERN_TASSEL;
   ctx.fillRect(0, canvas.height * 0.1, canvas.width, 6);
   ctx.fillRect(0, canvas.height * 0.9 - 6, canvas.width, 6);
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * A cab's windows, round its cabin: two tinted panes between dark pillars, lit from the street,
+ * with heads in silhouette inside. Symmetrical, so it reads on every face.
+ */
+function taxiCabinTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 80;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#14161e';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (const left of [14, 134]) {
+    const pane = ctx.createLinearGradient(0, 8, 0, 72);
+    pane.addColorStop(0, '#6a7aa8');
+    pane.addColorStop(0.55, '#2c3554');
+    pane.addColorStop(1, '#1a1f33');
+    ctx.fillStyle = pane;
+    ctx.fillRect(left, 10, 108, 58);
+    // A head and shoulders against the glass.
+    ctx.fillStyle = '#0b0c12';
+    ctx.beginPath();
+    ctx.arc(left + 54, 36, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(left + 30, 52, 48, 16);
+    // A streak of the street's neon across the glass.
+    ctx.fillStyle = 'rgba(255,120,220,0.35)';
+    ctx.fillRect(left, 18, 108, 4);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A cab's checker band: two rows of black and white squares. */
+function checkerBandTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 16;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#f4f1e6';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#111111';
+  for (let k = 0; k < canvas.width / 8; k++) {
+    ctx.fillRect(k * 8, k % 2 === 0 ? 0 : 8, 8, 8);
+  }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
