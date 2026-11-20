@@ -185,7 +185,8 @@ None.
   - grass banks rising from the barriers, packed with the shared crowd in Flanders' yellow and black, a third waving the lion flag, more lion flags on tall poles stuck in the banks, and a red-edged 22% warning sign and a red inflatable KOPPENBERG arch once a loop;
   - hawthorn hedges along the fields, rows of Lombardy poplars, pollard willows and blossom by the lane, and fields in strips of young wheat, ploughed earth, pasture and rapeseed;
   - farms in the fields: long whitewashed or brick houses with shuttered windows, steep red-tile or slate roofs and chimneys, brick barns with tarred roofs across their yards, black-and-white cows grazing and a tractor by a gate;
-  - ahead, the wooded hill the cobbles climb with Melden's church tower and slate spire on its crest, hazed by hand.
+  - ahead, the wooded hill the cobbles climb with Melden's church tower and slate spire on its crest, hazed by hand;
+  - the spring mist, drawn by the street since the physical sky takes no fog: soft curtains across the horizon (one behind the hill, veiling the lower sky so the church rises out of it, and thinner ones in front of the hill) and banks of mist lying low over the fields, drifting on the street's clock.
 
   `lay`, `place` and `setTime` recycle it along a 480 m loop.
 
