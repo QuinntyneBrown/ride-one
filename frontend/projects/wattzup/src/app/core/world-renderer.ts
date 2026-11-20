@@ -509,6 +509,21 @@ const LOOKS: Record<WorldId, Look> = {
     light: { sun: 2.8, fill: 1.2, colour: 0xfff4e4 },
     fogRange: [180, 5000],
   },
+  // A crisp alpine morning: the sun behind the rider, deep blue sky over the snowfields.
+  stelvio: {
+    sky: 0x6aa8e6,
+    fog: 0xc8d8e8,
+    ground: 0x7a9a68,
+    road: 0x55565c,
+    sun: 38,
+    wet: false,
+    haze: false,
+    turbidity: 2,
+    rayleigh: 1.4,
+    azimuth: -150,
+    light: { sun: 3.2, fill: 1.2, colour: 0xfffaf0 },
+    fogRange: [200, 3600],
+  },
   caribana: {
     sky: 0x8ec5ee,
     fog: 0xcfe0ee,

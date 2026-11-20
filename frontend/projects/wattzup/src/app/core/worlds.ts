@@ -299,6 +299,15 @@ export const WORLDS: readonly World[] = [
     grade: { warmup: 0, work: 0.5, rest: -0.5, cooldown: 0, steady: 0 },
     roll: 0.6,
   },
+  {
+    id: 'stelvio',
+    name: 'Stelvio Pass',
+    route: 'Passo dello Stelvio',
+    effortName: 'Hairpin grind',
+    description: 'Forty-eight hairpins stacked up an Italian alpine wall to the snowfields.',
+    grade: { warmup: 4, work: 8, rest: 6, cooldown: 3, steady: 6 },
+    roll: 1.5,
+  },
 ];
 
 /** The scene of `id`. The catalogue reader keeps only these ids (L2-100), so it is always found. */
