@@ -221,6 +221,17 @@ const SHOP_SIGN_LONG = 3.8;
 const BIKE_RACKS = [44, 126, 232, 352, 470, 562];
 const BIKE_RACK_OUT = 1.9;
 /** Taxi ranks on the right-hand pavement: where (loop metres), how far out (m), cabs in each. */
+/**
+ * Glass skybridges over the street: where (loop metres) and how high (m) each runs. Along the
+ * harbour, where no towers stand on the left, one lands on a lift tower on the promenade.
+ */
+/** How far out from the road's edge a harbour skybridge's lift tower stands (m). */
+const LIFT_OUT = 2.6;
+const SKYBRIDGES: readonly [number, number][] = [
+  [100, 11],
+  [468, 14],
+  [612, 9],
+];
 /** Rain puddles on the pavements: how many round the loop, and how far out they lie (m). */
 const PUDDLES = 70;
 const PUDDLE_NEAR = 1.2;
@@ -430,6 +441,7 @@ export class DocklandsStreet {
   private readonly bikeRacks: { group: Group; offset: number }[] = [];
   private readonly taxiRanks: { group: Group; offset: number }[] = [];
   private readonly puddles: { mesh: Mesh; offset: number }[] = [];
+  private readonly skybridges: { group: Group; offset: number }[] = [];
   /** Delivery drones flying the street: each's loop position at time zero, speed and height. */
   private readonly drones: {
     group: Group;
@@ -1662,6 +1674,7 @@ export class DocklandsStreet {
     this.addBikeRacks(roadHalf);
     this.addTaxiRanks(roadHalf);
     this.addPuddles(roadHalf);
+    this.addSkybridges(roadHalf);
     this.addDrones(roadHalf);
     this.addLaneSymbols(roadHalf);
     this.addGates(roadHalf);
@@ -2576,6 +2589,72 @@ export class DocklandsStreet {
       );
       this.group.add(mesh);
       this.puddles.push({ mesh, offset: random() * LOOP });
+    }
+  }
+
+  /**
+   * Glass skybridges joining the towers across the street: a dark frame round a band of warm
+   * lit windows, mullions, cyan strips along both edges and people crossing, with its light
+   * pooled on the road below.
+   */
+  private addSkybridges(roadHalf: number): void {
+    const frame = new MeshStandardMaterial({ color: 0x141826, metalness: 0.6, roughness: 0.4 });
+    const windows = new MeshBasicMaterial({
+      color: new Color('#ffd9a8').multiplyScalar(1.3),
+      toneMapped: false,
+    });
+    const cyan = new MeshBasicMaterial({
+      color: new Color('#5ff2ff').multiplyScalar(2),
+      toneMapped: false,
+    });
+    const shadow = new MeshBasicMaterial({ color: 0x14101c });
+    const unit = new BoxGeometry(1, 1, 1);
+    this.disposables.push(frame, windows, cyan, shadow, unit);
+    const random = seeded(409);
+    for (const [offset, height] of SKYBRIDGES) {
+      const group = new Group();
+      const harbour = offset >= HARBOUR_FROM && offset < HARBOUR_TO;
+      const right = roadHalf + SETBACK + 1;
+      const left = harbour ? -(roadHalf + LIFT_OUT) : -right;
+      const span = right - left;
+      const middle = (left + right) / 2;
+      const box = (
+        material: Material,
+        w: number,
+        h: number,
+        d: number,
+        x: number,
+        y: number,
+        z = 0,
+      ) => {
+        const mesh = new Mesh(unit, material);
+        mesh.scale.set(w, h, d);
+        mesh.position.set(x, y, z);
+        group.add(mesh);
+      };
+      box(frame, span, 0.9, 4.4, middle, height - 0.45);
+      box(frame, span, 0.7, 4.4, middle, height + 3.35);
+      box(windows, span, 2.6, 4, middle, height + 1.3);
+      box(cyan, span, 0.14, 4.5, middle, height - 0.05);
+      box(cyan, span, 0.14, 4.5, middle, height + 3.05);
+      for (let x = left + 1; x < right; x += 2.2) box(frame, 0.16, 2.6, 4.1, x, height + 1.3);
+      if (harbour) {
+        // The lift tower on the promenade: a dark glass shaft with a lit seam up its face.
+        const shaft = height + 3.7;
+        box(frame, 3, shaft, 3.4, left - 1.5, shaft / 2);
+        box(windows, 0.5, shaft - 1.5, 3.45, left - 1.5, shaft / 2);
+        box(cyan, 3.05, 0.14, 3.45, left - 1.5, 2.6);
+      }
+      // People crossing, dark against the lit glass.
+      for (let k = 0; k < 5; k++) {
+        const x = middle + (random() - 0.5) * (span - 6);
+        box(shadow, 0.45, 1.5, 0.3, x, height + 0.75, 2.05);
+        box(shadow, 0.3, 0.3, 0.3, x, height + 1.68, 2.05);
+      }
+      this.streak(group, '#ffd9a8', 0, 0.02, 0, 6, 2 * roadHalf, 0.45);
+      group.visible = false;
+      this.group.add(group);
+      this.skybridges.push({ group, offset });
     }
   }
 
@@ -3738,6 +3817,11 @@ export class DocklandsStreet {
       drone.group.userData['ground'] ??= drone.group.position.y;
       drone.group.position.y =
         (drone.group.userData['ground'] as number) + heightAt(Math.max(metres, 0));
+    }
+    for (const bridge of this.skybridges) {
+      const metres = ((((bridge.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
+      bridge.group.visible = !this.onBridge(Math.max(metres, 0));
+      bridge.group.position.set(0, heightAt(Math.max(metres, 0)), -metres);
     }
     for (const puddle of this.puddles) {
       const metres = ((((puddle.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;

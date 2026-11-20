@@ -109,6 +109,7 @@ export interface components {
         | 'havana'
         | 'seapoint'
         | 'montreal'
+        | 'stanleypark'
         | 'stelvio';
     };
     ClassShelfResponse: {
