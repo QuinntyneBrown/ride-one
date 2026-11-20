@@ -57,6 +57,8 @@ const BOATS: readonly { offset: number; out: number; length: number; hex: string
   { offset: 186, out: 9, length: 18, hex: '#9b6bff' },
   { offset: 222, out: 18, length: 15, hex: '#ffd49a' },
 ];
+/** The neon strips up the towers' corners are this thick. */
+const EDGE = 0.35;
 /** The centre line's dashes: DASH metres of line in every DASH_EVERY. */
 const DASH = 3;
 const DASH_EVERY = 9;
@@ -239,6 +241,18 @@ export class DocklandsStreet {
     // The rooftops draw from their own sequence too, so the street's layout is unchanged.
     const roofRandom = seeded(151);
     const kit = this.roofKit(true);
+    // Neon strips up the towers' edges, from their own sequence so nothing else moves.
+    const edgeRandom = seeded(211);
+    const edges = NEON.map(
+      (hex) =>
+        new MeshStandardMaterial({
+          color: 0x000000,
+          emissive: new Color(hex),
+          emissiveIntensity: 2.6,
+        }),
+    );
+    const edgeBox = new BoxGeometry(EDGE, 1, EDGE);
+    this.disposables.push(...edges, edgeBox);
 
     const blade = new PlaneGeometry(BLADE, 1);
     const bracket = new BoxGeometry(BLADE + 0.3, 0.12, 0.12);
@@ -276,6 +290,18 @@ export class DocklandsStreet {
         );
         // The street floor: lit glazing towards the road under a dark canopy.
         const street = -(height - FOOTING) / 2 + KERB;
+        if (edgeRandom() < 0.4) {
+          // A neon strip runs up each of the tower's corners on the road, above the canopy.
+          const material = edges[Math.floor(edgeRandom() * edges.length)]!;
+          const foot = street + LOBBY + 0.6;
+          const top = (height + FOOTING) / 2;
+          for (const z of [-depth / 2, depth / 2]) {
+            const strip = new Mesh(edgeBox, material);
+            strip.scale.y = top - foot;
+            strip.position.set(-side * (width / 2 + EDGE / 2), (top + foot) / 2, z);
+            mesh.add(strip);
+          }
+        }
         const length = depth - 2;
         const glazing = new PlaneGeometry(length, LOBBY);
         const uv = glazing.getAttribute('uv');
