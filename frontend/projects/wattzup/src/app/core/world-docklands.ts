@@ -554,7 +554,9 @@ export class DocklandsStreet {
    * Runs the train along its viaduct for `seconds` of the ride: it crosses from the harbour
    * side to the far towers at TRAIN_SPEED and comes round again. Held still for reduced motion.
    */
-  setTime(seconds: number, still = false): void {
+  setTime(clock: number, still = false): void {
+    // The ride's clock counts whole seconds; everything moves on the smooth one instead.
+    const seconds = this.smooth(clock, still);
     this.fall(seconds, still);
     this.splash(seconds, still);
     this.drip(seconds, still);
@@ -571,12 +573,11 @@ export class DocklandsStreet {
     this.ride(still ? 0 : seconds);
     this.burst(seconds, still);
     this.strike(seconds, still);
-    const smooth = this.smooth(seconds, still);
-    this.sweep(smooth);
-    this.drift(smooth, still);
-    this.sail(smooth);
-    this.swimKoi(smooth);
-    if (this.holoGlobe) this.holoGlobe.rotation.y = (smooth / HOLO_TURN) * Math.PI * 2;
+    this.sweep(seconds);
+    this.drift(seconds, still);
+    this.sail(seconds);
+    this.swimKoi(seconds);
+    if (this.holoGlobe) this.holoGlobe.rotation.y = (seconds / HOLO_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -625,7 +626,7 @@ export class DocklandsStreet {
   private lighthouseBeams: Group | null = null;
   /** The ride's last whole second and when it came, to run smooth motion on through it. */
   private tick = 0;
-  private tickAt = 0;
+  private tickAt: number | null = null;
   /** The holographic globe over the city ahead, turning. */
   private holoGlobe: Group | null = null;
   /** The blimp, drifting over the harbour, and its blinking navigation lights. */
@@ -1638,7 +1639,7 @@ export class DocklandsStreet {
    */
   private smooth(seconds: number, still: boolean): number {
     const now = performance.now();
-    if (seconds !== this.tick) {
+    if (seconds !== this.tick || this.tickAt === null) {
       this.tick = seconds;
       this.tickAt = now;
     }
@@ -1646,9 +1647,9 @@ export class DocklandsStreet {
   }
 
   /** Turns the lighthouse's beams. */
-  private sweep(smooth: number): void {
+  private sweep(seconds: number): void {
     if (!this.lighthouseBeams) return;
-    this.lighthouseBeams.rotation.y = LIGHTHOUSE_FACING + (smooth / LIGHTHOUSE_TURN) * Math.PI * 2;
+    this.lighthouseBeams.rotation.y = LIGHTHOUSE_FACING + (seconds / LIGHTHOUSE_TURN) * Math.PI * 2;
   }
 
   /**
@@ -1849,9 +1850,9 @@ export class DocklandsStreet {
   }
 
   /** Swims each koi round its circle, nose along its way, bobbing and beating its tail. */
-  private swimKoi(smooth: number): void {
+  private swimKoi(seconds: number): void {
     for (const { fish, tail, radius, height, phase, speed } of this.koi) {
-      const a = phase + (smooth * speed) / radius;
+      const a = phase + (seconds * speed) / radius;
       fish.position.set(
         Math.cos(a) * radius,
         height + Math.sin(a * 2 + phase) * 0.6,
@@ -1859,17 +1860,17 @@ export class DocklandsStreet {
       );
       // Heading along the circle's tangent: +x is the nose.
       fish.rotation.y = -a - (speed > 0 ? Math.PI / 2 : -Math.PI / 2);
-      tail.rotation.y = Math.sin(smooth * 5 + phase) * 0.45;
+      tail.rotation.y = Math.sin(seconds * 5 + phase) * 0.45;
     }
   }
 
   /** Drifts the blimp slowly to and fro along the harbour, and blinks its lights. */
-  private drift(smooth: number, still: boolean): void {
+  private drift(seconds: number, still: boolean): void {
     if (!this.blimp) return;
     const { body, lights } = this.blimp;
-    const t = (smooth / BLIMP_PERIOD) * Math.PI * 2;
+    const t = (seconds / BLIMP_PERIOD) * Math.PI * 2;
     body.position.x = BLIMP_AT[0] + Math.sin(t) * BLIMP_DRIFT;
-    const lit = still || smooth % 1.5 < 0.4;
+    const lit = still || seconds % 1.5 < 0.4;
     for (const light of lights) light.visible = lit;
   }
 
@@ -3947,9 +3948,8 @@ export class DocklandsStreet {
   }
 
   /**
-   * Shows the bolt striking now, if any, and lights the sky with it. The ride's clock counts
-   * whole seconds, so each strike holds for the first second of its round. None for reduced
-   * motion.
+   * Shows the bolt striking now, if any, and lights the sky with it for the first second of
+   * its round. None for reduced motion.
    */
   private strike(seconds: number, still: boolean): void {
     const round = Math.floor(seconds / LIGHTNING_EVERY);
@@ -4124,10 +4124,10 @@ export class DocklandsStreet {
    * Sails the ferry out across the harbour and back, its bow and wake turning with it. At rest
    * it holds mid-crossing, near the quay.
    */
-  private sail(smooth: number): void {
+  private sail(seconds: number): void {
     if (!this.ferry) return;
     const { sailing, wake } = this.ferry;
-    const t = (smooth / FERRY_PERIOD) * Math.PI * 2 + FERRY_PHASE;
+    const t = (seconds / FERRY_PERIOD) * Math.PI * 2 + FERRY_PHASE;
     sailing.position.x = FERRY_MID + Math.sin(t) * FERRY_REACH;
     // Heading towards the road while the sine rises, out to sea while it falls.
     const way = Math.cos(t) >= 0 ? 1 : -1;
