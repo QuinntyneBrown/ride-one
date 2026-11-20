@@ -50,6 +50,20 @@ const TILE = 24;
 const NEON = ['#ff4fb8', '#3fe0ff', '#d8ff3e', '#9b6bff'];
 /** What the blade signs spell, top to bottom. */
 const SIGN_WORDS = ['HOTEL', 'NOODLES', 'BAR', 'DOCK 9', 'CLUB', 'OPEN', 'RAMEN', 'CAFE'];
+/** How brightly a blade sign glows, and how dim it drops when its tube stutters. */
+const BLADE_GLOW = 1.8;
+const BLADE_DIM = 0.12;
+/**
+ * The blade signs whose tubes are failing, each with when in the round its stutter starts (s):
+ * every FLICKER_EVERY seconds one stutters off and on for FLICKER_FOR seconds.
+ */
+const FLICKERING: readonly [string, number][] = [
+  ['HOTEL', 0],
+  ['BAR', 3.1],
+  ['CLUB', 5.4],
+];
+const FLICKER_EVERY = 7;
+const FLICKER_FOR = 1.1;
 /**
  * The harbour: along this stretch of the loop, in metres, the left side has no towers and the
  * quay looks over the water to the far shore, FAR_SHORE metres away.
@@ -627,6 +641,7 @@ export class DocklandsStreet {
     this.swimKoi(seconds);
     this.sweepLasers(seconds);
     this.chase(seconds, still);
+    this.flicker(seconds, still);
     if (this.holoGlobe) this.holoGlobe.rotation.y = (seconds / HOLO_TURN) * Math.PI * 2;
     if (this.holoRing) this.holoRing.rotation.z = (seconds / HOLO_RING_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
@@ -680,6 +695,8 @@ export class DocklandsStreet {
   private tickAt: number | null = null;
   /** The laser show's beams over the city ahead, each with its own place in the fan. */
   private readonly lasers: { beam: Mesh; base: number; phase: number }[] = [];
+  /** The blade signs' materials, one per word in SIGN_WORDS. */
+  private blades: MeshStandardMaterial[] = [];
   /** The harbour bridge's bulbs, and where each hangs across the harbour (x, m). */
   private bridgeBulbs: { mesh: InstancedMesh; xs: number[] } | null = null;
   /** The holographic globe over the city ahead, turning. */
@@ -1063,11 +1080,12 @@ export class DocklandsStreet {
         map: texture,
         emissiveMap: texture,
         emissive: new Color(0xffffff),
-        emissiveIntensity: 1.8,
+        emissiveIntensity: BLADE_GLOW,
         roughness: 0.5,
         side: DoubleSide,
       });
     });
+    this.blades = blades;
     const lobbies = [
       { glass: '#ffd9a6', frame: '#1a1b22', dark: 0.15 },
       { glass: '#bfe6ff', frame: '#22242c', dark: 0.3 },
@@ -2134,6 +2152,20 @@ export class DocklandsStreet {
       xs: Array.from({ length: lights.length / 3 }, (_, k) => lights[k * 3]!),
     };
     this.farShore.add(new LineSegments(lineGeometry, wire), lit);
+  }
+
+  /**
+   * Stutters the failing blade signs: once a round each drops dark and catches again a few
+   * times, then holds lit. Steady for reduced motion.
+   */
+  private flicker(seconds: number, still: boolean): void {
+    for (const [word, start] of FLICKERING) {
+      const material = this.blades[SIGN_WORDS.indexOf(word)];
+      if (!material) continue;
+      const t = (((seconds - start) % FLICKER_EVERY) + FLICKER_EVERY) % FLICKER_EVERY;
+      const off = !still && t < FLICKER_FOR && Math.sin(t * 41 + t * t * 23) < 0.25;
+      material.emissiveIntensity = off ? BLADE_DIM : BLADE_GLOW;
+    }
   }
 
   /**
