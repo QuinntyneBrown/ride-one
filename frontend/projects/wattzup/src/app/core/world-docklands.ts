@@ -486,6 +486,18 @@ const STALL_MENUS: readonly (readonly string[])[] = [
   ['RAMEN', 'GYOZA', 'SODA'],
   ['SKEWERS', 'NOODLES', 'COFFEE'],
 ];
+/** Each stall's special, chalked on its A-frame: the dish and its price. */
+const STALL_SPECIALS: readonly (readonly [string, string])[] = [
+  ['PORK BAO', '$4'],
+  ['TONKOTSU', '$9'],
+  ['YAKITORI', '$6'],
+];
+/** The A-frame: its board (m), how far it leans, and where it stands from the booth (m). */
+const AFRAME_WIDE = 0.6;
+const AFRAME_TALL = 0.9;
+const AFRAME_LEAN = 0.22;
+const AFRAME_OUT = 3.1;
+const AFRAME_Z = 2.5;
 /** People on the pavement across the street, scattered round the loop. */
 const WALKERS = 26;
 /** Each stroller walks up and down a stretch of pavement this long. */
@@ -3774,6 +3786,17 @@ export class DocklandsStreet {
       this.track(menuTexture(dishes, STALL_COLOURS[k % STALL_COLOURS.length]!)),
     ).map((texture) => new MeshBasicMaterial({ map: texture, toneMapped: false }));
     const board = new PlaneGeometry(1.9, 1.15);
+    const chalkboards = STALL_SPECIALS.map(
+      ([dish, price]) =>
+        new MeshBasicMaterial({
+          map: this.track(chalkboardTexture(dish, price)),
+          color: new Color(0xffffff).multiplyScalar(1.4),
+          toneMapped: false,
+          side: DoubleSide,
+        }),
+    );
+    const chalkPlane = new PlaneGeometry(AFRAME_WIDE, AFRAME_TALL);
+    this.disposables.push(...chalkboards, chalkPlane);
     this.disposables.push(paper, paperGlow, lantern, ...menus, board);
     // Seating out front: a low plastic table and stools, with a diner hunched over a bowl.
     const plastics = SEAT_COLOURS.map(
@@ -3854,6 +3877,16 @@ export class DocklandsStreet {
         glow.position.set(x + 2.55, KERB + 1.72, z + 0.25);
         group.add(ball, glow);
       }
+      // A chalkboard A-frame out on the pavement, chalked with the day's special for the riders.
+      const aframe = new Group();
+      for (const lean of [-1, 1]) {
+        const face = new Mesh(chalkPlane, chalkboards[i % chalkboards.length]!);
+        face.rotation.set(-lean * AFRAME_LEAN, lean > 0 ? 0 : Math.PI, 0);
+        face.position.set(0, AFRAME_TALL / 2, lean * 0.2);
+        aframe.add(face);
+      }
+      aframe.position.set(x + AFRAME_OUT, KERB, AFRAME_Z);
+      group.add(aframe);
       const menu = new Mesh(board, menus[i % menus.length]!);
       menu.position.set(x + 0.1, KERB + 1.65, 1.61);
       group.add(menu);
@@ -6006,6 +6039,49 @@ function boothTexture(): CanvasTexture {
     ctx.fillStyle = BOOTH_POSTERS[k % BOOTH_POSTERS.length]![0];
     ctx.fillRect(random() * size, 110 + random() * 30, 6 + random() * 4, 4 + random() * 3);
   }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * A chalkboard sandwich board: a wooden frame round a dark slate, chalked with TODAY, the dish,
+ * its price and a little chalk star, in a few pastel chalks.
+ */
+function chalkboardTexture(dish: string, price: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 192;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#6b4a2c';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#1b2421';
+  ctx.fillRect(8, 8, canvas.width - 16, canvas.height - 16);
+  // A haze of old chalk, half wiped.
+  ctx.fillStyle = 'rgba(220,230,225,0.06)';
+  ctx.fillRect(14, 60, 100, 60);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd1e8';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText('TODAY', 64, 42);
+  ctx.fillStyle = '#f2f5f0';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText(dish, 64, 92);
+  ctx.fillStyle = '#bff3ff';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText(price, 64, 134);
+  ctx.strokeStyle = '#fff1a8';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let k = 0; k < 5; k++) {
+    const a = -Math.PI / 2 + (k * 4 * Math.PI) / 5;
+    const px = 64 + Math.cos(a) * 10;
+    const py = 162 + Math.sin(a) * 10;
+    if (k === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.stroke();
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
