@@ -3356,8 +3356,10 @@ export class DocklandsStreet {
     });
     const glass = new MeshStandardMaterial({ color: 0x10131c, metalness: 0.9, roughness: 0.1 });
     const tyre = new MeshStandardMaterial({ color: 0x0b0b0f, roughness: 0.8 });
+    // The roof sign, lettered TAXI over a checker band on both faces.
     const sign = new MeshBasicMaterial({
-      color: new Color('#fff2a8').multiplyScalar(2),
+      color: new Color(0xffffff).multiplyScalar(1.5),
+      map: this.track(taxiSignTexture()),
       toneMapped: false,
     });
     const head = new MeshBasicMaterial({
@@ -3417,7 +3419,7 @@ export class DocklandsStreet {
         box(group, paint, 1.8, 0.62, TAXI_LONG, x, y + 0.62, z);
         box(group, glass, 1.6, 0.5, 2.3, x, y + 1.18, z - 0.2);
         box(group, paint, 1.62, 0.06, 2.1, x, y + 1.45, z - 0.2);
-        box(group, sign, 0.7, 0.24, 0.3, x, y + 1.6, z - 0.1);
+        box(group, sign, 0.7, 0.3, 0.3, x, y + 1.63, z - 0.1);
         for (const side of [-1, 1]) {
           box(group, head, 0.34, 0.14, 0.05, x + side * 0.62, y + 0.72, z + TAXI_LONG / 2 + 0.01);
           box(group, tail, 0.3, 0.14, 0.05, x + side * 0.66, y + 0.76, z - TAXI_LONG / 2 - 0.01);
@@ -5449,6 +5451,34 @@ function screenTexture(words: string, i: number): CanvasTexture {
 }
 
 /** A stall awning: broad stripes of its colour and white, across the slope. */
+/** A cab's roof sign: TAXI in black on lit yellow, over a black-and-white checker band. */
+function taxiSignTexture(): CanvasTexture {
+  const w = 128;
+  const h = 56;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#fff2a8';
+    ctx.fillRect(0, 0, w, h);
+    for (let k = 0; k < 16; k++) {
+      ctx.fillStyle = k % 2 === 0 ? '#111111' : '#f4f4f4';
+      ctx.fillRect(k * 8, h - 12, 8, 6);
+      ctx.fillStyle = k % 2 === 1 ? '#111111' : '#f4f4f4';
+      ctx.fillRect(k * 8, h - 6, 8, 6);
+    }
+    ctx.fillStyle = '#111111';
+    ctx.font = 'bold 34px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TAXI', w / 2, 22);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 /**
  * A glass lift cab's walls: warm light behind a grid of dark glazing bars, a rail across at
  * waist height, and two riders standing inside as silhouettes.
