@@ -205,6 +205,9 @@ const HOLO_AT = [6, 205, -650] as const;
 const HOLO_RADIUS = 40;
 const HOLO_TILT = 0.4;
 const HOLO_TURN = 60;
+/** The satellites riding the globe's ring, and one turn of the ring (s), the other way round. */
+const HOLO_SATELLITES = 3;
+const HOLO_RING_TURN = -24;
 /**
  * Holographic koi over the street: where each school swims round the loop (m), how many in a
  * school, the height they swim at over the road (m), and their skins' ground and patch colours.
@@ -610,6 +613,7 @@ export class DocklandsStreet {
     this.swimKoi(seconds);
     this.sweepLasers(seconds);
     if (this.holoGlobe) this.holoGlobe.rotation.y = (seconds / HOLO_TURN) * Math.PI * 2;
+    if (this.holoRing) this.holoRing.rotation.z = (seconds / HOLO_RING_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -663,6 +667,8 @@ export class DocklandsStreet {
   private readonly lasers: { beam: Mesh; base: number; phase: number }[] = [];
   /** The holographic globe over the city ahead, turning. */
   private holoGlobe: Group | null = null;
+  /** The globe's ring and its satellites, turning in the ring's plane. */
+  private holoRing: Group | null = null;
   /** The blimp, drifting over the harbour, and its blinking navigation lights. */
   private blimp: { body: Group; lights: MeshBasicMaterial[] } | null = null;
   /** The lightning's bolts, one striking at a time. */
@@ -1797,16 +1803,37 @@ export class DocklandsStreet {
         toneMapped: false,
       });
     const skin = light(this.track(holoGlobeTexture()), '#ffffff', 1.6);
-    const ringMaterial = light(this.track(holoRingTexture()), '#5ff2ff', 1.8);
+    const ringMaterial = light(this.track(holoRingTexture()), '#5ff2ff', 3.2);
     const sphere = new SphereGeometry(HOLO_RADIUS, 48, 24);
     const ring = new RingGeometry(HOLO_RADIUS * 1.3, HOLO_RADIUS * 1.55, 96, 1);
     this.disposables.push(skin, ringMaterial, sphere, ring);
     const turning = new Group();
     turning.add(new Mesh(sphere, skin));
     holder.add(turning);
-    const band = new Mesh(ring, ringMaterial);
-    band.rotation.x = -Math.PI / 2 + 0.32;
-    holder.add(band);
+    // The ring lies tilted round the globe and turns in its own plane, its satellites with it.
+    const tilt = new Group();
+    tilt.rotation.x = -Math.PI / 2 + 0.85;
+    const spin = new Group();
+    spin.add(new Mesh(ring, ringMaterial));
+    const satellite = new SpriteMaterial({
+      map: this.track(glowTexture()),
+      color: new Color('#e8fbff').multiplyScalar(2.4),
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+    });
+    this.disposables.push(satellite);
+    for (let k = 0; k < HOLO_SATELLITES; k++) {
+      const a = (k / HOLO_SATELLITES) * Math.PI * 2;
+      const dot = new Sprite(satellite);
+      dot.scale.setScalar(HOLO_RADIUS * 0.22);
+      dot.position.set(Math.cos(a) * HOLO_RADIUS * 1.42, Math.sin(a) * HOLO_RADIUS * 1.42, 0);
+      spin.add(dot);
+    }
+    tilt.add(spin);
+    holder.add(tilt);
+    this.holoRing = spin;
     const halo = new SpriteMaterial({
       map: this.track(glowTexture()),
       color: new Color('#3fa8ff').multiplyScalar(0.5),
@@ -4818,19 +4845,19 @@ function holoRingTexture(): CanvasTexture {
     const c = size / 2;
     // The ring spans 1.3 to 1.55 radii, mapped so 1.55 meets the square's edge.
     const inner = (c * 1.3) / 1.55;
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'rgba(255,255,255,1)';
+    ctx.lineWidth = 9;
     ctx.beginPath();
     ctx.arc(c, c, inner + 4, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.setLineDash([14, 10]);
-    ctx.lineWidth = 8;
+    ctx.setLineDash([22, 12]);
+    ctx.lineWidth = 14;
     ctx.beginPath();
     ctx.arc(c, c, (inner + c) / 2, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 6;
     ctx.beginPath();
     ctx.arc(c, c, c - 4, 0, Math.PI * 2);
     ctx.stroke();
