@@ -13,6 +13,7 @@ import {
   Color,
   type BufferGeometry,
   type CanvasTexture,
+  ConeGeometry,
   CylinderGeometry,
   DoubleSide,
   ExtrudeGeometry,
@@ -179,6 +180,7 @@ export class HavanaStreet implements SceneStreet {
     this.addCars(roadHalf);
     this.addPeople(roadHalf);
     this.addMorro(roadHalf);
+    this.addSkyline();
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -1400,6 +1402,68 @@ export class HavanaStreet implements SceneStreet {
     morro.rotation.y = 0.4;
     this.horizon.add(morro);
     this.group.add(this.horizon);
+  }
+
+  /**
+   * The city closing the view ahead where the Malecón bends toward the harbour: Old Havana's
+   * faded blocks of four to ten storeys, the Hotel Deauville's tall slab by the sea, and over the
+   * rooftops the Capitolio, its long front and the dome on its drum topped by a lantern.
+   */
+  private addSkyline(): void {
+    const random = seeded(1151);
+    const city = new Group();
+    const windows = this.track(facadeTexture());
+    windows.wrapS = RepeatWrapping;
+    windows.wrapT = RepeatWrapping;
+    const faded = [0xe8d8c0, 0xd8c8b0, 0xc8d8d0, 0xe8c8b8, 0xd0d8e0, 0xe0e0d0, 0xd8b8a0];
+    const block = (w: number, h: number, d: number, x: number, z: number, colour: number) => {
+      const map = windows.clone();
+      map.repeat.set(w / 8, h / 16.8);
+      map.needsUpdate = true;
+      this.track(map);
+      const mesh = new Mesh(this.unit, this.material({ map, color: colour, roughness: 0.9 }));
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, h / 2 - 1, z);
+      city.add(mesh);
+    };
+    for (let i = 0; i < 40; i++) {
+      const x = -170 + random() * 200;
+      const z = -950 - random() * 350;
+      block(
+        14 + random() * 26,
+        12 + random() * 26,
+        14 + random() * 20,
+        x,
+        z,
+        faded[i % faded.length]!,
+      );
+    }
+    // The Deauville, a tall slab right on the Malecón.
+    block(24, 52, 16, -40, -900, 0xc8d0d4);
+    // The Capitolio over the rooftops.
+    const stone = this.material({ color: 0xece2cc, roughness: 0.85 });
+    const capitolio = new Group();
+    const front = new Mesh(this.unit, stone);
+    front.scale.set(200, 26, 60);
+    front.position.y = 12;
+    const portico = new Mesh(this.unit, stone);
+    portico.scale.set(40, 30, 10);
+    portico.position.set(0, 14, 34);
+    const drum = new Mesh(new CylinderGeometry(15, 16, 26, 24), stone);
+    drum.position.y = 38;
+    const dome = new Mesh(new SphereGeometry(16, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), stone);
+    dome.scale.y = 1.6;
+    dome.position.y = 51;
+    const lantern = new Mesh(new CylinderGeometry(3, 3.4, 10, 12), stone);
+    lantern.position.y = 81;
+    const tip = new Mesh(new ConeGeometry(2.4, 6, 12), stone);
+    tip.position.y = 89;
+    for (const m of [drum, dome, lantern, tip]) this.disposables.push(m.geometry);
+    capitolio.add(front, portico, drum, dome, lantern, tip);
+    capitolio.position.set(-125, 0, -1350);
+    capitolio.rotation.y = -0.3;
+    city.add(capitolio);
+    this.horizon.add(city);
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
