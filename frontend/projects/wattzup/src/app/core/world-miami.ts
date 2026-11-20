@@ -105,6 +105,7 @@ export class MiamiStreet implements SceneStreet {
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
   private readonly searchlights: Mesh[] = [];
+  private heli: { craft: Group; rotor: Mesh; lights: Mesh[] } | null = null;
   private readonly swaying: { palm: Group; phase: number; lean: number }[] = [];
   /** Where the nightclubs' doors are, in metres along the loop. */
   private readonly clubs: number[] = [];
@@ -181,6 +182,15 @@ export class MiamiStreet implements SceneStreet {
     for (const { palm, phase } of this.swaying) {
       palm.rotation.z = Math.sin(seconds * 0.9 + phase) * 0.018 * gust;
       palm.rotation.x = Math.cos(seconds * 0.7 + phase) * 0.012 * gust;
+    }
+    // The helicopter circles over the beach, 300 m ahead and 80 m up.
+    if (this.heli) {
+      const a = seconds * 0.08;
+      this.heli.craft.position.set(-175 + Math.cos(a) * 60, 62, -430 + Math.sin(a) * 60);
+      this.heli.craft.rotation.y = -a;
+      this.heli.rotor.rotation.y = seconds * 25;
+      const blink = seconds % 1.2 < 0.3;
+      this.heli.lights.forEach((l) => (l.visible = blink));
     }
     // The searchlights sweep slowly to and fro, out of step with each other.
     this.searchlights.forEach((m, k) => {
@@ -1757,6 +1767,57 @@ export class MiamiStreet implements SceneStreet {
       this.horizon.add(sweep);
       this.searchlights.push(sweep);
     }
+    // A police helicopter circling over the beach, its nav lights blinking, rotor turning and
+    // its spotlight sweeping the sand.
+    const heli = new Group();
+    const shell = this.material({ color: 0x20242c, roughness: 0.4, metalness: 0.6, fog: false });
+    const body = new Mesh(new SphereGeometry(2.2, 12, 8), shell);
+    body.scale.set(1.6, 1, 1);
+    const boom = new Mesh(this.unit, shell);
+    boom.scale.set(7, 0.5, 0.5);
+    boom.position.set(-5.5, 0.4, 0);
+    const fin = new Mesh(this.unit, shell);
+    fin.scale.set(1.2, 1.8, 0.2);
+    fin.position.set(-8.8, 1.2, 0);
+    const rotor = new Mesh(
+      new CylinderGeometry(6, 6, 0.05, 24),
+      new MeshBasicMaterial({
+        color: 0x8890a0,
+        transparent: true,
+        opacity: 0.25,
+        depthWrite: false,
+        fog: false,
+      }),
+    );
+    rotor.position.y = 2.3;
+    this.disposables.push(body.geometry, rotor.geometry, rotor.material as MeshBasicMaterial);
+    const red = this.material({
+      color: 0xff2020,
+      emissive: 0xff2020,
+      emissiveIntensity: 4,
+      fog: false,
+    });
+    const green = this.material({
+      color: 0x20ff60,
+      emissive: 0x20ff60,
+      emissiveIntensity: 4,
+      fog: false,
+    });
+    const port = new Mesh(this.unit, red);
+    port.scale.setScalar(0.5);
+    port.position.set(0, 0, -2.4);
+    const starboard = new Mesh(this.unit, green);
+    starboard.scale.setScalar(0.5);
+    starboard.position.set(0, 0, 2.4);
+    const spot = new CylinderGeometry(0.4, 14, 90, 18, 1, true);
+    spot.translate(0, -45, 0);
+    this.disposables.push(spot);
+    const spotBeam = new Mesh(spot, beamLight);
+    spotBeam.rotation.z = 0.35;
+    heli.add(body, boom, fin, rotor, port, starboard, spotBeam);
+    this.heli = { craft: heli, rotor, lights: [port, starboard] };
+    this.horizon.add(heli);
+
     // The city's violet glow rising behind the towers, and the moon over the sea.
     const glow = new MeshBasicMaterial({
       map: this.track(glowTexture()),
