@@ -134,6 +134,13 @@ const BRIDGE_Z = -640;
 const BRIDGE_DECK = 30;
 /** Each bulb's glow on the harbour bridge, across (m). */
 const BRIDGE_BULB = 7;
+/**
+ * The harbour bridge's bulbs: their colours in turn along the cable, the length of the chase's
+ * wave across the harbour (m per radian) and how fast it runs (rad/s).
+ */
+const BULB_COLOURS = ['#ffcf6a', '#5ff2ff', '#ff6ad5'];
+const BULB_WAVE = 9;
+const BULB_CHASE = 3;
 const BRIDGE_PYLON = 110;
 const WHEEL_RADIUS = 56;
 const WHEEL_HUB = 64;
@@ -612,6 +619,7 @@ export class DocklandsStreet {
     this.sail(seconds);
     this.swimKoi(seconds);
     this.sweepLasers(seconds);
+    this.chase(seconds, still);
     if (this.holoGlobe) this.holoGlobe.rotation.y = (seconds / HOLO_TURN) * Math.PI * 2;
     if (this.holoRing) this.holoRing.rotation.z = (seconds / HOLO_RING_TURN) * Math.PI * 2;
     for (const [i, drone] of this.drones.entries()) {
@@ -665,6 +673,8 @@ export class DocklandsStreet {
   private tickAt: number | null = null;
   /** The laser show's beams over the city ahead, each with its own place in the fan. */
   private readonly lasers: { beam: Mesh; base: number; phase: number }[] = [];
+  /** The harbour bridge's bulbs, and where each hangs across the harbour (x, m). */
+  private bridgeBulbs: { mesh: InstancedMesh; xs: number[] } | null = null;
   /** The holographic globe over the city ahead, turning. */
   private holoGlobe: Group | null = null;
   /** The globe's ring and its satellites, turning in the ring's plane. */
@@ -2035,8 +2045,9 @@ export class DocklandsStreet {
     // Each bulb a small glowing quad facing the rider: point sizes are not honoured by every
     // renderer backend, and points drew as single pixels.
     this.glow ??= this.track(glowTexture());
+    // White, so each bulb's own colour, set per instance, shows true.
     const bulbs = new MeshBasicMaterial({
-      color: new Color('#fff4dc').multiplyScalar(2.4),
+      color: new Color(0xffffff).multiplyScalar(4.5),
       map: this.glow,
       transparent: true,
       blending: AdditiveBlending,
@@ -2109,8 +2120,30 @@ export class DocklandsStreet {
       dummy.position.set(lights[k * 3]!, lights[k * 3 + 1]!, lights[k * 3 + 2]! + 0.5);
       dummy.updateMatrix();
       lit.setMatrixAt(k, dummy.matrix);
+      lit.setColorAt(k, new Color(BULB_COLOURS[Math.floor(k / 2) % BULB_COLOURS.length]!));
     }
+    this.bridgeBulbs = {
+      mesh: lit,
+      xs: Array.from({ length: lights.length / 3 }, (_, k) => lights[k * 3]!),
+    };
     this.farShore.add(new LineSegments(lineGeometry, wire), lit);
+  }
+
+  /**
+   * Chases light along the harbour bridge: a wave of brightness runs across its bulbs from
+   * one shore to the other, each bulb keeping its own colour. All lit for reduced motion.
+   */
+  private chase(seconds: number, still: boolean): void {
+    if (!this.bridgeBulbs) return;
+    const { mesh, xs } = this.bridgeBulbs;
+    const colour = new Color();
+    xs.forEach((x, k) => {
+      const wave = 0.5 + 0.5 * Math.sin(x / BULB_WAVE - seconds * BULB_CHASE);
+      const bright = still ? 1 : 0.45 + 0.75 * wave * wave;
+      colour.set(BULB_COLOURS[Math.floor(k / 2) % BULB_COLOURS.length]!).multiplyScalar(bright);
+      mesh.setColorAt(k, colour);
+    });
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }
 
   /** The tallest tower on the skyline: stepped, with a magenta crown and a lit spire. */
