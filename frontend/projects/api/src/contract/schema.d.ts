@@ -123,6 +123,7 @@ export interface components {
         | 'glastonbury'
         | 'pikeplace'
         | 'hardknott'
+        | 'alpe'
         | 'saguaro';
     };
     ClassShelfResponse: {

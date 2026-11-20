@@ -420,6 +420,16 @@ export const WORLDS: readonly World[] = [
     roll: 1.6,
   },
   {
+    id: 'alpe',
+    name: "Alpe d'Huez",
+    route: 'the 21 hairpins',
+    effortName: 'Hairpin attack',
+    description:
+      "Twenty-one numbered hairpins stack up the mountainside above Bourg-d'Oisans on a blazing July afternoon, the tarmac covered in painted names and fans and camper vans packed onto every bend under the snowy peaks of the Grandes Rousses. The two-minute warm-up rolls out of the valley, each one-minute attack kicks round a hairpin through the orange roar of Dutch Corner by the church of Huez, and the two-minute blocks grind up the steep ramps toward the ski station at the top.",
+    grade: { warmup: 4, work: 9, rest: 7, cooldown: 3, steady: 7 },
+    roll: 1.2,
+  },
+  {
     id: 'saguaro',
     name: 'Saguaro Desert',
     route: 'the cactus forest loop',

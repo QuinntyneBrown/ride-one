@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `saguaro`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -346,6 +346,16 @@ None.
   - lichened boulders and Herdwick sheep with grey fleeces and white faces on the fellside;
   - walkers in bright waterproofs plodding up the verges (`Figures`);
   - ahead the lane's hairpins up the head of the pass, low cloud dragging over the crags on the ride's clock, the Scafells beyond, ridges both sides and the Roman fort's ruined walls on the shoulder, keeping their bearing; the ground sinks into the gill.
+- **Alpe d'Huez (`core/world-alpe.ts`).** For `alpe`, the climb of the twenty-one hairpins above Bourg-d'Oisans on a blazing July afternoon, closed for the ride:
+  - the road between low kerbs with broken white edge lines, the tarmac covered in painted names and cries every 13 m (ALLEZ MAYA, HUP JONAS, VAS-Y, GO KENJI, HUP HOLLAND and more) across all of it, race barriers hung with the ride's banners (ALPE D'HUEZ, 21 VIRAGES, OISANS, ISÈRE, WATTZUP, GRANDES ROUSSES), the kit's feather flags every 16 m along both and cloth banners across it, VIRAGE DES HOLLANDAIS over Dutch Corner;
+  - on the right a grassy verge packed nose to tail with camper vans, white and cream coachbuilt bodies with a coloured stripe, striped awnings out towards the road with chairs under them and national flags on poles, then the mountainside rising at 1 in 2 in alpine meadow with a band of grey rock, larches and spruces dotted up it;
+  - on the left a strip of verge, a low dry-stone wall, and past it the slope falling away to the valley floor far below, spruces down it;
+  - fans packed behind the barriers at every bend (the shared crowd), thinning only between bends, and at Dutch Corner, in the opening view, a second shared crowd all in orange with orange and red-white-blue flags;
+  - at every bend, 125 m apart, a white VIRAGE sign with a blue border on the mountain side, counting down from bend 7 at Dutch Corner, with its altitude;
+  - the church of Huez on the outside of Dutch Corner, below the wall: a stone nave under a steep slate roof, a square bell tower with louvred openings under a slate spire and its cross, and a low graveyard wall;
+  - 280 m ahead, at the road's end, the mountainside rising at 22°, its meadows and rock bands crossed by fourteen hairpin legs stacked one above another with low walls on their outer edges, firs between them; at the top the ski station's blocks and chalets, white and timber with rows of balconies; behind it the snowy rock peaks of the Grandes Rousses; to the left the valley's far side, all hazed by hand. Everything along the road is hidden past the face's foot.
+
+  `lay`, `place` and `setTime` recycle it along a 500 m loop.
 - **Saguaro Desert (`core/world-saguaro.ts`).** For `saguaro`, the Sonoran desert outside Tucson at sunrise:
   - the park road with yellow edge lines, gravel shoulders, and the bajada's sand and rock rising gently away both sides;
   - the saguaro forest, six merged many-armed shapes scattered thick out to 140 metres, among ocotillo with red tips, prickly pear with fruit, cholla, palo verde and boulders;
@@ -405,6 +415,7 @@ None.
 | `pages/world-ride/glastonbury` | Glastonbury Fields at 4:50, warm-up, next `Stage-to-stage sprint` |
 | `pages/world-ride/pikeplace` | Pike Place at Dawn at 4:50, warm-up, next `Espresso surge` |
 | `pages/world-ride/hardknott` | Hardknott Pass at 4:50, warm-up, next `One-in-three ramp` |
+| `pages/world-ride/alpe` | Alpe d'Huez at 1:53, warm-up, next `Hairpin attack` |
 | `pages/world-ride/saguaro` | Saguaro Desert at 4:50, warm-up, next `Desert burn` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
