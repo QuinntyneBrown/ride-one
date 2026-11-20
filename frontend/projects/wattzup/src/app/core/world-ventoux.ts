@@ -83,6 +83,7 @@ export class VentouxStreet implements SceneStreet {
   private riders: Figures | null = null;
   private crowd: Figures | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -140,7 +141,7 @@ export class VentouxStreet implements SceneStreet {
     if (riders) {
       this.climbers.forEach((c, i) => {
         const metres = loopMetres(c.offset + c.speed * this.time, s, LOOP, BEHIND);
-        const y = heightAt(Math.max(metres, 0));
+        const y = heightAt(metres);
         const heading = c.speed > 0 ? 0 : Math.PI;
         // Climbers rock out of the saddle; descenders sit tucked.
         const rock = c.speed > 0 ? Math.sin(this.time * 4 + c.phase) * 0.12 : 0;
@@ -164,7 +165,7 @@ export class VentouxStreet implements SceneStreet {
       this.fans.forEach((f, i) => {
         const metres = loopMetres(f.offset, s, LOOP, BEHIND);
         const hop = Math.max(0, Math.sin(this.time * 6 + f.phase)) * 0.12;
-        const y = heightAt(Math.max(metres, 0));
+        const y = heightAt(metres);
         crowd.set(i, f.x, y + hop, -metres, (Math.PI / 2) * Math.sign(f.x), 0.95, 0);
         f.flag?.position.set(f.x - Math.sign(f.x) * 0.4, y + 1.6 + hop, -metres);
       });
