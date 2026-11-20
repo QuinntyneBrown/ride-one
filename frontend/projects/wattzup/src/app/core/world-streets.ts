@@ -14,6 +14,7 @@ import { AlpeStreet } from './world-alpe';
 import { MontmartreStreet } from './world-montmartre';
 import { BonnevilleStreet } from './world-bonneville';
 import type { StreetFactory } from './world-kit';
+import { PaineStreet } from './world-paine';
 import { TempelhofStreet } from './world-tempelhof';
 import { MonacoStreet } from './world-monaco';
 import { TeideStreet } from './world-teide';
@@ -108,4 +109,5 @@ export const STREETS: Partial<Record<WorldId, StreetFactory>> = {
   teide: (track, disposables) => new TeideStreet(track, disposables),
   monaco: (track, disposables) => new MonacoStreet(track, disposables),
   tempelhof: (track, disposables) => new TempelhofStreet(track, disposables),
+  paine: (track, disposables) => new PaineStreet(track, disposables),
 };

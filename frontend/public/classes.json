@@ -9191,6 +9191,7 @@
     },
     {
       "id": "30-minute-vo2-max-session",
+      "world": "paine",
       "title": "30 Minute VO2 Max Session",
       "channel": "GCN Training",
       "focus": "VO₂ max",
