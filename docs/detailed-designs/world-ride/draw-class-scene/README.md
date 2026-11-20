@@ -99,7 +99,7 @@ None.
 - **South Beach's drive (`core/world-southbeach.ts`).** For `southbeach`:
   - pale pavements, race barriers hung with the race's banners, a coral-stone wall, the palm lawn, the sand, the surf line and the Atlantic out to the horizon on the right;
   - pastel art deco hotels on the left, two to five storeys, with eyebrow ledges over ribbon windows, stepped parapets, neon bands and a neon fin carrying each hotel's name, a side street opening between some of them;
-  - café terraces under striped umbrellas, royal palms, painted lifeguard towers on the sand, lamp posts flying pennants, cloth banners across the drive and the fans' writing on the tarmac;
+  - café terraces under striped umbrellas, royal palms, painted lifeguard towers on the sand, lamp posts flying pennants, cloth banners across the drive, the race lane's pink edge lines, and the fans' writing on the tarmac every 25 m beside the riders' line, so some is always close enough to read;
   - the shared crowd behind the barriers, one deep and in clusters on the beach side so the sand, the lifeguard towers and the sea show between them, and brown pelicans gliding along the shore on the street's clock;
   - the stepped deco tower at the end of the drive, its setbacks ringed in neon, hazed by hand.
 
