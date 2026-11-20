@@ -406,6 +406,68 @@ export class DocklandsStreet {
     return { crowns, beacon, mast, lamp };
   }
 
+  private glow: CanvasTexture | null = null;
+  private readonly billboardMaterials = new Map<string, [MeshBasicMaterial, MeshBasicMaterial]>();
+
+  /**
+   * A neon billboard high on a distant tower's face, with its glow bleeding into the haze, as
+   * the mock's skyline has. The face is at local `x` (turned to +x) or else `z` (to +z).
+   */
+  private billboard(
+    tower: Mesh,
+    random: () => number,
+    width: number,
+    height: number,
+    x: number,
+    z: number,
+  ): void {
+    const hex = NEON[Math.floor(random() * NEON.length)]!;
+    let pair = this.billboardMaterials.get(hex);
+    if (!pair) {
+      this.glow ??= this.track(glowTexture());
+      // Untouched by tone mapping, so the neon keeps its hue rather than washing to white.
+      const sign = new MeshBasicMaterial({
+        color: new Color(hex),
+        fog: false,
+        toneMapped: false,
+      });
+      const halo = new MeshBasicMaterial({
+        color: new Color(hex).multiplyScalar(1.3),
+        map: this.glow,
+        transparent: true,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        fog: false,
+        toneMapped: false,
+      });
+      pair = [sign, halo];
+      this.billboardMaterials.set(hex, pair);
+      this.disposables.push(sign, halo);
+    }
+    const face = x !== 0 ? Math.min(width, 40) : width;
+    const w = face * (0.45 + random() * 0.35);
+    const h = w * (0.3 + random() * 0.4);
+    const y = height / 2 - h - 6 - random() * height * 0.25;
+    const plane = new PlaneGeometry(1, 1);
+    this.disposables.push(plane);
+    const sign = new Mesh(plane, pair[0]);
+    sign.scale.set(w, h, 1);
+    const halo = new Mesh(plane, pair[1]);
+    halo.scale.set(w * 3.2, h * 4.5, 1);
+    for (const [mesh, out] of [
+      [sign, 0.4],
+      [halo, 1.2],
+    ] as const) {
+      if (x !== 0) {
+        mesh.rotation.y = Math.PI / 2;
+        mesh.position.set(x + out, y, 0);
+      } else {
+        mesh.position.set(0, y, z + out);
+      }
+      tower.add(mesh);
+    }
+  }
+
   private unitGeometry: BoxGeometry | null = null;
 
   /** One shared unit cube for the rooftops' crown bands. */
@@ -449,6 +511,7 @@ export class DocklandsStreet {
       const mesh = new Mesh(geometry, [facade, facade, top, top, facade, facade]);
       mesh.position.set(x, height / 2, -random() * 260);
       this.addRooftop(mesh, height / 2, roofRandom, width, height, depth, facade, top, kit);
+      if (roofRandom() < 0.3) this.billboard(mesh, roofRandom, width, height, 0, depth / 2);
       this.skyline.add(mesh);
     }
     this.addLandmark(far[0]!, top);
@@ -484,6 +547,8 @@ export class DocklandsStreet {
       const mesh = new Mesh(geometry, [facade, facade, top, top, facade, facade]);
       mesh.position.set(x, height / 2, z - width / 2);
       this.addRooftop(mesh, height / 2, roofRandom, width, height, depth, facade, top, kit);
+      // The far shore's towers turn their faces to the harbour, towards the road.
+      if (roofRandom() < 0.3) this.billboard(mesh, roofRandom, width, height, width / 2, 0);
       this.farShore.add(mesh);
       z -= width + 2 + random() * 10;
     }
@@ -1237,6 +1302,24 @@ function windowTexture(base: string, lit: string[], share: number, seed: number)
   texture.wrapT = RepeatWrapping;
   texture.colorSpace = SRGBColorSpace;
   return texture;
+}
+
+/** A soft round glow, white at its heart and fading to nothing at its edge. */
+function glowTexture(): CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    g.addColorStop(0, 'rgba(255,255,255,0.55)');
+    g.addColorStop(0.35, 'rgba(255,255,255,0.22)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+  }
+  return new CanvasTexture(canvas);
 }
 
 /** One period of the centre line along v: DASH of line, then a gap to DASH_EVERY. */
