@@ -131,7 +131,8 @@ export interface components {
         | 'brickyard'
         | 'chichen'
         | 'bonneville'
-        | 'como';
+        | 'como'
+        | 'yosemite';
     };
     ClassShelfResponse: {
       id: string;

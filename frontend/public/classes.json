@@ -8179,6 +8179,7 @@
     },
     {
       "id": "full-effort-vo2-max-intervals",
+      "world": "yosemite",
       "title": "Full Effort VO2 Max Intervals",
       "channel": "GCN Training",
       "focus": "VO₂ max",

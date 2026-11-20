@@ -4,7 +4,7 @@
 
 World Ride (L1-017) puts a class ride inside a 3D world built for that class. This feature draws the world: the six built-in scenes, the road whose gradient follows the plan, the route profile panel, and the fallback when the browser cannot draw 3D (L2-101, L2-106, L2-110). The screen and the HUD that sit on top belong to `world-ride/ride-in-a-world`.
 
-**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
+**scene** — one of the built-in worlds (`docklands`, `granite`, `oldtown`, `prairie`, `dolomites`, `coast`, `caribana`, `westminster`, `centralpark`, `southbeach`, `ghent`, `blackpool`, `suburbia`, `nottinghill`, `knicks`, `vegas`, `route66`, `venice`, `amsterdam`, `giza`, `daytona`, `koppenberg`, `ventoux`, `chicago`, `goldengate`, `havana`, `seapoint`, `montreal`, `stanleypark`, `stelvio`, `edinburgh`, `northshore`, `campolongo`, `marinabay`, `serpentine`, `champs`, `tulips`, `tourmalet`, `napa`, `glastonbury`, `pikeplace`, `hardknott`, `alpe`, `saguaro`, `trollstigen`, `poggio`, `montmartre`, `brickyard`, `chichen`, `bonneville`, `como`, `yosemite`): a place with its own sky, light, ground, road surface, roadside objects and photographed distance
 
 **target gradient** — road gradient, in percent, that a scene asks for at a point on the route: the scene's gradient for the segment kind plus a rolling term (L2-101 criterion 2)
 
@@ -405,6 +405,11 @@ None.
   - on the right a stone retaining wall holding up terraced gardens of flowering azaleas, cypresses and magnolias, ochre and rose villas with loggias and terracotta roofs, and the wooded mountainside climbing steeply above;
   - strollers on the promenade and at the balustrade (`Figures`);
   - white ferries and varnished launches with their wakes crossing the lake on the ride's clock, the wooded mountains falling into the water opposite with villages and campaniles at their feet, and Bellagio's point ahead, keeping their bearing.
+- **Yosemite Valley (`core/world-yosemite.ts`).** For `yosemite`, the valley floor on a bright late-spring morning:
+  - on the left the Merced's sandy banks and clear green water, running on the ride's clock, with granite boulders in the stream;
+  - meadows of long grass, lupins and poppies, a split-rail fence, ponderosa pines, incense cedars and black oaks, and black-tailed deer grazing, heads lifting and lowering;
+  - hikers walking the verge (`Figures`);
+  - El Capitan's sheer granite face over the left, the north wall on the right with Yosemite Falls' upper and lower falls pouring on the ride's clock into their spray, the south wall's cliffs, talus and pine woods at the walls' feet, and Half Dome's cut face closing the valley ahead, keeping their bearing.
 
 **Fallback.** When `WorldScene` emits `unavailable`, `WorldRidePage` sets `sceneUnavailable`. `WorldRide` then draws no scene and shows the `world-ride__source` status notice `This screen can't draw 3D worlds` / `The ride still runs on the numbers.` Every panel keeps working (L2-110 criterion 4). With no scene, the HUD sits on `--color-bg-app`, as in `pages/world-ride/renderer-unavailable`.
 
@@ -467,6 +472,7 @@ None.
 | `pages/world-ride/chichen` | Chichén Itzá at 4:50, warm-up, next `Pyramid step` |
 | `pages/world-ride/bonneville` | Bonneville Salt Flats at 2:53, warm-up, next `Paceline turn` |
 | `pages/world-ride/como` | Lake Como at 4:50, warm-up, next `Lakeside surge` |
+| `pages/world-ride/yosemite` | Yosemite Valley at 4:50, warm-up, next `Valley VO2 effort` |
 | `pages/world-ride/renderer-unavailable` | No scene, the notice, and the HUD on the app background |
 | `pages/class-worlds/default` | The six scenes side by side with their descriptions (design canvas, not a product screen) |
 
