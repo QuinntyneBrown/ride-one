@@ -817,6 +817,15 @@ export class MiamiStreet implements SceneStreet {
       emissive: 0x401028,
       emissiveIntensity: 0.5,
     });
+    const murals = [0, 1, 2].map((v) =>
+      this.material({
+        map: this.track(muralTexture(8571 + v)),
+        roughness: 0.8,
+        emissive: 0xffffff,
+        emissiveMap: this.track(muralTexture(8571 + v)),
+        emissiveIntensity: 0.25,
+      }),
+    );
     const planter = this.material({ color: 0xe8e0d8, roughness: 0.8 });
     const blossomBall = new SphereGeometry(0.7, 10, 8);
     this.disposables.push(blossomBall);
@@ -1290,6 +1299,12 @@ export class MiamiStreet implements SceneStreet {
         board.rotation.y = turn > 0 ? 0 : Math.PI;
         hotel.add(board);
       }
+      // A mural on the end wall facing back up the drive, as the side streets show them:
+      // bold colour across the whole gable, from the ground floor to the roof.
+      const mural = new Mesh(this.flat, murals[k % murals.length]!);
+      mural.scale.set(17, height - 0.5, 1);
+      mural.position.set(9, (height - 0.5) / 2, width / 2 + 0.03);
+      hotel.add(mural);
       // A planter at each end of the frontage, spilling bougainvillea in magenta flower.
       for (const z of [-width / 2 + 1.4, width / 2 - 1.4]) {
         const box = new Mesh(this.unit, planter);
@@ -5275,5 +5290,58 @@ function silverCloudTexture(): CanvasTexture {
       g.arc(x, y, r, 0, Math.PI * 2);
       g.fill();
     }
+  });
+}
+
+/**
+ * A street mural: a sunset of bold stripes behind palms and a giant flamingo, or waves and a
+ * sun, painted edge to edge in saturated colour with a black outline, signed in the corner.
+ */
+function muralTexture(seed: number): CanvasTexture {
+  return canvasTexture(256, 256, (g) => {
+    const random = seeded(seed);
+    const palette = ['#ff3f8a', '#ffd23f', '#2fc8e6', '#5aff8a', '#9a5aff', '#ff7a3f'];
+    for (let y = 0, i = seed; y < 256; y += 24, i++) {
+      g.fillStyle = palette[i % palette.length]!;
+      g.fillRect(0, y, 256, 24);
+    }
+    g.fillStyle = palette[(seed + 1) % palette.length]!;
+    g.beginPath();
+    g.arc(128, 140, 70, Math.PI, 0);
+    g.fill();
+    g.strokeStyle = '#141018';
+    g.lineWidth = 6;
+    g.stroke();
+    // Waves along the bottom.
+    g.fillStyle = '#1a3a8a';
+    g.beginPath();
+    g.moveTo(0, 256);
+    for (let x = 0; x <= 256; x += 8) g.lineTo(x, 200 + Math.sin(x / 18 + seed) * 10);
+    g.lineTo(256, 256);
+    g.fill();
+    g.stroke();
+    // A palm silhouette and a big eye or flamingo shape.
+    g.fillStyle = '#141018';
+    const px = 30 + random() * 40;
+    g.fillRect(px, 90, 8, 120);
+    for (let a = 0; a < 6; a++) {
+      g.beginPath();
+      g.ellipse(px + 4, 90, 40, 8, -Math.PI / 2 + (a - 2.5) * 0.45, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.lineWidth = 10;
+    g.strokeStyle = '#ff6ab0';
+    g.beginPath();
+    g.moveTo(200, 210);
+    g.lineTo(200, 160);
+    g.bezierCurveTo(170, 140, 230, 90, 200, 70);
+    g.stroke();
+    g.fillStyle = '#ff6ab0';
+    g.beginPath();
+    g.ellipse(190, 150, 24, 14, 0.2, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = '#f4f0e8';
+    g.font = 'italic 14px sans-serif';
+    g.fillText('wz', 226, 248);
   });
 }
