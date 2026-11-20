@@ -61,7 +61,7 @@ import {
 import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
-import { bendAhead, bendPoint, heading, lean } from './scene-bend';
+import { bendAhead, bendPoint, heading, lean, racingLine } from './scene-bend';
 import { EASE_PER_SECOND, MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import { RoadBend } from './world-bend';
 import type { SceneFrame, WorldRenderer } from './world-renderer-port';
@@ -3554,7 +3554,12 @@ export class ThreeWorldRenderer implements WorldRenderer {
       const rider = this.pacers.get(p.jersey);
       if (!rider) continue;
       rider.group.visible = true;
-      rider.group.position.set(p.lane, heightAt(ahead, p.metres), -p.metres);
+      // Through a bend each pacer cuts to the inside, towards the apex; one beside the rider
+      // holds their lane so as not to ride into them.
+      const clear = Math.min(Math.max((Math.abs(p.metres) - 3) / 10, 0), 1);
+      const line = racingLine(world, frame.s + p.metres, p.lane, ROAD_HALF);
+      const lane = p.lane + (line - p.lane) * clear;
+      rider.group.position.set(lane, heightAt(ahead, p.metres), -p.metres);
       rider.group.rotation.x = pitch(gradeAt(ahead, p.metres));
       // Each pacer leans into the bend it is riding through, as the rider does.
       rider.group.rotation.z = -lean(world, frame.s + p.metres, frame.speedKmh / 3.6);

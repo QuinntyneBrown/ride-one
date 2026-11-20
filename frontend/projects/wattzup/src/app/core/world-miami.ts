@@ -104,6 +104,7 @@ export class MiamiStreet implements SceneStreet {
   private water: Texture | null = null;
   private glitter: Texture | null = null;
   private stream: Texture | null = null;
+  private chase: Texture | null = null;
   private readonly signs: MeshStandardMaterial[] = [];
   private readonly beacons: Mesh[] = [];
   private readonly foam: MeshBasicMaterial[] = [];
@@ -155,6 +156,8 @@ export class MiamiStreet implements SceneStreet {
     this.addDunes(roadHalf);
     this.addFestoons(roadHalf);
     this.addShelters(roadHalf);
+    this.addGateway(roadHalf);
+    this.addCollins(roadHalf);
     this.addPeople(roadHalf);
     this.addBay();
     this.addDrizzle();
@@ -207,10 +210,17 @@ export class MiamiStreet implements SceneStreet {
     if (this.water) this.water.offset.set(seconds * 0.004, seconds * 0.002);
     if (this.stream) this.stream.offset.x = seconds * 0.02;
     if (this.glitter) this.glitter.offset.set(Math.sin(seconds * 0.7) * 0.01, seconds * 0.05);
-    // The blade signs pulse, each on its own beat, as neon on a timer does.
+    // The blade signs pulse, each on its own beat, as neon on a timer does; every seventh sign
+    // has a failing transformer and stutters, dropping out for a few frames now and then.
     this.signs.forEach((m, k) => {
       m.emissiveIntensity = 2.2 + Math.max(0, Math.sin(seconds * (0.9 + k * 0.23) + k)) * 1.2;
+      if (k % 7 === 3) {
+        const t = (seconds * 1.7 + k) % 6;
+        if (t < 0.6 && Math.sin(seconds * 47 + k) > 0) m.emissiveIntensity = 0.15;
+      }
     });
+    // The bulbs step along the marquee, a bulb every eighth of a second.
+    if (this.chase) this.chase.offset.x = Math.floor(seconds * 8) / 32;
   }
 
   lay(points: readonly StreetPoint[], s: number): void {
@@ -477,11 +487,15 @@ export class MiamiStreet implements SceneStreet {
         metalness: 0.3,
       }),
     );
+    // The marquee bulbs chase round the fascia: the lit pattern slides along it.
+    const chase = this.track(bulbTexture());
+    chase.wrapS = RepeatWrapping;
+    this.chase = chase;
     const bulbs = this.material({
-      map: this.track(bulbTexture()),
+      map: chase,
       emissive: 0xffffff,
-      emissiveMap: this.track(bulbTexture()),
-      emissiveIntensity: 2.4,
+      emissiveMap: chase,
+      emissiveIntensity: 3,
     });
     const tableTop = this.material({ color: 0xf4f0ec, roughness: 0.3 });
     const metal = this.material({ color: 0x2a2a30, roughness: 0.4, metalness: 0.7 });
@@ -1630,6 +1644,100 @@ export class MiamiStreet implements SceneStreet {
     }
   }
 
+  /**
+   * The Ocean Drive gateway spanning the boulevard once a loop: two stepped deco pylons on the
+   * sidewalks, ringed with neon, carrying a sign beam that spells OCEAN DRIVE in pink and cyan
+   * neon, a sunburst crest above it.
+   */
+  private addGateway(roadHalf: number): void {
+    const span = roadHalf * 2 + 7;
+    const stucco = this.material({ color: 0xf4e8e0, roughness: 0.7 });
+    const pink = this.material({ color: 0xff3fb4, emissive: 0xff3fb4, emissiveIntensity: 2.6 });
+    const cyan = this.material({ color: 0x2fe6ff, emissive: 0x2fe6ff, emissiveIntensity: 2.6 });
+    const board = this.material({
+      map: this.track(gatewayTexture()),
+      emissive: 0xffffff,
+      emissiveMap: this.track(gatewayTexture()),
+      emissiveIntensity: 2.2,
+    });
+    this.signs.push(board);
+    const gate = new Group();
+    const b = new BoxBuilder();
+    for (const side of [-1, 1]) {
+      const x = (side * span) / 2;
+      b.box(stucco, [1.6, 9, 1.6], [x, 4.5, 0]);
+      b.box(stucco, [1.2, 1.6, 1.2], [x, 9.8, 0]);
+      b.box(stucco, [0.7, 1.4, 0.7], [x, 11.3, 0]);
+      for (const y of [3, 5, 7]) b.box(side < 0 ? pink : cyan, [1.7, 0.12, 1.7], [x, y, 0]);
+      b.box(side < 0 ? cyan : pink, [0.2, 2, 0.2], [x, 13, 0]);
+    }
+    b.box(stucco, [span, 0.35, 0.8], [0, 7.4, 0]);
+    b.box(stucco, [span, 0.35, 0.8], [0, 9.6, 0]);
+    b.box(pink, [span, 0.08, 0.86], [0, 7.2, 0]);
+    b.box(cyan, [span, 0.08, 0.86], [0, 9.8, 0]);
+    gate.add(b.build(this.disposables));
+    for (const turn of [0, Math.PI]) {
+      const face = new Mesh(this.flat, board);
+      face.rotation.y = turn;
+      face.scale.set(span * 0.82, 1.9, 1);
+      face.position.set(0, 8.5, turn ? -0.25 : 0.25);
+      gate.add(face);
+    }
+    for (let r = 0; r < 9; r++) {
+      const a = -Math.PI / 2 + (r / 8) * Math.PI;
+      const ray = new Mesh(this.unit, r % 2 ? pink : cyan);
+      ray.scale.set(0.12, 2.2, 0.12);
+      ray.rotation.z = -a;
+      ray.position.set(Math.sin(a) * 1.6, 10.2 + Math.cos(a) * 1.6, 0);
+      gate.add(ray);
+    }
+    const glow = new Mesh(this.flat, this.halo);
+    glow.scale.set(span * 1.1, 6, 1);
+    glow.position.set(0, 8.5, 0.4);
+    gate.add(glow);
+    gate.position.x = 0.4;
+    const holder = new Group();
+    holder.add(gate);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 62, x: 0 });
+  }
+
+  /**
+   * Collins Avenue's towers behind the deco row: taller hotels and condos a block back,
+   * their floors lit in rows, a coloured crown light on each, rising over the deco roofs.
+   */
+  private addCollins(roadHalf: number): void {
+    const random = seeded(8351);
+    const glass = [0, 1, 2].map((v) =>
+      this.material({
+        map: this.track(towerTexture(8351 + v)),
+        emissive: 0xffffff,
+        emissiveMap: this.track(towerTexture(8351 + v)),
+        emissiveIntensity: 1,
+        roughness: 0.5,
+        metalness: 0.3,
+      }),
+    );
+    const tops = NEON.map((c) => this.material({ color: c, emissive: c, emissiveIntensity: 2.2 }));
+    for (let offset = 0; offset < LOOP; offset += 34 + random() * 16) {
+      const h = 50 + random() * 45;
+      const w = 18 + random() * 16;
+      const d = 16 + random() * 10;
+      const tower = new Group();
+      const body = new Mesh(this.unit, glass[Math.floor(random() * 3)]!);
+      body.scale.set(d, h, w);
+      body.position.y = h / 2;
+      const crown = new Mesh(this.unit, tops[Math.floor(random() * tops.length)]!);
+      crown.scale.set(d * 1.02, 1.2, w * 1.02);
+      crown.position.y = h - 1.5;
+      tower.add(body, crown);
+      const holder = new Group();
+      holder.add(tower);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset, x: roadHalf + FRONT + 34 + random() * 12 });
+    }
+  }
+
   /** People out for the night on both sidewalks. */
   private addPeople(roadHalf: number): void {
     const random = seeded(8131);
@@ -2639,7 +2747,7 @@ function bulbTexture(): CanvasTexture {
     g.fillRect(0, 0, 256, 16);
     for (let x = 4; x < 256; x += 8)
       for (const y of [4, 12]) {
-        g.fillStyle = (x / 8 + y) % 3 === 0 ? '#fff0c0' : '#ffd070';
+        g.fillStyle = Math.floor(x / 8) % 3 === 0 ? '#fffbe8' : '#7a5020';
         g.beginPath();
         g.arc(x, y, 2.4, 0, Math.PI * 2);
         g.fill();
@@ -3097,5 +3205,27 @@ function iconTexture(kind: 'flamingo' | 'palm' | 'cocktail' | 'moon'): CanvasTex
           128 + 90 * Math.sin(Math.PI * 0.35),
         );
       });
+  });
+}
+
+/** The gateway's board: OCEAN in pink neon and DRIVE in cyan, glowing on dark enamel. */
+function gatewayTexture(): CanvasTexture {
+  return canvasTexture(512, 64, (g) => {
+    g.fillStyle = '#140c1c';
+    g.fillRect(0, 0, 512, 64);
+    g.font = 'bold 46px sans-serif';
+    g.textBaseline = 'middle';
+    for (const [text, x, colour] of [
+      ['OCEAN', 70, '#ff3fb4'],
+      ['DRIVE', 280, '#2fe6ff'],
+    ] as const) {
+      g.shadowColor = colour;
+      g.shadowBlur = 16;
+      g.fillStyle = colour;
+      g.fillText(text, x, 34);
+      g.shadowBlur = 0;
+      g.fillStyle = 'rgba(255,255,255,0.8)';
+      g.fillText(text, x, 34);
+    }
   });
 }

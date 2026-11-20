@@ -9,7 +9,7 @@ export const BEND_SAMPLES = 128;
 export const BEND_FROM = -40;
 export const BEND_STEP = 4;
 /** Where the road strip ends; past it the heading eases to 0 by the last sample. */
-const ROAD_END = 300;
+export const ROAD_END = 300;
 const FADE_END = BEND_FROM + (BEND_SAMPLES - 2) * BEND_STEP;
 /**
  * On the inside of a bend, a point keeps its distance from the centre line out to this share of
@@ -43,6 +43,22 @@ export function curvature(world: World, s: number): number {
  */
 export function lean(world: World, s: number, speed: number): number {
   return Math.atan((speed * speed * curvature(world, s)) / 9.81);
+}
+
+/** How far, in metres per radian-per-metre, a rider cuts to the inside of a bend, and at most. */
+const APEX_PULL = 180;
+const APEX_MOST = 1;
+/** A rider stays this far inside the road's edge, out of the gutter. */
+const EDGE = 0.9;
+
+/**
+ * Where a rider in `lane` (metres right of the centre line) rides through the bend at `s` on a road
+ * `half` wide each side: drawn to the inside towards the apex, as racers take the racing line,
+ * and never into the gutter.
+ */
+export function racingLine(world: World, s: number, lane: number, half: number): number {
+  const pull = Math.min(Math.max(curvature(world, s) * APEX_PULL, -APEX_MOST), APEX_MOST);
+  return Math.min(Math.max(lane + pull, -half + EDGE), half - EDGE);
 }
 
 /**

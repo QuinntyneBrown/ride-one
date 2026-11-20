@@ -1,4 +1,4 @@
-import { BEND_SAMPLES, bendAhead, bendPoint, curvature, lean } from './scene-bend';
+import { BEND_SAMPLES, bendAhead, bendPoint, curvature, lean, racingLine } from './scene-bend';
 import { WORLDS, worldById, type World } from './worlds';
 
 const alpe = worldById('alpe');
@@ -116,6 +116,27 @@ describe('lean (L2-110 AC9)', () => {
     const s = 1500;
     const k = ((alpeHeading(s + 0.5) - alpeHeading(s - 0.5)) * Math.PI) / 180;
     expect(lean(alpe, s, 10)).toBeCloseTo(Math.atan((100 * k) / 9.81), 9);
+  });
+});
+
+describe('racingLine (L2-107 AC7, L2-110 AC9)', () => {
+  it('keeps a rider in their lane on a straight road', () => {
+    for (const lane of [-1.7, 0, 1.5]) expect(racingLine(straight, 4321, lane, 3.5)).toBe(lane);
+  });
+
+  it('draws a rider to the inside of a bend: right on a right-hander', () => {
+    for (const s of [100, 450, 1700, 3300]) {
+      const k = curvature(alpe, s);
+      expect(Math.sign(racingLine(alpe, s, 0, 3.5))).toBe(Math.sign(k));
+    }
+  });
+
+  it('never rides into the gutter', () => {
+    for (let s = 0; s < 3000; s += 37) {
+      for (const lane of [-2, 0, 2]) {
+        expect(Math.abs(racingLine(alpe, s, lane, 3.5))).toBeLessThanOrEqual(2.6 + 1e-9);
+      }
+    }
   });
 });
 

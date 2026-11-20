@@ -86,6 +86,8 @@ const GARDINER_DECK = 9.5;
 /** A King or Queen of the band leads each band on the right, this far into each truck's stretch. */
 const ROYAL_AT = 64;
 const ROYAL_X = 4.0;
+/** The steel orchestra's float rides the left lane ahead of the first music truck. */
+const PAN_AT = 44;
 
 /** Caribbean flags in the crowd and on the lamp banners: T&T, Jamaica, Barbados, Guyana. */
 const FLAG_KINDS = ['trinidad', 'jamaica', 'barbados', 'guyana'] as const;
@@ -212,6 +214,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly smoke: { mesh: Mesh; phase: number; material: MeshStandardMaterial }[] = [];
   private readonly expressway: { car: Group; offset: number; speed: number; x: number }[] = [];
   private readonly royals: { piece: Group; offset: number; phase: number }[] = [];
+  private readonly pannists: { figure: Group; phase: number }[] = [];
   private readonly mokos: {
     figure: Group;
     legs: [Group, Group];
@@ -261,6 +264,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addMokoJumbies();
     this.addRoyals();
     this.addTrucks();
+    this.addPanFloat();
     this.addLamps();
     this.addTrees();
     this.addStalls();
@@ -300,6 +304,11 @@ export class CaribanaStreet implements SceneStreet {
     this.placeDancers(heightAt, along);
     this.placeBarricades(heightAt, along);
     this.placeMokoJumbies(heightAt, along);
+    for (const p of this.pannists) {
+      // Pannists bounce on the beat as they play.
+      p.figure.position.y = 1.55 + Math.abs(Math.sin(this.time * 4.2 + p.phase)) * 0.06;
+      p.figure.rotation.z = Math.sin(this.time * 2.1 + p.phase) * 0.05;
+    }
     for (const r of this.royals) {
       const metres = along(r.offset, LOOP);
       const t = this.time + r.phase;
@@ -551,7 +560,7 @@ export class CaribanaStreet implements SceneStreet {
       this.mokos.push({
         figure,
         legs: [legs[0]!, legs[1]!],
-        offset: 30 + k * 57 + random() * 10,
+        offset: 72 + k * 57 + random() * 10,
         x: side * (3.2 + random() * 2.2),
         phase: random() * 6.3,
       });
@@ -728,6 +737,8 @@ export class CaribanaStreet implements SceneStreet {
         // And room round each King or Queen on the right.
         const fromRoyal = (((offset - ROYAL_AT) % TRUCK_EVERY) + TRUCK_EVERY) % TRUCK_EVERY;
         if (side > 0 && (fromRoyal < 6 || fromRoyal > TRUCK_EVERY - 6)) continue;
+        // And round the steel orchestra's float on the left.
+        if (side < 0 && offset > PAN_AT - 11 && offset < PAN_AT + 11) continue;
         if (random() < 0.25) continue;
         this.dancers.push({
           side,
@@ -914,7 +925,7 @@ export class CaribanaStreet implements SceneStreet {
       const tarp = this.material({ color: paint, roughness: 0.8, side: DoubleSide });
       const banner = this.material({
         map: this.track(bannerTexture(name, paint)),
-        side: DoubleSide,
+
         roughness: 0.6,
       });
       const box = (
@@ -1179,6 +1190,123 @@ export class CaribanaStreet implements SceneStreet {
         this.props.push({ mesh: tree, offset: offset + random() * 4, every: LOOP, x });
       }
     }
+  }
+
+  /**
+   * A steel orchestra on its float in the left lane between two music trucks: a tractor
+   * drawing a flatbed under a canopy with the band's name, rows of chrome tenor pans on stands
+   * with their pannists in matching T-shirts, and a rank of bass pans, whole drums, at the back.
+   */
+  private addPanFloat(): void {
+    const float = new Group();
+    const red = this.material({ color: 0xc8102e, roughness: 0.35, metalness: 0.4 });
+    const dark = this.material({ color: 0x1b1c1f, roughness: 0.6 });
+    const glass = this.material({ color: 0x1d2a33, roughness: 0.08, metalness: 0.6 });
+    const chrome = this.material({ color: 0xdfe3e6, roughness: 0.12, metalness: 1 });
+    const face = this.material({ map: this.track(panTexture()), roughness: 0.2, metalness: 0.9 });
+    const deck = this.material({ color: 0x6b5138, roughness: 0.9 });
+    const tarp = this.material({ color: 0xffd23f, roughness: 0.8, side: DoubleSide });
+    const banner = this.material({
+      map: this.track(bannerTexture('LAKESHORE STEEL ORCHESTRA', '#c8102e')),
+
+      roughness: 0.6,
+    });
+    const box = (m: Material, w: number, h: number, d: number, x: number, y: number, z: number) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y + h / 2, z);
+      float.add(mesh);
+      return mesh;
+    };
+    box(red, 2.2, 1.3, 2.2, 0, 1.05, -8.3);
+    box(chrome, 1.3, 1.1, 0.08, 0, 1.1, -9.42);
+    box(red, 2.5, 2.1, 1.9, 0, 1.05, -6.3);
+    box(glass, 2.3, 0.85, 0.05, 0, 2.15, -7.27);
+    box(dark, 1.2, 0.5, 9.4, 0, 0.6, -2);
+    box(red, 2.6, 0.12, 12, 0, 1.4, 1.8);
+    box(deck, 2.5, 0.04, 11.9, 0, 1.52, 1.8);
+    for (const x of [-1.2, 1.2]) {
+      for (const z of [-3.9, 7.6]) box(chrome, 0.08, 3.6, 0.08, x, 1.55, z);
+    }
+    box(tarp, 2.9, 0.06, 12, 0, 5.15, 1.8);
+    for (const side of [-1, 1]) {
+      const skirt = new Mesh(new PlaneGeometry(11.4, 0.62), banner);
+      skirt.position.set(side * 1.31, 1.1, 1.8);
+      skirt.rotation.y = side * (Math.PI / 2);
+      float.add(skirt);
+      this.disposables.push(skirt.geometry);
+    }
+    const valance = new Mesh(new PlaneGeometry(2.9, 0.7), banner);
+    valance.position.set(0, 4.8, 7.82);
+    float.add(valance);
+    this.disposables.push(valance.geometry);
+    // Tenor pans: a shallow chrome drum on a stand, its playing face hammered into notes.
+    const skirtGeometry = new CylinderGeometry(0.29, 0.29, 0.22, 20, 1, true);
+    const top = new CylinderGeometry(0.28, 0.28, 0.02, 20);
+    const leg = new CylinderGeometry(0.012, 0.012, 1.25, 5);
+    const bass = new CylinderGeometry(0.29, 0.29, 0.88, 20);
+    this.disposables.push(skirtGeometry, top, leg, bass);
+    const random = seeded(1103);
+    const shirt = this.material({ color: 0xffd23f, roughness: 0.9 });
+    const trousers = this.material({ color: 0x1e2530, roughness: 0.9 });
+    for (let row = 0; row < 4; row++) {
+      for (const x of [-0.65, 0.65]) {
+        const z = -2.8 + row * 1.9;
+        const pan = new Group();
+        const drum = new Mesh(skirtGeometry, chrome);
+        drum.position.y = 1.25;
+        const playing = new Mesh(top, face);
+        playing.position.y = 1.35;
+        pan.add(drum, playing);
+        for (let l = 0; l < 3; l++) {
+          const a = (l / 3) * Math.PI * 2;
+          const stand = new Mesh(leg, dark);
+          stand.position.set(Math.cos(a) * 0.2, 0.62, Math.sin(a) * 0.2);
+          pan.add(stand);
+        }
+        pan.position.set(x, 1.55, z);
+        float.add(pan);
+        // The pannist behind the pan, facing the crowd beside the float and playing.
+        const parts = spectatorParts(3, false);
+        const figure = new Group();
+        const skin = this.material({
+          color: SKINS[Math.floor(random() * SKINS.length)],
+          roughness: 0.6,
+        });
+        figure.add(new Mesh(parts.skin, skin), new Mesh(parts.top, shirt));
+        figure.add(new Mesh(parts.bottom, trousers));
+        this.disposables.push(parts.skin, parts.top, parts.bottom);
+        figure.position.set(x * 1.45, 1.55, z);
+        figure.rotation.y = x < 0 ? -Math.PI / 2 : Math.PI / 2;
+        float.add(figure);
+        this.pannists.push({ figure, phase: random() * 0.6 });
+      }
+    }
+    // The bass section: whole drums in a rank across the back.
+    for (let k = 0; k < 5; k++) {
+      const drum = new Mesh(bass, chrome);
+      drum.position.set(-0.96 + k * 0.48, 1.55 + 0.44, 6.6 + (k % 2) * 0.5);
+      float.add(drum);
+      const face2 = new Mesh(top, face);
+      face2.position.set(drum.position.x, 1.55 + 0.89, drum.position.z);
+      float.add(face2);
+    }
+    for (const [x, z] of [
+      [-1.12, -8.2],
+      [1.12, -8.2],
+      [-1.12, -5],
+      [1.12, -5],
+      [-1.12, 5.6],
+      [1.12, 5.6],
+    ] as const) {
+      const wheel = new Mesh(this.unit, dark);
+      wheel.scale.set(0.3, 1.04, 1.04);
+      wheel.position.set(x, 0.52, z);
+      float.add(wheel);
+    }
+    float.traverse((o) => (o.castShadow = true));
+    this.group.add(float);
+    this.props.push({ mesh: float, offset: PAN_AT, every: LOOP, x: TRUCK_X + 0.3, road: true });
   }
 
   /**
@@ -2453,6 +2581,31 @@ function trussTexture(): CanvasTexture {
   });
 }
 
+/** A pan's playing face: chrome hammered into a ring of note fields round a centre. */
+function panTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    const grad = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+    grad.addColorStop(0, '#8a8f94');
+    grad.addColorStop(1, '#e8ebee');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 128, 128);
+    g.strokeStyle = 'rgba(40,44,48,0.55)';
+    g.lineWidth = 2;
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2;
+      g.beginPath();
+      g.ellipse(64 + Math.cos(a) * 44, 64 + Math.sin(a) * 44, 13, 9, a, 0, Math.PI * 2);
+      g.stroke();
+    }
+    for (let k = 0; k < 6; k++) {
+      const a = (k / 6) * Math.PI * 2 + 0.3;
+      g.beginPath();
+      g.ellipse(64 + Math.cos(a) * 20, 64 + Math.sin(a) * 20, 8, 6, a, 0, Math.PI * 2);
+      g.stroke();
+    }
+  });
+}
+
 /** A wall of speaker cabinets: black boxes with round cones. */
 function speakerTexture(): CanvasTexture {
   return canvasTexture(256, 256, (g) => {
@@ -2490,7 +2643,7 @@ function bannerTexture(name: string, colour: string): CanvasTexture {
     g.font = 'bold 76px system-ui, sans-serif';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillText(name, 512, 68);
+    g.fillText(name, 512, 68, 980);
   });
 }
 
