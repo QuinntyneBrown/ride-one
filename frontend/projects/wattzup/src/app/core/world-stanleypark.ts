@@ -31,6 +31,7 @@ import {
   type BannerPanel,
   canvasTexture,
   clothBannerTexture,
+  dashTexture,
   Crowd,
   FeatherFlags,
   type FeatherWord,
@@ -132,6 +133,8 @@ const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
   ['EASY', '#ffbf3c', 1.8],
 ];
 const ROAD_PAINT_EVERY = 25;
+/** The cycle lane's bicycle stencils, one in each lane every so many metres. */
+const STENCIL_EVERY = 30;
 
 interface Walker {
   readonly offset: number;
@@ -189,6 +192,7 @@ export class StanleyParkStreet implements SceneStreet {
     this.addStreetBanners(roadHalf);
     this.addFeatherFlags();
     this.addRoadPaint();
+    this.addStencils();
     this.addBoats();
     this.addWalkers();
     this.addGeese();
@@ -309,6 +313,25 @@ export class StanleyParkStreet implements SceneStreet {
       [700, BANK_RISE],
       [BANK_TOP, BANK_RISE],
     ]);
+    // The cycle lane's yellow centre line, dashed, and its white edges.
+    const centre = this.material({
+      map: this.repeat(dashTexture('#f2c94c'), 0.12, 6),
+      alphaTest: 0.5,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    this.ribbons.add(points, centre, [
+      [0.07, 0.006],
+      [-0.07, 0.006],
+    ]);
+    const edge = this.material({ color: 0xf2f2ee, polygonOffset: true, polygonOffsetFactor: -2 });
+    for (const side of [-1, 1]) {
+      const x = side * (r - 0.25);
+      this.ribbons.add(points, edge, [
+        [x + 0.06, 0.006],
+        [x - 0.06, 0.006],
+      ]);
+    }
     for (const side of [-1, 1]) {
       const texture = this.track(barrierBannerTexture(BARRIER_PANELS));
       texture.repeat.set(-1, -side / 24);
@@ -518,6 +541,35 @@ export class StanleyParkStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: 22 + i * ROAD_PAINT_EVERY, every: LOOP, x });
     });
+  }
+
+  /** The cycle lane's white bicycle and arrow in each lane, the arrow the way the lane rides. */
+  private addStencils(): void {
+    const plane = new PlaneGeometry(1.4, 3.4);
+    this.disposables.push(plane);
+    const stencil = this.material({
+      map: this.track(stencilTexture()),
+      alphaTest: 0.4,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      roughness: 0.7,
+    });
+    for (let offset = 10; offset < LOOP; offset += STENCIL_EVERY) {
+      for (const side of [1, -1] as const) {
+        const mesh = new Mesh(plane, stencil);
+        mesh.rotation.set(-Math.PI / 2, 0, side > 0 ? 0 : Math.PI);
+        mesh.position.y = 0.02 - KERB;
+        const holder = new Group();
+        holder.add(mesh);
+        this.group.add(holder);
+        this.props.push({
+          mesh: holder,
+          offset: offset + (side > 0 ? 0 : 15),
+          every: LOOP,
+          x: side * 1.7,
+        });
+      }
+    }
   }
 
   /** Sailboats on English Bay: white hulls and sails, a few coloured spinnakers. */
@@ -929,5 +981,37 @@ function carvingTexture(seed: number): CanvasTexture {
         g.stroke();
       }
     }
+  });
+}
+
+/** A cycle lane's stencil in white: a bicycle with an arrow ahead of it, on a clear ground. */
+function stencilTexture(): CanvasTexture {
+  return canvasTexture(128, 320, (g) => {
+    g.strokeStyle = '#f4f4f0';
+    g.fillStyle = '#f4f4f0';
+    g.lineWidth = 7;
+    // The bicycle, seen from above as painted: two wheels, the frame and the bars.
+    for (const y of [250, 170]) {
+      g.beginPath();
+      g.arc(64, y, 30, 0, Math.PI * 2);
+      g.stroke();
+    }
+    g.beginPath();
+    g.moveTo(64, 250);
+    g.lineTo(64, 170);
+    g.moveTo(64, 215);
+    g.lineTo(44, 185);
+    g.lineTo(84, 185);
+    g.moveTo(40, 160);
+    g.lineTo(88, 160);
+    g.stroke();
+    // The arrow ahead of it.
+    g.fillRect(56, 70, 16, 60);
+    g.beginPath();
+    g.moveTo(32, 76);
+    g.lineTo(64, 20);
+    g.lineTo(96, 76);
+    g.closePath();
+    g.fill();
   });
 }

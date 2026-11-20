@@ -36,6 +36,7 @@ import {
   type BannerPanel,
   canvasTexture,
   clothBannerTexture,
+  dashTexture,
   FeatherFlags,
   type FeatherWord,
   Crowd,
@@ -1397,14 +1398,6 @@ function concreteTexture(): CanvasTexture {
 /** Fine pale sand, footprinted. */
 function sandTexture(): CanvasTexture {
   return canvasTexture(512, 512, (g) => speckle(g, 512, 512, '#e8d6ae', 313));
-}
-
-/** A dash of `colour` and a gap of the same: a centre line, 8 m to the texture. */
-function dashTexture(colour: string): CanvasTexture {
-  return canvasTexture(16, 256, (g) => {
-    g.fillStyle = colour;
-    g.fillRect(0, 0, 16, 128);
-  });
 }
 
 /** Ripples on the bay. */
