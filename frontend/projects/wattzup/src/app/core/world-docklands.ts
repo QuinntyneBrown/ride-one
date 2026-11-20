@@ -111,6 +111,16 @@ const WALKERS = 26;
 /** Each stroller walks up and down a stretch of pavement this long. */
 const STROLL = 30;
 const WALKER_COLOURS: readonly string[] = ['#ff4fb8', '#3fe0ff', '#ffb347', '#9b6bff', '#d7ff3a'];
+/** Sky lanes across the city: depth, height, speed (m/s, signed), start and size of their craft. */
+const SKYLANES = [
+  { z: -120, y: 40, speed: 9, phase: 0.44, size: 2.4 },
+  { z: -190, y: 58, speed: -11, phase: 0.6, size: 3 },
+  { z: -270, y: 50, speed: 8, phase: 0.53, size: 3.6 },
+  { z: -360, y: 80, speed: -10, phase: 0.36, size: 4.4 },
+  { z: -460, y: 68, speed: 12, phase: 0.66, size: 5 },
+] as const;
+/** A craft crosses this much sky before coming round again. */
+const SKYLANE_SPAN = 700;
 /** Festoon lantern strings across the street, at these offsets round the loop. */
 const LANTERNS: readonly number[] = [30, 44, 58, 150, 164, 300, 314, 470, 484, 498, 590];
 const LANTERN_HEIGHT = 9;
@@ -245,6 +255,7 @@ export class DocklandsStreet {
   private readonly lanterns: { group: Group; offset: number }[] = [];
   private readonly stalls: { group: Group; offset: number }[] = [];
   private readonly walkers: { group: Group; offset: number }[] = [];
+  private readonly craft: { group: Group; strobe: Mesh; lane: (typeof SKYLANES)[number] }[] = [];
   /** The people walking the pavement: each strolls its own way at its own pace. */
   private readonly strollers: { person: Group; speed: number; phase: number }[] = [];
 
@@ -256,6 +267,7 @@ export class DocklandsStreet {
     this.fall(seconds, still);
     this.steam(still ? 0 : seconds);
     this.stroll(still ? 0 : seconds);
+    this.fly(still ? 0 : seconds);
     // The screens' words scroll past; held still for reduced motion.
     this.screenTextures.forEach((texture, i) => {
       texture.offset.x = still ? 0 : (seconds * (0.05 + i * 0.012)) % 1;
@@ -1016,6 +1028,7 @@ export class DocklandsStreet {
     this.addLanterns(roadHalf);
     this.addStalls();
     this.addWalkers(roadHalf);
+    this.addAirTraffic();
     this.addRain();
     const back = roadHalf + SETBACK + 2;
     const edge = roadHalf + KERB_WIDTH;
@@ -1423,6 +1436,65 @@ export class DocklandsStreet {
       const [left, right] = person.userData['legs'] as Mesh[];
       left!.rotation.x = Math.sin(step) * 0.45;
       right!.rotation.x = -Math.sin(step) * 0.45;
+    }
+  }
+
+  /**
+   * Air traffic over the city: small craft crossing the sky in lanes between the towers, each
+   * with a glowing underside, red and green navigation lights and a white strobe that blinks.
+   */
+  private addAirTraffic(): void {
+    const hull = new MeshStandardMaterial({ color: 0x14141c, metalness: 0.6, roughness: 0.4 });
+    const light = (hex: string, k = 2) =>
+      new MeshBasicMaterial({
+        color: new Color(hex).multiplyScalar(k),
+        toneMapped: false,
+        fog: false,
+      });
+    const glows = ['#3fe0ff', '#ff4fb8', '#ffb347'].map((hex) => light(hex, 1.6));
+    const red = light('#ff2a2a');
+    const green = light('#2aff6a');
+    const white = light('#ffffff', 3);
+    const unit = new BoxGeometry(1, 1, 1);
+    this.disposables.push(hull, ...glows, red, green, white, unit);
+    const box = (
+      material: Material,
+      w: number,
+      h: number,
+      d: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(unit, material);
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x, y, z);
+      return mesh;
+    };
+    SKYLANES.forEach((lane, i) => {
+      const group = new Group();
+      group.add(box(hull, 5, 1.2, 2.4, 0, 0, 0));
+      group.add(box(hull, 2.2, 0.8, 1.8, 0.4, 0.9, 0));
+      group.add(box(glows[i % glows.length]!, 4.4, 0.15, 2, 0, -0.65, 0));
+      group.add(box(red, 0.5, 0.5, 0.5, 0, 0, 1.45));
+      group.add(box(green, 0.5, 0.5, 0.5, 0, 0, -1.45));
+      const strobe = box(white, 0.6, 0.6, 0.6, -2.6, 0.3, 0);
+      group.add(strobe);
+      // It flies nose first along its lane.
+      group.rotation.y = lane.speed > 0 ? 0 : Math.PI;
+      group.scale.setScalar(lane.size);
+      this.group.add(group);
+      this.craft.push({ group, strobe, lane });
+    });
+  }
+
+  /** Flies each craft along its lane, round again past the far side, its strobe blinking. */
+  private fly(seconds: number): void {
+    for (const { group, strobe, lane } of this.craft) {
+      const span = SKYLANE_SPAN;
+      const x = ((((lane.phase * span + seconds * lane.speed) % span) + span) % span) - span / 2;
+      group.position.set(x, lane.y, lane.z);
+      strobe.visible = (seconds + lane.phase * 3) % 1.4 < 0.12;
     }
   }
 
