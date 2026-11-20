@@ -2953,8 +2953,13 @@ export class DocklandsStreet {
     const post = new CylinderGeometry(0.11, 0.13, BOLLARD_HEIGHT, 10);
     const band = new CylinderGeometry(0.125, 0.125, 0.09, 10);
     const flare = new PlaneGeometry(BOLLARD_FLARE, BOLLARD_FLARE);
+    // A domed steel cap, a flange where it is bolted to the pavement, and a reflector band.
+    const dome = new SphereGeometry(0.12, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    const flange = new CylinderGeometry(0.19, 0.2, 0.05, 12);
+    const stripe = new CylinderGeometry(0.133, 0.133, 0.06, 12);
+    const reflector = new MeshBasicMaterial({ color: new Color('#e8ecf4').multiplyScalar(0.8) });
     this.glow ??= this.track(glowTexture());
-    this.disposables.push(steel, post, band, flare);
+    this.disposables.push(steel, post, band, flare, dome, flange, stripe, reflector);
     const x = roadHalf + KERB_WIDTH + 0.35;
     for (let offset = 0; offset < LOOP; offset += BOLLARD_EVERY) {
       // Clear of the crossings, whose beacons stand at the kerbs.
@@ -2977,6 +2982,13 @@ export class DocklandsStreet {
         stand.position.set(side * x, KERB + BOLLARD_HEIGHT / 2, 0);
         const light = new Mesh(band, ring);
         light.position.set(side * x, KERB + BOLLARD_HEIGHT - 0.12, 0);
+        const cap = new Mesh(dome, steel);
+        cap.position.set(side * x, KERB + BOLLARD_HEIGHT, 0);
+        const foot = new Mesh(flange, steel);
+        foot.position.set(side * x, KERB + 0.025, 0);
+        const reflect = new Mesh(stripe, reflector);
+        reflect.position.set(side * x, KERB + 0.28, 0);
+        group.add(cap, foot, reflect);
         const halo = new Mesh(flare, glow);
         halo.position.set(side * x, KERB + BOLLARD_HEIGHT - 0.12, 0.2);
         group.add(stand, light, halo);
