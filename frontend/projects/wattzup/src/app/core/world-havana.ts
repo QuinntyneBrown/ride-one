@@ -562,6 +562,7 @@ export class HavanaStreet implements SceneStreet {
     const ruins = seeded(1171);
     const cafes = seeded(1229);
     const wires = seeded(1301);
+    const folk = seeded(1307);
     const derelict = this.track(ruinTexture());
     derelict.wrapS = RepeatWrapping;
     derelict.wrapT = RepeatWrapping;
@@ -702,6 +703,7 @@ export class HavanaStreet implements SceneStreet {
             rails.push(side);
           }
           this.dress(life, y, z0, z1, things);
+          if (folk() < 0.35) this.resident(folk, y, z0 + 0.6 + folk() * (z1 - z0 - 1.2), things);
         }
         // Air conditioners boxed into the transoms over the windows, and the odd satellite dish.
         for (let u = 2; u < width - 1.6; u += 4) {
@@ -761,6 +763,34 @@ export class HavanaStreet implements SceneStreet {
         inBlock = 0;
         block = 3 + Math.floor(streets() * 3);
       }
+    }
+  }
+
+  /**
+   * A resident out on a balcony, leaning on the railing to watch the sea: shirt, forearms on the
+   * rail, head and hair, merged into the building's dressing in their own colours.
+   */
+  private resident(random: () => number, y: number, z: number, into: BufferGeometry[]): void {
+    const shirts = [0xf2efe6, 0xe63946, 0x3a86ff, 0x2a9d8f, 0xf4a261, 0x8e44ad];
+    const skins = [0x8d5a3b, 0x6b4128, 0xc68b5e, 0xe0b08a, 0x4a2c1c];
+    const shirt = shirts[Math.floor(random() * shirts.length)]!;
+    const skin = skins[Math.floor(random() * skins.length)]!;
+    const lean = -BALCONY + 0.35;
+    const torso = new CapsuleGeometry(0.17, 0.4, 3, 8).toNonIndexed();
+    torso.rotateZ(-0.25);
+    torso.translate(lean, y + 1.0, z);
+    into.push(paint(torso, shirt));
+    const head = new SphereGeometry(0.11, 10, 8).toNonIndexed();
+    head.translate(lean - 0.15, y + 1.48, z);
+    into.push(paint(head, skin));
+    const hair = new SphereGeometry(0.118, 10, 5, 0, Math.PI * 2, 0, Math.PI * 0.5).toNonIndexed();
+    hair.translate(lean - 0.14, y + 1.5, z);
+    into.push(paint(hair, random() < 0.75 ? 0x1a1410 : 0x8a8580));
+    for (const side of [-0.17, 0.17]) {
+      const arm = new CapsuleGeometry(0.045, 0.3, 3, 6).toNonIndexed();
+      arm.rotateZ(Math.PI / 2);
+      arm.translate(-BALCONY + 0.15, y + 1.12, z + side);
+      into.push(paint(arm, random() < 0.5 ? skin : shirt));
     }
   }
 
