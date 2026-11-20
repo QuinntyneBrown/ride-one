@@ -298,6 +298,8 @@ export class CaribanaStreet implements SceneStreet {
   private readonly held = new Matrix4();
   private readonly backpieces: InstancedMesh[] = [];
   private readonly headdresses: InstancedMesh[] = [];
+  private readonly crowns: InstancedMesh[] = [];
+  private readonly crownBands: InstancedMesh[] = [];
   private readonly downtown = new Group();
   private readonly barricades: { side: -1 | 1; offset: number; banner: number }[] = [];
   private barricadeFrames: InstancedMesh | null = null;
@@ -575,6 +577,8 @@ export class CaribanaStreet implements SceneStreet {
     if (!costumes) return;
     const count = this.backpieces.map(() => 0);
     const backed = this.backpieces.map(() => 0);
+    const crowned = this.backpieces.map(() => 0);
+    const tufted = this.backpieces.map(() => 0);
     const collared = this.backpieces.map(() => 0);
     const posed = this.bodies.map(() => 0);
     let women = 0;
@@ -627,10 +631,12 @@ export class CaribanaStreet implements SceneStreet {
       if (d.frontline) this.backpieces[k]!.setMatrixAt(backed[k]!++, this.matrix);
       else this.collars[k]!.setMatrixAt(collared[k]!++, this.matrix);
       this.spot.set(x, y + 1.7 + bounce, -metres);
-      this.headdresses[k]!.setMatrixAt(
-        count[k]!,
-        this.matrix.compose(this.spot, this.turn, this.size),
-      );
+      this.size.setScalar(1);
+      this.matrix.compose(this.spot, this.turn, this.size);
+      if (d.frontline) {
+        this.crownBands[k]!.setMatrixAt(crowned[k]!, this.matrix);
+        this.crowns[k]!.setMatrixAt(crowned[k]!++, this.matrix);
+      } else this.headdresses[k]!.setMatrixAt(tufted[k]!++, this.matrix);
       count[k]!++;
     });
     for (const mesh of [...this.heldFlags, ...(this.rags ? [this.rags] : [])]) {
@@ -662,8 +668,12 @@ export class CaribanaStreet implements SceneStreet {
       mesh.instanceMatrix.needsUpdate = true;
       this.collars[k]!.count = collared[k]!;
       this.collars[k]!.instanceMatrix.needsUpdate = true;
-      this.headdresses[k]!.count = count[k]!;
+      this.headdresses[k]!.count = tufted[k]!;
       this.headdresses[k]!.instanceMatrix.needsUpdate = true;
+      this.crowns[k]!.count = crowned[k]!;
+      this.crowns[k]!.instanceMatrix.needsUpdate = true;
+      this.crownBands[k]!.count = crowned[k]!;
+      this.crownBands[k]!.instanceMatrix.needsUpdate = true;
       this.legPlumes[k]!.count = count[k]!;
       this.legPlumes[k]!.instanceMatrix.needsUpdate = true;
     });
@@ -1170,6 +1180,24 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(back, crown);
       this.backpieces.push(this.instanced(back, plumes, n));
       this.headdresses.push(this.instanced(crown, plumes, n));
+      // The frontline's headdress: a tall fan of plumes over a band, with a centre plume.
+      const tall = mergeGeometries([
+        featherFan(outer!, 15, 0.95, 0.14, Math.PI * 0.75, 0.15),
+        featherFan(mid!, 11, 0.7, 0.16, Math.PI * 0.6, 0.1),
+        featherFan(inner!, 3, 1.15, 0.2, 0.12, 0.05),
+      ])!;
+      tall.translate(0, 0.04, -0.06);
+      this.disposables.push(tall);
+      this.crowns.push(this.instanced(tall, plumes, n));
+      const band = crownBandGeometry();
+      this.disposables.push(band);
+      this.crownBands.push(
+        this.instanced(
+          band,
+          this.material({ color: costume.suit, roughness: 0.25, metalness: 0.6 }),
+          n,
+        ),
+      );
       // The backline's collar: a short fan of plumes standing up off the shoulders.
       const collar = mergeGeometries([
         featherFan(mid!, 13, 0.62, 0.16, Math.PI * 0.95, 0.35),
@@ -3972,6 +4000,29 @@ function fringeTexture(): CanvasTexture {
       }
     }
   });
+}
+
+/** A headdress band: a jewelled tiara rising to a point at the front, studded with stones. */
+function crownBandGeometry(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const band = new CylinderGeometry(0.12, 0.115, 0.07, 18, 1, true);
+  band.translate(0, -0.03, 0.01);
+  parts.push(band.toNonIndexed());
+  const peak = new ConeGeometry(0.06, 0.16, 4);
+  peak.scale(1, 1, 0.3);
+  peak.translate(0, 0.07, -0.11);
+  parts.push(peak.toNonIndexed());
+  for (let k = 0; k < 7; k++) {
+    const a = Math.PI + (k - 3) * 0.35;
+    const stone = new SphereGeometry(0.016, 6, 4);
+    stone.translate(Math.sin(a) * 0.123, -0.02, Math.cos(a) * 0.123 + 0.01);
+    parts.push(stone.toNonIndexed());
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  band.dispose();
+  peak.dispose();
+  return merged;
 }
 
 /** The hub of a backpiece: a sequinned disc in a raised ring, studded with rhinestones. */
