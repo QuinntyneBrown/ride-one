@@ -154,6 +154,20 @@ const FIREWORKS: readonly { at: readonly [number, number, number]; hex: string; 
   { at: [-374, 230, -700], hex: '#5ff2ff', from: 0.38 },
   { at: [-383, 140, -700], hex: '#ffd23a', from: 0.7 },
 ];
+/**
+ * Lightning over the far shore: where each bolt strikes (x, z in m), the top and foot of its
+ * trunk (m), its width (m), how often one strikes (s) and how much it lights the sky.
+ */
+const LIGHTNING_AT: readonly [number, number][] = [
+  [-30, -1150],
+  [50, -1250],
+  [-90, -1300],
+];
+const LIGHTNING_TOP = 520;
+const LIGHTNING_FOOT = 60;
+const LIGHTNING_WIDE = 11;
+const LIGHTNING_EVERY = 9;
+const LIGHTNING_SKY = 2.5;
 /** Sparks in each burst, the show's length (s), the part spent climbing and the burst's reach (m). */
 const FIREWORK_SPARKS = 240;
 const FIREWORK_PERIOD = 5.5;
@@ -488,6 +502,7 @@ export class DocklandsStreet {
     this.pedal(still ? 0 : seconds);
     this.ride(still ? 0 : seconds);
     this.burst(seconds, still);
+    this.strike(seconds, still);
     for (const [i, drone] of this.drones.entries()) {
       drone.at = drone.offset + (still ? 0 : seconds * drone.speed);
       // Their lights blink out of step with each other; steady for reduced motion.
@@ -530,6 +545,10 @@ export class DocklandsStreet {
     directions: number[];
   }[] = [];
   private readonly sparkDummy = new Object3D();
+  /** The night sky's material, lit up by the lightning. */
+  private skyMaterial: MeshBasicMaterial | null = null;
+  /** The lightning's bolts, one striking at a time. */
+  private readonly bolts: Mesh[] = [];
   /** The giant neon cyclist's pedalling parts: cranks, and each leg's thigh and shin. */
   private cyclist: { crank: Group; legs: { thigh: Mesh; shin: Mesh; side: number }[] } | null =
     null;
@@ -1704,6 +1723,7 @@ export class DocklandsStreet {
     this.addMoon();
     this.addCyclistSign();
     this.addFireworks();
+    this.addLightning();
     this.addBoats(roadHalf + SETBACK + 2);
     this.addSkytrain(roadHalf);
     this.addDeckLamps(roadHalf);
@@ -3440,6 +3460,92 @@ export class DocklandsStreet {
     this.burst(0, true);
   }
 
+  /**
+   * Lightning over the far shore: forked bolts of glowing light, each a jagged trunk with a
+   * branch or two, drawn from their own sequence. One strikes every LIGHTNING_EVERY seconds.
+   */
+  private addLightning(): void {
+    const random = seeded(433);
+    const material = new MeshBasicMaterial({
+      color: new Color('#e6dcff').multiplyScalar(3),
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+      side: DoubleSide,
+    });
+    this.disposables.push(material);
+    for (const [x, z] of LIGHTNING_AT) {
+      const quads: number[] = [];
+      // A quad from (x1, y1) to (x2, y2), `w` wide, facing the rider.
+      const segment = (x1: number, y1: number, x2: number, y2: number, w: number) => {
+        const length = Math.hypot(x2 - x1, y2 - y1);
+        const nx = (-(y2 - y1) / length) * (w / 2);
+        const ny = ((x2 - x1) / length) * (w / 2);
+        quads.push(
+          x1 - nx,
+          y1 - ny,
+          0,
+          x1 + nx,
+          y1 + ny,
+          0,
+          x2 + nx,
+          y2 + ny,
+          0,
+          x1 - nx,
+          y1 - ny,
+          0,
+          x2 + nx,
+          y2 + ny,
+          0,
+          x2 - nx,
+          y2 - ny,
+          0,
+        );
+      };
+      const fork = (fx: number, fy: number, bottom: number, w: number, steps: number) => {
+        let px = fx;
+        let py = fy;
+        const drop = (fy - bottom) / steps;
+        for (let k = 0; k < steps; k++) {
+          const nx = px + (random() - 0.5) * drop * 1.4;
+          const ny = py - drop * (0.7 + random() * 0.6);
+          segment(px, py, nx, ny, w);
+          // Now and then a thinner branch splits off and dies away.
+          if (w > 2 && random() < 0.22) fork(nx, ny, ny - drop * 4, w * 0.45, 4);
+          px = nx;
+          py = ny;
+        }
+      };
+      fork(0, LIGHTNING_TOP, LIGHTNING_FOOT, LIGHTNING_WIDE, 16);
+      const geometry = new BufferGeometry();
+      geometry.setAttribute('position', new BufferAttribute(new Float32Array(quads), 3));
+      this.disposables.push(geometry);
+      const bolt = new Mesh(geometry, material);
+      bolt.position.set(x, 0, z);
+      bolt.frustumCulled = false;
+      bolt.visible = false;
+      this.farShore.add(bolt);
+      this.bolts.push(bolt);
+    }
+  }
+
+  /**
+   * Shows the bolt striking now, if any, and lights the sky with it. The ride's clock counts
+   * whole seconds, so each strike holds for the first second of its round. None for reduced
+   * motion.
+   */
+  private strike(seconds: number, still: boolean): void {
+    const round = Math.floor(seconds / LIGHTNING_EVERY);
+    const into = seconds - round * LIGHTNING_EVERY;
+    const flash = !still && seconds >= LIGHTNING_EVERY && into < 1 ? 1 : 0;
+    this.bolts.forEach((bolt, i) => {
+      bolt.visible = flash > 0 && round % this.bolts.length === i;
+    });
+    this.skyMaterial?.color.setScalar(1 + flash * LIGHTNING_SKY);
+  }
+
   /** Moves each firework's sparks to where they are `seconds` into the show. */
   private burst(seconds: number, still: boolean): void {
     const dummy = this.sparkDummy;
@@ -3528,6 +3634,7 @@ export class DocklandsStreet {
     });
     const dome = new SphereGeometry(SKY_RADIUS, 48, 24);
     this.disposables.push(material, dome);
+    this.skyMaterial = material;
     const sky = new Mesh(dome, material);
     sky.renderOrder = -1;
     sky.frustumCulled = false;
