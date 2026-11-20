@@ -721,6 +721,17 @@ test.describe('World Ride (L2-102)', () => {
     await expect(world.boardTitle).toHaveText('Riders nearby · Sixth Street, Austin');
   });
 
+  test('rides 35 Minute Hill Training up the gorge of Winnats Pass', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.startFromClass(
+      '35 Minute Hill Training',
+      'Winnats Pass',
+      '35-minute-hill-training',
+    );
+    await expect(world.heading).toHaveText('Winnats Pass');
+    await expect(world.boardTitle).toHaveText('Riders nearby · Winnats Pass');
+  });
+
   test('starts the class ride on the bike and opens World Ride', async ({ page, bluetooth }) => {
     const world = new WorldRidePage(page);
     await world.startFromClass();

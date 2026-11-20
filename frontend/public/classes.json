@@ -10981,6 +10981,7 @@
     },
     {
       "id": "35-minute-hill-training",
+      "world": "winnats",
       "title": "35 Minute Hill Training",
       "channel": "GCN",
       "focus": "Climbing",

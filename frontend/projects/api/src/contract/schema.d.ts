@@ -149,7 +149,8 @@ export interface components {
         | 'wicklow'
         | 'haleakala'
         | 'dubai'
-        | 'austin';
+        | 'austin'
+        | 'winnats';
     };
     ClassShelfResponse: {
       id: string;
