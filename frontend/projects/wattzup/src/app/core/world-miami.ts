@@ -382,6 +382,10 @@ export class MiamiStreet implements SceneStreet {
       blending: AdditiveBlending,
     });
     this.disposables.push(candleGlow);
+    const corner = new CylinderGeometry(3.4, 3.4, 1, 28);
+    const ring = new CylinderGeometry(3.48, 3.48, 0.14, 28, 1, true);
+    const capGeometry = new CylinderGeometry(2.2, 3.4, 0.6, 28);
+    this.disposables.push(corner, ring, capGeometry);
     const plant = this.material({ color: 0x8a8890, roughness: 0.8, metalness: 0.3 });
     const plantDish = this.material({ color: 0xd0d0d8, roughness: 0.5, side: DoubleSide });
     const timber = this.material({ color: 0x5a4a3a, roughness: 0.9 });
@@ -571,6 +575,24 @@ export class MiamiStreet implements SceneStreet {
       under.rotation.z = Math.PI / 2;
       under.position.set(-1.5, 3.51, 0);
       hotel.add(canopy, fascia, under);
+      // Every other hotel turns its far corner with a streamline drum: a round tower the
+      // height of the façade, ringed at each floor by a band of the hotel's neon, rising
+      // above the roof to a lit cap.
+      if (k % 2 === 0) {
+        const drum = new Mesh(corner, facade);
+        drum.scale.set(1, height + 3, 1);
+        drum.position.set(1.2, (height + 3) / 2, -width / 2 + 2.6);
+        drum.castShadow = true;
+        hotel.add(drum);
+        for (let f = 1; f <= storeys + 1; f++) {
+          const band = new Mesh(ring, line);
+          band.position.set(1.2, Math.min(1.6 + f * 3.6, height + 3), -width / 2 + 2.6);
+          hotel.add(band);
+        }
+        const cap = new Mesh(capGeometry, line);
+        cap.position.set(1.2, height + 3, -width / 2 + 2.6);
+        hotel.add(cap);
+      }
       // Streamline balconies on two hotels in three: a slab on each upper floor in front of
       // alternate bays, rounded off by its pipe railing of three white rails.
       if (k % 3 !== 2) {
