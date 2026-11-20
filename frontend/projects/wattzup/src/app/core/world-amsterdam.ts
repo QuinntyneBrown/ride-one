@@ -125,6 +125,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addParkedCars(roadHalf);
     this.addStreetFurniture(roadHalf);
     this.addCafe(roadHalf);
+    this.addScooters(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -999,6 +1000,42 @@ export class AmsterdamStreet implements SceneStreet {
     terrace.position.y = KERB;
     this.group.add(terrace);
     this.props.push({ mesh: terrace, offset: BRIDGE + 2 - CROSS / 2 - 0.9, x: roadHalf + 1.35 });
+  }
+
+  /**
+   * Scooters parked on their stands along the pavement's kerb and on the quay, in mint, cream,
+   * red, black and white, as Amsterdam's snorfietsen stand everywhere bikes do.
+   */
+  private addScooters(roadHalf: number): void {
+    const random = seeded(701);
+    const paints = [0x9fd4c0, 0xefe6cc, 0xb8242a, 0x1b1b1f, 0xf2f2ee].map((hex) =>
+      this.material({ color: hex, metalness: 0.3, roughness: 0.35 }),
+    );
+    const rubber = this.material({ color: 0x141414, roughness: 0.9 });
+    const seat = this.material({ color: 0x3a2a20, roughness: 0.7 });
+    const scooter = scooterGeometry();
+    this.disposables.push(scooter.body, scooter.wheels, scooter.seat);
+    const spots: [number, number][] = [];
+    for (let offset = 4; offset < LOOP; offset += 22 + random() * 25) {
+      if (bridgeGap(offset) === null)
+        spots.push([offset, random() < 0.5 ? roadHalf + 0.75 : -roadHalf - 2.9]);
+    }
+    spots.push([START + BEHIND + 7.4, roadHalf + 0.75], [START + BEHIND + 8.5, roadHalf + 0.75]);
+    for (const [offset, x] of spots) {
+      const parked = new Group();
+      parked.add(
+        new Mesh(scooter.body, paints[Math.floor(random() * paints.length)]!),
+        new Mesh(scooter.wheels, rubber),
+        new Mesh(scooter.seat, seat),
+      );
+      parked.children.forEach((m) => (m.castShadow = true));
+      parked.rotation.set(0, Math.PI / 2 + (random() - 0.5) * 0.5, x > 0 ? 0.06 : -0.06);
+      parked.position.y = KERB;
+      const at = new Group();
+      at.add(parked);
+      this.group.add(at);
+      this.props.push({ mesh: at, offset, x });
+    }
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */
@@ -2152,6 +2189,50 @@ function cafeBoardTexture(): CanvasTexture {
     g.textBaseline = 'middle';
     g.fillText('CAFÉ DE GRACHT', 256, 34);
   });
+}
+
+/**
+ * A scooter along z, its front towards -z: small wheels, a rounded body over the rear wheel,
+ * a floorboard, a leg shield rising to the headset and handlebars, and a dual seat.
+ */
+function scooterGeometry(): { body: BufferGeometry; wheels: BufferGeometry; seat: BufferGeometry } {
+  const merge = (parts: BufferGeometry[]) => {
+    const merged = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)))!;
+    parts.forEach((p) => p.dispose());
+    return merged;
+  };
+  const rear = new CapsuleGeometry(0.22, 0.45, 4, 10);
+  rear.rotateX(Math.PI / 2);
+  rear.scale(1, 0.9, 1);
+  rear.translate(0, 0.48, 0.38);
+  const board = new BoxGeometry(0.3, 0.06, 0.6);
+  board.translate(0, 0.26, -0.15);
+  const shield = new BoxGeometry(0.42, 0.62, 0.08);
+  shield.rotateX(0.2);
+  shield.translate(0, 0.6, -0.5);
+  const fender = new SphereGeometry(0.2, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+  fender.scale(0.8, 0.9, 1.2);
+  fender.translate(0, 0.28, -0.62);
+  const stem = new CylinderGeometry(0.03, 0.03, 0.5, 6);
+  stem.translate(0, 0.95, -0.5);
+  const bars = new BoxGeometry(0.62, 0.05, 0.08);
+  bars.translate(0, 1.18, -0.48);
+  const lamp = new SphereGeometry(0.07, 8, 6);
+  lamp.translate(0, 1.15, -0.56);
+  const body = merge([rear, board, shield, fender, stem, bars, lamp]);
+  const wheels = merge(
+    [0.48, -0.62].map((z) => {
+      const wheel = new CylinderGeometry(0.2, 0.2, 0.1, 14);
+      wheel.rotateZ(Math.PI / 2);
+      wheel.translate(0, 0.2, z);
+      return wheel;
+    }),
+  );
+  const cushion = new CapsuleGeometry(0.13, 0.5, 3, 8);
+  cushion.rotateX(Math.PI / 2);
+  cushion.scale(1, 0.5, 1);
+  cushion.translate(0, 0.74, 0.3);
+  return { body, wheels, seat: merge([cushion]) };
 }
 
 /** An upright Dutch bike, along z: two wheels, its frame, saddle and swept-back bars. */
