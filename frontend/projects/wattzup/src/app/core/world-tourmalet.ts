@@ -30,6 +30,7 @@ import {
   Ribbons,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
 } from './world-kit';
 import type { StreetPoint } from './world-oldtown';
@@ -85,7 +86,8 @@ interface Climber {
 export class TourmaletStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
-  private readonly props: { mesh: Group; offset: number; x: number }[] = [];
+  /** Props along the road; one that `lies` on the ground takes the road's slope. */
+  private readonly props: { mesh: Group; offset: number; x: number; lies?: boolean }[] = [];
   private readonly fans: Fan[] = [];
   private readonly climbers: Climber[] = [];
   private crowd: Figures | null = null;
@@ -145,6 +147,7 @@ export class TourmaletStreet implements SceneStreet {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
       prop.mesh.position.set(prop.x, heightAt(metres), -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -152,7 +155,12 @@ export class TourmaletStreet implements SceneStreet {
         const metres = loopMetres(c.offset + c.speed * this.time, s, LOOP, BEHIND);
         const y = heightAt(metres);
         c.bike.position.set(c.x, y, -metres);
-        c.bike.rotation.set(0, 0, Math.sin(this.time * 3.6 + c.phase) * 0.08);
+        // The bike rides on the ramp, front wheel up the slope, and rocks as they pedal.
+        c.bike.rotation.set(
+          slopeAt(heightAt, metres),
+          0,
+          Math.sin(this.time * 3.6 + c.phase) * 0.08,
+        );
         crowd.set(
           i,
           c.x,
@@ -287,13 +295,16 @@ export class TourmaletStreet implements SceneStreet {
       this.flags.push(flag);
       van.add(body, band, screen, awning, flag);
       van.children.forEach((c) => (c.castShadow = true));
-      van.rotation.set(0, (random() - 0.5) * 0.3, -0.1);
+      // Parked across the bank, which rises 0.525 m a metre from the verge: leaning into it, the
+      // uphill side higher, and settled by its low side on the grass. The uphill side sinks into
+      // the bank, which hides it; nothing shows under the side the riders see.
+      van.rotation.set(0, (random() - 0.5) * 0.3, 0.22);
       const d = random() * 3;
-      van.position.y = 1.4 + d * 0.53;
+      van.position.y = 1.4 + d * 0.525 - 0.3 - 1.15 * (0.525 - Math.sin(0.22));
       const holder = new Group();
       holder.add(van);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset, x: roadHalf + 6 + d });
+      this.props.push({ mesh: holder, offset, x: roadHalf + 6 + d, lies: true });
     }
   }
 
