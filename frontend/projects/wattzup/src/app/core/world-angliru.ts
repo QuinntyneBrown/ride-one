@@ -55,6 +55,7 @@ export class AngliruStreet implements SceneStreet {
   private readonly mist: { mesh: Mesh; x: number; speed: number }[] = [];
   private readonly cows: { neck: Group; phase: number }[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -100,7 +101,7 @@ export class AngliruStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
@@ -117,7 +118,7 @@ export class AngliruStreet implements SceneStreet {
         crowd.set(
           i,
           p.x + (p.x < 0 ? lean : -lean),
-          heightAt(Math.max(metres, 0)) + lift,
+          heightAt(metres) + lift,
           -metres,
           heading,
           0.95,

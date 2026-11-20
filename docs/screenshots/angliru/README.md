@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [5 Gruelling Minutes](http://localhost
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/5-gruelling-minutes?simulate`, click **Ride in Angliru**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [036 · The Asturian hills stand still](bend-036-asturian-hills-stand.jpg) | The green Asturian hills round the Angliru were bent vertex by vertex with the road's 45° bends, swinging with each turn of the concrete ramps. They now stand beyond the road unbent, as the panorama does, and the fans, flags and farm props behind the rider stand on the 12% road there instead of floating at the height under the rider. |
