@@ -366,6 +366,8 @@ export class MiamiStreet implements SceneStreet {
       blending: AdditiveBlending,
     });
     this.disposables.push(candleGlow);
+    const slab = this.material({ color: 0xf4f0ec, roughness: 0.7 });
+    const rail = this.material({ color: 0xf8f8f8, roughness: 0.3, metalness: 0.4 });
     const signBox = this.material({ color: 0x14121c, roughness: 0.5, metalness: 0.6 });
     const iron = this.material({ color: 0x202024, roughness: 0.6, metalness: 0.8 });
     const vacancies = ['VACANCY', 'NO VACANCY'].map((text) =>
@@ -546,6 +548,27 @@ export class MiamiStreet implements SceneStreet {
       under.rotation.z = Math.PI / 2;
       under.position.set(-1.5, 3.51, 0);
       hotel.add(canopy, fascia, under);
+      // Streamline balconies on two hotels in three: a slab on each upper floor in front of
+      // alternate bays, rounded off by its pipe railing of three white rails.
+      if (k % 3 !== 2) {
+        const decks = new BoxBuilder();
+        const bayW = width / 6.56;
+        for (let f = 1; f < storeys; f++)
+          for (let b = 0; b < 6; b++) {
+            if ((b + f + k) % 2) continue;
+            const z = -width / 2 + (b + 0.6) * (width / 6) + bayW * 0.2;
+            const y = 1.6 + f * 3.6 - 1.2;
+            if (Math.abs(z - width * 0.3) < 2.5) continue;
+            decks.box(slab, [1.2, 0.16, bayW * 1.25], [-0.6, y, z]);
+            for (const h of [0.35, 0.65, 0.95])
+              decks.box(rail, [0.05, 0.05, bayW * 1.25], [-1.18, y + h, z]);
+            for (const dz of [-0.5, 0.5]) {
+              decks.box(rail, [1.2, 0.05, 0.05], [-0.6, y + 0.95, z + dz * bayW * 1.25]);
+              decks.box(rail, [0.05, 0.95, 0.05], [-1.18, y + 0.5, z + dz * bayW * 1.25]);
+            }
+          }
+        hotel.add(decks.build(this.disposables));
+      }
       // The hotel's name again in flowing neon script across the façade over the marquee, and
       // a small VACANCY sign glowing in a ground-floor corner window.
       const script = this.material({
