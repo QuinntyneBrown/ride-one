@@ -418,6 +418,7 @@ export class AmsterdamStreet implements SceneStreet {
     const flagCloth = flagGeometry();
     this.disposables.push(flagPole, flagCloth);
     const ledge = this.material({ color: 0xece6d8, roughness: 0.75 });
+    const zinc = this.material({ color: 0x8a8f94, metalness: 0.6, roughness: 0.45 });
     const ball = new SphereGeometry(0.16, 8, 6);
     ball.translate(0, 0.16, 0);
     const vase = new LatheGeometry(
@@ -546,6 +547,16 @@ export class AmsterdamStreet implements SceneStreet {
           // goods hoisted up the front clear of the windows.
           const lean = -0.006 - random() * 0.01;
           screen.rotation.x = lean;
+          // A zinc downpipe runs down the front at the party wall from a hopper under the eaves.
+          if (downpipe) {
+            const pipe = new Mesh(this.unit, zinc);
+            pipe.scale.set(0.09, height * EAVES - 0.3, 0.09);
+            pipe.position.set(0.12, (height * EAVES) / 2 + 0.15, -0.08);
+            const hopper = new Mesh(this.unit, zinc);
+            hopper.scale.set(0.22, 0.25, 0.2);
+            hopper.position.set(0.12, height * EAVES - 0.05, -0.1);
+            whole.add(pipe, hopper);
+          }
           // Sandstone ornaments on the gable's outline: ball finials on a stepped gable's steps,
           // urns on a neck gable's shoulders, and a crowning piece on top.
           for (const [u, v, urn] of FINIALS[GABLES[k]!]) {
@@ -572,6 +583,7 @@ export class AmsterdamStreet implements SceneStreet {
           return whole;
         };
         const tilt = (this.tilts ??= seeded(751))();
+        const downpipe = tilt > 0.35;
         const settle = tilt < 0.18 ? (tilt < 0.09 ? 1 : -1) * (0.006 + tilt * 0.06) : 0;
         house.add(block(face, sides, roof));
         if (turn < 0) {
