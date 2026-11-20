@@ -87,6 +87,8 @@ export class CyclistKit {
 
   /** The jersey's cut, tinted by each rider's colour: dark side panels and a pale hem band. */
   private readonly kitTexture = jerseyTexture();
+  /** A road helmet's shell: vents running front to back over the crown. */
+  private readonly ventTexture = ventTexture();
 
   constructor(private readonly frame: Material) {}
 
@@ -94,7 +96,12 @@ export class CyclistKit {
   make(jersey: Color, number: number): Cyclist {
     const top = new MeshStandardMaterial({ color: jersey, roughness: 0.65, map: this.kitTexture });
     const bib = new MeshStandardMaterial({ map: bibTexture(number), roughness: 0.8 });
-    return new Cyclist(this, this.frame, top, bib);
+    const shell = new MeshStandardMaterial({
+      color: jersey,
+      map: this.ventTexture,
+      roughness: 0.35,
+    });
+    return new Cyclist(this, this.frame, top, bib, shell);
   }
 
   bibGeometry(): PlaneGeometry {
@@ -147,6 +154,7 @@ export class CyclistKit {
     this.torso.dispose();
     for (const g of this.limbs.values()) g.dispose();
     this.kitTexture.dispose();
+    this.ventTexture.dispose();
     this.contact.alphaMap?.dispose();
     this.contact.dispose();
     this.contactPlane.dispose();
@@ -183,6 +191,7 @@ export class Cyclist {
     frame: Material,
     readonly jersey: MeshStandardMaterial,
     readonly bib: MeshStandardMaterial,
+    readonly shell: MeshStandardMaterial,
   ) {
     const parts = kit.parts();
     this.contact = new Mesh(kit.contactGeometry(), kit.contact);
@@ -279,7 +288,7 @@ export class Cyclist {
     const head = new Mesh(parts.head, kit.skin);
     const neck = SHOULDER.clone().add(new Vector3(0, 0.14, -0.1));
     head.position.copy(neck);
-    const helmet = new Mesh(parts.helmet, jersey);
+    const helmet = new Mesh(parts.helmet, shell);
     helmet.position.copy(neck).add(new Vector3(0, 0.01, 0.015));
     helmet.scale.set(1, 0.85, 1.3);
     helmet.rotation.x = -0.25;
@@ -402,6 +411,29 @@ function spokeTexture(): CanvasTexture {
     ctx.fill();
   }
   return new CanvasTexture(canvas);
+}
+
+function ventTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 256, 128);
+    ctx.fillStyle = '#26282c';
+    for (let k = 0; k < 10; k++) {
+      const x = ((k + 0.5) / 10) * 256;
+      ctx.beginPath();
+      ctx.roundRect(x - 5, 18, 10, 70, 5);
+      ctx.fill();
+    }
+    // A dark rim where the shell meets the liner.
+    ctx.fillRect(0, 116, 256, 12);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
 }
 
 function contactTexture(): CanvasTexture {

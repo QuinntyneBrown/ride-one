@@ -71,6 +71,14 @@ const FLAGS: readonly (readonly string[])[] = [
   ['#2f5d4a', '#f2f0e8', '#c9372c'],
   ['#1f2328', '#e2b23a'],
 ];
+/** What the fans paint on the road, its colour and how far off the centre line. */
+const ROAD_PAINT: readonly (readonly [string, string, number])[] = [
+  ['ALLEZ ALLEZ', '#f4f2ea', -0.6],
+  ['HUP HUP', '#ffe14a', 0.8],
+  ['VAMOS', '#f4f2ea', 0.2],
+  ['GO ANA', '#ffe14a', -0.9],
+];
+const HATS = ['#efe6cf', '#1f2b44', '#c9372c', '#f2f0e8', '#d8ff3e'];
 const ROOFS = ['#9a4b33', '#7c3d2c', '#a85a3a', '#5a5c63'];
 
 /** A spectator on the pavement. */
@@ -157,6 +165,7 @@ export class OldTownStreet {
   private readonly crowd: Fan[] = [];
   /** The crowd's legs, torsos, heads and arms. */
   private fans: InstancedMesh[] = [];
+  private readonly hatted: boolean[] = [];
   private readonly reach = new Vector3();
   private readonly shoulder = new Vector3();
   private readonly lean = new Quaternion();
@@ -174,6 +183,7 @@ export class OldTownStreet {
     metalness: 0.5,
     roughness: 0.45,
   });
+  private readonly oculus = new CylinderGeometry(0.4, 0.4, 0.04, 16);
   private readonly pot = new CylinderGeometry(0.24, 0.18, 0.5, 10);
   private readonly bush = new SphereGeometry(0.42, 10, 8);
   private readonly terracotta = new MeshStandardMaterial({ color: 0xb4603f, roughness: 0.9 });
@@ -219,10 +229,18 @@ export class OldTownStreet {
     if (this.railing.map) this.track(this.railing.map);
     this.disposables.push(this.iron, this.signBoard, this.dormer, this.dormerRoof, ...this.signs);
     this.disposables.push(this.flagCloth, ...this.houseFlags);
-    this.disposables.push(this.pot, this.bush, this.terracotta, this.leaves, this.zinc);
+    this.disposables.push(
+      this.oculus,
+      this.pot,
+      this.bush,
+      this.terracotta,
+      this.leaves,
+      this.zinc,
+    );
     for (const flag of this.houseFlags) if (flag.map) this.track(flag.map);
     for (const sign of this.signs) if (sign.map) this.track(sign.map);
     this.addFurniture(roadHalf);
+    this.addRoadPaint();
     this.addCrowd(roadHalf);
     this.addBunting();
     this.addCathedral();
@@ -501,8 +519,8 @@ export class OldTownStreet {
 
   /** The crowd, moved with the street: one instance per spectator's legs, torso and head. */
   private placeCrowd(s: number, heightAt: (metres: number) => number): void {
-    const [legs, torsos, heads, arms] = this.fans;
-    if (!legs || !torsos || !heads || !arms) return;
+    const [legs, torsos, heads, arms, hats] = this.fans;
+    if (!legs || !torsos || !heads || !arms || !hats) return;
     this.crowd.forEach((fan, i) => {
       const metres = ((((fan.offset - s) % LOOP) + LOOP) % LOOP) - BEHIND;
       const y = heightAt(Math.max(metres, 0)) + KERB;
@@ -520,6 +538,7 @@ export class OldTownStreet {
       set(legs, hip / 2, hip / 0.9);
       set(torsos, (hip + neck) / 2, (neck - hip + 0.08) / 0.75);
       set(heads, fan.height - 0.11, 1);
+      set(hats, fan.height - 0.02, this.hatted[i] ? 1 : 0);
       // Each arm hangs from its shoulder, or reaches up and out to cheer.
       for (const side of [-1, 1]) {
         this.reach.set(side * (fan.cheer ? 0.35 : 0.1), fan.cheer ? 1 : -1, 0.08).normalize();
@@ -571,8 +590,32 @@ export class OldTownStreet {
     // A quarter of the crowd cheer, drawn from a sequence of their own.
     const cheers = seeded(43);
     this.crowd.forEach((fan, i) => {
-      this.crowd[i] = { ...fan, cheer: cheers() < 0.25 };
+      const cheer = cheers() < 0.25;
+      // One in six is a child, at the front by the barrier.
+      const child = cheers() < 0.16;
+      this.crowd[i] = child
+        ? {
+            ...fan,
+            cheer,
+            height: 1.05 + cheers() * 0.3,
+            x: Math.sign(fan.x) * (roadHalf + 0.7),
+          }
+        : { ...fan, cheer };
     });
+    // A race marshal in a hi-vis vest every forty metres or so, at the barrier, facing the road.
+    for (let at = 12; at < LOOP; at += 38 + (at % 7)) {
+      const side = (at / 38) % 2 < 1 ? -1 : 1;
+      this.crowd.push({
+        offset: at,
+        x: side * (roadHalf + 0.75),
+        height: 1.8,
+        turn: side * (Math.PI / 2),
+        shirt: '#e8f021',
+        skin: SKINS[at % SKINS.length]!,
+        trousers: '#20242c',
+        cheer: false,
+      });
+    }
     // Unit parts, scaled per spectator: legs 0.9 m and a torso 0.75 m long before scaling.
     const legs = new CapsuleGeometry(0.13, 0.64, 4, 8);
     legs.scale(1.25, 1, 0.8);
@@ -586,6 +629,11 @@ export class OldTownStreet {
     const n = this.crowd.length;
     this.fans = [legs, torso, head].map((g) => new InstancedMesh(g, material, n));
     this.fans.push(new InstancedMesh(arm, material, 2 * n));
+    // Sun hats and caps on a fifth of the crowd: a brim and a crown.
+    const hat = new CylinderGeometry(0.1, 0.17, 0.09, 12);
+    this.disposables.push(hat);
+    this.fans.push(new InstancedMesh(hat, material, n));
+    const hats = seeded(47);
     const colour = new Color();
     this.crowd.forEach((fan, i) => {
       this.fans[0]!.setColorAt(i, colour.set(fan.trousers));
@@ -593,12 +641,40 @@ export class OldTownStreet {
       this.fans[2]!.setColorAt(i, colour.set(fan.skin));
       this.fans[3]!.setColorAt(2 * i, colour.set(fan.shirt));
       this.fans[3]!.setColorAt(2 * i + 1, colour.set(fan.shirt));
+      this.hatted.push(hats() < 0.2);
+      this.fans[4]!.setColorAt(i, colour.set(HATS[Math.floor(hats() * HATS.length)]!));
     });
     for (const mesh of this.fans) {
       mesh.castShadow = true;
       mesh.frustumCulled = false;
       this.group.add(mesh);
     }
+  }
+
+  /** Fans' slogans painted on the setts, read upright as the rider rolls over them. */
+  private addRoadPaint(): void {
+    // Stretched along the road, as road writing is, so it reads from a rider's low eye.
+    const plane = new PlaneGeometry(3.2, 7);
+    this.disposables.push(plane);
+    ROAD_PAINT.forEach(([text, colour, x], i) => {
+      const material = new MeshStandardMaterial({
+        map: this.track(paintTexture(text, colour)),
+        transparent: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        roughness: 0.7,
+      });
+      this.disposables.push(material);
+      const mesh = new Mesh(plane, material);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.y = -KERB + 0.01;
+      mesh.receiveShadow = true;
+      const holder = new Group();
+      holder.add(mesh);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: 38 + i * 97, every: LOOP, x });
+    });
   }
 
   /** Iron lamp posts along both pavements, and bollards at the kerb between them. */
@@ -759,6 +835,20 @@ export class OldTownStreet {
     if (look.groundBay === BAY && this.random() < 0.6) group.add(this.sign(width));
     if (this.chance(2) < 0.32) group.add(this.flag(width));
     if (look.groundBay === 2 * BAY) group.add(this.pots(width));
+    // Stone quoins up both front corners of half the houses, long and short in turn.
+    if (this.chance(7) < 0.5) {
+      for (const end of [-1, 1]) {
+        for (let k = 0, y = SHOP + 0.2; y < SHOP + height - 0.6; k++, y += 0.5) {
+          const quoin = new Mesh(this.unit, trim);
+          const long = k % 2 === 0 ? 0.75 : 0.45;
+          quoin.scale.set(0.08, 0.42, long);
+          quoin.position.set(0.04, y + 0.21, end * (width / 2 - long / 2));
+          group.add(quoin);
+        }
+      }
+    }
+    // A narrow house may raise a stepped gable over its front, as Flemish town houses do.
+    if (width <= 9 && this.chance(6) < 0.35) group.add(this.stepGable(width, SHOP + height, look));
     // The cornice under the eaves, and the string course over the shop floor.
     group.add(this.trim(trim, width + 0.3, 0.45, 0.42, SHOP + height - 0.22));
     group.add(this.trim(trim, width, 0.2, 0.24, SHOP));
@@ -809,6 +899,29 @@ export class OldTownStreet {
       house.add(mesh);
       this.disposables.push(merged);
     }
+  }
+
+  /** A stepped gable front: five courses narrowing to a capstone, each step coped in stone. */
+  private stepGable(width: number, top: number, look: HouseLook): Group {
+    const group = new Group();
+    const steps = 5;
+    for (let k = 0; k < steps; k++) {
+      const w = width * (1 - k / steps);
+      const course = new Mesh(this.unit, look.roof[1]!);
+      course.scale.set(0.45, 0.8, w);
+      course.position.set(0.05, top + 0.4 + k * 0.8, 0);
+      const coping = new Mesh(this.unit, look.trim);
+      coping.scale.set(0.55, 0.12, w + 0.1);
+      coping.position.set(0.05, top + 0.86 + k * 0.8, 0);
+      course.castShadow = coping.castShadow = true;
+      group.add(course, coping);
+    }
+    // A round window in the second course.
+    const oculus = new Mesh(this.oculus, this.iron);
+    oculus.rotation.z = Math.PI / 2;
+    oculus.position.set(0.29, top + 1.6, 0);
+    group.add(oculus);
+    return group;
   }
 
   /** Bay trees in terracotta pots either side of a home's doors. */
@@ -1144,16 +1257,72 @@ function bayTexture(palette: Palette, shop: boolean, closed = false): CanvasText
       inside.addColorStop(1, '#b98a55');
       ctx.fillStyle = inside;
       ctx.fillRect(x, top, ww, bottom - top - 40);
-      for (let shelf = top + 34; shelf < bottom - 50; shelf += 34) {
-        ctx.fillStyle = 'rgba(40,25,15,0.7)';
-        ctx.fillRect(x, shelf, ww, 4);
-        for (let gx = x + 4; gx < x + ww - 8; gx += 9 + random() * 8) {
-          const tone = ['#d9c39a', '#a8453a', '#e8e1cf', '#5b7a52', '#c98a3a'][
+      // Each palette keeps a trade: books, bread, flowers or clothes.
+      const trade = Math.max(0, PALETTES.indexOf(palette)) % 4;
+      const floor = bottom - 40;
+      if (trade === 0 || trade === 1) {
+        for (let shelf = top + 34; shelf < floor - 10; shelf += 34) {
+          ctx.fillStyle = 'rgba(40,25,15,0.7)';
+          ctx.fillRect(x, shelf, ww, 4);
+          for (
+            let gx = x + 4;
+            gx < x + ww - 8;
+            gx += trade ? 16 + random() * 6 : 9 + random() * 8
+          ) {
+            if (trade === 0) {
+              ctx.fillStyle = ['#d9c39a', '#a8453a', '#e8e1cf', '#5b7a52', '#c98a3a'][
+                Math.floor(random() * 5)
+              ]!;
+              const gh = 8 + random() * 16;
+              ctx.fillRect(gx, shelf - gh, 6, gh);
+            } else {
+              // Loaves: round cobs and long batons, crusted gold to brown.
+              ctx.fillStyle = ['#c98a3a', '#a5652a', '#e0b066'][Math.floor(random() * 3)]!;
+              ctx.beginPath();
+              ctx.ellipse(gx + 6, shelf - 6, random() < 0.5 ? 7 : 11, 6, 0, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      } else if (trade === 2) {
+        // Buckets of cut flowers banked up the window.
+        for (let row = 0; row < 3; row++) {
+          for (let gx = x + 6 + row * 6; gx < x + ww - 10; gx += 18) {
+            const by = floor - 8 - row * 26;
+            ctx.fillStyle = '#6e7378';
+            ctx.fillRect(gx, by, 12, 10);
+            ctx.fillStyle = '#4f7d3d';
+            ctx.fillRect(gx + 2, by - 10, 8, 10);
+            ctx.fillStyle = ['#e8607a', '#f2d24a', '#f4f2ea', '#c41e3a', '#a67fd0'][
+              Math.floor(random() * 5)
+            ]!;
+            ctx.beginPath();
+            ctx.arc(gx + 6, by - 12, 7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else {
+        // A rail of clothes, and two dressed mannequins in the window.
+        ctx.fillStyle = 'rgba(40,25,15,0.8)';
+        ctx.fillRect(x + 6, top + 16, ww - 12, 3);
+        for (let gx = x + 10; gx < x + ww - 14; gx += 7) {
+          ctx.fillStyle = ['#2d3b55', '#c9372c', '#e8e1cf', '#2f5d4a', '#1f2328'][
             Math.floor(random() * 5)
           ]!;
-          ctx.fillStyle = tone;
-          const gh = 8 + random() * 16;
-          ctx.fillRect(gx, shelf - gh, 6, gh);
+          ctx.fillRect(gx, top + 19, 6, 34);
+        }
+        for (const mx of [x + ww * 0.28, x + ww * 0.72]) {
+          ctx.fillStyle = '#e9dccb';
+          ctx.beginPath();
+          ctx.arc(mx, top + 70, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = ['#c9372c', '#2d3b55', '#e2b23a'][Math.floor(random() * 3)]!;
+          ctx.beginPath();
+          ctx.moveTo(mx - 12, top + 80);
+          ctx.lineTo(mx + 12, top + 80);
+          ctx.lineTo(mx + 18, floor - 6);
+          ctx.lineTo(mx - 18, floor - 6);
+          ctx.fill();
         }
       }
       // Sky and street mirrored in the glass.
@@ -1499,6 +1668,32 @@ function gothicTexture(open: boolean): CanvasTexture {
         ctx.fillRect(x, 120, w, 4);
         ctx.fillStyle = '#3a3c44';
       }
+    }
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+/** A slogan in road paint: rough-edged capitals, worn by the tyres that have crossed it. */
+function paintTexture(text: string, colour: string): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 1120;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = colour;
+    ctx.font = 'bold 120px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.setTransform(1, 0, 0, 7, 0, 0);
+    ctx.fillText(text, 256, 80, 490);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // Worn: specks of road showing through the paint.
+    ctx.globalCompositeOperation = 'destination-out';
+    const random = seeded(text.length * 31);
+    for (let i = 0; i < 2400; i++) {
+      ctx.fillRect(random() * 512, random() * 1120, 1 + random() * 4, 2 + random() * 8);
     }
   }
   const texture = new CanvasTexture(canvas);

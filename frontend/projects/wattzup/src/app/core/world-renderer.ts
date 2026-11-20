@@ -527,14 +527,14 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.you = you;
     this.wheelBlur.push(...you.wheelBlur);
     this.scene.add(you.group);
-    this.disposables.push(kit, you.jersey, you.bib, this.frameMaterial);
+    this.disposables.push(kit, you.jersey, you.bib, you.shell, this.frameMaterial);
     // The simulated pacers ride with the rider, each in its board colour (L2-107 AC7).
     for (const pacer of PACERS) {
       const rider = kit.make(riderColour(canvas, pacer.jersey), pacer.jersey);
       rider.group.visible = false;
       this.pacers.set(pacer.jersey, rider);
       this.scene.add(rider.group);
-      this.disposables.push(rider.jersey, rider.bib);
+      this.disposables.push(rider.jersey, rider.bib, rider.shell);
     }
   }
 
