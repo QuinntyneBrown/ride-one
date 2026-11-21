@@ -44,15 +44,19 @@ map and pack draw the same race. A bot's speed is `VirtualSpeedModel` on its pow
 model, and its distance the sum of its speed second by second. With no best, the ghost rides the
 medium base, 190 W, steady.
 
-**Standings and gaps.** `StandingsRanker` orders the rider and the field by distance, the
-furthest first; a tie keeps the rider ahead, then the bot list's order. `GapCalculator` gives each
+**Standings and gaps.** `rankStandings` (`domain/engine/standings.ts`, ride-a-race's
+`StandingsRanker` and `GapCalculator`) orders the rider and the field by distance, the furthest
+first; a tie keeps the rider ahead, then the bot list's order, and gives each
 opponent's gap in seconds: the distance between them and the rider ÷ the rider's speed in m/s,
 the speed taken as at least 4 m/s (L2-059 AC5); one ahead reads "+0:07", one behind "−0:05" with
 a true minus, a level one "0:00". The power panel reads the rider's place ("5th / 10") with the
 gaps to the riders either side ("Ahead +0:02", "Behind −0:01"); in a solo race it reads "Ahead" or
 "Behind" (level counts as ahead) with "Best" and the ghost's gap. The board lists every rider by
 place, the rider's row `aria-current="true"`; it reorders at most once a second, on the race's
-tick, and a row that moves slides from its old place over 150 ms (none with reduced motion).
+tick, and a row that moves slides from its old place over 150 ms (none with reduced motion): `RaceBoard`
+compares each row's top with the last check in `ngAfterViewChecked`, after the view updates and
+before paint, and animates the difference; a render hook (`afterRenderEffect`) would have added
+4.7 kB of Angular to the initial bundle.
 
 **Ride app**
 
