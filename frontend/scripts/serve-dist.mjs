@@ -1,4 +1,4 @@
-// Serves a production build (dist/wattzup/browser, or the folder given) for the Playwright behaviour specs, falling back to
+// Serves a production build (dist/ride/browser, or the folder given) for the Playwright behaviour specs, falling back to
 // index.html for the app's routes. Usage: node scripts/serve-dist.mjs [port] [folder]
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(
   new URL(
-    `../${(process.argv[3] ?? 'dist/wattzup/browser').replace(/\/?$/, '/')}`,
+    `../${(process.argv[3] ?? 'dist/ride/browser').replace(/\/?$/, '/')}`,
     import.meta.url,
   ),
 );

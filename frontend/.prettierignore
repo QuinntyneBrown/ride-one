@@ -4,5 +4,5 @@ node_modules
 coverage
 test-results
 playwright-report
-public/fonts
+projects/ride/public/fonts
 package-lock.json

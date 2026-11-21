@@ -4,6 +4,21 @@ const { defineConfig } = require('eslint/config');
 const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
 
+const outside = { regex: '^(\\.\\./){3,}', message: 'A library never imports outside its project.' };
+const noRide = { group: ['**/ride/**'], message: 'No library imports the app.' };
+
+/** Only `domain/src/bluetooth/` may touch Web Bluetooth (AGENTS.md, L2-146 AC3). */
+const noBluetooth = {
+  'no-restricted-properties': [
+    'error',
+    {
+      object: 'navigator',
+      property: 'bluetooth',
+      message: 'Only domain/src/bluetooth/ touches navigator.bluetooth.',
+    },
+  ],
+};
+
 module.exports = defineConfig([
   {
     files: ['**/*.ts'],
@@ -17,25 +32,58 @@ module.exports = defineConfig([
     rules: {
       '@angular-eslint/directive-selector': [
         'error',
-        {
-          type: 'attribute',
-          prefix: 'wz',
-          style: 'camelCase',
-        },
+        { type: 'attribute', prefix: 'wz', style: 'camelCase' },
       ],
       '@angular-eslint/component-selector': [
         'error',
+        { type: 'element', prefix: 'wz', style: 'kebab-case' },
+      ],
+      '@angular-eslint/prefer-on-push-component-change-detection': 'error',
+      '@angular-eslint/prefer-standalone': 'error',
+      '@angular-eslint/component-max-inline-declarations': ['error', { template: 0, styles: 0 }],
+      '@angular-eslint/use-component-view-encapsulation': 'error',
+      ...noBluetooth,
+    },
+  },
+  // Dependency direction (AGENTS.md, L2-146 AC2): ride -> components, api, domain; domain -> api;
+  // components -> api for types only; api -> nothing in the workspace.
+  {
+    files: ['projects/api/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
         {
-          type: 'element',
-          prefix: 'wz',
-          style: 'kebab-case',
+          paths: [
+            { name: '@telo/api', message: 'Import within the library by relative path.' },
+            { name: '@telo/domain', message: 'The api library depends on nothing in the workspace.' },
+            { name: '@telo/components', message: 'The api library depends on nothing in the workspace.' },
+            { name: '@angular/router', message: 'The api library knows no route.' },
+          ],
+          patterns: [outside, noRide],
         },
       ],
     },
   },
-  // Dependency direction (ADR 0013, 0017): wattzup -> components -> api (types only), wattzup -> api,
-  // browser -> api, and only app.config.ts -> browser.
-  // No library imports the app, its own barrel, or a path outside its project.
+  {
+    files: ['projects/domain/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: '@telo/domain', message: 'Import within the library by relative path.' },
+            { name: '@telo/components', message: 'The domain library depends on api only.' },
+            { name: '@angular/router', message: 'The domain library knows no route.' },
+          ],
+          patterns: [outside, noRide],
+        },
+      ],
+    },
+  },
+  {
+    files: ['projects/domain/src/bluetooth/**/*.ts'],
+    rules: { 'no-restricted-properties': 'off' },
+  },
   {
     files: ['projects/components/**/*.ts'],
     rules: {
@@ -44,108 +92,40 @@ module.exports = defineConfig([
         {
           paths: [
             {
-              name: '@wattzup/api',
+              name: '@telo/api',
               allowTypeImports: true,
-              message: 'Presentation components may name API types only (ADR 0013).',
+              message: 'Presentation components name api types only.',
             },
-            {
-              name: '@wattzup/components',
-              message: 'Import a sibling component by its relative path, not the barrel.',
-            },
-            {
-              name: '@angular/router',
-              message: 'Presentation components know no route; emit an output (ADR 0013).',
-            },
+            { name: '@telo/domain', message: 'Presentation components inject no service.' },
+            { name: '@telo/components', message: 'Import a sibling component by relative path.' },
+            { name: '@angular/router', message: 'Presentation components know no route; emit an output.' },
           ],
-          patterns: [
-            {
-              regex: '^(\\.\\./){3,}',
-              message: 'A library never imports outside its project (ADR 0013).',
-            },
-          ],
+          patterns: [outside, noRide],
         },
       ],
     },
   },
   {
-    files: ['projects/api/**/*.ts'],
+    files: ['projects/ride/**/*.ts'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {
-          paths: [
-            { name: '@wattzup/components', message: 'The api library depends on nothing else.' },
-            { name: '@wattzup/browser', message: 'The api library depends on nothing else.' },
-            { name: '@wattzup/api', message: 'Import within the library by relative path.' },
-            {
-              name: '@angular/router',
-              message: 'The api library knows no route (ADR 0013).',
-            },
-          ],
-          patterns: [
-            {
-              regex: '^(\\.\\./){3,}',
-              message: 'A library never imports outside its project (ADR 0013).',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  // The in-browser implementations of the contracts (ADR 0017): browser -> api, nothing else in the workspace.
-  {
-    files: ['projects/browser/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            { name: '@wattzup/components', message: 'The browser library depends on api only.' },
-            { name: '@wattzup/browser', message: 'Import within the library by relative path.' },
-            { name: '@angular/router', message: 'The browser library knows no route.' },
-          ],
-          patterns: [
-            {
-              regex: '^(\\.\\./){3,}',
-              message: 'A library never imports outside its project (ADR 0013).',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['projects/wattzup/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: '@wattzup/browser',
-              message:
-                'Only the composition root, app.config.ts, imports @wattzup/browser; everything else depends on the api tokens (ADR 0017).',
-            },
-          ],
           patterns: [
             {
               regex: '^(\\.\\./){4,}',
-              message: 'Use @wattzup/components or @wattzup/api, never a library path (ADR 0013).',
+              message: 'Use @telo/api, @telo/domain or @telo/components, never a library path.',
             },
           ],
         },
       ],
-    },
-  },
-  {
-    files: ['projects/wattzup/src/app/app.config.ts'],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': 'off',
     },
   },
   {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
-    rules: {},
+    rules: {
+      '@angular-eslint/template/no-inline-styles': 'error',
+    },
   },
 ]);
