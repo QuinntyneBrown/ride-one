@@ -3,8 +3,11 @@ import { Injectable, type OnDestroy } from '@angular/core';
 import { type BikeConnection, BikeConnectionError, type BikeInfo } from '@telo/api';
 import { Subject, firstValueFrom } from 'rxjs';
 import { EchelonProtocol } from '../protocol/echelon-protocol';
+import { FtmsProtocol } from '../protocol/ftms-protocol';
+import type { BikeLink } from './bike-link';
 import { bikeIdentity } from './bike-identity';
 import { EchelonLink } from './echelon-link';
+import { FtmsLink } from './ftms-link';
 import { GattWriteQueue } from './gatt-write-queue';
 
 /** FTMS (0x1826) and Heart Rate (0x180D), the standard services the chooser offers beside Echelon's. */
@@ -21,7 +24,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private readonly received = new Subject<Uint8Array>();
   private readonly queue = new GattWriteQueue();
   private device: BluetoothDevice | null = null;
-  private link: EchelonLink | null = null;
+  private link: BikeLink | null = null;
   private readonly onValue = (event: Event): void => {
     const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
     if (value)
@@ -47,12 +50,25 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     return this.info(this.device);
   }
 
-  /** Opens GATT, subscribes, initialises, and resolves on the first notification after that (L2-013). */
+  /**
+   * Opens GATT, picks the link by the services the bike offers (the Echelon service first, else FTMS), subscribes,
+   * initialises, and resolves on the first notification after that (L2-013, L2-014).
+   */
   async connect(): Promise<void> {
     if (!this.device?.gatt) throw new BikeConnectionError('failed', 'No bike was chosen');
     const server = await this.device.gatt.connect();
-    const service = await server.getPrimaryService(EchelonProtocol.service);
-    const link = new EchelonLink(this.queue, this.onValue);
+    const services = await server.getPrimaryServices();
+    const echelon = services.find((service) => service.uuid === EchelonProtocol.service);
+    const ftms = services.find((service) => service.uuid === FtmsProtocol.service);
+    const service = echelon ?? ftms;
+    if (!service)
+      throw new BikeConnectionError(
+        'failed',
+        'The bike offers neither the Echelon service nor FTMS',
+      );
+    const link: BikeLink = echelon
+      ? new EchelonLink(this.queue, this.onValue)
+      : new FtmsLink(this.queue, this.onValue);
     await link.open(service);
     this.link = link;
     await link.initialise();

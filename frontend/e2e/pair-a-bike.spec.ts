@@ -1,9 +1,16 @@
 // Acceptance test
-// Traces to: L2-011 AC3 to AC5; L2-012 AC1 to AC5; L2-013 AC1, AC2, AC4
+// Traces to: L2-011 AC3 to AC5; L2-012 AC1 to AC5; L2-013 AC1, AC2, AC4; L2-014 AC1
 // Description: Connect Bike opens the browser's chooser only when the rider presses Pair, asks for the Echelon
 // service and FTMS with Heart Rate optional, takes a cancelled chooser back to the start with no error, names a
 // blocked chooser in plain words with Try again, and hints at the Echelon app holding the bike.
 import { ECHELON_NOTIFY, ECHELON_SERVICE, ECHELON_WRITE, echelonBike } from './fixtures/echelon';
+import {
+  CONTROL_POINT,
+  INDOOR_BIKE_DATA,
+  INDOOR_BIKE_FRAME,
+  RESISTANCE_RANGE,
+  ftmsBike,
+} from './fixtures/ftms';
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { HomePage } from './pages/home.page';
@@ -114,4 +121,30 @@ test.describe('Pair a bike', () => {
       await expect.poll(() => new HomePage(page).url()).toBe('/');
     },
   );
+
+  test('pairs an FTMS bike: subscribes to its data and control point and reads its range (L2-014 AC1)', async ({
+    page,
+    bluetooth,
+  }) => {
+    await bluetooth.offer(ftmsBike);
+    const connect = new ConnectBikePage(page);
+    await connect.open();
+
+    await connect.pair();
+
+    await expect(connect.deviceName).toHaveText('KICKR BIKE 1A2B');
+    await expect
+      .poll(() => bluetooth.log())
+      .toEqual([
+        `subscribe ${INDOOR_BIKE_DATA}`,
+        `subscribe ${CONTROL_POINT}`,
+        `read ${RESISTANCE_RANGE}`,
+      ]);
+    await expect(connect.pairButton).toHaveText('Pairing…');
+
+    await bluetooth.notify(INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME);
+
+    await expect(connect.pairButton).toHaveText('Paired');
+    expect(bluetooth.writes()).toEqual([]);
+  });
 });

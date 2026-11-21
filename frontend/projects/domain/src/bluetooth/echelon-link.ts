@@ -1,12 +1,13 @@
 /// <reference types="web-bluetooth" />
 import { EchelonProtocol } from '../protocol/echelon-protocol';
+import type { BikeLink } from './bike-link';
 import type { GattWriteQueue } from './gatt-write-queue';
 
 /**
  * The link to an Echelon bike (L2-013): it subscribes to the notify characteristic before writing anything, then
  * writes the three initialisation commands in order, each with response and at least 300 ms after the one before.
  */
-export class EchelonLink {
+export class EchelonLink implements BikeLink {
   private notifications: BluetoothRemoteGATTCharacteristic | null = null;
   private writer: BluetoothRemoteGATTCharacteristic | null = null;
 
