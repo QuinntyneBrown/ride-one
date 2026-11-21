@@ -13,7 +13,13 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { type Backend, type Segment, WORLD_RENDERER, type WorldRenderer } from '@telo/api';
+import {
+  type Backend,
+  type SceneRider,
+  type Segment,
+  WORLD_RENDERER,
+  type WorldRenderer,
+} from '@telo/api';
 import { FrameScheduler } from './frame-scheduler';
 import { worldForMap } from './map-world';
 import { MotionPreference } from './motion-preference';
@@ -39,6 +45,8 @@ export class WorldScene implements AfterViewInit {
   readonly elapsed = input.required<number>();
   readonly speedKmh = input.required<number | null>();
   readonly running = input.required<boolean>();
+  /** The race's other riders, drawn at their places in their jerseys (L2-064 AC3); none outside a race. */
+  readonly riders = input<readonly SceneRider[] | undefined>(undefined);
   /** Emitted once when WebGL is unavailable or the renderer fails to start (L2-110 AC4). */
   readonly unavailable = output<void>();
   /** Emitted once the renderer has started, with the GPU API drawing the world (L2-065 AC1). */
@@ -171,6 +179,7 @@ export class WorldScene implements AfterViewInit {
         speedKmh: this.speedKmh(),
         running: this.running(),
         reducedMotion: this.motion.reduced(),
+        riders: this.riders(),
       });
     });
   }

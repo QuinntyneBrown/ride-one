@@ -201,6 +201,14 @@ export interface TimedSegment extends Segment {
   readonly start: number;
 }
 
+/** One of the race's other riders, as the scene draws them (L2-064 AC3). */
+export interface SceneRider {
+  /** The design-system jersey the rider wears (`nova`, `ghost`): the colour is `--jersey-<jersey>`. */
+  readonly jersey: string;
+  /** Metres ahead of the rider; negative is behind. */
+  readonly metres: number;
+}
+
 /** A row of `main`'s Riders nearby board, which its pacers module builds (`main`'s components `WorldRidePacer`). */
 export interface WorldRidePacer {
   readonly name: string;

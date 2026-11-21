@@ -1,8 +1,9 @@
-// The test-only World Ride hook (#672), for the performance sweep only: the behaviour specs never
-// use it. `pin(tier)` sets `window.__wzWorldRide = { tier }` before the app boots. World Ride then
-// draws at that tier from its first frame, its frame budget never lowers it, and the renderer
-// writes what it draws to `__wzWorldRide.report`, which `report()` reads. Ultra on a WebGL2
-// screen draws at high, as L2-111 AC2 says.
+// The test-only World Ride hook (#672), for the performance sweep and the race world's specs, which
+// pin its cheapest tier and read the riders it drew (L2-064 AC3). `pin(tier)` sets
+// `window.__wzWorldRide = { tier }` before the app boots. World Ride then draws at that tier
+// from its first frame, its frame budget never lowers it, and the renderer writes what it draws
+// to `__wzWorldRide.report`, which `report()` reads. Ultra on a WebGL2 screen draws at high, as
+// L2-111 AC2 says.
 //
 // It is not a rider option: nothing in the app sets the global, and the README lists no such
 // option. Only the lazy World Ride renderer reads it (core/world-ride-probe.ts).
@@ -35,7 +36,18 @@ export interface WorldRideReport {
   /** Materials cut by the ordered dither (L2-111 technique 54). */
   dithered: number;
   /** Shader programs and render pipelines the backend has built, ever: each one a compile. */
-  compiled: number;
+  compiled: number; /** The race's riders drawn in the latest frame, from furthest ahead (L2-064 AC3). */
+  riders: DrawnRider[];
+}
+
+/** A race rider the renderer drew: its jersey, its place, and the colour and opacity it wears. */
+export interface DrawnRider {
+  jersey: string;
+  /** Metres ahead of the rider; negative is behind. */
+  metres: number;
+  /** `#rrggbb`. */
+  colour: string;
+  opacity: number;
 }
 
 export class WorldRideProbe {

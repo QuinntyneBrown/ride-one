@@ -10,6 +10,7 @@
           [elapsed]="store.elapsed()"
           [speedKmh]="store.speedKmh()"
           [running]="store.running()"
+          [riders]="store.sceneRiders()"
           (started)="store.backend.set($event)"
           (unavailable)="store.worldUnavailable.set(true)"
         />
