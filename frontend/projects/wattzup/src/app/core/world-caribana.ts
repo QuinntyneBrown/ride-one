@@ -242,6 +242,8 @@ interface Masquerader {
   readonly shaded: number;
   /** A man in trunks and a sash rather than a woman in a bra and bikini. */
   readonly male: boolean;
+  /** A child playing mas with the family, three fifths of an adult's height. */
+  readonly child?: boolean;
   /** How broad the dancer is built, across and through, as a share of the slimmest. */
   readonly build: number;
   readonly skin: string;
@@ -676,7 +678,8 @@ export class CaribanaStreet implements SceneStreet {
       // Half the band wines facing back up the road, to the riders and the crowd behind.
       const facing = i % 2 ? Math.PI - d.side * 0.5 : d.side * 0.55;
       this.turn.setFromAxisAngle(this.up, facing + sway).multiply(this.tilt);
-      this.size.set(d.build, 1, d.build);
+      const k0 = d.child ? 0.6 : 1;
+      this.size.set(d.build * k0, k0, d.build * k0);
       this.spot.set(x, y + bounce, -metres);
       this.matrix.compose(this.spot, this.turn, this.size);
       const body = d.pose + (d.male ? POSES.length : 0);
@@ -695,7 +698,7 @@ export class CaribanaStreet implements SceneStreet {
         // The contact shadow stays on the road as the dancer bounces, a little smaller when up.
         const lift = 1 - bounce * 3;
         this.spot.set(x, y + 0.016, -metres);
-        this.size.set(d.build * lift, 1, lift);
+        this.size.set(d.build * lift * k0, 1, lift * k0);
         this.contact.setMatrixAt(i, this.held.compose(this.spot, this.turn, this.size));
       }
       this.hair?.setMatrixAt(i, this.matrix);
@@ -707,16 +710,16 @@ export class CaribanaStreet implements SceneStreet {
       const k = d.costume;
       this.legPlumes[k]!.setMatrixAt(count[k]!, this.matrix);
       if (d.pose === 2) this.handFans[k]!.setMatrixAt(fanned[k]!++, this.matrix);
-      this.spot.set(x, y + 1.3 + bounce, -metres);
-      this.size.setScalar(d.frontline ? 1 : 0);
+      this.spot.set(x, y + 1.3 * k0 + bounce, -metres);
+      this.size.setScalar(d.frontline ? k0 : 0);
       this.matrix.compose(this.spot, this.turn, this.size);
       this.medallions?.setMatrixAt(i, this.matrix);
-      this.size.setScalar(1);
+      this.size.setScalar(k0);
       this.matrix.compose(this.spot, this.turn, this.size);
       if (d.frontline) this.backpieces[k]!.setMatrixAt(backed[k]!++, this.matrix);
       else this.collars[k]!.setMatrixAt(collared[k]!++, this.matrix);
-      this.spot.set(x, y + 1.7 + bounce, -metres);
-      this.size.setScalar(1);
+      this.spot.set(x, y + 1.7 * k0 + bounce, -metres);
+      this.size.setScalar(k0);
       this.matrix.compose(this.spot, this.turn, this.size);
       if (d.frontline) {
         this.crownBands[k]!.setMatrixAt(crowned[k]!, this.matrix);
@@ -1350,13 +1353,17 @@ export class CaribanaStreet implements SceneStreet {
       }
     }
     const posing = seeded(137);
+    const kids = seeded(139);
     this.dancers.forEach((d, i) => {
       const pose = Math.floor(posing() * POSES.length);
       const skin = SKINS[Math.floor(posing() * SKINS.length)]!;
       const frontline = posing() < 0.34;
       const male = posing() < 0.2;
       const build = male ? 0.98 + posing() * 0.17 : 0.94 + posing() * posing() * 0.34;
-      this.dancers[i] = { ...d, pose, skin, frontline, male, build };
+      // A child here and there, and a family group dancing just ahead of the riders' start.
+      const family = d.offset > BEHIND + 5 && d.offset < BEHIND + 9 && d.side < 0;
+      const child = kids() < 0.07 || (family && !male);
+      this.dancers[i] = { ...d, pose, skin, frontline: frontline && !child, male, build, child };
     });
     const n = this.dancers.length;
     const skin = this.material({ roughness: 0.5, vertexColors: true });
