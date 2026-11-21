@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [20 Minute HIIT](http://localhost:4200
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/20-minute-hiit?simulate`, click **Ride in Edinburgh Fringe**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [065 · The Castle stands at the head of the Mile](bend-065-castle-stands.jpg) | Edinburgh Castle on its rock at the head of the Royal Mile was bent vertex by vertex with the Mile's bends, so its walls slewed across the end of the street with each turn. It now stands beyond the road unbent, as the panorama does, and the crowd and props behind the rider stand on the cobbles there instead of at the height under the rider. |
