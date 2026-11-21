@@ -55,9 +55,10 @@ its ride outbox waits for `Retry-After` before submitting again.
   within a second are dropped. When the client has been over the limit for 10 seconds without
   falling back under it, the gate answers `Disconnect`. Time comes from `TimeProvider`, so the
   rule is unit-tested with `FakeTimeProvider` and never sleeps.
-- **Client address** — behind the hosting platform's proxy, the client IP address comes from
-  `ForwardedHeaders` middleware configured to trust only the platform's proxy. The proxy
-  addresses are `<TO SUPPLY>`.
+- **Client address** — behind App Service's front end, the client IP address comes from
+  `ForwardedHeaders` middleware reading `X-Forwarded-For` with the default `ForwardLimit` of 1, so
+  only the rightmost entry, the one the front end appends, is used and a client cannot forge it.
+  The front end has no fixed address to trust by name, so no proxy list is kept (TransportSecurity).
 - **Instance count** — the rate limiter's windows are held in process memory. With more than one
   API instance, each instance would count separately. The backend's instance count, and a shared
   store if it is more than one, are `<TO SUPPLY>`. The sign-in limits are counted from the

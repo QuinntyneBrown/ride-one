@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 /** The inline messages the app draws so far; the icon, the colour and the words carry the tone together. */
-export type InlineMessageTone = 'warn';
+export type InlineMessageTone = 'warn' | 'error' | 'success';
 
 /**
  * One line, or a short paragraph, inside a panel or under a frame (design-system block inline-message), with the tone's

@@ -1,6 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Telo.Ride.Application;
+using Telo.Ride.Domain.Accounts;
+using Telo.Ride.Infrastructure;
 
 namespace Telo.Ride.Api.Tests;
 
@@ -10,9 +13,14 @@ public sealed class UnreachableDatabaseApi : TeloRideApiFactory
     protected override void ConfigureServices(IServiceCollection services) =>
         services.Replace(ServiceDescriptor.Scoped<IAppDbContext, UnreachableDatabase>());
 
-    private sealed class UnreachableDatabase : IAppDbContext
+    /// <summary>The real context over the test's store, except that it cannot connect.</summary>
+    private sealed class UnreachableDatabase(AppDbContext db) : IAppDbContext
     {
+        public DbSet<SignInCode> SignInCodes => db.SignInCodes;
+
         public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>
             throw new InvalidOperationException("The database cannot be reached.");
+
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => db.SaveChangesAsync(cancellationToken);
     }
 }

@@ -15,32 +15,32 @@ skinparam class {
 title Class structure — Sign in with an email code
 package "api library" {
   interface AuthApi {
-    +sendCode(email: string): Promise<void>
-    +confirmCode(email: string, code: string): Promise<ConfirmCodeResult>
+    +sendCode(email: string): Observable<void>
+    +confirmCode(email: string, code: string): Observable<ConfirmCodeResult>
   }
   class ConfirmCodeResult {
     +isNewAccount: boolean
     +hasDisplayName: boolean
   }
-  class ApiError {
-    +status: number
-    +code: string
-    +retryAfterSeconds?: number
+  class AuthApiError {
+    +code: AuthApiErrorCode
+    +retryAfterSeconds: number | null
   }
   class HttpAuthApi
   AuthApi <|.. HttpAuthApi
   AuthApi ..> ConfirmCodeResult : returns
-  HttpAuthApi ..> ApiError : throws
+  HttpAuthApi ..> AuthApiError : throws
 }
 package "ride application" {
   class SignInStore {
     +email: Signal<string>
     +sending: Signal<boolean>
-    +errorCode: Signal<string | null>
+    +error: Signal<SignInError | null>
     +resendSecondsLeft: Signal<number>
-    +sendCode(email: string): Promise<boolean>
-    +confirm(code: string): Promise<SignInOutcome>
-    +resend(): Promise<void>
+    +resent: Signal<boolean>
+    +send(email: string): void
+    +resend(): void
+    +confirm(code: string): void
   }
   enum SignInOutcome {
     NameNeeded
@@ -56,13 +56,29 @@ package "ride application" {
   SignInStore ..> SignInOutcome
 }
 package "components library" {
+  class SignInForm {
+    +email: input<string>
+    +sending: input<boolean>
+    +error: input<SignInError | null>
+    +send: output<string>
+  }
+  class SignInCodeForm {
+    +email: input<string>
+    +resendSecondsLeft: input<number>
+    +resent: input<boolean>
+    +error: input<SignInError | null>
+    +resend: output<void>
+    +changeEmail: output<void>
+  }
   class CodeEntry {
     +invalid: input<boolean>
     +disabled: input<boolean>
     +completed: output<string>
   }
 }
-SignInCodePage --> CodeEntry
+SignInPage --> SignInForm
+SignInCodePage --> SignInCodeForm
+SignInCodeForm --> CodeEntry
 package "Telo.Ride.Api" {
   class AuthController {
     +SendCode(request: SendCodeRequest): Task<IActionResult>
@@ -71,11 +87,11 @@ package "Telo.Ride.Api" {
 }
 package "Telo.Ride.Application" {
   class SendSignInCodeCommand {
-    +string Email
-    +IPAddress ClientAddress
+    +string? Email
+    +string? NetworkAddress
   }
   class SendSignInCodeCommandHandler {
-    +Handle(command: SendSignInCodeCommand): Task<Result>
+    +Handle(command: SendSignInCodeCommand): Task
   }
   class ConfirmSignInCodeCommand {
     +string Email
@@ -85,11 +101,11 @@ package "Telo.Ride.Application" {
     +Handle(command: ConfirmSignInCodeCommand): Task<Result<ConfirmCodeResult>>
   }
   interface IEmailSender {
-    +SendSignInCode(to: EmailAddress, code: string): Task
+    +SendSignInCodeAsync(email: string, code: string): Task
   }
   interface ISignInCodeHasher {
-    +Hash(code: string): byte[]
-    +Matches(code: string, hash: byte[]): bool
+    +HashCode(code: string): string
+    +HashNetwork(address: string): string
   }
   interface IAppDbContext
 }
@@ -100,13 +116,15 @@ package "Telo.Ride.Domain" {
   }
   class SignInCode {
     +Guid Id
-    +EmailAddress Email
-    +byte[] CodeHash
+    +string Email
+    +string CodeHash
+    +string NetworkHash
     +DateTimeOffset IssuedAt
     +int FailedAttempts
     +DateTimeOffset? UsedAt
     +DateTimeOffset? SupersededAt
     +Verify(matches: bool, now: DateTimeOffset): CodeCheck
+    +ResendWait(now: DateTimeOffset): TimeSpan
     +Supersede(now: DateTimeOffset): void
   }
   enum CodeCheck {
@@ -137,4 +155,10 @@ ConfirmSignInCodeCommandHandler ..> Rider : finds or creates
 SignInCode --> EmailAddress
 SignInCode ..> CodeCheck
 Rider --> EmailAddress
+package "Telo.Ride.Infrastructure" {
+  class SmtpEmailSender
+  class HmacSignInCodeHasher
+}
+IEmailSender <|.. SmtpEmailSender
+ISignInCodeHasher <|.. HmacSignInCodeHasher
 @enduml

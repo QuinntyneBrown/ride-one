@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Telo.Ride.Domain.Accounts;
+
 namespace Telo.Ride.Application;
 
 /// <summary>
@@ -6,6 +9,11 @@ namespace Telo.Ride.Application;
 /// </summary>
 public interface IAppDbContext
 {
+    /// <summary>The sign-in codes sent, as hashes (sign-in with an email code).</summary>
+    DbSet<SignInCode> SignInCodes { get; }
+
     /// <summary>Whether the database answers; readiness reports it (L2-127 AC4).</summary>
     Task<bool> CanConnectAsync(CancellationToken cancellationToken);
+
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

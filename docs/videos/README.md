@@ -42,6 +42,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 8.5 | [Step down when frames drop](08-5-step-down-when-frames-drop/README.md) | 1:43 | The frame period measured; two slow 2-second windows drop a level, very slow frames straight to Low, never raised; main's frame budget; 390 to 1440 px; two behaviour specs |
 | 8.6 | [Panorama and hidden tab](08-6-panorama-and-hidden-tab/README.md) | 1:43 | The panorama where nothing can draw; a hidden tab draws no frame while the race runs on, a fix to main's scene; drawing again on return; 390 to 1440 px; two behaviour specs |
 | 8.7 | [Real-world scenery](08-7-real-world-scenery/README.md) | 1:43 | The real Bruges offered while the world draws; the key to Google and this device only; refused, the world stays; streaming credits Google; 390 to 1440 px; six behaviour specs |
+| 9.1 | [Request an email code](09-1-request-an-email-code/README.md) | 1:54 | Sign-in sends a code and the code screen counts down; a bad address sends nothing; a failed send keeps the email; 5 an hour per address, 20 per network; 202 for everyone; 390 to 1440 px; seven backend and seven behaviour specs |
 
 ## What every video is
 

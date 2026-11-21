@@ -7,7 +7,7 @@ namespace Telo.Ride.Api.Errors;
 
 /// <summary>
 /// Turns every exception into ProblemDetails with a <c>code</c> (L2-147 AC3): invalid input is 400
-/// <c>validation_failed</c> with <c>errors</c> by field, a domain rule its own status and code, and
+/// <c>validation_failed</c> with <c>errors</c> by field, a domain rule its own status and code (429 with Retry-After in whole seconds), and
 /// anything else 500 <c>unexpected</c> with a trace id and nothing of the exception.
 /// </summary>
 /// <remarks>
@@ -34,6 +34,11 @@ internal sealed partial class ProblemDetailsExceptionHandler(IProblemDetailsServ
         }
 
         httpContext.Response.StatusCode = problem.Status!.Value;
+        if (exception is DomainRuleException { RetryAfter: { } retryAfter })
+        {
+            httpContext.Response.Headers.RetryAfter = ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
         return await problemDetails.TryWriteAsync(new() { HttpContext = httpContext, ProblemDetails = problem, Exception = exception });
     }
 
@@ -56,6 +61,7 @@ internal sealed partial class ProblemDetailsExceptionHandler(IProblemDetailsServ
         RuleKind.NotFound => StatusCodes.Status404NotFound,
         RuleKind.Conflict => StatusCodes.Status409Conflict,
         RuleKind.Forbidden => StatusCodes.Status403Forbidden,
+        RuleKind.TooManyRequests => StatusCodes.Status429TooManyRequests,
         _ => StatusCodes.Status400BadRequest,
     };
 }

@@ -20,6 +20,14 @@
   --inline-message-icon: var(--color-warn-fg);
 }
 
+.inline-message--error {
+  --inline-message-fg: var(--color-heart-fg);
+}
+
+.inline-message--success {
+  --inline-message-fg: var(--color-ok-fg);
+}
+
 .inline-message__icon {
   flex-shrink: 0;
   width: var(--space-4);

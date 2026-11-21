@@ -3249,3 +3249,23 @@ a.map-table__map:hover, a.map-table__map[data-state="hover"] { color: var(--colo
 .feedback__follow-up { margin-top: var(--space-1); font-size: var(--font-size-sm); line-height: var(--line-height-relaxed); color: var(--color-muted); }
 .feedback__sent-actions { margin-top: var(--space-5); display: flex; justify-content: flex-end; gap: var(--space-2); }
 .btn.feedback__another { height: var(--control-height-sm); padding-inline: var(--space-3-5); }
+
+/* Sign-in (sign-in, sign-in-code): one centred panel on the page's own background, the lockup above a heading,
+   a lead, the form and a quiet note. The same panel serves the email and the code (L2-001, L2-002). */
+.sign-in { display: grid; min-height: 100dvh; place-items: center; padding: var(--space-6) var(--space-4); background: var(--color-bg-canvas); }
+.sign-in__panel { display: flex; flex-direction: column; width: 100%; max-width: 26rem; }
+.sign-in__brand { align-self: flex-start; }
+.sign-in__title { margin-top: var(--space-10); font-size: var(--font-size-2xl); line-height: var(--line-height-2xl); font-weight: var(--font-weight-semibold); letter-spacing: var(--letter-spacing-tight); }
+.sign-in__lead { margin-top: var(--space-2); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+.sign-in__email { font-weight: var(--font-weight-semibold); color: var(--color-fg); overflow-wrap: anywhere; }
+.sign-in__form { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-8); }
+.sign-in__note { margin-top: var(--space-6); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-faint); }
+/* "Use a different email": a button drawn as .link, with a 44 px target. */
+.sign-in__change { min-height: var(--target-comfortable); padding: 0; border: 0; background: none; font: inherit; cursor: pointer; }
+
+/* Code entry: six digits in one field, drawn as six cells; a pasted or offered code fills them all (L2-002 AC5). */
+.code-entry { position: relative; height: var(--control-height-xl); }
+.code-entry__input { position: absolute; inset: 0; width: 100%; opacity: 0; font-size: var(--font-size-md); caret-color: transparent; }
+.code-entry__cells { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-2); height: 100%; pointer-events: none; }
+.code-entry__cell { display: grid; place-items: center; border-radius: var(--radius-lg); background: var(--color-raised); font-family: var(--font-family-mono); font-size: var(--font-size-xl); line-height: var(--line-height-xl); font-weight: var(--font-weight-semibold); }
+.code-entry:focus-within .code-entry__cell { box-shadow: 0 0 0 1px var(--color-line-strong); }

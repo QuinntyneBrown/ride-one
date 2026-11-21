@@ -11,6 +11,11 @@ export const rideRoutes: Routes = [
     path: '',
     providers: [provideBikeConnection()],
     children: [
+      // Sign-in and the code screen stand alone, with no app navigation (docs/mocks/pages/sign-in/).
+      {
+        path: 'sign-in',
+        loadChildren: () => import('./sign-in/sign-in.routes').then((m) => m.signInRoutes),
+      },
       // Connect Bike stands alone, with no app navigation (docs/mocks/pages/connect-bike/).
       {
         path: 'connect',
