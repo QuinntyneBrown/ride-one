@@ -8,9 +8,29 @@
       @for (row of store.rows(); track row.map.id; let last = $last) {
         <li wz-map-path-item [state]="row.state" [last]="last">
           @if (row.state === 'open') {
-            <a wz-map-row [state]="row.state">{{ row.map.name }}</a>
+            <a
+              wz-map-row
+              [routerLink]="['/race', row.map.id]"
+              [status]="row.state"
+              [thumbnail]="row.map.thumbnailUrl"
+              [distanceKm]="row.map.distanceKm"
+              [climbingM]="row.map.climbingM"
+              [rating]="row.map.rating"
+              [stars]="row.stars"
+              [bestSeconds]="row.bestSeconds"
+              >{{ row.map.name }}</a
+            >
           } @else {
-            <button wz-map-row type="button" disabled [state]="row.state">
+            <button
+              wz-map-row
+              type="button"
+              disabled
+              [status]="row.state"
+              [thumbnail]="row.map.thumbnailUrl"
+              [distanceKm]="row.map.distanceKm"
+              [climbingM]="row.map.climbingM"
+              [rating]="row.map.rating"
+            >
               {{ row.map.name }}
             </button>
           }
