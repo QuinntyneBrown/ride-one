@@ -65,9 +65,12 @@ export class WorldScene {
 
     afterNextRender(() => {
       const canvas = this.canvas().nativeElement;
-      void this.load()
-        .then(async (loaded) => {
+      // The display's frame period is measured before the scene's own work can slow it
+      // (L2-111 AC9).
+      void Promise.all([this.load(), this.frames.measurePeriod()])
+        .then(async ([loaded, period]) => {
           const started = await loaded.start(canvas, untracked(this.world));
+          if (started) loaded.setFramePeriod(period);
           return { loaded, started };
         })
         .then(
