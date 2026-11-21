@@ -250,6 +250,7 @@ export class HavanaStreet implements SceneStreet {
     this.addArrows(roadHalf);
     this.addCouple(roadHalf);
     this.addLitter(roadHalf);
+    this.addKite(roadHalf);
     this.addJoggers(roadHalf);
     this.addShopSigns(roadHalf);
     this.addFruitCart(roadHalf);
@@ -4797,6 +4798,113 @@ export class HavanaStreet implements SceneStreet {
   }
 
   /**
+   * A boy flying a papalote from the promenade by the wall: a diamond kite of paper in bright
+   * panels on a cross of sticks, its long tail of knotted rag bows, riding high over the sea at
+   * the end of a long string that sags back down to his raised hand.
+   */
+  private addKite(roadHalf: number): void {
+    const flight = new Group();
+    const boy = new Group();
+    const skin = this.material({ color: 0x6b4430, roughness: 0.8 });
+    const shirt = this.material({ color: 0xf2d040, roughness: 0.85 });
+    const shorts = this.material({ color: 0x2a5a9a, roughness: 0.85 });
+    const torso = new CapsuleGeometry(0.12, 0.28, 3, 8);
+    const head = new SphereGeometry(0.09, 10, 8);
+    const limb = new CapsuleGeometry(0.04, 0.32, 3, 6);
+    this.disposables.push(torso, head, limb);
+    const add = (
+      g: BufferGeometry,
+      m: MeshStandardMaterial,
+      x: number,
+      y: number,
+      z: number,
+      rz = 0,
+    ) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.rotation.z = rz;
+      mesh.castShadow = true;
+      boy.add(mesh);
+    };
+    for (const z of [-0.07, 0.07]) add(limb, skin, 0, 0.28, z);
+    add(torso, shorts, 0, 0.55, 0);
+    add(torso, shirt, 0, 0.78, 0);
+    add(head, skin, 0, 1.12, 0);
+    add(limb, skin, -0.16, 1.1, 0.1, 0.8);
+    add(limb, skin, 0, 0.75, -0.16);
+    boy.position.y = KERB;
+    flight.add(boy);
+    // The kite, high over the sea ahead, tilted into the wind.
+    const hand = new Vector3(-0.3, KERB + 1.28, 0.1);
+    const kitePoint = new Vector3(-3, 19, -46);
+    const sail = new BufferGeometry().setFromPoints([
+      new Vector3(0, 0.75, 0),
+      new Vector3(-0.5, 0.15, 0),
+      new Vector3(0, -0.85, 0),
+      new Vector3(0, 0.75, 0),
+      new Vector3(0, -0.85, 0),
+      new Vector3(0.5, 0.15, 0),
+    ]);
+    sail.setAttribute(
+      'uv',
+      new BufferAttribute(new Float32Array([0.5, 1, 0, 0.6, 0.5, 0, 0.5, 1, 0.5, 0, 1, 0.6]), 2),
+    );
+    sail.computeVertexNormals();
+    this.disposables.push(sail);
+    const kite = new Mesh(
+      sail,
+      new MeshBasicMaterial({ map: this.track(kiteTexture()), side: DoubleSide, fog: false }),
+    );
+    this.disposables.push(kite.material as MeshBasicMaterial);
+    kite.scale.setScalar(2);
+    kite.position.copy(kitePoint);
+    kite.rotation.set(-0.3, 0.6, 0.25);
+    flight.add(kite);
+    // Its tail: rag bows knotted along a string hanging and curling off downwind.
+    const bow = new BoxGeometry(0.28, 0.08, 0.02);
+    this.disposables.push(bow);
+    const rags = [0xe8302a, 0xf2f2ea, 0x2a5ad8].map(
+      (c) => new MeshBasicMaterial({ color: c, side: DoubleSide, fog: false }),
+    );
+    this.disposables.push(...rags);
+    const line = new MeshBasicMaterial({ color: 0x3a3a3a, fog: false });
+    this.disposables.push(line);
+    const tail: Vector3[] = [];
+    for (let k = 0; k <= 10; k++) {
+      const t = k / 10;
+      tail.push(
+        new Vector3(
+          kitePoint.x + Math.sin(t * 3) * 0.8,
+          kitePoint.y - 1.1 - t * 4.2,
+          kitePoint.z + t * 1.2,
+        ),
+      );
+      if (k > 0) {
+        const knot = new Mesh(bow, rags[k % 3]!);
+        knot.position.copy(tail[k]!);
+        knot.rotation.set(0, 0.6, Math.sin(k) * 0.6);
+        flight.add(knot);
+      }
+    }
+    const tailString = new TubeGeometry(new CatmullRomCurve3(tail), 20, 0.015, 3);
+    // The flying line, sagging in a long curve back to the boy's hand.
+    const sagging: Vector3[] = [];
+    for (let k = 0; k <= 20; k++) {
+      const t = k / 20;
+      const p = hand.clone().lerp(kitePoint, t);
+      p.y -= 3.5 * Math.sin(t * Math.PI) * (1 - t * 0.4);
+      sagging.push(p);
+    }
+    const flying = new TubeGeometry(new CatmullRomCurve3(sagging), 40, 0.012, 3);
+    this.disposables.push(tailString, flying);
+    flight.add(new Mesh(tailString, line), new Mesh(flying, line));
+    const holder = new Group();
+    holder.add(flight);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 52, x: -roadHalf - LANES - PROMENADE + 0.8 });
+  }
+
+  /**
    * Litter gathered in both gutters against the kerb: scraps of white and brown paper, flattened
    * cans, bottle caps and dry almond leaves, in fifteen-metre stretches, each one instanced.
    */
@@ -6952,5 +7060,28 @@ function arrowTexture(turn: boolean): CanvasTexture {
       g.fillRect(random() * 64, random() * 320, 1 + random() * 5, 1 + random() * 9);
     }
     g.globalCompositeOperation = 'source-over';
+  });
+}
+
+/** A papalote's paper: four bright panels meeting at the spine and spar, edged dark. */
+function kiteTexture(): CanvasTexture {
+  return canvasTexture(64, 64, (g) => {
+    const panels = ['#e8302a', '#f2d040', '#2a5ad8', '#2aa860'];
+    [
+      [0, 0],
+      [32, 0],
+      [0, 32],
+      [32, 32],
+    ].forEach(([x, y], i) => {
+      g.fillStyle = panels[i]!;
+      g.fillRect(x!, y!, 32, 32);
+    });
+    g.fillStyle = '#f2f2ea';
+    g.beginPath();
+    g.arc(32, 28, 8, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = '#2a2018';
+    g.fillRect(31, 0, 2, 64);
+    g.fillRect(0, 37, 64, 2);
   });
 }
