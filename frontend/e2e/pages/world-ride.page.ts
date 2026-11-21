@@ -156,6 +156,23 @@ export class WorldRidePage {
       );
   }
 
+  /**
+   * Connects the fake bike, then opens the class `id` (whose card reads `title`) through the
+   * app's own links and presses its `Ride in …` button, whatever its world.
+   */
+  async startClass(id: string, title: string): Promise<void> {
+    const ride = new RidePage(this.page);
+    await ride.open();
+    await ride.connect();
+    await expect(ride.statusState).toHaveText('Connected');
+    const classes = new ClassesPage(this.page);
+    await this.page.getByRole('banner').getByRole('link', { name: 'Library' }).click();
+    await this.page.waitForURL(/\/classes$/);
+    await classes.card(title).click();
+    await classes.rideInAnyWorld.click();
+    await this.page.waitForURL(new RegExp(`/classes/${id}/world$`));
+  }
+
   /** Loads `/classes/<id>/world` straight away. */
   async open(id = '30-minute-hiit-cardio'): Promise<void> {
     await this.page.goto(`/classes/${id}/world`);

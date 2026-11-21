@@ -44,6 +44,11 @@ export class ClassesPage {
   }
 
   /** The class page's `Ride in <world name>` action (L2-102 AC1). */
+  /** The class page's `Ride in …` button, whichever world the class rides in. */
+  get rideInAnyWorld(): Locator {
+    return this.page.getByRole('button', { name: /^Ride in / });
+  }
+
   rideIn(worldName: string): Locator {
     return this.page.getByRole('button', { name: `Ride in ${worldName}`, exact: true });
   }

@@ -14,6 +14,12 @@ export type Tier = 'low' | 'medium' | 'high' | 'ultra';
 export interface WorldRideReport {
   tier: Tier;
   backend: 'webgpu' | 'webgl2';
+  /** The time between each drawn frame and the one before, in ms, oldest first. */
+  frames: number[];
+  /** Draw calls in the latest frame, every pass included. */
+  drawCalls: number;
+  /** Shader programs alive. */
+  programs: number;
 }
 
 export class WorldRideProbe {
