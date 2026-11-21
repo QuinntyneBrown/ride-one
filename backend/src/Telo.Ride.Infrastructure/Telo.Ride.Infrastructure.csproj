@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Telo.Ride.Application/Telo.Ride.Application.csproj" />
+  </ItemGroup>
+</Project>

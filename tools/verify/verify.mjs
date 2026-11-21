@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Builds and checks everything CI checks, as fast as this machine allows: install, then format, lint, unit tests
-// and the production build with its budget side by side, then the Playwright behaviour specs. Prints each step's
+// and the production build with its budget side by side, then the Playwright behaviour specs; beside them, the
+// backend's format check, then its build and tests. Prints each step's
 // time and the total; exits non-zero on the first failure, with that step's output.
 //
 //   node tools/verify/verify.mjs
@@ -57,6 +58,15 @@ function unitTests() {
   return Promise.resolve();
 }
 
+const backend = join(root, 'backend');
+
+/** dotnet format as the backend's lint, then its build and every test (acceptance tests through the API). */
+const api = async () => {
+  if (!existsSync(join(backend, 'Telo.Ride.slnx'))) return;
+  await step('backend format', 'dotnet format Telo.Ride.slnx --verify-no-changes', backend);
+  await step('backend build and tests', 'dotnet test --solution Telo.Ride.slnx', backend);
+};
+
 const web = async () => {
   await install();
   await Promise.all([
@@ -71,7 +81,7 @@ const web = async () => {
 };
 
 try {
-  await web();
+  await Promise.all([web(), api()]);
   console.log(`${seconds(started)}  TOTAL — everything passed`);
 } catch {
   console.error(`${seconds(started)}  TOTAL — failed`);
