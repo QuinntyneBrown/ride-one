@@ -12,6 +12,7 @@ import {
   ResistanceController,
   RideClock,
   RideTicker,
+  VideoClockSync,
   WorkoutEngine,
 } from '@telo/domain';
 import { ClassRideStore } from './class-ride-store';
@@ -34,6 +35,7 @@ import { ClassRideStore } from './class-ride-store';
     WorkoutEngine,
     ResistanceController,
     BikeTelemetry,
+    VideoClockSync,
   ],
 })
 export default class ClassRidePage {
