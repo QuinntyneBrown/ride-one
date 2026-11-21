@@ -439,6 +439,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addBarricades();
     this.addMokoJumbies();
     this.addTeeShirtMas();
+    this.addBandRope();
     this.addRoyals();
     this.addTrucks();
     this.addPanFloat();
@@ -857,6 +858,65 @@ export class CaribanaStreet implements SceneStreet {
     });
     ensemble.build();
     this.teeShirts = ensemble;
+  }
+
+  /**
+   * The band rope: volunteers in orange vests walking either side of the band in the right
+   * lanes, holding a long rope at waist height between them to keep the section together and
+   * the riders' corridor clear, the rope sagging between each pair of hands.
+   */
+  private addBandRope(): void {
+    const random = seeded(3701);
+    const rope = new Group();
+    const span = 3.2;
+    const stations = 12;
+    const vest = this.material({ color: 0xff7a00, roughness: 0.7, emissive: 0x3a1800 });
+    const shorts = this.material({ color: 0x1e2530, roughness: 0.9 });
+    const cord = this.material({ color: 0xe8e2d0, roughness: 0.9 });
+    for (let k = 0; k <= stations; k++) {
+      const z = -k * span;
+      const parts = spectatorParts(0, true);
+      this.disposables.push(parts.skin, parts.top, parts.bottom);
+      const keeper = new Group();
+      const skin = this.material({
+        color: SKINS[Math.floor(random() * SKINS.length)],
+        roughness: 0.6,
+      });
+      keeper.add(
+        new Mesh(parts.skin, skin),
+        new Mesh(parts.top, vest),
+        new Mesh(parts.bottom, shorts),
+      );
+      keeper.position.set(0, 0, z);
+      keeper.rotation.y = Math.PI / 2 + (random() - 0.5) * 0.4;
+      rope.add(keeper);
+      if (k === stations) break;
+      // The rope from this keeper's hand to the next, sagging in the middle.
+      const sag = new TubeGeometry(
+        new QuadraticBezierCurve3(
+          new Vector3(-0.22, 0.85, z),
+          new Vector3(-0.22, 0.55, z - span / 2),
+          new Vector3(-0.22, 0.85, z - span),
+        ),
+        10,
+        0.015,
+        4,
+      );
+      this.disposables.push(sag);
+      rope.add(new Mesh(sag, cord));
+    }
+    rope.traverse((o) => (o.castShadow = true));
+    const holder = new Group();
+    holder.add(rope);
+    this.group.add(holder);
+    this.props.push({
+      mesh: holder,
+      offset: BEHIND + 14,
+      every: LOOP,
+      x: 1.9,
+      road: true,
+      marching: true,
+    });
   }
 
   private placeTeeShirtMas(
