@@ -11,16 +11,25 @@ public enum RuleKind
 
     /// <summary>The rider may not do this (403).</summary>
     Forbidden,
+
+    /// <summary>What the rider sent is not acceptable, such as a malformed email address (400).</summary>
+    Invalid,
+
+    /// <summary>Too many requests of this kind for now; try again after <see cref="DomainRuleException.RetryAfter"/> (429).</summary>
+    TooManyRequests,
 }
 
 /// <summary>
 /// A domain rule refusing a request, with the <see cref="Code"/> a screen branches on (for example
 /// <c>session_full</c>, <c>ride_not_plausible</c>). The message is for developers; riders see a
-/// generic message chosen by the screen from the code.
+/// generic message chosen by the screen from the code. A <see cref="RuleKind.TooManyRequests"/> refusal says when to try
+/// again with <see cref="RetryAfter"/>.
 /// </summary>
-public sealed class DomainRuleException(string code, RuleKind kind, string message) : Exception(message)
+public sealed class DomainRuleException(string code, RuleKind kind, string message, TimeSpan? retryAfter = null) : Exception(message)
 {
     public string Code { get; } = code;
 
     public RuleKind Kind { get; } = kind;
+
+    public TimeSpan? RetryAfter { get; } = retryAfter;
 }

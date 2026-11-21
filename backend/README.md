@@ -23,6 +23,9 @@ dotnet run --project src/Telo.Ride.Api -- migrate  # apply pending migrations an
 dotnet ef migrations add <Name> --project src/Telo.Ride.Infrastructure --startup-project src/Telo.Ride.Api --output-dir Migrations
 ```
 
+In Development, sign-in codes are emailed to an SMTP catcher on `localhost:1025` (ADR 0031): run
+[Mailpit](https://mailpit.axllent.org/) (`mailpit`, then open `http://localhost:8025`) to read them.
+
 To serve a local build as production does, from `backend/`:
 
 ```shell
