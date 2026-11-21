@@ -25,23 +25,23 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 | # | Lesson | From | Applied in | Result |
 |---|--------|------|------------|--------|
-| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with its own `npm ci` in `frontend/` (never a `node_modules` symlink) and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
-| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time: 4300 was taken again |
-| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
+| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with its own `npm ci` in `frontend/` (never a `node_modules` symlink) and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
+| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
+| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
 | L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2 | Saved time: `raised` joined `wz-button` |
-| L5 | Read the initial chunk in the build output after every route or import change; the baseline is 260.26 kB raw against a 264 kB warning. To see what grew it, `npx ng build ride --stats-json` and read `outputs[main-*.js].inputs` in `dist/ride/browser-stats.json` (delete it after). | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Made it worse once, then caught: +23.5 kB raw from HttpClient; budget raised with its reason |
-| L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
-| L7 | Review every scene with `--frame` on one contact sheet before the full encode, and open any headline or terminal edge at full size; encode in the background with `--crf 23` for films over 2 minutes. Use `headline--md` for scene titles: `--lg` clips italic overhang. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time: the sheet showed the header close-up too thin to read |
+| L5 | Read the initial chunk in the build output after every route or import change; the baseline is 260.26 kB raw against a 264 kB warning. To see what grew it, `npx ng build ride --stats-json` and read `outputs[main-*.js].inputs` in `dist/ride/browser-stats.json` (delete it after). | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time: the build showed main 3 kB up; traced to effect and viewChild (L42) |
+| L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
+| L7 | Review every scene with `--frame` on one contact sheet before the full encode, and open any headline or terminal edge at full size; encode in the background with `--crf 23` for films over 2 minutes. Use `headline--md` for scene titles: `--lg` clips italic overhang. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time: the sheet showed the hook under the window and the notice too thin |
 | L8 | Backend packages: EF Core on 10.0.x (11 needs .NET 11), MediatR 12.5 (last Apache 2.0), xUnit v3 on Microsoft Testing Platform (`backend/global.json`); probe a new package in a scratch project before an ADR names it; pin a vulnerable transitive package in `Directory.Packages.props`. | 1.2 | 1.3, 1.4 | Saved time |
 | L9 | A backend acceptance test is a fixture subclassing `TeloRideApiFactory` (`ConfigureServices` injects the fault); `ProbeController` and `SignedInProbeApi` stand in for endpoints and sign-in until features add theirs; await with `EventProbe<T>` (spans and hub events), never sleep; a hub test connects `HubConnectionBuilder` through `Server.CreateHandler()`; prove a guard by removing it once. | 1.2 | 1.3, 1.4, 2.2 | Saved time: `ProductionApi` is one override |
-| L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
+| L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
 | L11 | Prove a test double from the outside: a spec drives the browser API through a helper (`AppCalls`) until the app's own client exists; prove its guard with `test.fail()`, and run once without it to read the failure's reason. | 1.3 | 1.4 | Saved time |
 | L12 | In zsh and BSD tools: quote globs in arguments (`--include='*.cs'`), and replace whole words with `perl -pi -e 's/\bOld\b/New/g'`; BSD `sed` has no `\b`. | 1.3 | 1.4, 2.1, 2.2, 2.3 | Skipped once: an unquoted glob cost a command |
-| L13 | Never symlink `node_modules` into a worktree: when verify's stamp (`node_modules/.verify-lock-hash`) does not match, its `npm ci` empties the linked main checkout's `node_modules` and installs into the worktree. After `npm ci` in a checkout by hand, write the stamp so verify skips the reinstall. | 1.3 | 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
+| L13 | Never symlink `node_modules` into a worktree: when verify's stamp (`node_modules/.verify-lock-hash`) does not match, its `npm ci` empties the linked main checkout's `node_modules` and installs into the worktree. After `npm ci` in a checkout by hand, write the stamp so verify skips the reinstall. | 1.3 | 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
 | L14 | For a production-like local run, `dotnet run --no-launch-profile` (`launchSettings.json` otherwise overrides `ASPNETCORE_URLS` and the environment), and `-- --webroot ../frontend/dist/ride/browser` to serve a build without copying it. | 1.4 | 2.2 | Saved time |
 | L15 | Prove a workflow change on GitHub before merging: push the slice's branch (CI runs on every push), `gh run watch <id> --exit-status`, read the job times, then delete the remote branch after the merge. | 1.4 | | |
 | L16 | A hosting test's web root is an in-memory `IFileProvider` set with `PostConfigure<StaticFileOptions>` (`HostedAppApi`), so it reads no file. | 1.4 | | |
-| L17 | Judge verify by its exit status: `if E2E_PORT=4310 node tools/verify/verify.mjs > log 2>&1; then git commit …; fi`. Piping it to `grep` succeeds whatever verify did, and once committed a failing build. | 2.1 | 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
+| L17 | Judge verify by its exit status: `if E2E_PORT=4310 node tools/verify/verify.mjs > log 2>&1; then git commit …; fi`. Piping it to `grep` succeeds whatever verify did, and once committed a failing build. | 2.1 | 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
 | L18 | Bind an app-wide service the first screen needs (the bike connection, the ticker) in the providers of the lazy parent route in `ride.routes.ts`, not in `app.config.ts`: one instance serves every screen and its code leaves the initial chunk. | 2.1 | 2.2, 2.3, 2.4 | Saved time: the header reads the route-bound connection |
 | L19 | What only a development build does gets a `*.development.spec.ts`, run by Playwright's `development` project against the development build on the next port; the `chromium` project proves the production build does not. | 2.1 | | |
 | L20 | Web Bluetooth in `domain`: start the file with `/// <reference types="web-bluetooth" />` (the app's tsconfig loads no ambient types), and type byte encoders `Uint8Array<ArrayBuffer>` so they pass as a `BufferSource`. | 2.1 | 2.3, 2.4 | Saved time |
@@ -49,25 +49,61 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L22 | A scripted multi-file edit stops the step on its first miss: end the heredoc with `&&` before the next command (or `set -e`). A failed `assert` in `python3 - <<'EOF'` does not stop the lines after it, and a commit went out without its template change. | 2.2 | 2.3 | Partly: the step stopped, but files were half-edited (L25) |
 | L23 | The browser's own states come from the fake Bluetooth: `bluetooth.remove()` (Safari, Firefox), `servePlainHttp()` (no secure context, no Bluetooth) and `restore()` on the current page; no other browser and no http host. | 2.2 | 2.3, 2.4 | Saved time: adapter, drop and power joined it |
 | L24 | A film diagram's `.node` name is set in capitals: put code identifiers (`isSecureContext`) in its small note, and plain words in its name. | 2.2 | 2.3, 2.4 | Saved time |
-| L25 | Make a scripted multi-file edit all or nothing: collect `(path, old, new)`, assert each `old` occurs once in its file's text, and write the files only after every assert passed. An assert that fails midway leaves the earlier files edited. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
+| L25 | Make a scripted multi-file edit all or nothing: collect `(path, old, new)`, assert each `old` occurs once in its file's text, and write the files only after every assert passed. An assert that fails midway leaves the earlier files edited. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
 | L26 | A guard on a screen changes every spec that opens it: give those specs their premise through the fixture (`bluetooth.remember()`), and run the whole Playwright suite after adding a guard or a redirect. | 2.3 | 2.4 | Saved time: the suite caught the keepalive in an exact log |
 | L27 | Push a fake bike's notification only after the writes the app makes before it listens (`expect.poll(() => bluetooth.writes().length)`): a frame sent before initialisation finishes is not the first one after it, as a real bike streams only after its start command. | 2.3 | 2.4 | Saved time |
-| L28 | Keep a heredoc that writes files in a command of its own: a command blocked or failing earlier in the same `&&` chain drops it silently (a blocked `rm $VAR/*.png` cost `film.js`). Write frames to a new folder instead of clearing one. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
+| L28 | Keep a heredoc that writes files in a command of its own: a command blocked or failing earlier in the same `&&` chain drops it silently (a blocked `rm $VAR/*.png` cost `film.js`). Write frames to a new folder instead of clearing one. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
 | L29 | A periodic write (a keepalive) joins every write log a spec compares: start it at the moment its requirement names (connected, after pairing), and filter it out or count from a known point in specs that compare exact logs. | 2.4 | | |
 | L30 | Time-driven behaviour in a spec (keepalives, retries): `page.clock.install()` before the page loads, then `page.clock.runFor(ms)`; time still flows between, so binding round trips and short gaps go on as usual. Nothing sleeps. | 2.4 | | |
 | L31 | A slice whose behaviour no screen shows yet (decoders before their readouts) is proved by the requirement's tables at the domain boundary, fed the bytes a bike sends, plus one run on the simulated bike; write a stub first so each table fails on its assertions, and say in the design which later slice brings the Playwright proof. | 3.1 | 3.2, 3.3, 4.1, 4.2, 5.1 | Saved time |
-| L32 | A film's `arrow()` lines are light: put a diagram of `node()`s and arrows on a dark field (`field--ink`, `field--panel`), never on `field--bone`. | 3.1 | 3.2, 3.3, 4.1, 4.2, 5.1, 5.2 | Saved time |
+| L32 | A film's `arrow()` lines are light: put a diagram of `node()`s and arrows on a dark field (`field--ink`, `field--panel`), never on `field--bone`. | 3.1 | 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3 | Saved time |
 | L33 | Before a slice builds UI, find the screen that hosts it in `docs/detailed-journeys.md`: when that screen's slice comes later, build only what every host shares (state, models, formatting) and move the markup to the hosting slices in the design, rather than build a screen early. | 3.2 | 3.3, 4.1, 4.2, 5.1 | Saved time |
-| L34 | Render every diagram a slice touches (`plantuml -tpng` on each `.puml`) and read its exit status: an escaped quote (`\"—\"`) inside a C4 macro's label breaks it, and a committed PNG can be older than its source. Write "a dash" instead. | 3.3 | 4.1, 5.1, 5.2 | Saved time |
+| L34 | Render every diagram a slice touches (`plantuml -tpng` on each `.puml`) and read its exit status: an escaped quote (`\"—\"`) inside a C4 macro's label breaks it, and a committed PNG can be older than its source. Write "a dash" instead. | 3.3 | 4.1, 5.1, 5.2, 5.3 | Saved time |
 | L35 | Before writing a slice's code, check what earlier slices already built for its requirements (`git log --oneline --grep L2-0NN`, the specs' traces): record a behaviour that already holds with one test that names its criterion, and keep the slice to what is left. | 4.1 | 4.2, 5.1, 5.2 | Saved time: 2.4 and 4.2 had the reconnect and the nudge |
-| L36 | While a film encodes, draft the next slice's stubs and acceptance tables in the scratchpad; copy them into the new worktree once the merge lands, then run them to see them fail. | 5.1 | 5.2 | Saved time: the mock's styles and the catalogue design were read during the 5.1 encode |
+| L36 | While a film encodes, draft the next slice's stubs and acceptance tables in the scratchpad; copy them into the new worktree once the merge lands, then run them to see them fail. | 5.1 | 5.2, 5.3 | Saved time: 5.3's sources were read during the 5.2 encode |
 | L37 | To test time across a hidden tab, bind `MONOTONIC_TIME` to `Date.now()` under `vi.useFakeTimers()`: `vi.setSystemTime` moves the clock without firing timers, as a throttled tab does, and a `visibilitychange` with a stubbed `visibilityState` shows it again. | 5.1 | 5.2 | Saved time: the same idea, with Playwright's clock |
-| L38 | To drive a ride screen in Playwright, `page.clock.install()`, hold the API answer that starts the ride, `pauseAt` a known time, release it, wait for the ride's first command, then `runFor` a few ms to render; `fastForward` moves it like a hidden tab. Screenshots on a paused clock need its frames stepped with real-time pacing. | 5.2 | | |
+| L38 | To drive a ride screen in Playwright, `page.clock.install()`, hold the API answer that starts the ride, `pauseAt` a known time, release it, wait for the ride's first command, then `runFor` a few ms to render; `fastForward` moves it like a hidden tab. Screenshots on a paused clock need its frames stepped with real-time pacing. | 5.2 | 5.3 | Saved time: the shared startClassRide helper now holds it |
 | L39 | macOS has no `timeout`; never wrap a command in it. Piped through `grep`, the "command not found" vanished and looked like a hang. | 5.2 | | |
-| L40 | The first use of an Angular entry point (`@angular/common/http`) can land in `main` wherever it is provided, because the framework's own packages import it. Build and read the initial total right after adding one. | 5.2 | | |
-| L41 | Write each step's spec and see it fail before writing that step's code, even when the components seem obvious; a spec written after the code cannot show it failed for the right reason. | 5.2 | | |
+| L40 | The first use of an Angular entry point (`@angular/common/http`) can land in `main` wherever it is provided, because the framework's own packages import it. Build and read the initial total right after adding one. | 5.2 | 5.3 | Saved time: the same check caught L42 |
+| L41 | Write each step's spec and see it fail before writing that step's code, even when the components seem obvious; a spec written after the code cannot show it failed for the right reason. | 5.2 | 5.3 | Mostly: steps 1 and 2 failed first; step 3's behaviour came with step 1, so it was proved by switching it off |
+| L42 | The first use of a core API (`effect`, `viewChild`) puts its runtime in `main`, since `@angular/core` is in the initial chunk: `effect` cost 2 kB raw and `viewChild` 1 kB. Read the initial total after each new framework API, and prefer an output, a lifecycle hook or the host element the app already pays for. | 5.3 | | |
+| L43 | On Playwright's paused clock, everything on a timer waits, including a fake's ready callback and zoneless change detection. Step it a frame at a time until the locator shows: `expect(async () => { await page.clock.runFor(16); await expect(l).toBeVisible({ timeout: 50 }); }).toPass()`. | 5.3 | | |
+| L44 | Fake a third-party script at its URL in the shared fixture (a route, and the guard's catch-all calling `route.fallback()` for it), not by rebinding a token, which a browser test cannot do: the real adapter runs, and blocking the route tests the failure. | 5.3 | | |
+| L45 | When the main checkout holds another session's uncommitted change to a file the slice also changes, merge in the slice's worktree on a detached `origin/telo-ride` and push `HEAD:telo-ride`; never stash or overwrite their change. | 5.3 | | |
 
 ## Log
+
+### 5.3 Sync the class video (2026-11-21)
+
+**Applied from earlier**
+
+- **L1 own worktree and install; L13 no linked `node_modules`; L2 port 4310 — saved time.**
+- **L3 format first; L17 verify by exit status; L25 all-or-nothing edits; L28 heredocs alone — saved time.**
+  One edit script stopped on a comment that wrapped differently from what it assumed, and wrote nothing.
+- **L5 bundle and L40 entry points — saved time:** the build showed `main` 3 kB up with the video library
+  already lazy; the cause was the app's first `effect` and `viewChild` (L42).
+- **L6, L10, L32, L34 film and diagrams — saved time.** **L7 contact sheet — saved time:** the hook's accent
+  ran under the browser window and the notice close-up was a thin strip.
+- **L36 draft during the encode — saved time:** 5.3's requirement, ADR and design were read while 5.2 encoded.
+- **L38 drive a ride on Playwright's clock — saved time:** it moved into a shared `startClassRide` helper.
+- **L41 spec each step first — mostly:** steps 1 and 2 failed for the expected reasons before their code;
+  step 3's behaviour (the notice) was written with step 1, so its specs were proved by switching it off.
+- **Every other lesson — did not apply.**
+
+**What slowed it down**
+
+- The paused clock holding back the fake player's ready and the zoneless render (L43).
+- Finding why `main` grew with the video library already lazy (L42).
+- The design said tests bind a fake player to the token, which a browser test cannot do (L44).
+- AGENTS.md gained a section on World rendering, uncommitted in the main checkout, while this slice
+  also edits AGENTS.md (L45).
+
+**New lessons**
+
+- **L42 A first core API lands in `main`.**
+- **L43 Step the paused clock until it renders.**
+- **L44 Fake a third-party script at its URL.**
+- **L45 Merge around another session's uncommitted change.**
 
 ### 5.2 Class ride screen (2026-11-21)
 
