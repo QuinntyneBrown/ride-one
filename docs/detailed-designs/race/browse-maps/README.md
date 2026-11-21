@@ -44,10 +44,12 @@ unlock (`L2-040` AC1). Stars, bests and the other riders' paths come with journe
   store. It joins the map catalogue with the rider's map progress into one `MapPathRow` per map
   and exposes `rows` and `unavailable`, with `retry()`. Subscriptions end with the page
   (`takeUntilDestroyed`).
-- **`MapPath`** (`components`, block `map-path`) — presentation component for the ordered list.
-  It takes `rows` and renders one `MapRow` per entry, with the path's line and dot.
-- **`MapRow`** (`components`, block `map-row`) — one map. For an open map it renders a link
-  (`a[wz-map-row]`, the page adds `routerLink` to `/race/:mapId`) with the thumbnail, name, facts
+- **`MapPath`** (`components`, block `map-path`) — presentation component for the ordered list
+  (`<ol>`); the page projects one **`MapPathItem`** (`li[wz-map-path-item]`) per map, which draws
+  the path's line and the dot of the map's state, around its `MapRow`.
+- **`MapRow`** (`components`, block `map-row`) — one map, its state in the `status` input (named
+  apart from `RouterLink`'s `state`) and its name projected as its text. For an open map it
+  renders a link (`a[wz-map-row]`, the page adds `routerLink` to `/race/:mapId`) with the thumbnail, name, facts
   line ("18.4 km · 90 m climbing · Easy"), stars and "Best 31:42". For a locked map it renders a
   disabled button (`button[wz-map-row]`) with the goal, and the hidden text ", locked" or ",
   locked, your next unlock". The next unlock carries the `map-row--next` modifier (gold ring);
