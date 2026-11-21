@@ -9,6 +9,10 @@ export class RacePage {
   readonly route: Locator;
   readonly bike: Locator;
   readonly clock: Locator;
+  readonly clockTotal: Locator;
+  readonly interval: Locator;
+  readonly routePanel: Locator;
+  readonly resistPanel: Locator;
   readonly power: Locator;
   readonly position: Locator;
   readonly watts: Locator;
@@ -39,6 +43,10 @@ export class RacePage {
     this.route = page.locator('.race-bar__route');
     this.bike = page.locator('.race-bar__bike');
     this.clock = page.locator('.race-bar__clock');
+    this.clockTotal = page.locator('.race-bar__total');
+    this.interval = page.locator('.race-interval');
+    this.routePanel = page.locator('.race-route');
+    this.resistPanel = page.locator('.race-resist');
     this.power = page.getByRole('region', { name: 'Power and position' });
     this.position = page.locator('.race-power__rank');
     this.watts = page.locator('.race-power__watts');
