@@ -88,6 +88,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [082 · Convertible](082-convertible.jpg) | The quinceañera's shoot now has its car: a pink 1950s convertible parked at the kerb beside her, top down, with a raked windscreen in a chrome frame, white leather bench seats and the hood folded behind. From the saddle, the pink convertible sits at the right kerb just ahead, beside the girl in her pink gown. | 94% · 93/100 |
 | [083 · Yachts](083-yachts.jpg) | Yachts under sail and a catamaran now dot the Gulf off the wall: white hulls, tall masts, mainsail and jib catching the light, each on its own heading and heeled to the breeze. From the saddle, a yacht sails behind the vendor's cart on the left, its sails white against the sea, with others further out. | 94% · 93/100 |
 | [084 · Tour bus](084-tour-bus.jpg) | An open-top double-decker sightseeing bus now comes along the oncoming lanes: red with a cream band, dark lower-deck windows, and the railed upper deck full of visitors in bright shirts and sunhats under a canopy at the front. From the saddle, it comes on beyond the crossing ahead, its top deck crowded. | 94% · 93/100 |
+| [085 · Awnings](085-awnings.jpg) | About three in ten balconies now have a striped canvas awning over their French windows: sun-faded red, green, blue or ochre on cream with a scalloped valance, sloping out from the wall over the balcony. From the saddle, a red-striped awning hangs over a window on the right façade, among the balconies and flowers. | 94% · 93/100 |
 
 ## Reproducing a capture
 
