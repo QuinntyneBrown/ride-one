@@ -63,7 +63,9 @@ The header's lockup is the small one (`size="sm"`), whose wordmark hides below 3
   `aria-label` "Resistance 6 of 32"). The stepper shows the bike's reported resistance, or a
   dash before any (`L2-026`); its buttons raise `ResistanceController.nudge` and are disabled
   while it cannot control the bike. Power is "On target" within 10 % of the segment's target
-  power, otherwise the signed delta ("+12 W", "-47 W") styled over or under (`L2-059` AC2).
+  power, otherwise the signed delta ("+12 W", "-47 W") styled over or under (`L2-059` AC2). Before
+  the bike reports power, Power reads a dash with the target ("Target 107 W"); the countdown
+  rounds the time left up, so it agrees with the clock after a late tick.
 
 **Frontend — `domain`, `api` and `video` libraries**
 
