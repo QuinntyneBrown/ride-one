@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Lead Out Efforts Into Full Sprints](h
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/lead-out-efforts-into-full-sprints?simulate`, click **Ride in Antwerp Port Sprint**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [075 · The Port House and the cranes stand over the Scheldt](bend-075-port-house-stands.jpg) | The Port House, the gantry cranes and the far quays across the Scheldt were bent vertex by vertex with the quay road's bends, so the cranes leaned and slewed with each turn. They now stand beyond the road unbent, as the panorama does, and the dockers and props behind the rider stand on the quay there instead of at the height under the rider. |
