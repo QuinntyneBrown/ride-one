@@ -115,6 +115,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L88 | A world spec's cost is its frames times the level's cost in software: High costs several times Low. Count the frames a spec draws (seconds ÷ frame time), open at the lowest level that still proves the rule, and run it inside the full verify, whose default timeout is 90 seconds, before committing; give a spec that needs more an explicit `test.setTimeout` with its reason. | 8.5 | 8.6 | Saved time |
 | L89 | The race bar hides `.race-bar__where`, the GPU tag inside it, below 48 rem (768 px), so a world spec that waits for the tag to be visible never finishes in a smaller viewport. To cheapen frames, keep the viewport at least 768 px wide, or wait on the tag's count rather than its visibility. | 8.5 | 8.6 | Saved time |
 | L90 | A canvas that draws on a change of input as well as on its loop still draws in a hidden tab whenever an input changes, and a race's clock changes every second. To prove a hidden tab draws nothing, hide it with `document.hidden` set by hand and `visibilitychange` sent (headless Chromium never hides its page), ride on, and count the renderer's frames through the test hook. | 8.6 | | |
+| L91 | A race's fixture pauses the page clock, so a film shot's `pictures()` and `shot()` wait forever unless `still()` steps the clock while they run, with or without a world. Wrap every picture call in a race shot in `still()`, and record one size with `-g` before the rest. | 8.6 | | |
 
 ## Log
 
@@ -135,12 +136,15 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 **What slowed it down**
 
-- Nothing much: half the slice (the panorama, L2-065 AC2) had been proven since 8.1, and the other half was a
-  three-line fix once the spec named it.
+- Half the slice (the panorama, L2-065 AC2) had been proven since 8.1, and the other half was a three-line fix
+  once the spec named it.
+- The film's four panorama shots hung for two minutes each: `pictures()` and `shot()` wait on the page, and the
+  race fixture's clock is paused, so they need `still()` stepping it even where no world draws (L91).
 
 **New lessons**
 
 - **L90 Count the frames a hidden tab draws, not only its loop.**
+- **L91 Step the paused clock around every picture in a race shot.**
 
 ### 8.5 Step down when frames drop (2026-11-21)
 
