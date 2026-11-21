@@ -103,6 +103,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [097 · Birds on wires](097-birds-on-wires.jpg) | Birds now perch along the top strand of each set of cables across the road: glossy black grackles and grey pigeons, three to six to a span, sitting crosswise on the wire and turned this way or that. From the saddle, a pigeon and a grackle sit on the near cable against the sky, small but clear. | 94% · 93/100 |
 | [098 · Lane arrows](098-lane-arrows.jpg) | Lane arrows are now painted on the asphalt in all four lanes: five metres long so they read foreshortened, mostly straight ahead, some ahead-and-right, the white scuffed and worn through by tyres. From the saddle, one points ahead in the left lane just past the manhole cover. | 94% · 93/100 |
 | [099 · Couple on the wall](099-couple-on-the-wall.jpg) | A couple now sit close on the seawall with their backs to the road, legs dangling over the sea side: he in a white shirt with his arm across her shoulders, she in pink with her head leant toward his. From the saddle, they sit on the wall between the teal cart and the coche's horse, against the sea. | 94% · 93/100 |
+| [100 · Litter](100-litter.jpg) | Litter now gathers in both gutters against the kerb: scraps of white and brown paper, flattened cans, bottle caps and dry leaves at all angles, mostly close in to the kerb. From the saddle, paper scraps and a red can lie in the near gutter below the yellow kerb; small, best seen close. | 94% · 93/100 |
 
 ## Reproducing a capture
 
