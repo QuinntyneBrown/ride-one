@@ -10,7 +10,7 @@ Estimates are working days for one intermediate developer, using `docs/detailed-
 | 1 | Scaffold the product | Angular workspace and libraries, .NET clean architecture, CI, test fixtures, hosting. | 10 | 100% |
 | 2 | Connect a bike | Pick the bike once; Telo Ride connects, reconnects and checks browser support. | 10 | 100% |
 | 3 | Read live telemetry | Power, cadence, speed and heart rate, live as the rider pedals. | 5 | 100% |
-| 4 | Control resistance | Plan sets target resistance; rider can raise, lower or take over. | 5 | 0% |
+| 4 | Control resistance | Plan sets target resistance; rider can raise, lower or take over. | 5 | 60% |
 | 5 | Ride a solo class | Video in sync, plan drives resistance, clock, pause, leave or finish. | 12 | 0% |
 | 6 | Browse and start a class | Class library by tier, class start with plan and ride choice. | 8 | 0% |
 | 7 | Race the ghost and bots | Browse maps, set up, ride the race HUD, finish against ghost and bots. | 15 | 0% |
@@ -35,4 +35,4 @@ Estimates are working days for one intermediate developer, using `docs/detailed-
 | 26 | Send feedback | Report a bug, share an idea or send kudos. | 5 | 0% |
 | 27 | Install the app | Install as an app from Chrome or Edge. | 3 | 0% |
 
-**Total:** 238 days. **Complete:** 25 days (11%).
+**Total:** 238 days. **Complete:** 28 days (12%).
