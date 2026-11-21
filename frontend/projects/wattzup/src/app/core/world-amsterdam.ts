@@ -116,6 +116,7 @@ export class AmsterdamStreet implements SceneStreet {
   private lanes: (() => number) | null = null;
   private farDress: (() => number) | null = null;
   private ivyRoll: (() => number) | null = null;
+  private lockRoll: (() => number) | null = null;
   private readonly crossers: { mesh: Group; phase: number; speed: number }[] = [];
   private bikeShape: BufferGeometry | null = null;
 
@@ -1082,6 +1083,11 @@ export class AmsterdamStreet implements SceneStreet {
     const ivyLeaf = this.material({ color: 0x24401e, roughness: 0.85 });
     this.disposables.push(tuft, guard, roots, ivy);
     const { post, lantern } = canalLamp();
+    const lockBike = bikeGeometry();
+    const lockPaints = [0x16181b, 0x2a3a5c, 0x6a1a1a, 0x8fc0b0, 0xe8dcc0].map((hex) =>
+      this.material({ color: hex, metalness: 0.35, roughness: 0.5 }),
+    );
+    this.disposables.push(lockBike);
     this.disposables.push(...elms.flatMap((e) => [e.wood, e.leaves]), post, lantern);
     const quays = [-roadHalf - QUAY + 1.1, -roadHalf - QUAY - CANAL - 1.2];
     for (const x of quays) {
@@ -1128,6 +1134,15 @@ export class AmsterdamStreet implements SceneStreet {
       for (const offset of spots) {
         const lamp = new Group();
         lamp.add(new Mesh(post, iron), new Mesh(lantern, glass));
+        // A bike or two locked to the lamp post, leant against it from either side.
+        const locked = (this.lockRoll ??= seeded(907));
+        for (const side of [-1, 1]) {
+          if (locked() < 0.45) continue;
+          const bike = new Mesh(lockBike, lockPaints[Math.floor(locked() * lockPaints.length)]!);
+          bike.position.set(side * 0.28, KERB, side * 0.35);
+          bike.rotation.set(0, Math.PI / 2 + side * 0.3, side * 0.16, 'YXZ');
+          lamp.add(bike);
+        }
         lamp.children.forEach((m) => (m.castShadow = true));
         this.group.add(lamp);
         this.props.push({ mesh: lamp, offset, x: x + 0.6 });
