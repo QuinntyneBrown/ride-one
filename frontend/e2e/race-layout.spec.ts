@@ -34,6 +34,21 @@ test('on a phone the race shows the world, power and interval only (L2-072 AC1, 
   await expect(race.bike).toBeHidden();
 });
 
+test('on a phone the bar’s Pause and End are at least 48 px (L2-072 AC3)', async ({
+  page,
+  bluetooth,
+  api,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const race = await startRace(page, bluetooth, api, 'old-town-criterium', 'mode=solo');
+
+  for (const control of [race.pause, race.end]) {
+    const rect = await box(control);
+    expect(rect.width).toBeGreaterThanOrEqual(48);
+    expect(rect.height).toBeGreaterThanOrEqual(48);
+  }
+});
+
 test('at md the bar names the map and route, and the route panel and board show (L2-058 AC4, L2-060 AC5, L2-062 AC3)', async ({
   page,
   bluetooth,
