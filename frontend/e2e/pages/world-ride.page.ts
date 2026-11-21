@@ -15,6 +15,7 @@ export class WorldRidePage {
   readonly pauseButton: Locator;
   readonly resumeButton: Locator;
   readonly endButton: Locator;
+  readonly musicButton: Locator;
   readonly notFoundTitle: Locator;
   readonly metrics: Locator;
   readonly power: Locator;
@@ -62,6 +63,7 @@ export class WorldRidePage {
     this.pauseButton = this.bar.getByRole('button', { name: 'Pause' });
     this.resumeButton = this.bar.getByRole('button', { name: 'Resume' });
     this.endButton = this.bar.getByRole('button', { name: 'End' });
+    this.musicButton = this.bar.getByRole('button', { name: 'Music' });
     this.notFoundTitle = page.getByRole('heading', { level: 1, name: "We can't find that class" });
     this.metrics = this.main.getByRole('region', { name: 'Live metrics' });
     this.power = this.metrics.locator('.world-ride__power');
@@ -98,6 +100,46 @@ export class WorldRidePage {
     this.endedOverlay = this.main.locator('.world-ride__overlay', { hasText: 'See your ride' });
     this.seeYourRide = this.endedOverlay.getByRole('link', { name: 'See your ride' });
     this.rideAnotherClass = this.endedOverlay.getByRole('link', { name: 'Ride another class' });
+  }
+
+  /**
+   * Records every `Audio` the page makes, so `music()` can read the world track's player
+   * (L2-128). Call before the page loads.
+   */
+  async probeMusic(): Promise<void> {
+    await this.page.addInitScript(() => {
+      const made: HTMLAudioElement[] = [];
+      const Native = window.Audio;
+      (window as unknown as { __wzAudio: HTMLAudioElement[] }).__wzAudio = made;
+      window.Audio = function (src?: string) {
+        const audio = new Native(src);
+        made.push(audio);
+        return audio;
+      } as unknown as typeof Audio;
+    });
+  }
+
+  /** The world track's player as the page left it, or null before one is made (L2-128). */
+  async music(): Promise<{
+    src: string;
+    paused: boolean;
+    loop: boolean;
+    volume: number;
+    time: number;
+  } | null> {
+    return this.page.evaluate(() => {
+      const made = (window as unknown as { __wzAudio?: HTMLAudioElement[] }).__wzAudio ?? [];
+      const a = made.at(-1);
+      return a
+        ? {
+            src: a.getAttribute('src') ?? '',
+            paused: a.paused,
+            loop: a.loop,
+            volume: a.volume,
+            time: a.currentTime,
+          }
+        : null;
+    });
   }
 
   /** A metric of the panel's description list by its term: `Cadence`, `Heart` or `Speed`. */

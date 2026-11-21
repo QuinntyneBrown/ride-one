@@ -16,6 +16,14 @@
       "resources": {
         "files": ["/fonts/**", "/icons/**", "/machines/**"]
       }
+    },
+    {
+      "name": "music",
+      "installMode": "lazy",
+      "updateMode": "lazy",
+      "resources": {
+        "files": ["/music/**"]
+      }
     }
   ],
   "dataGroups": [

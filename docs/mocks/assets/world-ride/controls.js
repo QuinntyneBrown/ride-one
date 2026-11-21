@@ -10,6 +10,17 @@
     pause.lastElementChild.textContent = label;
   });
 
+  const music = document.querySelector('[data-music]');
+  if (music) {
+    const on = 'M11 5 6 9H2v6h4l5 4V5zm4.5 3.5a5 5 0 0 1 0 7m3-10a9 9 0 0 1 0 13';
+    const off = 'M11 5 6 9H2v6h4l5 4V5zm11 4-6 6m0-6 6 6';
+    music.addEventListener('click', () => {
+      const playing = music.getAttribute('aria-pressed') !== 'true';
+      music.setAttribute('aria-pressed', String(playing));
+      music.querySelector('path').setAttribute('d', playing ? on : off);
+    });
+  }
+
   const level = document.querySelector('.world-ride__resistance output');
   const steppers = document.querySelectorAll('[data-step]');
   steppers.forEach(button => button.addEventListener('click', () => {

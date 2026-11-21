@@ -8,6 +8,8 @@
     [classHref]="classHref()"
     (pauseToggled)="togglePause()"
     (endRequested)="end()"
+    [musicOn]="musicOn()"
+    (musicToggled)="toggleMusic()"
     (stepped)="step($event)"
     [reconnecting]="reconnecting()"
     (navigate)="navigate($event)"

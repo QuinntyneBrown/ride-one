@@ -143,6 +143,10 @@ export class WorldRide {
 
   readonly pauseToggled = output<void>();
   readonly endRequested = output<void>();
+  /** Whether the world's track is on: the `Music` toggle's pressed state (L2-128 AC4). */
+  readonly musicOn = input(true);
+  /** The rider pressed `Music` (L2-128 AC4). */
+  readonly musicToggled = output<void>();
   /** − or + on the resistance panel. */
   readonly stepped = output<-1 | 1>();
   /** A plain click on a link, with its `href`. */

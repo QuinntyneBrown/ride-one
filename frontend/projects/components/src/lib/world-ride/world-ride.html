@@ -37,6 +37,17 @@
           }}<span class="world-ride__muted world-ride__total"> / {{ c.total }}</span></span
         >
         <button
+          class="btn btn--quiet btn--collapsible"
+          type="button"
+          aria-label="Music"
+          [attr.aria-pressed]="musicOn()"
+          (click)="musicToggled.emit()"
+        >
+          <wz-icon [name]="musicOn() ? 'volume' : 'volume-off'" size="sm" /><span class="btn__label"
+            >Music</span
+          >
+        </button>
+        <button
           class="btn btn--collapsible"
           type="button"
           [attr.aria-label]="v.paused ? 'Resume' : 'Pause'"

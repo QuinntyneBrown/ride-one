@@ -66,10 +66,12 @@ wattzup/
 │   │           ├── dashboard/             # pages, dialogs, orchestrating components
 │   │           └── app.config.ts          # the composition root
 │   ├── public/                            # fonts, images and classes.json, copied into the build
+│   │   └── music/                         # one background track per world, <world id>.ogg (L2-128)
 │   ├── e2e/                               # Playwright: fixtures/ (fake navigator.bluetooth), pages/, specs, sweeps/
 │   └── scripts/                           # bundle-size check, e2e static server
 ├── docs/
 │   ├── journeys.md                        # the user journeys, by value add
+│   ├── world-music.md                     # each world's track: title, artist, Pixabay page
 │   ├── videos/                            # a narrated film per journey (docs/videos/README.md)
 │   ├── specs/                             # L0.md (mission, when written), L1.md, L2.md
 │   ├── detailed-designs/                  # {subsystem}/{feature}/README.md + diagrams/

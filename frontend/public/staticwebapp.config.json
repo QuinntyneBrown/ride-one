@@ -6,6 +6,7 @@
       "/icons/*",
       "/machines/*",
       "/worlds/*",
+      "/music/*",
       "/*.{js,mjs,css,json,webmanifest,svg,png,jpg,jpeg,webp,avif,ico,woff,woff2,txt,map}"
     ]
   },
@@ -34,6 +35,7 @@
     "Referrer-Policy": "no-referrer"
   },
   "mimeTypes": {
-    ".webmanifest": "application/manifest+json"
+    ".webmanifest": "application/manifest+json",
+    ".ogg": "audio/ogg"
   }
 }
