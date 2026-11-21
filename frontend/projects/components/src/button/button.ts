@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 export type ButtonVariant = 'default' | 'primary';
-export type ButtonSize = 'md' | 'lg';
+export type ButtonSize = 'md' | 'lg' | 'xl';
 
 /**
  * A button or a link drawn as one (design-system block btn). Put it on the native element so the element keeps its
@@ -16,9 +16,13 @@ export type ButtonSize = 'md' | 'lg';
     class: 'btn',
     '[class.btn--primary]': 'variant() === "primary"',
     '[class.btn--lg]': 'size() === "lg"',
+    '[class.btn--xl]': 'size() === "xl"',
+    '[class.btn--block]': 'block()',
   },
 })
 export class Button {
   readonly variant = input<ButtonVariant>('default');
   readonly size = input<ButtonSize>('md');
+  /** Fills the width of its container. */
+  readonly block = input(false);
 }

@@ -60,7 +60,13 @@
                   "inlineCritical": false
                 },
                 "fonts": false
-              }
+              },
+              "fileReplacements": [
+                {
+                  "replace": "projects/ride/src/app/bike/simulated-bike.provider.ts",
+                  "with": "projects/ride/src/app/bike/simulated-bike.provider.production.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,

@@ -55,9 +55,11 @@ better than one that keeps growing. A further application still needs its own AD
 
 - **Dependency direction.** `ride` → `components`, `api`, `domain`; `domain` → `api`;
   `components` → `api` for types only; `api` → nothing. No library imports the app. `ride`'s
-  `app.config.ts` is the composition root and binds every token. ESLint enforces it. A new
-  library takes its place in this direction, and the same change adds it to this rule and to
-  the ESLint boundaries; it never depends on `ride`, and `api` still depends on nothing.
+  `app.config.ts` is the composition root and binds every token, except those the first screen
+  brings, which the lazy parent route in `ride.routes.ts` binds so their code stays out of the
+  initial bundle. ESLint enforces it. A new library takes its place in this direction, and the
+  same change adds it to this rule and to the ESLint boundaries; it never depends on `ride`,
+  and `api` still depends on nothing.
 - Protocol rules (framing, checksums, command bytes) live in `domain`'s `protocol/` only;
   business rules (workout stepping, target vs. actual resistance, sessions) in `engine/`.
   Nothing outside `bluetooth/` touches `navigator.bluetooth`. Every feature runs end to end

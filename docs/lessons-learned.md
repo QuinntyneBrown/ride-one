@@ -25,24 +25,66 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 | # | Lesson | From | Applied in | Result |
 |---|--------|------|------------|--------|
-| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with `frontend/node_modules` and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
-| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
-| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4 | Little effect |
-| L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3, 1.4 | Did not apply |
-| L5 | Read the initial chunk in the build output after every route or import change; the baseline is 257 kB raw against a 264 kB warning. | 1.1 | 1.2, 1.3, 1.4 | Checked: unchanged |
-| L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
-| L7 | Review every scene with `--frame` on one contact sheet before the full encode, and open any headline or terminal edge at full size; encode in the background with `--crf 23` for films over 2 minutes. Use `headline--md` for scene titles: `--lg` clips italic overhang. | 1.1 | 1.2, 1.3, 1.4 | Saved time; 1.4 needed a second encode |
+| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with its own `npm ci` in `frontend/` (never a `node_modules` symlink) and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4, 2.1 | Saved time |
+| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4, 2.1 | Saved time |
+| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4, 2.1 | Little effect |
+| L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3, 1.4, 2.1 | Saved time: `wz-button` took `size="xl"` and `block` |
+| L5 | Read the initial chunk in the build output after every route or import change; the baseline is 260.02 kB raw against a 264 kB warning. To see what grew it, `npx ng build ride --stats-json` and read `outputs[main-*.js].inputs` in `dist/ride/browser-stats.json` (delete it after). | 1.1 | 1.2, 1.3, 1.4, 2.1 | Saved time: found the bike code in main and moved it out |
+| L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3, 1.4, 2.1 | Saved time |
+| L7 | Review every scene with `--frame` on one contact sheet before the full encode, and open any headline or terminal edge at full size; encode in the background with `--crf 23` for films over 2 minutes. Use `headline--md` for scene titles: `--lg` clips italic overhang. | 1.1 | 1.2, 1.3, 1.4, 2.1 | Saved time; one encode |
 | L8 | Backend packages: EF Core on 10.0.x (11 needs .NET 11), MediatR 12.5 (last Apache 2.0), xUnit v3 on Microsoft Testing Platform (`backend/global.json`); probe a new package in a scratch project before an ADR names it; pin a vulnerable transitive package in `Directory.Packages.props`. | 1.2 | 1.3, 1.4 | Saved time |
 | L9 | A backend acceptance test is a fixture subclassing `TeloRideApiFactory` (`ConfigureServices` injects the fault); `ProbeController` and `SignedInProbeApi` stand in for endpoints and sign-in until features add theirs; await with `EventProbe<T>` (spans and hub events), never sleep; a hub test connects `HubConnectionBuilder` through `Server.CreateHandler()`; prove a guard by removing it once. | 1.2 | 1.3, 1.4 | Saved time |
-| L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3, 1.4 | Saved time |
+| L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3, 1.4, 2.1 | Saved time |
 | L11 | Prove a test double from the outside: a spec drives the browser API through a helper (`AppCalls`) until the app's own client exists; prove its guard with `test.fail()`, and run once without it to read the failure's reason. | 1.3 | 1.4 | Saved time |
-| L12 | In zsh and BSD tools: quote globs in arguments (`--include='*.cs'`), and replace whole words with `perl -pi -e 's/\bOld\b/New/g'`; BSD `sed` has no `\b`. | 1.3 | 1.4 | Saved time |
-| L13 | When the lockfile changes, verify's `npm ci` replaces the worktree's `node_modules` link with its own fresh install (about 4 s; the main checkout's copy is untouched): delete it with `rm -rf` before `git worktree remove`, and copy any added package into the main checkout's `node_modules` so the next worktree's link has it. | 1.3 | 1.4 | Did not apply |
+| L12 | In zsh and BSD tools: quote globs in arguments (`--include='*.cs'`), and replace whole words with `perl -pi -e 's/\bOld\b/New/g'`; BSD `sed` has no `\b`. | 1.3 | 1.4, 2.1 | Saved time |
+| L13 | Never symlink `node_modules` into a worktree: when verify's stamp (`node_modules/.verify-lock-hash`) does not match, its `npm ci` empties the linked main checkout's `node_modules` and installs into the worktree. After `npm ci` in a checkout by hand, write the stamp so verify skips the reinstall. | 1.3 | 1.4, 2.1 | Saved time; corrected twice (1.4, 2.1) |
 | L14 | For a production-like local run, `dotnet run --no-launch-profile` (`launchSettings.json` otherwise overrides `ASPNETCORE_URLS` and the environment), and `-- --webroot ../frontend/dist/ride/browser` to serve a build without copying it. | 1.4 | | |
 | L15 | Prove a workflow change on GitHub before merging: push the slice's branch (CI runs on every push), `gh run watch <id> --exit-status`, read the job times, then delete the remote branch after the merge. | 1.4 | | |
 | L16 | A hosting test's web root is an in-memory `IFileProvider` set with `PostConfigure<StaticFileOptions>` (`HostedAppApi`), so it reads no file. | 1.4 | | |
+| L17 | Judge verify by its exit status: `if E2E_PORT=4310 node tools/verify/verify.mjs > log 2>&1; then git commit …; fi`. Piping it to `grep` succeeds whatever verify did, and once committed a failing build. | 2.1 | | |
+| L18 | Bind an app-wide service the first screen needs (the bike connection, the ticker) in the providers of the lazy parent route in `ride.routes.ts`, not in `app.config.ts`: one instance serves every screen and its code leaves the initial chunk. | 2.1 | | |
+| L19 | What only a development build does gets a `*.development.spec.ts`, run by Playwright's `development` project against the development build on the next port; the `chromium` project proves the production build does not. | 2.1 | | |
+| L20 | Web Bluetooth in `domain`: start the file with `/// <reference types="web-bluetooth" />` (the app's tsconfig loads no ambient types), and type byte encoders `Uint8Array<ArrayBuffer>` so they pass as a `BufferSource`. | 2.1 | | |
 
 ## Log
+
+### 2.1 Ride a simulated bike (2026-11-21)
+
+**Applied from earlier**
+
+- **L1 own worktree and install; L2 port 4310 — saved time.** The worktree's own `npm ci` took
+  seconds, and the main checkout was left alone.
+- **L3 format first — little effect.** Prettier rewrote new files; nothing failed on it.
+- **L4 attribute components — saved time.** The pair button is `button[wz-button]` with a new
+  `size="xl"` and `block`, not a new component.
+- **L5 bundle — saved time.** The first build read 263.05 kB against a 257.46 kB baseline; the
+  stats file showed the bike connection and its ticker in the main chunk, and binding them on a lazy
+  parent route (L18) brought it to 260.02 kB.
+- **L6 track, L7 contact sheet, L10 scene ids, L12 zsh — saved time.** One encode; the sheet caught a
+  near-empty phone picture before it.
+- **L11 prove a double from the outside — did not apply.** The fake Bluetooth was already proven; the
+  production spec used it as it is.
+- **L13 never link `node_modules` — saved time.** No reinstall touched the main checkout.
+- **L14 to L16 — did not apply.** No backend change.
+
+**What slowed it down**
+
+- Verify's output was piped to `grep`, so a failing production build (library specs compiled into
+  the app) still reached a commit; it was amended after the fix.
+- The app's `tsconfig.app.json` excluded `**/*.spec.ts` relative to `projects/ride`, which never
+  reached the libraries' specs; the first library unit test broke the build until the exclude named
+  `../*/src/**/*.spec.ts`.
+- Web Bluetooth types needed a reference in the one file that uses them, and the newer
+  `Uint8Array<ArrayBufferLike>` would not pass as a `BufferSource`.
+- `AGENTS.md` says the composition root binds every token, and lazy loading outranks that: the
+  bike connection moved to the lazy parent route, and the design records why.
+
+**New lessons**
+
+- **L17 Judge verify by its exit status,** never by a `grep` of its output.
+- **L18 App-wide services the first screen needs bind on the lazy parent route** in `ride.routes.ts`.
+- **L19 Development-only behaviour gets a `*.development.spec.ts`** on Playwright's `development` project.
+- **L20 Web Bluetooth types in `domain`:** a triple-slash reference, and `Uint8Array<ArrayBuffer>` encoders.
 
 ### 1.4 CI and hosting (2026-11-21)
 
@@ -118,7 +160,9 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
   renames.
 - **L13 A lockfile change gives the worktree its own install.** Verify's `npm ci` replaced the
   `node_modules` link with a fresh install in the worktree; the main checkout's copy was untouched.
-  (First written as the reverse; corrected in 1.4 when `git worktree remove` met a real folder.)
+  (First written as the reverse; corrected in 1.4 when `git worktree remove` met a real folder.
+  Corrected again after 1.4: there, `npm ci` emptied the main checkout's `node_modules` through the
+  link. Worktrees now get their own install; see L1 and L13.)
 
 ### 1.2 Backend skeleton (2026-11-21)
 
