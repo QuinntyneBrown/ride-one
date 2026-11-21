@@ -32,6 +32,8 @@ test.describe('App shell', () => {
   }) => {
     const home = new HomePage(page);
     await home.open();
+    // Home's chunk loads after the shell; under load the first Tab can come before its main exists.
+    await expect(home.main).toBeAttached();
 
     await page.keyboard.press('Tab');
     await expect(home.skipLink).toBeFocused();
