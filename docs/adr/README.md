@@ -15,7 +15,7 @@
 | [0011](0011-treadmill-behind-a-flag.md) | Treadmill support behind a flag | Superseded by 0016 |
 | [0012](0012-youtube-ride-along.md) | Ride along to a YouTube video | Accepted, amended by 0014 |
 | [0013](0013-angular-workspace-with-libraries.md) | An Angular workspace with `components`, `api` and `wattzup` projects | Accepted, amended by 0016, 0017, 0019 and 0024 |
-| [0014](0014-class-catalogue-as-a-file.md) | A class catalogue in a file, with YouTube thumbnails as covers | Accepted, amended by 0017 and 0019 |
+| [0014](0014-class-catalogue-as-a-file.md) | A class catalogue in a file, with YouTube thumbnails as covers | Accepted, amended by 0017, 0019 and 0028 |
 | [0015](0015-sessions-kept-in-a-file.md) | Sessions kept in a file, computed in Core | Superseded by 0019 |
 | [0016](0016-bike-only.md) | Wattzup supports the bike only | Accepted |
 | [0017](0017-browser-edition.md) | A browser edition with no backend | Superseded by 0019 |
@@ -29,3 +29,4 @@
 | [0025](0025-thin-dotnet-backend.md) | A thin .NET backend for what one browser cannot do alone | Accepted |
 | [0026](0026-api-serves-the-app.md) | One App Service: the Telo Ride API serves the app and its backend as one origin | Accepted |
 | [0027](0027-marketing-site.md) | The marketing site: a `marketing` application with the pitch film | Accepted |
+| [0028](0028-class-catalogue-shipped-with-the-backend.md) | The class catalogue: a JSON file shipped with the backend, public, cached on the device | Accepted |

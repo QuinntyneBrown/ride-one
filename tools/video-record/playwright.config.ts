@@ -44,7 +44,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npx ng serve --port 4310",
+    command: "npx ng serve ride --port 4310",
     cwd: path.resolve(root, "frontend"),
     url: "http://localhost:4310",
     reuseExistingServer: true,

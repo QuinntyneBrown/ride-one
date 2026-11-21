@@ -9,7 +9,7 @@ copy reads are in [`docs/deployment.md`](../docs/deployment.md).
 |---------|-------|------------|
 | `src/Telo.Ride.Domain` | Entities, value objects, `DomainRuleException` | nothing |
 | `src/Telo.Ride.Application` | MediatR handlers, validators, `ValidationBehavior`, `IAppDbContext` | Domain |
-| `src/Telo.Ride.Infrastructure` | `AppDbContext` (EF Core, Azure SQL), migrations, `TeloRideMetrics` | Application |
+| `src/Telo.Ride.Infrastructure` | `AppDbContext` (EF Core, Azure SQL), migrations, `TeloRideMetrics`, and the class catalogue `Catalogue/classes.json`, embedded and read through `IClassCatalogue` (ADR 0028) | Application |
 | `src/Telo.Ride.Api` | `Program.cs`, controllers, `RideHub`, authentication, ProblemDetails, health, telemetry, `migrate`, and the app's build from `wwwroot` with the L2-131 headers (ADR 0026) | Infrastructure |
 | `tests/Telo.Ride.Api.Tests` | Acceptance tests through the API, in memory, on EF Core InMemory | Api |
 

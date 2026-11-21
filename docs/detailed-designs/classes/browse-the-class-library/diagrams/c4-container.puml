@@ -7,13 +7,13 @@ Person(rider, "Rider", "Rides a smart bike at home")
 System_Ext(youtube, "YouTube", "Class video thumbnails")
 System_Boundary(telo, "Telo Ride") {
   Container(app, "Ride app", "Angular, Chrome or Edge", "Class Library screen")
-  ContainerDb(idb, "Browser storage", "IndexedDB", "Cached class catalogue")
-  Container(api, "Telo Ride API", "ASP.NET Core, SignalR", "Serves the class catalogue and progress")
-  ContainerDb(db, "Telo Ride database", "EF Core; engine <TO SUPPLY>", "Class definitions, rider progress")
+  ContainerDb(idb, "Browser storage", "localStorage", "Cached class catalogue")
+  Container(api, "Telo Ride API", "ASP.NET Core, SignalR", "Serves the class catalogue from its embedded classes.json, and progress")
+  ContainerDb(db, "Telo Ride database", "EF Core, Azure SQL", "Rider progress")
 }
 Rel(rider, app, "Uses", "HTTPS")
 Rel(app, api, "GET /api/classes, GET /api/progress", "JSON/HTTPS")
 Rel(app, idb, "Caches and reads the catalogue")
 Rel(app, youtube, "Loads covers", "HTTPS")
-Rel(api, db, "Reads class definitions", "EF Core")
+Rel(api, db, "Reads rider progress", "EF Core")
 @enduml

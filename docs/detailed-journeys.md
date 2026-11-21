@@ -24,7 +24,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 5.2 | Class ride screen | Header, segment, power, cadence and resistance stepper on the simulated bike. | 3 | 5. Ride a solo class | 100% |
 | 5.3 | Sync the class video | YouTube player follows the ride clock; video-unavailable notice. | 3 | 5. Ride a solo class | 100% |
 | 5.4 | Pause, leave or finish a class | Pause and resume a solo class, leave with confirmation, or finish at the end and go to results. | 3 | 5. Ride a solo class | 100% |
-| 6.1 | Class catalogue API | `GET /api/classes` from the catalogue file; cached on the device. | 2 | 6. Browse and start a class | 0% |
+| 6.1 | Class catalogue API | `GET /api/classes` from the catalogue file; cached on the device. | 2 | 6. Browse and start a class | 100% |
 | 6.2 | Class library | Classes listed by length and tier with cover, coach and duration; locked tiers say what opens them. | 3 | 6. Browse and start a class | 0% |
 | 6.3 | Class start | Parked video, plan, ride alone; Start class opens the ride. | 3 | 6. Browse and start a class | 0% |
 | 7.1 | Browse maps | Map list with distance, climb and stars; locked maps shown. | 3 | 7. Race the ghost and bots | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 17 slices, 42 days (18%).
+**Total:** 95 slices, 238 days. **Complete:** 18 slices, 44 days (18%).

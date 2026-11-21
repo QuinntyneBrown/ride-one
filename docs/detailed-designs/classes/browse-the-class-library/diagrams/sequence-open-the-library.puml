@@ -20,9 +20,10 @@ box "Frontend — Ride app (ride application and components library)" #E0F2FE
   participant "ClassLibraryStore" as store
 end box
 box "Frontend — Ride app (api, domain and video libraries)" #E0F2FE
+  participant "CachedClassesApi" as cached
   participant "HttpClassesApi" as capi
-  participant "HttpProgressApi" as papi
   participant "CatalogueCache" as cache
+  participant "HttpProgressApi" as papi
 end box
 box "Backend — Telo.Ride.Api" #D1FADF
   participant "ClassesController" as ctrl
@@ -32,15 +33,16 @@ box "Backend — Telo.Ride.Application and Domain" #ECFDF3
   participant "ClassPlanRules" as rules
 end box
 box "Backend — Telo.Ride.Infrastructure" #FFF4E5
-  database "Telo Ride database" as db
+  participant "EmbeddedClassCatalogue" as db
 end box
 rider -> page : Open /classes
 page -> store : init()
 par catalogue
-  store -> capi : list()
-  capi -> ctrl : GET /api/classes
+  store -> cached : list()
+  cached -> capi : list()
+  capi -> ctrl : GET /api/classes (public)
   ctrl -> handler : Send GetClassesQuery
-  handler -> db : Load ClassDefinitions
+  handler -> db : Classes (classes.json, read once)
   db --> handler : Seven definitions
   loop each class
     handler -> rules : Validate plan (levels 1–32, total = length) L2-080 AC4
@@ -48,15 +50,17 @@ par catalogue
   end
   handler --> ctrl : ClassCatalogueDto (valid classes only)
   ctrl --> capi : 200 OK
-  capi --> store : Catalogue
-  store -> cache : Save catalogue L2-080 AC3
+  capi --> cached : Catalogue
+  cached -> cache : Save catalogue L2-080 AC3
+  cached --> store : Catalogue
 else progress
   store -> papi : get()
   papi --> store : Rider level 7
 end
 alt catalogue request failed
-  store -> cache : Read last catalogue
-  cache --> store : Cached catalogue
+  cached -> cache : Read last catalogue
+  cache --> cached : Cached catalogue
+  cached --> store : Cached catalogue (L2-135 AC3)
 end
 store -> store : Mark classes above level 7 locked ("Opens at level 10", "Opens at level 20") L2-082 AC1
 store --> page : Shelves with card views
