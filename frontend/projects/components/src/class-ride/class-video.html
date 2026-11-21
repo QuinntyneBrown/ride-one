@@ -1,0 +1,9 @@
+<div class="class-video">
+  <img class="photo photo--yt" [src]="cover()" [alt]="'Video: ' + title()" />
+  <div class="class-video__player"></div>
+</div>
+@if (unavailable()) {
+  <wz-inline-message class="class-video__notice" tone="warn" role="status"
+    >The video can’t play. The bike will still follow the class.</wz-inline-message
+  >
+}

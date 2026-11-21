@@ -144,6 +144,20 @@
           }
         }
       }
+    },
+    "video": {
+      "projectType": "library",
+      "root": "projects/video",
+      "sourceRoot": "projects/video/src",
+      "prefix": "wz",
+      "architect": {
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/video/**/*.ts", "projects/video/**/*.html"]
+          }
+        }
+      }
     }
   }
 }

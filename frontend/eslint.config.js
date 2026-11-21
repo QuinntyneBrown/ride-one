@@ -50,8 +50,8 @@ module.exports = defineConfig([
       ...noBluetooth,
     },
   },
-  // Dependency direction (AGENTS.md, L2-146 AC2): ride -> components, api, domain; domain -> api;
-  // components -> api for types only; api -> nothing in the workspace.
+  // Dependency direction (AGENTS.md, L2-146 AC2): ride -> components, api, domain, video; domain -> api;
+  // components -> api for types only; video -> api; api -> nothing in the workspace.
   {
     files: ['projects/api/**/*.ts'],
     rules: {
@@ -66,6 +66,10 @@ module.exports = defineConfig([
             },
             {
               name: '@telo/components',
+              message: 'The api library depends on nothing in the workspace.',
+            },
+            {
+              name: '@telo/video',
               message: 'The api library depends on nothing in the workspace.',
             },
             { name: '@angular/router', message: 'The api library knows no route.' },
@@ -84,6 +88,7 @@ module.exports = defineConfig([
           paths: [
             { name: '@telo/domain', message: 'Import within the library by relative path.' },
             { name: '@telo/components', message: 'The domain library depends on api only.' },
+            { name: '@telo/video', message: 'The domain library depends on api only.' },
             { name: '@angular/router', message: 'The domain library knows no route.' },
           ],
           patterns: [outside, noRide],
@@ -109,10 +114,28 @@ module.exports = defineConfig([
             },
             { name: '@telo/domain', message: 'Presentation components inject no service.' },
             { name: '@telo/components', message: 'Import a sibling component by relative path.' },
+            { name: '@telo/video', message: 'Presentation components inject no service.' },
             {
               name: '@angular/router',
               message: 'Presentation components know no route; emit an output.',
             },
+          ],
+          patterns: [outside, noRide],
+        },
+      ],
+    },
+  },
+  {
+    files: ['projects/video/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: '@telo/video', message: 'Import within the library by relative path.' },
+            { name: '@telo/domain', message: 'The video library depends on api only.' },
+            { name: '@telo/components', message: 'The video library depends on api only.' },
+            { name: '@angular/router', message: 'The video library knows no route.' },
           ],
           patterns: [outside, noRide],
         },
@@ -128,7 +151,8 @@ module.exports = defineConfig([
           patterns: [
             {
               regex: '^(\\.\\./){4,}',
-              message: 'Use @telo/api, @telo/domain or @telo/components, never a library path.',
+              message:
+                'Use @telo/api, @telo/domain, @telo/components or @telo/video, never a library path.',
             },
           ],
         },
