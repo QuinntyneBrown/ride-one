@@ -6,6 +6,11 @@
     @if (store.dto(); as dto) {
       <main id="main" class="container class-start" tabindex="-1">
         <section class="class-start__main" aria-labelledby="class-title">
+          <wz-class-start-video
+            [videoId]="dto.video.videoId"
+            [title]="dto.title"
+            (frame)="store.parkVideo($event)"
+          />
           <p class="class-start__meta">{{ store.meta() }}</p>
           <h1 class="class-start__title" id="class-title">{{ dto.title }}</h1>
           <p class="class-start__summary">{{ dto.summary }}</p>

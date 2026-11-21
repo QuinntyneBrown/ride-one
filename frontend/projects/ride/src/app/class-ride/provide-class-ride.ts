@@ -1,6 +1,7 @@
 import type { EnvironmentProviders, Provider } from '@angular/core';
-import { MONOTONIC_TIME, SCREEN_WAKE_LOCK, VIDEO_PLAYER_FACTORY } from '@telo/api';
+import { MONOTONIC_TIME, SCREEN_WAKE_LOCK } from '@telo/api';
 import { BrowserScreenWakeLock } from '@telo/domain';
+import { provideClassVideo } from '../classes/provide-class-video';
 import { provideClasses } from '../classes/provide-classes';
 
 /**
@@ -14,9 +15,6 @@ export function provideClassRide(): (Provider | EnvironmentProviders)[] {
     ...provideClasses(),
     { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },
     { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
-    {
-      provide: VIDEO_PLAYER_FACTORY,
-      useValue: () => import('@telo/video').then((video) => new video.YouTubeVideoPlayer()),
-    },
+    provideClassVideo(),
   ];
 }

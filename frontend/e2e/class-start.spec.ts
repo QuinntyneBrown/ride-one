@@ -2,7 +2,8 @@
 // Traces to: L2-084 AC1, AC2
 // Description: an open class card leads to its Class Start, which reads "← Classes", the class's channel, length and
 // focus, its title and its summary; "← Classes" leads back to the library. "What the bike will do" reads the class's
-// length, its resistance profile and its structure with the expected average power.
+// length, its resistance profile and its structure with the expected average power. The class video waits, parked at
+// its sync offset with YouTube's controls.
 import { library } from './fixtures/library';
 import { expect, test } from './fixtures/test';
 import { ClassLibraryPage } from './pages/class-library.page';
@@ -42,5 +43,23 @@ test.describe('Class Start', () => {
     await expect(start.planTotal).toHaveText('30:00');
     await expect(start.profile).toBeVisible();
     await expect(start.planSummary).toHaveText('8 × 0:30 · 3:00 → 1:30 recover · ~154 W average');
+  });
+
+  test('the class video waits parked at its sync offset, with its controls (L2-084 AC1)', async ({
+    page,
+    youtube,
+  }) => {
+    const start = new ClassStartPage(page);
+    await start.open('hiit-cardio-30');
+
+    await expect.poll(async () => (await youtube.players()).length).toBe(1);
+    const [player] = await youtube.players();
+    expect(player.videoId).toBe('QUoToFsMNig');
+    expect(player.playerVars).toMatchObject({ start: 12, controls: 1 });
+    await expect
+      .poll(async () => (await youtube.players())[0].title)
+      .toBe('Video: 30 Minute HIIT Cardio');
+    expect((await youtube.players())[0].playing).toBe(false);
+    expect(await youtube.seeks()).toEqual([]);
   });
 });
