@@ -6,6 +6,7 @@ import {
   type SentCommand,
 } from '@telo/api';
 import { MAX_RESISTANCE, MIN_RESISTANCE } from '../protocol/echelon-protocol';
+import { BikeTelemetry } from './bike-telemetry';
 
 const clamp = (level: number): number =>
   Math.min(MAX_RESISTANCE, Math.max(MIN_RESISTANCE, Math.round(level)));
@@ -20,6 +21,7 @@ const clamp = (level: number): number =>
 @Injectable()
 export class ResistanceController {
   private readonly connection = inject(BIKE_CONNECTION);
+  private readonly telemetry = inject(BikeTelemetry, { optional: true });
   private readonly level = signal<number | null>(null);
   private readonly from = signal<ResistanceSource>('plan');
   private readonly refused = signal(false);
@@ -32,6 +34,22 @@ export class ResistanceController {
 
   applyPlanLevel(level: number): Promise<void> {
     return this.send(level, 'plan');
+  }
+
+  /**
+   * "Raise resistance" or "Lower resistance": one level from the target, or from the bike's reported resistance before
+   * any target, clamped and sent as the rider's own (L2-028 AC1). Nothing is sent while it cannot control the bike
+   * (AC4); the next segment's plan level replaces it (AC3).
+   */
+  nudge(delta: 1 | -1): Promise<void> {
+    const from = this.level() ?? this.telemetry?.resistance() ?? MIN_RESISTANCE;
+    return this.setManual(from + delta);
+  }
+
+  /** A "Level N" bar: N becomes the target, as the rider's own (L2-028 AC2). */
+  async setManual(level: number): Promise<void> {
+    if (!this.canControl()) return;
+    await this.send(level, 'manual');
   }
 
   private async send(level: number, source: ResistanceSource): Promise<void> {

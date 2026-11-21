@@ -1,5 +1,5 @@
 // Unit test (the slice's acceptance table: the ride screens that show resistance come with journeys 5, 7 and 21)
-// Traces to: L2-025 AC2, AC4; L2-026 AC1; L2-027 AC1, AC4; L2-028 AC4
+// Traces to: L2-025 AC2, AC4; L2-026 AC1; L2-027 AC1, AC4; L2-028 AC1 to AC4
 // Description: a plan's level becomes the target resistance, clamped to 1 to 32 and sent, with its acknowledgement
 // time kept; the bike's reported resistance stays apart from the target; with the bike away or refusing control the
 // controller cannot control it, and the connection keeps the target for the reconnect. A fake connection stands in
@@ -109,5 +109,95 @@ describe('ResistanceController on the simulated bike', () => {
     expect(controller.target()).toBe(14);
     expect(controller.last()).toEqual({ rideTime: null, level: 14, source: 'plan', ackMs: 0 });
     TestBed.resetTestingModule();
+  });
+});
+
+describe('ResistanceController by hand', () => {
+  const ble = signal<BleState>('connected');
+  const reported = signal<number | null>(null);
+  let setResistance: ReturnType<typeof vi.fn<(level: number) => Promise<number>>>;
+  let controller: ResistanceController;
+
+  beforeEach(() => {
+    ble.set('connected');
+    reported.set(null);
+    setResistance = vi.fn(async () => 30);
+    const connection: Partial<BikeConnection> = { ble, setResistance };
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        ResistanceController,
+        { provide: BIKE_CONNECTION, useValue: connection },
+        { provide: BikeTelemetry, useValue: { resistance: reported } },
+      ],
+    });
+    controller = TestBed.inject(ResistanceController);
+  });
+
+  it('raises and lowers the target by one level and sends it, as the rider’s own (L2-028 AC1)', async () => {
+    await controller.applyPlanLevel(12);
+
+    await controller.nudge(1);
+    expect(setResistance).toHaveBeenLastCalledWith(13);
+    expect(controller.target()).toBe(13);
+    expect(controller.source()).toBe('manual');
+
+    await controller.nudge(-1);
+    await controller.nudge(-1);
+    expect(controller.target()).toBe(11);
+    expect(controller.last()).toEqual({ rideTime: null, level: 11, source: 'manual', ackMs: 30 });
+  });
+
+  it.each([
+    [32, 1, 32],
+    [1, -1, 1],
+  ] as const)(
+    'keeps a target of %d at %d after a nudge of %d, clamped to 1 to 32 (L2-028 AC1)',
+    async (level, delta, kept) => {
+      await controller.applyPlanLevel(level);
+
+      await controller.nudge(delta);
+
+      expect(controller.target()).toBe(kept);
+    },
+  );
+
+  it('nudges from the bike’s reported resistance before any target', async () => {
+    reported.set(8);
+
+    await controller.nudge(1);
+
+    expect(setResistance).toHaveBeenCalledWith(9);
+  });
+
+  it('sets the level the rider picks as the target (L2-028 AC2)', async () => {
+    await controller.setManual(20);
+
+    expect(setResistance).toHaveBeenCalledWith(20);
+    expect(controller.target()).toBe(20);
+    expect(controller.source()).toBe('manual');
+  });
+
+  it('applies the plan’s level again when the next segment starts (L2-028 AC3)', async () => {
+    await controller.applyPlanLevel(12);
+    await controller.setManual(18);
+
+    await controller.applyPlanLevel(10);
+
+    expect(controller.target()).toBe(10);
+    expect(controller.source()).toBe('plan');
+  });
+
+  it('sends nothing by hand while the bike is away (L2-028 AC4)', async () => {
+    await controller.applyPlanLevel(12);
+    setResistance.mockClear();
+    ble.set('disconnected');
+
+    await controller.nudge(1);
+    await controller.setManual(20);
+
+    expect(setResistance).not.toHaveBeenCalled();
+    expect(controller.target()).toBe(12);
+    expect(controller.source()).toBe('plan');
   });
 });
