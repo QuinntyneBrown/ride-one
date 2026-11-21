@@ -7,8 +7,7 @@ Container_Boundary(app, "Ride app") {
   Component(routes, "app.routes.ts", "Lazy routes · ride", "loadComponent for every route")
   Component(race, "RacePage", "Angular page · ride", "Imports the world library dynamically")
   Component(world, "World library", "Three.js, WebGPU or WebGL 2", "Draws the race world")
-  Component(monitor, "FrameBudgetMonitor", "Class · world", "Ring buffer of 120 frame times")
-  Component(governor, "QualityGovernor", "Class · world", "Steps quality down before frame rate")
+  Component(budget, "FrameBudget", "Class · world, main's", "Two slow 2-second windows drop a level")
 }
 Container_Boundary(api, "Telo Ride API") {
   Component(ticker, "StandingsTicker", "Hosted service · Telo.Ride.Api", "Once-a-second tick")
@@ -18,9 +17,8 @@ Container_Boundary(api, "Telo Ride API") {
 }
 Rel(routes, race, "Loads lazily")
 Rel(race, world, "import()")
-Rel(world, monitor, "Reports frame times")
-Rel(governor, monitor, "Reads average")
-Rel(governor, world, "Applies QualityStep")
+Rel(world, budget, "Samples each frame's time")
+Rel(budget, world, "Drops a level")
 Rel(ticker, handler, "Sends PublishStandingsCommand")
 Rel(handler, hub, "Sends StandingsUpdated to group")
 Rel(ticker, metrics, "Records delivery time")

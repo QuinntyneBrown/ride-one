@@ -14,28 +14,24 @@ skinparam class {
 title Class structure — Meet performance budgets
 hide empty members
 
-class FrameBudgetMonitor <<world>> {
-  -frameTimes: RingBuffer<number>
-  -lastTimestamp: number
-  +onFrame(timestamp: number): void
-  +averageFps(): number
-  +msBelow30(): number
+class FrameBudget <<world>> {
+  -current: Tier
+  -periodMs: number
+  -frames: number[]
+  -overInARow: number
+  +tier: Tier
+  +setPeriod(ms: number): void
+  +pause(): void
+  +sample(now: number, frameMs: number): "keep" | "drop"
 }
-class QualityGovernor <<world>> {
-  -steps: QualityStep[]
-  -index: number
-  +evaluate(): void
-  +current(): QualityStep
+class WorldRenderer <<world>> {
+  -budget: FrameBudget
+  -applyTier(): void
 }
-class QualityStep <<world>> {
-  +pixelRatio: number
-  +shadowMapSize: number
-  +lodBias: number
-}
-class RingBuffer<T> <<domain/engine>> {
-  -capacity: number
-  +push(value: T): void
-  +values(): T[]
+class "render-quality" as rq <<world>> {
+  +techniquesAt(tier, backend, reducedMotion): Set<number>
+  +startTier(): Tier
+  +nextLower(tier): Tier | null
 }
 class StandingsTicker <<Telo.Ride.Api>> {
   -timer: PeriodicTimer
@@ -54,9 +50,9 @@ class TeloRideMetrics <<Telo.Ride.Infrastructure>> {
   +StandingsDelivery: Histogram<double>
   +HubConnections: UpDownCounter<long>
 }
-FrameBudgetMonitor *-- RingBuffer
-QualityGovernor --> FrameBudgetMonitor : reads
-QualityGovernor "1" *-- "*" QualityStep
+WorldRenderer *-- FrameBudget
+WorldRenderer ..> rq : reads the level's techniques
+FrameBudget ..> rq : nextLower
 StandingsTicker ..> PublishStandingsCommand : sends
 PublishStandingsCommandHandler ..> PublishStandingsCommand : handles
 StandingsTicker --> TeloRideMetrics : records

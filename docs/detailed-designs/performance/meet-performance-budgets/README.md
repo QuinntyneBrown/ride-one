@@ -37,12 +37,17 @@ frame budget is held and measured.
   20.7 kB raw, 5.3 kB transferred, to `main` wherever it is provided, because
   `@angular/platform-browser` and `@angular/router` import `@angular/common/http`, so esbuild
   places that module in the initial chunk. Every backend client needs it.
-- **`FrameBudgetMonitor`** — class in the world library. It keeps a fixed-size ring buffer of the
-  last 120 frame times from `requestAnimationFrame` timestamps and reports the moving average and
-  the time spent below 30 frames a second.
-- **`QualityGovernor`** — class in the world library. When the average falls below 50 frames a
-  second it applies the next lower `QualityStep`; when the average holds well above it for
-  `<TO SUPPLY>` seconds it raises one step. Frame rate is protected by giving up detail first.
+- **`measureFramePeriod`** — `main`'s `frame-period.ts` in the world library. Before the world's
+  first frame it takes the median of about 30 frame intervals and snaps it to the nearest common
+  refresh rate: the display's frame period _P_ (16.7 ms at 60 Hz).
+- **`FrameBudget`** — `main`'s class in `render-quality.ts`, fed each frame's time by the renderer.
+  Every 2 seconds it takes the median frame of that window; a window whose median is over
+  1.2 × _P_ is slow. After two slow windows in a row it drops one quality level, or straight to
+  Low when the second window's median is 3 × _P_ or more, so the rider sees one change of look,
+  not one per level. It never drops below Low and never raises the level during the ride
+  (`L2-159` AC4). The renderer applies the new level on the next frame; its programs were
+  compiled while the world loaded, so the drop costs no hitch. Frame rate is protected by giving
+  up detail first (`L2-136` AC3).
 - **Web Vitals measurement** — a Lighthouse run (`tools/perf/home-vitals.mjs`) with a mobile
   device profile and a 4G throttling profile measures Home cold. The device and network profile
   values are `<TO SUPPLY>`. Like the heap checks, it runs only when a person asks.
@@ -92,22 +97,25 @@ request and standings budgets.
 ### Components
 
 On the frontend, lazy routes and the dynamically imported world library keep the initial bundle
-small, and `QualityGovernor` reacts to `FrameBudgetMonitor`. On the backend, `StandingsTicker`
+small, and the renderer feeds `FrameBudget` each frame's time. On the backend, `StandingsTicker`
 drives the standings and `TeloRideMetrics` records their delivery time.
 
 ![C4 component view for meeting performance budgets](diagrams/c4-component.png)
 
 ### Class structure
 
-`QualityGovernor` reads `FrameBudgetMonitor` and walks an ordered list of `QualityStep`s.
+The renderer owns one `FrameBudget`, judged against the period `measureFramePeriod` found, and
+reads the techniques of its level from `techniquesAt`.
 `StandingsTicker` sends one command per session and records into `TeloRideMetrics`.
 
 ![Class diagram for meeting performance budgets](diagrams/class-structure.png)
 
 ### Behaviour — step quality down to hold the frame rate
 
-When the moving average drops below 50 frames a second, the governor lowers one quality step
-before frame rate falls further (`L2-136` AC3).
+Each frame the renderer hands `FrameBudget` the frame's time. When two 2-second windows in a row
+have a median frame over 1.2 × _P_, the budget drops one level for the rest of the race, or
+straight to Low when the second is 3 × _P_ or more; the renderer draws the new level's techniques
+from the next frame (`L2-159` AC4, `L2-136` AC3).
 
 ![Sequence diagram for stepping quality down](diagrams/sequence-quality-step-down.png)
 
@@ -124,3 +132,12 @@ Each second the ticker ranks every running session and sends its standings; the 
 recorded for the 95th-percentile budget (`L2-137` AC2).
 
 ![Sequence diagram for delivering standings](diagrams/sequence-standings-tick.png)
+
+## Open questions
+
+- **Slice 8.5 follows `L2-159` AC4 and `main`.** This design first named a `FrameBudgetMonitor`
+  averaging 120 frames and a `QualityGovernor` that stepped down below 50 frames a second and
+  raised a step again after a stretch well above it. `L2-159` AC4 judges two 2-second windows
+  against the display's frame period and never raises the level, and so does `main`'s
+  `FrameBudget`, which the world library carries (ADR 0030). `main` wins on rendering, so its far
+  slow window, 3 × _P_ or more, dropping straight to Low (its #896), joins `L2-159` AC4.
