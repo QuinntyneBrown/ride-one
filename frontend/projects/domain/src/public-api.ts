@@ -3,6 +3,7 @@ export { bikeStatus } from './bluetooth/bike-status';
 export { type BikeIdentity, bikeIdentity } from './bluetooth/bike-identity';
 export { EchelonFrameDecoder } from './protocol/echelon-frame-decoder';
 export { FtmsProtocol, type ResistanceRange } from './protocol/ftms-protocol';
+export { IndoorBikeDataDecoder } from './protocol/indoor-bike-data-decoder';
 export { GattWriteQueue } from './bluetooth/gatt-write-queue';
 export { REMEMBERED_BIKE_KEY, RememberedBikeStore } from './storage/remembered-bike-store';
 export { SUPPORTED_BIKES } from './bluetooth/supported-bikes';
