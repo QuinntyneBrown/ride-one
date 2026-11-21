@@ -40,3 +40,5 @@ export { CachedClassesApi } from './storage/cached-classes-api';
 export { CATALOGUE_KEY, CatalogueCache } from './storage/catalogue-cache';
 export { NewRiderProgress } from './engine/new-rider-progress';
 export { PlanSummary } from './engine/plan-summary';
+export { CachedMapsApi } from './storage/cached-maps-api';
+export { MAP_CATALOGUE_KEY, MapCatalogueCache } from './storage/map-catalogue-cache';

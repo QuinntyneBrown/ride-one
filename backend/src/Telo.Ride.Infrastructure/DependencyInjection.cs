@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Telo.Ride.Application;
 using Telo.Ride.Application.Classes;
+using Telo.Ride.Application.Maps;
 using Telo.Ride.Infrastructure.Catalogue;
 
 namespace Telo.Ride.Infrastructure;
@@ -22,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
         services.AddSingleton<TeloRideMetrics>();
         services.AddSingleton<IClassCatalogue, EmbeddedClassCatalogue>();
+        services.AddSingleton<IMapCatalogue, EmbeddedMapCatalogue>();
         return services;
     }
 }

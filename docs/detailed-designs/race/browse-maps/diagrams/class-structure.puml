@@ -25,83 +25,84 @@ enum MapRowState {
 }
 class MapDto {
   +id: string
-  +order: number
   +name: string
   +routeName: string
   +place: string
   +distanceKm: number
   +climbingM: number
   +rating: MapRating
+  +world: string
   +thumbnailUrl: string
-  +photoUrl: string
-  +panoramaUrl: string
-  +worldId: string
-  +worldDescription: string
-  +elevationProfile: ElevationPoint[]
-  +plan: SegmentDto[]
-  +starRules: string[]
-  +unlockGoal: string
-  +realPlace?: RealPlaceDto
-}
-class ProgressDto {
-  +openMapIds: string[]
-  +nextUnlock: NextUnlockDto
-  +maps: MapProgressDto[]
+  +unlockGoal: string | null
 }
 class MapProgressDto {
-  +mapId: string
-  +stars: number
-  +bestTimeSeconds?: number
+  +openMapIds: string[]
+  +nextUnlockId: string | null
+  +stars: Record<string, number>
+  +bestTimeSeconds: Record<string, number>
 }
 class MapPathRow {
   +map: MapDto
   +state: MapRowState
   +stars: number
-  +bestTimeSeconds?: number
-  +goal?: string
+  +best: string | null
 }
 class MapPathStore {
   +rows: Signal<MapPathRow[]>
-  +loading: Signal<boolean>
-  +load(): Promise<void>
+  +unavailable: Signal<boolean>
+  +retry(): void
 }
-interface CatalogueApi {
-  +getMaps(): Promise<MapDto[]>
+interface MapsApi {
+  +list(): Observable<MapDto[]>
 }
 interface ProgressApi {
-  +getProgress(): Promise<ProgressDto>
+  +level(): Observable<number>
+  +maps(): Observable<MapProgressDto>
 }
-class CatalogueCache {
-  +readMaps(): Promise<MapDto[] | undefined>
-  +writeMaps(maps: MapDto[]): Promise<void>
+class CachedMapsApi
+class MapCatalogueCache {
+  +read(): MapDto[] | null
+  +save(maps: MapDto[]): void
 }
+class NewRiderProgress
 class MapSelectPage
 class MapRow {
-  +row: InputSignal<MapPathRow>
+  +name: InputSignal<string>
+  +state: InputSignal<MapRowState>
 }
 class MapDefinition {
   +string Id
-  +int Order
   +string Name
-  +decimal DistanceKm
+  +string RouteName
+  +string Place
+  +double DistanceKm
   +int ClimbingM
-  +MapRating Rating
-  +string WorldId
-  +IReadOnlyList<Segment> Plan
-  +IReadOnlyList<ElevationPoint> ElevationProfile
+  +string Rating
+  +string World
+  +string ThumbnailUrl
+  +MapUnlock Unlock
 }
-class ListMapsQueryHandler {
-  +Handle(query: ListMapsQuery): Task<IReadOnlyList<MapDto>>
+class MapUnlock {
+  +string Kind
+  +string? MapId
+  +int? Stars
+  +int? Level
+  +Goal(names): string?
+}
+class GetMapsQueryHandler {
+  +Handle(query: GetMapsQuery): Task<IReadOnlyList<MapDto>>
 }
 MapSelectPage ..> MapPathStore : reads
 MapSelectPage ..> MapRow : renders
-MapPathStore ..> CatalogueApi : uses
+MapPathStore ..> MapsApi : uses
 MapPathStore ..> ProgressApi : uses
-MapPathStore ..> CatalogueCache : falls back to
+CachedMapsApi ..|> MapsApi
+CachedMapsApi ..> MapCatalogueCache : falls back to
+NewRiderProgress ..|> ProgressApi
 MapPathStore "1" *-- "*" MapPathRow : builds
 MapPathRow --> MapDto
 MapPathRow --> MapRowState
 MapDto --> MapRating
-ProgressDto "1" *-- "*" MapProgressDto
-ListMapsQueryHandler ..> MapDefinition : reads
+GetMapsQueryHandler ..> MapDefinition : reads
+MapDefinition *-- MapUnlock
 @enduml

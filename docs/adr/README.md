@@ -30,3 +30,4 @@
 | [0026](0026-api-serves-the-app.md) | One App Service: the Telo Ride API serves the app and its backend as one origin | Accepted |
 | [0027](0027-marketing-site.md) | The marketing site: a `marketing` application with the pitch film | Accepted |
 | [0028](0028-class-catalogue-shipped-with-the-backend.md) | The class catalogue: a JSON file shipped with the backend, public, cached on the device | Accepted |
+| [0029](0029-map-catalogue-shipped-with-the-backend.md) | The map catalogue: a JSON file shipped with the backend, public, cached on the device | Accepted |
