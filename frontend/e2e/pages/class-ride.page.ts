@@ -14,6 +14,8 @@ export class ClassRidePage {
   readonly resume: Locator;
   readonly leave: Locator;
   readonly paused: Locator;
+  readonly lost: Locator;
+  readonly reconnect: Locator;
   readonly videoNotice: Locator;
   readonly power: Locator;
   readonly powerHint: Locator;
@@ -39,6 +41,8 @@ export class ClassRidePage {
     this.resume = page.getByRole('button', { name: 'Resume', exact: true });
     this.leave = page.getByRole('button', { name: 'Leave class' });
     this.paused = page.locator('.class-video__paused');
+    this.lost = page.getByRole('alert').filter({ hasText: 'Lost the bike' });
+    this.reconnect = page.getByRole('button', { name: 'Reconnect' });
     this.videoNotice = page.locator('.class-video__notice');
     const stat = (label: string) =>
       page.locator('.class-stat').filter({ has: page.getByText(label, { exact: true }) });

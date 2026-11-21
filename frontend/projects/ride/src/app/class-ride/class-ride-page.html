@@ -40,7 +40,7 @@
           [videoId]="ride.video.videoId"
           [title]="ride.title"
           [unavailable]="store.videoUnavailable()"
-          [paused]="store.paused()"
+          [paused]="store.paused() || store.bikeLost()"
           (frame)="store.playVideo($event)"
         />
         @if (store.plan(); as plan) {
@@ -74,5 +74,11 @@
         }
       </div>
     </main>
+    @if (store.bikeLost()) {
+      <wz-class-lost
+        body="Your ride is paused. Pedal to wake the bike and it carries on from here."
+        (reconnect)="store.reconnect()"
+      />
+    }
   }
 </div>

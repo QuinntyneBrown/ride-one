@@ -1,10 +1,15 @@
 // Acceptance test
-// Traces to: L2-091 AC1, AC2; L2-088 AC3
+// Traces to: L2-091 AC1, AC2; L2-088 AC3; L2-092 AC4; L2-017 AC4
 // Description: a solo class ride paused and resumed: the clock, the plan and the video hold together, the video shows
 // "Paused", and the ride picks up where it left off. The ride starts on Playwright's paused clock (startClassRide), and
 // the shared fixture's fake YouTube player runs on the same clock.
 import { startClassRide } from './fixtures/class-ride';
-import { ECHELON_NOTIFY, resistanceFrame } from './fixtures/echelon';
+import {
+  ECHELON_INITIALISED,
+  ECHELON_NOTIFY,
+  resistanceFrame,
+  targetResistanceWrite,
+} from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 
 test.describe('Pause, leave or finish a class', () => {
@@ -40,5 +45,56 @@ test.describe('Pause, leave or finish a class', () => {
     await expect(ride.paused).toHaveCount(0);
     expect((await youtube.players())[0].playing).toBe(true);
     expect(await youtube.time()).toBeCloseTo(434.2, 0);
+  });
+
+  test('a solo ride pauses while the bike is lost, says so with Reconnect, and carries on once it is back (L2-092 AC4, L2-017 AC4)', async ({
+    page,
+    bluetooth,
+    api,
+    youtube,
+  }) => {
+    const ride = await startClassRide(page, bluetooth, api);
+    await expect.poll(async () => (await youtube.players()).length).toBe(1);
+    await page.clock.runFor(100);
+    await page.clock.fastForward('07:00');
+    await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
+    await page.clock.runFor(100);
+    await expect(ride.clock).toHaveText('7:00 / 30:00');
+
+    await bluetooth.switchOff();
+    await bluetooth.drop();
+    const afterDrop = bluetooth.log().length;
+    await page.clock.runFor(1000);
+    await expect(ride.lost).toContainText('Lost the bike');
+    await expect(ride.lost).toContainText(
+      'Your ride is paused. Pedal to wake the bike and it carries on from here.',
+    );
+    // The ride holds within a second of the drop.
+    const held = await ride.clock.textContent();
+    await page.clock.runFor(9000);
+    await expect(ride.clock).toHaveText(held!);
+    expect((await youtube.players())[0].playing).toBe(false);
+    await expect(ride.raise).toBeDisabled();
+
+    // Reconnect tries the bike at once, without waiting for the next retry.
+    await bluetooth.switchOn();
+    const writes = bluetooth.writes().length;
+    await ride.reconnect.click();
+    // Initialising waits between commands, so the paused clock steps until it is done; the ride is held meanwhile.
+    await expect(async () => {
+      await page.clock.runFor(100);
+      expect(bluetooth.log().slice(afterDrop)).toEqual(ECHELON_INITIALISED);
+    }).toPass();
+    await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
+    await page.clock.runFor(2000);
+    await expect(ride.lost).toHaveCount(0);
+    await expect(ride.clock).not.toHaveText(held!);
+    expect((await youtube.players())[0].playing).toBe(true);
+    expect(
+      bluetooth
+        .writes()
+        .slice(writes)
+        .map((write) => write.hex),
+    ).toContain(targetResistanceWrite(6));
   });
 });

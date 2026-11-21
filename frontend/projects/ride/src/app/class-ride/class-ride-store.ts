@@ -1,7 +1,14 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { CLASSES_API, type ClassDto, VIDEO_PLAYER_FACTORY, type VideoPlayer } from '@telo/api';
+import {
+  BIKE_CONNECTION,
+  CLASSES_API,
+  type ClassDto,
+  TICKER,
+  VIDEO_PLAYER_FACTORY,
+  type VideoPlayer,
+} from '@telo/api';
 import { type ClassStatTone, formatMetric } from '@telo/components';
 import {
   BikeTelemetry,
@@ -42,6 +49,9 @@ export class ClassRideStore {
   private readonly player = signal<VideoPlayer | null>(null);
   private readonly playerMissing = signal(false);
   private readonly pausedByRider = signal(false);
+  private readonly pausedByBike = signal(false);
+  private readonly connection = inject(BIKE_CONNECTION);
+  private readonly beat = inject(TICKER);
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
 
@@ -50,8 +60,10 @@ export class ClassRideStore {
   readonly plan = this.engine.state;
   readonly level = this.telemetry.resistance;
   readonly canControl = this.resistance.canControl;
-  /** Whether the ride is paused: the clock, the plan and the video hold (L2-091 AC1). */
+  /** Whether the rider paused the ride: the clock, the plan and the video hold (L2-091 AC1). */
   readonly paused = this.pausedByRider.asReadonly();
+  /** Whether the bike has stopped answering (`ble` disconnected, L2-017); a solo ride waits for it (L2-092 AC4). */
+  readonly bikeLost = computed(() => this.connection.ble() === 'disconnected');
   /** Whether the video cannot play: its code or YouTube's did not load, or the player failed. */
   readonly videoUnavailable = computed(
     () => this.playerMissing() || this.player()?.state() === 'error',
@@ -124,8 +136,7 @@ export class ClassRideStore {
   pause(): void {
     if (this.pausedByRider()) return;
     this.pausedByRider.set(true);
-    this.clock.pause();
-    this.player()?.pause();
+    if (!this.pausedByBike()) this.hold();
   }
 
   /** Carries the ride on from where it was held, with the video back on the clock (L2-091 AC2). */
@@ -133,10 +144,12 @@ export class ClassRideStore {
     const ride = this.loaded();
     if (!this.pausedByRider() || !ride) return;
     this.pausedByRider.set(false);
-    this.clock.resume();
-    const player = this.player();
-    player?.seekTo(ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000);
-    player?.play();
+    if (!this.pausedByBike()) this.carryOn(ride);
+  }
+
+  /** Tries the lost bike at once, rather than at the connection's next retry: the alert's Reconnect. */
+  reconnect(): void {
+    this.connection.reconnectNow();
   }
 
   raise(): void {
@@ -155,13 +168,42 @@ export class ClassRideStore {
     this.ticker.ticks
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.syncVideo(dto));
+    // The bike is watched on a beat of its own: the ride clock's ticks stop while the ride is held.
+    this.beat.seconds
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.followBike(dto));
+  }
+
+  /**
+   * A solo ride waits for a lost bike: checked once a second, it holds within a second of the drop and carries on
+   * within a second of the bike's return, unless the rider paused it meanwhile (L2-092 AC4). The alert shows at once.
+   */
+  private followBike(ride: ClassDto): void {
+    const lost = this.bikeLost();
+    if (lost === this.pausedByBike()) return;
+    this.pausedByBike.set(lost);
+    if (this.pausedByRider()) return;
+    if (lost) this.hold();
+    else this.carryOn(ride);
+  }
+
+  private hold(): void {
+    this.clock.pause();
+    this.player()?.pause();
+  }
+
+  private carryOn(ride: ClassDto): void {
+    this.clock.resume();
+    const player = this.player();
+    player?.seekTo(ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000);
+    player?.play();
   }
 
   private syncVideo(ride: ClassDto): void {
     const player = this.player();
     if (player?.state() !== 'playing') return;
     // A player that became ready during a pause starts playing on its own; it follows the pause instead.
-    if (this.paused()) return player.pause();
+    if (this.pausedByRider() || this.pausedByBike()) return player.pause();
     const elapsed = this.clock.elapsedMs() / 1000;
     const seek = this.sync.check(player.currentTime(), elapsed, ride.video.syncOffsetSeconds);
     if (seek !== null) player.seekTo(seek);
