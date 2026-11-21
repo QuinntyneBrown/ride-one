@@ -47,5 +47,6 @@ Thumbs.db
 /.angular
 /test-results
 /playwright-report
+/performance-reports
 /blob-report
 /playwright/.cache
