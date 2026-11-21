@@ -2285,6 +2285,7 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 /* Title + blurb left, the length tabs right (flex-wrap items-end justify-between gap-x-8 gap-y-5) */
 .library-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; column-gap: var(--space-8); row-gap: var(--space-5); }
 .library-head__lead { margin-top: var(--space-2); max-width: var(--layout-text-lg); color: var(--color-muted); }
+.library-error { margin-top: var(--space-10); display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); max-width: var(--layout-text-lg); }
 
 /* Length tabs: rounded-lg bg-raised p-1; selected tab bg-fg text-ink */
 .tier-tabs { display: flex; border-radius: var(--radius-lg); background: var(--color-raised); padding: var(--space-1); }
