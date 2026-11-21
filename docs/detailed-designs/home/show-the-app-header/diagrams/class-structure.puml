@@ -12,18 +12,11 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Show the app header
-enum NavItem {
-  Home
-  Race
-  Classes
-  Profile
-  None
-}
 class MainShell <<ride>> {
   -progress: ProgressStore
   -bike: BikeConnection
-  +current: Signal<NavItem>
-  +header: Signal<AppHeaderView>
+  +items: Home, Race, Classes, Profile
+  +level: Signal<LevelView | undefined>
 }
 interface ProgressStore <<api>> {
   +progress: Signal<ProgressDto | undefined>
@@ -40,10 +33,18 @@ interface ProgressApi <<api>> {
 class HttpProgressApi <<api>> {
   +getProgress(): Promise<ProgressDto>
 }
-class AppHeader <<components>> {
-  +current: input<NavItem>
-  +streakDays: input<number>
+class AppHeaderLink <<components>> {
+  selector: a[wz-app-header-link]
+}
+class AppHeaderLevel <<components>> {
+  selector: a[wz-app-header-level]
   +level: input<LevelView>
+}
+class RouterLinkActive <<Angular router>> {
+  +ariaCurrentWhenActive: "page"
+}
+class AppHeader <<components>> {
+  +streakDays: input<number>
   +bikeStatus: input<BikeStatusView>
   +fullScreen: input<boolean>
   +fullScreenToggle: output<void>
@@ -79,9 +80,11 @@ RiderProgressStore ..|> ProgressStore
 HttpProgressApi ..|> ProgressApi
 RiderProgressStore --> ProgressApi : PROGRESS_API
 ProgressStore --> ProgressDto
-AppHeader *-- LevelBadge
-AppHeader *-- XpBar
-AppHeader --> NavItem
-AppHeader --> LevelView
+MainShell *-- AppHeaderLink : nav slot
+MainShell *-- AppHeaderLevel : end slot
+AppHeaderLink ..> RouterLinkActive : current item
+AppHeaderLevel *-- LevelBadge
+AppHeaderLevel *-- XpBar
+AppHeaderLevel --> LevelView
 toLevelView ..> LevelView : creates
 @enduml

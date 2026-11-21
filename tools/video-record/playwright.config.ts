@@ -4,9 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * Saves the screenshots of a video (docs/videos/README.md, "Screenshots"). It is not a test run
  * and not a sweep: it borrows Playwright to open the running Angular app and save pictures of it.
- * The video folder's `shots.ts` says which states to open, with the fixtures and page objects of
- * `frontend/e2e/`, so every `/api/**` request and the event stream are answered by stubs, as in
- * every spec. Neither `npm run e2e` nor CI reads this file. Run it with
+ * The video folder's `shots.ts` says which states to open, with the shared fixture and page objects
+ * of `frontend/e2e/`, as every spec does. Neither `npm run e2e` nor CI reads this file. Run it with
  * `node tools/video-record/record.mjs <folder>`.
  */
 const folder = process.env["WZ_VIDEO_DIR"];

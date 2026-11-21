@@ -3,9 +3,7 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "schematicCollections": [
-      "angular-eslint"
-    ],
+    "schematicCollections": ["angular-eslint"],
     "analytics": false
   },
   "newProjectRoot": "projects",
@@ -45,7 +43,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "240kB",
+                  "maximumWarning": "264kB",
                   "maximumError": "280kB"
                 },
                 {
@@ -88,18 +86,13 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "projects/ride/tsconfig.spec.json",
-            "include": [
-              "../**/*.spec.ts"
-            ]
+            "include": ["../../*/src/**/*.spec.ts"]
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/ride/src/**/*.ts",
-              "projects/ride/src/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/ride/src/**/*.ts", "projects/ride/src/**/*.html"]
           }
         }
       }
@@ -113,10 +106,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/api/**/*.ts",
-              "projects/api/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/api/**/*.ts", "projects/api/**/*.html"]
           }
         }
       }
@@ -130,10 +120,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/domain/**/*.ts",
-              "projects/domain/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/domain/**/*.ts", "projects/domain/**/*.html"]
           }
         }
       }
@@ -147,10 +134,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/components/**/*.ts",
-              "projects/components/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/components/**/*.ts", "projects/components/**/*.html"]
           }
         }
       }

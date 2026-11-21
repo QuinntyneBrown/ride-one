@@ -26,19 +26,26 @@ This feature belongs to the home subsystem. It does not decide what the rider ri
 
 The slice runs from a layout route in the Ride app to the progress endpoint of the Telo Ride API.
 
-- **`MainShell`** — layout component in the `ride` application (`wz-main-shell`). It is the
-  parent route of Home, Map Select, the Class Library, Profile and not-found; each child route
-  uses `loadComponent`. It injects `PROGRESS_STORE` and `BIKE_CONNECTION`, derives the current
-  navigation item from the router, and binds the header's inputs. It handles the header's
-  `fullScreenToggle` output by calling the full-screen service of L2-144.
+- **`MainShell`** — layout component in the `ride` application (`wz-main-shell`), built by slice
+  1.1. It is the parent route of Home, Map Select, the Class Library, Profile and not-found; each
+  child route uses `loadComponent`. It fills the header's slots with router links: the brand
+  (`<a wz-app-header-brand routerLink="/" aria-label="Home">`) and the four nav items
+  (`<a wz-app-header-link routerLinkActive ariaCurrentWhenActive="page">`, Home matched exactly,
+  the others by prefix), so the router marks the current item. This slice adds the end items: it
+  injects `PROGRESS_STORE` and `BIKE_CONNECTION`, binds the header's inputs, puts the level link
+  to Profile in the `end` slot, and handles the header's `fullScreenToggle` output by calling the
+  full-screen service of L2-144.
 - **`AppHeader`** — presentation component in the `components` library (`wz-app-header`, block
-  `app-header`). It renders the Telo Ride lockup as a link to Home, the navigation landmark
-  "Main" with Home, Race, Classes and Profile, the `BikeStatus` component, the streak, the level
-  link to Profile, and the Full screen button. It marks the current item with
-  `aria-current="page"`. It injects nothing.
+  `app-header`). It lays out three slots, `brand`, `nav` (inside the navigation landmark "Main")
+  and `end`, and renders the `BikeStatus` component, the streak and the Full screen button from
+  its inputs. It knows no route and injects nothing.
+- **`AppHeaderBrand`**, **`AppHeaderLink`** and **`AppHeaderLevel`** — attribute components in
+  `components` on the app's `<a>` elements (`a[wz-app-header-brand]`, `a[wz-app-header-link]`,
+  `a[wz-app-header-level]`). Each styles its host as the block's element (`app-header__brand`,
+  `app-header__nav-link`, `app-header__level`) with a hit area of at least 44 px, and the app
+  adds `routerLink`; `aria-current="page"` is styled through the attribute.
 - **`LevelBadge`** and **`XpBar`** — presentation components in `components` for the gold level
   badge and the XP fill with its label.
-- **`NavItem`** — union of `Home`, `Race`, `Classes`, `Profile` and `None` (not-found).
 - **`ProgressStore`** — contract and `PROGRESS_STORE` token in the `api` library. It exposes the
   backend's `ProgressDto` as a signal and a `refresh()` method. **`RiderProgressStore`** in
   `ride` implements it and is provided in `root`, because the header, Home, Results and Profile
@@ -88,7 +95,8 @@ Telo Ride API, which keeps them in the Telo Ride database.
 
 ### Components
 
-`MainShell` joins the progress store and the bike connection and binds `AppHeader`. On the
+`MainShell` joins the progress store and the bike connection, binds `AppHeader` and fills its
+slots with router links. On the
 backend, `ProgressController` sends one `GetProgressQuery`; its handler uses `LevelTable` for the
 level and next threshold.
 
@@ -97,8 +105,9 @@ level and next threshold.
 ### Class structure
 
 `RiderProgressStore` realises the `ProgressStore` contract over `ProgressApi`. `MainShell`
-turns the `ProgressDto` into a `LevelView` through `toLevelView()` and binds it, with the
-`NavItem`, to `AppHeader`, which composes `LevelBadge` and `XpBar`.
+turns the `ProgressDto` into a `LevelView` through `toLevelView()` and binds it to the level
+link in `AppHeader`'s `end` slot, which composes `LevelBadge` and `XpBar`. The nav items are
+`AppHeaderLink`s marked by `RouterLinkActive`.
 
 ![Class diagram for the app header](diagrams/class-structure.png)
 
@@ -111,7 +120,7 @@ computes the level view of L2-032 AC2, and the header omits the streak when it i
 
 ### Behaviour — navigate from the header
 
-Choosing an item routes to a lazily loaded page. On `NavigationEnd` the shell moves
-`aria-current="page"` to the new item (L2-032 AC1).
+Choosing an item routes to a lazily loaded page. When the navigation ends, `RouterLinkActive`
+moves `aria-current="page"` to the new item (L2-032 AC1).
 
 ![Sequence diagram for navigating from the app header](diagrams/sequence-navigate.png)

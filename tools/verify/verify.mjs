@@ -6,7 +6,7 @@
 //   node tools/verify/verify.mjs
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -47,12 +47,22 @@ async function install() {
   writeFileSync(stamp, hash);
 }
 
+/** The unit-test builder refuses to run with no spec files, so until the first one lands the step says so. */
+function unitTests() {
+  const specs = readdirSync(join(frontend, 'projects'), { recursive: true }).filter(
+    (path) => String(path).endsWith('.spec.ts') && !String(path).includes('node_modules'),
+  );
+  if (specs.length > 0) return step('unit tests', 'npm test', frontend);
+  console.log('   0.0s  unit tests (no *.spec.ts under frontend/projects yet, none to run)');
+  return Promise.resolve();
+}
+
 const web = async () => {
   await install();
   await Promise.all([
     step('format', 'npm run format:check', frontend),
     step('lint', 'npm run lint', frontend),
-    step('unit tests', 'npm test', frontend),
+    unitTests(),
     (async () => {
       await step('production build and budget', 'npm run build', frontend);
       await step('behaviour specs', 'npm run e2e', frontend);

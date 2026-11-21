@@ -6,10 +6,7 @@ import { extname, join, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(
-  new URL(
-    `../${(process.argv[3] ?? 'dist/ride/browser').replace(/\/?$/, '/')}`,
-    import.meta.url,
-  ),
+  new URL(`../${(process.argv[3] ?? 'dist/ride/browser').replace(/\/?$/, '/')}`, import.meta.url),
 );
 const port = Number(process.argv[2] ?? 4300);
 const types = {

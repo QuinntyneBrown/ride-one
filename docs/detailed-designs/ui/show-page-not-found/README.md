@@ -15,16 +15,21 @@ authentication guard of `accounts/sign-in-with-an-email-code` exempts it.
 
 ## Description
 
-- **Wildcard route** — the last entry in `ride`'s `app.routes.ts`:
+- **Wildcard route** — the last child of the `MainShell` layout route in `ride`'s `app.routes.ts`:
   `{ path: '**', title: 'Page not found · Telo Ride', loadComponent: () => import('./not-found/not-found-page') }`.
   No authentication guard applies.
+- **`MainShell`** — the layout route of the home screens (`home/show-the-app-header`). It renders
+  the app header over the scrolling page and puts its router links in the header's slots, each
+  with `routerLinkActive` and `ariaCurrentWhenActive="page"`. Home matches exactly and the other
+  items by prefix, so an unknown address marks no item.
 - **`NotFoundPage`** — page in the `ride` application (`wz-not-found-page`, block `not-found`). It
-  renders the app header with no current item, then `<main id="main" class="container page
-  not-found">` with the `h1` "This page doesn’t exist.", the lead "The link may be old, or the
+  renders `<main id="main" class="container page not-found">` with the `h1` "This page doesn’t exist.", the lead "The link may be old, or the
   address has a typo. Your rides and progress are safe." and the primary button link
-  "← Back to Home" (`routerLink="/"`), as in `docs/mocks/pages/not-found/default.html`.
-- **`AppHeader`** — presentation component in `components` (`wz-app-header`). Its `current` input
-  takes the active section or `null`. With `null`, no link carries `aria-current`.
+  "← Back to Home" (`<a wz-button variant="primary" size="lg" routerLink="/">`), as in
+  `docs/mocks/pages/not-found/default.html`.
+- **`AppHeader`** — presentation component in `components` (`wz-app-header`). It lays out the
+  brand, nav and end slots and knows no route; with no active link, no item carries
+  `aria-current`.
 - **Mock classes** — the page keeps the mock's BEM classes (`page__title`, `page__lead`,
   `not-found__action`, `btn btn--primary btn--lg`) so e2e page objects can use them.
 - **Arrow** — the "←" is an inline SVG icon with `aria-hidden="true"`; the link's accessible name
@@ -53,20 +58,20 @@ The host returns the app for the unknown address; the Ride app's router shows th
 
 ### Components
 
-The router matches the wildcard route and lazily loads `NotFoundPage`, which renders `AppHeader`
-with no current item.
+The router loads `MainShell` and, into its outlet, `NotFoundPage`; no header link is active, so
+`AppHeader` shows no current item.
 
 ![C4 component view for page not found](diagrams/c4-component.png)
 
 ### Class structure
 
-`NotFoundPage` composes `AppHeader` and links to Home through the router.
+`MainShell` composes `AppHeader` and its links; `NotFoundPage` links to Home through the router.
 
 ![Class diagram for page not found](diagrams/class-structure.png)
 
 ### Behaviour — open an unknown address
 
-The router falls through to the wildcard route, the page renders with no current header item, and
+The router falls through to the wildcard route under `MainShell`, no header link is active, and
 "← Back to Home" opens Home (`L2-145` AC1, AC2).
 
 ![Sequence diagram for opening an unknown address](diagrams/sequence-open-unknown-address.png)

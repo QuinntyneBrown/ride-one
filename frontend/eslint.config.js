@@ -4,7 +4,10 @@ const { defineConfig } = require('eslint/config');
 const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
 
-const outside = { regex: '^(\\.\\./){3,}', message: 'A library never imports outside its project.' };
+const outside = {
+  regex: '^(\\.\\./){3,}',
+  message: 'A library never imports outside its project.',
+};
 const noRide = { group: ['**/ride/**'], message: 'No library imports the app.' };
 
 /** Only `domain/src/bluetooth/` may touch Web Bluetooth (AGENTS.md, L2-146 AC3). */
@@ -36,12 +39,14 @@ module.exports = defineConfig([
       ],
       '@angular-eslint/component-selector': [
         'error',
-        { type: 'element', prefix: 'wz', style: 'kebab-case' },
+        // Elements, and attribute components on a native element as Angular Material writes them (a[wz-button]).
+        { type: ['element', 'attribute'], prefix: 'wz', style: 'kebab-case' },
       ],
       '@angular-eslint/prefer-on-push-component-change-detection': 'error',
       '@angular-eslint/prefer-standalone': 'error',
       '@angular-eslint/component-max-inline-declarations': ['error', { template: 0, styles: 0 }],
       '@angular-eslint/use-component-view-encapsulation': 'error',
+      '@typescript-eslint/consistent-type-imports': 'error',
       ...noBluetooth,
     },
   },
@@ -55,8 +60,14 @@ module.exports = defineConfig([
         {
           paths: [
             { name: '@telo/api', message: 'Import within the library by relative path.' },
-            { name: '@telo/domain', message: 'The api library depends on nothing in the workspace.' },
-            { name: '@telo/components', message: 'The api library depends on nothing in the workspace.' },
+            {
+              name: '@telo/domain',
+              message: 'The api library depends on nothing in the workspace.',
+            },
+            {
+              name: '@telo/components',
+              message: 'The api library depends on nothing in the workspace.',
+            },
             { name: '@angular/router', message: 'The api library knows no route.' },
           ],
           patterns: [outside, noRide],
@@ -98,7 +109,10 @@ module.exports = defineConfig([
             },
             { name: '@telo/domain', message: 'Presentation components inject no service.' },
             { name: '@telo/components', message: 'Import a sibling component by relative path.' },
-            { name: '@angular/router', message: 'Presentation components know no route; emit an output.' },
+            {
+              name: '@angular/router',
+              message: 'Presentation components know no route; emit an output.',
+            },
           ],
           patterns: [outside, noRide],
         },
