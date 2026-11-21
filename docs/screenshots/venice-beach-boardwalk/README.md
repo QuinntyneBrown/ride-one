@@ -7,3 +7,4 @@ Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the s
 | Capture | Fix |
 | --- | --- |
 | [087 · The paint lies on Ocean Front Walk](bend-087-paint-on-ocean-front-walk.jpg) | The words painted on Ocean Front Walk (WATTZUP, DOGTOWN) were laid level, so where the boardwalk rises along the beach the far end of each word sank into the asphalt. They now lie along the slope, and the barriers and props behind the rider stand on the walk there instead of at the height under the rider. |
+| [088 · The riders' heads sit on necks](bend-088-riders-have-necks.jpg) | Every rider's head and helmet hung about 8 cm above the jersey with nothing between them, so from behind the helmet floated over the shoulders. A neck now rises from inside the top of the back, up and forward to the base of the skull, and the head sits on it. |
