@@ -96,6 +96,7 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 | [090 · Far terrace](090-far-terrace.jpg) | Across the canal a café's terrace spills over the far quay by the water: four tables under cream parasols with people sitting out in the sun facing the canal, 44 m up from the start. It sits mostly behind the near quay's bridge railing and houseboats from the opening view, so the scores hold. | 94% · 87/100 |
 | [091 · Elm seed clusters](091-elm-seed-clusters.jpg) | The elms carry May's seed: pale yellow-green clusters of papery elm seeds still hang among the new leaves in every crown, before they fall to drift in the gutters below, lightening the canopy in patches as the real trees are lightened in spring. | 94% · 87/100 |
 | [092 · Hoist ropes](092-hoist-ropes.jpg) | About one gabled house in nine has its hoist beam rigged: a timber pulley block hangs from the beam's hook and a hemp rope drops from it down the front to be tied off at a first-floor window, ready to haul something up. High on the fronts and mostly out of the opening frame; the scores hold. | 94% · 87/100 |
+| [093 · Locked bikes](093-locked-bikes.jpg) | Bikes are locked to the quays' lamp posts too, as they are to anything fixed in Amsterdam: about half the lamps have one or two bikes leant against the post from either side, black, navy, oxblood, mint or cream. The lamp posts in the opening view stand far enough off that the frame barely changes; the scores hold. | 94% · 87/100 |
 
 ## Reproducing a capture
 
