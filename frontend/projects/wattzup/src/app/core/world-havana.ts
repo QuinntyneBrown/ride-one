@@ -249,6 +249,7 @@ export class HavanaStreet implements SceneStreet {
     this.addManholes(roadHalf);
     this.addJoggers(roadHalf);
     this.addShopSigns(roadHalf);
+    this.addFruitCart(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -4516,6 +4517,123 @@ export class HavanaStreet implements SceneStreet {
     shirts: MeshStandardMaterial[];
     skins: MeshStandardMaterial[];
   };
+
+  /**
+   * A carretillero's barrow at the kerb, piled with fruit for sale: pineapples with their spiky
+   * crowns, hands of bananas, mangoes, papayas cut open, on a wooden tray on two bicycle wheels,
+   * shaded by a scrap of sacking; the vendor stands at the handles in a straw hat.
+   */
+  private addFruitCart(roadHalf: number): void {
+    const random = seeded(1657);
+    const cart = new Group();
+    const wood = this.material({ color: 0x8a6440, roughness: 0.9 });
+    const sacking = this.material({ color: 0xc8b088, roughness: 1, side: DoubleSide });
+    const tyre = this.material({ color: 0x1a1a1a, roughness: 0.8 });
+    const box = (
+      m: MeshStandardMaterial,
+      sx: number,
+      sy: number,
+      sz: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(sx, sy, sz);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      cart.add(mesh);
+      return mesh;
+    };
+    box(wood, 0.9, 0.08, 1.6, 0, 0.8, 0);
+    for (const x of [-0.45, 0.45]) box(wood, 0.04, 0.16, 1.6, x, 0.9, 0);
+    for (const z of [-0.8, 0.8]) box(wood, 0.9, 0.16, 0.04, 0, 0.9, z);
+    for (const x of [-0.35, 0.35]) box(wood, 0.05, 0.05, 0.8, x, 0.85, 1.15);
+    const wheel = new TorusGeometry(0.32, 0.03, 6, 20);
+    wheel.rotateY(Math.PI / 2);
+    this.disposables.push(wheel);
+    for (const x of [-0.5, 0.5]) {
+      const w = new Mesh(wheel, tyre);
+      w.position.set(x, 0.32, -0.2);
+      cart.add(w);
+    }
+    for (const x of [-0.42, 0.42]) {
+      box(wood, 0.04, 0.9, 0.04, x, 1.3, -0.75);
+      box(wood, 0.04, 0.9, 0.04, x, 1.3, 0.75);
+    }
+    const shade = box(sacking, 1.0, 0.02, 1.7, 0, 1.76, 0);
+    shade.rotation.x = 0.06;
+    // The fruit, heaped on the tray.
+    const pine = new SphereGeometry(0.09, 8, 6);
+    pine.scale(1, 1.5, 1);
+    const crown = new ConeGeometry(0.06, 0.16, 6);
+    const mango = new SphereGeometry(0.06, 8, 6);
+    mango.scale(1, 0.8, 1.3);
+    const banana = new CapsuleGeometry(0.025, 0.16, 3, 6);
+    const papaya = new SphereGeometry(0.1, 10, 8);
+    papaya.scale(1, 1, 1.7);
+    this.disposables.push(pine, crown, mango, banana, papaya);
+    const gold = this.material({ color: 0xb08a2a, roughness: 0.9 });
+    const leaf = this.material({ color: 0x3f6a2a, roughness: 0.8 });
+    const yellow = this.material({ color: 0xf0d040, roughness: 0.7 });
+    const mangoes = [0xe8a030, 0xd84a28, 0x9ab040].map((c) =>
+      this.material({ color: c, roughness: 0.6 }),
+    );
+    const flesh = this.material({ color: 0xf07040, roughness: 0.7 });
+    const add = (
+      g: BufferGeometry,
+      m: MeshStandardMaterial,
+      x: number,
+      y: number,
+      z: number,
+      rz = 0,
+    ) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.rotation.z = rz;
+      mesh.castShadow = true;
+      cart.add(mesh);
+    };
+    for (let k = 0; k < 4; k++) {
+      const z = -0.6 + k * 0.17;
+      add(pine, gold, -0.25, 0.98, z);
+      add(crown, leaf, -0.25, 1.18, z);
+    }
+    for (let k = 0; k < 14; k++) {
+      add(
+        mango,
+        mangoes[k % 3]!,
+        0.05 + random() * 0.3,
+        0.9 + random() * 0.08,
+        -0.65 + random() * 0.6,
+      );
+    }
+    for (let h = 0; h < 3; h++) {
+      for (let k = 0; k < 5; k++)
+        add(banana, yellow, -0.25 + k * 0.05, 0.92 + h * 0.03, 0.15 + h * 0.18, 0.5 - k * 0.15);
+    }
+    add(papaya, flesh, 0.2, 0.95, 0.35);
+    add(papaya, leaf, 0.22, 0.95, 0.6);
+    // The vendor at the handles.
+    const skin = this.material({ color: 0x6b4430, roughness: 0.8 });
+    const shirt = this.material({ color: 0xc83a3a, roughness: 0.85 });
+    const trousers = this.material({ color: 0x3a3a3a, roughness: 0.9 });
+    const straw = this.material({ color: 0xd8c08a, roughness: 0.95 });
+    const torso = new CapsuleGeometry(0.17, 0.42, 3, 8);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const leg = new CapsuleGeometry(0.07, 0.62, 3, 6);
+    const brim = new CylinderGeometry(0.24, 0.24, 0.02, 14);
+    this.disposables.push(torso, head, leg, brim);
+    for (const x of [-0.1, 0.1]) add(leg, trousers, x, 0.4, 1.75);
+    add(torso, shirt, 0, 1.05, 1.75);
+    add(head, skin, 0, 1.5, 1.75);
+    add(brim, straw, 0, 1.6, 1.75);
+    const holder = new Group();
+    cart.position.y = KERB;
+    holder.add(cart);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 34.2, x: roadHalf + 1.15 });
+  }
 
   /**
    * Shop signs hung out from the arcade's front on iron brackets, painted boards facing along the
