@@ -9,6 +9,7 @@ import {
   type PackStrengthId,
   type RaceMode,
   SCREEN_WAKE_LOCK,
+  TICKER,
 } from '@telo/api';
 import { type RaceBoardRow, type RaceDelta, type RaceGap, formatMetric } from '@telo/components';
 import {
@@ -57,6 +58,10 @@ export class RaceStore {
   private field: RaceField | null = null;
   /** The rider and the field by place, ranked once a second on the race's tick (L2-060 AC3). */
   private readonly standings = signal<readonly Standing[]>([]);
+  private readonly beat = inject(TICKER);
+  private readonly pausedByRider = signal(false);
+  /** Whether the bike has reported the rider stopped since the pause, so the next stroke carries the race on. */
+  private stoppedSincePause = false;
 
   /** Whom the race is against, and how hard the bots ride (`?mode=bots&pack=medium`, slice 7.2). */
   readonly mode: RaceMode =
@@ -69,6 +74,8 @@ export class RaceStore {
     ) ?? 'medium';
 
   readonly map = this.loaded.asReadonly();
+  /** Whether the rider paused the solo race: the clock, the distance and the standings hold (L2-068 AC1). */
+  readonly paused = this.pausedByRider.asReadonly();
   /** Race Setup for the map, where Leave and End go (L2-069). */
   readonly setup: readonly string[] = ['/race', this.mapId];
   readonly elapsed = this.ticker.second;
@@ -219,6 +226,34 @@ export class RaceStore {
     this.ticker.ticks
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((second) => this.ride(second));
+    // The pedals are watched on a beat of their own: the race clock's ticks stop while the race is held.
+    this.beat.seconds.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.watchPedals());
+  }
+
+  /** Holds a solo race where it is; a bots or riders-online race has no Pause (L2-068 AC1, AC3). */
+  pause(): void {
+    if (this.mode !== 'solo' || this.pausedByRider()) return;
+    this.pausedByRider.set(true);
+    this.stoppedSincePause = false;
+    this.clock.pause();
+  }
+
+  /** Carries the race on from where it stopped (L2-068 AC2). */
+  resume(): void {
+    if (!this.pausedByRider()) return;
+    this.pausedByRider.set(false);
+    this.clock.resume();
+  }
+
+  /**
+   * Pedalling carries a paused race on, checked once a second: once the bike has reported the rider stopped (cadence 0
+   * or none) since the pause, the next cadence above 0 resumes it, so the stroke under the rider's press does not.
+   */
+  private watchPedals(): void {
+    if (!this.pausedByRider()) return;
+    const cadence = this.telemetry.cadence();
+    if (cadence === null || cadence === 0) this.stoppedSincePause = true;
+    else if (this.stoppedSincePause) this.resume();
   }
 
   /**

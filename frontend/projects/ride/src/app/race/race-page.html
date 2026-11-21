@@ -13,6 +13,9 @@
       [elapsed]="store.elapsed()"
       [total]="store.total()"
       [solo]="store.mode === 'solo'"
+      [paused]="store.paused()"
+      (pauseRace)="store.pause()"
+      (resumeRace)="store.resume()"
     >
       <!-- Leave and End ask for no confirmation (L2-069 AC1, AC2); leaving the page stops the race. -->
       <a
@@ -63,5 +66,8 @@
         (raise)="store.raise()"
       />
     </section>
+    @if (store.paused()) {
+      <wz-race-paused [route]="map.routeName ?? map.name" />
+    }
   }
 </main>
