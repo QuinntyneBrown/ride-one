@@ -42,6 +42,7 @@ export class RacePage {
   readonly intervalLeft: Locator;
   readonly intervalFill: Locator;
   readonly intervalNext: Locator;
+  readonly controls: Locator;
   readonly pause: Locator;
   readonly resume: Locator;
   readonly leave: Locator;
@@ -92,6 +93,7 @@ export class RacePage {
     this.intervalLeft = page.locator('.race-interval__left');
     this.intervalFill = page.locator('.race-interval__fill');
     this.intervalNext = page.locator('.race-interval__next');
+    this.controls = page.locator('.race-bar__end');
     this.pause = this.bar.getByRole('button', { name: 'Pause', exact: true });
     this.resume = this.bar.getByRole('button', { name: 'Resume', exact: true });
     this.leave = this.bar.getByRole('link', { name: 'Leave race' });
