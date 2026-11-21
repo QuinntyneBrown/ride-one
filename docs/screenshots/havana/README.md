@@ -80,6 +80,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [074 · Road signs](074-road-signs.jpg) | Round road signs now stand on the inland kerb on grey posts, facing the riders: a 50 speed limit in a red ring or a no-parking disc, one or two to a post, some faded by the sun. From the saddle, a 50 sign stands at the right kerb ahead, over the domino players. | 94% · 93/100 |
 | [075 · Crossing](075-crossing.jpg) | The zebra crossings now get used: one to three people at each walk from kerb to kerb over both carriageways and back, at their own pace, some starting from the sea side. From the saddle, a woman in a blue dress is halfway over the crossing ahead, in front of the oncoming coco-taxis. | 94% · 93/100 |
 | [076 · Wooded headland](076-wooded-headland.jpg) | El Morro's headland stops reading as a bare khaki pyramid: the hill is now grey-green under clumps of trees and scrub on its slopes, above warm brown rock, carrying its own light haze instead of the scene fog that washed it to khaki. From the saddle, the wooded hill rises across the water beside the billboard, with the hazy castle on its point. | 94% · 93/100 |
+| [077 · Finer spray](077-finer-spray.jpg) | The spray over the seawall stops reading as jagged white shards: its drops are smaller, less opaque and glow less, so each surge breaks into a scatter of fine white drops. From the saddle, the bursts along the wall by the billboard now read as flung water, with the wall and people showing through them. | 94% · 93/100 |
 
 ## Reproducing a capture
 
