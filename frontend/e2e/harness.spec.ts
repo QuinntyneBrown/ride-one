@@ -1,7 +1,8 @@
 // Acceptance test
 // Traces to: L2-148 AC1
 // Description: the shared fixture stands in for the bike: a spec offers a fake bike, every write the page makes is
-// recorded, a notification the spec pushes reaches the page, and any Bluetooth call the spec did not expect fails it.
+// recorded, a notification the spec pushes reaches the page, and any Bluetooth call the spec did not expect fails it;
+// API requests get the answers the spec declared, and one it did not answer fails it.
 import { ECHELON_NOTIFY, ECHELON_SERVICE, ECHELON_WRITE, echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { AppCalls } from './pages/app-calls';
@@ -31,5 +32,21 @@ test.describe('Test harness', () => {
     await new HomePage(page).open();
 
     await new AppCalls(page).requestAnyBike();
+  });
+
+  test('an API request gets the answer the spec declared (L2-148 AC1)', async ({ page, api }) => {
+    api.answer('GET', '/api/progress', { xp: 1240, level: 4 });
+    await new HomePage(page).open();
+
+    const response = await new AppCalls(page).request('GET', '/api/progress');
+
+    expect(response).toEqual({ status: 200, body: { xp: 1240, level: 4 } });
+  });
+
+  test('an API request the spec did not answer fails it (L2-148 AC1)', async ({ page }) => {
+    test.fail(true, 'the guard must fail a spec whose page calls an API nobody answered');
+    await new HomePage(page).open();
+
+    await new AppCalls(page).request('GET', '/api/progress');
   });
 });

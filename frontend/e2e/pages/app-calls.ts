@@ -56,4 +56,18 @@ export class AppCalls {
       navigator.bluetooth.requestDevice({ acceptAllDevices: true }).catch(() => undefined),
     );
   }
+
+  /** Sends `method path` with credentials, as the app's HTTP client will, and returns the status and JSON body. */
+  request(method: string, path: string): Promise<{ status: number; body: unknown }> {
+    return this.page.evaluate(
+      async ({ method, path }) => {
+        const response = await fetch(path, { method, credentials: 'include' });
+        return {
+          status: response.status,
+          body: response.status === 204 ? null : await response.json(),
+        };
+      },
+      { method, path },
+    );
+  }
 }
