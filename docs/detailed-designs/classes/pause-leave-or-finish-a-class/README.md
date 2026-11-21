@@ -11,11 +11,12 @@ whatever one rider does.
 
 > **group class ride** — class ride in a group session; its clock follows the session and never pauses
 
-> **lost bike** — state in which the connected bike has stopped answering over Bluetooth (`ble` state `lost`), detected by the bike subsystem's keepalive (`L2-016`, `L2-017`)
+> **lost bike** — state in which the connected bike has stopped answering over Bluetooth (`ble` state `disconnected`), detected by the bike subsystem's keepalive (`L2-016`, `L2-017`)
 
 > **ride submission** — record of a finished ride sent to the backend, which computes XP and progress from it
 
-Leaving earns nothing and asks for no confirmation. Finishing submits the ride and opens Results
+Leaving earns nothing and asks for no confirmation (`L2-093` AC1; the journey's one-line
+summary, "leave with confirmation", predates it). Finishing submits the ride and opens Results
 (`L2-078`). The submission goes through the ride outbox, so a ride that finishes without a
 network is kept and sent later (`L2-135`).
 
@@ -34,7 +35,9 @@ network is kept and sent later (`L2-135`).
 - **`ClassHeader`** — Pause becomes Resume while paused; there is no Pause in a group
   (`L2-091` AC3). Leave stays active while the bike is lost (`L2-092` AC2).
 - **`ClassLost`** (`wz-class-lost`) — alert (`role="alert"`) "Lost the bike" with "The class
-  keeps going. Pedal to wake the bike and you’ll rejoin where everyone is." and **Reconnect**.
+  keeps going. Pedal to wake the bike and you’ll rejoin where everyone is." in a group, or "Your
+  ride is paused. Pedal to wake the bike and it carries on from here." in solo, and
+  **Reconnect**.
 - **`ClassResist`** — disabled while the bike is lost; enabled while paused (`L2-091` AC1).
 
 **Frontend — `domain` and `api` libraries**
@@ -42,8 +45,15 @@ network is kept and sent later (`L2-135`).
 - **`RideClock.pause()` / `resume()`** — hold and continue the monotonic clock.
 - **`WorkoutEngine`** — sends no segment change while paused (`L2-027` AC3), and resends the
   current segment's level when the bike reconnects (`L2-027` AC4, `L2-092` AC3).
-- **`BikeConnection.reconnect()`** — owned by the bike subsystem; called from the **Reconnect**
-  press, a user gesture.
+- **`BikeConnection.reconnectNow()`** — owned by the bike subsystem; called from the **Reconnect**
+  press. The connection also retries the same bike every 3 seconds on its own (`L2-017`).
+- **`ScreenWakeLock`** / `SCREEN_WAKE_LOCK` (`api`) and **`BrowserScreenWakeLock`**
+  (`domain/browser`) — `hold()` keeps the screen awake with `navigator.wakeLock.request('screen')`
+  and takes it again when the tab returns to view; `release()` lets it go. The store holds it from
+  the ride's start until the rider leaves or the class ends (`L2-133` AC3). Where the browser has
+  no Screen Wake Lock API, it does nothing.
+- **Leave guard** — while the ride runs, the page listens for `beforeunload` and asks the browser
+  to confirm closing or reloading the tab (`L2-133` AC4); it stops listening when the ride ends.
 - **`RideRecorder`** (`domain/engine`) — accumulates the ride's totals each running second:
   duration, distance, output in kJ, average power and the share of seconds on target. It holds
   totals, not a trace, so its memory does not grow with the ride.
@@ -61,6 +71,15 @@ network is kept and sent later (`L2-135`).
   place and output come from the service's own progress, not from the submission (`L2-125`).
 - **`RideHub.LeaveSession`** → **`LeaveSessionCommandHandler`** (multiplayer subsystem) removes
   the rider from the board for everyone.
+
+**Slices.** Slice 5.4 builds the solo parts: Pause and Resume with the video (`L2-088` AC3),
+the solo lost bike with `ClassLost` and Reconnect, Leave to Class Start (`/classes/:id`, which
+slice 6.3 builds; until then the route shows Page not found), the wake lock and the leave guard,
+and the finish: at the class length the clock stops at the length, the video pauses and Results
+opens at `/results` (slice 11.1 builds it). The header's Pause, Resume and Leave are buttons, not
+the mock's links, since they act. `RideRecorder`, `RideOutbox` and the submission through
+`RIDES_API` come with *record a ride* (10.1) and the ride outbox (17.1); the group parts come with
+the group class (journey 14).
 
 ## Requirements
 

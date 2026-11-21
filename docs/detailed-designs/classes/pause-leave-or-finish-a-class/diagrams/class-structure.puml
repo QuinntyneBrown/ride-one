@@ -15,10 +15,14 @@ title Class structure — Pause, leave or finish a class
 
 package "api library" {
   enum BleState {
-    Disconnected
+    Idle
     Connecting
     Connected
-    Lost
+    Disconnected
+  }
+  interface ScreenWakeLock {
+    +hold(): void
+    +release(): void
   }
   class RideSubmission {
     +rideId: string
@@ -49,6 +53,10 @@ package "domain library" {
     +totals(): RideTotals
     +toSubmission(meta: RideMeta): RideSubmission
   }
+  class BrowserScreenWakeLock {
+    +hold(): void
+    +release(): void
+  }
   class RideOutbox {
     +enqueue(ride: RideSubmission): Promise<void>
     +flush(): Promise<void>
@@ -67,6 +75,8 @@ package "ride application" {
   }
 }
 ClassRideStore ..> BleState : reacts to
+ClassRideStore ..> ScreenWakeLock : holds while riding
+BrowserScreenWakeLock ..|> ScreenWakeLock
 ClassRideStore *-- RideRecorder
 ClassRideStore ..> RideOutbox : enqueues
 RideRecorder ..> RideSubmission : builds
