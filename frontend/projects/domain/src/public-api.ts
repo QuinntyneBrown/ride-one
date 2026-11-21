@@ -12,7 +12,9 @@ export { WebBluetoothSupport } from './bluetooth/web-bluetooth-support';
 export { SimulatedRiderProfile } from './bluetooth/simulated-rider-profile';
 export { WebBluetoothBikeConnection } from './bluetooth/web-bluetooth-bike-connection';
 export { BikeTelemetry, CADENCE_TIMEOUT_MS } from './engine/bike-telemetry';
+export { EnergyModel } from './engine/energy-model';
 export { PowerModel } from './engine/power-model';
+export { RideTotals } from './engine/ride-totals';
 export { SpeedModel } from './engine/speed-model';
 export { SecondTicker } from './engine/second-ticker';
 export {

@@ -29,10 +29,10 @@ The slice lives in the Ride app's `domain` library, with one presentation compon
 - **`PowerModel`** — pure helper: `estimate(cadence, level) = max(0, round(cadence × (0.55 + level × 0.155)))`, so cadence 95 at resistance 18 gives 317 W; an unknown input gives `null`. `target(cadenceAim, level)` uses the same formula with a segment's cadence aim, so aim 100 at level 18 gives 334 W.
 - **`EnergyModel`** — pure helper: `kcal(avg, t) = round(avg × t ÷ 1000 ÷ 0.24 ÷ 4.184)`, so 208 W over 760 running seconds gives 157 kcal.
 - **`bankersRound()`** — pure helper that rounds half to even, shared by the models.
-- **`RideTotals`** — service in `domain`'s `engine/` folder. On each running second from `RideClock` it adds speed in km/h ÷ 3600 to `distanceKm` and that second's power ÷ 1000 to `outputKj`, and recomputes average power and energy. A paused ride produces no running seconds, so distance does not grow. Totals are scalars, so they stay a fixed size for the length of the ride.
-- **`RideReadout`** — presentation component (design-system block `ride-readout`). It shows a label, a value and a unit, or "—" when the value is `null`. Distance is shown in km with two decimals ("2.24 km").
+- **`RideTotals`** — service in `domain`'s `engine/` folder. On each running second (`onRunningSecond()`, called by the ride screen's `RideTicker` from slice 5.1, see [keep-the-ride-clock-true](../../performance/keep-the-ride-clock-true/README.md)) it adds speed in km/h ÷ 3600 to `distanceKm` and that second's power ÷ 1000 to `outputKj`, and recomputes average power and energy. A paused ride produces no running seconds, so distance does not grow. A second with unknown speed or power adds nothing; average power is output over running seconds. Totals are scalars, so they stay a fixed size for the length of the ride. The ride clock's `DistanceIntegrator` may later integrate over notification timestamps instead of seconds, so throttled ticks cannot lose distance; `RideTotals` keeps L2-022 AC2's per-second rule until it does.
+- **`formatMetric()` and `formatDistance()`** — pure helpers in `components`, shared by every readout: a value to a fixed number of decimals, or "—" when it is `null`; distance in km with two decimals ("2.24 km"). The readouts themselves are drawn by the screen that hosts them, in the design system's three families of `ride-readout`: the class ride's stat tiles (slice 5.2), the race power panel (7.3) and the custom ride's dashboard readouts (21.3), each with its plan's target beside the value.
 
-The formulas have unit tests, one case per acceptance example. Slice 3.1 builds the decoders, the speed and power models and `BikeTelemetry`; no screen shows telemetry yet, so its acceptance tests are those tables, run against the decoders and `BikeTelemetry` with the bytes a bike sends. Slice 3.2 adds `RideTotals`, `EnergyModel` and `RideReadout`, and proves the whole path with Playwright through the readouts. The 1-second update cadence of the readouts is specified in [performance/keep-the-ride-clock-true](../../performance/keep-the-ride-clock-true/README.md) (`L2-134`).
+The formulas have unit tests, one case per acceptance example. Slice 3.1 builds the decoders, the speed and power models and `BikeTelemetry`; no screen shows telemetry yet, so its acceptance tests are those tables, run against the decoders and `BikeTelemetry` with the bytes a bike sends. Slice 3.2 adds `RideTotals`, `EnergyModel` and the formatting helpers, proved the same way, since the screens that host readouts and the ride clock that ticks the totals come with journeys 5, 7 and 21; slice 5.2's Class Ride screen is the first to mount them, and proves the path from bike to readout with Playwright. The 1-second update cadence of the readouts is specified in [performance/keep-the-ride-clock-true](../../performance/keep-the-ride-clock-true/README.md) (`L2-134`).
 
 ## Requirements
 
@@ -61,13 +61,13 @@ Telemetry flows from the bike into the Ride app over Web Bluetooth GATT and neve
 
 ### Components
 
-The connection hands raw frames to `EchelonFrameDecoder` or `IndoorBikeDataDecoder`. `BikeTelemetry` merges the samples and derives missing metrics with the models. `RideTotals` accumulates distance, output and energy on each running second of `RideClock`, and `RideReadout` displays the values.
+The connection hands raw frames to `EchelonFrameDecoder` or `IndoorBikeDataDecoder`. `BikeTelemetry` merges the samples and derives missing metrics with the models. `RideTotals` accumulates distance, output and energy on each running second the ride screen's `RideTicker` reports, and the screen shows the values through `formatMetric()`.
 
 ![C4 component view for reading bike telemetry](diagrams/c4-component.png)
 
 ### Class structure
 
-Both decoders create `TelemetrySample` values that `BikeTelemetry` accepts. The pure models share `bankersRound()`. `RideTotals` reads `BikeTelemetry` and is ticked by `RideClock`.
+Both decoders create `TelemetrySample` values that `BikeTelemetry` accepts. The pure models share `bankersRound()`. `RideTotals` reads `BikeTelemetry` and is ticked by `RideTicker`; the screens format values with `formatMetric()`.
 
 ![Class diagram for reading bike telemetry](diagrams/class-structure.png)
 

@@ -56,14 +56,12 @@ class RideTotals <<domain/engine>> {
   +energyKcal: Signal<number>
   +onRunningSecond(): void
 }
-class RideClock <<domain/engine>> {
-  +runningSeconds: Signal<number>
-  +paused: Signal<boolean>
+class RideTicker <<domain/engine, slice 5.1>> {
+  +second: Signal<number>
 }
-class RideReadout <<components>> {
-  +label: input<string>
-  +value: input<string | null>
-  +unit: input<string>
+class "formatMetric()" as Format <<components>> {
+  +formatMetric(value: number | null, digits: number): string
+  +formatDistance(km: number | null): string
 }
 EchelonFrameDecoder ..> TelemetrySample : creates
 IndoorBikeDataDecoder ..> TelemetrySample : creates
@@ -75,6 +73,6 @@ BikeTelemetry ..> PowerModel
 SpeedModel ..> Round
 PowerModel ..> Round
 RideTotals --> BikeTelemetry : reads
-RideTotals --> RideClock : ticks from
+RideTicker --> RideTotals : onRunningSecond()
 RideTotals ..> EnergyModel
 @enduml
