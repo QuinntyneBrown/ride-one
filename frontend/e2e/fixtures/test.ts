@@ -2,6 +2,7 @@ import { test as base, expect } from '@playwright/test';
 import { ApiFixture } from './api';
 import { FakeBluetooth } from './fake-bluetooth';
 import { HubFixture } from './hub';
+import { YouTubeFixture } from './youtube';
 
 interface Fixtures {
   /** The fake `navigator.bluetooth`; a spec offers a bike, reads the writes and pushes notifications. */
@@ -10,13 +11,15 @@ interface Fixtures {
   api: ApiFixture;
   /** The ride hub, speaking SignalR's JSON protocol once the spec opens it. */
   hub: HubFixture;
+  /** The YouTube IFrame API and the class covers, answered by a fake player and a local picture. */
+  youtube: YouTubeFixture;
   guard: void;
 }
 
 /**
  * The shared fixture every spec imports (AGENTS.md, E2E; L2-148 AC1). It installs the fake Bluetooth stack before the
  * app loads and answers backend and ride hub requests as the spec declares. It fails the spec on a page error, a request
- * off localhost, an unanswered backend or hub request, or a Bluetooth call the spec did not expect.
+ * off localhost (YouTube's player script and covers excepted, which a fake answers), an unanswered backend or hub request, or a Bluetooth call the spec did not expect.
  */
 export const test = base.extend<Fixtures>({
   bluetooth: async ({ page }, use) => {
@@ -28,13 +31,18 @@ export const test = base.extend<Fixtures>({
   hub: async ({ page }, use) => {
     await use(await HubFixture.install(page));
   },
+  youtube: async ({ page }, use) => {
+    await use(await YouTubeFixture.install(page));
+  },
   guard: [
-    async ({ page, bluetooth, api, hub }, use) => {
+    async ({ page, bluetooth, api, hub, youtube }, use) => {
+      void youtube; // installed first, so this catch-all, registered after it, can hand YouTube's requests back
       const problems: string[] = [];
       page.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
       await page.route(
         (url) => !['localhost', '127.0.0.1'].includes(url.hostname),
         async (route) => {
+          if (YouTubeFixture.answers(new URL(route.request().url()))) return route.fallback();
           problems.push(`request off localhost: ${route.request().url()}`);
           await route.abort();
         },

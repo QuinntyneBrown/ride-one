@@ -13,3 +13,5 @@ export { ClassHeader } from './class-ride/class-header';
 export { ClassResist } from './class-ride/class-resist';
 export { ClassSegment } from './class-ride/class-segment';
 export { ClassStat, type ClassStatTone } from './class-ride/class-stat';
+export { ClassVideo } from './class-ride/class-video';
+export { InlineMessage, type InlineMessageTone } from './inline-message/inline-message';

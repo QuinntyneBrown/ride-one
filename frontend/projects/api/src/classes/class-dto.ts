@@ -1,12 +1,14 @@
 import type { Plan } from '../workout/plan';
+import type { VideoDto } from './video-dto';
 
 /**
  * A class as `GET /api/classes/{id}` serves it (L2-080, ADR 0014): what the class ride needs. The catalogue API
- * (slice 6.1) adds the channel, focus, shelf, summary and video.
+ * (slice 6.1) adds the channel, focus, shelf and summary.
  */
 export interface ClassDto {
   readonly id: string;
   readonly title: string;
   readonly lengthSeconds: number;
   readonly plan: Plan;
+  readonly video: VideoDto;
 }

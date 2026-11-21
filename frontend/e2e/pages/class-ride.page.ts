@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
-/** Class Ride at `/classes/:id/ride` (docs/mocks/pages/class-ride/): the header and the bike panel. */
+/** Class Ride at `/classes/:id/ride` (docs/mocks/pages/class-ride/): the header, the video and the bike panel. */
 export class ClassRidePage {
   readonly name: Locator;
   readonly clock: Locator;
@@ -9,6 +9,8 @@ export class ClassRidePage {
   readonly segmentLeft: Locator;
   readonly segmentFill: Locator;
   readonly profile: Locator;
+  readonly cover: Locator;
+  readonly videoNotice: Locator;
   readonly power: Locator;
   readonly powerHint: Locator;
   readonly cadence: Locator;
@@ -28,6 +30,8 @@ export class ClassRidePage {
     this.segmentLeft = page.locator('.class-segment__left');
     this.segmentFill = page.locator('.class-segment__fill');
     this.profile = page.getByRole('img', { name: 'Resistance profile' });
+    this.cover = page.locator('.class-video .photo');
+    this.videoNotice = page.locator('.class-video__notice');
     const stat = (label: string) =>
       page.locator('.class-stat').filter({ has: page.getByText(label, { exact: true }) });
     this.power = stat('Power').locator('.class-stat__number');

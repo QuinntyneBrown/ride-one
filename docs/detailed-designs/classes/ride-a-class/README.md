@@ -54,8 +54,14 @@ The header's lockup is the small one (`size="sm"`), whose wordmark hides below 3
   clock (`role="timer"`, "7:00 / 30:00"), Leave (`aria-label="Leave class"`), Pause in solo, and
   Full screen. Below md it hides the class name and the total; below 384 px it hides the
   wordmark.
-- **`ClassVideo`** (`wz-class-video`) — host for the player without controls, and the "video
-  unavailable" notice (mock gap).
+- **`ClassVideo`** (`wz-class-video`) — the 16:9 frame with the class cover
+  (`https://i.ytimg.com/vi/<videoId>/hqdefault.jpg`, cropped by `.photo--yt`), the element the
+  player takes over, and, when the video cannot play, the warning under it: "The video can't
+  play. The bike will still follow the class." (`role="status"`, `L2-088` AC4), drawn by
+  **`InlineMessage`** (`wz-inline-message`, tone `warn`). From lg the frame fills the column above
+  the bike panel. It emits the player's element (`frame`) once drawn, for the page to hand to the
+  store; it finds it from its host rather than with `viewChild`, whose query runtime would be the
+  app's first and land in the initial bundle.
 - **`ClassBike`** (`wz-class-bike`) — bike panel; one row of four at md or wider. It holds
   **`ClassSegment`** (kind, time left with `aria-label="Recover: 1:30 left"`, progress bar, plan
   profile), two **`ClassStat`**s (Power "108 W" with "On target" or the delta; Cadence "73 rpm"
@@ -82,19 +88,31 @@ The header's lockup is the small one (`size="sm"`), whose wordmark hides below 3
 - **`ResistanceController`** (`domain/engine`) — owned by the bike subsystem's *control
   resistance* feature. It sends target resistance through `BIKE_CONNECTION` and handles the
   manual stepper (`L2-028`).
-- **`VideoClockSync`** (`domain/engine`) — pure rule. Each tick it compares the player's time
-  with `syncOffset + elapsed`; above 1.5 s of drift it returns a seek. It mirrors play and pause.
-- **`VideoPlayer`** / `VIDEO_PLAYER_FACTORY` and **`YouTubeVideoPlayer`** (`video` library,
-  imported dynamically) — embeds `youtube-nocookie.com` without controls (`L2-088` AC5) and
-  reports `playing`, `paused`, `error` and the current time. Playwright and unit tests bind a
-  fake player to the token (ADR 0012).
+- **`VideoClockSync`** (`domain/engine`) — pure rule. `check(videoTime, elapsed, offset)` compares
+  the player's time with `offset + elapsed` and returns the time to seek to when they are more than
+  1.5 s apart, otherwise `null` (`L2-088` AC2). The store asks it on each tick while the video
+  plays; mirroring pause comes with Pause (5.4).
+- **`VideoPlayer`** / `VIDEO_PLAYER_FACTORY` (`api`) — the contract: `load(host, videoId,
+  {startSeconds, controls, title})`, a `state` signal (`loading`, `playing`, `paused`, `error`),
+  `currentTime()`, `play()`, `pause()`, `seekTo(seconds)` and `destroy()`. The token holds a
+  function resolving a new player; the class ride route binds it to a dynamic import of the
+  `video` library, so the player's code loads only when a ride starts.
+- **`YouTubeVideoPlayer`** (`video` library, depends on `api` only) — loads the YouTube IFrame
+  API (`https://www.youtube.com/iframe_api`) once and embeds the video from
+  `https://www.youtube-nocookie.com` (`L2-088` AC5), without controls and out of the tab order
+  in the class ride. A blocked script, a player error or a removed video turn its state to
+  `error`; the store then shows the notice and the clock and the plan carry on (AC4). Unit
+  tests give the store a fake player; Playwright answers the IFrame API's script with a fake
+  `YT.Player`, and the covers with a local picture, so no request leaves localhost (ADR 0012).
 - **`BikeConnection`** / `BIKE_CONNECTION` — live telemetry (power, cadence, resistance) and the
   `ble` state, owned by the bike subsystem.
 
 **Slices.** Slice 5.1 built the engine and the clock. Slice 5.2 builds the solo route, the
 store, the header's lockup, name and clock, and the bike panel, proved by Playwright on the fake
 Bluetooth with a fake clock; the backend's `GET /api/classes/{id}` comes with the catalogue API
-(6.1). The video is 5.3; Pause, Leave, the wake lock and the leave guard are 5.4; Full screen
+(6.1). Slice 5.3 adds the `video` library, `VideoClockSync`, the video with its notice and the
+class's `video` (`VideoDto { videoId, syncOffsetSeconds }`, as the catalogue serves it). Pause,
+Leave, the wake lock and the leave guard are 5.4; Full screen
 is journey 24; the group header and board come with the group class. A class that cannot load
 is a mock gap, for the class start (6.3).
 

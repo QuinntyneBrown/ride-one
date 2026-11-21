@@ -22,6 +22,7 @@ export const hiitCardio = {
   id: 'hiit-cardio-30',
   title: '30 Minute HIIT Cardio',
   lengthSeconds: 1800,
+  video: { videoId: 'QUoToFsMNig', syncOffsetSeconds: 12 },
   plan: {
     segments: [
       { kind: 'warm-up', duration: 300, level: 8, cadenceAim: 80 },

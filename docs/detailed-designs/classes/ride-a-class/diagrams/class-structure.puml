@@ -56,7 +56,7 @@ package "domain library" {
   }
   class VideoClockSync {
     +driftLimitSeconds = 1.5
-    +check(videoTime: number, elapsed: number, offset: number): SyncAction
+    +check(videoTime: number, elapsed: number, offset: number): number | null
   }
   class ResistanceController {
     +applyPlanLevel(level: number): Promise<void>
@@ -66,6 +66,7 @@ package "domain library" {
 package "api library" {
   interface VideoPlayer {
     +state: Signal<PlayerState>
+    +load(host: HTMLElement, videoId: string, options: PlayerOptions): Promise<void>
     +currentTime(): number
     +play(): void
     +pause(): void
@@ -80,6 +81,11 @@ package "api library" {
     +title: string
     +lengthSeconds: number
     +plan: Plan
+    +video: VideoDto
+  }
+  class VideoDto {
+    +videoId: string
+    +syncOffsetSeconds: number
   }
   interface BikeConnection {
     +ble: Signal<BleState>

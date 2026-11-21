@@ -31,6 +31,7 @@ package "api library" {
     +joinClassSession(sessionId: string): Promise<JoinResult>
   }
   interface VideoPlayer {
+    +state: Signal<PlayerState>
     +load(host: HTMLElement, videoId: string, options: PlayerOptions): Promise<void>
     +seekTo(seconds: number): void
     +destroy(): void

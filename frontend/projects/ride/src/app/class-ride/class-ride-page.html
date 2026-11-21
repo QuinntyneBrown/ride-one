@@ -9,6 +9,12 @@
     <main id="main" class="class-ride__body" tabindex="-1">
       <h1 class="visually-hidden">{{ ride.title }} · solo class ride</h1>
       <div class="class-ride__stage">
+        <wz-class-video
+          [videoId]="ride.video.videoId"
+          [title]="ride.title"
+          [unavailable]="store.videoUnavailable()"
+          (frame)="store.playVideo($event)"
+        />
         @if (store.plan(); as plan) {
           <wz-class-bike>
             <wz-class-segment

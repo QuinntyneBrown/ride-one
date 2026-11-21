@@ -20,6 +20,12 @@
   &:focus {
     outline: none; // focused by the skip link, never by a pointer
   }
+
+  // From lg the page fits the screen: the video fills the column above the bike panel.
+  @media (min-width: 64rem) {
+    align-content: stretch;
+    overflow: hidden;
+  }
 }
 
 .class-ride__stage {
@@ -31,5 +37,9 @@
 
   @media (min-width: 40rem) {
     padding: var(--space-4);
+  }
+
+  @media (min-width: 64rem) {
+    min-height: 0;
   }
 }

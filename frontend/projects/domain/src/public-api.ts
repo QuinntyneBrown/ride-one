@@ -24,6 +24,7 @@ export { type PlanState, planStateAt } from './engine/plan-state';
 export { RideClock } from './engine/ride-clock';
 export { RideTicker } from './engine/ride-ticker';
 export { RideTotals } from './engine/ride-totals';
+export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { WorkoutEngine } from './engine/workout-engine';
 export { SpeedModel } from './engine/speed-model';
 export { SecondTicker } from './engine/second-ticker';

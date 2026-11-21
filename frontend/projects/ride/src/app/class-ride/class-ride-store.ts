@@ -1,7 +1,7 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { CLASSES_API, type ClassDto } from '@telo/api';
+import { CLASSES_API, type ClassDto, VIDEO_PLAYER_FACTORY, type VideoPlayer } from '@telo/api';
 import { type ClassStatTone, formatMetric } from '@telo/components';
 import {
   BikeTelemetry,
@@ -9,6 +9,7 @@ import {
   ResistanceController,
   RideClock,
   RideTicker,
+  VideoClockSync,
   WorkoutEngine,
 } from '@telo/domain';
 
@@ -23,7 +24,9 @@ export interface StatView {
  * The solo class ride's state (docs/detailed-designs/classes/ride-a-class), provided by the page so it goes when the
  * rider leaves. It loads the class from `CLASSES_API` and starts the ride the moment it arrives: the clock, the ticker
  * and the engine following the plan, which sends each segment's level (L2-027). The header and the segment card read
- * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1).
+ * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
+ * video plays from the ride clock plus the class's sync offset (L2-088 AC1) and, on each tick, seeks back when it has
+ * drifted more than 1.5 s (AC2); when it cannot play, the ride carries on without it (AC4).
  */
 @Injectable()
 export class ClassRideStore {
@@ -33,12 +36,23 @@ export class ClassRideStore {
   private readonly resistance = inject(ResistanceController);
   private readonly telemetry = inject(BikeTelemetry);
   private readonly loaded = signal<ClassDto | null>(null);
+  private readonly sync = inject(VideoClockSync);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly playerFactory = inject(VIDEO_PLAYER_FACTORY);
+  private readonly player = signal<VideoPlayer | null>(null);
+  private readonly playerMissing = signal(false);
+  private videoHost: HTMLElement | null = null;
+  private destroyed = false;
 
   readonly ride = this.loaded.asReadonly();
   readonly elapsed = this.ticker.second;
   readonly plan = this.engine.state;
   readonly level = this.telemetry.resistance;
   readonly canControl = this.resistance.canControl;
+  /** Whether the video cannot play: its code or YouTube's did not load, or the player failed. */
+  readonly videoUnavailable = computed(
+    () => this.playerMissing() || this.player()?.state() === 'error',
+  );
 
   /** Power against the segment's target: "On target" within 10 %, otherwise the signed delta (L2-089 AC2). */
   readonly power = computed<StatView>(() => {
@@ -78,6 +92,29 @@ export class ClassRideStore {
       .get(id)
       .pipe(takeUntilDestroyed())
       .subscribe((dto) => this.start(dto));
+    this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
+      this.player()?.destroy();
+    });
+  }
+
+  /** Plays the class video in `host`, the frame the page renders once the class has arrived; called once. */
+  playVideo(host: HTMLElement): void {
+    const ride = this.loaded();
+    if (!ride || this.videoHost) return;
+    this.videoHost = host;
+    this.playerFactory().then(
+      (player) => {
+        if (this.destroyed) return player.destroy();
+        this.player.set(player);
+        void player.load(host, ride.video.videoId, {
+          startSeconds: ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000,
+          controls: false,
+          title: ride.title,
+        });
+      },
+      () => this.playerMissing.set(true),
+    );
   }
 
   raise(): void {
@@ -93,5 +130,16 @@ export class ClassRideStore {
     this.clock.start();
     this.ticker.start();
     this.engine.follow(dto.plan);
+    this.ticker.ticks
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.syncVideo(dto));
+  }
+
+  private syncVideo(ride: ClassDto): void {
+    const player = this.player();
+    if (player?.state() !== 'playing') return;
+    const elapsed = this.clock.elapsedMs() / 1000;
+    const seek = this.sync.check(player.currentTime(), elapsed, ride.video.syncOffsetSeconds);
+    if (seek !== null) player.seekTo(seek);
   }
 }
