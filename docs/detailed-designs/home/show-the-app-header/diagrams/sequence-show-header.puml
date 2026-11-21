@@ -47,11 +47,11 @@ ctrl --> client : 200 ProgressDto
 client --> store : ProgressDto
 store --> shell : progress signal updates
 shell -> shell : toLevelView: fill 1840 / 2600 = 70.8 %, aria-label "Level 7, 1840 of 2600 XP" (L2-032 AC2)
-shell -> apphdr : Bind current, streakDays, level, bikeStatus
+shell -> apphdr : Bind streakDays, bikeStatus; level link in the end slot
 alt streakDays = 0
   apphdr -> apphdr : Omit the streak (L2-032 AC3)
 else streakDays > 0
   apphdr -> apphdr : Show streak with aria-label "4-day streak"
 end
-apphdr --> actor : Header with aria-current="page" on the current item (L2-032 AC1)
+apphdr --> actor : Header with aria-current="page" on the current item, set by RouterLinkActive (L2-032 AC1)
 @enduml

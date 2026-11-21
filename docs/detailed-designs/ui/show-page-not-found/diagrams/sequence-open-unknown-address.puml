@@ -19,6 +19,7 @@ participant "Browser" as browser
 participant "Static host" as host
 box "Frontend — Ride app (ride application)" #E0F2FE
   participant "Router" as router
+  participant "MainShell" as shell
   participant "NotFoundPage" as page
   participant "HomePage" as home
 end box
@@ -30,8 +31,10 @@ browser -> host : GET /old-link
 host --> browser : index.html (no file matches)
 browser -> router : Initial navigation to /old-link
 router -> router : No route matches; wildcard ** matches; no auth guard
-router -> page : loadComponent and create
-page -> header : current = null (L2-145 AC1)
+router -> shell : loadComponent MainShell (layout route)
+shell -> header : Brand and nav links in the slots
+router -> page : loadComponent NotFoundPage into the shell's outlet
+router --> header : No routerLinkActive matches; no aria-current (L2-145 AC1)
 page --> actor : "This page doesn’t exist." with "← Back to Home"
 actor -> page : Choose "← Back to Home"
 page -> router : navigate to /

@@ -46,6 +46,7 @@ module.exports = defineConfig([
       '@angular-eslint/prefer-standalone': 'error',
       '@angular-eslint/component-max-inline-declarations': ['error', { template: 0, styles: 0 }],
       '@angular-eslint/use-component-view-encapsulation': 'error',
+      '@typescript-eslint/consistent-type-imports': 'error',
       ...noBluetooth,
     },
   },

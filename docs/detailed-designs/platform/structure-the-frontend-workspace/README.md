@@ -16,7 +16,7 @@ direction.
 
 The feature belongs to the platform subsystem. It is a frontend-only slice that every other
 frontend feature builds on. ADR 0013 describes the earlier three-project workspace that this design
-extends with the `domain` library.
+extends with the `domain` library; ADR 0024 records the Telo Ride workspace.
 
 ## Description
 
@@ -51,6 +51,31 @@ extends with the `domain` library.
   withInterceptors([...]))`, `provideServiceWorker('ngsw-worker.js')`, and binds every token, for
   example `{ provide: BIKE_CONNECTION, useFactory: bikeConnectionFactory }`. The factory returns
   `SimulatedBike` when the URL carries `?simulate`.
+- **Built in order** — slice 1.1 lays down the four baseline projects, the app shell, the
+  `MainShell` layout route with Home and Page not found, the lint, the budgets, the tokens and the
+  fonts. `app.config.ts` then holds only zoneless change detection, the router and the browser
+  error listeners; each provider and token binding below arrives with the first slice that needs
+  it, as `AGENTS.md` asks.
+- **Library `package.json`** — each library keeps a private `package.json` (`@telo/api`,
+  `@telo/domain`, `@telo/components`) with `"sideEffects": false`, so the bundler drops unused
+  exports of a barrel (ADR 0013).
+- **Attribute components** — a presentation component that must sit on a native element the app
+  owns (a router link, a button) is an attribute component, written as Angular Material writes
+  them: `a[wz-button]`, `a[wz-app-header-link]`. It styles its host as its block or element with
+  the mock's BEM class, and the app adds `routerLink` on the same element, so `components` never
+  imports the router (ADR 0024).
+- **Global styles** — `projects/ride/src/styles/`: `tokens.css` (copied from
+  `docs/design-system/tokens/tokens.css` without its `@font-face` rules), `fonts.css` (the
+  `@font-face` rules, pointing at `projects/ride/public/fonts/`, bundled and self-hosted per ADR
+  0005) and `styles.scss` (reset, focus ring, skip link and utilities). `_page.scss` holds the
+  page structure (`container`, `page`, `page__title`, `page__lead`); each page's stylesheet
+  `@use`s it, so its rules stay encapsulated in that page.
+- **Budgets** — `angular.json`'s production build warns above 264 kB of initial JavaScript and
+  CSS and fails above 280 kB; a component stylesheet warns above 6 kB and fails above 10 kB.
+  Angular core and the router, which every screen needs, are most of the initial chunk; every
+  page is a lazy chunk.
+- **Unit tests** — `ng test ride` runs every `*.spec.ts` under `projects/*/src/` with Vitest,
+  libraries included. They run locally through `tools/verify/verify.mjs`, never in CI.
 - **`frontend/eslint.config.js`** — one flat config for all projects:
   - `no-restricted-imports` per project folder enforces the dependency direction (lint, not a
     test, as ADR 0013 decided).
@@ -59,11 +84,13 @@ extends with the `domain` library.
   - A rule on `projects/ride/` allows `@telo/world` and `@telo/video` only through `import()`,
     never a static import.
   - A rule on `projects/video/` allows imports from `@telo/api` only.
-  - `no-restricted-properties` and `no-restricted-globals` forbid `navigator.bluetooth` everywhere
-    except `projects/domain/src/bluetooth/**`.
+  - `no-restricted-properties` forbids `navigator.bluetooth` everywhere except
+    `projects/domain/src/bluetooth/**`.
   - angular-eslint rules `prefer-on-push-component-change-detection`, `prefer-standalone`,
-    `component-selector` (prefix `wz`, kebab-case) and `component-max-inline-declarations` set to
-    0 for templates and styles.
+    `component-selector` (prefix `wz`, kebab-case, on an element or an attribute),
+    `use-component-view-encapsulation`, and `component-max-inline-declarations` set to 0 for
+    templates and styles; the template rules include angular-eslint's accessibility set and
+    forbid inline styles.
 - **Prettier** — owns formatting; CI fails when `prettier --check` reports a change.
 
 ## Requirements

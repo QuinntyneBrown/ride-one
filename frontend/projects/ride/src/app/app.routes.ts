@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 
 /** Every route loads its component on demand (AGENTS.md, lazy loading first). */
 export const routes: Routes = [

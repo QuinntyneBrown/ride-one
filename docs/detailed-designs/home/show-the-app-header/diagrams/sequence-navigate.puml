@@ -27,7 +27,6 @@ actor -> apphdr : Choose the level link
 apphdr -> router : routerLink /profile
 router -> page : loadComponent ProfilePage
 router --> shell : NavigationEnd /profile
-shell -> shell : current = Profile
-shell -> apphdr : Bind current = Profile
+router -> shell : RouterLinkActive matches /profile on the level and Profile links
 apphdr --> actor : Profile item carries aria-current="page" (L2-032 AC1)
 @enduml

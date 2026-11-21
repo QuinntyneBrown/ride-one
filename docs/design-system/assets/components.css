@@ -1421,11 +1421,16 @@ table { border-collapse: collapse; }
 }
 @media (min-width: 40rem) { .app-header { padding-inline: var(--space-6); } }
 @media (min-width: 64rem) { .app-header { padding-inline: var(--space-8); } }
-.app-header__brand { display: inline-flex; border-radius: var(--radius-md); }
+.app-header__brand { position: relative; display: inline-flex; border-radius: var(--radius-md); }
+/* The brand and nav links draw shorter than 44px; each takes touches across at least 44px (AGENTS.md) */
+.app-header__brand::after, .app-header__nav-link::after {
+  content: ''; position: absolute; inset-inline: 0;
+  inset-block: min(0px, calc((100% - var(--target-comfortable)) / 2));
+}
 .app-header__nav { order: 99; display: flex; gap: var(--space-1); width: 100%; margin-inline: calc(var(--space-1) * -1); }
 @media (min-width: 40rem) { .app-header__nav { order: 0; width: auto; } }
 .app-header__nav-link {
-  display: inline-flex; align-items: center; justify-content: center; flex: 1;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 1;
   height: var(--control-height-sm); padding-inline: var(--space-3); border-radius: var(--radius-lg);
   font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-medium); white-space: nowrap;
   color: var(--color-muted); transition: color var(--duration-fast) var(--ease-standard);
@@ -1473,6 +1478,9 @@ table { border-collapse: collapse; }
   font-size: var(--btn-font-size); line-height: var(--btn-line-height); font-weight: var(--btn-weight); white-space: nowrap;
   transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
 }
+/* A button shorter than 44px takes touches across 44px (AGENTS.md); the hit area overhangs it */
+:where(.btn) { position: relative; } /* zero specificity: a positioned button keeps its own position */
+.btn::after { content: ''; position: absolute; inset-inline: 0; inset-block: min(0px, calc((100% - var(--target-comfortable)) / 2)); }
 .btn:hover:not(:disabled):not([aria-disabled="true"]), .btn[data-state="hover"] { background: var(--btn-bg-hover); color: var(--btn-fg-hover); opacity: var(--btn-hover-opacity); }
 .btn:active:not(:disabled):not([aria-disabled="true"]), .btn[data-state="active"] { transform: scale(0.98); }
 .btn:disabled, .btn[aria-disabled="true"] { opacity: 0.4; cursor: default; }
