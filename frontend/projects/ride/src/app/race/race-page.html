@@ -1,0 +1,17 @@
+<main id="main" class="race" tabindex="-1">
+  @if (store.map(); as map) {
+    <h1 class="visually-hidden">Race, {{ map.name }}</h1>
+    <!-- The map's photo stands for its world until the world is drawn (journey 8), as the mock draws it. -->
+    <div class="race-scene" role="img" [attr.aria-label]="store.sceneLabel()">
+      <img class="race-scene__photo" [src]="map.photoUrl" alt="" />
+    </div>
+    <wz-race-bar
+      [map]="map.name"
+      [route]="store.routeLine()"
+      [bikeName]="store.bikeName()"
+      [connected]="store.connected()"
+      [elapsed]="store.elapsed()"
+      [total]="store.total()"
+    />
+  }
+</main>

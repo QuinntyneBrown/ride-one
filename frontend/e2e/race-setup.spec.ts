@@ -3,8 +3,10 @@
 // Description: Race Setup for a new rider shows the map's photo, name, route and facts with no best, the stars here
 // with none earned, and the goal line only on the map that holds the next unlock; a locked map's address opens Map
 // Select. The rider chooses whom to race and, against bots, the pack strength, and the start button opens the race.
+import { echelonBike } from './fixtures/echelon';
 import { maps } from './fixtures/maps';
 import { expect, test } from './fixtures/test';
+import { RacePage } from './pages/race.page';
 import { RaceSetupPage } from './pages/race-setup.page';
 
 test.beforeEach(({ api }) => {
@@ -120,7 +122,9 @@ test('against bots, Pack strength offers easy, medium and hard, each with its no
 
 test('against bots, Go to the start line opens the race with the chosen pack (L2-050 AC1)', async ({
   page,
+  bluetooth,
 }) => {
+  await bluetooth.remember(echelonBike);
   const setup = new RaceSetupPage(page);
   await setup.open('old-town-criterium');
   await setup.packStrength('hard').click();
@@ -129,11 +133,14 @@ test('against bots, Go to the start line opens the race with the chosen pack (L2
   await setup.start.click();
 
   await expect(page).toHaveURL('/race/old-town-criterium/ride?mode=bots&pack=hard');
+  await expect(new RacePage(page).route).toHaveText('Cathedral Circuit · vs Bots, hard');
 });
 
 test('against your best time, Start ride opens the race at once, solo (L2-050 AC2)', async ({
   page,
+  bluetooth,
 }) => {
+  await bluetooth.remember(echelonBike);
   const setup = new RaceSetupPage(page);
   await setup.open('prairie-paceline');
   await setup.mode('Your best time').click();
@@ -142,4 +149,5 @@ test('against your best time, Start ride opens the race at once, solo (L2-050 AC
   await setup.start.click();
 
   await expect(page).toHaveURL('/race/prairie-paceline/ride?mode=solo');
+  await expect(new RacePage(page).route).toHaveText('Route 9 Wind Farm · vs your best');
 });

@@ -1,10 +1,13 @@
+import type { Plan, SegmentKind } from '../workout/plan';
+
 /** How hard a map rides (L2-045 AC1). */
 export type MapRating = 'Easy' | 'Moderate' | 'Hard' | 'Brutal';
 
 /**
  * One map of the catalogue as `GET /api/maps` serves it (ADR 0029): its facts, its world, its thumbnail and its Race
  * Setup photo in the app, the goal that opens it, or `null` for a map open from the start (L2-040 AC6), and the map that
- * goal is earned on, or `null` for a level goal (L2-047 AC3).
+ * goal is earned on, or `null` for a level goal (L2-047 AC3); and, for the race, its 30:00 plan and its world's terrain
+ * (L2-045 AC2).
  */
 export interface MapDto {
   readonly id: string;
@@ -19,4 +22,15 @@ export interface MapDto {
   readonly photoUrl: string;
   readonly unlockGoal: string | null;
   readonly unlockMapId: string | null;
+  readonly plan: Plan;
+  readonly terrain: MapTerrain;
+}
+
+/**
+ * A map's world as its road climbs (from `main`'s `worlds.ts`): the grade in percent the road eases towards for each
+ * segment kind of the plan, and the rolling grade laid over it.
+ */
+export interface MapTerrain {
+  readonly grade: Readonly<Record<SegmentKind, number>>;
+  readonly roll: number;
 }

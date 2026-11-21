@@ -1,0 +1,35 @@
+// Blocks race and race-scene (docs/design-system/assets/components.css, Race): full screen, the scene behind the HUD.
+.race {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-ink);
+  color: var(--color-fg);
+
+  &:focus {
+    outline: none; // focused by the skip link, never by a pointer
+  }
+}
+
+.race-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    var(--race-sky) 0 45.5%,
+    var(--race-ground-far) 45.5%,
+    var(--race-ground-near) 100%
+  );
+}
+
+// The photo spans the camera's horizon, as the mock frames the world: 21:9 here, so it fills the width.
+.race-scene__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mask-image: linear-gradient(to bottom, transparent 0, currentColor 14%);
+}

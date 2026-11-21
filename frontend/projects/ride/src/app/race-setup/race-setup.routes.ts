@@ -2,7 +2,7 @@ import type { Routes } from '@angular/router';
 import { PROGRESS_API } from '@telo/api';
 import { NewRiderProgress } from '@telo/domain';
 import { provideMaps } from '../maps/provide-maps';
-import { openMapGuard } from './open-map.guard';
+import { openMapGuard } from '../maps/open-map.guard';
 
 /**
  * Race Setup's route, loaded with it, opened only for a map open to the rider: the map catalogue's client and the rider's progress are bound here, so their code

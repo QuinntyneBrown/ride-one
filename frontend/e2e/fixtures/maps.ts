@@ -1,3 +1,32 @@
+/** The 30:00 plan every map rides for now (the mock's HIIT shape, efforts at level 24 and 98 rpm, 418 W). */
+const seg = (kind: string, duration: number, level: number, cadenceAim: number) => ({
+  kind,
+  duration,
+  level,
+  cadenceAim,
+});
+export const racePlan = [
+  seg('warm-up', 300, 8, 80),
+  ...[180, 150, 150, 120, 120, 90, 90].flatMap((rest) => [
+    seg('work', 30, 24, 98),
+    seg('recover', rest, 6, 72),
+  ]),
+  seg('work', 30, 24, 98),
+  seg('cool-down', 360, 6, 68),
+];
+
+const terrain = (
+  warmUp: number,
+  work: number,
+  recover: number,
+  coolDown: number,
+  steady: number,
+  roll: number,
+) => ({
+  grade: { 'warm-up': warmUp, work, recover, 'cool-down': coolDown, steady },
+  roll,
+});
+
 /**
  * The map catalogue as `GET /api/maps` answers it (backend/src/Telo.Ride.Infrastructure/Catalogue/maps.json, ADR 0029):
  * the seven maps of L2-045 AC1 in unlock order, each with its photo (L2-047 AC1), and each locked map with its goal
@@ -18,6 +47,8 @@ export const maps = [
     photoUrl: 'maps/prairie-paceline-photo.jpg',
     unlockGoal: null,
     unlockMapId: null,
+    plan: { segments: racePlan },
+    terrain: terrain(0, 1.5, -0.5, 0, 0.5, 1),
   },
   {
     id: 'old-town-criterium',
@@ -32,6 +63,8 @@ export const maps = [
     photoUrl: 'maps/old-town-criterium-photo.jpg',
     unlockGoal: null,
     unlockMapId: null,
+    plan: { segments: racePlan },
+    terrain: terrain(0.5, 6, -1.5, 0, 0, 0.5),
   },
   {
     id: 'cliffside-coast',
@@ -46,6 +79,8 @@ export const maps = [
     photoUrl: 'maps/cliffside-coast-photo.jpg',
     unlockGoal: 'Finish top 3 vs Bots on Prairie Paceline',
     unlockMapId: 'prairie-paceline',
+    plan: { segments: racePlan },
+    terrain: terrain(0.5, 4.5, -1.5, -0.5, 0.5, 1.6),
   },
   {
     id: 'neon-docklands',
@@ -60,6 +95,8 @@ export const maps = [
     photoUrl: 'maps/neon-docklands-photo.jpg',
     unlockGoal: 'Finish top 3 vs Bots on Old Town Criterium',
     unlockMapId: 'old-town-criterium',
+    plan: { segments: racePlan },
+    terrain: terrain(0.5, 5.5, -2, 0, 0, 0.6),
   },
   {
     id: 'dolomites',
@@ -74,6 +111,8 @@ export const maps = [
     photoUrl: 'maps/dolomites-photo.jpg',
     unlockGoal: 'Earn 2★ on Cliffside Coast',
     unlockMapId: 'cliffside-coast',
+    plan: { segments: racePlan },
+    terrain: terrain(1, 2, 0, -1, 0.8, 2.4),
   },
   {
     id: 'vice-city',
@@ -88,6 +127,8 @@ export const maps = [
     photoUrl: 'maps/vice-city-photo.jpg',
     unlockGoal: 'Reach rider level 10',
     unlockMapId: null,
+    plan: { segments: racePlan },
+    terrain: terrain(0.5, 4, -1, 0, 0.5, 0.5),
   },
   {
     id: 'col-du-granit',
@@ -102,5 +143,7 @@ export const maps = [
     photoUrl: 'maps/col-du-granit-photo.jpg',
     unlockGoal: 'Earn 3★ on Dolomites',
     unlockMapId: 'dolomites',
+    plan: { segments: racePlan },
+    terrain: terrain(3, 8, 3.5, -5, 5, 0.8),
   },
 ];
