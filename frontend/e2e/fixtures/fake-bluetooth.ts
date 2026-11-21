@@ -14,8 +14,16 @@ export interface RecordedWrite {
   withResponse: boolean;
 }
 
+/** The options the page passed to `requestDevice`, as JSON (numbers stay numbers, UUIDs strings). */
+export interface RecordedRequest {
+  filters: { services: (string | number)[] }[];
+  optionalServices?: (string | number)[];
+}
+
 type Report =
   | { kind: 'write'; characteristic: string; hex: string; withResponse: boolean }
+  | { kind: 'subscribe'; characteristic: string }
+  | { kind: 'request'; options: RecordedRequest }
   | { kind: 'unexpected'; call: string };
 
 /**
@@ -27,6 +35,8 @@ type Report =
 export class FakeBluetooth {
   private readonly recorded: RecordedWrite[] = [];
   private readonly refused: string[] = [];
+  private readonly requested: RecordedRequest[] = [];
+  private readonly order: string[] = [];
 
   private constructor(private readonly page: Page) {}
 
@@ -67,6 +77,36 @@ export class FakeBluetooth {
     await this.page.evaluate((offered) => Object.assign(window, { __fakeBike: offered }), bike);
   }
 
+  /** The rider closes the browser's chooser without picking a bike: `requestDevice` rejects with `NotFoundError`. */
+  async cancelChooser(): Promise<void> {
+    await this.chooser('cancel');
+  }
+
+  /** A policy keeps the chooser from opening: `requestDevice` rejects with `SecurityError` (L2-012 AC4). */
+  async blockChooser(): Promise<void> {
+    await this.chooser('block');
+  }
+
+  /** The chooser opens again as usual. */
+  async allowChooser(): Promise<void> {
+    await this.chooser(null);
+  }
+
+  /** Every `requestDevice` call's options, oldest first. */
+  requests(): RecordedRequest[] {
+    return [...this.requested];
+  }
+
+  /** Subscriptions and writes in the order the page made them: `subscribe <uuid>` or `write <uuid> <hex>`. */
+  log(): string[] {
+    return [...this.order];
+  }
+
+  private async chooser(mode: 'cancel' | 'block' | null): Promise<void> {
+    await this.page.addInitScript((m) => Object.assign(window, { __fakeChooser: m }), mode);
+    await this.page.evaluate((m) => Object.assign(window, { __fakeChooser: m }), mode);
+  }
+
   /** Pushes `bytes` from the bike on `characteristic`, to every subscription the page holds. */
   async notify(characteristic: string, bytes: readonly number[]): Promise<void> {
     await this.page.evaluate(
@@ -89,7 +129,12 @@ export class FakeBluetooth {
   }
 
   private receive(report: Report): void {
-    if (report.kind === 'write') {
+    if (report.kind === 'request') {
+      this.requested.push(report.options);
+    } else if (report.kind === 'subscribe') {
+      this.order.push(`subscribe ${report.characteristic}`);
+    } else if (report.kind === 'write') {
+      this.order.push(`write ${report.characteristic} ${report.hex}`);
       this.recorded.push({
         characteristic: report.characteristic,
         hex: report.hex,
@@ -145,6 +190,7 @@ function installInPage(): void {
       uuid,
       value: null as DataView | null,
       startNotifications: async () => {
+        await report({ kind: 'subscribe', characteristic: uuid });
         subscriptions.set(uuid, [...(subscriptions.get(uuid) ?? []), c]);
         return c;
       },
@@ -195,7 +241,16 @@ function installInPage(): void {
 
   const bluetooth = strict(
     Object.assign(new EventTarget(), {
-      requestDevice: async () => {
+      requestDevice: async (options: unknown) => {
+        await report({ kind: 'request', options: JSON.parse(JSON.stringify(options)) });
+        const mode = (window as unknown as { __fakeChooser?: string | null }).__fakeChooser;
+        if (mode === 'cancel')
+          throw new DOMException('User cancelled the requestDevice() chooser.', 'NotFoundError');
+        if (mode === 'block')
+          throw new DOMException(
+            'requestDevice() is disallowed by permissions policy.',
+            'SecurityError',
+          );
         const bike = offered();
         return bike ? device(bike) : refuse('requestDevice');
       },

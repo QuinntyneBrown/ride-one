@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
 import { Injectable, type OnDestroy } from '@angular/core';
-import type { BikeConnection, BikeInfo } from '@telo/api';
+import { type BikeConnection, BikeConnectionError, type BikeInfo } from '@telo/api';
 import { Subject } from 'rxjs';
 import { EchelonProtocol } from '../protocol/echelon-protocol';
 
@@ -39,7 +39,8 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       });
     } catch (error) {
       if (error instanceof DOMException && error.name === 'NotFoundError') return null;
-      throw error;
+      const blocked = error instanceof DOMException && error.name === 'SecurityError';
+      throw new BikeConnectionError(blocked ? 'blocked' : 'failed', String(error));
     }
     return { id: this.device.id, name: this.device.name ?? 'Your bike' };
   }
