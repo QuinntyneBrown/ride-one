@@ -14,6 +14,7 @@ import type { BikeLink } from './bike-link';
 import { bikeIdentity } from './bike-identity';
 import { EchelonLink } from './echelon-link';
 import { FtmsLink } from './ftms-link';
+import { describeError } from './describe-error';
 import { DeviceReconnector } from './device-reconnector';
 import { GattWriteQueue } from './gatt-write-queue';
 
@@ -206,7 +207,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
 
   /** A Web Bluetooth error's name and message go to the console and to `lastError`, as text (L2-017 AC5). */
   private report(error: unknown): void {
-    const text = describe(error);
+    const text = describeError(error);
     this.failure.set(text);
     console.error(text);
   }
@@ -221,9 +222,4 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     const { name, identifier } = bikeIdentity(device.name, device.id);
     return { id: device.id, name, identifier, kind: identifier ? 'echelon' : 'ftms' };
   }
-}
-
-/** `name: message`, as text (L2-017 AC5). */
-function describe(error: unknown): string {
-  return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 }

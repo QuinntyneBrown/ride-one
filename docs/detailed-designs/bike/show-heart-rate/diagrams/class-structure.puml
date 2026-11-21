@@ -13,13 +13,14 @@ skinparam class {
 ' --------------------------
 title Class structure — Show heart rate
 enum StrapState {
-  None
-  Connecting
-  Connected
-  Disconnected
+  none
+  connecting
+  connected
+  disconnected
 }
 interface HeartRateStrap <<api>> {
   +state: Signal<StrapState>
+  +name: Signal<string | null>
   +bpm: Signal<number | null>
   +choose(): Promise<boolean>
   +reconnectRemembered(): Promise<boolean>
@@ -34,7 +35,7 @@ class WebBluetoothHeartRateStrap <<domain/bluetooth>> {
 class HeartRateMeasurementDecoder <<domain/protocol>> {
   +{static} SERVICE: number = 0x180D
   +{static} MEASUREMENT: number = 0x2A37
-  +decode(view: DataView): number
+  +decode(bytes: Uint8Array): number | null
 }
 class DeviceReconnector <<domain/bluetooth>> {
   +start(attempt): void
@@ -48,7 +49,7 @@ class HeartRateSource <<domain/engine>> {
 class HeartRateStats <<domain/engine>> {
   +average: Signal<number | null>
   +peak: Signal<number | null>
-  +onRunningSecond(bpm: number | null): void
+  +onRunningSecond(): void
 }
 class BikeTelemetry <<domain/engine>> {
   +heartRate: Signal<number | null>
@@ -59,8 +60,8 @@ class RideSubmission <<api>> {
   +peakHeartRate: number | null
 }
 class RememberedStrapStore <<domain/storage>> {
-  +get(): Promise<string | null>
-  +save(id: string): Promise<void>
+  +get(): RememberedStrap | null
+  +save(strap: RememberedStrap): void
 }
 WebBluetoothHeartRateStrap ..|> HeartRateStrap
 WebBluetoothHeartRateStrap ..> HeartRateMeasurementDecoder
