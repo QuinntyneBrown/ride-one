@@ -406,7 +406,7 @@ export class AmsterdamStreet implements SceneStreet {
       return geometry;
     });
     const fronts = GABLES.map((kind, k) =>
-      [0, 1, 2, 3].map((v) =>
+      [0, 1, 2, 3, 4].map((v) =>
         this.material({
           map: this.track(
             facadeTexture(
@@ -494,7 +494,7 @@ export class AmsterdamStreet implements SceneStreet {
         const k = Math.floor(random() * 5);
         const width = k === 4 ? 12 : 6 + random() * 2;
         const height = k === 4 ? 16 : 17 + random() * 4;
-        const end = new Mesh(shapes[k]!, [fronts[k]![Math.floor(random() * 4)]!, sides]);
+        const end = new Mesh(shapes[k]!, [fronts[k]![Math.floor(random() * VARIANTS)]!, sides]);
         end.scale.set(width, height, 10);
         end.position.set(along, 0, 0);
         bend.add(end);
@@ -516,7 +516,7 @@ export class AmsterdamStreet implements SceneStreet {
         cross.add(floor);
         for (let n = 0; n < 2; n++) {
           const k = Math.floor(random() * 4);
-          const end = new Mesh(shapes[k]!, [fronts[k]![Math.floor(random() * 4)]!, sides]);
+          const end = new Mesh(shapes[k]!, [fronts[k]![Math.floor(random() * VARIANTS)]!, sides]);
           end.scale.set(CROSS / 2, 16 + random() * 3, 8);
           end.rotation.y = turn;
           end.position.set(away * 42, 0, (away * CROSS) / 2 - (away * n * CROSS) / 2);
@@ -529,7 +529,7 @@ export class AmsterdamStreet implements SceneStreet {
           for (let start = 12.5; start < 40;) {
             const k = Math.floor(lane() * 4);
             const width = 5 + lane() * 2;
-            const side = new Mesh(shapes[k]!, [fronts[k]![Math.floor(lane() * 4)]!, sides]);
+            const side = new Mesh(shapes[k]!, [fronts[k]![Math.floor(lane() * VARIANTS)]!, sides]);
             side.scale.set(width, 15 + lane() * 4, 8);
             const flip = facing > 0 ? Math.PI : 0;
             side.rotation.y = flip;
@@ -557,7 +557,7 @@ export class AmsterdamStreet implements SceneStreet {
         if (width < 9 && k === 4) k = Math.floor(random() * 4);
         const height = k === 4 ? 15 + random() * 3 : 17 + random() * 4;
         const house = new Group();
-        const variant = Math.floor(random() * 4);
+        const variant = Math.floor(random() * VARIANTS);
         const face = fronts[k]![variant]!;
         const block = (
           front: MeshStandardMaterial,
@@ -4813,7 +4813,9 @@ const FRONTS = [
   '#7a4a36',
 ];
 /** The sandstone and limestone of the Herengracht's mansions, and one in grey render. */
-const STONE = ['#d9cfb8', '#cfc4a8', '#e6dccb', '#b8b4ac'];
+const STONE = ['#d9cfb8', '#cfc4a8', '#e6dccb', '#b8b4ac', '#c8bca2'];
+/** How many fronts are drawn for each kind of house. */
+const VARIANTS = 5;
 /** Where the front's eaves (or cornice) line sits, as a share of the house's height. */
 const EAVES = 0.74;
 
