@@ -95,6 +95,10 @@ const BARRICADE_BANNERS = [
   { text: 'GRAND PARADE', fill: '#111111', ink: '#ffd23f' },
   { text: 'LAKE SHORE BLVD W', fill: '#0f9d58', ink: '#ffffff' },
   { text: 'PLAY MAS', fill: '#c8102e', ink: '#ffffff' },
+  { text: 'CARIBANA 2026', fill: '#1b3f8a', ink: '#ffd23f' },
+  { text: 'PEACE · LOVE · UNITY', fill: '#ffffff', ink: '#0f9d58' },
+  { text: 'MAS ON DE ROAD', fill: '#ff2d87', ink: '#ffffff' },
+  { text: 'PLEASE STAY BEHIND BARRICADES', fill: '#ffd23f', ink: '#111111' },
 ] as const;
 
 /** The Gardiner Expressway's deck runs north of the boulevard between these, this high. */
@@ -765,10 +769,13 @@ export class CaribanaStreet implements SceneStreet {
    */
   private addBarricades(): void {
     const random = seeded(421);
+    const choose = seeded(431);
     for (const side of [-1, 1] as const) {
       for (let offset = 0; offset < LOOP; offset += BARRICADE) {
         const roll = random();
-        const banner = roll < 0.4 ? Math.floor(random() * BARRICADE_BANNERS.length) : -1;
+        // Two in three carry a banner; the choice comes from a seed of its own.
+        const pick = choose();
+        const banner = roll < 0.66 ? Math.floor(pick * BARRICADE_BANNERS.length) : -1;
         this.barricades.push({ side, offset: offset + BARRICADE / 2, banner });
       }
     }
