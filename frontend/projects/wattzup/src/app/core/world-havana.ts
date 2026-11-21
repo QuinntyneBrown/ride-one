@@ -249,6 +249,7 @@ export class HavanaStreet implements SceneStreet {
     this.addManholes(roadHalf);
     this.addArrows(roadHalf);
     this.addCouple(roadHalf);
+    this.addLitter(roadHalf);
     this.addJoggers(roadHalf);
     this.addShopSigns(roadHalf);
     this.addFruitCart(roadHalf);
@@ -4793,6 +4794,54 @@ export class HavanaStreet implements SceneStreet {
       this.cars.push({ mesh: holder, offset: offset!, speed: speed! });
       this.runners.push({ limbs, phase: 1.3 + i * 1.7 });
     });
+  }
+
+  /**
+   * Litter gathered in both gutters against the kerb: scraps of white and brown paper, flattened
+   * cans, bottle caps and dry almond leaves, in fifteen-metre stretches, each one instanced.
+   */
+  private addLitter(roadHalf: number): void {
+    const random = seeded(1681);
+    const scrap = new PlaneGeometry(1, 1);
+    scrap.rotateX(-Math.PI / 2);
+    this.disposables.push(scrap);
+    const paint = new MeshStandardMaterial({ roughness: 0.9, side: DoubleSide });
+    this.disposables.push(paint);
+    const colours = [
+      0xf2efe6, 0xe8e2d0, 0xb89a6a, 0xa8702a, 0xc84a2a, 0x8a9aa8, 0x6a7a3a, 0xc8b048,
+    ];
+    const matrix = new Matrix4();
+    const turn = new Matrix4();
+    const colour = new Color();
+    for (let offset = 0; offset < LOOP; offset += 15) {
+      const count = 48;
+      const pieces = new InstancedMesh(scrap, paint, count);
+      for (let i = 0; i < count; i++) {
+        const right = i % 2 === 0;
+        const kind = random();
+        const w = kind < 0.5 ? 0.08 + random() * 0.14 : kind < 0.75 ? 0.07 : 0.03 + random() * 0.03;
+        const l = kind < 0.5 ? 0.06 + random() * 0.12 : kind < 0.75 ? 0.12 : w;
+        const edge = 0.04 + random() * random() * 0.5;
+        const x = right ? roadHalf - edge : -roadHalf - LANES + edge;
+        matrix.makeScale(w, 1, l);
+        turn.makeRotationY(random() * Math.PI);
+        matrix.premultiply(turn);
+        matrix.setPosition(x, 0.012 + i * 0.0004, -random() * 15);
+        pieces.setMatrixAt(i, matrix);
+        const pick =
+          kind < 0.5
+            ? colours[Math.floor(random() * 3)]!
+            : kind < 0.75
+              ? colours[4 + Math.floor(random() * 2)]!
+              : colours[6 + Math.floor(random() * 2)]!;
+        pieces.setColorAt(i, colour.set(pick));
+      }
+      pieces.receiveShadow = true;
+      const stretch = new Group();
+      stretch.add(pieces);
+      this.group.add(stretch);
+      this.props.push({ mesh: stretch, offset, x: 0 });
+    }
   }
 
   /**
