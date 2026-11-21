@@ -108,6 +108,21 @@ export class FakeBluetooth {
     await this.chooser('block');
   }
 
+  /** The computer's Bluetooth radio is off: `getAvailability()` resolves `false` (L2-018). */
+  async adapterOff(): Promise<void> {
+    await this.adapter(false);
+  }
+
+  /** The radio is on again; `availabilitychanged` is not sent, so the page learns it only when it asks again. */
+  async adapterOn(): Promise<void> {
+    await this.adapter(true);
+  }
+
+  private async adapter(on: boolean): Promise<void> {
+    await this.page.addInitScript((value) => Object.assign(window, { __fakeAdapterOn: value }), on);
+    await this.page.evaluate((value) => Object.assign(window, { __fakeAdapterOn: value }), on);
+  }
+
   /** The chooser opens again as usual. */
   async allowChooser(): Promise<void> {
     await this.chooser(null);
@@ -292,6 +307,9 @@ function installInPage(): void {
         const bike = offered();
         return bike ? device(bike) : refuse('requestDevice');
       },
+      // The radio is on unless the spec switched it off; asking is not a bike call, so it needs no offer.
+      getAvailability: async () =>
+        (window as unknown as { __fakeAdapterOn?: boolean }).__fakeAdapterOn !== false,
       getDevices: async () => {
         const bike = offered();
         return bike ? [device(bike)] : refuse('getDevices');
