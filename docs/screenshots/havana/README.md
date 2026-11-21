@@ -94,6 +94,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [088 · Manholes](088-manholes.jpg) | Cast-iron manhole covers are now set into the asphalt every fifty to a hundred metres: dark cross-hatched iron blotched with rust, a rim and two lifting slots, in a square collar of paler patched concrete. From the saddle, one lies in the open lane just left of the riders ahead. | 94% · 93/100 |
 | [089 · Joggers](089-joggers.jpg) | Joggers now run along the inland pavement, one coming on and one going away: running vest, black shorts, white trainers, one in a cap, legs and arms swinging in stride. From the saddle, the one in an orange vest and cap runs toward you past the manisero, caught mid-stride. | 94% · 93/100 |
 | [090 · Police patrol](090-police-patrol.jpg) | A PNR patrol car is now stopped in the lane with its lights on: a white Lada with blue bands along its flanks and a light bar glowing blue and red, its officer at the driver's door in grey-blue shirt and navy peaked cap. From the saddle, it sits ahead in the lane between the riders and the crossing, lights showing over its roof. | 94% · 93/100 |
+| [091 · Palm crowns](091-palm-crowns.jpg) | The royal palms now carry what real ones do below the crown: dead fronds, dry and tan, hanging down the crownshaft, and at its foot branched creamy flower spikes and bunched purple-black fruit. From the saddle, the near palm shows its dark fruit and cream spikes under the crown, a dry frond hanging behind; the dead fronds are subtle. | 94% · 93/100 |
 
 ## Reproducing a capture
 
