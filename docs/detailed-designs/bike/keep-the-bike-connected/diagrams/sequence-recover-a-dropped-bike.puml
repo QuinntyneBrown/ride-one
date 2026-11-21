@@ -21,8 +21,6 @@ end box
 box "Frontend — Ride app (domain library)" #E0F2FE
   participant "WebBluetoothBikeConnection" as conn
   participant "DeviceReconnector" as recon
-  participant "ResistanceController" as res
-  participant "AppLogger" as log
 end box
 box "Device — Smart bike" #F2F4F7
   participant "Bike GATT server" as bike
@@ -30,7 +28,7 @@ end box
 alt gattserverdisconnected
   bike -> conn : gattserverdisconnected
 else a Web Bluetooth call fails
-  conn -> log : error("bluetooth", name and message as text) (L2-017 AC5)
+  conn -> conn : console.error(name: message); lastError as text (L2-017 AC5)
 end
 conn -> conn : state = Disconnected (L2-017 AC1)
 conn --> header : Status red, hidden text " disconnected" (L2-019 AC3)
@@ -48,8 +46,7 @@ recon -> conn : attempt after the bike is switched on and pedalled
 conn -> bike : gatt.connect(), link open and init
 bike --> conn : First notification
 conn -> conn : state = Connected, reconnects + 1 (L2-017 AC2)
-conn -> res : resend() before anything else (L2-017 AC4)
-res -> bike : Current target resistance
+conn -> bike : the last target resistance, before anything else (L2-017 AC4)
 conn --> header : Status connected
 header --> actor : Ride carries on without a reload
 @enduml
