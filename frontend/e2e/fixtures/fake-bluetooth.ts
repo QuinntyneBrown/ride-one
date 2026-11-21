@@ -22,6 +22,9 @@ export interface RecordedRequest {
   optionalServices?: (string | number)[];
 }
 
+/** The id the fake gives every device, as a browser gives each permitted device its own. */
+const FAKE_DEVICE_ID = 'fake-bike';
+
 type Report =
   | { kind: 'write'; characteristic: string; hex: string; withResponse: boolean }
   | { kind: 'subscribe'; characteristic: string }
@@ -78,6 +81,21 @@ export class FakeBluetooth {
       bike,
     );
     await this.page.evaluate((offered) => Object.assign(window, { __fakeBike: offered }), bike);
+  }
+
+  /**
+   * A bike this browser paired earlier: Telo Ride's record of it (`telo-ride.bike` in localStorage) and the
+   * permission `getDevices()` returns it by, so the app can reconnect without the chooser (L2-015).
+   */
+  async remember(bike: FakeBike): Promise<void> {
+    await this.offer(bike);
+    const record = JSON.stringify({
+      id: FAKE_DEVICE_ID,
+      name: bike.name,
+      identifier: null,
+      kind: 'echelon',
+    });
+    await this.page.addInitScript((value) => localStorage.setItem('telo-ride.bike', value), record);
   }
 
   /** The rider closes the browser's chooser without picking a bike: `requestDevice` rejects with `NotFoundError`. */

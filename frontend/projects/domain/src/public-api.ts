@@ -2,6 +2,7 @@ export { SIMULATED_BIKE, SimulatedBikeConnection } from './bluetooth/simulated-b
 export { type BikeIdentity, bikeIdentity } from './bluetooth/bike-identity';
 export { FtmsProtocol, type ResistanceRange } from './protocol/ftms-protocol';
 export { GattWriteQueue } from './bluetooth/gatt-write-queue';
+export { REMEMBERED_BIKE_KEY, RememberedBikeStore } from './storage/remembered-bike-store';
 export { SUPPORTED_BIKES } from './bluetooth/supported-bikes';
 export { SimulatedBluetoothSupport } from './bluetooth/simulated-bluetooth-support';
 export { WebBluetoothSupport } from './bluetooth/web-bluetooth-support';

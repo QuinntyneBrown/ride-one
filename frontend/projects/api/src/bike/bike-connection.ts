@@ -25,6 +25,11 @@ export interface BikeConnection {
    * arrived (L2-013 AC4).
    */
   connect(): Promise<void>;
+  /**
+   * Connects to a bike this browser paired before, without the chooser, where `navigator.bluetooth.getDevices()`
+   * exists (L2-015 AC1). Resolves `false` when the bike cannot be reached that way; it never rejects.
+   */
+  reconnectRemembered(bike: BikeInfo): Promise<boolean>;
   /** Every notification the bike sends, as raw bytes, for the frame decoder. */
   readonly frames: Observable<Uint8Array>;
   /** Sends a target resistance; resolves with the time to the bike's acknowledgement, in milliseconds. */

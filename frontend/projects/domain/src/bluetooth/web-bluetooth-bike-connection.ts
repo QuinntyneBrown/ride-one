@@ -75,6 +75,22 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     await firstValueFrom(this.frames);
   }
 
+  /** Finds the permitted device by id through `getDevices()` and connects to it; `false` where that cannot work. */
+  async reconnectRemembered(bike: BikeInfo): Promise<boolean> {
+    if (this.link) return true;
+    const bluetooth = 'bluetooth' in navigator ? navigator.bluetooth : undefined;
+    if (typeof bluetooth?.getDevices !== 'function') return false;
+    try {
+      const device = (await bluetooth.getDevices()).find((permitted) => permitted.id === bike.id);
+      if (!device) return false;
+      this.device = device;
+      await this.connect();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async setResistance(level: number): Promise<number> {
     if (!this.link) throw new BikeConnectionError('failed', 'The bike is not connected');
     return this.link.setResistance(level);

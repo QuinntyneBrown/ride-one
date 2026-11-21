@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import {
   BIKE_CONNECTION,
   BikeConnectionError,
+  REMEMBERED_BIKE,
   type BikeConnectionErrorCode,
   type BikeInfo,
 } from '@telo/api';
@@ -27,6 +28,7 @@ export const PAIRED_PAUSE_MS = 500;
 export class ConnectBikeStore {
   private readonly connection = inject(BIKE_CONNECTION);
   private readonly router = inject(Router);
+  private readonly remembered = inject(REMEMBERED_BIKE);
   private readonly state = signal<ConnectView>({ kind: 'default' });
   private leaving: ReturnType<typeof setTimeout> | undefined;
 
@@ -48,6 +50,7 @@ export class ConnectBikeStore {
       }
       this.state.set({ kind: 'pairing', bike });
       await this.connection.connect();
+      this.remembered.save(bike);
       this.state.set({ kind: 'paired', bike });
       this.leaving = setTimeout(() => void this.router.navigateByUrl('/'), PAIRED_PAUSE_MS);
     } catch (error) {

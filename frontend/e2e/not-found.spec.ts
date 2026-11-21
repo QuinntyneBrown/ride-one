@@ -1,6 +1,7 @@
 // Acceptance test
 // Traces to: L2-145, L2-146
 // Description: the Telo Ride workspace serves the app shell; an unknown address shows Page not found and leads Home.
+import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { HomePage } from './pages/home.page';
 import { NotFoundPage } from './pages/not-found.page';
@@ -22,7 +23,8 @@ test.describe('Page not found', () => {
     await expect(notFound.backHome).toBeVisible();
   });
 
-  test('“Back to Home” opens Home (L2-145 AC2)', async ({ page }) => {
+  test('“Back to Home” opens Home (L2-145 AC2)', async ({ page, bluetooth }) => {
+    await bluetooth.remember(echelonBike);
     const notFound = new NotFoundPage(page);
     await notFound.open('/no-such-screen');
     await notFound.backHome.click();

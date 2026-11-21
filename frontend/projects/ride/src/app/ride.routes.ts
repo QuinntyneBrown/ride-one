@@ -1,5 +1,6 @@
 import type { Routes } from '@angular/router';
 import { provideBikeConnection } from './bike/provide-bike-connection';
+import { rememberedBikeGuard } from './bike/remembered-bike.guard';
 
 /**
  * Every screen, under one parent that provides the bike connection: one instance shared from Connect Bike to the ride,
@@ -24,6 +25,7 @@ export const rideRoutes: Routes = [
             path: '',
             pathMatch: 'full',
             title: 'Telo Ride',
+            canActivate: [rememberedBikeGuard],
             loadComponent: () => import('./home/home-page'),
           },
           // An address that matches no screen (L2-145). Always last.

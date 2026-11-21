@@ -37,6 +37,12 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
     this.ticking ??= this.ticker.seconds.subscribe(() => this.tick());
   }
 
+  /** The simulated bike is always in reach: reconnecting starts it as `connect()` does. */
+  async reconnectRemembered(): Promise<boolean> {
+    await this.connect();
+    return true;
+  }
+
   async setResistance(level: number): Promise<number> {
     const parsed = EchelonProtocol.parseSetResistance(EchelonProtocol.setResistance(level));
     if (parsed !== null) this.level = parsed;

@@ -2,10 +2,14 @@
 // Traces to: L2-146
 // Description: the ride app built from the Telo Ride workspace serves Home inside the app shell, with the app header,
 // the skip link, and the design system's tokens and bundled fonts.
+import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { HomePage } from './pages/home.page';
 
 test.describe('App shell', () => {
+  // A rider who paired a bike opens on Home (L2-015 AC1).
+  test.beforeEach(({ bluetooth }) => bluetooth.remember(echelonBike));
+
   test(
     'Home opens with the app header, Home current (L2-146 AC1, AC4)',
     { tag: '@critical' },
