@@ -49,12 +49,16 @@ Built so far:
 - **The scaffold.** The Angular workspace and libraries, the .NET clean architecture, the test
   harness (fake Bluetooth, API and hub fixtures, an in-memory backend test server), CI, and hosting
   on one Azure App Service.
-- **Part of Connect a bike.** A simulated bike behind `?simulate`, the browser-support check, and
-  pairing a bike through the browser's chooser. Telo Ride remembers the bike and reopens on Home
-  without the chooser.
+- **Connect a bike.** A simulated bike behind `?simulate`, the browser-support check, and pairing
+  a bike through the browser's chooser. Telo Ride remembers the bike and reopens on Home without
+  the chooser. It keeps the link alive, reconnects on its own after a drop and shows the `ble`
+  status.
+- **Most of Read live telemetry.** Echelon and FTMS notifications are decoded into power, cadence,
+  speed and resistance; an Echelon's power and speed are estimated from cadence and resistance.
+  The readouts update live, with ride totals for time, distance and energy.
 
-Next are keeping the bike connected, live telemetry and resistance control, then classes, races,
-the 3D race world, sign-in and progression.
+Next are heart rate and resistance control, then classes, races, the 3D race world, sign-in and
+progression.
 
 ## Supported bikes and browsers
 
