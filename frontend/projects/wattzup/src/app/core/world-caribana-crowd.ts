@@ -432,6 +432,8 @@ interface Spectator {
   readonly offset: number;
   readonly x: number;
   readonly height: number;
+  /** How broad they are built, across and through, as a share of the slimmest. */
+  readonly build?: number;
   readonly phase: number;
   readonly stance: number;
   /** Turned away from the road, for a selfie with the bands behind. */
@@ -525,6 +527,15 @@ export class Spectators {
       } else if (p.height > 0.9 && (p.stance === 0 || p.stance === 2) && roll > 0.95) {
         this.people[i] = { ...p, stance: SELFIE_STANCE, turned: true };
       }
+    });
+    // Builds, from a seed of their own: slim to heavy-set, the occasional tall one standing
+    // out over the rest.
+    const builds = seeded(o.seed + 13);
+    this.people.forEach((p, i) => {
+      const tall = p.height > 0.9 && builds() < 0.08;
+      const height = tall ? p.height * 1.08 : p.height;
+      const build = 0.92 + builds() * builds() * 0.36;
+      this.people[i] = { ...p, height, build };
     });
     const skinMaterial = this.material({ roughness: 0.55, vertexColors: true });
     const cotton = this.material({ roughness: 0.92, vertexColors: true });
@@ -701,7 +712,7 @@ export class Spectators {
       const calm = p.stance === 0 || p.stance === LEAN_STANCE || p.stance === FOLDED_STANCE;
       const bounce = Math.abs(beat) * (calm ? 0.02 : 0.05);
       this.turn.setFromAxisAngle(this.up, heading + beat * 0.05);
-      this.size.setScalar(p.height);
+      this.size.set(p.height * (p.build ?? 1), p.height, p.height * (p.build ?? 1));
       this.spot.set(p.x, y + bounce, -metres);
       this.matrix.compose(this.spot, this.turn, this.size);
       this.ensemble.set(i, this.matrix);
