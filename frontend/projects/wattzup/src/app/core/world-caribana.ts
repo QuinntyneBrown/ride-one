@@ -5936,12 +5936,49 @@ function manholeTexture(): CanvasTexture {
 
 /** A utility cut: a rectangle of newer, darker tar with sealed seams. */
 function patchTexture(): CanvasTexture {
-  return canvasTexture(128, 96, (g) => {
-    g.clearRect(0, 0, 128, 96);
-    speckle(g, 128, 96, '#3c3e42', 1907);
-    g.strokeStyle = 'rgba(20,20,22,0.9)';
-    g.lineWidth = 3;
-    g.strokeRect(2, 2, 124, 92);
+  return canvasTexture(256, 192, (g) => {
+    g.clearRect(0, 0, 256, 192);
+    // An irregular cut, not a clean rectangle: its corners wander and one side steps in.
+    const random = seeded(1907);
+    const corners = [
+      [10 + random() * 14, 8 + random() * 12],
+      [140 + random() * 30, 6 + random() * 10],
+      [150 + random() * 20, 60 + random() * 20],
+      [240 - random() * 14, 70 + random() * 14],
+      [236 - random() * 14, 180 - random() * 12],
+      [12 + random() * 12, 184 - random() * 10],
+    ];
+    g.beginPath();
+    corners.forEach(([x, y], k) => (k ? g.lineTo(x!, y!) : g.moveTo(x!, y!)));
+    g.closePath();
+    g.save();
+    g.clip();
+    // Newer tar, only a little darker than the road round it, with its own aggregate.
+    g.fillStyle = '#46484d';
+    g.fillRect(0, 0, 256, 192);
+    for (let i = 0; i < 2600; i++) {
+      const l = random() < 0.5 ? 22 + random() * 12 : 50 + random() * 18;
+      g.fillStyle = `hsla(220,4%,${l}%,${(0.3 + random() * 0.4).toFixed(2)})`;
+      g.fillRect(random() * 256, random() * 192, 1.5, 1.5);
+    }
+    g.restore();
+    // The seam sealed with a wandering band of black crack filler, wider in places.
+    g.strokeStyle = 'rgba(18,18,20,0.85)';
+    g.lineJoin = 'round';
+    for (let pass = 0; pass < 2; pass++) {
+      g.lineWidth = pass ? 3 : 7;
+      g.globalAlpha = pass ? 0.9 : 0.35;
+      g.beginPath();
+      corners.forEach(([x, y], k) => {
+        const jx = x! + (random() - 0.5) * 4;
+        const jy = y! + (random() - 0.5) * 4;
+        if (k) g.lineTo(jx, jy);
+        else g.moveTo(jx, jy);
+      });
+      g.closePath();
+      g.stroke();
+    }
+    g.globalAlpha = 1;
   });
 }
 
