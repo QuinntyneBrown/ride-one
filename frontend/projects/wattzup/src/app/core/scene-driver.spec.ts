@@ -16,6 +16,9 @@ class FakeRenderer implements WorldRenderer {
   setFramePeriod(): void {
     /* not needed */
   }
+  pauseBudget(): void {
+    /* not needed */
+  }
   dispose(): void {
     /* not needed */
   }

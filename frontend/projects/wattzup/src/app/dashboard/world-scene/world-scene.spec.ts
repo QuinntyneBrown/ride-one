@@ -15,18 +15,39 @@ function fakeFrames() {
   });
   vi.stubGlobal('cancelAnimationFrame', (id: number) => queue.delete(id));
   return {
-    refresh(ms: number) {
-      now += ms;
-      const due = queue;
-      queue = new Map();
-      for (const cb of due.values()) cb(now);
+    refresh(ms: number, times = 1) {
+      for (let i = 0; i < times; i++) {
+        now += ms;
+        const due = queue;
+        queue = new Map();
+        for (const cb of due.values()) cb(now);
+      }
     },
   };
 }
 
-/** Records what the scene asks of its renderer, in order. */
+/** A fake `matchMedia` whose `(resolution: …)` queries can be told the screen changed. */
+function fakeScreens() {
+  const listeners = new Set<() => void>();
+  vi.stubGlobal('matchMedia', (query: string) => {
+    const watched = query.includes('resolution') ? listeners : new Set<() => void>();
+    return {
+      media: query,
+      matches: false,
+      addEventListener: (_: string, listener: () => void) => watched.add(listener),
+      removeEventListener: (_: string, listener: () => void) => watched.delete(listener),
+    };
+  });
+  return {
+    move: () => [...listeners].forEach((listener) => listener()),
+    listening: () => listeners.size,
+  };
+}
+
+/** Records what the scene asks of its renderer, in order; draws are counted, not listed. */
 class FakeRenderer implements WorldRenderer {
   readonly calls: string[] = [];
+  draws = 0;
   start(): Promise<boolean> {
     this.calls.push('start');
     return Promise.resolve(true);
@@ -35,53 +56,103 @@ class FakeRenderer implements WorldRenderer {
     /* not needed */
   }
   draw(): void {
-    /* not needed */
+    this.draws++;
   }
   setFramePeriod(ms: number): void {
     this.calls.push(`period ${ms.toFixed(1)}`);
+  }
+  pauseBudget(): void {
+    this.calls.push('pause');
   }
   dispose(): void {
     /* not needed */
   }
 }
 
+const settle = async (fixture: { whenStable(): Promise<unknown> }) => {
+  await fixture.whenStable();
+  await new Promise((resolve) => setTimeout(resolve));
+};
+
+/** A scene on a display of `ms` per frame, its period measured and its ride running. */
+async function ridingScene(ms: number) {
+  const frames = fakeFrames();
+  const screens = fakeScreens();
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {
+        /* not needed */
+      }
+      disconnect() {
+        /* not needed */
+      }
+    },
+  );
+  const renderer = new FakeRenderer();
+  TestBed.configureTestingModule({
+    providers: [
+      provideZonelessChangeDetection(),
+      { provide: WORLD_RENDERER, useValue: () => Promise.resolve(renderer) },
+    ],
+  });
+  const fixture = TestBed.createComponent(WorldScene);
+  fixture.componentRef.setInput('world', WORLDS[0]);
+  fixture.componentRef.setInput('segments', []);
+  fixture.componentRef.setInput('elapsed', 0);
+  fixture.componentRef.setInput('speedKmh', null);
+  fixture.componentRef.setInput('running', false);
+  fixture.detectChanges();
+  await settle(fixture);
+  const before = [...renderer.calls];
+  frames.refresh(ms, 31);
+  await settle(fixture);
+  fixture.componentRef.setInput('running', true);
+  await settle(fixture);
+  return { fixture, frames, screens, renderer, before };
+}
+
 describe('WorldScene frame period (L2-111 AC9)', () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it('measures the display before the scene starts, then hands the renderer the period', async () => {
-    const frames = fakeFrames();
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
-        observe() {
-          /* not needed */
-        }
-        disconnect() {
-          /* not needed */
-        }
-      },
-    );
-    const renderer = new FakeRenderer();
-    TestBed.configureTestingModule({
-      providers: [
-        provideZonelessChangeDetection(),
-        { provide: WORLD_RENDERER, useValue: () => Promise.resolve(renderer) },
-      ],
-    });
-    const fixture = TestBed.createComponent(WorldScene);
-    fixture.componentRef.setInput('world', WORLDS[0]);
-    fixture.componentRef.setInput('segments', []);
-    fixture.componentRef.setInput('elapsed', 0);
-    fixture.componentRef.setInput('speedKmh', null);
-    fixture.componentRef.setInput('running', false);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(renderer.calls).toEqual([]);
-    for (let i = 0; i < 31; i++) frames.refresh(1000 / 30);
-    await fixture.whenStable();
-    await new Promise((resolve) => setTimeout(resolve));
-
+    const { renderer, before } = await ridingScene(1000 / 30);
+    expect(before).toEqual([]);
     expect(renderer.calls).toEqual(['start', 'period 33.3']);
+  });
+
+  it('measures again when the tab returns, holding the picture while it does', async () => {
+    const { fixture, frames, renderer } = await ridingScene(1000 / 60);
+    frames.refresh(1000 / 60, 5);
+    await settle(fixture);
+    expect(renderer.draws).toBeGreaterThan(0);
+
+    document.dispatchEvent(new Event('visibilitychange'));
+    await settle(fixture);
+    const held = renderer.draws;
+    frames.refresh(1000 / 30, 30);
+    await settle(fixture);
+    expect(renderer.draws).toBe(held);
+    expect(renderer.calls).toEqual(['start', 'period 16.7', 'pause']);
+
+    frames.refresh(1000 / 30);
+    await settle(fixture);
+    expect(renderer.calls).toEqual(['start', 'period 16.7', 'pause', 'period 33.3']);
+    frames.refresh(1000 / 30, 3);
+    await settle(fixture);
+    expect(renderer.draws).toBeGreaterThan(held);
+  });
+
+  it('measures again when the window moves to another screen', async () => {
+    const { fixture, frames, screens, renderer } = await ridingScene(1000 / 60);
+    expect(screens.listening()).toBe(1);
+
+    screens.move();
+    await settle(fixture);
+    frames.refresh(1000 / 144, 31);
+    await settle(fixture);
+
+    expect(renderer.calls).toEqual(['start', 'period 16.7', 'pause', 'period 6.9']);
+    expect(screens.listening()).toBe(1);
   });
 });

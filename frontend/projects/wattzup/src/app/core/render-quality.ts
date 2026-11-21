@@ -107,6 +107,7 @@ export class FrameBudget {
   private start: number | null = null;
   private frames: number[] = [];
   private overInARow = 0;
+  private paused = false;
 
   constructor(
     private current: Tier,
@@ -120,13 +121,19 @@ export class FrameBudget {
   /** Judges against a newly measured frame period, starting the windows afresh (AC9). */
   setPeriod(ms: number): void {
     this.periodMs = ms;
-    this.start = null;
-    this.frames = [];
-    this.overInARow = 0;
+    this.paused = false;
+    this.restart();
+  }
+
+  /** Judges no window until the next `setPeriod`: the period is being measured again (AC9). */
+  pause(): void {
+    this.paused = true;
+    this.restart();
   }
 
   /** Records one frame; returns `drop` when the tier has just been lowered. */
   sample(now: number, frameMs: number): 'keep' | 'drop' {
+    if (this.paused) return 'keep';
     let verdict: 'keep' | 'drop' = 'keep';
     if (this.start === null) this.start = now;
     if (now - this.start >= WINDOW_MS) {
@@ -136,6 +143,12 @@ export class FrameBudget {
     }
     this.frames.push(frameMs);
     return verdict;
+  }
+
+  private restart(): void {
+    this.start = null;
+    this.frames = [];
+    this.overInARow = 0;
   }
 
   private close(): 'keep' | 'drop' {
