@@ -541,6 +541,28 @@ export class HavanaStreet implements SceneStreet {
       [r + 0.05, KERB],
       [r, 0.004],
     ]);
+    // Paint on the inland kerb: stretches of no-stopping yellow and red-and-white blocks by the
+    // corners, faded and chipped back to the stone, with bare kerb between.
+    const daubs = this.track(kerbPaintTexture());
+    daubs.wrapS = RepeatWrapping;
+    daubs.wrapT = RepeatWrapping;
+    daubs.repeat.set(1 / 0.46, 1 / 120);
+    this.ribbons.add(
+      points,
+      this.material({
+        map: daubs,
+        transparent: true,
+        depthWrite: false,
+        roughness: 0.7,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+      }),
+      [
+        [r + 0.35, KERB + 0.003],
+        [r + 0.05, KERB + 0.003],
+        [r - 0.004, 0.006],
+      ],
+    ).renderOrder = 2;
     // The inland gutter: a grimy channel along the kerb where sand, leaves and litter collect,
     // darkest at the kerb's foot, with cast-iron drain grates every so often.
     const silt = this.track(gutterTexture());
@@ -5984,5 +6006,37 @@ function awningTexture(colour: string): CanvasTexture {
     }
     g.fillStyle = 'rgba(255,255,240,0.25)';
     g.fillRect(0, 0, 128, 20);
+  });
+}
+
+/**
+ * Kerb paint along 120 m of kerb (u across its top and face): stretches of yellow, and of red
+ * and white blocks a metre long, each chipped and faded with the stone showing through, on clear.
+ */
+function kerbPaintTexture(): CanvasTexture {
+  return canvasTexture(32, 2048, (g) => {
+    g.clearRect(0, 0, 32, 2048);
+    const random = seeded(1631);
+    const metre = 2048 / 120;
+    for (let y = 0; y < 2048;) {
+      const length = (8 + random() * 16) * metre;
+      if (random() < 0.55) {
+        g.fillStyle = `rgba(230,190,40,${0.75 + random() * 0.2})`;
+        g.fillRect(0, y, 32, length);
+      } else {
+        for (let k = 0; k < length; k += metre) {
+          g.fillStyle = (k / metre) % 2 < 1 ? 'rgba(200,40,40,0.85)' : 'rgba(240,238,230,0.85)';
+          g.fillRect(0, y + k, 32, Math.min(metre, length - k));
+        }
+      }
+      // Chips and wear back to the stone.
+      g.globalCompositeOperation = 'destination-out';
+      for (let i = 0; i < length / 3; i++) {
+        g.fillStyle = `rgba(0,0,0,${0.4 + random() * 0.6})`;
+        g.fillRect(random() * 32, y + random() * length, 2 + random() * 6, 2 + random() * 8);
+      }
+      g.globalCompositeOperation = 'source-over';
+      y += length + (3 + random() * 8) * metre;
+    }
   });
 }
