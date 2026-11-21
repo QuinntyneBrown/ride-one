@@ -13,7 +13,7 @@ Container_Boundary(app, "Ride app") {
   Component(source, "HeartRateSource", "Service · domain/engine", "Strap first, then bike; 5 s stale guard")
   Component(stats, "HeartRateStats", "Service · domain/engine", "Average and peak for the ride")
   Component(readout, "RideReadout", "Presentation component · components", "Heart readout, \"—\" when none")
-  ComponentDb(remembered, "RememberedStrapStore", "Store · domain/storage", "Strap id in IndexedDB")
+  ComponentDb(remembered, "RememberedStrapStore", "Store · domain/storage", "Strap id and name in localStorage")
 }
 Rel(rider, settings, "Chooses to connect a strap")
 Rel(settings, strapConn, "Calls via HEART_RATE_STRAP")
