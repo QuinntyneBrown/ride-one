@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/design-system/assets/logo.svg" alt="Wattzup logo" width="128" height="128">
+  <img src="docs/design-system/assets/logo.svg" alt="Telo Ride" width="324" height="80">
 </p>
 
 # Wattzup
