@@ -13,7 +13,7 @@ Estimates are working days for one intermediate developer, using `docs/detailed-
 | 4 | Control resistance | Plan sets target resistance; rider can raise, lower or take over. | 5 | 100% |
 | 5 | Ride a solo class | Video in sync, plan drives resistance, clock, pause, leave or finish. | 12 | 100% |
 | 6 | Browse and start a class | Class library by tier, class start with plan and ride choice. | 8 | 100% |
-| 7 | Race the ghost and bots | Browse maps, set up, ride the race HUD, finish against ghost and bots. | 15 | 60% |
+| 7 | Race the ghost and bots | Browse maps, set up, ride the race HUD, finish against ghost and bots. | 15 | 80% |
 | 8 | See the race world | Three.js world with WebGPU or WebGL 2, quality tiers, panorama fallback. | 20 | 0% |
 | 9 | Sign in with an email code | Email code sign-in, stay signed in, display name, sign out, delete account. | 10 | 0% |
 | 10 | Earn XP, levels and streaks | Rides earn XP and rider levels; progress kept on the backend. | 10 | 0% |
@@ -35,4 +35,4 @@ Estimates are working days for one intermediate developer, using `docs/detailed-
 | 26 | Send feedback | Report a bug, share an idea or send kudos. | 5 | 0% |
 | 27 | Install the app | Install as an app from Chrome or Edge. | 3 | 0% |
 
-**Total:** 238 days. **Complete:** 59 days (25%).
+**Total:** 238 days. **Complete:** 62 days (26%).
