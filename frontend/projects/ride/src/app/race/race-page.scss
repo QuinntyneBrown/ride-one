@@ -44,12 +44,31 @@
   }
 }
 
-// The photo spans the camera's horizon, as the mock frames the world: 21:9 here, so it fills the width.
+// The photo is framed where the camera puts the world (the design system's race-scene): 75.6 % of the screen tall
+// from the top, centred, fading in under the bar, with the ground below the horizon (60.1 % on a portrait screen).
 .race-scene__photo {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  top: 0.14%;
+  left: 50%;
+  width: auto;
+  max-width: none;
+  height: 75.6%;
+  translate: -50% 0;
   mask-image: linear-gradient(to bottom, transparent 0, currentColor 14%);
+
+  @media (max-aspect-ratio: 1/1) {
+    top: 10.4%;
+    height: 60.1%;
+  }
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .race-scene {
+    background: linear-gradient(
+      to bottom,
+      var(--race-sky) 0 46.4%,
+      var(--race-ground-far) 46.4%,
+      var(--race-ground-near) 100%
+    );
+  }
 }
