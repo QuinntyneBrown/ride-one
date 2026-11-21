@@ -20,20 +20,27 @@ export interface Standing {
 export const YOU = 'you';
 
 /**
- * The race's standings (L2-060 AC1, L2-059 AC5): the rider and the field ordered by distance, the furthest first, a tie
- * keeping the rider ahead and then the field's order; each gap is the distance between the opponent and the rider ÷
- * the rider's speed, taken as at least 4 m/s.
+ * The race's standings (L2-060 AC1, L2-059 AC5): the rider and the field ordered by distance, the furthest first; riders
+ * held at the finish line by the second they reached it (`crossings`, by id, the rider's as `YOU`, L2-071 AC1); a tie
+ * keeping the rider ahead and then the field's order. Each gap is the distance between the opponent and the rider ÷ the
+ * rider's speed, taken as at least 4 m/s.
  */
 export function rankStandings(
   field: readonly FieldPosition[],
   yourMetres: number,
   yourSpeedMs: number | null,
+  crossings: ReadonlyMap<string, number> = new Map(),
 ): Standing[] {
   const speed = Math.max(yourSpeedMs ?? 0, GAP_FLOOR_MS);
   const you = { id: YOU, name: 'You', jersey: 'you', bot: false, metres: yourMetres };
   return [you, ...field]
     .map((rider, order) => ({ rider, order }))
-    .sort((a, b) => b.rider.metres - a.rider.metres || a.order - b.order)
+    .sort(
+      (a, b) =>
+        b.rider.metres - a.rider.metres ||
+        (crossings.get(a.rider.id) ?? 0) - (crossings.get(b.rider.id) ?? 0) ||
+        a.order - b.order,
+    )
     .map(({ rider }, i) => ({
       id: rider.id,
       name: rider.name,

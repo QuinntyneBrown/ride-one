@@ -25,6 +25,16 @@ describe('rankStandings', () => {
     expect(rows[1]).toMatchObject({ you: true, name: 'You', jersey: 'you', bot: false });
   });
 
+  it('orders riders at the finish line by the second they reached it, the rider ahead in the same second', () => {
+    const crossings = new Map([
+      ['a', 81],
+      ['b', 80],
+      ['you', 81],
+    ]);
+    const rows = rankStandings([bot('a', 500), bot('b', 500), bot('c', 470)], 500, 9, crossings);
+    expect(rows.map((row) => row.id)).toEqual(['b', 'you', 'a', 'c']);
+  });
+
   it('keeps the rider ahead of a level opponent, then the field’s order', () => {
     expect(rankStandings([bot('a', 0), bot('b', 0)], 0, null).map((row) => row.id)).toEqual([
       'you',
