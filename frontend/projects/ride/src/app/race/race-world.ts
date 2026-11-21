@@ -9,7 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import type { Backend, MapDto, SceneRider } from '@telo/api';
+import type { Backend, MapDto, SceneRider, SceneryRequest, SceneryState } from '@telo/api';
 import type { WorldScene } from '@telo/world';
 
 /**
@@ -26,6 +26,10 @@ export class RaceWorld {
   readonly running = input.required<boolean>();
   /** The race's other riders, metres from the rider (L2-064 AC3). */
   readonly riders = input.required<readonly SceneRider[]>();
+  /** The real place to stream as 3D Tiles, with the rider's key, once the rider asks (L2-066). */
+  readonly scenery = input<SceneryRequest | null>(null);
+  /** Whether Google refused the key or the tiles stream (L2-066 AC4, AC7). */
+  readonly sceneryState = output<SceneryState>();
   /** The GPU API drawing the world, once it has started (L2-065 AC1). */
   readonly started = output<Backend>();
   /** Neither WebGPU nor WebGL 2 could draw the world (L2-065 AC2). */
@@ -42,6 +46,7 @@ export class RaceWorld {
       const scene = host.createComponent(WorldScene);
       scene.instance.started.subscribe((backend) => this.started.emit(backend));
       scene.instance.unavailable.subscribe(() => this.unavailable.emit());
+      scene.instance.sceneryState.subscribe((state) => this.sceneryState.emit(state));
       this.bind(scene);
       this.scene.set(scene);
     });
@@ -60,5 +65,6 @@ export class RaceWorld {
     scene.setInput('speedKmh', this.speedKmh());
     scene.setInput('running', this.running());
     scene.setInput('riders', this.riders());
+    scene.setInput('scenery', this.scenery());
   }
 }

@@ -61,6 +61,12 @@ export const maps = [
     world: 'oldtown',
     thumbnailUrl: 'maps/old-town-criterium.jpg',
     photoUrl: 'maps/old-town-criterium-photo.jpg',
+    realPlace: {
+      name: 'Bruges',
+      route: 'Steenstraat to the Markt',
+      latitude: 51.2078,
+      longitude: 3.2236,
+    },
     unlockGoal: null,
     unlockMapId: null,
     plan: { segments: racePlan },

@@ -30,6 +30,11 @@
               {
                 "glob": "**/*",
                 "input": "projects/ride/public"
+              },
+              {
+                "glob": "draco_*",
+                "input": "node_modules/three/examples/jsm/libs/draco/gltf",
+                "output": "draco"
               }
             ],
             "styles": [

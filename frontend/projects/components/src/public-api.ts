@@ -43,6 +43,7 @@ export { RaceBar } from './race/race-bar';
 export { RaceBarButton } from './race/race-bar-button';
 export { RaceLost } from './race/race-lost';
 export { RacePaused } from './race/race-paused';
+export { RaceScenery } from './race/race-scenery';
 export { RaceInterval } from './race/race-interval';
 export { RaceBoard, type RaceBoardRow } from './race/race-board';
 export { RacePower, type RaceDelta, type RaceGap } from './race/race-power';

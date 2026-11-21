@@ -11,6 +11,8 @@
           [speedKmh]="store.speedKmh()"
           [running]="store.running()"
           [riders]="store.sceneRiders()"
+          [scenery]="store.scenery()"
+          (sceneryState)="store.sceneryState.set($event)"
           (started)="store.backend.set($event)"
           (unavailable)="store.worldUnavailable.set(true)"
         />
@@ -57,6 +59,15 @@
       [heart]="store.heart()"
       [speed]="store.speed()"
     />
+    <!-- Only while the world draws: the tiles join it, and the panorama has nothing to stream into (L2-066 AC9). -->
+    @if (map.realPlace && store.backend()) {
+      <wz-race-scenery
+        [place]="map.realPlace"
+        [key]="store.storedMapsKey"
+        [state]="store.sceneryState()"
+        (streamKey)="store.streamScenery(map.realPlace, $event)"
+      />
+    }
     @if (store.boardRows().length > 0) {
       <wz-race-board [heading]="store.boardHeading()" [rows]="store.boardRows()" />
     }

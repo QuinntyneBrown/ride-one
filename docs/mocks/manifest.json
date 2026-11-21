@@ -186,7 +186,9 @@
         "solo",
         "peers",
         "paused",
-        "disconnected"
+        "disconnected",
+        "scenery-streaming",
+        "scenery-refused"
       ],
       "not_applicable": {
         "empty": "A race always has riders on the board (you and, solo, your best-time ghost).",

@@ -2,6 +2,7 @@ import { test as base, expect } from '@playwright/test';
 import { ApiFixture } from './api';
 import { FakeBluetooth } from './fake-bluetooth';
 import { HubFixture } from './hub';
+import { MapTilesFixture } from './map-tiles';
 import { WakeLockFixture } from './wake-lock';
 import { FakeWebGl } from './webgl';
 import { WorldRideProbe } from './world-ride-probe';
@@ -16,6 +17,8 @@ interface Fixtures {
   hub: HubFixture;
   /** The YouTube IFrame API and the class covers, answered by a fake player and a local picture. */
   youtube: YouTubeFixture;
+  /** Google's Map Tiles API: accepts or refuses the rider's key, and keeps every request the page sent. */
+  mapTiles: MapTilesFixture;
   /** The fake Screen Wake Lock API: the locks the app took, and the tab hidden or shown. */
   wakeLock: WakeLockFixture;
   /** Takes WebGPU, or WebGPU and WebGL, away from the browser before the app loads. */
@@ -28,7 +31,7 @@ interface Fixtures {
 /**
  * The shared fixture every spec imports (AGENTS.md, E2E; L2-148 AC1). It installs the fake Bluetooth stack and Screen Wake Lock API before
  * the app loads and answers backend and ride hub requests as the spec declares. It fails the spec on a page error, a request
- * off localhost (YouTube's player script and covers excepted, which a fake answers), an unanswered backend or hub request, or a Bluetooth call the spec did not expect.
+ * off localhost (YouTube's player script and covers, and Google's Map Tiles API, excepted, which fakes answer), an unanswered backend or hub request, or a Bluetooth call the spec did not expect.
  */
 export const test = base.extend<Fixtures>({
   bluetooth: async ({ page }, use) => {
@@ -43,6 +46,9 @@ export const test = base.extend<Fixtures>({
   youtube: async ({ page }, use) => {
     await use(await YouTubeFixture.install(page));
   },
+  mapTiles: async ({ page }, use) => {
+    await use(await MapTilesFixture.install(page));
+  },
   webgl: async ({ page }, use) => {
     await use(new FakeWebGl(page));
   },
@@ -56,14 +62,16 @@ export const test = base.extend<Fixtures>({
     { auto: true },
   ],
   guard: [
-    async ({ page, bluetooth, api, hub, youtube }, use) => {
-      void youtube; // installed first, so this catch-all, registered after it, can hand YouTube's requests back
+    async ({ page, bluetooth, api, hub, youtube, mapTiles }, use) => {
+      // Installed first, so this catch-all, registered after them, can hand their requests back.
+      void youtube;
       const problems: string[] = [];
       page.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
       await page.route(
         (url) => !['localhost', '127.0.0.1'].includes(url.hostname),
         async (route) => {
-          if (YouTubeFixture.answers(new URL(route.request().url()))) return route.fallback();
+          const url = new URL(route.request().url());
+          if (YouTubeFixture.answers(url) || MapTilesFixture.answers(url)) return route.fallback();
           problems.push(`request off localhost: ${route.request().url()}`);
           await route.abort();
         },
@@ -71,6 +79,9 @@ export const test = base.extend<Fixtures>({
       await use();
       problems.push(...api.unanswered().map((request) => `unanswered request: ${request}`));
       problems.push(...hub.unanswered().map((request) => `unanswered hub request: ${request}`));
+      problems.push(
+        ...mapTiles.unanswered().map((request) => `unanswered tile request: ${request}`),
+      );
       problems.push(...bluetooth.unexpected().map((call) => `unexpected Bluetooth call: ${call}`));
       expect(problems, 'unexpected page errors, requests or Bluetooth calls').toEqual([]);
     },

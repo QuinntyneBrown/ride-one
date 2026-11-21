@@ -72,8 +72,14 @@ in `AGENTS.md` and to the ESLint boundaries in the same change.
   from the rider; without them, as in a class, `main`'s simulated pacers ride instead.
 - **`PhotorealTilesLayer`** — loads Google's photorealistic 3D Tiles for the map's real place
   through the Map Tiles API with the rider's key, and reports `refused` when Google rejects it.
-  The 3D Tiles loader package is `<TO SUPPLY>`; under ADR 0021 a new runtime dependency needs
-  an amendment that names and pins it.
+  It is `3d-tiles-renderer` 0.5.4 (ADR 0021's amendment): a `TilesRenderer` with
+  `GoogleCloudAuthPlugin` (the key on every request to `tile.googleapis.com` and nowhere else),
+  `GLTFExtensionsPlugin` with Three.js's `DRACOLoader` (its decoder served from `/draco/`) and
+  `ReorientationPlugin`, which puts the place's latitude and longitude at the scene's origin,
+  up the scene's Y axis. The renderer imports the layer only on `stream`, adds its group to the
+  scene, updates it with the camera each frame and disposes it with the scene. It reports
+  `refused` when the root tileset fails or holds no root, and `streaming` with Google's
+  attribution for the tiles in view each time it changes.
 
 **Ride app**
 
@@ -89,15 +95,20 @@ in `AGENTS.md` and to the ESLint boundaries in the same change.
 - **Renderer tag** (element of `RaceBar`) — "WebGPU" or "WebGL 2", title "The GPU API drawing
   this world".
 - **`RaceScenery`** (`components`, block `race-scenery`) — rendered only on a map with a real
-  place. It reads "Ride the real Bruges · Steenstraat to the Markt" and "Paste a Google Maps
+  place while the world draws (not over the panorama, L2-066 AC9). It reads "Ride the real Bruges · Steenstraat to the Markt" and "Paste a Google Maps
   Platform key to stream it as photorealistic 3D Tiles. It stays on this device.", with a key
   field (placeholder "AIza…") and "Stream it", disabled while the field is empty. It emits
-  `stream(key)` and shows a refused message when told. From 640 px to 1023 px no HUD panel
-  covers it (L2-066 AC6).
-- **`SettingsStore`** (`domain/storage`) — keeps the Maps key in this browser only. The key is
-  never sent to Telo Ride's backend (L2-066 AC3).
-- **`MapDto.realPlace`** and **`MapDto.worldDescription`** (`api`) — catalogue fields read
-  here: the real place's title, subtitle and tile region, and the world's text description.
+  `streamKey(key)`. Told `refused`, it marks the field invalid and reads "Google refused that key.
+  The built-in world stays." (`role="alert"`); told `streaming`, it reads "Streaming the real
+  Bruges · Steenstraat to the Markt" over Google's attribution (L2-066 AC4, AC7). From 640 px to
+  1023 px no HUD panel covers it (L2-066 AC6).
+- **`MapsKeyStore`** (`domain/storage`, the `MapsKey` contract and `MAPS_KEY` token in `api`, bound by the race route) — keeps the Maps
+  key in this browser's localStorage only; the next race's panel holds it, and nothing streams
+  until "Stream it" (L2-066 AC3, AC8). The key is never sent to Telo Ride's backend.
+- **`MapDto.realPlace`** (`api`, served by the catalogue) — the real place's `name` ("Bruges"),
+  `route` ("Steenstraat to the Markt"), `latitude` and `longitude`, or `null` for a map with no
+  real place (L2-066 AC5). The race page hands it and the key to `RaceWorld`, which hands them
+  to `WorldScene` and on to `WorldRenderer.stream(place, key, report)`.
 
 The Content Security Policy that admits the Map Tiles API origin is designed by
 security/restrict-third-parties.
@@ -111,7 +122,7 @@ level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-064` | `L1-012` | During a race the map's 3D world shall be drawn from the rider's place on the route, with the camera moving forward at the rider's virtual speed, computed by a documented power-to-speed model whose constants are an open question. Other riders within view shall be drawn in their jersey colours at their places on the route, the ghost translucent gold. Assistive technology shall read the world as one image with a description ("The Old Town Criterium world: a cobbled old town under a blue sky, its cathedral spire on the horizon"). In a portrait viewport the world shall be reframed to fill the screen without stretching. |
 | `L2-065` | `L1-012` | With WebGPU the world shall be drawn with WebGPU and the tag shall read "WebGPU"; otherwise with WebGL 2 and the tag "WebGL 2". The tag's title shall be "The GPU API drawing this world". With neither, the world shall be replaced by the map's panorama and the race shall still run. While the tab is hidden the world shall stop drawing and the race clock and telemetry shall carry on (L2-133). |
-| `L2-066` | `L1-012` | On Old Town Criterium the scenery panel shall read "Ride the real Bruges · Steenstraat to the Markt" and "Paste a Google Maps Platform key to stream it as photorealistic 3D Tiles. It stays on this device.", with a key field (placeholder "AIza…") and "Stream it", disabled while the field is empty. An entered key shall be stored only in this browser and sent only to Google's Map Tiles API, never to Telo Ride's backend. When Google refuses the key, the built-in world shall stay and the panel shall say the key was refused. A map with no real place shall have no scenery panel. From 640 to 1023 px no HUD panel shall cover the panel. |
+| `L2-066` | `L1-012` | On Old Town Criterium the scenery panel shall read "Ride the real Bruges · Steenstraat to the Markt" and "Paste a Google Maps Platform key to stream it as photorealistic 3D Tiles. It stays on this device.", with a key field (placeholder "AIza…") and "Stream it", disabled while the field is empty. An entered key shall be stored only in this browser and sent only to Google's Map Tiles API, never to Telo Ride's backend. When Google refuses the key, the built-in world shall stay and the panel shall read "Google refused that key. The built-in world stays." with the field marked invalid. A map with no real place, or a race on its panorama, shall have no scenery panel. From 640 to 1023 px no HUD panel shall cover the panel. While the tiles stream the panel shall read "Streaming the real Bruges · Steenstraat to the Markt" with Google's attribution. A stored key shall fill the field on a later race, and nothing shall stream until "Stream it". |
 
 ## Diagrams
 
@@ -194,5 +205,13 @@ built-in world in place and the panel says so.
   hidden tab. The smallest change to the copied code: `WorldScene` keeps a `visible` signal from
   `visibilitychange`, and its input-driven frame waits for it (L2-065 AC3). The panorama
   (L2-065 AC2) has stood since slice 8.1.
+- **Slice 8.7: real-world scenery is built new on `main`'s renderer.** `main` has no 3D Tiles,
+  so the tiles layer is new, in `main`'s style, and changes no copied scene: the built-in world
+  stays drawn and the tiles join it around the place's origin. Lining the tiles' streets up with
+  the built-in road (and hiding the built-in buildings they overlap) is left open. The design
+  first named `SettingsStore` and a `RaceWorldStore`; the key has its own `MapsKeyStore` until
+  Settings (journey 20) gathers the stored settings, and the race page holds the panel's state.
+  A tile's embedded textures and the Draco decoder's worker need `blob:` and
+  `'wasm-unsafe-eval'` in the Content Security Policy (L2-131 AC1).
 - **Vice City has no world on `main`.** Its race draws South Beach Sunrise, whose terrain its
   catalogue entry already takes (slice 7.3), until a Vice City world is built.

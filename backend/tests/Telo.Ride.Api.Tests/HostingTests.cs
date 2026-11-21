@@ -76,6 +76,11 @@ public sealed class HostingTests(HostedAppApi api) : IClassFixture<HostedAppApi>
         Assert.Contains("default-src 'self'", policy, StringComparison.Ordinal);
         Assert.Contains("frame-src https://www.youtube-nocookie.com", policy, StringComparison.Ordinal);
         Assert.Contains("frame-ancestors 'none'", policy, StringComparison.Ordinal);
+        // The 3D Tiles mesh decoder's blob: worker and its WebAssembly, and a tile's embedded textures (L2-131 AC1).
+        Assert.Contains("script-src 'self' https://www.youtube.com 'wasm-unsafe-eval'", policy, StringComparison.Ordinal);
+        Assert.Contains("worker-src 'self' blob:", policy, StringComparison.Ordinal);
+        Assert.Contains("connect-src 'self' https://tile.googleapis.com blob:", policy, StringComparison.Ordinal);
+        Assert.Contains("img-src 'self' https://i.ytimg.com https://tile.googleapis.com blob:", policy, StringComparison.Ordinal);
         Assert.Equal("nosniff", Assert.Single(response.Headers.GetValues("X-Content-Type-Options")));
         Assert.Equal("strict-origin-when-cross-origin", Assert.Single(response.Headers.GetValues("Referrer-Policy")));
     }

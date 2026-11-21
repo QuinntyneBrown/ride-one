@@ -64,6 +64,9 @@ class FakeRenderer implements WorldRenderer {
   pauseBudget(): void {
     this.calls.push('pause');
   }
+  stream(): void {
+    this.calls.push('stream');
+  }
   dispose(): void {
     this.calls.push('dispose');
   }
@@ -141,6 +144,23 @@ describe('WorldScene frame period (L2-111 AC9)', () => {
     frames.refresh(1000 / 30, 3);
     await settle(fixture);
     expect(renderer.draws).toBeGreaterThan(held);
+  });
+
+  it('streams the real place once the world draws, and again for a new key (L2-066 AC3)', async () => {
+    const { fixture, renderer } = await ridingScene(1000 / 60);
+    const place = {
+      name: 'Bruges',
+      route: 'Steenstraat to the Markt',
+      latitude: 51.2,
+      longitude: 3.2,
+    };
+
+    fixture.componentRef.setInput('scenery', { place, key: 'AIza-one' });
+    await settle(fixture);
+    fixture.componentRef.setInput('scenery', { place, key: 'AIza-two' });
+    await settle(fixture);
+
+    expect(renderer.calls.filter((call) => call === 'stream')).toHaveLength(2);
   });
 
   it('draws no frame for a change of input while the tab is hidden (L2-065 AC3)', async () => {

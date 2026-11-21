@@ -94,6 +94,19 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
         Assert.All(maps, m => Assert.Equal($"maps/{m.Id}-photo.jpg", m.PhotoUrl));
     }
 
+    [Fact]
+    public async Task Only_old_town_criterium_follows_a_real_place_the_streets_of_bruges()
+    {
+        var maps = await ReadMaps();
+
+        var place = Assert.Single(maps, m => m.RealPlace is not null);
+        Assert.Equal("old-town-criterium", place.Id);
+        Assert.Equal("Bruges", place.RealPlace!.Name);
+        Assert.Equal("Steenstraat to the Markt", place.RealPlace.Route);
+        Assert.InRange(place.RealPlace.Latitude, 51.20, 51.22);
+        Assert.InRange(place.RealPlace.Longitude, 3.21, 3.24);
+    }
+
     private async Task<IReadOnlyList<CatalogueMap>> ReadMaps()
     {
         using var client = api.CreateClient();
@@ -118,7 +131,10 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
         string? UnlockGoal,
         string? UnlockMapId,
         CataloguePlan Plan,
-        CatalogueTerrain Terrain);
+        CatalogueTerrain Terrain,
+        CatalogueRealPlace? RealPlace);
+
+    private sealed record CatalogueRealPlace(string Name, string Route, double Latitude, double Longitude);
 
     private sealed record CataloguePlan(IReadOnlyList<Segment> Segments);
 

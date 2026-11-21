@@ -41,11 +41,12 @@ design therefore sends the policy as a response header from the static host.
   | Directive | Value |
   |-----------|-------|
   | `default-src` | `'self'` |
-  | `script-src` | `'self' https://www.youtube.com` |
+  | `script-src` | `'self' https://www.youtube.com 'wasm-unsafe-eval'` |
   | `style-src` | `'self'` and the Angular component-style allowance, `<TO SUPPLY>` (see below) |
   | `frame-src` | `https://www.youtube-nocookie.com` |
-  | `connect-src` | `'self' https://tile.googleapis.com` |
-  | `img-src` | `'self' https://i.ytimg.com https://tile.googleapis.com` |
+  | `worker-src` | `'self' blob:` |
+  | `connect-src` | `'self' https://tile.googleapis.com blob:` |
+  | `img-src` | `'self' https://i.ytimg.com https://tile.googleapis.com blob:` |
   | `font-src` | `'self'` |
   | `object-src` | `'none'` |
   | `base-uri` | `'self'` |
@@ -59,9 +60,13 @@ design therefore sends the policy as a response header from the static host.
   nonce per response (ADR 0018). The allowance is `<TO SUPPLY>`: either `'unsafe-inline'` for
   styles only, as ADR 0018 accepts, or a host that injects a per-response nonce written to
   `ngCspNonce`.
-- **3D Tiles resources** — whether the World renderer needs `blob:` in `img-src` or `worker-src`
-  (embedded glTF textures, mesh decoders) is `<TO SUPPLY>` until [Render the race
-  world](../../race/render-the-race-world/README.md) settles its loaders.
+- **3D Tiles resources** — settled by slice 8.7. Google's tiles are Draco-compressed glTF:
+  Three.js's `DRACOLoader` decodes them in a worker it builds from a `blob:` URL, running the
+  decoder's WebAssembly (`worker-src 'self' blob:`, `'wasm-unsafe-eval'` in `script-src`, which
+  allows compiling WebAssembly but not `eval` of script). `GLTFLoader` reads a tile's embedded
+  textures through `blob:` URLs with `fetch` or an image (`blob:` in `connect-src` and
+  `img-src`). A `blob:` URL is made by the page's own code from bytes it already holds, so it
+  admits no foreign origin; the decoder's files are served from the app's origin (`/draco/`).
 - **`SecurityHeadersMiddleware`** (`Telo.Ride.Api`) — adds `X-Content-Type-Options: nosniff`,
   `Referrer-Policy: strict-origin-when-cross-origin` and
   `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'` to every API response,

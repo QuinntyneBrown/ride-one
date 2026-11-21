@@ -6,6 +6,7 @@ export { FtmsProtocol, type ResistanceRange } from './protocol/ftms-protocol';
 export { HeartRateMeasurementDecoder } from './protocol/heart-rate-measurement-decoder';
 export { IndoorBikeDataDecoder } from './protocol/indoor-bike-data-decoder';
 export { GattWriteQueue } from './bluetooth/gatt-write-queue';
+export { MAPS_KEY_STORAGE, MapsKeyStore } from './storage/maps-key-store';
 export { REMEMBERED_BIKE_KEY, RememberedBikeStore } from './storage/remembered-bike-store';
 export { SUPPORTED_BIKES } from './bluetooth/supported-bikes';
 export { SimulatedBluetoothSupport } from './bluetooth/simulated-bluetooth-support';

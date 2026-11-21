@@ -34,7 +34,8 @@ export {
 export type { Plan, Segment, SegmentKind } from './workout/plan';
 export { SCREEN_WAKE_LOCK, type ScreenWakeLock } from './screen/screen-wake-lock';
 export { HttpMapsApi } from './maps/http-maps-api';
-export type { MapDto, MapRating, MapTerrain } from './maps/map-dto';
+export type { MapDto, MapRating, MapTerrain, RealPlace } from './maps/map-dto';
+export { MAPS_KEY, type MapsKey } from './maps/maps-key';
 export { MAPS_API, type MapsApi } from './maps/maps-api';
 export { MapsApiError, type MapsApiErrorCode } from './maps/maps-api-error';
 export type { MapProgressDto } from './progress/map-progress-dto';
@@ -54,6 +55,8 @@ export type {
 export {
   WORLD_RENDERER,
   type SceneFrame,
+  type SceneryRequest,
+  type SceneryState,
   type WorldRenderer,
   type WorldRendererLoader,
 } from './world/world-renderer';

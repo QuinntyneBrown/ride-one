@@ -19,6 +19,9 @@ class FakeRenderer implements WorldRenderer {
   pauseBudget(): void {
     /* not needed */
   }
+  stream(): void {
+    /* not needed */
+  }
   dispose(): void {
     /* not needed */
   }
