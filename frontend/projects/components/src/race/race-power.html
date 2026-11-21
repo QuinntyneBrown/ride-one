@@ -1,10 +1,19 @@
 <section class="race-power" aria-label="Power and position">
   <div class="race-power__place">
     <div class="race-power__rank">
-      <span class="numeral race-power__pos">{{ place() }}</span><span class="numeral race-power__of"
-        >/ {{ field() }}</span
-      >
+      <span class="numeral race-power__pos">{{ place() }}</span>
+      @if (field(); as field) {
+        <span class="numeral race-power__of">/ {{ field }}</span>
+      }
     </div>
+    @if (gaps().length > 0) {
+      <div class="race-power__gaps">
+        @for (gap of gaps(); track gap.label) {
+          <!-- prettier-ignore -->
+          <div>{{ gap.label }} <span class="numeral race-power__gap">{{ gap.value }}</span></div>
+        }
+      </div>
+    }
   </div>
   <div class="race-power__watts">
     <span class="numeral race-power__watts-value">{{ watts() }}</span><span

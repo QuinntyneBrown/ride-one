@@ -1,6 +1,6 @@
 import type { Routes } from '@angular/router';
-import { MONOTONIC_TIME, PROGRESS_API, SCREEN_WAKE_LOCK } from '@telo/api';
-import { BrowserScreenWakeLock, NewRiderProgress } from '@telo/domain';
+import { GHOST_API, MONOTONIC_TIME, PROGRESS_API, SCREEN_WAKE_LOCK } from '@telo/api';
+import { BrowserScreenWakeLock, NewRiderProgress, NoBestRides } from '@telo/domain';
 import { openMapGuard } from '../maps/open-map.guard';
 import { provideMaps } from '../maps/provide-maps';
 
@@ -19,6 +19,8 @@ export const raceRoutes: Routes = [
       provideMaps(),
       // The rider's maps and level, until the backend keeps progress (journey 10).
       { provide: PROGRESS_API, useClass: NewRiderProgress },
+      // No ride has a best until rides are recorded (10.1) and a best's trace kept (11.2).
+      { provide: GHOST_API, useClass: NoBestRides },
       { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },
       { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
     ],

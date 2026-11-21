@@ -51,6 +51,23 @@
   color: var(--color-muted);
 }
 
+.race-power__gaps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  padding-bottom: var(--space-0-5);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  white-space: nowrap;
+  color: var(--color-muted);
+}
+
+.race-power__gap {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-fg);
+}
+
 .race-power__watts {
   display: flex;
   align-items: baseline;
