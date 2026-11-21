@@ -2797,7 +2797,10 @@ export class CaribanaStreet implements SceneStreet {
     });
     stucco.map!.wrapS = RepeatWrapping;
     const plain = this.material({ color: 0xe9dfc8, roughness: 0.9 });
-    const tile = this.material({ color: 0xb0533a, roughness: 0.8 });
+    const tile = this.material({ map: this.track(tileTexture()), roughness: 0.8 });
+    tile.map!.wrapS = RepeatWrapping;
+    tile.map!.wrapT = RepeatWrapping;
+    tile.map!.repeat.set(6, 3);
     const block = (w: number, h: number, d: number, x: number, z: number, arches: number) => {
       const body = new BoxGeometry(d, h, w);
       // The arcade's face looks to the road (-x); it repeats an arch every 4.2 m.
@@ -2809,8 +2812,9 @@ export class CaribanaStreet implements SceneStreet {
       roof.scale((d / 2) * 1.5, h * 0.35, (w / 2) * 1.5);
       roof.translate(x, h + h * 0.175, z);
       this.disposables.push(body, roof);
+      // The arcade runs round the road face and both ends; the back to the lake is plain.
       pavilion.add(
-        new Mesh(body, [plain, stucco, plain, plain, plain, plain]),
+        new Mesh(body, [plain, stucco, plain, plain, stucco, stucco]),
         new Mesh(roof, tile),
       );
     };
@@ -6326,6 +6330,23 @@ function hotDogTexture(): CanvasTexture {
     g.fillText('HOT DOGS', 128, 72, 210);
     g.font = 'bold 20px system-ui, sans-serif';
     g.fillText('SAUSAGES · DRINKS', 128, 100, 210);
+  });
+}
+
+/** Clay roof tiles: courses of curved red pantiles, each its own shade, shadowed below. */
+function tileTexture(): CanvasTexture {
+  return canvasTexture(128, 64, (g) => {
+    const random = seeded(4211);
+    for (let y = 0; y < 64; y += 8) {
+      for (let x = (y / 8) % 2 ? -8 : 0; x < 128; x += 16) {
+        g.fillStyle = `hsl(${12 + random() * 8},${45 + random() * 15}%,${36 + random() * 10}%)`;
+        g.fillRect(x, y, 16, 8);
+        g.fillStyle = 'rgba(255,255,255,0.12)';
+        g.fillRect(x + 4, y, 6, 8);
+      }
+      g.fillStyle = 'rgba(40,20,14,0.5)';
+      g.fillRect(0, y + 7, 128, 1);
+    }
   });
 }
 
