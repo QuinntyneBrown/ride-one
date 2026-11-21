@@ -48,6 +48,10 @@ it without growing the initial bundle, and what Telo Ride adds to `main`'s contr
     (`api`), which `WorldScene` makes from the plan with `timedSegments` (slice 8.2), and
     `main`'s pacers module names its board row `WorldRidePacer` from `api`;
   - the renderer's `backend` field is public, for the tag;
+  - the race's riders (slice 8.3): `SceneFrame.riders` carries the field, which the renderer
+    draws with the cyclist kit in `--jersey-<jersey>` colours in place of `main`'s pacers, the
+    ghost new in translucent gold; the rider wears `--jersey-you`; the pacers' placement is one
+    `ride` method both share; and the test-only probe reports the riders drawn;
   - type-only imports where the workspace's lint asks for them (`consistent-type-imports`);
   - the panoramas live in `projects/ride/public/worlds/<id>/`, the ride app's public folder;
   - the specs follow: `world-scene.spec.ts` adds start and leave cases, `scene-driver.spec.ts`
