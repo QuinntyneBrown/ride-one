@@ -31,8 +31,8 @@ removed with the backend ([ADR 0019](../adr/0019-no-backend.md)).
   (`onnx-community/Kokoro-82M-v1.0-ONNX`), run locally with `kokoro-onnx`: free, no key, read from
   the Hugging Face cache or downloaded once into `.cache/kokoro`. The voice is `af_heart`;
   `"voice"` in `narration.json` picks another. No paid or hosted speech service.
-- **Set to soca.** A soca track from Pixabay Music plays from the first frame to the last, turned
-  down under the voice and up between lines. See [Music](#music).
+- **Set to boom bap.** A beautiful boom bap instrumental from Pixabay Music plays from the first
+  frame to the last, turned down under the voice and up between lines. See [Music](#music).
 - **No captions by default.** Nothing is burned into the picture. `captions.vtt` is written beside
   the MP4, so a player can show captions to someone who needs them; `--captions` burns them in when
   a video asks for it.
@@ -131,8 +131,10 @@ None of them is part of a test run, and CI never runs them.
 - **Every pixel is a pure function of film time.** `slides.html` plays live against the MP3 and
   exposes `seek(seconds)`; the builder seeks it frame by frame. Nothing uses CSS animation, CSS
   transition, `setTimeout` or `Math.random()` without a seed.
-- **Cut to the music.** The film's grid is the track's tempo (120 BPM, a two-second bar). A scene is
-  a whole number of bars; cuts, word rises and transitions start on a beat.
+- **Cut to the music.** The film's grid is the track's tempo, measured with
+  `tools/video-audio/tempo.py` (boom bap sits around 85 to 95 BPM, a bar of about 2.5 to 2.8 s). A
+  scene is a whole number of bars; cuts, word rises and transitions start on a beat, often on the
+  snare.
 - **Transitions are designed, and few.** A change of act gets a wipe in a brand colour; inside an
   act the cuts are hard. One flourish a scene is enough.
 - **Show the form factors moving.** One scene shows the same screen growing from the phone to the
@@ -150,8 +152,9 @@ None of them is part of a test run, and CI never runs them.
 
 ## Music
 
-- **Source.** Pixabay Music, search "soca": an instrumental track with a steady beat, bright enough
-  to be heard quietly.
+- **Source.** Pixabay Music, search "boom bap": a beautiful, mellow instrumental with a steady
+  head-nod beat (dusty drums, warm keys or strings, no vocals), clear enough to be heard quietly.
+  Films made before this change keep their soca track until they are re-rendered.
 - **Keep it in the repository.** Save it as `docs/videos/assets/music/<slug>.mp3` and add a row to
   [`CREDITS.md`](assets/music/CREDITS.md): title, artist, the track's Pixabay URL, the date it was
   downloaded and "Pixabay Content License".

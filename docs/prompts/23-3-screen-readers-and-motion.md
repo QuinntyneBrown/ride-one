@@ -130,7 +130,8 @@ Three outcomes, all required:
 - Screenshots come from the running app through the e2e fixtures and page objects, at 390, 768, 1024 and 1440
   px at double density, never from the mocks. A platform slice with little UI films what it made visible (the
   app shell at each width, the checks it added running) and still keeps the standard's shape.
-- Narration with Kokoro (`af_heart`), soca from Pixabay Music credited in
+- Narration with Kokoro (`af_heart`), a beautiful boom bap instrumental from Pixabay Music (search "boom
+  bap"; cut the scenes to its tempo) credited in
   `docs/videos/assets/music/CREDITS.md` (or "Music: pending" if Pixabay cannot be reached), no burned-in
   captions, 60 to 150 seconds, 1920×1080, 30 fps, H.264 and AAC, under about 15 MB. The close quotes the
   purpose in `AGENTS.md` word for word.
