@@ -117,6 +117,7 @@ export class AmsterdamStreet implements SceneStreet {
   private farDress: (() => number) | null = null;
   private ivyRoll: (() => number) | null = null;
   private lockRoll: (() => number) | null = null;
+  private saleRoll: (() => number) | null = null;
   private readonly crossers: { mesh: Group; phase: number; speed: number }[] = [];
   private bikeShape: BufferGeometry | null = null;
 
@@ -904,6 +905,8 @@ export class AmsterdamStreet implements SceneStreet {
       pot,
       ball,
       terracotta: this.material({ color: 0xb0583a, roughness: 0.9 }),
+      sale: this.material({ map: this.track(saleBoardTexture()), roughness: 0.6 }),
+      white: this.material({ color: 0xf2f2ee, roughness: 0.6 }),
       bench: this.material({ color: 0x8a8a84, roughness: 0.85 }),
     };
   }
@@ -1008,6 +1011,25 @@ export class AmsterdamStreet implements SceneStreet {
       number.scale.set(0.02, 0.16, 0.24);
       number.position.set(-0.05, height * 0.17, -door * width + (door > 0.5 ? -1 : 1) * 0.75);
       house.add(number);
+    }
+    if ((this.saleRoll ??= seeded(911))() < 0.08) {
+      // A house for sale: the estate agent's board hung out from a first-floor window on its
+      // bracket, TE KOOP in white on orange.
+      const board = new Mesh(this.unit, [
+        decor.sale,
+        decor.sale,
+        decor.white,
+        decor.white,
+        decor.sale,
+        decor.sale,
+      ]);
+      board.scale.set(0.7, 0.5, 0.04);
+      board.rotation.y = Math.PI / 2;
+      board.position.set(-0.45, height * 0.42, -width * 0.5);
+      const arm = new Mesh(this.unit, decor.white);
+      arm.scale.set(0.8, 0.04, 0.04);
+      arm.position.set(-0.4, height * 0.42 + 0.27, -width * 0.5);
+      house.add(board, arm);
     }
     if (extra() < 0.22) {
       const sitter = new Mesh(sitterGeometry(extra), decor.people);
@@ -4456,6 +4478,22 @@ function taxiTexture(): CanvasTexture {
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.fillText('TAXI', 64, 17);
+  });
+}
+
+/** An estate agent's board: TE KOOP in white capitals on orange, the agent's line below. */
+function saleBoardTexture(): CanvasTexture {
+  return canvasTexture(128, 96, (g) => {
+    g.fillStyle = '#f07a1a';
+    g.fillRect(0, 0, 128, 96);
+    g.fillStyle = '#ffffff';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 30px sans-serif';
+    g.fillText('TE KOOP', 64, 40);
+    g.fillRect(14, 64, 100, 3);
+    g.font = '12px sans-serif';
+    g.fillText('makelaardij', 64, 80);
   });
 }
 
