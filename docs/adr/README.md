@@ -28,3 +28,4 @@
 | [0024](0024-telo-ride-workspace.md) | The Telo Ride workspace: `api`, `domain`, `components` and `ride` | Accepted |
 | [0025](0025-thin-dotnet-backend.md) | A thin .NET backend for what one browser cannot do alone | Accepted |
 | [0026](0026-api-serves-the-app.md) | One App Service: the Telo Ride API serves the app and its backend as one origin | Accepted |
+| [0027](0027-marketing-site.md) | The marketing site: a `marketing` application with the pitch film | Accepted |

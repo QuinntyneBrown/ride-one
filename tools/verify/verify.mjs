@@ -77,6 +77,7 @@ const web = async () => {
       await step('production build and budget', 'npm run build', frontend);
       await step('behaviour specs', 'npm run e2e', frontend);
     })(),
+    step('marketing build and budget', 'npm run build:marketing', frontend),
   ]);
 };
 

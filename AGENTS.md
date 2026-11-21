@@ -52,10 +52,12 @@ dynamically) has joined them.
 That baseline is where the organisation starts, not a limit on it. When a concern earns its own
 library (a `browser` project for browser-only implementations, a `world` project for World Ride
 rendering, and so on), add it. A smaller, focused library that can be lazy-loaded on its own is
-better than one that keeps growing. A further application still needs its own ADR.
+better than one that keeps growing. A further application still needs its own ADR; the
+`marketing` application (ADR 0027), the one-page site with the pitch film, is the first.
 
 - **Dependency direction.** `ride` → `components`, `api`, `domain`, `video`; `domain` → `api`;
-  `components` → `api` for types only; `video` → `api`; `api` → nothing. No library imports the app. `ride`'s
+  `components` → `api` for types only; `video` → `api`; `api` → nothing; `marketing` →
+  `components`, `api`. No library imports an app. `ride`'s
   `app.config.ts` is the composition root and binds every token, except those the first screen
   brings, which the lazy parent route in `ride.routes.ts` binds so their code stays out of the
   initial bundle. ESLint enforces it. A new library takes its place in this direction, and the

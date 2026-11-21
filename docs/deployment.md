@@ -49,6 +49,17 @@ before the host exists.
 | `TELO_RIDE_WEBAPP` | Variable | The App Service's name; the deploy runs only when it is set. |
 | `TELO_RIDE_DATABASE` | Secret | The connection string `migrate` uses from the deploy job, with `Authentication=Active Directory Default`, so it signs in as the deploy identity. |
 
+## Marketing site
+
+The marketing site (ADR 0027) is a separate static build: `npm run build:marketing` in
+`frontend/` copies the film, its captions and the photographs in (`media:sync`) and writes
+`frontend/dist/marketing/browser/`. Any static host serves it; it must answer HTTP `Range`
+requests so the film's chapters can seek. Where it is hosted is not decided yet.
+
+| Setting | Required | Example | What it does |
+|---------|----------|---------|--------------|
+| `TELO_RIDE_APP_URL` | No | `ng build marketing --define TELO_RIDE_APP_URL='"https://ride.example"'` | Build-time address of the Telo Ride app that the site's links open. Absent, links are relative to the site's own origin. |
+
 ## Release steps
 
 `ci.yml` runs these on every push to `main` that passes `lint`, `build` and `acceptance`; by hand they
