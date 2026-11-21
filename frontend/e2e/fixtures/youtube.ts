@@ -13,10 +13,8 @@ export interface FakePlayer {
 
 const API = 'https://www.youtube.com/iframe_api';
 const COVER = /^https:\/\/i\.ytimg\.com\/vi\/[\w-]{11}\/hqdefault\.jpg$/;
-const COVER_FILE = path.join(
-  __dirname,
-  '../../../docs/mocks/assets/images/classes/gcn-30-hiit.jpg',
-);
+/** The mocks' cover of 30 Minute HIIT Cardio, kept beside the fixture: CI's checkout leaves out docs/. */
+const COVER_FILE = path.join(__dirname, 'class-cover.jpg');
 
 /**
  * The YouTube IFrame Player API as the page sees it, with no request leaving localhost (AGENTS.md, E2E). `YT.Player`
