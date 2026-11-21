@@ -1430,20 +1430,46 @@ export class HavanaStreet implements SceneStreet {
       this.disposables.push(tube);
       return new Mesh(tube, wire);
     };
+    const perch = seeded(1667);
+    const glossy = this.material({ color: 0x14141c, roughness: 0.3, metalness: 0.3 });
+    const grey = this.material({ color: 0x8a8c94, roughness: 0.8 });
+    const bodyShape = new SphereGeometry(0.07, 8, 6);
+    bodyShape.scale(1, 1, 1.5);
+    const headShape = new SphereGeometry(0.04, 8, 6);
+    const tailShape = new BoxGeometry(0.05, 0.015, 0.14);
+    this.disposables.push(bodyShape, headShape, tailShape);
     for (let offset = 34; offset < LOOP; offset += 60) {
       const cables = new Group();
       const strands = 2 + Math.floor(random() * 2);
       for (let k = 0; k < strands; k++) {
-        cables.add(
-          span(
-            -roadHalf - LANES - 0.6,
-            7.6 - k * 0.35,
-            roadHalf + 4.2,
-            PORTAL + 1.6 + random() * 2.5,
-            0.9 + random() * 0.9,
-            (random() - 0.5) * 0.6,
-          ),
-        );
+        const x0 = -roadHalf - LANES - 0.6;
+        const y0 = 7.6 - k * 0.35;
+        const x1 = roadHalf + 4.2;
+        const y1 = PORTAL + 1.6 + random() * 2.5;
+        const sag = 0.9 + random() * 0.9;
+        const z = (random() - 0.5) * 0.6;
+        cables.add(span(x0, y0, x1, y1, sag, z));
+        // Birds perched along the top strand: grackles, glossy black, and grey pigeons.
+        if (k > 0) continue;
+        const perched = 3 + Math.floor(perch() * 4);
+        for (let b = 0; b < perched; b++) {
+          const t = 0.15 + perch() * 0.7;
+          const y = y0 + (y1 - y0) * t - sag * 4 * t * (1 - t);
+          const bird = new Group();
+          const grackle = perch() < 0.6;
+          const plumage = grackle ? glossy : grey;
+          const body = new Mesh(bodyShape, plumage);
+          const head = new Mesh(headShape, plumage);
+          head.position.set(0, 0.09, grackle ? -0.06 : -0.05);
+          const tail = new Mesh(tailShape, plumage);
+          tail.position.set(0, -0.02, 0.12);
+          tail.rotation.x = -0.6;
+          bird.add(body, head, tail);
+          bird.rotation.y = perch() < 0.5 ? Math.PI / 2 : -Math.PI / 2;
+          bird.rotation.y += (perch() - 0.5) * 0.8;
+          bird.position.set(x0 + (x1 - x0) * t, y + 0.08, z);
+          cables.add(bird);
+        }
       }
       this.group.add(cables);
       this.props.push({ mesh: cables, offset, x: 0 });
