@@ -186,5 +186,7 @@ and "Lower resistance" nudge it by hand between segment starts.
   climbed (10 m) and elevation (43 m) agree.
 - **Vice City's terrain.** `main`'s world table has no Vice City; its terrain is South Beach's
   (Ocean Drive) until the world slices (journey 8) bring its world.
+- **Heart rate.** The power panel reads the bike's own heart rate, "—" on an Echelon; the strap
+  (`HeartRateSource`, `L2-031`) joins it when the app binds `HEART_RATE_STRAP`.
 - **Speed in the stats.** The power panel's Speed is the virtual speed, not the Echelon's
   cadence speed (`L2-022`).
