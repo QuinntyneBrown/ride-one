@@ -426,6 +426,7 @@ export class AmsterdamStreet implements SceneStreet {
     const { steps, railings } = stoopGeometry();
     const timber = this.material({ color: 0x2a2420, roughness: 0.8 });
     const dark = this.material({ color: 0x1e2830, roughness: 0.2, metalness: 0.3 });
+    const hemp = this.material({ color: 0xb89a6a, roughness: 0.95 });
     const white = this.material({ color: 0xf2f2ee, roughness: 0.5 });
     const amsterdam = this.material({
       map: this.track(flagTexture(true)),
@@ -632,6 +633,18 @@ export class AmsterdamStreet implements SceneStreet {
             const hook = new Mesh(hookGeometry, iron);
             hook.position.set(width / 2, height * 0.9 - 0.3, -1.1 + height * 0.9 * lean);
             whole.add(beam, hook);
+            if (rigged) {
+              // On some, a pulley block and its rope hang from the beam, the rope's end tied
+              // off at a first-floor window.
+              const block = new Mesh(this.unit, timber);
+              block.scale.set(0.16, 0.3, 0.12);
+              block.position.set(width / 2, height * 0.9 - 0.35, -1.15 + height * 0.9 * lean);
+              const drop = height * 0.9 - 0.5 - height * 0.32;
+              const rope = new Mesh(this.unit, hemp);
+              rope.scale.set(0.025, drop, 0.025);
+              rope.position.set(width / 2, height * 0.32 + drop / 2, -1.15 + height * 0.6 * lean);
+              whole.add(block, rope);
+            }
           }
           whole.rotation.y = turn;
           // Some fronts have settled on their piles and lean sideways against a neighbour.
@@ -644,6 +657,7 @@ export class AmsterdamStreet implements SceneStreet {
         };
         const tilt = (this.tilts ??= seeded(751))();
         const downpipe = tilt > 0.35;
+        const rigged = tilt > 0.88;
         const settle = tilt < 0.18 ? (tilt < 0.09 ? 1 : -1) * (0.006 + tilt * 0.06) : 0;
         house.add(block(face, sides, roof));
         if (turn < 0) {
