@@ -49,6 +49,11 @@ export const EchelonProtocol = {
     return [frame(0xa1, []), frame(0xa3, []), frame(0xb0, [0x01])];
   },
 
+  /** `A0`: the keepalive the bike needs about once a second while connected (L2-016). */
+  keepalive(): Uint8Array<ArrayBuffer> {
+    return frame(0xa0, [0x01]);
+  },
+
   /** The least time between two initialisation writes (L2-013 AC2). */
   initGapMs: 300,
 

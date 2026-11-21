@@ -1,6 +1,12 @@
 /// <reference types="web-bluetooth" />
-import { Injectable, type OnDestroy, signal } from '@angular/core';
-import { type BikeConnection, BikeConnectionError, type BikeInfo, type BleState } from '@telo/api';
+import { Injectable, type OnDestroy, inject, signal } from '@angular/core';
+import {
+  type BikeConnection,
+  BikeConnectionError,
+  type BikeInfo,
+  type BleState,
+  TICKER,
+} from '@telo/api';
 import { Subject, firstValueFrom } from 'rxjs';
 import { EchelonProtocol } from '../protocol/echelon-protocol';
 import { FtmsProtocol } from '../protocol/ftms-protocol';
@@ -23,6 +29,7 @@ const HEART_RATE = 0x180d;
 export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private readonly received = new Subject<Uint8Array>();
   private readonly queue = new GattWriteQueue();
+  private readonly ticker = inject(TICKER);
   private device: BluetoothDevice | null = null;
   private link: BikeLink | null = null;
   private readonly onValue = (event: Event): void => {
@@ -86,12 +93,13 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
         'The bike offers neither the Echelon service nor FTMS',
       );
     const link: BikeLink = echelon
-      ? new EchelonLink(this.queue, this.onValue)
+      ? new EchelonLink(this.queue, this.onValue, this.ticker, (error) => this.onFailure(error))
       : new FtmsLink(this.queue, this.onValue);
     await link.open(service);
     this.link = link;
     await link.initialise();
     await firstValueFrom(this.frames);
+    link.connected();
   }
 
   /** Finds the permitted device by id through `getDevices()` and connects to it; `false` where that cannot work. */
@@ -123,6 +131,11 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     this.linkState.set('idle');
   }
 
+  /** A Web Bluetooth call that failed while connected: its name and message go to the console (L2-017 AC5). */
+  private onFailure(error: unknown): void {
+    console.error(describe(error));
+  }
+
   ngOnDestroy(): void {
     this.disconnect();
     this.received.complete();
@@ -132,4 +145,9 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     const { name, identifier } = bikeIdentity(device.name, device.id);
     return { id: device.id, name, identifier, kind: identifier ? 'echelon' : 'ftms' };
   }
+}
+
+/** `name: message`, as text (L2-017 AC5). */
+function describe(error: unknown): string {
+  return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 }
