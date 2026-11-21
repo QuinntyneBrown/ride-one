@@ -32,6 +32,30 @@ Telemetry and resistance come from the bike subsystem.
 
 ## Description
 
+**Slices.** Slice 7.3 builds the race for the rider alone: the top bar (lockup, map and route
+line, bike status, clock), power and position, the interval panel, the route panel, the
+resistance panel and the layout. Until the opponents join (slice 7.4) the field is the rider
+alone, so position reads "1st / 1" with no gaps, and the standings board, `StandingsRanker` and
+`GapCalculator` are built with them. Leave, Pause, End, the development-only Finish and the plan
+running out before the line come with slice 7.5; the renderer tag and the drawn world with
+journey 8, and until then the scene is the map's photo, as the mock draws it, one image described
+as "The Old Town Criterium world: a cobbled European old town on race day"; Full screen with
+slice 24.2; riders online with journey 15.
+
+**The plan and the route, from `main`.** Each map's 30:00 plan and its world's terrain travel in
+the catalogue (ADR 0029): `MapDto.plan` (segments, as a class's) and `MapDto.terrain` (the grade
+for each segment kind and the rolling grade laid over it, copied from `main`'s `worlds.ts`).
+`RouteProfile` is `main`'s `route-profile.ts`, kept as `main` has it: second by second along the
+plan, the road eases towards the world's grade for the segment (`targetGrade`) at the segment's
+expected speed, which gives the elevation, the grade and the metres climbed; the route panel
+reads them at the race clock's second, and draws the profile with the rider's place.
+`VirtualSpeedModel` is `main`'s expected-speed formula on the rider's power,
+10 × ∛(max(W, 1) ÷ 20) km/h, which gives the spec's 26.5 km/h at 371 W; the distance ridden is
+its sum, second by second, and a rider without power (stopped, or cadence gone quiet) rides no further. The grade's
+colour follows how the road reads: below −1 % downhill, from 3 % a climb, from 8 % steep, flat between (the design
+system's examples, −2.1, +0.5, +4.8 and +9.2). Resistance follows the plan's level (`L2-063` AC2), and the grade
+follows the plan too, so the climbs fall on the efforts.
+
 **Ride app**
 
 - **`RacePage`** (`ride`, selector `wz-race-page`, block `race`) — routed page at
@@ -75,7 +99,7 @@ Telemetry and resistance come from the bike subsystem.
 - **`RaceBoard`** (`components`, block `race-board`) — "Standings · 10 riders" or, solo, "You
   vs your best" with two rows. Each row has a jersey dot, name, bot icon and gap; the rider's
   row has `aria-current="true"`. Rows slide over 150 ms, not under reduced motion.
-- **`RaceInterval`** (`components`, block `race-interval`) — "Work", "1 of 8", "0:29"
+- **`RaceInterval`** (`components`, block `race-interval`) — "Work", "1 of 8", "0:29"; the round shows for an effort only, and the timer's name says the segment ("2 minutes 59 seconds left in this recovery")
   (`aria-label="29 seconds left in this effort"`), a bar that fills smoothly over the segment,
   and "Next: Recover · 3:00 at level 6".
 - **`RaceRoute`** (`components`, block `race-route`) — "+0.5 %", "10 m climbed", "1.62 km" and
@@ -143,3 +167,26 @@ At each segment start the level goes to the bike as the target resistance. "Rais
 and "Lower resistance" nudge it by hand between segment starts.
 
 ![Sequence diagram for segment change and manual resistance](diagrams/sequence-segment-and-manual-resistance.png)
+
+## Open questions
+
+- **Grade and speed.** `L2-064` AC2 computes virtual speed from power and grade; `main`'s model,
+  which the mock's numbers follow, uses power alone. The race uses `main`'s until the model and
+  its constants (L2.md open question 2) are settled.
+- **The route's length.** The profile follows the plan's expected speed, so Old Town's is about
+  9.5 km against its 14.2 km. The finish line and the plan running out before it (`L2-071`) come
+  with slice 7.5, which settles where the line falls on the profile.
+- **The plans.** Every map rides one 30:00 plan for now, the HIIT shape of the mock: a 5:00
+  warm-up at level 8 and 80 rpm, eight 0:30 efforts at level 24 and 98 rpm (418 W) with
+  recoveries from 3:00 down to 1:30 at level 6, and a 6:00 cool-down at level 6 and 70 rpm, the
+  plan `main`'s Old Town mock is drawn from, so the profile reads its 43 m. Each
+  map's own plan replaces it in the catalogue, with no change to code.
+- **The grade at 5:01.** `main`'s profile reads +2.2 % at 5:01 on Old Town, where the road starts up the first
+  effort; `L2-062` AC1 and the mock read the warm-up's +0.5 %, as `main`'s own spec notes of its mock. The mock's
+  climbed (10 m) and elevation (43 m) agree.
+- **Vice City's terrain.** `main`'s world table has no Vice City; its terrain is South Beach's
+  (Ocean Drive) until the world slices (journey 8) bring its world.
+- **Heart rate.** The power panel reads the bike's own heart rate, "—" on an Echelon; the strap
+  (`HeartRateSource`, `L2-031`) joins it when the app binds `HEART_RATE_STRAP`.
+- **Speed in the stats.** The power panel's Speed is the virtual speed, not the Echelon's
+  cadence speed (`L2-022`).

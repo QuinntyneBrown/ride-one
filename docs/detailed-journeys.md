@@ -29,7 +29,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 6.3 | Class start | Parked video, plan, ride alone; Start class opens the ride. | 3 | 6. Browse and start a class | 100% |
 | 7.1 | Browse maps | Map list with distance, climb and stars; locked maps shown. | 3 | 7. Race the ghost and bots | 100% |
 | 7.2 | Set up a race | Choose the map and opponents (your best-time ghost and bots), then start the race. | 2 | 7. Race the ghost and bots | 100% |
-| 7.3 | Ride a race | Power to speed, distance and position; gradient sets resistance. | 4 | 7. Race the ghost and bots | 0% |
+| 7.3 | Ride a race | Power to speed, distance and position; gradient sets resistance. | 4 | 7. Race the ghost and bots | 100% |
 | 7.4 | Ghost and bots | Best-time ghost replay and paced bots on the board. | 3 | 7. Race the ghost and bots | 0% |
 | 7.5 | Finish, pause or leave a race | Finish line and placing; pause, leave or lose the bike. | 3 | 7. Race the ghost and bots | 0% |
 | 8.1 | Load the world library | Lazy `world` chunk, backend probe, canvas host, dispose on leave. | 3 | 8. See the race world | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 22 slices, 55 days (23%).
+**Total:** 95 slices, 238 days. **Complete:** 23 slices, 59 days (25%).

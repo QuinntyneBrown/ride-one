@@ -72,7 +72,8 @@ unlock (`L2-040` AC1). Stars, bests and the other riders' paths come with journe
   `distanceKm`, `climbingM`, `rating` (`Easy`, `Moderate`, `Hard`, `Brutal`), `world`,
   `thumbnailUrl`, `photoUrl` (the 21:9 photo Race Setup shows), `unlockGoal` (`null` for a map
   open from the start) and `unlockMapId` (the map the goal is earned on, `null` for a level goal
-  or a map open from the start).
+  or a map open from the start), and, for the race (ride-a-race), `plan` (its 30:00 segments)
+  and `terrain` (its world's grade for each segment kind and rolling grade, from `main`).
 
 **Telo Ride API (`backend/`)**
 

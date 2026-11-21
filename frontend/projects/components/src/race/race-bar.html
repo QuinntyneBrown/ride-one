@@ -1,0 +1,32 @@
+<header class="race-bar">
+  <wz-lockup size="sm" />
+  <div class="race-bar__where">
+    <span class="race-bar__map">{{ map() }}</span>
+    <span class="race-bar__route">{{ route() }}</span>
+  </div>
+  @if (bikeName(); as name) {
+    <div class="race-bar__bike" [class.race-bar__bike--off]="!connected()">
+      <svg class="icon icon--md race-bar__bike-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="18.5" cy="17.5" r="3.5" />
+        <circle cx="5.5" cy="17.5" r="3.5" />
+        <circle cx="15" cy="5" r="1" />
+        <path d="M12 17.5V14l-3-3 4-3 2 3h2" />
+      </svg>
+      <span class="race-bar__bike-name"
+        >{{ name
+        }}<span class="visually-hidden">{{
+          connected() ? ' connected' : ' not connected'
+        }}</span></span
+      >
+    </div>
+  }
+  <div class="race-bar__end">
+    <span
+      class="numeral race-bar__clock"
+      role="timer"
+      [attr.aria-label]="clock() + ' of ' + length()"
+      >{{ clock() }}<span class="race-bar__total"> / {{ length() }}</span></span
+    >
+    <ng-content select="[slot=end]" />
+  </div>
+</header>

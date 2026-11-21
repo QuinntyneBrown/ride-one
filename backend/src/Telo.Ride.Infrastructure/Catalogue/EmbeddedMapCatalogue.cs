@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Telo.Ride.Application.Maps;
+using Telo.Ride.Domain.Classes;
 using Telo.Ride.Domain.Maps;
 
 namespace Telo.Ride.Infrastructure.Catalogue;
@@ -23,7 +24,9 @@ public sealed class EmbeddedMapCatalogue : IMapCatalogue
             ?? throw new InvalidOperationException("The embedded map catalogue is empty.");
         return [.. catalogue.Maps.Select(m => new MapDefinition(
             m.Id, m.Name, m.RouteName, m.Place, m.DistanceKm, m.ClimbingM, m.Rating, m.World, m.ThumbnailUrl,
-            m.PhotoUrl, new MapUnlock(m.Unlock.Kind, m.Unlock.MapId, m.Unlock.Stars, m.Unlock.Level)))];
+            m.PhotoUrl, new MapUnlock(m.Unlock.Kind, m.Unlock.MapId, m.Unlock.Stars, m.Unlock.Level),
+            [.. m.Plan.Segments.Select(s => new ClassSegment(s.Kind, s.Duration, s.Level, s.CadenceAim))],
+            new MapTerrain(m.Terrain.Grade, m.Terrain.Roll)))];
     }
 
     private sealed record CatalogueFile(IReadOnlyList<MapEntry> Maps);
@@ -39,7 +42,15 @@ public sealed class EmbeddedMapCatalogue : IMapCatalogue
         string World,
         string ThumbnailUrl,
         string PhotoUrl,
-        UnlockEntry Unlock);
+        UnlockEntry Unlock,
+        PlanEntry Plan,
+        TerrainEntry Terrain);
+
+    private sealed record PlanEntry(IReadOnlyList<SegmentEntry> Segments);
+
+    private sealed record SegmentEntry(string Kind, int Duration, int Level, int CadenceAim);
+
+    private sealed record TerrainEntry(IReadOnlyDictionary<string, double> Grade, double Roll);
 
     private sealed record UnlockEntry(string Kind, string? MapId, int? Stars, int? Level);
 }

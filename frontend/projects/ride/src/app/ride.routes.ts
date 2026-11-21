@@ -29,6 +29,12 @@ export const rideRoutes: Routes = [
         loadChildren: () =>
           import('./class-start/class-start.routes').then((m) => m.classStartRoutes),
       },
+      // The race is full screen, with no app header (docs/mocks/pages/race/).
+      {
+        path: 'race/:mapId/ride',
+        canActivate: [rememberedBikeGuard],
+        loadChildren: () => import('./race/race.routes').then((m) => m.raceRoutes),
+      },
       // Race Setup has its own header, with no app navigation (docs/mocks/pages/race-setup/).
       {
         path: 'race/:mapId',
