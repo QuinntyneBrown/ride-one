@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
+  Button,
   ClassBike,
   ClassHeader,
   ClassResist,
@@ -24,7 +25,7 @@ import { ClassRideStore } from './class-ride-store';
  */
 @Component({
   selector: 'wz-class-ride-page',
-  imports: [ClassBike, ClassHeader, ClassResist, ClassSegment, ClassStat, ClassVideo],
+  imports: [Button, ClassBike, ClassHeader, ClassResist, ClassSegment, ClassStat, ClassVideo],
   templateUrl: './class-ride-page.html',
   styleUrl: './class-ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

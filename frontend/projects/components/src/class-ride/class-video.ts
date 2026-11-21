@@ -26,6 +26,8 @@ export class ClassVideo implements AfterViewInit {
   readonly videoId = input.required<string>();
   readonly title = input.required<string>();
   readonly unavailable = input(false);
+  /** Draws "Paused" over the picture; the page announces the pause itself. */
+  readonly paused = input(false);
 
   /** YouTube's 4:3 cover, cropped to its 16:9 picture (ADR 0014). */
   protected readonly cover = computed(

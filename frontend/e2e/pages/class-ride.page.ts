@@ -10,6 +10,10 @@ export class ClassRidePage {
   readonly segmentFill: Locator;
   readonly profile: Locator;
   readonly cover: Locator;
+  readonly pause: Locator;
+  readonly resume: Locator;
+  readonly leave: Locator;
+  readonly paused: Locator;
   readonly videoNotice: Locator;
   readonly power: Locator;
   readonly powerHint: Locator;
@@ -31,6 +35,10 @@ export class ClassRidePage {
     this.segmentFill = page.locator('.class-segment__fill');
     this.profile = page.getByRole('img', { name: 'Resistance profile' });
     this.cover = page.locator('.class-video .photo');
+    this.pause = page.getByRole('button', { name: 'Pause', exact: true });
+    this.resume = page.getByRole('button', { name: 'Resume', exact: true });
+    this.leave = page.getByRole('button', { name: 'Leave class' });
+    this.paused = page.locator('.class-video__paused');
     this.videoNotice = page.locator('.class-video__notice');
     const stat = (label: string) =>
       page.locator('.class-stat').filter({ has: page.getByText(label, { exact: true }) });

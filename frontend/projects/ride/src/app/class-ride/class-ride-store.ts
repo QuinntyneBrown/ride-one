@@ -41,6 +41,7 @@ export class ClassRideStore {
   private readonly playerFactory = inject(VIDEO_PLAYER_FACTORY);
   private readonly player = signal<VideoPlayer | null>(null);
   private readonly playerMissing = signal(false);
+  private readonly pausedByRider = signal(false);
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
 
@@ -49,6 +50,8 @@ export class ClassRideStore {
   readonly plan = this.engine.state;
   readonly level = this.telemetry.resistance;
   readonly canControl = this.resistance.canControl;
+  /** Whether the ride is paused: the clock, the plan and the video hold (L2-091 AC1). */
+  readonly paused = this.pausedByRider.asReadonly();
   /** Whether the video cannot play: its code or YouTube's did not load, or the player failed. */
   readonly videoUnavailable = computed(
     () => this.playerMissing() || this.player()?.state() === 'error',
@@ -117,6 +120,25 @@ export class ClassRideStore {
     );
   }
 
+  /** Holds the clock, the plan and the video where they are (L2-091 AC1, L2-088 AC3). */
+  pause(): void {
+    if (this.pausedByRider()) return;
+    this.pausedByRider.set(true);
+    this.clock.pause();
+    this.player()?.pause();
+  }
+
+  /** Carries the ride on from where it was held, with the video back on the clock (L2-091 AC2). */
+  resume(): void {
+    const ride = this.loaded();
+    if (!this.pausedByRider() || !ride) return;
+    this.pausedByRider.set(false);
+    this.clock.resume();
+    const player = this.player();
+    player?.seekTo(ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000);
+    player?.play();
+  }
+
   raise(): void {
     void this.resistance.nudge(1);
   }
@@ -138,6 +160,8 @@ export class ClassRideStore {
   private syncVideo(ride: ClassDto): void {
     const player = this.player();
     if (player?.state() !== 'playing') return;
+    // A player that became ready during a pause starts playing on its own; it follows the pause instead.
+    if (this.paused()) return player.pause();
     const elapsed = this.clock.elapsedMs() / 1000;
     const seek = this.sync.check(player.currentTime(), elapsed, ride.video.syncOffsetSeconds);
     if (seek !== null) player.seekTo(seek);

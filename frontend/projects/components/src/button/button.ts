@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 export type ButtonVariant = 'default' | 'primary' | 'raised';
-export type ButtonSize = 'md' | 'lg' | 'xl';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
 /**
  * A button or a link drawn as one (design-system block btn). Put it on the native element so the element keeps its
@@ -16,6 +16,7 @@ export type ButtonSize = 'md' | 'lg' | 'xl';
     class: 'btn',
     '[class.btn--primary]': 'variant() === "primary"',
     '[class.btn--raised]': 'variant() === "raised"',
+    '[class.btn--sm]': 'size() === "sm"',
     '[class.btn--lg]': 'size() === "lg"',
     '[class.btn--xl]': 'size() === "xl"',
     '[class.btn--block]': 'block()',
