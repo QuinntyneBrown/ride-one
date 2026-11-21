@@ -3276,6 +3276,29 @@ export class HavanaStreet implements SceneStreet {
       streak.renderOrder = -2;
       this.horizon.add(streak);
     }
+    // Contrails from the airliners crossing high over the Florida Straits: a fresh one, thin and
+    // sharp, with the speck of its aircraft at the tip, and an older one spread into a soft band.
+    for (const [fresh, x, y, w, tilt] of [
+      [true, -500, 980, 1500, 0.18],
+      [false, 700, 760, 2400, -0.1],
+    ] as const) {
+      const trail = new Mesh(
+        sheet,
+        new MeshBasicMaterial({
+          map: this.track(contrailTexture(fresh)),
+          transparent: true,
+          depthWrite: false,
+          fog: false,
+          opacity: fresh ? 1 : 0.8,
+        }),
+      );
+      this.disposables.push(trail.material as MeshBasicMaterial);
+      trail.scale.set(w, fresh ? 110 : 320, 1);
+      trail.rotation.z = tilt;
+      trail.position.set(x, y, -3400);
+      trail.renderOrder = -2;
+      this.horizon.add(trail);
+    }
   }
 
   /**
@@ -6511,6 +6534,40 @@ function shopSignTexture(kind: 'bodega' | 'farmacia' | 'cafe' | 'barberia'): Can
     for (let i = 0; i < 30; i++) {
       g.fillStyle = `rgba(${random() < 0.5 ? '255,250,230' : '40,30,20'},${0.05 + random() * 0.1})`;
       g.fillRect(random() * 176, random() * 100, 4 + random() * 20, 2 + random() * 8);
+    }
+  });
+}
+
+/**
+ * A contrail along the texture's length: a fresh one is a crisp double line that starts at the
+ * aircraft's speck and widens and fades behind it; an old one is a broad, uneven, wispy band.
+ */
+function contrailTexture(fresh: boolean): CanvasTexture {
+  return canvasTexture(1024, 64, (g) => {
+    g.clearRect(0, 0, 1024, 64);
+    const random = seeded(fresh ? 1647 : 1651);
+    for (let x = 0; x < 1024; x += 4) {
+      const t = x / 1024;
+      if (fresh) {
+        if (t < 0.012) continue;
+        const fade = Math.min(1, (1 - t) * 1.8);
+        const spread = 2 + t * 10;
+        g.fillStyle = `rgba(255,255,255,${0.25 * fade})`;
+        g.fillRect(x, 32 - spread * 1.6, 4, spread * 3.2);
+        g.fillStyle = `rgba(255,255,255,${0.9 * fade})`;
+        g.fillRect(x, 32 - spread / 2, 4, spread);
+      } else {
+        const wobble = Math.sin(t * 9) * 5 + (random() - 0.5) * 2;
+        const fade = Math.sin(t * Math.PI) * (0.7 + random() * 0.3);
+        g.fillStyle = `rgba(255,255,255,${0.22 * fade})`;
+        g.fillRect(x, 32 + wobble - 18, 4, 36);
+        g.fillStyle = `rgba(255,255,255,${0.35 * fade})`;
+        g.fillRect(x, 32 + wobble - 8, 4, 16);
+      }
+    }
+    if (fresh) {
+      g.fillStyle = 'rgb(200,205,215)';
+      g.fillRect(0, 29, 12, 6);
     }
   });
 }
