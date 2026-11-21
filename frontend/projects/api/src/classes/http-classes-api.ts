@@ -1,13 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
+import type { ClassCatalogueDto } from './class-catalogue-dto';
 import type { ClassDto } from './class-dto';
-import type { ClassesApi } from './classes-api';
 
-/** `CLASSES_API` over HTTP: `GET /api/classes/{id}` (ADR 0014). */
+/**
+ * The catalogue's HTTP client: `GET /api/classes` and `GET /api/classes/{id}` (ADR 0028). It only asks; the app binds
+ * `CLASSES_API` to `CachedClassesApi`, which keeps what it answers.
+ */
 @Injectable()
-export class HttpClassesApi implements ClassesApi {
+export class HttpClassesApi {
   private readonly http = inject(HttpClient);
+
+  list(): Observable<ClassCatalogueDto> {
+    return this.http.get<ClassCatalogueDto>('/api/classes');
+  }
 
   get(id: string): Observable<ClassDto> {
     return this.http.get<ClassDto>(`/api/classes/${encodeURIComponent(id)}`);

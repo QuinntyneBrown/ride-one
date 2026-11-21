@@ -1,0 +1,37 @@
+// Acceptance test
+// Traces to: L2-080 AC3; L2-135 AC3
+// Description: the class ride reads its class from the catalogue the backend serves, and the app keeps that catalogue,
+// so once it has been read a solo class still starts when the backend cannot be reached.
+import { catalogue, hiitCardio } from './fixtures/classes';
+import { echelonBike, targetResistanceWrite } from './fixtures/echelon';
+import { expect, test } from './fixtures/test';
+import { ClassRidePage } from './pages/class-ride.page';
+
+test.describe('Class catalogue', () => {
+  test('a solo class starts from the kept catalogue when the backend cannot be reached (L2-080 AC3, L2-135 AC3)', async ({
+    page,
+    bluetooth,
+    api,
+  }) => {
+    await bluetooth.remember(echelonBike);
+    api.answer('GET', '/api/classes', catalogue);
+    const ride = new ClassRidePage(page);
+    await ride.open(hiitCardio.id);
+    await expect(ride.name).toContainText('30 Minute HIIT Cardio');
+
+    api.answer('GET', '/api/classes', () => ({ status: 503 }));
+    await page.reload();
+    const writes = bluetooth.writes().length;
+
+    await expect(ride.name).toContainText('30 Minute HIIT Cardio');
+    await expect(ride.clock).toContainText('/ 30:00');
+    await expect
+      .poll(() =>
+        bluetooth
+          .writes()
+          .slice(writes)
+          .map((write) => write.hex),
+      )
+      .toContain(targetResistanceWrite(8));
+  });
+});

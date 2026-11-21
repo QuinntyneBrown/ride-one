@@ -15,13 +15,19 @@ const recover = (duration: number): Segment => ({
 });
 
 /**
- * 30 Minute HIIT Cardio as `GET /api/classes/{id}` answers it (L2-080): eight 30-second efforts with a recovery that
- * shrinks each round, between a 5-minute warm-up and a 6-minute cool-down, as the mock's plan profile draws it.
+ * 30 Minute HIIT Cardio as the catalogue serves it (L2-080): eight 30-second efforts with a recovery that shrinks each
+ * round, between a 5-minute warm-up and a 6-minute cool-down, as the mock's plan profile draws it.
  */
 export const hiitCardio = {
   id: 'hiit-cardio-30',
   title: '30 Minute HIIT Cardio',
+  channel: 'GCN Training',
+  focus: 'HIIT',
   lengthSeconds: 1800,
+  opensAtLevel: 1,
+  shelfId: '30-min',
+  summary: 'Eight 30-second maximal efforts with a recovery that shrinks each round. The classic.',
+  world: 'oldtown',
   video: { videoId: 'QUoToFsMNig', syncOffsetSeconds: 12 },
   plan: {
     segments: [
@@ -31,4 +37,12 @@ export const hiitCardio = {
       { kind: 'cool-down', duration: 360, level: 6, cadenceAim: 70 },
     ] satisfies Segment[],
   },
+};
+
+/** The catalogue as `GET /api/classes` answers it: the 30-minute shelf with 30 Minute HIIT Cardio on it. */
+export const catalogue = {
+  shelves: [
+    { id: '30-min', title: '30 min', tagline: 'Structured intervals with a proper warm-up.' },
+  ],
+  classes: [hiitCardio],
 };
