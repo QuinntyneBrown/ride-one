@@ -12,6 +12,12 @@ export const routes: Routes = [
         title: 'Telo Ride',
         loadComponent: () => import('./home/home-page'),
       },
+      // An address that matches no screen (L2-145). Always last.
+      {
+        path: '**',
+        title: 'Page not found · Telo Ride',
+        loadComponent: () => import('./not-found/not-found-page'),
+      },
     ],
   },
 ];
