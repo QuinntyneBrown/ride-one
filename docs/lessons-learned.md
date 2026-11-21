@@ -25,21 +25,61 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 | # | Lesson | From | Applied in | Result |
 |---|--------|------|------------|--------|
-| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with `frontend/node_modules` and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3 | Saved time |
-| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3 | Saved time |
-| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3 | Little effect |
-| L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3 | Did not apply |
-| L5 | Read the initial chunk in the build output after every route or import change; the baseline is 257 kB raw against a 264 kB warning. | 1.1 | 1.2, 1.3 | Did not apply |
-| L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3 | Saved time |
-| L7 | Review every scene with `--frame` on one contact sheet before the full encode; encode in the background with `--crf 23` for films over 2 minutes. | 1.1 | 1.2, 1.3 | Saved time |
-| L8 | Backend packages: EF Core on 10.0.x (11 needs .NET 11), MediatR 12.5 (last Apache 2.0), xUnit v3 on Microsoft Testing Platform (`backend/global.json`); probe a new package in a scratch project before an ADR names it; pin a vulnerable transitive package in `Directory.Packages.props`. | 1.2 | 1.3 | Saved time |
-| L9 | A backend acceptance test is a fixture subclassing `TeloRideApiFactory` (`ConfigureServices` injects the fault); `ProbeController` and `SignedInProbeApi` stand in for endpoints and sign-in until features add theirs; await with `EventProbe<T>` (spans and hub events), never sleep; a hub test connects `HubConnectionBuilder` through `Server.CreateHandler()`; prove a guard by removing it once. | 1.2 | 1.3 | Saved time |
-| L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3 | Saved time |
-| L11 | Prove a test double from the outside: a spec drives the browser API through a helper (`AppCalls`) until the app's own client exists; prove its guard with `test.fail()`, and run once without it to read the failure's reason. | 1.3 | | |
-| L12 | In zsh and BSD tools: quote globs in arguments (`--include='*.cs'`), and replace whole words with `perl -pi -e 's/\bOld\b/New/g'`; BSD `sed` has no `\b`. | 1.3 | | |
-| L13 | When the lockfile changes, verify's `npm ci` replaces the worktree's `node_modules` link with its own fresh install (about 4 s; the main checkout's copy is untouched): delete it with `rm -rf` before `git worktree remove`, and copy any added package into the main checkout's `node_modules` so the next worktree's link has it. | 1.3 | | |
+| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with `frontend/node_modules` and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
+| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
+| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4 | Little effect |
+| L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3, 1.4 | Did not apply |
+| L5 | Read the initial chunk in the build output after every route or import change; the baseline is 257 kB raw against a 264 kB warning. | 1.1 | 1.2, 1.3, 1.4 | Checked: unchanged |
+| L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
+| L7 | Review every scene with `--frame` on one contact sheet before the full encode, and open any headline or terminal edge at full size; encode in the background with `--crf 23` for films over 2 minutes. Use `headline--md` for scene titles: `--lg` clips italic overhang. | 1.1 | 1.2, 1.3, 1.4 | Saved time; 1.4 needed a second encode |
+| L8 | Backend packages: EF Core on 10.0.x (11 needs .NET 11), MediatR 12.5 (last Apache 2.0), xUnit v3 on Microsoft Testing Platform (`backend/global.json`); probe a new package in a scratch project before an ADR names it; pin a vulnerable transitive package in `Directory.Packages.props`. | 1.2 | 1.3, 1.4 | Saved time |
+| L9 | A backend acceptance test is a fixture subclassing `TeloRideApiFactory` (`ConfigureServices` injects the fault); `ProbeController` and `SignedInProbeApi` stand in for endpoints and sign-in until features add theirs; await with `EventProbe<T>` (spans and hub events), never sleep; a hub test connects `HubConnectionBuilder` through `Server.CreateHandler()`; prove a guard by removing it once. | 1.2 | 1.3, 1.4 | Saved time |
+| L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3, 1.4 | Saved time |
+| L11 | Prove a test double from the outside: a spec drives the browser API through a helper (`AppCalls`) until the app's own client exists; prove its guard with `test.fail()`, and run once without it to read the failure's reason. | 1.3 | 1.4 | Saved time |
+| L12 | In zsh and BSD tools: quote globs in arguments (`--include='*.cs'`), and replace whole words with `perl -pi -e 's/\bOld\b/New/g'`; BSD `sed` has no `\b`. | 1.3 | 1.4 | Saved time |
+| L13 | When the lockfile changes, verify's `npm ci` replaces the worktree's `node_modules` link with its own fresh install (about 4 s; the main checkout's copy is untouched): delete it with `rm -rf` before `git worktree remove`, and copy any added package into the main checkout's `node_modules` so the next worktree's link has it. | 1.3 | 1.4 | Did not apply |
+| L14 | For a production-like local run, `dotnet run --no-launch-profile` (`launchSettings.json` otherwise overrides `ASPNETCORE_URLS` and the environment), and `-- --webroot ../frontend/dist/ride/browser` to serve a build without copying it. | 1.4 | | |
+| L15 | Prove a workflow change on GitHub before merging: push the slice's branch (CI runs on every push), `gh run watch <id> --exit-status`, read the job times, then delete the remote branch after the merge. | 1.4 | | |
+| L16 | A hosting test's web root is an in-memory `IFileProvider` set with `PostConfigure<StaticFileOptions>` (`HostedAppApi`), so it reads no file. | 1.4 | | |
 
 ## Log
+
+### 1.4 CI and hosting (2026-11-21)
+
+**Applied from earlier**
+
+- **L1 own worktree, links first; L2 port 4310 — saved time.** No nested link, no stale server.
+- **L3 format first — little effect.** Prettier and `dotnet format` never failed.
+- **L4 attribute components — did not apply.** **L5 bundle — checked: unchanged** at 257.46 kB, read
+  from the CI log as well as locally.
+- **L6 reuse the track — saved time. L7 contact sheet — partly.** The sheet's small tiles hid a
+  clipped headline that a full-size frame of the encode showed, so the film was encoded twice.
+- **L8 backend packages — saved time.** No package was needed: static files, fallbacks and headers are
+  all in ASP.NET Core.
+- **L9 backend fixtures — saved time.** `HostedAppApi` is one `ConfigureServices` override.
+- **L10 scene ids, L12 zsh — saved time.** No blank scene and no shell trap.
+- **L11 prove a double from the outside — saved time.** The in-memory web root was proven through the
+  API, failing first with 401 for the right reason.
+- **L13 lockfile — did not apply.** No package changed; the lesson itself was corrected at the start
+  of this slice.
+
+**What slowed it down**
+
+- The host was open: Static Web Apps' linked backends route only `/api` and carry no WebSockets, which
+  had to be confirmed before ADR 0026 could choose the API as the host.
+- `dotnet run` took the launch profile's port and Development environment until
+  `--no-launch-profile`.
+- The tests' "no file" rule needed an in-memory `IFileProvider` for the web root.
+- The pipeline could be proven only on GitHub: the branch was pushed to run it before the merge.
+- A `headline--lg` title clipped its last letter's italic overhang inside the word reveal's mask;
+  `headline--md`, as every other scene uses, does not.
+
+**New lessons**
+
+- **L14 Production-like local runs.** `dotnet run --no-launch-profile … -- --webroot <build>`.
+- **L15 Prove a workflow on GitHub before merging.** Push the slice's branch, `gh run watch`, then
+  delete the remote branch after the merge.
+- **L16 In-memory web root.** `PostConfigure<StaticFileOptions>` with `InMemoryWebRoot`.
 
 ### 1.3 Test harness (2026-11-21)
 
