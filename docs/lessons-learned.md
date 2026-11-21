@@ -109,6 +109,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L82 | The film rides only maps the new rider's progress opens; to show a locked map's world, serve that map in an open map's place, with the open map's plan the race fixture expects. | 8.2 | 8.3 | Saved time |
 | L83 | `main`'s renderer dresses its scene (toon twins and warm ink at low, the road's bend) only when a tier is applied, over every object then in the scene. Make what must be there from the start with the scene (the ghost, so its material compiles in the warm-up); dress anything made later by applying the same three passes to its group alone, never by re-applying the tier, which re-uploads every texture. | 8.3 | | |
 | L84 | A `stepUntil` (`toPass` with `intervals: [0]`) has no timeout of its own and runs to the test's: when running a world spec to see it fail, pass `--timeout 60000` or give `toPass` a `timeout`, or the red run costs minutes. | 8.3 | | |
+| L85 | A scene spec that checks only what should be drawn misses what should not: `main`'s pacers rode a race until the film's first shot showed them. Look at the first shot of a world slice before recording the rest, and add a check for what must be absent (the probe's `pacers: 0`). | 8.3 | | |
 
 ## Log
 
@@ -138,11 +139,16 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 - Finding where a rider added after the scene starts gets its look: `main` swaps in toon twins, warm ink and the
   road's bend only when a tier is applied, over the whole scene (L83).
 - The first, failing run of the rider specs took twelve minutes (L84).
+- The film's first shots showed four of `main`'s pacers riding a race: the start's rehearsal frame, which has no
+  riders, placed them, and the race's frames never hid them. The specs had checked only the riders that should be
+  drawn; a check that none of the pacers are drawn was seen failing, then the fix, and the shots were taken again
+  (L85).
 
 **New lessons**
 
 - **L83 Dress what joins `main`'s scene late as the tier dresses the scene.**
 - **L84 Bound `toPass` when a spec is run to see it fail.**
+- **L85 Look at the first shot as a review, and spec what must not be drawn.**
 
 ### 8.2 Draw the route world (2026-11-21)
 
