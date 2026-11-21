@@ -9,6 +9,7 @@ import {
   BufferGeometry,
   CanvasTexture,
   CapsuleGeometry,
+  CatmullRomCurve3,
   CircleGeometry,
   Color,
   ConeGeometry,
@@ -284,6 +285,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly bodies: InstancedMesh[] = [];
   private costumes: InstancedMesh | null = null;
   private trunks: InstancedMesh | null = null;
+  private swags: InstancedMesh | null = null;
   private medallions: InstancedMesh | null = null;
   private fringes: InstancedMesh | null = null;
   private readonly legPlumes: InstancedMesh[] = [];
@@ -638,7 +640,10 @@ export class CaribanaStreet implements SceneStreet {
       this.cuffs[body]?.setMatrixAt(posed[body]!, this.matrix);
       this.bodies[body]!.setMatrixAt(posed[body]!++, this.matrix);
       if (d.male) this.trunks?.setMatrixAt(men++, this.matrix);
-      else costumes.setMatrixAt(women++, this.matrix);
+      else {
+        this.swags?.setMatrixAt(women, this.matrix);
+        costumes.setMatrixAt(women++, this.matrix);
+      }
       // Men wear trunks, not the bead fringe.
       if (d.male) this.held.makeScale(0, 0, 0);
       this.fringes?.setMatrixAt(i, d.male ? this.held : this.matrix);
@@ -681,6 +686,7 @@ export class CaribanaStreet implements SceneStreet {
     this.heldCounts.clear();
     costumes.instanceMatrix.needsUpdate = true;
     if (this.trunks) this.trunks.instanceMatrix.needsUpdate = true;
+    if (this.swags) this.swags.instanceMatrix.needsUpdate = true;
     if (this.medallions) this.medallions.instanceMatrix.needsUpdate = true;
     if (this.fringes) this.fringes.instanceMatrix.needsUpdate = true;
     if (this.hair) this.hair.instanceMatrix.needsUpdate = true;
@@ -1261,6 +1267,15 @@ export class CaribanaStreet implements SceneStreet {
       else this.costumes.setColorAt(women++, suit);
     }
     this.costumes.count = women;
+    // Rhinestone swags from the bra to the belt across the belly, on every woman's costume.
+    const swag = swagGeometry();
+    this.disposables.push(swag);
+    this.swags = this.instanced(
+      swag,
+      this.material({ color: 0xf4f0e6, roughness: 0.15, metalness: 0.9 }),
+      women,
+    );
+    this.swags.castShadow = false;
     this.trunks.count = men;
     const feather = this.track(featherTexture());
     const plumes = this.material({
@@ -4349,6 +4364,49 @@ function armPieces(
   const cuff = mergeGeometries(cuffs)!;
   [...bands, ...cuffs].forEach((g) => g.dispose());
   return { band, cuff };
+}
+
+/**
+ * Rhinestone swags: three chains of stones hanging in arcs across the belly from the bra
+ * band to the beaded belt, and a chain from each cup up round the neck to the collar.
+ */
+function swagGeometry(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const chain = (points: Vector3[]) => {
+    const curve = new CatmullRomCurve3(points);
+    for (let i = 0; i <= 18; i++) {
+      const p = curve.getPoint(i / 18);
+      const stone = new OctahedronGeometry(0.011, 0);
+      stone.translate(p.x, p.y, p.z);
+      parts.push(stone.toNonIndexed());
+      stone.dispose();
+    }
+  };
+  // Across the belly, front of the waist, sagging in arcs between bra and belt.
+  for (const [drop, spread] of [
+    [1.06, 0.13],
+    [1.12, 0.12],
+    [1.18, 0.11],
+  ] as const) {
+    chain([
+      new Vector3(-spread, 1.25, -0.08),
+      new Vector3(-spread * 0.5, drop + 0.02, -0.115),
+      new Vector3(0, drop, -0.12),
+      new Vector3(spread * 0.5, drop + 0.02, -0.115),
+      new Vector3(spread, 1.25, -0.08),
+    ]);
+  }
+  // From each cup up round the neck.
+  for (const side of [-1, 1]) {
+    chain([
+      new Vector3(side * 0.07, 1.36, -0.13),
+      new Vector3(side * 0.06, 1.42, -0.09),
+      new Vector3(side * 0.05, 1.45, -0.04),
+    ]);
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
 }
 
 /** The gold trims: a beaded cuff at the top of each boot, standing proud of the shaft. */
