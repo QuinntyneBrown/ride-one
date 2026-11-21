@@ -1,4 +1,5 @@
 using Telo.Ride.Api.Authentication;
+using Telo.Ride.Api.Commands;
 using Telo.Ride.Api.Errors;
 using Telo.Ride.Api.Health;
 using Telo.Ride.Api.Telemetry;
@@ -21,6 +22,11 @@ builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tag
 
 var app = builder.Build();
 
+if (args is [MigrateCommand.Name])
+{
+    return await MigrateCommand.RunAsync(app.Services, CancellationToken.None);
+}
+
 app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -33,7 +39,8 @@ app.MapHealthChecks("/health/ready", new() { Predicate = check => check.Tags.Con
     .AllowAnonymous();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
+return 0;
 
 /// <summary>The API's entry point; public so the acceptance tests can host it in memory.</summary>
 public partial class Program;

@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("TeloRide")));
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
+        services.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
         services.AddSingleton<TeloRideMetrics>();
         return services;
     }
