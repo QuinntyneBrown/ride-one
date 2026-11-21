@@ -31,8 +31,8 @@ end box
 box "Device — Smart bike" #F2F4F7
   participant "Echelon GATT server" as bike
 end box
-actor -> page : Press search (user gesture, L2-012 AC2)
-page -> store : search()
+actor -> page : Press "Pair Echelon EX-5s" (user gesture, L2-012 AC2)
+page -> store : pair()
 store -> store : Searching: spinner, "Looking for bikes nearby…", disabled "Searching…" (L2-011 AC2)
 store -> conn : requestBike()
 conn -> bt : requestDevice(filters: Echelon 0bf669f1-…, FTMS 0x1826; optional 0x180D) (L2-012 AC1)
@@ -42,14 +42,12 @@ alt rider cancels the chooser
   store --> page : Default state, no error (L2-012 AC3)
 else chooser blocked by a policy
   bt --> conn : SecurityError
-  conn --> store : Failure with reason
+  conn --> store : BikeConnectionError code blocked
   store --> page : Reason in plain words and "Try again" (L2-012 AC4)
 else bike picked
   bt --> conn : BluetoothDevice
   conn --> store : BikeInfo
-  store --> page : Found: "Echelon EX-5s", signal and identifier, "Pair Echelon EX-5s" (L2-011 AC3)
-  actor -> page : Press Pair
-  page -> store : pair()
+  store --> page : Card: "Echelon EX-5s", identifier "EX5S-141844" (L2-011 AC3)
   store -> store : Pairing: aria-busy="true", spinner, "Pairing…" (L2-011 AC4)
   store -> conn : connect()
   conn -> bike : gatt.connect(), getPrimaryService(0bf669f1-…)
@@ -59,11 +57,10 @@ else bike picked
   queue -> bike : writeValueWithResponse on 0bf669f2-…, one at a time (L2-013 AC3)
   bike --> queue : Acknowledged
   bike -> conn : First notification
-  conn -> conn : state = Connected, name = device name or identifier (L2-013 AC4)
-  conn -> remembered : save(bike)
-  conn --> store : Connected
+  conn --> store : connect() resolves: connected (L2-013 AC4)
+  store -> remembered : save(bike)
   store --> page : Check (aria-label="Paired") and disabled "Paired" (L2-011 AC5)
   page -> page : After about 500 ms, navigate to Home
-  page --> actor : Home (new-rider Home with no rides)
+  page --> actor : Home
 end
 @enduml

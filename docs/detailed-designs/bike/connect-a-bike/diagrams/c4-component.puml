@@ -7,7 +7,7 @@ System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
 Container_Boundary(app, "Ride app") {
   Component(guard, "rememberedBikeGuard", "Route guard · ride", "Sends a first-run rider to /connect")
   Component(page, "ConnectBikePage", "Angular page · ride", "First-run pairing screen")
-  Component(store, "ConnectBikeStore", "Signal store · ride (route-scoped)", "Search, found, pairing and paired states")
+  Component(store, "ConnectBikeStore", "Signal store · ride (route-scoped)", "Searching, pairing, paired and failed states")
   Component(device, "ConnectDevice", "Presentation component · components", "The device card")
   Component(conn, "WebBluetoothBikeConnection", "Service · domain/bluetooth", "BikeConnection over navigator.bluetooth")
   Component(echelon, "EchelonLink", "BikeLink · domain/bluetooth", "Echelon subscribe and init")
@@ -15,7 +15,7 @@ Container_Boundary(app, "Ride app") {
   Component(queue, "GattWriteQueue", "Service · domain/bluetooth", "One write at a time, in order")
   Component(eproto, "EchelonProtocol", "Codec · domain/protocol", "Init commands and checksums")
   Component(fproto, "FtmsProtocol", "Codec · domain/protocol", "Control point op codes and range")
-  ComponentDb(remembered, "RememberedBikeStore", "Store · domain/storage", "Remembered bike in IndexedDB")
+  ComponentDb(remembered, "RememberedBikeStore", "Store · domain/storage", "Remembered bike in localStorage")
 }
 Rel(rider, page, "Presses search and Pair")
 Rel(guard, remembered, "Reads")
