@@ -16,19 +16,20 @@ skinparam package {
 }
 box "Frontend — Ride app (domain library)" #E0F2FE
   participant "WebBluetoothBikeConnection" as conn
-  participant "IndoorBikeDataDecoder" as dec
   participant "BikeTelemetry" as tele
+  participant "IndoorBikeDataDecoder" as dec
   participant "SpeedModel / PowerModel" as models
 end box
 box "Device — Smart bike" #F2F4F7
   participant "FTMS GATT server" as bike
 end box
 bike -> conn : Indoor Bike Data 0x2AD2 notification
-conn -> dec : decode(view)
-dec -> dec : Read flags; fields present in flag order (L2-021 AC1)
+conn -> tele : frames: the raw bytes
+tele -> dec : decode(bytes, at), as bike().kind is ftms
+dec -> dec : Read flags; fields present in flag order, unused ones skipped by size (L2-021 AC1)
 dec -> dec : speed uint16 × 0.01 km/h, cadence uint16 × 0.5 rpm, power sint16 W, heart rate uint8 bpm
-dec --> conn : TelemetrySample
-conn -> tele : accept(sample)
+dec --> tele : TelemetrySample; a field past the end stays undefined
+tele -> tele : accept(sample)
 alt power present
   tele -> tele : powerW = reported, powerIsEstimate = false (L2-021 AC2)
 else power absent

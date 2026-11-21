@@ -75,6 +75,32 @@
             </a>
           </section>
         }
+        @case ('adapter-off') {
+          <section class="connect-blocker" role="alert" aria-labelledby="blocker-title">
+            <div class="connect-blocker__head">
+              <svg
+                class="icon icon--lg connect-blocker__icon connect-blocker__icon--heart"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="m17 17-5 5V12l-5 5" />
+                <path d="m2 2 20 20" />
+                <path d="M14.5 9.5 17 7l-5-5v4.5" />
+              </svg>
+              <h2 class="connect-blocker__title" id="blocker-title">Bluetooth is off</h2>
+            </div>
+            <p class="connect-blocker__body">Turn on Bluetooth on this computer, then try again.</p>
+            <button
+              wz-button
+              variant="raised"
+              type="button"
+              class="connect-blocker__retry"
+              (click)="support.recheck()"
+            >
+              Try again
+            </button>
+          </section>
+        }
         @default {
           @if (failure(); as failed) {
             <section class="connect-blocker" role="alert" aria-labelledby="blocker-title">

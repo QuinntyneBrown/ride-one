@@ -15,7 +15,7 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 box "Frontend — Ride app (domain library)" #E0F2FE
-  participant "BackgroundTicker" as ticker
+  participant "TICKER" as ticker
   participant "KeepaliveScheduler" as keep
   participant "WebBluetoothBikeConnection" as conn
   participant "GattWriteQueue" as queue
@@ -25,7 +25,7 @@ box "Device — Smart bike" #F2F4F7
 end box
 conn -> keep : start() after initialisation
 loop while Connected (visible or hidden tab)
-  ticker -> keep : tick(now) from a dedicated worker
+  ticker -> keep : tick; the scheduler reads the clock
   keep -> keep : due when now - lastSentAt ≥ 1000 ms, timed from the clock (L2-016 AC2, L2-133)
   keep -> queue : F0 A0 01 01 92
   queue -> bike : writeValueWithResponse on 0bf669f2-…

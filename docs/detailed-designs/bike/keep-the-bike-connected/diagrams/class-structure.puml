@@ -12,73 +12,67 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Keep the bike connected
-enum BikeState {
-  Idle
-  Searching
-  Pairing
-  Connected
-  Disconnected
+enum BleState {
+  idle
+  connecting
+  connected
+  disconnected
 }
 enum BikeStatusTone {
-  Ok
-  Alert
+  ok
+  alert
 }
 class BikeStatusView {
   +label: string
   +hiddenText: string
+  +title: string | null
   +tone: BikeStatusTone
+  +rideLabel: string
   +diagnosticsLabel: string
 }
 class "bikeStatus()" as BikeStatusFn <<domain/bluetooth>> {
-  +bikeStatus(state: BikeState, support: BluetoothSupportState, bike: BikeInfo | null): BikeStatusView
+  +bikeStatus(ble: BleState, support: BluetoothSupportState, bikeName: string | null): BikeStatusView
 }
 class KeepaliveScheduler <<domain/bluetooth>> {
   -lastSentAt: number
   +start(): void
   +stop(): void
-  -onTick(now: number): void
 }
 class DeviceReconnector <<domain/bluetooth>> {
   +intervalMs: number = 3000
-  -pending: AbortController | null
+  -timer: Timeout | undefined
   +start(attempt: () => Promise<boolean>): void
   +retryNow(): void
   +stop(): void
 }
-class BluetoothAvailabilityMonitor <<domain/bluetooth>> {
-  +available: Signal<boolean | null>
-  +check(): Promise<boolean>
+class WebBluetoothSupport <<domain/bluetooth>> {
+  +state: Signal<BluetoothSupportState>
+  +recheck(): Promise<void>
 }
 interface Ticker <<api>> {
-  +ticks: Observable<number>
+  +seconds: Observable<number>
 }
-class BackgroundTicker <<domain/engine>> {
-  -worker: Worker
-  +ticks: Observable<number>
+class SecondTicker <<domain/engine>> {
+  +seconds: Observable<number>
 }
 class WebBluetoothBikeConnection <<domain/bluetooth>> {
-  +state: Signal<BikeState>
-  +reconnects: Signal<number>
+  +ble: Signal<BleState>
+  +bike: Signal<BikeInfo | null>
+  +lastError: Signal<string | null>
+  -target: number | null
   +connect(): Promise<void>
   +reconnectNow(): void
-  -onDisconnected(): void
+  -onDrop(error?: unknown): void
 }
-class ResistanceController <<domain/engine>> {
-  +target: Signal<number | null>
-  +resend(): Promise<void>
-}
-interface AppLogger <<api>> {
-  +error(area: string, error: unknown): void
-}
+class EchelonLink <<domain/bluetooth>>
 KeepaliveScheduler ..> Ticker : subscribes
-BackgroundTicker ..|> Ticker
-KeepaliveScheduler --> WebBluetoothBikeConnection : writes through
+SecondTicker ..|> Ticker
+KeepaliveScheduler --> EchelonLink : writes through the queue
 WebBluetoothBikeConnection *-- DeviceReconnector
-WebBluetoothBikeConnection *-- KeepaliveScheduler
-WebBluetoothBikeConnection ..> ResistanceController : resend on reconnect
-WebBluetoothBikeConnection ..> AppLogger
-BikeStatusFn ..> BikeState
-BikeStatusFn ..> BluetoothAvailabilityMonitor
+EchelonLink *-- KeepaliveScheduler
+WebBluetoothBikeConnection *-- EchelonLink
+BikeStatusFn ..> BleState
+BikeStatusFn ..> WebBluetoothSupport : support state
 BikeStatusFn ..> BikeStatusView : returns
 BikeStatusView --> BikeStatusTone
 @enduml

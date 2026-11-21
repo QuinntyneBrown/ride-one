@@ -11,6 +11,7 @@ import { HomePage } from './pages/home.page';
 const WORKOUT_FRAME = [
   0xf0, 0xd1, 0x09, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x1f,
 ];
+const KEEPALIVE = 'F0 A0 01 01 92';
 const INITIALISED = [
   `subscribe ${ECHELON_NOTIFY}`,
   `write ${ECHELON_WRITE} F0 A1 00 91`,
@@ -36,7 +37,10 @@ test.describe('The remembered bike', () => {
 
       await expect(home.main).toBeVisible();
       expect(home.url()).toBe('/');
-      await expect.poll(() => bluetooth.log()).toEqual([...INITIALISED, ...INITIALISED]);
+      // The first session's keepalives may land between the two initialisations.
+      await expect
+        .poll(() => bluetooth.log().filter((line) => !line.endsWith(KEEPALIVE)))
+        .toEqual([...INITIALISED, ...INITIALISED]);
       expect(bluetooth.requests()).toHaveLength(1);
     },
   );

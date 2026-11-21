@@ -6,6 +6,8 @@ export class AppHeader {
   readonly brand: Locator;
   readonly lockup: Locator;
   readonly nav: Locator;
+  /** The bike status at the end of the header, shown from lg (1024 px). */
+  readonly bike: Locator;
   private readonly product: Locator;
 
   constructor(private readonly page: Page) {
@@ -14,6 +16,7 @@ export class AppHeader {
     this.lockup = this.brand.locator('.lockup');
     this.product = this.lockup.locator('.wordmark__product');
     this.nav = this.root.getByRole('navigation', { name: 'Main' });
+    this.bike = this.root.locator('.app-header__bike');
   }
 
   link(name: 'Home' | 'Race' | 'Classes' | 'Profile'): Locator {
