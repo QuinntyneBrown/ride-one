@@ -23,6 +23,13 @@ Riding with a group joins a session through the ride hub, which the multiplayer 
 A locked class never reaches this screen: `classUnlockedGuard` (see *browse the class library*)
 redirects its address to the library.
 
+**Slices.** Slice 6.3 builds the page for riding alone: the header, the video parked at the
+sync offset, the class facts, "What the bike will do" with `PlanSummary`, the "Video link and
+sync" disclosure, "How do you want to ride?" with "Ride alone" chosen and Start class, and
+`classUnlockedGuard`. Until the schedule and the hub exist (slices 14.2 and 14.3), the group
+option cannot be chosen and says why (`L2-085` AC5), as it does whenever the sessions cannot be
+reached. The session roster, Join and the full and starting-soon states come with them.
+
 ## Description
 
 **Frontend — `ride` application**
@@ -145,3 +152,13 @@ page offers the next session (`L2-085` AC3, `L2-086`).
 Riding alone needs no request: the page navigates to the class ride in solo mode (`L2-085` AC4).
 
 ![Sequence diagram for starting a class alone](diagrams/sequence-start-alone.png)
+
+## Open questions
+
+- **HIIT's offset and work level.** Slice 6.1 took 30 Minute HIIT Cardio's sync offset (3 s)
+  and work level (18) from `main`. The specs give 0:12.0 (`L2-080`, `L2-084`, `L2-088`) and the
+  GCN ladder's work level 24 (`L2-096`), which yields the ~154 W of `L2-084` AC2; slice 6.3 set the
+  catalogue to them.
+- **The browser notices.** The needs-chromium and needs-https states disable Start class with a
+  notice. Until they are built, a rider in a browser without Web Bluetooth who presses Start
+  class reaches Connect Bike, which explains why (`L2-008`, `L2-009`).
