@@ -289,6 +289,7 @@ export class CaribanaStreet implements SceneStreet {
   private medallions: InstancedMesh | null = null;
   private fringes: InstancedMesh | null = null;
   private readonly legPlumes: InstancedMesh[] = [];
+  private readonly handFans: InstancedMesh[] = [];
   private readonly collars: InstancedMesh[] = [];
   private readonly armbands: InstancedMesh[] = [];
   private readonly cuffs: InstancedMesh[] = [];
@@ -615,6 +616,7 @@ export class CaribanaStreet implements SceneStreet {
     const count = this.backpieces.map(() => 0);
     const backed = this.backpieces.map(() => 0);
     const crowned = this.backpieces.map(() => 0);
+    const fanned = this.backpieces.map(() => 0);
     const tufted = this.backpieces.map(() => 0);
     const collared = this.backpieces.map(() => 0);
     const posed = this.bodies.map(() => 0);
@@ -662,6 +664,7 @@ export class CaribanaStreet implements SceneStreet {
       this.placeHeld(d, i, t);
       const k = d.costume;
       this.legPlumes[k]!.setMatrixAt(count[k]!, this.matrix);
+      if (d.pose === 2) this.handFans[k]!.setMatrixAt(fanned[k]!++, this.matrix);
       this.spot.set(x, y + 1.3 + bounce, -metres);
       this.size.setScalar(d.frontline ? 1 : 0);
       this.matrix.compose(this.spot, this.turn, this.size);
@@ -716,6 +719,8 @@ export class CaribanaStreet implements SceneStreet {
       this.crownBands[k]!.count = crowned[k]!;
       this.crownBands[k]!.instanceMatrix.needsUpdate = true;
       this.legPlumes[k]!.count = count[k]!;
+      this.handFans[k]!.count = fanned[k]!;
+      this.handFans[k]!.instanceMatrix.needsUpdate = true;
       this.legPlumes[k]!.instanceMatrix.needsUpdate = true;
     });
   }
@@ -1327,6 +1332,9 @@ export class CaribanaStreet implements SceneStreet {
       const legs = legPlumeGeometry(inner!, mid!);
       this.disposables.push(legs);
       this.legPlumes.push(this.instanced(legs, plumes, n));
+      const fans = handFanGeometry(inner!, ['#ffffff', mid![1]]);
+      this.disposables.push(fans);
+      this.handFans.push(this.instanced(fans, plumes, n));
     }
     // Hair under the headdress: a close cap, and braids falling down the back past the collar.
     const locks: BufferGeometry[] = [ellipsoid(0.112, 0.95, 0.86, 0.96, 0, 1.645, 0.034)];
@@ -4493,6 +4501,35 @@ function featherFan(
     feather.setAttribute('color', new BufferAttribute(colour, 3));
     feather.computeVertexNormals();
     parts.push(feather);
+  }
+  const merged = mergeGeometries(parts)!;
+  parts.forEach((p) => p.dispose());
+  return merged;
+}
+
+/**
+ * Hand pieces for the arms-spread pose: a small fan of plumes held up in each hand, spread
+ * outward and up, in the section's outer and middle colours.
+ */
+function handFanGeometry(
+  outer: readonly [string, string],
+  mid: readonly [string, string],
+): BufferGeometry {
+  const [left, right] = POSES[2]!;
+  const parts: BufferGeometry[] = [];
+  for (const [hand, side] of [
+    [left!, -1],
+    [right!, 1],
+  ] as const) {
+    const fan = mergeGeometries([
+      featherFan(outer, 11, 0.62, 0.12, Math.PI * 0.75, 0.02),
+      featherFan(mid, 9, 0.44, 0.12, Math.PI * 0.65, 0.02),
+    ])!;
+    fan.translate(0, 0, -0.24);
+    // Held up from the hand, tipped a little outward from the body, in front of the wings.
+    fan.rotateZ(-side * 0.25);
+    fan.translate(hand[3]!, hand[4]! + 0.05, hand[5]!);
+    parts.push(fan);
   }
   const merged = mergeGeometries(parts)!;
   parts.forEach((p) => p.dispose());
