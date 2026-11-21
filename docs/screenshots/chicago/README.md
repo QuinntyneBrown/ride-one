@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [20 Minute Crit Sprints](http://localh
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/20-minute-crit-sprints?simulate`, click **Ride in Chicago Loop Crit**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [094 · The L and the crowd behind the rider stand on Wabash](bend-094-under-the-l-behind.jpg) | The L trains overhead, the crowd and the props between the camera and the rider were set at the height under the rider wherever they were behind it, so where Wabash Avenue rises or falls they hung above or sank into the road there. They now stand on the road where they are. |
