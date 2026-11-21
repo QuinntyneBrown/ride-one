@@ -48,6 +48,7 @@ import {
   scaleFaceUv,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
   type Wardrobe,
 } from './world-kit';
@@ -173,7 +174,14 @@ export class VeniceStreet implements SceneStreet {
   readonly group = new Group();
   private readonly ribbons: Ribbons;
   private readonly crowd: Crowd;
-  private readonly props: { mesh: Group; offset: number; every: number; x: number }[] = [];
+  /** Props along the road; one that `lies` on it, as paint does, takes its slope. */
+  private readonly props: {
+    mesh: Group;
+    offset: number;
+    every: number;
+    x: number;
+    lies?: boolean;
+  }[] = [];
   private skaters: Figures | null = null;
   private boards: InstancedMesh | null = null;
   private performers: Figures | null = null;
@@ -249,10 +257,11 @@ export class VeniceStreet implements SceneStreet {
   /** Moves the street with the rider: `heightAt` gives the road's height `metres` ahead. */
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
-    const ground = (metres: number) => heightAt(Math.max(metres, 0));
+    const ground = (metres: number) => heightAt(metres);
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
-      prop.mesh.position.set(prop.x, ground(metres), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     const far = heightAt(1e6);
@@ -794,7 +803,13 @@ export class VeniceStreet implements SceneStreet {
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 30 + i * ROAD_PAINT_EVERY, every: LOOP, x });
+      this.props.push({
+        mesh: holder,
+        offset: 30 + i * ROAD_PAINT_EVERY,
+        every: LOOP,
+        x,
+        lies: true,
+      });
     });
   }
 
