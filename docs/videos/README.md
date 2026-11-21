@@ -32,6 +32,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 6.3 | [Class Start](06-3-class-start/README.md) | 2:25 | 30 Minute HIIT Cardio's Class Start at 1440 px; its facts and ← Classes; what the bike will do and its weighted ~154 W; the video parked at 0:12; the video link and sync; Ride alone chosen and the group option that says why not; Start class into the ride; a locked address back to the library; 390 to 1440 px; seven behaviour specs |
 | 7.1 | [Browse maps](07-1-browse-maps/README.md) | 2:25 | Map Select at 1440 px; the new rider's two open maps; the seven maps the backend serves; an open map's row; the next unlock ringed gold; locked maps and their goals; what a screen reader hears; the star rules; no catalogue and Try again; 390 to 1440 px; seven behaviour specs |
 | 7.2 | [Set up a race](07-2-set-up-a-race/README.md) | 2:25 | Race Setup at 1440 px; the map's facts; the stars here; the goal line in gold; the three race modes; the arrow keys; pack strength; the two starts; a locked map's address; 390 to 1440 px; nine behaviour specs |
+| 7.3 | [Ride a race](07-3-ride-a-race/README.md) | 2:14 | The race at 1440 px; the top bar; power against target; the interval and each segment's level; main's route profile; the virtual speed; Lower and Raise; 390 to 1440 px; ten behaviour specs |
 
 ## What every video is
 
