@@ -4129,6 +4129,23 @@ function leafTexture(): CanvasTexture {
         g.stroke();
       }
     }
+    // May's elm seeds still hang in pale yellow-green clusters among the new leaves.
+    for (let c = 0; c < 14; c++) {
+      const cx = 128 + (random() - 0.5) * 190;
+      const cy = 128 + (random() - 0.5) * 170;
+      for (let i = 0; i < 14; i++) {
+        g.fillStyle = `rgba(${170 + random() * 25},${195 + random() * 20},${110 + random() * 30},0.95)`;
+        g.beginPath();
+        g.arc(
+          cx + (random() - 0.5) * 14,
+          cy + (random() - 0.5) * 12,
+          2.2 + random() * 1.2,
+          0,
+          Math.PI * 2,
+        );
+        g.fill();
+      }
+    }
   });
 }
 
