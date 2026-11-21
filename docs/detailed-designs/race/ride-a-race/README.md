@@ -36,8 +36,9 @@ Telemetry and resistance come from the bike subsystem.
 line, bike status, clock), power and position, the interval panel, the route panel, the
 resistance panel and the layout. Until the opponents join (slice 7.4) the field is the rider
 alone, so position reads "1st / 1" with no gaps, and the standings board, `StandingsRanker` and
-`GapCalculator` are built with them. Leave, Pause, End, the development-only Finish and the plan
-running out before the line come with slice 7.5; the renderer tag and the drawn world with
+`GapCalculator` are built with them. Leave, Pause, End and the plan running out before the line
+came with slice 7.5 (finish-a-race, pause-leave-or-lose-the-bike-in-a-race), and the mocks'
+development-only Finish is not built; the renderer tag and the drawn world with
 journey 8, and until then the scene is the map's photo, as the mock draws it, one image described
 as "The Old Town Criterium world: a cobbled European old town on race day"; Full screen with
 slice 24.2; riders online with journey 15.
@@ -179,8 +180,10 @@ and "Lower resistance" nudge it by hand between segment starts.
   which the mock's numbers follow, uses power alone. The race uses `main`'s until the model and
   its constants (L2.md open question 2) are settled.
 - **The route's length.** The profile follows the plan's expected speed, so Old Town's is about
-  9.5 km against its 14.2 km. The finish line and the plan running out before it (`L2-071`) come
-  with slice 7.5, which settles where the line falls on the profile.
+  9.5 km against its 14.2 km. Slice 7.5 settled the line at the map's distance (`L2-071`); the
+  profile stays drawn on the plan's time, so past the plan's end it holds its last second, the
+  marker at its end, until the rider reaches the line. Drawing the profile on distance waits for
+  the speed model (above).
 - **The plans.** Every map rides one 30:00 plan for now, the HIIT shape of the mock: a 5:00
   warm-up at level 8 and 80 rpm, eight 0:30 efforts at level 24 and 98 rpm (418 W) with
   recoveries from 3:00 down to 1:30 at level 6, and a 6:00 cool-down at level 6 and 70 rpm, the

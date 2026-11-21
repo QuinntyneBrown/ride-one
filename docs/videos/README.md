@@ -34,6 +34,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 7.2 | [Set up a race](07-2-set-up-a-race/README.md) | 2:25 | Race Setup at 1440 px; the map's facts; the stars here; the goal line in gold; the three race modes; the arrow keys; pack strength; the two starts; a locked map's address; 390 to 1440 px; nine behaviour specs |
 | 7.3 | [Ride a race](07-3-ride-a-race/README.md) | 2:14 | The race at 1440 px; the top bar; power against target; the interval and each segment's level; main's route profile; the virtual speed; Lower and Raise; 390 to 1440 px; ten behaviour specs |
 | 7.4 | [Ghost and bots](07-4-ghost-and-bots/README.md) | 2:14 | Nine bots and the ghost; the pack's seeded pace; the standings board; 5th of 10 with the gaps either side; the rows' slide; You vs your best, Ahead or Behind; a race without a network; the board from a tablet up; seven behaviour specs |
+| 7.5 | [Finish, pause or leave a race](07-5-finish-pause-or-leave-a-race/README.md) | 2:14 | Leave and End; Pause, held still; Resume or the pedals; a lost bike's coast, its DNF and a parked solo race; the finish line and the place; 390 to 1440 px; eleven behaviour specs |
 
 ## What every video is
 

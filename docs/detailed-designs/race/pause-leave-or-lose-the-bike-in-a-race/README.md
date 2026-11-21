@@ -41,15 +41,20 @@ designed by bike/keep-the-bike-connected.
   clock.
 - **`CoastPolicy`** (`domain/engine`) — pure rules of a lost bike: decay of the virtual speed
   over 15 seconds, `isDnf(elapsedSinceLostS)` true at 15 s for bots and riders-online races,
-  and `parks(mode)` true for a solo race (L2-070). The decay curve is `<TO SUPPLY>`.
+  and `parks(mode)` true for a solo race (L2-070). The speed decays in a straight line from
+  the speed at the drop to standstill: `v(t) = v₀ · max(0, 1 − t / 15)`, and the rider rides on
+  it.
 - **`RacePaused`** (`components`, block `race-paused`) — status overlay (`role="status"`):
   "Paused on Cathedral Circuit" and "The world holds still until you pedal again." It uses
   `pointer-events: none` outside its card so it does not block the top bar buttons.
 - **`RaceLost`** (`components`, block `race-lost`) — alert (`role="alert"`): "Lost the bike"
   and "Echelon EX-5s stopped answering. Your rider coasts for 15 seconds while we reconnect;
   after that the race counts as a DNF.", with **Reconnect**. For a solo race it says the ride is
-  parked until the bike is back; that copy is a mock gap (`<TO SUPPLY>`). After 15 s it shows
-  the DNF message with a link to Race Setup; that copy is `<TO SUPPLY>` beyond the mock's
+  parked until the bike is back: "Echelon EX-5s stopped answering. Your ride is parked until the
+  bike is back, then carries on from where it stopped." (`race/solo-disconnected`). After 15 s it
+  reads "Did not finish" and "Echelon EX-5s didn’t come back within 15 seconds, so this race
+  counts as a DNF and earns no XP.", with a link, **Back to Race Setup** (`race/dnf`), beyond the
+  mock's
   "DNF.". The bike name is data rendered as text.
 - **`RaceBar`** and **`RaceResist`** (`components`) — Pause becomes Resume while paused; both
   resistance buttons and Pause are disabled while the bike is gone (L2-070 AC2).
@@ -63,6 +68,22 @@ designed by bike/keep-the-bike-connected.
 A DNF or a discarded solo race submits no ride, so it earns no XP. For a riders-online race the
 multiplayer service records the DNF (multiplayer/mark-leavers-and-dnf); it also marks a racing
 rider DNF after 15 seconds without progress (L2-124 AC2), which agrees with the coast window.
+
+**Slice 7.5.** What is built, and how:
+
+- The rider's Pause and the bike's absence hold the race the same way: the clock stops, so the
+  ticker publishes no second, and the plan, the distance, the field and the standings stand
+  still. The race watches the bike and the pedals on the app's `TICKER` beat, once a second,
+  since its own ticks stop while it is held (as the class ride does, slice 5.4).
+- Pedalling resumes a paused solo race once the bike has reported the rider stopped (cadence 0,
+  or none) since the pause, and then a cadence above 0; a rider who presses Pause mid-stroke is
+  not carried on by the next stroke.
+- Pause is disabled while the bike is gone; Leave and End are not. Leave and End are links to
+  Race Setup (`/race/:mapId`); leaving the page stops the race and submits nothing.
+- A coasting rider's power counts as none; the speed readout shows the coast. The DNF stops the
+  clock where it was and leaves the board as it stood.
+- Riders online (`RaceSessionStore`, the hub's DNF) come with journey 15, `RaceWorldStore` with
+  journey 8. The mocks' Finish button is drawn for the prototype only and is not built.
 
 ## Requirements
 

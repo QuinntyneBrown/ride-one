@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   BIKE_CONNECTION,
   GHOST_API,
@@ -8,12 +8,16 @@ import {
   type MapDto,
   type PackStrengthId,
   type RaceMode,
+  type RaceResult,
   SCREEN_WAKE_LOCK,
+  TICKER,
 } from '@telo/api';
 import { type RaceBoardRow, type RaceDelta, type RaceGap, formatMetric } from '@telo/components';
 import {
   BikeTelemetry,
   BotPack,
+  CoastPolicy,
+  FinishLine,
   GhostReplay,
   PowerModel,
   type RaceField,
@@ -23,9 +27,11 @@ import {
   VirtualSpeedModel,
   type Standing,
   WorkoutEngine,
+  YOU,
   formatGap,
   ordinal,
   rankStandings,
+  planStateAt,
   routeProfile,
   routeProfileView,
 } from '@telo/domain';
@@ -57,6 +63,24 @@ export class RaceStore {
   private field: RaceField | null = null;
   /** The rider and the field by place, ranked once a second on the race's tick (L2-060 AC3). */
   private readonly standings = signal<readonly Standing[]>([]);
+  private readonly beat = inject(TICKER);
+  private readonly pausedByRider = signal(false);
+  /** Whether the bike has reported the rider stopped since the pause, so the next stroke carries the race on. */
+  private stoppedSincePause = false;
+  /** A solo race held still while the bike is away (L2-070 AC5). */
+  private readonly parkedByBike = signal(false);
+  /** The race second the bike was lost at in a bots or riders-online race, and the speed the rider coasts from. */
+  private lostAt: number | null = null;
+  private coastFromMs = 0;
+  /** The rider's speed at the last tick, m/s, which a lost bike's coast starts from. */
+  private lastSpeedMs = 0;
+  /** The coasting speed while the bike is lost, m/s (L2-070 AC2). */
+  private readonly coast = signal<number | null>(null);
+  /** The race ended for the rider as a DNF: 15 seconds without the bike (L2-070 AC4). */
+  readonly dnf = signal(false);
+  private readonly router = inject(Router);
+  /** The map's distance, where the race ends for the rider (L2-071 AC1). */
+  private line: FinishLine | null = null;
 
   /** Whom the race is against, and how hard the bots ride (`?mode=bots&pack=medium`, slice 7.2). */
   readonly mode: RaceMode =
@@ -69,8 +93,22 @@ export class RaceStore {
     ) ?? 'medium';
 
   readonly map = this.loaded.asReadonly();
+  /** Whether the rider paused the solo race: the clock, the distance and the standings hold (L2-068 AC1). */
+  readonly paused = this.pausedByRider.asReadonly();
+  /** Race Setup for the map, where Leave and End go (L2-069). */
+  readonly setup: readonly string[] = ['/race', this.mapId];
   readonly elapsed = this.ticker.second;
-  readonly plan = this.engine.state;
+  /**
+   * Where the plan is; past its end, its last segment at 0:00, since nothing more is sent and its level holds until the
+   * finish (L2-071 AC2).
+   */
+  readonly plan = computed(() => {
+    const now = this.engine.state();
+    const map = this.loaded();
+    if (now || !map || this.elapsed() < this.total()) return now;
+    const last = planStateAt(map.plan, this.total() * 1000 - 1);
+    return last && { ...last, remainingMs: 0, progress: 1 };
+  });
 
   /** The plan's length in seconds. */
   readonly total = computed(
@@ -119,8 +157,10 @@ export class RaceStore {
   readonly cadence = computed(() => formatMetric(this.telemetry.cadence(), 0));
   /** The bike's own heart rate; the strap joins with its slice (L2-030, L2-031). */
   readonly heart = computed(() => formatMetric(this.telemetry.heartRate(), 0));
-  /** The virtual speed from power, `main`'s formula (L2-059 AC3). */
+  /** The virtual speed from power, `main`'s formula (L2-059 AC3), or the coast while the bike is lost (L2-070 AC2). */
   readonly speed = computed(() => {
+    const coast = this.coast();
+    if (coast !== null) return formatMetric(coast * 3.6, 1);
     const power = this.telemetry.powerW();
     return formatMetric(power === null ? null : VirtualSpeedModel.speedKmh(power), 1);
   });
@@ -194,6 +234,27 @@ export class RaceStore {
 
   readonly bikeName = computed(() => this.connection.bike()?.name ?? null);
   readonly connected = computed(() => this.connection.ble() === 'connected');
+  /** Whether the bike has stopped answering (`ble` disconnected, L2-017). */
+  readonly bikeLost = computed(() => this.connection.ble() === 'disconnected');
+
+  /** The alert over the race while the bike is lost, or once the race is a DNF (L2-070 AC1, AC4, AC5). */
+  readonly lostAlert = computed(() => {
+    const bike = this.bikeName() ?? 'The bike';
+    if (this.dnf())
+      return {
+        heading: 'Did not finish',
+        body: `${bike} didn’t come back within 15 seconds, so this race counts as a DNF and earns no XP.`,
+        dnf: true,
+      };
+    if (!this.bikeLost()) return null;
+    return {
+      heading: 'Lost the bike',
+      body: CoastPolicy.parks(this.mode)
+        ? `${bike} stopped answering. Your ride is parked until the bike is back, then carries on from where it stopped.`
+        : `${bike} stopped answering. Your rider coasts for 15 seconds while we reconnect; after that the race counts as a DNF.`,
+      dnf: false,
+    };
+  });
 
   constructor() {
     inject(MAPS_API)
@@ -212,11 +273,81 @@ export class RaceStore {
     this.wakeLock.hold();
     this.clock.start();
     this.ticker.start();
+    this.line = new FinishLine(map.distanceKm * 1000);
     this.engine.follow(map.plan);
     this.startField(map);
     this.ticker.ticks
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((second) => this.ride(second));
+    // The pedals are watched on a beat of their own: the race clock's ticks stop while the race is held.
+    this.beat.seconds.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.watchBike();
+      this.watchPedals();
+    });
+  }
+
+  /** Holds a solo race where it is; a bots or riders-online race has no Pause (L2-068 AC1, AC3). */
+  pause(): void {
+    if (this.mode !== 'solo' || this.pausedByRider()) return;
+    this.pausedByRider.set(true);
+    this.stoppedSincePause = false;
+    if (!this.parkedByBike()) this.clock.pause();
+  }
+
+  /** Carries the race on from where it stopped (L2-068 AC2). */
+  resume(): void {
+    if (!this.pausedByRider()) return;
+    this.pausedByRider.set(false);
+    if (!this.parkedByBike()) this.clock.resume();
+  }
+
+  /** Tries the lost bike at once, rather than at the connection's next retry: the alert's Reconnect. */
+  reconnect(): void {
+    this.connection.reconnectNow();
+  }
+
+  /**
+   * The bike, checked once a second. A solo race parks within a second of the drop and carries on within a second of
+   * its return, unless the rider paused it meanwhile (L2-070 AC5). Any other race starts the rider's coast from their
+   * speed at the drop, and a bike back in time ends it (AC2, AC3); the race's ticks ride the coast.
+   */
+  private watchBike(): void {
+    const lost = this.bikeLost();
+    if (this.dnf()) return;
+    if (CoastPolicy.parks(this.mode)) {
+      if (lost === this.parkedByBike()) return;
+      this.parkedByBike.set(lost);
+      if (this.pausedByRider()) return;
+      if (lost) this.clock.pause();
+      else this.clock.resume();
+    } else if (lost && this.lostAt === null) {
+      this.lostAt = this.lastSecond;
+      this.coastFromMs = this.lastSpeedMs;
+      this.coast.set(this.lastSpeedMs);
+    } else if (!lost && this.lostAt !== null) {
+      this.lostAt = null;
+      this.coast.set(null);
+    }
+  }
+
+  /** Fifteen seconds without the bike: the race stops for the rider where it is, a DNF that submits nothing. */
+  private endAsDnf(): void {
+    this.dnf.set(true);
+    this.lostAt = null;
+    this.clock.pause();
+    this.ticker.stop();
+    this.wakeLock.release();
+  }
+
+  /**
+   * Pedalling carries a paused race on, checked once a second: once the bike has reported the rider stopped (cadence 0
+   * or none) since the pause, the next cadence above 0 resumes it, so the stroke under the rider's press does not.
+   */
+  private watchPedals(): void {
+    if (!this.pausedByRider()) return;
+    const cadence = this.telemetry.cadence();
+    if (cadence === null || cadence === 0) this.stoppedSincePause = true;
+    else if (this.stoppedSincePause) this.resume();
   }
 
   /**
@@ -245,10 +376,35 @@ export class RaceStore {
 
   /** Ranks the rider and the field at the last second ridden, the gaps at the rider's speed of the moment. */
   private rank(): void {
-    if (!this.field) return;
+    if (!this.field || !this.line) return;
     const power = this.telemetry.powerW();
-    const speed = power === null || power <= 0 ? null : VirtualSpeedModel.speedMs(power);
-    this.standings.set(rankStandings(this.field.advance(this.lastSecond), this.ridden(), speed));
+    const speed =
+      this.coast() ?? (power === null || power <= 0 ? null : VirtualSpeedModel.speedMs(power));
+    const second = this.lastSecond;
+    const field = this.line.holdAll(this.field.advance(second), second);
+    const you = this.line.hold(YOU, this.ridden(), second);
+    this.standings.set(rankStandings(field, you, speed, this.line.crossings));
+  }
+
+  /**
+   * The line: the finish time is the race clock's second, the place is where the rider crossed it, and Results opens
+   * with the result; the clock and the ticker stop, and leaving the page releases the rest (L2-071 AC1). The ride's
+   * submission comes with *record a ride* (slice 10.1).
+   */
+  private finish(second: number): void {
+    const you = this.you();
+    this.clock.pause();
+    this.ticker.stop();
+    this.wakeLock.release();
+    const raceResult: RaceResult = {
+      mapId: this.mapId,
+      mode: this.mode,
+      pack: this.mode === 'solo' ? null : this.pack,
+      finishTimeS: second,
+      place: you?.place ?? 1,
+      field: this.standings().length || 1,
+    };
+    void this.router.navigateByUrl('/results', { state: { raceResult } });
   }
 
   /** Raise and Lower send the next level as the rider's own (L2-028 AC1). */
@@ -265,11 +421,24 @@ export class RaceStore {
    * the power of the moment. Without power, stopped, the rider rides no further.
    */
   private ride(second: number): void {
-    const power = this.telemetry.powerW();
     const seconds = second - this.lastSecond;
     this.lastSecond = second;
-    if (power !== null && power > 0 && seconds > 0)
-      this.ridden.update((metres) => metres + VirtualSpeedModel.speedMs(power) * seconds);
+    if (this.lostAt !== null) return this.rideTheCoast(second, seconds);
+    const power = this.telemetry.powerW();
+    this.lastSpeedMs = power !== null && power > 0 ? VirtualSpeedModel.speedMs(power) : 0;
+    if (seconds > 0) this.ridden.update((metres) => metres + this.lastSpeedMs * seconds);
     this.rank();
+    if (this.line && this.ridden() >= this.line.metres) this.finish(second);
+  }
+
+  /** While the bike is lost the rider rides the coast's decaying speed, and 15 seconds of it are a DNF (L2-070). */
+  private rideTheCoast(second: number, seconds: number): void {
+    const since = second - (this.lostAt ?? second);
+    const speed = CoastPolicy.speedMs(this.coastFromMs, since);
+    this.coast.set(speed);
+    if (seconds > 0) this.ridden.update((metres) => metres + speed * seconds);
+    this.rank();
+    if (this.line && this.ridden() >= this.line.metres) this.finish(second);
+    else if (CoastPolicy.isDnf(since)) this.endAsDnf();
   }
 }

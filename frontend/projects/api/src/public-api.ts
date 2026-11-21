@@ -41,4 +41,5 @@ export type { MapProgressDto } from './progress/map-progress-dto';
 export { PROGRESS_API, type ProgressApi } from './progress/progress-api';
 export { GHOST_API, type GhostApi, type GhostTrace } from './race/ghost-api';
 export type { PackStrengthId, RaceMode } from './race/race-mode';
+export type { RaceResult } from './race/race-result';
 export type { GradeTone, RouteProfileView, RouteStripBar } from './race/route-profile-view';

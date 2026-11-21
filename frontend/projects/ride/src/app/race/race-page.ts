@@ -1,8 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
+  Button,
   RaceBar,
+  RaceBarButton,
   RaceBoard,
   RaceInterval,
+  RaceLost,
+  RacePaused,
   RacePower,
   RaceResist,
   RaceRoute,
@@ -14,6 +18,7 @@ import {
   RideTicker,
   WorkoutEngine,
 } from '@telo/domain';
+import { RouterLink } from '@angular/router';
 import { RaceStore } from './race-store';
 
 /**
@@ -22,7 +27,19 @@ import { RaceStore } from './race-store';
  */
 @Component({
   selector: 'wz-race-page',
-  imports: [RaceBar, RaceBoard, RaceInterval, RacePower, RaceResist, RaceRoute],
+  imports: [
+    Button,
+    RaceBar,
+    RaceBarButton,
+    RaceBoard,
+    RaceInterval,
+    RaceLost,
+    RacePaused,
+    RacePower,
+    RaceResist,
+    RaceRoute,
+    RouterLink,
+  ],
   templateUrl: './race-page.html',
   styleUrl: './race-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

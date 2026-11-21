@@ -13,7 +13,7 @@ export const RACE_START = new Date('2026-11-21T18:00:00Z').getTime();
  * Opens a race with the remembered Echelon and starts it on Playwright's paused clock: the map catalogue's answer is
  * held until the bike is initialised and the clock paused, so the race starts at a known time and the spec moves it on
  * by hand. Resolves once the race's first command (the warm-up's level 8) has gone and the page has rendered. With
- * `offline`, the backend answers the catalogue with 503, as when it cannot be reached.
+ * `offline`, the backend answers the catalogue with 503, as when it cannot be reached; `catalogue` serves other maps.
  */
 export async function startRace(
   page: Page,
@@ -21,13 +21,13 @@ export async function startRace(
   api: ApiFixture,
   mapId: string,
   query: string,
-  { offline = false } = {},
+  { offline = false, catalogue = maps as readonly unknown[] } = {},
 ): Promise<RacePage> {
   let answer: () => void = () => undefined;
   const held = new Promise<void>((resolve) => (answer = resolve));
   api.answer('GET', '/api/maps', async () => {
     await held;
-    return offline ? { status: 503 } : { body: maps };
+    return offline ? { status: 503 } : { body: catalogue };
   });
   await page.clock.install({ time: RACE_START });
   await bluetooth.remember(echelonBike);
