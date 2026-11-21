@@ -6,7 +6,9 @@ import { HomePage } from './pages/home.page';
 import { NotFoundPage } from './pages/not-found.page';
 
 test.describe('Page not found', () => {
-  test('an address that matches no screen says so, with no current header item (L2-145 AC1)', async ({ page }) => {
+  test('an address that matches no screen says so, with no current header item (L2-145 AC1)', async ({
+    page,
+  }) => {
     const notFound = new NotFoundPage(page);
     await notFound.open('/no-such-screen');
 

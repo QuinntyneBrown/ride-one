@@ -1,0 +1,19 @@
+<div class="app">
+  <wz-app-header>
+    <a wz-app-header-brand slot="brand" routerLink="/" aria-label="Home"></a>
+    @for (item of items; track item.path) {
+      <a
+        wz-app-header-link
+        slot="nav"
+        [routerLink]="item.path"
+        routerLinkActive
+        ariaCurrentWhenActive="page"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+        >{{ item.label }}</a
+      >
+    }
+  </wz-app-header>
+  <div class="app__scroll">
+    <router-outlet />
+  </div>
+</div>

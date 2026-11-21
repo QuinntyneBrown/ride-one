@@ -31,21 +31,21 @@
   --palette-panel: #15171b;
   --palette-raised: #22252b;
   --palette-line: #2a2e35;
-  --palette-steel: #636873;          /* the design's "faint" (#636873): now strong borders and disabled text */
+  --palette-steel: #636873; /* the design's "faint" (#636873): now strong borders and disabled text */
   --palette-bone: #f3f0ea;
   --palette-muted: #9ba1ab;
-  --palette-faint: #878d97;          /* tertiary text, raised from #636873 (3.2:1) to pass 4.5:1 on raised */
-  --palette-signal: #ff4521;        /* Telo signal orange; the design calls it "volt" */
+  --palette-faint: #878d97; /* tertiary text, raised from #636873 (3.2:1) to pass 4.5:1 on raised */
+  --palette-signal: #ff4521; /* Telo signal orange; the design calls it "volt" */
   --palette-signal-hover: #ff6a4b;
   --palette-signal-dim: #b8361c;
   --palette-blue: #2e8bff;
   --palette-red: #e5194b;
-  --palette-red-light: #ff5a78;      /* danger text on dark; #e5194b reads 3.9:1 on panels */
+  --palette-red-light: #ff5a78; /* danger text on dark; #e5194b reads 3.9:1 on panels */
   --palette-amber: #f5a524;
   --palette-gold: #f5c451;
-  --palette-green: #34d399;          /* Tailwind emerald-400: success ticks and "connected" dots */
-  --palette-lime: #d6ff3b;           /* RideTrace playhead */
-  --palette-slate: #5b616a;          /* warm-up and cool-down segments (KIND_COLOR in shared/workout.ts) */
+  --palette-green: #34d399; /* Tailwind emerald-400: success ticks and "connected" dots */
+  --palette-lime: #d6ff3b; /* RideTrace playhead */
+  --palette-slate: #5b616a; /* warm-up and cool-down segments (KIND_COLOR in shared/workout.ts) */
   --palette-white: #ffffff;
   --palette-black: #000000;
 
@@ -56,7 +56,7 @@
   --palette-paper-line: #d9d5cc;
   --palette-paper-steel: #7d828c;
   --palette-paper-muted: #575c66;
-  --palette-paper-faint: #63686f;    /* raised from #7d828c (3.5:1) to pass 4.5:1 on paper */
+  --palette-paper-faint: #63686f; /* raised from #7d828c (3.5:1) to pass 4.5:1 on paper */
   --palette-signal-deep: #c4310f;
   --palette-signal-deeper: #a3290c;
   --palette-gold-deep: #8a6100;
@@ -66,18 +66,20 @@
   --palette-green-deep: #047857;
 
   /* Theme-independent colour roles */
-  --color-volt: var(--palette-signal);        /* "you" and the primary action, both themes */
+  --color-volt: var(--palette-signal); /* "you" and the primary action, both themes */
   --color-volt-hover: var(--palette-signal-hover);
   --color-volt-dim: var(--palette-signal-dim);
-  --color-rest: var(--palette-blue);          /* recoveries, rest segments */
-  --color-heart: var(--palette-red);          /* heart rate, danger, disconnected (fills) */
-  --color-warn: var(--palette-amber);         /* warnings, streak flame */
-  --color-gold: var(--palette-gold);          /* earned things only: XP, levels, stars, unlocks */
-  --color-ok: var(--palette-green);           /* success ticks */
-  --color-plan-easy: var(--palette-slate);    /* warm-up and cool-down in every plan chart */
-  --color-video: var(--palette-black);        /* behind a video player */
-  --color-glass: rgb(10 11 13 / 0.8);         /* HUD glass over the world: ink at 80%, both themes (bone text passes 6.6:1 worst case) */
-  --color-on-photo: var(--palette-bone);      /* text on photos and video, both themes */
+  --color-rest: var(--palette-blue); /* recoveries, rest segments */
+  --color-heart: var(--palette-red); /* heart rate, danger, disconnected (fills) */
+  --color-warn: var(--palette-amber); /* warnings, streak flame */
+  --color-gold: var(--palette-gold); /* earned things only: XP, levels, stars, unlocks */
+  --color-ok: var(--palette-green); /* success ticks */
+  --color-plan-easy: var(--palette-slate); /* warm-up and cool-down in every plan chart */
+  --color-video: var(--palette-black); /* behind a video player */
+  --color-glass: rgb(
+    10 11 13 / 0.8
+  ); /* HUD glass over the world: ink at 80%, both themes (bone text passes 6.6:1 worst case) */
+  --color-on-photo: var(--palette-bone); /* text on photos and video, both themes */
 
   /* Rider jerseys: content data from shared/game.ts (a racer's dot and avatar ring) */
   --jersey-you: var(--palette-signal);
@@ -101,30 +103,40 @@
 
   /* Type ------------------------------------------------------------------------------------ */
   --font-family-sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
-  --font-family-display: 'Barlow Condensed', 'Inter Tight', ui-sans-serif, sans-serif;  /* numerals and the wide italic */
+  --font-family-display:
+    'Barlow Condensed', 'Inter Tight', ui-sans-serif, sans-serif; /* numerals and the wide italic */
   --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Tailwind's scale (the design's), each step with its paired line height */
-  --font-size-2xs: 0.6875rem;  --line-height-2xs: 1rem;      /* 11px: XP label, HUD captions only */
-  --font-size-xs: 0.75rem;     --line-height-xs: 1rem;       /* 12px */
-  --font-size-sm: 0.875rem;    --line-height-sm: 1.25rem;    /* 14px: the UI's working size */
-  --font-size-md: 1rem;        --line-height-md: 1.5rem;     /* 16px: body */
-  --font-size-lg: 1.125rem;    --line-height-lg: 1.75rem;    /* 18px */
-  --font-size-xl: 1.25rem;     --line-height-xl: 1.75rem;    /* 20px: section titles */
-  --font-size-2xl: 1.5rem;     --line-height-2xl: 2rem;      /* 24px: page titles on phones */
-  --font-size-3xl: 1.875rem;   --line-height-3xl: 2.25rem;   /* 30px: page titles */
-  --font-size-4xl: 2.25rem;    --line-height-4xl: 2.5rem;    /* 36px */
-  --font-size-5xl: 3rem;       /* 48px numerals, line height 1 */
-  --font-size-6xl: 3.75rem;    /* 60px */
-  --font-size-7xl: 4.5rem;     /* 72px: reserved step; no component uses it yet */
-  --font-size-8xl: 6rem;       /* 96px: the position on Results, live watts */
-  --font-size-9xl: 8rem;       /* 128px: the Results position and live watts from 640px */
+  --font-size-2xs: 0.6875rem;
+  --line-height-2xs: 1rem; /* 11px: XP label, HUD captions only */
+  --font-size-xs: 0.75rem;
+  --line-height-xs: 1rem; /* 12px */
+  --font-size-sm: 0.875rem;
+  --line-height-sm: 1.25rem; /* 14px: the UI's working size */
+  --font-size-md: 1rem;
+  --line-height-md: 1.5rem; /* 16px: body */
+  --font-size-lg: 1.125rem;
+  --line-height-lg: 1.75rem; /* 18px */
+  --font-size-xl: 1.25rem;
+  --line-height-xl: 1.75rem; /* 20px: section titles */
+  --font-size-2xl: 1.5rem;
+  --line-height-2xl: 2rem; /* 24px: page titles on phones */
+  --font-size-3xl: 1.875rem;
+  --line-height-3xl: 2.25rem; /* 30px: page titles */
+  --font-size-4xl: 2.25rem;
+  --line-height-4xl: 2.5rem; /* 36px */
+  --font-size-5xl: 3rem; /* 48px numerals, line height 1 */
+  --font-size-6xl: 3.75rem; /* 60px */
+  --font-size-7xl: 4.5rem; /* 72px: reserved step; no component uses it yet */
+  --font-size-8xl: 6rem; /* 96px: the position on Results, live watts */
+  --font-size-9xl: 8rem; /* 128px: the Results position and live watts from 640px */
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --font-weight-bold: 700;       /* numerals */
-  --font-weight-black: 800;      /* the wide italic */
+  --font-weight-bold: 700; /* numerals */
+  --font-weight-black: 800; /* the wide italic */
 
   --line-height-none: 1;
   --line-height-tight: 1.25;
@@ -132,26 +144,39 @@
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.625;
 
-  --letter-spacing-tight: -0.025em;   /* titles (tracking-tight) */
-  --letter-spacing-display: -0.01em;  /* numerals and the wide italic */
+  --letter-spacing-tight: -0.025em; /* titles (tracking-tight) */
+  --letter-spacing-display: -0.01em; /* numerals and the wide italic */
   --letter-spacing-wide: 0.025em;
   --letter-spacing-wider: 0.05em;
-  --letter-spacing-widest: 0.1em;     /* overlines */
+  --letter-spacing-widest: 0.1em; /* overlines */
 
   /* Role shorthands (font: var(--text-…)) */
-  --text-display: italic var(--font-weight-black) var(--font-size-6xl) / var(--line-height-none) var(--font-family-display);
-  --text-numeral: var(--font-weight-bold) var(--font-size-5xl) / var(--line-height-none) var(--font-family-display);
-  --text-h1: var(--font-weight-semibold) var(--font-size-3xl) / var(--line-height-3xl) var(--font-family-sans);
-  --text-h2: var(--font-weight-semibold) var(--font-size-2xl) / var(--line-height-2xl) var(--font-family-sans);
-  --text-h3: var(--font-weight-semibold) var(--font-size-xl) / var(--line-height-xl) var(--font-family-sans);
-  --text-h4: var(--font-weight-semibold) var(--font-size-md) / var(--line-height-md) var(--font-family-sans);
-  --text-body-lg: var(--font-weight-regular) var(--font-size-lg) / var(--line-height-lg) var(--font-family-sans);
-  --text-body: var(--font-weight-regular) var(--font-size-md) / var(--line-height-md) var(--font-family-sans);
-  --text-body-sm: var(--font-weight-regular) var(--font-size-sm) / var(--line-height-sm) var(--font-family-sans);
-  --text-caption: var(--font-weight-regular) var(--font-size-xs) / var(--line-height-xs) var(--font-family-sans);
-  --text-label: var(--font-weight-medium) var(--font-size-sm) / var(--line-height-sm) var(--font-family-sans);
-  --text-overline: var(--font-weight-semibold) var(--font-size-xs) / var(--line-height-xs) var(--font-family-sans);
-  --text-code: var(--font-weight-regular) var(--font-size-xs) / var(--line-height-xs) var(--font-family-mono);
+  --text-display: italic var(--font-weight-black) var(--font-size-6xl) / var(--line-height-none)
+    var(--font-family-display);
+  --text-numeral: var(--font-weight-bold) var(--font-size-5xl) / var(--line-height-none)
+    var(--font-family-display);
+  --text-h1: var(--font-weight-semibold) var(--font-size-3xl) / var(--line-height-3xl)
+    var(--font-family-sans);
+  --text-h2: var(--font-weight-semibold) var(--font-size-2xl) / var(--line-height-2xl)
+    var(--font-family-sans);
+  --text-h3: var(--font-weight-semibold) var(--font-size-xl) / var(--line-height-xl)
+    var(--font-family-sans);
+  --text-h4: var(--font-weight-semibold) var(--font-size-md) / var(--line-height-md)
+    var(--font-family-sans);
+  --text-body-lg: var(--font-weight-regular) var(--font-size-lg) / var(--line-height-lg)
+    var(--font-family-sans);
+  --text-body: var(--font-weight-regular) var(--font-size-md) / var(--line-height-md)
+    var(--font-family-sans);
+  --text-body-sm: var(--font-weight-regular) var(--font-size-sm) / var(--line-height-sm)
+    var(--font-family-sans);
+  --text-caption: var(--font-weight-regular) var(--font-size-xs) / var(--line-height-xs)
+    var(--font-family-sans);
+  --text-label: var(--font-weight-medium) var(--font-size-sm) / var(--line-height-sm)
+    var(--font-family-sans);
+  --text-overline: var(--font-weight-semibold) var(--font-size-xs) / var(--line-height-xs)
+    var(--font-family-sans);
+  --text-code: var(--font-weight-regular) var(--font-size-xs) / var(--line-height-xs)
+    var(--font-family-mono);
 
   /* Space: Tailwind's scale, 1 unit = 4px. Half steps (0-5, 1-5, 2-5, 3-5) are the design's
      tight insides (gap-1.5, py-2.5); they sit on a 2px grid and are for inside components only. */
@@ -185,35 +210,37 @@
   --space-48: 12rem;
 
   /* Layout ---------------------------------------------------------------------------------- */
-  --layout-breakpoint-sm: 40rem;    /* 640px  Tailwind sm: header nav moves inline */
-  --layout-breakpoint-md: 48rem;    /* 768px  md */
-  --layout-breakpoint-lg: 64rem;    /* 1024px lg: two-column pages */
-  --layout-breakpoint-xl: 80rem;    /* 1280px xl: container max */
-  --layout-breakpoint-2xl: 96rem;   /* 1536px: content stays at container max */
+  --layout-breakpoint-sm: 40rem; /* 640px  Tailwind sm: header nav moves inline */
+  --layout-breakpoint-md: 48rem; /* 768px  md */
+  --layout-breakpoint-lg: 64rem; /* 1024px lg: two-column pages */
+  --layout-breakpoint-xl: 80rem; /* 1280px xl: container max */
+  --layout-breakpoint-2xl: 96rem; /* 1536px: content stays at container max */
   --layout-columns: 4;
   --layout-gutter: var(--space-4);
-  --layout-margin: var(--space-4);  /* px-4, sm:px-6, lg:px-8 */
-  --layout-container-max: 80rem;    /* max-w-7xl */
+  --layout-margin: var(--space-4); /* px-4, sm:px-6, lg:px-8 */
+  --layout-container-max: 80rem; /* max-w-7xl */
   --layout-container-narrow: 64rem; /* max-w-5xl */
-  --layout-container-form: 48rem;   /* max-w-3xl */
+  --layout-container-form: 48rem; /* max-w-3xl */
   --layout-measure: 65ch;
-  --layout-text-sm: 24rem;          /* max-w-sm: a centred overlay card */
-  --layout-text-md: 28rem;          /* max-w-md: a lead paragraph beside a photo */
-  --layout-text-lg: 32rem;          /* max-w-lg */
-  --layout-text-xl: 36rem;          /* max-w-xl: a page lead, a form column */
-  --layout-text-2xl: 42rem;         /* max-w-2xl: standings and class plans */
-  --layout-panel-narrow: var(--layout-text-md); /* notices and empty states that stand in for a screen */
+  --layout-text-sm: 24rem; /* max-w-sm: a centred overlay card */
+  --layout-text-md: 28rem; /* max-w-md: a lead paragraph beside a photo */
+  --layout-text-lg: 32rem; /* max-w-lg */
+  --layout-text-xl: 36rem; /* max-w-xl: a page lead, a form column */
+  --layout-text-2xl: 42rem; /* max-w-2xl: standings and class plans */
+  --layout-panel-narrow: var(
+    --layout-text-md
+  ); /* notices and empty states that stand in for a screen */
   --layout-sidebar-width: 16rem;
-  --layout-topbar-height: 3.5rem;   /* app header: 36px controls + 2 × 10px */
+  --layout-topbar-height: 3.5rem; /* app header: 36px controls + 2 × 10px */
   --layout-header-height: var(--layout-topbar-height);
 
   /* Shape ----------------------------------------------------------------------------------- */
-  --radius-xs: 0.125rem;  /* chart marks and ticks only */
-  --radius-sm: 0.25rem;   /* rounded-sm / rounded: time tags, small tiles */
-  --radius-md: 0.375rem;  /* photo tags, icon buttons, segmented options */
-  --radius-lg: 0.5rem;    /* buttons, inputs, tiles */
-  --radius-xl: 0.75rem;   /* wells, banners, toasts, large buttons */
-  --radius-2xl: 1rem;     /* cards, panels, dialogs */
+  --radius-xs: 0.125rem; /* chart marks and ticks only */
+  --radius-sm: 0.25rem; /* rounded-sm / rounded: time tags, small tiles */
+  --radius-md: 0.375rem; /* photo tags, icon buttons, segmented options */
+  --radius-lg: 0.5rem; /* buttons, inputs, tiles */
+  --radius-xl: 0.75rem; /* wells, banners, toasts, large buttons */
+  --radius-2xl: 1rem; /* cards, panels, dialogs */
   --radius-full: 9999px;
 
   --border-width-hairline: 1px;
@@ -221,51 +248,68 @@
 
   /* Motion (Interaction and Motion in the redesign plan) ------------------------------------ */
   --duration-instant: 0ms;
-  --duration-fast: 150ms;        /* hover colour, board rows sliding */
-  --duration-base: 200ms;        /* panels opening */
-  --duration-slow: 250ms;        /* the one unlock moment */
+  --duration-fast: 150ms; /* hover colour, board rows sliding */
+  --duration-base: 200ms; /* panels opening */
+  --duration-slow: 250ms; /* the one unlock moment */
   --duration-deliberate: 1000ms; /* one step of 3-2-1 (a timer, so reduced motion keeps it) */
-  --duration-loop: 1000ms;       /* one turn of a spinner */
-  --duration-pulse: 1600ms;      /* one breath of a skeleton */
+  --duration-loop: 1000ms; /* one turn of a spinner */
+  --duration-pulse: 1600ms; /* one breath of a skeleton */
   --duration-delay-tooltip: 300ms; /* hover intent before a tooltip shows (a wait, so reduced motion keeps it) */
   --duration-unlock: var(--duration-slow);
   --duration-countdown: var(--duration-deliberate);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-enter: cubic-bezier(0, 0, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
-  --ease-spring: cubic-bezier(0.23, 1, 0.32, 1);  /* panels: fast out, long settle */
+  --ease-spring: cubic-bezier(0.23, 1, 0.32, 1); /* panels: fast out, long settle */
   --ease-out: var(--ease-enter);
   --ease-panel: var(--ease-spring);
 
   /* Z order --------------------------------------------------------------------------------- */
   --z-base: 0;
   --z-raised: 10;
-  --z-hud: 20;       /* ride HUD over the 3D world */
+  --z-hud: 20; /* ride HUD over the 3D world */
   --z-sticky: 30;
   --z-dropdown: 35;
-  --z-overlay: 40;   /* scrims */
+  --z-overlay: 40; /* scrims */
   --z-modal: 50;
   --z-popover: 55;
   --z-toast: 60;
   --z-tooltip: 70;
 
   /* Interaction ----------------------------------------------------------------------------- */
-  --target-min: 1.5rem;          /* 24px WCAG 2.2 AA (2.5.8) */
+  --target-min: 1.5rem; /* 24px WCAG 2.2 AA (2.5.8) */
   --target-comfortable: 2.75rem; /* 44px */
-  --target-ride: 3rem;           /* 48px: anything pressed mid-ride (plan: Visual Direction) */
+  --target-ride: 3rem; /* 48px: anything pressed mid-ride (plan: Visual Direction) */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --control-height-sm: 2.25rem;  /* h-9: header links, icon buttons, segmented options */
-  --control-height-md: 2.5rem;   /* h-10: buttons and inputs */
-  --control-height-lg: 3rem;     /* h-12: page actions */
-  --control-height-xl: 3.5rem;   /* h-14: the one big start action */
+  --control-height-sm: 2.25rem; /* h-9: header links, icon buttons, segmented options */
+  --control-height-md: 2.5rem; /* h-10: buttons and inputs */
+  --control-height-lg: 3rem; /* h-12: page actions */
+  --control-height-xl: 3.5rem; /* h-14: the one big start action */
 
   /* Area tokens: values only one area of the product uses ----------------------------------- */
   /* area: maps */
-  --maps-aside-width: 17.5rem;      /* lg:grid-cols-[minmax(0,1fr)_280px] */
+  --maps-aside-width: 17.5rem; /* lg:grid-cols-[minmax(0,1fr)_280px] */
   /* area: race */
-  --race-segment-easy: var(--color-plan-easy); --race-terrain: rgb(242 243 239); --race-sky: #52a2da; --race-ground-far: #8c8a80; --race-ground-near: #5d5a54;
-  --race-lobby-aside-width: 20rem; --race-lobby-hint-width: 20rem; --race-lobby-clock-size: 7.5rem; --race-countdown-size: 12.5rem; --race-watts-size: 4rem; --race-watts-size-sm: 5.5rem; --race-hud-top: 4rem; --race-hud-top-lg: 4.5rem; --race-board-width: 16.25rem; --race-scenery-bottom: 9.375rem; --race-scenery-width: 26.25rem; --race-hud-interval-width: 18.75rem; --race-hud-resistance-width: 13.75rem; --race-lost-width: 24rem;
+  --race-segment-easy: var(--color-plan-easy);
+  --race-terrain: rgb(242 243 239);
+  --race-sky: #52a2da;
+  --race-ground-far: #8c8a80;
+  --race-ground-near: #5d5a54;
+  --race-lobby-aside-width: 20rem;
+  --race-lobby-hint-width: 20rem;
+  --race-lobby-clock-size: 7.5rem;
+  --race-countdown-size: 12.5rem;
+  --race-watts-size: 4rem;
+  --race-watts-size-sm: 5.5rem;
+  --race-hud-top: 4rem;
+  --race-hud-top-lg: 4.5rem;
+  --race-board-width: 16.25rem;
+  --race-scenery-bottom: 9.375rem;
+  --race-scenery-width: 26.25rem;
+  --race-hud-interval-width: 18.75rem;
+  --race-hud-resistance-width: 13.75rem;
+  --race-lost-width: 24rem;
   /* area: results */
   --results-aside-width: 25rem;
   /* area: classes */
@@ -279,10 +323,10 @@
   --setup-form-max: 36rem;
   /* area: dashboard */
   --dashboard-aside-width: 21.25rem;
-  --dashboard-view-min: 16.25rem;   /* min-h-[260px]: the trace view */
+  --dashboard-view-min: 16.25rem; /* min-h-[260px]: the trace view */
   --dashboard-trace-min: 10rem;
   --dashboard-interval-min: 13.75rem;
-  --dashboard-level-size: 5.5rem;   /* text-[88px]: the level numeral */
+  --dashboard-level-size: 5.5rem; /* text-[88px]: the level numeral */
   --dashboard-segment-easy: var(--color-plan-easy);
   --dashboard-progress-head: var(--palette-white);
   --dashboard-video-bg: var(--color-video);
@@ -293,12 +337,28 @@
   --feedback-shadow: var(--shadow-4);
 }
 
-@media (min-width: 40rem) { :root { --layout-margin: var(--space-6); } }
-@media (min-width: 48rem) { :root { --layout-columns: 8; --layout-gutter: var(--space-6); } }
-@media (min-width: 64rem) { :root { --layout-columns: 12; --layout-gutter: var(--space-8); --layout-margin: var(--space-8); } }
+@media (min-width: 40rem) {
+  :root {
+    --layout-margin: var(--space-6);
+  }
+}
+@media (min-width: 48rem) {
+  :root {
+    --layout-columns: 8;
+    --layout-gutter: var(--space-6);
+  }
+}
+@media (min-width: 64rem) {
+  :root {
+    --layout-columns: 12;
+    --layout-gutter: var(--space-8);
+    --layout-margin: var(--space-8);
+  }
+}
 
 /* 3. Light theme (an addition; paper instead of ink) ------------------------------------------ */
-:root, [data-theme="light"] {
+:root,
+[data-theme='light'] {
   color-scheme: light;
   --color-ink: var(--palette-paper);
   --color-panel: var(--palette-paper-panel);
@@ -356,13 +416,14 @@
   --shadow-color: 20 25 35;
   --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.08);
   --shadow-2: 0 2px 6px rgb(var(--shadow-color) / 0.1), 0 1px 2px rgb(var(--shadow-color) / 0.06);
-  --shadow-3: 0 10px 15px -3px rgb(var(--shadow-color) / 0.12), 0 4px 6px -4px rgb(var(--shadow-color) / 0.1);
+  --shadow-3:
+    0 10px 15px -3px rgb(var(--shadow-color) / 0.12), 0 4px 6px -4px rgb(var(--shadow-color) / 0.1);
   --shadow-4: 0 25px 50px -12px rgb(var(--shadow-color) / 0.25);
   --dashboard-playhead: var(--palette-ink);
 }
 
 /* 4. Dark theme (the design). Keep the two blocks below identical. ----------------------------- */
-[data-theme="dark"] {
+[data-theme='dark'] {
   color-scheme: dark;
   --color-ink: var(--palette-ink);
   --color-panel: var(--palette-panel);
@@ -420,12 +481,13 @@
   --shadow-color: 0 0 0;
   --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.4);
   --shadow-2: 0 2px 6px rgb(var(--shadow-color) / 0.45), 0 1px 2px rgb(var(--shadow-color) / 0.3);
-  --shadow-3: 0 10px 15px -3px rgb(var(--shadow-color) / 0.5), 0 4px 6px -4px rgb(var(--shadow-color) / 0.4);
+  --shadow-3:
+    0 10px 15px -3px rgb(var(--shadow-color) / 0.5), 0 4px 6px -4px rgb(var(--shadow-color) / 0.4);
   --shadow-4: 0 25px 50px -12px rgb(var(--shadow-color) / 0.65);
   --dashboard-playhead: var(--palette-lime);
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme='light']) {
     color-scheme: dark;
     --color-ink: var(--palette-ink);
     --color-panel: var(--palette-panel);
@@ -483,14 +545,16 @@
     --shadow-color: 0 0 0;
     --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.4);
     --shadow-2: 0 2px 6px rgb(var(--shadow-color) / 0.45), 0 1px 2px rgb(var(--shadow-color) / 0.3);
-    --shadow-3: 0 10px 15px -3px rgb(var(--shadow-color) / 0.5), 0 4px 6px -4px rgb(var(--shadow-color) / 0.4);
+    --shadow-3:
+      0 10px 15px -3px rgb(var(--shadow-color) / 0.5), 0 4px 6px -4px rgb(var(--shadow-color) / 0.4);
     --shadow-4: 0 25px 50px -12px rgb(var(--shadow-color) / 0.65);
     --dashboard-playhead: var(--palette-lime);
   }
 }
 
 /* 5. Role aliases: resolved again on every theme wrapper ------------------------------------- */
-:root, [data-theme] {
+:root,
+[data-theme] {
   --color-bg-canvas: var(--color-ink);
   --color-bg-surface: var(--color-panel);
   --color-bg-surface-raised: var(--color-raised);
@@ -514,7 +578,7 @@
   --color-border-inverse: var(--color-ink);
   --color-accent: var(--color-volt);
   --color-accent-hover: var(--color-volt-hover);
-  --color-accent-active: var(--color-volt);    /* pressing scales to 0.98; the colour holds */
+  --color-accent-active: var(--color-volt); /* pressing scales to 0.98; the colour holds */
   --color-accent-subtle: var(--color-volt-subtle);
   --color-accent-subtle-hover: var(--color-volt-subtle-hover);
   --shadow-focus: 0 0 0 var(--focus-ring-width) var(--color-focus-ring);
@@ -522,11 +586,26 @@
 
 /* 6. Preferences ----------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  :root { --duration-loop: 0ms; --duration-pulse: 0ms; --duration-fast: 0ms; --duration-base: 0ms; --duration-slow: 0ms; }
+  :root {
+    --duration-loop: 0ms;
+    --duration-pulse: 0ms;
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
 }
 @media (prefers-contrast: more) {
-  :root, [data-theme] { --color-border-default: var(--color-line-strong); --color-fg-subtle: var(--color-muted); }
+  :root,
+  [data-theme] {
+    --color-border-default: var(--color-line-strong);
+    --color-fg-subtle: var(--color-muted);
+  }
 }
 @media (forced-colors: active) {
-  :root, [data-theme] { --color-focus-ring: Highlight; --color-border-default: CanvasText; --color-border-strong: CanvasText; }
+  :root,
+  [data-theme] {
+    --color-focus-ring: Highlight;
+    --color-border-default: CanvasText;
+    --color-border-strong: CanvasText;
+  }
 }
