@@ -33,3 +33,4 @@ export {
 } from './video/video-player';
 export type { Plan, Segment, SegmentKind } from './workout/plan';
 export { SCREEN_WAKE_LOCK, type ScreenWakeLock } from './screen/screen-wake-lock';
+export { PROGRESS_API, type ProgressApi } from './progress/progress-api';

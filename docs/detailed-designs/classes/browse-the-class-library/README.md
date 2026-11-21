@@ -34,25 +34,32 @@ The slice runs from the library page down to the catalogue rows in the database.
 - **`ClassLibraryPage`** (`wz-class-library-page`, route `/classes`, `loadComponent`) — routed
   page. It reads the catalogue and the rider's level from `ClassLibraryStore` and renders the
   header, the length tabs and one shelf per length band.
-- **`ClassLibraryStore`** — signal store provided on the `/classes` route. It loads the
-  catalogue through `CLASSES_API` (falling back to `CatalogueCache`), loads the rider's level
-  through `PROGRESS_API`, and derives each card's view model: open or locked, the lock label, and
-  the next group chip (`L2-083`). It holds the selected tab.
+- **`ClassLibraryStore`** — signal store provided on the page, so it and its requests go when
+  the rider leaves; the route binds `CLASSES_API` and `PROGRESS_API`. It loads the
+  catalogue through `CLASSES_API` (which falls back to the kept catalogue), loads the rider's
+  level through `PROGRESS_API`, and derives each card's view model: open or locked, the lock
+  label, the cover URL, the length and, once group sessions exist, the next group chip
+  (`L2-083`). It holds the selected tab, and `unavailable` with `retry()` when no catalogue
+  can be read (`L2-081` AC7).
 - **`classUnlockedGuard`** — `CanActivateFn` on `/classes/:id`. It redirects a locked class's
   address to `/classes` (`L2-082` AC4).
 
 **Frontend — `components` library**
 
-- **`TierTabs`** (`wz-tier-tabs`) — tab list "Class length" with All, 20 min, 30 min and 60 min.
-  It sets `aria-selected="true"` on the chosen tab and moves between tabs with the arrow keys.
+- **`TierTabs`** (`wz-tier-tabs`) — tab list "Class length" with All, 20 min, 30 min and 60 min
+  (WAI-ARIA tabs, automatic activation). It sets `aria-selected="true"` on the chosen tab, keeps
+  only that tab in the tab order, moves with the arrow keys, Home and End, and names the shelves'
+  `tabpanel` it controls. Each tab is at least 44 px tall.
 - **`ClassShelf`** (`wz-class-shelf`) — one shelf: title, tagline and a grid of cards (one column
   on a phone, two at sm, three at lg).
-- **`ClassCard`** (`wz-class-card`) — one class: cover, group chip "Group in {m} min · {n}/10",
-  length, resistance profile, title and "{channel} · {focus}". Open, it renders a link; locked,
-  it renders a disabled button with a lock and "Opens at level {n}" and no chip. Both branches
-  share one `ng-template` for their content slots.
+- **`ClassCard`** (`a[wz-class-card]`, `button[wz-class-card]`) — one class: cover, group chip
+  "Group in {m} min · {n}/10" (from journey 14), length, resistance profile, title and
+  "{channel} · {focus}". The page puts it on a link to the Class Start when the class is open;
+  locked, on a button with `aria-disabled="true"`, a lock and "Opens at level {n}" and no chip.
+  The button stays focusable, as the design system's locked cards do, so the level is announced.
 - **`ClassProfile`** (`wz-class-profile`) — small resistance profile drawn from the plan's
-  segments.
+  segments: each bar as wide as its segment lasts and as tall as its level against the plan's
+  highest level.
 
 **Frontend — `api` and `domain` libraries**
 
@@ -68,7 +75,9 @@ The slice runs from the library page down to the catalogue rows in the database.
   fails, answers from the cache, or refuses with `catalogue_unavailable` when none is kept;
   `get(id)` finds the class in that catalogue, or refuses with `class_not_found`. The library and the class ride both read through it.
 - **`ProgressApi`** / `PROGRESS_API` — owned by the progression subsystem; this slice reads only
-  the rider level.
+  `level()`, the rider level. Until progress is kept by the backend (journey 10), the app binds
+  **`NewRiderProgress`** (`domain`), which answers level 1: a rider with no progress is a new
+  rider (`L2-043` AC2).
 - **`CatalogueCache`** (`domain/storage`) — keeps the last catalogue in `localStorage`
   (`telo-ride.class-catalogue`) for offline reading (ADR 0028).
 
@@ -95,15 +104,19 @@ The cover image URL is built from the validated video id
 **Slices.** Slice 6.1 builds the catalogue: the backend's endpoints, file and rules, and
 `CachedClassesApi` with its cache, which the class ride reads from then on, so a solo class
 starts without a network once the catalogue has been read. Slice 6.2 builds the Class Library
-screen, its store and its components; the group chip comes with the group class (journey 14),
-and the locks with the rider level (journey 12).
+screen, its store and its components, with the locks for the rider level `PROGRESS_API` gives
+(level 1 until journey 10 keeps progress, so the new rider's locks of `L2-082` AC3 show). Slice
+6.3 adds `classUnlockedGuard` with the Class Start route it guards (`L2-082` AC4). The group
+chip comes with the group class (journey 14); until then, and whenever group sessions cannot be
+read, an open card shows none (`L2-081` AC6). The mid rider's locks (`L2-082` AC1) follow once
+the backend gives a level (journeys 10 and 12).
 
 ## Requirements
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-080` | `L1-014` | The catalogue shall hold, in order, 20 Minute Power Intervals, 20 Min Threshold Builder, 30 Minute HIIT Cardio, 30 Min Tempo Paceline, 30 Min Vice City Pyramid, 60 Min Dolomites Endurance and 60 Min Coastal Endurance + Surges, each with its channel, focus, length and opening level. Each class shall have a YouTube video, a sync offset, a summary and a plan whose length matches the class. The catalogue shall come from the backend and be cached for offline reading. A class whose segment levels fall outside 1 to 32, or whose plan total differs from its length, shall not be listed. |
-| `L2-081` | `L1-014` | The Class Library at `/classes` shall read "Classes" and "Ride a video alone whenever you like, or join a group of 8–10 riders. The bike follows the class either way." The "Class length" tabs (All, 20 min, 30 min, 60 min) shall mark the chosen tab `aria-selected="true"`, show only its shelf ("All" shows every shelf) and move with the arrow keys. The shelves shall read "20 min" / "Short and sharp — fits a lunch break.", "30 min" / "Structured intervals with a proper warm-up." and "60 min endurance" / "Long aerobic rides. Steady legs, steady heart." An open card shall link to its Class Start and show the cover, "Group in {m} min · {n}/10", the length, a resistance profile, the title and "{channel} · {focus}". Cards shall be one column on a phone, two at sm and three at lg. |
+| `L2-081` | `L1-014` | The Class Library at `/classes` shall read "Classes" and "Ride a video alone whenever you like, or join a group of 8–10 riders. The bike follows the class either way." The "Class length" tabs (All, 20 min, 30 min, 60 min) shall mark the chosen tab `aria-selected="true"`, show only its shelf ("All" shows every shelf) and move with the arrow keys. The shelves shall read "20 min" / "Short and sharp — fits a lunch break.", "30 min" / "Structured intervals with a proper warm-up." and "60 min endurance" / "Long aerobic rides. Steady legs, steady heart." An open card shall link to its Class Start and show the cover, "Group in {m} min · {n}/10", the length, a resistance profile, the title and "{channel} · {focus}". Cards shall be one column on a phone, two at sm and three at lg. An open card shall show no group chip while the group sessions cannot be read. With no catalogue read and none kept, the library shall read "The classes can’t be loaded. Check your connection and try again." with "Try again". |
 | `L2-082` | `L1-014` | For the mid rider (level 7), 30 Min Vice City Pyramid and 60 Min Dolomites Endurance shall read "Opens at level 10" and 60 Min Coastal Endurance + Surges "Opens at level 20"; for the new rider (level 1), 30 Min Tempo Paceline shall also read "Opens at level 5". A locked card shall be a disabled button with a lock and no group chip. A locked class's Class Start address shall open the Class Library instead. |
 
 ## Diagrams
@@ -163,6 +176,11 @@ locked class to the library (`L2-082` AC4).
 
 ## Open questions
 
+- **The rider level before progress.** Journey 10 keeps XP and levels on the backend. Until
+  then `NewRiderProgress` answers level 1 for every rider, so the library shows the new rider's
+  locks; the HTTP `ProgressApi` replaces it with the same contract.
+- **The library's loading state.** None is drawn: the head and tabs show at once and the shelves
+  follow when the catalogue arrives, from the backend or at once from the device's copy.
 - **The six classes' own videos.** Only 30 Minute HIIT Cardio has a published video. The Telo
   Ride Studio and Scenic classes carry GCN Training stand-ins of the same focus (ADR 0028) until
   the owner supplies each `videoId` and `syncOffsetSeconds`.
