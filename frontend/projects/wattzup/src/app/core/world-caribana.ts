@@ -30,6 +30,8 @@ import {
   QuadraticBezierCurve3,
   Quaternion,
   RepeatWrapping,
+  Shape,
+  ShapeGeometry,
   SphereGeometry,
   type Texture,
   TorusGeometry,
@@ -2908,6 +2910,46 @@ export class CaribanaStreet implements SceneStreet {
       alphaTest: 0.3,
       roughness: 0.6,
     });
+    // Lane arrows on the approach, 15 m before the near crosswalk, one in each lane: straight
+    // on in the middle and outside lanes, a left-turn arrow in the inside lane.
+    const arrowPaint = this.material({ color: 0xe6e3da, roughness: 0.7 });
+    const arrow = (turn: boolean) => {
+      const shape = new Shape();
+      shape.moveTo(-0.15, 0);
+      shape.lineTo(0.15, 0);
+      shape.lineTo(0.15, turn ? 2.2 : 3.6);
+      if (turn) {
+        shape.lineTo(-0.3, 2.9);
+        shape.lineTo(-0.3, 3.4);
+        shape.lineTo(-1.1, 2.75);
+        shape.lineTo(-0.3, 2.1);
+        shape.lineTo(-0.3, 2.6);
+        shape.lineTo(-0.15, 2.45);
+      } else {
+        shape.lineTo(0.5, 3.6);
+        shape.lineTo(0, 5);
+        shape.lineTo(-0.5, 3.6);
+        shape.lineTo(-0.15, 3.6);
+      }
+      shape.closePath();
+      const g = new ShapeGeometry(shape);
+      g.rotateX(-Math.PI / 2);
+      g.translate(0, 0.012, 0);
+      this.disposables.push(g);
+      return g;
+    };
+    const straight = arrow(false);
+    const left = arrow(true);
+    for (const [x, g] of [
+      [-4.4, left],
+      [0, straight],
+      [4.4, straight],
+    ] as const) {
+      const holder = new Group();
+      holder.add(new Mesh(g, arrowPaint));
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: at - 15, every: LANDMARKS, x, road: true });
+    }
     // Each crosswalk is placed on the road by itself, so it follows the grade.
     const stripe = new PlaneGeometry(2 * CURB, 3.2);
     stripe.rotateX(-Math.PI / 2);
