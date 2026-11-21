@@ -46,6 +46,9 @@ Hardware smoke tests are run by a person and are outside this slice.
   app will make, so `e2e/harness.spec.ts` proves each double before the app's own clients exist
   (slices 2.3, 9.1 and 14.1).
 - **Clock** — specs that depend on time call `page.clock.install()` and advance it.
+- **Builds** — the `chromium` project runs every spec against the production build; the
+  `development` project serves the development build on the next port and runs
+  `*.development.spec.ts`, for what only a development build does (`?simulate`, L2-024).
 - **Unit tests** — run with the Angular CLI unit-test builder on Vitest over jsdom (both already
   dev dependencies), from `npm test`; time-driven rules use Vitest's fake timers and the
   `MONOTONIC_TIME` token bound to a fake.
