@@ -10,7 +10,7 @@ copy reads are in [`docs/deployment.md`](../docs/deployment.md).
 | `src/Telo.Ride.Domain` | Entities, value objects, `DomainRuleException` | nothing |
 | `src/Telo.Ride.Application` | MediatR handlers, validators, `ValidationBehavior`, `IAppDbContext` | Domain |
 | `src/Telo.Ride.Infrastructure` | `AppDbContext` (EF Core, Azure SQL), migrations, `TeloRideMetrics` | Application |
-| `src/Telo.Ride.Api` | `Program.cs`, controllers, `RideHub`, authentication, ProblemDetails, health, telemetry, `migrate` | Infrastructure |
+| `src/Telo.Ride.Api` | `Program.cs`, controllers, `RideHub`, authentication, ProblemDetails, health, telemetry, `migrate`, and the app's build from `wwwroot` with the L2-131 headers (ADR 0026) | Infrastructure |
 | `tests/Telo.Ride.Api.Tests` | Acceptance tests through the API, in memory, on EF Core InMemory | Api |
 
 Commands, from `backend/` (`node tools/verify/verify.mjs` runs the first two):
@@ -21,6 +21,12 @@ dotnet test --solution Telo.Ride.slnx              # build and every test
 dotnet run --project src/Telo.Ride.Api             # serve the API (needs ConnectionStrings:TeloRide for readiness)
 dotnet run --project src/Telo.Ride.Api -- migrate  # apply pending migrations and exit
 dotnet ef migrations add <Name> --project src/Telo.Ride.Infrastructure --startup-project src/Telo.Ride.Api --output-dir Migrations
+```
+
+To serve a local build as production does, from `backend/`:
+
+```shell
+dotnet run --no-launch-profile --project src/Telo.Ride.Api -- --webroot ../frontend/dist/ride/browser
 ```
 
 Tests never use a real database, file or sleep. Each fixture is the API hosted in memory

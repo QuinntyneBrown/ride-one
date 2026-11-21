@@ -18,3 +18,5 @@ docs/videos/**/*.partial.mp4
 backend/**/bin/
 backend/**/obj/
 backend/**/TestResults/
+# The deploy copies the ride build here (ADR 0026); it is never committed.
+backend/src/Telo.Ride.Api/wwwroot/

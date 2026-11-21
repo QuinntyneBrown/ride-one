@@ -2,6 +2,7 @@ using Telo.Ride.Api.Authentication;
 using Telo.Ride.Api.Commands;
 using Telo.Ride.Api.Errors;
 using Telo.Ride.Api.Health;
+using Telo.Ride.Api.Hosting;
 using Telo.Ride.Api.Hubs;
 using Telo.Ride.Api.Telemetry;
 using Telo.Ride.Application;
@@ -19,6 +20,7 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddAppHosting();
 // Code reads time only through TimeProvider, so tests advance a FakeTimeProvider instead of sleeping.
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddTeloRideAuthentication();
@@ -31,11 +33,14 @@ if (args is [MigrateCommand.Name])
     return await MigrateCommand.RunAsync(app.Services, CancellationToken.None);
 }
 
+app.UseSecurityHeaders();
 app.UseExceptionHandler();
+// The app's files need no session, so they are served before authentication (ADR 0026).
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// The only anonymous endpoints. The default writer writes the status word only, never check names,
+// The anonymous endpoints, with the app's shell below. The default writer writes the status word only, never check names,
 // timings or exception text (L2-127 AC4). Liveness runs no checks; readiness answers 503 Unhealthy
 // while the database cannot be reached (a check that throws counts as unhealthy).
 app.MapHealthChecks("/health/live", new() { Predicate = _ => false }).AllowAnonymous();
@@ -43,6 +48,7 @@ app.MapHealthChecks("/health/ready", new() { Predicate = check => check.Tags.Con
     .AllowAnonymous();
 app.MapControllers();
 app.MapHub<RideHub>(RideHub.Path);
+app.MapApp();
 
 await app.RunAsync();
 return 0;
