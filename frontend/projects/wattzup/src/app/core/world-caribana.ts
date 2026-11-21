@@ -364,6 +364,15 @@ export class CaribanaStreet implements SceneStreet {
     green: MeshStandardMaterial;
   }[] = [];
   private confetti: InstancedMesh | null = null;
+  private blasts: InstancedMesh | null = null;
+  private readonly blast: {
+    cannon: number;
+    speed: number;
+    heading: number;
+    lean: number;
+    phase: number;
+    spin: number;
+  }[] = [];
   private spray: InstancedMesh | null = null;
   private distant: InstancedMesh | null = null;
   private readonly litter: {
@@ -470,6 +479,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addShedPlumes();
     this.addDistantParade();
     this.addConfetti();
+    this.addCannons();
     this.addOfficers();
     this.addMountedUnit();
     this.addBandBanners();
@@ -527,6 +537,7 @@ export class CaribanaStreet implements SceneStreet {
     this.placeMokoJumbies(heightAt, along);
     this.placeTeeShirtMas(heightAt, along);
     this.placeConfetti(heightAt, along);
+    this.placeCannons(heightAt, along);
     this.placeDistantParade(heightAt, along);
     this.placeLitter(heightAt, along);
     this.placeSpray(heightAt, along);
@@ -3292,6 +3303,66 @@ export class CaribanaStreet implements SceneStreet {
     for (let k = 0; k < n; k++) this.confetti.setColorAt(k, c.set(colours[k % colours.length]!));
   }
 
+  /**
+   * Confetti cannons on the steel orchestra's float: two black CO2 tubes at the back corners
+   * of its canopy firing plumes of confetti and short streamers high over the lanes, each flake
+   * thrown up and out, slowing, tumbling and fluttering down, on the ride's clock.
+   */
+  private addCannons(): void {
+    const random = seeded(4103);
+    for (let k = 0; k < 900; k++) {
+      this.blast.push({
+        cannon: k % 2,
+        speed: 9 + random() * 6,
+        heading: (random() - 0.5) * 1.1,
+        lean: 0.12 + random() * 0.4,
+        phase: random(),
+        spin: 3 + random() * 6,
+      });
+    }
+    const flake = new PlaneGeometry(0.07, 0.11);
+    this.disposables.push(flake);
+    this.blasts = this.instanced(
+      flake,
+      this.material({ side: DoubleSide, roughness: 0.4, metalness: 0.4 }),
+      this.blast.length,
+    );
+    this.blasts.castShadow = false;
+    const colours = ['#ffd23f', '#ff2d87', '#ffffff', '#13c3c9', '#ff8a00', '#c0c0c0'];
+    const c = new Color();
+    this.blast.forEach((_, k) => this.blasts!.setColorAt(k, c.set(colours[k % colours.length]!)));
+  }
+
+  private placeCannons(
+    heightAt: (metres: number) => number,
+    along: (offset: number, every: number) => number,
+  ): void {
+    const blasts = this.blasts;
+    if (!blasts) return;
+    const metres = along(PAN_AT + this.march, LOOP);
+    const base = heightAt(Math.max(metres, 0)) + ASPHALT;
+    this.blast.forEach((f, k) => {
+      // Each flake's flight lasts three seconds, starting again as the cannon fires anew.
+      const t = ((this.time * 0.33 + f.phase) % 1) * 3;
+      const up = f.speed * Math.cos(f.lean);
+      const out = f.speed * Math.sin(f.lean);
+      // Air drag slows the flake quickly; then it flutters down at a steady rate.
+      const rise = Math.min(t, 0.8);
+      const y = 5.4 + up * rise - 6 * rise * rise - Math.max(0, t - 0.8) * 1.3;
+      const reach = out * rise;
+      const cx = TRUCK_X + 0.3 + (f.cannon ? 1.3 : -1.3);
+      this.spot.set(
+        cx + Math.sin(f.heading) * reach + Math.sin(t * 2 + k) * 0.3,
+        base + y,
+        -metres + 7.5 + Math.cos(f.heading) * reach * 0.6,
+      );
+      this.turn.setFromEuler(this.tumble.set(t * f.spin, t * f.spin * 0.6, 0));
+      this.size.setScalar(y > 0.1 ? 1 : 0);
+      blasts.setMatrixAt(k, this.matrix.compose(this.spot, this.turn, this.size));
+    });
+    blasts.instanceMatrix.needsUpdate = true;
+  }
+
   private placeConfetti(
     heightAt: (metres: number) => number,
     along: (offset: number, every: number) => number,
@@ -3449,6 +3520,19 @@ export class CaribanaStreet implements SceneStreet {
       edge.rotation.y = turn;
       float.add(edge);
       this.disposables.push(edge.geometry);
+    }
+    // Two CO2 confetti cannons at the back corners of the canopy, aimed up and out.
+    const tube = new CylinderGeometry(0.11, 0.13, 0.9, 10);
+    this.disposables.push(tube);
+    for (const x of [-1.3, 1.3]) {
+      const cannon = new Mesh(
+        tube,
+        this.material({ color: 0x18191b, roughness: 0.5, metalness: 0.5 }),
+      );
+      cannon.position.set(x, 5.6, 7.5);
+      cannon.rotation.z = -Math.sign(x) * 0.3;
+      cannon.rotation.x = 0.25;
+      float.add(cannon);
     }
     const flagCloth = new PlaneGeometry(1.1, 0.72, 4, 1);
     flagCloth.translate(0.55, 0, 0);
