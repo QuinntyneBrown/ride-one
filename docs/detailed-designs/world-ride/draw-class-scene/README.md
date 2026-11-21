@@ -178,13 +178,15 @@ None.
   - the Santa Monica Pier 440 m ahead, its deck on piles coming ashore across the path under a SANTA MONICA PIER sign and running out into the bay, a pavilion, a coaster's loop and the red Ferris wheel turning on the street's clock just left of the vanishing point, ringed with gold lights, with the Santa Monica Mountains along the horizon behind, all hazed by hand.
 
   `lay`, `place` and `setTime` recycle it along a 500 m loop.
-- **Amsterdam Canals (`core/world-amsterdam.ts`).** For `amsterdam`, the Herengracht on a spring morning:
-  - a brick street in herringbone clinker, the quay's paving, the canal's stone edge, brick walls and water below (the ground sinks to the water), the far quay and the narrow pavement on the rider's side;
-  - canal houses on both sides, cut out of the sky along their stepped, bell, neck and spout gables, with white-framed windows, hoist beams and doors;
-  - elms and dark green lamps on both quays, and bicycles crowding the quay's edge;
-  - a humpback brick bridge across the canal every 120 m, with parapets;
-  - houseboats moored along both walls, and a glass-roofed canal boat gliding by;
-  - commuters cycling both ways on upright bikes (`Figures` on a shared bike) and people on the pavements, all on the ride's clock.
+- **Amsterdam Canals (`core/world-amsterdam.ts`).** For `amsterdam`, the Herengracht on a May morning, the low sun behind the rider; the lap starts in view of the first bridge:
+  - a brick street of herringbone clinkers with granite kerbs and gutters drifted with elm seed, a pavement of grey tiles before the houses, warm grey-brown clinker quays, and the canal 1.5 m below: algae-stained brick walls and translucent olive water over a mirrored sky, far houses, elms and walls;
+  - canal houses on both sides as blocks: a gable front (step, bell, neck, spout, or a stone-faced mansion's cornice) leaning forward over a body and a tiled pitched roof with chimneys and dormers, fronts drawn brick by brick with sash windows, ornament, gable stones and shutters, stone sills, lintels, door surrounds and finials in the round, 3D hoist beams (some rigged), downpipes, stoops with railings, and some settled sideways; corner flanks with windows; a cross street with its own houses at every bridge; and the canal's bend closing the view under the Westertoren and Westerkerk;
+  - the houses dressed as lived in: façade gardens, geranium window boxes, wisteria, flags, lanterns, house numbers, pots on stoops, benches, leaning bikes, open sashes, TE KOOP boards, a scaffold, a brown café with its terrace, an antiques shop, and a removal lift and a café terrace across the water;
+  - elms with arching limbs, lit leaf sprays, seed clusters, ivy and iron-guarded beds; cast-iron lamps (with bikes locked to them) at every bridge end and along the quays; Amsterdammertjes along the kerb; bikes in racks with crates; parked cars with yellow plates and a taxi; scooters, a krul, litter bins, waste inlets, utility cabinets, traffic signs, a flower stall, benches and a parking meter;
+  - humpback brick bridges every 120 m with stone voussoirs, iron railings, geranium planters and arch bulbs, people crossing them;
+  - arks and converted barges with their quay landings, tour boats, sloepen, canal bikes and a saloon boat with their wakes, swans, ducks, coots, a heron by an angler, gulls and pigeons;
+  - commuters seated on their own bikes (some bakfietsen, passengers, child seats, couriers) both ways on both quays, walkers with dogs, joggers, a family, a walking tour, neighbours talking and people on benches and stoops, all on the ride's clock;
+  - cumulus and cirrus over the gracht.
 - **Giza Plateau (`core/world-giza.ts`).** For `giza`, the desert road round the pyramids at sunrise:
   - limestone kerbs, sand drifted over the road's edges and dunes rising away on both sides;
   - limestone blocks and rubble scattered over the sand, and low mastaba tombs along the road;
