@@ -4,6 +4,7 @@ import { test as base, expect } from '@playwright/test';
 import { FakeYouTube } from './fake-youtube';
 import { FakeBluetooth } from './fake-bluetooth';
 import { FakeWebGl } from './fake-webgl';
+import { WorldRideProbe } from './world-ride-probe';
 
 export { expect };
 
@@ -12,6 +13,8 @@ export const test = base.extend<{
   pageErrors: string[];
   youtube: FakeYouTube;
   webgl: FakeWebGl;
+  /** The test-only World Ride hook, for the performance sweep only (#672). */
+  worldRide: WorldRideProbe;
 }>({
   // Automatic: an uncaught error in the page (a rejected call, a thrown handler) fails the spec.
   pageErrors: [
@@ -46,5 +49,8 @@ export const test = base.extend<{
   ],
   webgl: async ({ page }, use) => {
     await use(new FakeWebGl(page));
+  },
+  worldRide: async ({ page }, use) => {
+    await use(new WorldRideProbe(page));
   },
 });

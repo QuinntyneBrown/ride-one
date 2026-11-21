@@ -146,4 +146,10 @@ describe('FrameBudget (L2-111 AC4)', () => {
     expect(ride(budget, 34, 5)).not.toContain('drop');
     expect(budget.tier).toBe('ultra');
   });
+
+  it('never lowers a tier pinned by the test-only hook (#672)', () => {
+    const budget = new FrameBudget('high', 1000 / 60, { pinned: true });
+    expect(ride(budget, 50, 10)).not.toContain('drop');
+    expect(budget.tier).toBe('high');
+  });
 });

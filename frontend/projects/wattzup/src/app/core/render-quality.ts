@@ -109,9 +109,11 @@ export class FrameBudget {
   private overInARow = 0;
   private paused = false;
 
+  /** `pinned`: the test-only hook fixed the tier, and no window ever lowers it (#672). */
   constructor(
     private current: Tier,
     private periodMs = 1000 / 60,
+    private readonly options: { readonly pinned?: boolean } = {},
   ) {}
 
   get tier(): Tier {
@@ -133,7 +135,7 @@ export class FrameBudget {
 
   /** Records one frame; returns `drop` when the tier has just been lowered. */
   sample(now: number, frameMs: number): 'keep' | 'drop' {
-    if (this.paused) return 'keep';
+    if (this.paused || this.options.pinned) return 'keep';
     let verdict: 'keep' | 'drop' = 'keep';
     if (this.start === null) this.start = now;
     if (now - this.start >= WINDOW_MS) {
