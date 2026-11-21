@@ -247,6 +247,7 @@ export class HavanaStreet implements SceneStreet {
     this.addQuinceanera(roadHalf);
     this.addManisero(roadHalf);
     this.addManholes(roadHalf);
+    this.addJoggers(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -314,6 +315,10 @@ export class HavanaStreet implements SceneStreet {
       const metres = loopMetres(car.offset + car.speed * this.time, s, LOOP, BEHIND);
       car.mesh.position.z = -metres;
       car.mesh.position.y = heightAt(metres);
+    }
+    for (const runner of this.runners) {
+      const swing = Math.sin(this.time * 9 + runner.phase) * 0.7;
+      runner.limbs.forEach((limb, k) => (limb.rotation.x = k % 2 ? -swing : swing));
     }
     const people = this.people;
     if (people) {
@@ -4291,6 +4296,67 @@ export class HavanaStreet implements SceneStreet {
     shirts: MeshStandardMaterial[];
     skins: MeshStandardMaterial[];
   };
+
+  private readonly runners: { limbs: Mesh[]; phase: number }[] = [];
+
+  /**
+   * Joggers on the inland pavement, out for the cool of the evening: running kit, trainers, a
+   * cap on one, arms bent and legs swinging in stride, one coming on and one going away.
+   */
+  private addJoggers(roadHalf: number): void {
+    const skin = [0x6b4430, 0xd8a882];
+    const tops = [0xff5a36, 0x2a9df4];
+    const torso = new CapsuleGeometry(0.15, 0.36, 3, 8);
+    const head = new SphereGeometry(0.105, 10, 8);
+    const leg = new CapsuleGeometry(0.065, 0.62, 3, 6);
+    const arm = new CapsuleGeometry(0.045, 0.36, 3, 6);
+    const shoe = new BoxGeometry(0.11, 0.08, 0.26);
+    leg.translate(0, -0.4, 0);
+    arm.translate(0, -0.22, 0);
+    shoe.translate(0, -0.8, -0.04);
+    this.disposables.push(torso, head, leg, arm, shoe);
+    const shorts = this.material({ color: 0x1d1f24, roughness: 0.8 });
+    const trainer = this.material({ color: 0xf4f4f4, roughness: 0.6 });
+    [
+      [29, roadHalf + 0.95, -2.3, Math.PI],
+      [75, roadHalf + 1.5, 2.6, 0],
+    ].forEach(([offset, x, speed, turn], i) => {
+      const body = new Group();
+      const top = this.material({ color: tops[i]!, roughness: 0.7 });
+      const flesh = this.material({ color: skin[i]!, roughness: 0.8 });
+      const chest = new Mesh(torso, top);
+      chest.position.y = 1.12;
+      chest.rotation.x = -0.15;
+      const face = new Mesh(head, flesh);
+      face.position.set(0, 1.55, -0.05);
+      body.add(chest, face);
+      const limbs: Mesh[] = [];
+      for (const side of [-0.1, 0.1]) {
+        const thigh = new Mesh(leg, shorts);
+        thigh.position.set(side, 0.86, 0);
+        thigh.add(new Mesh(shoe, trainer));
+        const sleeve = new Mesh(arm, flesh);
+        sleeve.position.set(side * 2.1, 1.36, 0);
+        body.add(thigh, sleeve);
+        limbs.push(thigh, sleeve);
+      }
+      if (i === 0) {
+        const cap = new Mesh(head, top);
+        cap.scale.set(1.05, 0.5, 1.05);
+        cap.position.set(0, 1.6, -0.05);
+        body.add(cap);
+      }
+      body.traverse((m) => (m.castShadow = true));
+      body.rotation.y = turn!;
+      body.position.y = KERB;
+      const holder = new Group();
+      holder.position.x = x!;
+      holder.add(body);
+      this.group.add(holder);
+      this.cars.push({ mesh: holder, offset: offset!, speed: speed! });
+      this.runners.push({ limbs, phase: 1.3 + i * 1.7 });
+    });
+  }
 
   /**
    * Cast-iron manhole covers in the asphalt: a disc of rusted, cross-hatched iron, sat a touch
