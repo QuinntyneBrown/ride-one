@@ -1,6 +1,7 @@
 /**
  * The map catalogue as `GET /api/maps` answers it (backend/src/Telo.Ride.Infrastructure/Catalogue/maps.json, ADR 0029):
- * the seven maps of L2-045 AC1 in unlock order, each locked map with its goal (L2-040 AC6). Copied here, as e2e reads no
+ * the seven maps of L2-045 AC1 in unlock order, each with its photo (L2-047 AC1), and each locked map with its goal
+ * and the map it is earned on (L2-040 AC6). Copied here, as e2e reads no
  * file outside `frontend/`.
  */
 export const maps = [
@@ -14,7 +15,9 @@ export const maps = [
     rating: 'Easy',
     world: 'prairie',
     thumbnailUrl: 'maps/prairie-paceline.jpg',
+    photoUrl: 'maps/prairie-paceline-photo.jpg',
     unlockGoal: null,
+    unlockMapId: null,
   },
   {
     id: 'old-town-criterium',
@@ -26,7 +29,9 @@ export const maps = [
     rating: 'Easy',
     world: 'oldtown',
     thumbnailUrl: 'maps/old-town-criterium.jpg',
+    photoUrl: 'maps/old-town-criterium-photo.jpg',
     unlockGoal: null,
+    unlockMapId: null,
   },
   {
     id: 'cliffside-coast',
@@ -38,7 +43,9 @@ export const maps = [
     rating: 'Moderate',
     world: 'coast',
     thumbnailUrl: 'maps/cliffside-coast.jpg',
+    photoUrl: 'maps/cliffside-coast-photo.jpg',
     unlockGoal: 'Finish top 3 vs Bots on Prairie Paceline',
+    unlockMapId: 'prairie-paceline',
   },
   {
     id: 'neon-docklands',
@@ -50,7 +57,9 @@ export const maps = [
     rating: 'Moderate',
     world: 'docklands',
     thumbnailUrl: 'maps/neon-docklands.jpg',
+    photoUrl: 'maps/neon-docklands-photo.jpg',
     unlockGoal: 'Finish top 3 vs Bots on Old Town Criterium',
+    unlockMapId: 'old-town-criterium',
   },
   {
     id: 'dolomites',
@@ -62,7 +71,9 @@ export const maps = [
     rating: 'Hard',
     world: 'dolomites',
     thumbnailUrl: 'maps/dolomites.jpg',
+    photoUrl: 'maps/dolomites-photo.jpg',
     unlockGoal: 'Earn 2★ on Cliffside Coast',
+    unlockMapId: 'cliffside-coast',
   },
   {
     id: 'vice-city',
@@ -74,7 +85,9 @@ export const maps = [
     rating: 'Moderate',
     world: 'vicecity',
     thumbnailUrl: 'maps/vice-city.jpg',
+    photoUrl: 'maps/vice-city-photo.jpg',
     unlockGoal: 'Reach rider level 10',
+    unlockMapId: null,
   },
   {
     id: 'col-du-granit',
@@ -86,6 +99,8 @@ export const maps = [
     rating: 'Brutal',
     world: 'granite',
     thumbnailUrl: 'maps/col-du-granit.jpg',
+    photoUrl: 'maps/col-du-granit-photo.jpg',
     unlockGoal: 'Earn 3★ on Dolomites',
+    unlockMapId: 'dolomites',
   },
 ];

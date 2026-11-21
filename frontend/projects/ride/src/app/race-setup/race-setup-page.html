@@ -1,0 +1,21 @@
+<div class="race-setup-page">
+  <wz-setup-header>
+    <a wz-back-link slot="back" routerLink="/race">Maps</a>
+  </wz-setup-header>
+  <div class="race-setup-page__scroll">
+    <main id="main" class="container page setup-layout" tabindex="-1">
+      @if (store.map(); as map) {
+        <wz-setup-map
+          [photoUrl]="map.photoUrl"
+          [name]="map.name"
+          [routeLine]="store.routeLine()"
+          [distanceKm]="map.distanceKm"
+          [climbingM]="map.climbingM"
+          [rating]="map.rating"
+          [bestSeconds]="store.bestSeconds()"
+          [earned]="store.earned()"
+        />
+      }
+    </main>
+  </div>
+</div>

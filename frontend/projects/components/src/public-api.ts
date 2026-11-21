@@ -37,4 +37,8 @@ export { MapPath } from './map-select/map-path';
 export { MapPathItem } from './map-select/map-path-item';
 export { MapRow } from './map-select/map-row';
 export { MapsAside } from './map-select/maps-aside';
+export { SetupFacts } from './race-setup/setup-facts';
+export { SetupHeader } from './race-setup/setup-header';
+export { SetupMap } from './race-setup/setup-map';
+export { SetupStars } from './race-setup/setup-stars';
 export { Stars } from './stars/stars';
