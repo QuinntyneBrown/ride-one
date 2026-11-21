@@ -14,6 +14,7 @@ export class RaceSetupPage {
   readonly goalTarget: Locator;
   readonly modes: Locator;
   readonly modeOptions: Locator;
+  readonly onlineLock: Locator;
   readonly pack: Locator;
   readonly packOptions: Locator;
   readonly packNote: Locator;
@@ -32,6 +33,7 @@ export class RaceSetupPage {
     this.goalTarget = this.goal.locator('.setup-goal__goal');
     this.modes = page.getByRole('radiogroup', { name: 'Race mode' });
     this.modeOptions = this.modes.getByRole('radio');
+    this.onlineLock = this.mode('Riders online').locator('.mode-option__lock');
     this.pack = page.getByRole('radiogroup', { name: 'Pack strength' });
     this.packOptions = this.pack.getByRole('radio');
     this.packNote = page.locator('.pack__note');

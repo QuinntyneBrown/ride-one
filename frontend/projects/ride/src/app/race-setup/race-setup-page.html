@@ -20,6 +20,11 @@
             <wz-setup-goal [goal]="goal.goal" [opens]="goal.opens" />
           }
           <h2 class="setup-ride__title" id="race-against">Race against</h2>
+          <wz-mode-options
+            [options]="store.modes()"
+            [selected]="store.mode()"
+            (choose)="store.mode.set($event)"
+          />
         </section>
       }
     </main>

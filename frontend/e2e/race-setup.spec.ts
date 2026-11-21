@@ -47,3 +47,49 @@ test('the goal line shows only on the map that holds the next unlock (L2-047 AC3
   await expect(setup.title).toHaveText('Old Town Criterium');
   await expect(setup.goal).toHaveCount(0);
 });
+
+test('Race against offers three modes, Bots chosen, and Riders online locked until level 3 (L2-048 AC1, AC2)', async ({
+  page,
+}) => {
+  const setup = new RaceSetupPage(page);
+  await setup.open('old-town-criterium');
+
+  await expect(page.getByRole('heading', { name: 'Race against' })).toBeVisible();
+  await expect(setup.modeOptions).toHaveCount(3);
+  await expect(setup.mode('Your best time')).toContainText(
+    'Solo. A ghost of your fastest ride sets the pace.',
+  );
+  await expect(setup.mode('Bots')).toContainText(
+    "9 computer riders. Starts the moment you're ready.",
+  );
+  await expect(setup.mode('Bots')).toHaveAttribute('aria-checked', 'true');
+  await expect(setup.mode('Your best time')).toHaveAttribute('aria-checked', 'false');
+  await expect(setup.mode('Riders online')).toContainText('Opens at level 3.');
+  await expect(setup.mode('Riders online')).toHaveAttribute('aria-disabled', 'true');
+  await expect(setup.onlineLock).toBeVisible();
+
+  // Playwright waits for an aria-disabled control to be enabled; a click that lands must still change nothing.
+  await setup.mode('Riders online').click({ force: true });
+  await expect(setup.mode('Bots')).toHaveAttribute('aria-checked', 'true');
+  await setup.mode('Your best time').click();
+  await expect(setup.mode('Your best time')).toHaveAttribute('aria-checked', 'true');
+  await expect(setup.mode('Bots')).toHaveAttribute('aria-checked', 'false');
+});
+
+test('the arrow keys move the race mode and pass over Riders online (L2-048 AC4)', async ({
+  page,
+}) => {
+  const setup = new RaceSetupPage(page);
+  await setup.open('old-town-criterium');
+  await setup.mode('Bots').focus();
+
+  await page.keyboard.press('ArrowUp');
+  await expect(setup.mode('Your best time')).toHaveAttribute('aria-checked', 'true');
+  await expect(setup.mode('Your best time')).toBeFocused();
+
+  await page.keyboard.press('ArrowDown');
+  await expect(setup.mode('Bots')).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('ArrowDown');
+  await expect(setup.mode('Your best time')).toHaveAttribute('aria-checked', 'true');
+  await expect(setup.mode('Your best time')).toBeFocused();
+});

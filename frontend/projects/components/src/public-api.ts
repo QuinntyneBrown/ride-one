@@ -37,6 +37,7 @@ export { MapPath } from './map-select/map-path';
 export { MapPathItem } from './map-select/map-path-item';
 export { MapRow } from './map-select/map-row';
 export { MapsAside } from './map-select/maps-aside';
+export { ModeOptions, type ModeOption } from './race-setup/mode-options';
 export { SetupFacts } from './race-setup/setup-facts';
 export { SetupGoal } from './race-setup/setup-goal';
 export { SetupHeader } from './race-setup/setup-header';

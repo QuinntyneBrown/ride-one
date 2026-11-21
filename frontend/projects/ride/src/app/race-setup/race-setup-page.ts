@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { BackLink, SetupGoal, SetupHeader, SetupMap } from '@telo/components';
+import { BackLink, ModeOptions, SetupGoal, SetupHeader, SetupMap } from '@telo/components';
 import { RaceSetupStore } from './race-setup-store';
 
 /**
@@ -8,7 +8,7 @@ import { RaceSetupStore } from './race-setup-store';
  */
 @Component({
   selector: 'wz-race-setup-page',
-  imports: [RouterLink, BackLink, SetupGoal, SetupHeader, SetupMap],
+  imports: [RouterLink, BackLink, ModeOptions, SetupGoal, SetupHeader, SetupMap],
   templateUrl: './race-setup-page.html',
   styleUrl: './race-setup-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
