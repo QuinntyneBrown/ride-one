@@ -247,6 +247,7 @@ export class HavanaStreet implements SceneStreet {
     this.addQuinceanera(roadHalf);
     this.addManisero(roadHalf);
     this.addManholes(roadHalf);
+    this.addArrows(roadHalf);
     this.addJoggers(roadHalf);
     this.addShopSigns(roadHalf);
     this.addFruitCart(roadHalf);
@@ -4794,6 +4795,46 @@ export class HavanaStreet implements SceneStreet {
   }
 
   /**
+   * Lane arrows painted on the asphalt, straight ahead or ahead-and-right, five metres long as
+   * real ones are so they read foreshortened, the white worn grey by tyres; both carriageways.
+   */
+  private addArrows(roadHalf: number): void {
+    const random = seeded(1669);
+    const sheet = new PlaneGeometry(1.0, 5.0);
+    sheet.rotateX(-Math.PI / 2);
+    this.disposables.push(sheet);
+    const paints = [false, true].map(
+      (turn) =>
+        new MeshStandardMaterial({
+          map: this.track(arrowTexture(turn)),
+          transparent: true,
+          depthWrite: false,
+          roughness: 0.8,
+          polygonOffset: true,
+          polygonOffsetFactor: -2,
+        }),
+    );
+    this.disposables.push(...paints);
+    for (let offset = 38; offset < LOOP; offset += 70 + random() * 40) {
+      for (const [x, turn] of [
+        [roadHalf - 5.6, 0],
+        [roadHalf - 2.2, 0],
+        [-roadHalf - 1.9, Math.PI],
+        [-roadHalf - 5.2, Math.PI],
+      ] as const) {
+        const arrow = new Mesh(sheet, paints[random() < 0.25 ? 1 : 0]!);
+        arrow.rotation.y = turn;
+        arrow.position.y = 0.008;
+        arrow.renderOrder = 1;
+        const holder = new Group();
+        holder.add(arrow);
+        this.group.add(holder);
+        this.props.push({ mesh: holder, offset: offset + (turn ? 6 : 0), x });
+      }
+    }
+  }
+
+  /**
    * Cast-iron manhole covers in the asphalt: a disc of rusted, cross-hatched iron, sat a touch
    * proud in a square collar of patched, paler concrete.
    */
@@ -6752,5 +6793,37 @@ function contrailTexture(fresh: boolean): CanvasTexture {
       g.fillStyle = 'rgb(200,205,215)';
       g.fillRect(0, 29, 12, 6);
     }
+  });
+}
+
+/** A lane arrow (pointing to the texture's top): a long shaft and a head, a right branch if it
+ * turns, painted white and scuffed and worn grey along the tyre tracks. */
+function arrowTexture(turn: boolean): CanvasTexture {
+  return canvasTexture(64, 320, (g) => {
+    g.clearRect(0, 0, 64, 320);
+    g.fillStyle = 'rgba(236,234,226,0.85)';
+    g.fillRect(26, 90, 12, 225);
+    g.beginPath();
+    g.moveTo(32, 4);
+    g.lineTo(58, 100);
+    g.lineTo(6, 100);
+    g.closePath();
+    g.fill();
+    if (turn) {
+      g.fillRect(36, 170, 18, 10);
+      g.beginPath();
+      g.moveTo(62, 150);
+      g.lineTo(62, 200);
+      g.lineTo(50, 175);
+      g.closePath();
+      g.fill();
+    }
+    g.globalCompositeOperation = 'destination-out';
+    const random = seeded(turn ? 1673 : 1677);
+    for (let i = 0; i < 260; i++) {
+      g.fillStyle = `rgba(0,0,0,${0.3 + random() * 0.7})`;
+      g.fillRect(random() * 64, random() * 320, 1 + random() * 5, 1 + random() * 9);
+    }
+    g.globalCompositeOperation = 'source-over';
   });
 }
