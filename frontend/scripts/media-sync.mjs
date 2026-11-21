@@ -21,8 +21,15 @@ for (const [from, to] of [
     console.warn(`media:sync: ${source} is not rendered yet; the film will not play.`);
   }
 }
-// The design system's photographs, except the GCN class, which carries another brand's mark.
+// The design system's photographs, except the GCN class, which carries another brand's mark. CI checks out
+// frontend and backend only, so a missing folder is skipped as a missing film is: the build does not need it.
 for (const folder of ['classes', 'machines', 'worlds']) {
+  if (!existsSync(join(images, folder))) {
+    console.warn(
+      `media:sync: ${join(images, folder)} is not checked out; its photographs are left out.`,
+    );
+    continue;
+  }
   cpSync(join(images, folder), join(site, 'images', folder), {
     recursive: true,
     filter: (source) => !source.includes('gcn-'),
