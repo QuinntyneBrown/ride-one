@@ -1,5 +1,5 @@
-import { Injectable, type OnDestroy, inject } from '@angular/core';
-import { type BikeConnection, type BikeInfo, TICKER } from '@telo/api';
+import { Injectable, type OnDestroy, inject, signal } from '@angular/core';
+import { type BikeConnection, type BikeInfo, type BleState, TICKER } from '@telo/api';
 import { Subject, type Subscription } from 'rxjs';
 import { EchelonProtocol } from '../protocol/echelon-protocol';
 import { SimulatedRiderProfile } from './simulated-rider-profile';
@@ -26,15 +26,22 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
   private elapsed = 0;
   private revolutions = 0;
   private level = 8;
+  private readonly link = signal<BleState>('idle');
+  private readonly chosen = signal<BikeInfo | null>(null);
 
   readonly frames = this.sent.asObservable();
+  readonly ble = this.link.asReadonly();
+  readonly bike = this.chosen.asReadonly();
 
   async requestBike(): Promise<BikeInfo> {
+    this.chosen.set(SIMULATED_BIKE);
     return SIMULATED_BIKE;
   }
 
   async connect(): Promise<void> {
+    this.chosen.set(SIMULATED_BIKE);
     this.ticking ??= this.ticker.seconds.subscribe(() => this.tick());
+    this.link.set('connected');
   }
 
   /** The simulated bike is always in reach: reconnecting starts it as `connect()` does. */
@@ -52,6 +59,7 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
   disconnect(): void {
     this.ticking?.unsubscribe();
     this.ticking = null;
+    this.link.set('idle');
   }
 
   ngOnDestroy(): void {

@@ -4,6 +4,8 @@ import type { Page } from '@playwright/test';
 export interface FakeBike {
   name: string;
   services: Record<string, string[]>;
+  /** The name and identifier Connect Bike shows for it, which Telo Ride keeps when it remembers the bike. */
+  card?: { name: string; identifier: string | null };
   /** What `readValue` returns for a readable characteristic; reading any other is unexpected. */
   values?: Record<string, number[]>;
 }
@@ -89,12 +91,8 @@ export class FakeBluetooth {
    */
   async remember(bike: FakeBike): Promise<void> {
     await this.offer(bike);
-    const record = JSON.stringify({
-      id: FAKE_DEVICE_ID,
-      name: bike.name,
-      identifier: null,
-      kind: 'echelon',
-    });
+    const { name, identifier } = bike.card ?? { name: bike.name, identifier: null };
+    const record = JSON.stringify({ id: FAKE_DEVICE_ID, name, identifier, kind: 'echelon' });
     await this.page.addInitScript((value) => localStorage.setItem('telo-ride.bike', value), record);
   }
 

@@ -1,5 +1,7 @@
 import { InjectionToken } from '@angular/core';
+import type { Signal } from '@angular/core';
 import type { Observable } from 'rxjs';
+import type { BleState } from './bike-status';
 
 /** Which protocol the bike speaks: Echelon's own (full control) or FTMS (beta). */
 export type BikeKind = 'echelon' | 'ftms';
@@ -18,6 +20,10 @@ export interface BikeInfo {
  * opened with `?simulate`, the simulated bike (L2-024). Every page and store uses the token, never an implementation.
  */
 export interface BikeConnection {
+  /** The link state: `connected` from the first notification after initialisation until the bike drops. */
+  readonly ble: Signal<BleState>;
+  /** The bike chosen or reconnected to, or `null` before one is. */
+  readonly bike: Signal<BikeInfo | null>;
   /** Asks for a bike; `null` when the rider closes the browser's chooser without picking one. */
   requestBike(): Promise<BikeInfo | null>;
   /**

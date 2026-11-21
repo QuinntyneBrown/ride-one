@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
-import { Injectable, type OnDestroy } from '@angular/core';
-import { type BikeConnection, BikeConnectionError, type BikeInfo } from '@telo/api';
+import { Injectable, type OnDestroy, signal } from '@angular/core';
+import { type BikeConnection, BikeConnectionError, type BikeInfo, type BleState } from '@telo/api';
 import { Subject, firstValueFrom } from 'rxjs';
 import { EchelonProtocol } from '../protocol/echelon-protocol';
 import { FtmsProtocol } from '../protocol/ftms-protocol';
@@ -33,7 +33,12 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       );
   };
 
+  private readonly linkState = signal<BleState>('idle');
+  private readonly chosen = signal<BikeInfo | null>(null);
+
   readonly frames = this.received.asObservable();
+  readonly ble = this.linkState.asReadonly();
+  readonly bike = this.chosen.asReadonly();
 
   /** Opens the browser's chooser; call it only from the rider's click. A closed chooser resolves `null`. */
   async requestBike(): Promise<BikeInfo | null> {
@@ -47,7 +52,9 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       const blocked = error instanceof DOMException && error.name === 'SecurityError';
       throw new BikeConnectionError(blocked ? 'blocked' : 'failed', String(error));
     }
-    return this.info(this.device);
+    const bike = this.info(this.device);
+    this.chosen.set(bike);
+    return bike;
   }
 
   /**
@@ -56,7 +63,19 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
    */
   async connect(): Promise<void> {
     if (!this.device?.gatt) throw new BikeConnectionError('failed', 'No bike was chosen');
-    const server = await this.device.gatt.connect();
+    this.linkState.set('connecting');
+    try {
+      await this.open(this.device.gatt);
+      this.linkState.set('connected');
+    } catch (error) {
+      this.linkState.set('idle');
+      throw error;
+    }
+  }
+
+  /** One attempt: GATT, the link, its initialisation, and the first notification after it. */
+  private async open(gatt: BluetoothRemoteGATTServer): Promise<void> {
+    const server = await gatt.connect();
     const services = await server.getPrimaryServices();
     const echelon = services.find((service) => service.uuid === EchelonProtocol.service);
     const ftms = services.find((service) => service.uuid === FtmsProtocol.service);
@@ -84,6 +103,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       const device = (await bluetooth.getDevices()).find((permitted) => permitted.id === bike.id);
       if (!device) return false;
       this.device = device;
+      this.chosen.set(bike);
       await this.connect();
       return true;
     } catch {
@@ -100,6 +120,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     this.link?.close();
     this.link = null;
     this.device?.gatt?.disconnect();
+    this.linkState.set('idle');
   }
 
   ngOnDestroy(): void {

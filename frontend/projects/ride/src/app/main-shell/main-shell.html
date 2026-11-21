@@ -12,6 +12,7 @@
         >{{ item.label }}</a
       >
     }
+    <wz-app-header-bike slot="end" [status]="bike()" />
   </wz-app-header>
   <div class="app__scroll">
     <router-outlet />
