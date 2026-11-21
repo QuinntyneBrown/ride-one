@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MapPath, MapPathItem, MapRow } from '@telo/components';
+import { MapPath, MapPathItem, MapRow, MapsAside } from '@telo/components';
 import { MapPathStore } from './map-path-store';
 
 /**
- * Map Select at `/race` (L2-046): "Maps", its lead, and the unlock path of every map in unlock order.
+ * Map Select at `/race` (L2-046): "Maps", its lead, and the unlock path of every map in unlock order, beside the star
+ * rules.
  */
 @Component({
   selector: 'wz-map-select-page',
-  imports: [RouterLink, MapPath, MapPathItem, MapRow],
+  imports: [RouterLink, MapPath, MapPathItem, MapRow, MapsAside],
   templateUrl: './map-select-page.html',
   styleUrl: './map-select-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -36,4 +36,5 @@ export { SiteNav } from './site-nav/site-nav';
 export { MapPath } from './map-select/map-path';
 export { MapPathItem } from './map-select/map-path-item';
 export { MapRow } from './map-select/map-row';
+export { MapsAside } from './map-select/maps-aside';
 export { Stars } from './stars/stars';

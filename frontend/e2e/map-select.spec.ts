@@ -1,9 +1,10 @@
 // Acceptance test
-// Traces to: L2-046 AC1 to AC4; L2-045 AC1; L2-040 AC1, AC6; L2-041 AC1
+// Traces to: L2-046 AC1 to AC5; L2-045 AC1; L2-040 AC1, AC6; L2-041 AC1
 // Description: Map Select reads "Maps" and its lead above an ordered list of every map, in unlock order. A new rider's
 // open maps, Prairie Paceline and Old Town Criterium, link to Race Setup with their thumbnail, facts and stars, and no
 // best line before they are ridden. Cliffside Coast, the next unlock, is a disabled button ringed gold with its facts
-// and goal; every other locked map is a disabled button with a greyed photo, a lock and its goal.
+// and goal; every other locked map is a disabled button with a greyed photo, a lock and its goal. The aside lists the
+// three star rules and when racing people opens.
 import { maps } from './fixtures/maps';
 import { expect, test } from './fixtures/test';
 import { MapSelectPage } from './pages/map-select.page';
@@ -93,5 +94,25 @@ test.describe('Map Select', () => {
       await expect(row.thumbnail).toHaveCSS('filter', 'grayscale(1)');
       await expect(row.stars).toHaveCount(0);
     }
+  });
+
+  test('the aside lists the three star rules and when racing people opens (L2-046 AC5)', async ({
+    page,
+  }) => {
+    const select = new MapSelectPage(page);
+    await select.open();
+
+    await expect(select.aside).toBeVisible();
+    await expect(select.starRules).toHaveText([
+      'Finish the race',
+      'Top 3 against the medium pack',
+      'Beat your best time',
+    ]);
+    for (const [index, stars] of ['1 of 1 stars', '2 of 2 stars', '3 of 3 stars'].entries()) {
+      await expect(select.starRules.nth(index).getByRole('img')).toHaveAccessibleName(stars);
+    }
+    await expect(select.asideNote).toHaveText(
+      'Racing against people opens at level 3. Until then, the bots are good practice.',
+    );
   });
 });
