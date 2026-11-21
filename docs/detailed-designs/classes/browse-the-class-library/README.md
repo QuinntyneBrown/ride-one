@@ -34,7 +34,8 @@ The slice runs from the library page down to the catalogue rows in the database.
 - **`ClassLibraryPage`** (`wz-class-library-page`, route `/classes`, `loadComponent`) — routed
   page. It reads the catalogue and the rider's level from `ClassLibraryStore` and renders the
   header, the length tabs and one shelf per length band.
-- **`ClassLibraryStore`** — signal store provided on the `/classes` route. It loads the
+- **`ClassLibraryStore`** — signal store provided on the page, so it and its requests go when
+  the rider leaves; the route binds `CLASSES_API` and `PROGRESS_API`. It loads the
   catalogue through `CLASSES_API` (which falls back to the kept catalogue), loads the rider's
   level through `PROGRESS_API`, and derives each card's view model: open or locked, the lock
   label, the cover URL, the length and, once group sessions exist, the next group chip
@@ -45,16 +46,20 @@ The slice runs from the library page down to the catalogue rows in the database.
 
 **Frontend — `components` library**
 
-- **`TierTabs`** (`wz-tier-tabs`) — tab list "Class length" with All, 20 min, 30 min and 60 min.
-  It sets `aria-selected="true"` on the chosen tab and moves between tabs with the arrow keys.
+- **`TierTabs`** (`wz-tier-tabs`) — tab list "Class length" with All, 20 min, 30 min and 60 min
+  (WAI-ARIA tabs, automatic activation). It sets `aria-selected="true"` on the chosen tab, keeps
+  only that tab in the tab order, moves with the arrow keys, Home and End, and names the shelves'
+  `tabpanel` it controls. Each tab is at least 44 px tall.
 - **`ClassShelf`** (`wz-class-shelf`) — one shelf: title, tagline and a grid of cards (one column
   on a phone, two at sm, three at lg).
-- **`ClassCard`** (`wz-class-card`) — one class: cover, group chip "Group in {m} min · {n}/10",
-  length, resistance profile, title and "{channel} · {focus}". Open, it renders a link; locked,
-  it renders a disabled button with a lock and "Opens at level {n}" and no chip. Both branches
-  share one `ng-template` for their content slots.
+- **`ClassCard`** (`a[wz-class-card]`, `button[wz-class-card]`) — one class: cover, group chip
+  "Group in {m} min · {n}/10" (from journey 14), length, resistance profile, title and
+  "{channel} · {focus}". The page puts it on a link to the Class Start when the class is open;
+  locked, on a button with `aria-disabled="true"`, a lock and "Opens at level {n}" and no chip.
+  The button stays focusable, as the design system's locked cards do, so the level is announced.
 - **`ClassProfile`** (`wz-class-profile`) — small resistance profile drawn from the plan's
-  segments.
+  segments: each bar as wide as its segment lasts and as tall as its level against the plan's
+  highest level.
 
 **Frontend — `api` and `domain` libraries**
 
