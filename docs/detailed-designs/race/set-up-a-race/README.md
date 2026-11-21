@@ -47,9 +47,12 @@ whether this map holds the rider's next unlock.
 - **`RaceSetupPage`** (`ride`, selector `wz-race-setup-page`) — routed page, loaded with
   `loadComponent`. It reads `RaceSetupStore` and renders the map column and the ride column.
   At lg or wider it is two columns, the ride panel 420 px wide, with Start pinned to the bottom.
-- **`RaceSetupStore`** (`ride`, provided on the route) — signal store holding the map, its
-  progress, `mode` (default `bots`), `pack` (default `medium`), `queueCount`, and the derived
-  `startLabel` ("Start ride", "Go to the start line" or "Find a race"). It exposes `start()`.
+- **`RaceSetupStore`** (`ride`, provided on the page, so it goes when the rider leaves) — signal
+  store holding the map, its progress, the rider level, `mode` (a `RaceMode`, default `bots`),
+  `pack` (a `PackStrengthId`, default `medium`), the `modes` it offers and `raceStart`, which
+  `RaceStartPlanner` derives: the label ("Start ride", "Go to the start line" or "Find a race")
+  and the route. It exposes `start()`. `RaceMode` and `PackStrengthId` are types in `api`. The
+  queue count joins it with journey 15.
 - **`SetupHeader`**, **`SetupMap`**, **`SetupFacts`** (`components`, blocks `setup-header`,
   `setup-map`, `setup-facts`/`setup-fact`) — the small lockup with the page's back link "Maps"
   (`BackLink`, as on Class Start) in the header, and the photo, name, route line, and
@@ -62,7 +65,8 @@ whether this map holds the rider's next unlock.
 - **`ModeOptions`** (`components`, blocks `mode-options`/`mode-option`) — a WAI-ARIA radio group
   labelled "Race mode" of buttons with `role="radio"`, as the mock draws it and as `RideChoice`
   does on Class Start: the chosen option is the one in the tab order and the arrow keys move the
-  choice (L2-048 AC4). Riders online is `aria-disabled` with a lock and "Opens at level 3." below
+  choice (L2-048 AC4), through `radioStep` (`components`), which `RideChoice` and `PackStrength`
+  share. Riders online is `aria-disabled` with a lock and "Opens at level 3." below
   level 3, and the arrow keys pass over it.
 - **`PackStrength`** (`components`, block `pack`) — easy, medium and hard as a radio group of
   `role="radio"` buttons, moved by the arrow keys, with the note for the chosen strength;

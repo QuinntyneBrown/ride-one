@@ -44,8 +44,8 @@ class RaceSetupStore {
   +pack: WritableSignal<PackStrength>
   +onlineOpen: Signal<boolean>
   +queueCount: Signal<number | undefined>
-  +startLabel: Signal<string>
-  +start(): Promise<void>
+  +raceStart: Signal<RaceStart>
+  +start(): void
 }
 class RaceStartPlanner {
   +plan(mapId: string, mode: RaceMode, pack: PackStrength, hasBest: boolean): RaceStart
