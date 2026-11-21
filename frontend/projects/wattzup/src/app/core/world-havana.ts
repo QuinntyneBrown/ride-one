@@ -242,6 +242,7 @@ export class HavanaStreet implements SceneStreet {
     this.addDominoes(roadHalf);
     this.addSigns(roadHalf);
     this.addCrossers(roadHalf);
+    this.addCats(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -3841,6 +3842,69 @@ export class HavanaStreet implements SceneStreet {
       1583,
       this.crossers.map(() => 1),
     );
+  }
+
+  /**
+   * Havana's street cats: sitting upright by the arcade piers with their tails curled round,
+   * or lying stretched out in the shade, and a few on the seawall's cap; ginger, black, grey
+   * tabby or white with patches.
+   */
+  private addCats(roadHalf: number): void {
+    const random = seeded(1609);
+    const body = new SphereGeometry(0.1, 10, 8);
+    body.scale(1, 1, 2);
+    const head = new SphereGeometry(0.065, 10, 8);
+    const ear = new ConeGeometry(0.025, 0.05, 4);
+    const tail = new TorusGeometry(0.12, 0.015, 4, 10, Math.PI);
+    const leg = new CylinderGeometry(0.018, 0.016, 0.14, 5);
+    this.disposables.push(body, head, ear, tail, leg);
+    const coats = [0xd0802a, 0x1a1a1a, 0x7a7670, 0xe8e4dc, 0x9a6a3a];
+    const wall = -roadHalf - LANES - PROMENADE - 0.35;
+    for (let n = 0; n < 16; n++) {
+      const cat = new Group();
+      const coat = this.material({
+        color: coats[Math.floor(random() * coats.length)]!,
+        roughness: 0.95,
+      });
+      const part = (g: BufferGeometry, x: number, y: number, z: number, rx = 0) => {
+        const mesh = new Mesh(g, coat);
+        mesh.position.set(x, y, z);
+        mesh.rotation.x = rx;
+        mesh.castShadow = true;
+        cat.add(mesh);
+        return mesh;
+      };
+      const sitting = random() < 0.6;
+      if (sitting) {
+        // Upright on its haunches, front legs straight, tail round its feet.
+        part(body, 0, 0.17, 0.02, -1.1);
+        part(head, 0, 0.33, -0.05);
+        for (const side of [-0.035, 0.035]) {
+          part(ear, side, 0.39, -0.05);
+          part(leg, side, 0.07, -0.07);
+        }
+        part(tail, 0, 0.02, 0.02, Math.PI / 2);
+      } else {
+        // Stretched out on its side in the shade.
+        part(body, 0, 0.09, 0, 0).scale.set(1.1, 0.8, 1.1);
+        part(head, 0, 0.1, -0.24);
+        for (const side of [-0.035, 0.035]) part(ear, side, 0.16, -0.25);
+        const t = part(tail, 0.05, 0.03, 0.25, Math.PI / 2);
+        t.rotation.z = 1.2;
+      }
+      cat.rotation.y = random() * Math.PI * 2;
+      const onWall = n % 4 === 3;
+      cat.position.y = onWall ? WALL : KERB;
+      const holder = new Group();
+      holder.add(cat);
+      this.group.add(holder);
+      const offset = n === 0 ? 29.5 : 20 + random() * (LOOP - 30);
+      this.props.push({
+        mesh: holder,
+        offset,
+        x: onWall ? wall : roadHalf + (n === 0 ? 1.7 : 1.4 + random() * 2.4),
+      });
+    }
   }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
