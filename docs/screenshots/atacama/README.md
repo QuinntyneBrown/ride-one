@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [Extreme Fat Burning Class](http://loc
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/extreme-fat-burning-class?simulate`, click **Ride in Atacama Desert**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [062 · Licancabur stands over the salar](bend-062-licancabur-stands.jpg) | Licancabur's cone and the red ranges round the salar were bent vertex by vertex with the salar road's bends, so the volcano swung and squeezed with each turn. They now stand beyond the road unbent, as the panorama does, and the walkers and props behind the rider stand on the road there instead of at the height under the rider. |
