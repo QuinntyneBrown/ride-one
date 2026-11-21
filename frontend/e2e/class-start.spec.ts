@@ -1,7 +1,8 @@
 // Acceptance test
-// Traces to: L2-084 AC1
+// Traces to: L2-084 AC1, AC2
 // Description: an open class card leads to its Class Start, which reads "← Classes", the class's channel, length and
-// focus, its title and its summary; "← Classes" leads back to the library.
+// focus, its title and its summary; "← Classes" leads back to the library. "What the bike will do" reads the class's
+// length, its resistance profile and its structure with the expected average power.
 import { library } from './fixtures/library';
 import { expect, test } from './fixtures/test';
 import { ClassLibraryPage } from './pages/class-library.page';
@@ -30,5 +31,16 @@ test.describe('Class Start', () => {
     await start.back.click();
     await expect(page).toHaveURL('/classes');
     await expect(classes.heading).toBeVisible();
+  });
+
+  test('What the bike will do reads the length, the resistance profile and the structure with its average power (L2-084 AC2)', async ({
+    page,
+  }) => {
+    const start = new ClassStartPage(page);
+    await start.open('hiit-cardio-30');
+
+    await expect(start.planTotal).toHaveText('30:00');
+    await expect(start.profile).toBeVisible();
+    await expect(start.planSummary).toHaveText('8 × 0:30 · 3:00 → 1:30 recover · ~154 W average');
   });
 });

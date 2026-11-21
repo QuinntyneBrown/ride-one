@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { CLASSES_API, type ClassDto } from '@telo/api';
+import { PlanSummary } from '@telo/domain';
 
 /**
  * Class Start's state, provided on its page (docs/detailed-designs/classes/start-a-class): the class of the address,
@@ -19,6 +20,12 @@ export class ClassStartStore {
   readonly meta = computed(() => {
     const dto = this.loaded();
     return dto ? `${dto.channel} · ${Math.round(dto.lengthSeconds / 60)} min · ${dto.focus}` : '';
+  });
+
+  /** "8 × 0:30 · 3:00 → 1:30 recover · ~154 W average" (L2-084 AC2). */
+  readonly planSummary = computed(() => {
+    const segments = this.loaded()?.plan.segments ?? [];
+    return `${PlanSummary.structure(segments)} · ~${PlanSummary.averagePower(segments)} W average`;
   });
 
   constructor() {

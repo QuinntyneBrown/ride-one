@@ -9,6 +9,11 @@
           <p class="class-start__meta">{{ store.meta() }}</p>
           <h1 class="class-start__title" id="class-title">{{ dto.title }}</h1>
           <p class="class-start__summary">{{ dto.summary }}</p>
+          <wz-class-plan
+            [lengthSeconds]="dto.lengthSeconds"
+            [segments]="dto.plan.segments"
+            [summary]="store.planSummary()"
+          />
         </section>
       </main>
     }

@@ -308,7 +308,7 @@ export const library = {
             kind: 'cool-down',
             duration: 360,
             level: 6,
-            cadenceAim: 70,
+            cadenceAim: 68,
           },
         ],
       },

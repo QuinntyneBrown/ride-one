@@ -34,7 +34,7 @@ export const hiitCardio = {
       { kind: 'warm-up', duration: 300, level: 8, cadenceAim: 80 },
       ...[180, 150, 150, 120, 120, 90, 90].flatMap((rest) => [work, recover(rest)]),
       work,
-      { kind: 'cool-down', duration: 360, level: 6, cadenceAim: 70 },
+      { kind: 'cool-down', duration: 360, level: 6, cadenceAim: 68 },
     ] satisfies Segment[],
   },
 };
