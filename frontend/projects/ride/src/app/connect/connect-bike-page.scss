@@ -1,0 +1,83 @@
+// Block connect: Connect Bike's layout (docs/mocks/pages/connect-bike/). Two columns from lg with the photo first;
+// below lg the photo follows the content.
+.connect {
+  display: block;
+  min-height: 100dvh;
+  overflow-y: auto;
+
+  &:focus {
+    outline: none; // focused by the skip link, never by a pointer
+  }
+}
+
+.connect__body {
+  display: grid;
+  gap: var(--space-8);
+  margin-inline: auto;
+  max-width: var(--layout-container-max);
+  padding: var(--space-8) var(--space-4);
+
+  @media (min-width: 40rem) {
+    padding-inline: var(--space-6);
+  }
+
+  @media (min-width: 64rem) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-16);
+    padding-inline: var(--space-8);
+  }
+}
+
+.connect__media {
+  order: 99;
+
+  @media (min-width: 64rem) {
+    order: 0;
+  }
+}
+
+.connect__photo {
+  display: block;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: auto;
+  max-width: var(--layout-text-md);
+  border-radius: var(--radius-2xl);
+  object-fit: cover;
+
+  @media (min-width: 64rem) {
+    max-width: none;
+  }
+}
+
+.connect__title {
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-3xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
+
+  @media (min-width: 40rem) {
+    font-size: var(--font-size-4xl);
+    line-height: var(--line-height-4xl);
+  }
+}
+
+.connect__lead {
+  margin-top: var(--space-3);
+  max-width: var(--layout-text-md);
+  color: var(--color-muted);
+}
+
+.connect__pair {
+  margin-top: var(--space-8);
+}
+
+.connect__pair-btn {
+  margin-top: var(--space-4);
+
+  &:disabled {
+    opacity: 1;
+    background: var(--color-raised);
+    color: var(--color-muted);
+  }
+}

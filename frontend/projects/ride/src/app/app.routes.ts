@@ -2,6 +2,12 @@ import type { Routes } from '@angular/router';
 
 /** Every route loads its component on demand (AGENTS.md, lazy loading first). */
 export const routes: Routes = [
+  // Connect Bike stands alone, with no app navigation (docs/mocks/pages/connect-bike/).
+  {
+    path: 'connect',
+    title: 'Connect your bike · Telo Ride',
+    loadComponent: () => import('./connect/connect-bike-page'),
+  },
   {
     path: '',
     loadComponent: () => import('./main-shell/main-shell'),

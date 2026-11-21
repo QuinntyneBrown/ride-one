@@ -1,0 +1,40 @@
+<main id="main" class="connect" tabindex="-1">
+  <div class="connect__body">
+    <div class="connect__media">
+      <img
+        class="connect__photo"
+        src="machines/echelon-ex5s.jpg"
+        alt="An Echelon EX-5s bike"
+        width="800"
+        height="800"
+      />
+    </div>
+    <div class="connect__content">
+      <h1 class="connect__title">Connect your bike</h1>
+      <p class="connect__lead">
+        Pedal once to wake it up. Telo Ride reads your power and sets resistance for every hill and
+        interval.
+      </p>
+      <div class="connect__pair">
+        <wz-connect-device
+          [name]="device().name"
+          [identifier]="device().identifier"
+          [state]="device().state"
+        />
+        <button
+          wz-button
+          variant="primary"
+          size="xl"
+          [block]="true"
+          type="button"
+          class="connect__pair-btn"
+          [disabled]="action().disabled"
+          [attr.aria-busy]="action().busy || null"
+          (click)="store.pair()"
+        >
+          {{ action().label }}
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
