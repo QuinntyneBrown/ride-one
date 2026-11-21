@@ -51,7 +51,7 @@ package "domain library" {
   }
   class PowerModel {
     +estimate(cadence: number, resistance: number): number
-    +targetPower(level: number, cadenceAim: number): number
+    +target(cadenceAim: number, level: number): number
     +onTarget(power: number, target: number): boolean
   }
   class VideoClockSync {
@@ -60,6 +60,7 @@ package "domain library" {
   }
   class ResistanceController {
     +applyPlanLevel(level: number): Promise<void>
+    +nudge(delta: 1 | -1): Promise<void>
   }
 }
 package "api library" {
@@ -70,6 +71,15 @@ package "api library" {
     +pause(): void
     +seekTo(seconds: number): void
     +destroy(): void
+  }
+  interface ClassesApi {
+    +get(id: string): Observable<ClassDto>
+  }
+  class ClassDto {
+    +id: string
+    +title: string
+    +lengthSeconds: number
+    +plan: Plan
   }
   interface BikeConnection {
     +ble: Signal<BleState>
@@ -94,6 +104,7 @@ ClassRideStore *-- RideClock
 ClassRideStore *-- VideoClockSync
 ClassRideStore ..> VideoPlayer
 ClassRideStore ..> BikeConnection
+ClassRideStore ..> ClassesApi : get(id)
 WorkoutEngine --> Plan
 WorkoutEngine ..> PlanState
 WorkoutEngine ..> RideClock
