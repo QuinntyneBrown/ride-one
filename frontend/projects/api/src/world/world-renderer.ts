@@ -2,8 +2,7 @@
 // real renderer is Three.js in the world library's world-renderer.ts, loaded on demand; tests reach a fake through the
 // same contract.
 import { InjectionToken } from '@angular/core';
-import type { Segment } from '../workout/plan';
-import type { Backend, World } from './world';
+import type { Backend, TimedSegment as Segment, World } from './world';
 
 /** What the renderer draws in one frame (L2-110). */
 export interface SceneFrame {

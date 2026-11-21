@@ -1,4 +1,4 @@
-import type { SceneFrame, Segment, WorldRenderer } from '@telo/api';
+import type { SceneFrame, TimedSegment, WorldRenderer } from '@telo/api';
 import { SceneDriver, type SceneInput } from './scene-driver';
 
 class FakeRenderer implements WorldRenderer {
@@ -24,7 +24,9 @@ class FakeRenderer implements WorldRenderer {
   }
 }
 
-const segments: Segment[] = [{ kind: 'steady', duration: 600, level: 10, cadenceAim: 80 }];
+const segments: TimedSegment[] = [
+  { kind: 'steady', start: 0, duration: 600, level: 10, cadenceAim: 80 },
+];
 const input = (change: Partial<SceneInput> = {}): SceneInput => ({
   segments,
   elapsed: 100,

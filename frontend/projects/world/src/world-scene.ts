@@ -17,6 +17,7 @@ import { type Backend, type Segment, WORLD_RENDERER, type WorldRenderer } from '
 import { FrameScheduler } from './frame-scheduler';
 import { worldForMap } from './map-world';
 import { MotionPreference } from './motion-preference';
+import { timedSegments } from './timed-segments';
 import { SceneDriver } from './scene-driver';
 
 /**
@@ -56,6 +57,8 @@ export class WorldScene implements AfterViewInit {
   private readonly measuring = signal(false);
 
   private readonly world = computed(() => worldForMap(this.worldId()));
+  /** The plan's segments with their start seconds, as `main`'s scene reads them. */
+  private readonly timed = computed(() => timedSegments(this.segments()));
 
   private startOnView: () => void = () => undefined;
 
@@ -113,7 +116,7 @@ export class WorldScene implements AfterViewInit {
             canvas,
             untracked(this.world),
             () => this.frames.nextFrame(),
-            untracked(this.segments),
+            untracked(this.timed),
           );
           if (started) loaded.setFramePeriod(period);
           return { loaded, started };
@@ -163,7 +166,7 @@ export class WorldScene implements AfterViewInit {
       if (!driver || this.measuring()) return;
       const now = this.frames.now();
       driver.frame(now, {
-        segments: this.segments(),
+        segments: this.timed(),
         elapsed: this.elapsed(),
         speedKmh: this.speedKmh(),
         running: this.running(),

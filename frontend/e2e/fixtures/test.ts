@@ -4,6 +4,7 @@ import { FakeBluetooth } from './fake-bluetooth';
 import { HubFixture } from './hub';
 import { WakeLockFixture } from './wake-lock';
 import { FakeWebGl } from './webgl';
+import { WorldRideProbe } from './world-ride-probe';
 import { YouTubeFixture } from './youtube';
 
 interface Fixtures {
@@ -19,6 +20,8 @@ interface Fixtures {
   wakeLock: WakeLockFixture;
   /** Takes WebGPU, or WebGPU and WebGL, away from the browser before the app loads. */
   webgl: FakeWebGl;
+  /** `main`'s test-only hook into the world's renderer: pins its quality tier and reads what it draws. */
+  worldRide: WorldRideProbe;
   guard: void;
 }
 
@@ -42,6 +45,9 @@ export const test = base.extend<Fixtures>({
   },
   webgl: async ({ page }, use) => {
     await use(new FakeWebGl(page));
+  },
+  worldRide: async ({ page }, use) => {
+    await use(new WorldRideProbe(page));
   },
   wakeLock: [
     async ({ page }, use) => {
