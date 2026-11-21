@@ -33,6 +33,9 @@
           [progress]="plan.progress"
         />
       }
+      @if (store.routeView(); as route) {
+        <wz-race-route [view]="route" [distance]="store.distance()" />
+      }
     </section>
   }
 </main>

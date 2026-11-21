@@ -10,6 +10,8 @@ import {
   RideTicker,
   VirtualSpeedModel,
   WorkoutEngine,
+  routeProfile,
+  routeProfileView,
 } from '@telo/domain';
 
 /**
@@ -26,9 +28,12 @@ export class RaceStore {
   private readonly connection = inject(BIKE_CONNECTION);
   private readonly telemetry = inject(BikeTelemetry);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute).snapshot;
   private readonly mapId = this.route.paramMap.get('mapId') ?? '';
   private readonly loaded = signal<MapDto | null>(null);
+  private readonly ridden = signal(0);
+  private lastSecond = 0;
 
   /** Whom the race is against, and how hard the bots ride (`?mode=bots&pack=medium`, slice 7.2). */
   readonly mode: RaceMode =
@@ -94,6 +99,22 @@ export class RaceStore {
     return formatMetric(power === null ? null : VirtualSpeedModel.speedKmh(power), 1);
   });
 
+  /** The map's route profile, `main`'s, built once from its plan and its world's terrain (L2-062). */
+  private readonly profile = computed(() => {
+    const map = this.loaded();
+    return map ? routeProfile(map.terrain, map.plan.segments) : null;
+  });
+
+  /** What the route panel draws at the race clock's second. */
+  readonly routeView = computed(() => {
+    const map = this.loaded();
+    const profile = this.profile();
+    return map && profile ? routeProfileView(profile, map.plan.segments, this.elapsed()) : null;
+  });
+
+  /** Kilometres ridden at the virtual speed, two decimals ("1.62", L2-062 AC1). */
+  readonly distance = computed(() => (this.ridden() / 1000).toFixed(2));
+
   readonly bikeName = computed(() => this.connection.bike()?.name ?? null);
   readonly connected = computed(() => this.connection.ble() === 'connected');
 
@@ -106,7 +127,7 @@ export class RaceStore {
         if (map) this.start(map);
       });
     // The lock is bound on the route, whose injector outlives the page.
-    inject(DestroyRef).onDestroy(() => this.wakeLock.release());
+    this.destroyRef.onDestroy(() => this.wakeLock.release());
   }
 
   private start(map: MapDto): void {
@@ -115,5 +136,20 @@ export class RaceStore {
     this.clock.start();
     this.ticker.start();
     this.engine.follow(map.plan);
+    this.ticker.ticks
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((second) => this.ride(second));
+  }
+
+  /**
+   * Each second of the clock the rider covers the virtual speed of their power; seconds a hidden tab skipped count at
+   * the power of the moment. Without power, stopped, the rider rides no further.
+   */
+  private ride(second: number): void {
+    const power = this.telemetry.powerW();
+    const seconds = second - this.lastSecond;
+    this.lastSecond = second;
+    if (power !== null && power > 0 && seconds > 0)
+      this.ridden.update((metres) => metres + VirtualSpeedModel.speedMs(power) * seconds);
   }
 }

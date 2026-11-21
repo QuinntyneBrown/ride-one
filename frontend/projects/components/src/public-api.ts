@@ -42,6 +42,7 @@ export { PackStrength } from './race-setup/pack-strength';
 export { RaceBar } from './race/race-bar';
 export { RaceInterval } from './race/race-interval';
 export { RacePower, type RaceDelta } from './race/race-power';
+export { RaceRoute } from './race/race-route';
 export { SetupFacts } from './race-setup/setup-facts';
 export { SetupGoal } from './race-setup/setup-goal';
 export { SetupHeader } from './race-setup/setup-header';

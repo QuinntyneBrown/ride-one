@@ -16,6 +16,11 @@ export class RacePage {
   readonly delta: Locator;
   readonly statLabels: Locator;
   readonly stats: Locator;
+  readonly grade: Locator;
+  readonly climbed: Locator;
+  readonly distance: Locator;
+  readonly profile: Locator;
+  readonly here: Locator;
   readonly intervalLabel: Locator;
   readonly intervalRound: Locator;
   readonly intervalLeft: Locator;
@@ -37,6 +42,11 @@ export class RacePage {
     this.delta = page.locator('.race-power__delta');
     this.statLabels = page.locator('.race-power__stat-label');
     this.stats = page.locator('.race-power__stat');
+    this.grade = page.locator('.race-route__grade');
+    this.climbed = page.locator('.race-route__climb');
+    this.distance = page.locator('.race-route__km');
+    this.profile = page.locator('.race-route__profile');
+    this.here = page.locator('.race-route__here');
     this.intervalLabel = page.locator('.race-interval__name');
     this.intervalRound = page.locator('.race-interval__round');
     this.intervalLeft = page.locator('.race-interval__left');

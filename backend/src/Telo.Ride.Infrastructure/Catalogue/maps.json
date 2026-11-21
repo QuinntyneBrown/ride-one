@@ -116,7 +116,7 @@
             "kind": "cool-down",
             "duration": 360,
             "level": 6,
-            "cadenceAim": 68
+            "cadenceAim": 70
           }
         ]
       },
@@ -247,7 +247,7 @@
             "kind": "cool-down",
             "duration": 360,
             "level": 6,
-            "cadenceAim": 68
+            "cadenceAim": 70
           }
         ]
       },
@@ -379,7 +379,7 @@
             "kind": "cool-down",
             "duration": 360,
             "level": 6,
-            "cadenceAim": 68
+            "cadenceAim": 70
           }
         ]
       },
@@ -511,7 +511,7 @@
             "kind": "cool-down",
             "duration": 360,
             "level": 6,
-            "cadenceAim": 68
+            "cadenceAim": 70
           }
         ]
       },
@@ -644,7 +644,7 @@
             "kind": "cool-down",
             "duration": 360,
             "level": 6,
-            "cadenceAim": 68
+            "cadenceAim": 70
           }
         ]
       },
@@ -776,7 +776,7 @@
             "kind": "cool-down",
             "duration": 360,
             "level": 6,
-            "cadenceAim": 68
+            "cadenceAim": 70
           }
         ]
       },
@@ -909,7 +909,7 @@
             "kind": "cool-down",
             "duration": 360,
             "level": 6,
-            "cadenceAim": 68
+            "cadenceAim": 70
           }
         ]
       },

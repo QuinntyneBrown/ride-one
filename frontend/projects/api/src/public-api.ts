@@ -40,3 +40,4 @@ export { MapsApiError, type MapsApiErrorCode } from './maps/maps-api-error';
 export type { MapProgressDto } from './progress/map-progress-dto';
 export { PROGRESS_API, type ProgressApi } from './progress/progress-api';
 export type { PackStrengthId, RaceMode } from './race/race-mode';
+export type { GradeTone, RouteProfileView, RouteStripBar } from './race/route-profile-view';

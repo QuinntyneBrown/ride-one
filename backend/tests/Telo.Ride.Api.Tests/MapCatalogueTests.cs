@@ -75,7 +75,7 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
         Assert.Equal(
             [new Segment("warm-up", 300, 8, 80), new Segment("work", 30, 24, 98), new Segment("recover", 180, 6, 72)],
             oldTown.Plan.Segments.Take(3));
-        Assert.Equal(new Segment("cool-down", 360, 6, 68), oldTown.Plan.Segments[^1]);
+        Assert.Equal(new Segment("cool-down", 360, 6, 70), oldTown.Plan.Segments[^1]);
         Assert.Equal(8, oldTown.Plan.Segments.Count(s => s.Kind == "work"));
         Assert.Equal(6, oldTown.Terrain.Grade["work"]);
         Assert.Equal(-1.5, oldTown.Terrain.Grade["recover"]);

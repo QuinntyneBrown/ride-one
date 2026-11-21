@@ -29,6 +29,7 @@ export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { WorkoutEngine } from './engine/workout-engine';
 export { SpeedModel } from './engine/speed-model';
 export { VirtualSpeedModel } from './engine/virtual-speed-model';
+export { type RouteProfile, routeProfile, routeProfileView } from './engine/route-profile';
 export { SecondTicker } from './engine/second-ticker';
 export {
   EchelonProtocol,

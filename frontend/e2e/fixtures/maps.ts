@@ -12,7 +12,7 @@ export const racePlan = [
     seg('recover', rest, 6, 72),
   ]),
   seg('work', 30, 24, 98),
-  seg('cool-down', 360, 6, 68),
+  seg('cool-down', 360, 6, 70),
 ];
 
 const terrain = (

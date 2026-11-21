@@ -51,7 +51,9 @@ expected speed, which gives the elevation, the grade and the metres climbed; the
 reads them at the race clock's second, and draws the profile with the rider's place.
 `VirtualSpeedModel` is `main`'s expected-speed formula on the rider's power,
 10 × ∛(max(W, 1) ÷ 20) km/h, which gives the spec's 26.5 km/h at 371 W; the distance ridden is
-its sum, second by second. Resistance follows the plan's level (`L2-063` AC2), and the grade
+its sum, second by second, and a rider without power (stopped, or cadence gone quiet) rides no further. The grade's
+colour follows how the road reads: below −1 % downhill, from 3 % a climb, from 8 % steep, flat between (the design
+system's examples, −2.1, +0.5, +4.8 and +9.2). Resistance follows the plan's level (`L2-063` AC2), and the grade
 follows the plan too, so the climbs fall on the efforts.
 
 **Ride app**
@@ -176,8 +178,12 @@ and "Lower resistance" nudge it by hand between segment starts.
   with slice 7.5, which settles where the line falls on the profile.
 - **The plans.** Every map rides one 30:00 plan for now, the HIIT shape of the mock: a 5:00
   warm-up at level 8 and 80 rpm, eight 0:30 efforts at level 24 and 98 rpm (418 W) with
-  recoveries from 3:00 down to 1:30 at level 6, and a 6:00 cool-down at level 6 and 68 rpm. Each
+  recoveries from 3:00 down to 1:30 at level 6, and a 6:00 cool-down at level 6 and 70 rpm, the
+  plan `main`'s Old Town mock is drawn from, so the profile reads its 43 m. Each
   map's own plan replaces it in the catalogue, with no change to code.
+- **The grade at 5:01.** `main`'s profile reads +2.2 % at 5:01 on Old Town, where the road starts up the first
+  effort; `L2-062` AC1 and the mock read the warm-up's +0.5 %, as `main`'s own spec notes of its mock. The mock's
+  climbed (10 m) and elevation (43 m) agree.
 - **Vice City's terrain.** `main`'s world table has no Vice City; its terrain is South Beach's
   (Ocean Drive) until the world slices (journey 8) bring its world.
 - **Speed in the stats.** The power panel's Speed is the virtual speed, not the Echelon's
