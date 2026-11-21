@@ -93,4 +93,40 @@ describe('FrameBudget (L2-111 AC4)', () => {
     for (let w = 10; w < 30; w++) window(budget, w * 2000, 2);
     expect(budget.tier).toBe('low');
   });
+
+  /** Feeds frames `ms` apart until `windows` 2 s windows have closed. */
+  const ride = (budget: FrameBudget, ms: number, windows = 2) => {
+    const verdicts: string[] = [];
+    for (let now = 0; now < windows * 2000 + 2 * ms; now += ms) {
+      verdicts.push(budget.sample(now, ms));
+    }
+    return verdicts;
+  };
+
+  it.each([
+    ['30 Hz', 34, 'keep', 1000 / 30],
+    ['30 Hz', 45, 'drop', 1000 / 30],
+    ['60 Hz', 18, 'keep', 1000 / 60],
+    ['60 Hz', 25, 'drop', 1000 / 60],
+    ['144 Hz', 8, 'keep', 1000 / 144],
+    ['144 Hz', 18, 'drop', 1000 / 144],
+  ] as const)('on a %s display, two windows at %d ms: %s', (_, ms, expected, period) => {
+    const budget = new FrameBudget('ultra', period);
+    expect(ride(budget, ms).includes('drop') ? 'drop' : 'keep').toBe(expected);
+    expect(budget.tier).toBe(expected === 'drop' ? 'high' : 'ultra');
+  });
+
+  it('judges against 60 Hz until it is given a period', () => {
+    const budget = new FrameBudget('ultra');
+    ride(budget, 25);
+    expect(budget.tier).toBe('high');
+  });
+
+  it('judges against a period it is given later, starting its windows afresh', () => {
+    const budget = new FrameBudget('ultra');
+    budget.sample(0, 34);
+    budget.setPeriod(1000 / 30);
+    ride(budget, 34, 5);
+    expect(budget.tier).toBe('ultra');
+  });
 });

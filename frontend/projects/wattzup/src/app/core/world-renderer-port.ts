@@ -26,6 +26,8 @@ export interface WorldRenderer {
   start(canvas: HTMLCanvasElement, world: World): Promise<boolean>;
   resize(width: number, height: number, pixelRatio: number): void;
   draw(frame: SceneFrame): void;
+  /** Judges frames against the display's measured frame period from now on (L2-111 AC4, AC9). */
+  setFramePeriod(ms: number): void;
   dispose(): void;
 }
 

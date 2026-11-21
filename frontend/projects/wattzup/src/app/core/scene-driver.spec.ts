@@ -13,6 +13,9 @@ class FakeRenderer implements WorldRenderer {
   draw(frame: SceneFrame): void {
     this.frames.push(frame);
   }
+  setFramePeriod(): void {
+    /* not needed */
+  }
   dispose(): void {
     /* not needed */
   }

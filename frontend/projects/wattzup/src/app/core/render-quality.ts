@@ -95,20 +95,34 @@ export function techniquesAt(tier: Tier, backend: Backend, reducedMotion: boolea
   );
 }
 
-const BUDGET_MS = 1000 / 60;
-const OVER_MS = BUDGET_MS * 1.2;
+/** A window is over budget when its median frame is this many frame periods or more. */
+const OVER = 1.2;
 const WINDOW_MS = 2000;
 
-/** Lowers the tier after two 2 s windows in a row whose median frame is over 20 ms (AC4). */
+/**
+ * Lowers the tier after two 2 s windows in a row whose median frame is over 1.2 × the display's
+ * frame period: 20 ms at 60 Hz (AC4).
+ */
 export class FrameBudget {
   private start: number | null = null;
   private frames: number[] = [];
   private overInARow = 0;
 
-  constructor(private current: Tier) {}
+  constructor(
+    private current: Tier,
+    private periodMs = 1000 / 60,
+  ) {}
 
   get tier(): Tier {
     return this.current;
+  }
+
+  /** Judges against a newly measured frame period, starting the windows afresh (AC9). */
+  setPeriod(ms: number): void {
+    this.periodMs = ms;
+    this.start = null;
+    this.frames = [];
+    this.overInARow = 0;
   }
 
   /** Records one frame; returns `drop` when the tier has just been lowered. */
@@ -127,7 +141,7 @@ export class FrameBudget {
   private close(): 'keep' | 'drop' {
     const sorted = [...this.frames].sort((a, b) => a - b);
     const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
-    this.overInARow = median > OVER_MS ? this.overInARow + 1 : 0;
+    this.overInARow = median > OVER * this.periodMs ? this.overInARow + 1 : 0;
     if (this.overInARow < 2 || this.current === 'low') return 'keep';
     this.overInARow = 0;
     this.current = TIERS[rank(this.current) - 1]!;
