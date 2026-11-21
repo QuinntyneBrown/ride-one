@@ -158,14 +158,14 @@ export class NottingHillStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.revellers.forEach((r, i) => {
         const metres = loopMetres(r.offset, s, LOOP, BEHIND);
         const jump = Math.max(0, Math.sin(this.time * 6.6 + r.phase)) * 0.12;
-        crowd.set(i, r.x, heightAt(Math.max(metres, 0)) + r.y, -metres, r.heading, r.scale, jump);
+        crowd.set(i, r.x, heightAt(metres) + r.y, -metres, r.heading, r.scale, jump);
       });
       crowd.commit();
     }
@@ -174,7 +174,7 @@ export class NottingHillStreet implements SceneStreet {
       this.dancers.forEach((d, i) => {
         const metres = loopMetres(d.offset + d.speed * this.time, s, LOOP, BEHIND);
         const sway = Math.sin(this.time * 3.3 + d.phase);
-        const y = heightAt(Math.max(metres, 0));
+        const y = heightAt(metres);
         const bob = Math.abs(sway) * 0.08;
         mas.set(i, d.x + sway * 0.15, y, -metres, sway * 0.25, 1, bob);
         d.back.position.set(d.x + sway * 0.15, y + bob + 1.15, -metres + 0.28);
