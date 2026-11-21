@@ -52,6 +52,7 @@ export class BrickyardStreet implements SceneStreet {
   private readonly flags: Mesh[] = [];
   private readonly chequered: Mesh[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -86,14 +87,14 @@ export class BrickyardStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const crowd = this.crowd;
     if (crowd) {
       this.crew.forEach((c, i) => {
         const metres = loopMetres(c.offset, s, LOOP, BEHIND);
         const step = Math.abs(Math.sin(this.time * 2 + c.phase)) * 0.03;
-        crowd.set(i, c.x, heightAt(Math.max(metres, 0)) + step, -metres, c.heading, 0.95, 0);
+        crowd.set(i, c.x, heightAt(metres) + step, -metres, c.heading, 0.95, 0);
       });
       crowd.commit();
     }

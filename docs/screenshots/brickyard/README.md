@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [90-Second Extended Accelerations](htt
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/90-second-extended-accelerations?simulate`, click **Ride in Indianapolis Brickyard**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [079 · The Pagoda and the stands stay square to the straight](bend-079-pagoda-stands.jpg) | The Pagoda, the grandstands and the Indianapolis skyline beyond the front straight were bent vertex by vertex with the straight's bends, so the Pagoda leaned and slewed with each turn. They now stand beyond the road unbent, as the panorama does, and the crew and props behind the rider stand on the track there instead of at the height under the rider. |
