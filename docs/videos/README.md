@@ -39,6 +39,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 8.2 | [Draw the route world](08-2-draw-the-route-world/README.md) | 1:43 | main's scene behind the race: road, terrain and sky; the camera moves with the rider and holds when paused; five maps' worlds; copied from main; 390 to 1440 px; two behaviour specs |
 | 8.3 | [Draw riders and ghost](08-3-draw-riders-and-ghost/README.md) | 1:43 | The race's riders in its world: nine bots in their jerseys, the ghost in translucent gold, a line each; main's cyclist kit; 390 to 1440 px; two behaviour specs |
 | 8.4 | [Quality levels](08-4-quality-levels/README.md) | 1:43 | The race's world at Low, Medium and High; Ultra with WebGL 2 drawn at High; every race opens at Low, as main's does; 390 to 1440 px; three behaviour specs |
+| 8.5 | [Step down when frames drop](08-5-step-down-when-frames-drop/README.md) | 1:43 | The frame period measured; two slow 2-second windows drop a level, very slow frames straight to Low, never raised; main's frame budget; 390 to 1440 px; two behaviour specs |
 
 ## What every video is
 

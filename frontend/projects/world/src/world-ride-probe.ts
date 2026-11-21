@@ -10,10 +10,14 @@ export const PROBE_KEY = '__wzWorldRide';
 
 const TIERS: readonly Tier[] = ['low', 'medium', 'high', 'ultra'];
 
-/** What the sweep asked for: the tier to pin, and whether to draw with WebGL2 (#679). */
+/**
+ * What the sweep asked for: the tier to pin, and whether to draw with WebGL2 (#679). `judged`: the tier is where the
+ * ride opens, and the frame budget judges it as it does a rider's ride (L2-159 AC4).
+ */
 export interface WorldRideProbe {
   readonly tier: Tier;
   readonly forceWebGL: boolean;
+  readonly judged: boolean;
 }
 
 /** What the renderer reports back to the sweep, kept current as it draws. */
@@ -61,9 +65,13 @@ export interface DrawnRider {
 /** The pinned tier, or null when the hook is not set (every rider's ride). */
 export function readWorldRideProbe(value: unknown): WorldRideProbe | null {
   if (typeof value !== 'object' || value === null) return null;
-  const { tier, backend } = value as { tier?: unknown; backend?: unknown };
+  const { tier, backend, judged } = value as {
+    tier?: unknown;
+    backend?: unknown;
+    judged?: unknown;
+  };
   return TIERS.includes(tier as Tier)
-    ? { tier: tier as Tier, forceWebGL: backend === 'webgl2' }
+    ? { tier: tier as Tier, forceWebGL: backend === 'webgl2', judged: judged === true }
     : null;
 }
 
