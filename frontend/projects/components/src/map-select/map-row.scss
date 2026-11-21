@@ -1,0 +1,36 @@
+// Block map-row (docs/design-system/assets/components.css, Map Select).
+:host {
+  display: grid;
+  grid-template-columns: var(--space-24) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: none;
+  padding: var(--space-2);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+
+  @media (min-width: 40rem) {
+    grid-template-columns: var(--space-44) minmax(0, 1fr) auto;
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.map-row__text {
+  min-width: 0;
+}
+
+.map-row__name {
+  display: block;
+  font-weight: var(--font-weight-semibold);
+  transition: color var(--duration-fast) var(--ease-standard);
+}

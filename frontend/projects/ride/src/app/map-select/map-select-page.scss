@@ -1,0 +1,17 @@
+@use '../../styles/page';
+
+// Block maps (docs/design-system/assets/components.css, Map Select): the path beside a 280 px aside from lg.
+.maps-layout {
+  display: grid;
+  gap: var(--space-10);
+
+  @media (min-width: 64rem) {
+    grid-template-columns: minmax(0, 1fr) var(--maps-aside-width);
+  }
+}
+
+.maps__lead {
+  max-width: var(--layout-text-xl);
+  margin-top: var(--space-2);
+  color: var(--color-muted);
+}

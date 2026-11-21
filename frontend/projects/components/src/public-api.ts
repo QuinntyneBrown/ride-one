@@ -33,3 +33,6 @@ export { Hero } from './hero/hero';
 export { SiteFooter } from './site-footer/site-footer';
 export { SiteLink } from './site-link/site-link';
 export { SiteNav } from './site-nav/site-nav';
+export { MapPath } from './map-select/map-path';
+export { MapPathItem } from './map-select/map-path-item';
+export { MapRow } from './map-select/map-row';

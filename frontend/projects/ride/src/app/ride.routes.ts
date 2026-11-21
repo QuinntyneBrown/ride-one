@@ -41,6 +41,12 @@ export const rideRoutes: Routes = [
             loadComponent: () => import('./home/home-page'),
           },
           {
+            path: 'race',
+            pathMatch: 'full',
+            loadChildren: () =>
+              import('./map-select/map-select.routes').then((m) => m.mapSelectRoutes),
+          },
+          {
             path: 'classes',
             loadChildren: () =>
               import('./class-library/class-library.routes').then((m) => m.classLibraryRoutes),

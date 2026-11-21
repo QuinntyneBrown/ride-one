@@ -33,4 +33,8 @@ export {
 } from './video/video-player';
 export type { Plan, Segment, SegmentKind } from './workout/plan';
 export { SCREEN_WAKE_LOCK, type ScreenWakeLock } from './screen/screen-wake-lock';
+export { HttpMapsApi } from './maps/http-maps-api';
+export type { MapDto, MapRating } from './maps/map-dto';
+export { MAPS_API, type MapsApi } from './maps/maps-api';
+export type { MapProgressDto } from './progress/map-progress-dto';
 export { PROGRESS_API, type ProgressApi } from './progress/progress-api';
