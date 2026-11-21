@@ -48,6 +48,7 @@ import {
   scaleFaceUv,
   type SceneStreet,
   seeded,
+  slopeAt,
   type Wardrobe,
 } from './world-kit';
 import type { StreetPoint } from './world-oldtown';
@@ -153,6 +154,8 @@ interface Prop {
   readonly mesh: Group;
   readonly offset: number;
   readonly x: number;
+  /** Lies on the road, as paint does, and takes its slope. */
+  readonly lies?: boolean;
 }
 
 export class IbizaStreet implements SceneStreet {
@@ -242,11 +245,12 @@ export class IbizaStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
-    const ground = (metres: number) => heightAt(Math.max(metres, 0));
+    const ground = (metres: number) => heightAt(metres);
     for (const prop of this.props) {
       const metres = along(prop.offset, LOOP);
       prop.mesh.visible = metres < AHEAD - 12;
-      prop.mesh.position.set(prop.x, ground(metres) + KERB, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB, -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     this.sea.position.y = ground(0);
