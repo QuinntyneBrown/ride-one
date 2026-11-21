@@ -16,6 +16,8 @@ export interface WorldRideReport {
   backend: 'webgpu' | 'webgl2';
   /** The time between each drawn frame and the one before, in ms, oldest first. */
   frames: number[];
+  /** GPU time of each frame, in ms, from timer queries; null where the browser offers none. */
+  gpuMs: number[] | null;
   /** Draw calls in the latest frame, every pass included. */
   drawCalls: number;
   /** Shader programs alive. */

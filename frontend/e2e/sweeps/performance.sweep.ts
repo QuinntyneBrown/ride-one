@@ -78,7 +78,9 @@ test.describe('frame times per scene and tier (#674)', () => {
         await new WorldRidePage(page).startClass(scene.id, scene.title);
         await expect.poll(() => worldRide.report(), STARTED).not.toBeNull();
         await page.waitForTimeout(WARM_UP_MS);
-        const skipped = (await worldRide.report())?.frames.length ?? 0;
+        const warm = await worldRide.report();
+        const skipped = warm?.frames.length ?? 0;
+        const skippedGpu = warm?.gpuMs?.length ?? 0;
         await page.waitForTimeout(RECORD_MS);
         const report = await worldRide.report();
         if (!report) throw new Error('the scene stopped reporting');
@@ -93,6 +95,13 @@ test.describe('frame times per scene and tier (#674)', () => {
           frames: frames.length,
           medianMs: percentile(frames, 0.5),
           p95Ms: percentile(frames, 0.95),
+          // GPU time per frame from timer queries; null where the browser offers none (#675).
+          gpuMedianMs: report.gpuMs
+            ? percentile(
+                report.gpuMs.slice(skippedGpu).sort((a, b) => a - b),
+                0.5,
+              )
+            : null,
           drawCalls: report.drawCalls,
           programs: report.programs,
         };
@@ -106,6 +115,7 @@ test.describe('frame times per scene and tier (#674)', () => {
         expect(frames.length).toBeGreaterThan(0);
         expect(report.drawCalls).toBeGreaterThan(0);
         expect(report.programs).toBeGreaterThan(0);
+        expect(report.gpuMs === null || report.gpuMs.length > 0).toBe(true);
       });
     }
   }
