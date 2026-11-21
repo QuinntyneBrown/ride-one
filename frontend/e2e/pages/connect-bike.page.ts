@@ -8,6 +8,11 @@ export class ConnectBikePage {
   readonly pairButton: Locator;
   readonly searching: Locator;
   readonly pairedCheck: Locator;
+  readonly worksWith: Locator;
+  readonly worksWithBikes: Locator;
+  readonly worksWithStatuses: Locator;
+  readonly blocker: Locator;
+  readonly blockerAction: Locator;
 
   constructor(private readonly page: Page) {
     this.title = page.getByRole('heading', { level: 1 });
@@ -16,11 +21,24 @@ export class ConnectBikePage {
     this.pairButton = page.locator('.connect__pair-btn');
     this.searching = page.locator('.connect-device__searching');
     this.pairedCheck = page.getByLabel('Paired', { exact: true });
+    this.worksWith = page.getByRole('region', { name: 'Works with' });
+    this.worksWithBikes = page.locator('.connect-works__item > :first-child');
+    this.worksWithStatuses = page.locator('.connect-works__status');
+    this.blocker = page.getByRole('alert');
+    this.blockerAction = page.locator('.connect-blocker__action');
   }
 
   /** Opens Connect Bike; `simulate` adds `?simulate`, which only a development build honours. */
   async open(options: { simulate?: boolean } = {}): Promise<void> {
     await this.page.goto(options.simulate ? '/connect?simulate' : '/connect');
+  }
+
+  /** The top of each "Works with" row, in order: equal tops share a line. */
+  async worksWithRowTops(): Promise<number[]> {
+    const boxes = await this.page
+      .locator('.connect-works__item')
+      .evaluateAll((items) => items.map((item) => item.getBoundingClientRect().top));
+    return boxes.map(Math.round);
   }
 
   async pair(): Promise<void> {

@@ -1,4 +1,5 @@
 export { SIMULATED_BIKE, SimulatedBikeConnection } from './bluetooth/simulated-bike-connection';
+export { SUPPORTED_BIKES } from './bluetooth/supported-bikes';
 export { SimulatedRiderProfile } from './bluetooth/simulated-rider-profile';
 export { WebBluetoothBikeConnection } from './bluetooth/web-bluetooth-bike-connection';
 export { SecondTicker } from './engine/second-ticker';
