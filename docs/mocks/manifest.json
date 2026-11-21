@@ -1,5 +1,6 @@
 {
-  "project": "Wattzup",
+  "project": "Telo Ride",
+  "source": "Magic Patterns OS vnjsCrjBAfcZGnW9rHMoch, prototype “Ride” f5zb7cLTQFMdzC5JcFyupj",
   "required_states": {
     "page": [
       "default",
@@ -21,274 +22,337 @@
   },
   "screens": [
     {
-      "id": "ride",
+      "id": "connect-bike",
       "kind": "page",
-      "title": "Ride dashboard",
-      "route": "/",
+      "title": "Connect Bike",
+      "route": "/connect",
       "requirements": [
         "L2-018",
-        "L2-019",
-        "L2-020",
-        "L2-021",
-        "L2-023",
-        "L2-024",
-        "L2-025",
-        "L2-026",
-        "L2-027",
-        "L2-040",
-        "L2-041",
-        "L2-013",
-        "L2-058",
-        "L2-076",
-        "L2-084",
-        "L2-079",
         "L2-089",
-        "L2-090",
-        "L2-088"
+        "L2-090"
       ],
       "states": [
         "default",
-        "loading",
-        "empty",
-        "paused",
-        "disconnected",
-        "complete",
-        "ended",
-        "flat",
-        "manual",
-        "edge",
-        "video",
-        "video-blocked",
-        "class-workout",
-        "unsupported",
-        "insecure",
+        "searching",
+        "pairing",
+        "paired",
         "bluetooth-off",
-        "no-bike"
+        "unsupported-browser"
       ],
       "not_applicable": {
-        "error": "Wattzup reads the bike in the page, so there is no state that can fail to load; Bluetooth failures are the bluetooth-off, unsupported, insecure and disconnected states."
+        "empty": "‘searching’ is the empty state: no bike found yet, the list waits for one.",
+        "error": "The Bluetooth failures the design draws are their own states: bluetooth-off and unsupported-browser.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for."
       }
     },
     {
-      "id": "world-ride",
+      "id": "home",
       "kind": "page",
-      "title": "World Ride",
-      "opens_from": "class",
+      "title": "Home",
+      "route": "/",
+      "requirements": [],
+      "states": [
+        "default",
+        "new-rider",
+        "veteran",
+        "unlocked",
+        "disconnected"
+      ],
+      "not_applicable": {
+        "empty": "‘new-rider’ is the empty state: no rides yet, two starting maps, the first unlock shown as the Next ride.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
+      }
+    },
+    {
+      "id": "map-select",
+      "kind": "page",
+      "title": "Map Select",
+      "route": "/race",
       "requirements": [
-        "L2-018",
-        "L2-019",
-        "L2-020",
-        "L2-021",
-        "L2-024",
-        "L2-025",
-        "L2-049",
-        "L2-100",
-        "L2-101",
+        "L2-101"
+      ],
+      "states": [
+        "default",
+        "new-rider",
+        "veteran"
+      ],
+      "not_applicable": {
+        "empty": "There is always something to ride: two maps are open from the start (‘new-rider’ shows that floor).",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
+      }
+    },
+    {
+      "id": "race-setup",
+      "kind": "page",
+      "title": "Race Setup",
+      "route": "/race/:mapId",
+      "requirements": [
+        "L2-102",
+        "L2-107",
+        "L2-114"
+      ],
+      "states": [
+        "default",
+        "solo",
+        "peers",
+        "hard",
+        "new-rider",
+        "prairie",
+        "coast",
+        "docklands",
+        "dolomites",
+        "vice"
+      ],
+      "not_applicable": {
+        "empty": "A map always has its three modes; ‘new-rider’ shows vs Riders locked until level 3.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
+      }
+    },
+    {
+      "id": "race-lobby",
+      "kind": "page",
+      "title": "Race Lobby",
+      "route": "/race/:mapId/lobby",
+      "requirements": [
+        "L2-114",
+        "L2-115",
+        "L2-116",
+        "L2-117"
+      ],
+      "states": [
+        "default",
+        "bots",
+        "filling",
+        "someone-left",
+        "countdown"
+      ],
+      "not_applicable": {
+        "empty": "The grid is never empty: you hold seat one and bots fill every empty seat before the start.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
+      }
+    },
+    {
+      "id": "race",
+      "kind": "page",
+      "title": "Race",
+      "route": "/race/:mapId/ride",
+      "requirements": [
         "L2-102",
         "L2-103",
         "L2-104",
         "L2-105",
         "L2-106",
         "L2-107",
-        "L2-108",
         "L2-109",
         "L2-110",
+        "L2-118",
+        "L2-119",
+        "L2-120",
+        "L2-121",
         "L2-128"
       ],
       "states": [
         "default",
-        "docklands",
-        "granite",
-        "oldtown",
-        "prairie",
-        "dolomites",
-        "coast",
-        "muted",
+        "solo",
+        "peers",
         "paused",
-        "disconnected",
-        "ended",
-        "loading",
-        "error",
-        "scenery-ready",
-        "renderer-unavailable"
+        "disconnected"
       ],
       "not_applicable": {
-        "empty": "A World Ride always has a selected class and plan. The class library owns the empty catalogue."
-      },
-      "route": "/classes/:id/world"
+        "empty": "A race always has riders on the board (you and, solo, your best-time ghost).",
+        "error": "The bike dropping is the error this screen has; it is the ‘disconnected’ state.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for."
+      }
     },
     {
-      "id": "class-worlds",
+      "id": "results",
       "kind": "page",
-      "title": "Class Worlds design canvas",
-      "requirements": [],
+      "title": "Results",
+      "route": "/results",
+      "requirements": [
+        "L2-084",
+        "L2-085",
+        "L2-123"
+      ],
       "states": [
-        "default"
+        "default",
+        "win",
+        "mid-pack",
+        "solo",
+        "peers",
+        "class",
+        "class-group"
       ],
       "not_applicable": {
-        "loading": "The source is a fixed design-review canvas of six local class snapshots.",
-        "empty": "The source is a fixed design-review canvas of six local class snapshots.",
-        "error": "The source is a fixed design-review canvas of six local class snapshots."
+        "empty": "Results only exist after a ride finishes; there is always a standing and XP.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
       }
     },
     {
       "id": "class-library",
       "kind": "page",
-      "title": "Class library",
+      "title": "Class Library",
       "route": "/classes",
       "requirements": [
         "L2-077",
-        "L2-078",
         "L2-079",
-        "L2-040",
-        "L2-041",
-        "L2-086"
+        "L2-096",
+        "L2-100"
       ],
       "states": [
         "default",
-        "filtered",
-        "loading",
-        "empty",
-        "error",
-        "disconnected"
+        "new-rider",
+        "veteran",
+        "tier-20",
+        "tier-30",
+        "tier-60"
       ],
-      "not_applicable": {}
+      "not_applicable": {
+        "empty": "The catalogue ships with the app; every shelf always holds classes. ‘new-rider’ shows locked classes.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
+      }
     },
     {
-      "id": "class",
+      "id": "class-start",
       "kind": "page",
-      "title": "Class page",
+      "title": "Class Start",
       "route": "/classes/:id",
       "requirements": [
-        "L2-010",
-        "L2-029",
         "L2-076",
-        "L2-078",
         "L2-080",
-        "L2-040",
-        "L2-041",
         "L2-089",
-        "L2-088",
-        "L2-098"
+        "L2-114"
       ],
       "states": [
         "default",
-        "no-link",
-        "invalid-link",
-        "edited",
-        "flat",
-        "loading",
-        "submitting",
-        "error",
-        "not-found",
-        "unsupported",
-        "insecure",
-        "offline"
+        "solo",
+        "starting-soon",
+        "full",
+        "needs-chromium",
+        "needs-https"
       ],
       "not_applicable": {
-        "empty": "A class always has a plan; an unknown class is the not-found state."
+        "empty": "A class always has its plan and its next group session.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
       }
     },
     {
-      "id": "session",
+      "id": "class-ride",
       "kind": "page",
-      "title": "Session Summary",
-      "route": "/sessions/:id",
+      "title": "Class Ride",
+      "route": "/classes/:id/ride",
       "requirements": [
-        "L2-083",
-        "L2-084",
-        "L2-085",
-        "L2-087",
-        "L2-040",
-        "L2-041",
-        "L2-094",
-        "L2-088"
+        "L2-021",
+        "L2-024",
+        "L2-025",
+        "L2-046",
+        "L2-076",
+        "L2-109"
       ],
       "states": [
         "default",
-        "from-list",
-        "ended-early",
-        "first-ride",
-        "no-dips",
-        "goal-hit",
-        "loading",
-        "not-found",
-        "error",
-        "not-kept"
+        "solo",
+        "paused",
+        "disconnected"
       ],
       "not_applicable": {
-        "empty": "A session always has a ride; a missing one is not-found."
+        "empty": "A class ride always has its video and plan; a ride alone shows no rider board (‘solo’).",
+        "error": "The bike dropping is the error this screen has; it is the ‘disconnected’ state.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for."
       }
     },
     {
-      "id": "progress",
+      "id": "profile",
       "kind": "page",
-      "title": "Progress",
-      "route": "/progress",
+      "title": "Profile",
+      "route": "/profile",
       "requirements": [
-        "L2-083",
         "L2-086",
         "L2-087",
-        "L2-040",
-        "L2-041",
-        "L2-094",
-        "L2-088"
+        "L2-094"
       ],
       "states": [
         "default",
-        "measure-dips",
-        "rode-today",
-        "no-trend",
-        "loading",
-        "error",
-        "imported",
-        "nothing-new",
-        "not-a-backup",
-        "partly-rejected",
-        "empty"
+        "new-rider",
+        "veteran"
       ],
-      "not_applicable": {}
+      "not_applicable": {
+        "empty": "‘new-rider’ is the empty state: level 1, no rides, no stars yet.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
+      }
     },
     {
-      "id": "setup",
+      "id": "custom-setup",
       "kind": "page",
-      "title": "Set up your ride",
-      "route": "/setup",
+      "title": "Custom workout",
+      "route": "/profile/custom",
       "requirements": [
         "L2-010",
         "L2-029",
-        "L2-040",
-        "L2-041",
-        "L2-045",
         "L2-059",
         "L2-060",
-        "L2-076",
-        "L2-089",
-        "L2-088"
+        "L2-089"
       ],
       "states": [
         "default",
         "flat",
-        "intervals",
-        "intervals-invalid",
-        "video",
-        "video-invalid",
-        "loading",
-        "error",
-        "invalid",
-        "submitting",
-        "unsupported",
-        "insecure"
+        "needs-chromium",
+        "needs-https"
       ],
       "not_applicable": {
-        "empty": "Setup always shows values: the saved draft, or the default plan on first run (L2-029)."
+        "empty": "The form always starts from a plan (the GCN 30-minute ladder), never blank.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for.",
+        "error": "The design draws no error state for this screen: nothing on it is fetched, so nothing can fail to load."
+      }
+    },
+    {
+      "id": "custom-ride",
+      "kind": "page",
+      "title": "Custom ride",
+      "route": "/profile/custom/ride",
+      "requirements": [
+        "L2-018",
+        "L2-019",
+        "L2-020",
+        "L2-021",
+        "L2-024",
+        "L2-025",
+        "L2-026",
+        "L2-046",
+        "L2-047",
+        "L2-058",
+        "L2-089",
+        "L2-090"
+      ],
+      "states": [
+        "default",
+        "flat",
+        "paused",
+        "disconnected",
+        "no-bike",
+        "bluetooth-off",
+        "needs-chromium",
+        "needs-https"
+      ],
+      "not_applicable": {
+        "empty": "‘no-bike’ is the empty state: before a bike is picked, the dashboard asks for one.",
+        "error": "The connection failures the design draws are their own states: disconnected, bluetooth-off, needs-chromium and needs-https.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for."
       }
     },
     {
       "id": "not-found",
       "kind": "page",
       "title": "Page not found",
-      "route": "*",
+      "route": "/*",
       "requirements": [
         "L2-056"
       ],
@@ -296,160 +360,65 @@
         "default"
       ],
       "not_applicable": {
-        "loading": "Served by the SPA fallback with no data request.",
-        "empty": "Static page with no collection.",
-        "error": "This page is itself the error page for unknown routes."
-      }
-    },
-    {
-      "id": "end-ride",
-      "kind": "dialog",
-      "title": "End ride",
-      "opens_from": "ride",
-      "requirements": [
-        "L2-051",
-        "L2-017"
-      ],
-      "states": [
-        "default",
-        "busy",
-        "failed"
-      ],
-      "not_applicable": {
-        "invalid": "Confirmation only; the dialog has no inputs."
-      }
-    },
-    {
-      "id": "replace-ride",
-      "kind": "dialog",
-      "title": "Replace ride in progress",
-      "opens_from": "setup",
-      "requirements": [
-        "L2-013",
-        "L2-017"
-      ],
-      "states": [
-        "default",
-        "busy",
-        "failed"
-      ],
-      "not_applicable": {
-        "invalid": "Confirmation only; the dialog has no inputs."
-      }
-    },
-    {
-      "id": "edit-set",
-      "kind": "dialog",
-      "title": "Edit set",
-      "opens_from": "setup",
-      "requirements": [
-        "L2-010",
-        "L2-029"
-      ],
-      "states": [
-        "default",
-        "invalid"
-      ],
-      "not_applicable": {
-        "busy": "Save only changes the draft in the browser; there is no request.",
-        "failed": "Save only changes the draft in the browser; nothing can fail."
-      }
-    },
-    {
-      "id": "edit-stretch",
-      "kind": "dialog",
-      "title": "Warm-up and cool-down",
-      "opens_from": "setup",
-      "requirements": [
-        "L2-010",
-        "L2-029"
-      ],
-      "states": [
-        "default",
-        "invalid"
-      ],
-      "not_applicable": {
-        "busy": "Save only changes the draft in the browser; there is no request.",
-        "failed": "Save only changes the draft in the browser; nothing can fail."
+        "empty": "A not-found page has no collection to be empty.",
+        "error": "This page is itself the error page.",
+        "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for."
       }
     },
     {
       "id": "diagnostics",
       "kind": "dialog",
       "title": "Diagnostics",
-      "opens_from": "ride",
+      "opens_from": "profile",
       "requirements": [
         "L2-023",
-        "L2-095",
-        "L2-089"
+        "L2-048",
+        "L2-095"
       ],
       "states": [
         "default",
         "packets",
+        "no-bike",
         "bluetooth-off"
       ],
       "not_applicable": {
-        "busy": "Read-only panel; it starts no action that can be in flight.",
-        "invalid": "Read-only panel; the dialog has no inputs."
+        "busy": "Diagnostics only reads live state; nothing on it is submitted.",
+        "invalid": "Diagnostics has no fields to validate; its one control is a switch."
       }
     },
     {
-      "id": "ride-toast",
-      "kind": "notification",
-      "title": "Ride toast",
-      "opens_from": "ride",
+      "id": "end-ride",
+      "kind": "dialog",
+      "title": "Leave this ride",
+      "opens_from": "custom-ride",
       "requirements": [
-        "L2-016",
-        "L2-020",
-        "L2-027"
+        "L2-051",
+        "L2-092"
       ],
       "states": [
-        "info",
-        "success",
-        "warning",
-        "danger",
-        "with-action",
-        "stacked"
-      ]
-    },
-    {
-      "id": "phase-banner",
-      "kind": "notification",
-      "title": "Step-change banner",
-      "opens_from": "ride",
-      "requirements": [
-        "L2-027",
-        "L2-041"
-      ],
-      "states": [
-        "effort",
-        "recover",
-        "countdown"
+        "default"
       ],
       "not_applicable": {
-        "info": "The banner is a workout cue whose look is set by the interval kind, not by severity; severities are covered by ride-toast and connection-banner.",
-        "success": "The banner is a workout cue whose look is set by the interval kind, not by severity; severities are covered by ride-toast and connection-banner.",
-        "warning": "The banner is a workout cue whose look is set by the interval kind, not by severity; severities are covered by ride-toast and connection-banner.",
-        "danger": "The banner is a workout cue whose look is set by the interval kind, not by severity; severities are covered by ride-toast and connection-banner."
+        "busy": "Ending saves to IndexedDB on the device at once; the design draws no wait.",
+        "invalid": "End ride is a confirmation with no fields."
       }
     },
     {
-      "id": "connection-banner",
-      "kind": "notification",
-      "title": "Connection banner",
-      "opens_from": "ride",
-      "requirements": [
-        "L2-054",
-        "L2-018",
-        "L2-099"
-      ],
+      "id": "feedback",
+      "kind": "dialog",
+      "title": "Send feedback",
+      "opens_from": "custom-ride",
+      "requirements": [],
       "states": [
-        "info",
-        "success",
-        "danger"
+        "default",
+        "idea",
+        "kudos",
+        "sending",
+        "sent"
       ],
       "not_applicable": {
-        "warning": "Wattzup has no server connection to lose; warnings during a ride are toasts (ride-toast)."
+        "busy": "‘sending’ is the busy state.",
+        "invalid": "The design draws no invalid state: Send stays disabled until there is a message."
       }
     }
   ]

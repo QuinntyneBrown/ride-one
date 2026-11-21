@@ -1,0 +1,60 @@
+/* ui/connect.css — Connect Bike (frame 7tpdTkBdToAjPCJf9iKf19): first-run pairing. No app header,
+   just the lockup; the bike photo beside the pairing column on lg, under it below. */
+
+/* The page scrolls as one (main: flex h-screen flex-col overflow-y-auto) */
+.connect { overflow-y: auto; }
+.connect__header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); }
+@media (min-width: 40rem) { .connect__header { padding-inline: var(--space-6); } }
+@media (min-width: 64rem) { .connect__header { padding-inline: var(--space-8); } }
+
+/* mx-auto grid w-full max-w-5xl flex-1 items-center gap-10 px-4 pb-10 sm:px-6 lg:grid-cols-2 lg:gap-16 */
+.connect__body {
+  flex: 1; display: grid; align-items: center; gap: var(--space-10);
+  width: 100%; max-width: var(--layout-container-narrow); margin-inline: auto;
+  padding: 0 var(--space-4) var(--space-10);
+}
+@media (min-width: 40rem) { .connect__body { padding-inline: var(--space-6); } }
+@media (min-width: 64rem) { .connect__body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-16); } }
+.connect__media { order: 99; }
+@media (min-width: 64rem) { .connect__media { order: 0; } }
+.connect__photo { aspect-ratio: 1 / 1; width: 100%; max-width: 28rem; border-radius: var(--radius-2xl); object-fit: cover; }
+@media (min-width: 64rem) { .connect__photo { max-width: none; } }
+
+.connect__title { font-size: var(--font-size-3xl); line-height: var(--line-height-3xl); font-weight: var(--font-weight-semibold); letter-spacing: var(--letter-spacing-tight); }
+@media (min-width: 40rem) { .connect__title { font-size: var(--font-size-4xl); line-height: var(--line-height-4xl); } }
+.connect__lead { margin-top: var(--space-3); max-width: 28rem; color: var(--color-muted); }
+
+/* The found bike and the pair button */
+.connect__pair { margin-top: var(--space-8); }
+.connect-device { border-radius: var(--radius-xl); background: var(--color-panel); padding: var(--space-4); }
+.connect-device__searching { display: flex; align-items: center; gap: var(--space-3); padding-block: var(--space-2); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+.connect-device__spinner { color: var(--color-volt-fg); }
+.connect-device__row { display: flex; align-items: center; gap: var(--space-4); }
+.connect-device__info { flex: 1; min-width: 0; }
+.connect-device__name { font-weight: var(--font-weight-semibold); }
+.connect-device__signal { margin-top: var(--space-0-5); display: flex; align-items: center; gap: var(--space-1-5); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+.connect-device__signal-icon, .connect-device__check { color: var(--color-volt-fg); }
+/* disabled:bg-raised disabled:text-muted (not the kit's 40% fade) */
+.connect__pair-btn { margin-top: var(--space-4); }
+.connect__pair-btn:disabled { opacity: 1; background: var(--color-raised); color: var(--color-muted); }
+.connect__pair-btn:disabled:active { transform: none; }
+.mock-note.connect__note { position: static; margin-top: var(--space-4); max-width: none; }
+.connect__note a { text-decoration: underline; }
+
+/* Blocker: Bluetooth off / unsupported browser (mt-8 rounded-xl bg-panel p-5) */
+.connect-blocker { margin-top: var(--space-8); border-radius: var(--radius-xl); background: var(--color-panel); padding: var(--space-5); }
+.connect-blocker__head { display: flex; align-items: center; gap: var(--space-3); }
+.connect-blocker__icon--heart { color: var(--color-heart-fg); }
+.connect-blocker__icon--warn { color: var(--color-warn-fg); }
+.connect-blocker__title { font-weight: var(--font-weight-semibold); }
+.connect-blocker__body { margin-top: var(--space-2); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+.connect-blocker__retry { margin-top: var(--space-4); }
+
+/* Works with (mt-10 border-t pt-5; list 1 column, 2 from sm) */
+.connect-works { margin-top: var(--space-10); border-top: var(--border-width-hairline) solid var(--color-line); padding-top: var(--space-5); }
+.connect-works__title { font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-medium); color: var(--color-muted); }
+.connect-works__list { margin-top: var(--space-3); display: grid; grid-template-columns: minmax(0, 1fr); column-gap: var(--space-6); row-gap: var(--space-2); font-size: var(--font-size-sm); line-height: var(--line-height-sm); }
+@media (min-width: 40rem) { .connect-works__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.connect-works__item { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.connect-works__status { font-size: var(--font-size-xs); line-height: var(--line-height-xs); white-space: nowrap; color: var(--color-faint); }
+.connect-works__status--beta { color: var(--color-warn-fg); }
