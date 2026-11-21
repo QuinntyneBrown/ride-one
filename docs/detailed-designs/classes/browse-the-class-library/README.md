@@ -16,9 +16,9 @@ the rider's level has not yet opened.
 
 > **class tier** — rider level at which a class opens ("Opens at level 10")
 
-The catalogue is data, not code. The backend holds it, validates every class plan and serves
-only valid classes. The Ride app caches the catalogue so the library still reads without a
-network (`L2-135`). The rider's level, which decides the locks, comes from the backend's
+The catalogue is data, not code. The backend ships it as a JSON file, validates every class and
+serves only valid classes, to anyone, signed in or not (ADR 0028). The Ride app caches the
+catalogue so the library and a solo class still read without a network (`L2-135`). The rider's level, which decides the locks, comes from the backend's
 progress (`L2-044`); the tier rule itself belongs to the progression subsystem (`L2-043`).
 
 The Class Library lives at `/classes`. An open class card leads to that class's Class Start
@@ -56,35 +56,45 @@ The slice runs from the library page down to the catalogue rows in the database.
 
 **Frontend — `api` and `domain` libraries**
 
-- **`ClassesApi`** / `CLASSES_API` / **`HttpClassesApi`** — contract, token and HTTP client for
-  `GET /api/classes`. Returns `ClassDto[]` and the shelves.
+- **`ClassesApi`** / `CLASSES_API` — contract and token: `list()` returns the
+  `ClassCatalogueDto` (shelves and classes), `get(id)` one class. **`HttpClassesApi`** (`api`) is
+  its HTTP client for `GET /api/classes`; it does nothing else.
 - **`ClassDto`** — id, title, channel, focus, length in seconds, opens-at level, shelf id,
-  summary, `VideoDto { videoId, syncOffsetSeconds }` and `PlanDto`.
+  summary, world, `VideoDto { videoId, syncOffsetSeconds }` and `PlanDto`.
+- **`CachedClassesApi`** (`domain/storage`) — the `CLASSES_API` the app binds. It asks
+  `HttpClassesApi` for the catalogue, saves each answer in `CatalogueCache` and, when the request
+  fails, answers from the cache; `get(id)` finds the class in that catalogue, or refuses with the
+  code `class_not_found`. The library and the class ride both read through it.
 - **`ProgressApi`** / `PROGRESS_API` — owned by the progression subsystem; this slice reads only
   the rider level.
-- **`CatalogueCache`** (`domain/storage`) — keeps the last catalogue in IndexedDB for offline
-  reading.
+- **`CatalogueCache`** (`domain/storage`) — keeps the last catalogue in `localStorage`
+  (`telo-ride.class-catalogue`) for offline reading (ADR 0028).
 
 **Backend**
 
-- **`ClassesController`** (`Telo.Ride.Api`) — `GET /api/classes`. It sends one
-  `GetClassesQuery`.
-- **`GetClassesQueryHandler`** (`Telo.Ride.Application`) — reads `ClassDefinition` rows through
-  `IAppDbContext`, keeps those that pass `ClassPlanRules`, orders them by shelf and catalogue
-  order, and maps them to `ClassDto`.
+- **`ClassesController`** (`Telo.Ride.Api`, `[AllowAnonymous]`) — `GET /api/classes` sends one
+  `GetClassesQuery`; `GET /api/classes/{id}` sends one `GetClassQuery`, which refuses an unknown
+  or invalid class with 404 and the code `class_not_found`.
+- **`GetClassesQueryHandler`** (`Telo.Ride.Application`) — reads the catalogue through
+  `IClassCatalogue`, keeps the classes that pass `ClassPlanRules` in catalogue order, logs each
+  one left out by id, and maps them and the shelves to `ClassCatalogueDto`.
 - **`ClassDefinition`** (`Telo.Ride.Domain`) — catalogue entry: id, title, channel, focus,
-  length, opens-at level, shelf, summary, YouTube video id, sync offset and plan.
-- **`ClassPlanRules`** (`Telo.Ride.Domain`) — validates a class plan: every segment level is 1
-  to 32 and the plan's total equals the class length (`L2-080` AC4). An invalid class is left out
-  of the listing and logged by id.
-- **`CatalogueSeeder`** (`Telo.Ride.Infrastructure`) — idempotent seed run by the migration CLI
-  command. It writes the seven classes of `L2-080` AC1 as `ClassDefinition` rows, so a catalogue
-  change ships without a change to app code. The seed's source file and format are
-  `<TO SUPPLY>`; ADR 0014 placed the catalogue in a file read by the backend before the backend
-  had a database, and an ADR settles whether the file or the database is authoritative.
+  length, opens-at level, shelf, summary, world, YouTube video id, sync offset and plan.
+- **`ClassPlanRules`** (`Telo.Ride.Domain`) — validates a class: a YouTube video id of 11
+  characters from `A–Z a–z 0–9 _ -`, a sync offset of 0 or more, segment levels 1 to 32,
+  durations above 0, and a plan total equal to the class length (`L2-080` AC4).
+- **`IClassCatalogue`** (`Telo.Ride.Application`) and **`EmbeddedClassCatalogue`**
+  (`Telo.Ride.Infrastructure`) — the port and its reader of `Catalogue/classes.json`, embedded in
+  the assembly and read once (ADR 0028). Tests replace the port; none reads a file.
 
 The cover image URL is built from the validated video id
 (`https://i.ytimg.com/vi/<videoId>/mqdefault.jpg`, ADR 0014), never from a submitted link.
+
+**Slices.** Slice 6.1 builds the catalogue: the backend's endpoints, file and rules, and
+`CachedClassesApi` with its cache, which the class ride reads from then on, so a solo class
+starts without a network once the catalogue has been read. Slice 6.2 builds the Class Library
+screen, its store and its components; the group chip comes with the group class (journey 14),
+and the locks with the rider level (journey 12).
 
 ## Requirements
 
@@ -148,3 +158,9 @@ request (`L2-081` AC2).
 locked class to the library (`L2-082` AC4).
 
 ![Sequence diagram for opening a locked class's address](diagrams/sequence-open-a-locked-class.png)
+
+## Open questions
+
+- **The six classes' own videos.** Only 30 Minute HIIT Cardio has a published video. The Telo
+  Ride Studio and Scenic classes carry GCN Training stand-ins of the same focus (ADR 0028) until
+  the owner supplies each `videoId` and `syncOffsetSeconds`.
