@@ -5,7 +5,12 @@ import { EchelonProtocol } from '../protocol/echelon-protocol';
 import { SimulatedRiderProfile } from './simulated-rider-profile';
 
 /** The bike the simulator plays: an Echelon EX-5s. */
-export const SIMULATED_BIKE: BikeInfo = { id: 'EX5S-0bf669f1', name: 'Echelon EX-5s' };
+export const SIMULATED_BIKE: BikeInfo = {
+  id: 'EX5S-0bf669f1',
+  name: 'Echelon EX-5s',
+  identifier: 'EX5S-0bf669f1',
+  kind: 'echelon',
+};
 
 /**
  * A simulated Echelon EX-5s for development builds opened with `?simulate` (L2-024). It never calls

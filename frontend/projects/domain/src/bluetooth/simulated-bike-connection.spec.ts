@@ -29,6 +29,8 @@ describe('SimulatedBikeConnection', () => {
     await expect(bike.requestBike()).resolves.toEqual({
       id: 'EX5S-0bf669f1',
       name: 'Echelon EX-5s',
+      identifier: 'EX5S-0bf669f1',
+      kind: 'echelon',
     });
     expect(SIMULATED_BIKE.name).toBe('Echelon EX-5s');
   });

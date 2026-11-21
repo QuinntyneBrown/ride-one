@@ -26,7 +26,7 @@ export default class ConnectBikePage {
     const bike = 'bike' in view ? view.bike : null;
     const state: ConnectDeviceState =
       view.kind === 'searching' ? 'searching' : view.kind === 'paired' ? 'paired' : 'idle';
-    return { name: bike?.name ?? OFFERED, identifier: bike?.id ?? null, state };
+    return { name: bike?.name ?? OFFERED, identifier: bike?.identifier ?? null, state };
   });
 
   /** The chooser hint shows while the rider is choosing (L2-012 AC5). */

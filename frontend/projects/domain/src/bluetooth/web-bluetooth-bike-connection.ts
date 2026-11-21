@@ -1,25 +1,27 @@
 /// <reference types="web-bluetooth" />
 import { Injectable, type OnDestroy } from '@angular/core';
 import { type BikeConnection, BikeConnectionError, type BikeInfo } from '@telo/api';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { EchelonProtocol } from '../protocol/echelon-protocol';
+import { bikeIdentity } from './bike-identity';
+import { EchelonLink } from './echelon-link';
+import { GattWriteQueue } from './gatt-write-queue';
 
 /** FTMS (0x1826) and Heart Rate (0x180D), the standard services the chooser offers beside Echelon's. */
 const FTMS = 0x1826;
 const HEART_RATE = 0x180d;
 
 /**
- * The link to a real bike over Web Bluetooth, the only code that touches `navigator.bluetooth` (AGENTS.md). Slice 2.1
- * needs the minimum: the chooser filtered to the Echelon service and FTMS, and an Echelon link that subscribes to its
- * notifications and writes set-resistance commands. Slice 2.3 adds the initialisation writes, the FTMS link and the
- * write queue (docs/detailed-designs/bike/connect-a-bike).
+ * The link to a real bike over Web Bluetooth, the only code that touches `navigator.bluetooth` (AGENTS.md). It opens
+ * the chooser filtered to the Echelon service and FTMS (L2-012), connects through the link the device's services
+ * select, and serialises every write through one `GattWriteQueue` (docs/detailed-designs/bike/connect-a-bike).
  */
 @Injectable()
 export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private readonly received = new Subject<Uint8Array>();
+  private readonly queue = new GattWriteQueue();
   private device: BluetoothDevice | null = null;
-  private notifications: BluetoothRemoteGATTCharacteristic | null = null;
-  private writer: BluetoothRemoteGATTCharacteristic | null = null;
+  private link: EchelonLink | null = null;
   private readonly onValue = (event: Event): void => {
     const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
     if (value)
@@ -42,35 +44,39 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       const blocked = error instanceof DOMException && error.name === 'SecurityError';
       throw new BikeConnectionError(blocked ? 'blocked' : 'failed', String(error));
     }
-    return { id: this.device.id, name: this.device.name ?? 'Your bike' };
+    return this.info(this.device);
   }
 
+  /** Opens GATT, subscribes, initialises, and resolves on the first notification after that (L2-013). */
   async connect(): Promise<void> {
-    if (!this.device?.gatt) throw new Error('No bike was chosen');
+    if (!this.device?.gatt) throw new BikeConnectionError('failed', 'No bike was chosen');
     const server = await this.device.gatt.connect();
     const service = await server.getPrimaryService(EchelonProtocol.service);
-    this.notifications = await service.getCharacteristic(EchelonProtocol.notify);
-    this.notifications.addEventListener('characteristicvaluechanged', this.onValue);
-    await this.notifications.startNotifications();
-    this.writer = await service.getCharacteristic(EchelonProtocol.write);
+    const link = new EchelonLink(this.queue, this.onValue);
+    await link.open(service);
+    this.link = link;
+    await link.initialise();
+    await firstValueFrom(this.frames);
   }
 
   async setResistance(level: number): Promise<number> {
-    if (!this.writer) throw new Error('The bike is not connected');
-    const started = performance.now();
-    await this.writer.writeValueWithResponse(EchelonProtocol.setResistance(level));
-    return Math.round(performance.now() - started);
+    if (!this.link) throw new BikeConnectionError('failed', 'The bike is not connected');
+    return this.link.setResistance(level);
   }
 
   disconnect(): void {
-    this.notifications?.removeEventListener('characteristicvaluechanged', this.onValue);
-    this.notifications = null;
-    this.writer = null;
+    this.link?.close();
+    this.link = null;
     this.device?.gatt?.disconnect();
   }
 
   ngOnDestroy(): void {
     this.disconnect();
     this.received.complete();
+  }
+
+  private info(device: BluetoothDevice): BikeInfo {
+    const { name, identifier } = bikeIdentity(device.name, device.id);
+    return { id: device.id, name, identifier, kind: identifier ? 'echelon' : 'ftms' };
   }
 }

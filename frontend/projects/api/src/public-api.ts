@@ -1,5 +1,10 @@
 export { BikeConnectionError, type BikeConnectionErrorCode } from './bike/bike-connection-error';
-export { BIKE_CONNECTION, type BikeConnection, type BikeInfo } from './bike/bike-connection';
+export {
+  BIKE_CONNECTION,
+  type BikeConnection,
+  type BikeInfo,
+  type BikeKind,
+} from './bike/bike-connection';
 export {
   BLUETOOTH_SUPPORT,
   type BluetoothSupport,
