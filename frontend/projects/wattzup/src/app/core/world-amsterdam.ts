@@ -148,6 +148,7 @@ export class AmsterdamStreet implements SceneStreet {
     this.addFamily(roadHalf);
     this.addFlowerStall(roadHalf);
     this.addChatter(roadHalf);
+    this.addFarTerrace(roadHalf);
     this.addBridges(roadHalf);
     this.addHouseboats(roadHalf);
     this.addCommuters(roadHalf);
@@ -2007,6 +2008,48 @@ export class AmsterdamStreet implements SceneStreet {
     meter.position.y = KERB;
     this.group.add(meter);
     this.props.push({ mesh: meter, offset: BRIDGE + 2 + CROSS / 2 + 8.5, x: -roadHalf - 2.2 });
+  }
+
+  /**
+   * Across the canal, a café's terrace spills over the far quay by the water: tables under
+   * cream parasols, people sitting out in the sun facing the canal, in view over the water.
+   */
+  private addFarTerrace(roadHalf: number): void {
+    const random = seeded(887);
+    const cream = this.material({ color: 0xefe6cc, roughness: 0.8, side: DoubleSide });
+    const wood = this.material({ color: 0x6a4a2e, roughness: 0.8 });
+    const people = this.material({ vertexColors: true, roughness: 0.85 });
+    const canopy = new ConeGeometry(1.3, 0.5, 8, 1, true);
+    const pole = new CylinderGeometry(0.03, 0.03, 2.4, 6);
+    pole.translate(0, 1.2, 0);
+    const table = new CylinderGeometry(0.4, 0.4, 0.75, 10);
+    table.translate(0, 0.375, 0);
+    this.disposables.push(canopy, pole, table);
+    const terrace = new Group();
+    for (let t = 0; t < 4; t++) {
+      const spot = new Group();
+      const shade = new Mesh(canopy, cream);
+      shade.position.y = 2.45;
+      spot.add(shade, new Mesh(pole, wood), new Mesh(table, wood));
+      for (const a of [0, Math.PI]) {
+        if (random() < 0.25) continue;
+        const sitter = new Mesh(sitterGeometry(random), people);
+        this.disposables.push(sitter.geometry);
+        sitter.position.set(Math.sin(a) * 0.7, -0.02, Math.cos(a) * 0.7);
+        sitter.rotation.y = a + Math.PI / 2;
+        spot.add(sitter);
+      }
+      spot.position.z = -t * 2.8;
+      terrace.add(spot);
+    }
+    terrace.traverse((o) => (o.castShadow = true));
+    terrace.position.y = KERB;
+    this.group.add(terrace);
+    this.props.push({
+      mesh: terrace,
+      offset: START + BEHIND + 44,
+      x: -roadHalf - QUAY - CANAL - 1.8,
+    });
   }
 
   /** Bicycles crowding the quay's edge, leaning every which way, in tiles along the canal. */

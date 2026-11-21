@@ -93,6 +93,7 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 | [087 · Cirrus](087-cirrus.jpg) | Above the cumulus the sky gets its high cloud: seven thin streaks of cirrus combed out by the wind, brightest along the middle and frayed at the ends, lying across the blue at 400 to 800 m, as a May sky over Holland often has; they show faintly in the gap of sky over the gracht. | 94% · 87/100 |
 | [088 · Child seats](088-child-seats.jpg) | About one commuter in seven carries a toddler in a moulded child seat on the front tube between their arms, in blue, red or green, as Dutch parents ride to the crèche; the riders up the street in the opening view and the [mid-lap view](088-child-seats-detail.jpg) show the street's traffic as it now runs. The scores hold. | 94% · 87/100 |
 | [089 · Battered bollards](089-battered-bollards.jpg) | The row of Amsterdammertjes along the kerb is no longer perfect: in three different runs, now and then one has been knocked out by a reversing van, leaving a gap, and about one in seven stands knocked askew, leaning a few degrees, as the city's bollards do. The scores hold. | 94% · 87/100 |
+| [090 · Far terrace](090-far-terrace.jpg) | Across the canal a café's terrace spills over the far quay by the water: four tables under cream parasols with people sitting out in the sun facing the canal, 44 m up from the start. It sits mostly behind the near quay's bridge railing and houseboats from the opening view, so the scores hold. | 94% · 87/100 |
 
 ## Reproducing a capture
 
