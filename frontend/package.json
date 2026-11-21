@@ -30,6 +30,7 @@
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.1",
     "@types/node": "^24.19.2",
+    "@types/web-bluetooth": "^0.0.22",
     "angular-eslint": "22.7.0",
     "eslint": "^10.14.0",
     "jsdom": "^30.0.0",

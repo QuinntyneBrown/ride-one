@@ -5,17 +5,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Time.Testing;
 using Telo.Ride.Infrastructure;
 
 namespace Telo.Ride.Api.Tests;
 
 /// <summary>
 /// The Telo Ride API hosted in memory for one test class: one fixture, one EF Core InMemory store,
-/// never a real database or file (AGENTS.md). Subclasses change services to inject faults.
+/// never a real database or file, and a <see cref="Clock"/> the test advances instead of sleeping
+/// (AGENTS.md, L2-148). Subclasses override <see cref="ConfigureServices"/> to inject faults.
 /// </summary>
-public class TeloRideApi : WebApplicationFactory<Program>
+public class TeloRideApiFactory : WebApplicationFactory<Program>
 {
     private readonly string store = $"telo-ride-{Guid.NewGuid():N}";
+
+    /// <summary>The API's <see cref="TimeProvider"/>: time moves only when a test advances it.</summary>
+    public FakeTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 11, 21, 7, 0, 0, TimeSpan.Zero));
 
     protected override void ConfigureWebHost(IWebHostBuilder builder) =>
         builder.ConfigureTestServices(services =>
@@ -23,6 +28,7 @@ public class TeloRideApi : WebApplicationFactory<Program>
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();
             services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(store));
+            services.Replace(ServiceDescriptor.Singleton<TimeProvider>(Clock));
             ConfigureServices(services);
         });
 

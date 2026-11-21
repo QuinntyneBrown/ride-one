@@ -24,7 +24,7 @@ public sealed class MigratorSpy(bool fails = false) : IDatabaseMigrator
 }
 
 /// <summary>The API with <see cref="IDatabaseMigrator"/> replaced by a spy.</summary>
-public sealed class MigratorSpyApi : TeloRideApi
+public sealed class MigratorSpyApi : TeloRideApiFactory
 {
     public MigratorSpy Migrator { get; } = new();
 

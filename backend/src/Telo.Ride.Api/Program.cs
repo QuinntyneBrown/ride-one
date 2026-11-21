@@ -2,6 +2,7 @@ using Telo.Ride.Api.Authentication;
 using Telo.Ride.Api.Commands;
 using Telo.Ride.Api.Errors;
 using Telo.Ride.Api.Health;
+using Telo.Ride.Api.Hubs;
 using Telo.Ride.Api.Telemetry;
 using Telo.Ride.Application;
 using Telo.Ride.Infrastructure;
@@ -17,6 +18,9 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
         context.ProblemDetails.Status ?? context.HttpContext.Response.StatusCode));
 builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
+// Code reads time only through TimeProvider, so tests advance a FakeTimeProvider instead of sleeping.
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddTeloRideAuthentication();
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: [DatabaseHealthCheck.Tag]);
 
@@ -38,6 +42,7 @@ app.MapHealthChecks("/health/live", new() { Predicate = _ => false }).AllowAnony
 app.MapHealthChecks("/health/ready", new() { Predicate = check => check.Tags.Contains(DatabaseHealthCheck.Tag) })
     .AllowAnonymous();
 app.MapControllers();
+app.MapHub<RideHub>(RideHub.Path);
 
 await app.RunAsync();
 return 0;
