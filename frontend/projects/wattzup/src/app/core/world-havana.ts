@@ -3023,6 +3023,57 @@ export class HavanaStreet implements SceneStreet {
       ship.position.set(x, 0, z);
       this.horizon.add(ship);
     }
+    // Yachts under sail and a catamaran out on the Gulf: a white hull, a tall mast with its
+    // mainsail and jib catching the light, each heeled a little to the breeze.
+    const canvas = this.material({ color: 0xf8f6f0, roughness: 0.7, side: DoubleSide });
+    const whiteHull = this.material({ color: 0xf0f0ec, roughness: 0.5 });
+    const spar = this.material({ color: 0xb8bcc0, roughness: 0.4, metalness: 0.6 });
+    const main = new BufferGeometry().setFromPoints([
+      new Vector3(0, 1.5, 0),
+      new Vector3(0, 16, 0),
+      new Vector3(0, 1.5, 6),
+    ]);
+    const jib = new BufferGeometry().setFromPoints([
+      new Vector3(0, 1.5, -0.4),
+      new Vector3(0, 14, -0.2),
+      new Vector3(0, 1.5, -5),
+    ]);
+    main.computeVertexNormals();
+    jib.computeVertexNormals();
+    this.disposables.push(main, jib);
+    for (const [x, z, turn, cat] of [
+      [-150, -260, 0.6, false],
+      [-260, -470, -0.4, true],
+      [-120, -700, 1.1, false],
+      [-420, -880, 0.2, false],
+    ] as const) {
+      const yacht = new Group();
+      const body = new Mesh(this.unit, whiteHull);
+      if (cat) {
+        for (const side of [-2.4, 2.4]) {
+          const pontoon = new Mesh(this.unit, whiteHull);
+          pontoon.scale.set(1.2, 1.2, 12);
+          pontoon.position.set(side, water + 0.5, 0);
+          yacht.add(pontoon);
+        }
+        body.scale.set(6, 0.8, 6);
+        body.position.y = water + 1.3;
+      } else {
+        body.scale.set(3.2, 1.6, 12);
+        body.position.y = water + 0.6;
+      }
+      const pole = new Mesh(this.unit, spar);
+      pole.scale.set(0.25, 15, 0.25);
+      pole.position.y = water + 8.5;
+      const mainsail = new Mesh(main, canvas);
+      mainsail.position.y = water;
+      const headsail = new Mesh(jib, canvas);
+      headsail.position.y = water;
+      yacht.add(body, pole, mainsail, headsail);
+      yacht.rotation.set(0, turn, 0.12);
+      yacht.position.set(x, 0, z);
+      this.horizon.add(yacht);
+    }
   }
 
   /**
