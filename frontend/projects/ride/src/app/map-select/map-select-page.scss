@@ -15,3 +15,13 @@
   margin-top: var(--space-2);
   color: var(--color-muted);
 }
+
+// Block maps-error: the warning and Try again, under the lead, at the text measure (L2-046 AC7).
+.maps-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  max-width: var(--layout-text-lg);
+  margin-top: var(--space-8);
+}

@@ -4,6 +4,14 @@
     <p class="maps__lead">
       Each map opens the next. Race well on the ones you have to unlock the rest.
     </p>
+    @if (store.unavailable()) {
+      <div class="maps-error">
+        <wz-inline-message tone="warn" role="alert"
+          >The maps can’t be loaded. Check your connection and try again.</wz-inline-message
+        >
+        <button wz-button variant="raised" type="button" (click)="store.retry()">Try again</button>
+      </div>
+    }
     <wz-map-path>
       @for (row of store.rows(); track row.map.id; let last = $last) {
         <li wz-map-path-item [state]="row.state" [last]="last">

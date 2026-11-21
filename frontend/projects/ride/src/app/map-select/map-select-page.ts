@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MapPath, MapPathItem, MapRow, MapsAside } from '@telo/components';
+import { Button, InlineMessage, MapPath, MapPathItem, MapRow, MapsAside } from '@telo/components';
 import { MapPathStore } from './map-path-store';
 
 /**
@@ -9,7 +9,7 @@ import { MapPathStore } from './map-path-store';
  */
 @Component({
   selector: 'wz-map-select-page',
-  imports: [RouterLink, MapPath, MapPathItem, MapRow, MapsAside],
+  imports: [RouterLink, Button, InlineMessage, MapPath, MapPathItem, MapRow, MapsAside],
   templateUrl: './map-select-page.html',
   styleUrl: './map-select-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
