@@ -12,7 +12,8 @@ export const RACE_START = new Date('2026-11-21T18:00:00Z').getTime();
 /**
  * Opens a race with the remembered Echelon and starts it on Playwright's paused clock: the map catalogue's answer is
  * held until the bike is initialised and the clock paused, so the race starts at a known time and the spec moves it on
- * by hand. Resolves once the race's first command (the warm-up's level 8) has gone and the page has rendered.
+ * by hand. Resolves once the race's first command (the warm-up's level 8) has gone and the page has rendered. With
+ * `offline`, the backend answers the catalogue with 503, as when it cannot be reached.
  */
 export async function startRace(
   page: Page,
@@ -20,17 +21,21 @@ export async function startRace(
   api: ApiFixture,
   mapId: string,
   query: string,
+  { offline = false } = {},
 ): Promise<RacePage> {
-  let answer: (body: unknown) => void = () => undefined;
-  const held = new Promise((resolve) => (answer = resolve));
-  api.answer('GET', '/api/maps', async () => ({ body: await held }));
+  let answer: () => void = () => undefined;
+  const held = new Promise<void>((resolve) => (answer = resolve));
+  api.answer('GET', '/api/maps', async () => {
+    await held;
+    return offline ? { status: 503 } : { body: maps };
+  });
   await page.clock.install({ time: RACE_START });
   await bluetooth.remember(echelonBike);
   const race = new RacePage(page);
   await race.open(mapId, query);
   await expect.poll(() => bluetooth.log()).toEqual(ECHELON_INITIALISED);
   await page.clock.pauseAt(RACE_START + 60_000);
-  answer(maps);
+  answer();
   await expect
     .poll(() => bluetooth.writes().map((write) => write.hex))
     .toContain(targetResistanceWrite(8));
