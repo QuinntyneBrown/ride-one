@@ -37,7 +37,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 8.3 | Draw riders and ghost | Instanced riders in jersey colours; translucent gold ghost. | 3 | 8. See the race world | 100% |
 | 8.4 | Quality levels | Four levels of techniques; WebGL 2 caps at High. | 4 | 8. See the race world | 100% |
 | 8.5 | Step down when frames drop | After two 2-second windows in a row with slow frames, the world drops one quality level for the rest of the race. | 2 | 8. See the race world | 100% |
-| 8.6 | Panorama and hidden tab | Panorama without 3D; drawing stops while the tab is hidden. | 2 | 8. See the race world | 0% |
+| 8.6 | Panorama and hidden tab | Panorama without 3D; drawing stops while the tab is hidden. | 2 | 8. See the race world | 100% |
 | 8.7 | Real-world scenery | Stream Google 3D Tiles with the rider's own key. | 2 | 8. See the race world | 0% |
 | 9.1 | Request an email code | Rider enters an email address; the backend sends a one-time code and the screen waits for it. | 3 | 9. Sign in with an email code | 0% |
 | 9.2 | Verify and stay signed in | Enter the code, get a session, stay signed in. | 3 | 9. Sign in with an email code | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 30 slices, 81 days (34%).
+**Total:** 95 slices, 238 days. **Complete:** 31 slices, 83 days (35%).
