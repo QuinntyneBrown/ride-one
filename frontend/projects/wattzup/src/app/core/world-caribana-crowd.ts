@@ -565,6 +565,27 @@ export class Spectators {
     this.disposables.push(shoes, handset, ...hairs);
     const dress = seeded(o.seed + 1);
     const tees = seeded(o.seed + 7);
+    const capes = seeded(o.seed + 11);
+    // A flag worn as a scarf: round the back of the neck, both ends hanging down the front of
+    // the chest to the waist, a little apart, each end a half of the flag.
+    const ends = [-1, 1].map((side) => {
+      const end = new PlaneGeometry(0.13, 0.5, 1, 4);
+      const uv = end.getAttribute('uv');
+      for (let v = 0; v < uv.count; v++) uv.setX(v, (side < 0 ? 0 : 0.5) + uv.getX(v) * 0.5);
+      const hang = end.getAttribute('position');
+      for (let v = 0; v < hang.count; v++) {
+        const t = 0.5 - hang.getY(v) / 0.5; // 0 at the neck, 1 at the end
+        hang.setZ(v, -0.125 - t * 0.02 - Math.sin(t * Math.PI) * 0.01);
+      }
+      end.translate(side * 0.075, 1.2, 0);
+      return end;
+    });
+    const collar = new TorusGeometry(0.085, 0.03, 5, 14, Math.PI * 1.3);
+    collar.rotateX(Math.PI / 2);
+    collar.rotateY(Math.PI * 0.35);
+    collar.translate(0, 1.43, 0.01);
+    const cape = merge([...ends, collar]);
+    this.disposables.push(cape);
     // The print across the front of a T-shirt: the front half of the torso, a hair proud of it.
     const teeFront = new CylinderGeometry(0.163, 0.158, 0.36, 12, 1, true, Math.PI / 2, Math.PI);
     teeFront.scale(1, 1, 0.74);
@@ -607,6 +628,9 @@ export class Spectators {
       this.ensemble.put(i, `top${key}`, parts.top, cotton, shirt);
       if (flagTee >= 0)
         this.ensemble.put(i, `tee${flagTee}`, teeFront, o.flags[flagTee]!, '#ffffff');
+      // One in eight wears an island flag round the neck as a scarf.
+      const caped = capes() < 0.125 && flagTee < 0 ? Math.floor(capes() * o.flags.length) : -1;
+      if (caped >= 0) this.ensemble.put(i, `cape${caped}`, cape, o.flags[caped]!, '#ffffff');
       this.ensemble.put(i, `bottom${key}`, parts.bottom, denim, pick(o.bottoms));
       this.ensemble.put(i, 'shoes', shoes, rubber, pick(SHOES));
       const style = Math.floor(dress() * hairs.length);
