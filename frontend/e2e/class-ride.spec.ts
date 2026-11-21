@@ -2,20 +2,18 @@
 // Traces to: L2-087 AC1, AC3; L2-089 AC1 to AC4; L2-027 AC1; L2-026 AC1, AC3; L2-028 AC1, AC4; L2-133 AC2
 // Description: a solo class ride on the fake Bluetooth: the header with the class and its clock, the segment card
 // counting down the plan, Power and Cadence against their targets, and the resistance stepper. The class's answer is
-// held until Playwright's clock is paused, so the ride starts at a known time and the spec moves it on by hand.
+// held until Playwright's clock is paused (startClassRide), so the ride starts at a known time and the spec moves it
+// on by hand.
 import {
-  ECHELON_INITIALISED,
   ECHELON_NOTIFY,
-  echelonBike,
   resistanceFrame,
   targetResistanceWrite,
   workoutFrame,
 } from './fixtures/echelon';
-import { hiitCardio } from './fixtures/classes';
+import { startClassRide } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
-import { ClassRidePage } from './pages/class-ride.page';
+import type { ClassRidePage } from './pages/class-ride.page';
 
-const START = new Date('2026-11-21T18:00:00Z').getTime();
 const isTarget = (hex: string): boolean => hex.startsWith('F0 B1 ');
 
 test.describe('Class ride', () => {
@@ -23,21 +21,8 @@ test.describe('Class ride', () => {
   let sent: () => string[];
 
   test.beforeEach(async ({ page, bluetooth, api }) => {
-    let answer: (body: unknown) => void = () => undefined;
-    const held = new Promise((resolve) => (answer = resolve));
-    api.answer('GET', `/api/classes/${hiitCardio.id}`, async () => ({ body: await held }));
-    await page.clock.install({ time: START });
-    await bluetooth.remember(echelonBike);
-    ride = new ClassRidePage(page);
     sent = () => bluetooth.writes().map((write) => write.hex);
-
-    await ride.open(hiitCardio.id);
-    await expect.poll(() => bluetooth.log()).toEqual(ECHELON_INITIALISED);
-    await page.clock.pauseAt(START + 60_000);
-    answer(hiitCardio);
-    // The ride starts the moment the class arrives, and its first command shows it has.
-    await expect.poll(sent).toContain(targetResistanceWrite(8));
-    await page.clock.runFor(100);
+    ride = await startClassRide(page, bluetooth, api);
   });
 
   test(
