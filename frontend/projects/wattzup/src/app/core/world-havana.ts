@@ -1769,6 +1769,7 @@ export class HavanaStreet implements SceneStreet {
     this.addMotorinas(roadHalf, tyre, chrome);
     this.addCyclists(roadHalf, tyre, chrome);
     this.addLadas(roadHalf, tyre, chrome);
+    this.addTourBus(roadHalf, tyre);
     this.addCarriage(roadHalf);
   }
 
@@ -1990,6 +1991,89 @@ export class HavanaStreet implements SceneStreet {
         speed: -(9 + random() * 3),
       });
     }
+  }
+
+  /**
+   * An open-top double-decker sightseeing bus: a red body with a cream band, a dark lower deck of
+   * windows, the open upper deck railed round with its rows of seats full of visitors in sunhats,
+   * and a narrow canopy over the front rows.
+   */
+  private addTourBus(roadHalf: number, tyre: MeshStandardMaterial): void {
+    const random = seeded(1621);
+    const bus = new Group();
+    const red = this.material({ color: 0xc8202f, roughness: 0.45, metalness: 0.2 });
+    const cream = this.material({ color: 0xf2e8d0, roughness: 0.6 });
+    const dark = this.material({ color: 0x1e2a32, roughness: 0.15, metalness: 0.5 });
+    const rail = this.material({ color: 0xd8dcdc, roughness: 0.3, metalness: 0.7 });
+    const box = (
+      m: MeshStandardMaterial,
+      sx: number,
+      sy: number,
+      sz: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
+      const mesh = new Mesh(this.unit, m);
+      mesh.scale.set(sx, sy, sz);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      bus.add(mesh);
+      return mesh;
+    };
+    box(red, 2.5, 1.2, 10.6, 0, 1.0, 0);
+    box(dark, 2.52, 0.9, 9.2, 0, 2.05, 0.4);
+    box(dark, 2.3, 1.0, 0.05, 0, 2.0, -5.3);
+    box(cream, 2.54, 0.25, 10.6, 0, 2.62, 0);
+    box(red, 2.5, 0.6, 10.6, 0, 3.0, 0);
+    for (const x of [-1.2, 1.2]) box(rail, 0.05, 0.05, 10.4, x, 3.75, 0);
+    box(rail, 2.4, 0.05, 0.05, 0, 3.75, -5.2);
+    box(red, 2.5, 0.08, 3.2, 0, 4.45, -3.6);
+    for (const x of [-1.2, 1.2])
+      for (const z of [-5.1, -2.1]) box(rail, 0.06, 1.1, 0.06, x, 3.9, z);
+    // The visitors up top, in rows, in sunhats and caps.
+    const shirts = [0xf2efe6, 0xe63946, 0x3a86ff, 0xffd166, 0x2a9d8f, 0xf4a261, 0xf0c8c0];
+    const skins = [0xe0b08a, 0xc68b5e, 0xf0c8a8, 0x8d5a3b];
+    const torso = new CapsuleGeometry(0.17, 0.3, 3, 8);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const brim = new CylinderGeometry(0.2, 0.2, 0.02, 10);
+    this.disposables.push(torso, head, brim);
+    for (let row = 0; row < 8; row++) {
+      for (const x of [-0.75, -0.3, 0.3, 0.75]) {
+        if (random() < 0.3) continue;
+        const z = -4.4 + row * 1.15;
+        const body = new Mesh(
+          torso,
+          this.material({ color: shirts[Math.floor(random() * shirts.length)]!, roughness: 0.85 }),
+        );
+        body.position.set(x, 3.65, z);
+        const face = new Mesh(
+          head,
+          this.material({ color: skins[Math.floor(random() * skins.length)]!, roughness: 0.8 }),
+        );
+        face.position.set(x, 4.03, z);
+        bus.add(body, face);
+        if (random() < 0.4) {
+          const hat = new Mesh(brim, this.material({ color: 0xe8d8a8, roughness: 0.9 }));
+          hat.position.set(x, 4.12, z);
+          bus.add(hat);
+        }
+      }
+    }
+    const wheel = new CylinderGeometry(0.5, 0.5, 0.3, 16);
+    wheel.rotateZ(Math.PI / 2);
+    this.disposables.push(wheel);
+    for (const x of [-1.15, 1.15]) {
+      for (const z of [-3.6, 3.4]) {
+        const w = new Mesh(wheel, tyre);
+        w.position.set(x, 0.5, z);
+        bus.add(w);
+      }
+    }
+    bus.rotation.y = Math.PI;
+    bus.position.x = -roadHalf - 1.9;
+    this.group.add(bus);
+    this.cars.push({ mesh: bus, offset: 118, speed: -7 });
   }
 
   /**
