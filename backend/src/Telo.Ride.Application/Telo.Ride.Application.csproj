@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../Telo.Ride.Domain/Telo.Ride.Domain.csproj" />
   </ItemGroup>
 </Project>
