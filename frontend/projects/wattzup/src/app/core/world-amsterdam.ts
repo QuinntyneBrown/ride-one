@@ -5084,10 +5084,18 @@ function wisteriaGeometry(seed: number): {
         leaves.push(leaf);
       }
       for (let k = 0; k < 3; k++) {
-        const raceme = new ConeGeometry(0.06 + random() * 0.03, 0.22 + random() * 0.3, 6);
-        raceme.rotateX(Math.PI);
-        raceme.translate(-0.25, level - 0.2 - random() * 0.2, z + (random() - 0.5) * 0.5);
-        flowers.push(raceme);
+        // Each raceme a drooping chain of florets, broad at the top and tapering, swinging
+        // a little out of true.
+        const length = 0.25 + random() * 0.3;
+        const x0 = -0.25;
+        const y0 = level - 0.12 - random() * 0.2;
+        const z0 = z + (random() - 0.5) * 0.5;
+        const sway = (random() - 0.5) * 0.08;
+        for (let t = 0; t < 1; t += 0.14) {
+          const floret = new IcosahedronGeometry(0.05 * (1.15 - t * 0.7), 0);
+          floret.translate(x0 + sway * t, y0 - t * length, z0 + sway * t * 0.5);
+          flowers.push(floret);
+        }
       }
     }
   }
