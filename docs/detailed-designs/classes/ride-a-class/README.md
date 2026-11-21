@@ -57,8 +57,11 @@ The header's lockup is the small one (`size="sm"`), whose wordmark hides below 3
 - **`ClassVideo`** (`wz-class-video`) — the 16:9 frame with the class cover
   (`https://i.ytimg.com/vi/<videoId>/hqdefault.jpg`, cropped by `.photo--yt`), the element the
   player takes over, and, when the video cannot play, the warning under it: "The video can't
-  play. The bike will still follow the class." (`role="status"`, `L2-088` AC4). From lg the frame
-  fills the column above the bike panel.
+  play. The bike will still follow the class." (`role="status"`, `L2-088` AC4), drawn by
+  **`InlineMessage`** (`wz-inline-message`, tone `warn`). From lg the frame fills the column above
+  the bike panel. It emits the player's element (`frame`) once drawn, for the page to hand to the
+  store; it finds it from its host rather than with `viewChild`, whose query runtime would be the
+  app's first and land in the initial bundle.
 - **`ClassBike`** (`wz-class-bike`) — bike panel; one row of four at md or wider. It holds
   **`ClassSegment`** (kind, time left with `aria-label="Recover: 1:30 left"`, progress bar, plan
   profile), two **`ClassStat`**s (Power "108 W" with "On target" or the delta; Cadence "73 rpm"
