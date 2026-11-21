@@ -9,3 +9,11 @@ The live 3D world behind the ride HUD for [In and Out, Shake It All About](http:
 ## Reproducing a capture
 
 Build the app (`npm run build` in `frontend/`), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/classes/in-and-out-shake-it-all-about?simulate`, click **Ride in Blackpool Illuminations**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900.
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [098 · The trams behind the rider run on the Promenade](bend-098-trams-on-the-promenade.jpg) | The trams, the walkers and the props between the camera and the rider were set at the height under the rider wherever they were behind it, so where the Promenade rises they hung above the road there. They now stand on the road where they are. |

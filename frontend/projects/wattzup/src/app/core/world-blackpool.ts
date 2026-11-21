@@ -144,20 +144,20 @@ export class BlackpoolStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)) + prop.y, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + prop.y, -metres);
     }
     // The trams run and halt: their speed falls to nothing once in each cycle, at a stop.
     for (const tram of this.trams) {
       const travelled = tram.speed * (this.time - Math.sin(this.time * 0.3) / 0.3);
       const metres = loopMetres(tram.offset + travelled, s, LOOP, BEHIND);
-      tram.mesh.position.set(tram.x, heightAt(Math.max(metres, 0)), -metres);
+      tram.mesh.position.set(tram.x, heightAt(metres), -metres);
     }
     const figures = this.figures;
     if (figures) {
       this.walkers.forEach((w, i) => {
         const metres = loopMetres(w.offset + w.speed * this.time, s, LOOP, BEHIND);
         const step = Math.abs(Math.sin(this.time * 4.5 + w.phase)) * 0.04;
-        const y = heightAt(Math.max(metres, 0)) + KERB;
+        const y = heightAt(metres) + KERB;
         figures.set(i, w.x, y, -metres, w.speed > 0 ? 0 : Math.PI, w.scale, step);
       });
       figures.commit();
