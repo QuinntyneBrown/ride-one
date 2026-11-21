@@ -1010,12 +1010,14 @@ export class CaribanaStreet implements SceneStreet {
       }
       figure.traverse((o) => (o.castShadow = true));
       this.group.add(figure);
-      const side = k % 2 ? 1 : -1;
+      // The first strides up the right lanes just ahead of the riders, the rest spread out.
+      const side = k % 2 ? -1 : 1;
+      const offset = k === 0 ? BEHIND + 17 : 72 + k * 57 + random() * 10;
       this.mokos.push({
         figure,
         legs: [legs[0]!, legs[1]!],
-        offset: 72 + k * 57 + random() * 10,
-        x: side * (3.2 + random() * 2.2),
+        offset,
+        x: k === 0 ? 4.6 : side * (3.2 + random() * 2.2),
         phase: random() * 6.3,
       });
     }
