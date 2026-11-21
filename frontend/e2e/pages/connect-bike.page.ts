@@ -12,6 +12,8 @@ export class ConnectBikePage {
   readonly worksWithBikes: Locator;
   readonly worksWithStatuses: Locator;
   readonly hint: Locator;
+  /** The device card with the pair button under it. */
+  readonly pairArea: Locator;
   readonly blocker: Locator;
   readonly blockerTitle: Locator;
   readonly blockerBody: Locator;
@@ -28,6 +30,7 @@ export class ConnectBikePage {
     this.worksWithBikes = page.locator('.connect-works__item > :first-child');
     this.worksWithStatuses = page.locator('.connect-works__status');
     this.hint = page.locator('.connect__hint');
+    this.pairArea = page.locator('.connect__pair');
     this.blocker = page.getByRole('alert');
     this.blockerTitle = page.locator('.connect-blocker__title');
     this.blockerBody = page.locator('.connect-blocker__body');
