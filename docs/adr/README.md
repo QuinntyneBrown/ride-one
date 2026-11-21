@@ -20,9 +20,10 @@
 | [0016](0016-bike-only.md) | Wattzup supports the bike only | Accepted |
 | [0017](0017-browser-edition.md) | A browser edition with no backend | Superseded by 0019 |
 | [0018](0018-static-content-security-policy.md) | A static Content-Security-Policy for the browser edition | Accepted, amended by 0019 |
-| [0019](0019-no-backend.md) | No backend: Wattzup runs in the browser only | Accepted |
+| [0019](0019-no-backend.md) | No backend: Wattzup runs in the browser only | Superseded by 0025 |
 | [0020](0020-three-js-for-world-ride.md) | Three.js draws the World Ride scene, in its own lazy chunk | Accepted, amended by 0021 |
 | [0021](0021-webgpu-renderer-with-webgl2-fallback.md) | World Ride draws with Three.js's WebGPU renderer, falling back to WebGL2 | Accepted, amended by 0023 |
 | [0022](0022-hosted-on-azure-static-web-apps.md) | Hosted on Azure Static Web Apps, deployed from main | Accepted |
 | [0023](0023-bend-the-road-in-the-vertex-stage.md) | World Ride bends the road in the vertex stage | Accepted |
 | [0024](0024-telo-ride-workspace.md) | The Telo Ride workspace: `api`, `domain`, `components` and `ride` | Accepted |
+| [0025](0025-thin-dotnet-backend.md) | A thin .NET backend for what one browser cannot do alone | Accepted |
