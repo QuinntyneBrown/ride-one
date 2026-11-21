@@ -113,7 +113,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L86 | When an earlier slice copied `main`'s code whole, a later slice's behaviour may already be there and its new spec passes at once. Break the rule it proves on purpose (one line, in the working tree only), see the spec fail for that reason, restore with `git checkout --`, and say so in the commit. | 8.4 | | |
 | L87 | `main`'s L2 carries amendments dated in its criteria (L2-111 AC3: World Ride opens at Low). Read `main`'s requirement for a world slice, not only its code, and bring Telo Ride's requirement, designs and mocks in line with it in the same change. | 8.4 | 8.5 | Saved time |
 | L88 | A world spec's cost is its frames times the level's cost in software: High costs several times Low. Count the frames a spec draws (seconds ÷ frame time), open at the lowest level that still proves the rule, and run it inside the full verify, whose default timeout is 90 seconds, before committing; give a spec that needs more an explicit `test.setTimeout` with its reason. | 8.5 | | |
-| L89 | The race bar hides its parts (the GPU tag among them) below 48 rem, so a world spec that waits on the tag never finishes in a small viewport. To cheapen frames, keep the viewport at least 1024 px wide, or wait on something every width shows. | 8.5 | | |
+| L89 | The race bar hides `.race-bar__where`, the GPU tag inside it, below 48 rem (768 px), so a world spec that waits for the tag to be visible never finishes in a smaller viewport. To cheapen frames, keep the viewport at least 768 px wide, or wait on the tag's count rather than its visibility. | 8.5 | | |
 
 ## Log
 
