@@ -1,13 +1,7 @@
-import { provideHttpClient, withFetch } from '@angular/common/http';
 import type { EnvironmentProviders, Provider } from '@angular/core';
-import {
-  CLASSES_API,
-  HttpClassesApi,
-  MONOTONIC_TIME,
-  SCREEN_WAKE_LOCK,
-  VIDEO_PLAYER_FACTORY,
-} from '@telo/api';
-import { BrowserScreenWakeLock, CachedClassesApi, CatalogueCache } from '@telo/domain';
+import { MONOTONIC_TIME, SCREEN_WAKE_LOCK, VIDEO_PLAYER_FACTORY } from '@telo/api';
+import { BrowserScreenWakeLock } from '@telo/domain';
+import { provideClasses } from '../classes/provide-classes';
 
 /**
  * What the class ride route binds (ride.routes.ts): the class catalogue over HTTP, kept on the device
@@ -17,10 +11,7 @@ import { BrowserScreenWakeLock, CachedClassesApi, CatalogueCache } from '@telo/d
  */
 export function provideClassRide(): (Provider | EnvironmentProviders)[] {
   return [
-    provideHttpClient(withFetch()),
-    HttpClassesApi,
-    CatalogueCache,
-    { provide: CLASSES_API, useClass: CachedClassesApi },
+    ...provideClasses(),
     { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },
     { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
     {

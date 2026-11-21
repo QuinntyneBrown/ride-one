@@ -14,7 +14,7 @@ export interface FakePlayer {
 }
 
 const API = 'https://www.youtube.com/iframe_api';
-const COVER = /^https:\/\/i\.ytimg\.com\/vi\/[\w-]{11}\/hqdefault\.jpg$/;
+const COVER = /^https:\/\/i\.ytimg\.com\/vi\/[\w-]{11}\/(hq|mq)default\.jpg$/;
 /** The mocks' cover of 30 Minute HIIT Cardio, kept beside the fixture: CI's checkout leaves out docs/. */
 const COVER_FILE = path.join(__dirname, 'class-cover.jpg');
 

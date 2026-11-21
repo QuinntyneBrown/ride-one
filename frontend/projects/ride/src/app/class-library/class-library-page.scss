@@ -1,0 +1,18 @@
+@use '../../styles/page';
+
+// Block library-head (docs/design-system/assets/components.css, Class Library): the title and lead on the left, the
+// length tabs on the right, wrapping under them on a phone.
+.library-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  column-gap: var(--space-8);
+  row-gap: var(--space-5);
+}
+
+.library-head__lead {
+  max-width: var(--layout-text-lg);
+  margin-top: var(--space-2);
+  color: var(--color-muted);
+}

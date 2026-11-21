@@ -34,6 +34,11 @@ export const rideRoutes: Routes = [
             canActivate: [rememberedBikeGuard],
             loadComponent: () => import('./home/home-page'),
           },
+          {
+            path: 'classes',
+            loadChildren: () =>
+              import('./class-library/class-library.routes').then((m) => m.classLibraryRoutes),
+          },
           // An address that matches no screen (L2-145). Always last.
           {
             path: '**',
