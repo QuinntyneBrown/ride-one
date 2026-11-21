@@ -143,6 +143,20 @@ describe('WorldScene frame period (L2-111 AC9)', () => {
     expect(renderer.draws).toBeGreaterThan(held);
   });
 
+  it('draws no frame for a change of input while the tab is hidden (L2-065 AC3)', async () => {
+    const { fixture, renderer } = await ridingScene(1000 / 60);
+    const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    await settle(fixture);
+    const held = renderer.draws;
+
+    fixture.componentRef.setInput('elapsed', 7);
+    await settle(fixture);
+
+    expect(renderer.draws).toBe(held);
+    hidden.mockRestore();
+  });
+
   it('measures again when the window moves to another screen', async () => {
     const { fixture, frames, screens, renderer } = await ridingScene(1000 / 60);
     expect(screens.listening()).toBe(1);

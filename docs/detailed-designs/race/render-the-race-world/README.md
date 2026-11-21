@@ -188,5 +188,11 @@ built-in world in place and the panel says so.
   Settings and World loading mocks follow: Auto starts at Low, or at the level the device check
   found. A chosen level (slice 20.2) and the device check (20.3) are how a rider sees the levels
   above; until then only `main`'s test-only probe pins one.
+- **Slice 8.6: a hidden tab draws nothing at all.** `main`'s frame scheduler stops requesting
+  frames while the tab is hidden, but `WorldScene` also draws one frame whenever an input
+  changes, and the race clock's second is an input, so `main` drew a frame each second in a
+  hidden tab. The smallest change to the copied code: `WorldScene` keeps a `visible` signal from
+  `visibilitychange`, and its input-driven frame waits for it (L2-065 AC3). The panorama
+  (L2-065 AC2) has stood since slice 8.1.
 - **Vice City has no world on `main`.** Its race draws South Beach Sunrise, whose terrain its
   catalogue entry already takes (slice 7.3), until a Vice City world is built.

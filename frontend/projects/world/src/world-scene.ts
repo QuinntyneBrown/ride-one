@@ -61,6 +61,11 @@ export class WorldScene implements AfterViewInit {
    * hidden parts from a camera no frame has placed yet (L2-111 AC12, #896).
    */
   protected readonly driver = signal<SceneDriver | null>(null);
+  /**
+   * Whether the tab shows: a hidden tab draws no frame, not even for a change of input such as the clock's second
+   * (L2-065 AC3). `main` stopped only its loop, so the race's once-a-second inputs drew a frame each second.
+   */
+  private readonly visible = signal(!document.hidden);
   /** True while the display's frame period is measured again: the scene holds its picture. */
   private readonly measuring = signal(false);
 
@@ -92,6 +97,7 @@ export class WorldScene implements AfterViewInit {
       });
     };
     const onVisibility = () => {
+      this.visible.set(!document.hidden);
       if (!document.hidden) remeasure();
     };
     const onScreen = () => {
@@ -171,7 +177,7 @@ export class WorldScene implements AfterViewInit {
     // One frame per tick of the loop, and one whenever the inputs change.
     effect(() => {
       const driver = this.driver();
-      if (!driver || this.measuring()) return;
+      if (!driver || this.measuring() || !this.visible()) return;
       const now = this.frames.now();
       driver.frame(now, {
         segments: this.timed(),
