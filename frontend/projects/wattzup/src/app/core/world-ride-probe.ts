@@ -21,6 +21,8 @@ export interface WorldRideProbeReport {
   readonly backend: Backend;
   /** The time between each drawn frame and the one before, in ms, oldest first. */
   readonly frames: number[];
+  /** GPU time of each frame, in ms, from timer queries; null where the browser offers none. */
+  readonly gpuMs: number[] | null;
   /** Draw calls in the latest frame, every pass included. */
   drawCalls: number;
   /** Shader programs alive. */
@@ -38,10 +40,21 @@ export function readWorldRideProbe(value: unknown): WorldRideProbe | null {
  * Hands the sweep the report the renderer keeps current, or null without the hook: a rider's
  * ride records nothing.
  */
-export function probeReport(tier: Tier, backend: Backend): WorldRideProbeReport | null {
+export function probeReport(
+  tier: Tier,
+  backend: Backend,
+  gpuTimed: boolean,
+): WorldRideProbeReport | null {
   const probe = (globalThis as Record<string, unknown>)[PROBE_KEY];
   if (!readWorldRideProbe(probe)) return null;
-  const report: WorldRideProbeReport = { tier, backend, frames: [], drawCalls: 0, programs: 0 };
+  const report: WorldRideProbeReport = {
+    tier,
+    backend,
+    frames: [],
+    gpuMs: gpuTimed ? [] : null,
+    drawCalls: 0,
+    programs: 0,
+  };
   (probe as { report?: WorldRideProbeReport }).report = report;
   return report;
 }

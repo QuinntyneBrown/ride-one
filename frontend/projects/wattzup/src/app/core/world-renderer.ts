@@ -3178,7 +3178,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
 
   async start(canvas: HTMLCanvasElement, world: World): Promise<boolean> {
     try {
-      const renderer = new WebGPURenderer({ canvas, antialias: false });
+      // Timer queries only for the performance sweep: a rider's frames never pay for them (#675).
+      const probed =
+        readWorldRideProbe((globalThis as Record<string, unknown>)[PROBE_KEY]) !== null;
+      const renderer = new WebGPURenderer({ canvas, antialias: false, trackTimestamp: probed });
       await renderer.init();
       this.renderer = renderer;
       this.backend = (renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend
@@ -3195,7 +3198,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     // The test-only hook pins the tier; ultra draws at high on WebGL2 (L2-111 AC2).
     const pin = probe && this.backend === 'webgl2' && probe.tier === 'ultra' ? 'high' : probe?.tier;
     this.budget = new FrameBudget(pin ?? startTier(this.backend), undefined, { pinned: !!pin });
-    this.probe = probeReport(this.budget.tier, this.backend);
+    this.probe = probeReport(
+      this.budget.tier,
+      this.backend,
+      this.renderer.hasFeature('timestamp-query'),
+    );
     // The sweep counts every pass of a frame, so the counts reset per frame, not per render.
     if (this.probe) this.renderer.info.autoReset = false;
 
@@ -3308,6 +3315,12 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (this.probe) {
       this.probe.drawCalls = this.renderer.info.render.drawCalls;
       this.probe.programs = this.renderer.info.memory.programs;
+      const gpu = this.probe.gpuMs;
+      if (gpu) {
+        void this.renderer.resolveTimestampsAsync('render').then((ms) => {
+          if (typeof ms === 'number') gpu.push(ms);
+        });
+      }
     }
   }
 
