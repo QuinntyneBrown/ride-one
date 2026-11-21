@@ -32,6 +32,7 @@ This tree holds the detailed designs for Wattzup: an Angular app that runs entir
 |  | [Draw the class scene](world-ride/draw-class-scene/README.md) | `L2-101`, `L2-106`, `L2-110`, `L2-049`, `L2-102` |
 |  | [Show simulated pacers](world-ride/show-simulated-pacers/README.md) | `L2-107` |
 |  | [Render the scene at a quality tier](world-ride/render-scene-quality/README.md) | `L2-111`, `L2-110`, `L2-101` |
+|  | [Play world music](world-ride/play-world-music/README.md) | `L2-128`, `L2-103`, `L2-101` |
 | history | [Record a session](history/record-session/README.md) | `L2-081`, `L2-014`, `L2-051` |
 |  | [Keep sessions](history/keep-sessions/README.md) | `L2-082`, `L2-094` |
 |  | [Review a session](history/review-session/README.md) | `L2-083`, `L2-084`, `L2-085`, `L2-087`, `L2-051`, `L2-058` |

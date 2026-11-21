@@ -23,6 +23,7 @@ const types = {
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
   '.mp3': 'audio/mpeg',
+  '.ogg': 'audio/ogg',
   '.webmanifest': 'application/manifest+json',
 };
 

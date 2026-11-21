@@ -1,5 +1,5 @@
 // Acceptance Test
-// Traces to: L2-102 to L2-110, L2-101 AC4
+// Traces to: L2-102 to L2-110, L2-101 AC4, L2-128
 // Description: World Ride runs a class inside its world on the fake bike: Ride in <world name>
 // opens it from the class page; its app bar, live metrics, current segment, route profile,
 // simulated pacers and resistance follow the ride; pausing, losing the bike and the end show their
@@ -1139,7 +1139,7 @@ test.describe('World Ride access and app bar (L2-102, L2-103)', () => {
     await expect(world.classLine).toHaveText('Cathedral Circuit · 30 Minute HIIT Cardio');
     await expect(world.bike).toHaveText('ECHEX-3-141844');
     await expect(world.clock).toHaveText('5:00 / 30:00');
-    expect(await world.barOrder()).toEqual(['Wattzup dashboard', 'Class', 'Pause', 'End']);
+    expect(await world.barOrder()).toEqual(['Wattzup dashboard', 'Class', 'Music', 'Pause', 'End']);
   });
 
   test('pauses and resumes the ride', async ({ page }) => {
@@ -1393,4 +1393,82 @@ test.describe('World Ride for every class (L2-100 AC4)', () => {
       await expect(classes.rideIn(worldName)).toBeVisible();
     });
   }
+});
+
+test.describe('World Ride music (L2-128)', () => {
+  test("plays the world's own track while the ride runs, looping at half volume", async ({
+    page,
+  }) => {
+    const world = new WorldRidePage(page);
+    await world.probeMusic();
+    await world.startFromClass();
+    await expect(world.musicButton).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(async () => (await world.music())?.paused).toBe(false);
+    const music = await world.music();
+    expect(music?.src).toBe('music/oldtown.ogg');
+    expect(music?.loop).toBe(true);
+    expect(music?.volume).toBe(0.5);
+  });
+
+  test('gives every world a track of its own', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.probeMusic();
+    await world.startFromClass(
+      'Quick But Brutal HIIT',
+      "Trinidad J'Ouvert",
+      'quick-but-brutal-hiit',
+    );
+    await expect.poll(async () => (await world.music())?.src).toBe('music/jouvert.ogg');
+    const response = await page.request.get('/music/jouvert.ogg');
+    expect(response.ok()).toBe(true);
+    expect(response.headers()['content-type']).toContain('audio/ogg');
+  });
+
+  test('pauses the track while paused and carries on when running', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.probeMusic();
+    await world.startFromClass();
+    await expect.poll(async () => (await world.music())?.paused).toBe(false);
+    await world.pauseButton.click();
+    await expect.poll(async () => (await world.music())?.paused).toBe(true);
+    const at = (await world.music())?.time ?? 0;
+    await world.resumeButton.click();
+    await expect.poll(async () => (await world.music())?.paused).toBe(false);
+    expect((await world.music())?.time ?? 0).toBeGreaterThanOrEqual(at);
+  });
+
+  test('mutes and unmutes with the Music toggle', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.probeMusic();
+    await world.startFromClass();
+    await expect.poll(async () => (await world.music())?.paused).toBe(false);
+    await world.musicButton.click();
+    await expect(world.musicButton).toHaveAttribute('aria-pressed', 'false');
+    await expect.poll(async () => (await world.music())?.paused).toBe(true);
+    await world.musicButton.press('Enter');
+    await expect(world.musicButton).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(async () => (await world.music())?.paused).toBe(false);
+  });
+
+  test('keeps music off for the next ride once turned off', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.probeMusic();
+    await world.startFromClass();
+    await world.musicButton.click();
+    await expect(world.musicButton).toHaveAttribute('aria-pressed', 'false');
+    await world.classLink.click();
+    await page.goBack();
+    await expect(world.musicButton).toHaveAttribute('aria-pressed', 'false');
+    await expect.poll(async () => (await world.music())?.paused).toBe(true);
+  });
+
+  test('stops the track on leaving World Ride', async ({ page }) => {
+    const world = new WorldRidePage(page);
+    await world.probeMusic();
+    await world.startFromClass();
+    await expect.poll(async () => (await world.music())?.paused).toBe(false);
+    await world.lockup.click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect.poll(async () => (await world.music())?.paused).toBe(true);
+  });
 });

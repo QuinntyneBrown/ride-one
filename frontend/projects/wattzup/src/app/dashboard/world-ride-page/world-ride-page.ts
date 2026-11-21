@@ -1,6 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DOCUMENT,
+  DestroyRef,
   computed,
   effect,
   inject,
@@ -15,10 +17,13 @@ import { WorldRide } from '@wattzup/components';
 import { CountdownService } from '../../core/countdown.service';
 import { formatDuration } from '../../core/format-duration';
 import { LiveStateService } from '../../core/live-state.service';
+import { MusicPreference } from '../../core/music-preference';
 import { ResistanceCommandService } from '../../core/resistance-command.service';
 import { stepLevel } from '../../core/resistance-controls';
 import { RideActions } from '../../core/ride-actions';
 import { worldRideAccess } from '../../core/world-ride-access';
+import { musicPlays } from '../../core/world-music';
+import { WorldMusicPlayer } from '../../core/world-music-player';
 import { worldRideView } from '../../core/world-ride-view';
 import { worldById } from '../../core/worlds';
 import { ClassNotFound } from '../class-not-found/class-not-found';
@@ -36,7 +41,13 @@ type Phase = 'loading' | 'ready' | 'not-found';
   templateUrl: './world-ride-page.html',
   styleUrl: './world-ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [CountdownService],
+  providers: [
+    CountdownService,
+    {
+      provide: WorldMusicPlayer,
+      useFactory: () => new WorldMusicPlayer(() => new Audio(), inject(DOCUMENT)),
+    },
+  ],
 })
 export class WorldRidePage {
   /** The route's `:id`. */
@@ -49,6 +60,9 @@ export class WorldRidePage {
   private readonly actions = inject(RideActions);
   private readonly resistance = inject(ResistanceCommandService);
   private readonly timer = inject(CountdownService);
+  private readonly music = inject(WorldMusicPlayer);
+  private readonly musicPreference = inject(MusicPreference);
+  protected readonly musicOn = this.musicPreference.on;
 
   protected readonly phase = signal<Phase>('loading');
   private readonly entry = signal<ClassEntry | null>(null);
@@ -124,6 +138,14 @@ export class WorldRidePage {
         void this.router.navigateByUrl(untracked(this.classHref), { replaceUrl: true });
       }
     });
+    // The world's own track plays while the ride runs and music is on (L2-128 AC2, AC3).
+    effect(() => {
+      const world = this.world();
+      if (!this.shown() || !world) return;
+      this.music.load(world.id);
+      this.music.sync(musicPlays(this.live.state()?.workout?.status, this.musicOn()));
+    });
+    inject(DestroyRef).onDestroy(() => this.music.destroy());
     // A ride too short to save leaves for the dashboard when it ends (L2-109 AC5).
     effect(() => {
       const w = this.live.state()?.workout;
@@ -158,6 +180,11 @@ export class WorldRidePage {
   /** − or + sends the level one lower or higher (L2-108 AC2, L2-047). */
   protected step(delta: -1 | 1): void {
     void this.resistance.set(stepLevel(this.live.state(), delta));
+  }
+
+  /** `Music` turns the world's track off or on, for every world (L2-128 AC4, AC5). */
+  protected toggleMusic(): void {
+    this.musicPreference.toggle();
   }
 
   protected end(): void {

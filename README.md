@@ -46,6 +46,8 @@ Edge.
   own times, levels and cadence aims, plus a warm-up and cool-down of any length. Work efforts aim
   at 100 rpm.
 - **Classes.** A library of classes, each a plan with the YouTube video it follows.
+- **World Ride music.** Each world plays its own royalty-free Pixabay track while you ride, with a
+  `Music` toggle that is remembered ([the list](docs/world-music.md)).
 - **Ride history.** Rides are kept in the browser (IndexedDB), with a summary of each, progress,
   streaks and personal bests, and export and import of the history.
 - **Connection status.** Connecting and reconnecting are shown as they happen, with automatic
