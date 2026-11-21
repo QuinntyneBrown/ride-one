@@ -100,9 +100,9 @@
    * The opening scene: the aurora over ink, the lockup, the slice's kicker and its headline, and the
    * slice's first screen arriving on a device.
    */
-  const opening = (id, { kicker, words, accent, device }) => Film.scene(id, (S) => `
+  const opening = (id, { kicker, words, accent, device, width = 1100 }) => Film.scene(id, (S) => `
     <div class="fill field--ink">${S.aurora((t) => enter(t, 0, 1.2) * 0.6)}
-    <div style="${at(120, 150, 1100)}">
+    <div style="${at(120, 150, width)}">
       <div ${S.rise(0.2, { y: 30 })}>${lockup(64)}</div>
       <p class="kicker accent" style="margin-top:110px" ${S.rise(S.beat(1))}>${esc(kicker)}</p>
       <h1 class="headline" style="margin-top:28px">${S.words(S.beat(2), words, { accent })}</h1>
@@ -118,9 +118,9 @@
     <div class="fill field--ink">${S.aurora((t) => 0.6 * (1 - exit(t, S.length - 2.5, 2.5) * 0.6))}
     <div style="position:absolute;left:0;right:0;top:150px;text-align:center">
       <div ${S.rise(S.beat(1), { y: 40 })}>${lockup(110)}</div>
-      <p class="kicker accent" style="margin-top:40px" ${S.rise(S.beat(2))}>${esc(kicker)}</p>
-      <p class="lede" style="margin:44px auto 0;max-width:1440px;font-size:38px">${PURPOSE.map((sentence, n) =>
-        `<span ${S.rise(Math.max(S.beat(2), said(id, n + after) - 0.1), { y: 16 })}>${sentence}</span>`).join(' ')}</p>
+      <p class="kicker" style="margin-top:40px" ${S.rise(S.beat(2))}>${esc(kicker)}</p>
+      <div class="lede" style="margin:44px auto 0;max-width:1440px;font-size:38px">${PURPOSE.map((sentence, n) =>
+        `<p style="margin:0 0 18px" ${S.rise(Math.max(S.beat(2), said(id, n + after) - 0.1), { y: 16 })}>${sentence}</p>`).join('')}</div>
     </div>
     </div>`);
 

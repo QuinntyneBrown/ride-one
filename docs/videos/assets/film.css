@@ -106,7 +106,7 @@ img { display: block; }
 
 /* A drawn diagram: boxes and arrows in the palette, where no screenshot exists. */
 .node { position: absolute; box-sizing: border-box; display: grid; place-items: center; border-radius: 16px; background: var(--palette-panel);
-  outline: 3px solid var(--palette-line); font: italic 800 64px/1 var(--font-family-display); text-transform: uppercase; color: var(--palette-bone); }
+  outline: 3px solid var(--palette-line); font: italic 800 64px/1 var(--font-family-display); text-transform: uppercase; text-align: center; color: var(--palette-bone); }
 .node small { display: block; margin-top: 10px; font: 500 24px/1.2 var(--font-family-sans); font-style: normal; text-transform: none; color: var(--palette-muted); text-align: center; }
 .node--app { background: var(--palette-signal); outline-color: var(--palette-signal); color: var(--palette-ink); }
 .node--app small { color: var(--palette-ink); }

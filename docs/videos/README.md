@@ -9,6 +9,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 
 | Slice | Video | Runtime | What it is |
 |-------|-------|---------|------------|
+| 1.1 | [Frontend workspace](01-1-frontend-workspace/README.md) | 2:14 | One Angular workspace with `api`, `domain`, `components` and `ride` depending one way; lint failing on a wrong import and on Web Bluetooth outside `domain/src/bluetooth/`; Home in the app shell with the TELO Ride lockup and Home current; the design system's tokens and the bundled Barlow Condensed, Inter Tight and JetBrains Mono; Page not found with no current item and Back to Home; Skip to content; the shell from 390 to 1440 px; lazy chunks inside the bundle budget; six behaviour specs on the production build |
 
 ## Wattzup films
 
