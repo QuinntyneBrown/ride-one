@@ -29,6 +29,11 @@ One Azure App Service runs the API and serves the app (ADR 0026). A person provi
   `repo:<owner>/<repo>:ref:refs/heads/main`, Contributor on the App Service, and a user of the
   database (the deploy runs `migrate`). The database's firewall admits the deploy.
 
+The API itself redirects a plain `http` request to the same address on `https` (308) and sends
+`Strict-Transport-Security: max-age=31536000` on every `https` response outside Development
+(L2-009 AC2). It reads the scheme from the front end's `X-Forwarded-Proto`, so no setting is needed
+for it; the App Service's own **HTTPS only** stays on as well. HSTS leaves `localhost` out.
+
 ## Pipeline settings
 
 GitHub repository variables (not secrets: they name things) and one secret, read by the `deploy` job

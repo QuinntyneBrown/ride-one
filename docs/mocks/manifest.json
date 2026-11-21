@@ -29,6 +29,7 @@
       "requirements": [
         "L2-007",
         "L2-008",
+        "L2-009",
         "L2-011",
         "L2-012",
         "L2-013",
@@ -42,11 +43,12 @@
         "pairing",
         "paired",
         "bluetooth-off",
-        "unsupported-browser"
+        "unsupported-browser",
+        "needs-https"
       ],
       "not_applicable": {
         "empty": "‘searching’ is the empty state: no bike found yet, the list waits for one.",
-        "error": "The Bluetooth failures the design draws are their own states: bluetooth-off and unsupported-browser.",
+        "error": "The Bluetooth failures the design draws are their own states: bluetooth-off, unsupported-browser and needs-https.",
         "loading": "The design draws no loading state: every screen reads local, synchronous data (shared/game.ts, shared/videoWorkouts.ts), so there is nothing to wait for."
       }
     },

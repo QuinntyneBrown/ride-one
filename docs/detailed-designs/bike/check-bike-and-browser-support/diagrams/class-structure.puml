@@ -13,18 +13,18 @@ skinparam class {
 ' --------------------------
 title Class structure — Check bike and browser support
 enum BluetoothSupportState {
-  Ready
-  UnsupportedBrowser
-  InsecureContext
-  AdapterOff
+  ready
+  unsupported-browser
+  insecure-context
+  adapter-off
 }
 enum RideBlockReason {
-  UnsupportedBrowser
-  InsecureContext
+  unsupported-browser
+  insecure-context
 }
 enum BikeSupportLevel {
-  FullControl
-  Beta
+  full-control
+  beta
 }
 class SupportedBike {
   +label: string
@@ -36,8 +36,7 @@ interface BluetoothSupport <<api>> {
   +secureUrl(): string
 }
 class WebBluetoothSupport <<domain/bluetooth>> {
-  -navigator: Navigator
-  -location: Location
+  -window: Window
   +state: Signal<BluetoothSupportState>
   +recheck(): Promise<BluetoothSupportState>
   +secureUrl(): string
@@ -62,6 +61,10 @@ class BrowserPanel <<components>> {
   +copyLink: output<void>
   +openSecure: output<void>
 }
+class ConnectBikePage <<ride>> {
+  -support: BluetoothSupport
+  +blocker: Signal<BluetoothSupportState>
+}
 class ClassStartPage <<ride>> {
   -support: BluetoothSupport
   -clipboard: Clipboard
@@ -75,6 +78,8 @@ RideBlock ..> BluetoothSupportState
 RideBlock ..> RideBlockReason : returns
 SupportedBike --> BikeSupportLevel
 ConnectWorks "1" o-- "*" SupportedBike
+ConnectBikePage ..> BluetoothSupport : injects BLUETOOTH_SUPPORT
+ConnectBikePage ..> ConnectWorks : renders
 ClassStartPage ..> BluetoothSupport : injects BLUETOOTH_SUPPORT
 ClassStartPage ..> RideBlock
 ClassStartPage ..> BrowserNotice : renders

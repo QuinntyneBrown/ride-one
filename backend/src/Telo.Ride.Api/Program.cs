@@ -21,6 +21,7 @@ builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddAppHosting();
+builder.Services.AddTransportSecurity();
 // Code reads time only through TimeProvider, so tests advance a FakeTimeProvider instead of sleeping.
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddTeloRideAuthentication();
@@ -33,6 +34,7 @@ if (args is [MigrateCommand.Name])
     return await MigrateCommand.RunAsync(app.Services, CancellationToken.None);
 }
 
+app.UseTransportSecurity();
 app.UseSecurityHeaders();
 app.UseExceptionHandler();
 // The app's files need no session, so they are served before authentication (ADR 0026).

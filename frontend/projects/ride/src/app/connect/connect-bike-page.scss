@@ -81,3 +81,36 @@
     color: var(--color-muted);
   }
 }
+
+// Block connect-blocker: the alert in place of the device card when the bike cannot be reached (L2-008, L2-009).
+.connect-blocker {
+  margin-top: var(--space-8);
+  border-radius: var(--radius-xl);
+  background: var(--color-panel);
+  padding: var(--space-5);
+}
+
+.connect-blocker__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.connect-blocker__icon {
+  color: var(--color-warn-fg);
+}
+
+.connect-blocker__title {
+  font-weight: var(--font-weight-semibold);
+}
+
+.connect-blocker__body {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-muted);
+}
+
+.connect-blocker__retry {
+  margin-top: var(--space-4);
+}

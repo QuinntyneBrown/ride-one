@@ -5,7 +5,7 @@ title Containers — Check bike and browser support
 Person(rider, "Rider", "Rides a smart bike at home")
 System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
 System_Boundary(telo, "Telo Ride") {
-  Container(host, "Static web host", "Azure Static Web Apps", "Serves the app over HTTPS; redirects http and sends Strict-Transport-Security")
+  Container(host, "Telo.Ride.Api", "ASP.NET Core on Azure App Service (ADR 0026)", "Serves the app over HTTPS; redirects http and sends Strict-Transport-Security")
   Container(app, "Ride app", "Angular, Chrome or Edge", "Every screen, Web Bluetooth, protocol and workout engine")
 }
 Rel(rider, host, "Requests pages from", "HTTPS")
