@@ -18,6 +18,8 @@ interface Result {
   gpuMedianMs: number | null;
   drawCalls: number;
   programs: number;
+  stalls: number;
+  materials: Record<string, number>;
 }
 
 const ms = (v: number | null) => (v === null ? 'n/a' : v.toFixed(1));
@@ -49,7 +51,7 @@ export default class PerformanceReporter implements Reporter {
     writeFileSync(join(dir, `${name}.json`), JSON.stringify(report, null, 2) + '\n');
     const rows = this.results.map(
       (r) =>
-        `| ${r.scene} | ${r.tier} | ${r.drawnAt} | ${r.backend} | ${r.frames} | ${ms(r.medianMs)} | ${ms(r.p95Ms)} | ${ms(r.gpuMedianMs)} | ${r.drawCalls} | ${r.programs} |`,
+        `| ${r.scene} | ${r.tier} | ${r.drawnAt} | ${r.backend} | ${r.frames} | ${ms(r.medianMs)} | ${ms(r.p95Ms)} | ${ms(r.gpuMedianMs)} | ${r.drawCalls} | ${r.programs} | ${r.stalls} |`,
     );
     writeFileSync(
       join(dir, `${name}.md`),
@@ -58,9 +60,21 @@ export default class PerformanceReporter implements Reporter {
         '',
         `Commit ${report.commit ?? 'unknown'}.`,
         '',
-        '| Scene | Tier | Drawn at | Backend | Frames | Median (ms) | p95 (ms) | GPU median (ms) | Draw calls | Programs |',
-        '|---|---|---|---|---|---|---|---|---|---|',
+        '| Scene | Tier | Drawn at | Backend | Frames | Median (ms) | p95 (ms) | GPU median (ms) | Draw calls | Programs | Stalls in first 5 s |',
+        '|---|---|---|---|---|---|---|---|---|---|---|',
         ...rows,
+        '',
+        '## Material variants',
+        '',
+        'Distinct materials by type and features, most shared first: where programs come from.',
+        '',
+        ...this.results.flatMap((r) => [
+          `- **${r.scene} at ${r.tier} (${r.backend})**: ` +
+            Object.entries(r.materials)
+              .slice(0, 5)
+              .map(([v, n]) => `${v} × ${n}`)
+              .join(', '),
+        ]),
         '',
       ].join('\n'),
     );

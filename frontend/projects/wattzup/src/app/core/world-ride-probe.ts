@@ -10,9 +10,10 @@ export const PROBE_KEY = '__wzWorldRide';
 
 const TIERS: readonly Tier[] = ['low', 'medium', 'high', 'ultra'];
 
-/** What the sweep asked for: the tier to pin. */
+/** What the sweep asked for: the tier to pin, and whether to draw with WebGL2 (#679). */
 export interface WorldRideProbe {
   readonly tier: Tier;
+  readonly forceWebGL: boolean;
 }
 
 /** What the renderer reports back to the sweep, kept current as it draws. */
@@ -27,13 +28,17 @@ export interface WorldRideProbeReport {
   drawCalls: number;
   /** Shader programs alive. */
   programs: number;
+  /** The scene's distinct materials by type and features: where program variants come from. */
+  materials: Record<string, number>;
 }
 
 /** The pinned tier, or null when the hook is not set (every rider's ride). */
 export function readWorldRideProbe(value: unknown): WorldRideProbe | null {
   if (typeof value !== 'object' || value === null) return null;
-  const tier = (value as { tier?: unknown }).tier;
-  return TIERS.includes(tier as Tier) ? { tier: tier as Tier } : null;
+  const { tier, backend } = value as { tier?: unknown; backend?: unknown };
+  return TIERS.includes(tier as Tier)
+    ? { tier: tier as Tier, forceWebGL: backend === 'webgl2' }
+    : null;
 }
 
 /**
@@ -54,7 +59,45 @@ export function probeReport(
     gpuMs: gpuTimed ? [] : null,
     drawCalls: 0,
     programs: 0,
+    materials: {},
   };
   (probe as { report?: WorldRideProbeReport }).report = report;
   return report;
+}
+
+/** The parts of a material that set which program draws it. */
+interface MaterialShape {
+  readonly type: string;
+  readonly transparent?: boolean;
+  readonly side?: number;
+  readonly map?: unknown;
+  readonly normalMap?: unknown;
+  readonly emissiveMap?: unknown;
+  readonly alphaTest?: number;
+  readonly vertexColors?: boolean;
+  readonly clearcoat?: number;
+  readonly transmission?: number;
+}
+
+/** `type+feature+…`: materials alike in these compile to the same program. */
+function variant(m: MaterialShape): string {
+  const features: [string, unknown][] = [
+    ['transparent', m.transparent],
+    ['double-sided', m.side === 2],
+    ['map', m.map],
+    ['normal-map', m.normalMap],
+    ['emissive-map', m.emissiveMap],
+    ['alpha-test', (m.alphaTest ?? 0) > 0],
+    ['vertex-colours', m.vertexColors],
+    ['clearcoat', (m.clearcoat ?? 0) > 0],
+    ['transmission', (m.transmission ?? 0) > 0],
+  ];
+  return [m.type, ...features.filter(([, on]) => on).map(([name]) => name)].join('+');
+}
+
+/** How many distinct materials share each variant, most shared first (#679). */
+export function materialVariants(materials: Iterable<MaterialShape>): Record<string, number> {
+  const counts = new Map<string, number>();
+  for (const m of new Set(materials)) counts.set(variant(m), (counts.get(variant(m)) ?? 0) + 1);
+  return Object.fromEntries([...counts].sort((a, b) => b[1] - a[1]));
 }

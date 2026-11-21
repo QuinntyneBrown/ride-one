@@ -22,16 +22,24 @@ export interface WorldRideReport {
   drawCalls: number;
   /** Shader programs alive. */
   programs: number;
+  /** The scene's distinct materials by type and features, most shared first. */
+  materials: Record<string, number>;
 }
 
 export class WorldRideProbe {
   constructor(private readonly page: Page) {}
 
-  /** Call before the page loads: World Ride draws at `tier` and never drops it. */
-  async pin(tier: Tier): Promise<void> {
-    await this.page.addInitScript((t) => {
-      (window as unknown as Record<string, unknown>)['__wzWorldRide'] = { tier: t };
-    }, tier);
+  /**
+   * Call before the page loads: World Ride draws at `tier` and never drops it; with `webgl2`,
+   * through three's WebGL2 backend even where WebGPU is offered.
+   */
+  async pin(tier: Tier, backend: 'auto' | 'webgl2' = 'auto'): Promise<void> {
+    await this.page.addInitScript(
+      ([t, b]) => {
+        (window as unknown as Record<string, unknown>)['__wzWorldRide'] = { tier: t, backend: b };
+      },
+      [tier, backend] as const,
+    );
   }
 
   /** The renderer's latest report, or null before the scene has started. */

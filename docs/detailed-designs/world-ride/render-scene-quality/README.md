@@ -77,7 +77,7 @@ None.
 
 **The bend at every tier (L2-111 criterion 8, ADR 0023).** The road's bend is a vertex-stage `positionNode` on every material, not a technique: it is on at every tier and on both backends, and no tier turns it off. Its cost is a few arithmetic steps per vertex and one 2 KB upload a frame; frustum culling is off for bent meshes. The frame budget is the same as on a straight road, so a screen that cannot hold its tier on a bending road drops one as it would for any other load (`world-ride/draw-class-scene`, The bending road).
 
-**Test-only tier hook (`core/world-ride-probe.ts`, #672).** The performance sweep (`frontend/e2e/sweeps/performance.sweep.ts`) must draw every tier on demand. Its fixture, `e2e/fixtures/world-ride-probe.ts`, sets `window.__wzWorldRide = { tier }` before the app boots. `readWorldRideProbe` reads it when the renderer starts. The scene then opens at that tier (`ultra` draws at `high` on WebGL2), and its `FrameBudget` is built `pinned`, so no window lowers it. The renderer keeps `__wzWorldRide.report` current: `{ tier, backend, frames, gpuMs, drawCalls, programs }`, the time between each drawn frame and the last frame's draw calls (counted across every pass, so `info.autoReset` is off while the hook is set) and the programs alive (`renderer.info`, #674). `gpuMs` is each frame's GPU time from timer queries: while the hook is set the renderer is built with `trackTimestamp`, which uses WebGPU's `timestamp-query` feature or WebGL2's `EXT_disjoint_timer_query_webgl2`, and resolves the time after each frame. Where `hasFeature('timestamp-query')` is false, `gpuMs` is `null`, written rather than omitted. A rider's renderer is built without timer queries (#675). The sweep rides each scene's first class at each pinned tier, skips 3 s, records 20 s and attaches the median and p95 frame time with the counts; it judges no number. The hook is not a rider option and is not in the README; nothing in the app sets the global, only the lazy World Ride chunk reads it, and the behaviour specs never use it.
+**Test-only tier hook (`core/world-ride-probe.ts`, #672).** The performance sweep (`frontend/e2e/sweeps/performance.sweep.ts`) must draw every tier on demand. Its fixture, `e2e/fixtures/world-ride-probe.ts`, sets `window.__wzWorldRide = { tier, backend }` before the app boots; `backend: 'webgl2'` builds the renderer with `forceWebGL`, so the sweep can profile the WebGL2 fallback on a WebGPU screen (#679). `readWorldRideProbe` reads it when the renderer starts. The scene then opens at that tier (`ultra` draws at `high` on WebGL2), and its `FrameBudget` is built `pinned`, so no window lowers it. The renderer keeps `__wzWorldRide.report` current: `{ tier, backend, frames, gpuMs, drawCalls, programs, materials }`, the time between each drawn frame and the last frame's draw calls (counted across every pass, so `info.autoReset` is off while the hook is set) and the programs alive (`renderer.info`, #674). `gpuMs` is each frame's GPU time from timer queries: while the hook is set the renderer is built with `trackTimestamp`, which uses WebGPU's `timestamp-query` feature or WebGL2's `EXT_disjoint_timer_query_webgl2`, and resolves the time after each frame. Where `hasFeature('timestamp-query')` is false, `gpuMs` is `null`, written rather than omitted. A rider's renderer is built without timer queries (#675). `materials` counts the scene's distinct materials by type and features (`materialVariants`: transparent, double-sided, map, normal map, emissive map, alpha test, vertex colours, clear-coat, transmission), refreshed every 120 frames: where program variants come from. The sweep also counts first-use stalls, frames over 50 ms in the first 5 s (#679). The sweep rides each scene's first class at each pinned tier, skips 3 s, records 20 s and attaches the median and p95 frame time with the counts; it judges no number. The hook is not a rider option and is not in the README; nothing in the app sets the global, only the lazy World Ride chunk reads it, and the behaviour specs never use it.
 
 **Scene component.** `WorldScene` awaits `start`. It emits `unavailable` when `start` resolves `false` or rejects (L2-111 criterion 1).
 
@@ -114,6 +114,45 @@ Unit tests (`render-quality.spec.ts`):
 A behaviour spec cannot set the refresh rate of the rider's display: the headless browser always reports its own. The unit tests prove the rules; the e2e specs prove World Ride still opens and draws.
 
 How each tier looks (AC2), and the fallback form of each technique when its asset is missing (AC6), are judged by eye and by the visual sweep, which runs only when a person asks. That the HUD stays responsive (AC7) holds because the HUD is DOM and the scene draws on the app's frame loop.
+
+### Baseline profile (#679)
+
+Recorded before any shader work (#680 to #682) with the performance sweep, headed, one worker, at commit `1fcf211a`, on a Microsoft Surface Laptop 7 (Snapdragon X Elite X1E80100, Adreno X1-85), Playwright 1.65.1's bundled Chromium at 1440 × 900. `webgl2` rows force three's WebGL2 backend on the same machine. Times compare runs on this machine only.
+
+| Scene | Tier | Drawn at | Backend | Frames | Median (ms) | p95 (ms) | GPU median (ms) | Draw calls | Programs | Stalls in first 5 s |
+|---|---|---|---|---|---|---|---|---|---|---|
+| timessquare | low | low | webgpu | 1048 | 18.8 | 24.7 | 6.8 | 860 | 36 | 5 |
+| timessquare | medium | medium | webgpu | 782 | 25.2 | 31.7 | 9.1 | 1078 | 63 | 6 |
+| timessquare | high | high | webgpu | 704 | 27.4 | 32.8 | 11.5 | 1086 | 71 | 8 |
+| timessquare | ultra | ultra | webgpu | 723 | 27.1 | 34.6 | 11.5 | 1086 | 71 | 8 |
+| timessquare | low | low | webgl2 | 793 | 24.3 | 31.6 | 23.0 | 860 | 36 | 3 |
+| timessquare | medium | medium | webgl2 | 509 | 39.4 | 43.9 | 37.3 | 1078 | 65 | 1 |
+| timessquare | high | high | webgl2 | 457 | 43.7 | 53.9 | 41.0 | 1086 | 73 | 1 |
+| timessquare | ultra | high | webgl2 | 463 | 42.9 | 50.7 | 41.1 | 1086 | 73 | 12 |
+| bigsur | low | low | webgpu | 1217 | 16.7 | 17.6 | 3.5 | 264 | 13 | 2 |
+| bigsur | medium | medium | webgpu | 1205 | 16.7 | 17.9 | 5.8 | 477 | 34 | 4 |
+| bigsur | high | high | webgpu | 1209 | 16.6 | 17.7 | 7.5 | 485 | 42 | 6 |
+| bigsur | ultra | ultra | webgpu | 1215 | 16.7 | 17.8 | 7.5 | 485 | 42 | 6 |
+| bigsur | low | low | webgl2 | 1213 | 16.6 | 17.6 | 8.8 | 264 | 13 | 1 |
+| bigsur | medium | medium | webgl2 | 808 | 24.7 | 29.5 | 21.1 | 477 | 34 | 2 |
+| bigsur | high | high | webgl2 | 813 | 24.8 | 28.4 | 20.9 | 485 | 42 | 3 |
+| bigsur | ultra | high | webgl2 | 811 | 24.8 | 28.4 | 21.2 | 485 | 42 | 4 |
+| galibier | low | low | webgpu | 1210 | 16.7 | 17.9 | 4.7 | 728 | 20 | 3 |
+| galibier | medium | medium | webgpu | 650 | 31.1 | 35.4 | 7.0 | 1316 | 45 | 6 |
+| galibier | high | high | webgpu | 611 | 31.6 | 42.3 | 8.5 | 1324 | 53 | 6 |
+| galibier | ultra | ultra | webgpu | 602 | 32.6 | 43.4 | 7.9 | 1324 | 53 | 10 |
+| galibier | low | low | webgl2 | 878 | 22.7 | 27.0 | 20.8 | 728 | 20 | 4 |
+| galibier | medium | medium | webgl2 | 473 | 43.1 | 50.1 | 38.3 | 1316 | 45 | 20 |
+| galibier | high | high | webgl2 | 451 | 45.1 | 52.1 | 40.7 | 1324 | 53 | 20 |
+| galibier | ultra | high | webgl2 | 451 | 45.3 | 53.2 | 40.9 | 1324 | 53 | 27 |
+
+Sources of program variants, most first:
+
+1. **The tier's techniques, not the material count.** Programs grow by 21 to 27 from `low` to `medium` in every scene (shadow maps, clear-coat frame paint, the medium-tier techniques), while the materials stay the same. Times Square draws about 290 distinct materials through 36 programs at `low`.
+2. **Mapped standard materials.** `MeshStandardMaterial+map` (22 to 29 per scene) and plain `MeshStandardMaterial` (11 to 27) are the most shared variants; Times Square's signs and glass add `+emissive-map+alpha-test` (33).
+3. **Per-texture basic materials.** Times Square's 199 `MeshBasicMaterial+map` billboards share one program but cost a draw call each: 860 to 1,086 draw calls against Big Sur's 264 to 485.
+
+The WebGL2 backend takes 2.5 to 5 times the GPU time of WebGPU for the same scene and programs, and first-use stalls cluster there: Galibier on WebGL2 has 20 to 27 frames over 50 ms in its first 5 s.
 
 ### Open questions
 
