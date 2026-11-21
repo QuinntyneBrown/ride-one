@@ -20,8 +20,8 @@ Do not invent a mission in its place.
   every screen. It runs in Chrome or Edge; a ride finishes on the device without a network.
 - **The backend is thin.** `backend/` is a .NET service only for what one browser cannot do
   alone: email sign-in, rider progress (XP, stars, unlocks, rides), SignalR for live races and
-  group classes, and feedback. It never talks to the bike. ADR 0019 (no backend) is superseded
-  by an ADR before the backend lands.
+  group classes, and feedback. It never talks to the bike. ADR 0025 superseded ADR 0019
+  (no backend) when the backend landed; `backend/README.md` has its commands.
 - Before building a feature, read its requirement (`docs/specs/`, `docs/journeys.md`), its
   detailed design (`docs/detailed-designs/`) and its mocks (`docs/mocks/`, the source of truth
   for the UI; `docs/design-system/` is extracted from them).
