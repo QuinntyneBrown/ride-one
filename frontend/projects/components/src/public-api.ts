@@ -6,3 +6,4 @@ export { ConnectWorks } from './connect-works/connect-works';
 export { ConnectDevice, type ConnectDeviceState } from './connect-device/connect-device';
 export { Button, type ButtonSize, type ButtonVariant } from './button/button';
 export { Lockup } from './lockup/lockup';
+export { formatDistance, formatMetric } from './metric/format-metric';
