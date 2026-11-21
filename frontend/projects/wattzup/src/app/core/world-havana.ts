@@ -245,6 +245,7 @@ export class HavanaStreet implements SceneStreet {
     this.addCrossers(roadHalf);
     this.addCats(roadHalf);
     this.addQuinceanera(roadHalf);
+    this.addManisero(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -4289,6 +4290,67 @@ export class HavanaStreet implements SceneStreet {
     shirts: MeshStandardMaterial[];
     skins: MeshStandardMaterial[];
   };
+
+  /**
+   * A manisero, the peanut seller: an old man in a white guayabera and straw hat, a tin of
+   * roasted peanuts on a strap at his hip, holding out a fan of paper cones to the passers-by.
+   */
+  private addManisero(roadHalf: number): void {
+    const man = new Group();
+    const shirt = this.material({ color: 0xf4f1e8, roughness: 0.85 });
+    const trousers = this.material({ color: 0x5a5448, roughness: 0.9 });
+    const skin = this.material({ color: 0x7a4e32, roughness: 0.8 });
+    const straw = this.material({ color: 0xd8c08a, roughness: 0.95 });
+    const tin = this.material({ color: 0xb8bcbc, roughness: 0.35, metalness: 0.7 });
+    const paper = this.material({ color: 0xf0ead8, roughness: 0.9 });
+    const torso = new CapsuleGeometry(0.17, 0.42, 3, 8);
+    const head = new SphereGeometry(0.11, 10, 8);
+    const limb = new CapsuleGeometry(0.05, 0.42, 3, 6);
+    const leg = new CapsuleGeometry(0.07, 0.62, 3, 6);
+    const brim = new CylinderGeometry(0.24, 0.24, 0.02, 14);
+    const crown = new CylinderGeometry(0.1, 0.12, 0.11, 12);
+    const can = new CylinderGeometry(0.15, 0.15, 0.32, 14);
+    const cone = new ConeGeometry(0.035, 0.16, 8);
+    cone.rotateX(Math.PI);
+    this.disposables.push(torso, head, limb, leg, brim, crown, can, cone);
+    const add = (
+      g: BufferGeometry,
+      m: MeshStandardMaterial,
+      x: number,
+      y: number,
+      z: number,
+      rx = 0,
+      rz = 0,
+    ) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.rotation.set(rx, 0, rz);
+      mesh.castShadow = true;
+      man.add(mesh);
+      return mesh;
+    };
+    for (const z of [-0.1, 0.1]) add(leg, trousers, 0, 0.4, z);
+    add(torso, shirt, 0, 1.05, 0);
+    add(head, skin, 0, 1.5, 0);
+    add(brim, straw, 0, 1.6, 0);
+    add(crown, straw, 0, 1.66, 0);
+    // The tin at his hip on its strap, the lid open on the cones stood inside.
+    add(can, tin, -0.05, 0.85, 0.27);
+    const strap = add(this.unit, trousers, 0, 1.15, 0.12, -0.5);
+    strap.scale.set(0.03, 0.62, 0.32);
+    for (let k = 0; k < 6; k++)
+      add(cone, paper, -0.08 + (k % 3) * 0.06, 1.06, 0.22 + Math.floor(k / 3) * 0.08);
+    // One arm down, one held out toward the road with a fan of cones.
+    add(limb, shirt, 0, 1.0, 0.24, 0, 0.1);
+    add(limb, shirt, -0.22, 1.16, -0.2, 0, 1.2);
+    for (let k = 0; k < 4; k++) add(cone, paper, -0.46, 1.24, -0.27 + k * 0.05, 0, 0.2 - k * 0.12);
+    man.rotation.y = Math.PI;
+    const holder = new Group();
+    man.position.y = KERB;
+    holder.add(man);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 31.8, x: roadHalf + 1.3 });
+  }
 
   /**
    * A quinceañera's photo shoot under the arcade's edge, as there so often is: the girl in a vast
