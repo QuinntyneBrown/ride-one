@@ -38,17 +38,23 @@ reached. The session roster, Join and the full and starting-soon states come wit
   page. It renders the header ("← Classes", Full screen), the parked video, the class facts,
   "What the bike will do", the "Video link and sync" disclosure and "How do you want to ride?".
   At lg it is two columns with the Join button at the foot of the aside (`L2-084` AC4).
-- **`ClassStartStore`** — signal store provided on the route. It holds the class (from
-  `ClassLibraryStore`'s catalogue or `CLASSES_API`), the chosen ride mode, and the next two group
-  sessions. It polls `CLASSES_API.sessions(classId)` every 30 seconds through an RxJS `timer`
+- **`ClassStartStore`** — signal store provided on the page, so it goes when the rider leaves.
+  It holds the class (from `CLASSES_API`, which falls back to the device's copy of the
+  catalogue), the chosen ride mode and the parked player, which it destroys on leaving; with the
+  group sessions (slices 14.2 and 14.3) it also holds the next two of them. It polls `CLASSES_API.sessions(classId)` every 30 seconds through an RxJS `timer`
   bound to `DestroyRef`, and derives the option text and button label: "Join · starts in 9 min",
   "Join now · starting", "Join the next session" or "Start class".
+- **`classUnlockedGuard`** — `canActivate` on the route. It reads the class and the rider's
+  level (`PROGRESS_API`) and opens the Class Library instead for a locked class, a class the
+  catalogue does not hold, or no catalogue (`L2-082` AC4).
 - **`ClassJoinFlow`** — orchestration in the page. Alone, it navigates to
   `/classes/:id/ride?mode=solo`. Group, it calls `RIDE_HUB_CLIENT.joinClassSession` and, on
   success, navigates to `/classes/:id/ride?session={sessionId}`. On `session_full` or `session_started`, it reloads the sessions and offers the next one (`L2-086`).
 
 **Frontend — `components` library**
 
+- **`ClassStartHeader`** (`wz-class-start-header`) with **`BackLink`** (`a[wz-back-link]`) —
+  the lockup, the page's "← Classes" in the `back` slot and its actions in the `end` slot.
 - **`ClassStartVideo`** (`wz-class-start-video`) — host for the parked player, with a poster
   until the player is ready.
 - **`ClassPlan`** (`wz-class-plan`) — "What the bike will do": total length, a `ClassProfile`
@@ -74,7 +80,9 @@ reached. The session roster, Join and the full and starting-soon states come wit
 - **`VideoPlayer`** / `VIDEO_PLAYER_FACTORY` — contract and token in `api`. The implementation,
   **`YouTubeVideoPlayer`**, sits in a lazily imported `video` library. It loads the YouTube
   IFrame API on demand, embeds `https://www.youtube-nocookie.com/embed/<videoId>`, and here
-  parks the video at the sync offset with its controls shown (ADR 0012). The `video` library
+  parks the video at the sync offset with its controls shown (ADR 0012): `PlayerOptions.autoplay`
+  off opens the player at its start and waits, since seeking from the cued state would play it.
+  `provideClassVideo()` binds the factory for Class Start and the class ride. The `video` library
   depends on `api` only; the change that adds it adds it to the dependency rule and the ESLint
   boundaries.
 - **`ServerClock`** (`domain/engine`) — offset between the device clock and the server's,
@@ -158,7 +166,14 @@ Riding alone needs no request: the page navigates to the class ride in solo mode
 - **HIIT's offset and work level.** Slice 6.1 took 30 Minute HIIT Cardio's sync offset (3 s)
   and work level (18) from `main`. The specs give 0:12.0 (`L2-080`, `L2-084`, `L2-088`) and the
   GCN ladder's work level 24 (`L2-096`), which yields the ~154 W of `L2-084` AC2; slice 6.3 set the
-  catalogue to them.
+  catalogue to them. No spec names the cool-down's cadence aim; 68 rpm, with the warm-up at 80 and
+  the recoveries at 72, gives ~154 W, and the catalogue uses it.
+- **Full screen.** `L2-084` AC1 puts Full screen in the header. It comes to every page header at
+  once with slice 24.2 (`L2-144`), which hides it where the browser has no Fullscreen API; until
+  then the header holds the lockup and "← Classes".
+- **The structure line.** `PlanSummary` reads it from the plan: the efforts' count and length (a
+  range when they differ), then the recoveries from first to last. A plan with no effort reads
+  "Level {n} throughout" (`L2-099` AC2), or "Steady at level {n}" for its longest segment.
 - **The browser notices.** The needs-chromium and needs-https states disable Start class with a
   notice. Until they are built, a rider in a browser without Web Bluetooth who presses Start
   class reaches Connect Bike, which explains why (`L2-008`, `L2-009`).

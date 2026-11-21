@@ -3,7 +3,6 @@ import type { Locator, Page } from '@playwright/test';
 /** Class Start at `/classes/:id` (docs/mocks/pages/class-start/). */
 export class ClassStartPage {
   readonly back: Locator;
-  readonly fullScreen: Locator;
   readonly title: Locator;
   readonly meta: Locator;
   readonly summary: Locator;
@@ -20,7 +19,6 @@ export class ClassStartPage {
 
   constructor(private readonly page: Page) {
     this.back = page.locator('.class-header').getByRole('link', { name: 'Classes' });
-    this.fullScreen = page.getByRole('button', { name: /full screen/i });
     this.title = page.getByRole('heading', { level: 1 });
     this.meta = page.locator('.class-start__meta');
     this.summary = page.locator('.class-start__summary');
