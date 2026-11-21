@@ -328,7 +328,17 @@ export class Cyclist {
       const fore = this.limbMesh(0.04, FOREARM, kit.skin);
       place(upper, shoulder, elbow);
       place(fore, elbow, hand);
-      this.body.add(upper.mesh, fore.mesh);
+      // The shoulder: the jersey rounds over the joint from the top of the back to the arm, so
+      // the arm grows out of the body instead of hanging beside it.
+      const cap = this.limbMesh(0.065, 0.2, jersey);
+      place(
+        cap,
+        SHOULDER.clone()
+          .setX(side * 0.04)
+          .addScaledVector(along, -0.03),
+        shoulder,
+      );
+      this.body.add(upper.mesh, fore.mesh, cap.mesh);
       const thigh = this.limbMesh(0.075, THIGH, kit.shorts);
       const shin = this.limbMesh(0.055, SHIN, kit.skin);
       // White race socks to mid-calf, carried on the shin.
