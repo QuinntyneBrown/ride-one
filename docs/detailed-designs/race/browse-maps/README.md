@@ -70,7 +70,9 @@ unlock (`L2-040` AC1). Stars, bests and the other riders' paths come with journe
   **`NewRiderProgress`** (`domain/engine`) answers for a new account until journey 10.
 - **`MapDto`** (`api`) — one catalogue entry: `id`, `name`, `routeName`, `place`,
   `distanceKm`, `climbingM`, `rating` (`Easy`, `Moderate`, `Hard`, `Brutal`), `world`,
-  `thumbnailUrl` and `unlockGoal` (`null` for a map open from the start).
+  `thumbnailUrl`, `photoUrl` (the 21:9 photo Race Setup shows), `unlockGoal` (`null` for a map
+  open from the start) and `unlockMapId` (the map the goal is earned on, `null` for a level goal
+  or a map open from the start).
 
 **Telo Ride API (`backend/`)**
 
@@ -151,5 +153,5 @@ says so and offers Try again.
   for a new account, so stars, bests and the mid rider's and veteran's paths (`L2-041` AC2 and
   AC3) are drawn by `MapRow` but not yet reachable in the app.
 - **The rest of each map.** The elevation profile, the 30:00 plan and the world description
-  (`L2-045` AC2) join the catalogue with Race Setup and the race (slices 7.2 and 7.3), which read
-  them; the photo, panorama and real place with the world (journey 8).
+  (`L2-045` AC2) join the catalogue with the race (slice 7.3), which reads them; Race Setup's photo
+  joins it with slice 7.2, and the panorama and real place with the world (journey 8).

@@ -10,6 +10,7 @@
       "rating": "Easy",
       "world": "prairie",
       "thumbnailUrl": "maps/prairie-paceline.jpg",
+      "photoUrl": "maps/prairie-paceline-photo.jpg",
       "unlock": {
         "kind": "start"
       }
@@ -24,6 +25,7 @@
       "rating": "Easy",
       "world": "oldtown",
       "thumbnailUrl": "maps/old-town-criterium.jpg",
+      "photoUrl": "maps/old-town-criterium-photo.jpg",
       "unlock": {
         "kind": "start"
       }
@@ -38,6 +40,7 @@
       "rating": "Moderate",
       "world": "coast",
       "thumbnailUrl": "maps/cliffside-coast.jpg",
+      "photoUrl": "maps/cliffside-coast-photo.jpg",
       "unlock": {
         "kind": "top-three-vs-bots",
         "mapId": "prairie-paceline"
@@ -53,6 +56,7 @@
       "rating": "Moderate",
       "world": "docklands",
       "thumbnailUrl": "maps/neon-docklands.jpg",
+      "photoUrl": "maps/neon-docklands-photo.jpg",
       "unlock": {
         "kind": "top-three-vs-bots",
         "mapId": "old-town-criterium"
@@ -68,6 +72,7 @@
       "rating": "Hard",
       "world": "dolomites",
       "thumbnailUrl": "maps/dolomites.jpg",
+      "photoUrl": "maps/dolomites-photo.jpg",
       "unlock": {
         "kind": "stars",
         "mapId": "cliffside-coast",
@@ -84,6 +89,7 @@
       "rating": "Moderate",
       "world": "vicecity",
       "thumbnailUrl": "maps/vice-city.jpg",
+      "photoUrl": "maps/vice-city-photo.jpg",
       "unlock": {
         "kind": "level",
         "level": 10
@@ -99,6 +105,7 @@
       "rating": "Brutal",
       "world": "granite",
       "thumbnailUrl": "maps/col-du-granit.jpg",
+      "photoUrl": "maps/col-du-granit-photo.jpg",
       "unlock": {
         "kind": "stars",
         "mapId": "dolomites",

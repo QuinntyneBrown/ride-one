@@ -1,8 +1,8 @@
 // Acceptance test
-// Traces to: L2-045 AC1, AC3; L2-040 AC1, AC6; ADR 0029
+// Traces to: L2-045 AC1, AC3; L2-040 AC1, AC6; L2-047 AC1, AC3; ADR 0029
 // Description: the map catalogue, read without a session, lists the seven maps of L2-045 AC1 in unlock order, each with
-// its distance, climbing, rating, route and place, its world and its thumbnail; Prairie Paceline and Old Town Criterium
-// are open from the start, and every other map names its one goal.
+// its distance, climbing, rating, route and place, its world, its thumbnail and its photo; Prairie Paceline and Old
+// Town Criterium are open from the start, and every other map names its one goal and the map it is earned on.
 using System.Net;
 using System.Net.Http.Json;
 
@@ -47,7 +47,25 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
     }
 
     [Fact]
-    public async Task Every_map_names_its_world_and_its_thumbnail_in_the_app()
+    public async Task A_goal_names_the_map_it_is_earned_on_and_a_level_goal_none()
+    {
+        var maps = await ReadMaps();
+
+        Assert.Equal(
+            [
+                ("prairie-paceline", null),
+                ("old-town-criterium", null),
+                ("cliffside-coast", "prairie-paceline"),
+                ("neon-docklands", "old-town-criterium"),
+                ("dolomites", "cliffside-coast"),
+                ("vice-city", null),
+                ("col-du-granit", "dolomites"),
+            ],
+            maps.Select(m => (m.Id, m.UnlockMapId)));
+    }
+
+    [Fact]
+    public async Task Every_map_names_its_world_and_its_thumbnail_and_photo_in_the_app()
     {
         var maps = await ReadMaps();
 
@@ -55,6 +73,7 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
             ["prairie", "oldtown", "coast", "docklands", "dolomites", "vicecity", "granite"],
             maps.Select(m => m.World));
         Assert.All(maps, m => Assert.Equal($"maps/{m.Id}.jpg", m.ThumbnailUrl));
+        Assert.All(maps, m => Assert.Equal($"maps/{m.Id}-photo.jpg", m.PhotoUrl));
     }
 
     private async Task<IReadOnlyList<CatalogueMap>> ReadMaps()
@@ -77,5 +96,7 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
         string Rating,
         string World,
         string ThumbnailUrl,
-        string? UnlockGoal);
+        string PhotoUrl,
+        string? UnlockGoal,
+        string? UnlockMapId);
 }

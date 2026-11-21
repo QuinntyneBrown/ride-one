@@ -23,7 +23,7 @@ public sealed class EmbeddedMapCatalogue : IMapCatalogue
             ?? throw new InvalidOperationException("The embedded map catalogue is empty.");
         return [.. catalogue.Maps.Select(m => new MapDefinition(
             m.Id, m.Name, m.RouteName, m.Place, m.DistanceKm, m.ClimbingM, m.Rating, m.World, m.ThumbnailUrl,
-            new MapUnlock(m.Unlock.Kind, m.Unlock.MapId, m.Unlock.Stars, m.Unlock.Level)))];
+            m.PhotoUrl, new MapUnlock(m.Unlock.Kind, m.Unlock.MapId, m.Unlock.Stars, m.Unlock.Level)))];
     }
 
     private sealed record CatalogueFile(IReadOnlyList<MapEntry> Maps);
@@ -38,6 +38,7 @@ public sealed class EmbeddedMapCatalogue : IMapCatalogue
         string Rating,
         string World,
         string ThumbnailUrl,
+        string PhotoUrl,
         UnlockEntry Unlock);
 
     private sealed record UnlockEntry(string Kind, string? MapId, int? Stars, int? Level);

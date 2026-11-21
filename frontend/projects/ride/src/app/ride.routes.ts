@@ -29,6 +29,11 @@ export const rideRoutes: Routes = [
         loadChildren: () =>
           import('./class-start/class-start.routes').then((m) => m.classStartRoutes),
       },
+      // Race Setup has its own header, with no app navigation (docs/mocks/pages/race-setup/).
+      {
+        path: 'race/:mapId',
+        loadChildren: () => import('./race-setup/race-setup.routes').then((m) => m.raceSetupRoutes),
+      },
       {
         path: '',
         loadComponent: () => import('./main-shell/main-shell'),

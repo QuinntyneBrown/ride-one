@@ -6,6 +6,7 @@ import {
   input,
   output,
 } from '@angular/core';
+import { radioStep } from '../radio-group/radio-step';
 
 /** One way to ride: its id, its title and body, its icon, and whether it can be chosen. */
 export interface RideOption {
@@ -41,21 +42,15 @@ export class RideChoice {
   }
 
   protected move(event: KeyboardEvent, index: number): void {
-    const step =
-      event.key === 'ArrowDown' || event.key === 'ArrowRight'
-        ? 1
-        : event.key === 'ArrowUp' || event.key === 'ArrowLeft'
-          ? -1
-          : 0;
-    if (step === 0) return;
-    event.preventDefault();
     const options = this.options();
-    for (let offset = 1; offset < options.length; offset++) {
-      const next = (index + step * offset + options.length) % options.length;
-      if (options[next].disabled) continue;
-      this.choose.emit(options[next].id);
-      this.host.nativeElement.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus();
-      return;
-    }
+    const next = radioStep(
+      event.key,
+      index,
+      options.map((option) => option.disabled),
+    );
+    if (next === null) return;
+    event.preventDefault();
+    this.choose.emit(options[next].id);
+    this.host.nativeElement.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus();
   }
 }
