@@ -52,10 +52,14 @@ in `AGENTS.md` and to the ESLint boundaries in the same change.
   scene around it is the one image.
 - **`RenderQuality`** — pure tier table (ADR 0021): the tier for the device and backend, and
   which form of each technique the tier uses. `ultra` is WebGPU only.
-- **`RaceWorldScene`** — road, terrain, sky and props of the map's world, loaded from
-  same-origin assets under `frontend/public/worlds/<worldId>/` (ADR 0021). The road bends in
-  the vertex stage (ADR 0023). The camera follows the rider's distance and keeps its framing in
-  a portrait viewport by widening the vertical field of view, never stretching (L2-064 AC5).
+- **`RaceWorldScene`** — `main`'s scene: the road, terrain, sky and props of the map's world,
+  each world's scene module (`world-<id>.ts`) built on the shared kit and street table, with the
+  panoramas of the worlds that have one served from the app's own origin
+  (`projects/ride/public/worlds/<worldId>/`, ADR 0021). The road bends in the vertex stage (ADR
+  0023). `SceneDriver` moves the camera along the route at the race's virtual speed each frame,
+  and holds it while the race is paused. In a portrait viewport the camera keeps its vertical
+  field of view and narrows its aspect, so the world fills the screen without stretching
+  (L2-064 AC5).
 - **`RiderFigures`** — one instanced mesh for the riders in view, each in its jersey colour;
   the ghost uses a translucent gold material (L2-064 AC3).
 - **`PhotorealTilesLayer`** — loads Google's photorealistic 3D Tiles for the map's real place
@@ -157,5 +161,10 @@ built-in world in place and the panel says so.
 - **The renderer arrives in two slices.** Slice 8.1 carries `main`'s `world-renderer.ts` as far as
   starting, sizing, the frame budget and disposing; slice 8.2 brings the rest of the file, which
   builds and draws the scene, so the canvas stays clear over the map's photo until then.
+- **Slice 8.2 draws `main`'s scene as it is.** The camera keeps `main`'s fixed vertical field of
+  view in a portrait viewport rather than widening it, which still fills the screen without
+  stretching. `main`'s scene reads each segment's start second, which `WorldScene` adds to the
+  plan's segments (`timedSegments`). Until slice 8.3 places the race's own riders, the scene
+  draws `main`'s six simulated pacers around the rider, as `main` does.
 - **Vice City has no world on `main`.** Its race draws South Beach Sunrise, whose terrain its
   catalogue entry already takes (slice 7.3), until a Vice City world is built.

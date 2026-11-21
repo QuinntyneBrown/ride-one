@@ -1,4 +1,4 @@
-import type { SegmentKind } from '../workout/plan';
+import type { Segment, SegmentKind } from '../workout/plan';
 
 /** The id of one of the worlds built into the frontend (`main`'s `WorldId`, from its class catalogue's schema). */
 export type WorldId =
@@ -194,6 +194,22 @@ export type WorldId =
   | 'dales'
   | 'engadin'
   | 'miami';
+
+/** A plan's segment with the second it starts at, as `main`'s scene reads segments (ADR 0030). */
+export interface TimedSegment extends Segment {
+  /** Whole seconds from the plan's start. */
+  readonly start: number;
+}
+
+/** A row of `main`'s Riders nearby board, which its pacers module builds (`main`'s components `WorldRidePacer`). */
+export interface WorldRidePacer {
+  readonly name: string;
+  /** The rider colour, `--color-rider-<n>`. */
+  readonly jersey: number;
+  /** `+0:12` or `−0:04`; null for You. */
+  readonly timeGap: string | null;
+  readonly you: boolean;
+}
 
 /** The GPU API drawing the world: WebGPU, or WebGL 2 where no WebGPU adapter is granted (L2-065, ADR 0021). */
 export type Backend = 'webgpu' | 'webgl2';

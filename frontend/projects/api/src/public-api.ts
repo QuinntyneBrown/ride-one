@@ -43,7 +43,7 @@ export { GHOST_API, type GhostApi, type GhostTrace } from './race/ghost-api';
 export type { PackStrengthId, RaceMode } from './race/race-mode';
 export type { RaceResult } from './race/race-result';
 export type { GradeTone, RouteProfileView, RouteStripBar } from './race/route-profile-view';
-export type { Backend, World, WorldId } from './world/world';
+export type { Backend, TimedSegment, World, WorldId, WorldRidePacer } from './world/world';
 export {
   WORLD_RENDERER,
   type SceneFrame,

@@ -44,6 +44,12 @@ it without growing the initial bundle, and what Telo Ride adds to `main`'s contr
     busy state is the `world-scene--busy` modifier rather than `aria-busy`;
   - `worlds.ts`'s grades are keyed by the specs' segment kinds (`warm-up`, `recover`,
     `cool-down`, not `main`'s `warmup`, `rest`, `cooldown`);
+  - `main`'s segments carry their start second: the contract's scene segments are `TimedSegment`
+    (`api`), which `WorldScene` makes from the plan with `timedSegments` (slice 8.2), and
+    `main`'s pacers module names its board row `WorldRidePacer` from `api`;
+  - the renderer's `backend` field is public, for the tag;
+  - type-only imports where the workspace's lint asks for them (`consistent-type-imports`);
+  - the panoramas live in `projects/ride/public/worlds/<id>/`, the ride app's public folder;
   - the specs follow: `world-scene.spec.ts` adds start and leave cases, `scene-driver.spec.ts`
     uses Telo Ride's `Segment`, and `worlds.spec.ts`'s bend cases come with `scene-bend.ts`.
 - **The renderer arrives over two slices.** Slice 8.1 carries `world-renderer.ts` as far as the

@@ -1,5 +1,5 @@
 // Steps the rider through the scene each frame and hands the frame to the renderer (L2-110).
-import type { Segment, WorldRenderer } from '@telo/api';
+import type { TimedSegment as Segment, WorldRenderer } from '@telo/api';
 
 export interface SceneInput {
   readonly segments: readonly Segment[];

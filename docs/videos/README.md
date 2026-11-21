@@ -36,6 +36,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 7.4 | [Ghost and bots](07-4-ghost-and-bots/README.md) | 2:14 | Nine bots and the ghost; the pack's seeded pace; the standings board; 5th of 10 with the gaps either side; the rows' slide; You vs your best, Ahead or Behind; a race without a network; the board from a tablet up; seven behaviour specs |
 | 7.5 | [Finish, pause or leave a race](07-5-finish-pause-or-leave-a-race/README.md) | 2:14 | Leave and End; Pause, held still; Resume or the pedals; a lost bike's coast, its DNF and a parked solo race; the finish line and the place; 390 to 1440 px; eleven behaviour specs |
 | 8.1 | [Load the world library](08-1-load-the-world-library/README.md) | 1:54 | The world library in its own chunk; WebGPU or WebGL 2 and the bar's tag; the panorama where neither draws; leaving releases it; copied from main; 390 to 1440 px; three behaviour specs |
+| 8.2 | [Draw the route world](08-2-draw-the-route-world/README.md) | 1:43 | main's scene behind the race: road, terrain and sky; the camera moves with the rider and holds when paused; five maps' worlds; copied from main; 390 to 1440 px; two behaviour specs |
 
 ## What every video is
 
