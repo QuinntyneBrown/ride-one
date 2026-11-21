@@ -2282,6 +2282,10 @@ export class AmsterdamStreet implements SceneStreet {
     const bush = new IcosahedronGeometry(0.35, 1);
     this.disposables.push(bush);
     const deck = this.material({ color: 0x7a6a58, roughness: 0.9 });
+    const solar = this.material({ color: 0x1a2440, metalness: 0.5, roughness: 0.25 });
+    const sunshade = this.material({ color: 0xe8dcc0, roughness: 0.8, side: DoubleSide });
+    const parasol = new ConeGeometry(1.1, 0.45, 8, 1, true);
+    this.disposables.push(parasol);
     const letterbox = this.material({ color: 0xd8282e, roughness: 0.5 });
     const edge = -roadHalf - QUAY;
     const box = (
@@ -2329,6 +2333,15 @@ export class AmsterdamStreet implements SceneStreet {
             boat.add(chair);
           }
           boat.add(box(cabin, 0.8, 0.75, 0.8, -WATER + 0.6, length / 2 - 1.1));
+          // Solar panels tilted to the sun on the roof's back half, and a parasol on the deck.
+          for (let p = 0; p < 3; p++) {
+            const panel = box(solar, 1.0, 0.04, 1.6, -WATER + 3.35, -length / 2 + 2.2 + p * 1.8);
+            panel.rotation.x = -0.35;
+            panel.position.x = 0.9;
+          }
+          const shade = new Mesh(parasol, sunshade);
+          shade.position.set(0, -WATER + 2.4, length / 2 - 1.1);
+          boat.add(shade);
         } else {
           // A converted barge: a black steel hull with a pointed bow, a long cabin with a
           // wheelhouse aft and a mast at the bow.
