@@ -23,8 +23,8 @@ end box
 box "Frontend — Ride app (domain library)" #E0F2FE
   participant "WebBluetoothSupport" as support
 end box
-box "Hosting — Static web host" #F2F4F7
-  participant "Azure Static Web Apps" as host
+box "Hosting — Azure App Service (ADR 0026)" #F2F4F7
+  participant "Telo.Ride.Api" as host
 end box
 alt unsupported browser
   actor -> panel : Press Copy link
