@@ -15,26 +15,89 @@
         Pedal once to wake it up. Telo Ride reads your power and sets resistance for every hill and
         interval.
       </p>
-      <div class="connect__pair">
-        <wz-connect-device
-          [name]="device().name"
-          [identifier]="device().identifier"
-          [state]="device().state"
-        />
-        <button
-          wz-button
-          variant="primary"
-          size="xl"
-          [block]="true"
-          type="button"
-          class="connect__pair-btn"
-          [disabled]="action().disabled"
-          [attr.aria-busy]="action().busy || null"
-          (click)="store.pair()"
-        >
-          {{ action().label }}
-        </button>
-      </div>
+      @switch (support.state()) {
+        @case ('unsupported-browser') {
+          <section class="connect-blocker" role="alert" aria-labelledby="blocker-title">
+            <div class="connect-blocker__head">
+              <svg
+                class="icon icon--lg connect-blocker__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                <path d="M2 12h20" />
+              </svg>
+              <h2 class="connect-blocker__title" id="blocker-title">
+                This browser can't reach the bike
+              </h2>
+            </div>
+            <p class="connect-blocker__body">
+              Open Telo Ride in Chrome or Edge on a laptop or Android tablet. Safari and Firefox
+              don't support Web Bluetooth yet.
+            </p>
+            <button
+              wz-button
+              variant="raised"
+              type="button"
+              class="connect-blocker__retry"
+              (click)="support.recheck()"
+            >
+              Try again
+            </button>
+          </section>
+        }
+        @case ('insecure-context') {
+          <section class="connect-blocker" role="alert" aria-labelledby="blocker-title">
+            <div class="connect-blocker__head">
+              <svg
+                class="icon icon--lg connect-blocker__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <h2 class="connect-blocker__title" id="blocker-title">
+                Open the secure version of this page
+              </h2>
+            </div>
+            <p class="connect-blocker__body">
+              Bluetooth is blocked on plain http, so the bike can’t connect.
+            </p>
+            <a
+              wz-button
+              variant="primary"
+              class="connect-blocker__retry"
+              [href]="support.secureUrl()"
+            >
+              Open over HTTPS
+            </a>
+          </section>
+        }
+        @default {
+          <div class="connect__pair">
+            <wz-connect-device
+              [name]="device().name"
+              [identifier]="device().identifier"
+              [state]="device().state"
+            />
+            <button
+              wz-button
+              variant="primary"
+              size="xl"
+              [block]="true"
+              type="button"
+              class="connect__pair-btn"
+              [disabled]="action().disabled"
+              [attr.aria-busy]="action().busy || null"
+              (click)="store.pair()"
+            >
+              {{ action().label }}
+            </button>
+          </div>
+        }
+      }
       <wz-connect-works [bikes]="bikes" />
     </div>
   </div>

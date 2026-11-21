@@ -37,6 +37,27 @@ export class FakeBluetooth {
     return fake;
   }
 
+  /** From the next page load, the browser has no `navigator.bluetooth`, as Safari and Firefox (L2-008). */
+  async remove(): Promise<void> {
+    await this.page.addInitScript(removeFromPage);
+  }
+
+  /**
+   * From the next page load, the page is served over plain `http` from an address other than `localhost`: no secure
+   * context, so no `navigator.bluetooth` either, as Chromium does (L2-009).
+   */
+  async servePlainHttp(): Promise<void> {
+    await this.page.addInitScript(() =>
+      Object.defineProperty(window, 'isSecureContext', { value: false, configurable: true }),
+    );
+    await this.page.addInitScript(removeFromPage);
+  }
+
+  /** Puts the fake `navigator.bluetooth` back on the current page, as if the rider had switched browser. */
+  async restore(): Promise<void> {
+    await this.page.evaluate(installInPage);
+  }
+
   /** Offers `bike` to `requestDevice` and `getDevices`, from the next page load and on the current page. */
   async offer(bike: FakeBike): Promise<void> {
     await this.page.addInitScript(
@@ -78,6 +99,12 @@ export class FakeBluetooth {
       this.refused.push(report.call);
     }
   }
+}
+
+/** Takes `navigator.bluetooth` away, the browser's own and the fake. It must not close over anything outside itself. */
+function removeFromPage(): void {
+  delete (navigator as unknown as { bluetooth?: unknown }).bluetooth;
+  delete (Navigator.prototype as unknown as { bluetooth?: unknown }).bluetooth;
 }
 
 /** Runs in the page before any app script. It must not close over anything outside itself. */

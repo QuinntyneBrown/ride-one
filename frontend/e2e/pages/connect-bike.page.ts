@@ -12,6 +12,8 @@ export class ConnectBikePage {
   readonly worksWithBikes: Locator;
   readonly worksWithStatuses: Locator;
   readonly blocker: Locator;
+  readonly blockerTitle: Locator;
+  readonly blockerBody: Locator;
   readonly blockerAction: Locator;
 
   constructor(private readonly page: Page) {
@@ -25,7 +27,9 @@ export class ConnectBikePage {
     this.worksWithBikes = page.locator('.connect-works__item > :first-child');
     this.worksWithStatuses = page.locator('.connect-works__status');
     this.blocker = page.getByRole('alert');
-    this.blockerAction = page.locator('.connect-blocker__action');
+    this.blockerTitle = page.locator('.connect-blocker__title');
+    this.blockerBody = page.locator('.connect-blocker__body');
+    this.blockerAction = page.locator('.connect-blocker__retry');
   }
 
   /** Opens Connect Bike; `simulate` adds `?simulate`, which only a development build honours. */

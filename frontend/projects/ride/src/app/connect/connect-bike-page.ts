@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { BLUETOOTH_SUPPORT } from '@telo/api';
 import { Button, ConnectDevice, type ConnectDeviceState, ConnectWorks } from '@telo/components';
 import { SUPPORTED_BIKES } from '@telo/domain';
 import { ConnectBikeStore } from './connect-bike-store';
@@ -17,6 +18,7 @@ const OFFERED = 'Echelon EX-5s';
 })
 export default class ConnectBikePage {
   protected readonly store = inject(ConnectBikeStore);
+  protected readonly support = inject(BLUETOOTH_SUPPORT);
   protected readonly bikes = SUPPORTED_BIKES;
 
   protected readonly device = computed(() => {

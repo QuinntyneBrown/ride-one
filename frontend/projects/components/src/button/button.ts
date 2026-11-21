@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export type ButtonVariant = 'default' | 'primary';
+export type ButtonVariant = 'default' | 'primary' | 'raised';
 export type ButtonSize = 'md' | 'lg' | 'xl';
 
 /**
@@ -15,6 +15,7 @@ export type ButtonSize = 'md' | 'lg' | 'xl';
   host: {
     class: 'btn',
     '[class.btn--primary]': 'variant() === "primary"',
+    '[class.btn--raised]': 'variant() === "raised"',
     '[class.btn--lg]': 'size() === "lg"',
     '[class.btn--xl]': 'size() === "xl"',
     '[class.btn--block]': 'block()',
