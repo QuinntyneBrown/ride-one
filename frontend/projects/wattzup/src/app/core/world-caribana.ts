@@ -114,6 +114,13 @@ const ROYAL_X = 4.0;
 const PARADE_SPEED = 0.6;
 /** Where the flag sellers stand along the loop, alternating sides from the left. */
 const SELLERS = [38, 62, 128, 188, 247, 301] as const;
+/** Where the food carts stand at the front of the pavement: offset along the loop, and side. */
+const CARTS = [
+  [BEHIND + 9, 1],
+  [BEHIND + 30, -1],
+  [170, 1],
+  [262, -1],
+] as const;
 /** The grandstand's seats run along the right-hand pavement between these. */
 const GRANDSTAND = [64, 106] as const;
 /** The route crosses a signalised intersection this far into the loop. */
@@ -417,7 +424,8 @@ export class CaribanaStreet implements SceneStreet {
       // The grandstand takes the right-hand pavement by the judging point.
       skip: (side, offset) =>
         (side > 0 && offset > GRANDSTAND[0] && offset < GRANDSTAND[1]) ||
-        SELLERS.some((at, k) => (k % 2 ? 1 : -1) === side && Math.abs(offset - at) < 1.2),
+        SELLERS.some((at, k) => (k % 2 ? 1 : -1) === side && Math.abs(offset - at) < 1.2) ||
+        CARTS.some(([at, s]) => s === side && Math.abs(offset - at) < 1.6),
     });
     // The crowd carries on behind the pavement, standing on the grass, looser at the back.
     this.backCrowd = new Spectators(this.group, disposables, {
@@ -473,6 +481,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addTrees();
     this.addStalls();
     this.addFlagSellers();
+    this.addCarts();
     this.addGardiner(points);
     this.addDowntown();
     this.addOntarioPlace();
@@ -3538,6 +3547,91 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   /**
+   * Street food carts at the front of the pavement: a stainless-steel hot dog cart with its
+   * grill, bottles of mustard and ketchup and a red and yellow umbrella, or a white ice cream
+   * cart with its pictures of cones and a blue and white umbrella, the vendor behind each.
+   */
+  private addCarts(): void {
+    const random = seeded(3907);
+    const steel = this.material({ color: 0xc8ccd0, metalness: 0.85, roughness: 0.3 });
+    const white = this.material({ color: 0xf4f4f0, roughness: 0.5 });
+    const black = this.material({ color: 0x141414, roughness: 0.7 });
+    const pictures = this.material({ map: this.track(iceCreamTexture()), roughness: 0.6 });
+    const hotdog = this.material({
+      map: this.track(hotDogTexture()),
+      roughness: 0.4,
+      metalness: 0.5,
+    });
+    const canopy = new ConeGeometry(1.15, 0.45, 8, 1, true);
+    const pole = new CylinderGeometry(0.025, 0.025, 2.4, 6);
+    const wheel = new CylinderGeometry(0.25, 0.25, 0.06, 14);
+    wheel.rotateZ(Math.PI / 2);
+    const bottle = new CylinderGeometry(0.035, 0.04, 0.22, 8);
+    this.disposables.push(canopy, pole, wheel, bottle);
+    CARTS.forEach(([offset, side], k) => {
+      const ice = k % 2 === 1;
+      const cart = new Group();
+      const body = new Mesh(
+        this.unit,
+        ice
+          ? [white, white, white, white, pictures, white]
+          : [steel, steel, steel, steel, hotdog, steel],
+      );
+      body.scale.set(1.5, 0.85, 0.8);
+      body.position.y = 0.72;
+      cart.add(body);
+      const top = new Mesh(this.unit, ice ? white : steel);
+      top.scale.set(1.55, 0.06, 0.85);
+      top.position.y = 1.18;
+      cart.add(top);
+      for (const x of [-0.55, 0.55]) {
+        const w = new Mesh(wheel, black);
+        w.position.set(x, 0.25, 0);
+        cart.add(w);
+      }
+      if (!ice) {
+        // Mustard and ketchup by the grill.
+        const mustard = new Mesh(bottle, this.material({ color: 0xffd23f, roughness: 0.4 }));
+        mustard.position.set(0.55, 1.32, 0.2);
+        const ketchup = new Mesh(bottle, this.material({ color: 0xc8102e, roughness: 0.4 }));
+        ketchup.position.set(0.47, 1.32, 0.2);
+        cart.add(mustard, ketchup);
+      }
+      const p = new Mesh(pole, steel);
+      p.position.set(0, 2.2, 0);
+      cart.add(p);
+      const shade = new Mesh(
+        canopy,
+        this.material({
+          map: this.track(
+            umbrellaTexture(ice ? '#1b6ad8' : '#c8102e', ice ? '#ffffff' : '#ffd23f'),
+          ),
+          side: DoubleSide,
+          roughness: 0.75,
+        }),
+      );
+      shade.position.y = 3.25;
+      cart.add(shade);
+      const parts = spectatorParts(0, random() < 0.5);
+      this.disposables.push(parts.skin, parts.top, parts.bottom);
+      const vendor = new Group();
+      const skin = this.material({
+        color: SKINS[Math.floor(random() * SKINS.length)],
+        roughness: 0.6,
+      });
+      vendor.add(new Mesh(parts.skin, skin), new Mesh(parts.top, white));
+      vendor.add(new Mesh(parts.bottom, this.material({ color: 0x1e2530, roughness: 0.9 })));
+      vendor.position.set(0, 0, -0.8);
+      cart.add(vendor);
+      cart.traverse((o) => (o.castShadow = true));
+      // The cart's front, with its pictures, faces the road.
+      cart.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+      this.group.add(cart);
+      this.props.push({ mesh: cart, offset, every: LOOP, x: side * (CROWD_NEAR + 0.5) });
+    });
+  }
+
+  /**
    * Flag sellers working the crowd from the pavement: a pole cart bristling with dozens of
    * island flags on sticks, bandanas and scarves hung from a rail beneath, and the seller in a
    * cap and apron beside it, holding a flag up to the crowd.
@@ -6036,6 +6130,60 @@ function driftTexture(): CanvasTexture {
       g.fillRect(-2, -1.5, 3 + random() * 3, 3);
       g.restore();
     }
+  });
+}
+
+/** A cart umbrella's panels, alternating two colours round it. */
+function umbrellaTexture(a: string, b: string): CanvasTexture {
+  return canvasTexture(256, 32, (g) => {
+    for (let k = 0; k < 8; k++) {
+      g.fillStyle = k % 2 ? b : a;
+      g.fillRect(k * 32, 0, 32, 32);
+    }
+  });
+}
+
+/** An ice cream cart's front: three cones in pink, white and brown and the word ICE CREAM. */
+function iceCreamTexture(): CanvasTexture {
+  return canvasTexture(256, 160, (g) => {
+    g.fillStyle = '#f4f4f0';
+    g.fillRect(0, 0, 256, 160);
+    g.fillStyle = '#1b6ad8';
+    g.font = 'bold 34px system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.fillText('ICE CREAM', 128, 40, 240);
+    ['#ff7ab8', '#fff6e0', '#7a4b33'].forEach((scoop, k) => {
+      const x = 58 + k * 70;
+      g.fillStyle = '#d9a35a';
+      g.beginPath();
+      g.moveTo(x - 18, 95);
+      g.lineTo(x + 18, 95);
+      g.lineTo(x, 150);
+      g.closePath();
+      g.fill();
+      g.fillStyle = scoop;
+      g.beginPath();
+      g.arc(x, 88, 22, 0, Math.PI * 2);
+      g.fill();
+    });
+  });
+}
+
+/** A hot dog cart's front: brushed steel and a red panel with HOT DOGS · SAUSAGES. */
+function hotDogTexture(): CanvasTexture {
+  return canvasTexture(256, 160, (g) => {
+    g.fillStyle = '#c8ccd0';
+    g.fillRect(0, 0, 256, 160);
+    g.fillStyle = 'rgba(255,255,255,0.25)';
+    for (let x = 0; x < 256; x += 3) g.fillRect(x, 0, 1, 160);
+    g.fillStyle = '#c8102e';
+    g.fillRect(16, 40, 224, 72);
+    g.fillStyle = '#ffd23f';
+    g.font = 'bold 30px system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.fillText('HOT DOGS', 128, 72, 210);
+    g.font = 'bold 20px system-ui, sans-serif';
+    g.fillText('SAUSAGES · DRINKS', 128, 100, 210);
   });
 }
 
