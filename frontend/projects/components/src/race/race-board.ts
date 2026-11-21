@@ -1,8 +1,8 @@
 import {
+  type AfterViewChecked,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  afterRenderEffect,
   inject,
   input,
 } from '@angular/core';
@@ -35,23 +35,19 @@ const SLIDE_MS = 150;
   styleUrl: './race-board.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RaceBoard {
+export class RaceBoard implements AfterViewChecked {
   readonly heading = input.required<string>();
   readonly rows = input.required<readonly RaceBoardRow[]>();
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  /** Each row's top before the last render; at most one per rider, so it never grows past the field. */
+  /** Each row's top at the last check; at most one per rider, so it never grows past the field. */
   private tops = new Map<string, number>();
 
-  constructor() {
-    afterRenderEffect(() => {
-      this.rows();
-      this.slide();
-    });
-  }
-
-  /** FLIP: a row whose top moved starts at its old place and slides to its new one. */
-  private slide(): void {
+  /**
+   * FLIP, after the view is updated and before it is painted: a row whose top moved since the last check starts at its
+   * old place and slides to its new one. A lifecycle hook, not a render hook, keeps the initial bundle as it was.
+   */
+  ngAfterViewChecked(): void {
     const view = this.host.nativeElement.ownerDocument.defaultView;
     const still = view?.matchMedia('(prefers-reduced-motion: reduce)').matches ?? true;
     const tops = new Map<string, number>();
