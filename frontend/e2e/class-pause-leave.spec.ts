@@ -1,6 +1,6 @@
 // Acceptance test
 // Traces to: L2-091 AC1, AC2; L2-088 AC3; L2-092 AC4; L2-017 AC4;
-// L2-093 AC1, AC2; L2-133 AC3
+// L2-093 AC1, AC2; L2-133 AC3, AC4
 // Description: a solo class ride paused and resumed: the clock, the plan and the video hold together, the video shows
 // "Paused", and the ride picks up where it left off. The ride starts on Playwright's paused clock (startClassRide), and
 // the shared fixture's fake YouTube player runs on the same clock.
@@ -183,5 +183,20 @@ test.describe('Pause, leave or finish a class', () => {
     await expect
       .poll(async () => (await wakeLock.locks()).map((lock) => lock.released))
       .toEqual([true, true]);
+  });
+
+  test('closing or reloading the tab mid-ride asks the rider to confirm (L2-133 AC4)', async ({
+    page,
+    bluetooth,
+    api,
+  }) => {
+    const ride = await startClassRide(page, bluetooth, api);
+    // The browser asks only on a page the rider has interacted with.
+    await ride.pause.click();
+    const asked = page.waitForEvent('dialog');
+    await page.close({ runBeforeUnload: true });
+    const dialog = await asked;
+    expect(dialog.type()).toBe('beforeunload');
+    await dialog.accept();
   });
 });
