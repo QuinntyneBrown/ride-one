@@ -37,27 +37,48 @@ test.describe('Browser support on Connect Bike', () => {
     expect(wideSecond).toBe(wideFirst);
   });
 
-  test('in a browser without Web Bluetooth, an alert replaces the device card until it can (L2-008)', async ({
+  test(
+    'in a browser without Web Bluetooth, an alert replaces the device card until it can (L2-008)',
+    { tag: '@critical' },
+    async ({ page, bluetooth }) => {
+      await bluetooth.remove();
+      const connect = new ConnectBikePage(page);
+      await connect.open();
+
+      await expect(connect.blocker).toBeVisible();
+      await expect(connect.blockerTitle).toHaveText("This browser can't reach the bike");
+      await expect(connect.blockerBody).toHaveText(
+        "Open Telo Ride in Chrome or Edge on a laptop or Android tablet. Safari and Firefox don't support Web Bluetooth yet.",
+      );
+      await expect(connect.deviceName).toHaveCount(0);
+      await expect(connect.pairButton).toHaveCount(0);
+      await expect(connect.worksWith).toBeVisible();
+
+      await bluetooth.restore();
+      await connect.blockerAction.click();
+
+      await expect(connect.blocker).toHaveCount(0);
+      await expect(connect.pairButton).toHaveText('Pair Echelon EX-5s');
+    },
+  );
+
+  test('on a plain http page, an alert offers the same page over HTTPS (L2-009)', async ({
     page,
     bluetooth,
   }) => {
-    await bluetooth.remove();
+    await bluetooth.servePlainHttp();
     const connect = new ConnectBikePage(page);
     await connect.open();
 
     await expect(connect.blocker).toBeVisible();
-    await expect(connect.blockerTitle).toHaveText("This browser can't reach the bike");
+    await expect(connect.blockerTitle).toHaveText('Open the secure version of this page');
     await expect(connect.blockerBody).toHaveText(
-      "Open Telo Ride in Chrome or Edge on a laptop or Android tablet. Safari and Firefox don't support Web Bluetooth yet.",
+      'Bluetooth is blocked on plain http, so the bike can’t connect.',
     );
-    await expect(connect.deviceName).toHaveCount(0);
+    await expect(connect.blockerAction).toHaveText('Open over HTTPS');
+    const secure = new URL(page.url());
+    secure.protocol = 'https:';
+    await expect(connect.blockerAction).toHaveAttribute('href', secure.href);
     await expect(connect.pairButton).toHaveCount(0);
-    await expect(connect.worksWith).toBeVisible();
-
-    await bluetooth.restore();
-    await connect.blockerAction.click();
-
-    await expect(connect.blocker).toHaveCount(0);
-    await expect(connect.pairButton).toHaveText('Pair Echelon EX-5s');
   });
 });
