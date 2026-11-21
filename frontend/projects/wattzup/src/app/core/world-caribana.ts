@@ -3258,6 +3258,44 @@ export class CaribanaStreet implements SceneStreet {
       for (const z of [-3.9, 7.6]) box(chrome, 0.08, 3.6, 0.08, x, 1.55, z);
     }
     box(tarp, 2.9, 0.06, 12, 0, 5.15, 1.8);
+    // A gold fringe round the canopy's edge, and island flags flying from its four corners.
+    const fringe = this.material({
+      map: this.track(fringeTexture()),
+      alphaTest: 0.5,
+      side: DoubleSide,
+      color: 0xffd23f,
+      roughness: 0.4,
+      metalness: 0.5,
+    });
+    for (const [w, x, z, turn] of [
+      [2.9, 0, 7.8, 0],
+      [2.9, 0, -4.2, 0],
+      [12, -1.45, 1.8, Math.PI / 2],
+      [12, 1.45, 1.8, Math.PI / 2],
+    ] as const) {
+      const edge = new Mesh(new PlaneGeometry(w, 0.32), fringe);
+      edge.position.set(x, 4.99, z);
+      edge.rotation.y = turn;
+      float.add(edge);
+      this.disposables.push(edge.geometry);
+    }
+    const flagCloth = new PlaneGeometry(1.1, 0.72, 4, 1);
+    flagCloth.translate(0.55, 0, 0);
+    const mast = new CylinderGeometry(0.02, 0.02, 1.6, 5);
+    this.disposables.push(flagCloth, mast);
+    [
+      [-1.4, -4.1],
+      [1.4, -4.1],
+      [-1.4, 7.7],
+      [1.4, 7.7],
+    ].forEach(([x, z], k) => {
+      const pole = new Mesh(mast, chrome);
+      pole.position.set(x!, 6.0, z!);
+      const flag = new Mesh(flagCloth, this.flagMaterials[k % this.flagMaterials.length]!);
+      flag.position.set(x!, 6.5, z!);
+      flag.rotation.y = x! < 0 ? Math.PI + 0.4 : -0.4;
+      float.add(pole, flag);
+    });
     for (const side of [-1, 1]) {
       const skirt = new Mesh(new PlaneGeometry(11.4, 0.62), banner);
       skirt.position.set(side * 1.31, 1.1, 1.8);
