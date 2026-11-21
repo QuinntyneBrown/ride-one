@@ -66,8 +66,12 @@ import type {
   SceneRider,
   TimedSegment as Segment,
   WorldId,
+  RealPlace,
+  SceneryState,
   WorldRenderer,
 } from '@telo/api';
+// A type only, erased at build: the tiles' file is imported when the rider streams (L2-066).
+import type { PhotorealTiles } from './photoreal-tiles';
 import { compiledFeatures } from './material-features';
 import { skyStops } from './drawn-look';
 import { PACERS, pacersOnRoad } from './pacers';
@@ -3147,6 +3151,10 @@ const BEND_SWEEP = 120;
 export class ThreeWorldRenderer implements WorldRenderer {
   private renderer: WebGPURenderer | null = null;
   private pipeline: RenderPipeline | null = null;
+  /** The real place's 3D Tiles, once the rider streams them (L2-066), and which stream is the latest. */
+  private tiles: PhotorealTiles | null = null;
+  private streams = 0;
+  private disposed = false;
   /** The flat sky's node (technique 53), made the first time `low` is applied. */
   private flatSkyNode: ReturnType<typeof flatSky> | null = null;
   /** The sky's light (technique 6): undefined until first made, null where it could not be. */
@@ -3479,6 +3487,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.camera.lookAt(look.x, 1.2 + heightAt(ahead, 24), look.z);
 
     if (this.probe) this.renderer.info.reset();
+    this.tiles?.update(this.camera, this.renderer);
     if (this.pipeline) this.pipeline.render();
     else this.renderer.render(this.scene, this.camera);
     if (this.probe) {
@@ -3502,7 +3511,25 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.lastFrameAt = null;
   }
 
+  /**
+   * Streams the real place's tiles beside the built-in world (L2-066). New in Telo Ride: `main` has no tiles. The
+   * loader is imported here, on the rider's press, so it stays out of the world chunk.
+   */
+  stream(place: RealPlace, key: string, report: (state: SceneryState) => void): void {
+    this.tiles?.dispose();
+    this.tiles = null;
+    const stream = ++this.streams;
+    void import('./photoreal-tiles').then(({ PhotorealTiles }) => {
+      if (this.disposed || stream !== this.streams) return;
+      this.tiles = new PhotorealTiles(place, key, report);
+      this.scene.add(this.tiles.group);
+    });
+  }
+
   dispose(): void {
+    this.disposed = true;
+    this.tiles?.dispose();
+    this.tiles = null;
     for (const d of this.disposables) d.dispose();
     this.toon.dispose();
     for (const t of this.textures) t.dispose();

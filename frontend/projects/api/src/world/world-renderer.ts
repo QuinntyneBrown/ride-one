@@ -2,6 +2,7 @@
 // real renderer is Three.js in the world library's world-renderer.ts, loaded on demand; tests reach a fake through the
 // same contract.
 import { InjectionToken } from '@angular/core';
+import type { RealPlace } from '../maps/map-dto';
 import type { Backend, SceneRider, TimedSegment as Segment, World } from './world';
 
 /** What the renderer draws in one frame (L2-110). */
@@ -35,6 +36,12 @@ export interface SceneFrame {
 export type SceneryState =
   { readonly status: 'refused' } | { readonly status: 'streaming'; readonly credit: string };
 
+/** The real place to stream as 3D Tiles, and the rider's key for Google's Map Tiles API (L2-066). */
+export interface SceneryRequest {
+  readonly place: RealPlace;
+  readonly key: string;
+}
+
 export interface WorldRenderer {
   /** The GPU API drawing the world once `start` has resolved true, for the race bar's tag (L2-065 AC1). */
   readonly backend: Backend;
@@ -56,6 +63,12 @@ export interface WorldRenderer {
   setFramePeriod(ms: number): void;
   /** Judges no frame until the next `setFramePeriod`: the period is being measured (AC9). */
   pauseBudget(): void;
+  /**
+   * Streams `place` as Google's photorealistic 3D Tiles with the rider's `key`, sent only to Google's Map Tiles API,
+   * beside the built-in world, and `report`s whether Google refused the key or the tiles stream (L2-066 AC3, AC4, AC7).
+   * A later call replaces the earlier stream; `dispose` ends it.
+   */
+  stream(place: RealPlace, key: string, report: (state: SceneryState) => void): void;
   dispose(): void;
 }
 

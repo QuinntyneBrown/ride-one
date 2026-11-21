@@ -5,12 +5,16 @@ import {
   type Backend,
   BIKE_CONNECTION,
   GHOST_API,
-  MAPS_API,
   type MapDto,
+  MAPS_API,
+  MAPS_KEY,
   type PackStrengthId,
   type RaceMode,
   type RaceResult,
+  type RealPlace,
   type SceneRider,
+  type SceneryRequest,
+  type SceneryState,
   SCREEN_WAKE_LOCK,
   TICKER,
 } from '@telo/api';
@@ -175,6 +179,21 @@ export class RaceStore {
   readonly backend = signal<Backend | null>(null);
   /** True once neither WebGPU nor WebGL 2 could draw the world: the map's panorama stays (L2-065 AC2). */
   readonly worldUnavailable = signal(false);
+  /** The rider's Google Maps Platform key this device holds, which the scenery panel starts with (L2-066 AC8). */
+  private readonly mapsKey = inject(MAPS_KEY);
+  readonly storedMapsKey = this.mapsKey.get() ?? '';
+  /** The real place and key to stream as 3D Tiles, once the rider presses "Stream it" (L2-066 AC3). */
+  readonly scenery = signal<SceneryRequest | null>(null);
+  /** Whether Google refused the key or the tiles stream, for the scenery panel (L2-066 AC4, AC7). */
+  readonly sceneryState = signal<SceneryState | null>(null);
+
+  /** Keeps the key on this device only and streams the place with it; a new key streams again. */
+  streamScenery(place: RealPlace, key: string): void {
+    this.mapsKey.save(key);
+    this.sceneryState.set(null);
+    this.scenery.set({ place, key });
+  }
+
   /** The world moves while the race runs and holds still while it is paused or over. */
   readonly running = computed(() => !this.paused() && !this.dnf());
 

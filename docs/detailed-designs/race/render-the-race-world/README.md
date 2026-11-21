@@ -102,7 +102,7 @@ in `AGENTS.md` and to the ESLint boundaries in the same change.
   The built-in world stays." (`role="alert"`); told `streaming`, it reads "Streaming the real
   Bruges · Steenstraat to the Markt" over Google's attribution (L2-066 AC4, AC7). From 640 px to
   1023 px no HUD panel covers it (L2-066 AC6).
-- **`MapsKeyStore`** (`domain/storage`, contract and `MAPS_KEY_STORE` in `api`) — keeps the Maps
+- **`MapsKeyStore`** (`domain/storage`, the `MapsKey` contract and `MAPS_KEY` token in `api`, bound by the race route) — keeps the Maps
   key in this browser's localStorage only; the next race's panel holds it, and nothing streams
   until "Stream it" (L2-066 AC3, AC8). The key is never sent to Telo Ride's backend.
 - **`MapDto.realPlace`** (`api`, served by the catalogue) — the real place's `name` ("Bruges"),

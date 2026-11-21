@@ -1,12 +1,13 @@
 import type { Routes } from '@angular/router';
 import {
   GHOST_API,
+  MAPS_KEY,
   MONOTONIC_TIME,
   PROGRESS_API,
   SCREEN_WAKE_LOCK,
   WORLD_RENDERER,
 } from '@telo/api';
-import { BrowserScreenWakeLock, NewRiderProgress, NoBestRides } from '@telo/domain';
+import { BrowserScreenWakeLock, MapsKeyStore, NewRiderProgress, NoBestRides } from '@telo/domain';
 import { openMapGuard } from '../maps/open-map.guard';
 import { provideMaps } from '../maps/provide-maps';
 
@@ -30,6 +31,8 @@ export const raceRoutes: Routes = [
       { provide: GHOST_API, useClass: NoBestRides },
       { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },
       { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
+      // The rider's Google Maps Platform key, on this device only (L2-066 AC3).
+      { provide: MAPS_KEY, useClass: MapsKeyStore },
       // The world's renderer, imported with the world library and Three.js only when the race draws its world (ADR 0030).
       {
         provide: WORLD_RENDERER,

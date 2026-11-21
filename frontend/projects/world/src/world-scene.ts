@@ -16,6 +16,8 @@ import {
 import {
   type Backend,
   type SceneRider,
+  type SceneryRequest,
+  type SceneryState,
   type Segment,
   WORLD_RENDERER,
   type WorldRenderer,
@@ -47,6 +49,10 @@ export class WorldScene implements AfterViewInit {
   readonly running = input.required<boolean>();
   /** The race's other riders, drawn at their places in their jerseys (L2-064 AC3); none outside a race. */
   readonly riders = input<readonly SceneRider[] | undefined>(undefined);
+  /** The real place to stream as 3D Tiles beside the world, with the rider's key, once the rider asks (L2-066). */
+  readonly scenery = input<SceneryRequest | null>(null);
+  /** Whether Google refused the key or the tiles stream, with Google's attribution (L2-066 AC4, AC7). */
+  readonly sceneryState = output<SceneryState>();
   /** Emitted once when WebGL is unavailable or the renderer fails to start (L2-110 AC4). */
   readonly unavailable = output<void>();
   /** Emitted once the renderer has started, with the GPU API drawing the world (L2-065 AC1). */
@@ -172,6 +178,17 @@ export class WorldScene implements AfterViewInit {
         stop();
         stop = null;
       }
+    });
+
+    // The real place's tiles, streamed once the world draws and the rider has asked; a new key streams again (L2-066).
+    effect(() => {
+      const scenery = this.scenery();
+      if (!this.driver() || !scenery) return;
+      untracked(() =>
+        renderer?.stream(scenery.place, scenery.key, (state) => {
+          if (!destroyed) this.sceneryState.emit(state);
+        }),
+      );
     });
 
     // One frame per tick of the loop, and one whenever the inputs change.
