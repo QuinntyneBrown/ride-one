@@ -60,3 +60,6 @@ export {
   type WorldRenderer,
   type WorldRendererLoader,
 } from './world/world-renderer';
+export { AUTH_API, type AuthApi } from './auth/auth-api';
+export { AuthApiError, type AuthApiErrorCode, type SignInError } from './auth/auth-api-error';
+export { HttpAuthApi } from './auth/http-auth-api';

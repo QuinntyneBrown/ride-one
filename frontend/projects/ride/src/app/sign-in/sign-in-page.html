@@ -1,0 +1,8 @@
+<main id="main" class="sign-in-page" tabindex="-1">
+  <wz-sign-in-form
+    [email]="store.email()"
+    [sending]="store.sending()"
+    [error]="store.error()"
+    (send)="send($event)"
+  />
+</main>

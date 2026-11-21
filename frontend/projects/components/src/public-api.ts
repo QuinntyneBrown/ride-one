@@ -55,3 +55,5 @@ export { SetupHeader } from './race-setup/setup-header';
 export { SetupMap } from './race-setup/setup-map';
 export { SetupStars } from './race-setup/setup-stars';
 export { Stars } from './stars/stars';
+export { SignInCodeForm } from './sign-in/sign-in-code-form';
+export { SignInForm } from './sign-in/sign-in-form';

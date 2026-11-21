@@ -1,9 +1,10 @@
 import type { Page, Request } from '@playwright/test';
 
-/** What a handler answers: a status (200 by default) and a JSON body (none for 204). */
+/** What a handler answers: a status (200 by default), a JSON body (none for 204) and any headers, such as Retry-After. */
 export interface ApiReply {
   status?: number;
   body?: unknown;
+  headers?: Record<string, string>;
 }
 
 type Handler = (request: Request) => ApiReply | Promise<ApiReply>;
@@ -41,10 +42,16 @@ export class ApiFixture {
         }
         const reply = await handler(request);
         const status = reply.status ?? 200;
+        const headers = reply.headers;
         await route.fulfill(
           reply.body === undefined
-            ? { status }
-            : { status, contentType: 'application/json', body: JSON.stringify(reply.body) },
+            ? { status, headers }
+            : {
+                status,
+                headers,
+                contentType: status >= 400 ? 'application/problem+json' : 'application/json',
+                body: JSON.stringify(reply.body),
+              },
         );
       },
     );

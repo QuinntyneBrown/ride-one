@@ -3260,6 +3260,8 @@ a.map-table__map:hover, a.map-table__map[data-state="hover"] { color: var(--colo
 .sign-in__email { font-weight: var(--font-weight-semibold); color: var(--color-fg); overflow-wrap: anywhere; }
 .sign-in__form { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-8); }
 .sign-in__note { margin-top: var(--space-6); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-faint); }
+/* "Use a different email": a button drawn as .link, with a 44 px target. */
+.sign-in__change { min-height: var(--target-comfortable); padding: 0; border: 0; background: none; font: inherit; cursor: pointer; }
 
 /* Code entry: six digits in one field, drawn as six cells; a pasted or offered code fills them all (L2-002 AC5). */
 .code-entry { position: relative; height: var(--control-height-xl); }
