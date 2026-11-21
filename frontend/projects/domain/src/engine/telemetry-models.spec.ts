@@ -1,5 +1,5 @@
 // Unit test (the slice's acceptance table: no screen shows telemetry until slice 3.2)
-// Traces to: L2-022 AC1; L2-023 AC1 to AC3
+// Traces to: L2-022 AC1; L2-023 AC1 to AC3; L2-059 AC2
 // Description: the Echelon reports neither speed nor power, so they are estimated from cadence and resistance by the
 // fixed formulas of ADR 0003, rounding half to even. One case per row of the requirements.
 import { bankersRound } from './bankers-round';
@@ -54,5 +54,17 @@ describe('PowerModel', () => {
 
   it('gives a segment with cadence aim 100 and level 18 a target power of 334 W (L2-023 AC3)', () => {
     expect(PowerModel.target(100, 18)).toBe(334);
+  });
+
+  it.each([
+    [108, 107, true],
+    [418, 418, true],
+    [377, 418, true],
+    [376, 418, false],
+    [459, 418, true],
+    [460, 418, false],
+    [371, 418, false],
+  ])('reads %d W against a target of %d W as on target: %s (L2-059 AC2)', (power, target, on) => {
+    expect(PowerModel.onTarget(power, target)).toBe(on);
   });
 });

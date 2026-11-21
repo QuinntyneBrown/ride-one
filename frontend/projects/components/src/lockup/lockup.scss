@@ -56,6 +56,18 @@
   color: var(--lockup-product);
 }
 
+// The ride headers' lockup (docs/mocks/pages/class-ride/): smaller, and the mark alone below 384 px (L2-087 AC2).
+.lockup--sm {
+  --lockup-mark-size: 1.5rem; // 24px
+  --lockup-wordmark-size: var(--font-size-xl);
+
+  .wordmark {
+    @media (max-width: 23.99rem) {
+      display: none;
+    }
+  }
+}
+
 @media (forced-colors: active) {
   .lockup {
     --lockup-ring: CanvasText;

@@ -17,6 +17,12 @@ export const rideRoutes: Routes = [
         title: 'Connect your bike · Telo Ride',
         loadComponent: () => import('./connect/connect-bike-page'),
       },
+      // A class ride has its own header, with no app navigation (docs/mocks/pages/class-ride/).
+      {
+        path: 'classes/:id/ride',
+        canActivate: [rememberedBikeGuard],
+        loadChildren: () => import('./class-ride/class-ride.routes').then((m) => m.classRideRoutes),
+      },
       {
         path: '',
         loadComponent: () => import('./main-shell/main-shell'),
