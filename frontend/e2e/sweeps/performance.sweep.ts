@@ -8,8 +8,8 @@
 //
 // For each scene and tier it rides that scene's first class against the simulated bike, with
 // the tier pinned by the test-only hook (#672), skips the first 3 s, records 20 s of frames and
-// attaches the numbers to the run. They compare runs on one machine: no frame time is a pass or
-// a fail. A page error or a request off localhost still fails the run, as the fixture says.
+// attaches the numbers to the run; the reporter writes them to performance-reports/ (#676).
+// They compare runs on one machine: no frame time is a pass or a fail. A page error or a request off localhost still fails the run, as the fixture says.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '../fixtures/wz-test';

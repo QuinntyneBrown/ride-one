@@ -178,8 +178,23 @@ ignores it. The classes come from `frontend/public/classes.json`.
 | Behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium against a fake `navigator.bluetooth` |
 | Everything CI runs | `node tools/verify/verify.mjs` | All of the above, side by side |
 
-No automated test uses a real bike or Bluetooth. The accessibility and responsive sweeps
-(`npm run e2e:sweeps`) are maintained but run only on request.
+No automated test uses a real bike or Bluetooth. The accessibility, responsive and performance
+sweeps (`npm run e2e:sweeps`) are maintained but run only on request.
+
+The performance sweep records World Ride frame times per scene and quality tier on your
+machine; it judges no number, so it is for comparing two runs on the same machine. Run it with
+one worker, headed so Chromium draws on the GPU, narrowed with `WZ_SCENES` and `WZ_TIERS` if you
+like:
+
+```bash
+cd frontend
+WZ_SCENES=docklands,galibier WZ_TIERS=low,high npm run e2e:sweeps -- performance --workers=1 --headed
+node scripts/compare-performance.mjs performance-reports/<before>.json performance-reports/<after>.json
+```
+
+Each run writes `performance-reports/<timestamp>.json` and a Markdown table beside it (not
+committed). The compare prints the median and p95 deltas per scene and tier and marks every one
+more than 10 % slower as a regression.
 
 [Continuous integration](.github/workflows/ci.yml) runs every check above on every pull request.
 
