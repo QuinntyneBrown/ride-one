@@ -1,7 +1,8 @@
 // Acceptance test
-// Traces to: L2-080 AC1
+// Traces to: L2-080 AC1, AC2, AC5; L2-081 AC3
 // Description: the class catalogue, read without a session, lists the seven classes of L2-080 AC1 in
-// catalogue order, each with its channel, focus, length and the rider level it opens at.
+// catalogue order, each with its channel, focus, length and the rider level it opens at, a YouTube video,
+// a sync offset, a summary, a plan as long as the class and its world, on the shelves of L2-081 AC3.
 using System.Net;
 using System.Net.Http.Json;
 
@@ -29,6 +30,62 @@ public sealed class ClassCatalogueTests(TeloRideApiFactory api) : IClassFixture<
                 new Listed("60 Min Coastal Endurance + Surges", "Telo Ride Scenic", "Endurance", 3600, 20),
             ],
             catalogue!.Classes.Select(c => new Listed(c.Title, c.Channel, c.Focus, c.LengthSeconds, c.OpensAtLevel)));
+    }
+
+    [Fact]
+    public async Task Every_class_has_a_video_a_sync_offset_a_summary_and_a_plan_as_long_as_the_class()
+    {
+        var catalogue = await ReadCatalogue();
+
+        Assert.All(catalogue.Classes, c =>
+        {
+            Assert.Matches("^[A-Za-z0-9_-]{11}$", c.Video.VideoId);
+            Assert.True(c.Video.SyncOffsetSeconds >= 0, $"{c.Id} starts before the video does");
+            Assert.False(string.IsNullOrWhiteSpace(c.Summary), $"{c.Id} has no summary");
+            Assert.Equal(c.LengthSeconds, c.Plan.Segments.Sum(s => s.Duration));
+        });
+    }
+
+    [Fact]
+    public async Task Every_class_rides_in_its_world()
+    {
+        var catalogue = await ReadCatalogue();
+
+        Assert.Equal(
+            [
+                ("20 Minute Power Intervals", "docklands"),
+                ("20 Min Threshold Builder", "granite"),
+                ("30 Minute HIIT Cardio", "oldtown"),
+                ("30 Min Tempo Paceline", "prairie"),
+                ("30 Min Vice City Pyramid", "vicecity"),
+                ("60 Min Dolomites Endurance", "dolomites"),
+                ("60 Min Coastal Endurance + Surges", "coast"),
+            ],
+            catalogue.Classes.Select(c => (c.Title, c.World)));
+    }
+
+    [Fact]
+    public async Task The_shelves_read_their_titles_and_taglines_and_hold_their_classes()
+    {
+        var catalogue = await ReadCatalogue();
+
+        Assert.Equal(
+            [
+                new CatalogueShelf("20-min", "20 min", "Short and sharp — fits a lunch break."),
+                new CatalogueShelf("30-min", "30 min", "Structured intervals with a proper warm-up."),
+                new CatalogueShelf("60-min", "60 min endurance", "Long aerobic rides. Steady legs, steady heart."),
+            ],
+            catalogue.Shelves);
+        Assert.Equal(
+            ["20-min", "20-min", "30-min", "30-min", "30-min", "60-min", "60-min"],
+            catalogue.Classes.Select(c => c.ShelfId));
+    }
+
+    private async Task<Catalogue> ReadCatalogue()
+    {
+        using var client = api.CreateClient();
+        var catalogue = await client.GetFromJsonAsync<Catalogue>("/api/classes", TestContext.Current.CancellationToken);
+        return catalogue!;
     }
 
     private sealed record Listed(string Title, string Channel, string Focus, int LengthSeconds, int OpensAtLevel);
