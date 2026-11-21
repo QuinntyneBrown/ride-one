@@ -246,6 +246,7 @@ export class HavanaStreet implements SceneStreet {
     this.addCats(roadHalf);
     this.addQuinceanera(roadHalf);
     this.addManisero(roadHalf);
+    this.addManholes(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -4292,6 +4293,47 @@ export class HavanaStreet implements SceneStreet {
   };
 
   /**
+   * Cast-iron manhole covers in the asphalt: a disc of rusted, cross-hatched iron, sat a touch
+   * proud in a square collar of patched, paler concrete.
+   */
+  private addManholes(roadHalf: number): void {
+    const random = seeded(1637);
+    const iron = this.material({
+      map: this.track(manholeTexture()),
+      roughness: 0.55,
+      metalness: 0.5,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+    });
+    const collar = this.material({
+      color: 0x6e6a64,
+      roughness: 0.95,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+    const disc = new CircleGeometry(0.34, 24);
+    disc.rotateX(-Math.PI / 2);
+    const square = new PlaneGeometry(0.95, 0.95);
+    square.rotateX(-Math.PI / 2);
+    this.disposables.push(disc, square);
+    for (let offset = 30; offset < 600; offset += 45 + random() * 60) {
+      const cover = new Group();
+      const base = new Mesh(square, collar);
+      base.position.y = 0.006;
+      base.rotation.y = random() * 0.3;
+      base.receiveShadow = true;
+      const lid = new Mesh(disc, iron);
+      lid.position.y = 0.012;
+      lid.rotation.y = random() * Math.PI;
+      lid.receiveShadow = true;
+      cover.add(base, lid);
+      this.group.add(cover);
+      const lane = random() < 0.5 ? roadHalf - 4.4 : -roadHalf + 2.2 + random() * 3;
+      this.props.push({ mesh: cover, offset, x: offset < 40 ? roadHalf - 6.2 : lane });
+    }
+  }
+
+  /**
    * A manisero, the peanut seller: an old man in a white guayabera and straw hat, a tin of
    * roasted peanuts on a strap at his hip, holding out a fan of paper cones to the passers-by.
    */
@@ -6099,6 +6141,39 @@ function kerbPaintTexture(): CanvasTexture {
       }
       g.globalCompositeOperation = 'source-over';
       y += length + (3 + random() * 8) * metre;
+    }
+  });
+}
+
+/** A manhole cover's face: rusted iron, a raised cross-hatch, a rim, two lifting slots. */
+function manholeTexture(): CanvasTexture {
+  return canvasTexture(128, 128, (g) => {
+    g.fillStyle = '#3a3532';
+    g.fillRect(0, 0, 128, 128);
+    g.strokeStyle = '#5a5048';
+    g.lineWidth = 3;
+    for (let k = -128; k < 256; k += 12) {
+      g.beginPath();
+      g.moveTo(k, 0);
+      g.lineTo(k + 128, 128);
+      g.moveTo(k, 128);
+      g.lineTo(k + 128, 0);
+      g.stroke();
+    }
+    g.lineWidth = 8;
+    g.strokeStyle = '#4a4440';
+    g.beginPath();
+    g.arc(64, 64, 58, 0, Math.PI * 2);
+    g.stroke();
+    g.fillStyle = '#141210';
+    g.fillRect(40, 60, 12, 6);
+    g.fillRect(76, 60, 12, 6);
+    const random = seeded(1641);
+    for (let i = 0; i < 40; i++) {
+      g.fillStyle = `rgba(${130 + random() * 40},${60 + random() * 20},30,${0.15 + random() * 0.25})`;
+      g.beginPath();
+      g.arc(random() * 128, random() * 128, 2 + random() * 9, 0, Math.PI * 2);
+      g.fill();
     }
   });
 }
