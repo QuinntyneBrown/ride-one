@@ -1466,9 +1466,61 @@ export class HavanaStreet implements SceneStreet {
     parts.forEach((p) => p.dispose());
     crown.computeVertexNormals();
     this.disposables.push(trunk, crownshaft, crown);
+    // Dead fronds hanging straight down the crownshaft, dry and brown, not yet shed; and below
+    // the crownshaft, the flower spikes, branched and creamy, and the bunched purple-black fruit.
+    const dry: BufferGeometry[] = [];
+    for (let i = 0; i < 3; i++) {
+      const length = 3.6;
+      const frond = new PlaneGeometry(0.9, length, 1, 6);
+      const position = frond.getAttribute('position') as BufferAttribute;
+      for (let v = 0; v < position.count; v++) {
+        const t = (position.getY(v) + length / 2) / length;
+        position.setXYZ(v, position.getX(v) * (1 - t * 0.5), -t * length, 0.5 + t * 0.9);
+      }
+      frond.rotateY(1.2 + i * 2.1);
+      frond.translate(0, 13.4, 0);
+      dry.push(frond);
+    }
+    const dead = mergeGeometries(dry)!;
+    dry.forEach((p) => p.dispose());
+    dead.computeVertexNormals();
+    const spikes: BufferGeometry[] = [];
+    const bunches: BufferGeometry[] = [];
+    for (let i = 0; i < 4; i++) {
+      const turn = i * 1.6 + 0.3;
+      for (let k = 0; k < 5; k++) {
+        const spike = new CylinderGeometry(0.015, 0.025, 0.9, 4);
+        spike.translate(0, -0.45, 0);
+        spike.rotateZ(0.5 + k * 0.18);
+        spike.rotateY(turn + (k - 2) * 0.25);
+        spike.translate(Math.cos(turn) * 0.26, 12.0, -Math.sin(turn) * 0.26);
+        spikes.push(spike);
+      }
+      if (i % 2) {
+        const bunch = new SphereGeometry(0.22, 8, 6);
+        bunch.scale(1, 1.4, 1);
+        bunch.translate(Math.cos(turn) * 0.55, 11.5, -Math.sin(turn) * 0.55);
+        bunches.push(bunch);
+      }
+    }
+    const flowers = mergeGeometries(spikes)!;
+    const fruit = mergeGeometries(bunches)!;
+    [...spikes, ...bunches].forEach((p) => p.dispose());
+    this.disposables.push(dead, flowers, fruit);
+    const withered = this.material({
+      map: this.track(royalFrondTexture()),
+      color: 0xd8a868,
+      emissive: 0x3a2810,
+      alphaTest: 0.45,
+      side: DoubleSide,
+      roughness: 0.95,
+    });
+    const cream = this.material({ color: 0xe8d8a8, roughness: 0.8 });
+    const berries = this.material({ color: 0x3a2438, roughness: 0.6 });
     for (let offset = 8; offset < LOOP; offset += 22 + random() * 16) {
       const palm = new Group();
       palm.add(new Mesh(trunk, bark), new Mesh(crownshaft, shaft), new Mesh(crown, leaves));
+      palm.add(new Mesh(dead, withered), new Mesh(flowers, cream), new Mesh(fruit, berries));
       palm.children.forEach((c) => (c.castShadow = true));
       palm.scale.setScalar(0.8 + random() * 0.3);
       palm.rotation.y = random() * Math.PI * 2;
