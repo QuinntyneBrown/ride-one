@@ -243,6 +243,7 @@ export class HavanaStreet implements SceneStreet {
     this.addSigns(roadHalf);
     this.addCrossers(roadHalf);
     this.addCats(roadHalf);
+    this.addQuinceanera(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -4101,6 +4102,85 @@ export class HavanaStreet implements SceneStreet {
     shirts: MeshStandardMaterial[];
     skins: MeshStandardMaterial[];
   };
+
+  /**
+   * A quinceañera's photo shoot under the arcade's edge, as there so often is: the girl in a vast
+   * tulle gown, one hand on her hip and the other raised, her hair up with a tiara, the gown's
+   * mother holding its train, and the photographer crouched with the camera to his eye.
+   */
+  private addQuinceanera(roadHalf: number): void {
+    const shoot = new Group();
+    const gown = this.material({ color: 0xf2a8c8, roughness: 0.9 });
+    const skin = this.material({ color: 0xc68b5e, roughness: 0.8 });
+    const hair = this.material({ color: 0x2a1d14, roughness: 0.95 });
+    const tiara = this.material({ color: 0xf0e8c8, roughness: 0.2, metalness: 0.8 });
+    const skirt = new LatheGeometry(
+      [
+        new Vector2(0.14, 1.05),
+        new Vector2(0.3, 0.85),
+        new Vector2(0.62, 0.45),
+        new Vector2(0.78, 0.12),
+        new Vector2(0.8, 0.0),
+      ],
+      24,
+    );
+    const torso = new CapsuleGeometry(0.14, 0.3, 3, 8);
+    const head = new SphereGeometry(0.1, 10, 8);
+    const limb = new CapsuleGeometry(0.045, 0.42, 3, 6);
+    const bun = new SphereGeometry(0.07, 8, 6);
+    this.disposables.push(skirt, torso, head, limb, bun);
+    const add = (
+      g: BufferGeometry,
+      m: MeshStandardMaterial,
+      x: number,
+      y: number,
+      z: number,
+      rx = 0,
+      rz = 0,
+    ) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.rotation.set(rx, 0, rz);
+      mesh.castShadow = true;
+      shoot.add(mesh);
+      return mesh;
+    };
+    // The girl, facing the road.
+    add(skirt, gown, 0, 0, 0);
+    add(torso, gown, 0, 1.3, 0);
+    add(head, skin, 0, 1.7, 0);
+    add(head, hair, 0, 1.73, 0.03).scale.set(1.05, 0.9, 1.05);
+    add(bun, hair, 0, 1.82, 0.08);
+    add(this.unit, tiara, 0, 1.8, -0.04).scale.set(0.16, 0.04, 0.02);
+    add(limb, skin, -0.2, 1.3, 0, 0, 0.9);
+    add(limb, skin, 0.22, 1.62, 0, 0, -2.6);
+    // Her mother holding the train behind her.
+    const mother = this.material({ color: 0x3a5a8a, roughness: 0.85 });
+    for (const side of [-0.09, 0.09])
+      add(limb, this.material({ color: 0x2b2d42, roughness: 0.9 }), 0.4 + side, 0.45, 0.9).scale.y =
+        1.7;
+    add(torso, mother, 0.4, 1.15, 0.9, 0.4);
+    add(head, skin, 0.4, 1.52, 0.78);
+    // The photographer crouched in front, the camera at his eye.
+    const shirt = this.material({ color: 0x1a1a1a, roughness: 0.85 });
+    add(torso, shirt, 0, 0.75, -2.0, -0.3);
+    add(head, this.material({ color: 0x8d5a3b, roughness: 0.8 }), 0, 1.12, -2.05);
+    for (const side of [-0.12, 0.12]) {
+      add(limb, this.material({ color: 0xc8b89a, roughness: 0.9 }), side, 0.35, -1.85, 1.2);
+      add(limb, shirt, side * 1.4, 0.98, -1.95, 1.5);
+    }
+    add(this.unit, this.material({ color: 0x111111, roughness: 0.4 }), 0, 1.12, -1.92).scale.set(
+      0.16,
+      0.11,
+      0.12,
+    );
+    shoot.rotation.y = Math.PI / 2;
+    shoot.position.y = KERB;
+    const holder = new Group();
+    holder.add(shoot);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 35, x: roadHalf + 3.0 });
+  }
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial(options);
