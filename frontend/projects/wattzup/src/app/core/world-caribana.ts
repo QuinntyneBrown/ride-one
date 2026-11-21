@@ -1091,6 +1091,10 @@ export class CaribanaStreet implements SceneStreet {
     });
     const skinMaterial = this.material({ color: SKINS[2], roughness: 0.55 });
     const random = seeded(1009);
+    const castor = new CylinderGeometry(0.16, 0.16, 0.1, 14);
+    castor.rotateZ(Math.PI / 2);
+    this.disposables.push(castor);
+    const castorRubber = this.material({ color: 0x151515, roughness: 0.8 });
     for (let i = 0; i < LOOP / TRUCK_EVERY; i++) {
       const costume = COSTUMES[(i + 1) % COSTUMES.length]!;
       const [outer, mid, inner] = costume.feathers;
@@ -1135,6 +1139,35 @@ export class CaribanaStreet implements SceneStreet {
         piece.add(new Mesh(medallion, suitMaterial), new Mesh(skirt, suitMaterial));
         piece.add(new Mesh(frame, suitMaterial));
         piece.add(new Mesh(body, skinMaterial), new Mesh(suit, suitMaterial));
+      }
+      // The frame rolls on four castors under the skirt, and two helpers in the band's
+      // T-shirts walk at its back corners, steadying it through the crowd.
+      for (const [x, z] of [
+        [-1.2, -0.6],
+        [1.2, -0.6],
+        [-1.2, 1.0],
+        [1.2, 1.0],
+      ] as const) {
+        const wheel = new Mesh(castor, castorRubber);
+        wheel.position.set(x, 0.16, z);
+        piece.add(wheel);
+      }
+      for (const x of [-1.9, 1.9]) {
+        const helper = new Group();
+        const parts = spectatorParts(0, true);
+        this.disposables.push(parts.skin, parts.top, parts.bottom);
+        const skin = this.material({
+          color: SKINS[Math.floor(random() * SKINS.length)],
+          roughness: 0.6,
+        });
+        helper.add(
+          new Mesh(parts.skin, skin),
+          new Mesh(parts.top, this.material({ color: costume.suit })),
+        );
+        helper.add(new Mesh(parts.bottom, this.material({ color: 0x1e2530, roughness: 0.9 })));
+        helper.position.set(x, 0, 1.6);
+        helper.rotation.y = Math.PI + (x < 0 ? 0.3 : -0.3);
+        piece.add(helper);
       }
       piece.traverse((o) => (o.castShadow = true));
       this.group.add(piece);
