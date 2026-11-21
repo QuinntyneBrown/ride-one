@@ -21,6 +21,10 @@ export class RacePage {
   readonly distance: Locator;
   readonly profile: Locator;
   readonly here: Locator;
+  readonly resistance: Locator;
+  readonly resistanceLabel: Locator;
+  readonly raise: Locator;
+  readonly lower: Locator;
   readonly intervalLabel: Locator;
   readonly intervalRound: Locator;
   readonly intervalLeft: Locator;
@@ -47,6 +51,10 @@ export class RacePage {
     this.distance = page.locator('.race-route__km');
     this.profile = page.locator('.race-route__profile');
     this.here = page.locator('.race-route__here');
+    this.resistance = page.locator('.race-resist__readout');
+    this.resistanceLabel = page.locator('.race-resist__label');
+    this.raise = page.getByRole('button', { name: 'Raise resistance' });
+    this.lower = page.getByRole('button', { name: 'Lower resistance' });
     this.intervalLabel = page.locator('.race-interval__name');
     this.intervalRound = page.locator('.race-interval__round');
     this.intervalLeft = page.locator('.race-interval__left');

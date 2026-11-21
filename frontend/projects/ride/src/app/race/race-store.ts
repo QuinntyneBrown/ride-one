@@ -6,6 +6,7 @@ import { type RaceDelta, formatMetric } from '@telo/components';
 import {
   BikeTelemetry,
   PowerModel,
+  ResistanceController,
   RideClock,
   RideTicker,
   VirtualSpeedModel,
@@ -27,6 +28,7 @@ export class RaceStore {
   private readonly engine = inject(WorkoutEngine);
   private readonly connection = inject(BIKE_CONNECTION);
   private readonly telemetry = inject(BikeTelemetry);
+  private readonly resistanceControl = inject(ResistanceController);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute).snapshot;
@@ -115,6 +117,10 @@ export class RaceStore {
   /** Kilometres ridden at the virtual speed, two decimals ("1.62", L2-062 AC1). */
   readonly distance = computed(() => (this.ridden() / 1000).toFixed(2));
 
+  /** The bike's reported resistance (L2-063 AC1), and whether Lower and Raise can reach it (L2-028 AC4). */
+  readonly resistance = this.telemetry.resistance;
+  readonly canControl = this.resistanceControl.canControl;
+
   readonly bikeName = computed(() => this.connection.bike()?.name ?? null);
   readonly connected = computed(() => this.connection.ble() === 'connected');
 
@@ -139,6 +145,15 @@ export class RaceStore {
     this.ticker.ticks
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((second) => this.ride(second));
+  }
+
+  /** Raise and Lower send the next level as the rider's own (L2-028 AC1). */
+  raise(): void {
+    void this.resistanceControl.nudge(1);
+  }
+
+  lower(): void {
+    void this.resistanceControl.nudge(-1);
   }
 
   /**

@@ -36,6 +36,12 @@
       @if (store.routeView(); as route) {
         <wz-race-route [view]="route" [distance]="store.distance()" />
       }
+      <wz-race-resist
+        [level]="store.resistance()"
+        [disabled]="!store.canControl()"
+        (lower)="store.lower()"
+        (raise)="store.raise()"
+      />
     </section>
   }
 </main>
