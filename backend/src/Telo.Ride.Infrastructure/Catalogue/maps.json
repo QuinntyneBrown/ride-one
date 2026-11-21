@@ -1,0 +1,109 @@
+{
+  "maps": [
+    {
+      "id": "prairie-paceline",
+      "name": "Prairie Paceline",
+      "routeName": "Route 9 Wind Farm",
+      "place": "Open farmland at golden hour",
+      "distanceKm": 18.4,
+      "climbingM": 90,
+      "rating": "Easy",
+      "world": "prairie",
+      "thumbnailUrl": "maps/prairie-paceline.jpg",
+      "unlock": {
+        "kind": "start"
+      }
+    },
+    {
+      "id": "old-town-criterium",
+      "name": "Old Town Criterium",
+      "routeName": "Cathedral Circuit",
+      "place": "A cobbled European old town on race day",
+      "distanceKm": 14.2,
+      "climbingM": 140,
+      "rating": "Easy",
+      "world": "oldtown",
+      "thumbnailUrl": "maps/old-town-criterium.jpg",
+      "unlock": {
+        "kind": "start"
+      }
+    },
+    {
+      "id": "cliffside-coast",
+      "name": "Cliffside Coast",
+      "routeName": "Headland Road",
+      "place": "A clifftop road above the sea at sunset",
+      "distanceKm": 32,
+      "climbingM": 410,
+      "rating": "Moderate",
+      "world": "coast",
+      "thumbnailUrl": "maps/cliffside-coast.jpg",
+      "unlock": {
+        "kind": "top-three-vs-bots",
+        "mapId": "prairie-paceline"
+      }
+    },
+    {
+      "id": "neon-docklands",
+      "name": "Neon Docklands",
+      "routeName": "Harbour Bridges Loop",
+      "place": "A harbour city after dark",
+      "distanceKm": 21.6,
+      "climbingM": 120,
+      "rating": "Moderate",
+      "world": "docklands",
+      "thumbnailUrl": "maps/neon-docklands.jpg",
+      "unlock": {
+        "kind": "top-three-vs-bots",
+        "mapId": "old-town-criterium"
+      }
+    },
+    {
+      "id": "dolomites",
+      "name": "Dolomites",
+      "routeName": "Val Gardena Valley Road",
+      "place": "An alpine valley under pale limestone peaks",
+      "distanceKm": 38.5,
+      "climbingM": 860,
+      "rating": "Hard",
+      "world": "dolomites",
+      "thumbnailUrl": "maps/dolomites.jpg",
+      "unlock": {
+        "kind": "stars",
+        "mapId": "cliffside-coast",
+        "stars": 2
+      }
+    },
+    {
+      "id": "vice-city",
+      "name": "Vice City",
+      "routeName": "Ocean Drive to the Causeway",
+      "place": "A neon beachfront city at a magenta sunset",
+      "distanceKm": 24,
+      "climbingM": 60,
+      "rating": "Moderate",
+      "world": "vicecity",
+      "thumbnailUrl": "maps/vice-city.jpg",
+      "unlock": {
+        "kind": "level",
+        "level": 10
+      }
+    },
+    {
+      "id": "col-du-granit",
+      "name": "Col du Granit",
+      "routeName": null,
+      "place": "A high mountain pass at first light",
+      "distanceKm": 16.1,
+      "climbingM": 1240,
+      "rating": "Brutal",
+      "world": "granite",
+      "thumbnailUrl": "maps/col-du-granit.jpg",
+      "unlock": {
+        "kind": "stars",
+        "mapId": "dolomites",
+        "stars": 3
+      }
+    }
+  ]
+}

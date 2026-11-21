@@ -1,0 +1,81 @@
+// Acceptance test
+// Traces to: L2-045 AC1, AC3; L2-040 AC1, AC6; ADR 0029
+// Description: the map catalogue, read without a session, lists the seven maps of L2-045 AC1 in unlock order, each with
+// its distance, climbing, rating, route and place, its world and its thumbnail; Prairie Paceline and Old Town Criterium
+// are open from the start, and every other map names its one goal.
+using System.Net;
+using System.Net.Http.Json;
+
+namespace Telo.Ride.Api.Tests;
+
+public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<TeloRideApiFactory>
+{
+    [Fact]
+    public async Task The_catalogue_lists_the_seven_maps_in_unlock_order_without_a_session()
+    {
+        var maps = await ReadMaps();
+
+        Assert.Equal(
+            [
+                new Listed("Prairie Paceline", 18.4, 90, "Easy", "Route 9 Wind Farm", "Open farmland at golden hour"),
+                new Listed("Old Town Criterium", 14.2, 140, "Easy", "Cathedral Circuit", "A cobbled European old town on race day"),
+                new Listed("Cliffside Coast", 32, 410, "Moderate", "Headland Road", "A clifftop road above the sea at sunset"),
+                new Listed("Neon Docklands", 21.6, 120, "Moderate", "Harbour Bridges Loop", "A harbour city after dark"),
+                new Listed("Dolomites", 38.5, 860, "Hard", "Val Gardena Valley Road", "An alpine valley under pale limestone peaks"),
+                new Listed("Vice City", 24, 60, "Moderate", "Ocean Drive to the Causeway", "A neon beachfront city at a magenta sunset"),
+                new Listed("Col du Granit", 16.1, 1240, "Brutal", null, "A high mountain pass at first light"),
+            ],
+            maps.Select(m => new Listed(m.Name, m.DistanceKm, m.ClimbingM, m.Rating, m.RouteName, m.Place)));
+    }
+
+    [Fact]
+    public async Task Two_maps_are_open_from_the_start_and_every_other_names_its_goal()
+    {
+        var maps = await ReadMaps();
+
+        Assert.Equal(
+            [
+                ("prairie-paceline", null),
+                ("old-town-criterium", null),
+                ("cliffside-coast", "Finish top 3 vs Bots on Prairie Paceline"),
+                ("neon-docklands", "Finish top 3 vs Bots on Old Town Criterium"),
+                ("dolomites", "Earn 2★ on Cliffside Coast"),
+                ("vice-city", "Reach rider level 10"),
+                ("col-du-granit", "Earn 3★ on Dolomites"),
+            ],
+            maps.Select(m => (m.Id, m.UnlockGoal)));
+    }
+
+    [Fact]
+    public async Task Every_map_names_its_world_and_its_thumbnail_in_the_app()
+    {
+        var maps = await ReadMaps();
+
+        Assert.Equal(
+            ["prairie", "oldtown", "coast", "docklands", "dolomites", "vicecity", "granite"],
+            maps.Select(m => m.World));
+        Assert.All(maps, m => Assert.Equal($"maps/{m.Id}.jpg", m.ThumbnailUrl));
+    }
+
+    private async Task<IReadOnlyList<CatalogueMap>> ReadMaps()
+    {
+        using var client = api.CreateClient();
+        using var response = await client.GetAsync("/api/maps", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return (await response.Content.ReadFromJsonAsync<IReadOnlyList<CatalogueMap>>(TestContext.Current.CancellationToken))!;
+    }
+
+    private sealed record Listed(string Name, double DistanceKm, int ClimbingM, string Rating, string? RouteName, string Place);
+
+    private sealed record CatalogueMap(
+        string Id,
+        string Name,
+        string? RouteName,
+        string Place,
+        double DistanceKm,
+        int ClimbingM,
+        string Rating,
+        string World,
+        string ThumbnailUrl,
+        string? UnlockGoal);
+}
