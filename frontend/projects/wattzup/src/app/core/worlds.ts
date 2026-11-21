@@ -92,7 +92,7 @@ export const WORLDS: readonly World[] = [
     route: 'Lake Shore Boulevard',
     effortName: 'Mas band surge',
     description:
-      "Toronto's Lake Shore Boulevard at Caribbean Carnival; steel pans and feathered masqueraders, each interval a surge between bands.",
+      "Lake Shore Boulevard closes for the Toronto Caribbean Carnival's Grand Parade on a hot August afternoon, crowds packed behind the barricades waving island flags under bunting and hanging baskets, as mas bands in feathered backpieces wine up the lanes behind a steel orchestra, its engine room and a towering King, with moko jumbies striding over them and the CN Tower rising ahead past the Gardiner and the Sunnyside Pavilion. The warm-up rolls in behind the steel orchestra, and each one-minute surge races between the bands, under the footbridge and the judging gantry, before the recoveries chip along with the parade.",
     grade: { warmup: 0.5, work: 3, rest: -0.5, cooldown: 0, steady: 0.5 },
     roll: 0.4,
     bend: { angle: 6, length: 220 },
