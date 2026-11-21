@@ -89,6 +89,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [083 · Yachts](083-yachts.jpg) | Yachts under sail and a catamaran now dot the Gulf off the wall: white hulls, tall masts, mainsail and jib catching the light, each on its own heading and heeled to the breeze. From the saddle, a yacht sails behind the vendor's cart on the left, its sails white against the sea, with others further out. | 94% · 93/100 |
 | [084 · Tour bus](084-tour-bus.jpg) | An open-top double-decker sightseeing bus now comes along the oncoming lanes: red with a cream band, dark lower-deck windows, and the railed upper deck full of visitors in bright shirts and sunhats under a canopy at the front. From the saddle, it comes on beyond the crossing ahead, its top deck crowded. | 94% · 93/100 |
 | [085 · Awnings](085-awnings.jpg) | About three in ten balconies now have a striped canvas awning over their French windows: sun-faded red, green, blue or ochre on cream with a scalloped valance, sloping out from the wall over the balcony. From the saddle, a red-striped awning hangs over a window on the right façade, among the balconies and flowers. | 94% · 93/100 |
+| [086 · Kerb paint](086-kerb-paint.jpg) | The inland kerb is now painted along most of its length: stretches of no-stopping yellow and of red and white blocks, chipped and worn back to the stone, with bare lengths between. From the saddle, the near kerb runs in faded yellow past the hydrant and the quinceañera's convertible. | 94% · 93/100 |
 
 ## Reproducing a capture
 
