@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import {
   Button,
   ClassBike,
@@ -35,6 +36,7 @@ import { ClassRideStore } from './class-ride-store';
     ClassSegment,
     ClassStat,
     ClassVideo,
+    RouterLink,
   ],
   templateUrl: './class-ride-page.html',
   styleUrl: './class-ride-page.scss',

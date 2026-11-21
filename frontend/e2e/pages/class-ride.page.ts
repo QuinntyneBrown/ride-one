@@ -39,7 +39,7 @@ export class ClassRidePage {
     this.cover = page.locator('.class-video .photo');
     this.pause = page.getByRole('button', { name: 'Pause', exact: true });
     this.resume = page.getByRole('button', { name: 'Resume', exact: true });
-    this.leave = page.getByRole('button', { name: 'Leave class' });
+    this.leave = page.getByRole('link', { name: 'Leave class' });
     this.paused = page.locator('.class-video__paused');
     this.lost = page.getByRole('alert').filter({ hasText: 'Lost the bike' });
     this.reconnect = page.getByRole('button', { name: 'Reconnect' });

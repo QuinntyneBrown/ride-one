@@ -76,8 +76,8 @@ network is kept and sent later (`L2-135`).
 the solo lost bike with `ClassLost` and Reconnect, Leave to Class Start (`/classes/:id`, which
 slice 6.3 builds; until then the route shows Page not found), the wake lock and the leave guard,
 and the finish: at the class length the clock stops at the length, the video pauses and Results
-opens at `/results` (slice 11.1 builds it). The header's Pause, Resume and Leave are buttons, not
-the mock's links, since they act. `RideRecorder`, `RideOutbox` and the submission through
+opens at `/results` (slice 11.1 builds it). The header's Pause and Resume are a button, not the
+mock's link, since it acts; Leave stays a link, since it only goes to Class Start. `RideRecorder`, `RideOutbox` and the submission through
 `RIDES_API` come with *record a ride* (10.1) and the ride outbox (17.1); the group parts come with
 the group class (journey 14).
 

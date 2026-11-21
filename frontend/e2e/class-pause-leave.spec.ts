@@ -1,5 +1,5 @@
 // Acceptance test
-// Traces to: L2-091 AC1, AC2; L2-088 AC3; L2-092 AC4; L2-017 AC4
+// Traces to: L2-091 AC1, AC2; L2-088 AC3; L2-092 AC4; L2-017 AC4; L2-093 AC1
 // Description: a solo class ride paused and resumed: the clock, the plan and the video hold together, the video shows
 // "Paused", and the ride picks up where it left off. The ride starts on Playwright's paused clock (startClassRide), and
 // the shared fixture's fake YouTube player runs on the same clock.
@@ -10,7 +10,9 @@ import {
   resistanceFrame,
   targetResistanceWrite,
 } from './fixtures/echelon';
+import { hiitCardio } from './fixtures/classes';
 import { expect, test } from './fixtures/test';
+import { NotFoundPage } from './pages/not-found.page';
 
 test.describe('Pause, leave or finish a class', () => {
   test('Pause holds the clock and the video under "Paused" with the stepper on, and Resume carries on from there (L2-091 AC1, AC2, L2-088 AC3)', async ({
@@ -96,5 +98,39 @@ test.describe('Pause, leave or finish a class', () => {
         .slice(writes)
         .map((write) => write.hex),
     ).toContain(targetResistanceWrite(6));
+  });
+
+  test('Leave goes to Class Start at once and stops the ride and its video (L2-093 AC1)', async ({
+    page,
+    bluetooth,
+    api,
+    youtube,
+  }) => {
+    const ride = await startClassRide(page, bluetooth, api);
+    await expect.poll(async () => (await youtube.players()).length).toBe(1);
+    await page.clock.runFor(100);
+    await page.clock.fastForward('07:00');
+    await page.clock.runFor(100);
+
+    await ride.leave.click();
+    await page.clock.runFor(100);
+    await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);
+    // Class Start comes with slice 6.3; until then its address shows Page not found.
+    const notFound = new NotFoundPage(page);
+    await expect(async () => {
+      await page.clock.runFor(16);
+      await expect(notFound.heading).toHaveText('This page doesn’t exist.', { timeout: 50 });
+    }).toPass();
+    expect((await youtube.players())[0].destroyed).toBe(true);
+
+    // The plan no longer drives the bike: the next interval, at 8:30, never sends its level.
+    const writes = bluetooth.writes().length;
+    await page.clock.runFor(120_000);
+    expect(
+      bluetooth
+        .writes()
+        .slice(writes)
+        .map((write) => write.hex),
+    ).not.toContain(targetResistanceWrite(18));
   });
 });
