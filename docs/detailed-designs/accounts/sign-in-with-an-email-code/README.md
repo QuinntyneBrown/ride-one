@@ -29,12 +29,13 @@ enforced by the mechanisms in [Limit abuse](../../security/limit-abuse/README.md
 
 The sign-in and code screens are drawn in `docs/mocks/pages/sign-in/` (default, sending, invalid,
 failed, rate-limited) and `docs/mocks/pages/sign-in-code/` (default, ready, resent); both use the
-design system's `sign-in` block, and the code screen its `code-entry` block. The display-name
-screen and the code screen's refusals are still a mock gap.
+design system's `sign-in` block, and the code screen its `code-entry` block, with the refusals
+mismatch, expired and locked. The display-name screen is still a mock gap.
 
-Slice 9.1 builds sending a code: the sign-in screen, the code screen naming the email with "Send
+Slice 9.1 built sending a code: the sign-in screen, the code screen naming the email with "Send
 a new code", and `POST /api/auth/code`. Slice 9.2 adds `authGuard`, `CodeEntry`, confirming the
-code and the session.
+code and the session ([Stay signed in](../stay-signed-in/README.md)); the display-name prompt
+comes with 9.3.
 
 ## Description
 
@@ -42,10 +43,11 @@ The slice runs from two routed screens in the Ride app through one controller to
 
 ### Ride app (frontend)
 
-- **`authGuard`** — functional route guard in the `ride` application, applied to every route
-  except `/sign-in`, `/sign-in/code` and not-found. When the current rider is unknown (no
-  session, see [Stay signed in](../stay-signed-in/README.md)), it redirects to
-  `/sign-in?returnUrl=<requested path>`.
+- **`authGuard`** — functional `canActivateChild` guard in the `ride` application, on the parent
+  of every screen; it lets `/sign-in`, `/sign-in/code` and not-found through. It waits for
+  `CURRENT_RIDER` to know the rider, and when the session has ended (see [Stay signed
+  in](../stay-signed-in/README.md)) it redirects to `/sign-in?returnUrl=<requested path>`. When
+  the backend cannot be reached, the screen opens (L2-004 AC5).
 - **`SignInPage`** (`wz-sign-in-page`, route `/sign-in`) — page that renders `SignInForm` from
   the store. **`SignInForm`** (`wz-sign-in-form`, `components` library) is the screen's
   presentation: the lockup, a `field` for the email and a primary `button` reading "Send my code".
@@ -59,7 +61,9 @@ The slice runs from two routed screens in the Ride app through one controller to
   code went to, "Send a new code" with the time left until it is enabled ("Send a new code in
   0:28"), and "Use a different email", which goes back to sign-in with the email kept. A resend
   shows "We sent a new code. Only the newest one works." The route opens only while the store
-  holds an email; otherwise it goes to sign-in. From 9.2 it also hosts `CodeEntry`.
+  holds an email; otherwise it goes to sign-in. It hosts `CodeEntry`; six digits confirm the code
+  at once, and a confirmed rider goes to the return URL, or Home, whose own guard sends a rider
+  with no paired bike to Connect Bike (L2-002 AC2).
 - **`SignInStore`** — signal store provided on the sign-in routes. It holds the email, the busy
   flag, the last error (`SignInError`: its `code` and, for 429, the seconds to wait) and the resend
   clock, which counts down on `TICKER`'s beat, and decides where a confirmed rider goes next
@@ -69,11 +73,13 @@ The slice runs from two routed screens in the Ride app through one controller to
 - **`CodeEntry`** (`wz-code-entry`, `components` library) — presentation component for six digits.
   It uses `inputmode="numeric"` and `autocomplete="one-time-code"`, drops every character that is
   not a digit, accepts a pasted or autofilled code, and emits `completed` once six digits are
-  present. It takes `invalid` and `disabled` inputs and injects no service.
+  present. It takes `error` (the refusal's words, drawn under the cells as an alert and marking
+  the field invalid), `disabled` and `refusals` (a count; each new refusal clears the field), and
+  injects no service.
 - **`AuthApi`** / **`AUTH_API`** / **`HttpAuthApi`** — contract, injection token and HTTP
   implementation in the `api` library, bound on the sign-in routes. `sendCode(email)` posts to
-  `/api/auth/code`; `confirmCode(email, code)` (9.2) posts to `/api/auth/code/confirm` and returns
-  `ConfirmCodeResult` (`isNewAccount`, `hasDisplayName`). A refusal becomes an `AuthApiError`
+  `/api/auth/code`; `confirmCode(email, code)` posts to `/api/auth/code/confirm` and returns
+  `ConfirmCodeResult` (`riderId`, `displayName`, `isNewAccount`). A refusal becomes an `AuthApiError`
   carrying its `code` and, for 429, `retryAfterSeconds` from `Retry-After`; a failure with no code
   of Telo Ride's is `send_failed`.
 
@@ -88,7 +94,7 @@ The screens branch on these error codes: `invalid_email`, `rate_limited`, `resen
 | `resend_too_soon` | none on sign-in: the code screen opens, since a code is on its way; on the code screen, the countdown |
 | `code_mismatch` | "That code doesn't match. Try again." |
 | `code_expired` | "That code has expired." with "Send a new code" |
-| `code_locked` | `<TO SUPPLY>` with slice 9.2's mock |
+| `code_locked` | "Too many wrong codes. Send a new code to try again." |
 
 ### Telo Ride API (backend)
 
@@ -109,10 +115,13 @@ The screens branch on these error codes: `invalid_email`, `rate_limited`, `resen
   saves nothing and the rider can ask again at once (L2-001 AC5). The handler does the same
   work whether or not an account exists for the address, so the response body, status and timing
   class match in both cases.
-- **`ConfirmSignInCodeCommandHandler`** — loads the active code for the address and calls
-  `SignInCode.Verify`. On `Matched` it marks the code used, finds or creates the `Rider`, saves,
-  and asks the cookie authentication layer to start a `RiderSession`. Every other outcome returns
-  400 with the matching code; `Mismatch` saves the incremented attempt count first.
+- **`ConfirmSignInCodeCommandHandler`** — loads the active (newest, not superseded) code for the
+  address and calls `SignInCode.Verify`. On `Matched` it marks the code used, finds or creates the
+  `Rider`, saves, and returns the rider; `AuthController` then signs the rider in, which starts a
+  `RiderSession` (Stay signed in). Every other outcome is 400 with its code: `Mismatch` saves the
+  incremented attempt count first and answers `code_mismatch`; `Locked` answers `code_locked`;
+  `Expired`, `Used` and an address with no active code answer `code_expired`. The code is compared
+  with `CryptographicOperations.FixedTimeEquals` over the keyed hashes.
 - **`EmailAddress`** (`Telo.Ride.Domain`) — value object holding the trimmed address with a
   lower-cased domain and the local part as typed. It is the only form the backend stores.
 - **`SignInCode`** (`Telo.Ride.Domain`) — entity holding `Email`, `CodeHash`, `NetworkHash`,

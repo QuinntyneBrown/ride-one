@@ -29,17 +29,18 @@ ride, the finished ride stays on the device and is sent after the rider signs in
 ### Telo Ride API (backend)
 
 - **Cookie authentication** — ASP.NET Core cookie authentication registered by
-  `Telo.Ride.Infrastructure` as the default scheme. The cookie is `__Host-telo-session`, with
+  `Telo.Ride.Api` (`AuthenticationSetup`) as the default scheme, reading time from `TimeProvider`. The cookie is `__Host-telo-session`, with
   `HttpOnly`, `SecurePolicy = Always`, `SameSite = Lax`, `Path = /` and `ExpireTimeSpan` of 365
   days. The `__Host-` prefix pins it to the backend's host. A request that needs a session and has
   none gets 401 instead of a redirect.
-- **`RiderSessionTicketStore`** — `ITicketStore` implementation that keeps each authentication
-  ticket in the database as a `RiderSession`. The cookie carries only a random 256-bit key; the
-  database stores the key's hash, so a database read alone cannot replay a session.
-- **`RiderSessionValidator`** — handler for the cookie's `OnValidatePrincipal` event. It loads the
-  session on every authenticated request without caching, rejects it when it has ended or expired,
-  and otherwise calls `Touch(now)` and sets `ShouldRenew = true`, so the cookie's own expiry moves
-  with the session's.
+- **`RiderSessionTicketStore`** (`Telo.Ride.Api`) — `ITicketStore` implementation that keeps each
+  session in the database as a `RiderSession`. The cookie carries only a random 256-bit key; the
+  database stores the key's SHA-256 hash, so a database read alone cannot replay a session. It
+  rebuilds the ticket from the session's rider, so no serialized ticket is stored. On every
+  authenticated request `RetrieveAsync` loads the session without caching, refuses it when it has
+  ended or expired, and otherwise calls `Touch(now)` and saves.
+- **Cookie events** — `OnValidatePrincipal` sets `ShouldRenew = true`, so the cookie is reissued
+  with the session's new expiry on each use. `RemoveAsync` ends the session (sign-out, 9.4).
 - **`RiderSession`** (`Telo.Ride.Domain`) — entity with `RiderId`, `KeyHash`, `CreatedAt`,
   `LastUsedAt`, `ExpiresAt` and `EndedAt`. `Touch(now)` sets `LastUsedAt = now` and
   `ExpiresAt = now + 365 days`. `End(now)` sets `EndedAt`. `IsActive(now)` is true when the
@@ -49,21 +50,26 @@ ride, the finished ride stays on the device and is sent after the rider signs in
 
 Each authenticated request writes the session's new expiry. Whether writes are coalesced (for
 example at most once per minute per session) is `<TO SUPPLY>`; coalescing within a minute does not
-change any 365-day outcome.
+change any 365-day outcome. Slice 9.2 writes on every request.
 
 ### Ride app (frontend)
 
-- **`CurrentRiderStore`** — root-provided signal store in the `ride` application (the whole app
-  shares it). `load()` calls `RidersApi.getMe()` once at start-up; `status` is `unknown`,
-  `signedIn` or `signedOut`. `signedIn()` reloads the rider and flushes the `RideOutbox`.
-- **`sessionInterceptor`** — `HttpInterceptorFn` in the `api` library. It sends every backend
-  request `withCredentials` and reports a 401 from any endpoint other than the sign-in endpoints
-  to the store, which sets `signedOut`.
+- **`CurrentRiderStore`** — signal store in the `ride` application behind the `CurrentRider`
+  contract and `CURRENT_RIDER` token of the `api` library, provided on the lazy parent of every
+  screen (so the whole app shares one, out of the initial bundle). `load()` calls
+  `RidersApi.me()` (`GET /api/riders/me`) once; `status` is `unknown`, `signedIn`, `signedOut` or
+  `unreachable` (no answer, or one that is neither 200 nor 401: the backend cannot be reached,
+  and screens open, L2-004 AC5). `signedIn(rider)` records the rider a confirmed code returned.
+- **`sessionInterceptor`** — `HttpInterceptorFn` in the `api` library, on the one `HttpClient`
+  the parent route provides. It reports a 401 from any endpoint other than `/api/auth/` to
+  `CURRENT_RIDER`, which sets `signedOut`. The app and the API share an origin (ADR 0026), so the
+  cookie goes with every request without `withCredentials`.
 - **`authGuard`** — the guard of [Sign in with an email
   code](../sign-in-with-an-email-code/README.md). It waits while `status` is `unknown` and
   redirects to `/sign-in?returnUrl=…` when it is `signedOut`.
-- **`RideOutbox`** (`domain` library, `storage/`) — keeps each finished ride in IndexedDB by its
-  id until the backend records it (see [Ride without a
+- **`RideOutbox`** (`domain` library, `storage/`), from the journey that first submits rides to
+  the backend (journey 10; until then a ride never leaves the device) — keeps each finished ride
+  in IndexedDB by its id until the backend records it (see [Ride without a
   network](../../performance/ride-without-a-network/README.md)). A 401 on submission leaves the
   ride in the outbox; it is submitted again after sign-in.
 
@@ -93,10 +99,10 @@ the session in the Telo Ride database. Rides finished while signed out wait in b
 
 ### Components
 
-On the backend, cookie authentication retrieves the ticket from `RiderSessionTicketStore` and
-lets `RiderSessionValidator` touch or reject the `RiderSession`. On the frontend,
-`sessionInterceptor` reports a 401 to `CurrentRiderStore`, which `authGuard` reads and which
-flushes `RideOutbox` after sign-in.
+On the backend, cookie authentication retrieves the ticket from `RiderSessionTicketStore`, which
+touches or refuses the `RiderSession`. On the frontend, `sessionInterceptor` reports a 401 to
+`CurrentRiderStore`, which `authGuard` reads and which, from journey 10, flushes `RideOutbox`
+after sign-in.
 
 ![C4 component view for staying signed in](diagrams/c4-component.png)
 

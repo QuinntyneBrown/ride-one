@@ -19,10 +19,9 @@ box "Frontend — Ride app" #E0F2FE
   participant "CurrentRiderStore" as current
   participant "HttpRidersApi" as client
 end box
-box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+box "Backend — Telo.Ride.Api authentication" #FFF4E5
   participant "Cookie authentication" as cookie
   participant "RiderSessionTicketStore" as store
-  participant "RiderSessionValidator" as validator
   database "Telo Ride database" as db
 end box
 box "Backend — Telo.Ride.Application and Domain" #ECFDF3
@@ -32,23 +31,22 @@ box "Backend — Telo.Ride.Api" #D1FADF
   participant "RidersController" as ctrl
 end box
 actor -> current : Open Telo Ride on a device used before
-current -> client : getMe()
+current -> client : me()
 client -> cookie : GET /api/riders/me with __Host-telo-session (HttpOnly, Secure, SameSite=Lax, L2-004 AC2)
 cookie -> store : RetrieveAsync(session key)
-store -> db : Load RiderSession by key hash
+store -> db : Load RiderSession by key hash (no cache)
 db --> store : Session
-store --> cookie : Ticket
-cookie -> validator : OnValidatePrincipal
-validator -> session : IsActive(now)
+store -> session : IsActive(now)
 alt active
-  validator -> session : Touch(now): ExpiresAt = now + 365 days (L2-004 AC1)
-  validator -> db : Save
-  validator --> cookie : ShouldRenew = true (cookie expiry moves with the session)
+  store -> session : Touch(now): ExpiresAt = now + 365 days (L2-004 AC1)
+  store -> db : Save
+  store --> cookie : Ticket for the rider, expiring with the session
+  cookie -> cookie : OnValidatePrincipal: ShouldRenew = true (cookie expiry moves with the session)
   cookie -> ctrl : Authenticated request
   ctrl --> client : 200 RiderMe, refreshed Set-Cookie
   client --> current : Signed in
 else ended or expired
-  validator --> cookie : RejectPrincipal
+  store --> cookie : No ticket
   cookie --> client : 401
   client --> current : Signed out (see session-ended behaviour)
 end

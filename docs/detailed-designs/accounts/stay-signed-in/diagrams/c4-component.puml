@@ -3,15 +3,14 @@
 LAYOUT_WITH_LEGEND()
 title Components — Stay signed in
 Container_Boundary(app, "Ride app") {
-  Component(current, "CurrentRiderStore", "Root store · ride", "Signed-in rider or none, loaded from GET /api/riders/me")
+  Component(current, "CurrentRiderStore", "Store on the screens' parent route · ride, behind CURRENT_RIDER", "Signed-in rider or none, loaded from GET /api/riders/me")
   Component(interceptor, "sessionInterceptor", "HTTP interceptor · api", "Turns any 401 into a signed-out state")
   Component(guard, "authGuard", "Route guard · ride", "Sends a rider with no session to sign-in")
   Component(outbox, "RideOutbox", "Service · domain/storage", "Keeps finished rides until they are recorded")
 }
 Container_Boundary(api, "Telo Ride API") {
-  Component(cookie, "Cookie authentication", "ASP.NET Core authentication · Telo.Ride.Infrastructure", "Session cookie: HttpOnly, Secure, SameSite=Lax")
-  Component(store, "RiderSessionTicketStore", "ITicketStore · Telo.Ride.Infrastructure", "Keeps the session server-side; the cookie holds a key")
-  Component(validator, "RiderSessionValidator", "Cookie events · Telo.Ride.Infrastructure", "Rejects ended or expired sessions, slides expiry")
+  Component(cookie, "Cookie authentication", "ASP.NET Core authentication · Telo.Ride.Api", "Session cookie: HttpOnly, Secure, SameSite=Lax")
+  Component(store, "RiderSessionTicketStore", "ITicketStore · Telo.Ride.Api", "Keeps the session server-side; the cookie holds a key")
   Component(session, "RiderSession", "Domain entity · Telo.Ride.Domain", "Key hash, last use, expiry, end")
   ComponentDb(db, "Telo Ride database", "EF Core; engine <TO SUPPLY>", "Rider sessions")
 }
@@ -20,7 +19,5 @@ Rel(guard, current, "Reads")
 Rel(current, outbox, "Flushes after sign-in")
 Rel(interceptor, cookie, "Sends requests carrying the cookie to", "HTTPS")
 Rel(cookie, store, "Retrieves and renews tickets with")
-Rel(cookie, validator, "Raises OnValidatePrincipal on")
-Rel(validator, session, "Touches or rejects")
 Rel(store, db, "Reads and writes", "EF Core")
 @enduml

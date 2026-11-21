@@ -19,8 +19,9 @@ package "api library" {
     +confirmCode(email: string, code: string): Observable<ConfirmCodeResult>
   }
   class ConfirmCodeResult {
+    +riderId: string
+    +displayName: string | null
     +isNewAccount: boolean
-    +hasDisplayName: boolean
   }
   class AuthApiError {
     +code: AuthApiErrorCode
@@ -71,8 +72,9 @@ package "components library" {
     +changeEmail: output<void>
   }
   class CodeEntry {
-    +invalid: input<boolean>
+    +error: input<string | null>
     +disabled: input<boolean>
+    +refusals: input<number>
     +completed: output<string>
   }
 }

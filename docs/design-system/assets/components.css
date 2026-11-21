@@ -3269,3 +3269,8 @@ a.map-table__map:hover, a.map-table__map[data-state="hover"] { color: var(--colo
 .code-entry__cells { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-2); height: 100%; pointer-events: none; }
 .code-entry__cell { display: grid; place-items: center; border-radius: var(--radius-lg); background: var(--color-raised); font-family: var(--font-family-mono); font-size: var(--font-size-xl); line-height: var(--line-height-xl); font-weight: var(--font-weight-semibold); }
 .code-entry:focus-within .code-entry__cell { box-shadow: 0 0 0 1px var(--color-line-strong); }
+/* Refused (mismatch, expired, locked): every cell outlined in the error colour, the reason under the cells as an alert (L2-002 AC3, AC4, L2-003 AC3). */
+.code-entry:has(.code-entry__input[aria-invalid="true"]) { height: auto; }
+.code-entry:has(.code-entry__input[aria-invalid="true"]) .code-entry__cells { height: var(--control-height-xl); }
+.code-entry__input[aria-invalid="true"] + .code-entry__cells .code-entry__cell { box-shadow: 0 0 0 1px var(--color-heart); }
+.code-entry__error { margin-top: var(--space-2); }
