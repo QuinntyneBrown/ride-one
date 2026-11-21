@@ -54,6 +54,7 @@ import {
   bakeOcclusion,
   ellipsoid,
   Ensemble,
+  merge,
   faceParts,
   faceTexture,
   hairParts,
@@ -342,6 +343,7 @@ export class CaribanaStreet implements SceneStreet {
   private readonly pannists: { figure: Group; phase: number }[] = [];
   private readonly bandBanners: { group: Group; phase: number }[] = [];
   private engineRoom: Group | null = null;
+  private readonly mounted: { horse: Group; tail: Group; phase: number }[] = [];
   private readonly sectionFlags: { flag: Group; phase: number }[] = [];
   private readonly truckLights: MeshStandardMaterial[] = [];
   private readonly policeLights: MeshStandardMaterial[] = [];
@@ -460,6 +462,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addDistantParade();
     this.addConfetti();
     this.addOfficers();
+    this.addMountedUnit();
     this.addBandBanners();
     this.addPress();
     this.addEngineRoom();
@@ -536,6 +539,11 @@ export class CaribanaStreet implements SceneStreet {
     for (const f of this.sectionFlags) {
       f.flag.rotation.y = Math.sin(this.time * 1.6 + f.phase) * 0.7;
       f.flag.rotation.z = Math.sin(this.time * 1.6 + f.phase) * 0.12;
+    }
+    // The horses swish their tails and shift their weight now and then.
+    for (const m of this.mounted) {
+      m.tail.rotation.z = Math.sin(this.time * 1.7 + m.phase) * 0.35;
+      m.tail.rotation.x = 0.3 + Math.sin(this.time * 0.9 + m.phase) * 0.1;
     }
     // The engine room bobs on every beat as it plays.
     this.engineRoom?.children.forEach((p, k) => {
@@ -2265,6 +2273,97 @@ export class CaribanaStreet implements SceneStreet {
         x: side * (1.9 + random() * 2.4),
         road: true,
         marching: true,
+      });
+    }
+  }
+
+  /**
+   * The Toronto Police mounted unit: two officers on tall bay and dark horses standing at the
+   * right-hand barricade, watching the bands, the riders in navy with hi-vis vests and white
+   * helmets, the horses' tails swishing and heads dipping now and then.
+   */
+  private addMountedUnit(): void {
+    const coats = [0x5a3a24, 0x2a1d16];
+    const navy = this.material({ color: 0x1c2333, roughness: 0.85 });
+    const vest = this.material({ color: 0xd7f23a, roughness: 0.6, emissive: 0x3a4a00 });
+    const helmet = this.material({ color: 0xf2f2f0, roughness: 0.35 });
+    const tack = this.material({ color: 0x1a1410, roughness: 0.6 });
+    const hoof = this.material({ color: 0x141414, roughness: 0.8 });
+    const saddlecloth = this.material({ color: 0x1b3f8a, roughness: 0.8 });
+    const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
+    for (let k = 0; k < 2; k++) {
+      const coat = this.material({ color: coats[k], roughness: 0.55 });
+      const horse = new Group();
+      const parts: BufferGeometry[] = [];
+      // Barrel, chest and hindquarters.
+      parts.push(ellipsoid(0.5, 0.8, 1, 1.75, 0, 1.45, 0, 14));
+      parts.push(ellipsoid(0.42, 0.9, 1, 0.9, 0, 1.5, -0.75, 12));
+      parts.push(ellipsoid(0.46, 1, 1, 1, 0, 1.52, 0.7, 12));
+      // The neck rising forward, the head and muzzle, the ears.
+      parts.push(...limb(v(0, 1.75, -0.8), v(0, 2.35, -1.25), 0.24, 0.16, 10));
+      parts.push(...limb(v(0, 2.38, -1.27), v(0, 2.05, -1.72), 0.13, 0.09, 10));
+      for (const x of [-0.07, 0.07])
+        parts.push(...limb(v(x, 2.45, -1.25), v(x, 2.62, -1.2), 0.03, 0.01, 5));
+      // Four legs with knees and the tail.
+      for (const [x, z] of [
+        [-0.2, -0.75],
+        [0.2, -0.75],
+        [-0.2, 0.75],
+        [0.2, 0.75],
+      ] as const) {
+        parts.push(...limb(v(x, 1.2, z), v(x, 0.62, z + 0.03), 0.1, 0.07, 8));
+        parts.push(...limb(v(x, 0.62, z + 0.03), v(x, 0.1, z), 0.06, 0.05, 8));
+      }
+      const body = mergeGeometries(parts.map((g) => (g.index ? g.toNonIndexed() : g)))!;
+      parts.forEach((g) => g.dispose());
+      const hooves = mergeGeometries(
+        [
+          [-0.2, -0.75],
+          [0.2, -0.75],
+          [-0.2, 0.75],
+          [0.2, 0.75],
+        ].map(([x, z]) =>
+          new CylinderGeometry(0.07, 0.08, 0.1, 8).translate(x!, 0.05, z!).toNonIndexed(),
+        ),
+      )!;
+      const tail = new Group();
+      const strands = merge([...limb(v(0, 0, 0), v(0, -0.75, 0.15), 0.07, 0.04, 6)]);
+      tail.add(new Mesh(strands, tack));
+      tail.position.set(0, 1.65, 1.2);
+      const cloth = new BoxGeometry(0.85, 0.5, 0.9);
+      cloth.translate(0, 1.72, -0.05);
+      const reins = new TorusGeometry(0.3, 0.015, 4, 12, Math.PI);
+      reins.rotateY(Math.PI / 2);
+      reins.translate(0, 2.0, -1.0);
+      this.disposables.push(body, hooves, strands, cloth, reins);
+      horse.add(new Mesh(body, coat), new Mesh(hooves, hoof), new Mesh(cloth, saddlecloth));
+      horse.add(new Mesh(reins, tack), tail);
+      // The officer in the saddle, legs either side, in navy and hi-vis, a white helmet.
+      const rider = spectatorParts(0, false, true);
+      this.disposables.push(rider.skin, rider.top, rider.bottom);
+      const officer = new Group();
+      const skin = this.material({ color: SKINS[(k * 3) % SKINS.length], roughness: 0.6 });
+      officer.add(
+        new Mesh(rider.skin, skin),
+        new Mesh(rider.top, vest),
+        new Mesh(rider.bottom, navy),
+      );
+      const hat = ellipsoid(0.13, 1, 0.85, 1.15, 0, 1.25, 0.0, 12);
+      this.disposables.push(hat);
+      officer.add(new Mesh(hat, helmet));
+      officer.position.set(0, 1.5, 0.05);
+      horse.add(officer);
+      horse.traverse((o) => (o.castShadow = true));
+      // Side on to the road, heads towards the oncoming bands and riders.
+      horse.rotation.y = Math.PI - 0.5;
+      this.group.add(horse);
+      this.mounted.push({ horse, tail, phase: k * 2.3 });
+      this.props.push({
+        mesh: horse,
+        offset: BEHIND + 2 + k * 3.4,
+        every: LOOP,
+        x: BARRIER - 1.0 - k * 0.2,
+        road: true,
       });
     }
   }
