@@ -1448,7 +1448,13 @@ export class HavanaStreet implements SceneStreet {
     const chrome = this.material({ color: 0xe8ecf0, roughness: 0.15, metalness: 1 });
     const tyre = this.material({ color: 0x1b1b1f, roughness: 0.8 });
     const whitewall = this.material({ color: 0xf2f0ea, roughness: 0.6 });
-    const glass = this.material({ color: 0x1e2a32, roughness: 0.05, metalness: 0.6 });
+    const glass = this.material({
+      color: 0x1e2a32,
+      roughness: 0.05,
+      metalness: 0.6,
+      transparent: true,
+      opacity: 0.9,
+    });
     const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.4 });
     const tail = this.material({ color: 0xc8102e, emissive: 0x800010, emissiveIntensity: 0.5 });
     const body = profile(
@@ -1517,8 +1523,17 @@ export class HavanaStreet implements SceneStreet {
         z: number,
       ) => put(this.unit, m, x, y, z).scale.set(sx, sy, sz);
       put(body, paint);
-      put(cabin, top);
       put(windows, glass);
+      // The glasshouse is open under its roof, on slanted pillars, so the people inside show.
+      box(top, 1.56, 0.06, 1.5, 0, 1.45, -0.2);
+      for (const x of [-0.75, 0.75]) {
+        const a = put(this.unit, top, x, 1.18, -1.185);
+        a.scale.set(0.07, 0.73, 0.07);
+        a.rotation.x = 0.7;
+        const c = put(this.unit, top, x, 1.19, 0.85);
+        c.scale.set(0.09, 0.83, 0.12);
+        c.rotation.x = -0.8;
+      }
       // Chrome: the bumpers, the grille, the side strip; the lamps at each end.
       box(chrome, 2.0, 0.2, 0.16, 0, 0.42, -2.86);
       box(chrome, 2.0, 0.2, 0.16, 0, 0.42, 2.86);
@@ -1537,8 +1552,10 @@ export class HavanaStreet implements SceneStreet {
       }
       return car;
     };
+    const crew = seeded(1619);
     CARS.forEach(([colour, roof], k) => {
       const car = build(colour, roof);
+      this.occupy(car, crew, 0.0, 0.6, 0.42);
       // Oncoming down the far carriageway, in its two lanes.
       car.rotation.y = Math.PI;
       car.position.x = -roadHalf - (k % 2 ? 1.9 : 5.2);
@@ -2019,7 +2036,13 @@ export class HavanaStreet implements SceneStreet {
     const hub = new CylinderGeometry(0.14, 0.14, 0.22, 10);
     hub.rotateZ(Math.PI / 2);
     this.disposables.push(body, cabin, glass, wheel, hub);
-    const window = this.material({ color: 0x1e2a32, roughness: 0.1, metalness: 0.5 });
+    const window = this.material({
+      color: 0x1e2a32,
+      roughness: 0.1,
+      metalness: 0.5,
+      transparent: true,
+      opacity: 0.9,
+    });
     const rubber = this.material({ color: 0x1a1a1a, roughness: 0.8 });
     const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.3 });
     const tail = this.material({ color: 0xb01020, emissive: 0x600010, emissiveIntensity: 0.4 });
@@ -2039,7 +2062,6 @@ export class HavanaStreet implements SceneStreet {
         return mesh;
       };
       put(body, paint);
-      put(cabin, paint);
       put(glass, window);
       const box = (
         m: MeshStandardMaterial,
@@ -2050,6 +2072,15 @@ export class HavanaStreet implements SceneStreet {
         y: number,
         z: number,
       ) => put(this.unit, m, x, y, z).scale.set(sx, sy, sz);
+      box(paint, 1.5, 0.05, 1.52, 0, 1.28, 0.03);
+      for (const x of [-0.72, 0.72]) {
+        const a = put(this.unit, paint, x, 1.03, -0.935);
+        a.scale.set(0.06, 0.69, 0.06);
+        a.rotation.x = 0.67;
+        const c = put(this.unit, paint, x, 1.03, 1.0);
+        c.scale.set(0.08, 0.7, 0.1);
+        c.rotation.x = -0.68;
+      }
       box(rubber, 1.66, 0.12, 0.1, 0, 0.36, -2.1);
       box(rubber, 1.66, 0.12, 0.1, 0, 0.36, 2.08);
       box(chrome, 0.9, 0.16, 0.04, 0, 0.58, -2.1);
@@ -2067,6 +2098,7 @@ export class HavanaStreet implements SceneStreet {
     };
     for (let k = 0; k < 4; k++) {
       const car = build();
+      this.occupy(car, random, 0.05, 0.5, 0.38);
       car.rotation.y = Math.PI;
       car.position.x = -roadHalf - (k % 2 ? 5.2 : 1.9);
       this.group.add(car);
@@ -4022,6 +4054,53 @@ export class HavanaStreet implements SceneStreet {
       });
     }
   }
+
+  /**
+   * The people in a car: the driver at the wheel on the left, sometimes a passenger beside, and
+   * now and then someone in the back, a torso and head seen through the glass. `front` is the
+   * car's local z at the front seats, `seat` the height of their hips.
+   */
+  private occupy(
+    car: Group,
+    random: () => number,
+    front: number,
+    seat: number,
+    width: number,
+  ): void {
+    if (!this.riders) {
+      const torso = new CapsuleGeometry(0.17, 0.3, 3, 8);
+      const head = new SphereGeometry(0.11, 10, 8);
+      this.disposables.push(torso, head);
+      this.riders = {
+        torso,
+        head,
+        shirts: [0xf2efe6, 0xe63946, 0x3a86ff, 0x2a9d8f, 0xffd166, 0x1a1a1a].map((c) =>
+          this.material({ color: c, roughness: 0.85 }),
+        ),
+        skins: [0x8d5a3b, 0x6b4128, 0xc68b5e, 0x4a2c1c].map((c) =>
+          this.material({ color: c, roughness: 0.8 }),
+        ),
+      };
+    }
+    const { torso, head, shirts, skins } = this.riders;
+    const seats: [number, number][] = [[-width, front]];
+    if (random() < 0.55) seats.push([width, front]);
+    if (random() < 0.3) seats.push([width * (random() < 0.5 ? -1 : 1), front + 0.95]);
+    for (const [x, z] of seats) {
+      const body = new Mesh(torso, shirts[Math.floor(random() * shirts.length)]!);
+      body.position.set(x, seat + 0.3, z);
+      const face = new Mesh(head, skins[Math.floor(random() * skins.length)]!);
+      face.position.set(x, seat + 0.68, z - 0.02);
+      car.add(body, face);
+    }
+  }
+
+  private riders?: {
+    torso: CapsuleGeometry;
+    head: SphereGeometry;
+    shirts: MeshStandardMaterial[];
+    skins: MeshStandardMaterial[];
+  };
 
   private material(options: ConstructorParameters<typeof MeshStandardMaterial>[0]) {
     const material = new MeshStandardMaterial(options);
