@@ -1746,6 +1746,7 @@ export class HavanaStreet implements SceneStreet {
     this.addSidecars(roadHalf, tyre, chrome);
     this.addMotorinas(roadHalf, tyre, chrome);
     this.addCyclists(roadHalf, tyre, chrome);
+    this.addLadas(roadHalf, tyre, chrome);
     this.addCarriage(roadHalf);
   }
 
@@ -1966,6 +1967,121 @@ export class HavanaStreet implements SceneStreet {
         offset: 45 + k * 120 + random() * 10,
         speed: -(9 + random() * 3),
       });
+    }
+  }
+
+  /**
+   * Ladas, the boxy Soviet sedans as common in Havana as the American classics: a squared-off
+   * three-box body in faded white, beige, sky blue, red or green, a flat glasshouse, a thin
+   * chrome grille between square-ish lamps, small black bumpers' rubbing strips; some oncoming,
+   * some parked at the inland kerb.
+   */
+  private addLadas(
+    roadHalf: number,
+    tyre: MeshStandardMaterial,
+    chrome: MeshStandardMaterial,
+  ): void {
+    const random = seeded(1613);
+    const body = profile(
+      [
+        [-2.05, 0.3],
+        [-2.08, 0.72],
+        [-1.15, 0.78],
+        [1.25, 0.78],
+        [2.0, 0.76],
+        [2.04, 0.32],
+      ],
+      1.62,
+      0.04,
+    );
+    const cabin = profile(
+      [
+        [-1.15, 0.76],
+        [-0.72, 1.3],
+        [0.78, 1.3],
+        [1.22, 0.76],
+      ],
+      1.5,
+      0.03,
+    );
+    const glass = profile(
+      [
+        [-1.2, 0.8],
+        [-0.76, 1.26],
+        [0.82, 1.26],
+        [1.27, 0.8],
+      ],
+      1.54,
+      0,
+    );
+    const wheel = new CylinderGeometry(0.3, 0.3, 0.2, 14);
+    wheel.rotateZ(Math.PI / 2);
+    const hub = new CylinderGeometry(0.14, 0.14, 0.22, 10);
+    hub.rotateZ(Math.PI / 2);
+    this.disposables.push(body, cabin, glass, wheel, hub);
+    const window = this.material({ color: 0x1e2a32, roughness: 0.1, metalness: 0.5 });
+    const rubber = this.material({ color: 0x1a1a1a, roughness: 0.8 });
+    const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.3 });
+    const tail = this.material({ color: 0xb01020, emissive: 0x600010, emissiveIntensity: 0.4 });
+    const paints = [0xe8e4d8, 0xd8c8a0, 0x8ab0c8, 0xa83228, 0x5a7a5a, 0xc8c0b0, 0x3a5a8a];
+    const build = () => {
+      const car = new Group();
+      const paint = this.material({
+        color: paints[Math.floor(random() * paints.length)]!,
+        roughness: 0.55,
+        metalness: 0.15,
+      });
+      const put = (g: BufferGeometry, m: MeshStandardMaterial, x = 0, y = 0, z = 0) => {
+        const mesh = new Mesh(g, m);
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        car.add(mesh);
+        return mesh;
+      };
+      put(body, paint);
+      put(cabin, paint);
+      put(glass, window);
+      const box = (
+        m: MeshStandardMaterial,
+        sx: number,
+        sy: number,
+        sz: number,
+        x: number,
+        y: number,
+        z: number,
+      ) => put(this.unit, m, x, y, z).scale.set(sx, sy, sz);
+      box(rubber, 1.66, 0.12, 0.1, 0, 0.36, -2.1);
+      box(rubber, 1.66, 0.12, 0.1, 0, 0.36, 2.08);
+      box(chrome, 0.9, 0.16, 0.04, 0, 0.58, -2.1);
+      for (const x of [-0.58, 0.58]) {
+        box(lamp, 0.26, 0.16, 0.04, x, 0.58, -2.1);
+        box(tail, 0.3, 0.14, 0.04, x, 0.6, 2.06);
+      }
+      for (const x of [-0.78, 0.78]) {
+        for (const z of [-1.25, 1.2]) {
+          put(wheel, tyre, x, 0.3, z);
+          put(hub, chrome, x, 0.3, z);
+        }
+      }
+      return car;
+    };
+    for (let k = 0; k < 4; k++) {
+      const car = build();
+      car.rotation.y = Math.PI;
+      car.position.x = -roadHalf - (k % 2 ? 5.2 : 1.9);
+      this.group.add(car);
+      this.cars.push({
+        mesh: car,
+        offset: 22 + k * 88 + random() * 20,
+        speed: -(8 + random() * 3),
+      });
+    }
+    for (const offset of [56, 132, 215, 290]) {
+      const car = build();
+      const holder = new Group();
+      holder.add(car);
+      this.group.add(holder);
+      this.props.push({ mesh: holder, offset: offset + random() * 8, x: roadHalf - 1.0 });
     }
   }
 
