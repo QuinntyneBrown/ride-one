@@ -40,6 +40,7 @@ export { MapsAside } from './map-select/maps-aside';
 export { ModeOptions, type ModeOption } from './race-setup/mode-options';
 export { PackStrength } from './race-setup/pack-strength';
 export { RaceBar } from './race/race-bar';
+export { RaceInterval } from './race/race-interval';
 export { SetupFacts } from './race-setup/setup-facts';
 export { SetupGoal } from './race-setup/setup-goal';
 export { SetupHeader } from './race-setup/setup-header';

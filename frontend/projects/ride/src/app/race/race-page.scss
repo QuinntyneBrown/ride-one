@@ -24,6 +24,26 @@
   );
 }
 
+// The HUD along the bottom: interval, route and resistance (three columns from lg).
+.race-hud {
+  position: absolute;
+  z-index: var(--z-hud);
+  inset: auto var(--space-3) var(--space-4);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+
+  @media (min-width: 40rem) {
+    inset: auto var(--space-5) var(--space-6);
+  }
+
+  @media (min-width: 64rem) {
+    grid-template-columns:
+      var(--race-hud-interval-width) minmax(0, 1fr)
+      var(--race-hud-resistance-width);
+  }
+}
+
 // The photo spans the camera's horizon, as the mock frames the world: 21:9 here, so it fills the width.
 .race-scene__photo {
   position: absolute;

@@ -97,7 +97,7 @@ follows the plan too, so the climbs fall on the efforts.
 - **`RaceBoard`** (`components`, block `race-board`) — "Standings · 10 riders" or, solo, "You
   vs your best" with two rows. Each row has a jersey dot, name, bot icon and gap; the rider's
   row has `aria-current="true"`. Rows slide over 150 ms, not under reduced motion.
-- **`RaceInterval`** (`components`, block `race-interval`) — "Work", "1 of 8", "0:29"
+- **`RaceInterval`** (`components`, block `race-interval`) — "Work", "1 of 8", "0:29"; the round shows for an effort only, and the timer's name says the segment ("2 minutes 59 seconds left in this recovery")
   (`aria-label="29 seconds left in this effort"`), a bar that fills smoothly over the segment,
   and "Next: Recover · 3:00 at level 6".
 - **`RaceRoute`** (`components`, block `race-route`) — "+0.5 %", "10 m climbed", "1.62 km" and

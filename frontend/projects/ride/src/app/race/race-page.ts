@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RaceBar } from '@telo/components';
+import { RaceBar, RaceInterval } from '@telo/components';
 import {
   BikeTelemetry,
   ResistanceController,
@@ -15,7 +15,7 @@ import { RaceStore } from './race-store';
  */
 @Component({
   selector: 'wz-race-page',
-  imports: [RaceBar],
+  imports: [RaceBar, RaceInterval],
   templateUrl: './race-page.html',
   styleUrl: './race-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -13,5 +13,15 @@
       [elapsed]="store.elapsed()"
       [total]="store.total()"
     />
+    <section class="race-hud" aria-label="Interval, route and resistance">
+      @if (store.plan(); as plan) {
+        <wz-race-interval
+          [segments]="map.plan.segments"
+          [index]="plan.index"
+          [remaining]="plan.remainingMs / 1000"
+          [progress]="plan.progress"
+        />
+      }
+    </section>
   }
 </main>
