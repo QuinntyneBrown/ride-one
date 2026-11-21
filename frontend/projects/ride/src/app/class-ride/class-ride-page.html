@@ -1,0 +1,44 @@
+<div class="class-ride">
+  @if (store.ride(); as ride) {
+    <wz-class-header
+      [title]="ride.title"
+      mode="Solo"
+      [elapsed]="store.elapsed()"
+      [total]="ride.lengthSeconds"
+    />
+    <main id="main" class="class-ride__body" tabindex="-1">
+      <h1 class="visually-hidden">{{ ride.title }} · solo class ride</h1>
+      <div class="class-ride__stage">
+        @if (store.plan(); as plan) {
+          <wz-class-bike>
+            <wz-class-segment
+              [segments]="ride.plan.segments"
+              [index]="plan.index"
+              [remaining]="plan.remainingMs / 1000"
+              [progress]="plan.progress"
+            />
+            <wz-class-stat
+              label="Power"
+              unit="W"
+              [value]="store.power().value"
+              [hint]="store.power().hint"
+              [tone]="store.power().tone"
+            />
+            <wz-class-stat
+              label="Cadence"
+              unit="rpm"
+              [value]="store.cadence().value"
+              [hint]="store.cadence().hint"
+            />
+            <wz-class-resist
+              [level]="store.level()"
+              [disabled]="!store.canControl()"
+              (lower)="store.lower()"
+              (raise)="store.raise()"
+            />
+          </wz-class-bike>
+        }
+      </div>
+    </main>
+  }
+</div>

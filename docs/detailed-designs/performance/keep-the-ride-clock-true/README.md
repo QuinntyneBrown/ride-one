@@ -70,8 +70,9 @@ dependency rules allow either.
 
 Slice 5.1 builds `MonotonicTime`, `RideClock`, `RideTicker`, `planStateAt` and `WorkoutEngine`,
 proved by unit tests with fake timers and end to end on the simulated bike. The class ride
-screen (slice 5.2) binds `MONOTONIC_TIME` and brings `RideSessionStore`, `ScreenWakeLock` and
-`LeaveRideGuard` (`L2-133` AC3, AC4) with the Playwright proof. Distance is counted once per
+screen (slice 5.2) binds `MONOTONIC_TIME` and runs them with the Playwright proof;
+`ScreenWakeLock` and `LeaveRideGuard` (`L2-133` AC3, AC4) come with pausing, leaving and
+finishing a class (slice 5.4), and `RideSessionStore` gathers them then. Distance is counted once per
 running second by `RideTotals` (slice 3.2, `L2-022`); the screen that runs it counts every
 second the ticker publishes, so a late tick misses none. `ReadoutSampler` and `BoardOrder` come
 with the screens that show readouts and boards.

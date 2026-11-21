@@ -38,12 +38,17 @@ service sends as a server time (`L2-121` AC3). The output board of a group ride 
 - **`ClassRideStore`** — signal store. It holds the class, the mode (solo or group), the
   session start (from `LiveSessionStore`), the current segment view, the power and cadence readouts with their targets,
   and the video state (`ready`, `unavailable`). It exposes the actions the header and the
-  stepper raise.
+  stepper raise. It loads the class with `CLASSES_API.get(id)` (`GET /api/classes/{id}`, ADR
+  0014), bound with `HttpClient` on the class ride route, and starts the ride once it has it.
+  The route also binds `MONOTONIC_TIME` to `performance.now()` and reconnects a remembered bike
+  as Home does; a rider with none goes to Connect Bike.
 - In a production build the header has no "Finish" shortcut (`L2-087` AC3). The shortcut exists
   only behind a development build flag replaced at compile time, so its code is not in the
   production bundle.
 
 **Frontend — `components` library**
+
+The header's lockup is the small one (`size="sm"`), whose wordmark hides below 384 px.
 
 - **`ClassHeader`** (`wz-class-header`) — "{class} · Group · 9 riders" or "{class} · Solo", the
   clock (`role="timer"`, "7:00 / 30:00"), Leave (`aria-label="Leave class"`), Pause in solo, and
@@ -55,7 +60,12 @@ service sends as a server time (`L2-121` AC3). The output board of a group ride 
   **`ClassSegment`** (kind, time left with `aria-label="Recover: 1:30 left"`, progress bar, plan
   profile), two **`ClassStat`**s (Power "108 W" with "On target" or the delta; Cadence "73 rpm"
   with "Aim 72") and **`ClassResist`** (stepper "6 / of 32", 48 px − and + buttons,
-  `aria-label` "Resistance 6 of 32").
+  `aria-label` "Resistance 6 of 32"). The stepper shows the bike's reported resistance, or a
+  dash before any (`L2-026`); its buttons raise `ResistanceController.nudge` and are disabled
+  while it cannot control the bike. Power is "On target" within 10 % of the segment's target
+  power, otherwise the signed delta ("+12 W", "-47 W") styled over or under (`L2-059` AC2). Before
+  the bike reports power, Power reads a dash with the target ("Target 107 W"); the countdown
+  rounds the time left up, so it agrees with the clock after a late tick.
 
 **Frontend — `domain`, `api` and `video` libraries**
 
@@ -67,7 +77,7 @@ service sends as a server time (`L2-121` AC3). The output board of a group ride 
   asks `ResistanceController` to send the segment level within 500 ms (`L2-027`). A paused clock
   changes no segment and sends nothing. Slice 5.1 builds it with `RideClock` and `RideTicker`
   (*keep the ride clock true*); `startAt` for a group start comes with the group class.
-- **`PowerModel`** (`domain/engine`) — `targetPower(level, cadenceAim)` and
+- **`PowerModel`** (`domain/engine`) — `target(cadenceAim, level)` and
   `onTarget(power, target)` (within 10 %), shared with the race HUD (`L2-059` AC2).
 - **`ResistanceController`** (`domain/engine`) — owned by the bike subsystem's *control
   resistance* feature. It sends target resistance through `BIKE_CONNECTION` and handles the
@@ -81,7 +91,15 @@ service sends as a server time (`L2-121` AC3). The output board of a group ride 
 - **`BikeConnection`** / `BIKE_CONNECTION` — live telemetry (power, cadence, resistance) and the
   `ble` state, owned by the bike subsystem.
 
-**Backend.** A solo class ride makes no backend request until it ends. A group ride receives
+**Slices.** Slice 5.1 built the engine and the clock. Slice 5.2 builds the solo route, the
+store, the header's lockup, name and clock, and the bike panel, proved by Playwright on the fake
+Bluetooth with a fake clock; the backend's `GET /api/classes/{id}` comes with the catalogue API
+(6.1). The video is 5.3; Pause, Leave, the wake lock and the leave guard are 5.4; Full screen
+is journey 24; the group header and board come with the group class. A class that cannot load
+is a mock gap, for the class start (6.3).
+
+**Backend.** A solo class ride makes no backend request until it loads its class, and none
+again until it ends. A group ride receives
 `SessionStarted` from `RideHub`, sent by the multiplayer subsystem's `SessionTicker`.
 
 ## Requirements

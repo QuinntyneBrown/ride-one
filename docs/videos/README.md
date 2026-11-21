@@ -24,6 +24,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 4.1 | [Send target resistance](04-1-send-target-resistance/README.md) | 2:25 | The B1 frame; targets clamped to 1 to 32; the acknowledgement timed; the simulated bike reporting the target back; target and resistance kept apart; a level asked for during a drop sent first; an FTMS refusal; Home from 390 to 1440 px; eleven new unit tests |
 | 4.2 | [Take over resistance](04-2-take-over-resistance/README.md) | 2:25 | Raise and lower one level, clamped; a nudge from the bike's resistance; a picked level; the plan again at the next segment; nothing by hand with the bike away; the last command's source; Home from 390 to 1440 px; seven new unit tests |
 | 5.1 | [Workout engine and ride clock](05-1-workout-engine-and-ride-clock/README.md) | 2:25 | The monotonic ride clock; one tick a second; the plan's segments and state; each level sent at its boundary; nothing while paused; a hidden tab caught up; Home from 390 to 1440 px; twenty-four new unit tests |
+| 5.2 | [Class ride screen](05-2-class-ride-screen/README.md) | 2:25 | The class ride at 7:00; the header and its clock; the segment card at 0:00 and 7:00; Power on and under target, Cadence; the stepper before and after the bike reports; the B1 writes; the class request; the bundle budget; 390 to 1440 px; four new specs |
 
 ## Wattzup films
 

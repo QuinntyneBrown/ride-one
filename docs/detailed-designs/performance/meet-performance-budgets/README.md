@@ -32,6 +32,11 @@ frame budget is held and measured.
   300 KB gzipped is `<TO SUPPLY>` until the first production build measures the ratio. The
   script `tools/verify/bundle-size.mjs` gzips the initial chunks listed in the build's
   `stats.json` and fails above 300 KB. `node tools/verify/verify.mjs` and CI run it.
+  The raw `initial` budget warns at 288 kB and fails at 300 kB since slice 5.2: the first use of
+  `HttpClient` (the class catalogue client, bound on the lazy class ride route) adds about
+  20.7 kB raw, 5.3 kB transferred, to `main` wherever it is provided, because
+  `@angular/platform-browser` and `@angular/router` import `@angular/common/http`, so esbuild
+  places that module in the initial chunk. Every backend client needs it.
 - **`FrameBudgetMonitor`** — class in the world library. It keeps a fixed-size ring buffer of the
   last 120 frame times from `requestAnimationFrame` timestamps and reports the moving average and
   the time spent below 30 frames a second.
