@@ -297,7 +297,8 @@
         "default",
         "solo",
         "paused",
-        "disconnected"
+        "disconnected",
+        "video-unavailable"
       ],
       "not_applicable": {
         "empty": "A class ride always has its video and plan; a ride alone shows no rider board (‘solo’).",

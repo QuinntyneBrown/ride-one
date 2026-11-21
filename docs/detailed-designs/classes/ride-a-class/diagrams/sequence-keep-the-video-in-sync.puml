@@ -44,6 +44,6 @@ alt player reports error or is blocked
   yt --> player : onError
   player --> store : state = error
   store -> store : Video unavailable; clock and plan carry on L2-088 AC4
-  store --> view : Show "video unavailable" notice (mock gap)
+  store --> view : Show the notice "The video can't play. The bike will still follow the class."
 end
 @enduml
