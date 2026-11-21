@@ -5,6 +5,7 @@ import {
   BIKE_CONNECTION,
   CLASSES_API,
   type ClassDto,
+  SCREEN_WAKE_LOCK,
   TICKER,
   VIDEO_PLAYER_FACTORY,
   type VideoPlayer,
@@ -53,6 +54,7 @@ export class ClassRideStore {
   private readonly connection = inject(BIKE_CONNECTION);
   private readonly beat = inject(TICKER);
   private readonly router = inject(Router);
+  private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
 
@@ -111,6 +113,8 @@ export class ClassRideStore {
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.player()?.destroy();
+      // The lock is bound on the route, whose injector outlives the page.
+      this.wakeLock.release();
     });
   }
 
@@ -163,6 +167,7 @@ export class ClassRideStore {
 
   private start(dto: ClassDto): void {
     this.loaded.set(dto);
+    this.wakeLock.hold();
     this.clock.start();
     this.ticker.start();
     this.engine.follow(dto.plan);
@@ -197,6 +202,7 @@ export class ClassRideStore {
     this.clock.pause();
     this.ticker.stop();
     this.player()?.pause();
+    this.wakeLock.release();
     void this.router.navigateByUrl('/results');
   }
 

@@ -30,3 +30,4 @@ export {
   type VideoPlayerFactory,
 } from './video/video-player';
 export type { Plan, Segment, SegmentKind } from './workout/plan';
+export { SCREEN_WAKE_LOCK, type ScreenWakeLock } from './screen/screen-wake-lock';

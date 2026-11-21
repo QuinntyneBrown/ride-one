@@ -1,5 +1,6 @@
 // Acceptance test
-// Traces to: L2-091 AC1, AC2; L2-088 AC3; L2-092 AC4; L2-017 AC4; L2-093 AC1, AC2
+// Traces to: L2-091 AC1, AC2; L2-088 AC3; L2-092 AC4; L2-017 AC4;
+// L2-093 AC1, AC2; L2-133 AC3
 // Description: a solo class ride paused and resumed: the clock, the plan and the video hold together, the video shows
 // "Paused", and the ride picks up where it left off. The ride starts on Playwright's paused clock (startClassRide), and
 // the shared fixture's fake YouTube player runs on the same clock.
@@ -156,5 +157,31 @@ test.describe('Pause, leave or finish a class', () => {
       await expect(notFound.heading).toHaveText('This page doesn’t exist.', { timeout: 50 });
     }).toPass();
     expect((await youtube.players())[0].destroyed).toBe(true);
+  });
+
+  test('the screen stays awake through the ride, is kept awake again when the tab comes back, and is let go on leaving (L2-133 AC3)', async ({
+    page,
+    bluetooth,
+    api,
+    wakeLock,
+  }) => {
+    const ride = await startClassRide(page, bluetooth, api);
+    await expect.poll(() => wakeLock.locks()).toEqual([{ type: 'screen', released: false }]);
+
+    await wakeLock.hide();
+    await page.clock.runFor(60_000);
+    await wakeLock.show();
+    await expect
+      .poll(() => wakeLock.locks())
+      .toEqual([
+        { type: 'screen', released: true },
+        { type: 'screen', released: false },
+      ]);
+
+    await ride.leave.click();
+    await page.clock.runFor(100);
+    await expect
+      .poll(async () => (await wakeLock.locks()).map((lock) => lock.released))
+      .toEqual([true, true]);
   });
 });

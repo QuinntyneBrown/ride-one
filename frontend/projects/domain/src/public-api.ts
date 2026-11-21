@@ -35,3 +35,4 @@ export {
   type WorkoutData,
   toHex,
 } from './protocol/echelon-protocol';
+export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
