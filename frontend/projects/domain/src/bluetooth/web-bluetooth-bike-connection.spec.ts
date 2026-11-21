@@ -1,5 +1,5 @@
 // Unit test
-// Traces to: L2-016 AC3; L2-017 AC1, AC3 to AC5
+// Traces to: L2-016 AC3; L2-017 AC1, AC3 to AC5; L2-027 AC4
 // Description: after a drop the connection tries the same device again on its own, sends the last target resistance
 // before anything else once it is back, lets Reconnect try at once, and writes every Web Bluetooth error to the
 // console as name: message. A fake device stands in for navigator.bluetooth; Vitest's fake clock moves time.
@@ -119,6 +119,18 @@ describe('WebBluetoothBikeConnection', () => {
     await initialiseAndStream();
 
     expect(bike.writes).toEqual([...INIT, toHex(EchelonProtocol.setResistance(12))]);
+  });
+
+  it('sends a level asked for while the bike was away first once it is back (L2-027 AC4)', async () => {
+    await connection.setResistance(12);
+    bike.drop();
+    await expect(connection.setResistance(18)).rejects.toMatchObject({ code: 'failed' });
+    bike.writes.length = 0;
+
+    await vi.advanceTimersByTimeAsync(RETRY_MS);
+    await initialiseAndStream();
+
+    expect(bike.writes).toEqual([...INIT, toHex(EchelonProtocol.setResistance(18))]);
   });
 
   it('tries at once on Reconnect instead of waiting for the next retry (AC3)', async () => {
