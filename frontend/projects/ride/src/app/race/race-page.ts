@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
+  Button,
   RaceBar,
   RaceBarButton,
   RaceBoard,
   RaceInterval,
+  RaceLost,
   RacePaused,
   RacePower,
   RaceResist,
@@ -26,10 +28,12 @@ import { RaceStore } from './race-store';
 @Component({
   selector: 'wz-race-page',
   imports: [
+    Button,
     RaceBar,
     RaceBarButton,
     RaceBoard,
     RaceInterval,
+    RaceLost,
     RacePaused,
     RacePower,
     RaceResist,

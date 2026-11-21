@@ -41,6 +41,7 @@ export { ModeOptions, type ModeOption } from './race-setup/mode-options';
 export { PackStrength } from './race-setup/pack-strength';
 export { RaceBar } from './race/race-bar';
 export { RaceBarButton } from './race/race-bar-button';
+export { RaceLost } from './race/race-lost';
 export { RacePaused } from './race/race-paused';
 export { RaceInterval } from './race/race-interval';
 export { RaceBoard, type RaceBoardRow } from './race/race-board';

@@ -14,6 +14,7 @@
       [total]="store.total()"
       [solo]="store.mode === 'solo'"
       [paused]="store.paused()"
+      [pauseDisabled]="store.bikeLost()"
       (pauseRace)="store.pause()"
       (resumeRace)="store.resume()"
     >
@@ -68,6 +69,25 @@
     </section>
     @if (store.paused()) {
       <wz-race-paused [route]="map.routeName ?? map.name" />
+    }
+    @if (store.lostAlert(); as alert) {
+      <wz-race-lost [heading]="alert.heading" [body]="alert.body">
+        @if (alert.dnf) {
+          <a wz-button variant="primary" slot="action" [routerLink]="store.setup"
+            >Back to Race Setup</a
+          >
+        } @else {
+          <button
+            wz-button
+            variant="primary"
+            slot="action"
+            type="button"
+            (click)="store.reconnect()"
+          >
+            Reconnect
+          </button>
+        }
+      </wz-race-lost>
     }
   }
 </main>
