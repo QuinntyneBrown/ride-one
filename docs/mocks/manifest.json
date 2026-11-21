@@ -22,6 +22,48 @@
   },
   "screens": [
     {
+      "id": "sign-in",
+      "kind": "page",
+      "title": "Sign in",
+      "route": "/sign-in",
+      "requirements": [
+        "L2-001",
+        "L2-003"
+      ],
+      "states": [
+        "default",
+        "sending",
+        "invalid",
+        "failed",
+        "rate-limited"
+      ],
+      "not_applicable": {
+        "empty": "One email field; there is nothing to list.",
+        "loading": "‘sending’ is the busy state: the screen itself loads nothing.",
+        "error": "The failures are their own states: invalid, failed and rate-limited."
+      }
+    },
+    {
+      "id": "sign-in-code",
+      "kind": "page",
+      "title": "Sign-in code",
+      "route": "/sign-in/code",
+      "requirements": [
+        "L2-002",
+        "L2-003"
+      ],
+      "states": [
+        "default",
+        "ready",
+        "resent"
+      ],
+      "not_applicable": {
+        "empty": "The screen always names the email the code went to.",
+        "loading": "The screen loads nothing; it waits for the rider’s six digits.",
+        "error": "The code’s refusals (mismatch, expired, locked) are drawn with slice 9.2, which confirms the code."
+      }
+    },
+    {
       "id": "connect-bike",
       "kind": "page",
       "title": "Connect Bike",

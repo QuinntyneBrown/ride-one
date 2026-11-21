@@ -15,6 +15,12 @@ Secrets go in the host's secret store, never in `appsettings.json` or the reposi
 | `OTEL_EXPORTER_OTLP_HEADERS` | No | `api-key=<secret>` | Headers the collector needs, such as its key. A secret. |
 | `OTEL_SERVICE_NAME` | No | `telo-ride-api` | The service name on every span and metric; `telo-ride-api` when absent. |
 | `ASPNETCORE_ENVIRONMENT` | Yes | `Production` | Anything but `Development` keeps the developer exception page off, so no error carries a stack trace. |
+| `Auth:CodeHashKey` | Yes | `<32 or more random characters>` | The key of the HMAC that sign-in codes and client network addresses are stored under (L2-132). A secret; changing it makes every code already sent stop working. |
+| `Email:From` | Yes | `Telo Ride <no-reply@ride.example>` | The sender of sign-in code emails (ADR 0031). |
+| `Email:Smtp:Host` | Yes | `smtp.azurecomm.net` | The SMTP relay that delivers them. |
+| `Email:Smtp:Port` | No | `587` | Its port; 587 when absent. TLS is used whenever the relay offers it. |
+| `Email:Smtp:Username` | No | `<relay user>` | The relay's user, when it asks for one. |
+| `Email:Smtp:Password` | No | `<relay password>` | Its password. A secret. |
 
 ## Host
 
