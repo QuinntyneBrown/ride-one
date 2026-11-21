@@ -1135,6 +1135,20 @@ export class CaribanaStreet implements SceneStreet {
       [CURB, ASPHALT],
       [-CURB, ASPHALT],
     ]);
+    // Drifts of confetti swept against both gutters, thick at the kerb and thinning out.
+    const drifts = this.material({
+      map: this.repeat(driftTexture(), 1.1, 6),
+      alphaTest: 0.5,
+      roughness: 0.6,
+    });
+    this.ribbons.add(points, drifts, [
+      [CURB - 0.02, ASPHALT + 0.004],
+      [CURB - 1.12, ASPHALT + 0.004],
+    ]);
+    this.ribbons.add(points, drifts, [
+      [-CURB + 1.12, ASPHALT + 0.004],
+      [-CURB + 0.02, ASPHALT + 0.004],
+    ]);
     this.ribbons.add(points, kerb, [
       [CURB + 0.2, KERB],
       [CURB, KERB],
@@ -5744,6 +5758,30 @@ function slabTexture(): CanvasTexture {
     g.fillRect(0, 22, 64, 4);
     g.fillStyle = 'rgba(40,44,50,0.6)';
     for (let x = 2; x < 64; x += 4) g.fillRect(x, 26, 1, 6);
+  });
+}
+
+/**
+ * A confetti drift along a gutter, 1.1 m across (u) and 6 m along (v): flakes in the bands'
+ * colours packed thick at the kerb (u = 0) and thinning to scattered flakes at the edge,
+ * cut out of the canvas.
+ */
+function driftTexture(): CanvasTexture {
+  return canvasTexture(128, 512, (g) => {
+    g.clearRect(0, 0, 128, 512);
+    const colours = ['#ff2d87', '#ffd23f', '#13c3c9', '#ff8a00', '#7b2ff7', '#ffffff', '#4de0a8'];
+    const random = seeded(3601);
+    for (let i = 0; i < 9000; i++) {
+      // Most flakes near the kerb: the square of a random number crowds them to u = 0.
+      const u = Math.pow(random(), 2.2) * 128;
+      const v = random() * 512;
+      g.fillStyle = colours[Math.floor(random() * colours.length)]!;
+      g.save();
+      g.translate(u, v);
+      g.rotate(random() * Math.PI);
+      g.fillRect(-2, -1.5, 3 + random() * 3, 3);
+      g.restore();
+    }
   });
 }
 
