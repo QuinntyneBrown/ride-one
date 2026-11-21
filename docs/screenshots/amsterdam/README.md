@@ -102,6 +102,7 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 | [096 · Angler](096-angler.jpg) | The heron by the first bridge has a reason to wait: an angler sits on a folding stool at the quay's edge beside it, rod out over the canal with its line in the water and a blue bucket at his side, the pairing of angler and patient heron that every Amsterdam canal knows. Behind the flower stall from the opening view; the scores hold. | 94% · 87/100 |
 | [097 · Couriers](097-couriers.jpg) | About one commuter in ten is a courier, a big insulated delivery box in white, navy or green strapped to a carrier on the front of the bike, weaving through with the rest of the traffic as the city's meal and parcel couriers do. None is near in the opening view, where the oncoming rider now rides a mint bike with a blue backpack; the scores hold. | 94% · 87/100 |
 | [098 · Warm quay](098-warm-quay.jpg) | The quays' clinkers are laid in a warmer grey-brown, closer to the weathered brick of the canal-belt quays than the cold grey they had, so the left of the frame sits with the red street and the brick houses instead of against them. The scores hold. | 94% · 87/100 |
+| [099 · Perched gulls](099-perched-gulls.jpg) | About three lamps in ten have a herring gull standing on the lantern's crown, white with its grey back, turned its own way to watch the canal; and the scene's detailed design (draw-class-scene) and the module's header are brought up to date with what the Herengracht now holds. The scores hold. | 94% · 87/100 |
 
 ## Reproducing a capture
 

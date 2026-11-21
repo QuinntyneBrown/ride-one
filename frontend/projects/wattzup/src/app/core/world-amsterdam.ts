@@ -1,10 +1,12 @@
 // Amsterdam Canals' street, drawn by world-renderer.ts (L2-101 AC1, L2-111 technique 1): the
-// Herengracht on a spring morning. The rider takes the brick street along the canal; tall narrow
-// canal houses with step, bell and neck gables rise on the right and face them again across the
-// water. Elms and green lamps line the quay, bicycles crowd its edge, houseboats lie moored along
-// both sides and a glass-roofed boat glides past. Humpback brick bridges span the canal, and
-// commuters cycle by in both directions. Built on the shared kit (world-kit.ts) on the pattern
-// of Old Town's street.
+// Herengracht on a May morning. The rider takes the brick street along the canal; gabled canal
+// houses and stone-faced mansions rise on the right and face them again across the water, dressed
+// as lived in. Elms, cast-iron lamps, parked cars and bikes line the quay; houseboats lie moored
+// along both walls while tour boats, sloepen and canal bikes pass; humpback brick bridges with
+// their cross streets span the canal every 120 m; and commuters, walkers and visitors fill the
+// streets and quays. The view closes on the canal's bend under the Westertoren. Built on the
+// shared kit (world-kit.ts) on the pattern of Old Town's street; docs/screenshots/amsterdam
+// records each step.
 import {
   BufferAttribute,
   BoxGeometry,
@@ -1106,6 +1108,14 @@ export class AmsterdamStreet implements SceneStreet {
     this.disposables.push(tuft, guard, roots, ivy);
     const { post, lantern } = canalLamp();
     const lockBike = bikeGeometry();
+    const gullBody = new CapsuleGeometry(0.09, 0.26, 3, 8);
+    gullBody.rotateX(Math.PI / 2 - 0.3);
+    gullBody.translate(0, 0.14, 0);
+    const gullBack = new BoxGeometry(0.2, 0.05, 0.34);
+    gullBack.translate(0, 0.22, 0.04);
+    const gullWhite = this.material({ color: 0xf2f2ee, roughness: 0.8 });
+    const gullGrey = this.material({ color: 0x9aa0a8, roughness: 0.8 });
+    this.disposables.push(gullBody, gullBack);
     const lockPaints = [0x16181b, 0x2a3a5c, 0x6a1a1a, 0x8fc0b0, 0xe8dcc0].map((hex) =>
       this.material({ color: hex, metalness: 0.35, roughness: 0.5 }),
     );
@@ -1156,8 +1166,18 @@ export class AmsterdamStreet implements SceneStreet {
       for (const offset of spots) {
         const lamp = new Group();
         lamp.add(new Mesh(post, iron), new Mesh(lantern, glass));
-        // A bike or two locked to the lamp post, leant against it from either side.
+        // A bike or two locked to the lamp post, leant against it from either side, and on some
+        // a herring gull standing on the lantern's crown.
         const locked = (this.lockRoll ??= seeded(907));
+        if (locked() < 0.3) {
+          const gull = new Group();
+          const body = new Mesh(gullBody, gullWhite);
+          const back = new Mesh(gullBack, gullGrey);
+          gull.add(body, back);
+          gull.position.set(0, 5.18, 0);
+          gull.rotation.y = locked() * Math.PI * 2;
+          lamp.add(gull);
+        }
         for (const side of [-1, 1]) {
           if (locked() < 0.45) continue;
           const bike = new Mesh(lockBike, lockPaints[Math.floor(locked() * lockPaints.length)]!);
