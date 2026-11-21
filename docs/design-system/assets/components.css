@@ -1796,6 +1796,7 @@ textarea.input { height: auto; min-height: var(--space-28); padding-block: var(-
 .maps-layout { display: grid; gap: var(--space-10); }
 @media (min-width: 64rem) { .maps-layout { grid-template-columns: minmax(0, 1fr) var(--maps-aside-width); } }
 .maps__lead { margin-top: var(--space-2); max-width: var(--layout-text-xl); color: var(--color-muted); }
+.maps-error { margin-top: var(--space-8); display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); max-width: var(--layout-text-lg); }
 
 /* The path: a dot per map, joined by a line (volt/50 under open maps, hairline under locked) */
 .map-path { position: relative; margin-top: var(--space-8); }
