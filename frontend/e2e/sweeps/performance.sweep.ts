@@ -21,6 +21,9 @@ const STARTED = { timeout: 60_000 };
 const WARM_UP_MS = 3_000;
 const RECORD_MS = 20_000;
 const TIERS: readonly Tier[] = ['low', 'medium', 'high', 'ultra'];
+/** A frame this long in the first 5 s is a first-use stall, most often a program compile. */
+const STALL_MS = 50;
+const FIRST_MS = 5_000;
 
 // A slow GPU builds a scene slowly and the sweep rides for real time: allow it.
 test.describe.configure({ timeout: 180_000 });
@@ -49,6 +52,22 @@ const list = (value: string | undefined) =>
 const wanted = list(process.env['WZ_SCENES']);
 const scenes = sceneClasses().filter((c) => !wanted || wanted.includes(c.world));
 const tiers = (list(process.env['WZ_TIERS']) as Tier[] | undefined) ?? TIERS;
+/** `auto` draws with WebGPU where offered; `webgl2` forces the fallback (#679). */
+const backends = (list(process.env['WZ_BACKENDS']) as ('auto' | 'webgl2')[] | undefined) ?? [
+  'auto',
+];
+
+/** Frames over 50 ms within the first 5 s of frames. */
+function stalls(frames: readonly number[]): number {
+  let elapsed = 0;
+  let count = 0;
+  for (const ms of frames) {
+    if (elapsed >= FIRST_MS) break;
+    elapsed += ms;
+    if (ms > STALL_MS) count++;
+  }
+  return count;
+}
 
 /** The value at `p` (0 to 1) of the sorted frame times. */
 const percentile = (sorted: readonly number[], p: number) =>
@@ -72,51 +91,59 @@ test.describe('the test-only tier hook (#672)', () => {
 
 test.describe('frame times per scene and tier (#674)', () => {
   for (const scene of scenes) {
-    for (const tier of tiers) {
-      test(`${scene.world} at ${tier}`, async ({ page, worldRide }, testInfo) => {
-        await worldRide.pin(tier);
-        await new WorldRidePage(page).startClass(scene.id, scene.title);
-        await expect.poll(() => worldRide.report(), STARTED).not.toBeNull();
-        await page.waitForTimeout(WARM_UP_MS);
-        const warm = await worldRide.report();
-        const skipped = warm?.frames.length ?? 0;
-        const skippedGpu = warm?.gpuMs?.length ?? 0;
-        await page.waitForTimeout(RECORD_MS);
-        const report = await worldRide.report();
-        if (!report) throw new Error('the scene stopped reporting');
+    for (const backend of backends) {
+      for (const tier of tiers) {
+        const name =
+          backend === 'auto'
+            ? `${scene.world} at ${tier}`
+            : `${scene.world} at ${tier} on ${backend}`;
+        test(name, async ({ page, worldRide }, testInfo) => {
+          await worldRide.pin(tier, backend);
+          await new WorldRidePage(page).startClass(scene.id, scene.title);
+          await expect.poll(() => worldRide.report(), STARTED).not.toBeNull();
+          await page.waitForTimeout(WARM_UP_MS);
+          const warm = await worldRide.report();
+          const skipped = warm?.frames.length ?? 0;
+          const skippedGpu = warm?.gpuMs?.length ?? 0;
+          await page.waitForTimeout(RECORD_MS);
+          const report = await worldRide.report();
+          if (!report) throw new Error('the scene stopped reporting');
 
-        const frames = report.frames.slice(skipped).sort((a, b) => a - b);
-        const result = {
-          scene: scene.world,
-          class: scene.id,
-          tier,
-          drawnAt: report.tier,
-          backend: report.backend,
-          frames: frames.length,
-          medianMs: percentile(frames, 0.5),
-          p95Ms: percentile(frames, 0.95),
-          // GPU time per frame from timer queries; null where the browser offers none (#675).
-          gpuMedianMs: report.gpuMs
-            ? percentile(
-                report.gpuMs.slice(skippedGpu).sort((a, b) => a - b),
-                0.5,
-              )
-            : null,
-          drawCalls: report.drawCalls,
-          programs: report.programs,
-        };
-        await testInfo.attach('performance', {
-          body: JSON.stringify(result, null, 2),
-          contentType: 'application/json',
+          const frames = report.frames.slice(skipped).sort((a, b) => a - b);
+          const result = {
+            scene: scene.world,
+            class: scene.id,
+            tier,
+            drawnAt: report.tier,
+            backend: report.backend,
+            frames: frames.length,
+            medianMs: percentile(frames, 0.5),
+            p95Ms: percentile(frames, 0.95),
+            // GPU time per frame from timer queries; null where the browser offers none (#675).
+            gpuMedianMs: report.gpuMs
+              ? percentile(
+                  report.gpuMs.slice(skippedGpu).sort((a, b) => a - b),
+                  0.5,
+                )
+              : null,
+            drawCalls: report.drawCalls,
+            programs: report.programs,
+            stalls: stalls(report.frames),
+            materials: report.materials,
+          };
+          await testInfo.attach('performance', {
+            body: JSON.stringify(result, null, 2),
+            contentType: 'application/json',
+          });
+          console.log(JSON.stringify(result));
+
+          // Numbers were recorded; how fast they are is not judged.
+          expect(frames.length).toBeGreaterThan(0);
+          expect(report.drawCalls).toBeGreaterThan(0);
+          expect(report.programs).toBeGreaterThan(0);
+          expect(report.gpuMs === null || report.gpuMs.length > 0).toBe(true);
         });
-        console.log(JSON.stringify(result));
-
-        // Numbers were recorded; how fast they are is not judged.
-        expect(frames.length).toBeGreaterThan(0);
-        expect(report.drawCalls).toBeGreaterThan(0);
-        expect(report.programs).toBeGreaterThan(0);
-        expect(report.gpuMs === null || report.gpuMs.length > 0).toBe(true);
-      });
+      }
     }
   }
 });

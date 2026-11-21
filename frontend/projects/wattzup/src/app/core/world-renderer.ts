@@ -62,6 +62,7 @@ import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
 import {
+  materialVariants,
   PROBE_KEY,
   probeReport,
   readWorldRideProbe,
@@ -3179,9 +3180,14 @@ export class ThreeWorldRenderer implements WorldRenderer {
   async start(canvas: HTMLCanvasElement, world: World): Promise<boolean> {
     try {
       // Timer queries only for the performance sweep: a rider's frames never pay for them (#675).
-      const probed =
-        readWorldRideProbe((globalThis as Record<string, unknown>)[PROBE_KEY]) !== null;
-      const renderer = new WebGPURenderer({ canvas, antialias: false, trackTimestamp: probed });
+      const asked = readWorldRideProbe((globalThis as Record<string, unknown>)[PROBE_KEY]);
+      const renderer = new WebGPURenderer({
+        canvas,
+        antialias: false,
+        trackTimestamp: asked !== null,
+        // The sweep may profile the WebGL2 fallback on a WebGPU screen (#679).
+        forceWebGL: asked?.forceWebGL ?? false,
+      });
       await renderer.init();
       this.renderer = renderer;
       this.backend = (renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend
@@ -3265,7 +3271,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
       .add(this.sun.target.position);
     this.sky.sunPosition.value.copy(this.sunDirection()).applyAxisAngle(UP, turn);
     this.bend.update(this.bendSamples, (metres) => heightAt(ahead, metres));
-    if (++this.drawn % BEND_SWEEP === 0) this.bend.apply(this.scene, this.unbent);
+    if (++this.drawn % BEND_SWEEP === 0) {
+      this.bend.apply(this.scene, this.unbent);
+      if (this.probe) this.probe.materials = this.materialVariants();
+    }
     if (this.towers) {
       // The road over an effort is a bridge ramp, laid at the same speed as the road ahead.
       const efforts = frame.segments.filter((g) => g.kind === 'work');
@@ -3340,6 +3349,16 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.pipeline?.dispose();
     this.renderer?.dispose();
     this.renderer = null;
+  }
+
+  /** The scene's distinct materials by variant, for the performance sweep (#679). */
+  private materialVariants(): Record<string, number> {
+    const materials: Material[] = [];
+    this.scene.traverse((o) => {
+      const m = (o as Mesh).material;
+      if (m) materials.push(...(Array.isArray(m) ? m : [m]));
+    });
+    return materialVariants(materials as never[]);
   }
 
   /** Feeds the frame budget while frames run back to back, and lowers the tier on a drop. */
