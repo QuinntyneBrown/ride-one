@@ -1,9 +1,11 @@
+using Telo.Ride.Domain.Classes;
+
 namespace Telo.Ride.Domain.Maps;
 
 /// <summary>
 /// A map of the catalogue (L2-045 AC1): its name, route and place, distance, climbing and rating, the world it rides
-/// in, its thumbnail and its Race Setup photo in the app (L2-047 AC1), and how it opens (L2-040). The elevation profile and the 30:00 plan (AC2) join it with
-/// the slices that race it (ADR 0029).
+/// in, its thumbnail and its Race Setup photo in the app (L2-047 AC1), how it opens (L2-040), and, for the race (AC2),
+/// its 30:00 plan and its world's terrain, from which the Ride app draws the route's profile (ADR 0029).
 /// </summary>
 public sealed record MapDefinition(
     string Id,
@@ -16,4 +18,6 @@ public sealed record MapDefinition(
     string World,
     string ThumbnailUrl,
     string PhotoUrl,
-    MapUnlock Unlock);
+    MapUnlock Unlock,
+    IReadOnlyList<ClassSegment> Plan,
+    MapTerrain Terrain);

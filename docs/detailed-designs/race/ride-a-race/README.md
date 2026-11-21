@@ -178,5 +178,7 @@ and "Lower resistance" nudge it by hand between segment starts.
   warm-up at level 8 and 80 rpm, eight 0:30 efforts at level 24 and 98 rpm (418 W) with
   recoveries from 3:00 down to 1:30 at level 6, and a 6:00 cool-down at level 6 and 68 rpm. Each
   map's own plan replaces it in the catalogue, with no change to code.
+- **Vice City's terrain.** `main`'s world table has no Vice City; its terrain is South Beach's
+  (Ocean Drive) until the world slices (journey 8) bring its world.
 - **Speed in the stats.** The power panel's Speed is the virtual speed, not the Echelon's
   cadence speed (`L2-022`).

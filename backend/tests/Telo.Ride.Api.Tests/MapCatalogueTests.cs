@@ -1,8 +1,9 @@
 // Acceptance test
-// Traces to: L2-045 AC1, AC3; L2-040 AC1, AC6; L2-047 AC1, AC3; ADR 0029
+// Traces to: L2-045 AC1, AC2, AC3; L2-040 AC1, AC6; L2-047 AC1, AC3; L2-061 AC1; L2-062 AC1; ADR 0029
 // Description: the map catalogue, read without a session, lists the seven maps of L2-045 AC1 in unlock order, each with
 // its distance, climbing, rating, route and place, its world, its thumbnail and its photo; Prairie Paceline and Old
-// Town Criterium are open from the start, and every other map names its one goal and the map it is earned on.
+// Town Criterium are open from the start, and every other map names its one goal and the map it is earned on; every
+// map carries its 30:00 plan and its world's terrain.
 using System.Net;
 using System.Net.Http.Json;
 
@@ -65,6 +66,23 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
     }
 
     [Fact]
+    public async Task Every_map_carries_a_30_minute_plan_and_its_worlds_terrain()
+    {
+        var maps = await ReadMaps();
+
+        Assert.All(maps, m => Assert.Equal(1800, m.Plan.Segments.Sum(s => s.Duration)));
+        var oldTown = maps.Single(m => m.Id == "old-town-criterium");
+        Assert.Equal(
+            [new Segment("warm-up", 300, 8, 80), new Segment("work", 30, 24, 98), new Segment("recover", 180, 6, 72)],
+            oldTown.Plan.Segments.Take(3));
+        Assert.Equal(new Segment("cool-down", 360, 6, 68), oldTown.Plan.Segments[^1]);
+        Assert.Equal(8, oldTown.Plan.Segments.Count(s => s.Kind == "work"));
+        Assert.Equal(6, oldTown.Terrain.Grade["work"]);
+        Assert.Equal(-1.5, oldTown.Terrain.Grade["recover"]);
+        Assert.Equal(0.5, oldTown.Terrain.Roll);
+    }
+
+    [Fact]
     public async Task Every_map_names_its_world_and_its_thumbnail_and_photo_in_the_app()
     {
         var maps = await ReadMaps();
@@ -98,5 +116,13 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
         string ThumbnailUrl,
         string PhotoUrl,
         string? UnlockGoal,
-        string? UnlockMapId);
+        string? UnlockMapId,
+        CataloguePlan Plan,
+        CatalogueTerrain Terrain);
+
+    private sealed record CataloguePlan(IReadOnlyList<Segment> Segments);
+
+    private sealed record Segment(string Kind, int Duration, int Level, int CadenceAim);
+
+    private sealed record CatalogueTerrain(IReadOnlyDictionary<string, double> Grade, double Roll);
 }
