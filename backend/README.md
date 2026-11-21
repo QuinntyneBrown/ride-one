@@ -10,7 +10,7 @@ copy reads are in [`docs/deployment.md`](../docs/deployment.md).
 | `src/Telo.Ride.Domain` | Entities, value objects, `DomainRuleException` | nothing |
 | `src/Telo.Ride.Application` | MediatR handlers, validators, `ValidationBehavior`, `IAppDbContext` | Domain |
 | `src/Telo.Ride.Infrastructure` | `AppDbContext` (EF Core, Azure SQL), migrations, `TeloRideMetrics` | Application |
-| `src/Telo.Ride.Api` | `Program.cs`, controllers, authentication, ProblemDetails, health, telemetry, `migrate` | Infrastructure |
+| `src/Telo.Ride.Api` | `Program.cs`, controllers, `RideHub`, authentication, ProblemDetails, health, telemetry, `migrate` | Infrastructure |
 | `tests/Telo.Ride.Api.Tests` | Acceptance tests through the API, in memory, on EF Core InMemory | Api |
 
 Commands, from `backend/` (`node tools/verify/verify.mjs` runs the first two):
@@ -23,7 +23,11 @@ dotnet run --project src/Telo.Ride.Api -- migrate  # apply pending migrations an
 dotnet ef migrations add <Name> --project src/Telo.Ride.Infrastructure --startup-project src/Telo.Ride.Api --output-dir Migrations
 ```
 
-Tests never use a real database, file or sleep: each fixture is the API hosted in memory over its own
-InMemory store (`TeloRideApi`), and a fault is injected by replacing a service such as
-`IAppDbContext`. Until a feature adds its own endpoints, the test-only `ProbeController` stands in
-for one, written to the house rules: no `[AllowAnonymous]`, one MediatR request per action.
+Tests never use a real database, file or sleep. Each fixture is the API hosted in memory
+(`TeloRideApiFactory`) over its own InMemory store, with a `FakeTimeProvider` as its `Clock`; a
+fault is injected by subclassing it and replacing a service in `ConfigureServices`, as
+`UnreachableDatabaseApi` replaces `IAppDbContext`. Hub tests connect a real SignalR client to
+`/hubs/ride` through `Server.CreateHandler()`, and `EventProbe<T>` awaits an event with a timeout
+that names what did arrive. Until a feature adds its own endpoints and sign-in, the test-only
+`ProbeController` stands in for one (no `[AllowAnonymous]`, one MediatR request per action) and
+`SignedInProbeApi` signs every request in.

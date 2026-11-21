@@ -6,7 +6,7 @@ using System.Net;
 
 namespace Telo.Ride.Api.Tests;
 
-public sealed class HealthTests(TeloRideApi api) : IClassFixture<TeloRideApi>
+public sealed class HealthTests(TeloRideApiFactory api) : IClassFixture<TeloRideApiFactory>
 {
     [Fact]
     public async Task Liveness_answers_Healthy_without_a_session()
