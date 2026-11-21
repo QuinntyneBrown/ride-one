@@ -4,6 +4,7 @@
 // bike it replaces the device card with an alert saying why and what to do.
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
+import { HomePage } from './pages/home.page';
 
 test.describe('Browser support on Connect Bike', () => {
   test('lists the bikes it works with, one column on a phone and two from sm (L2-007)', async ({
@@ -80,5 +81,18 @@ test.describe('Browser support on Connect Bike', () => {
     secure.protocol = 'https:';
     await expect(connect.blockerAction).toHaveAttribute('href', secure.href);
     await expect(connect.pairButton).toHaveCount(0);
+  });
+
+  test('in a browser without Web Bluetooth, Home works with no bike (L2-010 AC5)', async ({
+    page,
+    bluetooth,
+  }) => {
+    await bluetooth.remove();
+    const home = new HomePage(page);
+
+    await home.open();
+
+    await expect(home.main).toBeVisible();
+    expect(home.url()).toBe('/');
   });
 });

@@ -26,7 +26,27 @@ export default class ConnectBikePage {
     const bike = 'bike' in view ? view.bike : null;
     const state: ConnectDeviceState =
       view.kind === 'searching' ? 'searching' : view.kind === 'paired' ? 'paired' : 'idle';
-    return { name: bike?.name ?? OFFERED, identifier: bike?.id ?? null, state };
+    return { name: bike?.name ?? OFFERED, identifier: bike?.identifier ?? null, state };
+  });
+
+  /** The chooser hint shows while the rider is choosing (L2-012 AC5). */
+  protected readonly choosing = computed(() =>
+    ['default', 'searching'].includes(this.store.view().kind),
+  );
+
+  /** The plain words for a chooser that could not open (L2-012 AC4). */
+  protected readonly failure = computed(() => {
+    const view = this.store.view();
+    if (view.kind !== 'failed') return null;
+    return view.reason === 'blocked'
+      ? {
+          title: 'Bluetooth is blocked for this page',
+          body: 'Allow Bluetooth for this site in your browser’s settings, then try again.',
+        }
+      : {
+          title: 'The bike list didn’t open',
+          body: 'Something went wrong opening your browser’s list of bikes. Try again.',
+        };
   });
 
   protected readonly action = computed(() => {
@@ -39,6 +59,8 @@ export default class ConnectBikePage {
         return { label: 'Pairing…', busy: true, disabled: true };
       case 'paired':
         return { label: 'Paired', busy: false, disabled: true };
+      case 'failed':
+        return { label: `Pair ${OFFERED}`, busy: false, disabled: false };
     }
   });
 }

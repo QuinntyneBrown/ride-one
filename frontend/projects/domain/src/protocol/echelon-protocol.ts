@@ -44,6 +44,14 @@ export const EchelonProtocol = {
   write: '0bf669f2-45f2-11e7-9598-0800200c9a66',
   notify: '0bf669f4-45f2-11e7-9598-0800200c9a66',
 
+  /** The initialisation, in order (L2-013 AC2): `A1` device info, `A3` resistance range, `B0` start the data stream. */
+  initCommands(): Uint8Array<ArrayBuffer>[] {
+    return [frame(0xa1, []), frame(0xa3, []), frame(0xb0, [0x01])];
+  },
+
+  /** The least time between two initialisation writes (L2-013 AC2). */
+  initGapMs: 300,
+
   /** `B1`: set the target resistance, clamped to 1 to 32 (L2-025 AC1, AC2). */
   setResistance(level: number): Uint8Array<ArrayBuffer> {
     return frame(SET_RESISTANCE, [clamp(level)]);

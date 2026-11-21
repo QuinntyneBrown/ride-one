@@ -30,16 +30,14 @@ enum BikeControl {
 class BikeInfo <<api>> {
   +id: string
   +name: string
+  +identifier: string | null
   +kind: BikeKind
-  +control: BikeControl
 }
 interface BikeConnection <<api>> {
-  +state: Signal<BikeState>
-  +bike: Signal<BikeInfo | null>
   +frames: Observable<Uint8Array>
   +requestBike(): Promise<BikeInfo | null>
   +connect(): Promise<void>
-  +reconnectRemembered(): Promise<boolean>
+  +reconnectRemembered(bike: BikeInfo): Promise<boolean>
   +setResistance(level: number): Promise<number>
   +disconnect(): void
 }
@@ -49,7 +47,7 @@ class WebBluetoothBikeConnection <<domain/bluetooth>> {
   -queue: GattWriteQueue
   +requestBike(): Promise<BikeInfo | null>
   +connect(): Promise<void>
-  +reconnectRemembered(): Promise<boolean>
+  +reconnectRemembered(bike: BikeInfo): Promise<boolean>
 }
 interface BikeLink <<domain/bluetooth>> {
   +kind: BikeKind
@@ -90,32 +88,30 @@ class ResistanceRange {
   +increment: number
 }
 class RememberedBikeStore <<domain/storage>> {
-  +get(): Promise<BikeInfo | null>
-  +save(bike: BikeInfo, seenAt: Date): Promise<void>
+  +get(): BikeInfo | null
+  +save(bike: BikeInfo): void
 }
 class ConnectBikeStore <<ride>> {
   +view: Signal<ConnectView>
-  +search(): Promise<void>
   +pair(): Promise<void>
 }
 class ConnectDevice <<components>> {
-  +view: input<ConnectView>
-  +search: output<void>
-  +pair: output<void>
+  +name: input<string>
+  +identifier: input<string | null>
+  +state: input<ConnectDeviceState>
 }
 WebBluetoothBikeConnection ..|> BikeConnection
 WebBluetoothBikeConnection *-- "0..1" BikeLink
 WebBluetoothBikeConnection --> GattWriteQueue
-WebBluetoothBikeConnection --> RememberedBikeStore
+ConnectBikeStore --> RememberedBikeStore : save on paired
 EchelonLink ..|> BikeLink
 FtmsLink ..|> BikeLink
 EchelonLink ..> EchelonProtocol
 FtmsLink ..> FtmsProtocol
 FtmsLink --> ResistanceRange
-BikeConnection --> BikeState
 BikeConnection --> BikeInfo
 BikeInfo --> BikeKind
-BikeInfo --> BikeControl
+FtmsLink --> BikeControl
 ConnectBikeStore ..> BikeConnection : injects BIKE_CONNECTION
-ConnectDevice ..> ConnectBikeStore : view from
+ConnectBikeStore ..> ConnectDevice : the page renders
 @enduml

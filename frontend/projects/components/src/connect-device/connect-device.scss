@@ -38,7 +38,14 @@
 
 .connect-device__signal {
   margin-top: var(--space-0-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-sm);
   color: var(--color-muted);
+}
+
+.connect-device__signal-icon {
+  color: var(--color-volt-fg);
 }

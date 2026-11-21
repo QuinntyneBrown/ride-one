@@ -13,7 +13,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 1.4 | CI and hosting | GitHub Actions under 5 minutes; the API serves the app on Azure App Service (ADR 0026). | 2 | 1. Scaffold the product | 100% |
 | 2.1 | Ride a simulated bike | `?simulate` connects a simulated bike end to end. | 2 | 2. Connect a bike | 100% |
 | 2.2 | Check browser support | Needs-Chromium and needs-HTTPS panels when Web Bluetooth is missing. | 2 | 2. Connect a bike | 100% |
-| 2.3 | Pair a bike | Browser chooser, connect, Connect Bike screen and its states. | 3 | 2. Connect a bike | 0% |
+| 2.3 | Pair a bike | Browser chooser, connect, Connect Bike screen and its states. | 3 | 2. Connect a bike | 100% |
 | 2.4 | Keep the bike connected | Keepalive, automatic reconnect, `ble` status line and banners. | 3 | 2. Connect a bike | 0% |
 | 3.1 | Decode bike notifications | Parse power, cadence, speed and resistance frames with checksums. | 2 | 3. Read live telemetry | 0% |
 | 3.2 | Show live metrics | Power, cadence, speed and resistance readouts update on every notification, with ride totals for time, distance and energy. | 2 | 3. Read live telemetry | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 6 slices, 14 days (6%).
+**Total:** 95 slices, 238 days. **Complete:** 7 slices, 17 days (7%).

@@ -5,7 +5,12 @@ import { EchelonProtocol } from '../protocol/echelon-protocol';
 import { SimulatedRiderProfile } from './simulated-rider-profile';
 
 /** The bike the simulator plays: an Echelon EX-5s. */
-export const SIMULATED_BIKE: BikeInfo = { id: 'EX5S-0bf669f1', name: 'Echelon EX-5s' };
+export const SIMULATED_BIKE: BikeInfo = {
+  id: 'EX5S-0bf669f1',
+  name: 'Echelon EX-5s',
+  identifier: 'EX5S-0bf669f1',
+  kind: 'echelon',
+};
 
 /**
  * A simulated Echelon EX-5s for development builds opened with `?simulate` (L2-024). It never calls
@@ -30,6 +35,12 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
 
   async connect(): Promise<void> {
     this.ticking ??= this.ticker.seconds.subscribe(() => this.tick());
+  }
+
+  /** The simulated bike is always in reach: reconnecting starts it as `connect()` does. */
+  async reconnectRemembered(): Promise<boolean> {
+    await this.connect();
+    return true;
   }
 
   async setResistance(level: number): Promise<number> {
