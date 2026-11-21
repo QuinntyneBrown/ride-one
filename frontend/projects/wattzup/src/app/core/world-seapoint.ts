@@ -70,6 +70,7 @@ export class SeaPointStreet implements SceneStreet {
   private people: Figures | null = null;
   private surf: Texture | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -117,7 +118,7 @@ export class SeaPointStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const people = this.people;
     if (people) {
@@ -126,7 +127,7 @@ export class SeaPointStreet implements SceneStreet {
         const running = Math.abs(w.speed) > 2;
         const step =
           Math.abs(Math.sin(this.time * (running ? 7 : 4) + w.phase)) * (running ? 0.08 : 0.04);
-        const y = heightAt(Math.max(metres, 0));
+        const y = heightAt(metres);
         const heading = w.speed > 0 ? 0 : Math.PI;
         people.set(i, w.x, y + KERB, -metres, heading, 0.95, step);
         if (w.dog) {
