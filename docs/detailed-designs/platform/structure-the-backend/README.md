@@ -15,8 +15,8 @@ path every request takes, the error format, the telemetry and how the schema cha
 - **migration** — EF Core class that changes the database schema from one version to the next
 
 The feature belongs to the platform subsystem. It is a backend-only slice that every backend
-feature builds on. ADR 0019 (no backend) is superseded by an ADR `<TO SUPPLY>` before the backend
-lands.
+feature builds on. ADR 0019 (no backend) is superseded by [ADR
+0025](../../../adr/0025-thin-dotnet-backend.md), which this feature follows.
 
 ## Description
 
@@ -26,7 +26,8 @@ lands.
   `IAppDbContext`. It references `Telo.Ride.Domain` only.
 - **`Telo.Ride.Infrastructure`** — `AppDbContext : IAppDbContext` (EF Core), migrations, cookie
   authentication, `IEmailSender` implementation, rate-limiting stores and `TeloRideMetrics`. It
-  references `Telo.Ride.Application`.
+  references `Telo.Ride.Application`. The first instrument of `TeloRideMetrics` is the counter
+  `telo.ride.problems`, one per ProblemDetails answered, tagged with its `code` and `status`.
 - **`Telo.Ride.Api`** — `Program.cs`, controllers, the `RideHub` SignalR hub, the exception
   handler and the fallback authorization policy. It references `Telo.Ride.Infrastructure`. Project
   references enforce the direction at compile time.
@@ -47,9 +48,22 @@ lands.
   recorded as templates.
 - **Migrations** — added with `dotnet ef migrations add` into `Telo.Ride.Infrastructure`. The API
   binary accepts a `migrate` command (`dotnet Telo.Ride.Api.dll migrate`) that applies pending
-  migrations with `Database.MigrateAsync()`, runs the idempotent `CatalogueSeeder` and exits.
+  migrations with `Database.MigrateAsync()`, runs the idempotent `CatalogueSeeder` (from slice 6.1, when the catalogue lands) and exits.
   Normal start-up never migrates.
-- **Database engine** — `<TO SUPPLY>`.
+- **Database engine** — Azure SQL Database through EF Core's SQL Server provider (ADR 0025).
+  Every test runs on EF Core InMemory instead.
+- **Health** — `GET /health/live` answers 200 `Healthy` while the process responds;
+  `GET /health/ready` runs `DatabaseHealthCheck`, which asks `IAppDbContext.CanConnectAsync`, and
+  answers 503 `Unhealthy` when the database cannot be reached. Both are anonymous and write the
+  status word only ([Authenticate every
+  request](../../security/authenticate-every-request/README.md)).
+- **Authentication** — cookie authentication, and a fallback authorization policy requiring an
+  authenticated rider. A request to any other endpoint without a valid session gets 401 with a
+  ProblemDetails body and code `unauthenticated`, never a redirect.
+- **Error codes** — `validation_failed` (400, with `errors` keyed by field), a
+  `DomainRuleException`'s own code and status, `unauthenticated` (401) and `unexpected` (500,
+  with a `traceId`).
+- **Settings** — `docs/deployment.md` lists every setting the deployed backend reads.
 
 ## Requirements
 

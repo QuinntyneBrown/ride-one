@@ -1,0 +1,29 @@
+# Telo Ride backend
+
+The thin .NET service of [ADR 0025](../docs/adr/0025-thin-dotnet-backend.md): only what one browser
+cannot do alone. It never talks to the bike. The shape is in [Structure the
+backend](../docs/detailed-designs/platform/structure-the-backend/README.md); the settings a deployed
+copy reads are in [`docs/deployment.md`](../docs/deployment.md).
+
+| Project | Holds | References |
+|---------|-------|------------|
+| `src/Telo.Ride.Domain` | Entities, value objects, `DomainRuleException` | nothing |
+| `src/Telo.Ride.Application` | MediatR handlers, validators, `ValidationBehavior`, `IAppDbContext` | Domain |
+| `src/Telo.Ride.Infrastructure` | `AppDbContext` (EF Core, Azure SQL), migrations, `TeloRideMetrics` | Application |
+| `src/Telo.Ride.Api` | `Program.cs`, controllers, authentication, ProblemDetails, health, telemetry, `migrate` | Infrastructure |
+| `tests/Telo.Ride.Api.Tests` | Acceptance tests through the API, in memory, on EF Core InMemory | Api |
+
+Commands, from `backend/` (`node tools/verify/verify.mjs` runs the first two):
+
+```shell
+dotnet format Telo.Ride.slnx --verify-no-changes   # the backend's lint
+dotnet test --solution Telo.Ride.slnx              # build and every test
+dotnet run --project src/Telo.Ride.Api             # serve the API (needs ConnectionStrings:TeloRide for readiness)
+dotnet run --project src/Telo.Ride.Api -- migrate  # apply pending migrations and exit
+dotnet ef migrations add <Name> --project src/Telo.Ride.Infrastructure --startup-project src/Telo.Ride.Api --output-dir Migrations
+```
+
+Tests never use a real database, file or sleep: each fixture is the API hosted in memory over its own
+InMemory store (`TeloRideApi`), and a fault is injected by replacing a service such as
+`IAppDbContext`. Until a feature adds its own endpoints, the test-only `ProbeController` stands in
+for one, written to the house rules: no `[AllowAnonymous]`, one MediatR request per action.

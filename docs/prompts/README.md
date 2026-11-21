@@ -1,6 +1,6 @@
 # Prompts
 
-One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journeys.md), in the same order. Run them one at a time, top to bottom. Each one implements its slice test-first, makes its narrated video and merges directly into `telo-ride`, pushed to `origin`.
+One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journeys.md), in the same order. Run them one at a time, top to bottom. Each one applies the lessons of earlier slices from [`lessons-learned.md`](../lessons-learned.md), implements its slice test-first, makes its narrated video, records its own lessons and its **% complete** in [`detailed-journeys.md`](../detailed-journeys.md) and [`journeys.md`](../journeys.md), and merges directly into `telo-ride`, pushed to `origin`.
 
 | Order | Slice | Prompt | Journey | Days |
 |-------|-------|--------|---------|------|

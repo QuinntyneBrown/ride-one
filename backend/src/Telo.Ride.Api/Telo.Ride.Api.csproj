@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../Telo.Ride.Infrastructure/Telo.Ride.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- dotnet ef needs it in the startup project; it never ships. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Telo.Ride.Api.Tests" />
+  </ItemGroup>
+</Project>
