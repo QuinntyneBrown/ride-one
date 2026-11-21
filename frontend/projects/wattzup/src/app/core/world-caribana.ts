@@ -1961,8 +1961,9 @@ export class CaribanaStreet implements SceneStreet {
   }
 
   /**
-   * Bunting strung across the road from each lamp standard on the left to the next one on
-   * the right, 18 m on: pennants in the islands' colours sagging over the lanes.
+   * Bunting strung across the road between the lamp standards, a string from each lamp to the
+   * next one on the other side 18 m on, crossing over the lanes: pennants in the islands'
+   * colours sagging over the road.
    */
   private addBunting(): void {
     const across = 2 * (PAVEMENT + 0.3);
@@ -1990,12 +1991,17 @@ export class CaribanaStreet implements SceneStreet {
       );
       this.disposables.push(flags, line);
       for (let offset = 0; offset < LOOP; offset += 72) {
-        const string = new Group();
-        string.add(new Mesh(flags, pennants), new Mesh(line, rope));
-        this.group.add(string);
-        const at = offset + k * 36 + along / 2;
-        this.props.push({ mesh: string, offset: at, every: LOOP, x: 0 });
-        this.beyond(string, at, 0);
+        // Each span carries two strings: one from the left lamp to the right one ahead, and its
+        // mirror from the right lamp to the left, so they cross over the middle of the road.
+        for (const mirror of [1, -1]) {
+          const string = new Group();
+          string.add(new Mesh(flags, pennants), new Mesh(line, rope));
+          string.scale.x = mirror;
+          this.group.add(string);
+          const at = offset + k * 36 + along / 2;
+          this.props.push({ mesh: string, offset: at, every: LOOP, x: 0 });
+          this.beyond(string, at, 0);
+        }
       }
     }
   }
