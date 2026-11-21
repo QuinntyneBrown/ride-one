@@ -23,38 +23,54 @@ Hardware smoke tests are run by a person and are outside this slice.
 
 - **`e2e/fixtures/test.ts`** — extends Playwright's `test` with the fixtures below. Specs import
   `test` and `expect` from it.
-- **`FakeBluetooth`** — fixture that installs a fake `navigator.bluetooth` with
-  `page.addInitScript` before the app loads. It implements `requestDevice`, `getDevices`, GATT
-  connect, services, characteristics, `writeValue` and notifications. It records every write and
-  exposes `notify(characteristic, bytes)` to push a notification on demand.
-- **`ApiFixture`** — routes `**/api/**` with `page.route` to handlers a spec declares. A request no
-  handler answers fails the spec.
-- **`HubFixture`** — answers `**/hubs/ride**` with `page.routeWebSocket` and speaks the SignalR
-  JSON protocol, so a spec can send `StandingsUpdated` and assert on `ReportProgress`.
+- **`FakeBluetooth`** (`e2e/fixtures/fake-bluetooth.ts`) — fixture that installs a fake
+  `navigator.bluetooth` with `page.addInitScript` before the app loads. It implements
+  `requestDevice`, `getDevices`, GATT connect, services, characteristics, `writeValue` (with and
+  without response) and notifications. Until a spec calls `offer(bike)` with the device's name and
+  its services and characteristics, every call is unexpected: it rejects in the page and fails the
+  spec. It records every write (`writes()`, as upper-case hex) and exposes
+  `notify(characteristic, bytes)` to push a notification on demand.
+- **`ApiFixture`** (`e2e/fixtures/api.ts`) — routes every localhost request under `/api/` with
+  `page.route` to the answers a spec declares (`answer(method, path, body or handler)`). A request
+  no answer matches gets 501 and fails the spec.
+- **`HubFixture`** (`e2e/fixtures/hub.ts`) — answers `/hubs/ride/negotiate` with `page.route` and
+  the WebSocket with `page.routeWebSocket`, and speaks the SignalR JSON protocol (handshake,
+  invocation, completion, ping), so a spec can `send('StandingsUpdated', …)`, read
+  `invocations('ReportProgress')` and `answer` a method that expects a result. A spec that has not
+  called `open()` gets no hub: a connection attempt is unanswered and fails the spec.
 - **Guards** — the fixture fails the spec on a `pageerror`, an unexpected Bluetooth call, an
   unanswered request or any request to a host other than localhost.
 - **Page objects** — `e2e/pages/<screen>.page.ts`, one per screen or dialog, using the mocks' BEM
   classes and roles as locators.
 - **Clock** — specs that depend on time call `page.clock.install()` and advance it.
-- **Unit tests** — run with the Angular CLI unit-test builder; time-driven rules use fake timers
-  and the `MONOTONIC_TIME` token bound to a fake. The test runner choice is `<TO SUPPLY>`.
+- **Unit tests** — run with the Angular CLI unit-test builder on Vitest over jsdom (both already
+  dev dependencies), from `npm test`; time-driven rules use Vitest's fake timers and the
+  `MONOTONIC_TIME` token bound to a fake.
 
 ### Backend
 
 - **`Telo.Ride.Api.Tests`** — acceptance tests through the API and hub tests. `TeloRideApiFactory`
   extends `WebApplicationFactory<Program>`. It replaces the database with EF Core InMemory under a
-  database name unique to the fixture, registers `FakeTimeProvider` as `TimeProvider`, and
-  registers `FakeEmailSender`, which captures sent codes so a test can sign in through the API.
+  database name unique to the fixture and registers `FakeTimeProvider` as `TimeProvider` (the API
+  registers `TimeProvider.System`; code reads time only through it). A fixture that injects a
+  fault subclasses it and overrides `ConfigureServices`. `FakeEmailSender`, which captures sent
+  codes so a test can sign in through the API, joins it with `IEmailSender` in slice 9.1; until
+  then `SignedInProbeApi` signs every request in.
 - **`FaultyAppDbContext`** — test `IAppDbContext` wrapper that throws on `SaveChangesAsync` to
-  inject database faults.
+  inject database faults; it arrives with `SaveChangesAsync`, in the first slice that saves.
+  Until then `UnreachableDatabaseApi` injects the one fault there is, an unreachable database.
 - **Hub tests** — a real `HubConnection` built with `HubConnectionBuilder` connects to
   `/hubs/ride` on the test server through `server.CreateHandler()` (long polling) and the
-  session cookie.
-- **`EventProbe<T>`** — helper that awaits a hub event with a timeout and, on timeout, fails with
-  the list of events that did arrive. No test calls `Task.Delay` or `Thread.Sleep`.
+  session cookie (the signed-in test scheme until slice 9.2). `RideHub` exists from this slice,
+  with no methods yet, so the first hub test proves a connection without a session is refused at
+  negotiation (L2-127 AC1) and one with a session connects.
+- **`EventProbe<T>`** — helper that awaits an event (a hub message, a finished span) with a
+  timeout and, on timeout, fails with the list of events that did arrive. No test calls
+  `Task.Delay` or `Thread.Sleep`.
 - **`Telo.Ride.Application.Tests`** — direct tests of handlers and domain types for rules with a
-  table of cases, one case per row.
-- **Test framework** — `<TO SUPPLY>`.
+  table of cases, one case per row; created by the first slice with such a rule.
+- **Test framework** — xUnit v3 on the Microsoft Testing Platform (`backend/global.json`), run by
+  `dotnet test --solution Telo.Ride.slnx`.
 
 ## Requirements
 
