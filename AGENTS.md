@@ -193,3 +193,10 @@ weakening tests to pass. Keep requirement, design, mock, tests and code aligned 
 
 Never write architecture tests: no structure, layout, naming, banned-API or spec-traceability
 tests. A test suite proves behaviour.
+
+## Lessons learned and progress
+
+Before a slice of `docs/detailed-journeys.md`, read `docs/lessons-learned.md` and apply the lessons
+that fit. When the slice finishes, before it merges, add its entry there (what slowed it, new
+lessons, and how each earlier lesson it applied worked) and update **% complete** in
+`docs/detailed-journeys.md` and `docs/journeys.md`.

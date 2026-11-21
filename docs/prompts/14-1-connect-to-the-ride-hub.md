@@ -74,6 +74,11 @@ Three outcomes, all required:
 - Mocks (the source of truth for the UI; `docs/design-system/` is extracted from them):
   - Class Start: `docs/mocks/pages/class-start/` (states: default, solo, starting-soon, full, needs-chromium, needs-https)
 
+## Before you start: apply earlier lessons
+
+- Read `docs/lessons-learned.md`: its standing lessons and the latest log entries. Put the lessons
+  that fit this slice in your todo list and apply them as you go; Phase 4 reports how each one worked.
+
 ## Phase 1: Align requirement, design and mock
 
 - Read the requirements, design and mocks above, `docs/journeys.md` and the relevant ADRs in `docs/adr/`.
@@ -126,10 +131,23 @@ Three outcomes, all required:
   docs/videos/14-1-connect-to-the-ride-hub/14-1-connect-to-the-ride-hub.mp4`, save one frame per scene with `--frame` and look at each, and add the film's
   row to the table at the top of `docs/videos/README.md`. Never commit `narration.wav` or `.cache/`.
 
-## Phase 4: Merge directly into `telo-ride` and push to `origin` (CRITICAL)
+## Phase 4: Record lessons learned and progress
+
+- Add slice 14.1's entry at the top of the log in `docs/lessons-learned.md`, in that file's shape:
+  - *Applied from earlier:* each earlier lesson this slice applied and its result (saved time, no
+    effect, did not apply, or made it worse), with a sentence on why.
+  - *What slowed it down:* the few things that cost the most time.
+  - *New lessons:* what happened and what to do next time, concrete enough to follow.
+  Then update its standing lessons table (new lessons, *Applied in* and *Result*, retired lessons).
+- Set slice 14.1's **% complete** to 100% in `docs/detailed-journeys.md` and update its total. In
+  `docs/journeys.md`, set journey 14's **% complete** (the days of its finished slices over its days)
+  and update its total.
+- Commit both on `journey/14-1-connect-to-the-ride-hub`, so the merge carries them.
+
+## Phase 5: Merge directly into `telo-ride` and push to `origin` (CRITICAL)
 
 - Work on `journey/14-1-connect-to-the-ride-hub`, cut from the latest `origin/telo-ride`.
-- When Phases 1 to 3 are committed and `node tools/verify/verify.mjs` passes:
+- When Phases 1 to 4 are committed and `node tools/verify/verify.mjs` passes:
   1. `git fetch origin`
   2. `git rebase origin/telo-ride` on `journey/14-1-connect-to-the-ride-hub`, resolve any conflict, and run
      `node tools/verify/verify.mjs` again.
@@ -155,6 +173,10 @@ Three outcomes, all required:
 - Requirements, design, mocks and code agree.
 - `docs/videos/14-1-connect-to-the-ride-hub/14-1-connect-to-the-ride-hub.mp4` exists, meets `docs/videos/README.md`, uses the Telo Ride design system, and is listed in
   its table.
+- `docs/lessons-learned.md` has slice 14.1's entry, saying how each earlier lesson it applied
+  worked, and its standing lessons are current.
+- `docs/detailed-journeys.md` shows slice 14.1 at 100% and `docs/journeys.md` shows journey 14's
+  new **% complete**, with both totals updated.
 - The work is merged into `telo-ride` and `origin/telo-ride` contains it (`git log origin/telo-ride -1` shows the
   merge).
 - Only then end the run, with a short summary of what was built, the decisions made along the way, and
