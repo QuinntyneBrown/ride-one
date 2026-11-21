@@ -57,14 +57,16 @@ The slice runs from the library page down to the catalogue rows in the database.
 **Frontend — `api` and `domain` libraries**
 
 - **`ClassesApi`** / `CLASSES_API` — contract and token: `list()` returns the
-  `ClassCatalogueDto` (shelves and classes), `get(id)` one class. **`HttpClassesApi`** (`api`) is
-  its HTTP client for `GET /api/classes`; it does nothing else.
+  `ClassCatalogueDto` (shelves and classes), `get(id)` one class; it refuses with a
+  `ClassesApiError` whose `code` is `class_not_found` or `catalogue_unavailable`.
+  **`HttpClassesApi`** (`api`) is its HTTP client for `GET /api/classes` and
+  `GET /api/classes/{id}`; it only asks.
 - **`ClassDto`** — id, title, channel, focus, length in seconds, opens-at level, shelf id,
   summary, world, `VideoDto { videoId, syncOffsetSeconds }` and `PlanDto`.
 - **`CachedClassesApi`** (`domain/storage`) — the `CLASSES_API` the app binds. It asks
   `HttpClassesApi` for the catalogue, saves each answer in `CatalogueCache` and, when the request
-  fails, answers from the cache; `get(id)` finds the class in that catalogue, or refuses with the
-  code `class_not_found`. The library and the class ride both read through it.
+  fails, answers from the cache, or refuses with `catalogue_unavailable` when none is kept;
+  `get(id)` finds the class in that catalogue, or refuses with `class_not_found`. The library and the class ride both read through it.
 - **`ProgressApi`** / `PROGRESS_API` — owned by the progression subsystem; this slice reads only
   the rider level.
 - **`CatalogueCache`** (`domain/storage`) — keeps the last catalogue in `localStorage`
