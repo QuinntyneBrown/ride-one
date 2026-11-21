@@ -1,13 +1,19 @@
 using Telo.Ride.Api.Authentication;
 using Telo.Ride.Api.Errors;
 using Telo.Ride.Api.Health;
+using Telo.Ride.Api.Telemetry;
 using Telo.Ride.Application;
 using Telo.Ride.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddProblemDetails();
+builder.Services.AddTeloRideTelemetry(builder.Configuration);
+// Every ProblemDetails the API writes, refusals by authentication included, is counted by code.
+builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+    context.HttpContext.RequestServices.GetRequiredService<TeloRideMetrics>().ProblemAnswered(
+        context.ProblemDetails.Extensions.TryGetValue("code", out var code) ? code?.ToString() ?? "none" : "none",
+        context.ProblemDetails.Status ?? context.HttpContext.Response.StatusCode));
 builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
 builder.Services.AddControllers();
 builder.Services.AddTeloRideAuthentication();

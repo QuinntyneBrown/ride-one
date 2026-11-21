@@ -10,7 +10,7 @@ using Telo.Ride.Api.Tests.Probe;
 namespace Telo.Ride.Api.Tests;
 
 /// <summary>The probe API with every request signed in as one rider, until sign-in itself lands (slice 9.2).</summary>
-public sealed class SignedInProbeApi : ProbeApi
+public class SignedInProbeApi : ProbeApi
 {
     private const string SchemeName = "SignedIn";
 

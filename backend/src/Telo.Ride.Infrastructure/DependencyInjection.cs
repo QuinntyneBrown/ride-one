@@ -9,13 +9,14 @@ public static class DependencyInjection
 {
     /// <summary>
     /// The database (connection string <c>ConnectionStrings:TeloRide</c>, docs/deployment.md) and
-    /// <see cref="IAppDbContext"/> over it.
+    /// <see cref="IAppDbContext"/> over it, and <see cref="TeloRideMetrics"/>.
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("TeloRide")));
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
+        services.AddSingleton<TeloRideMetrics>();
         return services;
     }
 }

@@ -3,6 +3,12 @@
     <ProjectReference Include="../Telo.Ride.Infrastructure/Telo.Ride.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Telo.Ride.Api.Tests" />
   </ItemGroup>
 </Project>
