@@ -2788,8 +2788,8 @@ export class AmsterdamStreet implements SceneStreet {
   }
 
   /**
-   * A grey heron standing motionless on the quay's edge by the flower stall, as Amsterdam's
-   * herons wait by stalls and fishmongers, and gulls perched on the tops of a few lamps.
+   * A grey heron standing motionless on the quay's edge by the first bridge, next to an angler
+   * fishing from his stool, as Amsterdam's herons wait by anglers, stalls and fishmongers.
    */
   private addHeron(roadHalf: number): void {
     const grey = this.material({ color: 0x9aa0a6, roughness: 0.8 });
@@ -2826,6 +2826,33 @@ export class AmsterdamStreet implements SceneStreet {
     heron.position.y = KERB;
     const spot = new Group();
     spot.add(heron);
+    // The angler it is waiting on: sitting on a folding stool at the quay's edge, rod out over
+    // the water, a bucket at his side.
+    const angler = new Mesh(
+      sitterGeometry(seeded(919)),
+      this.material({ vertexColors: true, roughness: 0.85 }),
+    );
+    this.disposables.push(angler.geometry);
+    angler.rotation.y = Math.PI / 2;
+    angler.position.set(0.15, KERB, 1.3);
+    const stool = new Mesh(this.unit, this.material({ color: 0x3a4a3a, roughness: 0.8 }));
+    stool.scale.set(0.35, 0.42, 0.35);
+    stool.position.set(0.35, KERB + 0.21, 1.3);
+    const rod = new Mesh(new CylinderGeometry(0.008, 0.02, 3.6, 5), black);
+    this.disposables.push(rod.geometry);
+    rod.position.set(-1.1, KERB + 1.5, 1.2);
+    rod.rotation.z = -1.0;
+    const line = new Mesh(this.unit, white);
+    line.scale.set(0.006, 2.6, 0.006);
+    line.position.set(-2.6, KERB + 1.0 - WATER / 2, 1.2);
+    const pail = new Mesh(
+      new CylinderGeometry(0.15, 0.12, 0.3, 10),
+      this.material({ color: 0x2c7be5, roughness: 0.5 }),
+    );
+    this.disposables.push(pail.geometry);
+    pail.position.set(0.3, KERB + 0.15, 1.85);
+    spot.add(angler, stool, rod, line, pail);
+    spot.children.forEach((m) => (m.castShadow = true));
     this.group.add(spot);
     this.props.push({ mesh: spot, offset: BRIDGE - 1.2, x: -roadHalf - QUAY + 0.6 });
   }

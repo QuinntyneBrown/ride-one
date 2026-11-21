@@ -99,6 +99,7 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 | [093 · Locked bikes](093-locked-bikes.jpg) | Bikes are locked to the quays' lamp posts too, as they are to anything fixed in Amsterdam: about half the lamps have one or two bikes leant against the post from either side, black, navy, oxblood, mint or cream. The lamp posts in the opening view stand far enough off that the frame barely changes; the scores hold. | 94% · 87/100 |
 | [094 · Ark roofs](094-ark-roofs.jpg) | The arks' roofs are lived on: three solar panels tilted to the sun along the back half of each roof among the shrubs, and a cream parasol opened over the table on the end deck, as today's houseboats carry them. Below the quay and behind the bridge from the opening view; the scores hold. | 94% · 87/100 |
 | [095 · For sale](095-for-sale.jpg) | A few houses are on the market, the Dutch way: about one in twelve hangs the estate agent's board out from a first-floor window on a white bracket, TE KOOP in white capitals on orange with the agent's line below, on either side of the canal. Small at the opening view's distances; the scores hold. | 94% · 87/100 |
+| [096 · Angler](096-angler.jpg) | The heron by the first bridge has a reason to wait: an angler sits on a folding stool at the quay's edge beside it, rod out over the canal with its line in the water and a blue bucket at his side, the pairing of angler and patient heron that every Amsterdam canal knows. Behind the flower stall from the opening view; the scores hold. | 94% · 87/100 |
 
 ## Reproducing a capture
 
