@@ -43,3 +43,19 @@
   position: absolute;
   inset: 0;
 }
+
+// Ink at 70 % over the picture, "Paused" centred (components/video.html).
+.class-video__paused {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--color-ink) 70%, transparent);
+}
+
+.class-video__paused-label {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+  font-weight: var(--font-weight-semibold);
+}

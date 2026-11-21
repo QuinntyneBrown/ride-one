@@ -1,7 +1,15 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
-import { CLASSES_API, type ClassDto, VIDEO_PLAYER_FACTORY, type VideoPlayer } from '@telo/api';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  BIKE_CONNECTION,
+  CLASSES_API,
+  type ClassDto,
+  SCREEN_WAKE_LOCK,
+  TICKER,
+  VIDEO_PLAYER_FACTORY,
+  type VideoPlayer,
+} from '@telo/api';
 import { type ClassStatTone, formatMetric } from '@telo/components';
 import {
   BikeTelemetry,
@@ -26,7 +34,9 @@ export interface StatView {
  * and the engine following the plan, which sends each segment's level (L2-027). The header and the segment card read
  * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
  * video plays from the ride clock plus the class's sync offset (L2-088 AC1) and, on each tick, seeks back when it has
- * drifted more than 1.5 s (AC2); when it cannot play, the ride carries on without it (AC4).
+ * drifted more than 1.5 s (AC2); when it cannot play, the ride carries on without it (AC4). The rider pauses and
+ * resumes it, a lost bike holds it until the bike is back (docs/detailed-designs/classes/pause-leave-or-finish-a-class,
+ * L2-091, L2-092 AC4), the screen stays awake while it runs (L2-133 AC3), and at the class length it opens Results.
  */
 @Injectable()
 export class ClassRideStore {
@@ -41,6 +51,12 @@ export class ClassRideStore {
   private readonly playerFactory = inject(VIDEO_PLAYER_FACTORY);
   private readonly player = signal<VideoPlayer | null>(null);
   private readonly playerMissing = signal(false);
+  private readonly pausedByRider = signal(false);
+  private readonly pausedByBike = signal(false);
+  private readonly connection = inject(BIKE_CONNECTION);
+  private readonly beat = inject(TICKER);
+  private readonly router = inject(Router);
+  private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
 
@@ -49,6 +65,10 @@ export class ClassRideStore {
   readonly plan = this.engine.state;
   readonly level = this.telemetry.resistance;
   readonly canControl = this.resistance.canControl;
+  /** Whether the rider paused the ride: the clock, the plan and the video hold (L2-091 AC1). */
+  readonly paused = this.pausedByRider.asReadonly();
+  /** Whether the bike has stopped answering (`ble` disconnected, L2-017); a solo ride waits for it (L2-092 AC4). */
+  readonly bikeLost = computed(() => this.connection.ble() === 'disconnected');
   /** Whether the video cannot play: its code or YouTube's did not load, or the player failed. */
   readonly videoUnavailable = computed(
     () => this.playerMissing() || this.player()?.state() === 'error',
@@ -95,6 +115,8 @@ export class ClassRideStore {
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.player()?.destroy();
+      // The lock is bound on the route, whose injector outlives the page.
+      this.wakeLock.release();
     });
   }
 
@@ -117,6 +139,26 @@ export class ClassRideStore {
     );
   }
 
+  /** Holds the clock, the plan and the video where they are (L2-091 AC1, L2-088 AC3). */
+  pause(): void {
+    if (this.pausedByRider()) return;
+    this.pausedByRider.set(true);
+    if (!this.pausedByBike()) this.hold();
+  }
+
+  /** Carries the ride on from where it was held, with the video back on the clock (L2-091 AC2). */
+  resume(): void {
+    const ride = this.loaded();
+    if (!this.pausedByRider() || !ride) return;
+    this.pausedByRider.set(false);
+    if (!this.pausedByBike()) this.carryOn(ride);
+  }
+
+  /** Tries the lost bike at once, rather than at the connection's next retry: the alert's Reconnect. */
+  reconnect(): void {
+    this.connection.reconnectNow();
+  }
+
   raise(): void {
     void this.resistance.nudge(1);
   }
@@ -127,17 +169,62 @@ export class ClassRideStore {
 
   private start(dto: ClassDto): void {
     this.loaded.set(dto);
+    this.wakeLock.hold();
     this.clock.start();
     this.ticker.start();
     this.engine.follow(dto.plan);
-    this.ticker.ticks
+    this.ticker.ticks.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((second) => {
+      if (second >= dto.lengthSeconds) this.finish();
+      else this.syncVideo(dto);
+    });
+    // The bike is watched on a beat of its own: the ride clock's ticks stop while the ride is held.
+    this.beat.seconds
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.syncVideo(dto));
+      .subscribe(() => this.followBike(dto));
+  }
+
+  /**
+   * A solo ride waits for a lost bike: checked once a second, it holds within a second of the drop and carries on
+   * within a second of the bike's return, unless the rider paused it meanwhile (L2-092 AC4). The alert shows at once.
+   */
+  private followBike(ride: ClassDto): void {
+    const lost = this.bikeLost();
+    if (lost === this.pausedByBike()) return;
+    this.pausedByBike.set(lost);
+    if (this.pausedByRider()) return;
+    if (lost) this.hold();
+    else this.carryOn(ride);
+  }
+
+  /**
+   * The plan's end: the clock stops at the class length, the video pauses, and Results opens (L2-093 AC2). Leaving the
+   * page releases the rest. The ride's submission comes with *record a ride* (slice 10.1).
+   */
+  private finish(): void {
+    this.clock.pause();
+    this.ticker.stop();
+    this.player()?.pause();
+    this.wakeLock.release();
+    void this.router.navigateByUrl('/results');
+  }
+
+  private hold(): void {
+    this.clock.pause();
+    this.player()?.pause();
+  }
+
+  private carryOn(ride: ClassDto): void {
+    this.clock.resume();
+    const player = this.player();
+    player?.seekTo(ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000);
+    player?.play();
   }
 
   private syncVideo(ride: ClassDto): void {
     const player = this.player();
     if (player?.state() !== 'playing') return;
+    // A player that became ready during a pause starts playing on its own; it follows the pause instead.
+    if (this.pausedByRider() || this.pausedByBike()) return player.pause();
     const elapsed = this.clock.elapsedMs() / 1000;
     const seek = this.sync.check(player.currentTime(), elapsed, ride.video.syncOffsetSeconds);
     if (seek !== null) player.seekTo(seek);

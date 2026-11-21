@@ -28,23 +28,24 @@ box "Device — Smart bike" #F2F4F7
   participant "Smart bike" as bike
 end box
 conn -> conn : Keepalive gets no answer (L2-017)
-conn --> store : ble = Lost
+conn --> store : ble = Disconnected
 alt group class ride
   store --> page : Alert "Lost the bike", Reconnect; resistance disabled L2-092 AC1
   note over clock, engine : Clock, video and board keep moving; Leave stays active (L2-092 AC2)
   rider -> page : Press Reconnect
   page -> store : reconnect()
-  store -> conn : reconnect() (user gesture)
+  store -> conn : reconnectNow()
   conn -> bike : Connect GATT
   bike --> conn : Connected
   conn --> store : ble = Connected
   store -> engine : Resend current segment level (L2-027 AC4)
   store --> page : Rider rejoins at the class's current time L2-092 AC3
 else solo class ride
-  store -> clock : pause()
-  store --> page : Ride paused until the bike is back L2-092 AC4
+  store -> clock : pause(); video paused
+  store --> page : Alert "Lost the bike", "Your ride is paused…", Reconnect L2-092 AC4
+  conn -> conn : Retry the same bike every 3 s, or Reconnect now
   conn --> store : ble = Connected
   store -> engine : Resend current segment level
-  store -> clock : resume()
+  store -> clock : resume(), unless the rider paused; video plays on
 end
 @enduml

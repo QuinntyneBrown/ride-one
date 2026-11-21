@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import {
+  Button,
   ClassBike,
   ClassHeader,
+  ClassLost,
   ClassResist,
   ClassSegment,
   ClassStat,
@@ -24,10 +27,21 @@ import { ClassRideStore } from './class-ride-store';
  */
 @Component({
   selector: 'wz-class-ride-page',
-  imports: [ClassBike, ClassHeader, ClassResist, ClassSegment, ClassStat, ClassVideo],
+  imports: [
+    Button,
+    ClassBike,
+    ClassHeader,
+    ClassLost,
+    ClassResist,
+    ClassSegment,
+    ClassStat,
+    ClassVideo,
+    RouterLink,
+  ],
   templateUrl: './class-ride-page.html',
   styleUrl: './class-ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(window:beforeunload)': 'confirmLeaving($event)' },
   providers: [
     ClassRideStore,
     RideClock,
@@ -40,4 +54,9 @@ import { ClassRideStore } from './class-ride-store';
 })
 export default class ClassRidePage {
   protected readonly store = inject(ClassRideStore);
+
+  /** Closing or reloading the tab mid-ride asks the rider to confirm (L2-133 AC4); the listener goes with the page. */
+  protected confirmLeaving(event: BeforeUnloadEvent): void {
+    if (this.store.ride()) event.preventDefault();
+  }
 }

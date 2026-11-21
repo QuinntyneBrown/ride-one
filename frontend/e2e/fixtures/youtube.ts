@@ -9,6 +9,8 @@ export interface FakePlayer {
   readonly tabIndex: string | null;
   readonly title: string | null;
   readonly destroyed: boolean;
+  /** Whether the video is playing, rather than paused or not yet started. */
+  readonly playing: boolean;
 }
 
 const API = 'https://www.youtube.com/iframe_api';
@@ -45,7 +47,7 @@ const FAKE_API = `(() => {
     record() {
       const { host, videoId, playerVars } = this.options;
       const frame = this.frame;
-      return { host, videoId, playerVars, tabIndex: frame.getAttribute('tabindex'), title: frame.getAttribute('title'), destroyed: this.destroyed };
+      return { host, videoId, playerVars, tabIndex: frame.getAttribute('tabindex'), title: frame.getAttribute('title'), destroyed: this.destroyed, playing: this.since !== null };
     }
   }
   window.YT = { Player, PlayerState: { ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFERING: 3, CUED: 5 }, loaded: 1 };

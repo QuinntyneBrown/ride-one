@@ -1,6 +1,11 @@
 <div class="class-video">
   <img class="photo photo--yt" [src]="cover()" [alt]="'Video: ' + title()" />
   <div class="class-video__player"></div>
+  @if (paused()) {
+    <div class="class-video__paused" aria-hidden="true">
+      <p class="class-video__paused-label">Paused</p>
+    </div>
+  }
 </div>
 @if (unavailable()) {
   <wz-inline-message class="class-video__notice" tone="warn" role="status"

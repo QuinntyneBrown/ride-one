@@ -65,6 +65,11 @@
   --btn-fg: var(--color-fg-on-accent);
 }
 
+:host(.btn--sm) {
+  --btn-height: var(--control-height-sm);
+  --btn-pad: var(--space-3);
+}
+
 :host(.btn--lg) {
   --btn-height: var(--control-height-lg);
   --btn-radius: var(--radius-xl);

@@ -2,6 +2,7 @@ import { test as base, expect } from '@playwright/test';
 import { ApiFixture } from './api';
 import { FakeBluetooth } from './fake-bluetooth';
 import { HubFixture } from './hub';
+import { WakeLockFixture } from './wake-lock';
 import { YouTubeFixture } from './youtube';
 
 interface Fixtures {
@@ -13,12 +14,14 @@ interface Fixtures {
   hub: HubFixture;
   /** The YouTube IFrame API and the class covers, answered by a fake player and a local picture. */
   youtube: YouTubeFixture;
+  /** The fake Screen Wake Lock API: the locks the app took, and the tab hidden or shown. */
+  wakeLock: WakeLockFixture;
   guard: void;
 }
 
 /**
- * The shared fixture every spec imports (AGENTS.md, E2E; L2-148 AC1). It installs the fake Bluetooth stack before the
- * app loads and answers backend and ride hub requests as the spec declares. It fails the spec on a page error, a request
+ * The shared fixture every spec imports (AGENTS.md, E2E; L2-148 AC1). It installs the fake Bluetooth stack and Screen Wake Lock API before
+ * the app loads and answers backend and ride hub requests as the spec declares. It fails the spec on a page error, a request
  * off localhost (YouTube's player script and covers excepted, which a fake answers), an unanswered backend or hub request, or a Bluetooth call the spec did not expect.
  */
 export const test = base.extend<Fixtures>({
@@ -34,6 +37,12 @@ export const test = base.extend<Fixtures>({
   youtube: async ({ page }, use) => {
     await use(await YouTubeFixture.install(page));
   },
+  wakeLock: [
+    async ({ page }, use) => {
+      await use(await WakeLockFixture.install(page));
+    },
+    { auto: true },
+  ],
   guard: [
     async ({ page, bluetooth, api, hub, youtube }, use) => {
       void youtube; // installed first, so this catch-all, registered after it, can hand YouTube's requests back
