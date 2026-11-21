@@ -14,6 +14,7 @@ public sealed class RideHubTests(SignedInProbeApi signedIn, TeloRideApiFactory a
     private static CancellationToken Cancel => TestContext.Current.CancellationToken;
 
     [Fact]
+    [Trait("Category", "Critical")]
     public async Task A_signed_in_rider_connects_with_a_real_SignalR_client()
     {
         await using var connection = Connect(signedIn);
