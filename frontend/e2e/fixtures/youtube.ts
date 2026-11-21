@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import type { Page } from '@playwright/test';
 
@@ -14,9 +15,11 @@ export interface FakePlayer {
 }
 
 const API = 'https://www.youtube.com/iframe_api';
-const COVER = /^https:\/\/i\.ytimg\.com\/vi\/[\w-]{11}\/(hq|mq)default\.jpg$/;
+const COVER = /^https:\/\/i\.ytimg\.com\/vi\/([\w-]{11})\/(hq|mq)default\.jpg$/;
 /** The mocks' cover of 30 Minute HIIT Cardio, kept beside the fixture: CI's checkout leaves out docs/. */
 const COVER_FILE = path.join(__dirname, 'class-cover.jpg');
+/** The mocks' covers of the other classes, by video id, scaled to 640 px; any other video gets COVER_FILE. */
+const COVERS = path.join(__dirname, 'covers');
 
 /**
  * The YouTube IFrame Player API as the page sees it, with no request leaving localhost (AGENTS.md, E2E). `YT.Player`
@@ -82,7 +85,10 @@ export class YouTubeFixture {
         ? route.abort('blockedbyclient')
         : route.fulfill({ contentType: 'text/javascript', body: FAKE_API }),
     );
-    await page.route(COVER, (route) => route.fulfill({ path: COVER_FILE }));
+    await page.route(COVER, (route) => {
+      const own = path.join(COVERS, `${COVER.exec(route.request().url())?.[1]}.jpg`);
+      return route.fulfill({ path: existsSync(own) ? own : COVER_FILE });
+    });
     return youtube;
   }
 
