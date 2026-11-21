@@ -2,6 +2,7 @@ import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { CLASSES_API, type ClassDto, VIDEO_PLAYER_FACTORY, type VideoPlayer } from '@telo/api';
+import type { RideOption } from '@telo/components';
 import { PlanSummary } from '@telo/domain';
 
 /**
@@ -25,6 +26,30 @@ export class ClassStartStore {
     const dto = this.loaded();
     return dto ? `${dto.channel} · ${Math.round(dto.lengthSeconds / 60)} min · ${dto.focus}` : '';
   });
+
+  /**
+   * The ways to ride (L2-085): alone, chosen; with a group, which cannot be chosen until group sessions can be read
+   * (slices 14.2 and 14.3, L2-085 AC5).
+   */
+  readonly options: readonly RideOption[] = [
+    {
+      id: 'alone',
+      title: 'Ride alone',
+      body: 'Start now. Pause whenever you like.',
+      icon: 'alone',
+      disabled: false,
+    },
+    {
+      id: 'group',
+      title: 'Ride with a group',
+      body: 'Group sessions can’t be reached right now.',
+      icon: 'group',
+      disabled: true,
+    },
+  ];
+
+  /** The chosen way to ride. */
+  readonly mode = signal('alone');
 
   /** "8 × 0:30 · 3:00 → 1:30 recover · ~154 W average" (L2-084 AC2). */
   readonly planSummary = computed(() => {

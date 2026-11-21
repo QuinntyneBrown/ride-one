@@ -24,6 +24,22 @@
             [syncOffsetSeconds]="dto.video.syncOffsetSeconds"
           />
         </section>
+        <wz-ride-choice
+          [options]="store.options"
+          [selected]="store.mode()"
+          (choose)="store.mode.set($event)"
+        >
+          <button
+            wz-button
+            variant="primary"
+            size="xl"
+            [block]="true"
+            type="button"
+            (click)="start(dto.id)"
+          >
+            Start class
+          </button>
+        </wz-ride-choice>
       </main>
     }
   </div>

@@ -1,12 +1,15 @@
 // Acceptance test
-// Traces to: L2-084 AC1 to AC3
+// Traces to: L2-084 AC1 to AC3; L2-085 AC1, AC4, AC5
 // Description: an open class card leads to its Class Start, which reads "← Classes", the class's channel, length and
 // focus, its title and its summary; "← Classes" leads back to the library. "What the bike will do" reads the class's
 // length, its resistance profile and its structure with the expected average power. The class video waits, parked at
 // its sync offset with YouTube's controls. "Video link and sync", collapsed at first, shows the link and the offset.
+// "Ride alone" is chosen, the group option says group sessions can't be reached, and Start class opens the ride.
+import { echelonBike } from './fixtures/echelon';
 import { library } from './fixtures/library';
 import { expect, test } from './fixtures/test';
 import { ClassLibraryPage } from './pages/class-library.page';
+import { ClassRidePage } from './pages/class-ride.page';
 import { ClassStartPage } from './pages/class-start.page';
 
 test.describe('Class Start', () => {
@@ -80,5 +83,24 @@ test.describe('Class Start', () => {
     );
     await expect(start.syncLink).toHaveAttribute('target', '_blank');
     await expect(start.syncOffset).toHaveText('Synced from 0:12.0');
+  });
+
+  test('Ride alone is chosen, the group option says why it cannot be chosen, and Start class opens the ride alone (L2-085 AC1, AC4, AC5) @critical', async ({
+    page,
+    bluetooth,
+  }) => {
+    await bluetooth.remember(echelonBike);
+    const start = new ClassStartPage(page);
+    await start.open('hiit-cardio-30');
+
+    await expect(start.alone).toHaveAttribute('aria-checked', 'true');
+    await expect(start.body(start.alone)).toHaveText('Start now. Pause whenever you like.');
+    await expect(start.group).toHaveAttribute('aria-checked', 'false');
+    await expect(start.group).toBeDisabled();
+    await expect(start.body(start.group)).toHaveText('Group sessions can’t be reached right now.');
+
+    await start.start.click();
+    await expect(page).toHaveURL('/classes/hiit-cardio-30/ride?mode=solo');
+    await expect(new ClassRidePage(page).name).toContainText('30 Minute HIIT Cardio');
   });
 });

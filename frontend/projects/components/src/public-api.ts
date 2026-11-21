@@ -16,6 +16,7 @@ export { BackLink } from './class-start/back-link';
 export { ClassPlan } from './class-start/class-plan';
 export { ClassStartVideo } from './class-start/class-start-video';
 export { ClassSync } from './class-start/class-sync';
+export { RideChoice, type RideOption } from './class-start/ride-choice';
 export { ClassStartHeader } from './class-start/class-start-header';
 export { ClassBike } from './class-ride/class-bike';
 export { ClassHeader } from './class-ride/class-header';
