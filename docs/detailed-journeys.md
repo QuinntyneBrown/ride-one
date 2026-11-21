@@ -20,7 +20,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 3.3 | Show heart rate | Connect a Bluetooth heart-rate strap from Profile; heart rate shows beside power during any ride. | 1 | 3. Read live telemetry | 100% |
 | 4.1 | Send target resistance | Frame commands; bike follows the target and reports resistance back. | 3 | 4. Control resistance | 100% |
 | 4.2 | Take over resistance | Stepper raises or lowers resistance; return to plan. | 2 | 4. Control resistance | 100% |
-| 5.1 | Workout engine and ride clock | Plan steps through segments on a true clock and sends each target. | 3 | 5. Ride a solo class | 0% |
+| 5.1 | Workout engine and ride clock | Plan steps through segments on a true clock and sends each target. | 3 | 5. Ride a solo class | 100% |
 | 5.2 | Class ride screen | Header, segment, power, cadence and resistance stepper on the simulated bike. | 3 | 5. Ride a solo class | 0% |
 | 5.3 | Sync the class video | YouTube player follows the ride clock; video-unavailable notice. | 3 | 5. Ride a solo class | 0% |
 | 5.4 | Pause, leave or finish a class | Pause and resume a solo class, leave with confirmation, or finish at the end and go to results. | 3 | 5. Ride a solo class | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 13 slices, 30 days (13%).
+**Total:** 95 slices, 238 days. **Complete:** 14 slices, 33 days (14%).
