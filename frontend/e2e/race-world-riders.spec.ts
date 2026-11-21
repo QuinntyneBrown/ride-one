@@ -76,6 +76,7 @@ test.describe('the race world', () => {
     // From furthest ahead, each at its place on the route.
     const metres = riders.map((rider) => rider.metres);
     expect(metres).toEqual([...metres].sort((a, b) => b - a));
+    expect((await worldRide.report())!.pacers).toBe(0);
   });
 
   test('draws the ghost of a solo race translucent gold (L2-064 AC3)', async ({
@@ -98,5 +99,7 @@ test.describe('the race world', () => {
     expect(ghost!.jersey).toBe('ghost');
     expect(ghost!.colour).toBe(await jerseyColour(page, 'ghost'));
     expect(ghost!.opacity).toBeLessThan(1);
+    // The ghost rides alone: none of `main`'s simulated pacers ride a race.
+    expect((await worldRide.report())!.pacers).toBe(0);
   });
 });

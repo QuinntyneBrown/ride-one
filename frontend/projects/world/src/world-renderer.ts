@@ -3933,13 +3933,16 @@ export class ThreeWorldRenderer implements WorldRenderer {
     ahead: RoadPoint[],
     riders: readonly SceneRider[],
   ): void {
-    for (const rider of this.raceRiders.values()) rider.group.visible = false;
+    // `main`'s pacers ride no race, though the start's rehearsal frame, which has no riders, drew them.
+    for (const rider of [...this.pacers.values(), ...this.raceRiders.values()])
+      rider.group.visible = false;
     const drawn = ridersOnRoad(riders, AHEAD * STEP);
     drawn.forEach((p, order) => {
       const rider = this.raceRider(p.jersey);
       if (rider) this.ride(world, frame, ahead, rider, p.metres, p.lane, order + 1);
     });
     if (this.probe) {
+      this.probe.pacers = [...this.pacers.values()].filter((p) => p.group.visible).length;
       this.probe.riders = drawn.map((p) => {
         const wear = this.wear.get(p.jersey);
         return {

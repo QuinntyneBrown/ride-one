@@ -44,6 +44,8 @@ export interface WorldRideProbeReport {
   compiled: number;
   /** The race's riders drawn in the latest frame, from furthest ahead (L2-064 AC3). */
   riders: DrawnRider[];
+  /** `main`'s simulated pacers drawn in the latest frame: none in a race, which draws its own riders. */
+  pacers: number;
 }
 
 /** A race rider the renderer drew: its jersey, its place, and the colour and opacity it wears. */
@@ -102,6 +104,7 @@ export function probeReport(
     dithered: 0,
     compiled: 0,
     riders: [],
+    pacers: 0,
   };
   (probe as { report?: WorldRideProbeReport }).report = report;
   return report;
