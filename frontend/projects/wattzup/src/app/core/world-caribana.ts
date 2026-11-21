@@ -649,11 +649,19 @@ export class CaribanaStreet implements SceneStreet {
       const metres = along(d.offset + this.march, LOOP);
       const y = heightAt(Math.max(metres, 0)) + ASPHALT;
       const t = this.time + d.phase;
-      // Chipping down the road: a bounce on every beat, a sway of the hips, a turn to the crowd.
+      // Chipping down the road: a bounce on every beat, a sway of the hips, a turn to the crowd,
+      // and the wine, the hips rolling round as the body tips forward and back, side to side.
       const bounce = Math.abs(Math.sin(t * 4.2)) * 0.07;
       const sway = Math.sin(t * 2.1) * 0.35;
       const x = d.x + Math.sin(t * 0.7) * 0.4;
-      this.tilt.setFromAxisAngle(this.forward, sway * 0.12);
+      const wine = d.phase % 1 < 0.6 ? 1 : 0.4;
+      this.tilt.setFromEuler(
+        this.tumble.set(
+          Math.cos(t * 2.1) * 0.12 * wine,
+          0,
+          sway * 0.12 + Math.sin(t * 2.1) * 0.08 * wine,
+        ),
+      );
       // Half the band wines facing back up the road, to the riders and the crowd behind.
       const facing = i % 2 ? Math.PI - d.side * 0.5 : d.side * 0.55;
       this.turn.setFromAxisAngle(this.up, facing + sway).multiply(this.tilt);
