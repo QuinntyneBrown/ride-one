@@ -1,9 +1,9 @@
 // Acceptance test
-// Traces to: L2-084 AC1, AC2
+// Traces to: L2-084 AC1 to AC3
 // Description: an open class card leads to its Class Start, which reads "← Classes", the class's channel, length and
 // focus, its title and its summary; "← Classes" leads back to the library. "What the bike will do" reads the class's
 // length, its resistance profile and its structure with the expected average power. The class video waits, parked at
-// its sync offset with YouTube's controls.
+// its sync offset with YouTube's controls. "Video link and sync", collapsed at first, shows the link and the offset.
 import { library } from './fixtures/library';
 import { expect, test } from './fixtures/test';
 import { ClassLibraryPage } from './pages/class-library.page';
@@ -61,5 +61,24 @@ test.describe('Class Start', () => {
       .toBe('Video: 30 Minute HIIT Cardio');
     expect((await youtube.players())[0].playing).toBe(false);
     expect(await youtube.seeks()).toEqual([]);
+  });
+
+  test('Video link and sync is collapsed at first, and expanded shows the video link and the sync offset (L2-084 AC3)', async ({
+    page,
+  }) => {
+    const start = new ClassStartPage(page);
+    await start.open('hiit-cardio-30');
+
+    await expect(start.syncToggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(start.syncLink).toHaveCount(0);
+
+    await start.syncToggle.click();
+    await expect(start.syncToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(start.syncLink).toHaveAttribute(
+      'href',
+      'https://www.youtube.com/watch?v=QUoToFsMNig',
+    );
+    await expect(start.syncLink).toHaveAttribute('target', '_blank');
+    await expect(start.syncOffset).toHaveText('Synced from 0:12.0');
   });
 });

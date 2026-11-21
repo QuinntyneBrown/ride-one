@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { BackLink, ClassPlan, ClassStartHeader, ClassStartVideo } from '@telo/components';
+import {
+  BackLink,
+  ClassPlan,
+  ClassStartHeader,
+  ClassStartVideo,
+  ClassSync,
+} from '@telo/components';
 import { ClassStartStore } from './class-start-store';
 
 /**
@@ -9,7 +15,7 @@ import { ClassStartStore } from './class-start-store';
  */
 @Component({
   selector: 'wz-class-start-page',
-  imports: [RouterLink, BackLink, ClassPlan, ClassStartHeader, ClassStartVideo],
+  imports: [RouterLink, BackLink, ClassPlan, ClassStartHeader, ClassStartVideo, ClassSync],
   templateUrl: './class-start-page.html',
   styleUrl: './class-start-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
