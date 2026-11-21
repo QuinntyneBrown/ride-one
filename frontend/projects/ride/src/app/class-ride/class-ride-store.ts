@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   BIKE_CONNECTION,
   CLASSES_API,
@@ -52,6 +52,7 @@ export class ClassRideStore {
   private readonly pausedByBike = signal(false);
   private readonly connection = inject(BIKE_CONNECTION);
   private readonly beat = inject(TICKER);
+  private readonly router = inject(Router);
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
 
@@ -165,9 +166,10 @@ export class ClassRideStore {
     this.clock.start();
     this.ticker.start();
     this.engine.follow(dto.plan);
-    this.ticker.ticks
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.syncVideo(dto));
+    this.ticker.ticks.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((second) => {
+      if (second >= dto.lengthSeconds) this.finish();
+      else this.syncVideo(dto);
+    });
     // The bike is watched on a beat of its own: the ride clock's ticks stop while the ride is held.
     this.beat.seconds
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -185,6 +187,17 @@ export class ClassRideStore {
     if (this.pausedByRider()) return;
     if (lost) this.hold();
     else this.carryOn(ride);
+  }
+
+  /**
+   * The plan's end: the clock stops at the class length, the video pauses, and Results opens (L2-093 AC2). Leaving the
+   * page releases the rest. The ride's submission comes with *record a ride* (slice 10.1).
+   */
+  private finish(): void {
+    this.clock.pause();
+    this.ticker.stop();
+    this.player()?.pause();
+    void this.router.navigateByUrl('/results');
   }
 
   private hold(): void {
