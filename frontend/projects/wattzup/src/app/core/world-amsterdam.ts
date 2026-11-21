@@ -277,7 +277,7 @@ export class AmsterdamStreet implements SceneStreet {
       roughness: 0.85,
     });
     const quay = this.material({
-      map: this.repeat(clinkerTexture('#7a6a5e'), 2.4, 2.4),
+      map: this.repeat(clinkerTexture('#86705f'), 2.4, 2.4),
       roughness: 0.9,
     });
     const stone = this.material({ color: 0x8f8a82, roughness: 0.9 });
