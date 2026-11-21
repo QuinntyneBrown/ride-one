@@ -169,6 +169,7 @@ export class MiamiStreet implements SceneStreet {
   /** The signals' red, amber and green lamps. */
   private readonly lights: MeshStandardMaterial[] = [];
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
   private readonly flat = new PlaneGeometry(1, 1);
@@ -415,12 +416,12 @@ export class MiamiStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const riders = this.riders;
     this.cyclists.forEach((c, i) => {
       const metres = loopMetres(c.offset - c.speed * this.time, s, LOOP, BEHIND);
-      const y = heightAt(Math.max(metres, 0));
+      const y = heightAt(metres);
       c.mesh.position.set(c.x, y + 0.02, -metres);
       riders?.set(i, c.x, y + 0.2, -metres + 0.15, Math.PI, 0.92);
     });
@@ -428,7 +429,7 @@ export class MiamiStreet implements SceneStreet {
     const occupants = this.occupants;
     this.traffic.forEach((car, c) => {
       const metres = loopMetres(car.offset - car.speed * this.time, s, LOOP, BEHIND);
-      const y = heightAt(Math.max(metres, 0));
+      const y = heightAt(metres);
       car.mesh.position.set(this.trafficX, y, -metres);
       // The driver and a passenger sit up in each open car, heads above the windscreen.
       if (occupants && c < 5)
@@ -442,7 +443,7 @@ export class MiamiStreet implements SceneStreet {
       this.people.forEach((p, i) => {
         const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
         const bob = Math.abs(Math.sin(this.time * 3 + p.phase)) * 0.04;
-        const y = heightAt(Math.max(metres, 0)) + 0.15 + bob;
+        const y = heightAt(metres) + 0.15 + bob;
         crowd.set(i, p.x, y, -metres, p.speed >= 0 ? 0 : Math.PI, 0.98, 0);
         this.dress(
           i,
@@ -464,7 +465,7 @@ export class MiamiStreet implements SceneStreet {
           loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND) + (p.speed >= 0 ? 1.1 : -1.1);
         const trot = Math.abs(Math.sin(this.time * 9 + p.phase)) * 0.04;
         this.limb.makeRotationY(p.speed >= 0 ? 0 : Math.PI);
-        this.limb.setPosition(p.x + 0.35, heightAt(Math.max(metres, 0)) + 0.15 + trot, -metres);
+        this.limb.setPosition(p.x + 0.35, heightAt(metres) + 0.15 + trot, -metres);
         dogs.setMatrixAt(i, this.limb);
       });
       dogs.instanceMatrix.needsUpdate = true;
@@ -474,7 +475,7 @@ export class MiamiStreet implements SceneStreet {
       this.skaters.forEach((p, i) => {
         const metres = loopMetres(p.offset + p.speed * this.time, s, LOOP, BEHIND);
         const stride = Math.sin(this.time * 2.6 + p.phase);
-        const y = heightAt(Math.max(metres, 0)) + 0.15;
+        const y = heightAt(metres) + 0.15;
         const turn = (p.speed >= 0 ? 0 : Math.PI) + stride * 0.3;
         skating.set(i, p.x + stride * 0.25, y, -metres, turn, 0.95);
         this.dress(
@@ -496,7 +497,7 @@ export class MiamiStreet implements SceneStreet {
         const sway = Math.sin(this.time * 1.3 + p.phase) * 0.12;
         // Dancers bounce on the beat with their arms thrown up and swaying.
         const bounce = p.dance ? Math.abs(Math.sin(this.time * 6.5 + p.phase)) * 0.12 : 0;
-        const y = heightAt(Math.max(metres, 0)) + 0.15 - (p.seat ?? 0) + bounce;
+        const y = heightAt(metres) + 0.15 - (p.seat ?? 0) + bounce;
         const turn = p.heading + (p.dance ? sway * 3 : sway * (p.seat ? 0.3 : 1));
         chatting.set(i, p.x, y, -metres, turn, p.scale);
         this.dress(
@@ -536,7 +537,7 @@ export class MiamiStreet implements SceneStreet {
         const metres = spot.offset - s;
         const size = 0.08 + age * 0.5;
         this.drop.makeScale(size, 1, size);
-        this.drop.setPosition(spot.x, heightAt(Math.max(metres, 0)) + 0.03, -metres);
+        this.drop.setPosition(spot.x, heightAt(metres) + 0.03, -metres);
         ripples.setMatrixAt(i, this.drop);
         ripples.setColorAt(i, this.shade.setScalar(0.7 * (1 - age)));
       }
