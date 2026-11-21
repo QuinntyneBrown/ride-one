@@ -37,7 +37,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3 | Saved time |
 | L11 | Prove a test double from the outside: a spec drives the browser API through a helper (`AppCalls`) until the app's own client exists; prove its guard with `test.fail()`, and run once without it to read the failure's reason. | 1.3 | | |
 | L12 | In zsh and BSD tools: quote globs in arguments (`--include='*.cs'`), and replace whole words with `perl -pi -e 's/\bOld\b/New/g'`; BSD `sed` has no `\b`. | 1.3 | | |
-| L13 | A lockfile change in a worktree makes verify run `npm ci` through the symlinked `node_modules`, reinstalling the main checkout's copy: add a package only when the slice needs it, and only add, never upgrade. | 1.3 | | |
+| L13 | When the lockfile changes, verify's `npm ci` replaces the worktree's `node_modules` link with its own fresh install (about 4 s; the main checkout's copy is untouched): delete it with `rm -rf` before `git worktree remove`, and copy any added package into the main checkout's `node_modules` so the next worktree's link has it. | 1.3 | | |
 
 ## Log
 
@@ -65,7 +65,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 - zsh again: an unquoted `--include=*.cs` was globbed, and BSD `sed` ignored `\b`, so a rename did
   nothing until it was redone with perl.
 - The e2e type check had no Web Bluetooth types; `@types/web-bluetooth` was added, and the lockfile
-  change made verify reinstall the shared `node_modules`.
+  change made verify install `node_modules` afresh in the worktree, in place of the link.
 - With no app code calling Bluetooth, HTTP or the hub yet, each double needed an in-page driver
   (`AppCalls`) before its spec could fail for the right reason, and each guard needed `test.fail()`
   plus one run without it.
@@ -76,8 +76,9 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
   the app's client exists, prove each guard with `test.fail()`, and read the reason once without it.
 - **L12 zsh and BSD tools.** Quote globs in arguments, and use `perl -pi -e` with `\b` for whole-word
   renames.
-- **L13 Lockfile changes reach the main checkout.** Verify's `npm ci` runs through the symlinked
-  `node_modules`; add packages only when needed, and only add.
+- **L13 A lockfile change gives the worktree its own install.** Verify's `npm ci` replaced the
+  `node_modules` link with a fresh install in the worktree; the main checkout's copy was untouched.
+  (First written as the reverse; corrected in 1.4 when `git worktree remove` met a real folder.)
 
 ### 1.2 Backend skeleton (2026-11-21)
 
