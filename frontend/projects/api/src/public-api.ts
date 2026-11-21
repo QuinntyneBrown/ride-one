@@ -13,6 +13,7 @@ export {
 } from './bike/bluetooth-support';
 export { HEART_RATE_STRAP, type HeartRateStrap, type StrapState } from './bike/heart-rate-strap';
 export { REMEMBERED_BIKE, type RememberedBike } from './bike/remembered-bike';
+export type { ResistanceSource, SentCommand } from './bike/sent-command';
 export type { BikeSupportLevel, SupportedBike } from './bike/supported-bike';
 export type { TelemetrySample } from './bike/telemetry-sample';
 export { TICKER, type Ticker } from './time/ticker';
