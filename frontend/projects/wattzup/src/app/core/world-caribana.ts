@@ -2326,17 +2326,18 @@ export class CaribanaStreet implements SceneStreet {
     const tack = this.material({ color: 0x1a1410, roughness: 0.6 });
     const hoof = this.material({ color: 0x141414, roughness: 0.8 });
     const saddlecloth = this.material({ color: 0x1b3f8a, roughness: 0.8 });
+    const steelTack = this.material({ color: 0xb8bcc0, roughness: 0.3, metalness: 0.9 });
     const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
     for (let k = 0; k < 2; k++) {
       const coat = this.material({ color: coats[k], roughness: 0.55 });
       const horse = new Group();
       const parts: BufferGeometry[] = [];
       // Barrel, chest and hindquarters.
-      parts.push(ellipsoid(0.5, 0.8, 1, 1.75, 0, 1.45, 0, 14));
-      parts.push(ellipsoid(0.42, 0.9, 1, 0.9, 0, 1.5, -0.75, 12));
-      parts.push(ellipsoid(0.46, 1, 1, 1, 0, 1.52, 0.7, 12));
+      parts.push(ellipsoid(0.48, 0.68, 0.92, 1.8, 0, 1.47, 0, 14));
+      parts.push(ellipsoid(0.4, 0.66, 0.95, 0.85, 0, 1.55, -0.78, 12));
+      parts.push(ellipsoid(0.44, 0.78, 0.95, 1, 0, 1.55, 0.72, 12));
       // The neck rising forward, the head and muzzle, the ears.
-      parts.push(...limb(v(0, 1.75, -0.8), v(0, 2.35, -1.25), 0.24, 0.16, 10));
+      parts.push(...limb(v(0, 1.75, -0.8), v(0, 2.35, -1.25), 0.22, 0.15, 10));
       parts.push(...limb(v(0, 2.38, -1.27), v(0, 2.05, -1.72), 0.13, 0.09, 10));
       for (const x of [-0.07, 0.07])
         parts.push(...limb(v(x, 2.45, -1.25), v(x, 2.62, -1.2), 0.03, 0.01, 5));
@@ -2347,8 +2348,8 @@ export class CaribanaStreet implements SceneStreet {
         [-0.2, 0.75],
         [0.2, 0.75],
       ] as const) {
-        parts.push(...limb(v(x, 1.2, z), v(x, 0.62, z + 0.03), 0.1, 0.07, 8));
-        parts.push(...limb(v(x, 0.62, z + 0.03), v(x, 0.1, z), 0.06, 0.05, 8));
+        parts.push(...limb(v(x, 1.25, z), v(x, 0.62, z + 0.03), 0.13, 0.075, 8));
+        parts.push(...limb(v(x, 0.62, z + 0.03), v(x, 0.1, z), 0.06, 0.055, 8));
       }
       const body = mergeGeometries(parts.map((g) => (g.index ? g.toNonIndexed() : g)))!;
       parts.forEach((g) => g.dispose());
@@ -2374,6 +2375,48 @@ export class CaribanaStreet implements SceneStreet {
       this.disposables.push(body, hooves, strands, cloth, reins);
       horse.add(new Mesh(body, coat), new Mesh(hooves, hoof), new Mesh(cloth, saddlecloth));
       horse.add(new Mesh(reins, tack), tail);
+      // The mane along the crest of the neck and a forelock between the ears, in tufts.
+      const mane: BufferGeometry[] = [];
+      for (let m = 0; m <= 10; m++) {
+        const t = m / 10;
+        const at = v(0, 1.78, -0.82).lerp(v(0, 2.42, -1.2), t);
+        const tuft = new BoxGeometry(0.05, 0.22, 0.09);
+        tuft.rotateX(0.6);
+        tuft.rotateZ((m % 2 ? 1 : -1) * 0.35);
+        tuft.translate(m % 2 ? 0.07 : -0.07, at.y + 0.05, at.z + 0.06);
+        mane.push(tuft.toNonIndexed());
+        tuft.dispose();
+      }
+      const forelock = new BoxGeometry(0.1, 0.16, 0.04);
+      forelock.rotateX(0.5);
+      forelock.translate(0, 2.36, -1.36);
+      mane.push(forelock.toNonIndexed());
+      forelock.dispose();
+      const maneGeometry = mergeGeometries(mane)!;
+      mane.forEach((g) => g.dispose());
+      // The bridle: a browband and noseband round the head, the cheek pieces between.
+      const bridle = merge([
+        new TorusGeometry(0.13, 0.014, 4, 14)
+          .rotateY(Math.PI / 2)
+          .rotateZ(0.9)
+          .translate(0, 2.3, -1.38),
+        new TorusGeometry(0.1, 0.014, 4, 14)
+          .rotateY(Math.PI / 2)
+          .rotateZ(0.9)
+          .translate(0, 2.1, -1.62),
+      ]);
+      // The saddle on the cloth, and the stirrups hanging either side.
+      const saddle = ellipsoid(0.32, 1, 0.35, 1.3, 0, 1.98, -0.05, 12);
+      const stirrups = merge(
+        [-1, 1].flatMap((side) => [
+          ...limb(v(side * 0.36, 1.92, -0.05), v(side * 0.4, 1.3, -0.08), 0.012, 0.012, 4, false),
+          new TorusGeometry(0.06, 0.015, 4, 10).translate(side * 0.4, 1.25, -0.08),
+        ]),
+      );
+      this.disposables.push(maneGeometry, bridle, saddle, stirrups);
+      const hair = this.material({ color: k ? 0x0e0b09 : 0x1a120c, roughness: 0.85 });
+      horse.add(new Mesh(maneGeometry, hair), new Mesh(bridle, tack));
+      horse.add(new Mesh(saddle, tack), new Mesh(stirrups, steelTack));
       // The officer in the saddle, legs either side, in navy and hi-vis, a white helmet.
       const rider = spectatorParts(0, false, true);
       this.disposables.push(rider.skin, rider.top, rider.bottom);
