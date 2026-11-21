@@ -2191,10 +2191,10 @@ export class HavanaStreet implements SceneStreet {
     const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.3 });
     const tail = this.material({ color: 0xb01020, emissive: 0x600010, emissiveIntensity: 0.4 });
     const paints = [0xe8e4d8, 0xd8c8a0, 0x8ab0c8, 0xa83228, 0x5a7a5a, 0xc8c0b0, 0x3a5a8a];
-    const build = () => {
+    const build = (police = false) => {
       const car = new Group();
       const paint = this.material({
-        color: paints[Math.floor(random() * paints.length)]!,
+        color: police ? 0xf2f2ee : paints[Math.floor(random() * paints.length)]!,
         roughness: 0.55,
         metalness: 0.15,
       });
@@ -2259,6 +2259,65 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(holder);
       this.props.push({ mesh: holder, offset: offset + random() * 8, x: roadHalf - 1.0 });
     }
+    // A PNR patrol car stopped in the lane, lights on: a white Lada with a blue band along its flanks, POLICÍA on
+    // the doors, a light bar on the roof; its officer stands in the road at the driver's door.
+    const patrol = build(true);
+    const blue = this.material({ color: 0x1f4e9a, roughness: 0.5 });
+    const band = (x: number) => {
+      const strip = new Mesh(this.unit, blue);
+      strip.scale.set(0.02, 0.16, 3.9);
+      strip.position.set(x, 0.55, 0);
+      patrol.add(strip);
+    };
+    band(-0.82);
+    band(0.82);
+    const bar = new Mesh(this.unit, this.material({ color: 0x222428, roughness: 0.5 }));
+    bar.scale.set(1.0, 0.09, 0.26);
+    bar.position.set(0, 1.35, -0.1);
+    patrol.add(bar);
+    for (const [x, colour] of [
+      [-0.3, 0x2050ff],
+      [0.3, 0xff2030],
+    ] as const) {
+      const light = new Mesh(
+        this.unit,
+        this.material({ color: colour, emissive: colour, emissiveIntensity: 0.8, roughness: 0.3 }),
+      );
+      light.scale.set(0.36, 0.11, 0.22);
+      light.position.set(x, 1.43, -0.1);
+      patrol.add(light);
+    }
+    const officer = new Group();
+    const uniform = this.material({ color: 0x5a6a7c, roughness: 0.8 });
+    const navy = this.material({ color: 0x1e2838, roughness: 0.85 });
+    const skin = this.material({ color: 0x8d5a3b, roughness: 0.8 });
+    const torso = new Mesh(new CapsuleGeometry(0.17, 0.42, 3, 8), uniform);
+    torso.position.y = 1.08;
+    const head = new Mesh(new SphereGeometry(0.11, 10, 8), skin);
+    head.position.y = 1.52;
+    const cap = new Mesh(new CylinderGeometry(0.12, 0.11, 0.09, 12), navy);
+    cap.position.y = 1.62;
+    const peak = new Mesh(this.unit, navy);
+    peak.scale.set(0.16, 0.015, 0.1);
+    peak.position.set(0, 1.585, 0.12);
+    officer.add(torso, head, cap, peak);
+    for (const z of [-0.1, 0.1]) {
+      const leg = new Mesh(new CapsuleGeometry(0.07, 0.62, 3, 6), navy);
+      leg.position.set(z, 0.42, 0);
+      const arm = new Mesh(new CapsuleGeometry(0.05, 0.42, 3, 6), uniform);
+      arm.position.set(z * 2.3, 1.02, 0);
+      officer.add(leg, arm);
+    }
+    officer.traverse((m) => {
+      m.castShadow = true;
+      if (m instanceof Mesh) this.disposables.push(m.geometry);
+    });
+    officer.position.set(-1.3, 0, 0.6);
+    officer.rotation.y = Math.PI / 2;
+    const post = new Group();
+    post.add(patrol, officer);
+    this.group.add(post);
+    this.props.push({ mesh: post, offset: 51, x: roadHalf - 3.6 });
   }
 
   /**
