@@ -104,6 +104,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [098 · Lane arrows](098-lane-arrows.jpg) | Lane arrows are now painted on the asphalt in all four lanes: five metres long so they read foreshortened, mostly straight ahead, some ahead-and-right, the white scuffed and worn through by tyres. From the saddle, one points ahead in the left lane just past the manhole cover. | 94% · 93/100 |
 | [099 · Couple on the wall](099-couple-on-the-wall.jpg) | A couple now sit close on the seawall with their backs to the road, legs dangling over the sea side: he in a white shirt with his arm across her shoulders, she in pink with her head leant toward his. From the saddle, they sit on the wall between the teal cart and the coche's horse, against the sea. | 94% · 93/100 |
 | [100 · Litter](100-litter.jpg) | Litter now gathers in both gutters against the kerb: scraps of white and brown paper, flattened cans, bottle caps and dry leaves at all angles, mostly close in to the kerb. From the saddle, paper scraps and a red can lie in the near gutter below the yellow kerb; small, best seen close. | 94% · 93/100 |
+| [101 · Papalote](101-papalote.jpg) | A boy now flies a papalote from the promenade: a diamond kite in four bright panels on a cross of sticks, riding high ahead of him with a tail of red, white and blue rag bows, its line sagging back to his raised hand. From the saddle, the kite rides in the sky above the billboard, its tail fluttering below it and its line running down toward the wall. | 94% · 93/100 |
 
 ## Reproducing a capture
 
