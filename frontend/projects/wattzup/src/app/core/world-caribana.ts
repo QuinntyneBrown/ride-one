@@ -1871,6 +1871,37 @@ export class CaribanaStreet implements SceneStreet {
       }),
     )!;
     const cloth = new PlaneGeometry(0.74, 2.2);
+    const basketBracket = new BoxGeometry(1.1, 0.04, 0.04);
+    basketBracket.translate(-0.55, 3.4, 0);
+    const basket = new SphereGeometry(0.38, 14, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    basket.translate(-1.05, 2.95, 0);
+    const blooms = new SphereGeometry(0.5, 14, 9);
+    blooms.scale(1, 0.62, 1);
+    blooms.translate(-1.05, 3.0, 0);
+    // Petunias in pink, magenta, white and purple, splashed over the dome by vertex colour.
+    const petals = ['#ff4fa3', '#c2187a', '#ffffff', '#7b2ff7', '#ff7ab8'].map((c) => new Color(c));
+    const leafGreen = new Color('#3f7a33');
+    const bloomPositions = blooms.getAttribute('position');
+    const bloomColours = new Float32Array(bloomPositions.count * 3);
+    const splash = seeded(4307);
+    for (let v = 0; v < bloomPositions.count; v++) {
+      const c = splash() < 0.72 ? petals[Math.floor(splash() * petals.length)]! : leafGreen;
+      bloomColours.set([c.r, c.g, c.b], v * 3);
+    }
+    blooms.setAttribute('color', new BufferAttribute(bloomColours, 3));
+    const strands = [];
+    for (let k = 0; k < 9; k++) {
+      const a = (k / 9) * Math.PI * 2;
+      const strand = new CylinderGeometry(0.03, 0.015, 0.6 + (k % 3) * 0.2, 5);
+      strand.translate(-1.05 + Math.cos(a) * 0.36, 2.55 - (k % 3) * 0.1, Math.sin(a) * 0.36);
+      strands.push(strand.toNonIndexed());
+      strand.dispose();
+    }
+    const trailing = mergeGeometries(strands)!;
+    this.disposables.push(basketBracket, basket, blooms, trailing);
+    const coir = this.material({ color: 0x5a4632, roughness: 1 });
+    const flowers = this.material({ vertexColors: true, roughness: 0.8 });
+    const ivy = this.material({ color: 0x2f6b2a, roughness: 0.85 });
     this.disposables.push(pole, plate, skirt, davit, head, lens, brackets, cloth);
     const steel = this.material({ color: 0xa9aeb2, metalness: 0.7, roughness: 0.45 });
     const housing = this.material({ color: 0x8c9196, metalness: 0.5, roughness: 0.5 });
@@ -1898,6 +1929,9 @@ export class CaribanaStreet implements SceneStreet {
         arm.add(new Mesh(pole, steel), new Mesh(plate, steel), new Mesh(skirt, steel));
         arm.add(new Mesh(davit, steel), new Mesh(head, housing), new Mesh(lens, glass));
         arm.add(new Mesh(brackets, steel));
+        // A hanging basket of petunias and trailing ivy on a bracket out over the pavement.
+        arm.add(new Mesh(basketBracket, steel), new Mesh(basket, coir));
+        arm.add(new Mesh(blooms, flowers), new Mesh(trailing, ivy));
         // One festival banner and one island flag on each standard.
         const festival = new Mesh(cloth, festivals[(k >> 1) % festivals.length]!);
         festival.position.set(-0.48, 5.15, 0);
