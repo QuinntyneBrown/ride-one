@@ -61,7 +61,12 @@ import {
 import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
-import { PROBE_KEY, readWorldRideProbe, reportToProbe } from './world-ride-probe';
+import {
+  PROBE_KEY,
+  probeReport,
+  readWorldRideProbe,
+  type WorldRideProbeReport,
+} from './world-ride-probe';
 import { bendAhead, bendPoint, heading, lean, racingLine } from './scene-bend';
 import { EASE_PER_SECOND, MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import { RoadBend } from './world-bend';
@@ -3121,6 +3126,8 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private pipeline: RenderPipeline | null = null;
   private backend: Backend = 'webgl2';
   private budget: FrameBudget | null = null;
+  /** What the test-only hook's sweep reads; null on every rider's ride (#672, #674). */
+  private probe: WorldRideProbeReport | null = null;
   private on = new Set<number>();
   private reducedMotion = false;
   private lastFrameAt: number | null = null;
@@ -3188,6 +3195,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
     // The test-only hook pins the tier; ultra draws at high on WebGL2 (L2-111 AC2).
     const pin = probe && this.backend === 'webgl2' && probe.tier === 'ultra' ? 'high' : probe?.tier;
     this.budget = new FrameBudget(pin ?? startTier(this.backend), undefined, { pinned: !!pin });
+    this.probe = probeReport(this.budget.tier, this.backend);
+    // The sweep counts every pass of a frame, so the counts reset per frame, not per render.
+    if (this.probe) this.renderer.info.autoReset = false;
 
     this.buildScene(world, canvas);
     // Docklands' photographed distance is the mock's own still, riders and all: its towers are
@@ -3292,8 +3302,13 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.camera.position.set(eye.x, heightAt(ahead, -5.5) + 2.1, eye.z);
     this.camera.lookAt(look.x, 1.2 + heightAt(ahead, 24), look.z);
 
+    if (this.probe) this.renderer.info.reset();
     if (this.pipeline) this.pipeline.render();
     else this.renderer.render(this.scene, this.camera);
+    if (this.probe) {
+      this.probe.drawCalls = this.renderer.info.render.drawCalls;
+      this.probe.programs = this.renderer.info.memory.programs;
+    }
   }
 
   setFramePeriod(ms: number): void {
@@ -3319,6 +3334,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     const now = performance.now();
     const last = this.lastFrameAt;
     this.lastFrameAt = now;
+    if (this.probe && last !== null) this.probe.frames.push(now - last);
     if (last === null || now - last > 1000 || !this.budget) return;
     if (this.budget.sample(now, now - last) === 'drop') this.applyTier();
   }
@@ -3329,7 +3345,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (!renderer || !this.budget) return;
     const tier = this.budget.tier;
     const on = techniquesAt(tier, this.backend, this.reducedMotion);
-    reportToProbe({ tier, backend: this.backend });
+    if (this.probe) this.probe.tier = tier;
     this.on = on;
     const look = this.look;
 
