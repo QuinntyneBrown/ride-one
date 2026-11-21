@@ -6,7 +6,7 @@ interface Segment {
   cadenceAim: number;
 }
 
-const work: Segment = { kind: 'work', duration: 30, level: 18, cadenceAim: 100 };
+const work: Segment = { kind: 'work', duration: 30, level: 24, cadenceAim: 100 };
 const recover = (duration: number): Segment => ({
   kind: 'recover',
   duration,

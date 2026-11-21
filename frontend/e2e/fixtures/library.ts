@@ -204,7 +204,7 @@ export const library = {
       world: 'oldtown',
       video: {
         videoId: 'QUoToFsMNig',
-        syncOffsetSeconds: 3,
+        syncOffsetSeconds: 12,
       },
       plan: {
         segments: [
@@ -217,7 +217,7 @@ export const library = {
           {
             kind: 'work',
             duration: 30,
-            level: 18,
+            level: 24,
             cadenceAim: 100,
           },
           {
@@ -229,7 +229,7 @@ export const library = {
           {
             kind: 'work',
             duration: 30,
-            level: 18,
+            level: 24,
             cadenceAim: 100,
           },
           {
@@ -241,7 +241,7 @@ export const library = {
           {
             kind: 'work',
             duration: 30,
-            level: 18,
+            level: 24,
             cadenceAim: 100,
           },
           {
@@ -253,7 +253,7 @@ export const library = {
           {
             kind: 'work',
             duration: 30,
-            level: 18,
+            level: 24,
             cadenceAim: 100,
           },
           {
@@ -265,7 +265,7 @@ export const library = {
           {
             kind: 'work',
             duration: 30,
-            level: 18,
+            level: 24,
             cadenceAim: 100,
           },
           {
@@ -277,7 +277,7 @@ export const library = {
           {
             kind: 'work',
             duration: 30,
-            level: 18,
+            level: 24,
             cadenceAim: 100,
           },
           {
@@ -289,7 +289,7 @@ export const library = {
           {
             kind: 'work',
             duration: 30,
-            level: 18,
+            level: 24,
             cadenceAim: 100,
           },
           {
@@ -301,7 +301,7 @@ export const library = {
           {
             kind: 'work',
             duration: 30,
-            level: 18,
+            level: 24,
             cadenceAim: 100,
           },
           {

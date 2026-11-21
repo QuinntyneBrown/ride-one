@@ -142,7 +142,7 @@ test.describe('Pause, leave or finish a class', () => {
         .writes()
         .slice(writes)
         .map((write) => write.hex),
-    ).not.toContain(targetResistanceWrite(18));
+    ).not.toContain(targetResistanceWrite(24));
   });
 
   test('at the class length the ride ends and Results opens (L2-093 AC2)', async ({
