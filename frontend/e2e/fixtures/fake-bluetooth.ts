@@ -121,6 +121,28 @@ export class FakeBluetooth {
     await this.page.evaluate((value) => Object.assign(window, { __fakeAdapterOn: value }), on);
   }
 
+  /** The bike drops its link: GATT reports disconnected and `gattserverdisconnected` fires (L2-017). */
+  async drop(): Promise<void> {
+    await this.page.evaluate(() =>
+      (window as unknown as { __fakeBluetooth: { drop(): void } }).__fakeBluetooth.drop(),
+    );
+  }
+
+  /** The bike is switched off: every GATT connection attempt fails, as a bike out of range does. */
+  async switchOff(): Promise<void> {
+    await this.power(false);
+  }
+
+  /** The bike is switched on and pedalled: GATT connects again. */
+  async switchOn(): Promise<void> {
+    await this.power(true);
+  }
+
+  private async power(on: boolean): Promise<void> {
+    await this.page.addInitScript((value) => Object.assign(window, { __fakeBikeOn: value }), on);
+    await this.page.evaluate((value) => Object.assign(window, { __fakeBikeOn: value }), on);
+  }
+
   /** The chooser opens again as usual. */
   async allowChooser(): Promise<void> {
     await this.chooser(null);
@@ -223,6 +245,7 @@ function installInPage(): void {
     ).join(' ');
 
   const subscriptions = new Map<string, EventTarget[]>();
+  const devices: { device: EventTarget; server: { connected: boolean } }[] = [];
   const characteristic = (bike: Bike, uuid: string) => {
     const write = async (value: BufferSource, withResponse: boolean) =>
       report({ kind: 'write', characteristic: uuid, hex: hex(value), withResponse });
@@ -269,6 +292,8 @@ function installInPage(): void {
       connected: false,
       device: null as unknown,
       connect: async () => {
+        if ((window as unknown as { __fakeBikeOn?: boolean }).__fakeBikeOn === false)
+          throw new DOMException('Bluetooth Device is no longer in range.', 'NetworkError');
         server.connected = true;
         return gatt;
       },
@@ -287,6 +312,7 @@ function installInPage(): void {
       'device',
     );
     server.device = d;
+    devices.push({ device: d, server });
     return d;
   };
 
@@ -318,6 +344,13 @@ function installInPage(): void {
   Object.defineProperty(navigator, 'bluetooth', { value: bluetooth, configurable: true });
   Object.assign(window, {
     __fakeBluetooth: {
+      drop: () => {
+        subscriptions.clear();
+        for (const { device, server } of devices.filter(({ server }) => server.connected)) {
+          server.connected = false;
+          device.dispatchEvent(new Event('gattserverdisconnected'));
+        }
+      },
       notify: (uuid: string, bytes: number[]) => {
         for (const c of subscriptions.get(uuid) ?? []) {
           (c as unknown as { value: DataView }).value = new DataView(Uint8Array.from(bytes).buffer);

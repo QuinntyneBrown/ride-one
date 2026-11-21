@@ -32,6 +32,7 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
   readonly frames = this.sent.asObservable();
   readonly ble = this.link.asReadonly();
   readonly bike = this.chosen.asReadonly();
+  readonly lastError = signal<string | null>(null).asReadonly();
 
   async requestBike(): Promise<BikeInfo> {
     this.chosen.set(SIMULATED_BIKE);
@@ -48,6 +49,11 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
   async reconnectRemembered(): Promise<boolean> {
     await this.connect();
     return true;
+  }
+
+  /** The simulated bike never drops, so there is nothing to retry. */
+  reconnectNow(): void {
+    return;
   }
 
   async setResistance(level: number): Promise<number> {

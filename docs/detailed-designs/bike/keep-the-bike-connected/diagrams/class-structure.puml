@@ -40,7 +40,7 @@ class KeepaliveScheduler <<domain/bluetooth>> {
 }
 class DeviceReconnector <<domain/bluetooth>> {
   +intervalMs: number = 3000
-  -pending: AbortController | null
+  -timer: Timeout | undefined
   +start(attempt: () => Promise<boolean>): void
   +retryNow(): void
   +stop(): void

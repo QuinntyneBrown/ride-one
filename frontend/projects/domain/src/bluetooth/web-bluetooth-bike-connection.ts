@@ -14,6 +14,7 @@ import type { BikeLink } from './bike-link';
 import { bikeIdentity } from './bike-identity';
 import { EchelonLink } from './echelon-link';
 import { FtmsLink } from './ftms-link';
+import { DeviceReconnector } from './device-reconnector';
 import { GattWriteQueue } from './gatt-write-queue';
 
 /** FTMS (0x1826) and Heart Rate (0x180D), the standard services the chooser offers beside Echelon's. */
@@ -30,8 +31,13 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private readonly received = new Subject<Uint8Array>();
   private readonly queue = new GattWriteQueue();
   private readonly ticker = inject(TICKER);
+  private readonly reconnector = new DeviceReconnector();
   private device: BluetoothDevice | null = null;
+  private watched: BluetoothDevice | null = null;
   private link: BikeLink | null = null;
+  /** The last target resistance asked for, sent again first after a reconnect (L2-017 AC4). */
+  private target: number | null = null;
+  private readonly onDisconnected = (): void => this.onDrop();
   private readonly onValue = (event: Event): void => {
     const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
     if (value)
@@ -42,10 +48,13 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
 
   private readonly linkState = signal<BleState>('idle');
   private readonly chosen = signal<BikeInfo | null>(null);
+  private readonly failure = signal<string | null>(null);
 
   readonly frames = this.received.asObservable();
   readonly ble = this.linkState.asReadonly();
   readonly bike = this.chosen.asReadonly();
+  /** The last Web Bluetooth error as `name: message`, for the screens to render as text (L2-017 AC5). */
+  readonly lastError = this.failure.asReadonly();
 
   /** Opens the browser's chooser; call it only from the rider's click. A closed chooser resolves `null`. */
   async requestBike(): Promise<BikeInfo | null> {
@@ -70,18 +79,27 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
    */
   async connect(): Promise<void> {
     if (!this.device?.gatt) throw new BikeConnectionError('failed', 'No bike was chosen');
+    this.watch(this.device);
     this.linkState.set('connecting');
     try {
-      await this.open(this.device.gatt);
+      const link = await this.open(this.device.gatt);
       this.linkState.set('connected');
+      link.connected();
     } catch (error) {
+      this.report(error);
+      this.closeLink();
       this.linkState.set('idle');
       throw error;
     }
   }
 
+  /** Cancels the wait for the next retry and tries the dropped bike at once (L2-017 AC3). */
+  reconnectNow(): void {
+    if (this.linkState() === 'disconnected') this.reconnector.retryNow();
+  }
+
   /** One attempt: GATT, the link, its initialisation, and the first notification after it. */
-  private async open(gatt: BluetoothRemoteGATTServer): Promise<void> {
+  private async open(gatt: BluetoothRemoteGATTServer): Promise<BikeLink> {
     const server = await gatt.connect();
     const services = await server.getPrimaryServices();
     const echelon = services.find((service) => service.uuid === EchelonProtocol.service);
@@ -99,7 +117,51 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     this.link = link;
     await link.initialise();
     await firstValueFrom(this.frames);
-    link.connected();
+    return link;
+  }
+
+  /**
+   * A drop (`gattserverdisconnected`, or a write that failed while connected): the link closes, which stops the
+   * keepalive, `ble` reads `disconnected`, and the same bike is tried every 3 seconds without the chooser (L2-017).
+   */
+  private onDrop(error?: unknown): void {
+    if (error !== undefined) this.report(error);
+    if (this.linkState() !== 'connected') return;
+    this.closeLink();
+    this.linkState.set('disconnected');
+    this.reconnector.start(() => this.attempt());
+  }
+
+  /** One retry: on success the last target goes before anything else, the keepalive after it (L2-017 AC4). */
+  private async attempt(): Promise<boolean> {
+    const gatt = this.device?.gatt;
+    if (!gatt) return false;
+    try {
+      const link = await this.open(gatt);
+      if (this.target !== null)
+        await link.setResistance(this.target).catch((error: unknown) => {
+          if (!(error instanceof BikeConnectionError)) throw error;
+        });
+      this.linkState.set('connected');
+      link.connected();
+      return true;
+    } catch (error) {
+      this.report(error);
+      this.closeLink();
+      return false;
+    }
+  }
+
+  private watch(device: BluetoothDevice): void {
+    if (this.watched === device) return;
+    this.watched?.removeEventListener('gattserverdisconnected', this.onDisconnected);
+    device.addEventListener('gattserverdisconnected', this.onDisconnected);
+    this.watched = device;
+  }
+
+  private closeLink(): void {
+    this.link?.close();
+    this.link = null;
   }
 
   /** Finds the permitted device by id through `getDevices()` and connects to it; `false` where that cannot work. */
@@ -120,24 +182,38 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   }
 
   async setResistance(level: number): Promise<number> {
+    this.target = level;
     if (!this.link) throw new BikeConnectionError('failed', 'The bike is not connected');
-    return this.link.setResistance(level);
+    try {
+      return await this.link.setResistance(level);
+    } catch (error) {
+      if (!(error instanceof BikeConnectionError)) this.onDrop(error);
+      throw error;
+    }
   }
 
   disconnect(): void {
-    this.link?.close();
-    this.link = null;
-    this.device?.gatt?.disconnect();
+    this.reconnector.stop();
+    this.closeLink();
     this.linkState.set('idle');
+    this.device?.gatt?.disconnect();
   }
 
-  /** A Web Bluetooth call that failed while connected: its name and message go to the console (L2-017 AC5). */
+  /** A keepalive that failed while connected counts as a drop (L2-017 AC1). */
   private onFailure(error: unknown): void {
-    console.error(describe(error));
+    this.onDrop(error);
+  }
+
+  /** A Web Bluetooth error's name and message go to the console and to `lastError`, as text (L2-017 AC5). */
+  private report(error: unknown): void {
+    const text = describe(error);
+    this.failure.set(text);
+    console.error(text);
   }
 
   ngOnDestroy(): void {
     this.disconnect();
+    this.watched?.removeEventListener('gattserverdisconnected', this.onDisconnected);
     this.received.complete();
   }
 
