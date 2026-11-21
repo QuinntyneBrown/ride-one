@@ -49,6 +49,7 @@ import {
   scaleFaceUv,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
   type Wardrobe,
 } from './world-kit';
@@ -170,6 +171,8 @@ interface Prop {
   readonly x: number;
   /** Hidden past the bridge, so it never stands in front of the arches. */
   readonly near?: boolean;
+  /** Lies on the road, as paint does, and takes its slope. */
+  readonly lies?: boolean;
 }
 
 export class SerpentineStreet implements SceneStreet {
@@ -269,11 +272,12 @@ export class SerpentineStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
-    const ground = (metres: number) => heightAt(Math.max(metres, 0));
+    const ground = (metres: number) => heightAt(metres);
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
       prop.mesh.visible = !prop.near || metres < BRIDGE_AT - 10;
-      prop.mesh.position.set(prop.x, ground(metres) + KERB, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB, -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     // The banks float just over the water.
@@ -922,7 +926,13 @@ export class SerpentineStreet implements SceneStreet {
       const holder = new Group();
       holder.add(mesh);
       this.group.add(holder);
-      this.props.push({ mesh: holder, offset: 22 + i * ROAD_PAINT_EVERY, every: LOOP, x });
+      this.props.push({
+        mesh: holder,
+        offset: 22 + i * ROAD_PAINT_EVERY,
+        every: LOOP,
+        x,
+        lies: true,
+      });
     });
   }
 
