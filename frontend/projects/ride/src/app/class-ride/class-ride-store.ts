@@ -34,7 +34,9 @@ export interface StatView {
  * and the engine following the plan, which sends each segment's level (L2-027). The header and the segment card read
  * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
  * video plays from the ride clock plus the class's sync offset (L2-088 AC1) and, on each tick, seeks back when it has
- * drifted more than 1.5 s (AC2); when it cannot play, the ride carries on without it (AC4).
+ * drifted more than 1.5 s (AC2); when it cannot play, the ride carries on without it (AC4). The rider pauses and
+ * resumes it, a lost bike holds it until the bike is back (docs/detailed-designs/classes/pause-leave-or-finish-a-class,
+ * L2-091, L2-092 AC4), the screen stays awake while it runs (L2-133 AC3), and at the class length it opens Results.
  */
 @Injectable()
 export class ClassRideStore {

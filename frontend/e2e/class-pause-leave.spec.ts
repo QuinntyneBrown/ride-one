@@ -4,6 +4,7 @@
 // Description: a solo class ride paused and resumed: the clock, the plan and the video hold together, the video shows
 // "Paused", and the ride picks up where it left off. The ride starts on Playwright's paused clock (startClassRide), and
 // the shared fixture's fake YouTube player runs on the same clock.
+import type { Page } from '@playwright/test';
 import { startClassRide } from './fixtures/class-ride';
 import {
   ECHELON_INITIALISED,
@@ -13,7 +14,23 @@ import {
 } from './fixtures/echelon';
 import { hiitCardio } from './fixtures/classes';
 import { expect, test } from './fixtures/test';
+import type { YouTubeFixture } from './fixtures/youtube';
 import { NotFoundPage } from './pages/not-found.page';
+
+/** Waits for the fake player, then lets it get ready: its onReady runs on the paused clock. */
+async function videoReady(page: Page, youtube: YouTubeFixture): Promise<void> {
+  await expect.poll(async () => (await youtube.players()).length).toBe(1);
+  await page.clock.runFor(100);
+}
+
+/** Steps the paused clock until the lazy Page not found has rendered: Class Start and Results are not built yet. */
+async function notFoundShown(page: Page): Promise<void> {
+  const notFound = new NotFoundPage(page);
+  await expect(async () => {
+    await page.clock.runFor(16);
+    await expect(notFound.heading).toHaveText('This page doesn’t exist.', { timeout: 50 });
+  }).toPass();
+}
 
 test.describe('Pause, leave or finish a class', () => {
   test('Pause holds the clock and the video under "Paused" with the stepper on, and Resume carries on from there (L2-091 AC1, AC2, L2-088 AC3)', async ({
@@ -23,8 +40,7 @@ test.describe('Pause, leave or finish a class', () => {
     youtube,
   }) => {
     const ride = await startClassRide(page, bluetooth, api);
-    await expect.poll(async () => (await youtube.players()).length).toBe(1);
-    await page.clock.runFor(100);
+    await videoReady(page, youtube);
     await page.clock.fastForward('07:00');
     // The link reads connected from the bike's first notification on.
     await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
@@ -57,8 +73,7 @@ test.describe('Pause, leave or finish a class', () => {
     youtube,
   }) => {
     const ride = await startClassRide(page, bluetooth, api);
-    await expect.poll(async () => (await youtube.players()).length).toBe(1);
-    await page.clock.runFor(100);
+    await videoReady(page, youtube);
     await page.clock.fastForward('07:00');
     await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
     await page.clock.runFor(100);
@@ -108,8 +123,7 @@ test.describe('Pause, leave or finish a class', () => {
     youtube,
   }) => {
     const ride = await startClassRide(page, bluetooth, api);
-    await expect.poll(async () => (await youtube.players()).length).toBe(1);
-    await page.clock.runFor(100);
+    await videoReady(page, youtube);
     await page.clock.fastForward('07:00');
     await page.clock.runFor(100);
 
@@ -117,11 +131,7 @@ test.describe('Pause, leave or finish a class', () => {
     await page.clock.runFor(100);
     await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);
     // Class Start comes with slice 6.3; until then its address shows Page not found.
-    const notFound = new NotFoundPage(page);
-    await expect(async () => {
-      await page.clock.runFor(16);
-      await expect(notFound.heading).toHaveText('This page doesn’t exist.', { timeout: 50 });
-    }).toPass();
+    await notFoundShown(page);
     expect((await youtube.players())[0].destroyed).toBe(true);
 
     // The plan no longer drives the bike: the next interval, at 8:30, never sends its level.
@@ -142,8 +152,7 @@ test.describe('Pause, leave or finish a class', () => {
     youtube,
   }) => {
     const ride = await startClassRide(page, bluetooth, api);
-    await expect.poll(async () => (await youtube.players()).length).toBe(1);
-    await page.clock.runFor(100);
+    await videoReady(page, youtube);
     await page.clock.fastForward('29:58');
     await page.clock.runFor(100);
     await expect(ride.clock).toHaveText('29:58 / 30:00');
@@ -151,11 +160,7 @@ test.describe('Pause, leave or finish a class', () => {
     await page.clock.runFor(2000);
     await expect(page).toHaveURL('/results');
     // Results comes with slice 11.1, and the ride's submission with 10.1; until then the address shows Page not found.
-    const notFound = new NotFoundPage(page);
-    await expect(async () => {
-      await page.clock.runFor(16);
-      await expect(notFound.heading).toHaveText('This page doesn’t exist.', { timeout: 50 });
-    }).toPass();
+    await notFoundShown(page);
     expect((await youtube.players())[0].destroyed).toBe(true);
   });
 
