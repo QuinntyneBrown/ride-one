@@ -459,6 +459,7 @@ export class CaribanaStreet implements SceneStreet {
     this.addCastings();
     this.addLitter();
     this.addStreamers();
+    this.addShedPlumes();
     this.addDistantParade();
     this.addConfetti();
     this.addOfficers();
@@ -2898,6 +2899,53 @@ export class CaribanaStreet implements SceneStreet {
         offset: k % 2 ? 26 + random() * 80 : random() * LOOP,
         every: LOOP,
         x: (random() - 0.5) * 2 * (CURB - 1.8),
+        road: true,
+      });
+    }
+  }
+
+  /**
+   * Plumes shed from the costumes lying on the road: single long feathers, little bunches of
+   * two or three, and now and then a whole fallen collar, in the sections' colours, flat on
+   * the asphalt at their own angles.
+   */
+  private addShedPlumes(): void {
+    const random = seeded(3803);
+    const plumes = this.material({
+      map: this.track(featherTexture()),
+      alphaTest: 0.4,
+      side: DoubleSide,
+      vertexColors: true,
+      roughness: 0.6,
+    });
+    const kinds = COSTUMES.flatMap((costume) => {
+      const [outer, mid] = costume.feathers;
+      const single = featherFan(outer!, 2, 1.1, 0.24, 0.25, 0);
+      const bunch = featherFan(mid!, 4, 0.8, 0.26, 0.9, 0);
+      return [single, bunch];
+    });
+    const collar = featherFan(COSTUMES[0]!.feathers[1]!, 11, 0.8, 0.2, Math.PI * 0.9, 0.2);
+    kinds.push(collar);
+    for (const k of kinds) {
+      // Lying on the road, the tips curled up off it so they catch the light.
+      k.rotateX(-Math.PI / 2 + 0.25);
+      k.translate(0, 0.03, 0);
+      this.disposables.push(k);
+    }
+    for (let i = 0; i < 70; i++) {
+      const kind = i % 11 === 10 ? kinds.length - 1 : Math.floor(random() * (kinds.length - 1));
+      const holder = new Group();
+      const mesh = new Mesh(kinds[kind]!, plumes);
+      mesh.rotation.y = random() * Math.PI * 2;
+      mesh.receiveShadow = true;
+      holder.add(mesh);
+      this.group.add(holder);
+      this.props.push({
+        mesh: holder,
+        // A dozen in the stretch the riders start on, the rest along the loop.
+        offset: i < 12 ? BEHIND + 1 + random() * 30 : random() * LOOP,
+        every: LOOP,
+        x: (random() - 0.5) * 2 * (CURB - 0.8),
         road: true,
       });
     }
