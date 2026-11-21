@@ -1,5 +1,5 @@
 // Acceptance test
-// Traces to: L2-007 AC1, AC4; L2-008 AC1, AC4; L2-009 AC3, AC4
+// Traces to: L2-018 AC1, AC3, AC4; L2-007 AC1, AC4; L2-008 AC1, AC4; L2-009 AC3, AC4
 // Description: Connect Bike lists the bikes Telo Ride works with, and in a browser or on a page that cannot reach the
 // bike it replaces the device card with an alert saying why and what to do.
 import { expect, test } from './fixtures/test';
@@ -94,5 +94,27 @@ test.describe('Browser support on Connect Bike', () => {
 
     await expect(home.main).toBeVisible();
     expect(home.url()).toBe('/');
+  });
+
+  test('with Bluetooth off, an alert says so, and Try again finds it back on (L2-018 AC1, AC3, AC4)', async ({
+    page,
+    bluetooth,
+  }) => {
+    await bluetooth.adapterOff();
+    const connect = new ConnectBikePage(page);
+    await connect.open();
+
+    await expect(connect.blockerTitle).toHaveText('Bluetooth is off');
+    await expect(connect.blockerBody).toHaveText(
+      'Turn on Bluetooth on this computer, then try again.',
+    );
+    await expect(connect.pairButton).toHaveCount(0);
+    await expect(connect.deviceName).toHaveCount(0);
+
+    await bluetooth.adapterOn();
+    await connect.blockerAction.click();
+
+    await expect(connect.blocker).toHaveCount(0);
+    await expect(connect.pairButton).toHaveText('Pair Echelon EX-5s');
   });
 });

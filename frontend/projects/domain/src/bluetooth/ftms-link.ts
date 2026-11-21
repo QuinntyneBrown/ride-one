@@ -58,6 +58,11 @@ export class FtmsLink implements BikeLink {
     return;
   }
 
+  /** An FTMS bike needs no keepalive. */
+  connected(): void {
+    return;
+  }
+
   async setResistance(level: number): Promise<number> {
     if (this.state === 'unknown') this.state = (await this.requestControl()) ? 'full' : 'read-only';
     const controlPoint = this.controlPoint;

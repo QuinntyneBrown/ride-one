@@ -1,5 +1,7 @@
 import { InjectionToken } from '@angular/core';
+import type { Signal } from '@angular/core';
 import type { Observable } from 'rxjs';
+import type { BleState } from './bike-status';
 
 /** Which protocol the bike speaks: Echelon's own (full control) or FTMS (beta). */
 export type BikeKind = 'echelon' | 'ftms';
@@ -18,6 +20,12 @@ export interface BikeInfo {
  * opened with `?simulate`, the simulated bike (L2-024). Every page and store uses the token, never an implementation.
  */
 export interface BikeConnection {
+  /** The link state: `connected` from the first notification after initialisation until the bike drops. */
+  readonly ble: Signal<BleState>;
+  /** The bike chosen or reconnected to, or `null` before one is. */
+  readonly bike: Signal<BikeInfo | null>;
+  /** The last Web Bluetooth error as `name: message`, rendered as text, never HTML (L2-017 AC5). */
+  readonly lastError: Signal<string | null>;
   /** Asks for a bike; `null` when the rider closes the browser's chooser without picking one. */
   requestBike(): Promise<BikeInfo | null>;
   /**
@@ -34,6 +42,8 @@ export interface BikeConnection {
   readonly frames: Observable<Uint8Array>;
   /** Sends a target resistance; resolves with the time to the bike's acknowledgement, in milliseconds. */
   setResistance(level: number): Promise<number>;
+  /** After a drop, cancels the wait for the next retry and tries the bike at once: the **Reconnect** action. */
+  reconnectNow(): void;
   /** Drops the link and stops the notifications. */
   disconnect(): void;
 }

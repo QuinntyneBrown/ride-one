@@ -1,3 +1,4 @@
+export type { BikeStatusTone, BikeStatusView, BleState } from './bike/bike-status';
 export { BikeConnectionError, type BikeConnectionErrorCode } from './bike/bike-connection-error';
 export {
   BIKE_CONNECTION,

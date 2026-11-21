@@ -19,17 +19,17 @@ box "Frontend — Ride app (ride application)" #E0F2FE
   participant "ConnectBikePage / CustomRidePage" as page
 end box
 box "Frontend — Ride app (domain library)" #E0F2FE
-  participant "BluetoothAvailabilityMonitor" as avail
+  participant "WebBluetoothSupport" as avail
   participant "bikeStatus()" as status
 end box
 box "Device — Browser" #F2F4F7
   participant "navigator.bluetooth" as bt
 end box
 actor -> page : Open the screen
-page -> avail : check()
+page -> avail : recheck()
 avail -> bt : getAvailability()
 bt --> avail : false
-avail --> page : available = false
+avail --> page : state = adapter-off
 alt Connect Bike
   page --> actor : Alert "Bluetooth is off", "Turn on Bluetooth on this computer, then try again.", "Try again" (L2-018 AC1)
 else Custom ride
@@ -38,9 +38,9 @@ else Custom ride
   page --> actor : Panel "Turn on Bluetooth" with Check again (L2-018 AC2)
 end
 actor -> page : Turn Bluetooth on, press "Try again" or Check again
-page -> avail : check()
+page -> avail : recheck()
 avail -> bt : getAvailability()
 bt --> avail : true
-avail --> page : available = true
+avail --> page : state = ready
 page --> actor : Screen returns to its normal state (L2-018 AC4)
 @enduml

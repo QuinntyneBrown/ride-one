@@ -107,6 +107,10 @@
   color: var(--color-warn-fg);
 }
 
+.connect-blocker__icon--heart {
+  color: var(--color-heart-fg);
+}
+
 .connect-blocker__title {
   font-weight: var(--font-weight-semibold);
 }

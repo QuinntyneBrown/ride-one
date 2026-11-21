@@ -1,4 +1,5 @@
 export { SIMULATED_BIKE, SimulatedBikeConnection } from './bluetooth/simulated-bike-connection';
+export { bikeStatus } from './bluetooth/bike-status';
 export { type BikeIdentity, bikeIdentity } from './bluetooth/bike-identity';
 export { FtmsProtocol, type ResistanceRange } from './protocol/ftms-protocol';
 export { GattWriteQueue } from './bluetooth/gatt-write-queue';
