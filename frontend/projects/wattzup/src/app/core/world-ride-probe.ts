@@ -73,6 +73,7 @@ interface MaterialShape {
   readonly map?: unknown;
   readonly normalMap?: unknown;
   readonly emissiveMap?: unknown;
+  readonly envMap?: unknown;
   readonly alphaTest?: number;
   readonly vertexColors?: boolean;
   readonly clearcoat?: number;
@@ -87,6 +88,7 @@ function variant(m: MaterialShape): string {
     ['map', m.map],
     ['normal-map', m.normalMap],
     ['emissive-map', m.emissiveMap],
+    ['env-map', m.envMap],
     ['alpha-test', (m.alphaTest ?? 0) > 0],
     ['vertex-colours', m.vertexColors],
     ['clearcoat', (m.clearcoat ?? 0) > 0],
