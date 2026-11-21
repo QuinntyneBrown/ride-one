@@ -1,7 +1,13 @@
 <Project>
   <!-- Every package version in one place (central package management). MediatR stays on 12.5, the
-       last Apache 2.0 version (ADR 0025); EF Core stays on 10.0, the line for .NET 10. -->
+       last Apache 2.0 version (ADR 0025); EF Core stays on 10.0, the line for .NET 10. Transitive
+       pinning lets a listed version override a vulnerable one a package brings in. -->
+  <PropertyGroup>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
   <ItemGroup>
+    <!-- SqlClient brings in 9.0.11, which has advisories GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx. -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.2.0" />
     <PackageVersion Include="MediatR" Version="12.5.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
