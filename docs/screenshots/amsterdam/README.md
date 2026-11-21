@@ -109,3 +109,11 @@ The live 3D world behind the ride HUD for [Beginner Training Session](http://loc
 ## Reproducing a capture
 
 Build the app in development mode (`npx ng build wattzup --configuration development` in `frontend/`; the simulated bike answers only in a development build), serve `dist/wattzup/browser` on port 4300 with `node scripts/serve-dist.mjs 4300`, open `/?simulate` and press **Connect bike**, go through **Library** to **Beginner Training Session**, click **Ride in Amsterdam Canals**, wait for `/world`, let the scene settle for eight seconds and capture the viewport at 1440 × 900. From iteration 003 the browser asks for reduced motion, so the frame is free of motion blur (the street then holds its commuters still). From iteration 002 on, the Render quality and Realism scores each capture was given are listed beside it; the current ones are in [the class list](../../class-worlds.md).
+
+## Bends and elevation
+
+Fixes to how the road bends and climbs here (L2-101 AC6, L2-110 AC9), from the series that began with Old Town.
+
+| Capture | Fix |
+| --- | --- |
+| [099 · The vans and bikes behind the rider stand on the Herengracht](bend-099-vans-along-the-herengracht.jpg) | The parked vans, the bikes and the props between the camera and the rider were set at the height under the rider wherever they were behind it, so where the street humps over the canal bridges they hung above or sank into the bricks there. They now stand on the street where they are. |

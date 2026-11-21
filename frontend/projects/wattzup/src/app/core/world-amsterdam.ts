@@ -214,21 +214,19 @@ export class AmsterdamStreet implements SceneStreet {
     this.clouds.position.set(((this.time * 1.5 + 1200) % 2400) - 1200, 0, 0);
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s + START, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     for (const boat of this.boats) {
       const metres = loopMetres(boat.offset + boat.speed * this.time, s + START, LOOP, BEHIND);
       boat.mesh.position.z = -metres;
       boat.mesh.position.y =
-        heightAt(Math.max(metres, 0)) +
-        (boat.float ?? 0) +
-        Math.sin(this.time * 1.3 + boat.offset) * 0.02;
+        heightAt(metres) + (boat.float ?? 0) + Math.sin(this.time * 1.3 + boat.offset) * 0.02;
     }
     const cyclists = this.cyclists;
     if (cyclists) {
       this.riders.forEach((r, i) => {
         const metres = loopMetres(r.offset + r.speed * this.time, s + START, LOOP, BEHIND);
-        const y = heightAt(Math.max(metres, 0));
+        const y = heightAt(metres);
         const heading = r.speed > 0 ? 0 : Math.PI;
         r.bike.position.set(r.x, y, -metres);
         r.bike.rotation.y = heading;
@@ -241,7 +239,7 @@ export class AmsterdamStreet implements SceneStreet {
         const metres = loopMetres(w.offset + w.speed * this.time, s + START, LOOP, BEHIND);
         const pace = Math.abs(w.speed) > 2 ? 2.4 : 1;
         const step = Math.abs(Math.sin(this.time * 4.5 * pace + w.phase)) * 0.04 * pace;
-        const y = heightAt(Math.max(metres, 0)) + KERB;
+        const y = heightAt(metres) + KERB;
         pedestrians.set(
           i,
           w.x,
