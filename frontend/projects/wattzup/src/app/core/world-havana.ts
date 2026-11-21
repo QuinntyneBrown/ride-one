@@ -1877,6 +1877,7 @@ export class HavanaStreet implements SceneStreet {
     this.addCyclists(roadHalf, tyre, chrome);
     this.addLadas(roadHalf, tyre, chrome);
     this.addTourBus(roadHalf, tyre);
+    this.addSidecar(roadHalf, tyre, chrome);
     this.addCarriage(roadHalf);
   }
 
@@ -2098,6 +2099,90 @@ export class HavanaStreet implements SceneStreet {
         speed: -(9 + random() * 3),
       });
     }
+  }
+
+  /**
+   * A Soviet-era motorcycle with a sidecar, as still common in Havana: an olive-drab tank and
+   * mudguards, a round headlamp, the rider in an open-face helmet and the passenger sitting low
+   * in the bullet-shaped sidecar alongside, coming on in the near oncoming lane.
+   */
+  private addSidecar(
+    roadHalf: number,
+    tyre: MeshStandardMaterial,
+    chrome: MeshStandardMaterial,
+  ): void {
+    const rig = new Group();
+    const drab = this.material({ color: 0x4f5a3a, roughness: 0.6, metalness: 0.2 });
+    const black = this.material({ color: 0x1c1c1c, roughness: 0.7 });
+    const lamp = this.material({ color: 0xfff6dc, emissive: 0xfff0c0, emissiveIntensity: 0.4 });
+    const wheel = new CylinderGeometry(0.3, 0.3, 0.12, 16);
+    wheel.rotateZ(Math.PI / 2);
+    const tub = new SphereGeometry(0.4, 14, 10);
+    tub.scale(0.85, 0.6, 1.9);
+    const torso = new CapsuleGeometry(0.17, 0.4, 3, 8);
+    const head = new SphereGeometry(0.12, 10, 8);
+    const helmet = new SphereGeometry(0.14, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const limb = new CapsuleGeometry(0.055, 0.42, 3, 6);
+    const headlamp = new CylinderGeometry(0.09, 0.09, 0.08, 12);
+    headlamp.rotateX(Math.PI / 2);
+    this.disposables.push(wheel, tub, torso, head, helmet, limb, headlamp);
+    const put = (
+      g: BufferGeometry,
+      m: MeshStandardMaterial,
+      x: number,
+      y: number,
+      z: number,
+      rx = 0,
+      rz = 0,
+    ) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.rotation.set(rx, 0, rz);
+      mesh.castShadow = true;
+      rig.add(mesh);
+      return mesh;
+    };
+    const box = (
+      m: MeshStandardMaterial,
+      sx: number,
+      sy: number,
+      sz: number,
+      x: number,
+      y: number,
+      z: number,
+    ) => put(this.unit, m, x, y, z).scale.set(sx, sy, sz);
+    // The motorcycle: wheels, frame and engine, tank, saddle, mudguards, bars and lamp.
+    put(wheel, tyre, 0, 0.3, -0.75);
+    put(wheel, tyre, 0, 0.3, 0.75);
+    box(black, 0.3, 0.32, 0.6, 0, 0.45, 0);
+    box(chrome, 0.5, 0.14, 0.24, 0, 0.42, -0.05);
+    box(drab, 0.3, 0.2, 0.55, 0, 0.78, -0.25);
+    box(black, 0.26, 0.08, 0.6, 0, 0.8, 0.3);
+    box(drab, 0.16, 0.06, 0.6, 0, 0.62, -0.78);
+    box(drab, 0.16, 0.06, 0.6, 0, 0.62, 0.8);
+    box(chrome, 0.7, 0.03, 0.03, 0, 1.05, -0.62);
+    put(headlamp, lamp, 0, 0.9, -0.82);
+    // The sidecar on the right: its wheel, the drab bullet tub and a small screen.
+    put(wheel, tyre, 0.95, 0.3, 0.2);
+    put(tub, drab, 0.95, 0.55, 0.05);
+    box(black, 0.5, 0.25, 0.04, 0.95, 0.85, -0.45);
+    // The rider astride, hands on the bars, in an open-face helmet; the passenger in the tub.
+    const skin = this.material({ color: 0x9a6a48, roughness: 0.8 });
+    const shirt = this.material({ color: 0xd8d2c0, roughness: 0.85 });
+    const vest = this.material({ color: 0x3a5a8a, roughness: 0.85 });
+    put(torso, shirt, 0, 1.25, 0.2, -0.25);
+    put(head, skin, 0, 1.68, 0.06);
+    put(helmet, black, 0, 1.7, 0.06);
+    for (const x of [-0.2, 0.2]) {
+      put(limb, shirt, x, 1.2, -0.25, 1.1);
+      put(limb, black, x * 0.9, 0.62, -0.05, 1.3);
+    }
+    put(torso, vest, 0.95, 1.05, 0.15);
+    put(head, skin, 0.95, 1.47, 0.15);
+    rig.rotation.y = Math.PI;
+    rig.position.x = -roadHalf - 1.3;
+    this.group.add(rig);
+    this.cars.push({ mesh: rig, offset: 33, speed: -6 });
   }
 
   /**
