@@ -61,6 +61,7 @@ import {
 import type { WorldId } from '@wattzup/api';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
+import { PROBE_KEY, readWorldRideProbe, reportToProbe } from './world-ride-probe';
 import { bendAhead, bendPoint, heading, lean, racingLine } from './scene-bend';
 import { EASE_PER_SECOND, MIN_SPEED, nextArch, roadAhead, type RoadPoint } from './scene-road';
 import { RoadBend } from './world-bend';
@@ -3183,7 +3184,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.look = LOOKS[world.id];
     this.grade = world.grade.warmup;
     this.renderer.outputColorSpace = SRGBColorSpace;
-    this.budget = new FrameBudget(startTier(this.backend));
+    const probe = readWorldRideProbe((globalThis as Record<string, unknown>)[PROBE_KEY]);
+    // The test-only hook pins the tier; ultra draws at high on WebGL2 (L2-111 AC2).
+    const pin = probe && this.backend === 'webgl2' && probe.tier === 'ultra' ? 'high' : probe?.tier;
+    this.budget = new FrameBudget(pin ?? startTier(this.backend), undefined, { pinned: !!pin });
 
     this.buildScene(world, canvas);
     // Docklands' photographed distance is the mock's own still, riders and all: its towers are
@@ -3325,6 +3329,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (!renderer || !this.budget) return;
     const tier = this.budget.tier;
     const on = techniquesAt(tier, this.backend, this.reducedMotion);
+    reportToProbe({ tier, backend: this.backend });
     this.on = on;
     const look = this.look;
 
