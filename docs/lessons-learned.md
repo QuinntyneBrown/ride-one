@@ -25,18 +25,59 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 | # | Lesson | From | Applied in | Result |
 |---|--------|------|------------|--------|
-| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with `frontend/node_modules` and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2 | Saved time |
-| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2 | Saved time |
-| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2 | No effect |
-| L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2 | Did not apply |
-| L5 | Read the initial chunk in the build output after every route or import change; the baseline is 257 kB raw against a 264 kB warning. | 1.1 | 1.2 | Did not apply |
-| L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2 | Saved time |
-| L7 | Review every scene with `--frame` on one contact sheet before the full encode; encode in the background with `--crf 23` for films over 2 minutes. | 1.1 | 1.2 | Saved time |
-| L8 | Backend packages: EF Core on 10.0.x (11 needs .NET 11), MediatR 12.5 (last Apache 2.0), xUnit v3 on Microsoft Testing Platform (`backend/global.json`); probe a new package in a scratch project before an ADR names it; pin a vulnerable transitive package in `Directory.Packages.props`. | 1.2 | | |
-| L9 | A backend acceptance test is a fixture subclassing `TeloRideApi` (`ConfigureServices` injects the fault); `ProbeController` and `SignedInProbeApi` stand in for endpoints and sign-in until features add theirs; await with `SpanRecorder.Await`, never sleep; prove a guard by removing it once. | 1.2 | | |
-| L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | | |
+| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with `frontend/node_modules` and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3 | Saved time |
+| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3 | Saved time |
+| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3 | Little effect |
+| L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3 | Did not apply |
+| L5 | Read the initial chunk in the build output after every route or import change; the baseline is 257 kB raw against a 264 kB warning. | 1.1 | 1.2, 1.3 | Did not apply |
+| L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3 | Saved time |
+| L7 | Review every scene with `--frame` on one contact sheet before the full encode; encode in the background with `--crf 23` for films over 2 minutes. | 1.1 | 1.2, 1.3 | Saved time |
+| L8 | Backend packages: EF Core on 10.0.x (11 needs .NET 11), MediatR 12.5 (last Apache 2.0), xUnit v3 on Microsoft Testing Platform (`backend/global.json`); probe a new package in a scratch project before an ADR names it; pin a vulnerable transitive package in `Directory.Packages.props`. | 1.2 | 1.3 | Saved time |
+| L9 | A backend acceptance test is a fixture subclassing `TeloRideApiFactory` (`ConfigureServices` injects the fault); `ProbeController` and `SignedInProbeApi` stand in for endpoints and sign-in until features add theirs; await with `EventProbe<T>` (spans and hub events), never sleep; a hub test connects `HubConnectionBuilder` through `Server.CreateHandler()`; prove a guard by removing it once. | 1.2 | 1.3 | Saved time |
+| L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3 | Saved time |
+| L11 | Prove a test double from the outside: a spec drives the browser API through a helper (`AppCalls`) until the app's own client exists; prove its guard with `test.fail()`, and run once without it to read the failure's reason. | 1.3 | | |
+| L12 | In zsh and BSD tools: quote globs in arguments (`--include='*.cs'`), and replace whole words with `perl -pi -e 's/\bOld\b/New/g'`; BSD `sed` has no `\b`. | 1.3 | | |
+| L13 | A lockfile change in a worktree makes verify run `npm ci` through the symlinked `node_modules`, reinstalling the main checkout's copy: add a package only when the slice needs it, and only add, never upgrade. | 1.3 | | |
 
 ## Log
+
+### 1.3 Test harness (2026-11-21)
+
+**Applied from earlier**
+
+- **L1 own worktree, links first — saved time.** Both links were made before anything ran, so nothing
+  nested; the other session's checkout stayed untouched. Its one surprise is now L13.
+- **L2 port 4310 — saved time.** No stale server.
+- **L3 format first — little effect.** `prettier --write e2e` ran before every verify and the format
+  check never failed; the one lint failure was missing types, which formatting cannot catch.
+- **L4 attribute components, L5 bundle — did not apply.** No component and no app code changed.
+- **L6 reuse the track, L7 contact sheet — saved time.** The sheet showed a clipped terminal line
+  before the one encode.
+- **L8 backend packages — saved time.** SignalR.Client 10.0.13 and TimeProvider.Testing 10.0.0 were
+  chosen on the 10.x line and restored first time.
+- **L9 backend fixtures — saved time.** The hub tests reused `SignedInProbeApi`; the span recorder
+  became `EventProbe<T>` in one move, with every test green.
+- **L10 scene ids — saved time.** Scenes were named for what they show (`strict`, `api`); none
+  rendered blank.
+
+**What slowed it down**
+
+- zsh again: an unquoted `--include=*.cs` was globbed, and BSD `sed` ignored `\b`, so a rename did
+  nothing until it was redone with perl.
+- The e2e type check had no Web Bluetooth types; `@types/web-bluetooth` was added, and the lockfile
+  change made verify reinstall the shared `node_modules`.
+- With no app code calling Bluetooth, HTTP or the hub yet, each double needed an in-page driver
+  (`AppCalls`) before its spec could fail for the right reason, and each guard needed `test.fail()`
+  plus one run without it.
+
+**New lessons**
+
+- **L11 Prove a double from the outside.** Drive the browser API from the page through a helper until
+  the app's client exists, prove each guard with `test.fail()`, and read the reason once without it.
+- **L12 zsh and BSD tools.** Quote globs in arguments, and use `perl -pi -e` with `\b` for whole-word
+  renames.
+- **L13 Lockfile changes reach the main checkout.** Verify's `npm ci` runs through the symlinked
+  `node_modules`; add packages only when needed, and only add.
 
 ### 1.2 Backend skeleton (2026-11-21)
 
