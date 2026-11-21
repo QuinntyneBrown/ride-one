@@ -91,7 +91,7 @@ already loaded by Class Start.
   moves to the panorama (`L2-156` AC3).
 - **`WorldRenderer.warmUp(frames)`** (`world`) — draws the start of the route into an off-screen
   render target for `<TO SUPPLY>` frames and reports the frame rate it held ("Holding 60 fps at
-  Ultra", `L2-152` AC5).
+  Low", `L2-152` AC5).
 - **`RendererBackendProbe`** (`world`, from `race/render-the-race-world`) — returns `webgpu`,
   `webgl2` or `none`, honouring the rider's graphics choice (`settings/tune-world-quality`). With
   `none` the store downloads only the panorama and marks the other two steps not needed

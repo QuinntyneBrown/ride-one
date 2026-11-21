@@ -38,7 +38,7 @@ store -> renderer : import('world') in its own chunk (L2-151 AC6)
 store -> settings : quality and graphics choices
 store -> probe : probe(graphics choice)
 probe --> store : webgpu
-store -> store : qualityPolicy(): starting level Ultra; facts "Auto quality · Ultra", "WebGPU" (L2-152 AC7)
+store -> store : qualityPolicy(): starting level Low; facts "Auto quality · Low", "WebGPU" (L2-152 AC7)
 store -> ann : "Downloading the world" (L2-152 AC6)
 store -> loader : load(world, abort.signal)
 loader -> cache : get(worldId)
@@ -61,7 +61,7 @@ loop each batch of programs
 end
 store -> ann : "Warming up the first frames"
 store -> renderer : warmUp(frames) off screen
-renderer --> store : held 60 fps; "Holding 60 fps at Ultra" (L2-152 AC5)
+renderer --> store : held 60 fps; "Holding 60 fps at Low" (L2-152 AC5)
 store -> store : loadPercent() = 100; phase ready
 store -> ann : "Neon Docklands is ready."
 store --> view : steps, percent, phase (start: classes/start-a-world-class)

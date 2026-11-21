@@ -51,9 +51,10 @@ this feature gives its step-down rule and its inputs.
   - `stepDown`: always true with Auto; the switch's value with a fixed level (`L2-160` AC1, AC2);
   - `frameCapFps`: the display's rate or 30 (`L2-160` AC4);
   - `renderScale`: `resolution / 100` (`L2-160` AC5).
-- **`autoText(backend, deviceCheck)`** — the Auto card's text: "Starts at Ultra with WebGPU, High
-  with WebGL 2, …", "Starts at High with WebGL 2 …" or "Starts at High on this device (checked
-  today) …".
+- **`autoText(deviceCheck)`** — the Auto card's text: "Starts at Low, the drawn look, or at the
+  level this device's check found, …", or "Starts at High on this device (checked today) …". The
+  world opens at Low on both graphics APIs, as `main`'s does (`L2-065` AC5, ADR 0030), so the
+  text no longer depends on the graphics API.
 
 **Frontend — `world` library (lazy)**
 

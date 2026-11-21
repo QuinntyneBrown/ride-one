@@ -50,8 +50,12 @@ in `AGENTS.md` and to the ESLint boundaries in the same change.
   disconnects the observer, removes its listeners and disposes the renderer. It emits `started`
   with the backend, or `unavailable` once. Its canvas is hidden from assistive technology: the race
   scene around it is the one image.
-- **`RenderQuality`** — pure tier table (ADR 0021): the tier for the device and backend, and
-  which form of each technique the tier uses. `ultra` is WebGPU only.
+- **`RenderQuality`** — `main`'s `render-quality.ts`, the pure table of four quality levels
+  (ADR 0021): `techniquesAt(tier, backend, reducedMotion)` gives the techniques a level draws,
+  those of its level and the levels below, the drawn look's only at `low`; with WebGL 2 it caps
+  at `high`, so `ultra` is WebGPU only and a world asked for at `ultra` draws at `high`.
+  `startTier()` opens the world at `low` on both backends (L2-065 AC4, AC5). The renderer reads
+  the table and holds no rule about which level is in force.
 - **`RaceWorldScene`** — `main`'s scene: the road, terrain, sky and props of the map's world,
   each world's scene module (`world-<id>.ts`) built on the shared kit and street table, with the
   panoramas of the worlds that have one served from the app's own origin
@@ -177,5 +181,12 @@ built-in world in place and the panel says so.
   road's bend). The rider wears the race board's You jersey (`--jersey-you`) rather than
   `main`'s `--color-rider-4`, which Telo Ride's tokens do not have. The race's field moves once
   a second, as the standings do, so a rider's gap changes in whole-second steps.
+- **Slice 8.4: the world opens at Low.** `main` opens World Ride at `low`, the drawn look, on
+  both backends and never raises the level during a ride (its L2-111 AC3, amended on
+  2026-11-21: opening at `ultra` or `high` lowered the tier while the rider watched). `main`
+  wins on rendering, so L2-065 AC5 says the same, and L2-159's Auto, L2-152's examples and the
+  Settings and World loading mocks follow: Auto starts at Low, or at the level the device check
+  found. A chosen level (slice 20.2) and the device check (20.3) are how a rider sees the levels
+  above; until then only `main`'s test-only probe pins one.
 - **Vice City has no world on `main`.** Its race draws South Beach Sunrise, whose terrain its
   catalogue entry already takes (slice 7.3), until a Vice City world is built.
