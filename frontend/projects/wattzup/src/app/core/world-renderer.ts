@@ -3296,6 +3296,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.budget?.setPeriod(ms);
   }
 
+  pauseBudget(): void {
+    this.budget?.pause();
+    this.lastFrameAt = null;
+  }
+
   dispose(): void {
     for (const d of this.disposables) d.dispose();
     for (const t of this.textures) t.dispose();

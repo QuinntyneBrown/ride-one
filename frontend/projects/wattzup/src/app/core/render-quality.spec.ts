@@ -129,4 +129,21 @@ describe('FrameBudget (L2-111 AC4)', () => {
     ride(budget, 34, 5);
     expect(budget.tier).toBe('ultra');
   });
+
+  it('judges no window while paused, however slow its frames (AC9)', () => {
+    const budget = new FrameBudget('ultra', 1000 / 60);
+    budget.pause();
+    expect(ride(budget, 50, 5)).not.toContain('drop');
+    expect(budget.tier).toBe('ultra');
+  });
+
+  it('drops nothing when a 60 Hz ride returns at 30 Hz (AC9)', () => {
+    const budget = new FrameBudget('ultra', 1000 / 60);
+    ride(budget, 16.7);
+    budget.pause();
+    budget.sample(10_000, 34);
+    budget.setPeriod(1000 / 30);
+    expect(ride(budget, 34, 5)).not.toContain('drop');
+    expect(budget.tier).toBe('ultra');
+  });
 });

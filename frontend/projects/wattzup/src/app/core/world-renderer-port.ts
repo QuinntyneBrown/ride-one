@@ -28,6 +28,8 @@ export interface WorldRenderer {
   draw(frame: SceneFrame): void;
   /** Judges frames against the display's measured frame period from now on (L2-111 AC4, AC9). */
   setFramePeriod(ms: number): void;
+  /** Judges no frame until the next `setFramePeriod`: the period is being measured (AC9). */
+  pauseBudget(): void;
   dispose(): void;
 }
 

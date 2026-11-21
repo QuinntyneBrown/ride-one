@@ -44,6 +44,8 @@ export class WorldScene {
   private readonly motion = inject(MotionPreference);
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly driver = signal<SceneDriver | null>(null);
+  /** True while the display's frame period is measured again: the scene holds its picture. */
+  private readonly measuring = signal(false);
 
   /** The scene's text alternative (L2-110 AC3). */
   protected readonly label = computed(
@@ -55,11 +57,40 @@ export class WorldScene {
     let renderer: WorldRenderer | null = null;
     let stop: (() => void) | null = null;
     let observer: ResizeObserver | null = null;
+    let screen: MediaQueryList | null = null;
     let destroyed = false;
+
+    // The tab's return or another screen may change the display's refresh rate: measure it
+    // again, judging and drawing nothing meanwhile (L2-111 AC9).
+    const remeasure = () => {
+      const r = renderer;
+      if (!r || destroyed || untracked(this.measuring)) return;
+      r.pauseBudget();
+      this.measuring.set(true);
+      void this.frames.measurePeriod().then((period) => {
+        if (destroyed) return;
+        r.setFramePeriod(period);
+        this.measuring.set(false);
+      });
+    };
+    const onVisibility = () => {
+      if (!document.hidden) remeasure();
+    };
+    const onScreen = () => {
+      watchScreen();
+      remeasure();
+    };
+    const watchScreen = () => {
+      screen?.removeEventListener('change', onScreen);
+      screen = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
+      screen.addEventListener('change', onScreen);
+    };
     destroyRef.onDestroy(() => {
       destroyed = true;
       stop?.();
       observer?.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
+      screen?.removeEventListener('change', onScreen);
       renderer?.dispose();
     });
 
@@ -90,6 +121,8 @@ export class WorldScene {
             resize();
             observer = new ResizeObserver(resize);
             observer.observe(canvas);
+            document.addEventListener('visibilitychange', onVisibility);
+            watchScreen();
             this.driver.set(new SceneDriver(loaded));
           },
           () => {
@@ -112,8 +145,8 @@ export class WorldScene {
     // One frame per tick of the loop, and one whenever the inputs change.
     effect(() => {
       const driver = this.driver();
+      if (!driver || this.measuring()) return;
       const now = this.frames.now();
-      if (!driver) return;
       driver.frame(now, {
         segments: this.segments(),
         elapsed: this.elapsed(),
