@@ -42,6 +42,7 @@ interface WorldRenderer <<api>> {
   +draw(frame: SceneFrame): void
   +setFramePeriod(ms: number): void
   +pauseBudget(): void
+  +stream(place: RealPlace, key: string, report: (state: SceneryState) => void): void
   +dispose(): void
 }
 class ThreeWorldRenderer <<world, lazy>> {
@@ -87,13 +88,20 @@ class RiderFigures {
   +update(riders: FigurePosition[], ghost?: FigurePosition): void
   +dispose(): void
 }
-class PhotorealTilesLayer {
-  +load(region: TileRegion, key: string): Promise<SceneryResult>
+class PhotorealTilesLayer <<world, own chunk>> {
+  +group: Group
+  +update(camera, renderer): void
   +dispose(): void
 }
-enum SceneryResult {
-  streaming
-  refused
+class SceneryState <<api>> {
+  +status: 'streaming' | 'refused'
+  +credit: string
+}
+class RealPlace <<api>> {
+  +name: string
+  +route: string
+  +latitude: number
+  +longitude: number
 }
 class RaceWorld <<ride>> {
   +wzRaceWorld: InputSignal<MapDto>
@@ -106,13 +114,14 @@ class RaceStore <<ride>> {
   +running: Signal<boolean>
   +speedKmh: Signal<number | null>
 }
-class SettingsStore {
-  +mapsKey(): Promise<string | undefined>
-  +setMapsKey(key: string): Promise<void>
+class MapsKeyStore <<domain>> {
+  +get(): string | null
+  +save(key: string): void
 }
-class RaceScenery {
-  +realPlace: InputSignal<RealPlaceDto>
-  +refused: InputSignal<boolean>
+class RaceScenery <<components>> {
+  +place: InputSignal<RealPlace>
+  +key: InputSignal<string>
+  +state: InputSignal<SceneryState | null>
   +stream: OutputEmitterRef<string>
 }
 ThreeWorldRenderer ..|> WorldRenderer
@@ -130,7 +139,7 @@ SceneDriver ..> WorldRenderer : draw(frame)
 WorldScene ..> World : worldForMap(worldId)
 RaceWorld ..> WorldScene : import('@telo/world'), createComponent
 RaceWorld ..> RaceStore : started, unavailable via RacePage
-RaceStore ..> SettingsStore : uses
-PhotorealTilesLayer ..> SceneryResult
+RaceWorld ..> MapsKeyStore : RacePage reads and saves the key
+PhotorealTilesLayer ..> SceneryState
 RaceScenery ..> RaceStore : stream(key) via RacePage
 @enduml
