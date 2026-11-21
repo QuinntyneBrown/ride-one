@@ -40,6 +40,7 @@ alt Your best time (L2-050 AC2)
   note right of store : No best: ghost rides the medium pace (L2-050 AC4)
 else Bots (L2-050 AC1)
   store -> router : Navigate /race/:mapId/lobby?mode=bots&pack=medium
+  note right of store : Until the lobby (slice 15.1): /race/:mapId/ride?mode=bots&pack=medium
 else Riders online (L2-050 AC3)
   store -> session : findRace(mapId)
   session -> hub : connect() with session cookie

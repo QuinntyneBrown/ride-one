@@ -28,8 +28,10 @@ class RaceStart {
   +pack?: PackStrength
   +route: string[]
   +queryParams: Record<string, string>
+  +label: string
   +ghost?: GhostSource
 }
+note right of RaceStart : ghost joins with the ghost and bots (slice 7.4)
 enum GhostSource {
   bestRide
   mediumPace

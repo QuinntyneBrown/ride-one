@@ -24,6 +24,22 @@ from the progression subsystem through the rider's progress.
 
 ## Description
 
+**Slices.** Slice 7.2 builds Race Setup for the progress `PROGRESS_API` gives, which until the
+backend keeps progress (journey 10) is a new rider's (`NewRiderProgress`): no best and no star on
+any map, Cliffside Coast the next unlock, so the goal line shows on Prairie Paceline, and rider
+level 1, so "Riders online" is always disabled with "Opens at level 3." `SetupFacts` and
+`SetupStars` already draw a best and earned stars. The queue count, "Find a race",
+`RaceSessionStore`, `RideHubClient`, `RaceQueueApi` and `GET /api/maps/{mapId}/queue` come with
+live races (journey 15), the first time a rider can reach level 3. The race lobby is slice 15.1;
+until it is built, "Go to the start line" opens the race at once
+(`/race/:mapId/ride?mode=bots&pack=medium`), as "Start ride" does (`?mode=solo`), and the race
+itself is slice 7.3. The ghost's pace on a map with no best (`L2-050` AC4) comes with the ghost
+(slice 7.4), and Full screen in the header with slice 24.2.
+
+The map comes from the catalogue (`MAPS_API`, browse-maps), which carries `photoUrl`, the 21:9
+photo Race Setup shows, and `unlockMapId`, the map a goal is earned on, so the store can tell
+whether this map holds the rider's next unlock.
+
 **Ride app**
 
 - **`openMapGuard`** (`ride`, functional `CanActivateFn` on `/race/:mapId`) — reads the
@@ -35,21 +51,26 @@ from the progression subsystem through the rider's progress.
   progress, `mode` (default `bots`), `pack` (default `medium`), `queueCount`, and the derived
   `startLabel` ("Start ride", "Go to the start line" or "Find a race"). It exposes `start()`.
 - **`SetupHeader`**, **`SetupMap`**, **`SetupFacts`** (`components`, blocks `setup-header`,
-  `setup-map`, `setup-facts`/`setup-fact`) — the back link "Maps", photo, name, route line, and
+  `setup-map`, `setup-facts`/`setup-fact`) — the small lockup with the page's back link "Maps"
+  (`BackLink`, as on Class Start) in the header, and the photo, name, route line, and
   Distance, Climbing, Rated and "Your best". "Your best" is absent when the map has no best.
 - **`SetupStars`** (`components`, block `setup-stars`) — "Stars here" with the three rules;
   an earned rule is struck through and carries the hidden text " (earned)".
 - **`SetupGoal`** (`components`, block `setup-goal`) — the unlock goal line, rendered only when
   this map holds the next unlock: "**Finish top 3 vs Bots on Old Town Criterium** to open Neon
   Docklands."
-- **`ModeOptions`** (`components`, blocks `mode-options`/`mode-option`) — a `fieldset` radio
-  group labelled "Race mode" built from native radio inputs, so the arrow keys move the choice
-  (L2-048 AC4). Riders online is `disabled` with a lock and "Opens at level 3." below level 3.
-- **`PackStrength`** (`components`, block `pack`) — easy, medium and hard as a radio group with
-  the note for the chosen strength; rendered only when the mode is Bots.
-- **`RaceStartPlanner`** (`domain/engine`) — pure helper that turns `(mapId, mode, pack,
-  bestRide)` into a `RaceStart`: the route to open and the opponent set. A solo race with no
-  best uses the medium pace for the ghost (L2-050 AC4).
+- **`ModeOptions`** (`components`, blocks `mode-options`/`mode-option`) — a WAI-ARIA radio group
+  labelled "Race mode" of buttons with `role="radio"`, as the mock draws it and as `RideChoice`
+  does on Class Start: the chosen option is the one in the tab order and the arrow keys move the
+  choice (L2-048 AC4). Riders online is `aria-disabled` with a lock and "Opens at level 3." below
+  level 3, and the arrow keys pass over it.
+- **`PackStrength`** (`components`, block `pack`) — easy, medium and hard as a radio group of
+  `role="radio"` buttons, moved by the arrow keys, with the note for the chosen strength;
+  rendered only when the mode is Bots.
+- **`RaceStartPlanner`** (`domain/engine`) — pure helper that turns `(mapId, mode, pack)` into a
+  `RaceStart`: the route to open, its query parameters and the start button's label. The
+  opponent set it plans with the rider's best ride (a solo race with no best uses the medium
+  pace for the ghost, L2-050 AC4) joins it with the ghost and bots (slice 7.4).
 - **`RaceSessionStore`** (`ride`, provided on the `/race/:mapId` parent route, so it lives
   through setup, lobby and ride and is released when the rider leaves them) — owns the
   riders-online session. Its `findRace(mapId)` opens the hub connection through
@@ -126,3 +147,16 @@ The start depends on the mode: solo opens the race at once, Bots opens the lobby
 online asks the hub for a seat before opening the lobby.
 
 ![Sequence diagram for starting a race from Race Setup](diagrams/sequence-start-a-race.png)
+
+## Open questions
+
+- **Bots before the lobby.** `L2-050` AC1 opens the lobby with nine bots, but the lobby is slice
+  15.1, after the race (7.3 to 7.5). Until then "Go to the start line" opens the race at once
+  with the bots on the line, so a bots race can be ridden in journey 7; slice 15.1 puts the
+  lobby between them.
+- **Riders online before journey 15.** Every rider is level 1 until the backend keeps progress
+  (journey 10), so "Riders online" is always disabled; its queue count and "Find a race" are
+  built with live races.
+- **The photo.** Each map's 21:9 photo is cropped from the mocks' world picture
+  (`docs/mocks/assets/images/worlds/`) and served by the app as `maps/<mapId>-photo.jpg`; the
+  rendered world replaces it with journey 8.
