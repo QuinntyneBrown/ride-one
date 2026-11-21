@@ -25,6 +25,9 @@
             [selected]="store.mode()"
             (choose)="store.mode.set($event)"
           />
+          @if (store.mode() === 'bots') {
+            <wz-pack-strength [selected]="store.pack()" (choose)="store.pack.set($event)" />
+          }
         </section>
       }
     </main>

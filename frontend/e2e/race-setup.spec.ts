@@ -93,3 +93,27 @@ test('the arrow keys move the race mode and pass over Riders online (L2-048 AC4)
   await expect(setup.mode('Your best time')).toHaveAttribute('aria-checked', 'true');
   await expect(setup.mode('Your best time')).toBeFocused();
 });
+
+test('against bots, Pack strength offers easy, medium and hard, each with its note (L2-049 AC1, AC2, AC3)', async ({
+  page,
+}) => {
+  const setup = new RaceSetupPage(page);
+  await setup.open('old-town-criterium');
+
+  await expect(setup.packOptions).toHaveText(['easy', 'medium', 'hard']);
+  await expect(setup.packStrength('medium')).toHaveAttribute('aria-checked', 'true');
+  await expect(setup.packNote).toHaveText('Around 190 W. A top 3 here earns the second star.');
+
+  await setup.packStrength('hard').click();
+  await expect(setup.packStrength('hard')).toHaveAttribute('aria-checked', 'true');
+  await expect(setup.packNote).toHaveText('Around 250 W. Expect to hurt.');
+
+  await page.keyboard.press('ArrowRight');
+  await expect(setup.packStrength('easy')).toHaveAttribute('aria-checked', 'true');
+  await expect(setup.packStrength('easy')).toBeFocused();
+  await expect(setup.packNote).toHaveText('Around 130 W. Good for learning the course.');
+
+  await setup.mode('Your best time').click();
+  await expect(setup.pack).toHaveCount(0);
+  await expect(setup.packNote).toHaveCount(0);
+});

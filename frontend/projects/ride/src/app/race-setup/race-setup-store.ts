@@ -2,7 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { MAPS_API, type MapDto, type MapProgressDto, PROGRESS_API } from '@telo/api';
-import type { ModeOption } from '@telo/components';
+import type { ModeOption, PackStrengthId } from '@telo/components';
 
 /**
  * Race Setup's state, provided on its page (docs/detailed-designs/race/set-up-a-race): the map of the address, read
@@ -67,6 +67,9 @@ export class RaceSetupStore {
 
   /** The chosen mode, Bots by default (L2-048 AC1). */
   readonly mode = signal('bots');
+
+  /** How hard the bots ride, medium by default (L2-049 AC1). */
+  readonly pack = signal<PackStrengthId>('medium');
 
   constructor() {
     inject(MAPS_API)
