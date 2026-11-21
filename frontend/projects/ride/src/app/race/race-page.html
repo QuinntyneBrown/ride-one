@@ -13,6 +13,17 @@
       [elapsed]="store.elapsed()"
       [total]="store.total()"
     />
+    <!-- The field is the rider alone until the opponents join (slice 7.4). -->
+    <wz-race-power
+      place="1st"
+      [field]="1"
+      [watts]="store.watts()"
+      [target]="store.target()"
+      [delta]="store.delta()"
+      [cadence]="store.cadence()"
+      [heart]="store.heart()"
+      [speed]="store.speed()"
+    />
     <section class="race-hud" aria-label="Interval, route and resistance">
       @if (store.plan(); as plan) {
         <wz-race-interval

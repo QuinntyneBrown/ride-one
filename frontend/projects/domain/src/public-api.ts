@@ -28,6 +28,7 @@ export { RideTotals } from './engine/ride-totals';
 export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { WorkoutEngine } from './engine/workout-engine';
 export { SpeedModel } from './engine/speed-model';
+export { VirtualSpeedModel } from './engine/virtual-speed-model';
 export { SecondTicker } from './engine/second-ticker';
 export {
   EchelonProtocol,

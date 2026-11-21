@@ -2,7 +2,15 @@ import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { BIKE_CONNECTION, MAPS_API, type MapDto, type RaceMode, SCREEN_WAKE_LOCK } from '@telo/api';
-import { RideClock, RideTicker, WorkoutEngine } from '@telo/domain';
+import { type RaceDelta, formatMetric } from '@telo/components';
+import {
+  BikeTelemetry,
+  PowerModel,
+  RideClock,
+  RideTicker,
+  VirtualSpeedModel,
+  WorkoutEngine,
+} from '@telo/domain';
 
 /**
  * The race's state (docs/detailed-designs/race/ride-a-race), provided by the page so it goes when the rider leaves. It
@@ -16,6 +24,7 @@ export class RaceStore {
   private readonly ticker = inject(RideTicker);
   private readonly engine = inject(WorkoutEngine);
   private readonly connection = inject(BIKE_CONNECTION);
+  private readonly telemetry = inject(BikeTelemetry);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   private readonly route = inject(ActivatedRoute).snapshot;
   private readonly mapId = this.route.paramMap.get('mapId') ?? '';
@@ -54,6 +63,35 @@ export class RaceStore {
     return map
       ? `The ${map.name} world: ${map.place.charAt(0).toLowerCase()}${map.place.slice(1)}`
       : '';
+  });
+
+  /** Power in whole watts, or "—" while it is unknown (L2-059 AC1). */
+  readonly watts = computed(() => {
+    const power = this.telemetry.powerW();
+    return formatMetric(power === null ? null : Math.round(power), 0);
+  });
+  readonly target = computed(() => this.plan()?.targetPower ?? null);
+
+  /** "-47 W" under the target, "+12 W" over it, or "On target" within 10 % (L2-059 AC1, AC2). */
+  readonly delta = computed<RaceDelta | null>(() => {
+    const power = this.telemetry.powerW();
+    const target = this.target();
+    if (power === null || target === null) return null;
+    const watts = Math.round(power);
+    if (PowerModel.onTarget(watts, target)) return { text: 'On target', tone: 'on' };
+    const delta = watts - target;
+    return delta > 0
+      ? { text: `+${delta} W`, tone: 'over' }
+      : { text: `-${-delta} W`, tone: 'under' };
+  });
+
+  readonly cadence = computed(() => formatMetric(this.telemetry.cadence(), 0));
+  /** The bike's own heart rate; the strap joins with its slice (L2-030, L2-031). */
+  readonly heart = computed(() => formatMetric(this.telemetry.heartRate(), 0));
+  /** The virtual speed from power, `main`'s formula (L2-059 AC3). */
+  readonly speed = computed(() => {
+    const power = this.telemetry.powerW();
+    return formatMetric(power === null ? null : VirtualSpeedModel.speedKmh(power), 1);
   });
 
   readonly bikeName = computed(() => this.connection.bike()?.name ?? null);
