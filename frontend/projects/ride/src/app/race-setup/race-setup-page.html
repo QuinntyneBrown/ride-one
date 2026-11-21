@@ -15,6 +15,12 @@
           [bestSeconds]="store.bestSeconds()"
           [earned]="store.earned()"
         />
+        <section class="setup-ride" aria-labelledby="race-against">
+          @if (store.goal(); as goal) {
+            <wz-setup-goal [goal]="goal.goal" [opens]="goal.opens" />
+          }
+          <h2 class="setup-ride__title" id="race-against">Race against</h2>
+        </section>
       }
     </main>
   </div>

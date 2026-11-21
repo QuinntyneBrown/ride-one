@@ -27,6 +27,14 @@ export class RaceSetupStore {
   readonly earned = computed(() => this.progress()?.stars[this.mapId] ?? 0);
   readonly bestSeconds = computed(() => this.progress()?.bestTimeSeconds[this.mapId] ?? null);
 
+  /** The rider's next unlock when its goal is earned on this map, or none (L2-047 AC3). */
+  readonly goal = computed(() => {
+    const next = this.catalogue().find((map) => map.id === this.progress()?.nextUnlockId);
+    return next?.unlockGoal && next.unlockMapId === this.mapId
+      ? { goal: next.unlockGoal, opens: next.name }
+      : null;
+  });
+
   constructor() {
     inject(MAPS_API)
       .list()

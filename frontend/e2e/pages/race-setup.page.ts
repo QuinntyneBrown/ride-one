@@ -11,6 +11,7 @@ export class RaceSetupPage {
   readonly starsTitle: Locator;
   readonly starRules: Locator;
   readonly goal: Locator;
+  readonly goalTarget: Locator;
   readonly modes: Locator;
   readonly modeOptions: Locator;
   readonly pack: Locator;
@@ -28,6 +29,7 @@ export class RaceSetupPage {
     this.starsTitle = page.getByRole('heading', { name: 'Stars here' });
     this.starRules = page.locator('.setup-stars__item');
     this.goal = page.locator('.setup-goal');
+    this.goalTarget = this.goal.locator('.setup-goal__goal');
     this.modes = page.getByRole('radiogroup', { name: 'Race mode' });
     this.modeOptions = this.modes.getByRole('radio');
     this.pack = page.getByRole('radiogroup', { name: 'Pack strength' });

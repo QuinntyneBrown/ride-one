@@ -31,3 +31,19 @@ test('@critical Race Setup shows the map, its facts with no best, and the stars 
   ]);
   await expect(page).toHaveTitle('Race Setup · Telo Ride');
 });
+
+test('the goal line shows only on the map that holds the next unlock (L2-047 AC3)', async ({
+  page,
+}) => {
+  const setup = new RaceSetupPage(page);
+  await setup.open('prairie-paceline');
+
+  await expect(setup.goal).toHaveText(
+    'Finish top 3 vs Bots on Prairie Paceline to open Cliffside Coast.',
+  );
+  await expect(setup.goalTarget).toHaveText('Finish top 3 vs Bots on Prairie Paceline');
+
+  await setup.open('old-town-criterium');
+  await expect(setup.title).toHaveText('Old Town Criterium');
+  await expect(setup.goal).toHaveCount(0);
+});

@@ -26,3 +26,15 @@
     gap: var(--space-12);
   }
 }
+
+// Block setup-ride: the ride column, Start pinned to its bottom from lg (L2-047 AC6).
+.setup-ride {
+  display: flex;
+  flex-direction: column;
+}
+
+.setup-ride__title {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+  font-weight: var(--font-weight-semibold);
+}
