@@ -849,6 +849,7 @@ export class HavanaStreet implements SceneStreet {
             rails.push(side);
           }
           this.dress(life, y, z0, z1, things);
+          if (!ruin && !tower && this.shades() < 0.3) building.add(this.awning(y, z0, z1));
           if (folk() < 0.35) this.resident(folk, y, z0 + 0.6 + folk() * (z1 - z0 - 1.2), things);
         }
         // Air conditioners boxed into the transoms over the windows, and the odd satellite dish.
@@ -939,6 +940,31 @@ export class HavanaStreet implements SceneStreet {
       arm.translate(-BALCONY + 0.15, y + 1.12, z + side);
       into.push(paint(arm, random() < 0.5 ? skin : shirt));
     }
+  }
+
+  private readonly shades = seeded(1627);
+  private awnings?: MeshStandardMaterial[];
+
+  /**
+   * A canvas awning over a balcony's French windows: striped, sun-faded red, green or blue on
+   * cream, sloping out from the wall above the window and hanging a scalloped valance.
+   */
+  private awning(y: number, z0: number, z1: number): Mesh {
+    if (!this.awnings) {
+      this.awnings = ['#b8402f', '#3f7a52', '#2f5a8a', '#c8902a'].map((c) =>
+        this.material({ map: this.track(awningTexture(c)), roughness: 0.9, side: DoubleSide }),
+      );
+    }
+    const width = z1 - z0 - 0.3;
+    const sheet = new PlaneGeometry(1.4, width);
+    sheet.rotateZ(Math.PI / 2);
+    sheet.rotateY(Math.PI / 2);
+    this.disposables.push(sheet);
+    const mesh = new Mesh(sheet, this.awnings[Math.floor(this.shades() * this.awnings.length)]!);
+    mesh.rotation.z = -0.55;
+    mesh.position.set(-0.4, y + 2.75, (z0 + z1) / 2);
+    mesh.castShadow = true;
+    return mesh;
   }
 
   /**
@@ -5939,5 +5965,24 @@ function signTexture(kind: 'limit' | 'parking'): CanvasTexture {
       g.fillRect(-52, -7, 104, 14);
       g.restore();
     }
+  });
+}
+
+/** An awning's canvas: broad stripes of a faded colour on cream, a scalloped edge at the hem. */
+function awningTexture(colour: string): CanvasTexture {
+  return canvasTexture(128, 64, (g) => {
+    g.fillStyle = '#efe6d2';
+    g.fillRect(0, 0, 128, 64);
+    g.fillStyle = colour;
+    for (let x = 0; x < 128; x += 32) g.fillRect(x, 0, 16, 56);
+    g.clearRect(0, 56, 128, 8);
+    for (let x = 0; x < 128; x += 16) {
+      g.fillStyle = (x / 16) % 2 ? '#efe6d2' : colour;
+      g.beginPath();
+      g.arc(x + 8, 56, 8, 0, Math.PI);
+      g.fill();
+    }
+    g.fillStyle = 'rgba(255,255,240,0.25)';
+    g.fillRect(0, 0, 128, 20);
   });
 }
