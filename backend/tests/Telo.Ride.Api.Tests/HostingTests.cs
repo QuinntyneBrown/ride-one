@@ -1,0 +1,82 @@
+// Acceptance test
+// Traces to: L2-149 AC1, AC2, L2-131 AC4
+// Description: the API serves the app's build as one origin with its backend: a deep link answers the
+// app with the headers of L2-131 and is never cached stale, a file answers itself, and an unknown
+// address under /api, /hubs or /health stays the backend's, never the app.
+using System.Net;
+using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Telo.Ride.Api.Tests;
+
+public sealed class HostingTests(HostedAppApi api) : IClassFixture<HostedAppApi>
+{
+    private static CancellationToken Cancel => TestContext.Current.CancellationToken;
+
+    [Theory]
+    [Trait("Category", "Critical")]
+    [InlineData("/")]
+    [InlineData("/race")]
+    [InlineData("/classes/hiit-30")]
+    public async Task A_deep_link_without_a_session_answers_the_app_with_its_headers(string path)
+    {
+        using var client = api.CreateClient(new() { AllowAutoRedirect = false });
+
+        using var response = await client.GetAsync(path, Cancel);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(HostedAppApi.AppShell, await response.Content.ReadAsStringAsync(Cancel));
+        Assert.True(response.Headers.CacheControl?.NoCache, "index.html must never be cached stale");
+        AssertSecurityHeaders(response);
+    }
+
+    [Fact]
+    public async Task A_file_of_the_build_answers_itself_without_a_session()
+    {
+        using var client = api.CreateClient();
+
+        using var response = await client.GetAsync("/main-GJM55KKQ.js", Cancel);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/javascript", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("console.log('ride');", await response.Content.ReadAsStringAsync(Cancel));
+        AssertSecurityHeaders(response);
+    }
+
+    [Theory]
+    [InlineData("/api/progress")]
+    [InlineData("/hubs/unknown")]
+    [InlineData("/health/unknown")]
+    public async Task An_unknown_backend_address_is_refused_never_answered_with_the_app(string path)
+    {
+        using var client = api.CreateClient(new() { AllowAutoRedirect = false });
+
+        using var response = await client.GetAsync(path, Cancel);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(Cancel);
+        Assert.Equal("unauthenticated", problem?.Extensions["code"]?.ToString());
+        AssertSecurityHeaders(response);
+    }
+
+    [Fact]
+    public async Task The_backend_answers_carry_the_same_headers()
+    {
+        using var client = api.CreateClient();
+
+        using var response = await client.GetAsync("/health/live", Cancel);
+
+        AssertSecurityHeaders(response);
+    }
+
+    private static void AssertSecurityHeaders(HttpResponseMessage response)
+    {
+        var policy = Assert.Single(response.Headers.GetValues("Content-Security-Policy"));
+        Assert.Contains("default-src 'self'", policy, StringComparison.Ordinal);
+        Assert.Contains("frame-src https://www.youtube-nocookie.com", policy, StringComparison.Ordinal);
+        Assert.Contains("frame-ancestors 'none'", policy, StringComparison.Ordinal);
+        Assert.Equal("nosniff", Assert.Single(response.Headers.GetValues("X-Content-Type-Options")));
+        Assert.Equal("strict-origin-when-cross-origin", Assert.Single(response.Headers.GetValues("Referrer-Policy")));
+    }
+}

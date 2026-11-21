@@ -6,18 +6,22 @@ import { expect, test } from './fixtures/test';
 import { HomePage } from './pages/home.page';
 
 test.describe('App shell', () => {
-  test('Home opens with the app header, Home current (L2-146 AC1, AC4)', async ({ page }) => {
-    const home = new HomePage(page);
-    await home.open();
+  test(
+    'Home opens with the app header, Home current (L2-146 AC1, AC4)',
+    { tag: '@critical' },
+    async ({ page }) => {
+      const home = new HomePage(page);
+      await home.open();
 
-    await expect(home.header.brand).toHaveAccessibleName('Home');
-    await expect(home.header.lockup).toHaveAccessibleName('Telo Ride');
-    for (const name of ['Home', 'Race', 'Classes', 'Profile'] as const) {
-      await expect(home.header.link(name)).toBeVisible();
-    }
-    await expect(home.header.current()).toHaveText('Home');
-    await expect(home.main).toBeAttached();
-  });
+      await expect(home.header.brand).toHaveAccessibleName('Home');
+      await expect(home.header.lockup).toHaveAccessibleName('Telo Ride');
+      for (const name of ['Home', 'Race', 'Classes', 'Profile'] as const) {
+        await expect(home.header.link(name)).toBeVisible();
+      }
+      await expect(home.header.current()).toHaveText('Home');
+      await expect(home.main).toBeAttached();
+    },
+  );
 
   test('the first Tab reaches “Skip to content”, which moves focus to the page', async ({
     page,

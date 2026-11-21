@@ -13,9 +13,9 @@ hosted together and how a change travels from a push to production.
 - **critical acceptance path** — the one acceptance test per feature that CI runs
 - **pipeline** — the GitHub Actions workflow that checks and deploys each change
 
-The feature belongs to the platform subsystem and spans frontend, backend and CI. ADR 0022 records
-the earlier Azure Static Web Apps hosting of the frontend alone; the host for the combined
-frontend and backend is `<TO SUPPLY>` and needs its own ADR.
+The feature belongs to the platform subsystem and spans frontend, backend and CI. ADR 0022 recorded
+the earlier Azure Static Web Apps hosting of the frontend alone; ADR 0026 supersedes it: one Azure
+App Service runs `Telo.Ride.Api`, which serves the app's build as well as the backend.
 
 ## Description
 
@@ -23,12 +23,15 @@ frontend and backend is `<TO SUPPLY>` and needs its own ADR.
   HTTPS. It applies the SPA fallback, sends the security headers of `L2-131` (Content Security
   Policy, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
   `frame-ancestors 'none'`), and marks `index.html` and the service-worker files as not cacheable.
-  The provider is `<TO SUPPLY>`.
+  The static host is `Telo.Ride.Api` itself: `UseStaticFiles` over `wwwroot`, before
+  authentication, and `MapFallbackToFile("index.html")`; the headers are set once in
+  `Hosting/SecurityHeaders.cs`, on every response (ADR 0026).
 - **Same-site routing** — the site routes `/api/*`, `/hubs/*` and `/health/*` to the Telo Ride
-  API and every other path to the static host. Whether this is one reverse proxy or the host's
-  own backend linking is `<TO SUPPLY>`.
+  API and every other path to the static host. With one service there is no proxy: the API's
+  endpoints take those paths, an unknown address under them answers ProblemDetails (401 without
+  a session), never the app, and every other address that is not a file answers `index.html`.
 - **Telo Ride API host** — runs `Telo.Ride.Api` over HTTPS behind the same site, with WebSockets
-  enabled for SignalR. The provider and instance size are `<TO SUPPLY>`.
+  enabled for SignalR: Azure App Service, Linux, .NET 10, B1, HTTPS only, WebSockets on.
 - **`docs/deployment.md`** — lists every setting the deployed backend needs, added in the same
   change as the setting. Known settings: the database connection string, the email sender's
   credentials, the cookie name and domain, the OpenTelemetry exporter endpoint, and rate-limit
@@ -36,13 +39,15 @@ frontend and backend is `<TO SUPPLY>` and needs its own ADR.
 - **`.github/workflows/ci.yml`** — one workflow on push and pull request:
   - `lint` — ESLint and `prettier --check` on `frontend/`, and `dotnet format --verify-no-changes`
     on `backend/`;
-  - `build` — production build of `ride` with budgets and the gzipped-size check
-    (`performance/meet-performance-budgets`), and `dotnet build -c Release`;
+  - `build` — production build of `ride` with the `angular.json` budgets (the gzipped-size check
+    of `performance/meet-performance-budgets` joins in slice 19.1), and `dotnet build -c Release`;
   - `acceptance` — the critical acceptance path per feature: Playwright specs tagged `@critical`
-    and backend acceptance tests marked critical;
-  - `deploy` — on `main` only, after the three jobs pass, deploys the frontend build and the
-    backend, then runs the `migrate` command (`platform/structure-the-backend`) before the new
-    API version starts.
+    (`npx playwright test --grep @critical`) and backend acceptance tests marked
+    `[Trait("Category", "Critical")]` (`dotnet test --filter-trait "Category=Critical"`);
+  - `deploy` — on `main` only, after the three jobs pass, publishes the API with the frontend
+    build in its `wwwroot`, runs the `migrate` command (`platform/structure-the-backend`), and
+    then deploys the package, so the new API version starts on a migrated database. It is
+    skipped until the repository variables of `docs/deployment.md` are set.
 - **Pipeline rules** — the workflow finishes in under 5 minutes. It runs no unit tests; those run
   locally with `node tools/verify/verify.mjs`. A flaky or slow check is fixed or removed, never
   retried.

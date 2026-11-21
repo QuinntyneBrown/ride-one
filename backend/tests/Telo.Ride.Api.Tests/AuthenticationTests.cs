@@ -11,6 +11,7 @@ namespace Telo.Ride.Api.Tests;
 public sealed class AuthenticationTests(ProbeApi api) : IClassFixture<ProbeApi>
 {
     [Fact]
+    [Trait("Category", "Critical")]
     public async Task An_endpoint_with_no_policy_of_its_own_refuses_a_request_without_a_session()
     {
         using var client = api.CreateClient(new() { AllowAutoRedirect = false });
