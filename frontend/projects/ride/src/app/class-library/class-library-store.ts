@@ -1,6 +1,13 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { CLASSES_API, type ClassDto, ClassesApiError, PROGRESS_API, type Segment } from '@telo/api';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  CLASSES_API,
+  type ClassCatalogueDto,
+  type ClassDto,
+  ClassesApiError,
+  PROGRESS_API,
+  type Segment,
+} from '@telo/api';
 
 /** One card of the library, as the presentation component takes it. */
 export interface ClassCardView {
@@ -32,42 +39,29 @@ export const LENGTH_TABS = [
 ] as const;
 
 /**
- * The Class Library's state, provided on its route (docs/detailed-designs/classes/browse-the-class-library): the
+ * The Class Library's state, provided on its page (docs/detailed-designs/classes/browse-the-class-library): the
  * catalogue from `CLASSES_API`, which answers from the device's copy when the backend cannot be reached, shaped into
  * shelves of cards, each open or locked for the rider level from `PROGRESS_API`, and the length tab chosen. With no
- * catalogue to read and none kept it is `unavailable`, and `retry()` asks again (L2-081 AC7). It goes when the rider leaves the library.
+ * catalogue to read and none kept it is `unavailable`, and `retry()` asks again (L2-081 AC7). It goes, with its
+ * requests, when the rider leaves the library.
  */
 @Injectable()
 export class ClassLibraryStore {
   private readonly classes = inject(CLASSES_API);
-  private readonly progress = inject(PROGRESS_API);
-  private readonly catalogue = rxResource({ stream: () => this.classes.list() });
-  private readonly level = rxResource({ stream: () => this.progress.level() });
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly catalogue = signal<ClassCatalogueDto | null>(null);
+  private readonly level = signal<number | null>(null);
 
   /** No catalogue could be read and none is kept on the device. */
-  readonly unavailable = computed(() => {
-    const error = this.catalogue.error();
-    return error instanceof ClassesApiError && error.code === 'catalogue_unavailable';
-  });
-
-  retry(): void {
-    this.catalogue.reload();
-  }
+  readonly unavailable = signal(false);
 
   /** The chosen length tab's id. */
   readonly tab = signal<string>('all');
 
-  /** The shelves the chosen tab shows. */
-  readonly shown = computed(() =>
-    this.tab() === 'all'
-      ? this.shelves()
-      : this.shelves().filter((shelf) => shelf.id === this.tab()),
-  );
-
   readonly shelves = computed<readonly ShelfView[]>(() => {
-    const catalogue = this.catalogue.hasValue() ? this.catalogue.value() : null;
-    if (!catalogue || !this.level.hasValue()) return [];
-    const level = this.level.value();
+    const catalogue = this.catalogue();
+    const level = this.level();
+    if (!catalogue || level === null) return [];
     return catalogue.shelves.map((shelf) => ({
       id: shelf.id,
       title: shelf.title,
@@ -77,6 +71,39 @@ export class ClassLibraryStore {
         .map((dto) => card(dto, level)),
     }));
   });
+
+  /** The shelves the chosen tab shows. */
+  readonly shown = computed(() =>
+    this.tab() === 'all'
+      ? this.shelves()
+      : this.shelves().filter((shelf) => shelf.id === this.tab()),
+  );
+
+  constructor() {
+    inject(PROGRESS_API)
+      .level()
+      .pipe(takeUntilDestroyed())
+      .subscribe((level) => this.level.set(level));
+    this.load();
+  }
+
+  retry(): void {
+    this.load();
+  }
+
+  private load(): void {
+    this.unavailable.set(false);
+    this.classes
+      .list()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (catalogue) => this.catalogue.set(catalogue),
+        error: (error: unknown) =>
+          this.unavailable.set(
+            error instanceof ClassesApiError && error.code === 'catalogue_unavailable',
+          ),
+      });
+  }
 }
 
 function card(dto: ClassDto, level: number): ClassCardView {

@@ -14,6 +14,7 @@ import { ClassLibraryStore, LENGTH_TABS } from './class-library-store';
   templateUrl: './class-library-page.html',
   styleUrl: './class-library-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ClassLibraryStore],
 })
 export default class ClassLibraryPage {
   protected readonly library = inject(ClassLibraryStore);

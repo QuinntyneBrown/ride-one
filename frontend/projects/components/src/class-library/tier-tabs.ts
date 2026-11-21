@@ -1,10 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  type ElementRef,
+  ElementRef,
+  inject,
   input,
   output,
-  viewChildren,
 } from '@angular/core';
 
 /** One length tab: the shelf id it shows ('all' for every shelf) and its label. */
@@ -31,7 +31,8 @@ export class TierTabs {
   readonly controls = input.required<string>();
   readonly choose = output<string>();
 
-  private readonly buttons = viewChildren<ElementRef<HTMLButtonElement>>('tab');
+  // The tabs are found in the host rather than by viewChildren, whose code would join the initial bundle (AGENTS.md).
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected move(event: KeyboardEvent, index: number): void {
     const last = this.tabs().length - 1;
@@ -52,6 +53,6 @@ export class TierTabs {
     if (next === null) return;
     event.preventDefault();
     this.choose.emit(this.tabs()[next].id);
-    this.buttons()[next].nativeElement.focus();
+    this.host.nativeElement.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
   }
 }
