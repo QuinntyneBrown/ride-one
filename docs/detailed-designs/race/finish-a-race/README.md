@@ -58,6 +58,24 @@ outbox and the performance subsystem (ride-without-a-network) sends it.
   the submission (L2-125 AC1).
 - **`Ride`** (`Telo.Ride.Domain`) — the stored ride, including its per-second distance trace.
 
+**Slice 7.5.** What is built, and how:
+
+- The finish line is the map's distance (`MapDto.distanceKm`). On the tick where the rider's
+  distance reaches it, the finish time is that second of the race clock. The clock and the ticker
+  stop, the wake lock is released, and `/results` opens with the race's result, `RaceResult`
+  (`api`: map, mode, pack, finish time, place and the field's size), in the navigation's state
+  for Results (slice 11.1) to read.
+- Placing: `FinishLine` (`domain/engine`) holds each opponent at the line from the second it
+  first reaches it, and keeps that second, at most one per rider; `rankStandings` orders riders
+  at the line by it, the rider ahead of an opponent who finished in the same second. The rider's
+  place at the line is their finishing place.
+- Past the plan's end nothing more is sent, so the last segment's level holds; the interval panel
+  keeps the last segment at 0:00, its bar full, and the clock counts on past the plan's length
+  ("30:12 / 30:00").
+- The ride's submission (`RaceRideRecorder`, `RaceRideSubmission`, `RideOutbox`, `RidesApi`)
+  comes with *record a ride* (slice 10.1), which needs sign-in (journey 9); until then a finished
+  race submits nothing. Riders online's places come with journey 15.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirements. Each L2 requirement refines a
