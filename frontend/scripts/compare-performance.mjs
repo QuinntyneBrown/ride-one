@@ -27,27 +27,29 @@ function delta(a, b) {
 
 /** A Markdown table of the deltas between two reports, one row per scene and tier. */
 export function compare(before, after) {
-  const key = (r) => `${r.scene}\u0000${r.tier}`;
+  // A scene and tier drawn on WebGPU and on WebGL2 are two rows.
+  const key = (r) => `${r.scene}\u0000${r.tier}\u0000${r.backend ?? ''}`;
   const first = new Map(before.results.map((r) => [key(r), r]));
   const second = new Map(after.results.map((r) => [key(r), r]));
   const rows = [
     `Comparing ${before.createdAt} with ${after.createdAt}.`,
     '',
-    '| Scene | Tier | Median frame (ms) | p95 frame (ms) | |',
-    '|---|---|---|---|---|',
+    '| Scene | Tier | Backend | Median frame (ms) | p95 frame (ms) | |',
+    '|---|---|---|---|---|---|',
   ];
   for (const k of new Set([...first.keys(), ...second.keys()])) {
     const a = first.get(k);
     const b = second.get(k);
-    const { scene, tier } = a ?? b;
+    const { scene, tier, backend = '' } = a ?? b;
     if (!a || !b) {
-      rows.push(`| ${scene} | ${tier} | only in the ${a ? 'first' : 'second'} run | | |`);
+      const only = `only in the ${a ? 'first' : 'second'} run`;
+      rows.push(`| ${scene} | ${tier} | ${backend} | ${only} | | |`);
       continue;
     }
     const median = delta(a.medianMs, b.medianMs);
     const p95 = delta(a.p95Ms, b.p95Ms);
     const mark = median.worse || p95.worse ? 'regression' : '';
-    rows.push(`| ${scene} | ${tier} | ${median.text} | ${p95.text} | ${mark} |`);
+    rows.push(`| ${scene} | ${tier} | ${backend} | ${median.text} | ${p95.text} | ${mark} |`);
   }
   return rows.join('\n');
 }

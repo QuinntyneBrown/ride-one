@@ -66,6 +66,12 @@ describe('materialVariants (#679)', () => {
     });
   });
 
+  it('names an environment map: the wet road reflecting the sky (#680)', () => {
+    expect(materialVariants([{ type: 'MeshStandardMaterial', map: {}, envMap: {} }])).toEqual({
+      'MeshStandardMaterial+map+env-map': 1,
+    });
+  });
+
   it('names clear-coat, normal, emissive and alpha-test features', () => {
     expect(
       materialVariants([

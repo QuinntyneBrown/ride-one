@@ -59,6 +59,7 @@ import {
   WebGPURenderer,
 } from 'three/webgpu';
 import type { WorldId } from '@wattzup/api';
+import { compiledFeatures } from './material-features';
 import { PACERS, pacersOnRoad } from './pacers';
 import { type Backend, FrameBudget, startTier, techniquesAt, type Tier } from './render-quality';
 import {
@@ -3403,6 +3404,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
     }
     this.sun.castShadow = on.has(12);
 
+    // A material gets a new program only when a compiled feature changes: textures, roughness
+    // and colour are uniforms, so a tier drop rebuilds only what it must (#680).
+    const road = compiledFeatures(this.roadMaterial);
     this.roadMaterial.map = on.has(9) ? this.layeredRoad : this.plainRoad;
     // The setts' relief comes with the photometric-stereo materials (technique 3).
     this.roadMaterial.normalMap = on.has(3) ? this.roadRelief : null;
@@ -3410,12 +3414,13 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.roadMaterial.roughness = wet ? 0.28 : 0.9;
     this.roadMaterial.color.set(look.road).multiplyScalar(wet ? 0.7 : 1);
     this.wetSky(wet);
-    this.roadMaterial.needsUpdate = true;
+    if (compiledFeatures(this.roadMaterial) !== road) this.roadMaterial.needsUpdate = true;
 
     for (const frame of this.frames) {
+      const paint = compiledFeatures(frame);
       frame.clearcoat = on.has(15) ? 1 : 0;
       frame.clearcoatRoughness = 0.08;
-      frame.needsUpdate = true;
+      if (compiledFeatures(frame) !== paint) frame.needsUpdate = true;
     }
 
     const night = look.sun < 0;
@@ -3753,10 +3758,12 @@ export class ThreeWorldRenderer implements WorldRenderer {
   }
 
   /** A wet Docklands road mirrors its night sky's violet glow, as the mock's road does. */
+  /** The wet road's sky reflection: its code compiles in only while the road has it (#680). */
   private wetSky(wet: boolean): void {
+    const before = compiledFeatures(this.roadMaterial);
     this.roadMaterial.envMap = wet && this.towers ? this.towers.skyEnv() : null;
     this.roadMaterial.envMapIntensity = 1.4;
-    this.roadMaterial.needsUpdate = true;
+    if (compiledFeatures(this.roadMaterial) !== before) this.roadMaterial.needsUpdate = true;
   }
 
   private placeRoadside(s: number, ahead: RoadPoint[]): void {

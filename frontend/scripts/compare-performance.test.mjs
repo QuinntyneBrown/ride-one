@@ -4,7 +4,13 @@ import { test } from 'node:test';
 import { compare } from './compare-performance.mjs';
 
 const run = (results) => ({ createdAt: '2026-11-20T00:00:00Z', results });
-const row = (scene, tier, medianMs, p95Ms) => ({ scene, tier, medianMs, p95Ms });
+const row = (scene, tier, medianMs, p95Ms, backend = 'webgpu') => ({
+  scene,
+  tier,
+  backend,
+  medianMs,
+  p95Ms,
+});
 
 test('prints median and p95 deltas per scene and tier', () => {
   const table = compare(
@@ -13,7 +19,7 @@ test('prints median and p95 deltas per scene and tier', () => {
   );
   assert.match(
     table,
-    /\| oldtown \| low \| 10\.0 → 10\.5 \(\+5\.0 %\) \| 20\.0 → 19\.0 \(−5\.0 %\) \|  \|/,
+    /\| oldtown \| low \| webgpu \| 10\.0 → 10\.5 \(\+5\.0 %\) \| 20\.0 → 19\.0 \(−5\.0 %\) \|  \|/,
   );
 });
 
@@ -34,8 +40,8 @@ test('a speed-up or exactly 10 % slower is no regression', () => {
 
 test('names a scene and tier found in only one run', () => {
   const table = compare(run([row('oldtown', 'low', 10, 20)]), run([row('coast', 'low', 10, 20)]));
-  assert.match(table, /\| oldtown \| low \| only in the first run/);
-  assert.match(table, /\| coast \| low \| only in the second run/);
+  assert.match(table, /\| oldtown \| low \| webgpu \| only in the first run/);
+  assert.match(table, /\| coast \| low \| webgpu \| only in the second run/);
 });
 
 test('shows a missing number as n/a', () => {
@@ -43,5 +49,13 @@ test('shows a missing number as n/a', () => {
     run([row('oldtown', 'low', null, null)]),
     run([row('oldtown', 'low', 10, 20)]),
   );
-  assert.match(table, /\| oldtown \| low \| n\/a → 10\.0 \| n\/a → 20\.0 \|/);
+  assert.match(table, /\| oldtown \| low \| webgpu \| n\/a → 10\.0 \| n\/a → 20\.0 \|/);
+});
+
+test('keeps a scene and tier on each backend apart', () => {
+  const both = (gpu, gl) =>
+    run([row('oldtown', 'low', gpu, gpu, 'webgpu'), row('oldtown', 'low', gl, gl, 'webgl2')]);
+  const table = compare(both(10, 20), both(10, 30));
+  assert.match(table, /\| oldtown \| low \| webgpu \| 10\.0 → 10\.0 \(\+0\.0 %\)/);
+  assert.match(table, /\| oldtown \| low \| webgl2 \| 20\.0 → 30\.0 \(\+50\.0 %\).*regression/);
 });
