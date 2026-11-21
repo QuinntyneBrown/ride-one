@@ -12,6 +12,8 @@ export { ClassCard } from './class-library/class-card';
 export { ClassProfile } from './class-library/class-profile';
 export { ClassShelf } from './class-library/class-shelf';
 export { TierTabs, type TierTab } from './class-library/tier-tabs';
+export { BackLink } from './class-start/back-link';
+export { ClassStartHeader } from './class-start/class-start-header';
 export { ClassBike } from './class-ride/class-bike';
 export { ClassHeader } from './class-ride/class-header';
 export { ClassLost } from './class-ride/class-lost';

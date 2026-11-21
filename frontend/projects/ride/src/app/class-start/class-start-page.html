@@ -1,0 +1,16 @@
+<div class="class-start-page">
+  <wz-class-start-header>
+    <a wz-back-link slot="back" routerLink="/classes">Classes</a>
+  </wz-class-start-header>
+  <div class="class-start-page__scroll">
+    @if (store.dto(); as dto) {
+      <main id="main" class="container class-start" tabindex="-1">
+        <section class="class-start__main" aria-labelledby="class-title">
+          <p class="class-start__meta">{{ store.meta() }}</p>
+          <h1 class="class-start__title" id="class-title">{{ dto.title }}</h1>
+          <p class="class-start__summary">{{ dto.summary }}</p>
+        </section>
+      </main>
+    }
+  </div>
+</div>
