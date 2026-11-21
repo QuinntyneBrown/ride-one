@@ -1,8 +1,9 @@
 // Acceptance test
-// Traces to: L2-046 AC1, AC2; L2-045 AC1; L2-040 AC1
+// Traces to: L2-046 AC1 to AC4; L2-045 AC1; L2-040 AC1, AC6; L2-041 AC1
 // Description: Map Select reads "Maps" and its lead above an ordered list of every map, in unlock order. A new rider's
 // open maps, Prairie Paceline and Old Town Criterium, link to Race Setup with their thumbnail, facts and stars, and no
-// best line before they are ridden.
+// best line before they are ridden. Cliffside Coast, the next unlock, is a disabled button ringed gold with its facts
+// and goal; every other locked map is a disabled button with a greyed photo, a lock and its goal.
 import { maps } from './fixtures/maps';
 import { expect, test } from './fixtures/test';
 import { MapSelectPage } from './pages/map-select.page';
@@ -53,6 +54,44 @@ test.describe('Map Select', () => {
       await expect(row.stars).toHaveAccessibleName('0 of 3 stars');
       await expect(row.best).toHaveCount(0);
       await expect(row.goal).toHaveCount(0);
+    }
+  });
+
+  test('the next unlock is a disabled button ringed gold, with its facts and its goal (L2-046 AC3, L2-041 AC1)', async ({
+    page,
+  }) => {
+    const select = new MapSelectPage(page);
+    await select.open();
+
+    const next = select.row('Cliffside Coast');
+    await expect(next.root).toBeDisabled();
+    await expect(next.root).toHaveClass(/map-row--next/);
+    await expect(next.name).toHaveText('Cliffside Coast, locked, your next unlock');
+    await expect(next.facts).toHaveText('32 km · 410 m climbing · Moderate');
+    await expect(next.goal).toHaveText('Finish top 3 vs Bots on Prairie Paceline');
+    await expect(next.lock).toBeVisible();
+  });
+
+  test('every other locked map is a disabled button with a greyed photo, a lock and its goal (L2-046 AC4, L2-040 AC6)', async ({
+    page,
+  }) => {
+    const select = new MapSelectPage(page);
+    await select.open();
+
+    for (const [name, goal] of [
+      ['Neon Docklands', 'Finish top 3 vs Bots on Old Town Criterium'],
+      ['Dolomites', 'Earn 2★ on Cliffside Coast'],
+      ['Vice City', 'Reach rider level 10'],
+      ['Col du Granit', 'Earn 3★ on Dolomites'],
+    ]) {
+      const row = select.row(name);
+      await expect(row.root).toBeDisabled();
+      await expect(row.root).not.toHaveClass(/map-row--next/);
+      await expect(row.name).toHaveText(`${name}, locked`);
+      await expect(row.goal).toHaveText(goal);
+      await expect(row.lock).toBeVisible();
+      await expect(row.thumbnail).toHaveCSS('filter', 'grayscale(1)');
+      await expect(row.stars).toHaveCount(0);
     }
   });
 });

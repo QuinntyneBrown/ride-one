@@ -100,3 +100,51 @@
     display: block;
   }
 }
+
+:host(.map-row--next) {
+  background: var(--color-panel);
+  box-shadow: 0 0 0 var(--border-width-hairline)
+    color-mix(in srgb, var(--color-gold) 40%, transparent);
+}
+
+:host(:disabled) {
+  cursor: default;
+}
+
+:host(.map-row--locked) .map-row__name {
+  color: var(--color-muted);
+}
+
+.map-row__photo--locked {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.map-row__lock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  color: var(--color-on-photo);
+}
+
+.map-row__goal {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-top: var(--space-1-5);
+  color: var(--color-faint);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+}
+
+.map-row__goal--next {
+  color: var(--color-gold-fg);
+  font-weight: var(--font-weight-medium);
+}
+
+.map-row__goal-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
