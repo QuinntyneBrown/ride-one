@@ -22,6 +22,68 @@ namespace Telo.Ride.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Telo.Ride.Domain.Accounts.Rider", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Riders");
+                });
+
+            modelBuilder.Entity("Telo.Ride.Domain.Accounts.RiderSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("KeyHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("LastUsedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("RiderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KeyHash")
+                        .IsUnique();
+
+                    b.HasIndex("RiderId");
+
+                    b.ToTable("RiderSessions");
+                });
+
             modelBuilder.Entity("Telo.Ride.Domain.Accounts.SignInCode", b =>
                 {
                     b.Property<Guid>("Id")
@@ -38,6 +100,9 @@ namespace Telo.Ride.Infrastructure.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("nvarchar(320)");
 
+                    b.Property<int>("FailedAttempts")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("IssuedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -49,6 +114,9 @@ namespace Telo.Ride.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("SupersededAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email", "IssuedAt");
@@ -56,6 +124,15 @@ namespace Telo.Ride.Infrastructure.Migrations
                     b.HasIndex("NetworkHash", "IssuedAt");
 
                     b.ToTable("SignInCodes");
+                });
+
+            modelBuilder.Entity("Telo.Ride.Domain.Accounts.RiderSession", b =>
+                {
+                    b.HasOne("Telo.Ride.Domain.Accounts.Rider", null)
+                        .WithMany()
+                        .HasForeignKey("RiderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

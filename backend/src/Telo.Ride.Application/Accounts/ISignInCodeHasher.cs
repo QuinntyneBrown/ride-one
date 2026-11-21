@@ -8,5 +8,8 @@ public interface ISignInCodeHasher
 {
     string HashCode(string code);
 
+    /// <summary>Whether <paramref name="code"/> hashes to <paramref name="hash"/>, compared in constant time.</summary>
+    bool CodeMatches(string code, string hash);
+
     string HashNetwork(string networkAddress);
 }

@@ -17,6 +17,9 @@ internal sealed class HmacSignInCodeHasher(IConfiguration configuration) : ISign
 
     public string HashCode(string code) => Hash("code:" + code);
 
+    public bool CodeMatches(string code, string hash) =>
+        CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(HashCode(code)), Encoding.ASCII.GetBytes(hash));
+
     public string HashNetwork(string networkAddress) => Hash("network:" + networkAddress);
 
     private string Hash(string value) => Convert.ToHexStringLower(HMACSHA256.HashData(Key, Encoding.UTF8.GetBytes(value)));
