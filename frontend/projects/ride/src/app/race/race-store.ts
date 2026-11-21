@@ -10,6 +10,7 @@ import {
   type PackStrengthId,
   type RaceMode,
   type RaceResult,
+  type SceneRider,
   SCREEN_WAKE_LOCK,
   TICKER,
 } from '@telo/api';
@@ -64,6 +65,9 @@ export class RaceStore {
   private field: RaceField | null = null;
   /** The rider and the field by place, ranked once a second on the race's tick (L2-060 AC3). */
   private readonly standings = signal<readonly Standing[]>([]);
+  private readonly riders = signal<readonly SceneRider[]>([]);
+  /** The field at its places, metres from the rider, for the world to draw (L2-064 AC3). */
+  readonly sceneRiders = this.riders.asReadonly();
   private readonly beat = inject(TICKER);
   private readonly pausedByRider = signal(false);
   /** Whether the bike has reported the rider stopped since the pause, so the next stroke carries the race on. */
@@ -393,6 +397,7 @@ export class RaceStore {
     const field = this.line.holdAll(this.field.advance(second), second);
     const you = this.line.hold(YOU, this.ridden(), second);
     this.standings.set(rankStandings(field, you, speed, this.line.crossings));
+    this.riders.set(field.map((rider) => ({ jersey: rider.jersey, metres: rider.metres - you })));
   }
 
   /**

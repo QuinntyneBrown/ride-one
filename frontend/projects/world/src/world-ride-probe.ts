@@ -42,6 +42,20 @@ export interface WorldRideProbeReport {
   dithered: number;
   /** Shader programs and render pipelines the backend has built, ever: each one a compile. */
   compiled: number;
+  /** The race's riders drawn in the latest frame, from furthest ahead (L2-064 AC3). */
+  riders: DrawnRider[];
+  /** `main`'s simulated pacers drawn in the latest frame: none in a race, which draws its own riders. */
+  pacers: number;
+}
+
+/** A race rider the renderer drew: its jersey, its place, and the colour and opacity it wears. */
+export interface DrawnRider {
+  readonly jersey: string;
+  /** Metres ahead of the rider; negative is behind. */
+  readonly metres: number;
+  /** `#rrggbb`. */
+  readonly colour: string;
+  readonly opacity: number;
 }
 
 /** The pinned tier, or null when the hook is not set (every rider's ride). */
@@ -89,6 +103,8 @@ export function probeReport(
     skyGradient: false,
     dithered: 0,
     compiled: 0,
+    riders: [],
+    pacers: 0,
   };
   (probe as { report?: WorldRideProbeReport }).report = report;
   return report;

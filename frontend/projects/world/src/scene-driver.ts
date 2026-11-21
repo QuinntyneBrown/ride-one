@@ -1,5 +1,5 @@
 // Steps the rider through the scene each frame and hands the frame to the renderer (L2-110).
-import type { TimedSegment as Segment, WorldRenderer } from '@telo/api';
+import type { SceneRider, TimedSegment as Segment, WorldRenderer } from '@telo/api';
 
 export interface SceneInput {
   readonly segments: readonly Segment[];
@@ -7,6 +7,8 @@ export interface SceneInput {
   readonly speedKmh: number | null;
   readonly running: boolean;
   readonly reducedMotion: boolean;
+  /** The race's other riders; absent outside a race (L2-064 AC3). */
+  readonly riders?: readonly SceneRider[];
 }
 
 /** The longest step one frame takes, so the rider does not leap after a hidden tab. */
@@ -45,6 +47,7 @@ export class SceneDriver {
       time: this.time,
       speedKmh,
       reducedMotion: input.reducedMotion,
+      ...(input.riders ? { riders: input.riders } : {}),
     });
   }
 }

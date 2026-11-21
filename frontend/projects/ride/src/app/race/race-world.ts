@@ -9,7 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import type { Backend, MapDto } from '@telo/api';
+import type { Backend, MapDto, SceneRider } from '@telo/api';
 import type { WorldScene } from '@telo/world';
 
 /**
@@ -24,6 +24,8 @@ export class RaceWorld {
   readonly elapsed = input.required<number>();
   readonly speedKmh = input.required<number | null>();
   readonly running = input.required<boolean>();
+  /** The race's other riders, metres from the rider (L2-064 AC3). */
+  readonly riders = input.required<readonly SceneRider[]>();
   /** The GPU API drawing the world, once it has started (L2-065 AC1). */
   readonly started = output<Backend>();
   /** Neither WebGPU nor WebGL 2 could draw the world (L2-065 AC2). */
@@ -57,5 +59,6 @@ export class RaceWorld {
     scene.setInput('elapsed', this.elapsed());
     scene.setInput('speedKmh', this.speedKmh());
     scene.setInput('running', this.running());
+    scene.setInput('riders', this.riders());
   }
 }

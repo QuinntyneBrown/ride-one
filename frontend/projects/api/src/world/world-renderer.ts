@@ -2,7 +2,7 @@
 // real renderer is Three.js in the world library's world-renderer.ts, loaded on demand; tests reach a fake through the
 // same contract.
 import { InjectionToken } from '@angular/core';
-import type { Backend, TimedSegment as Segment, World } from './world';
+import type { Backend, SceneRider, TimedSegment as Segment, World } from './world';
 
 /** What the renderer draws in one frame (L2-110). */
 export interface SceneFrame {
@@ -21,6 +21,11 @@ export interface SceneFrame {
   readonly speedKmh: number;
   /** No camera sway and no turning pedals (L2-110 AC6). */
   readonly reducedMotion: boolean;
+  /**
+   * The race's other riders, drawn in their jerseys at their places (L2-064 AC3), the ghost translucent gold. Absent
+   * where no race is ridden: `main`'s simulated pacers ride instead.
+   */
+  readonly riders?: readonly SceneRider[];
 }
 
 export interface WorldRenderer {

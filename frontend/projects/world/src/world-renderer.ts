@@ -61,10 +61,17 @@ import {
   Vector3,
   WebGPURenderer,
 } from 'three/webgpu';
-import type { SceneFrame, TimedSegment as Segment, WorldId, WorldRenderer } from '@telo/api';
+import type {
+  SceneFrame,
+  SceneRider,
+  TimedSegment as Segment,
+  WorldId,
+  WorldRenderer,
+} from '@telo/api';
 import { compiledFeatures } from './material-features';
 import { skyStops } from './drawn-look';
 import { PACERS, pacersOnRoad } from './pacers';
+import { ridersOnRoad } from './race-riders';
 import {
   type Backend,
   FrameBudget,
@@ -3176,6 +3183,13 @@ export class ThreeWorldRenderer implements WorldRenderer {
   private readonly arch = new Group();
   private you: Cyclist | null = null;
   private readonly pacers = new Map<number, Cyclist>();
+  /** The race's riders by jersey, each made the first time it rides into view (L2-064 AC3). */
+  private readonly raceRiders = new Map<string, Cyclist>();
+  /** What each race rider wears, for the test-only hook's report: the jersey, or the ghost's gold. */
+  private readonly wear = new Map<string, MeshStandardMaterial>();
+  /** The kit the riders are made from, and the canvas whose jersey tokens colour them. */
+  private kit: CyclistKit | null = null;
+  private canvas: HTMLCanvasElement | null = null;
   private readonly wheelBlur: Mesh[] = [];
   private readonly lamps: PointLight[] = [];
   private street: OldTownStreet | null = null;
@@ -3435,7 +3449,9 @@ export class ThreeWorldRenderer implements WorldRenderer {
     if (this.roadRelief) this.roadRelief.offset.y = (frame.s / DASH) % 1;
     this.placeArch(world, frame, speed, ahead);
     this.placeRoadside(frame.s, ahead);
-    this.placePacers(world, frame, ahead);
+    // A race draws its own riders; elsewhere `main`'s simulated pacers ride (L2-064 AC3, L2-107 AC7).
+    if (frame.riders) this.placeRaceRiders(world, frame, ahead, frame.riders);
+    else this.placePacers(world, frame, ahead);
 
     // The bike rocks under the pedal strokes and leans into a bend: right on a right-hander.
     this.you?.pose(
@@ -3608,7 +3624,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
     this.toon.apply(this.scene, on.has(51), new Color(look.sky), this.unbent);
     // The rider and pacers take a warmer ink than the scenery (technique 52).
     if (on.has(52)) {
-      for (const rider of [this.you, ...this.pacers.values()]) {
+      for (const rider of [this.you, ...this.pacers.values(), ...this.raceRiders.values()]) {
         if (rider) this.toon.inkWarm(rider.group, this.warmInk);
       }
     }
@@ -3829,7 +3845,10 @@ export class ThreeWorldRenderer implements WorldRenderer {
   /** The rider on their bike, from behind, in the You colour of the rider board. */
   private addRider(canvas: HTMLCanvasElement): void {
     const kit = new CyclistKit(this.frameMaterial);
-    const you = kit.make(riderColour(canvas, 4), 4);
+    this.kit = kit;
+    this.canvas = canvas;
+    // The rider wears the You jersey of the race board (L2-060).
+    const you = kit.make(jerseyColour(canvas, 'you'), 4);
     this.you = you;
     this.wheelBlur.push(...you.wheelBlur);
     this.scene.add(you.group);
@@ -3849,6 +3868,91 @@ export class ThreeWorldRenderer implements WorldRenderer {
       this.scene.add(rider.group);
       this.disposables.push(rider.jersey, rider.bib, rider.shell);
     }
+    // The ghost is made with the scene, so its translucent material compiles while the world loads.
+    this.addGhost(kit, canvas);
+  }
+
+  /**
+   * The ghost of a solo race: the cyclist kit's rider in translucent gold (L2-064 AC3). `main` has no ghost; it is drawn
+   * new from the kit, in its style. The wheels keep the kit's spokes, so they still read as wheels.
+   */
+  private addGhost(kit: CyclistKit, canvas: HTMLCanvasElement): void {
+    const gold = jerseyColour(canvas, 'ghost');
+    const glass = new MeshStandardMaterial({
+      color: gold,
+      roughness: 0.4,
+      transparent: true,
+      opacity: GHOST_OPACITY,
+      depthWrite: false,
+    });
+    const ghost = kit.make(gold, 0);
+    ghost.group.traverse((part) => {
+      const mesh = part as Mesh;
+      if (mesh.isMesh && mesh.material !== kit.spokes && mesh.material !== kit.spokeLace) {
+        mesh.material = glass;
+        mesh.castShadow = false;
+      }
+    });
+    ghost.group.visible = false;
+    this.raceRiders.set('ghost', ghost);
+    this.wear.set('ghost', glass);
+    this.scene.add(ghost.group);
+    this.disposables.push(ghost.jersey, ghost.bib, ghost.shell, glass);
+  }
+
+  /**
+   * A race rider in their jersey, made the first time they ride into view and dressed as the scene is at its tier:
+   * toon twins and warmer ink at low, and the road's bend. Each bike takes a frame paint of its own, as the pacers'.
+   */
+  private raceRider(jersey: string): Cyclist | null {
+    const made = this.raceRiders.get(jersey);
+    if (made) return made;
+    if (!this.kit || !this.canvas) return null;
+    const number = this.raceRiders.size;
+    const frame = this.frameMaterial.clone();
+    frame.color.set(FRAME_PAINT[number % FRAME_PAINT.length]!);
+    this.frames.push(frame);
+    this.disposables.push(frame);
+    const rider = this.kit.make(jerseyColour(this.canvas, jersey), number, frame);
+    if (number % 2 === 0) rider.shell.color.set(0xf2f2ee);
+    rider.group.visible = false;
+    this.raceRiders.set(jersey, rider);
+    this.wear.set(jersey, rider.jersey);
+    this.scene.add(rider.group);
+    this.disposables.push(rider.jersey, rider.bib, rider.shell);
+    if (this.on.has(51)) this.toon.apply(rider.group, true, new Color(this.look.sky), this.unbent);
+    if (this.on.has(52)) this.toon.inkWarm(rider.group, this.warmInk);
+    this.bend.apply(rider.group, this.unbent);
+    return rider;
+  }
+
+  /** Puts each race rider in view at their place, and hides the rest (L2-064 AC3). */
+  private placeRaceRiders(
+    world: World,
+    frame: SceneFrame,
+    ahead: RoadPoint[],
+    riders: readonly SceneRider[],
+  ): void {
+    // `main`'s pacers ride no race, though the start's rehearsal frame, which has no riders, drew them.
+    for (const rider of [...this.pacers.values(), ...this.raceRiders.values()])
+      rider.group.visible = false;
+    const drawn = ridersOnRoad(riders, AHEAD * STEP);
+    drawn.forEach((p, order) => {
+      const rider = this.raceRider(p.jersey);
+      if (rider) this.ride(world, frame, ahead, rider, p.metres, p.lane, order + 1);
+    });
+    if (this.probe) {
+      this.probe.pacers = [...this.pacers.values()].filter((p) => p.group.visible).length;
+      this.probe.riders = drawn.map((p) => {
+        const wear = this.wear.get(p.jersey);
+        return {
+          jersey: p.jersey,
+          metres: p.metres,
+          colour: `#${wear?.color.getHexString() ?? '000000'}`,
+          opacity: wear?.opacity ?? 0,
+        };
+      });
+    }
   }
 
   /** Puts each pacer in view at its gap, and hides the rest (L2-107 AC7). */
@@ -3857,21 +3961,33 @@ export class ThreeWorldRenderer implements WorldRenderer {
     for (const p of pacersOnRoad(frame.time, AHEAD * STEP)) {
       const rider = this.pacers.get(p.jersey);
       if (!rider) continue;
-      rider.group.visible = true;
-      // Through a bend each pacer cuts to the inside, towards the apex; one beside the rider
-      // holds their lane so as not to ride into them.
-      const clear = Math.min(Math.max((Math.abs(p.metres) - 3) / 10, 0), 1);
-      const line = racingLine(world, frame.s + p.metres, p.lane, ROAD_HALF);
-      const lane = p.lane + (line - p.lane) * clear;
-      rider.group.position.set(lane, heightAt(ahead, p.metres), -p.metres);
-      rider.group.rotation.x = pitch(gradeAt(ahead, p.metres));
-      // Each pacer leans into the bend it is riding through, as the rider does.
-      rider.pose(
-        frame.reducedMotion ? 0 : frame.crank * (0.9 + p.jersey * 0.03) + p.jersey,
-        -lean(world, frame.s + p.metres, frame.speedKmh / 3.6),
-        standing(gradeAt(ahead, p.metres)),
-      );
+      this.ride(world, frame, ahead, rider, p.metres, p.lane, p.jersey);
     }
+  }
+
+  /** Puts a pacer or race rider on the road `metres` ahead, on `lane`, pedalling out of step by `seed`. */
+  private ride(
+    world: World,
+    frame: SceneFrame,
+    ahead: RoadPoint[],
+    rider: Cyclist,
+    metres: number,
+    lane: number,
+    seed: number,
+  ): void {
+    rider.group.visible = true;
+    // Through a bend each pacer cuts to the inside, towards the apex; one beside the rider
+    // holds their lane so as not to ride into them.
+    const clear = Math.min(Math.max((Math.abs(metres) - 3) / 10, 0), 1);
+    const line = racingLine(world, frame.s + metres, lane, ROAD_HALF);
+    rider.group.position.set(lane + (line - lane) * clear, heightAt(ahead, metres), -metres);
+    rider.group.rotation.x = pitch(gradeAt(ahead, metres));
+    // Each pacer leans into the bend it is riding through, as the rider does.
+    rider.pose(
+      frame.reducedMotion ? 0 : frame.crank * (0.9 + seed * 0.03) + seed,
+      -lean(world, frame.s + metres, frame.speedKmh / 3.6),
+      standing(gradeAt(ahead, metres)),
+    );
   }
 
   /** The arch over the road ahead: two posts, a beam and its label. */
@@ -4265,6 +4381,17 @@ function riderColour(element: Element, n: number): Color {
   if (value) colour.setStyle(value);
   return colour;
 }
+
+/** A race rider's colour, the design system's `--jersey-<jersey>` (L2-064 AC3); the ghost's is gold. */
+function jerseyColour(element: Element, jersey: string): Color {
+  const value = getComputedStyle(element).getPropertyValue(`--jersey-${jersey}`).trim();
+  const colour = new Color(0xd7ff3a);
+  if (value) colour.setStyle(value);
+  return colour;
+}
+
+/** How much of the scene shows through the ghost (L2-064 AC3). */
+const GHOST_OPACITY = 0.45;
 
 /** Frame paints for the pacers' bikes: white, red, navy, silver and teal. */
 const FRAME_PAINT = [0xeeeeea, 0xb3262c, 0x1d2b4a, 0xa9aeb5, 0x2a7d7a];

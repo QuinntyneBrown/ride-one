@@ -60,8 +60,12 @@ in `AGENTS.md` and to the ESLint boundaries in the same change.
   and holds it while the race is paused. In a portrait viewport the camera keeps its vertical
   field of view and narrows its aspect, so the world fills the screen without stretching
   (L2-064 AC5).
-- **`RiderFigures`** — one instanced mesh for the riders in view, each in its jersey colour;
-  the ghost uses a translucent gold material (L2-064 AC3).
+- **`RiderFigures`** — the race's other riders in view, each one of `main`'s cyclist kit
+  (`world-cyclist.ts`) in its jersey colour (`--jersey-<jersey>`), at its place on the route
+  and on a line of its own across the road (`ridersOnRoad`); the ghost is the kit's rider in
+  one translucent gold material, made with the scene so it compiles while the world loads
+  (L2-064 AC3). The race hands the scene its field each second as `SceneFrame.riders`, metres
+  from the rider; without them, as in a class, `main`'s simulated pacers ride instead.
 - **`PhotorealTilesLayer`** — loads Google's photorealistic 3D Tiles for the map's real place
   through the Map Tiles API with the rider's key, and reports `refused` when Google rejects it.
   The 3D Tiles loader package is `<TO SUPPLY>`; under ADR 0021 a new runtime dependency needs
@@ -166,5 +170,12 @@ built-in world in place and the panel says so.
   stretching. `main`'s scene reads each segment's start second, which `WorldScene` adds to the
   plan's segments (`timedSegments`). Until slice 8.3 places the race's own riders, the scene
   draws `main`'s six simulated pacers around the rider, as `main` does.
+- **Slice 8.3 draws the riders with `main`'s cyclist kit.** This design first named one
+  instanced mesh for the riders; `main` draws each rider as a group of the kit's shared
+  geometries, and `main` wins on rendering, so a race rider is one of those groups, made the
+  first time it rides into view and dressed for the tier (toon twins and warmer ink at low, the
+  road's bend). The rider wears the race board's You jersey (`--jersey-you`) rather than
+  `main`'s `--color-rider-4`, which Telo Ride's tokens do not have. The race's field moves once
+  a second, as the standings do, so a rider's gap changes in whole-second steps.
 - **Vice City has no world on `main`.** Its race draws South Beach Sunrise, whose terrain its
   catalogue entry already takes (slice 7.3), until a Vice City world is built.

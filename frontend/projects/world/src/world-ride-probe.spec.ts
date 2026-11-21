@@ -55,6 +55,8 @@ describe('probeReport (#674)', () => {
       skyGradient: false,
       dithered: 0,
       compiled: 0,
+      riders: [],
+      pacers: 0,
     });
     report?.frames.push(16.7);
     expect((global[PROBE_KEY] as { report: unknown }).report).toBe(report);
