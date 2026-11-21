@@ -263,7 +263,7 @@ export class HavanaStreet implements SceneStreet {
       // The sheet of white water slams up the wall's face; the drops fly on, spread and fall.
       const slam = Math.sin(Math.PI * Math.min(t / 1.2, 1));
       spray.sheet.scale.set(1, 0.2 + slam * 1.6, 1 + slam * 0.3);
-      spray.material.opacity = 0.9 * (1 - (t / SURGE) ** 2);
+      spray.material.opacity = 0.7 * (1 - (t / SURGE) ** 2);
       spray.drops.forEach((d, i) => {
         const u = t - d.lag;
         const y = d.vy * u - 4.9 * u * u;
@@ -617,7 +617,7 @@ export class HavanaStreet implements SceneStreet {
       const material = this.material({
         color: 0xffffff,
         emissive: 0xf2f8fa,
-        emissiveIntensity: 0.9,
+        emissiveIntensity: 0.55,
         transparent: true,
         opacity: 0,
         roughness: 0.6,
@@ -634,7 +634,7 @@ export class HavanaStreet implements SceneStreet {
           vx: 0.4 + random() * 2.4,
           vy: 3 + random() * 9,
           vz: (random() - 0.5) * 2.4,
-          size: 0.04 + random() ** 3 * 0.32,
+          size: 0.03 + random() ** 3 * 0.2,
           lag: random() * 0.6,
         });
       }
