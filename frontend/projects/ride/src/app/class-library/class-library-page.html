@@ -7,22 +7,30 @@
         class either way.
       </p>
     </div>
+    <wz-tier-tabs
+      [tabs]="tabs"
+      [selected]="library.tab()"
+      controls="library-shelves"
+      (choose)="library.tab.set($event)"
+    />
   </div>
 
-  @for (shelf of library.shelves(); track shelf.id) {
-    <wz-class-shelf [shelfId]="shelf.id" [title]="shelf.title" [tagline]="shelf.tagline">
-      @for (card of shelf.cards; track card.id) {
-        <a
-          wz-class-card
-          [routerLink]="['/classes', card.id]"
-          [title]="card.title"
-          [channel]="card.channel"
-          [focus]="card.focus"
-          [cover]="card.cover"
-          [lengthSeconds]="card.lengthSeconds"
-          [segments]="card.segments"
-        ></a>
-      }
-    </wz-class-shelf>
-  }
+  <div id="library-shelves" role="tabpanel" [attr.aria-labelledby]="'tier-tab-' + library.tab()">
+    @for (shelf of library.shown(); track shelf.id) {
+      <wz-class-shelf [shelfId]="shelf.id" [title]="shelf.title" [tagline]="shelf.tagline">
+        @for (card of shelf.cards; track card.id) {
+          <a
+            wz-class-card
+            [routerLink]="['/classes', card.id]"
+            [title]="card.title"
+            [channel]="card.channel"
+            [focus]="card.focus"
+            [cover]="card.cover"
+            [lengthSeconds]="card.lengthSeconds"
+            [segments]="card.segments"
+          ></a>
+        }
+      </wz-class-shelf>
+    }
+  </div>
 </main>

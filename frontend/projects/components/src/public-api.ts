@@ -11,6 +11,7 @@ export { formatDistance, formatMetric } from './metric/format-metric';
 export { ClassCard } from './class-library/class-card';
 export { ClassProfile } from './class-library/class-profile';
 export { ClassShelf } from './class-library/class-shelf';
+export { TierTabs, type TierTab } from './class-library/tier-tabs';
 export { ClassBike } from './class-ride/class-bike';
 export { ClassHeader } from './class-ride/class-header';
 export { ClassLost } from './class-ride/class-lost';

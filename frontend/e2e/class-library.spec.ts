@@ -1,8 +1,8 @@
 // Acceptance test
-// Traces to: L2-080 AC1; L2-081 AC1, AC3, AC4, AC6
+// Traces to: L2-080 AC1; L2-081 AC1 to AC4, AC6
 // Description: the Class Library reads its head and its three shelves, lists the catalogue's classes in order, and an
 // open card leads to its Class Start with its cover, length, resistance profile, title, channel and focus; with no
-// group sessions to read, it shows no group chip.
+// group sessions to read, it shows no group chip. The Class length tabs show one shelf or all, by pointer or arrow key.
 import { library } from './fixtures/library';
 import { expect, test } from './fixtures/test';
 import { ClassLibraryPage } from './pages/class-library.page';
@@ -56,5 +56,30 @@ test.describe('Class Library', () => {
     await expect(hiit.meta).toHaveText('GCN Training · HIIT');
     await expect(hiit.group).toHaveCount(0);
     await expect(classes.card('20 Minute Power Intervals').time).toHaveText('20:00');
+  });
+
+  test('a Class length tab shows only its shelf, All shows every shelf, and the arrow keys move between tabs (L2-081 AC2)', async ({
+    page,
+  }) => {
+    const classes = new ClassLibraryPage(page);
+    await classes.open();
+    await expect(classes.tab('All')).toHaveAttribute('aria-selected', 'true');
+
+    await classes.tab('30 min').click();
+    await expect(classes.tab('30 min')).toHaveAttribute('aria-selected', 'true');
+    await expect(classes.tab('All')).toHaveAttribute('aria-selected', 'false');
+    await expect(classes.shelfTitles).toHaveText(['30 min']);
+
+    await page.keyboard.press('ArrowRight');
+    await expect(classes.tab('60 min')).toBeFocused();
+    await expect(classes.tab('60 min')).toHaveAttribute('aria-selected', 'true');
+    await expect(classes.shelfTitles).toHaveText(['60 min endurance']);
+
+    await page.keyboard.press('ArrowRight');
+    await expect(classes.tab('All')).toBeFocused();
+    await expect(classes.shelfTitles).toHaveText(['20 min', '30 min', '60 min endurance']);
+
+    await page.keyboard.press('ArrowLeft');
+    await expect(classes.tab('60 min')).toHaveAttribute('aria-selected', 'true');
   });
 });
