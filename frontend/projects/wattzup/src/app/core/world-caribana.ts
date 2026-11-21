@@ -986,46 +986,103 @@ export class CaribanaStreet implements SceneStreet {
       const costume = COSTUMES[(i + 1) % COSTUMES.length]!;
       const [outer, mid, inner] = costume.feathers;
       const piece = new Group();
-      const fan = mergeGeometries([
-        featherFan(outer!, 31, 4.2, 0.55, Math.PI * 1.1, 0.18),
-        featherFan(mid!, 25, 3.0, 0.6, Math.PI * 1.04, 0.14),
-        featherFan(inner!, 19, 1.8, 0.5, Math.PI, 0.1),
-      ])!;
-      fan.translate(0, 1.9, 0.45);
-      const wings = mergeGeometries(
-        [-1, 1].map((side) => {
-          const wing = featherFan(side < 0 ? mid! : outer!, 13, 2.1, 0.42, Math.PI * 0.75, 0.05);
-          wing.rotateZ(side * -1.2);
-          wing.translate(side * 1.9, 1.3, 0.25);
-          return wing;
-        }),
-      )!;
-      const medallion = medallionGeometry();
-      medallion.scale(3.2, 3.2, 3.2);
-      medallion.translate(0, 1.85, -0.1);
-      const skirt = new CylinderGeometry(0.9, 1.7, 1.3, 28, 1, true);
-      skirt.translate(0, 0.65, 0.2);
-      const frame = new TorusGeometry(1.6, 0.06, 6, 36, Math.PI);
-      frame.translate(0, 1.95, 0.3);
-      const body = masBody(POSES[2]!);
-      const suit = masCostume(false);
-      const crown = featherFan(inner!, 15, 1.2, 0.18, Math.PI * 0.7, 0.1);
-      crown.translate(0, 1.7, 0);
-      this.disposables.push(fan, wings, medallion, skirt, frame, body, suit, crown);
       const suitMaterial = this.material({
         color: costume.suit,
         map: sequins.map,
         roughness: 0.25,
         metalness: 0.65,
       });
-      piece.add(new Mesh(fan, plumes), new Mesh(wings, plumes), new Mesh(crown, plumes));
-      piece.add(new Mesh(medallion, suitMaterial), new Mesh(skirt, suitMaterial));
-      piece.add(new Mesh(frame, suitMaterial));
-      piece.add(new Mesh(body, skinMaterial), new Mesh(suit, suitMaterial));
+      // The bands alternate: a King leads the first, a Queen the second, a King the third.
+      if (i % 2 === 0) {
+        this.buildKing(piece, costume, plumes, suitMaterial, skinMaterial);
+      } else {
+        const fan = mergeGeometries([
+          featherFan(outer!, 31, 4.2, 0.55, Math.PI * 1.1, 0.18),
+          featherFan(mid!, 25, 3.0, 0.6, Math.PI * 1.04, 0.14),
+          featherFan(inner!, 19, 1.8, 0.5, Math.PI, 0.1),
+        ])!;
+        fan.translate(0, 1.9, 0.45);
+        const wings = mergeGeometries(
+          [-1, 1].map((side) => {
+            const wing = featherFan(side < 0 ? mid! : outer!, 13, 2.1, 0.42, Math.PI * 0.75, 0.05);
+            wing.rotateZ(side * -1.2);
+            wing.translate(side * 1.9, 1.3, 0.25);
+            return wing;
+          }),
+        )!;
+        const medallion = medallionGeometry();
+        medallion.scale(3.2, 3.2, 3.2);
+        medallion.translate(0, 1.85, -0.1);
+        const skirt = new CylinderGeometry(0.9, 1.7, 1.3, 28, 1, true);
+        skirt.translate(0, 0.65, 0.2);
+        const frame = new TorusGeometry(1.6, 0.06, 6, 36, Math.PI);
+        frame.translate(0, 1.95, 0.3);
+        const body = masBody(POSES[2]!);
+        const suit = masCostume(false);
+        const crown = featherFan(inner!, 15, 1.2, 0.18, Math.PI * 0.7, 0.1);
+        crown.translate(0, 1.7, 0);
+        this.disposables.push(fan, wings, medallion, skirt, frame, body, suit, crown);
+        piece.add(new Mesh(fan, plumes), new Mesh(wings, plumes), new Mesh(crown, plumes));
+        piece.add(new Mesh(medallion, suitMaterial), new Mesh(skirt, suitMaterial));
+        piece.add(new Mesh(frame, suitMaterial));
+        piece.add(new Mesh(body, skinMaterial), new Mesh(suit, suitMaterial));
+      }
       piece.traverse((o) => (o.castShadow = true));
       this.group.add(piece);
       this.royals.push({ piece, offset: i * TRUCK_EVERY + ROYAL_AT, phase: random() * 6.3 });
     }
+  }
+
+  /**
+   * A King of the band: a man in sequinned trunks and a cape inside a towering frame, a
+   * square-shouldered back frame 5 m tall fringed with long plumes along its top and sides,
+   * a great sun disc of rays behind his head, a sequinned breastplate and a tall crown.
+   */
+  private buildKing(
+    piece: Group,
+    costume: (typeof COSTUMES)[number],
+    plumes: Material,
+    suitMaterial: Material,
+    skinMaterial: Material,
+  ): void {
+    const [outer, mid, inner] = costume.feathers;
+    const gold = this.material({ color: 0xe8b830, roughness: 0.25, metalness: 0.85 });
+    // The frame: two uprights and a crossbar, plumes fringing it.
+    const frame = mergeGeometries(
+      [
+        [-1.9, 2.5, 0.12, 4.6, 0.12],
+        [1.9, 2.5, 0.12, 4.6, 0.12],
+        [0, 4.8, 3.9, 0.14, 0.12],
+      ].map(([x, y, w, h, d]) => new BoxGeometry(w, h, d).translate(x!, y!, 0.5).toNonIndexed()),
+    )!;
+    const top = featherFan(outer!, 27, 2.2, 0.4, Math.PI * 0.6, 0.15);
+    top.translate(0, 4.8, 0.55);
+    const sides = mergeGeometries(
+      [-1, 1].map((side) => {
+        const fringe = featherFan(mid!, 15, 1.7, 0.36, Math.PI * 0.5, 0.05);
+        fringe.rotateZ(side * -1.35);
+        fringe.translate(side * 1.95, 2.9, 0.55);
+        return fringe;
+      }),
+    )!;
+    // The sun disc: rays of plumes round a gold boss behind the head.
+    const sun = featherFan(inner!, 36, 1.3, 0.22, Math.PI * 2 - 0.2, 0);
+    sun.translate(0, 1.75, 0.4);
+    const boss = new CylinderGeometry(0.55, 0.55, 0.08, 28);
+    boss.rotateX(Math.PI / 2);
+    boss.translate(0, 1.75, 0.35);
+    const cape = new CylinderGeometry(0.28, 0.9, 1.4, 20, 1, true, Math.PI * 0.2, Math.PI * 1.6);
+    cape.translate(0, 0.75, 0.12);
+    const breastplate = ellipsoid(0.2, 1.15, 0.8, 0.5, 0, 1.25, -0.08);
+    const crown = featherFan(outer!, 13, 1.1, 0.16, Math.PI * 0.45, 0.05);
+    crown.translate(0, 1.72, 0);
+    const body = masBody(POSES[2]!, true);
+    const trunks = masCostume(true);
+    this.disposables.push(frame, top, sides, sun, boss, cape, breastplate, crown, body, trunks);
+    piece.add(new Mesh(frame, gold), new Mesh(top, plumes), new Mesh(sides, plumes));
+    piece.add(new Mesh(sun, plumes), new Mesh(boss, gold), new Mesh(crown, plumes));
+    piece.add(new Mesh(cape, suitMaterial), new Mesh(breastplate, suitMaterial));
+    piece.add(new Mesh(body, skinMaterial), new Mesh(trunks, suitMaterial));
   }
 
   private readonly satinWing = new MeshStandardMaterial({
