@@ -248,6 +248,7 @@ export class HavanaStreet implements SceneStreet {
     this.addManisero(roadHalf);
     this.addManholes(roadHalf);
     this.addArrows(roadHalf);
+    this.addCouple(roadHalf);
     this.addJoggers(roadHalf);
     this.addShopSigns(roadHalf);
     this.addFruitCart(roadHalf);
@@ -4792,6 +4793,83 @@ export class HavanaStreet implements SceneStreet {
       this.cars.push({ mesh: holder, offset: offset!, speed: speed! });
       this.runners.push({ limbs, phase: 1.3 + i * 1.7 });
     });
+  }
+
+  /**
+   * A couple sitting close on the seawall with their backs to the road, legs dangling over the
+   * sea side, his arm round her shoulders and her head leant on his, looking out to sea.
+   */
+  private addCouple(roadHalf: number): void {
+    const pair = new Group();
+    const torso = new CapsuleGeometry(0.16, 0.36, 3, 8);
+    const head = new SphereGeometry(0.105, 10, 8);
+    const limb = new CapsuleGeometry(0.06, 0.4, 3, 6);
+    const hair = new SphereGeometry(0.115, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.6);
+    this.disposables.push(torso, head, limb, hair);
+    const add = (
+      g: BufferGeometry,
+      m: MeshStandardMaterial,
+      x: number,
+      y: number,
+      z: number,
+      rx = 0,
+      rz = 0,
+    ) => {
+      const mesh = new Mesh(g, m);
+      mesh.position.set(x, y, z);
+      mesh.rotation.set(rx, 0, rz);
+      mesh.castShadow = true;
+      pair.add(mesh);
+      return mesh;
+    };
+    const seat = WALL + 0.08;
+    const people = [
+      { z: -0.22, shirt: 0xf0f0ea, trousers: 0x2a3a5a, skin: 0x8d5a3b, hair: 0x1a1410, lean: 0 },
+      { z: 0.2, shirt: 0xe8607a, trousers: 0xe8607a, skin: 0xd8a882, hair: 0x5a3018, lean: -0.25 },
+    ];
+    for (const p of people) {
+      const shirt = this.material({ color: p.shirt, roughness: 0.85 });
+      const legs = this.material({ color: p.trousers, roughness: 0.85 });
+      const skin = this.material({ color: p.skin, roughness: 0.8 });
+      add(torso, shirt, 0.02, seat + 0.32, p.z, p.lean, 0);
+      add(head, skin, 0.0, seat + 0.74, p.z + p.lean * 0.4);
+      add(
+        hair,
+        this.material({ color: p.hair, roughness: 0.95 }),
+        0.03,
+        seat + 0.76,
+        p.z + p.lean * 0.4,
+        0,
+        0.3,
+      );
+      for (const dz of [-0.09, 0.09]) {
+        add(limb, legs, -0.24, seat + 0.04, p.z + dz, 0, Math.PI / 2);
+        add(limb, legs, -0.46, seat - 0.24, p.z + dz);
+      }
+    }
+    // His arm across her shoulders; her hands in her lap.
+    add(
+      limb,
+      this.material({ color: 0xf0f0ea, roughness: 0.85 }),
+      0.06,
+      seat + 0.55,
+      0.0,
+      Math.PI / 2 - 0.15,
+    );
+    add(
+      limb,
+      this.material({ color: 0xd8a882, roughness: 0.8 }),
+      -0.14,
+      seat + 0.24,
+      0.2,
+      0,
+      Math.PI / 2.4,
+    );
+    pair.rotation.y = 0;
+    const holder = new Group();
+    holder.add(pair);
+    this.group.add(holder);
+    this.props.push({ mesh: holder, offset: 39, x: -roadHalf - LANES - PROMENADE - 0.3 });
   }
 
   /**
