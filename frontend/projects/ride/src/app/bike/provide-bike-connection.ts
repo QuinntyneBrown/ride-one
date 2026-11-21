@@ -1,6 +1,6 @@
 import type { Provider } from '@angular/core';
-import { TICKER } from '@telo/api';
-import { SecondTicker } from '@telo/domain';
+import { BIKE_CONNECTION, TICKER } from '@telo/api';
+import { SecondTicker, WebBluetoothBikeConnection } from '@telo/domain';
 import { SIMULATOR_ENABLED, simulatedBike } from './simulated-bike.provider';
 
 /**
@@ -10,5 +10,10 @@ import { SIMULATOR_ENABLED, simulatedBike } from './simulated-bike.provider';
  */
 export function provideBikeConnection(search: string = location.search): Provider[] {
   const simulate = SIMULATOR_ENABLED && new URLSearchParams(search).has('simulate');
-  return [{ provide: TICKER, useClass: SecondTicker }, ...(simulate ? simulatedBike() : [])];
+  return [
+    { provide: TICKER, useClass: SecondTicker },
+    ...(simulate
+      ? simulatedBike()
+      : [{ provide: BIKE_CONNECTION, useClass: WebBluetoothBikeConnection }]),
+  ];
 }

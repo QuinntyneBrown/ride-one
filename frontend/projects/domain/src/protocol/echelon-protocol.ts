@@ -18,7 +18,7 @@ export interface WorkoutData {
   readonly cadence: number;
 }
 
-function frame(type: number, payload: readonly number[]): Uint8Array {
+function frame(type: number, payload: readonly number[]): Uint8Array<ArrayBuffer> {
   const bytes = [MARKER, type, payload.length, ...payload];
   return Uint8Array.from([...bytes, bytes.reduce((sum, b) => sum + b, 0) % 256]);
 }
@@ -45,7 +45,7 @@ export const EchelonProtocol = {
   notify: '0bf669f4-45f2-11e7-9598-0800200c9a66',
 
   /** `B1`: set the target resistance, clamped to 1 to 32 (L2-025 AC1, AC2). */
-  setResistance(level: number): Uint8Array {
+  setResistance(level: number): Uint8Array<ArrayBuffer> {
     return frame(SET_RESISTANCE, [clamp(level)]);
   },
 
@@ -55,7 +55,7 @@ export const EchelonProtocol = {
   },
 
   /** `D1`: elapsed seconds (uint16 BE), cumulative revolutions (uint32 BE), cadence in rpm (uint16 BE), then `00`. */
-  workout({ elapsedSeconds, revolutions, cadence }: WorkoutData): Uint8Array {
+  workout({ elapsedSeconds, revolutions, cadence }: WorkoutData): Uint8Array<ArrayBuffer> {
     const be = (value: number, size: number) =>
       Array.from({ length: size }, (_, i) => (value >>> (8 * (size - 1 - i))) & 0xff);
     return frame(WORKOUT, [
@@ -67,7 +67,7 @@ export const EchelonProtocol = {
   },
 
   /** `D2`: the bike's current resistance level (L2-006). */
-  resistance(level: number): Uint8Array {
+  resistance(level: number): Uint8Array<ArrayBuffer> {
     return frame(RESISTANCE, [clamp(level)]);
   },
 } as const;
