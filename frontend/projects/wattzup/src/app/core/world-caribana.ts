@@ -5940,22 +5940,48 @@ function bandBannerTexture(name: string, theme: string, fill: string, ink: strin
 function ladderTexture(): CanvasTexture {
   return canvasTexture(1024, 128, (g) => {
     g.clearRect(0, 0, 1024, 128);
-    g.fillStyle = 'rgba(240,238,230,0.92)';
+    g.fillStyle = '#e6e3da';
     g.fillRect(0, 0, 1024, 10);
     g.fillRect(0, 118, 1024, 10);
     for (let x = 8; x < 1024; x += 48) g.fillRect(x, 10, 26, 108);
-    // Worn where the wheels run: soft scuffs thinning the paint, not holes through it.
-    g.globalCompositeOperation = 'destination-out';
+    // Weathered as a busy crossing is: the paint dulled grey-brown where tyres run in the
+    // lanes, scuffed and flecked with grit, its edges ragged. The texture is cut out by its
+    // alpha, so the wear is painted on in colour, kept within the bars.
+    g.globalCompositeOperation = 'source-atop';
     const random = seeded(1601);
-    for (let i = 0; i < 60; i++) {
+    for (const lane of [0.18, 0.5, 0.82]) {
+      for (const track of [-0.06, 0.06]) {
+        const x = (lane + track) * 1024;
+        const band = g.createLinearGradient(x - 50, 0, x + 50, 0);
+        band.addColorStop(0, 'rgba(90,86,78,0)');
+        band.addColorStop(0.5, 'rgba(90,86,78,0.42)');
+        band.addColorStop(1, 'rgba(90,86,78,0)');
+        g.fillStyle = band;
+        g.fillRect(x - 50, 0, 100, 128);
+      }
+    }
+    for (let i = 0; i < 90; i++) {
       const x = random() * 1024;
       const y = random() * 128;
-      const r = 6 + random() * 18;
+      const r = 6 + random() * 22;
       const scuff = g.createRadialGradient(x, y, 0, x, y, r);
-      scuff.addColorStop(0, 'rgba(0,0,0,0.45)');
-      scuff.addColorStop(1, 'rgba(0,0,0,0)');
+      scuff.addColorStop(0, `rgba(70,66,60,${(0.2 + random() * 0.3).toFixed(2)})`);
+      scuff.addColorStop(1, 'rgba(70,66,60,0)');
       g.fillStyle = scuff;
       g.fillRect(x - r, y - r, 2 * r, 2 * r);
+    }
+    for (let i = 0; i < 2600; i++) {
+      g.fillStyle = `rgba(60,58,54,${(0.2 + random() * 0.5).toFixed(2)})`;
+      g.fillRect(random() * 1024, random() * 128, 1.5, 1.5);
+    }
+    // Ragged edges: bites out of the ends of the bars where the paint has chipped away.
+    g.globalCompositeOperation = 'destination-out';
+    for (let x = 8; x < 1024; x += 48) {
+      for (const y of [10, 118]) {
+        for (let k = 0; k < 4; k++) {
+          g.fillRect(x + random() * 24, y - 2 + random() * 3, 2 + random() * 5, 2 + random() * 3);
+        }
+      }
     }
   });
 }
