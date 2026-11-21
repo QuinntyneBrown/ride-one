@@ -16,3 +16,13 @@
   margin-top: var(--space-2);
   color: var(--color-muted);
 }
+
+// Block library-error: the warning and Try again, under the head, at the text measure.
+.library-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  max-width: var(--layout-text-lg);
+  margin-top: var(--space-10);
+}

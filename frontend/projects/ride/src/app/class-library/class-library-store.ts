@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { CLASSES_API, type ClassDto, PROGRESS_API, type Segment } from '@telo/api';
+import { CLASSES_API, type ClassDto, ClassesApiError, PROGRESS_API, type Segment } from '@telo/api';
 
 /** One card of the library, as the presentation component takes it. */
 export interface ClassCardView {
@@ -34,7 +34,8 @@ export const LENGTH_TABS = [
 /**
  * The Class Library's state, provided on its route (docs/detailed-designs/classes/browse-the-class-library): the
  * catalogue from `CLASSES_API`, which answers from the device's copy when the backend cannot be reached, shaped into
- * shelves of cards, each open or locked for the rider level from `PROGRESS_API`, and the length tab chosen. It goes when the rider leaves the library.
+ * shelves of cards, each open or locked for the rider level from `PROGRESS_API`, and the length tab chosen. With no
+ * catalogue to read and none kept it is `unavailable`, and `retry()` asks again (L2-081 AC7). It goes when the rider leaves the library.
  */
 @Injectable()
 export class ClassLibraryStore {
@@ -42,6 +43,16 @@ export class ClassLibraryStore {
   private readonly progress = inject(PROGRESS_API);
   private readonly catalogue = rxResource({ stream: () => this.classes.list() });
   private readonly level = rxResource({ stream: () => this.progress.level() });
+
+  /** No catalogue could be read and none is kept on the device. */
+  readonly unavailable = computed(() => {
+    const error = this.catalogue.error();
+    return error instanceof ClassesApiError && error.code === 'catalogue_unavailable';
+  });
+
+  retry(): void {
+    this.catalogue.reload();
+  }
 
   /** The chosen length tab's id. */
   readonly tab = signal<string>('all');

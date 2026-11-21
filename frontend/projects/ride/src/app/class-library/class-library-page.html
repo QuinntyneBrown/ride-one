@@ -15,6 +15,15 @@
     />
   </div>
 
+  @if (library.unavailable()) {
+    <div class="library-error">
+      <wz-inline-message tone="warn" role="alert"
+        >The classes can’t be loaded. Check your connection and try again.</wz-inline-message
+      >
+      <button wz-button variant="raised" type="button" (click)="library.retry()">Try again</button>
+    </div>
+  }
+
   <div id="library-shelves" role="tabpanel" [attr.aria-labelledby]="'tier-tab-' + library.tab()">
     @for (shelf of library.shown(); track shelf.id) {
       <wz-class-shelf [shelfId]="shelf.id" [title]="shelf.title" [tagline]="shelf.tagline">
