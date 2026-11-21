@@ -43,7 +43,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "288kB",
+                  "maximumWarning": "292kB",
                   "maximumError": "300kB"
                 },
                 {
@@ -155,6 +155,20 @@
           "builder": "@angular-eslint/builder:lint",
           "options": {
             "lintFilePatterns": ["projects/video/**/*.ts", "projects/video/**/*.html"]
+          }
+        }
+      }
+    },
+    "world": {
+      "projectType": "library",
+      "root": "projects/world",
+      "sourceRoot": "projects/world/src",
+      "prefix": "wz",
+      "architect": {
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/world/**/*.ts", "projects/world/**/*.html"]
           }
         }
       }
