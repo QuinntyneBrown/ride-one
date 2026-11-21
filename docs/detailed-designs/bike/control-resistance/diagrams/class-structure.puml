@@ -13,11 +13,11 @@ skinparam class {
 ' --------------------------
 title Class structure — Control resistance
 enum ResistanceSource {
-  Plan
-  Manual
+  plan
+  manual
 }
 class SentCommand <<api>> {
-  +rideTime: number
+  +rideTime: number | null
   +level: number
   +source: ResistanceSource
   +ackMs: number | null
@@ -28,10 +28,10 @@ class ResistanceController <<domain/engine>> {
   +target: Signal<number | null>
   +source: Signal<ResistanceSource>
   +canControl: Signal<boolean>
+  +last: Signal<SentCommand | null>
   +applyPlanLevel(level: number): Promise<void>
   +nudge(delta: 1 | -1): Promise<void>
   +setManual(level: number): Promise<void>
-  +resend(): Promise<void>
   -clamp(level: number): number
   -send(level: number, source: ResistanceSource): Promise<void>
 }
