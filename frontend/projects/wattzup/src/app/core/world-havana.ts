@@ -1415,6 +1415,45 @@ export class HavanaStreet implements SceneStreet {
       place(offset, -roadHalf - LANES - 0.6, 0);
       place(offset + 15, roadHalf + 1.0, Math.PI);
     }
+    // Cables strung across the road from the buildings to every other seaward lamp post, two or
+    // three together, each sagging in its own catenary, and short drops from the inland posts
+    // to the façades: the overhead tangle of a Havana street.
+    const random = seeded(1661);
+    const wire = this.material({ color: 0x141414, roughness: 0.7 });
+    const span = (x0: number, y0: number, x1: number, y1: number, sag: number, z: number) => {
+      const points: Vector3[] = [];
+      for (let k = 0; k <= 16; k++) {
+        const t = k / 16;
+        points.push(new Vector3(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t - sag * 4 * t * (1 - t), z));
+      }
+      const tube = new TubeGeometry(new CatmullRomCurve3(points), 24, 0.018, 3);
+      this.disposables.push(tube);
+      return new Mesh(tube, wire);
+    };
+    for (let offset = 34; offset < LOOP; offset += 60) {
+      const cables = new Group();
+      const strands = 2 + Math.floor(random() * 2);
+      for (let k = 0; k < strands; k++) {
+        cables.add(
+          span(
+            -roadHalf - LANES - 0.6,
+            7.6 - k * 0.35,
+            roadHalf + 4.2,
+            PORTAL + 1.6 + random() * 2.5,
+            0.9 + random() * 0.9,
+            (random() - 0.5) * 0.6,
+          ),
+        );
+      }
+      this.group.add(cables);
+      this.props.push({ mesh: cables, offset, x: 0 });
+    }
+    for (let offset = 19; offset < LOOP; offset += 30) {
+      const drop = new Group();
+      drop.add(span(roadHalf + 1.0, 7.2, roadHalf + 4.2, PORTAL + 2 + random() * 2, 0.3, 0));
+      this.group.add(drop);
+      this.props.push({ mesh: drop, offset, x: 0 });
+    }
   }
 
   /**
