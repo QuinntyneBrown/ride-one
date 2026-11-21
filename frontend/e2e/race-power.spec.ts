@@ -1,8 +1,7 @@
 // Acceptance test
 // Traces to: L2-059 AC1, AC2, AC3
 // Description: the power panel reads the rider's place in the field, power against the segment's target with the
-// delta or "On target", and cadence, heart rate ("—" with none) and the virtual speed from power. The opponents, and
-// with them a place other than first and the gaps, join with slice 7.4.
+// delta or "On target", and cadence, heart rate ("—" with none) and the virtual speed from power.
 import { ECHELON_NOTIFY, resistanceFrame, workoutFrame } from './fixtures/echelon';
 import { startRace } from './fixtures/race';
 import { expect, test } from './fixtures/test';
@@ -24,7 +23,8 @@ test(
     await page.clock.runFor(100);
 
     await expect(race.power).toBeVisible();
-    await expect(race.position).toHaveText('1st/ 1');
+    // Stopped through the warm-up, the rider is last of the ten (race-bots.spec.ts ranks the field).
+    await expect(race.position).toHaveText('10th/ 10');
     await expect(race.watts).toHaveText('371W');
     await expect(race.target).toHaveText('Target 418 W');
     await expect(race.delta).toHaveText('-47 W');

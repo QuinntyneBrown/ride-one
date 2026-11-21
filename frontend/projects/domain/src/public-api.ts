@@ -29,6 +29,12 @@ export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { WorkoutEngine } from './engine/workout-engine';
 export { SpeedModel } from './engine/speed-model';
 export { VirtualSpeedModel } from './engine/virtual-speed-model';
+export { BOT_NAMES, BotPaceModel, PACK_BASE_WATTS } from './engine/bot-pace-model';
+export { BotPack } from './engine/bot-pack';
+export { GhostReplay } from './engine/ghost-replay';
+export { NoBestRides } from './engine/no-best-rides';
+export type { FieldPosition, RaceField } from './engine/race-field';
+export { type Standing, YOU, formatGap, ordinal, rankStandings } from './engine/standings';
 export { type RouteProfile, routeProfile, routeProfileView } from './engine/route-profile';
 export { SecondTicker } from './engine/second-ticker';
 export {

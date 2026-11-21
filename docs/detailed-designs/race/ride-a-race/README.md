@@ -42,6 +42,11 @@ journey 8, and until then the scene is the map's photo, as the mock draws it, on
 as "The Old Town Criterium world: a cobbled European old town on race day"; Full screen with
 slice 24.2; riders online with journey 15.
 
+**Names in the code.** `RaceEngine`'s second is `RaceStore`'s tick (`ride/src/app/race`): it
+rides the rider's distance, advances the `RaceField` and ranks the standings. `StandingsRanker`
+and `GapCalculator` are `rankStandings` and `formatGap` in `domain/engine/standings.ts` (slice
+7.4), and `TargetDelta` is `RaceStore.delta` on `PowerModel.onTarget`.
+
 **The plan and the route, from `main`.** Each map's 30:00 plan and its world's terrain travel in
 the catalogue (ADR 0029): `MapDto.plan` (segments, as a class's) and `MapDto.terrain` (the grade
 for each segment kind and the rolling grade laid over it, copied from `main`'s `worlds.ts`).
