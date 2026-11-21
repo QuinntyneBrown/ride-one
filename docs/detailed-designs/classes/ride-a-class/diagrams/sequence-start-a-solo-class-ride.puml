@@ -39,7 +39,7 @@ page -> player : load(host, videoId, controls off) (video library imported on de
 player -> yt : Embed youtube-nocookie.com L2-088 AC5
 store -> engine : follow(plan, clock)
 store -> clock : start()
-engine -> resist : sendTarget(warm-up level) L2-027 AC1
+engine -> resist : applyPlanLevel(warm-up level) L2-027 AC1
 resist -> conn : Set resistance
 conn -> bike : Resistance command
 store -> player : seekTo(12.0), play() L2-088 AC1

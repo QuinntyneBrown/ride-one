@@ -23,32 +23,31 @@ package "domain library" {
     +resume(): void
   }
   class WorkoutEngine {
-    +segment: Signal<Segment>
-    +segmentIndex: Signal<number>
-    +timeLeft: Signal<number>
-    +progress: Signal<number>
-    +targetPower: Signal<number>
-    +follow(plan: Plan, clock: RideClock): void
+    +state: Signal<PlanState | null>
+    +follow(plan: Plan): void
+  }
+  class PlanState {
+    +index: number
+    +segment: Segment
+    +remainingMs: number
+    +progress: number
+    +targetPower: number
   }
   class Plan {
     +segments: Segment[]
-    +totalSeconds: number
-    +segmentAt(elapsed: number): number
   }
   class Segment {
     +kind: SegmentKind
-    +start: number
     +duration: number
     +level: number
     +cadenceAim: number
-    +round: number
   }
   enum SegmentKind {
-    WarmUp
-    Work
-    Recover
-    Steady
-    CoolDown
+    warm-up
+    work
+    recover
+    steady
+    cool-down
   }
   class PowerModel {
     +estimate(cadence: number, resistance: number): number
@@ -60,7 +59,7 @@ package "domain library" {
     +check(videoTime: number, elapsed: number, offset: number): SyncAction
   }
   class ResistanceController {
-    +sendTarget(level: number): void
+    +applyPlanLevel(level: number): Promise<void>
   }
 }
 package "api library" {
@@ -96,6 +95,7 @@ ClassRideStore *-- VideoClockSync
 ClassRideStore ..> VideoPlayer
 ClassRideStore ..> BikeConnection
 WorkoutEngine --> Plan
+WorkoutEngine ..> PlanState
 WorkoutEngine ..> RideClock
 WorkoutEngine ..> PowerModel
 WorkoutEngine ..> ResistanceController

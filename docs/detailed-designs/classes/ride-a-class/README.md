@@ -61,9 +61,12 @@ service sends as a server time (`L2-121` AC3). The output board of a group ride 
 
 - **`RideClock`** (`domain/engine`) — elapsed time from `performance.now()` (`L2-133`). It can
   start at once or at a server time corrected by `ServerClock`.
-- **`WorkoutEngine`** (`domain/engine`) — follows a `Plan` against the `RideClock`. It exposes
-  the current `Segment`, time left, segment progress and the target power, and on each segment
-  boundary asks `ResistanceController` to send the segment level within 500 ms (`L2-027`).
+- **`WorkoutEngine`** (`domain/engine`) — follows a `Plan` against the `RideClock` on each of
+  `RideTicker`'s ticks. Its `state` is the current `PlanState` from `planStateAt` (the segment and
+  its index, time left, segment progress and the target power), and on each segment boundary it
+  asks `ResistanceController` to send the segment level within 500 ms (`L2-027`). A paused clock
+  changes no segment and sends nothing. Slice 5.1 builds it with `RideClock` and `RideTicker`
+  (*keep the ride clock true*); `startAt` for a group start comes with the group class.
 - **`PowerModel`** (`domain/engine`) — `targetPower(level, cadenceAim)` and
   `onTarget(power, target)` (within 10 %), shared with the race HUD (`L2-059` AC2).
 - **`ResistanceController`** (`domain/engine`) — owned by the bike subsystem's *control

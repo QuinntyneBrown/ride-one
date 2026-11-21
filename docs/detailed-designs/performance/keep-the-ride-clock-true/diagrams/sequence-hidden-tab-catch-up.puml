@@ -34,7 +34,7 @@ actor -> browser : Return to the Telo Ride tab
 browser -> ticker : visibilitychange (visible)
 ticker -> clock : elapsedMs()
 clock --> ticker : now() - startedAt - pausedTotalMs
-ticker -> engine : stateAt(elapsedMs) (L2-133 AC1)
+ticker -> engine : tick; planStateAt(plan, elapsedMs) (L2-133 AC1)
 engine --> ticker : segment, time left, target resistance
 ticker -> store : publish second
 store -> page : elapsed, segment and distance within 1 s (L2-133 AC2)

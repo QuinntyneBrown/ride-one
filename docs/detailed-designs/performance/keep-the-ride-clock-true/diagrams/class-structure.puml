@@ -29,18 +29,25 @@ class RideClock <<domain/engine>> {
 class RideTicker <<domain/engine>> {
   -timer: number | null
   +second: Signal<number>
+  +ticks: Observable<number>
   +start(): void
   +stop(): void
   -scheduleNext(): void
   -onVisibilityChange(): void
 }
 class WorkoutEngine <<domain/engine>> {
-  +stateAt(elapsedMs: number): PlanState
+  +state: Signal<PlanState | null>
+  +follow(plan: Plan): void
+}
+class planStateAt <<domain/engine>> {
+  +planStateAt(plan: Plan, elapsedMs: number): PlanState | null
 }
 class PlanState <<domain/engine>> {
+  +index: number
   +segment: Segment
-  +segmentRemainingMs: number
-  +targetResistance: number
+  +remainingMs: number
+  +progress: number
+  +targetPower: number
 }
 class DistanceIntegrator <<domain/engine>> {
   -lastTimestampMs: number
@@ -78,8 +85,9 @@ class RideSessionStore <<ride>> {
 }
 RideClock ..> MonotonicTime : reads
 RideTicker --> RideClock : reads elapsedMs
-RideTicker ..> WorkoutEngine : calls stateAt
-WorkoutEngine ..> PlanState : returns
+WorkoutEngine --> RideTicker : follows ticks
+WorkoutEngine ..> planStateAt : calls
+planStateAt ..> PlanState : returns
 BrowserScreenWakeLock ..|> ScreenWakeLock
 RideSessionStore *-- RideClock
 RideSessionStore *-- RideTicker
