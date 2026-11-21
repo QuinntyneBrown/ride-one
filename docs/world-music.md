@@ -5,10 +5,10 @@ under the [Pixabay Content License](https://pixabay.com/service/license-summary/
 share one. Soca went to the Caribbean and carnival worlds first; every other world got a genre that
 fits its place.
 
-The files in `frontend/public/music/` are the Pixabay MP3s re-encoded as Opus at 96 kbps mono, cut
+The files in `frontend/public/music/` are the Pixabay MP3s re-encoded as Opus at 48 kbps mono, cut
 to at most 3 minutes, with a 1.5-second fade in and a 2-second fade out so the loop does not click.
 To replace a world's track, download the new one from Pixabay, encode it the same way
-(`ffmpeg -i in.mp3 -t 180 -af "afade=t=in:d=1.5,afade=t=out:st=<length-2>:d=2" -ac 1 -c:a libopus -b:a 96k <world id>.ogg`)
+(`ffmpeg -i in.mp3 -t 180 -af "afade=t=in:d=1.5,afade=t=out:st=<length-2>:d=2" -ac 1 -c:a libopus -b:a 48k <world id>.ogg`)
 and update its row here.
 
 Downloaded 20 November 2026.
@@ -207,3 +207,11 @@ Downloaded 20 November 2026.
 | Yorkshire Dales | `music/dales.ogg` | Old Story From Scotland | [_Music_for_Creators_](https://pixabay.com/users/_music_for_creators_-24430395/) | [147143](https://pixabay.com/music/folk-old-story-from-scotland-147143/) |
 | Engadin Lakes | `music/engadin.ogg` | Swiss Lights | [JoyInSound](https://pixabay.com/users/joyinsound-51634429/) | [403374](https://pixabay.com/music/future-bass-swiss-lights-403374/) |
 | Miami Neon Nights | `music/miami.ogg` | Miami | [AlisiaBeats](https://pixabay.com/users/alisiabeats-39461785/) | [177359](https://pixabay.com/music/funk-miami-177359/) |
+
+## Rider feedback
+
+Overseas Highway's track, Saint Kitts Bay, is the best music of any world
+([#935](https://github.com/QuinntyneBrown/wattzup/issues/935)), and Brooklyn Bridge Commute's,
+Beautiful Boom Bap, the third best
+([#938](https://github.com/QuinntyneBrown/wattzup/issues/938)). Keep both tracks, and use them as
+the reference when choosing music for other worlds.

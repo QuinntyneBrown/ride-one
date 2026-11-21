@@ -4,6 +4,9 @@ import type { Locator, Page } from '@playwright/test';
 export class RacePage {
   readonly heading: Locator;
   readonly scene: Locator;
+  readonly world: Locator;
+  readonly panorama: Locator;
+  readonly backend: Locator;
   readonly bar: Locator;
   readonly map: Locator;
   readonly route: Locator;
@@ -55,6 +58,9 @@ export class RacePage {
   constructor(private readonly page: Page) {
     this.heading = page.getByRole('heading', { level: 1 });
     this.scene = page.locator('.race-scene');
+    this.world = this.scene.locator('canvas.world-scene');
+    this.panorama = this.scene.locator('.race-scene__photo');
+    this.backend = page.locator('.race-bar__backend');
     this.bar = page.locator('.race-bar');
     this.map = page.locator('.race-bar__map');
     this.route = page.locator('.race-bar__route');

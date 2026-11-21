@@ -9,6 +9,7 @@
     "../api/src/**/*.ts",
     "../domain/src/**/*.ts",
     "../components/src/**/*.ts",
-    "../video/src/**/*.ts"
+    "../video/src/**/*.ts",
+    "../world/src/**/*.ts"
   ]
 }

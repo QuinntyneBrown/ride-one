@@ -20,6 +20,7 @@ import {
 } from '@telo/domain';
 import { RouterLink } from '@angular/router';
 import { RaceStore } from './race-store';
+import { RaceWorld } from './race-world';
 
 /**
  * The race at `/race/:mapId/ride` (docs/mocks/pages/race/): full screen with no app header, the scene behind the HUD.
@@ -39,6 +40,7 @@ import { RaceStore } from './race-store';
     RaceResist,
     RaceRoute,
     RouterLink,
+    RaceWorld,
   ],
   templateUrl: './race-page.html',
   styleUrl: './race-page.scss',

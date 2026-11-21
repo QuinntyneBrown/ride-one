@@ -3,6 +3,7 @@ import { ApiFixture } from './api';
 import { FakeBluetooth } from './fake-bluetooth';
 import { HubFixture } from './hub';
 import { WakeLockFixture } from './wake-lock';
+import { FakeWebGl } from './webgl';
 import { YouTubeFixture } from './youtube';
 
 interface Fixtures {
@@ -16,6 +17,8 @@ interface Fixtures {
   youtube: YouTubeFixture;
   /** The fake Screen Wake Lock API: the locks the app took, and the tab hidden or shown. */
   wakeLock: WakeLockFixture;
+  /** Takes WebGPU, or WebGPU and WebGL, away from the browser before the app loads. */
+  webgl: FakeWebGl;
   guard: void;
 }
 
@@ -36,6 +39,9 @@ export const test = base.extend<Fixtures>({
   },
   youtube: async ({ page }, use) => {
     await use(await YouTubeFixture.install(page));
+  },
+  webgl: async ({ page }, use) => {
+    await use(new FakeWebGl(page));
   },
   wakeLock: [
     async ({ page }, use) => {

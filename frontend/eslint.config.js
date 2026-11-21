@@ -50,8 +50,8 @@ module.exports = defineConfig([
       ...noBluetooth,
     },
   },
-  // Dependency direction (AGENTS.md, L2-146 AC2): ride -> components, api, domain, video; domain -> api;
-  // components -> api for types only; video -> api; api -> nothing in the workspace.
+  // Dependency direction (AGENTS.md, L2-146 AC2): ride -> components, api, domain, video, world; domain -> api;
+  // components -> api for types only; video -> api; world -> api; api -> nothing in the workspace.
   {
     files: ['projects/api/**/*.ts'],
     rules: {
@@ -72,6 +72,10 @@ module.exports = defineConfig([
               name: '@telo/video',
               message: 'The api library depends on nothing in the workspace.',
             },
+            {
+              name: '@telo/world',
+              message: 'The api library depends on nothing in the workspace.',
+            },
             { name: '@angular/router', message: 'The api library knows no route.' },
           ],
           patterns: [outside, noRide],
@@ -89,6 +93,7 @@ module.exports = defineConfig([
             { name: '@telo/domain', message: 'Import within the library by relative path.' },
             { name: '@telo/components', message: 'The domain library depends on api only.' },
             { name: '@telo/video', message: 'The domain library depends on api only.' },
+            { name: '@telo/world', message: 'The domain library depends on api only.' },
             { name: '@angular/router', message: 'The domain library knows no route.' },
           ],
           patterns: [outside, noRide],
@@ -115,6 +120,7 @@ module.exports = defineConfig([
             { name: '@telo/domain', message: 'Presentation components inject no service.' },
             { name: '@telo/components', message: 'Import a sibling component by relative path.' },
             { name: '@telo/video', message: 'Presentation components inject no service.' },
+            { name: '@telo/world', message: 'Presentation components inject no service.' },
             {
               name: '@angular/router',
               message: 'Presentation components know no route; emit an output.',
@@ -135,7 +141,26 @@ module.exports = defineConfig([
             { name: '@telo/video', message: 'Import within the library by relative path.' },
             { name: '@telo/domain', message: 'The video library depends on api only.' },
             { name: '@telo/components', message: 'The video library depends on api only.' },
+            { name: '@telo/world', message: 'The video library depends on api only.' },
             { name: '@angular/router', message: 'The video library knows no route.' },
+          ],
+          patterns: [outside, noRide],
+        },
+      ],
+    },
+  },
+  {
+    files: ['projects/world/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: '@telo/world', message: 'Import within the library by relative path.' },
+            { name: '@telo/domain', message: 'The world library depends on api only.' },
+            { name: '@telo/components', message: 'The world library depends on api only.' },
+            { name: '@telo/video', message: 'The world library depends on api only.' },
+            { name: '@angular/router', message: 'The world library knows no route.' },
           ],
           patterns: [outside, noRide],
         },
@@ -152,7 +177,7 @@ module.exports = defineConfig([
             {
               regex: '^(\\.\\./){4,}',
               message:
-                'Use @telo/api, @telo/domain, @telo/components or @telo/video, never a library path.',
+                'Use @telo/api, @telo/domain, @telo/components, @telo/video or @telo/world, never a library path.',
             },
           ],
         },
@@ -169,6 +194,7 @@ module.exports = defineConfig([
           paths: [
             { name: '@telo/domain', message: 'The marketing site never talks to the bike.' },
             { name: '@telo/video', message: 'The marketing site plays its film with wz-film.' },
+            { name: '@telo/world', message: 'The marketing site draws no world.' },
             { name: '@angular/router', message: 'The marketing site is one page with no router.' },
           ],
           patterns: [

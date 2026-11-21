@@ -3,6 +3,11 @@
   <div class="race-bar__where">
     <span class="race-bar__map">{{ map() }}</span>
     <span class="race-bar__route">{{ route() }}</span>
+    @if (backend(); as api) {
+      <span class="race-bar__backend" title="The GPU API drawing this world">{{
+        api === 'webgpu' ? 'WebGPU' : 'WebGL 2'
+      }}</span>
+    }
   </div>
   @if (bikeName(); as name) {
     <div class="race-bar__bike" [class.race-bar__bike--off]="!connected()">

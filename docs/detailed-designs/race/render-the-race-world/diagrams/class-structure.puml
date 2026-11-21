@@ -12,41 +12,71 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Render the race world
-enum RendererBackend {
+enum Backend {
   webgpu
   webgl2
-  none
 }
-enum QualityTier {
+enum Tier {
   low
   medium
   high
   ultra
 }
-class WorldFrame {
-  +riderDistanceM: number
-  +speedMs: number
-  +riders: FigurePosition[]
-  +ghost?: FigurePosition
+class SceneFrame {
+  +s: number
+  +crank: number
+  +segments: Segment[]
+  +elapsed: number
+  +time: number
+  +speedKmh: number
+  +reducedMotion: boolean
 }
 class FigurePosition {
   +distanceM: number
   +jersey: string
 }
-class WorldRenderer {
-  +start(canvas: HTMLCanvasElement, map: MapDto, quality: QualityTier): Promise<void>
-  +resize(width: number, height: number): void
-  +draw(frame: WorldFrame): void
-  +setVisible(visible: boolean): void
-  +useScenery(source: ScenerySource): Promise<SceneryResult>
+interface WorldRenderer <<api>> {
+  +backend: Backend
+  +start(canvas, world: World, nextFrame: () => Promise<void>, segments): Promise<boolean>
+  +resize(width: number, height: number, pixelRatio: number): void
+  +draw(frame: SceneFrame): void
+  +setFramePeriod(ms: number): void
+  +pauseBudget(): void
   +dispose(): void
 }
-class RendererBackendProbe {
-  +probe(): Promise<RendererBackend>
+class ThreeWorldRenderer <<world, lazy>> {
+  -renderer: WebGPURenderer
+  -budget: FrameBudget
 }
-class RenderQuality {
-  +tierFor(backend: RendererBackend, device: DeviceProfile): QualityTier
-  +techniques(tier: QualityTier): TechniqueForms
+class WorldScene <<world>> {
+  +worldId: InputSignal<string>
+  +segments: InputSignal<Segment[]>
+  +elapsed: InputSignal<number>
+  +speedKmh: InputSignal<number | null>
+  +running: InputSignal<boolean>
+  +started: OutputRef<Backend>
+  +unavailable: OutputRef<void>
+}
+class FrameScheduler <<world>> {
+  +startLoop(): () => void
+  +measurePeriod(frames): Promise<number>
+  +nextFrame(): Promise<void>
+}
+class SceneDriver <<world>> {
+  +frame(now: number, input: SceneInput): void
+}
+class FrameBudget <<world>> {
+  +tier: Tier
+  +setPeriod(ms: number): void
+  +pause(): void
+}
+class World <<api>> {
+  +id: WorldId
+  +name: string
+  +route: string
+  +grade: Record<SegmentKind, number>
+  +roll: number
+  +bend
 }
 class RaceWorldScene {
   +load(worldId: string): Promise<void>
@@ -65,39 +95,42 @@ enum SceneryResult {
   streaming
   refused
 }
-class RaceWorldStore {
-  +backend: Signal<RendererBackend>
-  +sceneryState: Signal<'idle' | 'streaming' | 'refused'>
-  +attach(canvas: HTMLCanvasElement): Promise<void>
-  +stream(key: string): Promise<void>
+class RaceWorld <<ride>> {
+  +wzRaceWorld: InputSignal<MapDto>
+  +started: OutputRef<Backend>
+  +unavailable: OutputRef<void>
+}
+class RaceStore <<ride>> {
+  +backend: WritableSignal<Backend | null>
+  +worldUnavailable: WritableSignal<boolean>
+  +running: Signal<boolean>
+  +speedKmh: Signal<number | null>
 }
 class SettingsStore {
   +mapsKey(): Promise<string | undefined>
   +setMapsKey(key: string): Promise<void>
-}
-class RaceScene {
-  +backend: InputSignal<RendererBackend>
-  +description: InputSignal<string>
-  +panoramaUrl: InputSignal<string>
-  +canvasReady: OutputEmitterRef<HTMLCanvasElement>
 }
 class RaceScenery {
   +realPlace: InputSignal<RealPlaceDto>
   +refused: InputSignal<boolean>
   +stream: OutputEmitterRef<string>
 }
-RaceWorldStore --> WorldRenderer : holds (lazy)
-RaceWorldStore --> RendererBackend
-RaceWorldStore ..> SettingsStore : uses
-WorldRenderer ..> RendererBackendProbe : uses
-WorldRenderer ..> RenderQuality : reads
-WorldRenderer *-- RaceWorldScene
-WorldRenderer *-- RiderFigures
-WorldRenderer *-- "0..1" PhotorealTilesLayer
-WorldRenderer ..> WorldFrame : draws
-WorldFrame "1" *-- "*" FigurePosition
-RenderQuality --> QualityTier
+ThreeWorldRenderer ..|> WorldRenderer
+ThreeWorldRenderer *-- FrameBudget
+FrameBudget --> Tier
+ThreeWorldRenderer *-- RaceWorldScene
+ThreeWorldRenderer *-- RiderFigures
+ThreeWorldRenderer *-- "0..1" PhotorealTilesLayer
+WorldRenderer ..> SceneFrame : draws
+WorldRenderer --> Backend
+WorldScene --> WorldRenderer : loads through WORLD_RENDERER
+WorldScene ..> FrameScheduler : frames
+WorldScene *-- SceneDriver
+SceneDriver ..> WorldRenderer : draw(frame)
+WorldScene ..> World : worldForMap(worldId)
+RaceWorld ..> WorldScene : import('@telo/world'), createComponent
+RaceWorld ..> RaceStore : started, unavailable via RacePage
+RaceStore ..> SettingsStore : uses
 PhotorealTilesLayer ..> SceneryResult
-RaceScene ..> RaceWorldStore : canvas handed by RacePage
-RaceScenery ..> RaceWorldStore : stream(key) via RacePage
+RaceScenery ..> RaceStore : stream(key) via RacePage
 @enduml

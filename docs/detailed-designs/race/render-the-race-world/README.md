@@ -29,17 +29,27 @@ stays.
 
 ## Description
 
-**`world` library (`frontend/projects/world`, new)** — the boundary for Three.js. It is imported
-only by dynamic `import()`, so neither Three.js nor the scene enters the initial bundle. Adding
-it adds `ride → world` and `world → api` (types only) to the dependency rule in `AGENTS.md`
-and to the ESLint boundaries in the same change.
+**`world` library (`frontend/projects/world`, new)** — the boundary for Three.js, copied from
+`main` (ADR 0030). It is imported only by dynamic `import()`, so neither Three.js nor the scene
+enters the initial bundle. Adding it adds `ride → world` and `world → api` to the dependency rule
+in `AGENTS.md` and to the ESLint boundaries in the same change.
 
-- **`WorldRenderer`** — the only type that names a Three.js type. It exposes
-  `start(canvas, map, quality)`, `resize(width, height)`, `draw(frame)`, `setVisible(visible)`,
-  `useScenery(source)` and `dispose()`. `dispose()` releases every geometry, material,
-  texture, render target and the renderer, and stops its `requestAnimationFrame` loop.
-- **`RendererBackendProbe`** — asks for a WebGPU adapter, then for a WebGL 2 context, and
-  returns `webgpu`, `webgl2` or `none` (L2-065 AC1, AC2).
+- **`WorldRenderer`** (contract and `WORLD_RENDERER` token in `api`, `main`'s
+  `world-renderer-port.ts`) — `start(canvas, world, nextFrame, segments)` resolves false when
+  neither WebGPU nor WebGL 2 starts; `resize(width, height, pixelRatio)`, `draw(frame)`,
+  `setFramePeriod(ms)`, `pauseBudget()` and `dispose()`. Telo Ride adds `backend`, the GPU API
+  drawing the world, for the tag. `ThreeWorldRenderer` implements it with one `WebGPURenderer`,
+  which takes a WebGPU adapter when the browser grants one and runs its own WebGL 2 backend
+  otherwise (`forceWebGL` only for the performance sweep's test hook); it is the only type that
+  names a Three.js type, and `dispose()` releases every GPU resource and the renderer
+  (L2-065 AC1, AC2). The loader (`loadWorldRenderer`) imports it, and Three.js with it, on demand.
+- **`WorldScene`** (block `world-scene`) — `main`'s canvas host: it loads the renderer after its
+  view is in place, measures the display's frame period through `FrameScheduler` (the only
+  `requestAnimationFrame` caller), starts the renderer, resizes it on a `ResizeObserver`, draws one
+  frame per tick through `SceneDriver` while the race runs, and on destroy stops the loop,
+  disconnects the observer, removes its listeners and disposes the renderer. It emits `started`
+  with the backend, or `unavailable` once. Its canvas is hidden from assistive technology: the race
+  scene around it is the one image.
 - **`RenderQuality`** — pure tier table (ADR 0021): the tier for the device and backend, and
   which form of each technique the tier uses. `ultra` is WebGPU only.
 - **`RaceWorldScene`** — road, terrain, sky and props of the map's world, loaded from
@@ -55,15 +65,15 @@ and to the ESLint boundaries in the same change.
 
 **Ride app**
 
-- **`RaceWorldStore`** (`ride`, provided on the race route) — loads the `world` chunk, probes
-  the backend, starts `WorldRenderer` on the scene's canvas, feeds it one `WorldFrame` per
-  animation frame from the latest `RaceSnapshot` and field, pauses drawing on
-  `visibilitychange` to hidden, and calls `dispose()` on destroy. It also releases its
-  `ResizeObserver` and listeners. It exposes `backend` for the renderer tag.
-- **`RaceScene`** (`components`, block `race-scene`) — the canvas host. The canvas is one image
-  (`role="img"`) labelled with the map's world description ("The Old Town Criterium world: a
-  cobbled old town under a blue sky, its cathedral spire on the horizon"). With backend `none`
-  it shows the map's panorama (`race-scene__photo`) instead (L2-065 AC2).
+- **`RaceWorld`** (`ride`, a directive in the race scene) — imports the `world` library when the
+  race opens and creates its `WorldScene` in place, handing it the map's world, plan, the race
+  clock, the virtual speed and whether the race runs. The scene goes with the race view when the
+  rider leaves. `RaceStore` keeps `backend` for the tag and `worldUnavailable`, which removes the
+  scene and leaves the map's photo. The race route binds `WORLD_RENDERER`.
+- **Race scene** (block `race-scene` of the race page) — one image (`role="img"`) labelled with
+  the map's world description ("The Old Town Criterium world: a cobbled old town under a blue sky,
+  its cathedral spire on the horizon"). The map's photo (`race-scene__photo`) lies under the
+  world's canvas and stays alone as the panorama when neither backend starts (L2-065 AC2).
 - **Renderer tag** (element of `RaceBar`) — "WebGPU" or "WebGL 2", title "The GPU API drawing
   this world".
 - **`RaceScenery`** (`components`, block `race-scenery`) — rendered only on a map with a real
@@ -109,22 +119,24 @@ calls Google's Map Tiles API directly. The Telo Ride API takes no part in drawin
 
 ### Components
 
-`RaceWorldStore` loads the lazy `world` library and drives `WorldRenderer`, which composes the
-probe, quality table, scene, rider figures and the optional tiles layer.
+`RaceWorld` imports the lazy `world` library and creates `WorldScene`, which loads and drives
+`WorldRenderer`; the renderer chooses its backend and composes the quality table, scene, rider
+figures and the optional tiles layer.
 
 ![C4 component view for rendering the race world](diagrams/c4-component.png)
 
 ### Class structure
 
-`WorldRenderer` owns the scene, the figures and the tiles layer and disposes them together.
-`RaceWorldStore` holds the renderer and the backend the probe chose.
+`ThreeWorldRenderer` owns the scene, the figures and the tiles layer and disposes them together.
+`WorldScene` holds the renderer; `RaceStore` keeps the backend it reports.
 
 ![Class diagram for rendering the race world](diagrams/class-structure.png)
 
 ### Behaviour — start, draw and dispose the world
 
-The store loads the chunk, probes the backend, and either starts the renderer or shows the
-panorama. Drawing pauses while the tab is hidden, and leaving the race disposes every resource.
+`RaceWorld` loads the chunk, and `WorldScene` starts the renderer, which draws with WebGPU or
+WebGL 2 or reports that neither starts, leaving the panorama. No frame is drawn while the tab is
+hidden, and leaving the race disposes every resource.
 
 ![Sequence diagram for starting, drawing and disposing the world](diagrams/sequence-start-draw-and-dispose.png)
 
@@ -134,3 +146,16 @@ The key goes to browser storage and to Google's Map Tiles API only. A refused ke
 built-in world in place and the panel says so.
 
 ![Sequence diagram for streaming real-world scenery](diagrams/sequence-stream-real-scenery.png)
+
+## Open questions
+
+- **Slice 8.1 follows `main`'s rendering (ADR 0030).** This design first named a separate
+  `RendererBackendProbe`, `start(canvas, map, quality)`, `setVisible` and a `RaceWorldStore` with a
+  `RaceScene` component. `main` has none of them: `WebGPURenderer` chooses its backend itself, the
+  canvas host is `main`'s `WorldScene` with `FrameScheduler`, and the hidden tab is handled by the
+  scheduler requesting no frame. The design now describes `main`'s shape; `main` wins on rendering.
+- **The renderer arrives in two slices.** Slice 8.1 carries `main`'s `world-renderer.ts` as far as
+  starting, sizing, the frame budget and disposing; slice 8.2 brings the rest of the file, which
+  builds and draws the scene, so the canvas stays clear over the map's photo until then.
+- **Vice City has no world on `main`.** Its race draws South Beach Sunrise, whose terrain its
+  catalogue entry already takes (slice 7.3), until a Vice City world is built.
