@@ -12,6 +12,7 @@ import {
   DoubleSide,
   Group,
   InstancedMesh,
+  LatheGeometry,
   type Material,
   Matrix4,
   MeshStandardMaterial,
@@ -19,6 +20,8 @@ import {
   Quaternion,
   SphereGeometry,
   SRGBColorSpace,
+  TorusGeometry,
+  Vector2,
   Vector3,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -232,11 +235,31 @@ export function spectatorParts(stance: number, shorts: boolean, seated = false) 
     skin.push(ellipsoid(0.045, 1, 1.25, 0.6, hand.x, hand.y, hand.z, 6));
   }
   bottom.push(ellipsoid(0.16, 1.05, 0.6, 0.8, 0, 0.94 - drop, 0, 9));
-  const torso = new CylinderGeometry(0.16, 0.155, 0.42, 10);
-  torso.scale(1, 1, 0.72);
-  torso.translate(0, 1.16 - drop, 0);
+  // The torso turned on a lathe: hips, a narrower waist, the chest, and shoulders rounding in
+  // to the neck, flattened front to back.
+  const torso = new LatheGeometry(
+    [
+      [0.001, 0.93],
+      [0.155, 0.95],
+      [0.145, 1.04],
+      [0.152, 1.14],
+      [0.168, 1.25],
+      [0.175, 1.33],
+      [0.16, 1.39],
+      [0.11, 1.43],
+      [0.055, 1.45],
+      [0.001, 1.455],
+    ].map(([r, y]) => new Vector2(r!, y! - drop)),
+    14,
+  );
+  torso.scale(1.08, 1, 0.7);
   top.push(torso);
-  top.push(ellipsoid(0.08, 2.4, 0.75, 1.3, 0, 1.38 - drop, 0, 8));
+  // A hem at the bottom of the shirt.
+  const hem = new TorusGeometry(0.157, 0.01, 4, 16);
+  hem.rotateX(Math.PI / 2);
+  hem.scale(1.08, 1, 0.7);
+  hem.translate(0, 0.95 - drop, 0);
+  top.push(hem);
   const neck = new CylinderGeometry(0.045, 0.05, 0.12, 6);
   neck.translate(0, 1.48 - drop, 0);
   skin.push(neck, ellipsoid(0.105, 0.9, 1.1, 1, 0, 1.6 - drop, -0.01, 10));
