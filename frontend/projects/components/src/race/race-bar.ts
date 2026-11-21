@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import type { Backend } from '@telo/api';
 import { Lockup } from '../lockup/lockup';
 import { RaceBarButton } from './race-bar-button';
 import { formatClock } from '../metric/format-clock';
@@ -20,6 +21,8 @@ export class RaceBar {
   readonly map = input.required<string>();
   /** "Cathedral Circuit · vs Bots, medium". */
   readonly route = input.required<string>();
+  /** The GPU API drawing the world, or `null` while none draws it (L2-065 AC1, AC2). */
+  readonly backend = input<Backend | null>(null);
   readonly bikeName = input<string | null>(null);
   readonly connected = input(false);
   /** Whole seconds of the race clock. */

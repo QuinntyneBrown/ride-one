@@ -1,13 +1,24 @@
 <main id="main" class="race" tabindex="-1">
   @if (store.map(); as map) {
     <h1 class="visually-hidden">Race, {{ map.name }}</h1>
-    <!-- The map's photo stands for its world until the world is drawn (journey 8), as the mock draws it. -->
+    <!-- The map's photo stays under the world, and alone where neither WebGPU nor WebGL 2 can draw (L2-065 AC2). -->
     <div class="race-scene" role="img" [attr.aria-label]="store.sceneLabel()">
       <img class="race-scene__photo" [src]="map.photoUrl" alt="" />
+      @if (!store.worldUnavailable()) {
+        <ng-container
+          [wzRaceWorld]="map"
+          [elapsed]="store.elapsed()"
+          [speedKmh]="store.speedKmh()"
+          [running]="store.running()"
+          (started)="store.backend.set($event)"
+          (unavailable)="store.worldUnavailable.set(true)"
+        />
+      }
     </div>
     <wz-race-bar
       [map]="map.name"
       [route]="store.routeLine()"
+      [backend]="store.backend()"
       [bikeName]="store.bikeName()"
       [connected]="store.connected()"
       [elapsed]="store.elapsed()"

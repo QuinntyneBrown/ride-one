@@ -2,6 +2,7 @@ import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
+  type Backend,
   BIKE_CONNECTION,
   GHOST_API,
   MAPS_API,
@@ -157,13 +158,21 @@ export class RaceStore {
   readonly cadence = computed(() => formatMetric(this.telemetry.cadence(), 0));
   /** The bike's own heart rate; the strap joins with its slice (L2-030, L2-031). */
   readonly heart = computed(() => formatMetric(this.telemetry.heartRate(), 0));
-  /** The virtual speed from power, `main`'s formula (L2-059 AC3), or the coast while the bike is lost (L2-070 AC2). */
-  readonly speed = computed(() => {
+  /** The virtual speed in km/h from power, `main`'s formula (L2-059 AC3), or the coast while the bike is lost (L2-070 AC2). */
+  readonly speedKmh = computed(() => {
     const coast = this.coast();
-    if (coast !== null) return formatMetric(coast * 3.6, 1);
+    if (coast !== null) return coast * 3.6;
     const power = this.telemetry.powerW();
-    return formatMetric(power === null ? null : VirtualSpeedModel.speedKmh(power), 1);
+    return power === null ? null : VirtualSpeedModel.speedKmh(power);
   });
+  readonly speed = computed(() => formatMetric(this.speedKmh(), 1));
+
+  /** The GPU API drawing the world once it has started, for the bar's tag (L2-065 AC1). */
+  readonly backend = signal<Backend | null>(null);
+  /** True once neither WebGPU nor WebGL 2 could draw the world: the map's panorama stays (L2-065 AC2). */
+  readonly worldUnavailable = signal(false);
+  /** The world moves while the race runs and holds still while it is paused or over. */
+  readonly running = computed(() => !this.paused() && !this.dnf());
 
   /** The map's route profile, `main`'s, built once from its plan and its world's terrain (L2-062). */
   private readonly profile = computed(() => {

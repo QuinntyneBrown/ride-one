@@ -1,0 +1,31 @@
+// Switches 3D off for a spec (from `main`'s e2e/fixtures/fake-webgl.ts): a screen with no WebGPU, or with neither WebGPU
+// nor WebGL (L2-065).
+import type { Page } from '@playwright/test';
+
+/** Makes the browser report no WebGPU, or no WebGPU and no WebGL, as a screen that can't draw 3D. */
+export class FakeWebGl {
+  constructor(private readonly page: Page) {}
+
+  /** Call before the page loads: no WebGPU adapter, and `getContext('webgl'|'webgl2')` is null. */
+  async disable(): Promise<void> {
+    await this.withoutWebGpu();
+    await this.page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (
+        this: HTMLCanvasElement,
+        kind: string,
+        ...rest: unknown[]
+      ) {
+        if (kind === 'webgl' || kind === 'webgl2' || kind === 'experimental-webgl') return null;
+        return (original as (...args: unknown[]) => unknown).call(this, kind, ...rest);
+      } as typeof original;
+    });
+  }
+
+  /** Call before the page loads: no WebGPU, so the world draws with WebGL 2 (L2-065). */
+  async withoutWebGpu(): Promise<void> {
+    await this.page.addInitScript(() => {
+      Object.defineProperty(navigator, 'gpu', { value: undefined, configurable: true });
+    });
+  }
+}

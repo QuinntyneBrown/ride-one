@@ -41,6 +41,18 @@
   white-space: nowrap;
 }
 
+.race-bar__backend {
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-fg) 10%, transparent);
+  padding: var(--space-0-5) var(--space-1-5);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-2xs);
+  line-height: var(--line-height-2xs);
+  white-space: nowrap;
+  color: var(--color-muted);
+}
+
 .race-bar__map {
   font-weight: var(--font-weight-semibold);
 }
