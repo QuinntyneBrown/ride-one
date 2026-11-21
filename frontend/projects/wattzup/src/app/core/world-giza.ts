@@ -74,6 +74,7 @@ export class GizaStreet implements SceneStreet {
   private readonly camels: Camel[] = [];
   private riders: Figures | null = null;
   private readonly horizon = new Group();
+  readonly backdrop = [this.horizon];
   private time = 0;
   private readonly unit = new BoxGeometry(1, 1, 1);
 
@@ -107,12 +108,12 @@ export class GizaStreet implements SceneStreet {
   place(s: number, heightAt: (metres: number) => number): void {
     for (const prop of this.props) {
       const metres = loopMetres(prop.offset, s, LOOP, BEHIND);
-      prop.mesh.position.set(prop.x, heightAt(Math.max(metres, 0)), -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres), -metres);
     }
     const riders = this.riders;
     this.camels.forEach((camel, i) => {
       const metres = loopMetres(camel.offset + 1.1 * this.time, s, LOOP, BEHIND);
-      const y = heightAt(Math.max(metres, 0)) + KERB;
+      const y = heightAt(metres) + KERB;
       const sway = Math.sin(this.time * 2.4 + camel.phase);
       camel.mesh.position.set(camel.x, y + Math.abs(sway) * 0.05, -metres);
       camel.mesh.scale.setScalar(1.25);
