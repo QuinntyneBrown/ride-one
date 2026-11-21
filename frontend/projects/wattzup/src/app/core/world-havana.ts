@@ -1503,7 +1503,7 @@ export class HavanaStreet implements SceneStreet {
     const headlamp = new CylinderGeometry(0.13, 0.13, 0.08, 12);
     headlamp.rotateX(Math.PI / 2);
     this.disposables.push(body, cabin, windows, wheel, wall, hub, headlamp);
-    const build = (colour: string | number, roof: string | number) => {
+    const build = (colour: string | number, roof: string | number, open = false) => {
       const paint = this.material({ color: colour, roughness: 0.3, metalness: 0.3 });
       const top = this.material({ color: roof, roughness: 0.35, metalness: 0.2 });
       const car = new Group();
@@ -1524,10 +1524,24 @@ export class HavanaStreet implements SceneStreet {
         z: number,
       ) => put(this.unit, m, x, y, z).scale.set(sx, sy, sz);
       put(body, paint);
-      put(windows, glass);
+      if (open) {
+        // A convertible with its top down: a raked windscreen in a chrome frame, white leather
+        // bench seats front and back, and the folded hood stowed behind.
+        const screen = put(this.unit, glass, 0, 1.12, -1.25);
+        screen.scale.set(1.6, 0.42, 0.03);
+        screen.rotation.x = -0.5;
+        box(chrome, 1.64, 0.03, 0.05, 0, 1.31, -1.14);
+        const leather = this.material({ color: 0xf2efe6, roughness: 0.55 });
+        for (const z of [-0.3, 0.75]) {
+          box(leather, 1.6, 0.18, 0.55, 0, 0.98, z);
+          box(leather, 1.6, 0.42, 0.12, 0, 1.15, z + 0.3);
+        }
+        box(top, 1.6, 0.16, 0.45, 0, 1.0, 1.45);
+      }
+      if (!open) put(windows, glass);
       // The glasshouse is open under its roof, on slanted pillars, so the people inside show.
-      box(top, 1.56, 0.06, 1.5, 0, 1.45, -0.2);
-      for (const x of [-0.75, 0.75]) {
+      if (!open) box(top, 1.56, 0.06, 1.5, 0, 1.45, -0.2);
+      for (const x of open ? [] : [-0.75, 0.75]) {
         const a = put(this.unit, top, x, 1.18, -1.185);
         a.scale.set(0.07, 0.73, 0.07);
         a.rotation.x = 0.7;
@@ -1563,6 +1577,12 @@ export class HavanaStreet implements SceneStreet {
       this.group.add(car);
       this.cars.push({ mesh: car, offset: k * 45 + random() * 20, speed: -(9 + random() * 4) });
     });
+    // The quinceañera's car: a pink convertible, top down, parked at the kerb beside her shoot.
+    const pink = build('#f4a6c6', '#f2f0ea', true);
+    const stand = new Group();
+    stand.add(pink);
+    this.group.add(stand);
+    this.props.push({ mesh: stand, offset: 35.6, x: roadHalf - 1.15 });
     // Almendrones parked nose to tail along the inland kerb, as they are all along the
     // Malecón, in ones and twos with gaps between, a few in faded or primer paint.
     const parking = seeded(1511);
