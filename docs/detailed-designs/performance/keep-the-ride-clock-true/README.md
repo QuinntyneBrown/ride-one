@@ -34,12 +34,17 @@ integrations sit in the `ride` application, scoped to the ride route.
   up paused intervals in `pause()` and `resume()`, and answers `elapsedMs()` as the difference.
   It never counts ticks.
 - **`RideTicker`** — service in `domain/engine`. It schedules the next tick with `setTimeout` at
-  the next whole second of `RideClock.elapsedMs()`. On each tick it publishes the elapsed whole
-  second as the signal `second`. It listens for `visibilitychange` and ticks at once when the tab
-  becomes visible. `stop()` clears the timer and removes the listener.
-- **`WorkoutEngine.stateAt(elapsedMs)`** — pure function of the plan (`domain/engine`). It returns
-  the current `Segment`, the time left in it and the target resistance for any elapsed time, so a
-  late tick lands on the correct segment.
+  the next whole second of `RideClock.elapsedMs()` (a second later while paused). On each tick
+  that reaches a new whole second it publishes it as the signal `second` and on `ticks`, so a
+  paused ride publishes nothing. It listens for `visibilitychange` and ticks at once when the tab
+  becomes visible. `stop()` clears the timer and removes the listener, and so does destroying
+  its owner.
+- **`planStateAt(plan, elapsedMs)`** — pure function of the plan (`domain/engine`). It returns
+  the current `PlanState` (the segment and its index, the time left in it, its progress and its
+  target power) for any elapsed time, or nothing once the plan has ended, so a late tick lands on
+  the correct segment. **`WorkoutEngine`** calls it on each of `RideTicker`'s ticks and sends a
+  new segment's level through `ResistanceController`; after a hidden tab only the current
+  segment's level is sent, not every segment it missed.
 - **`DistanceIntegrator`** — helper in `domain/engine`. It integrates speed over the timestamps of
   bike notifications, not over ticks, so distance stays correct while ticks are throttled.
 - **`ReadoutSampler`** — helper in `domain/engine`. It turns the stream of decoded bike samples
@@ -62,6 +67,14 @@ integrations sit in the `ride` application, scoped to the ride route.
 
 Whether the browser integrations move into a dedicated `browser` library is `<TO SUPPLY>`; the
 dependency rules allow either.
+
+Slice 5.1 builds `MonotonicTime`, `RideClock`, `RideTicker`, `planStateAt` and `WorkoutEngine`,
+proved by unit tests with fake timers and end to end on the simulated bike. The class ride
+screen (slice 5.2) binds `MONOTONIC_TIME` and brings `RideSessionStore`, `ScreenWakeLock` and
+`LeaveRideGuard` (`L2-133` AC3, AC4) with the Playwright proof. Distance is counted once per
+running second by `RideTotals` (slice 3.2, `L2-022`); the screen that runs it counts every
+second the ticker publishes, so a late tick misses none. `ReadoutSampler` and `BoardOrder` come
+with the screens that show readouts and boards.
 
 ## Requirements
 

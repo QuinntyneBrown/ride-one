@@ -39,7 +39,8 @@ package "domain library" {
   }
   class ResistanceController {
     +target: Signal<number>
-    +sendTarget(level: number): void
+    +applyPlanLevel(level: number): Promise<void>
+    +setManual(level: number): Promise<void>
     +raise(): void
     +lower(): void
   }

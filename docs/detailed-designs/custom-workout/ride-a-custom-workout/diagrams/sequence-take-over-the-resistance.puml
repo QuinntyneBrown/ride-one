@@ -29,7 +29,7 @@ box "Device — Smart bike" #F2F4F7
 end box
 rider -> control : Press "Level 10" bar
 control -> store : setLevel(10)
-store -> resist : sendTarget(10) (L2-028 AC2)
+store -> resist : setManual(10) (L2-028 AC2)
 resist -> conn : Set resistance 10
 conn -> bike : Resistance command
 store --> control : Bar 10 aria-current="true", bars below on
@@ -38,6 +38,6 @@ control -> store : raise()
 store -> resist : raise() → 11, clamped 1–32 (L2-028 AC1)
 resist -> conn : Set resistance 11
 engine -> engine : Next segment starts
-engine -> resist : sendTarget(24) — plan level applies again (L2-028 AC3)
+engine -> resist : applyPlanLevel(24) — plan level applies again (L2-028 AC3)
 resist -> conn : Set resistance 24
 @enduml

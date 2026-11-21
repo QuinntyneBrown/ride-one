@@ -38,10 +38,10 @@ power --> store : On target (within 10 %)
 store --> panel : "Recover", "1:30" (aria-label "Recover: 1:30 left"), "108 W" On target, "73 rpm" Aim 72, "6 / of 32" L2-089
 panel --> rider : Bike panel updates once a second
 engine -> engine : Segment boundary reached
-engine -> resist : sendTarget(next level) within 500 ms L2-027 AC1
+engine -> resist : applyPlanLevel(next level) within 500 ms L2-027 AC1
 resist -> conn : Set resistance
 conn -> bike : Resistance command
 rider -> panel : Press + (48 px)
 panel -> store : raise()
-store -> resist : sendTarget(7) (manual, L2-028)
+store -> resist : nudge(+1) (manual, L2-028)
 @enduml

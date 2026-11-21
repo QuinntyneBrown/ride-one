@@ -24,7 +24,7 @@ Rel(store, wake, "Requests and releases")
 Rel(store, guard, "Arms and disarms")
 Rel(clock, time, "Reads")
 Rel(ticker, clock, "Reads elapsedMs")
-Rel(ticker, engine, "Calls stateAt")
+Rel(ticker, engine, "Ticks each second")
 Rel(conn, sampler, "Pushes samples")
 Rel(sampler, page, "Publishes readout signal")
 @enduml

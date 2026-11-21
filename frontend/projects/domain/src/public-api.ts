@@ -20,7 +20,11 @@ export { HeartRateSource } from './engine/heart-rate-source';
 export { HeartRateStats } from './engine/heart-rate-stats';
 export { PowerModel } from './engine/power-model';
 export { ResistanceController } from './engine/resistance-controller';
+export { type PlanState, planStateAt } from './engine/plan-state';
+export { RideClock } from './engine/ride-clock';
+export { RideTicker } from './engine/ride-ticker';
 export { RideTotals } from './engine/ride-totals';
+export { WorkoutEngine } from './engine/workout-engine';
 export { SpeedModel } from './engine/speed-model';
 export { SecondTicker } from './engine/second-ticker';
 export {
