@@ -28,6 +28,13 @@ export interface SceneFrame {
   readonly riders?: readonly SceneRider[];
 }
 
+/**
+ * Where streaming a real place's photorealistic 3D Tiles stands (L2-066): Google refused the key, or the tiles stream,
+ * with Google's attribution for the tiles in view ("Google" and their data credits, AC7).
+ */
+export type SceneryState =
+  { readonly status: 'refused' } | { readonly status: 'streaming'; readonly credit: string };
+
 export interface WorldRenderer {
   /** The GPU API drawing the world once `start` has resolved true, for the race bar's tag (L2-065 AC1). */
   readonly backend: Backend;

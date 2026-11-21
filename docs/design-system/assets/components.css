@@ -2088,13 +2088,13 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .race-scenery__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-semibold); }
 .race-scenery__body { margin-top: var(--space-1); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
 .race-scenery__form { margin-top: var(--space-3); display: flex; gap: var(--space-2); }
-.race-scenery__field { display: flex; flex: 1; min-width: 0; align-items: center; gap: var(--space-2); height: var(--control-height-md); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--color-fg) 10%, transparent); padding-inline: var(--space-3); }
+.race-scenery__field { display: flex; flex: 1; min-width: 0; align-items: center; gap: var(--space-2); min-height: var(--target-comfortable); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--color-fg) 10%, transparent); padding-inline: var(--space-3); }
 .race-scenery__field:focus-within { box-shadow: 0 0 0 1px var(--color-faint); }
 .race-scenery__field .icon { color: var(--color-faint); }
 .race-scenery__input { flex: 1; min-width: 0; border: 0; background: transparent; font-family: var(--font-family-mono); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-fg); }
 .race-scenery__input:focus-visible { outline: none; }
 .race-scenery__input::placeholder { color: var(--color-faint); }
-.race-scenery__submit { flex-shrink: 0; height: var(--control-height-md); border-radius: var(--radius-lg); background: var(--color-volt); padding-inline: var(--space-4); font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-semibold); white-space: nowrap; color: var(--color-on-fill); transition: background-color var(--duration-fast) var(--ease-standard); }
+.race-scenery__submit { flex-shrink: 0; min-height: var(--target-comfortable); border-radius: var(--radius-lg); background: var(--color-volt); padding-inline: var(--space-4); font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-semibold); white-space: nowrap; color: var(--color-on-fill); transition: background-color var(--duration-fast) var(--ease-standard); }
 .race-scenery__submit:hover:not(:disabled) { background: var(--color-volt-hover); }
 .race-scenery__submit:disabled { opacity: 0.4; }
 .race-scenery__field:has(.race-scenery__input[aria-invalid="true"]) { box-shadow: 0 0 0 1px var(--color-heart-fg); }

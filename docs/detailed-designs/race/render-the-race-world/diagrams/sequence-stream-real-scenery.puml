@@ -33,7 +33,7 @@ page -> panel : Render when the map has a real place and the world draws (L2-066
 page -> keys : get(); the field holds a stored key (AC8)
 panel --> actor : "Ride the real Bruges · Steenstraat to the Markt"; "Stream it" disabled while empty (AC2)
 actor -> panel : Paste key, press "Stream it"
-panel --> page : stream(key)
+panel --> page : streamKey(key)
 page -> keys : save(key); this browser's localStorage only (AC3)
 page -> rworld : scenery = { place, key }
 rworld -> scene : setInput('scenery')

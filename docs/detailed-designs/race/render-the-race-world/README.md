@@ -98,7 +98,7 @@ in `AGENTS.md` and to the ESLint boundaries in the same change.
   place while the world draws (not over the panorama, L2-066 AC9). It reads "Ride the real Bruges · Steenstraat to the Markt" and "Paste a Google Maps
   Platform key to stream it as photorealistic 3D Tiles. It stays on this device.", with a key
   field (placeholder "AIza…") and "Stream it", disabled while the field is empty. It emits
-  `stream(key)`. Told `refused`, it marks the field invalid and reads "Google refused that key.
+  `streamKey(key)`. Told `refused`, it marks the field invalid and reads "Google refused that key.
   The built-in world stays." (`role="alert"`); told `streaming`, it reads "Streaming the real
   Bruges · Steenstraat to the Markt" over Google's attribution (L2-066 AC4, AC7). From 640 px to
   1023 px no HUD panel covers it (L2-066 AC6).

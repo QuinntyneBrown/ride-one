@@ -57,6 +57,10 @@
       [heart]="store.heart()"
       [speed]="store.speed()"
     />
+    <!-- Only while the world draws: the tiles join it, and the panorama has nothing to stream into (L2-066 AC9). -->
+    @if (map.realPlace && store.backend()) {
+      <wz-race-scenery [place]="map.realPlace" />
+    }
     @if (store.boardRows().length > 0) {
       <wz-race-board [heading]="store.boardHeading()" [rows]="store.boardRows()" />
     }

@@ -28,6 +28,13 @@ export class RacePage {
   readonly position: Locator;
   readonly watts: Locator;
   readonly target: Locator;
+  readonly scenery: Locator;
+  readonly sceneryTitle: Locator;
+  readonly sceneryBody: Locator;
+  readonly sceneryKey: Locator;
+  readonly streamIt: Locator;
+  readonly sceneryError: Locator;
+  readonly sceneryCredit: Locator;
   readonly delta: Locator;
   readonly statLabels: Locator;
   readonly stats: Locator;
@@ -82,6 +89,13 @@ export class RacePage {
     this.you = page.locator('.race-board__row[aria-current="true"]');
     this.watts = page.locator('.race-power__watts');
     this.target = page.locator('.race-power__target-label');
+    this.scenery = page.locator('.race-scenery');
+    this.sceneryTitle = this.scenery.locator('.race-scenery__title');
+    this.sceneryBody = this.scenery.locator('.race-scenery__body');
+    this.sceneryKey = this.scenery.getByRole('textbox', { name: 'Google Maps Platform API key' });
+    this.streamIt = this.scenery.getByRole('button', { name: 'Stream it' });
+    this.sceneryError = this.scenery.getByRole('alert');
+    this.sceneryCredit = this.scenery.locator('.race-scenery__credit');
     this.delta = page.locator('.race-power__delta');
     this.statLabels = page.locator('.race-power__stat-label');
     this.stats = page.locator('.race-power__stat');

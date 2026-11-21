@@ -122,7 +122,7 @@ class RaceScenery <<components>> {
   +place: InputSignal<RealPlace>
   +key: InputSignal<string>
   +state: InputSignal<SceneryState | null>
-  +stream: OutputEmitterRef<string>
+  +streamKey: OutputEmitterRef<string>
 }
 ThreeWorldRenderer ..|> WorldRenderer
 ThreeWorldRenderer *-- FrameBudget
@@ -141,5 +141,5 @@ RaceWorld ..> WorldScene : import('@telo/world'), createComponent
 RaceWorld ..> RaceStore : started, unavailable via RacePage
 RaceWorld ..> MapsKeyStore : RacePage reads and saves the key
 PhotorealTilesLayer ..> SceneryState
-RaceScenery ..> RaceStore : stream(key) via RacePage
+RaceScenery ..> RaceWorld : streamKey(key) via RacePage
 @enduml
