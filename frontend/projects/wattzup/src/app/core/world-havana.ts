@@ -248,6 +248,7 @@ export class HavanaStreet implements SceneStreet {
     this.addManisero(roadHalf);
     this.addManholes(roadHalf);
     this.addJoggers(roadHalf);
+    this.addShopSigns(roadHalf);
     this.addReef(roadHalf, points);
     this.addLamps(roadHalf);
   }
@@ -4493,6 +4494,38 @@ export class HavanaStreet implements SceneStreet {
     skins: MeshStandardMaterial[];
   };
 
+  /**
+   * Shop signs hung out from the arcade's front on iron brackets, painted boards facing along the
+   * street: a state bodega, a pharmacy with its green cross, a café, a barber's.
+   */
+  private addShopSigns(roadHalf: number): void {
+    const iron = this.material({ color: 0x1e1e1e, roughness: 0.6, metalness: 0.4 });
+    const board = new PlaneGeometry(1.1, 0.62);
+    this.disposables.push(board);
+    const kinds = ['bodega', 'farmacia', 'cafe', 'barberia'] as const;
+    const faces = kinds.map((k) =>
+      this.material({ map: this.track(shopSignTexture(k)), roughness: 0.8, side: DoubleSide }),
+    );
+    [33.5, 58, 84, 121, 167, 214, 262, 318].forEach((offset, i) => {
+      const sign = new Group();
+      const face = new Mesh(board, faces[i % faces.length]!);
+      face.position.set(-0.75, PORTAL - 0.75, 0);
+      face.castShadow = true;
+      const arm = new Mesh(this.unit, iron);
+      arm.scale.set(1.5, 0.04, 0.04);
+      arm.position.set(-0.75, PORTAL - 0.38, 0);
+      sign.add(face, arm);
+      for (const x of [-1.2, -0.3]) {
+        const chain = new Mesh(this.unit, iron);
+        chain.scale.set(0.015, 0.12, 0.015);
+        chain.position.set(x, PORTAL - 0.42, 0);
+        sign.add(chain);
+      }
+      this.group.add(sign);
+      this.props.push({ mesh: sign, offset, x: roadHalf + 4.1 });
+    });
+  }
+
   private readonly runners: { limbs: Mesh[]; phase: number }[] = [];
 
   /**
@@ -6436,6 +6469,48 @@ function manholeTexture(): CanvasTexture {
       g.beginPath();
       g.arc(random() * 128, random() * 128, 2 + random() * 9, 0, Math.PI * 2);
       g.fill();
+    }
+  });
+}
+
+/** A shop's hanging board: painted lettering on a coloured ground, edged, with its emblem. */
+function shopSignTexture(kind: 'bodega' | 'farmacia' | 'cafe' | 'barberia'): CanvasTexture {
+  const look = {
+    bodega: ['#7a2a1e', '#f2e4c0', 'BODEGA'],
+    farmacia: ['#f2f2ec', '#1f7a3a', 'FARMACIA'],
+    cafe: ['#2a4a3a', '#f2d890', 'CAFÉ'],
+    barberia: ['#1f3f7a', '#f2f2ec', 'BARBERÍA'],
+  }[kind];
+  return canvasTexture(176, 100, (g) => {
+    g.fillStyle = look[0]!;
+    g.fillRect(0, 0, 176, 100);
+    g.strokeStyle = look[1]!;
+    g.lineWidth = 5;
+    g.strokeRect(6, 6, 164, 88);
+    g.fillStyle = look[1]!;
+    g.textAlign = 'center';
+    g.font = 'bold 28px serif';
+    if (kind === 'farmacia') {
+      g.fillRect(74, 14, 28, 44);
+      g.fillRect(66, 22, 44, 28);
+      g.font = 'bold 22px sans-serif';
+      g.fillText(look[2]!, 88, 84, 156);
+    } else if (kind === 'barberia') {
+      for (let k = 0; k < 4; k++) {
+        g.fillStyle = k % 2 ? '#d02030' : '#f2f2ec';
+        g.fillRect(78 + k * 0, 14 + k * 10, 20, 10);
+      }
+      g.fillStyle = look[1]!;
+      g.font = 'bold 24px serif';
+      g.fillText(look[2]!, 88, 84, 156);
+    } else {
+      g.fillText(look[2]!, 88, 62, 156);
+    }
+    // Weather: sun-fading and grime.
+    const random = seeded(kind.length * 31 + 1643);
+    for (let i = 0; i < 30; i++) {
+      g.fillStyle = `rgba(${random() < 0.5 ? '255,250,230' : '40,30,20'},${0.05 + random() * 0.1})`;
+      g.fillRect(random() * 176, random() * 100, 4 + random() * 20, 2 + random() * 8);
     }
   });
 }
