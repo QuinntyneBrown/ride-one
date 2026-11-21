@@ -4,10 +4,14 @@ import type { Signal } from '@angular/core';
 /** What the player is doing: loading until it plays, and `error` once it cannot (blocked, offline, removed). */
 export type PlayerState = 'loading' | 'playing' | 'paused' | 'error';
 
-/** How a video loads: where it starts, whether YouTube's controls show, and the frame's accessible title. */
+/**
+ * How a video loads: where it starts, whether YouTube's controls show, whether it plays at once or waits parked at its
+ * start (Class Start, L2-084 AC1), and the frame's accessible title.
+ */
 export interface PlayerOptions {
   readonly startSeconds: number;
   readonly controls: boolean;
+  readonly autoplay: boolean;
   readonly title: string;
 }
 
@@ -17,7 +21,10 @@ export interface PlayerOptions {
  */
 export interface VideoPlayer {
   readonly state: Signal<PlayerState>;
-  /** Embeds `videoId` in `host` and plays it from `options.startSeconds`; a failure shows in `state`, never rejects. */
+  /**
+   * Embeds `videoId` in `host` and plays it from `options.startSeconds`, or parks it there when `autoplay` is off; a
+   * failure shows in `state`, never rejects.
+   */
   load(host: HTMLElement, videoId: string, options: PlayerOptions): Promise<void>;
   /** The video's time, in seconds. */
   currentTime(): number;

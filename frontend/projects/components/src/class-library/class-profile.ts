@@ -16,8 +16,8 @@ const GAP = 0.002;
 
 /**
  * A class's resistance profile (design-system block class-profile): one bar per segment of its plan, as wide as the
- * segment lasts and as tall as its level against the plan's highest level (L2-081 AC4). Decorative: the card's text
- * names the class.
+ * segment lasts and as tall as its level against the plan's highest level (L2-081 AC4, L2-084 AC2). On a card it is
+ * decorative, as the card's text names the class; on Class Start it is an image named "Resistance profile".
  */
 @Component({
   selector: 'wz-class-profile',
@@ -27,6 +27,10 @@ const GAP = 0.002;
 })
 export class ClassProfile {
   readonly segments = input.required<readonly Segment[]>();
+  /** Its accessible name when it stands alone ("Resistance profile"); without one it is decorative. */
+  readonly label = input<string | null>(null);
+  /** `lg` on Class Start; `sm` on a card. */
+  readonly size = input<'sm' | 'lg'>('sm');
 
   protected readonly length = computed(() =>
     this.segments().reduce((total, segment) => total + segment.duration, 0),

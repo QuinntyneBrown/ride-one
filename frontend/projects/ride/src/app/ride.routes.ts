@@ -23,6 +23,12 @@ export const rideRoutes: Routes = [
         canActivate: [rememberedBikeGuard],
         loadChildren: () => import('./class-ride/class-ride.routes').then((m) => m.classRideRoutes),
       },
+      // Class Start has its own header, with no app navigation (docs/mocks/pages/class-start/).
+      {
+        path: 'classes/:id',
+        loadChildren: () =>
+          import('./class-start/class-start.routes').then((m) => m.classStartRoutes),
+      },
       {
         path: '',
         loadComponent: () => import('./main-shell/main-shell'),

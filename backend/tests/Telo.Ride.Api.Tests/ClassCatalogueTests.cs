@@ -3,7 +3,8 @@
 // Description: the class catalogue, read without a session, lists the seven classes of L2-080 AC1 in
 // catalogue order, each with its channel, focus, length and the rider level it opens at, a YouTube video,
 // a sync offset, a summary, a plan as long as the class and its world, on the shelves of L2-081 AC3; one
-// class is served by its id, and an id the catalogue does not hold is 404 class_not_found.
+// class is served by its id (30 Minute HIIT Cardio from 0:12.0, working at level 24, L2-084, L2-096), and an id the
+// catalogue does not hold is 404 class_not_found.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -92,7 +93,9 @@ public sealed class ClassCatalogueTests(TeloRideApiFactory api) : IClassFixture<
 
         Assert.Equal("30 Minute HIIT Cardio", hiit!.Title);
         Assert.Equal("QUoToFsMNig", hiit.Video.VideoId);
+        Assert.Equal(12.0, hiit.Video.SyncOffsetSeconds);
         Assert.Equal(17, hiit.Plan.Segments.Count);
+        Assert.All(hiit.Plan.Segments.Where(s => s.Kind == "work"), s => Assert.Equal(24, s.Level));
     }
 
     [Fact]

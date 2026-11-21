@@ -6,7 +6,7 @@ interface Segment {
   cadenceAim: number;
 }
 
-const work: Segment = { kind: 'work', duration: 30, level: 18, cadenceAim: 100 };
+const work: Segment = { kind: 'work', duration: 30, level: 24, cadenceAim: 100 };
 const recover = (duration: number): Segment => ({
   kind: 'recover',
   duration,
@@ -34,7 +34,7 @@ export const hiitCardio = {
       { kind: 'warm-up', duration: 300, level: 8, cadenceAim: 80 },
       ...[180, 150, 150, 120, 120, 90, 90].flatMap((rest) => [work, recover(rest)]),
       work,
-      { kind: 'cool-down', duration: 360, level: 6, cadenceAim: 70 },
+      { kind: 'cool-down', duration: 360, level: 6, cadenceAim: 68 },
     ] satisfies Segment[],
   },
 };

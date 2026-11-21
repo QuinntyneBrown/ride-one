@@ -132,6 +132,7 @@ export class ClassRideStore {
         void player.load(host, ride.video.videoId, {
           startSeconds: ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000,
           controls: false,
+          autoplay: true,
           title: ride.title,
         });
       },

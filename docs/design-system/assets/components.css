@@ -2369,6 +2369,12 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 }
 .class-sync__toggle:hover, .class-sync__toggle[data-state="hover"] { background: var(--color-raised); color: var(--color-fg); }
 .class-sync__toggle[aria-expanded="true"] .icon { rotate: 180deg; }
+.class-sync__facts { margin-top: var(--space-3); display: grid; gap: var(--space-2); font-size: var(--font-size-sm); line-height: var(--line-height-sm); }
+.class-sync__fact { display: flex; flex-wrap: wrap; column-gap: var(--space-3); }
+.class-sync__fact dt { min-width: var(--space-12); color: var(--color-muted); }
+.class-sync__link { color: var(--color-volt-fg); text-decoration: underline; text-underline-offset: 0.2em; overflow-wrap: anywhere; }
+.ride-option[aria-disabled="true"] { cursor: not-allowed; border-style: dashed; }
+.ride-option[aria-disabled="true"] .ride-option__title { color: var(--color-muted); }
 
 /* Alone or together */
 .ride-choice { display: flex; flex-direction: column; }

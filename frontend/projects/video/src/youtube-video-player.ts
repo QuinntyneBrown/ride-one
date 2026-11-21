@@ -56,7 +56,8 @@ function loadApi(document: Document): Promise<YtNamespace> {
 
 /**
  * The class video from YouTube's privacy-enhanced embed (docs/detailed-designs/classes/ride-a-class, ADR 0012). It
- * plays from the start it is given; with controls off, the frame is also out of the tab order, since the ride controls
+ * plays from the start it is given, or waits parked there with autoplay off; with controls off, the frame is also out
+ * of the tab order, since the ride controls
  * it. A script that cannot load, or a player error, leaves it in `error`.
  */
 export class YouTubeVideoPlayer implements VideoPlayer {
@@ -87,12 +88,15 @@ export class YouTubeVideoPlayer implements VideoPlayer {
         disablekb: options.controls ? 0 : 1,
         playsinline: 1,
         rel: 0,
+        // Parked, the video opens at its start: seekTo from the cued state would play it.
+        ...(options.autoplay ? {} : { start: Math.floor(options.startSeconds) }),
       },
       events: {
         onReady: ({ target }: YtEvent) => {
           const frame = target.getIframe();
           frame.setAttribute('title', options.title);
           if (!options.controls) frame.setAttribute('tabindex', '-1');
+          if (!options.autoplay) return;
           target.seekTo(options.startSeconds, true);
           target.playVideo();
         },

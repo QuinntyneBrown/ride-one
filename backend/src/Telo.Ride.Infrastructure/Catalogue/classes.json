@@ -199,7 +199,7 @@
       "world": "oldtown",
       "video": {
         "videoId": "QUoToFsMNig",
-        "syncOffsetSeconds": 3
+        "syncOffsetSeconds": 12
       },
       "plan": {
         "segments": [
@@ -212,7 +212,7 @@
           {
             "kind": "work",
             "duration": 30,
-            "level": 18,
+            "level": 24,
             "cadenceAim": 100
           },
           {
@@ -224,7 +224,7 @@
           {
             "kind": "work",
             "duration": 30,
-            "level": 18,
+            "level": 24,
             "cadenceAim": 100
           },
           {
@@ -236,7 +236,7 @@
           {
             "kind": "work",
             "duration": 30,
-            "level": 18,
+            "level": 24,
             "cadenceAim": 100
           },
           {
@@ -248,7 +248,7 @@
           {
             "kind": "work",
             "duration": 30,
-            "level": 18,
+            "level": 24,
             "cadenceAim": 100
           },
           {
@@ -260,7 +260,7 @@
           {
             "kind": "work",
             "duration": 30,
-            "level": 18,
+            "level": 24,
             "cadenceAim": 100
           },
           {
@@ -272,7 +272,7 @@
           {
             "kind": "work",
             "duration": 30,
-            "level": 18,
+            "level": 24,
             "cadenceAim": 100
           },
           {
@@ -284,7 +284,7 @@
           {
             "kind": "work",
             "duration": 30,
-            "level": 18,
+            "level": 24,
             "cadenceAim": 100
           },
           {
@@ -296,14 +296,14 @@
           {
             "kind": "work",
             "duration": 30,
-            "level": 18,
+            "level": 24,
             "cadenceAim": 100
           },
           {
             "kind": "cool-down",
             "duration": 360,
             "level": 6,
-            "cadenceAim": 70
+            "cadenceAim": 68
           }
         ]
       }

@@ -15,6 +15,7 @@ import {
 import { hiitCardio } from './fixtures/classes';
 import { expect, test } from './fixtures/test';
 import type { YouTubeFixture } from './fixtures/youtube';
+import { ClassStartPage } from './pages/class-start.page';
 import { NotFoundPage } from './pages/not-found.page';
 
 /** Waits for the fake player, then lets it get ready: its onReady runs on the paused clock. */
@@ -23,7 +24,7 @@ async function videoReady(page: Page, youtube: YouTubeFixture): Promise<void> {
   await page.clock.runFor(100);
 }
 
-/** Steps the paused clock until the lazy Page not found has rendered: Class Start and Results are not built yet. */
+/** Steps the paused clock until the lazy Page not found has rendered: Results is not built yet. */
 async function notFoundShown(page: Page): Promise<void> {
   const notFound = new NotFoundPage(page);
   await expect(async () => {
@@ -130,8 +131,11 @@ test.describe('Pause, leave or finish a class', () => {
     await ride.leave.click();
     await page.clock.runFor(100);
     await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);
-    // Class Start comes with slice 6.3; until then its address shows Page not found.
-    await notFoundShown(page);
+    const start = new ClassStartPage(page);
+    await expect(async () => {
+      await page.clock.runFor(16);
+      await expect(start.title).toHaveText(hiitCardio.title, { timeout: 50 });
+    }).toPass();
     expect((await youtube.players())[0].destroyed).toBe(true);
 
     // The plan no longer drives the bike: the next interval, at 8:30, never sends its level.
@@ -142,7 +146,7 @@ test.describe('Pause, leave or finish a class', () => {
         .writes()
         .slice(writes)
         .map((write) => write.hex),
-    ).not.toContain(targetResistanceWrite(18));
+    ).not.toContain(targetResistanceWrite(24));
   });
 
   test('at the class length the ride ends and Results opens (L2-093 AC2)', async ({
