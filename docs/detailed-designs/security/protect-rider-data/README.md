@@ -25,9 +25,11 @@ are fixed by [Restrict third parties](../restrict-third-parties/README.md).
 
 ### In transit
 
-- **HTTPS redirection and HSTS** (`Telo.Ride.Api`) — `UseHttpsRedirection` and `UseHsts` send
-  `Strict-Transport-Security` on every response; the HSTS max-age is `<TO SUPPLY>`. The static
-  host serves the app over HTTPS only.
+- **HTTPS redirection and HSTS** (`Telo.Ride.Api`, `Hosting/TransportSecurity.cs`) — outside
+  Development, `UseHttpsRedirection` answers a plain `http` request with 308 to the same address on
+  `https`, and `UseHsts` sends `Strict-Transport-Security: max-age=31536000` (one year, without
+  `includeSubDomains` or `preload`) on every `https` response. The scheme is read from App Service's
+  `X-Forwarded-Proto` first. The API serves the app too (ADR 0026), so the app is HTTPS only as well.
 - **Minimum TLS version** — TLS 1.2 or later is set on the hosting platform for both the static
   host and the API, and on the database connection. The platform setting names are
   `<TO SUPPLY>` until the backend host is chosen.
