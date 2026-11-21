@@ -51,6 +51,7 @@ opt started
   end
   opt tab hidden
     frames -> frames : request no frame; the clock and telemetry carry on (L2-065 AC3)
+    scene -> scene : visible = false; draw no frame for a change of input either
     scene -> renderer : pauseBudget(), then setFramePeriod(measured again) on return
   end
 end
