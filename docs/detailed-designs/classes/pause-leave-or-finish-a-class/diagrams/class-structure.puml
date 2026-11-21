@@ -69,9 +69,8 @@ package "ride application" {
     +controlsEnabled: Signal<boolean>
     +pause(): void
     +resume(): void
-    +reconnect(): Promise<void>
-    +leave(): void
-    -finish(): Promise<void>
+    +reconnect(): void
+    -finish(): void
   }
 }
 ClassRideStore ..> BleState : reacts to

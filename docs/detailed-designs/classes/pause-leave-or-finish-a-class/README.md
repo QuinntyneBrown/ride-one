@@ -24,11 +24,13 @@ network is kept and sent later (`L2-135`).
 
 **Frontend — `ride` application**
 
-- **`ClassRideStore`** (see *ride a class*) — adds `pause()`, `resume()`, `leave()` and the
-  finish handler. It watches `BIKE_CONNECTION.ble`: a lost bike in solo pauses the ride; in a
-  group it disables the resistance controls and lets the class move on.
-- **`ClassRidePage`** — shows the "Paused" overlay (solo) and the lost-bike alert, and routes to
-  Class Start on Leave and to Results on finish.
+- **`ClassRideStore`** (see *ride a class*) — adds `pause()`, `resume()`, `reconnect()` and the
+  finish, which opens Results. It watches `BIKE_CONNECTION.ble` once a second on the app's
+  `TICKER` (the ride clock's ticks stop while the ride is held): a lost bike in solo pauses the
+  ride; in a group it disables the resistance controls and lets the class move on. Leaving the
+  page destroys it, which stops the ride and discards it, and in a group leaves the session.
+- **`ClassRidePage`** — shows the "Paused" overlay (solo) and the lost-bike alert, and its Leave
+  link goes to Class Start.
 
 **Frontend — `components` library**
 

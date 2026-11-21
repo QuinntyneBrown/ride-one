@@ -34,7 +34,7 @@ alt group class ride
   note over clock, engine : Clock, video and board keep moving; Leave stays active (L2-092 AC2)
   rider -> page : Press Reconnect
   page -> store : reconnect()
-  store -> conn : reconnect() (user gesture)
+  store -> conn : reconnectNow()
   conn -> bike : Connect GATT
   bike --> conn : Connected
   conn --> store : ble = Connected
