@@ -38,3 +38,4 @@ export {
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
 export { CachedClassesApi } from './storage/cached-classes-api';
 export { CATALOGUE_KEY, CatalogueCache } from './storage/catalogue-cache';
+export { NewRiderProgress } from './engine/new-rider-progress';

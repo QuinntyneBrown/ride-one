@@ -19,16 +19,30 @@
     @for (shelf of library.shown(); track shelf.id) {
       <wz-class-shelf [shelfId]="shelf.id" [title]="shelf.title" [tagline]="shelf.tagline">
         @for (card of shelf.cards; track card.id) {
-          <a
-            wz-class-card
-            [routerLink]="['/classes', card.id]"
-            [title]="card.title"
-            [channel]="card.channel"
-            [focus]="card.focus"
-            [cover]="card.cover"
-            [lengthSeconds]="card.lengthSeconds"
-            [segments]="card.segments"
-          ></a>
+          @if (card.opensAtLevel === null) {
+            <a
+              wz-class-card
+              [routerLink]="['/classes', card.id]"
+              [title]="card.title"
+              [channel]="card.channel"
+              [focus]="card.focus"
+              [cover]="card.cover"
+              [lengthSeconds]="card.lengthSeconds"
+              [segments]="card.segments"
+            ></a>
+          } @else {
+            <button
+              wz-class-card
+              type="button"
+              [title]="card.title"
+              [channel]="card.channel"
+              [focus]="card.focus"
+              [cover]="card.cover"
+              [lengthSeconds]="card.lengthSeconds"
+              [segments]="card.segments"
+              [opensAtLevel]="card.opensAtLevel"
+            ></button>
+          }
         }
       </wz-class-shelf>
     }
