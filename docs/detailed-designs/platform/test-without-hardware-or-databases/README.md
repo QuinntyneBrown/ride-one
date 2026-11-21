@@ -42,6 +42,9 @@ Hardware smoke tests are run by a person and are outside this slice.
   unanswered request or any request to a host other than localhost.
 - **Page objects** — `e2e/pages/<screen>.page.ts`, one per screen or dialog, using the mocks' BEM
   classes and roles as locators.
+  `e2e/pages/app-calls.ts` (`AppCalls`) makes, in the page, the Bluetooth, HTTP and hub calls the
+  app will make, so `e2e/harness.spec.ts` proves each double before the app's own clients exist
+  (slices 2.3, 9.1 and 14.1).
 - **Clock** — specs that depend on time call `page.clock.install()` and advance it.
 - **Unit tests** — run with the Angular CLI unit-test builder on Vitest over jsdom (both already
   dev dependencies), from `npm test`; time-driven rules use Vitest's fake timers and the
