@@ -7,10 +7,8 @@ import {
   input,
   output,
 } from '@angular/core';
+import type { PackStrengthId } from '@telo/api';
 import { radioStep } from '../radio-group/radio-step';
-
-/** How hard the bots ride (L2-049). */
-export type PackStrengthId = 'easy' | 'medium' | 'hard';
 
 const notes: Record<PackStrengthId, string> = {
   easy: 'Around 130 W. Good for learning the course.',

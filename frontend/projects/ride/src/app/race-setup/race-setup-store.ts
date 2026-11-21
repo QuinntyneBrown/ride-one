@@ -1,8 +1,16 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
-import { MAPS_API, type MapDto, type MapProgressDto, PROGRESS_API } from '@telo/api';
-import type { ModeOption, PackStrengthId } from '@telo/components';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  MAPS_API,
+  type MapDto,
+  type MapProgressDto,
+  PROGRESS_API,
+  type PackStrengthId,
+  type RaceMode,
+} from '@telo/api';
+import type { ModeOption } from '@telo/components';
+import { RaceStartPlanner } from '@telo/domain';
 
 /**
  * Race Setup's state, provided on its page (docs/detailed-designs/race/set-up-a-race): the map of the address, read
@@ -66,10 +74,15 @@ export class RaceSetupStore {
   ]);
 
   /** The chosen mode, Bots by default (L2-048 AC1). */
-  readonly mode = signal('bots');
+  readonly mode = signal<RaceMode>('bots');
 
   /** How hard the bots ride, medium by default (L2-049 AC1). */
   readonly pack = signal<PackStrengthId>('medium');
+
+  /** The start the choice leads to, and its button's label (L2-050). */
+  readonly raceStart = computed(() => RaceStartPlanner.plan(this.mapId, this.mode(), this.pack()));
+
+  private readonly router = inject(Router);
 
   constructor() {
     inject(MAPS_API)
@@ -84,5 +97,11 @@ export class RaceSetupStore {
       .level()
       .pipe(takeUntilDestroyed())
       .subscribe((level) => this.level.set(level));
+  }
+
+  /** Opens the race the choice leads to (L2-050 AC1, AC2). */
+  start(): void {
+    const { route, queryParams } = this.raceStart();
+    void this.router.navigate([...route], { queryParams });
   }
 }

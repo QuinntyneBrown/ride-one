@@ -33,6 +33,14 @@
   flex-direction: column;
 }
 
+.setup-ride__start {
+  margin-top: var(--space-8);
+
+  @media (min-width: 64rem) {
+    margin-top: auto;
+  }
+}
+
 .setup-ride__title {
   font-size: var(--font-size-lg);
   line-height: var(--line-height-lg);

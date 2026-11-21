@@ -16,6 +16,7 @@ export { SimulatedRiderProfile } from './bluetooth/simulated-rider-profile';
 export { WebBluetoothBikeConnection } from './bluetooth/web-bluetooth-bike-connection';
 export { BikeTelemetry, CADENCE_TIMEOUT_MS } from './engine/bike-telemetry';
 export { EnergyModel } from './engine/energy-model';
+export { RaceStartPlanner, type RaceStart } from './engine/race-start-planner';
 export { HeartRateSource } from './engine/heart-rate-source';
 export { HeartRateStats } from './engine/heart-rate-stats';
 export { PowerModel } from './engine/power-model';

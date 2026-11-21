@@ -6,11 +6,12 @@ import {
   input,
   output,
 } from '@angular/core';
+import type { RaceMode } from '@telo/api';
 import { radioStep } from '../radio-group/radio-step';
 
 /** One race mode: its id, title and body, its icon, and whether it can be chosen. */
 export interface ModeOption {
-  readonly id: string;
+  readonly id: RaceMode;
   readonly title: string;
   readonly body: string;
   readonly icon: 'ghost' | 'bots' | 'riders';
@@ -30,8 +31,8 @@ export interface ModeOption {
 })
 export class ModeOptions {
   readonly options = input.required<readonly ModeOption[]>();
-  readonly selected = input.required<string>();
-  readonly choose = output<string>();
+  readonly selected = input.required<RaceMode>();
+  readonly choose = output<RaceMode>();
 
   // The options are found in the host rather than by viewChildren, whose code would join the initial bundle.
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

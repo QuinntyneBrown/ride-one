@@ -28,6 +28,17 @@
           @if (store.mode() === 'bots') {
             <wz-pack-strength [selected]="store.pack()" (choose)="store.pack.set($event)" />
           }
+          <!-- The label is the button's whole text: spaces around it would join its accessible name. -->
+          <!-- prettier-ignore -->
+          <button
+            wz-button
+            class="setup-ride__start"
+            type="button"
+            variant="primary"
+            size="xl"
+            [block]="true"
+            (click)="store.start()"
+          >{{ store.raceStart().label }}</button>
         </section>
       }
     </main>

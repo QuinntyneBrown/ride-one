@@ -117,3 +117,29 @@ test('against bots, Pack strength offers easy, medium and hard, each with its no
   await expect(setup.pack).toHaveCount(0);
   await expect(setup.packNote).toHaveCount(0);
 });
+
+test('against bots, Go to the start line opens the race with the chosen pack (L2-050 AC1)', async ({
+  page,
+}) => {
+  const setup = new RaceSetupPage(page);
+  await setup.open('old-town-criterium');
+  await setup.packStrength('hard').click();
+
+  await expect(setup.start).toHaveText('Go to the start line');
+  await setup.start.click();
+
+  await expect(page).toHaveURL('/race/old-town-criterium/ride?mode=bots&pack=hard');
+});
+
+test('against your best time, Start ride opens the race at once, solo (L2-050 AC2)', async ({
+  page,
+}) => {
+  const setup = new RaceSetupPage(page);
+  await setup.open('prairie-paceline');
+  await setup.mode('Your best time').click();
+
+  await expect(setup.start).toHaveText('Start ride');
+  await setup.start.click();
+
+  await expect(page).toHaveURL('/race/prairie-paceline/ride?mode=solo');
+});
