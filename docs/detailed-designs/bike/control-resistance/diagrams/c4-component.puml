@@ -10,7 +10,7 @@ Container_Boundary(app, "Ride app") {
   Component(step, "RideStep", "Presentation component · components", "Lower, readout, Raise")
   Component(logc, "RideLog", "Presentation component · components", "Sent to bike rows")
   Component(engine, "WorkoutEngine", "Service · domain/engine", "Segment boundaries of the plan")
-  Component(ctrl, "ResistanceController", "Service · domain/engine", "Target resistance, source, clamp, resend")
+  Component(ctrl, "ResistanceController", "Service · domain/engine", "Target resistance, source, clamp, last command")
   Component(sent, "SentToBikeLog", "Service · domain/engine", "Last 50 commands")
   Component(tele, "BikeTelemetry", "Service · domain/engine", "Resistance the bike reports")
   Component(conn, "BikeConnection", "Contract · api; WebBluetoothBikeConnection", "setResistance(level) → ack ms")

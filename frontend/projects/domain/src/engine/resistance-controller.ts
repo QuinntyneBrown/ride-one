@@ -1,0 +1,49 @@
+import { Injectable, computed, inject, signal } from '@angular/core';
+import {
+  BIKE_CONNECTION,
+  BikeConnectionError,
+  type ResistanceSource,
+  type SentCommand,
+} from '@telo/api';
+import { MAX_RESISTANCE, MIN_RESISTANCE } from '../protocol/echelon-protocol';
+
+const clamp = (level: number): number =>
+  Math.min(MAX_RESISTANCE, Math.max(MIN_RESISTANCE, Math.round(level)));
+
+/**
+ * The target resistance (docs/detailed-designs/bike/control-resistance): a plan's level, clamped to 1 to 32 and sent
+ * through the connection (L2-025 AC2, L2-027 AC1), with the last command and its acknowledgement time (L2-025 AC4).
+ * The target stays the plan's level whatever resistance the bike reports (L2-026 AC1). With the bike away the
+ * connection keeps the target and sends it first after the reconnect (L2-027 AC4); with the bike away, or once an
+ * FTMS bike refuses control, `canControl` is false (L2-028 AC4). Provided by each ride screen.
+ */
+@Injectable()
+export class ResistanceController {
+  private readonly connection = inject(BIKE_CONNECTION);
+  private readonly level = signal<number | null>(null);
+  private readonly from = signal<ResistanceSource>('plan');
+  private readonly refused = signal(false);
+  private readonly sent = signal<SentCommand | null>(null);
+
+  readonly target = this.level.asReadonly();
+  readonly source = this.from.asReadonly();
+  readonly canControl = computed(() => this.connection.ble() === 'connected' && !this.refused());
+  readonly last = this.sent.asReadonly();
+
+  applyPlanLevel(level: number): Promise<void> {
+    return this.send(level, 'plan');
+  }
+
+  private async send(level: number, source: ResistanceSource): Promise<void> {
+    const target = clamp(level);
+    this.level.set(target);
+    this.from.set(source);
+    try {
+      const ackMs = await this.connection.setResistance(target);
+      this.sent.set({ rideTime: null, level: target, source, ackMs });
+    } catch (error) {
+      if (error instanceof BikeConnectionError && error.code === 'read-only')
+        this.refused.set(true);
+    }
+  }
+}
