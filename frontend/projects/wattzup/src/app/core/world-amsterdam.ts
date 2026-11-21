@@ -2729,6 +2729,21 @@ export class AmsterdamStreet implements SceneStreet {
       child.scale.setScalar(0.5);
       child.position.set(0, 0.82, -0.12);
       group.add(seat, child);
+    } else if (roll < 0.7) {
+      // A courier: a big insulated delivery box strapped to the front carrier.
+      const crate = new Mesh(
+        this.unit,
+        this.material({
+          color: [0xf2f2ee, 0x2a3a5c, 0x3a6b4a][Math.floor(random() * 3)]!,
+          roughness: 0.6,
+        }),
+      );
+      crate.scale.set(0.5, 0.45, 0.5);
+      crate.position.set(0, 1.12, -0.72);
+      const carrier = new Mesh(this.unit, paint);
+      carrier.scale.set(0.45, 0.03, 0.45);
+      carrier.position.set(0, 0.88, -0.72);
+      group.add(crate, carrier);
     }
     group.children.forEach((m) => (m.castShadow = true));
     return group;
