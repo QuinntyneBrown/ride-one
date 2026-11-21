@@ -20,6 +20,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 3.1 | [Decode bike notifications](03-1-decode-bike-notifications/README.md) | 2:25 | An Echelon's D2 as resistance and D1 as cadence, byte by byte; the frames ignored; FTMS fields read by their flags; speed and power estimated, reported values used as they are; five quiet seconds blank cadence and power; Home from 390 to 1440 px; forty-five new unit tests |
 | 3.2 | [Show live metrics](03-2-show-live-metrics/README.md) | 2:25 | Distance, output and energy from each running second, held while paused; unknown values as a dash and distance as 2.24 km; one source for three readout families; a minute on the simulated bike; Home from 390 to 1440 px; twenty new unit tests |
 | 3.3 | [Show heart rate](03-3-show-heart-rate/README.md) | 2:25 | Heart Rate Measurement by its flags; a strap chosen by the Heart Rate service, remembered, and retried every 3 seconds after a drop; the strap first, then the bike, else a dash; five quiet seconds; average and peak; Home from 390 to 1440 px; twenty-five new unit tests |
+| 4.1 | [Send target resistance](04-1-send-target-resistance/README.md) | 2:25 | The B1 frame; targets clamped to 1 to 32; the acknowledgement timed; the simulated bike reporting the target back; target and resistance kept apart; a level asked for during a drop sent first; an FTMS refusal; Home from 390 to 1440 px; eleven new unit tests |
 
 ## Wattzup films
 
