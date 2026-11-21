@@ -1,6 +1,6 @@
 # 0021. World Ride draws with Three.js's WebGPU renderer, falling back to WebGL2
 
-- **Status:** Accepted, amended by [0023](0023-bend-the-road-in-the-vertex-stage.md)
+- **Status:** Accepted, amended by [0023](0023-bend-the-road-in-the-vertex-stage.md) and [0030](0030-world-library-carried-from-main.md)
 - **Date:** 2026-11-19
 - **Amends:** [0020](0020-three-js-for-world-ride.md)
 

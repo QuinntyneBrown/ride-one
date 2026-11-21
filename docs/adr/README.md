@@ -21,8 +21,8 @@
 | [0017](0017-browser-edition.md) | A browser edition with no backend | Superseded by 0019 |
 | [0018](0018-static-content-security-policy.md) | A static Content-Security-Policy for the browser edition | Accepted, amended by 0019 |
 | [0019](0019-no-backend.md) | No backend: Wattzup runs in the browser only | Superseded by 0025 |
-| [0020](0020-three-js-for-world-ride.md) | Three.js draws the World Ride scene, in its own lazy chunk | Accepted, amended by 0021 |
-| [0021](0021-webgpu-renderer-with-webgl2-fallback.md) | World Ride draws with Three.js's WebGPU renderer, falling back to WebGL2 | Accepted, amended by 0023 |
+| [0020](0020-three-js-for-world-ride.md) | Three.js draws the World Ride scene, in its own lazy chunk | Accepted, amended by 0021 and 0030 |
+| [0021](0021-webgpu-renderer-with-webgl2-fallback.md) | World Ride draws with Three.js's WebGPU renderer, falling back to WebGL2 | Accepted, amended by 0023 and 0030 |
 | [0022](0022-hosted-on-azure-static-web-apps.md) | Hosted on Azure Static Web Apps, deployed from main | Superseded by 0026 |
 | [0023](0023-bend-the-road-in-the-vertex-stage.md) | World Ride bends the road in the vertex stage | Accepted |
 | [0024](0024-telo-ride-workspace.md) | The Telo Ride workspace: `api`, `domain`, `components` and `ride` | Accepted |
@@ -31,3 +31,4 @@
 | [0027](0027-marketing-site.md) | The marketing site: a `marketing` application with the pitch film | Accepted |
 | [0028](0028-class-catalogue-shipped-with-the-backend.md) | The class catalogue: a JSON file shipped with the backend, public, cached on the device | Accepted |
 | [0029](0029-map-catalogue-shipped-with-the-backend.md) | The map catalogue: a JSON file shipped with the backend, public, cached on the device | Accepted |
+| [0030](0030-world-library-carried-from-main.md) | World Ride's rendering is carried from `main` into a lazy `world` library | Accepted |
