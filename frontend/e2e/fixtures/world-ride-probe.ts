@@ -68,6 +68,16 @@ export class WorldRideProbe {
     );
   }
 
+  /**
+   * Call before the page loads: World Ride opens at `tier` and its frame budget judges it as a rider's ride is judged,
+   * so slow frames drop it (L2-159 AC4), while the renderer still reports what it draws.
+   */
+  async open(tier: Tier): Promise<void> {
+    await this.page.addInitScript((t) => {
+      (window as unknown as Record<string, unknown>)['__wzWorldRide'] = { tier: t, judged: true };
+    }, tier);
+  }
+
   /** Lowers the drawn tier one step on the next frame, as a slow frame budget would (#882). */
   async dropTier(): Promise<void> {
     await this.page.evaluate(() => {

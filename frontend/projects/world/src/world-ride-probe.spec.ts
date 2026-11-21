@@ -8,13 +8,22 @@ import {
 
 describe('readWorldRideProbe (test-only tier hook, #672)', () => {
   it.each(['low', 'medium', 'high', 'ultra'] as const)('pins %s', (tier) => {
-    expect(readWorldRideProbe({ tier })).toEqual({ tier, forceWebGL: false });
+    expect(readWorldRideProbe({ tier })).toEqual({ tier, forceWebGL: false, judged: false });
   });
 
   it('forces the WebGL2 backend when asked (#679)', () => {
     expect(readWorldRideProbe({ tier: 'high', backend: 'webgl2' })).toEqual({
       tier: 'high',
       forceWebGL: true,
+      judged: false,
+    });
+  });
+
+  it('opens at the tier and leaves the frame budget to judge it when asked (L2-159 AC4)', () => {
+    expect(readWorldRideProbe({ tier: 'high', judged: true })).toEqual({
+      tier: 'high',
+      forceWebGL: false,
+      judged: true,
     });
   });
 
