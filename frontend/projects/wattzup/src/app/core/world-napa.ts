@@ -47,6 +47,7 @@ import {
   scaleFaceUv,
   type SceneStreet,
   seeded,
+  slopeAt,
   speckle,
   type Wardrobe,
 } from './world-kit';
@@ -201,6 +202,8 @@ interface Prop {
   readonly rise: number;
   /** Hidden near the knoll, so nothing stands in front of the mission winery. */
   readonly near?: boolean;
+  /** Lies on the road, as paint does, and takes its slope. */
+  readonly lies?: boolean;
 }
 
 export class NapaStreet implements SceneStreet {
@@ -295,11 +298,12 @@ export class NapaStreet implements SceneStreet {
 
   place(s: number, heightAt: (metres: number) => number): void {
     const along = (offset: number, every: number) => loopMetres(offset, s, every, BEHIND);
-    const ground = (metres: number) => heightAt(Math.max(metres, 0));
+    const ground = (metres: number) => heightAt(metres);
     for (const prop of this.props) {
       const metres = along(prop.offset, prop.every);
       prop.mesh.visible = !prop.near || metres < KNOLL_FOOT;
-      prop.mesh.position.set(prop.x, ground(metres) + KERB + prop.rise, -metres);
+      prop.mesh.position.set(prop.x, heightAt(metres) + KERB + prop.rise, -metres);
+      if (prop.lies) prop.mesh.rotation.x = slopeAt(heightAt, metres);
     }
     this.crowd.place(this.time, heightAt, along, KERB);
     this.mist.place(this.time, heightAt, along, () => KERB);
