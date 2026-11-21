@@ -1,9 +1,5 @@
 # video-record
 
-> The Wattzup films' `shots.ts` scripts were written against the old `/api` stub fixtures
-> (`wz-test.ts`, `fixtures/states.ts`), which went with the Wattzup frontend, and no longer run.
-> Telo Ride films import the shared fixture `frontend/e2e/fixtures/test.ts`.
-
 Saves a video's screenshots: runs the folder's `shots.ts` in Chromium against the running app and
 writes PNGs at double density into the folder's `shots/`. Standard: `docs/videos/README.md`,
 "Screenshots".
