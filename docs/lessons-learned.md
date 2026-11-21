@@ -25,7 +25,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 | # | Lesson | From | Applied in | Result |
 |---|--------|------|------------|--------|
-| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with `frontend/node_modules` and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
+| L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with its own `npm ci` in `frontend/` (never a `node_modules` symlink) and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
 | L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4 | Saved time |
 | L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4 | Little effect |
 | L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3, 1.4 | Did not apply |
@@ -37,7 +37,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L10 | A film scene's id is its element's DOM id: never name a scene `errors`, `captions`, `play`, `frame` or `stage`, which `film.css` and the runtime already use. | 1.2 | 1.3, 1.4 | Saved time |
 | L11 | Prove a test double from the outside: a spec drives the browser API through a helper (`AppCalls`) until the app's own client exists; prove its guard with `test.fail()`, and run once without it to read the failure's reason. | 1.3 | 1.4 | Saved time |
 | L12 | In zsh and BSD tools: quote globs in arguments (`--include='*.cs'`), and replace whole words with `perl -pi -e 's/\bOld\b/New/g'`; BSD `sed` has no `\b`. | 1.3 | 1.4 | Saved time |
-| L13 | When the lockfile changes, verify's `npm ci` replaces the worktree's `node_modules` link with its own fresh install (about 4 s; the main checkout's copy is untouched): delete it with `rm -rf` before `git worktree remove`, and copy any added package into the main checkout's `node_modules` so the next worktree's link has it. | 1.3 | 1.4 | Did not apply |
+| L13 | Never symlink `node_modules` into a worktree: when verify's stamp (`node_modules/.verify-lock-hash`) does not match, its `npm ci` empties the linked main checkout's `node_modules` and installs into the worktree. After `npm ci` in a checkout by hand, write the stamp so verify skips the reinstall. | 1.3 | 1.4 | Did not apply; corrected twice (1.4, 2.1) |
 | L14 | For a production-like local run, `dotnet run --no-launch-profile` (`launchSettings.json` otherwise overrides `ASPNETCORE_URLS` and the environment), and `-- --webroot ../frontend/dist/ride/browser` to serve a build without copying it. | 1.4 | | |
 | L15 | Prove a workflow change on GitHub before merging: push the slice's branch (CI runs on every push), `gh run watch <id> --exit-status`, read the job times, then delete the remote branch after the merge. | 1.4 | | |
 | L16 | A hosting test's web root is an in-memory `IFileProvider` set with `PostConfigure<StaticFileOptions>` (`HostedAppApi`), so it reads no file. | 1.4 | | |
@@ -118,7 +118,9 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
   renames.
 - **L13 A lockfile change gives the worktree its own install.** Verify's `npm ci` replaced the
   `node_modules` link with a fresh install in the worktree; the main checkout's copy was untouched.
-  (First written as the reverse; corrected in 1.4 when `git worktree remove` met a real folder.)
+  (First written as the reverse; corrected in 1.4 when `git worktree remove` met a real folder.
+  Corrected again after 1.4: there, `npm ci` emptied the main checkout's `node_modules` through the
+  link. Worktrees now get their own install; see L1 and L13.)
 
 ### 1.2 Backend skeleton (2026-11-21)
 
