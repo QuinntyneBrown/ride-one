@@ -1,4 +1,5 @@
 using Telo.Ride.Api.Authentication;
+using Telo.Ride.Api.Errors;
 using Telo.Ride.Api.Health;
 using Telo.Ride.Application;
 using Telo.Ride.Infrastructure;
@@ -7,12 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
 builder.Services.AddControllers();
 builder.Services.AddTeloRideAuthentication();
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: [DatabaseHealthCheck.Tag]);
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
