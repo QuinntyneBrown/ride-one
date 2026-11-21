@@ -1,10 +1,12 @@
 // Acceptance test
-// Traces to: L2-080 AC1, AC2, AC5; L2-081 AC3
+// Traces to: L2-080 AC1, AC2, AC5; L2-081 AC3; ADR 0028
 // Description: the class catalogue, read without a session, lists the seven classes of L2-080 AC1 in
 // catalogue order, each with its channel, focus, length and the rider level it opens at, a YouTube video,
-// a sync offset, a summary, a plan as long as the class and its world, on the shelves of L2-081 AC3.
+// a sync offset, a summary, a plan as long as the class and its world, on the shelves of L2-081 AC3; one
+// class is served by its id, and an id the catalogue does not hold is 404 class_not_found.
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Telo.Ride.Api.Tests;
 
@@ -79,6 +81,30 @@ public sealed class ClassCatalogueTests(TeloRideApiFactory api) : IClassFixture<
         Assert.Equal(
             ["20-min", "20-min", "30-min", "30-min", "30-min", "60-min", "60-min"],
             catalogue.Classes.Select(c => c.ShelfId));
+    }
+
+    [Fact]
+    public async Task One_class_is_served_by_its_id_without_a_session()
+    {
+        using var client = api.CreateClient();
+
+        var hiit = await client.GetFromJsonAsync<CatalogueClass>("/api/classes/hiit-cardio-30", TestContext.Current.CancellationToken);
+
+        Assert.Equal("30 Minute HIIT Cardio", hiit!.Title);
+        Assert.Equal("QUoToFsMNig", hiit.Video.VideoId);
+        Assert.Equal(17, hiit.Plan.Segments.Count);
+    }
+
+    [Fact]
+    public async Task An_id_the_catalogue_does_not_hold_is_404_class_not_found()
+    {
+        using var client = api.CreateClient();
+
+        using var response = await client.GetAsync("/api/classes/no-such-class", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
+        Assert.Equal("class_not_found", problem.GetProperty("code").GetString());
     }
 
     private async Task<Catalogue> ReadCatalogue()

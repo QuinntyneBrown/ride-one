@@ -17,4 +17,8 @@ public sealed class ClassesController(ISender sender) : ControllerBase
     [HttpGet]
     public Task<ClassCatalogueDto> List(CancellationToken cancellationToken) =>
         sender.Send(new GetClassesQuery(), cancellationToken);
+
+    [HttpGet("{id}")]
+    public Task<ClassDto> Get(string id, CancellationToken cancellationToken) =>
+        sender.Send(new GetClassQuery(id), cancellationToken);
 }
