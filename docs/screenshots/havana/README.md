@@ -93,6 +93,7 @@ The live 3D world behind the ride HUD for [30 Sec On, 2 Min Off](http://localhos
 | [087 · Manisero](087-manisero.jpg) | A manisero now stands at the inland kerb: an old man in a white guayabera and straw hat, a tin of peanuts on a strap at his hip with paper cones stood in it, one arm held out toward the road with a fan of cones. From the saddle, he stands just past the red hydrant, white shirt and hat against the pink gown behind. | 94% · 93/100 |
 | [088 · Manholes](088-manholes.jpg) | Cast-iron manhole covers are now set into the asphalt every fifty to a hundred metres: dark cross-hatched iron blotched with rust, a rim and two lifting slots, in a square collar of paler patched concrete. From the saddle, one lies in the open lane just left of the riders ahead. | 94% · 93/100 |
 | [089 · Joggers](089-joggers.jpg) | Joggers now run along the inland pavement, one coming on and one going away: running vest, black shorts, white trainers, one in a cap, legs and arms swinging in stride. From the saddle, the one in an orange vest and cap runs toward you past the manisero, caught mid-stride. | 94% · 93/100 |
+| [090 · Police patrol](090-police-patrol.jpg) | A PNR patrol car is now stopped in the lane with its lights on: a white Lada with blue bands along its flanks and a light bar glowing blue and red, its officer at the driver's door in grey-blue shirt and navy peaked cap. From the saddle, it sits ahead in the lane between the riders and the crossing, lights showing over its roof. | 94% · 93/100 |
 
 ## Reproducing a capture
 
