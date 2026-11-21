@@ -12,7 +12,24 @@
       [connected]="store.connected()"
       [elapsed]="store.elapsed()"
       [total]="store.total()"
-    />
+      [solo]="store.mode === 'solo'"
+    >
+      <!-- Leave and End ask for no confirmation (L2-069 AC1, AC2); leaving the page stops the race. -->
+      <a
+        wz-race-bar-button
+        quiet
+        slot="end"
+        [label]="store.mode === 'solo' ? 'End' : 'Leave'"
+        [attr.aria-label]="store.mode === 'solo' ? 'End ride' : 'Leave race'"
+        [routerLink]="store.setup"
+      >
+        <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m16 17 5-5-5-5" />
+          <path d="M21 12H9" />
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        </svg>
+      </a>
+    </wz-race-bar>
     <wz-race-power
       [place]="store.place()"
       [field]="store.fieldSize()"

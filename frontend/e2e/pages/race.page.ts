@@ -42,6 +42,14 @@ export class RacePage {
   readonly intervalLeft: Locator;
   readonly intervalFill: Locator;
   readonly intervalNext: Locator;
+  readonly pause: Locator;
+  readonly resume: Locator;
+  readonly leave: Locator;
+  readonly end: Locator;
+  readonly paused: Locator;
+  readonly lost: Locator;
+  readonly reconnect: Locator;
+  readonly backToSetup: Locator;
 
   constructor(private readonly page: Page) {
     this.heading = page.getByRole('heading', { level: 1 });
@@ -84,6 +92,14 @@ export class RacePage {
     this.intervalLeft = page.locator('.race-interval__left');
     this.intervalFill = page.locator('.race-interval__fill');
     this.intervalNext = page.locator('.race-interval__next');
+    this.pause = this.bar.getByRole('button', { name: 'Pause', exact: true });
+    this.resume = this.bar.getByRole('button', { name: 'Resume', exact: true });
+    this.leave = this.bar.getByRole('link', { name: 'Leave race' });
+    this.end = this.bar.getByRole('link', { name: 'End ride' });
+    this.paused = page.locator('.race-paused');
+    this.lost = page.getByRole('alert').filter({ has: page.locator('.race-lost__title') });
+    this.reconnect = this.lost.getByRole('button', { name: 'Reconnect' });
+    this.backToSetup = this.lost.getByRole('link', { name: 'Back to Race Setup' });
   }
 
   async open(mapId: string, query: string): Promise<void> {

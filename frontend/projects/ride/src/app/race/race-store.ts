@@ -69,6 +69,8 @@ export class RaceStore {
     ) ?? 'medium';
 
   readonly map = this.loaded.asReadonly();
+  /** Race Setup for the map, where Leave and End go (L2-069). */
+  readonly setup: readonly string[] = ['/race', this.mapId];
   readonly elapsed = this.ticker.second;
   readonly plan = this.engine.state;
 
