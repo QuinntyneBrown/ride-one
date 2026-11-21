@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Rank and send standings
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Frontend — Ride app (api library and ride application)" #E0F2FE
+  participant "SignalRRideHubClient" as client
+  participant "LiveSessionStore" as store
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "RideHubNotifier" as notifier
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "TickLiveSessionsCommandHandler" as tick
+  participant "LiveSession" as session
+  participant "BotPaceModel" as pace
+  participant "RankingPolicy" as rank
+end box
+box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+  participant "SessionTicker" as ticker
+end box
+ticker -> tick : Send TickLiveSessionsCommand(now) every 1 s
+tick -> session : AdvanceBots(pace, second)
+session -> pace : PowerAt(bot, second, seed) for each bot
+pace --> session : Power around pack strength (L2-123 AC4)
+tick -> rank : Rank(session)
+alt race session
+  rank -> rank : Finished by finish time, then distance (L2-123 AC2)
+  rank -> session : Leader trace TimeAt(distance) for gaps
+else group class session
+  rank -> rank : Output in kJ, highest first (L2-123 AC2)
+end
+rank --> tick : Standings (name, jersey, level, kind, position, gap)
+tick -> notifier : StandingsUpdated(sessionId, standings)
+notifier --> client : StandingsUpdated to every rider (L2-123 AC3)
+client --> store : Replace standings
+store -> store : Derive gaps relative to the rider
+@enduml

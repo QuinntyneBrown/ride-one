@@ -1,0 +1,127 @@
+# Keep the ride clock true
+
+## Overview
+
+Telo Ride drives a smart bike through a timed plan for a race, a class or a custom workout. Every
+readout the rider sees during a ride depends on one number: how long the ride has been running.
+The plan's current segment, the countdown to the next interval, the distance and the target
+resistance all derive from it.
+
+Browsers slow down timers in a tab that is hidden or in the background. A clock that counts timer
+ticks therefore falls behind when the rider switches to another tab, and the plan drifts from the
+video and from other riders. This feature keeps the ride clock exact in a hidden tab, keeps the
+screen awake during a ride, asks before a running ride is closed, and holds every live readout to
+a fixed update rate.
+
+- **ride clock** — elapsed riding time of the current ride, excluding paused time
+- **monotonic clock** — time source that never jumps backwards and ignores wall-clock changes; `performance.now()` in the browser
+- **tick** — once-a-second moment at which the ride's per-second values are recomputed
+- **readout** — on-screen value of one live metric, such as power or cadence
+- **board** — ranked list of riders in a race or group class
+
+The feature belongs to the performance subsystem. It is a frontend-only slice: the backend takes
+no part in timing a ride.
+
+## Description
+
+The slice lives in the Ride app. Timing rules sit in `domain`'s `engine/` folder; browser
+integrations sit in the `ride` application, scoped to the ride route.
+
+- **`MonotonicTime`** — contract in `api` with one method, `now(): number`, bound by the token
+  `MONOTONIC_TIME`. The composition root (`app.config.ts`) binds it to `performance.now()`. Unit
+  tests bind a fake clock that advances on demand.
+- **`RideClock`** — service in `domain/engine`. It records the monotonic time at `start()`, adds
+  up paused intervals in `pause()` and `resume()`, and answers `elapsedMs()` as the difference.
+  It never counts ticks.
+- **`RideTicker`** — service in `domain/engine`. It schedules the next tick with `setTimeout` at
+  the next whole second of `RideClock.elapsedMs()`. On each tick it publishes the elapsed whole
+  second as the signal `second`. It listens for `visibilitychange` and ticks at once when the tab
+  becomes visible. `stop()` clears the timer and removes the listener.
+- **`WorkoutEngine.stateAt(elapsedMs)`** — pure function of the plan (`domain/engine`). It returns
+  the current `Segment`, the time left in it and the target resistance for any elapsed time, so a
+  late tick lands on the correct segment.
+- **`DistanceIntegrator`** — helper in `domain/engine`. It integrates speed over the timestamps of
+  bike notifications, not over ticks, so distance stays correct while ticks are throttled.
+- **`ReadoutSampler`** — helper in `domain/engine`. It turns the stream of decoded bike samples
+  into the signal the readouts bind to. A sample arriving 1 s or more after the last publish
+  publishes at once; a sample arriving sooner replaces the held value, which publishes at the end
+  of that second. Readouts therefore change once a second and show a new reading within 250 ms of
+  its notification at the bike's 1 Hz rate.
+- **`BoardOrder`** — helper in `domain/engine`. It holds the board order and applies a new ranking
+  at most once a second.
+- **`ScreenWakeLock`** — contract in `api` (token `SCREEN_WAKE_LOCK`), implemented in the `ride`
+  application's `browser/` folder over `navigator.wakeLock`. It requests a `screen` lock when a
+  ride starts, requests it again on `visibilitychange` to visible, and releases it when the ride
+  ends. Where the API is absent it does nothing.
+- **`LeaveRideGuard`** — service in the `ride` application. While a ride runs it registers a
+  `beforeunload` listener that calls `preventDefault()`, so the browser asks the rider to confirm
+  leaving. It removes the listener when the ride ends.
+- **`RideSessionStore`** — route-scoped store in the `ride` application, provided on each ride
+  route. It owns the clock, ticker, wake lock and leave guard for one ride and tears all of them
+  down through `DestroyRef` when the rider leaves the route.
+
+Whether the browser integrations move into a dedicated `browser` library is `<TO SUPPLY>`; the
+dependency rules allow either.
+
+## Requirements
+
+| L2 ID | Refines (L1) | Requirement |
+|-------|--------------|-------------|
+| `L2-133` AC1 | `L1-022` | The ride clock of a running ride shall come from a monotonic clock (`performance.now()`) and shall not be computed by counting timer ticks. |
+| `L2-133` AC2 | `L1-022` | After the tab is hidden for 10 minutes during a ride and shown again, the clock, the plan's segment and the distance shall be within 1 second of their values in a visible tab. |
+| `L2-133` AC3 | `L1-022` | Where the browser offers the Screen Wake Lock API, a running ride shall keep the screen awake and shall take the lock again when the tab becomes visible. |
+| `L2-133` AC4 | `L1-022` | When the rider closes or reloads the tab during a running ride, the browser shall ask the rider to confirm leaving. |
+| `L2-134` AC1 | `L1-022` | The readouts shall show a notification from the bike within 250 ms. |
+| `L2-134` AC2 | `L1-022` | Every readout, countdown and trace of a running ride shall update once each second. |
+| `L2-134` AC3 | `L1-022` | A race or class board shall reorder at most once a second when places change. |
+
+## Diagrams
+
+### System context
+
+The rider pedals the smart bike; Telo Ride receives its notifications and keeps time for the
+ride on the device.
+
+![C4 system context for keeping the ride clock true](diagrams/c4-context.png)
+
+### Containers
+
+Only the Ride app takes part. The backend never times a ride.
+
+![C4 container view for keeping the ride clock true](diagrams/c4-container.png)
+
+### Components
+
+The route-scoped `RideSessionStore` owns the timing parts. `RideClock` reads `MonotonicTime`;
+`RideTicker` drives `WorkoutEngine` and the readouts once a second; the browser integrations
+guard the screen and the tab.
+
+![C4 component view for keeping the ride clock true](diagrams/c4-component.png)
+
+### Class structure
+
+`RideClock` depends on the `MonotonicTime` contract, `RideTicker` reads `RideClock`, and the
+store composes every part so their lifetimes end together.
+
+![Class diagram for keeping the ride clock true](diagrams/class-structure.png)
+
+### Behaviour — start a ride with its guards
+
+Starting a ride starts the clock, takes the wake lock and registers the leave guard
+(`L2-133` AC3, AC4). Closing the tab during the ride raises the browser's confirmation.
+
+![Sequence diagram for starting a ride with its guards](diagrams/sequence-start-ride-guards.png)
+
+### Behaviour — catch up after a hidden tab
+
+While the tab is hidden the browser throttles timers, so ticks arrive late. On return the ticker
+ticks at once and every value is recomputed from elapsed monotonic time (`L2-133` AC2).
+
+![Sequence diagram for catching up after a hidden tab](diagrams/sequence-hidden-tab-catch-up.png)
+
+### Behaviour — show a live readout
+
+A notification from the bike is decoded and passed to `ReadoutSampler`, which publishes it within
+the same second and holds later samples to the next second (`L2-134` AC1, AC2).
+
+![Sequence diagram for showing a live readout](diagrams/sequence-live-readout.png)

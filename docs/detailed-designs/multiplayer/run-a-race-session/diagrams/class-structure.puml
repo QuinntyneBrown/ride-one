@@ -1,0 +1,116 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+set separator none
+' --------------------------
+title Class structure — Run a race session
+
+package "Telo.Ride.Domain" {
+  abstract class LiveSession {
+    +Guid Id
+    +DateTimeOffset StartsAt
+    +SessionState State
+    +IReadOnlyList<Seat> Seats
+    +Seat(rider: RiderOccupant): Seat
+    +Release(riderId: Guid): void
+    +MarkReady(riderId: Guid, ready: bool): void
+    +FillWithBots(roster: BotRoster): void
+    +SeatOf(riderId: Guid): Seat?
+  }
+  class RaceSession {
+    +string MapId
+    +static Open(mapId: string, now: DateTimeOffset): RaceSession
+    +RidersSeated: int
+  }
+  class Seat {
+    +int Number
+    +SeatOccupant? Occupant
+    +bool Ready
+  }
+  abstract class SeatOccupant
+  class RiderOccupant {
+    +Guid RiderId
+    +string DisplayName
+    +string Jersey
+    +string Country
+    +int Level
+  }
+  class BotOccupant {
+    +string Name
+  }
+  class BotRoster {
+    +Names: Pacer Nova, Rook, Juno, Atlas, Kite, Vale, Moss, Flint, Echo
+    +Next(): string
+  }
+  enum SessionState {
+    Seating
+    Full
+    Countdown
+    Running
+    Ended
+  }
+}
+package "Telo.Ride.Application" {
+  class FindRaceCommandHandler {
+    +Handle(cmd: FindRaceCommand): Task<SeatAssignment>
+  }
+  class RaceSessionMatcher {
+    +FindFullestOpen(mapId: string): RaceSession?
+  }
+  class TickLiveSessionsCommandHandler {
+    +Handle(cmd: TickLiveSessionsCommand): Task
+  }
+  class GetRaceQueueCountQueryHandler {
+    +Handle(q: GetRaceQueueCountQuery): Task<int>
+  }
+  interface ISessionRegistry {
+    +OpenSessions(mapId: string): IEnumerable<RaceSession>
+    +Add(session: LiveSession): void
+    +All(): IEnumerable<LiveSession>
+  }
+  interface ISessionNotifier {
+    +SeatsChanged(id: Guid, seats: SeatDto[]): Task
+    +CountdownStarted(id: Guid, startsAt: long): Task
+    +SessionStarted(id: Guid, startsAt: long): Task
+  }
+}
+package "Telo.Ride.Infrastructure" {
+  class SessionTicker {
+    -timer: PeriodicTimer (1 s, TimeProvider)
+    #ExecuteAsync(ct: CancellationToken): Task
+  }
+}
+package "domain library" {
+  class ServerClock {
+    -offsetMs: number
+    -bestRttMs: number
+    +sample(sentAt: number, serverTime: number, receivedAt: number): void
+    +toLocal(serverTime: number): number
+  }
+}
+
+LiveSession <|-- RaceSession
+LiveSession "1" *-- "10" Seat
+Seat o-- "0..1" SeatOccupant
+SeatOccupant <|-- RiderOccupant
+SeatOccupant <|-- BotOccupant
+LiveSession --> SessionState
+LiveSession ..> BotRoster : FillWithBots
+FindRaceCommandHandler ..> RaceSessionMatcher
+FindRaceCommandHandler ..> ISessionRegistry
+FindRaceCommandHandler ..> ISessionNotifier
+RaceSessionMatcher ..> ISessionRegistry
+TickLiveSessionsCommandHandler ..> ISessionRegistry
+TickLiveSessionsCommandHandler ..> ISessionNotifier
+GetRaceQueueCountQueryHandler ..> ISessionRegistry
+SessionTicker ..> TickLiveSessionsCommandHandler : via IMediator
+@enduml

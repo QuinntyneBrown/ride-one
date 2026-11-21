@@ -1,0 +1,90 @@
+@startuml
+set separator none
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Choose a display name
+package "api library" {
+  class DisplayNamePolicy <<const>> {
+    +minLength = 2
+    +maxLength = 24
+    +allowed = /^[\p{L}\p{N} ._-]+$/u
+    +check(raw: string): "ok" | "too_short" | "too_long" | "bad_characters"
+  }
+  interface RidersApi {
+    +getMe(): Promise<RiderMe>
+    +setDisplayName(name: string): Promise<RiderMe>
+  }
+  class HttpRidersApi
+  RidersApi <|.. HttpRidersApi
+}
+package "components library" {
+  class DisplayNameForm {
+    +value: model<string>
+    +error: input<string | null>
+    +busy: input<boolean>
+    +actionLabel: input<string>
+    +submitted: output<string>
+  }
+}
+package "ride application" {
+  class DisplayNamePromptPage
+  class DisplayNameDialog
+}
+DisplayNamePromptPage --> DisplayNameForm
+DisplayNameDialog --> DisplayNameForm
+DisplayNamePromptPage --> RidersApi : RIDERS_API
+DisplayNameDialog --> RidersApi : RIDERS_API
+DisplayNameForm ..> DisplayNamePolicy
+package "Telo.Ride.Api" {
+  class RidersController {
+    +SetDisplayName(request: SetDisplayNameRequest): Task<IActionResult>
+  }
+}
+package "Telo.Ride.Application" {
+  class SetDisplayNameCommand {
+    +string DisplayName
+  }
+  class SetDisplayNameCommandValidator
+  class SetDisplayNameCommandHandler {
+    +Handle(command: SetDisplayNameCommand): Task<Result<RiderMeDto>>
+  }
+  interface ICurrentRider {
+    +Guid Id
+  }
+  class RiderCard {
+    +string DisplayName
+    +string? CountryCode
+    +int Level
+  }
+}
+package "Telo.Ride.Domain" {
+  class DisplayName <<value object>> {
+    +string Value
+    +{static} TryCreate(raw: string, out error: string): DisplayName?
+  }
+  class Rider {
+    +Guid Id
+    +EmailAddress Email
+    +DisplayName? DisplayName
+    +string? CountryCode
+    +Rename(name: DisplayName): void
+  }
+}
+RidersController ..> SetDisplayNameCommand : sends
+SetDisplayNameCommandValidator ..> SetDisplayNameCommand : validates
+SetDisplayNameCommandHandler ..> SetDisplayNameCommand : handles
+SetDisplayNameCommandHandler --> ICurrentRider
+SetDisplayNameCommandHandler --> Rider : loads / renames
+Rider --> DisplayName
+RiderCard ..> Rider : projects (no email)
+@enduml

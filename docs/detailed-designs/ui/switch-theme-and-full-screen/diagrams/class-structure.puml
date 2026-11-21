@@ -1,0 +1,44 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Switch theme and full screen
+hide empty members
+
+class ThemeController <<ride>> {
+  -query: MediaQueryList
+  +theme: Signal<'dark' | 'light'>
+  +start(): void
+  -apply(theme: 'dark' | 'light'): void
+}
+interface Fullscreen <<api>> {
+  +available: Signal<boolean>
+  +active: Signal<boolean>
+  +enter(): Promise<void>
+  +exit(): Promise<void>
+}
+class BrowserFullscreen <<ride/browser>> {
+  -onChange(): void
+}
+class FullscreenToggle <<components>> {
+  +active: InputSignal<boolean>
+  +toggle: OutputEmitterRef<void>
+  +label(): "Full screen" | "Exit full screen"
+}
+class "Page header" as Header <<ride>> {
+  -fullscreen: Fullscreen
+  +onToggle(): void
+}
+BrowserFullscreen ..|> Fullscreen
+Header --> Fullscreen : injects FULLSCREEN
+Header *-- FullscreenToggle
+@enduml

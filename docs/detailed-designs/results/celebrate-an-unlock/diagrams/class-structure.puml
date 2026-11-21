@@ -1,0 +1,53 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Celebrate an unlock
+class UnlockCardView {
+  +mapId: string
+  +title: string
+  +place: string
+  +photoUrl: string
+  +actionLabel: string
+}
+class UnlockCard <<components>> {
+  +view: input<UnlockCardView>
+  +ride: output<string>
+}
+class ResultsStore <<ride>> {
+  +unlock: Signal<UnlockCardView | null>
+}
+class ResultsPage <<ride>> {
+  +rideUnlocked(mapId: string): void
+}
+class RideRecordedDto <<api>> {
+  +openedMapId?: string
+}
+class MapDto <<api>> {
+  +id: string
+  +name: string
+  +worldDescription: string
+  +photo: string
+}
+ResultsPage --> ResultsStore
+ResultsPage ..> UnlockCard : renders when unlock != null
+ResultsStore ..> RideRecordedDto
+ResultsStore ..> MapDto
+ResultsStore ..> UnlockCardView : computes
+UnlockCard --> UnlockCardView
+note right of UnlockCard
+unlock-card.scss: card fades in and scales 0.96 to 1,
+250 ms after 200 ms; photo from grey at half brightness
+to full colour, 250 ms after 350 ms. Under
+prefers-reduced-motion: reduce, opacity only.
+end note
+@enduml

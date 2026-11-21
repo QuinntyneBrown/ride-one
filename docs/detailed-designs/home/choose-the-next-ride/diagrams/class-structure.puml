@@ -1,0 +1,104 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Choose the next ride
+class HomePage <<ride>> {
+  -store: HomeStore
+  -router: Router
+  +view: Signal<HomeView | undefined>
+  +rideUnlocked(mapId: string): void
+}
+class HomeStore <<ride, route-scoped>> {
+  -progress: ProgressStore
+  -catalogue: CatalogueApi
+  -sessions: ClassSessionsApi
+  +view: Signal<HomeView | undefined>
+  +markUnlockSeen(mapId: string): Promise<void>
+}
+class HomeView {
+  +greeting: string
+  +banner: UnlockBannerView | null
+  +nextRide: NextRideView
+  +raceDoor: RaceDoorView
+  +classesDoor: ClassesDoorView | null
+}
+class NextRideView {
+  +mapId: string
+  +tag: string
+  +goal: string
+  +opensMapName: string | null
+  +opensMapPlace: string | null
+  +bestTime: string | null
+}
+class RaceDoorView {
+  +summary: string
+  +tiles: MapTileView[4]
+}
+class MapTileView {
+  +mapId: string
+  +name: string
+  +stars: 0..3
+  +locked: boolean
+}
+class ClassesDoorView {
+  +classId: string
+  +title: string
+  +length: string
+  +startsIn: string
+  +seats: string
+}
+class "homeGreeting()" as greet <<ride helper>> {
+  +homeGreeting(now: Date, name: string, isNewRider: boolean): string
+}
+class ProgressDto <<api>> {
+  +displayName: string
+  +rideCount: number
+  +openMapIds: string[]
+  +maps: MapProgressDto[]
+  +nextRide: NextRideDto
+  +unseenUnlock: UnlockedMapDto | null
+}
+class NextRideDto <<api>> {
+  +mapId: string
+  +goal: UnlockGoalDto | null
+  +opensMapId: string | null
+}
+class NextRideCard <<components>> {
+  +view: input<NextRideView>
+  +race: output<string>
+}
+class Banner <<components>> {
+  +variant: input<'gold'>
+}
+class MapTile <<components>> {
+  +view: input<MapTileView>
+}
+class ClassTeaser <<components>> {
+  +view: input<ClassesDoorView>
+  +joinGroup: output<string>
+  +rideAlone: output<string>
+}
+HomePage --> HomeStore
+HomePage ..> NextRideCard
+HomePage ..> Banner
+HomePage ..> MapTile
+HomePage ..> ClassTeaser
+HomeStore ..> greet
+HomeStore ..> ProgressDto : reads
+HomeStore ..> HomeView : computes
+HomeView *-- NextRideView
+HomeView *-- RaceDoorView
+HomeView *-- ClassesDoorView
+RaceDoorView "1" *-- "4" MapTileView
+ProgressDto *-- NextRideDto
+@enduml

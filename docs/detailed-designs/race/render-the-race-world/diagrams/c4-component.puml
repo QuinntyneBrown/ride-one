@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Render the race world
+Person(rider, "Rider", "Rides a smart bike at home")
+System_Ext(gmaps, "Google Maps Platform", "Map Tiles API")
+Container_Boundary(app, "Ride app") {
+  Component(page, "RacePage", "Angular page · ride", "Hosts scene and scenery panel")
+  Component(wstore, "RaceWorldStore", "Route-scoped store · ride", "Loads world chunk, drives and disposes renderer")
+  Component(scene, "RaceScene / RaceScenery", "Presentation components · components", "Canvas or panorama; key panel")
+  Component(settings, "SettingsStore", "Service · domain/storage", "Maps key in IndexedDB")
+  Component(renderer, "WorldRenderer", "Boundary · world (lazy)", "start, resize, draw, setVisible, useScenery, dispose")
+  Component(probe, "RendererBackendProbe", "Service · world", "webgpu, webgl2 or none")
+  Component(quality, "RenderQuality", "Pure table · world", "Tier and technique forms")
+  Component(rscene, "RaceWorldScene / RiderFigures", "Three.js scene · world", "Route world, riders, ghost")
+  Component(tiles, "PhotorealTilesLayer", "Three.js layer · world", "Google 3D Tiles")
+}
+Rel(rider, page, "Watches")
+Rel(page, wstore, "Provides canvas, snapshots")
+Rel(page, scene, "Renders")
+Rel(wstore, renderer, "Dynamic import, then drives")
+Rel(wstore, settings, "Reads and writes key")
+Rel(renderer, probe, "Chooses backend")
+Rel(renderer, quality, "Reads tier")
+Rel(renderer, rscene, "Draws")
+Rel(renderer, tiles, "Streams scenery")
+Rel(tiles, gmaps, "Requests tiles", "HTTPS")
+@enduml

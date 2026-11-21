@@ -1,0 +1,82 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+set separator none
+' --------------------------
+title Class structure — Run a group class session
+
+package "Telo.Ride.Domain" {
+  abstract class LiveSession {
+    +Guid Id
+    +DateTimeOffset StartsAt
+    +SessionState State
+    +IReadOnlyList<Seat> Seats
+    +FillWithBots(roster: BotRoster): void
+  }
+  class GroupClassSession {
+    +string ClassId
+    +static IdFor(classId: string, slot: DateTimeOffset): Guid
+    +TrySeat(rider: RiderOccupant, now: DateTimeOffset): JoinOutcome
+    +RidersSeated: int
+  }
+  class ClassSessionSchedule {
+    +Interval: TimeSpan = 15 min
+    +SlotsFrom(classId: string, now: DateTimeOffset): IEnumerable<DateTimeOffset>
+    +Next(slot: DateTimeOffset): DateTimeOffset
+  }
+  class JoinOutcome {
+    +Seat? Seat
+    +JoinRefusal? Refusal
+  }
+  enum JoinRefusal {
+    session_full
+    session_started
+    class_locked
+  }
+  class ClassDefinition {
+    +string Id
+    +int OpensAtLevel
+    +TimeSpan Length
+  }
+}
+package "Telo.Ride.Application" {
+  class JoinClassSessionCommand {
+    +Guid RiderId
+    +string ClassId
+    +Guid SessionId
+    +string ConnectionId
+  }
+  class JoinClassSessionCommandHandler {
+    +Handle(cmd: JoinClassSessionCommand): Task<JoinResultDto>
+  }
+  class JoinResultDto {
+    +SeatAssignmentDto? Seat
+    +string? Code
+    +Guid? NextSessionId
+    +long? NextStartsAt
+  }
+  interface ISessionRegistry
+  interface ISessionNotifier
+  interface IAppDbContext
+}
+
+LiveSession <|-- GroupClassSession
+GroupClassSession ..> JoinOutcome : returns
+JoinOutcome --> JoinRefusal
+JoinClassSessionCommandHandler ..> JoinClassSessionCommand : handles
+JoinClassSessionCommandHandler ..> ClassSessionSchedule
+JoinClassSessionCommandHandler ..> ISessionRegistry
+JoinClassSessionCommandHandler ..> ISessionNotifier
+JoinClassSessionCommandHandler ..> IAppDbContext : class and rider level
+JoinClassSessionCommandHandler ..> JoinResultDto : returns
+GroupClassSession --> ClassDefinition : for
+@enduml

@@ -1,0 +1,92 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Earn stars and unlock maps
+enum Star {
+  Finish
+  TopThreeMediumPack
+  BeatBest
+}
+enum PackStrength {
+  Easy
+  Medium
+  Hard
+}
+abstract class UnlockGoal <<value object>> {
+  +Describe(maps): string
+}
+class TopThreeVsBots <<value object>> {
+  +OnMapId: string
+}
+class StarsOn <<value object>> {
+  +OnMapId: string
+  +Stars: int
+}
+class ReachLevel <<value object>> {
+  +Level: int
+}
+class MapDefinition <<entity>> {
+  +Id: string
+  +Name: string
+  +UnlockOrder: int
+  +OpenAtStart: bool
+  +Goal: UnlockGoal?
+}
+class MapProgress <<entity>> {
+  +RiderId: Guid
+  +MapId: string
+  +Stars: Star[0..3]
+  +BestTime: TimeSpan?
+  +OpenedAt: DateTimeOffset?
+  +UnlockSeenAt: DateTimeOffset?
+  +Award(star: Star): bool
+  +RecordFinish(time: TimeSpan): FinishRecord
+  +Open(at: DateTimeOffset): void
+}
+class FinishRecord <<value object>> {
+  +PreviousBest: TimeSpan?
+  +IsNewBest: bool
+}
+class RaceFinish <<value object>> {
+  +MapId: string
+  +Mode: RaceMode
+  +Pack: PackStrength?
+  +Place: int?
+  +Time: TimeSpan
+}
+class StarRules <<domain service>> {
+  +Evaluate(finish: RaceFinish, progress: MapProgress): Star[]
+}
+class UnlockRules <<domain service>> {
+  +Evaluate(maps, progress, level, finish): MapDefinition[]
+  +NextUnlock(maps, progress, level): NextUnlock?
+  +MapToOffer(maps, progress, level): string
+}
+class NextUnlock <<value object>> {
+  +MapId: string
+  +Goal: UnlockGoal
+}
+UnlockGoal <|-- TopThreeVsBots
+UnlockGoal <|-- StarsOn
+UnlockGoal <|-- ReachLevel
+MapDefinition --> UnlockGoal
+MapProgress --> Star
+MapProgress ..> FinishRecord : returns
+RaceFinish --> PackStrength
+StarRules ..> RaceFinish
+StarRules ..> MapProgress
+UnlockRules ..> MapDefinition
+UnlockRules ..> MapProgress
+UnlockRules ..> NextUnlock : creates
+NextUnlock --> UnlockGoal
+@enduml

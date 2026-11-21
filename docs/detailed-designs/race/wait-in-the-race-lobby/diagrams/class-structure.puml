@@ -1,0 +1,99 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Wait in the race lobby
+enum SeatKind {
+  you
+  rider
+  bot
+  open
+}
+enum LobbyStatus {
+  WaitingForRiders
+  OnTheStartLine
+}
+class LobbySeat {
+  +index: number
+  +kind: SeatKind
+  +name?: string
+  +jersey?: string
+  +country?: string
+  +level?: number
+  +ready: boolean
+}
+class LobbyStore {
+  +seats: Signal<LobbySeat[]>
+  +takenCount: Signal<number>
+  +status: Signal<LobbyStatus>
+  +hint: Signal<string>
+  +secondsToStart: Signal<number | undefined>
+  +ready: Signal<boolean>
+  +notice: Signal<string | undefined>
+  +countdownStep: Signal<'3' | '2' | '1' | 'Go' | undefined>
+  +toggleReady(): void
+  +leave(): Promise<void>
+}
+class LocalLobby {
+  +{static} BOT_NAMES: string[]
+  +seat(you: RiderSummary): LobbySeat[]
+  +readyAll(seats: LobbySeat[]): LobbySeat[]
+  +startSeconds(): number
+}
+class LobbyClock {
+  +{static} BOT_FILL_AT: 10
+  +{static} COUNTDOWN_AT: 3
+  +secondsToStart(startAtServerMs: number, offsetMs: number, nowMs: number): number
+}
+class RaceSessionStore {
+  +seats: Signal<SeatDto[]>
+  +startAtServerMs: Signal<number | undefined>
+  +offsetMs: Signal<number>
+  +lastLeft: Signal<string | undefined>
+  +setReady(ready: boolean): Promise<void>
+  +leave(): Promise<void>
+}
+class SeatDto {
+  +seat: number
+  +riderId?: string
+  +displayName?: string
+  +jersey?: string
+  +country?: string
+  +level?: number
+  +isBot: boolean
+  +ready: boolean
+}
+interface RideHubClient {
+  +setReady(ready: boolean): Promise<void>
+  +leaveSession(): Promise<void>
+  +on(event: HubEvent, handler): Unsubscribe
+  +clockOffsetMs(): number
+}
+class RaceLobbyPage
+class StartGrid {
+  +seats: InputSignal<LobbySeat[]>
+}
+class RaceCountdown {
+  +step: InputSignal<string>
+}
+RaceLobbyPage ..> LobbyStore : reads
+RaceLobbyPage ..> StartGrid : renders
+RaceLobbyPage ..> RaceCountdown : renders at 0:03
+LobbyStore "1" *-- "10" LobbySeat
+LobbyStore --> LobbyStatus
+LobbySeat --> SeatKind
+LobbyStore ..> LocalLobby : bots lobby
+LobbyStore ..> LobbyClock : uses
+LobbyStore ..> RaceSessionStore : riders-online lobby
+RaceSessionStore "1" o-- "*" SeatDto
+RaceSessionStore ..> RideHubClient : uses
+@enduml

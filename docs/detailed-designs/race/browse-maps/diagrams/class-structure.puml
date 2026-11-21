@@ -1,0 +1,107 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Browse maps
+enum MapRating {
+  Easy
+  Moderate
+  Hard
+  Brutal
+}
+enum MapRowState {
+  Open
+  Next
+  Locked
+}
+class MapDto {
+  +id: string
+  +order: number
+  +name: string
+  +routeName: string
+  +place: string
+  +distanceKm: number
+  +climbingM: number
+  +rating: MapRating
+  +thumbnailUrl: string
+  +photoUrl: string
+  +panoramaUrl: string
+  +worldId: string
+  +worldDescription: string
+  +elevationProfile: ElevationPoint[]
+  +plan: SegmentDto[]
+  +starRules: string[]
+  +unlockGoal: string
+  +realPlace?: RealPlaceDto
+}
+class ProgressDto {
+  +openMapIds: string[]
+  +nextUnlock: NextUnlockDto
+  +maps: MapProgressDto[]
+}
+class MapProgressDto {
+  +mapId: string
+  +stars: number
+  +bestTimeSeconds?: number
+}
+class MapPathRow {
+  +map: MapDto
+  +state: MapRowState
+  +stars: number
+  +bestTimeSeconds?: number
+  +goal?: string
+}
+class MapPathStore {
+  +rows: Signal<MapPathRow[]>
+  +loading: Signal<boolean>
+  +load(): Promise<void>
+}
+interface CatalogueApi {
+  +getMaps(): Promise<MapDto[]>
+}
+interface ProgressApi {
+  +getProgress(): Promise<ProgressDto>
+}
+class CatalogueCache {
+  +readMaps(): Promise<MapDto[] | undefined>
+  +writeMaps(maps: MapDto[]): Promise<void>
+}
+class MapSelectPage
+class MapRow {
+  +row: InputSignal<MapPathRow>
+}
+class MapDefinition {
+  +string Id
+  +int Order
+  +string Name
+  +decimal DistanceKm
+  +int ClimbingM
+  +MapRating Rating
+  +string WorldId
+  +IReadOnlyList<Segment> Plan
+  +IReadOnlyList<ElevationPoint> ElevationProfile
+}
+class ListMapsQueryHandler {
+  +Handle(query: ListMapsQuery): Task<IReadOnlyList<MapDto>>
+}
+MapSelectPage ..> MapPathStore : reads
+MapSelectPage ..> MapRow : renders
+MapPathStore ..> CatalogueApi : uses
+MapPathStore ..> ProgressApi : uses
+MapPathStore ..> CatalogueCache : falls back to
+MapPathStore "1" *-- "*" MapPathRow : builds
+MapPathRow --> MapDto
+MapPathRow --> MapRowState
+MapDto --> MapRating
+ProgressDto "1" *-- "*" MapProgressDto
+ListMapsQueryHandler ..> MapDefinition : reads
+@enduml

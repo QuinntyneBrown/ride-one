@@ -1,0 +1,84 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Keep the bike connected
+enum BikeState {
+  Idle
+  Searching
+  Pairing
+  Connected
+  Disconnected
+}
+enum BikeStatusTone {
+  Ok
+  Alert
+}
+class BikeStatusView {
+  +label: string
+  +hiddenText: string
+  +tone: BikeStatusTone
+  +diagnosticsLabel: string
+}
+class "bikeStatus()" as BikeStatusFn <<domain/bluetooth>> {
+  +bikeStatus(state: BikeState, support: BluetoothSupportState, bike: BikeInfo | null): BikeStatusView
+}
+class KeepaliveScheduler <<domain/bluetooth>> {
+  -lastSentAt: number
+  +start(): void
+  +stop(): void
+  -onTick(now: number): void
+}
+class DeviceReconnector <<domain/bluetooth>> {
+  +intervalMs: number = 3000
+  -pending: AbortController | null
+  +start(attempt: () => Promise<boolean>): void
+  +retryNow(): void
+  +stop(): void
+}
+class BluetoothAvailabilityMonitor <<domain/bluetooth>> {
+  +available: Signal<boolean | null>
+  +check(): Promise<boolean>
+}
+interface Ticker <<api>> {
+  +ticks: Observable<number>
+}
+class BackgroundTicker <<domain/engine>> {
+  -worker: Worker
+  +ticks: Observable<number>
+}
+class WebBluetoothBikeConnection <<domain/bluetooth>> {
+  +state: Signal<BikeState>
+  +reconnects: Signal<number>
+  +connect(): Promise<void>
+  +reconnectNow(): void
+  -onDisconnected(): void
+}
+class ResistanceController <<domain/engine>> {
+  +target: Signal<number | null>
+  +resend(): Promise<void>
+}
+interface AppLogger <<api>> {
+  +error(area: string, error: unknown): void
+}
+KeepaliveScheduler ..> Ticker : subscribes
+BackgroundTicker ..|> Ticker
+KeepaliveScheduler --> WebBluetoothBikeConnection : writes through
+WebBluetoothBikeConnection *-- DeviceReconnector
+WebBluetoothBikeConnection *-- KeepaliveScheduler
+WebBluetoothBikeConnection ..> ResistanceController : resend on reconnect
+WebBluetoothBikeConnection ..> AppLogger
+BikeStatusFn ..> BikeState
+BikeStatusFn ..> BluetoothAvailabilityMonitor
+BikeStatusFn ..> BikeStatusView : returns
+BikeStatusView --> BikeStatusTone
+@enduml

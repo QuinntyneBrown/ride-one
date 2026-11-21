@@ -1,0 +1,57 @@
+@startuml
+title UML sequence behaviour — Lose and regain the service
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "RacePage" as page
+  participant "LiveSessionStore" as store
+end box
+box "Frontend — Ride app (domain and api libraries)" #E0F2FE
+  participant "WorkoutEngine" as engine
+  participant "ProgressReporter" as reporter
+  participant "SignalRRideHubClient" as client
+end box
+box "Device — Smart bike" #F2F4F7
+  participant "Smart bike" as bike
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "RideHub" as hub
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "FindRaceCommandHandler" as handler
+end box
+client -> client : Connection lost
+client --> store : state = reconnecting
+store --> page : serviceLost = true
+page --> actor : Status notice: standings will catch up (copy <TO SUPPLY>) (L2-126 AC1)
+loop while reconnecting
+  bike -> engine : Telemetry once a second
+  engine -> bike : Target resistance from the plan
+  reporter -> reporter : Not connected; send nothing
+end
+client -> hub : Reconnect (retry policy)
+hub --> client : Connected
+client --> store : onreconnected
+store -> client : findRace(mapId) to rejoin
+client -> hub : FindRace(mapId)
+hub -> handler : Send FindRaceCommand
+handler --> hub : Same seat; current standings to caller
+hub --> client : SeatAssignmentDto, StandingsUpdated
+client --> store : Standings replaced within 1 s (L2-126 AC2)
+store --> page : serviceLost = false
+page --> actor : Notice removed; board up to date
+reporter -> client : reportProgress(current totals)
+@enduml

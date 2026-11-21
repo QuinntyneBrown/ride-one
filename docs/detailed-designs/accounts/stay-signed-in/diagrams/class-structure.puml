@@ -1,0 +1,82 @@
+@startuml
+set separator none
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Stay signed in
+package "api library" {
+  interface RidersApi {
+    +getMe(): Promise<RiderMe>
+  }
+  class RiderMe {
+    +id: string
+    +displayName: string | null
+  }
+  class sessionInterceptor <<HttpInterceptorFn>>
+}
+package "ride application" {
+  class CurrentRiderStore {
+    +rider: Signal<RiderMe | null>
+    +status: Signal<"unknown" | "signedIn" | "signedOut">
+    +load(): Promise<void>
+    +signedIn(): Promise<void>
+    +signedOut(): void
+  }
+  class authGuard <<CanActivateFn>>
+}
+package "domain library (storage)" {
+  class RideOutbox {
+    +keep(ride: FinishedRide): Promise<void>
+    +flush(): Promise<void>
+    +pending(): Signal<number>
+  }
+}
+CurrentRiderStore --> RidersApi : RIDERS_API
+CurrentRiderStore --> RideOutbox : RIDE_OUTBOX
+sessionInterceptor ..> CurrentRiderStore : reports 401
+authGuard ..> CurrentRiderStore : reads status
+package "Telo.Ride.Infrastructure" {
+  class RiderSessionTicketStore {
+    +StoreAsync(ticket): Task<string>
+    +RetrieveAsync(key: string): Task<AuthenticationTicket?>
+    +RenewAsync(key: string, ticket): Task
+    +RemoveAsync(key: string): Task
+  }
+  class RiderSessionValidator {
+    +ValidatePrincipal(context: CookieValidatePrincipalContext): Task
+  }
+  class SessionCookieOptions <<configuration>> {
+    +Name = "__Host-telo-session"
+    +HttpOnly = true
+    +SecurePolicy = Always
+    +SameSite = Lax
+    +ExpireTimeSpan = 365 days
+  }
+}
+package "Telo.Ride.Domain" {
+  class RiderSession {
+    +Guid Id
+    +Guid RiderId
+    +byte[] KeyHash
+    +DateTimeOffset CreatedAt
+    +DateTimeOffset LastUsedAt
+    +DateTimeOffset ExpiresAt
+    +DateTimeOffset? EndedAt
+    +IsActive(now: DateTimeOffset): bool
+    +Touch(now: DateTimeOffset): void
+    +End(now: DateTimeOffset): void
+  }
+}
+RiderSessionTicketStore ..> RiderSession : persists
+RiderSessionValidator ..> RiderSession : touches
+RiderSessionValidator ..> SessionCookieOptions : renews cookie per
+@enduml

@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — List classes by tier
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "ClassLibraryPage" as page
+end box
+box "Frontend — Ride app (api library)" #E0F2FE
+  participant "CatalogueApi" as client
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "ClassesController" as ctrl
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "GetClassesQueryHandler" as handler
+  participant "LevelTable" as levels
+  participant "ClassTierRules" as tiers
+end box
+box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+  database "Telo Ride database" as db
+end box
+actor -> page : Open the Class Library
+page -> client : getClasses()
+client -> ctrl : GET /api/classes
+ctrl -> handler : Send GetClassesQuery
+handler -> db : Valid class definitions, rider total XP
+handler -> levels : LevelFor(totalXp)
+levels --> handler : New rider: 1
+loop Each class
+  handler -> tiers : IsOpen(class, 1)
+  tiers --> handler : level >= OpensAt (L2-043 AC3)
+end
+handler --> ctrl : 3 open: 20 Minute Power Intervals, 20 Min Threshold Builder, 30 Minute HIIT Cardio (AC2)
+ctrl --> client : 200 ClassDto[] (cached for offline reading)
+client --> page : Classes with isOpen and opensAtLevel
+page --> actor : Locked classes say the level they need (L2-082)
+@enduml

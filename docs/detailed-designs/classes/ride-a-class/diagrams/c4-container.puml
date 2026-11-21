@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Ride a class
+
+Person(rider, "Rider", "Rides a smart bike at home")
+System_Ext(bike, "Smart bike", "Bluetooth LE")
+System_Ext(youtube, "YouTube", "Class videos")
+System_Boundary(telo, "Telo Ride") {
+  Container(app, "Ride app", "Angular, Chrome or Edge", "Class ride, workout engine, video sync")
+  Container(api, "Telo Ride API", "ASP.NET Core, SignalR", "Ride hub for group sessions")
+}
+Rel(rider, app, "Uses")
+Rel(app, bike, "Telemetry and target resistance", "Web Bluetooth")
+Rel(app, youtube, "Embeds player", "HTTPS")
+Rel(app, api, "SessionStarted (group only)", "SignalR /hubs/ride")
+@enduml

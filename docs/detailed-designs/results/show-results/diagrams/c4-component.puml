@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Show results
+
+Container_Boundary(app, "Ride app") {
+  Component(page, "ResultsPage", "Angular page · ride", "Block results: result, earned panels, actions")
+  Component(store, "ResultsStore", "Route-scoped signal store · ride", "Finished ride plus the backend's answer as a ResultsView")
+  Component(line, "resultLine(), ordinal()", "Pure helpers · ride", "Podium and gap lines, 2nd, 3rd")
+  Component(outbox, "RideOutbox", "Service · domain/storage (RIDE_OUTBOX)", "Finished ride and its sync state")
+  Component(hdr, "ResultsHeader", "Presentation component · components", "Map or class and context")
+  Component(standings, "Standings", "Presentation component · components", "Ordered final standings")
+  Component(prog, "RiderProgressStore", "Signal store · ride (PROGRESS_STORE)", "Refreshed after recording")
+}
+Container(api, "Telo Ride API", "ASP.NET Core", "POST /api/rides")
+
+Rel(page, store, "Reads ResultsView")
+Rel(store, outbox, "get(rideId), status(rideId)")
+Rel(store, line, "Uses")
+Rel(page, hdr, "Renders")
+Rel(page, standings, "Renders")
+Rel(outbox, api, "Submits", "JSON/HTTPS")
+Rel(page, prog, "Refreshes on Done")
+@enduml

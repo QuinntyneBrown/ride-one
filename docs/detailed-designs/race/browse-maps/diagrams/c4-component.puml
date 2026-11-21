@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Browse maps
+Person(rider, "Rider", "Rides a smart bike at home")
+Container_Boundary(app, "Ride app") {
+  Component(page, "MapSelectPage", "Angular page · ride", "Route /race")
+  Component(store, "MapPathStore", "Route-scoped signal store · ride", "Joins catalogue and progress into rows")
+  Component(path, "MapPath / MapRow / MapsAside", "Presentation components · components", "Path, rows and star rules")
+  Component(catapi, "CatalogueApi", "HTTP client · api", "GET /api/maps")
+  Component(progapi, "ProgressApi", "HTTP client · api", "GET /api/progress")
+  Component(cache, "CatalogueCache", "Service · domain/storage", "Last catalogue in IndexedDB")
+}
+Container_Boundary(api, "Telo Ride API") {
+  Component(ctrl, "MapsController", "ASP.NET Core controller · Telo.Ride.Api", "GET /api/maps")
+  Component(handler, "ListMapsQueryHandler", "MediatR handler · Telo.Ride.Application", "Lists maps in unlock order")
+  Component(entity, "MapDefinition", "Domain entity · Telo.Ride.Domain", "Catalogue entry and its invariants")
+  ComponentDb(db, "Telo Ride database", "EF Core", "MapDefinitions")
+}
+Rel(rider, page, "Opens")
+Rel(page, store, "Reads rows")
+Rel(page, path, "Renders with rows")
+Rel(store, catapi, "Loads maps")
+Rel(store, progapi, "Loads progress")
+Rel(store, cache, "Writes and falls back to")
+Rel(catapi, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends ListMapsQuery")
+Rel(handler, entity, "Maps to MapDto")
+Rel(handler, db, "Reads", "IAppDbContext")
+@enduml

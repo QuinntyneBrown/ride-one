@@ -1,0 +1,88 @@
+@startuml
+set separator none
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Sign out and delete an account
+package "ride application" {
+  class DeleteAccountDialog {
+    +confirmation: Signal<string>
+    +canDelete: Signal<boolean>
+    +deleting: Signal<boolean>
+    +delete(): Promise<void>
+  }
+  class CurrentRiderStore {
+    +signOut(): Promise<void>
+    +accountDeleted(): Promise<void>
+  }
+}
+package "api library" {
+  interface AuthApi {
+    +signOut(): Promise<void>
+  }
+  interface RidersApi {
+    +deleteMe(): Promise<void>
+  }
+}
+package "domain library (storage)" {
+  class RideOutbox {
+    +clear(): Promise<void>
+  }
+}
+DeleteAccountDialog --> RidersApi : RIDERS_API
+DeleteAccountDialog --> CurrentRiderStore
+CurrentRiderStore --> AuthApi : AUTH_API
+CurrentRiderStore --> RideOutbox
+package "Telo.Ride.Application" {
+  class SignOutCommand
+  class SignOutCommandHandler {
+    +Handle(command: SignOutCommand): Task
+  }
+  class DeleteAccountCommand
+  class DeleteAccountCommandHandler {
+    +Handle(command: DeleteAccountCommand): Task
+  }
+  class ErasePendingAccountsCommand {
+    +DateTimeOffset Now
+  }
+  class ErasePendingAccountsCommandHandler {
+    +Handle(command: ErasePendingAccountsCommand): Task<int>
+  }
+}
+package "Telo.Ride.Domain" {
+  class Rider {
+    +Guid Id
+    +EmailAddress? Email
+    +DisplayName? DisplayName
+    +DateTimeOffset? DeletionRequestedAt
+    +RequestDeletion(now: DateTimeOffset): void
+    +IsDueForErasure(now: DateTimeOffset): bool
+  }
+  class RiderSession {
+    +Guid RiderId
+    +DateTimeOffset? EndedAt
+    +End(now: DateTimeOffset): void
+  }
+}
+package "Telo.Ride.Infrastructure" {
+  class AccountErasureService <<BackgroundService>>
+}
+SignOutCommandHandler ..> SignOutCommand : handles
+DeleteAccountCommandHandler ..> DeleteAccountCommand : handles
+ErasePendingAccountsCommandHandler ..> ErasePendingAccountsCommand : handles
+SignOutCommandHandler --> RiderSession : ends current
+DeleteAccountCommandHandler --> Rider : RequestDeletion
+DeleteAccountCommandHandler --> RiderSession : ends all
+ErasePendingAccountsCommandHandler --> Rider : erases due
+AccountErasureService ..> ErasePendingAccountsCommand : sends
+Rider "1" --> "*" RiderSession
+@enduml

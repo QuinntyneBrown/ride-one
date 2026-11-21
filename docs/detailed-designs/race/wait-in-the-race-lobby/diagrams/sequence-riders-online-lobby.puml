@@ -1,0 +1,61 @@
+@startuml
+title UML sequence behaviour — Riders-online lobby
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "RaceLobbyPage" as page
+  participant "LobbyStore" as store
+  participant "RaceSessionStore" as session
+end box
+box "Frontend — Ride app (api and domain libraries)" #E0F2FE
+  participant "RideHubClient" as hub
+  participant "LobbyClock" as clock
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "RideHub" as ridehub
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "RaceSession" as rs
+end box
+actor -> page : Open /race/:mapId/lobby?mode=online
+page -> store : init(mode = online)
+store -> session : subscribe seats, start, leavers
+ridehub -> hub : SeatsChanged(seats, startAt)
+hub --> session : seats, startAtServerMs
+session --> store : seats
+store -> clock : secondsToStart(startAt, offset, now)
+store --> page : "Waiting for riders", "{n} of 10 seats taken..." (L2-051 AC3, AC5)
+actor -> page : Press "I'm ready"
+page -> store : toggleReady()
+store -> session : setReady(true)
+session -> hub : SetReady(true)
+hub -> ridehub : SetReady
+ridehub -> rs : Mark seat ready
+ridehub -> hub : SeatsChanged to every rider (L2-053 AC1)
+opt a rider leaves before 0:10
+  ridehub -> hub : RiderLeft("MarcoVelo"), SeatsChanged
+  hub --> session : leaver, seats
+  store --> page : Notice "MarcoVelo left. Their seat is open again." (L2-055 AC1)
+end
+rs -> rs : At 0:10 bots fill every open seat, ready (L2-054 AC1, AC2)
+ridehub -> hub : SeatsChanged (10 / 10)
+store --> page : "On the start line"; first segment level sent (L2-051 AC4)
+ridehub -> hub : SessionStarted(startAtServerMs)
+store -> clock : At 0:03 countdown, whether or not all are ready (L2-053 AC4)
+store --> page : 3, 2, 1, Go over the inert page (L2-056)
+store -> store : Go at startAt minus offset, within 250 ms of every client (L2-056 AC4)
+store --> actor : Race opens with its clock at 0:00
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Tune world quality
+Person(rider, "Rider", "Rides a smart bike at home")
+Container_Boundary(app, "Ride app") {
+  Component(page, "SettingsPage / WorldSettings / QualityOptions", "Page · ride; presentation · components", "World section controls")
+  Component(store, "LocalRideSettingsStore", "Service · domain/storage (RIDE_SETTINGS)", "quality, stepDown, frameRate, resolution, graphics")
+  Component(policy, "qualityPolicy() / autoText()", "Pure helpers · domain/engine", "Start level, step-down, cap, scale")
+  Component(bridge, "WorldQualityBridge", "Service · ride (per world)", "Applies the policy to the running world")
+  Component(probe, "RendererBackendProbe", "Service · world", "webgpu, webgl2 or none")
+  Component(gov, "QualityGovernor / FrameBudget", "world", "Slow windows, step-down")
+  Component(pacer, "FramePacer", "world", "Frame cap")
+  Component(renderer, "WorldRenderer", "Boundary · world", "setLevel, setRenderScale")
+}
+Rel(rider, page, "Chooses")
+Rel(page, store, "set")
+Rel(page, policy, "Auto text")
+Rel(bridge, store, "Reads")
+Rel(bridge, policy, "Computes policy")
+Rel(bridge, gov, "Policy")
+Rel(bridge, pacer, "Frame cap")
+Rel(bridge, renderer, "Level, render scale")
+Rel(gov, renderer, "Next lower level")
+Rel(renderer, probe, "Backend from graphics choice")
+@enduml

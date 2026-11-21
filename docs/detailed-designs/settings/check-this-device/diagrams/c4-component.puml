@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Check this device
+Person(rider, "Rider", "Rides a smart bike at home")
+Container_Boundary(app, "Ride app") {
+  Component(view, "DeviceCheck", "Presentation · components", "Idle, running, done")
+  Component(store, "DeviceCheckStore", "Route-scoped store · ride", "start, stop; disposes on hide")
+  Component(activity, "RideActivity", "Service · ride", "riding: disables the check")
+  Component(runner, "DeviceCheckRunner / TestWorld", "world (lazy)", "Trials from the top level down")
+  Component(budget, "FrameBudget", "world", "Frame rate held")
+  Component(settings, "LocalRideSettingsStore", "Service · domain/storage (RIDE_SETTINGS)", "deviceCheck result")
+  Component(policy, "qualityPolicy()", "Pure helper · domain/engine", "Auto start level")
+}
+Rel(rider, view, "Check this device, Stop")
+Rel(view, store, "start, stop")
+Rel(store, activity, "Reads riding")
+Rel(store, runner, "Runs (dynamic import)")
+Rel(runner, budget, "Measures")
+Rel(store, settings, "Keeps the result")
+Rel(policy, settings, "Reads for Auto")
+@enduml

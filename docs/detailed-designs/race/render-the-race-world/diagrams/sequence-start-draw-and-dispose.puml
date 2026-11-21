@@ -1,0 +1,57 @@
+@startuml
+title UML sequence behaviour — Start, draw and dispose the world
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "RacePage" as page
+  participant "RaceWorldStore" as wstore
+end box
+box "Frontend — Ride app (components library)" #E0F2FE
+  participant "RaceScene" as scene
+end box
+box "Frontend — Ride app (world library, lazy chunk)" #E0F2FE
+  participant "RendererBackendProbe" as probe
+  participant "WorldRenderer" as renderer
+end box
+actor -> page : Race opens
+page -> scene : Render canvas host
+scene --> page : canvasReady(canvas)
+page -> wstore : attach(canvas)
+wstore -> renderer : import('world') (lazy chunk, ADR 0020)
+wstore -> probe : probe()
+alt WebGPU adapter granted
+  probe --> wstore : webgpu; tag "WebGPU" (L2-065 AC1)
+else WebGL 2 context available
+  probe --> wstore : webgl2; tag "WebGL 2" (L2-065 AC1)
+else neither
+  probe --> wstore : none
+  wstore --> scene : Show the map's panorama; race carries on (L2-065 AC2)
+end
+opt backend is webgpu or webgl2
+  wstore -> renderer : start(canvas, map, tier)
+  loop each animation frame while visible
+    wstore -> renderer : draw(frame from rider distance, speed, field) (L2-064 AC1, AC3)
+  end
+  wstore -> renderer : resize on ResizeObserver; portrait widens the view, no stretch (L2-064 AC5)
+  opt tab hidden
+    wstore -> renderer : setVisible(false); stop drawing, clock and telemetry carry on (L2-065 AC3)
+  end
+end
+actor -> page : Leave, End or finish
+page -> wstore : destroyed
+wstore -> renderer : dispose(): geometries, materials, textures, targets, renderer, rAF loop
+wstore -> wstore : Disconnect ResizeObserver and listeners
+@enduml

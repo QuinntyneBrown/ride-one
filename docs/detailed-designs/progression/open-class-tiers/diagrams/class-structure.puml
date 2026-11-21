@@ -1,0 +1,49 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Open class tiers
+enum ClassTier {
+  Level1 = 1
+  Level5 = 5
+  Level10 = 10
+  Level20 = 20
+}
+class ClassDefinition <<entity>> {
+  +Id: string
+  +Title: string
+  +Length: TimeSpan
+  +OpensAt: ClassTier
+}
+class ClassTierRules <<domain service>> {
+  +IsOpen(def: ClassDefinition, level: int): bool
+}
+class ClassDefinitionValidator <<application>> {
+  +Validate(def): ValidationResult
+}
+class GetClassesQueryHandler <<application>> {
+  +Handle(q: GetClassesQuery): Task<ClassDto[]>
+}
+class ClassDto <<DTO>> {
+  +Id: string
+  +Title: string
+  +Length: string
+  +OpensAtLevel: int
+  +IsOpen: bool
+}
+ClassDefinition --> ClassTier
+ClassTierRules ..> ClassDefinition
+ClassDefinitionValidator ..> ClassDefinition : tier is 1, 5, 10 or 20
+GetClassesQueryHandler ..> ClassTierRules
+GetClassesQueryHandler ..> LevelTable
+GetClassesQueryHandler ..> ClassDto : returns
+@enduml

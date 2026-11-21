@@ -1,0 +1,51 @@
+@startuml
+title UML sequence behaviour — Stream real-world scenery
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "RacePage" as page
+  participant "RaceWorldStore" as wstore
+end box
+box "Frontend — Ride app (components and domain libraries)" #E0F2FE
+  participant "RaceScenery" as panel
+  participant "SettingsStore" as settings
+end box
+box "Frontend — Ride app (world library, lazy chunk)" #E0F2FE
+  participant "WorldRenderer" as renderer
+  participant "PhotorealTilesLayer" as tiles
+end box
+participant "Google Map Tiles API" as google
+page -> panel : Render only when the map has a real place (L2-066 AC1, AC5)
+panel --> actor : "Ride the real Bruges · Steenstraat to the Markt"; "Stream it" disabled while empty (L2-066 AC2)
+actor -> panel : Paste key, press "Stream it"
+panel --> page : stream(key)
+page -> wstore : stream(key)
+wstore -> settings : setMapsKey(key); this browser only (L2-066 AC3)
+wstore -> renderer : useScenery(region, key)
+renderer -> tiles : load(region, key)
+tiles -> google : Request 3D Tiles with the key; never to Telo Ride's backend
+alt key accepted
+  google --> tiles : Tiles
+  tiles --> renderer : streaming
+  renderer --> wstore : streaming
+else key refused
+  google --> tiles : Refusal
+  tiles --> renderer : refused
+  renderer --> wstore : refused; built-in world stays (L2-066 AC4)
+  wstore --> panel : refused = true
+  panel --> actor : The panel says the key was refused
+end
+@enduml

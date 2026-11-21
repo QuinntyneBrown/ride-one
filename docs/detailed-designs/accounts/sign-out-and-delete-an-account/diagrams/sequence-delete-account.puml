@@ -1,0 +1,57 @@
+@startuml
+title UML sequence behaviour — Delete an account
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app" #E0F2FE
+  participant "ProfilePage" as page
+  participant "DeleteAccountDialog" as dialog
+  participant "HttpRidersApi" as client
+  participant "CurrentRiderStore" as current
+  participant "RideOutbox" as outbox
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "RidersController" as ctrl
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "DeleteAccountCommandHandler" as handler
+  participant "Rider" as rider
+  participant "ErasePendingAccountsCommandHandler" as erase
+end box
+box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+  participant "AccountErasureService" as job
+  database "Telo Ride database" as db
+end box
+actor -> page : Choose "Delete my account"
+page -> dialog : Open
+dialog --> actor : Removes email, display name, progress and ride history; type "delete" (L2-006 AC2)
+dialog --> actor : "Delete my account" disabled until "delete" is typed
+actor -> dialog : Type "delete", confirm
+dialog -> client : deleteMe()
+client -> ctrl : DELETE /api/riders/me (anti-forgery token)
+ctrl -> handler : Send DeleteAccountCommand
+handler -> rider : RequestDeletion(now): detach email, hide display name
+handler -> db : End every RiderSession, save in one unit of work
+handler -> ctrl : Done
+ctrl --> client : 204, clear the session cookie
+client --> dialog : Deleted
+dialog -> current : accountDeleted()
+current -> outbox : clear() the account's waiting rides
+current --> actor : Sign-in screen with an account-deleted message (L2-006 AC3)
+== Within 30 days ==
+job -> erase : Send ErasePendingAccountsCommand
+erase -> db : Delete personal data, progress and rides of riders due for erasure
+note over rider : The same email signing in again finds no rider\nand gets a new, empty account (L2-006 AC4)
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Start a solo ride offline
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+participant "Browser" as browser
+box "Frontend — Ride app (service worker)" #E0F2FE
+  participant "Angular service worker" as sw
+end box
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "ClassStartPage" as page
+  participant "NetworkStatus" as net
+end box
+box "Frontend — Ride app (domain library)" #E0F2FE
+  participant "MultiplayerAvailability" as avail
+end box
+actor -> browser : Open Telo Ride with no network
+browser -> sw : GET / and app chunks
+sw --> browser : Cached app shell (L2-135 AC3)
+browser -> page : Open Class Start
+page -> sw : GET /api/classes
+sw --> page : Cached catalogue after network timeout
+page -> avail : forMode(group, online)
+avail -> net : online()
+net --> avail : false
+avail --> page : unavailable('offline')
+page --> actor : "Ride alone" offered; group join disabled with the reason as text (L2-135 AC4)
+actor -> page : Ride alone
+page --> actor : Class ride starts without a network
+@enduml

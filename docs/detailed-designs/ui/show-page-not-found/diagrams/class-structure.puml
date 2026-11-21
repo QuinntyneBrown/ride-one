@@ -1,0 +1,35 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Show page not found
+hide empty members
+
+class NotFoundPage <<ride>> {
+  +title: "This page doesn’t exist."
+  +lead: "The link may be old, or the address has a typo. Your rides and progress are safe."
+}
+class AppHeader <<components>> {
+  +current: InputSignal<HeaderSection | null>
+  +level: InputSignal<number>
+  +xp: InputSignal<XpProgress>
+}
+class Route <<Angular router>> {
+  +path: "**"
+  +title: string
+  +loadComponent(): Promise<Type>
+}
+class RouterLink <<Angular router>>
+Route ..> NotFoundPage : loads
+NotFoundPage *-- AppHeader
+NotFoundPage ..> RouterLink : "← Back to Home" to /
+@enduml

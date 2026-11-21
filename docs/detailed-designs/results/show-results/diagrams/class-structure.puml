@@ -1,0 +1,80 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Show results
+class ResultsPage <<ride>> {
+  -store: ResultsStore
+  +view: Signal<ResultsView>
+  +done(): void
+  +again(): void
+}
+class ResultsStore <<ride, route-scoped>> {
+  -outbox: RideOutbox
+  +view: Signal<ResultsView>
+}
+interface RideOutbox <<api contract>> {
+  +get(rideId: string): Promise<FinishedRide>
+  +status(rideId: string): Signal<RideSyncState>
+}
+class FinishedRide <<api>> {
+  +rideId: string
+  +kind: RideKind
+  +title: string
+  +context: string
+  +place?: number
+  +fieldSize?: number
+  +elapsedSeconds: number
+  +podiumGapSeconds?: number
+  +outputKj?: number
+  +onTargetShare?: number
+  +standings: StandingRow[]
+  +againTarget: AgainTarget
+}
+class StandingRow <<api>> {
+  +position: number
+  +name: string
+  +isBot: boolean
+  +isYou: boolean
+  +value: string
+}
+class ResultsView {
+  +headerTitle: string
+  +headerContext: string
+  +lead: string
+  +big: string
+  +sub: string
+  +podium: boolean
+  +standings: StandingRow[]
+  +againLabel: string
+}
+class "resultLine()" as rl <<ride helper>> {
+  +resultLine(r: FinishedRide): string
+  +ordinal(n: number): string
+}
+class ResultsHeader <<components>> {
+  +title: input<string>
+  +context: input<string>
+}
+class Standings <<components>> {
+  +rows: input<StandingRow[]>
+  +label: input<string>
+}
+ResultsPage --> ResultsStore
+ResultsPage ..> ResultsHeader
+ResultsPage ..> Standings
+ResultsStore --> RideOutbox : RIDE_OUTBOX
+ResultsStore ..> rl
+ResultsStore ..> ResultsView : computes
+RideOutbox ..> FinishedRide
+FinishedRide "1" *-- "*" StandingRow
+@enduml

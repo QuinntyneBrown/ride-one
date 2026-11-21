@@ -17,10 +17,10 @@ Do not invent a mission in its place.
 
 - **The frontend is the product.** `frontend/` is an Angular workspace and holds most of the
   implementation: Web Bluetooth connectivity, the protocol, the workout engine, sessions and
-  every screen. It runs in Chrome or Edge and works on its own for a solo rider.
+  every screen. It runs in Chrome or Edge; a ride finishes on the device without a network.
 - **The backend is thin.** `backend/` is a .NET service only for what one browser cannot do
-  alone: SignalR real time for live peer races and group classes, other multi-user features, and
-  what they need to persist. It never talks to the bike. ADR 0019 (no backend) is superseded
+  alone: email sign-in, rider progress (XP, stars, unlocks, rides), SignalR for live races and
+  group classes, and feedback. It never talks to the bike. ADR 0019 (no backend) is superseded
   by an ADR before the backend lands.
 - Before building a feature, read its requirement (`docs/specs/`, `docs/journeys.md`), its
   detailed design (`docs/detailed-designs/`) and its mocks (`docs/mocks/`, the source of truth
@@ -43,23 +43,29 @@ with best practice, say so and propose the correction; do not work around it sil
 
 ## Frontend
 
-A multi-project workspace under `frontend/projects/`: three libraries, `api` (contracts, types,
-injection tokens, and the HTTP and SignalR clients for the backend), `domain` (the bike and its
-rules: `protocol/`, `bluetooth/`, `engine/`, `storage/`) and `components` (presentation), and
-one application, `ride`. A further application needs its own ADR.
+A multi-project workspace under `frontend/projects/`. The baseline is three libraries, `api`
+(contracts, types, injection tokens, and the HTTP and SignalR clients for the backend), `domain`
+(the bike and its rules: `protocol/`, `bluetooth/`, `engine/`, `storage/`) and `components`
+(presentation), and one application, `ride`.
+
+That baseline is where the organisation starts, not a limit on it. When a concern earns its own
+library (a `browser` project for browser-only implementations, a `world` project for World Ride
+rendering, and so on), add it. A smaller, focused library that can be lazy-loaded on its own is
+better than one that keeps growing. A further application still needs its own ADR.
 
 - **Dependency direction.** `ride` → `components`, `api`, `domain`; `domain` → `api`;
   `components` → `api` for types only; `api` → nothing. No library imports the app. `ride`'s
-  `app.config.ts` is the composition root and binds every token. ESLint enforces it.
+  `app.config.ts` is the composition root and binds every token. ESLint enforces it. A new
+  library takes its place in this direction, and the same change adds it to this rule and to
+  the ESLint boundaries; it never depends on `ride`, and `api` still depends on nothing.
 - Protocol rules (framing, checksums, command bytes) live in `domain`'s `protocol/` only;
   business rules (workout stepping, target vs. actual resistance, sessions) in `engine/`.
   Nothing outside `bluetooth/` touches `navigator.bluetooth`. Every feature runs end to end
   against the simulated bike.
 - Prettier and angular-eslint own formatting and lint; CI fails on either.
 - Current Angular: standalone components, signals for state, `OnPush` everywhere, zoneless.
-- **Lazy-load everything you can.** Load only the code needed now: every route uses
-  `loadComponent`/`loadChildren`, heavy or below-the-fold UI uses `@defer`, and large libraries
-  (Three.js, World Ride) are imported dynamically. Keep the initial bundle small.
+- **Lazy loading and memory management come first.** They outrank convenience and any other
+  frontend rule they conflict with; see *Lazy loading and memory* below.
 - Selectors are `wz-*`; class, file and folder names omit the prefix.
 - **Presentation lives in `components`.** A presentation component takes inputs, emits outputs
   and injects no app service, token or router. Pages and dialogs that orchestrate stay in the
@@ -138,6 +144,31 @@ hubs).
   fixed or removed, never retried.
 - It runs only the few highest-value tests per feature: lint, build and one critical acceptance
   path each. Unit tests run locally, never in CI.
+
+## Lazy loading and memory (the top frontend priority)
+
+The rider runs Telo Ride for an hour or more on a tablet or low-power laptop beside the bike, and
+it has to stay as smooth at the end of the ride as at the start. A change that grows the initial
+bundle or leaks memory is not done, whatever else it achieves.
+
+- **Load only what is needed now.** Every route uses `loadComponent`/`loadChildren`; heavy or
+  below-the-fold UI uses `@defer`; large libraries (Three.js, World Ride, video, charts) and
+  whole feature libraries are imported dynamically, never from the initial chunk. Keep the
+  initial bundle small and the `angular.json` budgets tight; raising a budget needs a reason in
+  the change.
+- **Release everything you acquire.** Whatever a component, service or scene creates, it tears
+  down when its owner is destroyed: subscriptions (`takeUntilDestroyed`/`DestroyRef`), timers,
+  intervals and `requestAnimationFrame` loops, event and Bluetooth notification listeners,
+  observers, `AbortController`s, object URLs, media elements, SignalR handlers, and every
+  Three.js geometry, material, texture, render target and renderer (`dispose()`).
+- **Bound what grows.** Live data held during a ride (power and cadence traces, command logs,
+  leaderboards) uses a fixed-size or windowed buffer, or is persisted and dropped from memory.
+  Nothing accumulates without a limit for the length of a ride.
+- **Scope state to its use.** Provide services at the route or component that needs them, not
+  in `root`, unless the whole app shares them. A screen's state goes when the rider leaves it.
+- **Prove it.** Leaving a screen returns its memory: a feature that allocates heavily (World
+  Ride, video, live races) is checked for a stable heap across repeated enter and leave, and
+  like the visual and accessibility sweeps, these heap checks run only when a person asks.
 
 ## Low-power rendering
 

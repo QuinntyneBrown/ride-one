@@ -1,0 +1,69 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Change settings
+enum SettingKind {
+  Bike
+  RideSettings
+  CustomWorkout
+  HeartRateStrap
+  DisplayName
+  SignOut
+  DeleteAccount
+}
+class SettingRowView {
+  +kind: SettingKind
+  +title: string
+  +text: string
+  +icon: string
+}
+class SettingRow <<components>> {
+  +view: input<SettingRowView>
+  +choose: output<SettingKind>
+}
+class ProfilePage <<ride>> {
+  -bike: BikeConnection
+  -strap: HeartRateStrap
+  -auth: AuthApi
+  -dialog: Dialog
+  -router: Router
+  +settings: Signal<SettingRowView[]>
+  +onSetting(kind: SettingKind): void
+}
+class "settingRows()" as rows <<ride helper>> {
+  +settingRows(pairedBike: string | null, ble: BleState): SettingRowView[]
+}
+interface BikeConnection <<api>> {
+  +pairedBikeName: Signal<string | null>
+  +ble: Signal<BleState>
+}
+interface HeartRateStrap <<api>> {
+  +connect(): Promise<void>
+}
+interface AuthApi <<api>> {
+  +signOut(): Promise<void>
+}
+class DiagnosticsDialog <<ride>>
+class DisplayNameDialog <<ride>>
+class DeleteAccountDialog <<ride>>
+ProfilePage ..> rows
+ProfilePage ..> SettingRow
+SettingRow --> SettingRowView
+SettingRowView --> SettingKind
+ProfilePage --> BikeConnection : BIKE_CONNECTION
+ProfilePage --> HeartRateStrap : HEART_RATE_STRAP
+ProfilePage --> AuthApi : AUTH_API
+ProfilePage ..> DiagnosticsDialog : opens
+ProfilePage ..> DisplayNameDialog : opens
+ProfilePage ..> DeleteAccountDialog : opens
+@enduml

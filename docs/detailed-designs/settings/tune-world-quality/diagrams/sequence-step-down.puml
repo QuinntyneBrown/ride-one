@@ -1,0 +1,37 @@
+@startuml
+title UML sequence behaviour — Step down when frames drop
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Frontend — Ride app (world library, lazy chunk)" #E0F2FE
+  participant "FrameBudget" as budget
+  participant "QualityGovernor" as gov
+  participant "WorldRenderer" as renderer
+end box
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "WorldQualityBridge" as bridge
+end box
+loop every 2-second window
+  renderer -> gov : onWindow(median frame, period 16.7 ms or 33.3 ms at 30 fps)
+  gov -> budget : isSlow(median > 1.2 × period)
+end
+budget --> gov : second slow window in a row
+alt policy.stepDown is true (always with Auto)
+  gov -> renderer : setLevel(next lower) for the rest of the ride (L2-159 AC4)
+  note right of gov : Below Low there is nothing lower; the level holds
+else Fixed level with step-down off
+  gov -> gov : keep the level (L2-160 AC2)
+end
+note over bridge : The next ride starts at the chosen level again (L2-160 AC3)
+@enduml

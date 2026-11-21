@@ -1,0 +1,103 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Render the race world
+enum RendererBackend {
+  webgpu
+  webgl2
+  none
+}
+enum QualityTier {
+  low
+  medium
+  high
+  ultra
+}
+class WorldFrame {
+  +riderDistanceM: number
+  +speedMs: number
+  +riders: FigurePosition[]
+  +ghost?: FigurePosition
+}
+class FigurePosition {
+  +distanceM: number
+  +jersey: string
+}
+class WorldRenderer {
+  +start(canvas: HTMLCanvasElement, map: MapDto, quality: QualityTier): Promise<void>
+  +resize(width: number, height: number): void
+  +draw(frame: WorldFrame): void
+  +setVisible(visible: boolean): void
+  +useScenery(source: ScenerySource): Promise<SceneryResult>
+  +dispose(): void
+}
+class RendererBackendProbe {
+  +probe(): Promise<RendererBackend>
+}
+class RenderQuality {
+  +tierFor(backend: RendererBackend, device: DeviceProfile): QualityTier
+  +techniques(tier: QualityTier): TechniqueForms
+}
+class RaceWorldScene {
+  +load(worldId: string): Promise<void>
+  +placeCamera(distanceM: number, aspect: number): void
+  +dispose(): void
+}
+class RiderFigures {
+  +update(riders: FigurePosition[], ghost?: FigurePosition): void
+  +dispose(): void
+}
+class PhotorealTilesLayer {
+  +load(region: TileRegion, key: string): Promise<SceneryResult>
+  +dispose(): void
+}
+enum SceneryResult {
+  streaming
+  refused
+}
+class RaceWorldStore {
+  +backend: Signal<RendererBackend>
+  +sceneryState: Signal<'idle' | 'streaming' | 'refused'>
+  +attach(canvas: HTMLCanvasElement): Promise<void>
+  +stream(key: string): Promise<void>
+}
+class SettingsStore {
+  +mapsKey(): Promise<string | undefined>
+  +setMapsKey(key: string): Promise<void>
+}
+class RaceScene {
+  +backend: InputSignal<RendererBackend>
+  +description: InputSignal<string>
+  +panoramaUrl: InputSignal<string>
+  +canvasReady: OutputEmitterRef<HTMLCanvasElement>
+}
+class RaceScenery {
+  +realPlace: InputSignal<RealPlaceDto>
+  +refused: InputSignal<boolean>
+  +stream: OutputEmitterRef<string>
+}
+RaceWorldStore --> WorldRenderer : holds (lazy)
+RaceWorldStore --> RendererBackend
+RaceWorldStore ..> SettingsStore : uses
+WorldRenderer ..> RendererBackendProbe : uses
+WorldRenderer ..> RenderQuality : reads
+WorldRenderer *-- RaceWorldScene
+WorldRenderer *-- RiderFigures
+WorldRenderer *-- "0..1" PhotorealTilesLayer
+WorldRenderer ..> WorldFrame : draws
+WorldFrame "1" *-- "*" FigurePosition
+RenderQuality --> QualityTier
+PhotorealTilesLayer ..> SceneryResult
+RaceScene ..> RaceWorldStore : canvas handed by RacePage
+RaceScenery ..> RaceWorldStore : stream(key) via RacePage
+@enduml

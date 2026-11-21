@@ -1,0 +1,72 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+set separator none
+' --------------------------
+title Class structure — Receive feedback
+
+package "Telo.Ride.Api" {
+  class FeedbackController {
+    +Submit(request: SubmitFeedbackRequest): Task<IActionResult>
+  }
+}
+package "Telo.Ride.Application" {
+  class SubmitFeedbackCommand {
+    +Guid RiderId
+    +FeedbackKind Kind
+    +string Message
+    +RideContextDto Context
+    +DiagnosticsDto? Diagnostics
+  }
+  class SubmitFeedbackCommandValidator {
+    +MaxMessageLength: int = 2000
+    +MaxPacketLogBytes: int = 1048576
+  }
+  class SubmitFeedbackCommandHandler {
+    +Handle(cmd: SubmitFeedbackCommand): Task<Guid>
+  }
+  class DiagnosticsDto {
+    +string AppVersion
+    +string PacketLog
+  }
+  interface IAppDbContext {
+    +DbSet<FeedbackReport> FeedbackReports
+    +SaveChangesAsync(): Task<int>
+  }
+}
+package "Telo.Ride.Domain" {
+  class FeedbackReport {
+    +Guid Id
+    +Guid RiderId
+    +FeedbackKind Kind
+    +string Message
+    +string ContextJson
+    +string? AppVersion
+    +string? PacketLog
+    +DateTimeOffset ReceivedAt
+    +static Create(...): FeedbackReport
+  }
+  enum FeedbackKind {
+    Bug
+    Improvement
+    Kudos
+  }
+}
+
+FeedbackController ..> SubmitFeedbackCommand : sends
+SubmitFeedbackCommandValidator ..> SubmitFeedbackCommand : validates
+SubmitFeedbackCommandHandler ..> SubmitFeedbackCommand : handles
+SubmitFeedbackCommand *-- "0..1" DiagnosticsDto
+SubmitFeedbackCommandHandler ..> FeedbackReport : creates
+SubmitFeedbackCommandHandler ..> IAppDbContext
+FeedbackReport --> FeedbackKind
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Limit abuse
+Container_Boundary(api, "Telo Ride API") {
+  Component(rl, "Rate limiter", "ASP.NET Core rate limiting middleware · Telo.Ride.Api", "Named policies rides-per-rider and feedback-per-rider")
+  Component(rej, "RateLimitRejection", "OnRejected callback · Telo.Ride.Api", "429 ProblemDetails code rate_limited with Retry-After")
+  Component(code, "SendSignInCodeCommandHandler", "MediatR handler · Telo.Ride.Application", "5 codes per email and 20 per IP an hour")
+  Component(hub, "RideHub", "SignalR hub · Telo.Ride.Api", "ReportProgress")
+  Component(gate, "ProgressRateHubFilter", "IHubFilter · Telo.Ride.Api", "Drops progress above 2 a second; aborts after 10 s over")
+  Component(rides, "RidesController / FeedbackController", "ASP.NET Core controllers · Telo.Ride.Api", "POST /api/rides, POST /api/feedback")
+  ComponentDb(db, "Telo Ride database", "EF Core; engine <TO SUPPLY>", "Sign-in codes")
+}
+Container_Boundary(app, "Ride app") {
+  Component(hubc, "SignalRRideHubClient", "Hub client · api", "Throttles progress to 2 a second")
+}
+Rel(rl, rides, "Admits requests to")
+Rel(rl, rej, "Refuses through")
+Rel(code, db, "Counts codes in", "EF Core")
+Rel(code, rej, "Uses the same 429 shape as")
+Rel(hubc, gate, "ReportProgress", "WebSocket")
+Rel(gate, hub, "Passes admitted messages to")
+@enduml

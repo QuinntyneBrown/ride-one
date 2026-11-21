@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour — Open Map Select
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "MapSelectPage" as page
+  participant "MapPathStore" as store
+end box
+box "Frontend — Ride app (api and domain libraries)" #E0F2FE
+  participant "CatalogueApi" as catapi
+  participant "ProgressApi" as progapi
+  participant "CatalogueCache" as cache
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "MapsController" as ctrl
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "ListMapsQueryHandler" as handler
+end box
+box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+  database "Telo Ride database" as db
+end box
+actor -> page : Open /race
+page -> store : load()
+par catalogue
+  store -> catapi : getMaps()
+  catapi -> ctrl : GET /api/maps
+  ctrl -> handler : Send ListMapsQuery
+  handler -> db : Read MapDefinitions by order
+  db --> handler : Seven maps (L2-045 AC1)
+  handler --> ctrl : MapDto[]
+  ctrl --> catapi : 200 MapDto[]
+  catapi --> store : maps
+  store -> cache : writeMaps(maps)
+else progress
+  store -> progapi : getProgress()
+  progapi --> store : ProgressDto (computed by backend, L2-044)
+end
+alt network or backend unreachable
+  store -> cache : readMaps()
+  cache --> store : last catalogue (L2-135)
+end
+store -> store : Build MapPathRow per map: Open, Next or Locked (L2-046 AC2 to AC4)
+store --> page : rows
+page --> actor : Ordered path, next unlock ringed gold, aside with star rules
+@enduml

@@ -1,0 +1,106 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Keep progress on the backend
+class SubmitRideRequest <<api DTO>> {
+  +rideId: string
+  +kind: RideKind
+  +mapId?: string
+  +classId?: string
+  +mode?: RaceMode
+  +pack?: PackStrength
+  +place?: number
+  +fieldSize?: number
+  +outcome: RideOutcome
+  +elapsedSeconds: number
+  +distanceMeters: number
+  +outputKj: number
+  +onTargetShare: number
+  +maxPowerWatts: number
+  +maxSpeedKmh: number
+  +finishedAt: string
+  +timeZoneId: string
+  +trace?: TracePoint[]
+  +speedSamplesKmh?: number[]
+}
+class TracePoint <<api DTO>> {
+  +second: number
+  +distanceMeters: number
+  +powerWatts: number
+}
+class SubmitRideCommand <<application>> {
+  +RiderId: Guid
+  +Ride: SubmitRideRequest
+}
+class SubmitRideCommandHandler <<application>> {
+  +Handle(cmd): Task<RideRecordedDto>
+}
+class Ride <<entity>> {
+  +Id: Guid
+  +RiderId: Guid
+  +Kind: RideKind
+  +FinishedAt: DateTimeOffset
+  +Trace: TracePoint[]?
+  +Recorded: RideRecordedDto
+}
+class RideRecordedDto <<DTO>> {
+  +RideId: Guid
+  +XpLines: XpLineDto[]
+  +XpTotal: int
+  +TotalXp: int
+  +Level: int
+  +LevelUp: bool
+  +StarsHeld: int?
+  +NewStars: int
+  +Best: TimeSpan?
+  +PreviousBest: TimeSpan?
+  +IsNewBest: bool
+  +StreakDays: int
+  +OpenedMapId: string?
+}
+class ProgressDto <<DTO>> {
+  +DisplayName: string
+  +Level: int
+  +TotalXp: int
+  +NextLevelXp: int?
+  +StreakDays: int
+  +RideCount: int
+  +DistanceKm: decimal
+  +Maps: MapProgressDto[]
+  +NextRide: NextRideDto
+  +UnseenUnlock: UnlockedMapDto?
+}
+interface IAppDbContext <<application>> {
+  +Rides: DbSet<Ride>
+  +MapProgress: DbSet<MapProgress>
+  +Streaks: DbSet<Streak>
+  +Riders: DbSet<Rider>
+  +SaveChangesAsync(): Task<int>
+}
+interface RidesApi <<api>> {
+  +submitRide(r: SubmitRideRequest): Promise<RideRecordedDto>
+  +listRecent(take: number): Promise<RecentRideDto[]>
+}
+SubmitRideRequest "1" *-- "0..*" TracePoint : race rides, one per second
+SubmitRideCommand *-- SubmitRideRequest
+SubmitRideCommandHandler ..> SubmitRideCommand : handles
+SubmitRideCommandHandler --> IAppDbContext
+SubmitRideCommandHandler ..> RidePlausibilityRule : 422 ride_not_plausible
+SubmitRideCommandHandler ..> SessionResultRecorder : multiplayer result or 409 result_pending
+class RidePlausibilityRule <<domain, multiplayer>>
+class SessionResultRecorder <<application, multiplayer>>
+SubmitRideCommandHandler ..> Ride : creates once per RideId
+Ride *-- RideRecordedDto : stored answer
+RidesApi ..> SubmitRideRequest
+RidesApi ..> RideRecordedDto
+@enduml

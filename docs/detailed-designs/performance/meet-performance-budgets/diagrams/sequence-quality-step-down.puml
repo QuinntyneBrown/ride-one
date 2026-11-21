@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Step quality down to hold the frame rate
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+participant "Browser" as browser
+box "Frontend — Ride app (world library)" #E0F2FE
+  participant "WorldRenderer" as renderer
+  participant "FrameBudgetMonitor" as monitor
+  participant "QualityGovernor" as governor
+end box
+loop every animation frame
+  browser -> renderer : requestAnimationFrame(timestamp)
+  renderer -> monitor : onFrame(timestamp)
+  renderer -> renderer : Draw the frame at the current QualityStep
+end
+loop once a second
+  governor -> monitor : averageFps()
+  monitor --> governor : 46 fps
+  alt Average below 50 fps (L2-136 AC3)
+    governor -> renderer : Apply the next lower QualityStep (pixel ratio, shadows, LOD)
+    renderer --> governor : Applied
+  else Average well above 50 fps for <TO SUPPLY> s
+    governor -> renderer : Apply the next higher QualityStep
+  end
+end
+@enduml

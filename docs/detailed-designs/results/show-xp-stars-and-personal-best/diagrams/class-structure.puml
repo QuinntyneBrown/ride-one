@@ -1,0 +1,74 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Show XP, stars and personal best
+class RideSyncState <<api, union>> {
+  sending
+  recorded(answer: RideRecordedDto)
+  waitingOffline
+}
+class RideRecordedDto <<api>> {
+  +xpLines: XpLineDto[]
+  +xpTotal: number
+  +level: number
+  +levelUp: boolean
+  +starsHeld?: number
+  +newStars: number
+  +best?: number
+  +previousBest?: number
+  +isNewBest: boolean
+}
+class XpLineDto <<api>> {
+  +label: string
+  +amount: number
+}
+class XpEarnedView {
+  +state: 'waiting' | 'offline' | 'ready'
+  +total: string
+  +lines: XpLineDto[]
+  +newLevel?: number
+}
+class MapStarsView {
+  +mapName: string
+  +held: string
+  +newLine: string | null
+}
+class PersonalBestView {
+  +isNewBest: boolean
+  +time: string
+  +bestLine: string
+}
+class ResultsStore <<ride>> {
+  +xp: Signal<XpEarnedView>
+  +stars: Signal<MapStarsView | null>
+  +best: Signal<PersonalBestView | null>
+}
+class XpEarned <<components>> {
+  +view: input<XpEarnedView>
+}
+class MapStars <<components>> {
+  +view: input<MapStarsView>
+}
+class PersonalBest <<components>> {
+  +view: input<PersonalBestView>
+}
+ResultsStore ..> RideSyncState : reads
+RideSyncState --> RideRecordedDto
+RideRecordedDto "1" *-- "*" XpLineDto
+ResultsStore ..> XpEarnedView : computes
+ResultsStore ..> MapStarsView : computes
+ResultsStore ..> PersonalBestView : computes
+XpEarned --> XpEarnedView
+MapStars --> MapStarsView
+PersonalBest --> PersonalBestView
+@enduml

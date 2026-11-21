@@ -1,0 +1,63 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Meet performance budgets
+hide empty members
+
+class FrameBudgetMonitor <<world>> {
+  -frameTimes: RingBuffer<number>
+  -lastTimestamp: number
+  +onFrame(timestamp: number): void
+  +averageFps(): number
+  +msBelow30(): number
+}
+class QualityGovernor <<world>> {
+  -steps: QualityStep[]
+  -index: number
+  +evaluate(): void
+  +current(): QualityStep
+}
+class QualityStep <<world>> {
+  +pixelRatio: number
+  +shadowMapSize: number
+  +lodBias: number
+}
+class RingBuffer<T> <<domain/engine>> {
+  -capacity: number
+  +push(value: T): void
+  +values(): T[]
+}
+class StandingsTicker <<Telo.Ride.Api>> {
+  -timer: PeriodicTimer
+  -time: TimeProvider
+  #ExecuteAsync(token: CancellationToken): Task
+}
+class PublishStandingsCommand <<Telo.Ride.Application>> {
+  +SessionId: Guid
+  +TickAt: DateTimeOffset
+}
+class PublishStandingsCommandHandler <<Telo.Ride.Application>> {
+  +Handle(command: PublishStandingsCommand): Task
+}
+class TeloRideMetrics <<Telo.Ride.Infrastructure>> {
+  -meter: Meter "Telo.Ride"
+  +StandingsDelivery: Histogram<double>
+  +HubConnections: UpDownCounter<long>
+}
+FrameBudgetMonitor *-- RingBuffer
+QualityGovernor --> FrameBudgetMonitor : reads
+QualityGovernor "1" *-- "*" QualityStep
+StandingsTicker ..> PublishStandingsCommand : sends
+PublishStandingsCommandHandler ..> PublishStandingsCommand : handles
+StandingsTicker --> TeloRideMetrics : records
+@enduml

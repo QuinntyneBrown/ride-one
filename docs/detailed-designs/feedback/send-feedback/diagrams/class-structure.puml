@@ -1,0 +1,127 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+set separator none
+' --------------------------
+title Class structure — Send feedback
+
+package "ride application" {
+  class CustomRidePage {
+    -dialog: Dialog
+    -engine: WorkoutEngine
+    +openFeedback(anchor: ElementRef): void
+  }
+  class FeedbackDialog {
+    -store: FeedbackStore
+    -ref: DialogRef
+    -data: RideContext
+  }
+  class FeedbackStore {
+    +kind: WritableSignal<FeedbackKind>
+    +message: WritableSignal<string>
+    +attachDiagnostics: WritableSignal<boolean>
+    +status: WritableSignal<FeedbackStatus>
+    +copy: Signal<FeedbackKindCopy>
+    +tooLong: Signal<boolean>
+    +canSend: Signal<boolean>
+    +send(context: RideContext): Promise<void>
+    +sendAnother(): void
+  }
+  class FeedbackKindCopy {
+    +label: string
+    +placeholder: string
+    +sendLabel: string
+    +thanksHeading: string
+    +thanksBody: string
+  }
+  enum FeedbackStatus {
+    editing
+    sending
+    sent
+    failed
+  }
+}
+package "components library" {
+  class FeedbackForm {
+    +kind: InputSignal<FeedbackKind>
+    +copy: InputSignal<FeedbackKindCopy>
+    +message: InputSignal<string>
+    +attachDiagnostics: InputSignal<boolean>
+    +context: InputSignal<RideContext>
+    +status: InputSignal<FeedbackStatus>
+    +maxLength: InputSignal<number> = 2000
+    +kindChange: OutputEmitterRef<FeedbackKind>
+    +messageChange: OutputEmitterRef<string>
+    +send: OutputEmitterRef<void>
+    +done: OutputEmitterRef<void>
+  }
+}
+package "api library" {
+  interface FeedbackApi {
+    +send(request: FeedbackRequest): Promise<void>
+  }
+  class HttpFeedbackApi
+  class FeedbackRequest {
+    +kind: FeedbackKind
+    +message: string
+    +context: RideContext
+    +diagnostics?: Diagnostics
+  }
+  class Diagnostics {
+    +appVersion: string
+    +packetLog: string
+  }
+  class RideContext {
+    +workout: string
+    +elapsed: string
+    +segment: string
+    +resistance: number
+    +planLevel: number
+    +cadence: number
+    +power: number
+    +heartRate: number | null
+    +distance: number
+    +state: string
+    +view: string
+    +machine: string
+    +bluetooth: string
+    +lastCommand: string
+  }
+  enum FeedbackKind {
+    bug
+    improvement
+    kudos
+  }
+}
+package "domain library" {
+  class RideContextBuilder {
+    +build(): RideContext
+  }
+  interface PacketLog {
+    +tail(bytes: number): Promise<string>
+  }
+}
+
+CustomRidePage ..> FeedbackDialog : opens
+CustomRidePage ..> RideContextBuilder
+FeedbackDialog *-- FeedbackStore : provides
+FeedbackDialog ..> FeedbackForm : renders
+FeedbackStore --> FeedbackStatus
+FeedbackStore ..> FeedbackKindCopy : FEEDBACK_KIND_COPY
+FeedbackStore ..> FeedbackApi : FEEDBACK_API
+FeedbackStore ..> PacketLog : PACKET_LOG
+HttpFeedbackApi ..|> FeedbackApi
+FeedbackApi ..> FeedbackRequest
+FeedbackRequest *-- RideContext
+FeedbackRequest *-- "0..1" Diagnostics
+FeedbackRequest --> FeedbackKind
+@enduml

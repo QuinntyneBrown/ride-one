@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Ride through a lost service
+
+Container_Boundary(app, "Ride app") {
+  Component(page, "RacePage / ClassRidePage", "Angular page · ride", "Shows the notice while serviceLost")
+  Component(notice, "InlineMessage", "Presentation component · components", "role=status notice")
+  Component(store, "LiveSessionStore", "Signal store · ride", "connection, serviceLost, last standings")
+  Component(hubc, "SignalRRideHubClient", "SignalR client · api", "Retries and rejoins")
+  Component(engine, "WorkoutEngine and RideClock", "Services · domain/engine", "Plan and clock run locally")
+  Component(reporter, "ProgressReporter", "Service · domain/engine", "Sends nothing while disconnected")
+  Component(outbox, "RideOutbox", "Service · domain/storage", "Keeps and submits the ride")
+}
+Container_Boundary(api, "Telo Ride API") {
+  Component(join, "FindRaceCommandHandler / JoinClassSessionCommandHandler", "MediatR handlers · Telo.Ride.Application", "Rejoin; send current standings to caller")
+  Component(recorder, "SessionResultRecorder", "Application service · Telo.Ride.Application", "Places by last progress")
+}
+Rel(page, store, "Reads serviceLost and standings")
+Rel(page, notice, "Renders")
+Rel(store, hubc, "Observes state; rejoins")
+Rel(reporter, hubc, "reportProgress when connected")
+Rel(reporter, engine, "Reads totals")
+Rel(hubc, join, "FindRace / JoinClassSession", "SignalR")
+Rel(outbox, recorder, "Ride placed by the stored result", "POST /api/rides")
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Wait for the group start
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as rider
+box "Frontend — Ride app (ride application and components library)" #E0F2FE
+  participant "ClassRidePage" as page
+  participant "ClassRideStore" as store
+  participant "LiveSessionStore" as live
+end box
+box "Frontend — Ride app (api, domain and video libraries)" #E0F2FE
+  participant "SignalRRideHubClient" as hub
+  participant "ServerClock" as sclock
+  participant "RideClock" as clock
+  participant "WorkoutEngine" as engine
+  participant "YouTubeVideoPlayer" as player
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "RideHub" as rhub
+end box
+rider -> page : Arrive after joining (?session=id)
+page -> store : init(class, Group, startsAt)
+store -> player : load, seekTo(offset), hold paused
+store --> page : Clock 0:00 and time left to the start L2-087 AC4
+rhub -> hub : SessionStarted(serverStartMs)
+hub --> live : Session started
+live --> store : startsAt = serverStartMs
+store -> clock : startAt(serverStartMs, serverClock)
+clock -> sclock : Correct for measured offset (L2-121 AC3)
+store -> engine : follow(plan, clock)
+store -> player : play() from offset + elapsed
+page --> rider : Header "30 Minute HIIT Cardio · Group · 9 riders", clock running
+@enduml

@@ -1,0 +1,57 @@
+@startuml
+title UML sequence behaviour — Save, list and clear worlds
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app (ride application and components library)" #E0F2FE
+  participant "DeviceSettings" as view
+  participant "SavedWorldsStore" as sstore
+end box
+box "Frontend — Ride app (domain library)" #E0F2FE
+  participant "LocalRideSettingsStore" as settings
+  participant "CacheStorageWorldCache" as cache
+end box
+box "Frontend — Ride app (world library, lazy chunk)" #E0F2FE
+  participant "WorldAssetLoader" as loader
+end box
+participant "Cache Storage" as cs
+group A world downloads in World loading
+  loader -> settings : keepWorlds?
+  alt On (default)
+    loader -> cache : put('docklands', bundle) (L2-165 AC3)
+    cache -> cs : put files and update the index
+  else Off
+    loader -> loader : nothing new is saved
+  end
+end
+group Settings opens
+  sstore -> cache : list(), totalBytes()
+  cache -> cs : match index
+  cache --> sstore : 3 worlds, 61 MB
+  sstore --> view : "3 worlds · 61 MB"; names (L2-165 AC1)
+end
+group Clear saved worlds
+  actor -> view : Clear saved worlds
+  view -> sstore : clear()
+  sstore -> cache : clear()
+  cache -> cs : caches.delete('telo-ride-worlds-v1')
+  sstore --> view : "None saved"; toast "Saved worlds cleared", "61 MB freed." (L2-165 AC2)
+end
+group The browser evicted a world
+  loader -> cache : get('coast')
+  cache --> loader : undefined (index or files missing)
+  loader -> loader : download again; nothing fails (L2-165 AC4)
+end
+@enduml

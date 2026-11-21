@@ -1,0 +1,62 @@
+@startuml
+title UML sequence behaviour — Open Home
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "HomePage" as page
+  participant "HomeStore" as store
+  participant "RiderProgressStore" as prog
+end box
+box "Frontend — Ride app (api library)" #E0F2FE
+  participant "CatalogueApi" as cat
+  participant "ClassSessionsApi" as sess
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "ProgressController" as ctrl
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "GetProgressQueryHandler" as handler
+  participant "UnlockRules" as rules
+end box
+box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+  database "Telo Ride database" as db
+end box
+actor -> page : Open Home (7:30 PM)
+page -> store : provided on the route
+par
+  store -> prog : refresh()
+  prog -> ctrl : GET /api/progress
+  ctrl -> handler : Send GetProgressQuery
+  handler -> db : Load map progress, streak, XP
+  db --> handler : Open: Prairie, Old Town, Cliffside
+  handler -> rules : NextUnlock (L2-041)
+  rules --> handler : Neon Docklands by "Finish top 3 vs Bots on Old Town Criterium"
+  handler -> rules : MapToOffer (L2-033 AC2 to AC5)
+  rules --> handler : Old Town Criterium
+  handler --> ctrl : ProgressDto
+  ctrl --> prog : 200 ProgressDto
+else
+  store -> cat : getMaps(), getClasses() (cached, L2-135)
+  cat --> store : 7 maps, 7 classes
+else
+  store -> sess : getSessions(featured classId)
+  sess --> store : Next session 7:39 PM, 6 of 10 riders
+end
+store -> store : homeGreeting(19:30, "Sam") = "Evening, Sam." (L2-033 AC1)
+store -> store : Race door: "3 of 7 maps open · 5 of 21 stars", first four tiles (L2-034)
+store --> page : HomeView
+page --> actor : Next ride card "Race Old Town Criterium", "Your best here: 27:10"; doors
+@enduml

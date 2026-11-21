@@ -1,0 +1,48 @@
+@startuml
+title UML sequence behaviour — Start the group session
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "LiveSessionStore" as store
+  participant "Class video player" as video
+end box
+box "Frontend — Ride app (domain library)" #E0F2FE
+  participant "ServerClock" as clock
+  participant "RideClock" as rideclock
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "RideHubNotifier" as notifier
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "TickLiveSessionsCommandHandler" as tick
+  participant "GroupClassSession" as session
+end box
+box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+  participant "SessionTicker" as ticker
+end box
+ticker -> tick : Send TickLiveSessionsCommand(now)
+tick -> session : now >= StartsAt
+tick -> session : FillWithBots(roster) up to 10
+session --> tick : 10 seats, bots ready (L2-122 AC3)
+tick -> session : Start()
+tick -> notifier : SeatsChanged, SessionStarted(sessionId, StartsAt)
+notifier --> store : SessionStarted(startsAt)
+store -> clock : toLocal(startsAt)
+clock --> store : Local deadline
+par same server time on every client (L2-121 AC3)
+  store -> rideclock : Start at deadline
+  store -> video : Seek to sync offset and play at deadline
+end
+@enduml

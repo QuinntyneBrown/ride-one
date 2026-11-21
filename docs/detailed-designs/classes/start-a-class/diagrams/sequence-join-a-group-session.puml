@@ -1,0 +1,68 @@
+@startuml
+title UML sequence behaviour — Join a group session
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as rider
+box "Frontend — Ride app (ride application and components library)" #E0F2FE
+  participant "ClassStartPage" as page
+  participant "ClassStartStore" as store
+end box
+box "Frontend — Ride app (api, domain and video libraries)" #E0F2FE
+  participant "SignalRRideHubClient" as hub
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "RideHub" as rhub
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "JoinClassSessionCommandHandler" as handler
+  participant "GroupClassSession" as session
+end box
+box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+  database "Telo Ride database" as db
+end box
+rider -> page : Choose "Ride with a group"
+page -> store : choose(Group)
+store --> page : "Riding in this session", "Join · starts in 9 min" L2-085 AC2–3
+rider -> page : Press "Join · starts in 9 min"
+page -> hub : joinClassSession(sessionId) (opens /hubs/ride with session cookie)
+hub -> rhub : JoinClassSession(sessionId)
+rhub -> handler : Send JoinClassSessionCommand
+handler -> db : Load session and seats
+db --> handler : Session 7:39 PM
+handler -> session : Seat rider
+alt seat free and not started
+  session --> handler : Seated (7 of 10)
+  handler -> db : Save seat
+  handler --> rhub : Joined
+  rhub --> hub : Joined(sessionId, startsAt)
+  hub --> page : Joined
+  page -> page : Navigate to /classes/:id/ride?session={sessionId}
+  page --> rider : Class ride waiting for the group start
+else session full
+  session --> handler : Refuse
+  handler --> rhub : session_full L2-122 AC2
+  rhub --> hub : Error code session_full
+  hub --> page : Refused
+  page -> store : refreshSessions()
+  store --> page : "This session is full. Next one starts 15 minutes later." and "Join the next session" L2-086 AC2
+else session already started
+  session --> handler : Refuse
+  handler --> rhub : session_started
+  rhub --> hub : Error code session_started
+  hub --> page : Refused
+  page -> store : refreshSessions()
+  store --> page : Offer the next session L2-086 AC3
+end
+@enduml

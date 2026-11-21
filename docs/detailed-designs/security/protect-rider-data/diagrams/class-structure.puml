@@ -1,0 +1,60 @@
+@startuml
+set separator none
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Protect rider data
+package "Telo.Ride.Application" {
+  interface ISignInCodeHasher {
+    +Hash(code: string): byte[]
+    +Matches(code: string, hash: byte[]): bool
+  }
+}
+package "Telo.Ride.Infrastructure" {
+  class HmacSignInCodeHasher {
+    -byte[] key
+    +Hash(code: string): byte[]
+    +Matches(code: string, hash: byte[]): bool
+  }
+  class CodeHashOptions <<configuration>> {
+    +Key: Auth:CodeHashKey (secret store)
+  }
+  class TelemetryScrubbingProcessor {
+    +OnEnd(activity: Activity): void
+  }
+  class TeloDataClassifications <<static>> {
+    +Personal: DataClassification
+    +Secret: DataClassification
+  }
+  class LogEvents <<partial, LoggerMessage>> {
+    +CodeSent(logger, [Personal] email: string): void
+    +SessionStarted(logger, riderId: Guid): void
+  }
+}
+package "Telo.Ride.Domain" {
+  class SignInCode {
+    +byte[] CodeHash
+  }
+  class RiderSession {
+    +byte[] KeyHash
+  }
+}
+ISignInCodeHasher <|.. HmacSignInCodeHasher
+HmacSignInCodeHasher --> CodeHashOptions
+HmacSignInCodeHasher ..> SignInCode : produces CodeHash
+LogEvents ..> TeloDataClassifications : tags parameters with
+note right of TelemetryScrubbingProcessor
+  Removes url.query, url.full, request and
+  response bodies; keeps http.route template;
+  rejects tags named email, code, token, message
+end note
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Adjust sound, motion and display
+Person(rider, "Rider", "Rides a smart bike at home")
+Container_Boundary(app, "Ride app") {
+  Component(views, "SoundSettings / DisplaySettings", "Presentation · components", "Sound and display controls")
+  Component(store, "LocalRideSettingsStore", "Service · domain/storage (RIDE_SETTINGS)", "Ride settings")
+  Component(sound, "RideSoundEngine / VideoDucking", "domain/engine (RIDE_SOUND); class ride", "Web Audio gains")
+  Component(motion, "MotionPreference", "Service · ride", "reduced: choice or media query")
+  Component(theme, "ThemeController", "Service · ride", "data-theme")
+  Component(numbers, "RideNumbersSize", "Service · ride", "data-ride-numbers")
+  Component(wake, "ScreenWakeLock", "Service · ride/browser (WAKE_LOCK)", "Held during a ride")
+  Component(full, "StartFullScreen", "Start action · ride", "FULLSCREEN.enter on the press")
+  Component(activity, "RideActivity", "Service · ride", "riding")
+}
+Rel(rider, views, "Changes")
+Rel(views, store, "set (via SettingsPage)")
+Rel(sound, store, "Reads")
+Rel(motion, store, "Reads")
+Rel(theme, store, "Reads")
+Rel(numbers, store, "Reads")
+Rel(wake, store, "Reads")
+Rel(wake, activity, "Reads riding")
+Rel(full, store, "Reads")
+@enduml

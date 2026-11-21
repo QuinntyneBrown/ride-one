@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Send feedback
+
+Container_Boundary(app, "Ride app") {
+  Component(page, "CustomRidePage", "Angular page · ride", "Pauses the ride; opens the dialog")
+  Component(dialog, "FeedbackDialog", "CDK Dialog · ride", "Orchestrates the form")
+  Component(store, "FeedbackStore", "Signal store · ride", "Kind, message, attach, status")
+  Component(form, "FeedbackForm", "Presentation component · components", "Block feedback")
+  Component(ctx, "RideContextBuilder", "Helper · domain/engine", "Snapshot of the ride")
+  Component(engine, "WorkoutEngine", "Service · domain/engine", "Pause; ride state")
+  Component(log, "PacketLog", "Service · domain", "tail(1 MB)")
+  Component(client, "HttpFeedbackApi", "HTTP client · api", "FeedbackApi")
+}
+Container_Boundary(api, "Telo Ride API") {
+  Component(ctrl, "FeedbackController", "Controller · Telo.Ride.Api", "POST /api/feedback")
+}
+Rel(page, engine, "pause()")
+Rel(page, ctx, "build()")
+Rel(ctx, engine, "Reads state")
+Rel(page, dialog, "Opens with RideContext", "CDK Dialog")
+Rel(dialog, store, "Provides and binds")
+Rel(dialog, form, "Inputs and outputs")
+Rel(store, log, "tail(1 MB) for Bug")
+Rel(store, client, "send(request)")
+Rel(client, ctrl, "POST /api/feedback", "JSON/HTTPS")
+@enduml

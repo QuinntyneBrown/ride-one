@@ -1,0 +1,104 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Ride a class
+
+package "domain library" {
+  class RideClock {
+    +elapsed: Signal<number>
+    +running: Signal<boolean>
+    +start(): void
+    +startAt(serverTimeMs: number, clock: ServerClock): void
+    +pause(): void
+    +resume(): void
+  }
+  class WorkoutEngine {
+    +segment: Signal<Segment>
+    +segmentIndex: Signal<number>
+    +timeLeft: Signal<number>
+    +progress: Signal<number>
+    +targetPower: Signal<number>
+    +follow(plan: Plan, clock: RideClock): void
+  }
+  class Plan {
+    +segments: Segment[]
+    +totalSeconds: number
+    +segmentAt(elapsed: number): number
+  }
+  class Segment {
+    +kind: SegmentKind
+    +start: number
+    +duration: number
+    +level: number
+    +cadenceAim: number
+    +round: number
+  }
+  enum SegmentKind {
+    WarmUp
+    Work
+    Recover
+    Steady
+    CoolDown
+  }
+  class PowerModel {
+    +estimate(cadence: number, resistance: number): number
+    +targetPower(level: number, cadenceAim: number): number
+    +onTarget(power: number, target: number): boolean
+  }
+  class VideoClockSync {
+    +driftLimitSeconds = 1.5
+    +check(videoTime: number, elapsed: number, offset: number): SyncAction
+  }
+  class ResistanceController {
+    +sendTarget(level: number): void
+  }
+}
+package "api library" {
+  interface VideoPlayer {
+    +state: Signal<PlayerState>
+    +currentTime(): number
+    +play(): void
+    +pause(): void
+    +seekTo(seconds: number): void
+    +destroy(): void
+  }
+  interface BikeConnection {
+    +ble: Signal<BleState>
+    +telemetry: Signal<Telemetry>
+  }
+}
+package "ride application" {
+  class ClassRideStore {
+    +mode: Signal<RideMode>
+    +sessionStartsAt: Signal<number>
+    +header: Signal<ClassHeaderView>
+    +segmentCard: Signal<SegmentCardView>
+    +power: Signal<StatView>
+    +cadence: Signal<StatView>
+    +video: Signal<VideoView>
+    +raise(): void
+    +lower(): void
+  }
+}
+ClassRideStore *-- WorkoutEngine
+ClassRideStore *-- RideClock
+ClassRideStore *-- VideoClockSync
+ClassRideStore ..> VideoPlayer
+ClassRideStore ..> BikeConnection
+WorkoutEngine --> Plan
+WorkoutEngine ..> RideClock
+WorkoutEngine ..> PowerModel
+WorkoutEngine ..> ResistanceController
+Plan "1" *-- "*" Segment
+Segment --> SegmentKind
+@enduml

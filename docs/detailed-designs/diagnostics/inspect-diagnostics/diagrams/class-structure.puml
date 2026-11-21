@@ -1,0 +1,67 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Inspect diagnostics
+class DiagnosticsFacts <<api>> {
+  +browser: string
+  +webBluetooth: string
+  +page: string
+  +bike: string
+  +connection?: string
+  +signal?: string
+  +lastCommand?: string
+  +reconnects?: string
+  +ridesWaiting: string
+  +appVersion: string
+}
+interface Diagnostics <<api>> {
+  +facts: Signal<DiagnosticsFacts>
+}
+class BrowserDiagnostics <<domain/bluetooth>> {
+  -connection: BikeConnection
+  -support: BluetoothSupport
+  -sentLog: SentToBikeLog
+  -outbox: RideOutbox
+  -remembered: RememberedBikeStore
+  -build: BuildInfo
+  +facts: Signal<DiagnosticsFacts>
+}
+class "diagnosticsFormat" as Format <<domain/bluetooth>> {
+  +browserLabel(uaData): string
+  +duration(ms: number): string
+  +lastSeen(at: Date, now: Date): string
+  +command(cmd: SentCommand): string
+}
+class BuildInfo <<api>> {
+  +version: string
+  +commit: string
+}
+class DiagnosticsLauncher <<ride>> {
+  -dialog: Dialog
+  +open(origin: HTMLElement): Promise<void>
+}
+class DiagnosticsDialog <<ride>> {
+  +facts: Signal<DiagnosticsFacts>
+  +close(): void
+}
+class DiagnosticsFactsList <<components>> {
+  +facts: input<DiagnosticsFacts>
+}
+BrowserDiagnostics ..|> Diagnostics
+BrowserDiagnostics ..> Format
+BrowserDiagnostics --> BuildInfo
+Diagnostics --> DiagnosticsFacts
+DiagnosticsLauncher ..> DiagnosticsDialog : lazy import, opens
+DiagnosticsDialog ..> Diagnostics : injects DIAGNOSTICS
+DiagnosticsDialog ..> DiagnosticsFactsList : renders
+@enduml

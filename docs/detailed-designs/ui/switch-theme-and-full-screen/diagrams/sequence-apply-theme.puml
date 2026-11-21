@@ -1,0 +1,37 @@
+@startuml
+title UML sequence behaviour — Apply the theme
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as actor
+participant "Browser" as browser
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "index.html and tokens.css" as doc
+  participant "ThemeController" as theme
+end box
+actor -> browser : Open Telo Ride
+browser -> doc : Parse html data-theme="dark"
+doc --> browser : First paint in the dark theme (L2-143 AC1)
+browser -> theme : provideAppInitializer starts the controller
+theme -> browser : matchMedia('(prefers-color-scheme: light)')
+alt The device asks for light (L2-143 AC2)
+  theme -> doc : Set data-theme="light"
+  doc --> browser : Role tokens resolve to light values
+else Otherwise
+  theme -> doc : Keep data-theme="dark"
+end
+actor -> browser : Change the device colour scheme
+browser -> theme : change event
+theme -> doc : Update data-theme
+@enduml

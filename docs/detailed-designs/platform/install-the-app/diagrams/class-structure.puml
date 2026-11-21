@@ -1,0 +1,48 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Install the app
+hide empty members
+
+class RideActivity <<ride>> {
+  +inProgress: WritableSignal<boolean>
+  +start(): void
+  +end(): void
+}
+class UpdatePrompt <<ride>> {
+  -pending: boolean
+  +start(): void
+  -offer(): void
+  +reload(): Promise<void>
+}
+class SwUpdate <<@angular/service-worker>> {
+  +versionUpdates: Observable<VersionEvent>
+  +unrecoverable: Observable<UnrecoverableStateEvent>
+  +activateUpdate(): Promise<boolean>
+}
+class Toast <<components>> {
+  +message: InputSignal<string>
+  +actionLabel: InputSignal<string>
+  +action: OutputEmitterRef<void>
+}
+class WebAppManifest <<ride/public>> {
+  +name: "Telo Ride"
+  +short_name: "Telo Ride"
+  +display: "standalone"
+  +theme_color: "#0a0b0d"
+  +icons: Icon[]
+}
+UpdatePrompt --> SwUpdate : listens to
+UpdatePrompt --> RideActivity : waits while inProgress
+UpdatePrompt ..> Toast : shows
+@enduml

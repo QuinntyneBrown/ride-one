@@ -23,8 +23,11 @@ Profile as *Custom workout*.
 - Yellow `.mock-note` callouts mark what a static page cannot show: the 3D world, the video,
   timers, the 3‑2‑1 countdown, the board's 150 ms row slide and the 250 ms unlock flip.
 - Nothing loads from the network: fonts (Inter Tight, Barlow Condensed, JetBrains Mono, all OFL)
-  live in `assets/fonts/`; the world panoramas and class covers the design uses are copied into
-  `assets/images/`.
+  live in the design system (`../design-system/assets/fonts/`); the world panoramas and class
+  covers the design uses are copied into `assets/images/`.
+- The mocks consume the [design system](../design-system/README.md): every page links
+  `../design-system/tokens/tokens.css` and `../design-system/assets/components.css`. Add or change a
+  component there, never in a mock.
 
 ## Cast and catalog
 
@@ -51,16 +54,18 @@ Every mock uses this cast, which is the design's own data (`shared/game.ts`,
   Paceline* (level 5), *30 Min Vice City Pyramid* (level 10), *60 Min Dolomites Endurance* (level
   10), *60 Min Coastal Endurance + Surges* (level 20).
 - **Mid-race moment:** Old Town Criterium vs the medium bot pack, 5:00 in. **Mid-class moment:** 30
-  Minute HIIT Cardio, 7:00 in, in a group. **Custom ride moment:** 6:52 in.
+  Minute HIIT Cardio, 7:00 in, in a group. **Custom ride moment:** 6:52 in. **World loading moment:** 20 Minute
+  Power Intervals in Neon Docklands (18.9 MB, 64 shader programs for WebGPU), solo, or joining the
+  7:39 PM group session with 1:12 to go. **Settings device:** Chrome with WebGPU, Auto quality, 3
+  saved worlds (61 MB); the device check finds High holds 60 fps where Ultra held 41.
 
 ## Layout of this folder
 
 ```
 manifest.json          every screen, state and requirement ID (the checker and gallery read it)
 index.html             gallery (generated)
-assets/tokens.css      tokens: the design's theme names (ink, panel, raised, line, fg, muted, faint,
-                       volt, rest, heart, warn, gold) plus type, space, radius, motion and z scales
-assets/ui.css          the component kit; one partial per area under assets/ui/
+assets/tokens.css      a one-line shim importing ../design-system/tokens/tokens.css (the gallery links it)
+assets/images/         world panoramas, class covers and the bike photo
 assets/mock.css, mock.js   mock bar and notes (not product UI)
 pages/<id>/<state>.html, dialogs/<id>/<state>.html
 ```
@@ -109,6 +114,14 @@ disagree. None of them was settled quietly; the mocks follow the design.
     Profile with no confirmation. The dashboard also has a `connecting` state (“Waiting for your
     pick…”) that the frame does not expose as a control and the mocks do not show.
 12. **Feedback kinds.** `idea` and `kudos` keep the bug message, as the frame's controls do.
+13. **World loading and Settings are not in the design.** Both are built from the design system in
+    the design's style, from `docs/specs/L2.md` L2-151 to L2-165 (World classes, L1-025; Ride
+    settings, L1-026). The world loading screen follows the design's Class Worlds board, which gives
+    every class a world; whether a world class still plays its video is open (L2 open question 13).
+    The class ride in a world, which World loading hands over to, has no mock yet: its Start links
+    go to the video class ride.
+14. **Settings in the app header.** Settings opens from Profile's new "Ride settings" row and from
+    World loading's "Quality settings"; the header keeps its four items, with Profile current.
 
 ### Where the mocks depart from the design's source, and why
 
@@ -136,7 +149,10 @@ disagree. None of them was settled quietly; the mocks follow the design.
   state because the frame defaults to Google 3D tiles; on lg, Home's Race button and Results' Done
   sit flush under the content above when nothing fills the gap (`mt-auto`).
 - **Additions.** `pages/not-found` (the design has no 404), the light theme, and the Connect Bike
-  photo copied locally (`assets/images/machines/echelon-ex5s.jpg`).
+  photo copied locally (`assets/images/machines/echelon-ex5s.jpg`). `pages/world-loading` (8
+  states) and `pages/settings` (8 states), with their blocks (`world-loading`, `load-card`,
+  `load-steps`, `settings-page`, `settings-section`, `setting`, `quality-options`, `device-check`)
+  added to the design system's `components.css`, and the "Ride settings" row on Profile.
 
 ## Coverage
 
@@ -146,29 +162,31 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | searching | pairing | paired | bluetooth-off | unsupported-browser | new-rider | veteran | unlocked | disconnected | solo | peers | hard | prairie | coast | docklands | dolomites | vice | bots | filling | someone-left | countdown | paused | win | mid-pack | class | class-group | tier-20 | tier-30 | tier-60 | starting-soon | full | needs-chromium | needs-https | flat | no-bike | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Connect Bike (`connect-bike`) | [✅](pages/connect-bike/default.html) | ➖ | ➖ | ➖ | [✅](pages/connect-bike/searching.html) | [✅](pages/connect-bike/pairing.html) | [✅](pages/connect-bike/paired.html) | [✅](pages/connect-bike/bluetooth-off.html) | [✅](pages/connect-bike/unsupported-browser.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-018`, `L2-089`, `L2-090` |
-| Home (`home`) | [✅](pages/home/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/home/new-rider.html) | [✅](pages/home/veteran.html) | [✅](pages/home/unlocked.html) | [✅](pages/home/disconnected.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| Map Select (`map-select`) | [✅](pages/map-select/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/map-select/new-rider.html) | [✅](pages/map-select/veteran.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-101` |
-| Race Setup (`race-setup`) | [✅](pages/race-setup/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/race-setup/new-rider.html) |  |  |  | [✅](pages/race-setup/solo.html) | [✅](pages/race-setup/peers.html) | [✅](pages/race-setup/hard.html) | [✅](pages/race-setup/prairie.html) | [✅](pages/race-setup/coast.html) | [✅](pages/race-setup/docklands.html) | [✅](pages/race-setup/dolomites.html) | [✅](pages/race-setup/vice.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-102`, `L2-107`, `L2-114` |
-| Race Lobby (`race-lobby`) | [✅](pages/race-lobby/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/race-lobby/bots.html) | [✅](pages/race-lobby/filling.html) | [✅](pages/race-lobby/someone-left.html) | [✅](pages/race-lobby/countdown.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-114`, `L2-115`, `L2-116`, `L2-117` |
-| Race (`race`) | [✅](pages/race/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  | [✅](pages/race/disconnected.html) | [✅](pages/race/solo.html) | [✅](pages/race/peers.html) |  |  |  |  |  |  |  |  |  |  | [✅](pages/race/paused.html) |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-102`, `L2-103`, `L2-104`, `L2-105`, `L2-106`, `L2-107`, `L2-109`, `L2-110`, `L2-118`, `L2-119`, `L2-120`, `L2-121`, `L2-128` |
-| Results (`results`) | [✅](pages/results/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  | [✅](pages/results/solo.html) | [✅](pages/results/peers.html) |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/results/win.html) | [✅](pages/results/mid-pack.html) | [✅](pages/results/class.html) | [✅](pages/results/class-group.html) |  |  |  |  |  |  |  |  |  | `L2-084`, `L2-085`, `L2-123` |
-| Class Library (`class-library`) | [✅](pages/class-library/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/class-library/new-rider.html) | [✅](pages/class-library/veteran.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-library/tier-20.html) | [✅](pages/class-library/tier-30.html) | [✅](pages/class-library/tier-60.html) |  |  |  |  |  |  | `L2-077`, `L2-079`, `L2-096`, `L2-100` |
-| Class Start (`class-start`) | [✅](pages/class-start/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  | [✅](pages/class-start/solo.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-start/starting-soon.html) | [✅](pages/class-start/full.html) | [✅](pages/class-start/needs-chromium.html) | [✅](pages/class-start/needs-https.html) |  |  | `L2-076`, `L2-080`, `L2-089`, `L2-114` |
-| Class Ride (`class-ride`) | [✅](pages/class-ride/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  | [✅](pages/class-ride/disconnected.html) | [✅](pages/class-ride/solo.html) |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-ride/paused.html) |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-021`, `L2-024`, `L2-025`, `L2-046`, `L2-076`, `L2-109` |
-| Profile (`profile`) | [✅](pages/profile/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/profile/new-rider.html) | [✅](pages/profile/veteran.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-086`, `L2-087`, `L2-094` |
-| Custom workout (`custom-setup`) | [✅](pages/custom-setup/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/custom-setup/needs-chromium.html) | [✅](pages/custom-setup/needs-https.html) | [✅](pages/custom-setup/flat.html) |  | `L2-010`, `L2-029`, `L2-059`, `L2-060`, `L2-089` |
-| Custom ride (`custom-ride`) | [✅](pages/custom-ride/default.html) | ➖ | ➖ | ➖ |  |  |  | [✅](pages/custom-ride/bluetooth-off.html) |  |  |  |  | [✅](pages/custom-ride/disconnected.html) |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/custom-ride/paused.html) |  |  |  |  |  |  |  |  |  | [✅](pages/custom-ride/needs-chromium.html) | [✅](pages/custom-ride/needs-https.html) | [✅](pages/custom-ride/flat.html) | [✅](pages/custom-ride/no-bike.html) | `L2-018`, `L2-019`, `L2-020`, `L2-021`, `L2-024`, `L2-025`, `L2-026`, `L2-046`, `L2-047`, `L2-058`, `L2-089`, `L2-090` |
-| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-056` |
+| Screen | default | loading | empty | error | searching | pairing | paired | bluetooth-off | unsupported-browser | new-rider | veteran | unlocked | disconnected | solo | peers | hard | prairie | coast | docklands | dolomites | vice | bots | filling | someone-left | countdown | paused | win | mid-pack | class | class-group | tier-20 | tier-30 | tier-60 | starting-soon | full | needs-chromium | needs-https | downloading | slow | ready | group | no-3d | high | webgl2 | checking | checked | cleared | flat | no-bike | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Connect Bike (`connect-bike`) | [✅](pages/connect-bike/default.html) | ➖ | ➖ | ➖ | [✅](pages/connect-bike/searching.html) | [✅](pages/connect-bike/pairing.html) | [✅](pages/connect-bike/paired.html) | [✅](pages/connect-bike/bluetooth-off.html) | [✅](pages/connect-bike/unsupported-browser.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-015`, `L2-018` |
+| Home (`home`) | [✅](pages/home/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/home/new-rider.html) | [✅](pages/home/veteran.html) | [✅](pages/home/unlocked.html) | [✅](pages/home/disconnected.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-019`, `L2-032`, `L2-033`, `L2-034`, `L2-035`, `L2-036`, `L2-041` |
+| Map Select (`map-select`) | [✅](pages/map-select/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/map-select/new-rider.html) | [✅](pages/map-select/veteran.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-040`, `L2-045`, `L2-046` |
+| Race Setup (`race-setup`) | [✅](pages/race-setup/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/race-setup/new-rider.html) |  |  |  | [✅](pages/race-setup/solo.html) | [✅](pages/race-setup/peers.html) | [✅](pages/race-setup/hard.html) | [✅](pages/race-setup/prairie.html) | [✅](pages/race-setup/coast.html) | [✅](pages/race-setup/docklands.html) | [✅](pages/race-setup/dolomites.html) | [✅](pages/race-setup/vice.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-039`, `L2-047`, `L2-048`, `L2-049`, `L2-050` |
+| Race Lobby (`race-lobby`) | [✅](pages/race-lobby/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/race-lobby/bots.html) | [✅](pages/race-lobby/filling.html) | [✅](pages/race-lobby/someone-left.html) | [✅](pages/race-lobby/countdown.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-051`, `L2-052`, `L2-053`, `L2-054`, `L2-055`, `L2-056`, `L2-057` |
+| Race (`race`) | [✅](pages/race/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  | [✅](pages/race/disconnected.html) | [✅](pages/race/solo.html) | [✅](pages/race/peers.html) |  |  |  |  |  |  |  |  |  |  | [✅](pages/race/paused.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-028`, `L2-058`, `L2-059`, `L2-060`, `L2-061`, `L2-062`, `L2-063`, `L2-064`, `L2-065`, `L2-066`, `L2-067`, `L2-068`, `L2-069`, `L2-070`, `L2-071`, `L2-072` |
+| Results (`results`) | [✅](pages/results/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  | [✅](pages/results/solo.html) | [✅](pages/results/peers.html) |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/results/win.html) | [✅](pages/results/mid-pack.html) | [✅](pages/results/class.html) | [✅](pages/results/class-group.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-037`, `L2-073`, `L2-074`, `L2-075`, `L2-076`, `L2-077`, `L2-078`, `L2-079` |
+| Class Library (`class-library`) | [✅](pages/class-library/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/class-library/new-rider.html) | [✅](pages/class-library/veteran.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-library/tier-20.html) | [✅](pages/class-library/tier-30.html) | [✅](pages/class-library/tier-60.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-043`, `L2-080`, `L2-081`, `L2-082`, `L2-083` |
+| Class Start (`class-start`) | [✅](pages/class-start/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  | [✅](pages/class-start/solo.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-start/starting-soon.html) | [✅](pages/class-start/full.html) | [✅](pages/class-start/needs-chromium.html) | [✅](pages/class-start/needs-https.html) |  |  |  |  |  |  |  |  |  |  |  |  | `L2-008`, `L2-009`, `L2-010`, `L2-084`, `L2-085`, `L2-086`, `L2-122` |
+| Class Ride (`class-ride`) | [✅](pages/class-ride/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  | [✅](pages/class-ride/disconnected.html) | [✅](pages/class-ride/solo.html) |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-ride/paused.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-028`, `L2-087`, `L2-088`, `L2-089`, `L2-090`, `L2-091`, `L2-092`, `L2-093` |
+| World loading (`world-loading`) | [✅](pages/world-loading/default.html) | ➖ | ➖ | [✅](pages/world-loading/error.html) |  |  |  |  |  |  |  |  | [✅](pages/world-loading/disconnected.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/world-loading/downloading.html) | [✅](pages/world-loading/slow.html) | [✅](pages/world-loading/ready.html) | [✅](pages/world-loading/group.html) | [✅](pages/world-loading/no-3d.html) |  |  |  |  |  |  |  | `L2-151`, `L2-152`, `L2-153`, `L2-154`, `L2-155`, `L2-156`, `L2-157` |
+| Profile (`profile`) | [✅](pages/profile/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/profile/new-rider.html) | [✅](pages/profile/veteran.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-038`, `L2-042`, `L2-109`, `L2-110`, `L2-111`, `L2-112`, `L2-158` |
+| Settings (`settings`) | [✅](pages/settings/default.html) | ➖ | ➖ | [✅](pages/settings/error.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/settings/no-3d.html) | [✅](pages/settings/high.html) | [✅](pages/settings/webgl2.html) | [✅](pages/settings/checking.html) | [✅](pages/settings/checked.html) | [✅](pages/settings/cleared.html) |  |  | `L2-112`, `L2-158`, `L2-159`, `L2-160`, `L2-161`, `L2-162`, `L2-163`, `L2-164`, `L2-165` |
+| Custom workout (`custom-setup`) | [✅](pages/custom-setup/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/custom-setup/needs-chromium.html) | [✅](pages/custom-setup/needs-https.html) |  |  |  |  |  |  |  |  |  |  | [✅](pages/custom-setup/flat.html) |  | `L2-008`, `L2-009`, `L2-010`, `L2-094`, `L2-095`, `L2-096`, `L2-097`, `L2-098`, `L2-099`, `L2-100` |
+| Custom ride (`custom-ride`) | [✅](pages/custom-ride/default.html) | ➖ | ➖ | ➖ |  |  |  | [✅](pages/custom-ride/bluetooth-off.html) |  |  |  |  | [✅](pages/custom-ride/disconnected.html) |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/custom-ride/paused.html) |  |  |  |  |  |  |  |  |  | [✅](pages/custom-ride/needs-chromium.html) | [✅](pages/custom-ride/needs-https.html) |  |  |  |  |  |  |  |  |  |  | [✅](pages/custom-ride/flat.html) | [✅](pages/custom-ride/no-bike.html) | `L2-010`, `L2-018`, `L2-019`, `L2-026`, `L2-027`, `L2-028`, `L2-029`, `L2-101`, `L2-102`, `L2-103`, `L2-104`, `L2-105`, `L2-106`, `L2-107`, `L2-108` |
+| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-145` |
 
 ### Dialogs
 
 | Screen | default | busy | invalid | packets | no-bike | bluetooth-off | idea | kudos | sending | sent | Requirements |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| Diagnostics (`diagnostics`) | [✅](dialogs/diagnostics/default.html) | ➖ | ➖ | [✅](dialogs/diagnostics/packets.html) | [✅](dialogs/diagnostics/no-bike.html) | [✅](dialogs/diagnostics/bluetooth-off.html) |  |  |  |  | `L2-023`, `L2-048`, `L2-095` |
-| Leave this ride (`end-ride`) | [✅](dialogs/end-ride/default.html) | ➖ | ➖ |  |  |  |  |  |  |  | `L2-051`, `L2-092` |
-| Send feedback (`feedback`) | [✅](dialogs/feedback/default.html) | ➖ | ➖ |  |  |  | [✅](dialogs/feedback/idea.html) | [✅](dialogs/feedback/kudos.html) | [✅](dialogs/feedback/sending.html) | [✅](dialogs/feedback/sent.html) |  |
+| Diagnostics (`diagnostics`) | [✅](dialogs/diagnostics/default.html) | ➖ | ➖ | [✅](dialogs/diagnostics/packets.html) | [✅](dialogs/diagnostics/no-bike.html) | [✅](dialogs/diagnostics/bluetooth-off.html) |  |  |  |  | `L2-113`, `L2-114` |
+| Leave this ride (`end-ride`) | [✅](dialogs/end-ride/default.html) | ➖ | ➖ |  |  |  |  |  |  |  | `L2-107` |
+| Send feedback (`feedback`) | [✅](dialogs/feedback/default.html) | ➖ | ➖ |  |  |  | [✅](dialogs/feedback/idea.html) | [✅](dialogs/feedback/kudos.html) | [✅](dialogs/feedback/sending.html) | [✅](dialogs/feedback/sent.html) | `L2-116`, `L2-117`, `L2-118` |
 
 <!-- coverage:end -->

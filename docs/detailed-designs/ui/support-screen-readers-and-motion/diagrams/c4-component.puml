@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Support screen readers and motion preferences
+
+System_Ext(at, "Assistive technology", "Screen reader")
+Container_Boundary(app, "Ride app") {
+  Component(page, "Any page", "Angular page · ride", "One h1; timers with role=timer")
+  Component(title, "RideTitleStrategy", "TitleStrategy · ride", "Sets document.title per route")
+  Component(announcer, "CdkLiveAnnouncerAdapter", "Service · ride", "Implements Announcer")
+  Component(dialog, "CDK Dialog", "Angular CDK", "Focus trap, autoFocus, restoreFocus")
+  Component(inert, "InertBackground", "Service · ride", "inert on the page behind a dialog")
+  Component(motion, "MotionPreference", "Service · ride", "Reduced-motion signal")
+  Component(board, "BoardReorderAnimator", "Helper · components", "FLIP slide over 150 ms")
+  Component(tokens, "tokens.css", "Global foundations · ride", "Duration tokens and reduced-motion overrides")
+}
+Rel(page, announcer, "Announces state changes through")
+Rel(announcer, at, "Writes to a polite live region read by")
+Rel(page, dialog, "Opens dialogs with")
+Rel(inert, dialog, "Listens to afterOpened and afterAllClosed")
+Rel(board, motion, "Reads reduced")
+Rel(board, tokens, "Reads --duration-fast")
+Rel(title, page, "Titles")
+@enduml

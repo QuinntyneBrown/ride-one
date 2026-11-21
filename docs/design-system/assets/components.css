@@ -1903,7 +1903,7 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 /* ============================================================================================
    Area: race (from docs/mocks/assets/ui/race.css)
    ============================================================================================ */
-/* ui/race.css — see ui.css for naming rules.
+/* Race — naming as in the file header.
    Race Lobby (frame 67b6tbCsQD73qfam3X4rfo) and Race (frame uzx8Hxc95cPneJy9Qzauyc).
    HUD glass is the design's bg-ink/70 + backdrop-blur-md; the design's 10% hairlines and wells
    are written as fg/10 so the light theme keeps them visible. */
@@ -2161,7 +2161,7 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
    ============================================================================================ */
 /* ui/results.css — Results (frame rSEJU5Xb6Ee8kr9QTtx2rm): the finish header, the big place or
    time, the standings, the unlock card, XP earned, stars and the Done / again actions.
-   ui.css loads after this partial, so overrides of kit components use a compound selector. */
+   The core kit comes before this block; overrides of kit components still use a compound selector. */
 
 /* Header: lockup, what you rode, full screen (gap-5 px-4 py-2.5 sm:px-6 lg:px-8; no nav) */
 .results-header {
@@ -2487,11 +2487,84 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .btn.class-lost__action { margin-top: var(--space-6); height: var(--target-comfortable); padding-inline: var(--space-5); }
 
 /* ============================================================================================
+   Area: world loading (an addition: the design draws no loading screen; see docs/mocks/README.md)
+   ============================================================================================ */
+/* The screen between Class Start and a class that rides in a world: the world's panorama behind,
+   the class on the left, the load card on the right from lg (stacked below lg). It never
+   scrolls sideways; below lg the body scrolls under the slim class header. */
+.world-loading {
+  --world-loading-card-width: 26rem;
+  position: relative; isolation: isolate; display: flex; flex: 1; min-height: 0; flex-direction: column; overflow-y: auto;
+}
+.world-loading__scene { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: var(--color-raised); }
+.world-loading__scene .photo { position: absolute; inset: 0; }
+/* The ink scrim keeps every word on the photo at 4.5:1: solid at the foot, a tint at the top */
+.world-loading__scene::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to top, var(--color-ink) 0, color-mix(in srgb, var(--color-ink) 92%, transparent) 50%, color-mix(in srgb, var(--color-ink) 88%, transparent) 100%);
+}
+/* From lg the words sit at the foot, so the top of the world can show through */
+@media (min-width: 64rem) {
+  .world-loading__scene::after { background: linear-gradient(to top, var(--color-ink) 0, color-mix(in srgb, var(--color-ink) 88%, transparent) 55%, color-mix(in srgb, var(--color-ink) 35%, transparent) 100%); }
+}
+.world-loading__scene .mock-note { top: var(--space-3); right: var(--space-3); z-index: var(--z-raised); }
+.world-loading__body { display: grid; gap: var(--space-6); margin-top: auto; width: 100%; padding-block: var(--space-10) var(--space-6); }
+@media (min-width: 64rem) {
+  .world-loading__body { grid-template-columns: minmax(0, 1fr) var(--world-loading-card-width); align-items: end; gap: var(--space-12); padding-block: var(--space-16) var(--space-10); }
+}
+.world-loading__intro { min-width: 0; }
+.world-loading__eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+.world-loading__title { margin-top: var(--space-2); font-size: var(--font-size-3xl); line-height: var(--line-height-3xl); font-weight: var(--font-weight-semibold); letter-spacing: var(--letter-spacing-tight); }
+@media (min-width: 40rem) { .world-loading__title { font-size: var(--font-size-4xl); line-height: var(--line-height-4xl); } }
+.world-loading__about { margin-top: var(--space-3); max-width: var(--layout-text-xl); color: var(--color-muted); }
+.world-loading__intro .class-plan { margin-top: var(--space-6); }
+
+/* The load card: what is happening, how far along, and the one way forward */
+.load-card {
+  display: flex; flex-direction: column; gap: var(--space-5); min-width: 0;
+  border-radius: var(--radius-2xl); border: var(--border-width-hairline) solid var(--color-line);
+  background: color-mix(in srgb, var(--color-panel) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  padding: var(--space-5); box-shadow: var(--shadow-3);
+}
+@media (min-width: 40rem) { .load-card { padding: var(--space-6); } }
+.load-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.load-card__title { font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semibold); }
+.load-card__percent { flex-shrink: 0; font-family: var(--font-family-display); font-weight: var(--font-weight-bold); letter-spacing: var(--letter-spacing-display); font-feature-settings: 'tnum' 1; font-size: var(--font-size-2xl); line-height: var(--line-height-2xl); }
+.load-card__facts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.load-card__actions { display: flex; flex-direction: column; gap: var(--space-2); }
+.load-card__hint { font-size: var(--font-size-xs); line-height: var(--line-height-xs); color: var(--color-muted); text-align: center; }
+.load-card__settings { align-self: center; }
+.load-card .banner { align-items: flex-start; }
+/* Start riding while it cannot start: the design's blocked fill (bg-raised text-faint), not a dimmed volt */
+.load-card__actions .btn:disabled { opacity: 1; background: var(--color-raised); color: var(--color-faint); }
+/* On a phone the load card comes first after the title: the plan was on Class Start already */
+@media (max-width: 39.99rem) { .world-loading__intro .class-plan { display: none; } }
+
+/* Load steps: an ordered list; the running step is aria-current="step", done and failed say so in words */
+.load-steps { display: flex; flex-direction: column; gap: var(--space-3); }
+.load-step { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--font-size-sm); line-height: var(--line-height-sm); }
+.load-step__mark {
+  display: grid; place-items: center; flex-shrink: 0; width: var(--space-6); height: var(--space-6); border-radius: var(--radius-full);
+  border: var(--border-width-hairline) solid var(--color-line-strong); color: var(--color-faint);
+}
+.load-step__mark .icon { width: var(--space-3-5); height: var(--space-3-5); }
+.load-step__text { min-width: 0; flex: 1; padding-top: var(--space-0-5); }
+.load-step__label { display: block; font-weight: var(--font-weight-medium); color: var(--color-muted); }
+.load-step__detail { display: block; margin-top: var(--space-0-5); font-size: var(--font-size-xs); line-height: var(--line-height-xs); font-feature-settings: 'tnum' 1; color: var(--color-faint); }
+.load-step[aria-current="step"] .load-step__label, .load-step--done .load-step__label { color: var(--color-fg); }
+.load-step[aria-current="step"] .load-step__mark { border-color: var(--color-volt-fg); color: var(--color-volt-fg); }
+.load-step[aria-current="step"] .load-step__detail { color: var(--color-muted); }
+.load-step--done .load-step__mark { border-color: var(--color-success-border); background: var(--color-success-bg); color: var(--color-success-icon); }
+.load-step--failed .load-step__mark { border-color: var(--color-danger-border); background: var(--color-danger-bg); color: var(--color-danger-icon); }
+.load-step--failed .load-step__label { color: var(--color-danger-fg); }
+.load-step--skipped .load-step__label { text-decoration: line-through; }
+
+/* ============================================================================================
    Area: profile (from docs/mocks/assets/ui/profile.css)
    ============================================================================================ */
 /* ui/profile.css — Profile (frame i1TRTGuRzDqTqkGJnE5MSB): the level headline, the maps table
    (stars and bests), recent rides and the settings rows.
-   ui.css loads after this partial, so overrides of kit components use a compound selector. */
+   The core kit comes before this block; overrides of kit components still use a compound selector. */
 
 /* Body: profile left, settings right (lg:grid-cols-[minmax(0,1fr)_340px] gap-10 lg:gap-14) */
 .profile { display: grid; gap: var(--space-10); padding-block: var(--space-6); }
@@ -2551,6 +2624,67 @@ a.map-table__map:hover, a.map-table__map[data-state="hover"] { color: var(--colo
 .setting-row__title { display: block; font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-medium); }
 .setting-row__body { display: block; font-size: var(--font-size-xs); line-height: var(--line-height-xs); color: var(--color-muted); }
 .setting-row__chevron { color: var(--color-faint); }
+
+/* ============================================================================================
+   Area: settings (an addition: the design draws no Settings page; see docs/mocks/README.md)
+   ============================================================================================ */
+/* /settings: the page title, a section nav (a scrolling row below lg, a column from lg) and one
+   panel per section. Every control applies at once and is kept on this device; there is no Save. */
+.settings-page { padding-block: var(--space-6); }
+@media (min-width: 64rem) { .settings-page { padding-block: var(--space-10); } }
+.settings-page__head { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-6); }
+.settings-page__head .back-link { align-self: flex-start; margin-left: calc(var(--space-2) * -1); padding: var(--space-1) var(--space-2); }
+.settings-page__lead { max-width: var(--layout-text-xl); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+@media (min-width: 64rem) { .settings-page .side-nav { position: sticky; top: var(--space-6); } }
+.settings-page__sections { display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; max-width: var(--layout-container-form); }
+.settings-page__notice { margin-bottom: var(--space-6); max-width: var(--layout-container-form); }
+
+/* One section: a panel with a heading, a line of context, then its settings separated by hairlines */
+.settings-section { scroll-margin-top: var(--space-6); border-radius: var(--radius-2xl); background: var(--color-panel); padding: var(--space-5); }
+@media (min-width: 40rem) { .settings-section { padding: var(--space-6); } }
+.settings-section__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+.settings-section__title { font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semibold); }
+.settings-section__desc { margin-top: var(--space-1); max-width: var(--layout-text-xl); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+.settings-section__list { margin-top: var(--space-4); }
+.settings-section__list > * + * { border-top: var(--border-width-hairline) solid var(--color-line); }
+.settings-section__list > * { padding-block: var(--space-4); }
+.settings-section__list > :first-child { padding-top: 0; }
+.settings-section__list > :last-child { padding-bottom: 0; }
+.settings-section .banner { margin-top: var(--space-4); }
+
+/* A setting whose control sits under its label (quality cards, segmented, sliders) */
+.setting { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.setting__label { font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-medium); }
+.setting__hint { font-size: var(--font-size-sm); line-height: var(--line-height-snug); color: var(--color-muted); }
+.setting__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.setting__value { flex-shrink: 0; font-family: var(--font-family-display); font-weight: var(--font-weight-bold); letter-spacing: var(--letter-spacing-display); font-feature-settings: 'tnum' 1; font-size: var(--font-size-lg); line-height: var(--line-height-lg); }
+.setting__scale { display: flex; justify-content: space-between; font-size: var(--font-size-xs); line-height: var(--line-height-xs); color: var(--color-faint); }
+.setting .segmented { align-self: flex-start; max-width: 100%; overflow-x: auto; }
+.setting .segmented__option { height: var(--target-min); }
+.setting__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.setting .switch-row { padding-block: 0; }
+.setting .switch, .settings-section__list .switch { min-width: var(--space-11); }
+
+/* Quality: five selectable cards; the picked one is aria-checked="true" on a real radio */
+.quality-options { display: grid; gap: var(--space-2); }
+@media (min-width: 48rem) { .quality-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } .quality-options > :first-child { grid-column: 1 / -1; } }
+.quality-option__tag { margin-left: auto; }
+.quality-option .card__title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+/* The radio stays visible: the picked card is not marked by colour alone (1.4.1) */
+.quality-option {
+  --choice-size: var(--space-4); --choice-bg: var(--color-ink); --choice-border: var(--color-line-strong);
+  --choice-border-hover: var(--color-muted); --choice-on: var(--color-volt); --choice-mark: var(--color-on-fill);
+}
+.quality-option .radio__input { margin-top: var(--space-1); }
+.quality-option:has(.card__input:disabled) .card__meta { color: var(--color-disabled); }
+
+/* The device check: progress while it rides off screen, then the result in words */
+.device-check { display: flex; flex-direction: column; gap: var(--space-3); border-radius: var(--radius-xl); background: var(--color-raised); padding: var(--space-4); }
+.device-check__result { display: flex; align-items: flex-start; gap: var(--space-3); }
+.device-check__result .icon { flex-shrink: 0; margin-top: var(--space-0-5); color: var(--color-success-icon); }
+.device-check__figure { font-family: var(--font-family-display); font-weight: var(--font-weight-bold); letter-spacing: var(--letter-spacing-display); font-feature-settings: 'tnum' 1; }
+.settings-reset { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-6); max-width: var(--layout-container-form); }
+.settings-reset__text { max-width: var(--layout-text-md); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
 
 /* ============================================================================================
    Area: setup (from docs/mocks/assets/ui/setup.css)
@@ -2723,7 +2857,7 @@ a.map-table__map:hover, a.map-table__map[data-state="hover"] { color: var(--colo
 .plan-preview__blocked { margin-top: var(--space-2); text-align: center; font-size: var(--font-size-xs); line-height: var(--line-height-xs); color: var(--color-muted); }
 
 /* ---------- Not-found page (an addition: the design draws no 404) ---------- */
-.not-found { max-width: var(--setup-form-max); }
+.not-found > * { max-width: var(--layout-text-xl); } /* the measure, not the container: the page stays aligned with the header */
 .not-found__action { margin-top: var(--space-8); }
 
 /* ============================================================================================

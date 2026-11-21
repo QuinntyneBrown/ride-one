@@ -1,0 +1,51 @@
+@startuml
+title UML sequence behaviour — Report progress
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Frontend — Ride app (domain and api libraries)" #E0F2FE
+  participant "WorkoutEngine" as engine
+  participant "ProgressReporter" as reporter
+  participant "SignalRRideHubClient" as client
+end box
+box "Backend — Telo.Ride.Api" #D1FADF
+  participant "RideHub" as hub
+end box
+box "Backend — Telo.Ride.Application and Domain" #ECFDF3
+  participant "ReportProgressCommandHandler" as handler
+  participant "LiveSession" as session
+end box
+box "Backend — Telo.Ride.Infrastructure" #FFF4E5
+  participant "InMemorySessionRegistry" as registry
+end box
+loop every second of the ride
+  reporter -> engine : Read distance, output, power
+  engine --> reporter : Totals
+  alt at least 500 ms since the last report (L2-123 AC1)
+    reporter -> client : reportProgress({distance | outputKj, power})
+    client -> hub : ReportProgress(report)
+    hub -> handler : Send ReportProgressCommand(riderId, report)
+    handler -> registry : Session holding the rider
+    registry --> handler : LiveSession
+    handler -> session : RecordProgress(riderId, sample at server time)
+    alt under 500 ms since this rider's last sample
+      session --> handler : Ignored
+    else accepted
+      session --> handler : Recorded; trace point added
+    end
+  else too soon
+    reporter -> reporter : Drop
+  end
+end
+@enduml
