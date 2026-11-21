@@ -13,4 +13,5 @@ export {
 } from './bike/bluetooth-support';
 export { REMEMBERED_BIKE, type RememberedBike } from './bike/remembered-bike';
 export type { BikeSupportLevel, SupportedBike } from './bike/supported-bike';
+export type { TelemetrySample } from './bike/telemetry-sample';
 export { TICKER, type Ticker } from './time/ticker';
