@@ -34,3 +34,4 @@
 | [0030](0030-world-library-carried-from-main.md) | World Ride's rendering is carried from `main` into a lazy `world` library | Accepted |
 | [0031](0031-sign-in-code-email-over-smtp.md) | Sign-in codes are emailed over SMTP with MailKit | Accepted |
 | [0032](0032-maps-built-in-blender.md) | Maps are built in Blender from the class they are modelled after, and ridden by the clock | Proposed |
+| [0033](0033-every-map-a-course.md) | Every map in the catalogue is a course, built to its listed distance and climbing | Proposed |
