@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/design-system/assets/logo.svg" alt="Telo Ride" width="324" height="80">
+  <img src="docs/design-system/assets/logo-ride-1.svg" alt="Telo Ride 1" width="355" height="80">
 </p>
 
 # Telo Ride 1
