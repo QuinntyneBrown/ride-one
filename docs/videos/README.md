@@ -56,6 +56,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 12.1 | [Earn stars and unlock maps](12-1-earn-stars-and-unlock-maps/README.md) | 1:55 | GET /api/progress answers the open maps, next unlock, stars and bests; Map Select and Race Setup read them in place of the new-rider stand-in: the mid rider's Neon Docklands next, the veteran's Col du Granit, a map a ride opened ready in Race Setup, bests in minutes |
 | 12.2 | [Open class tiers](12-2-open-class-tiers/README.md) | 1:52 | The backend leaves out a class whose tier is not 1, 5, 10 or 20; the Class Library and Class Start read the rider's level from GET /api/progress: three classes open at level 1, Tempo Paceline at level 7, all but the level-20 class at level 18 |
 | 13.1 | [App header](13-1-app-header/README.md) | 1:50 | Full screen at the end of the app header, Exit full screen while in it, absent without the Fullscreen API; each shell page marks its own item; the phone's own row of navigation |
+| 13.2 | [Choose the next ride](13-2-home-next-ride/README.md) | 2:06 | Home's greeting by the time of day or a new rider's welcome; the Next ride card for the mid rider, a new rider, a level goal and every map open; the Race door's counts and tiles; the Classes door's featured class with Ride alone; the gold banner shown once |
 
 ## What every video is
 
