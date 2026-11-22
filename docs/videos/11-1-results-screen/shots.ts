@@ -5,8 +5,8 @@ import { ResultsPage } from "../../../frontend/e2e/pages/results.page";
 import { type Size, frame, pictures, shot } from "../../../tools/video-record/shots";
 
 /**
- * The screenshots of the film of slice 11.1, Results screen, in the running app: a bots race finished 2nd of 10 at 390
- * and 1440 px, the same race 6th and 18 s off the podium, a solo race against your best and a solo class. Each result is
+ * The screenshots of the film of slice 11.1, Results screen, in the running app: a bots race finished 2nd of 10 at 390,
+ * 768, 1024 and 1440 px, the same race 6th and 18 s off the podium, a solo race against your best and a solo class. Each result is
  * the one the race or class hands over in the navigation's state, set here as the ride would set it and kept across a
  * reload. Not a test and not a sweep: only `node tools/video-record/record.mjs docs/videos/11-1-results-screen`.
  */
@@ -56,7 +56,7 @@ async function results(page: Page, state: object): Promise<ResultsPage> {
 
 test.beforeEach(({ bluetooth }) => bluetooth.remember(echelonBike));
 
-for (const size of ["XS", "XL"] as Size[]) {
+for (const size of ["XS", "M", "L", "XL"] as Size[]) {
   test(`2nd of 10 against bots at ${size}`, async ({ page }) => {
     await frame(page, size);
     const view = await results(page, bots(2, 1598, podiumField));

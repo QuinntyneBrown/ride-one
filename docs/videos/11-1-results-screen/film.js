@@ -4,6 +4,7 @@
 // (docs/videos/README.md).
 const { esc } = Film;
 const { at, part, onBeat, onPhone, onBrowser, closeup, pop, fact, terminal, opening, closing, wipeInto, push, zoomOut, zoomIn, bug } = Film.kit;
+const { ease, prog } = Film;
 
 const title = (S, kicker, words, accent, x, y, w, size = 'headline--md') => `
   <div style="${at(x, y, w)}">
@@ -36,6 +37,16 @@ Film.scene('place', (S) => `
   ${closeup('podium-xl', `${at(760, 300, 1040)};${TOP3}`, pop(S, onBeat(S, part('place', 0, 0.45)), { tilt: 1 }))}
   ${onPhone(S, 'podium-xs', 1500, 560, 260, onBeat(S, part('place', 0, 0.65)), -3)}
   </div>`);
+
+Film.scene('widths', (S) => {
+  const shots = [['xs', 390, 780], ['m', 768, 1024], ['l', 1024, 768], ['xl', 1440, 900]].map(([s, width, height]) => ({ src: `shots/podium-${s}.png`, width, height }));
+  const grown = part('widths', 0, 0.75);
+  return `
+  <div class="fill field--bone" ${push(S)}>
+  <h1 class="headline headline--md" style="position:absolute;left:0;right:0;top:44px;text-align:center">${S.words(S.beat(1), 'One column,', { accent: 'then two from 1024.' })}</h1>
+  ${S.grow(shots, (t) => 3 * ease.inOut(prog(t, S.beat(2), Math.max(1, grown - S.beat(2)))), { height: 780, style: 'position:absolute;left:0;right:0;top:220px' })}
+  </div>`;
+}, { before: 0.4 });
 
 Film.scene('off', (S) => `
   <div class="fill field--signal" ${push(S)}>

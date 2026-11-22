@@ -7,7 +7,7 @@ window.FILM_TIMING = {
  "beatsPerBar": 4,
  "beat": 0.645231,
  "bar": 2.580923,
- "duration": 103.2369,
+ "duration": 116.1415,
  "music": "beautiful-boom-bap.mp3",
  "scenes": [
   {
@@ -23,32 +23,38 @@ window.FILM_TIMING = {
    "bars": 6
   },
   {
-   "id": "off",
+   "id": "widths",
    "start": 25.8092,
    "length": 12.9046,
    "bars": 5
   },
   {
-   "id": "solo",
+   "id": "off",
    "start": 38.7138,
    "length": 12.9046,
    "bars": 5
   },
   {
-   "id": "next",
+   "id": "solo",
    "start": 51.6185,
+   "length": 12.9046,
+   "bars": 5
+  },
+  {
+   "id": "next",
+   "start": 64.5231,
    "length": 10.3237,
    "bars": 4
   },
   {
    "id": "proof",
-   "start": 61.9421,
+   "start": 74.8468,
    "length": 10.3237,
    "bars": 4
   },
   {
    "id": "close",
-   "start": 72.2658,
+   "start": 85.1704,
    "length": 30.9711,
    "bars": 12
   }
@@ -79,11 +85,11 @@ window.FILM_TIMING = {
    ]
   },
   {
-   "scene": "off",
-   "text": "Finish sixth and it says how far off: twenty-seven thirty-two, eighteen seconds off the podium.",
-   "caption": "Finish sixth and it says how far off: twenty-seven thirty-two, eighteen seconds off the podium.",
+   "scene": "widths",
+   "text": "On a phone it's one column, the actions below the standings. From a tablet in landscape, what you earned sits beside them.",
+   "caption": "On a phone it's one column, the actions below the standings. From a tablet in landscape, what you earned sits beside them.",
    "start": 25.809,
-   "end": 31.315,
+   "end": 32.918,
    "speed": 1.0,
    "window": [
     25.809,
@@ -91,11 +97,11 @@ window.FILM_TIMING = {
    ]
   },
   {
-   "scene": "solo",
-   "text": "Against your best it shows the time. A class shows thirty minutes, three hundred forty-two kilojoules and eighty-four percent on target.",
-   "caption": "Against your best it shows the time. A class shows thirty minutes, three hundred forty-two kilojoules and eighty-four percent on target.",
+   "scene": "off",
+   "text": "Finish sixth and it says how far off: twenty-seven thirty-two, eighteen seconds off the podium.",
+   "caption": "Finish sixth and it says how far off: twenty-seven thirty-two, eighteen seconds off the podium.",
    "start": 38.714,
-   "end": 46.664,
+   "end": 44.219,
    "speed": 1.0,
    "window": [
     38.714,
@@ -103,75 +109,87 @@ window.FILM_TIMING = {
    ]
   },
   {
-   "scene": "next",
-   "text": "Done goes home. Race it again opens Race Setup with the same mode and pack; Ride it again, the class.",
-   "caption": "Done goes home. Race it again opens Race Setup with the same mode and pack; Ride it again, the class.",
+   "scene": "solo",
+   "text": "Against your best it shows the time. A class shows thirty minutes, three hundred forty-two kilojoules and eighty-four percent on target.",
+   "caption": "Against your best it shows the time. A class shows thirty minutes, three hundred forty-two kilojoules and eighty-four percent on target.",
    "start": 51.618,
-   "end": 57.711,
+   "end": 59.569,
    "speed": 1.0,
    "window": [
     51.618,
-    61.297
+    63.878
+   ]
+  },
+  {
+   "scene": "next",
+   "text": "Done goes home. Race it again opens Race Setup with the same mode and pack; Ride it again, the class.",
+   "caption": "Done goes home. Race it again opens Race Setup with the same mode and pack; Ride it again, the class.",
+   "start": 64.523,
+   "end": 70.616,
+   "speed": 1.0,
+   "window": [
+    64.523,
+    74.202
    ]
   },
   {
    "scene": "proof",
    "text": "What the tests prove: a real race and class end on Results, every line of the view, and the way back.",
    "caption": "What the tests prove: a real race and class end on Results, every line of the view, and the way back.",
-   "start": 61.942,
-   "end": 67.693,
+   "start": 74.847,
+   "end": 80.598,
    "speed": 1.0,
    "window": [
-    61.942,
-    71.621
+    74.847,
+    84.525
    ]
   },
   {
    "scene": "close",
    "text": "Telo Ride, from the Telo family, turns a smart bike at home into a game.",
    "caption": "Telo Ride, from the Telo family, turns a smart bike at home into a game.",
-   "start": 72.266,
-   "end": 76.569,
+   "start": 85.17,
+   "end": 89.474,
    "speed": 1.0,
    "window": [
-    72.266,
-    100.237
+    85.17,
+    113.142
    ]
   },
   {
    "scene": "close",
    "text": "It pairs with the bike over Bluetooth, reads your power and sets resistance for every hill and interval.",
    "caption": "It pairs with the bike over Bluetooth, reads your power and sets resistance for every hill and interval.",
-   "start": 77.214,
-   "end": 83.097,
+   "start": 90.119,
+   "end": 96.002,
    "speed": 1.0,
    "window": [
-    72.266,
-    100.237
+    85.17,
+    113.142
    ]
   },
   {
    "scene": "close",
    "text": "Two doors: Race, ride a map against your best-time ghost, bots or people; and Classes, ride along to a video, alone or with a group; fed by one progression of XP, rider levels, stars and map unlocks.",
    "caption": "Two doors: Race (ride a map against your best-time ghost, bots or people) and Classes (ride along to a video, alone or with a group), fed by one progression of XP, rider levels, stars and map unlocks.",
-   "start": 83.742,
-   "end": 97.058,
+   "start": 96.647,
+   "end": 109.963,
    "speed": 1.0,
    "window": [
-    72.266,
-    100.237
+    85.17,
+    113.142
    ]
   },
   {
    "scene": "close",
    "text": "A custom workout lives under Profile.",
    "caption": "A custom workout lives under Profile.",
-   "start": 97.704,
-   "end": 99.896,
+   "start": 110.608,
+   "end": 112.801,
    "speed": 1.0,
    "window": [
-    72.266,
-    100.237
+    85.17,
+    113.142
    ]
   }
  ],
@@ -193,77 +211,87 @@ window.FILM_TIMING = {
   },
   {
    "start": 25.809,
-   "end": 30.671,
-   "text": "Finish sixth and it says how far off: twenty-seven thirty-two, eighteen seconds off"
+   "end": 30.333,
+   "text": "On a phone it's one column, the actions below the standings. From a tablet in"
   },
   {
-   "start": 30.671,
-   "end": 31.615,
-   "text": "the podium."
+   "start": 30.333,
+   "end": 33.218,
+   "text": "landscape, what you earned sits beside them."
   },
   {
    "start": 38.714,
-   "end": 43.425,
-   "text": "Against your best it shows the time. A class shows thirty minutes, three hundred"
+   "end": 43.575,
+   "text": "Finish sixth and it says how far off: twenty-seven thirty-two, eighteen seconds off"
   },
   {
-   "start": 43.425,
-   "end": 46.964,
-   "text": "forty-two kilojoules and eighty-four percent on target."
+   "start": 43.575,
+   "end": 44.519,
+   "text": "the podium."
   },
   {
    "start": 51.618,
-   "end": 56.675,
+   "end": 56.33,
+   "text": "Against your best it shows the time. A class shows thirty minutes, three hundred"
+  },
+  {
+   "start": 56.33,
+   "end": 59.869,
+   "text": "forty-two kilojoules and eighty-four percent on target."
+  },
+  {
+   "start": 64.523,
+   "end": 69.58,
    "text": "Done goes home. Race it again opens Race Setup with the same mode and pack; Ride it"
   },
   {
-   "start": 56.675,
-   "end": 58.011,
+   "start": 69.58,
+   "end": 70.916,
    "text": "again, the class."
   },
   {
-   "start": 61.942,
-   "end": 66.715,
+   "start": 74.847,
+   "end": 79.62,
    "text": "What the tests prove: a real race and class end on Results, every line of the view,"
   },
   {
-   "start": 66.715,
-   "end": 67.993,
+   "start": 79.62,
+   "end": 80.898,
    "text": "and the way back."
   },
   {
-   "start": 72.266,
-   "end": 76.869,
+   "start": 85.17,
+   "end": 89.774,
    "text": "Telo Ride, from the Telo family, turns a smart bike at home into a game."
   },
   {
-   "start": 77.214,
-   "end": 81.726,
+   "start": 90.119,
+   "end": 94.631,
    "text": "It pairs with the bike over Bluetooth, reads your power and sets resistance for"
   },
   {
-   "start": 81.726,
-   "end": 83.397,
+   "start": 94.631,
+   "end": 96.302,
    "text": "every hill and interval."
   },
   {
-   "start": 83.742,
-   "end": 88.92,
+   "start": 96.647,
+   "end": 101.825,
    "text": "Two doors: Race (ride a map against your best-time ghost, bots or people) and"
   },
   {
-   "start": 88.92,
-   "end": 94.368,
+   "start": 101.825,
+   "end": 107.273,
    "text": "Classes (ride along to a video, alone or with a group), fed by one progression of"
   },
   {
-   "start": 94.368,
-   "end": 97.358,
+   "start": 107.273,
+   "end": 110.263,
    "text": "XP, rider levels, stars and map unlocks."
   },
   {
-   "start": 97.704,
-   "end": 100.196,
+   "start": 110.608,
+   "end": 113.101,
    "text": "A custom workout lives under Profile."
   }
  ]
