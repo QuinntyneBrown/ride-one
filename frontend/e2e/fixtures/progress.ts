@@ -70,6 +70,19 @@ export const docklandsOpenedProgress = {
 };
 
 /**
+ * The mid rider of docs/mocks/pages/home/unlocked.html (L2-036): a top-3 race on Old Town Criterium has just opened Neon
+ * Docklands, which Home has not announced yet, so the card has moved on to Dolomites, earned with 2★ on Cliffside Coast.
+ */
+export const docklandsUnseenProgress = {
+  ...midRiderProgress,
+  openMapIds: [...midRiderProgress.openMapIds, 'neon-docklands'],
+  nextUnlockId: 'dolomites',
+  stars: { ...midRiderProgress.stars, 'old-town-criterium': 2 },
+  nextRideMapId: 'cliffside-coast',
+  unseenUnlockId: 'neon-docklands',
+};
+
+/**
  * A level-7 rider whose next unlock is Vice City, by reaching level 10 (L2-033 AC4): Cliffside Coast, Dolomites and Neon
  * Docklands open, Neon Docklands last, so Home offers it.
  */

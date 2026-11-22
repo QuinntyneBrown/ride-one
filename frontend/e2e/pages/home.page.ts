@@ -7,6 +7,10 @@ export class HomePage {
   readonly skipLink: Locator;
   readonly main: Locator;
   readonly greeting: Locator;
+  /** The unlocked banner (L2-036). */
+  readonly banner: Locator;
+  readonly bannerBody: Locator;
+  readonly bannerAction: Locator;
   /** The Next ride card (block next-ride, L2-033). */
   readonly card: Locator;
   readonly cardPhoto: Locator;
@@ -40,6 +44,9 @@ export class HomePage {
     this.skipLink = page.getByRole('link', { name: 'Skip to content' });
     this.main = page.locator('main#main');
     this.greeting = page.getByRole('heading', { level: 1 });
+    this.banner = this.main.locator('.banner');
+    this.bannerBody = this.banner.locator('.banner__body');
+    this.bannerAction = this.banner.getByRole('link');
     this.card = page.locator('.next-ride');
     this.cardPhoto = this.card.locator('.next-ride__photo');
     this.cardBody = this.card.locator('.next-ride__body');
