@@ -55,14 +55,19 @@ The slice runs from a layout route in the Ride app to the progress endpoint of t
   HTTP client in `api`. `progress()` calls `GET /api/progress` with the session cookie. The
   older `PROGRESS_API` (`level()` and `maps()`) stays the new rider's stand-in that the class
   tiers and maps read until slices 12.1 and 12.2 move them onto `GET /api/progress`.
+- **`AppHeaderStreak`** — presentation component in `components` (`wz-app-header-streak`,
+  element `app-header__streak`), placed by the shell in the `end` slot like the bike status,
+  only when the streak is above 0 (L2-032 AC3). It draws the flame and the numeral, hidden from
+  assistive technology, and the visually hidden text "4-day streak": a name on a plain `span` is
+  not announced, so the mocks' `aria-label` gave way to the design system's hidden text.
 - **`toLevelView()`** — pure helper in `ride` with unit tests. It turns a `ProgressDto` into a
   `LevelView`: the visible label "1,840 / 2,600 XP", the `aria-label` "Level 7, 1840 of 2600
   XP", and the fill percentage. The fill is total XP divided by the next level's threshold
   (1,840 / 2,600 = 70.8 %), as L2-032 AC2 states. At level 30 the next threshold is `null`, the
   bar is full, and the label reads "21,400 XP" and the `aria-label` "Level 30, 21400 XP". Until
   the progress arrives, or when it cannot be read, the level link is absent.
-- Slice 10.3 builds the level link, `LevelBadge`, `XpBar`, the store and the endpoint; the streak
-  joins with slice 10.4 and Full screen with slice 24.2. Profile's headline reads its level from
+- Slice 10.3 builds the level link, `LevelBadge`, `XpBar`, the store and the endpoint; slice 10.4
+  adds the streak; Full screen joins with slice 24.2. Profile's headline reads its level from
   the same store, so the two never disagree.
 - **`ProgressController`**, **`GetProgressQuery`**, **`GetProgressQueryHandler`** — the
   backend read path in `Telo.Ride.Api` and `Telo.Ride.Application`. The handler loads the
@@ -80,7 +85,7 @@ lg (≥ 1024 px) or wider. Breakpoints come from design-system tokens.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-032` | `L1-007` | Home, Map Select, the Class Library, Profile and not-found shall share one header holding the Telo Ride lockup (a link to Home), the navigation "Main" with Home, Race, Classes and Profile, the bike status (L2-019), the streak, the level and Full screen; the current page's item shall carry `aria-current="page"`. |
-| `L2-032` (AC2) | `L1-007` | For the mid rider, the streak shall read 4 with `aria-label="4-day streak"`, and the level link shall read `aria-label="Level 7, 1840 of 2600 XP"` with a gold level badge, an XP bar filled to 70.8 % and "1,840 / 2,600 XP", and shall go to Profile. |
+| `L2-032` (AC2) | `L1-007` | For the mid rider, the streak shall read 4, named "4-day streak" by visually hidden text, and the level link shall read `aria-label="Level 7, 1840 of 2600 XP"` with a gold level badge, an XP bar filled to 70.8 % and "1,840 / 2,600 XP", and shall go to Profile. |
 | `L2-032` (AC3) | `L1-007` | For a rider with no streak, the streak shall be absent. |
 | `L2-032` (AC4) | `L1-007` | On a phone, the navigation shall take its own full-width row with equal items, the XP bar and label shall be hidden and only the badge shall show; the bike status shall show only at lg or wider. |
 

@@ -13,6 +13,9 @@
       >
     }
     <wz-app-header-bike slot="end" [status]="bike()" />
+    @if (streakDays() > 0) {
+      <wz-app-header-streak slot="end" [days]="streakDays()" />
+    }
     @if (level(); as level) {
       <a
         wz-app-header-level

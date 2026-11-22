@@ -24,8 +24,8 @@ const RIDE_RECORDED: Handler = (request) => ({
 /** A new rider's progress (L2-038): level 1, no XP, 400 XP to level 2. Every spec's rider has it unless it answers. */
 export const newRiderProgress = { level: 1, totalXp: 0, nextLevelXp: 400, streakDays: 0 };
 
-/** The mocks' mid rider (L2-032 AC2): level 7 with 1,840 of 2,600 XP. */
-export const midRiderProgress = { level: 7, totalXp: 1840, nextLevelXp: 2600, streakDays: 0 };
+/** The mocks' mid rider (L2-032 AC2): level 7 with 1,840 of 2,600 XP, on a 4-day streak. */
+export const midRiderProgress = { level: 7, totalXp: 1840, nextLevelXp: 2600, streakDays: 4 };
 
 /** The rider every spec is signed in as, unless it calls `signedOut()` (L2-004). */
 export const signedInRider = { id: '3f2b8c1e-0d6a-4c8e-9b1f-5a7d2e9c4b10', displayName: 'Ada' };

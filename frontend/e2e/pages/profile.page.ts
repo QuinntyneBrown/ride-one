@@ -7,6 +7,8 @@ import { DisplayNameDialog } from './display-name.dialog';
 export class ProfilePage {
   readonly header: AppHeader;
   readonly heading: Locator;
+  /** The line under the headline: the XP to the next level and the streak (L2-038 AC4, L2-042 AC4). */
+  readonly meta: Locator;
   readonly settings: Locator;
   /** The Display name row in Settings, which opens the dialog (L2-005 AC3). */
   readonly displayName: Locator;
@@ -22,6 +24,7 @@ export class ProfilePage {
   constructor(private readonly page: Page) {
     this.header = new AppHeader(page);
     this.heading = page.getByRole('heading', { level: 1 });
+    this.meta = page.locator('.profile-level__meta');
     this.settings = page.getByRole('complementary', { name: 'Settings' });
     this.displayName = this.settings.getByRole('button', { name: /^Display name/ });
     this.dialog = new DisplayNameDialog(page);

@@ -42,6 +42,16 @@ namespace Telo.Ride.Infrastructure.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("nvarchar(320)");
 
+                    b.Property<DateOnly?>("LastRideDay")
+                        .HasColumnType("date");
+
+                    b.Property<int>("StreakDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TimeZoneId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<int>("TotalXp")
                         .HasColumnType("int");
 

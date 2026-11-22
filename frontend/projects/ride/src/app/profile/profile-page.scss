@@ -46,6 +46,13 @@
   overflow-wrap: anywhere;
 }
 
+.profile-level__meta {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-muted);
+}
+
 // Block settings: the aside's title and its ruled list of rows.
 .settings__title {
   font-size: var(--font-size-sm);

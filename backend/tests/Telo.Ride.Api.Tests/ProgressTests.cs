@@ -106,11 +106,11 @@ public sealed class ProgressTests(SignInApi api) : IClassFixture<SignInApi>
             var answer = await Submit(browser, ride);
             var repeat = await Submit(browser, ride, HttpStatusCode.OK);
 
-            Assert.Equal(402, Number(answer, "totalXp"));
+            Assert.Equal(412, Number(answer, "totalXp"));
             Assert.Equal(2, Number(answer, "level"));
             Assert.True(answer.GetProperty("levelUp").GetBoolean());
             Assert.Equal(650, Number(answer, "nextLevelXp"));
-            Assert.Equal(248, Number(answer, "xpToNextLevel"));
+            Assert.Equal(238, Number(answer, "xpToNextLevel"));
             Assert.Equal(answer.GetRawText(), repeat.GetRawText());
             Assert.Equal(2, Number(await Progress(browser), "level"));
         }
@@ -124,10 +124,10 @@ public sealed class ProgressTests(SignInApi api) : IClassFixture<SignInApi>
         {
             var answer = await Submit(browser, RideBodies.Class(Guid.NewGuid()));
 
-            Assert.Equal(1980, Number(answer, "totalXp"));
+            Assert.Equal(1990, Number(answer, "totalXp"));
             Assert.Equal(7, Number(answer, "level"));
             Assert.False(answer.GetProperty("levelUp").GetBoolean());
-            Assert.Equal(620, Number(answer, "xpToNextLevel"));
+            Assert.Equal(610, Number(answer, "xpToNextLevel"));
         }
     }
 
@@ -139,7 +139,7 @@ public sealed class ProgressTests(SignInApi api) : IClassFixture<SignInApi>
         {
             var answer = await Submit(browser, RideBodies.Class(Guid.NewGuid()));
 
-            Assert.Equal(30_140, Number(answer, "totalXp"));
+            Assert.Equal(30_150, Number(answer, "totalXp"));
             Assert.Equal(30, Number(answer, "level"));
             Assert.False(answer.GetProperty("levelUp").GetBoolean());
             Assert.Null(Number(answer, "nextLevelXp"));
