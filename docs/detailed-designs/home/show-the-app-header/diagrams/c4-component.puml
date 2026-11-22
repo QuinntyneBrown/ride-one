@@ -6,7 +6,9 @@ title Components — Show the app header
 Container_Boundary(app, "Ride app") {
   Component(shell, "MainShell", "Layout component · ride", "Hosts the header and the routed page for Home, Map Select, Class Library, Profile and not-found")
   Component(store, "RiderProgressStore", "Signal store · ride (PROGRESS_STORE)", "Holds level, XP and streak from the backend")
-  Component(apphdr, "AppHeader", "Presentation component · components", "Lockup, Main navigation, bike status, streak, level link, Full screen")
+  Component(apphdr, "AppHeader", "Presentation component · components", "Slots for the lockup, Main navigation and the end items")
+  Component(toggle, "FullscreenToggle", "Presentation component · components", "Full screen or Exit full screen")
+  Component(fs, "BrowserFullscreen", "Service · ride/browser (FULLSCREEN)", "Fullscreen API: available, active, enter, exit")
   Component(badge, "LevelBadge", "Presentation component · components", "Gold level badge")
   Component(xpbar, "XpBar", "Presentation component · components", "XP fill and label")
   Component(bikestatus, "BikeStatus", "Presentation component · components", "Bike status (L2-019)")
@@ -22,7 +24,9 @@ ContainerDb(db, "Telo Ride database", "EF Core; engine <TO SUPPLY>", "Riders, ri
 
 Rel(shell, store, "Reads progress signals")
 Rel(shell, conn, "Reads ble signal")
-Rel(shell, apphdr, "Binds inputs, handles fullScreenToggle")
+Rel(shell, apphdr, "Fills the slots")
+Rel(shell, toggle, "Renders when available, handles toggle")
+Rel(shell, fs, "enter() and exit()")
 Rel(apphdr, badge, "Renders")
 Rel(apphdr, xpbar, "Renders")
 Rel(apphdr, bikestatus, "Renders")

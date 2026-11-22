@@ -32,13 +32,15 @@ The slice runs from a layout route in the Ride app to the progress endpoint of t
   (`<a wz-app-header-brand routerLink="/" aria-label="Home">`) and the four nav items
   (`<a wz-app-header-link routerLinkActive ariaCurrentWhenActive="page">`, Home matched exactly,
   the others by prefix), so the router marks the current item. This slice adds the end items: it
-  injects `PROGRESS_STORE` and `BIKE_CONNECTION`, binds the header's inputs, puts the level link
-  to Profile in the `end` slot, and handles the header's `fullScreenToggle` output by calling the
-  full-screen service of L2-144.
+  injects `PROGRESS_STORE`, `BIKE_CONNECTION` and `FULLSCREEN`, and fills the `end` slot. That
+  slot holds the bike status, the streak, the level link to Profile, and `FullscreenToggle`
+  inside `@if (fullscreen.available())`. The toggle's `toggle` output calls the service's
+  `enter()` or `exit()` (L2-144). `BrowserFullscreen` is bound on the shell's route, so it goes
+  with the shell.
 - **`AppHeader`** — presentation component in the `components` library (`wz-app-header`, block
   `app-header`). It lays out three slots, `brand`, `nav` (inside the navigation landmark "Main")
-  and `end`, and renders the `BikeStatus` component, the streak and the Full screen button from
-  its inputs. It knows no route and injects nothing.
+  and `end`; the app places the bike status, the streak, the level link and Full screen in
+  `end`. It knows no route and injects nothing.
 - **`AppHeaderBrand`**, **`AppHeaderLink`** and **`AppHeaderLevel`** — attribute components in
   `components` on the app's `<a>` elements (`a[wz-app-header-brand]`, `a[wz-app-header-link]`,
   `a[wz-app-header-level]`). Each styles its host as the block's element (`app-header__brand`,
@@ -53,8 +55,8 @@ The slice runs from a layout route in the Ride app to the progress endpoint of t
   it with their slices.
 - **`RiderProgressApi`** / **`HttpRiderProgressApi`** — contract, `RIDER_PROGRESS_API` token and
   HTTP client in `api`. `progress()` calls `GET /api/progress` with the session cookie. The
-  older `PROGRESS_API` (`level()` and `maps()`) stays the new rider's stand-in that the class
-  tiers and maps read until slices 12.1 and 12.2 move them onto `GET /api/progress`.
+  older `PROGRESS_API` (`level()` and `maps()`) reads the same endpoint through `HttpProgressApi`.
+  It has been bound on the map and class routes since slices 12.1 and 12.2.
 - **`AppHeaderStreak`** — presentation component in `components` (`wz-app-header-streak`,
   element `app-header__streak`), placed by the shell in the `end` slot like the bike status,
   only when the streak is above 0 (L2-032 AC3). It draws the flame and the numeral, hidden from
@@ -67,8 +69,10 @@ The slice runs from a layout route in the Ride app to the progress endpoint of t
   bar is full, and the label reads "21,400 XP" and the `aria-label` "Level 30, 21400 XP". Until
   the progress arrives, or when it cannot be read, the level link is absent.
 - Slice 10.3 builds the level link, `LevelBadge`, `XpBar`, the store and the endpoint; slice 10.4
-  adds the streak; Full screen joins with slice 24.2. Profile's headline reads its level from
-  the same store, so the two never disagree.
+  adds the streak; slice 13.1 adds Full screen, whose contract, service and toggle
+  `ui/switch-theme-and-full-screen` designs. Slice 24.2 brings Full screen to the page headers
+  outside the shell. Profile's headline reads its level from the same store, so the two never
+  disagree.
 - **`ProgressController`**, **`GetProgressQuery`**, **`GetProgressQueryHandler`** — the
   backend read path in `Telo.Ride.Api` and `Telo.Ride.Application`. The handler loads the
   rider's progress, asks `LevelTable` for the level and next threshold, and returns the
