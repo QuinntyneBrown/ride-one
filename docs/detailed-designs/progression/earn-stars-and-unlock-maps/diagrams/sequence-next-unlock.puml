@@ -16,8 +16,8 @@ skinparam package {
 }
 actor "Rider" as actor
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "HomePage, MapSelectPage or RaceSetupPage" as page
-  participant "RiderProgressStore" as store
+  participant "MapSelectPage or RaceSetupPage" as page
+  participant "HttpProgressApi" as store
 end box
 box "Backend — Telo.Ride.Api" #D1FADF
   participant "ProgressController" as ctrl
@@ -30,17 +30,18 @@ box "Backend — Telo.Ride.Infrastructure" #FFF4E5
   database "Telo Ride database" as db
 end box
 actor -> page : Open the screen
-page -> store : progress
+page -> store : maps()
 store -> ctrl : GET /api/progress
 ctrl -> handler : Send GetProgressQuery
-handler -> db : MapDefinitions in unlock order, MapProgress, level
-handler -> unlocks : NextUnlock(maps, progress, level)
+handler -> db : Rider, MapProgress
+handler -> unlocks : NextUnlock(catalogue in unlock order, open maps)
 loop Locked maps in unlock order
   unlocks -> unlocks : Workable now if its prerequisite map is open or its goal is a level (L2-041 AC1)
 end
 unlocks --> handler : Mid rider: Neon Docklands by "Finish top 3 vs Bots on Old Town Criterium" (AC2)
-handler --> ctrl : ProgressDto with nextUnlock and each locked map's goal text (L2-040 AC6)
+handler --> ctrl : ProgressDto with openMapIds, nextUnlockId, stars and bestTimeSeconds
 ctrl --> store : 200 ProgressDto
-store --> page : One source for Home, Map Select and Race Setup (L2-041 AC4)
+store --> page : MapProgressDto; the goal text is the catalogue's unlockGoal (L2-040 AC6)
+page -> page : One source for Map Select and Race Setup, and Home from 13.2 (L2-041 AC4)
 page --> actor : Same map and goal on every screen
 @enduml
