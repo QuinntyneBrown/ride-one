@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Class Done · first — Telo Ride 1 mocks</title>
+<meta name="mock:kind" content="page">
+<meta name="mock:screen" content="class-done">
+<meta name="mock:state" content="first">
+<meta name="mock:requirements" content="L2-077 L2-078 L2-079">
+<meta name="description" content="The first ride of the class: “Class done. That’s your number to beat.” over 351 kJ, with Time, Average and On target and no best.">
+<link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
+<link rel="stylesheet" href="../../../design-system/assets/components.css">
+<link rel="stylesheet" href="../../assets/mock.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="app class-done">
+  <header class="class-header">
+    <span class="lockup" role="img" aria-label="Telo Ride 1"><svg class="logo-mark" width="26" height="26" viewBox="0 0 48 48" aria-hidden="true"><path class="logo-mark__ring" d="M37.79 21.57 A14 14 0 1 1 26.43 10.21"/><path class="logo-mark__crank" d="M24 24 L38 10"/><circle class="logo-mark__hub" cx="24" cy="24" r="4.6"/></svg><span class="wordmark">TELO<span class="wordmark__product">Ride 1</span></span></span>
+    <span class="class-done__class">30 Minute HIIT Cardio</span>
+    <button class="icon-btn class-header__end" type="button" aria-label="Full screen"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+  </header>
+
+  <div class="app__scroll">
+    <main id="main" class="class-done__body">
+      <section class="class-done__score" aria-labelledby="verdict">
+        <h1 class="class-done__verdict" id="verdict">Class done. That’s your number to beat.</h1>
+        <p class="class-done__output"><span class="class-done__number">351</span> <span class="class-done__unit">kJ</span></p>
+        <dl class="class-done__facts">
+          <div class="class-done__fact"><dt class="class-done__fact-label">Time</dt><dd class="class-done__fact-value">30:12</dd></div>
+          <div class="class-done__fact"><dt class="class-done__fact-label">Average</dt><dd class="class-done__fact-value">194 W</dd></div>
+          <div class="class-done__fact"><dt class="class-done__fact-label">On target</dt><dd class="class-done__fact-value">84%</dd></div>
+        </dl>
+      </section>
+
+      <section class="class-done__efforts" aria-labelledby="efforts-title">
+        <h2 class="class-done__efforts-title" id="efforts-title">Your eight efforts, average watts</h2>
+        <ol class="class-done__chart">
+          <li class="class-done__effort" style="--value: 95.3%; --index: 0"><span class="class-done__watts"><span class="visually-hidden">Effort 1: </span>407<span class="visually-hidden"> W</span></span><span class="class-done__bar"></span></li>
+          <li class="class-done__effort class-done__effort--peak" style="--value: 100%; --index: 1"><span class="class-done__watts"><span class="visually-hidden">Effort 2: </span>427<span class="visually-hidden"> W, your strongest</span></span><span class="class-done__bar"></span></li>
+          <li class="class-done__effort" style="--value: 93.2%; --index: 2"><span class="class-done__watts"><span class="visually-hidden">Effort 3: </span>398<span class="visually-hidden"> W</span></span><span class="class-done__bar"></span></li>
+          <li class="class-done__effort" style="--value: 88.5%; --index: 3"><span class="class-done__watts"><span class="visually-hidden">Effort 4: </span>378<span class="visually-hidden"> W</span></span><span class="class-done__bar"></span></li>
+          <li class="class-done__effort" style="--value: 86.4%; --index: 4"><span class="class-done__watts"><span class="visually-hidden">Effort 5: </span>369<span class="visually-hidden"> W</span></span><span class="class-done__bar"></span></li>
+          <li class="class-done__effort" style="--value: 84.1%; --index: 5"><span class="class-done__watts"><span class="visually-hidden">Effort 6: </span>359<span class="visually-hidden"> W</span></span><span class="class-done__bar"></span></li>
+          <li class="class-done__effort" style="--value: 81.7%; --index: 6"><span class="class-done__watts"><span class="visually-hidden">Effort 7: </span>349<span class="visually-hidden"> W</span></span><span class="class-done__bar"></span></li>
+          <li class="class-done__effort" style="--value: 97.7%; --index: 7"><span class="class-done__watts"><span class="visually-hidden">Effort 8: </span>417<span class="visually-hidden"> W</span></span><span class="class-done__bar"></span></li>
+        </ol>
+        <p class="mock-note">The bars rise in turn as the page opens: 250 ms each, 40 ms apart, from 96% height and transparent. With reduced motion they are simply there.</p>
+      </section>
+
+      <div class="class-done__actions">
+        <a class="btn btn--primary btn--xl btn--block class-done__done" href="../the-class/returning.html">Done</a>
+      </div>
+    </main>
+  </div>
+</div>
+
+<nav class="mock-bar" aria-label="Mock navigation">
+  <a class="mock-bar__home" href="../../index.html" aria-label="All mocks">⌂</a>
+  <span class="mock-bar__screen">Class Done</span>
+  <ul class="mock-bar__states">
+    <li><a href="default.html">default</a></li>
+    <li><a href="first.html" aria-current="page">first</a></li>
+    <li><a href="not-best.html">not-best</a></li>
+  </ul>
+  <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
+  <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>
+</nav>
+<script src="../../assets/mock.js"></script>
+</body>
+</html>

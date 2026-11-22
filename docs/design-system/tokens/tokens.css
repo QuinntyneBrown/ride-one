@@ -122,9 +122,11 @@
   --font-size-4xl: 2.25rem;    --line-height-4xl: 2.5rem;    /* 36px */
   --font-size-5xl: 3rem;       /* 48px numerals, line height 1 */
   --font-size-6xl: 3.75rem;    /* 60px */
-  --font-size-7xl: 4.5rem;     /* 72px: reserved step; no component uses it yet */
+  --font-size-7xl: 4.5rem;     /* 72px: the class length on The Class from 1280px */
   --font-size-8xl: 6rem;       /* 96px: the position on Results, live watts */
   --font-size-9xl: 8rem;       /* 128px: the Results position and live watts from 640px */
+  --font-size-score: 7rem;     /* 112px: the output on Class Done (text-[112px]) */
+  --font-size-score-lg: 10rem; /* 160px: the output on Class Done from 640px (sm:text-[160px]) */
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -134,6 +136,7 @@
 
   --line-height-none: 1;
   --line-height-tight: 1.25;
+  --line-height-display: 0.95;  /* the wide italic class title (leading-[0.95]) */
   --line-height-snug: 1.375;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.625;
@@ -237,6 +240,7 @@
   --duration-fade: 250ms;        /* an opacity fade, which reduced motion keeps (L2-142 AC2) */
   --duration-unlock: var(--duration-slow);
   --duration-countdown: var(--duration-deliberate);
+  --duration-stagger: 40ms;      /* between bars that rise one after another (Class Done's efforts) */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-enter: cubic-bezier(0, 0, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
@@ -279,6 +283,11 @@
   --classes-segment-easy: var(--color-plan-easy);
   --classes-start-aside-width: 26.25rem;
   --classes-board-width: 17.5rem;
+  /* area: Telo Ride 1 (The Class and Class Done) */
+  --the-class-aside-width: 23.75rem;     /* lg: grid-cols-[minmax(0,1fr)_380px] */
+  --the-class-aside-width-xl: 26.25rem;  /* xl: 420px */
+  --class-done-chart-height: 12rem;      /* the eight efforts, h-48 */
+  --class-done-action-width: 18rem;      /* Done from 640px, sm:w-72 */
   /* area: profile */
   --profile-aside-width: 21.25rem;
   /* area: setup */
@@ -529,7 +538,7 @@
 
 /* 6. Preferences ----------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  :root { --duration-loop: 0ms; --duration-pulse: 0ms; --duration-fast: 0ms; --duration-base: 0ms; --duration-slow: 0ms; }
+  :root { --duration-loop: 0ms; --duration-pulse: 0ms; --duration-fast: 0ms; --duration-base: 0ms; --duration-slow: 0ms; --duration-stagger: 0ms; }
 }
 @media (prefers-contrast: more) {
   :root, [data-theme] { --color-border-default: var(--color-line-strong); --color-fg-subtle: var(--color-muted); }
