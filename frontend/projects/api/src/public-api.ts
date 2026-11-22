@@ -75,6 +75,7 @@ export {
   type RideRecordedDto,
   type RidesApi,
   type SubmitRideRequest,
+  type XpLineDto,
 } from './rides/rides-api';
 export { RIDERS_API, type RiderMe, type RidersApi } from './riders/riders-api';
 export { sessionInterceptor } from './riders/session.interceptor';

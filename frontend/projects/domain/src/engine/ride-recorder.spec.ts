@@ -1,9 +1,9 @@
 // Unit test
-// Traces to: L2-044 AC2; L2-125 AC2
+// Traces to: L2-044 AC2; L2-125 AC2; L2-037 AC3
 // Description: a ride's recorder keeps, for each second ridden, its speed, and adds its power to the output; the distance
 // is what the speeds sent add up to, so the backend's check of one against the other holds. Seconds a hidden tab skipped
 // count at the power and speed of the moment, an unknown power or speed counts as none, and nothing is kept past four
-// hours. The ride id is given when the ride starts.
+// hours. The share of seconds on target is kept to three decimals. The ride id is given when the ride starts.
 import { RideRecorder } from './ride-recorder';
 
 const FINISHED = new Date('2026-11-21T07:30:00Z');
@@ -64,6 +64,18 @@ describe('RideRecorder', () => {
     expect(facts.speedSamplesKmh).toEqual([0, 0]);
     expect(facts.distanceMeters).toBe(0);
     expect(facts.outputKj).toBe(0);
+  });
+
+  it('keeps the share of seconds whose power was on target', () => {
+    const recorder = new RideRecorder();
+    recorder.record(143, 19.27, 40, true);
+    recorder.record(661, 32.09, 33, false);
+
+    expect(recorder.facts(FINISHED).onTargetShare).toBe(0.548);
+  });
+
+  it('has no share on target before a second is ridden', () => {
+    expect(new RideRecorder().facts(FINISHED).onTargetShare).toBe(0);
   });
 
   it('keeps nothing past four hours', () => {

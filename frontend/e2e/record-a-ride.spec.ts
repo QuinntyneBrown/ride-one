@@ -1,9 +1,10 @@
 // Acceptance test
-// Traces to: L2-044 AC2, AC4; L2-125 AC2, AC3
+// Traces to: L2-044 AC2, AC4; L2-125 AC2, AC3; L2-037 AC3
 // Description: a finished ride is submitted to the backend once, as it ends, with the ride id the app gave it when it
 // started: a race with its map, mode, pack, place and field, a class with its class, and both with their seconds,
-// distance, output, highest power and speed, the speed of each second ridden (which add up to the distance, so the
-// backend can check it), the finish instant and the device's time zone. It carries no XP, stars or unlocks.
+// distance, output, highest power and speed, the share of running seconds within 10 % of target power (for its XP),
+// the speed of each second ridden (which add up to the distance, so the backend can check it), the finish instant
+// and the device's time zone. It carries no XP, stars or unlocks.
 // Old Town Criterium is served 0.5 km long, so the line is reached in a spec's minute.
 import type { Page } from '@playwright/test';
 import { startClassRide } from './fixtures/class-ride';
@@ -67,6 +68,8 @@ test(
       outputKj: expect.any(Number),
       maxPowerWatts: 661,
       maxSpeedKmh: 32.09,
+      // 661 W against the warm-up's 143 W target is never within 10 %.
+      onTargetShare: 0,
       speedSamplesKmh: expect.any(Array),
       finishedAt: expect.stringMatching(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/),
       timeZoneId,
@@ -137,10 +140,34 @@ test('a ride carries no XP, stars or unlocks, which the backend computes (L2-044
       'outputKj',
       'maxPowerWatts',
       'maxSpeedKmh',
+      'onTargetShare',
       'speedSamplesKmh',
       'finishedAt',
       'timeZoneId',
     ].sort(),
   );
   expect(ride).toEqual(expect.objectContaining({ mode: 'solo', pack: null }));
+});
+
+test('the share of running seconds within 10 % of target power goes with the ride (L2-037 AC3)', async ({
+  page,
+  bluetooth,
+  api,
+}) => {
+  await startRace(page, bluetooth, api, 'old-town-criterium', 'mode=solo', {
+    catalogue: shortCriterium,
+  });
+  // The warm-up's level 8 at its 80 rpm aim is its target, 143 W, for 40 seconds; then 661 W to the line.
+  await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(8));
+  for (let second = 0; second < 40; second += 4) {
+    await bluetooth.notify(ECHELON_NOTIFY, workoutFrame(80));
+    await page.clock.runFor(4000);
+  }
+
+  await rideToTheLine(page, bluetooth);
+
+  await expect.poll(() => api.sentBodies('POST', '/api/rides')).toHaveLength(1);
+  const [ride] = api.sentBodies('POST', '/api/rides') as SubmittedRide[];
+  expect(ride['onTargetShare']).toBeCloseTo(40 / (ride['elapsedSeconds'] as number), 3);
+  expect(ride['onTargetShare']).toBeGreaterThan(0.5);
 });

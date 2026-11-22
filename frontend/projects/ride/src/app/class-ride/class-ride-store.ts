@@ -219,15 +219,15 @@ export class ClassRideStore {
   }
 
   /**
-   * Each second ridden at the bike's power and speed (L2-022 AC2); seconds a hidden tab skipped count at those of the
-   * moment, and a held ride's clock does not tick.
+   * Each second ridden at the bike's power and speed (L2-022 AC2), on target when the power is within 10 % of the
+   * segment's target (L2-037 AC3); seconds a hidden tab skipped count at those of the moment, and a held ride's clock
+   * does not tick.
    */
   private record(second: number): void {
-    this.recorder?.record(
-      this.telemetry.powerW(),
-      this.telemetry.speedKmh(),
-      second - this.lastSecond,
-    );
+    const power = this.telemetry.powerW();
+    const target = this.plan()?.targetPower ?? null;
+    const onTarget = power !== null && target !== null && PowerModel.onTarget(power, target);
+    this.recorder?.record(power, this.telemetry.speedKmh(), second - this.lastSecond, onTarget);
     this.lastSecond = second;
   }
 
