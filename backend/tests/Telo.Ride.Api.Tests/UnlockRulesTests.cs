@@ -51,3 +51,41 @@ public sealed class UnlockRulesTests
         Assert.Equal(opens, UnlockRules.Evaluate(Order, raceMapId, finish, held, level, opened.ToHashSet()));
     }
 }
+
+// Unit test (the rule's table of cases, beside MapStandingTests through the API)
+// Traces to: L2-041 AC1, AC2, AC3
+// Description: the next unlock is the first locked map in unlock order whose goal the rider can work on now: its
+// prerequisite map is open, or its goal is a level. None once every map is open.
+public sealed class NextUnlockTests
+{
+    private static readonly IReadOnlyList<(string MapId, MapUnlock Unlock)> Order =
+    [
+        ("prairie-paceline", MapUnlock.FromTheStart),
+        ("old-town-criterium", MapUnlock.FromTheStart),
+        ("cliffside-coast", MapUnlock.TopThreeVsBots("prairie-paceline")),
+        ("neon-docklands", MapUnlock.TopThreeVsBots("old-town-criterium")),
+        ("dolomites", MapUnlock.StarsOn("cliffside-coast", 2)),
+        ("vice-city", MapUnlock.RiderLevel(10)),
+        ("col-du-granit", MapUnlock.StarsOn("dolomites", 3)),
+    ];
+
+    public static TheoryData<string, string[], string?> Cases => new()
+    {
+        { "a new rider", [], "cliffside-coast" },
+        { "the mid rider, Cliffside Coast open", ["cliffside-coast"], "neon-docklands" },
+        { "Neon Docklands open before Cliffside Coast", ["neon-docklands"], "cliffside-coast" },
+        { "Cliffside Coast and Neon Docklands open", ["cliffside-coast", "neon-docklands"], "dolomites" },
+        { "Dolomites locked behind Cliffside Coast, Neon Docklands open", ["neon-docklands"], "cliffside-coast" },
+        { "up to Dolomites open", ["cliffside-coast", "neon-docklands", "dolomites"], "vice-city" },
+        { "the veteran", ["cliffside-coast", "neon-docklands", "dolomites", "vice-city"], "col-du-granit" },
+        { "every map open", ["cliffside-coast", "neon-docklands", "dolomites", "vice-city", "col-du-granit"], null },
+    };
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void Is_the_first_locked_map_whose_goal_can_be_worked_on(string name, string[] opened, string? next)
+    {
+        _ = name; // names the row in the test's display name
+        Assert.Equal(next, UnlockRules.NextUnlock(Order, opened.ToHashSet()));
+    }
+}
