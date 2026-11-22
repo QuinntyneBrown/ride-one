@@ -93,3 +93,10 @@
   --btn-bg: var(--color-raised);
   --btn-bg-hover: var(--color-raised-hover);
 }
+
+// An action that cannot be undone (Delete my account); its words say so too.
+:host(.btn--danger) {
+  --btn-bg: var(--color-danger-solid);
+  --btn-bg-hover: var(--color-danger-solid-hover);
+  --btn-fg: var(--color-fg-on-danger);
+}

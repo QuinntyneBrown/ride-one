@@ -5,8 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using Telo.Ride.Infrastructure;
+using Telo.Ride.Infrastructure.Accounts;
 
 namespace Telo.Ride.Api.Tests;
 
@@ -29,8 +31,22 @@ public class TeloRideApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();
             services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(store));
             services.Replace(ServiceDescriptor.Singleton<TimeProvider>(Clock));
+            if (!RunsAccountErasure)
+            {
+                foreach (var erasure in services.Where(descriptor => descriptor.ImplementationType == typeof(AccountErasureService)).ToList())
+                {
+                    services.Remove(erasure);
+                }
+            }
+
             ConfigureServices(services);
         });
+
+    /// <summary>
+    /// Whether the daily <see cref="AccountErasureService"/> runs. It ticks on <see cref="Clock"/>, which every test
+    /// advances, so only the host that tests it runs it; elsewhere it would erase in the background mid-test.
+    /// </summary>
+    protected virtual bool RunsAccountErasure => false;
 
     /// <summary>Changes the host's services after the in-memory store is in place.</summary>
     protected virtual void ConfigureServices(IServiceCollection services)

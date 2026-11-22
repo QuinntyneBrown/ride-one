@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Telo.Ride.Api.Authentication;
 using Telo.Ride.Application.Accounts;
@@ -21,6 +22,15 @@ public sealed class RidersController(ISender sender) : ControllerBase
     [HttpPut("me/display-name")]
     public Task<RiderDto> SetDisplayName(SetDisplayNameRequest request, CancellationToken cancellationToken) =>
         sender.Send(new SetDisplayNameCommand(SignedIn, request.DisplayName), cancellationToken);
+
+    /// <summary>Deletes the account (L2-006 AC3): every session ends, and this device's cookie is cleared.</summary>
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteMe(CancellationToken cancellationToken)
+    {
+        await sender.Send(new DeleteAccountCommand(SignedIn), cancellationToken);
+        await HttpContext.SignOutAsync();
+        return NoContent();
+    }
 
     private Guid SignedIn => RiderSessionTicketStore.RiderId(User) ?? Guid.Empty;
 }

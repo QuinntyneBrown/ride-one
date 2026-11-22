@@ -20,6 +20,11 @@
     color: var(--color-volt-fg);
   }
 
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
   &:focus-visible {
     outline: var(--focus-ring-width) solid var(--color-focus-ring);
     outline-offset: var(--focus-ring-offset);
@@ -66,4 +71,16 @@
 .setting-row__chevron {
   flex-shrink: 0;
   color: var(--color-faint);
+}
+
+// Modifier danger: an action that cannot be undone (Delete my account).
+:host(.setting-row--danger) {
+  &:hover {
+    color: var(--color-heart-fg);
+  }
+
+  .setting-row__icon,
+  .setting-row__title {
+    color: var(--color-heart-fg);
+  }
 }

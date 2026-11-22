@@ -97,7 +97,7 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "projects/ride/tsconfig.spec.json",
-            "include": ["../../*/src/**/*.spec.ts"]
+            "include": ["**/*.spec.ts", "../../*/src/**/*.spec.ts"]
           }
         },
         "lint": {

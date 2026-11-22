@@ -28,14 +28,16 @@
       "route": "/sign-in",
       "requirements": [
         "L2-001",
-        "L2-003"
+        "L2-003",
+        "L2-006"
       ],
       "states": [
         "default",
         "sending",
         "invalid",
         "failed",
-        "rate-limited"
+        "rate-limited",
+        "account-deleted"
       ],
       "not_applicable": {
         "empty": "One email field; there is nothing to list.",
@@ -417,12 +419,14 @@
         "L2-110",
         "L2-111",
         "L2-112",
-        "L2-158"
+        "L2-158",
+        "L2-006"
       ],
       "states": [
         "default",
         "new-rider",
-        "veteran"
+        "veteran",
+        "sign-out-failed"
       ],
       "not_applicable": {
         "empty": "‘new-rider’ is the empty state: level 1, no rides, no stars yet.",
@@ -620,6 +624,26 @@
       "not_applicable": {
         "busy": "‘saving’ is the busy state.",
         "error": "A failed save shows the prompt’s ‘failed’ message under the field."
+      }
+    },
+    {
+      "id": "delete-account",
+      "kind": "dialog",
+      "title": "Delete my account",
+      "opens_from": "profile",
+      "requirements": [
+        "L2-006"
+      ],
+      "states": [
+        "default",
+        "ready",
+        "deleting",
+        "failed"
+      ],
+      "not_applicable": {
+        "busy": "‘deleting’ is the busy state.",
+        "invalid": "Nothing is refused as invalid: “Delete my account” stays disabled until “delete” is typed.",
+        "empty": "One field; there is nothing to list."
       }
     }
   ]

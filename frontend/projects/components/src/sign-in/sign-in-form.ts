@@ -15,7 +15,8 @@ import { signInMessage } from './sign-in-message';
 /**
  * The sign-in screen (docs/mocks/pages/sign-in/): one email field and "Send my code", which reads "Sending your code…"
  * while the request runs (L2-001 AC2). An invalid address is marked under the field; a failed or refused send says so
- * above the button (L2-001 AC3, AC5, L2-003 AC4).
+ * above the button (L2-001 AC3, AC5, L2-003 AC4). Opened after the account was deleted, it says so under the lead
+ * (L2-006 AC3).
  */
 @Component({
   selector: 'wz-sign-in-form',
@@ -29,6 +30,8 @@ export class SignInForm {
   readonly email = input('');
   readonly sending = input(false);
   readonly error = input<SignInError | null>(null);
+  /** The rider has just deleted their account. */
+  readonly accountDeleted = input(false);
   /** The email as typed, when the rider chooses "Send my code". */
   readonly send = output<string>();
 

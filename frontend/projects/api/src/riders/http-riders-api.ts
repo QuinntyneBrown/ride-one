@@ -1,9 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import type { Observable } from 'rxjs';
+import { type Observable, map } from 'rxjs';
 import type { RiderMe, RidersApi } from './riders-api';
 
-/** The signed-in rider's HTTP client: `GET /api/riders/me` and `PUT /api/riders/me/display-name`. */
+/**
+ * The signed-in rider's HTTP client: `GET /api/riders/me`, `PUT /api/riders/me/display-name` and
+ * `DELETE /api/riders/me`.
+ */
 @Injectable()
 export class HttpRidersApi implements RidersApi {
   private readonly http = inject(HttpClient);
@@ -14,5 +17,9 @@ export class HttpRidersApi implements RidersApi {
 
   setDisplayName(name: string): Observable<RiderMe> {
     return this.http.put<RiderMe>('/api/riders/me/display-name', { displayName: name });
+  }
+
+  deleteMe(): Observable<void> {
+    return this.http.delete('/api/riders/me').pipe(map(() => undefined));
   }
 }

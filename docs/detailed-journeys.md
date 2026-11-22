@@ -42,7 +42,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 9.1 | Request an email code | Rider enters an email address; the backend sends a one-time code and the screen waits for it. | 3 | 9. Sign in with an email code | 100% |
 | 9.2 | Verify and stay signed in | Enter the code, get a session, stay signed in. | 3 | 9. Sign in with an email code | 100% |
 | 9.3 | Choose a display name | Prompt after first sign-in; change it from Profile. | 2 | 9. Sign in with an email code | 100% |
-| 9.4 | Sign out and delete account | Sign out; delete account and all its data. | 2 | 9. Sign in with an email code | 0% |
+| 9.4 | Sign out and delete account | Sign out; delete account and all its data. | 2 | 9. Sign in with an email code | 100% |
 | 10.1 | Record a ride | `POST /api/rides`, idempotent by ride id, plausibility check. | 3 | 10. Earn XP, levels and streaks | 0% |
 | 10.2 | Earn XP | Each recorded ride earns XP from its output and time, calculated on the backend. | 2 | 10. Earn XP, levels and streaks | 0% |
 | 10.3 | Rider levels | Levels from XP thresholds; level shown in the header. | 2 | 10. Earn XP, levels and streaks | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 35 slices, 93 days (39%).
+**Total:** 95 slices, 238 days. **Complete:** 36 slices, 95 days (40%).
