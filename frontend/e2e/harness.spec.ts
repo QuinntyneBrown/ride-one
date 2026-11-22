@@ -37,10 +37,10 @@ test.describe('Test harness', () => {
   });
 
   test('an API request gets the answer the spec declared (L2-148 AC1)', async ({ page, api }) => {
-    api.answer('GET', '/api/progress', { xp: 1240, level: 4 });
+    api.answer('GET', '/api/harness-probe', { xp: 1240, level: 4 });
     await new HomePage(page).open();
 
-    const response = await new AppCalls(page).request('GET', '/api/progress');
+    const response = await new AppCalls(page).request('GET', '/api/harness-probe');
 
     expect(response).toEqual({ status: 200, body: { xp: 1240, level: 4 } });
   });
@@ -49,7 +49,7 @@ test.describe('Test harness', () => {
     test.fail(true, 'the guard must fail a spec whose page calls an API nobody answered');
     await new HomePage(page).open();
 
-    await new AppCalls(page).request('GET', '/api/progress');
+    await new AppCalls(page).request('GET', '/api/harness-probe');
   });
 
   test('the ride hub records what the page invokes and sends what the spec pushes (L2-148 AC1)', async ({

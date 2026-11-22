@@ -21,7 +21,7 @@ box "Frontend — Ride app (ride application and components library)" #E0F2FE
   participant "RiderProgressStore" as store
 end box
 box "Frontend — Ride app (api library)" #E0F2FE
-  participant "HttpProgressApi" as client
+  participant "HttpRiderProgressApi" as client
 end box
 box "Backend — Telo.Ride.Api" #D1FADF
   participant "ProgressController" as ctrl
@@ -35,7 +35,7 @@ box "Backend — Telo.Ride.Infrastructure" #FFF4E5
 end box
 actor -> shell : Open Home, Map Select, Class Library, Profile or not-found
 shell -> store : refresh()
-store -> client : getProgress()
+store -> client : progress()
 client -> ctrl : GET /api/progress (session cookie)
 ctrl -> handler : Send GetProgressQuery
 handler -> db : Load rider progress
