@@ -14,19 +14,34 @@ set a new personal best (L1-013).
   waiting for a network
 
 Every value in these panels comes from the backend's answer to the ride's submission (L2-044).
-The panels therefore have a waiting state while the answer is on its way, and an offline state
-when the ride was finished without a network (L2-135). Neither state has a mock yet; both are
-listed as mock gaps in `docs/specs/L2.md`.
+The panels therefore have a waiting state while the answer is on its way (mock
+`results/recording`), an offline state when the ride was finished without a network (L2-135,
+`results/offline`) and a state for a ride the backend refused or could not record
+(`results/not-recorded`).
 
 ## Description
 
-- **`ResultsStore`** — the Results route's store (see `show-results`). It watches
-  `RideOutbox.status(rideId)` and computes three views: `XpEarnedView`, `MapStarsView` (races
-  only) and `PersonalBestView` (solo races only).
-- **`RideSyncState`** — union in `api`: `sending`, `recorded(answer)` or `waitingOffline`.
+- **`RideOutbox`** — contract and `RIDE_OUTBOX` token in `api`. `submit(ride)` sends a finished
+  ride through `RIDES_API` once per ride id (a second call for the same id changes nothing), and
+  `status(rideId)` is a signal of its `RideSyncState`. Until L2-135 keeps rides in browser storage,
+  `SessionRideOutbox` in `domain/storage` holds them in memory for the session, at most the last
+  ten, and is provided on the screens' lazy parent route, so the race or class that submits and
+  the Results that reads share it. A ride waiting for a network is sent again when the browser
+  reports it is back online; the listener goes with the outbox.
+- **Where the ride comes from** — the race or class page submits the ride and hands Results the
+  same `SubmitRideRequest` in the navigation's state beside its result. Results submits it too:
+  after a reload the outbox is new, and the backend answers a repeat of a ride id as it answered
+  the first time (L2-125 AC3), so the panels fill again.
+- **`RideSyncState`** — union in `api`: `sending`, `recorded(answer)`, `waitingOffline` (no
+  network: the request never reached the backend) or `notRecorded` (the backend refused the ride,
+  as with 422 `ride_not_plausible`, or failed).
 - **`RideRecordedDto`** — the backend's answer (`progression/keep-progress-on-the-backend`): XP
-  lines and total, level and `levelUp`, stars held and new stars, best, previous best and
-  `isNewBest`.
+  lines and total, level and `levelUp`, and for a race `stars` (held and new) and `best` (the
+  best, the previous best and `isNewBest`), both `null` for a class. The backend keeps them on the
+  recorded ride, so a repeat answers the same.
+- **`resultsView()`** — takes the sync state beside the result and adds the three panels' views:
+  the XP panel's state and lines, the stars on the map (races only, once recorded) and, for a solo
+  race, the personal best in the lead and the line under the time.
 - **`XpEarned`** — presentation component (`wz-xp-earned`, block `xp-earned`). It shows "XP
   earned", the total ("+442") and each line in the order the backend returned. In the waiting
   state it shows that the result is being recorded and announces the filled panel politely. In the
@@ -35,11 +50,20 @@ listed as mock gaps in `docs/specs/L2.md`.
 - **`MapStars`** — presentation component (`wz-map-stars`, block `map-stars`). It shows "Stars on
   {map}", the stars held ("2 of 3") through `Stars`, and "+1 new star" or "+2 new stars" only
   when stars were earned. A class shows no stars panel.
-- **`PersonalBest`** — presentation component for a solo race. Faster than the previous best, it
-  reads "New personal best", the time and "Best before: {time}", and Results shows no standings.
-  Slower, it reads "You finished", the time and "Best: {best}".
+- **Personal best** — a solo race's lead and the line under its time, in the result section,
+  not a panel of its own: the mocks draw it there. Faster than the previous best, it reads "New
+  personal best", the time and "Best before: {time}", and Results shows no standings. Slower, it
+  reads "You finished", the time and "Best: {best}". A first finish, or while the answer is on its
+  way, it reads "You finished" and the time alone.
+- **`Stars`** — gains the large size the panel draws (`size="lg"`, 28 px stars), so the panel
+  never styles the component's block from outside.
+- **Not in this slice** — the unlock card (slice 11.3); the new level beside the XP when
+  `levelUp` is set (L2-038 AC3), which has no mock yet; and the group class (the multiplayer
+  slices).
 - **Third star** — the backend awards "Beat your best time" on a new best in any mode, if the
-  rider does not hold it (`progression/earn-stars-and-unlock-maps`). The mocks for Results
+  rider does not hold it (`progression/earn-stars-and-unlock-maps`). This slice builds that
+  design's `MapProgress`, `RaceFinish`, `RecordFinish` and `StarRules`; its unlocks come with
+  slice 12.1. The mocks for Results
   `default` and `solo` show a new best without the third star; open question 5 in
   `docs/specs/L2.md` records the conflict, and the design follows the requirement.
 
