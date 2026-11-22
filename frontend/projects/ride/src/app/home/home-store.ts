@@ -4,11 +4,12 @@ import { CURRENT_RIDER, MAPS_API, PROGRESS_STORE } from '@telo/api';
 import { catchError, of } from 'rxjs';
 import { homeGreeting } from './home-greeting';
 import { nextRideView } from './next-ride-view';
+import { raceDoorView } from './race-door-view';
 
 /**
  * Home's state, provided on its page (docs/detailed-designs/home/choose-the-next-ride): the rider's progress, shared
- * with the header, joined with the map catalogue. The greeting follows the hour Home opened at; the Next ride card waits
- * for both the progress and the catalogue, and is absent while either cannot be read.
+ * with the header, joined with the map catalogue. The greeting follows the hour Home opened at; the Next ride card and
+ * the Race door wait for both the progress and the catalogue, and are absent while either cannot be read.
  */
 @Injectable()
 export class HomeStore {
@@ -33,5 +34,11 @@ export class HomeStore {
     const progress = this.progress();
     const maps = this.maps();
     return progress && maps ? nextRideView(progress, maps) : null;
+  });
+
+  readonly raceDoor = computed(() => {
+    const progress = this.progress();
+    const maps = this.maps();
+    return progress && maps ? raceDoorView(progress, maps) : null;
   });
 }

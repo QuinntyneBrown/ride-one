@@ -17,4 +17,32 @@
       ></a>
     </wz-next-ride-card>
   }
+
+  <div class="doors">
+    @if (home.raceDoor(); as door) {
+      <wz-door heading="Race" headingId="race-door">
+        <a wz-more-link slot="link" routerLink="/race">All maps</a>
+        <span slot="summary"
+          ><span class="figure">{{ door.openMaps }}</span> of {{ door.maps }} maps open ·
+          <span class="figure figure--gold">{{ door.stars }}</span> of
+          {{ door.allStars }} stars</span
+        >
+        <ul class="map-tiles">
+          @for (tile of door.tiles; track tile.mapId) {
+            <li>
+              <a
+                wz-map-tile
+                [routerLink]="tile.locked ? '/race' : ['/race', tile.mapId]"
+                [name]="tile.name"
+                [photoUrl]="tile.photoUrl"
+                [stars]="tile.stars"
+                [locked]="tile.locked"
+                >{{ tile.name }}</a
+              >
+            </li>
+          }
+        </ul>
+      </wz-door>
+    }
+  </div>
 </main>

@@ -19,6 +19,13 @@ export class HomePage {
   readonly rewardPlace: Locator;
   readonly cardBest: Locator;
   readonly cardAction: Locator;
+  /** The Race door (L2-034). */
+  readonly raceDoor: Locator;
+  readonly allMaps: Locator;
+  readonly raceSummary: Locator;
+  readonly tiles: Locator;
+  readonly tileNames: Locator;
+  readonly tileStars: Locator;
 
   constructor(private readonly page: Page) {
     this.header = new AppHeader(page);
@@ -36,6 +43,17 @@ export class HomePage {
     this.rewardPlace = this.reward.locator('.reward__place');
     this.cardBest = this.card.locator('.next-ride__best');
     this.cardAction = this.card.locator('.next-ride__cta').getByRole('link');
+    this.raceDoor = page.getByRole('region', { name: 'Race', exact: true });
+    this.allMaps = this.raceDoor.getByRole('link', { name: 'All maps' });
+    this.raceSummary = this.raceDoor.locator('.door__summary');
+    this.tiles = this.raceDoor.locator('.map-tile');
+    this.tileNames = this.tiles.locator('.map-tile__name');
+    this.tileStars = this.tiles.getByRole('img');
+  }
+
+  /** The Race door's tile for `name`. */
+  tile(name: string): Locator {
+    return this.tiles.filter({ hasText: name });
   }
 
   /** Whether anything on the page reaches past the viewport's right edge. */
