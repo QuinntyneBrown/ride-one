@@ -11,6 +11,7 @@ export { Door } from './door/door';
 export { MapTile } from './map-tile/map-tile';
 export { MoreLink } from './more-link/more-link';
 export { NextRideCard } from './next-ride/next-ride-card';
+export { ProfileLevel } from './profile-level/profile-level';
 export { ConnectWorks } from './connect-works/connect-works';
 export { ConnectDevice, type ConnectDeviceState } from './connect-device/connect-device';
 export { Button, type ButtonSize, type ButtonVariant } from './button/button';

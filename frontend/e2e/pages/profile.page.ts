@@ -9,6 +9,13 @@ export class ProfilePage {
   readonly heading: Locator;
   /** The line under the headline: the XP to the next level and the streak (L2-038 AC4, L2-042 AC4). */
   readonly meta: Locator;
+  /** The XP bar under the headline, an image named by its XP (L2-109 AC1). */
+  readonly xpBar: Locator;
+  readonly mainColumn: Locator;
+  /** The Settings rows that go to a screen (L2-112 AC1, AC2). */
+  readonly bikeRow: Locator;
+  readonly rideSettings: Locator;
+  readonly customWorkout: Locator;
   readonly settings: Locator;
   /** The Display name row in Settings, which opens the dialog (L2-005 AC3). */
   readonly displayName: Locator;
@@ -25,7 +32,12 @@ export class ProfilePage {
     this.header = new AppHeader(page);
     this.heading = page.getByRole('heading', { level: 1 });
     this.meta = page.locator('.profile-level__meta');
+    this.xpBar = page.locator('.profile-level').getByRole('img');
+    this.mainColumn = page.locator('.profile__main');
     this.settings = page.getByRole('complementary', { name: 'Settings' });
+    this.bikeRow = this.settings.getByRole('listitem').first().getByRole('link');
+    this.rideSettings = this.settings.getByRole('link', { name: /^Ride settings/ });
+    this.customWorkout = this.settings.getByRole('link', { name: /^Custom workout/ });
     this.displayName = this.settings.getByRole('button', { name: /^Display name/ });
     this.dialog = new DisplayNameDialog(page);
     this.signOut = this.settings.getByRole('button', { name: /^Sign out/ });

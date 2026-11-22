@@ -34,12 +34,17 @@ are built.
   - the display name (L2-005);
   - "Sign out" and "Delete my account" (L2-006).
 
-  The text of the bike row when a paired bike is not connected is `<TO SUPPLY>`.
+  When the paired bike is not connected, the row reads "Not connected · diagnostics", or, where
+  the browser stops Bluetooth, the bike status's words for it ("Bluetooth is off · diagnostics",
+  from `bikeStatus()` in `domain`). With no bike paired, the row's text is "Pair your bike".
 - **`SettingKind`** — union of `Bike`, `RideSettings`, `CustomWorkout`, `HeartRateStrap`, `DisplayName`,
   `SignOut` and `DeleteAccount`.
 - **Hand-offs** — the bike row opens `DiagnosticsDialog` when a bike is paired and Connect Bike
   when none is. "Ride settings" navigates to `/settings` (`settings/open-and-keep-settings`).
-  "Custom workout" navigates to the custom workout setup. The strap row calls
+  "Custom workout" navigates to the custom workout setup (`/profile/custom`). Until slice 25.1
+  builds `DiagnosticsDialog`, the bike row goes to Connect Bike when a bike is paired too, and
+  until slices 20.1 and 21.1 add `/settings` and `/profile/custom`, those rows open Page not
+  found (slice 13.3). The strap row calls
   `HEART_RATE_STRAP.connect()`. The display name row opens `DisplayNameDialog`. "Sign out"
   calls `AUTH_API.signOut()` (`POST /api/auth/sign-out`) and opens the sign-in screen. "Delete
   my account" opens `DeleteAccountDialog`. Each dialog and endpoint is specified by its owning

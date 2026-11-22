@@ -28,7 +28,8 @@ never missing from the rider's history.
 - **`ProfileLevel`** — presentation component (`wz-profile-level`, block `profile-level`). It
   shows "{name} · Level {n}" with `LevelBadge` and an XP bar with `role="img"` and the label
   "1,840 of 2,600 XP". Below it reads "{x} XP to level {n+1} · {r} rides · {km} km · {s}-day
-  streak".
+  streak". The rides and kilometres are `ProgressDto`'s `rideCount` and `distanceKm`: the
+  rider's recorded rides, and the kilometres they covered to the nearest whole (slice 13.3).
 - **`MapTable`** — presentation component (`wz-map-table`, block `map-table`). It shows "{n} of
   21 stars" over a table of every map in unlock order with visually hidden headers Map, Stars and
   Best. An open map's row links to Race Setup for it. A locked map's row is a disabled button
@@ -46,6 +47,12 @@ never missing from the rider's history.
   newest first, as `RecentRideDto` (L2-128).
 - **`RideOutbox.pending()`** — returns the rides waiting to send. The store merges them with the
   recorded rides by ride id, sorts newest first and keeps 10.
+
+**Slices.** Slice 13.3 builds the headline (`ProfileLevel` with the XP bar, rides, kilometres and
+streak), the two-column layout and the settings rows of `change-settings`. "Maps" (L2-110) and
+"Recent rides" (L2-111), with `ProfileStore`, `RIDES_API` and `RIDE_OUTBOX`, are not named by any
+slice in `docs/detailed-journeys.md` yet; until one takes them, Profile shows the headline and
+Settings, and the page reads `PROGRESS_STORE` directly.
 
 The number of recent rides is 10, the value L2-111 proposes; the mocks show four rows at every
 stage (open question 11 in `docs/specs/L2.md`).
