@@ -20,4 +20,7 @@ public sealed class Rider
 
     public static Rider Create(EmailAddress email, DateTimeOffset now) =>
         new() { Id = Guid.NewGuid(), Email = email.Value, CreatedAt = now };
+
+    /// <summary>Sets the name other riders see (L2-005).</summary>
+    public void Rename(DisplayName name) => DisplayName = name.Value;
 }
