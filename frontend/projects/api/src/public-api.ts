@@ -52,6 +52,7 @@ export { GHOST_API, type GhostApi, type GhostTrace } from './race/ghost-api';
 export type { PackStrengthId, RaceMode } from './race/race-mode';
 export type { RaceResult, ResultStanding } from './race/race-result';
 export type { StandingsRow } from './race/standings-row';
+export type { MapStarsView, XpEarnedView, XpLineView } from './results/earned-view';
 export type { ClassResult } from './classes/class-result';
 export type { GradeTone, RouteProfileView, RouteStripBar } from './race/route-profile-view';
 export type {
@@ -79,6 +80,8 @@ export { HttpRidesApi } from './rides/http-rides-api';
 export {
   RIDES_API,
   type ClassRideFacts,
+  type MapStarsDto,
+  type PersonalBestDto,
   type RaceRideFacts,
   type RideFacts,
   type RideKind,
@@ -87,6 +90,7 @@ export {
   type SubmitRideRequest,
   type XpLineDto,
 } from './rides/rides-api';
+export { RIDE_OUTBOX, type RideOutbox, type RideSyncState } from './rides/ride-outbox';
 export { RIDERS_API, type RiderMe, type RidersApi } from './riders/riders-api';
 export { sessionInterceptor } from './riders/session.interceptor';
 export {

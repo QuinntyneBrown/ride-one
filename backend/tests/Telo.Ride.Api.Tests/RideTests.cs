@@ -101,7 +101,8 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
         Assert.Equal(HttpStatusCode.Created, recorded.StatusCode);
         var answer = await Json(recorded);
         Assert.False(answer.TryGetProperty("xp", out _));
-        Assert.False(answer.TryGetProperty("stars", out _));
+        // The stars are the backend's for a first 2nd of 10 against the medium pack (L2-039), not the 3 the body claims.
+        Assert.Equal("""{"held":2,"earned":2}""", answer.GetProperty("stars").GetRawText());
         Assert.False(answer.TryGetProperty("unlockedMapIds", out _));
     }
 

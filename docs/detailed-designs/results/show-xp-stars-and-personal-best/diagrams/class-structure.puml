@@ -16,42 +16,51 @@ class RideSyncState <<api, union>> {
   sending
   recorded(answer: RideRecordedDto)
   waitingOffline
+  notRecorded
+}
+interface RideOutbox <<api contract>> {
+  +submit(ride: SubmitRideRequest): void
+  +status(rideId: string): Signal<RideSyncState>
+}
+class SessionRideOutbox <<domain/storage>> {
+  -rides: last 10 by ride id
+  +submit(ride): void
+  +status(rideId): Signal<RideSyncState>
 }
 class RideRecordedDto <<api>> {
   +xpLines: XpLineDto[]
   +xpTotal: number
   +level: number
   +levelUp: boolean
-  +starsHeld?: number
-  +newStars: number
-  +best?: number
-  +previousBest?: number
+  +stars: MapStarsDto | null
+  +best: PersonalBestDto | null
+}
+class MapStarsDto <<api>> {
+  +held: number
+  +earned: number
+}
+class PersonalBestDto <<api>> {
+  +bestSeconds: number
+  +previousBestSeconds: number | null
   +isNewBest: boolean
 }
 class XpLineDto <<api>> {
+  +kind: string
   +label: string
-  +amount: number
+  +xp: number
 }
 class XpEarnedView {
-  +state: 'waiting' | 'offline' | 'ready'
+  +state: 'waiting' | 'offline' | 'notRecorded' | 'ready'
   +total: string
   +lines: XpLineDto[]
-  +newLevel?: number
 }
 class MapStarsView {
   +mapName: string
-  +held: string
+  +held: number
   +newLine: string | null
 }
-class PersonalBestView {
-  +isNewBest: boolean
-  +time: string
-  +bestLine: string
-}
-class ResultsStore <<ride>> {
-  +xp: Signal<XpEarnedView>
-  +stars: Signal<MapStarsView | null>
-  +best: Signal<PersonalBestView | null>
+class "resultsView()" as rv <<ride helper>> {
+  +resultsView(result, sync: RideSyncState): ResultsView
 }
 class XpEarned <<components>> {
   +view: input<XpEarnedView>
@@ -59,16 +68,15 @@ class XpEarned <<components>> {
 class MapStars <<components>> {
   +view: input<MapStarsView>
 }
-class PersonalBest <<components>> {
-  +view: input<PersonalBestView>
-}
-ResultsStore ..> RideSyncState : reads
+SessionRideOutbox ..|> RideOutbox
+RideOutbox ..> RideSyncState
+rv ..> RideSyncState : reads
 RideSyncState --> RideRecordedDto
 RideRecordedDto "1" *-- "*" XpLineDto
-ResultsStore ..> XpEarnedView : computes
-ResultsStore ..> MapStarsView : computes
-ResultsStore ..> PersonalBestView : computes
+RideRecordedDto *-- MapStarsDto
+RideRecordedDto *-- PersonalBestDto
+rv ..> XpEarnedView : computes
+rv ..> MapStarsView : computes
 XpEarned --> XpEarnedView
 MapStars --> MapStarsView
-PersonalBest --> PersonalBestView
 @enduml

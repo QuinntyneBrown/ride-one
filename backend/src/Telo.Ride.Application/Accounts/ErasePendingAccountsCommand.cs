@@ -23,6 +23,7 @@ public sealed class ErasePendingAccountsCommandHandler(IAppDbContext db) : IRequ
         var ids = riders.Select(rider => rider.Id).ToList();
         db.RiderSessions.RemoveRange(await db.RiderSessions.Where(session => ids.Contains(session.RiderId)).ToListAsync(cancellationToken));
         db.Rides.RemoveRange(await db.Rides.Where(ride => ids.Contains(ride.RiderId)).ToListAsync(cancellationToken));
+        db.MapProgress.RemoveRange(await db.MapProgress.Where(progress => ids.Contains(progress.RiderId)).ToListAsync(cancellationToken));
         db.Riders.RemoveRange(riders);
         await db.SaveChangesAsync(cancellationToken);
         return riders.Count;

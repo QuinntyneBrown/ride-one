@@ -6,7 +6,8 @@ import {
   CLASSES_API,
   type ClassDto,
   type ClassResult,
-  RIDES_API,
+  type SubmitRideRequest,
+  RIDE_OUTBOX,
   SCREEN_WAKE_LOCK,
   TICKER,
   VIDEO_PLAYER_FACTORY,
@@ -60,7 +61,7 @@ export class ClassRideStore {
   private readonly beat = inject(TICKER);
   private readonly router = inject(Router);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
-  private readonly rides = inject(RIDES_API);
+  private readonly outbox = inject(RIDE_OUTBOX);
   /** The ride's record for the backend, with the ride id given when the class starts (Record a ride). */
   private recorder: RideRecorder | null = null;
   private lastSecond = 0;
@@ -208,24 +209,23 @@ export class ClassRideStore {
 
   /**
    * The plan's end: the clock stops at the class length, the video pauses, the ride is submitted (L2-044 AC2), and
-   * Results opens with the class's result in the navigation's state (L2-093 AC2, L2-078 AC1). Leaving the page releases
-   * the rest.
+   * Results opens with the class's result and the ride in the navigation's state (L2-093 AC2, L2-078 AC1). Leaving the
+   * page releases the rest.
    */
   private finish(ride: ClassDto): void {
     this.clock.pause();
     this.ticker.stop();
     this.player()?.pause();
     this.wakeLock.release();
-    this.submit(ride);
-    const facts = this.recorder?.facts(new Date());
+    const submitted = this.submit(ride);
     const classResult: ClassResult = {
       classId: ride.id,
       title: ride.title,
       elapsedSeconds: ride.lengthSeconds,
-      outputKj: facts?.outputKj ?? 0,
-      onTargetShare: facts?.onTargetShare ?? 0,
+      outputKj: submitted?.outputKj ?? 0,
+      onTargetShare: submitted?.onTargetShare ?? 0,
     };
-    void this.router.navigateByUrl('/results', { state: { classResult } });
+    void this.router.navigateByUrl('/results', { state: { classResult, ride: submitted } });
   }
 
   /**
@@ -242,15 +242,18 @@ export class ClassRideStore {
   }
 
   /**
-   * Submits the finished class to the backend with its record (L2-044 AC2). The answer is not waited for, and leaving
-   * the page does not cancel it. Until the outbox keeps finished rides on the device (L2-135), a submission that fails
-   * is not retried.
+   * Hands the finished class with its record to the outbox, which sends it to the backend (L2-044 AC2) and outlives the
+   * page; Results follows it there. The ride as submitted, or none before the ride began.
    */
-  private submit(ride: ClassDto): void {
-    if (!this.recorder) return;
-    this.rides
-      .submitRide({ ...this.recorder.facts(new Date()), kind: 'class', classId: ride.id })
-      .subscribe({ error: () => undefined });
+  private submit(ride: ClassDto): SubmitRideRequest | null {
+    if (!this.recorder) return null;
+    const submitted: SubmitRideRequest = {
+      ...this.recorder.facts(new Date()),
+      kind: 'class',
+      classId: ride.id,
+    };
+    this.outbox.submit(submitted);
+    return submitted;
   }
 
   private hold(): void {

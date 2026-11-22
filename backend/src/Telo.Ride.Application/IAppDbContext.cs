@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Telo.Ride.Domain.Accounts;
+using Telo.Ride.Domain.Maps;
 using Telo.Ride.Domain.Rides;
 
 namespace Telo.Ride.Application;
@@ -21,6 +22,9 @@ public interface IAppDbContext
 
     /// <summary>The finished rides recorded for riders (Record a ride).</summary>
     DbSet<RecordedRide> Rides { get; }
+
+    /// <summary>Each rider's stars and best time on each map they have raced (L2-039, L2-077).</summary>
+    DbSet<MapProgress> MapProgress { get; }
 
     /// <summary>Whether the database answers; readiness reports it (L2-127 AC4).</summary>
     Task<bool> CanConnectAsync(CancellationToken cancellationToken);

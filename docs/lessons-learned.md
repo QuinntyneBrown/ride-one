@@ -139,14 +139,46 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L112 | When the shared fixture gains a default answer for a path, grep the specs for that path: the harness spec used `GET /api/progress` as its unanswered example and began to pass its `test.fail`. Move such examples to a path the app never calls (`/api/harness-probe`). | 10.3 | | |
 | L113 | `@angular-eslint/template/elements-content` refuses an empty `<a>` whose name comes from an attribute component's host binding. Bind `[attr.aria-label]` on the `<a>` in the app's template, as the brand link does, and keep the component's content `aria-hidden`. | 10.3 | | |
 | L114 | Work out an `object-view-box` crop from the shot in CSS pixels (1440 × 900), not from a scaled contact sheet; a sheet stacked to one height scales each shot differently, and the guess cropped Settings instead of the headline. | 10.3 | 10.4 | Saved time |
-| L115 | An edit script must assert every old string before it writes any file, including the files a regex pass rewrites, and the commit that follows it is chained with `&&`, so a failed script commits nothing. In 10.4 a mock pass wrote, an assertion then failed, and the next line committed the half. | 10.4 | 11.1 | Saved time |
-| L116 | In a command that changes directory more than once, `cd` to absolute paths: a relative `cd ../..` from `components/src/app-header` landed in `components`, not `projects`, and every path after it missed. | 10.4 | 11.1 | Saved time |
+| L115 | An edit script must assert every old string before it writes any file, including the files a regex pass rewrites, and the commit that follows it is chained with `&&`, so a failed script commits nothing. In 10.4 a mock pass wrote, an assertion then failed, and the next line committed the half. | 10.4 | 11.1, 11.2 | Saved time |
+| L116 | In a command that changes directory more than once, `cd` to absolute paths: a relative `cd ../..` from `components/src/app-header` landed in `components`, not `projects`, and every path after it missed. | 10.4 | 11.1, 11.2 | Made it worse once |
 | L117 | The backend's analysers run on tests and stubs: parse dates in a test with `CultureInfo.InvariantCulture` (CA1305), and give a stub member something of the instance to read (CA1822), or the build fails before any test runs. | 10.4 | | |
 | L118 | When a slice builds a screen, search the specs for the placeholder that stood in for it ("until slice 11.1", Page not found) and move them to the new page object in the same commit; three specs waited on `/results` showing Page not found. | 11.1 | | |
-| L119 | A test written after the code it covers is not yet proof: put the old code back, see the test fail for the reason named, then restore. Race Setup's preselection test was written after the store change and failed on "hard" unchecked once the change was out. | 11.1 | | |
-| L120 | A screen reached by a click on a spec's paused clock loads lazily only as the clock steps: wait with `stepUntil`, not a bare `expect`. And take a radio's name from an existing spec: pack strengths are named "medium", not "Medium". | 11.1 | | |
+| L119 | A test written after the code it covers is not yet proof: put the old code back, see the test fail for the reason named, then restore. Race Setup's preselection test was written after the store change and failed on "hard" unchecked once the change was out. | 11.1 | 11.2 | Saved time |
+| L120 | A screen reached by a click on a spec's paused clock loads lazily only as the clock steps: wait with `stepUntil`, not a bare `expect`. And take a radio's name from an existing spec: pack strengths are named "medium", not "Medium". | 11.1 | 11.2 | Saved time |
+| L121 | Before writing a film, check its prompt's film rules against the last film rather than copying it: 10.1, 10.4 and 11.1 had dropped the shots at 768 and 1024 px and the scene growing from 390 to 1440, and 11.1's film was redone. | 11.2 | | |
+| L122 | A test that proved a rule by an absence ("the answer has no `stars`") must be restated, not deleted, when a slice adds that field: assert the value is the backend's own, which is what it was proving. | 11.2 | | |
+| L123 | `api.answer(method, path, handler)` types its reply as `Handler \| unknown`, so a handler's `request` parameter is untyped: annotate it `(request: Request)`. Playwright runs the spec anyway; only verify's type check fails. | 11.2 | | |
 
 ## Log
+
+### 11.2 XP, stars and personal best (2026-11-22)
+
+**Applied from earlier**
+
+- **L1 own worktree and install; L2 port 4310; L3 format first — saved time:** each verify ran clean but for one type
+  error (L123).
+- **L41 spec each step first — saved time:** the backend's 15 new tests failed on a missing `stars` and on stubs, the
+  seven Results specs on missing panels, and the outbox's seven unit tests on a stub, before the code.
+- **L110 check the plan against the requirement — saved time:** stars are computed in slice 12.1's design; the slice
+  built that design's `MapProgress` and `StarRules` and left the unlocks to 12.1, instead of faking stars.
+- **L119 a test written after its code — saved time:** putting the old `resultsView()` back showed the new cases fail
+  (on compiling, the signature having changed).
+- **L120 step a paused clock — saved time:** the critical spec's answer, released after Results opened on the race's
+  paused clock, rendered once the clock was stepped.
+- **L115 assert before writing — saved time:** two edit scripts stopped on text Prettier had wrapped and wrote nothing.
+- **L116 absolute paths — made it worse once:** a relative `cd ../..` from `domain/src/storage` missed `public-api.ts`.
+- **L114 measure a crop in CSS pixels — partly:** the first panel crops started on the panel's edge and cut its text;
+  12 px of margin fixed them.
+- **L54 and L5 read "Initial total" — saved time:** it stayed 300.17 kB; Results grew to a 7.6 kB lazy chunk.
+
+**What slowed it down**
+
+- 11.1's film had dropped the four widths the film rules ask for, found while reading this prompt; it was redone first
+  (L121).
+- The ride-claims test asserted the answer had no `stars`; it now asserts the backend's own stars (L122).
+- In a short earned column the actions touched the stars panel; the design system and the page now keep 32 px.
+
+**New lessons:** L121, L122, L123.
 
 ### 11.1 Results screen (2026-11-21)
 

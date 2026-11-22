@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Telo.Ride.Application;
 using Telo.Ride.Domain.Accounts;
+using Telo.Ride.Domain.Maps;
 using Telo.Ride.Domain.Rides;
 using Telo.Ride.Infrastructure;
 
@@ -39,6 +40,8 @@ public sealed class ConcurrentRideApi : SignInApi
         public DbSet<RiderSession> RiderSessions => db.RiderSessions;
 
         public DbSet<RecordedRide> Rides => db.Rides;
+
+        public DbSet<MapProgress> MapProgress => db.MapProgress;
 
         public Task<bool> CanConnectAsync(CancellationToken cancellationToken) => db.CanConnectAsync(cancellationToken);
 

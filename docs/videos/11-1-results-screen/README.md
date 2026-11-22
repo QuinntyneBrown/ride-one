@@ -11,7 +11,7 @@ podium" or "27:32 · 18 s off the podium", over the "Final standings" list with 
 solo class "30:00" and "342 kJ · 84% on target". "Done" goes Home; "Race it again" opens Race Setup
 with the same mode and pack preselected; "Ride it again" opens Class Start.
 
-- **Film:** [`11-1-results-screen.mp4`](11-1-results-screen.mp4), 1920×1080, 30 fps, 1 min 43 s,
+- **Film:** [`11-1-results-screen.mp4`](11-1-results-screen.mp4), 1920×1080, 30 fps, 1 min 56 s,
   H.264 at CRF 25 and AAC. No captions in the picture; [`captions.vtt`](captions.vtt) is beside it
   for a player.
 - **Voice:** Kokoro-82M (`af_heart`) from Hugging Face, run locally.
@@ -25,18 +25,19 @@ with the same mode and pack preselected; "Ride it again" opens Class Start.
 |---|---|---|---|---|
 | 0:00 | 4 | `hook` | Results for a bots race, 2nd of 10, at 1440 px in a browser, over the aurora | Cross the line, **see where you finished.** |
 | 0:10 | 6 | `place` | The result, the top three of the standings and the phone at 390 px | 2nd of 10, **on the podium.** |
-| 0:25 | 5 | `off` | Results for 6th of 10 in a browser | 6th, **18 s off the podium.** |
-| 0:38 | 5 | `solo` | A solo race's 26:38 and a solo class's 30:00 with its kJ and share on target | Your time, **or your class.** |
-| 0:51 | 4 | `next` | Done and Race it again, and where each action goes | Done, **or again.** |
-| 1:02 | 4 | `proof` | The local checks, and three cards: what the tests prove | Real rides, **every line.** |
-| 1:12 | 12 | `close` | The lockup and Telo Ride's purpose over the aurora | TELO Ride |
+| 0:25 | 5 | `widths` | Results for 2nd of 10 growing from 390 through 768 and 1024 to 1440 px | One column, **then two from 1024.** |
+| 0:38 | 5 | `off` | Results for 6th of 10 in a browser | 6th, **18 s off the podium.** |
+| 0:51 | 5 | `solo` | A solo race's 26:38 and a solo class's 30:00 with its kJ and share on target | Your time, **or your class.** |
+| 1:04 | 4 | `next` | Done and Race it again, and where each action goes | Done, **or again.** |
+| 1:15 | 4 | `proof` | The local checks, and three cards: what the tests prove | Real rides, **every line.** |
+| 1:25 | 12 | `close` | The lockup and Telo Ride's purpose over the aurora | TELO Ride |
 
-Act changes: a wipe into `off`, a zoom through `solo` and into `proof`.
+Act changes: a push into `widths`, a wipe into `off`, a zoom through `solo` and into `proof`.
 
 ## What it proves, and what it does not
 
 - The app pictures are screenshots of the running app, taken by [`shots.ts`](shots.ts) with the
-  shared fixture and the page objects of `frontend/e2e/`, at 390 and 1440 px at double density.
+  shared fixture and the page objects of `frontend/e2e/`, at 390, 768, 1024 and 1440 px at double density.
   Each result is set in the navigation's state as a finished ride leaves it, with the mocks' field,
   and the page reloaded, which keeps it.
 - **What the tests prove:** the behaviour spec (`results.spec.ts`, seen failing first) races Old

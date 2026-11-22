@@ -1,25 +1,48 @@
 import type { Page, Request } from '@playwright/test';
 
-/** What a handler answers: a status (200 by default), a JSON body (none for 204) and any headers, such as Retry-After. */
+/**
+ * What a handler answers: a status (200 by default), a JSON body (none for 204) and any headers, such as Retry-After; or,
+ * with `offline`, no answer at all, as when the network is down.
+ */
 export interface ApiReply {
   status?: number;
   body?: unknown;
   headers?: Record<string, string>;
+  offline?: true;
 }
 
 type Handler = (request: Request) => ApiReply | Promise<ApiReply>;
 
 /**
- * What the backend answers for a ride it records (Record a ride): its ride id and when it was recorded. Every spec's
- * finished ride is recorded unless the spec answers `POST /api/rides` itself.
+ * What the backend answers for a ride it records (Record a ride), for a new rider's first ride: "Finished" +100 and a
+ * 1-day streak +10, and for a race its first star and its first best, the ride's own time. Every spec's finished ride is
+ * recorded unless the spec answers `POST /api/rides` itself.
  */
-const RIDE_RECORDED: Handler = (request) => ({
-  status: 201,
-  body: {
-    rideId: (request.postDataJSON() as { rideId: string }).rideId,
-    recordedAt: '2026-11-21T07:00:00Z',
-  },
-});
+const RIDE_RECORDED: Handler = (request) => {
+  const ride = request.postDataJSON() as { rideId: string; kind: string; elapsedSeconds: number };
+  const race = ride.kind === 'race';
+  return {
+    status: 201,
+    body: {
+      rideId: ride.rideId,
+      recordedAt: '2026-11-21T07:00:00Z',
+      xpLines: [
+        { kind: 'finished', label: 'Finished', xp: 100 },
+        { kind: 'streak', label: '1-day streak', xp: 10 },
+      ],
+      xpTotal: 110,
+      totalXp: 110,
+      level: 1,
+      levelUp: false,
+      nextLevelXp: 400,
+      xpToNextLevel: 290,
+      stars: race ? { held: 1, earned: 1 } : null,
+      best: race
+        ? { bestSeconds: ride.elapsedSeconds, previousBestSeconds: null, isNewBest: false }
+        : null,
+    },
+  };
+};
 
 /** A new rider's progress (L2-038): level 1, no XP, 400 XP to level 2. Every spec's rider has it unless it answers. */
 export const newRiderProgress = { level: 1, totalXp: 0, nextLevelXp: 400, streakDays: 0 };
@@ -74,6 +97,10 @@ export class ApiFixture {
           return;
         }
         const reply = await handler(request);
+        if (reply.offline) {
+          await route.abort('internetdisconnected');
+          return;
+        }
         const status = reply.status ?? 200;
         const headers = reply.headers;
         await route.fulfill(

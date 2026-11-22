@@ -53,10 +53,24 @@ export interface XpLineDto {
   readonly xp: number;
 }
 
+/** A race's stars on its map: how many of the three the rider holds, and how many this ride earned (L2-075). */
+export interface MapStarsDto {
+  readonly held: number;
+  readonly earned: number;
+}
+
+/** A race's best time on its map, the best before it (none on a first finish), and whether this ride set it (L2-077). */
+export interface PersonalBestDto {
+  readonly bestSeconds: number;
+  readonly previousBestSeconds: number | null;
+  readonly isNewBest: boolean;
+}
+
 /**
  * What the backend answers for a recorded ride, the same for every repeat of its ride id (L2-125 AC3): its XP line by
  * line and in all, the rider's total XP once it was added (L2-037), the level it reaches, whether the ride took it
- * there, and the next level's threshold and the XP to it, both `null` at level 30 (L2-038).
+ * there, and the next level's threshold and the XP to it, both `null` at level 30 (L2-038); for a race, its stars and
+ * best time on the map, both `null` for a class.
  */
 export interface RideRecordedDto {
   readonly rideId: string;
@@ -68,6 +82,8 @@ export interface RideRecordedDto {
   readonly levelUp: boolean;
   readonly nextLevelXp: number | null;
   readonly xpToNextLevel: number | null;
+  readonly stars: MapStarsDto | null;
+  readonly best: PersonalBestDto | null;
 }
 
 /**

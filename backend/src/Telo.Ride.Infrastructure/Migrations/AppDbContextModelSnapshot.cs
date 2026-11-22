@@ -142,6 +142,26 @@ namespace Telo.Ride.Infrastructure.Migrations
                     b.ToTable("SignInCodes");
                 });
 
+            modelBuilder.Entity("Telo.Ride.Domain.Maps.MapProgress", b =>
+                {
+                    b.Property<Guid>("RiderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MapId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int?>("BestSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Stars")
+                        .HasColumnType("int");
+
+                    b.HasKey("RiderId", "MapId");
+
+                    b.ToTable("MapProgress");
+                });
+
             modelBuilder.Entity("Telo.Ride.Domain.Rides.RecordedRide", b =>
                 {
                     b.Property<Guid>("RiderId")
@@ -149,6 +169,9 @@ namespace Telo.Ride.Infrastructure.Migrations
 
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("BestSeconds")
+                        .HasColumnType("int");
 
                     b.Property<string>("ClassId")
                         .HasMaxLength(64)
@@ -165,6 +188,9 @@ namespace Telo.Ride.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("FinishedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsNewBest")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Kind")
                         .IsRequired()
@@ -198,8 +224,17 @@ namespace Telo.Ride.Infrastructure.Migrations
                     b.Property<int?>("Place")
                         .HasColumnType("int");
 
+                    b.Property<int?>("PreviousBestSeconds")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("RecordedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("StarsEarned")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StarsHeld")
+                        .HasColumnType("int");
 
                     b.Property<string>("TimeZoneId")
                         .IsRequired()
@@ -219,6 +254,15 @@ namespace Telo.Ride.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Telo.Ride.Domain.Accounts.RiderSession", b =>
+                {
+                    b.HasOne("Telo.Ride.Domain.Accounts.Rider", null)
+                        .WithMany()
+                        .HasForeignKey("RiderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Telo.Ride.Domain.Maps.MapProgress", b =>
                 {
                     b.HasOne("Telo.Ride.Domain.Accounts.Rider", null)
                         .WithMany()

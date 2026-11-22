@@ -10,6 +10,10 @@ Cross the line and Results opens: where you finished, and what to ride next.
 
 Against bots it reads your place out of ten, in volt on the podium, with your time. Below, the final standings: every rider with a time, bots marked, your row current.
 
+**widths** (5 bars)
+
+On a phone it's one column, the actions below the standings. From a tablet in landscape, what you earned sits beside them.
+
 **off** (5 bars)
 
 Finish sixth and it says how far off: twenty-seven thirty-two, eighteen seconds off the podium.

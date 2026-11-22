@@ -27,6 +27,13 @@
       ]
     },
     {
+      "id": "widths",
+      "bars": 5,
+      "lines": [
+        "On a phone it's one column, the actions below the standings. From a tablet in landscape, what you earned sits beside them."
+      ]
+    },
+    {
       "id": "off",
       "bars": 5,
       "lines": [

@@ -1,11 +1,9 @@
 import type { Routes } from '@angular/router';
 import {
   GHOST_API,
-  HttpRidesApi,
   MAPS_KEY,
   MONOTONIC_TIME,
   PROGRESS_API,
-  RIDES_API,
   SCREEN_WAKE_LOCK,
   WORLD_RENDERER,
 } from '@telo/api';
@@ -31,8 +29,6 @@ export const raceRoutes: Routes = [
       { provide: PROGRESS_API, useClass: NewRiderProgress },
       // No ride has a best until rides are recorded (10.1) and a best's trace kept (11.2).
       { provide: GHOST_API, useClass: NoBestRides },
-      // The finished race goes to the backend as it ends (Record a ride).
-      { provide: RIDES_API, useClass: HttpRidesApi },
       { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },
       { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
       // The rider's Google Maps Platform key, on this device only (L2-066 AC3).

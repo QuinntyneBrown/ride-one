@@ -1,8 +1,10 @@
+using System.Numerics;
 using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Telo.Ride.Application.Maps;
 using Telo.Ride.Domain;
+using Telo.Ride.Domain.Maps;
 using Telo.Ride.Domain.Rides;
 
 namespace Telo.Ride.Application.Rides;
@@ -49,7 +51,9 @@ public sealed record RideRecordedDto(
     int Level,
     bool LevelUp,
     int? NextLevelXp,
-    int? XpToNextLevel)
+    int? XpToNextLevel,
+    MapStarsDto? Stars,
+    PersonalBestDto? Best)
 {
     public static RideRecordedDto From(RecordedRide ride)
     {
@@ -64,9 +68,19 @@ public sealed record RideRecordedDto(
             progress.Level,
             progress.Level > LevelTable.LevelFor(ride.TotalXp - xpTotal),
             progress.NextThresholdXp,
-            progress.XpToNext);
+            progress.XpToNext,
+            ride.StarsHeld is { } held ? new MapStarsDto(Count(held), Count(ride.StarsEarned ?? MapStar.None)) : null,
+            ride.BestSeconds is { } best ? new PersonalBestDto(best, ride.PreviousBestSeconds, ride.IsNewBest) : null);
     }
+
+    private static int Count(MapStar stars) => BitOperations.PopCount((uint)stars);
 }
+
+/// <summary>A race's stars on its map: how many of the three the rider holds, and how many this ride earned (L2-075).</summary>
+public sealed record MapStarsDto(int Held, int Earned);
+
+/// <summary>A race's best time on its map, the best before it (none on a first finish), and whether it is new (L2-077).</summary>
+public sealed record PersonalBestDto(int BestSeconds, int? PreviousBestSeconds, bool IsNewBest);
 
 /// <summary>One XP line: its kind (<c>finished</c>, <c>place</c>, <c>podium</c>, <c>onTarget</c>, <c>streak</c>), label and XP.</summary>
 public sealed record XpLineDto(string Kind, string Label, int Xp);
@@ -105,6 +119,7 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
         var xpLines = XpCalculator.Compute(
             new RideResult(kind, ride.Mode, RideOutcome.Finished, ride.Place, ride.FieldSize, ride.OnTargetShare), streakDays);
         rider.AddXp(xpLines.Sum(line => line.Xp));
+        var (mapProgress, finish) = kind == RideKind.Race ? await RecordFinish(request, cancellationToken) : (null, null);
         var recording = new RecordedRide
         {
             RiderId = request.RiderId,
@@ -124,6 +139,11 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
             OnTargetShare = ride.OnTargetShare,
             XpLines = xpLines,
             TotalXp = rider.TotalXp,
+            StarsHeld = mapProgress?.Stars,
+            StarsEarned = finish?.Earned,
+            BestSeconds = finish?.BestSeconds,
+            PreviousBestSeconds = finish?.PreviousBestSeconds,
+            IsNewBest = finish?.IsNewBest ?? false,
             FinishedAt = ride.FinishedAt!.Value,
             TimeZoneId = ride.TimeZoneId!,
             RecordedAt = time.GetUtcNow(),
@@ -138,9 +158,30 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
         {
             db.Rides.Entry(recording).State = EntityState.Detached;
             await db.Riders.Entry(rider).ReloadAsync(cancellationToken);
+            if (mapProgress is not null)
+            {
+                var entry = db.MapProgress.Entry(mapProgress);
+                if (entry.State == EntityState.Added) entry.State = EntityState.Detached;
+                else await entry.ReloadAsync(cancellationToken);
+            }
             var first = await Recorded(request, cancellationToken) ?? throw new InvalidOperationException("The ride was neither recorded nor found.");
             return new(RideRecordedDto.From(first), false);
         }
+    }
+
+    /// <summary>Records a race's finish on the rider's progress on its map, started on the first race there (L2-039, L2-077).</summary>
+    private async Task<(MapProgress, FinishRecord)> RecordFinish(SubmitRideCommand request, CancellationToken cancellationToken)
+    {
+        var ride = request.Ride;
+        var progress = await db.MapProgress.FirstOrDefaultAsync(
+            known => known.RiderId == request.RiderId && known.MapId == ride.MapId, cancellationToken);
+        if (progress is null)
+        {
+            progress = MapProgress.Start(request.RiderId, ride.MapId!);
+            db.MapProgress.Add(progress);
+        }
+
+        return (progress, progress.RecordFinish(new RaceFinish(ride.Mode!, ride.Pack, ride.Place!.Value, ride.ElapsedSeconds)));
     }
 
     private Task<RecordedRide?> Recorded(SubmitRideCommand request, CancellationToken cancellationToken) =>

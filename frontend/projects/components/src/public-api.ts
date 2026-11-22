@@ -68,3 +68,5 @@ export { LevelBadge } from './level-badge/level-badge';
 export { XpBar } from './xp-bar/xp-bar';
 export { ResultsHeader } from './results/results-header';
 export { Standings } from './results/standings';
+export { MapStars } from './results/map-stars';
+export { XpEarned } from './results/xp-earned';

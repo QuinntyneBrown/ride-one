@@ -17,6 +17,16 @@ export class ResultsPage {
   /** The rider's own row in the standings. */
   readonly you: Locator;
   readonly done: Locator;
+  /** The XP panel: "XP earned", the total ("+442"), its lines and, while it waits or has failed, its note. */
+  readonly xp: Locator;
+  readonly xpTotal: Locator;
+  readonly xpLines: Locator;
+  readonly xpNote: Locator;
+  /** The stars panel: "Stars on {map}", the stars as one image ("2 of 3 stars") and the new-star line. */
+  readonly starsPanel: Locator;
+  readonly starsTitle: Locator;
+  readonly stars: Locator;
+  readonly newStars: Locator;
   /** "Race it again" or "Ride it again". */
   readonly again: Locator;
 
@@ -31,6 +41,14 @@ export class ResultsPage {
     this.rows = this.standings.getByRole('listitem');
     this.you = this.standings.locator('[aria-current="true"]');
     this.done = page.getByRole('link', { name: 'Done', exact: true });
+    this.xp = page.getByRole('region', { name: 'XP earned' });
+    this.xpTotal = this.xp.locator('.xp-earned__total');
+    this.xpLines = this.xp.locator('.xp-earned__line');
+    this.xpNote = this.xp.getByRole('status');
+    this.starsPanel = page.locator('.map-stars');
+    this.starsTitle = this.starsPanel.getByRole('heading');
+    this.stars = this.starsPanel.getByRole('img');
+    this.newStars = this.starsPanel.locator('.map-stars__new');
     this.again = page.getByRole('link', { name: /it again$/ });
   }
 
@@ -40,6 +58,13 @@ export class ResultsPage {
       [...element.querySelectorAll('.standings__name, .standings__value')]
         .map((part) => part.textContent?.trim())
         .join(' '),
+    );
+  }
+
+  /** The XP lines as "Finished +100". */
+  xpLineTexts(): Promise<string[]> {
+    return this.xpLines.evaluateAll((lines) =>
+      lines.map((line) => [...line.children].map((part) => part.textContent?.trim()).join(' ')),
     );
   }
 
