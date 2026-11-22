@@ -47,6 +47,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 9.3 | [Choose a display name](09-3-choose-a-display-name/README.md) | 1:54 | A new account is asked for a display name before going on; 2 to 24 characters, said plainly; one rule kept by the backend; Profile's headline and a Settings dialog that changes it; backend tests and nine behaviour specs |
 | 9.4 | [Sign out and delete account](09-4-sign-out-and-delete-account/README.md) | 1:54 | Sign out ends this device's session at once, or says it couldn't; Delete my account waits for "delete", ends every session, frees the email and is erased within a day; sign-in says so; seven backend and six behaviour specs |
 | 10.1 | [Record a ride](10-1-record-a-ride/README.md) | 1:43 | A finished race or class submits its facts as it ends; the backend records each ride id once, answers a repeat with the first answer, and refuses a ride no one could ride with 422; 42 backend cases and three behaviour specs |
+| 10.2 | [Earn XP](10-2-earn-xp/README.md) | 1:33 | The ride sends its share of seconds on target; the backend gives L2-037's XP lines, adds them to the rider's total once per ride id, and keeps them with the ride; 26 backend cases and one behaviour spec |
 
 ## What every video is
 

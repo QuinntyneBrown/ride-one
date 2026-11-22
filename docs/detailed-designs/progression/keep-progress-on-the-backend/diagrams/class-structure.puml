@@ -26,16 +26,16 @@ class SubmitRideRequest <<api DTO>> {
   +outputKj: number
   +maxPowerWatts: number
   +maxSpeedKmh: number
+  +onTargetShare: number
   +speedSamplesKmh: number[]
   +finishedAt: string
   +timeZoneId: string
   .. added by later slices ..
   +outcome: RideOutcome
-  +onTargetShare: number
   +trace?: TracePoint[]
 }
 class RideRecorder <<domain engine>> {
-  +record(powerW, speedMs, seconds)
+  +record(powerW, speedKmh, seconds, onTarget)
   +outputKj: number
   +maxPowerWatts: number
   +maxSpeedKmh: number
@@ -66,10 +66,10 @@ note right of RecordedRide : key: RiderId and Id together
 class RideRecordedDto <<DTO>> {
   +RideId: Guid
   +RecordedAt: DateTimeOffset
-  .. added by later slices ..
   +XpLines: XpLineDto[]
   +XpTotal: int
   +TotalXp: int
+  .. added by later slices ..
   +Level: int
   +LevelUp: bool
   +StarsHeld: int?

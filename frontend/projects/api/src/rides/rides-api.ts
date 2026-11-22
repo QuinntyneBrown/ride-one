@@ -18,6 +18,8 @@ export interface RideFacts {
   readonly outputKj: number;
   readonly maxPowerWatts: number;
   readonly maxSpeedKmh: number;
+  /** The share of running seconds within 10 % of target power, from 0 to 1, to three decimals (L2-037 AC3). */
+  readonly onTargetShare: number;
   readonly speedSamplesKmh: readonly number[];
   /** ISO 8601, in UTC. */
   readonly finishedAt: string;
@@ -44,10 +46,23 @@ export interface ClassRideFacts {
 /** A finished ride as the app submits it: facts only, never XP, stars or unlocks, which the backend computes (L2-044 AC4). */
 export type SubmitRideRequest = RideFacts & (RaceRideFacts | ClassRideFacts);
 
-/** What the backend answers for a recorded ride, the same for every repeat of its ride id (L2-125 AC3). */
+/** One line of a ride's XP, as Results shows it: "2 of 10" +160 (L2-037). */
+export interface XpLineDto {
+  readonly kind: 'finished' | 'place' | 'podium' | 'onTarget' | 'streak';
+  readonly label: string;
+  readonly xp: number;
+}
+
+/**
+ * What the backend answers for a recorded ride, the same for every repeat of its ride id (L2-125 AC3): its XP line by
+ * line and in all, and the rider's total XP once it was added (L2-037).
+ */
 export interface RideRecordedDto {
   readonly rideId: string;
   readonly recordedAt: string;
+  readonly xpLines: readonly XpLineDto[];
+  readonly xpTotal: number;
+  readonly totalXp: number;
 }
 
 /**

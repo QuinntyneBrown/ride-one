@@ -486,7 +486,9 @@ export class RaceStore {
     if (this.lostAt !== null) return this.rideTheCoast(second, seconds);
     const power = this.telemetry.powerW();
     this.lastSpeedMs = power !== null && power > 0 ? VirtualSpeedModel.speedMs(power) : 0;
-    this.recorder?.record(power, this.lastSpeedMs * 3.6, seconds);
+    const target = this.target();
+    const onTarget = power !== null && target !== null && PowerModel.onTarget(power, target);
+    this.recorder?.record(power, this.lastSpeedMs * 3.6, seconds, onTarget);
     if (seconds > 0) this.ridden.update((metres) => metres + this.lastSpeedMs * seconds);
     this.rank();
     if (this.line && this.ridden() >= this.line.metres) this.finish(second);

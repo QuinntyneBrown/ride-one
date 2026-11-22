@@ -20,11 +20,17 @@ public sealed class Rider
 
     public DateTimeOffset CreatedAt { get; private set; }
 
+    /// <summary>Every XP the rider's recorded rides have earned (L2-037); the level follows from it (L2-038).</summary>
+    public int TotalXp { get; private set; }
+
     /// <summary>When the rider deleted the account; it is erased within 30 days of it (L2-006 AC3).</summary>
     public DateTimeOffset? DeletionRequestedAt { get; private set; }
 
     public static Rider Create(EmailAddress email, DateTimeOffset now) =>
         new() { Id = Guid.NewGuid(), Email = email.Value, CreatedAt = now };
+
+    /// <summary>Adds a recorded ride's XP to the total (L2-037).</summary>
+    public void AddXp(int xp) => TotalXp += xp;
 
     /// <summary>Sets the name other riders see (L2-005).</summary>
     public void Rename(DisplayName name) => DisplayName = name.Value;

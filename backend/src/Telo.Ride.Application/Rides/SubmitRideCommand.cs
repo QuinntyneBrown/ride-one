@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Telo.Ride.Application.Maps;
@@ -25,6 +26,7 @@ public sealed record SubmitRideRequest(
     double OutputKj,
     int MaxPowerWatts,
     double MaxSpeedKmh,
+    double OnTargetShare,
     IReadOnlyList<double>? SpeedSamplesKmh,
     DateTimeOffset? FinishedAt,
     string? TimeZoneId)
@@ -33,11 +35,22 @@ public sealed record SubmitRideRequest(
     public RideFacts Facts => new(ElapsedSeconds, DistanceMeters, MaxPowerWatts, MaxSpeedKmh, SpeedSamplesKmh ?? []);
 }
 
-/// <summary>What the backend answers for a recorded ride, the same for every repeat of its ride id (L2-125 AC3).</summary>
-public sealed record RideRecordedDto(Guid RideId, DateTimeOffset RecordedAt)
+/// <summary>
+/// What the backend answers for a recorded ride, the same for every repeat of its ride id (L2-125 AC3): its XP line by
+/// line and in all, and the rider's total XP once it was added (L2-037).
+/// </summary>
+public sealed record RideRecordedDto(Guid RideId, DateTimeOffset RecordedAt, IReadOnlyList<XpLineDto> XpLines, int XpTotal, int TotalXp)
 {
-    public static RideRecordedDto From(RecordedRide ride) => new(ride.Id, ride.RecordedAt);
+    public static RideRecordedDto From(RecordedRide ride) => new(
+        ride.Id,
+        ride.RecordedAt,
+        [.. ride.XpLines.Select(line => new XpLineDto(JsonNamingPolicy.CamelCase.ConvertName(line.Kind.ToString()), line.Label, line.Xp))],
+        ride.XpLines.Sum(line => line.Xp),
+        ride.TotalXp);
 }
+
+/// <summary>One XP line: its kind (<c>finished</c>, <c>place</c>, <c>podium</c>, <c>onTarget</c>, <c>streak</c>), label and XP.</summary>
+public sealed record XpLineDto(string Kind, string Label, int Xp);
 
 /// <summary>The answer, and whether this submission recorded the ride or repeated one already recorded.</summary>
 public sealed record RideSubmission(RideRecordedDto Answer, bool Recorded);
@@ -47,8 +60,10 @@ public sealed record SubmitRideCommand(Guid RiderId, SubmitRideRequest Ride) : I
 
 /// <summary>
 /// A ride already recorded under its ride id answers as it did the first time. A new one is refused with 422
-/// <c>ride_not_plausible</c> when no one could have ridden it (L2-125 AC2), and otherwise recorded. Two first submissions
-/// at once both find nothing; the key refuses the second insert, which then answers with the first's ride.
+/// <c>ride_not_plausible</c> when no one could have ridden it (L2-125 AC2), and otherwise recorded with the XP it earns,
+/// which is added to the rider's total in the same unit of work (L2-037). Every submitted ride finished, and the streak
+/// is 0 until it is kept (slice 10.4). Two first submissions at once both find nothing; the key refuses the second
+/// insert, which then answers with the first's ride and adds nothing.
 /// </summary>
 public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue maps, TimeProvider time)
     : IRequestHandler<SubmitRideCommand, RideSubmission>
@@ -64,11 +79,17 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
             throw new DomainRuleException("ride_not_plausible", RuleKind.Unprocessable, "No one could have ridden this ride.");
         }
 
+        var rider = await db.Riders.FirstOrDefaultAsync(known => known.Id == request.RiderId, cancellationToken)
+            ?? throw new DomainRuleException("rider_not_found", RuleKind.NotFound, "No such rider.");
+        var kind = ride.Kind == "race" ? RideKind.Race : RideKind.Class;
+        var xpLines = XpCalculator.Compute(
+            new RideResult(kind, ride.Mode, RideOutcome.Finished, ride.Place, ride.FieldSize, ride.OnTargetShare), streakDays: 0);
+        rider.AddXp(xpLines.Sum(line => line.Xp));
         var recording = new RecordedRide
         {
             RiderId = request.RiderId,
             Id = ride.RideId,
-            Kind = ride.Kind == "race" ? RideKind.Race : RideKind.Class,
+            Kind = kind,
             MapId = ride.MapId,
             Mode = ride.Mode,
             Pack = ride.Pack,
@@ -80,6 +101,9 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
             OutputKj = ride.OutputKj,
             MaxPowerWatts = ride.MaxPowerWatts,
             MaxSpeedKmh = ride.MaxSpeedKmh,
+            OnTargetShare = ride.OnTargetShare,
+            XpLines = xpLines,
+            TotalXp = rider.TotalXp,
             FinishedAt = ride.FinishedAt!.Value,
             TimeZoneId = ride.TimeZoneId!,
             RecordedAt = time.GetUtcNow(),
@@ -93,6 +117,7 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
         catch (DbUpdateException)
         {
             db.Rides.Entry(recording).State = EntityState.Detached;
+            await db.Riders.Entry(rider).ReloadAsync(cancellationToken);
             var first = await Recorded(request, cancellationToken) ?? throw new InvalidOperationException("The ride was neither recorded nor found.");
             return new(RideRecordedDto.From(first), false);
         }
