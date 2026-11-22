@@ -58,7 +58,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L31 | A slice whose behaviour no screen shows yet (decoders before their readouts) is proved by the requirement's tables at the domain boundary, fed the bytes a bike sends, plus one run on the simulated bike; write a stub first so each table fails on its assertions, and say in the design which later slice brings the Playwright proof. | 3.1 | 3.2, 3.3, 4.1, 4.2, 5.1, 6.1 | Saved time: a stub `ClassPlanRules` made the table fail on its assertions, not the build |
 | L32 | A film's `arrow()` lines are light: put a diagram of `node()`s and arrows on a dark field (`field--ink`, `field--panel`), never on `field--bone`. | 3.1 | 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7 | Saved time |
 | L33 | Before a slice builds UI, find the screen that hosts it in `docs/detailed-journeys.md`: when that screen's slice comes later, build only what every host shares (state, models, formatting) and move the markup to the hosting slices in the design, rather than build a screen early. | 3.2 | 3.3, 4.1, 4.2, 5.1, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5 | Saved time |
-| L34 | Render every diagram a slice touches (`plantuml -tpng` on each `.puml`) and read its exit status: an escaped quote (`\"—\"`) inside a C4 macro's label breaks it, and a committed PNG can be older than its source. Write "a dash" instead. | 3.3 | 4.1, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 8.4, 8.5, 8.6, 8.7, 9.1, 10.3 | Saved time |
+| L34 | Render every diagram a slice touches (`plantuml -tpng` on each `.puml`) and read its exit status: an escaped quote (`\"—\"`) inside a C4 macro's label breaks it, and a committed PNG can be older than its source. Write "a dash" instead. | 3.3 | 4.1, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 8.4, 8.5, 8.6, 8.7, 9.1, 10.3, 11.3 | Saved time |
 | L35 | Before writing a slice's code, check what earlier slices already built for its requirements (`git log --oneline --grep L2-0NN`, the specs' traces): record a behaviour that already holds with one test that names its criterion, and keep the slice to what is left. | 4.1 | 4.2, 5.1, 5.2, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5 | Saved time: no progress contract existed, so the slice added the smallest one |
 | L36 | While a film encodes, draft the next slice's stubs and acceptance tables in the scratchpad; copy them into the new worktree once the merge lands, then run them to see them fail. | 5.1 | 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1 | Saved time: 6.1's prompt, requirement and ADR were read during the 5.4 encode |
 | L37 | To test time across a hidden tab, bind `MONOTONIC_TIME` to `Date.now()` under `vi.useFakeTimers()`: `vi.setSystemTime` moves the clock without firing timers, as a throttled tab does, and a `visibilitychange` with a stubbed `visibilityState` shows it again. | 5.1 | 5.2 | Saved time: the same idea, with Playwright's clock |
@@ -139,17 +139,44 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L112 | When the shared fixture gains a default answer for a path, grep the specs for that path: the harness spec used `GET /api/progress` as its unanswered example and began to pass its `test.fail`. Move such examples to a path the app never calls (`/api/harness-probe`). | 10.3 | | |
 | L113 | `@angular-eslint/template/elements-content` refuses an empty `<a>` whose name comes from an attribute component's host binding. Bind `[attr.aria-label]` on the `<a>` in the app's template, as the brand link does, and keep the component's content `aria-hidden`. | 10.3 | | |
 | L114 | Work out an `object-view-box` crop from the shot in CSS pixels (1440 × 900), not from a scaled contact sheet; a sheet stacked to one height scales each shot differently, and the guess cropped Settings instead of the headline. | 10.3 | 10.4 | Saved time |
-| L115 | An edit script must assert every old string before it writes any file, including the files a regex pass rewrites, and the commit that follows it is chained with `&&`, so a failed script commits nothing. In 10.4 a mock pass wrote, an assertion then failed, and the next line committed the half. | 10.4 | 11.1, 11.2 | Saved time |
+| L115 | An edit script must assert every old string before it writes any file, including the files a regex pass rewrites, and the commit that follows it is chained with `&&`, so a failed script commits nothing. In 10.4 a mock pass wrote, an assertion then failed, and the next line committed the half. | 10.4 | 11.1, 11.2, 11.3 | Saved time |
 | L116 | In a command that changes directory more than once, `cd` to absolute paths: a relative `cd ../..` from `components/src/app-header` landed in `components`, not `projects`, and every path after it missed. | 10.4 | 11.1, 11.2 | Made it worse once |
 | L117 | The backend's analysers run on tests and stubs: parse dates in a test with `CultureInfo.InvariantCulture` (CA1305), and give a stub member something of the instance to read (CA1822), or the build fails before any test runs. | 10.4 | | |
 | L118 | When a slice builds a screen, search the specs for the placeholder that stood in for it ("until slice 11.1", Page not found) and move them to the new page object in the same commit; three specs waited on `/results` showing Page not found. | 11.1 | | |
 | L119 | A test written after the code it covers is not yet proof: put the old code back, see the test fail for the reason named, then restore. Race Setup's preselection test was written after the store change and failed on "hard" unchecked once the change was out. | 11.1 | 11.2 | Saved time |
 | L120 | A screen reached by a click on a spec's paused clock loads lazily only as the clock steps: wait with `stepUntil`, not a bare `expect`. And take a radio's name from an existing spec: pack strengths are named "medium", not "Medium". | 11.1 | 11.2 | Saved time |
-| L121 | Before writing a film, check its prompt's film rules against the last film rather than copying it: 10.1, 10.4 and 11.1 had dropped the shots at 768 and 1024 px and the scene growing from 390 to 1440, and 11.1's film was redone. | 11.2 | | |
-| L122 | A test that proved a rule by an absence ("the answer has no `stars`") must be restated, not deleted, when a slice adds that field: assert the value is the backend's own, which is what it was proving. | 11.2 | | |
+| L121 | Before writing a film, check its prompt's film rules against the last film rather than copying it: 10.1, 10.4 and 11.1 had dropped the shots at 768 and 1024 px and the scene growing from 390 to 1440, and 11.1's film was redone. | 11.2 | 11.3 | Saved time |
+| L122 | A test that proved a rule by an absence ("the answer has no `stars`") must be restated, not deleted, when a slice adds that field: assert the value is the backend's own, which is what it was proving. | 11.2 | 11.3 | Saved time |
 | L123 | `api.answer(method, path, handler)` types its reply as `Handler \| unknown`, so a handler's `request` parameter is untyped: annotate it `(request: Request)`. Playwright runs the spec anyway; only verify's type check fails. | 11.2 | | |
+| L124 | To film an entrance, undo what keeps the recorder's pictures still: it emulates reduced motion and `shot()` disables animations, and a finished CSS animation is gone from `getAnimations()`. Turn reduced motion off, restart the animation (`animation-name: none`, a reflow, then back), pause it at a time and take the screenshot with `page.screenshot`. | 11.3 | | |
+| L125 | A new Angular API can grow the main chunk though only a lazy page uses it, because `@angular/core` ships in main: `rxResource` added 6.75 kB and `toObservable` with `switchMap` 0.94 kB. Compare main's raw size with the base before committing, and prefer what the app already uses (here an `effect` that releases its subscription). | 11.3 | | |
+| L126 | A link to a guarded screen is proved by where the guard lets it go, not by its `href`: Race Setup's guard reads the `NewRiderProgress` stand-in, so a map just opened still sends the rider to Map Select. Find this before the spec, and record the gap in the design's open questions. | 11.3 | | |
 
 ## Log
+
+### 11.3 Celebrate an unlock (2026-11-22)
+
+**Applied from earlier**
+
+- **L1 own worktree and install; L2 port 4310; L3 format first — saved time:** verify passed first time.
+- **L41 spec each step first — saved time:** the 13 rule rows and two acceptance tests failed on a stub rule, the two
+  card specs on a missing card and the three helper cases on compiling, before the code.
+- **L121 check the film rules first — saved time:** the widths scene and XS, M, L and XL shots were planned from the
+  start.
+- **L122 restate, don't delete — saved time:** the two tests comparing the whole view now expect `unlock: null`.
+- **L54 and L5 read "Initial total" — saved time:** it caught `rxResource` growing main by 6.75 kB (L125).
+- **L34 render every diagram — saved time:** the three changed diagrams rendered with exit status 0.
+- **L115 assert before writing — saved time:** a blank line in the design stopped one script, which wrote nothing.
+
+**What slowed it down**
+
+- Reading the catalogue with `rxResource`, then `toObservable`, grew the main chunk; an `effect` kept it at 277.36 kB
+  (L125).
+- The link to Race Setup bounced to Map Select through the guard's stand-in progress; the spec asserts the link, and the
+  gap is in the design's open questions until 12.1 (L126).
+- The film's entrance frames came out finished three times before the recorder's reduced motion was found (L124).
+
+**New lessons:** L124, L125, L126.
 
 ### 11.2 XP, stars and personal best (2026-11-22)
 
