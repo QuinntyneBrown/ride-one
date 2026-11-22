@@ -45,8 +45,20 @@ const RIDE_RECORDED: Handler = (request) => {
   };
 };
 
-/** A new rider's progress (L2-038): level 1, no XP, 400 XP to level 2. Every spec's rider has it unless it answers. */
-export const newRiderProgress = { level: 1, totalXp: 0, nextLevelXp: 400, streakDays: 0 };
+/**
+ * A new rider's progress (L2-038, L2-040 AC1): level 1, no XP, 400 XP to level 2, Prairie Paceline and Old Town
+ * Criterium open and Cliffside Coast next, no stars and no best. Every spec's rider has it unless it answers.
+ */
+export const newRiderProgress = {
+  level: 1,
+  totalXp: 0,
+  nextLevelXp: 400,
+  streakDays: 0,
+  openMapIds: ['prairie-paceline', 'old-town-criterium'],
+  nextUnlockId: 'cliffside-coast',
+  stars: {},
+  bestTimeSeconds: {},
+};
 
 /** The mocks' mid rider (L2-032 AC2): level 7 with 1,840 of 2,600 XP, on a 4-day streak. */
 export const midRiderProgress = { level: 7, totalXp: 1840, nextLevelXp: 2600, streakDays: 4 };
