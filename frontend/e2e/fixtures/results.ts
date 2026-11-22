@@ -56,6 +56,33 @@ export function soloRace(finishTimeS: number) {
   };
 }
 
+/** 2nd of 10 against the medium pack on Old Town Criterium in 26:38, with the mocks' pacers. */
+export function botsRace() {
+  const solo = soloRace(1598);
+  const times = [1592, 1607, 1613, 1619, 1625, 1631, 1637, 1643, 1649];
+  const pacers = ['Nova', 'Rook', 'Juno', 'Atlas', 'Kite', 'Vale', 'Moss', 'Flint', 'Echo'].map(
+    (name, index) => ({
+      name: `Pacer ${name}`,
+      jersey: name.toLowerCase(),
+      bot: true,
+      you: false,
+      finishTimeS: times[index],
+    }),
+  );
+  const you = { name: 'You', jersey: 'you', bot: false, you: true, finishTimeS: 1598 };
+  return {
+    raceResult: {
+      ...solo.raceResult,
+      mode: 'bots',
+      pack: 'medium',
+      place: 2,
+      field: 10,
+      standings: [pacers[0], you, ...pacers.slice(1)],
+    },
+    ride: { ...solo.ride, mode: 'bots', pack: 'medium', place: 2, fieldSize: 10 },
+  };
+}
+
 /** 30 Minute HIIT Cardio, ridden alone to its end. */
 export function soloClass() {
   return {
@@ -70,12 +97,13 @@ export function soloClass() {
   };
 }
 
-/** The backend's answer for `ride`: the XP lines given, and the stars and best given (none for a class). */
+/** The backend's answer for `ride`: the XP lines given, the stars and best given (none for a class) and any map opened. */
 export function recorded(
   ride: { rideId: string },
   lines: [string, number][],
   stars: { held: number; earned: number } | null,
   best: { bestSeconds: number; previousBestSeconds: number | null; isNewBest: boolean } | null,
+  openedMapId: string | null = null,
 ) {
   const xpTotal = lines.reduce((sum, [, xp]) => sum + xp, 0);
   return {
@@ -90,5 +118,6 @@ export function recorded(
     xpToNextLevel: 2600 - 1840 - xpTotal,
     stars,
     best,
+    openedMapId,
   };
 }

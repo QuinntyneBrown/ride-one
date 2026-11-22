@@ -22,6 +22,13 @@
           }
         </section>
         <aside class="earned" aria-label="What you earned">
+          @if (view.unlock; as unlock) {
+            <wz-unlock-card [view]="unlock">
+              <a slot="action" wz-button variant="gold" [block]="true" [routerLink]="unlock.path">{{
+                unlock.actionLabel
+              }}</a>
+            </wz-unlock-card>
+          }
           <wz-xp-earned [view]="view.xp" />
           @if (view.stars; as stars) {
             <wz-map-stars [view]="stars" />

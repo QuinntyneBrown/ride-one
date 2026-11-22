@@ -52,7 +52,7 @@ export { GHOST_API, type GhostApi, type GhostTrace } from './race/ghost-api';
 export type { PackStrengthId, RaceMode } from './race/race-mode';
 export type { RaceResult, ResultStanding } from './race/race-result';
 export type { StandingsRow } from './race/standings-row';
-export type { MapStarsView, XpEarnedView, XpLineView } from './results/earned-view';
+export type { MapStarsView, UnlockCardView, XpEarnedView, XpLineView } from './results/earned-view';
 export type { ClassResult } from './classes/class-result';
 export type { GradeTone, RouteProfileView, RouteStripBar } from './race/route-profile-view';
 export type {

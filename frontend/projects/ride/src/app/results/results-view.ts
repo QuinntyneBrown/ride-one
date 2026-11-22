@@ -1,10 +1,12 @@
 import type {
   ClassResult,
+  MapDto,
   MapStarsView,
   RaceResult,
   RideRecordedDto,
   RideSyncState,
   StandingsRow,
+  UnlockCardView,
   XpEarnedView,
 } from '@telo/api';
 import { ordinal } from '@telo/domain';
@@ -34,7 +36,12 @@ export interface ResultsView {
   readonly xp: XpEarnedView;
   /** The stars panel, for a race once it is recorded (L2-075). */
   readonly stars: MapStarsView | null;
+  /** The gold card of the map the ride opened, once the answer names it and its map is known (L2-076). */
+  readonly unlock: UnlockCardView | null;
 }
+
+/** What the unlock card shows of the map the ride opened. */
+export type OpenedMap = Pick<MapDto, 'id' | 'name' | 'place' | 'photoUrl'>;
 
 const PODIUM = 3;
 
@@ -51,9 +58,14 @@ function clock(seconds: number): string {
  * reads the place, "of 10", the time with "on the podium" or "{n} s off the podium" (n the seconds behind 3rd) and the
  * final standings; a solo race (vs your best) the time, and once recorded "New personal best" with "Best before: {time}"
  * or "Best: {best}"; a solo class the time, its output and its share on target. The XP panel waits, waits offline, has
- * not been recorded or shows the backend's lines; a race once recorded shows its stars on the map.
+ * not been recorded or shows the backend's lines; a race once recorded shows its stars on the map. A ride the answer
+ * says opened a map shows its unlock card once `openedMap`, read from the catalogue, is that map.
  */
-export function resultsView(result: RaceResult | ClassResult, sync: RideSyncState): ResultsView {
+export function resultsView(
+  result: RaceResult | ClassResult,
+  sync: RideSyncState,
+  openedMap: OpenedMap | null = null,
+): ResultsView {
   const answer = sync.kind === 'recorded' ? sync.answer : null;
   const view = 'mapId' in result ? raceView(result, answer) : classView(result);
   return {
@@ -67,6 +79,20 @@ export function resultsView(result: RaceResult | ClassResult, sync: RideSyncStat
             newLine: newStars(answer.stars.earned),
           }
         : null,
+    unlock:
+      answer?.openedMapId && openedMap?.id === answer.openedMapId ? unlockCard(openedMap) : null,
+  };
+}
+
+/** "Neon Docklands is open", its place as a sentence, its photo and "Ride Neon Docklands" to its Race Setup. */
+function unlockCard(map: OpenedMap): UnlockCardView {
+  return {
+    mapId: map.id,
+    title: `${map.name} is open`,
+    place: `${map.place}.`,
+    photoUrl: map.photoUrl,
+    actionLabel: `Ride ${map.name}`,
+    path: `/race/${map.id}`,
   };
 }
 
@@ -98,7 +124,7 @@ function bestLine(best: RideRecordedDto['best']): string | null {
     : `Best: ${clock(best.bestSeconds)}`;
 }
 
-type Panels = 'xp' | 'stars';
+type Panels = 'xp' | 'stars' | 'unlock';
 
 function raceView(result: RaceResult, answer: RideRecordedDto | null): Omit<ResultsView, Panels> {
   const time = clock(result.finishTimeS);

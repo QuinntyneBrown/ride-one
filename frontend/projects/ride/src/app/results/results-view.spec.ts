@@ -7,7 +7,8 @@ import type {
 } from '@telo/api';
 import { resultsView } from './results-view';
 
-// Traces to: L2-073 AC1, AC2, AC3; L2-078 AC1; L2-079 AC1; L2-074 AC1-AC4; L2-075 AC1-AC3; L2-077 AC1, AC3, AC4
+// Traces to: L2-073 AC1, AC2, AC3; L2-078 AC1; L2-079 AC1; L2-074 AC1-AC4; L2-075 AC1-AC3; L2-077 AC1, AC3, AC4;
+// L2-076 AC1, AC3
 // Results from the result the ride hands over: the header's context, the hidden heading, "You finished", the place or
 // the time, "of 10", the line under it, the final standings and the again action. On the podium the line reads "{time}
 // · on the podium"; off it, "{time} · {n} s off the podium", n the seconds behind 3rd.
@@ -66,6 +67,7 @@ describe('resultsView', () => {
       },
       xp: WAITING,
       stars: null,
+      unlock: null,
     });
   });
 
@@ -129,6 +131,7 @@ describe('resultsView', () => {
       again: { label: 'Ride it again', path: '/classes/hiit-cardio-30', query: {} },
       xp: WAITING,
       stars: null,
+      unlock: null,
     });
   });
 
@@ -159,6 +162,7 @@ describe('resultsView', () => {
         xpToNextLevel: 318,
         stars: { held: 2, earned: 1 },
         best: { bestSeconds: 1598, previousBestSeconds: null, isNewBest: false },
+        openedMapId: null,
         ...over,
       },
     });
@@ -247,6 +251,36 @@ describe('resultsView', () => {
       const view = resultsView(solo(1598), answer({}));
 
       expect([view.lead, view.sub]).toEqual(['You finished', null]);
+    });
+
+    const docklands = {
+      id: 'neon-docklands',
+      name: 'Neon Docklands',
+      place: 'A harbour city after dark',
+      photoUrl: 'maps/neon-docklands-photo.jpg',
+    };
+
+    it('shows the map the ride opened as its unlock card (L2-076 AC1)', () => {
+      const view = resultsView(bots, answer({ openedMapId: 'neon-docklands' }), docklands);
+
+      expect(view.unlock).toEqual({
+        mapId: 'neon-docklands',
+        title: 'Neon Docklands is open',
+        place: 'A harbour city after dark.',
+        photoUrl: 'maps/neon-docklands-photo.jpg',
+        actionLabel: 'Ride Neon Docklands',
+        path: '/race/neon-docklands',
+      });
+    });
+
+    it('shows no unlock card when no map opened, or until the ride is recorded (L2-076 AC3)', () => {
+      expect(resultsView(bots, answer({}), docklands).unlock).toBeNull();
+      expect(resultsView(bots, SENDING, docklands).unlock).toBeNull();
+    });
+
+    it('shows no unlock card until the opened map is known', () => {
+      expect(resultsView(bots, answer({ openedMapId: 'neon-docklands' })).unlock).toBeNull();
+      expect(resultsView(bots, answer({ openedMapId: 'vice-city' }), docklands).unlock).toBeNull();
     });
 
     it('gives a class no stars panel (L2-075 AC3)', () => {

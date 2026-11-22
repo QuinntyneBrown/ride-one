@@ -85,3 +85,13 @@ With an opened map, the card enters with the timed fade, scale and colour change
 under reduced motion (L2-076 AC2). With none, no card shows (AC3).
 
 ![Sequence diagram for showing the unlock card](diagrams/sequence-show-unlock-card.png)
+
+## Open questions
+
+- **Race Setup for a map just opened.** Slice 11.3 links "Ride Neon Docklands" to
+  `/race/neon-docklands`, but Race Setup's guard still reads the rider's open maps from the
+  `NewRiderProgress` stand-in, which opens only the two maps open from the start. The rider is
+  sent to Map Select until slice 12.1 reads the open maps from the backend
+  (`progression/earn-stars-and-unlock-maps`, `GetProgressQueryHandler`).
+- **The action's height.** The mock draws "Ride {map}" 44 px tall; the gold link uses the
+  button's default 40 px height, whose touch area is 44 px, rather than a size for one button.
