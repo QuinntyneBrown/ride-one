@@ -49,7 +49,24 @@ The slice lives almost entirely in the backend domain. It is invoked by the ride
   highest level reached; `Progress(totalXp)` returns a `LevelProgress` with the level, the next
   threshold and the XP to it. At level 30 the next threshold is `null` and the level stays 30.
   Three thresholds are known: level 2 needs 400 XP, level 8 needs 2,600 and level 19 needs
-  10,400. The remaining thresholds are `<TO SUPPLY>` (open question 1 in `docs/specs/L2.md`).
+  10,400. The rest are provisional until open question 1 in `docs/specs/L2.md` is settled. They
+  keep the mocks' riders where the mocks draw them (the mid rider at level 7 with 1,840 XP, the
+  veteran at level 18 with 9,120), so level 7 needs no more than 1,840 and level 18 no more than
+  9,120:
+
+  | Level | XP | Level | XP | Level | XP |
+  |---|---|---|---|---|---|
+  | 1 | 0 | 11 | 4,400 | 21 | 12,400 |
+  | 2 | 400 | 12 | 5,000 | 22 | 13,400 |
+  | 3 | 650 | 13 | 5,600 | 23 | 14,400 |
+  | 4 | 900 | 14 | 6,200 | 24 | 15,400 |
+  | 5 | 1,150 | 15 | 6,800 | 25 | 16,400 |
+  | 6 | 1,450 | 16 | 7,400 | 26 | 17,400 |
+  | 7 | 1,800 | 17 | 8,000 | 27 | 18,400 |
+  | 8 | 2,600 | 18 | 8,600 | 28 | 19,400 |
+  | 9 | 3,200 | 19 | 10,400 | 29 | 20,400 |
+  | 10 | 3,800 | 20 | 11,400 | 30 | 21,400 |
+
   The table is data in the domain project, so a change needs no app code.
 - **`Rider`** — entity whose `AddXp(amount)` raises `TotalXp`.
 - **`RecordedRide`** — keeps its XP lines with it, so a repeat of the ride id answers with the
@@ -58,10 +75,16 @@ The slice lives almost entirely in the backend domain. It is invoked by the ride
   calls `XpCalculator`, adds the total to the rider, compares `LevelTable.LevelFor` before and
   after, and returns `RideRecordedDto` with the lines, the total, the new level, `LevelUp` and
   the XP to the next level. Slice 10.2 returns the lines, the ride's total and the rider's new
-  total XP; slice 10.3 adds the level, `LevelUp` and the XP to the next level.
+  total XP; slice 10.3 adds `level`, `levelUp`, `nextLevelXp` (the next level's threshold) and
+  `xpToNextLevel`, both `null` at level 30. They follow from the total the ride keeps, so a
+  repeat of the ride id answers the same. Results shows them with journey 11 (L2-038 AC3).
+- **`GetProgressQuery`** — MediatR query behind `GET /api/progress` (see
+  `home/show-the-app-header`). It answers the rider's `ProgressDto`: `level`, `totalXp` and
+  `nextLevelXp` from `LevelTable.Progress`, and `streakDays`, 0 until slice 10.4 keeps it; the
+  maps join it with the slices that unlock them.
 
 Unit tests cover `XpCalculator` with one case per criterion of L2-037, including the worked
-example of AC5, and `LevelTable` with the three known thresholds and level 30.
+example of AC5, and `LevelTable` with one case per row of its table and the cap at level 30.
 
 ## Requirements
 

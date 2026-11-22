@@ -16,22 +16,21 @@ class MainShell <<ride>> {
   -progress: ProgressStore
   -bike: BikeConnection
   +items: Home, Race, Classes, Profile
-  +level: Signal<LevelView | undefined>
+  +level: Signal<LevelView | null>
 }
 interface ProgressStore <<api>> {
-  +progress: Signal<ProgressDto | undefined>
-  +level: Signal<LevelView | undefined>
-  +refresh(): Promise<void>
+  +progress: Signal<ProgressDto | null>
+  +refresh(): void
 }
 class RiderProgressStore <<ride>> {
-  -progressApi: ProgressApi
-  +refresh(): Promise<void>
+  -progressApi: RiderProgressApi
+  +refresh(): void
 }
-interface ProgressApi <<api>> {
-  +getProgress(): Promise<ProgressDto>
+interface RiderProgressApi <<api>> {
+  +progress(): Observable<ProgressDto>
 }
-class HttpProgressApi <<api>> {
-  +getProgress(): Promise<ProgressDto>
+class HttpRiderProgressApi <<api>> {
+  +progress(): Observable<ProgressDto>
 }
 class AppHeaderLink <<components>> {
   selector: a[wz-app-header-link]
@@ -77,8 +76,8 @@ MainShell ..> ProgressStore : injects PROGRESS_STORE
 MainShell ..> AppHeader : renders
 MainShell ..> toLevelView : uses
 RiderProgressStore ..|> ProgressStore
-HttpProgressApi ..|> ProgressApi
-RiderProgressStore --> ProgressApi : PROGRESS_API
+HttpRiderProgressApi ..|> RiderProgressApi
+RiderProgressStore --> RiderProgressApi : RIDER_PROGRESS_API
 ProgressStore --> ProgressDto
 MainShell *-- AppHeaderLink : nav slot
 MainShell *-- AppHeaderLevel : end slot

@@ -47,16 +47,23 @@ The slice runs from a layout route in the Ride app to the progress endpoint of t
 - **`LevelBadge`** and **`XpBar`** — presentation components in `components` for the gold level
   badge and the XP fill with its label.
 - **`ProgressStore`** — contract and `PROGRESS_STORE` token in the `api` library. It exposes the
-  backend's `ProgressDto` as a signal and a `refresh()` method. **`RiderProgressStore`** in
-  `ride` implements it and is provided in `root`, because the header, Home, Results and Profile
-  share it.
-- **`ProgressApi`** / **`HttpProgressApi`** — contract, `PROGRESS_API` token and HTTP client in
-  `api`. `getProgress()` calls `GET /api/progress` with the session cookie.
+  backend's `ProgressDto` as a signal (`null` until it arrives) and a `refresh()` method.
+  **`RiderProgressStore`** in `ride` implements it. It is provided on the shell's route, which
+  the header, Home and Profile share; the screens outside the shell that need it (Results) bind
+  it with their slices.
+- **`RiderProgressApi`** / **`HttpRiderProgressApi`** — contract, `RIDER_PROGRESS_API` token and
+  HTTP client in `api`. `progress()` calls `GET /api/progress` with the session cookie. The
+  older `PROGRESS_API` (`level()` and `maps()`) stays the new rider's stand-in that the class
+  tiers and maps read until slices 12.1 and 12.2 move them onto `GET /api/progress`.
 - **`toLevelView()`** — pure helper in `ride` with unit tests. It turns a `ProgressDto` into a
   `LevelView`: the visible label "1,840 / 2,600 XP", the `aria-label` "Level 7, 1840 of 2600
   XP", and the fill percentage. The fill is total XP divided by the next level's threshold
-  (1,840 / 2,600 = 70.8 %), as L2-032 AC2 states. At level 30 the next threshold is `null` and
-  the bar is full.
+  (1,840 / 2,600 = 70.8 %), as L2-032 AC2 states. At level 30 the next threshold is `null`, the
+  bar is full, and the label reads "21,400 XP" and the `aria-label` "Level 30, 21400 XP". Until
+  the progress arrives, or when it cannot be read, the level link is absent.
+- Slice 10.3 builds the level link, `LevelBadge`, `XpBar`, the store and the endpoint; the streak
+  joins with slice 10.4 and Full screen with slice 24.2. Profile's headline reads its level from
+  the same store, so the two never disagree.
 - **`ProgressController`**, **`GetProgressQuery`**, **`GetProgressQueryHandler`** — the
   backend read path in `Telo.Ride.Api` and `Telo.Ride.Application`. The handler loads the
   rider's progress, asks `LevelTable` for the level and next threshold, and returns the
