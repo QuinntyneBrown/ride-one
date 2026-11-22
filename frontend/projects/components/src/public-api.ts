@@ -2,6 +2,7 @@ export { AppHeader } from './app-header/app-header';
 export { AppHeaderBike } from './app-header/app-header-bike';
 export { AppHeaderBrand } from './app-header/app-header-brand';
 export { AppHeaderLink } from './app-header/app-header-link';
+export { AppHeaderStreak } from './app-header/app-header-streak';
 export { AppHeaderLevel } from './app-header/app-header-level';
 export { ConnectWorks } from './connect-works/connect-works';
 export { ConnectDevice, type ConnectDeviceState } from './connect-device/connect-device';

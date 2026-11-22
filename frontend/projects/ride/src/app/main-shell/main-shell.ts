@@ -7,6 +7,7 @@ import {
   AppHeaderBrand,
   AppHeaderLevel,
   AppHeaderLink,
+  AppHeaderStreak,
 } from '@telo/components';
 import { bikeStatus } from '@telo/domain';
 import { toLevelView } from '../progress/level-view';
@@ -27,6 +28,7 @@ import { toLevelView } from '../progress/level-view';
     AppHeaderBrand,
     AppHeaderLevel,
     AppHeaderLink,
+    AppHeaderStreak,
   ],
   templateUrl: './main-shell.html',
   styleUrl: './main-shell.scss',
@@ -42,6 +44,9 @@ export default class MainShell {
   constructor() {
     this.progress.refresh();
   }
+
+  /** The streak in days; 0, so absent, until the progress arrives (L2-032 AC3). */
+  protected readonly streakDays = computed(() => this.progress.progress()?.streakDays ?? 0);
 
   /** The level link, absent until the progress arrives or while it cannot be read. */
   protected readonly level = computed(() => {

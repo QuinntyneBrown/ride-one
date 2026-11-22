@@ -8,6 +8,9 @@ export class AppHeader {
   readonly nav: Locator;
   /** The bike status at the end of the header, shown from lg (1024 px). */
   readonly bike: Locator;
+  /** The streak: a flame and the numeral, named by hidden text ("4-day streak"); absent at 0 (L2-032 AC2, AC3). */
+  readonly streak: Locator;
+  readonly streakCount: Locator;
   /** The level link to Profile: the gold badge, the XP bar and its label (L2-032 AC2). */
   readonly level: Locator;
   readonly levelBadge: Locator;
@@ -22,6 +25,8 @@ export class AppHeader {
     this.product = this.lockup.locator('.wordmark__product');
     this.nav = this.root.getByRole('navigation', { name: 'Main' });
     this.bike = this.root.locator('.app-header__bike');
+    this.streak = this.root.locator('.app-header__streak');
+    this.streakCount = this.streak.locator('.app-header__streak-count');
     this.level = this.root.locator('.app-header__level');
     this.levelBadge = this.level.locator('.level-badge');
     this.xpLabel = this.level.locator('.app-header__xp-label');
@@ -37,6 +42,11 @@ export class AppHeader {
 
   link(name: 'Home' | 'Race' | 'Classes' | 'Profile'): Locator {
     return this.nav.getByRole('link', { name, exact: true });
+  }
+
+  /** The streak's name, as assistive technology reads it. */
+  streakName(days: number): Locator {
+    return this.streak.getByText(`${days}-day streak`, { exact: true });
   }
 
   current(): Locator {

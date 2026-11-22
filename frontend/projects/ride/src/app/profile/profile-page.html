@@ -8,6 +8,9 @@
         <h1 class="page__title">
           {{ headline() }}
         </h1>
+        @if (meta(); as meta) {
+          <p class="profile-level__meta">{{ meta }}</p>
+        }
       </div>
     </section>
   </div>
