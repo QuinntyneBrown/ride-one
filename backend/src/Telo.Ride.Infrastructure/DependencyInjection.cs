@@ -15,7 +15,8 @@ public static class DependencyInjection
     /// <summary>
     /// The database (connection string <c>ConnectionStrings:TeloRide</c>, docs/deployment.md) and
     /// <see cref="IAppDbContext"/> over it, <see cref="TeloRideMetrics"/>, and the class catalogue embedded in
-    /// this assembly (ADR 0028), and sign-in's code hasher and email sender (ADR 0031).
+    /// this assembly (ADR 0028), sign-in's code hasher and email sender (ADR 0031), and the daily erasure of deleted
+    /// accounts (L2-006 AC3).
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddSingleton<IMapCatalogue, EmbeddedMapCatalogue>();
         services.AddSingleton<ISignInCodeHasher, HmacSignInCodeHasher>();
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        services.AddHostedService<AccountErasureService>();
         return services;
     }
 }

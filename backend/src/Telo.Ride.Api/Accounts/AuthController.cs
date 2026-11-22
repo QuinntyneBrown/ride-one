@@ -38,4 +38,15 @@ public sealed class AuthController(ISender sender) : ControllerBase
             RiderSessionTicketStore.Principal(rider.RiderId), new AuthenticationProperties { IsPersistent = true });
         return rider;
     }
+
+    /// <summary>
+    /// Signs this device out (L2-006 AC1): cookie authentication hands the cookie's key to the session store, which ends
+    /// the session at once, and clears the cookie. Without a session there is nothing to end, and it still answers 204.
+    /// </summary>
+    [HttpPost("sign-out")]
+    public async Task<IActionResult> SignOutOfThisDevice()
+    {
+        await HttpContext.SignOutAsync();
+        return NoContent();
+    }
 }

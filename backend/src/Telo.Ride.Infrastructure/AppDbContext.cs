@@ -30,7 +30,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.Entity<Rider>(rider =>
         {
             rider.HasKey(r => r.Id);
-            rider.Property(r => r.Email).HasMaxLength(320).IsRequired();
+            // A deleted account has no email; the unique index leaves those out (L2-006 AC4).
+            rider.Property(r => r.Email).HasMaxLength(320);
             rider.HasIndex(r => r.Email).IsUnique();
             rider.Property(r => r.DisplayName).HasMaxLength(40);
         });
