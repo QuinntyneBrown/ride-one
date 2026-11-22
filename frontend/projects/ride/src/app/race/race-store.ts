@@ -36,6 +36,7 @@ import {
   type Standing,
   WorkoutEngine,
   YOU,
+  finalStandings,
   formatGap,
   ordinal,
   rankStandings,
@@ -437,11 +438,13 @@ export class RaceStore {
     this.wakeLock.release();
     const raceResult: RaceResult = {
       mapId: this.mapId,
+      mapName: this.map()?.name ?? '',
       mode: this.mode,
       pack: this.mode === 'solo' ? null : this.pack,
       finishTimeS: second,
       place: you?.place ?? 1,
       field: this.standings().length || 1,
+      standings: finalStandings(this.standings(), this.line?.crossings ?? new Map(), second),
     };
     this.submit(raceResult);
     void this.router.navigateByUrl('/results', { state: { raceResult } });

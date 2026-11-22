@@ -46,6 +46,12 @@ export const rideRoutes: Routes = [
         canActivate: [rememberedBikeGuard],
         loadChildren: () => import('./race/race.routes').then((m) => m.raceRoutes),
       },
+      // Results has its own header, with no app navigation (docs/mocks/pages/results/).
+      {
+        path: 'results',
+        title: 'Results · Telo Ride',
+        loadComponent: () => import('./results/results-page'),
+      },
       // Race Setup has its own header, with no app navigation (docs/mocks/pages/race-setup/).
       {
         path: 'race/:mapId',

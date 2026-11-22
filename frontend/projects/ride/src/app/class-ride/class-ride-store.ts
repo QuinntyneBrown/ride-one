@@ -5,6 +5,7 @@ import {
   BIKE_CONNECTION,
   CLASSES_API,
   type ClassDto,
+  type ClassResult,
   RIDES_API,
   SCREEN_WAKE_LOCK,
   TICKER,
@@ -207,7 +208,8 @@ export class ClassRideStore {
 
   /**
    * The plan's end: the clock stops at the class length, the video pauses, the ride is submitted (L2-044 AC2), and
-   * Results opens (L2-093 AC2). Leaving the page releases the rest.
+   * Results opens with the class's result in the navigation's state (L2-093 AC2, L2-078 AC1). Leaving the page releases
+   * the rest.
    */
   private finish(ride: ClassDto): void {
     this.clock.pause();
@@ -215,7 +217,15 @@ export class ClassRideStore {
     this.player()?.pause();
     this.wakeLock.release();
     this.submit(ride);
-    void this.router.navigateByUrl('/results');
+    const facts = this.recorder?.facts(new Date());
+    const classResult: ClassResult = {
+      classId: ride.id,
+      title: ride.title,
+      elapsedSeconds: ride.lengthSeconds,
+      outputKj: facts?.outputKj ?? 0,
+      onTargetShare: facts?.onTargetShare ?? 0,
+    };
+    void this.router.navigateByUrl('/results', { state: { classResult } });
   }
 
   /**

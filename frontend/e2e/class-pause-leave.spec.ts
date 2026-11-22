@@ -16,21 +16,12 @@ import { hiitCardio } from './fixtures/classes';
 import { expect, test } from './fixtures/test';
 import type { YouTubeFixture } from './fixtures/youtube';
 import { ClassStartPage } from './pages/class-start.page';
-import { NotFoundPage } from './pages/not-found.page';
+import { ResultsPage } from './pages/results.page';
 
 /** Waits for the fake player, then lets it get ready: its onReady runs on the paused clock. */
 async function videoReady(page: Page, youtube: YouTubeFixture): Promise<void> {
   await expect.poll(async () => (await youtube.players()).length).toBe(1);
   await page.clock.runFor(100);
-}
-
-/** Steps the paused clock until the lazy Page not found has rendered: Results is not built yet. */
-async function notFoundShown(page: Page): Promise<void> {
-  const notFound = new NotFoundPage(page);
-  await expect(async () => {
-    await page.clock.runFor(16);
-    await expect(notFound.heading).toHaveText('This page doesn’t exist.', { timeout: 50 });
-  }).toPass();
 }
 
 test.describe('Pause, leave or finish a class', () => {
@@ -163,8 +154,7 @@ test.describe('Pause, leave or finish a class', () => {
 
     await page.clock.runFor(2000);
     await expect(page).toHaveURL('/results');
-    // Results comes with slice 11.1; until then the address shows Page not found.
-    await notFoundShown(page);
+    await new ResultsPage(page).shown();
     expect((await youtube.players())[0].destroyed).toBe(true);
   });
 

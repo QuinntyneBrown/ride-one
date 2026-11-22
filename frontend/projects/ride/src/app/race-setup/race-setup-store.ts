@@ -19,7 +19,8 @@ import { RaceStartPlanner } from '@telo/domain';
  */
 @Injectable()
 export class RaceSetupStore {
-  private readonly mapId = inject(ActivatedRoute).snapshot.paramMap.get('mapId') ?? '';
+  private readonly snapshot = inject(ActivatedRoute).snapshot;
+  private readonly mapId = this.snapshot.paramMap.get('mapId') ?? '';
   private readonly catalogue = signal<readonly MapDto[]>([]);
   private readonly progress = signal<MapProgressDto | null>(null);
   private readonly level = signal(1);
@@ -73,11 +74,18 @@ export class RaceSetupStore {
     },
   ]);
 
-  /** The chosen mode, Bots by default (L2-048 AC1). */
-  readonly mode = signal<RaceMode>('bots');
+  /** The chosen mode, Bots by default (L2-048 AC1), or the one "Race it again" carries (`?mode=solo`, L2-079 AC1). */
+  readonly mode = signal<RaceMode>(
+    (['solo', 'bots'] as const).find((mode) => mode === this.snapshot.queryParamMap.get('mode')) ??
+      'bots',
+  );
 
-  /** How hard the bots ride, medium by default (L2-049 AC1). */
-  readonly pack = signal<PackStrengthId>('medium');
+  /** How hard the bots ride, medium by default (L2-049 AC1), or the one "Race it again" carries (`?pack=hard`). */
+  readonly pack = signal<PackStrengthId>(
+    (['easy', 'medium', 'hard'] as const).find(
+      (pack) => pack === this.snapshot.queryParamMap.get('pack'),
+    ) ?? 'medium',
+  );
 
   /** The start the choice leads to, and its button's label (L2-050). */
   readonly raceStart = computed(() => RaceStartPlanner.plan(this.mapId, this.mode(), this.pack()));
