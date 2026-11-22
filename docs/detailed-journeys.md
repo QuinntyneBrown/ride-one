@@ -48,7 +48,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 10.3 | Rider levels | Levels from XP thresholds; level shown in the header. | 2 | 10. Earn XP, levels and streaks | 100% |
 | 10.4 | Keep a streak | Consecutive riding days are counted on the backend and shown on Home, Profile and results. | 3 | 10. Earn XP, levels and streaks | 100% |
 | 11.1 | Results screen | Time, power and distance summary after any ride. | 3 | 11. See results | 100% |
-| 11.2 | XP, stars and personal best | Results show XP earned, stars and a new personal best. | 3 | 11. See results | 0% |
+| 11.2 | XP, stars and personal best | Results show XP earned, stars and a new personal best. | 3 | 11. See results | 100% |
 | 11.3 | Celebrate an unlock | Unlock moment for a new map or tier. | 2 | 11. See results | 0% |
 | 12.1 | Earn stars and unlock maps | Race times earn up to three stars per map; enough stars unlock the next maps. | 3 | 12. Unlock maps and class tiers | 0% |
 | 12.2 | Open class tiers | Rider levels open longer class tiers (20, 30 and 60 minutes) in the class library. | 2 | 12. Unlock maps and class tiers | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 41 slices, 108 days (45%).
+**Total:** 95 slices, 238 days. **Complete:** 42 slices, 111 days (47%).
