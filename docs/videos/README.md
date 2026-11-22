@@ -51,6 +51,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 10.3 | [Rider levels](10-3-rider-levels/README.md) | 1:30 | The total XP makes a level from 1 to 30 by LevelTable; the ride answers the level and whether it went up; GET /api/progress feeds the header's level link and Profile; 40 backend cases and one behaviour spec |
 | 10.4 | [Keep a streak](10-4-keep-a-streak/README.md) | 1:30 | Each ride records its calendar day in its time zone on the rider's streak; the XP line, the header's flame and Profile's line give one number; 0 after a missed day; 16 backend cases and one behaviour spec |
 | 11.1 | [Results screen](11-1-results-screen/README.md) | 1:56 | Results opens when a race or class ends, from the result it hands over: the place in volt on the podium or how far off it, the final standings with the rider current and bots marked, a solo race's time, a class's kJ and share on target; Done, Race it again with its mode and pack, Ride it again |
+| 11.2 | [XP, stars and personal best](11-2-xp-stars-and-personal-best/README.md) | 2:00 | Results shows the backend's answer: XP earned line by line after a waiting state, the stars held on the map and new ones, a solo race's new personal best or best; offline it says XP comes back online, and a refused ride earned none; MapProgress and StarRules on the backend |
 
 ## What every video is
 
