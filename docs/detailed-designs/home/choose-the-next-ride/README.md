@@ -121,22 +121,24 @@ Ride API, and reads cached catalogues from browser storage when the network is s
 
 ### Components
 
-`HomeStore` joins three sources into one `HomeView` that `HomePage` renders through four
-presentation components. On the backend, `GetProgressQueryHandler` uses `UnlockRules` to choose
+`HomeStore` joins the progress, the rider's name and the two catalogues into the greeting, the
+banner, the card and the doors, which `HomePage` renders through six presentation components. On the backend, `GetProgressQueryHandler` uses `UnlockRules` to choose
 the card's map, and `MarkUnlockSeenCommandHandler` records the banner as seen.
 
 ![C4 component view for choosing the next ride](diagrams/c4-component.png)
 
 ### Class structure
 
-`HomeView` composes the card, Race door and Classes door views. The store derives them from
-`ProgressDto` and its `NextRideDto`, and uses `homeGreeting()` for the heading.
+The store derives each part through its own pure helper (`homeGreeting()`, `nextRideView()`,
+`raceDoorView()`, `classDoorView()` and `unlockBannerView()`), each with unit tests, from
+`ProgressDto` and the catalogues.
 
 ![Class diagram for choosing the next ride](diagrams/class-structure.png)
 
 ### Behaviour — open Home
 
-The store loads progress, catalogues and the featured session in parallel. The backend returns
+The store loads the catalogues in parallel with the progress the shell reads; each part shows
+once its sources have arrived (the featured session comes with slice 14.2). The backend returns
 the next unlock (L2-041) and the map to offer; the store formats the greeting and the Race door
 summary.
 
