@@ -1,0 +1,19 @@
+<span class="setting-row__icon" aria-hidden="true">
+  @switch (icon()) {
+    @case ('person') {
+      <svg class="setting-row__glyph" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="5" />
+        <path d="M20 21a8 8 0 0 0-16 0" />
+      </svg>
+    }
+  }
+</span>
+<span class="setting-row__text">
+  <span class="setting-row__title">{{ title() }}</span>
+  @if (body()) {
+    <span class="setting-row__body">{{ body() }}</span>
+  }
+</span>
+<svg class="setting-row__chevron" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="m9 18 6-6-6-6" />
+</svg>

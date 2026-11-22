@@ -18,33 +18,55 @@ package "api library" {
     +minLength = 2
     +maxLength = 24
     +allowed = /^[\p{L}\p{N} ._-]+$/u
-    +check(raw: string): "ok" | "too_short" | "too_long" | "bad_characters"
+    +isDisplayName(raw: string): boolean
   }
   interface RidersApi {
-    +getMe(): Promise<RiderMe>
-    +setDisplayName(name: string): Promise<RiderMe>
+    +me(): Observable<RiderMe>
+    +setDisplayName(name: string): Observable<RiderMe>
+  }
+  interface CurrentRider {
+    +rider: Signal<RiderMe | null>
+    +signedIn(rider: RiderMe): void
   }
   class HttpRidersApi
   RidersApi <|.. HttpRidersApi
 }
 package "components library" {
   class DisplayNameForm {
-    +value: model<string>
-    +error: input<string | null>
-    +busy: input<boolean>
-    +actionLabel: input<string>
+    +name: input<string>
+    +action: input<string>
+    +cancel: input<string | null>
+    +saving: input<boolean>
+    +refusals: input<number>
+    +failed: input<boolean>
     +submitted: output<string>
+    +cancelled: output<void>
+  }
+  class SettingRow <<a, button>> {
+    +title: input<string>
+    +body: input<string>
   }
 }
 package "ride application" {
   class DisplayNamePromptPage
   class DisplayNameDialog
+  class ProfilePage
+  class DisplayNameStore {
+    +saving: Signal<boolean>
+    +error: Signal<"refused" | "failed" | null>
+    +refusals: Signal<number>
+    +save(name: string): Promise<boolean>
+  }
 }
 DisplayNamePromptPage --> DisplayNameForm
 DisplayNameDialog --> DisplayNameForm
-DisplayNamePromptPage --> RidersApi : RIDERS_API
-DisplayNameDialog --> RidersApi : RIDERS_API
-DisplayNameForm ..> DisplayNamePolicy
+ProfilePage --> SettingRow
+ProfilePage ..> DisplayNameDialog : opens (CDK Dialog)
+DisplayNamePromptPage --> DisplayNameStore
+DisplayNameDialog --> DisplayNameStore
+DisplayNameStore --> RidersApi : RIDERS_API
+DisplayNameStore --> CurrentRider : CURRENT_RIDER
+DisplayNameStore ..> DisplayNamePolicy
 package "Telo.Ride.Api" {
   class RidersController {
     +SetDisplayName(request: SetDisplayNameRequest): Task<IActionResult>
@@ -52,14 +74,11 @@ package "Telo.Ride.Api" {
 }
 package "Telo.Ride.Application" {
   class SetDisplayNameCommand {
-    +string DisplayName
+    +Guid RiderId
+    +string? DisplayName
   }
-  class SetDisplayNameCommandValidator
   class SetDisplayNameCommandHandler {
-    +Handle(command: SetDisplayNameCommand): Task<Result<RiderMeDto>>
-  }
-  interface ICurrentRider {
-    +Guid Id
+    +Handle(command: SetDisplayNameCommand): Task<RiderDto>
   }
   class RiderCard {
     +string DisplayName
@@ -70,20 +89,18 @@ package "Telo.Ride.Application" {
 package "Telo.Ride.Domain" {
   class DisplayName <<value object>> {
     +string Value
-    +{static} TryCreate(raw: string, out error: string): DisplayName?
+    +{static} Parse(raw: string?): DisplayName
   }
   class Rider {
     +Guid Id
-    +EmailAddress Email
-    +DisplayName? DisplayName
-    +string? CountryCode
+    +string Email
+    +string? DisplayName
     +Rename(name: DisplayName): void
   }
 }
 RidersController ..> SetDisplayNameCommand : sends
-SetDisplayNameCommandValidator ..> SetDisplayNameCommand : validates
 SetDisplayNameCommandHandler ..> SetDisplayNameCommand : handles
-SetDisplayNameCommandHandler --> ICurrentRider
+SetDisplayNameCommandHandler --> DisplayName : parses
 SetDisplayNameCommandHandler --> Rider : loads / renames
 Rider --> DisplayName
 RiderCard ..> Rider : projects (no email)

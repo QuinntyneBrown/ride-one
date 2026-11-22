@@ -15,5 +15,15 @@ public sealed class RidersController(ISender sender) : ControllerBase
 {
     [HttpGet("me")]
     public Task<RiderDto> Me(CancellationToken cancellationToken) =>
-        sender.Send(new GetCurrentRiderQuery(RiderSessionTicketStore.RiderId(User) ?? Guid.Empty), cancellationToken);
+        sender.Send(new GetCurrentRiderQuery(SignedIn), cancellationToken);
+
+    /// <summary>Sets the name other riders see (L2-005 AC2): 400 <c>display_name_invalid</c> when it breaks the rule.</summary>
+    [HttpPut("me/display-name")]
+    public Task<RiderDto> SetDisplayName(SetDisplayNameRequest request, CancellationToken cancellationToken) =>
+        sender.Send(new SetDisplayNameCommand(SignedIn, request.DisplayName), cancellationToken);
+
+    private Guid SignedIn => RiderSessionTicketStore.RiderId(User) ?? Guid.Empty;
 }
+
+/// <summary>What Profile and the name prompt send: the display name as typed.</summary>
+public sealed record SetDisplayNameRequest(string? DisplayName);

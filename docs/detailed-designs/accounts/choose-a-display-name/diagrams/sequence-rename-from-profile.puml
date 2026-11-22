@@ -30,7 +30,7 @@ end box
 box "Backend — Telo.Ride.Infrastructure" #FFF4E5
   database "Telo Ride database" as db
 end box
-profile --> actor : Headline "Sam · Level 7" (L2-005 AC3)
+profile --> actor : Headline "Sam · Level 1" (L2-005 AC3)
 actor -> profile : Choose the display-name row in Settings
 profile -> dialog : Open (CDK Dialog, focus in the field)
 actor -> dialog : Enter "Sam R." and Save
@@ -38,9 +38,9 @@ dialog -> client : setDisplayName("Sam R.")
 client -> ctrl : PUT /api/riders/me/display-name
 ctrl -> handler : SetDisplayNameCommand
 handler -> db : Save the new name
-ctrl --> client : 200 RiderMe
+ctrl --> client : 200 RiderDto
 client --> dialog : Saved
 dialog -> current : Update rider
 dialog --> profile : Close, focus back on the row
-profile --> actor : Headline "Sam R. · Level 7", rendered as text (L2-005 AC4)
+profile --> actor : Headline "Sam R. · Level 1", rendered as text (L2-005 AC4)
 @enduml

@@ -7,9 +7,14 @@ export interface RiderMe {
   readonly displayName: string | null;
 }
 
-/** The signed-in rider: `GET /api/riders/me`, which answers 401 when there is no session. */
+/**
+ * The signed-in rider: `GET /api/riders/me`, which answers 401 when there is no session, and
+ * `PUT /api/riders/me/display-name`.
+ */
 export interface RidersApi {
   me(): Observable<RiderMe>;
+  /** Saves the name other riders see; a 400 with `display_name_invalid` when it breaks the rule (L2-005 AC2). */
+  setDisplayName(name: string): Observable<RiderMe>;
 }
 
 export const RIDERS_API = new InjectionToken<RidersApi>('RIDERS_API');
