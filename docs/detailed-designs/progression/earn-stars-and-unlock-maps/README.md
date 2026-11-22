@@ -45,15 +45,19 @@ The slice is backend domain logic invoked from two handlers.
   and `UnlockSeenAt`. `Award(star)` adds a star and ignores one already held.
   `RecordFinish(time)` returns a `FinishRecord` with the stars earned, the best, the previous best
   and whether the finish is a new best; a first finish sets the best. Slice 11.2 built it with the
-  stars, kept as flags, and the best (`BestSeconds`); `OpenedAt` and `UnlockSeenAt` come with the
-  unlocks in slice 12.1. The recorded ride keeps the stars and best it answered with, so a repeat
+  stars, kept as flags, and the best (`BestSeconds`); slice 11.3 added `OpenedAt`, set when a
+  ride opens the map, and `UnlockSeenAt` comes with Home's banner in slice 12.1. The recorded ride keeps the stars and best it answered with, so a repeat
   answers the same.
 - **`RaceFinish`** — value object with the map, the race mode (ghost, bots, riders online), the
   pack strength for a bots race, the place and the finish time.
 - **`StarRules`** — domain service. `Evaluate(finish, progress)` returns the stars the finish
   earns: `Finish` for any finished race; `TopThreeMediumPack` for places 1 to 3 in a bots race at
   medium or hard; `BeatBest` for a finish faster than the previous best, never on a first finish.
-- **`UnlockRules`** — domain service. `Evaluate(...)` returns the maps a recorded race opens.
+- **`UnlockRules`** — domain service. `Evaluate(...)` returns the maps a recorded ride opens, in
+  unlock order: a locked map not yet opened whose goal the ride meets (a top-3 finish in this
+  bots race at any pack, the stars now held on the named map, or the rider's level after the
+  ride, so a class can open Vice City). Slice 11.3 built it, with the first map opened named in
+  the answer.
   `NextUnlock(...)` walks locked maps in unlock order and returns the first whose prerequisite
   map is open or whose goal is a level. `MapToOffer(...)` serves the Next ride card
   (`home/choose-the-next-ride`).

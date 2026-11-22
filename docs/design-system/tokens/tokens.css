@@ -234,6 +234,7 @@
   --duration-loop: 1000ms;       /* one turn of a spinner */
   --duration-pulse: 1600ms;      /* one breath of a skeleton */
   --duration-delay-tooltip: 300ms; /* hover intent before a tooltip shows (a wait, so reduced motion keeps it) */
+  --duration-fade: 250ms;        /* an opacity fade, which reduced motion keeps (L2-142 AC2) */
   --duration-unlock: var(--duration-slow);
   --duration-countdown: var(--duration-deliberate);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
