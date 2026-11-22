@@ -26,6 +26,14 @@ export class HomePage {
   readonly tiles: Locator;
   readonly tileNames: Locator;
   readonly tileStars: Locator;
+  /** The Classes door (L2-035). */
+  readonly classDoor: Locator;
+  readonly allClasses: Locator;
+  readonly classSummary: Locator;
+  readonly teaser: Locator;
+  readonly teaserTitle: Locator;
+  readonly teaserLength: Locator;
+  readonly teaserActions: Locator;
 
   constructor(private readonly page: Page) {
     this.header = new AppHeader(page);
@@ -49,6 +57,13 @@ export class HomePage {
     this.tiles = this.raceDoor.locator('.map-tile');
     this.tileNames = this.tiles.locator('.map-tile__name');
     this.tileStars = this.tiles.getByRole('img');
+    this.classDoor = page.getByRole('region', { name: 'Classes', exact: true });
+    this.allClasses = this.classDoor.getByRole('link', { name: 'All classes' });
+    this.classSummary = this.classDoor.locator('.door__summary');
+    this.teaser = this.classDoor.locator('.class-teaser');
+    this.teaserTitle = this.teaser.getByRole('heading', { level: 3 });
+    this.teaserLength = this.teaser.locator('.class-teaser__cover .photo-tag');
+    this.teaserActions = this.teaser.locator('.class-teaser__actions').getByRole('link');
   }
 
   /** The Race door's tile for `name`. */

@@ -1,4 +1,5 @@
 import type { Page, Request } from '@playwright/test';
+import { catalogue } from './classes';
 import { maps } from './maps';
 
 /**
@@ -101,8 +102,9 @@ export class ApiFixture {
     api.answer('GET', '/api/riders/me', signedInRider);
     api.answer('POST', '/api/rides', RIDE_RECORDED);
     api.answer('GET', '/api/progress', newRiderProgress);
-    // Home reads the catalogue for its Next ride card (L2-033).
+    // Home reads the catalogues for its Next ride card and its doors (L2-033 to L2-035).
     api.answer('GET', '/api/maps', maps);
+    api.answer('GET', '/api/classes', catalogue);
     await page.route(
       (url) =>
         ['localhost', '127.0.0.1'].includes(url.hostname) && url.pathname.startsWith('/api/'),

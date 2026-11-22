@@ -8,6 +8,7 @@ import {
   PROGRESS_API,
   type Segment,
 } from '@telo/api';
+import { classCover } from '../classes/class-cover';
 
 /** One card of the library, as the presentation component takes it. */
 export interface ClassCardView {
@@ -113,7 +114,7 @@ function card(dto: ClassDto, level: number): ClassCardView {
     channel: dto.channel,
     focus: dto.focus,
     // Built from the validated video id only, never from a submitted link (ADR 0014).
-    cover: `https://i.ytimg.com/vi/${encodeURIComponent(dto.video.videoId)}/mqdefault.jpg`,
+    cover: classCover(dto.video.videoId),
     lengthSeconds: dto.lengthSeconds,
     segments: dto.plan.segments,
     opensAtLevel: dto.opensAtLevel > level ? dto.opensAtLevel : null,

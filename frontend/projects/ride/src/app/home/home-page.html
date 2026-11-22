@@ -44,5 +44,19 @@
         </ul>
       </wz-door>
     }
+    @if (home.classDoor(); as featured) {
+      <wz-door heading="Classes" headingId="class-door">
+        <a wz-more-link slot="link" routerLink="/classes">All classes</a>
+        <wz-class-teaser
+          [title]="featured.title"
+          [length]="featured.length"
+          [coverUrl]="featured.coverUrl"
+        >
+          <a wz-button slot="actions" variant="light" [routerLink]="['/classes', featured.classId]"
+            >Ride alone</a
+          >
+        </wz-class-teaser>
+      </wz-door>
+    }
   </div>
 </main>

@@ -1,7 +1,8 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { CURRENT_RIDER, MAPS_API, PROGRESS_STORE } from '@telo/api';
+import { CLASSES_API, CURRENT_RIDER, MAPS_API, PROGRESS_STORE } from '@telo/api';
 import { catchError, of } from 'rxjs';
+import { classDoorView } from './class-door-view';
 import { homeGreeting } from './home-greeting';
 import { nextRideView } from './next-ride-view';
 import { raceDoorView } from './race-door-view';
@@ -17,6 +18,12 @@ export class HomeStore {
   private readonly rider = inject(CURRENT_RIDER).rider;
   private readonly maps = toSignal(
     inject(MAPS_API)
+      .list()
+      .pipe(catchError(() => of(null))),
+    { initialValue: null },
+  );
+  private readonly classes = toSignal(
+    inject(CLASSES_API)
       .list()
       .pipe(catchError(() => of(null))),
     { initialValue: null },
@@ -40,5 +47,11 @@ export class HomeStore {
     const progress = this.progress();
     const maps = this.maps();
     return progress && maps ? raceDoorView(progress, maps) : null;
+  });
+
+  /** The Classes door waits only for the catalogue: its featured class opens at level 1 (L2-035). */
+  readonly classDoor = computed(() => {
+    const classes = this.classes();
+    return classes ? classDoorView(classes, this.progress()?.level ?? 1) : null;
   });
 }

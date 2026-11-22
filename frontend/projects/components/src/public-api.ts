@@ -5,6 +5,7 @@ export { AppHeaderLink } from './app-header/app-header-link';
 export { AppHeaderStreak } from './app-header/app-header-streak';
 export { AppHeaderLevel } from './app-header/app-header-level';
 export { FullscreenToggle } from './fullscreen-toggle/fullscreen-toggle';
+export { ClassTeaser } from './class-teaser/class-teaser';
 export { Door } from './door/door';
 export { MapTile } from './map-tile/map-tile';
 export { MoreLink } from './more-link/more-link';
