@@ -1,9 +1,9 @@
 // Acceptance test
 // Traces to: L2-037 AC1, AC2, AC3, AC6; L2-044 AC2, AC4; L2-125 AC3
 // Description: the backend computes a recorded ride's XP and adds it to the rider's total. 2nd of 10 against bots and
-// 84 % on target earns "Finished" +100, "2 of 10" +160, "Podium" +75 and "84% on target" +67, 402 in all, until the
-// streak is kept (slice 10.4). A place off the podium has no podium line, and a solo race or a class has no place or
-// podium line. A repeat of the ride id answers with the same lines and adds nothing, and XP the body sends is not read.
+// 84 % on target, as the rider's first ride, earns "Finished" +100, "2 of 10" +160, "Podium" +75, "84% on target" +67
+// and "1-day streak" +10, 412 in all. A place off the podium has no podium line, and a solo race or a class has no place
+// or podium line. A repeat of the ride id answers with the same lines and adds nothing, and XP the body sends is not read.
 // An on-target share outside 0 to 1 is refused with 400.
 using System.Net;
 using System.Net.Http.Json;
@@ -46,15 +46,15 @@ public sealed class XpTests(SignInApi api) : IClassFixture<SignInApi>
 
     [Fact]
     [Trait("Category", "Critical")]
-    public async Task Second_of_ten_against_bots_and_84_percent_on_target_earns_402_xp()
+    public async Task Second_of_ten_against_bots_and_84_percent_on_target_on_a_first_day_earns_412_xp()
     {
         using var browser = await SignedIn("xavi.earns@example.com");
 
         var answer = await Submit(browser, RideBodies.Race(Guid.NewGuid()));
 
-        Assert.Equal(["Finished +100", "2 of 10 +160", "Podium +75", "84% on target +67"], Lines(answer));
-        Assert.Equal(402, answer.GetProperty("xpTotal").GetInt32());
-        Assert.Equal(402, answer.GetProperty("totalXp").GetInt32());
+        Assert.Equal(["Finished +100", "2 of 10 +160", "Podium +75", "84% on target +67", "1-day streak +10"], Lines(answer));
+        Assert.Equal(412, answer.GetProperty("xpTotal").GetInt32());
+        Assert.Equal(412, answer.GetProperty("totalXp").GetInt32());
     }
 
     [Fact]
@@ -65,9 +65,9 @@ public sealed class XpTests(SignInApi api) : IClassFixture<SignInApi>
 
         var answer = await Submit(browser, RideBodies.Class(Guid.NewGuid()));
 
-        Assert.Equal(["Finished +100", "50% on target +40"], Lines(answer));
-        Assert.Equal(140, answer.GetProperty("xpTotal").GetInt32());
-        Assert.Equal(542, answer.GetProperty("totalXp").GetInt32());
+        Assert.Equal(["Finished +100", "50% on target +40", "1-day streak +10"], Lines(answer));
+        Assert.Equal(150, answer.GetProperty("xpTotal").GetInt32());
+        Assert.Equal(562, answer.GetProperty("totalXp").GetInt32());
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class XpTests(SignInApi api) : IClassFixture<SignInApi>
 
         var answer = await Submit(browser, RideBodies.Race(Guid.NewGuid(), ("place", 4), ("onTargetShare", 0.0)));
 
-        Assert.Equal(["Finished +100", "4 of 10 +120", "0% on target +0"], Lines(answer));
+        Assert.Equal(["Finished +100", "4 of 10 +120", "0% on target +0", "1-day streak +10"], Lines(answer));
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public sealed class XpTests(SignInApi api) : IClassFixture<SignInApi>
 
         var answer = await Submit(browser, RideBodies.Race(Guid.NewGuid(), ("mode", "solo"), ("pack", null), ("place", 1), ("fieldSize", 2)));
 
-        Assert.Equal(["Finished +100", "84% on target +67"], Lines(answer));
+        Assert.Equal(["Finished +100", "84% on target +67", "1-day streak +10"], Lines(answer));
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public sealed class XpTests(SignInApi api) : IClassFixture<SignInApi>
         var next = await Submit(browser, RideBodies.Class(Guid.NewGuid()));
 
         Assert.Equal(first.GetRawText(), repeat.GetRawText());
-        Assert.Equal(542, next.GetProperty("totalXp").GetInt32());
+        Assert.Equal(562, next.GetProperty("totalXp").GetInt32());
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public sealed class XpTests(SignInApi api) : IClassFixture<SignInApi>
 
         var answer = await Submit(browser, RideBodies.Race(Guid.NewGuid(), ("xpTotal", 99_999), ("totalXp", 99_999)));
 
-        Assert.Equal(402, answer.GetProperty("totalXp").GetInt32());
+        Assert.Equal(412, answer.GetProperty("totalXp").GetInt32());
     }
 
     [Theory]

@@ -41,6 +41,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             rider.Property(r => r.Email).HasMaxLength(320);
             rider.HasIndex(r => r.Email).IsUnique();
             rider.Property(r => r.DisplayName).HasMaxLength(40);
+            rider.Property(r => r.TimeZoneId).HasMaxLength(64);
+            rider.Ignore(r => r.Streak);
         });
         modelBuilder.Entity<RiderSession>(session =>
         {

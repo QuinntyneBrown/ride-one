@@ -7,7 +7,7 @@ namespace Telo.Ride.Application.Progress;
 
 /// <summary>
 /// The rider's standing as the header shows it (L2-032 AC2): their level, total XP and the next level's threshold, null
-/// at level 30 (L2-038), and their streak, 0 until it is kept (slice 10.4).
+/// at level 30 (L2-038), and their streak as it reads today in their time zone (L2-042).
 /// </summary>
 public sealed record ProgressDto(int Level, int TotalXp, int? NextLevelXp, int StreakDays);
 
@@ -15,16 +15,13 @@ public sealed record ProgressDto(int Level, int TotalXp, int? NextLevelXp, int S
 public sealed record GetProgressQuery(Guid RiderId) : IRequest<ProgressDto>;
 
 /// <summary>Resolves the rider's level from their total XP with <see cref="LevelTable"/>.</summary>
-public sealed class GetProgressQueryHandler(IAppDbContext db) : IRequestHandler<GetProgressQuery, ProgressDto>
+public sealed class GetProgressQueryHandler(IAppDbContext db, TimeProvider time) : IRequestHandler<GetProgressQuery, ProgressDto>
 {
     public async Task<ProgressDto> Handle(GetProgressQuery request, CancellationToken cancellationToken)
     {
-        var totalXp = await db.Riders.AsNoTracking()
-            .Where(rider => rider.Id == request.RiderId)
-            .Select(rider => (int?)rider.TotalXp)
-            .FirstOrDefaultAsync(cancellationToken)
+        var rider = await db.Riders.AsNoTracking().FirstOrDefaultAsync(known => known.Id == request.RiderId, cancellationToken)
             ?? throw new DomainRuleException("rider_not_found", RuleKind.NotFound, "No such rider.");
-        var progress = LevelTable.Progress(totalXp);
-        return new(progress.Level, progress.TotalXp, progress.NextThresholdXp, StreakDays: 0);
+        var progress = LevelTable.Progress(rider.TotalXp);
+        return new(progress.Level, progress.TotalXp, progress.NextThresholdXp, rider.StreakDaysAt(time.GetUtcNow()));
     }
 }

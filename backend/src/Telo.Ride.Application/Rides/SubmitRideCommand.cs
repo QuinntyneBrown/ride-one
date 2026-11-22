@@ -80,8 +80,8 @@ public sealed record SubmitRideCommand(Guid RiderId, SubmitRideRequest Ride) : I
 /// <summary>
 /// A ride already recorded under its ride id answers as it did the first time. A new one is refused with 422
 /// <c>ride_not_plausible</c> when no one could have ridden it (L2-125 AC2), and otherwise recorded with the XP it earns,
-/// which is added to the rider's total in the same unit of work (L2-037). Every submitted ride finished, and the streak
-/// is 0 until it is kept (slice 10.4). Two first submissions at once both find nothing; the key refuses the second
+/// which is added to the rider's total in the same unit of work (L2-037). Every submitted ride finished, and records its
+/// day on the rider's streak, whose days after the ride give the streak line (L2-042). Two first submissions at once both find nothing; the key refuses the second
 /// insert, which then answers with the first's ride and adds nothing.
 /// </summary>
 public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue maps, TimeProvider time)
@@ -101,8 +101,9 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
         var rider = await db.Riders.FirstOrDefaultAsync(known => known.Id == request.RiderId, cancellationToken)
             ?? throw new DomainRuleException("rider_not_found", RuleKind.NotFound, "No such rider.");
         var kind = ride.Kind == "race" ? RideKind.Race : RideKind.Class;
+        var streakDays = rider.RecordRide(ride.FinishedAt!.Value, ride.TimeZoneId!);
         var xpLines = XpCalculator.Compute(
-            new RideResult(kind, ride.Mode, RideOutcome.Finished, ride.Place, ride.FieldSize, ride.OnTargetShare), streakDays: 0);
+            new RideResult(kind, ride.Mode, RideOutcome.Finished, ride.Place, ride.FieldSize, ride.OnTargetShare), streakDays);
         rider.AddXp(xpLines.Sum(line => line.Xp));
         var recording = new RecordedRide
         {
