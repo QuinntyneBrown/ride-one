@@ -53,6 +53,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 11.1 | [Results screen](11-1-results-screen/README.md) | 1:56 | Results opens when a race or class ends, from the result it hands over: the place in volt on the podium or how far off it, the final standings with the rider current and bots marked, a solo race's time, a class's kJ and share on target; Done, Race it again with its mode and pack, Ride it again |
 | 11.2 | [XP, stars and personal best](11-2-xp-stars-and-personal-best/README.md) | 2:00 | Results shows the backend's answer: XP earned line by line after a waiting state, the stars held on the map and new ones, a solo race's new personal best or best; offline it says XP comes back online, and a refused ride earned none; MapProgress and StarRules on the backend |
 | 11.3 | [Celebrate an unlock](11-3-celebrate-an-unlock/README.md) | 1:58 | The backend names the map a ride opened (top 3 vs bots, stars, level 10) once; Results shows a gold card, Neon Docklands is open, that fades in, grows and brings its photo into colour, or only fades with reduced motion; no card when nothing opened |
+| 12.1 | [Earn stars and unlock maps](12-1-earn-stars-and-unlock-maps/README.md) | 1:55 | GET /api/progress answers the open maps, next unlock, stars and bests; Map Select and Race Setup read them in place of the new-rider stand-in: the mid rider's Neon Docklands next, the veteran's Col du Granit, a map a ride opened ready in Race Setup, bests in minutes |
 
 ## What every video is
 
