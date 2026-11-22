@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Telo.Ride.Domain.Accounts;
+using Telo.Ride.Domain.Rides;
 
 namespace Telo.Ride.Application;
 
@@ -17,6 +18,9 @@ public interface IAppDbContext
 
     /// <summary>The sessions riders hold on their devices (Stay signed in).</summary>
     DbSet<RiderSession> RiderSessions { get; }
+
+    /// <summary>The finished rides recorded for riders (Record a ride).</summary>
+    DbSet<RecordedRide> Rides { get; }
 
     /// <summary>Whether the database answers; readiness reports it (L2-127 AC4).</summary>
     Task<bool> CanConnectAsync(CancellationToken cancellationToken);

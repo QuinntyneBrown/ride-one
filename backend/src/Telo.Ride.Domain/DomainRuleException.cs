@@ -15,6 +15,9 @@ public enum RuleKind
     /// <summary>What the rider sent is not acceptable, such as a malformed email address (400).</summary>
     Invalid,
 
+    /// <summary>What the rider sent is well formed but cannot be true, such as a ride no one could ride (422).</summary>
+    Unprocessable,
+
     /// <summary>Too many requests of this kind for now; try again after <see cref="DomainRuleException.RetryAfter"/> (429).</summary>
     TooManyRequests,
 }
