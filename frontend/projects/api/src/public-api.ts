@@ -40,6 +40,7 @@ export { MAPS_API, type MapsApi } from './maps/maps-api';
 export { MapsApiError, type MapsApiErrorCode } from './maps/maps-api-error';
 export type { MapProgressDto } from './progress/map-progress-dto';
 export { PROGRESS_API, type ProgressApi } from './progress/progress-api';
+export { HttpProgressApi } from './progress/http-progress-api';
 export { HttpRiderProgressApi } from './progress/http-rider-progress-api';
 export type { LevelView, ProgressDto } from './progress/progress-dto';
 export {

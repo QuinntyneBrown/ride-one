@@ -1,6 +1,5 @@
 import type { Routes } from '@angular/router';
-import { PROGRESS_API } from '@telo/api';
-import { NewRiderProgress } from '@telo/domain';
+import { HttpProgressApi, PROGRESS_API } from '@telo/api';
 import { provideMaps } from '../maps/provide-maps';
 
 /**
@@ -14,8 +13,8 @@ export const mapSelectRoutes: Routes = [
     title: 'Maps · Telo Ride',
     providers: [
       provideMaps(),
-      // The rider's maps, until the backend keeps progress (journey 10).
-      { provide: PROGRESS_API, useClass: NewRiderProgress },
+      // The rider's maps and level, from the backend (L2-040, L2-041).
+      { provide: PROGRESS_API, useClass: HttpProgressApi },
     ],
     loadComponent: () => import('./map-select-page'),
   },

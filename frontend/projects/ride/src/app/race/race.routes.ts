@@ -3,11 +3,12 @@ import {
   GHOST_API,
   MAPS_KEY,
   MONOTONIC_TIME,
+  HttpProgressApi,
   PROGRESS_API,
   SCREEN_WAKE_LOCK,
   WORLD_RENDERER,
 } from '@telo/api';
-import { BrowserScreenWakeLock, MapsKeyStore, NewRiderProgress, NoBestRides } from '@telo/domain';
+import { BrowserScreenWakeLock, MapsKeyStore, NoBestRides } from '@telo/domain';
 import { openMapGuard } from '../maps/open-map.guard';
 import { provideMaps } from '../maps/provide-maps';
 
@@ -25,8 +26,8 @@ export const raceRoutes: Routes = [
     title: 'Race · Telo Ride',
     providers: [
       provideMaps(),
-      // The rider's maps and level, until the backend keeps progress (journey 10).
-      { provide: PROGRESS_API, useClass: NewRiderProgress },
+      // The rider's maps and level, from the backend (L2-040, L2-041).
+      { provide: PROGRESS_API, useClass: HttpProgressApi },
       // No ride has a best until rides are recorded (10.1) and a best's trace kept (11.2).
       { provide: GHOST_API, useClass: NoBestRides },
       { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },

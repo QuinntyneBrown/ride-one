@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { MapRating } from '@telo/api';
-import { formatClock } from '../metric/format-clock';
+import { formatBest } from '../metric/format-best';
 
 /**
  * A map's facts on Race Setup (design-system blocks setup-facts and setup-fact): Distance, Climbing, Rated and Your
@@ -24,7 +24,7 @@ export class SetupFacts {
       { label: 'Distance', number: String(this.distanceKm()), unit: 'km' },
       { label: 'Climbing', number: String(this.climbingM()), unit: 'm' },
       { label: 'Rated', number: this.rating(), unit: null },
-      ...(best === null ? [] : [{ label: 'Your best', number: formatClock(best), unit: null }]),
+      ...(best === null ? [] : [{ label: 'Your best', number: formatBest(best), unit: null }]),
     ];
   });
 }

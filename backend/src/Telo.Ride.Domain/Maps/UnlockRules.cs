@@ -25,6 +25,22 @@ public static class UnlockRules
             .Select(map => map.MapId)
             .ToList();
 
+    /// <summary>
+    /// The next unlock (L2-041 AC1): the first locked map in unlock order whose goal the rider can work on now, its
+    /// prerequisite map open or its goal a level; none once every map is open.
+    /// </summary>
+    public static string? NextUnlock(IReadOnlyList<(string MapId, MapUnlock Unlock)> order, IReadOnlySet<string> opened)
+    {
+        bool IsOpen(string mapId) =>
+            opened.Contains(mapId) || order.Any(map => map.MapId == mapId && map.Unlock.Kind == MapUnlock.Start);
+
+        return order
+            .Where(map => !IsOpen(map.MapId))
+            .Where(map => map.Unlock.Kind == MapUnlock.LevelKind || IsOpen(map.Unlock.MapId!))
+            .Select(map => map.MapId)
+            .FirstOrDefault();
+    }
+
     private static bool Meets(
         MapUnlock unlock, string? raceMapId, RaceFinish? finish, IReadOnlyDictionary<string, MapStar> stars, int level) =>
         unlock.Kind switch

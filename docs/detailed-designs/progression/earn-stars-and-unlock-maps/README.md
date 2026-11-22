@@ -24,9 +24,9 @@ it, so Home, Map Select and Race Setup always agree (L2-041 AC4).
 
 The slice is backend domain logic invoked from two handlers.
 
-- **`MapDefinition`** — catalogue entity in `Telo.Ride.Domain` with the map's id, name,
-  `UnlockOrder`, `OpenAtStart` and `Goal`. The catalogue is data served by `GET /api/maps`
-  (`race/browse-maps`), so a catalogue change needs no app code (L2-045 AC3). The goals are:
+- **`MapDefinition`** — catalogue entity in `Telo.Ride.Domain` with the map's id, name and
+  `Unlock`, in unlock order. The catalogue is data served by `GET /api/maps` (`race/browse-maps`),
+  so a catalogue change needs no app code (L2-045 AC3). The goals are:
 
   | Map | Goal |
   |-----|------|
@@ -35,37 +35,43 @@ The slice is backend domain logic invoked from two handlers.
   | Cliffside Coast | `TopThreeVsBots` on Prairie Paceline |
   | Neon Docklands | `TopThreeVsBots` on Old Town Criterium |
   | Dolomites | `StarsOn` Cliffside Coast, 2 |
-  | Vice City | `ReachLevel` 10 |
+  | Vice City | `RiderLevel` 10 |
   | Col du Granit | `StarsOn` Dolomites, 3 |
 
-- **`UnlockGoal`** — abstract value object with the subtypes `TopThreeVsBots`, `StarsOn` and
-  `ReachLevel`. `Describe()` produces the one goal text a locked map shows anywhere: "Finish top
-  3 vs Bots on {map}", "Earn {n}★ on {map}" or "Reach rider level {n}".
-- **`MapProgress`** — entity per rider and map holding the stars held, `BestTime`, `OpenedAt`
-  and `UnlockSeenAt`. `Award(star)` adds a star and ignores one already held.
-  `RecordFinish(time)` returns a `FinishRecord` with the stars earned, the best, the previous best
-  and whether the finish is a new best; a first finish sets the best. Slice 11.2 built it with the
-  stars, kept as flags, and the best (`BestSeconds`); slice 11.3 added `OpenedAt`, set when a
-  ride opens the map, and `UnlockSeenAt` comes with Home's banner in slice 12.1. The recorded ride keeps the stars and best it answered with, so a repeat
-  answers the same.
-- **`RaceFinish`** — value object with the map, the race mode (ghost, bots, riders online), the
-  pack strength for a bots race, the place and the finish time.
-- **`StarRules`** — domain service. `Evaluate(finish, progress)` returns the stars the finish
-  earns: `Finish` for any finished race; `TopThreeMediumPack` for places 1 to 3 in a bots race at
+- **`MapUnlock`** — value object with its kind (`start`, `top-three-vs-bots`, `stars`, `level`),
+  the map it names, the stars and the level. `Goal(names)` writes the one goal text a locked map
+  shows anywhere: "Finish top 3 vs Bots on {map}", "Earn {n}★ on {map}" or "Reach rider level
+  {n}" (L2-040 AC6); `GET /api/maps` serves it as each map's `unlockGoal`.
+- **`MapProgress`** — entity per rider and map holding the stars held (`MapStar` flags, never
+  lost), the best (`BestSeconds`) and `OpenedAt`, set when a ride opens the map (`Open(at)`).
+  `RecordFinish(finish)` adds the stars `StarRules` gives that the rider does not hold and
+  returns a `FinishRecord` with the stars earned, the best, the previous best and whether the
+  finish is a new best; a first finish sets the best. The recorded ride keeps the stars, best and
+  opened map it answered with, so a repeat answers the same. `UnlockSeenAt`, for Home's banner,
+  comes with `home/choose-the-next-ride` (slice 13.2).
+- **`RaceFinish`** — value object with the race mode (solo, bots, online), the pack strength for
+  a bots race, the place and the finish time in seconds.
+- **`StarRules`** — domain service. `Evaluate(finish, previousBest)` returns the stars the
+  finish earns: `Finish` for any finished race; `TopThree` for places 1 to 3 in a bots race at
   medium or hard; `BeatBest` for a finish faster than the previous best, never on a first finish.
-- **`UnlockRules`** — domain service. `Evaluate(...)` returns the maps a recorded ride opens, in
-  unlock order: a locked map not yet opened whose goal the ride meets (a top-3 finish in this
-  bots race at any pack, the stars now held on the named map, or the rider's level after the
-  ride, so a class can open Vice City). Slice 11.3 built it, with the first map opened named in
-  the answer.
-  `NextUnlock(...)` walks locked maps in unlock order and returns the first whose prerequisite
-  map is open or whose goal is a level. `MapToOffer(...)` serves the Next ride card
-  (`home/choose-the-next-ride`).
-- **`SubmitRideCommandHandler`** — calls `RecordFinish`, `StarRules`, `Award` and `UnlockRules`,
-  opens any map, saves in one unit of work and returns the stars held, the new stars, the best,
-  the previous best and the opened map in `RideRecordedDto` (see `keep-progress-on-the-backend`).
-- **`GetProgressQueryHandler`** — returns the open maps, per-map stars and bests, each locked
-  map's goal text and the next unlock in `ProgressDto`.
+- **`UnlockRules`** — domain service.
+  - `Evaluate(order, raceMapId, finish, stars, level, opened)` returns the maps a recorded ride
+    opens, in unlock order: a locked map not yet opened whose goal the ride meets (a top-3 finish
+    in this bots race at any pack, the stars now held on the named map, or the rider's level
+    after the ride, so a class can open Vice City).
+  - `NextUnlock(order, opened)` returns the first locked map in unlock order whose prerequisite
+    map is open or whose goal is a level (L2-041 AC1), or none once every map is open.
+- **`SubmitRideCommandHandler`** — records the finish, opens any map, saves in one unit of work
+  and returns the stars held, the new stars, the best, the previous best and the first map opened
+  in `RideRecordedDto` (see `keep-progress-on-the-backend`).
+- **`GetProgressQueryHandler`** — answers `GET /api/progress` with the level, XP and streak and,
+  from the rider's map progress, the open maps (those open from the start and those opened), the
+  next unlock, and the stars and best on each map ridden (`openMapIds`, `nextUnlockId`, `stars`,
+  `bestTimeSeconds`).
+- **`HttpProgressApi`** — the Ride app's `PROGRESS_API` client, bound on the Map Select, Race
+  Setup and race routes in place of the new-rider stand-in. One `GET /api/progress` gives the
+  rider's level and maps; the screens join it with the catalogue, so Map Select and Race Setup
+  show the same next unlock and goal (L2-041 AC4). Home's Next ride card reads it with slice 13.2.
 
 The total of stars is out of 21: 3 stars on each of 7 maps. The top-3 unlock goal accepts any
 pack strength, while the second star needs medium or hard, as the requirements state.
@@ -109,8 +115,9 @@ unlock.
 
 ### Class structure
 
-Each `MapDefinition` holds one `UnlockGoal` of three kinds. `MapProgress` holds the stars and the
-best time per rider and map, and `UnlockRules` creates the `NextUnlock`.
+Each `MapDefinition` holds one `MapUnlock`. `MapProgress` holds the stars, the best time and
+when the map opened per rider and map; `UnlockRules` gives the maps a ride opens and the next
+unlock.
 
 ![Class diagram for stars and map unlocks](diagrams/class-structure.png)
 
@@ -123,7 +130,8 @@ race met (L2-040), all in one unit of work.
 
 ### Behaviour — compute the next unlock
 
-Every screen that shows the next unlock reads it from the same progress query, so the map and
-goal match across Home, Map Select and Race Setup (L2-041 AC4).
+Every screen that shows the next unlock reads it from the same progress query and its goal from
+the catalogue, so the map and goal match across Map Select and Race Setup, and Home from slice
+13.2 (L2-041 AC4).
 
 ![Sequence diagram for computing the next unlock](diagrams/sequence-next-unlock.png)

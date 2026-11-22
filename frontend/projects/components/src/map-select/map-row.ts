@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { formatClock } from '../metric/format-clock';
+import { formatBest } from '../metric/format-best';
 import { Stars } from '../stars/stars';
 
 /**
@@ -39,6 +39,6 @@ export class MapRow {
   );
   protected readonly best = computed(() => {
     const seconds = this.bestSeconds();
-    return seconds === null ? null : formatClock(seconds);
+    return seconds === null ? null : formatBest(seconds);
   });
 }
