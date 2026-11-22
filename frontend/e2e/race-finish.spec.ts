@@ -15,7 +15,7 @@ import type { FakeBluetooth } from './fixtures/fake-bluetooth';
 import { maps } from './fixtures/maps';
 import { startRace } from './fixtures/race';
 import { expect, test } from './fixtures/test';
-import { NotFoundPage } from './pages/not-found.page';
+import { ResultsPage } from './pages/results.page';
 
 const shortCriterium = maps.map((map) =>
   map.id === 'old-town-criterium' ? { ...map, distanceKm: 0.5 } : map,
@@ -34,14 +34,10 @@ async function rideToTheLine(page: Page, bluetooth: FakeBluetooth) {
 const result = (page: Page) =>
   page.evaluate(() => (history.state as { raceResult?: unknown }).raceResult);
 
-/** Results comes with slice 11.1; until then its address shows Page not found, loaded lazily on the paused clock. */
+/** Results opens, loaded lazily on the paused clock. */
 async function resultsOpened(page: Page) {
   await expect(page).toHaveURL('/results');
-  const notFound = new NotFoundPage(page);
-  await expect(async () => {
-    await page.clock.runFor(16);
-    await expect(notFound.heading).toBeVisible({ timeout: 50 });
-  }).toPass();
+  await new ResultsPage(page).shown();
 }
 
 test(
@@ -58,11 +54,13 @@ test(
     // 57 s at 8.92 m/s is 508 m, the first second past 500 m.
     expect(await result(page)).toEqual({
       mapId: 'old-town-criterium',
+      mapName: 'Old Town Criterium',
       mode: 'bots',
       pack: 'medium',
       finishTimeS: 57,
       place: 1,
       field: 10,
+      standings: expect.any(Array),
     });
   },
 );

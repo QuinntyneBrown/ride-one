@@ -39,6 +39,7 @@ export { GhostReplay } from './engine/ghost-replay';
 export { NoBestRides } from './engine/no-best-rides';
 export type { FieldPosition, RaceField } from './engine/race-field';
 export { type Standing, YOU, formatGap, ordinal, rankStandings } from './engine/standings';
+export { finalStandings } from './engine/final-standings';
 export { type RouteProfile, routeProfile, routeProfileView } from './engine/route-profile';
 export { SecondTicker } from './engine/second-ticker';
 export {

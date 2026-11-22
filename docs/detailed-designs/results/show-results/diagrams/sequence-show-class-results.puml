@@ -17,15 +17,15 @@ skinparam package {
 actor "Rider" as actor
 box "Frontend — Ride app (ride application)" #E0F2FE
   participant "ResultsPage" as page
-  participant "ResultsStore" as store
+  participant "resultsView()" as store
 end box
-box "Frontend — Ride app (domain library)" #E0F2FE
-  participant "RideOutbox" as outbox
+box "Browser" #E0F2FE
+  participant "History state" as outbox
 end box
-actor -> page : Class ends
-page -> store : view
-store -> outbox : get(rideId)
-outbox --> store : FinishedRide (class)
+actor -> page : Class ends, ClassResult in the navigation state
+page -> outbox : getState()
+outbox --> page : ClassResult
+page -> store : resultsView(result)
 alt Solo class
   store -> store : header "30 Minute HIIT Cardio · Solo", hidden heading "Class results"
   store -> store : big "30:00", sub "342 kJ · 84% on target" (L2-078 AC1)

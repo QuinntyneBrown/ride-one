@@ -13,32 +13,35 @@ skinparam class {
 ' --------------------------
 title Class structure — Show results
 class ResultsPage <<ride>> {
-  -store: ResultsStore
-  +view: Signal<ResultsView>
-  +done(): void
-  +again(): void
+  -result: RaceResult | ClassResult
+  +view: ResultsView
 }
-class ResultsStore <<ride, route-scoped>> {
-  -outbox: RideOutbox
-  +view: Signal<ResultsView>
+class "resultsView()" as rv <<ride helper>> {
+  +resultsView(r: RaceResult | ClassResult): ResultsView
 }
-interface RideOutbox <<api contract>> {
-  +get(rideId: string): Promise<FinishedRide>
-  +status(rideId: string): Signal<RideSyncState>
+class RaceResult <<api>> {
+  +mapId: string
+  +mapName: string
+  +mode: RaceMode
+  +pack: PackStrengthId | null
+  +finishTimeS: number
+  +place: number
+  +field: number
+  +standings: ResultStanding[]
 }
-class FinishedRide <<api>> {
-  +rideId: string
-  +kind: RideKind
+class ClassResult <<api>> {
+  +classId: string
   +title: string
-  +context: string
-  +place?: number
-  +fieldSize?: number
   +elapsedSeconds: number
-  +podiumGapSeconds?: number
-  +outputKj?: number
-  +onTargetShare?: number
-  +standings: StandingRow[]
-  +againTarget: AgainTarget
+  +outputKj: number
+  +onTargetShare: number
+}
+class ResultStanding <<api>> {
+  +name: string
+  +jersey: string
+  +bot: boolean
+  +you: boolean
+  +finishTimeS: number
 }
 class StandingRow <<api>> {
   +position: number
@@ -58,7 +61,7 @@ class ResultsView {
   +againLabel: string
 }
 class "resultLine()" as rl <<ride helper>> {
-  +resultLine(r: FinishedRide): string
+  +resultLine(time: number, place: number, podiumTime: number): string
   +ordinal(n: number): string
 }
 class ResultsHeader <<components>> {
@@ -69,12 +72,13 @@ class Standings <<components>> {
   +rows: input<StandingRow[]>
   +label: input<string>
 }
-ResultsPage --> ResultsStore
+ResultsPage ..> rv : uses
 ResultsPage ..> ResultsHeader
 ResultsPage ..> Standings
-ResultsStore --> RideOutbox : RIDE_OUTBOX
-ResultsStore ..> rl
-ResultsStore ..> ResultsView : computes
-RideOutbox ..> FinishedRide
-FinishedRide "1" *-- "*" StandingRow
+rv ..> rl
+rv ..> ResultsView : computes
+rv ..> RaceResult
+rv ..> ClassResult
+RaceResult "1" *-- "*" ResultStanding
+ResultsView "1" *-- "*" StandingRow
 @enduml

@@ -139,11 +139,42 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L112 | When the shared fixture gains a default answer for a path, grep the specs for that path: the harness spec used `GET /api/progress` as its unanswered example and began to pass its `test.fail`. Move such examples to a path the app never calls (`/api/harness-probe`). | 10.3 | | |
 | L113 | `@angular-eslint/template/elements-content` refuses an empty `<a>` whose name comes from an attribute component's host binding. Bind `[attr.aria-label]` on the `<a>` in the app's template, as the brand link does, and keep the component's content `aria-hidden`. | 10.3 | | |
 | L114 | Work out an `object-view-box` crop from the shot in CSS pixels (1440 × 900), not from a scaled contact sheet; a sheet stacked to one height scales each shot differently, and the guess cropped Settings instead of the headline. | 10.3 | 10.4 | Saved time |
-| L115 | An edit script must assert every old string before it writes any file, including the files a regex pass rewrites, and the commit that follows it is chained with `&&`, so a failed script commits nothing. In 10.4 a mock pass wrote, an assertion then failed, and the next line committed the half. | 10.4 | | |
-| L116 | In a command that changes directory more than once, `cd` to absolute paths: a relative `cd ../..` from `components/src/app-header` landed in `components`, not `projects`, and every path after it missed. | 10.4 | | |
+| L115 | An edit script must assert every old string before it writes any file, including the files a regex pass rewrites, and the commit that follows it is chained with `&&`, so a failed script commits nothing. In 10.4 a mock pass wrote, an assertion then failed, and the next line committed the half. | 10.4 | 11.1 | Saved time |
+| L116 | In a command that changes directory more than once, `cd` to absolute paths: a relative `cd ../..` from `components/src/app-header` landed in `components`, not `projects`, and every path after it missed. | 10.4 | 11.1 | Saved time |
 | L117 | The backend's analysers run on tests and stubs: parse dates in a test with `CultureInfo.InvariantCulture` (CA1305), and give a stub member something of the instance to read (CA1822), or the build fails before any test runs. | 10.4 | | |
+| L118 | When a slice builds a screen, search the specs for the placeholder that stood in for it ("until slice 11.1", Page not found) and move them to the new page object in the same commit; three specs waited on `/results` showing Page not found. | 11.1 | | |
+| L119 | A test written after the code it covers is not yet proof: put the old code back, see the test fail for the reason named, then restore. Race Setup's preselection test was written after the store change and failed on "hard" unchecked once the change was out. | 11.1 | | |
+| L120 | A screen reached by a click on a spec's paused clock loads lazily only as the clock steps: wait with `stepUntil`, not a bare `expect`. And take a radio's name from an existing spec: pack strengths are named "medium", not "Medium". | 11.1 | | |
 
 ## Log
+
+### 11.1 Results screen (2026-11-21)
+
+**Applied from earlier**
+
+- **L1 own worktree and install; L2 port 4310; L3 format first — saved time:** the first full verify passed.
+- **L41 spec each step first — saved time:** the five Results specs failed on a missing lead and an unbuilt redirect,
+  and `resultsView()` and `finalStandings()` on stubs, before the code.
+- **L101 check the unit count — saved time:** it rose from 1311 to 1318.
+- **L110 check the plan against the requirement — saved time:** the plan's "time, power and distance summary" is
+  L2-073, L2-078 and L2-079: place, standings, a class's kJ and share on target, and the actions; the design was aligned
+  to those, with the outbox, personal best and group class left to their slices.
+- **L111 a test green before the code is suspect — saved time:** it caught the preselection test, written after the
+  store change, and led to L119.
+- **L114 measure a crop in CSS pixels — saved time:** the result, top-three and actions crops were right first time.
+- **L115 assert before writing; L116 absolute paths — saved time:** a progress script stopped on an ambiguous row and
+  wrote nothing; every command used absolute paths.
+- **L54 and L5 read "Initial total" — saved time:** it stayed 300.17 kB; Results is a 6.5 kB lazy chunk.
+
+**What slowed it down**
+
+- Three older specs waited for Page not found at `/results` and had to move to the Results page object (L118).
+- The Race Setup check after "Race it again" ran on the paused clock before the page loaded, and named a pack "Medium"
+  where the radio says "medium" (L120).
+- The first film data left the pacers behind the rider unshifted, so one shared the rider's time; the mocks' times
+  replaced it.
+
+**New lessons:** L118, L119, L120.
 
 ### 10.4 Keep a streak (2026-11-22)
 
