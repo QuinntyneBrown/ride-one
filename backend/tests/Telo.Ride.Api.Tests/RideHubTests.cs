@@ -1,7 +1,8 @@
 // Acceptance test
-// Traces to: L2-127 AC1, L2-148 AC3
+// Traces to: L2-127 AC1, L2-148 AC3, L2-120 AC2, L2-121 AC3
 // Description: the ride hub needs a signed-in rider; a real SignalR client connects to the API
-// hosted in memory, and a connection without a session is refused at negotiation.
+// hosted in memory, and a connection without a session is refused at negotiation. Connected, the
+// rider asks the hub for its time, from which the app measures its clock offset.
 using System.Net;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -32,6 +33,20 @@ public sealed class RideHubTests(SignedInProbeApi signedIn, TeloRideApiFactory a
         var refused = await Assert.ThrowsAsync<HttpRequestException>(() => connection.StartAsync(Cancel));
 
         Assert.Equal(HttpStatusCode.Unauthorized, refused.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_hub_answers_with_its_time_for_the_clock_offset()
+    {
+        await using var connection = Connect(signedIn);
+        await connection.StartAsync(Cancel);
+
+        var first = await connection.InvokeAsync<long>("ServerTime", Cancel);
+        signedIn.Clock.Advance(TimeSpan.FromSeconds(90));
+        var later = await connection.InvokeAsync<long>("ServerTime", Cancel);
+
+        Assert.Equal(new DateTimeOffset(2026, 11, 21, 7, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds(), first);
+        Assert.Equal(first + 90_000, later);
     }
 
     private static HubConnection Connect(TeloRideApiFactory api) =>

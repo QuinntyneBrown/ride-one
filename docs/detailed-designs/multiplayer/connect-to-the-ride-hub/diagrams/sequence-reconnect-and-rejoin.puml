@@ -41,6 +41,7 @@ loop until connected (L2-120 AC3)
 end
 hub --> client : Connected (new connection id)
 client --> store : onreconnected
+store -> client : serverTime() × 5, offsetMs measured again
 store -> client : findRace(mapId) with the same SessionRef
 client -> hub : FindRace(mapId)
 hub -> handler : Send FindRaceCommand
