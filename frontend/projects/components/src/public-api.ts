@@ -4,6 +4,7 @@ export { AppHeaderBrand } from './app-header/app-header-brand';
 export { AppHeaderLink } from './app-header/app-header-link';
 export { AppHeaderStreak } from './app-header/app-header-streak';
 export { AppHeaderLevel } from './app-header/app-header-level';
+export { FullscreenToggle } from './fullscreen-toggle/fullscreen-toggle';
 export { ConnectWorks } from './connect-works/connect-works';
 export { ConnectDevice, type ConnectDeviceState } from './connect-device/connect-device';
 export { Button, type ButtonSize, type ButtonVariant } from './button/button';

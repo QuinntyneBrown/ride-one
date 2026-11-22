@@ -15,6 +15,11 @@ export class AppHeader {
   readonly level: Locator;
   readonly levelBadge: Locator;
   readonly xpLabel: Locator;
+  /** Full screen at the end of the header, named for what it does next (L2-144). */
+  readonly fullScreen: Locator;
+  readonly exitFullScreen: Locator;
+  /** The navigation's items, in order. */
+  readonly links: Locator;
   private readonly xpFill: Locator;
   private readonly product: Locator;
 
@@ -31,6 +36,14 @@ export class AppHeader {
     this.levelBadge = this.level.locator('.level-badge');
     this.xpLabel = this.level.locator('.app-header__xp-label');
     this.xpFill = this.level.locator('.xp-bar__fill');
+    this.fullScreen = this.root.getByRole('button', { name: 'Full screen', exact: true });
+    this.exitFullScreen = this.root.getByRole('button', { name: 'Exit full screen', exact: true });
+    this.links = this.nav.getByRole('link');
+  }
+
+  /** Whether the page is shown in full screen. */
+  inFullScreen(): Promise<boolean> {
+    return this.page.evaluate(() => document.fullscreenElement !== null);
   }
 
   /** How full the XP bar is drawn, as its `--value` ("70.8%"). */

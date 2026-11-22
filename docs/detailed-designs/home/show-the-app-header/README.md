@@ -34,7 +34,7 @@ The slice runs from a layout route in the Ride app to the progress endpoint of t
   the others by prefix), so the router marks the current item. This slice adds the end items: it
   injects `PROGRESS_STORE`, `BIKE_CONNECTION` and `FULLSCREEN`, and fills the `end` slot. That
   slot holds the bike status, the streak, the level link to Profile, and `FullscreenToggle`
-  inside `@if (fullscreen.available())`. The toggle's `toggle` output calls the service's
+  inside `@if (fullscreen.available())`. The toggle's `toggled` output calls the service's
   `enter()` or `exit()` (L2-144). `BrowserFullscreen` is bound on the shell's route, so it goes
   with the shell.
 - **`AppHeader`** — presentation component in the `components` library (`wz-app-header`, block

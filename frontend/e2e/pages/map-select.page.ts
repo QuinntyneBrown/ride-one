@@ -1,7 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
+import { AppHeader } from './app-header';
 
 /** Map Select at `/race` (docs/mocks/pages/map-select/). */
 export class MapSelectPage {
+  readonly header: AppHeader;
   readonly heading: Locator;
   readonly lead: Locator;
   readonly path: Locator;
@@ -14,6 +16,7 @@ export class MapSelectPage {
   readonly retry: Locator;
 
   constructor(private readonly page: Page) {
+    this.header = new AppHeader(page);
     this.heading = page.getByRole('heading', { level: 1, name: 'Maps' });
     this.lead = page.locator('.maps__lead');
     this.path = page.locator('.map-path');

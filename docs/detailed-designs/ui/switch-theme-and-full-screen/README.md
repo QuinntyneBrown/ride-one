@@ -51,7 +51,7 @@ literally, rule out `L2-143` AC2.
   listener on destroy. Each route whose header shows the toggle binds it (the main shell's
   route first, in slice 13.1).
 - **`FullscreenToggle`** — presentation component in `components` (`wz-fullscreen-toggle`). Inputs
-  `active`; output `toggle`. It draws the design system's edge icon button (`icon-btn
+  `active`; output `toggled`. It draws the design system's edge icon button (`icon-btn
   icon-btn--edge`, 36 px, taking touches across 44 px). Its accessible name is "Full screen" or
   "Exit full screen", and its icon changes from the expand corners to the minimize corners with
   it (`docs/mocks/pages/home/full-screen.html`). It sets no `aria-pressed`: a toggle whose

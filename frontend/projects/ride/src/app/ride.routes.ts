@@ -1,5 +1,6 @@
 import type { Routes } from '@angular/router';
-import { HttpRiderProgressApi, PROGRESS_STORE, RIDER_PROGRESS_API } from '@telo/api';
+import { FULLSCREEN, HttpRiderProgressApi, PROGRESS_STORE, RIDER_PROGRESS_API } from '@telo/api';
+import { BrowserFullscreen } from '@telo/domain';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
 import { RiderProgressStore } from './progress/rider-progress-store';
@@ -59,8 +60,10 @@ export const rideRoutes: Routes = [
       {
         path: '',
         loadComponent: () => import('./main-shell/main-shell'),
-        // The rider's progress, which the header, Home and Profile share (L2-032 AC2).
+        // The rider's progress, which the header, Home and Profile share (L2-032 AC2), and the header's Full screen
+        // (L2-144).
         providers: [
+          { provide: FULLSCREEN, useClass: BrowserFullscreen },
           { provide: RIDER_PROGRESS_API, useClass: HttpRiderProgressApi },
           RiderProgressStore,
           { provide: PROGRESS_STORE, useExisting: RiderProgressStore },

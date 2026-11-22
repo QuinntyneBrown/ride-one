@@ -48,7 +48,7 @@ class AppHeader <<components>> {
 }
 class FullscreenToggle <<components>> {
   +active: input<boolean>
-  +toggle: output<void>
+  +toggled: output<void>
 }
 interface Fullscreen <<api>> {
   +available: Signal<boolean>
