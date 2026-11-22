@@ -45,7 +45,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 9.4 | Sign out and delete account | Sign out; delete account and all its data. | 2 | 9. Sign in with an email code | 100% |
 | 10.1 | Record a ride | `POST /api/rides`, idempotent by ride id, plausibility check. | 3 | 10. Earn XP, levels and streaks | 100% |
 | 10.2 | Earn XP | Each recorded ride earns XP for finishing, its place, a podium and its time on target, calculated on the backend. | 2 | 10. Earn XP, levels and streaks | 100% |
-| 10.3 | Rider levels | Levels from XP thresholds; level shown in the header. | 2 | 10. Earn XP, levels and streaks | 0% |
+| 10.3 | Rider levels | Levels from XP thresholds; level shown in the header. | 2 | 10. Earn XP, levels and streaks | 100% |
 | 10.4 | Keep a streak | Consecutive riding days are counted on the backend and shown on Home, Profile and results. | 3 | 10. Earn XP, levels and streaks | 0% |
 | 11.1 | Results screen | Time, power and distance summary after any ride. | 3 | 11. See results | 0% |
 | 11.2 | XP, stars and personal best | Results show XP earned, stars and a new personal best. | 3 | 11. See results | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 38 slices, 100 days (42%).
+**Total:** 95 slices, 238 days. **Complete:** 39 slices, 102 days (43%).
