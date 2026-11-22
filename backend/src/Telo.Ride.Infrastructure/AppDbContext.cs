@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Telo.Ride.Application;
 using Telo.Ride.Domain.Accounts;
+using Telo.Ride.Domain.Rides;
 
 namespace Telo.Ride.Infrastructure;
 
@@ -12,6 +13,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Rider> Riders => Set<Rider>();
 
     public DbSet<RiderSession> RiderSessions => Set<RiderSession>();
+
+    public DbSet<RecordedRide> Rides => Set<RecordedRide>();
 
     public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>
         Database.CanConnectAsync(cancellationToken);
@@ -42,6 +45,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             session.HasIndex(s => s.KeyHash).IsUnique();
             session.HasIndex(s => s.RiderId);
             session.HasOne<Rider>().WithMany().HasForeignKey(s => s.RiderId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<RecordedRide>(ride =>
+        {
+            // One ride id is recorded once for each rider (L2-125 AC3); the key refuses a second insert.
+            ride.HasKey(r => new { r.RiderId, r.Id });
+            ride.Property(r => r.Kind).HasConversion<string>().HasMaxLength(8);
+            ride.Property(r => r.MapId).HasMaxLength(64);
+            ride.Property(r => r.Mode).HasMaxLength(8);
+            ride.Property(r => r.Pack).HasMaxLength(8);
+            ride.Property(r => r.ClassId).HasMaxLength(64);
+            ride.Property(r => r.TimeZoneId).HasMaxLength(64);
+            ride.HasOne<Rider>().WithMany().HasForeignKey(r => r.RiderId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

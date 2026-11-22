@@ -1,7 +1,8 @@
 // Acceptance test
 // Traces to: L2-006 AC3
 // Description: a deleted account's personal data is erased within 30 days. The erasure service runs once a day on the
-// API's clock: a day after the deletion the rider and its sessions are gone, and a second run finds nothing more.
+// API's clock: a day after the deletion the rider, its sessions and its rides are gone, and a second run finds
+// nothing more.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -46,7 +47,7 @@ public sealed class AccountErasureTests(AccountErasureApi api) : IClassFixture<A
     private static CancellationToken Cancel => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task A_day_after_deletion_the_rider_and_its_sessions_are_erased()
+    public async Task A_day_after_deletion_the_rider_its_sessions_and_its_rides_are_erased()
     {
         using var device = api.CreateClient(new WebApplicationFactoryClientOptions
         {
@@ -59,6 +60,20 @@ public sealed class AccountErasureTests(AccountErasureApi api) : IClassFixture<A
             "/api/auth/code/confirm", new { email, code = api.Mailbox.Sent[^1].Code }, Cancel);
         var riderId = Guid.Parse(JsonDocument.Parse(await confirmed.Content.ReadAsStringAsync(Cancel))
             .RootElement.GetProperty("riderId").GetString()!);
+        using var ride = await device.PostAsJsonAsync("/api/rides", new
+        {
+            rideId = Guid.NewGuid(),
+            kind = "class",
+            classId = "power-intervals-20",
+            elapsedSeconds = 1200,
+            distanceMeters = 0.0,
+            outputKj = 240.0,
+            maxPowerWatts = 380,
+            maxSpeedKmh = 0.0,
+            finishedAt = "2026-11-21T07:20:00+00:00",
+            timeZoneId = "Europe/London",
+        }, Cancel);
+        Assert.Equal(HttpStatusCode.Created, ride.StatusCode);
         using var deleted = await device.DeleteAsync("/api/riders/me", Cancel);
         Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
 
@@ -69,6 +84,7 @@ public sealed class AccountErasureTests(AccountErasureApi api) : IClassFixture<A
         var db = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
         Assert.False(await db.Riders.AnyAsync(rider => rider.Id == riderId, Cancel));
         Assert.False(await db.RiderSessions.AnyAsync(session => session.RiderId == riderId, Cancel));
+        Assert.False(await db.Rides.AnyAsync(recorded => recorded.RiderId == riderId, Cancel));
         Assert.Equal(0, await scope.ServiceProvider.GetRequiredService<ISender>().Send(new ErasePendingAccountsCommand(), Cancel));
     }
 }

@@ -62,6 +62,7 @@ internal sealed partial class ProblemDetailsExceptionHandler(IProblemDetailsServ
         RuleKind.Conflict => StatusCodes.Status409Conflict,
         RuleKind.Forbidden => StatusCodes.Status403Forbidden,
         RuleKind.TooManyRequests => StatusCodes.Status429TooManyRequests,
+        RuleKind.Unprocessable => StatusCodes.Status422UnprocessableEntity,
         _ => StatusCodes.Status400BadRequest,
     };
 }

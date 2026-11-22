@@ -163,7 +163,7 @@ test.describe('Pause, leave or finish a class', () => {
 
     await page.clock.runFor(2000);
     await expect(page).toHaveURL('/results');
-    // Results comes with slice 11.1, and the ride's submission with 10.1; until then the address shows Page not found.
+    // Results comes with slice 11.1; until then the address shows Page not found.
     await notFoundShown(page);
     expect((await youtube.players())[0].destroyed).toBe(true);
   });

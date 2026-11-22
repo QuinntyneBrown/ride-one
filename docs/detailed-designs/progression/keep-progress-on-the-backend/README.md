@@ -25,15 +25,28 @@ The slice runs from the outbox in the Ride app to the database.
 - **`RideOutbox`** — service in the Ride app's `domain/storage`, owned by
   `performance/ride-without-a-network`. It keeps each finished ride in IndexedDB with its ride id
   and submits it through `RIDES_API`; it removes the ride once the backend has recorded it.
+  Until it is built, the race and the class ride submit a finished ride straight through
+  `RIDES_API` as it ends, and a submission that fails is not retried (slice 10.1).
 - **`RidesApi`** / **`HttpRidesApi`** — contract, `RIDES_API` token and HTTP client in `api`.
   `submitRide(request)` posts a `SubmitRideRequest`; `listRecent(take)` serves Profile.
-- **`SubmitRideRequest`** — ride facts only: ride id, kind, map or class, race mode and pack
-  strength, place and field size, outcome, elapsed seconds, distance, output, on-target share,
-  maximum power and speed, finish instant and time zone. For a race ride it also carries the per-second trace (`TracePoint`: second, distance, power) recorded by `RaceRideRecorder`, one entry per second and bounded by the ride length (`race/race-the-ghost-and-bots`), and per-second speed samples for the plausibility check. It carries no XP, stars or unlocks.
+- **`SubmitRideRequest`** — ride facts only: ride id, kind (`race` or `class`), the map with
+  its race mode (`solo` or `bots`), pack strength, place and field size, or the class; elapsed
+  seconds, distance in metres, output in kJ, maximum power and speed, the speed of each second
+  ridden in km/h (at most 14,400, four hours), the finish instant and the IANA time zone. The
+  app's `RideRecorder` (`domain/engine`) gives the ride its id when it starts and keeps the
+  output, the maxima and the speed samples in a buffer sized for four hours; the distance is what
+  the samples add up to. A race's speed is its virtual speed, a class's the bike's speed (L2-022). The
+  slices that use them add the on-target share, the outcome of a ride that did not finish, and
+  the race's per-second trace (`TracePoint`: second, distance, power) recorded by
+  `RaceRideRecorder` (`race/race-the-ghost-and-bots`). It carries no XP, stars or unlocks; a body
+  that sends them is read without them.
 - **`RidesController`** — controller in `Telo.Ride.Api` for `POST /api/rides`. It requires a
   session (fallback policy) and sends one `SubmitRideCommand` for the signed-in rider.
 - **`SubmitRideCommandValidator`** — FluentValidation validator. It checks the request's shape
-  and refuses a malformed request with 400.
+  and refuses a malformed request with 400 `validation_failed`: a ride id; a kind; for a race a
+  map in the catalogue, a mode, a pack for a bots race, and a place within the field; for a class
+  a class in the catalogue; 1 to 14,400 elapsed seconds; no negative distance, output, power or
+  speed; no more speed samples than seconds; a finish instant; and a known time zone.
 - **`RidePlausibilityRule`** — domain rule owned by `multiplayer/record-results-nobody-can-change`.
   The handler calls it before recording; an implausible ride is refused with 422 and the code
   `ride_not_plausible` (L2-125 AC2).
@@ -42,12 +55,16 @@ The slice runs from the outbox in the Ride app to the database.
   result instead of the request (L2-125 AC1). A submission that arrives before the session result
   exists is refused with 409 and the code `result_pending`; `RideOutbox` retries it.
 - **`SubmitRideCommandHandler`** — MediatR handler. It looks up the ride by rider and ride id;
-  a recorded ride returns its stored answer unchanged. A new ride runs the progress rules in
+  a recorded ride returns its stored answer unchanged, with 200. A new ride is checked by
+  `RidePlausibilityRule`, recorded and answered with 201. Slice 10.1 records the ride and its
+  answer; the later slices of journey 10 add the progress rules. A new ride runs the progress rules in
   order: `Streak.Record`, `XpCalculator`, `LevelTable`, `MapProgress.RecordFinish`, `StarRules`
-  and `UnlockRules`. It inserts the `Ride` with its answer and updates `Rider`, `MapProgress`
+  and `UnlockRules`. It inserts the `RecordedRide` with its answer and updates `Rider`, `MapProgress`
   and `Streak` in one unit of work.
-- **`Ride`** — entity holding the ride's facts, the race trace where present, and the `RideRecordedDto` it answered with. `GET /api/maps/{mapId}/best-ride` serves the trace of the rider's best ride on a map as the ghost (`race/race-the-ghost-and-bots`).
-- **`RideRecordedDto`** — answer with the XP lines and total, the new total XP and level,
+- **`RecordedRide`** — entity (named so because `Telo.Ride` is the solution's namespace) holding
+  the ride's facts, keyed by rider and ride id, the race trace where present, and the `RideRecordedDto` it answered with. `GET /api/maps/{mapId}/best-ride` serves the trace of the rider's best ride on a map as the ghost (`race/race-the-ghost-and-bots`).
+- **`RideRecordedDto`** — answer with the ride id and the instant it was recorded, and, as the
+  slices that compute them arrive, the XP lines and total, the new total XP and level,
   `LevelUp`, stars held and new stars, best and previous best, the streak and any opened map.
   Results renders it (`results/show-xp-stars-and-personal-best`).
 - **`GetProgressQueryHandler`** — builds `ProgressDto` for the signed-in rider only (L2-128).
@@ -57,8 +74,8 @@ The slice runs from the outbox in the Ride app to the database.
   `GET /api/progress` on start, after each recorded ride, and on screens that show progress. It
   holds no progress the backend did not return.
 
-The concurrency rule for two submissions of one ride id arriving at once is a unique index on
-rider and ride id; the second insert fails and the handler returns the stored answer.
+The concurrency rule for two submissions of one ride id arriving at once is the `RecordedRide` key, rider
+and ride id together; the second insert fails and the handler returns the stored answer.
 
 ## Requirements
 
@@ -97,7 +114,7 @@ shape; `SubmitRideCommandHandler` checks plausibility, takes a multiplayer resul
 ### Class structure
 
 `SubmitRideCommand` wraps the client's `SubmitRideRequest`, which holds facts only. The handler
-creates one `Ride` per ride id and stores its `RideRecordedDto` as the answer to repeat. A race ride also stores its per-second `TracePoint` list, which later serves the ghost.
+creates one `RecordedRide` per ride id and stores its `RideRecordedDto` as the answer to repeat. A race ride also stores its per-second `TracePoint` list, which later serves the ghost.
 
 ![Class diagram for keeping progress on the backend](diagrams/class-structure.png)
 
@@ -116,3 +133,10 @@ A second device reads the same rows through `GET /api/progress`, so Home shows t
 (L2-044 AC3).
 
 ![Sequence diagram for reading progress on a second device](diagrams/sequence-second-device.png)
+
+## Open questions
+
+- **Rides that do not finish.** A race that ends as a DNF and a class the rider leaves are not
+  submitted yet; whether they count as rides, earn XP or keep a streak is `<TO SUPPLY>`.
+- **A lost submission.** Until `RideOutbox` (L2-135) keeps finished rides on the device, a ride
+  whose submission fails is not recorded.

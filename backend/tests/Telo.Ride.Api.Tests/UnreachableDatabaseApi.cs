@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Telo.Ride.Application;
 using Telo.Ride.Domain.Accounts;
+using Telo.Ride.Domain.Rides;
 using Telo.Ride.Infrastructure;
 
 namespace Telo.Ride.Api.Tests;
@@ -21,6 +22,8 @@ public sealed class UnreachableDatabaseApi : TeloRideApiFactory
         public DbSet<Rider> Riders => db.Riders;
 
         public DbSet<RiderSession> RiderSessions => db.RiderSessions;
+
+        public DbSet<RecordedRide> Rides => db.Rides;
 
         public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>
             throw new InvalidOperationException("The database cannot be reached.");

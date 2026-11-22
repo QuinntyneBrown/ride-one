@@ -7,8 +7,8 @@ namespace Telo.Ride.Application.Accounts;
 public sealed record ErasePendingAccountsCommand : IRequest<int>;
 
 /// <summary>
-/// Erases deleted accounts: each rider whose deletion was requested goes, with its sessions (and, from journey 10, its
-/// progress and rides). A second run finds nothing more to erase.
+/// Erases deleted accounts: each rider whose deletion was requested goes, with its sessions and its recorded rides (and,
+/// as journey 10 keeps it, the rest of its progress). A second run finds nothing more to erase.
 /// </summary>
 public sealed class ErasePendingAccountsCommandHandler(IAppDbContext db) : IRequestHandler<ErasePendingAccountsCommand, int>
 {
@@ -22,6 +22,7 @@ public sealed class ErasePendingAccountsCommandHandler(IAppDbContext db) : IRequ
 
         var ids = riders.Select(rider => rider.Id).ToList();
         db.RiderSessions.RemoveRange(await db.RiderSessions.Where(session => ids.Contains(session.RiderId)).ToListAsync(cancellationToken));
+        db.Rides.RemoveRange(await db.Rides.Where(ride => ids.Contains(ride.RiderId)).ToListAsync(cancellationToken));
         db.Riders.RemoveRange(riders);
         await db.SaveChangesAsync(cancellationToken);
         return riders.Count;

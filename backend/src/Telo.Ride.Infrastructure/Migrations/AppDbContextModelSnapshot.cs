@@ -129,7 +129,82 @@ namespace Telo.Ride.Infrastructure.Migrations
                     b.ToTable("SignInCodes");
                 });
 
+            modelBuilder.Entity("Telo.Ride.Domain.Rides.RecordedRide", b =>
+                {
+                    b.Property<Guid>("RiderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ClassId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<double>("DistanceMeters")
+                        .HasColumnType("float");
+
+                    b.Property<int>("ElapsedSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FieldSize")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("FinishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("MapId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("MaxPowerWatts")
+                        .HasColumnType("int");
+
+                    b.Property<double>("MaxSpeedKmh")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Mode")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<double>("OutputKj")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Pack")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int?>("Place")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("RiderId", "Id");
+
+                    b.ToTable("Rides");
+                });
+
             modelBuilder.Entity("Telo.Ride.Domain.Accounts.RiderSession", b =>
+                {
+                    b.HasOne("Telo.Ride.Domain.Accounts.Rider", null)
+                        .WithMany()
+                        .HasForeignKey("RiderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Telo.Ride.Domain.Rides.RecordedRide", b =>
                 {
                     b.HasOne("Telo.Ride.Domain.Accounts.Rider", null)
                         .WithMany()
