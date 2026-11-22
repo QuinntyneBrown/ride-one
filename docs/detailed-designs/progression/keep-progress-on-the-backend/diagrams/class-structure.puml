@@ -21,17 +21,25 @@ class SubmitRideRequest <<api DTO>> {
   +pack?: PackStrength
   +place?: number
   +fieldSize?: number
-  +outcome: RideOutcome
   +elapsedSeconds: number
   +distanceMeters: number
   +outputKj: number
-  +onTargetShare: number
   +maxPowerWatts: number
   +maxSpeedKmh: number
+  +speedSamplesKmh: number[]
   +finishedAt: string
   +timeZoneId: string
+  .. added by later slices ..
+  +outcome: RideOutcome
+  +onTargetShare: number
   +trace?: TracePoint[]
-  +speedSamplesKmh?: number[]
+}
+class RideRecorder <<domain engine>> {
+  +record(powerW, speedMs, seconds)
+  +outputKj: number
+  +maxPowerWatts: number
+  +maxSpeedKmh: number
+  +speedSamplesKmh(): number[]
 }
 class TracePoint <<api DTO>> {
   +second: number
@@ -50,11 +58,15 @@ class Ride <<entity>> {
   +RiderId: Guid
   +Kind: RideKind
   +FinishedAt: DateTimeOffset
+  +RecordedAt: DateTimeOffset
   +Trace: TracePoint[]?
   +Recorded: RideRecordedDto
 }
+note right of Ride : key: RiderId and Id together
 class RideRecordedDto <<DTO>> {
   +RideId: Guid
+  +RecordedAt: DateTimeOffset
+  .. added by later slices ..
   +XpLines: XpLineDto[]
   +XpTotal: int
   +TotalXp: int
@@ -88,8 +100,8 @@ interface IAppDbContext <<application>> {
   +SaveChangesAsync(): Task<int>
 }
 interface RidesApi <<api>> {
-  +submitRide(r: SubmitRideRequest): Promise<RideRecordedDto>
-  +listRecent(take: number): Promise<RecentRideDto[]>
+  +submitRide(r: SubmitRideRequest): Observable<RideRecordedDto>
+  +listRecent(take: number): Observable<RecentRideDto[]>
 }
 SubmitRideRequest "1" *-- "0..*" TracePoint : race rides, one per second
 SubmitRideCommand *-- SubmitRideRequest
@@ -101,6 +113,7 @@ class RidePlausibilityRule <<domain, multiplayer>>
 class SessionResultRecorder <<application, multiplayer>>
 SubmitRideCommandHandler ..> Ride : creates once per RideId
 Ride *-- RideRecordedDto : stored answer
+RideRecorder ..> SubmitRideRequest : output, maxima, speed samples
 RidesApi ..> SubmitRideRequest
 RidesApi ..> RideRecordedDto
 @enduml

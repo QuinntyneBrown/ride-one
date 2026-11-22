@@ -35,22 +35,26 @@ box "Backend — Telo.Ride.Infrastructure" #FFF4E5
   database "Telo Ride database" as db
 end box
 actor -> outbox : Ride ends; keep ride with its id (L2-135)
+note over outbox : until RideOutbox is built, the race or class ride\nsubmits straight away and does not retry (slice 10.1)
 outbox -> client : submitRide(ride)
 client -> ctrl : POST /api/rides (rideId as idempotency key)
 ctrl -> handler : Send SubmitRideCommand
 handler -> val : Validate shape
-handler -> plaus : Check trace and speed samples
-alt Not plausible
-  plaus --> ctrl : 422 ride_not_plausible (L2-125 AC2)
-else Riders-online race or group class without a session result
-  handler -> rec : Result for session
-  rec --> ctrl : 409 result_pending; the outbox retries
-else Valid
-  handler -> db : Find Ride by RiderId and RideId
-  alt Already recorded
-    db --> handler : Stored RideRecordedDto
-    handler --> ctrl : First answer again (L2-044 AC2, L2-125 AC3)
-  else New ride
+alt Malformed
+  val --> ctrl : 400 validation_failed
+end
+handler -> db : Find Ride by RiderId and RideId
+alt Already recorded
+  db --> handler : Stored RideRecordedDto
+  handler --> ctrl : 200, the first answer again (L2-044 AC2, L2-125 AC3)
+else New ride
+  handler -> plaus : Power, speed, distance against speed samples, finish time against the map
+  alt Not plausible
+    plaus --> ctrl : 422 ride_not_plausible (L2-125 AC2)
+  else Riders-online race or group class without a session result
+    handler -> rec : Result for session
+    rec --> ctrl : 409 result_pending; the outbox retries
+  else Plausible
     opt Riders-online race or group class
       handler -> rec : Server-side place, time and output (L2-125 AC1)
     end
@@ -58,9 +62,9 @@ else Valid
     handler -> rules : Streak, XP lines, level, stars, best, unlocks
     rules --> handler : Computed progress
     handler -> db : Insert Ride with its answer; update Rider, MapProgress, Streak in one unit of work
-    handler --> ctrl : RideRecordedDto
+    handler --> ctrl : 201 RideRecordedDto
   end
 end
-ctrl --> client : 201 RideRecordedDto or ProblemDetails
+ctrl --> client : RideRecordedDto or ProblemDetails
 client --> outbox : Recorded: remove the ride from the device
 @enduml

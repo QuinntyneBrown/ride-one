@@ -52,8 +52,8 @@ second submission of the same ride id records nothing new and answers with the f
   `progression/keep-progress-on-the-backend`; this feature adds three steps to it.
 - **`SubmitRideCommandHandler`** steps added here:
   1. Idempotency: if a `Ride` with this ride id exists for the rider, return its stored
-     `RideResultDto` and change nothing (`L2-125` AC3). A unique key on `Ride.Id` guards two
-     concurrent first submissions.
+     `RideRecordedDto` and change nothing (`L2-125` AC3). The `Ride` key, rider and ride id together,
+     guards two concurrent first submissions.
   2. Plausibility: apply `RidePlausibilityRule`; refuse with 422 `ride_not_plausible` on any
      breach (`L2-125` AC2).
   3. Authority: for a ride with a `SessionId`, take place, time and output from the rider's
