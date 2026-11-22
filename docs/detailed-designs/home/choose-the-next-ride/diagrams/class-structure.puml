@@ -20,8 +20,10 @@ class HomePage <<ride>> {
 }
 class HomeStore <<ride, route-scoped>> {
   -progress: ProgressStore
-  -catalogue: CatalogueApi
-  -sessions: ClassSessionsApi
+  -rider: CurrentRider
+  -progressApi: RiderProgressApi
+  -maps: MapsApi
+  -classes: ClassesApi
   +view: Signal<HomeView | undefined>
   +markUnlockSeen(mapId: string): Promise<void>
 }
@@ -31,6 +33,9 @@ class HomeView {
   +nextRide: NextRideView
   +raceDoor: RaceDoorView
   +classesDoor: ClassesDoorView | null
+}
+class "homeView()" as homeView <<ride helper>> {
+  +homeView(progress, maps, classes, name, now): HomeView
 }
 class NextRideView {
   +mapId: string
@@ -54,24 +59,25 @@ class ClassesDoorView {
   +classId: string
   +title: string
   +length: string
-  +startsIn: string
-  +seats: string
+  +startsIn: string | null (slice 14.2)
+  +seats: string | null (slice 14.2)
 }
 class "homeGreeting()" as greet <<ride helper>> {
   +homeGreeting(now: Date, name: string, isNewRider: boolean): string
 }
 class ProgressDto <<api>> {
-  +displayName: string
-  +rideCount: number
+  +level: number
+  +totalXp: number
   +openMapIds: string[]
-  +maps: MapProgressDto[]
-  +nextRide: NextRideDto
-  +unseenUnlock: UnlockedMapDto | null
+  +nextUnlockId: string | null
+  +stars: Record<string, number>
+  +bestTimeSeconds: Record<string, number>
+  +nextRideMapId: string
+  +unseenUnlockId: string | null
 }
-class NextRideDto <<api>> {
-  +mapId: string
-  +goal: UnlockGoalDto | null
-  +opensMapId: string | null
+interface RiderProgressApi <<api>> {
+  +progress(): Observable<ProgressDto>
+  +markUnlockSeen(mapId: string): Observable<void>
 }
 class NextRideCard <<components>> {
   +view: input<NextRideView>
@@ -85,7 +91,7 @@ class MapTile <<components>> {
 }
 class ClassTeaser <<components>> {
   +view: input<ClassesDoorView>
-  +joinGroup: output<string>
+  +joinGroup: output<string> (slice 14.2)
   +rideAlone: output<string>
 }
 HomePage --> HomeStore

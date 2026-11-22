@@ -141,7 +141,8 @@
         "veteran",
         "unlocked",
         "disconnected",
-        "full-screen"
+        "full-screen",
+        "no-groups"
       ],
       "not_applicable": {
         "empty": "‘new-rider’ is the empty state: no rides yet, two starting maps, the first unlock shown as the Next ride.",
