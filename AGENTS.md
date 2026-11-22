@@ -1,38 +1,79 @@
 ## Purpose
 
-> Telo Ride, from the Telo family, turns a smart bike at home into a game. It pairs with the bike
-> over Bluetooth, reads your power and sets resistance for every hill and interval. Two doors:
-> **Race** (ride a map against your best-time ghost, bots or people) and **Classes** (ride along
-> to a video, alone or with a group), fed by one progression of XP, rider levels, stars and map
-> unlocks. A custom workout lives under Profile.
+> Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing
+> else. It pairs with a smart bike at home over Bluetooth, plays the class video and sets the
+> bike's resistance for every interval while the rider pedals. Connect the bike, take the class,
+> see your number, and come back to beat it.
 
-**Direction.** Telo Ride is mainly a kart-racing-style game (in the spirit of Mario Kart, never a
-recreation of its characters, art, music or courses). The characters are cyclists, driven by
-riders on their Echelon indoor bikes over Bluetooth. Each map is modelled after a GCN online
-class, which gives the course its structure (resistance, rpm and stages). The map's size is
-relative to the class's length, and its resistance settings drive the map's elevation (lower
-resistance is downhill, higher is uphill). Riders score highly for holding the cadence (rpm)
-each stage of the course specifies.
+**Direction.** Telo Ride 1 is Telo Ride with everything but one class taken away. It has four
+screens and no menus:
 
-Before adding or changing anything, ask how it serves that purpose; if it does not, do not build
-it, and if a request works against it, say so.
+1. **Connect Bike**: pair the bike once; it is remembered. A new rider starts here.
+2. **The Class**: the home screen and the only class, **30 Minute HIIT Cardio** (GCN Training,
+   `gcn-30-hiit`): its video, title, length, a chart of what the bike will do, and one start
+   button ("Connect your bike" when no bike is connected). A returning rider also sees their ride
+   count, best output and last output.
+3. **Class Ride**: the video in sync while the class's plan sets target resistance; the rider
+   just pedals. Always solo, so the rider can pause, leave or finish.
+4. **Class Done**: the ride's output in kJ (in gold for a new best), time, average watts, how much
+   of the ride was on target, and the eight efforts. **Done** returns to The Class.
 
-The mission, Telo Ride's single L0 requirement, is not written yet. When it is, it goes in
+Telo Ride 1 has no class library, races, maps or 3D world, group classes or live races, XP, rider
+levels, stars or unlocks, sign-in, or custom workout. Before adding or changing anything, ask how
+it serves connecting the bike and taking the one class; if it does not, do not build it, and if a
+request works against it, say so.
+
+The mission, Telo Ride 1's single L0 requirement, is not written yet. When it is, it goes in
 `docs/specs/L0.md` and this section quotes it word for word; everything then points back to it.
 Do not invent a mission in its place.
+
+## Design
+
+The design is the **Telo Ride 1** prototype in Magic Patterns (the *Echelon Bike Telemetry
+Dashboard* OS): the frames Connect Bike, The Class, Class Ride and Class Done, and the canvas
+*The Class · Form Factors*. Its own design threads hold the decisions behind it.
+
+- **Wordmark:** **TELO RIDE 1**, the Telo Ride lockup with "RIDE 1" in signal orange, on every
+  screen. It is "1", never "One" or "I".
+- **11" tablet in landscape (1194 × 834) and desktop (1024 px wide and up):** The Class fits on
+  one screen with no scrolling; the video takes the height left and stays 16:9, and the class
+  details and start button sit in a fixed column on the right. Class Ride does not scroll on any
+  landscape screen 768 px wide or more.
+- **Phone and tablet in portrait:** one column that scrolls, with the start button pinned to the
+  bottom and clear of the home bar.
+
+Before a screen is built, its states are transcribed from the prototype into `docs/mocks/`, which
+stays the source of truth for the code. The prototype's numbers (6 rides, a 342 kJ best, an
+output estimated from ride time) are placeholders, not rules.
+
+## Carried over from Telo Ride
+
+This repository began as a copy of Telo Ride. Its code, docs and tests still hold Telo Ride's
+other features: races, the World library and its Blender courses (`blender/`, `tools/blender`),
+the class library, sign-in, progression, group classes and live races, the custom workout and the
+`marketing` application. `docs/specs/`, `docs/journeys.md`, `docs/detailed-journeys.md`,
+`docs/detailed-designs/`, `docs/mocks/` and the ADRs still describe Telo Ride.
+
+- Keep and build on what the four screens need: the Bluetooth link, the protocol, the engine, the
+  simulated bike, the video library, the solo class ride and its result.
+- Do not extend a feature Telo Ride 1 leaves out. Removing one is a change of its own, with its
+  requirement, docs and tests cut down in the same change, and an ADR where it reverses one.
+- When a doc is rewritten for Telo Ride 1, it says so and drops what Telo Ride 1 leaves out.
 
 ## Where things are
 
 - **The frontend is the product.** `frontend/` is an Angular workspace and holds most of the
   implementation: Web Bluetooth connectivity, the protocol, the workout engine, sessions and
   every screen. It runs in Chrome or Edge; a ride finishes on the device without a network.
-- **The backend is thin.** `backend/` is a .NET service only for what one browser cannot do
-  alone: email sign-in, rider progress (XP, stars, unlocks, rides), SignalR for live races and
-  group classes, and feedback. It never talks to the bike. ADR 0025 superseded ADR 0019
-  (no backend) when the backend landed; `backend/README.md` has its commands.
+- **The backend is carried over.** `backend/` is Telo Ride's thin .NET service (ADR 0025): email
+  sign-in, rider progress, SignalR for live races and group classes, feedback, and the class
+  catalogue (ADR 0028). It never talks to the bike. Telo Ride 1 needs only the class catalogue
+  from it; whether it keeps the backend is not decided yet, and the change that decides it brings
+  an ADR. Until then, add nothing to it. `backend/README.md` has its commands.
 - Before building a feature, read its requirement (`docs/specs/`, `docs/journeys.md`), its
   detailed design (`docs/detailed-designs/`) and its mocks (`docs/mocks/`, the source of truth
-  for the UI; `docs/design-system/` is extracted from them).
+  for the UI; `docs/design-system/` is extracted from them). Where those still describe only
+  Telo Ride, bring the feature's requirement, design and mock in line with Telo Ride 1 first.
 - Read the relevant ADRs in `docs/adr/` before changing the areas they cover.
 - Where a rule below names something that does not exist yet (a project, a command, a fixture,
   a helper, a folder), the first change that needs it adds it.
@@ -41,7 +82,9 @@ Do not invent a mission in its place.
   locally; run it before pushing.
 
 Use the words the specs use in code, docs and UI; no synonyms. The bike's reported level is
-"resistance", the requested one "target resistance"; the Bluetooth link state is `ble`.
+"resistance", the requested one "target resistance"; the Bluetooth link state is `ble`. The
+screens are Connect Bike, The Class, Class Ride and Class Done; a ride's result is its "output"
+in kJ, and the class's hard intervals are its "efforts".
 
 ## Prefer best practice
 
@@ -161,7 +204,7 @@ hubs).
 
 ## Lazy loading and memory (the top frontend priority)
 
-The rider runs Telo Ride for an hour or more on a tablet or low-power laptop beside the bike, and
+The rider runs Telo Ride 1 for an hour or more on a tablet or low-power laptop beside the bike, and
 it has to stay as smooth at the end of the ride as at the start. A change that grows the initial
 bundle or leaks memory is not done, whatever else it achieves.
 
