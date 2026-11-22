@@ -43,8 +43,11 @@ The slice is backend domain logic invoked from two handlers.
   3 vs Bots on {map}", "Earn {n}★ on {map}" or "Reach rider level {n}".
 - **`MapProgress`** — entity per rider and map holding the stars held, `BestTime`, `OpenedAt`
   and `UnlockSeenAt`. `Award(star)` adds a star and ignores one already held.
-  `RecordFinish(time)` returns a `FinishRecord` with the previous best and whether the finish is
-  a new best; a first finish sets the best.
+  `RecordFinish(time)` returns a `FinishRecord` with the stars earned, the best, the previous best
+  and whether the finish is a new best; a first finish sets the best. Slice 11.2 built it with the
+  stars, kept as flags, and the best (`BestSeconds`); `OpenedAt` and `UnlockSeenAt` come with the
+  unlocks in slice 12.1. The recorded ride keeps the stars and best it answered with, so a repeat
+  answers the same.
 - **`RaceFinish`** — value object with the map, the race mode (ghost, bots, riders online), the
   pack strength for a bots race, the place and the finish time.
 - **`StarRules`** — domain service. `Evaluate(finish, progress)` returns the stars the finish
