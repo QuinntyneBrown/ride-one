@@ -1,13 +1,21 @@
 import { Dialog, type DialogConfig } from '@angular/cdk/dialog';
 import { Overlay } from '@angular/cdk/overlay';
 import { ChangeDetectionStrategy, Component, Injector, computed, inject } from '@angular/core';
-import { CURRENT_RIDER, PROGRESS_STORE } from '@telo/api';
+import { RouterLink } from '@angular/router';
+import {
+  BIKE_CONNECTION,
+  BLUETOOTH_SUPPORT,
+  CURRENT_RIDER,
+  PROGRESS_STORE,
+  REMEMBERED_BIKE,
+} from '@telo/api';
 import { InlineMessage, ProfileLevel, SettingRow } from '@telo/components';
 import { AccountStore } from './account-store';
 import { DeleteAccountDialog } from './delete-account-dialog';
 import { toLevelView } from '../progress/level-view';
 import { profileMeta, profileXpLabel } from '../progress/profile-meta';
 import { DisplayNameDialog } from './display-name-dialog';
+import { bikeRow } from './bike-row';
 
 /**
  * Profile (docs/mocks/pages/profile/): in slice 9.3, the headline with the rider's display name and level ("Sam ·
@@ -22,7 +30,7 @@ import { DisplayNameDialog } from './display-name-dialog';
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [InlineMessage, ProfileLevel, SettingRow],
+  imports: [RouterLink, InlineMessage, ProfileLevel, SettingRow],
 })
 export default class ProfilePage {
   private readonly currentRider = inject(CURRENT_RIDER);
@@ -32,6 +40,21 @@ export default class ProfilePage {
   protected readonly account = inject(AccountStore);
 
   private readonly progress = inject(PROGRESS_STORE);
+  private readonly connection = inject(BIKE_CONNECTION);
+  private readonly support = inject(BLUETOOTH_SUPPORT);
+  private readonly remembered = inject(REMEMBERED_BIKE).get();
+
+  /**
+   * The bike row (L2-112 AC1, AC2). It goes to Connect Bike: with no bike, to pair one; with one, until slice 25.1's
+   * Diagnostics dialog takes its place.
+   */
+  protected readonly bike = computed(() =>
+    bikeRow(
+      this.connection.ble(),
+      this.support.state(),
+      (this.connection.bike() ?? this.remembered)?.name ?? null,
+    ),
+  );
 
   /** The rider's level, unknown until the progress arrives. */
   protected readonly level = computed(() => this.progress.progress()?.level ?? null);

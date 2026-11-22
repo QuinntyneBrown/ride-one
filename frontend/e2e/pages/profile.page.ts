@@ -16,6 +16,10 @@ export class ProfilePage {
   readonly bikeRow: Locator;
   readonly rideSettings: Locator;
   readonly customWorkout: Locator;
+  /** Every Settings row, in order. */
+  readonly rows: Locator;
+  readonly rowTitles: Locator;
+  readonly rowBodies: Locator;
   readonly settings: Locator;
   /** The Display name row in Settings, which opens the dialog (L2-005 AC3). */
   readonly displayName: Locator;
@@ -38,6 +42,9 @@ export class ProfilePage {
     this.bikeRow = this.settings.getByRole('listitem').first().getByRole('link');
     this.rideSettings = this.settings.getByRole('link', { name: /^Ride settings/ });
     this.customWorkout = this.settings.getByRole('link', { name: /^Custom workout/ });
+    this.rows = this.settings.locator('.setting-row');
+    this.rowTitles = this.rows.locator('.setting-row__title');
+    this.rowBodies = this.rows.locator('.setting-row__body');
     this.displayName = this.settings.getByRole('button', { name: /^Display name/ });
     this.dialog = new DisplayNameDialog(page);
     this.signOut = this.settings.getByRole('button', { name: /^Sign out/ });

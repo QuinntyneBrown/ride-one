@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 /** The icons a Settings row draws so far. */
-export type SettingRowIcon = 'person' | 'sign-out' | 'trash';
+export type SettingRowIcon = 'bike' | 'settings' | 'workout' | 'person' | 'sign-out' | 'trash';
 
 /**
  * One row of Profile's Settings (design-system block setting-row): an icon, a title, a line under it and a chevron.

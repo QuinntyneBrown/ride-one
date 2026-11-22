@@ -40,9 +40,9 @@ else No bike paired
   page -> row : "No bike yet" (AC2)
 end
 actor -> row : Choose a setting
-row -> page : choose(kind)
+row -> page : link or click
 alt Bike, paired
-  page -> dialog : open DiagnosticsDialog (L2-113)
+  page -> dialog : open DiagnosticsDialog (L2-113; Connect Bike until slice 25.1)
 else Bike, none paired
   page -> router : Connect Bike
 else Ride settings

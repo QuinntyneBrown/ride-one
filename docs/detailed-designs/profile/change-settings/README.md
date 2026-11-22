@@ -20,13 +20,15 @@ are built.
 
 ## Description
 
-- **`ProfilePage`** — the Profile page (see `show-the-profile`). It holds the settings aside,
-  computes the rows with `settingRows()` and handles `choose(kind)` from each row. No row edits
-  inline: each opens a CDK Dialog or navigates.
+- **`ProfilePage`** — the Profile page (see `show-the-profile`). It holds the settings aside:
+  each row is a `SettingRow` on a link (`routerLink`) or a button (a dialog or Sign out) in the
+  page's template, and only the bike row's words change, from `bikeRow()`. No row edits inline:
+  each opens a CDK Dialog or navigates.
 - **`SettingRow`** — presentation component (`wz-setting-row`, block `setting-row`) with an icon,
-  a title and a text, rendered as a button or link with a touch target of at least 44 × 44 px. It
-  emits `choose(kind)`.
-- **`settingRows()`** — pure helper in `ride` with unit tests. It returns the rows in order:
+  a title and a text, put on the native `<a>` or `<button>` so it keeps its role, with a touch
+  target of at least 44 × 44 px.
+- **`bikeRow()`** — pure helper in `ride` with unit tests for the bike row's title and text. The
+  rows, in order:
   - the bike: the paired bike's name with "Connected · diagnostics", or "No bike yet";
   - "Ride settings" with "Quality, sound and display";
   - "Custom workout" with "Build your own intervals";
@@ -37,8 +39,6 @@ are built.
   When the paired bike is not connected, the row reads "Not connected · diagnostics", or, where
   the browser stops Bluetooth, the bike status's words for it ("Bluetooth is off · diagnostics",
   from `bikeStatus()` in `domain`). With no bike paired, the row's text is "Pair your bike".
-- **`SettingKind`** — union of `Bike`, `RideSettings`, `CustomWorkout`, `HeartRateStrap`, `DisplayName`,
-  `SignOut` and `DeleteAccount`.
 - **Hand-offs** — the bike row opens `DiagnosticsDialog` when a bike is paired and Connect Bike
   when none is. "Ride settings" navigates to `/settings` (`settings/open-and-keep-settings`).
   "Custom workout" navigates to the custom workout setup (`/profile/custom`). Until slice 25.1
@@ -85,7 +85,7 @@ router, the strap service or the auth client.
 
 ### Class structure
 
-`settingRows()` builds `SettingRowView` values from the paired bike and `ble`. The page depends on
+`bikeRow()` builds the bike row's words from the paired bike, `ble` and the browser's support. The page depends on
 the `BikeConnection`, `HeartRateStrap` and `AuthApi` contracts through their tokens.
 
 ![Class diagram for changing settings](diagrams/class-structure.png)

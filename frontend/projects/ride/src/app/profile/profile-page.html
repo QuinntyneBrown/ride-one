@@ -12,6 +12,33 @@
     <h2 class="settings__title" id="settings">Settings</h2>
     <ul class="settings__list">
       <li>
+        <a
+          wz-setting-row
+          routerLink="/connect"
+          icon="bike"
+          [title]="bike().title"
+          [body]="bike().body"
+        ></a>
+      </li>
+      <li>
+        <a
+          wz-setting-row
+          routerLink="/settings"
+          icon="settings"
+          title="Ride settings"
+          body="Quality, sound and display"
+        ></a>
+      </li>
+      <li>
+        <a
+          wz-setting-row
+          routerLink="/profile/custom"
+          icon="workout"
+          title="Custom workout"
+          body="Build your own intervals"
+        ></a>
+      </li>
+      <li>
         <button
           wz-setting-row
           type="button"

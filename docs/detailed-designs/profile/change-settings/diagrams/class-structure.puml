@@ -12,58 +12,54 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Change settings
-enum SettingKind {
-  Bike
-  RideSettings
-  CustomWorkout
-  HeartRateStrap
-  DisplayName
-  SignOut
-  DeleteAccount
-}
-class SettingRowView {
-  +kind: SettingKind
-  +title: string
-  +text: string
-  +icon: string
-}
 class SettingRow <<components>> {
-  +view: input<SettingRowView>
-  +choose: output<SettingKind>
+  selector: a[wz-setting-row], button[wz-setting-row]
+  +icon: input<SettingRowIcon>
+  +title: input<string>
+  +body: input<string>
+  +danger: input<boolean>
 }
 class ProfilePage <<ride>> {
-  -bike: BikeConnection
-  -strap: HeartRateStrap
-  -auth: AuthApi
+  -connection: BikeConnection
+  -support: BluetoothSupport
+  -remembered: RememberedBike
   -dialog: Dialog
-  -router: Router
-  +settings: Signal<SettingRowView[]>
-  +onSetting(kind: SettingKind): void
+  #bike: Signal<BikeRowView>
+  #changeName(): void
+  #deleteAccount(): void
 }
-class "settingRows()" as rows <<ride helper>> {
-  +settingRows(pairedBike: string | null, ble: BleState): SettingRowView[]
+class "bikeRow()" as rows <<ride helper>> {
+  +bikeRow(ble, support, name): BikeRowView
+}
+class BikeRowView {
+  +title: string
+  +body: string
+  +paired: boolean
 }
 interface BikeConnection <<api>> {
-  +pairedBikeName: Signal<string | null>
+  +bike: Signal<BikeIdentity | null>
   +ble: Signal<BleState>
+}
+interface BluetoothSupport <<api>> {
+  +state: Signal<BluetoothSupportState>
 }
 interface HeartRateStrap <<api>> {
   +connect(): Promise<void>
 }
-interface AuthApi <<api>> {
-  +signOut(): Promise<void>
+class AccountStore <<ride>> {
+  +signOut(): void
 }
-class DiagnosticsDialog <<ride>>
+class DiagnosticsDialog <<ride, slice 25.1>>
 class DisplayNameDialog <<ride>>
 class DeleteAccountDialog <<ride>>
 ProfilePage ..> rows
+rows ..> BikeRowView
 ProfilePage ..> SettingRow
-SettingRow --> SettingRowView
-SettingRowView --> SettingKind
 ProfilePage --> BikeConnection : BIKE_CONNECTION
+ProfilePage --> BluetoothSupport : BLUETOOTH_SUPPORT
 ProfilePage --> HeartRateStrap : HEART_RATE_STRAP
-ProfilePage --> AuthApi : AUTH_API
-ProfilePage ..> DiagnosticsDialog : opens
+ProfilePage --> AccountStore : Sign out
+ProfilePage ..> DiagnosticsDialog : opens (slice 25.1)
 ProfilePage ..> DisplayNameDialog : opens
 ProfilePage ..> DeleteAccountDialog : opens
 @enduml
