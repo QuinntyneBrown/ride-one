@@ -55,12 +55,15 @@
       "states": [
         "default",
         "ready",
-        "resent"
+        "resent",
+        "mismatch",
+        "expired",
+        "locked"
       ],
       "not_applicable": {
         "empty": "The screen always names the email the code went to.",
         "loading": "The screen loads nothing; it waits for the rider’s six digits.",
-        "error": "The code’s refusals (mismatch, expired, locked) are drawn with slice 9.2, which confirms the code."
+        "error": "The refusals are their own states: mismatch, expired and locked."
       }
     },
     {

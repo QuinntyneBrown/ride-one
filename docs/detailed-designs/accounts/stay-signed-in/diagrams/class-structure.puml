@@ -15,23 +15,27 @@ skinparam class {
 title Class structure — Stay signed in
 package "api library" {
   interface RidersApi {
-    +getMe(): Promise<RiderMe>
+    +me(): Observable<RiderMe>
+  }
+  interface CurrentRider {
+    +rider: Signal<RiderMe | null>
+    +status: Signal<RiderStatus>
+    +load(): Promise<RiderStatus>
+    +signedIn(rider: RiderMe): void
+    +signedOut(): void
   }
   class RiderMe {
     +id: string
     +displayName: string | null
   }
   class sessionInterceptor <<HttpInterceptorFn>>
+  sessionInterceptor ..> CurrentRider : CURRENT_RIDER, reports 401
 }
 package "ride application" {
   class CurrentRiderStore {
-    +rider: Signal<RiderMe | null>
-    +status: Signal<"unknown" | "signedIn" | "signedOut">
-    +load(): Promise<void>
-    +signedIn(): Promise<void>
-    +signedOut(): void
+    +status: "unknown" | "signedIn" | "signedOut" | "unreachable"
   }
-  class authGuard <<CanActivateFn>>
+  class authGuard <<CanActivateChildFn>>
 }
 package "domain library (storage)" {
   class RideOutbox {
@@ -40,19 +44,16 @@ package "domain library (storage)" {
     +pending(): Signal<number>
   }
 }
+CurrentRider <|.. CurrentRiderStore
 CurrentRiderStore --> RidersApi : RIDERS_API
-CurrentRiderStore --> RideOutbox : RIDE_OUTBOX
-sessionInterceptor ..> CurrentRiderStore : reports 401
-authGuard ..> CurrentRiderStore : reads status
-package "Telo.Ride.Infrastructure" {
+CurrentRiderStore ..> RideOutbox : RIDE_OUTBOX (journey 10)
+authGuard ..> CurrentRider : CURRENT_RIDER, reads status
+package "Telo.Ride.Api" {
   class RiderSessionTicketStore {
     +StoreAsync(ticket): Task<string>
     +RetrieveAsync(key: string): Task<AuthenticationTicket?>
     +RenewAsync(key: string, ticket): Task
     +RemoveAsync(key: string): Task
-  }
-  class RiderSessionValidator {
-    +ValidatePrincipal(context: CookieValidatePrincipalContext): Task
   }
   class SessionCookieOptions <<configuration>> {
     +Name = "__Host-telo-session"
@@ -76,7 +77,6 @@ package "Telo.Ride.Domain" {
     +End(now: DateTimeOffset): void
   }
 }
-RiderSessionTicketStore ..> RiderSession : persists
-RiderSessionValidator ..> RiderSession : touches
-RiderSessionValidator ..> SessionCookieOptions : renews cookie per
+RiderSessionTicketStore ..> RiderSession : persists, touches on retrieve
+SessionCookieOptions ..> RiderSessionTicketStore : SessionStore, ShouldRenew on each use
 @enduml

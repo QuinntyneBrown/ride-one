@@ -9,7 +9,7 @@ using Telo.Ride.Api.Tests.Probe;
 
 namespace Telo.Ride.Api.Tests;
 
-/// <summary>The probe API with every request signed in as one rider, until sign-in itself lands (slice 9.2).</summary>
+/// <summary>The probe API with every request signed in as one rider, for tests of what a session allows rather than how one starts.</summary>
 public class SignedInProbeApi : ProbeApi
 {
     private const string SchemeName = "SignedIn";

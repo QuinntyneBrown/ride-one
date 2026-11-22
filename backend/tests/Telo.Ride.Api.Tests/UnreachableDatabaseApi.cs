@@ -18,6 +18,10 @@ public sealed class UnreachableDatabaseApi : TeloRideApiFactory
     {
         public DbSet<SignInCode> SignInCodes => db.SignInCodes;
 
+        public DbSet<Rider> Riders => db.Riders;
+
+        public DbSet<RiderSession> RiderSessions => db.RiderSessions;
+
         public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>
             throw new InvalidOperationException("The database cannot be reached.");
 

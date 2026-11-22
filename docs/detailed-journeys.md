@@ -40,7 +40,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 8.6 | Panorama and hidden tab | Panorama without 3D; drawing stops while the tab is hidden. | 2 | 8. See the race world | 100% |
 | 8.7 | Real-world scenery | Stream Google 3D Tiles with the rider's own key. | 2 | 8. See the race world | 100% |
 | 9.1 | Request an email code | Rider enters an email address; the backend sends a one-time code and the screen waits for it. | 3 | 9. Sign in with an email code | 100% |
-| 9.2 | Verify and stay signed in | Enter the code, get a session, stay signed in. | 3 | 9. Sign in with an email code | 0% |
+| 9.2 | Verify and stay signed in | Enter the code, get a session, stay signed in. | 3 | 9. Sign in with an email code | 100% |
 | 9.3 | Choose a display name | Prompt after first sign-in; change it from Profile. | 2 | 9. Sign in with an email code | 0% |
 | 9.4 | Sign out and delete account | Sign out; delete account and all its data. | 2 | 9. Sign in with an email code | 0% |
 | 10.1 | Record a ride | `POST /api/rides`, idempotent by ride id, plausibility check. | 3 | 10. Earn XP, levels and streaks | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 33 slices, 88 days (37%).
+**Total:** 95 slices, 238 days. **Complete:** 34 slices, 91 days (38%).

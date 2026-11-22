@@ -1,4 +1,3 @@
-import { provideHttpClient, withFetch } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router, type Routes } from '@angular/router';
 import { AUTH_API, HttpAuthApi } from '@telo/api';
@@ -11,11 +10,7 @@ import { SignInStore } from './sign-in-store';
 export const signInRoutes: Routes = [
   {
     path: '',
-    providers: [
-      provideHttpClient(withFetch()),
-      { provide: AUTH_API, useClass: HttpAuthApi },
-      SignInStore,
-    ],
+    providers: [{ provide: AUTH_API, useClass: HttpAuthApi }, SignInStore],
     children: [
       {
         path: '',

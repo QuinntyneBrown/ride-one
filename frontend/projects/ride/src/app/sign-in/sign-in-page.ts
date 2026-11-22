@@ -1,9 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SignInForm } from '@telo/components';
 import { SignInStore } from './sign-in-store';
 
-/** Sign in (L2-001, docs/mocks/pages/sign-in/): sends a code, then opens the code screen. */
+/**
+ * Sign in (L2-001, docs/mocks/pages/sign-in/): sends a code, then opens the code screen. The guard's `returnUrl` is
+ * where the rider goes once the code is confirmed (AC1).
+ */
 @Component({
   selector: 'wz-sign-in-page',
   templateUrl: './sign-in-page.html',
@@ -16,7 +19,11 @@ export default class SignInPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
+  /** The screen the guard sent the visitor from (query parameter). */
+  readonly returnUrl = input<string>();
+
   protected async send(email: string): Promise<void> {
+    this.store.returnTo(this.returnUrl());
     if (await this.store.send(email)) {
       await this.router.navigate(['code'], { relativeTo: this.route });
     }

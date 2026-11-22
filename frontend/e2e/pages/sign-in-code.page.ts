@@ -8,6 +8,9 @@ export class SignInCodePage {
   readonly resend: Locator;
   readonly message: Locator;
   readonly changeEmail: Locator;
+  readonly code: Locator;
+  readonly codeError: Locator;
+  readonly cells: Locator;
 
   constructor(private readonly page: Page) {
     this.heading = page.getByRole('heading', { level: 1 });
@@ -16,6 +19,9 @@ export class SignInCodePage {
     this.resend = page.locator('.sign-in__resend');
     this.message = page.locator('.sign-in__message');
     this.changeEmail = page.getByRole('button', { name: 'Use a different email' });
+    this.code = page.getByRole('textbox', { name: 'Six-digit code' });
+    this.codeError = page.locator('.code-entry__error');
+    this.cells = page.locator('.code-entry__cell');
   }
 
   async open(): Promise<void> {

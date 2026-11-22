@@ -9,6 +9,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 {
     public DbSet<SignInCode> SignInCodes => Set<SignInCode>();
 
+    public DbSet<Rider> Riders => Set<Rider>();
+
+    public DbSet<RiderSession> RiderSessions => Set<RiderSession>();
+
     public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>
         Database.CanConnectAsync(cancellationToken);
 
@@ -22,6 +26,21 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             code.Property(c => c.NetworkHash).HasMaxLength(64).IsRequired();
             code.HasIndex(c => new { c.Email, c.IssuedAt });
             code.HasIndex(c => new { c.NetworkHash, c.IssuedAt });
+        });
+        modelBuilder.Entity<Rider>(rider =>
+        {
+            rider.HasKey(r => r.Id);
+            rider.Property(r => r.Email).HasMaxLength(320).IsRequired();
+            rider.HasIndex(r => r.Email).IsUnique();
+            rider.Property(r => r.DisplayName).HasMaxLength(40);
+        });
+        modelBuilder.Entity<RiderSession>(session =>
+        {
+            session.HasKey(s => s.Id);
+            session.Property(s => s.KeyHash).HasMaxLength(64).IsRequired();
+            session.HasIndex(s => s.KeyHash).IsUnique();
+            session.HasIndex(s => s.RiderId);
+            session.HasOne<Rider>().WithMany().HasForeignKey(s => s.RiderId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

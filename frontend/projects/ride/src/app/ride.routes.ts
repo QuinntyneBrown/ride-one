@@ -1,6 +1,8 @@
 import type { Routes } from '@angular/router';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
+import { authGuard } from './session/auth.guard';
+import { provideSession } from './session/provide-session';
 
 /**
  * Every screen, under one parent that provides the bike connection: one instance shared from Connect Bike to the ride,
@@ -9,7 +11,9 @@ import { rememberedBikeGuard } from './bike/remembered-bike.guard';
 export const rideRoutes: Routes = [
   {
     path: '',
-    providers: [provideBikeConnection()],
+    providers: [provideBikeConnection(), provideSession()],
+    // Every screen needs a rider but sign-in, the code screen and not-found (L2-001 AC1).
+    canActivateChild: [authGuard],
     children: [
       // Sign-in and the code screen stand alone, with no app navigation (docs/mocks/pages/sign-in/).
       {

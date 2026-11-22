@@ -5,6 +5,8 @@
     [sending]="store.sending()"
     [resent]="store.resent()"
     [error]="store.error()"
+    [refusals]="store.refusals()"
+    (confirm)="confirm($event)"
     (resend)="store.resend()"
     (changeEmail)="changeEmail()"
   />

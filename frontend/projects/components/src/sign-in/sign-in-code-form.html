@@ -7,6 +7,12 @@
       for 10 minutes.
     </p>
     <div class="sign-in__form">
+      <wz-code-entry
+        [error]="refusal()"
+        [disabled]="sending()"
+        [refusals]="refusals()"
+        (completed)="confirm.emit($event)"
+      />
       @if (message(); as message) {
         <wz-inline-message class="sign-in__message" tone="error" role="alert">{{
           message
