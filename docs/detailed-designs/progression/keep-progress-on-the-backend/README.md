@@ -33,8 +33,9 @@ The slice runs from the outbox in the Ride app to the database.
   its race mode (`solo` or `bots`), pack strength, place and field size, or the class; elapsed
   seconds, distance in metres, output in kJ, maximum power and speed, the speed of each second
   ridden in km/h (at most 14,400, four hours), the finish instant and the IANA time zone. The
-  app's `RideRecorder` (`domain/engine`) keeps the output, the maxima and the speed samples in a
-  buffer sized for four hours. A class ride covers no distance and sends no speed samples. The
+  app's `RideRecorder` (`domain/engine`) gives the ride its id when it starts and keeps the
+  output, the maxima and the speed samples in a buffer sized for four hours; the distance is what
+  the samples add up to. A race's speed is its virtual speed, a class's the bike's speed (L2-022). The
   slices that use them add the on-target share, the outcome of a ride that did not finish, and
   the race's per-second trace (`TracePoint`: second, distance, power) recorded by
   `RaceRideRecorder` (`race/race-the-ghost-and-bots`). It carries no XP, stars or unlocks; a body
@@ -58,9 +59,10 @@ The slice runs from the outbox in the Ride app to the database.
   `RidePlausibilityRule`, recorded and answered with 201. Slice 10.1 records the ride and its
   answer; the later slices of journey 10 add the progress rules. A new ride runs the progress rules in
   order: `Streak.Record`, `XpCalculator`, `LevelTable`, `MapProgress.RecordFinish`, `StarRules`
-  and `UnlockRules`. It inserts the `Ride` with its answer and updates `Rider`, `MapProgress`
+  and `UnlockRules`. It inserts the `RecordedRide` with its answer and updates `Rider`, `MapProgress`
   and `Streak` in one unit of work.
-- **`Ride`** — entity holding the ride's facts, the race trace where present, and the `RideRecordedDto` it answered with. `GET /api/maps/{mapId}/best-ride` serves the trace of the rider's best ride on a map as the ghost (`race/race-the-ghost-and-bots`).
+- **`RecordedRide`** — entity (named so because `Telo.Ride` is the solution's namespace) holding
+  the ride's facts, keyed by rider and ride id, the race trace where present, and the `RideRecordedDto` it answered with. `GET /api/maps/{mapId}/best-ride` serves the trace of the rider's best ride on a map as the ghost (`race/race-the-ghost-and-bots`).
 - **`RideRecordedDto`** — answer with the ride id and the instant it was recorded, and, as the
   slices that compute them arrive, the XP lines and total, the new total XP and level,
   `LevelUp`, stars held and new stars, best and previous best, the streak and any opened map.
@@ -72,7 +74,7 @@ The slice runs from the outbox in the Ride app to the database.
   `GET /api/progress` on start, after each recorded ride, and on screens that show progress. It
   holds no progress the backend did not return.
 
-The concurrency rule for two submissions of one ride id arriving at once is the `Ride` key, rider
+The concurrency rule for two submissions of one ride id arriving at once is the `RecordedRide` key, rider
 and ride id together; the second insert fails and the handler returns the stored answer.
 
 ## Requirements
@@ -112,7 +114,7 @@ shape; `SubmitRideCommandHandler` checks plausibility, takes a multiplayer resul
 ### Class structure
 
 `SubmitRideCommand` wraps the client's `SubmitRideRequest`, which holds facts only. The handler
-creates one `Ride` per ride id and stores its `RideRecordedDto` as the answer to repeat. A race ride also stores its per-second `TracePoint` list, which later serves the ghost.
+creates one `RecordedRide` per ride id and stores its `RideRecordedDto` as the answer to repeat. A race ride also stores its per-second `TracePoint` list, which later serves the ghost.
 
 ![Class diagram for keeping progress on the backend](diagrams/class-structure.png)
 

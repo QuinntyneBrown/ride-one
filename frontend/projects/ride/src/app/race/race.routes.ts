@@ -1,9 +1,11 @@
 import type { Routes } from '@angular/router';
 import {
   GHOST_API,
+  HttpRidesApi,
   MAPS_KEY,
   MONOTONIC_TIME,
   PROGRESS_API,
+  RIDES_API,
   SCREEN_WAKE_LOCK,
   WORLD_RENDERER,
 } from '@telo/api';
@@ -13,7 +15,7 @@ import { provideMaps } from '../maps/provide-maps';
 
 /**
  * The race's route, loaded with it and opened only for a map open to the rider: the map catalogue's client and the
- * rider's progress (the device's copy when the backend cannot be reached),
+ * rider's progress (the device's copy when the backend cannot be reached), the finished rides' client,
  * the monotonic clock the race runs on (`performance.now()`, L2-133 AC1), the screen wake lock (AC3) and the world's
  * renderer loader, so their code
  * stays out of the other screens' chunks (AGENTS.md, lazy loading first). The page provides the race itself, which
@@ -29,6 +31,8 @@ export const raceRoutes: Routes = [
       { provide: PROGRESS_API, useClass: NewRiderProgress },
       // No ride has a best until rides are recorded (10.1) and a best's trace kept (11.2).
       { provide: GHOST_API, useClass: NoBestRides },
+      // The finished race goes to the backend as it ends (Record a ride).
+      { provide: RIDES_API, useClass: HttpRidesApi },
       { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },
       { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
       // The rider's Google Maps Platform key, on this device only (L2-066 AC3).

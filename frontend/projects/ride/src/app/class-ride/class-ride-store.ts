@@ -5,6 +5,7 @@ import {
   BIKE_CONNECTION,
   CLASSES_API,
   type ClassDto,
+  RIDES_API,
   SCREEN_WAKE_LOCK,
   TICKER,
   VIDEO_PLAYER_FACTORY,
@@ -16,6 +17,7 @@ import {
   PowerModel,
   ResistanceController,
   RideClock,
+  RideRecorder,
   RideTicker,
   VideoClockSync,
   WorkoutEngine,
@@ -57,6 +59,10 @@ export class ClassRideStore {
   private readonly beat = inject(TICKER);
   private readonly router = inject(Router);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
+  private readonly rides = inject(RIDES_API);
+  /** The ride's record for the backend, with the ride id given when the class starts (Record a ride). */
+  private recorder: RideRecorder | null = null;
+  private lastSecond = 0;
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
 
@@ -170,12 +176,14 @@ export class ClassRideStore {
 
   private start(dto: ClassDto): void {
     this.loaded.set(dto);
+    this.recorder = new RideRecorder();
     this.wakeLock.hold();
     this.clock.start();
     this.ticker.start();
     this.engine.follow(dto.plan);
     this.ticker.ticks.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((second) => {
-      if (second >= dto.lengthSeconds) this.finish();
+      this.record(Math.min(second, dto.lengthSeconds));
+      if (second >= dto.lengthSeconds) this.finish(dto);
       else this.syncVideo(dto);
     });
     // The bike is watched on a beat of its own: the ride clock's ticks stop while the ride is held.
@@ -198,15 +206,41 @@ export class ClassRideStore {
   }
 
   /**
-   * The plan's end: the clock stops at the class length, the video pauses, and Results opens (L2-093 AC2). Leaving the
-   * page releases the rest. The ride's submission comes with *record a ride* (slice 10.1).
+   * The plan's end: the clock stops at the class length, the video pauses, the ride is submitted (L2-044 AC2), and
+   * Results opens (L2-093 AC2). Leaving the page releases the rest.
    */
-  private finish(): void {
+  private finish(ride: ClassDto): void {
     this.clock.pause();
     this.ticker.stop();
     this.player()?.pause();
     this.wakeLock.release();
+    this.submit(ride);
     void this.router.navigateByUrl('/results');
+  }
+
+  /**
+   * Each second ridden at the bike's power and speed (L2-022 AC2); seconds a hidden tab skipped count at those of the
+   * moment, and a held ride's clock does not tick.
+   */
+  private record(second: number): void {
+    this.recorder?.record(
+      this.telemetry.powerW(),
+      this.telemetry.speedKmh(),
+      second - this.lastSecond,
+    );
+    this.lastSecond = second;
+  }
+
+  /**
+   * Submits the finished class to the backend with its record (L2-044 AC2). The answer is not waited for, and leaving
+   * the page does not cancel it. Until the outbox keeps finished rides on the device (L2-135), a submission that fails
+   * is not retried.
+   */
+  private submit(ride: ClassDto): void {
+    if (!this.recorder) return;
+    this.rides
+      .submitRide({ ...this.recorder.facts(new Date()), kind: 'class', classId: ride.id })
+      .subscribe({ error: () => undefined });
   }
 
   private hold(): void {

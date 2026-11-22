@@ -65,6 +65,17 @@ export { AuthApiError, type AuthApiErrorCode, type SignInError } from './auth/au
 export { HttpAuthApi } from './auth/http-auth-api';
 export { CURRENT_RIDER, type CurrentRider, type RiderStatus } from './riders/current-rider';
 export { HttpRidersApi } from './riders/http-riders-api';
+export { HttpRidesApi } from './rides/http-rides-api';
+export {
+  RIDES_API,
+  type ClassRideFacts,
+  type RaceRideFacts,
+  type RideFacts,
+  type RideKind,
+  type RideRecordedDto,
+  type RidesApi,
+  type SubmitRideRequest,
+} from './rides/rides-api';
 export { RIDERS_API, type RiderMe, type RidersApi } from './riders/riders-api';
 export { sessionInterceptor } from './riders/session.interceptor';
 export {

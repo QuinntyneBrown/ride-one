@@ -12,6 +12,7 @@ import {
   type RaceMode,
   type RaceResult,
   type RealPlace,
+  RIDES_API,
   type SceneRider,
   type SceneryRequest,
   type SceneryState,
@@ -29,6 +30,7 @@ import {
   type RaceField,
   ResistanceController,
   RideClock,
+  RideRecorder,
   RideTicker,
   VirtualSpeedModel,
   type Standing,
@@ -65,6 +67,9 @@ export class RaceStore {
   private readonly loaded = signal<MapDto | null>(null);
   private readonly ghosts = inject(GHOST_API);
   private readonly ridden = signal(0);
+  private readonly rides = inject(RIDES_API);
+  /** The ride's record for the backend, with the ride id given when the race starts (Record a ride). */
+  private recorder: RideRecorder | null = null;
   private lastSecond = 0;
   private field: RaceField | null = null;
   /** The rider and the field by place, ranked once a second on the race's tick (L2-060 AC3). */
@@ -302,6 +307,7 @@ export class RaceStore {
 
   private start(map: MapDto): void {
     this.loaded.set(map);
+    this.recorder = new RideRecorder();
     this.wakeLock.hold();
     this.clock.start();
     this.ticker.start();
@@ -421,8 +427,8 @@ export class RaceStore {
 
   /**
    * The line: the finish time is the race clock's second, the place is where the rider crossed it, and Results opens
-   * with the result; the clock and the ticker stop, and leaving the page releases the rest (L2-071 AC1). The ride's
-   * submission comes with *record a ride* (slice 10.1).
+   * with the result; the clock and the ticker stop, and leaving the page releases the rest (L2-071 AC1). The ride is
+   * submitted as it ends (L2-044 AC2).
    */
   private finish(second: number): void {
     const you = this.you();
@@ -437,7 +443,28 @@ export class RaceStore {
       place: you?.place ?? 1,
       field: this.standings().length || 1,
     };
+    this.submit(raceResult);
     void this.router.navigateByUrl('/results', { state: { raceResult } });
+  }
+
+  /**
+   * Submits the finished race to the backend with its record (L2-044 AC2). The answer is not waited for, and leaving
+   * the page does not cancel it. Until the outbox keeps finished rides on the device (L2-135), a submission that fails
+   * is not retried.
+   */
+  private submit(result: RaceResult): void {
+    if (!this.recorder) return;
+    this.rides
+      .submitRide({
+        ...this.recorder.facts(new Date()),
+        kind: 'race',
+        mapId: result.mapId,
+        mode: result.mode,
+        pack: result.pack,
+        place: result.place,
+        fieldSize: result.field,
+      })
+      .subscribe({ error: () => undefined });
   }
 
   /** Raise and Lower send the next level as the rider's own (L2-028 AC1). */
@@ -459,6 +486,7 @@ export class RaceStore {
     if (this.lostAt !== null) return this.rideTheCoast(second, seconds);
     const power = this.telemetry.powerW();
     this.lastSpeedMs = power !== null && power > 0 ? VirtualSpeedModel.speedMs(power) : 0;
+    this.recorder?.record(power, this.lastSpeedMs * 3.6, seconds);
     if (seconds > 0) this.ridden.update((metres) => metres + this.lastSpeedMs * seconds);
     this.rank();
     if (this.line && this.ridden() >= this.line.metres) this.finish(second);
@@ -469,6 +497,7 @@ export class RaceStore {
     const since = second - (this.lostAt ?? second);
     const speed = CoastPolicy.speedMs(this.coastFromMs, since);
     this.coast.set(speed);
+    this.recorder?.record(null, speed * 3.6, seconds);
     if (seconds > 0) this.ridden.update((metres) => metres + speed * seconds);
     this.rank();
     if (this.line && this.ridden() >= this.line.metres) this.finish(second);

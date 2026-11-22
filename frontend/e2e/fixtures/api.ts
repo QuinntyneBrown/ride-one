@@ -9,6 +9,18 @@ export interface ApiReply {
 
 type Handler = (request: Request) => ApiReply | Promise<ApiReply>;
 
+/**
+ * What the backend answers for a ride it records (Record a ride): its ride id and when it was recorded. Every spec's
+ * finished ride is recorded unless the spec answers `POST /api/rides` itself.
+ */
+const RIDE_RECORDED: Handler = (request) => ({
+  status: 201,
+  body: {
+    rideId: (request.postDataJSON() as { rideId: string }).rideId,
+    recordedAt: '2026-11-21T07:00:00Z',
+  },
+});
+
 /** The rider every spec is signed in as, unless it calls `signedOut()` (L2-004). */
 export const signedInRider = { id: '3f2b8c1e-0d6a-4c8e-9b1f-5a7d2e9c4b10', displayName: 'Ada' };
 
@@ -20,12 +32,14 @@ const SESSION_ENDED: ApiReply = {
 /**
  * Answers the app's requests to the backend (`/api/…` on localhost) with what the spec declared (L2-148 AC1). A request
  * no answer matches gets 501, and the shared fixture fails the spec. The latest answer for a method and path wins, so
- * a spec can change one mid-test; `requests` lists what the page sent, in order. Every spec starts signed in as
- * `signedInRider`; `signedOut()` ends the session.
+ * a spec can change one mid-test; `requests` lists what the page sent, in order, and `sentBodies` the JSON it sent.
+ * Every spec starts signed in as `signedInRider`, and its finished rides are recorded; `signedOut()` ends the
+ * session.
  */
 export class ApiFixture {
   private readonly answers = new Map<string, Handler>();
   private readonly sent: string[] = [];
+  private readonly bodies: { readonly key: string; readonly body: unknown }[] = [];
   private readonly missed: string[] = [];
 
   private constructor() {}
@@ -33,6 +47,7 @@ export class ApiFixture {
   static async install(page: Page): Promise<ApiFixture> {
     const api = new ApiFixture();
     api.answer('GET', '/api/riders/me', signedInRider);
+    api.answer('POST', '/api/rides', RIDE_RECORDED);
     await page.route(
       (url) =>
         ['localhost', '127.0.0.1'].includes(url.hostname) && url.pathname.startsWith('/api/'),
@@ -40,6 +55,7 @@ export class ApiFixture {
         const request = route.request();
         const key = `${request.method()} ${new URL(request.url()).pathname}`;
         api.sent.push(key);
+        if (request.postData() !== null) api.bodies.push({ key, body: request.postDataJSON() });
         const handler = api.answers.get(key);
         if (!handler) {
           api.missed.push(key);
@@ -87,6 +103,11 @@ export class ApiFixture {
   /** Every request the page sent to the backend, as "METHOD /path", oldest first. */
   requests(): string[] {
     return [...this.sent];
+  }
+
+  /** The JSON bodies the page sent with `method path`, oldest first. */
+  sentBodies(method: string, path: string): unknown[] {
+    return this.bodies.filter((sent) => sent.key === `${method} ${path}`).map((sent) => sent.body);
   }
 
   /** The requests no answer matched; the shared fixture fails the spec when there are any. */
