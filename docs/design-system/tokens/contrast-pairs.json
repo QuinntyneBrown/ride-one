@@ -65,7 +65,7 @@
       "fg": "--color-gold-fg",
       "bg": "--color-ink",
       "min": 4.5,
-      "note": "earned text (XP, unlocks) on page; earned star"
+      "note": "earned text on the page: Class Done's “New best output” and its number"
     },
     {
       "fg": "--color-rest-fg",
@@ -83,7 +83,7 @@
       "fg": "--color-warn-fg",
       "bg": "--color-ink",
       "min": 4.5,
-      "note": "warnings, streak on page"
+      "note": "warnings on the page: the Beta tag on Connect Bike, the browser notice icon"
     },
     {
       "fg": "--color-ok-fg",
@@ -107,7 +107,7 @@
       "fg": "--color-gold-fg",
       "bg": "--color-panel",
       "min": 4.5,
-      "note": "earned text (XP, unlocks) on cards; earned star"
+      "note": "earned text on cards"
     },
     {
       "fg": "--color-rest-fg",
@@ -125,7 +125,7 @@
       "fg": "--color-warn-fg",
       "bg": "--color-panel",
       "min": 4.5,
-      "note": "warnings, streak on cards"
+      "note": "warnings on cards: the unsupported-browser icon on Connect Bike's blocker"
     },
     {
       "fg": "--color-ok-fg",
@@ -143,7 +143,7 @@
       "fg": "--color-gold-fg",
       "bg": "--color-raised",
       "min": 4.5,
-      "note": "reward title in a raised well; XP fill on its track"
+      "note": "earned text in a raised well"
     },
     {
       "fg": "--color-heart-fg",
@@ -162,12 +162,6 @@
       "bg": "--color-volt-hover",
       "min": 4.5,
       "note": "primary button label (hover)"
-    },
-    {
-      "fg": "--color-on-fill",
-      "bg": "--color-gold",
-      "min": 4.5,
-      "note": "gold button label, level badge numeral"
     },
     {
       "fg": "--color-ink",
@@ -237,12 +231,6 @@
       "bg": "--color-accent-subtle",
       "min": 4.5,
       "note": "text on a selected row"
-    },
-    {
-      "fg": "--color-on-photo",
-      "bg": "--color-scrim-strong",
-      "min": 4.5,
-      "note": "photo tags (composited over white: worst case)"
     },
     {
       "fg": "--color-info-fg",
@@ -452,7 +440,7 @@
       "fg": "--color-gold-fg",
       "bg": "--color-gold-subtle",
       "min": 4.5,
-      "note": "gold banner title (unlocks)"
+      "note": "gold banner title"
     },
     {
       "fg": "--color-fg",
@@ -471,42 +459,6 @@
       "bg": "--color-danger-bg",
       "min": 4.5,
       "note": "button: Quiet danger hover"
-    },
-    {
-      "fg": "--color-gold",
-      "bg": "--color-scrim-strong",
-      "min": 4.5,
-      "note": "class card lock label 'Opens at level 10' on cover glass"
-    },
-    {
-      "fg": "--color-volt",
-      "bg": "--color-scrim-strong",
-      "min": 3,
-      "note": "users icon in the class card group tag"
-    },
-    {
-      "fg": "--color-gold",
-      "bg": "--color-ink",
-      "min": 3,
-      "note": "earned star and next-map path dot on the page",
-      "themes": [
-        "dark"
-      ]
-    },
-    {
-      "fg": "--color-gold",
-      "bg": "--color-panel",
-      "min": 3,
-      "note": "earned star on cards and rows",
-      "themes": [
-        "dark"
-      ]
-    },
-    {
-      "fg": "--color-warn-fg",
-      "bg": "--color-raised",
-      "min": 3,
-      "note": "warn icon in the lobby notice well (inline-message)"
     },
     {
       "fg": "--color-volt-fg",
@@ -584,7 +536,7 @@
       "fg": "--color-muted",
       "bg": "--color-gold-subtle",
       "min": 4.5,
-      "note": "alert: unlock banner detail on gold fill"
+      "note": "alert: gold banner detail on gold fill"
     },
     {
       "fg": "--color-rest",
@@ -596,31 +548,13 @@
       "fg": "--color-rest",
       "bg": "--color-ink",
       "min": 3,
-      "note": "recover segments on the HUD glass and the trace"
+      "note": "recover segments in the plan profile on the page"
     },
     {
       "fg": "--color-plan-easy",
       "bg": "--color-panel",
       "min": 1,
       "note": "warm-up and cool-down bars (slate at 50%): decorative; kind is in the summary text and the table"
-    },
-    {
-      "fg": "--dashboard-playhead",
-      "bg": "--color-ink",
-      "min": 3,
-      "note": "trace playhead (lime on ink, ink on paper)"
-    },
-    {
-      "fg": "--color-volt-fg-hover",
-      "bg": "--color-raised",
-      "min": 3,
-      "note": "hovered on level bar"
-    },
-    {
-      "fg": "--color-fg",
-      "bg": "--color-line",
-      "min": 4.5,
-      "note": "the selected dashboard view tab"
     }
   ]
 }

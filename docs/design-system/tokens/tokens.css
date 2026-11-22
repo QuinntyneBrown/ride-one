@@ -1,6 +1,8 @@
 /* tokens.css — Telo Ride design system. The single source of truth for every colour, size,
    weight, radius, shadow, duration and layer. Extracted from docs/mocks (Magic Patterns OS
-   vnjsCrjBAfcZGnW9rHMoch, prototype "Ride") on 2026-11-21.
+   vnjsCrjBAfcZGnW9rHMoch, prototype "Ride") on 2026-11-21, and re-extracted on 2026-11-22 from
+   the prototype "Telo Ride 1" (26KV6fJjK53f6bW6xiGNjP): the race, progression and other area
+   tokens went with their screens; see README.md's changelog.
 
    Tiers
      Primitive  --palette-*                      raw values; only semantic tokens read them
@@ -43,14 +45,12 @@
   --palette-faint: #878d97;          /* tertiary text, raised from #636873 (3.2:1) to pass 4.5:1 on raised */
   --palette-signal: #ff4521;        /* Telo signal orange; the design calls it "volt" */
   --palette-signal-hover: #ff6a4b;
-  --palette-signal-dim: #b8361c;
   --palette-blue: #2e8bff;
   --palette-red: #e5194b;
   --palette-red-light: #ff5a78;      /* danger text on dark; #e5194b reads 3.9:1 on panels */
   --palette-amber: #f5a524;
   --palette-gold: #f5c451;
   --palette-green: #34d399;          /* Tailwind emerald-400: success ticks and "connected" dots */
-  --palette-lime: #d6ff3b;           /* RideTrace playhead */
   --palette-slate: #5b616a;          /* warm-up and cool-down segments (KIND_COLOR in shared/workout.ts) */
   --palette-white: #ffffff;
   --palette-black: #000000;
@@ -74,36 +74,15 @@
   /* Theme-independent colour roles */
   --color-volt: var(--palette-signal);        /* "you" and the primary action, both themes */
   --color-volt-hover: var(--palette-signal-hover);
-  --color-volt-dim: var(--palette-signal-dim);
   --color-rest: var(--palette-blue);          /* recoveries, rest segments */
   --color-heart: var(--palette-red);          /* heart rate, danger, disconnected (fills) */
   --color-warn: var(--palette-amber);         /* warnings, streak flame */
-  --color-gold: var(--palette-gold);          /* earned things only: XP, levels, stars, unlocks */
+  --color-gold: var(--palette-gold);          /* earned things only: a new best output */
   --color-ok: var(--palette-green);           /* success ticks */
   --color-plan-easy: var(--palette-slate);    /* warm-up and cool-down in every plan chart */
   --color-video: var(--palette-black);        /* behind a video player */
-  --color-glass: rgb(10 11 13 / 0.8);         /* HUD glass over the world: ink at 80%, both themes (bone text passes 6.6:1 worst case) */
   --color-on-photo: var(--palette-bone);      /* text on photos and video, both themes */
 
-  /* Rider jerseys: content data from shared/game.ts (a racer's dot and avatar ring) */
-  --jersey-you: var(--palette-signal);
-  --jersey-ghost: var(--palette-gold);
-  --jersey-lena: #ff7a59;
-  --jersey-marco: #59c3ff;
-  --jersey-priya: #ff5ac8;
-  --jersey-jwatts: #7cf2b5;
-  --jersey-ollie: #ffd166;
-  --jersey-kenji: #b28dff;
-  --jersey-ana: #4ee0d0;
-  --jersey-nova: #2e8bff;
-  --jersey-rook: #ff9f6b;
-  --jersey-juno: #6be3ff;
-  --jersey-atlas: #f78fb3;
-  --jersey-kite: #a8e06b;
-  --jersey-vale: #ffcf5c;
-  --jersey-moss: #c3a6ff;
-  --jersey-flint: #7ee0c3;
-  --jersey-echo: #ff7b7b;
 
   /* Type ------------------------------------------------------------------------------------ */
   --font-family-sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
@@ -111,7 +90,7 @@
   --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Tailwind's scale (the design's), each step with its paired line height */
-  --font-size-2xs: 0.6875rem;  --line-height-2xs: 1rem;      /* 11px: XP label, HUD captions only */
+  --font-size-2xs: 0.6875rem;  --line-height-2xs: 1rem;      /* 11px: keyboard keys and the smallest avatar's initials only */
   --font-size-xs: 0.75rem;     --line-height-xs: 1rem;       /* 12px */
   --font-size-sm: 0.875rem;    --line-height-sm: 1.25rem;    /* 14px: the UI's working size */
   --font-size-md: 1rem;        --line-height-md: 1.5rem;     /* 16px: body */
@@ -123,8 +102,6 @@
   --font-size-5xl: 3rem;       /* 48px numerals, line height 1 */
   --font-size-6xl: 3.75rem;    /* 60px */
   --font-size-7xl: 4.5rem;     /* 72px: the class length on The Class from 1280px */
-  --font-size-8xl: 6rem;       /* 96px: the position on Results, live watts */
-  --font-size-9xl: 8rem;       /* 128px: the Results position and live watts from 640px */
   --font-size-score: 7rem;     /* 112px: the output on Class Done (text-[112px]) */
   --font-size-score-lg: 10rem; /* 160px: the output on Class Done from 640px (sm:text-[160px]) */
 
@@ -230,15 +207,14 @@
 
   /* Motion (Interaction and Motion in the redesign plan) ------------------------------------ */
   --duration-instant: 0ms;
-  --duration-fast: 150ms;        /* hover colour, board rows sliding */
+  --duration-fast: 150ms;        /* hover colour, button press */
   --duration-base: 200ms;        /* panels opening */
-  --duration-slow: 250ms;        /* the one unlock moment */
+  --duration-slow: 250ms;        /* Class Done's efforts rising */
   --duration-deliberate: 1000ms; /* one step of 3-2-1 (a timer, so reduced motion keeps it) */
   --duration-loop: 1000ms;       /* one turn of a spinner */
   --duration-pulse: 1600ms;      /* one breath of a skeleton */
   --duration-delay-tooltip: 300ms; /* hover intent before a tooltip shows (a wait, so reduced motion keeps it) */
   --duration-fade: 250ms;        /* an opacity fade, which reduced motion keeps (L2-142 AC2) */
-  --duration-unlock: var(--duration-slow);
   --duration-countdown: var(--duration-deliberate);
   --duration-stagger: 40ms;      /* between bars that rise one after another (Class Done's efforts) */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -251,7 +227,6 @@
   /* Z order --------------------------------------------------------------------------------- */
   --z-base: 0;
   --z-raised: 10;
-  --z-hud: 20;       /* ride HUD over the 3D world */
   --z-sticky: 30;
   --z-dropdown: 35;
   --z-overlay: 40;   /* scrims */
@@ -272,41 +247,15 @@
   --control-height-xl: 3.5rem;   /* h-14: the one big start action */
 
   /* Area tokens: values only one area of the product uses ----------------------------------- */
-  /* area: maps */
-  --maps-aside-width: 17.5rem;      /* lg:grid-cols-[minmax(0,1fr)_280px] */
-  /* area: race */
-  --race-segment-easy: var(--color-plan-easy); --race-terrain: rgb(242 243 239); --race-sky: #52a2da; --race-ground-far: #8c8a80; --race-ground-near: #5d5a54;
-  --race-lobby-aside-width: 20rem; --race-lobby-hint-width: 20rem; --race-lobby-clock-size: 7.5rem; --race-countdown-size: 12.5rem; --race-watts-size: 4rem; --race-watts-size-sm: 5.5rem; --race-hud-top: 4rem; --race-hud-top-lg: 4.5rem; --race-board-width: 16.25rem; --race-scenery-bottom: 9.375rem; --race-scenery-width: 26.25rem; --race-hud-interval-width: 18.75rem; --race-hud-resistance-width: 13.75rem; --race-lost-width: 24rem;
-  /* area: results */
-  --results-aside-width: 25rem;
   /* area: classes */
   --classes-segment-easy: var(--color-plan-easy);
-  --classes-start-aside-width: 26.25rem;
-  --classes-board-width: 17.5rem;
   /* area: Telo Ride 1 (The Class and Class Done) */
   --the-class-aside-width: 23.75rem;     /* lg: grid-cols-[minmax(0,1fr)_380px] */
   --the-class-aside-width-xl: 26.25rem;  /* xl: 420px */
   --class-done-chart-height: 12rem;      /* the eight efforts, h-48 */
   --class-done-action-width: 18rem;      /* Done from 640px, sm:w-72 */
-  /* area: profile */
-  --profile-aside-width: 21.25rem;
-  /* area: setup */
-  --setup-preview-width: 26.25rem;
-  --setup-form-max: 36rem;
-  /* area: dashboard */
-  --dashboard-aside-width: 21.25rem;
-  --dashboard-view-min: 16.25rem;   /* min-h-[260px]: the trace view */
-  --dashboard-trace-min: 10rem;
-  --dashboard-interval-min: 13.75rem;
-  --dashboard-level-size: 5.5rem;   /* text-[88px]: the level numeral */
-  --dashboard-segment-easy: var(--color-plan-easy);
-  --dashboard-progress-head: var(--palette-white);
-  --dashboard-video-bg: var(--color-video);
-  /* area: diagnostics */
-  --diagnostics-max-width: 28.75rem;
-  --shadow-diagnostics: var(--shadow-4);
-  /* area: feedback */
-  --feedback-shadow: var(--shadow-4);
+  /* area: error page */
+  --setup-form-max: 36rem;           /* the error page measure (a form column's width) */
 }
 
 @media (min-width: 40rem) { :root { --layout-margin: var(--space-6); } }
@@ -334,7 +283,6 @@
   --color-warn-fg: var(--palette-amber-deep);
   --color-ok-fg: var(--palette-green-deep);
   --color-scrim: rgb(10 11 13 / 0.45);
-  --color-scrim-strong: rgb(10 11 13 / 0.85);
   --color-volt-subtle: #ffe9e4;
   --color-volt-subtle-hover: #ffdad3;
   --color-raised-hover: #e0ddd4;
@@ -374,7 +322,6 @@
   --shadow-2: 0 2px 6px rgb(var(--shadow-color) / 0.1), 0 1px 2px rgb(var(--shadow-color) / 0.06);
   --shadow-3: 0 10px 15px -3px rgb(var(--shadow-color) / 0.12), 0 4px 6px -4px rgb(var(--shadow-color) / 0.1);
   --shadow-4: 0 25px 50px -12px rgb(var(--shadow-color) / 0.25);
-  --dashboard-playhead: var(--palette-ink);
 }
 
 /* 4. Dark theme (the design). Keep the two blocks below identical. ----------------------------- */
@@ -398,7 +345,6 @@
   --color-warn-fg: var(--palette-amber);
   --color-ok-fg: var(--palette-green);
   --color-scrim: rgb(10 11 13 / 0.6);
-  --color-scrim-strong: rgb(10 11 13 / 0.85);
   --color-volt-subtle: #2c1310;
   --color-volt-subtle-hover: #451912;
   --color-raised-hover: var(--palette-line);
@@ -438,7 +384,6 @@
   --shadow-2: 0 2px 6px rgb(var(--shadow-color) / 0.45), 0 1px 2px rgb(var(--shadow-color) / 0.3);
   --shadow-3: 0 10px 15px -3px rgb(var(--shadow-color) / 0.5), 0 4px 6px -4px rgb(var(--shadow-color) / 0.4);
   --shadow-4: 0 25px 50px -12px rgb(var(--shadow-color) / 0.65);
-  --dashboard-playhead: var(--palette-lime);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -461,7 +406,6 @@
     --color-warn-fg: var(--palette-amber);
     --color-ok-fg: var(--palette-green);
     --color-scrim: rgb(10 11 13 / 0.6);
-    --color-scrim-strong: rgb(10 11 13 / 0.85);
     --color-volt-subtle: #2c1310;
     --color-volt-subtle-hover: #451912;
     --color-raised-hover: var(--palette-line);
@@ -501,7 +445,6 @@
     --shadow-2: 0 2px 6px rgb(var(--shadow-color) / 0.45), 0 1px 2px rgb(var(--shadow-color) / 0.3);
     --shadow-3: 0 10px 15px -3px rgb(var(--shadow-color) / 0.5), 0 4px 6px -4px rgb(var(--shadow-color) / 0.4);
     --shadow-4: 0 25px 50px -12px rgb(var(--shadow-color) / 0.65);
-    --dashboard-playhead: var(--palette-lime);
   }
 }
 
