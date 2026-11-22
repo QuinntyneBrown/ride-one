@@ -18,17 +18,17 @@ actor "Rider" as actor
 box "Frontend — Ride app (ride application)" #E0F2FE
   participant "Race page" as race
   participant "ResultsPage" as page
-  participant "ResultsStore" as store
+  participant "resultsView()" as store
 end box
-box "Frontend — Ride app (domain library)" #E0F2FE
-  participant "RideOutbox" as outbox
+box "Browser" #E0F2FE
+  participant "History state" as outbox
 end box
 actor -> race : Cross the finish line, 2nd of 10 vs Bots
-race -> outbox : put(finishedRide) and submit
-race -> page : navigate /results/{rideId} (loadComponent)
-page -> store : provided on the route
-store -> outbox : get(rideId)
-outbox --> store : FinishedRide with standings
+race -> outbox : RaceResult with the final standings, and submit the ride
+race -> page : navigate /results (loadComponent)
+page -> outbox : getState()
+outbox --> page : RaceResult
+page -> store : resultsView(result)
 store -> store : lead "You finished", big "2nd of 10" with podium style, sub "26:38 · on the podium" (L2-073 AC1)
 alt 6th of 10
   store -> store : sub "27:32 · 18 s off the podium" (AC2)
