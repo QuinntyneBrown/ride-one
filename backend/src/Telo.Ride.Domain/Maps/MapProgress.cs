@@ -2,7 +2,7 @@ namespace Telo.Ride.Domain.Maps;
 
 /// <summary>
 /// A rider's progress on one map (docs/detailed-designs/progression/earn-stars-and-unlock-maps): the stars held, which
-/// are never lost, and the best time. Unlocks join it with slice 12.1.
+/// are never lost, the best time, and when a ride opened the map, for a map that opens by a goal (L2-040).
 /// </summary>
 public sealed class MapProgress
 {
@@ -15,6 +15,9 @@ public sealed class MapProgress
     /// <summary>Whole seconds of the fastest finish; none before the first.</summary>
     public int? BestSeconds { get; private set; }
 
+    /// <summary>When a ride opened the map; none for a map open from the start or still locked.</summary>
+    public DateTimeOffset? OpenedAt { get; private set; }
+
     public static MapProgress Start(Guid riderId, string mapId) => new() { RiderId = riderId, MapId = mapId };
 
     /// <summary>Sets the stars and best a rider already has, as a test's starting point.</summary>
@@ -23,6 +26,9 @@ public sealed class MapProgress
         Stars = stars;
         BestSeconds = bestSeconds;
     }
+
+    /// <summary>Opens the map when a ride meets its goal (<see cref="UnlockRules"/>); a map opens once.</summary>
+    public void Open(DateTimeOffset at) => OpenedAt ??= at;
 
     /// <summary>
     /// Records a finish (L2-039, L2-077): a first finish sets the best, a faster one replaces it, and the stars the finish
