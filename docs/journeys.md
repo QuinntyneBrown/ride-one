@@ -18,7 +18,7 @@ Estimates are working days for one intermediate developer, using `docs/detailed-
 | 9 | Sign in with an email code | Email code sign-in, stay signed in, display name, sign out, delete account. | 10 | 100% |
 | 10 | Earn XP, levels and streaks | Rides earn XP and rider levels; progress kept on the backend. | 10 | 100% |
 | 11 | See results | Results with XP, stars and personal best; unlocks celebrated. | 8 | 100% |
-| 12 | Unlock maps and class tiers | Stars unlock maps; rider levels open class tiers. | 5 | 60% |
+| 12 | Unlock maps and class tiers | Stars unlock maps; rider levels open class tiers. | 5 | 100% |
 | 13 | Choose the next ride | Home suggests the next ride; app header and profile. | 5 | 0% |
 | 14 | Ride a class with a group | Join a session, start together, ride with a live board. | 15 | 0% |
 | 15 | Race people live | Lobby, live race session, standings, leavers marked DNF, tamper-proof results. | 15 | 0% |
@@ -35,4 +35,4 @@ Estimates are working days for one intermediate developer, using `docs/detailed-
 | 26 | Send feedback | Report a bug, share an idea or send kudos. | 5 | 0% |
 | 27 | Install the app | Install as an app from Chrome or Edge. | 3 | 0% |
 
-**Total:** 238 days. **Complete:** 116 days (49%).
+**Total:** 238 days. **Complete:** 118 days (50%).
