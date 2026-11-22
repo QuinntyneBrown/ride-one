@@ -8,7 +8,8 @@ namespace Telo.Ride.Application.Rides;
 /// <summary>
 /// Whether a submission is a ride at all (Record a ride): a ride id; a kind; for a race a map in the catalogue, a mode
 /// of <c>solo</c> or <c>bots</c>, a pack for a bots race and a place within the field; for a class a class in the
-/// catalogue; 1 to <see cref="MaxSeconds"/> elapsed seconds; no negative distance, output, power or speed; no more speed
+/// catalogue; 1 to <see cref="MaxSeconds"/> elapsed seconds; no negative distance, output, power or speed; an on-target
+/// share from 0 to 1; no more speed
 /// samples than seconds; a finish instant; and a known IANA time zone. Each error names the fact as the app sends it.
 /// </summary>
 public sealed class SubmitRideCommandValidator : AbstractValidator<SubmitRideCommand>
@@ -41,6 +42,7 @@ public sealed class SubmitRideCommandValidator : AbstractValidator<SubmitRideCom
         Fact(ride => ride.OutputKj).GreaterThanOrEqualTo(0);
         Fact(ride => ride.MaxPowerWatts).GreaterThanOrEqualTo(0);
         Fact(ride => ride.MaxSpeedKmh).GreaterThanOrEqualTo(0);
+        Fact(ride => ride.OnTargetShare).InclusiveBetween(0, 1);
         Fact(ride => ride.SpeedSamplesKmh)
             .Must((command, samples) => samples is null || samples.Count <= command.Ride.ElapsedSeconds)
             .WithMessage("No more speed samples than seconds.")

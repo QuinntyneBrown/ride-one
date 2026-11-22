@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Telo.Ride.Application;
 using Telo.Ride.Domain.Accounts;
 using Telo.Ride.Domain.Rides;
@@ -15,6 +17,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<RiderSession> RiderSessions => Set<RiderSession>();
 
     public DbSet<RecordedRide> Rides => Set<RecordedRide>();
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>
         Database.CanConnectAsync(cancellationToken);
@@ -56,6 +60,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             ride.Property(r => r.Pack).HasMaxLength(8);
             ride.Property(r => r.ClassId).HasMaxLength(64);
             ride.Property(r => r.TimeZoneId).HasMaxLength(64);
+            // The XP lines are the ride's answer, read and written whole, so they are one JSON column.
+            ride.Property(r => r.XpLines).HasConversion(
+                lines => JsonSerializer.Serialize(lines, JsonOptions),
+                json => JsonSerializer.Deserialize<List<XpLine>>(json, JsonOptions) ?? new List<XpLine>(),
+                new ValueComparer<IReadOnlyList<XpLine>>(
+                    (left, right) => left!.SequenceEqual(right!),
+                    lines => lines.Aggregate(0, (hash, line) => HashCode.Combine(hash, line)),
+                    lines => lines.ToList()));
             ride.HasOne<Rider>().WithMany().HasForeignKey(r => r.RiderId).OnDelete(DeleteBehavior.Cascade);
         });
     }

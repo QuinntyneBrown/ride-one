@@ -38,61 +38,6 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
         HandleCookies = true,
     });
 
-    /// <summary>
-    /// Old Town Criterium's 14.2 km in 30 minutes against a medium pack, 2nd of 10: 28.4 km/h each second, which is
-    /// the 14,200 m it reports. Each change replaces or, with a null, removes one fact.
-    /// </summary>
-    private static Dictionary<string, object?> Race(Guid rideId, params (string Fact, object? Value)[] changes)
-    {
-        var ride = new Dictionary<string, object?>
-        {
-            ["rideId"] = rideId,
-            ["kind"] = "race",
-            ["mapId"] = "old-town-criterium",
-            ["mode"] = "bots",
-            ["pack"] = "medium",
-            ["place"] = 2,
-            ["fieldSize"] = 10,
-            ["elapsedSeconds"] = 1800,
-            ["distanceMeters"] = 14_200.0,
-            ["outputKj"] = 450.0,
-            ["maxPowerWatts"] = 410,
-            ["maxSpeedKmh"] = 28.4,
-            ["speedSamplesKmh"] = Enumerable.Repeat(28.4, 1800).ToArray(),
-            ["finishedAt"] = "2026-11-21T07:30:00+00:00",
-            ["timeZoneId"] = "Europe/London",
-        };
-        foreach (var (fact, value) in changes)
-        {
-            if (value is null)
-            {
-                ride.Remove(fact);
-            }
-            else
-            {
-                ride[fact] = value;
-            }
-        }
-
-        return ride;
-    }
-
-    /// <summary>The 20-minute Power Intervals class: no distance and no speed samples.</summary>
-    private static Dictionary<string, object?> Class(Guid rideId) => new()
-    {
-        ["rideId"] = rideId,
-        ["kind"] = "class",
-        ["classId"] = "power-intervals-20",
-        ["elapsedSeconds"] = 1200,
-        ["distanceMeters"] = 0.0,
-        ["outputKj"] = 240.0,
-        ["maxPowerWatts"] = 380,
-        ["maxSpeedKmh"] = 0.0,
-        ["speedSamplesKmh"] = Array.Empty<double>(),
-        ["finishedAt"] = "2026-11-21T07:20:00+00:00",
-        ["timeZoneId"] = "America/Toronto",
-    };
-
     private static Task<HttpResponseMessage> Submit(HttpClient browser, object ride) =>
         browser.PostAsJsonAsync("/api/rides", ride, Cancel);
 
@@ -107,9 +52,9 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
         var rideId = Guid.NewGuid();
         var recordedAt = api.Clock.GetUtcNow();
 
-        using var first = await Submit(browser, Race(rideId));
+        using var first = await Submit(browser, RideBodies.Race(rideId));
         api.Clock.Advance(TimeSpan.FromMinutes(5));
-        using var repeat = await Submit(browser, Race(rideId));
+        using var repeat = await Submit(browser, RideBodies.Race(rideId));
 
         Assert.Equal(HttpStatusCode.Created, first.StatusCode);
         var answer = await Json(first);
@@ -125,7 +70,7 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
         using var browser = await SignedIn("cal.classes@example.com");
         var rideId = Guid.NewGuid();
 
-        using var recorded = await Submit(browser, Class(rideId));
+        using var recorded = await Submit(browser, RideBodies.Class(rideId));
 
         Assert.Equal(HttpStatusCode.Created, recorded.StatusCode);
         Assert.Equal(rideId, (await Json(recorded)).GetProperty("rideId").GetGuid());
@@ -138,8 +83,8 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
         using var sam = await SignedIn("sam.shares@example.com");
         var rideId = Guid.NewGuid();
 
-        using var raes = await Submit(rae, Race(rideId));
-        using var sams = await Submit(sam, Race(rideId));
+        using var raes = await Submit(rae, RideBodies.Race(rideId));
+        using var sams = await Submit(sam, RideBodies.Race(rideId));
 
         Assert.Equal(HttpStatusCode.Created, raes.StatusCode);
         Assert.Equal(HttpStatusCode.Created, sams.StatusCode);
@@ -149,7 +94,7 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
     public async Task Xp_stars_and_unlocks_the_body_sends_are_not_read()
     {
         using var browser = await SignedIn("xena.claims@example.com");
-        var ride = Race(Guid.NewGuid(), ("xp", 99_999), ("stars", 3), ("unlockedMapIds", OpenedMaps));
+        var ride = RideBodies.Race(Guid.NewGuid(), ("xp", 99_999), ("stars", 3), ("unlockedMapIds", OpenedMaps));
 
         using var recorded = await Submit(browser, ride);
 
@@ -176,8 +121,8 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
         using var browser = await SignedIn($"ivan.{fact.ToLowerInvariant()}.{value.GetHashCode():x}@example.com");
         var rideId = Guid.NewGuid();
 
-        using var refused = await Submit(browser, Race(rideId, (fact, value)));
-        using var corrected = await Submit(browser, Race(rideId));
+        using var refused = await Submit(browser, RideBodies.Race(rideId, (fact, value)));
+        using var corrected = await Submit(browser, RideBodies.Race(rideId));
 
         Assert.True(refused.StatusCode == HttpStatusCode.UnprocessableEntity, because);
         Assert.Equal("ride_not_plausible", (await Json(refused)).GetProperty("code").GetString());
@@ -189,7 +134,7 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
     {
         using var browser = await SignedIn("quinn.quick@example.com");
         // 14.2 km at 100 km/h takes 511.2 s; 511 seconds at 100 km/h is 14,194 m, within 5 % of the 14,200 m reported.
-        var ride = Race(Guid.NewGuid(), ("elapsedSeconds", 511), ("maxSpeedKmh", 100.0),
+        var ride = RideBodies.Race(Guid.NewGuid(), ("elapsedSeconds", 511), ("maxSpeedKmh", 100.0),
             ("speedSamplesKmh", Enumerable.Repeat(100.0, 511).ToArray()));
 
         using var refused = await Submit(browser, ride);
@@ -222,7 +167,7 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
     {
         using var browser = await SignedIn($"mal.{field.ToLowerInvariant()}.{(value?.GetHashCode() ?? 0):x}@example.com");
 
-        using var refused = await Submit(browser, Race(Guid.NewGuid(), (fact, value)));
+        using var refused = await Submit(browser, RideBodies.Race(Guid.NewGuid(), (fact, value)));
 
         Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
         var problem = await Json(refused);
@@ -234,7 +179,7 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
     public async Task A_class_ride_names_a_class_in_the_catalogue()
     {
         using var browser = await SignedIn("cal.unknown@example.com");
-        var ride = Class(Guid.NewGuid());
+        var ride = RideBodies.Class(Guid.NewGuid());
         ride["classId"] = "underwater-spin";
 
         using var refused = await Submit(browser, ride);
@@ -248,7 +193,7 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
     {
         using var browser = Browser();
 
-        using var refused = await Submit(browser, Race(Guid.NewGuid()));
+        using var refused = await Submit(browser, RideBodies.Race(Guid.NewGuid()));
 
         Assert.Equal(HttpStatusCode.Unauthorized, refused.StatusCode);
     }

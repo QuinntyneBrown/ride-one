@@ -39,6 +39,15 @@ public sealed class RecordedRide
 
     public required double MaxSpeedKmh { get; init; }
 
+    /// <summary>The share of its running seconds within 10 % of target power, from 0 to 1 (L2-037 AC3).</summary>
+    public double OnTargetShare { get; init; }
+
+    /// <summary>The XP the ride earned, line by line (L2-037), kept so a repeat of its ride id answers the same.</summary>
+    public IReadOnlyList<XpLine> XpLines { get; init; } = [];
+
+    /// <summary>The rider's total XP once this ride was added, part of the same answer.</summary>
+    public int TotalXp { get; init; }
+
     /// <summary>When the ride ended on the device, and the device's IANA time zone for the rider's local day.</summary>
     public required DateTimeOffset FinishedAt { get; init; }
 

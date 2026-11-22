@@ -42,6 +42,9 @@ namespace Telo.Ride.Infrastructure.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("nvarchar(320)");
 
+                    b.Property<int>("TotalXp")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -172,6 +175,9 @@ namespace Telo.Ride.Infrastructure.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("nvarchar(8)");
 
+                    b.Property<double>("OnTargetShare")
+                        .HasColumnType("float");
+
                     b.Property<double>("OutputKj")
                         .HasColumnType("float");
 
@@ -189,6 +195,13 @@ namespace Telo.Ride.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("TotalXp")
+                        .HasColumnType("int");
+
+                    b.Property<string>("XpLines")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RiderId", "Id");
 
