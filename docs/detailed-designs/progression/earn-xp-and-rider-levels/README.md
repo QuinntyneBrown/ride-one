@@ -23,9 +23,13 @@ The slice lives almost entirely in the backend domain. It is invoked by the ride
 `keep-progress-on-the-backend`.
 
 - **`RideResult`** — value object in `Telo.Ride.Domain`. It carries the ride's `RideKind`
-  (`BotsRace`, `SoloRace`, `LiveRace`, `SoloClass`, `GroupClass`, `CustomWorkout`), its
-  `RideOutcome` (`Finished`, `Dnf`, `Discarded`), the place and field size where the kind has
-  places, and the on-target share. For a riders-online race or group class the place comes from
+  (`Race` or `Class`, as `RecordedRide` keeps it) and race mode (`solo` or `bots`), its
+  `RideOutcome` (`Finished`, `Dnf`, `Discarded`), the place and field size, and the on-target
+  share. `HasPlaces` is true for a bots race; riders-online races, group classes and custom
+  workouts join the kinds and modes with the slices that build them. The app sends the on-target
+  share with the ride (`onTargetShare`, 0 to 1): its `RideRecorder` counts each running second
+  whose power is within 10 % of the target power (`PowerModel.onTarget`). Until a ride that
+  does not finish is submitted, every recorded ride is `Finished`. For a riders-online race or group class the place comes from
   the multiplayer service's record (L2-125); for other rides it comes from the submitted ride
   after the plausibility checks of L2-125 AC2.
 - **`XpCalculator`** — domain service. `Compute(result, streakDays)` returns the XP lines in a
@@ -38,7 +42,8 @@ The slice lives almost entirely in the backend domain. It is invoked by the ride
 
   A solo race, a solo class and a custom workout have no place or podium line. A ride that ends
   as DNF or is discarded earns no lines. `streakDays` is the streak after the ride is recorded,
-  so the XP line and the header agree (L2-042 AC4).
+  so the XP line and the header agree (L2-042 AC4); until the streak is kept (slice 10.4) it is
+  0. "{p}% on target" uses p, the share as a whole percentage, and +round(p × 0.8).
 - **`XpLine`** and **`XpLineKind`** — value object and enumeration for one line.
 - **`LevelTable`** — domain service holding 30 thresholds. `LevelFor(totalXp)` returns the
   highest level reached; `Progress(totalXp)` returns a `LevelProgress` with the level, the next
@@ -47,10 +52,13 @@ The slice lives almost entirely in the backend domain. It is invoked by the ride
   10,400. The remaining thresholds are `<TO SUPPLY>` (open question 1 in `docs/specs/L2.md`).
   The table is data in the domain project, so a change needs no app code.
 - **`Rider`** — entity whose `AddXp(amount)` raises `TotalXp`.
+- **`RecordedRide`** — keeps its XP lines with it, so a repeat of the ride id answers with the
+  same lines and adds nothing to the rider (L2-125 AC3).
 - **`SubmitRideCommandHandler`** — MediatR handler (see `keep-progress-on-the-backend`). It
   calls `XpCalculator`, adds the total to the rider, compares `LevelTable.LevelFor` before and
   after, and returns `RideRecordedDto` with the lines, the total, the new level, `LevelUp` and
-  the XP to the next level.
+  the XP to the next level. Slice 10.2 returns the lines, the ride's total and the rider's new
+  total XP; slice 10.3 adds the level, `LevelUp` and the XP to the next level.
 
 Unit tests cover `XpCalculator` with one case per criterion of L2-037, including the worked
 example of AC5, and `LevelTable` with the three known thresholds and level 30.

@@ -31,12 +31,13 @@ The slice runs from the outbox in the Ride app to the database.
   `submitRide(request)` posts a `SubmitRideRequest`; `listRecent(take)` serves Profile.
 - **`SubmitRideRequest`** — ride facts only: ride id, kind (`race` or `class`), the map with
   its race mode (`solo` or `bots`), pack strength, place and field size, or the class; elapsed
-  seconds, distance in metres, output in kJ, maximum power and speed, the speed of each second
+  seconds, distance in metres, output in kJ, maximum power and speed, the share of running
+  seconds on target (0 to 1, slice 10.2), the speed of each second
   ridden in km/h (at most 14,400, four hours), the finish instant and the IANA time zone. The
   app's `RideRecorder` (`domain/engine`) gives the ride its id when it starts and keeps the
   output, the maxima and the speed samples in a buffer sized for four hours; the distance is what
   the samples add up to. A race's speed is its virtual speed, a class's the bike's speed (L2-022). The
-  slices that use them add the on-target share, the outcome of a ride that did not finish, and
+  slices that use them add the outcome of a ride that did not finish and
   the race's per-second trace (`TracePoint`: second, distance, power) recorded by
   `RaceRideRecorder` (`race/race-the-ghost-and-bots`). It carries no XP, stars or unlocks; a body
   that sends them is read without them.
