@@ -14,4 +14,12 @@ public sealed class ProgressController(ISender sender) : ControllerBase
     [HttpGet]
     public Task<ProgressDto> Get(CancellationToken cancellationToken) =>
         sender.Send(new GetProgressQuery(RiderSessionTicketStore.RiderId(User) ?? Guid.Empty), cancellationToken);
+
+    /// <summary>Home has announced the map a ride opened (L2-036 AC3): 204, or 404 <c>unlock_not_found</c>.</summary>
+    [HttpPost("unlocks/{mapId}/seen")]
+    public async Task<IActionResult> MarkUnlockSeen(string mapId, CancellationToken cancellationToken)
+    {
+        await sender.Send(new MarkUnlockSeenCommand(RiderSessionTicketStore.RiderId(User) ?? Guid.Empty, mapId), cancellationToken);
+        return NoContent();
+    }
 }

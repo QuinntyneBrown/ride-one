@@ -160,6 +160,9 @@ namespace Telo.Ride.Infrastructure.Migrations
                     b.Property<int>("Stars")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("UnlockSeenAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.HasKey("RiderId", "MapId");
 
                     b.ToTable("MapProgress");

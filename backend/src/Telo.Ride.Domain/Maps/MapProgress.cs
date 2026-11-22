@@ -18,6 +18,9 @@ public sealed class MapProgress
     /// <summary>When a ride opened the map; none for a map open from the start or still locked.</summary>
     public DateTimeOffset? OpenedAt { get; private set; }
 
+    /// <summary>When Home announced the map a ride opened (L2-036 AC3); none until then.</summary>
+    public DateTimeOffset? UnlockSeenAt { get; private set; }
+
     public static MapProgress Start(Guid riderId, string mapId) => new() { RiderId = riderId, MapId = mapId };
 
     /// <summary>Sets the stars and best a rider already has, as a test's starting point.</summary>
@@ -29,6 +32,9 @@ public sealed class MapProgress
 
     /// <summary>Opens the map when a ride meets its goal (<see cref="UnlockRules"/>); a map opens once.</summary>
     public void Open(DateTimeOffset at) => OpenedAt ??= at;
+
+    /// <summary>Home has announced the opened map; it is announced once, on whichever device opens Home first.</summary>
+    public void MarkUnlockSeen(DateTimeOffset at) => UnlockSeenAt ??= at;
 
     /// <summary>
     /// Records a finish (L2-039, L2-077): a first finish sets the best, a faster one replaces it, and the stars the finish

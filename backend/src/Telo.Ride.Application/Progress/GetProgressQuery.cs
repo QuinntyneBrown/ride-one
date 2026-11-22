@@ -11,7 +11,8 @@ namespace Telo.Ride.Application.Progress;
 /// <summary>
 /// The rider's standing (L2-032 AC2): their level, total XP and the next level's threshold, null at level 30 (L2-038),
 /// their streak as it reads today in their time zone (L2-042), and their maps: those open, in unlock order (L2-040), the
-/// next unlock (L2-041), and the stars held and best time in seconds on each map ridden (L2-039).
+/// next unlock (L2-041), and the stars held and best time in seconds on each map ridden (L2-039); and for Home, the map
+/// the Next ride card offers (L2-033) and the map a ride opened that Home has not announced yet, if any (L2-036).
 /// </summary>
 public sealed record ProgressDto(
     int Level,
@@ -21,7 +22,9 @@ public sealed record ProgressDto(
     IReadOnlyList<string> OpenMapIds,
     string? NextUnlockId,
     IReadOnlyDictionary<string, int> Stars,
-    IReadOnlyDictionary<string, int> BestTimeSeconds);
+    IReadOnlyDictionary<string, int> BestTimeSeconds,
+    string NextRideMapId,
+    string? UnseenUnlockId);
 
 /// <summary>Reads the signed-in rider's progress (L2-044 AC1).</summary>
 public sealed record GetProgressQuery(Guid RiderId) : IRequest<ProgressDto>;
@@ -54,6 +57,12 @@ public sealed class GetProgressQueryHandler(IAppDbContext db, IMapCatalogue maps
             ridden.Where(known => known.Stars != MapStar.None)
                 .ToDictionary(known => known.MapId, known => BitOperations.PopCount((uint)known.Stars)),
             ridden.Where(known => known.BestSeconds is not null)
-                .ToDictionary(known => known.MapId, known => known.BestSeconds!.Value));
+                .ToDictionary(known => known.MapId, known => known.BestSeconds!.Value),
+            UnlockRules.NextRide(
+                order,
+                onMaps.Values.Where(known => known.OpenedAt is not null).ToDictionary(known => known.MapId, known => known.OpenedAt!.Value),
+                ridden.ToDictionary(known => known.MapId, known => BitOperations.PopCount((uint)known.Stars))),
+            onMaps.Values.Where(known => known.OpenedAt is not null && known.UnlockSeenAt is null)
+                .MaxBy(known => known.OpenedAt)?.MapId);
     }
 }
