@@ -16,15 +16,19 @@ finished ride resets it to 0.
 
 ## Description
 
-- **`Streak`** — entity in `Telo.Ride.Domain`, one per rider, holding `Days` and
-  `LastRideDay`. `Record(day)` leaves the streak unchanged for a second ride on `LastRideDay`,
+- **`Streak`** — value in `Telo.Ride.Domain` that each `Rider` owns (stored in the rider's row),
+  holding `Days` and `LastRideDay`. `Record(day)` leaves the streak unchanged for a second ride
+  on `LastRideDay` or for a ride on an earlier day (a ride submitted late never breaks a streak),
   adds 1 when `day` is the day after `LastRideDay`, and otherwise sets it to 1. `DaysOn(today)`
   returns `Days` when `LastRideDay` is today or yesterday, and 0 otherwise.
 - **`RiderDay`** — domain service. `LocalDay(instant, timeZoneId)` converts an instant to the
   rider's calendar day.
 - **`Rider.TimeZoneId`** — IANA time zone of the rider. The Ride app sends its
   `Intl.DateTimeFormat().resolvedOptions().timeZone` with each submitted ride as `timeZoneId`.
-  How the backend settles a change of time zone between rides is `<TO SUPPLY>`.
+  Each ride's day is taken in the zone it was submitted with, and the rider's zone becomes the
+  latest ride's, which decides "today" when the streak is read; until the first ride it is UTC.
+  A rider who flies east or west may so gain or lose a day once; the requirement does not say
+  otherwise.
 - **`SubmitRideCommandHandler`** — converts `finishedAt` with `RiderDay`, calls
   `Streak.Record`, and passes the resulting `Days` to `XpCalculator`, so the XP line uses the
   streak after the ride (see `earn-xp-and-rider-levels`). A DNF or discarded ride does not record
@@ -32,6 +36,10 @@ finished ride resets it to 0.
 - **`GetProgressQueryHandler`** — reads the current instant from `TimeProvider`, converts it with
   `RiderDay`, and returns `Streak.DaysOn(today)` as `ProgressDto.streakDays`. Tests advance a
   `FakeTimeProvider` across midnight; none sleeps.
+- **Where it shows** — the header's streak (`home/show-the-app-header`, absent at 0) and
+  Profile's meta line, "760 XP to level 8 · 4-day streak" (rides and kilometres join it with
+  slice 13.3), both from `ProgressDto.streakDays`, and the "{n}-day streak" XP line of the ride's
+  answer, which Results shows with journey 11 (L2-042 AC4).
 
 ## Requirements
 
