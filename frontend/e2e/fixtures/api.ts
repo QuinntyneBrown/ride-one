@@ -9,10 +9,19 @@ export interface ApiReply {
 
 type Handler = (request: Request) => ApiReply | Promise<ApiReply>;
 
+/** The rider every spec is signed in as, unless it calls `signedOut()` (L2-004). */
+export const signedInRider = { id: '3f2b8c1e-0d6a-4c8e-9b1f-5a7d2e9c4b10', displayName: 'Ada' };
+
+const SESSION_ENDED: ApiReply = {
+  status: 401,
+  body: { status: 401, title: 'Sign in to continue.', code: 'unauthenticated' },
+};
+
 /**
  * Answers the app's requests to the backend (`/api/…` on localhost) with what the spec declared (L2-148 AC1). A request
  * no answer matches gets 501, and the shared fixture fails the spec. The latest answer for a method and path wins, so
- * a spec can change one mid-test; `requests` lists what the page sent, in order.
+ * a spec can change one mid-test; `requests` lists what the page sent, in order. Every spec starts signed in as
+ * `signedInRider`; `signedOut()` ends the session.
  */
 export class ApiFixture {
   private readonly answers = new Map<string, Handler>();
@@ -23,6 +32,7 @@ export class ApiFixture {
 
   static async install(page: Page): Promise<ApiFixture> {
     const api = new ApiFixture();
+    api.answer('GET', '/api/riders/me', signedInRider);
     await page.route(
       (url) =>
         ['localhost', '127.0.0.1'].includes(url.hostname) && url.pathname.startsWith('/api/'),
@@ -65,6 +75,14 @@ export class ApiFixture {
       typeof reply === 'function' ? (reply as Handler) : () => ({ status: 200, body: reply }),
     );
   }
+
+  /** No session: `GET /api/riders/me` answers 401, as for a visitor or a session that has ended. */
+  signedOut(): void {
+    this.answer('GET', '/api/riders/me', () => SESSION_ENDED);
+  }
+
+  /** The answer an endpoint gives once the session has ended. */
+  static readonly sessionEnded: ApiReply = SESSION_ENDED;
 
   /** Every request the page sent to the backend, as "METHOD /path", oldest first. */
   requests(): string[] {

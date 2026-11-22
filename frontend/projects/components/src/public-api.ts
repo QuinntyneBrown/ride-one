@@ -57,3 +57,4 @@ export { SetupStars } from './race-setup/setup-stars';
 export { Stars } from './stars/stars';
 export { SignInCodeForm } from './sign-in/sign-in-code-form';
 export { SignInForm } from './sign-in/sign-in-form';
+export { CodeEntry } from './code-entry/code-entry';

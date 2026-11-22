@@ -1,7 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
+import { AppHeader } from './app-header';
 
 /** The Class Library at `/classes` (docs/mocks/pages/class-library/). */
 export class ClassLibraryPage {
+  readonly header: AppHeader;
   readonly heading: Locator;
   readonly lead: Locator;
   readonly tabList: Locator;
@@ -13,6 +15,7 @@ export class ClassLibraryPage {
   readonly retry: Locator;
 
   constructor(private readonly page: Page) {
+    this.header = new AppHeader(page);
     this.heading = page.getByRole('heading', { level: 1, name: 'Classes' });
     this.lead = page.locator('.library-head__lead');
     this.tabList = page.getByRole('tablist', { name: 'Class length' });

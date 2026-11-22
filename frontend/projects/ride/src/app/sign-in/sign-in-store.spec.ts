@@ -1,5 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { AUTH_API, AuthApiError, type AuthApi, TICKER } from '@telo/api';
+import {
+  AUTH_API,
+  AuthApiError,
+  type AuthApi,
+  type ConfirmCodeResult,
+  CURRENT_RIDER,
+  type RiderMe,
+  TICKER,
+} from '@telo/api';
 import { Subject, type Observable, of, throwError } from 'rxjs';
 import { RESEND_SECONDS, SignInStore } from './sign-in-store';
 
@@ -7,15 +15,25 @@ describe('SignInStore (L2-001 AC2, AC3, AC5; L2-003 AC1, AC2, AC4)', () => {
   let beat: Subject<number>;
   let answer: () => Observable<void>;
   let sentTo: string[];
+  let confirmAnswer: () => Observable<ConfirmCodeResult>;
+  let confirmed: [string, string][];
+  let signedIn: RiderMe[];
 
   beforeEach(() => {
     beat = new Subject<number>();
     sentTo = [];
     answer = () => of(undefined);
+    confirmed = [];
+    signedIn = [];
+    confirmAnswer = () => of({ riderId: 'rider-1', displayName: null, isNewAccount: true });
     const auth: AuthApi = {
       sendCode: (email) => {
         sentTo.push(email);
         return answer();
+      },
+      confirmCode: (email, code) => {
+        confirmed.push([email, code]);
+        return confirmAnswer();
       },
     };
     TestBed.configureTestingModule({
@@ -23,6 +41,10 @@ describe('SignInStore (L2-001 AC2, AC3, AC5; L2-003 AC1, AC2, AC4)', () => {
         SignInStore,
         { provide: AUTH_API, useValue: auth },
         { provide: TICKER, useValue: { seconds: beat } },
+        {
+          provide: CURRENT_RIDER,
+          useValue: { signedIn: (rider: RiderMe) => signedIn.push(rider) },
+        },
       ],
     });
   });
@@ -120,5 +142,50 @@ describe('SignInStore (L2-001 AC2, AC3, AC5; L2-003 AC1, AC2, AC4)', () => {
     await store().send('ada@example.com');
     store().changeEmail();
     expect(store().error()).toBeNull();
+  });
+
+  it('confirms the code for the address it went to and signs the rider in (L2-002 AC2)', async () => {
+    await store().send('ada@example.com');
+    expect(await store().confirm('123456')).toBe(true);
+    expect(confirmed).toEqual([['ada@example.com', '123456']]);
+    expect(signedIn).toEqual([{ id: 'rider-1', displayName: null }]);
+  });
+
+  it.each(['code_mismatch', 'code_expired', 'code_locked'] as const)(
+    'keeps a %s refusal and counts it',
+    async (code) => {
+      await store().send('ada@example.com');
+      confirmAnswer = () => throwError(() => new AuthApiError(code, null, 'refused'));
+      expect(await store().confirm('654321')).toBe(false);
+      expect(await store().confirm('654321')).toBe(false);
+      expect(store().error()).toEqual({ code, retryAfterSeconds: null });
+      expect(store().refusals()).toBe(2);
+      expect(signedIn).toEqual([]);
+    },
+  );
+
+  it('counts an error that is not the API’s as a code that could not be checked', async () => {
+    await store().send('ada@example.com');
+    confirmAnswer = () => throwError(() => new Error('offline'));
+    expect(await store().confirm('123456')).toBe(false);
+    expect(store().error()?.code).toBe('check_failed');
+  });
+
+  it('confirms nothing before a code was sent', async () => {
+    expect(await store().confirm('123456')).toBe(false);
+    expect(confirmed).toEqual([]);
+  });
+
+  it.each([
+    ['/classes', '/classes'],
+    ['/race/old-town-criterium?mode=solo', '/race/old-town-criterium?mode=solo'],
+    [undefined, '/'],
+    ['', '/'],
+    ['//evil.example', '/'],
+    ['https://evil.example', '/'],
+    ['/sign-in/code', '/'],
+  ])('returns to %j as %j', (url, to) => {
+    store().returnTo(url);
+    expect(store().returnUrl()).toBe(to);
   });
 });

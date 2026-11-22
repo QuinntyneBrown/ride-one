@@ -67,6 +67,10 @@ change any 365-day outcome. Slice 9.2 writes on every request.
 - **`authGuard`** — the guard of [Sign in with an email
   code](../sign-in-with-an-email-code/README.md). It waits while `status` is `unknown` and
   redirects to `/sign-in?returnUrl=…` when it is `signedOut`.
+- **Initial bundle** — every screen now asks for the rider before it opens, so Angular's
+  `HttpClient` is needed at start-up and the build places it in the initial chunk: 288.47 kB
+  became 292.60 kB. The warning budget rises from 292 kB to 296 kB for it; the error budget stays
+  at 300 kB. The session's own code stays in the screens' lazy parent chunk.
 - **`RideOutbox`** (`domain` library, `storage/`), from the journey that first submits rides to
   the backend (journey 10; until then a ride never leaves the device) — keeps each finished ride
   in IndexedDB by its id until the backend records it (see [Ride without a

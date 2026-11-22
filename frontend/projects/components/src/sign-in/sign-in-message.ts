@@ -16,3 +16,19 @@ export function signInMessage(error: SignInError | null): string | null {
       return null;
   }
 }
+
+/** The words under the code's cells for a code that was refused or could not be checked (L2-002 AC3, AC4, L2-003 AC3). */
+export function codeRefusal(error: SignInError | null): string | null {
+  switch (error?.code) {
+    case 'code_mismatch':
+      return 'That code doesn’t match. Try again.';
+    case 'code_expired':
+      return 'That code has expired.';
+    case 'code_locked':
+      return 'Too many wrong codes. Send a new code to try again.';
+    case 'check_failed':
+      return 'We couldn’t check your code. Check your connection and try again.';
+    default:
+      return null;
+  }
+}

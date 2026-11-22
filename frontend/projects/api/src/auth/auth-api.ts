@@ -8,6 +8,15 @@ import type { Observable } from 'rxjs';
 export interface AuthApi {
   /** Asks the backend to email a six-digit code to `email`; completes once it has been sent (202). */
   sendCode(email: string): Observable<void>;
+  /** Confirms the six digits sent to `email`; the backend starts a session with its cookie (L2-002 AC2, L2-004). */
+  confirmCode(email: string, code: string): Observable<ConfirmCodeResult>;
+}
+
+/** The rider a confirmed code signed in; `isNewAccount` when the address had none (L2-001 AC4). */
+export interface ConfirmCodeResult {
+  readonly riderId: string;
+  readonly displayName: string | null;
+  readonly isNewAccount: boolean;
 }
 
 export const AUTH_API = new InjectionToken<AuthApi>('AUTH_API');
