@@ -5,7 +5,8 @@ import { SignInStore } from './sign-in-store';
 
 /**
  * Sign in (L2-001, docs/mocks/pages/sign-in/): sends a code, then opens the code screen. The guard's `returnUrl` is
- * where the rider goes once the code is confirmed (AC1).
+ * where the rider goes once the code is confirmed (AC1). Opened by a deletion (navigation state `accountDeleted`), it
+ * says the account was deleted (L2-006 AC3).
  */
 @Component({
   selector: 'wz-sign-in-page',
@@ -18,6 +19,8 @@ export default class SignInPage {
   protected readonly store = inject(SignInStore);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  protected readonly accountDeleted =
+    this.router.currentNavigation()?.extras.state?.['accountDeleted'] === true;
 
   /** The screen the guard sent the visitor from (query parameter). */
   readonly returnUrl = input<string>();

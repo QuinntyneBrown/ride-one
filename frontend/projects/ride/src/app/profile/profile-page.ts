@@ -1,8 +1,10 @@
-import { Dialog } from '@angular/cdk/dialog';
+import { Dialog, type DialogConfig } from '@angular/cdk/dialog';
 import { Overlay } from '@angular/cdk/overlay';
 import { ChangeDetectionStrategy, Component, Injector, computed, inject } from '@angular/core';
 import { CURRENT_RIDER } from '@telo/api';
-import { SettingRow } from '@telo/components';
+import { InlineMessage, SettingRow } from '@telo/components';
+import { AccountStore } from './account-store';
+import { DeleteAccountDialog } from './delete-account-dialog';
 import { DisplayNameDialog } from './display-name-dialog';
 
 /** Every rider is level 1 until XP lands (journey 10). */
@@ -10,40 +12,67 @@ const LEVEL = 1;
 
 /**
  * Profile (docs/mocks/pages/profile/): in slice 9.3, the headline with the rider's display name and level ("Sam ·
- * Level 1", L2-005 AC3) and Settings, whose Display name row changes the name in a dialog. Slice 13.3 adds the XP bar,
- * maps, recent rides and the other Settings rows.
+ * Level 1", L2-005 AC3) and Settings, whose Display name row changes the name in a dialog, and whose Sign out and
+ * Delete my account rows end the session or delete the account (slice 9.4, L2-006). Slice 13.3 adds the XP bar, maps,
+ * recent rides and the other Settings rows.
  */
 @Component({
   selector: 'wz-profile-page',
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SettingRow],
+  imports: [InlineMessage, SettingRow],
 })
 export default class ProfilePage {
   private readonly currentRider = inject(CURRENT_RIDER);
   private readonly dialog = inject(Dialog);
   private readonly overlay = inject(Overlay);
   private readonly injector = inject(Injector);
+  protected readonly account = inject(AccountStore);
 
   protected readonly level = LEVEL;
   protected readonly name = computed(() => this.currentRider.rider()?.displayName ?? null);
 
-  /**
-   * Opens the Display name dialog: a sheet at the bottom of a phone, centred from sm (640 px), as the design system
-   * draws a dialog. The CDK returns the focus to the row when it closes.
-   */
   protected changeName(): void {
+    this.dialog.open(DisplayNameDialog, {
+      ...this.settingsDialog('display-name', 'display-name'),
+      data: this.name() ?? '',
+    });
+  }
+
+  protected deleteAccount(): void {
+    this.dialog.open(DeleteAccountDialog, {
+      ...this.settingsDialog('delete-account', 'delete-account-confirm'),
+      ariaDescribedBy: 'delete-account-lead',
+    });
+  }
+
+  /**
+   * How a Settings dialog opens: a sheet at the bottom of a phone, centred from sm (640 px), as the design system draws
+   * a dialog, labelled by `${block}-title` and with the focus on `field`. The CDK returns the focus to the row when it
+   * closes.
+   */
+  private settingsDialog(
+    block: string,
+    field: string,
+  ): Pick<
+    DialogConfig,
+    | 'positionStrategy'
+    | 'disableClose'
+    | 'injector'
+    | 'ariaLabelledBy'
+    | 'autoFocus'
+    | 'hasBackdrop'
+  > {
     const sheet = matchMedia('(max-width: 39.99rem)').matches;
     const position = this.overlay.position().global().centerHorizontally();
-    this.dialog.open(DisplayNameDialog, {
+    return {
       positionStrategy: sheet ? position.bottom('0') : position.centerVertically(),
       disableClose: true,
       injector: this.injector,
-      data: this.name() ?? '',
-      ariaLabelledBy: 'display-name-title',
-      autoFocus: '#display-name',
+      ariaLabelledBy: `${block}-title`,
+      autoFocus: `#${field}`,
       hasBackdrop: false,
-    });
+    };
   }
 }

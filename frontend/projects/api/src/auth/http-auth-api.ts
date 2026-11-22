@@ -16,7 +16,9 @@ const CHECK_CODES: readonly AuthApiErrorCode[] = [
   'code_locked',
 ];
 
-/** Sign-in's HTTP client: `POST /api/auth/code` and `POST /api/auth/code/confirm` (ADR 0025). */
+/**
+ * Sign-in's HTTP client: `POST /api/auth/code`, `POST /api/auth/code/confirm` and `POST /api/auth/sign-out` (ADR 0025).
+ */
 @Injectable()
 export class HttpAuthApi implements AuthApi {
   private readonly http = inject(HttpClient);
@@ -38,6 +40,10 @@ export class HttpAuthApi implements AuthApi {
           throwError(() => refusal(failure, CHECK_CODES, 'check_failed')),
         ),
       );
+  }
+
+  signOut(): Observable<void> {
+    return this.http.post('/api/auth/sign-out', null).pipe(map(() => undefined));
   }
 }
 

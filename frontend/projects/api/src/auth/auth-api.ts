@@ -10,6 +10,8 @@ export interface AuthApi {
   sendCode(email: string): Observable<void>;
   /** Confirms the six digits sent to `email`; the backend starts a session with its cookie (L2-002 AC2, L2-004). */
   confirmCode(email: string, code: string): Observable<ConfirmCodeResult>;
+  /** Ends this device's session on the backend and clears its cookie; completes once it has (204, L2-006 AC1). */
+  signOut(): Observable<void>;
 }
 
 /** The rider a confirmed code signed in; `isNewAccount` when the address had none (L2-001 AC4). */

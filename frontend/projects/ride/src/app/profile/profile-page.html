@@ -27,6 +27,34 @@
           (click)="changeName()"
         ></button>
       </li>
+      <li>
+        <button
+          wz-setting-row
+          type="button"
+          icon="sign-out"
+          title="Sign out"
+          body="On this device"
+          [disabled]="account.signingOut()"
+          (click)="account.signOut()"
+        ></button>
+      </li>
+      <li>
+        <button
+          wz-setting-row
+          type="button"
+          icon="trash"
+          title="Delete my account"
+          body="Email, name, progress and rides"
+          [danger]="true"
+          aria-haspopup="dialog"
+          (click)="deleteAccount()"
+        ></button>
+      </li>
     </ul>
+    @if (account.signOutFailed()) {
+      <wz-inline-message class="settings__message" tone="error" role="alert"
+        >We couldn’t sign you out. Check your connection and try again.</wz-inline-message
+      >
+    }
   </aside>
 </main>

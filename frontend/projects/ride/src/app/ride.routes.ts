@@ -74,7 +74,7 @@ export const rideRoutes: Routes = [
           {
             path: 'profile',
             title: 'Profile · Telo Ride',
-            loadComponent: () => import('./profile/profile-page'),
+            loadChildren: () => import('./profile/profile.routes').then((m) => m.profileRoutes),
           },
           // An address that matches no screen (L2-145). Always last.
           {

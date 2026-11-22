@@ -5,6 +5,11 @@
     <p class="sign-in__lead">
       Enter your email and we’ll send you a six-digit code. No password, ever.
     </p>
+    @if (accountDeleted()) {
+      <wz-inline-message class="sign-in__message" tone="success" role="status"
+        >Your account was deleted. Its personal data is erased within 30 days.</wz-inline-message
+      >
+    }
     <form class="sign-in__form" novalidate (submit)="submit($event)">
       <div class="field">
         <label class="field__label" for="sign-in-email">Email</label>

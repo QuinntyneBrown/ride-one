@@ -35,6 +35,7 @@ describe('SignInStore (L2-001 AC2, AC3, AC5; L2-003 AC1, AC2, AC4)', () => {
         confirmed.push([email, code]);
         return confirmAnswer();
       },
+      signOut: () => of(undefined),
     };
     TestBed.configureTestingModule({
       providers: [
