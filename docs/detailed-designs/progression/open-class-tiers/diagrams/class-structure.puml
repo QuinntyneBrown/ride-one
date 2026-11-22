@@ -12,38 +12,38 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Open class tiers
-enum ClassTier {
-  Level1 = 1
-  Level5 = 5
-  Level10 = 10
-  Level20 = 20
-}
 class ClassDefinition <<entity>> {
   +Id: string
   +Title: string
-  +Length: TimeSpan
-  +OpensAt: ClassTier
+  +LengthSeconds: int
+  +OpensAtLevel: int
 }
-class ClassTierRules <<domain service>> {
-  +IsOpen(def: ClassDefinition, level: int): bool
+class ClassTierRules <<domain rule>> {
+  +Tiers: int[] = 1, 5, 10, 20
+  +IsTier(level: int): bool
 }
-class ClassDefinitionValidator <<application>> {
-  +Validate(def): ValidationResult
+class ClassPlanRules <<domain rule>> {
+  +BrokenRule(def: ClassDefinition): string?
 }
 class GetClassesQueryHandler <<application>> {
-  +Handle(q: GetClassesQuery): Task<ClassDto[]>
+  +Handle(q: GetClassesQuery): Task<ClassCatalogueDto>
 }
 class ClassDto <<DTO>> {
   +Id: string
   +Title: string
-  +Length: string
+  +LengthSeconds: int
   +OpensAtLevel: int
-  +IsOpen: bool
 }
-ClassDefinition --> ClassTier
-ClassTierRules ..> ClassDefinition
-ClassDefinitionValidator ..> ClassDefinition : tier is 1, 5, 10 or 20
-GetClassesQueryHandler ..> ClassTierRules
-GetClassesQueryHandler ..> LevelTable
+class ProgressDto <<DTO>> {
+  +Level: int
+}
+class ClassLibraryStore <<Ride app>> {
+  open when OpensAtLevel <= Level
+}
+ClassPlanRules ..> ClassDefinition
+ClassPlanRules ..> ClassTierRules : OpensAtLevel is a tier
+GetClassesQueryHandler ..> ClassPlanRules
 GetClassesQueryHandler ..> ClassDto : returns
+ClassLibraryStore ..> ClassDto
+ClassLibraryStore ..> ProgressDto
 @enduml

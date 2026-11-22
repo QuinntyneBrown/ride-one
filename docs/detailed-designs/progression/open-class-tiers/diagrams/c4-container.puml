@@ -10,6 +10,6 @@ System_Boundary(telo, "Telo Ride") {
   ContainerDb(db, "Telo Ride database", "EF Core; engine <TO SUPPLY>", "Riders, sessions, rides, progress, feedback")
 }
 Rel(rider, app, "Uses", "HTTPS")
-Rel(app, api, "Reads the class catalogue with each class open or locked", "JSON/HTTPS")
-Rel(api, db, "Reads class definitions and the rider's level", "EF Core")
+Rel(app, api, "Reads the class catalogue and the rider's level", "JSON/HTTPS")
+Rel(api, db, "Reads the rider's total XP", "EF Core")
 @enduml
