@@ -16,35 +16,38 @@ skinparam package {
 }
 actor "Rider" as actor
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "ClassLibraryPage" as page
+  participant "ClassLibraryStore" as page
 end box
 box "Frontend — Ride app (api library)" #E0F2FE
-  participant "CatalogueApi" as client
+  participant "HttpClassesApi" as client
+  participant "HttpProgressApi" as progress
 end box
 box "Backend — Telo.Ride.Api" #D1FADF
   participant "ClassesController" as ctrl
+  participant "ProgressController" as pctrl
 end box
 box "Backend — Telo.Ride.Application and Domain" #ECFDF3
   participant "GetClassesQueryHandler" as handler
-  participant "LevelTable" as levels
-  participant "ClassTierRules" as tiers
-end box
-box "Backend — Telo.Ride.Infrastructure" #FFF4E5
-  database "Telo Ride database" as db
+  participant "ClassPlanRules" as plan
+  participant "GetProgressQueryHandler" as phandler
 end box
 actor -> page : Open the Class Library
-page -> client : getClasses()
+page -> client : catalogue()
 client -> ctrl : GET /api/classes
 ctrl -> handler : Send GetClassesQuery
-handler -> db : Valid class definitions, rider total XP
-handler -> levels : LevelFor(totalXp)
-levels --> handler : New rider: 1
 loop Each class
-  handler -> tiers : IsOpen(class, 1)
-  tiers --> handler : level >= OpensAt (L2-043 AC3)
+  handler -> plan : BrokenRule(class)
+  plan --> handler : null, or "the tier is not 1, 5, 10 or 20" (L2-043 AC1)
 end
-handler --> ctrl : 3 open: 20 Minute Power Intervals, 20 Min Threshold Builder, 30 Minute HIIT Cardio (AC2)
-ctrl --> client : 200 ClassDto[] (cached for offline reading)
-client --> page : Classes with isOpen and opensAtLevel
-page --> actor : Locked classes say the level they need (L2-082)
+handler --> ctrl : The classes that pass, with opensAtLevel
+ctrl --> client : 200 ClassCatalogueDto
+page -> progress : level()
+progress -> pctrl : GET /api/progress
+pctrl -> phandler : Send GetProgressQuery
+phandler --> pctrl : New rider: level 1
+pctrl --> progress : 200 ProgressDto
+loop Each class
+  page -> page : open when opensAtLevel <= level (L2-043 AC3)
+end
+page --> actor : 3 open: 20 Minute Power Intervals, 20 Min Threshold Builder, 30 Minute HIIT Cardio (AC2); locked classes say the level they need (L2-082)
 @enduml
