@@ -13,13 +13,15 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
     class: 'stars',
     role: 'img',
     '[class.stars--md]': "size() === 'md'",
+    '[class.stars--lg]': "size() === 'lg'",
     '[attr.aria-label]': 'label()',
   },
 })
 export class Stars {
   readonly earned = input.required<number>();
   readonly count = input(3);
-  readonly size = input<'sm' | 'md'>('md');
+  /** sm 14 px, md 16 px, lg 28 px with wider gaps (Results' stars on the map). */
+  readonly size = input<'sm' | 'md' | 'lg'>('md');
 
   protected readonly label = computed(() => `${this.earned()} of ${this.count()} stars`);
   protected readonly slots = computed(() =>

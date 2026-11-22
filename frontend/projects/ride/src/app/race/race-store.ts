@@ -11,8 +11,9 @@ import {
   type PackStrengthId,
   type RaceMode,
   type RaceResult,
+  type SubmitRideRequest,
   type RealPlace,
-  RIDES_API,
+  RIDE_OUTBOX,
   type SceneRider,
   type SceneryRequest,
   type SceneryState,
@@ -68,7 +69,7 @@ export class RaceStore {
   private readonly loaded = signal<MapDto | null>(null);
   private readonly ghosts = inject(GHOST_API);
   private readonly ridden = signal(0);
-  private readonly rides = inject(RIDES_API);
+  private readonly outbox = inject(RIDE_OUTBOX);
   /** The ride's record for the backend, with the ride id given when the race starts (Record a ride). */
   private recorder: RideRecorder | null = null;
   private lastSecond = 0;
@@ -428,8 +429,8 @@ export class RaceStore {
 
   /**
    * The line: the finish time is the race clock's second, the place is where the rider crossed it, and Results opens
-   * with the result; the clock and the ticker stop, and leaving the page releases the rest (L2-071 AC1). The ride is
-   * submitted as it ends (L2-044 AC2).
+   * with the result and the ride; the clock and the ticker stop, and leaving the page releases the rest (L2-071 AC1).
+   * The ride is submitted as it ends (L2-044 AC2).
    */
   private finish(second: number): void {
     const you = this.you();
@@ -446,28 +447,27 @@ export class RaceStore {
       field: this.standings().length || 1,
       standings: finalStandings(this.standings(), this.line?.crossings ?? new Map(), second),
     };
-    this.submit(raceResult);
-    void this.router.navigateByUrl('/results', { state: { raceResult } });
+    const ride = this.submit(raceResult);
+    void this.router.navigateByUrl('/results', { state: { raceResult, ride } });
   }
 
   /**
-   * Submits the finished race to the backend with its record (L2-044 AC2). The answer is not waited for, and leaving
-   * the page does not cancel it. Until the outbox keeps finished rides on the device (L2-135), a submission that fails
-   * is not retried.
+   * Hands the finished race with its record to the outbox, which sends it to the backend (L2-044 AC2) and outlives the
+   * page; Results follows it there. The ride as submitted, or none before the race began.
    */
-  private submit(result: RaceResult): void {
-    if (!this.recorder) return;
-    this.rides
-      .submitRide({
-        ...this.recorder.facts(new Date()),
-        kind: 'race',
-        mapId: result.mapId,
-        mode: result.mode,
-        pack: result.pack,
-        place: result.place,
-        fieldSize: result.field,
-      })
-      .subscribe({ error: () => undefined });
+  private submit(result: RaceResult): SubmitRideRequest | null {
+    if (!this.recorder) return null;
+    const ride: SubmitRideRequest = {
+      ...this.recorder.facts(new Date()),
+      kind: 'race',
+      mapId: result.mapId,
+      mode: result.mode,
+      pack: result.pack,
+      place: result.place,
+      fieldSize: result.field,
+    };
+    this.outbox.submit(ride);
+    return ride;
   }
 
   /** Raise and Lower send the next level as the rider's own (L2-028 AC1). */

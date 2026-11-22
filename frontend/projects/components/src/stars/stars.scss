@@ -16,6 +16,15 @@
   height: var(--space-4);
 }
 
+:host(.stars--lg) {
+  gap: var(--space-1-5);
+}
+
+:host(.stars--lg) .icon {
+  width: var(--space-7);
+  height: var(--space-7);
+}
+
 .icon.is-earned {
   fill: var(--color-gold-fg);
   color: var(--color-gold-fg);

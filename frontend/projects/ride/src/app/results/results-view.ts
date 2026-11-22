@@ -1,4 +1,12 @@
-import type { ClassResult, RaceResult, StandingsRow } from '@telo/api';
+import type {
+  ClassResult,
+  MapStarsView,
+  RaceResult,
+  RideRecordedDto,
+  RideSyncState,
+  StandingsRow,
+  XpEarnedView,
+} from '@telo/api';
 import { ordinal } from '@telo/domain';
 
 /** Results as one screen draws it (docs/mocks/pages/results/). */
@@ -22,6 +30,10 @@ export interface ResultsView {
     readonly path: string;
     readonly query: Record<string, string>;
   };
+  /** The XP panel (L2-074). */
+  readonly xp: XpEarnedView;
+  /** The stars panel, for a race once it is recorded (L2-075). */
+  readonly stars: MapStarsView | null;
 }
 
 const PODIUM = 3;
@@ -35,29 +47,74 @@ function clock(seconds: number): string {
 }
 
 /**
- * Results from the result the ride hands over (L2-073, L2-078, L2-079). A bots race reads the place, "of 10", the time
- * with "on the podium" or "{n} s off the podium" (n the seconds behind 3rd) and the final standings; a solo race (vs your
- * best) the time alone; a solo class the time, its output and its share on target. Every lead reads "You finished"
- * until a personal best replaces it (slice 11.2).
+ * Results from the result the ride hands over and where the ride stands with the backend (L2-073 to L2-079). A bots race
+ * reads the place, "of 10", the time with "on the podium" or "{n} s off the podium" (n the seconds behind 3rd) and the
+ * final standings; a solo race (vs your best) the time, and once recorded "New personal best" with "Best before: {time}"
+ * or "Best: {best}"; a solo class the time, its output and its share on target. The XP panel waits, waits offline, has
+ * not been recorded or shows the backend's lines; a race once recorded shows its stars on the map.
  */
-export function resultsView(result: RaceResult | ClassResult): ResultsView {
-  return 'mapId' in result ? raceView(result) : classView(result);
+export function resultsView(result: RaceResult | ClassResult, sync: RideSyncState): ResultsView {
+  const answer = sync.kind === 'recorded' ? sync.answer : null;
+  const view = 'mapId' in result ? raceView(result, answer) : classView(result);
+  return {
+    ...view,
+    xp: xpView(sync),
+    stars:
+      'mapId' in result && answer?.stars
+        ? {
+            title: `Stars on ${result.mapName}`,
+            held: answer.stars.held,
+            newLine: newStars(answer.stars.earned),
+          }
+        : null,
+  };
 }
 
-function raceView(result: RaceResult): ResultsView {
+const XP_STATE = {
+  sending: 'waiting',
+  waitingOffline: 'offline',
+  notRecorded: 'notRecorded',
+} as const;
+
+function xpView(sync: RideSyncState): XpEarnedView {
+  if (sync.kind !== 'recorded') return { state: XP_STATE[sync.kind], total: null, lines: [] };
+  return {
+    state: 'ready',
+    total: `+${sync.answer.xpTotal}`,
+    lines: sync.answer.xpLines.map((line) => ({ label: line.label, xp: `+${line.xp}` })),
+  };
+}
+
+function newStars(earned: number): string | null {
+  if (earned === 0) return null;
+  return earned === 1 ? '+1 new star' : `+${earned} new stars`;
+}
+
+/** "Best before: 27:10" under a new best, "Best: 26:38" under a slower finish, and nothing under a first one. */
+function bestLine(best: RideRecordedDto['best']): string | null {
+  if (best?.previousBestSeconds == null) return null;
+  return best.isNewBest
+    ? `Best before: ${clock(best.previousBestSeconds)}`
+    : `Best: ${clock(best.bestSeconds)}`;
+}
+
+type Panels = 'xp' | 'stars';
+
+function raceView(result: RaceResult, answer: RideRecordedDto | null): Omit<ResultsView, Panels> {
   const time = clock(result.finishTimeS);
   const query: Record<string, string> =
     result.pack === null ? { mode: result.mode } : { mode: result.mode, pack: result.pack };
   const again = { label: 'Race it again', path: `/race/${result.mapId}`, query };
   if (result.mode === 'solo') {
+    const best = answer?.best ?? null;
     return {
       context: `${result.mapName} · vs your best`,
       heading: 'Race results',
-      lead: 'You finished',
+      lead: best?.isNewBest ? 'New personal best' : 'You finished',
       big: time,
       podium: false,
       of: null,
-      sub: null,
+      sub: bestLine(best),
       standings: null,
       again,
     };
@@ -86,7 +143,7 @@ function raceView(result: RaceResult): ResultsView {
   };
 }
 
-function classView(result: ClassResult): ResultsView {
+function classView(result: ClassResult): Omit<ResultsView, Panels> {
   return {
     context: `${result.title} · Solo`,
     heading: 'Class results',
