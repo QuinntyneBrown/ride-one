@@ -50,6 +50,7 @@ export {
   type WorkoutData,
   toHex,
 } from './protocol/echelon-protocol';
+export { BrowserFullscreen } from './browser/browser-fullscreen';
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
 export { CachedClassesApi } from './storage/cached-classes-api';
 export { CATALOGUE_KEY, CatalogueCache } from './storage/catalogue-cache';

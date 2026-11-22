@@ -17,6 +17,7 @@ class MainShell <<ride>> {
   -bike: BikeConnection
   +items: Home, Race, Classes, Profile
   +level: Signal<LevelView | null>
+  -fullscreen: Fullscreen
 }
 interface ProgressStore <<api>> {
   +progress: Signal<ProgressDto | null>
@@ -43,11 +44,19 @@ class RouterLinkActive <<Angular router>> {
   +ariaCurrentWhenActive: "page"
 }
 class AppHeader <<components>> {
-  +streakDays: input<number>
-  +bikeStatus: input<BikeStatusView>
-  +fullScreen: input<boolean>
-  +fullScreenToggle: output<void>
+  slots: brand, nav, end
 }
+class FullscreenToggle <<components>> {
+  +active: input<boolean>
+  +toggled: output<void>
+}
+interface Fullscreen <<api>> {
+  +available: Signal<boolean>
+  +active: Signal<boolean>
+  +enter(): void
+  +exit(): void
+}
+class BrowserFullscreen <<ride>>
 class LevelView <<api>> {
   +level: number
   +totalXp: number
@@ -80,6 +89,9 @@ RiderProgressStore --> RiderProgressApi : RIDER_PROGRESS_API
 ProgressStore --> ProgressDto
 MainShell *-- AppHeaderLink : nav slot
 MainShell *-- AppHeaderLevel : end slot
+MainShell *-- FullscreenToggle : end slot, when available
+MainShell ..> Fullscreen : injects FULLSCREEN
+BrowserFullscreen ..|> Fullscreen
 AppHeaderLink ..> RouterLinkActive : current item
 AppHeaderLevel *-- LevelBadge
 AppHeaderLevel *-- XpBar

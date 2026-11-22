@@ -25,6 +25,13 @@
         [level]="level"
       ></a>
     }
+    @if (fullscreen.available()) {
+      <wz-fullscreen-toggle
+        slot="end"
+        [active]="fullscreen.active()"
+        (toggled)="toggleFullscreen()"
+      />
+    }
   </wz-app-header>
   <div class="app__scroll">
     <router-outlet />

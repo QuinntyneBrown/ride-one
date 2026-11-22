@@ -44,13 +44,19 @@ literally, rule out `L2-143` AC2.
 
 - **`Fullscreen`** — contract in `api` (token `FULLSCREEN`) with `available`, `active` (signals),
   `enter()` and `exit()`.
-- **`BrowserFullscreen`** — implementation in the `ride` application's `browser/` folder. It reads
+- **`BrowserFullscreen`** — implementation in `domain`'s `browser/` folder, beside
+  `BrowserScreenWakeLock`. It reads
   `document.fullscreenEnabled`, calls `document.documentElement.requestFullscreen()` and
   `document.exitFullscreen()`, and updates `active` from `fullscreenchange`. It removes the
-  listener on destroy.
+  listener on destroy. Each route whose header shows the toggle binds it (the main shell's
+  route first, in slice 13.1).
 - **`FullscreenToggle`** — presentation component in `components` (`wz-fullscreen-toggle`). Inputs
-  `active`; output `toggle`. Its label is "Full screen" or "Exit full screen", and it sets
-  `aria-pressed` from `active`.
+  `active`; output `toggled`. It draws the design system's edge icon button (`icon-btn
+  icon-btn--edge`, 36 px, taking touches across 44 px). Its accessible name is "Full screen" or
+  "Exit full screen", and its icon changes from the expand corners to the minimize corners with
+  it (`docs/mocks/pages/home/full-screen.html`). It sets no `aria-pressed`: a toggle whose
+  name also changes would be announced twice ("Exit full screen, pressed"). The name change is
+  what `L2-144` AC1 asks for.
 - **Headers** — each page header renders `FullscreenToggle` inside `@if (fullscreen.available())`,
   so the button is absent where the API is missing.
 

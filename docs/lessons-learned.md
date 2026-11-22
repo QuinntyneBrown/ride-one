@@ -58,7 +58,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L31 | A slice whose behaviour no screen shows yet (decoders before their readouts) is proved by the requirement's tables at the domain boundary, fed the bytes a bike sends, plus one run on the simulated bike; write a stub first so each table fails on its assertions, and say in the design which later slice brings the Playwright proof. | 3.1 | 3.2, 3.3, 4.1, 4.2, 5.1, 6.1 | Saved time: a stub `ClassPlanRules` made the table fail on its assertions, not the build |
 | L32 | A film's `arrow()` lines are light: put a diagram of `node()`s and arrows on a dark field (`field--ink`, `field--panel`), never on `field--bone`. | 3.1 | 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7 | Saved time |
 | L33 | Before a slice builds UI, find the screen that hosts it in `docs/detailed-journeys.md`: when that screen's slice comes later, build only what every host shares (state, models, formatting) and move the markup to the hosting slices in the design, rather than build a screen early. | 3.2 | 3.3, 4.1, 4.2, 5.1, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5 | Saved time |
-| L34 | Render every diagram a slice touches (`plantuml -tpng` on each `.puml`) and read its exit status: an escaped quote (`\"—\"`) inside a C4 macro's label breaks it, and a committed PNG can be older than its source. Write "a dash" instead. | 3.3 | 4.1, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 8.4, 8.5, 8.6, 8.7, 9.1, 10.3, 11.3, 12.1, 12.2 | Saved time |
+| L34 | Render every diagram a slice touches (`plantuml -tpng` on each `.puml`) and read its exit status: an escaped quote (`\"—\"`) inside a C4 macro's label breaks it, and a committed PNG can be older than its source. Write "a dash" instead. | 3.3 | 4.1, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 8.4, 8.5, 8.6, 8.7, 9.1, 10.3, 11.3, 12.1, 12.2, 13.1 | Saved time |
 | L35 | Before writing a slice's code, check what earlier slices already built for its requirements (`git log --oneline --grep L2-0NN`, the specs' traces): record a behaviour that already holds with one test that names its criterion, and keep the slice to what is left. | 4.1 | 4.2, 5.1, 5.2, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5 | Saved time: no progress contract existed, so the slice added the smallest one |
 | L36 | While a film encodes, draft the next slice's stubs and acceptance tables in the scratchpad; copy them into the new worktree once the merge lands, then run them to see them fail. | 5.1 | 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1 | Saved time: 6.1's prompt, requirement and ADR were read during the 5.4 encode |
 | L37 | To test time across a hidden tab, bind `MONOTONIC_TIME` to `Date.now()` under `vi.useFakeTimers()`: `vi.setSystemTime` moves the clock without firing timers, as a throttled tab does, and a `visibilitychange` with a stubbed `visibilityState` shows it again. | 5.1 | 5.2 | Saved time: the same idea, with Playwright's clock |
@@ -145,19 +145,45 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L118 | When a slice builds a screen, search the specs for the placeholder that stood in for it ("until slice 11.1", Page not found) and move them to the new page object in the same commit; three specs waited on `/results` showing Page not found. | 11.1 | | |
 | L119 | A test written after the code it covers is not yet proof: put the old code back, see the test fail for the reason named, then restore. Race Setup's preselection test was written after the store change and failed on "hard" unchecked once the change was out. | 11.1 | 11.2 | Saved time |
 | L120 | A screen reached by a click on a spec's paused clock loads lazily only as the clock steps: wait with `stepUntil`, not a bare `expect`. And take a radio's name from an existing spec: pack strengths are named "medium", not "Medium". | 11.1 | 11.2 | Saved time |
-| L121 | Before writing a film, check its prompt's film rules against the last film rather than copying it: 10.1, 10.4 and 11.1 had dropped the shots at 768 and 1024 px and the scene growing from 390 to 1440, and 11.1's film was redone. | 11.2 | 11.3, 12.1, 12.2 | Saved time |
+| L121 | Before writing a film, check its prompt's film rules against the last film rather than copying it: 10.1, 10.4 and 11.1 had dropped the shots at 768 and 1024 px and the scene growing from 390 to 1440, and 11.1's film was redone. | 11.2 | 11.3, 12.1, 12.2, 13.1 | Saved time |
 | L122 | A test that proved a rule by an absence ("the answer has no `stars`") must be restated, not deleted, when a slice adds that field: assert the value is the backend's own, which is what it was proving. | 11.2 | 11.3 | Saved time |
 | L123 | `api.answer(method, path, handler)` types its reply as `Handler \| unknown`, so a handler's `request` parameter is untyped: annotate it `(request: Request)`. Playwright runs the spec anyway; only verify's type check fails. | 11.2 | | |
 | L124 | To film an entrance, undo what keeps the recorder's pictures still: it emulates reduced motion and `shot()` disables animations, and a finished CSS animation is gone from `getAnimations()`. Turn reduced motion off, restart the animation (`animation-name: none`, a reflow, then back), pause it at a time and take the screenshot with `page.screenshot`. | 11.3 | | |
 | L125 | A new Angular API can grow the main chunk though only a lazy page uses it, because `@angular/core` ships in main: `rxResource` added 6.75 kB and `toObservable` with `switchMap` 0.94 kB. Compare main's raw size with the base before committing, and prefer what the app already uses (here an `effect` that releases its subscription). | 11.3 | 12.1 | Saved time |
 | L126 | A link to a guarded screen is proved by where the guard lets it go, not by its `href`: Race Setup's guard reads the `NewRiderProgress` stand-in, so a map just opened still sends the rider to Map Select. Find this before the spec, and record the gap in the design's open questions. | 11.3 | | |
-| L127 | Await every fixture call that works in the page (`await bluetooth.remember(...)`): left unawaited, it races the next navigation and fails with "Execution context was destroyed", which is not the reason the spec should fail. Rerun the spec against the old code after fixing it. | 12.1 | | |
-| L128 | Fixtures built from every state's mock find what the stand-in hid: the veteran's 4,280 s best read 1:11:20 where the mocks write 71:20. When a stand-in gives way to real data, check its screens against the richest mock, not only the default. | 12.1 | 12.2 | Saved time |
+| L127 | Await every fixture call that works in the page (`await bluetooth.remember(...)`): left unawaited, it races the next navigation and fails with "Execution context was destroyed", which is not the reason the spec should fail. Rerun the spec against the old code after fixing it. | 12.1 | 13.1 | Saved time |
+| L128 | Fixtures built from every state's mock find what the stand-in hid: the veteran's 4,280 s best read 1:11:20 where the mocks write 71:20. When a stand-in gives way to real data, check its screens against the richest mock, not only the default. | 12.1 | 12.2, 13.1 | Saved time |
 | L129 | A screen inside the app shell scrolls its own container, so `window.scrollTo` (`bringToTop`) does nothing; bring a row into a film's picture with `locator.scrollIntoViewIfNeeded()`. | 12.1 | 12.2 | Saved time |
 | L130 | When a slice binds the last route to the real client, delete the stand-in in the same change: grep its name across `projects` and `e2e`, and remove the file and its export, so no later slice binds it by mistake. | 12.2 | | |
 | L131 | Put a new refusal in the rule check every handler already runs (`ClassPlanRules.BrokenRule`) and add one class to the stub catalogue: the existing "only the valid are listed" test then covers it as well, and the new acceptance test only adds the 404. | 12.2 | | |
+| L132 | angular-eslint's `no-output-native` refuses an output named for a DOM event (`toggle`, `change`, `close`, `select`): name it in the past tense (`toggled`) before the template binds it, and say so in the design. | 13.1 | | |
+| L133 | The unit tests' DOM has no Fullscreen API (as it has no Wake Lock); `vi.spyOn` on a getter it lacks throws "The property is not defined". Install the browser's API in the spec with `Object.defineProperty(..., { configurable: true })` and delete it after each test. | 13.1 | | |
+| L134 | When a state a requirement names has no mock (Exit full screen), add it before the code: the page, `index.html`, `manifest.json` and the coverage matrix in `docs/mocks/README.md`. | 13.1 | | |
 
 ## Log
+
+### 13.1 App header (2026-11-22)
+
+**Applied from earlier**
+
+- **L1 own worktree and install; L2 port 4310; L3 format first — saved time.**
+- **L41 spec each step first — saved time:** the two Full screen specs failed on a missing button, and three of
+  `BrowserFullscreen`'s five unit cases on a stub. The refusal and teardown cases, the no-API spec and the phone layout
+  (built by earlier slices) passed from the start and guard what follows.
+- **L127 await fixture calls — saved time:** `await bluetooth.remember(...)` in the spec's `beforeEach`.
+- **L128 the richest mock's fixtures — saved time:** the film showed a header with no streak, and the Home mocks give
+  the mid rider 4 days and the veteran 21; the fixtures now carry both.
+- **L121 film rules first; L34 render every diagram — saved time:** eight diagrams re-rendered with exit status 0.
+
+**What slowed it down**
+
+- Full screen belongs to slice 24.2 by its design and to 13.1 by its goal; 13.1 puts it in the app header, and 24.2
+  carries it to the other page headers.
+- An output named `toggle` (L132), a test DOM without the Fullscreen API (L133), and no mock of the in-full-screen state
+  (L134).
+- Home's body is still empty (slice 13.2), so the widths scene grows Map Select.
+
+**New lessons:** L132, L133, L134.
 
 ### 12.2 Open class tiers (2026-11-22)
 

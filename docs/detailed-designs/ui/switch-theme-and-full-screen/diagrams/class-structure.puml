@@ -23,20 +23,20 @@ class ThemeController <<ride>> {
 interface Fullscreen <<api>> {
   +available: Signal<boolean>
   +active: Signal<boolean>
-  +enter(): Promise<void>
-  +exit(): Promise<void>
+  +enter(): void
+  +exit(): void
 }
-class BrowserFullscreen <<ride/browser>> {
+class BrowserFullscreen <<domain/browser>> {
   -onChange(): void
 }
 class FullscreenToggle <<components>> {
   +active: InputSignal<boolean>
-  +toggle: OutputEmitterRef<void>
-  +label(): "Full screen" | "Exit full screen"
+  +toggled: OutputEmitterRef<void>
+  name: "Full screen" | "Exit full screen"
 }
 class "Page header" as Header <<ride>> {
   -fullscreen: Fullscreen
-  +onToggle(): void
+  +toggleFullscreen(): void
 }
 BrowserFullscreen ..|> Fullscreen
 Header --> Fullscreen : injects FULLSCREEN
