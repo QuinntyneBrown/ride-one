@@ -67,3 +67,8 @@ export { CURRENT_RIDER, type CurrentRider, type RiderStatus } from './riders/cur
 export { HttpRidersApi } from './riders/http-riders-api';
 export { RIDERS_API, type RiderMe, type RidersApi } from './riders/riders-api';
 export { sessionInterceptor } from './riders/session.interceptor';
+export {
+  DISPLAY_NAME_MAX_LENGTH,
+  DISPLAY_NAME_MIN_LENGTH,
+  isDisplayName,
+} from './riders/display-name';

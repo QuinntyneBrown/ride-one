@@ -18,7 +18,7 @@ Container_Boundary(api, "Telo Ride API") {
 }
 Rel(prompt, form, "Hosts")
 Rel(dialog, form, "Hosts")
-Rel(form, rule, "Checks input against")
+Rel(prompt, rule, "Checks input against, through DisplayNameStore")
 Rel(prompt, client, "Saves through DisplayNameStore")
 Rel(dialog, client, "Saves through DisplayNameStore")
 Rel(client, ctrl, "Calls", "JSON/HTTPS")

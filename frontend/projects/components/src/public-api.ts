@@ -58,3 +58,6 @@ export { Stars } from './stars/stars';
 export { SignInCodeForm } from './sign-in/sign-in-code-form';
 export { SignInForm } from './sign-in/sign-in-form';
 export { CodeEntry } from './code-entry/code-entry';
+export { DisplayNameForm } from './display-name/display-name-form';
+export { DisplayNamePrompt } from './display-name/display-name-prompt';
+export { SettingRow, type SettingRowIcon } from './setting-row/setting-row';

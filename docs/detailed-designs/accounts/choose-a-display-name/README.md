@@ -37,16 +37,18 @@ The prompt is mocked at `docs/mocks/pages/sign-in-name/`, the dialog at
   of Profile Settings. It hosts `DisplayNameForm` with the current name and the actions "Cancel"
   and "Save". On success it closes, and the CDK returns focus to the row. Escape and the close
   button cancel. Editing never happens inline on Profile.
-- **`DisplayNameStore`** (`ride`, provided by the prompt route and by the dialog) — saves through
-  `RIDERS_API`, keeps `saving` and the last `error` (`refused` for a 400 `display_name_invalid`,
-  `failed` for anything else), and tells `CURRENT_RIDER` the new name.
+- **`DisplayNameStore`** (`ride`, provided by the prompt route and by the dialog) — refuses a
+  name that breaks `isDisplayName` at once, without a request, and otherwise saves through
+  `RIDERS_API`; it keeps `saving`, the last `error` (`refused` for either refusal, `failed` for
+  anything else) and a count of `refusals`, and tells `CURRENT_RIDER` the new name.
 - **`DisplayNameForm`** (`wz-display-name-form`, `components` library) — presentation component
   with one field, the rule as a hint and its actions: "Continue" as a block button on the prompt,
   "Cancel" and "Save" in the dialog. The primary button stays `disabled` while the trimmed value is
-  empty. It checks the value with `isDisplayName` before emitting `submitted`; a name that breaks
-  the rule, here or refused by the backend, marks the field `aria-invalid="true"` and puts "Use 2
-  to 24 characters: letters, digits, spaces, . _ and -." under it as an alert. A failed save shows
-  "We couldn't save your name. Check your connection and try again."
+  empty, and it emits the trimmed name as `submitted`. Each new refusal (`refusals`) marks the
+  field `aria-invalid="true"` and puts "Use 2 to 24 characters: letters, digits, spaces, . _ and
+  -." under it as an alert, until the name is changed. A failed save shows "We couldn't save your
+  name. Check your connection and try again." It holds no rule itself: `components` takes only
+  types from `api`.
 - **`SettingRow`** (`a[wz-setting-row]`, `button[wz-setting-row]`, `components` library) — one row
   of Profile's Settings: an icon, a title, a line under it and a chevron.
 - **`ProfilePage`** (`/profile`) — in this slice, the headline "Sam · Level 1" and the Settings
@@ -138,5 +140,12 @@ as text (`L2-005` AC3, AC4).
 - **What another rider sees (`L2-005` AC5).** `RiderCard` waits for the first screen that shows
   another rider. Until then the only rider the API returns is the signed-in one (`GET
   /api/riders/me`), which carries no email.
+- **Initial bundle.** The dialog is the first CDK Dialog in the app. Its own code loads with
+  Profile, but the parts of Angular's core and of RxJS it first uses (the overlay's scroll
+  scheduling: `auditTime`, the async scheduler) are placed in the shared core chunk, which is
+  initial: 292.60 kB became 300.29 kB. The warning budget rises from 296 kB to 304 kB and the
+  error budget from 300 kB to 310 kB for it. A screen in place of the dialog would have saved it
+  for now, but `AGENTS.md` asks for a CDK Dialog and slice 9.4's delete-account confirmation needs
+  one.
 - **Rendered as text (`L2-005` AC4).** Angular interpolation escapes text, and no template binds a
   name to `innerHTML`; the rule's characters cannot form markup either.

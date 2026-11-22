@@ -35,8 +35,8 @@ note over page : The code screen opens /sign-in/name when the confirmed rider ha
 page --> actor : "What should other riders call you?" (L2-005 AC1)
 form --> actor : Continue disabled while the field is empty
 actor -> form : Type "Sam", choose Continue
-form -> form : DisplayNamePolicy.check (trimmed, 2 to 24, allowed characters)
 form -> page : submitted("Sam")
+page -> page : DisplayNameStore: isDisplayName (trimmed, 2 to 24, allowed characters);\na name that breaks it is refused here, with no request
 page -> client : setDisplayName("Sam")
 client -> ctrl : PUT /api/riders/me/display-name
 ctrl -> handler : SetDisplayNameCommand

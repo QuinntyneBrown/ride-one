@@ -17,10 +17,11 @@ import { SignInPage } from './pages/sign-in.page';
 
 const EMAIL = 'ada.rider@example.com';
 const CONFIRM = '/api/auth/code/confirm';
+// A returning rider with a name: one with none is asked for it first (display-name.spec.ts).
 const confirmed = {
   riderId: '3f2b8c1e-0d6a-4c8e-9b1f-5a7d2e9c4b10',
-  displayName: null,
-  isNewAccount: true,
+  displayName: 'Ada',
+  isNewAccount: false,
 };
 const refused = (code: string) => () => ({
   status: 400,
@@ -41,7 +42,7 @@ test.describe('Stay signed in: confirm the code', () => {
     api.answer('GET', '/api/classes', catalogue);
     api.answer('POST', CONFIRM, (request: Request) => {
       sent.push(request.postDataJSON());
-      api.answer('GET', '/api/riders/me', { id: confirmed.riderId, displayName: null });
+      api.answer('GET', '/api/riders/me', { id: confirmed.riderId, displayName: 'Ada' });
       return { status: 200, body: confirmed };
     });
     const library = new ClassLibraryPage(page);
