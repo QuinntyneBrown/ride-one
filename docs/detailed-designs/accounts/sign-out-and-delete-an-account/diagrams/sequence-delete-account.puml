@@ -18,9 +18,8 @@ actor "Rider" as actor
 box "Frontend — Ride app" #E0F2FE
   participant "ProfilePage" as page
   participant "DeleteAccountDialog" as dialog
+  participant "AccountStore" as current
   participant "HttpRidersApi" as client
-  participant "CurrentRiderStore" as current
-  participant "RideOutbox" as outbox
 end box
 box "Backend — Telo.Ride.Api" #D1FADF
   participant "RidersController" as ctrl
@@ -39,19 +38,20 @@ page -> dialog : Open
 dialog --> actor : Removes email, display name, progress and ride history; type "delete" (L2-006 AC2)
 dialog --> actor : "Delete my account" disabled until "delete" is typed
 actor -> dialog : Type "delete", confirm
-dialog -> client : deleteMe()
-client -> ctrl : DELETE /api/riders/me (anti-forgery token)
+dialog -> current : deleteAccount()
+current -> client : deleteMe()
+client -> ctrl : DELETE /api/riders/me (SameSite=Lax session cookie)
 ctrl -> handler : Send DeleteAccountCommand
-handler -> rider : RequestDeletion(now): detach email, hide display name
-handler -> db : End every RiderSession, save in one unit of work
+handler -> rider : RequestDeletion(now): remove the email and the display name
+handler -> db : End every RiderSession, remove the email's sign-in codes,\nsave in one unit of work
 handler -> ctrl : Done
 ctrl --> client : 204, clear the session cookie
-client --> dialog : Deleted
-dialog -> current : accountDeleted()
-current -> outbox : clear() the account's waiting rides
-current --> actor : Sign-in screen with an account-deleted message (L2-006 AC3)
-== Within 30 days ==
+client --> current : Deleted
+current -> current : CURRENT_RIDER.signedOut()
+current --> dialog : true
+dialog --> actor : Close; sign-in opens with "Your account was deleted.\nIts personal data is erased within 30 days." (L2-006 AC3)
+== Once a day, so within 30 days ==
 job -> erase : Send ErasePendingAccountsCommand
-erase -> db : Delete personal data, progress and rides of riders due for erasure
+erase -> db : Delete each rider whose deletion was requested, with its sessions
 note over rider : The same email signing in again finds no rider\nand gets a new, empty account (L2-006 AC4)
 @enduml

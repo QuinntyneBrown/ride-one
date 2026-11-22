@@ -15,45 +15,47 @@ skinparam class {
 title Class structure — Sign out and delete an account
 package "ride application" {
   class DeleteAccountDialog {
-    +confirmation: Signal<string>
-    +canDelete: Signal<boolean>
-    +deleting: Signal<boolean>
     +delete(): Promise<void>
   }
-  class CurrentRiderStore {
+  class AccountStore {
+    +signingOut: Signal<boolean>
+    +signOutFailed: Signal<boolean>
+    +deleting: Signal<boolean>
+    +deleteFailed: Signal<boolean>
     +signOut(): Promise<void>
-    +accountDeleted(): Promise<void>
+    +deleteAccount(): Promise<boolean>
+  }
+}
+package "components library" {
+  class DeleteAccountForm {
+    +deleting: input<boolean>
+    +failed: input<boolean>
+    +confirmed: output<void>
+    +cancelled: output<void>
   }
 }
 package "api library" {
   interface AuthApi {
-    +signOut(): Promise<void>
+    +signOut(): Observable<void>
   }
   interface RidersApi {
-    +deleteMe(): Promise<void>
+    +deleteMe(): Observable<void>
+  }
+  interface CurrentRider {
+    +signedOut(): void
   }
 }
-package "domain library (storage)" {
-  class RideOutbox {
-    +clear(): Promise<void>
-  }
-}
-DeleteAccountDialog --> RidersApi : RIDERS_API
-DeleteAccountDialog --> CurrentRiderStore
-CurrentRiderStore --> AuthApi : AUTH_API
-CurrentRiderStore --> RideOutbox
+DeleteAccountDialog --> DeleteAccountForm
+DeleteAccountDialog --> AccountStore
+AccountStore --> AuthApi : AUTH_API
+AccountStore --> RidersApi : RIDERS_API
+AccountStore --> CurrentRider : CURRENT_RIDER
 package "Telo.Ride.Application" {
-  class SignOutCommand
-  class SignOutCommandHandler {
-    +Handle(command: SignOutCommand): Task
-  }
   class DeleteAccountCommand
   class DeleteAccountCommandHandler {
     +Handle(command: DeleteAccountCommand): Task
   }
-  class ErasePendingAccountsCommand {
-    +DateTimeOffset Now
-  }
+  class ErasePendingAccountsCommand
   class ErasePendingAccountsCommandHandler {
     +Handle(command: ErasePendingAccountsCommand): Task<int>
   }
@@ -61,11 +63,10 @@ package "Telo.Ride.Application" {
 package "Telo.Ride.Domain" {
   class Rider {
     +Guid Id
-    +EmailAddress? Email
-    +DisplayName? DisplayName
+    +string? Email
+    +string? DisplayName
     +DateTimeOffset? DeletionRequestedAt
     +RequestDeletion(now: DateTimeOffset): void
-    +IsDueForErasure(now: DateTimeOffset): bool
   }
   class RiderSession {
     +Guid RiderId
@@ -73,16 +74,20 @@ package "Telo.Ride.Domain" {
     +End(now: DateTimeOffset): void
   }
 }
+package "Telo.Ride.Api" {
+  class RiderSessionTicketStore <<ITicketStore>> {
+    +RemoveAsync(key: string): Task
+  }
+}
 package "Telo.Ride.Infrastructure" {
   class AccountErasureService <<BackgroundService>>
 }
-SignOutCommandHandler ..> SignOutCommand : handles
+RiderSessionTicketStore --> RiderSession : ends current
 DeleteAccountCommandHandler ..> DeleteAccountCommand : handles
 ErasePendingAccountsCommandHandler ..> ErasePendingAccountsCommand : handles
-SignOutCommandHandler --> RiderSession : ends current
 DeleteAccountCommandHandler --> Rider : RequestDeletion
 DeleteAccountCommandHandler --> RiderSession : ends all
-ErasePendingAccountsCommandHandler --> Rider : erases due
+ErasePendingAccountsCommandHandler --> Rider : erases those requested
 AccountErasureService ..> ErasePendingAccountsCommand : sends
 Rider "1" --> "*" RiderSession
 @enduml
