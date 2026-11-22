@@ -1,6 +1,5 @@
 import type { Routes } from '@angular/router';
-import { PROGRESS_API } from '@telo/api';
-import { NewRiderProgress } from '@telo/domain';
+import { HttpProgressApi, PROGRESS_API } from '@telo/api';
 import { provideClasses } from '../classes/provide-classes';
 
 /**
@@ -14,8 +13,8 @@ export const classLibraryRoutes: Routes = [
     title: 'Classes · Telo Ride',
     providers: [
       provideClasses(),
-      // The rider level, until the backend keeps progress (journey 10).
-      { provide: PROGRESS_API, useClass: NewRiderProgress },
+      // The rider level, from the backend, which opens each class tier (L2-043, L2-044).
+      { provide: PROGRESS_API, useClass: HttpProgressApi },
     ],
     loadComponent: () => import('./class-library-page'),
   },
