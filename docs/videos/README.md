@@ -57,6 +57,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 12.2 | [Open class tiers](12-2-open-class-tiers/README.md) | 1:52 | The backend leaves out a class whose tier is not 1, 5, 10 or 20; the Class Library and Class Start read the rider's level from GET /api/progress: three classes open at level 1, Tempo Paceline at level 7, all but the level-20 class at level 18 |
 | 13.1 | [App header](13-1-app-header/README.md) | 1:50 | Full screen at the end of the app header, Exit full screen while in it, absent without the Fullscreen API; each shell page marks its own item; the phone's own row of navigation |
 | 13.2 | [Choose the next ride](13-2-home-next-ride/README.md) | 2:06 | Home's greeting by the time of day or a new rider's welcome; the Next ride card for the mid rider, a new rider, a level goal and every map open; the Race door's counts and tiles; the Classes door's featured class with Ride alone; the gold banner shown once |
+| 13.3 | [Show the profile](13-3-show-the-profile/README.md) | 1:51 | Profile's headline with the level, an XP bar named by the XP, the rides, kilometres and streak, for the mid rider and a new rider; Settings with the bike and its state, Ride settings and Custom workout before the account rows; No bike yet to Connect Bike |
 
 ## What every video is
 

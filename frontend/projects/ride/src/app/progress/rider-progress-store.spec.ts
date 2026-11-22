@@ -18,6 +18,8 @@ describe('RiderProgressStore', () => {
     bestTimeSeconds: {},
     nextRideMapId: 'prairie-paceline',
     unseenUnlockId: null,
+    rideCount: 0,
+    distanceKm: 0,
   };
   let answer: () => Observable<ProgressDto>;
   let reads: number;

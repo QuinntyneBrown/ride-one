@@ -3,7 +3,7 @@ import { newRiderProgress } from './api';
 /**
  * The mid rider of docs/mocks/pages/map-select/default.html (L2-041 AC2): level 7, Prairie Paceline, Old Town Criterium
  * and Cliffside Coast open with 3, 1 and 1 stars and bests of 31:42, 27:10 and 58:03, Neon Docklands next, and the
- * 4-day streak of docs/mocks/pages/home/default.html (L2-032 AC2).
+ * 4-day streak of docs/mocks/pages/home/default.html (L2-032 AC2), with Profile's 23 rides and 412 km (L2-109 AC1).
  */
 export const midRiderProgress = {
   ...newRiderProgress,
@@ -20,6 +20,8 @@ export const midRiderProgress = {
     'cliffside-coast': 3483,
   },
   nextRideMapId: 'old-town-criterium',
+  rideCount: 23,
+  distanceKm: 412,
 };
 
 /**
@@ -58,6 +60,8 @@ export const veteranProgress = {
     'vice-city': 2324,
   },
   nextRideMapId: 'dolomites',
+  rideCount: 146,
+  distanceKm: 3870,
 };
 
 /** A new rider once a top-3 bots race on Old Town Criterium opened Neon Docklands (L2-040 AC2). */

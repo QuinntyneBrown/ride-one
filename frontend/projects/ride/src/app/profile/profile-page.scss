@@ -16,43 +16,6 @@
   min-width: 0;
 }
 
-// Block profile-level: the level disc beside the headline.
-.profile-level {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-6);
-}
-
-.profile-level__badge {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: var(--space-24);
-  height: var(--space-24);
-  border-radius: var(--radius-full);
-  background: var(--color-gold);
-  color: var(--color-on-fill);
-  font-family: var(--font-family-display);
-  font-weight: var(--font-weight-bold);
-  font-feature-settings: 'tnum' 1;
-  font-size: var(--font-size-5xl);
-  line-height: var(--line-height-none);
-}
-
-.profile-level__body {
-  min-width: 0;
-  flex: 1;
-  overflow-wrap: anywhere;
-}
-
-.profile-level__meta {
-  margin-top: var(--space-2);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-sm);
-  color: var(--color-muted);
-}
-
 // Block settings: the aside's title and its ruled list of rows.
 .settings__title {
   font-size: var(--font-size-sm);

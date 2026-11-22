@@ -63,15 +63,19 @@ export const newRiderProgress = {
   bestTimeSeconds: {},
   nextRideMapId: 'prairie-paceline',
   unseenUnlockId: null,
+  rideCount: 0,
+  distanceKm: 0,
 };
 
-/** The mocks' mid rider (L2-032 AC2): level 7 with 1,840 of 2,600 XP, on a 4-day streak. */
+/** The mocks' mid rider (L2-032 AC2): level 7 with 1,840 of 2,600 XP, on a 4-day streak, with 23 rides and 412 km. */
 export const midRiderProgress = {
   ...newRiderProgress,
   level: 7,
   totalXp: 1840,
   nextLevelXp: 2600,
   streakDays: 4,
+  rideCount: 23,
+  distanceKm: 412,
 };
 
 /** The rider every spec is signed in as, unless it calls `signedOut()` (L2-004). */

@@ -7,6 +7,10 @@
   background: var(--color-raised);
 }
 
+:host(.xp-bar--lg) {
+  height: var(--space-2);
+}
+
 .xp-bar__fill {
   display: block;
   height: 100%;

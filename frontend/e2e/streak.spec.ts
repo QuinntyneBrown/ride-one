@@ -25,7 +25,7 @@ test.describe('Streak', () => {
 
       const profile = new ProfilePage(page);
       await home.header.link('Profile').click();
-      await expect(profile.meta).toHaveText('760 XP to level 8 · 4-day streak');
+      await expect(profile.meta).toHaveText('760 XP to level 8 · 23 rides · 412 km · 4-day streak');
       await expect(profile.header.streakCount).toHaveText('4');
     },
   );
@@ -36,7 +36,7 @@ test.describe('Streak', () => {
     const profile = new ProfilePage(page);
     await profile.open();
 
-    await expect(profile.meta).toHaveText('400 XP to level 2 · 0-day streak');
+    await expect(profile.meta).toHaveText('400 XP to level 2 · 0 rides · 0 km · 0-day streak');
     await expect(profile.header.level).toBeVisible();
     await expect(profile.header.streak).toHaveCount(0);
   });

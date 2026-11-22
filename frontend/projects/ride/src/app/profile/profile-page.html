@@ -1,22 +1,43 @@
 <main id="main" class="container page profile" tabindex="-1">
   <div class="profile__main">
-    <section class="profile-level">
-      @if (level(); as level) {
-        <span class="profile-level__badge" aria-hidden="true">{{ level }}</span>
-      }
-      <div class="profile-level__body">
-        <h1 class="page__title">
-          {{ headline() }}
-        </h1>
-        @if (meta(); as meta) {
-          <p class="profile-level__meta">{{ meta }}</p>
-        }
-      </div>
-    </section>
+    <wz-profile-level
+      [headline]="headline()"
+      [level]="level()"
+      [xpLabel]="xp()?.label ?? null"
+      [fillPercent]="xp()?.fillPercent ?? 0"
+      [meta]="meta()"
+    />
   </div>
   <aside class="settings" aria-labelledby="settings">
     <h2 class="settings__title" id="settings">Settings</h2>
     <ul class="settings__list">
+      <li>
+        <a
+          wz-setting-row
+          routerLink="/connect"
+          icon="bike"
+          [title]="bike().title"
+          [body]="bike().body"
+        ></a>
+      </li>
+      <li>
+        <a
+          wz-setting-row
+          routerLink="/settings"
+          icon="settings"
+          title="Ride settings"
+          body="Quality, sound and display"
+        ></a>
+      </li>
+      <li>
+        <a
+          wz-setting-row
+          routerLink="/profile/custom"
+          icon="workout"
+          title="Custom workout"
+          body="Build your own intervals"
+        ></a>
+      </li>
       <li>
         <button
           wz-setting-row

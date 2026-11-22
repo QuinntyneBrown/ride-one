@@ -1,26 +1,36 @@
 import { Dialog, type DialogConfig } from '@angular/cdk/dialog';
 import { Overlay } from '@angular/cdk/overlay';
 import { ChangeDetectionStrategy, Component, Injector, computed, inject } from '@angular/core';
-import { CURRENT_RIDER, PROGRESS_STORE } from '@telo/api';
-import { InlineMessage, SettingRow } from '@telo/components';
+import { RouterLink } from '@angular/router';
+import {
+  BIKE_CONNECTION,
+  BLUETOOTH_SUPPORT,
+  CURRENT_RIDER,
+  PROGRESS_STORE,
+  REMEMBERED_BIKE,
+} from '@telo/api';
+import { InlineMessage, ProfileLevel, SettingRow } from '@telo/components';
 import { AccountStore } from './account-store';
 import { DeleteAccountDialog } from './delete-account-dialog';
-import { profileMeta } from '../progress/profile-meta';
+import { toLevelView } from '../progress/level-view';
+import { profileMeta, profileXpLabel } from '../progress/profile-meta';
 import { DisplayNameDialog } from './display-name-dialog';
+import { bikeRow } from './bike-row';
 
 /**
  * Profile (docs/mocks/pages/profile/): in slice 9.3, the headline with the rider's display name and level ("Sam ·
  * Level 1", L2-005 AC3), the level from the progress the header shows (slice 10.3), the XP to the next level and the
  * streak under it (slice 10.4), and Settings, whose Display name row changes the name in a dialog, and whose Sign out and
- * Delete my account rows end the session or delete the account (slice 9.4, L2-006). Slice 13.3 adds the XP bar, maps,
- * recent rides and the other Settings rows.
+ * Delete my account rows end the session or delete the account (slice 9.4, L2-006). Slice 13.3 draws the headline
+ * through `ProfileLevel`, with the XP bar and the rides and kilometres, and adds the bike, Ride settings and Custom
+ * workout rows.
  */
 @Component({
   selector: 'wz-profile-page',
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [InlineMessage, SettingRow],
+  imports: [RouterLink, InlineMessage, ProfileLevel, SettingRow],
 })
 export default class ProfilePage {
   private readonly currentRider = inject(CURRENT_RIDER);
@@ -30,10 +40,32 @@ export default class ProfilePage {
   protected readonly account = inject(AccountStore);
 
   private readonly progress = inject(PROGRESS_STORE);
+  private readonly connection = inject(BIKE_CONNECTION);
+  private readonly support = inject(BLUETOOTH_SUPPORT);
+  private readonly remembered = inject(REMEMBERED_BIKE).get();
+
+  /**
+   * The bike row (L2-112 AC1, AC2). It goes to Connect Bike: with no bike, to pair one; with one, until slice 25.1's
+   * Diagnostics dialog takes its place.
+   */
+  protected readonly bike = computed(() =>
+    bikeRow(
+      this.connection.ble(),
+      this.support.state(),
+      (this.connection.bike() ?? this.remembered)?.name ?? null,
+    ),
+  );
 
   /** The rider's level, unknown until the progress arrives. */
   protected readonly level = computed(() => this.progress.progress()?.level ?? null);
-  /** "760 XP to level 8 · 4-day streak", once the progress arrives. */
+  /** The XP bar's name and fill, once the progress arrives (L2-109 AC1). */
+  protected readonly xp = computed(() => {
+    const progress = this.progress.progress();
+    return progress === null
+      ? null
+      : { label: profileXpLabel(progress), fillPercent: toLevelView(progress).fillPercent };
+  });
+  /** "760 XP to level 8 · 23 rides · 412 km · 4-day streak", once the progress arrives. */
   protected readonly meta = computed(() => {
     const progress = this.progress.progress();
     return progress === null ? null : profileMeta(progress);

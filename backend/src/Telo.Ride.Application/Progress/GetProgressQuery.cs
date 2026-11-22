@@ -12,7 +12,8 @@ namespace Telo.Ride.Application.Progress;
 /// The rider's standing (L2-032 AC2): their level, total XP and the next level's threshold, null at level 30 (L2-038),
 /// their streak as it reads today in their time zone (L2-042), and their maps: those open, in unlock order (L2-040), the
 /// next unlock (L2-041), and the stars held and best time in seconds on each map ridden (L2-039); and for Home, the map
-/// the Next ride card offers (L2-033) and the map a ride opened that Home has not announced yet, if any (L2-036).
+/// the Next ride card offers (L2-033) and the map a ride opened that Home has not announced yet, if any (L2-036); and for
+/// Profile, how many rides they have recorded and the kilometres those rides covered, to the nearest whole (L2-109).
 /// </summary>
 public sealed record ProgressDto(
     int Level,
@@ -24,7 +25,9 @@ public sealed record ProgressDto(
     IReadOnlyDictionary<string, int> Stars,
     IReadOnlyDictionary<string, int> BestTimeSeconds,
     string NextRideMapId,
-    string? UnseenUnlockId);
+    string? UnseenUnlockId,
+    int RideCount,
+    int DistanceKm);
 
 /// <summary>Reads the signed-in rider's progress (L2-044 AC1).</summary>
 public sealed record GetProgressQuery(Guid RiderId) : IRequest<ProgressDto>;
@@ -47,6 +50,9 @@ public sealed class GetProgressQueryHandler(IAppDbContext db, IMapCatalogue maps
         var order = maps.Maps.Select(map => (map.Id, map.Unlock)).ToList();
         var opened = onMaps.Values.Where(known => known.OpenedAt is not null).Select(known => known.MapId).ToHashSet();
         var ridden = order.Where(map => onMaps.ContainsKey(map.Id)).Select(map => onMaps[map.Id]).ToList();
+        var rides = db.Rides.AsNoTracking().Where(ride => ride.RiderId == request.RiderId);
+        var rideCount = await rides.CountAsync(cancellationToken);
+        var meters = await rides.SumAsync(ride => ride.DistanceMeters, cancellationToken);
         return new(
             progress.Level,
             progress.TotalXp,
@@ -63,6 +69,8 @@ public sealed class GetProgressQueryHandler(IAppDbContext db, IMapCatalogue maps
                 onMaps.Values.Where(known => known.OpenedAt is not null).ToDictionary(known => known.MapId, known => known.OpenedAt!.Value),
                 ridden.ToDictionary(known => known.MapId, known => BitOperations.PopCount((uint)known.Stars))),
             onMaps.Values.Where(known => known.OpenedAt is not null && known.UnlockSeenAt is null)
-                .MaxBy(known => known.OpenedAt)?.MapId);
+                .MaxBy(known => known.OpenedAt)?.MapId,
+            rideCount,
+            (int)Math.Round(meters / 1000, MidpointRounding.AwayFromZero));
     }
 }

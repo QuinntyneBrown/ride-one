@@ -55,6 +55,8 @@ const progress = (changes: Partial<ProgressDto>): ProgressDto => ({
   bestTimeSeconds: { 'old-town-criterium': 1630 },
   nextRideMapId: 'old-town-criterium',
   unseenUnlockId: null,
+  rideCount: 0,
+  distanceKm: 0,
   ...changes,
 });
 
