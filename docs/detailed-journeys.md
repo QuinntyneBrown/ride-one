@@ -52,7 +52,7 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 11.3 | Celebrate an unlock | Unlock moment for a new map or tier. | 2 | 11. See results | 100% |
 | 12.1 | Earn stars and unlock maps | Race times earn up to three stars per map; enough stars unlock the next maps. | 3 | 12. Unlock maps and class tiers | 100% |
 | 12.2 | Open class tiers | Rider levels open longer class tiers (20, 30 and 60 minutes) in the class library. | 2 | 12. Unlock maps and class tiers | 100% |
-| 13.1 | App header | Wordmark, navigation, level and full screen on every page. | 2 | 13. Choose the next ride | 0% |
+| 13.1 | App header | Wordmark, navigation, level and full screen on every page. | 2 | 13. Choose the next ride | 100% |
 | 13.2 | Home next ride | Home suggests the next race or class from the rider's progress, with both doors one tap away. | 2 | 13. Choose the next ride | 0% |
 | 13.3 | Show the profile | Profile shows rider level, XP, streak and the settings rows (bike, ride settings, custom workout). | 1 | 13. Choose the next ride | 0% |
 | 14.1 | Connect to the ride hub | SignalR client behind a token: connects only when needed, measures the server clock offset and reconnects after drops. | 3 | 14. Ride a class with a group | 0% |
@@ -103,4 +103,4 @@ slice is merged into `telo-ride`; each slice sets its own row, and the total, wh
 | 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
 | 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
 
-**Total:** 95 slices, 238 days. **Complete:** 45 slices, 118 days (50%).
+**Total:** 95 slices, 238 days. **Complete:** 46 slices, 120 days (50%).
