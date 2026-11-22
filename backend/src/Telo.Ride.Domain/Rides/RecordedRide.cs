@@ -1,3 +1,5 @@
+using Telo.Ride.Domain.Maps;
+
 namespace Telo.Ride.Domain.Rides;
 
 /// <summary>
@@ -47,6 +49,18 @@ public sealed class RecordedRide
 
     /// <summary>The rider's total XP once this ride was added, part of the same answer.</summary>
     public int TotalXp { get; init; }
+
+    /// <summary>A race's stars held on its map once it was recorded, and those it earned (L2-075); none for a class.</summary>
+    public MapStar? StarsHeld { get; init; }
+
+    public MapStar? StarsEarned { get; init; }
+
+    /// <summary>A race's best time on its map once it was recorded, the best before it, and whether it set a new one (L2-077).</summary>
+    public int? BestSeconds { get; init; }
+
+    public int? PreviousBestSeconds { get; init; }
+
+    public bool IsNewBest { get; init; }
 
     /// <summary>When the ride ended on the device, and the device's IANA time zone for the rider's local day.</summary>
     public required DateTimeOffset FinishedAt { get; init; }

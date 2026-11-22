@@ -43,6 +43,21 @@ public static class RideBodies
         return ride;
     }
 
+    /// <summary>
+    /// Old Town Criterium's 14.2 km in <paramref name="seconds"/>, at the one speed that covers it in that time, with the
+    /// other facts of <see cref="Race"/> changed as given.
+    /// </summary>
+    public static Dictionary<string, object?> RaceIn(Guid rideId, int seconds, params (string Fact, object? Value)[] changes)
+    {
+        var kmh = 14_200.0 / seconds * 3.6;
+        return Race(rideId, [
+            ("elapsedSeconds", seconds),
+            ("maxSpeedKmh", kmh),
+            ("speedSamplesKmh", Enumerable.Repeat(kmh, seconds).ToArray()),
+            .. changes,
+        ]);
+    }
+
     /// <summary>The 20-minute Power Intervals class, half of it on target: no distance and no speed samples.</summary>
     public static Dictionary<string, object?> Class(Guid rideId) => new()
     {

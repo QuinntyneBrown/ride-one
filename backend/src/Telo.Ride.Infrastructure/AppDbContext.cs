@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Telo.Ride.Application;
 using Telo.Ride.Domain.Accounts;
+using Telo.Ride.Domain.Maps;
 using Telo.Ride.Domain.Rides;
 
 namespace Telo.Ride.Infrastructure;
@@ -17,6 +18,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<RiderSession> RiderSessions => Set<RiderSession>();
 
     public DbSet<RecordedRide> Rides => Set<RecordedRide>();
+
+    public DbSet<MapProgress> MapProgress => Set<MapProgress>();
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -70,7 +73,17 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                     (left, right) => left!.SequenceEqual(right!),
                     lines => lines.Aggregate(0, (hash, line) => HashCode.Combine(hash, line)),
                     lines => lines.ToList()));
+            ride.Property(r => r.StarsHeld).HasConversion<int?>();
+            ride.Property(r => r.StarsEarned).HasConversion<int?>();
             ride.HasOne<Rider>().WithMany().HasForeignKey(r => r.RiderId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<MapProgress>(progress =>
+        {
+            // One row for each rider and map: the stars held, as flags, and the best time.
+            progress.HasKey(p => new { p.RiderId, p.MapId });
+            progress.Property(p => p.MapId).HasMaxLength(64);
+            progress.Property(p => p.Stars).HasConversion<int>();
+            progress.HasOne<Rider>().WithMany().HasForeignKey(p => p.RiderId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
