@@ -37,16 +37,35 @@ public sealed record SubmitRideRequest(
 
 /// <summary>
 /// What the backend answers for a recorded ride, the same for every repeat of its ride id (L2-125 AC3): its XP line by
-/// line and in all, and the rider's total XP once it was added (L2-037).
+/// line and in all, the rider's total XP once it was added (L2-037), the level that total reaches, whether the ride
+/// took it there, and the next level's threshold and the XP to it, both null at level 30 (L2-038).
 /// </summary>
-public sealed record RideRecordedDto(Guid RideId, DateTimeOffset RecordedAt, IReadOnlyList<XpLineDto> XpLines, int XpTotal, int TotalXp)
+public sealed record RideRecordedDto(
+    Guid RideId,
+    DateTimeOffset RecordedAt,
+    IReadOnlyList<XpLineDto> XpLines,
+    int XpTotal,
+    int TotalXp,
+    int Level,
+    bool LevelUp,
+    int? NextLevelXp,
+    int? XpToNextLevel)
 {
-    public static RideRecordedDto From(RecordedRide ride) => new(
-        ride.Id,
-        ride.RecordedAt,
-        [.. ride.XpLines.Select(line => new XpLineDto(JsonNamingPolicy.CamelCase.ConvertName(line.Kind.ToString()), line.Label, line.Xp))],
-        ride.XpLines.Sum(line => line.Xp),
-        ride.TotalXp);
+    public static RideRecordedDto From(RecordedRide ride)
+    {
+        var xpTotal = ride.XpLines.Sum(line => line.Xp);
+        var progress = LevelTable.Progress(ride.TotalXp);
+        return new(
+            ride.Id,
+            ride.RecordedAt,
+            [.. ride.XpLines.Select(line => new XpLineDto(JsonNamingPolicy.CamelCase.ConvertName(line.Kind.ToString()), line.Label, line.Xp))],
+            xpTotal,
+            ride.TotalXp,
+            progress.Level,
+            progress.Level > LevelTable.LevelFor(ride.TotalXp - xpTotal),
+            progress.NextThresholdXp,
+            progress.XpToNext);
+    }
 }
 
 /// <summary>One XP line: its kind (<c>finished</c>, <c>place</c>, <c>podium</c>, <c>onTarget</c>, <c>streak</c>), label and XP.</summary>
