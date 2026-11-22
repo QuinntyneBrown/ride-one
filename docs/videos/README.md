@@ -46,6 +46,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 9.2 | [Verify and stay signed in](09-2-verify-and-stay-signed-in/README.md) | 2:04 | Six digits confirm at once, typed or pasted; wrong, expired and locked codes refused; a year-long sliding session in an HttpOnly cookie; every screen sends a visitor to sign-in and back; an unreachable backend never blocks; seven backend and nine behaviour specs |
 | 9.3 | [Choose a display name](09-3-choose-a-display-name/README.md) | 1:54 | A new account is asked for a display name before going on; 2 to 24 characters, said plainly; one rule kept by the backend; Profile's headline and a Settings dialog that changes it; backend tests and nine behaviour specs |
 | 9.4 | [Sign out and delete account](09-4-sign-out-and-delete-account/README.md) | 1:54 | Sign out ends this device's session at once, or says it couldn't; Delete my account waits for "delete", ends every session, frees the email and is erased within a day; sign-in says so; seven backend and six behaviour specs |
+| 10.1 | [Record a ride](10-1-record-a-ride/README.md) | 1:43 | A finished race or class submits its facts as it ends; the backend records each ride id once, answers a repeat with the first answer, and refuses a ride no one could ride with 422; 42 backend cases and three behaviour specs |
 
 ## What every video is
 
