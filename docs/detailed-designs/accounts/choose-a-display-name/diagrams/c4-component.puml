@@ -11,7 +11,6 @@ Container_Boundary(app, "Ride app") {
 }
 Container_Boundary(api, "Telo Ride API") {
   Component(ctrl, "RidersController", "ASP.NET Core controller · Telo.Ride.Api", "PUT /api/riders/me/display-name")
-  Component(validator, "SetDisplayNameCommandValidator", "FluentValidation · Telo.Ride.Application", "Applies the display-name rule")
   Component(handler, "SetDisplayNameCommandHandler", "MediatR handler · Telo.Ride.Application", "Renames the current rider")
   Component(rider, "Rider / DisplayName", "Domain entity and value object · Telo.Ride.Domain", "Owns the name rule")
   Component(card, "RiderCard", "Read model · Telo.Ride.Application", "Name, country code, level; never the email")
@@ -20,11 +19,10 @@ Container_Boundary(api, "Telo Ride API") {
 Rel(prompt, form, "Hosts")
 Rel(dialog, form, "Hosts")
 Rel(form, rule, "Checks input against")
-Rel(prompt, client, "Saves through")
-Rel(dialog, client, "Saves through")
+Rel(prompt, client, "Saves through DisplayNameStore")
+Rel(dialog, client, "Saves through DisplayNameStore")
 Rel(client, ctrl, "Calls", "JSON/HTTPS")
 Rel(ctrl, handler, "Sends SetDisplayNameCommand")
-Rel(validator, handler, "Runs before")
 Rel(handler, rider, "Renames")
 Rel(handler, db, "Persists", "EF Core")
 Rel(card, rider, "Projects")

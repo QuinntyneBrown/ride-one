@@ -67,6 +67,27 @@
       }
     },
     {
+      "id": "sign-in-name",
+      "kind": "page",
+      "title": "Display name prompt",
+      "route": "/sign-in/name",
+      "requirements": [
+        "L2-005"
+      ],
+      "states": [
+        "default",
+        "ready",
+        "invalid",
+        "saving",
+        "failed"
+      ],
+      "not_applicable": {
+        "empty": "‘default’ is the empty field, with Continue disabled.",
+        "loading": "The screen loads nothing; it waits for a name.",
+        "error": "The failures are their own states: invalid and failed."
+      }
+    },
+    {
       "id": "connect-bike",
       "kind": "page",
       "title": "Connect Bike",
@@ -389,6 +410,7 @@
       "title": "Profile",
       "route": "/profile",
       "requirements": [
+        "L2-005",
         "L2-038",
         "L2-042",
         "L2-109",
@@ -580,6 +602,24 @@
       "not_applicable": {
         "busy": "‘sending’ is the busy state.",
         "invalid": "The design draws no invalid state: Send stays disabled until there is a message."
+      }
+    },
+    {
+      "id": "display-name",
+      "kind": "dialog",
+      "title": "Display name",
+      "opens_from": "profile",
+      "requirements": [
+        "L2-005"
+      ],
+      "states": [
+        "default",
+        "invalid",
+        "saving"
+      ],
+      "not_applicable": {
+        "busy": "‘saving’ is the busy state.",
+        "error": "A failed save shows the prompt’s ‘failed’ message under the field."
       }
     }
   ]

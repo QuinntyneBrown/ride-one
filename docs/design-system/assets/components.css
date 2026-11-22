@@ -3274,3 +3274,8 @@ a.map-table__map:hover, a.map-table__map[data-state="hover"] { color: var(--colo
 .code-entry:has(.code-entry__input[aria-invalid="true"]) .code-entry__cells { height: var(--control-height-xl); }
 .code-entry__input[aria-invalid="true"] + .code-entry__cells .code-entry__cell { box-shadow: 0 0 0 1px var(--color-heart); }
 .code-entry__error { margin-top: var(--space-2); }
+
+/* ---------- Display name form (L2-005): one field, the rule under it, and its actions; on a page or in a dialog ---------- */
+.display-name-form { display: flex; flex-direction: column; gap: var(--space-4); }
+.display-name-form__actions { display: flex; gap: var(--space-2); }
+.display-name-form--dialog .display-name-form__actions { justify-content: flex-end; padding-bottom: var(--space-5); }
