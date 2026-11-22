@@ -64,6 +64,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             ride.Property(r => r.Mode).HasMaxLength(8);
             ride.Property(r => r.Pack).HasMaxLength(8);
             ride.Property(r => r.ClassId).HasMaxLength(64);
+            ride.Property(r => r.OpenedMapId).HasMaxLength(64);
             ride.Property(r => r.TimeZoneId).HasMaxLength(64);
             // The XP lines are the ride's answer, read and written whole, so they are one JSON column.
             ride.Property(r => r.XpLines).HasConversion(
@@ -79,7 +80,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         });
         modelBuilder.Entity<MapProgress>(progress =>
         {
-            // One row for each rider and map: the stars held, as flags, and the best time.
+            // One row for each rider and map: the stars held, as flags, the best time and when a ride opened it.
             progress.HasKey(p => new { p.RiderId, p.MapId });
             progress.Property(p => p.MapId).HasMaxLength(64);
             progress.Property(p => p.Stars).HasConversion<int>();

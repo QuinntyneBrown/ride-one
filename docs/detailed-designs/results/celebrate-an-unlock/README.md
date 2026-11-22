@@ -18,22 +18,29 @@ shows the card only then. The same unlock also drives the banner on Home
 
 ## Description
 
-- **`ResultsStore`** — the Results route's store (see `show-results`). When the outbox's sync
-  state becomes `recorded` with an `openedMapId`, it looks the map up through `CATALOGUE_API` and
-  sets `unlock` to an `UnlockCardView`; otherwise `unlock` stays `null`.
+- **`SubmitRideCommandHandler`** — names the map a ride opened as `openedMapId` in its answer,
+  from `UnlockRules` (see `progression/earn-stars-and-unlock-maps`), and keeps it on the recorded
+  ride, so a repeat answers the same. A ride that opens nothing answers `null`.
+- **`ResultsPage`** — when the outbox's sync state becomes `recorded` with an `openedMapId`, it
+  reads the map catalogue through `MAPS_API`, only then, and passes the map to `resultsView()`
+  (see `show-results`), which sets `unlock` to an `UnlockCardView`; otherwise, or when the map is
+  not in the catalogue, `unlock` stays `null`.
 - **`UnlockCardView`** — the map id, the title "{map} is open", the place line ("A harbour city
-  after dark.", from `MapDto.worldDescription`), the photo and the action label "Ride {map}".
+  after dark.", from `MapDto.place`), the photo (`MapDto.photoUrl`) and the action label
+  "Ride {map}".
 - **`UnlockCard`** — presentation component (`wz-unlock-card`, block `unlock-card`). It renders
-  the card and emits `ride(mapId)`. Its stylesheet defines the entrance:
+  the card and projects its action, a link the page provides. Its stylesheet defines the entrance:
   - the card fades in and scales from 0.96 to 1 over 250 ms, starting after 200 ms;
   - the photo fades from grey at half brightness to full colour over 250 ms, starting after
     350 ms;
-  - under `prefers-reduced-motion: reduce`, only opacity changes.
+  - under `prefers-reduced-motion: reduce`, only opacity changes, over `--duration-fade`, the
+    one duration reduced motion keeps (L2-142 AC2 excepts opacity fades).
 
-  Durations and easing come from the design-system motion tokens. The animation is CSS only, so
-  it holds no timer to release.
-- **`ResultsPage`** — renders the card when `unlock` is set and routes `ride(mapId)` to Race
-  Setup for that map.
+  Durations and easing come from the design-system motion tokens; the photo's 350 ms is
+  `--duration-base` plus `--duration-fast`. The animation is CSS only, so it holds no timer to
+  release.
+- **`ResultsPage`** — renders the card at the top of "What you earned" when `unlock` is set,
+  with a gold "Ride {map}" link to Race Setup for that map.
 
 ## Requirements
 
@@ -60,15 +67,15 @@ the card.
 
 ### Components
 
-`ResultsStore` reads the opened map from the outbox's recorded answer and its details from
-`CatalogueApi`; `ResultsPage` renders `UnlockCard`.
+`ResultsPage` reads the opened map from the outbox's recorded answer and its details from
+`MapsApi`, and renders `UnlockCard`.
 
 ![C4 component view for celebrating an unlock](diagrams/c4-component.png)
 
 ### Class structure
 
-The store computes an `UnlockCardView` from `RideRecordedDto.openedMapId` and the `MapDto`. The
-note records the motion the stylesheet applies.
+`resultsView()` computes an `UnlockCardView` from `RideRecordedDto.openedMapId` and the `MapDto`.
+The note records the motion the stylesheet applies.
 
 ![Class diagram for celebrating an unlock](diagrams/class-structure.png)
 
@@ -78,3 +85,13 @@ With an opened map, the card enters with the timed fade, scale and colour change
 under reduced motion (L2-076 AC2). With none, no card shows (AC3).
 
 ![Sequence diagram for showing the unlock card](diagrams/sequence-show-unlock-card.png)
+
+## Open questions
+
+- **Race Setup for a map just opened.** Slice 11.3 links "Ride Neon Docklands" to
+  `/race/neon-docklands`, but Race Setup's guard still reads the rider's open maps from the
+  `NewRiderProgress` stand-in, which opens only the two maps open from the start. The rider is
+  sent to Map Select until slice 12.1 reads the open maps from the backend
+  (`progression/earn-stars-and-unlock-maps`, `GetProgressQueryHandler`).
+- **The action's height.** The mock draws "Ride {map}" 44 px tall; the gold link uses the
+  button's default 40 px height, whose touch area is 44 px, rather than a size for one button.

@@ -40,7 +40,8 @@ public sealed record SubmitRideRequest(
 /// <summary>
 /// What the backend answers for a recorded ride, the same for every repeat of its ride id (L2-125 AC3): its XP line by
 /// line and in all, the rider's total XP once it was added (L2-037), the level that total reaches, whether the ride
-/// took it there, and the next level's threshold and the XP to it, both null at level 30 (L2-038).
+/// took it there, and the next level's threshold and the XP to it, both null at level 30 (L2-038); for a race its stars
+/// and best (L2-075, L2-077); and the map the ride opened, if any (L2-040 AC5).
 /// </summary>
 public sealed record RideRecordedDto(
     Guid RideId,
@@ -53,7 +54,8 @@ public sealed record RideRecordedDto(
     int? NextLevelXp,
     int? XpToNextLevel,
     MapStarsDto? Stars,
-    PersonalBestDto? Best)
+    PersonalBestDto? Best,
+    string? OpenedMapId)
 {
     public static RideRecordedDto From(RecordedRide ride)
     {
@@ -70,7 +72,8 @@ public sealed record RideRecordedDto(
             progress.NextThresholdXp,
             progress.XpToNext,
             ride.StarsHeld is { } held ? new MapStarsDto(Count(held), Count(ride.StarsEarned ?? MapStar.None)) : null,
-            ride.BestSeconds is { } best ? new PersonalBestDto(best, ride.PreviousBestSeconds, ride.IsNewBest) : null);
+            ride.BestSeconds is { } best ? new PersonalBestDto(best, ride.PreviousBestSeconds, ride.IsNewBest) : null,
+            ride.OpenedMapId);
     }
 
     private static int Count(MapStar stars) => BitOperations.PopCount((uint)stars);
@@ -120,6 +123,7 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
             new RideResult(kind, ride.Mode, RideOutcome.Finished, ride.Place, ride.FieldSize, ride.OnTargetShare), streakDays);
         rider.AddXp(xpLines.Sum(line => line.Xp));
         var (mapProgress, finish) = kind == RideKind.Race ? await RecordFinish(request, cancellationToken) : (null, null);
+        var (openedMapId, touched) = await OpenMaps(request, mapProgress, LevelTable.LevelFor(rider.TotalXp), cancellationToken);
         var recording = new RecordedRide
         {
             RiderId = request.RiderId,
@@ -144,6 +148,7 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
             BestSeconds = finish?.BestSeconds,
             PreviousBestSeconds = finish?.PreviousBestSeconds,
             IsNewBest = finish?.IsNewBest ?? false,
+            OpenedMapId = openedMapId,
             FinishedAt = ride.FinishedAt!.Value,
             TimeZoneId = ride.TimeZoneId!,
             RecordedAt = time.GetUtcNow(),
@@ -158,9 +163,9 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
         {
             db.Rides.Entry(recording).State = EntityState.Detached;
             await db.Riders.Entry(rider).ReloadAsync(cancellationToken);
-            if (mapProgress is not null)
+            foreach (var progress in touched)
             {
-                var entry = db.MapProgress.Entry(mapProgress);
+                var entry = db.MapProgress.Entry(progress);
                 if (entry.State == EntityState.Added) entry.State = EntityState.Detached;
                 else await entry.ReloadAsync(cancellationToken);
             }
@@ -181,7 +186,40 @@ public sealed class SubmitRideCommandHandler(IAppDbContext db, IMapCatalogue map
             db.MapProgress.Add(progress);
         }
 
-        return (progress, progress.RecordFinish(new RaceFinish(ride.Mode!, ride.Pack, ride.Place!.Value, ride.ElapsedSeconds)));
+        return (progress, progress.RecordFinish(Finish(ride)));
+    }
+
+    private static RaceFinish Finish(SubmitRideRequest ride) => new(ride.Mode!, ride.Pack, ride.Place!.Value, ride.ElapsedSeconds);
+
+    /// <summary>
+    /// Opens the maps whose goal the ride meets (L2-040), started on the rider's progress there if need be, and names the
+    /// first; every map progress the ride changed, the race's included, so a lost race to record can undo them.
+    /// </summary>
+    private async Task<(string? Opened, IReadOnlyList<MapProgress> Touched)> OpenMaps(
+        SubmitRideCommand request, MapProgress? raceProgress, int level, CancellationToken cancellationToken)
+    {
+        var progress = await db.MapProgress.Where(known => known.RiderId == request.RiderId).ToDictionaryAsync(known => known.MapId, cancellationToken);
+        if (raceProgress is not null) progress[raceProgress.MapId] = raceProgress;
+        var opens = UnlockRules.Evaluate(
+            maps.Maps.Select(map => (map.Id, map.Unlock)).ToList(),
+            raceProgress?.MapId,
+            raceProgress is null ? null : Finish(request.Ride),
+            progress.ToDictionary(known => known.Key, known => known.Value.Stars),
+            level,
+            progress.Values.Where(known => known.OpenedAt is not null).Select(known => known.MapId).ToHashSet());
+        var touched = raceProgress is null ? new List<MapProgress>() : [raceProgress];
+        foreach (var mapId in opens)
+        {
+            if (!progress.TryGetValue(mapId, out var opened))
+            {
+                opened = MapProgress.Start(request.RiderId, mapId);
+                db.MapProgress.Add(opened);
+            }
+            opened.Open(time.GetUtcNow());
+            if (!touched.Contains(opened)) touched.Add(opened);
+        }
+
+        return (opens.Count > 0 ? opens[0] : null, touched);
     }
 
     private Task<RecordedRide?> Recorded(SubmitRideCommand request, CancellationToken cancellationToken) =>

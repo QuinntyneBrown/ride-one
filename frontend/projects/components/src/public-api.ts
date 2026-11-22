@@ -69,4 +69,5 @@ export { XpBar } from './xp-bar/xp-bar';
 export { ResultsHeader } from './results/results-header';
 export { Standings } from './results/standings';
 export { MapStars } from './results/map-stars';
+export { UnlockCard } from './results/unlock-card';
 export { XpEarned } from './results/xp-earned';

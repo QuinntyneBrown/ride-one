@@ -89,6 +89,13 @@
   width: 100%;
 }
 
+// The one reward action, on the unlock card (Ride Neon Docklands).
+:host(.btn--gold) {
+  --btn-bg: var(--color-gold);
+  --btn-fg: var(--color-on-fill);
+  --btn-hover-opacity: 0.9;
+}
+
 :host(.btn--raised) {
   --btn-bg: var(--color-raised);
   --btn-bg-hover: var(--color-raised-hover);

@@ -84,6 +84,8 @@ export interface RideRecordedDto {
   readonly xpToNextLevel: number | null;
   readonly stars: MapStarsDto | null;
   readonly best: PersonalBestDto | null;
+  /** The map the ride opened, if any (L2-040 AC5). */
+  readonly openedMapId: string | null;
 }
 
 /**

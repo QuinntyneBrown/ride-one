@@ -49,8 +49,7 @@ export const rideRoutes: Routes = [
       // Results has its own header, with no app navigation (docs/mocks/pages/results/).
       {
         path: 'results',
-        title: 'Results · Telo Ride',
-        loadComponent: () => import('./results/results-page'),
+        loadChildren: () => import('./results/results.routes').then((m) => m.resultsRoutes),
       },
       // Race Setup has its own header, with no app navigation (docs/mocks/pages/race-setup/).
       {

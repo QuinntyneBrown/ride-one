@@ -62,6 +62,9 @@ public sealed class RecordedRide
 
     public bool IsNewBest { get; init; }
 
+    /// <summary>The map the ride opened, the first in unlock order if it opened more than one (L2-040 AC5).</summary>
+    public string? OpenedMapId { get; init; }
+
     /// <summary>When the ride ended on the device, and the device's IANA time zone for the rider's local day.</summary>
     public required DateTimeOffset FinishedAt { get; init; }
 

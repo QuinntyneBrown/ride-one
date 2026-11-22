@@ -40,6 +40,7 @@ const RIDE_RECORDED: Handler = (request) => {
       best: race
         ? { bestSeconds: ride.elapsedSeconds, previousBestSeconds: null, isNewBest: false }
         : null,
+      openedMapId: null,
     },
   };
 };

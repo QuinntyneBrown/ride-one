@@ -1,5 +1,12 @@
 import { type Locator, type Page, expect } from '@playwright/test';
 
+/** One animation of the unlock card's entrance: its duration and delay in milliseconds and what it changes. */
+export interface Entrance {
+  readonly duration: number;
+  readonly delay: number;
+  readonly properties: string[];
+}
+
 /** Results at `/results` (docs/mocks/pages/results/): the header, the result, the final standings and the actions. */
 export class ResultsPage {
   /** What was ridden: "Old Town Criterium · vs Bots". */
@@ -29,6 +36,12 @@ export class ResultsPage {
   readonly newStars: Locator;
   /** "Race it again" or "Ride it again". */
   readonly again: Locator;
+  /** The gold card of a map the ride opened: its photo, "{map} is open", the place line and "Ride {map}". */
+  readonly unlockCard: Locator;
+  readonly unlockPhoto: Locator;
+  readonly unlockTitle: Locator;
+  readonly unlockPlace: Locator;
+  readonly unlockAction: Locator;
 
   constructor(private readonly page: Page) {
     this.context = page.locator('.results-header__context');
@@ -49,6 +62,11 @@ export class ResultsPage {
     this.starsTitle = this.starsPanel.getByRole('heading');
     this.stars = this.starsPanel.getByRole('img');
     this.newStars = this.starsPanel.locator('.map-stars__new');
+    this.unlockCard = page.locator('.unlock-card');
+    this.unlockPhoto = this.unlockCard.locator('.unlock-card__photo');
+    this.unlockTitle = this.unlockCard.locator('.unlock-card__title');
+    this.unlockPlace = this.unlockCard.locator('.unlock-card__place');
+    this.unlockAction = this.unlockCard.getByRole('link');
     this.again = page.getByRole('link', { name: /it again$/ });
   }
 
@@ -65,6 +83,29 @@ export class ResultsPage {
   xpLineTexts(): Promise<string[]> {
     return this.xpLines.evaluateAll((lines) =>
       lines.map((line) => [...line.children].map((part) => part.textContent?.trim()).join(' ')),
+    );
+  }
+
+  /**
+   * The unlock card's entrance as the rider sees it: for the card and its photo, each animation's duration and delay in
+   * milliseconds and the properties it changes.
+   */
+  unlockEntrance(): Promise<{ card: Entrance[]; photo: Entrance[] }> {
+    const read = (element: Element) =>
+      element.getAnimations().map((animation) => {
+        const effect = animation.effect as KeyframeEffect;
+        const timing = effect.getComputedTiming();
+        const properties = Object.keys(effect.getKeyframes()[0]).filter(
+          (key) => !['offset', 'computedOffset', 'easing', 'composite'].includes(key),
+        );
+        return {
+          duration: Number(timing.duration),
+          delay: Number(timing.delay),
+          properties: properties.sort(),
+        };
+      });
+    return Promise.all([this.unlockCard.evaluate(read), this.unlockPhoto.evaluate(read)]).then(
+      ([card, photo]) => ({ card, photo }),
     );
   }
 

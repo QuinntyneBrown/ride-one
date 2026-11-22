@@ -154,6 +154,9 @@ namespace Telo.Ride.Infrastructure.Migrations
                     b.Property<int?>("BestSeconds")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("OpenedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int>("Stars")
                         .HasColumnType("int");
 
@@ -213,6 +216,10 @@ namespace Telo.Ride.Infrastructure.Migrations
 
                     b.Property<double>("OnTargetShare")
                         .HasColumnType("float");
+
+                    b.Property<string>("OpenedMapId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<double>("OutputKj")
                         .HasColumnType("float");
