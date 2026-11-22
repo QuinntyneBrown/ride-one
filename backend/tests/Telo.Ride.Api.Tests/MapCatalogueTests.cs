@@ -2,7 +2,7 @@
 // Traces to: L2-045 AC1, AC2, AC3; L2-040 AC1, AC6; L2-047 AC1, AC3; L2-061 AC1; L2-062 AC1; ADR 0029
 // Description: the map catalogue, read without a session, lists the seven maps of L2-045 AC1 in unlock order, each with
 // its distance, climbing, rating, route and place, its world, its thumbnail and its photo; Prairie Paceline and Old
-// Town Criterium are open from the start, and every other map names its one goal and the map it is earned on; every
+// Town Criterium are open from the start, and every other map names its one goal and the map it is earned on, or for a level goal its level; every
 // map carries its 30:00 plan and its world's terrain.
 using System.Net;
 using System.Net.Http.Json;
@@ -63,6 +63,16 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
                 ("col-du-granit", "dolomites"),
             ],
             maps.Select(m => (m.Id, m.UnlockMapId)));
+    }
+
+    [Fact]
+    public async Task A_level_goal_names_its_level_and_no_other_goal_does() // L2-033 AC4
+    {
+        var maps = await ReadMaps();
+
+        Assert.Equal(
+            [null, null, null, null, null, 10, null],
+            maps.Select(m => m.UnlockLevel));
     }
 
     [Fact]
@@ -130,6 +140,7 @@ public sealed class MapCatalogueTests(TeloRideApiFactory api) : IClassFixture<Te
         string PhotoUrl,
         string? UnlockGoal,
         string? UnlockMapId,
+        int? UnlockLevel,
         CataloguePlan Plan,
         CatalogueTerrain Terrain,
         CatalogueRealPlace? RealPlace);

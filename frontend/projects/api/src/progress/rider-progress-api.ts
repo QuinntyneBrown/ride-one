@@ -5,6 +5,8 @@ import type { ProgressDto } from './progress-dto';
 /** The rider's progress the backend keeps: `GET /api/progress` (L2-044 AC1). */
 export interface RiderProgressApi {
   progress(): Observable<ProgressDto>;
+  /** Home has announced the map a ride opened, so it is not announced again on any device (L2-036 AC3). */
+  markUnlockSeen(mapId: string): Observable<void>;
 }
 
 export const RIDER_PROGRESS_API = new InjectionToken<RiderProgressApi>('RIDER_PROGRESS_API');

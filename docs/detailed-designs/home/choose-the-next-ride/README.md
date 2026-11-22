@@ -30,12 +30,18 @@ The slice runs from `HomePage` in the Ride app to the progress endpoint of the T
 - **`HomePage`** — routed page in the `ride` application (`wz-home-page`), loaded with
   `loadComponent` as a child of `MainShell` (see `show-the-app-header`). It renders the greeting,
   the banner, the card and the two doors, and handles their outputs by routing.
-- **`HomeStore`** — signal store provided on the Home route, so its state goes when the rider
-  leaves. It reads `PROGRESS_STORE`, `CATALOGUE_API` and `CLASS_SESSIONS_API`, and computes one
-  `HomeView`. It marks the banner seen once it has shown.
+- **`HomeStore`** — signal store provided on `HomePage` itself, with the catalogue clients, so
+  its state goes when the rider leaves and its code loads with the page (a child route of its own
+  would add its loader to the initial bundle). It reads `PROGRESS_STORE`, `CURRENT_RIDER` (the
+  display name), `MAPS_API` and `CLASSES_API`. The card's words come from the pure helper
+  `nextRideView()`, which has unit tests. It marks the banner seen once it has shown.
+- **`NextRideCard`** — presentation component in `components` (`wz-next-ride-card`, block
+  `next-ride`) taking a `NextRideView` (a type in `api`) and the page's "Race {map}" link in its
+  `action` slot.
 - **`homeGreeting()`** — pure helper in `ride` with unit tests. It returns "Morning, {name}."
   before 12:00, "Afternoon, {name}." from 12:00 to 16:59, and "Evening, {name}." otherwise. For a
-  rider with no rides it returns "Welcome, {name}. Your first race opens a new map."
+  rider with no rides (no XP yet: every recorded ride earns XP) it returns "Welcome, {name}. Your
+  first race opens a new map."
 - **`NextRideCard`** — presentation component (`wz-next-ride-card`, block `next-ride`). It shows
   the photo tag, "Your next unlock" with the goal, "Opens {map}" with the map's place, "Your best
   here: {time}" when a best exists, and the primary action "Race {map}". At lg (≥ 1024 px) or
@@ -50,22 +56,34 @@ The slice runs from `HomePage` in the Ride app to the progress endpoint of the T
   featured class, its length, its next session's seats and start time, and the outputs
   `joinGroup` and `rideAlone`.
 - **`ProgressDto`** — read model from `GET /api/progress`. Beyond the header's fields it holds
-  `openMapIds`, per-map stars and bests, `nextRide` (the map to offer, its goal and the map it
-  opens) and `unseenUnlock` (a map opened by a ride and not yet announced).
-- **`CatalogueApi`** — HTTP client in `api` for `GET /api/maps` and `GET /api/classes`, cached
-  in IndexedDB by `CatalogueCache` (L2-135). Owned by `race/browse-maps` and
-  `classes/browse-the-class-library`.
-- **`ClassSessionsApi`** — HTTP client in `api` for `GET /api/classes/{classId}/sessions`. Owned
-  by `classes/start-a-class`.
-- **`GetProgressQueryHandler`** — MediatR handler. It asks `UnlockRules` for the next unlock and
-  the map to offer, using these rules: for a top-3 goal, the goal's prerequisite map; for a star
+  `openMapIds`, `nextUnlockId`, `stars` and `bestTimeSeconds` (slice 12.1). This slice adds
+  `nextRideMapId` (the map the card offers) and `unseenUnlockId` (a map a ride opened that Home
+  has not yet announced, or `null`).
+- **The card's words** — the goal is the catalogue's `unlockGoal` for the next unlock, as on Map
+  Select. A level goal adds " · {n} to go", where {n} is the levels still to climb: the
+  catalogue's `unlockLevel` (the level a level goal asks for, `null` for any other goal) less the
+  rider's level. With every
+  map open there is no next unlock: the goal reads "Earn {n}★ on {map}", where {n} is one more
+  star than the map holds, and no reward shows.
+- **`MapsApi`** and **`ClassesApi`** — the catalogue clients in `api` for `GET /api/maps` and
+  `GET /api/classes`, owned by `race/browse-maps` and `classes/browse-the-class-library`.
+- **Group sessions** — the Classes door's "Next group class starts in 9 min", the teaser's seats
+  and start time, and "Join group" need the group session schedule, which slice 14.2 brings.
+  Until then the door shows the featured class with "Ride alone" only
+  (`docs/mocks/pages/home/no-groups.html`), as Class Start and the Class Library do with no
+  sessions to read.
+- **`GetProgressQueryHandler`** — MediatR handler. It asks `UnlockRules` for the next unlock
+  (`NextUnlock`, slice 12.1) and the map to offer (`NextRide`), using these rules: for a top-3 goal, the goal's prerequisite map; for a star
   goal, the map the stars are earned on; for a level goal, the rider's most recently opened map;
   with every map open, the open map with the fewest stars and the goal "Earn {n}★ on {map}".
 - **`MarkUnlockSeenCommand`** and **`MarkUnlockSeenCommandHandler`** — backend write path for
   `POST /api/progress/unlocks/{mapId}/seen`. The handler sets `MapProgress.UnlockSeenAt`, so the
   banner shows once per account, on whichever device opens Home first.
+  `unseenUnlockId` is the most recently opened map whose `UnlockSeenAt` is not set.
 - **Featured class** — the class whose teaser the Classes door shows ("30 Minute HIIT Cardio" in
-  the mocks). The rule that picks it is `<TO SUPPLY>`.
+  the mocks). With group sessions (slice 14.2), it is the class of the next session. Until then it
+  is the first class on the catalogue's 30 min shelf that the rider's level has opened. In the
+  catalogue that is 30 Minute HIIT Cardio, at level 1, so it is open for every rider.
 
 Layout lives in the page and component stylesheets: the doors sit side by side at lg or wider and
 stack below; map tiles are four across at sm (≥ 640 px) or wider and two across on a phone; on a
@@ -103,22 +121,24 @@ Ride API, and reads cached catalogues from browser storage when the network is s
 
 ### Components
 
-`HomeStore` joins three sources into one `HomeView` that `HomePage` renders through four
-presentation components. On the backend, `GetProgressQueryHandler` uses `UnlockRules` to choose
+`HomeStore` joins the progress, the rider's name and the two catalogues into the greeting, the
+banner, the card and the doors, which `HomePage` renders through six presentation components. On the backend, `GetProgressQueryHandler` uses `UnlockRules` to choose
 the card's map, and `MarkUnlockSeenCommandHandler` records the banner as seen.
 
 ![C4 component view for choosing the next ride](diagrams/c4-component.png)
 
 ### Class structure
 
-`HomeView` composes the card, Race door and Classes door views. The store derives them from
-`ProgressDto` and its `NextRideDto`, and uses `homeGreeting()` for the heading.
+The store derives each part through its own pure helper (`homeGreeting()`, `nextRideView()`,
+`raceDoorView()`, `classDoorView()` and `unlockBannerView()`), each with unit tests, from
+`ProgressDto` and the catalogues.
 
 ![Class diagram for choosing the next ride](diagrams/class-structure.png)
 
 ### Behaviour — open Home
 
-The store loads progress, catalogues and the featured session in parallel. The backend returns
+The store loads the catalogues in parallel with the progress the shell reads; each part shows
+once its sources have arrived (the featured session comes with slice 14.2). The backend returns
 the next unlock (L2-041) and the map to offer; the store formats the greeting and the Race door
 summary.
 

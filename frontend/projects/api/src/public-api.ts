@@ -100,3 +100,4 @@ export {
   DISPLAY_NAME_MIN_LENGTH,
   isDisplayName,
 } from './riders/display-name';
+export type { NextRideReward, NextRideView } from './home/next-ride-view';

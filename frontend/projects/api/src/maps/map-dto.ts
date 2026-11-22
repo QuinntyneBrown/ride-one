@@ -22,6 +22,8 @@ export interface MapDto {
   readonly photoUrl: string;
   readonly unlockGoal: string | null;
   readonly unlockMapId: string | null;
+  /** The level a level goal asks for (L2-033 AC4); absent from a catalogue this device cached before, which counts as none. */
+  readonly unlockLevel?: number | null;
   readonly plan: Plan;
   readonly terrain: MapTerrain;
   /** Absent from a catalogue this device cached before maps carried it, which counts as none. */

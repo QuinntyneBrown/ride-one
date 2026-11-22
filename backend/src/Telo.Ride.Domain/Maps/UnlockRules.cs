@@ -29,6 +29,33 @@ public static class UnlockRules
     /// The next unlock (L2-041 AC1): the first locked map in unlock order whose goal the rider can work on now, its
     /// prerequisite map open or its goal a level; none once every map is open.
     /// </summary>
+    /// <summary>
+    /// The map Home's Next ride card offers (L2-033 AC2 to AC5): for a top-3 or a stars goal, the map the next unlock's goal
+    /// is earned on; for a level goal, the most recently opened map; with every map open, the open map with the fewest
+    /// stars, the first in unlock order on a tie.
+    /// </summary>
+    public static string NextRide(
+        IReadOnlyList<(string MapId, MapUnlock Unlock)> order,
+        IReadOnlyDictionary<string, DateTimeOffset> openedAt,
+        IReadOnlyDictionary<string, int> stars)
+    {
+        var next = NextUnlock(order, openedAt.Keys.ToHashSet());
+        if (next is null)
+        {
+            return order.MinBy(map => stars.GetValueOrDefault(map.MapId)).MapId;
+        }
+
+        var goal = order.First(map => map.MapId == next).Unlock;
+        if (goal.Kind != MapUnlock.LevelKind)
+        {
+            return goal.MapId!;
+        }
+
+        return openedAt.Count > 0
+            ? openedAt.MaxBy(opened => opened.Value).Key
+            : order.Last(map => map.Unlock.Kind == MapUnlock.Start).MapId;
+    }
+
     public static string? NextUnlock(IReadOnlyList<(string MapId, MapUnlock Unlock)> order, IReadOnlySet<string> opened)
     {
         bool IsOpen(string mapId) =>

@@ -89,3 +89,47 @@ public sealed class NextUnlockTests
         Assert.Equal(next, UnlockRules.NextUnlock(Order, opened.ToHashSet()));
     }
 }
+
+/// <summary>
+/// The map Home's Next ride card offers (L2-033 AC2 to AC5): for a top-3 or a stars goal, the map the goal is earned on;
+/// for a level goal, the most recently opened map; with every map open, the open map with the fewest stars, the first in
+/// unlock order on a tie. One case per row.
+/// </summary>
+public sealed class NextRideRuleTests
+{
+    private static readonly IReadOnlyList<(string MapId, MapUnlock Unlock)> Order =
+    [
+        ("prairie-paceline", MapUnlock.FromTheStart),
+        ("old-town-criterium", MapUnlock.FromTheStart),
+        ("cliffside-coast", MapUnlock.TopThreeVsBots("prairie-paceline")),
+        ("neon-docklands", MapUnlock.TopThreeVsBots("old-town-criterium")),
+        ("dolomites", MapUnlock.StarsOn("cliffside-coast", 2)),
+        ("vice-city", MapUnlock.RiderLevel(10)),
+        ("col-du-granit", MapUnlock.StarsOn("dolomites", 3)),
+    ];
+
+    private static readonly string[] Locked = ["cliffside-coast", "neon-docklands", "dolomites", "vice-city", "col-du-granit"];
+
+    /// <summary>The case's name, the maps opened in the order they opened, the stars held as <c>map:n</c>, and the map offered.</summary>
+    public static TheoryData<string, string[], string[], string> Cases => new()
+    {
+        { "a new rider: top 3 on Prairie Paceline opens Cliffside Coast", [], [], "prairie-paceline" },
+        { "the mid rider: top 3 on Old Town Criterium opens Neon Docklands", ["cliffside-coast"], [], "old-town-criterium" },
+        { "stars on Cliffside Coast open Dolomites", ["cliffside-coast", "neon-docklands"], [], "cliffside-coast" },
+        { "a level goal next: the last map opened", ["cliffside-coast", "dolomites", "neon-docklands"], [], "neon-docklands" },
+        { "the veteran: stars on Dolomites open Col du Granit", ["cliffside-coast", "neon-docklands", "dolomites", "vice-city"], [], "dolomites" },
+        { "every map open: the fewest stars", Locked, ["prairie-paceline:3", "old-town-criterium:3", "cliffside-coast:2", "neon-docklands:1", "dolomites:2", "vice-city:1", "col-du-granit:3"], "neon-docklands" },
+        { "every map open: a map never ridden holds none", Locked, ["prairie-paceline:3", "old-town-criterium:1"], "cliffside-coast" },
+    };
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void The_card_offers_the_map_that_moves_the_rider_on(string name, string[] opened, string[] stars, string offered)
+    {
+        var start = DateTimeOffset.UnixEpoch;
+        var openedAt = opened.Select((mapId, i) => (mapId, at: start.AddHours(i))).ToDictionary(o => o.mapId, o => o.at);
+        var held = stars.Select(s => s.Split(':')).ToDictionary(s => s[0], s => int.Parse(s[1], System.Globalization.CultureInfo.InvariantCulture));
+
+        Assert.True(UnlockRules.NextRide(Order, openedAt, held) == offered, name);
+    }
+}

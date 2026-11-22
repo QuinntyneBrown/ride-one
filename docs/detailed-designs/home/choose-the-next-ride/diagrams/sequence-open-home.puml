@@ -21,8 +21,7 @@ box "Frontend — Ride app (ride application)" #E0F2FE
   participant "RiderProgressStore" as prog
 end box
 box "Frontend — Ride app (api library)" #E0F2FE
-  participant "CatalogueApi" as cat
-  participant "ClassSessionsApi" as sess
+  participant "HttpMapsApi, HttpClassesApi" as cat
 end box
 box "Backend — Telo.Ride.Api" #D1FADF
   participant "ProgressController" as ctrl
@@ -44,17 +43,15 @@ par
   db --> handler : Open: Prairie, Old Town, Cliffside
   handler -> rules : NextUnlock (L2-041)
   rules --> handler : Neon Docklands by "Finish top 3 vs Bots on Old Town Criterium"
-  handler -> rules : MapToOffer (L2-033 AC2 to AC5)
+  handler -> rules : NextRide (L2-033 AC2 to AC5)
   rules --> handler : Old Town Criterium
   handler --> ctrl : ProgressDto
   ctrl --> prog : 200 ProgressDto
 else
-  store -> cat : getMaps(), getClasses() (cached, L2-135)
+  store -> cat : GET /api/maps, GET /api/classes
   cat --> store : 7 maps, 7 classes
-else
-  store -> sess : getSessions(featured classId)
-  sess --> store : Next session 7:39 PM, 6 of 10 riders
 end
+note over store : The featured class's next session waits for slice 14.2;\nuntil then the door offers Ride alone only
 store -> store : homeGreeting(19:30, "Sam") = "Evening, Sam." (L2-033 AC1)
 store -> store : Race door: "3 of 7 maps open · 5 of 21 stars", first four tiles (L2-034)
 store --> page : HomeView

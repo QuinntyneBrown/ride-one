@@ -13,92 +13,125 @@ skinparam class {
 ' --------------------------
 title Class structure — Choose the next ride
 class HomePage <<ride>> {
-  -store: HomeStore
-  -router: Router
-  +view: Signal<HomeView | undefined>
-  +rideUnlocked(mapId: string): void
+  #home: HomeStore
+  providers: provideMaps(), provideClasses(), HomeStore
 }
-class HomeStore <<ride, route-scoped>> {
+class HomeStore <<ride, page-scoped>> {
   -progress: ProgressStore
-  -catalogue: CatalogueApi
-  -sessions: ClassSessionsApi
-  +view: Signal<HomeView | undefined>
-  +markUnlockSeen(mapId: string): Promise<void>
+  -rider: CurrentRider
+  -maps: MapsApi
+  -classes: ClassesApi
+  -announced: linkedSignal<string | null>
+  +greeting: Signal<string>
+  +banner: Signal<UnlockBannerView | null>
+  +nextRide: Signal<NextRideView | null>
+  +raceDoor: Signal<RaceDoorView | null>
+  +classDoor: Signal<ClassDoorView | null>
 }
-class HomeView {
-  +greeting: string
-  +banner: UnlockBannerView | null
-  +nextRide: NextRideView
-  +raceDoor: RaceDoorView
-  +classesDoor: ClassesDoorView | null
+class "homeGreeting()" as greet <<ride helper>> {
+  +homeGreeting(name, hour, isNewRider): string
 }
-class NextRideView {
-  +mapId: string
-  +tag: string
-  +goal: string
-  +opensMapName: string | null
-  +opensMapPlace: string | null
-  +bestTime: string | null
+class "nextRideView()" as nextRide <<ride helper>> {
+  +nextRideView(progress, maps): NextRideView | null
 }
-class RaceDoorView {
-  +summary: string
-  +tiles: MapTileView[4]
+class "raceDoorView()" as raceDoor <<ride helper>> {
+  +raceDoorView(progress, maps): RaceDoorView
 }
-class MapTileView {
+class "classDoorView()" as classDoor <<ride helper>> {
+  +classDoorView(catalogue, level): ClassDoorView | null
+}
+class "unlockBannerView()" as banner <<ride helper>> {
+  +unlockBannerView(mapId, maps): UnlockBannerView | null
+}
+class NextRideView <<api>> {
   +mapId: string
   +name: string
+  +photoUrl: string
+  +tag: string
+  +goal: string
+  +opens: NextRideReward | null
+  +best: string | null
+}
+class RaceDoorView {
+  +openMaps, maps: number
+  +stars, allStars: number
+  +tiles: RaceDoorTile[4]
+}
+class RaceDoorTile {
+  +mapId: string
+  +name: string
+  +photoUrl: string
   +stars: 0..3
   +locked: boolean
 }
-class ClassesDoorView {
+class ClassDoorView {
   +classId: string
   +title: string
   +length: string
-  +startsIn: string
-  +seats: string
+  +coverUrl: string
 }
-class "homeGreeting()" as greet <<ride helper>> {
-  +homeGreeting(now: Date, name: string, isNewRider: boolean): string
+class UnlockBannerView {
+  +mapId: string
+  +title: string
+  +detail: string
 }
 class ProgressDto <<api>> {
-  +displayName: string
-  +rideCount: number
+  +level: number
+  +totalXp: number
   +openMapIds: string[]
-  +maps: MapProgressDto[]
-  +nextRide: NextRideDto
-  +unseenUnlock: UnlockedMapDto | null
+  +nextUnlockId: string | null
+  +stars: Record<string, number>
+  +bestTimeSeconds: Record<string, number>
+  +nextRideMapId: string
+  +unseenUnlockId: string | null
 }
-class NextRideDto <<api>> {
-  +mapId: string
-  +goal: UnlockGoalDto | null
-  +opensMapId: string | null
+interface RiderProgressApi <<api>> {
+  +progress(): Observable<ProgressDto>
+  +markUnlockSeen(mapId: string): Observable<void>
 }
 class NextRideCard <<components>> {
   +view: input<NextRideView>
-  +race: output<string>
+  slot action
 }
 class Banner <<components>> {
-  +variant: input<'gold'>
+  +title: input<string>
+  +detail: input<string>
+  +tone: input<'gold'>
+  slot action
+}
+class Door <<components>> {
+  +heading: input<string>
+  +headingId: input<string>
+  slots link, summary
 }
 class MapTile <<components>> {
-  +view: input<MapTileView>
+  +name: input<string>
+  +photoUrl: input<string>
+  +stars: input<number>
+  +locked: input<boolean>
 }
 class ClassTeaser <<components>> {
-  +view: input<ClassesDoorView>
-  +joinGroup: output<string>
-  +rideAlone: output<string>
+  +title: input<string>
+  +length: input<string>
+  +coverUrl: input<string>
+  slot actions
 }
 HomePage --> HomeStore
-HomePage ..> NextRideCard
 HomePage ..> Banner
+HomePage ..> NextRideCard
+HomePage ..> Door
 HomePage ..> MapTile
 HomePage ..> ClassTeaser
 HomeStore ..> greet
+HomeStore ..> nextRide
+HomeStore ..> raceDoor
+HomeStore ..> classDoor
+HomeStore ..> banner
 HomeStore ..> ProgressDto : reads
-HomeStore ..> HomeView : computes
-HomeView *-- NextRideView
-HomeView *-- RaceDoorView
-HomeView *-- ClassesDoorView
-RaceDoorView "1" *-- "4" MapTileView
-ProgressDto *-- NextRideDto
+HomeStore ..> RiderProgressApi : markUnlockSeen once
+nextRide ..> NextRideView
+raceDoor ..> RaceDoorView
+classDoor ..> ClassDoorView
+banner ..> UnlockBannerView
+RaceDoorView "1" *-- "4" RaceDoorTile
 @enduml

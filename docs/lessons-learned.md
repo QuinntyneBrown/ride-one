@@ -159,8 +159,37 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L132 | angular-eslint's `no-output-native` refuses an output named for a DOM event (`toggle`, `change`, `close`, `select`): name it in the past tense (`toggled`) before the template binds it, and say so in the design. | 13.1 | | |
 | L133 | The unit tests' DOM has no Fullscreen API (as it has no Wake Lock); `vi.spyOn` on a getter it lacks throws "The property is not defined". Install the browser's API in the spec with `Object.defineProperty(..., { configurable: true })` and delete it after each test. | 13.1 | | |
 | L134 | When a state a requirement names has no mock (Exit full screen), add it before the code: the page, `index.html`, `manifest.json` and the coverage matrix in `docs/mocks/README.md`. | 13.1 | | |
+| L135 | A child route that only provides a page's services (`loadChildren` with a routes file) added 0.26 kB to main for its loader. Provide page-scoped services on the routed component's own `providers` (helpers returning `Provider[]`, as `provideMaps()` and `provideClasses()` now do): they load with the page's chunk and go when the rider leaves. | 13.2 | | |
+| L136 | `page.clock.setFixedTime(new Date('…T19:30:00'))` is read in Node's time zone, but the browser runs in UTC (`timezoneId` in `playwright.config.ts`): write e2e times with `Z`, or the greeting reads "Morning". | 13.2 | | |
+| L137 | When a page starts reading a new endpoint and many specs pass through it (Home), answer it by default in `e2e/fixtures/api.ts` beside `/api/progress`; otherwise unrelated specs fail with "unanswered request". Grep for specs that open the page before running the suite. | 13.2 | | |
+| L138 | Angular drops whitespace-only text between elements: two spans in one sentence need `&ngsp;` between them, or a screen reader reads "open.A". `toHaveText` on a row of separate elements (body and button) has no space either; assert each part. | 13.2 | | |
+| L139 | When the UI needs a number the catalogue only gives in words (a level goal's level), serve it as its own field (`unlockLevel`) with an API test, rather than parsing the words in the app. | 13.2 | | |
 
 ## Log
+
+### 13.2 Home next ride (2026-11-22)
+
+**Applied from earlier**
+
+- **L1 own worktree and install; L2 port 4310; L3 format first — saved time.**
+- **L41 spec each step first — saved time:** the backend's five acceptance tests and seven rule rows, then each of the
+  four Home specs (15 tests) failed on an empty Home before its step, and each helper's unit spec on a stub.
+- **L5 read the initial chunk — saved time:** it caught the 0.26 kB a Home routes file added to main (L135).
+- **L127 await fixture calls; L128 the richest mock's fixtures — saved time:** the mid rider, veteran and the new
+  `docklandsUnseenProgress`, `levelGoalProgress` and `allOpenProgress` carry the mocks' maps, stars and bests.
+- **L129 scroll a row into the picture — did not apply:** `detail()` scrolls each door into view itself.
+- **L121 film rules first; L34 render every diagram — saved time:** five diagrams re-rendered with exit status 0.
+
+**What slowed it down**
+
+- Home reads two catalogues, so every spec that passes through Home needed `/api/maps` and `/api/classes` answered
+  (L137).
+- The e2e clock and the browser disagreed on the time zone (L136), and two spans lost the space between them (L138).
+- The card first parsed "Reach rider level 10" for its number; the catalogue now serves `unlockLevel` (L139).
+- The design's single `HomeView` became one signal per part, each from its own helper; the design and its class
+  diagram were redrawn at the end, once the shape was settled.
+
+**New lessons:** L135, L136, L137, L138, L139.
 
 ### 13.1 App header (2026-11-22)
 

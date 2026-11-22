@@ -133,6 +133,7 @@ export const maps = [
     photoUrl: 'maps/vice-city-photo.jpg',
     unlockGoal: 'Reach rider level 10',
     unlockMapId: null,
+    unlockLevel: 10,
     plan: { segments: racePlan },
     terrain: terrain(0.5, 4, -1, 0, 0.5, 0.5),
   },
