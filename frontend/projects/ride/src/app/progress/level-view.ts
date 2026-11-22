@@ -7,7 +7,11 @@ const XP = new Intl.NumberFormat('en-GB');
  * XP", and filled by the total over the next level's threshold to one decimal. At level 30 there is no next threshold:
  * the total stands alone and the bar is full (L2-038 AC2).
  */
-export function toLevelView({ level, totalXp, nextLevelXp }: ProgressDto): LevelView {
+export function toLevelView({
+  level,
+  totalXp,
+  nextLevelXp,
+}: Pick<ProgressDto, 'level' | 'totalXp' | 'nextLevelXp' | 'streakDays'>): LevelView {
   if (nextLevelXp === null) {
     return {
       level,

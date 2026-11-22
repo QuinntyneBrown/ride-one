@@ -7,7 +7,18 @@ import { RiderProgressStore } from './rider-progress-store';
 // The rider's progress, read from the backend: nothing until it arrives, the answer once it has, and nothing while it
 // cannot be read; each refresh reads it again.
 describe('RiderProgressStore', () => {
-  const mid: ProgressDto = { level: 7, totalXp: 1840, nextLevelXp: 2600, streakDays: 0 };
+  const mid: ProgressDto = {
+    level: 7,
+    totalXp: 1840,
+    nextLevelXp: 2600,
+    streakDays: 0,
+    openMapIds: ['prairie-paceline', 'old-town-criterium'],
+    nextUnlockId: 'cliffside-coast',
+    stars: {},
+    bestTimeSeconds: {},
+    nextRideMapId: 'prairie-paceline',
+    unseenUnlockId: null,
+  };
   let answer: () => Observable<ProgressDto>;
   let reads: number;
 

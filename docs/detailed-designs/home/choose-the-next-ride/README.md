@@ -30,10 +30,14 @@ The slice runs from `HomePage` in the Ride app to the progress endpoint of the T
 - **`HomePage`** — routed page in the `ride` application (`wz-home-page`), loaded with
   `loadComponent` as a child of `MainShell` (see `show-the-app-header`). It renders the greeting,
   the banner, the card and the two doors, and handles their outputs by routing.
-- **`HomeStore`** — signal store provided on the Home route, so its state goes when the rider
-  leaves. It reads `PROGRESS_STORE`, `CURRENT_RIDER` (the display name), `MAPS_API` and
-  `CLASSES_API`, and computes one `HomeView` through the pure helper `homeView()`, which has
-  unit tests. It marks the banner seen once it has shown.
+- **`HomeStore`** — signal store provided on `HomePage` itself, with the catalogue clients, so
+  its state goes when the rider leaves and its code loads with the page (a child route of its own
+  would add its loader to the initial bundle). It reads `PROGRESS_STORE`, `CURRENT_RIDER` (the
+  display name), `MAPS_API` and `CLASSES_API`. The card's words come from the pure helper
+  `nextRideView()`, which has unit tests. It marks the banner seen once it has shown.
+- **`NextRideCard`** — presentation component in `components` (`wz-next-ride-card`, block
+  `next-ride`) taking a `NextRideView` (a type in `api`) and the page's "Race {map}" link in its
+  `action` slot.
 - **`homeGreeting()`** — pure helper in `ride` with unit tests. It returns "Morning, {name}."
   before 12:00, "Afternoon, {name}." from 12:00 to 16:59, and "Evening, {name}." otherwise. For a
   rider with no rides (no XP yet: every recorded ride earns XP) it returns "Welcome, {name}. Your
@@ -56,7 +60,9 @@ The slice runs from `HomePage` in the Ride app to the progress endpoint of the T
   `nextRideMapId` (the map the card offers) and `unseenUnlockId` (a map a ride opened that Home
   has not yet announced, or `null`).
 - **The card's words** — the goal is the catalogue's `unlockGoal` for the next unlock, as on Map
-  Select. A level goal adds " · {n} to go", where {n} is the levels still to climb. With every
+  Select. A level goal adds " · {n} to go", where {n} is the levels still to climb: the
+  catalogue's `unlockLevel` (the level a level goal asks for, `null` for any other goal) less the
+  rider's level. With every
   map open there is no next unlock: the goal reads "Earn {n}★ on {map}", where {n} is one more
   star than the map holds, and no reward shows.
 - **`MapsApi`** and **`ClassesApi`** — the catalogue clients in `api` for `GET /api/maps` and

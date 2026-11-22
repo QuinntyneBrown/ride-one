@@ -7,7 +7,12 @@ const XP = new Intl.NumberFormat('en-GB');
  * AC4); the streak reads 0 when there is none. At level 30 there is no next level, so the streak stands alone. Rides and
  * kilometres join it with slice 13.3.
  */
-export function profileMeta({ level, totalXp, nextLevelXp, streakDays }: ProgressDto): string {
+export function profileMeta({
+  level,
+  totalXp,
+  nextLevelXp,
+  streakDays,
+}: Pick<ProgressDto, 'level' | 'totalXp' | 'nextLevelXp' | 'streakDays'>): string {
   const streak = `${streakDays}-day streak`;
   if (nextLevelXp === null) return streak;
   return `${XP.format(nextLevelXp - totalXp)} XP to level ${level + 1} · ${streak}`;

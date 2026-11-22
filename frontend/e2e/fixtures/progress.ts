@@ -19,6 +19,7 @@ export const midRiderProgress = {
     'old-town-criterium': 1630,
     'cliffside-coast': 3483,
   },
+  nextRideMapId: 'old-town-criterium',
 };
 
 /**
@@ -56,6 +57,7 @@ export const veteranProgress = {
     dolomites: 4280,
     'vice-city': 2324,
   },
+  nextRideMapId: 'dolomites',
 };
 
 /** A new rider once a top-3 bots race on Old Town Criterium opened Neon Docklands (L2-040 AC2). */
@@ -64,4 +66,33 @@ export const docklandsOpenedProgress = {
   openMapIds: ['prairie-paceline', 'old-town-criterium', 'neon-docklands'],
   stars: { 'old-town-criterium': 2 },
   bestTimeSeconds: { 'old-town-criterium': 1598 },
+  unseenUnlockId: 'neon-docklands',
+};
+
+/**
+ * A level-7 rider whose next unlock is Vice City, by reaching level 10 (L2-033 AC4): Cliffside Coast, Dolomites and Neon
+ * Docklands open, Neon Docklands last, so Home offers it.
+ */
+export const levelGoalProgress = {
+  ...midRiderProgress,
+  openMapIds: [
+    'prairie-paceline',
+    'old-town-criterium',
+    'cliffside-coast',
+    'neon-docklands',
+    'dolomites',
+  ],
+  nextUnlockId: 'vice-city',
+  stars: { 'cliffside-coast': 3, 'neon-docklands': 1, dolomites: 1 },
+  nextRideMapId: 'neon-docklands',
+};
+
+/** A rider with every map open (L2-033 AC5): Dolomites holds the fewest stars, one, so Home offers it. */
+export const allOpenProgress = {
+  ...veteranProgress,
+  level: 21,
+  openMapIds: [...veteranProgress.openMapIds, 'col-du-granit'],
+  nextUnlockId: null,
+  stars: { ...veteranProgress.stars, dolomites: 1, 'vice-city': 2, 'col-du-granit': 3 },
+  nextRideMapId: 'dolomites',
 };

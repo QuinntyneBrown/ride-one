@@ -12,7 +12,7 @@ import type { ProgressDto } from './progress-dto';
 @Injectable()
 export class HttpProgressApi implements ProgressApi {
   private readonly http = inject(HttpClient);
-  private answer: Promise<ProgressDto & MapProgressDto> | null = null;
+  private answer: Promise<ProgressDto> | null = null;
 
   level(): Observable<number> {
     return this.progress().pipe(map((progress) => progress.level));
@@ -30,8 +30,8 @@ export class HttpProgressApi implements ProgressApi {
   }
 
   /** The standing the header shows, with the rider's maps alongside it. */
-  private progress(): Observable<ProgressDto & MapProgressDto> {
-    this.answer ??= firstValueFrom(this.http.get<ProgressDto & MapProgressDto>('/api/progress'));
+  private progress(): Observable<ProgressDto> {
+    this.answer ??= firstValueFrom(this.http.get<ProgressDto>('/api/progress'));
     return from(this.answer);
   }
 }
