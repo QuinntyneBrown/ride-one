@@ -54,6 +54,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 11.2 | [XP, stars and personal best](11-2-xp-stars-and-personal-best/README.md) | 2:00 | Results shows the backend's answer: XP earned line by line after a waiting state, the stars held on the map and new ones, a solo race's new personal best or best; offline it says XP comes back online, and a refused ride earned none; MapProgress and StarRules on the backend |
 | 11.3 | [Celebrate an unlock](11-3-celebrate-an-unlock/README.md) | 1:58 | The backend names the map a ride opened (top 3 vs bots, stars, level 10) once; Results shows a gold card, Neon Docklands is open, that fades in, grows and brings its photo into colour, or only fades with reduced motion; no card when nothing opened |
 | 12.1 | [Earn stars and unlock maps](12-1-earn-stars-and-unlock-maps/README.md) | 1:55 | GET /api/progress answers the open maps, next unlock, stars and bests; Map Select and Race Setup read them in place of the new-rider stand-in: the mid rider's Neon Docklands next, the veteran's Col du Granit, a map a ride opened ready in Race Setup, bests in minutes |
+| 12.2 | [Open class tiers](12-2-open-class-tiers/README.md) | 1:52 | The backend leaves out a class whose tier is not 1, 5, 10 or 20; the Class Library and Class Start read the rider's level from GET /api/progress: three classes open at level 1, Tempo Paceline at level 7, all but the level-20 class at level 18 |
 
 ## What every video is
 
