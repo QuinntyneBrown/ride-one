@@ -121,7 +121,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L94 | A backend test class shares one in-memory store and one `FakeTimeProvider` across its tests, which run in any order, so a limit counted from stored rows over a window (5 codes an hour per address, 20 per network) carries from one test into the next. Start each such test by advancing the clock past the window, and give a test that fills one partition (every request from the same unknown network) a fixture class of its own. | 9.1 | 9.2, 9.4 | Saved time |
 | L95 | A normalisation rule is narrower than it sounds: L2-001 AC6 lower-cases an email's domain only, so `Busy@` and `busy@` are two addresses. Before a test leans on normalisation to make two inputs one, read the requirement's exact words, and vary only what the rule changes. | 9.1 | | |
 | L96 | A guard in front of every screen fails every existing spec unless the shared fixture answers it. Give the fixture a default that passes the guard (`GET /api/riders/me` answers a signed-in rider) and a switch for the specs that need the other case (`api.signedOut()`), so the old specs run unchanged and only the new ones opt out. | 9.2 | 9.3, 9.4, 10.1 | Saved time |
-| L97 | Prettier rewraps lines on the first format, so an edit script whose old text comes from memory of the file as written (a one-line providers array, an import) misses. After any format, take each old string from the file as it now is (`sed -n`), and assert across every file before writing any. | 9.2 | 9.3, 9.4, 10.1, 10.2 | Saved time; made it worse once in 10.2 (a wrapped call, caught by L103) |
+| L97 | Prettier rewraps lines on the first format, so an edit script whose old text comes from memory of the file as written (a one-line providers array, an import) misses. After any format, take each old string from the file as it now is (`sed -n`), and assert across every file before writing any. | 9.2 | 9.3, 9.4, 10.1, 10.2, 13.3 | Saved time; made it worse once in 10.2 (a wrapped call, caught by L103); made it worse once in 13.3 (a reflowed stub, caught by its assert) |
 | L98 | Over its error budget the Angular build writes neither the bundle nor `--stats-json`, so the cause of growth stays hidden. Raise `maximumError` in `angular.json` for one build (copy the file aside and restore it), build with and without the suspect import, and diff the inputs of `main-*.js` in the two stats files: 9.3's CDK Dialog had moved 7.7 kB of core and RxJS (`auditTime`, the async scheduler) into the initial chunk. | 9.3 | | |
 | L99 | `components` may take only types from `api` (lint), so a presentation form cannot run a rule's check. Keep the check in the app's store and pass the form a count of refusals, not a boolean: a count shows a second refusal of the same name again after the rider edits, where a boolean that stays `true` would not. | 9.3 | | |
 | L100 | `eslint --fix projects e2e` fixes every file it finds, including ones the slice never touched (a `type` became an `interface` in the Bluetooth fixture). Fix only the slice's files (`git diff --name-only` plus new files), or check `git status` for files outside the slice before committing. | 9.3 | 9.4, 10.1 | Saved time |
@@ -159,13 +159,40 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L132 | angular-eslint's `no-output-native` refuses an output named for a DOM event (`toggle`, `change`, `close`, `select`): name it in the past tense (`toggled`) before the template binds it, and say so in the design. | 13.1 | | |
 | L133 | The unit tests' DOM has no Fullscreen API (as it has no Wake Lock); `vi.spyOn` on a getter it lacks throws "The property is not defined". Install the browser's API in the spec with `Object.defineProperty(..., { configurable: true })` and delete it after each test. | 13.1 | | |
 | L134 | When a state a requirement names has no mock (Exit full screen), add it before the code: the page, `index.html`, `manifest.json` and the coverage matrix in `docs/mocks/README.md`. | 13.1 | | |
-| L135 | A child route that only provides a page's services (`loadChildren` with a routes file) added 0.26 kB to main for its loader. Provide page-scoped services on the routed component's own `providers` (helpers returning `Provider[]`, as `provideMaps()` and `provideClasses()` now do): they load with the page's chunk and go when the rider leaves. | 13.2 | | |
+| L135 | A child route that only provides a page's services (`loadChildren` with a routes file) added 0.26 kB to main for its loader. Provide page-scoped services on the routed component's own `providers` (helpers returning `Provider[]`, as `provideMaps()` and `provideClasses()` now do): they load with the page's chunk and go when the rider leaves. | 13.2 | 13.3 | Saved time |
 | L136 | `page.clock.setFixedTime(new Date('…T19:30:00'))` is read in Node's time zone, but the browser runs in UTC (`timezoneId` in `playwright.config.ts`): write e2e times with `Z`, or the greeting reads "Morning". | 13.2 | | |
-| L137 | When a page starts reading a new endpoint and many specs pass through it (Home), answer it by default in `e2e/fixtures/api.ts` beside `/api/progress`; otherwise unrelated specs fail with "unanswered request". Grep for specs that open the page before running the suite. | 13.2 | | |
+| L137 | When a page starts reading a new endpoint and many specs pass through it (Home), answer it by default in `e2e/fixtures/api.ts` beside `/api/progress`; otherwise unrelated specs fail with "unanswered request". Grep for specs that open the page before running the suite. | 13.2 | 13.3 | Saved time |
 | L138 | Angular drops whitespace-only text between elements: two spans in one sentence need `&ngsp;` between them, or a screen reader reads "open.A". `toHaveText` on a row of separate elements (body and button) has no space either; assert each part. | 13.2 | | |
 | L139 | When the UI needs a number the catalogue only gives in words (a level goal's level), serve it as its own field (`unlockLevel`) with an API test, rather than parsing the words in the app. | 13.2 | | |
+| L140 | Profile does not connect the remembered bike; Home does (L2-015). A spec or shot that needs the bike connected on another screen opens Home, waits for the three writes, pushes a frame, then follows the header to that screen. | 13.3 | | |
+| L141 | When a design names one helper for a whole list (`settingRows()`) but only one row's words change, keep the fixed rows in the template as links and buttons and extract just the changing one (`bikeRow()`) with its unit spec; then bring the design and its class diagram in line. | 13.3 | | |
 
 ## Log
+
+### 13.3 Show the profile (2026-11-22)
+
+**Applied from earlier**
+
+- **L1 own worktree and install; L2 port 4310; L3 format first — saved time.**
+- **L41 spec each step first — saved time:** the backend's two acceptance tests, then the headline spec (3 tests,
+  with `streak.spec.ts`'s line) and the settings spec (2 tests) failed on the old Profile, and the line's, the XP
+  bar name's and the bike row's unit specs on stubs.
+- **L137 answer new fields by default — saved time:** `rideCount` and `distanceKm` went into the shared fixtures'
+  progress, so no spec that passes through Profile or the header failed for them.
+- **L135 page-scoped services; L5 read the initial chunk — saved time:** Profile injects only tokens the app already
+  binds, and main stayed at 277.38 kB.
+- **L97 take old strings after a format — made it worse once:** an edit script matched the `bikeRow` stub as written,
+  but prettier had reflowed it; the assert stopped it before it wrote anything, and the file was rewritten whole.
+- **L121 film rules first; L34 render every diagram — saved time:** two diagrams re-rendered with exit status 0.
+
+**What slowed it down**
+
+- The settings spec waited on Profile to connect the remembered bike, which only Home does (L140).
+- The design's `settingRows()`, `SettingKind` and `choose(kind)` did not fit rows that are links and buttons; only the
+  bike row varies (L141).
+- The settings scene's close-up first cut off the third row; the crop was widened after rendering the frame.
+
+**New lessons:** L140, L141.
 
 ### 13.2 Home next ride (2026-11-22)
 
