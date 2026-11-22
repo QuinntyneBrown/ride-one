@@ -44,6 +44,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 8.7 | [Real-world scenery](08-7-real-world-scenery/README.md) | 1:43 | The real Bruges offered while the world draws; the key to Google and this device only; refused, the world stays; streaming credits Google; 390 to 1440 px; six behaviour specs |
 | 9.1 | [Request an email code](09-1-request-an-email-code/README.md) | 1:54 | Sign-in sends a code and the code screen counts down; a bad address sends nothing; a failed send keeps the email; 5 an hour per address, 20 per network; 202 for everyone; 390 to 1440 px; seven backend and seven behaviour specs |
 | 9.2 | [Verify and stay signed in](09-2-verify-and-stay-signed-in/README.md) | 2:04 | Six digits confirm at once, typed or pasted; wrong, expired and locked codes refused; a year-long sliding session in an HttpOnly cookie; every screen sends a visitor to sign-in and back; an unreachable backend never blocks; seven backend and nine behaviour specs |
+| 9.3 | [Choose a display name](09-3-choose-a-display-name/README.md) | 1:54 | A new account is asked for a display name before going on; 2 to 24 characters, said plainly; one rule kept by the backend; Profile's headline and a Settings dialog that changes it; backend tests and nine behaviour specs |
 
 ## What every video is
 
