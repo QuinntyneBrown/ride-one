@@ -25,6 +25,7 @@
             "outputPath": "dist/ride",
             "browser": "projects/ride/src/main.ts",
             "tsConfig": "projects/ride/tsconfig.app.json",
+            "define": { "require": "undefined" },
             "inlineStyleLanguage": "scss",
             "assets": [
               {

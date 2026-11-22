@@ -18,6 +18,7 @@ import {
   VideoClockSync,
   WorkoutEngine,
 } from '@telo/domain';
+import { LiveSessionStore } from '../live/live-session-store';
 import { ClassRideStore } from './class-ride-store';
 
 /**
@@ -50,6 +51,7 @@ import { ClassRideStore } from './class-ride-store';
     ResistanceController,
     BikeTelemetry,
     VideoClockSync,
+    LiveSessionStore,
   ],
 })
 export default class ClassRidePage {

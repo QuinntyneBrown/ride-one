@@ -24,6 +24,7 @@ import {
   VideoClockSync,
   WorkoutEngine,
 } from '@telo/domain';
+import { LiveSessionStore } from '../live/live-session-store';
 
 /** A live stat as the bike panel shows it. */
 export interface StatView {
@@ -115,7 +116,13 @@ export class ClassRideStore {
   });
 
   constructor() {
-    const id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
+    const route = inject(ActivatedRoute).snapshot;
+    const id = route.paramMap.get('id') ?? '';
+    // A group ride arrives with its session (`?session=`, slice 14.3 joins it on Class Start) and holds the hub
+    // connection for as long as it lasts; a solo ride holds none (L2-120 AC1, AC4).
+    const sessionId = route.queryParamMap.get('session');
+    if (sessionId !== null)
+      void inject(LiveSessionStore).join({ kind: 'class', classId: id, sessionId });
     inject(CLASSES_API)
       .get(id)
       .pipe(takeUntilDestroyed())

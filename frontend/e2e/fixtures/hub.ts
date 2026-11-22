@@ -21,6 +21,7 @@ export class HubFixture {
   private readonly received: HubMessage[] = [];
   private readonly results = new Map<string, (...args: unknown[]) => unknown>();
   private readonly missed: string[] = [];
+  private negotiated = 0;
 
   private constructor() {}
 
@@ -35,6 +36,7 @@ export class HubFixture {
           await route.fulfill({ status: 501 });
           return;
         }
+        hub.negotiated += 1;
         await route.fulfill({
           contentType: 'application/json',
           body: JSON.stringify({
@@ -70,6 +72,21 @@ export class HubFixture {
     for (const socket of this.sockets) socket.send(frame({ type: 1, target, arguments: args }));
   }
 
+  /** Closes every connection from the server's side, as a dropped network would (L2-120 AC3). */
+  async drop(): Promise<void> {
+    await Promise.all([...this.sockets].map((socket) => socket.close()));
+  }
+
+  /** How many connections the page holds now. */
+  connections(): number {
+    return this.sockets.length;
+  }
+
+  /** How many times the page negotiated a connection: once per connect and once per reconnect. */
+  negotiations(): number {
+    return this.negotiated;
+  }
+
   /** The arguments of each invocation of `target` the page made, oldest first. */
   invocations(target: string): unknown[][] {
     return this.received.filter((m) => m.target === target).map((m) => m.arguments ?? []);
@@ -88,7 +105,10 @@ export class HubFixture {
     }
     this.sockets.push(socket);
     let handshaken = false;
-    socket.onClose(() => this.sockets.splice(this.sockets.indexOf(socket), 1));
+    socket.onClose(() => {
+      const index = this.sockets.indexOf(socket);
+      if (index >= 0) this.sockets.splice(index, 1);
+    });
     socket.onMessage((data) => {
       for (const text of String(data).split(SEPARATOR).filter(Boolean)) {
         if (!handshaken) {

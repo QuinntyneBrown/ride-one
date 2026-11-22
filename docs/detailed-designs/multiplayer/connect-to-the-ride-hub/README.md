@@ -40,7 +40,10 @@ the backend.
   hold a live session bind, never `app.config.ts`.
 - **`SignalRRideHubClient`** — implementation of `RideHubClient` in the `api` library. On
   `start()` it imports `@microsoft/signalr` dynamically, so the SignalR library stays out of
-  every chunk until a live session needs it, and builds a `HubConnection` with
+  every chunk until a live session needs it. Its ESM build calls `require` only on its Node
+  paths (`ws`, `eventsource`, `node-fetch`), which made esbuild add a `require` shim to the
+  initial chunk; the `ride` build defines `require` as `undefined` (`angular.json`), as it is in
+  every browser, so the shim and those paths drop out. It builds a `HubConnection` with
   `HubConnectionBuilder` for `/hubs/ride`, sends the session cookie
   (`withCredentials: true`), and registers the server-to-client handlers `SeatsChanged`,
   `CountdownStarted`, `SessionStarted`, `StandingsUpdated`, `RiderLeft` and `SessionEnded`. It

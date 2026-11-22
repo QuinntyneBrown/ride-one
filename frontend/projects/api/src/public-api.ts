@@ -101,3 +101,7 @@ export {
   isDisplayName,
 } from './riders/display-name';
 export type { NextRideReward, NextRideView } from './home/next-ride-view';
+export { measureClockOffset, type ClockSample } from './live/clock-offset';
+export { RIDE_HUB_CLIENT, type RideHubClient, type RideHubState } from './live/ride-hub-client';
+export { RideHubRetryPolicy, type RetryContext } from './live/ride-hub-retry-policy';
+export { SignalRRideHubClient } from './live/signalr-ride-hub-client';

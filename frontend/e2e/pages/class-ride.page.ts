@@ -56,6 +56,11 @@ export class ClassRidePage {
     this.lower = page.getByRole('button', { name: 'Lower resistance' });
   }
 
+  /** Opens the ride in a group session, as Class Start does once the rider has joined it. */
+  async openGroup(classId: string, sessionId: string): Promise<void> {
+    await this.page.goto(`/classes/${classId}/ride?session=${sessionId}`);
+  }
+
   async open(classId: string): Promise<void> {
     await this.page.goto(`/classes/${classId}/ride?mode=solo`);
   }
