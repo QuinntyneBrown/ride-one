@@ -55,8 +55,8 @@ alt valid session
 else no valid session
   db --> auth : None
   auth --> client : 401 (L2-120 AC2)
-  client --> store : state = disconnected
-  store --> actor : Sign-in screen opens
+  client --> store : start() rejects, state = disconnected
+  store --> actor : The ride carries on with the bike, without the session (L2-126)
 end
 actor -> route : Leave the lobby or finish the race
 route -> store : DestroyRef.onDestroy
