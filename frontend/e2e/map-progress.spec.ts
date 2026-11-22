@@ -55,10 +55,13 @@ test.describe('Stars and map unlocks from the backend', () => {
     await expect(next.root).toHaveClass(/map-row--next/);
     await expect(next.goal).toHaveText('Earn 3★ on Dolomites');
     await expect(select.row('Vice City').root).toHaveAttribute('href', '/race/vice-city');
+    // A best of an hour or more reads in minutes, as the mocks write it.
+    await expect(select.row('Dolomites').best).toHaveText('Best 71:20');
 
     const setup = new RaceSetupPage(page);
     await setup.open('dolomites');
     await expect(setup.goal).toHaveText('Earn 3★ on Dolomites to open Col du Granit.');
+    await expect(setup.factValues.last()).toHaveText('71:20');
   });
 
   test('a map a ride opened opens Race Setup, from its address and from the unlock card (L2-040 AC5)', async ({
