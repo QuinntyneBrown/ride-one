@@ -649,6 +649,7 @@ textarea.input.input--autogrow { field-sizing: content; min-height: var(--space-
 .dialog__head .icon-btn { margin-right: calc(var(--space-2) * -1); }
 .dialog__body { padding-inline: var(--space-5); font-size: var(--font-size-sm); line-height: var(--line-height-relaxed); color: var(--color-muted); }
 .dialog__body > * + * { margin-top: var(--space-4); }
+.dialog__lead { margin: 0; }
 .dialog__figure { font-family: var(--font-family-display); font-weight: var(--font-weight-bold); font-feature-settings: 'tnum' 1; letter-spacing: var(--letter-spacing-display); color: var(--color-fg); }
 .dialog__icon { width: var(--space-6); height: var(--space-6); flex-shrink: 0; }
 .dialog__icon--danger { color: var(--color-heart-fg); }
