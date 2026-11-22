@@ -67,7 +67,6 @@ class LevelBadge <<components>> {
 }
 class XpBar <<components>> {
   +fillPercent: input<number>
-  +label: input<string>
 }
 class "toLevelView()" as toLevelView <<ride helper>> {
   +toLevelView(p: ProgressDto): LevelView

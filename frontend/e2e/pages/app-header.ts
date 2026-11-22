@@ -8,6 +8,11 @@ export class AppHeader {
   readonly nav: Locator;
   /** The bike status at the end of the header, shown from lg (1024 px). */
   readonly bike: Locator;
+  /** The level link to Profile: the gold badge, the XP bar and its label (L2-032 AC2). */
+  readonly level: Locator;
+  readonly levelBadge: Locator;
+  readonly xpLabel: Locator;
+  private readonly xpFill: Locator;
   private readonly product: Locator;
 
   constructor(private readonly page: Page) {
@@ -17,6 +22,17 @@ export class AppHeader {
     this.product = this.lockup.locator('.wordmark__product');
     this.nav = this.root.getByRole('navigation', { name: 'Main' });
     this.bike = this.root.locator('.app-header__bike');
+    this.level = this.root.locator('.app-header__level');
+    this.levelBadge = this.level.locator('.level-badge');
+    this.xpLabel = this.level.locator('.app-header__xp-label');
+    this.xpFill = this.level.locator('.xp-bar__fill');
+  }
+
+  /** How full the XP bar is drawn, as its `--value` ("70.8%"). */
+  xpFillValue(): Promise<string> {
+    return this.xpFill.evaluate((fill) =>
+      getComputedStyle(fill).getPropertyValue('--value').trim(),
+    );
   }
 
   link(name: 'Home' | 'Race' | 'Classes' | 'Profile'): Locator {

@@ -55,7 +55,8 @@ export interface XpLineDto {
 
 /**
  * What the backend answers for a recorded ride, the same for every repeat of its ride id (L2-125 AC3): its XP line by
- * line and in all, and the rider's total XP once it was added (L2-037).
+ * line and in all, the rider's total XP once it was added (L2-037), the level it reaches, whether the ride took it
+ * there, and the next level's threshold and the XP to it, both `null` at level 30 (L2-038).
  */
 export interface RideRecordedDto {
   readonly rideId: string;
@@ -63,6 +64,10 @@ export interface RideRecordedDto {
   readonly xpLines: readonly XpLineDto[];
   readonly xpTotal: number;
   readonly totalXp: number;
+  readonly level: number;
+  readonly levelUp: boolean;
+  readonly nextLevelXp: number | null;
+  readonly xpToNextLevel: number | null;
 }
 
 /**

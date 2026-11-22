@@ -1,18 +1,15 @@
 import { Dialog, type DialogConfig } from '@angular/cdk/dialog';
 import { Overlay } from '@angular/cdk/overlay';
 import { ChangeDetectionStrategy, Component, Injector, computed, inject } from '@angular/core';
-import { CURRENT_RIDER } from '@telo/api';
+import { CURRENT_RIDER, PROGRESS_STORE } from '@telo/api';
 import { InlineMessage, SettingRow } from '@telo/components';
 import { AccountStore } from './account-store';
 import { DeleteAccountDialog } from './delete-account-dialog';
 import { DisplayNameDialog } from './display-name-dialog';
 
-/** Every rider is level 1 until XP lands (journey 10). */
-const LEVEL = 1;
-
 /**
  * Profile (docs/mocks/pages/profile/): in slice 9.3, the headline with the rider's display name and level ("Sam ·
- * Level 1", L2-005 AC3) and Settings, whose Display name row changes the name in a dialog, and whose Sign out and
+ * Level 1", L2-005 AC3), the level from the progress the header shows (slice 10.3), and Settings, whose Display name row changes the name in a dialog, and whose Sign out and
  * Delete my account rows end the session or delete the account (slice 9.4, L2-006). Slice 13.3 adds the XP bar, maps,
  * recent rides and the other Settings rows.
  */
@@ -30,7 +27,15 @@ export default class ProfilePage {
   private readonly injector = inject(Injector);
   protected readonly account = inject(AccountStore);
 
-  protected readonly level = LEVEL;
+  private readonly progress = inject(PROGRESS_STORE);
+
+  /** The rider's level, unknown until the progress arrives. */
+  protected readonly level = computed(() => this.progress.progress()?.level ?? null);
+  /** "Sam · Level 7"; the name or the level alone until both are known. */
+  protected readonly headline = computed(() => {
+    const level = this.level();
+    return [this.name(), level === null ? null : `Level ${level}`].filter(Boolean).join(' · ');
+  });
   protected readonly name = computed(() => this.currentRider.rider()?.displayName ?? null);
 
   protected changeName(): void {

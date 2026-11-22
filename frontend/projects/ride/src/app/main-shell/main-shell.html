@@ -13,6 +13,15 @@
       >
     }
     <wz-app-header-bike slot="end" [status]="bike()" />
+    @if (level(); as level) {
+      <a
+        wz-app-header-level
+        slot="end"
+        routerLink="/profile"
+        [attr.aria-label]="level.ariaLabel"
+        [level]="level"
+      ></a>
+    }
   </wz-app-header>
   <div class="app__scroll">
     <router-outlet />

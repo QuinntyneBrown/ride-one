@@ -40,6 +40,14 @@ export { MAPS_API, type MapsApi } from './maps/maps-api';
 export { MapsApiError, type MapsApiErrorCode } from './maps/maps-api-error';
 export type { MapProgressDto } from './progress/map-progress-dto';
 export { PROGRESS_API, type ProgressApi } from './progress/progress-api';
+export { HttpRiderProgressApi } from './progress/http-rider-progress-api';
+export type { LevelView, ProgressDto } from './progress/progress-dto';
+export {
+  PROGRESS_STORE,
+  RIDER_PROGRESS_API,
+  type ProgressStore,
+  type RiderProgressApi,
+} from './progress/rider-progress-api';
 export { GHOST_API, type GhostApi, type GhostTrace } from './race/ghost-api';
 export type { PackStrengthId, RaceMode } from './race/race-mode';
 export type { RaceResult } from './race/race-result';
