@@ -20,7 +20,7 @@ holds 250 MB).
 | Part | What it says | Requirement |
 |------|--------------|-------------|
 | `navigationFallback` | An address that matches no file is answered with `/index.html`, so the app's routes open directly. The asset folders and addresses ending in a file extension are left out: a missing file is 404. | L2-149 AC1 |
-| `globalHeaders` | On every answer: the Content Security Policy with `frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security: max-age=31536000` and `Cache-Control: no-cache`. | L2-131, L2-009 AC2 |
+| `globalHeaders` | On every answer: the Content Security Policy (scripts from the app and `www.youtube.com`, frames from `www.youtube-nocookie.com`, images from the app and `i.ytimg.com`, media and connections from the app alone, `frame-ancestors 'none'`; no other host is named, and `static-host.spec.ts` fails if one is added), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security: max-age=31536000` and `Cache-Control: no-cache`. | L2-131, L2-009 AC2 |
 | `routes` | The root's hashed `.js` and `.css` files: `Cache-Control: public, max-age=31536000, immutable`. The service worker's scripts: `no-cache`, and a policy of their own that lets the worker fetch the YouTube player and the class cover. | L2-149 AC1 |
 | `mimeTypes` | The manifest, `.glb`, `.ogg` and `.wasm`. | |
 

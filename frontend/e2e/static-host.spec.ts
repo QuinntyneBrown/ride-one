@@ -59,6 +59,38 @@ test.describe('Static host', () => {
     expect(configuration.globalHeaders['Cache-Control']).toBe('no-cache');
   });
 
+  test('the policy lets in the app and the YouTube player, and nothing else (L2-131 AC1, AC3, AC4)', () => {
+    const policy = Object.fromEntries(
+      StaticHost.configuration()
+        .globalHeaders['Content-Security-Policy'].split(';')
+        .map((directive) => directive.trim().split(/\s+/))
+        .map(([name, ...sources]) => [name, sources]),
+    );
+
+    expect(policy['script-src']).toEqual([
+      "'self'",
+      'https://www.youtube.com',
+      "'wasm-unsafe-eval'",
+    ]);
+    expect(policy['frame-src']).toEqual(['https://www.youtube-nocookie.com']);
+    expect(policy['connect-src']).toEqual(["'self'", 'blob:']);
+    expect(policy['img-src']).toEqual(["'self'", 'https://i.ytimg.com', 'blob:']);
+    expect(policy['media-src']).toEqual(["'self'"]);
+    expect(policy['font-src']).toEqual(["'self'"]);
+    expect(policy['frame-ancestors']).toEqual(["'none'"]);
+    // Nothing of Telo Ride's maps remains, and no other host is named.
+    const hosts = Object.values(policy)
+      .flat()
+      .filter((source) => source.startsWith('https://'));
+    expect(new Set(hosts)).toEqual(
+      new Set([
+        'https://www.youtube.com',
+        'https://www.youtube-nocookie.com',
+        'https://i.ytimg.com',
+      ]),
+    );
+  });
+
   test('the hashed files are kept for a year; the shell, the service worker and its manifest are asked for again (L2-149 AC1)', async ({
     page,
   }) => {
