@@ -1,12 +1,12 @@
-# Telo Ride's pipeline (L2-149 AC3, ADR 0026). On every push and pull request it runs lint, the production
-# builds and one critical acceptance path per feature, in three parallel jobs, and fails on any of them. It
+# Telo Ride 1's pipeline (L2-149 AC2, ADR 0043). On every push and pull request it runs lint, the production
+# build and one critical acceptance path per feature, in three parallel jobs, and fails on any of them. It
 # runs no unit tests and no visual, responsive, accessibility or heap sweep: `node tools/verify/verify.mjs`
-# runs everything locally. No job touches Bluetooth hardware, a real backend or a database: the Playwright
-# specs answer them from fixtures and the backend tests run on EF Core InMemory (AGENTS.md).
+# runs everything locally. No job touches Bluetooth hardware or a network beyond localhost: the Playwright
+# specs answer both from fixtures (AGENTS.md). Telo Ride 1 is static files and has no backend to build or test.
 #
-# Kept under 5 minutes: the checkout leaves out docs/ (the films), node_modules, NuGet packages and the
-# Playwright browser are cached, and nothing is retried. A push to main that passes is deployed, once the
-# repository variables of docs/deployment.md name the host.
+# Kept under 5 minutes: each job checks out only the folders its steps read (docs/, with the films, is in
+# none), node_modules and the Playwright browser are cached, and nothing is retried. A push to main that
+# passes is deployed, once the repository variables of docs/deployment.md name the host.
 name: CI
 
 on:
@@ -20,10 +20,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  DOTNET_NOLOGO: true
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
-
 jobs:
   lint:
     name: Lint
@@ -34,7 +30,6 @@ jobs:
         with:
           sparse-checkout: |
             frontend
-            backend
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -46,25 +41,15 @@ jobs:
       - if: steps.modules.outputs.cache-hit != 'true'
         run: npm ci --no-audit --no-fund
         working-directory: frontend
-      - uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: backend/global.json
-      - uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('backend/Directory.Packages.props', 'backend/**/*.csproj') }}
       - name: Prettier
         run: npm run format:check
         working-directory: frontend
       - name: ESLint and the e2e type check
         run: npm run lint
         working-directory: frontend
-      - name: dotnet format
-        run: dotnet format Telo.Ride.slnx --verify-no-changes
-        working-directory: backend
 
   build:
-    name: Production builds
+    name: Production build
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -72,7 +57,6 @@ jobs:
         with:
           sparse-checkout: |
             frontend
-            backend
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -84,33 +68,24 @@ jobs:
       - if: steps.modules.outputs.cache-hit != 'true'
         run: npm ci --no-audit --no-fund
         working-directory: frontend
-      - uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: backend/global.json
-      - uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('backend/Directory.Packages.props', 'backend/**/*.csproj') }}
       - name: The ride app, within its budgets
         run: npm run build
         working-directory: frontend
       - name: The ride app's initial bundle, at most 300 KB gzipped
         run: npm run bundle:size
         working-directory: frontend
-      - name: The API, warnings as errors
-        run: dotnet build Telo.Ride.slnx -c Release
-        working-directory: backend
 
   acceptance:
     name: Critical acceptance paths
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # tools/blender/courses holds the course's file, which the specs read the class's plan from
+      # (frontend/e2e/fixtures/the-class.ts). A spec that reads a file outside frontend/ needs its folder here.
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
             frontend
-            backend
             tools/blender/courses
       - uses: actions/setup-node@v4
         with:
@@ -134,19 +109,9 @@ jobs:
         if: steps.browsers.outputs.cache-hit != 'true'
         run: npx playwright install chromium
         working-directory: frontend
-      - uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: backend/global.json
-      - uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('backend/Directory.Packages.props', 'backend/**/*.csproj') }}
       - name: Playwright specs tagged @critical (Chromium)
         run: npx playwright test --grep @critical
         working-directory: frontend
-      - name: Backend acceptance tests marked Critical
-        run: dotnet test --solution Telo.Ride.slnx --filter-trait "Category=Critical"
-        working-directory: backend
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -154,14 +119,14 @@ jobs:
           path: frontend/test-results/
           retention-days: 7
 
-  # A push to main that passes is published to the App Service, which serves the app and its backend
-  # as one origin (ADR 0026). The job signs in with GitHub's OIDC token (no stored credential), migrates
-  # the database with the new build, and only then deploys it, so the new version starts on a migrated
-  # schema. Skipped until TELO_RIDE_WEBAPP names the host (docs/deployment.md).
+  # A push to main that passes is published to Azure Static Web Apps, which serves the build's files over
+  # HTTPS as the build's own staticwebapp.config.json says (ADR 0043). The job signs in with GitHub's OIDC
+  # token and reads the deployment token at run time, so the repository stores no secret. Skipped until
+  # TELO_RIDE_STATIC_WEB_APP names the host (docs/deployment.md).
   deploy:
     name: Deploy
     needs: [lint, build, acceptance]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TELO_RIDE_WEBAPP != ''
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TELO_RIDE_STATIC_WEB_APP != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -175,32 +140,36 @@ jobs:
         with:
           sparse-checkout: |
             frontend
-            backend
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: backend/global.json
       - name: Build the app
         run: npm ci --no-audit --no-fund && npm run build
         working-directory: frontend
-      - name: Publish the API with the app in its wwwroot
-        run: |
-          dotnet publish backend/src/Telo.Ride.Api -c Release -o out
-          cp -R frontend/dist/ride/browser out/wwwroot
+      # A browser installs a service worker again only when its bytes change, so the commit is appended:
+      # a change to the worker's headers then reaches a worker already installed (ADR 0043).
+      - name: Stamp the service worker with the commit
+        run: printf '\n// %s\n' "$GITHUB_SHA" >> frontend/dist/ride/browser/ngsw-worker.js
       - uses: azure/login@v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      - name: Migrate the database before the new version starts
-        run: dotnet out/Telo.Ride.Api.dll migrate
+      - id: token
+        name: Read the deployment token
         env:
-          ConnectionStrings__TeloRide: ${{ secrets.TELO_RIDE_DATABASE }}
-      - name: Deploy to the App Service
-        uses: azure/webapps-deploy@v3
+          STATIC_WEB_APP: ${{ vars.TELO_RIDE_STATIC_WEB_APP }}
+          RESOURCE_GROUP: ${{ vars.TELO_RIDE_RESOURCE_GROUP }}
+        run: |
+          token=$(az staticwebapp secrets list --name "$STATIC_WEB_APP" --resource-group "$RESOURCE_GROUP" --query properties.apiKey -o tsv)
+          echo "::add-mask::$token"
+          echo "value=$token" >> "$GITHUB_OUTPUT"
+      - name: Upload the build to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
         with:
-          app-name: ${{ vars.TELO_RIDE_WEBAPP }}
-          resource-group-name: ${{ vars.TELO_RIDE_RESOURCE_GROUP }}
-          package: out
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.value }}
+          action: upload
+          app_location: frontend/dist/ride/browser
+          output_location: ''
+          skip_app_build: true
+          skip_api_build: true

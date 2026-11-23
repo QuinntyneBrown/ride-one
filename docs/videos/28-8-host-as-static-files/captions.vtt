@@ -1,0 +1,55 @@
+WEBVTT
+
+00:00:02.581 --> 00:00:08.291
+Telo Ride 1 is now static files: the app's build on a static host, and no backend.
+
+00:00:10.324 --> 00:00:15.584
+The build carries its host's configuration, in one file: the way back to the app for
+
+00:00:15.584 --> 00:00:20.205
+its routes, the security headers, a year of HSTS and the cache rules.
+
+00:00:23.228 --> 00:00:28.521
+So the class ride opens by its own address, and an unknown address reaches page not
+
+00:00:28.521 --> 00:00:32.648
+found. A file that is not there is not found, never the app.
+
+00:00:36.133 --> 00:00:41.640
+The host is Azure Static Web Apps. It redirects plain http itself, so a person
+
+00:00:41.640 --> 00:00:46.246
+checks that on the real host. No test may leave this machine.
+
+00:00:49.038 --> 00:00:54.404
+The backend is gone, whole: four projects, fifteen migrations and thirty-two tests.
+
+00:00:54.404 --> 00:00:57.548
+Verify and the pipeline check the app alone.
+
+00:01:01.942 --> 00:01:06.035
+The class fits a phone, a tablet and a desktop, as it did before.
+
+00:01:12.266 --> 00:01:17.669
+Seven specs came first, and all seven failed. Now one hundred and seventy-nine specs
+
+00:01:17.669 --> 00:01:19.577
+and every unit test pass.
+
+00:01:25.170 --> 00:01:30.825
+Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class,
+
+00:01:30.825 --> 00:01:32.021
+nothing else.
+
+00:01:32.366 --> 00:01:37.318
+It pairs with a smart bike at home over Bluetooth, plays the class video, or draws
+
+00:01:37.318 --> 00:01:42.330
+the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's
+
+00:01:42.330 --> 00:01:45.831
+resistance for every interval while the rider pedals.
+
+00:01:46.176 --> 00:01:50.152
+Connect the bike, take the class, see your number, and come back to beat it.

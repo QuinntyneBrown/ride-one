@@ -1,6 +1,6 @@
 # 0022. Hosted on Azure Static Web Apps, deployed from main
 
-- **Status:** Superseded by [0026](0026-api-serves-the-app.md)
+- **Status:** Superseded by [0026](0026-api-serves-the-app.md); its host is taken up again by [0043](0043-static-files-on-azure-static-web-apps.md), for Telo Ride 1
 - **Date:** 2026-11-20
 
 ## Context

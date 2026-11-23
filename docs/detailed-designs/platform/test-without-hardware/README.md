@@ -66,9 +66,9 @@ Neighbouring features own the adjacent concerns:
   (`e2e/fixtures/tab.ts`) and **`withoutFullscreen`** (`e2e/fixtures/fullscreen.ts`): exist. They
   fake the Screen Wake Lock API, the hidden tab and a browser without full screen.
 - **`ApiFixture`** (`e2e/fixtures/api.ts`): exists. It routes every localhost request under `/api/`
-  and lists a request with no declared answer in `unanswered()`. Telo Ride 1 has no backend in its
-  requirements, so no spec declares an answer and any such request fails the spec. Whether the
-  fixture later answers a class definition is `<TO SUPPLY>` (`L2.md` open question 1).
+  and lists a request with no declared answer in `unanswered()`. Telo Ride 1 has no backend
+  (ADR 0037, ADR 0043) and the class ships with the app (ADR 0042), so no spec declares an answer
+  and any such request fails the spec.
 - **`guard`**: exists, as an automatic fixture in `test.ts`. It listens for `pageerror`, routes
   every request whose host is not `localhost` or `127.0.0.1`, lets through only what
   `YouTubeFixture.answers(url)` accepts, and aborts the rest. After the spec body it gathers page
@@ -117,8 +117,9 @@ Neighbouring features own the adjacent concerns:
   `*.development.spec.ts` against the development build on the next port, the only build that
   honours `?simulate` (`L2-024`). No Firefox or WebKit project is configured. `retries` is 0 and
   `forbidOnly` is set in CI.
-- **`frontend/scripts/serve-dist.mjs`**: exists. It serves each build on `127.0.0.1` and answers
-  any path that is not a file with `index.html`, so no spec needs a real host.
+- **`frontend/scripts/serve-dist.mjs`**: exists. It serves each build on `127.0.0.1` as the
+  `staticwebapp.config.json` in that build says: its headers, and `index.html` for an address that
+  matches no file and is not a missing asset (ADR 0043), so no spec needs a real host.
 - **Sweeps**: visual, responsive, accessibility and heap sweeps are kept current and run only when
   a person asks. Hardware smoke tests are run by a person.
 

@@ -42,7 +42,7 @@ export default defineConfig({
     },
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
-  // The production build, as riders get it, served as the API serves it (ADR 0026).
+  // The production build, as riders get it, served as the static host serves it (ADR 0043).
   webServer: {
     command: `node scripts/serve-dist.mjs ${port}`,
     cwd: path.resolve(root, 'frontend'),

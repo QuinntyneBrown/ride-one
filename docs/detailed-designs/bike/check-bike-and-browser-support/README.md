@@ -51,7 +51,7 @@ The slice runs from two screens of the `ride` application through one support ch
 
 **Outside the app**
 
-The redirect from `http` to `https` and the `Strict-Transport-Security` header (`L2-009` AC2) are the static host's work. `docs/deployment.md` describes them for Telo Ride's backend host only. The host product and its configuration file for Telo Ride 1 are `<TO SUPPLY>` (open question 1 leaves the backend, and with it the host, undecided).
+The redirect from `http` to `https` and the `Strict-Transport-Security` header (`L2-009` AC2) are the static host's work. Azure Static Web Apps redirects plain `http` itself, and `Strict-Transport-Security: max-age=31536000` is in the `globalHeaders` of `frontend/projects/ride/public/staticwebapp.config.json`, which the build carries (ADR 0043). `docs/deployment.md` says what a person checks on the real host; [Host and deliver](../../platform/host-and-deliver/README.md) owns the file.
 
 The routes `/connect`, `/` and `/ride` are assumptions the mocks share (open question 7).
 

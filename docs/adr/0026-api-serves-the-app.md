@@ -1,6 +1,6 @@
 # 0026. One App Service: the Telo Ride API serves the app and its backend as one origin
 
-- **Status:** Accepted
+- **Status:** Superseded by [0037](0037-no-backend-the-class-ships-with-the-app.md) and [0043](0043-static-files-on-azure-static-web-apps.md) (slice 28.8 moved hosting to static files)
 - **Date:** 2026-11-21
 - **Supersedes:** [0022](0022-hosted-on-azure-static-web-apps.md)
 

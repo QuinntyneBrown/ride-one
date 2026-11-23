@@ -5,7 +5,7 @@ const port = Number(process.env['E2E_PORT'] ?? 4300);
 const developmentPort = port + 1;
 
 // Behaviour specs only, Chromium only, never retried (AGENTS.md). e2e/fixtures/test.ts fails a spec on a page error,
-// a request off localhost, an unanswered backend request, or an unexpected Bluetooth call.
+// a request off localhost, a request to an API, or an unexpected Bluetooth call.
 export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.spec.ts',
@@ -35,7 +35,7 @@ export default defineConfig({
       use: { baseURL: `http://localhost:${developmentPort}` },
     },
   ],
-  // Each build served statically, as the API serves it in production (ADR 0026).
+  // Each build served as the static host serves it, by the configuration the build carries (ADR 0043).
   webServer: [
     {
       command: `npx ng build ride && node scripts/serve-dist.mjs ${port}`,

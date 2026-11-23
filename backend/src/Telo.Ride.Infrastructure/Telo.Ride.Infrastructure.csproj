@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="../Telo.Ride.Application/Telo.Ride.Application.csproj" />
-  </ItemGroup>
-</Project>

@@ -57,12 +57,14 @@ prototype disagrees, the specs stand and the mock is brought in line before the 
 
 ## Carried over from Telo Ride
 
-This repository began as a copy of Telo Ride. Its code, docs and tests still hold Telo Ride's
-other features: races, the World library and its Blender courses (`blender/`, `tools/blender`),
-the class library, sign-in, progression, group classes and live races, feedback, the custom workout and the
-`marketing` application. The ADRs still describe Telo Ride; `docs/specs/`, `docs/journeys.md`,
-`docs/detailed-journeys.md`, `docs/mocks/` and `docs/detailed-designs/` are rewritten for
-Telo Ride 1.
+This repository began as a copy of Telo Ride. Telo Ride's other features are removed from its
+code and tests: races, the class library and the other seven courses, sign-in, progression, group
+classes and live races, feedback, the custom workout, the `marketing` application and the backend
+(ADRs 0036 to 0043). What the code still holds beyond the four screens is World loading and the
+`world` library's other worlds with their music, until the slices that build riding in Ibiza
+decide them (ADR 0042). The ADRs before 0036 still describe Telo Ride; `docs/specs/`,
+`docs/journeys.md`, `docs/detailed-journeys.md`, `docs/mocks/` and `docs/detailed-designs/` are
+rewritten for Telo Ride 1.
 
 - Keep and build on what the four screens need: the Bluetooth link, the protocol, the engine, the
   simulated bike, the video library, the solo class ride and its result, and, for riding in
@@ -73,15 +75,13 @@ Telo Ride 1.
 
 ## Where things are
 
-- **The frontend is the product.** `frontend/` is an Angular workspace and holds most of the
+- **The frontend is the product.** `frontend/` is an Angular workspace and holds the
   implementation: Web Bluetooth connectivity, the protocol, the workout engine, sessions and
   every screen. It runs in Chrome or Edge; a ride finishes on the device without a network.
-- **The backend is carried over, and going.** `backend/` is Telo Ride's thin .NET service
-  (ADR 0025): email sign-in, rider progress, SignalR for live races and group classes, feedback,
-  and the class catalogue (ADR 0028). Telo Ride 1 has no backend (ADR 0037): the one class ships
-  with the app and the rider's record stays on the device. The slices of journey 28 remove it
-  with what it serves; until it is gone it still builds and its tests still pass. Add nothing to
-  it. `backend/README.md` has its commands.
+- **There is no backend.** Telo Ride 1 is static files (ADR 0037, ADR 0043): the one class ships
+  with the app and the rider's record stays on the device. Nothing in the app calls an API. The
+  host's configuration is `frontend/projects/ride/public/staticwebapp.config.json`, which the
+  build carries; `docs/deployment.md` has the host's set-up.
 - Before building a feature, read its requirement (`docs/specs/`, `docs/journeys.md`), its
   detailed design (`docs/detailed-designs/`) and its mocks (`docs/mocks/`, the source of truth
   for the UI; `docs/design-system/` is extracted from them). Where those still describe only
@@ -100,14 +100,14 @@ in kJ, and the class's hard intervals are its "efforts".
 
 ## Prefer best practice
 
-Choose the platform's established best practice (Angular, .NET, Playwright, WCAG) over the
+Choose the platform's established best practice (Angular, Playwright, WCAG) over the
 expedient way. A departure needs an ADR giving its reason. If a rule here or in an ADR conflicts
 with best practice, say so and propose the correction; do not work around it silently.
 
 ## Frontend
 
 A multi-project workspace under `frontend/projects/`. The baseline is three libraries, `api`
-(contracts, types, injection tokens, and the HTTP and SignalR clients for the backend), `domain`
+(contracts, types and injection tokens), `domain`
 (the bike and its rules: `protocol/`, `bluetooth/`, `engine/`, `storage/`) and `components`
 (presentation), and one application, `ride`. A `video` library (the YouTube player, imported
 dynamically) and a `world` library (World Ride's rendering from `main`, imported dynamically, ADR
@@ -116,8 +116,8 @@ dynamically) and a `world` library (World Ride's rendering from `main`, imported
 That baseline is where the organisation starts, not a limit on it. When a concern earns its own
 library (a `browser` project for browser-only implementations, a `world` project for World Ride
 rendering, and so on), add it. A smaller, focused library that can be lazy-loaded on its own is
-better than one that keeps growing. A further application still needs its own ADR; the
-`marketing` application (ADR 0027), the one-page site with the pitch film, is the first.
+better than one that keeps growing. A further application still needs its own ADR; there
+is none (ADR 0041).
 
 - **Dependency direction.** `ride` → `components`, `api`, `domain`, `video`, `world`; `domain` →
   `api`; `components` → `api` for types only; `video` → `api`; `world` → `api`; `api` → nothing;
@@ -155,7 +155,6 @@ better than one that keeps growing. A further application still needs its own AD
 - Logic with many cases (a store, a tracker, a pure helper) lives in a service or helper with
   its unit tests, never in a component.
 - Each service has a contract and an injection token in `api`; components depend on the token.
-  The SignalR client is one of those services; no component opens its own connection.
 - **No inline forms.** Button-triggered editing opens a CDK Dialog or navigates to a screen.
   Never hand-roll modals.
 - A contract refuses with an error whose `code` a screen branches on; the rider sees a generic
@@ -163,40 +162,13 @@ better than one that keeps growing. A further application still needs its own AD
 - Every interaction works by touch on a phone and by keyboard on a desktop; touch targets are
   at least 44 × 44 px; colour is never the only carrier of a state.
 
-## Backend
-
-Clean architecture, strict dependency direction: `Telo.Ride.Domain` (entities, zero deps) ←
-`Telo.Ride.Application` (MediatR handlers, validators, DTOs, `IAppDbContext`) ←
-`Telo.Ride.Infrastructure` (EF Core, migrations, auth) ← `Telo.Ride.Api` (controllers, SignalR
-hubs).
-
-- Business rules live in handlers and domain services. A controller or hub method checks nothing
-  itself and sends one MediatR request.
-- The API does not apply migrations on startup; a CLI command does. Seed data is idempotent.
-- Endpoints require authentication by default (fallback policy); keep intentional
-  `[AllowAnonymous]` access explicit.
-- Errors are ProblemDetails with a `code` extension where a client branches on them.
-- Telemetry is OpenTelemetry. No log, metric or span carries a contact detail, a token, message
-  text, a query string or a body; a route is recorded as its template.
-- A person sees and changes only their own data and the groups they belong to.
-- A setting a deployed system needs is documented in the same change.
-
-### Backend tests
-
-- **No real database.** Every test runs on EF Core InMemory (one store per fixture); never
-  SQLite, LocalDB, SQL Server or a file. Inject database faults through `IAppDbContext`.
-- **Never sleep.** Await an event with a timeout that fails naming what did arrive, or advance
-  `FakeTimeProvider`; no `Task.Delay`, no `Thread.Sleep`. Hub tests connect a real SignalR client
-  to the in-memory test server.
-- The acceptance test through the API proves each slice. A rule with a table of cases also gets a
-  direct test of the domain type or handler, one case per row.
-
 ## E2E (Playwright)
 
-- **No real bike, Bluetooth, backend or database.** A fixture installs a fake
-  `navigator.bluetooth` that records every write and pushes notifications on demand; API and hub
-  requests are answered by fixtures. An unexpected Bluetooth call, an unanswered request, a
-  request off localhost or a page error fails the spec. Hardware smoke tests are run by a
+- **No real bike or Bluetooth, and no network beyond localhost.** A fixture installs a fake
+  `navigator.bluetooth` that records every write and pushes notifications on demand; the app
+  calls no API, and the YouTube player and the class covers are answered by a fixture. An
+  unexpected Bluetooth call, a request to an API, a request off localhost or a page error fails
+  the spec. Hardware smoke tests are run by a
   person, never by an agent or CI.
 - Page Object Model: one page object per screen or dialog owns the selectors. Never put a
   selector in a test. Specs import `test`/`expect` from the shared fixture.
@@ -213,6 +185,7 @@ hubs).
   fixed or removed, never retried.
 - It runs only the few highest-value tests per feature: lint, build and one critical acceptance
   path each. Unit tests run locally, never in CI.
+- A setting a deployed system needs is documented in the same change.
 
 ## Lazy loading and memory (the top frontend priority)
 
@@ -228,15 +201,15 @@ bundle or leaks memory is not done, whatever else it achieves.
 - **Release everything you acquire.** Whatever a component, service or scene creates, it tears
   down when its owner is destroyed: subscriptions (`takeUntilDestroyed`/`DestroyRef`), timers,
   intervals and `requestAnimationFrame` loops, event and Bluetooth notification listeners,
-  observers, `AbortController`s, object URLs, media elements, SignalR handlers, and every
+  observers, `AbortController`s, object URLs, media elements, and every
   Three.js geometry, material, texture, render target and renderer (`dispose()`).
-- **Bound what grows.** Live data held during a ride (power and cadence traces, command logs,
-  leaderboards) uses a fixed-size or windowed buffer, or is persisted and dropped from memory.
+- **Bound what grows.** Live data held during a ride (power and cadence traces) uses a fixed-size
+  or windowed buffer, or is persisted and dropped from memory.
   Nothing accumulates without a limit for the length of a ride.
 - **Scope state to its use.** Provide services at the route or component that needs them, not
   in `root`, unless the whole app shares them. A screen's state goes when the rider leaves it.
 - **Prove it.** Leaving a screen returns its memory: a feature that allocates heavily (World
-  Ride, video, live races) is checked for a stable heap across repeated enter and leave, and
+  Ride, video) is checked for a stable heap across repeated enter and leave, and
   like the visual and accessibility sweeps, these heap checks run only when a person asks.
 
 ## Low-power rendering
@@ -248,14 +221,13 @@ lower resolution, fewer samples, LOD) before dropping it.
 
 ## Incremental implementation and ATDD (mandatory for product code)
 
-Every change to user-impacting product code (the app, its libraries and the backend) needs a
+Every change to user-impacting product code (the app and its libraries) needs a
 requirement, a detailed design and a mock before implementation, and is built incrementally.
-Mocks, designs, the design system, docs, test-only changes and a marketing site are exempt and
-get no tests.
+Mocks, designs, the design system, docs and test-only changes are exempt and get no tests.
 
 Before writing product code, invoke and follow the `implementing-incrementally` skill, with ATDD:
 plan small slices and finish one at a time. For each, write Given-When-Then criteria, write the
-acceptance test (backend: through the API; frontend: Playwright with page objects), run it to
+acceptance test (Playwright with page objects), run it to
 prove it fails for the expected reason, then implement only that slice, refactor green and run
 the regression checks before the next. No bulk implementation, no tests added afterwards, no
 weakening tests to pass. Keep requirement, design, mock, tests and code aligned throughout.

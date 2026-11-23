@@ -1,6 +1,6 @@
 # 0033. A same-origin proof, not anti-forgery tokens, guards every change
 
-- **Status:** Accepted
+- **Status:** Superseded by [0037](0037-no-backend-the-class-ships-with-the-app.md) (slice 28.4 removed its code)
 - **Date:** 2026-11-22
 - **Follows:** [0026](0026-api-serves-the-app.md), [0032](0032-register-the-service-worker-from-the-first-screen.md)
 

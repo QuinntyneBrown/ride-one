@@ -37,15 +37,21 @@ class "acceptance job" as Acceptance <<job>> {
 
 class "deploy job" as Deploy <<job>> {
   needs: lint, build, acceptance
-  if: push to main
-  target: <TO SUPPLY>
+  if: push to main, TELO_RIDE_STATIC_WEB_APP set
+  stamps ngsw-worker.js with the commit
+  Azure/static-web-apps-deploy
 }
 
 class "Static host" as Host <<config>> {
-  HTTPS only
-  fallback: index.html
-  headers: L2-131 header set
-  product: <TO SUPPLY>
+  product: Azure Static Web Apps (Free)
+  HTTPS only, http redirected
+}
+
+class "staticwebapp.config.json" as HostConfig <<config>> {
+  navigationFallback: /index.html, exclude assets
+  globalHeaders: L2-131 header set, HSTS, no-cache
+  routes: hashed files immutable, worker policy
+  mimeTypes
 }
 
 class "angular.json (ride, production)" as Angular <<config>> {
@@ -62,7 +68,7 @@ class "playwright.config.ts" as Playwright <<config>> {
 
 class "serve-dist.mjs" as Serve <<script>> {
   +serve(port, folder)
-  fallback: index.html
+  follows the build's staticwebapp.config.json
 }
 
 class "verify.mjs" as Verify <<script>> {
@@ -78,6 +84,8 @@ Build ..> Angular : builds with
 Acceptance ..> Playwright : runs
 Playwright ..> Serve : starts
 Deploy ..> Host : uploads dist/ride/browser to
-Serve ..> Host : mirrors the fallback of
+Serve ..> HostConfig : reads from the build
+Host ..> HostConfig : reads from the build
+Angular ..> HostConfig : copies from public/
 Verify ..> Workflow : repeats locally, plus unit tests
 @enduml

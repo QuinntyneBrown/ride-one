@@ -55,16 +55,18 @@ The policy below is the value the static host sends for Telo Ride 1.
 
 - **`X-Content-Type-Options: nosniff`** and **`Referrer-Policy: strict-origin-when-cross-origin`**:
   sent on every response, files as well as `index.html` (`L2-131` AC4).
-- **Where the header set is written**: new. The artefact that holds it depends on the static
-  host, which is `<TO SUPPLY>` (`L2.md` open question 1; `AGENTS.md` leaves the backend
-  undecided, and the change that decides it brings an ADR). The host is owned by
+- **Where the header set is written**: exists. It is the `globalHeaders` of
+  `frontend/projects/ride/public/staticwebapp.config.json`, the configuration of the static host
+  (Azure Static Web Apps, ADR 0043), which the build carries. The host and the file are owned by
   [Host and deliver](../../platform/host-and-deliver/README.md).
-- **What exists today**: the header set is written in
-  `backend/src/Telo.Ride.Api/Hosting/SecurityHeaders.cs`, in the carried-over backend that serves
-  the build (ADR 0026). Its policy is wider than Telo Ride 1 allows: it adds
+- **What exists today**: the policy in that file is the one the carried-over backend sent
+  (ADR 0026), moved as it was by slice 28.8. It is wider than Telo Ride 1 allows: it adds
   `'wasm-unsafe-eval'` to `script-src`, `https://tile.googleapis.com` and `blob:` to `connect-src`
   and `img-src`, and `worker-src 'self' blob:`, all for Telo Ride's World rendering and map tiles.
-  None of those is carried into the policy above.
+  None of those is carried into the policy above; slice 35.1 narrows the file to it. The service
+  worker's scripts carry a policy of their own in the same file, whose `connect-src` adds
+  `https://www.youtube.com` and `https://i.ytimg.com`: once the worker controls the page it
+  fetches the player and the class cover under its own policy (ADR 0043).
 - **No `<meta>` policy**: `frame-ancestors` is ignored in a `<meta>` element (ADR 0018), so the
   policy is a response header. `index.html` carries no policy of its own.
 - **Component styles**: Angular injects each component's styles as a `<style>` element at run
@@ -74,9 +76,9 @@ The policy below is the value the static host sends for Telo Ride 1.
   and `L2.md` lists no open question for the conflict. The allowance is therefore `<TO SUPPLY>`:
   either `'unsafe-inline'` for styles only, with the requirement amended, or a host that injects a
   nonce. Scripts are not affected by either choice.
-- **Local spec server**: `frontend/scripts/serve-dist.mjs` exists and sends only `content-type`.
-  It should send the same header set, so that a policy violation surfaces in the behaviour specs
-  before it surfaces on the host.
+- **Local spec server**: `frontend/scripts/serve-dist.mjs` exists. It reads
+  `staticwebapp.config.json` from the build it serves and sends its headers, so a policy
+  violation surfaces in the behaviour specs before it surfaces on the host.
 
 ### The app's own requests
 
@@ -97,9 +99,8 @@ The policy below is the value the static host sends for Telo Ride 1.
 - **`index.html`** (`ride`): exists. It references the favicon and the built bundles and no other
   origin. No analytics, advertising or tracking snippet is added to it.
 - **`frontend/package.json`**: exists. It holds no analytics, advertising or tracking package.
-- **No other origin in code**: `connect-src 'self'` leaves the app no cross-origin `fetch`. Where
-  the class definition behind `CLASSES_API` comes from is `<TO SUPPLY>` (`L2.md` open question 1);
-  under this policy it is either bundled with the app or served from the app's own origin.
+- **No other origin in code**: `connect-src 'self'` leaves the app no cross-origin `fetch`. The
+  class ships with the app (ADR 0042), so nothing is fetched for it.
 
 ### What is left out
 

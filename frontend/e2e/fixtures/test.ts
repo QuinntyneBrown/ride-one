@@ -10,7 +10,7 @@ import { YouTubeFixture } from './youtube';
 interface Fixtures {
   /** The fake `navigator.bluetooth`; a spec offers a bike, reads the writes and pushes notifications. */
   bluetooth: FakeBluetooth;
-  /** The backend's answers; a request no answer matches fails the spec. */
+  /** The answers to a request to an API; the app makes none (ADR 0043), and one no answer matches fails the spec. */
   api: ApiFixture;
   /** The YouTube IFrame API and the class covers, answered by a fake player and a local picture. */
   youtube: YouTubeFixture;
@@ -27,8 +27,8 @@ interface Fixtures {
 
 /**
  * The shared fixture every spec imports (AGENTS.md, E2E; L2-148 AC1). It installs the fake Bluetooth stack and Screen Wake Lock API before
- * the app loads and answers backend requests as the spec declares. It fails the spec on a page error, a request
- * off localhost (YouTube's player script and covers excepted, which a fake answers), an unanswered backend request, a Content Security Policy
+ * the app loads and answers a request to an API as the spec declares. It fails the spec on a page error, a request
+ * off localhost (YouTube's player script and covers excepted, which a fake answers), an unanswered request to an API, a Content Security Policy
  * refusal, or a Bluetooth call the spec did not expect.
  */
 export const test = base.extend<Fixtures>({

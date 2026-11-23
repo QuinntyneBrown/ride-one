@@ -1,6 +1,6 @@
 # 0025. A thin .NET backend for what one browser cannot do alone
 
-- **Status:** Accepted
+- **Status:** Superseded by [0037](0037-no-backend-the-class-ships-with-the-app.md) and [0043](0043-static-files-on-azure-static-web-apps.md) (slice 28.8 removed `backend/`)
 - **Date:** 2026-11-21
 - **Supersedes:** [0019](0019-no-backend.md)
 

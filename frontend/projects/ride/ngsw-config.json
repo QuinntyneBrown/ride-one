@@ -25,16 +25,5 @@
         "files": ["/maps/**", "/machines/**", "/draco/**"]
       }
     }
-  ],
-  "dataGroups": [
-    {
-      "name": "progress",
-      "urls": ["/api/progress"],
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 1,
-        "maxAge": "30d"
-      }
-    }
   ]
 }

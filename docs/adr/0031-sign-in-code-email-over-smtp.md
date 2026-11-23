@@ -1,6 +1,6 @@
 # 0031. Sign-in codes are emailed over SMTP with MailKit
 
-- **Status:** Accepted
+- **Status:** Superseded by [0037](0037-no-backend-the-class-ships-with-the-app.md) (slice 28.4 removed its code)
 - **Date:** 2026-11-21
 - **Follows:** [0025](0025-thin-dotnet-backend.md)
 

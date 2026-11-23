@@ -23,18 +23,18 @@
 | [0019](0019-no-backend.md) | No backend: Wattzup runs in the browser only | Superseded by 0025 |
 | [0020](0020-three-js-for-world-ride.md) | Three.js draws the World Ride scene, in its own lazy chunk | Accepted, amended by 0021 and 0030 |
 | [0021](0021-webgpu-renderer-with-webgl2-fallback.md) | World Ride draws with Three.js's WebGPU renderer, falling back to WebGL2 | Accepted, amended by 0023 and 0030 |
-| [0022](0022-hosted-on-azure-static-web-apps.md) | Hosted on Azure Static Web Apps, deployed from main | Superseded by 0026 |
+| [0022](0022-hosted-on-azure-static-web-apps.md) | Hosted on Azure Static Web Apps, deployed from main | Superseded by 0026; its host taken up again by 0043 |
 | [0023](0023-bend-the-road-in-the-vertex-stage.md) | World Ride bends the road in the vertex stage | Accepted |
 | [0024](0024-telo-ride-workspace.md) | The Telo Ride workspace: `api`, `domain`, `components` and `ride` | Accepted |
-| [0025](0025-thin-dotnet-backend.md) | A thin .NET backend for what one browser cannot do alone | Accepted |
-| [0026](0026-api-serves-the-app.md) | One App Service: the Telo Ride API serves the app and its backend as one origin | Accepted |
+| [0025](0025-thin-dotnet-backend.md) | A thin .NET backend for what one browser cannot do alone | Superseded by 0037 and 0043 |
+| [0026](0026-api-serves-the-app.md) | One App Service: the Telo Ride API serves the app and its backend as one origin | Superseded by 0037 and 0043 |
 | [0027](0027-marketing-site.md) | The marketing site: a `marketing` application with the pitch film | Superseded by 0041 |
 | [0028](0028-class-catalogue-shipped-with-the-backend.md) | The class catalogue: a JSON file shipped with the backend, public, cached on the device | Superseded by 0037 and 0042 |
-| [0029](0029-map-catalogue-shipped-with-the-backend.md) | The map catalogue: a JSON file shipped with the backend, public, cached on the device | Accepted |
+| [0029](0029-map-catalogue-shipped-with-the-backend.md) | The map catalogue: a JSON file shipped with the backend, public, cached on the device | Superseded by 0037 |
 | [0030](0030-world-library-carried-from-main.md) | World Ride's rendering is carried from `main` into a lazy `world` library | Accepted |
-| [0031](0031-sign-in-code-email-over-smtp.md) | Sign-in codes are emailed over SMTP with MailKit | Accepted |
+| [0031](0031-sign-in-code-email-over-smtp.md) | Sign-in codes are emailed over SMTP with MailKit | Superseded by 0037 |
 | [0032](0032-register-the-service-worker-from-the-first-screen.md) | The service worker is registered from the first screen's lazy chunk | Accepted |
-| [0033](0033-same-origin-proof-instead-of-anti-forgery-tokens.md) | A same-origin proof, not anti-forgery tokens, guards every change | Accepted |
+| [0033](0033-same-origin-proof-instead-of-anti-forgery-tokens.md) | A same-origin proof, not anti-forgery tokens, guards every change | Superseded by 0037 |
 | [0034](0034-maps-built-in-blender.md) | Maps are built in Blender from the class they are modelled after, and ridden by the clock | Proposed |
 | [0035](0035-every-map-a-course.md) | Every map in the catalogue is a course, built to its listed distance and climbing | Proposed |
 | [0036](0036-no-races-in-telo-ride-1.md) | Telo Ride 1 has no races; the World is kept for riding the class | Accepted |
@@ -44,3 +44,4 @@
 | [0040](0040-four-screens-and-no-menus.md) | Telo Ride 1 has four screens and no menus | Accepted |
 | [0041](0041-one-application-the-marketing-site-is-removed.md) | One application: the marketing site is removed | Accepted |
 | [0042](0042-one-class-and-one-course-shipped-with-the-app.md) | One class and one course, shipped with the app | Accepted |
+| [0043](0043-static-files-on-azure-static-web-apps.md) | Static files on Azure Static Web Apps: the backend is removed | Accepted |

@@ -26,8 +26,8 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | # | Lesson | From | Applied in | Result |
 |---|--------|------|------------|--------|
 | L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with its own `npm ci` in `frontend/` (never a `node_modules` symlink) and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4 | Saved time |
-| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 28.6, 28.7, 29.1, 29.2, 30.1 | Saved time |
-| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 28.6, 28.7, 29.1, 29.2, 30.1 | Saved time |
+| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 28.6, 28.7, 29.1, 29.2, 30.1, 28.8 | Saved time |
+| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 28.6, 28.7, 29.1, 29.2, 30.1, 28.8 | Saved time |
 | L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 7.1, 7.2, 7.3, 7.4, 7.5 | Saved time: `raised` joined `wz-button` |
 | L5 | Read the initial chunk in the build output after every route or import change; the baseline is 260.26 kB raw against a 264 kB warning. To see what grew it, `npx ng build ride --stats-json` and read `outputs[main-*.js].inputs` in `dist/ride/browser-stats.json` (delete it after). | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 14.1 | Saved time: it caught 10 kB in the initial chunk that verify let through (L54) |
 | L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.2 | Saved time |
@@ -41,7 +41,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L14 | For a production-like local run, `dotnet run --no-launch-profile` (`launchSettings.json` otherwise overrides `ASPNETCORE_URLS` and the environment), and `-- --webroot ../frontend/dist/ride/browser` to serve a build without copying it. | 1.4 | 2.2 | Saved time |
 | L15 | Prove a workflow change on GitHub before merging: push the slice's branch (CI runs on every push), `gh run watch <id> --exit-status`, read the job times, then delete the remote branch after the merge. | 1.4 | | |
 | L16 | A hosting test's web root is an in-memory `IFileProvider` set with `PostConfigure<StaticFileOptions>` (`HostedAppApi`), so it reads no file. | 1.4 | | |
-| L17 | Judge verify by its exit status: `if E2E_PORT=4310 node tools/verify/verify.mjs > log 2>&1; then git commit …; fi`. Piping it to `grep` succeeds whatever verify did, and once committed a failing build. | 2.1 | 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 28.6, 28.7, 29.1, 29.2, 30.1 | Saved time |
+| L17 | Judge verify by its exit status: `if E2E_PORT=4310 node tools/verify/verify.mjs > log 2>&1; then git commit …; fi`. Piping it to `grep` succeeds whatever verify did, and once committed a failing build. | 2.1 | 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 28.6, 28.7, 29.1, 29.2, 30.1, 28.8 | Saved time |
 | L18 | Bind an app-wide service the first screen needs (the bike connection, the ticker) in the providers of the lazy parent route in `ride.routes.ts`, not in `app.config.ts`: one instance serves every screen and its code leaves the initial chunk. | 2.1 | 2.2, 2.3, 2.4 | Saved time: the header reads the route-bound connection |
 | L19 | What only a development build does gets a `*.development.spec.ts`, run by Playwright's `development` project against the development build on the next port; the `chromium` project proves the production build does not. | 2.1 | | |
 | L20 | Web Bluetooth in `domain`: start the file with `/// <reference types="web-bluetooth" />` (the app's tsconfig loads no ambient types), and type byte encoders `Uint8Array<ArrayBuffer>` so they pass as a `BufferSource`. | 2.1 | 2.3, 2.4 | Saved time |
@@ -49,7 +49,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L22 | A scripted multi-file edit stops the step on its first miss: end the heredoc with `&&` before the next command (or `set -e`). A failed `assert` in `python3 - <<'EOF'` does not stop the lines after it, and a commit went out without its template change. | 2.2 | 2.3, 5.4 | Made it worse once: a heredoc's failed assert, then a newline, and the commit and push still ran (L49) |
 | L23 | The browser's own states come from the fake Bluetooth: `bluetooth.remove()` (Safari, Firefox), `servePlainHttp()` (no secure context, no Bluetooth) and `restore()` on the current page; no other browser and no http host. | 2.2 | 2.3, 2.4 | Saved time: adapter, drop and power joined it |
 | L24 | A film diagram's `.node` name is set in capitals: put code identifiers (`isSecureContext`) in its small note, and plain words in its name. | 2.2 | 2.3, 2.4 | Saved time |
-| L25 | Make a scripted multi-file edit all or nothing: collect `(path, old, new)`, assert each `old` occurs once in its file's text, and write the files only after every assert passed. An assert that fails midway leaves the earlier files edited. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.7, 9.1, 9.2, 9.3, 9.4, 28.6, 28.7, 29.1, 29.2, 30.1 | Made it worse twice in 9.2 (asserted per file, not across files); saved time twice in 9.3; made it worse once in 9.4 (a write emptied a file before it was read, L103) |
+| L25 | Make a scripted multi-file edit all or nothing: collect `(path, old, new)`, assert each `old` occurs once in its file's text, and write the files only after every assert passed. An assert that fails midway leaves the earlier files edited. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.7, 9.1, 9.2, 9.3, 9.4, 28.6, 28.7, 29.1, 29.2, 30.1, 28.8 | Made it worse twice in 9.2 (asserted per file, not across files); saved time twice in 9.3; made it worse once in 9.4 (a write emptied a file before it was read, L103); saved time in 28.8: one batch on this table failed an assert and wrote nothing |
 | L26 | A guard on a screen changes every spec that opens it: give those specs their premise through the fixture (`bluetooth.remember()`), and run the whole Playwright suite after adding a guard or a redirect. | 2.3 | 2.4, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5 | Saved time: the full suite ran before the film |
 | L27 | Push a fake bike's notification only after the writes the app makes before it listens (`expect.poll(() => bluetooth.writes().length)`): a frame sent before initialisation finishes is not the first one after it, as a real bike streams only after its start command. | 2.3 | 2.4 | Saved time |
 | L28 | Keep a heredoc that writes files in a command of its own: a command blocked or failing earlier in the same `&&` chain drops it silently (a blocked `rm $VAR/*.png` cost `film.js`). Write frames to a new folder instead of clearing one. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5 | Saved time |
@@ -171,14 +171,14 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L144 | A store that starts async work from a callback (`onReconnected`) is unit-tested with a fake that awaits what the handlers return (`await Promise.all([...handlers].map((h) => h() as unknown))`), not with `vi.waitFor`, which polls in real time. | 14.1 | | |
 | L145 | To build the previous version for a comparison, stash only frontend paths (`git stash push -u -- projects e2e package.json package-lock.json`), so the `.cache` link stays, and check `git stash list` before building; a failed step in an `&&` chain otherwise skips the stash and the pop finds nothing. | 14.1 | | |
 | L146 | Before carrying code over from another repository, read its CI (`gh run list --branch <branch>`); copy from a green commit or plan the fix with the copy. | 28.2 | | |
-| L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | 28.3, 28.4, 28.6, 28.7, 30.1 | Saved time; did not apply in 28.7 (nothing was removed); saved time in 30.1: the other classes' addresses went red first |
-| L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | 28.3, 28.4, 28.6, 28.7, 30.1 | Saved time: six proofs moved off the custom ride; did not apply in 28.6 (no spec used the site); did not apply in 28.7 (no spec moved); saved time in 30.1: seventeen spec files moved onto the 20:00 class |
-| L149 | Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand; correct the slice's row in the same change. | 28.2 | 28.1, 30.1 | Saved time |
-| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1, 28.3, 28.4, 28.6, 28.7, 29.1, 29.2, 30.1 | Saved time |
-| L151 | A decision slice's film: copy the last film's folder, keep `hook`, `widths` and `close`, and write the middle as cards and lists in the ADR's words. | 28.1 | 28.6, 28.7, 29.1, 29.2, 30.1 | Saved time: the proof scene is two terminals of verify's steps; saved time in 28.7: three files copied, five scenes rewritten |
+| L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | 28.3, 28.4, 28.6, 28.7, 30.1, 28.8 | Saved time; did not apply in 28.7 (nothing was removed); saved time in 30.1: the other classes' addresses went red first; saved time in 28.8: the spec of what the host answers came first, then `backend/`, then verify and CI, then the docs |
+| L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | 28.3, 28.4, 28.6, 28.7, 30.1, 28.8 | Saved time: six proofs moved off the custom ride; did not apply in 28.6 (no spec used the site); did not apply in 28.7 (no spec moved); saved time in 30.1: seventeen spec files moved onto the 20:00 class; did not apply in 28.8 (no spec used the backend) |
+| L149 | Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand; correct the slice's row in the same change. | 28.2 | 28.1, 30.1, 28.8 | Saved time; no effect in 28.8: the row and L2 agreed |
+| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1, 28.3, 28.4, 28.6, 28.7, 29.1, 29.2, 30.1, 28.8 | Saved time |
+| L151 | A decision slice's film: copy the last film's folder, keep `hook`, `widths` and `close`, and write the middle as cards and lists in the ADR's words. | 28.1 | 28.6, 28.7, 29.1, 29.2, 30.1, 28.8 | Saved time: the proof scene is two terminals of verify's steps; saved time in 28.7: three files copied, five scenes rewritten; saved time in 28.8: three files copied, five scenes rewritten |
 | L152 | A scripted cut ends at the next sibling's opening text, never at the first `}`: "from this method to the next `}\n`" stops inside the method's first block and leaves a broken file. | 28.3 | 28.4 | Saved time |
 | L153 | Before deleting a removed feature's data or interface, list who else reads it. Remove its endpoints now and the data with its last reader, and write the split in the ADR. | 28.3 | 28.4, 30.1 | Saved time: Diagnostics read the outbox's store; saved time in 30.1: World loading still reads the downloader, so only the pictures went |
-| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | 28.4, 28.5, 28.6, 28.7, 29.1, 29.2, 30.1 | No effect: the screens looked right both times; not used in 28.6 (no screen changed; the film's frames showed the four screens as before); saved time in 28.7: the 360 px close-ups showed the class with its words and the ride with the mark alone; saved time in 29.1: the mock and the app side by side at 1440 px showed the body 16 rem too wide and not centred; saved time in 29.2: the alerts beside their mocks were the same picture; saved time in 30.1: the mock's note covered its own message |
+| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | 28.4, 28.5, 28.6, 28.7, 29.1, 29.2, 30.1, 28.8 | No effect: the screens looked right both times; not used in 28.6 (no screen changed; the film's frames showed the four screens as before); saved time in 28.7: the 360 px close-ups showed the class with its words and the ride with the mark alone; saved time in 29.1: the mock and the app side by side at 1440 px showed the body 16 rem too wide and not centred; saved time in 29.2: the alerts beside their mocks were the same picture; saved time in 30.1: the mock's note covered its own message; no effect in 28.8: no screen changed, and the film's shots showed them as before |
 | L155 | To compare with `main` without touching the work tree: `git worktree add --detach <scratchpad>/base main`, link `frontend/node_modules` into it, build and test there, then `git worktree remove` it. No stash (replaces L145). | 28.3 | | |
 | L156 | Under Playwright's paused clock, wait for something a dynamic import brings by stepping the clock inside the poll (`await page.clock.runFor(50)` before each read). | 28.3 | 29.1 | Saved time in 29.1: the half second before The Class is counted by stepping the paused clock in each poll |
 | L157 | Give a removal's backend half to a second agent that touches only `backend/` and `docs/deployment.md` and runs only `dotnet`; run verify once it reports, and ask it for the JSON fields it removed. | 28.4 | 28.5, 30.1 | Not used: nothing in `backend/` changed; saved time in 30.1: the backend's catalogue and `tools/blender` went to two agents |
@@ -188,8 +188,8 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L161 | When a renamed page object drops a member, apply the rename with a script first, then read each spec for the members that left; an edit written against the text before the rename no longer matches. | 28.5 | | |
 | L162 | Removing an optional Bluetooth service changes the chooser's request: search the specs for `optionalServices` before the run, not after. | 28.5 | | |
 | L163 | `git restore <one file>` beside a barrel restores only that file; name it exactly, and never the barrel, or the barrel's edits are lost. | 28.5 | | |
-| L164 | Before the first edit of a removal that changes the tooling, run verify once into the scratchpad (`verify-before.log`). Its step list and times are the film's "before", and they cannot be had once the step is gone without a worktree (L155). | 28.6 | 28.7, 29.1, 29.2, 30.1 | Saved time: the "before" run gave the counts to compare |
-| L165 | Verify prints times, not counts. For a film's proof or a summary, take the counts from `npx playwright test --list` (and `--grep @critical`), `npm test` and `dotnet test --solution Telo.Ride.slnx`, and the bundle from `npm run bundle:size`. | 28.6 | 28.7, 29.1, 29.2, 30.1 | Saved time: 152 specs, 31 `@critical`, 1308 unit tests and 85.06 kB from four commands; 168 specs, 34 `@critical`, 1322 unit tests and 85.06 kB in 29.2; 172 specs, 36 `@critical`, 1334 unit tests, 32 backend tests and 78.83 kB in 30.1 |
+| L164 | Before the first edit of a removal that changes the tooling, run verify once into the scratchpad (`verify-before.log`). Its step list and times are the film's "before", and they cannot be had once the step is gone without a worktree (L155). | 28.6 | 28.7, 29.1, 29.2, 30.1, 28.8 | Saved time: the "before" run gave the counts to compare |
+| L165 | Verify prints times, not counts. For a film's proof or a summary, take the counts from `npx playwright test --list` (and `--grep @critical`), `npm test` and `dotnet test --solution Telo.Ride.slnx`, and the bundle from `npm run bundle:size`. | 28.6 | 28.7, 29.1, 29.2, 30.1, 28.8 | Saved time: 152 specs, 31 `@critical`, 1308 unit tests and 85.06 kB from four commands; 168 specs, 34 `@critical`, 1322 unit tests and 85.06 kB in 29.2; 172 specs, 36 `@critical`, 1334 unit tests, 32 backend tests and 78.83 kB in 30.1; 179 specs, 37 `@critical`, 1334 unit tests and 78.83 kB in 28.8 |
 | L166 | Run the dead-export script (L160) before the cut as well as after, and delete only the names that are new in the second list: the first list is types that sit beside a used component, not the removal's. | 28.6 | | |
 | L167 | A removal that changes no screen films the screens anyway: copy the last film's `shots.ts`, drop the shots of what it removed, and say "did not change" over them. | 28.6 | | |
 | L168 | When a requirement says "only on X", write the acceptance test for a screen that is not X as well. A style rule can hang on a class two screens share (`.lockup--sm` was on the class ride and on the class), and only the second half of the test finds it. | 28.7 | | |
@@ -199,17 +199,99 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L172 | A slice that redraws a carried-over screen: put the mock and the app side by side first (`file://…/docs/mocks/pages/<screen>/<state>.html` and the last film's shot, both at 1440 and 390 px), list the differences, then write the spec for every state. Only the differences go red; say which specs passed at once. | 29.1 | 29.2 | Saved time in 29.2: the five alerts matched their mocks at 1440 and 390 px, and all ten specs passed on the carried-over screen but for a hook the new component adds (L178) |
 | L173 | To show a screen while the browser's chooser is open: `bluetooth.holdChooser()` before the press, then `pickFromChooser()` or `closeChooser()`. Setting a second mode after the hold replaces the first, so the fixture has one method for each way out. | 29.1 | 29.2 | Saved time in 29.2: the alert after a blocked chooser gives way to the search with the chooser held |
 | L174 | A zoneless screen does not draw under Playwright's paused clock. To count a timer, `clock.install()` before the screen opens, `pauseAt` once it is at rest, and step the clock inside every poll, adding up the milliseconds; never `shot()` under a paused clock without `onPausedClock`, which hangs for the two-minute timeout. | 29.1 | 30.1 | Saved time in 30.1: the ride's close-ups at 5:30 |
-| L175 | A film recording that is killed leaves its `ng serve` on 4310. Before the next spec run or verify, `lsof -i :4310` and kill that one process, or the specs reuse a development server. And a close-up at `zoom` keeps the window's media queries: frame it at XL, not XS, or the text wraps. | 29.1 | 30.1 | Not applied in 30.1 and it cost a verify run: a recording that ends normally also leaves the server for a moment; check the port after every recording |
+| L175 | A film recording that is killed leaves its `ng serve` on 4310. Before the next spec run or verify, `lsof -i :4310` and kill that one process, or the specs reuse a development server. And a close-up at `zoom` keeps the window's media queries: frame it at XL, not XS, or the text wraps. | 29.1 | 30.1, 28.8 | Not applied in 30.1 and it cost a verify run: a recording that ends normally also leaves the server for a moment; check the port after every recording; saved time in 28.8: the port was checked after the recording and before each verify |
 | L176 | Before asserting that a control is drawn 44 px tall, look at how the repo meets L2-140: a `wz-button` draws 40 px and takes touches across 44 through its `::after`. Assert the target with `new AppDocument(page).untappable(44)`, as `touch-and-keyboard.spec.ts` does, not with `boundingBox()`. | 29.2 | | |
 | L177 | A film's close-up of a block about 450 px wide needs no zoom: `detail()` already saves two device pixels a CSS pixel, 960 px for an 800 px place in the film. Zoom 2 at XL halves the layout width and wraps lines the app does not wrap. Keep `zoom` (L170) for things under about 200 px: a lockup, an icon. | 29.2 | 30.1 | Saved time in 30.1: the message close-up kept its one line |
 | L178 | When a slice moves carried-over behaviour into a component, the new spec may fail only on a hook the component adds (here `data-icon`). To learn what already passes, run a copy of the spec with the hook's lines removed (`sed '/data-icon/d' spec > e2e/zz-tmp.spec.ts`, run it, delete it), and report those as passing at once; the helper's unit test is the other honest red. | 29.2 | | |
 | L179 | Narration is also the captions and the transcript: write an abbreviation as it is written (`HTTPS`), which Kokoro spells out, never letter by letter (`h t t p`). | 29.2 | | |
 | L180 | Data that ships inside the build cannot be faked by answering a request. To hand the app broken data, route `**/*.js`, fetch the script, replace the minified text (`level:24` → `level:33`) in the script that names the data, and count the scripts changed so the spec fails if the build stops matching. The development server does not minify: a film's `shots.ts` matches `/level:\s*24\b/`. | 30.1 | | |
 | L181 | The fake YouTube player starts when its script has loaded, which can be after the ride starts once nothing else delays the ride. Before asserting its time to a tenth of a second, make it seek once (jump 10 s off, run a tick) and measure from the time after the seek. | 30.1 | | |
-| L182 | A removal whose halves share no file (the app, `backend/`, `tools/blender`) goes to one agent each, with its folders, its one command and "report the counts before and after"; write the ADR from their reports and run verify once all have reported (extends L157). | 30.1 | | |
+| L182 | A removal whose halves share no file (the app, `backend/`, `tools/blender`) goes to one agent each, with its folders, its one command and "report the counts before and after"; write the ADR from their reports and run verify once all have reported (extends L157). | 30.1 | 28.8 | Not used: the backend was one folder and one command, removed in the main thread |
 | L183 | A new mock is looked at in a screenshot at 1440 and 390 px before the app is compared with it: `.mock-note` is `position: absolute` and covers whatever follows it in a grid; give it a container of its own. | 30.1 | | |
+| L184 | CI checks out only the folders in each job's `sparse-checkout`. After adding a spec, fixture or script that reads a file by path, or editing the workflow, list what the steps read (`git grep -n readFile -- frontend/e2e frontend/scripts frontend/playwright.config.ts`) and check each path is inside that job's list; a path outside it passes locally and fails only in CI (30.1's first run: `tools/blender/courses/ibiza.json`). | 28.8 | | |
+| L185 | The headers a rider gets are written once, in `frontend/projects/ride/public/staticwebapp.config.json`, and `scripts/serve-dist.mjs` follows the copy in the build. To change a header, a cache rule or the fallback, change that file, assert it in `e2e/static-host.spec.ts`, and add to the spec server only if the file uses a part it does not read yet (it reads `globalHeaders`, `routes`, `mimeTypes`, `navigationFallback`). | 28.8 | | |
+| L186 | To film the production build, start `node scripts/serve-dist.mjs 4310` from `frontend/` before `record.mjs` (the recorder reuses whatever serves 4310, and otherwise starts `ng serve`), then `pkill -f "serve-dist.mjs 4310"` and `lsof -i :4310` before verify. Seven shots took 3.7 s, and `shots.ts` can assert the answers' headers. | 28.8 | | |
+| L187 | What only the real host does (a redirect, a certificate) is not faked in a spec. Prove the part the repository owns (the file in the build, the answers of the spec server that follows it), and write the person's commands with the answer expected beside each in `docs/deployment.md`; name the gap in the ADR, the spec's header and the film. | 28.8 | | |
+| L188 | Before a slice, `git grep -n "<slice number>" docs/adr docs/detailed-designs`: earlier ADRs hand later slices work the prompt may not repeat. 28.8 found `@angular/cdk` (ADR 0040) and five status lines (ADR 0037) that way. | 28.8 | | |
+| L189 | `git rm -r <folder>` leaves the folder on disk when it holds ignored files (`bin/`, `obj/`, `TestResults/`); follow it with `rm -rf <folder>` and remove the folder's lines from `.gitignore` in the same change. | 28.8 | | |
 
 ## Log
+
+### 28.8 Host as static files (2026-11-23)
+
+**Applied from earlier**
+
+- **L2 port 4310; L3 format first; L17 judge verify by its exit status — saved time:** verify passed each of the five
+  times it ran, the last in 38.5 seconds (40.3 before, with the backend's two steps running beside the app's).
+- **L25 all-or-nothing scripted edits — saved time:** eight batches, each asserted across its files before any was
+  written; one failed an assert (a row of this table with empty cells) and wrote nothing.
+- **L147 remove from the outside in — saved time:** the spec of what the host answers first, red; then the host's
+  file and the spec server that follows it, green; then `backend/`, verify's steps, CI's steps and the docs.
+- **L148 a moved spec keeps its assertion — did not apply:** no behaviour spec used the backend.
+- **L149 the specs stand — no effect:** the row and L2 agreed. L2 gained open question 19 instead (a missing file).
+- **L150, L151 the film's tools and folder — saved time:** three files copied, five scenes rewritten.
+- **L154 look at a screenshot — no effect:** no screen changed; the film's shots at 390 and 1440 px showed the class,
+  World loading and Page not found as before.
+- **L164 verify before the first edit; L165 counts from four commands — saved time:** 172 specs, 36 `@critical`,
+  1334 unit tests, 32 backend tests and 78.83 kB before; 179, 37, 1334, none and 78.83 kB after.
+- **L175 check the port after a recording — saved time:** the static server the film used was killed and the port
+  read before verify.
+- **L182 one agent a half — not used:** the backend was one folder and one command.
+- **L152, L153, L155 to L163, L166 to L174, L176 to L181, L183 — not used.**
+
+**What slowed it down**
+
+- The spec server read its headers from a file inside `backend/`, so the backend could not go until the headers had
+  a home. They are now the host's own file in the build, and the spec server follows it (L185).
+- ADR 0022 had found, on a real host, that the service worker fetches the YouTube player and the class cover under
+  its own policy. ADR 0026's one header set had lost that. Nothing local shows it: the specs block service workers
+  but for one, and that one answers YouTube before the worker is asked. The worker's policy is back, proved as a
+  header only, and its effect is on the list a person checks.
+- An earlier ADR, not the prompt, gave this slice `@angular/cdk` to remove and the superseded ADRs' status lines to
+  change (L188).
+- `AGENTS.md` lost its *Backend* section, and one of its rules still applies ("A setting a deployed system needs is
+  documented in the same change"). It moved to *CI*, word for word; ADR 0043 lists every changed line.
+
+**New lessons**
+
+- **L184 A CI step reads only what its job checks out.** List what specs and scripts read by path and compare with
+  each job's `sparse-checkout`, after any change to either. Read here, since GitHub Actions cannot be run: `lint`,
+  `build` and `deploy` read `frontend/` only; `acceptance` also reads `tools/blender/courses/ibiza.json`, and its
+  list keeps `tools/blender/courses`. The new spec reads `frontend/dist/`, which the job builds.
+- **L185 The headers are written once**, in the host's file, and the spec server follows the build's copy.
+- **L186 Film the production build** by starting the spec server on 4310 before the recorder.
+- **L187 Do not fake what only the host does.** Prove the file, and write the person's commands.
+- **L188 Search the ADRs for the slice's number** before starting.
+- **L189 `git rm -r` leaves ignored files behind.**
+
+**Specs and tests deleted without a replacement**
+
+- The backend's 32 tests, with `backend/`: health (live, ready, 503 without a database), the API's errors and input
+  validation, telemetry and its privacy, the migrations, anonymous endpoints, an unknown `/api` address, serving the
+  build with its headers and cache rules, and the redirect with HSTS in ASP.NET Core. Serving the build, the
+  fallback, the headers, HSTS and the cache rules are proved again by the seven specs of `e2e/static-host.spec.ts`.
+  The redirect is not: it is the host's, and `docs/deployment.md` has the command a person runs. The rest proved
+  behaviour that no longer exists.
+- No behaviour spec and no unit test of the app was deleted or weakened. 172 behaviour specs before, 179 after.
+
+**What a person checks on the real host**
+
+- Nothing was deployed and no cloud resource or GitHub setting was made or changed. After the first deploy:
+  `http://` redirects to `https://`; `https://` answers carry the five headers; a deep link is 200 and a missing
+  file 404; a hashed file is immutable; and on a second visit, with the service worker in control, the class cover
+  and the video load with no policy refusal. The commands are in `docs/deployment.md`, *Check the real host*.
+- Azure's behaviour is taken from its documentation and ADR 0022's experience, not seen here: that it redirects
+  `http`, how it matches `/*.{js,css}` and `exclude`, that a route's headers are laid over the global ones, and the
+  Free plan's 250 MB. If the host reads the file differently, the file and the spec server change together.
+
+**Left for later**
+
+- The build is 171.6 MB, 164.9 MB of it the 192 music tracks of Telo Ride's worlds (ADR 0042 left them for the
+  slices that build riding in Ibiza). It fits the Free plan and makes the upload slow.
+- The policy still allows `tile.googleapis.com`, `blob:` and `'wasm-unsafe-eval'`; slice 35.1 narrows it.
+- `ApiFixture` stays in the shared fixture as a guard; many specs still pass `api` to helpers that no longer need it.
+- `README.md` still says the other courses and `blender/` are carried over (30.1's, not corrected here), and the
+  designs that plan the CDK's `LiveAnnouncer` are corrected by slice 36.3.
 
 ### 30.1 The one class (2026-11-23)
 

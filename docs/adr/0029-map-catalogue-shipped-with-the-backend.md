@@ -1,6 +1,6 @@
 # 0029. The map catalogue: a JSON file shipped with the backend, public, cached on the device
 
-- **Status:** Accepted
+- **Status:** Superseded by [0037](0037-no-backend-the-class-ships-with-the-app.md) (slice 28.4 removed its code)
 - **Date:** 2026-11-21
 - **Follows:** [0028](0028-class-catalogue-shipped-with-the-backend.md)
 
