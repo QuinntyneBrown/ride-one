@@ -1,0 +1,16 @@
+<div class="class-course">
+  @if (loading()) {
+    <img class="class-course__still" [src]="still().url" [alt]="still().alt" />
+  }
+  <div class="class-course__scene">
+    <ng-content select="[slot=scene]" />
+  </div>
+  @if (loading()) {
+    <p class="class-course__loading" role="status">Loading {{ name() }}</p>
+  }
+  @if (paused()) {
+    <div class="class-course__paused" aria-hidden="true">
+      <p class="class-course__paused-label">Paused</p>
+    </div>
+  }
+</div>

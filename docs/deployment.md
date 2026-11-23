@@ -10,8 +10,9 @@ are, and what to check on the real host.
 
 `npm run build` in `frontend/` writes `frontend/dist/ride/browser/`: `index.html`, the hashed
 scripts and stylesheet, the service worker (`ngsw-worker.js`, `ngsw.json`), the manifest, fonts,
-icons, the Ibiza Sunset Strip course, the music and `staticwebapp.config.json`. That folder is
-the whole deployment (171.6 MB today, 164.9 MB of it music; the Free plan holds 250 MB).
+icons, the Ibiza Sunset Strip course and `staticwebapp.config.json`. That folder is
+the whole deployment (4.7 MB since slice 37.1 removed the worlds' music, ADR 0047; the Free plan
+holds 250 MB).
 
 `staticwebapp.config.json` is the host's configuration. Its source is
 `frontend/projects/ride/public/staticwebapp.config.json`; change it there.
@@ -20,7 +21,7 @@ the whole deployment (171.6 MB today, 164.9 MB of it music; the Free plan holds 
 |------|--------------|-------------|
 | `navigationFallback` | An address that matches no file is answered with `/index.html`, so the app's routes open directly. The asset folders and addresses ending in a file extension are left out: a missing file is 404. | L2-149 AC1 |
 | `globalHeaders` | On every answer: the Content Security Policy with `frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security: max-age=31536000` and `Cache-Control: no-cache`. | L2-131, L2-009 AC2 |
-| `routes` | The root's hashed `.js` and `.css` files: `Cache-Control: public, max-age=31536000, immutable`. The service worker's scripts: `no-cache`, and a policy of their own that lets the worker fetch the YouTube player and the class cover. `/draco/*`: `no-cache`. | L2-149 AC1 |
+| `routes` | The root's hashed `.js` and `.css` files: `Cache-Control: public, max-age=31536000, immutable`. The service worker's scripts: `no-cache`, and a policy of their own that lets the worker fetch the YouTube player and the class cover. | L2-149 AC1 |
 | `mimeTypes` | The manifest, `.glb`, `.ogg` and `.wasm`. | |
 
 ## The redirect and HSTS (L2-009 AC2)

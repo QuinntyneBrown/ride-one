@@ -47,7 +47,6 @@ describe('Intervals to the Beat', () => {
       lengthSeconds: 1200,
       summary:
         'Seventeen efforts from 15 seconds to 1:15, ridden to the beat, with five fast sprints to finish.',
-      world: 'ibiza',
       video: { videoId: 'il_OFz6o42I', syncOffsetSeconds: 3 },
       plan: null,
     });

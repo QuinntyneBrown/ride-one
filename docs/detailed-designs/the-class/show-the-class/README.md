@@ -53,8 +53,7 @@ Neighbouring features own the adjacent concerns:
 Slice 30.2 built The Class in the place of Telo Ride's Class Start, which is gone with its
 "Video link and sync" (`ClassSync`), `ClassStartVideo` and `AppHeaderBike`. Slice 30.1 built the
 class definition. Slice 30.3 built "What the bike will do" as designed, in the place of the plan
-chart carried over from Telo Ride (`ClassPlan`, which stays in `components` only for World loading
-until slice 37.1 removes that). Slice 30.4 fitted the layout from lg to one screen. Slice 30.6
+chart carried over from Telo Ride (`ClassPlan`, which slice 37.1 removed with World loading). Slice 30.4 fitted the layout from lg to one screen. Slice 30.6
 built the blocked browser: the alert under the header and the disabled start button, which
 [Check bike and browser support](../../bike/check-bike-and-browser-support/README.md) owns. Still
 to come on this screen: the record with "Ride it again" (32.6).
@@ -217,10 +216,9 @@ to come on this screen: the record with "Ride it again" (32.6).
   `wz-screen-header`): the `class-header` block with the wordmark, owned by
   [Show the wordmark](../../ui/show-the-wordmark/README.md).
 - **The class ride follows the choice** (`ride/src/app/class-ride/class-ride-page.ts`, ADR 0044).
-  With "Class video" it renders `ClassRideSession` at once, with the video alone, and never
-  creates `WorldLoadStore`. With "Ibiza Sunset Strip" it is the carried-over ride in the course:
-  World loading, then the course with the class video inset. Journey 37 replaces that with
-  riding in Ibiza as L2-174 to L2-177 specify.
+  Either way it is Class Ride at once. With "Class video" the box is the class video. With
+  "Ibiza Sunset Strip" the box is the course, with no video player (slice 37.1, ADR 0047;
+  [ride the class](../../class-ride/ride-the-class/README.md)).
 - **`ClassProfile`** (`components/src/the-class/class-profile.ts`, exists; `wz-class-profile`):
   the resistance profile as one inline SVG with `role="img"`, in a box as wide as the plan is long
   (`0 0 1200 32`): one bar a segment, as wide as the segment lasts and as tall as its level against
@@ -232,8 +230,8 @@ to come on this screen: the record with "Ride it again" (32.6).
   shows "~254 W average" beside the heading "What the bike will do". `efforts(segments)` (slice
   30.3) counts the plan's work segments and gives the shortest and the longest in seconds: 17, 15
   and 75 for this plan, so the line under the profile reads "17 efforts · 0:15 to 1:15. Resistance
-  changes on its own; you just pedal." (L2-084 AC2). `structure(segments)` is no longer shown on
-  The Class; `outline(segments)`, which uses it, stays for World loading until slice 37.1.
+  changes on its own; you just pedal." (L2-084 AC2). `structure(segments)` and `outline(segments)`,
+  which The Class no longer shows, went with World loading in slice 37.1.
 - **`PowerModel`** (`domain/src/engine/power-model.ts`, exists): `target(cadenceAim, level)`, the
   target power of L2-023 AC3 that `PlanSummary.averagePower` weights by duration.
 - **`VIDEO_PLAYER_FACTORY`**, **`VideoPlayer`** (`api/src/video/video-player.ts`, exist) and

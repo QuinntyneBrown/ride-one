@@ -12,7 +12,6 @@ import { INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME, ftmsBike } from './ftms';
 import { expect } from './test';
 import { ClassRidePage } from '../pages/class-ride.page';
 import { TheClassPage } from '../pages/the-class.page';
-import { WorldLoadingPage } from '../pages/world-loading.page';
 import { theClass } from './the-class';
 import { keptRideWith } from './how-to-ride';
 import { YouTubeFixture } from './youtube';
@@ -99,20 +98,38 @@ export async function startClassRideOnFtms(
   return ride;
 }
 
-/**
- * Starts a ride in Ibiza as a rider does (L2-173 AC5, L2-087 AC4): Ibiza Sunset Strip is the kept choice, The Class
- * opens with the remembered Echelon, the bike connects, and the rider presses Start class. The carried-over ride in
- * the course opens World loading at the ride's address, with the bike connected. On the running clock.
- */
-export async function openRideInIbiza(page: Page, bluetooth: FakeBluetooth): Promise<void> {
+/** The Class with Ibiza Sunset Strip the kept choice and the remembered Echelon connected: the start button is on. */
+export async function openTheClassForIbiza(
+  page: Page,
+  bluetooth: FakeBluetooth,
+): Promise<TheClassPage> {
   await keptRideWith(page, 'ibiza');
   await bluetooth.remember(echelonBike);
   const home = new TheClassPage(page);
   await home.open();
   await connectBike(bluetooth);
   await expect(home.start).toHaveText('Start class');
+  return home;
+}
+
+/**
+ * Starts a ride in Ibiza as a rider does (L2-173 AC5, L2-175 AC1): Ibiza Sunset Strip is the kept choice, The Class
+ * opens with the remembered Echelon, the bike connects, and the rider presses Start class. Class Ride opens at once,
+ * with no screen between, and the ride's first command shows it has started. On the running clock, or on the clock
+ * the spec installed before it.
+ */
+export async function startRideInIbiza(
+  page: Page,
+  bluetooth: FakeBluetooth,
+): Promise<ClassRidePage> {
+  const home = await openTheClassForIbiza(page, bluetooth);
   await home.start.click();
-  await expect(new WorldLoadingPage(page).root).toBeVisible();
+  const ride = new ClassRidePage(page);
+  await expect(ride.clock).toBeVisible();
+  await expect
+    .poll(() => bluetooth.writes().map((write) => write.hex))
+    .toContain(targetResistanceWrite(theClass.segments[0].level));
+  return ride;
 }
 
 /**
@@ -135,23 +152,12 @@ export async function bikeBack(bluetooth: FakeBluetooth, since: number): Promise
 }
 
 /**
- * Opens Intervals to the Beat with the remembered Echelon and Ibiza Sunset Strip chosen (L2-173), and rides it in its world, on the running clock: World
- * loading builds Ibiza Sunset Strip and warms it up, the bike connects, the rider presses Start riding, and the world
- * has faded in over its panorama. The world is drawn, in software here, so a spec that takes WebGPU away draws it with
- * WebGL 2.
+ * Starts a ride in Ibiza and waits until the course is drawn in the box (L2-174 AC1), on the running clock. The
+ * course is drawn in software here: a spec that is about the page and not the drawing holds the course's files
+ * instead (`CourseFiles.hold`) and never draws it.
  */
-export async function startClassRideInWorld(
-  page: Page,
-  bluetooth: FakeBluetooth,
-  api: ApiFixture,
-): Promise<ClassRidePage> {
-  void api;
-  const ride = new ClassRidePage(page);
-  const loading = new WorldLoadingPage(page);
-  await openRideInIbiza(page, bluetooth);
-  await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', { timeout: 60_000 });
-  await loading.start.click();
-  // The world fades in once `main`'s scene has measured the display's frame period, 30 frames on a busy machine.
-  await expect(ride.worldScene).toHaveCSS('opacity', '1', { timeout: 60_000 });
+export async function rideInIbiza(page: Page, bluetooth: FakeBluetooth): Promise<ClassRidePage> {
+  const ride = await startRideInIbiza(page, bluetooth);
+  await expect(ride.course).toBeVisible({ timeout: 60_000 });
   return ride;
 }

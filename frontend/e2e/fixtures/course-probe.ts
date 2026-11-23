@@ -1,0 +1,44 @@
+// The test-only hook into the course's renderer (`world`'s course-probe.ts). `pin(tier)` sets
+// `window.__wzWorldRide = { tier }` before the app boots: the course is then drawn at that step of its five from the
+// first frame, its frame budget never moves it, and the renderer writes what it draws to `__wzWorldRide.course`,
+// which `drawn()` reads. `low` is the cheapest to draw in software, so the specs that draw the course pin it.
+//
+// It is not a rider option: nothing in the app sets the global, and only the lazily loaded renderer reads it.
+import type { Page } from '@playwright/test';
+
+export type Tier = 'low' | 'medium' | 'high' | 'ultra';
+
+/** What the renderer reports of the course while the hook is set. */
+export interface CourseDrawn {
+  /** The step of five the course is drawn at, from 0, the lowest (L2-177 AC3). */
+  readonly tier: number;
+  readonly backend: 'webgpu' | 'webgl2';
+  readonly drawCalls: number;
+  readonly triangles: number;
+  /** The riders in the scene: the rider alone (L2-174 AC6). */
+  readonly riders: number;
+  /** Metres from the grid where the ride's first frame put the rider (L2-175 AC3). */
+  readonly firstMetres: number;
+  /** Metres from the grid where the latest frame put the rider. */
+  readonly metres: number;
+}
+
+export class CourseProbe {
+  constructor(private readonly page: Page) {}
+
+  /** Call before the page loads: the course is drawn at `tier` and never leaves it. */
+  async pin(tier: Tier = 'low'): Promise<void> {
+    await this.page.addInitScript((pinned) => {
+      (window as unknown as Record<string, unknown>)['__wzWorldRide'] = { tier: pinned };
+    }, tier);
+  }
+
+  /** The renderer's report of its latest frame, or null before the ride's first frame is drawn. */
+  drawn(): Promise<CourseDrawn | null> {
+    return this.page.evaluate(
+      () =>
+        ((window as unknown as Record<string, { course?: CourseDrawn }>)['__wzWorldRide']?.course ??
+          null) as CourseDrawn | null,
+    );
+  }
+}

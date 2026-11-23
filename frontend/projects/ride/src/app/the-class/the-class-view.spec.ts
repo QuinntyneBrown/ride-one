@@ -136,7 +136,7 @@ describe('theClassView', () => {
   it('has no still with the class video, and the course’s still in Ibiza', () => {
     expect(theClassView(state).still).toBeNull();
     expect(theClassView({ ...state, rideWith: 'ibiza' }).still).toEqual({
-      url: 'maps/ibiza-sunset-strip-photo.jpg',
+      url: 'courses/ibiza-sunset-strip.jpg',
       alt: 'Ibiza Sunset Strip: a seafront road at sunset',
     });
   });

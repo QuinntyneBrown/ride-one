@@ -1,0 +1,65 @@
+// Ibiza Sunset Strip's files as the app serves them: the course's model and centre line (`/courses/ibiza.glb`,
+// `/courses/ibiza.course.json`) and its rider (`/riders/rider.glb`, ADR 0045). A spec watches when they are asked for
+// and can hold them, so Class Ride can be seen while the course is still loading (L2-175 AC1) without drawing it.
+import type { Page, Request, Route } from '@playwright/test';
+
+/** The three files a ride in Ibiza fetches when it starts (L2-175 AC1). */
+export const COURSE_FILES = [
+  '/courses/ibiza.course.json',
+  '/courses/ibiza.glb',
+  '/riders/rider.glb',
+] as const;
+
+export class CourseFiles {
+  /** Every request the page made for the course's files, in order. */
+  readonly requests: Request[] = [];
+  private held: Route[] = [];
+  private holding: ((path: string) => boolean) | null = null;
+
+  /** Watches the course's files from now on, answered by the app's own server unless the spec holds them. */
+  static async install(page: Page): Promise<CourseFiles> {
+    const files = new CourseFiles();
+    await page.route('**/courses/ibiza.*', (route) => files.answer(route));
+    await page.route('**/riders/rider.glb', (route) => files.answer(route));
+    return files;
+  }
+
+  /** The paths asked for so far, in order. */
+  paths(): string[] {
+    return this.requests.map((request) => new URL(request.url()).pathname);
+  }
+
+  /** The origins the files were asked of: the app's own, and no other (L2-175 AC1). */
+  origins(): string[] {
+    return [...new Set(this.requests.map((request) => new URL(request.url()).origin))];
+  }
+
+  /** Holds every request for the course's files, or only those whose path `only` picks, until `release`. */
+  hold(only: (path: string) => boolean = () => true): void {
+    this.holding = only;
+  }
+
+  /** Answers the held requests and every one after. */
+  async release(): Promise<void> {
+    this.holding = null;
+    const held = this.held;
+    this.held = [];
+    for (const route of held) await route.continue();
+  }
+
+  private async answer(route: Route): Promise<void> {
+    this.requests.push(route.request());
+    if (this.holding?.(new URL(route.request().url()).pathname)) {
+      this.held.push(route);
+      return;
+    }
+    await route.continue();
+  }
+
+  /** Lets go of any request still held, so the page's teardown does not wait on it. */
+  async dispose(): Promise<void> {
+    const held = this.held;
+    this.held = [];
+    for (const route of held) await route.abort().catch(() => undefined);
+  }
+}

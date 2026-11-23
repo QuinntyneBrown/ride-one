@@ -4,8 +4,10 @@ import { Router } from '@angular/router';
 import {
   ANNOUNCER,
   BIKE_CONNECTION,
+  COURSE_GRAPHICS,
   type ClassDefinition,
   type ClassResult,
+  HOW_TO_RIDE,
   RIDE_ACTIVITY,
   SCREEN_WAKE_LOCK,
   THE_CLASS,
@@ -23,15 +25,18 @@ import {
   VideoClockSync,
   VideoStallWatch,
   WorkoutEngine,
+  rideWith,
 } from '@telo/domain';
 import { classStepAnnouncement } from '../rides/step-announcement';
-import { pauseAnnouncement, rideHold } from './ride-hold';
+import { lostBikeMessage, pauseAnnouncement, rideHold } from './ride-hold';
 import { type StatView, cadenceStat, powerStat } from './stat-view';
 
 /**
  * The solo class ride's state (docs/detailed-designs/class-ride/ride-the-class), provided by the page so it goes when the
- * rider leaves. It reads the class from `THE_CLASS` and starts the ride at once: the clock, the ticker
- * and the engine following the plan, which sends each segment's level (L2-027). The header and the segment card read
+ * rider leaves. It reads the class from `THE_CLASS` and how the rider chose to ride it, and starts the ride at once,
+ * whichever way: the clock, the ticker and the engine following the plan, which sends each segment's level (L2-027,
+ * L2-175 AC1). In Ibiza no video player is loaded (L2-174 AC1), and the course's box loads until its first frame is
+ * drawn. The header and the segment card read
  * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
  * video plays from the ride clock plus the class's sync offset (L2-088 AC1) and, on each tick, seeks back when it has
  * drifted more than 1.5 s (AC2); when it cannot play, or has not played for 10 s of the ride, the ride carries on
@@ -73,6 +78,16 @@ export class ClassRideStore {
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
 
+  /**
+   * How the ride is ridden, as the rider chose on The Class (L2-173 AC5): with the class video, or in Ibiza. A browser
+   * that cannot draw the course rides with the class video (AC6).
+   */
+  readonly way = rideWith(inject(HOW_TO_RIDE).kept(), inject(COURSE_GRAPHICS).available());
+  /** What the lost-bike alert says is paused: the video, or in Ibiza the ride (L2-092 AC1). */
+  readonly lostBody = lostBikeMessage(this.way);
+  private readonly courseShown = signal(false);
+  /** Whether the course's first frame has been drawn; until then its box reads "Loading …" (L2-175 AC1). */
+  readonly courseDrawn = this.courseShown.asReadonly();
   readonly ride = this.loaded.asReadonly();
   readonly elapsed = this.ticker.second;
   /** Where the plan stands. */
@@ -91,7 +106,7 @@ export class ClassRideStore {
   );
   /** Whether the ride runs: started, and held neither by the rider nor by a lost bike; the course moves while it does. */
   readonly running = computed(() => this.started() && this.state().running);
-  /** The bike's speed, for the world's cyclist (L2-153). */
+  /** The bike's speed, which turns the pedals of the course's rider; the clock places them (L2-174 AC2). */
   readonly speedKmh = this.telemetry.speedKmh;
   /**
    * Whether the video cannot play: its code or YouTube's did not load, the player failed, or it has not played for
@@ -152,6 +167,11 @@ export class ClassRideStore {
     );
   }
 
+  /** The course's first frame has been drawn: it takes the box from its still (L2-175 AC1, AC3). */
+  showCourse(): void {
+    this.courseShown.set(true);
+  }
+
   /** Holds the clock, the plan and the video where they are, and says so once (L2-091 AC1, AC3, L2-088 AC3). */
   pause(): void {
     if (this.pausedByRider() || this.bikeLost()) return;
@@ -198,7 +218,9 @@ export class ClassRideStore {
     this.ticker.ticks.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((second) => {
       this.record(Math.min(second, dto.lengthSeconds));
       if (second >= dto.lengthSeconds) return this.finish(dto);
-      this.stalled.set(this.stall.check(this.player()?.state() ?? 'loading', second));
+      // A ride in Ibiza has no video to stall (L2-174 AC1).
+      if (this.way === 'video')
+        this.stalled.set(this.stall.check(this.player()?.state() ?? 'loading', second));
       this.syncVideo(dto);
     });
     // The bike is watched on a beat of its own: the ride clock's ticks stop while the ride is held.

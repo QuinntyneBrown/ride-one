@@ -9,28 +9,29 @@
 // same "Paused" overlay, over the whole box; Resume carries the clock on.
 // Given a ride in Ibiza, when the bike stops answering, then the alert reads "The ride is paused. Pedal to wake the
 // bike, then reconnect.", the clock holds, and Resume and the resistance controls are disabled.
-import { loseBike, startClassRideInWorld } from './fixtures/class-ride';
+import { loseBike, rideInIbiza } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 
 test.describe('Pause and lose the bike in Ibiza', () => {
   test('Pause holds the clock under "Paused" over the course, and a lost bike says the ride is paused (L2-091 AC1, AC2, L2-092 AC1, AC2)', async ({
     page,
     bluetooth,
-    api,
   }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 844, height: 390 });
     await page.clock.install();
-    const ride = await startClassRideInWorld(page, bluetooth, api);
-    // From here the clock is the spec's: it stands still unless the spec moves it on.
-    await page.clock.pauseAt((await ride.now()) + 1000);
+    const ride = await rideInIbiza(page, bluetooth);
+    // From here the clock is the spec's: it stands still unless the spec moves it on. The course's first frames are
+    // drawn in software and can hold the page for more than a second, so the clock is paused well ahead of now.
+    await page.clock.pauseAt((await ride.now()) + 10_000);
     await page.clock.runFor(1000);
 
     await ride.pause.click();
     await page.clock.runFor(1000);
     await expect(ride.coursePaused).toHaveText('Paused');
-    // The one overlay covers the whole box, the video in its corner included.
+    // The one overlay covers the whole box, and the course is still drawn under it.
     expect(await ride.coversBox(ride.coursePaused)).toBe(true);
+    await expect(ride.course).toBeVisible();
     await expect(ride.paused).toHaveCount(0);
     await expect(ride.resume).toBeEnabled();
     await expect(ride.raise).toBeEnabled();

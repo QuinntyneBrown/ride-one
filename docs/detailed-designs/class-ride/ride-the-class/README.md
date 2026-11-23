@@ -35,9 +35,10 @@ Neighbouring features own the adjacent concerns:
 - The lost-bike alert belongs to [wait for a lost bike](../wait-for-a-lost-bike/README.md).
 - The class, its plan and the start button belong to
   [show the class](../../the-class/show-the-class/README.md).
-- Riding in Ibiza (`L2-174` to `L2-177`) is journey 37's. Until it is built, "Ibiza Sunset Strip" opens the ride
-  carried over from Telo Ride at the same address: World loading, then the course in the box with the class video
-  inset in its corner (`docs/specs/L2.md`, open question 20).
+- Riding in Ibiza (`L2-174` to `L2-177`) is journey 37's. Slice 37.1 built its start, which this design covers:
+  the ride opens at once, the course loads in the box and is drawn there with the rider alone (ADR 0047). The
+  rider's place through the ride, the course that cannot be drawn, music, budgets and disposal are the later
+  slices of that journey.
 - Sending a segment's level and the manual nudge (`L2-027`, `L2-028`) belong to
   [control resistance](../../bike/control-resistance/README.md); decoding and the power estimate
   (`L2-020`, `L2-021`, `L2-023`) belong to
@@ -75,27 +76,35 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   breaks a rule has no ride (`L2-080` AC3).
 - **`provideClassRide()`** (exists). It binds the one class (`provideTheClass()`), how the rider chose to ride
   (`provideHowToRide()`), `MONOTONIC_TIME` to `performance.now()`, `SCREEN_WAKE_LOCK` to `BrowserScreenWakeLock`,
-  the class video through `provideClassVideo()`, and `WORLD_RENDERER`, a dynamic import of `@telo/world` that the
-  carried-over ride in the course uses until journey 37. The class ships with the app (ADR 0037), so nothing is
-  fetched.
+  the class video through `provideClassVideo()`, and `COURSE_RENDERER` to a dynamic import of `@telo/world`, so
+  the course's renderer and Three.js load only when a ride in Ibiza starts (`L2-175` AC1, `L2-136` AC1). The class
+  ships with the app (ADR 0037), so nothing is fetched for it.
 - **`provideClassVideo()`** (exists). It binds `VIDEO_PLAYER_FACTORY` to a dynamic
   `import('@telo/video')`, so the player's code loads only when a screen asks for a player.
 
 ### Page and store
 
-- **`ClassRidePage`** (exists, `wz-class-ride-page`). It reads how the rider chose to ride. With "Class video" it
-  renders `ClassRideSession` at once. With "Ibiza Sunset Strip" it renders the carried-over World loading and then
-  `ClassRideSession` with the course (open question 20), until slice 37.1 removes World loading.
-- **`ClassRideSession`** (exists, `wz-class-ride-session`). The ride itself. It provides the ride's services on
-  itself, so they go when the rider leaves: `ClassRideStore`, `RideClock`, `RideTicker`, `WorkoutEngine`,
-  `ResistanceController`, `BikeTelemetry` and `VideoClockSync`. The template renders `wz-class-header` with
-  **Pause**, Leave (`aria-label="Leave class"`) and `wz-fullscreen-button` in its `end` slot, a visually hidden `h1`
-  ("Intervals to the Beat · solo class ride"), `wz-class-video` (or `wz-class-world` with the course, which takes
-  the same box, `L2-087` AC6), and `wz-class-bike` holding `wz-class-segment`, two `wz-class-stat` and
-  `wz-class-resist`. The template holds no control that finishes the ride (`L2-087` AC3); the e2e page object keeps
-  a `finish` locator only to prove there is none. Journey 32 adds the accumulators of the result (`RideTotals`,
-  `EffortTotals`, `OnTargetCounter`) and journey 34 the `ReadoutSampler`.
-- **`class-ride-session.scss`** (exists; changed by slice 31.1). The `class-ride` block is one viewport tall
+- **`ClassRidePage`** (exists, `wz-class-ride-page`; slice 37.1 merged `ClassRideSession` into it, since no
+  screen comes before the ride any more). The ride itself, whichever way it is ridden. It provides the ride's
+  services on itself, so they go when the rider leaves: `ClassRideStore`, `RideClock`, `RideTicker`,
+  `WorkoutEngine`, `ResistanceController`, `BikeTelemetry` and `VideoClockSync`. The template renders
+  `wz-class-header` with **Pause**, Leave (`aria-label="Leave class"`) and `wz-fullscreen-button` in its `end`
+  slot, a visually hidden `h1` ("Intervals to the Beat · solo class ride"), the box, and `wz-class-bike` holding
+  `wz-class-segment`, two `wz-class-stat` and `wz-class-resist`. The box is `wz-class-video` when
+  `ClassRideStore.way` is `'video'`, and `wz-class-course` when it is `'ibiza'` (`L2-087` AC6); a ride in Ibiza
+  never renders `wz-class-video`, so no player is created and nothing is asked of YouTube (`L2-174` AC1). The
+  template holds no control that finishes the ride (`L2-087` AC3); the e2e page object keeps a `finish` locator
+  only to prove there is none. Journey 32 adds the accumulators of the result (`RideTotals`, `EffortTotals`,
+  `OnTargetCounter`) and journey 34 the `ReadoutSampler`.
+- **`CourseSceneHost`** (built by slice 37.1, `ride/src/app/class-ride/course-scene-host.ts`,
+  `[wzCourseScene]`). The directive on the node projected into `wz-class-course`'s `scene` slot. When it is
+  created, which is when Class Ride opens in Ibiza, it imports `@telo/world` and creates the library's
+  `CourseScene` in its view container, hands it the course's name, the plan's segments, the ride's whole second,
+  the bike's speed, whether the ride is running and the device's reduced-motion preference, and re-emits its
+  `drawn`. The page answers `drawn` with `ClassRideStore.showCourse()`. A rider who leaves before the library
+  has come gets no scene. A dynamic import and `setInput` rather than `@defer`, whose runtime would enter the
+  initial bundle.
+- **`class-ride-page.scss`** (exists; changed by slice 31.1, and `class-ride-session.scss` until slice 37.1). The `class-ride` block is one viewport tall
   (`100dvh`) with the header above a body that may scroll. In a landscape viewport 768 px wide or more
   (`@media (min-width: 48rem) and (orientation: landscape)`) the stage is as tall as the body, the bike panel is one
   row, and the box takes the height left, so the screen does not scroll (`L2-087` AC5), from a phone on its side
@@ -107,8 +116,11 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   only. From sm they draw as the design has them, 36 px tall, with Leave 34 px wide and the Full screen toggle
   36 px, and each takes a touch anywhere in 44 × 44 px (`L2-140` AC2): `wz-button` and the toggle extend their tap
   area with a pseudo-element, both ways since this slice.
-- **`ClassRideStore`** (exists). A store provided by `ClassRideSession`. On construction it reads the class from
-  `THE_CLASS` and starts the ride: `RideClock.start()`, `RideTicker.start()` and `WorkoutEngine.follow(plan)`. It
+- **`ClassRideStore`** (exists). A store provided by `ClassRidePage`. On construction it reads the class from
+  `THE_CLASS` and how the rider chose to ride (`way`: `rideWith(HOW_TO_RIDE.kept(), COURSE_GRAPHICS.available())`,
+  so a browser that cannot draw the course rides with the class video, `L2-173` AC6), and starts the ride at once,
+  whichever way (`L2-175` AC1). `courseDrawn` is false until `showCourse()`, and the box reads "Loading Ibiza
+  Sunset Strip" meanwhile. In Ibiza the video's stall watch is never asked, so no video notice shows. It starts: `RideClock.start()`, `RideTicker.start()` and `WorkoutEngine.follow(plan)`. It
   exposes `ride`, `elapsed` (the ticker's whole second), `plan` (the engine's `PlanState`), `level`, `canControl`,
   `byHand`, `power`, `cadence` and `videoUnavailable` as signals, and `playVideo(host)`, `raise()` and `lower()` as actions.
   Pausing, the lost bike and the finish are designed in the neighbouring features and rebuilt by slice 31.2; the
@@ -154,7 +166,7 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   watch is asked on each tick with the player's state and the ride's whole second, and returns `true` once the
   video has gone `VIDEO_STALL_SECONDS` (10) of the ride without `playing`. The count is in the ride's seconds, so
   it stands still while the ride is held, and it starts again whenever the video plays. Provided by
-  `ClassRideSession`.
+  `ClassRidePage`.
 
 ### Presentation in `components`
 
@@ -170,8 +182,26 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   “The video can’t play. The bike will still follow the class.” with `role="status"`, `space-2` under the box
   (mock `class-ride/video-unavailable`, drawn by slice 31.3). In a landscape window from md its box
   fills the height the stage leaves, never under 8 rem; otherwise it is 16:9.
-- **`ClassWorld`** (exists, `wz-class-world`; carried over, until journey 37). The course in the same box, by the
-  same rule, with the class video inset in its corner.
+- **`ClassCourse`** (built by slice 37.1 in the place of `ClassWorld`, `wz-class-course`, block `class-course`).
+  The course in the same box, by the same rule as the video's (mocks `class-ride/ibiza` and
+  `class-ride/ibiza-loading`). Inputs `name`, `still` (`url` and `alt`), `loading` and `paused`; the slot
+  `[slot=scene]` takes the course's canvas. While `loading` it draws the still
+  (`class-course__still`) over the slot and, centred over it on a scrim,
+  `<p class="class-course__loading" role="status">Loading Ibiza Sunset Strip</p>` (`L2-175` AC1); both leave the
+  DOM once the course is drawn. `paused` draws the "Paused" overlay over the whole box (`class-course__paused`).
+  It has no video and no corner for one.
+- **`CourseScene`** (`world` library, built by slice 37.1 from the carried-over `WorldScene`, `wz-course-scene`).
+  One `canvas` with `role="img"` and `aria-label` "Ibiza Sunset Strip" (`L2-174` AC1), hidden from assistive
+  technology and transparent until the first frame of the ride is drawn. It asks `COURSE_RENDERER` for the
+  renderer, starts it on the canvas with the plan's segments, and drives it from the ride: `SceneDriver` gives
+  each frame the ride's time and the crank's angle, and the first frame takes the ride's second as it then stands,
+  so the rider is where the clock puts them and never on the grid (`L2-175` AC3). It emits `drawn` once, and
+  `unavailable` when the renderer cannot start (slice 37.4 shows the notice). On destroy it stops the frame loop
+  and disposes the renderer (`L2-174` AC8).
+- **`ThreeCourseRenderer`** (`world` library, the carried-over course renderer, cut down by slice 37.1). It
+  fetches `courses/ibiza.glb`, `courses/ibiza.course.json` and `riders/rider.glb` from the app's origin, and draws
+  the course with one rider (`L2-174` AC6): the code that made a field of other riders, a ghost and their
+  shadows is gone. How the course itself is drawn is unchanged.
 - **`ClassBike`** (exists, `wz-class-bike`). Two columns on a phone and one row of four from md.
 - **`ClassSegment`** (exists, `wz-class-segment`). Inputs `segments`, `index`, `remaining` and
   `progress`. It renders the kind with its swatch, the time left as `role="timer"` with
@@ -233,7 +263,7 @@ and embeds the YouTube player; nothing is stored while the ride runs.
 
 ### Components
 
-`ClassRidePage` renders, through `ClassRideSession`, the presentation components from `ClassRideStore`, which runs the clock,
+`ClassRidePage` renders the presentation components from `ClassRideStore`, which runs the clock,
 the ticker and the engine from `domain` and reaches the player in `video` through the contract in
 `api`. `connectedBikeGuard` stands in front of the route.
 

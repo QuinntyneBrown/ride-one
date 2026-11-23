@@ -10,6 +10,7 @@
 // decides how the ride is ridden. A browser that cannot draw the course keeps to the class video. (A class that can't be loaded: the-one-class.spec.ts.)
 import { ECHELON_NOTIFY, echelonBike, targetResistanceWrite } from './fixtures/echelon';
 import { connectBike } from './fixtures/class-ride';
+import { CourseFiles } from './fixtures/course-files';
 import { keptRideWith } from './fixtures/how-to-ride';
 import { ScriptLog } from './fixtures/scripts';
 import { expect, test } from './fixtures/test';
@@ -17,7 +18,9 @@ import { theClass as shipped } from './fixtures/the-class';
 import { ClassRidePage } from './pages/class-ride.page';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { TheClassPage } from './pages/the-class.page';
-import { WorldLoadingPage } from './pages/world-loading.page';
+
+/** The course's still, an image in the box; the course's own files are fetched only by a ride in Ibiza. */
+const STILL = '/courses/ibiza-sunset-strip.jpg';
 
 test.describe('The Class', () => {
   test.beforeEach(({ bluetooth }) => bluetooth.remember(echelonBike));
@@ -229,7 +232,9 @@ test.describe('The Class', () => {
       const scripts = new ScriptLog(page);
       const course: string[] = [];
       page.on('request', (request) => {
-        if (/\/(courses|riders)\//.test(request.url())) course.push(request.url());
+        // The course's still is the one file of the course The Class shows.
+        const { pathname } = new URL(request.url());
+        if (/^\/(courses|riders)\//.test(pathname) && pathname !== STILL) course.push(pathname);
       });
       const theClass = new TheClassPage(page);
       await theClass.open();
@@ -327,20 +332,25 @@ test.describe('The Class', () => {
       await theClass.start.click();
 
       await expect(ride.name).toContainText('Intervals to the Beat');
-      await expect(ride.world).toHaveCount(0);
+      await expect(ride.box).toHaveClass(/class-video/);
       await expect
         .poll(async () => (await youtube.players()).filter((player) => !player.destroyed).length)
         .toBe(1);
 
       await ride.leave.click();
+      // The spec is about the choice and not the course: its files are held, so nothing is drawn.
+      const files = await CourseFiles.install(page);
+      files.hold();
       await theClass.ibiza.click();
       await expect(theClass.start).toHaveText('Start class');
       await theClass.start.click();
 
-      // The carried-over ride in the course opens on World loading, then rides in Ibiza Sunset Strip.
-      const loading = new WorldLoadingPage(page);
-      await expect(loading.eyebrow).toContainText('Ibiza Sunset Strip');
-      await expect(loading.cardTitle).toContainText('Ibiza Sunset Strip');
+      // The ride is in Ibiza: the course takes the video's box, and there is no video (L2-174 AC1).
+      await expect(ride.name).toContainText('Intervals to the Beat');
+      await expect(ride.box).toHaveClass(/class-course/);
+      await expect(ride.courseLoading).toHaveText('Loading Ibiza Sunset Strip');
+      await expect(ride.video).toHaveCount(0);
+      await files.dispose();
     });
   });
 });

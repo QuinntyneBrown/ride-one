@@ -19,7 +19,8 @@
 // height the header and the bike panel leave; a window too short for that scrolls rather than cut the panel off.
 // Given a portrait window, when Class Ride shows, then it is one column with the video at 16:9.
 // Given a ride in Ibiza, when Class Ride shows, then the course takes the video's box and the rest is the same.
-import { startClassRide, startClassRideInWorld } from './fixtures/class-ride';
+import { startClassRide, startRideInIbiza } from './fixtures/class-ride';
+import { CourseFiles } from './fixtures/course-files';
 import { ECHELON_NOTIFY, resistanceFrame, workoutFrame } from './fixtures/echelon';
 import type { FakeBluetooth } from './fixtures/fake-bluetooth';
 import { expect, test } from './fixtures/test';
@@ -340,16 +341,18 @@ test.describe('Class Ride as designed: in Ibiza', () => {
   test('the course takes the video’s box, nothing scrolls, and the header and the bike panel are the same (L2-087 AC5, AC6)', async ({
     page,
     bluetooth,
-    api,
   }) => {
-    // The course is drawn in software here, so it is ridden in one window: a phone on its side, the smallest
-    // landscape window that must not scroll, and the cheapest to draw beside the other specs of the course.
-    test.setTimeout(120_000);
+    // The spec is about the screen and not the drawing: the course's files are held, and the box is measured with
+    // the course's still in it, in the smallest landscape window that must not scroll (class-ride-ibiza.spec.ts
+    // draws the course in the same window).
+    const files = await CourseFiles.install(page);
+    files.hold();
     await page.setViewportSize({ width: 844, height: 390 });
-    const ride = await startClassRideInWorld(page, bluetooth, api);
+    const ride = await startRideInIbiza(page, bluetooth);
 
-    await expect(ride.box).toHaveClass(/class-world/);
-    await expect(ride.worldScene).toBeVisible();
+    await expect(ride.box).toHaveClass(/class-course/);
+    await expect(ride.courseStill).toBeVisible();
+    await expect(ride.video).toHaveCount(0);
     await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
     await expect(ride.clock).toHaveAccessibleName(/^0:\d\d of 20:00$/);
     await expect(ride.pause).toHaveText('Pause');
@@ -362,5 +365,6 @@ test.describe('Class Ride as designed: in Ibiza', () => {
     await expect(ride.raise).toBeEnabled();
     expectFits(await ride.layout(), { width: 844, height: 390 });
     await expect(ride.raise).toBeInViewport({ ratio: 1 });
+    await files.dispose();
   });
 });

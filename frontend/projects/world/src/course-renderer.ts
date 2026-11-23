@@ -1,12 +1,11 @@
-// A course drawn with Three.js (ADR 0034, L2-166): the map built in Blender from the class it is modelled after,
-// loaded as glTF, with the cyclist kit's riders on its road and a chase camera behind the rider. A class's clock
-// places the rider, so each hill arrives with the resistance it was laid from; a race's riders are placed by the
-// metres they have ridden. `main`'s scenes are drawn by
-// world-renderer.ts; map-renderer.ts picks between the two.
+// The course drawn with Three.js (ADR 0034, ADR 0047, L2-174): the map built in Blender from the class's plan, loaded
+// as glTF, with the rider alone on its road and a chase camera behind them. The ride's clock places the rider, so
+// each hill arrives with the resistance it was laid from. There is no other rider, ghost or bot (L2-174 AC6).
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { pass } from 'three/tsl';
+import type { MeshStandardMaterial } from 'three/webgpu';
 import {
   AdditiveBlending,
   AgXToneMapping,
@@ -23,7 +22,6 @@ import {
   MeshLambertMaterial,
   MeshStandardNodeMaterial,
   MeshPhysicalMaterial,
-  MeshStandardMaterial,
   type Node,
   type Object3D,
   PerspectiveCamera,
@@ -35,14 +33,7 @@ import {
   Vector3,
   WebGPURenderer,
 } from 'three/webgpu';
-import type {
-  Backend,
-  SceneFrame,
-  SceneRider,
-  TimedSegment as Segment,
-  World,
-  WorldRenderer,
-} from '@telo/api';
+import type { Backend, CourseFrame, CourseRenderer, Segment } from '@telo/api';
 import {
   Course,
   type CoursePlace,
@@ -59,7 +50,6 @@ import { type GroundEye, groundMaterial, surfaceTexture } from './ground-materia
 import { haloMaterial } from './halo-material';
 import { colouredGlow, LampGlow } from './lamp-glow';
 import { colourLightMap, lampLightMap } from './lamp-light-map';
-import { ridersOnRoad } from './race-riders';
 import { skyMaterial } from './sky-material';
 import { type Rain, rain } from './rain';
 import { RiderBatch } from './rider-batch';
@@ -74,15 +64,15 @@ import { RiderShadows } from './rider-shadows';
 import { wallMaterial } from './wall-material';
 import { waterMaterial } from './water-material';
 import { windowMaterial } from './window-material';
-import { PROBE_KEY, readWorldRideProbe } from './world-ride-probe';
+import { type CourseDrawn, PROBE_KEY, readCourseProbe } from './course-probe';
 
 /** The chase camera: this far behind the rider and above the road, looking this far ahead. */
 const CAMERA_BACK = 2.75;
 const CAMERA_UP = 1.8;
 /**
- * How far the picture is raised in the frame, as a share of its height: the race's panel lies over the foot of the
- * screen, and the rider's wheels and the road under them are to show above it. The lens is shifted, as a view
- * camera's is, so the camera stays where it is and nothing leans.
+ * How far the picture is raised in the frame, as a share of its height, so the rider's wheels and the road under them
+ * show well above the foot of the box. The lens is shifted, as a view camera's is, so the camera stays where it is
+ * and nothing leans.
  */
 const FRAME_RISE = 0.19;
 const LOOK_AHEAD = 14;
@@ -116,11 +106,6 @@ const DRAW_DISTANCE: Readonly<Record<string, number>> = {
 const START_LIGHTS = 150;
 /** How often, in frames, the chunks to draw are chosen. */
 const CHUNK_SWEEP = 12;
-/** Riders further ahead than this are not drawn, and no more than this many of the nearest. */
-const FAR_RIDERS = 120;
-const MOST_RIDERS = 4;
-/** The most riders of a race made when it starts; any beyond them are made as they first ride into view. */
-const MOST_FIELD = 12;
 /** The haze the distance fades into, from these metres to these; its colour is the course's (`courseLook`). */
 const FOG: readonly [number, number] = [200, 1500];
 /** The material for everything of a rider that is coloured by vertex, each part with its own finish. */
@@ -145,18 +130,13 @@ const DUSK_LIGHT = 0.16;
 /** How far the map is drawn at each tier, as a share of each group's draw distance: a slower device draws less far. */
 const DRAWN_FAR = [0.7, 0.8, 0.9, 1, 1] as const;
 
-/**
- * How finely the riders are made at each tier (1 is the finest), and how much more coarsely the riders other than
- * the one the camera follows: they are seen from further off, and there may be a dozen of them.
- */
+/** How finely the rider is made at each tier (1 is the finest). */
 const RIDER_DETAIL = [0.6, 0.7, 0.8, 0.9, 1] as const;
-const OTHERS_DETAIL = 0.6;
-/** The tiers, from the lowest to this one, whose riders are the simple build: their lamps throw no pools on the road. */
+/** The tiers, from the lowest to this one, whose rider is the simple build: their lamps throw no pools on the road. */
 const SIMPLE_RIDERS = 1;
 
 /** How far up the road, in metres, a rider's lean into a bend is read from. */
 const LEAN_AHEAD = 6;
-const GHOST_OPACITY = 0.45;
 /**
  * How bright the lamps' light is on what stands near the road, against the ground straight under a lamp: walls and
  * posts catch it side on, the land and the leaves as the ground does, the riders from above and beside.
@@ -182,15 +162,15 @@ const JUDGED_FRAMES = 90;
 const TOO_SLOW = 1.6;
 const AT_PACE = 1.1;
 
-/** A race rider's colour, the design system's `--jersey-<jersey>`, as world-renderer.ts reads it. */
-function jerseyColour(element: Element, jersey: string): Color {
-  const value = getComputedStyle(element).getPropertyValue(`--jersey-${jersey}`).trim();
+/** The rider's jersey colour, the design system's `--jersey-you`. */
+function jerseyColour(element: Element): Color {
+  const value = getComputedStyle(element).getPropertyValue('--jersey-you').trim();
   const colour = new Color(0xd7ff3a);
   if (value) colour.setStyle(value);
   return colour;
 }
 
-export class CourseRenderer implements WorldRenderer {
+export class ThreeCourseRenderer implements CourseRenderer {
   backend: Backend = 'webgl2';
   private renderer: WebGPURenderer | null = null;
   private course: Course | null = null;
@@ -225,12 +205,15 @@ export class CourseRenderer implements WorldRenderer {
   /** The chunks of the map that are near enough the camera to be drawn: the only ones in the scene. */
   private readonly near = new Group();
   /** What the pinned probe reports of the frame just drawn. */
-  private readonly drawn = {
-    tier: 0 as number,
-    backend: '' as string,
+  private readonly drawn: CourseDrawn = {
+    tier: 0,
+    backend: '',
     drawCalls: 0,
     triangles: 0,
-    groups: {} as Record<string, number>,
+    groups: {},
+    riders: 0,
+    firstMetres: null,
+    metres: 0,
   };
   private readonly chosenAt = new Vector3();
   /** The start lights: red until the ride's clock starts, green from then. */
@@ -238,7 +221,7 @@ export class CourseRenderer implements WorldRenderer {
   private startGreen: Mesh | null = null;
   private beams: MeshBasicMaterial | null = null;
   private readonly confetti: Mesh[] = [];
-  /** The blob every rider's shadow is drawn with, and each rider's own. */
+  /** The blob the rider's shadow is drawn with, and the rider's own. */
   private blob: {
     geometry: PlaneGeometry;
     side: MeshBasicMaterial;
@@ -246,21 +229,18 @@ export class CourseRenderer implements WorldRenderer {
   } | null = null;
   private readonly shape: ShadowShape = { side: false, width: 0.62, flipped: false };
   private readonly shadows = new Map<Cyclist, Mesh>();
-  /** Under street lamps the riders' shadows are the lamps' instead (rider-shadows.ts), for these riders. */
+  /** Under street lamps the rider's shadow is the lamps' instead (rider-shadows.ts). */
   private lampShadows: RiderShadows | null = null;
   private readonly casting = new Set<Cyclist>();
-  /** Draws every rider's moving parts of a plain colour in one draw call. */
+  /** Draws the rider's moving parts of a plain colour in one draw call. */
   private riderBatch: RiderBatch | null = null;
-  /** Set once the race's riders have been made, on its first frame. */
-  private fieldMade = false;
   /** Draws everything of a rider that is coloured by vertex: the body and the bike (course-cyclist.ts). */
   private readonly plain = riderMaterial();
   private kit: CourseCyclistKit | null = null;
   /** The riders' body, loaded with the course. */
   private body: RiderBody | null = null;
-  private canvas: HTMLCanvasElement | null = null;
+  /** The rider, alone on the road (L2-174 AC6). */
   private you: Cyclist | null = null;
-  private readonly riders = new Map<string, Cyclist>();
   private readonly disposables: { dispose(): void }[] = [];
   private readonly frameMaterial = new MeshPhysicalMaterial({
     color: 0x15171c,
@@ -295,12 +275,11 @@ export class CourseRenderer implements WorldRenderer {
 
   async start(
     canvas: HTMLCanvasElement,
-    _world: World,
     nextFrame: () => Promise<void>,
-    segments: readonly Segment[] = [],
+    segments: readonly Segment[],
   ): Promise<boolean> {
     try {
-      const asked = readWorldRideProbe((globalThis as Record<string, unknown>)[PROBE_KEY]);
+      const asked = readCourseProbe((globalThis as Record<string, unknown>)[PROBE_KEY]);
       const renderer = new WebGPURenderer({
         canvas,
         antialias: true,
@@ -308,11 +287,11 @@ export class CourseRenderer implements WorldRenderer {
       });
       await renderer.init();
       this.renderer = renderer;
-      if (asked && !asked.judged) {
+      if (asked) {
         this.pinned = true;
         const from = (globalThis as Record<string, unknown>)[PROBE_KEY] as { from?: unknown };
         if (typeof from.from === 'number') this.benchFrom = from.from;
-        this.tier = (asked.tier && PINNED[asked.tier]) ?? START;
+        this.tier = PINNED[asked.tier] ?? START;
         renderer.info.autoReset = false;
       }
       this.backend = (renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend
@@ -342,7 +321,6 @@ export class CourseRenderer implements WorldRenderer {
       this.course = new Course(parseCourse(file));
       const planned = segments.reduce((sum, segment) => sum + segment.duration, 0);
       this.clockScale = planned > 0 ? this.course.duration / planned : 1;
-      this.canvas = canvas;
       this.build(gltf.scene, canvas);
 
       // The map's programs compile while it loads, and its first picture is drawn before the ride's first frame.
@@ -367,22 +345,19 @@ export class CourseRenderer implements WorldRenderer {
     this.camera.updateProjectionMatrix();
   }
 
-  draw(frame: SceneFrame): void {
+  draw(frame: CourseFrame): void {
     const { renderer, course, you } = this;
     if (!renderer || !course || !you) return;
-    // A race is won by distance, so its riders are placed by the metres they have ridden and cross the map's finish
-    // line as the race's; a class is ridden by its clock (L2-166 AC2).
-    const ridden = frame.riders
-      ? Math.min(frame.s, course.end)
-      : course.metresAt(frame.time * this.clockScale);
+    // The class is ridden by its clock: the clock's second places the rider (L2-174 AC2).
+    const ridden = course.metresAt(frame.time * this.clockScale);
     const metres = Math.min(ridden + this.benchFrom, course.end);
-    if (frame.riders && !this.fieldMade) this.makeField(frame.riders, metres);
+    if (this.drawn.firstMetres === null) this.drawn.firstMetres = metres;
+    this.drawn.metres = metres;
     this.lampShadows?.begin();
     const standing = this.ride(you, metres, 0);
-    // Every wheel on the road turns with the rider's: the riders keep much the same pace.
+    // The wheels turn as the bike covers the road.
     this.kit?.roll(metres);
     you.pose(frame.reducedMotion ? 0 : frame.crank, standing);
-    this.placeRiders(frame, metres);
     this.lampShadows?.end();
     this.riderBatch?.follow();
     this.aim(metres);
@@ -411,11 +386,6 @@ export class CourseRenderer implements WorldRenderer {
     this.lastFrameAt = null;
   }
 
-  /** A course follows no real place: there is nothing to stream beside it (L2-066). */
-  stream(): void {
-    // Nothing to stream.
-  }
-
   dispose(): void {
     this.disposed = true;
     this.pipeline?.dispose();
@@ -432,7 +402,7 @@ export class CourseRenderer implements WorldRenderer {
     this.confetti.length = 0;
     for (const d of this.disposables) d.dispose();
     this.disposables.length = 0;
-    this.riders.clear();
+    this.you = null;
     this.lamplit.clear();
     this.lampGlow = null;
     this.sunGlow = null;
@@ -499,8 +469,8 @@ export class CourseRenderer implements WorldRenderer {
         lights.length ? colourLightMap(this.course!, lights) : null,
       );
       this.lampGlow = lampGlow;
-      // The riders' shadows fall away from the lamps: the rider, and the riders drawn with them.
-      this.lampShadows = new RiderShadows(this.course!, lamps, MOST_RIDERS + 1);
+      // The rider's shadow falls away from the lamps.
+      this.lampShadows = new RiderShadows(this.course!, lamps, 1);
       this.scene.add(this.lampShadows.mesh);
       this.disposables.push(lampGlow, this.lampShadows);
       for (const [group, material] of [
@@ -665,8 +635,8 @@ export class CourseRenderer implements WorldRenderer {
     }
 
     const fill = new HemisphereLight(look.fill[0], look.fill[1], 1.5);
-    // The low sun throws each rider's shadow long across the road: a soft dark blob, with no shadow map to draw.
-    // Each rider's shadow in the sun: a square on the road drawn with the rider's own outline, from the side or
+    // The low sun throws the rider's shadow long across the road: a soft dark blob, with no shadow map to draw.
+    // The rider's shadow in the sun: a square on the road drawn with the rider's own outline, from the side or
     // end on as the sun stands (rider-shadow-shape.ts, shadow-silhouette.ts). Along it, away from the sun, is +z.
     const square = new PlaneGeometry(1, 1);
     square.rotateX(-Math.PI / 2);
@@ -695,14 +665,13 @@ export class CourseRenderer implements WorldRenderer {
       this.tier <= SIMPLE_RIDERS,
     );
     this.kit = kit;
-    // The rider wears the You jersey of the race board (L2-060).
-    // The rider the camera follows is made as finely as the device's tier allows; the others, seen from further
-    // off, more coarsely (RIDER_DETAIL, OTHERS_DETAIL).
-    const you = kit.make(jerseyColour(canvas, 'you'), 4, true, RIDER_DETAIL[this.tier] ?? 1);
+    // The rider, in the design system's own jersey colour, made as finely as the device's tier allows
+    // (RIDER_DETAIL). They are the only rider the kit makes (L2-174 AC6).
+    const you = kit.make(jerseyColour(canvas), 4, true, RIDER_DETAIL[this.tier] ?? 1);
     this.you = you;
-    // Every rider's moving parts of a plain colour are drawn by one batch (rider-batch.ts), in the material that
+    // The rider's moving parts of a plain colour are drawn by one batch (rider-batch.ts), in the material that
     // draws their still ones.
-    // A rider is lit by the course's lamps where it has them, and by its daylight where it does not.
+    // The rider is lit by the course's lamps where it has them, and by its daylight where it does not.
     if (!this.lampGlow) {
       const [x, y, z] = this.course!.file.sun;
       this.sunGlow = new SunGlow(
@@ -816,84 +785,7 @@ export class CourseRenderer implements WorldRenderer {
     this.sun.target.updateMatrixWorld();
   }
 
-  /** The race's other riders at their places, each on a line of their own (L2-064 AC3). */
-  private placeRiders(frame: SceneFrame, metres: number): void {
-    for (const rider of this.riders.values()) {
-      rider.group.visible = false;
-      const shadow = this.shadows.get(rider);
-      if (shadow) shadow.visible = false;
-    }
-    if (!frame.riders) return;
-    const nearest = ridersOnRoad(frame.riders, FAR_RIDERS)
-      .sort((a, b) => Math.abs(a.metres) - Math.abs(b.metres))
-      .slice(0, MOST_RIDERS);
-    for (const rider of nearest) {
-      const cyclist = this.rider(rider.jersey);
-      if (!cyclist) continue;
-      cyclist.group.visible = true;
-      const standing = this.ride(cyclist, metres + rider.metres, rider.lane);
-      cyclist.pose(frame.reducedMotion ? 0 : frame.crank + rider.lane, standing);
-    }
-  }
-
-  /**
-   * Makes every rider of the race on the ride's first frame, and draws them once where the rider is, so each one's
-   * geometry, textures and programs are ready: a rider made later, when they first rode into view, cost a frame of
-   * 75 ms in the middle of the ride. The frame drawn here is drawn over before it is shown.
-   */
-  private makeField(riders: readonly SceneRider[], metres: number): void {
-    this.fieldMade = true;
-    for (const [order, rider] of riders.slice(0, MOST_FIELD).entries()) {
-      const cyclist = this.rider(rider.jersey);
-      if (!cyclist) continue;
-      cyclist.group.visible = true;
-      this.ride(cyclist, metres + 6 + order, 0);
-      cyclist.pose(0);
-    }
-    this.riderBatch?.follow();
-    this.aim(metres);
-    this.render();
-  }
-
-  /** A race rider in their jersey, made the first time they ride into view; the ghost in translucent gold. */
-  private rider(jersey: string): Cyclist | null {
-    const made = this.riders.get(jersey);
-    if (made) return made;
-    if (!this.kit || !this.canvas) return null;
-    const colour = jerseyColour(this.canvas, jersey);
-    // The ghost is a figure of glass: it carries no light.
-    const cyclist = this.kit.make(
-      colour,
-      this.riders.size + 1,
-      jersey !== 'ghost',
-      (RIDER_DETAIL[this.tier] ?? 1) * OTHERS_DETAIL,
-    );
-    this.disposables.push(...cyclist.owned);
-    if (jersey === 'ghost') {
-      const glass = new MeshStandardMaterial({
-        color: colour,
-        roughness: 0.4,
-        transparent: true,
-        opacity: GHOST_OPACITY,
-        depthWrite: false,
-      });
-      this.disposables.push(glass);
-      cyclist.group.traverse((part) => {
-        const mesh = part as Mesh;
-        if (mesh.isMesh) mesh.material = glass;
-      });
-    }
-    if (jersey !== 'ghost') {
-      this.riderBatch?.add(cyclist);
-      this.lamplight(cyclist);
-    }
-    if (jersey !== 'ghost') this.shadow(cyclist);
-    this.riders.set(jersey, cyclist);
-    this.scene.add(cyclist.group);
-    return cyclist;
-  }
-
-  /** Gives a rider's lit materials the course's own light: its lamps' where it has them, its daylight where not. */
+  /** Gives the rider's lit materials the course's own light: its lamps' where it has them, its daylight where not. */
   private lamplight(cyclist: Cyclist): void {
     const lampGlow = this.lampGlow ?? this.sunGlow;
     if (!lampGlow) return;
@@ -955,7 +847,7 @@ export class CourseRenderer implements WorldRenderer {
     }
   }
 
-  /** Gives a cyclist their shadow on the road. */
+  /** Gives the rider their shadow on the road. */
   private shadow(cyclist: Cyclist): void {
     if (this.lampShadows) {
       this.casting.add(cyclist);
@@ -992,7 +884,7 @@ export class CourseRenderer implements WorldRenderer {
     if (this.pinned) this.report(renderer);
   }
 
-  /** Writes what the frame cost to the test-only hook, for the bench (tools/course-bench). */
+  /** Writes what the frame cost, and where it put the rider, to the test-only hook (course-probe.ts). */
   private report(renderer: WebGPURenderer): void {
     const hook = (globalThis as Record<string, unknown>)[PROBE_KEY] as Record<string, unknown>;
     // The chunks of each group in view: where the map's draw calls come from. Counted into the one record, so a
@@ -1003,6 +895,7 @@ export class CourseRenderer implements WorldRenderer {
       if (mesh.visible) drawn.groups[group] = (drawn.groups[group] ?? 0) + 1;
     }
     drawn.tier = this.tier;
+    drawn.riders = this.kit?.made ?? 0;
     drawn.backend = this.backend;
     drawn.drawCalls = renderer.info.render.drawCalls;
     drawn.triangles = renderer.info.render.triangles;

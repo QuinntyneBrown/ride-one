@@ -9,17 +9,7 @@ import type {
 } from '@telo/api';
 import { formatClock } from '@telo/components';
 import { PlanSummary } from '@telo/domain';
-
-/** Ibiza Sunset Strip as The Class names it (L2-173 AC3, AC6): the only course. Its still ships with the app. */
-const IBIZA = {
-  name: 'Ibiza Sunset Strip',
-  facts: '8.4 km · 159 m of climbing',
-  cannotDraw: 'This browser can’t draw Ibiza.',
-  still: {
-    url: 'maps/ibiza-sunset-strip-photo.jpg',
-    alt: 'Ibiza Sunset Strip: a seafront road at sunset',
-  },
-} as const;
+import { IBIZA_SUNSET_STRIP as IBIZA } from '../classes/ibiza-sunset-strip';
 
 /** What The Class is drawn from. */
 export interface TheClassState {

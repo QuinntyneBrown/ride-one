@@ -388,11 +388,15 @@ export class CourseCyclistKit {
     this.roadGlow = roadGlowShape();
   }
 
+  /** How many riders the kit has made: one, the rider alone on the road (L2-174 AC6). */
+  made = 0;
+
   /**
    * A rider in `jersey`, race `number` pinned to their back; `lit` false leaves their bike's lights off. `detail`
    * is how finely they are made, 1 for the finest: less for a rider seen from further off or on a slower device.
    */
   make(jersey: Color, number: number, lit = true, detail = 1): RiderModel {
+    this.made++;
     return new CourseCyclist(this, this.plain, jersey, number, lit, detail);
   }
 
