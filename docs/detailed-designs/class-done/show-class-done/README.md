@@ -77,6 +77,11 @@ figures are set upright (`writing-mode: vertical-rl`) so 17 fit at 320 px with n
 each, 40 ms apart (`--duration-stagger`), and not at all with reduced motion; the app's token file gained
 `--duration-stagger`, `--class-done-chart-height`, `--class-done-action-width` and `--class-done-figure-room`.
 
+Slice 32.5 added the fact "On target" (`L2-170`, `L2-078` AC2) after Time and Average and before the best fact:
+`classDoneView.onTarget` is `round(ClassResult.onTargetShare × 100)` as "84%". The share itself was already counted
+by `RideRecorder` (on-target seconds ÷ running seconds, power within 10 % of the segment's target, unknown power
+never on target; the class has no segment without a cadence aim).
+
 **During the ride**
 
 - **`EffortTotals`** (`domain/src/engine/effort-totals.ts`, new): engine service provided on

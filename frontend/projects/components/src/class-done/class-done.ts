@@ -5,7 +5,7 @@ import { Lockup } from '../lockup/lockup';
 /**
  * Class Done (design-system block class-done, docs/mocks/pages/class-done/): the header with the wordmark, the class
  * and Full screen (`end` slot), the verdict, the output in kJ (gold for a new best) with the facts under it, and Done
- * (`actions` slot), and the efforts as a chart of bars. The on-target share joins with slice 32.5.
+ * (`actions` slot), and the efforts as a chart of bars.
  */
 @Component({
   selector: 'wz-class-done',
@@ -23,6 +23,8 @@ export class ClassDone {
   readonly time = input.required<string>();
   /** The average watts as a whole number: "293". */
   readonly average = input.required<string>();
+  /** The share of the ride on target: "84%" (L2-170). */
+  readonly onTarget = input.required<string>();
   /** The `h1`: the verdict on the ride (L2-077). */
   readonly verdict = input.required<string>();
   /** A new best: the verdict and the output are gold, and the words carry it too (L2-077 AC4). */

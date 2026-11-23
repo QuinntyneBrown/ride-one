@@ -27,6 +27,10 @@
             <dt class="class-done__fact-label">Average</dt>
             <dd class="class-done__fact-value">{{ average() }} W</dd>
           </div>
+          <div class="class-done__fact">
+            <dt class="class-done__fact-label">On target</dt>
+            <dd class="class-done__fact-value">{{ onTarget() }}</dd>
+          </div>
           @if (bestFact(); as fact) {
             <div class="class-done__fact">
               <dt class="class-done__fact-label">{{ fact.label }}</dt>

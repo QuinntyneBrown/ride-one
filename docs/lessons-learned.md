@@ -273,6 +273,28 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 32.5 On target (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first — partly:** the view's `onTarget` case was written with the field in one step; the
+  on-target spec's first case needed the new fact.
+- **32.2's lesson on re-homing specs:** the old Results spec's "40 of 1,200 seconds is 3%" case, removed with the
+  screen, is back here against Class Done, and a second case proves a ride with no power is 0%.
+
+**What slowed it down**
+
+- Nothing: the share was already counted and unit-tested in `RideRecorder` (L2-037 AC3); the slice only shows it.
+
+**Decisions**
+
+- **The fact comes from the result's share, rounded in the view,** not recounted.
+
+**New lessons**
+
+- When a screen is replaced, list the old screen's specs' cases before deleting them and re-home each: 32.2 dropped
+  two without noticing.
+
 ### 32.4 The eight efforts (2026-11-23)
 
 **Applied from earlier**

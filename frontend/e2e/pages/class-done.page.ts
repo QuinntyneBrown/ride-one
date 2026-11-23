@@ -14,6 +14,8 @@ export class ClassDonePage {
   readonly unit: Locator;
   readonly time: Locator;
   readonly average: Locator;
+  /** The share of the ride on target: "84%". */
+  readonly onTarget: Locator;
   readonly done: Locator;
   readonly main: Locator;
   /** "Previous best" or "Best" with its kJ; absent for the first ride. */
@@ -33,6 +35,7 @@ export class ClassDonePage {
     this.unit = page.locator('.class-done__unit');
     this.time = this.fact('Time');
     this.average = this.fact('Average');
+    this.onTarget = this.fact('On target');
     this.done = page.getByRole('link', { name: 'Done', exact: true });
     this.main = page.locator('main');
     this.effortsTitle = page.locator('.class-done__efforts-title');

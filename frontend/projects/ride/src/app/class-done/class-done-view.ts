@@ -10,6 +10,8 @@ export interface ClassDoneView {
   readonly time: string;
   /** The average watts as a whole number ("293"). */
   readonly average: string;
+  /** The share of running seconds on target as a whole percentage ("84%"; L2-170 AC2). */
+  readonly onTarget: string;
   /** The `h1` (L2-077): "New best output", "Your best is still 342 kJ" or "Class done. That’s your number to beat." */
   readonly verdict: string;
   /** Whether this ride beat the best: the output and the verdict are gold, and the words carry it (L2-077 AC4). */
@@ -55,6 +57,7 @@ export function classDoneView(result: ClassResult): ClassDoneView {
     output,
     time,
     average: String(average),
+    onTarget: `${Math.round(result.onTargetShare * 100)}%`,
     verdict,
     best,
     bestFact:
