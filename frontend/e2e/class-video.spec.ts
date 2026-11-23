@@ -17,7 +17,7 @@ async function rendered(page: Page, locator: Locator): Promise<void> {
 }
 
 test.describe('Class video', () => {
-  test('the video plays from youtube-nocookie.com without controls, at the ride clock plus the 0:12 offset (L2-088 AC1, AC5)', async ({
+  test('the video plays from youtube-nocookie.com without controls, at the ride clock plus the 0:03 offset (L2-088 AC1, AC5)', async ({
     page,
     bluetooth,
     api,
@@ -32,18 +32,18 @@ test.describe('Class video', () => {
     expect(await youtube.players()).toEqual([
       expect.objectContaining({
         host: 'https://www.youtube-nocookie.com',
-        videoId: 'QUoToFsMNig',
+        videoId: 'il_OFz6o42I',
         playerVars: expect.objectContaining({ controls: 0 }),
         tabIndex: '-1',
-        title: '30 Minute HIIT Cardio',
+        title: 'Intervals to the Beat',
       }),
     ]);
-    expect(await youtube.time()).toBeCloseTo(12, 0);
+    expect(await youtube.time()).toBeCloseTo(3, 0);
 
-    await page.clock.fastForward('07:00');
+    await page.clock.fastForward('05:30');
     await page.clock.runFor(100);
-    await expect(ride.clock).toHaveText('7:00 / 30:00');
-    expect(await youtube.time()).toBeCloseTo(432, 0);
+    await expect(ride.clock).toHaveText('5:30 / 20:00');
+    expect(await youtube.time()).toBeCloseTo(333, 0);
   });
 
   test('a video more than 1.5 s off the ride clock plus the offset seeks back into sync, and one within 1.5 s plays on (L2-088 AC2)', async ({
@@ -55,18 +55,23 @@ test.describe('Class video', () => {
     const ride = await startClassRide(page, bluetooth, api);
     await expect.poll(async () => (await youtube.players()).length).toBe(1);
     await page.clock.runFor(100);
-    await page.clock.fastForward('07:00');
+    await page.clock.fastForward('05:30');
     await page.clock.runFor(100);
-    await expect(ride.clock).toHaveText('7:00 / 30:00');
+    await expect(ride.clock).toHaveText('5:30 / 20:00');
+    // The player starts a moment behind the clock, by however long YouTube's script took to load, which is within the
+    // limit. A first seek, from 10 s off, puts it exactly on the ride clock plus 0:03, so the rest can be measured.
+    await youtube.jump((await youtube.time()) + 10);
+    await page.clock.runFor(1000);
     const seeks = (await youtube.seeks()).length;
-    const inSync = await youtube.time(); // the ride clock plus 0:12 now
+    expect(seeks).toBeGreaterThan(0);
+    const inSync = await youtube.time(); // the ride clock plus 0:03 now
 
     // 1.2 s ahead: within the limit, so the video plays on.
     await youtube.jump(inSync + 1.2);
     await page.clock.runFor(1000);
     expect(await youtube.seeks()).toHaveLength(seeks);
 
-    // 2.5 s ahead: the next tick seeks back to the ride clock plus 0:12.
+    // 2.5 s ahead: the next tick seeks back to the ride clock plus 0:03.
     await youtube.jump((await youtube.time()) + 1.3);
     await page.clock.runFor(1000);
     await expect.poll(async () => (await youtube.seeks()).slice(seeks)).toHaveLength(1);
@@ -89,13 +94,13 @@ test.describe('Class video', () => {
     await expect(ride.videoNotice).toHaveRole('status');
     await expect(ride.cover).toBeVisible();
 
-    await page.clock.fastForward('07:00');
+    await page.clock.fastForward('05:30');
     await page.clock.runFor(100);
-    await expect(ride.clock).toHaveText('7:00 / 30:00');
+    await expect(ride.clock).toHaveText('5:30 / 20:00');
     await expect(ride.segmentKind).toHaveText('Recover');
     await expect
       .poll(() => bluetooth.writes().map((write) => write.hex))
-      .toContain(targetResistanceWrite(6));
+      .toContain(targetResistanceWrite(13));
   });
 
   test('when the player fails mid-ride, the notice shows and the ride goes on (L2-088 AC4)', async ({
@@ -112,6 +117,6 @@ test.describe('Class video', () => {
     await youtube.fail(150);
     await rendered(page, ride.videoNotice);
     await page.clock.runFor(2000);
-    await expect(ride.clock).toHaveText('0:02 / 30:00');
+    await expect(ride.clock).toHaveText('0:02 / 20:00');
   });
 });

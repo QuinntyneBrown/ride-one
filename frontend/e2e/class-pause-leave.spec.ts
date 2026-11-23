@@ -12,7 +12,7 @@ import {
   resistanceFrame,
   targetResistanceWrite,
 } from './fixtures/echelon';
-import { hiitCardio } from './fixtures/classes';
+import { theClass } from './fixtures/the-class';
 import { expect, test } from './fixtures/test';
 import type { YouTubeFixture } from './fixtures/youtube';
 import { ClassStartPage } from './pages/class-start.page';
@@ -33,29 +33,29 @@ test.describe('Pause, leave or finish a class', () => {
   }) => {
     const ride = await startClassRide(page, bluetooth, api);
     await videoReady(page, youtube);
-    await page.clock.fastForward('07:00');
+    await page.clock.fastForward('05:30');
     // The link reads connected from the bike's first notification on.
     await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
     await page.clock.runFor(100);
-    await expect(ride.clock).toHaveText('7:00 / 30:00');
+    await expect(ride.clock).toHaveText('5:30 / 20:00');
 
     await ride.pause.click();
     await page.clock.runFor(10_000);
-    await expect(ride.clock).toHaveText('7:00 / 30:00');
-    await expect(ride.segmentLeft).toHaveText('1:30');
+    await expect(ride.clock).toHaveText('5:30 / 20:00');
+    await expect(ride.segmentLeft).toHaveText('0:30');
     await expect(ride.paused).toHaveText('Paused');
     await expect(ride.resume).toBeVisible();
     await expect(ride.pause).toHaveCount(0);
     expect((await youtube.players())[0].playing).toBe(false);
-    expect(await youtube.time()).toBeCloseTo(432.2, 0);
+    expect(await youtube.time()).toBeCloseTo(333.2, 0);
     await expect(ride.raise).toBeEnabled();
 
     await ride.resume.click();
     await page.clock.runFor(2000);
-    await expect(ride.clock).toHaveText('7:02 / 30:00');
+    await expect(ride.clock).toHaveText('5:32 / 20:00');
     await expect(ride.paused).toHaveCount(0);
     expect((await youtube.players())[0].playing).toBe(true);
-    expect(await youtube.time()).toBeCloseTo(434.2, 0);
+    expect(await youtube.time()).toBeCloseTo(335.2, 0);
   });
 
   test('a solo ride pauses while the bike is lost, says so with Reconnect, and carries on once it is back (L2-092 AC4, L2-017 AC4)', async ({
@@ -66,10 +66,10 @@ test.describe('Pause, leave or finish a class', () => {
   }) => {
     const ride = await startClassRide(page, bluetooth, api);
     await videoReady(page, youtube);
-    await page.clock.fastForward('07:00');
+    await page.clock.fastForward('05:30');
     await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
     await page.clock.runFor(100);
-    await expect(ride.clock).toHaveText('7:00 / 30:00');
+    await expect(ride.clock).toHaveText('5:30 / 20:00');
 
     await bluetooth.switchOff();
     await bluetooth.drop();
@@ -105,7 +105,7 @@ test.describe('Pause, leave or finish a class', () => {
         .writes()
         .slice(writes)
         .map((write) => write.hex),
-    ).toContain(targetResistanceWrite(6));
+    ).toContain(targetResistanceWrite(13));
   });
 
   test('Leave goes to the class at once and stops the ride and its video (L2-093 AC1)', async ({
@@ -116,7 +116,7 @@ test.describe('Pause, leave or finish a class', () => {
   }) => {
     const ride = await startClassRide(page, bluetooth, api);
     await videoReady(page, youtube);
-    await page.clock.fastForward('07:00');
+    await page.clock.fastForward('05:30');
     await page.clock.runFor(100);
 
     await ride.leave.click();
@@ -125,11 +125,11 @@ test.describe('Pause, leave or finish a class', () => {
     const start = new ClassStartPage(page);
     await expect(async () => {
       await page.clock.runFor(16);
-      await expect(start.title).toHaveText(hiitCardio.title, { timeout: 50 });
+      await expect(start.title).toHaveText(theClass.title, { timeout: 50 });
     }).toPass();
     expect((await youtube.players())[0].destroyed).toBe(true);
 
-    // The plan no longer drives the bike: the next interval, at 8:30, never sends its level.
+    // The plan no longer drives the bike: the next effort, at 6:00, never sends its level.
     const writes = bluetooth.writes().length;
     await page.clock.runFor(120_000);
     expect(
@@ -137,7 +137,7 @@ test.describe('Pause, leave or finish a class', () => {
         .writes()
         .slice(writes)
         .map((write) => write.hex),
-    ).not.toContain(targetResistanceWrite(24));
+    ).not.toContain(targetResistanceWrite(21));
   });
 
   test('at the class length the ride ends and Results opens (L2-093 AC2)', async ({
@@ -148,9 +148,9 @@ test.describe('Pause, leave or finish a class', () => {
   }) => {
     const ride = await startClassRide(page, bluetooth, api);
     await videoReady(page, youtube);
-    await page.clock.fastForward('29:58');
+    await page.clock.fastForward('19:58');
     await page.clock.runFor(100);
-    await expect(ride.clock).toHaveText('29:58 / 30:00');
+    await expect(ride.clock).toHaveText('19:58 / 20:00');
 
     await page.clock.runFor(2000);
     await expect(page).toHaveURL('/results');

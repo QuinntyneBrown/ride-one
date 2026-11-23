@@ -1,6 +1,6 @@
 # 0028. The class catalogue: a JSON file shipped with the backend, public, cached on the device
 
-- **Status:** Accepted
+- **Status:** Superseded by [0037](0037-no-backend-the-class-ships-with-the-app.md) and [0042](0042-one-class-and-one-course-shipped-with-the-app.md) (slice 30.1 removed its code)
 - **Date:** 2026-11-21
 - **Amends:** [0014](0014-class-catalogue-as-a-file.md)
 

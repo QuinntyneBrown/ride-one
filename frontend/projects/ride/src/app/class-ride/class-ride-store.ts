@@ -1,14 +1,14 @@
 import { DestroyRef, Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   ANNOUNCER,
   BIKE_CONNECTION,
-  CLASSES_API,
-  type ClassDto,
+  type ClassDefinition,
   type ClassResult,
   RIDE_ACTIVITY,
   SCREEN_WAKE_LOCK,
+  THE_CLASS,
   TICKER,
   VIDEO_PLAYER_FACTORY,
   type VideoPlayer,
@@ -35,7 +35,7 @@ export interface StatView {
 
 /**
  * The solo class ride's state (docs/detailed-designs/classes/ride-a-class), provided by the page so it goes when the
- * rider leaves. It loads the class from `CLASSES_API` and starts the ride the moment it arrives: the clock, the ticker
+ * rider leaves. It reads the class from `THE_CLASS` and starts the ride at once: the clock, the ticker
  * and the engine following the plan, which sends each segment's level (L2-027). The header and the segment card read
  * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
  * video plays from the ride clock plus the class's sync offset (L2-088 AC1) and, on each tick, seeks back when it has
@@ -50,7 +50,7 @@ export class ClassRideStore {
   private readonly engine = inject(WorkoutEngine);
   private readonly resistance = inject(ResistanceController);
   private readonly telemetry = inject(BikeTelemetry);
-  private readonly loaded = signal<ClassDto | null>(null);
+  private readonly loaded = signal<ClassDefinition | null>(null);
   private readonly sync = inject(VideoClockSync);
   private readonly destroyRef = inject(DestroyRef);
   private readonly playerFactory = inject(VIDEO_PLAYER_FACTORY);
@@ -131,11 +131,7 @@ export class ClassRideStore {
       const segment = untracked(() => this.engine.state()?.segment);
       if (segment) announcer.announce(classStepAnnouncement(segment));
     });
-    const id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
-    inject(CLASSES_API)
-      .get(id)
-      .pipe(takeUntilDestroyed())
-      .subscribe((dto) => this.start(dto));
+    this.start(inject(THE_CLASS).get());
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.player()?.destroy();
@@ -193,8 +189,8 @@ export class ClassRideStore {
     void this.resistance.nudge(-1);
   }
 
-  /** The class has arrived: the ride starts at once, always solo (ADR 0038). */
-  private start(dto: ClassDto): void {
+  /** The ride starts at once, always solo (ADR 0038). */
+  private start(dto: ClassDefinition): void {
     this.loaded.set(dto);
     this.started.set(true);
     this.recorder = new RideRecorder();
@@ -218,7 +214,7 @@ export class ClassRideStore {
    * The ride waits for a lost bike: checked once a second, it holds within a second of the drop and carries on
    * within a second of the bike's return, unless the rider paused it meanwhile (L2-092 AC4). The alert shows at once.
    */
-  private followBike(ride: ClassDto): void {
+  private followBike(ride: ClassDefinition): void {
     const lost = this.bikeLost();
     if (lost === this.pausedByBike()) return;
     this.pausedByBike.set(lost);
@@ -232,7 +228,7 @@ export class ClassRideStore {
    * in the navigation's state (L2-093 AC2, L2-078 AC1). The ride is sent nowhere (L2-132 AC3, ADR 0039). Leaving the
    * page releases the rest.
    */
-  private finish(ride: ClassDto): void {
+  private finish(ride: ClassDefinition): void {
     this.clock.pause();
     this.ticker.stop();
     this.player()?.pause();
@@ -266,14 +262,14 @@ export class ClassRideStore {
     this.player()?.pause();
   }
 
-  private carryOn(ride: ClassDto): void {
+  private carryOn(ride: ClassDefinition): void {
     this.clock.resume();
     const player = this.player();
     player?.seekTo(ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000);
     player?.play();
   }
 
-  private syncVideo(ride: ClassDto): void {
+  private syncVideo(ride: ClassDefinition): void {
     const player = this.player();
     if (player?.state() !== 'playing') return;
     // A player that became ready during a pause starts playing on its own; it follows the pause instead.

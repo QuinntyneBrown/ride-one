@@ -8,7 +8,7 @@ System_Ext(youtube, "YouTube", "Privacy-enhanced player for the class video")
 
 Container_Boundary(ride, "ride application") {
   Component(page, "TheClassPage", "Angular page", "The Class at /; navigates to Class Ride or Connect Bike")
-  Component(store, "TheClassStore", "Page-scoped store", "Loads and validates the class, builds the view, parks the video")
+  Component(store, "TheClassStore", "Page-scoped store", "Reads the class, builds the view, parks the video")
   Component(view, "theClassView", "Pure helper", "Start button label, record figures and plan texts")
 }
 Container_Boundary(components, "components library") {
@@ -16,7 +16,8 @@ Container_Boundary(components, "components library") {
   Component(profile, "ClassProfile", "wz-class-profile", "Resistance profile as one image")
 }
 Container_Boundary(domain, "domain library") {
-  Component(rule, "ClassRule", "Pure helper", "Validates the class and its plan")
+  Component(rule, "ClassRule", "Pure helper", "Names the rule a class breaks")
+  Component(shipped, "shippedClass", "TheClassSource", "INTERVALS_TO_THE_BEAT, checked on each read")
   Component(summary, "PlanSummary", "Pure helper", "Plan structure and time-weighted target power")
   Component(power, "PowerModel", "Pure helper", "Target power of a segment")
 }
@@ -24,7 +25,7 @@ Container_Boundary(video, "video library") {
   Component(player, "YouTubeVideoPlayer", "VideoPlayer", "Privacy-enhanced embed; loaded on demand")
 }
 Container_Boundary(api, "api library") {
-  Component(classes, "CLASSES_API", "Injection token", "Contract ClassesApi; binding <TO SUPPLY>")
+  Component(classes, "THE_CLASS", "Injection token", "Contract TheClassSource")
   Component(record, "RIDE_RECORD", "Injection token", "Contract RideRecord")
   Component(conn, "BIKE_CONNECTION", "Injection token", "Contract BikeConnection; the ble state")
   Component(factory, "VIDEO_PLAYER_FACTORY", "Injection token", "Resolves a VideoPlayer by dynamic import")
@@ -34,8 +35,9 @@ Rel(rider, block, "Reads and presses the start button on")
 Rel(page, block, "Passes TheClassView to; handles start")
 Rel(block, profile, "Draws the plan with")
 Rel(page, store, "Provides and reads")
-Rel(store, classes, "Reads class gcn-30-hiit through")
-Rel(store, rule, "Validates the class with")
+Rel(store, classes, "Reads the class through")
+Rel(shipped, classes, "Implements")
+Rel(shipped, rule, "Checks the class with")
 Rel(store, view, "Builds the view with")
 Rel(view, summary, "Reads structure and average power from")
 Rel(summary, power, "Computes each segment's target power with")

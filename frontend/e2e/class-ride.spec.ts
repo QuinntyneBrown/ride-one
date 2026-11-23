@@ -29,67 +29,67 @@ test.describe('Class ride', () => {
     'a solo class ride opens at 0:00 on its first segment and sends its level (L2-087 AC1, L2-089 AC1, L2-027 AC1)',
     { tag: '@critical' },
     async () => {
-      await expect(ride.name).toHaveText('30 Minute HIIT Cardio · Solo');
-      await expect(ride.clock).toHaveText('0:00 / 30:00');
-      await expect(ride.clock).toHaveAccessibleName('0:00 of 30:00');
+      await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
+      await expect(ride.clock).toHaveText('0:00 / 20:00');
+      await expect(ride.clock).toHaveAccessibleName('0:00 of 20:00');
       await expect(ride.segmentKind).toHaveText('Warm-up');
-      await expect(ride.segmentLeft).toHaveText('5:00');
+      await expect(ride.segmentLeft).toHaveText('2:30');
       await expect(ride.profile).toBeVisible();
-      await expect.poll(sent).toContain(targetResistanceWrite(8));
+      await expect.poll(sent).toContain(targetResistanceWrite(14));
       await expect(ride.finish).toHaveCount(0);
     },
   );
 
-  test('at 7:00 the clock and the segment card have followed the plan into a recovery, and sent its level (L2-089 AC1, L2-027 AC1, L2-133 AC2)', async ({
+  test('at 5:30 the clock and the segment card have followed the plan into a recovery, and sent its level (L2-089 AC1, L2-027 AC1, L2-133 AC2)', async ({
     page,
   }) => {
-    await page.clock.fastForward('07:00');
+    await page.clock.fastForward('05:30');
     await page.clock.runFor(100);
 
-    await expect(ride.clock).toHaveText('7:00 / 30:00');
+    await expect(ride.clock).toHaveText('5:30 / 20:00');
     await expect(ride.segmentKind).toHaveText('Recover');
-    await expect(ride.segmentLeft).toHaveText('1:30');
-    await expect(ride.segmentLeft).toHaveAccessibleName('Recover: 1:30 left');
+    await expect(ride.segmentLeft).toHaveText('0:30');
+    await expect(ride.segmentLeft).toHaveAccessibleName('Recover: 0:30 left');
     await expect.poll(() => ride.segmentProgress()).toBeCloseTo(0.5, 1);
     // Like a tab shown again, the late tick sends only the current segment's level, not the effort it passed.
-    await expect.poll(() => sent().filter(isTarget)).toEqual([8, 6].map(targetResistanceWrite));
+    await expect.poll(() => sent().filter(isTarget)).toEqual([14, 13].map(targetResistanceWrite));
   });
 
   test('Power and Cadence read the bike against the segment, and the stepper reads its resistance (L2-089 AC2 to AC4, L2-026 AC1, AC3)', async ({
     page,
     bluetooth,
   }) => {
-    await page.clock.fastForward('07:00');
+    await page.clock.fastForward('05:30');
     await page.clock.runFor(100);
     await expect(ride.power).toHaveText('—');
-    await expect(ride.powerHint).toHaveText('Target 107 W');
+    await expect(ride.powerHint).toHaveText('Target 231 W');
     await expect(ride.level).toHaveText('—');
     await expect(ride.resistance).toHaveAccessibleName('Resistance unknown');
 
-    await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
-    await bluetooth.notify(ECHELON_NOTIFY, workoutFrame(73));
+    await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(13));
+    await bluetooth.notify(ECHELON_NOTIFY, workoutFrame(91));
     await page.clock.runFor(100);
 
-    await expect(ride.power).toHaveText('108');
+    await expect(ride.power).toHaveText('233');
     await expect(ride.powerHint).toHaveText('On target');
-    await expect(ride.cadence).toHaveText('73');
-    await expect(ride.cadenceHint).toHaveText('Aim 72');
-    await expect(ride.level).toHaveText('6');
-    await expect(ride.resistance).toHaveAccessibleName('Resistance 6 of 32');
+    await expect(ride.cadence).toHaveText('91');
+    await expect(ride.cadenceHint).toHaveText('Aim 90');
+    await expect(ride.level).toHaveText('13');
+    await expect(ride.resistance).toHaveAccessibleName('Resistance 13 of 32');
 
-    await bluetooth.notify(ECHELON_NOTIFY, workoutFrame(60));
+    await bluetooth.notify(ECHELON_NOTIFY, workoutFrame(75));
     await page.clock.runFor(100);
 
-    await expect(ride.power).toHaveText('89');
-    await expect(ride.powerHint).toHaveText('-18 W');
+    await expect(ride.power).toHaveText('192');
+    await expect(ride.powerHint).toHaveText('-39 W');
   });
 
   test('Raise and Lower send the next level as the rider’s own, and are off while the bike is away (L2-028 AC1, AC4)', async ({
     page,
     bluetooth,
   }) => {
-    await page.clock.fastForward('07:00');
-    await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
+    await page.clock.fastForward('05:30');
+    await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(13));
     await page.clock.runFor(100);
     await expect(ride.raise).toBeEnabled();
 
@@ -99,7 +99,7 @@ test.describe('Class ride', () => {
 
     await expect
       .poll(() => sent().filter(isTarget))
-      .toEqual([8, 6, 7, 6, 5].map(targetResistanceWrite));
+      .toEqual([14, 13, 14, 13, 12].map(targetResistanceWrite));
 
     await bluetooth.drop();
     await page.clock.runFor(100);

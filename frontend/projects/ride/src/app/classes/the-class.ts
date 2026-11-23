@@ -1,5 +1,6 @@
 /**
- * The one class Telo Ride 1 opens on (L2-080). Until slice 30.1 defines `intervals-to-the-beat` and ships it with the
- * app, the stand-in is the catalogue's 30 Minute HIIT Cardio, the only class with a published video (ADR 0040).
+ * The id of the one class Telo Ride 1 has (L2-080): Intervals to the Beat. The class ride's address carries it until
+ * slice 31.1 moves the ride to `/ride`, so no other class has an address (AC4). The class itself ships with the app
+ * (`INTERVALS_TO_THE_BEAT` in `domain`, ADR 0037) and is read through `THE_CLASS`.
  */
-export const THE_CLASS_ID = 'hiit-cardio-30';
+export const THE_CLASS_ID = 'intervals-to-the-beat';

@@ -26,14 +26,14 @@ test('a class ride hidden for 10 minutes with its timers throttled shows the clo
 }) => {
   const ride10 = await startClassRide(page, bluetooth, api);
   await ride(page, bluetooth, 10);
-  await expect(ride10.clock).toHaveText('0:10 / 30:00');
+  await expect(ride10.clock).toHaveText('0:10 / 20:00');
 
   await hideTab(page, { throttled: true });
   await ride(page, bluetooth, 600);
   await showTab(page);
   await page.clock.runFor(16);
 
-  await expect(ride10.clock).toHaveText('10:10 / 30:00');
-  await expect(ride10.segmentKind).toHaveText('Recover');
-  await expect(ride10.segmentLeft).toHaveText('1:20');
+  await expect(ride10.clock).toHaveText('10:10 / 20:00');
+  await expect(ride10.segmentKind).toHaveText('Work');
+  await expect(ride10.segmentLeft).toHaveText('0:20');
 });

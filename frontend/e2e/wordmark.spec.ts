@@ -71,7 +71,7 @@ test.describe('Wordmark', () => {
   }) => {
     await bluetooth.remember(echelonBike);
     await openResults(page, soloClass());
-    await expect(new ResultsPage(page).big).toHaveText('30:00');
+    await expect(new ResultsPage(page).big).toHaveText('20:00');
 
     await expectWordmark(new Wordmark(page));
     await expect(page).toHaveTitle('Results · Telo Ride 1');

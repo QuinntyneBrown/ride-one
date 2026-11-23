@@ -2,7 +2,7 @@ import { type Locator, type Page, expect } from '@playwright/test';
 
 /** Results at `/results` (docs/mocks/pages/results/): the header, the result and the actions. */
 export class ResultsPage {
-  /** What was ridden: "30 Minute HIIT Cardio · Solo". */
+  /** What was ridden: "Intervals to the Beat · Solo". */
   readonly context: Locator;
   /** The hidden heading: "Class results". */
   readonly heading: Locator;

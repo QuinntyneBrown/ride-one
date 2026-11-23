@@ -29,7 +29,7 @@
 | [0025](0025-thin-dotnet-backend.md) | A thin .NET backend for what one browser cannot do alone | Accepted |
 | [0026](0026-api-serves-the-app.md) | One App Service: the Telo Ride API serves the app and its backend as one origin | Accepted |
 | [0027](0027-marketing-site.md) | The marketing site: a `marketing` application with the pitch film | Superseded by 0041 |
-| [0028](0028-class-catalogue-shipped-with-the-backend.md) | The class catalogue: a JSON file shipped with the backend, public, cached on the device | Accepted |
+| [0028](0028-class-catalogue-shipped-with-the-backend.md) | The class catalogue: a JSON file shipped with the backend, public, cached on the device | Superseded by 0037 and 0042 |
 | [0029](0029-map-catalogue-shipped-with-the-backend.md) | The map catalogue: a JSON file shipped with the backend, public, cached on the device | Accepted |
 | [0030](0030-world-library-carried-from-main.md) | World Ride's rendering is carried from `main` into a lazy `world` library | Accepted |
 | [0031](0031-sign-in-code-email-over-smtp.md) | Sign-in codes are emailed over SMTP with MailKit | Accepted |
@@ -43,3 +43,4 @@
 | [0039](0039-no-account-nothing-signed-in-recorded-or-earned.md) | Telo Ride 1 has no account: nothing is signed in, recorded or earned | Accepted |
 | [0040](0040-four-screens-and-no-menus.md) | Telo Ride 1 has four screens and no menus | Accepted |
 | [0041](0041-one-application-the-marketing-site-is-removed.md) | One application: the marketing site is removed | Accepted |
+| [0042](0042-one-class-and-one-course-shipped-with-the-app.md) | One class and one course, shipped with the app | Accepted |

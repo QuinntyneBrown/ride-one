@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   AppHeaderBike,
@@ -15,7 +15,7 @@ import { FullscreenButton } from '../fullscreen/fullscreen-button';
 /**
  * Class Start at `/` (L2-084, L2-085): the one class, until slice 30.2 draws The Class in its place (ADR 0040). Its
  * header has the wordmark, the bike's status and Full screen, and no navigation; Start class opens the ride, always
- * solo (ADR 0038).
+ * solo (ADR 0038). A class that breaks a rule is not offered: the page says it can't be loaded, with Reload (L2-080 AC3).
  */
 @Component({
   selector: 'wz-class-start-page',
@@ -37,9 +37,15 @@ import { FullscreenButton } from '../fullscreen/fullscreen-button';
 export default class ClassStartPage {
   protected readonly store = inject(ClassStartStore);
   private readonly router = inject(Router);
+  private readonly window = inject(DOCUMENT).defaultView;
 
   /** Start class: the class ride, solo, at once (L2-085 AC4). */
   protected start(id: string): void {
     void this.router.navigate(['/classes', id, 'ride'], { queryParams: { mode: 'solo' } });
+  }
+
+  /** Reload: the app is read again, from the device or the network, and the class with it (L2-080 AC3). */
+  protected reload(): void {
+    this.window?.location.reload();
   }
 }

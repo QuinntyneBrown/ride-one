@@ -1,5 +1,4 @@
 import type { Page } from '@playwright/test';
-import { catalogue, hiitCardio } from './classes';
 import {
   ECHELON_INITIALISED,
   ECHELON_NOTIFY,
@@ -12,6 +11,7 @@ import type { FakeBluetooth } from './fake-bluetooth';
 import { expect } from './test';
 import { ClassRidePage } from '../pages/class-ride.page';
 import { WorldLoadingPage } from '../pages/world-loading.page';
+import { theClass } from './the-class';
 import { FakeWebGl } from './webgl';
 
 /** When a class ride spec's clock starts; the ride itself starts a minute later, on a paused clock. */
@@ -29,25 +29,24 @@ export async function connectBike(bluetooth: FakeBluetooth): Promise<void> {
 }
 
 /**
- * Opens 30 Minute HIIT Cardio solo with the remembered Echelon and starts it on Playwright's paused clock: World loading
- * gets the class's world ready on the running clock (as a panorama: these specs ride the class, not its world, so no 3D
+ * Opens Intervals to the Beat solo with the remembered Echelon and starts it on Playwright's paused clock: World loading
+ * gets the class's world ready on the running clock (without 3D: these specs ride the class, not its world, so nothing
  * is built), and once the bike is connected the clock is paused and the spec presses Start riding, so the ride starts
  * at a known time and the spec moves it on by hand. Change detection waits on a timer, so the paused clock is stepped
- * for the ride to render. Resolves once the ride's first command has gone and the page has rendered. With `ride`, the
- * catalogue serves that class instead, on the same shelf.
+ * for the ride to render. Resolves once the ride's first command has gone and the page has rendered. The class ships
+ * with the app, so no request is answered for it (ADR 0037); `api` is taken so the shared fixture watches for one.
  */
 export async function startClassRide(
   page: Page,
   bluetooth: FakeBluetooth,
   api: ApiFixture,
-  { ride: lesson = hiitCardio as { readonly id: string } } = {},
 ): Promise<ClassRidePage> {
-  api.answer('GET', '/api/classes', { ...catalogue, classes: [lesson] });
+  void api;
   await new FakeWebGl(page).disable();
   await page.clock.install({ time: RIDE_START });
   await bluetooth.remember(echelonBike);
   const ride = new ClassRidePage(page);
-  await ride.open(lesson.id);
+  await ride.open(theClass.id);
   await connectBike(bluetooth);
   const loading = new WorldLoadingPage(page);
   await expect(loading.start).toBeEnabled();
@@ -57,14 +56,14 @@ export async function startClassRide(
   // The ride starts the moment the rider presses Start riding, and its first command shows it has.
   await expect
     .poll(() => bluetooth.writes().map((write) => write.hex))
-    .toContain(targetResistanceWrite(8));
+    .toContain(targetResistanceWrite(theClass.segments[0].level));
   await page.clock.runFor(100);
   return ride;
 }
 
 /**
- * Opens 30 Minute HIIT Cardio solo with the remembered Echelon and rides it in its world, on the running clock: World
- * loading builds Old Town Criterium and warms it up, the bike connects, the rider presses Start riding, and the world
+ * Opens Intervals to the Beat solo with the remembered Echelon and rides it in its world, on the running clock: World
+ * loading builds Ibiza Sunset Strip and warms it up, the bike connects, the rider presses Start riding, and the world
  * has faded in over its panorama. The world is drawn, in software here, so a spec that takes WebGPU away draws it with
  * WebGL 2.
  */
@@ -73,13 +72,13 @@ export async function startClassRideInWorld(
   bluetooth: FakeBluetooth,
   api: ApiFixture,
 ): Promise<ClassRidePage> {
-  api.answer('GET', '/api/classes', catalogue);
+  void api;
   await bluetooth.remember(echelonBike);
   const ride = new ClassRidePage(page);
   const loading = new WorldLoadingPage(page);
-  await ride.open(hiitCardio.id);
+  await ride.open(theClass.id);
   await connectBike(bluetooth);
-  await expect(loading.cardTitle).toHaveText('Old Town Criterium is ready', { timeout: 60_000 });
+  await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', { timeout: 60_000 });
   await loading.start.click();
   // The world fades in once `main`'s scene has measured the display's frame period, 30 frames on a busy machine.
   await expect(ride.worldScene).toHaveCSS('opacity', '1', { timeout: 60_000 });

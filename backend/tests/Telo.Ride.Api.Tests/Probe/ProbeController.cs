@@ -8,7 +8,7 @@ namespace Telo.Ride.Api.Tests.Probe;
 /// <summary>
 /// A test-only controller written as every Telo Ride controller is: each action sends one MediatR
 /// request and checks nothing itself (L2-147 AC2). It gives the acceptance tests endpoints the
-/// class catalogue does not have: one that answers, one whose input
+/// backend does not have: one that answers, one whose input
 /// is validated, one a domain rule refuses and one that fails unexpectedly.
 /// </summary>
 [ApiController]

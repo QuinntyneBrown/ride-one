@@ -1,8 +1,8 @@
 // Acceptance test
 // Traces to: L2-132 AC1, AC3; L1 (left out: sign-in, progression, the custom workout, feedback); ADR 0039
 // Description: Telo Ride 1 has no account. A new browser opens the app with no sign-in screen and no cookie; `/sign-in`
-// and `/profile/custom` are no screens; the header has no streak, level or XP; and a finished class sends no request and shows no XP on Results. The only request to the
-// backend is for the class catalogue.
+// and `/profile/custom` are no screens; the header has no streak, level or XP; and a finished class sends no request and shows no XP on Results. The app asks no
+// backend for anything: the class ships with it (ADR 0037).
 import { startClassRide } from './fixtures/class-ride';
 import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
@@ -10,8 +10,6 @@ import { ClassStartPage } from './pages/class-start.page';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { NotFoundPage } from './pages/not-found.page';
 import { ResultsPage } from './pages/results.page';
-
-const CATALOGUE_ONLY = ['GET /api/classes'];
 
 test.describe('No account', () => {
   test('a new browser reaches the app with no sign-in, no cookie and no request for a rider (L2-132 AC1) @critical', async ({
@@ -44,11 +42,11 @@ test.describe('No account', () => {
     const start = new ClassStartPage(page);
     await start.open();
 
-    await expect(start.title).toHaveText('30 Minute HIIT Cardio');
+    await expect(start.title).toHaveText('Intervals to the Beat');
     await expect(start.header.bike).toBeVisible();
     await expect(start.header.streak).toHaveCount(0);
     await expect(start.header.level).toHaveCount(0);
-    expect(api.requests()).toEqual(CATALOGUE_ONLY);
+    expect(api.requests()).toEqual([]);
   });
 
   test('a finished class sends no request, and Results shows no XP (L2-132 AC3) @critical', async ({
@@ -58,17 +56,17 @@ test.describe('No account', () => {
   }) => {
     await startClassRide(page, bluetooth, api);
 
-    await page.clock.fastForward('29:58');
+    await page.clock.fastForward('19:58');
     await page.clock.runFor(2000);
 
     const results = new ResultsPage(page);
     await results.shown();
     await expect(page).toHaveURL('/results');
-    await expect(results.big).toHaveText('30:00');
+    await expect(results.big).toHaveText('20:00');
     await expect(results.earned).toHaveCount(0);
     await expect(results.done).toBeVisible();
     await expect(results.again).toBeVisible();
-    expect([...new Set(api.requests())]).toEqual(CATALOGUE_ONLY);
+    expect(api.requests()).toEqual([]);
     expect(await page.context().cookies()).toEqual([]);
     expect(await page.evaluate(() => indexedDB.databases())).toEqual([]);
   });

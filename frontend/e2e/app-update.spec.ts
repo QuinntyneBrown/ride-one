@@ -65,7 +65,7 @@ test('during a ride the new version waits, and is offered when the ride ends (L2
   await expect(update.toast).toBeHidden();
   expect(await update.reloaded()).toBe(false);
 
-  await page.clock.fastForward('29:58');
+  await page.clock.fastForward('19:58');
   await page.clock.runFor(2000);
   await new ResultsPage(page).shown();
   await expect(page).toHaveURL(/\/results$/);

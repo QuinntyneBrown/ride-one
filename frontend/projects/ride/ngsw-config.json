@@ -22,7 +22,7 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/maps/**", "/machines/**", "/worlds/**", "/draco/**"]
+        "files": ["/maps/**", "/machines/**", "/draco/**"]
       }
     }
   ],

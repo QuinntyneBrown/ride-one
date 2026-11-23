@@ -1,12 +1,11 @@
 // Acceptance test
 // Traces to: L2-135 AC3; ADR 0032
 // Description: once the app has been opened, its service worker keeps the app on the device: with no network it opens
-// again and a solo class starts, its class read from the catalogue kept on the device, its world (here its panorama)
-// from the one saved when the class was last opened.
+// again and a solo class starts: the class ships with the app (ADR 0037), so it is among the files the worker keeps.
 // The only spec that lets a service worker run (playwright.config.ts).
 import { appCached } from './fixtures/app-cache';
 import { startClassRide } from './fixtures/class-ride';
-import { hiitCardio } from './fixtures/classes';
+import { theClass } from './fixtures/the-class';
 import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { ClassRidePage } from './pages/class-ride.page';
@@ -29,14 +28,14 @@ test('once opened, the app opens again and a solo class starts with no network (
   await webgl.disable();
   const start = new ClassStartPage(page);
   await start.open();
-  await expect(start.title).toHaveText('30 Minute HIIT Cardio');
+  await expect(start.title).toHaveText('Intervals to the Beat');
   await appCached(page);
   await page.reload();
-  await expect(start.title).toHaveText('30 Minute HIIT Cardio');
-  // The class's world is saved on the device the first time World loading downloads it.
-  await new ClassRidePage(page).open(hiitCardio.id);
+  await expect(start.title).toHaveText('Intervals to the Beat');
+  // World loading opens for the class before the network goes.
+  await new ClassRidePage(page).open(theClass.id);
   await expect(new WorldLoadingPage(page).cardTitle).toHaveText(
-    'Old Town Criterium is ready as a panorama',
+    'Ibiza Sunset Strip is ready as a panorama',
   );
 
   await context.setOffline(true);
@@ -44,6 +43,6 @@ test('once opened, the app opens again and a solo class starts with no network (
   const ride = await startClassRide(page, bluetooth, api);
 
   await page.clock.runFor(30_000);
-  await expect(ride.name).toHaveText('30 Minute HIIT Cardio · Solo');
-  await expect(ride.clock).toHaveText('0:30 / 30:00');
+  await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
+  await expect(ride.clock).toHaveText('0:30 / 20:00');
 });

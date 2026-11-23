@@ -1,4 +1,3 @@
-import { provideHttpClient, withFetch } from '@angular/common/http';
 import { inject, provideEnvironmentInitializer } from '@angular/core';
 import type { Routes } from '@angular/router';
 import { ANNOUNCER, DISPLAY_PREFERENCES, FULLSCREEN } from '@telo/api';
@@ -7,6 +6,7 @@ import { provideAppCache } from './app-cache/provide-app-cache';
 import { provideAppUpdates } from './app-update/provide-app-updates';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
+import { THE_CLASS_ID } from './classes/the-class';
 
 /**
  * The four screens and page not found (ADR 0040), under one parent that provides the bike connection: one instance shared from Connect Bike to the ride,
@@ -17,8 +17,6 @@ export const rideRoutes: Routes = [
     path: '',
     providers: [
       provideBikeConnection(),
-      // The one `HttpClient` the screens share, for the class catalogue. Telo Ride 1 has no account (ADR 0039).
-      provideHttpClient(withFetch()),
       provideAppCache(),
       // Each new version offered between rides, never during one (L2-150 AC2).
       provideAppUpdates(),
@@ -38,8 +36,9 @@ export const rideRoutes: Routes = [
         loadComponent: () => import('./connect/connect-bike-page'),
       },
       // The class ride, at its present address until slice 31.1 moves it to `/ride` (docs/mocks/pages/class-ride/).
+      // The address names the one class; no other class has one (L2-080 AC4).
       {
-        path: 'classes/:id/ride',
+        path: `classes/${THE_CLASS_ID}/ride`,
         canActivate: [rememberedBikeGuard],
         loadChildren: () => import('./class-ride/class-ride.routes').then((m) => m.classRideRoutes),
       },

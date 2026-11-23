@@ -36,7 +36,8 @@ export { BrowserDisplayPreferences } from './browser/browser-display-preferences
 export { BrowserFullscreen } from './browser/browser-fullscreen';
 export { LiveRegionAnnouncer } from './browser/live-region-announcer';
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
-export { CachedClassesApi } from './storage/cached-classes-api';
-export { CATALOGUE_KEY, CatalogueCache } from './storage/catalogue-cache';
 export { PlanSummary } from './engine/plan-summary';
 export { ConsoleAppLogger, redact } from './diagnostics/console-app-logger';
+export { type BrokenClassRule, ClassRule } from './engine/class-rule';
+export { INTERVALS_TO_THE_BEAT } from './engine/intervals-to-the-beat';
+export { shippedClass } from './engine/shipped-class';

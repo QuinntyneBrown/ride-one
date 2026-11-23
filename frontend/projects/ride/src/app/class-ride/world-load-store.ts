@@ -1,13 +1,11 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
 import {
   AUTO_QUALITY,
   BIKE_CONNECTION,
   REMEMBERED_BIKE,
+  THE_CLASS,
   type Backend,
-  CLASSES_API,
-  type ClassDto,
+  type ClassDefinition,
   type PreparedWorld,
   type World,
   WORLD_DOWNLOADER,
@@ -69,8 +67,8 @@ export class WorldLoadStore {
   readonly riding = signal(false);
   /** The started renderer and its canvas, handed to the class ride by Start riding (L2-153 AC3, AC5). */
   readonly prepared = signal<PreparedWorld | null>(null);
-  private readonly classId: string;
-  readonly dto = signal<ClassDto | null>(null);
+  /** The class (L2-080); its ride's guard has refused one that breaks a rule. */
+  readonly dto = signal<ClassDefinition>(inject(THE_CLASS).get()).asReadonly();
   /** The class's world as `main` draws it, once the world library has loaded. */
   readonly world = signal<World | null>(null);
   private readonly phase = signal<WorldLoadPhase>('downloading');
@@ -168,23 +166,15 @@ export class WorldLoadStore {
   });
 
   constructor() {
-    this.classId = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
     inject(DestroyRef).onDestroy(() => this.release());
     this.panoramaOnly.set(!draws3d());
     this.timer = setInterval(() => this.tick(), 1000);
-    inject(CLASSES_API)
-      .get(this.classId)
-      .pipe(takeUntilDestroyed())
-      .subscribe((dto) => {
-        this.dto.set(dto);
-        void this.load(dto);
-      });
+    void this.load(this.dto());
   }
 
   /** Try again: the download resumes from the bytes already received (L2-156 AC2). */
   retry(): void {
-    const dto = this.dto();
-    if (dto) void this.load(dto);
+    void this.load(this.dto());
   }
 
   /**
@@ -228,7 +218,7 @@ export class WorldLoadStore {
     this.release();
   }
 
-  private async load(dto: ClassDto): Promise<void> {
+  private async load(dto: ClassDefinition): Promise<void> {
     const world = await import('@telo/world');
     if (this.destroyed) return;
     const drawn = world.worldForMap(dto.world);
