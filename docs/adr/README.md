@@ -46,3 +46,4 @@
 | [0042](0042-one-class-and-one-course-shipped-with-the-app.md) | One class and one course, shipped with the app | Accepted |
 | [0043](0043-static-files-on-azure-static-web-apps.md) | Static files on Azure Static Web Apps: the backend is removed | Accepted |
 | [0044](0044-the-class-offers-two-ways-to-ride.md) | The Class offers two ways to ride, wired to the two rides the app has | Accepted |
+| [0045](0045-the-courses-rider-built-in-blender.md) | The course's rider is one mesh built in Blender, carried over from Telo Ride | Accepted |

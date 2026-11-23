@@ -234,8 +234,73 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L207 | Changing the fake `navigator.bluetooth`: its `strict` proxy reports any member the app so much as probes (`typeof device.watchAdvertisements`), so the fake gains the member in the same change as the spec, before the app reads it. To take a member away for one spec, a later init script runs `Object.defineProperty(navigator.bluetooth, 'getDevices', { value: undefined })`: init scripts run in the order added, the fake is installed first, and a key that exists with `undefined` is not reported. Do not record a new call in `bluetooth.log()`, which a dozen specs compare whole. | 30.5 | | |
 | L208 | When a store's record changes shape, change the fixture that writes it (`bluetooth.remember`) after the red run and with the store, not with the spec: written early, the old store rejects the record and every spec that remembers a bike is red for the wrong reason. Keep the store reading what an earlier version wrote. | 30.5 | | |
 | L209 | A promise settled both by an event and by the `AbortController` that event aborts: set a flag before `abort()` and have the abort listener settle only without it, or the wait resolves "given up" a moment before it connects. And chain a film's fill, frame and encode with `&&`: with `;` a failed fill still encoded the film twice, a minute each, with the provisional numbers. | 30.5 | | |
+| L210 | A sibling checkout's branch can be behind the commit a port names: `wattzup`'s local `main` did not hold `b118c5ee6`, so `cp` from its folder found no `riders/rider.glb`. Read each file from the commit (`git show <commit>:<path> > <file>`, binaries too), and take the patch with `git format-patch -1 <commit> --stdout -- <paths>`; `git apply` it with `--exclude` for the files that have diverged here and port those by hand. | rider port | | |
+| L211 | To look at a ride with the simulated bike, build the development configuration (`npx ng build ride --configuration development --output-path dist/ride-development`), serve `dist/ride-development/browser`, and pair at `/connect?simulate`: the production build ignores `?simulate` (L2-024 AC3), and a new rider has no "Ride with" until a bike is paired. | rider port | | |
+| L212 | A missing file under an asset folder is already 404 by its extension (`/*.{…glb…}` in `exclude`), so `/riders/no-such.glb` passes before the folder is excluded. The folder's own line is proved only by an address with no extension (`/riders/no-such-rider`) and by the configuration's `exclude` itself. | rider port | | |
+| L213 | To see a spec of ported code fail first after the port was applied: copy the ported files to the scratchpad, `git checkout --` the changed ones and move the new ones out, run the spec, then copy them back. Tell a new picture from an old one the same way: a development build of the old code to a second folder, shot by the same script. | rider port | | |
 
 ## Log
+
+### The course's rider from Telo Ride (2026-11-23)
+
+Not a slice of `detailed-journeys.md`: the owner asked for Telo Ride's new course rider (`wattzup` commit
+`b118c5ee6`, its ADR 0036). No percentage changed.
+
+**What was ported**
+
+- `riders/rider.glb` (443,076 bytes), `tools/blender/rider.py` and `tools/blender/scenes/rider.blend` (389,834
+  bytes), byte for byte.
+- `course-cyclist.ts` and `rider-batch.ts` had not changed here since the copy: the commit's patch applied as it
+  was. `rider-body.ts`, `rider-turn.ts` and `rider-turn.spec.ts` are new. `course-renderer.ts` had diverged (races
+  removed): the commit's five changes were made by hand, and the body is also let go of in `dispose`.
+- ADR 0045; L2-174 AC11 (the rider's shape), L2-175 AC1 and AC2 (the rider's file is one of the course's), L2-177
+  AC6 (its two finenesses); `/riders/*` in the host's `exclude`, in ADR 0043 and in open question 19.
+
+**What was left**
+
+- The other riders' coarser body: the carried-over code that makes other riders now calls the same kit, and Telo
+  Ride 1 gives it none (L2-174 AC6). Nothing was added to it.
+- `e2e/race-course.spec.ts` is gone with races: its assertion is in `class-world-start.spec.ts`.
+- Telo Ride's detailed design (`race/ride-a-course`): riding in Ibiza has no design here yet.
+- `ngsw-config.json`: its asset groups do not name `courses`, so `riders` was not added.
+- `rider.py`'s first line still names Telo Ride's ADR 0036 and L2-166 AC26. The script was not run again.
+
+**Applied from earlier**
+
+- **L2, L197 the port — saved time:** `E2E_PORT=4381` for every run; the look's own servers on 4391 and 4392, each
+  stopped by its process id.
+- **L3, L17 format first, verify by its exit status — made it worse once:** verify was run before prettier and
+  stopped at the format step on `static-host.spec.ts`; the second run exited 0.
+- **L164, L165 counts from four commands — saved time:** 228 specs, 41 `@critical`, 1365 unit tests and 79.29 kB
+  before; 232, 41, 1379 and 79.29 kB after.
+- **L190 repeated runs under `CI=1` — saved time:** `--grep @critical --repeat-each 3`, 123 of 123; the two changed
+  spec files `--repeat-each 5`, 80 of 80.
+- **L200 say what the carried-over code already met — saved time:** of the four new specs, `/riders/no-such.glb`
+  passed before the change (L212); the other three and the configuration's `exclude` failed first.
+
+**What slowed it down**
+
+- `wattzup`'s checked-out `main` is behind the commit, so its folder has no rider (L210).
+- The production build ignores `?simulate`, and a new rider is sent to Connect Bike (L211).
+- The ride in Ibiza draws a pale box the size of the video at the top right of the course. No element of the page is there,
+  and the build before this change draws it too (L213): it is not the rider's, and it is not fixed
+  here.
+
+**New lessons:** L210 to L213.
+
+**Specs deleted or changed**
+
+- **Added:** in `class-world-start.spec.ts`, the rider's file is fetched with the course, the course is not ready
+  while it is held, and it is answered as `model/gltf-binary` and the course drawn; in `static-host.spec.ts`,
+  `/riders/rider.glb` is served as a file, `/riders/no-such.glb` and `/riders/no-such-rider` are 404, and the
+  configuration excludes the asset folders. `the-class.spec.ts` now also counts a request under `/riders/` as
+  loading the course. `rider-turn.spec.ts` came with the port (14 unit tests).
+- None was deleted, and none was weakened to pass.
+
+**The look.** Headless Chromium drew the course with WebGL 2 (three's fallback; the probe reported `webgl2`). At
+0:12 the rider is on the centre line, upright, seen from behind, hands on the hoods, one foot down and one up, and
+the feet change places between two pictures 0.3 s apart. Beside the old build's picture the seat runs into the
+thighs and the jersey has a hem.
 
 ### 30.5 Open where the rider belongs (2026-11-23)
 

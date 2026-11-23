@@ -45,6 +45,10 @@ test.describe('Static host', () => {
     const configuration = StaticHost.configuration();
 
     expect(configuration.navigationFallback.rewrite).toBe('/index.html');
+    // Each asset folder is kept from the fallback: a file missing from it is 404, never the app.
+    expect(configuration.navigationFallback.exclude).toEqual(
+      expect.arrayContaining(['/courses/*', '/music/*', '/riders/*']),
+    );
     expect(configuration.globalHeaders['Strict-Transport-Security']).toBe(YEAR);
     expect(configuration.globalHeaders['X-Content-Type-Options']).toBe('nosniff');
     expect(configuration.globalHeaders['Referrer-Policy']).toBe('strict-origin-when-cross-origin');
@@ -87,7 +91,23 @@ test.describe('Static host', () => {
     expect(worker.headers['strict-transport-security']).toBe(YEAR);
   });
 
-  for (const file of ['/chunk-GONE1234.js', '/fonts/no-such-font.woff2', '/courses/no-such.glb']) {
+  test('the course’s rider is served as a file of its own (L2-149 AC1, ADR 0045)', async ({
+    page,
+  }) => {
+    const answer = await new StaticHost(page).answer('/riders/rider.glb');
+
+    expect(answer.status).toBe(200);
+    expect(answer.type).toBe('model/gltf-binary');
+    expect(answer.headers['x-content-type-options']).toBe('nosniff');
+  });
+
+  for (const file of [
+    '/chunk-GONE1234.js',
+    '/fonts/no-such-font.woff2',
+    '/courses/no-such.glb',
+    '/riders/no-such.glb',
+    '/riders/no-such-rider',
+  ]) {
     test(`a file that is not there is 404, never the app: ${file} (L2-149 AC1)`, async ({
       page,
     }) => {
