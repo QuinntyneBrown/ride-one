@@ -273,6 +273,20 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 33.1 Keep the ride clock true (2026-11-23)
+
+**What slowed it down**
+
+- Nothing: the monotonic clock, the wake lock (taken again on visible, released at the end) and the leave prompt
+  were carried over from Telo Ride with their specs (`ride-clock-hidden-tab`, `class-pause-leave`). The one gap was
+  L2-016 AC2: keepalives in a throttled hidden tab, now `keepalive-hidden-tab.spec.ts`, which passed on its first run
+  because the behaviour already held. No product code changed.
+- L2-133 AC2's output is not asserted separately: the output is summed from the same monotonic seconds as the clock.
+
+**New lessons**
+
+- Before building a carried-over slice, list which of its ACs already have a passing spec; here only one lacked one.
+
 ### 32.7 A ride that could not be saved (2026-11-23)
 
 **Applied from earlier**

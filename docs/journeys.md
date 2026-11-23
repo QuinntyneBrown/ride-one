@@ -38,10 +38,10 @@ Telo Ride 1's journeys, ordered by value added to the product, scaffolding first
 | 31 | Take the class | Class Ride as designed: pause, lose the bike, leave or ride to the finish. | 8 | 100% |
 | 37 | Ride in Ibiza | The Ibiza Sunset Strip course in the video's box, placed by the clock, with no loading screen; *Beautiful Boom Bap* and its Music button; the course's budgets on a low-power tablet. | 20 | 100% |
 | 32 | See your number | Class Done: output in kJ, best, time, average, on target and the eight efforts; the record to beat. | 11 | 100% |
-| 33 | Ride through a hidden tab or lost network | The clock stays true and the ride finishes without a network. | 4 | 0% |
+| 33 | Ride through a hidden tab or lost network | The clock stays true and the ride finishes without a network. | 4 | 50% |
 | 34 | Stay smooth on long rides | Bundle budgets, running totals only, stable heap, web vitals. | 6 | 0% |
 | 35 | Keep it private | Nothing loads from or goes to a third party but YouTube; bike and stored data are untrusted. | 3 | 0% |
 | 36 | Use by touch, keyboard and screen reader | Every width, 44 px targets, keyboard paths, announcements, motion, theme, full screen. | 8 | 0% |
 
-**Total:** 119 days. **Complete:** 98 days (82%), 27 of them carried over. **To build:** 21 days.
+**Total:** 119 days. **Complete:** 100 days (84%), 27 of them carried over. **To build:** 19 days.
 Journey 37 was added by slice 30.2 and is built after journey 31, so its number is out of order.
