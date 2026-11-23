@@ -78,7 +78,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 32.7 | A ride that could not be saved | Class Done still shows the result and says the ride was not saved on this device. | 1 | 32. See your number | L2-168 AC4 | 100% |
 | 33.1 | Keep the ride clock true | Clock, plan and output stay right in a hidden tab; the screen stays awake; closing the tab asks first. | 2 | 33. Ride through a hidden tab or lost network | L2-016 AC2, L2-133 | 100% |
 | 33.2 | Ride without a network | A ride carries on and finishes offline; the class still shows after a first visit. | 2 | 33. Ride through a hidden tab or lost network | L2-080 AC5, L2-135 | 100% |
-| 34.1 | Bundle budgets | Initial bundle at most 300 KB gzipped, lazy routes, the video player only where a video shows. | 1 | 34. Stay smooth on long rides | L2-136 AC1 | 0% |
+| 34.1 | Bundle budgets | Initial bundle at most 300 KB gzipped, lazy routes, the video player only where a video shows. | 1 | 34. Stay smooth on long rides | L2-136 AC1 | 100% |
 | 34.2 | Running totals only | A ride holds its totals and no trace that grows with its length. | 1 | 34. Stay smooth on long rides | L2-138 AC2 | 0% |
 | 34.3 | Heap checks | Heap stays stable over 3 hours and across ten rounds of The Class and Class Ride. | 2 | 34. Stay smooth on long rides | L2-138 AC1, AC3 | 0% |
 | 34.4 | Web vitals and readouts | LCP, INP and frame times on the reference tablet; readouts update once a second. | 2 | 34. Stay smooth on long rides | L2-134 AC2, L2-136 AC2–3 | 0% |
@@ -90,8 +90,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 59 slices, 119 days. **Complete:** 48 slices, 102 days (86%), 11 of them carried over.
-**To build:** 11 slices, 17 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 59 slices, 119 days. **Complete:** 49 slices, 103 days (87%), 11 of them carried over.
+**To build:** 10 slices, 16 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for

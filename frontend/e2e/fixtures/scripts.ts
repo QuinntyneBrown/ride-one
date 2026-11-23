@@ -14,6 +14,11 @@ export class ScriptLog {
     });
   }
 
+  /** Whether any script downloaded so far carries the video player's code (its embed host's name). */
+  async hasVideoPlayerCode(): Promise<boolean> {
+    return (await Promise.all(this.bodies)).some((body) => body.includes('youtube-nocookie.com'));
+  }
+
   /** Whether any script downloaded so far carries Three.js. */
   async hasWorldCode(): Promise<boolean> {
     return (await Promise.all(this.bodies)).some((body) => body.includes('isScene'));
