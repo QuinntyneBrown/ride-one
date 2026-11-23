@@ -273,6 +273,35 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 32.1 Keep the record (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first:** the store's unit spec failed on a missing module; the acceptance spec was written
+  after the store, and its first case would fail on the old stub, which always said "no finished ride".
+- **37.5's lesson on cores — saved time:** two cheap specs, no course drawn.
+
+**What slowed it down**
+
+- The paused clock does not draw The Class by itself after a reload: the spec moves it on while it polls.
+- `bluetooth.remember` is an init script that sets the bike on every load; the spec adds a second one after it that
+  removes it, so only the record can tell a returning rider from a new one.
+
+**Decisions**
+
+- **One value, three integers:** `{rides, best, last}` under `telo-ride.record`, in whole kJ; anything else it holds
+  reads as no rides (L2-168 AC5, open question 22: the ride-with choice stays apart).
+- **The record is seen by where the app opens** until slice 32.6 shows it on The Class.
+- **`FINISHED_RIDES` is bound with `useExisting` to `RIDE_RECORD`;** the guard did not change and `NoFinishedRides`
+  went. Diagram sources were edited, their PNGs not re-rendered.
+- **A ride is added when it finishes,** before Results opens; the notice for a record that cannot be written is
+  slice 32.7 (`add` already returns false).
+
+**New lessons**
+
+- A stub a later slice replaces is cheapest when its consumer already depends on a contract: here the guard and its
+  spec did not change.
+
 ### 37.8 Leave Ibiza clean (2026-11-23)
 
 **Applied from earlier**

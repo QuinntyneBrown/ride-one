@@ -6,7 +6,7 @@ export { FtmsProtocol, type ResistanceRange } from './protocol/ftms-protocol';
 export { IndoorBikeDataDecoder } from './protocol/indoor-bike-data-decoder';
 export { GattWriteQueue } from './bluetooth/gatt-write-queue';
 export { REMEMBERED_BIKE_KEY, RememberedBikeStore } from './storage/remembered-bike-store';
-export { NoFinishedRides } from './storage/no-finished-rides';
+export { RIDE_RECORD_KEY, RideRecordStore } from './storage/ride-record-store';
 export { type OpeningScreen, openingScreen } from './engine/opening-screen';
 export { SUPPORTED_BIKES } from './bluetooth/supported-bikes';
 export { isBlocked } from './bluetooth/is-blocked';

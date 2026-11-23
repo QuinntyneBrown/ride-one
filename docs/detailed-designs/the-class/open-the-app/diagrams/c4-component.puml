@@ -16,7 +16,7 @@ Container_Boundary(ride, "ride application") {
 Container_Boundary(domain, "domain library") {
   Component(bikeStore, "RememberedBikeStore", "Storage service", "The remembered bike as one JSON record")
   Component(rule, "openingScreen", "Pure function", "Connect Bike for a new rider, The Class for every other")
-  Component(recordStore, "NoFinishedRides", "Service", "Answers no finished ride until the record exists; RideRecordStore from slice 32.1")
+  Component(recordStore, "RideRecordStore", "Service", "The record of finished rides in localStorage; answers FinishedRides from its ride count")
 }
 Container_Boundary(api, "api library") {
   Component(bikeToken, "REMEMBERED_BIKE", "Injection token", "Contract RememberedBike")

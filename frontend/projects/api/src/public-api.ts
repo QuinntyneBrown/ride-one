@@ -17,6 +17,7 @@ export {
   type RememberedBikeRecord,
 } from './bike/remembered-bike';
 export { FINISHED_RIDES, type FinishedRides } from './rides/finished-rides';
+export { RIDE_RECORD, type RideRecord, type RideRecordSnapshot } from './rides/ride-record';
 export type { ResistanceSource, SentCommand } from './bike/sent-command';
 export type { BikeSupportLevel, SupportedBike } from './bike/supported-bike';
 export type { TelemetrySample } from './bike/telemetry-sample';
