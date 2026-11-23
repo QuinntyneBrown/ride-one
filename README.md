@@ -95,8 +95,8 @@ Still to do: The Class and Class Done as Telo Ride 1 designs them, the TELO RIDE
 keeping the rider's ride count and best and last output, and taking out what Telo Ride 1 leaves
 out. The code for those features (races, the 3D world and its Blender courses, sign-in,
 progression, group classes, the marketing site) and the docs that describe them
-([`docs/journeys.md`](docs/journeys.md), [`docs/specs/`](docs/specs/), the ADRs) are still
-Telo Ride's until each is rewritten or removed.
+(the detailed designs and the ADRs) are still Telo Ride's until each is rewritten or removed.
+[`docs/journeys.md`](docs/journeys.md) lists what is carried over and what is left to build.
 
 ## Supported bikes and browsers
 
@@ -227,7 +227,7 @@ site (`frontend/projects/marketing`) are still in the tree; Telo Ride 1 does not
 | [Echelon protocol](docs/protocol/echelon-ble-messages.md) | The Bluetooth messages and their [frames](docs/protocol/echelon-ble-frames.md) |
 | [Architecture decisions](docs/adr/README.md) | Why the architecture is the way it is |
 | [Requirements](docs/specs/L1.md) | Telo Ride's requirements (L1, with acceptance criteria in [L2](docs/specs/L2.md)), to be cut down to Telo Ride 1 |
-| [User journeys](docs/journeys.md) | Telo Ride's journeys and progress; slices in [detailed journeys](docs/detailed-journeys.md) |
+| [User journeys](docs/journeys.md) | Telo Ride 1's journeys and progress; slices in [detailed journeys](docs/detailed-journeys.md) |
 | [Detailed designs](docs/detailed-designs/) | One design per feature, with C4, class and sequence diagrams |
 | [Backend](backend/README.md) | The .NET projects and their commands |
 | [Deployment](docs/deployment.md) | Settings, hosting and release |
