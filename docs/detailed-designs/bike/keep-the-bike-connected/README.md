@@ -22,11 +22,11 @@ The slice is mostly `domain` code that exists. The Description names each part a
 
 **The remembered bike**
 
-- **`RememberedBike`** and the token `REMEMBERED_BIKE` (`api/src/bike/remembered-bike.ts`) exist, with `get()`, `save(bike)` and `forget()`. The contract narrows to a new type, **`RememberedBikeRecord`**, with two fields: `id`, the browser's identifier for the device, and `name` (`L2-015` AC4).
-- **`RememberedBikeStore`** (`domain/src/storage/remembered-bike-store.ts`) exists. It keeps one JSON record in `localStorage` under `REMEMBERED_BIKE_KEY` (`telo-ride.bike`) and reads it synchronously. A record it cannot parse, or storage the browser refuses, counts as no bike. Today it also writes `identifier`, `kind` and `pairedAt`; Telo Ride 1 writes `id` and `name` only. The protocol and the identifier are read from the device at reconnect.
+- **`RememberedBike`** and the token `REMEMBERED_BIKE` (`api/src/bike/remembered-bike.ts`) have `get()`, `save(bike)` and `forget()`. Slice 30.5 narrowed the contract to **`RememberedBikeRecord`**, with two fields: `id`, the browser's identifier for the device, and `name` (`L2-015` AC4). Telo Ride's `lastSeen()` is gone; nothing read it.
+- **`RememberedBikeStore`** (`domain/src/storage/remembered-bike-store.ts`) exists. It keeps one JSON record in `localStorage` under `REMEMBERED_BIKE_KEY` (`telo-ride.bike`) and reads it synchronously. A record it cannot parse, or storage the browser refuses, counts as no bike. Telo Ride also wrote `identifier`, `kind` and `seenAt`; since slice 30.5 it writes `id` and `name` only, and reads those two from a record an earlier version wrote. The protocol and the identifier are read from the device at reconnect.
 - **`ConnectBikeStore.pair()`** exists and calls `save()` after each successful pairing, so a different bike replaces the remembered one (`L2-015` AC3).
-- **`WebBluetoothBikeConnection.reconnectRemembered(record)`** exists. It returns `false` where `getDevices()` is missing or returns no device with the remembered `id`, and never rejects. Today it makes one connection attempt at once. For Telo Ride 1 it calls `watchAdvertisements()` on the permitted device, where the browser has it, and connects on the first `advertisementreceived`, so the bike connects as soon as it advertises (`L2-015` AC1). An `AbortController` ends the watch on connect, on `disconnect()` and on destroy.
-- **`rememberedBikeGuard`** (`ride/src/app/bike/remembered-bike.guard.ts`) exists and keeps its name. It guards `/`, starts `reconnectRemembered()` and does not await it. Today it does this for Telo Ride's Home. [Open the app](../../the-class/open-the-app/README.md) owns it and reshapes it to read `REMEMBERED_BIKE` and `RIDE_RECORD`.
+- **`WebBluetoothBikeConnection.reconnectRemembered(record)`** exists. It returns `false` where `getDevices()` is missing or returns no device with the remembered `id`, and never rejects. Telo Ride made one connection attempt at once, which a bike that was switched off failed for good. Since slice 30.5 it calls `watchAdvertisements()` on the permitted device and connects on the first `advertisementreceived`, so the bike connects as soon as it advertises (`L2-015` AC1). While it waits, `ble` stays `idle`, and a second call joins the same wait. An `AbortController` ends the watch on connect, when the rider pairs another bike on Connect Bike, on `disconnect()` and on destroy; the promise then resolves `false`. A browser with `getDevices()` and no `watchAdvertisements()` still gets the one attempt at once.
+- **`rememberedBikeGuard`** (`ride/src/app/bike/remembered-bike.guard.ts`) exists and keeps its name. It guards `/`, starts `reconnectRemembered()` and does not await it. [Open the app](../../the-class/open-the-app/README.md) owns it; since slice 30.5 it reads `REMEMBERED_BIKE` and `FINISHED_RIDES`.
 
 **Keepalive**
 
@@ -61,7 +61,7 @@ A remembered bike that is not connected reads "No bike · Connect", as `L2-019` 
 
 **Acceptance tests**
 
-`frontend/e2e/remembered-bike.spec.ts`, `keep-the-bike-connected.spec.ts` and `bike-status.spec.ts` exist and are rewritten for The Class. The fake `navigator.bluetooth` offers the bike to `getDevices()`, records each keepalive write and drops the connection on demand. `fixtures/tab.ts` hides the tab. The keepalive and the 3-second retry advance a fake clock.
+`frontend/e2e/remembered-bike.spec.ts`, `keep-the-bike-connected.spec.ts` and `bike-status.spec.ts` exist and are rewritten for The Class. The fake `navigator.bluetooth` offers the bike to `getDevices()`, records each keepalive write and drops the connection on demand. Its devices have `watchAdvertisements()`: a bike that is switched on advertises at once, one that is off when the spec switches it on, and the spec can take `getDevices()` away or give a second bike another identifier. `fixtures/tab.ts` hides the tab. The keepalive and the 3-second retry advance a fake clock.
 
 ## Requirements
 

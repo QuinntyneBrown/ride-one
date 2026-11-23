@@ -1,7 +1,12 @@
 import { inject, provideEnvironmentInitializer } from '@angular/core';
 import type { Routes } from '@angular/router';
-import { ANNOUNCER, DISPLAY_PREFERENCES, FULLSCREEN } from '@telo/api';
-import { BrowserDisplayPreferences, BrowserFullscreen, LiveRegionAnnouncer } from '@telo/domain';
+import { ANNOUNCER, DISPLAY_PREFERENCES, FINISHED_RIDES, FULLSCREEN } from '@telo/api';
+import {
+  BrowserDisplayPreferences,
+  BrowserFullscreen,
+  LiveRegionAnnouncer,
+  NoFinishedRides,
+} from '@telo/domain';
 import { provideAppCache } from './app-cache/provide-app-cache';
 import { provideAppUpdates } from './app-update/provide-app-updates';
 import { provideBikeConnection } from './bike/provide-bike-connection';
@@ -17,6 +22,8 @@ export const rideRoutes: Routes = [
     path: '',
     providers: [
       provideBikeConnection(),
+      // Whether the rider has finished a ride, which the app opens by (L2-167): never, until the record of slice 32.1.
+      { provide: FINISHED_RIDES, useClass: NoFinishedRides },
       provideAppCache(),
       // Each new version offered between rides, never during one (L2-150 AC2).
       provideAppUpdates(),
@@ -47,7 +54,7 @@ export const rideRoutes: Routes = [
         path: 'results',
         loadChildren: () => import('./results/results.routes').then((m) => m.resultsRoutes),
       },
-      // `/` is The Class, the home screen (docs/mocks/pages/the-class/).
+      // `/` is The Class, the home screen (docs/mocks/pages/the-class/); a new rider is sent on to Connect Bike (L2-167).
       {
         path: '',
         pathMatch: 'full',

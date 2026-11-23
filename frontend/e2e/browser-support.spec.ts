@@ -1,7 +1,9 @@
 // Acceptance test
-// Traces to: L2-007 AC1, AC4; L2-010
+// Traces to: L2-007 AC1, AC4; L2-010; L2-167 AC2
 // Description: Connect Bike lists the bikes Telo Ride 1 works with, and in a browser that cannot reach the bike The
-// Class still opens. The alerts that say why the bike cannot be reached are in connect-bike-alerts.spec.ts.
+// Class still opens for a rider who paired a bike before. The alerts that say why the bike cannot be reached are in
+// connect-bike-alerts.spec.ts, and where a new rider opens in such a browser in where-the-app-opens.spec.ts.
+import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { TheClassPage } from './pages/the-class.page';
@@ -38,10 +40,11 @@ test.describe('Browser support on Connect Bike', () => {
     expect(wideSecond).toBe(wideFirst);
   });
 
-  test('in a browser without Web Bluetooth, the class opens with no bike (L2-010 AC5)', async ({
+  test('in a browser without Web Bluetooth, The Class opens with no bike for a rider who paired one before (L2-167 AC2, L2-010)', async ({
     page,
     bluetooth,
   }) => {
+    await bluetooth.remember(echelonBike);
     await bluetooth.remove();
     const start = new TheClassPage(page);
 

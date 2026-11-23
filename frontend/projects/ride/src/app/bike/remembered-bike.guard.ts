@@ -1,18 +1,20 @@
 import { inject } from '@angular/core';
 import { type CanActivateFn, Router } from '@angular/router';
-import { BIKE_CONNECTION, BLUETOOTH_SUPPORT, REMEMBERED_BIKE } from '@telo/api';
+import { BIKE_CONNECTION, FINISHED_RIDES, REMEMBERED_BIKE } from '@telo/api';
+import { openingScreen } from '@telo/domain';
 
 /**
- * The class's guard (L2-015 AC1, L2-167). A rider whose browser remembers a bike goes to the class, and the app starts
- * reconnecting to it without the chooser, without waiting. A rider with no bike whose browser can reach one goes to
- * Connect Bike; a browser that cannot still opens the class (L2-010 AC5).
+ * Where the app opens (L2-167; docs/detailed-designs/the-class/open-the-app). A new rider, with no remembered bike
+ * and no finished ride, is sent to Connect Bike, in a blocked browser too, where Connect Bike says why (AC1, AC3).
+ * Every other rider goes through to The Class (AC2), and the app starts reconnecting to a remembered bike without the
+ * chooser, without waiting for it (L2-015 AC1). Both answers are read from the device's storage synchronously, so the
+ * router never draws the wrong screen first.
  */
 export const rememberedBikeGuard: CanActivateFn = () => {
   const remembered = inject(REMEMBERED_BIKE).get();
-  if (remembered) {
-    void inject(BIKE_CONNECTION).reconnectRemembered(remembered);
-    return true;
-  }
-  if (inject(BLUETOOTH_SUPPORT).state() !== 'ready') return true;
-  return inject(Router).createUrlTree(['/connect']);
+  const finishedRide = inject(FINISHED_RIDES).any();
+  if (openingScreen({ rememberedBike: remembered !== null, finishedRide }) === 'connect-bike')
+    return inject(Router).createUrlTree(['/connect']);
+  if (remembered) void inject(BIKE_CONNECTION).reconnectRemembered(remembered);
+  return true;
 };

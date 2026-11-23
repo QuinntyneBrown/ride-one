@@ -2,6 +2,7 @@ import { InjectionToken } from '@angular/core';
 import type { Signal } from '@angular/core';
 import type { Observable } from 'rxjs';
 import type { BleState } from './bike-status';
+import type { RememberedBikeRecord } from './remembered-bike';
 
 /** Which protocol the bike speaks: Echelon's own (full control) or FTMS (beta). */
 export type BikeKind = 'echelon' | 'ftms';
@@ -35,9 +36,10 @@ export interface BikeConnection {
   connect(): Promise<void>;
   /**
    * Connects to a bike this browser paired before, without the chooser, where `navigator.bluetooth.getDevices()`
-   * exists (L2-015 AC1). Resolves `false` when the bike cannot be reached that way; it never rejects.
+   * exists, as soon as the bike advertises (L2-015 AC1). Resolves `true` once it is connected, and `false` when the
+   * bike cannot be reached that way or the wait for it ends first; it never rejects.
    */
-  reconnectRemembered(bike: BikeInfo): Promise<boolean>;
+  reconnectRemembered(bike: RememberedBikeRecord): Promise<boolean>;
   /** Every notification the bike sends, as raw bytes, for the frame decoder. */
   readonly frames: Observable<Uint8Array>;
   /** Sends a target resistance; resolves with the time to the bike's acknowledgement, in milliseconds. */
