@@ -273,6 +273,18 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 34.2 Running totals only (2026-11-23)
+
+**What slowed it down**
+
+- Nothing: `RideRecorder` holds three numbers and `EffortTally` one total per effort; nothing else in the engine or the
+  ride store pushes per second. No product code changed. Two unit tests now prove it: after four hours the recorder's
+  own keys are the same three numbers, and the tally has the same one-per-effort shape after the plan and an hour more.
+
+**New lessons**
+
+- "Holds no trace" is testable as "own keys and sizes are the same after N seconds as after one".
+
 ### 34.1 Bundle budgets (2026-11-23)
 
 **What slowed it down**

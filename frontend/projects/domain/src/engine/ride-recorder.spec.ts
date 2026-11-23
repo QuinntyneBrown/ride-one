@@ -51,4 +51,17 @@ describe('RideRecorder', () => {
     expect(recorder.elapsedSeconds).toBe(RideRecorder.maxSeconds);
     expect(recorder.outputKj).toBe((200 * RideRecorder.maxSeconds) / 1000);
   });
+
+  it('holds the same three numbers after four hours as after a second, and no trace (L2-138 AC2)', () => {
+    const recorder = new RideRecorder();
+    recorder.record(200, 1, true);
+    const shape = (): string[] => Object.keys(recorder).sort();
+    const before = shape();
+    for (let second = 0; second < RideRecorder.maxSeconds; second++)
+      recorder.record(200 + (second % 50), 1, second % 2 === 0);
+
+    expect(shape()).toEqual(before);
+    expect(before).toHaveLength(3);
+    for (const value of Object.values(recorder)) expect(typeof value).toBe('number');
+  });
 });
