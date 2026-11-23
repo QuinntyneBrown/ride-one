@@ -61,6 +61,18 @@
   }
 }
 
+.class-done__verdict {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-md);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-muted);
+}
+
+.class-done__verdict--best {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gold-fg);
+}
+
 .class-done__output {
   margin-top: var(--space-1);
   display: flex;
@@ -79,6 +91,10 @@
   @media (min-width: 40rem) {
     font-size: var(--font-size-score-lg);
   }
+}
+
+.class-done__output--best .class-done__number {
+  color: var(--color-gold-fg);
 }
 
 .class-done__unit {

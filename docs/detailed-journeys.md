@@ -71,7 +71,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 37.9 | One record whichever way | A ride in Ibiza counts toward the one record, with no count or best of its own. | 1 | 37. Ride in Ibiza | L2-173 AC8 | 100% |
 | 32.1 | Keep the record | Ride count, best output and last output kept on the device, fixed in size; a ride left early changes nothing. | 2 | 32. See your number | L2-132 AC2–4, L2-168 AC1–3, AC5 | 100% |
 | 32.2 | Class Done | Output in kJ, time and average watts; Done returns to The Class; `/done` with no ride opens The Class. | 3 | 32. See your number | L2-078, L2-079 AC1 | 100% |
-| 32.3 | Best output | "New best output" in gold with the previous best, "Your best is still", or the first ride's number to beat. | 1 | 32. See your number | L2-077 | 0% |
+| 32.3 | Best output | "New best output" in gold with the previous best, "Your best is still", or the first ride's number to beat. | 1 | 32. See your number | L2-077 | 100% |
 | 32.4 | The eight efforts | Each effort's average watts as a bar, the strongest set apart, rising in turn. | 2 | 32. See your number | L2-142 AC2, L2-169 | 0% |
 | 32.5 | On target | The share of the ride within 10% of target power. | 1 | 32. See your number | L2-170 | 0% |
 | 32.6 | Come back to beat it | The Class shows rides, best output and last time, and its button reads "Ride it again". | 1 | 32. See your number | L2-079 AC2, L2-084 AC5, AC8, L2-171 AC4 | 0% |
@@ -90,8 +90,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 59 slices, 119 days. **Complete:** 41 slices, 92 days (77%), 11 of them carried over.
-**To build:** 18 slices, 27 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 59 slices, 119 days. **Complete:** 42 slices, 93 days (78%), 11 of them carried over.
+**To build:** 17 slices, 26 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for

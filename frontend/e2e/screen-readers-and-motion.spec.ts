@@ -30,7 +30,7 @@ test.describe('Screen readers', () => {
   test('Class Done says the result as it opens (L2-141 AC2)', async ({ page }) => {
     await openClassDone(page, soloClass());
 
-    await expect(new AppDocument(page).announcement).toHaveText('Class done: 342 kJ in 20:00.');
+    await expect(new AppDocument(page).announcement).toHaveText('Your best is still 342 kJ. 342 kJ in 20:00.');
   });
 });
 

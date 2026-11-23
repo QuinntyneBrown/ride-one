@@ -284,12 +284,15 @@ export class ClassRideStore {
     this.music.release();
     this.activity.end();
     this.connection.forgetTarget();
+    // The best before this ride is counted: Class Done compares with it, and a reload still does (L2-077).
+    const previousBestKj = this.rideRecord.read().bestKj;
     const classResult: ClassResult = {
       classId: ride.id,
       title: ride.title,
       elapsedSeconds: ride.lengthSeconds,
       outputKj: this.recorder?.outputKj ?? 0,
       onTargetShare: this.recorder?.onTargetShare ?? 0,
+      previousBestKj,
     };
     // Only a ride that reaches its end is counted (L2-168 AC1, AC2).
     this.rideRecord.add(classResult.outputKj);

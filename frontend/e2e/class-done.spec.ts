@@ -3,7 +3,7 @@
 // Description: Class Done opens at `/done` when a class ends, from the result the ride hands over: the class in the
 // header, the output in whole kJ, the time and the average watts, and Done, its only action, which leads to The Class.
 // With no ride just finished `/done` opens The Class instead. (The verdict, the on-target share and the eight efforts
-// come with slices 32.3 to 32.5.)
+// are slices 32.4 and 32.5; the verdict is class-done-best.spec.ts.)
 //
 // Given a class ridden to its end, when Class Done opens, then it shows the output, the time and the average watts.
 // Given a finished ride, when the rider presses Done, then The Class opens.
@@ -35,7 +35,7 @@ test.describe('Class Done', () => {
 
     await expect(page).toHaveURL('/done');
     await expect(done.title).toHaveText('Intervals to the Beat');
-    await expect(done.heading).toHaveText('Class done');
+    await expect(done.heading).toHaveText('Class done. That’s your number to beat.');
     await expect(done.unit).toHaveText('kJ');
     await expect(done.number).toHaveText(/^[1-9]\d*$/);
     await expect(done.time).toHaveText('20:00');

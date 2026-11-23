@@ -11,8 +11,11 @@ export async function openClassDone(page: Page, state: object): Promise<void> {
   await page.reload();
 }
 
-/** Intervals to the Beat, ridden alone to its end. */
-export function soloClass() {
+/**
+ * Intervals to the Beat, ridden alone to its end, whose output is 341.6 kJ (342 kJ whole), with `previousBestKj` the
+ * best before it: 342 kJ by default, which it ties.
+ */
+export function soloClass(previousBestKj: number | null = 342) {
   return {
     classResult: {
       classId: 'intervals-to-the-beat',
@@ -20,6 +23,7 @@ export function soloClass() {
       elapsedSeconds: 1200,
       outputKj: 341.6,
       onTargetShare: 0.838,
+      previousBestKj,
     },
   };
 }
