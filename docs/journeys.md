@@ -41,7 +41,7 @@ Telo Ride 1's journeys, ordered by value added to the product, scaffolding first
 | 33 | Ride through a hidden tab or lost network | The clock stays true and the ride finishes without a network. | 4 | 100% |
 | 34 | Stay smooth on long rides | Bundle budgets, running totals only, stable heap, web vitals. | 6 | 100% |
 | 35 | Keep it private | Nothing loads from or goes to a third party but YouTube; bike and stored data are untrusted. | 3 | 100% |
-| 36 | Use by touch, keyboard and screen reader | Every width, 44 px targets, keyboard paths, announcements, motion, theme, full screen. | 8 | 25% |
+| 36 | Use by touch, keyboard and screen reader | Every width, 44 px targets, keyboard paths, announcements, motion, theme, full screen. | 8 | 50% |
 
-**Total:** 119 days. **Complete:** 113 days (95%), 27 of them carried over. **To build:** 6 days.
+**Total:** 119 days. **Complete:** 115 days (97%), 27 of them carried over. **To build:** 4 days.
 Journey 37 was added by slice 30.2 and is built after journey 31, so its number is out of order.
