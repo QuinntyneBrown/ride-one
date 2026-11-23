@@ -241,6 +241,13 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   "Music" button is in `wz-class-course` (`musicOn`, `musicAvailable`, output `musicToggle`), at the top right of
   the box: `aria-pressed`, a stroke through the note while off or unavailable, disabled when unavailable, with no
   alert, and never under 44 px.
+- **The course's budgets** (slice 37.7; `L2-177` AC1 to AC3). The renderer reports `shadowMap` with its triangles and
+  draw calls to the test-only hook; the model has no texture and gzips well under 3 MB, the music is under 4 MB. The
+  steps are judged by `FrameBudget` (`world`'s `frame-budget.ts`, a pure class the renderer asks once per frame): every
+  90 frames the average against the display's period steps up within 1.1, down over 1.6 and never up after. Measured
+  at the heaviest step, the course drew up to 130,130 triangles at the finish, over the 120,000; the map's draw
+  distance at the top three steps (`DRAWN_FAR`) is now 0.75 of its groups' (0.65 and 0.7 at the lowest two), and
+  the most of 25 places along the course is 111,570 triangles in 85 draw calls or fewer.
 - **A course that cannot be drawn** (slice 37.4; `L2-175` AC2, AC4, AC5; the mock `class-ride/ibiza-unavailable`).
   `CourseScene` emits `unavailable` once when the renderer's start fails (a file that is not there or `parseCourse`
   refuses) or when the canvas's graphics context is lost and does not come back within 3 seconds

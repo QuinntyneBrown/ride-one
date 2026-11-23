@@ -66,7 +66,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 37.4 | When Ibiza cannot be drawn | Files that cannot be loaded or a lost graphics context leave the still and "Ibiza can’t be drawn. The bike will still follow the class."; the course is kept after its first load and drawn without a network. | 2 | 37. Ride in Ibiza | L2-175 AC2, AC4–5 | 100% |
 | 37.5 | Music | *Beautiful Boom Bap*, self-hosted, looping through a ride in Ibiza only: fetched when that ride starts, paused with the ride, playing on in a hidden tab, released on leaving. (The course's deep house track went with slice 37.1; until this slice a ride in Ibiza is silent.) | 3 | 37. Ride in Ibiza | L2-176 AC1–4, AC6, AC8–9 | 100% |
 | 37.6 | The Music button | A "Music" toggle on Class Ride in Ibiza, kept on the device; disabled, with no alert, when the music cannot be loaded or played. | 1 | 37. Ride in Ibiza | L2-176 AC5, AC7 | 100% |
-| 37.7 | The course's budgets | At most 120,000 triangles and 140 draw calls a frame, no shadow map or texture; the model and the music within their sizes; resolution and bloom stepped by measured frames. | 2 | 37. Ride in Ibiza | L2-177 AC1–3 | 0% |
+| 37.7 | The course's budgets | At most 120,000 triangles and 140 draw calls a frame, no shadow map or texture; the model and the music within their sizes; resolution and bloom stepped by measured frames. | 2 | 37. Ride in Ibiza | L2-177 AC1–3 | 100% |
 | 37.8 | Leave Ibiza clean | Leaving or finishing stops the frame loop and disposes the course, the rider and the renderer; the interface's frames and the heap over a full ride hold on the reference tablet. | 2 | 37. Ride in Ibiza | L2-174 AC8, L2-177 AC4–5 | 0% |
 | 37.9 | One record whichever way | A ride in Ibiza counts toward the one record, with no count or best of its own. | 1 | 37. Ride in Ibiza | L2-173 AC8 | 0% |
 | 32.1 | Keep the record | Ride count, best output and last output kept on the device, fixed in size; a ride left early changes nothing. | 2 | 32. See your number | L2-132 AC2–4, L2-168 AC1–3, AC5 | 0% |
@@ -90,8 +90,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 59 slices, 119 days. **Complete:** 36 slices, 82 days (69%), 11 of them carried over.
-**To build:** 23 slices, 37 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 59 slices, 119 days. **Complete:** 37 slices, 84 days (71%), 11 of them carried over.
+**To build:** 22 slices, 35 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for

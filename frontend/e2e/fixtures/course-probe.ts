@@ -15,6 +15,8 @@ export interface CourseDrawn {
   readonly backend: 'webgpu' | 'webgl2';
   readonly drawCalls: number;
   readonly triangles: number;
+  /** Whether the renderer makes a shadow map: it does not (L2-177 AC1). */
+  readonly shadowMap: boolean;
   /** The riders in the scene: the rider alone (L2-174 AC6). */
   readonly riders: number;
   /** Metres from the grid where the ride's first frame put the rider (L2-175 AC3). */
