@@ -36,4 +36,9 @@ export class ClassDone {
   readonly efforts = input<readonly EffortBar[]>([]);
   /** Whether the ride was kept in the record; a notice says when it was not (L2-168 AC4). */
   readonly saved = input(true);
+
+  /** The class that sets a bar's height: its share of the strongest effort's, in whole percent (the stylesheet has 0 to 100). */
+  protected shareClass(effort: EffortBar): string {
+    return `class-done__effort--share-${Math.round(effort.height)}`;
+  }
 }
