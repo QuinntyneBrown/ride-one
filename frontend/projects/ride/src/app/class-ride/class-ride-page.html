@@ -61,6 +61,9 @@
             [still]="course.still"
             [loading]="!store.courseDrawn()"
             [unavailable]="store.courseUnavailable()"
+            [musicOn]="store.musicOn()"
+            [musicAvailable]="store.musicAvailable()"
+            (musicToggle)="store.toggleMusic()"
             [paused]="store.state().pausedOverlay"
           >
             <ng-container

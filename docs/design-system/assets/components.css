@@ -2470,6 +2470,8 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .class-course__loading { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-ink) 45%, transparent); font-size: var(--font-size-md); line-height: var(--line-height-md); font-weight: var(--font-weight-medium); text-align: center; }
 .class-course__paused { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--color-ink) 70%, transparent); }
 .class-course__paused-label { font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semibold); }
+/* The Music toggle in the box's top-right corner: a raised button of at least 44 px, over the course (L2-176 AC5). */
+.class-course__music { position: absolute; top: var(--space-3); right: var(--space-3); z-index: 1; min-width: var(--space-11); min-height: var(--space-11); }
 /* The two notices of a ride that goes on short of something (L2-088 AC4, L2-014 AC3): the video that cannot play, under
    the video, and the bike that is set by hand, under the bike panel. Each is an .inline-message--warn, a polite status,
    and sits space-2 under what it speaks of, nearer than the stage's gap, so both fit a phone on its side. */

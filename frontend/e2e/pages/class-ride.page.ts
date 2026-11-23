@@ -54,6 +54,8 @@ export class ClassRidePage {
   readonly profile: Locator;
   readonly cover: Locator;
   readonly pause: Locator;
+  /** The "Music" toggle in the course's corner, in Ibiza only (L2-176 AC5). */
+  readonly music: Locator;
   readonly resume: Locator;
   readonly leave: Locator;
   /** "Paused" over the class video (L2-091 AC1). */
@@ -122,6 +124,7 @@ export class ClassRidePage {
     this.profile = page.getByRole('img', { name: 'Resistance profile' });
     this.cover = page.locator('.class-video .photo');
     this.pause = page.getByRole('button', { name: 'Pause', exact: true });
+    this.music = page.getByRole('button', { name: 'Music', exact: true });
     this.resume = page.getByRole('button', { name: 'Resume', exact: true });
     this.leave = page.getByRole('link', { name: 'Leave class' });
     this.paused = page.locator('.class-video__paused');
