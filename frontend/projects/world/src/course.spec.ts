@@ -37,18 +37,20 @@ function courseFile(): CourseFile {
 }
 
 describe('Course (L2-166)', () => {
+  // The clock places the rider (L2-174 AC2): 40 m ridden evenly over the first stage's 20 s, then 40 m over the
+  // second's 10 s.
   it.each([
-    [0, 0],
-    [10, 20],
-    [20, 40],
-    [25, 60],
-    [30, 80],
-  ])(
-    'puts the rider at %i s on metre %i: each stage rides its own stretch (AC2)',
-    (seconds, metres) => {
-      expect(new Course(courseFile()).metresAt(seconds)).toBeCloseTo(metres);
-    },
-  );
+    ['0:00, on the grid', 0, 0],
+    ['the middle of the first stage', 10, 20],
+    ['a quarter of a second on, between two seconds of the clock', 10.25, 20.5],
+    ['the last second of the first stage', 19, 38],
+    ['the boundary: the end of the first stretch and the start of the second', 20, 40],
+    ['the first second of the second stage, at its own pace', 21, 44],
+    ['the middle of the second stage', 25, 60],
+    ['the plan’s last second: the finish line', 30, 80],
+  ])('puts the rider at %s (%f s) on metre %f (L2-174 AC2)', (_, seconds, metres) => {
+    expect(new Course(courseFile()).metresAt(seconds)).toBeCloseTo(metres);
+  });
 
   it('rolls on down the run-out past the finish, and stops at the end of the road', () => {
     const course = new Course(courseFile());

@@ -133,6 +133,73 @@ export async function startRideInIbiza(
 }
 
 /**
+ * Starts a ride in Ibiza on Playwright's paused clock, as `startClassRide` does with the class video: the ride starts
+ * at a known time and the spec moves the clock on by hand. Resolves once the ride's first command has gone, a tenth of
+ * a second into the ride; the course is still loading then (`courseDrawnOnPausedClock`).
+ */
+export async function startRideInIbizaOnPausedClock(
+  page: Page,
+  bluetooth: FakeBluetooth,
+): Promise<ClassRidePage> {
+  await page.clock.install({ time: RIDE_START });
+  const home = await openTheClassForIbiza(page, bluetooth);
+  await page.clock.pauseAt(RIDE_START + 60_000);
+  await home.start.click();
+  await expect
+    .poll(async () => {
+      await page.clock.runFor(1);
+      return bluetooth.writes().map((write) => write.hex);
+    })
+    .toContain(targetResistanceWrite(theClass.segments[0].level));
+  await page.clock.runFor(100);
+  return new ClassRidePage(page);
+}
+
+/**
+ * Steps the paused clock a frame at a time until the course's first frame is drawn (L2-175 AC3). The course's files
+ * come in the page's own time, so the ride clock is a second or two on by then, never more than `withinSeconds`.
+ */
+export async function courseDrawnOnPausedClock(
+  page: Page,
+  ride: ClassRidePage,
+  withinSeconds = 6,
+): Promise<void> {
+  for (let frame = 0; frame < (withinSeconds * 1000) / 16; frame++) {
+    await page.clock.runFor(16);
+    if (await ride.course.isVisible()) return;
+    // The files and the programs come in real time, whatever the page's clock says.
+    await new Promise((wait) => setTimeout(wait, 100));
+  }
+  await expect(ride.course, 'the course is drawn').toBeVisible({ timeout: 1 });
+}
+
+/** The Echelon keepalive, written about once a second while the bike is connected (L2-016 AC1). */
+const KEEPALIVE = 'F0 A0 01 01 92';
+
+/**
+ * On the paused clock, the bike lost at `since` is switched on and answers again: the app initialises it (initialising
+ * waits between commands, so the paused clock steps until it is done), the bike reports its resistance at `level`, and
+ * the link is connected.
+ */
+export async function bikeAnswers(
+  page: Page,
+  bluetooth: FakeBluetooth,
+  since: number,
+  level = 13,
+): Promise<void> {
+  await expect(async () => {
+    await page.clock.runFor(100);
+    // The keepalives of the minutes before can still be reaching the log; the initialisation is what is left.
+    const log = bluetooth.log().slice(since);
+    expect(
+      log.filter((line) => !line.endsWith(KEEPALIVE)).slice(0, ECHELON_INITIALISED.length),
+    ).toEqual(ECHELON_INITIALISED);
+  }).toPass();
+  await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(level));
+  await page.clock.runFor(200);
+}
+
+/**
  * The bike is switched off and its link drops, so it stays lost until `bikeBack`. Resolves to the length of the
  * bike's log at the drop, which `bikeBack` reads from.
  */

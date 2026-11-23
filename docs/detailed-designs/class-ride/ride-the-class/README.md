@@ -36,9 +36,10 @@ Neighbouring features own the adjacent concerns:
 - The class, its plan and the start button belong to
   [show the class](../../the-class/show-the-class/README.md).
 - Riding in Ibiza (`L2-174` to `L2-177`) is journey 37's. Slice 37.1 built its start, which this design covers:
-  the ride opens at once, the course loads in the box and is drawn there with the rider alone (ADR 0047). The
-  rider's place through the ride, the course that cannot be drawn, music, budgets and disposal are the later
-  slices of that journey.
+  the ride opens at once, the course loads in the box and is drawn there with the rider alone (ADR 0047). Slice
+  37.2 proved the rider's place through the ride, which this design covers too: placed by the clock, held with
+  the ride, not drawn in a hidden tab, with the camera nearer on the grid and at the finish line. The course as
+  built, the course that cannot be drawn, music, budgets and disposal are the later slices of that journey.
 - Sending a segment's level and the manual nudge (`L2-027`, `L2-028`) belong to
   [control resistance](../../bike/control-resistance/README.md); decoding and the power estimate
   (`L2-020`, `L2-021`, `L2-023`) belong to
@@ -198,6 +199,26 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   so the rider is where the clock puts them and never on the grid (`L2-175` AC3). It emits `drawn` once, and
   `unavailable` when the renderer cannot start (slice 37.4 shows the notice). On destroy it stops the frame loop
   and disposes the renderer (`L2-174` AC8).
+- **The rider's place through the ride** (carried over; proved by slice 37.2). Three rules, each in one place.
+  *The clock places the rider* (`L2-174` AC2): `SceneDriver` keeps the scene's time, which starts at the ride's
+  whole second, runs on by each frame's time while the ride runs, and is held between the clock's second and one
+  second past it, so after a hidden tab it is where the clock is at once. The bike's speed turns the pedals and
+  nothing else. `Course.metresAt(seconds)` turns the time into metres from the grid: the stage of the course's
+  file the second falls in, its stretch ridden evenly over its seconds. *Held with the ride* (`L2-174` AC5):
+  `CourseScene` runs the app's frame loop only while `running` is true, and the driver's time does not move
+  while it is false; the ride's clock holds its second, so Resume or the bike's return carries on from the same
+  metre. *A hidden tab draws no frame* (`L2-174` AC9): `FrameScheduler` cancels its `requestAnimationFrame` when
+  the document is hidden, and `CourseScene` draws nothing for a change of input while it is; when the tab shows
+  again the display's frame period is measured once more and the next frame is drawn at the clock's second.
+- **`chaseCamera(metres, finish)`** (built by slice 37.2 from the renderer's own lines, `world`'s
+  `chase-camera.ts`, with its unit tests). Where the camera sits by the rider (`L2-174` AC10): 2.75 m behind and
+  1.8 m above; 2.4 m and 1.65 m on the grid and on the finish line; eased over the 45 m either side of the grid
+  and the 70 m either side of the finish line. A pure function of the metres ridden, written into an object the
+  renderer keeps, so a frame allocates nothing. The picture is the same as before it was moved out.
+- **The renderer's test-only report** (`world`'s `course-probe.ts`; `e2e/fixtures/course-probe.ts`). When a spec
+  sets the hook before the app boots, the renderer writes what it drew: since slice 37.1 the riders, the first
+  frame's metres and the latest frame's; since slice 37.2 the frames drawn (`frames`) and the camera's place
+  (`camera`). The specs of the rider's place read it and never a pixel. Nothing in the app sets the hook.
 - **`ThreeCourseRenderer`** (`world` library, the carried-over course renderer, cut down by slice 37.1). It
   fetches `courses/ibiza.glb`, `courses/ibiza.course.json` and `riders/rider.glb` from the app's origin, and draws
   the course with one rider (`L2-174` AC6): the code that made a field of other riders, a ghost and their

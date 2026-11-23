@@ -119,3 +119,4 @@ One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journe
 | 113 | 31.2 | [Pause, lose the bike, leave or finish](31-2-pause-lose-the-bike-leave-or-finish.md) | Take the class | 3 |
 | 114 | 31.3 | [When the video or the bike falls short](31-3-when-the-video-or-the-bike-falls-short.md) | Take the class | 2 |
 | 115 | 37.1 | [The course in the video's box](37-1-the-course-in-the-videos-box.md) | Ride in Ibiza | 4 |
+| 116 | 37.2 | [Placed by the clock](37-2-placed-by-the-clock.md) | Ride in Ibiza | 3 |

@@ -180,6 +180,12 @@ export class ClassRidePage {
     return this.page.evaluate(() => Date.now());
   }
 
+  /** The ride clock's whole seconds, read from the header ("3:05 / 20:00" is 185). */
+  async clockSeconds(): Promise<number> {
+    const [, minutes, seconds] = /^(\d+):(\d\d)/.exec((await this.clock.textContent())!)!;
+    return Number(minutes) * 60 + Number(seconds);
+  }
+
   /** Whether `overlay` is drawn over the whole of the video's box, or the course's. */
   async coversBox(overlay: Locator): Promise<boolean> {
     const [box, over] = await Promise.all([this.box.boundingBox(), overlay.boundingBox()]);
