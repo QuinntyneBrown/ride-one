@@ -27,6 +27,7 @@ describe('classDoneView', () => {
       output: '351',
       time: '20:00',
       average: '293',
+      onTarget: '84%',
       verdict: 'Class done. That’s your number to beat.',
       best: false,
       bestFact: null,
@@ -50,6 +51,22 @@ describe('classDoneView', () => {
     expect(classDoneView(ride(0, 0)).average).toBe('0');
     expect(classDoneView(ride(10, 3723)).time).toBe('1:02:03');
   });
+  describe('the on-target share (L2-170 AC2)', () => {
+    const share = (onTargetShare: number) =>
+      classDoneView({ ...ride(351, 1200), onTargetShare }).onTarget;
+
+    it('is a whole percentage rounded to nearest', () => {
+      expect(share(0.84)).toBe('84%');
+      expect(share(0.0333)).toBe('3%');
+      expect(share(0.845)).toBe('85%');
+      expect(share(1)).toBe('100%');
+    });
+
+    it('is 0% when no second was on target', () => {
+      expect(share(0)).toBe('0%');
+    });
+  });
+
   describe('the verdict (L2-077)', () => {
     it('is a new best when the output beats the earlier best, with the previous best as a fact (AC1, AC4)', () => {
       expect(classDoneView(ride(351, 1200, 342))).toMatchObject({
