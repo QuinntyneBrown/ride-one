@@ -1,45 +1,43 @@
 // Acceptance test
 // Traces to: L2-146
-// Description: the ride app built from the Telo Ride workspace serves Home inside the app shell, with the app header,
-// the skip link, and the design system's tokens and bundled fonts.
+// Description: the ride app built from the Telo Ride workspace serves the class at `/` inside the app shell, with
+// its header, the skip link, and the design system's tokens and bundled fonts.
 import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { HomePage } from './pages/home.page';
+import { ClassStartPage } from './pages/class-start.page';
 
 test.describe('App shell', () => {
-  // A rider who paired a bike opens on Home (L2-015 AC1).
+  // A rider who paired a bike opens on the class (L2-015 AC1).
   test.beforeEach(({ bluetooth }) => bluetooth.remember(echelonBike));
 
   test(
-    'Home opens with the app header, Home current (L2-146 AC1, AC4)',
+    'the class opens under its header, with the wordmark and no navigation (L2-146 AC1, AC4)',
     { tag: '@critical' },
     async ({ page }) => {
-      const home = new HomePage(page);
-      await home.open();
+      const start = new ClassStartPage(page);
+      await start.open();
 
-      await expect(home.header.brand).toHaveAccessibleName('Home');
-      await expect(home.header.lockup).toHaveAccessibleName('Telo Ride');
-      for (const name of ['Home', 'Classes', 'Profile'] as const) {
-        await expect(home.header.link(name)).toBeVisible();
-      }
-      await expect(home.header.current()).toHaveText('Home');
-      await expect(home.main).toBeAttached();
+      await expect(start.header.lockup).toHaveAccessibleName('Telo Ride');
+      await expect(start.header.nav).toHaveCount(0);
+      await expect(start.header.links).toHaveCount(0);
+      await expect(start.title).toBeVisible();
+      await expect(start.main).toBeAttached();
     },
   );
 
   test('the first Tab reaches “Skip to content”, which moves focus to the page', async ({
     page,
   }) => {
-    const home = new HomePage(page);
-    await home.open();
-    // Home's chunk loads after the shell; under load the first Tab can come before its main exists.
-    await expect(home.main).toBeAttached();
+    const start = new ClassStartPage(page);
+    await start.open();
+    // The class's chunk loads after the shell; under load the first Tab can come before its main exists.
+    await expect(start.main).toBeAttached();
 
     await page.keyboard.press('Tab');
-    await expect(home.skipLink).toBeFocused();
-    await expect(home.skipLink).toBeInViewport();
+    await expect(start.skipLink).toBeFocused();
+    await expect(start.skipLink).toBeInViewport();
     await page.keyboard.press('Enter');
-    await expect(home.main).toBeFocused();
+    await expect(start.main).toBeFocused();
   });
 
   test('the wordmark is set in the bundled Barlow Condensed, served by the app itself', async ({
@@ -49,21 +47,21 @@ test.describe('App shell', () => {
     page.on('requestfinished', (request) => {
       if (request.resourceType() === 'font') fonts.push(new URL(request.url()).pathname);
     });
-    const home = new HomePage(page);
-    await home.open();
+    const start = new ClassStartPage(page);
+    await start.open();
 
-    await expect.poll(() => home.header.wordmarkFontLoaded()).toBe(true);
+    await expect.poll(() => start.header.wordmarkFontLoaded()).toBe(true);
     expect(fonts).toContain('/fonts/barlow-condensed-800-italic.woff2');
   });
 
   test('the design system’s tokens colour the page: ink behind it, signal on the wordmark’s product name', async ({
     page,
   }) => {
-    const home = new HomePage(page);
-    await home.open();
+    const start = new ClassStartPage(page);
+    await start.open();
 
-    expect(await home.background()).toBe('rgb(10, 11, 13)');
+    expect(await start.background()).toBe('rgb(10, 11, 13)');
     // "Ride" reads --color-volt-fg, the signal as text: #ff5233 on dark, 4.5:1 on every surface (L2-143 AC2).
-    expect(await home.header.productColour()).toBe('rgb(255, 82, 51)');
+    expect(await start.header.productColour()).toBe('rgb(255, 82, 51)');
   });
 });

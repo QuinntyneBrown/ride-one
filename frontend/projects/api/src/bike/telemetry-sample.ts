@@ -10,5 +10,4 @@ export interface TelemetrySample {
   readonly resistance?: number;
   readonly speedKmh?: number;
   readonly powerW?: number;
-  readonly heartRate?: number;
 }

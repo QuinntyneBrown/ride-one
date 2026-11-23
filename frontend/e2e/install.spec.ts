@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures/test';
 import { AppInstall } from './pages/app-install';
-import { HomePage } from './pages/home.page';
+import { ClassStartPage } from './pages/class-start.page';
 
 // Slice 27.1, Installable app (L2-150 AC1).
 //
@@ -14,7 +14,7 @@ const INK = '#0a0b0d';
 test('Chrome finds Telo Ride installable from its manifest, with its name, icons and dark theme colour (L2-150 AC1) @critical', async ({
   page,
 }) => {
-  await new HomePage(page).open();
+  await new ClassStartPage(page).open();
   const install = new AppInstall(page);
 
   const { url, errors, manifest } = await install.manifest();
@@ -42,7 +42,7 @@ test('Chrome finds Telo Ride installable from its manifest, with its name, icons
 test('each icon in the manifest is a PNG of the size it declares (L2-150 AC1)', async ({
   page,
 }) => {
-  await new HomePage(page).open();
+  await new ClassStartPage(page).open();
   const install = new AppInstall(page);
   const { manifest } = await install.manifest();
 

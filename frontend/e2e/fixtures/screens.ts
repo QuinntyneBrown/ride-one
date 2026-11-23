@@ -4,14 +4,10 @@ import { echelonBike } from './echelon';
 import type { FakeBluetooth } from './fake-bluetooth';
 import type { ApiFixture } from './api';
 import { openResults, soloClass } from './results';
-import { ClassLibraryPage } from '../pages/class-library.page';
 import { ClassStartPage } from '../pages/class-start.page';
 import { ConnectBikePage } from '../pages/connect-bike.page';
-import { HomePage } from '../pages/home.page';
 import { NotFoundPage } from '../pages/not-found.page';
-import { ProfilePage } from '../pages/profile.page';
 import { ResultsPage } from '../pages/results.page';
-import { SettingsPage } from '../pages/settings.page';
 
 /** What opening a screen needs from the shared fixture. */
 export interface ScreenFixtures {
@@ -31,34 +27,14 @@ const remembered =
   };
 
 /**
- * Every screen of the app, by the name the specs use, and how to open it (L2-139 AC1): the fit-every-width spec opens
+ * Every screen of the app (ADR 0040), by the name the specs use, and how to open it (L2-139 AC1): the fit-every-width spec opens
  * each at 320 and 2560 px, and the responsive sweep (e2e/sweeps/) at every breakpoint between.
  */
 export const screens: Record<string, Opener> = {
-  Home: remembered(async (page) => {
-    const home = new HomePage(page);
-    await home.open();
-    return home.greeting;
-  }),
-  'the Class Library': remembered(async (page) => {
-    const library = new ClassLibraryPage(page);
-    await library.open();
-    return library.heading;
-  }),
   'Class Start': remembered(async (page) => {
     const start = new ClassStartPage(page);
-    await start.open('hiit-cardio-30');
+    await start.open();
     return start.title;
-  }),
-  Profile: remembered(async (page) => {
-    const profile = new ProfilePage(page);
-    await profile.open();
-    return profile.heading;
-  }),
-  Settings: remembered(async (page) => {
-    const settings = new SettingsPage(page);
-    await settings.open();
-    return settings.heading;
   }),
   'Connect Bike': async ({ page }) => {
     const connect = new ConnectBikePage(page);

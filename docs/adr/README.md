@@ -41,3 +41,4 @@
 | [0037](0037-no-backend-the-class-ships-with-the-app.md) | Telo Ride 1 has no backend: the class ships with the app | Accepted |
 | [0038](0038-always-solo-no-ride-hub.md) | Telo Ride 1 is always solo: no ride hub | Accepted |
 | [0039](0039-no-account-nothing-signed-in-recorded-or-earned.md) | Telo Ride 1 has no account: nothing is signed in, recorded or earned | Accepted |
+| [0040](0040-four-screens-and-no-menus.md) | Telo Ride 1 has four screens and no menus | Accepted |

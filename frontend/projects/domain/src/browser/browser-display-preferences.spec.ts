@@ -1,12 +1,8 @@
 // Unit test
-// Traces to: L2-164 AC2, AC3, AC4
-// Description: reduce motion and the theme follow this device under Match device and the rider's choice otherwise,
-// following the device's changes as they come; <html> carries the theme, the motion and the ride numbers at once,
-// and the media queries are let go when the owner goes.
-import { signal } from '@angular/core';
+// Traces to: L2-142, L2-143 AC1, AC2
+// Description: reduced motion and the theme follow this device, and its changes as they come; <html> carries the theme
+// and the motion at once, and the media queries are let go when the owner goes.
 import { TestBed } from '@angular/core/testing';
-import { RIDE_SETTINGS, type RideSettings } from '@telo/api';
-import { RECOMMENDED_SETTINGS } from '../storage/local-ride-settings-store';
 import { BrowserDisplayPreferences } from './browser-display-preferences';
 
 /** A fake `matchMedia`: each query matches as told, and can be told it changed. */
@@ -34,16 +30,8 @@ const REDUCE = '(prefers-reduced-motion: reduce)';
 const LIGHT = '(prefers-color-scheme: light)';
 
 describe('BrowserDisplayPreferences', () => {
-  let settings: ReturnType<typeof signal<RideSettings>>;
-
-  function preferences(chosen: Partial<RideSettings>): BrowserDisplayPreferences {
-    settings = signal({ ...RECOMMENDED_SETTINGS, ...chosen });
-    TestBed.configureTestingModule({
-      providers: [
-        BrowserDisplayPreferences,
-        { provide: RIDE_SETTINGS, useValue: { settings, persisted: signal(true) } },
-      ],
-    });
+  function preferences(): BrowserDisplayPreferences {
+    TestBed.configureTestingModule({ providers: [BrowserDisplayPreferences] });
     const display = TestBed.inject(BrowserDisplayPreferences);
     TestBed.tick();
     return display;
@@ -55,40 +43,30 @@ describe('BrowserDisplayPreferences', () => {
   });
 
   it.each([
-    ['device', false, false],
-    ['device', true, true],
-    ['on', false, true],
-    ['on', true, true],
-    ['off', false, false],
-    ['off', true, false],
-  ] as const)('reduce motion %s, the device asking %s: reduced is %s', (choice, asks, reduced) => {
+    [false, false],
+    [true, true],
+  ] as const)('the device asking for reduced motion %s: reduced is %s', (asks, reduced) => {
     fakeMedia({ [REDUCE]: asks });
-    const display = preferences({ reduceMotion: choice });
+    const display = preferences();
 
-    expect(display.deviceReducesMotion()).toBe(asks);
     expect(display.reducedMotion()).toBe(reduced);
     expect(document.documentElement.dataset['motion']).toBe(reduced ? 'reduced' : 'full');
   });
 
   it.each([
-    ['device', false, 'dark'],
-    ['device', true, 'light'],
-    ['dark', true, 'dark'],
-    ['light', false, 'light'],
-  ] as const)(
-    'theme %s, the device asking for light %s: the theme is %s',
-    (choice, light, theme) => {
-      fakeMedia({ [LIGHT]: light });
-      const display = preferences({ theme: choice });
+    [false, 'dark'],
+    [true, 'light'],
+  ] as const)('the device asking for light %s: the theme is %s', (light, theme) => {
+    fakeMedia({ [LIGHT]: light });
+    const display = preferences();
 
-      expect(display.theme()).toBe(theme);
-      expect(document.documentElement.dataset['theme']).toBe(theme);
-    },
-  );
+    expect(display.theme()).toBe(theme);
+    expect(document.documentElement.dataset['theme']).toBe(theme);
+  });
 
-  it('follows the device when it changes its mind under Match device', () => {
+  it('follows the device when it changes its mind', () => {
     const media = fakeMedia({});
-    const display = preferences({});
+    const display = preferences();
 
     media.change(REDUCE, true);
     media.change(LIGHT, true);
@@ -98,20 +76,9 @@ describe('BrowserDisplayPreferences', () => {
     expect(document.documentElement.dataset['theme']).toBe('light');
   });
 
-  it('marks the ride numbers on <html>, and a change at once (AC4)', () => {
-    fakeMedia({});
-    preferences({});
-    expect(document.documentElement.dataset['rideNumbers']).toBe('standard');
-
-    settings.update((current) => ({ ...current, rideNumbers: 'large' }));
-    TestBed.tick();
-
-    expect(document.documentElement.dataset['rideNumbers']).toBe('large');
-  });
-
   it('stops listening to the device when its owner goes', () => {
     const media = fakeMedia({});
-    preferences({});
+    preferences();
     expect(media.listening()).toBe(2);
 
     TestBed.resetTestingModule();

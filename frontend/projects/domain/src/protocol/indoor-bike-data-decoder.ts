@@ -1,6 +1,6 @@
 import type { TelemetrySample } from '@telo/api';
 
-type Metric = 'speedKmh' | 'cadence' | 'powerW' | 'heartRate';
+type Metric = 'speedKmh' | 'cadence' | 'powerW';
 
 /** One Indoor Bike Data field, in specification order: its flag bit, its size, and how Telo Ride reads it, if at all. */
 interface Field {
@@ -25,7 +25,7 @@ const FIELDS: readonly Field[] = [
   { bit: 6, size: 2, read: { metric: 'powerW', value: (view, at) => view.getInt16(at, true) } },
   { bit: 7, size: 2 }, // average power
   { bit: 8, size: 5 }, // expended energy: total, per hour, per minute
-  { bit: 9, size: 1, read: { metric: 'heartRate', value: (view, at) => view.getUint8(at) } },
+  { bit: 9, size: 1 }, // heart rate: Telo Ride 1 reads none (ADR 0040)
 ];
 
 const present = (flags: number, bit: number): boolean =>
@@ -33,7 +33,7 @@ const present = (flags: number, bit: number): boolean =>
 
 /**
  * Decodes FTMS Indoor Bike Data into a `TelemetrySample` (L2-021 AC1): speed uint16 in 0.01 km/h, cadence uint16 in
- * 0.5 rpm, power sint16 in W and heart rate uint8 in bpm, each read only when the flags mark it present. The fields
+ * 0.5 rpm and power sint16 in W, each read only when the flags mark it present. The fields
  * between are skipped by size; a field that runs past the end is left undefined, and a notification too short for
  * its flags is `null`, never an error.
  */

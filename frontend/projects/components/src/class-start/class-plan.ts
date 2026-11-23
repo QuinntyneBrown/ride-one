@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { Segment } from '@telo/api';
-import { ClassProfile } from '../class-library/class-profile';
+import { ClassProfile } from './class-profile';
 import { formatClock } from '../metric/format-clock';
 
 /**

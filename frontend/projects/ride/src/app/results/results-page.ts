@@ -13,7 +13,8 @@ interface ResultsState {
 
 /**
  * Results (docs/mocks/pages/results/, L2-078, L2-079): the finished class and what to ride next. The ride hands its
- * result over in the navigation's history state, which a reload keeps; with no result the rider goes Home. The ride is
+ * result over in the navigation's history state, which a reload keeps; with no result the rider goes to the class at
+ * `/`. Done and Ride it again lead there too. The ride is
  * sent nowhere and earns nothing: Telo Ride 1 has no account (ADR 0039), and Class Done replaces this screen (32.2).
  * From lg it is two columns, the result and then the actions.
  */

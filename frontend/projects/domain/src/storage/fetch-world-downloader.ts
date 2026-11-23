@@ -1,6 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
-  RIDE_SETTINGS,
   type World,
   WorldDownloadError,
   type WorldDownloader,
@@ -25,7 +24,7 @@ interface Received {
 /**
  * The `WORLD_DOWNLOADER` the class ride binds: it fetches a world's panorama with the Fetch API, reading the body as it
  * streams to report the bytes received of `Content-Length` (L2-152 AC2), and keeps the finished file in Cache Storage
- * (`telo-worlds`) with its world's name and size while the rider keeps worlds (L2-165 AC1, AC3), from which a later load
+ * (`telo-worlds`) with its world's name and size, from which a later load
  * resolves at once (AC3). A download that stops part way keeps what it
  * received for as long as the class ride is open, and the next asks for the rest with `Range` (L2-156 AC2); a server
  * that answers with the whole file starts it again. Offline with nothing saved, it refuses at once (AC5). Its requests go
@@ -34,7 +33,6 @@ interface Received {
 @Injectable()
 export class FetchWorldDownloader implements WorldDownloader {
   private readonly partial = new Map<string, Received>();
-  private readonly settings = inject(RIDE_SETTINGS).settings;
 
   async download(
     world: Pick<World, 'id' | 'name'>,
@@ -97,7 +95,6 @@ export class FetchWorldDownloader implements WorldDownloader {
       file.set(chunk, at);
       at += chunk.byteLength;
     }
-    if (!this.settings().keepWorlds) return file.byteLength;
     const headers = {
       'content-type': response.headers.get('content-type') ?? 'application/octet-stream',
       [WORLD_NAME_HEADER]: world.name,

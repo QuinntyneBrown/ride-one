@@ -1,8 +1,7 @@
 // Acceptance test
-// Traces to: L2-141 AC2, AC3, L2-142 AC2
+// Traces to: L2-141 AC2, L2-142 AC2
 // Description: a screen reader hears each step of a ride once, as it starts (the class ride's "Work, 0:30"), and the
-// result when Results opens. A dialog takes the focus and keeps it, the app behind it is inert, and closing it
-// gives the focus back to what opened it. With the device asking for reduced motion, nothing on any screen moves but
+// result when Results opens. With the device asking for reduced motion, nothing on any screen moves but
 // an opacity fade: the interval and segment bars jump to their place.
 import { startClassRide } from './fixtures/class-ride';
 import { echelonBike } from './fixtures/echelon';
@@ -10,8 +9,6 @@ import { openResults, soloClass } from './fixtures/results';
 import { screens } from './fixtures/screens';
 import { expect, test } from './fixtures/test';
 import { AppDocument } from './pages/app-document';
-import { DiagnosticsDialog } from './pages/diagnostics.dialog';
-import { ProfilePage } from './pages/profile.page';
 
 test.describe('Screen readers', () => {
   test('the class ride says each step once, as it starts (L2-141 AC2) @critical', async ({
@@ -36,33 +33,6 @@ test.describe('Screen readers', () => {
     await expect(new AppDocument(page).announcement).toHaveText(
       'Class results: You finished 30:00.',
     );
-  });
-});
-
-test.describe('Dialogs', () => {
-  test('a dialog takes the focus and keeps it, the app behind is inert, and closing gives the focus back (L2-141 AC3)', async ({
-    page,
-    bluetooth,
-  }) => {
-    await bluetooth.remember(echelonBike);
-    const profile = new ProfilePage(page);
-    await profile.open();
-    const app = new AppDocument(page);
-    const diagnostics = new DiagnosticsDialog(page);
-
-    await profile.bikeRow.click();
-    await expect(diagnostics.heading).toBeVisible();
-
-    await expect(app.app).toHaveAttribute('inert');
-    for (let i = 0; i < 6; i++) {
-      await page.keyboard.press('Tab');
-      expect(await AppDocument.holdsFocus(diagnostics.root)).toBe(true);
-    }
-
-    await page.keyboard.press('Escape');
-    await expect(diagnostics.root).toHaveCount(0);
-    await expect(app.app).not.toHaveAttribute('inert');
-    await expect(profile.bikeRow).toBeFocused();
   });
 });
 

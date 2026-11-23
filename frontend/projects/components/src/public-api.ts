@@ -1,27 +1,17 @@
-export { AppHeader } from './app-header/app-header';
 export { AppHeaderBike } from './app-header/app-header-bike';
-export { AppHeaderBrand } from './app-header/app-header-brand';
-export { AppHeaderLink } from './app-header/app-header-link';
-export { type DiagnosticsPacketCount, DiagnosticsPanel } from './diagnostics/diagnostics-panel';
 export { FullscreenToggle } from './fullscreen-toggle/fullscreen-toggle';
 export { Banner } from './banner/banner';
 export { LoadCard } from './world-loading/load-card';
 export { LoadSteps } from './world-loading/load-steps';
 export { Pill } from './pill/pill';
 export { Progress } from './progress/progress';
-export { ClassTeaser } from './class-teaser/class-teaser';
-export { Door } from './door/door';
-export { MoreLink } from './more-link/more-link';
 export { ConnectWorks } from './connect-works/connect-works';
 export { ConnectDevice, type ConnectDeviceState } from './connect-device/connect-device';
 export { Button, type ButtonSize, type ButtonVariant } from './button/button';
 export { Lockup, type LockupSize } from './lockup/lockup';
 export { formatClock } from './metric/format-clock';
 export { formatDistance, formatMetric } from './metric/format-metric';
-export { ClassCard } from './class-library/class-card';
-export { ClassProfile } from './class-library/class-profile';
-export { ClassShelf } from './class-library/class-shelf';
-export { TierTabs, type TierTab } from './class-library/tier-tabs';
+export { ClassProfile } from './class-start/class-profile';
 export { BackLink } from './class-start/back-link';
 export { ClassPlan } from './class-start/class-plan';
 export { ClassStartVideo } from './class-start/class-start-video';
@@ -43,25 +33,7 @@ export { Hero } from './hero/hero';
 export { SiteFooter } from './site-footer/site-footer';
 export { SiteLink } from './site-link/site-link';
 export { SiteNav } from './site-nav/site-nav';
-export { SettingRow, type SettingRowIcon } from './setting-row/setting-row';
 export { ResultsHeader } from './results/results-header';
-export { Switch } from './switch/switch';
-export { SwitchRow } from './switch/switch-row';
-export { SideNav } from './side-nav/side-nav';
-export { SideNavLink, type SideNavIcon } from './side-nav/side-nav-link';
-export { Setting } from './settings/setting';
-export { SettingsSection } from './settings/settings-section';
-export { SettingsReset } from './settings/settings-reset';
-export { Segmented, type SegmentedOption } from './segmented/segmented';
-export { WorldSettings } from './world-settings/world-settings';
-export { SoundSettings } from './sound-settings/sound-settings';
-export { DeviceSettings, type SavedWorldsRow } from './device-settings/device-settings';
 export { Toast, type ToastTone } from './toast/toast';
 export { ToastRegion } from './toast/toast-region';
-export { DisplaySettings } from './display-settings/display-settings';
-export {
-  DeviceCheck,
-  type DeviceCheckResultView,
-  type DeviceCheckRunningView,
-} from './device-check/device-check';
 export { RIDE_KINDS } from './class-ride/ride-kind';

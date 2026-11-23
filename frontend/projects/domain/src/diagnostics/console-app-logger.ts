@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { AppLogger, PacketDirection } from '@telo/api';
+import type { AppLogger } from '@telo/api';
 import { describeError } from '../bluetooth/describe-error';
 
 const EMAIL = /[\w.+-]+@[\w-]+(\.[\w-]+)+/g;
@@ -18,15 +18,11 @@ export function redact(text: string): string {
 
 /**
  * The app's logger (L2-115): the browser console and nothing else. An error reads "[area] Name: message" in plain
- * text, redacted; a packet line goes to the console's verbose level.
+ * text, redacted.
  */
 @Injectable()
 export class ConsoleAppLogger implements AppLogger {
   error(area: string, error: unknown): void {
     console.error(redact(`[${area}] ${describeError(error)}`));
-  }
-
-  packet(direction: PacketDirection, frame: string, hex: string): void {
-    console.debug(`[bluetooth] packet ${direction} ${frame} ${hex}`);
   }
 }

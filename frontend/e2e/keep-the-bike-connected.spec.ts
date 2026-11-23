@@ -6,7 +6,7 @@
 import { ECHELON_NOTIFY, ECHELON_WRITE, echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
-import { HomePage } from './pages/home.page';
+import { ClassStartPage } from './pages/class-start.page';
 
 /** A `D1` frame: 5 s, no revolutions, 80 rpm (docs/protocol/echelon-ble-frames.md). */
 const WORKOUT_FRAME = [
@@ -57,16 +57,16 @@ test.describe('Keep the bike connected', () => {
       await page.clock.install();
       await page.setViewportSize({ width: 1024, height: 768 });
       await bluetooth.remember(echelonBike);
-      const home = new HomePage(page);
-      await home.open();
+      const start = new ClassStartPage(page);
+      await start.open();
       await expect.poll(() => bluetooth.writes().length).toBe(3);
       await bluetooth.notify(ECHELON_NOTIFY, WORKOUT_FRAME);
-      await expect(home.header.bike).toHaveText('Echelon EX-5s connected');
+      await expect(start.header.bike).toHaveText('Echelon EX-5s connected');
 
       await bluetooth.switchOff();
       await bluetooth.drop();
 
-      await expect(home.header.bike).toHaveText('Echelon EX-5s not connected');
+      await expect(start.header.bike).toHaveText('Echelon EX-5s not connected');
       const afterDrop = bluetooth.log().length;
       await page.clock.runFor(9000);
       expect(bluetooth.log().slice(afterDrop)).toEqual([]);
@@ -77,7 +77,7 @@ test.describe('Keep the bike connected', () => {
 
       await expect.poll(() => bluetooth.log().slice(afterDrop)).toEqual(INITIALISED);
       await bluetooth.notify(ECHELON_NOTIFY, WORKOUT_FRAME);
-      await expect(home.header.bike).toHaveText('Echelon EX-5s connected');
+      await expect(start.header.bike).toHaveText('Echelon EX-5s connected');
       expect(bluetooth.requests()).toEqual([]);
     },
   );

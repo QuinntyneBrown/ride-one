@@ -28,10 +28,6 @@ export class BikeTelemetry {
 
   readonly cadence = this.cadenceRpm.asReadonly();
   readonly resistance = this.level.asReadonly();
-  private readonly heart = signal<number | null>(null);
-  private heartExpiry: ReturnType<typeof setTimeout> | undefined;
-  /** An FTMS bike's own heart rate, `null` once it has reported none for 5 seconds (L2-030 AC1). */
-  readonly heartRate = this.heart.asReadonly();
   readonly speedKmh = computed(() => {
     const cadence = this.cadenceRpm();
     return this.reportedSpeed() ?? (cadence === null ? null : SpeedModel.speedKmh(cadence));
@@ -43,10 +39,7 @@ export class BikeTelemetry {
 
   constructor() {
     this.connection.frames.pipe(takeUntilDestroyed()).subscribe((bytes) => this.decode(bytes));
-    inject(DestroyRef).onDestroy(() => {
-      clearTimeout(this.expiry);
-      clearTimeout(this.heartExpiry);
-    });
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.expiry));
   }
 
   /**
@@ -56,7 +49,6 @@ export class BikeTelemetry {
    */
   accept(sample: TelemetrySample): void {
     if (sample.resistance !== undefined) this.level.set(sample.resistance);
-    if (sample.heartRate !== undefined) this.acceptHeartRate(sample.heartRate);
     const { cadence, speedKmh, powerW } = sample;
     if (cadence === undefined && speedKmh === undefined && powerW === undefined) return;
     this.reportedSpeed.set(speedKmh ?? null);
@@ -72,12 +64,6 @@ export class BikeTelemetry {
       this.connection.bike()?.kind === 'ftms' ? IndoorBikeDataDecoder : EchelonFrameDecoder;
     const sample = decoder.decode(bytes, Date.now());
     if (sample) this.accept(sample);
-  }
-
-  private acceptHeartRate(bpm: number): void {
-    this.heart.set(bpm);
-    clearTimeout(this.heartExpiry);
-    this.heartExpiry = setTimeout(() => this.heart.set(null), CADENCE_TIMEOUT_MS);
   }
 
   private expireCadence(): void {

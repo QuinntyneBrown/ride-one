@@ -178,15 +178,78 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L151 | A decision slice's film: copy the last film's folder, keep `hook`, `widths` and `close`, and write the middle as cards and lists in the ADR's words. | 28.1 | | |
 | L152 | A scripted cut ends at the next sibling's opening text, never at the first `}`: "from this method to the next `}\n`" stops inside the method's first block and leaves a broken file. | 28.3 | 28.4 | Saved time |
 | L153 | Before deleting a removed feature's data or interface, list who else reads it. Remove its endpoints now and the data with its last reader, and write the split in the ADR. | 28.3 | 28.4 | Saved time: Diagnostics read the outbox's store |
-| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | 28.4 | No effect: four screens looked right |
+| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | 28.4, 28.5 | No effect: the screens looked right both times |
 | L155 | To compare with `main` without touching the work tree: `git worktree add --detach <scratchpad>/base main`, link `frontend/node_modules` into it, build and test there, then `git worktree remove` it. No stash (replaces L145). | 28.3 | | |
 | L156 | Under Playwright's paused clock, wait for something a dynamic import brings by stepping the clock inside the poll (`await page.clock.runFor(50)` before each read). | 28.3 | | |
-| L157 | Give a removal's backend half to a second agent that touches only `backend/` and `docs/deployment.md` and runs only `dotnet`; run verify once it reports, and ask it for the JSON fields it removed. | 28.4 | | |
-| L158 | A fixture that writes `history.state` waits for the first screen (`page.locator('main').waitFor`) before `history.replaceState`; the router's first navigation otherwise writes over it. | 28.4 | | |
-| L159 | Before removing a screen, `grep -l` its fixture and page object across `e2e/` and decide where each spec that only passes through it moves. | 28.4 | | |
-| L160 | List a library's dead exports with a script: each name `public-api.ts` exports that no `.ts` under `projects/` names but its own file, its spec and the barrel. Delete and run again. | 28.4 | | |
+| L157 | Give a removal's backend half to a second agent that touches only `backend/` and `docs/deployment.md` and runs only `dotnet`; run verify once it reports, and ask it for the JSON fields it removed. | 28.4 | 28.5 | Not used: nothing in `backend/` changed |
+| L158 | A fixture that writes `history.state` waits for the first screen (`page.locator('main').waitFor`) before `history.replaceState`; the router's first navigation otherwise writes over it. | 28.4 | 28.5 | Not used |
+| L159 | Before removing a screen, `grep -l` its fixture and page object across `e2e/` and decide where each spec that only passes through it moves. | 28.4 | 28.5 | Saved time: fifteen specs only passed through Home |
+| L160 | List a library's dead exports with a script: each name `public-api.ts` exports that no `.ts` under `projects/` names but its own file, its spec and the barrel. Delete and run again. | 28.4 | 28.5 | Saved time: the script ran after each library's cut |
+| L161 | When a renamed page object drops a member, apply the rename with a script first, then read each spec for the members that left; an edit written against the text before the rename no longer matches. | 28.5 | | |
+| L162 | Removing an optional Bluetooth service changes the chooser's request: search the specs for `optionalServices` before the run, not after. | 28.5 | | |
+| L163 | `git restore <one file>` beside a barrel restores only that file; name it exactly, and never the barrel, or the barrel's edits are lost. | 28.5 | | |
 
 ## Log
+
+### 28.5 Remove Home, Profile and the class library (2026-11-23)
+
+**Applied from earlier**
+
+- **L2 port 4310; L3 format first; L17 judge verify by its exit status — saved time:** verify passed the first time
+  it ran, in 34 seconds.
+- **L25 all-or-nothing scripted edits — saved time:** one batch failed its assertion on the third file of six and
+  left that file and the ones after it untouched, so it was clear what was still to do.
+- **L147 remove from the outside in — saved time:** `four-screens.spec.ts` first (seven failures, each for its
+  reason), then the routes, the screens, the settings' readers, the libraries' exports.
+- **L148 a moved spec keeps its assertion — saved time:** the library's unavailable state moved to Class Start at `/`
+  with the same sentence and Try again; the header's Full screen specs moved from Home to the class.
+- **L150 the film tools' Python — saved time. L154 look at a screenshot — no effect:** the class, Connect Bike, the
+  class ride, Results and page not found at 1440 and 390 px, from the film's shots, needed no change.
+- **L159 list the specs that only pass through a screen — saved time:** fifteen specs opened Home only to reach the
+  app; one scripted rename moved them to the class at `/`. **L160 dead exports by script — saved time.**
+- **L155, L157, L158 — not used.**
+
+**What slowed it down**
+
+- Settings was read all over the ride (the wake lock, the world's quality, music, saved worlds, full screen, ride
+  numbers, the ride sound). Each reader needed a decision on what the default is; the ADR lists them.
+- The page object for the header lost `brand`, `link()` and `current()`. Edits written before the rename no longer
+  matched after it.
+- A `git restore` of one file named the api barrel beside it and undid the barrel's edits.
+- The chooser spec still expected the heart rate service as optional.
+
+**New lessons**
+
+- **L161 Rename with a script first, then read each spec for the members that left.**
+- **L162 Search the specs for `optionalServices` when a Bluetooth service is removed.**
+- **L163 `git restore` exactly one file; never a barrel beside it.**
+
+**Specs and tests deleted without a replacement** (the behaviour they proved is gone; `four-screens.spec.ts` and
+`no-ride-sound.spec.ts` prove what the rider sees now)
+
+- Behaviour specs: `class-library`, `class-start-unknown`, `home-classes-door`, `profile-settings`, `settings`,
+  `settings-world`, `settings-sound-display`, `settings-saved-worlds`, `device-check`, `diagnostics`, `packet-log`;
+  `class-library-unavailable` (its sentence and Try again moved to `class-start.spec.ts`); the header's "marks its
+  own item current" test (the phone test now proves one row with no navigation); the Dialogs tests of
+  `screen-readers-and-motion` (Diagnostics was the only dialog); Profile's and "every class is open" tests of
+  `no-account`; the library half of `always-solo`; and the Home, Class Library, Profile and Settings rows of the fit
+  and theme tables. 210 specs became 146, and 39 `@critical` paths became 30.
+- Changed, not weakened: `pair-a-bike` expects no optional service in the chooser's request (L2-012 AC1).
+- Frontend unit tests: `radio-step`, `web-bluetooth-heart-rate-strap`, `heart-rate-measurement-decoder`,
+  `heart-rate-source`, `heart-rate-stats`, `web-audio-ride-sound`, `ride-sound`, `bike-connection-history`,
+  `diagnostics-facts`, `memory-packet-log`, `packet-log-summary`, `packet-frame`, `sent-log`, `device-check` (domain
+  and world), `device-check-store`, `full-screen-on-start`, `world-quality`, `cache-storage-saved-worlds`,
+  `saved-worlds-store`, `saved-worlds-view`, `local-ride-settings-store`, `class-door-view`, `home-greeting`,
+  `bike-row`; the Keep awake off case of the wake lock, the Keep worlds off cases of the downloader and
+  `world-load-view`, the stored-preference cases of `browser-display-preferences`, the heart rate cases of
+  `bike-telemetry`, the packet case of `console-app-logger`, and the log cases of `resistance-controller` (one test
+  of `last()` stays). 1564 tests became 1308.
+- Backend tests: none. 55 stay.
+
+**Left for a later slice**
+
+- `@angular/cdk` is a dependency with no dialog to open; 28.8 removes it if no slice has used it.
+- The class is still the stand-in `hiit-cardio-30` read from `GET /api/classes` (30.1), on Class Start (30.2).
 
 ### 28.4 Remove sign-in and progression (2026-11-23)
 

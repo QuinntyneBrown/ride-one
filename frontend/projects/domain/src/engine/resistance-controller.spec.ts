@@ -203,7 +203,7 @@ describe('ResistanceController by hand', () => {
     expect(controller.source()).toBe('plan');
   });
 
-  it('logs each command the bike took at the ride clock’s second, newest first (L2-029 AC1)', async () => {
+  it('keeps the last command the bike took at the ride clock’s second', async () => {
     TestBed.resetTestingModule();
     let now = 0;
     TestBed.configureTestingModule({
@@ -222,15 +222,6 @@ describe('ResistanceController by hand', () => {
     now = 330_400;
     await logged.setManual(20);
 
-    expect(logged.log()).toEqual([
-      { rideTime: 330, level: 20, source: 'manual', ackMs: 30 },
-      { rideTime: 0, level: 8, source: 'plan', ackMs: 30 },
-    ]);
-  });
-
-  it('logs nothing the bike did not take', async () => {
-    setResistance.mockRejectedValueOnce(new BikeConnectionError('failed', 'gone'));
-    await controller.applyPlanLevel(8);
-    expect(controller.log()).toEqual([]);
+    expect(logged.last()).toEqual({ rideTime: 330, level: 20, source: 'manual', ackMs: 30 });
   });
 });

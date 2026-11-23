@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Lockup } from '../lockup/lockup';
 
 /**
- * Class Start's header (design-system block class-header, docs/mocks/pages/class-start/): the small lockup, the page's
- * back link in the `back` slot and its actions in the `end` slot, pushed to the end (L2-084 AC1).
+ * The slim header of Class Start, World loading and Page not found (design-system block class-header): the small
+ * lockup, a back link in the `back` slot where the page has one, and the bike's status and the page's actions in the
+ * `end` slot, pushed to the end. It has no navigation (L2-167 AC4).
  */
 @Component({
   selector: 'wz-class-start-header',

@@ -187,7 +187,9 @@ test.describe('World loading', () => {
     expect(assets.requests[1]!.headers()['range']).toBe(`bytes=${half}-`);
   });
 
-  test('Back to class stops the download and opens Class Start (L2-151 AC5)', async ({ page }) => {
+  test('Back to class stops the download and opens the class at `/` (L2-151 AC5)', async ({
+    page,
+  }) => {
     assets.hold();
     await new ClassRidePage(page).open(hiitCardio.id);
     await expect(loading.step(0).root).toHaveAttribute('aria-current', 'step');
@@ -195,7 +197,7 @@ test.describe('World loading', () => {
 
     await loading.back.click();
 
-    await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);
+    await expect(page).toHaveURL('/');
     await expect(new ClassStartPage(page).start).toBeVisible();
     await expect.poll(() => assets.aborted(0)).toBe(true);
   });

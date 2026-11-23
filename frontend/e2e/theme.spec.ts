@@ -48,7 +48,7 @@ for (const scheme of ['light', 'dark'] as const) {
     api,
   }) => {
     await page.emulateMedia({ colorScheme: scheme });
-    await screens['Home']!({ page, bluetooth, api });
+    await screens['Class Start']!({ page, bluetooth, api });
     const app = new AppDocument(page);
     await expect(app.root).toHaveAttribute('data-theme', scheme);
     expect(await app.lowContrast(TEXT, SURFACES, 4.5)).toEqual([]);

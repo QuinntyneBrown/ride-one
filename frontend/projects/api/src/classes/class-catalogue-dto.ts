@@ -1,6 +1,6 @@
 import type { ClassDto } from './class-dto';
 
-/** A shelf of the Class Library: the classes of one length band, with its title and tagline (L2-081 AC3). */
+/** A shelf of the catalogue as the backend serves it: the classes of one length band, with its title and tagline. */
 export interface ShelfDto {
   readonly id: string;
   readonly title: string;

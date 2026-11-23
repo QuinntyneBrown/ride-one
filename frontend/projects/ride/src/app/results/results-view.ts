@@ -15,12 +15,8 @@ export interface ResultsView {
   readonly sub: string | null;
   /** What a screen reader hears as Results opens (L2-141 AC2): "Class results: You finished 30:00." */
   readonly announcement: string;
-  /** "Ride it again" to Class Start. */
-  readonly again: {
-    readonly label: string;
-    readonly path: string;
-    readonly query: Record<string, string>;
-  };
+  /** "Ride it again", which leads to the class at `/`. */
+  readonly again: string;
 }
 
 /** Whole seconds as "0:57", "26:38" or, from an hour, "1:02:03". */
@@ -47,6 +43,6 @@ export function resultsView(result: ClassResult): ResultsView {
     of: null,
     sub: `${Math.round(result.outputKj)} kJ · ${Math.round(result.onTargetShare * 100)}% on target`,
     announcement: `Class results: You finished ${big}.`,
-    again: { label: 'Ride it again', path: `/classes/${result.classId}`, query: {} },
+    again: 'Ride it again',
   };
 }

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import type { BikeStatusView } from '@telo/api';
 
 /**
- * The bike status in the app header (element app-header__bike), shown from lg (L2-019 AC1, AC2): the bike's name with
+ * The bike status in the header of Class Start (element app-header__bike), shown from lg (L2-019 AC1, AC2): the bike's name with
  * hidden text a screen reader reads after it. Not connected, it turns red, swaps the bike for the Bluetooth-off icon
  * and takes the title "Bike not connected", so colour never carries the state alone.
  */

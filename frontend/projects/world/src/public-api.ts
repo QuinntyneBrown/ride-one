@@ -8,4 +8,3 @@ export { startTier } from './render-quality';
 export { musicPlays, worldTrack } from './world-music';
 export { WorldMusicPlayer } from './world-music-player';
 export { ambienceOf } from './world-ambience';
-export { deviceCheck } from './device-check';

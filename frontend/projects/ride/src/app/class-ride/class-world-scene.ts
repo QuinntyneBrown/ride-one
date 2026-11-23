@@ -4,7 +4,6 @@ import {
   DestroyRef,
   Directive,
   ViewContainerRef,
-  computed,
   effect,
   inject,
   input,
@@ -12,13 +11,12 @@ import {
   untracked,
 } from '@angular/core';
 import {
+  AUTO_QUALITY,
   DISPLAY_PREFERENCES,
   type PreparedWorld,
-  RIDE_SETTINGS,
   type Segment,
   type WorldId,
 } from '@telo/api';
-import { worldQuality } from '@telo/domain';
 import type * as WorldLibrary from '@telo/world';
 import type { WorldMusicPlayer, WorldScene } from '@telo/world';
 
@@ -27,7 +25,7 @@ import type { WorldMusicPlayer, WorldScene } from '@telo/world';
  * the race's `RaceWorld` does, so neither the library nor Three.js enters the class ride's chunk. With the renderer
  * World loading warmed up, whenever it arrives, it creates `main`'s `WorldScene` there, which draws with it and fades it in, and goes,
  * renderer and all, when the rider leaves. It plays the world's own track (`main`'s `WorldMusicPlayer`) while `music`
- * says so (L2-163 AC1), and stops it when the rider leaves. The player and its audio element are made the first time
+ * says so, and stops it when the rider leaves. The player and its audio element are made the first time
  * the music is wanted, so a ride whose video plays its own sound loads no track. A dynamic import and `setInput`, rather than `@defer`
  * (L77).
  */
@@ -44,15 +42,9 @@ export class ClassWorldScene {
   readonly music = input.required<boolean>();
 
   private readonly scene = signal<ComponentRef<WorldScene> | null>(null);
-  /** The rider's World settings, as the world reads them (L2-159, L2-160, L2-161). */
-  private readonly settings = inject(RIDE_SETTINGS).settings;
-  /** Reduce motion as the rider's Settings apply it, which stills the world's moving parts (L2-164 AC2). */
+  /** Reduced motion as this device asks for it, which stills the world's moving parts (L2-142). */
   private readonly display = inject(DISPLAY_PREFERENCES);
-  /** One value until the settings change, so binding every second hands the scene nothing new. */
-  private readonly quality = computed(() => worldQuality(this.settings()));
   private readonly player = signal<WorldMusicPlayer | null>(null);
-  /** The track plays when the ride wants it and the rider's World music is on (L2-163 AC1). */
-  private readonly musicOn = computed(() => this.music() && this.settings().worldMusic);
 
   constructor() {
     const host = inject(ViewContainerRef);
@@ -68,7 +60,7 @@ export class ClassWorldScene {
     });
     effect(() => {
       const library = world();
-      if (!library || !this.musicOn() || untracked(this.player)) return;
+      if (!library || !this.music() || untracked(this.player)) return;
       untracked(() => {
         const player = new library.WorldMusicPlayer(() => doc.createElement('audio'), doc);
         player.load(this.worldId());
@@ -91,7 +83,7 @@ export class ClassWorldScene {
       const scene = this.scene();
       if (scene) this.bind(scene);
     });
-    effect(() => this.player()?.sync(this.musicOn()));
+    effect(() => this.player()?.sync(this.music()));
   }
 
   /** Hands the scene the ride's inputs; read in the effect, they follow the ride. */
@@ -101,7 +93,8 @@ export class ClassWorldScene {
     scene.setInput('elapsed', this.elapsed());
     scene.setInput('speedKmh', this.speedKmh());
     scene.setInput('running', this.running());
-    scene.setInput('quality', this.quality());
+    // Telo Ride 1 has no Settings: every world is drawn at the recommended quality (ADR 0040).
+    scene.setInput('quality', AUTO_QUALITY);
     scene.setInput('reducedMotion', this.display.reducedMotion());
   }
 }

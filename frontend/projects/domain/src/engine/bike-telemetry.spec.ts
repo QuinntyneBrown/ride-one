@@ -178,29 +178,3 @@ describe('BikeTelemetry on the simulated bike', () => {
     TestBed.resetTestingModule();
   });
 });
-
-describe('BikeTelemetry heart rate', () => {
-  /** FTMS Indoor Bike Data with More Data set and heart rate 151 bpm (flags 0x0201). */
-  const FTMS_HEART = Uint8Array.from([0x01, 0x02, 151]);
-
-  it('shows the heart rate an FTMS bike reports, and blanks it after 5 seconds without one (L2-030 AC1)', () => {
-    vi.useFakeTimers();
-    const frames = new Subject<Uint8Array>();
-    const bike = signal<BikeInfo | null>({ id: 'b', name: 'Bike', identifier: null, kind: 'ftms' });
-    TestBed.configureTestingModule({
-      providers: [BikeTelemetry, { provide: BIKE_CONNECTION, useValue: { frames, bike } }],
-    });
-    const telemetry = TestBed.inject(BikeTelemetry);
-    expect(telemetry.heartRate()).toBeNull();
-
-    frames.next(FTMS_HEART);
-    expect(telemetry.heartRate()).toBe(151);
-
-    vi.advanceTimersByTime(4999);
-    expect(telemetry.heartRate()).toBe(151);
-    vi.advanceTimersByTime(1);
-    expect(telemetry.heartRate()).toBeNull();
-    TestBed.resetTestingModule();
-    vi.useRealTimers();
-  });
-});

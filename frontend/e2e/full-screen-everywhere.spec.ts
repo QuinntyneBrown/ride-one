@@ -3,14 +3,14 @@ import { screens } from './fixtures/screens';
 import { expect, test } from './fixtures/test';
 import { AppDocument } from './pages/app-document';
 
-// Slice 24.2, Full screen (L2-144): every page header the mocks draw offers Full screen, from Home to a class ride and
-// Results. Sign-in's mock has no header button, so it has none.
+// Slice 24.2, Full screen (L2-144): every page header offers Full screen, from Class Start to a class ride and
+// Results.
 //
-// Given any screen but sign-in, when the rider presses "Full screen" in its header, then the app fills the display and
+// Given any screen, when the rider presses "Full screen" in its header, then the app fills the display and
 //   the button reads "Exit full screen", which leaves it (AC1).
 // Given a browser without the Fullscreen API, when any screen shows, then no header offers it (AC2).
 
-const offering = Object.entries(screens).filter(([screen]) => screen !== 'sign-in');
+const offering = Object.entries(screens);
 
 for (const [screen, open] of offering) {
   test(`${screen} offers Full screen in its header, and Exit full screen leaves it (L2-144 AC1)${screen === 'a class ride' ? ' @critical' : ''}`, async ({

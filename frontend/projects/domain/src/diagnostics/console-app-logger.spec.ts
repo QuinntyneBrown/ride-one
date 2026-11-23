@@ -1,7 +1,7 @@
 // Unit test
 // Traces to: L2-115 AC1, AC3
 // Description: the logger writes to the console only: an error names its area and the error in plain text, with any
-// email address or session token taken out; a packet line goes to the verbose level.
+// email address or session token taken out.
 import { ConsoleAppLogger, redact } from './console-app-logger';
 
 describe('ConsoleAppLogger', () => {
@@ -20,12 +20,6 @@ describe('ConsoleAppLogger', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     new ConsoleAppLogger().error('sign-in', new Error('No account for ada@example.com'));
     expect(error).toHaveBeenCalledWith('[sign-in] Error: No account for [email]');
-  });
-
-  it('writes a packet line at the verbose level', () => {
-    const debug = vi.spyOn(console, 'debug').mockImplementation(() => undefined);
-    new ConsoleAppLogger().packet('out', 'B1', 'F0 B1 01 08 AA');
-    expect(debug).toHaveBeenCalledWith('[bluetooth] packet out B1 F0 B1 01 08 AA');
   });
 
   it.each([

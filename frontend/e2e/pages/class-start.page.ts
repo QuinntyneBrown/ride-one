@@ -1,8 +1,17 @@
 import type { Locator, Page } from '@playwright/test';
+import { ClassHeader } from './class-header';
 
-/** Class Start at `/classes/:id` (docs/mocks/pages/class-start/). */
+/**
+ * Class Start at `/` (docs/mocks/pages/class-start/): the one class, until The Class is drawn (ADR 0040). Its header
+ * is the app header, with no navigation.
+ */
 export class ClassStartPage {
-  readonly back: Locator;
+  readonly header: ClassHeader;
+  readonly skipLink: Locator;
+  readonly main: Locator;
+  /** What shows in the class's place when no catalogue can be read or is kept, with Try again. */
+  readonly unavailable: Locator;
+  readonly retry: Locator;
   readonly title: Locator;
   readonly meta: Locator;
   readonly summary: Locator;
@@ -19,7 +28,11 @@ export class ClassStartPage {
   readonly join: Locator;
 
   constructor(private readonly page: Page) {
-    this.back = page.locator('.class-header').getByRole('link', { name: 'Classes' });
+    this.header = new ClassHeader(page);
+    this.skipLink = page.getByRole('link', { name: 'Skip to content' });
+    this.main = page.locator('main#main');
+    this.unavailable = page.locator('.class-start__unavailable');
+    this.retry = page.getByRole('button', { name: 'Try again' });
     this.title = page.getByRole('heading', { level: 1 });
     this.meta = page.locator('.class-start__meta');
     this.summary = page.locator('.class-start__summary');
@@ -34,7 +47,18 @@ export class ClassStartPage {
     this.join = page.getByRole('button', { name: /^Join/ });
   }
 
-  async open(classId: string): Promise<void> {
-    await this.page.goto(`/classes/${classId}`);
+  async open(): Promise<void> {
+    await this.page.goto('/');
+  }
+
+  url(): string {
+    return new URL(this.page.url()).pathname;
+  }
+
+  /** The colour behind the page. */
+  background(): Promise<string> {
+    return this.page
+      .locator('.class-start-page')
+      .evaluate((element) => getComputedStyle(element).backgroundColor);
   }
 }

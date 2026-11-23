@@ -16,7 +16,7 @@ export type ConnectView =
   | { readonly kind: 'paired'; readonly bike: BikeInfo }
   | { readonly kind: 'failed'; readonly reason: BikeConnectionErrorCode };
 
-/** How long the paired card shows before Home (the mock's half a second). */
+/** How long the paired card shows before the class (the mock's half a second). */
 export const PAIRED_PAUSE_MS = 500;
 
 /**

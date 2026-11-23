@@ -103,3 +103,4 @@ One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journe
 | 97 | 28.1 | [Decide the backend](28-1-decide-the-backend.md) | Make it Telo Ride 1 | 1 |
 | 98 | 28.3 | [Remove group classes and live races](28-3-remove-group-classes-and-live-races.md) | Make it Telo Ride 1 | 1 |
 | 99 | 28.4 | [Remove sign-in and progression](28-4-remove-sign-in-and-progression.md) | Make it Telo Ride 1 | 3 |
+| 100 | 28.5 | [Remove Home, Profile and the class library](28-5-remove-home-profile-and-the-class-library.md) | Make it Telo Ride 1 | 2 |

@@ -7,7 +7,7 @@
 // refusal. A script or a connection to any other origin, such as a tracker's, is refused before it leaves the page.
 import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { HomePage } from './pages/home.page';
+import { ClassStartPage } from './pages/class-start.page';
 
 test.describe('Content Security Policy', () => {
   test.beforeEach(({ bluetooth }) => bluetooth.remember(echelonBike));
@@ -16,9 +16,9 @@ test.describe('Content Security Policy', () => {
     'the app is served with its policy and headers, and runs under them (L2-131 AC1, AC4)',
     { tag: '@critical' },
     async ({ page }) => {
-      const home = new HomePage(page);
+      const start = new ClassStartPage(page);
       const served = page.waitForResponse((response) => response.request().isNavigationRequest());
-      await home.open();
+      await start.open();
       const headers = (await served).headers();
 
       const policy = headers['content-security-policy'] ?? '';
@@ -33,7 +33,7 @@ test.describe('Content Security Policy', () => {
       expect(policy).toContain("frame-ancestors 'none'");
       expect(headers['x-content-type-options']).toBe('nosniff');
       expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
-      await expect(home.header.current()).toHaveText('Home');
+      await expect(start.title).toBeVisible();
     },
   );
 
@@ -41,9 +41,9 @@ test.describe('Content Security Policy', () => {
     page,
     policy,
   }) => {
-    const home = new HomePage(page);
-    await home.open();
-    await expect(home.header.current()).toHaveText('Home');
+    const start = new ClassStartPage(page);
+    await start.open();
+    await expect(start.title).toBeVisible();
 
     const connected = await page.evaluate(async () => {
       const script = document.createElement('script');
