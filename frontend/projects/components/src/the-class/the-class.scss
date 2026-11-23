@@ -1,6 +1,7 @@
-// Block the-class (docs/design-system/assets/components.css, The Class; docs/mocks/pages/the-class/). Below lg one
-// column that scrolls over the pinned start button; from lg the video and what the bike will do beside the details
-// column, which ends in the start button. Slice 30.4 fits the lg layout to one screen with no scrolling (L2-171).
+// Block the-class (docs/design-system/assets/components.css, The Class; docs/mocks/pages/the-class/; L2-171). Below
+// lg one column that scrolls over the pinned start button. From lg one screen that does not scroll: the video takes
+// the height left over what the bike will do, 16:9, beside the details column, which ends in the start button. A
+// window under 800 px tall draws the column tighter; one too short even for that scrolls and cuts nothing off.
 :host {
   display: flex;
   flex: 1;
@@ -40,9 +41,12 @@
 
   @media (min-width: 64rem) {
     grid-template-columns: minmax(0, 1fr) var(--the-class-aside-width);
-    grid-template-rows: minmax(0, 1fr) auto;
+    // The video's row takes the room left and is never under 160 px, which a window too short to fit scrolls to.
+    grid-template-rows: minmax(var(--space-40), 1fr) auto;
     column-gap: var(--space-10);
     row-gap: var(--space-5);
+    // At least the room under the header, never exactly it: while the details column fits, the rows share that room
+    // and nothing scrolls; where it cannot, the body is as tall as the column and the-class__scroll scrolls.
     min-height: 100%;
   }
 
@@ -51,7 +55,8 @@
   }
 }
 
-// The video: 16:9, centred in the height left.
+// The video: 16:9, centred in the height left. From lg its place is a size container, so the box can be as wide as
+// the column or as tall as the row, whichever is the less.
 .the-class__media {
   display: flex;
   align-items: center;
@@ -61,6 +66,7 @@
   @media (min-width: 64rem) {
     grid-column: 1;
     grid-row: 1;
+    container-type: size;
   }
 }
 
@@ -71,6 +77,10 @@
   overflow: hidden;
   border-radius: var(--radius-2xl);
   background: var(--color-raised);
+
+  @media (min-width: 64rem) {
+    width: min(100cqw, calc(100cqh * 16 / 9));
+  }
 }
 
 .photo {
@@ -275,4 +285,38 @@
   font-size: var(--font-size-sm);
   line-height: var(--line-height-sm);
   text-align: center;
+}
+
+// The one-screen layout in a window under 800 px tall (1024 × 768): the same parts, drawn tighter, so the column
+// still fits with the start button's line, and with the record and a blocked browser's alert when they are built.
+@media (min-width: 64rem) and (max-height: 49.99rem) {
+  .the-class__body {
+    padding-block: var(--space-4);
+  }
+
+  .the-class__title {
+    font-size: var(--font-size-4xl);
+  }
+
+  .the-class__summary {
+    margin-top: var(--space-3);
+  }
+
+  .the-class__ride-with {
+    margin-top: var(--space-4);
+  }
+
+  .the-class__facts {
+    margin-top: var(--space-5);
+  }
+
+  .the-class__action {
+    padding-top: var(--space-5);
+  }
+}
+
+@media (min-width: 80rem) and (max-height: 49.99rem) {
+  .the-class__title {
+    font-size: var(--font-size-5xl);
+  }
 }

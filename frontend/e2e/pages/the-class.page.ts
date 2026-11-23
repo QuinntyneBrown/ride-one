@@ -45,6 +45,10 @@ export class TheClassPage {
   /** The start button the layout shows: in the details column from lg, pinned to the bottom below it. */
   readonly start: Locator;
   readonly startHint: Locator;
+  /** What the layout places (L2-171): the video's place, the details column and the bar pinned under one column. */
+  readonly media: Locator;
+  readonly info: Locator;
+  readonly footer: Locator;
   /** The choice between riding alone and with a group that Telo Ride had; Telo Ride 1 has none (ADR 0038). */
   readonly choice: Locator;
   /** Join, which Telo Ride offered for a group session; Telo Ride 1 has none. */
@@ -87,6 +91,9 @@ export class TheClassPage {
     this.ibizaDetail = this.ibiza.locator('.ride-with__detail');
     this.start = page.locator('.the-class__start:visible');
     this.startHint = page.locator('.the-class__start-hint:visible');
+    this.media = page.locator('.the-class__media');
+    this.info = page.locator('.the-class__info');
+    this.footer = page.locator('.the-class__footer');
     this.choice = page.getByRole('radiogroup', { name: 'Ride alone or with a group' });
     this.join = page.getByRole('button', { name: /^Join/ });
   }
@@ -140,6 +147,90 @@ export class TheClassPage {
     const box = await element.boundingBox();
     const width = this.page.viewportSize()?.width ?? 0;
     return box !== null && box.x >= 0 && box.x + box.width <= width;
+  }
+
+  /** Where an element is drawn in the window, in CSS pixels; an element that is not drawn fails the spec. */
+  async box(element: Locator): Promise<{
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    width: number;
+    height: number;
+  }> {
+    const box = await element.boundingBox();
+    if (box === null) throw new Error(`not drawn: ${String(element)}`);
+    return {
+      left: box.x,
+      top: box.y,
+      right: box.x + box.width,
+      bottom: box.y + box.height,
+      width: box.width,
+      height: box.height,
+    };
+  }
+
+  /** The window's size, in CSS pixels. */
+  window(): { width: number; height: number } {
+    return this.page.viewportSize() ?? { width: 0, height: 0 };
+  }
+
+  /**
+   * How far the screen can scroll down, in CSS pixels: the document's own scroll and the scroll of the body under the
+   * header, whichever is longer. 0 is a screen that fits (L2-171 AC1).
+   */
+  scrollsDownBy(): Promise<number> {
+    return this.page.evaluate(() => {
+      const scrollers = [
+        document.scrollingElement,
+        ...document.querySelectorAll('.the-class__scroll, .the-class-page__scroll'),
+      ];
+      return Math.max(
+        0,
+        ...scrollers.map((scroller) =>
+          scroller ? scroller.scrollHeight - scroller.clientHeight : 0,
+        ),
+      );
+    });
+  }
+
+  /** Scrolls the body under the header to its end, as a rider's last swipe does. */
+  async scrollToTheEnd(): Promise<void> {
+    await this.page
+      .locator('.the-class__scroll')
+      .evaluate((scroller) => scroller.scrollTo(0, scroller.scrollHeight));
+  }
+
+  /**
+   * The words of each control Tab stops at, in order, from the top of the page until focus leaves the page or comes
+   * round again. A control that is not displayed is never among them.
+   */
+  async tabStops(): Promise<string[]> {
+    const stops: string[] = [];
+    const seen = new Set<string>();
+    for (let press = 0; press < 30; press++) {
+      await this.page.keyboard.press('Tab');
+      const stop = await this.page.evaluate(() => {
+        const active = document.activeElement;
+        if (active === null || active === document.body) return null;
+        const words = (active.getAttribute('aria-label') ?? active.textContent ?? '').trim();
+        const all = [...document.querySelectorAll('*')];
+        return { words: words.replace(/\s+/g, ' '), index: all.indexOf(active) };
+      });
+      if (stop === null || seen.has(String(stop.index))) break;
+      seen.add(String(stop.index));
+      stops.push(stop.words);
+    }
+    return stops;
+  }
+
+  /** Presses Tab, from wherever the focus is, until the element has it; fails the spec if it never does. */
+  async tabTo(element: Locator): Promise<void> {
+    for (let press = 0; press < 30; press++) {
+      await this.page.keyboard.press('Tab');
+      if (await element.evaluate((node) => node === document.activeElement)) return;
+    }
+    throw new Error(`Tab never reached ${String(element)}`);
   }
 
   /** Whether an option of "Ride with" shows its mark, the dot in its ring, so the choice is not told by colour alone. */

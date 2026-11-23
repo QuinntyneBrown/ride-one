@@ -15,10 +15,15 @@ title Class structure — Fit The Class to every form factor
 
 class TheClassPage <<component>> {
   selector: wz-the-class-page
-  #startButton: TemplateRef
+  .the-class-page: height 100dvh
 }
-class "the-class-page.scss" as Sheet <<stylesheet>> {
+class TheClass <<component>> {
+  selector: wz-the-class
+  #go: TemplateRef
+}
+class "the-class.scss" as Sheet <<stylesheet>> {
   .the-class
+  .the-class~__scroll
   .the-class~__body
   .the-class~__media
   .the-class~__video
@@ -34,19 +39,27 @@ class "the-class-page.scss" as Sheet <<stylesheet>> {
 class "Below lg" as Narrow <<media query>> {
   default rules
   .the-class~__body: one column
-  .app~__scroll: overflow-y auto
+  .the-class~__scroll: overflow-y auto
   .the-class~__footer: shown, a flex sibling of the scroll body
   .the-class~__action: display none
   .the-class~__stats: flex 1 1 16rem, wraps under the length
 }
 class "From lg" as Wide <<media query>> {
   @media (min-width: 64rem)
-  .the-class~__body: minmax(0, 1fr) and the aside, height 100%
-  .app~__scroll: overflow hidden
+  .the-class~__body: minmax(0, 1fr) and the aside, min-height 100%
+  .the-class~__body rows: minmax(160 px, 1fr) and auto
+  .the-class~__scroll: scrolls only where the aside cannot fit
   .the-class~__media: container-type size
   .the-class~__video: width min(100cqw, 100cqh x 16 / 9)
   .the-class~__action: display block
   .the-class~__footer: display none
+}
+class "Short window from lg" as Short <<media query>> {
+  @media (min-width: 64rem) and (max-height: 49.99rem)
+  .the-class~__body: padding-block 16 px
+  .the-class~__title: one step smaller
+  margins above the summary, Ride with, the facts,
+  the record and the start button: smaller
 }
 class "tokens.css" as Tokens <<stylesheet>> {
   --the-class-aside-width: 380 px
@@ -63,10 +76,12 @@ class Button {
   +block: boolean
 }
 
-TheClassPage ..> Sheet : styleUrl
-TheClassPage --> "2" Button : one template, two outlets
+TheClassPage --> TheClass : the height under the header
+TheClass ..> Sheet : styleUrl
+TheClass --> "2" Button : one template, two outlets
 Sheet *-- Narrow
 Sheet *-- Wide
+Sheet *-- Short
 Sheet ..> Tokens : reads
 Narrow ..> Index : env(safe-area-inset-bottom)
 @enduml

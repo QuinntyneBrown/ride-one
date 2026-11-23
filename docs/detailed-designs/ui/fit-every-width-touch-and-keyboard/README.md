@@ -95,9 +95,11 @@ new.
   Ride's Home and is reshaped to open The Class. Fixtures and page objects belong to
   [Test without hardware](../../platform/test-without-hardware/README.md).
 
-The minimum height at which a landscape screen still fits without scrolling (The Class from lg,
-Class Ride from md) is `<TO SUPPLY>`: L2-139 AC1 forbids cut-off content and L2-171 AC1 and L2-087
-AC5 forbid scrolling, and the mocks draw nothing shorter than 834 px.
+The Class from lg fits without scrolling down to 1024 × 768, and a landscape window too short for
+it scrolls rather than cut content off (slice 30.4, `L2.md` open question 23,
+[Fit The Class to every form factor](../fit-the-class-to-every-form-factor/README.md)). The
+minimum height at which Class Ride from md still fits without scrolling is `<TO SUPPLY>`: L2-139
+AC1 forbids cut-off content and L2-087 AC5 forbids scrolling.
 
 ## Requirements
 
