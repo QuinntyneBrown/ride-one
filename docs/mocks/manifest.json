@@ -29,6 +29,7 @@
       "requirements": [
         "L2-007",
         "L2-008",
+        "L2-009",
         "L2-011",
         "L2-012",
         "L2-013",
@@ -41,12 +42,15 @@
         "pairing",
         "paired",
         "bluetooth-off",
-        "unsupported-browser"
+        "unsupported-browser",
+        "needs-https",
+        "chooser-blocked",
+        "chooser-failed"
       ],
       "not_applicable": {
         "loading": "‘searching’ is the loading state: the card spins while the browser’s list of bikes is open.",
         "empty": "The supported bikes list is fixed, and a search that finds nothing is the browser’s own chooser.",
-        "error": "The failures are their own states: bluetooth-off and unsupported-browser."
+        "error": "The failures are their own states: bluetooth-off, unsupported-browser, needs-https, chooser-blocked and chooser-failed."
       }
     },
     {

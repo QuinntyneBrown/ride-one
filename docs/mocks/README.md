@@ -109,10 +109,12 @@ design says nothing. None was settled quietly; the mocks follow the design.
 4. **Where rides go.** The design keeps the ride count and best on the device; `AGENTS.md` gives
    the backend rider progress (XP, stars, unlocks, rides). Should Telo Ride 1 sign in and save
    rides, and if so, Class Done needs a saving and a failed state.
-5. **HTTPS on Connect Bike.** The prototype maps every unsupported browser, plain http included, to
-   Connect Bike's "This browser can't reach the bike", whose copy is about Chrome and Edge. A new
-   rider on http is told to change browser. The Class has a separate `needs-https` banner; Connect
-   Bike draws none.
+5. **HTTPS on Connect Bike.** Closed by slice 29.2. The prototype maps every unsupported browser,
+   plain http included, to Connect Bike's "This browser can't reach the bike", whose copy is about
+   Chrome and Edge, so a new rider on http was told to change browser. L2-009 AC4 stands: Connect
+   Bike has its own `needs-https` state, the same alert with a lock, "Open the secure version of
+   this page" and **Open over HTTPS**. The same slice drew `chooser-blocked` and `chooser-failed`
+   (L2-012 AC4), which the prototype does not draw either.
 6. **Unreachable or frame-only states.** `connect-bike/searching` is reachable only through the
    frame's controls (the prototype starts at "found"). A new rider whose browser is unsupported can
    never leave Connect Bike, so The Class's banners are drawn for a returning rider, as the Form
@@ -156,12 +158,12 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | searching | pairing | paired | bluetooth-off | unsupported-browser | returning | no-bike | needs-chromium | needs-https | paused | disconnected | first | not-best | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Connect Bike (`connect-bike`) | [✅](pages/connect-bike/default.html) | ➖ | ➖ | ➖ | [✅](pages/connect-bike/searching.html) | [✅](pages/connect-bike/pairing.html) | [✅](pages/connect-bike/paired.html) | [✅](pages/connect-bike/bluetooth-off.html) | [✅](pages/connect-bike/unsupported-browser.html) |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-018` |
-| The Class (`the-class`) | [✅](pages/the-class/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/the-class/returning.html) | [✅](pages/the-class/no-bike.html) | [✅](pages/the-class/needs-chromium.html) | [✅](pages/the-class/needs-https.html) |  |  |  |  | `L2-008`, `L2-009`, `L2-010`, `L2-019`, `L2-084`, `L2-144` |
-| Class Ride (`class-ride`) | [✅](pages/class-ride/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  | [✅](pages/class-ride/paused.html) | [✅](pages/class-ride/disconnected.html) |  |  | `L2-026`, `L2-027`, `L2-028`, `L2-087`, `L2-088`, `L2-089`, `L2-091`, `L2-092`, `L2-093` |
-| Class Done (`class-done`) | [✅](pages/class-done/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-done/first.html) | [✅](pages/class-done/not-best.html) | `L2-077`, `L2-078`, `L2-079` |
-| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-145` |
+| Screen | default | loading | empty | error | searching | pairing | paired | bluetooth-off | unsupported-browser | chooser-blocked | chooser-failed | returning | no-bike | needs-chromium | needs-https | paused | disconnected | first | not-best | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Connect Bike (`connect-bike`) | [✅](pages/connect-bike/default.html) | ➖ | ➖ | ➖ | [✅](pages/connect-bike/searching.html) | [✅](pages/connect-bike/pairing.html) | [✅](pages/connect-bike/paired.html) | [✅](pages/connect-bike/bluetooth-off.html) | [✅](pages/connect-bike/unsupported-browser.html) | [✅](pages/connect-bike/chooser-blocked.html) | [✅](pages/connect-bike/chooser-failed.html) |  |  |  | [✅](pages/connect-bike/needs-https.html) |  |  |  |  | `L2-007`, `L2-008`, `L2-009`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-018` |
+| The Class (`the-class`) | [✅](pages/the-class/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  | [✅](pages/the-class/returning.html) | [✅](pages/the-class/no-bike.html) | [✅](pages/the-class/needs-chromium.html) | [✅](pages/the-class/needs-https.html) |  |  |  |  | `L2-008`, `L2-009`, `L2-010`, `L2-019`, `L2-084`, `L2-144` |
+| Class Ride (`class-ride`) | [✅](pages/class-ride/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-ride/paused.html) | [✅](pages/class-ride/disconnected.html) |  |  | `L2-026`, `L2-027`, `L2-028`, `L2-087`, `L2-088`, `L2-089`, `L2-091`, `L2-092`, `L2-093` |
+| Class Done (`class-done`) | [✅](pages/class-done/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-done/first.html) | [✅](pages/class-done/not-best.html) | `L2-077`, `L2-078`, `L2-079` |
+| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-145` |
 
 <!-- coverage:end -->

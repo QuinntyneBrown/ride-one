@@ -22,7 +22,7 @@ Neighbouring features own the adjacent concerns. The "Works with" list and the a
 
 ## Description
 
-The slice runs from Connect Bike through a page-scoped store to the one service that touches `navigator.bluetooth`. Slice 29.1 built the screen as described here; the alerts are slice 29.2's.
+The slice runs from Connect Bike through a page-scoped store to the one service that touches `navigator.bluetooth`. Slice 29.1 built the screen as described here, and slice 29.2 its alerts.
 
 **Contracts in the `api` library**
 
@@ -50,7 +50,7 @@ The slice runs from Connect Bike through a page-scoped store to the one service 
   - The lead reads "…Telo Ride 1 reads your power…" and the route title names Telo Ride 1.
   - The hint "Not in the list? Close the Echelon app…" (`connect__hint`) is removed; the design does not draw it.
   - The pair button is busy (`aria-busy="true"`, with the spinner) only while pairing runs. While the chooser is open it is disabled and reads "Searching…", with no `aria-busy`, as `searching.html` draws it; the card's `role="status"` carries the search.
-  - The alerts will use the new `wz-connect-blocker` of [Check bike and browser support](../check-bike-and-browser-support/README.md), in slice 29.2; until then the page draws them itself, as carried over. The chooser-blocked and chooser-failed alerts are in the code and have no mock (mock gap: `L2-012` AC4).
+  - The alerts are the `wz-connect-blocker` of [Check bike and browser support](../check-bike-and-browser-support/README.md), drawn from that feature's `connectAlert()` in place of the device card and the pair button (slice 29.2). With Bluetooth off (`adapter-off`) the alert is `bluetooth-off.html` and "Try again" calls `support.recheck()`; while it is still off the alert stays. For the store's `failed` view the alert is `chooser-blocked.html` when the reason is `blocked` and `chooser-failed.html` otherwise, and "Try again" calls `store.pair()` inside the click, so the chooser opens again and the card searches.
   - `connect-bike-page.scss` gives the body the height the header leaves, at most 64 rem wide (`--layout-container-narrow`) and centred both ways. At lg it is two equal columns 4 rem apart with the photo on the left; below lg the photo follows the content, square, up to 28 rem.
 - **`ConnectDevice`** (`wz-connect-device`, block `connect-device`) exists in `components` and is unchanged. It takes `name`, `identifier` and `state` (`idle`, `searching`, `paired`), and draws the identifier line only when there is an identifier. It has no signal input: `requestDevice` reports no signal strength for the bike the rider picks, so none is shown (`L2-011` AC3; L2's open question 17, closed by slice 29.1).
 
@@ -62,7 +62,7 @@ Class Ride learns that a bike refuses control from the `read-only` code that `se
 
 **Acceptance tests**
 
-`frontend/e2e/connect-bike.spec.ts` proves the screen as designed: at rest, its layout from lg and below it, searching while the chooser is open, the pick by touch and by keyboard, pairing, an FTMS bike's own name, and paired with the half second before The Class. `frontend/e2e/pair-a-bike.spec.ts` proves the chooser's request, its cancelling and blocking, and the GATT order for both protocols. The page object `pages/connect-bike.page.ts` and the fixtures `fixtures/fake-bluetooth.ts`, `fixtures/echelon.ts` and `fixtures/ftms.ts` serve both. The fake records every write with its characteristic, bytes and response flag, and the options of each `requestDevice` call; `holdChooser()` keeps the chooser open until `pickFromChooser()` or `closeChooser()`. The 500 ms pause is counted on Playwright's paused clock.
+`frontend/e2e/connect-bike.spec.ts` proves the screen as designed: at rest, its layout from lg and below it, searching while the chooser is open, the pick by touch and by keyboard, pairing, an FTMS bike's own name, and paired with the half second before The Class. `frontend/e2e/pair-a-bike.spec.ts` proves the chooser's request, its cancelling, and the GATT order for both protocols. `frontend/e2e/connect-bike-alerts.spec.ts` proves the alerts: Bluetooth off with "Try again" (`L2-018`), and a chooser a policy blocks or that fails for another reason, with "Try again" opening it again (`L2-012` AC4). The page object `pages/connect-bike.page.ts` and the fixtures `fixtures/fake-bluetooth.ts`, `fixtures/echelon.ts` and `fixtures/ftms.ts` serve both. The fake records every write with its characteristic, bytes and response flag, and the options of each `requestDevice` call; `holdChooser()` keeps the chooser open until `pickFromChooser()` or `closeChooser()`. The 500 ms pause is counted on Playwright's paused clock.
 
 ## Requirements
 

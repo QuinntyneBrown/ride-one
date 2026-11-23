@@ -7,7 +7,7 @@
 <meta name="mock:kind" content="page">
 <meta name="mock:screen" content="connect-bike">
 <meta name="mock:state" content="unsupported-browser">
-<meta name="mock:requirements" content="L2-007 L2-008 L2-011 L2-012 L2-013 L2-014 L2-018">
+<meta name="mock:requirements" content="L2-007 L2-008 L2-009 L2-011 L2-012 L2-013 L2-014 L2-018">
 <meta name="description" content="This browser cannot use Web Bluetooth: an alert sends the rider to Chrome or Edge, with Try again.">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
@@ -38,7 +38,6 @@
         <p class="connect-blocker__body">Open Telo Ride 1 in Chrome or Edge on a laptop or Android tablet. Safari and Firefox don't support Web Bluetooth yet.</p>
         <a class="btn btn--raised connect-blocker__retry" href="default.html">Try again</a>
       </section>
-      <p class="mock-note connect__note">Any browser that cannot reach the bike lands here, plain http included: Telo Ride 1 draws no separate HTTPS state on this screen (see the README’s open questions).</p>
 
       <section class="connect-works" aria-labelledby="works-with">
         <h2 class="connect-works__title" id="works-with">Works with</h2>
@@ -64,6 +63,9 @@
     <li><a href="paired.html">paired</a></li>
     <li><a href="bluetooth-off.html">bluetooth-off</a></li>
     <li><a href="unsupported-browser.html" aria-current="page">unsupported-browser</a></li>
+    <li><a href="needs-https.html">needs-https</a></li>
+    <li><a href="chooser-blocked.html">chooser-blocked</a></li>
+    <li><a href="chooser-failed.html">chooser-failed</a></li>
   </ul>
   <button type="button" data-theme-toggle aria-pressed="true">☀ Light</button>
   <button type="button" data-chrome-toggle aria-label="Hide mock chrome">×</button>

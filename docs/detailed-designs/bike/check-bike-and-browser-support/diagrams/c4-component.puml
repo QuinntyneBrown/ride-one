@@ -11,7 +11,7 @@ Container_Boundary(ride, "ride application") {
 }
 Container_Boundary(components, "components library") {
   Component(notice, "BrowserNotice", "wz-browser-notice, new", "Alert under the header with one action")
-  Component(blocker, "ConnectBlocker", "wz-connect-blocker, new", "Alert that stands in for the device card")
+  Component(blocker, "ConnectBlocker", "wz-connect-blocker", "Alert that stands in for the device card")
   Component(works, "ConnectWorks", "wz-connect-works, exists", "Works with list, one or two columns")
 }
 Container_Boundary(domain, "domain library") {
