@@ -51,8 +51,7 @@ output estimated from ride time) are placeholders, not rules.
 This repository began as a copy of Telo Ride. Its code, docs and tests still hold Telo Ride's
 other features: races, the World library and its Blender courses (`blender/`, `tools/blender`),
 the class library, sign-in, progression, group classes and live races, the custom workout and the
-`marketing` application. `docs/specs/`, `docs/journeys.md`, `docs/detailed-journeys.md`,
-`docs/detailed-designs/`, `docs/mocks/` and the ADRs still describe Telo Ride.
+`marketing` application. `docs/detailed-designs/` and the ADRs still describe Telo Ride.
 
 - Keep and build on what the four screens need: the Bluetooth link, the protocol, the engine, the
   simulated bike, the video library, the solo class ride and its result.

@@ -1,106 +1,94 @@
 # Detailed journeys
 
-Each journey in [`journeys.md`](journeys.md) split into vertical slices of 4 days or fewer, in the
-same order. Estimates are working days for one intermediate developer. **% complete** is 100% once a
-slice is merged into `telo-ride`; each slice sets its own row, and the total, when it finishes (see
-[`lessons-learned.md`](lessons-learned.md)).
+This document is rewritten for Telo Ride 1 and drops what Telo Ride 1 leaves out (see
+[`journeys.md`](journeys.md)). Each journey there is split into vertical slices of 4 days or
+fewer, in the same order. Estimates are working days for one intermediate developer, made from
+[`specs/L2.md`](specs/L2.md), the mocks and the code carried over; the detailed designs still
+describe Telo Ride. **% complete** is 100% once a slice is merged into `main`; each slice sets its
+own row, and the totals, when it finishes (see [`lessons-learned.md`](lessons-learned.md)).
 
-| # | Slice | Description | Days | Journey | % complete |
-|---|-------|-------------|------|---------|-----------|
-| 1.1 | Frontend workspace | Angular libraries, ride app, lint, boundaries, budgets, tokens and fonts. | 3 | 1. Scaffold the product | 100% |
-| 1.2 | Backend skeleton | Clean architecture projects, health endpoint, auth fallback policy, OpenTelemetry. | 3 | 1. Scaffold the product | 100% |
-| 1.3 | Test harness | Fake Bluetooth and API fixtures for Playwright; in-memory backend test server. | 2 | 1. Scaffold the product | 100% |
-| 1.4 | CI and hosting | GitHub Actions under 5 minutes; the API serves the app on Azure App Service (ADR 0026). | 2 | 1. Scaffold the product | 100% |
-| 2.1 | Ride a simulated bike | `?simulate` connects a simulated bike end to end. | 2 | 2. Connect a bike | 100% |
-| 2.2 | Check browser support | Needs-Chromium and needs-HTTPS panels when Web Bluetooth is missing. | 2 | 2. Connect a bike | 100% |
-| 2.3 | Pair a bike | Browser chooser, connect, Connect Bike screen and its states. | 3 | 2. Connect a bike | 100% |
-| 2.4 | Keep the bike connected | Keepalive, automatic reconnect, `ble` status line and banners. | 3 | 2. Connect a bike | 100% |
-| 3.1 | Decode bike notifications | Parse power, cadence, speed and resistance frames with checksums. | 2 | 3. Read live telemetry | 100% |
-| 3.2 | Show live metrics | Power, cadence, speed and resistance readouts update on every notification, with ride totals for time, distance and energy. | 2 | 3. Read live telemetry | 100% |
-| 3.3 | Show heart rate | Connect a Bluetooth heart-rate strap from Profile; heart rate shows beside power during any ride. | 1 | 3. Read live telemetry | 100% |
-| 4.1 | Send target resistance | Frame commands; bike follows the target and reports resistance back. | 3 | 4. Control resistance | 100% |
-| 4.2 | Take over resistance | Stepper raises or lowers resistance; return to plan. | 2 | 4. Control resistance | 100% |
-| 5.1 | Workout engine and ride clock | Plan steps through segments on a true clock and sends each target. | 3 | 5. Ride a solo class | 100% |
-| 5.2 | Class ride screen | Header, segment, power, cadence and resistance stepper on the simulated bike. | 3 | 5. Ride a solo class | 100% |
-| 5.3 | Sync the class video | YouTube player follows the ride clock; video-unavailable notice. | 3 | 5. Ride a solo class | 100% |
-| 5.4 | Pause, leave or finish a class | Pause and resume a solo class, leave with confirmation, or finish at the end and go to results. | 3 | 5. Ride a solo class | 100% |
-| 6.1 | Class catalogue API | `GET /api/classes` from the catalogue file; cached on the device. | 2 | 6. Browse and start a class | 100% |
-| 6.2 | Class library | Classes listed by length and tier with cover, coach and duration; locked tiers say what opens them. | 3 | 6. Browse and start a class | 100% |
-| 6.3 | Class start | Parked video, plan, ride alone; Start class opens the ride. | 3 | 6. Browse and start a class | 100% |
-| 7.1 | Browse maps | Map list with distance, climb and stars; locked maps shown. | 3 | 7. Race the ghost and bots | 100% |
-| 7.2 | Set up a race | Choose the map and opponents (your best-time ghost and bots), then start the race. | 2 | 7. Race the ghost and bots | 100% |
-| 7.3 | Ride a race | Power to speed, distance and position; gradient sets resistance. | 4 | 7. Race the ghost and bots | 100% |
-| 7.4 | Ghost and bots | Best-time ghost replay and paced bots on the board. | 3 | 7. Race the ghost and bots | 100% |
-| 7.5 | Finish, pause or leave a race | Finish line and placing; pause, leave or lose the bike. | 3 | 7. Race the ghost and bots | 100% |
-| 8.1 | Load the world library | Lazy `world` chunk, backend probe, canvas host, dispose on leave. | 3 | 8. See the race world | 100% |
-| 8.2 | Draw the route world | Road, terrain and sky for one map; camera follows distance. | 4 | 8. See the race world | 100% |
-| 8.3 | Draw riders and ghost | Instanced riders in jersey colours; translucent gold ghost. | 3 | 8. See the race world | 100% |
-| 8.4 | Quality levels | Four levels of techniques; WebGL 2 caps at High. | 4 | 8. See the race world | 100% |
-| 8.5 | Step down when frames drop | After two 2-second windows in a row with slow frames, the world drops one quality level for the rest of the race. | 2 | 8. See the race world | 100% |
-| 8.6 | Panorama and hidden tab | Panorama without 3D; drawing stops while the tab is hidden. | 2 | 8. See the race world | 100% |
-| 8.7 | Real-world scenery | Stream Google 3D Tiles with the rider's own key. | 2 | 8. See the race world | 100% |
-| 9.1 | Request an email code | Rider enters an email address; the backend sends a one-time code and the screen waits for it. | 3 | 9. Sign in with an email code | 100% |
-| 9.2 | Verify and stay signed in | Enter the code, get a session, stay signed in. | 3 | 9. Sign in with an email code | 100% |
-| 9.3 | Choose a display name | Prompt after first sign-in; change it from Profile. | 2 | 9. Sign in with an email code | 100% |
-| 9.4 | Sign out and delete account | Sign out; delete account and all its data. | 2 | 9. Sign in with an email code | 100% |
-| 10.1 | Record a ride | `POST /api/rides`, idempotent by ride id, plausibility check. | 3 | 10. Earn XP, levels and streaks | 100% |
-| 10.2 | Earn XP | Each recorded ride earns XP for finishing, its place, a podium and its time on target, calculated on the backend. | 2 | 10. Earn XP, levels and streaks | 100% |
-| 10.3 | Rider levels | Levels from XP thresholds; level shown in the header. | 2 | 10. Earn XP, levels and streaks | 100% |
-| 10.4 | Keep a streak | Consecutive riding days are counted on the backend and shown on Home, Profile and results. | 3 | 10. Earn XP, levels and streaks | 100% |
-| 11.1 | Results screen | Time, power and distance summary after any ride. | 3 | 11. See results | 100% |
-| 11.2 | XP, stars and personal best | Results show XP earned, stars and a new personal best. | 3 | 11. See results | 100% |
-| 11.3 | Celebrate an unlock | Unlock moment for a new map or tier. | 2 | 11. See results | 100% |
-| 12.1 | Earn stars and unlock maps | Race times earn up to three stars per map; enough stars unlock the next maps. | 3 | 12. Unlock maps and class tiers | 100% |
-| 12.2 | Open class tiers | Rider levels open longer class tiers (20, 30 and 60 minutes) in the class library. | 2 | 12. Unlock maps and class tiers | 100% |
-| 13.1 | App header | Wordmark, navigation, level and full screen on every page. | 2 | 13. Choose the next ride | 100% |
-| 13.2 | Home next ride | Home suggests the next race or class from the rider's progress, with both doors one tap away. | 2 | 13. Choose the next ride | 100% |
-| 13.3 | Show the profile | Profile shows rider level, XP, streak and the settings rows (bike, ride settings, custom workout). | 1 | 13. Choose the next ride | 100% |
-| 14.1 | Connect to the ride hub | SignalR client behind a token: connects only when needed, measures the server clock offset and reconnects after drops. | 3 | 14. Ride a class with a group | 100% |
-| 14.2 | Group session schedule | A session every 15 minutes, 10 seats, shown on Class Start. | 3 | 14. Ride a class with a group | 0% |
-| 14.3 | Join a group session | Join; full or started sessions offer the next one. | 3 | 14. Ride a class with a group | 0% |
-| 14.4 | Start together | Clock and video wait, then start at the session time. | 3 | 14. Ride a class with a group | 0% |
-| 14.5 | Live group board | Group class board ranks riders by output and updates every second from the backend. | 3 | 14. Ride a class with a group | 0% |
-| 15.1 | Race lobby | Wait for riders, see who's in, leave before the start. | 3 | 15. Race people live | 0% |
-| 15.2 | Start a live race | Shared countdown; everyone starts on the same server time. | 3 | 15. Race people live | 0% |
-| 15.3 | Live standings | Positions and gaps every second from the backend. | 3 | 15. Race people live | 0% |
-| 15.4 | Mark leavers and DNF | Riders who leave or drop out are marked DNF. | 3 | 15. Race people live | 0% |
-| 15.5 | Record results nobody can change | The backend computes the final placings and locks them so no client can change them. | 3 | 15. Race people live | 0% |
-| 16.1 | Download the world | Load card with progress, saved worlds, resume after failure. | 3 | 16. Ride a world class | 0% |
-| 16.2 | Build shaders and warm up | Programs built in batches, warm-up, slow-load and step-down options. | 3 | 16. Ride a world class | 0% |
-| 16.3 | Start a solo world class | Start riding when ready and connected; world fades in. | 2 | 16. Ride a world class | 0% |
-| 16.4 | Join a group world class | Countdown, start with the group, world fades in when ready. | 2 | 16. Ride a world class | 0% |
-| 17.1 | Ride outbox | Finished rides wait on the device and send when online. | 3 | 17. Ride without a network | 0% |
-| 17.2 | Cache the app | Service worker caches shell, chunks, worlds and catalogues. | 3 | 17. Ride without a network | 0% |
-| 17.3 | Offline choices | Group and live options say why they're unavailable offline. | 2 | 17. Ride without a network | 0% |
-| 18.1 | Lose the service mid-ride | Multiplayer drops; the ride carries on and rejoins. | 3 | 18. Ride through a lost service | 0% |
-| 18.2 | Keep the ride clock true | Clock stays right through hidden tabs and throttling. | 2 | 18. Ride through a lost service | 0% |
-| 19.1 | Bundle budgets | Lazy routes, tight initial budget, gzip check in verify. | 2 | 19. Stay smooth on long rides | 0% |
-| 19.2 | Bounded ride buffers | Power and cadence traces, packet logs and leaderboards use fixed-size buffers, so memory stays flat over an hour. | 2 | 19. Stay smooth on long rides | 0% |
-| 19.3 | Heap checks | Heap stays stable across repeated enter and leave of the race, class and world screens. | 2 | 19. Stay smooth on long rides | 0% |
-| 19.4 | Web vitals and frame budget | Measure LCP, INP and frame times on reference devices. | 2 | 19. Stay smooth on long rides | 0% |
-| 20.1 | Settings page and store | `/settings`, sections, apply at once, kept on device, reset. | 3 | 20. Tune ride settings | 0% |
-| 20.2 | World quality controls | Quality cards, step-down, frame rate, resolution, graphics API. | 3 | 20. Tune ride settings | 0% |
-| 20.3 | Check this device | Off-screen trials find the level the device holds. | 2 | 20. Tune ride settings | 0% |
-| 20.4 | Sound, motion and display | Ride sound, music, reduce motion, theme, ride numbers, wake lock. | 2 | 20. Tune ride settings | 0% |
-| 20.5 | Manage saved worlds | This device section lists saved worlds and their size, clears them with a toast, and can stop saving. | 2 | 20. Tune ride settings | 0% |
-| 21.1 | Set up a custom workout | Build your own workout under Profile: warm-up, ordered interval sets and cool-down. | 3 | 21. Ride a custom workout | 0% |
-| 21.2 | Preview a custom workout | Preview the workout's resistance profile, length and expected average power before starting. | 2 | 21. Ride a custom workout | 0% |
-| 21.3 | Ride a custom workout | The plan drives target resistance through each interval, with the ride clock and live readouts. | 3 | 21. Ride a custom workout | 0% |
-| 21.4 | Pause, leave or end | Pause, lose the bike, leave or end the ride. | 2 | 21. Ride a custom workout | 0% |
-| 22.1 | Authenticate every request | Every endpoint and hub needs authentication by default; anonymous endpoints are explicit and listed. | 2 | 22. Stay secure | 0% |
-| 22.2 | Validate input and encode output | Validators on every request; device names rendered as text. | 2 | 22. Stay secure | 0% |
-| 22.3 | Limit abuse | Rate limits on sign-in codes, ride submissions and feedback, refusing with a code the screen branches on. | 2 | 22. Stay secure | 0% |
-| 22.4 | Restrict third parties | Static CSP; rider data seen only by its owner. | 2 | 22. Stay secure | 0% |
-| 23.1 | Fit every width | 320 to 2560 px with no sideways scroll. | 3 | 23. Use by touch, keyboard and screen reader | 0% |
-| 23.2 | Touch and keyboard | 44 px targets, focus order and visible focus everywhere. | 2 | 23. Use by touch, keyboard and screen reader | 0% |
-| 23.3 | Screen readers and motion | Screen readers hear step changes and results; dialogs make the page inert; reduced motion stills animation. | 3 | 23. Use by touch, keyboard and screen reader | 0% |
-| 24.1 | Switch theme | Match device, dark or light from role tokens. | 2 | 24. Switch theme and full screen | 0% |
-| 24.2 | Full screen | Full screen toggle on every page header, hidden where the browser has no Fullscreen API. | 1 | 24. Switch theme and full screen | 0% |
-| 25.1 | Inspect diagnostics | Bike, browser and connection state in a dialog. | 3 | 25. Check diagnostics | 0% |
-| 25.2 | Record the packet log | Bounded log of Bluetooth commands, or every message when switched on, downloadable as a file. | 2 | 25. Check diagnostics | 0% |
-| 26.1 | Send feedback | Bug, idea or kudos dialog with sending and sent states. | 3 | 26. Send feedback | 0% |
-| 26.2 | Receive feedback | Backend stores each feedback item, rate-limited, and the team can read it without seeing contact details in telemetry. | 2 | 26. Send feedback | 0% |
-| 27.1 | Installable app | Manifest, icons and install from Chrome or Edge. | 2 | 27. Install the app | 0% |
-| 27.2 | Update to a new version | Tell the rider a new version is ready; reload between rides. | 1 | 27. Install the app | 0% |
+**Requirements** names the L2s a slice proves. Before a slice is built, its detailed design is
+brought in line with Telo Ride 1, and so is its mock where L2 lists a mock gap (`AGENTS.md`).
 
-**Total:** 95 slices, 238 days. **Complete:** 49 slices, 126 days (53%).
+## Carried over from Telo Ride
+
+Slices merged in Telo Ride whose requirement Telo Ride 1 keeps. They keep their numbers.
+
+| # | Slice | Description | Days | Journey | Requirements | % complete |
+|---|-------|-------------|------|---------|--------------|-----------|
+| 1.1 | Frontend workspace | Angular libraries, ride app, lint, boundaries, budgets, tokens and fonts. | 3 | 1. Scaffold the product | L2-146 | 100% |
+| 1.3 | Test harness | Fake Bluetooth and request fixtures for Playwright. | 2 | 1. Scaffold the product | L2-148 | 100% |
+| 1.4 | CI | GitHub Actions: lint, build and one acceptance path per feature, in under 5 minutes. | 2 | 1. Scaffold the product | L2-149 AC2 | 100% |
+| 2.1 | Ride a simulated bike | `?simulate` connects a simulated bike end to end. | 2 | 2. Connect a bike | L2-024 | 100% |
+| 2.4 | Keep the bike connected | Keepalive and automatic reconnect every 3 seconds. | 3 | 2. Connect a bike | L2-016, L2-017 | 100% |
+| 3.1 | Decode bike notifications | Parse Echelon and FTMS frames into power, cadence and resistance. | 2 | 3. Read live telemetry | L2-020, L2-021 | 100% |
+| 3.2 | Show live metrics | Power, cadence and resistance update on every notification; estimated power adds to output. | 2 | 3. Read live telemetry | L2-023, L2-134 AC1 | 100% |
+| 4.1 | Send target resistance | Frame commands; the bike follows the target and reports resistance back. | 3 | 4. Control resistance | L2-025, L2-026 | 100% |
+| 4.2 | Take over resistance | Stepper raises or lowers resistance; the plan's level returns. | 2 | 4. Control resistance | L2-028 | 100% |
+| 5.1 | Workout engine and ride clock | Plan steps through segments on a true clock and sends each target. | 3 | 5. Ride a solo class | L2-027 | 100% |
+| 5.3 | Sync the class video | YouTube player follows the ride clock and seeks back when it drifts. | 3 | 5. Ride a solo class | L2-088 AC1–3, AC5–6 | 100% |
+
+Not counted, though their code stays until a slice below replaces or removes it:
+
+- **Redrawn by Telo Ride 1:** 2.2 Check browser support, 2.3 Pair a bike, 5.2 Class ride screen,
+  5.4 Pause, leave or finish a class, 6.1 Class catalogue API and 6.3 Class start. Slices 29.1 to
+  32.2 start from their code.
+- **Left out by Telo Ride 1:** 1.2 Backend skeleton, 3.3 Show heart rate, 6.2 Class library and
+  every slice of journeys 7 to 14. Journey 28 removes them.
+- **Half of 1.4:** the API serving the app (ADR 0026) is replaced by slice 28.8.
+
+## To build
+
+| # | Slice | Description | Days | Journey | Requirements | % complete |
+|---|-------|-------------|------|---------|--------------|-----------|
+| 28.1 | Decide the backend | An ADR on whether Telo Ride 1 keeps the backend for the class catalogue or ships the class with the app. | 1 | 28. Make it Telo Ride 1 | L2 open question 1 | 0% |
+| 28.2 | Remove races and the World | Races, race setup, maps, ghost and bots, the `world` library and the Blender courses, with their docs, tests and ADRs. | 3 | 28. Make it Telo Ride 1 | L1 (left out) | 0% |
+| 28.3 | Remove group classes and live races | The ride hub client and everything that uses it. | 1 | 28. Make it Telo Ride 1 | L1 (left out) | 0% |
+| 28.4 | Remove sign-in and progression | Sign-in, display name, accounts, XP, rider levels, streaks, stars, unlocks and recorded rides. | 3 | 28. Make it Telo Ride 1 | L2-132 AC1 | 0% |
+| 28.5 | Remove Home, Profile, the class library and heart rate | No menu or navigation is left; `/` opens the one class until slice 30.2 draws The Class. | 2 | 28. Make it Telo Ride 1 | L2-080 AC4, L2-167 AC4 | 0% |
+| 28.6 | Remove the marketing application | The workspace is `ride` on `api`, `domain`, `components` and `video`; an ADR supersedes ADR 0027. | 1 | 28. Make it Telo Ride 1 | L2-146 AC1–2 | 0% |
+| 28.7 | Wordmark | TELO RIDE 1 on every header, and "Telo Ride 1" in every title and message. | 1 | 28. Make it Telo Ride 1 | L2-172 | 0% |
+| 28.8 | Host as static files | Static files over HTTPS with an http redirect and HSTS; the backend goes if 28.1 says so. | 3 | 28. Make it Telo Ride 1 | L2-149 AC1, L2-009 AC2 | 0% |
+| 29.1 | Connect Bike | The screen as designed: works-with list, searching, the bike to pair, pairing, paired, then The Class. | 3 | 29. Pair the bike | L2-007, L2-011, L2-012 AC1–3, L2-013, L2-014 AC1–2, AC4 | 0% |
+| 29.2 | Say why the bike cannot be reached | Alerts for Bluetooth off, an unsupported browser, plain http and a chooser that will not open. | 2 | 29. Pair the bike | L2-008 AC1, L2-009 AC4, L2-012 AC4, L2-018 | 0% |
+| 30.1 | The one class | `gcn-30-hiit` with its plan, validated; no other class; a class that cannot be loaded says so. | 2 | 30. Open on The Class | L2-080 AC1–4 | 0% |
+| 30.2 | The Class | Header with bike status, parked video, title, summary, length and the start button's three states. | 3 | 30. Open on The Class | L2-019, L2-084 AC1, AC4, AC6–7, AC9 | 0% |
+| 30.3 | What the bike will do | Average target power, the resistance profile and the efforts in words. | 1 | 30. Open on The Class | L2-084 AC2–3 | 0% |
+| 30.4 | The Class by form factor | One screen with no scrolling in landscape from 1024 px; one column with the start button pinned below. | 2 | 30. Open on The Class | L2-171 AC1–3, AC5 | 0% |
+| 30.5 | Open where the rider belongs | A new rider opens on Connect Bike, a returning one on The Class; the remembered bike reconnects without the chooser. | 2 | 30. Open on The Class | L2-015, L2-167 AC1–3 | 0% |
+| 30.6 | The Class in a blocked browser | Chrome-or-Edge and HTTPS alerts, Copy link, a disabled start button; `/ride` opens The Class. | 2 | 30. Open on The Class | L2-008 AC2–4, L2-009 AC1, AC3, L2-010 | 0% |
+| 31.1 | Class Ride | The screen as designed at `/ride`: header, clock, segment card, power against target, cadence aim and stepper. | 3 | 31. Take the class | L2-087, L2-089 | 0% |
+| 31.2 | Pause, lose the bike, leave or finish | Pause and resume; a lost bike holds the ride until it is back; Leave returns to The Class; 30:00 opens Class Done. | 3 | 31. Take the class | L2-091, L2-092, L2-093 | 0% |
+| 31.3 | When the video or the bike falls short | The video that cannot play and the FTMS bike that refuses control, each with its notice. | 2 | 31. Take the class | L2-014 AC3, L2-088 AC4 | 0% |
+| 32.1 | Keep the record | Ride count, best output and last output kept on the device, fixed in size; a ride left early changes nothing. | 2 | 32. See your number | L2-132 AC2–4, L2-168 AC1–3, AC5 | 0% |
+| 32.2 | Class Done | Output in kJ, time and average watts; Done returns to The Class; `/done` with no ride opens The Class. | 3 | 32. See your number | L2-078, L2-079 AC1 | 0% |
+| 32.3 | Best output | "New best output" in gold with the previous best, "Your best is still", or the first ride's number to beat. | 1 | 32. See your number | L2-077 | 0% |
+| 32.4 | The eight efforts | Each effort's average watts as a bar, the strongest set apart, rising in turn. | 2 | 32. See your number | L2-142 AC2, L2-169 | 0% |
+| 32.5 | On target | The share of the ride within 10% of target power. | 1 | 32. See your number | L2-170 | 0% |
+| 32.6 | Come back to beat it | The Class shows rides, best output and last time, and its button reads "Ride it again". | 1 | 32. See your number | L2-079 AC2, L2-084 AC5, AC8, L2-171 AC4 | 0% |
+| 32.7 | A ride that could not be saved | Class Done still shows the result and says the ride was not saved on this device. | 1 | 32. See your number | L2-168 AC4 | 0% |
+| 33.1 | Keep the ride clock true | Clock, plan and output stay right in a hidden tab; the screen stays awake; closing the tab asks first. | 2 | 33. Ride through a hidden tab or lost network | L2-016 AC2, L2-133 | 0% |
+| 33.2 | Ride without a network | A ride carries on and finishes offline; the class still shows after a first visit. | 2 | 33. Ride through a hidden tab or lost network | L2-080 AC5, L2-135 | 0% |
+| 34.1 | Bundle budgets | Initial bundle at most 300 KB gzipped, lazy routes, the video player only where a video shows. | 1 | 34. Stay smooth on long rides | L2-136 AC1 | 0% |
+| 34.2 | Running totals only | A ride holds its totals and no trace that grows with its length. | 1 | 34. Stay smooth on long rides | L2-138 AC2 | 0% |
+| 34.3 | Heap checks | Heap stays stable over 3 hours and across ten rounds of The Class and Class Ride. | 2 | 34. Stay smooth on long rides | L2-138 AC1, AC3 | 0% |
+| 34.4 | Web vitals and readouts | LCP, INP and frame times on the reference tablet; readouts update once a second. | 2 | 34. Stay smooth on long rides | L2-134 AC2, L2-136 AC2–3 | 0% |
+| 35.1 | Restrict third parties | A Content Security Policy and headers that allow only the app and the YouTube player. | 2 | 35. Keep it private | L2-131 | 0% |
+| 35.2 | Treat bike and stored data as untrusted | Device names as text, cut to 64 characters; a malformed record means a new rider; console logs only. | 1 | 35. Keep it private | L2-115, L2-129 | 0% |
+| 36.1 | Fit every width | 320 to 2560 px with no sideways scroll, on all four screens. | 2 | 36. Use by touch, keyboard and screen reader | L2-139 | 0% |
+| 36.2 | Touch and keyboard | 44 px targets, 48 px resistance buttons, visible focus and "Skip to content". | 2 | 36. Use by touch, keyboard and screen reader | L2-140 | 0% |
+| 36.3 | Screen readers, contrast and motion | One `h1` a screen, state changes announced once, contrast in both themes, reduced motion. | 2 | 36. Use by touch, keyboard and screen reader | L2-141, L2-142 AC1, AC3 | 0% |
+| 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
+| 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
+
+**Total:** 50 slices, 99 days. **Complete:** 11 slices, 27 days (27%), all carried over.
+**To build:** 39 slices, 72 days.
+
+## What a slice waits for
+
+- **28.1** decides where the class comes from, so 30.1, 28.8 and 35.1 follow it.
+- **L2's open questions:** 30.1 and 30.3 need the warm-up and cool-down cadence aims (11); 32.5
+  builds a rule that is still a proposal (2); 32.2 shows a Time that is always 30:00 (3).
+- **L2's mock gaps**, each drawn before its slice is built: 29.2 (the HTTPS and chooser alerts),
+  30.1 (the class that cannot be loaded), 30.2 (the video that cannot load), 31.1 (power off target), 31.3 (both notices), 32.4
+  (every effort at 0 W) and 32.7.
