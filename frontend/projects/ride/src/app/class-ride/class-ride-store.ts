@@ -298,10 +298,11 @@ export class ClassRideStore {
       onTargetShare: this.recorder?.onTargetShare ?? 0,
       previousBestKj,
       efforts: this.efforts?.watts() ?? [],
+      // Only a ride that reaches its end is counted (L2-168 AC1, AC2); Class Done says when the device would not keep it.
+      saved: true,
     };
-    // Only a ride that reaches its end is counted (L2-168 AC1, AC2).
-    this.rideRecord.add(classResult.outputKj);
-    void this.router.navigateByUrl('/done', { state: { classResult } });
+    const saved = this.rideRecord.add(classResult.outputKj);
+    void this.router.navigateByUrl('/done', { state: { classResult: { ...classResult, saved } } });
   }
 
   /**

@@ -77,6 +77,11 @@ figures are set upright (`writing-mode: vertical-rl`) so 17 fit at 320 px with n
 each, 40 ms apart (`--duration-stagger`), and not at all with reduced motion; the app's token file gained
 `--duration-stagger`, `--class-done-chart-height`, `--class-done-action-width` and `--class-done-figure-room`.
 
+Slice 32.7 added the notice for a ride that could not be saved (`L2-168` AC4; the mock `class-done/not-saved`):
+`RideRecord.add` already returned whether storage took the ride; the store puts that in `ClassResult.saved`, and
+`wz-class-done` draws a polite `wz-inline-message` (`role="status"`) under the facts, "This ride could not be saved on
+this device. Your result is above.", only when `saved` is false. The result itself shows as always.
+
 Slice 32.5 added the fact "On target" (`L2-170`, `L2-078` AC2) after Time and Average and before the best fact:
 `classDoneView.onTarget` is `round(ClassResult.onTargetShare × 100)` as "84%". The share itself was already counted
 by `RideRecorder` (on-target seconds ÷ running seconds, power within 10 % of the segment's target, unknown power

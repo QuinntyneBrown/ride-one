@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import type { EffortBar } from '@telo/api';
+import { InlineMessage } from '../inline-message/inline-message';
 import { Lockup } from '../lockup/lockup';
 
 /**
@@ -9,7 +10,7 @@ import { Lockup } from '../lockup/lockup';
  */
 @Component({
   selector: 'wz-class-done',
-  imports: [Lockup],
+  imports: [InlineMessage, Lockup],
   templateUrl: './class-done.html',
   styleUrl: './class-done.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +34,8 @@ export class ClassDone {
   readonly bestFact = input<{ readonly label: string; readonly value: string } | null>(null);
   /** The class's efforts, a bar each, in plan order (L2-169). */
   readonly efforts = input<readonly EffortBar[]>([]);
+  /** Whether the ride was kept in the record; a notice says when it was not (L2-168 AC4). */
+  readonly saved = input(true);
 
   /** The class that sets a bar's height: its share of the strongest effort's, in whole percent (the stylesheet has 0 to 100). */
   protected shareClass(effort: EffortBar): string {

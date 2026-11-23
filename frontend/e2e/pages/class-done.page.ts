@@ -22,6 +22,8 @@ export class ClassDonePage {
   readonly bestFact: Locator;
   /** "Your 17 efforts, average watts". */
   readonly effortsTitle: Locator;
+  /** The notice that the ride could not be saved on this device (L2-168 AC4). */
+  readonly notice: Locator;
   /** The efforts' bars with their watts, in plan order. */
   readonly efforts: Locator;
   /** The bar of one effort. */
@@ -38,6 +40,7 @@ export class ClassDonePage {
     this.onTarget = this.fact('On target');
     this.done = page.getByRole('link', { name: 'Done', exact: true });
     this.main = page.locator('main');
+    this.notice = page.locator('.class-done__notice');
     this.effortsTitle = page.locator('.class-done__efforts-title');
     this.efforts = page.locator('.class-done__effort');
     this.bars = page.locator('.class-done__bar');

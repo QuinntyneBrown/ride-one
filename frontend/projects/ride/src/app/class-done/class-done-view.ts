@@ -18,6 +18,8 @@ export interface ClassDoneView {
   readonly best: boolean;
   /** "Previous best" or "Best" with a whole kJ; none for the first ride. */
   readonly bestFact: { readonly label: string; readonly value: string } | null;
+  /** `false` when the ride could not be saved on this device: a notice says so (L2-168 AC4). */
+  readonly saved: boolean;
   /** The class's efforts in plan order, each a bar (L2-169). */
   readonly efforts: readonly EffortBar[];
   /** What a screen reader hears as Class Done opens (L2-141 AC2): "New best output. 351 kJ in 20:00." */
@@ -64,6 +66,7 @@ export function classDoneView(result: ClassResult): ClassDoneView {
       previous === null
         ? null
         : { label: best ? 'Previous best' : 'Best', value: `${previous} kJ` },
+    saved: result.saved,
     efforts: effortBars(result.efforts),
     announcement: `${verdict.replace(/\.$/, '')}. ${output} kJ in ${time}.`,
   };

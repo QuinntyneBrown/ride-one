@@ -23,6 +23,7 @@ export const EFFORTS = [
 export function soloClass(
   previousBestKj: number | null = 342,
   efforts: readonly number[] = EFFORTS,
+  saved = true,
 ) {
   return {
     classResult: {
@@ -33,6 +34,7 @@ export function soloClass(
       onTargetShare: 0.838,
       previousBestKj,
       efforts,
+      saved,
     },
   };
 }
