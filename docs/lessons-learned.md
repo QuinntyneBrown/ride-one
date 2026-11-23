@@ -273,6 +273,22 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 34.3 Heap checks (2026-11-23)
+
+**What slowed it down**
+
+- The two heap checks carried over measured a 20:00 ride and six rounds in Ibiza only. They now match L2-138: a ride
+  left paused for three hours (the clock run in ten-minute steps, the bike still notifying) read at minute 1 and at
+  the end against 50 MB, and The Class to Class Ride ten times, with the class video and in Ibiza, read from the third
+  return to the tenth against 5 MB.
+- **Written and type-checked, not run:** AGENTS.md has heap checks run only when a person asks, so neither the
+  paused-ride check nor the ten-round check has been run since the rewrite. Run `npm run heap` before relying on them;
+  the 3-hour check's step size and the warm-up round are guesses until it has.
+
+**New lessons**
+
+- A check an agent may not run is a claim, not evidence: say so in the slice's entry and the PR.
+
 ### 34.2 Running totals only (2026-11-23)
 
 **What slowed it down**
