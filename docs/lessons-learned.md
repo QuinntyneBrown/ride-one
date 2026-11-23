@@ -273,6 +273,23 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 33.2 Ride without a network (2026-11-23)
+
+**What slowed it down**
+
+- The class opening and starting offline was already specified and tested (`app-cache.spec.ts`); the new spec for a
+  ride that loses the network mid-ride found a real defect: Class Done's lazy chunks were first fetched when the ride
+  ended, so with the network gone the ride reached 20:00 and never left Class Ride. Fix: the `ride` route fetches
+  `class-done.routes` and `class-done-page` with the ride (a failed fetch is ignored; the router retries at the end).
+  The first attempt preloaded only the routes file, then only the page; both are needed.
+
+**New lessons**
+
+- A lazy route a ride ends in must be fetched before the ride can lose its network: test "network lost mid-flow" for
+  every screen the flow ends in, not only the screens it starts at.
+- With no service worker in a spec, `context.setOffline(true)` is a faithful model of the first visit; the worker
+  only covers later ones.
+
 ### 33.1 Keep the ride clock true (2026-11-23)
 
 **What slowed it down**

@@ -50,7 +50,18 @@ export const rideRoutes: Routes = [
       {
         path: 'ride',
         canActivate: [connectedBikeGuard],
-        loadChildren: () => import('./class-ride/class-ride.routes').then((m) => m.classRideRoutes),
+        // Class Done's page is fetched with the ride, so a network lost mid-ride cannot stop the ride finishing
+        // (L2-135 AC2); a failed fetch is left for the router to retry when the ride ends.
+        loadChildren: () =>
+          import('./class-ride/class-ride.routes').then((m) => {
+            for (const chunk of [
+              import('./class-done/class-done.routes'),
+              import('./class-done/class-done-page'),
+            ]) {
+              chunk.catch(() => undefined);
+            }
+            return m.classRideRoutes;
+          }),
       },
       // Class Done, for a finished class (L2-078).
       {
