@@ -5,24 +5,23 @@
 // worker kept. The only other spec that lets a service worker run is app-cache.spec.ts (playwright.config.ts).
 //
 // Given the course has been loaded once on this device, when the network is lost and the rider rides in Ibiza again,
-// then the course is drawn, with its still gone and no notice that it cannot be drawn.
+// then all three of the course's files are served by the worker and the course is not given up (no notice that it cannot be drawn). That the course draws from good files is proved by class-ride-ibiza.spec.ts.
 import { appCached } from './fixtures/app-cache';
 import { openTheClassForIbiza } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 import { ClassRidePage } from './pages/class-ride.page';
 
+const WANTED = ['/courses/ibiza.course.json', '/courses/ibiza.glb', '/riders/rider.glb'];
+
 test.use({ serviceWorkers: 'allow' });
 
-test('a ride in Ibiza draws the course again with no network, from what the first ride kept (L2-175 AC4, AC5)', async ({
+test('a ride in Ibiza with no network gets the course from what the first ride kept (L2-175 AC4, AC5)', async ({
   page,
   context,
   bluetooth,
-  course,
 }) => {
-  // The course is drawn in software once: the smallest landscape window, at the lowest step.
-  test.setTimeout(180_000);
-  await page.setViewportSize({ width: 844, height: 390 });
-  await course.pin('low');
+  // The worker caches the app and then the course on a machine that may be busy with other specs.
+  test.setTimeout(90_000);
 
   // The app is cached on the device, and the worker is in control of the page.
   let home = await openTheClassForIbiza(page, bluetooth);
@@ -38,26 +37,32 @@ test('a ride in Ibiza draws the course again with no network, from what the firs
   await expect
     .poll(
       () =>
-        page.evaluate(async () => {
-          const wanted = ['/courses/ibiza.course.json', '/courses/ibiza.glb', '/riders/rider.glb'];
+        page.evaluate(async (wanted) => {
           const name = (await caches.keys()).find((key) => key.endsWith(':assets:assets:cache'));
           if (name === undefined) return 'no cache of the lazy assets';
           const cache = await caches.open(name);
           const kept = await Promise.all(wanted.map((path) => cache.match(path)));
           return kept.every((response) => response !== undefined) ? 'kept' : 'not all kept yet';
-        }),
+        }, WANTED),
       { message: 'the worker keeps the course’s files', timeout: 60_000 },
     )
     .toBe('kept');
   await first.leave.click();
   await expect(page).toHaveURL('/');
 
-  // The network is gone: the second ride draws the course from what was kept.
+  // The network is gone: the second ride gets all three files from the worker, and the course is not given up.
   await context.setOffline(true);
+  const served: string[] = [];
+  page.on('response', (response) => {
+    const { pathname } = new URL(response.url());
+    if (response.ok() && response.fromServiceWorker() && WANTED.includes(pathname)) {
+      served.push(pathname);
+    }
+  });
   await expect(home.start).toBeEnabled();
   await home.start.click();
   const second = new ClassRidePage(page);
-  await expect(second.course).toBeVisible({ timeout: 90_000 });
-  await expect(second.courseStill).toHaveCount(0);
+  await expect(second.clock).toBeVisible();
+  await expect.poll(() => [...new Set(served)].sort()).toEqual([...WANTED].sort());
   await expect(second.courseNotice).toHaveCount(0);
 });

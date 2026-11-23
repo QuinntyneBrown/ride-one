@@ -1,6 +1,6 @@
 import type { EnvironmentProviders, Provider } from '@angular/core';
-import { COURSE_RENDERER, MONOTONIC_TIME, SCREEN_WAKE_LOCK } from '@telo/api';
-import { BrowserScreenWakeLock } from '@telo/domain';
+import { COURSE_RENDERER, MONOTONIC_TIME, RIDE_MUSIC, SCREEN_WAKE_LOCK } from '@telo/api';
+import { BrowserRideMusic, BrowserScreenWakeLock } from '@telo/domain';
 import { provideClassVideo } from '../classes/provide-class-video';
 import { provideHowToRide } from '../classes/provide-how-to-ride';
 import { provideTheClass } from '../classes/provide-the-class';
@@ -8,7 +8,7 @@ import { provideTheClass } from '../classes/provide-the-class';
 /**
  * What the class ride route binds (ride.routes.ts): the one class, shipped with the app (ADR 0037), how the rider
  * chose to ride it, the monotonic clock the ride runs on (`performance.now()`, L2-133 AC1), the screen wake lock
- * (AC3), the class video's player, whose `video` library is imported only when a ride plays its video, and the
+ * (AC3), the ride's music (L2-176), the class video's player, whose `video` library is imported only when a ride plays its video, and the
  * course's renderer, whose `world` library and Three.js are imported only when a ride in Ibiza starts (L2-175 AC1).
  * Bound on the route, so their code loads with the class ride.
  */
@@ -19,6 +19,8 @@ export function provideClassRide(): (Provider | EnvironmentProviders)[] {
     provideHowToRide(),
     { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },
     { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
+    // The one track, played in a ride in Ibiza only and fetched when that ride starts (L2-176).
+    { provide: RIDE_MUSIC, useClass: BrowserRideMusic },
     provideClassVideo(),
     {
       provide: COURSE_RENDERER,

@@ -39,6 +39,7 @@ export { BrowserDisplayPreferences } from './browser/browser-display-preferences
 export { BrowserFullscreen } from './browser/browser-fullscreen';
 export { BrowserClipboard } from './browser/browser-clipboard';
 export { LiveRegionAnnouncer } from './browser/live-region-announcer';
+export { BrowserRideMusic } from './browser/browser-ride-music';
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
 export { BrowserCourseGraphics } from './browser/browser-course-graphics';
 export { HOW_TO_RIDE_KEY, HowToRideStore } from './storage/how-to-ride-store';

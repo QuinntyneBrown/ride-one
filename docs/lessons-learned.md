@@ -273,6 +273,47 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 37.5 Music (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first — saved time:** four of the five music specs failed on "no request for /music/" and
+  "no audio element"; the fifth failed on its own setup (a second visit to The Class) and was split in two.
+- **L35 check what exists — saved time:** nothing existed (no audio code, no file in `public/`), so the slice built
+  the whole path; the course's deep house track had gone with 37.1.
+- **L3, L25, L17 — saved time:** format first, one asserted doc batch, results read from exit status.
+- **L43 a paused clock stalls things — did not apply:** the specs run on the real clock with the course held.
+
+**What slowed it down**
+
+- A shell heredoc with `’` and quotes in a TypeScript file failed with "unexpected EOF"; the files were written
+  with the Write tool instead.
+- The full suite flaked: `class-ride-ibiza.spec.ts` failed at `connectBike`, before any ride, in 1 of 3 full runs,
+  and passed 12 of 12 with `--workers=2`. Each spec that draws the course in software takes several cores; 37.4's
+  offline spec was the fifth. It was changed to assert that the worker served the three files with no network and
+  to leave, not to draw a second time (the drawing is proved by `class-ride-ibiza.spec.ts`), and given 90 s.
+- The second click of the Pause test used `ride.pause`, a locator named "Pause"; after pausing the button is
+  "Resume" (`ride.resume`).
+
+**Decisions**
+
+- **The contract is `RideMusic` (`play`, `pause`, `release`) with token `RIDE_MUSIC`;** `BrowserRideMusic` is in
+  `domain` beside the wake lock and is bound on the class ride route.
+- **One `HTMLAudioElement` with `loop`,** not a decoded buffer (about 44 MB of PCM held for a ride, against
+  the memory rule). Whether it loops with no gap is open question 32.
+- **The store plays and pauses it from `running()` in an `effect`,** only in Ibiza; `release()` runs on finish and
+  on destroy. The probe is an init script that records `Audio` elements; the app is not told.
+- **The mp3 is `frontend/projects/ride/public/music/beautiful-boom-bap.mp3`,** copied unchanged from
+  `docs/videos/assets/music/`; its size budget is slice 37.7's.
+
+**New lessons**
+
+- A spec that draws the course in software costs several cores: before adding one, count the ones there are
+  (`grep -l "course.pin" e2e/*.spec.ts`), and prove a rule about files or the network without drawing. A failure
+  in `connectBike` with nothing written to the bike is the sign of a busy machine, not of a bug.
+- To see what a page does with `Audio`, wrap `window.Audio` in an init script; Playwright's headless Chromium plays
+  the mp3 and advances `currentTime` on the real clock.
+
 ### 37.4 When Ibiza cannot be drawn (2026-11-23)
 
 **Applied from earlier**

@@ -223,6 +223,16 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   fetches `courses/ibiza.glb`, `courses/ibiza.course.json` and `riders/rider.glb` from the app's origin, and draws
   the course with one rider (`L2-174` AC6): the code that made a field of other riders, a ghost and their
   shadows is gone. How the course itself is drawn is unchanged.
+- **`RideMusic`** (`api`'s `ride-music.ts`, token `RIDE_MUSIC`; `BrowserRideMusic` in `domain`; slice 37.5;
+  `L2-176` AC1 to AC4, AC6, AC8, AC9). The one track, *Beautiful Boom Bap*, `music/beautiful-boom-bap.mp3`
+  beside the app, played by one looping `HTMLAudioElement` made by the first `play()`, which is when the
+  browser fetches it: nothing is made or fetched by the initial bundle, The Class, Class Done or a ride with the
+  class video. `ClassRideStore` plays and pauses it with `running()` in an `effect`, only when the way is Ibiza, so
+  a pause, a lost bike and their end move it within a change-detection pass (well inside 100 ms), and a hidden tab
+  changes nothing: the element plays on as the clock does. `release()` pauses it, drops its `src`, calls `load()`
+  and forgets it, on finish and when the page is destroyed. A refused `play()` is swallowed (the button and its
+  disabled state are slice 37.6). Bound on the class ride route (`provideClassRide`). Open question 32 is
+  whether the loop is gapless.
 - **A course that cannot be drawn** (slice 37.4; `L2-175` AC2, AC4, AC5; the mock `class-ride/ibiza-unavailable`).
   `CourseScene` emits `unavailable` once when the renderer's start fails (a file that is not there or `parseCourse`
   refuses) or when the canvas's graphics context is lost and does not come back within 3 seconds

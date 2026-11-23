@@ -9,6 +9,7 @@ import {
   type ClassResult,
   HOW_TO_RIDE,
   RIDE_ACTIVITY,
+  RIDE_MUSIC,
   SCREEN_WAKE_LOCK,
   THE_CLASS,
   TICKER,
@@ -69,6 +70,7 @@ export class ClassRideStore {
   private readonly router = inject(Router);
   private readonly announcer = inject(ANNOUNCER);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
+  private readonly music = inject(RIDE_MUSIC);
   /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
   private readonly activity = inject(RIDE_ACTIVITY);
   private readonly started = signal(false);
@@ -138,6 +140,11 @@ export class ClassRideStore {
       const segment = untracked(() => this.engine.state()?.segment);
       if (segment) announcer.announce(classStepAnnouncement(segment));
     });
+    // The music plays through a ride in Ibiza and holds with it, as the course does (L2-176 AC1, AC4); a ride with the
+    // class video has its own sound and no music (AC3).
+    if (this.way === 'ibiza') {
+      effect(() => (this.running() ? this.music.play() : this.music.pause()));
+    }
     this.start(inject(THE_CLASS).get());
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
@@ -146,6 +153,7 @@ export class ClassRideStore {
       this.player()?.destroy();
       // The lock is bound on the route, whose injector outlives the page.
       this.wakeLock.release();
+      this.music.release();
       this.activity.end();
     });
   }
@@ -263,6 +271,7 @@ export class ClassRideStore {
     this.ticker.stop();
     this.player()?.pause();
     this.wakeLock.release();
+    this.music.release();
     this.activity.end();
     this.connection.forgetTarget();
     const classResult: ClassResult = {
