@@ -11,7 +11,7 @@ import { ShippedClassData, theClass } from './fixtures/the-class';
 import { ClassRidePage } from './pages/class-ride.page';
 import { TheClassPage } from './pages/the-class.page';
 import { NotFoundPage } from './pages/not-found.page';
-import { ResultsPage } from './pages/results.page';
+import { ClassDonePage } from './pages/class-done.page';
 
 const clock = (seconds: number): string =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
@@ -76,9 +76,9 @@ test.describe('The one class', () => {
 
     await page.clock.runFor(theClass.segments.at(-1)!.duration * 1000);
     await page.clock.runFor(1000);
-    const results = new ResultsPage(page);
-    await results.shown();
-    await expect(results.big).toHaveText('20:00');
+    const done = new ClassDonePage(page);
+    await done.shown();
+    await expect(done.time).toHaveText('20:00');
   });
 
   test('a class that breaks a rule is not offered: `/` says it can’t be loaded, and Reload reads it again (L2-080 AC3)', async ({

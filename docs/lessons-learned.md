@@ -273,6 +273,33 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 32.2 Class Done (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first:** the view's unit spec and the Class Done spec were written before the screen, and
+  failed on the missing module and the missing `/done` route.
+- **Docs are not formatted by Prettier:** the mocks were edited with `sed` on three exact strings.
+- **Asserted batches (L25):** the doc edits went in one all-or-nothing script.
+
+**What slowed it down**
+
+- `prettier --write` over `e2e`, `projects/ride/src/app` and `projects/components/src` marked 200 files as modified
+  on this CRLF checkout (stat only: `git diff` showed nothing). Name the files you changed.
+- Eleven specs named `ResultsPage`, `/results` or the Results texts; one scripted pass moved them, and the specs that
+  read a "share on target" line now read the output and the average, because that share is slice 32.5's.
+- A "one link" assertion counted the skip link: asserted within `main`.
+
+**Decisions**
+
+- **A presentation component for the whole screen (`wz-class-done`)** with `end` and `actions` slots, and the page
+  (router, announcer, Full screen) in the app; the old Results code and its header were removed with the route.
+- **A hidden "Class done" heading** until slice 32.3's verdict takes the `h1`.
+
+**New lessons**
+
+- Run Prettier on named files only on this checkout; `git diff --stat` before staging shows what it really touched.
+
 ### 37.9 One record whichever way (2026-11-23)
 
 **Applied from earlier**

@@ -1,13 +1,13 @@
 import type { Page } from '@playwright/test';
 
 /**
- * Results as a reload finds it: the result a finished ride left in the navigation's state. The first screen has
+ * Class Done as a reload finds it: the result a finished ride left in the navigation's state. The first screen has
  * rendered before the state is written, so the router's own first navigation does not write over it.
  */
-export async function openResults(page: Page, state: object): Promise<void> {
+export async function openClassDone(page: Page, state: object): Promise<void> {
   await page.goto('/');
   await page.locator('main').waitFor({ state: 'attached' });
-  await page.evaluate((s) => history.replaceState(s, '', '/results'), state);
+  await page.evaluate((s) => history.replaceState(s, '', '/done'), state);
   await page.reload();
 }
 

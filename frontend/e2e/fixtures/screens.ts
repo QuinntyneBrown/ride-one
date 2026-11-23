@@ -3,11 +3,11 @@ import { startClassRide } from './class-ride';
 import { echelonBike } from './echelon';
 import type { FakeBluetooth } from './fake-bluetooth';
 import type { ApiFixture } from './api';
-import { openResults, soloClass } from './results';
+import { openClassDone, soloClass } from './class-done';
 import { TheClassPage } from '../pages/the-class.page';
 import { ConnectBikePage } from '../pages/connect-bike.page';
 import { NotFoundPage } from '../pages/not-found.page';
-import { ResultsPage } from '../pages/results.page';
+import { ClassDonePage } from '../pages/class-done.page';
 
 /** What opening a screen needs from the shared fixture. */
 export interface ScreenFixtures {
@@ -46,9 +46,9 @@ export const screens: Record<string, Opener> = {
     await notFound.open('/nowhere');
     return notFound.heading;
   }),
-  Results: async ({ page }) => {
-    await openResults(page, soloClass());
-    return new ResultsPage(page).heading;
+  'Class Done': async ({ page }) => {
+    await openClassDone(page, soloClass());
+    return new ClassDonePage(page).heading;
   },
   'a class ride': async ({ page, bluetooth, api }) =>
     (await startClassRide(page, bluetooth, api)).clock,

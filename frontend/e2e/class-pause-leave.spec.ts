@@ -31,7 +31,7 @@ import type { YouTubeFixture } from './fixtures/youtube';
 import { AppDocument } from './pages/app-document';
 import type { ClassRidePage } from './pages/class-ride.page';
 import { TheClassPage } from './pages/the-class.page';
-import { ResultsPage } from './pages/results.page';
+import { ClassDonePage } from './pages/class-done.page';
 
 /** Waits for the fake player, then lets it get ready: its onReady runs on the paused clock. */
 async function videoReady(page: Page, youtube: YouTubeFixture): Promise<void> {
@@ -306,8 +306,8 @@ test.describe('Pause, lose the bike, leave or finish', () => {
     await expect(ride.clock).toHaveText('19:58 / 20:00');
 
     await page.clock.runFor(2000);
-    await expect(page).toHaveURL('/results');
-    await new ResultsPage(page).shown();
+    await expect(page).toHaveURL('/done');
+    await new ClassDonePage(page).shown();
     expect((await youtube.players())[0].destroyed).toBe(true);
 
     // The finished ride sends nothing more, even when the bike drops and reconnects on the result.

@@ -21,7 +21,7 @@ export { ClassStat, type ClassStatTone } from './class-ride/class-stat';
 export { ClassVideo } from './class-ride/class-video';
 export { ClassCourse } from './class-ride/class-course';
 export { InlineMessage, type InlineMessageTone } from './inline-message/inline-message';
-export { ResultsHeader } from './results/results-header';
+export { ClassDone } from './class-done/class-done';
 export { Toast, type ToastTone } from './toast/toast';
 export { ToastRegion } from './toast/toast-region';
 export { RIDE_KINDS } from './class-ride/ride-kind';

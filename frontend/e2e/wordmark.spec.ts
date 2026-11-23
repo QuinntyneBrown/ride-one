@@ -5,12 +5,12 @@
 // says "Telo Ride 1"; and only the class ride below 384 px hides the words and keeps the mark.
 import { startClassRide } from './fixtures/class-ride';
 import { echelonBike } from './fixtures/echelon';
-import { openResults, soloClass } from './fixtures/results';
+import { openClassDone, soloClass } from './fixtures/class-done';
 import { expect, test } from './fixtures/test';
 import { TheClassPage } from './pages/the-class.page';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { NotFoundPage } from './pages/not-found.page';
-import { ResultsPage } from './pages/results.page';
+import { ClassDonePage } from './pages/class-done.page';
 import { Wordmark } from './pages/wordmark';
 
 /** `--color-volt-fg`, the signal as text on the dark theme (L2-143 AC2). */
@@ -65,16 +65,16 @@ test.describe('Wordmark', () => {
     await expect(page).toHaveTitle('Class ride · Telo Ride 1');
   });
 
-  test('Results carries TELO RIDE 1, and its title says "Telo Ride 1" (L2-172 AC1, AC2)', async ({
+  test('Class Done carries TELO RIDE 1, and its title says "Telo Ride 1" (L2-172 AC1, AC2)', async ({
     page,
     bluetooth,
   }) => {
     await bluetooth.remember(echelonBike);
-    await openResults(page, soloClass());
-    await expect(new ResultsPage(page).big).toHaveText('20:00');
+    await openClassDone(page, soloClass());
+    await expect(new ClassDonePage(page).time).toHaveText('20:00');
 
     await expectWordmark(new Wordmark(page));
-    await expect(page).toHaveTitle('Results · Telo Ride 1');
+    await expect(page).toHaveTitle('Class Done · Telo Ride 1');
   });
 
   test('page not found carries TELO RIDE 1, and its title says "Telo Ride 1" (L2-172 AC1, AC2)', async ({

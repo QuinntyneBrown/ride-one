@@ -49,6 +49,15 @@ The codebase holds Telo Ride's Results at `/results` (`ResultsPage`, `resultsVie
 the ride's submission to the backend through `RIDE_OUTBOX`. Class Done replaces it and uses none of
 those parts; nothing leaves the device.
 
+Slice 32.2 built the first part of it: `/done` (`ClassDonePage`, `classDoneView` in `ride/src/app/class-done/`, and
+the presentation component `wz-class-done` in `components`) replaces `/results`, which is removed with
+`ResultsHeader` and `resultsView`. It shows the header (lockup, "Intervals to the Beat", Full screen), the output
+in whole kJ, "Time" and "Average" (round(output in kJ × 1000 ÷ running seconds)), and **Done**, a primary link to
+The Class at least 44 px tall, and announces "Class done: 351 kJ in 20:00." With no result in the navigation's state
+`/done` opens The Class. The verdict, "On target", the best fact and the eight efforts follow in slices 32.3 to
+32.5; until then a visually hidden "Class done" heading stands in for the verdict. The mocks `class-done/default`,
+`first` and `not-best` were brought in line with the one class (20:00, 293 W and 265 W).
+
 **During the ride**
 
 - **`EffortTotals`** (`domain/src/engine/effort-totals.ts`, new): engine service provided on

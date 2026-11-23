@@ -46,7 +46,7 @@ import { type StatView, cadenceStat, powerStat } from './stat-view';
  * resumes it (docs/detailed-designs/class-ride/pause-leave-or-finish-the-class, L2-091), each said once to a screen
  * reader; a lost bike holds it until the bike is back, when the segment's level is sent again
  * (docs/detailed-designs/class-ride/wait-for-a-lost-bike, L2-092); the screen stays awake while it runs (L2-133 AC3);
- * and at the class length it opens Results. Once the rider leaves or the ride finishes, the connection forgets the
+ * and at the class length it opens Class Done. Once the rider leaves or the ride finishes, the connection forgets the
  * ride's target, so no resistance command follows it (L2-093 AC3).
  */
 @Injectable()
@@ -76,7 +76,7 @@ export class ClassRideStore {
   /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
   private readonly activity = inject(RIDE_ACTIVITY);
   private readonly started = signal(false);
-  /** The ride's output and share on target, for Results. */
+  /** The ride's output and share on target, for Class Done. */
   private recorder: RideRecorder | null = null;
   private lastSecond = 0;
   private videoHost: HTMLElement | null = null;
@@ -272,7 +272,7 @@ export class ClassRideStore {
   }
 
   /**
-   * The plan's end: the clock stops at the class length, the video pauses, and Results opens with the class's result
+   * The plan's end: the clock stops at the class length, the video pauses, and Class Done opens with the class's result
    * in the navigation's state (L2-093 AC2, L2-078 AC1). The ride is sent nowhere (L2-132 AC3, ADR 0039). Leaving the
    * page releases the rest.
    */
@@ -293,7 +293,7 @@ export class ClassRideStore {
     };
     // Only a ride that reaches its end is counted (L2-168 AC1, AC2).
     this.rideRecord.add(classResult.outputKj);
-    void this.router.navigateByUrl('/results', { state: { classResult } });
+    void this.router.navigateByUrl('/done', { state: { classResult } });
   }
 
   /**

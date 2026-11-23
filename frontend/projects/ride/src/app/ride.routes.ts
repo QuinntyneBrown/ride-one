@@ -52,10 +52,10 @@ export const rideRoutes: Routes = [
         canActivate: [connectedBikeGuard],
         loadChildren: () => import('./class-ride/class-ride.routes').then((m) => m.classRideRoutes),
       },
-      // Results, until Class Done replaces it (slice 32.2).
+      // Class Done, for a finished class (L2-078).
       {
-        path: 'results',
-        loadChildren: () => import('./results/results.routes').then((m) => m.resultsRoutes),
+        path: 'done',
+        loadChildren: () => import('./class-done/class-done.routes').then((m) => m.classDoneRoutes),
       },
       // `/` is The Class, the home screen (docs/mocks/pages/the-class/); a new rider is sent on to Connect Bike (L2-167).
       {

@@ -1,0 +1,20 @@
+@if (view; as view) {
+  <wz-class-done
+    [title]="view.title"
+    [output]="view.output"
+    [time]="view.time"
+    [average]="view.average"
+  >
+    <wz-fullscreen-button slot="end" />
+    <a
+      wz-button
+      slot="actions"
+      variant="primary"
+      size="xl"
+      [block]="true"
+      routerLink="/"
+      class="class-done-page__done"
+      >Done</a
+    >
+  </wz-class-done>
+}

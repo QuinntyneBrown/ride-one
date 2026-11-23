@@ -35,7 +35,7 @@ import { expect, test } from './fixtures/test';
 import { planMetres, theClass } from './fixtures/the-class';
 import type { Page } from '@playwright/test';
 import { ClassRidePage } from './pages/class-ride.page';
-import { ResultsPage } from './pages/results.page';
+import { ClassDonePage } from './pages/class-done.page';
 import { TheClassPage } from './pages/the-class.page';
 
 const [WARM_UP, WORK] = theClass.segments;
@@ -73,14 +73,17 @@ async function rideFortySecondsOnTarget(page: Page, bluetooth: FakeBluetooth): P
   await page.clock.runFor(1000);
 }
 
-/** Runs the paused clock from 0:41 to the finish, and reads Class Done's time and its output and on-target line. */
+/** Runs the paused clock from 0:41 to the finish, and reads Class Done's time and its output and average line. */
 async function finishAndRead(page: Page): Promise<{ time: string; line: string }> {
   await page.clock.fastForward('19:17');
   await page.clock.runFor(2000);
-  const results = new ResultsPage(page);
-  await results.shown();
-  await expect(results.context).toHaveText('Intervals to the Beat · Solo');
-  return { time: (await results.big.textContent())!, line: (await results.sub.textContent())! };
+  const done = new ClassDonePage(page);
+  await done.shown();
+  await expect(done.title).toHaveText('Intervals to the Beat');
+  return {
+    time: (await done.time.textContent())!,
+    line: `${await done.number.textContent()} kJ · ${await done.average.textContent()}`,
+  };
 }
 
 test.describe('Placed by the clock in Ibiza', () => {
@@ -198,7 +201,7 @@ test.describe('Placed by the clock in Ibiza', () => {
     expect(ibiza.line).toMatch(/^[1-9]\d* kJ · 3% on target$/);
 
     // The same class again, with its video, fed the same telemetry.
-    await new ResultsPage(page).done.click();
+    await new ClassDonePage(page).done.click();
     const home = new TheClassPage(page);
     await expect(async () => {
       await page.clock.runFor(16);

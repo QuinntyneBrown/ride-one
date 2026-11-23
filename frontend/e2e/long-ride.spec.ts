@@ -1,14 +1,14 @@
 // Acceptance test
 // Traces to: L2-138 AC2; L2-078 AC1
 // Description: a ride keeps its record bounded: its seconds, its output and its seconds on target, never a list that
-// grows with it (the recorder's unit test). The class ridden to its end, the bike reporting all the way, opens Results
+// grows with it (the recorder's unit test). The class ridden to its end, the bike reporting all the way, opens Class Done
 // with 20:00, its output and its share on target.
 import { startClassRide } from './fixtures/class-ride';
 import { ECHELON_NOTIFY, resistanceFrame, workoutFrame } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { ResultsPage } from './pages/results.page';
+import { ClassDonePage } from './pages/class-done.page';
 
-test('the class rides to its end, and Results shows 20:00 with its output and share on target (L2-138 AC2)', async ({
+test('the class rides to its end, and Class Done shows 20:00 with its output and average (L2-138 AC2)', async ({
   page,
   bluetooth,
   api,
@@ -22,9 +22,10 @@ test('the class rides to its end, and Results shows 20:00 with its output and sh
   await page.clock.fastForward('19:58');
   await page.clock.runFor(2000);
 
-  const results = new ResultsPage(page);
-  await results.shown();
-  await expect(page).toHaveURL('/results');
-  await expect(results.big).toHaveText('20:00');
-  await expect(results.sub).toHaveText(/^\d+ kJ · \d+% on target$/);
+  const done = new ClassDonePage(page);
+  await done.shown();
+  await expect(page).toHaveURL('/done');
+  await expect(done.time).toHaveText('20:00');
+  await expect(done.number).toHaveText(/^\d+$/);
+  await expect(done.average).toHaveText(/^\d+ W$/);
 });

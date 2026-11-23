@@ -1,0 +1,29 @@
+<div class="class-done">
+  <header class="class-done__header">
+    <wz-lockup />
+    <span class="class-done__class">{{ title() }}</span>
+    <span class="class-done__end"><ng-content select="[slot=end]" /></span>
+  </header>
+  <div class="class-done__scroll">
+    <main id="main" class="class-done__body" tabindex="-1">
+      <section class="class-done__score" aria-labelledby="class-done-title">
+        <h1 class="visually-hidden" id="class-done-title">Class done</h1>
+        <p class="class-done__output">
+          <span class="class-done__number">{{ output() }}</span>
+          <span class="class-done__unit">kJ</span>
+        </p>
+        <dl class="class-done__facts">
+          <div class="class-done__fact">
+            <dt class="class-done__fact-label">Time</dt>
+            <dd class="class-done__fact-value">{{ time() }}</dd>
+          </div>
+          <div class="class-done__fact">
+            <dt class="class-done__fact-label">Average</dt>
+            <dd class="class-done__fact-value">{{ average() }} W</dd>
+          </div>
+        </dl>
+      </section>
+      <div class="class-done__actions"><ng-content select="[slot=actions]" /></div>
+    </main>
+  </div>
+</div>

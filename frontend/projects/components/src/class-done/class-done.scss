@@ -1,0 +1,127 @@
+// Block class-done (docs/design-system/, docs/mocks/pages/class-done/): the output, its facts and Done.
+:host {
+  display: block;
+  height: 100%;
+}
+
+.class-done {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.class-done__header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-5);
+  border-bottom: var(--border-width-hairline) solid var(--color-line);
+  padding: var(--space-2-5) var(--space-4);
+
+  @media (min-width: 40rem) {
+    padding-inline: var(--space-6);
+  }
+
+  @media (min-width: 64rem) {
+    padding-inline: var(--space-8);
+  }
+}
+
+.class-done__class {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-muted);
+}
+
+.class-done__end {
+  display: flex;
+  margin-left: auto;
+}
+
+.class-done__scroll {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.class-done__body {
+  margin-inline: auto;
+  display: flex;
+  min-height: 100%;
+  max-width: var(--layout-container-narrow);
+  flex-direction: column;
+  padding: var(--space-8) var(--layout-margin);
+
+  @media (min-width: 64rem) {
+    padding-block: var(--space-14);
+  }
+}
+
+.class-done__output {
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.class-done__number {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-display);
+  font-feature-settings: 'tnum' 1;
+  font-size: var(--font-size-score);
+  line-height: var(--line-height-none);
+
+  @media (min-width: 40rem) {
+    font-size: var(--font-size-score-lg);
+  }
+}
+
+.class-done__unit {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-display);
+  font-size: var(--font-size-4xl);
+  line-height: var(--line-height-4xl);
+  color: var(--color-muted);
+}
+
+.class-done__facts {
+  margin-top: var(--space-6);
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-10);
+  row-gap: var(--space-4);
+  border-top: var(--border-width-hairline) solid var(--color-line);
+  padding-top: var(--space-4);
+}
+
+.class-done__fact-label {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  color: var(--color-muted);
+}
+
+.class-done__fact-value {
+  margin-top: var(--space-1);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-display);
+  font-feature-settings: 'tnum' 1;
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
+  white-space: nowrap;
+}
+
+.class-done__actions {
+  margin-top: var(--space-12);
+
+  @media (min-width: 64rem) {
+    margin-top: auto;
+    padding-top: var(--space-12);
+  }
+}
