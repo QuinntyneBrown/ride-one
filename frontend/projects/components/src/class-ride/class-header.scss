@@ -12,11 +12,9 @@
   border-bottom: var(--border-width-hairline) solid var(--color-line);
   padding: var(--space-2) var(--space-4);
 
+  // From sm the margin is the slim header's own, 24 px, at every width (the mock's class-header under class-ride).
   @media (min-width: 40rem) {
     gap: var(--space-4);
-  }
-
-  @media (min-width: 64rem) {
     padding-inline: var(--space-6);
   }
 }

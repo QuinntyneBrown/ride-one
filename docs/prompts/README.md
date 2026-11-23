@@ -115,3 +115,4 @@ One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journe
 | 109 | 30.4 | [The Class by form factor](30-4-the-class-by-form-factor.md) | Open on The Class | 2 |
 | 110 | 30.5 | [Open where the rider belongs](30-5-open-where-the-rider-belongs.md) | Open on The Class | 2 |
 | 111 | 30.6 | [The Class in a blocked browser](30-6-the-class-in-a-blocked-browser.md) | Open on The Class | 2 |
+| 112 | 31.1 | [Class Ride](31-1-class-ride.md) | Take the class | 3 |

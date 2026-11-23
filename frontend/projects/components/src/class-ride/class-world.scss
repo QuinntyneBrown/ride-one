@@ -1,12 +1,11 @@
 // Block class-world (docs/design-system/assets/components.css, Class Ride; class-ride/world): the world fills the stage
-// over its panorama, 16:9 on a phone and filling the column above the bike panel from lg, with the class video inset in
-// its bottom-right corner.
+// over its panorama, 16:9 on a phone and filling the column above the bike panel in a landscape window from md, never
+// under 8 rem (L2-087 AC5, AC6), with the class video inset in its bottom-right corner.
 :host {
   display: flex;
-  min-height: 0;
   flex-direction: column;
 
-  @media (min-width: 64rem) {
+  @media (min-width: 48rem) and (orientation: landscape) {
     flex: 1;
   }
 }
@@ -19,8 +18,8 @@
   border-radius: var(--radius-xl);
   background: var(--color-raised);
 
-  @media (min-width: 64rem) {
-    min-height: 0;
+  @media (min-width: 48rem) and (orientation: landscape) {
+    min-height: var(--space-32);
     flex: 1;
     aspect-ratio: auto;
   }

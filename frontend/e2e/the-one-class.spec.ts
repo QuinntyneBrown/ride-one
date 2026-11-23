@@ -114,7 +114,7 @@ test.describe('The one class', () => {
   }) => {
     await bluetooth.remember(echelonBike);
     await ShippedClassData.break(page);
-    await new ClassRidePage(page).open(theClass.id);
+    await new ClassRidePage(page).open();
 
     const start = new TheClassPage(page);
     await expect(start.unavailable).toHaveText(

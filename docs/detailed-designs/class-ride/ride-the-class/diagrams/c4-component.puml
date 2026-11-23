@@ -8,9 +8,10 @@ System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
 System_Ext(youtube, "YouTube", "Privacy-enhanced player for the class video")
 
 Container_Boundary(ride, "ride application") {
-  Component(guard, "connectedBikeGuard", "CanActivateFn, new", "Opens The Class when no bike is connected")
+  Component(guard, "connectedBikeGuard", "CanActivateFn", "Opens The Class when no bike is connected")
   Component(page, "ClassRidePage", "Angular page, wz-class-ride-page", "Renders the header, the video and the bike panel")
   Component(store, "ClassRideStore", "Page-scoped store", "Starts the ride and derives what the page shows")
+  Component(stat, "powerStat and cadenceStat", "Pure helpers", "Power against its target and cadence with its aim, in words")
 }
 Container_Boundary(components, "components library") {
   Component(header, "ClassHeader", "wz-class-header", "Wordmark, class name and the ride clock")
@@ -38,6 +39,7 @@ Rel(page, store, "Binds signals and calls actions")
 Rel(page, header, "Renders")
 Rel(page, cvideo, "Renders")
 Rel(page, panel, "Renders")
+Rel(store, stat, "Reads Power and Cadence through")
 Rel(store, clock, "Starts and reads")
 Rel(store, engine, "Follows the plan with")
 Rel(store, sync, "Checks drift with")

@@ -1,10 +1,9 @@
 // Acceptance test
 // Traces to: L1 (left out: group classes, the multiplayer service); ADR 0038
 // Description: a class is always ridden solo. The Class has no choice between riding alone and with a group, only Start class; and an address that names
-// a group session, `/classes/:id/ride?session=…`, rides the class solo, with Pause, no board, no request about a group
-// session and no hub connection.
+// a group session, `/ride?session=…`, starts no ride of its own (L2-087 AC4): it opens The Class, and the class is ridden solo from
+// there, with Pause, no board, no request about a group session and no hub connection.
 import { connectBike } from './fixtures/class-ride';
-import { theClass } from './fixtures/the-class';
 import { echelonBike } from './fixtures/echelon';
 import { keptRideWith } from './fixtures/how-to-ride';
 import { expect, test } from './fixtures/test';
@@ -29,7 +28,7 @@ test.describe('Always solo', () => {
     expect(api.requests().filter((request) => request.includes('/sessions'))).toEqual([]);
   });
 
-  test('an address with ?session= rides the class solo and opens no hub connection (ADR 0038)', async ({
+  test('an address with ?session= opens The Class, and the class is ridden solo with no hub connection (ADR 0038, L2-087 AC4)', async ({
     page,
     bluetooth,
     webgl,
@@ -39,11 +38,14 @@ test.describe('Always solo', () => {
     await bluetooth.remember(echelonBike);
     await keptRideWith(page, 'ibiza');
     const ride = new ClassRidePage(page);
-    await ride.openWithSession(theClass.id, 'intervals-to-the-beat-1939');
+    await ride.openWithSession('intervals-to-the-beat-1939');
+    const home = new TheClassPage(page);
+    await connectBike(bluetooth);
+    await expect(home.start).toHaveText('Start class');
+    await home.start.click();
 
     const loading = new WorldLoadingPage(page);
     await expect(loading.eyebrow).toContainText('Solo');
-    await connectBike(bluetooth);
     await loading.startRiding();
 
     await expect(ride.name).toHaveText('Intervals to the Beat · Solo');

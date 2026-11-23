@@ -115,8 +115,7 @@ to come on this screen: the record with "Ride it again" (32.6).
 - **`TheClassPage`** (`ride/src/app/the-class/the-class-page.ts`, `.html`, `.scss`, built;
   `wz-the-class-page`): the page. It provides `TheClassStore`, draws `ScreenHeader` with the bike
   status link (`a[wz-the-class-bike]`, `routerLink="/connect"`) and the Full screen button in its
-  `[slot=end]`, passes the store's view to `wz-the-class`, and navigates on `start`: to the class ride (`/classes/intervals-to-the-beat/ride`
-  until slice 31.1 moves it to `/ride`) for "Start class" (L2-084 AC7), to `/connect` for "Connect
+  `[slot=end]`, passes the store's view to `wz-the-class`, and navigates on `start`: to Class Ride (`/ride`, since slice 31.1) for "Start class" (L2-084 AC7), to `/connect` for "Connect
   your bike" (AC6). When the store has no view it says "The class can’t be loaded. Reload
   Telo Ride 1 to try again." (`role="alert"`) with **Reload** (mock `the-class/cannot-load`,
   L2-080 AC3).

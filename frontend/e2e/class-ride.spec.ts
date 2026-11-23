@@ -3,7 +3,7 @@
 // Description: a solo class ride on the fake Bluetooth: the header with the class and its clock, the segment card
 // counting down the plan, Power and Cadence against their targets, and the resistance stepper. The class's answer is
 // held until Playwright's clock is paused (startClassRide), so the ride starts at a known time and the spec moves it
-// on by hand.
+// on by hand. The screen at every width is in class-ride-screen.spec.ts, and its address in ride-address.spec.ts.
 import {
   ECHELON_NOTIFY,
   resistanceFrame,
@@ -30,6 +30,7 @@ test.describe('Class ride', () => {
     { tag: '@critical' },
     async () => {
       await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
+      expect(ride.url()).toBe('/ride');
       await expect(ride.clock).toHaveText('0:00 / 20:00');
       await expect(ride.clock).toHaveAccessibleName('0:00 of 20:00');
       await expect(ride.segmentKind).toHaveText('Warm-up');
@@ -62,7 +63,8 @@ test.describe('Class ride', () => {
     await page.clock.fastForward('05:30');
     await page.clock.runFor(100);
     await expect(ride.power).toHaveText('—');
-    await expect(ride.powerHint).toHaveText('Target 231 W');
+    // No line under Power until the bike has reported what power is estimated from (L2-023 AC2).
+    await expect(ride.powerHint).toHaveCount(0);
     await expect(ride.level).toHaveText('—');
     await expect(ride.resistance).toHaveAccessibleName('Resistance unknown');
 

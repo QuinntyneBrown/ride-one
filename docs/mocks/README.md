@@ -58,11 +58,14 @@ Every mock uses this cast, which is the design's own data (`shared/machines.ts`,
   sprints to finish." Plan (L2-080 AC2): 33 segments, 2:30 warm-up at level 14; 17 efforts of 0:15
   to 1:15 at levels 19 to 24, the last five sprints of 0:20 at 110 rpm, with recoveries of 0:20 to
   1:00 at levels 11 to 14; 2:30 cool-down at level 11. 20:00 in all, about 254 W on average. The
-  Class's mocks draw it (slice 30.3); Class Ride's and Class Done's still draw the prototype's
-  *30 Minute HIIT Cardio* (30:00, eight efforts, about 154 W) until their slices.
-- **Mid-ride moment:** 7:00 of 30:00, in the first recovery with 1:30 left (half done); 108 W against
-  a 107 W target (on target), 73 rpm aiming 72, resistance 6 of 32. Every number comes from running
-  the design's `useRide` simulation to 420 s.
+  Class's mocks draw it (slice 30.3) and so do Class Ride's (slice 31.1); Class Done's still draw
+  the prototype's *30 Minute HIIT Cardio* (30:00, eight efforts, about 154 W) until its slice.
+- **Mid-ride moment:** 5:30 of 20:00, in the second recovery with 0:30 left (half done); 233 W against
+  a 231 W target (on target), 91 rpm aiming 90, resistance 13 of 32, as L2-023's formula gives them
+  (slice 31.1). The prototype's moment was 7:00 of 30:00 with 108 W against 107 W. `off-target`, which
+  the design does not draw, is the same moment at 75 rpm: 192 W, "-39 W" in the warning colour. In
+  a landscape window from md Class Ride does not scroll (L2-087 AC5); the prototype's layout began
+  at lg, and the stylesheet was brought in line with L2.
 - **Finished ride:** 30:12, 351 kJ (a new best over 342), 194 W average, 84% on target; the eight
   efforts 407, 427, 398, 378, 369, 359, 349 and 417 W. Short of the best: 318 kJ, 175 W average,
   efforts 368, 385, 359, 341, 333, 324, 315 and 376 W.
@@ -171,12 +174,12 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | searching | pairing | paired | bluetooth-off | unsupported-browser | needs-https | chooser-blocked | chooser-failed | returning | no-bike | ibiza | video-unavailable | cannot-draw | needs-chromium | link-copied | cannot-load | paused | disconnected | first | not-best | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Connect Bike (`connect-bike`) | [✅](pages/connect-bike/default.html) | ➖ | ➖ | ➖ | [✅](pages/connect-bike/searching.html) | [✅](pages/connect-bike/pairing.html) | [✅](pages/connect-bike/paired.html) | [✅](pages/connect-bike/bluetooth-off.html) | [✅](pages/connect-bike/unsupported-browser.html) | [✅](pages/connect-bike/needs-https.html) | [✅](pages/connect-bike/chooser-blocked.html) | [✅](pages/connect-bike/chooser-failed.html) |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-009`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-018` |
-| The Class (`the-class`) | [✅](pages/the-class/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/the-class/needs-https.html) |  |  | [✅](pages/the-class/returning.html) | [✅](pages/the-class/no-bike.html) | [✅](pages/the-class/ibiza.html) | [✅](pages/the-class/video-unavailable.html) | [✅](pages/the-class/cannot-draw.html) | [✅](pages/the-class/needs-chromium.html) | [✅](pages/the-class/link-copied.html) | [✅](pages/the-class/cannot-load.html) |  |  |  |  | `L2-008`, `L2-009`, `L2-010`, `L2-019`, `L2-080`, `L2-084`, `L2-144`, `L2-173` |
-| Class Ride (`class-ride`) | [✅](pages/class-ride/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-ride/paused.html) | [✅](pages/class-ride/disconnected.html) |  |  | `L2-026`, `L2-027`, `L2-028`, `L2-087`, `L2-088`, `L2-089`, `L2-091`, `L2-092`, `L2-093` |
-| Class Done (`class-done`) | [✅](pages/class-done/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-done/first.html) | [✅](pages/class-done/not-best.html) | `L2-077`, `L2-078`, `L2-079` |
-| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-145` |
+| Screen | default | loading | empty | error | searching | pairing | paired | bluetooth-off | unsupported-browser | needs-https | chooser-blocked | chooser-failed | returning | no-bike | ibiza | video-unavailable | cannot-draw | needs-chromium | link-copied | cannot-load | paused | off-target | disconnected | first | not-best | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Connect Bike (`connect-bike`) | [✅](pages/connect-bike/default.html) | ➖ | ➖ | ➖ | [✅](pages/connect-bike/searching.html) | [✅](pages/connect-bike/pairing.html) | [✅](pages/connect-bike/paired.html) | [✅](pages/connect-bike/bluetooth-off.html) | [✅](pages/connect-bike/unsupported-browser.html) | [✅](pages/connect-bike/needs-https.html) | [✅](pages/connect-bike/chooser-blocked.html) | [✅](pages/connect-bike/chooser-failed.html) |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-009`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-018` |
+| The Class (`the-class`) | [✅](pages/the-class/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/the-class/needs-https.html) |  |  | [✅](pages/the-class/returning.html) | [✅](pages/the-class/no-bike.html) | [✅](pages/the-class/ibiza.html) | [✅](pages/the-class/video-unavailable.html) | [✅](pages/the-class/cannot-draw.html) | [✅](pages/the-class/needs-chromium.html) | [✅](pages/the-class/link-copied.html) | [✅](pages/the-class/cannot-load.html) |  |  |  |  |  | `L2-008`, `L2-009`, `L2-010`, `L2-019`, `L2-080`, `L2-084`, `L2-144`, `L2-173` |
+| Class Ride (`class-ride`) | [✅](pages/class-ride/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-ride/paused.html) | [✅](pages/class-ride/off-target.html) | [✅](pages/class-ride/disconnected.html) |  |  | `L2-023`, `L2-026`, `L2-027`, `L2-028`, `L2-087`, `L2-088`, `L2-089`, `L2-091`, `L2-092`, `L2-093` |
+| Class Done (`class-done`) | [✅](pages/class-done/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-done/first.html) | [✅](pages/class-done/not-best.html) | `L2-077`, `L2-078`, `L2-079` |
+| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-145` |
 
 <!-- coverage:end -->

@@ -8,7 +8,7 @@ Container_Boundary(ride, "ride application") {
   Component(noticeHelper, "browserNotice", "Pure helper", "The notice for a support state, or none")
   Component(linkCopy, "LinkCopy", "Service on the page", "Copies the page address; copied for 2 s")
   Component(connectPage, "ConnectBikePage", "Angular page, exists", "Shows the Works with list and replaces the device card with an alert")
-  Component(guard, "blockedBrowserGuard", "CanActivateFn", "Sends the ride's address to The Class in a blocked browser")
+  Component(guard, "connectedBikeGuard", "CanActivateFn", "Sends the ride's address to The Class without a connected bike, so in a blocked browser")
   Component(provide, "provideBikeConnection", "Provider function, exists", "Binds the support check on the lazy parent route")
 }
 Container_Boundary(components, "components library") {
@@ -41,6 +41,4 @@ Rel(connectPage, supportToken, "Reads state, calls recheck")
 Rel(connectPage, blocker, "Renders when blocked")
 Rel(connectPage, works, "Passes the bikes to")
 Rel(connectPage, bikes, "Reads")
-Rel(guard, supportToken, "Reads state; calls nothing on Bluetooth")
-Rel(guard, blocked, "Decides with")
 @enduml

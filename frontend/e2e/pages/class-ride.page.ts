@@ -1,7 +1,50 @@
 import type { Locator, Page } from '@playwright/test';
+import { ClassHeader } from './class-header';
 
-/** Class Ride at `/classes/:id/ride` (docs/mocks/pages/class-ride/): the header, the video and the bike panel. */
+/** Class Ride's address (L2-087): the one place the specs, the fixtures and the other page objects read it from. */
+export const RIDE_ADDRESS = '/ride';
+
+/** The address Telo Ride gave a class's ride, which is no screen now (L2-087 AC4, L2-080 AC4). */
+export const earlierRideAddress = (classId: string): string => `/classes/${classId}/ride`;
+
+/** A part of the screen as the window draws it, in CSS pixels. */
+export interface DrawnBox {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** How Class Ride fits its window: what can scroll, and where its parts are drawn. */
+export interface RideLayout {
+  /** How far the screen can scroll down, in CSS pixels: the page itself and the ride's own body. 0 does not scroll. */
+  readonly scrollsDown: number;
+  /** How far it can scroll sideways. */
+  readonly scrollsSideways: number;
+  readonly header: DrawnBox;
+  /** The video's box, which the course takes in Ibiza (L2-087 AC6). */
+  readonly box: DrawnBox;
+  /** The bike panel and its four cells, in the order they are drawn. */
+  readonly panel: DrawnBox;
+  readonly cells: readonly DrawnBox[];
+}
+
+/** Class Ride at `/ride` (docs/mocks/pages/class-ride/): the header, the video and the bike panel. */
 export class ClassRidePage {
+  /** The header's wordmark and Full screen (L2-087 AC1). */
+  readonly header: ClassHeader;
+  /** The wordmark's words, hidden below 384 px while the mark stays (L2-087 AC2). */
+  readonly wordmark: Locator;
+  /** The class's length in the clock, " / 20:00", hidden on a phone (L2-087 AC2). */
+  readonly clockTotal: Locator;
+  /** The word on the Pause button, hidden on a phone, where the icon and the button's name stand for it. */
+  readonly pauseLabel: Locator;
+  /** The video's box on the stage, or the course in it. */
+  readonly box: Locator;
+  readonly body: Locator;
+  private readonly panel: Locator;
+  /** The screen's one heading, visually hidden (L2-087 AC1). */
+  readonly heading: Locator;
   readonly name: Locator;
   readonly clock: Locator;
   readonly finish: Locator;
@@ -19,6 +62,10 @@ export class ClassRidePage {
   readonly videoNotice: Locator;
   readonly power: Locator;
   readonly powerHint: Locator;
+  readonly powerUnit: Locator;
+  readonly cadenceUnit: Locator;
+  /** "of 32" under the stepper's level. */
+  readonly levelOf: Locator;
   readonly cadence: Locator;
   readonly cadenceHint: Locator;
   readonly resistance: Locator;
@@ -34,6 +81,16 @@ export class ClassRidePage {
   readonly worldVideo: Locator;
 
   constructor(private readonly page: Page) {
+    this.heading = page.getByRole('heading', { level: 1 });
+    this.header = new ClassHeader(page);
+    this.wordmark = this.header.lockup.locator('.wordmark');
+    this.clockTotal = page.locator('.class-ride__clock-total');
+    this.pauseLabel = page.locator('.class-ride__pause-label');
+    this.body = page.locator('.class-ride__body');
+    this.box = page.locator(
+      '.class-ride__stage > wz-class-video > .class-video, .class-ride__stage > wz-class-world > .class-world',
+    );
+    this.panel = page.locator('.class-bike');
     this.name = page.locator('.class-ride__name');
     this.clock = page.locator('.class-ride__clock');
     this.finish = page
@@ -55,6 +112,9 @@ export class ClassRidePage {
       page.locator('.class-stat').filter({ has: page.getByText(label, { exact: true }) });
     this.power = stat('Power').locator('.class-stat__number');
     this.powerHint = stat('Power').locator('.class-stat__hint');
+    this.powerUnit = stat('Power').locator('.class-stat__unit');
+    this.cadenceUnit = stat('Cadence').locator('.class-stat__unit');
+    this.levelOf = page.locator('.class-resist__of');
     this.cadence = stat('Cadence').locator('.class-stat__number');
     this.cadenceHint = stat('Cadence').locator('.class-stat__hint');
     this.resistance = page.locator('.class-resist__value');
@@ -68,13 +128,53 @@ export class ClassRidePage {
     this.worldVideo = this.world.locator('.class-world__video .class-video');
   }
 
-  /** Opens the ride at an address that names a group session, as a bookmark from Telo Ride would (ADR 0038). */
-  async openWithSession(classId: string, sessionId: string): Promise<void> {
-    await this.page.goto(`/classes/${classId}/ride?session=${sessionId}`);
+  /** Opens the ride's address with a group session named in it, as a bookmark from Telo Ride would (ADR 0038). */
+  async openWithSession(sessionId: string): Promise<void> {
+    await this.page.goto(`${RIDE_ADDRESS}?session=${sessionId}`);
   }
 
-  async open(classId: string): Promise<void> {
-    await this.page.goto(`/classes/${classId}/ride?mode=solo`);
+  /** Opens the ride's address, as a bookmark, a typed address or a reload does. */
+  async open(): Promise<void> {
+    await this.page.goto(RIDE_ADDRESS);
+  }
+
+  /** The path of the page's address. */
+  url(): string {
+    return new URL(this.page.url()).pathname;
+  }
+
+  /** Scrolls the ride's body to its end, as a rider does to reach the stepper in a window too short to hold it. */
+  async scrollToEnd(): Promise<void> {
+    await this.body.evaluate((body) => body.scrollTo(0, body.scrollHeight));
+  }
+
+  /** Measures how the screen fits its window (L2-087 AC5, L2-089 AC5). */
+  async layout(): Promise<RideLayout> {
+    const drawn = (locator: Locator): Promise<DrawnBox> =>
+      locator.evaluate((element) => {
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return { x, y, width, height };
+      });
+    const [page, body] = await Promise.all([
+      this.page.evaluate(() => ({
+        down: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+        sideways: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      })),
+      this.body.evaluate((element) => ({
+        down: element.scrollHeight - element.clientHeight,
+        sideways: element.scrollWidth - element.clientWidth,
+      })),
+    ]);
+    return {
+      scrollsDown: Math.max(page.down, body.down),
+      scrollsSideways: Math.max(page.sideways, body.sideways),
+      header: await drawn(this.header.root),
+      box: await drawn(this.box),
+      panel: await drawn(this.panel),
+      cells: await Promise.all(
+        (await this.panel.locator('.class-segment, .class-stat, .class-resist').all()).map(drawn),
+      ),
+    };
   }
 
   /** The width the segment's progress bar is filled to, as a share of the bar (0 to 1). */

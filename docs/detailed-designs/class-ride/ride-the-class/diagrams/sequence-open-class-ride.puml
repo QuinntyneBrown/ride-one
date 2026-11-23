@@ -36,7 +36,7 @@ box "External — YouTube" #FFF4E5
 end box
 rider -> guard : Press the start button on The Class, or open /ride
 alt no connected bike (L2-087 AC4)
-  guard --> rider : Open The Class instead, with no Bluetooth call
+  guard --> rider : Open The Class instead, with no Bluetooth call; a new rider goes on to Connect Bike
 else bike connected
   guard -> page : Activate /ride
   page -> store : Provide the store and the ride's services
@@ -44,11 +44,11 @@ else bike connected
   store -> engine : follow(plan)
   engine -> resist : applyPlanLevel(first segment's level)
   resist -> bike : Write the target resistance
-  page --> rider : Header, hidden h1, clock "0:00 / 30:00" (L2-087 AC1)
+  page --> rider : Header, hidden h1, clock "0:00 / 20:00" (L2-087 AC1)
   page -> store : playVideo(frame)
   store -> player : load(frame, videoId, start = offset + clock, controls off)
   player -> yt : Load the IFrame API and the embed (L2-088 AC5)
   yt --> player : Player ready
-  player --> rider : Video plays from 0:12, without controls (L2-088 AC1)
+  player --> rider : Video plays from 0:03, without controls (L2-088 AC1)
 end
 @enduml

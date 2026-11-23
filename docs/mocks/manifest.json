@@ -92,6 +92,7 @@
       "title": "Class Ride",
       "route": "/ride",
       "requirements": [
+        "L2-023",
         "L2-026",
         "L2-027",
         "L2-028",
@@ -105,6 +106,7 @@
       "states": [
         "default",
         "paused",
+        "off-target",
         "disconnected"
       ],
       "not_applicable": {

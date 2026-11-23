@@ -40,6 +40,7 @@ sixteen map covers and the Blender scenes, course files, themes and films of all
   involved, and asking the same data again gives the same answer.
 - **No other class has an address.** The class ride's route is `classes/intervals-to-the-beat/ride`
   until slice 31.1 moves it to `/ride`; `/classes/<any other id>/ride` is page not found.
+  (Slice 31.1 moved it: [ADR 0046](0046-class-ride-at-ride-behind-a-connected-bike.md). Every `classes/…` address is now page not found.)
 - **Nothing calls an API.** `HttpClassesApi`, `CachedClassesApi`, `CatalogueCache`, `CLASSES_API`,
   `ClassesApiError`, `ClassDto`, `VideoDto`, `ClassCatalogueDto` and `ShelfDto` are removed, and
   with them `provideHttpClient`: nothing else used `HttpClient`. A catalogue an earlier version

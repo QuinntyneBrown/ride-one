@@ -92,7 +92,7 @@ in `HOST` (no scheme), and take a hashed file's name from the page's source.
 ```shell
 curl -sI "http://$HOST/"                                  # a 3xx, Location: https://$HOST/
 curl -sI "https://$HOST/"                                 # 200, text/html, the five headers of globalHeaders
-curl -sI "https://$HOST/classes/intervals-to-the-beat/ride"   # 200, text/html: the app, by the fallback
+curl -sI "https://$HOST/ride"                             # 200, text/html: the app, by the fallback
 curl -sI "https://$HOST/no-such-screen"                   # 200, text/html: the app shows Page not found
 curl -sI "https://$HOST/chunk-GONE.js"                    # 404
 curl -sI "https://$HOST/main-<hash>.js"                   # Cache-Control: public, max-age=31536000, immutable

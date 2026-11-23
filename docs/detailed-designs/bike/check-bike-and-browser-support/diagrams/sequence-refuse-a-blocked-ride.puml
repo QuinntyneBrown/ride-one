@@ -17,7 +17,7 @@ skinparam package {
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
   participant "Router" as router
-  participant "blockedBrowserGuard" as guard
+  participant "connectedBikeGuard" as guard
   participant "ConnectBikePage" as connect
   participant "TheClassPage" as page
 end box
@@ -26,11 +26,12 @@ box "Frontend — Ride app (components library)" #E0F2FE
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3
   participant "WebBluetoothSupport" as support
+  participant "BikeConnection" as conn
 end box
 rider -> router : Open the ride's address in a blocked browser
 router -> guard : canActivate
-guard -> support : Read state()
-support --> guard : unsupported-browser or insecure-context; no Bluetooth call is made (L2-010 AC2)
+guard -> conn : Read ble()
+conn --> guard : idle: a blocked browser has no connected bike; no Bluetooth call is made (L2-010 AC2)
 guard --> router : UrlTree to /
 router -> page : Open The Class
 page --> rider : Video, plan chart and record work; start button disabled (L2-010 AC1, AC3)

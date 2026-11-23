@@ -13,7 +13,6 @@ import {
   VIDEO_PLAYER_FACTORY,
   type VideoPlayer,
 } from '@telo/api';
-import { type ClassStatTone, formatMetric } from '@telo/components';
 import {
   BikeTelemetry,
   PowerModel,
@@ -25,16 +24,10 @@ import {
   WorkoutEngine,
 } from '@telo/domain';
 import { classStepAnnouncement } from '../rides/step-announcement';
-
-/** A live stat as the bike panel shows it. */
-export interface StatView {
-  readonly value: string;
-  readonly hint: string | null;
-  readonly tone: ClassStatTone | null;
-}
+import { type StatView, cadenceStat, powerStat } from './stat-view';
 
 /**
- * The solo class ride's state (docs/detailed-designs/classes/ride-a-class), provided by the page so it goes when the
+ * The solo class ride's state (docs/detailed-designs/class-ride/ride-the-class), provided by the page so it goes when the
  * rider leaves. It reads the class from `THE_CLASS` and starts the ride at once: the clock, the ticker
  * and the engine following the plan, which sends each segment's level (L2-027). The header and the segment card read
  * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
@@ -90,37 +83,15 @@ export class ClassRideStore {
     () => this.playerMissing() || this.player()?.state() === 'error',
   );
 
-  /** Power against the segment's target: "On target" within 10 %, otherwise the signed delta (L2-089 AC2). */
-  readonly power = computed<StatView>(() => {
-    const power = this.telemetry.powerW();
-    const target = this.plan()?.targetPower ?? null;
-    if (power === null || target === null) {
-      return {
-        value: formatMetric(power, 0),
-        hint: target === null ? null : `Target ${target} W`,
-        tone: null,
-      };
-    }
-    const watts = Math.round(power);
-    if (PowerModel.onTarget(watts, target))
-      return { value: String(watts), hint: 'On target', tone: 'on' };
-    const delta = watts - target;
-    return {
-      value: String(watts),
-      hint: `${delta > 0 ? '+' : '-'}${Math.abs(delta)} W`,
-      tone: delta > 0 ? 'over' : 'under',
-    };
-  });
+  /** Power against the segment's target power: "On target" within 10 %, otherwise the signed difference (L2-089 AC2). */
+  readonly power = computed<StatView>(() =>
+    powerStat(this.telemetry.powerW(), this.plan()?.targetPower ?? null),
+  );
 
   /** Cadence with the segment's aim (L2-089 AC3). */
-  readonly cadence = computed<StatView>(() => {
-    const aim = this.plan()?.segment.cadenceAim;
-    return {
-      value: formatMetric(this.telemetry.cadence(), 0),
-      hint: aim === undefined ? null : `Aim ${aim}`,
-      tone: null,
-    };
-  });
+  readonly cadence = computed<StatView>(() =>
+    cadenceStat(this.telemetry.cadence(), this.plan()?.segment.cadenceAim),
+  );
 
   constructor() {
     // Each segment, said once as it starts, in the segment card's words (L2-141 AC2).
