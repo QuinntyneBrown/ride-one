@@ -1,0 +1,41 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Stay smooth on long rides
+
+Person(rider, "Rider", "Rides a smart bike at home")
+System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
+
+Container_Boundary(ride, "ride application") {
+  Component(page, "ClassRidePage", "Angular page", "Provides the ride's services; destroyed on leaving")
+  Component(store, "ClassRideStore", "Page-scoped store", "Reports running seconds; destroys the player")
+  Component(routes, "ride.routes.ts", "Parent route", "Holds only what all four screens share")
+}
+Container_Boundary(domain, "domain library") {
+  Component(totals, "RideTotals", "engine service, reshaped", "Fixed set of running totals; no trace")
+  Component(ticker, "RideTicker", "engine service", "One timeout and one listener, cleared on destroy")
+  Component(telemetry, "BikeTelemetry", "engine service", "Latest reading only; unsubscribes on destroy")
+  Component(engine, "WorkoutEngine", "engine service", "Current plan state only")
+  Component(wake, "BrowserScreenWakeLock", "browser service", "One sentinel and one listener, released")
+}
+Container_Boundary(api, "api library") {
+  Component(conn, "BIKE_CONNECTION", "Contract and token", "Shared by all screens; outlives a ride")
+}
+Container_Boundary(video, "video library") {
+  Component(yt, "YouTubeVideoPlayer", "VideoPlayer", "destroy() removes the iframe")
+}
+
+Rel(rider, page, "Enters and leaves")
+Rel(page, store, "Provides and destroys")
+Rel(page, totals, "Provides and destroys")
+Rel(page, ticker, "Provides and destroys")
+Rel(page, telemetry, "Provides and destroys")
+Rel(page, engine, "Provides and destroys")
+Rel(store, totals, "onRunningSecond(state)")
+Rel(store, ticker, "Subscribes until destroyed")
+Rel(store, yt, "Creates and destroys")
+Rel(store, wake, "Holds and releases")
+Rel(telemetry, conn, "Subscribes to frames until destroyed")
+Rel(routes, conn, "Provides once")
+Rel(conn, bike, "Notifications", "Web Bluetooth")
+@enduml
