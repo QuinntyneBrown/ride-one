@@ -1,5 +1,6 @@
 import type {
   ClassDefinition,
+  RideRecordSnapshot,
   RideWith,
   RideWithOption,
   Segment,
@@ -23,17 +24,24 @@ export interface TheClassState {
   /** The browser can draw the course. */
   readonly drawable: boolean;
   readonly videoUnavailable: boolean;
+  /** What the rider has finished on this device. */
+  readonly record: RideRecordSnapshot;
 }
 
 /**
  * The start button (L2-084 AC4, AC6, AC7): "Start class" opens the ride with a connected bike; without one it reads
  * "Connect your bike", says why, and opens Connect Bike. Its words never follow the choice of how to ride (L2-173 AC5).
  * In a blocked browser no bike can be connected, so the button is disabled and keeps its words and its line (L2-010
- * AC1). "Ride it again" joins with the record (slice 32.6).
+ * AC1). With a connected bike and a finished ride it reads "Ride it again" (L2-084 AC5).
  */
-export function startAction(connected: boolean, blocked: boolean): StartAction {
+export function startAction(connected: boolean, blocked: boolean, returning = false): StartAction {
   return connected
-    ? { label: 'Start class', hint: null, opens: 'ride', disabled: false }
+    ? {
+        label: returning ? 'Ride it again' : 'Start class',
+        hint: null,
+        opens: 'ride',
+        disabled: false,
+      }
     : {
         label: 'Connect your bike',
         hint: 'The class needs the bike to set resistance.',
@@ -80,6 +88,16 @@ export function whatTheBikeWillDo(segments: readonly Segment[]): WhatTheBikeWill
   };
 }
 
+/** The record a returning rider sees (L2-084 AC8): the ride count, the best and the last output in whole kJ. */
+function recordView(record: RideRecordSnapshot): TheClassView['record'] {
+  if (record.rides === 0) return null;
+  return {
+    rides: String(record.rides),
+    best: `${record.bestKj ?? 0} kJ`,
+    last: `${record.lastKj ?? 0} kJ`,
+  };
+}
+
 /** The Class as it is drawn (L2-084 AC1 to AC3, L2-173). */
 export function theClassView(state: TheClassState): TheClassView {
   const { definition } = state;
@@ -98,7 +116,8 @@ export function theClassView(state: TheClassState): TheClassView {
     videoUnavailable: state.videoUnavailable,
     rideWith: state.rideWith,
     options: rideWithOptions(state.drawable),
-    start: startAction(state.connected, state.blocked),
+    start: startAction(state.connected, state.blocked, state.record.rides > 0),
+    record: recordView(state.record),
     plan: whatTheBikeWillDo(definition.plan.segments),
   };
 }

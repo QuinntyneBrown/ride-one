@@ -54,5 +54,7 @@ export interface TheClassView {
   readonly rideWith: RideWith;
   readonly options: readonly RideWithOption[];
   readonly start: StartAction;
+  /** "Rides", "Best output" and "Last time" for a returning rider; `null` for one with no finished ride (L2-084 AC8). */
+  readonly record: { readonly rides: string; readonly best: string; readonly last: string } | null;
   readonly plan: WhatTheBikeWillDo;
 }

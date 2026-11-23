@@ -273,6 +273,29 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 32.6 Come back to beat it (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first:** the view's new cases were written before `record` and the three-argument
+  `startAction` existed; the e2e spec failed on the missing figures.
+- **Name the files Prettier writes:** only the slice's files were formatted.
+
+**What slowed it down**
+
+- Nothing blocked: the record (32.1), the mock's classes and the design system's rules were all there; the stats rules
+  were ported from `components.css` to the component's own stylesheet.
+
+**Decisions**
+
+- **The record is read when the view is drawn,** not injected into the component: `wz-the-class` stays presentational and
+  the store passes the snapshot, so a return from Class Done shows the new ride without a reload.
+- **"Ride it again" is a third argument of `startAction`,** so the rule that a missing bike beats it stays in one place.
+
+**New lessons**
+
+- None new; the rule "a presentation component takes inputs" held and made this slice a view change plus markup.
+
 ### 32.5 On target (2026-11-23)
 
 **Applied from earlier**

@@ -22,7 +22,10 @@ const state = {
   rideWith: 'video',
   drawable: true,
   videoUnavailable: false,
+  record: { rides: 0, bestKj: null, lastKj: null },
 } as const;
+
+const returning = { rides: 6, bestKj: 342, lastKj: 318 } as const;
 
 describe('startAction', () => {
   it.each([
@@ -55,6 +58,47 @@ describe('startAction', () => {
     expect(theClassView({ ...state, rideWith, connected: false }).start).toEqual(
       startAction(false, false),
     );
+  });
+});
+
+describe('the record and "Ride it again" (L2-084 AC5, AC8)', () => {
+  it('reads "Ride it again" with a connected bike once a ride is finished (AC5)', () => {
+    expect(startAction(true, false, true)).toEqual({
+      label: 'Ride it again',
+      hint: null,
+      opens: 'ride',
+      disabled: false,
+    });
+    expect(theClassView({ ...state, record: returning }).start.label).toBe('Ride it again');
+  });
+
+  it('still reads "Connect your bike" without a bike, whatever the record says (AC6)', () => {
+    expect(startAction(false, false, true)).toEqual(startAction(false, false));
+    expect(theClassView({ ...state, connected: false, record: returning }).start.label).toBe(
+      'Connect your bike',
+    );
+  });
+
+  it('reads Rides, Best output and Last time for a returning rider (AC8)', () => {
+    expect(theClassView({ ...state, record: returning }).record).toEqual({
+      rides: '6',
+      best: '342 kJ',
+      last: '318 kJ',
+    });
+  });
+
+  it('shows none of the three, and reads "Start class", to a rider with no finished ride (AC4, AC8)', () => {
+    const view = theClassView(state);
+    expect(view.record).toBeNull();
+    expect(view.start.label).toBe('Start class');
+  });
+
+  it('shows a best and a last of 0 kJ for a ride of no output', () => {
+    expect(theClassView({ ...state, record: { rides: 1, bestKj: 0, lastKj: 0 } }).record).toEqual({
+      rides: '1',
+      best: '0 kJ',
+      last: '0 kJ',
+    });
   });
 });
 

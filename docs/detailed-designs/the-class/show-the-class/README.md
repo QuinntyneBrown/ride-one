@@ -50,6 +50,12 @@ Neighbouring features own the adjacent concerns:
 
 ## Description
 
+Slice 32.6 added the record (`L2-084` AC5, AC8, `L2-079` AC2, `L2-171` AC4; the mock `the-class/returning`):
+`TheClassState.record` is the device's `RIDE_RECORD` snapshot, read when the view is drawn, so Done's return to The Class
+shows the ride just counted. `theClassView.record` is `{rides, best, last}` as "6", "342 kJ" and "318 kJ", or `null` for
+a rider with no finished ride; `wz-the-class` draws it as `the-class__stats` beside the length (wrapping under it on a
+phone), and `startAction(connected, blocked, returning)` reads "Ride it again" with a connected bike and a finished ride.
+
 Slice 30.2 built The Class in the place of Telo Ride's Class Start, which is gone with its
 "Video link and sync" (`ClassSync`), `ClassStartVideo` and `AppHeaderBike`. Slice 30.1 built the
 class definition. Slice 30.3 built "What the bike will do" as designed, in the place of the plan

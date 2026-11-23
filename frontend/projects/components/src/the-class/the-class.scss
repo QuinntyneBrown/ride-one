@@ -188,6 +188,47 @@
   color: var(--color-muted);
 }
 
+// A returning rider's record, beside the length and wrapping under it on a phone (L2-171 AC4).
+.the-class__stats {
+  display: grid;
+  flex: 1 1 16rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+
+  @media (min-width: 48rem) {
+    max-width: var(--layout-text-sm);
+  }
+
+  @media (min-width: 64rem) {
+    margin-top: var(--space-6);
+    max-width: none;
+    border-top: var(--border-width-hairline) solid var(--color-line);
+    padding-top: var(--space-4);
+  }
+}
+
+.the-class__stat {
+  min-width: 0;
+}
+
+.the-class__stat-label {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  white-space: nowrap;
+  color: var(--color-muted);
+}
+
+.the-class__stat-value {
+  margin-top: var(--space-1);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-display);
+  font-feature-settings: 'tnum' 1;
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
+  white-space: nowrap;
+}
+
 // What the bike will do: the heading with the average beside it, the resistance profile and the line under it.
 .the-class__plan {
   min-width: 0;
@@ -317,6 +358,10 @@
 
   .the-class__facts {
     margin-top: var(--space-5);
+  }
+
+  .the-class__stats {
+    margin-top: var(--space-4);
   }
 
   .the-class__action {
