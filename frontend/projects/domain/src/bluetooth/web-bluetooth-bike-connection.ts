@@ -252,6 +252,10 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     }
   }
 
+  forgetTarget(): void {
+    this.target = null;
+  }
+
   disconnect(): void {
     this.stopWaiting();
     this.reconnector.stop();

@@ -36,7 +36,7 @@ store -> player : pause()
 store --> page : paused = true
 page -> cvideo : paused = true
 cvideo --> rider : Overlay "Paused" on the video (L2-091 AC1)
-page --> rider : Button reads "Resume"; LiveAnnouncer announces the pause once (L2-091 AC3)
+page --> rider : Button reads "Resume"; the store announces "Ride paused" once through ANNOUNCER (L2-091 AC3)
 note over clock, ticker : The held clock reaches no new second: no tick, no segment change, no plan command
 rider -> page : Press "Resume"
 page -> store : resume()
@@ -44,6 +44,6 @@ store -> clock : resume()
 store -> player : seekTo(sync offset + elapsed)
 store -> player : play()
 store --> page : paused = false
-page --> rider : Clock, plan and video carry on from the same place (L2-091 AC2); the resume is announced once (AC3)
+page --> rider : Clock, plan and video carry on from the same place (L2-091 AC2); "Ride resumed" is announced once (AC3)
 ticker -> store : Next whole second
 @enduml

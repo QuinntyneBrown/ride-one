@@ -38,9 +38,7 @@ page -> store : DestroyRef runs
 store -> player : destroy() (L2-088 AC6)
 store -> wake : release()
 store -> conn : forgetTarget() (L2-093 AC3)
-opt the bike is lost
-  store -> conn : disconnect(): the retries end (L2-017 AC1)
-end
+note right of conn : A lost bike's retries carry on, on The Class
 page -> engine : DestroyRef runs
 engine -> engine : Clear the timeout, remove visibilitychange, unsubscribe from ticks
 page -> telemetry : DestroyRef runs

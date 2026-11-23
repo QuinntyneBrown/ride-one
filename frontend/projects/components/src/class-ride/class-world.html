@@ -8,4 +8,9 @@
   <div class="class-world__video">
     <ng-content select="[slot=video]" />
   </div>
+  @if (paused()) {
+    <div class="class-world__paused" aria-hidden="true">
+      <p class="class-world__paused-label">Paused</p>
+    </div>
+  }
 </div>

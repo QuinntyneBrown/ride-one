@@ -32,6 +32,15 @@ export class WorkoutEngine {
     this.step();
   }
 
+  /**
+   * Sends the current segment's level again: the bike is back mid-segment (L2-027 AC4, L2-092 AC3). A level the rider
+   * set by hand within the segment gives way to the plan's. Nothing is sent before a plan or after its end.
+   */
+  resend(): void {
+    const now = this.current();
+    if (now !== null) void this.resistance.applyPlanLevel(now.segment.level);
+  }
+
   private step(): void {
     if (this.plan === null) return;
     const before = this.current();

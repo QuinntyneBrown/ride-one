@@ -33,10 +33,25 @@ Neighbouring features own the adjacent concerns:
 
 ## Description
 
-The slice lives in the Ride app: `ClassRideStore` and `ClassRidePage` in the `ride` application,
-the alert in `components`, and the link in `domain`'s `bluetooth/`. All of it exists; Telo Ride 1
-changes the alert's copy and the header's button to the mock
-`docs/mocks/pages/class-ride/disconnected.html`.
+The slice lives in the Ride app: `ClassRideStore` and `ClassRideSession` in the `ride`
+application, the alert in `components`, and the link in `domain`'s `bluetooth/`. Slice 31.2
+built it on the carried-over ride: the alert's copy, the header's button and the header above
+the alert as the mock `docs/mocks/pages/class-ride/disconnected.html` draws them, the copy in
+Ibiza (`disconnected-ibiza.html`), `rideHold()` and `WorkoutEngine.resend()`.
+
+- **`rideHold()`** (`ride/src/app/class-ride/ride-hold.ts`, with its unit tests). A pure helper
+  that gives the ride's state from the two reasons it can be held:
+
+  | Paused by the rider | Bike lost | Runs | Header button | "Paused" overlay | Alert |
+  |---|---|---|---|---|---|
+  | no | no | yes | Pause | no | no |
+  | yes | no | no | Resume | yes | no |
+  | no | yes | no | Resume, disabled | no | yes |
+  | yes | yes | no | Resume, disabled | yes, under the alert | yes |
+
+  `ClassRideStore.state` is that value as a signal; the template reads the button's word,
+  `disabled`, the overlay and the alert from it. `pause()` and `resume()` do nothing while the
+  bike is lost.
 
 - **`BIKE_CONNECTION`** (exists in `api`). `ble` is a signal of `BleState`: `idle`,
   `connecting`, `connected` or `disconnected`. `reconnectNow()` cancels the wait for the next
@@ -54,7 +69,7 @@ changes the alert's copy and the header's button to the mock
   `carryOn()` for a return. The ride therefore holds within a second of the drop and carries on
   within a second of the return. On a return it first calls `WorkoutEngine.resend()`, whether
   or not the rider had paused.
-- **`WorkoutEngine.resend()`** (new method, designed in
+- **`WorkoutEngine.resend()`** (built by slice 31.2, designed in
   [control resistance](../../bike/control-resistance/README.md)). It sends the current
   segment's level again through `ResistanceController.applyPlanLevel` (`L2-027` AC4,
   `L2-092` AC3).
@@ -68,23 +83,22 @@ changes the alert's copy and the header's button to the mock
 - **`ClassLost`** (exists, `wz-class-lost`; its copy changes). A presentation component with
   the input `body` and the output `reconnect`. It renders `class-lost` with `role="alert"`,
   labelled by its `h2` "Lost the bike", the body, and a primary **Reconnect** button. The page
-  renders it while `bikeLost()` is true. Today the page passes "Your ride is paused. Pedal to
-  wake the bike and it carries on from here."; Telo Ride 1 passes "The video is paused. Pedal to
-  wake the bike, then reconnect." With one solo ride left, the `body` input may become fixed
-  text in the component.
+  renders it while `bikeLost()` is true and passes `lostBikeMessage()`: "The video is paused.
+  Pedal to wake the bike, then reconnect." with the class video and "The ride is paused. Pedal
+  to wake the bike, then reconnect." in Ibiza, where no video is paused (`L2-092` AC1). The
+  alert covers the ride under the header: `class-ride__header` is drawn above it, so Leave and
+  Full screen take a press while the bike is away (`L2-092` AC2).
 - **`ClassRideStore.reconnect()`** (exists). It calls `BIKE_CONNECTION.reconnectNow()`.
-- **Pause button while lost** (changes in `class-ride-page.html`). The mock draws the header
-  button as a disabled "Resume" while the bike is lost. The button reads "Resume" when
-  `paused()` or `bikeLost()` is true and is `disabled` while `bikeLost()` is true. Today it
-  stays an enabled "Pause".
+- **Pause button while lost** (`class-ride-session.html`). The mock draws the header button as
+  a disabled "Resume" while the bike is lost. The button reads "Resume" when `paused()` or
+  `bikeLost()` is true and is `disabled` while `bikeLost()` is true.
 - **Resistance stepper while lost** (exists). `ClassResist.disabled` follows
   `ResistanceController.canControl`, which is false unless `ble()` is `connected`.
 - **Leave link** (exists). It does not depend on the link state and stays active. Leaving
-  while the bike is lost ends the retries and forgets the kept target, as
+  while the bike is lost forgets the kept target and leaves the retries running on The Class, as
   [pause, leave or finish the class](../pause-leave-or-finish-the-class/README.md) describes.
-- **Paused overlay** (changes). Today the page sets `ClassVideo.paused` when the ride is paused
-  or the bike is lost. The mock draws no "Paused" overlay under the alert, so the input follows
-  `paused()` alone.
+- **Paused overlay**. The mock draws no "Paused" overlay under the alert, so `ClassVideo.paused`
+  (and `ClassWorld.paused` in Ibiza) follows the rider's own pause alone.
 
 The level after a reconnect reaches the bike in two steps. The connection sends its kept target
 resistance first (`L2-017` AC4); that target is the current segment's level or the rider's last

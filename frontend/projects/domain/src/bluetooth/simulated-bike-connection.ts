@@ -62,6 +62,11 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
     return 0; // the simulator acknowledges at once
   }
 
+  /** The simulated bike never drops, so no target is kept for a reconnect. */
+  forgetTarget(): void {
+    return;
+  }
+
   disconnect(): void {
     this.ticking?.unsubscribe();
     this.ticking = null;

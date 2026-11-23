@@ -101,13 +101,16 @@
         "L2-089",
         "L2-091",
         "L2-092",
-        "L2-093"
+        "L2-093",
+        "L2-174"
       ],
       "states": [
         "default",
         "paused",
+        "paused-ibiza",
         "off-target",
-        "disconnected"
+        "disconnected",
+        "disconnected-ibiza"
       ],
       "not_applicable": {
         "loading": "The ride starts from The Class with the bike already connected and the plan in memory; there is nothing to wait for.",

@@ -10,6 +10,13 @@
   color: var(--color-fg);
 }
 
+// The header stays above the lost-bike alert, which covers the rest of the ride: Leave and Full screen stay in
+// reach while the bike is away (L2-092 AC2, docs/mocks/pages/class-ride/disconnected).
+.class-ride__header {
+  position: relative;
+  z-index: calc(var(--z-overlay) + 1);
+}
+
 .class-ride__body {
   display: grid;
   flex: 1;

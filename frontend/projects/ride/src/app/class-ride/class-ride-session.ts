@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import type { PreparedWorld, World } from '@telo/api';
 import { RouterLink } from '@angular/router';
 import {
@@ -23,6 +23,7 @@ import {
 import { ClassRideStore } from './class-ride-store';
 import { ClassWorldScene } from './class-world-scene';
 import { FullscreenButton } from '../fullscreen/fullscreen-button';
+import { lostBikeMessage } from './ride-hold';
 
 /**
  * The class ride (docs/mocks/pages/class-ride/, solo), which `ClassRidePage` shows once the rider presses Start riding on
@@ -68,6 +69,9 @@ export class ClassRideSession {
   readonly panorama = input<{ readonly url: string; readonly alt: string } | null>(null);
   /** The renderer World loading warmed up, with its canvas, handed over by Start riding (L2-153 AC3, AC5). */
   readonly prepared = input<PreparedWorld | null>(null);
+
+  /** What the lost-bike alert says is paused: the video, or in Ibiza the ride (L2-092 AC1). */
+  protected readonly lostBody = computed(() => lostBikeMessage(this.world() ? 'ibiza' : 'video'));
 
   /** Closing or reloading the tab mid-ride asks the rider to confirm (L2-133 AC4); the listener goes with the page. */
   protected confirmLeaving(event: BeforeUnloadEvent): void {

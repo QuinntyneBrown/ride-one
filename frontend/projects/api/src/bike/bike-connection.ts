@@ -46,6 +46,11 @@ export interface BikeConnection {
   setResistance(level: number): Promise<number>;
   /** After a drop, cancels the wait for the next retry and tries the bike at once: the **Reconnect** action. */
   reconnectNow(): void;
+  /**
+   * Forgets the target resistance kept for the next reconnect: the ride that asked for it is over, so a bike that
+   * drops and comes back afterwards is sent no resistance command (L2-093 AC3).
+   */
+  forgetTarget(): void;
   /** Drops the link and stops the notifications. */
   disconnect(): void;
 }

@@ -44,3 +44,20 @@
   bottom: var(--space-3);
   width: clamp(9rem, 32%, 24rem);
 }
+
+// The class video's own overlay, over the whole course (class-video__paused; docs/mocks/pages/class-ride/paused-ibiza):
+// ink at 70 %, "Paused" centred. The course holds still under it (L2-091 AC1).
+.class-world__paused {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--color-ink) 70%, transparent);
+}
+
+.class-world__paused-label {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+  font-weight: var(--font-weight-semibold);
+}

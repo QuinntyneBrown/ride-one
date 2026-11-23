@@ -56,8 +56,17 @@ export class ClassRidePage {
   readonly pause: Locator;
   readonly resume: Locator;
   readonly leave: Locator;
+  /** "Paused" over the class video (L2-091 AC1). */
   readonly paused: Locator;
+  /** The same "Paused" over the course, in Ibiza (L2-091 AC1). */
+  readonly coursePaused: Locator;
   readonly lost: Locator;
+  /** What the lost-bike alert says the ride is doing meanwhile (L2-092 AC1). */
+  readonly lostBody: Locator;
+  /** A confirmation, which Leave never asks for (L2-093 AC1). */
+  readonly confirmation: Locator;
+  /** Every polite status on the screen itself, apart from the app's one live region. */
+  readonly statuses: Locator;
   readonly reconnect: Locator;
   readonly videoNotice: Locator;
   readonly power: Locator;
@@ -106,6 +115,10 @@ export class ClassRidePage {
     this.leave = page.getByRole('link', { name: 'Leave class' });
     this.paused = page.locator('.class-video__paused');
     this.lost = page.getByRole('alert').filter({ hasText: 'Lost the bike' });
+    this.lostBody = this.lost.locator('.class-lost__body');
+    this.coursePaused = page.locator('.class-world__paused');
+    this.confirmation = page.getByRole('dialog').or(page.getByRole('alertdialog'));
+    this.statuses = page.locator('.class-ride').getByRole('status');
     this.reconnect = page.getByRole('button', { name: 'Reconnect' });
     this.videoNotice = page.locator('.class-video__notice');
     const stat = (label: string) =>
@@ -141,6 +154,23 @@ export class ClassRidePage {
   /** The path of the page's address. */
   url(): string {
     return new URL(this.page.url()).pathname;
+  }
+
+  /** The page's own time, for a spec that takes over its clock mid-ride. */
+  now(): Promise<number> {
+    return this.page.evaluate(() => Date.now());
+  }
+
+  /** Whether `overlay` is drawn over the whole of the video's box, or the course's. */
+  async coversBox(overlay: Locator): Promise<boolean> {
+    const [box, over] = await Promise.all([this.box.boundingBox(), overlay.boundingBox()]);
+    if (!box || !over) return false;
+    return (
+      Math.abs(box.x - over.x) < 1 &&
+      Math.abs(box.y - over.y) < 1 &&
+      Math.abs(box.width - over.width) < 1 &&
+      Math.abs(box.height - over.height) < 1
+    );
   }
 
   /** Scrolls the ride's body to its end, as a rider does to reach the stepper in a window too short to hold it. */

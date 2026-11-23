@@ -2516,6 +2516,8 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .class-board-row--you .class-board-row__name { font-weight: var(--font-weight-semibold); }
 
 /* Lost the bike: over the whole screen (absolute inset-0 bg-ink/85) */
+/* The header stays above the lost-bike alert, so Leave and Full screen stay in reach (L2-092 AC2). */
+.class-ride > .class-header { position: relative; z-index: calc(var(--z-overlay) + 1); }
 .class-lost { position: absolute; inset: 0; z-index: var(--z-overlay); display: grid; place-items: center; padding-inline: var(--space-6); background: color-mix(in srgb, var(--color-ink) 85%, transparent); }
 .class-lost__card { max-width: var(--layout-text-sm); text-align: center; }
 .class-lost__icon { margin-inline: auto; color: var(--color-heart-fg); }
