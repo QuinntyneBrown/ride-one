@@ -273,6 +273,22 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 36.2 Touch and keyboard (2026-11-23)
+
+**What slowed it down**
+
+- 44 px and 48 px targets and a visible focus ring were already covered (`touch-and-keyboard.spec.ts`). The gaps were
+  L2-140 AC3 (no hover effect on text) and AC4 (a "Skip to content" link first on every page), now
+  `skip-and-hover.spec.ts` for all five screens. No product code changed.
+- The first draft pressed Tab and expected the link focused; on Class Ride, reached by in-app navigation, focus is
+  already inside the page, so Tab went elsewhere. The spec now asserts the link is the first focusable element in the
+  page's order and that Enter moves focus into `main`: what "when a page opens" means for a page opened by a link.
+- Hover on text that is off-screen cannot be tried, so those elements are skipped.
+
+**New lessons**
+
+- Say whether an a11y spec is about a page loaded fresh or reached by navigation; the focus starting point differs.
+
 ### 36.1 Fit every width (2026-11-23)
 
 **What slowed it down**
