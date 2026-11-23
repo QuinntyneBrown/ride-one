@@ -6,7 +6,6 @@ export { FtmsProtocol, type ResistanceRange } from './protocol/ftms-protocol';
 export { HeartRateMeasurementDecoder } from './protocol/heart-rate-measurement-decoder';
 export { IndoorBikeDataDecoder } from './protocol/indoor-bike-data-decoder';
 export { GattWriteQueue } from './bluetooth/gatt-write-queue';
-export { MAPS_KEY_STORAGE, MapsKeyStore } from './storage/maps-key-store';
 export { REMEMBERED_BIKE_KEY, RememberedBikeStore } from './storage/remembered-bike-store';
 export { SUPPORTED_BIKES } from './bluetooth/supported-bikes';
 export { SimulatedBluetoothSupport } from './bluetooth/simulated-bluetooth-support';
@@ -37,7 +36,6 @@ export {
   multiplayerAvailability,
 } from './engine/multiplayer-availability';
 export { EnergyModel } from './engine/energy-model';
-export { RaceStartPlanner, type RaceStart } from './engine/race-start-planner';
 export { HeartRateSource } from './engine/heart-rate-source';
 export { RideInProgress } from './engine/ride-in-progress';
 export { HeartRateStats } from './engine/heart-rate-stats';
@@ -51,18 +49,7 @@ export { RideRecorder } from './engine/ride-recorder';
 export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { WorkoutEngine } from './engine/workout-engine';
 export { SpeedModel } from './engine/speed-model';
-export { VirtualSpeedModel } from './engine/virtual-speed-model';
-export { BOT_NAMES, BotPaceModel, PACK_BASE_WATTS } from './engine/bot-pace-model';
-export { BOTS_LOBBY_SECONDS, LOBBY_SEATS, LocalLobby } from './engine/local-lobby';
-export { BotPack } from './engine/bot-pack';
-export { COAST_SECONDS, CoastPolicy } from './engine/coast-policy';
-export { FinishLine } from './engine/finish-line';
-export { GhostReplay } from './engine/ghost-replay';
-export { NoBestRides } from './engine/no-best-rides';
-export type { FieldPosition, RaceField } from './engine/race-field';
-export { type Standing, YOU, formatGap, ordinal, rankStandings } from './engine/standings';
-export { finalStandings } from './engine/final-standings';
-export { type RouteProfile, routeProfile, routeProfileView } from './engine/route-profile';
+export { ordinal } from './engine/standings';
 export { SecondTicker } from './engine/second-ticker';
 export {
   EchelonProtocol,
@@ -84,8 +71,6 @@ export { deviceCheckLevels, deviceCheckResult, deviceCheckRunning } from './engi
 export { CachedClassesApi } from './storage/cached-classes-api';
 export { CATALOGUE_KEY, CatalogueCache } from './storage/catalogue-cache';
 export { PlanSummary } from './engine/plan-summary';
-export { CachedMapsApi } from './storage/cached-maps-api';
-export { MAP_CATALOGUE_KEY, MapCatalogueCache } from './storage/map-catalogue-cache';
 export { isEmailAddress } from './accounts/email-address';
 export {
   CUSTOM_WORKOUT_LIMITS,

@@ -3,8 +3,7 @@
 // Description: Settings' World section names the graphics API in use and offers Quality as five cards, Auto first and
 // chosen, Ultra needing WebGPU; Step down when frames drop, always on with Auto and the rider's to turn off with a
 // fixed level; Frame rate; Resolution; and Graphics, which offers WebGL 2 where WebGPU is there. A browser that can't
-// draw 3D gets a notice and every World control disabled, while the other sections still work. What the world does
-// with them is in race-world-settings.spec.ts.
+// draw 3D gets a notice and every World control disabled, while the other sections still work.
 import { expect, test } from './fixtures/test';
 import { SettingsPage } from './pages/settings.page';
 
@@ -26,7 +25,7 @@ test('the World section without WebGPU: Auto chosen, Ultra needs WebGPU, and eve
 
   await expect(settings.graphicsApi).toHaveText('WebGL 2');
   await expect(settings.section('World')).toContainText(
-    'How the 3D world is drawn in races and world classes. Smoothness comes first: power and the clock never wait for the picture.',
+    'How the 3D world is drawn in world classes. Smoothness comes first: power and the clock never wait for the picture.',
   );
   await expect(settings.qualities).toHaveCount(5);
   for (const [index, name] of QUALITIES.entries()) {
@@ -115,7 +114,7 @@ test('a browser that can’t draw 3D gets a notice, every World control disabled
 
   await expect(settings.graphicsApi).toHaveText('Panorama only');
   await expect(settings.noWorlds).toHaveText(
-    'This browser can’t draw 3D worlds. Races and world classes use each map’s panorama. Turn on graphics acceleration in Chrome or Edge to bring the worlds back.',
+    'This browser can’t draw 3D worlds. World classes use each world’s panorama. Turn on graphics acceleration in Chrome or Edge to bring the worlds back.',
   );
   for (const quality of await settings.qualities.all()) await expect(quality).toBeDisabled();
   await expect(settings.stepDown).toBeDisabled();

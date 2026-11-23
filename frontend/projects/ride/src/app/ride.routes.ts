@@ -95,22 +95,10 @@ export const rideRoutes: Routes = [
         loadChildren: () =>
           import('./class-start/class-start.routes').then((m) => m.classStartRoutes),
       },
-      // The race is full screen, with no app header (docs/mocks/pages/race/).
-      {
-        path: 'race/:mapId/ride',
-        canActivate: [rememberedBikeGuard],
-        loadChildren: () => import('./race/race.routes').then((m) => m.raceRoutes),
-      },
       // Results has its own header, with no app navigation (docs/mocks/pages/results/).
       {
         path: 'results',
         loadChildren: () => import('./results/results.routes').then((m) => m.resultsRoutes),
-      },
-      // The race lobby is full height, with its own header (docs/mocks/pages/race-lobby/).
-      {
-        path: 'race/:mapId/lobby',
-        canActivate: [rememberedBikeGuard],
-        loadChildren: () => import('./race-lobby/race-lobby.routes').then((m) => m.raceLobbyRoutes),
       },
       // Custom workout has its own header, with no app navigation (docs/mocks/pages/custom-setup/).
       {
@@ -118,11 +106,6 @@ export const rideRoutes: Routes = [
         canActivate: [reconnectRememberedBikeGuard],
         loadChildren: () =>
           import('./custom-workout/custom-workout.routes').then((m) => m.customWorkoutRoutes),
-      },
-      // Race Setup has its own header, with no app navigation (docs/mocks/pages/race-setup/).
-      {
-        path: 'race/:mapId',
-        loadChildren: () => import('./race-setup/race-setup.routes').then((m) => m.raceSetupRoutes),
       },
       {
         path: '',
@@ -140,12 +123,6 @@ export const rideRoutes: Routes = [
             title: 'Telo Ride',
             canActivate: [rememberedBikeGuard],
             loadComponent: () => import('./home/home-page'),
-          },
-          {
-            path: 'race',
-            pathMatch: 'full',
-            loadChildren: () =>
-              import('./map-select/map-select.routes').then((m) => m.mapSelectRoutes),
           },
           {
             path: 'classes',

@@ -162,9 +162,9 @@ test.describe('Stay signed in: the session', () => {
     await library.open();
     await expect(library.heading).toBeVisible();
 
-    await library.header.link('Race').click();
+    await library.header.link('Profile').click();
 
-    await expect.poll(() => page.url()).toContain('/sign-in?returnUrl=%2Frace');
+    await expect.poll(() => page.url()).toContain('/sign-in?returnUrl=%2Fprofile');
   });
 
   test('Page not found opens without a session', async ({ page, api }) => {

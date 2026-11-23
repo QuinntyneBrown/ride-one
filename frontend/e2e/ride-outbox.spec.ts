@@ -6,7 +6,7 @@
 // the ride is sent again after 30 seconds, then a minute, the delay growing each time. A ride the backend refuses with
 // 429 is sent again when the Retry-After it was given has passed, not on the growing delay.
 import { RIDE_RECORDED } from './fixtures/api';
-import { openResults, soloRace } from './fixtures/results';
+import { openResults, soloClass } from './fixtures/results';
 import { ridesWaiting } from './fixtures/rides-waiting';
 import { expect, test } from './fixtures/test';
 import { ResultsPage } from './pages/results.page';
@@ -16,9 +16,9 @@ function rideIds(bodies: unknown[]): string[] {
   return (bodies as { rideId: string }[]).map((ride) => ride.rideId);
 }
 
-/** A solo race that finished at `finishedAt`. */
+/** A solo class that finished at `finishedAt`. */
 function finishedAt(at: string) {
-  const state = soloRace(1598);
+  const state = soloClass();
   return { ...state, ride: { ...state.ride, finishedAt: at } };
 }
 

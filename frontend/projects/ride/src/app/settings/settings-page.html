@@ -32,7 +32,7 @@
         wz-settings-section
         name="world"
         heading="World"
-        description="How the 3D world is drawn in races and world classes. Smoothness comes first: power and the clock never wait for the picture."
+        description="How the 3D world is drawn in world classes. Smoothness comes first: power and the clock never wait for the picture."
       >
         @if (graphicsApi(); as api) {
           <span wz-pill slot="head">{{ apiName[api] }}</span>
@@ -42,7 +42,7 @@
             slot="notice"
             tone="info"
             title="This browser can’t draw 3D worlds."
-            detail="Races and world classes use each map’s panorama. Turn on graphics acceleration in Chrome or Edge to bring the worlds back."
+            detail="World classes use each world’s panorama. Turn on graphics acceleration in Chrome or Edge to bring the worlds back."
           />
         }
         @if (graphicsApi(); as api) {

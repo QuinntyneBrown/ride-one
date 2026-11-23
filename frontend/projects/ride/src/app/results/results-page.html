@@ -19,22 +19,9 @@
           @if (view.sub; as sub) {
             <p class="results__sub">{{ sub }}</p>
           }
-          @if (view.standings; as standings) {
-            <wz-standings [rows]="standings" />
-          }
         </section>
         <aside class="earned" aria-label="What you earned">
-          @if (view.unlock; as unlock) {
-            <wz-unlock-card [view]="unlock">
-              <a slot="action" wz-button variant="gold" [block]="true" [routerLink]="unlock.path">{{
-                unlock.actionLabel
-              }}</a>
-            </wz-unlock-card>
-          }
           <wz-xp-earned [view]="view.xp" />
-          @if (view.stars; as stars) {
-            <wz-map-stars [view]="stars" />
-          }
           <div class="results__actions">
             <a wz-button variant="primary" size="xl" [block]="true" routerLink="/">Done</a>
             <!-- prettier-ignore -->

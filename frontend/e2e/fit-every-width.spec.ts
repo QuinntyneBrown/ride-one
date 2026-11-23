@@ -1,8 +1,8 @@
 // Acceptance test
 // Traces to: L2-139 AC1, AC2
-// Description: every screen fits every width from 320 to 2560 px without scrolling sideways: Home, Map Select, Race
-// Setup, the Class Library, Class Start, Profile, Settings, the custom workout, Connect Bike, sign-in, Page not found,
-// Results, a race, a class ride and a custom ride, each at the narrowest and the widest. The page margin is 16 px on a
+// Description: every screen fits every width from 320 to 2560 px without scrolling sideways: Home,
+// the Class Library, Class Start, Profile, Settings, the custom workout, Connect Bike, sign-in, Page not found,
+// Results, a class ride and a custom ride, each at the narrowest and the widest. The page margin is 16 px on a
 // phone, 24 px from sm and 32 px from lg, and content is at most 80 rem wide, centred. Every width between is the
 // responsive sweep's (e2e/sweeps/), run only when a person asks.
 import { screens } from './fixtures/screens';

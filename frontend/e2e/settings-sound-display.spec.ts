@@ -12,25 +12,22 @@
 // Given a change to each, when the page reloads, then each change is still there.
 // Given Reduce motion On, when anything animates, then it ends at once, whatever the device asks; Off keeps motion.
 // Given Theme Match device, when the device asks for light, then the app is light, else dark; Dark and Light hold.
-// Given Ride numbers Large, when a race or a class rides, then power, the clock and the target read larger, and the
+// Given Ride numbers Large, when a class rides, then power, the clock and the target read larger, and the
 // screen does not scroll sideways.
-// Given Go full screen when a ride starts, when the rider presses Start riding or the race's start, then the app
-// enters full screen; off, it does not.
+// Given Go full screen when a ride starts, when the rider presses Start riding, then the app enters full screen; off,
+// it does not.
 // Given World music off, when a class rides in its world, then no track plays.
-// Given ride sound off, when a race runs, then no audio context is made; on, one is, and it closes when the rider
+// Given ride sound off, when a class ride runs, then no audio context is made; on, one is, and it closes when the rider
 // leaves.
 import { connectBike, startClassRide } from './fixtures/class-ride';
 import { catalogue, hiitCardio } from './fixtures/classes';
 import { echelonBike } from './fixtures/echelon';
-import { maps } from './fixtures/maps';
-import { startRace } from './fixtures/race';
 import { RideAudio } from './fixtures/ride-audio';
 import { storeSettings, storedSettings } from './fixtures/settings-storage';
 import { expect, test } from './fixtures/test';
 import { WorldMusic } from './fixtures/world-music';
 import { AppDocument } from './pages/app-document';
 import { ClassRidePage } from './pages/class-ride.page';
-import { RaceSetupPage } from './pages/race-setup.page';
 import { SettingsPage } from './pages/settings.page';
 import { WorldLoadingPage } from './pages/world-loading.page';
 
@@ -193,24 +190,6 @@ test('Theme Match device is dark unless the device asks for light, and Dark or L
   await expect(app.root).toHaveAttribute('data-theme', 'dark');
 });
 
-test('Large ride numbers make power, the clock and the target bigger on the race, with no sideways scroll (L2-164 AC4)', async ({
-  page,
-  bluetooth,
-  api,
-}) => {
-  await page.setViewportSize({ width: 390, height: 780 });
-  await storeSettings(page, JSON.stringify({ rideNumbers: 'large' }));
-  const race = await startRace(page, bluetooth, api, 'old-town-criterium', 'mode=solo');
-  const app = new AppDocument(page);
-
-  // A quarter larger than Standard's 64, 20 and 14 px at this width.
-  await expect(race.wattsValue).toBeVisible();
-  expect(await AppDocument.fontSize(race.wattsValue)).toBe(80);
-  expect(await AppDocument.fontSize(race.clock)).toBe(25);
-  expect(await AppDocument.fontSize(race.target)).toBe(17.5);
-  expect(await app.scrollsSideways()).toBe(false);
-});
-
 test('Large ride numbers make power, its target and the clock bigger on a class ride, with no sideways scroll (L2-164 AC4)', async ({
   page,
   bluetooth,
@@ -253,24 +232,6 @@ test('with Go full screen when a ride starts off, Start riding stays in the wind
   expect(await app.inFullScreen()).toBe(false);
 });
 
-test('with Go full screen when a ride starts, the race’s start enters full screen (L2-164 AC6)', async ({
-  page,
-  bluetooth,
-  api,
-}) => {
-  api.answer('GET', '/api/maps', maps);
-  await storeSettings(page, JSON.stringify({ fullScreenOnStart: true }));
-  await bluetooth.remember(echelonBike);
-  const setup = new RaceSetupPage(page);
-  const app = new AppDocument(page);
-  await setup.open('old-town-criterium');
-
-  await setup.packStrength('hard').click();
-  await setup.start.click();
-  await expect(page).toHaveURL('/race/old-town-criterium/lobby?mode=bots&pack=hard');
-  await expect.poll(() => app.inFullScreen()).toBe(true);
-});
-
 test('with World music off, a class riding in its world plays no track (L2-163 AC1)', async ({
   page,
   bluetooth,
@@ -300,44 +261,32 @@ test('with World music off, a class riding in its world plays no track (L2-163 A
 });
 
 test.describe('ride sound', () => {
-  test('with ride sound off, a race makes no audio context (L2-163 AC3)', async ({
+  test('with ride sound off, a class ride makes no audio context (L2-163 AC3)', async ({
     page,
     bluetooth,
     api,
   }) => {
     await storeSettings(page, JSON.stringify({ rideSound: false }));
     const audio = await RideAudio.install(page);
-    const race = await startRace(
-      page,
-      bluetooth,
-      api,
-      'old-town-criterium',
-      'mode=bots&pack=medium',
-    );
+    const ride = await startClassRide(page, bluetooth, api);
     await page.clock.runFor(3_000);
 
-    await expect(race.clock).toHaveText(/^0:03/);
+    await expect(ride.clock).toHaveText(/^0:03/);
     expect(await audio.counts()).toEqual({ made: 0, closed: 0 });
   });
 
-  test('with ride sound on, a race makes one audio context, and closes it when the rider leaves (L2-163 AC3)', async ({
+  test('with ride sound on, a class ride makes one audio context, and closes it when the rider leaves (L2-163 AC3)', async ({
     page,
     bluetooth,
     api,
   }) => {
     const audio = await RideAudio.install(page);
-    const race = await startRace(
-      page,
-      bluetooth,
-      api,
-      'old-town-criterium',
-      'mode=bots&pack=medium',
-    );
+    const ride = await startClassRide(page, bluetooth, api);
     await page.clock.runFor(3_000);
 
     await expect.poll(() => audio.counts()).toEqual({ made: 1, closed: 0 });
-    await race.leave.click();
-    await expect(page).toHaveURL('/race/old-town-criterium');
+    await ride.leave.click();
+    await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);
     await expect.poll(() => audio.counts()).toEqual({ made: 1, closed: 1 });
   });
 });

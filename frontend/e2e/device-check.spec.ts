@@ -9,8 +9,7 @@
 // rides 1 second instead of 30 (`shortTrials`), in a phone's small window, so each software frame is cheap.
 import type { Page } from '@playwright/test';
 import { shortTrials } from './fixtures/device-check';
-import { startRace, stepUntil } from './fixtures/race';
-import { storeSettings, storedSettings } from './fixtures/settings-storage';
+import { storedSettings } from './fixtures/settings-storage';
 import { hideTab, showTab } from './fixtures/tab';
 import { expect, test } from './fixtures/test';
 import { SettingsPage } from './pages/settings.page';
@@ -29,6 +28,16 @@ async function frameUntil(page: Page, ms: number, shown: () => Promise<void>): P
   }).toPass({ intervals: [0], timeout: 150_000 });
 }
 
+/**
+ * Steps the paused clock a frame at a time until `shown` holds, retrying at once: toPass's default backoff waits up to
+ * a second between frames.
+ */
+async function stepUntil(page: Page, shown: () => Promise<void>): Promise<void> {
+  await expect(async () => {
+    await page.clock.runFor(16);
+    await shown();
+  }).toPass({ intervals: [0] });
+}
 /**
  * Opens Settings at World with the clock paused at 7:31 PM, in a small window: the check draws the window's size, and
  * in software a frame costs its pixels.
@@ -129,51 +138,5 @@ test.describe('check this device', () => {
     for (let frame = 0; frame < 30; frame++) await page.clock.runFor(16);
     expect(await webgl.draws()).toBe(hidden);
     expect(await storedSettings(page)).toBeNull();
-  });
-});
-
-test.describe('the race world starts where the check found', () => {
-  test.setTimeout(180_000);
-
-  const checked = {
-    level: 'medium',
-    displayFps: 60,
-    tried: [{ level: 'high', fps: 33 }],
-    checkedAt: CHECKED_AT.toISOString(),
-  };
-
-  // CI's critical path for the check: building the test world in software twice takes CI four minutes (L202).
-  test('with Auto, the world opens at the level the check found (L2-159 AC4, L2-162 AC3) @critical', async ({
-    page,
-    bluetooth,
-    api,
-    webgl,
-    worldRide,
-  }) => {
-    await storeSettings(page, JSON.stringify({ quality: 'auto', deviceCheck: checked }));
-    await webgl.withoutWebGpu();
-    await worldRide.watch();
-    const race = await startRace(page, bluetooth, api, 'old-town-criterium', 'mode=solo', {
-      world: true,
-    });
-    await stepUntil(page, () => expect(race.backend).toBeVisible({ timeout: 50 }));
-    expect((await worldRide.report())?.tier).toBe('medium');
-  });
-
-  test('with a fixed level, the check changes nothing: the world opens at that level (L2-162 AC4)', async ({
-    page,
-    bluetooth,
-    api,
-    webgl,
-    worldRide,
-  }) => {
-    await storeSettings(page, JSON.stringify({ quality: 'low', deviceCheck: checked }));
-    await webgl.withoutWebGpu();
-    await worldRide.watch();
-    const race = await startRace(page, bluetooth, api, 'old-town-criterium', 'mode=solo', {
-      world: true,
-    });
-    await stepUntil(page, () => expect(race.backend).toBeVisible({ timeout: 50 }));
-    expect((await worldRide.report())?.tier).toBe('low');
   });
 });

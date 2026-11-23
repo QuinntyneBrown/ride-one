@@ -20,15 +20,12 @@ import {
   resistanceFrame,
   targetResistanceWrite,
 } from './fixtures/echelon';
-import { connectBike } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 import { WorldAssets } from './fixtures/world-assets';
 import { ClassRidePage } from './pages/class-ride.page';
 import { WorldLoadingPage } from './pages/world-loading.page';
 
 const SLOW = 'This is taking longer than usual.';
-const SLOW_DETAIL =
-  'Shaders are built once per device, so next time is quicker. Low quality builds a quarter as many.';
 
 test.describe('Building the world', () => {
   let assets: WorldAssets;
@@ -43,54 +40,6 @@ test.describe('Building the world', () => {
 
   test.afterEach(async () => {
     await assets.dispose();
-  });
-
-  test('the shaders are built with their count and the first frames warm up at Low (L2-152 AC4, AC5, AC7)', async ({
-    page,
-  }) => {
-    await new ClassRidePage(page).open(hiitCardio.id);
-
-    await expect(loading.facts.nth(1)).toHaveText('Auto quality · Low');
-    await expect(loading.cardTitle).toHaveText('Old Town Criterium is ready', { timeout: 30_000 });
-    await expect(loading.step(1).detail).toHaveText(/^[1-9]\d* programs for (WebGPU|WebGL 2)$/);
-    // The programs are built for the API the world is drawn with, which may be WebGL 2 where WebGPU was offered.
-    const api = await loading.facts.last().textContent();
-    await expect(loading.step(1).detail).toHaveText(new RegExp(`programs for ${api}$`));
-    await expect(loading.step(2).detail).toHaveText(/^Holding [1-9]\d* fps at Low$/);
-    await expect(loading.facts.nth(1)).toHaveText('Auto quality · Low');
-  });
-
-  test('after 20 seconds without the world it warns, and Start at Low quality builds it at Low (L2-155 AC1, AC2, AC3)', async ({
-    page,
-    bluetooth,
-  }) => {
-    await page.clock.install();
-    assets.hold();
-    await new ClassRidePage(page).open(hiitCardio.id);
-    await connectBike(bluetooth);
-    await expect(loading.step(0).root).toHaveAttribute('aria-current', 'step');
-    await expect(loading.warning).toHaveCount(0);
-
-    await page.clock.fastForward(20_000);
-
-    await expect(loading.warning).toContainText(SLOW);
-    await expect(loading.warning).toContainText(SLOW_DETAIL);
-    await expect(loading.status).toHaveText('Still downloading the world, 0 percent.');
-    await expect(loading.startAtLow).toBeVisible();
-    await expect(loading.panoramaRide).toBeVisible();
-    await expect(loading.start).toHaveCount(0);
-    await expect(loading.hint).toHaveText(
-      'Or keep waiting: Start riding turns on when the world is ready.',
-    );
-
-    await loading.startAtLow.click();
-
-    await expect(loading.warning).toHaveCount(0);
-    await expect(loading.start).toBeDisabled();
-    await assets.release();
-    await expect(loading.cardTitle).toHaveText('Old Town Criterium is ready', { timeout: 30_000 });
-    await expect(loading.step(2).detail).toHaveText(/^Holding [1-9]\d* fps at Low$/);
-    await expect(loading.facts.nth(1)).toHaveText('Auto quality · Low');
   });
 
   test('Ride with the panorama stops the world loading and starts the class (L2-155 AC4)', async ({

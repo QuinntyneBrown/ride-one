@@ -11,8 +11,8 @@ export async function openResults(page: Page, state: object): Promise<void> {
   await page.reload();
 }
 
-/** A ride's facts as the race submits them, for the given time. */
-function rideFacts(elapsedSeconds: number, race: object) {
+/** A ride's facts as the ride submits them, for the given time. */
+function rideFacts(elapsedSeconds: number, ride: object) {
   return {
     rideId: crypto.randomUUID(),
     elapsedSeconds,
@@ -24,62 +24,7 @@ function rideFacts(elapsedSeconds: number, race: object) {
     speedSamplesKmh: [],
     finishedAt: '2026-11-21T07:30:00.000Z',
     timeZoneId: 'Europe/London',
-    ...race,
-  };
-}
-
-/** A solo race on Old Town Criterium (vs your best) in `finishTimeS`. */
-export function soloRace(finishTimeS: number) {
-  const standings = [
-    { name: 'You', jersey: 'you', bot: false, you: true, finishTimeS },
-    { name: 'Your best', jersey: 'ghost', bot: false, you: false, finishTimeS: finishTimeS + 30 },
-  ];
-  return {
-    raceResult: {
-      mapId: 'old-town-criterium',
-      mapName: 'Old Town Criterium',
-      mode: 'solo',
-      pack: null,
-      finishTimeS,
-      place: 1,
-      field: 2,
-      standings,
-    },
-    ride: rideFacts(finishTimeS, {
-      kind: 'race',
-      mapId: 'old-town-criterium',
-      mode: 'solo',
-      pack: null,
-      place: 1,
-      fieldSize: 2,
-    }),
-  };
-}
-
-/** 2nd of 10 against the medium pack on Old Town Criterium in 26:38, with the mocks' pacers. */
-export function botsRace() {
-  const solo = soloRace(1598);
-  const times = [1592, 1607, 1613, 1619, 1625, 1631, 1637, 1643, 1649];
-  const pacers = ['Nova', 'Rook', 'Juno', 'Atlas', 'Kite', 'Vale', 'Moss', 'Flint', 'Echo'].map(
-    (name, index) => ({
-      name: `Pacer ${name}`,
-      jersey: name.toLowerCase(),
-      bot: true,
-      you: false,
-      finishTimeS: times[index],
-    }),
-  );
-  const you = { name: 'You', jersey: 'you', bot: false, you: true, finishTimeS: 1598 };
-  return {
-    raceResult: {
-      ...solo.raceResult,
-      mode: 'bots',
-      pack: 'medium',
-      place: 2,
-      field: 10,
-      standings: [pacers[0], you, ...pacers.slice(1)],
-    },
-    ride: { ...solo.ride, mode: 'bots', pack: 'medium', place: 2, fieldSize: 10 },
+    ...ride,
   };
 }
 
@@ -97,14 +42,8 @@ export function soloClass() {
   };
 }
 
-/** The backend's answer for `ride`: the XP lines given, the stars and best given (none for a class) and any map opened. */
-export function recorded(
-  ride: { rideId: string },
-  lines: [string, number][],
-  stars: { held: number; earned: number } | null,
-  best: { bestSeconds: number; previousBestSeconds: number | null; isNewBest: boolean } | null,
-  openedMapId: string | null = null,
-) {
+/** The backend's answer for `ride`: the XP lines given. A class earns no stars, sets no best and opens no map. */
+export function recorded(ride: { rideId: string }, lines: [string, number][]) {
   const xpTotal = lines.reduce((sum, [, xp]) => sum + xp, 0);
   return {
     rideId: ride.rideId,
@@ -116,8 +55,8 @@ export function recorded(
     levelUp: false,
     nextLevelXp: 2600,
     xpToNextLevel: 2600 - 1840 - xpTotal,
-    stars,
-    best,
-    openedMapId,
+    stars: null,
+    best: null,
+    openedMapId: null,
   };
 }

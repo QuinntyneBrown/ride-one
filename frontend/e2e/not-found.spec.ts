@@ -14,7 +14,7 @@ test.describe('Page not found', () => {
     await notFound.open('/no-such-screen');
 
     await expect(notFound.header.brand).toHaveAccessibleName('Home');
-    await expect(notFound.header.link('Race')).toBeVisible();
+    await expect(notFound.header.link('Race')).toHaveCount(0);
     await expect(notFound.header.current()).toHaveCount(0);
     await expect(notFound.heading).toHaveText('This page doesn’t exist.');
     await expect(notFound.lead).toHaveText(
@@ -33,4 +33,18 @@ test.describe('Page not found', () => {
     await expect.poll(() => home.url()).toBe('/');
     await expect(home.header.current()).toHaveText('Home');
   });
+
+  for (const address of [
+    '/race',
+    '/race/ibiza-sunset-strip',
+    '/race/ibiza-sunset-strip/lobby',
+    '/race/ibiza-sunset-strip/ride',
+  ]) {
+    test(`Telo Ride 1 has no races: ${address} is no screen (L1, left out)`, async ({ page }) => {
+      const notFound = new NotFoundPage(page);
+      await notFound.open(address);
+
+      await expect(notFound.heading).toHaveText('This page doesn’t exist.');
+    });
+  }
 });

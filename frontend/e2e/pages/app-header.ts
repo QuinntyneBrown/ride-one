@@ -53,7 +53,7 @@ export class AppHeader {
     );
   }
 
-  link(name: 'Home' | 'Race' | 'Classes' | 'Profile'): Locator {
+  link(name: string): Locator {
     return this.nav.getByRole('link', { name, exact: true });
   }
 

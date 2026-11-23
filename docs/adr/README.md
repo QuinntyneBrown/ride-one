@@ -37,3 +37,4 @@
 | [0033](0033-same-origin-proof-instead-of-anti-forgery-tokens.md) | A same-origin proof, not anti-forgery tokens, guards every change | Accepted |
 | [0034](0034-maps-built-in-blender.md) | Maps are built in Blender from the class they are modelled after, and ridden by the clock | Proposed |
 | [0035](0035-every-map-a-course.md) | Every map in the catalogue is a course, built to its listed distance and climbing | Proposed |
+| [0036](0036-no-races-in-telo-ride-1.md) | Telo Ride 1 has no races; the World is kept for riding the class | Accepted |

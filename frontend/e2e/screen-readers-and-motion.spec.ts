@@ -7,7 +7,7 @@
 // an opacity fade: the interval and segment bars jump to their place.
 import { startClassRide } from './fixtures/class-ride';
 import { startCustomRide } from './fixtures/custom-ride';
-import { openResults, soloRace } from './fixtures/results';
+import { openResults, soloClass } from './fixtures/results';
 import { screens } from './fixtures/screens';
 import { expect, test } from './fixtures/test';
 import { AppDocument } from './pages/app-document';
@@ -47,10 +47,10 @@ test.describe('Screen readers', () => {
   });
 
   test('Results says the result as it opens (L2-141 AC2)', async ({ page }) => {
-    await openResults(page, soloRace(1598));
+    await openResults(page, soloClass());
 
     await expect(new AppDocument(page).announcement).toHaveText(
-      'Race results: You finished 26:38. +110 XP earned.',
+      'Class results: You finished 30:00. +110 XP earned.',
     );
   });
 });

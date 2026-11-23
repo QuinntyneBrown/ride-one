@@ -99,3 +99,4 @@ One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journe
 | 93 | 26.2 | [Receive feedback](26-2-receive-feedback.md) | Send feedback | 2 |
 | 94 | 27.1 | [Installable app](27-1-installable-app.md) | Install the app | 2 |
 | 95 | 27.2 | [Update to a new version](27-2-update-to-a-new-version.md) | Install the app | 1 |
+| 96 | 28.2 | [Remove races](28-2-remove-races.md) | Make it Telo Ride 1 | 3 |

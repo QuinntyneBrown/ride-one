@@ -1,14 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import type { HubConnection } from '@microsoft/signalr';
-import {
-  type FindRaceResult,
-  type RaceSeatAssignment,
-  type SeatsChanged,
-  raceSeatFrom,
-} from './find-race';
 import { type JoinClassSessionResult, type SeatAssignment, seatFrom } from './join-class-session';
 import type { RideHubClient, RideHubState } from './ride-hub-client';
-import type { RaceStandings } from './race-standings';
 import type { Standings } from './standings';
 import { RideHubRetryPolicy } from './ride-hub-retry-policy';
 
@@ -26,8 +19,6 @@ export class SignalRRideHubClient implements RideHubClient {
   private readonly link = signal<RideHubState>('disconnected');
   private readonly reconnected = new Set<() => void>();
   private readonly standings = new Set<(standings: Standings) => void>();
-  private readonly seatChanges = new Set<(seats: SeatsChanged) => void>();
-  private readonly raceStandings = new Set<(standings: RaceStandings) => void>();
   private connection: HubConnection | null = null;
 
   readonly state = this.link.asReadonly();
@@ -49,12 +40,6 @@ export class SignalRRideHubClient implements RideHubClient {
     connection.onclose(() => this.link.set('disconnected'));
     connection.on('StandingsUpdated', (standings: Standings) => {
       for (const handler of this.standings) handler(standings);
-    });
-    connection.on('RaceStandingsUpdated', (standings: RaceStandings) => {
-      for (const handler of this.raceStandings) handler(standings);
-    });
-    connection.on('SeatsChanged', (seats: SeatsChanged) => {
-      for (const handler of this.seatChanges) handler(seats);
     });
     this.connection = connection;
     try {
@@ -93,48 +78,9 @@ export class SignalRRideHubClient implements RideHubClient {
     await this.connection.send('ReportProgress', sessionId, outputKj, powerWatts);
   }
 
-  async reportRaceProgress(
-    sessionId: string,
-    distanceMetres: number,
-    powerWatts: number,
-  ): Promise<void> {
-    if (this.connection?.state !== 'Connected') return;
-    await this.connection.send('ReportRaceProgress', sessionId, distanceMetres, powerWatts);
-  }
-
-  async findRace(mapId: string): Promise<RaceSeatAssignment> {
-    if (this.connection === null) throw new Error('The ride hub is not connected');
-    return raceSeatFrom(await this.connection.invoke<FindRaceResult>('FindRace', mapId));
-  }
-
-  async joinRace(sessionId: string): Promise<RaceSeatAssignment> {
-    if (this.connection === null) throw new Error('The ride hub is not connected');
-    return raceSeatFrom(await this.connection.invoke<FindRaceResult>('JoinRace', sessionId));
-  }
-
-  async setReady(sessionId: string, ready: boolean): Promise<void> {
-    if (this.connection?.state !== 'Connected') return;
-    await this.connection.send('SetReady', sessionId, ready);
-  }
-
-  async leaveRace(sessionId: string): Promise<void> {
-    if (this.connection?.state !== 'Connected') return;
-    await this.connection.send('LeaveRace', sessionId);
-  }
-
-  onSeatsChanged(handler: (seats: SeatsChanged) => void): () => void {
-    this.seatChanges.add(handler);
-    return () => this.seatChanges.delete(handler);
-  }
-
   onStandings(handler: (standings: Standings) => void): () => void {
     this.standings.add(handler);
     return () => this.standings.delete(handler);
-  }
-
-  onRaceStandings(handler: (standings: RaceStandings) => void): () => void {
-    this.raceStandings.add(handler);
-    return () => this.raceStandings.delete(handler);
   }
 
   onReconnected(handler: () => void): () => void {

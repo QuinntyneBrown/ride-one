@@ -13,24 +13,3 @@ export interface XpEarnedView {
   readonly total: string | null;
   readonly lines: readonly XpLineView[];
 }
-
-/**
- * The gold card on Results for a map the ride opened (L2-076): "Neon Docklands is open", the place line ("A harbour city
- * after dark."), the map's photo, and "Ride Neon Docklands" to Race Setup for it.
- */
-export interface UnlockCardView {
-  readonly mapId: string;
-  readonly title: string;
-  readonly place: string;
-  readonly photoUrl: string;
-  readonly actionLabel: string;
-  /** Race Setup for the map. */
-  readonly path: string;
-}
-
-/** The stars panel on Results (L2-075): "Stars on {map}", the stars held of three, and "+1 new star" when some were earned. */
-export interface MapStarsView {
-  readonly title: string;
-  readonly held: number;
-  readonly newLine: string | null;
-}

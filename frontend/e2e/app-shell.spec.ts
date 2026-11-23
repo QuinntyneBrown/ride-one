@@ -19,7 +19,7 @@ test.describe('App shell', () => {
 
       await expect(home.header.brand).toHaveAccessibleName('Home');
       await expect(home.header.lockup).toHaveAccessibleName('Telo Ride');
-      for (const name of ['Home', 'Race', 'Classes', 'Profile'] as const) {
+      for (const name of ['Home', 'Classes', 'Profile'] as const) {
         await expect(home.header.link(name)).toBeVisible();
       }
       await expect(home.header.current()).toHaveText('Home');

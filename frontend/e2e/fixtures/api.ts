@@ -1,6 +1,5 @@
 import type { Page, Request } from '@playwright/test';
 import { catalogue } from './classes';
-import { maps } from './maps';
 
 /**
  * What a handler answers: a status (200 by default), a JSON body (none for 204) and any headers, such as Retry-After; or,
@@ -17,12 +16,10 @@ export type Handler = (request: Request) => ApiReply | Promise<ApiReply>;
 
 /**
  * What the backend answers for a ride it records (Record a ride), for a new rider's first ride: "Finished" +100 and a
- * 1-day streak +10, and for a race its first star and its first best, the ride's own time. Every spec's finished ride is
- * recorded unless the spec answers `POST /api/rides` itself.
+ * 1-day streak +10. Every spec's finished ride is recorded unless the spec answers `POST /api/rides` itself.
  */
 export const RIDE_RECORDED: Handler = (request) => {
-  const ride = request.postDataJSON() as { rideId: string; kind: string; elapsedSeconds: number };
-  const race = ride.kind === 'race';
+  const ride = request.postDataJSON() as { rideId: string };
   return {
     status: 201,
     body: {
@@ -38,10 +35,8 @@ export const RIDE_RECORDED: Handler = (request) => {
       levelUp: false,
       nextLevelXp: 400,
       xpToNextLevel: 290,
-      stars: race ? { held: 1, earned: 1 } : null,
-      best: race
-        ? { bestSeconds: ride.elapsedSeconds, previousBestSeconds: null, isNewBest: false }
-        : null,
+      stars: null,
+      best: null,
       openedMapId: null,
     },
   };
@@ -95,8 +90,6 @@ const SESSION_ENDED: ApiReply = {
  */
 /** A class's group sessions (`GET /api/classes/{id}/sessions`), which no spec has to answer: unanswered, they cannot be reached. */
 const CLASS_SESSIONS = /^GET \/api\/classes\/[^/]+\/sessions$/;
-/** A map's race queue (`GET /api/maps/{id}/queue`), which no spec has to answer: unanswered, Riders online cannot be reached. */
-const RACE_QUEUE = /^GET \/api\/maps\/[^/]+\/queue$/;
 const UNREACHABLE: Handler = () => ({ status: 503 });
 /** No custom workout saved yet (`GET /api/riders/me/custom-workout`). */
 const NO_CUSTOM_WORKOUT: Handler = () => ({
@@ -118,8 +111,7 @@ export class ApiFixture {
     api.answer('GET', '/api/riders/me', signedInRider);
     api.answer('POST', '/api/rides', RIDE_RECORDED);
     api.answer('GET', '/api/progress', newRiderProgress);
-    // Home reads the catalogues for its Next ride card and its doors (L2-033 to L2-035).
-    api.answer('GET', '/api/maps', maps);
+    // Home reads the class catalogue for its Classes door (L2-035).
     api.answer('GET', '/api/classes', catalogue);
     // Class Start and the Class Library read the group sessions (L2-083, L2-085); unless a spec serves them, they cannot
     // be reached, and both screens offer riding alone only (L2-085 AC5, L2-081 AC6).
@@ -137,8 +129,7 @@ export class ApiFixture {
         api.sent.push(key);
         if (request.postData() !== null) api.bodies.push({ key, body: request.postDataJSON() });
         const handler =
-          api.answers.get(key) ??
-          (CLASS_SESSIONS.test(key) || RACE_QUEUE.test(key) ? UNREACHABLE : undefined);
+          api.answers.get(key) ?? (CLASS_SESSIONS.test(key) ? UNREACHABLE : undefined);
         if (!handler && api.noNetwork) {
           await route.abort('internetdisconnected');
           return;

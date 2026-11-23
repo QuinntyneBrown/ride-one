@@ -83,7 +83,6 @@ export default class MainShell {
 
   protected readonly items = [
     { label: 'Home', path: '/', also: [] },
-    { label: 'Race', path: '/race', also: [] },
     { label: 'Classes', path: '/classes', also: [] },
     { label: 'Profile', path: '/profile', also: ['/settings'] },
   ] as const;

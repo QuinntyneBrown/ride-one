@@ -75,12 +75,7 @@ export {
   type RideSettingsStore,
   type ThemeChoice,
 } from './settings/ride-settings';
-export { HttpMapsApi } from './maps/http-maps-api';
-export { HttpRaceQueueApi, RACE_QUEUE_API, type RaceQueueApi } from './race/race-queue-api';
 export type { MapDto, MapRating, MapTerrain, RealPlace } from './maps/map-dto';
-export { MAPS_KEY, type MapsKey } from './maps/maps-key';
-export { MAPS_API, type MapsApi } from './maps/maps-api';
-export { MapsApiError, type MapsApiErrorCode } from './maps/maps-api-error';
 export type { MapProgressDto } from './progress/map-progress-dto';
 export { PROGRESS_API, type ProgressApi } from './progress/progress-api';
 export { HttpProgressApi } from './progress/http-progress-api';
@@ -92,13 +87,9 @@ export {
   type ProgressStore,
   type RiderProgressApi,
 } from './progress/rider-progress-api';
-export { GHOST_API, type GhostApi, type GhostTrace } from './race/ghost-api';
 export type { PackStrengthId, RaceMode } from './race/race-mode';
-export type { RaceResult, ResultStanding } from './race/race-result';
-export type { StandingsRow } from './race/standings-row';
-export type { MapStarsView, UnlockCardView, XpEarnedView, XpLineView } from './results/earned-view';
+export type { XpEarnedView, XpLineView } from './results/earned-view';
 export type { ClassResult } from './classes/class-result';
-export type { GradeTone, RouteProfileView, RouteStripBar } from './race/route-profile-view';
 export type {
   AmbiencePreset,
   Backend,
@@ -169,7 +160,6 @@ export {
   DISPLAY_NAME_MIN_LENGTH,
   isDisplayName,
 } from './riders/display-name';
-export type { NextRideReward, NextRideView } from './home/next-ride-view';
 export { measureClockOffset, type ClockSample } from './live/clock-offset';
 export {
   RideHubError,
@@ -180,18 +170,9 @@ export {
   type SeatAssignment,
 } from './live/join-class-session';
 export { RIDE_HUB_CLIENT, type RideHubClient, type RideHubState } from './live/ride-hub-client';
-export {
-  type FindRaceResult,
-  type RaceSeatAssignment,
-  type RaceSeatDto,
-  type SeatsChanged,
-  raceSeatFrom,
-} from './live/find-race';
 export { RideHubRetryPolicy, type RetryContext } from './live/ride-hub-retry-policy';
 export { SignalRRideHubClient } from './live/signalr-ride-hub-client';
 export type { StandingRow, Standings } from './live/standings';
-export type { RaceStandingRow, RaceStandings } from './live/race-standings';
-export type { LobbySeat, LobbySeatKind } from './live/lobby-seat';
 export { AUTO_QUALITY, type WorldQuality } from './world/world-quality';
 export {
   DEVICE_CHECK,

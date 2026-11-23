@@ -4,17 +4,14 @@ import { startCustomRide } from './custom-ride';
 import { echelonBike } from './echelon';
 import type { FakeBluetooth } from './fake-bluetooth';
 import type { ApiFixture } from './api';
-import { startRace } from './race';
-import { openResults, soloRace } from './results';
+import { openResults, soloClass } from './results';
 import { ClassLibraryPage } from '../pages/class-library.page';
 import { ClassStartPage } from '../pages/class-start.page';
 import { ConnectBikePage } from '../pages/connect-bike.page';
 import { CustomWorkoutPage } from '../pages/custom-workout.page';
 import { HomePage } from '../pages/home.page';
-import { MapSelectPage } from '../pages/map-select.page';
 import { NotFoundPage } from '../pages/not-found.page';
 import { ProfilePage } from '../pages/profile.page';
-import { RaceSetupPage } from '../pages/race-setup.page';
 import { ResultsPage } from '../pages/results.page';
 import { SettingsPage } from '../pages/settings.page';
 import { SignInPage } from '../pages/sign-in.page';
@@ -45,16 +42,6 @@ export const screens: Record<string, Opener> = {
     const home = new HomePage(page);
     await home.open();
     return home.greeting;
-  }),
-  'Map Select': remembered(async (page) => {
-    const maps = new MapSelectPage(page);
-    await maps.open();
-    return maps.heading;
-  }),
-  'Race Setup': remembered(async (page) => {
-    const setup = new RaceSetupPage(page);
-    await setup.open('old-town-criterium');
-    return setup.title;
   }),
   'the Class Library': remembered(async (page) => {
     const library = new ClassLibraryPage(page);
@@ -97,11 +84,9 @@ export const screens: Record<string, Opener> = {
     return notFound.heading;
   }),
   Results: async ({ page }) => {
-    await openResults(page, soloRace(1598));
+    await openResults(page, soloClass());
     return new ResultsPage(page).heading;
   },
-  'a race': async ({ page, bluetooth, api }) =>
-    (await startRace(page, bluetooth, api, 'old-town-criterium', 'mode=solo')).heading,
   'a class ride': async ({ page, bluetooth, api }) =>
     (await startClassRide(page, bluetooth, api)).clock,
   'a custom ride': async ({ page, bluetooth }) => (await startCustomRide(page, bluetooth)).clock,

@@ -61,3 +61,27 @@ export async function startClassRide(
   await page.clock.runFor(100);
   return ride;
 }
+
+/**
+ * Opens 30 Minute HIIT Cardio solo with the remembered Echelon and rides it in its world, on the running clock: World
+ * loading builds Old Town Criterium and warms it up, the bike connects, the rider presses Start riding, and the world
+ * has faded in over its panorama. The world is drawn, in software here, so a spec that takes WebGPU away draws it with
+ * WebGL 2.
+ */
+export async function startClassRideInWorld(
+  page: Page,
+  bluetooth: FakeBluetooth,
+  api: ApiFixture,
+): Promise<ClassRidePage> {
+  api.answer('GET', '/api/classes', catalogue);
+  await bluetooth.remember(echelonBike);
+  const ride = new ClassRidePage(page);
+  const loading = new WorldLoadingPage(page);
+  await ride.open(hiitCardio.id);
+  await connectBike(bluetooth);
+  await expect(loading.cardTitle).toHaveText('Old Town Criterium is ready', { timeout: 60_000 });
+  await loading.start.click();
+  // The world fades in once `main`'s scene has measured the display's frame period, 30 frames on a busy machine.
+  await expect(ride.worldScene).toHaveCSS('opacity', '1', { timeout: 60_000 });
+  return ride;
+}

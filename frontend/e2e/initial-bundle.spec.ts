@@ -1,10 +1,10 @@
 // Acceptance test
 // Traces to: L2-136 AC1
 // Description: the production build keeps the 3D world out of the first load. Home opens without a byte of Three.js;
-// the world's code arrives only when a race opens and draws it. The initial bundle's gzipped size is checked by
+// the world's code arrives only when a class's world loads and draws it. The initial bundle's gzipped size is checked by
 // `npm run bundle:size` after the build, in verify and CI.
 import { echelonBike } from './fixtures/echelon';
-import { startRace, stepUntil } from './fixtures/race';
+import { startClassRideInWorld } from './fixtures/class-ride';
 import { ScriptLog } from './fixtures/scripts';
 import { expect, test } from './fixtures/test';
 import { HomePage } from './pages/home.page';
@@ -24,18 +24,17 @@ test(
   },
 );
 
-test('the 3D world’s code arrives when a race opens and draws it (L2-136 AC1)', async ({
+test('the 3D world’s code arrives when a class’s world loads and draws it (L2-136 AC1)', async ({
   page,
   bluetooth,
   api,
   webgl,
 }) => {
+  test.setTimeout(180_000);
   await webgl.withoutWebGpu();
   const scripts = new ScriptLog(page);
-  const race = await startRace(page, bluetooth, api, 'old-town-criterium', 'mode=solo', {
-    world: true,
-  });
+  const ride = await startClassRideInWorld(page, bluetooth, api);
 
-  await stepUntil(page, () => expect(race.backend).toBeVisible({ timeout: 50 }));
+  await expect(ride.worldScene).toBeVisible();
   expect(await scripts.hasWorldCode()).toBe(true);
 });

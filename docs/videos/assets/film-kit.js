@@ -83,12 +83,11 @@
   /** A photograph the design system ships (docs/design-system/assets/images/): 'machines/echelon-ex5s', 'worlds/coast'. */
   const photo = (name) => `background-image:url('../../design-system/assets/images/${name}.jpg')`;
 
-  /** Telo Ride's purpose, quoted from AGENTS.md word for word, one sentence a line of the close. */
+  /** Telo Ride 1's purpose, quoted from AGENTS.md word for word, one sentence a line of the close. */
   const PURPOSE = [
-    'Telo Ride, from the Telo family, turns a smart bike at home into a game.',
-    'It pairs with the bike over Bluetooth, reads your power and sets resistance for every hill and interval.',
-    'Two doors: <b>Race</b> (ride a map against your best-time ghost, bots or people) and <b>Classes</b> (ride along to a video, alone or with a group), fed by one progression of XP, rider levels, stars and map unlocks.',
-    'A custom workout lives under Profile.',
+    'Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.',
+    'It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike\'s resistance for every interval while the rider pedals.',
+    'Connect the bike, take the class, see your number, and come back to beat it.',
   ];
 
   /** A terminal of the film's own: `lines` are [html, cls] pairs that rise in one by one from `from`, a beat apart. */

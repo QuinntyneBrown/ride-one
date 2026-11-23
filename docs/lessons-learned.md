@@ -170,8 +170,58 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L143 | Under Playwright's paused clock a SignalR connection does not finish opening (it waits on timers). A shot or spec that pauses the clock lets the hub connect and answer first: poll `hub.invocations(...)` before `page.clock.pauseAt`. | 14.1 | | |
 | L144 | A store that starts async work from a callback (`onReconnected`) is unit-tested with a fake that awaits what the handlers return (`await Promise.all([...handlers].map((h) => h() as unknown))`), not with `vi.waitFor`, which polls in real time. | 14.1 | | |
 | L145 | To build the previous version for a comparison, stash only frontend paths (`git stash push -u -- projects e2e package.json package-lock.json`), so the `.cache` link stays, and check `git stash list` before building; a failed step in an `&&` chain otherwise skips the stash and the pop finds nothing. | 14.1 | | |
+| L146 | Before carrying code over from another repository, read its CI (`gh run list --branch <branch>`); copy from a green commit or plan the fix with the copy. | 28.2 | | |
+| L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | | |
+| L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | | |
+| L149 | Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand; correct the slice's row in the same change. | 28.2 | | |
+| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | | |
 
 ## Log
+
+### 28.2 Remove races (2026-11-22)
+
+The first slice of Telo Ride 1, built on Telo Ride's code as carried over from wattzup at `263d0210f`.
+
+**Applied from earlier**
+
+- **L2 port 4310 — saved time:** a `serve-dist` of another checkout held 4300 from the first verify on.
+- **L3 format first; L17 judge verify by its exit status — saved time.**
+- **L25 all-or-nothing scripted edits — saved time:** every multi-file edit asserted one match per pattern.
+- **L1 own worktree — did not apply:** the checkout was clean and no other session works in `ride-one`.
+
+**What slowed it down**
+
+- The code as carried over was red: eight race-world specs failed here and two `@critical` ones in wattzup's own CI,
+  because every world is now drawn by `CourseRenderer`, which reports no build progress and no quality level.
+- The race was tangled into Home, Results, the header, the hub client and the progress contracts, so the cut had to
+  stop at a line: races now, the hub in 28.3, progression in 28.4, the backend after 28.1, the other courses in 30.1.
+- `docs/detailed-journeys.md` predates riding in Ibiza and said to remove the World with the races.
+
+**New lessons**
+
+- **L146 Check the source's CI before carrying code over.** `gh run list --branch <branch>` on the source would have
+  shown the red `@critical` specs before the copy. Carry over from a green commit, or plan the fix with the copy.
+- **L147 Remove a feature from the outside in.** Write the spec that its addresses are page not found, delete its
+  routes and screens, build, then delete each library export nothing uses any more and build again, until none is
+  left. A script over the `public-api.ts` files finds them; the compiler names what a deletion broke.
+- **L148 A test moved off a removed feature keeps its assertion.** Race specs that proved something a class also does
+  (the outbox, Results, ride sound, the app cache) were rewritten onto a class ride with `startClassRideInWorld`
+  (`e2e/fixtures/class-ride.ts`); four whose behaviour the course renderer no longer has were deleted and are named
+  below.
+- **L149 Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand** (the owner, 2026-11-22): build to
+  the specs and correct the slice's row in the same change.
+- **L150 The film tools' Python is not in this checkout.** Use wattzup's:
+  `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or
+  make `.cache/video-venv` once as `docs/videos/README.md` says.
+
+**Left for a later slice**
+
+- World loading's steps "N programs for WebGL 2" and "Holding N fps at Low", and the world opening at the device
+  check's level (Telo Ride's L2-152, L2-155, L2-159, L2-162, none of them in Telo Ride 1's L2): `CourseRenderer` does
+  none of it, their four specs were deleted, and the screens still show the steps. L2-175 says riding in Ibiza has no
+  loading screen, so the slice that builds it removes World loading and the device check or makes them true.
+- A new rider's greeting read "Welcome, {name}. Your first race opens a new map."; it is "Welcome, {name}." until
+  28.5 removes Home.
 
 ### 14.1 Connect to the ride hub (2026-11-22)
 
