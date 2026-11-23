@@ -68,6 +68,8 @@ export class ClassRidePage {
   readonly courseStill: Locator;
   /** "Loading Ibiza Sunset Strip" over the still (L2-175 AC1). */
   readonly courseLoading: Locator;
+  /** The notice under the box when the course cannot be drawn (L2-175 AC2). */
+  readonly courseNotice: Locator;
   /** Any video player's frame or cover on the screen; a ride in Ibiza has none (L2-174 AC1). */
   readonly video: Locator;
   /** Any screen or card that stands between the start button and the ride; there is none (L2-175). */
@@ -134,6 +136,7 @@ export class ClassRidePage {
       .locator('.class-course')
       .getByRole('img', { name: 'Ibiza Sunset Strip: a seafront road at sunset' });
     this.courseLoading = page.locator('.class-course').getByRole('status');
+    this.courseNotice = page.locator('.class-course__notice');
     this.video = page.locator('.class-video, iframe');
     this.loadingScreen = page
       .locator('.world-loading, .load-card')

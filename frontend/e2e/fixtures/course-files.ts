@@ -16,6 +16,7 @@ export class CourseFiles {
   private held: Route[] = [];
   private holding: ((path: string) => boolean) | null = null;
   private edit: ((course: Record<string, unknown>) => void) | null = null;
+  private refused = new Set<string>();
 
   /** Watches the course's files from now on, answered by the app's own server unless the spec holds them. */
   static async install(page: Page): Promise<CourseFiles> {
@@ -45,6 +46,11 @@ export class CourseFiles {
     this.edit = change;
   }
 
+  /** Answers every request for `path` with a 404, as a host that does not have the file would (L2-175 AC2). */
+  refuse(path: string): void {
+    this.refused.add(path);
+  }
+
   /** Answers the held requests and every one after. */
   async release(): Promise<void> {
     this.holding = null;
@@ -57,6 +63,10 @@ export class CourseFiles {
     this.requests.push(route.request());
     if (this.holding?.(new URL(route.request().url()).pathname)) {
       this.held.push(route);
+      return;
+    }
+    if (this.refused.has(new URL(route.request().url()).pathname)) {
+      await route.fulfill({ status: 404, body: 'Not found' });
       return;
     }
     if (this.edit && new URL(route.request().url()).pathname === '/courses/ibiza.course.json') {

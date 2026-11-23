@@ -60,6 +60,7 @@
             [name]="course.name"
             [still]="course.still"
             [loading]="!store.courseDrawn()"
+            [unavailable]="store.courseUnavailable()"
             [paused]="store.state().pausedOverlay"
           >
             <ng-container
@@ -70,6 +71,7 @@
               [speedKmh]="store.speedKmh()"
               [running]="store.running()"
               (drawn)="store.showCourse()"
+              (unavailable)="store.failCourse()"
             />
           </wz-class-course>
         } @else {

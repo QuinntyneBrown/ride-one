@@ -63,7 +63,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 37.1 | The course in the video's box | A ride in Ibiza opens Class Ride at once, with no loading screen and no video player: the clock starts, the box reads "Loading Ibiza Sunset Strip" over the still, then the course is drawn there with the rider alone on the road. World loading, the inset video, Telo Ride's worlds and their music go (ADR 0047); the still becomes one of the solo ride. | 4 | 37. Ride in Ibiza | L2-089 AC6, L2-173 AC9, L2-174 AC1, AC6, L2-175 AC1, AC3 | 100% |
 | 37.2 | Placed by the clock | The rider is on the stretch of the plan's segment at each second, held while paused or while the bike is lost, not drawn in a hidden tab, with the camera closing in at the grid and the finish; everything else on the screen as with the class video. | 3 | 37. Ride in Ibiza | L2-174 AC2, AC4–5, AC9–10 | 100% |
 | 37.3 | The course as built | Each stretch's length and gradient from the plan, the painted grid and the finish arch at the last metre; a bad value in the course's files makes it malformed. | 2 | 37. Ride in Ibiza | L2-174 AC3, AC7, L2-175 AC6, L2 open question 18 | 100% |
-| 37.4 | When Ibiza cannot be drawn | Files that cannot be loaded or a lost graphics context leave the still and "Ibiza can’t be drawn. The bike will still follow the class."; the course is kept after its first load and drawn without a network. | 2 | 37. Ride in Ibiza | L2-175 AC2, AC4–5 | 0% |
+| 37.4 | When Ibiza cannot be drawn | Files that cannot be loaded or a lost graphics context leave the still and "Ibiza can’t be drawn. The bike will still follow the class."; the course is kept after its first load and drawn without a network. | 2 | 37. Ride in Ibiza | L2-175 AC2, AC4–5 | 100% |
 | 37.5 | Music | *Beautiful Boom Bap*, self-hosted, looping through a ride in Ibiza only: fetched when that ride starts, paused with the ride, playing on in a hidden tab, released on leaving. (The course's deep house track went with slice 37.1; until this slice a ride in Ibiza is silent.) | 3 | 37. Ride in Ibiza | L2-176 AC1–4, AC6, AC8–9 | 0% |
 | 37.6 | The Music button | A "Music" toggle on Class Ride in Ibiza, kept on the device; disabled, with no alert, when the music cannot be loaded or played. | 1 | 37. Ride in Ibiza | L2-176 AC5, AC7 | 0% |
 | 37.7 | The course's budgets | At most 120,000 triangles and 140 draw calls a frame, no shadow map or texture; the model and the music within their sizes; resolution and bloom stepped by measured frames. | 2 | 37. Ride in Ibiza | L2-177 AC1–3 | 0% |
@@ -90,8 +90,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 59 slices, 119 days. **Complete:** 33 slices, 76 days (64%), 11 of them carried over.
-**To build:** 26 slices, 43 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 59 slices, 119 days. **Complete:** 34 slices, 78 days (66%), 11 of them carried over.
+**To build:** 25 slices, 41 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for
@@ -101,7 +101,7 @@ the plan built riding in Ibiza (L2-174 to L2-177).
   Azure Static Web Apps (ADR 0043), so 35.1 narrows the policy in `staticwebapp.config.json`.
 - **L2's open questions:** 30.1 closed the class's words and its warm-up and cool-down cadence
   aims (11); 30.2 built "Ride with" in L2-173's words; 30.3 built the line under the plan in L2-084's; the words of
-  L2-175 and L2-176 (37.4, 37.6) are still its proposals, and 37.1 built "Loading Ibiza Sunset Strip" in L2-175's; 37.1 closed how the two ways are ridden (20), the still (21) and the pale shape (26); 37.2 closed where the camera sits and what "at that second" means (30); 37.3 closed how steep a level is (18); 32.5
+  L2-176 (37.6) is still a proposal, 37.4 built the notice in L2-175's, and 37.1 built "Loading Ibiza Sunset Strip" in L2-175's; 37.1 closed how the two ways are ridden (20), the still (21) and the pale shape (26); 37.2 closed where the camera sits and what "at that second" means (30); 37.3 closed how steep a level is (18); 32.5
   builds a rule that is still a proposal (2), which 31.1 built for the line under Power; 32.2 shows a Time that is
   always 20:00 (3); 31.1 closed the header buttons' size (10) and built `/ride` (7); 31.2 closed
   the words a screen reader hears on Pause and Resume and left open whether Leave ends a lost
@@ -112,7 +112,7 @@ the plan built riding in Ibiza (L2-174 to L2-177).
   30.2 drew the video that cannot load and "Ride with";
   31.1 drew power off target;
   31.2 drew paused and the lost bike's copy in Ibiza; 31.3 drew both notices and the two together; 32.4
-  (every effort at 0 W), 32.7, 37.4 (the notice) and 37.6 (the Music button) are to draw; 37.1 drew the
+  (every effort at 0 W), 32.7 and 37.6 (the Music button) are to draw; 37.4 drew the notice; 37.1 drew the
   course in the box and its loading.
 - **Journey 37** follows journey 31: 37.1 builds on Class Ride as designed (31.1) and on the
   choice 30.2 built; 37.2 to 37.8 follow 37.1; 37.9 waits for the record (32.1).
