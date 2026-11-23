@@ -273,6 +273,22 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 34.4 Web vitals and readouts (2026-11-23)
+
+**What slowed it down**
+
+- LCP and INP on The Class were already a perf check (`home-vitals.perf.ts`). New: `class-ride-readouts.spec.ts`, a
+  behaviour spec for L2-134 (a bike notification in Power and Cadence within 250 ms; the clock and the segment
+  countdown move once a second), which passed on its first run; and `perf/ride-frames.perf.ts` for L2-136 AC3 (no
+  long animation frame over 100 ms in a minute of riding at 4× CPU slowdown on a 1194 × 834 screen).
+- **The frames check is written and type-checked, not run:** perf checks run only when a person asks (AGENTS.md). Its
+  4× slowdown stands in for "the reference tablet" and has not been calibrated; run `npm run perf`.
+
+**New lessons**
+
+- The harness's paused clock gives exact timings for readouts, but a frame-time check needs the real clock, so it
+  belongs with the perf checks, not the behaviour specs.
+
 ### 34.3 Heap checks (2026-11-23)
 
 **What slowed it down**
