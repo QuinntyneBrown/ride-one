@@ -273,6 +273,22 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 36.4 Theme and full screen (2026-11-23)
+
+**What slowed it down**
+
+- Dark and light from the first paint, the text contrast of every role, and Full screen on every header (present or
+  absent) were already covered (`theme.spec.ts`, `full-screen-everywhere.spec.ts`). The gap was L2-143 AC3, gold only
+  for a new best: `theme-default-and-gold.spec.ts` counts elements drawn in the theme's gold on every screen but Class
+  Done, and on Class Done for a new best (some) and for a ride that is not one (none). No product code changed.
+- **L2-143 AC1 (no preference is dark) cannot be measured in Chromium:** emulating "no preference" still matches the
+  light query, as `theme.spec.ts` already notes. My first attempt asserted it and failed on that, so it was removed
+  rather than weakened; the rule is in the stylesheet (dark unless the device asks for light).
+
+**New lessons**
+
+- A test the browser cannot express belongs in the lessons as a gap, not in the suite as a skip.
+
 ### 36.3 Screen readers, contrast and motion (2026-11-23)
 
 **What slowed it down**
