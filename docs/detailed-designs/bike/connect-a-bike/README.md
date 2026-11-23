@@ -58,7 +58,7 @@ Before the chooser returns, the page knows no device. The `default` view therefo
 
 **The read-only FTMS bike**
 
-Class Ride learns that a bike refuses control from the `read-only` code that `setResistance()` rejects with. Telemetry, the clock and the video continue, and no further resistance command is sent. The notice on Class Ride and its copy are `<TO SUPPLY>` (mock gap: the read-only FTMS bike, `L2-014` AC3). [Control resistance](../control-resistance/README.md) owns the resistance controls.
+Class Ride learns that a bike refuses control from the `read-only` code that `setResistance()` rejects with. Telemetry, the clock and the video continue, and no further resistance command is sent. A bike refuses when its control point answers Request Control with anything but Success, does not answer within `CONTROL_TIMEOUT_MS`, or is not there. Slice 31.3 built the rest: once refused, `ResistanceController` asks the connection nothing more and has it forget the kept target, so a bike that drops and reconnects is written nothing, and Class Ride shows “The class can’t set this bike’s resistance. Set it by hand.” under the bike panel as a polite status (`L2-014` AC3; mock `class-ride/by-hand`; designed in [ride the class](../../class-ride/ride-the-class/README.md)). [Control resistance](../control-resistance/README.md) owns the resistance controls.
 
 **Acceptance tests**
 

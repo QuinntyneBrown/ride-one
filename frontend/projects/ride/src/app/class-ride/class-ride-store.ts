@@ -21,6 +21,7 @@ import {
   RideRecorder,
   RideTicker,
   VideoClockSync,
+  VideoStallWatch,
   WorkoutEngine,
 } from '@telo/domain';
 import { classStepAnnouncement } from '../rides/step-announcement';
@@ -33,7 +34,8 @@ import { type StatView, cadenceStat, powerStat } from './stat-view';
  * and the engine following the plan, which sends each segment's level (L2-027). The header and the segment card read
  * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
  * video plays from the ride clock plus the class's sync offset (L2-088 AC1) and, on each tick, seeks back when it has
- * drifted more than 1.5 s (AC2); when it cannot play, the ride carries on without it (AC4). The rider pauses and
+ * drifted more than 1.5 s (AC2); when it cannot play, or has not played for 10 s of the ride, the ride carries on
+ * without it and the notice says so (AC4). A bike that refuses control is set by hand, and is sent nothing (L2-014 AC3). The rider pauses and
  * resumes it (docs/detailed-designs/class-ride/pause-leave-or-finish-the-class, L2-091), each said once to a screen
  * reader; a lost bike holds it until the bike is back, when the segment's level is sent again
  * (docs/detailed-designs/class-ride/wait-for-a-lost-bike, L2-092); the screen stays awake while it runs (L2-133 AC3);
@@ -49,6 +51,8 @@ export class ClassRideStore {
   private readonly telemetry = inject(BikeTelemetry);
   private readonly loaded = signal<ClassDefinition | null>(null);
   private readonly sync = inject(VideoClockSync);
+  private readonly stall = inject(VideoStallWatch);
+  private readonly stalled = signal(false);
   private readonly destroyRef = inject(DestroyRef);
   private readonly playerFactory = inject(VIDEO_PLAYER_FACTORY);
   private readonly player = signal<VideoPlayer | null>(null);
@@ -75,6 +79,8 @@ export class ClassRideStore {
   readonly plan = this.engine.state;
   readonly level = this.telemetry.resistance;
   readonly canControl = this.resistance.canControl;
+  /** Whether the bike refused control of its resistance, so the rider sets it by hand (L2-014 AC3). */
+  readonly byHand = this.resistance.byHand;
   /** Whether the rider paused the ride: the clock, the plan and the video hold (L2-091 AC1). */
   readonly paused = this.pausedByRider.asReadonly();
   /** Whether the bike has stopped answering (`ble` disconnected, L2-017); the ride waits for it (L2-092 AC4). */
@@ -87,9 +93,12 @@ export class ClassRideStore {
   readonly running = computed(() => this.started() && this.state().running);
   /** The bike's speed, for the world's cyclist (L2-153). */
   readonly speedKmh = this.telemetry.speedKmh;
-  /** Whether the video cannot play: its code or YouTube's did not load, or the player failed. */
+  /**
+   * Whether the video cannot play: its code or YouTube's did not load, the player failed, or it has not played for
+   * 10 s of the ride, as with no network (L2-088 AC4). A video that plays again can.
+   */
   readonly videoUnavailable = computed(
-    () => this.playerMissing() || this.player()?.state() === 'error',
+    () => this.playerMissing() || this.player()?.state() === 'error' || this.stalled(),
   );
 
   /** Power against the segment's target power: "On target" within 10 %, otherwise the signed difference (L2-089 AC2). */
@@ -188,8 +197,9 @@ export class ClassRideStore {
     this.engine.follow(dto.plan);
     this.ticker.ticks.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((second) => {
       this.record(Math.min(second, dto.lengthSeconds));
-      if (second >= dto.lengthSeconds) this.finish(dto);
-      else this.syncVideo(dto);
+      if (second >= dto.lengthSeconds) return this.finish(dto);
+      this.stalled.set(this.stall.check(this.player()?.state() ?? 'loading', second));
+      this.syncVideo(dto);
     });
     // The bike is watched on a beat of its own: the ride clock's ticks stop while the ride is held.
     this.beat.seconds

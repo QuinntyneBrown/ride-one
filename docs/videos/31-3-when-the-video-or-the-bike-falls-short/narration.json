@@ -1,0 +1,81 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "When the video or the bike falls short, the class goes on, and Class Ride says so."
+      ]
+    },
+    {
+      "id": "video",
+      "bars": 6,
+      "lines": [
+        "When the class video cannot play, because it is blocked or the player fails, a notice appears under it. The clock, the plan and the bike carry on, and the stepper still works."
+      ]
+    },
+    {
+      "id": "network",
+      "bars": 6,
+      "lines": [
+        "With no network, YouTube's player reports no error. It only waits. So a video that has not played for ten seconds of the ride gets the same notice, and loses it when it plays again."
+      ]
+    },
+    {
+      "id": "byhand",
+      "bars": 6,
+      "lines": [
+        "Some bikes report but will not be controlled. Then the stepper is disabled, and a notice under the bike panel tells the rider to set the resistance by hand."
+      ]
+    },
+    {
+      "id": "wire",
+      "bars": 6,
+      "lines": [
+        "The bike is asked for control once. If it says no, stays silent for three seconds, or has no control point, no resistance command is ever sent, even after it is lost and comes back."
+      ]
+    },
+    {
+      "id": "both",
+      "bars": 4,
+      "lines": [
+        "Both can happen at once. Each notice keeps its place, and in landscape nothing scrolls."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The bike set by hand, from a phone to a desktop."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 6,
+      "lines": [
+        "The tests came first. Twelve failed, as expected; nine passed on the code carried over. Now three hundred and thirty-six specs and one thousand four hundred and sixty-four unit tests pass."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}

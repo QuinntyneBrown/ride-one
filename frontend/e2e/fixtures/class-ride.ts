@@ -7,7 +7,8 @@ import {
   targetResistanceWrite,
 } from './echelon';
 import type { ApiFixture } from './api';
-import type { FakeBluetooth } from './fake-bluetooth';
+import type { FakeBike, FakeBluetooth } from './fake-bluetooth';
+import { INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME, ftmsBike } from './ftms';
 import { expect } from './test';
 import { ClassRidePage } from '../pages/class-ride.page';
 import { TheClassPage } from '../pages/the-class.page';
@@ -64,6 +65,38 @@ export async function startClassRide(
     .toContain(targetResistanceWrite(theClass.segments[0].level));
   await page.clock.runFor(100);
   return new ClassRidePage(page);
+}
+
+/**
+ * Starts Intervals to the Beat with the class video on a remembered FTMS bike (L2-014), on Playwright's paused clock,
+ * as `startClassRide` does on the Echelon. An FTMS bike needs no initialisation: it is connected by its first Indoor
+ * Bike Data, which a bike sends about once a second, so the frame is sent until the start button turns on. Resolves
+ * with Class Ride open at 0:00; the ride's first target asks the bike for control, which the spec answers or not.
+ */
+export async function startClassRideOnFtms(
+  page: Page,
+  bluetooth: FakeBluetooth,
+  bike: FakeBike = ftmsBike,
+): Promise<ClassRidePage> {
+  await page.clock.install({ time: RIDE_START });
+  await bluetooth.remember(bike);
+  const home = new TheClassPage(page);
+  await home.open();
+  await expect.poll(() => bluetooth.log()).toContain(`subscribe ${INDOOR_BIKE_DATA}`);
+  await expect(async () => {
+    await bluetooth.notify(INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME);
+    await expect(home.start).toHaveText('Start class', { timeout: 250 });
+  }).toPass();
+  await home.videoSettled();
+  await YouTubeFixture.forgetPlayers(page);
+  await page.clock.pauseAt(RIDE_START + 60_000);
+  await home.start.click();
+  const ride = new ClassRidePage(page);
+  await expect(async () => {
+    await page.clock.runFor(1);
+    await expect(ride.clock).toBeVisible({ timeout: 50 });
+  }).toPass();
+  return ride;
 }
 
 /**

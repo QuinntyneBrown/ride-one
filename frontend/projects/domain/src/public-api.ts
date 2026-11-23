@@ -19,12 +19,14 @@ export { WebBluetoothBikeConnection } from './bluetooth/web-bluetooth-bike-conne
 export { BikeTelemetry, CADENCE_TIMEOUT_MS } from './engine/bike-telemetry';
 export { RideInProgress } from './engine/ride-in-progress';
 export { PowerModel } from './engine/power-model';
-export { ResistanceController } from './engine/resistance-controller';
+export { ResistanceController, resistanceControl } from './engine/resistance-controller';
+export type { ResistanceControl } from './engine/resistance-controller';
 export { type PlanState, planStateAt } from './engine/plan-state';
 export { RideClock } from './engine/ride-clock';
 export { RideTicker } from './engine/ride-ticker';
 export { RideRecorder } from './engine/ride-recorder';
 export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
+export { VIDEO_STALL_SECONDS, VideoStallWatch } from './engine/video-stall-watch';
 export { WorkoutEngine } from './engine/workout-engine';
 export { SpeedModel } from './engine/speed-model';
 export { SecondTicker } from './engine/second-ticker';

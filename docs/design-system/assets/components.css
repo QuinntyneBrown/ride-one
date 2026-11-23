@@ -2460,6 +2460,10 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .class-video .mock-note { top: var(--space-3); right: var(--space-3); }
 .class-video__paused { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--color-ink) 70%, transparent); }
 .class-video__paused-label { font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semibold); }
+/* The two notices of a ride that goes on short of something (L2-088 AC4, L2-014 AC3): the video that cannot play, under
+   the video, and the bike that is set by hand, under the bike panel. Each is an .inline-message--warn, a polite status,
+   and sits space-2 under what it speaks of, nearer than the stage's gap, so both fit a phone on its side. */
+.class-video__notice, .class-ride__notice { margin-top: calc(var(--space-2) - var(--space-3)); }
 
 /* The bike, under the video */
 .class-bike { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }

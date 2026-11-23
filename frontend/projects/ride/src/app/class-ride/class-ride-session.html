@@ -114,6 +114,12 @@
             />
           </wz-class-bike>
         }
+        @if (store.byHand()) {
+          <!-- The bike gives no control of its resistance: the rider sets it (class-ride/by-hand, L2-014 AC3). -->
+          <wz-inline-message class="class-ride__notice" tone="warn" role="status"
+            >The class can’t set this bike’s resistance. Set it by hand.</wz-inline-message
+          >
+        }
       </div>
     </main>
     @if (store.state().lostAlert) {

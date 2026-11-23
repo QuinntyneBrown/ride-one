@@ -52,6 +52,12 @@
   }
 }
 
+// The notice under the bike panel, when the bike is set by hand (class-ride__notice, L2-014 AC3): space-2 under the
+// panel, nearer than the stage's gap, as the video's notice sits under the video.
+.class-ride__notice {
+  margin-top: calc(var(--space-2) - var(--space-3));
+}
+
 // The header's actions (class-ride .btn--sm): 48 px to press mid-ride on a phone, icon only below sm. Scoped under
 // the block so it outweighs the button's own small size, which loads after it.
 .class-ride .class-ride__action {
