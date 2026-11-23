@@ -58,7 +58,7 @@ Neighbouring features own the adjacent concerns:
     `Strict-Transport-Security: max-age=31536000` (`L2-009` AC2) and `Cache-Control: no-cache`.
   - `routes` gives the root's hashed `.js` and `.css` files
     `Cache-Control: public, max-age=31536000, immutable`, and keeps `no-cache` on the service
-    worker's scripts and on `/draco/*`, whose names carry no hash. The worker's scripts also carry
+    worker's scripts, whose names carry no hash. The worker's scripts also carry
     a policy of their own, whose `connect-src` lets the worker fetch the YouTube player and the
     class cover.
   - `mimeTypes` names the manifest, `.glb`, `.ogg` and `.wasm`.

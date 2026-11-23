@@ -21,8 +21,9 @@ test.describe('Pause and lose the bike in Ibiza', () => {
     await page.setViewportSize({ width: 844, height: 390 });
     await page.clock.install();
     const ride = await rideInIbiza(page, bluetooth);
-    // From here the clock is the spec's: it stands still unless the spec moves it on.
-    await page.clock.pauseAt((await ride.now()) + 1000);
+    // From here the clock is the spec's: it stands still unless the spec moves it on. The course's first frames are
+    // drawn in software and can hold the page for more than a second, so the clock is paused well ahead of now.
+    await page.clock.pauseAt((await ride.now()) + 10_000);
     await page.clock.runFor(1000);
 
     await ride.pause.click();
