@@ -121,6 +121,19 @@ describe('WebBluetoothBikeConnection', () => {
     expect(bike.writes).toEqual([...INIT, toHex(EchelonProtocol.setResistance(12))]);
   });
 
+  it('sends no resistance after a reconnect once the target is forgotten: the ride is over (L2-093 AC3)', async () => {
+    await connection.setResistance(12);
+    connection.forgetTarget();
+    bike.drop();
+    bike.writes.length = 0;
+
+    await vi.advanceTimersByTimeAsync(RETRY_MS);
+    await initialiseAndStream();
+
+    expect(bike.writes).toEqual(INIT);
+    expect(connection.ble()).toBe('connected');
+  });
+
   it('sends a level asked for while the bike was away first once it is back (L2-027 AC4)', async () => {
     await connection.setResistance(12);
     bike.drop();

@@ -36,7 +36,7 @@ box "Device — Browser" #F2F4F7
 end box
 ticker -> store : Tick: second 1800, the plan's length
 store -> store : Count the last running second
-store -> clock : pause() at 30:00 (L2-093 AC2)
+store -> clock : pause() at 20:00 (L2-093 AC2)
 store -> ticker : stop()
 store -> player : pause()
 store -> totals : Read runningSeconds, outputKj, watts() and percent()

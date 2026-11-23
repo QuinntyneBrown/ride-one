@@ -104,6 +104,22 @@ describe('WorkoutEngine', () => {
     expect(engine.state()).toMatchObject({ index: 1, remainingMs: 300_000 });
   });
 
+  it('sends the current segment’s level again when asked, as the bike comes back (L2-027 AC4)', () => {
+    vi.advanceTimersByTime(400_000);
+
+    engine.resend();
+
+    expect(sent).toEqual([8, 18, 18]);
+  });
+
+  it('resends nothing once the plan has ended', () => {
+    vi.advanceTimersByTime(1_260_000);
+
+    engine.resend();
+
+    expect(sent).toEqual([8, 18, 6]);
+  });
+
   it('sends nothing more once the plan has ended', () => {
     vi.advanceTimersByTime(1_260_000);
 

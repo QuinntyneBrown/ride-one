@@ -2,7 +2,7 @@
 
 ## Overview
 
-Telo Ride 1 has one class, 30 Minute HIIT Cardio, which the rider takes on the Class Ride screen
+Telo Ride 1 has one class, Intervals to the Beat, which the rider takes on the Class Ride screen
 while the app sets the bike's resistance and plays the class video. The ride is always solo, so
 no one else depends on its clock. The rider can therefore stop it for a moment, walk away from
 it, or ride it to the end.
@@ -12,7 +12,7 @@ This feature covers the three ways a ride stops:
 - **Pause** holds the clock, the plan and the video where they are; **Resume** carries on from
   the same place.
 - Leave returns to The Class at once. The ride is not finished and the record does not change.
-- The finish comes when the ride clock reaches the plan's length, 30:00. The ride is finished,
+- The finish comes when the ride clock reaches the plan's length, 20:00. The ride is finished,
   the record is updated and Class Done opens.
 
 In all three, whatever the ride acquired is released when Class Ride closes.
@@ -23,7 +23,7 @@ Local terms:
 - **hold**: state in which the ride clock, the plan and the video stand still
 - **finished ride**: ride whose clock reached the plan's length
 - **record**: rider's ride count, best output and last output, kept on the device
-- **ride result**: output, running time, on-target share and eight effort averages of one finished ride, handed to Class Done
+- **ride result**: output, running time, on-target share and effort averages of one finished ride, handed to Class Done
 
 Neighbouring features own the adjacent concerns:
 
@@ -44,17 +44,28 @@ Neighbouring features own the adjacent concerns:
 
 ## Description
 
-The slice lives in the Ride app: `ClassRidePage` and `ClassRideStore` in the `ride` application,
-the clock and ticker in `domain`'s `engine/`, and the pause overlay in `components`. Pausing,
-leaving and the finish exist in the code for Telo Ride's class ride; Telo Ride 1 changes where
-Leave and the finish go and what the finish writes.
+The slice lives in the Ride app: `ClassRideSession` (the ride itself, which `ClassRidePage` at
+`/ride` shows) and `ClassRideStore` in the `ride` application, the clock and ticker in `domain`'s
+`engine/`, and the pause overlay in `components`. Pausing, leaving and the finish exist in the
+code for Telo Ride's class ride; Telo Ride 1 changes where Leave and the finish go and what the
+finish writes.
+
+**Built by slice 31.2:** Pause and Resume with their announcement, the overlay over the course
+in Ibiza, Leave, the finish at 20:00, and `forgetTarget()`. **Still to build, in journey 32:**
+the record (`RIDE_RECORD`), `FINISHED_RIDE`, the `/done` route and Class Done. Until then
+`finish()` opens the carried-over Results at `/results` with a `ClassResult` in the
+navigation's state, and "the record does not change" on Leave is proved as "nothing the app
+keeps on the device changes".
 
 ### Pause and Resume
 
-- **Pause button** (exists in `class-ride-page.html`; changes). A `wz-button` in the header's
-  `end` slot. It reads "Pause" while the ride runs and "Resume" while it is held, and calls
-  `ClassRideStore.pause()` or `resume()`. Today the button also carries an `aria-label`; its
-  visible label (`class-ride__pause-label`) names it, as in the mocks.
+- **Pause button** (`class-ride-session.html`). A `wz-button` in the header's `end` slot. It
+  reads "Pause" while the ride runs and "Resume" while it is held, and calls
+  `ClassRideStore.pause()` or `resume()`. Its word and whether it is disabled come from
+  `rideHold()` (see [wait for a lost bike](../wait-for-a-lost-bike/README.md)). It keeps an
+  `aria-label` with the same word, because the visible label (`class-ride__pause-label`) is
+  hidden on a phone. The same element is kept as the word changes, so a rider who pressed it by
+  keyboard keeps the focus on it.
 - **`ClassRideStore.pause()` and `resume()`** (exist). `pause()` sets the private signal
   `pausedByRider` and, unless the bike is already lost, calls `hold()`: `RideClock.pause()` and
   `VideoPlayer.pause()`. `resume()` clears the signal and, unless the bike is lost, calls
@@ -66,28 +77,35 @@ Leave and the finish go and what the finish writes.
   second. A held clock reaches none, so `WorkoutEngine` steps no segment and sends no plan
   level, and the ride's running totals do not grow.
 - **`ClassVideo`** (exists, `wz-class-video`). Its `paused` input draws the `class-video__paused`
-  overlay reading "Paused". The overlay is `aria-hidden`; the page announces the change itself.
-- **Announcement** (exists in `class-ride-page.html`; changes). Today a visually hidden
-  `role="status"` paragraph reads "Ride paused" while paused and is empty otherwise, so a
-  resume is not announced. In Telo Ride 1 the page announces each change of the store's
-  `paused` signal once, to pause and to resume, through the Angular CDK's `LiveAnnouncer`, as
-  [support screen readers and motion](../../ui/support-screen-readers-and-motion/README.md)
-  designs it; the paragraph leaves. The specs and mocks give no words for either; the wording
-  is `<TO SUPPLY>` (no mock draws the announcement, `L2-091` AC3).
+  overlay reading "Paused". The overlay is `aria-hidden`; the store announces the change.
+- **`ClassWorld`** (exists, `wz-class-world`; one addition). In Ibiza the course takes the
+  video's box. Its `paused` input draws the same overlay over the whole box
+  (`class-world__paused`, mock `class-ride/paused-ibiza`), the inset video included, while the
+  course holds still because the scene's `running` input is false (`L2-091` AC1). The block is
+  the carried-over one, which slice 37.1 redraws.
+- **Announcement** (built by slice 31.2). `ClassRideStore.pause()` and `resume()` each call
+  `ANNOUNCER.announce` once, with `pauseAnnouncement()`: "Ride paused" and "Ride resumed"
+  (`L2.md` open question 28). `ANNOUNCER` is the app's one polite live region
+  (`LiveRegionAnnouncer`, which the ride's segments already use), not the CDK's
+  `LiveAnnouncer`: `@angular/cdk` left with ADR 0040. The visually hidden `role="status"`
+  paragraph that read "Ride paused" is gone, so the pause is said once and the resume is said
+  at all. A hold for a lost bike is announced by its alert, not here.
 - **`ClassResist`** (exists). Its `disabled` input follows `ClassRideStore.canControl`, which
   depends on the bike's link state only. A pause does not disable it.
 
 ### Leave
 
-- **Leave link** (exists in `class-ride-page.html`; changes). An `<a wz-button>` with
-  `aria-label="Leave class"`. Its `routerLink` changes from `['/classes', ride.id]` to `/`. It
-  opens no dialog.
+- **Leave link** (`class-ride-session.html`). An `<a wz-button>` with
+  `aria-label="Leave class"` and `routerLink="/"`. It opens no dialog.
 - Leaving destroys `ClassRidePage` and with it every provider the page declares. Nothing in the
   leave path calls `RIDE_RECORD.add`, so the count, best and last stay as they were
   (`L2-168` AC2).
-- When the bike is lost as the rider leaves, the store's teardown also calls
-  `BikeConnection.disconnect()`, which ends the retries (`L2-017` AC1, designed in
-  [keep the bike connected](../../bike/keep-the-bike-connected/README.md)).
+- Leave stays in reach while the bike is lost: the header is drawn above the lost-bike alert
+  (`class-ride__header`, `L2-092` AC2).
+- When the bike is lost as the rider leaves, the connection's retries carry on: Leave opens
+  The Class, which shows the bike's status and retries a dropped bike itself (`L2-017` AC1 on
+  The Class). The store does not call `BikeConnection.disconnect()`; it only forgets the
+  target (`L2.md` open question 28).
 
 ### Finish
 
@@ -133,7 +151,7 @@ Leave and the finish go and what the finish writes.
   the `TICKER` beat through `takeUntilDestroyed`; `BikeTelemetry` unsubscribes from the
   connection's `frames` and clears its cadence timer; the store destroys the player and releases
   the wake lock; the page's `beforeunload` host listener goes with the page.
-- **`BikeConnection.forgetTarget()`** (new method on the existing contract in `api`). The
+- **`BikeConnection.forgetTarget()`** (built by slice 31.2, on the existing contract in `api`). The
   connection is provided on the parent route and outlives the ride. `WebBluetoothBikeConnection`
   keeps the last target resistance and sends it again after a reconnect (`L2-017` AC4). Without a
   change, a reconnect after the rider left would send the ended ride's level. The store calls
@@ -149,8 +167,8 @@ requirement cited beside it.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-091` | `L1-015` | When the rider presses **Pause** in a running class ride, the video and the clock shall stop, an overlay on the video shall read "Paused", and Pause shall become **Resume**. The resistance controls shall stay enabled. When **Resume** is pressed, the clock, the plan and the video shall pick up where they left off. When the ride is paused or resumed, the change shall be announced once to a screen reader. |
-| `L2-093` | `L1-015` | When the rider presses Leave, The Class shall open without a confirmation, the ride shall not be finished, and the record shall not change. When the clock reaches 30:00, the ride shall be finished, the record shall be updated (`L2-168`) and Class Done shall open (`L2-078`). When Class Ride closes because the rider leaves or finishes, no further resistance command shall be sent for that ride, and its timers, listeners and video shall be released. |
+| `L2-091` | `L1-015` | When the rider presses **Pause** in a running class ride, the video and the clock shall stop, an overlay on the video shall read "Paused", and Pause shall become **Resume**. The resistance controls shall stay enabled. When **Resume** is pressed, the clock, the plan and the video shall pick up where they left off. When the ride is paused or resumed, the change shall be announced once to a screen reader. In Ibiza the course shall hold still under the same overlay. |
+| `L2-093` | `L1-015` | When the rider presses Leave, The Class shall open without a confirmation, the ride shall not be finished, and the record shall not change. When the clock reaches 20:00, the ride shall be finished, the record shall be updated (`L2-168`) and Class Done shall open (`L2-078`). When Class Ride closes because the rider leaves or finishes, no further resistance command shall be sent for that ride, and its timers, listeners and video shall be released. |
 
 ## Diagrams
 
@@ -194,13 +212,14 @@ plan does not move. Resume seeks the video to the clock and plays it.
 ### Behaviour: leave the class
 
 Leave navigates to The Class with no confirmation. Destroying the page releases the timers, the
-listeners and the player, and the connection forgets the target resistance.
+listeners and the player, and the connection forgets the target resistance. A lost bike's
+retries carry on, on The Class.
 
 ![Sequence diagram for leaving the class](diagrams/sequence-leave-the-class.png)
 
 ### Behaviour: finish the class
 
-The tick that reaches 30:00 finishes the ride: the store stops the clock, adds the ride to the
+The tick that reaches 20:00 finishes the ride: the store stops the clock, adds the ride to the
 record, sets the `ClassResult` on `FINISHED_RIDE` and opens Class Done.
 
 ![Sequence diagram for finishing the class](diagrams/sequence-finish-the-class.png)

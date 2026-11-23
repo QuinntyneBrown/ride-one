@@ -284,6 +284,11 @@ export class AppDocument {
     return region.evaluate((element) => element.contains(document.activeElement));
   }
 
+  /** Everything the app keeps on this device (`localStorage`), by key: the remembered bike, the choice, the record. */
+  stored(): Promise<Record<string, string>> {
+    return this.page.evaluate(() => ({ ...localStorage }));
+  }
+
   scrollsSideways(): Promise<boolean> {
     return this.page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   }

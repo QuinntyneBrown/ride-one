@@ -1,6 +1,8 @@
 <div class="class-ride">
   @if (store.ride(); as ride) {
+    <!-- The header stays above the lost-bike alert, so Leave stays in reach (class-ride__header, L2-092 AC2). -->
     <wz-class-header
+      class="class-ride__header"
       [title]="ride.title"
       mode="Solo"
       [elapsed]="store.elapsed()"
@@ -13,10 +15,11 @@
         slot="end"
         type="button"
         class="class-ride__action"
-        [attr.aria-label]="store.paused() ? 'Resume' : 'Pause'"
+        [attr.aria-label]="store.state().action"
+        [disabled]="store.state().actionDisabled"
         (click)="store.paused() ? store.resume() : store.pause()"
       >
-        @if (store.paused()) {
+        @if (store.state().action === 'Resume') {
           <svg class="class-ride__icon" viewBox="0 0 24 24" aria-hidden="true">
             <path
               d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"
@@ -50,11 +53,10 @@
     </wz-class-header>
     <main id="main" class="class-ride__body" tabindex="-1">
       <h1 class="visually-hidden">{{ ride.title }} · solo class ride</h1>
-      <p class="visually-hidden" role="status">{{ store.paused() ? 'Ride paused' : '' }}</p>
       <div class="class-ride__stage">
         <!-- A world class rides in its world, the video in its corner (class-ride/world, L2-153 AC3). -->
         @if (world(); as world) {
-          <wz-class-world [panorama]="panorama()">
+          <wz-class-world [panorama]="panorama()" [paused]="store.state().pausedOverlay">
             <ng-container
               ngProjectAs="[slot=scene]"
               [wzClassWorldScene]="world.id"
@@ -71,7 +73,6 @@
               [videoId]="ride.video.videoId"
               [title]="ride.title"
               [unavailable]="store.videoUnavailable()"
-              [paused]="store.paused() || store.bikeLost()"
               (frame)="store.playVideo($event)"
             />
           </wz-class-world>
@@ -80,7 +81,7 @@
             [videoId]="ride.video.videoId"
             [title]="ride.title"
             [unavailable]="store.videoUnavailable()"
-            [paused]="store.paused() || store.bikeLost()"
+            [paused]="store.state().pausedOverlay"
             (frame)="store.playVideo($event)"
           />
         }
@@ -115,12 +116,9 @@
         }
       </div>
     </main>
-    @if (store.bikeLost()) {
-      <!-- The ride waits for the bike (L2-092 AC4). -->
-      <wz-class-lost
-        body="Your ride is paused. Pedal to wake the bike and it carries on from here."
-        (reconnect)="store.reconnect()"
-      />
+    @if (store.state().lostAlert) {
+      <!-- The ride waits for the bike (L2-092 AC1). -->
+      <wz-class-lost [body]="lostBody()" (reconnect)="store.reconnect()" />
     }
   }
 </div>

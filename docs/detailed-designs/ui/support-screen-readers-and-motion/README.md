@@ -66,11 +66,12 @@ implicit `aria-live` of `off`.
   when the bike stops answering. The alerts of a blocked browser and of Bluetooth being off use
   the same role.
 - Paused and resumed, and paired: the mocks draw no live region for these (the "Paused" overlay
-  and the disabled "Paired" button are plain text). The pages announce them through the Angular
-  CDK's `LiveAnnouncer` (new use; `@angular/cdk` is already a dependency), which owns one polite
-  live region in the document. `ClassRidePage` announces on the `paused` signal of its store
-  changing; `ConnectBikePage` announces when pairing completes. The wording of the three
-  announcements is `<TO SUPPLY>`: neither `L2.md` nor the mocks give it.
+  and the disabled "Paired" button are plain text). They are announced through `ANNOUNCER`, the
+  app's one polite live region (`LiveRegionAnnouncer`; `@angular/cdk` left with ADR 0040).
+  Slice 31.2 built the first two: `ClassRideStore` announces "Ride paused" and "Ride resumed"
+  as the rider presses Pause and Resume (`L2.md` open question 28). `ConnectBikePage`
+  announces when pairing completes; its wording is `<TO SUPPLY>`: neither `L2.md` nor the mocks
+  give it.
 - Searching: "Looking for bikes nearby…" is a `role="status"` region, per L2-011.
 
 **Colour is never alone.** Each state named by L2-141 AC3 has words beside its colour.

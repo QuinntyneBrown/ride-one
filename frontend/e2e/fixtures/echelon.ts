@@ -43,6 +43,10 @@ export const targetResistanceWrite = (level: number): string =>
     .map((byte) => byte.toString(16).toUpperCase().padStart(2, '0'))
     .join(' ');
 
+/** The target resistance commands among `writes`, whatever their level: every `B1` write, in order. */
+export const targetResistanceWrites = (writes: readonly { hex: string }[]): string[] =>
+  writes.map((write) => write.hex).filter((hex) => hex.startsWith('F0 B1 01 '));
+
 /** The writes of a connection's initialisation, after its subscription (L2-016). */
 export const ECHELON_INITIALISED = [
   `subscribe ${ECHELON_NOTIFY}`,

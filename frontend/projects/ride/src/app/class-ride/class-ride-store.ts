@@ -24,6 +24,7 @@ import {
   WorkoutEngine,
 } from '@telo/domain';
 import { classStepAnnouncement } from '../rides/step-announcement';
+import { pauseAnnouncement, rideHold } from './ride-hold';
 import { type StatView, cadenceStat, powerStat } from './stat-view';
 
 /**
@@ -33,8 +34,11 @@ import { type StatView, cadenceStat, powerStat } from './stat-view';
  * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
  * video plays from the ride clock plus the class's sync offset (L2-088 AC1) and, on each tick, seeks back when it has
  * drifted more than 1.5 s (AC2); when it cannot play, the ride carries on without it (AC4). The rider pauses and
- * resumes it, a lost bike holds it until the bike is back (docs/detailed-designs/classes/pause-leave-or-finish-a-class,
- * L2-091, L2-092 AC4), the screen stays awake while it runs (L2-133 AC3), and at the class length it opens Results.
+ * resumes it (docs/detailed-designs/class-ride/pause-leave-or-finish-the-class, L2-091), each said once to a screen
+ * reader; a lost bike holds it until the bike is back, when the segment's level is sent again
+ * (docs/detailed-designs/class-ride/wait-for-a-lost-bike, L2-092); the screen stays awake while it runs (L2-133 AC3);
+ * and at the class length it opens Results. Once the rider leaves or the ride finishes, the connection forgets the
+ * ride's target, so no resistance command follows it (L2-093 AC3).
  */
 @Injectable()
 export class ClassRideStore {
@@ -54,6 +58,7 @@ export class ClassRideStore {
   private readonly connection = inject(BIKE_CONNECTION);
   private readonly beat = inject(TICKER);
   private readonly router = inject(Router);
+  private readonly announcer = inject(ANNOUNCER);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
   private readonly activity = inject(RIDE_ACTIVITY);
@@ -74,8 +79,12 @@ export class ClassRideStore {
   readonly paused = this.pausedByRider.asReadonly();
   /** Whether the bike has stopped answering (`ble` disconnected, L2-017); the ride waits for it (L2-092 AC4). */
   readonly bikeLost = computed(() => this.connection.ble() === 'disconnected');
-  /** Whether the ride runs: started, and held neither by the rider nor by a lost bike; the world moves while it does. */
-  readonly running = computed(() => this.started() && !this.pausedByRider() && !this.bikeLost());
+  /** Which of its four states the ride is in, and what the screen shows for it (L2-091, L2-092). */
+  readonly state = computed(() =>
+    rideHold({ pausedByRider: this.pausedByRider(), bikeLost: this.bikeLost() }),
+  );
+  /** Whether the ride runs: started, and held neither by the rider nor by a lost bike; the course moves while it does. */
+  readonly running = computed(() => this.started() && this.state().running);
   /** The bike's speed, for the world's cyclist (L2-153). */
   readonly speedKmh = this.telemetry.speedKmh;
   /** Whether the video cannot play: its code or YouTube's did not load, or the player failed. */
@@ -95,7 +104,7 @@ export class ClassRideStore {
 
   constructor() {
     // Each segment, said once as it starts, in the segment card's words (L2-141 AC2).
-    const announcer = inject(ANNOUNCER);
+    const announcer = this.announcer;
     const step = computed(() => this.engine.state()?.index ?? null);
     effect(() => {
       if (step() === null) return;
@@ -105,6 +114,8 @@ export class ClassRideStore {
     this.start(inject(THE_CLASS).get());
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
+      // The connection outlives the ride: it must not send this ride's level after a later reconnect (L2-093 AC3).
+      this.connection.forgetTarget();
       this.player()?.destroy();
       // The lock is bound on the route, whose injector outlives the page.
       this.wakeLock.release();
@@ -132,18 +143,23 @@ export class ClassRideStore {
     );
   }
 
-  /** Holds the clock, the plan and the video where they are (L2-091 AC1, L2-088 AC3). */
+  /** Holds the clock, the plan and the video where they are, and says so once (L2-091 AC1, AC3, L2-088 AC3). */
   pause(): void {
-    if (this.pausedByRider()) return;
+    if (this.pausedByRider() || this.bikeLost()) return;
     this.pausedByRider.set(true);
+    this.announcer.announce(pauseAnnouncement(true));
     if (!this.pausedByBike()) this.hold();
   }
 
-  /** Carries the ride on from where it was held, with the video back on the clock (L2-091 AC2). */
+  /**
+   * Carries the ride on from where it was held, with the video back on the clock, and says so once (L2-091 AC2, AC3).
+   * Not while the bike is lost: only the bike coming back ends that hold (L2-092 AC2).
+   */
   resume(): void {
     const ride = this.loaded();
-    if (!this.pausedByRider() || !ride) return;
+    if (!this.pausedByRider() || this.bikeLost() || !ride) return;
     this.pausedByRider.set(false);
+    this.announcer.announce(pauseAnnouncement(false));
     if (!this.pausedByBike()) this.carryOn(ride);
   }
 
@@ -183,12 +199,15 @@ export class ClassRideStore {
 
   /**
    * The ride waits for a lost bike: checked once a second, it holds within a second of the drop and carries on
-   * within a second of the bike's return, unless the rider paused it meanwhile (L2-092 AC4). The alert shows at once.
+   * within a second of the bike's return, unless the rider had paused it before (L2-092 AC4). The alert shows at once.
+   * When the bike is back the current segment's level is sent again, after the target the connection kept and sent
+   * first (L2-017 AC4, L2-027 AC4, L2-092 AC3), whether or not the rider had paused.
    */
   private followBike(ride: ClassDefinition): void {
     const lost = this.bikeLost();
     if (lost === this.pausedByBike()) return;
     this.pausedByBike.set(lost);
+    if (!lost) this.engine.resend();
     if (this.pausedByRider()) return;
     if (lost) this.hold();
     else this.carryOn(ride);
@@ -205,6 +224,7 @@ export class ClassRideStore {
     this.player()?.pause();
     this.wakeLock.release();
     this.activity.end();
+    this.connection.forgetTarget();
     const classResult: ClassResult = {
       classId: ride.id,
       title: ride.title,

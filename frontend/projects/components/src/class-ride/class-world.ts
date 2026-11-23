@@ -14,4 +14,6 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 export class ClassWorld {
   /** The world's panorama, with what it shows; `null` for a world without one. */
   readonly panorama = input<{ readonly url: string; readonly alt: string } | null>(null);
+  /** Draws "Paused" over the course and the video in its corner, as the class video does (L2-091 AC1); the page announces the pause itself. */
+  readonly paused = input(false);
 }

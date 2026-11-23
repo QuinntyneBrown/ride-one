@@ -1,0 +1,81 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "Pause, lose the bike, leave or finish: the four ways a class ride stops."
+      ]
+    },
+    {
+      "id": "pause",
+      "bars": 6,
+      "lines": [
+        "Pause stops the clock, the plan and the video under one word, Paused. The button becomes Resume, the resistance controls stay on, and a screen reader hears each change once."
+      ]
+    },
+    {
+      "id": "lost",
+      "bars": 6,
+      "lines": [
+        "When the bike stops answering, the ride holds itself. An alert says so, with Reconnect. Resume and the resistance controls are off, and Leave stays in reach above the alert."
+      ]
+    },
+    {
+      "id": "back",
+      "bars": 6,
+      "lines": [
+        "When the bike is back, by a retry or by Reconnect, the segment's level is sent again and the ride carries on. A ride the rider had paused stays paused."
+      ]
+    },
+    {
+      "id": "ibiza",
+      "bars": 4,
+      "lines": [
+        "In Ibiza the course holds still under the same overlay, and the alert says the ride is paused."
+      ]
+    },
+    {
+      "id": "leave",
+      "bars": 6,
+      "lines": [
+        "Leave opens The Class at once, with no confirmation. At twenty minutes the ride is finished. Either way, the bike is sent nothing more for that ride."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The lost bike, from a phone to a desktop."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 6,
+      "lines": [
+        "The tests came first. Eight failed, as expected; four passed on the code carried over. Now three hundred and fifteen specs and one thousand four hundred and forty-five unit tests pass."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}
