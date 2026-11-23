@@ -1,4 +1,4 @@
-"""Builds a Telo Ride map in Blender from a course file (ADR 0032).
+"""Builds a Telo Ride map in Blender from a course file (ADR 0034).
 
 A course file (courses/<id>.json) holds the plan of the GCN class the map is modelled after. From it
 this script lays one continuous road:
@@ -30,6 +30,8 @@ import argparse
 import json
 import math
 import random
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -38,6 +40,7 @@ import bmesh  # after bpy: the bpy module provides it
 from mathutils import Vector, kdtree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import sky  # noqa: E402  (beside this script)
 import themes  # noqa: E402  (beside this script)
 from pack_glb import pack as pack_glb  # noqa: E402  (beside this script)
 
@@ -53,6 +56,8 @@ RUN_OUT = 200.0  # road after the finish line
 ROAD_HALF = 5.0
 CLEAR = 46.0  # the road keeps this far from an earlier stretch of itself
 SEA_CLEARANCE = 4.0  # the road's lowest point above the sea
+BRIDGE_BED = -9.0  # the land's height under a bridge: below the sea
+BRIDGE_CLEAR = 1.6  # a bridge's deck stands this far above the quay it left before the quay stops beside it
 START_LINE = 14.0  # the start line and its gate stand this far up the road: the rider starts on the grid behind it
 
 
@@ -291,18 +296,25 @@ def lay_centre_line(course: dict, theme: dict | None = None):
         print(f'Layout {chosen} chosen: add "layout": {chosen} to the course file to build it again at once.', flush=True)
     n = len(curv)
 
+    # A theme may gather a stage's climb or descent into a ramp at its start (`ramp`: the share of an effort's stretch
+    # that climbs, and of a recovery's that descends) and run level for the rest: a hill a rider can see, for the
+    # same metres climbed. Docklands' efforts are ramps up onto its harbour bridges.
+    ramp = grade_rule.get("ramp", {})
     grades = []
     for i in range(n):
         stage = stage_at(st, i * STEP - LEAD_IN)
         g = (stage["level"] - mean) * per_level if stage else 0.0
         d = i * STEP - LEAD_IN
+        share = ramp.get(stage["kind"]) if stage else None
+        if share:
+            g = g / share if (d - stage["from"]) < (stage["to"] - stage["from"]) * share else 0.0
         if roll and 0 < d < length - 300:
             # Rolling ground between the class's hills, so every map rises and falls along the way.
             g += roll * math.sin(math.tau * d / wave + 0.7) * smoothstep(0, 120, d)
         if climb and stage:
             g += -climb if stage["kind"] == "cool-down" else climb
         grades.append(g)
-    grades = box_smooth(grades, int(28 / STEP))
+    grades = box_smooth(grades, int((40 if ramp else 28) / STEP))
     if course.get("climbingMetres"):
         # A catalogue map climbs what it lists: every gradient is scaled alike, so each hill keeps its place
         # and its share of the climbing.
@@ -322,6 +334,20 @@ def lay_centre_line(course: dict, theme: dict | None = None):
         {"x": xs[i], "y": ys[i], "z": zs[i], "h": hs[i], "k": curv[i], "g": grades[i], "d": i * STEP - LEAD_IN}
         for i in range(n)
     ]
+    if theme.get("bridges"):
+        # A theme of bridges: from the foot of each effort's ramp, the road is a bridge for as long as it stands
+        # `BRIDGE_CLEAR` above where the ramp began. A bridge's samples are marked: no quay is laid beside them, the
+        # land beneath them is the harbour's bed, and nothing is stood on them but their own lamps.
+        for stage in st:
+            if stage["kind"] != "work":
+                continue
+            i0 = int((stage["from"] + LEAD_IN) / STEP)
+            foot = samples[i0]["z"]
+            for i in range(i0, min(n, i0 + int(1400 / STEP))):
+                if samples[i]["z"] > foot + BRIDGE_CLEAR:
+                    samples[i]["bridge"] = True
+                elif i > i0 + int(120 / STEP):
+                    break
     return samples, st, length, mean, per_level
 
 
@@ -357,6 +383,17 @@ MATERIALS: dict[str, dict] = {
     "dark": {"color": 0x18181C, "rough": 0.6},
     "rock": {"color": 0x8C7B6A, "rough": 1.0},
     "skin": {"color": 0xD9A17C, "rough": 0.8},
+    "skin-1": {"color": 0xB97A56, "rough": 0.8},
+    "skin-2": {"color": 0x7A4A34, "rough": 0.8},
+    "hair-0": {"color": 0x1E1612, "rough": 0.9},
+    "hair-1": {"color": 0x5A3A22, "rough": 0.9},
+    "hair-2": {"color": 0xD8B878, "rough": 0.9},
+    # The island's white: linen shirts and summer dresses.
+    "party-white": {"color": 0xF4EEE4, "rough": 0.9},
+    # What is in the glass: it catches the light, so it glows a little.
+    "drink-0": {"color": 0xFFB030, "glow": 0.9},
+    "drink-1": {"color": 0xFF5A8A, "glow": 0.9},
+    "drink-2": {"color": 0xB8F060, "glow": 0.9},
     "club-window": {"color": 0x2C4658, "rough": 0.3},
     "awning": {"color": 0xE8566E, "rough": 0.8, "double": True},
     "awning-white": {"color": 0xF6F1EA, "rough": 0.8, "double": True},
@@ -376,6 +413,7 @@ MATERIALS: dict[str, dict] = {
     "sail": {"color": 0xFFFFFF, "rough": 0.8, "double": True},
     "sail-pink": {"color": 0xF06A9A, "rough": 0.8, "double": True},
     "sun": {"color": 0xFF7A3A, "glow": 1.3},
+    "sky": {"color": 0xF2A77A, "glow": 1.0},
     "island": {"color": 0x5A3F52, "rough": 1.0},
     "beam-pink": {"color": 0xFF5AA8, "glow": 2.2, "alpha": 0.2, "double": True},
     "beam-cyan": {"color": 0x5AE8F0, "glow": 2.2, "alpha": 0.2, "double": True},
@@ -439,6 +477,8 @@ class Builder:
         self.verts: list[tuple[float, float, float]] = []
         self.faces: list[tuple[int, ...]] = []
         self.colours: list[tuple[float, float, float, float]] | None = None
+        # A UV a vertex, for a part whose material the app draws from it (the windows).
+        self.uvs: list[tuple[float, float]] | None = None
 
     def v(self, p) -> int:
         self.verts.append((p[0], p[1], p[2]))
@@ -496,8 +536,32 @@ CHUNK = 240.0  # metres of road a chunk of the map holds: the app draws only the
 UNSHADED = {"asphalt", "paint", "yellow", "kerb-red", "promenade", "sand", "club-window", "awning", "awning-white"}
 # Parts the film's staging looks up by name: kept whole in the scene, out of the glb, beside their chunks.
 FILM_KEEPS = {"GlowLamp"}
-WIDER = {"Land": 4, "Beams": 4, "Glow": 3, "Leaves": 3}
-WHOLE = {"sea": "Sea", "sun": "Sun", "moon": "Sun", "island": "Conillera", "lamp-red": "StartRed", "lamp-green": "StartGreen"}
+# The ground the road builds: the asphalt, its paint and kerbs, the pavements and the shoulders. Its own group, with
+# each vertex's place on the road in its UV (metres left of the centre line, metres from the start line), so the app
+# can draw its surface, its wear and the lamps' light on it (L2-166 AC13).
+GROUND_PARTS = {"Road", "RoadPaint", "Kerbs", "CentreLine", "Promenade", "Shoulder"}
+# The walls of what is built: their own group, with each vertex's place on its wall in its UV (metres along the
+# wall, metres above the road beside it), so the app can draw brick courses, a container's ribs or stained plaster
+# (L2-166 AC15). The kind of wall rides in the UV too: `WALL_KIND_STEP` metres are added to the height for each kind
+# (the exporter keeps no alpha in a vertex's colour). Roofs and floors are kind 0, their UV their place on the map.
+WALL_KIND_STEP = 1000.0
+# The city on the horizon: one mesh, never cut into chunks and always drawn, its towers walls of a kind of their
+# own, whose lit windows the app draws (L2-166 AC17).
+SKYLINE_PART, SKYLINE_KIND = "Skyline", 4
+# Windows: one flat panel each, in a group of their own, its UV the place on the pane (0 to 1 each way) with 2 added
+# across for a lit window and 2 added up for each step of the window's own number, from which the app draws its
+# frame, its panes and the room behind them (L2-166 AC18; `Kit.window` in themes.py).
+WINDOWS_PART = "Windows"
+# Railings and fences: one flat panel a stretch, in a group of their own, its UV the metres along it and the share of
+# its height, from which the app draws the posts and the rails (L2-166 AC19; `Kit.fence` in themes.py).
+FENCES_PART = "Fences"
+# The glow in the air round a light: four corners at the light's own place, in a group of their own, which the app
+# spreads to face the eye (L2-166 AC21; `Kit.halo` in themes.py). Its UV is the corner.
+HALOS_PART = "Halos"
+WALL_KINDS = {"brick": 1, **{f"container-{i}": 2 for i in range(4)}, "whitewash": 3, "tower": 3, "wall": 3,
+              **{f"facade-{i}": 3 for i in range(6)}, **{f"deco-{i}": 3 for i in range(4)}}
+WIDER = {"Land": 4, "Beams": 6, "Glow": 6, "Leaves": 4, "Halos": 4, "Ground": 2}
+WHOLE = {"sea": "Sea", "sky": "Sky", "sun": "Sun", "moon": "Sun", "island": "Conillera", "lamp-red": "StartRed", "lamp-green": "StartGreen"}
 
 
 def group_of(mat: str) -> tuple[str, bool]:
@@ -528,7 +592,7 @@ def group_material(name: str):
     attr.layer_name = "Color"
     mat.node_tree.links.new(attr.outputs["Color"], bsdf.inputs["Base Color"])
     bsdf.inputs["Roughness"].default_value = 0.2 if name == "Sea" else 0.85
-    if name in ("Glow", "Confetti", "Sun", "StartRed", "StartGreen", "Beams"):
+    if name in ("Glow", "Confetti", "Sun", "Sky", "StartRed", "StartGreen", "Beams"):
         mat.node_tree.links.new(attr.outputs["Color"], bsdf.inputs["Emission Color"])
         bsdf.inputs["Emission Strength"].default_value = 1.5
     if name == "Beams":
@@ -557,16 +621,45 @@ def assemble(road: "Road", col) -> dict:
             data.from_pydata(part.verts, [], part.faces)
             film.objects.link(bpy.data.objects.new(part.name, data))
         group, chunked = group_of(part.mat)
+        if part.name in GROUND_PARTS:
+            group = "Ground"
+        elif part.name == WINDOWS_PART:
+            group = "Windows"
+        elif part.name == FENCES_PART:
+            group = "Fences"
+        elif part.name == HALOS_PART:
+            group = "Halos"
+        elif part.name == SKYLINE_PART:
+            group, chunked = "Skyline", False
+        elif part.mat in WALL_KINDS and chunked:
+            group = "Walls"
         flat = srgb(MATERIALS[part.mat]["color"])
         for face in part.faces:
             name = group
+            if group == "Sky":
+                # The sky is cut into sectors round the compass, so only those in view are drawn.
+                cx = sum(part.verts[i][0] for i in face) / len(face)
+                cy = sum(part.verts[i][1] for i in face) / len(face)
+                cz = sum(part.verts[i][2] for i in face) / len(face)
+                name = f"Sky_{int((math.atan2(cy, cx) % math.tau) / math.tau * SKY_SECTORS) % SKY_SECTORS:03d}"
             if chunked:
                 cx = sum(part.verts[i][0] for i in face) / len(face)
                 cy = sum(part.verts[i][1] for i in face) / len(face)
                 _, j, _ = road.tree.find((cx, cy, 0.0))
                 name = f"{group}_{j // (per_chunk * WIDER.get(group, 1)):03d}"
-            mesh = meshes.setdefault(name, {"group": group, "verts": [], "cols": [], "faces": [], "index": {}})
+            mesh = meshes.setdefault(name, {"group": group, "verts": [], "cols": [], "uvs": [], "faces": [], "index": {}})
             ids = []
+            walled = group in ("Walls", "Skyline")
+            if walled:
+                # The wall's own axes: along it (level, square to the way it faces) and up it.
+                a, b, c_ = (part.verts[i] for i in face[:3])
+                nx = (b[1] - a[1]) * (c_[2] - a[2]) - (b[2] - a[2]) * (c_[1] - a[1])
+                ny = (b[2] - a[2]) * (c_[0] - a[0]) - (b[0] - a[0]) * (c_[2] - a[2])
+                nz = (b[0] - a[0]) * (c_[1] - a[1]) - (b[1] - a[1]) * (c_[0] - a[0])
+                flat_len = math.hypot(nx, ny)
+                upright = flat_len > abs(nz)
+                tx, ty = (-ny / flat_len, nx / flat_len) if upright else (1.0, 0.0)
+                kind = (SKYLINE_KIND if group == "Skyline" else WALL_KINDS[part.mat]) if upright else 0
             for i in face:
                 v = part.verts[i]
                 c = part.colours[i] if part.colours else flat
@@ -578,11 +671,27 @@ def assemble(road: "Road", col) -> dict:
                     shade = 0.74 + 0.3 * smoothstep(0.0, 4.5, lift) if lift > 0.2 else (0.62 if lift < -0.3 else 1.0)
                     c = (c[0] * shade, c[1] * shade, c[2] * shade, 1.0)
                 key = (round(v[0], 3), round(v[1], 3), round(v[2], 3), round(c[0], 3), round(c[1], 3), round(c[2], 3))
+                if group in ("Windows", "Fences", "Halos"):
+                    key = (*key, *part.uvs[i])
+                if walled:
+                    _, near, _ = road.tree.find((v[0], v[1], 0.0))
+                    wall_uv = (v[0] * tx + v[1] * ty, v[2] - road.s[near]["z"] + kind * WALL_KIND_STEP) if upright else (v[0], v[1] % 400.0)
+                    key = (*key, kind, round(wall_uv[0], 3), round(wall_uv[1], 3))
                 at = mesh["index"].get(key)
                 if at is None:
                     at = mesh["index"][key] = len(mesh["verts"])
                     mesh["verts"].append(v)
                     mesh["cols"].append(c)
+                    if group in ("Windows", "Fences", "Halos"):
+                        mesh["uvs"].append(part.uvs[i])
+                    if walled:
+                        mesh["uvs"].append(wall_uv)
+                    if group == "Ground":
+                        _, near, _ = road.tree.find((v[0], v[1], 0.0))
+                        p = road.s[near]
+                        dx, dy = v[0] - p["x"], v[1] - p["y"]
+                        ch, sh = math.cos(p["h"]), math.sin(p["h"])
+                        mesh["uvs"].append((-sh * dx + ch * dy, p["d"] + ch * dx + sh * dy))
                 ids.append(at)
             if len(set(ids)) == len(ids):
                 mesh["faces"].append(tuple(ids))
@@ -593,6 +702,11 @@ def assemble(road: "Road", col) -> dict:
         data.from_pydata(m["verts"], [], m["faces"])
         layer = data.color_attributes.new("Color", "FLOAT_COLOR", "POINT")
         layer.data.foreach_set("color", [c for col_ in m["cols"] for c in (col_[0], col_[1], col_[2], 1.0)])
+        if m["uvs"]:
+            layer = data.uv_layers.new(name="Road")
+            at = [0] * len(data.loops)
+            data.loops.foreach_get("vertex_index", at)
+            layer.data.foreach_set("uv", [c for i in at for c in m["uvs"][i]])
         data.materials.append(group_material(m["group"]))
         data.update()
         col.objects.link(bpy.data.objects.new(name, data))
@@ -666,6 +780,22 @@ def build_road(road: Road, st: list[dict], length: float, col, theme: dict | Non
 
     def edges(i: int) -> None:
         """Each theme's road edge beyond the kerbs: verge, pavement, quay, beach, cliff, rail or parapet."""
+        if s[i].get("bridge") and s[i + 1].get("bridge"):
+            # A bridge: a walkway each side, a parapet a metre high with a flat top, and the deck's edge below it.
+            walk, top, deep = kerb + 1.5, 1.05, -1.3
+            strip(prom, i, walk, 0.12, kerb, 0.12)
+            strip(wall, i, walk, top, walk, 0.12)
+            strip(wall, i, walk + 0.3, top, walk, top)
+            strip(wall, i, walk + 0.3, deep, walk + 0.3, top)
+            strip(prom, i, -kerb, 0.12, -walk, 0.12)
+            strip(wall, i, -walk, 0.12, -walk, top)
+            strip(wall, i, -walk, top, -(walk + 0.3), top)
+            strip(wall, i, -(walk + 0.3), top, -(walk + 0.3), deep)
+            if i % 9 == 4:
+                # A pier down into the water.
+                mid = road.at(i, 0.0)
+                wall.box((mid[0], mid[1], -9.0), (2.4, 2 * walk - 1.0, mid[2] + 9.0 + deep), s[i]["h"])
+            return
         if edge == "verge":
             strip(sand, i, kerb + 8.0, -0.25, kerb, 0.12)
             strip(sand, i, kerb + 14.0, -1.6, kerb + 8.0, -0.25)
@@ -805,7 +935,8 @@ def build_terrain(road: Road, col, cell: float = 18.0):
             for _, j, dj in near:
                 w = 1.0 / (dj * dj + 4.0)
                 w_sum += w
-                h_sum += w * road.s[j]["z"]
+                # Under a bridge the land is the harbour's bed: the water shows beneath the deck.
+                h_sum += w * (BRIDGE_BED if road.s[j].get("bridge") else road.s[j]["z"])
             h_road = h_sum / w_sum
             j0 = near[0][1]
             p0 = road.s[j0]
@@ -883,7 +1014,8 @@ def build_land(road: Road, col, theme: dict, cell: float = 14.0):
             for _, j, dj in near:
                 w = 1.0 / (dj * dj + 4.0)
                 w_sum += w
-                h_sum += w * road.s[j]["z"]
+                # Under a bridge the land is the harbour's bed: the water shows beneath the deck.
+                h_sum += w * (BRIDGE_BED if road.s[j].get("bridge") else road.s[j]["z"])
             h_road = h_sum / w_sum
             p0 = road.s[near[0][1]]
             leftward = (x - p0["x"]) * -math.sin(p0["h"]) + (y - p0["y"]) * math.cos(p0["h"])
@@ -995,15 +1127,52 @@ def palm(trunk: Builder, leaf: Builder, dark_leaf: Builder, x: float, y: float, 
         b.tri(l2, r2, spine[3])
 
 
+SKY_SECTORS = 1
+SKY_RADIUS = 8500.0
+
+
+def build_sky(col, az: float, haze_hex: int, colour_at=sky.sunset_sky_colour, turns: int = 160, rows: int = 24) -> None:
+    """The sky as a dome the app carries with the camera, its picture painted in its vertices: finest by the horizon,
+    where the eye is."""
+    b = Builder("Sky", "sky")
+    b.colours = []
+    haze = srgb(haze_hex)
+    low = math.radians(-4.0)
+    elev = [low + (math.pi / 2 - low) * (r / rows) ** 1.7 for r in range(rows + 1)]
+    ring = []
+    for r, e in enumerate(elev[:-1]):
+        first = len(b.verts)
+        for t in range(turns):
+            a = t * math.tau / turns
+            d = (math.cos(e) * math.cos(a), math.cos(e) * math.sin(a), math.sin(e))
+            b.verts.append((d[0] * SKY_RADIUS, d[1] * SKY_RADIUS, d[2] * SKY_RADIUS))
+            b.colours.append(colour_at(d[0], d[1], d[2], az, haze))
+        ring.append(first)
+    top = len(b.verts)
+    b.verts.append((0.0, 0.0, SKY_RADIUS))
+    b.colours.append(colour_at(0.0, 0.0, 1.0, az, haze))
+    for r in range(len(ring) - 1):
+        for t in range(turns):
+            u = (t + 1) % turns
+            b.faces.append((ring[r] + t, ring[r] + u, ring[r + 1] + u, ring[r + 1] + t))
+    for t in range(turns):
+        b.faces.append((ring[-1] + t, ring[-1] + (t + 1) % turns, top))
+    b.build(col)
+
+
 def build_scenery(road: Road, st: list[dict], length: float, height_at, course: dict, col) -> dict:
     rng = random.Random(course.get("seed", 1) * 7 + 3)
     s, n = road.s, len(road.s)
     names = (
         "trunk leaf leaf-dark glint bush bougainvillea whitewash wall wood dark stone rock skin club-window awning awning-white arrow sail sail-pink "
-        "glow-door lamp-red lamp-green gold confetti bulb paint sun island"
+        "glow-door lamp-red lamp-green gold confetti bulb paint sun island tower "
+        "skin-1 skin-2 hair-0 hair-1 hair-2 party-white drink-0 drink-1 drink-2"
     ).split() + NEONS + BEAMS + CROWD
     B = {name: Builder("".join(p.title() for p in name.split("-")), name) for name in names}
     B["whitewash"].name, B["dark"].name, B["paint"].name = "Clubs", "Dark", "GatePaint"
+    # The kit the themed maps are built with (themes.py): framed windows, railings, the glow round a light and the
+    # light it throws, which the app draws and the course file carries.
+    kit = themes.Kit(road, st, length, height_at, rng, B, STEP, ROAD_HALF)
     kerb = ROAD_HALF + 0.6
     front = kerb + TERRACE  # the clubs' fronts, right of the road
 
@@ -1025,18 +1194,66 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
             b.tri(top, ring[q], ring[(q + 1) % 5])
             b.tri((c[0], c[1], c[2] - r * 0.8), ring[(q + 1) % 5], ring[q])
 
-    def person(c, yaw: float) -> None:
-        """A dancer in one colour, arms in the air."""
-        b = B[rng.choice(CROWD)]
+    people = random.Random(4117)
+
+    def person(c, yaw: float, rng=rng, there: bool = True) -> None:
+        """Someone at the party, a drink in their hand: legs or a dress, a body that narrows to the waist, a head
+        with hair, one arm up with the glass or holding it at the chest, the other dancing or at their side. Most are
+        in the island's white."""
+        # The crowd has dice of its own, and takes from the scenery's what the old dancers took: nothing else moves.
+        rng.choice(CROWD)
+        for _ in range(4):
+            rng.random()
+        if not there:
+            return
+        rng = people
         h = rng.uniform(0.92, 1.08)
-        (b if rng.random() < 0.4 else B["dark"]).box(c, (0.2, 0.3, 0.8 * h), yaw)
-        b.box((c[0], c[1], c[2] + 0.8 * h), (0.24, 0.42, 0.58 * h), yaw)
-        B["skin"].box((c[0], c[1], c[2] + 1.44 * h), (0.23, 0.23, 0.25), yaw)
-        for side in (1, -1):
-            lift = rng.uniform(0.45, 0.8)
-            out = 0.27 + lift * 0.18
-            ax, ay = c[0] - math.sin(yaw) * out * side, c[1] + math.cos(yaw) * out * side
-            b.box((ax, ay, c[2] + 1.28 * h), (0.1, 0.1, lift), yaw)
+        fx, fy = math.cos(yaw), math.sin(yaw)
+        sx, sy = -fy, fx
+
+        def at(forward: float, side: float, up: float):
+            return (c[0] + fx * forward + sx * side, c[1] + fy * forward + sy * side, c[2] + up * h)
+
+        white = rng.random() < 0.6
+        top = B["party-white"] if white else B[rng.choice(CROWD)]
+        skin = B[rng.choice(("skin", "skin", "skin-1", "skin-2"))]
+        dress = rng.random() < 0.45
+        if dress:
+            # A summer dress: bare legs under a skirt that flares from the waist.
+            for side in (1, -1):
+                skin.box(at(0, 0.07 * side, 0), (0.1, 0.1, 0.5 * h), yaw)
+            kit.prism(top, at(0, 0, 0.46), 0.25, 0.42 * h, 5, 0.15, yaw)
+        else:
+            legs = B["party-white"] if white and rng.random() < 0.5 else (B["dark"] if rng.random() < 0.6 else B[rng.choice(CROWD)])
+            for side in (1, -1):
+                legs.box(at(0, 0.08 * side, 0), (0.13, 0.13, 0.86 * h), yaw)
+        # The body: hips to shoulders, wider at the shoulders; the neck; the head and its hair.
+        kit.prism(top, at(0, 0, 0.84), 0.17, 0.58 * h, 4, 0.24, yaw + math.pi / 4)
+        kit.prism(skin, at(0, 0, 1.42), 0.085, 0.24 * h, 5, 0.105, yaw)
+        hair = B[rng.choice(("hair-0", "hair-0", "hair-1", "hair-2"))]
+        kit.prism(hair, at(-0.015, 0, 1.6), 0.115, 0.09 * h, 4, 0.07, yaw + math.pi / 4)
+        if dress or rng.random() < 0.3:
+            # Long hair down the back.
+            hair.box(at(-0.1, 0, 1.3), (0.06, 0.2, 0.34 * h), yaw)
+        # The arms. One holds the drink: up in a toast, or at the chest between sips.
+        hand = rng.choice((1, -1))
+        sleeve = skin if dress or rng.random() < 0.6 else top
+        toast = rng.random() < 0.45
+        drink = B[rng.choice(("drink-0", "drink-1", "drink-2"))]
+        if toast:
+            lift = rng.uniform(0.5, 0.68)
+            sleeve.box(at(0.03, 0.27 * hand, 1.3), (0.09, 0.09, lift * h), yaw)
+            glass = at(0.03, 0.27 * hand, 1.3 + lift)
+        else:
+            sleeve.box(at(0, 0.25 * hand, 1.05), (0.09, 0.09, 0.33 * h), yaw)
+            skin.box(at(0.16, 0.22 * hand, 1.05), (0.26, 0.08, 0.08 * h), yaw)
+            glass = at(0.29, 0.22 * hand, 1.1)
+        kit.prism(drink, glass, 0.04, 0.12, 3, 0.055, yaw)
+        # The other arm: in the air with the music, or down at their side.
+        if rng.random() < 0.5:
+            sleeve.box(at(0, -0.27 * hand, 1.3), (0.09, 0.09, rng.uniform(0.4, 0.62) * h), yaw)
+        else:
+            sleeve.box(at(0, -0.26 * hand, 0.82), (0.09, 0.09, 0.56 * h), yaw)
 
     def festoon(a, b_, bulbs: int = 9, sag: float = 1.1) -> None:
         last = None
@@ -1136,6 +1353,9 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
             # An arched doorway glowing warm, under a striped awning.
             off = -(front - 0.07)
             B["glow-door"].box(P(i, along, off, 0.12), (1.5, 0.14, 2.1), yaw)
+            # The doorway's glow in the dusk, and its warm light on the terrace before it.
+            kit.halo(P(i, along, off + 0.3, 1.6), "glow-door")
+            kit.light(P(i, along, off + 2.2, 0), "glow-door", 6.5, 0.55)
             for k2 in range(6):
                 a0, a1 = math.pi * k2 / 6, math.pi * (k2 + 1) / 6
                 B["glow-door"].tri(
@@ -1152,8 +1372,8 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
         panes = max(3, int(width / 3.2))
         for k in range(panes):
             along = -width / 2 + (k + 0.5) * width / panes
-            pane = B["glow-door"] if rng.random() < 0.35 else B["club-window"]
-            pane.box(P(i, along, -(front - 0.05), 4.3), (1.1, 0.1, 1.5), yaw)
+            # A window in its frame, under a lintel and over a sill, lit or dark: the app draws the room behind it.
+            kit.window(i, along, -(front - 0.06), 4.3, 1.1, 1.5, rng.random() < 0.45, yaw)
         for k in range(rng.choice((2, 3))):
             neon = B[NEONS[(len(clubs) + k) % len(NEONS)]]
             along = -width / 2 + (k + 0.5) * width / 3 + rng.uniform(-0.6, 0.6)
@@ -1167,6 +1387,11 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
         # A tall neon sign standing off the corner.
         sign = B[NEONS[(len(clubs) + 3) % len(NEONS)]]
         sign.box(P(i, -width / 2 - 0.4, -(front - 0.5), 3.4), (0.16, 0.9, 3.4), yaw)
+        # The sign's glow, and its colour on the terrace and the road before the club.
+        sign_glow = NEONS[(len(clubs) + 3) % len(NEONS)]
+        kit.halo(P(i, -width / 2 - 0.4, -(front - 0.9), 5.2), sign_glow)
+        kit.light(P(i, -width / 2 - 0.4, -(front - 3.0), 0), sign_glow, 9.0, 0.6)
+        kit.light(P(i, 0, -(front - 5.0), 0), NEONS[len(clubs) % len(NEONS)], 12.0, 0.45)
         # Bougainvillea spilling over a corner, and bushes in pots.
         for _ in range(5):
             blob(B["bougainvillea"], P(i, width / 2 - rng.uniform(0, 2.2), -(front - rng.uniform(0.2, 0.9)), rng.uniform(3.6, 6.4)), rng.uniform(0.6, 1.1))
@@ -1181,6 +1406,9 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
             pole = P(i, along, kerb + SIDEWALK - 0.3, 0.12)
             B["dark"].box(pole, (0.14, 0.14, 5.6), yaw)
             festoon(P(i, along, -(front - 3.8), 3.9), (pole[0], pole[1], pole[2] + 5.5))
+            # The string's bulbs glow together over the road, and light it.
+            kit.halo(P(i, along, 0.0, 4.2), "bulb")
+            kit.light(P(i, along, 0.0, 0), "bulb", 8.0, 0.4)
         clubs.append(i)
 
     def room_for_club(i: int) -> bool:
@@ -1202,6 +1430,14 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
             i += int((width + (rng.uniform(2, 5) if lined else rng.uniform(26, 90))) / STEP) + 1
         else:
             i += 3
+
+    # A railing along the far edge of the promenade wherever no club stands on it, over the drop to the land below.
+    taken = set()
+    for c in clubs:
+        taken.update(range(c - 4, c + 5))
+    for i in range(2, n - 3):
+        if i not in taken and i + 1 not in taken:
+            kit.fence(i, -(kerb + TERRACE - 0.15), 1.1)
 
     # Arrow boards round the outside of every tight bend.
     for i in range(2, n - 2, 2):
@@ -1258,9 +1494,10 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
         for side in (1, -1):
             if side < 0:
                 B["wall"].box(P(i, 0, -(kerb + 0.5), 0.12), (3.6, 0.5, 1.05), yaw)
-            for _ in range(3):
+            for k in range(3):
                 off = (kerb + rng.uniform(1.0, 2.1)) if side > 0 else -(kerb + rng.uniform(1.2, 3.2))
-                person(P(i, rng.uniform(-1.8, 1.8), off, 0.12), yaw - math.pi / 2 * side + rng.uniform(-0.4, 0.4))
+                # Two of every three places are taken: each figure is a hundred triangles, and the finish is long.
+                person(P(i, rng.uniform(-1.8, 1.8), off, 0.12), yaw - math.pi / 2 * side + rng.uniform(-0.4, 0.4), there=k < 2)
         d += 4.0
     beams(P(fi, 30, -(front + 2), 8.0), s[fi]["h"] + math.pi / 2, 4)
     beams(P(i0, 70, -(front + 2), 8.0), yaw0 + math.pi / 2, 3)
@@ -1341,6 +1578,8 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
         halo.colours += [hot, sky_, sky_]
         halo.faces.append((base, base + 1, base + 2))
     halo.build(col)
+    # The sky itself: a sunset under a deck of cloud lit from below.
+    build_sky(col, az, 0xF2A77A)
     # The sun's path on the water: glints scattered towards it from the finish's shore.
     for _ in range(170):
         out = rng.uniform(120, 2600)
@@ -1369,7 +1608,7 @@ def build_scenery(road: Road, st: list[dict], length: float, height_at, course: 
     B["island"].name = "Conillera"
     for b in B.values():
         b.build(col)
-    return {"sunAzimuth": az, "clubs": len(clubs), "efforts": efforts}
+    return {"sunAzimuth": az, "clubs": len(clubs), "efforts": efforts, "lights": kit.lights}
 
 
 def build_themed_scenery(road: Road, st: list[dict], length: float, height_at, course: dict, theme: dict, col) -> dict:
@@ -1385,6 +1624,7 @@ def build_themed_scenery(road: Road, st: list[dict], length: float, height_at, c
     B = Bag()
     kit = themes.Kit(road, st, length, height_at, rng, B, STEP, ROAD_HALF)
     facts = themes.SCENERY[course["theme"]](kit)
+    facts["lights"] = kit.lights
     s = road.s
     tail, fin = road.index(length - 220), road.index(length)
     az = math.atan2(s[fin]["y"] - s[tail]["y"], s[fin]["x"] - s[tail]["x"])
@@ -1453,6 +1693,33 @@ def write_course_json(path: Path, course: dict, samples, st, length, mean, facts
         data["haze"] = hexs(theme["haze"])
         data["light"] = {"colour": hexs(theme["light"][0]), "intensity": theme["light"][1]}
         data["fill"] = [hexs(c) for c in theme["fill"]]
+        # A map by the sea: the app draws the sheet round the land as water. Inland it is the ground beyond the land.
+        if theme["terrain"].get("sea"):
+            data["sea"] = True
+        if theme.get("night"):
+            data["night"] = True
+        if "wet" in theme:
+            data["wet"] = theme["wet"]
+        if "rain" in theme:
+            data["rain"] = theme["rain"]
+        if facts.get("lights"):
+            # Coloured lights that stand still, five numbers each: where (x, z in the glb's axes), the colour as one
+            # number (0xRRGGBB), how far it reaches in metres and how strong it is beneath it.
+            data["lights"] = [
+                v
+                for x, y, glow, reach, strength in facts["lights"]
+                for v in (round(x, 1), round(-y, 1), MATERIALS[glow]["color"], reach, round(strength, 2))
+            ]
+        if "lamps" in theme:
+            # The street lamps, both sides: where their light falls on the ground (see `Kit.lamp`).
+            lamps = theme["lamps"]
+            data["lamps"] = {
+                "every": lamps["every"] * STEP,
+                "first": lamps["start"] * STEP - LEAD_IN,
+                "across": round(ROAD_HALF + 0.6 + lamps["off"] - 1.2, 2),
+                "height": lamps["height"] - 0.35,
+                "colour": hexs(MATERIALS[lamps["glow"]]["color"]),
+            }
     path.write_text(json.dumps(data, separators=(",", ":")) + "\n", encoding="utf-8")
     return data
 
@@ -1465,7 +1732,7 @@ def export_glb(path: Path) -> None:
         "export_yup": True,
         "export_apply": True,
         "export_normals": False,
-        "export_texcoords": False,
+        "export_texcoords": True,
         "export_tangents": False,
         "export_materials": "EXPORT",
         "export_vertex_color": "MATERIAL",
@@ -1779,6 +2046,8 @@ def main(argv: list[str] | None = None) -> dict:
 
     course = json.loads(args.course.read_text(encoding="utf-8"))
     theme = themes.THEMES.get(course.get("theme", ""))
+    # A theme whose land and scenery are its own (Ibiza's) is a theme in everything else.
+    themed = bool(theme) and not theme.get("own")
     if theme:
         for name, colour in theme.get("palette", {}).items():
             MATERIALS[name] = {**MATERIALS[name], "color": colour}
@@ -1796,7 +2065,7 @@ def main(argv: list[str] | None = None) -> dict:
     samples, st, length, mean, per_level = lay_centre_line(course, theme)
     road = Road(samples)
     build_road(road, st, length, col, theme)
-    if theme:
+    if themed:
         _, height_at = build_land(road, col, theme)
         facts = build_themed_scenery(road, st, length, height_at, course, theme, col)
     else:
@@ -1812,8 +2081,15 @@ def main(argv: list[str] | None = None) -> dict:
     bpy.data.collections["Guides"].hide_viewport = True
     export_glb(args.out / f"{course['id']}.glb")
     pack_glb(args.out / f"{course['id']}.glb")
+    # And its buffers with the meshopt codec, where Node and the app's packages are at hand (meshopt_glb.mjs): a
+    # third of the download. Without them the map is left as it is, and loads all the same.
+    node = shutil.which("node")
+    if node and (ROOT / "frontend/node_modules/meshoptimizer").exists():
+        subprocess.run([node, str(ROOT / "tools/blender/meshopt_glb.mjs"), str(args.out / f"{course['id']}.glb")], check=True)
+    else:
+        print("meshopt_glb.mjs not run: node or frontend/node_modules/meshoptimizer is missing.", flush=True)
     bpy.data.collections["Guides"].hide_viewport = False
-    if theme:
+    if themed:
         light_scene_theme(facts["sunAzimuth"], theme)
     else:
         light_scene(facts["sunAzimuth"])
@@ -1836,7 +2112,7 @@ def main(argv: list[str] | None = None) -> dict:
         "climbingMetres": data["climbingMetres"],
         "triangles": tris,
         **film,
-        **{k: v for k, v in facts.items() if k != "sunAzimuth"},
+        **{k: v for k, v in facts.items() if k not in ("sunAzimuth", "lights")},
     }
 
 

@@ -1,12 +1,27 @@
 // Unit test
-// Traces to: L2-120 AC1, AC3, AC4; L2-121 AC3
+// Traces to: L2-120 AC1, AC3, AC4; L2-121 AC3; L2-122 AC1, AC2
 // Description: the live session opens the hub connection only when the rider joins a session, measures the clock
-// offset from five ServerTime calls, measures it again after each reconnect, and closes the connection when its route
-// goes. A refused connection leaves the ride without an offset, and the ride carries on with the bike.
+// offset from five ServerTime calls and then takes the seat, measures again and asks for the same seat after each
+// reconnect, and closes the connection when its route goes. A refused join sets its code; a refused or lost connection
+// leaves the ride without an offset or a seat, and the ride carries on with the bike.
 import { createEnvironmentInjector, EnvironmentInjector, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { MONOTONIC_TIME, RIDE_HUB_CLIENT, type RideHubClient, type RideHubState } from '@telo/api';
+import {
+  MONOTONIC_TIME,
+  RIDE_HUB_CLIENT,
+  RideHubError,
+  type RideHubClient,
+  type RideHubState,
+  type SeatAssignment,
+  type Standings,
+} from '@telo/api';
 import { LiveSessionStore } from './live-session-store';
+
+const SEAT: SeatAssignment = {
+  sessionId: 'session-0715',
+  startsAt: '2026-11-21T19:45:00+00:00',
+  jersey: 'lena',
+};
 
 /** A hub whose answers take 40 ms and whose clock runs `ahead` of the device's. */
 class FakeHub implements RideHubClient {
@@ -17,7 +32,12 @@ class FakeHub implements RideHubClient {
   stops = 0;
   calls = 0;
   refuse = false;
+  /** What the next joins answer: a seat, or an error to reject with. */
+  joinAnswer: SeatAssignment | Error = SEAT;
+  readonly joins: [string, string][] = [];
   readonly handlers = new Set<() => void>();
+  readonly reports: [string, number, number][] = [];
+  readonly listeners = new Set<(standings: Standings) => void>();
 
   async start(): Promise<void> {
     this.starts += 1;
@@ -33,6 +53,22 @@ class FakeHub implements RideHubClient {
     const sent = this.now;
     this.now += 40;
     return sent + 20 + this.ahead;
+  }
+  async joinClassSession(classId: string, sessionId: string): Promise<SeatAssignment> {
+    this.joins.push([classId, sessionId]);
+    if (this.joinAnswer instanceof Error) throw this.joinAnswer;
+    return this.joinAnswer;
+  }
+  async reportProgress(sessionId: string, outputKj: number, powerWatts: number): Promise<void> {
+    this.reports.push([sessionId, outputKj, powerWatts]);
+  }
+  onStandings(handler: (standings: Standings) => void): () => void {
+    this.listeners.add(handler);
+    return () => this.listeners.delete(handler);
+  }
+  /** The hub sends StandingsUpdated. */
+  standings(standings: Standings): void {
+    for (const listener of this.listeners) listener(standings);
   }
   onReconnected(handler: () => void): () => void {
     this.handlers.add(handler);
@@ -113,5 +149,87 @@ describe('LiveSessionStore', () => {
 
     expect(store.offsetMs()).toBeNull();
     expect(store.connection()).toBe('disconnected');
+    expect(hub.joins).toEqual([]);
+    expect(store.seat()).toBeNull();
+  });
+
+  it('takes the seat in its session once the offset is measured', async () => {
+    await store.join(session);
+
+    expect(hub.joins).toEqual([['hiit-cardio', 'session-0715']]);
+    expect(store.seat()).toEqual(SEAT);
+    expect(store.refused()).toBeNull();
+  });
+
+  it('asks for the same seat again after a reconnect', async () => {
+    await store.join(session);
+
+    await hub.reconnect();
+
+    expect(hub.joins).toEqual([
+      ['hiit-cardio', 'session-0715'],
+      ['hiit-cardio', 'session-0715'],
+    ]);
+    expect(store.seat()).toEqual(SEAT);
+  });
+
+  it.each(['session_full', 'session_started', 'class_locked', 'session_not_found'] as const)(
+    'sets the code when the hub refuses the join with %s',
+    async (code) => {
+      hub.joinAnswer = new RideHubError(code, null);
+
+      await store.join(session);
+
+      expect(store.refused()).toBe(code);
+      expect(store.seat()).toBeNull();
+    },
+  );
+
+  it('sets no refusal when the connection goes while joining, so the next reconnect asks again', async () => {
+    hub.joinAnswer = new Error('connection closed');
+    await store.join(session);
+    expect(store.refused()).toBeNull();
+
+    hub.joinAnswer = SEAT;
+    await hub.reconnect();
+
+    expect(store.seat()).toEqual(SEAT);
+  });
+
+  it('reports nothing before it has a seat, then the output and power, dropping a report within 500 ms of the last', async () => {
+    store.report(1, 100);
+    await store.join(session);
+
+    store.report(2.5, 180);
+    hub.now += 499;
+    store.report(2.6, 180);
+    hub.now += 1;
+    store.report(2.7, 190);
+
+    expect(hub.reports).toEqual([
+      ['session-0715', 2.5, 180],
+      ['session-0715', 2.7, 190],
+    ]);
+  });
+
+  it('holds only the latest standings the hub sent, and stops listening when its route goes', async () => {
+    await store.join(session);
+    const first: Standings = { sessionId: 'session-0715', rows: [] };
+    const second: Standings = { sessionId: 'session-0715', rows: [] };
+
+    hub.standings(first);
+    hub.standings(second);
+    expect(store.standings()).toBe(second);
+
+    injector.destroy();
+    expect(hub.listeners.size).toBe(0);
+  });
+
+  it('ignores standings for another session', async () => {
+    await store.join(session);
+
+    hub.standings({ sessionId: 'other@20261121T1945Z', rows: [] });
+
+    expect(store.standings()).toBeNull();
   });
 });

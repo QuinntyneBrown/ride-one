@@ -19,7 +19,7 @@ test.describe('App shell', () => {
 
       await expect(home.header.brand).toHaveAccessibleName('Home');
       await expect(home.header.lockup).toHaveAccessibleName('Telo Ride');
-      for (const name of ['Home', 'Race', 'Classes', 'Profile'] as const) {
+      for (const name of ['Home', 'Classes', 'Profile'] as const) {
         await expect(home.header.link(name)).toBeVisible();
       }
       await expect(home.header.current()).toHaveText('Home');
@@ -63,6 +63,7 @@ test.describe('App shell', () => {
     await home.open();
 
     expect(await home.background()).toBe('rgb(10, 11, 13)');
-    expect(await home.header.productColour()).toBe('rgb(255, 69, 33)');
+    // "Ride" reads --color-volt-fg, the signal as text: #ff5233 on dark, 4.5:1 on every surface (L2-143 AC2).
+    expect(await home.header.productColour()).toBe('rgb(255, 82, 51)');
   });
 });

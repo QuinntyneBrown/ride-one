@@ -24,7 +24,24 @@ export class ClassRidePage {
   readonly resistance: Locator;
   readonly level: Locator;
   readonly raise: Locator;
+  /** Waiting for a group session's start: "Starts in 9:00" over the parked video (L2-087 AC4). */
+  readonly wait: Locator;
+  /** The group board (L2-090): "Output", the rider's place and a row per rider, highest output first. */
+  readonly board: Locator;
+  readonly boardTitle: Locator;
+  readonly boardPlace: Locator;
+  readonly boardRows: Locator;
+  readonly boardYou: Locator;
+  /** The lost-service notice under the board's head, a status region always in the page (L2-126 AC1). */
+  readonly boardNotice: Locator;
+  readonly waitTime: Locator;
+  readonly waitNote: Locator;
   readonly lower: Locator;
+  /** The class's world on the stage (class-ride/world): its panorama, the world drawn over it, and the video in the corner. */
+  readonly world: Locator;
+  readonly worldPanorama: Locator;
+  readonly worldScene: Locator;
+  readonly worldVideo: Locator;
 
   constructor(private readonly page: Page) {
     this.name = page.locator('.class-ride__name');
@@ -53,7 +70,20 @@ export class ClassRidePage {
     this.resistance = page.locator('.class-resist__value');
     this.level = page.locator('.class-resist__level');
     this.raise = page.getByRole('button', { name: 'Raise resistance' });
+    this.wait = page.locator('.class-video__wait');
+    this.board = page.getByRole('complementary', { name: 'Group board' });
+    this.boardTitle = this.board.locator('.class-board__title');
+    this.boardPlace = this.board.locator('.class-board__place');
+    this.boardRows = this.board.locator('.class-board-row');
+    this.boardYou = this.board.locator('.class-board-row[aria-current="true"]');
+    this.boardNotice = this.board.locator('.class-board__status');
+    this.waitTime = this.wait.getByRole('timer');
+    this.waitNote = page.locator('.class-video__wait-note');
     this.lower = page.getByRole('button', { name: 'Lower resistance' });
+    this.world = page.locator('.class-world');
+    this.worldPanorama = this.world.locator('.class-world__panorama');
+    this.worldScene = this.world.locator('canvas.world-scene');
+    this.worldVideo = this.world.locator('.class-world__video .class-video');
   }
 
   /** Opens the ride in a group session, as Class Start does once the rider has joined it. */
@@ -63,6 +93,17 @@ export class ClassRidePage {
 
   async open(classId: string): Promise<void> {
     await this.page.goto(`/classes/${classId}/ride?mode=solo`);
+  }
+
+  /** Each board row as "position name kJ", top to bottom. */
+  boardLines(): Promise<string[]> {
+    return this.boardRows.evaluateAll((rows) =>
+      rows.map((row) =>
+        ['pos', 'name', 'kj']
+          .map((part) => row.querySelector(`.class-board-row__${part}`)?.textContent?.trim())
+          .join(' '),
+      ),
+    );
   }
 
   /** The width the segment's progress bar is filled to, as a share of the bar (0 to 1). */

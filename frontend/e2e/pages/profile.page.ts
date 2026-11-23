@@ -31,6 +31,8 @@ export class ProfilePage {
   /** What Settings says when an action failed. */
   readonly settingsMessage: Locator;
   readonly deleteDialog: DeleteAccountDialog;
+  /** The notice above the level, as when a ride was too short to save (L2-108 AC3). */
+  readonly notice: Locator;
 
   constructor(private readonly page: Page) {
     this.header = new AppHeader(page);
@@ -39,7 +41,8 @@ export class ProfilePage {
     this.xpBar = page.locator('.profile-level').getByRole('img');
     this.mainColumn = page.locator('.profile__main');
     this.settings = page.getByRole('complementary', { name: 'Settings' });
-    this.bikeRow = this.settings.getByRole('listitem').first().getByRole('link');
+    // A link to Connect Bike with no bike paired; with one, a button that opens Diagnostics (L2-113 AC1).
+    this.bikeRow = this.settings.getByRole('listitem').first().locator('a, button');
     this.rideSettings = this.settings.getByRole('link', { name: /^Ride settings/ });
     this.customWorkout = this.settings.getByRole('link', { name: /^Custom workout/ });
     this.rows = this.settings.locator('.setting-row');
@@ -51,6 +54,7 @@ export class ProfilePage {
     this.deleteAccount = this.settings.getByRole('button', { name: /^Delete my account/ });
     this.settingsMessage = this.settings.getByRole('alert');
     this.deleteDialog = new DeleteAccountDialog(page);
+    this.notice = this.mainColumn.locator('.profile__notice');
   }
 
   async open(): Promise<void> {

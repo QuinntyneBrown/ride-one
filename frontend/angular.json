@@ -25,7 +25,7 @@
             "outputPath": "dist/ride",
             "browser": "projects/ride/src/main.ts",
             "tsConfig": "projects/ride/tsconfig.app.json",
-            "define": { "require": "undefined" },
+            "define": { "require": "undefined", "TELO_VERSION": "'2.0.0'", "TELO_COMMIT": "'dev'" },
             "inlineStyleLanguage": "scss",
             "assets": [
               {
@@ -49,8 +49,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "304kB",
-                  "maximumError": "310kB"
+                  "maximumWarning": "302kB",
+                  "maximumError": "305kB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -72,7 +72,8 @@
                   "replace": "projects/ride/src/app/bike/simulated-bike.provider.ts",
                   "with": "projects/ride/src/app/bike/simulated-bike.provider.production.ts"
                 }
-              ]
+              ],
+              "serviceWorker": "projects/ride/ngsw-config.json"
             },
             "development": {
               "optimization": false,

@@ -17,6 +17,8 @@ interface HubMessage {
  */
 export class HubFixture {
   private opened = false;
+  /** While lost, every negotiation fails as an unreachable server would, so the page keeps reconnecting. */
+  private lost = false;
   private readonly sockets: WebSocketRoute[] = [];
   private readonly received: HubMessage[] = [];
   private readonly results = new Map<string, (...args: unknown[]) => unknown>();
@@ -31,6 +33,10 @@ export class HubFixture {
       (url) => LOCAL.includes(url.hostname) && url.pathname.startsWith('/hubs/'),
       async (route) => {
         const url = new URL(route.request().url());
+        if (hub.lost && url.pathname === '/hubs/ride/negotiate') {
+          await route.abort('connectionrefused');
+          return;
+        }
         if (!hub.opened || url.pathname !== '/hubs/ride/negotiate') {
           hub.missed.push(`${route.request().method()} ${url.pathname}`);
           await route.fulfill({ status: 501 });
@@ -60,7 +66,10 @@ export class HubFixture {
     this.opened = true;
   }
 
-  /** Answers an invocation of `method` that awaits a result (`connection.invoke`) with what `result` returns. */
+  /**
+   * Answers an invocation of `method` that awaits a result (`connection.invoke`) with what `result` returns, or what it
+   * resolves to: `() => page.evaluate(() => Date.now())` answers ServerTime on the page's installed clock.
+   */
   answer(method: string, result: (...args: unknown[]) => unknown): void {
     this.results.set(method, result);
   }
@@ -75,6 +84,20 @@ export class HubFixture {
   /** Closes every connection from the server's side, as a dropped network would (L2-120 AC3). */
   async drop(): Promise<void> {
     await Promise.all([...this.sockets].map((socket) => socket.close()));
+  }
+
+  /**
+   * Loses the service: closes every connection, as `drop()` does, and refuses each reconnect as an unreachable server
+   * would, until `restore()` (L2-126 AC1).
+   */
+  async lose(): Promise<void> {
+    this.lost = true;
+    await this.drop();
+  }
+
+  /** Lets the page's next reconnect through (L2-126 AC2). */
+  restore(): void {
+    this.lost = false;
   }
 
   /** How many connections the page holds now. */
@@ -131,12 +154,11 @@ export class HubFixture {
       socket.send(frame({ type: 3, invocationId: message.invocationId, error: 'unanswered' }));
       return;
     }
-    socket.send(
-      frame({
-        type: 3,
-        invocationId: message.invocationId,
-        result: result(...(message.arguments ?? [])),
-      }),
+    const invocationId = message.invocationId;
+    // An answer read from the page settles after the page has closed when the spec has ended; nobody awaits it then.
+    void Promise.resolve(result(...(message.arguments ?? []))).then(
+      (answer) => socket.send(frame({ type: 3, invocationId, result: answer })),
+      () => undefined,
     );
   }
 }

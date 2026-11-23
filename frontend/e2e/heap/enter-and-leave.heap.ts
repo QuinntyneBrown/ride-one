@@ -1,0 +1,42 @@
+// Heap check, run only when a person asks (`npm run heap`)
+// Traces to: L2-138 AC1; AGENTS.md "Prove it"
+// Description: leaving a screen returns its memory. A class ride with its world loading is entered and left six times
+// in one page on the running clock; after the first leave every lazy chunk and cache is warm, so five more rounds may
+// grow the used heap by at most 5 MB. A leaked world (its scene, materials and renderer) or a leaked ride (its ticker,
+// recorder and listeners) costs far more than that each round.
+import { startClassRide } from '../fixtures/class-ride';
+import { expect, test } from '../fixtures/test';
+import { ClassStartPage } from '../pages/class-start.page';
+import { WorldLoadingPage } from '../pages/world-loading.page';
+import { expectHeldHeap, usedHeap } from './heap';
+
+const ROUNDS = 5;
+const LIMIT_MB = 5;
+const WORLD_DRAWN = 60_000;
+
+test('a class ride, entered and left six times, holds the heap', async ({
+  page,
+  bluetooth,
+  api,
+}) => {
+  const ride = await startClassRide(page, bluetooth, api);
+  await page.clock.resume();
+  const start = new ClassStartPage(page);
+  const loading = new WorldLoadingPage(page);
+  const leave = async () => {
+    await expect(ride.clock).toBeVisible();
+    await ride.leave.click();
+    await expect(start.start).toBeVisible();
+  };
+
+  await leave();
+  const first = await usedHeap(page);
+  for (let round = 0; round < ROUNDS; round++) {
+    await start.start.click();
+    await expect(loading.start).toBeEnabled({ timeout: WORLD_DRAWN });
+    await loading.start.click();
+    await leave();
+  }
+
+  expectHeldHeap('The class ride', first, await usedHeap(page), LIMIT_MB);
+});

@@ -1,4 +1,4 @@
-// A course: a map built in Blender from the class it is modelled after (ADR 0032, L2-166). The Blender pipeline
+// A course: a map built in Blender from the class it is modelled after (ADR 0034, L2-166). The Blender pipeline
 // (tools/blender/build_course.py) writes the road's centre line and the plan's stages along it beside the map's glb;
 // this reads that file and answers where the ride's clock puts the rider on the road. No Three.js here.
 import type { SegmentKind } from '@telo/api';
@@ -42,6 +42,40 @@ export interface CourseFile {
   readonly light?: { readonly colour: string; readonly intensity: number };
   /** The fill light from the sky and from the ground. */
   readonly fill?: readonly [string, string];
+  /** Whether the sheet round the land is the sea: the app draws it as water. */
+  readonly sea?: boolean;
+  /** Whether it is night: the land's lights stand in the water. */
+  readonly night?: boolean;
+  /**
+   * Coloured lights that stand still (a neon sign, a bridge's lit cables), five numbers each: x and z in the
+   * glb's axes, the colour as one number (0xRRGGBB), the metres it reaches and how strong it is beneath it.
+   */
+  readonly lights?: readonly number[];
+  /** How hard it is raining, from 0, not at all, to 1; a course that names none has no rain. */
+  readonly rain?: number;
+  /** How wet the ground is, from 0, dry, to 1, standing water everywhere; a course that names none is dry. */
+  readonly wet?: number;
+  /** The street lamps that light the ground, where the course has them. */
+  readonly lamps?: {
+    /** Metres of road between one lamp and the next, on both sides. */
+    readonly every: number;
+    /** Metres from the start line to a lamp: negative is before it. */
+    readonly first: number;
+    /** Metres from the road's centre line to the light, either side. */
+    readonly across: number;
+    /** The light's height above the road, in metres. */
+    readonly height: number;
+    readonly colour: string;
+  };
+}
+
+/** A course's street lamps, as numbers the ground's material reads. */
+export interface CourseLamps {
+  readonly every: number;
+  readonly first: number;
+  readonly across: number;
+  readonly height: number;
+  readonly colour: number;
 }
 
 /** How a course's world is lit and what its sky is, as colours Three.js reads. */
@@ -82,6 +116,55 @@ export function courseLook(file: CourseFile): CourseLook {
         : SUNSET.light,
     fill: fill.length === 2 && fill.every((c) => c !== null) ? [fill[0]!, fill[1]!] : SUNSET.fill,
   };
+}
+
+/** A coloured light that stands still. */
+export interface CourseLight {
+  readonly x: number;
+  readonly z: number;
+  /** 0xRRGGBB. */
+  readonly colour: number;
+  /** Metres. */
+  readonly reach: number;
+  /** Against a street lamp's 1 on the ground beneath it. */
+  readonly strength: number;
+}
+
+/** The course's coloured lights; none where it names none or names them wrongly: the file is data. */
+export function courseLights(file: CourseFile): CourseLight[] {
+  const flat = file.lights as unknown;
+  if (!Array.isArray(flat) || flat.length % 5 !== 0 || !flat.every(isNumber)) return [];
+  const lights: CourseLight[] = [];
+  for (let i = 0; i < flat.length; i += 5) {
+    const [x, z, colour, reach, strength] = flat.slice(i, i + 5) as number[];
+    const whole = Number.isInteger(colour) && colour! >= 0 && colour! <= 0xffffff;
+    if (!whole || reach! <= 0 || strength! <= 0) return [];
+    lights.push({ x: x!, z: z!, colour: colour!, reach: reach!, strength: strength! });
+  }
+  return lights;
+}
+
+/** How hard it rains on the course, from 0 to 1: not at all where it names none or names it wrongly. */
+export function courseRain(file: CourseFile): number {
+  const rain = file.rain as unknown;
+  return isNumber(rain) ? Math.min(Math.max(rain, 0), 1) : 0;
+}
+
+/** How wet the course's ground is, from 0 to 1: dry where it names none or names it wrongly; the file is data. */
+export function courseWet(file: CourseFile): number {
+  const wet = file.wet as unknown;
+  return isNumber(wet) ? Math.min(Math.max(wet, 0), 1) : 0;
+}
+
+/** The course's street lamps, or null where it names none or names them wrongly: the file is data. */
+export function courseLamps(file: CourseFile): CourseLamps | null {
+  const lamps = file.lamps as Partial<NonNullable<CourseFile['lamps']>> | undefined;
+  if (!lamps || typeof lamps !== 'object') return null;
+  const { every, first, across, height } = lamps;
+  const tint = colour(lamps.colour);
+  if (!isNumber(every) || !isNumber(first) || !isNumber(across) || !isNumber(height)) return null;
+  if (every <= 0 || height <= 0 || tint === null) return null;
+  return { every, first, across, height, colour: tint };
 }
 
 /** A place on the road, in the map's axes. */

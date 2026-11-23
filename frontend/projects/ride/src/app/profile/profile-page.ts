@@ -1,7 +1,7 @@
 import { Dialog, type DialogConfig } from '@angular/cdk/dialog';
 import { Overlay } from '@angular/cdk/overlay';
 import { ChangeDetectionStrategy, Component, Injector, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   BIKE_CONNECTION,
   BLUETOOTH_SUPPORT,
@@ -9,12 +9,13 @@ import {
   PROGRESS_STORE,
   REMEMBERED_BIKE,
 } from '@telo/api';
-import { InlineMessage, ProfileLevel, SettingRow } from '@telo/components';
+import { Banner, InlineMessage, ProfileLevel, SettingRow } from '@telo/components';
 import { AccountStore } from './account-store';
 import { DeleteAccountDialog } from './delete-account-dialog';
 import { toLevelView } from '../progress/level-view';
 import { profileMeta, profileXpLabel } from '../progress/profile-meta';
 import { DisplayNameDialog } from './display-name-dialog';
+import { openDiagnostics } from '../diagnostics/open-diagnostics';
 import { bikeRow } from './bike-row';
 
 /**
@@ -30,10 +31,19 @@ import { bikeRow } from './bike-row';
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, InlineMessage, ProfileLevel, SettingRow],
+  imports: [RouterLink, Banner, InlineMessage, ProfileLevel, SettingRow],
 })
 export default class ProfilePage {
   private readonly currentRider = inject(CURRENT_RIDER);
+  /**
+   * Whether the custom ride that opened Profile was under a minute and discarded (L2-108 AC3). The page may be built
+   * once the navigation has finished, so its state is read from the last successful one then.
+   */
+  protected readonly rideTooShort = (() => {
+    const router = inject(Router);
+    const navigation = router.currentNavigation() ?? router.lastSuccessfulNavigation();
+    return navigation?.extras.state?.['rideTooShort'] === true;
+  })();
   private readonly dialog = inject(Dialog);
   private readonly overlay = inject(Overlay);
   private readonly injector = inject(Injector);
@@ -76,6 +86,11 @@ export default class ProfilePage {
     return [this.name(), level === null ? null : `Level ${level}`].filter(Boolean).join(' · ');
   });
   protected readonly name = computed(() => this.currentRider.rider()?.displayName ?? null);
+
+  /** Diagnostics, from the bike row once a bike is paired (L2-113 AC1). */
+  protected openDiagnostics(): void {
+    void openDiagnostics(this.dialog, this.injector);
+  }
 
   protected changeName(): void {
     this.dialog.open(DisplayNameDialog, {

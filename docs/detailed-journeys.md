@@ -42,7 +42,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | # | Slice | Description | Days | Journey | Requirements | % complete |
 |---|-------|-------------|------|---------|--------------|-----------|
 | 28.1 | Decide the backend | An ADR on whether Telo Ride 1 keeps the backend for the class catalogue or ships the class with the app. | 1 | 28. Make it Telo Ride 1 | L2 open question 1 | 0% |
-| 28.2 | Remove races and the World | Races, race setup, maps, ghost and bots, the `world` library and the Blender courses, with their docs, tests and ADRs. | 3 | 28. Make it Telo Ride 1 | L1 (left out) | 0% |
+| 28.2 | Remove races | The race, the lobby, Race Setup, Map Select, ghost and bots, with their tests (ADR 0036). The `world` library and the Blender courses stay for riding in Ibiza; the other seven courses go in 30.1, the backend's race code after 28.1. | 3 | 28. Make it Telo Ride 1 | L1 (left out) | 100% |
 | 28.3 | Remove group classes and live races | The ride hub client and everything that uses it. | 1 | 28. Make it Telo Ride 1 | L1 (left out) | 0% |
 | 28.4 | Remove sign-in and progression | Sign-in, display name, accounts, XP, rider levels, streaks, stars, unlocks and recorded rides. | 3 | 28. Make it Telo Ride 1 | L2-132 AC1 | 0% |
 | 28.5 | Remove Home, Profile, the class library and heart rate | No menu or navigation is left; `/` opens the one class until slice 30.2 draws The Class. | 2 | 28. Make it Telo Ride 1 | L2-080 AC4, L2-167 AC4 | 0% |
@@ -81,8 +81,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 50 slices, 99 days. **Complete:** 11 slices, 27 days (27%), all carried over.
-**To build:** 39 slices, 72 days.
+**Total:** 50 slices, 99 days. **Complete:** 12 slices, 30 days (30%), 11 of them carried over.
+**To build:** 38 slices, 69 days.
 
 ## What a slice waits for
 

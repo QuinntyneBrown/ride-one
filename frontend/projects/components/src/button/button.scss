@@ -65,6 +65,11 @@
   --btn-fg: var(--color-fg-on-accent);
 }
 
+:host(.btn--outline) {
+  --btn-border: var(--color-line);
+  --btn-bg-hover: var(--color-raised);
+}
+
 :host(.btn--sm) {
   --btn-height: var(--control-height-sm);
   --btn-pad: var(--space-3);
@@ -101,6 +106,15 @@
   --btn-bg: var(--color-bg-inverse);
   --btn-fg: var(--color-fg-inverse);
   --btn-hover-opacity: 0.9;
+}
+
+// Muted text that fills on hover, beside a stronger choice (Send another).
+:host(.btn--quiet) {
+  --btn-pad: var(--space-3);
+  --btn-weight: var(--font-weight-medium);
+  --btn-fg: var(--color-muted);
+  --btn-bg-hover: var(--color-raised);
+  --btn-fg-hover: var(--color-fg);
 }
 
 :host(.btn--raised) {

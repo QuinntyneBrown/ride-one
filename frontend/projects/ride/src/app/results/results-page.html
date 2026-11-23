@@ -1,6 +1,8 @@
 @if (view(); as view) {
   <div class="results-page">
-    <wz-results-header [context]="view.context" />
+    <wz-results-header [context]="view.context">
+      <wz-fullscreen-button slot="end" />
+    </wz-results-header>
     <div class="results-page__scroll">
       <main id="main" class="container results" tabindex="-1">
         <section aria-labelledby="result-title">
@@ -17,22 +19,9 @@
           @if (view.sub; as sub) {
             <p class="results__sub">{{ sub }}</p>
           }
-          @if (view.standings; as standings) {
-            <wz-standings [rows]="standings" />
-          }
         </section>
         <aside class="earned" aria-label="What you earned">
-          @if (view.unlock; as unlock) {
-            <wz-unlock-card [view]="unlock">
-              <a slot="action" wz-button variant="gold" [block]="true" [routerLink]="unlock.path">{{
-                unlock.actionLabel
-              }}</a>
-            </wz-unlock-card>
-          }
           <wz-xp-earned [view]="view.xp" />
-          @if (view.stars; as stars) {
-            <wz-map-stars [view]="stars" />
-          }
           <div class="results__actions">
             <a wz-button variant="primary" size="xl" [block]="true" routerLink="/">Done</a>
             <!-- prettier-ignore -->

@@ -19,11 +19,11 @@ describe('homeGreeting', () => {
   });
 
   it('welcomes a rider with no rides yet, whatever the hour', () => {
-    expect(homeGreeting('Sam', 19, true)).toBe('Welcome, Sam. Your first race opens a new map.');
+    expect(homeGreeting('Sam', 19, true)).toBe('Welcome, Sam.');
   });
 
   it('greets a rider with no name yet without one', () => {
     expect(homeGreeting(null, 8, false)).toBe('Morning.');
-    expect(homeGreeting(null, 8, true)).toBe('Welcome. Your first race opens a new map.');
+    expect(homeGreeting(null, 8, true)).toBe('Welcome.');
   });
 });
