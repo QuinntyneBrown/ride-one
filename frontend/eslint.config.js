@@ -196,29 +196,6 @@ module.exports = defineConfig([
       ],
     },
   },
-  // The marketing site (ADR 0027): components and api only; it never talks to the bike.
-  {
-    files: ['projects/marketing/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            { name: '@telo/domain', message: 'The marketing site never talks to the bike.' },
-            { name: '@telo/video', message: 'The marketing site plays its film with wz-film.' },
-            { name: '@telo/world', message: 'The marketing site draws no world.' },
-            { name: '@angular/router', message: 'The marketing site is one page with no router.' },
-          ],
-          patterns: [
-            {
-              regex: '^(\\.\\./){3,}',
-              message: 'Use @telo/components or @telo/api, never a library path.',
-            },
-          ],
-        },
-      ],
-    },
-  },
   {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],

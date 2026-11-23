@@ -1,6 +1,6 @@
 # 0027. The marketing site: a `marketing` application with the pitch film
 
-- **Status:** Accepted
+- **Status:** Superseded by [0041](0041-one-application-the-marketing-site-is-removed.md) (Telo Ride 1 is one application)
 - **Date:** 2026-11-21
 - **Amends:** [0024](0024-telo-ride-workspace.md)
 

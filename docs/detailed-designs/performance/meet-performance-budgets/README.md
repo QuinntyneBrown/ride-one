@@ -72,8 +72,8 @@ below is an artefact in the repository.
   `npm run build`; the new script runs after it.
 - **`.github/workflows/ci.yml`** (exists; changes). The `build` job's step "The ride app, within
   its budgets" runs `npm run build`, which fails on the `angular.json` budget. A step after it
-  runs `bundle-size.mjs`. The job's other steps (the marketing site, the API) are carried over
-  and are removed by the changes that remove those projects.
+  runs `bundle-size.mjs`. The job's other step (the API) is carried over and is removed by the
+  change that removes the backend's projects (28.8).
 
 ### Loading The Class (`L2-136` AC2)
 

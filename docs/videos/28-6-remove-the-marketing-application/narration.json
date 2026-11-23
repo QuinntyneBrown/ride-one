@@ -1,0 +1,67 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "Telo Ride 1 is one application, for one class. A second application was still built beside it: a marketing site."
+      ]
+    },
+    {
+      "id": "left",
+      "bars": 5,
+      "lines": [
+        "That site is removed. It sold races and experience points, which Telo Ride 1 does not have. Its seven components, its scripts and its build steps left with it."
+      ]
+    },
+    {
+      "id": "workspace",
+      "bars": 5,
+      "lines": [
+        "The workspace is now the ride app on five libraries. The world library stays, because riding in Ibiza needs it."
+      ]
+    },
+    {
+      "id": "same",
+      "bars": 5,
+      "lines": [
+        "The app itself did not change. Connect the bike, the class, the ride, and the result look and work as they did, in the same bundle."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The class, on every screen from a phone to a desktop, exactly as before."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 5,
+      "lines": [
+        "Verify ran ten steps before, and nine now. One production build, and every spec, unit test and backend test still passes."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}

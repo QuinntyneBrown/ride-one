@@ -33,9 +33,6 @@
     },
     {
       "path": "./projects/ride/tsconfig.spec.json"
-    },
-    {
-      "path": "./projects/marketing/tsconfig.app.json"
     }
   ]
 }

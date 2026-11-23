@@ -97,8 +97,7 @@ being cut down to Telo Ride 1. What the one class needs is already built there a
 Still to do: the change of class to Intervals to the Beat, riding in Ibiza and its music
 (`docs/specs/`), The Class and Class Done as Telo Ride 1 designs them, the TELO RIDE 1 wordmark,
 keeping the rider's ride count and best and last output, and taking out what Telo Ride 1 leaves
-out. The code for those features (the other courses, Home, Profile and the class library, the
-marketing site) and the docs that describe them
+out. The code for those features (the other courses) and the docs that describe them
 (the detailed designs and the ADRs) are still Telo Ride's until each is rewritten or removed.
 [`docs/journeys.md`](docs/journeys.md) lists what is carried over and what is left to build.
 
@@ -218,8 +217,9 @@ ride-one/
 └── .github/                         CI workflow, issue and pull request templates
 ```
 
-Telo Ride's race world (`frontend/projects/world`, `blender/`, `tools/blender`) and its marketing
-site (`frontend/projects/marketing`) are still in the tree; Telo Ride 1 does not use them.
+The `world` library (`frontend/projects/world`) and the Blender courses (`blender/`,
+`tools/blender`) are carried over from Telo Ride's races; riding in Ibiza builds on them, and the
+other courses leave in a later change.
 
 ## Documentation
 

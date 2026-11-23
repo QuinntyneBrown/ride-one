@@ -37,14 +37,13 @@ Neighbouring features own the adjacent concerns:
 
 - **`frontend/angular.json`**: exists. One workspace with `newProjectRoot` `projects` and the
   prefix `wz` on every project. It holds the application `ride` and the libraries `api`, `domain`,
-  `components` and `video`, which are the five projects `L2-146` AC1 names. It also holds the
-  library `world` and the application `marketing`, carried over from Telo Ride. Telo Ride 1 does
-  not use or extend them; each is removed in a change of its own, with an ADR where it reverses
-  ADR 0027 or ADR 0030.
+  `components`, `video` and `world`, which are the six projects `L2-146` AC1 names, and nothing
+  else. The `marketing` application carried over from Telo Ride was removed (ADR 0041, superseding
+  ADR 0027); a further application needs its own ADR.
 - **Path aliases** (`frontend/tsconfig.json`): exist. `@telo/api`, `@telo/domain`,
-  `@telo/components` and `@telo/video` each map to the library's `src/public-api.ts`. The
-  application compiles library source directly, so no library has a build target (ADR 0013,
-  ADR 0024). The `@telo/world` alias leaves with the `world` library.
+  `@telo/components`, `@telo/video` and `@telo/world` each map to the library's
+  `src/public-api.ts`. The application compiles library source directly, so no library has a build
+  target (ADR 0013, ADR 0024).
 - **Library `package.json`**: exists in each library, private, with `"sideEffects": false`, so the
   bundler drops unused exports of a barrel.
 - **`api`**: exists. Contracts, types and injection tokens, for example `BikeConnection` and
@@ -82,10 +81,9 @@ Neighbouring features own the adjacent concerns:
   - Every library: no relative path that leaves its project (`^(\.\./){3,}`) and no path under
     `ride`.
   - `projects/ride/**`: libraries by alias only, never by relative path.
-- **What changes**: the `world` and `marketing` blocks of the config, and each `@telo/world`
-  entry, leave with those projects. `AGENTS.md` still states the direction with `world` and
-  `marketing` in it; `L2-146` AC2 names neither. The change that removes each project updates
-  `AGENTS.md` and the config together.
+- **What changed**: the `marketing` block of the config left with that application (ADR 0041).
+  `AGENTS.md` still states the direction with `marketing` in it; ADR 0041 lists the lines that are
+  out of date. The `world` block stays: `L2-146` AC2 names it.
 - **Lint, not a test**: the direction is enforced by `ng lint` only (ADR 0013). No architecture
   test exists or is added.
 
