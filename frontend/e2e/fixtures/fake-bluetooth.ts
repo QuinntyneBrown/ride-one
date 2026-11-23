@@ -120,6 +120,11 @@ export class FakeBluetooth {
     await this.chooser('block');
   }
 
+  /** The chooser fails to open for a reason other than a policy: `requestDevice` rejects with another error (L2-012 AC4). */
+  async failChooser(): Promise<void> {
+    await this.chooser('fail');
+  }
+
   /** The computer's Bluetooth radio is off: `getAvailability()` resolves `false` (L2-018). */
   async adapterOff(): Promise<void> {
     await this.adapter(false);
@@ -198,7 +203,7 @@ export class FakeBluetooth {
     return [...this.order];
   }
 
-  private async chooser(mode: 'cancel' | 'block' | 'hold' | null): Promise<void> {
+  private async chooser(mode: 'cancel' | 'block' | 'fail' | 'hold' | null): Promise<void> {
     await this.page.addInitScript((m) => Object.assign(window, { __fakeChooser: m }), mode);
     await this.page.evaluate((m) => Object.assign(window, { __fakeChooser: m }), mode);
   }
@@ -374,6 +379,8 @@ function installInPage(): void {
             'requestDevice() is disallowed by permissions policy.',
             'SecurityError',
           );
+        if (mode === 'fail')
+          throw new DOMException('Bluetooth adapter not available.', 'NotSupportedError');
         const bike = offered();
         return bike ? device(bike) : refuse('requestDevice');
       },

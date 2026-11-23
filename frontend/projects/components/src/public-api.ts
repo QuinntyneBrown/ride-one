@@ -7,6 +7,7 @@ export { Pill } from './pill/pill';
 export { Progress } from './progress/progress';
 export { ConnectWorks } from './connect-works/connect-works';
 export { ConnectDevice, type ConnectDeviceState } from './connect-device/connect-device';
+export { ConnectBlocker, type ConnectBlockerIcon } from './connect-blocker/connect-blocker';
 export { Button, type ButtonSize, type ButtonVariant } from './button/button';
 export { Lockup, type LockupSize } from './lockup/lockup';
 export { formatClock } from './metric/format-clock';

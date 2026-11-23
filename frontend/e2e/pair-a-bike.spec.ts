@@ -1,8 +1,8 @@
 // Acceptance test
-// Traces to: L2-011 AC3 to AC5; L2-012 AC1 to AC4; L2-013 AC1, AC2, AC4; L2-014 AC1
+// Traces to: L2-011 AC3 to AC5; L2-012 AC1 to AC3; L2-013 AC1, AC2, AC4; L2-014 AC1
 // Description: Connect Bike opens the browser's chooser only when the rider presses Pair, asks for the Echelon
-// service and FTMS and no other service, takes a cancelled chooser back to the start with no error, and names a
-// blocked chooser in plain words with Try again. The screen as designed is in connect-bike.spec.ts.
+// service and FTMS and no other service, and takes a cancelled chooser back to the start with no error. The screen
+// as designed is in connect-bike.spec.ts, and a chooser that cannot open in connect-bike-alerts.spec.ts.
 import { ECHELON_NOTIFY, ECHELON_SERVICE, ECHELON_WRITE, echelonBike } from './fixtures/echelon';
 import {
   CONTROL_POINT,
@@ -57,30 +57,6 @@ test.describe('Pair a bike', () => {
     await expect(connect.pairButton).toHaveText('Pair Echelon EX-5s');
     await expect(connect.pairButton).toBeEnabled();
     await expect(connect.blocker).toHaveCount(0);
-  });
-
-  test('a blocked chooser is named in plain words, and Try again asks again (L2-012 AC4)', async ({
-    page,
-    bluetooth,
-  }) => {
-    await bluetooth.blockChooser();
-    const connect = new ConnectBikePage(page);
-    await connect.open();
-
-    await connect.pair();
-
-    await expect(connect.blockerTitle).toHaveText('Bluetooth is blocked for this page');
-    await expect(connect.blockerBody).toHaveText(
-      'Allow Bluetooth for this site in your browser’s settings, then try again.',
-    );
-    await expect(connect.pairButton).toHaveCount(0);
-
-    await bluetooth.allowChooser();
-    await bluetooth.cancelChooser();
-    await connect.blockerAction.click();
-
-    await expect.poll(() => bluetooth.requests().length).toBe(2);
-    await expect(connect.pairButton).toHaveText('Pair Echelon EX-5s');
   });
 
   test(

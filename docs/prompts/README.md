@@ -107,3 +107,4 @@ One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journe
 | 101 | 28.6 | [Remove the marketing application](28-6-remove-the-marketing-application.md) | Make it Telo Ride 1 | 1 |
 | 102 | 28.7 | [Wordmark](28-7-wordmark.md) | Make it Telo Ride 1 | 1 |
 | 103 | 29.1 | [Connect Bike](29-1-connect-bike.md) | Pair the bike | 3 |
+| 104 | 29.2 | [Say why the bike cannot be reached](29-2-say-why-the-bike-cannot-be-reached.md) | Pair the bike | 2 |

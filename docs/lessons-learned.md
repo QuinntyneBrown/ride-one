@@ -26,8 +26,8 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | # | Lesson | From | Applied in | Result |
 |---|--------|------|------------|--------|
 | L1 | Work the slice in its own worktree, cut from `origin/telo-ride`, with its own `npm ci` in `frontend/` (never a `node_modules` symlink) and `.cache` symlinked before anything writes there; stage named paths only; in zsh, write paths out rather than in one `$VAR`. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4 | Saved time |
-| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 28.6, 28.7, 29.1 | Saved time |
-| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 28.6, 28.7, 29.1 | Saved time |
+| L2 | Run specs and verify with `E2E_PORT=4310` (or another free port); never kill whatever holds 4300. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 28.6, 28.7, 29.1, 29.2 | Saved time |
+| L3 | Run `npm run format` and `npx eslint --fix` (frontend) or `dotnet format` (backend) before the first verify after any CLI or config edit. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 28.6, 28.7, 29.1, 29.2 | Saved time |
 | L4 | A link or button in `components` is an attribute component (`a[wz-…]`, `button[wz-…]`); the app adds `routerLink` and `routerLinkActive` (ADR 0024). | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 7.1, 7.2, 7.3, 7.4, 7.5 | Saved time: `raised` joined `wz-button` |
 | L5 | Read the initial chunk in the build output after every route or import change; the baseline is 260.26 kB raw against a 264 kB warning. To see what grew it, `npx ng build ride --stats-json` and read `outputs[main-*.js].inputs` in `dist/ride/browser-stats.json` (delete it after). | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 14.1 | Saved time: it caught 10 kB in the initial chunk that verify let through (L54) |
 | L6 | Reuse the measured boom bap track in `docs/videos/assets/music/`; if a new one is needed, download it through headed Chromium. | 1.1 | 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.2 | Saved time |
@@ -41,7 +41,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L14 | For a production-like local run, `dotnet run --no-launch-profile` (`launchSettings.json` otherwise overrides `ASPNETCORE_URLS` and the environment), and `-- --webroot ../frontend/dist/ride/browser` to serve a build without copying it. | 1.4 | 2.2 | Saved time |
 | L15 | Prove a workflow change on GitHub before merging: push the slice's branch (CI runs on every push), `gh run watch <id> --exit-status`, read the job times, then delete the remote branch after the merge. | 1.4 | | |
 | L16 | A hosting test's web root is an in-memory `IFileProvider` set with `PostConfigure<StaticFileOptions>` (`HostedAppApi`), so it reads no file. | 1.4 | | |
-| L17 | Judge verify by its exit status: `if E2E_PORT=4310 node tools/verify/verify.mjs > log 2>&1; then git commit …; fi`. Piping it to `grep` succeeds whatever verify did, and once committed a failing build. | 2.1 | 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 28.6, 28.7, 29.1 | Saved time |
+| L17 | Judge verify by its exit status: `if E2E_PORT=4310 node tools/verify/verify.mjs > log 2>&1; then git commit …; fi`. Piping it to `grep` succeeds whatever verify did, and once committed a failing build. | 2.1 | 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 9.1, 28.6, 28.7, 29.1, 29.2 | Saved time |
 | L18 | Bind an app-wide service the first screen needs (the bike connection, the ticker) in the providers of the lazy parent route in `ride.routes.ts`, not in `app.config.ts`: one instance serves every screen and its code leaves the initial chunk. | 2.1 | 2.2, 2.3, 2.4 | Saved time: the header reads the route-bound connection |
 | L19 | What only a development build does gets a `*.development.spec.ts`, run by Playwright's `development` project against the development build on the next port; the `chromium` project proves the production build does not. | 2.1 | | |
 | L20 | Web Bluetooth in `domain`: start the file with `/// <reference types="web-bluetooth" />` (the app's tsconfig loads no ambient types), and type byte encoders `Uint8Array<ArrayBuffer>` so they pass as a `BufferSource`. | 2.1 | 2.3, 2.4 | Saved time |
@@ -49,7 +49,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L22 | A scripted multi-file edit stops the step on its first miss: end the heredoc with `&&` before the next command (or `set -e`). A failed `assert` in `python3 - <<'EOF'` does not stop the lines after it, and a commit went out without its template change. | 2.2 | 2.3, 5.4 | Made it worse once: a heredoc's failed assert, then a newline, and the commit and push still ran (L49) |
 | L23 | The browser's own states come from the fake Bluetooth: `bluetooth.remove()` (Safari, Firefox), `servePlainHttp()` (no secure context, no Bluetooth) and `restore()` on the current page; no other browser and no http host. | 2.2 | 2.3, 2.4 | Saved time: adapter, drop and power joined it |
 | L24 | A film diagram's `.node` name is set in capitals: put code identifiers (`isSecureContext`) in its small note, and plain words in its name. | 2.2 | 2.3, 2.4 | Saved time |
-| L25 | Make a scripted multi-file edit all or nothing: collect `(path, old, new)`, assert each `old` occurs once in its file's text, and write the files only after every assert passed. An assert that fails midway leaves the earlier files edited. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.7, 9.1, 9.2, 9.3, 9.4, 28.6, 28.7, 29.1 | Made it worse twice in 9.2 (asserted per file, not across files); saved time twice in 9.3; made it worse once in 9.4 (a write emptied a file before it was read, L103) |
+| L25 | Make a scripted multi-file edit all or nothing: collect `(path, old, new)`, assert each `old` occurs once in its file's text, and write the files only after every assert passed. An assert that fails midway leaves the earlier files edited. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.7, 9.1, 9.2, 9.3, 9.4, 28.6, 28.7, 29.1, 29.2 | Made it worse twice in 9.2 (asserted per file, not across files); saved time twice in 9.3; made it worse once in 9.4 (a write emptied a file before it was read, L103) |
 | L26 | A guard on a screen changes every spec that opens it: give those specs their premise through the fixture (`bluetooth.remember()`), and run the whole Playwright suite after adding a guard or a redirect. | 2.3 | 2.4, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5 | Saved time: the full suite ran before the film |
 | L27 | Push a fake bike's notification only after the writes the app makes before it listens (`expect.poll(() => bluetooth.writes().length)`): a frame sent before initialisation finishes is not the first one after it, as a real bike streams only after its start command. | 2.3 | 2.4 | Saved time |
 | L28 | Keep a heredoc that writes files in a command of its own: a command blocked or failing earlier in the same `&&` chain drops it silently (a blocked `rm $VAR/*.png` cost `film.js`). Write frames to a new folder instead of clearing one. | 2.3 | 2.4, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5 | Saved time |
@@ -174,11 +174,11 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | 28.3, 28.4, 28.6, 28.7 | Saved time; did not apply in 28.7 (nothing was removed) |
 | L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | 28.3, 28.4, 28.6, 28.7 | Saved time: six proofs moved off the custom ride; did not apply in 28.6 (no spec used the site); did not apply in 28.7 (no spec moved) |
 | L149 | Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand; correct the slice's row in the same change. | 28.2 | 28.1 | Saved time |
-| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1, 28.3, 28.4, 28.6, 28.7, 29.1 | Saved time |
-| L151 | A decision slice's film: copy the last film's folder, keep `hook`, `widths` and `close`, and write the middle as cards and lists in the ADR's words. | 28.1 | 28.6, 28.7, 29.1 | Saved time: the proof scene is two terminals of verify's steps; saved time in 28.7: three files copied, five scenes rewritten |
+| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1, 28.3, 28.4, 28.6, 28.7, 29.1, 29.2 | Saved time |
+| L151 | A decision slice's film: copy the last film's folder, keep `hook`, `widths` and `close`, and write the middle as cards and lists in the ADR's words. | 28.1 | 28.6, 28.7, 29.1, 29.2 | Saved time: the proof scene is two terminals of verify's steps; saved time in 28.7: three files copied, five scenes rewritten |
 | L152 | A scripted cut ends at the next sibling's opening text, never at the first `}`: "from this method to the next `}\n`" stops inside the method's first block and leaves a broken file. | 28.3 | 28.4 | Saved time |
 | L153 | Before deleting a removed feature's data or interface, list who else reads it. Remove its endpoints now and the data with its last reader, and write the split in the ADR. | 28.3 | 28.4 | Saved time: Diagnostics read the outbox's store |
-| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | 28.4, 28.5, 28.6, 28.7, 29.1 | No effect: the screens looked right both times; not used in 28.6 (no screen changed; the film's frames showed the four screens as before); saved time in 28.7: the 360 px close-ups showed the class with its words and the ride with the mark alone; saved time in 29.1: the mock and the app side by side at 1440 px showed the body 16 rem too wide and not centred |
+| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | 28.4, 28.5, 28.6, 28.7, 29.1, 29.2 | No effect: the screens looked right both times; not used in 28.6 (no screen changed; the film's frames showed the four screens as before); saved time in 28.7: the 360 px close-ups showed the class with its words and the ride with the mark alone; saved time in 29.1: the mock and the app side by side at 1440 px showed the body 16 rem too wide and not centred; saved time in 29.2: the alerts beside their mocks were the same picture |
 | L155 | To compare with `main` without touching the work tree: `git worktree add --detach <scratchpad>/base main`, link `frontend/node_modules` into it, build and test there, then `git worktree remove` it. No stash (replaces L145). | 28.3 | | |
 | L156 | Under Playwright's paused clock, wait for something a dynamic import brings by stepping the clock inside the poll (`await page.clock.runFor(50)` before each read). | 28.3 | 29.1 | Saved time in 29.1: the half second before The Class is counted by stepping the paused clock in each poll |
 | L157 | Give a removal's backend half to a second agent that touches only `backend/` and `docs/deployment.md` and runs only `dotnet`; run verify once it reports, and ask it for the JSON fields it removed. | 28.4 | 28.5 | Not used: nothing in `backend/` changed |
@@ -188,20 +188,92 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L161 | When a renamed page object drops a member, apply the rename with a script first, then read each spec for the members that left; an edit written against the text before the rename no longer matches. | 28.5 | | |
 | L162 | Removing an optional Bluetooth service changes the chooser's request: search the specs for `optionalServices` before the run, not after. | 28.5 | | |
 | L163 | `git restore <one file>` beside a barrel restores only that file; name it exactly, and never the barrel, or the barrel's edits are lost. | 28.5 | | |
-| L164 | Before the first edit of a removal that changes the tooling, run verify once into the scratchpad (`verify-before.log`). Its step list and times are the film's "before", and they cannot be had once the step is gone without a worktree (L155). | 28.6 | 28.7, 29.1 | Saved time: the "before" run gave the counts to compare |
-| L165 | Verify prints times, not counts. For a film's proof or a summary, take the counts from `npx playwright test --list` (and `--grep @critical`), `npm test` and `dotnet test --solution Telo.Ride.slnx`, and the bundle from `npm run bundle:size`. | 28.6 | 28.7, 29.1 | Saved time: 152 specs, 31 `@critical`, 1308 unit tests and 85.06 kB from four commands |
+| L164 | Before the first edit of a removal that changes the tooling, run verify once into the scratchpad (`verify-before.log`). Its step list and times are the film's "before", and they cannot be had once the step is gone without a worktree (L155). | 28.6 | 28.7, 29.1, 29.2 | Saved time: the "before" run gave the counts to compare |
+| L165 | Verify prints times, not counts. For a film's proof or a summary, take the counts from `npx playwright test --list` (and `--grep @critical`), `npm test` and `dotnet test --solution Telo.Ride.slnx`, and the bundle from `npm run bundle:size`. | 28.6 | 28.7, 29.1, 29.2 | Saved time: 152 specs, 31 `@critical`, 1308 unit tests and 85.06 kB from four commands; 168 specs, 34 `@critical`, 1322 unit tests and 85.06 kB in 29.2 |
 | L166 | Run the dead-export script (L160) before the cut as well as after, and delete only the names that are new in the second list: the first list is types that sit beside a used component, not the removal's. | 28.6 | | |
 | L167 | A removal that changes no screen films the screens anyway: copy the last film's `shots.ts`, drop the shots of what it removed, and say "did not change" over them. | 28.6 | | |
 | L168 | When a requirement says "only on X", write the acceptance test for a screen that is not X as well. A style rule can hang on a class two screens share (`.lockup--sm` was on the class ride and on the class), and only the second half of the test finds it. | 28.7 | | |
-| L169 | Assert words as they are drawn with `toHaveText(…, { useInnerText: true })`: `innerText` applies `text-transform`, so "RIDE 1" is the expectation although the template says "Ride 1". | 28.7 | 29.1 | Saved time in 29.1: a whole column asserted as drawn; without it `textContent` runs "Works with" into the first bike |
-| L170 | For a film's close-up of something small (a lockup, an icon), set `document.documentElement.style.zoom` in `shots.ts` before `detail()`: the app draws it at the film's size, where enlarging a 26 px picture blurs. | 28.7 | 29.1 | Saved time in 29.1, with a catch: the zoom leaves the media queries alone, so a phone frame at zoom 2 wraps the text (L175) |
+| L169 | Assert words as they are drawn with `toHaveText(…, { useInnerText: true })`: `innerText` applies `text-transform`, so "RIDE 1" is the expectation although the template says "Ride 1". | 28.7 | 29.1, 29.2 | Saved time in 29.1: a whole column asserted as drawn; without it `textContent` runs "Works with" into the first bike; saved time in 29.2: one assertion proves an alert never says "no bike found" |
+| L170 | For a film's close-up of something small (a lockup, an icon), set `document.documentElement.style.zoom` in `shots.ts` before `detail()`: the app draws it at the film's size, where enlarging a 26 px picture blurs. | 28.7 | 29.1, 29.2 | Saved time in 29.1, with a catch: the zoom leaves the media queries alone, so a phone frame at zoom 2 wraps the text (L175); made it worse in 29.2: an alert 456 px wide at zoom 2 wrapped lines the app does not wrap (L177) |
 | L171 | One spec can drive several slices of a rename: order each test's assertions as the slices are ordered (the lockup, then the title, then the message), and each slice's red shows when the one before turns green. | 28.7 | | |
-| L172 | A slice that redraws a carried-over screen: put the mock and the app side by side first (`file://…/docs/mocks/pages/<screen>/<state>.html` and the last film's shot, both at 1440 and 390 px), list the differences, then write the spec for every state. Only the differences go red; say which specs passed at once. | 29.1 | | |
-| L173 | To show a screen while the browser's chooser is open: `bluetooth.holdChooser()` before the press, then `pickFromChooser()` or `closeChooser()`. Setting a second mode after the hold replaces the first, so the fixture has one method for each way out. | 29.1 | | |
+| L172 | A slice that redraws a carried-over screen: put the mock and the app side by side first (`file://…/docs/mocks/pages/<screen>/<state>.html` and the last film's shot, both at 1440 and 390 px), list the differences, then write the spec for every state. Only the differences go red; say which specs passed at once. | 29.1 | 29.2 | Saved time in 29.2: the five alerts matched their mocks at 1440 and 390 px, and all ten specs passed on the carried-over screen but for a hook the new component adds (L178) |
+| L173 | To show a screen while the browser's chooser is open: `bluetooth.holdChooser()` before the press, then `pickFromChooser()` or `closeChooser()`. Setting a second mode after the hold replaces the first, so the fixture has one method for each way out. | 29.1 | 29.2 | Saved time in 29.2: the alert after a blocked chooser gives way to the search with the chooser held |
 | L174 | A zoneless screen does not draw under Playwright's paused clock. To count a timer, `clock.install()` before the screen opens, `pauseAt` once it is at rest, and step the clock inside every poll, adding up the milliseconds; never `shot()` under a paused clock without `onPausedClock`, which hangs for the two-minute timeout. | 29.1 | | |
 | L175 | A film recording that is killed leaves its `ng serve` on 4310. Before the next spec run or verify, `lsof -i :4310` and kill that one process, or the specs reuse a development server. And a close-up at `zoom` keeps the window's media queries: frame it at XL, not XS, or the text wraps. | 29.1 | | |
+| L176 | Before asserting that a control is drawn 44 px tall, look at how the repo meets L2-140: a `wz-button` draws 40 px and takes touches across 44 through its `::after`. Assert the target with `new AppDocument(page).untappable(44)`, as `touch-and-keyboard.spec.ts` does, not with `boundingBox()`. | 29.2 | | |
+| L177 | A film's close-up of a block about 450 px wide needs no zoom: `detail()` already saves two device pixels a CSS pixel, 960 px for an 800 px place in the film. Zoom 2 at XL halves the layout width and wraps lines the app does not wrap. Keep `zoom` (L170) for things under about 200 px: a lockup, an icon. | 29.2 | | |
+| L178 | When a slice moves carried-over behaviour into a component, the new spec may fail only on a hook the component adds (here `data-icon`). To learn what already passes, run a copy of the spec with the hook's lines removed (`sed '/data-icon/d' spec > e2e/zz-tmp.spec.ts`, run it, delete it), and report those as passing at once; the helper's unit test is the other honest red. | 29.2 | | |
+| L179 | Narration is also the captions and the transcript: write an abbreviation as it is written (`HTTPS`), which Kokoro spells out, never letter by letter (`h t t p`). | 29.2 | | |
 
 ## Log
+
+### 29.2 Say why the bike cannot be reached (2026-11-23)
+
+**Applied from earlier**
+
+- **L2 port 4310; L3 format first; L17 judge verify by its exit status — saved time:** verify passed the first time
+  it ran after the change, in 38.3 seconds.
+- **L25 all-or-nothing scripted edits — saved time:** the mocks' navigation, the index, the manifest and the matrix
+  changed in one script that asserted every count first; one batch on the design system's page failed its count and
+  wrote nothing.
+- **L150 the film tools' Python; L151 copy the last film's folder — saved time:** three files copied, five scenes
+  rewritten.
+- **L154 look at a screenshot; L172 compare the mock and the app first — saved time:** the five alerts beside their
+  mocks at 1440 and 390 px were the same picture, so the slice was the three missing mocks and the component, not a
+  redraw.
+- **L164 verify before the first edit; L165 counts from four commands — saved time:** 162 specs before, 168 after.
+- **L169 `useInnerText` — saved time:** the whole column asserted as drawn proves L2-018 AC2 (never "no bike found").
+- **L173 `holdChooser()` — saved time:** Try again after a blocked chooser is shown searching.
+- **L170 zoom before a close-up — made it worse:** see L177.
+- **L147, L148, L149, L155 to L163, L166 to L168, L171, L174, L175 — not used:** nothing was removed, the row and
+  L2 agreed, and no recording was killed.
+
+**What slowed it down**
+
+- The behaviour was already there. Bluetooth off, the unsupported browser, plain http and both chooser alerts came
+  with the carried-over screen, with L2's copy, `role="alert"` and Try again. Of the ten new specs, six passed at once
+  with the icon check left out; with it, five failed only on `data-icon`, the hook `wz-connect-blocker` adds.
+- Four specs failed on a wrong assertion of mine: the action drawn at least 44 px tall. A button is drawn 40 px and
+  takes touches across 44. The spec was corrected to the repo's own check (L176); the app was right.
+- The film's close-ups at zoom 2 wrapped the alerts' titles and bodies; they were recorded again without zoom (L177).
+- The design system's device-list page drew "Copy link" on the unsupported-browser alert and a do-and-don't against
+  "Try again", which L2-008 AC1 requires. The page was brought in line with L2 and the mocks by hand.
+
+**New lessons**
+
+- **L176 Check a touch target with `untappable(44)`,** not a drawn height.
+- **L177 No zoom for a close-up of a block about 450 px wide.**
+- **L178 Run the spec without the new hook to learn what already passes,** and say so.
+- **L179 Write `HTTPS` in narration,** never letter by letter.
+
+**Specs and tests deleted without a replacement**
+
+- None. Four carried-over specs moved into `connect-bike-alerts.spec.ts` with every assertion kept and more added:
+  three from `browser-support.spec.ts` (the unsupported browser, `@critical`; plain http; Bluetooth off) and one from
+  `pair-a-bike.spec.ts` (the blocked chooser). The new file has ten specs (two `@critical`): 168 behaviour specs
+  (34 `@critical`), 1322 unit tests (14 new, for `connectAlert`) and 55 backend tests; the initial bundle is 85.06 kB
+  gzipped, as before.
+
+**Decisions**
+
+- Three mocks were drawn, not two: `needs-https`, `chooser-blocked` and `chooser-failed` (L2-012 AC4 names two
+  alerts). The HTTPS alert has a padlock and a primary link, **Open over HTTPS**; both chooser alerts have a barred
+  circle and a raised "Try again". L2's open question 6 and the mocks' open question 5 are closed.
+- `wz-connect-blocker` draws its own action (a link with `href`, else a button that emits `retry`) and projects
+  nothing, so the block's stylesheet styles all of the block. The design said it would project the action; the
+  design was brought in line.
+- What the browser cannot do is named before a chooser that failed: plain http, then no Web Bluetooth, then
+  Bluetooth off (`connectAlert`, one unit test per row).
+
+**Left for later**
+
+- A connection that fails after the rider has picked a bike (GATT refuses) reads "The bike list didn’t open", the
+  words for a chooser. L2 has no criterion for it; it needs one before it is changed.
+- Focus after "Try again" brings the pair button back is not moved to it; L2 does not ask for it (slice 36.3).
+- The Class in a blocked browser is slice 30.6; announcements beyond `role="alert"` are slice 36.3.
+- The design system's `foundations/` and `patterns/` pages still show "Strong signal" and "Open Telo Ride in Chrome
+  or Edge" in their examples; only `components/device-list.html` was brought in line here.
+- The diagrams of the two detailed designs were rendered again only where `wz-connect-blocker` lost its "new".
 
 ### 29.1 Connect Bike (2026-11-23)
 

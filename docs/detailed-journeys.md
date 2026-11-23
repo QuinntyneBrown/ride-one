@@ -50,7 +50,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 28.7 | Wordmark | TELO RIDE 1 on every header, and "Telo Ride 1" in every title and message. | 1 | 28. Make it Telo Ride 1 | L2-172 | 100% |
 | 28.8 | Host as static files | Static files over HTTPS with an http redirect and HSTS; the backend's projects, tests and CI job go (ADR 0037). | 3 | 28. Make it Telo Ride 1 | L2-149 AC1, L2-009 AC2 | 0% |
 | 29.1 | Connect Bike | The screen as designed: the offered bike and the works-with list at rest, searching while the browser's list of bikes is open, the bike picked there pairing, paired, then The Class. | 3 | 29. Pair the bike | L2-007, L2-011, L2-012 AC1–3, L2-013, L2-014 AC1–2, AC4 | 100% |
-| 29.2 | Say why the bike cannot be reached | Alerts for Bluetooth off, an unsupported browser, plain http and a chooser that will not open. | 2 | 29. Pair the bike | L2-008 AC1, L2-009 AC4, L2-012 AC4, L2-018 | 0% |
+| 29.2 | Say why the bike cannot be reached | Alerts for Bluetooth off, an unsupported browser, plain http and a chooser that will not open. | 2 | 29. Pair the bike | L2-008 AC1, L2-009 AC4, L2-012 AC4, L2-018 | 100% |
 | 30.1 | The one class | `gcn-30-hiit` with its plan, validated; no other class; a class that cannot be loaded says so. | 2 | 30. Open on The Class | L2-080 AC1–4 | 0% |
 | 30.2 | The Class | Header with bike status, parked video, title, summary, length and the start button's three states. | 3 | 30. Open on The Class | L2-019, L2-084 AC1, AC4, AC6–7, AC9 | 0% |
 | 30.3 | What the bike will do | Average target power, the resistance profile and the efforts in words. | 1 | 30. Open on The Class | L2-084 AC2–3 | 0% |
@@ -81,14 +81,14 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 50 slices, 99 days. **Complete:** 19 slices, 42 days (42%), 11 of them carried over.
-**To build:** 31 slices, 57 days.
+**Total:** 50 slices, 99 days. **Complete:** 20 slices, 44 days (44%), 11 of them carried over.
+**To build:** 30 slices, 55 days.
 
 ## What a slice waits for
 
 - **28.1** decided where the class comes from (ADR 0037: with the app, no backend), so 30.1, 28.8 and 35.1 follow it.
 - **L2's open questions:** 30.1 and 30.3 need the warm-up and cool-down cadence aims (11); 32.5
   builds a rule that is still a proposal (2); 32.2 shows a Time that is always 30:00 (3).
-- **L2's mock gaps**, each drawn before its slice is built: 29.2 (the HTTPS and chooser alerts),
+- **L2's mock gaps**, each drawn before its slice is built (29.2 drew the HTTPS and chooser alerts):
   30.1 (the class that cannot be loaded), 30.2 (the video that cannot load), 31.1 (power off target), 31.3 (both notices), 32.4
   (every effort at 0 W) and 32.7.

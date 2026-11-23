@@ -10,7 +10,7 @@ Container_Boundary(ride, "ride application") {
 }
 Container_Boundary(components, "components library") {
   Component(device, "ConnectDevice", "wz-connect-device, exists", "Name and identifier, spinner, check")
-  Component(blocker, "ConnectBlocker", "wz-connect-blocker, new", "Alert that stands in for the device card")
+  Component(blocker, "ConnectBlocker", "wz-connect-blocker", "Alert that stands in for the device card")
 }
 Container_Boundary(domain, "domain library") {
   Component(conn, "WebBluetoothBikeConnection", "Service in bluetooth/, exists", "The only caller of navigator.bluetooth")

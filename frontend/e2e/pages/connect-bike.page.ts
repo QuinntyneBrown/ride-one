@@ -27,7 +27,9 @@ export class ConnectBikePage {
   readonly worksWithStatuses: Locator;
   /** The device card with the pair button under it. */
   readonly pairArea: Locator;
+  /** The alert that stands in for the device card when the bike cannot be reached. */
   readonly blocker: Locator;
+  readonly blockerIcon: Locator;
   readonly blockerTitle: Locator;
   readonly blockerBody: Locator;
   readonly blockerAction: Locator;
@@ -52,6 +54,7 @@ export class ConnectBikePage {
     this.worksWithStatuses = page.locator('.connect-works__status');
     this.pairArea = page.locator('.connect__pair');
     this.blocker = page.getByRole('alert');
+    this.blockerIcon = page.locator('.connect-blocker__icon');
     this.blockerTitle = page.locator('.connect-blocker__title');
     this.blockerBody = page.locator('.connect-blocker__body');
     this.blockerAction = page.locator('.connect-blocker__retry');
@@ -102,6 +105,19 @@ export class ConnectBikePage {
   async pairByKeyboard(): Promise<void> {
     await this.pairButton.focus();
     await this.page.keyboard.press('Enter');
+  }
+
+  /** Presses the alert's action from the keyboard: focus, then Enter. */
+  async pressBlockerAction(): Promise<void> {
+    await this.blockerAction.focus();
+    await this.page.keyboard.press('Enter');
+  }
+
+  /** How far the page can be scrolled sideways, in CSS pixels: 0 when the screen fits its window. */
+  sidewaysOverflow(): Promise<number> {
+    return this.page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
   }
 
   async pair(): Promise<void> {

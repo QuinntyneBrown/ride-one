@@ -2,22 +2,27 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { BLUETOOTH_SUPPORT } from '@telo/api';
 import {
   Button,
+  ConnectBlocker,
   ConnectDevice,
   type ConnectDeviceState,
   ConnectWorks,
   Lockup,
 } from '@telo/components';
 import { SUPPORTED_BIKES } from '@telo/domain';
+import { connectAlert } from './connect-alert';
 import { ConnectBikeStore } from './connect-bike-store';
 import { FullscreenButton } from '../fullscreen/fullscreen-button';
 
 /** The bike the card offers before the search: the model Telo Ride 1 fully controls. */
 const OFFERED = 'Echelon EX-5s';
 
-/** Connect Bike at `/connect` (docs/mocks/pages/connect-bike/): pick the bike and pair it, with no app navigation. */
+/**
+ * Connect Bike at `/connect` (docs/mocks/pages/connect-bike/): pick the bike and pair it, with no app navigation, or
+ * say why the bike cannot be reached.
+ */
 @Component({
   selector: 'wz-connect-bike-page',
-  imports: [FullscreenButton, Lockup, Button, ConnectDevice, ConnectWorks],
+  imports: [FullscreenButton, Lockup, Button, ConnectBlocker, ConnectDevice, ConnectWorks],
   templateUrl: './connect-bike-page.html',
   styleUrl: './connect-bike-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,20 +41,8 @@ export default class ConnectBikePage {
     return { name: bike?.name ?? OFFERED, identifier: bike?.identifier ?? null, state };
   });
 
-  /** The plain words for a chooser that could not open (L2-012 AC4). */
-  protected readonly failure = computed(() => {
-    const view = this.store.view();
-    if (view.kind !== 'failed') return null;
-    return view.reason === 'blocked'
-      ? {
-          title: 'Bluetooth is blocked for this page',
-          body: 'Allow Bluetooth for this site in your browser’s settings, then try again.',
-        }
-      : {
-          title: 'The bike list didn’t open',
-          body: 'Something went wrong opening your browser’s list of bikes. Try again.',
-        };
-  });
+  /** Why the bike cannot be reached, when it cannot: the alert that stands in for the card and the pair button. */
+  protected readonly alert = computed(() => connectAlert(this.support.state(), this.store.view()));
 
   protected readonly action = computed(() => {
     switch (this.store.view().kind) {
