@@ -9,6 +9,7 @@ import {
 } from '@telo/domain';
 import { provideAppCache } from './app-cache/provide-app-cache';
 import { provideAppUpdates } from './app-update/provide-app-updates';
+import { blockedBrowserGuard } from './bike/blocked-browser.guard';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
 import { THE_CLASS_ID } from './classes/the-class';
@@ -43,10 +44,11 @@ export const rideRoutes: Routes = [
         loadComponent: () => import('./connect/connect-bike-page'),
       },
       // The class ride, at its present address until slice 31.1 moves it to `/ride` (docs/mocks/pages/class-ride/).
-      // The address names the one class; no other class has one (L2-080 AC4).
+      // The address names the one class; no other class has one (L2-080 AC4). A blocked browser starts no ride: the
+      // address opens `/` there, before anything is asked of the bike (L2-010 AC2).
       {
         path: `classes/${THE_CLASS_ID}/ride`,
-        canActivate: [rememberedBikeGuard],
+        canActivate: [blockedBrowserGuard, rememberedBikeGuard],
         loadChildren: () => import('./class-ride/class-ride.routes').then((m) => m.classRideRoutes),
       },
       // Results, until Class Done replaces it (slice 32.2).

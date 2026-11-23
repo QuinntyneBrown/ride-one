@@ -41,8 +41,9 @@ browser shows under the header belong to
 The layout is the `the-class` block of the design system (`docs/design-system/assets/components.css`),
 transcribed in `docs/mocks/pages/the-class/`. Slice 30.2 built the block and its two places for
 the start button; slice 30.4 built the one-screen layout, the short window and the viewport's
-`viewport-fit=cover`. The record (slice 32.6) and the blocked browser's alert (slice 30.6) are
-still to come; the layout already leaves their room.
+`viewport-fit=cover`. Slice 30.6 built the blocked browser's alert, which takes its 61 px from the room under the
+header at every width from sm, and proved both blocked states in the five windows. The record
+(slice 32.6) is still to come; the layout already leaves its room.
 
 - **`TheClass`** (built, `wz-the-class`, `frontend/projects/components/src/the-class/`): the block
   under the header. Its template draws the parts in the mocks' order: `.the-class__scroll` holding

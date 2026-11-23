@@ -1,5 +1,5 @@
 // Unit test
-// Traces to: L2-084 AC1, AC4, AC6, AC7; L2-173 AC1, AC3, AC5, AC6
+// Traces to: L2-084 AC1, AC4, AC6, AC7; L2-173 AC1, AC3, AC5, AC6; L2-010 AC1
 // Description: The Class's view. The start button reads "Start class" and opens the ride with a connected bike, and
 // "Connect your bike" with its line, opening Connect Bike, without one, whichever way the class is ridden. "Ride with"
 // offers the class video and Ibiza Sunset Strip, which says how far and how high it is, or why it cannot be chosen.
@@ -18,6 +18,7 @@ const seg = (kind: SegmentKind, duration: number, level: number, cadenceAim: num
 const state = {
   definition: INTERVALS_TO_THE_BEAT,
   connected: true,
+  blocked: false,
   rideWith: 'video',
   drawable: true,
   videoUnavailable: false,
@@ -25,21 +26,34 @@ const state = {
 
 describe('startAction', () => {
   it.each([
-    { connected: true, label: 'Start class', hint: null, opens: 'ride' },
+    { connected: true, label: 'Start class', hint: null, opens: 'ride', disabled: false },
     {
       connected: false,
       label: 'Connect your bike',
       hint: 'The class needs the bike to set resistance.',
       opens: 'connect',
+      disabled: false,
     },
   ] as const)('connected $connected: "$label" opens $opens', ({ connected, ...action }) => {
-    expect(startAction(connected)).toEqual(action);
+    expect(startAction(connected, false)).toEqual(action);
+  });
+
+  it('in a blocked browser reads "Connect your bike" with its line, and is disabled (L2-010 AC1)', () => {
+    expect(startAction(false, true)).toEqual({
+      label: 'Connect your bike',
+      hint: 'The class needs the bike to set resistance.',
+      opens: 'connect',
+      disabled: true,
+    });
+    expect(theClassView({ ...state, connected: false, blocked: true }).start).toEqual(
+      startAction(false, true),
+    );
   });
 
   it.each(['video', 'ibiza'] as const)('reads the same when the ride is with %s', (rideWith) => {
-    expect(theClassView({ ...state, rideWith }).start).toEqual(startAction(true));
+    expect(theClassView({ ...state, rideWith }).start).toEqual(startAction(true, false));
     expect(theClassView({ ...state, rideWith, connected: false }).start).toEqual(
-      startAction(false),
+      startAction(false, false),
     );
   });
 });

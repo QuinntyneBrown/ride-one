@@ -1,0 +1,74 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "The Class in a blocked browser: it says why, and it does not start a ride."
+      ]
+    },
+    {
+      "id": "chromium",
+      "bars": 6,
+      "lines": [
+        "A rider who paired a bike before opens The Class in a browser without Web Bluetooth. An alert under the header reads: Open Telo Ride 1 in Chrome or Edge. The class, its video and its plan stay readable."
+      ]
+    },
+    {
+      "id": "copy",
+      "bars": 4,
+      "lines": [
+        "Copy link copies the page's address, and the button reads Copied for two seconds."
+      ]
+    },
+    {
+      "id": "https",
+      "bars": 6,
+      "lines": [
+        "On plain http, the alert asks for the secure version of the page instead, never for another browser. Open over HTTPS is a link to the same address."
+      ]
+    },
+    {
+      "id": "disabled",
+      "bars": 6,
+      "lines": [
+        "In both, the header reads No bike, and the start button reads Connect your bike, and is disabled. Opening the ride's address opens The Class instead, and nothing is asked of Bluetooth."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The alert and the class fit one screen, from a phone to a desktop."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 6,
+      "lines": [
+        "The tests came first. Twenty-three failed, as expected; two passed at once. Now two hundred and eighty-three specs and one thousand four hundred and eighteen unit tests pass."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}

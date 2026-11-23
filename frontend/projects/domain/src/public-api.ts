@@ -9,6 +9,7 @@ export { REMEMBERED_BIKE_KEY, RememberedBikeStore } from './storage/remembered-b
 export { NoFinishedRides } from './storage/no-finished-rides';
 export { type OpeningScreen, openingScreen } from './engine/opening-screen';
 export { SUPPORTED_BIKES } from './bluetooth/supported-bikes';
+export { isBlocked } from './bluetooth/is-blocked';
 export { SimulatedBluetoothSupport } from './bluetooth/simulated-bluetooth-support';
 export { WebBluetoothSupport } from './bluetooth/web-bluetooth-support';
 export { FetchWorldDownloader } from './storage/fetch-world-downloader';
@@ -36,6 +37,7 @@ export {
 } from './protocol/echelon-protocol';
 export { BrowserDisplayPreferences } from './browser/browser-display-preferences';
 export { BrowserFullscreen } from './browser/browser-fullscreen';
+export { BrowserClipboard } from './browser/browser-clipboard';
 export { LiveRegionAnnouncer } from './browser/live-region-announcer';
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
 export { BrowserCourseGraphics } from './browser/browser-course-graphics';

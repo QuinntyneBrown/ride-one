@@ -270,12 +270,21 @@
   margin-inline: auto;
 }
 
-.the-class__start {
+// The class is doubled so these outweigh the button's own size (`:host(.btn--xl)`), whichever stylesheet loads last.
+.the-class__start.the-class__start {
   --btn-font-size: var(--font-size-lg);
   --btn-line-height: var(--line-height-lg);
 
   @media (min-width: 64rem) {
     --btn-height: var(--space-16);
+  }
+
+  // A blocked browser starts no ride (L2-010 AC1): the button is drawn flat and faint, and its line says why.
+  &:disabled {
+    --btn-bg: var(--color-raised);
+    --btn-fg: var(--color-faint);
+
+    opacity: 1;
   }
 }
 

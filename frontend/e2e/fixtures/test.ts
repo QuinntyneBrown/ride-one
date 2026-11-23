@@ -1,5 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { ApiFixture } from './api';
+import { ClipboardFixture } from './clipboard';
 import { ContentSecurityPolicyFixture } from './content-security-policy';
 import { FakeBluetooth } from './fake-bluetooth';
 import { WakeLockFixture } from './wake-lock';
@@ -20,6 +21,8 @@ interface Fixtures {
   wakeLock: WakeLockFixture;
   /** Takes WebGPU, or WebGPU and WebGL, away from the browser before the app loads. */
   webgl: FakeWebGl;
+  /** The fake `navigator.clipboard`: the texts the page copied, and a browser that refuses to copy. */
+  clipboard: ClipboardFixture;
   /** `main`'s test-only hook into the world's renderer: pins its quality tier and reads what it draws. */
   worldRide: WorldRideProbe;
   guard: void;
@@ -46,6 +49,9 @@ export const test = base.extend<Fixtures>({
   },
   webgl: async ({ page }, use) => {
     await use(new FakeWebGl(page));
+  },
+  clipboard: async ({ page }, use) => {
+    await use(await ClipboardFixture.install(page));
   },
   worldRide: async ({ page }, use) => {
     await use(new WorldRideProbe(page));

@@ -50,7 +50,7 @@ the plan built riding in Ibiza as L2-174 to L2-177 specify it.
 - A rider who has never chosen now rides with the video alone, where every ride before this was in
   the course. Specs that rode the course say so first, by keeping "Ibiza Sunset Strip" as chosen.
 - The start button's words follow the bike only: "Start class", or "Connect your bike" with its
-  line. "Ride it again" waits for the record (slice 32.6), the disabled button for slice 30.6.
+  line. "Ride it again" waits for the record (slice 32.6); the disabled button was built by slice 30.6.
 - The still shows other riders, from when the course was raced (L2 open question 21).
 - Until journey 37, "Ibiza Sunset Strip" still shows a loading screen and the class video, and
   plays the course's deep house track only when the video cannot play (L2 open question 20).

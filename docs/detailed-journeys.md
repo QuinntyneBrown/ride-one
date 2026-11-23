@@ -56,7 +56,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 30.3 | What the bike will do | "~254 W average", the plan's time-weighted target power; the resistance profile, a bar a segment; and "17 efforts · 0:15 to 1:15. Resistance changes on its own; you just pedal.", read from the plan. The plan chart carried over from Telo Ride leaves The Class. | 1 | 30. Open on The Class | L2-084 AC2–3 | 100% |
 | 30.4 | The Class by form factor | One screen with no scrolling in landscape from 1024 px; one column with the start button pinned below. | 2 | 30. Open on The Class | L2-171 AC1–3, AC5 | 100% |
 | 30.5 | Open where the rider belongs | A new rider opens on Connect Bike, in a blocked browser too, and a rider with a remembered bike on The Class (a finished ride counts from slice 32.1); the remembered bike reconnects without the chooser as soon as it advertises, and only its name and identifier are kept. | 2 | 30. Open on The Class | L2-015, L2-167 AC1–3 | 100% |
-| 30.6 | The Class in a blocked browser | Chrome-or-Edge and HTTPS alerts, Copy link, a disabled start button; `/ride` opens The Class. | 2 | 30. Open on The Class | L2-008 AC2–4, L2-009 AC1, AC3, L2-010 | 0% |
+| 30.6 | The Class in a blocked browser | Chrome-or-Edge and HTTPS alerts under the header, Copy link with its copied state, a disabled start button; the ride's address (`/ride` from 31.1) opens The Class and nothing is asked of Bluetooth. | 2 | 30. Open on The Class | L2-008 AC2–4, L2-009 AC1, AC3, L2-010 | 100% |
 | 31.1 | Class Ride | The screen as designed at `/ride`: header, clock, segment card, power against target, cadence aim and stepper. | 3 | 31. Take the class | L2-087, L2-089 | 0% |
 | 31.2 | Pause, lose the bike, leave or finish | Pause and resume; a lost bike holds the ride until it is back; Leave returns to The Class; 30:00 opens Class Done. | 3 | 31. Take the class | L2-091, L2-092, L2-093 | 0% |
 | 31.3 | When the video or the bike falls short | The video that cannot play and the FTMS bike that refuses control, each with its notice. | 2 | 31. Take the class | L2-014 AC3, L2-088 AC4 | 0% |
@@ -90,8 +90,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 59 slices, 119 days. **Complete:** 26 slices, 57 days (48%), 11 of them carried over.
-**To build:** 34 slices, 64 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 59 slices, 119 days. **Complete:** 27 slices, 59 days (50%), 11 of them carried over.
+**To build:** 32 slices, 60 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for

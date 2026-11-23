@@ -6,6 +6,8 @@ export interface StartAction {
   readonly label: string;
   readonly hint: string | null;
   readonly opens: 'ride' | 'connect';
+  /** The button cannot be pressed: the browser is blocked, and no ride starts there (L2-010 AC1). */
+  readonly disabled: boolean;
 }
 
 /** One option of "Ride with" (L2-173): its name, the line under it, and whether it can be chosen. */

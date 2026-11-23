@@ -1,0 +1,61 @@
+WEBVTT
+
+00:00:02.581 --> 00:00:07.092
+The Class in a blocked browser: it says why, and it does not start a ride.
+
+00:00:10.324 --> 00:00:15.831
+A rider who paired a bike before opens The Class in a browser without Web Bluetooth.
+
+00:00:15.831 --> 00:00:21.273
+An alert under the header reads: Open Telo Ride 1 in Chrome or Edge. The class, its
+
+00:00:21.273 --> 00:00:23.736
+video and its plan stay readable.
+
+00:00:25.809 --> 00:00:30.667
+Copy link copies the page's address, and the button reads Copied for two seconds.
+
+00:00:36.133 --> 00:00:42.272
+On plain http, the alert asks for the secure version of the page instead, never for
+
+00:00:42.272 --> 00:00:47.231
+another browser. Open over HTTPS is a link to the same address.
+
+00:00:51.618 --> 00:00:56.694
+In both, the header reads No bike, and the start button reads Connect your bike, and
+
+00:00:56.694 --> 00:01:01.467
+is disabled. Opening the ride's address opens The Class instead, and nothing is
+
+00:01:01.467 --> 00:01:02.915
+asked of Bluetooth.
+
+00:01:07.104 --> 00:01:11.017
+The alert and the class fit one screen, from a phone to a desktop.
+
+00:01:17.428 --> 00:01:22.439
+The tests came first. Twenty-three failed, as expected; two passed at once. Now two
+
+00:01:22.439 --> 00:01:27.510
+hundred and eighty-three specs and one thousand four hundred and eighteen unit tests
+
+00:01:27.510 --> 00:01:28.112
+pass.
+
+00:01:32.913 --> 00:01:38.568
+Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class,
+
+00:01:38.568 --> 00:01:39.764
+nothing else.
+
+00:01:40.109 --> 00:01:45.061
+It pairs with a smart bike at home over Bluetooth, plays the class video, or draws
+
+00:01:45.061 --> 00:01:50.073
+the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's
+
+00:01:50.073 --> 00:01:53.574
+resistance for every interval while the rider pedals.
+
+00:01:53.919 --> 00:01:57.895
+Connect the bike, take the class, see your number, and come back to beat it.

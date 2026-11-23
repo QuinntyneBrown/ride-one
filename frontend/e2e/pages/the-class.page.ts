@@ -13,6 +13,17 @@ export class TheClassPage {
   readonly bike: Locator;
   readonly bikeIcon: Locator;
   readonly bikeAction: Locator;
+  /**
+   * The alert under the header in a blocked browser (L2-008 AC2, L2-009 AC1): its icon, title, sentence and one action,
+   * Copy link or Open over HTTPS.
+   */
+  readonly notice: Locator;
+  readonly noticeIcon: Locator;
+  readonly noticeTitle: Locator;
+  readonly noticeBody: Locator;
+  readonly noticeAction: Locator;
+  /** Every alert on the screen, whatever draws it. */
+  readonly alerts: Locator;
   /** What shows in the class's place when the class breaks a rule (the-class/cannot-load), with Reload. */
   readonly unavailable: Locator;
   readonly reload: Locator;
@@ -61,6 +72,12 @@ export class TheClassPage {
     this.bike = page.locator('.the-class__bike');
     this.bikeIcon = this.bike.locator('.the-class__bike-icon');
     this.bikeAction = this.bike.locator('.the-class__bike-action');
+    this.notice = page.locator('.browser-notice');
+    this.noticeIcon = this.notice.locator('.browser-notice__icon');
+    this.noticeTitle = this.notice.locator('.browser-notice__title');
+    this.noticeBody = this.notice.locator('.browser-notice__body');
+    this.noticeAction = this.notice.locator('.browser-notice__action');
+    this.alerts = page.getByRole('alert');
     this.unavailable = page.locator('.the-class__unavailable').getByRole('alert');
     this.reload = page.getByRole('button', { name: 'Reload' });
     this.title = page.getByRole('heading', { level: 1 });
@@ -102,8 +119,25 @@ export class TheClassPage {
     await this.page.goto('/');
   }
 
+  /** Opens the class ride's address, as a bookmark or a typed address does (`/ride` from slice 31.1). */
+  async openRide(): Promise<void> {
+    await this.page.goto('/classes/intervals-to-the-beat/ride');
+  }
+
   url(): string {
     return new URL(this.page.url()).pathname;
+  }
+
+  /** The page's whole address, as the browser's address bar has it. */
+  address(): string {
+    return this.page.url();
+  }
+
+  /** How far the page can scroll sideways, in CSS pixels; 0 is a page that fits its window's width. */
+  sidewaysOverflow(): Promise<number> {
+    return this.page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
   }
 
   /** The colour behind the page. */
