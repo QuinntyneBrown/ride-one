@@ -1,9 +1,12 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, booleanAttribute, input } from '@angular/core';
 
-/** `md` in the app header; `sm` in a ride header, whose wordmark hides below 384 px so the mark stays. */
+/** `md` in a screen's header; `sm` in the slim headers of the class and the class ride. */
 export type LockupSize = 'md' | 'sm';
 
-/** The TELO Ride lockup (design-system block lockup): the logo mark and the wordmark, named "Telo Ride". */
+/**
+ * The TELO RIDE 1 lockup (design-system block lockup): the logo mark and the wordmark, with "RIDE 1" in the signal
+ * colour, one image named "Telo Ride 1" (L2-172).
+ */
 @Component({
   selector: 'wz-lockup',
   templateUrl: './lockup.html',
@@ -12,4 +15,6 @@ export type LockupSize = 'md' | 'sm';
 })
 export class Lockup {
   readonly size = input<LockupSize>('md');
+  /** Class Ride only: below 384 px the words are not drawn and the mark stays (L2-172 AC3). */
+  readonly markOnlyWhenNarrow = input(false, { transform: booleanAttribute });
 }

@@ -8,7 +8,7 @@ import { provideClassRide } from './provide-class-ride';
 export const classRideRoutes: Routes = [
   {
     path: '',
-    title: 'Class ride · Telo Ride',
+    title: 'Class ride · Telo Ride 1',
     providers: [provideClassRide()],
     loadComponent: () => import('./class-ride-page'),
   },

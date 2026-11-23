@@ -56,11 +56,14 @@
   color: var(--lockup-product);
 }
 
-// The ride headers' lockup (docs/mocks/pages/class-ride/): smaller, and the mark alone below 384 px (L2-087 AC2).
+// The slim headers' lockup (docs/mocks/pages/class-ride/): smaller.
 .lockup--sm {
   --lockup-mark-size: 1.5rem; // 24px
   --lockup-wordmark-size: var(--font-size-xl);
+}
 
+// Class Ride's lockup: the mark alone below 384 px (L2-087 AC2, L2-172 AC3). Every other screen keeps the words.
+.lockup--mark-narrow {
   .wordmark {
     @media (max-width: 23.99rem) {
       display: none;

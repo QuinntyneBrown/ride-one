@@ -10,7 +10,7 @@ import { provideClasses } from '../classes/provide-classes';
 export const classStartRoutes: Routes = [
   {
     path: '',
-    title: 'Telo Ride',
+    title: 'Telo Ride 1',
     providers: [provideClasses(), provideClassVideo()],
     loadComponent: () => import('./class-start-page'),
   },

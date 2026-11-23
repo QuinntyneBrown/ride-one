@@ -1,0 +1,58 @@
+WEBVTT
+
+00:00:02.581 --> 00:00:08.137
+Telo Ride 1 is one class on one bike. From this slice on, every screen says its
+
+00:00:08.137 --> 00:00:09.703
+name: Telo Ride 1.
+
+00:00:10.324 --> 00:00:16.067
+The header's lockup now reads Telo, Ride 1, with Ride 1 in signal orange. A screen
+
+00:00:16.067 --> 00:00:19.309
+reader hears one image, named Telo Ride 1.
+
+00:00:23.228 --> 00:00:28.095
+It is on Connect Bike, the class, the class ride, the result, and page not found.
+
+00:00:28.095 --> 00:00:30.679
+Nothing else on those screens changed.
+
+00:00:36.133 --> 00:00:41.069
+Every title and message that names the product says Telo Ride 1, with the digit. So
+
+00:00:41.069 --> 00:00:43.986
+does the name the browser installs it under.
+
+00:00:49.038 --> 00:00:52.812
+The wordmark shows on every screen, from a phone to a desktop.
+
+00:00:59.361 --> 00:01:04.664
+Below 384 pixels, only the class ride drops the words and keeps the mark. The new
+
+00:01:04.664 --> 00:01:08.827
+spec caught the class dropping them too, and that is fixed.
+
+00:01:12.266 --> 00:01:17.552
+Six new specs failed first: five on the old name, and one on the hidden words. Now
+
+00:01:17.552 --> 00:01:21.526
+one hundred and fifty-two specs and every unit test pass.
+
+00:01:25.170 --> 00:01:30.825
+Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class,
+
+00:01:30.825 --> 00:01:32.021
+nothing else.
+
+00:01:32.366 --> 00:01:37.318
+It pairs with a smart bike at home over Bluetooth, plays the class video, or draws
+
+00:01:37.318 --> 00:01:42.330
+the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's
+
+00:01:42.330 --> 00:01:45.831
+resistance for every interval while the rider pedals.
+
+00:01:46.176 --> 00:01:50.152
+Connect the bike, take the class, see your number, and come back to beat it.

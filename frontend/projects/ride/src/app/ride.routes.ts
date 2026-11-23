@@ -34,7 +34,7 @@ export const rideRoutes: Routes = [
       // Connect Bike, where a new rider starts (docs/mocks/pages/connect-bike/).
       {
         path: 'connect',
-        title: 'Connect your bike · Telo Ride',
+        title: 'Connect your bike · Telo Ride 1',
         loadComponent: () => import('./connect/connect-bike-page'),
       },
       // The class ride, at its present address until slice 31.1 moves it to `/ride` (docs/mocks/pages/class-ride/).
@@ -59,7 +59,7 @@ export const rideRoutes: Routes = [
       // An address that matches no screen (L2-145). Always last.
       {
         path: '**',
-        title: 'Page not found · Telo Ride',
+        title: 'Page not found · Telo Ride 1',
         loadComponent: () => import('./not-found/not-found-page'),
       },
     ],

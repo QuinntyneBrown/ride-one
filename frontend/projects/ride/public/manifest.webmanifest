@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Telo Ride",
-  "short_name": "Telo Ride",
+  "name": "Telo Ride 1",
+  "short_name": "Telo Ride 1",
   "description": "Turns a smart bike at home into a game: race a map or ride a class, and it sets the resistance.",
   "start_url": "/",
   "scope": "/",

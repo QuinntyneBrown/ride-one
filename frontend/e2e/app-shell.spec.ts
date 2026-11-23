@@ -17,7 +17,7 @@ test.describe('App shell', () => {
       const start = new ClassStartPage(page);
       await start.open();
 
-      await expect(start.header.lockup).toHaveAccessibleName('Telo Ride');
+      await expect(start.header.lockup).toHaveAccessibleName('Telo Ride 1');
       await expect(start.header.nav).toHaveCount(0);
       await expect(start.header.links).toHaveCount(0);
       await expect(start.title).toBeVisible();
@@ -61,7 +61,7 @@ test.describe('App shell', () => {
     await start.open();
 
     expect(await start.background()).toBe('rgb(10, 11, 13)');
-    // "Ride" reads --color-volt-fg, the signal as text: #ff5233 on dark, 4.5:1 on every surface (L2-143 AC2).
+    // "Ride 1" reads --color-volt-fg, the signal as text: #ff5233 on dark, 4.5:1 on every surface (L2-143 AC2).
     expect(await start.header.productColour()).toBe('rgb(255, 82, 51)');
   });
 });

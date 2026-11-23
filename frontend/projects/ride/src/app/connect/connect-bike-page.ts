@@ -11,7 +11,7 @@ import { SUPPORTED_BIKES } from '@telo/domain';
 import { ConnectBikeStore } from './connect-bike-store';
 import { FullscreenButton } from '../fullscreen/fullscreen-button';
 
-/** The bike the card offers before the search: the model Telo Ride fully controls. */
+/** The bike the card offers before the search: the model Telo Ride 1 fully controls. */
 const OFFERED = 'Echelon EX-5s';
 
 /** Connect Bike at `/connect` (docs/mocks/pages/connect-bike/): pick the bike and pair it, with no app navigation. */

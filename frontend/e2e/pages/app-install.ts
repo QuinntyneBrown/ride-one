@@ -22,7 +22,7 @@ export interface AppManifest {
 }
 
 /**
- * What Chrome and Edge read to offer "Install Telo Ride" (L2-150 AC1, docs/detailed-designs/platform/install-the-app):
+ * What Chrome and Edge read to offer "Install Telo Ride 1" (L2-150 AC1, docs/detailed-designs/platform/install-the-app):
  * the page's theme colour, the manifest Chromium parsed, whether it finds the app installable, and the icons' sizes as
  * the page decodes them. Asked through the DevTools protocol, as the browser's own install check.
  */

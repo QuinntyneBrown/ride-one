@@ -34,7 +34,7 @@ support -> window : Read isSecureContext, then "bluetooth" in navigator
 window --> support : Secure context first (L2-009), then Web Bluetooth (L2-008)
 support --> page : ready, unsupported-browser or insecure-context
 alt unsupported-browser (L2-008 AC2)
-  page -> notice : Render "Open Telo Ride in Chrome or Edge." with Copy link
+  page -> notice : Render "Open Telo Ride 1 in Chrome or Edge." with Copy link
   notice --> rider : Alert under the header; class, video and record stay readable
   rider -> page : Press Copy link
   page -> clip : copy(page address) (L2-008 AC3)

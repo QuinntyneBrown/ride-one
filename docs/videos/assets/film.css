@@ -25,8 +25,8 @@ img { display: block; }
 .word { display: inline-block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; vertical-align: top; }
 .word__in { display: inline-block; }
 
-/* The TELO Ride lockup of the app header: the logo mark (bone ring, signal crank and hub) and the
-   wordmark, TELO in bone and Ride in signal. --s is the wordmark's size in film pixels. */
+/* The TELO RIDE 1 lockup of the app header: the logo mark (bone ring, signal crank and hub) and the
+   wordmark, TELO in bone and RIDE 1 in signal. --s is the wordmark's size in film pixels. */
 .lockup { display: inline-flex; align-items: center; gap: calc(var(--s, 150px) * 0.33); }
 .lockup svg { width: calc(var(--s, 150px) * 1.08); height: calc(var(--s, 150px) * 1.08); flex: none; fill: none; stroke-width: 6; stroke-linecap: round; }
 .lockup .logo-mark__ring { stroke: var(--palette-bone); }
