@@ -1,70 +1,79 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  effect,
-  inject,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { COURSE_GRAPHICS, HOW_TO_RIDE, WORLD_DOWNLOADER } from '@telo/api';
 import {
-  BackLink,
-  Banner,
   Button,
-  ClassPlan,
-  ScreenHeader,
-  LoadCard,
-  Pill,
+  ClassBike,
+  ClassCourse,
+  ClassHeader,
+  ClassLost,
+  ClassResist,
+  ClassSegment,
+  ClassStat,
+  ClassVideo,
+  InlineMessage,
 } from '@telo/components';
-import { FetchWorldDownloader, rideWith } from '@telo/domain';
-import { ClassRideSession } from './class-ride-session';
-import { WorldLoadStore } from './world-load-store';
+import {
+  BikeTelemetry,
+  ResistanceController,
+  RideClock,
+  RideTicker,
+  VideoClockSync,
+  VideoStallWatch,
+  WorkoutEngine,
+} from '@telo/domain';
+import { IBIZA_SUNSET_STRIP } from '../classes/ibiza-sunset-strip';
+import { FullscreenButton } from '../fullscreen/fullscreen-button';
+import { ClassRideStore } from './class-ride-store';
+import { CourseSceneHost } from './course-scene-host';
 
 /**
- * `/ride`, ridden as the rider chose on The Class (L2-173 AC5). With "Class video" the class ride starts at
- * once with the video alone. With "Ibiza Sunset Strip" it is the carried-over ride in the course, until riding in
- * Ibiza is built as L2-174 to L2-177 specify: World loading (docs/mocks/pages/world-loading/) until the class's world
- * is ready and the rider presses Start riding, then the class ride at the same address (L2-151). World loading is the class over its world's
- * panorama and the load card; the ride's own providers come with `ClassRideSession`, so its clock and its first
- * command wait for Start riding. Leaving releases what the load acquired (AC5).
+ * Class Ride at `/ride` (docs/mocks/pages/class-ride/), ridden as the rider chose on The Class (L2-173 AC5) and
+ * started the moment it opens: the header with the class and its clock, the box, and the bike panel with the segment
+ * card, Power, Cadence and the resistance stepper. With "Class video" the box is the class video. With "Ibiza Sunset
+ * Strip" it is the course (L2-087 AC6): its still under "Loading Ibiza Sunset Strip" while the 3D renderer and the
+ * course's files are fetched, then the course drawn there, and no video player (L2-174 AC1, L2-175 AC1). There is no
+ * loading screen. Every part of the ride is provided here, so leaving the page stops the clock, the ticker and the
+ * course's frame loop and releases them.
  */
 @Component({
   selector: 'wz-class-ride-page',
   imports: [
-    BackLink,
-    Banner,
+    FullscreenButton,
     Button,
-    ClassPlan,
-    ClassRideSession,
-    ScreenHeader,
-    LoadCard,
-    Pill,
+    ClassBike,
+    ClassCourse,
+    ClassHeader,
+    ClassLost,
+    ClassResist,
+    ClassSegment,
+    ClassStat,
+    ClassVideo,
+    CourseSceneHost,
+    InlineMessage,
     RouterLink,
   ],
   templateUrl: './class-ride-page.html',
   styleUrl: './class-ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [WorldLoadStore, { provide: WORLD_DOWNLOADER, useClass: FetchWorldDownloader }],
+  host: { '(window:beforeunload)': 'confirmLeaving($event)' },
+  providers: [
+    ClassRideStore,
+    RideClock,
+    RideTicker,
+    WorkoutEngine,
+    ResistanceController,
+    BikeTelemetry,
+    VideoClockSync,
+    VideoStallWatch,
+  ],
 })
 export default class ClassRidePage {
-  /**
-   * World loading's state when the rider chose Ibiza Sunset Strip; `null` with the class video, which rides at once
-   * with the video alone and loads nothing of the course (L2-173 AC5).
-   */
-  protected readonly loading =
-    rideWith(inject(HOW_TO_RIDE).kept(), inject(COURSE_GRAPHICS).available()) === 'ibiza'
-      ? inject(WorldLoadStore)
-      : null;
-  private readonly start = viewChild('start', { read: ElementRef<HTMLButtonElement> });
+  protected readonly store = inject(ClassRideStore);
+  /** The one course, for a ride in Ibiza: its name and its still. */
+  protected readonly course = IBIZA_SUNSET_STRIP;
 
-  constructor() {
-    // Start riding takes focus when the world is ready (L2-153 AC2).
-    effect(() => this.start()?.nativeElement.focus());
-  }
-
-  /** Start riding, or Ride with the panorama. */
-  protected ride(): void {
-    this.loading?.ride();
+  /** Closing or reloading the tab mid-ride asks the rider to confirm (L2-133 AC4); the listener goes with the page. */
+  protected confirmLeaving(event: BeforeUnloadEvent): void {
+    if (this.store.ride()) event.preventDefault();
   }
 }

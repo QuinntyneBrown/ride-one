@@ -22,7 +22,7 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/maps/**", "/machines/**", "/draco/**"]
+        "files": ["/courses/ibiza-sunset-strip.jpg", "/machines/**"]
       }
     }
   ]

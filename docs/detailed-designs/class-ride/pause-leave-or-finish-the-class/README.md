@@ -44,8 +44,8 @@ Neighbouring features own the adjacent concerns:
 
 ## Description
 
-The slice lives in the Ride app: `ClassRideSession` (the ride itself, which `ClassRidePage` at
-`/ride` shows) and `ClassRideStore` in the `ride` application, the clock and ticker in `domain`'s
+The slice lives in the Ride app: `ClassRidePage` (the ride itself, at `/ride`) and
+`ClassRideStore` in the `ride` application, the clock and ticker in `domain`'s
 `engine/`, and the pause overlay in `components`. Pausing, leaving and the finish exist in the
 code for Telo Ride's class ride; Telo Ride 1 changes where Leave and the finish go and what the
 finish writes.
@@ -78,11 +78,10 @@ keeps on the device changes".
   level, and the ride's running totals do not grow.
 - **`ClassVideo`** (exists, `wz-class-video`). Its `paused` input draws the `class-video__paused`
   overlay reading "Paused". The overlay is `aria-hidden`; the store announces the change.
-- **`ClassWorld`** (exists, `wz-class-world`; one addition). In Ibiza the course takes the
-  video's box. Its `paused` input draws the same overlay over the whole box
-  (`class-world__paused`, mock `class-ride/paused-ibiza`), the inset video included, while the
-  course holds still because the scene's `running` input is false (`L2-091` AC1). The block is
-  the carried-over one, which slice 37.1 redraws.
+- **`ClassCourse`** (`wz-class-course`, built by slice 37.1 in the place of `ClassWorld`). In
+  Ibiza the course takes the video's box. Its `paused` input draws the same overlay over the
+  whole box (`class-course__paused`, mock `class-ride/paused-ibiza`), while the course holds
+  still under it because the scene's `running` input is false (`L2-091` AC1).
 - **Announcement** (built by slice 31.2). `ClassRideStore.pause()` and `resume()` each call
   `ANNOUNCER.announce` once, with `pauseAnnouncement()`: "Ride paused" and "Ride resumed"
   (`L2.md` open question 28). `ANNOUNCER` is the app's one polite live region

@@ -12,7 +12,8 @@
 // Given a running ride, when the page is reloaded, then The Class opens and the ride is gone.
 // Given a new rider, when `/ride` is opened, then Connect Bike opens.
 // Given the address `/classes/intervals-to-the-beat/ride`, when it is opened, then it is page not found.
-import { connectBike, startClassRide } from './fixtures/class-ride';
+import { connectBike, startClassRide, startRideInIbiza } from './fixtures/class-ride';
+import { CourseFiles } from './fixtures/course-files';
 import { echelonBike } from './fixtures/echelon';
 import { keptRideWith } from './fixtures/how-to-ride';
 import { expect, test } from './fixtures/test';
@@ -21,7 +22,6 @@ import { ClassRidePage, earlierRideAddress } from './pages/class-ride.page';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { NotFoundPage } from './pages/not-found.page';
 import { TheClassPage } from './pages/the-class.page';
-import { WorldLoadingPage } from './pages/world-loading.page';
 
 const isTarget = (hex: string): boolean => hex.startsWith('F0 B1 ');
 
@@ -43,18 +43,18 @@ test.describe('The ride’s address', () => {
     page,
     bluetooth,
   }) => {
-    await keptRideWith(page, 'ibiza');
-    await bluetooth.remember(echelonBike);
-    const home = new TheClassPage(page);
-    await home.open();
-    await connectBike(bluetooth);
-    await expect(home.start).toHaveText('Start class');
+    // The spec is about the address and not the course: its files are held, so nothing is drawn.
+    const files = await CourseFiles.install(page);
+    files.hold();
 
-    await home.start.click();
+    const ride = await startRideInIbiza(page, bluetooth);
 
-    // The carried-over ride in the course loads first, at the ride's address (L2 open question 20).
-    await expect(new WorldLoadingPage(page).root).toBeVisible();
-    expect(home.url()).toBe('/ride');
+    // Class Ride itself, at the ride's address, with no screen before it (L2-175 AC1).
+    expect(ride.url()).toBe('/ride');
+    await expect(page).toHaveTitle('Class ride · Telo Ride 1');
+    await expect(ride.heading).toHaveText('Intervals to the Beat · solo class ride');
+    await expect(ride.box).toHaveClass(/class-course/);
+    await files.dispose();
   });
 
   test('opened without a connected bike, `/ride` opens The Class and no ride starts (L2-087 AC4)', async ({

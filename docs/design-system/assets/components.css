@@ -2460,6 +2460,16 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .class-video .mock-note { top: var(--space-3); right: var(--space-3); }
 .class-video__paused { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--color-ink) 70%, transparent); }
 .class-video__paused-label { font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semibold); }
+/* The course in the video's box, in a ride in Ibiza (L2-087 AC6, L2-174 AC1, L2-175 AC1): the same box by the same
+   rule. The course's still stands in it under "Loading Ibiza Sunset Strip" until the course's first frame is drawn,
+   then the canvas takes the box; the class video's "Paused" lies over it. No video is inset. */
+.class-course { position: relative; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; border-radius: var(--radius-xl); background: var(--color-raised); }
+@media (min-width: 48rem) and (orientation: landscape) { .class-course { aspect-ratio: auto; min-height: var(--space-32); flex: 1; } }
+.class-course > .photo, .class-course__scene { position: absolute; inset: 0; }
+.class-course .mock-note { top: var(--space-3); right: var(--space-3); }
+.class-course__loading { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-ink) 45%, transparent); font-size: var(--font-size-md); line-height: var(--line-height-md); font-weight: var(--font-weight-medium); text-align: center; }
+.class-course__paused { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--color-ink) 70%, transparent); }
+.class-course__paused-label { font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semibold); }
 /* The two notices of a ride that goes on short of something (L2-088 AC4, L2-014 AC3): the video that cannot play, under
    the video, and the bike that is set by hand, under the bike panel. Each is an .inline-message--warn, a polite status,
    and sits space-2 under what it speaks of, nearer than the stage's gap, so both fit a phone on its side. */

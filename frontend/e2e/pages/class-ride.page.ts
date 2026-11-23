@@ -60,6 +60,18 @@ export class ClassRidePage {
   readonly paused: Locator;
   /** The same "Paused" over the course, in Ibiza (L2-091 AC1). */
   readonly coursePaused: Locator;
+  /** The course's canvas in the box, named for a screen reader once its first frame is drawn (L2-174 AC1). */
+  readonly course: Locator;
+  /** The canvas itself, drawn or not. */
+  readonly courseCanvas: Locator;
+  /** The course's still, which stands in the box until the course is drawn (L2-175 AC1). */
+  readonly courseStill: Locator;
+  /** "Loading Ibiza Sunset Strip" over the still (L2-175 AC1). */
+  readonly courseLoading: Locator;
+  /** Any video player's frame or cover on the screen; a ride in Ibiza has none (L2-174 AC1). */
+  readonly video: Locator;
+  /** Any screen or card that stands between the start button and the ride; there is none (L2-175). */
+  readonly loadingScreen: Locator;
   readonly lost: Locator;
   /** What the lost-bike alert says the ride is doing meanwhile (L2-092 AC1). */
   readonly lostBody: Locator;
@@ -85,11 +97,6 @@ export class ClassRidePage {
   /** The group board Telo Ride had; Telo Ride 1 has none (ADR 0038). */
   readonly board: Locator;
   readonly lower: Locator;
-  /** The class's world on the stage (class-ride/world): its panorama, the world drawn over it, and the video in the corner. */
-  readonly world: Locator;
-  readonly worldPanorama: Locator;
-  readonly worldScene: Locator;
-  readonly worldVideo: Locator;
 
   constructor(private readonly page: Page) {
     this.heading = page.getByRole('heading', { level: 1 });
@@ -99,7 +106,7 @@ export class ClassRidePage {
     this.pauseLabel = page.locator('.class-ride__pause-label');
     this.body = page.locator('.class-ride__body');
     this.box = page.locator(
-      '.class-ride__stage > wz-class-video > .class-video, .class-ride__stage > wz-class-world > .class-world',
+      '.class-ride__stage > wz-class-video > .class-video, .class-ride__stage > wz-class-course > .class-course',
     );
     this.panel = page.locator('.class-bike');
     this.name = page.locator('.class-ride__name');
@@ -118,7 +125,20 @@ export class ClassRidePage {
     this.paused = page.locator('.class-video__paused');
     this.lost = page.getByRole('alert').filter({ hasText: 'Lost the bike' });
     this.lostBody = this.lost.locator('.class-lost__body');
-    this.coursePaused = page.locator('.class-world__paused');
+    this.coursePaused = page.locator('.class-course__paused');
+    this.course = page
+      .locator('.class-course')
+      .getByRole('img', { name: 'Ibiza Sunset Strip', exact: true });
+    this.courseCanvas = page.locator('.class-course canvas');
+    this.courseStill = page
+      .locator('.class-course')
+      .getByRole('img', { name: 'Ibiza Sunset Strip: a seafront road at sunset' });
+    this.courseLoading = page.locator('.class-course').getByRole('status');
+    this.video = page.locator('.class-video, iframe');
+    this.loadingScreen = page
+      .locator('.world-loading, .load-card')
+      .or(page.getByRole('button', { name: 'Start riding' }))
+      .or(page.getByRole('progressbar'));
     this.confirmation = page.getByRole('dialog').or(page.getByRole('alertdialog'));
     this.statuses = page.locator('.class-ride').getByRole('status');
     this.reconnect = page.getByRole('button', { name: 'Reconnect' });
@@ -138,10 +158,6 @@ export class ClassRidePage {
     this.raise = page.getByRole('button', { name: 'Raise resistance' });
     this.board = page.getByRole('complementary', { name: 'Group board' });
     this.lower = page.getByRole('button', { name: 'Lower resistance' });
-    this.world = page.locator('.class-world');
-    this.worldPanorama = this.world.locator('.class-world__panorama');
-    this.worldScene = this.world.locator('canvas.world-scene');
-    this.worldVideo = this.world.locator('.class-world__video .class-video');
   }
 
   /** Opens the ride's address with a group session named in it, as a bookmark from Telo Ride would (ADR 0038). */

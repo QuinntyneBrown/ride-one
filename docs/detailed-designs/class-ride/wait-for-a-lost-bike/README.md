@@ -33,7 +33,7 @@ Neighbouring features own the adjacent concerns:
 
 ## Description
 
-The slice lives in the Ride app: `ClassRideStore` and `ClassRideSession` in the `ride`
+The slice lives in the Ride app: `ClassRideStore` and `ClassRidePage` in the `ride`
 application, the alert in `components`, and the link in `domain`'s `bluetooth/`. Slice 31.2
 built it on the carried-over ride: the alert's copy, the header's button and the header above
 the alert as the mock `docs/mocks/pages/class-ride/disconnected.html` draws them, the copy in
@@ -98,7 +98,7 @@ Ibiza (`disconnected-ibiza.html`), `rideHold()` and `WorkoutEngine.resend()`.
   while the bike is lost forgets the kept target and leaves the retries running on The Class, as
   [pause, leave or finish the class](../pause-leave-or-finish-the-class/README.md) describes.
 - **Paused overlay**. The mock draws no "Paused" overlay under the alert, so `ClassVideo.paused`
-  (and `ClassWorld.paused` in Ibiza) follows the rider's own pause alone.
+  (and `ClassCourse.paused` in Ibiza) follows the rider's own pause alone.
 
 The level after a reconnect reaches the bike in two steps. The connection sends its kept target
 resistance first (`L2-017` AC4); that target is the current segment's level or the rider's last

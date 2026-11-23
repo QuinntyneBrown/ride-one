@@ -56,35 +56,10 @@ export { SCREEN_WAKE_LOCK, type ScreenWakeLock } from './screen/screen-wake-lock
 export { APP_UPDATES, type AppUpdates } from './app-update/app-updates';
 export { RIDE_ACTIVITY, type RideActivity } from './app-update/ride-activity';
 export type { ClassResult } from './classes/class-result';
-export type {
-  AmbiencePreset,
-  Backend,
-  SceneRider,
-  TimedSegment,
-  World,
-  WorldId,
-  WorldRidePacer,
-  WorkoutStatus,
-} from './world/world';
 export {
-  WORLD_RENDERER,
-  type SceneFrame,
-  type SceneryRequest,
-  type SceneryState,
-  type PreparedWorld,
-  type WorldRenderer,
-  type WorldRendererLoader,
-  type WorldStartOptions,
-  type WorldStartProgress,
-  type WorldTier,
-} from './world/world-renderer';
-export {
-  WORLD_DOWNLOADER,
-  WorldDownloadError,
-  type WorldDownloader,
-  type WorldDownloadProgress,
-} from './world/world-downloader';
-export { WORLD_PANORAMAS, panoramaUrl } from './world/world-panoramas';
-export type { LoadStepState, LoadStepView } from './world/load-step-view';
-export { AUTO_QUALITY, type WorldQuality } from './world/world-quality';
-export type { RealPlace } from './world/real-place';
+  COURSE_RENDERER,
+  type Backend,
+  type CourseFrame,
+  type CourseRenderer,
+  type CourseRendererLoader,
+} from './course/course-renderer';

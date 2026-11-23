@@ -1,5 +1,4 @@
 import type { Plan } from '../workout/plan';
-import type { WorldId } from '../world/world';
 
 /**
  * A class's video (ADR 0012): the YouTube video id and the sync offset, the second of the video at which the ride's
@@ -11,8 +10,8 @@ export interface ClassVideo {
 }
 
 /**
- * The class as the app holds it (L2-080, ADR 0037): its words, its length, the plan the ride follows, its video and
- * the world it is ridden in. Telo Ride 1 has one, shipped with the app.
+ * The class as the app holds it (L2-080, ADR 0037): its words, its length, the plan the ride follows and its video.
+ * Telo Ride 1 has one, shipped with the app, and one course to ride it in, which the class does not name (L2-173 AC9).
  */
 export interface ClassDefinition {
   readonly id: string;
@@ -21,7 +20,6 @@ export interface ClassDefinition {
   readonly focus: string;
   readonly lengthSeconds: number;
   readonly summary: string;
-  readonly world: WorldId;
   readonly plan: Plan;
   readonly video: ClassVideo;
 }

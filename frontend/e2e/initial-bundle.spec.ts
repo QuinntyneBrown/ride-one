@@ -1,16 +1,17 @@
 // Acceptance test
 // Traces to: L2-136 AC1
-// Description: the production build keeps the 3D world out of the first load. The class opens without a byte of Three.js;
-// the world's code arrives only when a class's world loads and draws it. The initial bundle's gzipped size is checked by
-// `npm run bundle:size` after the build, in verify and CI.
+// Description: the production build keeps the 3D renderer out of the first load. The class opens without a byte of
+// Three.js, a ride with the class video never fetches it, and it arrives only when a ride in Ibiza starts. The initial
+// bundle's gzipped size is checked by `npm run bundle:size` after the build, in verify and CI.
 import { echelonBike } from './fixtures/echelon';
-import { startClassRideInWorld } from './fixtures/class-ride';
+import { startClassRide } from './fixtures/class-ride';
+import { CourseFiles } from './fixtures/course-files';
 import { ScriptLog } from './fixtures/scripts';
 import { expect, test } from './fixtures/test';
 import { TheClassPage } from './pages/the-class.page';
 
 test(
-  'the class opens without the 3D world’s code (L2-136 AC1)',
+  'the class opens without the 3D renderer’s code (L2-136 AC1)',
   { tag: '@critical' },
   async ({ page, bluetooth }) => {
     await bluetooth.remember(echelonBike);
@@ -24,17 +25,28 @@ test(
   },
 );
 
-test('the 3D world’s code arrives when a class’s world loads and draws it (L2-136 AC1)', async ({
+test('the 3D renderer’s code arrives when a ride in Ibiza starts, and never with the class video (L2-136 AC1, L2-175 AC1)', async ({
   page,
   bluetooth,
   api,
-  webgl,
 }) => {
-  test.setTimeout(180_000);
-  await webgl.withoutWebGpu();
   const scripts = new ScriptLog(page);
-  const ride = await startClassRideInWorld(page, bluetooth, api);
+  const ride = await startClassRide(page, bluetooth, api);
+  await page.clock.runFor(3_000);
+  await expect(ride.clock).toHaveText(/^0:03/);
+  expect(await scripts.hasWorldCode()).toBe(false);
+  await ride.leave.click();
+  await page.clock.runFor(100);
+  await page.clock.resume();
 
-  await expect(ride.worldScene).toBeVisible();
-  expect(await scripts.hasWorldCode()).toBe(true);
+  // The spec is about what is fetched and not the drawing: the course's files are held.
+  const files = await CourseFiles.install(page);
+  files.hold();
+  const home = new TheClassPage(page);
+  await home.ibiza.click();
+  await home.start.click();
+
+  await expect(ride.courseLoading).toBeVisible();
+  await expect.poll(() => scripts.hasWorldCode()).toBe(true);
+  await files.dispose();
 });

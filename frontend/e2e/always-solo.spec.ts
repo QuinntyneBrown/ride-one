@@ -4,12 +4,12 @@
 // a group session, `/ride?session=…`, starts no ride of its own (L2-087 AC4): it opens The Class, and the class is ridden solo from
 // there, with Pause, no board, no request about a group session and no hub connection.
 import { connectBike } from './fixtures/class-ride';
+import { CourseFiles } from './fixtures/course-files';
 import { echelonBike } from './fixtures/echelon';
 import { keptRideWith } from './fixtures/how-to-ride';
 import { expect, test } from './fixtures/test';
 import { ClassRidePage } from './pages/class-ride.page';
 import { TheClassPage } from './pages/the-class.page';
-import { WorldLoadingPage } from './pages/world-loading.page';
 
 test.describe('Always solo', () => {
   test('The Class offers no group session (ADR 0038) @critical', async ({
@@ -31,8 +31,10 @@ test.describe('Always solo', () => {
   test('an address with ?session= opens The Class, and the class is ridden solo with no hub connection (ADR 0038, L2-087 AC4)', async ({
     page,
     bluetooth,
-    webgl,
   }) => {
+    // The spec is about the ride and not the course: its files are held, so nothing is drawn.
+    const files = await CourseFiles.install(page);
+    files.hold();
     const asked: string[] = [];
     page.on('request', (request) => asked.push(new URL(request.url()).pathname));
     await bluetooth.remember(echelonBike);
@@ -44,15 +46,12 @@ test.describe('Always solo', () => {
     await expect(home.start).toHaveText('Start class');
     await home.start.click();
 
-    const loading = new WorldLoadingPage(page);
-    await expect(loading.eyebrow).toContainText('Solo');
-    await loading.startRiding();
-
     await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
     await expect(ride.pause).toBeVisible();
     await expect(ride.board).toHaveCount(0);
     expect(asked.filter((path) => path.startsWith('/hubs/') || path.includes('/sessions'))).toEqual(
       [],
     );
+    await files.dispose();
   });
 });

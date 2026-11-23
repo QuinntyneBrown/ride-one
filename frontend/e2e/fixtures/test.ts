@@ -5,7 +5,7 @@ import { ContentSecurityPolicyFixture } from './content-security-policy';
 import { FakeBluetooth } from './fake-bluetooth';
 import { WakeLockFixture } from './wake-lock';
 import { FakeWebGl } from './webgl';
-import { WorldRideProbe } from './world-ride-probe';
+import { CourseProbe } from './course-probe';
 import { YouTubeFixture } from './youtube';
 
 interface Fixtures {
@@ -23,8 +23,8 @@ interface Fixtures {
   webgl: FakeWebGl;
   /** The fake `navigator.clipboard`: the texts the page copied, and a browser that refuses to copy. */
   clipboard: ClipboardFixture;
-  /** `main`'s test-only hook into the world's renderer: pins its quality tier and reads what it draws. */
-  worldRide: WorldRideProbe;
+  /** The test-only hook into the course's renderer: pins the step it draws at and reads what it drew. */
+  course: CourseProbe;
   guard: void;
 }
 
@@ -53,8 +53,8 @@ export const test = base.extend<Fixtures>({
   clipboard: async ({ page }, use) => {
     await use(await ClipboardFixture.install(page));
   },
-  worldRide: async ({ page }, use) => {
-    await use(new WorldRideProbe(page));
+  course: async ({ page }, use) => {
+    await use(new CourseProbe(page));
   },
   wakeLock: [
     async ({ page }, use) => {

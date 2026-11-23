@@ -104,11 +104,15 @@
         "L2-092",
         "L2-093",
         "L2-135",
-        "L2-174"
+        "L2-173",
+        "L2-174",
+        "L2-175"
       ],
       "states": [
         "default",
         "paused",
+        "ibiza",
+        "ibiza-loading",
         "paused-ibiza",
         "off-target",
         "video-unavailable",
@@ -118,7 +122,7 @@
         "disconnected-ibiza"
       ],
       "not_applicable": {
-        "loading": "The ride starts from The Class with the bike already connected and the plan in memory; there is nothing to wait for.",
+        "loading": "The ride itself never loads: it starts from The Class with the bike connected and the plan in memory. In Ibiza the course loads in its box while the ride runs, which is the state ibiza-loading.",
         "empty": "A ride always has its plan, its clock and the bike’s readings.",
         "error": "A ride has three failures, each its own state: the lost bike (disconnected), the video that cannot play (video-unavailable) and the bike that gives no control (by-hand)."
       }
