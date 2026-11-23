@@ -11,7 +11,12 @@ export {
   type BluetoothSupport,
   type BluetoothSupportState,
 } from './bike/bluetooth-support';
-export { REMEMBERED_BIKE, type RememberedBike } from './bike/remembered-bike';
+export {
+  REMEMBERED_BIKE,
+  type RememberedBike,
+  type RememberedBikeRecord,
+} from './bike/remembered-bike';
+export { FINISHED_RIDES, type FinishedRides } from './rides/finished-rides';
 export type { ResistanceSource, SentCommand } from './bike/sent-command';
 export type { BikeSupportLevel, SupportedBike } from './bike/supported-bike';
 export type { TelemetrySample } from './bike/telemetry-sample';

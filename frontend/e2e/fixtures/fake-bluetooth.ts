@@ -8,7 +8,12 @@ export interface FakeBike {
   card?: { name: string; identifier: string | null };
   /** What `readValue` returns for a readable characteristic; reading any other is unexpected. */
   values?: Record<string, number[]>;
+  /** The browser's identifier for the device; every bike is `fake-bike` unless the spec tells two apart. */
+  id?: string;
 }
+
+/** Telo Ride 1's record of the remembered bike, as it lies in the browser's storage. */
+export type StoredBike = Record<string, unknown> | null;
 
 /** One write the page made, in the order it made them. */
 export interface RecordedWrite {
@@ -76,6 +81,23 @@ export class FakeBluetooth {
     await this.page.evaluate(installInPage);
   }
 
+  /**
+   * From the next page load, the browser has Web Bluetooth but no `navigator.bluetooth.getDevices()`, as a Chromium
+   * without the permissions backend: a paired bike cannot be found again without the chooser (L2-015 AC2).
+   */
+  async withoutGetDevices(): Promise<void> {
+    await this.page.addInitScript(() =>
+      Object.defineProperty(navigator.bluetooth, 'getDevices', { value: undefined }),
+    );
+  }
+
+  /** What Telo Ride 1 keeps of the remembered bike, read from the browser's storage as it lies there (L2-015 AC4). */
+  remembered(): Promise<StoredBike> {
+    return this.page.evaluate(
+      () => JSON.parse(localStorage.getItem('telo-ride.bike') ?? 'null') as StoredBike,
+    );
+  }
+
   /** Offers `bike` to `requestDevice` and `getDevices`, from the next page load and on the current page. */
   async offer(bike: FakeBike): Promise<void> {
     await this.page.addInitScript(
@@ -86,26 +108,15 @@ export class FakeBluetooth {
   }
 
   /**
-   * A bike this browser paired earlier: Telo Ride's record of it (`telo-ride.bike` in localStorage) and the
-   * permission `getDevices()` returns it by, so the app can reconnect without the chooser (L2-015). With
-   * `lastSeenDaysAgo`, the record says the app last connected it that many days ago (L2-113 AC4).
+   * A bike this browser paired earlier, so its rider is a returning one: Telo Ride 1's record of it (`telo-ride.bike`
+   * in localStorage, the identifier and the name) and the permission `getDevices()` returns it by, so the app opens on
+   * The Class and can reconnect without the chooser (L2-015, L2-167 AC2).
    */
-  async remember(
-    bike: FakeBike,
-    { lastSeenDaysAgo }: { lastSeenDaysAgo?: number } = {},
-  ): Promise<void> {
+  async remember(bike: FakeBike): Promise<void> {
     await this.offer(bike);
-    const { name, identifier } = bike.card ?? { name: bike.name, identifier: null };
-    const seenAt =
-      lastSeenDaysAgo === undefined
-        ? undefined
-        : new Date(Date.now() - lastSeenDaysAgo * 86_400_000).toISOString();
     const record = JSON.stringify({
-      id: FAKE_DEVICE_ID,
-      name,
-      identifier,
-      kind: 'echelon',
-      seenAt,
+      id: bike.id ?? FAKE_DEVICE_ID,
+      name: bike.card?.name ?? bike.name,
     });
     await this.page.addInitScript((value) => localStorage.setItem('telo-ride.bike', value), record);
   }
@@ -152,9 +163,12 @@ export class FakeBluetooth {
     await this.power(false);
   }
 
-  /** The bike is switched on and pedalled: GATT connects again. */
+  /** The bike is switched on and pedalled: GATT connects again, and a page watching for the bike hears it advertise. */
   async switchOn(): Promise<void> {
     await this.power(true);
+    await this.page.evaluate(() =>
+      (window as unknown as { __fakeBluetooth: { advertise(): void } }).__fakeBluetooth.advertise(),
+    );
   }
 
   private async power(on: boolean): Promise<void> {
@@ -261,6 +275,7 @@ function installInPage(): void {
     name: string;
     services: Record<string, string[]>;
     values?: Record<string, number[]>;
+    id?: string;
   }
   const report = (window as unknown as { __fakeBluetoothReport(r: unknown): Promise<void> })
     .__fakeBluetoothReport;
@@ -291,6 +306,13 @@ function installInPage(): void {
 
   const subscriptions = new Map<string, EventTarget[]>();
   const devices: { device: EventTarget; server: { connected: boolean } }[] = [];
+  /** The devices the page watches for advertisements, each until its signal aborts. */
+  const watching = new Set<EventTarget>();
+  const bikeOn = (): boolean =>
+    (window as unknown as { __fakeBikeOn?: boolean }).__fakeBikeOn !== false;
+  const advertise = (): void => {
+    for (const watched of [...watching]) watched.dispatchEvent(new Event('advertisementreceived'));
+  };
   const characteristic = (bike: Bike, uuid: string) => {
     const write = async (value: BufferSource, withResponse: boolean) =>
       report({ kind: 'write', characteristic: uuid, hex: hex(value), withResponse });
@@ -337,7 +359,7 @@ function installInPage(): void {
       connected: false,
       device: null as unknown,
       connect: async () => {
-        if ((window as unknown as { __fakeBikeOn?: boolean }).__fakeBikeOn === false)
+        if (!bikeOn())
           throw new DOMException('Bluetooth Device is no longer in range.', 'NetworkError');
         server.connected = true;
         return gatt;
@@ -353,7 +375,17 @@ function installInPage(): void {
     };
     const gatt = strict(server, 'gatt');
     const d = strict(
-      Object.assign(new EventTarget(), { id: 'fake-bike', name: bike.name, gatt }),
+      Object.assign(new EventTarget(), {
+        id: bike.id ?? 'fake-bike',
+        name: bike.name,
+        gatt,
+        // A bike that is switched on advertises at once; one that is off, when the spec switches it on.
+        watchAdvertisements: async (options?: { signal?: AbortSignal }) => {
+          watching.add(d);
+          options?.signal?.addEventListener('abort', () => watching.delete(d));
+          if (bikeOn()) setTimeout(() => watching.has(d) && advertise(), 0);
+        },
+      }),
       'device',
     );
     server.device = d;
@@ -397,6 +429,7 @@ function installInPage(): void {
   Object.defineProperty(navigator, 'bluetooth', { value: bluetooth, configurable: true });
   Object.assign(window, {
     __fakeBluetooth: {
+      advertise,
       drop: () => {
         subscriptions.clear();
         for (const { device, server } of devices.filter(({ server }) => server.connected)) {

@@ -34,7 +34,7 @@ Telo Ride 1's journeys, ordered by value added to the product, scaffolding first
 |---|---------|-------------|------|-----------|
 | 28 | Make it Telo Ride 1 | Decide the backend, take out what Telo Ride 1 leaves out, the TELO RIDE 1 wordmark, static hosting. | 15 | 100% |
 | 29 | Pair the bike | Connect Bike as designed: pair once, and say why when the bike cannot be reached. | 5 | 100% |
-| 30 | Open on The Class | The one class on the home screen: video, length, how to ride it, what the bike will do and one start button. | 12 | 67% |
+| 30 | Open on The Class | The one class on the home screen: video, length, how to ride it, what the bike will do and one start button. | 12 | 83% |
 | 31 | Take the class | Class Ride as designed: pause, lose the bike, leave or ride to the finish. | 8 | 0% |
 | 37 | Ride in Ibiza | The Ibiza Sunset Strip course in the video's box, placed by the clock, with no loading screen; *Beautiful Boom Bap* and its Music button; the course's budgets on a low-power tablet. | 20 | 0% |
 | 32 | See your number | Class Done: output in kJ, best, time, average, on target and the eight efforts; the record to beat. | 11 | 0% |
@@ -43,5 +43,5 @@ Telo Ride 1's journeys, ordered by value added to the product, scaffolding first
 | 35 | Keep it private | Nothing loads from or goes to a third party but YouTube; bike and stored data are untrusted. | 3 | 0% |
 | 36 | Use by touch, keyboard and screen reader | Every width, 44 px targets, keyboard paths, announcements, motion, theme, full screen. | 8 | 0% |
 
-**Total:** 119 days. **Complete:** 55 days (46%), 27 of them carried over. **To build:** 64 days.
+**Total:** 119 days. **Complete:** 57 days (48%), 27 of them carried over. **To build:** 62 days.
 Journey 37 was added by slice 30.2 and is built after journey 31, so its number is out of order.

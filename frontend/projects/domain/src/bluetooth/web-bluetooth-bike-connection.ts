@@ -6,6 +6,7 @@ import {
   BikeConnectionError,
   type BikeInfo,
   type BleState,
+  type RememberedBikeRecord,
   TICKER,
 } from '@telo/api';
 import { Subject, firstValueFrom } from 'rxjs';
@@ -38,6 +39,11 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private device: BluetoothDevice | null = null;
   private watched: BluetoothDevice | null = null;
   private link: BikeLink | null = null;
+  /** The wait for the remembered bike to advertise: what ends it, and what it resolves to (L2-015 AC1). */
+  private advertising: {
+    readonly abort: AbortController;
+    readonly connected: Promise<boolean>;
+  } | null = null;
   /** The last target resistance asked for, sent again first after a reconnect (L2-017 AC4). */
   private target: number | null = null;
   private readonly onDisconnected = (): void => this.onDrop();
@@ -80,6 +86,8 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
    */
   async connect(): Promise<void> {
     if (!this.device?.gatt) throw new BikeConnectionError('failed', 'No bike was chosen');
+    // A bike the rider picks in the chooser ends the wait for the remembered one.
+    this.stopWaiting();
     this.watch(this.device);
     this.linkState.set('connecting');
     try {
@@ -165,21 +173,72 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     this.link = null;
   }
 
-  /** Finds the permitted device by id through `getDevices()` and connects to it; `false` where that cannot work. */
-  async reconnectRemembered(bike: BikeInfo): Promise<boolean> {
+  /**
+   * Finds the permitted device by id through `getDevices()` and connects to it as soon as it advertises (L2-015 AC1);
+   * `false` where that cannot work. A browser without `watchAdvertisements()` gets one attempt at once. While the
+   * bike stays silent the link reads `idle`, so The Class shows no bike (AC2).
+   */
+  async reconnectRemembered(bike: RememberedBikeRecord): Promise<boolean> {
     if (this.link) return true;
+    if (this.advertising) return this.advertising.connected;
     const bluetooth = 'bluetooth' in navigator ? navigator.bluetooth : undefined;
     if (typeof bluetooth?.getDevices !== 'function') return false;
     try {
       const device = (await bluetooth.getDevices()).find((permitted) => permitted.id === bike.id);
       if (!device) return false;
+      // The rider paired a bike while the browser was listing its devices: that one stands.
+      if (this.link || this.linkState() === 'connecting') return true;
+      // Asked twice before the browser answered: the second call joins the first one's wait.
+      const waiting = this.waiting();
+      if (waiting) return await waiting;
       this.device = device;
-      this.chosen.set(bike);
-      await this.connect();
-      return true;
+      // The identifier and the protocol are read from the device; only its name was kept (AC4).
+      this.chosen.set({ ...this.info(device), name: bike.name });
+      if (typeof device.watchAdvertisements !== 'function') {
+        await this.connect();
+        return true;
+      }
+      return await this.whenAdvertising(device);
     } catch {
       return false;
     }
+  }
+
+  /** Watches the permitted device and connects on its first advertisement; `false` when the wait is ended first. */
+  private whenAdvertising(device: BluetoothDevice): Promise<boolean> {
+    const abort = new AbortController();
+    const { signal } = abort;
+    const connected = new Promise<boolean>((resolve) => {
+      let reached = false;
+      const connect = (): void => {
+        if (reached || signal.aborted) return;
+        reached = true;
+        // The bike is here: the browser's watch ends, and the wait with it.
+        this.advertising = null;
+        abort.abort();
+        this.connect().then(
+          () => resolve(true),
+          () => resolve(false),
+        );
+      };
+      signal.addEventListener('abort', () => !reached && resolve(false), { once: true });
+      device.addEventListener('advertisementreceived', connect, { once: true, signal });
+      // A browser that cannot watch after all gets the one attempt at once.
+      device.watchAdvertisements({ signal }).catch(connect);
+    });
+    this.advertising = { abort, connected };
+    return connected;
+  }
+
+  /** The wait under way, read afresh after an `await`. */
+  private waiting(): Promise<boolean> | null {
+    return this.advertising?.connected ?? null;
+  }
+
+  /** Ends the wait for the remembered bike, and the browser's watch with it. */
+  private stopWaiting(): void {
+    this.advertising?.abort.abort();
+    this.advertising = null;
   }
 
   async setResistance(level: number): Promise<number> {
@@ -194,6 +253,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   }
 
   disconnect(): void {
+    this.stopWaiting();
     this.reconnector.stop();
     this.closeLink();
     this.linkState.set('idle');

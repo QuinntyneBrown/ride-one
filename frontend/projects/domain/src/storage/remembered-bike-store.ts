@@ -1,19 +1,20 @@
 import { DOCUMENT, Injectable, inject } from '@angular/core';
-import type { BikeInfo, RememberedBike } from '@telo/api';
+import type { RememberedBike, RememberedBikeRecord } from '@telo/api';
 
 /** Where the record lives in localStorage. */
 export const REMEMBERED_BIKE_KEY = 'telo-ride.bike';
 
 /**
- * The remembered bike as one JSON record in localStorage, read synchronously so the guard can choose the class or Connect
- * Bike at start-up (docs/detailed-designs/bike/connect-a-bike). A record it cannot parse, or storage the browser
- * refuses, counts as no bike.
+ * The remembered bike as one JSON record in localStorage, read synchronously so the guard can choose The Class or
+ * Connect Bike at start-up (docs/detailed-designs/bike/keep-the-bike-connected). It holds the browser's identifier
+ * for the bike and its name, and nothing else (L2-015 AC4); the protocol is read from the bike when it reconnects.
+ * A record it cannot parse, or storage the browser refuses, counts as no bike.
  */
 @Injectable()
 export class RememberedBikeStore implements RememberedBike {
   private readonly window = inject(DOCUMENT).defaultView;
 
-  get(): BikeInfo | null {
+  get(): RememberedBikeRecord | null {
     try {
       const raw = this.window?.localStorage.getItem(REMEMBERED_BIKE_KEY);
       return raw ? parse(JSON.parse(raw)) : null;
@@ -22,31 +23,12 @@ export class RememberedBikeStore implements RememberedBike {
     }
   }
 
-  save(bike: BikeInfo): void {
-    const { id, name, identifier, kind } = bike;
+  save(bike: RememberedBikeRecord): void {
+    const { id, name } = bike;
     try {
-      this.window?.localStorage.setItem(
-        REMEMBERED_BIKE_KEY,
-        JSON.stringify({ id, name, identifier, kind, seenAt: new Date().toISOString() }),
-      );
+      this.window?.localStorage.setItem(REMEMBERED_BIKE_KEY, JSON.stringify({ id, name }));
     } catch {
       // Storage refused (private mode, quota): the rider picks the bike again next time.
-    }
-  }
-
-  lastSeen(): Date | null {
-    try {
-      const raw = this.window?.localStorage.getItem(REMEMBERED_BIKE_KEY);
-      const record: unknown = raw ? JSON.parse(raw) : null;
-      if (typeof record !== 'object' || record === null) return null;
-      // A record saved before slice 25.1 has only when the bike was paired.
-      const { seenAt, pairedAt } = record as Record<string, unknown>;
-      const at =
-        typeof seenAt === 'string' ? seenAt : typeof pairedAt === 'string' ? pairedAt : null;
-      const date = at === null ? null : new Date(at);
-      return date === null || Number.isNaN(date.getTime()) ? null : date;
-    } catch {
-      return null;
     }
   }
 
@@ -59,11 +41,10 @@ export class RememberedBikeStore implements RememberedBike {
   }
 }
 
-function parse(value: unknown): BikeInfo | null {
+/** The identifier and the name of a record, whatever else an earlier version wrote beside them. */
+function parse(value: unknown): RememberedBikeRecord | null {
   if (typeof value !== 'object' || value === null) return null;
-  const { id, name, identifier, kind } = value as Record<string, unknown>;
+  const { id, name } = value as Record<string, unknown>;
   if (typeof id !== 'string' || !id || typeof name !== 'string') return null;
-  if (identifier !== null && typeof identifier !== 'string') return null;
-  if (kind !== 'echelon' && kind !== 'ftms') return null;
-  return { id, name, identifier, kind };
+  return { id, name };
 }

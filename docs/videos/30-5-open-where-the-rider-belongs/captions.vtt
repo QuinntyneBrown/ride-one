@@ -1,0 +1,70 @@
+WEBVTT
+
+00:00:02.581 --> 00:00:06.978
+Open where the rider belongs: Connect Bike for a new rider, and The Class for
+
+00:00:06.978 --> 00:00:08.077
+everyone else.
+
+00:00:10.324 --> 00:00:15.348
+A new rider has no remembered bike and no finished ride. Opening the app takes them
+
+00:00:15.348 --> 00:00:20.130
+straight to Connect Bike. The choice is read from the device before anything is
+
+00:00:20.130 --> 00:00:22.730
+drawn, so The Class never shows first.
+
+00:00:25.809 --> 00:00:30.352
+In a browser that cannot reach a bike, a new rider still lands on Connect Bike,
+
+00:00:30.352 --> 00:00:31.515
+which says why.
+
+00:00:36.133 --> 00:00:40.329
+A rider who has paired a bike opens on The Class, whether or not the bike is
+
+00:00:40.329 --> 00:00:44.635
+connected. With the bike switched off, the header reads No bike, and the start
+
+00:00:44.635 --> 00:00:46.646
+button reads Connect your bike.
+
+00:00:51.618 --> 00:00:56.625
+Switch the bike on, and it reconnects as soon as it advertises, with no chooser.
+
+00:00:56.625 --> 00:01:01.443
+Only its name and the browser's identifier are kept, on the device. Pairing a
+
+00:01:01.443 --> 00:01:03.433
+different bike replaces it.
+
+00:01:07.104 --> 00:01:10.092
+Where a new rider starts, from a phone to a desktop.
+
+00:01:17.428 --> 00:01:22.633
+The tests came first. Five failed, as expected; thirteen passed at once, on the code
+
+00:01:22.633 --> 00:01:27.651
+carried over. Now two hundred and forty-four specs and one thousand three hundred
+
+00:01:27.651 --> 00:01:29.996
+and eighty-three unit tests pass.
+
+00:01:32.913 --> 00:01:38.568
+Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class,
+
+00:01:38.568 --> 00:01:39.764
+nothing else.
+
+00:01:40.109 --> 00:01:45.061
+It pairs with a smart bike at home over Bluetooth, plays the class video, or draws
+
+00:01:45.061 --> 00:01:50.073
+the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's
+
+00:01:50.073 --> 00:01:53.574
+resistance for every interval while the rider pedals.
+
+00:01:53.919 --> 00:01:57.895
+Connect the bike, take the class, see your number, and come back to beat it.

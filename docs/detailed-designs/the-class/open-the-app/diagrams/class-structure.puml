@@ -19,7 +19,7 @@ class rideRoutes <<config>> {
   +"ride": classRideRoutes, canActivate connectedBikeGuard
   +"done": classDoneRoutes, canActivate classDoneGuard
   +"**": NotFoundPage
-  +providers: provideBikeConnection(), RIDE_RECORD, FINISHED_RIDE
+  +providers: provideBikeConnection(), FINISHED_RIDES
 }
 
 class rememberedBikeGuard <<CanActivateFn>> {
@@ -32,15 +32,12 @@ interface RememberedBike {
   +forget(): void
 }
 
-interface RideRecord {
-  +current: Signal<RecordData | null>
-  +add(outputKj: number): RecordOutcome
+interface FinishedRides {
+  +any(): boolean
 }
 
-class RecordData {
-  +rides: number
-  +bestOutputKj: number
-  +lastOutputKj: number
+class openingScreen <<function>> {
+  +(rider: { rememberedBike, finishedRide }): 'connect-bike' | 'the-class'
 }
 
 class RememberedBikeRecord {
@@ -54,14 +51,18 @@ interface BikeConnection {
 }
 
 class RememberedBikeStore
-class RideRecordStore
+class NoFinishedRides {
+  +any(): false
+}
+class RideRecordStore <<slice 32.1>>
 
 rideRoutes ..> rememberedBikeGuard : guards the empty path with
 rememberedBikeGuard ..> RememberedBike : reads
-rememberedBikeGuard ..> RideRecord : reads
+rememberedBikeGuard ..> FinishedRides : reads
+rememberedBikeGuard ..> openingScreen : asks for the screen
 rememberedBikeGuard ..> BikeConnection : starts the reconnect on
 RememberedBike ..> RememberedBikeRecord : returns
-RideRecord --> RecordData : holds
 RememberedBikeStore ..|> RememberedBike
-RideRecordStore ..|> RideRecord
+NoFinishedRides ..|> FinishedRides : until the record exists
+RideRecordStore ..|> FinishedRides : from slice 32.1
 @enduml

@@ -15,22 +15,24 @@ Container_Boundary(ride, "ride application") {
 }
 Container_Boundary(domain, "domain library") {
   Component(bikeStore, "RememberedBikeStore", "Storage service", "The remembered bike as one JSON record")
-  Component(recordStore, "RideRecordStore", "Storage service", "The record as one JSON record")
+  Component(rule, "openingScreen", "Pure function", "Connect Bike for a new rider, The Class for every other")
+  Component(recordStore, "NoFinishedRides", "Service", "Answers no finished ride until the record exists; RideRecordStore from slice 32.1")
 }
 Container_Boundary(api, "api library") {
   Component(bikeToken, "REMEMBERED_BIKE", "Injection token", "Contract RememberedBike")
-  Component(recordToken, "RIDE_RECORD", "Injection token", "Contract RideRecord")
+  Component(recordToken, "FINISHED_RIDES", "Injection token", "Contract FinishedRides")
 }
 
 Rel(rider, shell, "Opens the app at /")
 Rel(shell, routes, "Renders the matched route of")
 Rel(routes, guard, "Runs on the empty path")
 Rel(guard, bikeToken, "Reads the remembered bike through")
-Rel(guard, recordToken, "Reads the record through")
+Rel(guard, recordToken, "Reads whether a ride was finished through")
+Rel(guard, rule, "Asks for the screen")
 Rel(bikeStore, bikeToken, "Implements")
 Rel(recordStore, recordToken, "Implements")
 Rel(bikeStore, storage, "Reads", "localStorage")
-Rel(recordStore, storage, "Reads", "localStorage")
+Rel(recordStore, storage, "Reads, from slice 32.1", "localStorage")
 Rel(routes, connect, "Loads for a new rider", "loadComponent")
 Rel(routes, theclass, "Loads for a returning rider", "loadChildren")
 @enduml
