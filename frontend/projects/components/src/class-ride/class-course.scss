@@ -72,3 +72,24 @@
   line-height: var(--line-height-lg);
   font-weight: var(--font-weight-semibold);
 }
+
+// The "Music" toggle in the box's top-right corner, over the course (docs/design-system class-course__music): a raised
+// button of at least 44 px (L2-176 AC5). It sits above the scene and below "Paused".
+.class-course__music {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+  min-width: var(--space-11);
+  min-height: var(--space-11);
+}
+
+.class-course__music-icon {
+  width: var(--space-5);
+  height: var(--space-5);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

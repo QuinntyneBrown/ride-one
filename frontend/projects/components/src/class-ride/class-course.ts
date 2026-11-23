@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Button } from '../button/button';
 import { InlineMessage } from '../inline-message/inline-message';
 
 /**
@@ -10,7 +11,7 @@ import { InlineMessage } from '../inline-message/inline-message';
  */
 @Component({
   selector: 'wz-class-course',
-  imports: [InlineMessage],
+  imports: [Button, InlineMessage],
   templateUrl: './class-course.html',
   styleUrl: './class-course.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,4 +27,10 @@ export class ClassCourse {
   readonly paused = input(false);
   /** Whether the course cannot be drawn: the still stays, "Loading …" goes and a notice stands under the box. */
   readonly unavailable = input(false);
+  /** Whether the music is on: the "Music" toggle in the corner is pressed (L2-176 AC5). */
+  readonly musicOn = input(true);
+  /** Whether the music can play: a toggle for music that cannot is disabled, with no alert (L2-176 AC7). */
+  readonly musicAvailable = input(true);
+  /** The rider pressed the "Music" toggle. */
+  readonly musicToggle = output<void>();
 }

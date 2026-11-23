@@ -143,7 +143,7 @@ export class ClassRideStore {
     // The music plays through a ride in Ibiza and holds with it, as the course does (L2-176 AC1, AC4); a ride with the
     // class video has its own sound and no music (AC3).
     if (this.way === 'ibiza') {
-      effect(() => (this.running() ? this.music.play() : this.music.pause()));
+      effect(() => (this.running() && this.music.on() ? this.music.play() : this.music.pause()));
     }
     this.start(inject(THE_CLASS).get());
     this.destroyRef.onDestroy(() => {
@@ -156,6 +156,14 @@ export class ClassRideStore {
       this.music.release();
       this.activity.end();
     });
+  }
+
+  /** The "Music" toggle: pressed while the music is on, disabled once it cannot be played (L2-176 AC5, AC7). */
+  readonly musicOn = this.music.on;
+  readonly musicAvailable = this.music.available;
+
+  toggleMusic(): void {
+    this.music.toggle();
   }
 
   /** Plays the class video in `host`, the frame the page renders once the class has arrived; called once. */

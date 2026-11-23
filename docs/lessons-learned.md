@@ -273,6 +273,42 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 37.6 The Music button (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first — saved time:** the three button specs failed on a button that was not there.
+- **L242 take the rule away — did not need it:** the specs asserted the pause, the unpressed state, the nothing-fetched
+  case and the disabled case, and each failed first.
+- **37.5's lesson on cores — saved time:** the button specs run with the course's files held and nothing drawn; the
+  layout specs were run with `--workers=2`, not the whole suite (memory was short and the full run was not repeated).
+- **L3, L25, L17 — saved time:** format first, asserted batches, exit statuses.
+
+**What slowed it down**
+
+- Windows `glob` returns backslash paths: the mock batch loaded the five Ibiza mocks again from disk under a second
+  key and overwrote its own edits. The batch asserted nothing wrote half, but it wrote the wrong half; `git checkout --
+  docs` and a rerun with `.replace("\\", "/")` fixed it.
+- The first test setup assumed `ibiza.html` had no button when the derived mocks were built from it; the batch's
+  assertion caught it before anything was written.
+
+**Decisions**
+
+- **The button is in the corner of the course's box, not in the header:** the header already hides its words below
+  384 px, and the music belongs to the course. It is a raised `wz-button` with `min-width` and `min-height` of 44 px,
+  `aria-pressed`, and a stroke through its note when off or unavailable, so colour is never the only carrier.
+- **A music that is off fetches nothing:** `play()` does nothing while the setting is off; the store plays only while
+  `running() && music.on()`.
+- **Unavailable is per ride:** the element's `error` event or a refused `play()` sets it, releasing the element
+  resets it, and nothing alerts (L2-176 AC7).
+- **The setting is one localStorage value, `telo-ride.music`,** written only as "off"; storage that is refused leaves
+  the music on for the visit.
+
+**New lessons**
+
+- A mock batch must key files by one spelling of their path: normalise `glob` results before comparing them with
+  paths built by hand.
+
 ### 37.5 Music (2026-11-23)
 
 **Applied from earlier**

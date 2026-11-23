@@ -114,6 +114,8 @@
         "ibiza",
         "ibiza-loading",
         "ibiza-unavailable",
+        "ibiza-music-off",
+        "ibiza-music-unavailable",
         "paused-ibiza",
         "off-target",
         "video-unavailable",

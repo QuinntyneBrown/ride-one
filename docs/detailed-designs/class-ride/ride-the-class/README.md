@@ -233,6 +233,14 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   and forgets it, on finish and when the page is destroyed. A refused `play()` is swallowed (the button and its
   disabled state are slice 37.6). Bound on the class ride route (`provideClassRide`). Open question 32 is
   whether the loop is gapless.
+  Slice 37.6 added the rider's side (`L2-176` AC5, AC7; the mocks `class-ride/ibiza`, `ibiza-music-off` and
+  `ibiza-music-unavailable`): `RideMusic.on` is the setting, kept in localStorage under `telo-ride.music` (only
+  "off" is written, so a rider starts with music), and `RideMusic.available` goes false when the track's element
+  errors or `play()` is refused, and true again when the ride's element is released. `toggle()` flips and keeps the
+  setting. The store plays only while `running() && music.on()`, so a ride with the music off fetches nothing. The
+  "Music" button is in `wz-class-course` (`musicOn`, `musicAvailable`, output `musicToggle`), at the top right of
+  the box: `aria-pressed`, a stroke through the note while off or unavailable, disabled when unavailable, with no
+  alert, and never under 44 px.
 - **A course that cannot be drawn** (slice 37.4; `L2-175` AC2, AC4, AC5; the mock `class-ride/ibiza-unavailable`).
   `CourseScene` emits `unavailable` once when the renderer's start fails (a file that is not there or `parseCourse`
   refuses) or when the canvas's graphics context is lost and does not come back within 3 seconds
