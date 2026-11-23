@@ -273,6 +273,20 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 34.1 Bundle budgets (2026-11-23)
+
+**What slowed it down**
+
+- Nothing: the 300 KB gzip limit is enforced by `npm run bundle:size` in verify and CI (79.27 kB now), every route is
+  lazy, and the renderer's laziness was already specified. The gap was the video player: a new spec shows `/connect`
+  and the not-found page fetch none of its code and The Class does. `ScriptLog.hasVideoPlayerCode` looks for the embed
+  host's name, which the minifier keeps. It passed on its first run; no product code changed.
+
+**New lessons**
+
+- When a requirement says "only where X shows", the spec needs a positive case (it does arrive on the screen that
+  shows it) as well as the negatives, or a changed marker string passes silently.
+
 ### 33.2 Ride without a network (2026-11-23)
 
 **What slowed it down**

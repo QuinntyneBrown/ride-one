@@ -50,3 +50,24 @@ test('the 3D renderer’s code arrives when a ride in Ibiza starts, and never wi
   await expect.poll(() => scripts.hasWorldCode()).toBe(true);
   await files.dispose();
 });
+
+test('the video player’s code arrives with The Class, and never on a screen with no video (L2-136 AC1)', async ({
+  page,
+  bluetooth,
+}) => {
+  const scripts = new ScriptLog(page);
+  await page.goto('/connect');
+  await expect(page.locator('main')).toBeAttached();
+  await page.waitForLoadState('networkidle');
+  expect(await scripts.hasVideoPlayerCode()).toBe(false);
+
+  await page.goto('/no-such-address');
+  await page.waitForLoadState('networkidle');
+  expect(await scripts.hasVideoPlayerCode()).toBe(false);
+
+  await bluetooth.remember(echelonBike);
+  const home = new TheClassPage(page);
+  await home.open();
+  await expect(home.main).toBeAttached();
+  await expect.poll(() => scripts.hasVideoPlayerCode()).toBe(true);
+});
