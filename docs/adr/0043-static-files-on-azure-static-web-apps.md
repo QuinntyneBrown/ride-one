@@ -54,7 +54,7 @@ Looked for and not found, a reason against:
   - `navigationFallback` rewrites an address that matches no file to `/index.html`, so the class
     ride's address and an unknown address are answered by the app (L2-149 AC1).
   - Its `exclude` leaves out the asset folders (`/courses/*`, `/draco/*`, `/fonts/*`, `/icons/*`,
-    `/machines/*`, `/maps/*`, `/music/*`) and any address ending in a file extension the build
+    `/machines/*`, `/maps/*`, `/music/*`, and `/riders/*` since ADR 0045) and any address ending in a file extension the build
     uses. A file that is not there is 404, never the app's shell: the service worker would keep a
     200 answer of HTML as the script or font it asked for. No route of the app ends in an
     extension or sits under those folders (L2's open question 19).

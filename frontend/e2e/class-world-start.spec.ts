@@ -1,5 +1,5 @@
 // Acceptance test
-// Traces to: L2-153 AC2, AC3, AC5; L2-157 AC1, AC2, AC3; L2-163 AC1
+// Traces to: L2-153 AC2, AC3, AC5; L2-157 AC1, AC2, AC3; L2-163 AC1; L2-174 AC11; L2-175 AC1
 // Description: a solo world class starts when its world is ready and its bike connected. World loading hands its warm
 // renderer to the class ride, whose stage shows the world, faded in, with the class video in the corner. (Ibiza
 // Sunset Strip has no panorama.) The world's track plays while no class video does.
@@ -11,6 +11,8 @@
 // second graphics context), and the first target resistance is sent.
 // Given reduced motion, when the world comes in, then it does so at once.
 // Given the class video cannot play, when the class rides in its world, then the world's own track plays.
+// Given a ride in Ibiza opens, when the course loads, then the rider built in Blender (`riders/rider.glb`, ADR 0045)
+// is fetched with it from the app's own origin, the course is not ready until it has come, and it is drawn with it.
 import { connectBike } from './fixtures/class-ride';
 import { echelonBike, targetResistanceWrite } from './fixtures/echelon';
 import { keptRideWith } from './fixtures/how-to-ride';
@@ -20,6 +22,8 @@ import { WorldAssets } from './fixtures/world-assets';
 import { WorldMusic } from './fixtures/world-music';
 import { ClassRidePage } from './pages/class-ride.page';
 import { WorldLoadingPage } from './pages/world-loading.page';
+
+const RIDER = '/riders/rider.glb';
 
 test.describe('Starting a world class', () => {
   let assets: WorldAssets;
@@ -95,6 +99,40 @@ test.describe('Starting a world class', () => {
     expect(await webgl.contexts()).toBe(contexts);
     // The class video plays with its own sound, so the world's track does not (L2-163 AC1).
     expect(await music.played()).toEqual([]);
+  });
+
+  test('the rider built in Blender is fetched with the course, which is not ready or drawn without it (L2-174 AC11, L2-175 AC1)', async ({
+    page,
+    bluetooth,
+  }) => {
+    assets.hold((path) => path === RIDER);
+    const answered: string[] = [];
+    page.on('response', (response) => {
+      const { pathname } = new URL(response.url());
+      if (response.ok() && pathname.startsWith('/courses/')) answered.push(pathname);
+    });
+    await ride.open(theClass.id);
+    await connectBike(bluetooth);
+
+    // The rider's file is asked for as the course's are, when the ride in Ibiza opens.
+    await expect.poll(() => assets.paths()).toContain(RIDER);
+    await expect
+      .poll(() => answered)
+      .toEqual(expect.arrayContaining(['/courses/ibiza.glb', '/courses/ibiza.course.json']));
+    // The map has come and the rider has not: the course is not ready.
+    await expect(loading.cardTitle).toHaveText('Getting Ibiza Sunset Strip ready');
+    await expect(loading.start).toBeDisabled();
+
+    const rider = page.waitForResponse((response) => new URL(response.url()).pathname === RIDER);
+    await assets.release();
+
+    const file = await rider;
+    expect(file.status()).toBe(200);
+    expect(file.headers()['content-type']).toBe('model/gltf-binary');
+    await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', { timeout: 60_000 });
+    await loading.start.click();
+    await expect(ride.worldScene).toBeVisible();
+    await expect(ride.worldScene).toHaveCSS('opacity', '1', { timeout: 30_000 });
   });
 
   test('with reduced motion the world comes in at once (L2-153 AC3)', async ({

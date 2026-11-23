@@ -229,7 +229,7 @@ test.describe('The Class', () => {
       const scripts = new ScriptLog(page);
       const course: string[] = [];
       page.on('request', (request) => {
-        if (/\/courses\//.test(request.url())) course.push(request.url());
+        if (/\/(courses|riders)\//.test(request.url())) course.push(request.url());
       });
       const theClass = new TheClassPage(page);
       await theClass.open();

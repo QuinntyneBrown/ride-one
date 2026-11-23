@@ -9,6 +9,7 @@
       "/machines/*",
       "/maps/*",
       "/music/*",
+      "/riders/*",
       "/*.{js,css,json,webmanifest,svg,png,jpg,ico,woff2,ogg,glb,wasm,map,txt}"
     ]
   },
