@@ -12,7 +12,7 @@ Container_Boundary(ride, "ride application") {
   Component(view, "theClassView", "Pure helper", "The class's words, the start button and the options of Ride with")
 }
 Container_Boundary(components, "components library") {
-  Component(block, "TheClass", "wz-the-class", "The the-class block: video box, details, plan slot and start button")
+  Component(block, "TheClass", "wz-the-class", "The the-class block: video box, details, what the bike will do and start button")
   Component(ridewith, "RideWith", "wz-ride-with", "The radio group Ride with")
   Component(bike, "TheClassBike", "a[wz-the-class-bike]", "The header's bike status link")
   Component(profile, "ClassProfile", "wz-class-profile", "Resistance profile as one image")
@@ -20,7 +20,7 @@ Container_Boundary(components, "components library") {
 Container_Boundary(domain, "domain library") {
   Component(rule, "ClassRule", "Pure helper", "Names the rule a class breaks")
   Component(shipped, "shippedClass", "TheClassSource", "INTERVALS_TO_THE_BEAT, checked on each read")
-  Component(summary, "PlanSummary", "Pure helper", "Plan structure and time-weighted target power")
+  Component(summary, "PlanSummary", "Pure helper", "The plan's efforts and its time-weighted target power")
   Component(ridewithrule, "rideWith", "Pure helper", "Ibiza when kept and drawable, else the class video")
   Component(kept, "HowToRideStore", "HowToRide", "The choice in localStorage")
   Component(graphics, "BrowserCourseGraphics", "CourseGraphics", "WebGPU or WebGL 2, asked once")

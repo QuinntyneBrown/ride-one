@@ -11,17 +11,19 @@ import {
 import type { RideWith as Way, TheClassView } from '@telo/api';
 import { Button } from '../button/button';
 import { RideWith } from '../ride-with/ride-with';
+import { ClassProfile } from './class-profile';
 
 /**
  * The Class under its header (design-system block the-class; docs/mocks/pages/the-class/; L2-084, L2-173): the
  * video's box with the class cover under the player, or the course's still when the rider has chosen Ibiza; the
- * class's words and length; "Ride with"; and the one start button, in the details column from lg and pinned to the
- * bottom below it, of which the layout shows one. The page projects what the bike will do into `[slot=plan]`, and
- * hands the element the player embeds in, emitted once it is drawn, to the player.
+ * class's words and length; "Ride with"; "What the bike will do", with the plan's average target power, its resistance
+ * profile and the efforts in words (L2-084 AC2); and the one start button, in the details column from lg and pinned
+ * to the bottom below it, of which the layout shows one. The page hands the element the player embeds in, emitted
+ * once it is drawn, to the player.
  */
 @Component({
   selector: 'wz-the-class',
-  imports: [Button, NgTemplateOutlet, RideWith],
+  imports: [Button, ClassProfile, NgTemplateOutlet, RideWith],
   templateUrl: './the-class.html',
   styleUrl: './the-class.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

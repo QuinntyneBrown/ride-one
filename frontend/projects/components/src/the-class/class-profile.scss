@@ -1,5 +1,5 @@
 // Block class-profile (docs/design-system/assets/components.css, Plan profile): one bar per segment in a
-// 0 0 <length> 32 box stretched to its own.
+// 0 0 <length> 32 box stretched to its own. A block that hosts it sets its height with `--class-profile-height`.
 :host {
   display: block;
 }
@@ -7,7 +7,7 @@
 .class-profile {
   display: block;
   width: 100%;
-  height: var(--space-5);
+  height: var(--class-profile-height, var(--space-5));
 }
 
 .class-profile--lg {

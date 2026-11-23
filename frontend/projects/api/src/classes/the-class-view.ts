@@ -1,3 +1,4 @@
+import type { Segment } from '../workout/plan';
 import type { RideWith } from './how-to-ride';
 
 /** The start button of The Class: its words, the line under it, and the screen it opens (L2-084 AC4, AC6, AC7). */
@@ -21,6 +22,18 @@ export interface Picture {
   readonly alt: string;
 }
 
+/**
+ * "What the bike will do" on The Class (L2-084 AC2): the plan's average target power in words, the segments its
+ * resistance profile is drawn from, and the line under the profile.
+ */
+export interface WhatTheBikeWillDo {
+  /** "~254 W average". */
+  readonly average: string;
+  readonly segments: readonly Segment[];
+  /** "17 efforts · 0:15 to 1:15. Resistance changes on its own; you just pedal." */
+  readonly note: string;
+}
+
 /** The Class as it is drawn (L2-084, L2-173): what the page hands the `the-class` block. */
 export interface TheClassView {
   /** "GCN Training · Intervals". */
@@ -39,4 +52,5 @@ export interface TheClassView {
   readonly rideWith: RideWith;
   readonly options: readonly RideWithOption[];
   readonly start: StartAction;
+  readonly plan: WhatTheBikeWillDo;
 }

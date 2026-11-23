@@ -5,10 +5,18 @@ import { PowerModel } from './power-model';
 const clock = (seconds: number): string =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
+/** A plan's efforts, its work segments (L2-084 AC2): how many, and the shortest and the longest in seconds. */
+export interface PlanEfforts {
+  readonly count: number;
+  readonly shortest: number;
+  readonly longest: number;
+}
+
 /**
  * What a plan says in words, for The Class (L2-084 AC2):
  * - its structure: the efforts and their length, then the recoveries from the first to the last ("8 × 0:30 · 3:00 →
  *   1:30 recover"); a plan with no effort reads "Level {n} throughout", or "Steady at level {n}" for its longest segment;
+ * - its efforts: how many, the shortest and the longest;
  * - its expected average power: each segment's target power (L2-023 AC3) weighted by its duration, rounded.
  */
 export const PlanSummary = {
@@ -51,6 +59,16 @@ export const PlanSummary = {
         ? efforts.charAt(0).toLowerCase() + efforts.slice(1)
         : efforts;
     return [warmUp, body, coolDown].filter((part) => part !== null).join(', ');
+  },
+
+  /** The plan's efforts (L2-084 AC2): its work segments, counted, with the shortest and the longest; zeros with none. */
+  efforts(segments: readonly Segment[]): PlanEfforts {
+    const lengths = segments
+      .filter((segment) => segment.kind === 'work')
+      .map((segment) => segment.duration);
+    return lengths.length === 0
+      ? { count: 0, shortest: 0, longest: 0 }
+      : { count: lengths.length, shortest: Math.min(...lengths), longest: Math.max(...lengths) };
   },
 
   averagePower(segments: readonly Segment[]): number {

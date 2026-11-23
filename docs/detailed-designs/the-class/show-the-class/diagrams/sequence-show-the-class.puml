@@ -43,8 +43,8 @@ alt class breaks no rule
   classes --> store : ClassDefinition
   store -> summary : averagePower(segments) (L2-084 AC3)
   summary --> store : 254
-  store -> summary : structure(segments)
-  summary --> store : "17 × 0:15 to 1:15 · 0:30 → 0:20 recover"
+  store -> summary : efforts(segments) (L2-084 AC2)
+  summary --> store : 17 efforts, 15 s to 75 s
   store -> record : current()
   record --> store : RecordData or null (L2-084 AC8)
   store --> page : TheClassView

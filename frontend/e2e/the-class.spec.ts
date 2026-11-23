@@ -1,12 +1,13 @@
 // Acceptance test
-// Traces to: L2-084 AC1, AC2, AC4, AC6, AC7, AC9; L2-019 AC5; L2-173 AC1 to AC7; L2-080 AC1
+// Traces to: L2-084 AC1, AC2, AC3, AC4, AC6, AC7, AC9; L2-019 AC5; L2-173 AC1 to AC7; L2-080 AC1
 // Description: The Class at `/` reads "GCN Training · Intervals", the class's title as the heading, its summary and
 // "20:00" with "start to finish". The class video waits, parked at its sync offset with YouTube's controls; when it
 // cannot load, the class cover stands in its box and the class can still be started. The start button reads "Start
 // class" with a connected bike and starts the ride at 0:00; without one it reads "Connect your bike" with its line and
-// opens Connect Bike. "Ride with" offers the class video, chosen at first, and Ibiza Sunset Strip; the choice is kept on
-// the device, puts the course's still in the video's box, and decides how the ride is ridden. A browser that cannot
-// draw the course keeps to the class video. (A class that can't be loaded: the-one-class.spec.ts.)
+// opens Connect Bike. "What the bike will do" reads the plan's average target power, draws its resistance profile a bar
+// a segment and says how many efforts it has and how long, at every width. "Ride with" offers the class video, chosen
+// at first, and Ibiza Sunset Strip; the choice is kept on the device, puts the course's still in the video's box, and
+// decides how the ride is ridden. A browser that cannot draw the course keeps to the class video. (A class that can't be loaded: the-one-class.spec.ts.)
 import { ECHELON_NOTIFY, echelonBike, targetResistanceWrite } from './fixtures/echelon';
 import { connectBike } from './fixtures/class-ride';
 import { keptRideWith } from './fixtures/how-to-ride';
@@ -37,18 +38,85 @@ test.describe('The Class', () => {
     await expect(theClass.durationLabel).toHaveText('start to finish');
   });
 
-  test('What the bike will do reads the length, the resistance profile and the structure with its average power (L2-084 AC2)', async ({
+  test('"What the bike will do" reads "~254 W average", the resistance profile and the efforts in words (L2-084 AC2, AC3) @critical', async ({
     page,
   }) => {
     const theClass = new TheClassPage(page);
     await theClass.open();
 
-    await expect(theClass.planTotal).toHaveText('20:00');
+    await expect(theClass.planTitle).toBeVisible();
+    await expect(theClass.planWatts).toHaveText('~254 W average');
     await expect(theClass.profile).toBeVisible();
-    await expect(theClass.planSummary).toHaveText(
-      '17 × 0:15 to 1:15 · 0:30 → 0:20 recover · ~254 W average',
+    await expect(theClass.profileBars).toHaveCount(33);
+    await expect(theClass.effortBars).toHaveCount(17);
+    await expect(theClass.planNote).toHaveText(
+      '17 efforts · 0:15 to 1:15. Resistance changes on its own; you just pedal.',
     );
+    // The plan chart carried over from Telo Ride, with its length and structure line, is gone from the screen.
+    await expect(theClass.carriedOverPlan).toHaveCount(0);
   });
+
+  test('the resistance profile is drawn from the plan: a bar a segment, as wide as it lasts and as tall as its level (L2-084 AC2)', async ({
+    page,
+  }) => {
+    const theClass = new TheClassPage(page);
+    await theClass.open();
+    await expect(theClass.profile).toBeVisible();
+
+    const { segments } = shipped;
+    const highest = Math.max(...segments.map((segment) => segment.level));
+    const element = {
+      'warm-up': 'warmup',
+      work: 'work',
+      recover: 'rest',
+      steady: 'steady',
+      'cool-down': 'cooldown',
+    };
+    let start = 0;
+    const expected = segments.map((segment) => {
+      const bar = {
+        element: `class-profile__${element[segment.kind]}`,
+        start,
+        duration: segment.duration,
+        height: Math.round((24 * segment.level) / highest),
+      };
+      start += segment.duration;
+      return bar;
+    });
+
+    const drawn = await theClass.drawnProfile();
+    // The box is the plan's 1200 seconds wide; each bar starts and ends a hair inside its segment's seconds.
+    expect(drawn.box).toBe('0 0 1200 32');
+    expect(drawn.bars.map(({ element, height }) => ({ element, height }))).toEqual(
+      expected.map(({ element, height }) => ({ element, height })),
+    );
+    drawn.bars.forEach((bar, index) => {
+      expect(bar.x - expected[index].start).toBeCloseTo(2.4, 5);
+      expect(expected[index].duration - bar.width).toBeCloseTo(4.8, 5);
+    });
+  });
+
+  for (const [width, height, tall] of [
+    [390, 844, 64],
+    [768, 1024, 64],
+    [1024, 768, 56],
+    [1440, 900, 64],
+  ] as const) {
+    test(`at ${width} px "What the bike will do" shows whole, its profile ${tall} px tall (L2-084 AC2)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height });
+      const theClass = new TheClassPage(page);
+      await theClass.open();
+
+      expect(await theClass.fitsTheWidth(theClass.plan)).toBe(true);
+      await expect(theClass.planTitle).toBeVisible();
+      await expect(theClass.planWatts).toBeVisible();
+      await expect(theClass.planNote).toBeVisible();
+      expect(await theClass.fitsTheWidth(theClass.planNote)).toBe(true);
+      expect(await theClass.height(theClass.profile)).toBe(tall);
+    });
+  }
 
   test('the class video waits parked at its sync offset, with its controls (L2-084 AC1)', async ({
     page,

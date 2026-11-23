@@ -36,7 +36,18 @@
           <ng-container [ngTemplateOutlet]="go" />
         </div>
       </section>
-      <div class="the-class__plan"><ng-content select="[slot=plan]" /></div>
+      <section class="the-class__plan" aria-labelledby="plan-title">
+        <div class="the-class__plan-head">
+          <h2 class="the-class__plan-title" id="plan-title">What the bike will do</h2>
+          <span class="the-class__plan-watts">{{ view().plan.average }}</span>
+        </div>
+        <wz-class-profile
+          class="the-class__profile"
+          [segments]="view().plan.segments"
+          label="Resistance profile"
+        />
+        <p class="the-class__plan-note">{{ view().plan.note }}</p>
+      </section>
     </main>
   </div>
   <div class="the-class__footer">

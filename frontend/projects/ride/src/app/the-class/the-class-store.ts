@@ -12,7 +12,7 @@ import {
   VIDEO_PLAYER_FACTORY,
   type VideoPlayer,
 } from '@telo/api';
-import { PlanSummary, rideWith } from '@telo/domain';
+import { rideWith } from '@telo/domain';
 import { theClassView } from './the-class-view';
 
 /** The class, or `null` for one that is refused because it breaks a rule (L2-080 AC3). */
@@ -48,9 +48,6 @@ export class TheClassStore {
   private turn = 0;
   private destroyed = false;
 
-  /** The class, or `null` when it is not offered. */
-  readonly definition = this.loaded;
-
   /** How the class will be ridden: as kept, and with the video where the course cannot be drawn (L2-173 AC1, AC6). */
   readonly rideWith = computed(() => rideWith(this.kept(), this.drawable));
 
@@ -73,11 +70,6 @@ export class TheClassStore {
         })
       : null,
   );
-
-  /** "17 × 0:15 to 1:15 · 0:30 → 0:20 recover · ~254 W average", until slice 30.3 (L2-084 AC2). */
-  readonly planSummary = this.loaded
-    ? `${PlanSummary.structure(this.loaded.plan.segments)} · ~${PlanSummary.averagePower(this.loaded.plan.segments)} W average`
-    : '';
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {

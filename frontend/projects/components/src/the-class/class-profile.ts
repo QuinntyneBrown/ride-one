@@ -29,7 +29,7 @@ export class ClassProfile {
   readonly segments = input.required<readonly Segment[]>();
   /** Its accessible name when it stands alone ("Resistance profile"); without one it is decorative. */
   readonly label = input<string | null>(null);
-  /** `lg` on The Class; `sm` on a card. */
+  /** `lg` in the carried-over plan chart; `sm` where the hosting block sets the height, as The Class does. */
   readonly size = input<'sm' | 'lg' | 'xl'>('sm');
 
   protected readonly length = computed(() =>

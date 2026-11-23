@@ -2,10 +2,13 @@ import type {
   ClassDefinition,
   RideWith,
   RideWithOption,
+  Segment,
   StartAction,
   TheClassView,
+  WhatTheBikeWillDo,
 } from '@telo/api';
 import { formatClock } from '@telo/components';
+import { PlanSummary } from '@telo/domain';
 
 /** Ibiza Sunset Strip as The Class names it (L2-173 AC3, AC6): the only course. Its still ships with the app. */
 const IBIZA = {
@@ -58,7 +61,32 @@ export function rideWithOptions(drawable: boolean): readonly RideWithOption[] {
   ];
 }
 
-/** The Class as it is drawn (L2-084 AC1, L2-173). */
+/** The line under the resistance profile, whatever the plan (L2-084 AC2). */
+const JUST_PEDAL = 'Resistance changes on its own; you just pedal.';
+
+/**
+ * "What the bike will do" (L2-084 AC2, AC3): "~254 W average", the plan's time-weighted target power, rounded; the
+ * segments the resistance profile is drawn from; and "17 efforts · 0:15 to 1:15. Resistance changes on its own; you
+ * just pedal.", the efforts counted and their shortest and longest lengths read from the plan. Efforts of one length
+ * read that length once, and a plan with no effort only the sentence.
+ */
+export function whatTheBikeWillDo(segments: readonly Segment[]): WhatTheBikeWillDo {
+  const { count, shortest, longest } = PlanSummary.efforts(segments);
+  const lengths =
+    shortest === longest
+      ? formatClock(shortest)
+      : `${formatClock(shortest)} to ${formatClock(longest)}`;
+  return {
+    average: `~${PlanSummary.averagePower(segments)} W average`,
+    segments,
+    note:
+      count === 0
+        ? JUST_PEDAL
+        : `${count} ${count === 1 ? 'effort' : 'efforts'} · ${lengths}. ${JUST_PEDAL}`,
+  };
+}
+
+/** The Class as it is drawn (L2-084 AC1 to AC3, L2-173). */
 export function theClassView(state: TheClassState): TheClassView {
   const { definition } = state;
   return {
@@ -77,5 +105,6 @@ export function theClassView(state: TheClassState): TheClassView {
     rideWith: state.rideWith,
     options: rideWithOptions(state.drawable),
     start: startAction(state.connected),
+    plan: whatTheBikeWillDo(definition.plan.segments),
   };
 }
