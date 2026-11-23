@@ -16,8 +16,8 @@ skinparam package {
 }
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "TheClassPage" as page
-  participant "the-class-page.scss" as sheet
+  participant "TheClass" as page
+  participant "the-class.scss" as sheet
 end box
 box "Device — Browser" #F2F4F7
   participant "Viewport" as viewport
@@ -32,7 +32,7 @@ viewport -> sheet : Evaluate min-width: 64rem again
 sheet --> viewport : Match: two columns on one screen, no scrolling (L2-171 AC1)
 sheet --> viewport : Footer hidden, the-class~__action shown (L2-171 AC5)
 viewport -> page : No component state changes; the same DOM is laid out again
-page --> rider : Video keeps playing in the height left at 16:9 (L2-171 AC1)
+page --> rider : The parked video stays in its box, in the height left at 16:9 (L2-171 AC1)
 rider -> viewport : Rotate back to portrait
 sheet --> viewport : One column, footer pinned again (L2-171 AC2, AC3)
 @enduml

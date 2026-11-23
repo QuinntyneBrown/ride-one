@@ -35,6 +35,14 @@ export class AppDocument {
       .getByRole('button', { name: 'Exit full screen', exact: true });
   }
 
+  /**
+   * What the page asks of the device's display (`<meta name="viewport">`): `viewport-fit=cover` is what makes a phone
+   * report its home bar as `env(safe-area-inset-bottom)` (L2-171 AC3).
+   */
+  viewport(): Promise<string | null> {
+    return this.page.locator('meta[name="viewport"]').getAttribute('content');
+  }
+
   /** A duration token's value on `<html>` in milliseconds, such as `--duration-base` (the build writes 200ms as .2s). */
   duration(name: string): Promise<number> {
     return this.root.evaluate((html, token) => {

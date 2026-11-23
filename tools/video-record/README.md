@@ -10,7 +10,8 @@ node tools/video-record/record.mjs docs/videos/S-s-slice-name
 
 It is not a test and not a sweep. It has its own Playwright config (`playwright.config.ts` here,
 matching only `shots.ts` in the given folder), compares nothing, and is not run by `npm run e2e` or
-CI. The app on `:4310` is reused when it is running and started with `ng serve` otherwise. It
+CI. The app on `:4310` (`E2E_PORT` moves it, as it moves the specs) is reused when it is running
+and started with `ng serve` otherwise. It
 imports the shared fixture of `frontend/e2e/fixtures/test.ts`, as every spec does, which fails on
 a page error or a request off this machine; no backend and no bike are involved.
 

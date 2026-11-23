@@ -2530,7 +2530,9 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 /* ---------- The Class (frame ptsPeNsftV4aApQQjN1LQX): the one class, its length and the one button ----------
    Phone and portrait tablet (below 1024px): one column that scrolls; Start is pinned to the bottom.
    From 1024px (an 11" tablet in landscape, then desktop): one screen and no scrolling. The video takes
-   the height that is left and stays 16:9; the class and Start sit in a fixed side column. */
+   the height that is left and stays 16:9; the class and Start sit in a fixed side column. A window
+   under 800px tall draws the column tighter, so every state fits at 1024 x 768; a window too short
+   even for that scrolls rather than cut anything off (L2-171 AC1, L2-139 AC1). */
 .the-class { overflow: hidden; }
 .class-header.the-class__header { gap: var(--space-3); }
 @media (min-width: 40rem) { .class-header.the-class__header { gap: var(--space-4); } }
@@ -2545,13 +2547,15 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .the-class__bike-action { color: var(--color-muted); }
 @media (max-width: 39.99rem) { .the-class__bike-action { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
 
-@media (min-width: 64rem) { .the-class .app__scroll { overflow: hidden; } }
+/* From lg the body is at least as tall as the room under the header (min-height, never height): while the details
+   column fits, its rows share that room and nothing scrolls; where the column cannot fit, the body is as tall as the
+   column, the video keeps the 160px its row is never under, and .app__scroll scrolls. */
 /* The class that cannot be loaded (the-class/cannot-load, L2-080 AC3): the message over Reload, in the body's place. */
 .the-class__unavailable { display: grid; justify-items: start; gap: var(--space-4); padding-block: var(--space-6); }
 .the-class__unavailable:focus { outline: none; }
 .the-class__body { margin-inline: auto; display: grid; max-width: var(--layout-container-max); grid-template-columns: minmax(0, 1fr); gap: var(--space-6); padding: var(--space-4) var(--layout-margin); }
 @media (min-width: 48rem) { .the-class__body { gap: var(--space-8); padding-block: var(--space-6); } }
-@media (min-width: 64rem) { .the-class__body { height: 100%; grid-template-columns: minmax(0, 1fr) var(--the-class-aside-width); grid-template-rows: minmax(0, 1fr) auto; column-gap: var(--space-10); row-gap: var(--space-5); } }
+@media (min-width: 64rem) { .the-class__body { min-height: 100%; grid-template-columns: minmax(0, 1fr) var(--the-class-aside-width); grid-template-rows: minmax(var(--space-40), 1fr) auto; column-gap: var(--space-10); row-gap: var(--space-5); } }
 @media (min-width: 80rem) { .the-class__body { grid-template-columns: minmax(0, 1fr) var(--the-class-aside-width-xl); } }
 
 /* The video: full width below lg; from lg it takes the leftover height and keeps 16:9 inside it */
@@ -2629,6 +2633,19 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .ride-with__name { display: block; font-weight: var(--font-weight-semibold); }
 .ride-with__option[aria-disabled="true"] .ride-with__name { color: var(--color-muted); }
 .ride-with__detail { display: block; font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+
+/* The one-screen layout in a window under 800px tall (1024 x 768): the same parts, drawn tighter, so the column still
+   fits with the record, the start button's line and a blocked browser's alert above it (L2-171 AC1). */
+@media (min-width: 64rem) and (max-height: 49.99rem) {
+  .the-class__body { padding-block: var(--space-4); }
+  .the-class__title { font-size: var(--font-size-4xl); }
+  .the-class__summary { margin-top: var(--space-3); }
+  .the-class__ride-with { margin-top: var(--space-4); }
+  .the-class__facts { margin-top: var(--space-5); }
+  .the-class__stats { margin-top: var(--space-4); }
+  .the-class__action { padding-top: var(--space-5); }
+}
+@media (min-width: 80rem) and (max-height: 49.99rem) { .the-class__title { font-size: var(--font-size-5xl); } }
 
 /* ---------- Class Done (frame 6eiQRDcbF5DL67X51aRw3D): the number, the eight efforts, Done ---------- */
 .class-done__class { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }

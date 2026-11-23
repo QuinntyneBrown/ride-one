@@ -3,8 +3,8 @@
 //
 //   node tools/video-record/record.mjs docs/videos/S-s-slice-name
 //
-// Not a test and not a sweep (docs/videos/README.md): it compares nothing. The app on :4310 is
-// reused when it is running and started otherwise; shots.ts imports the shared fixture of
+// Not a test and not a sweep (docs/videos/README.md): it compares nothing. The app on :4310
+// (E2E_PORT moves it) is reused when it is running and started otherwise; shots.ts imports the shared fixture of
 // frontend/e2e/fixtures/test.ts, as every spec does. No backend and no bike are involved.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';

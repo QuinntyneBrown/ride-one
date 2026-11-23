@@ -54,8 +54,8 @@ Slice 30.2 built The Class in the place of Telo Ride's Class Start, which is gon
 "Video link and sync" (`ClassSync`), `ClassStartVideo` and `AppHeaderBike`. Slice 30.1 built the
 class definition. Slice 30.3 built "What the bike will do" as designed, in the place of the plan
 chart carried over from Telo Ride (`ClassPlan`, which stays in `components` only for World loading
-until slice 37.1 removes that). Still to come on this screen: the one-screen layout (30.4), the
-blocked browser (30.6), and the record with "Ride it again" (32.6).
+until slice 37.1 removes that). Slice 30.4 fitted the layout from lg to one screen. Still to come
+on this screen: the blocked browser (30.6), and the record with "Ride it again" (32.6).
 
 **The class definition**
 
@@ -196,8 +196,10 @@ blocked browser (30.6), and the record with "Ride it again" (32.6).
   has one; when the video cannot load, the player's element is not rendered and the cover stands
   alone (AC9, mock `the-class/video-unavailable`). It renders the start button in the details
   column (`the-class__action`) and in the pinned footer (`the-class__footer`), of which the layout
-  shows one (L2-171 AC5). The body scrolls at every width until slice 30.4 fits the lg layout to
-  one screen. The cover is YouTube's (`i.ytimg.com`, ADR 0014), which the service worker keeps
+  shows one (L2-171 AC5). From lg the block is one screen that does not scroll, the video's box
+  taking the height left (slice 30.4,
+  [Fit The Class to every form factor](../../ui/fit-the-class-to-every-form-factor/README.md)).
+  The cover is YouTube's (`i.ytimg.com`, ADR 0014), which the service worker keeps
   once it has been seen; the app bundles no cover.
 - **`TheClassBike`** (`components/src/the-class/the-class-bike.ts`, built;
   `a[wz-the-class-bike]`): the header link's content (element `the-class__bike`). The page puts

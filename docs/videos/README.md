@@ -72,6 +72,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 28.8 | [Host as static files](28-8-host-as-static-files/README.md) | 1:56 | Telo Ride 1 as static files (L2-149, L2-009 AC2, ADR 0043): the host's configuration as the build carries it, with the fallback to the app, the L2-131 headers, a year of HSTS and the cache rules; the class ride opened by its address and an unknown address as page not found, from the production build; what the specs prove here and what a person checks on the real host; the backend removed whole; the class from 390 to 1440 px; and the seven new specs, all failing first, then verify. |
 | 30.2 | [The Class](30-2-the-class/README.md) | 2:12 | The Class at `/` in the place of Class Start (L2-019, L2-084, L2-173, ADR 0044): the header's bike status as a link to Connect Bike, the parked video and the class's words; "Start class" or "Connect your bike"; "Ride with", the class video or Ibiza Sunset Strip, kept on the device, with the course's still; a browser that cannot draw the course and a video that cannot load; the two rides the one button opens; The Class from 390 to 1440 px; and the fourteen rewritten specs, thirteen failing first, then verify. |
 | 30.3 | [What the bike will do](30-3-what-the-bike-will-do/README.md) | 1:46 | "What the bike will do" on The Class (L2-084 AC2, AC3): the card under the video with "~254 W average", the resistance profile and the efforts in words; the figures read from the plan, 253.55 W weighted by time and 17 efforts from 0:15 to 1:15; the profile, one bar for each of 33 segments, as one image named "Resistance profile"; the card from 390 to 1440 px; and the tests that failed first, then verify |
+| 30.4 | [The Class by form factor](30-4-the-class-by-form-factor/README.md) | 2:04 | The Class fitted to the screen it is on (L2-171 AC1 to AC3, AC5): one screen with no scrolling in landscape from 1024 px, the video 16:9 in the height left over "What the bike will do" and the details in a fixed column; the column drawn tighter at 1024 × 768, and the video giving up height before the page scrolls in a shorter window; one column on a phone and a tablet in portrait, the start button pinned clear of the home bar; one start button that Tab stops at once; The Class from 390 to 1440 px; and the 37 specs, three failing first, then verify |
 
 ## What every video is
 
@@ -168,7 +169,7 @@ None of them is part of a test run, and CI never runs them.
   screens through the page objects and drives the bike through the fake `navigator.bluetooth`, as
   in every spec; no real Bluetooth adapter and no bike are involved.
 - **It is not a test and not a sweep.** `tools/video-record/` only borrows Playwright to drive
-  Chromium on its own port (4310). It compares nothing and is not run by `npm run e2e` or CI.
+  Chromium on its own port (4310, or `E2E_PORT`). It compares nothing and is not run by `npm run e2e` or CI.
 - **Every form factor the journey changes on.** Take each key state at 390 px (XS), 768 px (M),
   1024 px (L) and 1440 px (XL), at double density, in the dark theme the app opens in, and one
   state in the light theme where the journey is about it.

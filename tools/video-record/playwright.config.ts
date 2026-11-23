@@ -14,6 +14,8 @@ if (!folder)
     "Run this through tools/video-record/record.mjs <video folder>.",
   );
 const root = path.resolve(__dirname, "..", "..");
+// E2E_PORT moves the recorder when another checkout already serves 4310, as it moves the specs.
+const port = Number(process.env["E2E_PORT"] ?? 4310);
 
 export default defineConfig({
   testDir: path.resolve(root, folder),
@@ -24,7 +26,7 @@ export default defineConfig({
   reporter: "list",
   timeout: 120_000,
   use: {
-    baseURL: "http://localhost:4310",
+    baseURL: `http://localhost:${port}`,
     locale: "en-US",
     timezoneId: "UTC",
     trace: "off",
@@ -44,9 +46,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npx ng serve ride --port 4310",
+    command: `npx ng serve ride --port ${port}`,
     cwd: path.resolve(root, "frontend"),
-    url: "http://localhost:4310",
+    url: `http://localhost:${port}`,
     reuseExistingServer: true,
     timeout: 240_000,
   },
