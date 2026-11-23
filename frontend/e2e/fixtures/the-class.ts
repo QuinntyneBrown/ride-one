@@ -37,6 +37,25 @@ export const theClass = {
   segments: course.plan.segments,
 } as const;
 
+/** Metres a turn of the pedals covers on the course (L2-174 AC3). */
+const METRES_A_TURN = 5;
+
+/**
+ * Metres from the grid where the plan puts a rider at `seconds` of the ride clock (L2-174 AC2, AC3): each segment's
+ * stretch is as long as its seconds × its cadence aim in turns a second × 5 m, and is ridden evenly over the segment.
+ */
+export function planMetres(seconds: number): number {
+  let metres = 0;
+  let start = 0;
+  for (const segment of theClass.segments) {
+    const pace = (segment.cadenceAim / 60) * METRES_A_TURN;
+    const ridden = Math.min(Math.max(seconds - start, 0), segment.duration);
+    metres += ridden * pace;
+    start += segment.duration;
+  }
+  return metres;
+}
+
 /**
  * The class's data as the build ships it, broken on its way to the browser: the plan's two segments at level 24 arrive
  * at level 33, which no bike has (L2-080 AC3). The app is the production build, so the only way to hand it a class

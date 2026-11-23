@@ -64,24 +64,18 @@ import { RiderShadows } from './rider-shadows';
 import { wallMaterial } from './wall-material';
 import { waterMaterial } from './water-material';
 import { windowMaterial } from './window-material';
+import { chaseCamera } from './chase-camera';
 import { type CourseDrawn, PROBE_KEY, readCourseProbe } from './course-probe';
 
-/** The chase camera: this far behind the rider and above the road, looking this far ahead. */
-const CAMERA_BACK = 2.75;
-const CAMERA_UP = 1.8;
 /**
  * How far the picture is raised in the frame, as a share of its height, so the rider's wheels and the road under them
  * show well above the foot of the box. The lens is shifted, as a view camera's is, so the camera stays where it is
  * and nothing leans.
  */
 const FRAME_RISE = 0.19;
+/** The chase camera looks this far up the road, and this far above it (where it sits: chase-camera.ts). */
 const LOOK_AHEAD = 14;
 const LOOK_UP = 1.35;
-/** At the start line and the finish line the camera closes in to this, eased over these metres either side. */
-const CLOSE_BACK = 2.4;
-const CLOSE_UP = 1.65;
-const CLOSE_START = 45;
-const CLOSE_FINISH = 70;
 /** Each rider's shadow: a dark blob on the road, this long down-sun and this wide, in metres. */
 const SHADOW_LENGTH = 3.4;
 const SHADOW_WIDTH = 0.8;
@@ -214,6 +208,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
     riders: 0,
     firstMetres: null,
     metres: 0,
+    frames: 0,
+    camera: { behind: 0, above: 0 },
   };
   private readonly chosenAt = new Vector3();
   /** The start lights: red until the ride's clock starts, green from then. */
@@ -764,15 +760,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
   /** The chase camera behind the rider, looking up the road, with the sky and the sun's light around it. */
   private aim(metres: number): void {
     const course = this.course!;
-    // Close in on the rider at the start line and at the finish line.
-    const near = Math.max(
-      1 - Math.abs(metres) / CLOSE_START,
-      1 - Math.abs(metres - course.length) / CLOSE_FINISH,
-      0,
-    );
-    const close = near * near * (3 - 2 * near);
-    const behind = CAMERA_BACK + (CLOSE_BACK - CAMERA_BACK) * close;
-    const up = CAMERA_UP + (CLOSE_UP - CAMERA_UP) * close;
+    // Nearer the rider on the grid and at the finish line (L2-174 AC10).
+    const { behind, above: up } = chaseCamera(metres, course.length, this.drawn.camera);
     const back = course.place(metres - behind, 0, this.here);
     this.camera.position.set(back.x, back.y + up, back.z);
     this.groundEye?.at(metres - behind, 0, up);
@@ -895,6 +884,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
       if (mesh.visible) drawn.groups[group] = (drawn.groups[group] ?? 0) + 1;
     }
     drawn.tier = this.tier;
+    drawn.frames = this.frames;
     drawn.riders = this.kit?.made ?? 0;
     drawn.backend = this.backend;
     drawn.drawCalls = renderer.info.render.drawCalls;

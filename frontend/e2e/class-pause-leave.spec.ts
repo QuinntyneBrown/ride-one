@@ -17,9 +17,8 @@
 // device changes, and no resistance command is sent for that ride again, even when the bike reconnects.
 // Given the clock reaches 20:00, when the ride finishes, then the result opens and no resistance command follows.
 import type { Page } from '@playwright/test';
-import { loseBike, startClassRide } from './fixtures/class-ride';
+import { bikeAnswers, loseBike, startClassRide } from './fixtures/class-ride';
 import {
-  ECHELON_INITIALISED,
   ECHELON_NOTIFY,
   resistanceFrame,
   targetResistanceWrite,
@@ -34,9 +33,6 @@ import type { ClassRidePage } from './pages/class-ride.page';
 import { TheClassPage } from './pages/the-class.page';
 import { ResultsPage } from './pages/results.page';
 
-/** The Echelon keepalive, written about once a second while the bike is connected (L2-016 AC1). */
-const KEEPALIVE = 'F0 A0 01 01 92';
-
 /** Waits for the fake player, then lets it get ready: its onReady runs on the paused clock. */
 async function videoReady(page: Page, youtube: YouTubeFixture): Promise<void> {
   await expect.poll(async () => (await youtube.players()).length).toBe(1);
@@ -50,23 +46,6 @@ async function midRide(page: Page, bluetooth: FakeBluetooth, ride: ClassRidePage
   await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(13));
   await page.clock.runFor(100);
   await expect(ride.clock).toHaveText('5:30 / 20:00');
-}
-
-/**
- * The bike lost at `since` is switched on and answers again: the app initialises it (initialising waits between
- * commands, so the paused clock steps until it is done), the bike reports its resistance, and the link is connected.
- */
-async function bikeAnswers(page: Page, bluetooth: FakeBluetooth, since: number): Promise<void> {
-  await expect(async () => {
-    await page.clock.runFor(100);
-    // The keepalives of the minutes before can still be reaching the log; the initialisation is what is left.
-    const log = bluetooth.log().slice(since);
-    expect(
-      log.filter((line) => !line.endsWith(KEEPALIVE)).slice(0, ECHELON_INITIALISED.length),
-    ).toEqual(ECHELON_INITIALISED);
-  }).toPass();
-  await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(13));
-  await page.clock.runFor(200);
 }
 
 test.describe('Pause, lose the bike, leave or finish', () => {

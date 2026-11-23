@@ -3,6 +3,8 @@
 // frame budget never moves it, and the renderer writes what it draws to `__wzWorldRide.course`. No rider can set it:
 // it is not an option, not in the README, and nothing in the app sets it.
 
+import type { ChaseCamera } from './chase-camera';
+
 /** The step of the course's five a spec pins, by the names the hook has always taken. */
 export type Tier = 'low' | 'medium' | 'high' | 'ultra';
 
@@ -31,6 +33,10 @@ export interface CourseDrawn {
   firstMetres: number | null;
   /** Metres from the grid where the latest frame put the rider. */
   metres: number;
+  /** The frames drawn since the course started: a held course and a hidden tab add none (L2-174 AC5, AC9). */
+  frames: number;
+  /** Where the latest frame put the camera: metres behind the rider and above the road (L2-174 AC10). */
+  camera: ChaseCamera;
 }
 
 /** The pinned step, or null when the hook is not set (every rider's ride). */

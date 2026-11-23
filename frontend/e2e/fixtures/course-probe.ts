@@ -21,6 +21,10 @@ export interface CourseDrawn {
   readonly firstMetres: number;
   /** Metres from the grid where the latest frame put the rider. */
   readonly metres: number;
+  /** The frames drawn since the course started: a held course and a hidden tab add none (L2-174 AC5, AC9). */
+  readonly frames: number;
+  /** Where the latest frame put the camera: metres behind the rider and above the road (L2-174 AC10). */
+  readonly camera: { readonly behind: number; readonly above: number };
 }
 
 export class CourseProbe {

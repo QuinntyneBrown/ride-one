@@ -1,0 +1,88 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "In Ibiza, the clock puts you on the road. Not your power, and not your cadence."
+      ]
+    },
+    {
+      "id": "placed",
+      "bars": 6,
+      "lines": [
+        "Each segment of the plan has its own stretch of road, ridden evenly over the segment. Three minutes five puts you twelve hundred and four metres from the grid."
+      ]
+    },
+    {
+      "id": "legs",
+      "bars": 6,
+      "lines": [
+        "The bike reported nothing for thirty seconds, and the rider was two hundred metres up the road. Sprinting at a hundred and twenty moved them no further than the clock."
+      ]
+    },
+    {
+      "id": "ongrid",
+      "bars": 4,
+      "lines": [
+        "On the grid the camera sits closer. It eases back over forty-five metres, and closes in again at the finish."
+      ]
+    },
+    {
+      "id": "held",
+      "bars": 6,
+      "lines": [
+        "Pause, and the rider holds their place: ten seconds later, the same metre. A lost bike holds them too, and the ride carries on from where it stopped."
+      ]
+    },
+    {
+      "id": "unseen",
+      "bars": 4,
+      "lines": [
+        "Hide the tab and no frame is drawn. Show it again, and the rider is where the clock is."
+      ]
+    },
+    {
+      "id": "same",
+      "bars": 4,
+      "lines": [
+        "Everything else is as with the class video. The same telemetry gives the same output and the same share on target."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The first effort, from a phone to a desktop."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 6,
+      "lines": [
+        "The code carried over already met every criterion, so each spec was proved by taking its rule away. Three hundred and thirty-four specs and six hundred and twenty-one unit tests pass."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}
