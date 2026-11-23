@@ -64,6 +64,7 @@
     [block]="true"
     type="button"
     class="the-class__start"
+    [disabled]="view().start.disabled"
     (click)="start.emit()"
   >
     {{ view().start.label }}

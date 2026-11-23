@@ -49,6 +49,7 @@ export {
 } from './video/video-player';
 export type { Plan, Segment, SegmentKind } from './workout/plan';
 export { ANNOUNCER, type Announcer } from './screen/announcer';
+export { CLIPBOARD, type Clipboard } from './screen/clipboard';
 export { DISPLAY_PREFERENCES, type DisplayPreferences } from './screen/display-preferences';
 export { FULLSCREEN, type Fullscreen } from './screen/fullscreen';
 export { SCREEN_WAKE_LOCK, type ScreenWakeLock } from './screen/screen-wake-lock';

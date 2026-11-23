@@ -5,6 +5,17 @@
     }}</a>
     <wz-fullscreen-button slot="end" />
   </wz-screen-header>
+  @if (notice(); as why) {
+    <wz-browser-notice
+      [icon]="why.icon"
+      [title]="why.title"
+      [body]="why.body"
+      [action]="why.way === 'secure' ? 'Open over HTTPS' : link.copied() ? 'Copied' : 'Copy link'"
+      [href]="why.way === 'secure' ? support.secureUrl() : null"
+      [done]="link.copied()"
+      (act)="link.copy()"
+    />
+  }
   @if (store.view(); as view) {
     <wz-the-class
       [view]="view"

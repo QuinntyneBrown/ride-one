@@ -26,6 +26,8 @@ export interface TheClassState {
   readonly definition: ClassDefinition;
   /** The bike is connected (`ble` is `connected`). */
   readonly connected: boolean;
+  /** The browser is blocked: it cannot reach a bike (`isBlocked`). */
+  readonly blocked: boolean;
   /** How the class will be ridden (`rideWith`). */
   readonly rideWith: RideWith;
   /** The browser can draw the course. */
@@ -36,15 +38,17 @@ export interface TheClassState {
 /**
  * The start button (L2-084 AC4, AC6, AC7): "Start class" opens the ride with a connected bike; without one it reads
  * "Connect your bike", says why, and opens Connect Bike. Its words never follow the choice of how to ride (L2-173 AC5).
- * "Ride it again" joins with the record (slice 32.6), the blocked browser's disabled button with slice 30.6.
+ * In a blocked browser no bike can be connected, so the button is disabled and keeps its words and its line (L2-010
+ * AC1). "Ride it again" joins with the record (slice 32.6).
  */
-export function startAction(connected: boolean): StartAction {
+export function startAction(connected: boolean, blocked: boolean): StartAction {
   return connected
-    ? { label: 'Start class', hint: null, opens: 'ride' }
+    ? { label: 'Start class', hint: null, opens: 'ride', disabled: false }
     : {
         label: 'Connect your bike',
         hint: 'The class needs the bike to set resistance.',
         opens: 'connect',
+        disabled: blocked,
       };
 }
 
@@ -104,7 +108,7 @@ export function theClassView(state: TheClassState): TheClassView {
     videoUnavailable: state.videoUnavailable,
     rideWith: state.rideWith,
     options: rideWithOptions(state.drawable),
-    start: startAction(state.connected),
+    start: startAction(state.connected, state.blocked),
     plan: whatTheBikeWillDo(definition.plan.segments),
   };
 }

@@ -54,8 +54,10 @@ Slice 30.2 built The Class in the place of Telo Ride's Class Start, which is gon
 "Video link and sync" (`ClassSync`), `ClassStartVideo` and `AppHeaderBike`. Slice 30.1 built the
 class definition. Slice 30.3 built "What the bike will do" as designed, in the place of the plan
 chart carried over from Telo Ride (`ClassPlan`, which stays in `components` only for World loading
-until slice 37.1 removes that). Slice 30.4 fitted the layout from lg to one screen. Still to come
-on this screen: the blocked browser (30.6), and the record with "Ride it again" (32.6).
+until slice 37.1 removes that). Slice 30.4 fitted the layout from lg to one screen. Slice 30.6
+built the blocked browser: the alert under the header and the disabled start button, which
+[Check bike and browser support](../../bike/check-bike-and-browser-support/README.md) owns. Still
+to come on this screen: the record with "Ride it again" (32.6).
 
 **The class definition**
 

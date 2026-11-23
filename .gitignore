@@ -13,3 +13,6 @@ node_modules/
 # Video build intermediates (docs/videos/README.md)
 docs/videos/**/narration.wav
 docs/videos/**/*.partial.mp4
+
+# Worktrees of parallel Claude Code sessions
+.claude/worktrees/

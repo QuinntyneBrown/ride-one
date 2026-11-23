@@ -69,22 +69,35 @@ class BrowserClipboard {
 }
 
 class BrowserNotice <<component>> {
+  +icon: 'browser' | 'lock'
   +title: string
   +body: string
-  +tone: 'browser' | 'secure'
+  +action: string
+  +href: string | null
+  +done: boolean
+  +act: output
+}
+
+class "browserNotice" as noticeHelper <<function>> {
+  +browserNotice(support: BluetoothSupportState): BrowserNoticeView | null
+}
+
+class LinkCopy {
+  +copied: Signal<boolean>
+  +copy(): Promise<void>
 }
 
 class ConnectBlocker <<component>> {
   +title: string
   +body: string
-  +icon: 'browser' | 'secure' | 'bluetooth-off' | 'blocked'
+  +icon: 'browser' | 'lock' | 'bluetooth-off' | 'blocked'
 }
 
 class ConnectWorks <<component>> {
   +bikes: readonly SupportedBike[]
 }
 
-class "connectedBikeGuard" as guard <<function>> {
+class "blockedBrowserGuard" as guard <<function>> {
   +canActivate(): true | UrlTree
 }
 
@@ -98,5 +111,8 @@ bikes "1" *-- "5" SupportedBike
 ConnectWorks ..> SupportedBike : lists
 BrowserNotice ..> BluetoothSupport : shown from state by the page
 ConnectBlocker ..> BluetoothSupport : shown from state by the page
-guard ..> isBlocked : blocked is never connected
+guard ..> isBlocked : a blocked browser opens The Class
+noticeHelper ..> BluetoothSupportState : reads
+BrowserNotice ..> noticeHelper : drawn from
+LinkCopy ..> Clipboard : copies the page address
 @enduml

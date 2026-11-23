@@ -1,6 +1,7 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import {
   BIKE_CONNECTION,
+  BLUETOOTH_SUPPORT,
   COURSE_GRAPHICS,
   type ClassDefinition,
   HOW_TO_RIDE,
@@ -12,7 +13,7 @@ import {
   VIDEO_PLAYER_FACTORY,
   type VideoPlayer,
 } from '@telo/api';
-import { rideWith } from '@telo/domain';
+import { isBlocked, rideWith } from '@telo/domain';
 import { theClassView } from './the-class-view';
 
 /** The class, or `null` for one that is refused because it breaks a rule (L2-080 AC3). */
@@ -35,6 +36,7 @@ function read(source: TheClassSource): ClassDefinition | null {
 export class TheClassStore {
   private readonly loaded = read(inject(THE_CLASS));
   private readonly connection = inject(BIKE_CONNECTION);
+  private readonly support = inject(BLUETOOTH_SUPPORT);
   /** The bike this browser remembers names the status before the connection has one (L2-015). */
   private readonly remembered = inject(REMEMBERED_BIKE).get();
   private readonly howToRide = inject(HOW_TO_RIDE);
@@ -64,6 +66,7 @@ export class TheClassStore {
       ? theClassView({
           definition: this.loaded,
           connected: this.connection.ble() === 'connected',
+          blocked: isBlocked(this.support.state()),
           rideWith: this.rideWith(),
           drawable: this.drawable,
           videoUnavailable: this.playerMissing() || this.player()?.state() === 'error',

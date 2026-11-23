@@ -76,6 +76,7 @@
         "video-unavailable",
         "cannot-draw",
         "needs-chromium",
+        "link-copied",
         "needs-https",
         "cannot-load"
       ],

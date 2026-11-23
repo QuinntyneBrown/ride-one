@@ -1,9 +1,9 @@
 // Acceptance test
-// Traces to: L2-171 AC1, AC2, AC3, AC5; L2-080 AC3
+// Traces to: L2-171 AC1, AC2, AC3, AC5; L2-080 AC3; L2-008 AC2; L2-009 AC1; L2-010 AC1
 // Description: The Class fits the screen it is on. In landscape from 1024 px wide (1024 × 768, an 11" tablet at
 // 1194 × 834, a desktop at 1440 × 900) it is one screen that does not scroll: the video takes the height left and stays
 // 16:9, "What the bike will do" sits under it, and the details, the choice of how to ride and the start button sit in
-// a fixed column on the right, in every state. A landscape window too short for all of it scrolls, and cuts nothing
+// a fixed column on the right, in every state, a blocked browser's with its alert under the header included. A landscape window too short for all of it scrolls, and cuts nothing
 // off. On a phone or a tablet in portrait (390 × 844, 834 × 1194) it is one column in the order video, details, the
 // choice of how to ride, "What the bike will do", with the start button pinned to the bottom, clear of the home bar,
 // and nothing behind it at the end of the scroll. In either layout exactly one start button shows, and Tab reaches it.
@@ -71,6 +71,28 @@ const states: Record<string, (given: Given) => Promise<TheClassPage>> = {
     await theClass.videoSettled();
     return theClass;
   },
+  // A blocked browser (docs/mocks/pages/the-class/needs-chromium and needs-https): the alert takes its height from
+  // the room under the header, and the start button is disabled, with its line (L2-008 AC2, L2-009 AC1, L2-010 AC1).
+  'in a browser without Web Bluetooth': async ({ page, bluetooth }) => {
+    await bluetooth.remove();
+    const theClass = new TheClassPage(page);
+    await theClass.open();
+    await expect(theClass.noticeAction).toHaveText('Copy link');
+    await expect(theClass.start).toBeDisabled();
+    await expect(theClass.startHint).toBeVisible();
+    await theClass.videoSettled();
+    return theClass;
+  },
+  'on plain http': async ({ page, bluetooth }) => {
+    await bluetooth.servePlainHttp();
+    const theClass = new TheClassPage(page);
+    await theClass.open();
+    await expect(theClass.noticeAction).toHaveText('Open over HTTPS');
+    await expect(theClass.start).toBeDisabled();
+    await expect(theClass.startHint).toBeVisible();
+    await theClass.videoSettled();
+    return theClass;
+  },
 };
 
 /** The landscape windows of L2-171 AC1, with the width of the details column the design gives each. */
@@ -135,6 +157,8 @@ test.describe('The Class by form factor', () => {
           // The start button ends the column, whole inside the window, with its line under it where it has one.
           expect(start.left).toBeCloseTo(info.left, 0);
           expect(start.right).toBeCloseTo(info.right, 0);
+          // As tall as the design draws it from lg: 64 px.
+          expect(start.height).toBeCloseTo(64, 0);
           expect(start.bottom).toBeLessThanOrEqual(height);
           if ((await theClass.startHint.count()) > 0) {
             const hint = await theClass.box(theClass.startHint);
@@ -243,6 +267,7 @@ test.describe('The Class by form factor', () => {
           expect(footer.left).toBe(0);
           expect(footer.right).toBe(width);
           expect(pinned.top).toBeGreaterThanOrEqual(footer.top);
+          expect(pinned.height).toBeCloseTo(56, 0);
           expect(pinned.bottom).toBeLessThanOrEqual(height);
 
           // At the end of the scroll the button has not moved, and the last line of the screen is above its bar.
