@@ -1,5 +1,4 @@
-// Block class-card (docs/design-system/assets/components.css, Class Library): the host is the link or the button.
-// A locked card reads muted, greyed and with its lock label, so colour never carries the lock alone.
+// Block class-card (docs/design-system/assets/components.css, Class Library): the host is the link.
 :host {
   display: flex;
   flex-direction: column;
@@ -18,10 +17,6 @@
   &:focus-visible {
     outline: none;
   }
-}
-
-:host([aria-disabled='true']) {
-  cursor: default;
 }
 
 .class-card__cover {
@@ -49,32 +44,6 @@
   :host(:hover) & {
     transform: scale(1.03);
   }
-
-  :host([aria-disabled='true']) & {
-    opacity: 0.35;
-    filter: grayscale(1);
-    transform: none;
-  }
-}
-
-.class-card__lock {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-}
-
-.class-card__lock-label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  border-radius: var(--radius-md);
-  background: var(--color-scrim-strong);
-  padding: var(--space-1) var(--space-2-5);
-  color: var(--color-gold);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-sm);
-  font-weight: var(--font-weight-semibold);
 }
 
 .class-card__time {
@@ -95,10 +64,6 @@
 
 wz-class-profile {
   margin-top: var(--space-2);
-
-  :host([aria-disabled='true']) & {
-    opacity: 0.4;
-  }
 }
 
 .class-card__title {
@@ -110,10 +75,6 @@ wz-class-profile {
 
   :host(:hover) & {
     color: var(--color-volt-fg);
-  }
-
-  :host([aria-disabled='true']) & {
-    color: var(--color-muted);
   }
 }
 

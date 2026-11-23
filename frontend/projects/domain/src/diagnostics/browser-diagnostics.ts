@@ -6,7 +6,6 @@ import {
   CONNECTION_HISTORY,
   type Diagnostics,
   REMEMBERED_BIKE,
-  RIDES_WAITING,
 } from '@telo/api';
 import { ResistanceController } from '../engine/resistance-controller';
 import { type BrowserSource, diagnosticsFacts } from './diagnostics-facts';
@@ -23,7 +22,7 @@ interface UserAgentData {
 
 /**
  * `Diagnostics` in the browser (docs/detailed-designs/diagnostics/inspect-diagnostics): the facts from the browser,
- * Web Bluetooth, the bike link, the device's waiting rides and the build, kept current each second while the dialog
+ * Web Bluetooth, the bike link and the build, kept current each second while the dialog
  * that provides it is open, and the last command sent where a ride's `ResistanceController` is in reach. Nothing
  * leaves the device. Its clock stops when its owner is destroyed.
  */
@@ -37,7 +36,6 @@ export class BrowserDiagnostics implements Diagnostics {
   private readonly build = inject(BUILD_INFO);
   private readonly controller = inject(ResistanceController, { optional: true });
   private readonly now = signal(Date.now());
-  private readonly waiting = signal<number | null>(null);
   private readonly browser = signal<BrowserSource>(this.fromNavigator());
   private readonly remembered = this.rememberedBike.get();
   private readonly lastSeen = this.rememberedBike.lastSeen();
@@ -55,7 +53,6 @@ export class BrowserDiagnostics implements Diagnostics {
       last: this.controller?.last() ?? null,
       remembered: this.remembered,
       lastSeen: this.lastSeen,
-      waiting: this.waiting(),
       build: this.build,
       now: this.now(),
     }),
@@ -64,12 +61,6 @@ export class BrowserDiagnostics implements Diagnostics {
   constructor() {
     const tick = setInterval(() => this.now.set(Date.now()), 1000);
     inject(DestroyRef).onDestroy(() => clearInterval(tick));
-    inject(RIDES_WAITING)
-      .oldestFirst()
-      .then(
-        (rides) => this.waiting.set(rides.length),
-        () => this.waiting.set(null),
-      );
     void this.refineBrowser();
   }
 

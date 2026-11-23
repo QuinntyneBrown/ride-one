@@ -30,8 +30,6 @@ export interface DiagnosticsInput {
   readonly last: SentCommand | null;
   readonly remembered: BikeInfo | null;
   readonly lastSeen: Date | null;
-  /** Rides waiting to send, or `null` until counted. */
-  readonly waiting: number | null;
   readonly build: BuildInfo;
   readonly now: number;
 }
@@ -162,8 +160,6 @@ export function diagnosticsFacts(input: DiagnosticsInput): readonly DiagnosticsF
   } else {
     facts.push({ term: 'Bike', value: 'None picked yet', tone: 'warn' });
   }
-  if (input.waiting !== null)
-    facts.push({ term: 'Rides waiting to send', value: String(input.waiting) });
   facts.push({
     term: 'App version',
     value: `${input.build.version} · client ${input.build.commit}`,

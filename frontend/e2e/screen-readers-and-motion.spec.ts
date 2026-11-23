@@ -1,36 +1,20 @@
 // Acceptance test
 // Traces to: L2-141 AC2, AC3, L2-142 AC2
-// Description: a screen reader hears each step of a ride once, as it starts (the custom ride's "Work, round 1 of 8:
-// 0:30 at level 24", the class ride's "Work, 0:30"), and the result when Results opens; the countdowns are timers
-// it is not read every second. A dialog takes the focus and keeps it, the app behind it is inert, and closing it
+// Description: a screen reader hears each step of a ride once, as it starts (the class ride's "Work, 0:30"), and the
+// result when Results opens. A dialog takes the focus and keeps it, the app behind it is inert, and closing it
 // gives the focus back to what opened it. With the device asking for reduced motion, nothing on any screen moves but
 // an opacity fade: the interval and segment bars jump to their place.
 import { startClassRide } from './fixtures/class-ride';
-import { startCustomRide } from './fixtures/custom-ride';
+import { echelonBike } from './fixtures/echelon';
 import { openResults, soloClass } from './fixtures/results';
 import { screens } from './fixtures/screens';
 import { expect, test } from './fixtures/test';
 import { AppDocument } from './pages/app-document';
+import { DiagnosticsDialog } from './pages/diagnostics.dialog';
+import { ProfilePage } from './pages/profile.page';
 
 test.describe('Screen readers', () => {
-  test(
-    'the custom ride says each step once, as it starts, and not its countdown (L2-141 AC2)',
-    { tag: '@critical' },
-    async ({ page, bluetooth }) => {
-      const ride = await startCustomRide(page, bluetooth);
-      const app = new AppDocument(page);
-
-      await page.clock.fastForward('05:00');
-      await page.clock.runFor(1000);
-
-      await expect(ride.intervalName).toHaveText('Work Round 1 of 8');
-      await expect(app.announcement).toHaveText('Work, round 1 of 8: 0:30 at level 24');
-      await expect(ride.countdown).toHaveAttribute('role', 'timer');
-      await expect(ride.countdown).not.toHaveAttribute('aria-live');
-    },
-  );
-
-  test('the class ride says each step once, as it starts (L2-141 AC2)', async ({
+  test('the class ride says each step once, as it starts (L2-141 AC2) @critical', async ({
     page,
     bluetooth,
     api,
@@ -50,7 +34,7 @@ test.describe('Screen readers', () => {
     await openResults(page, soloClass());
 
     await expect(new AppDocument(page).announcement).toHaveText(
-      'Class results: You finished 30:00. +110 XP earned.',
+      'Class results: You finished 30:00.',
     );
   });
 });
@@ -60,24 +44,25 @@ test.describe('Dialogs', () => {
     page,
     bluetooth,
   }) => {
-    const ride = await startCustomRide(page, bluetooth);
+    await bluetooth.remember(echelonBike);
+    const profile = new ProfilePage(page);
+    await profile.open();
     const app = new AppDocument(page);
+    const diagnostics = new DiagnosticsDialog(page);
 
-    await ride.library.click();
-    await page.clock.runFor(100);
-    await expect(ride.leave).toBeVisible();
+    await profile.bikeRow.click();
+    await expect(diagnostics.heading).toBeVisible();
 
     await expect(app.app).toHaveAttribute('inert');
     for (let i = 0; i < 6; i++) {
       await page.keyboard.press('Tab');
-      expect(await AppDocument.holdsFocus(ride.leave)).toBe(true);
+      expect(await AppDocument.holdsFocus(diagnostics.root)).toBe(true);
     }
 
     await page.keyboard.press('Escape');
-    await page.clock.runFor(100);
-    await expect(ride.leave).toHaveCount(0);
+    await expect(diagnostics.root).toHaveCount(0);
     await expect(app.app).not.toHaveAttribute('inert');
-    await expect(ride.library).toBeFocused();
+    await expect(profile.bikeRow).toBeFocused();
   });
 });
 

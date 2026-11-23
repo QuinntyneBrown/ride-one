@@ -24,7 +24,6 @@ export const hiitCardio = {
   channel: 'GCN Training',
   focus: 'HIIT',
   lengthSeconds: 1800,
-  opensAtLevel: 1,
   shelfId: '30-min',
   summary: 'Eight 30-second maximal efforts with a recovery that shrinks each round. The classic.',
   world: 'oldtown',

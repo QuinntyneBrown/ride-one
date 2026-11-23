@@ -14,13 +14,11 @@ export interface ClassDoorView {
 const FEATURED_SHELF = '30-min';
 
 /**
- * The Classes door's featured class: the first class on the 30 min shelf that the rider's level has opened, or none
+ * The Classes door's featured class: the first class on the 30 min shelf, or none
  * (docs/detailed-designs/home/choose-the-next-ride, Featured class).
  */
-export function classDoorView(catalogue: ClassCatalogueDto, level: number): ClassDoorView | null {
-  const featured = catalogue.classes.find(
-    (lesson) => lesson.shelfId === FEATURED_SHELF && lesson.opensAtLevel <= level,
-  );
+export function classDoorView(catalogue: ClassCatalogueDto): ClassDoorView | null {
+  const featured = catalogue.classes.find((lesson) => lesson.shelfId === FEATURED_SHELF);
   return featured
     ? {
         classId: featured.id,

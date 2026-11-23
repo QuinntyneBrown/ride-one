@@ -12,7 +12,7 @@ export interface Segment {
   readonly cadenceAim: number;
 }
 
-/** A class's or custom ride's segments, ridden in order from 0:00. */
+/** A class's segments, ridden in order from 0:00. */
 export interface Plan {
   readonly segments: readonly Segment[];
 }

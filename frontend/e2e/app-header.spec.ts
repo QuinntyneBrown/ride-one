@@ -2,11 +2,11 @@
 // Traces to: L2-032 AC1, AC4; L2-144 AC1, AC2
 // Description: the app header offers Full screen, which enters full screen and then reads "Exit full screen" and
 // leaves it; where the browser has no Fullscreen API the button is absent. Each page of the shell marks its own item
-// current. On a phone the navigation takes its own full-width row of equal items and the level shows only its badge.
+// current. On a phone the navigation takes its own full-width row of equal items. The header has no streak, level or XP
+// (ADR 0039).
 import { echelonBike } from './fixtures/echelon';
 import { withoutFullscreen } from './fixtures/fullscreen';
 import { library } from './fixtures/library';
-import { midRiderProgress } from './fixtures/progress';
 import { expect, test } from './fixtures/test';
 import { ClassLibraryPage } from './pages/class-library.page';
 import { HomePage } from './pages/home.page';
@@ -37,7 +37,7 @@ test('where the browser has no Fullscreen API, the button is absent (L2-144 AC2)
   const home = new HomePage(page);
   await home.open();
 
-  await expect(home.header.level).toBeVisible();
+  await expect(home.header.bike).toBeVisible();
   await expect(home.header.fullScreen).toHaveCount(0);
 });
 
@@ -56,17 +56,14 @@ test('each page of the shell marks its own item current, and offers Full screen 
   }
 });
 
-test('on a phone the navigation takes its own row of equal items, and the level shows only its badge (L2-032 AC4)', async ({
+test('on a phone the navigation takes its own row of equal items (L2-032 AC4)', async ({
   page,
-  api,
 }) => {
-  api.answer('GET', '/api/progress', midRiderProgress);
   await page.setViewportSize({ width: 390, height: 844 });
   const home = new HomePage(page);
   await home.open();
 
-  await expect(home.header.levelBadge).toHaveText('7');
-  await expect(home.header.xpLabel).toBeHidden();
+  await expect(home.header.links).toHaveCount(3);
   await expect(home.header.bike).toBeHidden();
   const brand = await home.header.brand.boundingBox();
   const items = await Promise.all(

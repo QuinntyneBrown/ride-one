@@ -26,7 +26,7 @@ public sealed class EmbeddedClassCatalogue : IClassCatalogue
         return (
             [.. catalogue.Shelves.Select(s => new Shelf(s.Id, s.Title, s.Tagline))],
             [.. catalogue.Classes.Select(c => new ClassDefinition(
-                c.Id, c.Title, c.Channel, c.Focus, c.LengthSeconds, c.OpensAtLevel, c.ShelfId, c.Summary, c.World,
+                c.Id, c.Title, c.Channel, c.Focus, c.LengthSeconds, c.ShelfId, c.Summary, c.World,
                 c.Video.VideoId, c.Video.SyncOffsetSeconds,
                 [.. c.Plan.Segments.Select(s => new ClassSegment(s.Kind, s.Duration, s.Level, s.CadenceAim))]))]);
     }
@@ -41,7 +41,6 @@ public sealed class EmbeddedClassCatalogue : IClassCatalogue
         string Channel,
         string Focus,
         int LengthSeconds,
-        int OpensAtLevel,
         string ShelfId,
         string Summary,
         string World,

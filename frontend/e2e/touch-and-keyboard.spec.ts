@@ -1,16 +1,13 @@
 // Acceptance test
 // Traces to: L2-140 AC1, AC2
 // Description: every screen works by touch on a phone and by keyboard on a desktop. At 390 px, a tap anywhere in a
-// 44 × 44 px square centred on any control reaches it, and in a 48 × 48 px square on a ride (a class ride, a
-// custom ride), whatever the control looks like. At 1280 px, Tab reaches every control in turn, each in the window
-// and drawn with a focus ring. The custom ride's level bars are the one exception to the tap area: the resistance
-// stepper beside them sets the same levels with 48 px buttons and is the keyboard's way (WCAG 2.5.8, equivalent).
+// 44 × 44 px square centred on any control reaches it, and in a 48 × 48 px square on a class ride, whatever the
+// control looks like. At 1280 px, Tab reaches every control in turn, each in the window and drawn with a focus ring.
 import { screens } from './fixtures/screens';
 import { expect, test } from './fixtures/test';
 import { AppDocument } from './pages/app-document';
 
-const rides = new Set(['a class ride', 'a custom ride']);
-const equivalents = ['.ride-levels__bar'];
+const rides = new Set(['a class ride']);
 
 test.describe('Touch and keyboard', () => {
   for (const [screen, open] of Object.entries(screens)) {
@@ -23,7 +20,7 @@ test.describe('Touch and keyboard', () => {
         await page.setViewportSize({ width: 390, height: 844 });
         await expect(await open({ page, bluetooth, api })).toBeAttached();
 
-        expect(await new AppDocument(page).untappable(size, equivalents)).toEqual([]);
+        expect(await new AppDocument(page).untappable(size)).toEqual([]);
       },
     );
 

@@ -1,10 +1,8 @@
 /**
- * Home's heading (L2-033 AC1, AC3): "Morning, {name}." before 12:00, "Afternoon, {name}." from 12:00 to 16:59 and
- * "Evening, {name}." from 17:00; a rider with no rides yet is welcomed with "Welcome, {name}." A rider who has not chosen a name yet is greeted without one.
+ * Home's heading (L2-033 AC1): "Morning." before 12:00, "Afternoon." from 12:00 to 16:59 and "Evening." from 17:00.
+ * Telo Ride 1 knows no rider's name (ADR 0039), so it greets no one by name.
  */
-export function homeGreeting(name: string | null, hour: number, isNewRider: boolean): string {
-  const to = name ? `, ${name}` : '';
-  if (isNewRider) return `Welcome${to}.`;
+export function homeGreeting(hour: number): string {
   const part = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening';
-  return `${part}${to}.`;
+  return `${part}.`;
 }

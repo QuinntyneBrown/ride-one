@@ -6,8 +6,8 @@ namespace Telo.Ride.Api.Errors;
 
 /// <summary>
 /// Model binding's own refusal, a body of the wrong type or not JSON at all, in the API's shape (L2-129 AC1, AC4): 400,
-/// code <c>validation_failed</c> and <c>errors</c> keyed by the field as the app sends it (<c>elapsedSeconds</c>, not
-/// <c>$.elapsedSeconds</c>). The framework's messages name .NET types, so each field gets a message of its own.
+/// code <c>validation_failed</c> and <c>errors</c> keyed by the field as the app sends it (<c>powerWatts</c>, not
+/// <c>$.powerWatts</c>). The framework's messages name .NET types, so each field gets a message of its own.
 /// </summary>
 internal static class InvalidBodyResponse
 {
@@ -33,7 +33,7 @@ internal static class InvalidBodyResponse
 
     private const string Body = "body";
 
-    /// <summary>A JSON path as the app names the field: <c>$.elapsedSeconds</c> → <c>elapsedSeconds</c>; the body → <c>body</c>.</summary>
+    /// <summary>A JSON path as the app names the field: <c>$.powerWatts</c> → <c>powerWatts</c>; the body → <c>body</c>.</summary>
     private static string Field(string key)
     {
         var field = key.StartsWith("$.", StringComparison.Ordinal) ? key[2..] : key.TrimStart('$');

@@ -15,7 +15,6 @@ public static class ClassPlanRules
     public static string? BrokenRule(ClassDefinition definition)
     {
         if (!IsYouTubeId(definition.VideoId)) return "the video id is not a YouTube id";
-        if (!ClassTierRules.IsTier(definition.OpensAtLevel)) return "the tier is not 1, 5, 10 or 20";
         if (definition.SyncOffsetSeconds < 0) return "the sync offset is below 0";
         if (definition.Segments.Count == 0) return "the plan has no segment";
         if (definition.Segments.Any(s => !Kinds.Contains(s.Kind)))

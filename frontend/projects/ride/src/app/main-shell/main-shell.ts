@@ -2,30 +2,21 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
-import {
-  BIKE_CONNECTION,
-  BLUETOOTH_SUPPORT,
-  FULLSCREEN,
-  PROGRESS_STORE,
-  REMEMBERED_BIKE,
-} from '@telo/api';
+import { BIKE_CONNECTION, BLUETOOTH_SUPPORT, FULLSCREEN, REMEMBERED_BIKE } from '@telo/api';
 import {
   AppHeader,
   AppHeaderBike,
   AppHeaderBrand,
-  AppHeaderLevel,
   AppHeaderLink,
-  AppHeaderStreak,
   FullscreenToggle,
 } from '@telo/components';
 import { bikeStatus } from '@telo/domain';
-import { toLevelView } from '../progress/level-view';
 
 /**
  * The layout route of the four home screens, Settings and Page not found: the app header over the scrolling page. The
  * item the address falls under is current, and Profile is current on Settings too (L2-158 AC1); an address that
- * matches no item marks none. Entering it reads
- * the rider's progress again, so the level link shows what the last ride earned (L2-032 AC2).
+ * matches no item marks none. It shows the bike's status and full screen; Telo Ride 1 has no streak, level or XP
+ * (ADR 0039).
  */
 @Component({
   selector: 'wz-main-shell',
@@ -35,9 +26,7 @@ import { toLevelView } from '../progress/level-view';
     AppHeader,
     AppHeaderBike,
     AppHeaderBrand,
-    AppHeaderLevel,
     AppHeaderLink,
-    AppHeaderStreak,
     FullscreenToggle,
   ],
   templateUrl: './main-shell.html',
@@ -49,28 +38,14 @@ export default class MainShell {
   private readonly support = inject(BLUETOOTH_SUPPORT);
   /** The bike this browser remembers names the status before the connection has one (L2-015). */
   private readonly remembered = inject(REMEMBERED_BIKE).get();
-  private readonly progress = inject(PROGRESS_STORE);
   /** Full screen, offered only where the browser can show it (L2-144). */
   protected readonly fullscreen = inject(FULLSCREEN);
-
-  constructor() {
-    this.progress.refresh();
-  }
 
   /** Enters full screen, or leaves it while in it (L2-144 AC1). */
   protected toggleFullscreen(): void {
     if (this.fullscreen.active()) this.fullscreen.exit();
     else this.fullscreen.enter();
   }
-
-  /** The streak in days; 0, so absent, until the progress arrives (L2-032 AC3). */
-  protected readonly streakDays = computed(() => this.progress.progress()?.streakDays ?? 0);
-
-  /** The level link, absent until the progress arrives or while it cannot be read. */
-  protected readonly level = computed(() => {
-    const progress = this.progress.progress();
-    return progress === null ? null : toLevelView(progress);
-  });
 
   /** The header's bike status (L2-019 AC1, AC2). */
   protected readonly bike = computed(() =>

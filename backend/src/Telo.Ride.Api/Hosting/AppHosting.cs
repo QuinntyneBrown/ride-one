@@ -4,8 +4,8 @@ using Microsoft.Net.Http.Headers;
 namespace Telo.Ride.Api.Hosting;
 
 /// <summary>
-/// Serves the production build of the ride app from <c>wwwroot</c> (ADR 0026, L2-149 AC1): its files without
-/// a session, <c>index.html</c> for every other address that is not the backend's, and never a stale
+/// Serves the production build of the ride app from <c>wwwroot</c> (ADR 0026, L2-149 AC1): its files,
+/// <c>index.html</c> for every other address that is not the backend's, and never a stale
 /// <c>index.html</c> or service worker (L2-135 AC3). Under <c>/api</c> and <c>/health</c> an unknown
 /// address stays the backend's.
 /// </summary>
@@ -36,10 +36,9 @@ internal static class AppHosting
     /// <summary>The fallbacks: the app's shell for its routes, ProblemDetails for an unknown backend address.</summary>
     public static void MapApp(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapFallbackToFile(Shell).AllowAnonymous();
+        endpoints.MapFallbackToFile(Shell);
         foreach (var path in BackendPaths)
         {
-            // Needs a session like every endpoint, so without one the answer is 401; with one, 404.
             endpoints.MapFallback($"{path}/{{**rest}}", () => Results.Problem(
                 title: "Not found.",
                 statusCode: StatusCodes.Status404NotFound,

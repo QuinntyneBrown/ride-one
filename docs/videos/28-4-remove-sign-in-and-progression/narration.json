@@ -1,0 +1,67 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "Telo Ride 1 has no account. Open it, and it asks for nothing: no email, no code, no name."
+      ]
+    },
+    {
+      "id": "earned",
+      "bars": 5,
+      "lines": [
+        "Nothing is earned. The header lost its streak, its level and its X P bar, and Profile keeps two rows: the bike, and ride settings."
+      ]
+    },
+    {
+      "id": "recorded",
+      "bars": 5,
+      "lines": [
+        "Nothing is recorded. Finish the class, and Results shows your time, with no X P. The ride is sent nowhere, and no cookie is set."
+      ]
+    },
+    {
+      "id": "gone",
+      "bars": 5,
+      "lines": [
+        "Feedback and the custom workout left with the account. The backend keeps the class catalogue, and one migration drops every rider table."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "Home, with nothing to sign in to, on every screen from a phone to a desktop."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 5,
+      "lines": [
+        "What the tests prove: no sign-in, no request but the catalogue, every class open, and every check still passes."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}

@@ -15,6 +15,8 @@ export class ClassLibraryPage {
   readonly retry: Locator;
   /** A group session's chip on any card; Telo Ride 1 has none (ADR 0038). */
   readonly groupChips: Locator;
+  /** A locked card's lock; Telo Ride 1 locks no class (ADR 0039). */
+  readonly locks: Locator;
 
   constructor(private readonly page: Page) {
     this.header = new AppHeader(page);
@@ -28,6 +30,7 @@ export class ClassLibraryPage {
     this.error = page.locator('.library-error .inline-message__text');
     this.retry = page.getByRole('button', { name: 'Try again' });
     this.groupChips = page.locator('.class-card__group');
+    this.locks = page.locator('.class-card__lock, .class-card--locked');
   }
 
   async open(): Promise<void> {
@@ -47,18 +50,16 @@ export class ClassLibraryPage {
   }
 }
 
-/** One class card: open, a link to its Class Start; locked, a disabled button. */
+/** One class card: a link to its Class Start. */
 export class ClassCard {
   readonly cover: Locator;
   readonly time: Locator;
-  readonly lock: Locator;
   readonly profileBars: Locator;
   readonly meta: Locator;
 
   constructor(readonly root: Locator) {
     this.cover = root.locator('.class-card__cover img');
     this.time = root.locator('.class-card__time');
-    this.lock = root.locator('.class-card__lock-label');
     this.profileBars = root.locator('.class-profile rect');
     this.meta = root.locator('.class-card__meta');
   }

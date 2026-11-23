@@ -1,3 +1,4 @@
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { inject, provideEnvironmentInitializer } from '@angular/core';
 import type { Routes } from '@angular/router';
 import {
@@ -6,10 +7,7 @@ import {
   CONNECTION_HISTORY,
   DISPLAY_PREFERENCES,
   FULLSCREEN,
-  HttpRiderProgressApi,
-  PROGRESS_STORE,
   RIDE_SETTINGS,
-  RIDER_PROGRESS_API,
 } from '@telo/api';
 import {
   BikeConnectionHistory,
@@ -22,10 +20,6 @@ import { provideAppCache } from './app-cache/provide-app-cache';
 import { provideAppUpdates } from './app-update/provide-app-updates';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
-import { reconnectRememberedBikeGuard } from './bike/reconnect-remembered-bike.guard';
-import { RiderProgressStore } from './progress/rider-progress-store';
-import { authGuard } from './session/auth.guard';
-import { provideSession } from './session/provide-session';
 
 // Set at build time by angular.json's `define` (and the deploy's --define for the commit); absent in unit tests.
 declare const TELO_VERSION: string | undefined;
@@ -40,7 +34,8 @@ export const rideRoutes: Routes = [
     path: '',
     providers: [
       provideBikeConnection(),
-      provideSession(),
+      // The one `HttpClient` the screens share, for the class catalogue. Telo Ride 1 has no account (ADR 0039).
+      provideHttpClient(withFetch()),
       provideAppCache(),
       // Each new version offered between rides, never during one (L2-150 AC2).
       provideAppUpdates(),
@@ -65,14 +60,7 @@ export const rideRoutes: Routes = [
       // What a screen reader hears: a ride's steps and the result (L2-141 AC2).
       { provide: ANNOUNCER, useClass: LiveRegionAnnouncer },
     ],
-    // Every screen needs a rider but sign-in, the code screen and not-found (L2-001 AC1).
-    canActivateChild: [authGuard],
     children: [
-      // Sign-in and the code screen stand alone, with no app navigation (docs/mocks/pages/sign-in/).
-      {
-        path: 'sign-in',
-        loadChildren: () => import('./sign-in/sign-in.routes').then((m) => m.signInRoutes),
-      },
       // Connect Bike stands alone, with no app navigation (docs/mocks/pages/connect-bike/).
       {
         path: 'connect',
@@ -96,22 +84,9 @@ export const rideRoutes: Routes = [
         path: 'results',
         loadChildren: () => import('./results/results.routes').then((m) => m.resultsRoutes),
       },
-      // Custom workout has its own header, with no app navigation (docs/mocks/pages/custom-setup/).
-      {
-        path: 'profile/custom',
-        canActivate: [reconnectRememberedBikeGuard],
-        loadChildren: () =>
-          import('./custom-workout/custom-workout.routes').then((m) => m.customWorkoutRoutes),
-      },
       {
         path: '',
         loadComponent: () => import('./main-shell/main-shell'),
-        // The rider's progress, which the header, Home and Profile share (L2-032 AC2).
-        providers: [
-          { provide: RIDER_PROGRESS_API, useClass: HttpRiderProgressApi },
-          RiderProgressStore,
-          { provide: PROGRESS_STORE, useExisting: RiderProgressStore },
-        ],
         children: [
           {
             path: '',

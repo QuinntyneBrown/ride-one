@@ -6,14 +6,15 @@
 //
 // Given the app is cached and a new version is deployed, when the rider opens the app, then a toast reads "A new version
 //   is ready" and "Reload to use it now, or it opens next time.", and Reload loads the app again.
-// Given a custom ride in progress, when the service worker has the new version ready, then no toast shows and the page
-//   is not reloaded; when the rider ends the ride, then Profile opens with the toast.
+// Given a class ride in progress, when the service worker has the new version ready, then no toast shows and the page
+//   is not reloaded; when the class ends, then Results opens with the toast.
 // Given the toast, when the rider dismisses it, then it goes and the page is not reloaded.
 import { appCached } from './fixtures/app-cache';
-import { startCustomRide } from './fixtures/custom-ride';
+import { startClassRide } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 import { AppUpdate } from './pages/app-update';
 import { HomePage } from './pages/home.page';
+import { ResultsPage } from './pages/results.page';
 
 test.use({ serviceWorkers: 'allow' });
 
@@ -47,13 +48,14 @@ test('during a ride the new version waits, and is offered when the ride ends (L2
   page,
   context,
   bluetooth,
+  api,
 }) => {
   const home = new HomePage(page);
   const update = new AppUpdate(page);
   await home.open();
   await expect(home.greeting).toBeVisible();
   await appCached(page);
-  const ride = await startCustomRide(page, bluetooth);
+  await startClassRide(page, bluetooth, api);
   await update.markPage();
 
   await update.deploy(context);
@@ -63,9 +65,10 @@ test('during a ride the new version waits, and is offered when the ride ends (L2
   await expect(update.toast).toBeHidden();
   expect(await update.reloaded()).toBe(false);
 
-  await ride.end.click();
-  await page.clock.runFor(100);
-  await expect(page).toHaveURL(/\/profile$/);
+  await page.clock.fastForward('29:58');
+  await page.clock.runFor(2000);
+  await new ResultsPage(page).shown();
+  await expect(page).toHaveURL(/\/results$/);
   await expect(update.toast).toBeVisible();
   expect(await update.reloaded()).toBe(false);
 });

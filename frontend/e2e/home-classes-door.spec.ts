@@ -1,18 +1,16 @@
 // Acceptance test
 // Traces to: L2-035 AC1, AC2 (Ride alone), AC3 (Ride alone)
 // Description: Home's Classes door reads "Classes" with "All classes", and its teaser shows the featured class, the
-// first open class on the 30 min shelf, with its length and "Ride alone", which opens Class Start with Start class.
+// first class on the 30 min shelf, with its length and "Ride alone", which opens Class Start with Start class.
 // Telo Ride 1 has no group sessions (ADR 0038), so the door has no next session and no "Join group".
 import { echelonBike } from './fixtures/echelon';
-import { midRiderProgress } from './fixtures/progress';
 import { expect, test } from './fixtures/test';
 import { ClassLibraryPage } from './pages/class-library.page';
 import { ClassStartPage } from './pages/class-start.page';
 import { HomePage } from './pages/home.page';
 
-test.beforeEach(async ({ api, bluetooth }) => {
+test.beforeEach(async ({ bluetooth }) => {
   await bluetooth.remember(echelonBike);
-  api.answer('GET', '/api/progress', midRiderProgress);
 });
 
 test('the Classes door features 30 Minute HIIT Cardio, and Ride alone opens Class Start with Start class (L2-035 AC1 to AC3) @critical', async ({

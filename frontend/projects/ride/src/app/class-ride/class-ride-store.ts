@@ -7,8 +7,6 @@ import {
   CLASSES_API,
   type ClassDto,
   type ClassResult,
-  type SubmitRideRequest,
-  RIDE_OUTBOX,
   RIDE_SOUND,
   RIDE_ACTIVITY,
   SCREEN_WAKE_LOCK,
@@ -68,9 +66,8 @@ export class ClassRideStore {
   /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
   private readonly activity = inject(RIDE_ACTIVITY);
   private readonly sound = inject(RIDE_SOUND);
-  private readonly outbox = inject(RIDE_OUTBOX);
   private readonly started = signal(false);
-  /** The ride's record for the backend, with the ride id given when the class starts (Record a ride). */
+  /** The ride's output and share on target, for Results. */
   private recorder: RideRecorder | null = null;
   private lastSecond = 0;
   private videoHost: HTMLElement | null = null;
@@ -244,8 +241,8 @@ export class ClassRideStore {
   }
 
   /**
-   * The plan's end: the clock stops at the class length, the video pauses, the ride is submitted (L2-044 AC2), and
-   * Results opens with the class's result and the ride in the navigation's state (L2-093 AC2, L2-078 AC1). Leaving the
+   * The plan's end: the clock stops at the class length, the video pauses, and Results opens with the class's result
+   * in the navigation's state (L2-093 AC2, L2-078 AC1). The ride is sent nowhere (L2-132 AC3, ADR 0039). Leaving the
    * page releases the rest.
    */
   private finish(ride: ClassDto): void {
@@ -255,19 +252,18 @@ export class ClassRideStore {
     this.wakeLock.release();
     this.activity.end();
     this.sound.stop();
-    const submitted = this.submit(ride);
     const classResult: ClassResult = {
       classId: ride.id,
       title: ride.title,
       elapsedSeconds: ride.lengthSeconds,
-      outputKj: submitted?.outputKj ?? 0,
-      onTargetShare: submitted?.onTargetShare ?? 0,
+      outputKj: this.recorder?.outputKj ?? 0,
+      onTargetShare: this.recorder?.onTargetShare ?? 0,
     };
-    void this.router.navigateByUrl('/results', { state: { classResult, ride: submitted } });
+    void this.router.navigateByUrl('/results', { state: { classResult } });
   }
 
   /**
-   * Each second ridden at the bike's power and speed (L2-022 AC2), on target when the power is within 10 % of the
+   * Each second ridden at the bike's power (L2-022 AC2), on target when the power is within 10 % of the
    * segment's target (L2-037 AC3); seconds a hidden tab skipped count at those of the moment, and a held ride's clock
    * does not tick.
    */
@@ -275,23 +271,8 @@ export class ClassRideStore {
     const power = this.telemetry.powerW();
     const target = this.plan()?.targetPower ?? null;
     const onTarget = power !== null && target !== null && PowerModel.onTarget(power, target);
-    this.recorder?.record(power, this.telemetry.speedKmh(), second - this.lastSecond, onTarget);
+    this.recorder?.record(power, second - this.lastSecond, onTarget);
     this.lastSecond = second;
-  }
-
-  /**
-   * Hands the finished class with its record to the outbox, which sends it to the backend (L2-044 AC2) and outlives the
-   * page; Results follows it there. The ride as submitted, or none before the ride began.
-   */
-  private submit(ride: ClassDto): SubmitRideRequest | null {
-    if (!this.recorder) return null;
-    const submitted: SubmitRideRequest = {
-      ...this.recorder.facts(new Date()),
-      kind: 'class',
-      classId: ride.id,
-    };
-    this.outbox.submit(submitted);
-    return submitted;
   }
 
   private hold(): void {

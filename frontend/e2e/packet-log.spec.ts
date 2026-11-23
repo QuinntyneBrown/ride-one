@@ -1,14 +1,17 @@
 import { readFile } from 'node:fs/promises';
 import type { Page } from '@playwright/test';
-import { startCustomRide } from './fixtures/custom-ride';
-import { ECHELON_NOTIFY, resistanceFrame, workoutFrame } from './fixtures/echelon';
+import { connectBike } from './fixtures/class-ride';
+import { ECHELON_NOTIFY, echelonBike, resistanceFrame, workoutFrame } from './fixtures/echelon';
+import type { FakeBluetooth } from './fixtures/fake-bluetooth';
 import { expect, test } from './fixtures/test';
 import { DiagnosticsDialog } from './pages/diagnostics.dialog';
+import { HomePage } from './pages/home.page';
+import { ProfilePage } from './pages/profile.page';
 
 // Slice 25.2, Record the packet log (L2-114, L2-115): what went to the bike, or every message both ways while "Log
 // every packet" is on, kept on the device and saved as a file.
 //
-// Given a ride on a connected bike with "Log every packet" off, when Diagnostics opens, then the log counts the
+// Given a connected bike with "Log every packet" off, when Diagnostics opens, then the log counts the
 //   commands sent, "N commands · N KB", and the console holds no per-packet line (L2-114 AC1, L2-115 AC2).
 // Given that log, when "Download packet log" is pressed, then telo-ride-packets-{YYYY-MM-DD}.jsonl is saved with one
 //   JSON object per command, in order (time, direction, frame type, hex bytes), and the dialog says what it saves
@@ -38,10 +41,14 @@ function packetLines(page: Page): string[] {
   return lines;
 }
 
-/** Opens Diagnostics from the ride's bike status, with time running: the dialog's code loads on demand. */
-async function openDiagnostics(page: Page, open: () => Promise<void>): Promise<DiagnosticsDialog> {
-  await page.clock.resume();
-  await open();
+/** Home connects the remembered Echelon (L2-015), and Profile's bike row opens Diagnostics for it. */
+async function openDiagnostics(page: Page, bluetooth: FakeBluetooth): Promise<DiagnosticsDialog> {
+  await bluetooth.remember(echelonBike);
+  const home = new HomePage(page);
+  await home.open();
+  await connectBike(bluetooth);
+  await home.header.link('Profile').click();
+  await new ProfilePage(page).bikeRow.click();
   const diagnostics = new DiagnosticsDialog(page);
   await expect(diagnostics.heading).toBeVisible();
   return diagnostics;
@@ -78,10 +85,9 @@ test('with "Log every packet" off, the log keeps the commands and saves them as 
   bluetooth,
 }) => {
   const console = packetLines(page);
-  const ride = await startCustomRide(page, bluetooth);
+  const diagnostics = await openDiagnostics(page, bluetooth);
   await bluetooth.notify(ECHELON_NOTIFY, workoutFrame(80));
   const before = bluetooth.writes().length;
-  const diagnostics = await openDiagnostics(page, () => ride.diagnostics.click());
 
   await expect(diagnostics.everyPacket).toHaveAttribute('aria-checked', 'false');
   const shown = await counted(diagnostics, 'commands');
@@ -119,8 +125,7 @@ test('with "Log every packet" on, every message both ways is kept and counted as
   bluetooth,
 }) => {
   const console = packetLines(page);
-  const ride = await startCustomRide(page, bluetooth);
-  const diagnostics = await openDiagnostics(page, () => ride.diagnostics.click());
+  const diagnostics = await openDiagnostics(page, bluetooth);
 
   await diagnostics.everyPacket.click();
   await expect(diagnostics.everyPacket).toHaveAttribute('aria-checked', 'true');

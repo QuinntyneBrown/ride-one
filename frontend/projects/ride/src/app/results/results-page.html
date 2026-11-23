@@ -1,4 +1,4 @@
-@if (view(); as view) {
+@if (view; as view) {
   <div class="results-page">
     <wz-results-header [context]="view.context">
       <wz-fullscreen-button slot="end" />
@@ -20,8 +20,7 @@
             <p class="results__sub">{{ sub }}</p>
           }
         </section>
-        <aside class="earned" aria-label="What you earned">
-          <wz-xp-earned [view]="view.xp" />
+        <aside class="earned" aria-label="What next">
           <div class="results__actions">
             <a wz-button variant="primary" size="xl" [block]="true" routerLink="/">Done</a>
             <!-- prettier-ignore -->

@@ -1,7 +1,7 @@
 import { InjectionToken, type Signal } from '@angular/core';
 
 /**
- * Whether a ride is in progress: from the start of a race, class or custom ride until its Results open or the rider
+ * Whether a ride is in progress: from the start of a class until its Results open or the rider
  * leaves it (L2-150 AC2). The app never reloads into a new version while one is.
  */
 export interface RideActivity {

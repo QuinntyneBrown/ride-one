@@ -5,7 +5,6 @@ import {
   type ClassCatalogueDto,
   type ClassDto,
   ClassesApiError,
-  PROGRESS_API,
   type Segment,
 } from '@telo/api';
 import { classCover } from '../classes/class-cover';
@@ -19,8 +18,6 @@ export interface ClassCardView {
   readonly cover: string;
   readonly lengthSeconds: number;
   readonly segments: readonly Segment[];
-  /** The rider level the class opens at while the rider is below it; null when it is open (L2-082). */
-  readonly opensAtLevel: number | null;
 }
 
 /** One shelf of the library with its cards, in catalogue order. */
@@ -42,7 +39,7 @@ export const LENGTH_TABS = [
 /**
  * The Class Library's state, provided on its page (docs/detailed-designs/classes/browse-the-class-library): the
  * catalogue from `CLASSES_API`, which answers from the device's copy when the backend cannot be reached, shaped into
- * shelves of cards, each open or locked for the rider level from `PROGRESS_API`, and the length tab chosen. With no
+ * shelves of cards, every one open (ADR 0039), and the length tab chosen. With no
  * catalogue to read and none kept it is `unavailable`, and `retry()` asks again (L2-081 AC7). It goes, with its
  * requests, when the rider leaves the library.
  */
@@ -51,7 +48,6 @@ export class ClassLibraryStore {
   private readonly classes = inject(CLASSES_API);
   private readonly destroyRef = inject(DestroyRef);
   private readonly catalogue = signal<ClassCatalogueDto | null>(null);
-  private readonly level = signal<number | null>(null);
 
   /** No catalogue could be read and none is kept on the device. */
   readonly unavailable = signal(false);
@@ -61,15 +57,12 @@ export class ClassLibraryStore {
 
   readonly shelves = computed<readonly ShelfView[]>(() => {
     const catalogue = this.catalogue();
-    const level = this.level();
-    if (!catalogue || level === null) return [];
+    if (!catalogue) return [];
     return catalogue.shelves.map((shelf) => ({
       id: shelf.id,
       title: shelf.title,
       tagline: shelf.tagline,
-      cards: catalogue.classes
-        .filter((dto) => dto.shelfId === shelf.id)
-        .map((dto) => card(dto, level)),
+      cards: catalogue.classes.filter((dto) => dto.shelfId === shelf.id).map(card),
     }));
   });
 
@@ -81,10 +74,6 @@ export class ClassLibraryStore {
   );
 
   constructor() {
-    inject(PROGRESS_API)
-      .level()
-      .pipe(takeUntilDestroyed())
-      .subscribe((level) => this.level.set(level));
     this.load();
   }
 
@@ -107,7 +96,7 @@ export class ClassLibraryStore {
   }
 }
 
-function card(dto: ClassDto, level: number): ClassCardView {
+function card(dto: ClassDto): ClassCardView {
   return {
     id: dto.id,
     title: dto.title,
@@ -117,6 +106,5 @@ function card(dto: ClassDto, level: number): ClassCardView {
     cover: classCover(dto.video.videoId),
     lengthSeconds: dto.lengthSeconds,
     segments: dto.plan.segments,
-    opensAtLevel: dto.opensAtLevel > level ? dto.opensAtLevel : null,
   };
 }

@@ -1,7 +1,7 @@
 @use '../../styles/page';
 
 // Block results (docs/design-system/assets/components.css, Results): the header over the scrolling page; one column on
-// a phone and, from lg, the result beside what was earned, with the actions at the bottom.
+// a phone and, from lg, the result beside the actions, at the bottom of their column.
 .results-page {
   display: flex;
   flex-direction: column;
@@ -87,7 +87,7 @@
   flex-direction: column;
   gap: var(--space-2);
 
-  // From lg at the bottom of the column, 32 px from the panels when the column is short.
+  // From lg at the bottom of the column.
   @media (min-width: 64rem) {
     margin-top: auto;
     padding-top: var(--space-8);

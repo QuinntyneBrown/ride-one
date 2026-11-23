@@ -51,9 +51,9 @@ Neighbouring features own the adjacent concerns:
   `BIKE_CONNECTION`, `RememberedBike` and `REMEMBERED_BIKE`, `VideoPlayer` and
   `VIDEO_PLAYER_FACTORY`, `MonotonicTime` and `MONOTONIC_TIME`, `Ticker` and `TICKER`, `Fullscreen`
   and `ScreenWakeLock`. Telo Ride 1 adds `RideRecord` and `RIDE_RECORD`, `FinishedRide` and
-  `FINISHED_RIDE`, and `Logger` and `LOGGER`. The carried-over HTTP clients (`auth/`, `riders/`, `rides/`,
-  `progress/`) are not part of Telo Ride 1. Whether `classes/` keeps an HTTP
-  client is `<TO SUPPLY>` (`L2.md` open question 1).
+  `FINISHED_RIDE`, and `Logger` and `LOGGER`. Telo Ride's HTTP clients for accounts, rides and
+  progress left with slice 28.4 (ADR 0039); `classes/` keeps its HTTP client until the class ships
+  with the app (ADR 0037, slice 30.1).
 - **`domain`**: exists. `protocol/` (`EchelonFrameDecoder`, `IndoorBikeDataDecoder`, the Echelon
   and FTMS command builders), `bluetooth/` (`WebBluetoothBikeConnection`, `EchelonLink`,
   `FtmsLink`, `GattWriteQueue`, `KeepaliveScheduler`, `DeviceReconnector`,

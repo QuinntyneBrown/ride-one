@@ -5,21 +5,16 @@ import { ClassProfile } from './class-profile';
 
 /**
  * A class card of the Class Library (design-system block class-card): the cover with the class's length, its resistance
- * profile, its title and "{channel} · {focus}" (L2-081 AC4). The page puts it on a link to the class's Class Start when
- * it is open; locked, on a button that stays focusable with `aria-disabled="true"`, a lock and "Opens at level {n}" in
- * its name (L2-082 AC2).
+ * profile, its title and "{channel} · {focus}" (L2-081 AC4). The page puts it on a link to the class's Class Start;
+ * Telo Ride 1 locks no class (ADR 0039).
  */
 @Component({
-  selector: 'a[wz-class-card], button[wz-class-card]',
+  selector: 'a[wz-class-card]',
   imports: [ClassProfile],
   templateUrl: './class-card.html',
   styleUrl: './class-card.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    class: 'class-card',
-    '[class.class-card--locked]': 'opensAtLevel() !== null',
-    '[attr.aria-disabled]': "opensAtLevel() === null ? null : 'true'",
-  },
+  host: { class: 'class-card' },
 })
 export class ClassCard {
   readonly title = input.required<string>();
@@ -28,8 +23,6 @@ export class ClassCard {
   readonly cover = input.required<string>();
   readonly lengthSeconds = input.required<number>();
   readonly segments = input.required<readonly Segment[]>();
-  /** The rider level the class opens at while it is locked; null when it is open. */
-  readonly opensAtLevel = input<number | null>(null);
 
   protected readonly time = computed(() => formatClock(this.lengthSeconds()));
 }

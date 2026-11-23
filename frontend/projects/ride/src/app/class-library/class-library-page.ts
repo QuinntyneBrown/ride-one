@@ -5,7 +5,7 @@ import { ClassLibraryStore, LENGTH_TABS } from './class-library-store';
 
 /**
  * The Class Library at `/classes` (L2-081): the head with the Class length tabs, and the shelves the chosen tab shows,
- * each with its class cards; an open card leads to its Class Start. With no catalogue to read or kept, it says so and
+ * each with its class cards; a card leads to its Class Start. With no catalogue to read or kept, it says so and
  * offers Try again.
  */
 @Component({
