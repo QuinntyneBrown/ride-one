@@ -213,6 +213,10 @@ export function parseCourse(value: unknown): CourseFile {
     throw new Error("The course's sun has no direction.");
   }
   if (!Array.isArray(stages) || stages.length === 0) throw new Error('The course has no stages.');
+  // The stages are the plan's, laid end to end: each starts where the one before ends, in seconds and in metres,
+  // from the start line to the finish line, and they add up to the class's seconds (L2-175 AC6).
+  let seconds = 0;
+  let metres = 0;
   for (const stage of stages as readonly Partial<CourseStage>[]) {
     const numbers = [
       stage.start,
@@ -225,8 +229,64 @@ export function parseCourse(value: unknown): CourseFile {
     if (!KINDS.includes(stage.kind ?? '') || !numbers.every(isNumber) || stage.to! < stage.from!) {
       throw new Error('A stage of the course is malformed.');
     }
+    const whole = Number.isInteger(stage.level) && stage.level! >= 1 && stage.level! <= 32;
+    const laid =
+      Math.abs(stage.start! - seconds) <= SECONDS_EPSILON &&
+      Math.abs(stage.from! - metres) <= METRES_EPSILON;
+    if (!whole || stage.duration! <= 0 || stage.cadenceAim! <= 0 || !laid) {
+      throw new Error('A stage of the course is malformed.');
+    }
+    seconds = stage.start! + stage.duration!;
+    metres = stage.to!;
   }
+  if (
+    Math.abs(seconds - file.durationSeconds!) > SECONDS_EPSILON ||
+    Math.abs(metres - file.lengthMetres) > METRES_EPSILON
+  ) {
+    throw new Error('A stage of the course is malformed.');
+  }
+  refuseBadLook(file as CourseFile);
   return file as CourseFile;
+}
+
+/** A stage may start this many seconds off the one before's end, and a stretch this many metres: rounding. */
+const SECONDS_EPSILON = 0.5;
+const METRES_EPSILON = 0.5;
+
+/**
+ * What a file names of how the course looks must be what it says: a colour that is not one, a count that is not
+ * right or a number out of range makes the course malformed, never a look drawn from a bad value. What it leaves out
+ * is the sunset's (`courseLook`), as the shipped file's lamps, rain and wet are.
+ */
+function refuseBadLook(file: CourseFile): void {
+  const named = (part: string): boolean =>
+    (file as unknown as Record<string, unknown>)[part] !== undefined;
+  const refuse = (part: string, are = false): never => {
+    throw new Error(`The course's ${part} ${are ? 'are' : 'is'} malformed.`);
+  };
+  const colours = (list: unknown, count: (n: number) => boolean): boolean =>
+    Array.isArray(list) && count(list.length) && list.every((c) => colour(c) !== null);
+  const unit = (value: unknown): boolean => isNumber(value) && value >= 0 && value <= 1;
+
+  if (named('sky') && !colours(file.sky, (n) => n >= 2)) refuse('sky');
+  if (named('haze') && colour(file.haze) === null) refuse('haze');
+  if (named('fill') && !colours(file.fill, (n) => n === 2)) refuse('fill');
+  if (named('light')) {
+    const light = file.light as Partial<NonNullable<CourseFile['light']>> | null;
+    const intensity = light?.intensity;
+    if (!light || colour(light.colour) === null || !isNumber(intensity) || intensity < 0) {
+      refuse('light');
+    }
+  }
+  if (named('rain') && !unit(file.rain)) refuse('rain');
+  if (named('wet') && !unit(file.wet)) refuse('wet');
+  if (named('lamps') && courseLamps(file) === null) refuse('lamps', true);
+  if (named('lights')) {
+    const lights = file.lights as unknown;
+    if (!Array.isArray(lights) || courseLights(file).length * 5 !== lights.length) {
+      refuse('lights', true);
+    }
+  }
 }
 
 /** The road of a course, asked by the ride's clock and by metres along it. */

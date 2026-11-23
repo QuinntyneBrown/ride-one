@@ -15,6 +15,7 @@ export class CourseFiles {
   readonly requests: Request[] = [];
   private held: Route[] = [];
   private holding: ((path: string) => boolean) | null = null;
+  private edit: ((course: Record<string, unknown>) => void) | null = null;
 
   /** Watches the course's files from now on, answered by the app's own server unless the spec holds them. */
   static async install(page: Page): Promise<CourseFiles> {
@@ -39,6 +40,11 @@ export class CourseFiles {
     this.holding = only;
   }
 
+  /** Serves the course's centre-line file with `change` applied to what the app's own server sent (L2-175 AC6). */
+  alter(change: (course: Record<string, unknown>) => void): void {
+    this.edit = change;
+  }
+
   /** Answers the held requests and every one after. */
   async release(): Promise<void> {
     this.holding = null;
@@ -51,6 +57,13 @@ export class CourseFiles {
     this.requests.push(route.request());
     if (this.holding?.(new URL(route.request().url()).pathname)) {
       this.held.push(route);
+      return;
+    }
+    if (this.edit && new URL(route.request().url()).pathname === '/courses/ibiza.course.json') {
+      const response = await route.fetch();
+      const course = (await response.json()) as Record<string, unknown>;
+      this.edit(course);
+      await route.fulfill({ response, json: course });
       return;
     }
     await route.continue();

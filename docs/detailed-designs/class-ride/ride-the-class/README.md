@@ -223,6 +223,16 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   fetches `courses/ibiza.glb`, `courses/ibiza.course.json` and `riders/rider.glb` from the app's origin, and draws
   the course with one rider (`L2-174` AC6): the code that made a field of other riders, a ghost and their
   shadows is gone. How the course itself is drawn is unchanged.
+- **`parseCourse`** (`world`'s `course.ts`, built by slice 37.3). The gate every course file passes before the
+  renderer draws from it; a file it refuses is a course that cannot be drawn (the renderer's `start` returns
+  false, and slice 37.4 says so). The file is data (`L2-175` AC6): the plan's stages must lie end to end (each
+  starts where the one before ends in seconds and in metres, the first at the grid and the last at the course's
+  length, adding up to its seconds, with a level from 1 to 32 and a cadence aim above nothing); a sky, haze, light,
+  fill, lamps or lights the file names must be what they say (a `#rrggbb` colour, the right count, a number in
+  range) and a rain or wet must be 0 to 1. What a file leaves out is Ibiza's sunset, as the shipped file's lamps,
+  rain and wet are; what it names wrongly is never drawn. The course's hills are as `tools/blender/themes.py`
+  builds them, 0.855 % a level with ramps (`L2-174` AC3, open question 18); the grid and the finish arch are in
+  `ibiza.glb`, the arch at the course's last metre.
 - **`ClassBike`** (exists, `wz-class-bike`). Two columns on a phone and one row of four from md.
 - **`ClassSegment`** (exists, `wz-class-segment`). Inputs `segments`, `index`, `remaining` and
   `progress`. It renders the kind with its swatch, the time left as `role="timer"` with
