@@ -273,6 +273,24 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 36.3 Screen readers, contrast and motion (2026-11-23)
+
+**What slowed it down**
+
+- Announcements, reduced motion and the efforts' colour-free states were already covered
+  (`screen-readers-and-motion.spec.ts`, the Class Done specs). New `headings-and-timers.spec.ts`: one `h1` on each of
+  the five screens (L2-141 AC1), every `timer` outside a live region (AC2), the resistance profile one named image with
+  no list items (AC5). No product code changed.
+- Two first-draft assertions were wrong, not the app: Class Done's verdict is not always "Class done." ("Your best is
+  still 342 kJ"), and Class Ride has more than one `timer` (the clock and the segment countdown), so the check runs
+  over all of them.
+- **Contrast (L2-141 AC4) in both themes is not asserted here:** it is a sweep, run only when a person asks. Hover
+  150 ms and panels 200 ms (L2-142 AC1) are the design tokens' values, not tested.
+
+**New lessons**
+
+- Read the requirement's plural before asserting a count: "Timers use `role=timer`" meant every timer.
+
 ### 36.2 Touch and keyboard (2026-11-23)
 
 **What slowed it down**
